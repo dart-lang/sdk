@@ -179,6 +179,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING,
   CompileTimeErrorCode.ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED,
   CompileTimeErrorCode.ENUM_MIXIN_WITH_INSTANCE_VARIABLE,
+  CompileTimeErrorCode.ENUM_WITHOUT_CONSTANTS,
   CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER,
   CompileTimeErrorCode.ENUM_WITH_NAME_VALUES,
   CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET,

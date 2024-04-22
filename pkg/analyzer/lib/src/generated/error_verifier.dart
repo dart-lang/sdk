@@ -653,6 +653,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _checkClassInheritance(node, null, withClause, implementsClause);
       }
 
+      if (!element.isAugmentation) {
+        if (element.augmented.constants.isEmpty) {
+          errorReporter.atToken(
+            node.name,
+            CompileTimeErrorCode.ENUM_WITHOUT_CONSTANTS,
+          );
+        }
+      }
+
       var members = node.members;
       libraryVerificationContext.constructorFieldsVerifier
           .addConstructors(errorReporter, augmented, members);

@@ -689,7 +689,7 @@ main() { // missing async
     var declaration = parseFullCompilationUnitMember() as EnumDeclaration;
     expectNotNullIfNoErrors(declaration);
     // TODO(brianwilkerson): Convert codes to errors when highlighting is fixed.
-    listener.assertErrorsWithCodes([ParserErrorCode.EMPTY_ENUM_BODY]);
+    listener.assertErrorsWithCodes([]);
 //    listener
 //        .assertErrors([expectedError(ParserErrorCode.EMPTY_ENUM_BODY, 7, 2),]);
   }

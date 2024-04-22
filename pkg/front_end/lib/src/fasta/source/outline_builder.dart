@@ -3057,6 +3057,12 @@ class OutlineBuilder extends StackListenerImpl {
     checkEmpty(startCharOffset);
 
     if (identifier is Identifier) {
+      if (enumConstantInfos == null) {
+        if (!leftBrace.isSynthetic) {
+          addProblem(messageEnumDeclarationEmpty, identifier.token.offset,
+              identifier.token.length);
+        }
+      }
       if (interfaces != null) {
         for (TypeBuilder interface in interfaces) {
           if (interface.nullabilityBuilder.build(libraryBuilder) ==

@@ -41,7 +41,6 @@ class Parser {
     fastaParser = fasta.Parser(
       astBuilder,
       allowPatterns: featureSet.isEnabled(Feature.patterns),
-      enableFeatureMacros: featureSet.isEnabled(Feature.macros),
     );
     astBuilder.parser = fastaParser;
     astBuilder.allowNativeClause = allowNativeClause;

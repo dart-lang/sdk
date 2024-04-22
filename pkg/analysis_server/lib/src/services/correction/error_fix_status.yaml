@@ -588,6 +588,8 @@ CompileTimeErrorCode.ENUM_WITH_NAME_VALUES:
   since: 2.17
   notes: |-
     Requires a rename.
+CompileTimeErrorCode.ENUM_WITHOUT_CONSTANTS:
+  status: noFix
 CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET:
   status: needsFix
   notes: |-
