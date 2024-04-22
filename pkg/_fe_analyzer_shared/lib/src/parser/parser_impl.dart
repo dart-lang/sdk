@@ -338,14 +338,10 @@ class Parser {
   /// [parsePrimaryPattern] and [parsePattern].
   bool isLastPatternAllowedInsideUnaryPattern = false;
 
-  /// Indicates whether the macros feature is enabled.
-  final bool enableFeatureMacros;
-
   Parser(
     this.listener, {
     this.useImplicitCreationExpression = true,
     this.allowPatterns = false,
-    this.enableFeatureMacros = false,
   }) : assert(listener != null); // ignore:unnecessary_null_comparison
 
   /// Executes [callback]; however if `this` is the `TestParser` (from
@@ -2374,9 +2370,6 @@ class Parser {
         Token next = token.next!;
         if (optional('}', next) || optional(';', next)) {
           token = next;
-          if (elementCount == 0 && !enableFeatureMacros) {
-            reportRecoverableError(token, codes.messageEnumDeclarationEmpty);
-          }
           break;
         }
         token = parseEnumElement(token);

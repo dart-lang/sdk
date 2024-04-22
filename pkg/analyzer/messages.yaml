@@ -4454,6 +4454,9 @@ CompileTimeErrorCode:
       #### Common fixes
 
       Rename the enum to something other than `values`.
+  ENUM_WITHOUT_CONSTANTS:
+    problemMessage: The enum must have at least one constant.
+    correctionMessage: Try declaring a constant.
   EQUAL_ELEMENTS_IN_CONST_SET:
     problemMessage: "Two elements in a constant set literal can't be equal."
     correctionMessage: Change or remove the duplicate element.

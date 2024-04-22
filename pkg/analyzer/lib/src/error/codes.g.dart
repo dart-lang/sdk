@@ -1441,6 +1441,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const CompileTimeErrorCode ENUM_WITHOUT_CONSTANTS =
+      CompileTimeErrorCode(
+    'ENUM_WITHOUT_CONSTANTS',
+    "The enum must have at least one constant.",
+    correctionMessage: "Try declaring a constant.",
+  );
+
   ///  Parameters:
   ///  0: the name of the abstract method
   ///  1: the name of the enclosing enum

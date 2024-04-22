@@ -5,7 +5,6 @@
 import 'dart:math' as math;
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analysis_server/src/utilities/yaml_node_locator.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/error/error.dart';
@@ -14,6 +13,7 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/analysis_options/error/option_codes.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_yaml.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
@@ -249,7 +249,7 @@ class AnalysisOptionsFixGenerator {
   }
 
   int _firstNonWhitespaceBefore(int offset) {
-    while (offset > 0 && isWhitespace(content.codeUnitAt(offset - 1))) {
+    while (offset > 0 && content.codeUnitAt(offset - 1).isWhitespace) {
       offset--;
     }
     return offset;

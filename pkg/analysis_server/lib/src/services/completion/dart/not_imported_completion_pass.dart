@@ -17,35 +17,40 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 /// the extensions in a given library that match a known type.
 class InstanceExtensionMembersOperation extends NotImportedOperation {
   /// The declaration helper to be used to create the candidate suggestions.
-  final DeclarationHelper declarationHelper;
+  final DeclarationHelper _declarationHelper;
 
   /// The type that the extensions must extend.
-  final InterfaceType type;
+  final InterfaceType _type;
 
   /// The names of getters that should not be suggested.
-  final Set<String> excludedGetters;
+  final Set<String> _excludedGetters;
 
   /// Whether to include suggestions for methods.
-  final bool includeMethods;
+  final bool _includeMethods;
 
   /// Whether to include suggestions for setters.
-  final bool includeSetters;
+  final bool _includeSetters;
 
   InstanceExtensionMembersOperation(
-      {required this.declarationHelper,
-      required this.type,
-      required this.excludedGetters,
-      required this.includeMethods,
-      required this.includeSetters});
+      {required DeclarationHelper declarationHelper,
+      required InterfaceType type,
+      required Set<String> excludedGetters,
+      required bool includeMethods,
+      required bool includeSetters})
+      : _declarationHelper = declarationHelper,
+        _type = type,
+        _excludedGetters = excludedGetters,
+        _includeMethods = includeMethods,
+        _includeSetters = includeSetters;
 
   /// Compute any candidate suggestions for elements in the [library].
   void computeSuggestionsIn(LibraryElement library) {
-    declarationHelper.addNotImportedExtensionMethods(
+    _declarationHelper.addNotImportedExtensionMethods(
         library: library,
-        type: type,
-        excludedGetters: excludedGetters,
-        includeMethods: includeMethods,
-        includeSetters: includeSetters);
+        type: _type,
+        excludedGetters: _excludedGetters,
+        includeMethods: _includeMethods,
+        includeSetters: _includeSetters);
   }
 }
 
@@ -54,23 +59,29 @@ class InstanceExtensionMembersOperation extends NotImportedOperation {
 /// that could be imported into the scope.
 class NotImportedCompletionPass {
   /// The state used to compute the candidate suggestions.
-  final CompletionState state;
+  final CompletionState _state;
 
   /// The suggestion collector to which suggestions will be added.
-  final SuggestionCollector collector;
+  final SuggestionCollector _collector;
 
   /// The operation to be performed for each of the not imported libraries.
-  final List<NotImportedOperation> operations;
+  final List<NotImportedOperation> _operations;
 
   /// Initialize a newly created completion pass.
-  NotImportedCompletionPass(this.state, this.collector, this.operations);
+  NotImportedCompletionPass(
+      {required CompletionState state,
+      required SuggestionCollector collector,
+      required List<NotImportedOperation> operations})
+      : _state = state,
+        _collector = collector,
+        _operations = operations;
 
   /// Compute any candidate suggestions for elements in not imported libraries.
   Future<void> computeSuggestions({
     required OperationPerformanceImpl performance,
   }) async {
-    var request = state.request;
-    var budget = state.budget;
+    var request = _state.request;
+    var budget = _state.budget;
 
     var analysisDriver = request.analysisContext.driver;
 
@@ -84,14 +95,14 @@ class NotImportedCompletionPass {
         await analysisDriver.discoverAvailableFiles().timeout(budget.left);
       });
     } on TimeoutException {
-      collector.isIncomplete = true;
+      _collector.isIncomplete = true;
       return;
     }
 
     var knownFiles = fsState.knownFiles.toList();
     for (var file in knownFiles) {
       if (budget.isEmpty) {
-        collector.isIncomplete = true;
+        _collector.isIncomplete = true;
         return;
       }
 
@@ -109,7 +120,7 @@ class NotImportedCompletionPass {
         continue;
       }
 
-      for (var operation in operations) {
+      for (var operation in _operations) {
         switch (operation) {
           case InstanceExtensionMembersOperation():
             performance.run('instanceMembers', (_) {
@@ -157,16 +168,17 @@ sealed class NotImportedOperation {}
 /// members from a not imported library.
 class StaticMembersOperation extends NotImportedOperation {
   /// The declaration helper to be used to create the candidate suggestions.
-  final DeclarationHelper declarationHelper;
+  final DeclarationHelper _declarationHelper;
 
   /// Initialize a newly created operation to use the [declarationHelper] to add
   /// the static members from a library.
-  StaticMembersOperation({required this.declarationHelper});
+  StaticMembersOperation({required DeclarationHelper declarationHelper})
+      : _declarationHelper = declarationHelper;
 
   /// Compute any candidate suggestions for elements in the [library].
   void computeSuggestionsIn(LibraryElement library,
       List<Element> exportElements, Set<Element> importedElements) {
     // TODO(brianwilkerson): Determine whether we need the element parameters.
-    declarationHelper.addNotImportedTopLevelDeclarations(library);
+    _declarationHelper.addNotImportedTopLevelDeclarations(library);
   }
 }

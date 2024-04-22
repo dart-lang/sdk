@@ -8,6 +8,7 @@ import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/manifest/charcodes.dart';
 import 'package:analyzer/src/manifest/manifest_values.dart';
 import 'package:analyzer/src/manifest/manifest_warning_code.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
@@ -100,10 +101,7 @@ class ManifestParser {
           content.codeUnitAt(_pos) == $slash) &&
       content.codeUnitAt(_pos + 1) == $gt;
 
-  bool get _isWhitespace {
-    var char = content.codeUnitAt(_pos);
-    return char == $space || char == $tab || char == $lf || char == $cr;
-  }
+  bool get _isWhitespace => content.codeUnitAt(_pos).isWhitespace;
 
   /// Parses an XML tag into a [ParseTagResult].
   ParseTagResult parseXmlTag() {

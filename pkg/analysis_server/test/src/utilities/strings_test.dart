@@ -82,57 +82,6 @@ class StringsTest {
     expect(isBlank('X'), isFalse);
   }
 
-  void test_isDigit() {
-    for (var c in '0123456789'.codeUnits) {
-      expect(isDigit(c), isTrue);
-    }
-    expect(isDigit(' '.codeUnitAt(0)), isFalse);
-    expect(isDigit('A'.codeUnitAt(0)), isFalse);
-  }
-
-  void test_isLetter() {
-    for (var c in 'abcdefghijklmnopqrstuvwxyz'.codeUnits) {
-      expect(isLetter(c), isTrue);
-    }
-    for (var c in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.codeUnits) {
-      expect(isLetter(c), isTrue);
-    }
-    expect(isLetter(' '.codeUnitAt(0)), isFalse);
-    expect(isLetter('0'.codeUnitAt(0)), isFalse);
-  }
-
-  void test_isLetterOrDigit() {
-    for (var c in 'abcdefghijklmnopqrstuvwxyz'.codeUnits) {
-      expect(isLetterOrDigit(c), isTrue);
-    }
-    for (var c in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.codeUnits) {
-      expect(isLetterOrDigit(c), isTrue);
-    }
-    for (var c in '0123456789'.codeUnits) {
-      expect(isLetterOrDigit(c), isTrue);
-    }
-    expect(isLetterOrDigit(' '.codeUnitAt(0)), isFalse);
-    expect(isLetterOrDigit('.'.codeUnitAt(0)), isFalse);
-  }
-
-  void test_isSpace() {
-    expect(isSpace(' '.codeUnitAt(0)), isTrue);
-    expect(isSpace('\t'.codeUnitAt(0)), isTrue);
-    expect(isSpace('\r'.codeUnitAt(0)), isFalse);
-    expect(isSpace('\n'.codeUnitAt(0)), isFalse);
-    expect(isSpace('0'.codeUnitAt(0)), isFalse);
-    expect(isSpace('A'.codeUnitAt(0)), isFalse);
-  }
-
-  void test_isWhitespace() {
-    expect(isWhitespace(' '.codeUnitAt(0)), isTrue);
-    expect(isWhitespace('\t'.codeUnitAt(0)), isTrue);
-    expect(isWhitespace('\r'.codeUnitAt(0)), isTrue);
-    expect(isWhitespace('\n'.codeUnitAt(0)), isTrue);
-    expect(isWhitespace('0'.codeUnitAt(0)), isFalse);
-    expect(isWhitespace('A'.codeUnitAt(0)), isFalse);
-  }
-
   void test_removeEnd() {
     expect(removeEnd(null, 'x'), null);
     expect(removeEnd('abc', null), 'abc');

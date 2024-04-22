@@ -218,6 +218,7 @@ import 'enum_mixin_with_instance_variable_test.dart'
     as enum_mixin_with_instance_variable;
 import 'enum_with_abstract_member_test.dart' as enum_with_abstract_member;
 import 'enum_with_name_values_test.dart' as enum_with_name_values;
+import 'enum_without_constants_test.dart' as enum_without_constants;
 import 'equal_elements_in_const_set_test.dart' as equal_elements_in_const_set;
 import 'equal_elements_in_set_test.dart' as equal_elements_in_set;
 import 'equal_keys_in_const_map_test.dart' as equal_keys_in_const_map;
@@ -1054,6 +1055,7 @@ main() {
     enum_mixin_with_instance_variable.main();
     enum_with_abstract_member.main();
     enum_with_name_values.main();
+    enum_without_constants.main();
     equal_elements_in_const_set.main();
     equal_elements_in_set.main();
     equal_keys_in_const_map.main();

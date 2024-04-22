@@ -7,7 +7,6 @@ import 'dart:math';
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
-import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
@@ -21,6 +20,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:path/path.dart' as path;
@@ -437,7 +437,7 @@ final class CorrectionUtils {
     // skip whitespace characters
     while (index < length) {
       var c = _buffer.codeUnitAt(index);
-      if (!isWhitespace(c) || isEOL(c)) {
+      if (!c.isWhitespace || c.isEOL) {
         break;
       }
       index++;
@@ -461,7 +461,7 @@ final class CorrectionUtils {
   int getLineContentStart(int index) {
     while (index > 0) {
       var c = _buffer.codeUnitAt(index - 1);
-      if (!isSpace(c)) {
+      if (!c.isSpace) {
         break;
       }
       index--;
@@ -503,7 +503,7 @@ final class CorrectionUtils {
       if (c == 0xD || c == 0xA) {
         break;
       }
-      if (!isWhitespace(c)) {
+      if (!c.isWhitespace) {
         break;
       }
       lineNonWhitespace++;
@@ -789,10 +789,10 @@ final class CorrectionUtils {
     var lastLine = index;
     while (index > 0) {
       var c = _buffer.codeUnitAt(index - 1);
-      if (!isWhitespace(c)) {
+      if (!c.isWhitespace) {
         return lastLine;
       }
-      if (isEOL(c)) {
+      if (c.isEOL) {
         lastLine = index;
       }
       index--;

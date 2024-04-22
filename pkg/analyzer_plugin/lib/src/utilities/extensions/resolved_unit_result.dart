@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 
 extension ResolvedUnitResultExtension on ResolvedUnitResult {
   /// Returns the whitespace prefix of the line which contains the given
@@ -14,19 +15,9 @@ extension ResolvedUnitResultExtension on ResolvedUnitResult {
     var whitespaceEndOffset = lineStartOffset;
     while (whitespaceEndOffset < length) {
       var c = content.codeUnitAt(whitespaceEndOffset);
-      if (_isEol(c) || !_isSpace(c)) break;
+      if (c.isEOL || !c.isSpace) break;
       whitespaceEndOffset++;
     }
     return content.substring(lineStartOffset, whitespaceEndOffset);
   }
-
-  // TODO(srawlins): Move this to a shared extension in new plugin package when
-  // this code is moved to new plugin package.
-  bool _isEol(int c) {
-    return c == 0x0D || c == 0x0A;
-  }
-
-  // TODO(srawlins): Move this to a shared extension in new plugin package when
-  // this code is moved to new plugin package.
-  bool _isSpace(int c) => c == 0x20 || c == 0x09;
 }

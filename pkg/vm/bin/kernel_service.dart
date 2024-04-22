@@ -39,8 +39,7 @@ import 'package:kernel/binary/ast_from_binary.dart'
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
-import 'package:kernel/kernel.dart'
-    show Component, Library, Procedure, NonNullableByDefaultCompiledMode;
+import 'package:kernel/kernel.dart' show Component, Library, Procedure;
 import 'package:kernel/target/targets.dart' show Target, TargetFlags;
 import 'package:vm/http_filesystem.dart';
 import 'package:vm/incremental_compiler.dart';
@@ -84,7 +83,6 @@ CompilerOptions setupCompilerOptions(
     Uri? platformKernelPath,
     bool enableAsserts,
     bool embedSources,
-    bool soundNullSafety,
     List<String>? experimentalFlags,
     Uri? packagesUri,
     List<String> errorsPlain,
@@ -100,8 +98,7 @@ CompilerOptions setupCompilerOptions(
   }
 
   Verbosity verbosity = Verbosity.parseArgument(verbosityLevel);
-  Target target = new VmTarget(new TargetFlags(
-      soundNullSafety: soundNullSafety, supportMirrors: enableMirrors));
+  Target target = new VmTarget(new TargetFlags(supportMirrors: enableMirrors));
   return new CompilerOptions()
     ..fileSystem = fileSystem
     ..target = target
@@ -118,7 +115,6 @@ CompilerOptions setupCompilerOptions(
       errorsColorized.add(msg);
     })
     ..environmentDefines = new EnvironmentMap()
-    ..nnbdMode = soundNullSafety ? NnbdMode.Strong : NnbdMode.Weak
     ..onDiagnostic = (DiagnosticMessage message) {
       bool printToStdErr = false;
       bool printToStdOut = false;
@@ -161,7 +157,6 @@ abstract class Compiler {
   final Uri? platformKernelPath;
   final bool enableAsserts;
   final bool embedSources;
-  final bool soundNullSafety;
   final List<String>? experimentalFlags;
   final String? packageConfig;
   final String invocationModes;
@@ -181,7 +176,6 @@ abstract class Compiler {
   Compiler(this.isolateGroupId, this.fileSystem, this.platformKernelPath,
       {this.enableAsserts = false,
       this.embedSources = true,
-      this.soundNullSafety = true,
       this.experimentalFlags = null,
       this.supportCodeCoverage = false,
       this.supportHotReload = false,
@@ -207,7 +201,6 @@ abstract class Compiler {
         platformKernelPath,
         enableAsserts,
         embedSources,
-        soundNullSafety,
         experimentalFlags,
         packagesUri,
         errorsPlain,
@@ -297,7 +290,6 @@ class IncrementalCompilerWrapper extends Compiler {
   IncrementalCompilerWrapper(
       int isolateGroupId, FileSystem fileSystem, Uri? platformKernelPath,
       {bool enableAsserts = false,
-      bool soundNullSafety = true,
       List<String>? experimentalFlags,
       String? packageConfig,
       String invocationModes = '',
@@ -305,7 +297,6 @@ class IncrementalCompilerWrapper extends Compiler {
       required bool enableMirrors})
       : super(isolateGroupId, fileSystem, platformKernelPath,
             enableAsserts: enableAsserts,
-            soundNullSafety: soundNullSafety,
             experimentalFlags: experimentalFlags,
             supportHotReload: true,
             supportCodeCoverage: true,
@@ -357,7 +348,6 @@ class IncrementalCompilerWrapper extends Compiler {
     IncrementalCompilerWrapper clone = IncrementalCompilerWrapper(
         isolateGroupId, fileSystem, platformKernelPath,
         enableAsserts: enableAsserts,
-        soundNullSafety: soundNullSafety,
         experimentalFlags: experimentalFlags,
         packageConfig: packageConfig,
         invocationModes: invocationModes,
@@ -393,7 +383,6 @@ class SingleShotCompilerWrapper extends Compiler {
       {this.requireMain = false,
       bool enableAsserts = false,
       bool embedSources = true,
-      bool soundNullSafety = true,
       List<String>? experimentalFlags,
       String? packageConfig,
       String invocationModes = '',
@@ -402,7 +391,6 @@ class SingleShotCompilerWrapper extends Compiler {
       : super(isolateGroupId, fileSystem, platformKernelPath,
             enableAsserts: enableAsserts,
             embedSources: embedSources,
-            soundNullSafety: soundNullSafety,
             experimentalFlags: experimentalFlags,
             packageConfig: packageConfig,
             invocationModes: invocationModes,
@@ -438,7 +426,6 @@ IncrementalCompilerWrapper? lookupIncrementalCompiler(int isolateGroupId) {
 Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateGroupId,
     List sourceFiles, Uri platformKernelPath, List<int>? platformKernel,
     {bool enableAsserts = false,
-    bool soundNullSafety = true,
     List<String>? experimentalFlags,
     String? packageConfig,
     String? multirootFilepaths,
@@ -470,7 +457,6 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateGroupId,
       compiler = new IncrementalCompilerWrapper(
           isolateGroupId, fileSystem, platformKernelPath,
           enableAsserts: enableAsserts,
-          soundNullSafety: soundNullSafety,
           experimentalFlags: experimentalFlags,
           packageConfig: packageConfig,
           invocationModes: invocationModes,
@@ -778,7 +764,7 @@ Future _processLoadRequest(request) async {
   }
 
   final SendPort port = request[1];
-  final int isolateGroupId = request[8];
+  final int isolateGroupId = request[7];
   if (tag == kListDependenciesTag) {
     await _processListDependenciesRequest(port, isolateGroupId);
     return;
@@ -790,16 +776,15 @@ Future _processLoadRequest(request) async {
   final bool incremental = request[4];
   final bool forSnapshot = request[5];
   final bool embedSources = request[6];
-  final bool soundNullSafety = request[7];
-  final List sourceFiles = request[9];
-  final bool enableAsserts = request[10];
+  final List sourceFiles = request[8];
+  final bool enableAsserts = request[9];
   final List<String>? experimentalFlags =
-      request[11] != null ? request[11].cast<String>() : null;
-  final String? packageConfig = request[12];
-  final String? multirootFilepaths = request[13];
-  final String? multirootScheme = request[14];
-  final String verbosityLevel = request[16];
-  final bool enableMirrors = request[17];
+      request[10] != null ? request[10].cast<String>() : null;
+  final String? packageConfig = request[11];
+  final String? multirootFilepaths = request[12];
+  final String? multirootScheme = request[13];
+  final String verbosityLevel = request[14];
+  final bool enableMirrors = request[15];
   Uri platformKernelPath;
   List<int>? platformKernel = null;
   if (request[3] is String) {
@@ -869,7 +854,6 @@ Future _processLoadRequest(request) async {
     compiler = await lookupOrBuildNewIncrementalCompiler(
         isolateGroupId, sourceFiles, platformKernelPath, platformKernel,
         enableAsserts: enableAsserts,
-        soundNullSafety: soundNullSafety,
         experimentalFlags: experimentalFlags,
         packageConfig: packageConfig,
         multirootFilepaths: multirootFilepaths,
@@ -886,7 +870,6 @@ Future _processLoadRequest(request) async {
         requireMain: false,
         embedSources: embedSources,
         enableAsserts: enableAsserts,
-        soundNullSafety: soundNullSafety,
         experimentalFlags: experimentalFlags,
         packageConfig: packageConfig,
         invocationModes: invocationModes,
@@ -919,9 +902,6 @@ Future _processLoadRequest(request) async {
           await NativeAssetsSynthesizer.synthesizeLibraryFromYamlString(
         nativeAssets,
         errorDetector,
-        nonNullableByDefaultCompiledMode: soundNullSafety
-            ? NonNullableByDefaultCompiledMode.Strong
-            : NonNullableByDefaultCompiledMode.Weak,
         pragmaClass: compilerResult.coreTypes?.pragmaClass,
       );
       if (nativeAssetsLibrary != null) {
@@ -1138,7 +1118,6 @@ Future trainInternal(String scriptUri, String? platformKernelPath) async {
     false /* incremental */,
     false /* for_snapshot */,
     true /* embed_sources */,
-    true /* null safety */,
     1 /* isolateGroupId chosen randomly */,
     [] /* source files */,
     false /* enable asserts */,
@@ -1146,7 +1125,6 @@ Future trainInternal(String scriptUri, String? platformKernelPath) async {
     null /* package_config */,
     null /* multirootFilepaths */,
     null /* multirootScheme */,
-    null /* original working directory */,
     'all' /* CFE logging mode */,
     true /* enableMirrors */,
     null /* native assets yaml */,

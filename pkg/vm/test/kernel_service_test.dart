@@ -118,7 +118,6 @@ Future<kernel_service.Status> singleShotCompile(
     /* [4] = bool = incremental = */ false,
     /* [5] = bool = for_snapshot = */ false,
     /* [6] = bool = embed_sources = */ true,
-    /* [7] = bool = soundNullSafety = */ true,
     /* [8] = int = isolateGroupId = */ 42,
     /* [9] = List = sourceFiles = */ sourceFiles,
     /* [10] = bool = enableAsserts = */ true,
@@ -126,7 +125,6 @@ Future<kernel_service.Status> singleShotCompile(
     /* [12] = String? = packageConfig = */ packageConfig,
     /* [13] = String? = multirootFilepaths = */ null,
     /* [14] = String? = multirootScheme = */ null,
-    /* [15] = String? = workingDirectory = */ null,
     /* [16] = String = verbosityLevel = */ Verbosity.all.name,
     /* [17] = bool = enableMirrors = */ false,
   ]);

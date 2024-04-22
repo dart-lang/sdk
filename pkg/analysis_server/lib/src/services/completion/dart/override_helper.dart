@@ -44,15 +44,15 @@ class OverrideHelper {
         var invokeSuper = interface.isSuperImplemented(name);
         // TODO(keertip): Use both "override" and the name of the overridden
         //  member to compute the score.
-        var score = 0.0;
-        if (score != -1) {
+        var matcherScore = 0.0;
+        if (matcherScore != -1) {
           collector.addSuggestion(
             OverrideSuggestion(
               element: element,
               shouldInvokeSuper: invokeSuper,
               skipAt: skipAt,
               replacementRange: replacementRange,
-              score: score,
+              matcherScore: matcherScore,
             ),
           );
         }

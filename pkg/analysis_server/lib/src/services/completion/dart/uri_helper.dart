@@ -216,12 +216,12 @@ class UriHelper {
   }
 
   void _suggestUri(String uriStr) {
-    var score = state.matcher.score(uriStr);
-    if (score != -1) {
+    var matcherScore = state.matcher.score(uriStr);
+    if (matcherScore != -1) {
       collector.addSuggestion(
         UriSuggestion(
           uriStr: uriStr,
-          score: score,
+          matcherScore: matcherScore,
         ),
       );
     }

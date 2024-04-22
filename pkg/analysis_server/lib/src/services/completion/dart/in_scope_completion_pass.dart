@@ -364,14 +364,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           appendComma = false;
         }
         for (var parameter in availableNamedParameters) {
-          var score = state.matcher.score(parameter.displayName);
-          if (score != -1) {
+          var matcherScore = state.matcher.score(parameter.displayName);
+          if (matcherScore != -1) {
             collector.addSuggestion(NamedArgumentSuggestion(
               parameter: parameter,
               appendColon: true,
               appendComma: appendComma,
               replacementLength: replacementLength,
-              score: score,
+              matcherScore: matcherScore,
             ));
           }
         }
@@ -1835,11 +1835,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
               var parameter = parameters[i];
               if (parameter.isNamed) {
                 if (!usedNames.contains(parameter.name)) {
-                  var score = state.matcher.score(parameter.displayName);
-                  if (score != -1) {
+                  var matcherScore = state.matcher.score(parameter.displayName);
+                  if (matcherScore != -1) {
                     collector.addSuggestion(NamedArgumentSuggestion(
                         parameter: parameter,
-                        score: score,
+                        matcherScore: matcherScore,
                         appendColon: appendColon,
                         appendComma: false));
                   }
@@ -2901,12 +2901,12 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void _addClosureSuggestion(
       FunctionType parameterType, bool includeTrailingComma) {
     // TODO(keertip): compute the completion string to find the score.
-    var score = 0.0;
-    if (score != -1) {
+    var matcherScore = 0.0;
+    if (matcherScore != -1) {
       collector.addSuggestion(ClosureSuggestion(
         functionType: parameterType,
         includeTrailingComma: includeTrailingComma,
-        score: score,
+        matcherScore: matcherScore,
       ));
     }
   }
@@ -3537,13 +3537,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
     for (var field in contextType.namedFields) {
       if (!includedNames.contains(field.name)) {
-        var score = state.matcher.score(field.name);
-        if (score != -1) {
+        var matcherScore = state.matcher.score(field.name);
+        if (matcherScore != -1) {
           if (isNewField) {
             collector.addSuggestion(
               RecordLiteralNamedFieldSuggestion.newField(
                 field: field,
-                score: score,
+                matcherScore: matcherScore,
                 appendComma: displaced.type != TokenType.COMMA &&
                     displaced.type != TokenType.CLOSE_PAREN,
               ),
@@ -3552,7 +3552,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             collector.addSuggestion(
               RecordLiteralNamedFieldSuggestion.onlyName(
                 field: field,
-                score: score,
+                matcherScore: matcherScore,
               ),
             );
           }
