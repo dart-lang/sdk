@@ -4,6 +4,7 @@
 
 // ignore_for_file: library_prefixes
 
+import 'always_declare_return_types_test.dart' as always_declare_return_types;
 import 'always_specify_types_test.dart' as always_specify_types;
 import 'always_use_package_imports_test.dart' as always_use_package_imports;
 import 'annotate_overrides_test.dart' as annotate_overrides;
@@ -267,6 +268,7 @@ import 'valid_regexps_test.dart' as valid_regexps;
 import 'void_checks_test.dart' as void_checks;
 
 void main() {
+  always_declare_return_types.main();
   always_specify_types.main();
   always_use_package_imports.main();
   annotate_overrides.main();
