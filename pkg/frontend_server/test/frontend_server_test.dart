@@ -1056,6 +1056,61 @@ extension type Foo(int value) {
       frontendServer.close();
     }, timeout: new Timeout.factor(100));
 
+    test('reject - recreate issue 55357', () async {
+      File file = new File('${tempDir.path}/foo.dart')..createSync();
+      file.writeAsStringSync(
+          "extension on String { int get fooValue => 42; }\n");
+      File dillFile = new File('${tempDir.path}/app.dill');
+      expect(dillFile.existsSync(), equals(false));
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--platform=${platformKernel.path}',
+        '--output-dill=${dillFile.path}'
+      ];
+
+      FrontendServer frontendServer = new FrontendServer();
+      final Future<int> result = frontendServer.open(args);
+      frontendServer.compile(file.path);
+      int count = 0;
+      frontendServer.listen((Result compiledResult) {
+        CompilationResult result =
+            new CompilationResult.parse(compiledResult.status);
+        if (count == 0) {
+          // First request was to 'compile', which resulted in full kernel file.
+          expect(result.errorsCount, 0);
+          expect(dillFile.existsSync(), equals(true));
+          expect(result.filename, dillFile.path);
+          frontendServer.accept();
+          frontendServer.recompile(file.uri, entryPoint: file.path);
+          count += 1;
+        } else if (count == 1) {
+          // Second request was to recompile after an accept.
+          expect(result.errorsCount, 0);
+          File outputFile = new File(result.filename);
+          expect(outputFile.existsSync(), equals(true));
+          expect(outputFile.lengthSync(), isPositive);
+          frontendServer.reject();
+          count += 1;
+        } else if (count == 2) {
+          // Third request was to reject. Now ask to compile again.
+          frontendServer.recompile(file.uri, entryPoint: file.path);
+          count += 1;
+        } else if (count == 3) {
+          // Fourth request was to recompile the script after a reject.
+          expect(result.errorsCount, 0);
+          expect(result.errorsCount, 0);
+          File outputFile = new File(result.filename);
+          expect(outputFile.existsSync(), equals(true));
+          expect(outputFile.lengthSync(), isPositive);
+          frontendServer.quit();
+        }
+      });
+
+      expect(await result, 0);
+      frontendServer.close();
+    }, timeout: new Timeout.factor(100));
+
     test('recompile request keeps incremental output dill filename', () async {
       File file = new File('${tempDir.path}/foo.dart')..createSync();
       file.writeAsStringSync("main() {}\n");

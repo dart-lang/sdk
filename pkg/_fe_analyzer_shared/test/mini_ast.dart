@@ -2824,6 +2824,11 @@ class MiniAstOperations
   }
 
   @override
+  Type futureType(Type argumentType) {
+    return PrimaryType('Future', args: [argumentType]);
+  }
+
+  @override
   String getDisplayString(Type type) => type.type;
 
   @override
@@ -2846,6 +2851,13 @@ class MiniAstOperations
     } else {
       return null;
     }
+  }
+
+  @override
+  Variance getTypeParameterVariance(
+      String typeDeclaration, int parameterIndex) {
+    // TODO(cstefantsova): Support variance of type parameters in Mini AST.
+    return Variance.covariant;
   }
 
   @override
@@ -2884,52 +2896,13 @@ class MiniAstOperations
   }
 
   @override
-  bool isDynamic(Type type) =>
-      type is PrimaryType && type.name == 'dynamic' && type.args.isEmpty;
-
-  @override
-  bool isFunctionType(Type type) {
-    return withNullabilitySuffix(type, NullabilitySuffix.none) is FunctionType;
-  }
-
-  @override
-  TypeDeclarationMatchResult? matchTypeDeclarationType(Type type) {
-    if (isInterfaceType(type)) {
-      PrimaryType underlyingType =
-          withNullabilitySuffix(type, NullabilitySuffix.none) as PrimaryType;
-      return new TypeDeclarationMatchResult(
-          typeDeclarationKind: TypeDeclarationKind.interfaceDeclaration,
-          typeDeclaration: underlyingType.type,
-          typeDeclarationType: type,
-          typeArguments: underlyingType.args);
-    } else if (isExtensionType(type)) {
-      PrimaryType underlyingType =
-          withNullabilitySuffix(type, NullabilitySuffix.none) as PrimaryType;
-      return new TypeDeclarationMatchResult(
-          typeDeclarationKind: TypeDeclarationKind.extensionTypeDeclaration,
-          typeDeclaration: underlyingType.type,
-          typeDeclarationType: type,
-          typeArguments: underlyingType.args);
-    } else {
-      return null;
-    }
-  }
-
-  @override
-  Type? matchFutureOr(Type type) {
-    Type underlyingType = withNullabilitySuffix(type, NullabilitySuffix.none);
-    if (underlyingType is PrimaryType && underlyingType.args.length == 1) {
-      if (underlyingType.name == 'FutureOr') {
-        return underlyingType.args[0];
-      }
-    }
-    return null;
-  }
-
-  @override
   bool isDartCoreFunction(Type type) {
     return type is PrimaryType && type.name == 'Function' && type.args.isEmpty;
   }
+
+  @override
+  bool isDynamic(Type type) =>
+      type is PrimaryType && type.name == 'dynamic' && type.args.isEmpty;
 
   @override
   bool isError(Type type) =>
@@ -2940,6 +2913,11 @@ class MiniAstOperations
     // TODO(cstefantsova): Add the support for extension types in the mini ast
     // testing framework.
     return false;
+  }
+
+  @override
+  bool isFunctionType(Type type) {
+    return withNullabilitySuffix(type, NullabilitySuffix.none) is FunctionType;
   }
 
   @override
@@ -3089,6 +3067,23 @@ class MiniAstOperations
   }
 
   @override
+  Type? matchFutureOr(Type type) {
+    Type underlyingType = withNullabilitySuffix(type, NullabilitySuffix.none);
+    if (underlyingType is PrimaryType && underlyingType.args.length == 1) {
+      if (underlyingType.name == 'FutureOr') {
+        return underlyingType.args[0];
+      }
+    }
+    return null;
+  }
+
+  @override
+  PromotedTypeVariableType? matchInferableParameter(Type type) {
+    // TODO(cstefantsova): Add support for type parameter objects in Mini AST.
+    return null;
+  }
+
+  @override
   Type? matchIterableType(Type type) {
     if (type is PrimaryType && type.args.length == 1) {
       if (type.name == 'Iterable' || type.name == 'List') {
@@ -3132,6 +3127,29 @@ class MiniAstOperations
       }
     }
     return null;
+  }
+
+  @override
+  TypeDeclarationMatchResult? matchTypeDeclarationType(Type type) {
+    if (isInterfaceType(type)) {
+      PrimaryType underlyingType =
+          withNullabilitySuffix(type, NullabilitySuffix.none) as PrimaryType;
+      return new TypeDeclarationMatchResult(
+          typeDeclarationKind: TypeDeclarationKind.interfaceDeclaration,
+          typeDeclaration: underlyingType.type,
+          typeDeclarationType: type,
+          typeArguments: underlyingType.args);
+    } else if (isExtensionType(type)) {
+      PrimaryType underlyingType =
+          withNullabilitySuffix(type, NullabilitySuffix.none) as PrimaryType;
+      return new TypeDeclarationMatchResult(
+          typeDeclarationKind: TypeDeclarationKind.extensionTypeDeclaration,
+          typeDeclaration: underlyingType.type,
+          typeDeclarationType: type,
+          typeArguments: underlyingType.args);
+    } else {
+      return null;
+    }
   }
 
   @override
@@ -3205,6 +3223,17 @@ class MiniAstOperations
   }
 
   @override
+  bool typeSchemaIsSubtypeOfType(TypeSchema leftSchema, Type rightType) {
+    return isSubtypeOf(leftSchema.toType(), rightType);
+  }
+
+  @override
+  bool typeSchemaIsSubtypeOfTypeSchema(
+      TypeSchema leftSchema, TypeSchema rightSchema) {
+    return isSubtypeOf(leftSchema.toType(), rightSchema.toType());
+  }
+
+  @override
   TypeSchema typeSchemaLub(TypeSchema typeSchema1, TypeSchema typeSchema2) =>
       TypeSchema.fromType(lub(typeSchema1.toType(), typeSchema2.toType()));
 
@@ -3220,17 +3249,6 @@ class MiniAstOperations
   PropertyNonPromotabilityReason? whyPropertyIsNotPromotable(
           covariant _PropertyElement property) =>
       property.whyNotPromotable;
-
-  @override
-  bool typeSchemaIsSubtypeOfTypeSchema(
-      TypeSchema leftSchema, TypeSchema rightSchema) {
-    return isSubtypeOf(leftSchema.toType(), rightSchema.toType());
-  }
-
-  @override
-  bool typeSchemaIsSubtypeOfType(TypeSchema leftSchema, Type rightType) {
-    return isSubtypeOf(leftSchema.toType(), rightType);
-  }
 
   @override
   Type withNullabilitySuffix(Type type, NullabilitySuffix modifier) {
@@ -3260,24 +3278,6 @@ class MiniAstOperations
           return StarType(type);
         }
     }
-  }
-
-  @override
-  PromotedTypeVariableType? matchInferableParameter(Type type) {
-    // TODO(cstefantsova): Add support for type parameter objects in Mini AST.
-    return null;
-  }
-
-  @override
-  Type futureType(Type argumentType) {
-    return PrimaryType('Future', args: [argumentType]);
-  }
-
-  @override
-  Variance getTypeParameterVariance(
-      String typeDeclaration, int parameterIndex) {
-    // TODO(cstefantsova): Support variance of type parameters in Mini AST.
-    return Variance.covariant;
   }
 }
 

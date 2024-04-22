@@ -556,7 +556,7 @@ class TypeSystem {
       // - If T1 is FutureOr<S> for some S, then the query is true iff
       //   Null <: S.
       if (t1 is PrimaryType && t1.args.length == 1 && t1.name == 'FutureOr') {
-        return isSubtype(_nullType, t0.args[0]);
+        return isSubtype(_nullType, t1.args[0]);
       }
 
       // - If T1 is Null, S? or S* for some S, then the query is true.

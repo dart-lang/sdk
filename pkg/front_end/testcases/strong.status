@@ -6,6 +6,12 @@
 # Kernel ASTs directly, that is, code in pkg/fasta/lib/src/kernel/ with
 # strong-mode enabled.
 
+# Macros are in development
+macros/scope_access: SemiFuzzFailure
+
+# Assert failure
+general/error_recovery/issue_39202.crash: SemiFuzzAssertFailure
+
 # BAD ONES:
 class_modifiers/issue52115/main: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/53109
 class_modifiers/issue52316/main: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/53109
@@ -92,7 +98,6 @@ general/bad_import: SemiFuzzCrash # missing end token on import
 general/constants/with_unevaluated_agnostic/various_2: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242441
 general/error_recovery/issue_39058.crash: SemiFuzzFailure
 general/error_recovery/issue_39058_prime.crash: SemiFuzzFailure
-general/error_recovery/issue_39202.crash: SemiFuzzCrash
 general/platform_invalid_uris/main: SemiFuzzFailure
 general/supported_libraries/main: SemiFuzzFailure
 general/with_dependencies/issue_43084/issue_43084: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242543
@@ -102,13 +107,9 @@ macros/scope_access: SemiFuzzCrash
 
 dart2js/flutter_issue94561/main: SemiFuzzFailure
 dart2js/flutter_issue94561/main.no_link: SemiFuzzFailure
-dart2js/late_fields: SemiFuzzFailure
-dart2js/late_from_dill/main: SemiFuzzFailure
-dart2js/late_statics: SemiFuzzFailure
 static_field_lowering/opt_in: SemiFuzzFailure
 
 dart2js/mixin_super/main: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49339
-dart2js/late_fields_with_annotation: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49415
 macros/augment_concrete: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49414
 macros/extend_augmented: SemiFuzzFailure # Similar to https://github.com/dart-lang/sdk/issues/49414
 

@@ -317,6 +317,14 @@ class WorldProperties {
   static const Property<bool> printErrorsInExpect = Property.optional(
       'printErrorsInExpect', BoolValue(),
       defaultValue: false);
+
+  /// If `true`, the just compiled world will be "rejected", i.e.
+  /// not saved as the latest component and the previous non-rejected compile
+  /// (i.e. the one saved in the latest component) will be relinked, mimicking
+  /// a reject via the frontend server. At least for now all checking after this
+  /// point will be skipped.
+  static const Property<bool> reject =
+      Property.optional('reject', BoolValue(), defaultValue: false);
 }
 
 /// Yaml properties for an [ExpressionCompilation] with a [World].
@@ -842,6 +850,7 @@ class World {
   final bool allowDuplicateErrors;
   final bool allowDuplicateWarnings;
   final bool printErrorsInExpect;
+  final bool reject;
 
   /// The expected result of the advanced invalidation.
   final AdvancedInvalidationResult advancedInvalidation;
@@ -906,6 +915,7 @@ class World {
     required this.allowDuplicateErrors,
     required this.allowDuplicateWarnings,
     required this.printErrorsInExpect,
+    required this.reject,
   });
 
   static World create(Map world) {
@@ -1024,6 +1034,8 @@ class World {
     bool printErrorsInExpect =
         WorldProperties.printErrorsInExpect.read(world, keys);
 
+    bool reject = WorldProperties.reject.read(world, keys);
+
     if (keys.isNotEmpty) {
       throw "Unknown key(s) for World: $keys";
     }
@@ -1072,6 +1084,7 @@ class World {
       allowDuplicateErrors: allowDuplicateErrors,
       allowDuplicateWarnings: allowDuplicateWarnings,
       printErrorsInExpect: printErrorsInExpect,
+      reject: reject,
     );
   }
 }
@@ -1461,8 +1474,26 @@ class NewWorldTest {
         }
       }
 
-      newestWholeComponentData = util.postProcess(component!);
-      newestWholeComponent = component;
+      if (world.reject) {
+        util.postProcess(component!);
+
+        // Reject: We keep the original "newest whole component" and also
+        // reject/relink it.
+        // This mimics what happens when e.g. flutter "reject"s a compile.
+        newestWholeComponent?.relink();
+
+        // Add errors or assert will trigger in later worlds.
+        worldErrors.add(formattedErrors.toSet());
+
+        // But otherwise skip other stuff - e.g. doing a leak check will find a
+        // leak because we (on purpose) have two of the same library at the same
+        // time.
+        continue;
+      } else {
+        // Save it.
+        newestWholeComponentData = util.postProcess(component!);
+        newestWholeComponent = component;
+      }
 
       if (world.checkConstantCoverageReferences) {
         Result<TestData>? result = checkConstantCoverageReferences(
