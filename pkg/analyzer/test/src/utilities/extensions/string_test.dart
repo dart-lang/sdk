@@ -117,6 +117,57 @@ class StringExtensionTest {
     expect('test'.ifNotEmptyOrElse('orElse'), 'test');
   }
 
+  void test_isDigit() {
+    for (var c in '0123456789'.codeUnits) {
+      expect(c.isDigit, isTrue);
+    }
+    expect(' '.codeUnitAt(0).isDigit, isFalse);
+    expect('A'.codeUnitAt(0).isDigit, isFalse);
+  }
+
+  void test_isLetter() {
+    for (var c in 'abcdefghijklmnopqrstuvwxyz'.codeUnits) {
+      expect(c.isLetter, isTrue);
+    }
+    for (var c in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.codeUnits) {
+      expect(c.isLetter, isTrue);
+    }
+    expect(' '.codeUnitAt(0).isLetter, isFalse);
+    expect('0'.codeUnitAt(0).isLetter, isFalse);
+  }
+
+  void test_isLetterOrDigit() {
+    for (var c in 'abcdefghijklmnopqrstuvwxyz'.codeUnits) {
+      expect(c.isLetterOrDigit, isTrue);
+    }
+    for (var c in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.codeUnits) {
+      expect(c.isLetterOrDigit, isTrue);
+    }
+    for (var c in '0123456789'.codeUnits) {
+      expect(c.isLetterOrDigit, isTrue);
+    }
+    expect(' '.codeUnitAt(0).isLetterOrDigit, isFalse);
+    expect('.'.codeUnitAt(0).isLetterOrDigit, isFalse);
+  }
+
+  void test_isSpace() {
+    expect(' '.codeUnitAt(0).isSpace, isTrue);
+    expect('\t'.codeUnitAt(0).isSpace, isTrue);
+    expect('\r'.codeUnitAt(0).isSpace, isFalse);
+    expect('\n'.codeUnitAt(0).isSpace, isFalse);
+    expect('0'.codeUnitAt(0).isSpace, isFalse);
+    expect('A'.codeUnitAt(0).isSpace, isFalse);
+  }
+
+  void test_isWhitespace() {
+    expect(' '.codeUnitAt(0).isWhitespace, isTrue);
+    expect('\t'.codeUnitAt(0).isWhitespace, isTrue);
+    expect('\r'.codeUnitAt(0).isWhitespace, isTrue);
+    expect('\n'.codeUnitAt(0).isWhitespace, isTrue);
+    expect('0'.codeUnitAt(0).isWhitespace, isFalse);
+    expect('A'.codeUnitAt(0).isWhitespace, isFalse);
+  }
+
   void test_removeSuffix() {
     expect('01234'.removeSuffix(''), '01234');
     expect('01234'.removeSuffix('4'), '0123');

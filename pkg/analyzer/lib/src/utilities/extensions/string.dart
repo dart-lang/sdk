@@ -2,6 +2,30 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+extension IntExtension on int {
+  bool get isComma => this == 0x2C;
+
+  bool get isDigit => this >= 0x30 && this <= 0x39;
+
+  /// Whether this, as an ASCII character, is a newline or carriage return
+  /// character.
+  bool get isEOL => this == 0x0D || this == 0x0A;
+
+  bool get isLetter =>
+      (this >= 0x41 && this <= 0x5A) || (this >= 0x61 && this <= 0x7A);
+
+  bool get isLetterOrDigit => isLetter || isDigit;
+
+  bool get isLetterOrDigitOrUnderscore => isLetter || isDigit || this == 0x5F;
+
+  /// Whether this, as an ASCII character, is a space or tab character.
+  bool get isSpace => this == 0x20 || this == 0x09;
+
+  /// Whether this, as an ASCII character, is a space (as per [isSpace]) or EOL
+  /// character (as per [isEOL]).
+  bool get isWhitespace => isSpace || isEOL;
+}
+
 extension IterableOfStringExtension on Iterable<String> {
   /// Produce a comma-separated representation of this iterable, with the last
   /// element preceded by 'and' when there are more than two elements in this
