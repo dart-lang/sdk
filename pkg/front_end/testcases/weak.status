@@ -4,6 +4,12 @@
 
 # Status file for the weak_suite.dart test suite.
 
+# Macros are in development
+macros/scope_access: SemiFuzzFailure
+
+# Assert failure
+general/error_recovery/issue_39202.crash: SemiFuzzAssertFailure
+
 # BAD ONES:
 class_modifiers/issue52115/main: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/53109
 class_modifiers/issue52316/main: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/53109
@@ -109,7 +115,6 @@ dart2js/mixin_from_opt_in/main: SemiFuzzFailure
 dart2js/mixin_from_opt_in/main.no_link: SemiFuzzFailure
 general/error_recovery/issue_39058_prime.crash: SemiFuzzFailure
 general/error_recovery/issue_39058.crash: SemiFuzzFailure
-general/error_recovery/issue_39202.crash: SemiFuzzCrash
 general/platform_invalid_uris/main: SemiFuzzFailure
 general/supported_libraries/main: SemiFuzzFailure
 nnbd_mixed/mixin_from_opt_in/main: SemiFuzzFailure

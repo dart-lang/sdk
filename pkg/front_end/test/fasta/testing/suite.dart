@@ -189,6 +189,10 @@ const String EXPECTATIONS = '''
     "group": "Fail"
   },
   {
+    "name": "SemiFuzzAssertFailure",
+    "group": "Fail"
+  },
+  {
     "name": "ErrorCommentCheckFailure",
     "group": "Fail"
   }
@@ -206,6 +210,8 @@ final Expectation semiFuzzFailure = staticExpectationSet["SemiFuzzFailure"];
 final Expectation semiFuzzFailureOnForceRebuildBodies =
     staticExpectationSet["semiFuzzFailureOnForceRebuildBodies"];
 final Expectation semiFuzzCrash = staticExpectationSet["SemiFuzzCrash"];
+final Expectation semiFuzzAssertFailure =
+    staticExpectationSet["SemiFuzzAssertFailure"];
 
 class FastaContext extends ChainContext with MatchContext {
   final Uri baseUri;
@@ -237,6 +243,18 @@ class FastaContext extends ChainContext with MatchContext {
   final ExpectationSet expectationSet = staticExpectationSet;
 
   Map<Uri, Component> _platforms = {};
+
+  bool? _assertsEnabled;
+  bool get assertsEnabled {
+    if (_assertsEnabled == null) {
+      _assertsEnabled = false;
+      assert(() {
+        _assertsEnabled = true;
+        return true;
+      }());
+    }
+    return _assertsEnabled!;
+  }
 
   FastaContext(
       this.baseUri,
@@ -436,11 +454,17 @@ class FastaContext extends ChainContext with MatchContext {
     if (!semiFuzz &&
         (outcomes.contains(semiFuzzFailure) ||
             outcomes.contains(semiFuzzFailureOnForceRebuildBodies) ||
-            outcomes.contains(semiFuzzCrash))) {
+            outcomes.contains(semiFuzzCrash) ||
+            outcomes.contains(semiFuzzAssertFailure))) {
       result ??= new Set.from(outcomes);
       result.remove(semiFuzzFailure);
       result.remove(semiFuzzFailureOnForceRebuildBodies);
       result.remove(semiFuzzCrash);
+      result.remove(semiFuzzAssertFailure);
+    }
+    if (!assertsEnabled && outcomes.contains(semiFuzzAssertFailure)) {
+      result ??= new Set.from(outcomes);
+      result.remove(semiFuzzAssertFailure);
     }
 
     // Fast-path: no changes made.
@@ -946,6 +970,10 @@ class FuzzCompiles
 
       return pass(result);
     } catch (e, st) {
+      if (e is AssertionError || (e is Crash && e.error is AssertionError)) {
+        return new Result<ComponentResult>(result, semiFuzzAssertFailure,
+            "Assertion failure with '$e' when fuzz compiling.\n\n$st");
+      }
       return new Result<ComponentResult>(result, semiFuzzCrash,
           "Crashed with '$e' when fuzz compiling.\n\n$st");
     } finally {
@@ -1244,6 +1272,15 @@ class FuzzCompiles
                 result, semiFuzzFailure, "Couldn't serialize fuzzed component");
           }
         } catch (e, st) {
+          if (e is AssertionError ||
+              (e is Crash && e.error is AssertionError)) {
+            return new Result<ComponentResult>(
+                result,
+                semiFuzzAssertFailure,
+                "Assertion failure with '$e' after reordering '$uri' to\n\n"
+                "$sb\n\n"
+                "$st");
+          }
           return new Result<ComponentResult>(
               result,
               semiFuzzCrash,
