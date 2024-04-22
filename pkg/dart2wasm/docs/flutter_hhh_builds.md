@@ -1,10 +1,11 @@
 # Building Flutter apps with newest Engine & newest Dart
 
-## Modify the flutter tools
+## Modify the Flutter tools
 
-Flutter apps are built with the `flutter` command line tool. For building web
-apps it's using the `dart compile wasm` command from the Dart SDK. We ensure it
-uses the Dart SDK we built by patching the usages of the `dart` binary:
+Clone https://github.com/flutter/flutter. This repo contains the `flutter`
+command line tool used to build Flutter apps. For building web apps it's using
+the `dart compile wasm` command from the Dart SDK. We ensure it uses the Dart
+SDK we built by patching the usages of the `dart` binary:
 
 ```
 <flutter> % git diff
@@ -59,8 +60,33 @@ library).
 
 ### Build it
 
-Have a normal Flutter engine checkout. Ensure you've synced all dependencies to
-their correct version using
+Create an engine checkout with:
+
+```
+% mkdir engine
+% cd engine
+<engine> % fetch flutter
+```
+
+Edit `.gclient` to add the `download_emsdk` custom variable:
+
+```
+solutions = [
+  {
+    "custom_deps": {},
+    "deps_file": "DEPS",
+    "managed": False,
+    "name": "src/flutter",
+    "safesync_url": "",
+    "url": "https://github.com/flutter/engine.git",
+    "custom_vars" : {
+      "download_emsdk": True,
+    },
+  },
+]
+```
+
+Sync dependencies and download emsdk:
 
 ```
 <src> % gclient sync -D
@@ -72,7 +98,7 @@ checkout from `<src>/flutter/third_party/dart` then one may
 ```
 <src> % vim flutter/DEPS
 
-<..update dart revision hash...>
+<...update Dart revision hash...>
 
 <src> % gclient sync -D
 ```
@@ -139,9 +165,9 @@ avoids the need to keep the two in sync.
 ## Building a Flutter app (e.g. Wonderous)
 
 ```
-<path-to-flutter-app> % flutter                             \
-        --local-engine-src=<path-to-flutter-engine-src>     \
-        --local-web-sdk=wasm_release                        \
+<path-to-flutter-app> % flutter                                  \
+        --local-engine-src-path=<path-to-flutter-engine-src>     \
+        --local-web-sdk=wasm_release                             \
         build web --wasm
 ```
 
