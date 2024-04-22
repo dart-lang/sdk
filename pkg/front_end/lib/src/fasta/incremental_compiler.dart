@@ -7,6 +7,7 @@ library fasta.incremental_compiler;
 import 'dart:async' show Completer;
 import 'dart:convert' show JsonEncoder;
 
+import 'package:kernel/reference_from_index.dart';
 import 'package:macros/src/executor/multi_executor.dart' as macros;
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
@@ -838,7 +839,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         LibraryBuilder newBuilder = currentKernelTarget.loader.readAsEntryPoint(
             library.importUri,
             fileUri: library.fileUri,
-            referencesFrom: library.library);
+            referencesFromIndex: new IndexedLibrary(library.library));
         List<LibraryBuilder> builders = [newBuilder];
         rebuildBodiesMap[library] = builders;
         for (LibraryPart part in library.library.parts) {
@@ -853,7 +854,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               partUri, -1,
               accessor: library,
               fileUri: fileUri,
-              referencesFrom: library.library,
+              referencesFromIndex: new IndexedLibrary(library.library),
               referenceIsPartOwner: true);
           builders.add(newPartBuilder);
         }

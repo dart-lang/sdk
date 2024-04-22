@@ -68,6 +68,8 @@ import 'package:kernel/ast.dart'
         Constant,
         ConstantExpression,
         Expression,
+        Extension,
+        ExtensionTypeDeclaration,
         FileUriExpression,
         FileUriNode,
         InstanceInvocation,
@@ -78,8 +80,10 @@ import 'package:kernel/ast.dart'
         Member,
         Node,
         NonNullableByDefaultCompiledMode,
+        RecursiveVisitor,
         Reference,
         TreeNode,
+        Typedef,
         UnevaluatedConstant,
         VariableDeclaration,
         Version;
@@ -1075,6 +1079,10 @@ class FuzzCompiles
       }
       final Component newComponent = newResult.component;
       print(" -> and got ${newComponent.libraries.length} libs");
+      if (canFindDuplicateLibraries(newComponent)) {
+        return new Result<ComponentResult>(originalCompilationResult,
+            semiFuzzFailure, "Found duplicate libraries in fuzzed component");
+      }
       if (!canSerialize(newComponent)) {
         return new Result<ComponentResult>(originalCompilationResult,
             semiFuzzFailure, "Couldn't serialize fuzzed component");
@@ -1168,6 +1176,18 @@ class FuzzCompiles
       print("Can't serialize, got '$e' from $st");
       return false;
     }
+  }
+
+  bool canFindDuplicateLibraries(Component component) {
+    _LibraryFinder libraryFinder = new _LibraryFinder();
+    component.accept(libraryFinder);
+    Set<Uri> importUris = {};
+    for (Library library in libraryFinder.allLibraries) {
+      if (!importUris.add(library.importUri)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /// Perform a number of compilations where each user-file is in turn sorted
@@ -2412,4 +2432,56 @@ class TestDevCompilerTarget extends DevCompilerTarget
   final TestTargetFlags flags;
 
   TestDevCompilerTarget(this.flags) : super(flags);
+}
+
+class _LibraryFinder extends RecursiveVisitor {
+  Set<Library> allLibraries = {};
+
+  @override
+  void visitLibrary(Library node) {
+    allLibraries.add(node);
+    super.visitLibrary(node);
+  }
+
+  @override
+  void defaultMemberReference(Member node) {
+    try {
+      // This call sometimes fail:
+      // node.enclosingLibrary;
+      // TODO(jensj): Figure out why it fails.
+      // It happens - currently - on these tests:
+      // strong/macros/augment_concrete
+      // strong/macros/extend_augmented
+      // strong/macros/multiple_augment_class
+      TreeNode? parent = node.parent;
+      while (parent != null && parent is! Library) {
+        parent = parent.parent;
+      }
+      if (parent is Library) {
+        allLibraries.add(parent);
+      }
+    } catch (e) {
+      throw "Error for $node with parent ${node.parent}: $e";
+    }
+  }
+
+  @override
+  void visitClassReference(Class node) {
+    allLibraries.add(node.enclosingLibrary);
+  }
+
+  @override
+  void visitTypedefReference(Typedef node) {
+    allLibraries.add(node.enclosingLibrary);
+  }
+
+  @override
+  void visitExtensionReference(Extension node) {
+    allLibraries.add(node.enclosingLibrary);
+  }
+
+  @override
+  void visitExtensionTypeDeclarationReference(ExtensionTypeDeclaration node) {
+    allLibraries.add(node.enclosingLibrary);
+  }
 }
