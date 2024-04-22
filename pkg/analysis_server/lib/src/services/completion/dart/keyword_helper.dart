@@ -474,13 +474,13 @@ class KeywordHelper {
 
   /// Add a keyword suggestion to suggest the [keyword].
   void addKeyword(Keyword keyword) {
-    var score = state.matcher.score(keyword.lexeme);
-    if (score != -1) {
+    var matcherScore = state.matcher.score(keyword.lexeme);
+    if (matcherScore != -1) {
       collector.addSuggestion(
         KeywordSuggestion.fromKeyword(
           keyword: keyword,
           annotatedText: null,
-          score: score,
+          matcherScore: matcherScore,
         ),
       );
     }
@@ -496,13 +496,13 @@ class KeywordHelper {
   /// the insert text will be the annotated text and the selection offset will
   /// be at the end of the text.
   void addKeywordAndText(Keyword keyword, String annotatedText) {
-    var score = state.matcher.score(keyword.lexeme);
-    if (score != -1) {
+    var matcherScore = state.matcher.score(keyword.lexeme);
+    if (matcherScore != -1) {
       collector.addSuggestion(
         KeywordSuggestion.fromKeyword(
           keyword: keyword,
           annotatedText: annotatedText,
-          score: score,
+          matcherScore: matcherScore,
         ),
       );
     }
@@ -605,10 +605,10 @@ class KeywordHelper {
   /// Add a keyword suggestion to suggest the [annotatedText].
   void addText(String annotatedText) {
     var (rawText, _) = annotatedText.withoutCaret;
-    var score = state.matcher.score(rawText);
-    if (score != -1) {
+    var matcherScore = state.matcher.score(rawText);
+    if (matcherScore != -1) {
       collector.addSuggestion(
-        KeywordSuggestion.fromText(annotatedText, score: score),
+        KeywordSuggestion.fromText(annotatedText, matcherScore: matcherScore),
       );
     }
   }

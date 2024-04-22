@@ -199,13 +199,13 @@ class DeclarationHelper {
 
       if (importElement.prefix case var importPrefix?) {
         if (importPrefix is DeferredImportElementPrefix) {
-          var score = state.matcher.score(importedLibrary.displayName);
-          if (score != -1) {
+          var matcherScore = state.matcher.score(importedLibrary.displayName);
+          if (matcherScore != -1) {
             collector.addSuggestion(
               LoadLibraryFunctionSuggestion(
                 kind: CompletionSuggestionKind.INVOCATION,
                 element: importedLibrary.loadLibraryFunction,
-                score: score,
+                matcherScore: matcherScore,
               ),
             );
           }
@@ -311,13 +311,13 @@ class DeclarationHelper {
       if (importedLibrary == null) {
         continue;
       }
-      var score = state.matcher.score(prefixElement.displayName);
-      if (score != -1) {
+      var matcherScore = state.matcher.score(prefixElement.displayName);
+      if (matcherScore != -1) {
         collector.addSuggestion(
           ImportPrefixSuggestion(
             libraryElement: importedLibrary,
             prefixElement: prefixElement,
-            score: score,
+            matcherScore: matcherScore,
           ),
         );
       }
@@ -727,9 +727,10 @@ class DeclarationHelper {
         );
         if (importedLibrary.isDartCore && mustBeType) {
           var name = 'Never';
-          var score = state.matcher.score(name);
-          if (score != -1) {
-            collector.addSuggestion(NameSuggestion(name: name, score: score));
+          var matcherScore = state.matcher.score(name);
+          if (matcherScore != -1) {
+            collector.addSuggestion(
+                NameSuggestion(name: name, matcherScore: matcherScore));
           }
         }
       }
@@ -738,30 +739,30 @@ class DeclarationHelper {
 
   /// Adds a suggestion for the top-level [element].
   void _addImportedElement(Element element) {
-    var score = state.matcher.score(element.displayName);
-    if (score != -1) {
+    var matcherScore = state.matcher.score(element.displayName);
+    if (matcherScore != -1) {
       var suggestion = switch (element) {
-        ClassElement() =>
-          ClassSuggestion(importData: null, element: element, score: score),
-        EnumElement() =>
-          EnumSuggestion(importData: null, element: element, score: score),
-        ExtensionElement() =>
-          ExtensionSuggestion(importData: null, element: element, score: score),
+        ClassElement() => ClassSuggestion(
+            importData: null, element: element, matcherScore: matcherScore),
+        EnumElement() => EnumSuggestion(
+            importData: null, element: element, matcherScore: matcherScore),
+        ExtensionElement() => ExtensionSuggestion(
+            importData: null, element: element, matcherScore: matcherScore),
         ExtensionTypeElement() => ExtensionTypeSuggestion(
-            importData: null, element: element, score: score),
+            importData: null, element: element, matcherScore: matcherScore),
         FunctionElement() => TopLevelFunctionSuggestion(
             importData: null,
             element: element,
             kind: _executableSuggestionKind,
-            score: score),
-        MixinElement() =>
-          MixinSuggestion(importData: null, element: element, score: score),
+            matcherScore: matcherScore),
+        MixinElement() => MixinSuggestion(
+            importData: null, element: element, matcherScore: matcherScore),
         PropertyAccessorElement() => TopLevelPropertyAccessSuggestion(
-            importData: null, element: element, score: score),
+            importData: null, element: element, matcherScore: matcherScore),
         TopLevelVariableElement() => TopLevelVariableSuggestion(
-            importData: null, element: element, score: score),
-        TypeAliasElement() =>
-          TypeAliasSuggestion(importData: null, element: element, score: score),
+            importData: null, element: element, matcherScore: matcherScore),
+        TypeAliasElement() => TypeAliasSuggestion(
+            importData: null, element: element, matcherScore: matcherScore),
         _ => null
       };
       if (suggestion != null) {
@@ -1149,13 +1150,14 @@ class DeclarationHelper {
           field.isVisibleIn(request.libraryElement)) {
         if (field.isEnumConstant) {
           var enumElement = field.enclosingElement;
-          var score = state.matcher.score('${enumElement.name}.${field.name}');
-          if (score != -1) {
+          var matcherScore =
+              state.matcher.score('${enumElement.name}.${field.name}');
+          if (matcherScore != -1) {
             var suggestion = EnumConstantSuggestion(
                 importData: null,
                 element: field,
                 includeEnumName: false,
-                score: score);
+                matcherScore: matcherScore);
             collector.addSuggestion(suggestion);
           }
         } else {
@@ -1324,10 +1326,12 @@ class DeclarationHelper {
         return;
       }
       if (!mustBeConstant && !excludeTypeNames) {
-        var score = state.matcher.score(element.displayName);
-        if (score != -1) {
+        var matcherScore = state.matcher.score(element.displayName);
+        if (matcherScore != -1) {
           var suggestion = ClassSuggestion(
-              importData: importData, element: element, score: score);
+              importData: importData,
+              element: element,
+              matcherScore: matcherScore);
           collector.addSuggestion(suggestion);
         }
       }
@@ -1357,8 +1361,8 @@ class DeclarationHelper {
     }
 
     // TODO(keertip): Compute the completion string.
-    var score = state.matcher.score(element.displayName);
-    if (score != -1) {
+    var matcherScore = state.matcher.score(element.displayName);
+    if (matcherScore != -1) {
       var isTearOff =
           preferNonInvocation || (mustBeConstant && !element.isConst);
 
@@ -1369,7 +1373,7 @@ class DeclarationHelper {
         isTearOff: isTearOff,
         isRedirect: isConstructorRedirect,
         suggestUnnamedAsNew: suggestUnnamedAsNew || isTearOff,
-        score: score,
+        matcherScore: matcherScore,
       );
       collector.addSuggestion(suggestion);
     }
@@ -1402,10 +1406,12 @@ class DeclarationHelper {
       if (mustBeExtendable || mustBeImplementable || mustBeMixable) {
         return;
       }
-      var score = state.matcher.score(element.displayName);
-      if (score != -1) {
+      var matcherScore = state.matcher.score(element.displayName);
+      if (matcherScore != -1) {
         var suggestion = EnumSuggestion(
-            importData: importData, element: element, score: score);
+            importData: importData,
+            element: element,
+            matcherScore: matcherScore);
         collector.addSuggestion(suggestion);
       }
 
@@ -1425,10 +1431,12 @@ class DeclarationHelper {
       if (mustBeExtendable || mustBeImplementable || mustBeMixable) {
         return;
       }
-      var score = state.matcher.score(element.displayName);
-      if (score != -1) {
+      var matcherScore = state.matcher.score(element.displayName);
+      if (matcherScore != -1) {
         var suggestion = ExtensionSuggestion(
-            importData: importData, element: element, score: score);
+            importData: importData,
+            element: element,
+            matcherScore: matcherScore);
         collector.addSuggestion(suggestion);
       }
       if (!mustBeType) {
@@ -1446,10 +1454,12 @@ class DeclarationHelper {
       if (mustBeExtendable || mustBeImplementable || mustBeMixable) {
         return;
       }
-      var score = state.matcher.score(element.displayName);
-      if (score != -1) {
+      var matcherScore = state.matcher.score(element.displayName);
+      if (matcherScore != -1) {
         var suggestion = ExtensionTypeSuggestion(
-            importData: importData, element: element, score: score);
+            importData: importData,
+            element: element,
+            matcherScore: matcherScore);
         collector.addSuggestion(suggestion);
       }
       if (!mustBeType) {
@@ -1473,11 +1483,11 @@ class DeclarationHelper {
           (mustBeConstant && !field.isConst)) {
         return;
       }
-      var score = state.matcher.score(field.displayName);
-      if (score != -1) {
+      var matcherScore = state.matcher.score(field.displayName);
+      if (matcherScore != -1) {
         var suggestion = FieldSuggestion(
             element: field,
-            score: score,
+            matcherScore: matcherScore,
             referencingInterface: referencingInterface);
         collector.addSuggestion(suggestion);
       }
@@ -1492,10 +1502,12 @@ class DeclarationHelper {
           (mustBeNonVoid && element.returnType is VoidType)) {
         return;
       }
-      var score = state.matcher.score(element.displayName);
-      if (score != -1) {
+      var matcherScore = state.matcher.score(element.displayName);
+      if (matcherScore != -1) {
         var suggestion = LocalFunctionSuggestion(
-            kind: _executableSuggestionKind, element: element, score: score);
+            kind: _executableSuggestionKind,
+            element: element,
+            matcherScore: matcherScore);
         collector.addSuggestion(suggestion);
       }
     }
@@ -1503,7 +1515,7 @@ class DeclarationHelper {
 
   /// Adds a suggestion for the method `call` defined on the class `Function`.
   void _suggestFunctionCall() {
-    collector.addSuggestion(FunctionCall(score: 0));
+    collector.addSuggestion(FunctionCall(matcherScore: 0));
   }
 
   /// Adds a suggestion for the [method].
@@ -1526,12 +1538,12 @@ class DeclarationHelper {
           (mustBeNonVoid && method.returnType is VoidType)) {
         return;
       }
-      var score = state.matcher.score(method.displayName);
-      if (score != -1) {
+      var matcherScore = state.matcher.score(method.displayName);
+      if (matcherScore != -1) {
         var suggestion = MethodSuggestion(
             kind: _executableSuggestionKind,
             element: method,
-            score: score,
+            matcherScore: matcherScore,
             referencingInterface: referencingInterface);
         collector.addSuggestion(suggestion);
       }
@@ -1547,10 +1559,12 @@ class DeclarationHelper {
               !element.isImplementableIn(request.libraryElement))) {
         return;
       }
-      var score = state.matcher.score(element.displayName);
-      if (score != -1) {
+      var matcherScore = state.matcher.score(element.displayName);
+      if (matcherScore != -1) {
         var suggestion = MixinSuggestion(
-            importData: importData, element: element, score: score);
+            importData: importData,
+            element: element,
+            matcherScore: matcherScore);
         collector.addSuggestion(suggestion);
       }
       if (!mustBeType) {
@@ -1566,12 +1580,12 @@ class DeclarationHelper {
       if (mustBeConstant || _isUnused(element.name)) {
         return;
       }
-      var score = state.matcher.score(element.displayName);
-      if (score != -1) {
+      var matcherScore = state.matcher.score(element.displayName);
+      if (matcherScore != -1) {
         var suggestion = FormalParameterSuggestion(
           element: element,
           distance: _variableDistance++,
-          score: score,
+          matcherScore: matcherScore,
         );
         collector.addSuggestion(suggestion);
       }
@@ -1600,11 +1614,11 @@ class DeclarationHelper {
           (mustBeNonVoid && accessor.returnType is VoidType)) {
         return;
       }
-      var score = state.matcher.score(accessor.displayName);
-      if (score != -1) {
+      var matcherScore = state.matcher.score(accessor.displayName);
+      if (matcherScore != -1) {
         var suggestion = PropertyAccessSuggestion(
             element: accessor,
-            score: score,
+            matcherScore: matcherScore,
             referencingInterface: referencingInterface);
         collector.addSuggestion(suggestion);
       }
@@ -1614,10 +1628,10 @@ class DeclarationHelper {
   /// Adds a suggestion for the record type [field] with the given [name].
   void _suggestRecordField(
       {required RecordTypeField field, required String name}) {
-    var score = state.matcher.score(name);
-    if (score != -1) {
-      collector.addSuggestion(
-          RecordFieldSuggestion(field: field, name: name, score: score));
+    var matcherScore = state.matcher.score(name);
+    if (matcherScore != -1) {
+      collector.addSuggestion(RecordFieldSuggestion(
+          field: field, name: name, matcherScore: matcherScore));
     }
   }
 
@@ -1635,18 +1649,22 @@ class DeclarationHelper {
             .isSubtypeOf(element.type, contextType)) {
       if (element.isEnumConstant) {
         var enumElement = element.enclosingElement;
-        var score = state.matcher
+        var matcherScore = state.matcher
             .score('${enumElement.displayName}.${element.displayName}');
-        if (score != -1) {
+        if (matcherScore != -1) {
           var suggestion = EnumConstantSuggestion(
-              importData: importData, element: element, score: score);
+              importData: importData,
+              element: element,
+              matcherScore: matcherScore);
           collector.addSuggestion(suggestion);
         }
       } else {
-        var score = state.matcher.score(element.displayName);
-        if (score != -1) {
+        var matcherScore = state.matcher.score(element.displayName);
+        if (matcherScore != -1) {
           var suggestion = StaticFieldSuggestion(
-              importData: importData, element: element, score: score);
+              importData: importData,
+              element: element,
+              matcherScore: matcherScore);
           collector.addSuggestion(suggestion);
         }
       }
@@ -1664,10 +1682,10 @@ class DeclarationHelper {
 
   /// Adds a suggestion for a parameter that is in the super constructor.
   void _suggestSuperParameter(ParameterElement element) {
-    var score = state.matcher.score(element.displayName);
-    if (score != -1) {
-      collector.addSuggestion(
-          SuperParameterSuggestion(element: element, score: score));
+    var matcherScore = state.matcher.score(element.displayName);
+    if (matcherScore != -1) {
+      collector.addSuggestion(SuperParameterSuggestion(
+          element: element, matcherScore: matcherScore));
     }
   }
 
@@ -1682,12 +1700,12 @@ class DeclarationHelper {
           mustBeType) {
         return;
       }
-      var score = state.matcher.score(element.displayName);
-      if (score != -1) {
+      var matcherScore = state.matcher.score(element.displayName);
+      if (matcherScore != -1) {
         var suggestion = TopLevelFunctionSuggestion(
             importData: importData,
             element: element,
-            score: score,
+            matcherScore: matcherScore,
             kind: _executableSuggestionKind);
         collector.addSuggestion(suggestion);
       }
@@ -1707,10 +1725,12 @@ class DeclarationHelper {
           mustBeType) {
         return;
       }
-      var score = state.matcher.score(element.displayName);
-      if (score != -1) {
+      var matcherScore = state.matcher.score(element.displayName);
+      if (matcherScore != -1) {
         var suggestion = TopLevelPropertyAccessSuggestion(
-            importData: importData, element: element, score: score);
+            importData: importData,
+            element: element,
+            matcherScore: matcherScore);
         collector.addSuggestion(suggestion);
       }
     }
@@ -1726,10 +1746,12 @@ class DeclarationHelper {
           mustBeType) {
         return;
       }
-      var score = state.matcher.score(element.displayName);
-      if (score != -1) {
+      var matcherScore = state.matcher.score(element.displayName);
+      if (matcherScore != -1) {
         var suggestion = TopLevelVariableSuggestion(
-            importData: importData, element: element, score: score);
+            importData: importData,
+            element: element,
+            matcherScore: matcherScore);
         collector.addSuggestion(suggestion);
       }
     }
@@ -1739,10 +1761,12 @@ class DeclarationHelper {
   /// [prefix] is the prefix by which the element is imported.
   void _suggestTypeAlias(TypeAliasElement element, ImportData? importData) {
     if (visibilityTracker.isVisible(element)) {
-      var score = state.matcher.score(element.displayName);
-      if (score != -1) {
+      var matcherScore = state.matcher.score(element.displayName);
+      if (matcherScore != -1) {
         var suggestion = TypeAliasSuggestion(
-            importData: importData, element: element, score: score);
+            importData: importData,
+            element: element,
+            matcherScore: matcherScore);
         collector.addSuggestion(suggestion);
       }
       if (!mustBeType) {
@@ -1754,10 +1778,10 @@ class DeclarationHelper {
   /// Adds a suggestion for the type parameter represented by the [element].
   void _suggestTypeParameter(TypeParameterElement element) {
     if (visibilityTracker.isVisible(element)) {
-      var score = state.matcher.score(element.displayName);
-      if (score != -1) {
-        var suggestion =
-            TypeParameterSuggestion(element: element, score: score);
+      var matcherScore = state.matcher.score(element.displayName);
+      if (matcherScore != -1) {
+        var suggestion = TypeParameterSuggestion(
+            element: element, matcherScore: matcherScore);
         collector.addSuggestion(suggestion);
       }
     }
@@ -1776,10 +1800,12 @@ class DeclarationHelper {
       if (mustBeConstant && !element.isConst) {
         return;
       }
-      var score = state.matcher.score(element.displayName);
-      if (score != -1) {
+      var matcherScore = state.matcher.score(element.displayName);
+      if (matcherScore != -1) {
         var suggestion = LocalVariableSuggestion(
-            element: element, distance: _variableDistance++, score: score);
+            element: element,
+            distance: _variableDistance++,
+            matcherScore: matcherScore);
         collector.addSuggestion(suggestion);
       }
     }

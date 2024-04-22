@@ -66,10 +66,10 @@ class IdentifierHelper {
         }
       }
     }
-    var score = state.matcher.score(candidateName);
-    if (score != -1) {
-      collector.addSuggestion(
-          IdentifierSuggestion(identifier: candidateName, score: score));
+    var matcherScore = state.matcher.score(candidateName);
+    if (matcherScore != -1) {
+      collector.addSuggestion(IdentifierSuggestion(
+          identifier: candidateName, matcherScore: matcherScore));
     }
   }
 
@@ -83,10 +83,10 @@ class IdentifierHelper {
   /// Adds a suggestion for the [name] (unless the name is `null` or empty).
   void _createNameSuggestion(String name) {
     if (name.isNotEmpty) {
-      var score = state.matcher.score(name);
-      if (score != -1) {
+      var matcherScore = state.matcher.score(name);
+      if (matcherScore != -1) {
         collector.addSuggestion(
-            IdentifierSuggestion(identifier: name, score: score));
+            IdentifierSuggestion(identifier: name, matcherScore: matcherScore));
       }
     }
   }

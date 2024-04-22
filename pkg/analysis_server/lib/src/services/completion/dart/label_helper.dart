@@ -42,9 +42,10 @@ class LabelHelper {
 
   void _visitLabels(NodeList<Label> labels) {
     for (var label in labels) {
-      var score = state.matcher.score(label.label.name);
-      if (score != -1) {
-        var suggestion = LabelSuggestion(label: label, score: score);
+      var matcherScore = state.matcher.score(label.label.name);
+      if (matcherScore != -1) {
+        var suggestion =
+            LabelSuggestion(label: label, matcherScore: matcherScore);
         collector.addSuggestion(suggestion);
       }
     }
