@@ -1960,15 +1960,15 @@ abstract final class Float32List implements List<double>, _TypedFloatList {
   /// the same order as they occur in this list.
   ///
   /// ```dart
-  /// var numbers = Float32List.fromList([0, 1, 2, 3, 4]);
-  /// print(numbers.sublist(1, 3)); // [1, 2]
+  /// var numbers = Float32List.fromList([0.0, 1.0, 2.0, 3.0, 4.0]);
+  /// print(numbers.sublist(1, 3)); // [1.0, 2.0]
   /// print(numbers.sublist(1, 3).runtimeType); // Float32List
   /// ```
   ///
   /// If [end] is omitted, it defaults to the [length] of this list.
   ///
   /// ```dart
-  /// print(numbers.sublist(1)); // [1, 2, 3, 4]
+  /// print(numbers.sublist(1)); // [1.0, 2.0, 3.0, 4.0]
   /// ```
   ///
   /// The `start` and `end` positions must satisfy the relations
@@ -2083,15 +2083,15 @@ abstract final class Float64List implements List<double>, _TypedFloatList {
   /// the same order as they occur in this list.
   ///
   /// ```dart
-  /// var numbers = Float64List.fromList([0, 1, 2, 3, 4]);
-  /// print(numbers.sublist(1, 3)); // [1, 2]
+  /// var numbers = Float64List.fromList([0.0, 1.0, 2.0, 3.0, 4.0]);
+  /// print(numbers.sublist(1, 3)); // [1.0, 2.0]
   /// print(numbers.sublist(1, 3).runtimeType); // Float64List
   /// ```
   ///
   /// If [end] is omitted, it defaults to the [length] of this list.
   ///
   /// ```dart
-  /// print(numbers.sublist(1)); // [1, 2, 3, 4]
+  /// print(numbers.sublist(1)); // [1.0, 2.0, 3.0, 4.0]
   /// ```
   ///
   /// The `start` and `end` positions must satisfy the relations
@@ -2211,15 +2211,21 @@ abstract final class Float32x4List implements List<Float32x4>, TypedData {
   /// the same order as they occur in this list.
   ///
   /// ```dart
-  /// var numbers = Float32x4List.fromList([0, 1, 2, 3, 4]);
-  /// print(numbers.sublist(1, 3)); // [1, 2]
-  /// print(numbers.sublist(1, 3).runtimeType); // Float32x4List
+  /// var numbers = Float32x4List.fromList([
+  ///   Float32x4(0, 1, 2, 3),
+  ///   Float32x4(1, 2, 3, 4),
+  ///   Float32x4(2, 3, 4, 5),
+  ///   Float32x4(3, 4, 5, 6),
+  ///   Float32x4(4, 5, 6, 7),
+  /// ]);
+  /// print(numbers.sublist(1, 2)); // [Float32x4(1, 2, 3, 4)]
+  /// print(numbers.sublist(1, 2).runtimeType); // Float32x4List
   /// ```
   ///
   /// If [end] is omitted, it defaults to the [length] of this list.
   ///
   /// ```dart
-  /// print(numbers.sublist(1)); // [1, 2, 3, 4]
+  /// print(numbers.sublist(4)); // [Float32x4(4, 5, 6, 7)]
   /// ```
   ///
   /// The `start` and `end` positions must satisfy the relations
@@ -2331,20 +2337,26 @@ abstract final class Int32x4List implements List<Int32x4>, TypedData {
 
   /// Returns a new list containing the elements between [start] and [end].
   ///
-  /// The new list is an `Int32x4list` containing the elements of this
+  /// The new list is an `Int32x4List` containing the elements of this
   /// list at positions greater than or equal to [start] and less than [end] in
   /// the same order as they occur in this list.
   ///
   /// ```dart
-  /// var numbers = Int32x4list.fromList([0, 1, 2, 3, 4]);
-  /// print(numbers.sublist(1, 3)); // [1, 2]
-  /// print(numbers.sublist(1, 3).runtimeType); // Int32x4list
+  /// var numbers = Int32x4List.fromList([
+  ///   Int32x4(0, 1, 2, 3),
+  ///   Int32x4(1, 2, 3, 4),
+  ///   Int32x4(2, 3, 4, 5),
+  ///   Int32x4(3, 4, 5, 6),
+  ///   Int32x4(4, 5, 6, 7),
+  /// ]);
+  /// print(numbers.sublist(1, 2)); // [Int32x4(1, 2, 3, 4)]
+  /// print(numbers.sublist(1, 2).runtimeType); // Int32x4List
   /// ```
   ///
   /// If [end] is omitted, it defaults to the [length] of this list.
   ///
   /// ```dart
-  /// print(numbers.sublist(1)); // [1, 2, 3, 4]
+  /// print(numbers.sublist(3)); // [Int32x4(3, 4, 5, 6), Int32x4(4, 5, 6, 7)]
   /// ```
   ///
   /// The `start` and `end` positions must satisfy the relations
@@ -2464,15 +2476,21 @@ abstract final class Float64x2List implements List<Float64x2>, TypedData {
   /// the same order as they occur in this list.
   ///
   /// ```dart
-  /// var numbers = Float64x2List.fromList([0, 1, 2, 3, 4]);
-  /// print(numbers.sublist(1, 3)); // [1, 2]
+  /// var numbers = Float64x2List.fromList([
+  ///   Float64x2(0, 1),
+  ///   Float64x2(1, 2),
+  ///   Float64x2(2, 3),
+  ///   Float64x2(3, 4),
+  ///   Float64x2(4, 5),
+  /// ]);
+  /// print(numbers.sublist(1, 3)); // [Float64x2(1, 2), Float64x2(2, 3)]
   /// print(numbers.sublist(1, 3).runtimeType); // Float64x2List
   /// ```
   ///
   /// If [end] is omitted, it defaults to the [length] of this list.
   ///
   /// ```dart
-  /// print(numbers.sublist(1)); // [1, 2, 3, 4]
+  /// print(numbers.sublist(3)); // [Float64x2(3, 4), Float64x2(4, 5)]
   /// ```
   ///
   /// The `start` and `end` positions must satisfy the relations
