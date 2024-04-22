@@ -35,7 +35,7 @@ main(List<String> args) async {
     final scriptDill = path.join(tempDir.path, 'test.dill');
 
     // Compile script to Kernel IR.
-    await run('pkg/vm/tool/gen_kernel', <String>[
+    await run(genKernel, <String>[
       '--aot',
       '--packages=$sdkDir/.dart_tool/package_config.json',
       '--platform=$platformDill',
@@ -56,9 +56,9 @@ main(List<String> args) async {
       final scriptDill = path.join(tempDir.path, 'test.dill');
 
       // Compile script to Kernel IR.
-      await run('pkg/vm/tool/gen_kernel', <String>[
+      await run(genKernel, <String>[
         '--aot',
-        '--packages=$sdkDir/.packages',
+        '--packages=$sdkDir/.dart_tool/package_config.json',
         '--platform=$platformDill',
         '-o',
         scriptDill,
