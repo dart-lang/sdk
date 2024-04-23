@@ -425,16 +425,16 @@ final class CorrectionUtils {
 
   String get twoIndents => _twoIndents;
 
-  /// Returns the [AstNode] that encloses the given offset.
+  /// Returns the [AstNode] that encloses the given [offset].
   AstNode? findNode(int offset) => NodeLocator(offset).searchWithin(_unit);
 
   /// Skips whitespace characters and single EOL on the right from [index].
   ///
-  /// If [index] the end of a statement or method, then in the most cases it is
-  /// a start of the next line.
+  /// If [index] the end of a statement or method, then in most cases this
+  /// returns the start of the next line.
   int getLineContentEnd(int index) {
     var length = _buffer.length;
-    // skip whitespace characters
+    // Skip whitespace characters.
     while (index < length) {
       var c = _buffer.codeUnitAt(index);
       if (!c.isWhitespace || c.isEOL) {
@@ -442,22 +442,22 @@ final class CorrectionUtils {
       }
       index++;
     }
-    // skip single \r
+    // Skip a single '\r' character.
     if (index < length && _buffer.codeUnitAt(index) == 0x0D) {
       index++;
     }
-    // skip single \n
+    // Skip a single '\n' character.
     if (index < length && _buffer.codeUnitAt(index) == 0x0A) {
       index++;
     }
-    // done
+    // Done.
     return index;
   }
 
   /// Skips spaces and tabs on the left from [index].
   ///
-  /// If [index] is the start or a statement, then in the most cases it is a
-  /// start on its line.
+  /// If [index] is the start or a statement, then in most cases this returns
+  /// the offset of the line in which [index] is found.
   int getLineContentStart(int index) {
     while (index > 0) {
       var c = _buffer.codeUnitAt(index - 1);
@@ -469,8 +469,8 @@ final class CorrectionUtils {
     return index;
   }
 
-  /// Returns a start index of the next line after the line which contains the
-  /// given index.
+  /// Returns the index of the start of the line following the line which
+  /// contains the given [index].
   int getLineNext(int index) {
     var length = _buffer.length;
     // skip to the end of the line
@@ -481,19 +481,19 @@ final class CorrectionUtils {
       }
       index++;
     }
-    // skip single \r
+    // Skip a single '\r'.
     if (index < length && _buffer.codeUnitAt(index) == 0xD) {
       index++;
     }
-    // skip single \n
+    // Skip a single '\n'.
     if (index < length && _buffer.codeUnitAt(index) == 0xA) {
       index++;
     }
-    // done
+    // Done.
     return index;
   }
 
-  /// Returns the whitespace prefix of the line which contains given offset.
+  /// Returns the whitespace prefix of the line which contains given [index].
   String getLinePrefix(int index) {
     var lineStart = getLineThis(index);
     var length = _buffer.length;
@@ -541,7 +541,7 @@ final class CorrectionUtils {
     return getLinesRange(range.nodes(statements));
   }
 
-  /// Returns the start index of the line which contains given index.
+  /// Returns the start index of the line which contains the given [index].
   int getLineThis(int index) {
     while (index > 0) {
       var c = _buffer.codeUnitAt(index - 1);
@@ -553,8 +553,7 @@ final class CorrectionUtils {
     return index;
   }
 
-  /// Returns the line prefix consisting of spaces and tabs on the left from the
-  /// given [AstNode].
+  /// Returns the whitespace prefix of the line which contains given [node].
   String getNodePrefix(AstNode node) {
     var offset = node.offset;
     // function literal is special, it uses offset of enclosing line
@@ -565,7 +564,8 @@ final class CorrectionUtils {
     return getPrefix(offset);
   }
 
-  /// Returns the text of the given [AstNode] in the unit.
+  /// Returns the text of the given [AstNode] in the unit, including preceding
+  /// comments.
   String getNodeText(
     AstNode node, {
     bool withLeadingComments = false,
@@ -579,8 +579,7 @@ final class CorrectionUtils {
     return getText(offset, length);
   }
 
-  /// Returns the line prefix consisting of spaces and tabs on the left from the
-  /// given offset.
+  /// Returns the whitespace prefix to the left of the given [endIndex].
   String getPrefix(int endIndex) {
     var startIndex = getLineContentStart(endIndex);
     return _buffer.substring(startIndex, endIndex);
@@ -593,7 +592,7 @@ final class CorrectionUtils {
   String getText(int offset, int length) =>
       _buffer.substring(offset, offset + length);
 
-  /// Indents given source left or right.
+  /// Indents the given [source] left or right.
   String indentSourceLeftRight(String source, {bool indentLeft = true}) {
     var sb = StringBuffer();
     var indent = oneIndent;
@@ -632,10 +631,9 @@ final class CorrectionUtils {
   /// If [ensureTrailingNewline] is `true`, a newline will be added to
   /// the end of the returned code if it does not already have one.
   ///
-  /// Usually [includeLeading] and [ensureTrailingNewline] will both be set
-  /// together when indenting a set of statements to go inside a block (as
-  /// opposed to just wrapping a nested expression that might span multiple
-  /// lines).
+  /// Usually [includeLeading] and [ensureTrailingNewline] are set together,
+  /// when indenting a set of statements to go inside a block (as opposed to
+  /// just wrapping a nested expression that might span multiple lines).
   String replaceSourceIndent(String source, String oldIndent, String newIndent,
       {bool includeLeading = false, bool ensureTrailingNewline = false}) {
     // Prepare token ranges.
@@ -700,10 +698,9 @@ final class CorrectionUtils {
   /// If [ensureTrailingNewline] is `true`, a newline will be added to
   /// the end of the returned code if it does not already have one.
   ///
-  /// Usually [includeLeading] and [ensureTrailingNewline] will both be set
-  /// together when indenting a set of statements to go inside a block (as
-  /// opposed to just wrapping a nested expression that might span multiple
-  /// lines).
+  /// Usually [includeLeading] and [ensureTrailingNewline] are set together,
+  /// when indenting a set of statements to go inside a block (as opposed to
+  /// just wrapping a nested expression that might span multiple lines).
   String replaceSourceRangeIndent(
       SourceRange range, String oldIndent, String newIndent,
       {bool includeLeading = false, bool ensureTrailingNewline = false}) {
@@ -781,10 +778,10 @@ final class CorrectionUtils {
     return _InvertedCondition._simple(getNodeText(expression));
   }
 
-  /// Skip spaces, tabs and EOLs on the left from [index].
+  /// Skips whitespace and EOLs to the left of [index].
   ///
-  /// If [index] is the start of a method, then in the most cases return the end
-  /// of the previous not-whitespace line.
+  /// If [index] is the start of a method declaration, then in most cases, this
+  /// returns the end of the previous non-whitespace line.
   int _skipEmptyLinesLeft(int index) {
     var lastLine = index;
     while (index > 0) {

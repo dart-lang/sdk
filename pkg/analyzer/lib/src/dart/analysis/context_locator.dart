@@ -31,7 +31,7 @@ class ContextLocatorImpl implements ContextLocator {
   /// analysis options file.
   ///
   /// See: https://github.com/dart-lang/sdk/issues/53876
-  static bool singleOptionContexts = true;
+  static bool singleOptionContexts = false;
 
   /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;

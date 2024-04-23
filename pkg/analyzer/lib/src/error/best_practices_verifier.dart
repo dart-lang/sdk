@@ -1871,7 +1871,7 @@ class _InvalidAccessVerifier {
       _errorReporter.atOffset(
         offset: errorEntity.offset,
         length: errorEntity.length,
-        errorCode: WarningCode.INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER,
+        errorCode: WarningCode.invalid_use_of_do_not_submit_member,
         arguments: [name],
       );
     }
