@@ -91,6 +91,14 @@ mixin AugmentableElement<T extends ElementImpl> on ElementImpl {
     setModifier(Modifier.AUGMENTATION, value);
   }
 
+  bool get isAugmentationChainStart {
+    return hasModifier(Modifier.AUGMENTATION_CHAIN_START);
+  }
+
+  set isAugmentationChainStart(bool value) {
+    setModifier(Modifier.AUGMENTATION_CHAIN_START, value);
+  }
+
   ElementLinkedData? get linkedData;
 }
 
@@ -3041,9 +3049,6 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   late MaybeAugmentedExtensionTypeElementMixin augmentedInternal =
       NotAugmentedExtensionTypeElementImpl(this);
 
-  @override
-  late final DartType typeErasure;
-
   /// Whether the element has direct or indirect reference to itself,
   /// in representation.
   bool hasRepresentationSelfReference = false;
@@ -3072,10 +3077,25 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   }
 
   @override
-  ConstructorElement get primaryConstructor => constructors.first;
+  ConstructorElementImpl get primaryConstructor {
+    if (isAugmentationChainStart) {
+      return augmentedInternal.primaryConstructor;
+    }
+    return augmented.primaryConstructor;
+  }
 
   @override
-  FieldElementImpl get representation => fields.first;
+  FieldElementImpl get representation {
+    if (isAugmentationChainStart) {
+      return augmentedInternal.representation;
+    }
+    return augmented.representation;
+  }
+
+  @override
+  DartType get typeErasure {
+    return augmented.typeErasure;
+  }
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) {
@@ -4978,6 +4998,15 @@ mixin MaybeAugmentedExtensionTypeElementMixin
     on MaybeAugmentedInterfaceElementMixin
     implements AugmentedExtensionTypeElement {
   @override
+  late ConstructorElementImpl primaryConstructor;
+
+  @override
+  late FieldElementImpl representation;
+
+  @override
+  late DartType typeErasure;
+
+  @override
   ExtensionTypeElementImpl get declaration;
 }
 
@@ -5383,6 +5412,11 @@ enum Modifier {
 
   /// Indicates that the modifier 'augment' was applied to the element.
   AUGMENTATION,
+
+  /// Indicates that the element is the start of the augmentation chain,
+  /// in the simplest case - the declaration. But could be an augmentation
+  /// that has no augmented declaration (which is a compile-time error).
+  AUGMENTATION_CHAIN_START,
 
   /// Indicates that the modifier 'base' was applied to the element.
   BASE,
@@ -5856,6 +5890,9 @@ class NotAugmentedExtensionTypeElementImpl
   @override
   AugmentedExtensionTypeElementImpl toAugmented() {
     var augmented = AugmentedExtensionTypeElementImpl(declaration);
+    augmented.primaryConstructor = primaryConstructor;
+    augmented.representation = representation;
+    augmented.typeErasure = typeErasure;
     declaration.augmentedInternal = augmented;
     return augmented;
   }
@@ -7324,7 +7361,7 @@ abstract class VariableElementImpl extends ElementImpl
   String get name => super.name!;
 
   @override
-  DartType get type => _type!;
+  DartType get type => _type ?? InvalidTypeImpl.instance;
 
   set type(DartType type) {
     _type = type;

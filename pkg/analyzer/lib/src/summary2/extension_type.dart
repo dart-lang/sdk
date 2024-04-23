@@ -20,9 +20,12 @@ void buildExtensionTypes(Linker linker, List<AstNode> declarations) {
   var elements = <ExtensionTypeElementImpl>[];
   for (var declaration in declarations) {
     if (declaration is ExtensionTypeDeclarationImpl) {
-      var node = walker.getNode(declaration);
-      nodes.add(node);
-      elements.add(node.element);
+      var element = declaration.declaredElement!;
+      if (element.augmentationTarget == null) {
+        var node = walker.getNode(declaration);
+        nodes.add(node);
+        elements.add(element);
+      }
     }
   }
 
@@ -150,7 +153,7 @@ class _Node extends graph.Node<_Node> {
     var typeSystem = element.library.typeSystem;
 
     element.representation.type = type;
-    element.typeErasure = type.extensionTypeErasure;
+    element.augmented.typeErasure = type.extensionTypeErasure;
 
     var interfaces = node.implementsClause?.interfaces
         .map((e) => e.type)
