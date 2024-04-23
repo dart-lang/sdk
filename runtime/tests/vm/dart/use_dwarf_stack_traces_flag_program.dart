@@ -15,7 +15,7 @@ bar(c) => c * 4;
 foo(c) => bar(c);
 
 main() {
-  print(
-      VMInternalsForTesting.randomInstructionsOffsetInsideAllocateObjectStub());
+  print(VMInternalsForTesting.allocateObjectInstructionsStart());
+  print(VMInternalsForTesting.allocateObjectInstructionsEnd());
   var a = foo(new C());
 }

@@ -223,9 +223,10 @@ Future<void> testAssembly(
 
 class DwarfTestOutput {
   final List<String> trace;
-  final int allocateObjectInstructionsOffset;
+  final int allocateObjectStart;
+  final int allocateObjectEnd;
 
-  DwarfTestOutput(this.trace, this.allocateObjectInstructionsOffset);
+  DwarfTestOutput(this.trace, this.allocateObjectStart, this.allocateObjectEnd);
 }
 
 Future<void> compareTraces(List<String> nonDwarfTrace, DwarfTestOutput output1,
@@ -312,9 +313,9 @@ void checkHeader(StackTraceHeader header) {
   Expect.isNotNull(header.compressedPointers);
 }
 
-Future<void> checkRootUnitAssumptions(
+void checkRootUnitAssumptions(
     DwarfTestOutput output1, DwarfTestOutput output2, Dwarf rootDwarf,
-    {required PCOffset sampleOffset, bool matchingBuildIds = true}) async {
+    {required PCOffset sampleOffset, bool matchingBuildIds = true}) {
   // We run the test program on the same host OS as the test, so any
   // PCOffset from the trace should have this information.
   Expect.isNotNull(sampleOffset.os);
@@ -354,38 +355,48 @@ Future<void> checkRootUnitAssumptions(
     Expect.stringEquals(dwarfBuildId, buildId2);
   }
 
-  final allocateObjectPCOffset1 = PCOffset(
-      output1.allocateObjectInstructionsOffset, InstructionsSection.isolate);
-  print('Offset of first stub address is $allocateObjectPCOffset1');
-  final allocateObjectPCOffset2 = PCOffset(
-      output2.allocateObjectInstructionsOffset, InstructionsSection.isolate);
-  print('Offset of second stub address is $allocateObjectPCOffset2');
+  final allocateObjectStart = output1.allocateObjectStart;
+  final allocateObjectEnd = output1.allocateObjectEnd;
+  Expect.equals(allocateObjectStart, output2.allocateObjectStart);
+  Expect.equals(allocateObjectEnd, output2.allocateObjectEnd);
 
-  final allocateObjectCallInfo1 = rootDwarf.callInfoForPCOffset(
-      allocateObjectPCOffset1,
-      includeInternalFrames: true);
-  print('Call info for first stub address is $allocateObjectCallInfo1');
-  final allocateObjectCallInfo2 = rootDwarf.callInfoForPCOffset(
-      allocateObjectPCOffset2,
-      includeInternalFrames: true);
-  print('Call info for second stub address is $allocateObjectCallInfo2');
-
-  Expect.isNotNull(allocateObjectCallInfo1);
-  Expect.isNotNull(allocateObjectCallInfo2);
-  Expect.equals(allocateObjectCallInfo1!.length, 1);
-  Expect.equals(allocateObjectCallInfo2!.length, 1);
-  Expect.isTrue(
-      allocateObjectCallInfo1.first is StubCallInfo, 'is not a StubCall');
-  Expect.isTrue(
-      allocateObjectCallInfo2.first is StubCallInfo, 'is not a StubCall');
-  final stubCall1 = allocateObjectCallInfo1.first as StubCallInfo;
-  final stubCall2 = allocateObjectCallInfo2.first as StubCallInfo;
-  Expect.equals(stubCall1.name, stubCall2.name);
-  Expect.contains('AllocateObject', stubCall1.name);
-  Expect.contains('AllocateObject', stubCall2.name);
+  checkAllocateObjectOffset(rootDwarf, allocateObjectStart);
+  // The end of the bare instructions payload may be padded up to word size,
+  // so check the maximum possible word size (64 bits) before the end.
+  checkAllocateObjectOffset(rootDwarf, allocateObjectEnd - 8);
+  // The end should be either in a different stub or not a stub altogether.
+  checkAllocateObjectOffset(rootDwarf, allocateObjectEnd, expectedValue: false);
+  // The byte before the start should also be in either a different stub or
+  // not in a stub altogether.
+  checkAllocateObjectOffset(rootDwarf, allocateObjectStart - 1,
+      expectedValue: false);
+  // Check the midpoint of the stub, as the stub should be large enough that the
+  // midpoint won't be in any possible padding.
+  Expect.isTrue(allocateObjectEnd - allocateObjectStart >= 16,
+      'midpoint of stub may be in bare payload padding');
+  checkAllocateObjectOffset(
+      rootDwarf, (allocateObjectStart + allocateObjectEnd) ~/ 2);
 
   print("Successfully matched AllocateObject stub addresses");
   print("");
+}
+
+void checkAllocateObjectOffset(Dwarf dwarf, int offset,
+    {bool expectedValue = true}) {
+  final pcOffset = PCOffset(offset, InstructionsSection.isolate);
+  print('Offset of tested stub address is $pcOffset');
+  final callInfo =
+      dwarf.callInfoForPCOffset(pcOffset, includeInternalFrames: true);
+  print('Call info for tested stub address is $callInfo');
+  final got = callInfo != null &&
+      callInfo.length == 1 &&
+      callInfo.single is StubCallInfo &&
+      (callInfo.single as StubCallInfo).name.endsWith('AllocateObjectStub');
+  Expect.equals(
+      expectedValue,
+      got,
+      'address is ${expectedValue ? 'not within' : 'within'} '
+      'the AllocateObject stub');
 }
 
 void checkTranslatedTrace(List<String> nonDwarfTrace, List<String> dwarfTrace) {
@@ -425,8 +436,13 @@ Future<DwarfTestOutput> runTestProgram(
   Expect.isTrue(result.stdout.isNotEmpty);
   Expect.isTrue(result.stderr.isNotEmpty);
 
+  final stdoutLines = LineSplitter.split(result.stdout).toList();
+  Expect.isTrue(stdoutLines.length >= 2);
+  final start = int.parse(stdoutLines[0]);
+  final end = int.parse(stdoutLines[1]);
+
   return DwarfTestOutput(
-      LineSplitter.split(result.stderr).toList(), int.parse(result.stdout));
+      LineSplitter.split(result.stderr).toList(), start, end);
 }
 
 final _buildIdRE = RegExp(r"build_id: '([a-f\d]+)'");
