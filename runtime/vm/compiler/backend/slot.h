@@ -41,7 +41,7 @@ class ParsedFunction;
 // The list of slots that correspond to nullable boxed fields of native
 // Dart objects in the following format:
 //
-//     V(class_name, underlying_type, field_name, exact_type, FINAL|VAR)
+//     V(class_name, underlying_type, field_name, exact_type, FINAL|VAR|WEAK)
 //
 // - class_name and field_name specify the name of the host class and the name
 //   of the field respectively;
@@ -50,17 +50,17 @@ class ParsedFunction;
 //   would only yield instances of this type);
 // - the last component specifies whether field behaves like a final field
 //   (i.e. initialized once at construction time and does not change after
-//   that) or like a non-final field.
+//   that), ordinary mutable field or a weak field (can be modified by GC).
 #define NULLABLE_TAGGED_NATIVE_DART_SLOTS_LIST(V)                              \
   V(Array, UntaggedArray, type_arguments, TypeArguments, FINAL)                \
   V(Finalizer, UntaggedFinalizer, type_arguments, TypeArguments, FINAL)        \
   V(FinalizerBase, UntaggedFinalizerBase, all_entries, Set, VAR)               \
   V(FinalizerBase, UntaggedFinalizerBase, detachments, Dynamic, VAR)           \
   V(FinalizerBase, UntaggedFinalizer, entries_collected, FinalizerEntry, VAR)  \
-  V(FinalizerEntry, UntaggedFinalizerEntry, value, Dynamic, VAR)               \
-  V(FinalizerEntry, UntaggedFinalizerEntry, detach, Dynamic, VAR)              \
+  V(FinalizerEntry, UntaggedFinalizerEntry, value, Dynamic, WEAK)              \
+  V(FinalizerEntry, UntaggedFinalizerEntry, detach, Dynamic, WEAK)             \
   V(FinalizerEntry, UntaggedFinalizerEntry, token, Dynamic, VAR)               \
-  V(FinalizerEntry, UntaggedFinalizerEntry, finalizer, FinalizerBase, VAR)     \
+  V(FinalizerEntry, UntaggedFinalizerEntry, finalizer, FinalizerBase, WEAK)    \
   V(FinalizerEntry, UntaggedFinalizerEntry, next, FinalizerEntry, VAR)         \
   V(Function, UntaggedFunction, signature, FunctionType, FINAL)                \
   V(Context, UntaggedContext, parent, Context, FINAL)                          \
@@ -81,9 +81,9 @@ class ParsedFunction;
   V(TypeParameters, UntaggedTypeParameters, flags, Array, FINAL)               \
   V(TypeParameters, UntaggedTypeParameters, bounds, TypeArguments, FINAL)      \
   V(TypeParameters, UntaggedTypeParameters, defaults, TypeArguments, FINAL)    \
-  V(WeakProperty, UntaggedWeakProperty, key, Dynamic, VAR)                     \
-  V(WeakProperty, UntaggedWeakProperty, value, Dynamic, VAR)                   \
-  V(WeakReference, UntaggedWeakReference, target, Dynamic, VAR)                \
+  V(WeakProperty, UntaggedWeakProperty, key, Dynamic, WEAK)                    \
+  V(WeakProperty, UntaggedWeakProperty, value, Dynamic, WEAK)                  \
+  V(WeakReference, UntaggedWeakReference, target, Dynamic, WEAK)               \
   V(WeakReference, UntaggedWeakReference, type_arguments, TypeArguments, FINAL)
 
 // The list of slots that correspond to non-nullable boxed fields of native
@@ -322,7 +322,7 @@ UNTAGGED_NATIVE_NONDART_SLOTS_LIST(CHECK_NATIVE_NONDART_SLOT)
 // guaranteed to be a integer. This includes nullable integer slots, since
 // those slots may return a non-integer value (null). Such uses can
 // only use the following arguments for each entry:
-//     V(class_name, _, field_name, exact_type, FINAL|VAR)
+//     V(class_name, _, field_name, exact_type, FINAL|VAR|WEAK)
 #define TAGGED_NONINT_NATIVE_SLOTS_LIST(V)                                     \
   NULLABLE_TAGGED_NATIVE_DART_SLOTS_LIST(V)                                    \
   NONNULLABLE_NONINT_TAGGED_NATIVE_DART_SLOTS_LIST(V)                          \
@@ -331,7 +331,7 @@ UNTAGGED_NATIVE_NONDART_SLOTS_LIST(CHECK_NATIVE_NONDART_SLOT)
 // For uses that need any native slot that is not guaranteed to contain an
 // integer, whether a Dart object or unboxed. Such uses can only use the
 // following arguments for each entry:
-//     V(class_name, _, field_name, _, FINAL|VAR)
+//     V(class_name, _, field_name, _, FINAL|VAR|WEAK)
 #define NOT_INT_NATIVE_SLOTS_LIST(V)                                           \
   TAGGED_NONINT_NATIVE_SLOTS_LIST(V)                                           \
   UNTAGGED_NATIVE_SLOTS_LIST(V)
@@ -339,7 +339,7 @@ UNTAGGED_NATIVE_NONDART_SLOTS_LIST(CHECK_NATIVE_NONDART_SLOT)
 // For uses that need any native slot on Dart objects that contains a Dart
 // object (e.g., for write barrier purposes). Such uses can use the following
 // arguments for each entry:
-//     V(class_name, underlying_class, field_name, exact_type, FINAL|VAR)
+//     V(class_name, underlying_class, field_name, exact_type, FINAL|VAR|WEAK)
 #define TAGGED_NATIVE_DART_SLOTS_LIST(V)                                       \
   NULLABLE_TAGGED_NATIVE_DART_SLOTS_LIST(V)                                    \
   NONNULLABLE_INT_TAGGED_NATIVE_DART_SLOTS_LIST(V)                             \
@@ -355,14 +355,14 @@ UNTAGGED_NATIVE_NONDART_SLOTS_LIST(CHECK_NATIVE_NONDART_SLOT)
 
 // For uses that need any native slot that contains a Dart object. Such uses can
 // only use the following arguments for each entry:
-//     V(class_name, _, field_name, exact_type, FINAL|VAR)
+//     V(class_name, _, field_name, exact_type, FINAL|VAR|WEAK)
 #define TAGGED_NATIVE_SLOTS_LIST(V)                                            \
   TAGGED_INT_NATIVE_SLOTS_LIST(V)                                              \
   TAGGED_NONINT_NATIVE_SLOTS_LIST(V)
 
 // For uses that need all native slots. Such uses can only use the following
 // arguments for each entry:
-//     V(class_name, _, field_name, _, FINAL|VAR)
+//     V(class_name, _, field_name, _, FINAL|VAR|WEAK)
 #define NATIVE_SLOTS_LIST(V)                                                   \
   TAGGED_NATIVE_SLOTS_LIST(V)                                                  \
   NOT_TAGGED_NATIVE_SLOTS_LIST(V)
@@ -520,6 +520,8 @@ class Slot : public ZoneAllocated {
 
   bool is_immutable() const { return IsImmutableBit::decode(flags_); }
 
+  bool is_weak() const { return IsWeakBit::decode(flags_); }
+
   // Returns true if properties of this slot were based on the guarded state
   // of the corresponding Dart field.
   bool is_guarded_field() const { return IsGuardedBit::decode(flags_); }
@@ -620,8 +622,9 @@ class Slot : public ZoneAllocated {
   CompileType type_;
 
   using IsImmutableBit = BitField<decltype(flags_), bool, 0, 1>;
-  using IsGuardedBit =
+  using IsWeakBit =
       BitField<decltype(flags_), bool, IsImmutableBit::kNextBit, 1>;
+  using IsGuardedBit = BitField<decltype(flags_), bool, IsWeakBit::kNextBit, 1>;
   using IsCompressedBit =
       BitField<decltype(flags_), bool, IsGuardedBit::kNextBit, 1>;
   // Stores whether a field isn't tagged so that tagged is the default value
