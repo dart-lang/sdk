@@ -15,7 +15,7 @@ There are more documents on our [wiki][]. Once set up to build the SDK, run:
 
 ## Coding style
 
-The analyzer packages are coded with a styled specified in our [coding style
+The analyzer packages are coded with a style specified in our [coding style
 document][coding style].
 
 [building]: https://github.com/dart-lang/sdk/wiki/Building
