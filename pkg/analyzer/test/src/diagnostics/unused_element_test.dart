@@ -373,6 +373,21 @@ class A {
 ''');
   }
 
+  test_constructor_notUsed_single_inSubclass() async {
+    await assertErrorsInCode(r'''
+class A {
+  A._constructor();
+}
+
+class B extends A {
+  B() : super._constructor();
+  B._named() : super._constructor();
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 87, 6),
+    ]);
+  }
+
   test_enum_constructor_parameter_optionalNamed_isUsed() async {
     await assertNoErrorsInCode(r'''
 enum E {
@@ -1618,6 +1633,30 @@ f() => A()._m();
 ''', [
       error(WarningCode.UNUSED_ELEMENT_PARAMETER, 66, 1),
     ]);
+  }
+
+  test_optionalParameter_notUsed_overrideRequired() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  const A({
+    required this.a,
+    required this.b,
+  });
+  final String a;
+  final String b;
+}
+
+class _B extends A {
+  const _B({
+    required super.a,
+    super.b = 'b',
+  });
+}
+
+const foo = _B(
+  a: 'a',
+);
+''');
   }
 
   test_optionalParameter_notUsed_positional() async {

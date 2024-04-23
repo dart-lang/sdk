@@ -723,6 +723,32 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
     super.visitVariableDeclarationStatement(node);
   }
 
+  /// Returns the parameter element, if any, that corresponds to the given
+  /// parameter in the overridden element.
+  ParameterElement? _getCorrespondingParameter(ParameterElement parameter,
+      ExecutableElement overridden, ExecutableElement enclosingElement) {
+    ParameterElement? correspondingParameter;
+    if (parameter.isNamed) {
+      correspondingParameter = overridden.parameters
+          .firstWhereOrNull((p) => p.name == parameter.name);
+    } else {
+      var parameterIndex = 0;
+      var parameterCount = enclosingElement.parameters.length;
+      while (parameterIndex < parameterCount) {
+        if (enclosingElement.parameters[parameterIndex] == parameter) {
+          break;
+        }
+        parameterIndex++;
+      }
+      if (overridden.parameters.length <= parameterIndex) {
+        // Something is wrong with the overridden element. Ignore it.
+        return null;
+      }
+      correspondingParameter = overridden.parameters[parameterIndex];
+    }
+    return correspondingParameter;
+  }
+
   /// Returns whether the name of [element] consists only of underscore
   /// characters.
   bool _isNamedUnderscore(LocalVariableElement element) {
@@ -830,6 +856,19 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
         // "used". See https://github.com/dart-lang/sdk/issues/47839.
         return true;
       }
+      if (enclosingElement is ConstructorElement) {
+        var superConstructor = enclosingElement.superConstructor;
+        if (superConstructor != null) {
+          var correspondingParameter = _getCorrespondingParameter(
+              element, superConstructor, enclosingElement);
+          if (correspondingParameter != null) {
+            if (correspondingParameter.isRequiredNamed ||
+                correspondingParameter.isRequiredPositional) {
+              return true;
+            }
+          }
+        }
+      }
       if (enclosingElement is ExecutableElement) {
         if (enclosingElement.typeParameters.isNotEmpty) {
           // There is an issue matching arguments of generic function
@@ -904,25 +943,8 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
       ParameterElement element, ExecutableElement enclosingElement) {
     var overriddenElements = _overriddenElements(enclosingElement);
     for (var overridden in overriddenElements) {
-      ParameterElement? correspondingParameter;
-      if (element.isNamed) {
-        correspondingParameter = overridden.parameters
-            .firstWhereOrNull((p) => p.name == element.name);
-      } else {
-        var parameterIndex = 0;
-        var parameterCount = enclosingElement.parameters.length;
-        while (parameterIndex < parameterCount) {
-          if (enclosingElement.parameters[parameterIndex] == element) {
-            break;
-          }
-          parameterIndex++;
-        }
-        if (overridden.parameters.length <= parameterIndex) {
-          // Something is wrong with the overridden element. Ignore it.
-          continue;
-        }
-        correspondingParameter = overridden.parameters[parameterIndex];
-      }
+      ParameterElement? correspondingParameter =
+          _getCorrespondingParameter(element, overridden, enclosingElement);
       // The parameter was added in the override.
       if (correspondingParameter == null) {
         continue;
