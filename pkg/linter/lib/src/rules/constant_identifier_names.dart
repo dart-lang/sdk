@@ -91,6 +91,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    if (node.isAugmentation) return;
+
     checkIdentifier(node.name);
   }
 

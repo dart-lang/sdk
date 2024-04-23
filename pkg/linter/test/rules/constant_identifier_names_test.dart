@@ -17,10 +17,6 @@ class ConstantIdentifierNamesTest extends LintRuleTest {
   @override
   String get lintRule => 'constant_identifier_names';
 
-  @FailingTest(
-    reason: 'error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 40, 1),',
-    issue: 'https://github.com/dart-lang/linter/issues/4933',
-  )
   test_augmentationEnum() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import augment 'test.dart';
@@ -34,10 +30,10 @@ enum E {
 augment library 'a.dart';
 
 augment enum E {
-  X;
+  Xy;
 }
 ''', [
-      lint(34, 1),
+      lint(46, 2),
     ]);
   }
 
@@ -53,6 +49,24 @@ const PI = 3.14;
 ''', [
       lint(33, 2),
     ]);
+  }
+
+  test_augmentedEnumValue() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+enum E {
+  Xy;
+}
+''');
+
+    await assertNoDiagnostics(r'''
+augment library 'a.dart';
+
+augment enum E {
+  augment Xy;
+}
+''');
   }
 
   test_augmentedTopLevelVariable() async {
