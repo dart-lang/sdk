@@ -23,6 +23,8 @@ import 'package:dev_compiler/dev_compiler.dart'
         ExpressionCompiler,
         parseModuleFormat,
         ProgramCompiler;
+import 'package:front_end/src/api_prototype/macros.dart' as macros
+    show isMacroLibraryUri;
 import 'package:front_end/src/api_unstable/ddc.dart' as ddc
     show IncrementalCompiler;
 import 'package:front_end/src/api_unstable/vm.dart';
@@ -643,7 +645,9 @@ class FrontendCompiler implements CompilerInterface {
         nativeAssetsLibrary: _nativeAssetsLibrary,
         classHierarchy: compilerResult.classHierarchy,
         coreTypes: compilerResult.coreTypes,
-        compiledSources: component.uriToSource.keys,
+        // TODO(https://dartbug.com/55246): track macro deps when available.
+        compiledSources: component.uriToSource.keys
+            .where((uri) => !macros.isMacroLibraryUri(uri)),
       );
 
       incrementalSerializer = _generator.incrementalSerializer;
@@ -695,6 +699,7 @@ class FrontendCompiler implements CompilerInterface {
           .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
       final String? depfile = options['depfile'];
       if (depfile != null) {
+        // TODO(https://dartbug.com/55246): track macro deps when available.
         await writeDepfile(compilerOptions.fileSystem, compiledSources,
             _kernelBinaryFilename, depfile);
       }
