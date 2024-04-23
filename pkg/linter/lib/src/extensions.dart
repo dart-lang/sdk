@@ -32,6 +32,7 @@ extension AstNodeExtension on AstNode {
     return switch (self) {
       ClassDeclaration() => self.augmentKeyword != null,
       ConstructorDeclaration() => self.augmentKeyword != null,
+      EnumConstantDeclaration() => self.augmentKeyword != null,
       EnumDeclaration() => self.augmentKeyword != null,
       ExtensionTypeDeclaration() => self.augmentKeyword != null,
       FieldDeclaration() => self.augmentKeyword != null,
