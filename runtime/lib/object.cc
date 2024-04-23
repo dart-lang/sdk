@@ -329,20 +329,28 @@ DEFINE_NATIVE_ENTRY(Internal_deoptimizeFunctionsOnStack, 0, 0) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(Internal_randomInstructionsOffsetInsideAllocateObjectStub,
-                    0,
-                    0) {
+DEFINE_NATIVE_ENTRY(Internal_allocateObjectInstructionsStart, 0, 0) {
   auto& stub = Code::Handle(
       zone, isolate->group()->object_store()->allocate_object_stub());
-  const uword entry = stub.EntryPoint();
-  const uword random_offset = isolate->random()->NextUInt32() % stub.Size();
-  // We return the offset into the isolate instructions instead of the full
-  // address because that fits into small Smis on 32-bit architectures or
-  // compressed pointer builds.
+  ASSERT(!stub.IsUnknownDartCode());
+  // We return the start offset in the isolate instructions instead of the
+  // full address because that fits into small Smis on 32-bit architectures
+  // or compressed pointer builds.
   const uword instructions_start =
       reinterpret_cast<uword>(isolate->source()->snapshot_instructions);
-  ASSERT(entry >= instructions_start);
-  return Smi::New((entry - instructions_start) + random_offset);
+  return Smi::New(stub.PayloadStart() - instructions_start);
+}
+
+DEFINE_NATIVE_ENTRY(Internal_allocateObjectInstructionsEnd, 0, 0) {
+  auto& stub = Code::Handle(
+      zone, isolate->group()->object_store()->allocate_object_stub());
+  ASSERT(!stub.IsUnknownDartCode());
+  // We return the end offset in the isolate instructions instead of the
+  // full address because that fits into small Smis on 32-bit architectures
+  // or compressed pointer builds.
+  const uword instructions_start =
+      reinterpret_cast<uword>(isolate->source()->snapshot_instructions);
+  return Smi::New((stub.PayloadStart() - instructions_start) + stub.Size());
 }
 
 static bool ExtractInterfaceTypeArgs(Zone* zone,

@@ -165,11 +165,16 @@ abstract class VMInternalsForTesting {
   external static void deoptimizeFunctionsOnStack();
 
   // Used to verify that PC addresses in stubs can be named using DWARF info
-  // by returning an offset into the isolate instructions that should correspond
+  // by returning the start offset into the isolate instructions that
+  // corresponds to a known stub.
+  @pragma("vm:external-name", "Internal_allocateObjectInstructionsStart")
+  external static int allocateObjectInstructionsStart();
+
+  // Used to verify that PC addresses in stubs can be named using DWARF info
+  // by returning the end offset into the isolate instructions that corresponds
   // to a known stub.
-  @pragma("vm:external-name",
-      "Internal_randomInstructionsOffsetInsideAllocateObjectStub")
-  external static int randomInstructionsOffsetInsideAllocateObjectStub();
+  @pragma("vm:external-name", "Internal_allocateObjectInstructionsEnd")
+  external static int allocateObjectInstructionsEnd();
 }
 
 @patch
