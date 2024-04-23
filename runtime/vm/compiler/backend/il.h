@@ -435,7 +435,7 @@ struct InstrAttrs {
   M(AssertBoolean, _)                                                          \
   M(ClosureCall, _)                                                            \
   M(FfiCall, _)                                                                \
-  M(CCall, kNoGC)                                                              \
+  M(LeafRuntimeCall, kNoGC)                                                    \
   M(InstanceCall, _)                                                           \
   M(PolymorphicInstanceCall, _)                                                \
   M(DispatchTableCall, _)                                                      \
@@ -6132,15 +6132,15 @@ class FfiCallInstr : public VariadicDefinition {
 };
 
 // Has the target address in a register passed as the last input in IL.
-class CCallInstr : public VariadicDefinition {
+class LeafRuntimeCallInstr : public VariadicDefinition {
  public:
-  static CCallInstr* Make(
+  static LeafRuntimeCallInstr* Make(
       Zone* zone,
       Representation return_representation,
       const ZoneGrowableArray<Representation>& argument_representations,
       InputsArray&& inputs);
 
-  DECLARE_INSTRUCTION(CCall)
+  DECLARE_INSTRUCTION(LeafRuntimeCall)
 
   LocationSummary* MakeLocationSummaryInternal(Zone* zone,
                                                const RegList temps) const;
@@ -6197,10 +6197,10 @@ class CCallInstr : public VariadicDefinition {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-  DECLARE_CUSTOM_SERIALIZATION(CCallInstr)
+  DECLARE_CUSTOM_SERIALIZATION(LeafRuntimeCallInstr)
 
  private:
-  CCallInstr(
+  LeafRuntimeCallInstr(
       Representation return_representation,
       const ZoneGrowableArray<Representation>& argument_representations,
       const compiler::ffi::NativeCallingConvention& native_calling_convention,
@@ -6211,7 +6211,7 @@ class CCallInstr : public VariadicDefinition {
   const ZoneGrowableArray<Representation>& argument_representations_;
   // Not serialized.
   const compiler::ffi::NativeCallingConvention& native_calling_convention_;
-  DISALLOW_COPY_AND_ASSIGN(CCallInstr);
+  DISALLOW_COPY_AND_ASSIGN(LeafRuntimeCallInstr);
 };
 
 class DebugStepCheckInstr : public TemplateInstruction<0, NoThrow> {

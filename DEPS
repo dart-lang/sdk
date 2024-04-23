@@ -123,7 +123,7 @@ vars = {
   "args_rev": "5c83bc9785d6c32ffe6824ba79fadcc51fbcd1c1",
   "async_rev": "47968047eb9888f74ca0691640821bd55b47e763",
   "bazel_worker_rev": "79d2ad13c83d5e0883136503d86ddf60fe665900",
-  "benchmark_harness_rev": "aa139fdf3a3b829fa8c10719102c66729495afb6",
+  "benchmark_harness_rev": "197702c2c73e58eb2d31c1fd83cc5d8096d3eceb",
   "boolean_selector_rev": "24635df68661bb44c1c13fb405562421e24298e5",
   "browser_launcher_rev": "c4b2c81aa9debcce3651eda1b68a9bc5d5adf400",
   "characters_rev": "7633a16a22c626e19ca750223237396315268a06",

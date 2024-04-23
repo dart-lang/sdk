@@ -776,7 +776,7 @@ void ConstantPropagator::VisitFfiCall(FfiCallInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
-void ConstantPropagator::VisitCCall(CCallInstr* instr) {
+void ConstantPropagator::VisitLeafRuntimeCall(LeafRuntimeCallInstr* instr) {
   SetValue(instr, non_constant_);
 }
 

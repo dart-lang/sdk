@@ -1696,15 +1696,16 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 #define R(r) (1 << r)
 
-LocationSummary* CCallInstr::MakeLocationSummary(Zone* zone,
-                                                 bool is_optimizing) const {
+LocationSummary* LeafRuntimeCallInstr::MakeLocationSummary(
+    Zone* zone,
+    bool is_optimizing) const {
   constexpr Register saved_fp = CallingConventions::kSecondNonArgumentRegister;
   return MakeLocationSummaryInternal(zone, (R(saved_fp)));
 }
 
 #undef R
 
-void CCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void LeafRuntimeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register saved_fp = locs()->temp(0).reg();
   const Register temp0 = TMP;
 
@@ -1717,7 +1718,10 @@ void CCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   EmitParamMoves(compiler, saved_fp, temp0);
   const Register target_address = locs()->in(TargetAddressIndex()).reg();
+  __ movq(compiler::Assembler::VMTagAddress(), target_address);
   __ CallCFunction(target_address);
+  __ movq(compiler::Assembler::VMTagAddress(),
+          compiler::Immediate(VMTag::kDartTagId));
 
   __ LeaveCFrame();
 }
