@@ -401,7 +401,9 @@ class StaticError implements Comparable<StaticError> {
     // Ignore column and length for unspecified errors.
     if (isSpecified) {
       if (column != actual.column) return false;
-      if (actual.length > 0 && length != actual.length) return false;
+      if (actual.length > 0 && length > 0 && length != actual.length) {
+        return false;
+      }
     }
 
     return true;

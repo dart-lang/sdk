@@ -5,130 +5,232 @@
 library test.metadata_allowed_values;
 
 import 'dart:mirrors';
+//     ^
+// [web] Dart library 'dart:mirrors' is not available on this platform.
 import 'package:expect/expect.dart';
 
 import 'metadata_allowed_values_import.dart'; // Unprefixed.
 import 'metadata_allowed_values_import.dart' as prefix;
 
-@A // //# 01: compile-time error
+   @A
+// ^^
+// [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_ANNOTATION_CONSTRUCTOR
+//  ^
+// [cfe] This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 class A {}
 
-@B.CONSTANT
-class B {
-  static const CONSTANT = 3;
-}
-
-@C(3)
-class C {
-  final field;
-  const C(this.field);
-}
-
-@D.named(4)
-class D {
-  final field;
-  const D.named(this.field);
-}
-
-@E.NOT_CONSTANT // //# 02: compile-time error
+   @E.NOT_CONSTANT
+// ^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_ANNOTATION
+//    ^
+// [cfe] Constant evaluation error:
 class E {
   static var NOT_CONSTANT = 3;
 }
 
-@F(6) // //# 03: compile-time error
+   @F(6)
+// ^^^^^
+// [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_ANNOTATION_CONSTRUCTOR
+//  ^
+// [cfe] Cannot invoke a non-'const' constructor where a const expression is expected.
 class F {
   final field;
   F(this.field);
 }
 
-@G.named(4) // //# 04: compile-time error
+   @G.named(4)
+// ^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_ANNOTATION_CONSTRUCTOR
+//  ^
+// [cfe] Cannot invoke a non-'const' constructor where a const expression is expected.
 class G {
   final field;
   G.named(this.field);
 }
 
-@I[0] // //# 06: compile-time error
+@I[0]
+//^
+// [analyzer] SYNTACTIC_ERROR.EXPECTED_EXECUTABLE
+// [cfe] Expected a declaration, but got '['.
+// ^
+// [analyzer] SYNTACTIC_ERROR.EXPECTED_EXECUTABLE
+// [cfe] Expected a declaration, but got '0'.
+//  ^
+// [analyzer] SYNTACTIC_ERROR.EXPECTED_EXECUTABLE
+// [cfe] Expected a declaration, but got ']'.
 class I {}
 
-@this.toString // //# 07: compile-time error
+   @this.toString
+// ^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_ANNOTATION
+//  ^^^^
+// [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+// [cfe] 'this' can't be used as an identifier because it's a keyword.
+//       ^
+// [cfe] Member not found: 'this.toString'.
+// [cfe] This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 class J {}
 
-@super.toString // //# 08: compile-time error
+   @super.toString
+// ^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_ANNOTATION
+//  ^^^^^
+// [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+// [cfe] 'super' can't be used as an identifier because it's a keyword.
+//        ^
+// [cfe] Member not found: 'super.toString'.
+// [cfe] This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 class K {}
 
-@L.func() // //# 09: compile-time error
+   @L.func()
+// ^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_ANNOTATION
+//    ^
+// [cfe] Couldn't find constructor 'L.func'.
 class L {
   static func() => 6;
 }
 
-@Imported // //# 10: compile-time error
+   @Imported
+// ^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS
+//  ^
+// [cfe] This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 class M {}
 
-@Imported()
-class N {}
-
-@Imported.named()
-class O {}
-
-@Imported.CONSTANT
-class P {}
-
-@prefix.Imported // //# 11: compile-time error
+   @prefix.Imported
+// ^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS
+//         ^
+// [cfe] This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 class Q {}
 
-@prefix.Imported()
-class R {}
+   @U..toString()
+//   ^^
+// [analyzer] SYNTACTIC_ERROR.EXPECTED_EXECUTABLE
+// [cfe] Expected a declaration, but got '..'.
+   class U {}
+// ^^^^^
+// [analyzer] SYNTACTIC_ERROR.MISSING_FUNCTION_BODY
+// [cfe] Expected '{' before this.
 
-@prefix.Imported.named()
-class S {}
-
-@prefix.Imported.CONSTANT
-class T {}
-
-@U..toString() // //# 12: compile-time error
-class U {}
-
-@V.tearOff // //# 13: compile-time error
+   @V.tearOff
+// ^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_ANNOTATION
 class V {
   static tearOff() {}
 }
 
 topLevelTearOff() => 4;
 
-@topLevelTearOff // //# 14: compile-time error
+   @topLevelTearOff
+// ^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_ANNOTATION
 class W {}
 
-@TypeParameter // //# 15: compile-time error
+   @TypeParameter
+// ^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_ANNOTATION
+//  ^
+// [cfe] This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
+// [cfe] Undefined name 'TypeParameter'.
 class X<TypeParameter> {}
 
-@TypeParameter.member // //# 16: compile-time error
+   @TypeParameter.member
+// ^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_ANNOTATION
+//                ^
+// [cfe] Member not found: 'TypeParameter.member'.
+// [cfe] This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 class Y<TypeParameter> {}
 
-@1 // //# 17: compile-time error
+   @1
+// [error column 4]
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_ANNOTATION
+//  ^
+// [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+// [cfe] Expected an identifier, but got '1'.
 class Z {}
 
-@3.14 // //# 18: compile-time error
+   @3.14
+// [error column 4]
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_ANNOTATION
+//  ^^^^
+// [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+// [cfe] Expected an identifier, but got '3.14'.
 class AA {}
 
-@'string' // //# 19: compile-time error
+   @'string'
+// [error column 4]
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_ANNOTATION
+//  ^^^^^^^^
+// [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+// [cfe] Expected an identifier, but got ''string''.
 class BB {}
 
-@#symbol // //# 20: compile-time error
+   @#symbol
+// ^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_ANNOTATION
+//  ^
+// [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+// [cfe] Expected an identifier, but got '#'.
+//   ^^^^^^
+// [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
+// [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE
+// [cfe] Expected ';' after this.
+// [cfe] This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
+// [cfe] This couldn't be parsed.
+// [cfe] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 class CC {}
 
-@['element'] // //# 21: compile-time error
+   @['element']
+//  ^
+// [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+// [cfe] Expected an identifier, but got '['.
+//   ^^^^^^^^^
+// [analyzer] SYNTACTIC_ERROR.EXPECTED_EXECUTABLE
+// [cfe] Expected a declaration, but got ''element''.
+//            ^
+// [analyzer] SYNTACTIC_ERROR.EXPECTED_EXECUTABLE
+// [cfe] Expected a declaration, but got ']'.
 class DD {}
 
-@{'key': 'value'} // //# 22: compile-time error
+   @{'key': 'value'}
+//  ^
+// [analyzer] SYNTACTIC_ERROR.EXPECTED_EXECUTABLE
+// [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+// [cfe] Expected a declaration, but got '{'.
+// [cfe] Expected an identifier, but got '{'.
 class EE {}
 
-@true // //# 23: compile-time error
+   @true
+// ^^^^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_ANNOTATION
+//  ^^^^
+// [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+// [cfe] 'true' can't be used as an identifier because it's a keyword.
+// [cfe] This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
+// [cfe] Undefined name 'true'.
 class FF {}
 
-@false // //# 24: compile-time error
+   @false
+// ^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_ANNOTATION
+//  ^^^^^
+// [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+// [cfe] 'false' can't be used as an identifier because it's a keyword.
+// [cfe] This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
+// [cfe] Undefined name 'false'.
 class GG {}
 
-@null // //# 25: compile-time error
+   @null
+// ^^^^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_ANNOTATION
+//  ^^^^
+// [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+// [cfe] 'null' can't be used as an identifier because it's a keyword.
+// [cfe] This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
+// [cfe] Undefined name 'null'.
 class HH {}
 
 const a = const [1, 2, 3];
@@ -136,83 +238,70 @@ const a = const [1, 2, 3];
 @a
 class II {}
 
-@a[0] // //# 26: compile-time error
+@a[0]
+//^
+// [analyzer] SYNTACTIC_ERROR.EXPECTED_EXECUTABLE
+// [cfe] Expected a declaration, but got '['.
+// ^
+// [analyzer] SYNTACTIC_ERROR.EXPECTED_EXECUTABLE
+// [cfe] Expected a declaration, but got '0'.
+//  ^
+// [analyzer] SYNTACTIC_ERROR.EXPECTED_EXECUTABLE
+// [cfe] Expected a declaration, but got ']'.
 class JJ {}
 
-@kk // //# 27: compile-time error
+   @kk
+// ^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_ANNOTATION
+//  ^
+// [cfe] Constant evaluation error:
 class KK {
   const KK();
 }
 
 get kk => const KK();
 
-@LL(() => 42) // //# 28: compile-time error
+@LL(() => 42)
+//  ^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
+// [cfe] Not a constant expression.
 class LL {
   final field;
   const LL(this.field);
 }
 
-@MM((x) => 42) // //# 29: compile-time error
+@MM((x) => 42)
+//  ^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
+// [cfe] Not a constant expression.
 class MM {
   final field;
   const MM(this.field);
 }
 
-@NN(() {}) // //# 30: compile-time error
+@NN(() {})
+//  ^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
+// [cfe] Not a constant expression.
 class NN {
   final field;
   const NN(this.field);
 }
 
-@OO(() { () {} }) // //# 31: compile-time error
+@OO(() { () {} })
+//  ^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
+// [cfe] Not a constant expression.
+//       ^
+// [cfe] Not a constant expression.
+//           ^
+// [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
+// [cfe] Expected ';' after this.
 class OO {
   final field;
   const OO(this.field);
 }
 
-checkMetadata(DeclarationMirror mirror, List expectedMetadata) {
-  Expect.listEquals(expectedMetadata.map(reflect).toList(), mirror.metadata);
-}
 
-main() {
-  reflectClass(A).metadata;
-  checkMetadata(reflectClass(B), [B.CONSTANT]);
-  checkMetadata(reflectClass(C), [const C(3)]);
-  checkMetadata(reflectClass(D), [const D.named(4)]);
-  reflectClass(E).metadata;
-  reflectClass(F).metadata;
-  reflectClass(G).metadata;
-  reflectClass(I).metadata;
-  reflectClass(J).metadata;
-  reflectClass(K).metadata;
-  reflectClass(L).metadata;
-  reflectClass(M).metadata;
-  checkMetadata(reflectClass(N), [const Imported()]);
-  checkMetadata(reflectClass(O), [const Imported.named()]);
-  checkMetadata(reflectClass(P), [Imported.CONSTANT]);
-  reflectClass(Q).metadata;
-  checkMetadata(reflectClass(R), [const prefix.Imported()]);
-  checkMetadata(reflectClass(S), [const prefix.Imported.named()]);
-  checkMetadata(reflectClass(T), [prefix.Imported.CONSTANT]);
-  reflectClass(U).metadata;
-  reflectClass(V).metadata;
-  reflectClass(W).metadata;
-  reflectClass(X).metadata;
-  reflectClass(Y).metadata;
-  reflectClass(Z).metadata;
-  reflectClass(AA).metadata;
-  reflectClass(BB).metadata;
-  reflectClass(CC).metadata;
-  reflectClass(DD).metadata;
-  reflectClass(EE).metadata;
-  reflectClass(FF).metadata;
-  reflectClass(GG).metadata;
-  reflectClass(HH).metadata;
-  reflectClass(II).metadata;
-  reflectClass(JJ).metadata;
-  reflectClass(KK).metadata;
-  reflectClass(LL).metadata;
-  reflectClass(MM).metadata;
-  reflectClass(NN).metadata;
-  reflectClass(OO).metadata;
-}
+main() {}
+

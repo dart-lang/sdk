@@ -50,6 +50,10 @@ main() {
 
   var f4 = B4;
   var f5 = B5;
+  f6(const p1) {}
+  // ^^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
+  // [cfe] Can't have modifier 'const' here.
 }
 
 const F0 = 42;
