@@ -2753,11 +2753,31 @@ class _InstanceCreationEvaluator {
           case DartObjectImpl():
             if (!evaluationResult.isBool ||
                 evaluationResult.toBoolValue() == false) {
+              InvalidConstant? invalidConstant;
+
+              // Adds the assert message if we are able to evaluate it.
+              if (initializer.message case var message?) {
+                var messageConstant =
+                    _initializerVisitor.evaluateConstant(message);
+                if (messageConstant is DartObjectImpl) {
+                  if (messageConstant.toStringValue() case var assertMessage?) {
+                    invalidConstant = InvalidConstant.forEntity(
+                        initializer,
+                        CompileTimeErrorCode
+                            .CONST_EVAL_ASSERTION_FAILURE_WITH_MESSAGE,
+                        arguments: [assertMessage],
+                        isRuntimeException: true);
+                  }
+                }
+              }
+
+              invalidConstant ??= InvalidConstant.forEntity(initializer,
+                  CompileTimeErrorCode.CONST_EVAL_ASSERTION_FAILURE,
+                  isRuntimeException: true);
               return _InitializersEvaluationResult(
-                  InvalidConstant.forEntity(initializer,
-                      CompileTimeErrorCode.CONST_EVAL_ASSERTION_FAILURE,
-                      isRuntimeException: true),
-                  evaluationIsComplete: true);
+                invalidConstant,
+                evaluationIsComplete: true,
+              );
             }
           case InvalidConstant(isRuntimeException: false):
             // Add additional information to the error in the assert initializer

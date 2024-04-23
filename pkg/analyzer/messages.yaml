@@ -2712,6 +2712,11 @@ CompileTimeErrorCode:
       ```
   CONST_EVAL_ASSERTION_FAILURE:
     problemMessage: "The assertion in this constant expression failed."
+  CONST_EVAL_ASSERTION_FAILURE_WITH_MESSAGE:
+    problemMessage: "An assertion failed with message '{0}'."
+    comment: |-
+      Parameters:
+      0: the message of the assertion
   CONST_EVAL_EXTENSION_METHOD:
     problemMessage: "Extension methods can't be used in constant expressions."
   CONST_EVAL_EXTENSION_TYPE_METHOD:
