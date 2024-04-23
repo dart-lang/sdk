@@ -1805,8 +1805,9 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 #define R(r) (1 << r)
 
-LocationSummary* CCallInstr::MakeLocationSummary(Zone* zone,
-                                                 bool is_optimizing) const {
+LocationSummary* LeafRuntimeCallInstr::MakeLocationSummary(
+    Zone* zone,
+    bool is_optimizing) const {
   // Compare FfiCallInstr's use of kFfiAnyNonAbiRegister.
   constexpr Register saved_csp = CallingConventions::kFfiAnyNonAbiRegister;
   ASSERT(IsAbiPreservedRegister(saved_csp));
@@ -1815,7 +1816,7 @@ LocationSummary* CCallInstr::MakeLocationSummary(Zone* zone,
 
 #undef R
 
-void CCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void LeafRuntimeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register saved_fp = TMP2;
   const Register temp0 = TMP;
   const Register saved_csp = locs()->temp(0).reg();
@@ -1831,7 +1832,12 @@ void CCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   EmitParamMoves(compiler, saved_fp, temp0);
 
   const Register target_address = locs()->in(TargetAddressIndex()).reg();
+  __ str(target_address,
+         compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
   __ CallCFunction(target_address);
+  __ LoadImmediate(temp0, VMTag::kDartTagId);
+  __ str(temp0,
+         compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
 
   // We don't use the DartSP, we leave the frame after this immediately.
   // However, we need set CSP to a 16 byte aligned value far above the SP.

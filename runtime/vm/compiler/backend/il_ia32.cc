@@ -1460,8 +1460,9 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 #define R(r) (1 << r)
 
-LocationSummary* CCallInstr::MakeLocationSummary(Zone* zone,
-                                                 bool is_optimizing) const {
+LocationSummary* LeafRuntimeCallInstr::MakeLocationSummary(
+    Zone* zone,
+    bool is_optimizing) const {
   constexpr Register saved_fp = CallingConventions::kSecondNonArgumentRegister;
   constexpr Register temp0 = CallingConventions::kFfiAnyNonAbiRegister;
   static_assert(saved_fp < temp0, "Unexpected ordering of registers in set.");
@@ -1470,7 +1471,7 @@ LocationSummary* CCallInstr::MakeLocationSummary(Zone* zone,
 
 #undef R
 
-void CCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void LeafRuntimeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register saved_fp = locs()->temp(0).reg();
   const Register temp0 = locs()->temp(1).reg();
 
@@ -1481,7 +1482,10 @@ void CCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   EmitParamMoves(compiler, saved_fp, temp0);
 
   const Register target_address = locs()->in(TargetAddressIndex()).reg();
+  __ movl(compiler::Assembler::VMTagAddress(), target_address);
   __ CallCFunction(target_address);
+  __ movl(compiler::Assembler::VMTagAddress(),
+          compiler::Immediate(VMTag::kDartTagId));
 
   __ LeaveCFrame();
 }

@@ -1948,8 +1948,9 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 #define R(r) (1 << r)
 
-LocationSummary* CCallInstr::MakeLocationSummary(Zone* zone,
-                                                 bool is_optimizing) const {
+LocationSummary* LeafRuntimeCallInstr::MakeLocationSummary(
+    Zone* zone,
+    bool is_optimizing) const {
   constexpr Register saved_fp = CallingConventions::kSecondNonArgumentRegister;
   constexpr Register temp0 = CallingConventions::kFfiAnyNonAbiRegister;
   static_assert(saved_fp < temp0, "Unexpected ordering of registers in set.");
@@ -1960,7 +1961,7 @@ LocationSummary* CCallInstr::MakeLocationSummary(Zone* zone,
 
 #undef R
 
-void CCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void LeafRuntimeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register saved_fp = locs()->temp(0).reg();
   const Register temp0 = locs()->temp(1).reg();
 
@@ -1974,7 +1975,12 @@ void CCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register target_address = locs()->in(TargetAddressIndex()).reg();
   // I.e., no use of A3/A4/A5.
   RELEASE_ASSERT(native_calling_convention_.argument_locations().length() < 4);
+  __ sx(target_address,
+        compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
   __ CallCFunction(target_address);
+  __ li(temp0, VMTag::kDartTagId);
+  __ sx(temp0,
+        compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
 
   __ LeaveCFrame();  // Also restores PP=A5.
 }

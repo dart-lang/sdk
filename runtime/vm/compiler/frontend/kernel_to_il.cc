@@ -416,7 +416,7 @@ Fragment FlowGraphBuilder::FfiCall(
   return body;
 }
 
-Fragment FlowGraphBuilder::CallRuntimeEntry(
+Fragment FlowGraphBuilder::CallLeafRuntimeEntry(
     const RuntimeEntry& entry,
     Representation return_representation,
     const ZoneGrowableArray<Representation>& argument_representations) {
@@ -427,7 +427,7 @@ Fragment FlowGraphBuilder::CallRuntimeEntry(
 
   const intptr_t num_arguments = argument_representations.length() + 1;
   InputsArray arguments = GetArguments(num_arguments);
-  auto* const call = CCallInstr::Make(
+  auto* const call = LeafRuntimeCallInstr::Make(
       Z, return_representation, argument_representations, std::move(arguments));
   Push(call);
   body <<= call;
@@ -2230,7 +2230,7 @@ Fragment FlowGraphBuilder::BuildTypedDataMemMove(const Function& function,
   arg_reps->Add(size_rep);
   // memmove(dest, src, n)
   call_memmove +=
-      CallRuntimeEntry(kMemoryMoveRuntimeEntry, kUntagged, *arg_reps);
+      CallLeafRuntimeEntry(kMemoryMoveRuntimeEntry, kUntagged, *arg_reps);
   // The returned address is unused.
   call_memmove += Drop();
   call_memmove += DropTemporary(&length_in_bytes);
@@ -5259,7 +5259,8 @@ Fragment FlowGraphBuilder::FfiConvertPrimitiveToNative(
     arg_reps->Add(kUntagged);
 
     // Allocate a new handle in the top handle scope.
-    body += CallRuntimeEntry(kAllocateHandleRuntimeEntry, kUntagged, *arg_reps);
+    body +=
+        CallLeafRuntimeEntry(kAllocateHandleRuntimeEntry, kUntagged, *arg_reps);
 
     LocalVariable* handle = MakeTemporary("handle");
 
@@ -5464,8 +5465,8 @@ Fragment FlowGraphBuilder::FfiCallFunctionBody(
     body += LoadThread();  // argument.
     arg_reps->Add(kUntagged);
 
-    body +=
-        CallRuntimeEntry(kEnterHandleScopeRuntimeEntry, kUntagged, *arg_reps);
+    body += CallLeafRuntimeEntry(kEnterHandleScopeRuntimeEntry, kUntagged,
+                                 *arg_reps);
   }
 
   // Allocate typed data before FfiCall and pass it in to ffi call if needed.
@@ -5530,8 +5531,8 @@ Fragment FlowGraphBuilder::FfiCallFunctionBody(
     code += LoadThread();  // argument.
     arg_reps->Add(kUntagged);
 
-    code +=
-        CallRuntimeEntry(kExitHandleScopeRuntimeEntry, kUntagged, *arg_reps);
+    code += CallLeafRuntimeEntry(kExitHandleScopeRuntimeEntry, kUntagged,
+                                 *arg_reps);
     code += Drop();
     return code;
   };

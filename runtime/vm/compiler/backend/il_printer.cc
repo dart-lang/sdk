@@ -1407,7 +1407,7 @@ void FfiCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   }
 }
 
-void CCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+void LeafRuntimeCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   f->AddString("target_address=");
   InputAt(TargetAddressIndex())->PrintTo(f);
   for (intptr_t i = 0, n = argument_representations_.length(); i < n; ++i) {

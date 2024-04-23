@@ -7923,7 +7923,7 @@ DEFINE_BACKEND(LoadThread, (Register out)) {
   __ MoveRegister(out, THR);
 }
 
-LocationSummary* CCallInstr::MakeLocationSummaryInternal(
+LocationSummary* LeafRuntimeCallInstr::MakeLocationSummaryInternal(
     Zone* zone,
     const RegList temps) const {
   LocationSummary* summary =
@@ -7966,7 +7966,7 @@ LocationSummary* CCallInstr::MakeLocationSummaryInternal(
   return summary;
 }
 
-CCallInstr::CCallInstr(
+LeafRuntimeCallInstr::LeafRuntimeCallInstr(
     Representation return_representation,
     const ZoneGrowableArray<Representation>& argument_representations,
     const compiler::ffi::NativeCallingConvention& native_calling_convention,
@@ -7985,7 +7985,7 @@ CCallInstr::CCallInstr(
 #endif
 }
 
-CCallInstr* CCallInstr::Make(
+LeafRuntimeCallInstr* LeafRuntimeCallInstr::Make(
     Zone* zone,
     Representation return_representation,
     const ZoneGrowableArray<Representation>& argument_representations,
@@ -7996,13 +7996,14 @@ CCallInstr* CCallInstr::Make(
   const auto& native_calling_convention =
       compiler::ffi::NativeCallingConvention::FromSignature(
           zone, native_function_type);
-  return new (zone) CCallInstr(return_representation, argument_representations,
-                               native_calling_convention, std::move(inputs));
+  return new (zone)
+      LeafRuntimeCallInstr(return_representation, argument_representations,
+                           native_calling_convention, std::move(inputs));
 }
 
-void CCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
-                                Register saved_fp,
-                                Register temp0) {
+void LeafRuntimeCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
+                                          Register saved_fp,
+                                          Register temp0) {
   if (native_calling_convention_.StackTopInBytes() == 0) {
     return;
   }

@@ -211,7 +211,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment FfiCall(const compiler::ffi::CallMarshaller& marshaller,
                    bool is_leaf);
 
-  Fragment CallRuntimeEntry(
+  Fragment CallLeafRuntimeEntry(
       const RuntimeEntry& entry,
       Representation return_representation,
       const ZoneGrowableArray<Representation>& argument_representations);
