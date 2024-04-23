@@ -61,7 +61,6 @@
   "../vm/dart/inline_local_functions_il_test.dart",
   "../vm/dart/inline_stack_frame_test.dart",
   "../vm/dart/isolates/concurrency_stress_sanity_test.dart",
-  "../vm/dart/isolates/reload_many_isolates_test.dart",
   "../vm/dart/keep_class_names_implementing_test.dart",
   "../vm/dart/licm_and_assert_strengthening_test.dart",
   "../vm/dart/load_indexed_trivial_type_il_test.dart",
