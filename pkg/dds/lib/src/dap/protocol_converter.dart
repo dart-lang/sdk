@@ -69,6 +69,7 @@ class ProtocolConverter {
       var stringValue = allowCallingToString &&
               (valueAsString == null || !allowTruncatedValue)
           ? await _callToString(thread, ref,
+              allowTruncatedValue: allowTruncatedValue,
               // Quotes are handled below, so they can be wrapped around the
               // ellipsis.
               format: VariableFormat.noQuotes())
@@ -91,6 +92,7 @@ class ProtocolConverter {
       var stringValue = ref.classRef?.name ?? '<unknown instance>';
       if (allowCallingToString) {
         final toStringValue = await _callToString(thread, ref,
+            allowTruncatedValue: allowTruncatedValue,
             // Suppress quotes because this is going inside a longer string.
             format: VariableFormat.noQuotes());
         // Include the toString() result only if it's not the default (which
@@ -696,6 +698,7 @@ class ProtocolConverter {
   Future<String?> _callToString(
     ThreadInfo thread,
     vm.InstanceRef ref, {
+    bool allowTruncatedValue = true,
     VariableFormat? format,
   }) async {
     final service = _adapter.vmService;
@@ -714,7 +717,8 @@ class ProtocolConverter {
     // full value.
     if (result is vm.InstanceRef &&
         result.kind == 'String' &&
-        (result.valueAsStringIsTruncated ?? false)) {
+        (result.valueAsStringIsTruncated ?? false) &&
+        !allowTruncatedValue) {
       result = await service.getObject(thread.isolate.id!, result.id!);
     }
 

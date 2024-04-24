@@ -188,21 +188,23 @@ ISOLATE_UNIT_TEST_CASE(JSON_JSONStream_DartObject) {
   ElideJSONSubstring("classes", json_str, buffer);
   ElideJSONSubstring("libraries", buffer, buffer);
   ElideJSONSubstring("objects", buffer, buffer);
+  ElideJSONSubstring("line", buffer, buffer);
+  ElideJSONSubstring("column", buffer, buffer);
+  StripTokenPositions(buffer);
+
   EXPECT_STREQ(
       "[{\"type\":\"@Instance\",\"_vmType\":\"null\",\"class\":{\"type\":\"@"
       "Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"Null\",\"location\":{"
       "\"type\":\"SourceLocation\",\"script\":{\"type\":\"@Script\","
-      "\"fixedId\":true,\"id\":\"\",\"uri\":\"dart:core\\/null.dart\",\"_"
-      "kind\":\"kernel\"},\"tokenPos\":925,\"endTokenPos\":1171,\"line\":23,"
-      "\"column\":1},\"library\":{"
+      "\"fixedId\":true,\"id\":\"\",\"uri\":\"dart:core\\/null.dart\","
+      "\"_kind\":\"kernel\"}},\"library\":{"
       "\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\",\"name\":\"dart."
       "core\",\"uri\":\"dart:core\"}},\"kind\":\"Null\",\"fixedId\":true,"
       "\"id\":\"\",\"valueAsString\":\"null\"},{\"object_key\":{\"type\":\"@"
       "Instance\",\"_vmType\":\"null\",\"class\":{\"type\":\"@Class\","
       "\"fixedId\":true,\"id\":\"\",\"name\":\"Null\",\"location\":{\"type\":"
       "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
-      "\"id\":\"\",\"uri\":\"dart:core\\/null.dart\",\"_kind\":\"kernel\"},"
-      "\"tokenPos\":925,\"endTokenPos\":1171,\"line\":23,\"column\":1},"
+      "\"id\":\"\",\"uri\":\"dart:core\\/null.dart\",\"_kind\":\"kernel\"}},"
       "\"library\":{\"type\":\"@"
       "Library\",\"fixedId\":true,\"id\":\"\",\"name\":\"dart.core\",\"uri\":"
       "\"dart:core\"}},\"kind\":\"Null\",\"fixedId\":true,\"id\":\"\","

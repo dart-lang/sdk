@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/base_processor.dart';
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/dart/ignore_diagnostic.dart';
@@ -23,7 +22,7 @@ typedef MultiProducerGenerator = MultiCorrectionProducer Function();
 typedef ProducerGenerator = CorrectionProducer Function();
 
 /// The computer for Dart fixes.
-class FixProcessor extends BaseProcessor {
+class FixProcessor {
   /// Cached results of [canBulkFix].
   static final Map<ErrorCode, bool> _bulkFixableErrorCodes = {};
 
@@ -62,11 +61,7 @@ class FixProcessor extends BaseProcessor {
 
   final List<Fix> fixes = <Fix>[];
 
-  FixProcessor(this.fixContext)
-      : super(
-          resolvedResult: fixContext.resolvedResult,
-          workspace: fixContext.workspace,
-        );
+  FixProcessor(this.fixContext);
 
   Future<List<Fix>> compute() async {
     if (isMacroGenerated(fixContext.resolvedResult.file.path)) {
@@ -105,10 +100,10 @@ class FixProcessor extends BaseProcessor {
     var context = CorrectionProducerContext.createResolved(
       dartFixContext: fixContext,
       diagnostic: error,
-      resolvedResult: resolvedResult,
+      resolvedResult: fixContext.resolvedResult,
       selectionOffset: fixContext.error.offset,
       selectionLength: fixContext.error.length,
-      workspace: workspace,
+      workspace: fixContext.workspace,
     );
     if (context == null) {
       return;

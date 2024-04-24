@@ -50,6 +50,27 @@ main() {
       ]);
     });
 
+    test('does not include empty output events when output ends with a newline',
+        () async {
+      final testFile = dap.createTestFile(simpleArgPrintingProgram);
+
+      final outputEvents = await dap.client.collectOutput(
+        launch: () => dap.client.launch(
+          testFile.path,
+          args: ['one', 'two'],
+        ),
+      );
+
+      // The sample application uses `print()` which includes newlines on
+      // each output. Output is split by `\n` when scanning for stack frames
+      // and previously would include empty output events at the end if the
+      // content ended with a newline.
+      // https://github.com/flutter/flutter/pull/147250#issuecomment-2075128834
+      for (var output in outputEvents) {
+        expect(output.output, isNotEmpty);
+      }
+    });
+
     test('runs a simple script using runInTerminal request', () async {
       final testFile = dap.createTestFile(emptyProgram);
 

@@ -414,10 +414,11 @@ CompletionDetail getCompletionDetail(
 }) {
   var element = suggestion.element;
   var parameters = element?.parameters;
-  // Prefer the element return type (because it's available for things like
-  // overrides) but fall back to the suggestion if there isn't one (to handle
-  // records).
-  var returnType = element?.returnType ?? suggestion.returnType;
+  // Prefer the element return type (because it may be more specific
+  // for overrides) and fall back to the parameter type or return type from the
+  // suggestion (handles records).
+  var returnType =
+      element?.returnType ?? suggestion.parameterType ?? suggestion.returnType;
 
   // Extract the type from setters to be shown in the place a return type
   // would usually be shown.

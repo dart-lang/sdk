@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
-import 'package:analysis_server/src/services/correction/base_processor.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
 import 'package:analysis_server/src/services/correction/dart/add_return_type.dart';
@@ -74,6 +73,7 @@ import 'package:analysis_server/src/services/correction/dart/split_variable_decl
 import 'package:analysis_server/src/services/correction/dart/surround_with.dart';
 import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
 import 'package:analysis_server/src/services/correction/fix_processor.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/util/file_paths.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart'
@@ -82,7 +82,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 
 /// The computer for Dart assists.
-class AssistProcessor extends BaseProcessor {
+class AssistProcessor {
   /// A list of the generators used to produce assists.
   static const List<ProducerGenerator> generators = [
     AddDiagnosticPropertyReference.new,
@@ -164,13 +164,7 @@ class AssistProcessor extends BaseProcessor {
 
   final List<Assist> assists = <Assist>[];
 
-  AssistProcessor(this.assistContext)
-      : super(
-          selectionOffset: assistContext.selectionOffset,
-          selectionLength: assistContext.selectionLength,
-          resolvedResult: assistContext.resolveResult,
-          workspace: assistContext.workspace,
-        );
+  AssistProcessor(this.assistContext);
 
   Future<List<Assist>> compute() async {
     if (isMacroGenerated(assistContext.resolveResult.file.path)) {
@@ -193,10 +187,10 @@ class AssistProcessor extends BaseProcessor {
 
   Future<void> _addFromProducers() async {
     var context = CorrectionProducerContext.createResolved(
-      selectionOffset: selectionOffset,
-      selectionLength: selectionLength,
-      resolvedResult: resolvedResult,
-      workspace: workspace,
+      selectionOffset: assistContext.selectionOffset,
+      selectionLength: assistContext.selectionLength,
+      resolvedResult: assistContext.resolveResult,
+      workspace: assistContext.workspace,
     );
     if (context == null) {
       return;
@@ -245,7 +239,10 @@ class AssistProcessor extends BaseProcessor {
     ProducerGenerator generator,
     Set<String> errorCodes,
   ) {
-    var node = findSelectedNode();
+    var selectionEnd =
+        assistContext.selectionOffset + assistContext.selectionLength;
+    var locator = NodeLocator(assistContext.selectionOffset, selectionEnd);
+    var node = locator.searchWithin(assistContext.resolveResult.unit);
     if (node == null) {
       return false;
     }
@@ -253,7 +250,7 @@ class AssistProcessor extends BaseProcessor {
     var fileOffset = node.offset;
     for (var error in assistContext.resolveResult.errors) {
       var errorSource = error.source;
-      if (file == errorSource.fullName) {
+      if (assistContext.resolveResult.path == errorSource.fullName) {
         if (fileOffset >= error.offset &&
             fileOffset <= error.offset + error.length) {
           if (errorCodes.contains(error.errorCode.name)) {

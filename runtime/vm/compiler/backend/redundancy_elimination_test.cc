@@ -1571,10 +1571,23 @@ ISOLATE_UNIT_TEST_CASE(DelayAllocations_DontDelayIntoLoop) {
 
 ISOLATE_UNIT_TEST_CASE(CheckStackOverflowElimination_NoInterruptsPragma) {
   const char* kScript = R"(
-    @pragma('vm:unsafe:no-interrupts')
-    void test() {
-      for (int i = 0; i < 10; i++) {
+    @pragma('vm:prefer-inline')
+    int bar(int n) {
+      print(''); // Side-effectful operation
+      var sum = 0;
+      for (int i = 0; i < n; i++) {
+        sum += i;
       }
+      return sum;
+    }
+
+    @pragma('vm:unsafe:no-interrupts')
+    int test() {
+      int result = 0;
+      for (int i = 0; i < 10; i++) {
+        result ^= bar(i);
+      }
+      return result;
     }
   )";
 

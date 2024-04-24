@@ -4554,21 +4554,23 @@ static bool IsMarkedWithNoInterrupts(const Function& function) {
 
 void CheckStackOverflowElimination::EliminateStackOverflow(FlowGraph* graph) {
   const bool should_remove_all = IsMarkedWithNoInterrupts(graph->function());
+  if (should_remove_all) {
+    for (auto entry : graph->reverse_postorder()) {
+      for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
+        if (it.Current()->IsCheckStackOverflow()) {
+          it.RemoveCurrentFromGraph();
+        }
+      }
+    }
+    return;
+  }
 
   CheckStackOverflowInstr* first_stack_overflow_instr = nullptr;
-  for (BlockIterator block_it = graph->reverse_postorder_iterator();
-       !block_it.Done(); block_it.Advance()) {
-    BlockEntryInstr* entry = block_it.Current();
-
+  for (auto entry : graph->reverse_postorder()) {
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
 
       if (CheckStackOverflowInstr* instr = current->AsCheckStackOverflow()) {
-        if (should_remove_all) {
-          it.RemoveCurrentFromGraph();
-          continue;
-        }
-
         if (first_stack_overflow_instr == nullptr) {
           first_stack_overflow_instr = instr;
           ASSERT(!first_stack_overflow_instr->in_loop());

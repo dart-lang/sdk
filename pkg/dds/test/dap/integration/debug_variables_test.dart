@@ -700,6 +700,38 @@ void main() {
       );
     });
 
+    test('uses truncated values from calling toString()', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile('''
+class Foo {
+  toString() => 'a' * 500 + 'b' * 500;
+}
+
+void main() {
+  final myVariable = Foo();
+  print('Hello!'); $breakpointMarker
+}
+    ''');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      final stop = await client.hitBreakpoint(
+        testFile,
+        breakpointLine,
+        launch: () => client.launch(
+          testFile.path,
+          evaluateToStringInDebugViews: true,
+        ),
+      );
+
+      await client.expectScopeVariables(
+        await client.getTopFrameId(stop.threadId!),
+        'Locals',
+        '''
+            myVariable: Foo (${'a' * 128}…), eval: myVariable
+        ''',
+      );
+    });
+
     test('handles errors in toString() on custom classes', () async {
       final client = dap.client;
       final testFile = dap.createTestFile('''

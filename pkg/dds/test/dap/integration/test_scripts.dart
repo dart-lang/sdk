@@ -166,7 +166,6 @@ const simpleBreakpointProgram = '''
 /// A simple script that provides a @withHello macro that adds a
 /// `hello()` method to a class that prints "Hello".
 const withHelloMacroImplementation = '''
-// There is no public API exposed yet, the in-progress API lives here.
 import 'package:macros/macros.dart';
 
 macro class WithHello implements ClassDeclarationsMacro {
