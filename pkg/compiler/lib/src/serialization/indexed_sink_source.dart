@@ -252,7 +252,12 @@ class UnorderedIndexedSource<E extends Object> implements IndexedSource<E> {
     } else if (markerOrOffset == _nullIndicator) {
       return null;
     } else {
-      final offset = markerOrOffset - _indicatorOffset;
+      int offset;
+      if (markerOrOffset == _nonCompactOffsetIndicator) {
+        offset = source.readUint32();
+      } else {
+        offset = markerOrOffset - _indicatorOffset;
+      }
       bool isLocal = _isLocalOffset(offset);
       final globalOffset =
           isLocal ? _localToGlobalOffset(offset, source) : offset;
