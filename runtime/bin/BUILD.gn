@@ -177,8 +177,10 @@ template("build_gen_snapshot") {
                  "..:dart_precompiler_config",
                ] + extra_configs
 
+    deps = [ "//third_party/zlib" ]
+
     if (is_fuchsia) {
-      deps = [ "$fuchsia_sdk/pkg/fdio" ]
+      deps += [ "$fuchsia_sdk/pkg/fdio" ]
     }
 
     defines = [ "EXCLUDE_CFE_AND_KERNEL_PLATFORM" ]

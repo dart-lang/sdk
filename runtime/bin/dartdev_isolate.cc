@@ -61,6 +61,7 @@ bool DartDevIsolate::ShouldParseCommand(const char* script_uri) {
       (strcmp(script_uri, "build") == 0) ||
       (strcmp(script_uri, "compile") == 0) ||
       (strcmp(script_uri, "create") == 0) ||
+      (strcmp(script_uri, "development-service") == 0) ||
       (strcmp(script_uri, "devtools") == 0) ||
       (strcmp(script_uri, "doc") == 0) || (strcmp(script_uri, "fix") == 0) ||
       (strcmp(script_uri, "format") == 0) ||

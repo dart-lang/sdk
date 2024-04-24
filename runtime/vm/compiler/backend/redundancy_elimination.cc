@@ -1427,6 +1427,11 @@ static bool IsLoadEliminationCandidate(Instruction* instr) {
       instr->AsDefinition()->MayCreateUnsafeUntaggedPointer()) {
     return false;
   }
+  if (auto* load = instr->AsLoadField()) {
+    if (load->slot().is_weak()) {
+      return false;
+    }
+  }
   return instr->IsLoadField() || instr->IsLoadIndexed() ||
          instr->IsLoadStaticField();
 }

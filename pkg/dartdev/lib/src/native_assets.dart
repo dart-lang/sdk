@@ -115,17 +115,26 @@ Future<bool> warnOnNativeAssets() async {
     // If `pub get` hasn't run, we can't know, so don't error.
     return false;
   }
-  final packageLayout =
-      await PackageLayout.fromRootPackageRoot(workingDirectory);
-  final packagesWithNativeAssets = await packageLayout.packagesWithNativeAssets;
-  if (packagesWithNativeAssets.isEmpty) {
-    return false;
+  try {
+    final packageLayout =
+        await PackageLayout.fromRootPackageRoot(workingDirectory);
+    final packagesWithNativeAssets =
+        await packageLayout.packagesWithNativeAssets;
+    if (packagesWithNativeAssets.isEmpty) {
+      return false;
+    }
+    final packageNames = packagesWithNativeAssets.map((p) => p.name).join(' ');
+    log.stderr(
+      'Package(s) $packageNames require the native assets feature to be enabled. '
+      'Enable native assets with `--enable-experiment=native-assets`.',
+    );
+  } on FormatException catch (e) {
+    // This can be thrown if the package_config.json is malformed or has
+    // duplicate entries.
+    log.stderr(
+      'Error encountered while parsing package_config.json: ${e.message}',
+    );
   }
-  final packageNames = packagesWithNativeAssets.map((p) => p.name).join(' ');
-  log.stderr(
-    'Package(s) $packageNames require the native assets feature to be enabled. '
-    'Enable native assets with `--enable-experiment=native-assets`.',
-  );
   return true;
 }
 

@@ -68,14 +68,18 @@ class SlotCache : public ZoneAllocated {
 
 Slot* SlotCache::CreateNativeSlot(Slot::Kind kind) {
   switch (kind) {
-#define FIELD_FINAL true
-#define FIELD_VAR false
+#define FIELD_FLAGS_FINAL                                                      \
+  (Slot::IsImmutableBit::encode(true) | Slot::IsWeakBit::encode(false))
+#define FIELD_FLAGS_VAR                                                        \
+  (Slot::IsImmutableBit::encode(false) | Slot::IsWeakBit::encode(false))
+#define FIELD_FLAGS_WEAK                                                       \
+  (Slot::IsImmutableBit::encode(false) | Slot::IsWeakBit::encode(true))
 #define DEFINE_NULLABLE_TAGGED_NATIVE_DART_FIELD(ClassName, UnderlyingType,    \
                                                  FieldName, cid, mutability)   \
   case Slot::Kind::k##ClassName##_##FieldName:                                 \
     return new (zone_) Slot(                                                   \
         Slot::Kind::k##ClassName##_##FieldName,                                \
-        (Slot::IsImmutableBit::encode(FIELD_##mutability) |                    \
+        (FIELD_FLAGS_##mutability |                                            \
          Slot::IsCompressedBit::encode(                                        \
              ClassName::ContainsCompressedPointers())),                        \
         compiler::target::ClassName::FieldName##_offset(),                     \
@@ -94,7 +98,7 @@ Slot* SlotCache::CreateNativeSlot(Slot::Kind kind) {
   case Slot::Kind::k##ClassName##_##FieldName:                                 \
     return new (zone_) Slot(                                                   \
         Slot::Kind::k##ClassName##_##FieldName,                                \
-        (Slot::IsImmutableBit::encode(FIELD_##mutability) |                    \
+        (FIELD_FLAGS_##mutability |                                            \
          Slot::IsCompressedBit::encode(                                        \
              ClassName::ContainsCompressedPointers())),                        \
         compiler::target::ClassName::FieldName##_offset(),                     \
@@ -115,8 +119,7 @@ Slot* SlotCache::CreateNativeSlot(Slot::Kind kind) {
   case Slot::Kind::k##ClassName##_##FieldName:                                 \
     return new (zone_)                                                         \
         Slot(Slot::Kind::k##ClassName##_##FieldName,                           \
-             Slot::IsImmutableBit::encode(FIELD_##mutability) |                \
-                 Slot::IsNonTaggedBit::encode(true),                           \
+             FIELD_FLAGS_##mutability | Slot::IsNonTaggedBit::encode(true),    \
              compiler::target::ClassName::FieldName##_offset(),                \
              #ClassName "." #FieldName,                                        \
              CompileType::FromUnboxedRepresentation(kUnboxed##representation), \
@@ -131,7 +134,7 @@ Slot* SlotCache::CreateNativeSlot(Slot::Kind kind) {
   case Slot::Kind::k##ClassName##_##FieldName:                                 \
     return new (zone_)                                                         \
         Slot(Slot::Kind::k##ClassName##_##FieldName,                           \
-             Slot::IsImmutableBit::encode(FIELD_##mutability) |                \
+             FIELD_FLAGS_##mutability |                                        \
                  Slot::MayContainInnerPointerBit::encode(GcMayMove) |          \
                  Slot::IsNonTaggedBit::encode(true),                           \
              compiler::target::ClassName::FieldName##_offset(),                \
@@ -146,8 +149,7 @@ Slot* SlotCache::CreateNativeSlot(Slot::Kind kind) {
   case Slot::Kind::k##ClassName##_##FieldName:                                 \
     return new (zone_) Slot(                                                   \
         Slot::Kind::k##ClassName##_##FieldName,                                \
-        Slot::IsImmutableBit::encode(FIELD_##mutability) |                     \
-            Slot::HasUntaggedInstanceBit::encode(true),                        \
+        FIELD_FLAGS_##mutability | Slot::HasUntaggedInstanceBit::encode(true), \
         compiler::target::ClassName::FieldName##_offset(),                     \
         #ClassName "." #FieldName,                                             \
         CompileType(CompileType::kCanBeNull, CompileType::kCannotBeSentinel,   \
@@ -164,8 +166,7 @@ Slot* SlotCache::CreateNativeSlot(Slot::Kind kind) {
   case Slot::Kind::k##ClassName##_##FieldName:                                 \
     return new (zone_)                                                         \
         Slot(Slot::Kind::k##ClassName##_##FieldName,                           \
-             Slot::IsImmutableBit::encode(FIELD_##mutability) |                \
-                 Slot::IsNonTaggedBit::encode(true) |                          \
+             FIELD_FLAGS_##mutability | Slot::IsNonTaggedBit::encode(true) |   \
                  Slot::HasUntaggedInstanceBit::encode(true),                   \
              compiler::target::ClassName::FieldName##_offset(),                \
              #ClassName "." #FieldName,                                        \
@@ -181,7 +182,7 @@ Slot* SlotCache::CreateNativeSlot(Slot::Kind kind) {
   case Slot::Kind::k##ClassName##_##FieldName:                                 \
     return new (zone_)                                                         \
         Slot(Slot::Kind::k##ClassName##_##FieldName,                           \
-             Slot::IsImmutableBit::encode(FIELD_##mutability) |                \
+             FIELD_FLAGS_##mutability |                                        \
                  Slot::MayContainInnerPointerBit::encode(gc_may_move) |        \
                  Slot::IsNonTaggedBit::encode(true) |                          \
                  Slot::HasUntaggedInstanceBit::encode(true),                   \
@@ -192,8 +193,9 @@ Slot* SlotCache::CreateNativeSlot(Slot::Kind kind) {
 
 #undef DEFINE_UNTAGGED_NATIVE_NONDART_FIELD
 
-#undef FIELD_VAR
-#undef FIELD_FINAL
+#undef FIELD_FLAGS_FINAL
+#undef FIELD_FLAGS_VAR
+#undef FIELD_FLAGS_WEAK
     default:
       UNREACHABLE();
   }

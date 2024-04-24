@@ -519,6 +519,34 @@ void main(List<String> args) => print("$b $args");
     expect(result.exitCode, 0);
   });
 
+  test('Handles invalid package_config.json', () async {
+    // Regression test for https://github.com/dart-lang/sdk/issues/55490
+    p = project(mainSrc: "void main() { print('Hello World'); }");
+    final packageConfig = File(p.packageConfigPath);
+    final contents = jsonDecode(packageConfig.readAsStringSync());
+    // Fail fast if the config version changes to make sure this test is kept
+    // up to date with package config format changes.
+    expect(contents['configVersion'], 2);
+
+    // Duplicate an entry from the package config's package list and overwrite
+    // the existing config.
+    final packages = contents['packages'] as List;
+    expect(packages, isNotEmpty);
+    final duplicatePackage = packages.first;
+    packages.add(duplicatePackage);
+    packageConfig.writeAsStringSync(jsonEncode(contents));
+
+    final result = await p.run(['run', p.relativeFilePath]);
+    expect(result.stdout, isEmpty);
+    expect(
+      result.stderr,
+      contains(
+        'Error encountered while parsing package_config.json: Duplicate package name',
+      ),
+    );
+    expect(result.exitCode, 255);
+  });
+
   group('DDS', () {
     group('disable', () {
       test('dart run simple', () async {
