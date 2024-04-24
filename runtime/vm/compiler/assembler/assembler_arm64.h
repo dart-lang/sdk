@@ -500,6 +500,10 @@ class Assembler : public AssemblerBase {
     }
   }
 
+  void nop() { Emit(Instr::kNopInstruction); }
+
+  void Align(intptr_t alignment, intptr_t offset);
+
   void Bind(Label* label) override;
   // Unconditional jump to a given label. [distance] is ignored on ARM.
   void Jump(Label* label, JumpDistance distance = kFarJump) { b(label); }

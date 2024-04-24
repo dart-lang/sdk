@@ -5678,25 +5678,39 @@ class Instructions : public Object {
  public:
   enum {
     kSizePos = 0,
-    kSizeSize = 31,
+    kSizeSize = 30,
     kFlagsPos = kSizePos + kSizeSize,
-    kFlagsSize = 1,  // Currently, only flag is single entry flag.
+    kFlagsSize = kBitsPerInt32 - kSizeSize,
+  };
+
+#define INSTRUCTIONS_FLAGS_LIST(V)                                             \
+  V(HasMonomorphicEntry)                                                       \
+  V(ShouldBeAligned)
+
+  enum {
+#define DEFINE_INSTRUCTIONS_FLAG(Name) k##Name##Index,
+    INSTRUCTIONS_FLAGS_LIST(DEFINE_INSTRUCTIONS_FLAG)
+#undef DEFINE_INSTRUCTIONS_FLAG
   };
 
   class SizeBits : public BitField<uint32_t, uint32_t, kSizePos, kSizeSize> {};
-  class FlagsBits : public BitField<uint32_t, bool, kFlagsPos, kFlagsSize> {};
+
+#define DEFINE_INSTRUCTIONS_FLAG_HANDLING(Name)                                \
+  class Name##Bit                                                              \
+      : public BitField<uint32_t, bool, kFlagsPos + k##Name##Index, 1> {};     \
+  bool Name() const { return Name##Bit::decode(untag()->size_and_flags_); }    \
+  static bool Name(const InstructionsPtr instr) {                              \
+    return Name##Bit::decode(instr->untag()->size_and_flags_);                 \
+  }
+
+  INSTRUCTIONS_FLAGS_LIST(DEFINE_INSTRUCTIONS_FLAG_HANDLING)
+
+#undef DEFINE_INSTRUCTIONS_FLAG_HANDLING
 
   // Excludes HeaderSize().
   intptr_t Size() const { return SizeBits::decode(untag()->size_and_flags_); }
   static intptr_t Size(const InstructionsPtr instr) {
     return SizeBits::decode(instr->untag()->size_and_flags_);
-  }
-
-  bool HasMonomorphicEntry() const {
-    return FlagsBits::decode(untag()->size_and_flags_);
-  }
-  static bool HasMonomorphicEntry(const InstructionsPtr instr) {
-    return FlagsBits::decode(instr->untag()->size_and_flags_);
   }
 
   uword PayloadStart() const { return PayloadStart(ptr()); }
@@ -5847,16 +5861,23 @@ class Instructions : public Object {
                     SizeBits::update(value, untag()->size_and_flags_));
   }
 
-  void SetHasMonomorphicEntry(bool value) const {
-    StoreNonPointer(&untag()->size_and_flags_,
-                    FlagsBits::update(value, untag()->size_and_flags_));
+#define DEFINE_INSTRUCTIONS_FLAG_HANDLING(Name)                                \
+  void Set##Name(bool value) const {                                           \
+    StoreNonPointer(&untag()->size_and_flags_,                                 \
+                    Name##Bit::update(value, untag()->size_and_flags_));       \
   }
+
+  INSTRUCTIONS_FLAGS_LIST(DEFINE_INSTRUCTIONS_FLAG_HANDLING)
+
+#undef DEFINE_INSTRUCTIONS_FLAG_HANDLING
 
   // New is a private method as RawInstruction and RawCode objects should
   // only be created using the Code::FinalizeCode method. This method creates
   // the RawInstruction and RawCode objects, sets up the pointer offsets
   // and links the two in a GC safe manner.
-  static InstructionsPtr New(intptr_t size, bool has_monomorphic_entry);
+  static InstructionsPtr New(intptr_t size,
+                             bool has_monomorphic_entry,
+                             bool should_be_aligned);
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Instructions, Object);
   friend class Class;
@@ -5892,9 +5913,13 @@ class InstructionsSection : public Object {
     return Utils::RoundUp(HeaderSize() + size, kObjectAlignment);
   }
 
+  static constexpr intptr_t kPayloadAlignment = 32;
+  static_assert(kPreferredLoopAlignment <= kPayloadAlignment);
+  static_assert(Instructions::kBarePayloadAlignment <= kPayloadAlignment);
+
   static intptr_t HeaderSize() {
     return Utils::RoundUp(sizeof(UntaggedInstructionsSection),
-                          Instructions::kBarePayloadAlignment);
+                          kPayloadAlignment);
   }
 
   // There are no public instance methods for the InstructionsSection class, as

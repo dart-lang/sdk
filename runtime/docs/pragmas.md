@@ -20,6 +20,7 @@ These pragmas are part of the VM's API and are safe for use in external code.
 | `vm:isolate-unsendable` | Marks a class, instances of which won't be allowed to be passed through ports or sent between isolates. |
 | `vm:awaiter-link` | [Specifying variable to follow for awaiter stack unwinding](awaiter_stack_traces.md) |
 | `vm:deeply-immutable` | [Specifying a class and all its subtypes are deeply immutable](deeply_immutable.md) |
+| `vm:align-loops` | Tells compiler to align all loop headers inside the function to an architecture specific boundary: currently 32 bytes on X64 and ARM64 (except Apple Silicon, which explicitly discourages aligning branch targets) |
 
 ## Unsafe pragmas for general use
 

@@ -869,13 +869,6 @@ DART_FORCE_INLINE static bool BareInstructionsPayloads() {
   return FLAG_precompiled_mode;
 }
 
-word InstructionsSection::HeaderSize() {
-  // We only create InstructionsSections in precompiled mode.
-  ASSERT(FLAG_precompiled_mode);
-  return Utils::RoundUp(InstructionsSection::UnalignedHeaderSize(),
-                        Instructions::kBarePayloadAlignment);
-}
-
 word Instructions::HeaderSize() {
   return BareInstructionsPayloads()
              ? 0
