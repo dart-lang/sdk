@@ -886,6 +886,14 @@ class _ClassVerifier {
   /// Verify that [classElement] complies with all `@mustBeOverridden`-annotated
   /// members in all of its supertypes.
   void _verifyMustBeOverridden() {
+    var classElement = this.classElement;
+    if (classElement is! ClassElement ||
+        classElement.isAbstract ||
+        classElement.isSealed) {
+      // We only care about concrete classes.
+      return;
+    }
+
     var noSuchMethodDeclaration =
         classElement.getMethod(FunctionElement.NO_SUCH_METHOD_METHOD_NAME);
     if (noSuchMethodDeclaration != null &&

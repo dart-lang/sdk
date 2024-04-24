@@ -1,3 +1,37 @@
+## 1.15.0-dev
+
+- Updated `@mustBeOverridden` to only flag missing overrides in concrete
+  classes; in other words, abstract classes (including implicitly abstract, i.e
+  `sealed`) and mixin declarations are _no longer required_ to provide an
+  implementation:
+
+  ```dart
+  import 'package:meta/meta.dart';
+
+  abstract class Base {
+    @mustBeOverridden
+    void foo() {}
+  }
+
+  class Derived extends Base {
+    // ERROR: Missing implementation of `foo`.
+  }
+
+  abstract class Abstract extends Base {
+    // No error.
+  }
+
+  sealed class Sealed extends Base {
+    // No error.
+  }
+
+  mixin Mixin on Base {
+    // No error.
+  }
+  ```
+
+  See <https://github.com/dart-lang/sdk/issues/52965> for more information.
+
 ## 1.14.0
 
 - Introduce `TargetKind.constructor`, to indicate that an annotation is valid on
@@ -41,6 +75,7 @@
     );
   }
   ```
+
 - Introduce `@mustBeConst` to annotate parameters which only accept constant
   arguments.
 
