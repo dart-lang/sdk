@@ -45,6 +45,11 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
 
     var classDeclaration = node.thisOrAncestorOfType<ClassDeclaration>();
     if (classDeclaration == null ||
+        // TODO(dantup): Remove this and update this fix to handle
+        //  augmenting the method once augmented() expressions are
+        //  fully implemented.
+        //  https://github.com/dart-lang/sdk/issues/55326
+        classDeclaration.declaredElement!.isAugmentation ||
         !classDeclaration.declaredElement!.thisType.isDiagnosticable) {
       return;
     }

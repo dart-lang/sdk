@@ -14,7 +14,7 @@ import 'package:path/path.dart' as path;
 /// ```js
 /// "dart.codeLens": true, // Enables all CodeLens
 ///
-/// "dart.codeLens": true, // Disables all CodeLens
+/// "dart.codeLens": false, // Disables all CodeLens
 ///
 /// "dart.codeLens": {
 ///   "augmented": false, // Disables augmented but otherwise keeps defaults.
