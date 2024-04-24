@@ -2265,6 +2265,13 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       final lineEnd = i != lines.length - 1 ? '\n' : '';
       final output = '$linePrefix$line$lineSuffix$lineEnd';
 
+      // If the output is empty (for example the output ended with \n so after
+      // splitting by \n, the last iteration is empty) then we don't need
+      // to add any event.
+      if (output.isEmpty) {
+        continue;
+      }
+
       final clientPath =
           fileLikeUri != null ? toClientPathOrUri(fileLikeUri) : null;
       events.add(
