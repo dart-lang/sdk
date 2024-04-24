@@ -1,3 +1,6 @@
+# 4.2.1
+- [DAP]: For consistency with other values, automatic `toString()` invocations for debugger views no longer expand long strings and instead show truncated values. Full values continue to be returned for evaluation (`context=="repl"`) and when copying to the clipboard (`context=="clipboard"`).
+
 # 4.2.0
 - [DAP] All `OutputEvent`s are now scanned for stack frames to attach `source` metadata to. The [parseStackFrames] parameter for `sendOutput` is ignored and deprecated.
 
