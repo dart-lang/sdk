@@ -891,10 +891,11 @@ class SuggestionBuilder {
         parameterName: name,
         parameterType: type,
         replacementLength: replacementLength,
+        element: convertElement(parameter),
         elementLocation: parameter.location);
+
     if (parameter is FieldFormalParameterElement) {
       _setDocumentation(suggestion, parameter);
-      suggestion.element = convertElement(parameter);
     }
 
     _addSuggestion(suggestion);

@@ -310,6 +310,47 @@ class CompletionLabelDetailsTest extends AbstractCompletionTest {
     setCompletionItemLabelDetailsSupport();
   }
 
+  Future<void> test_constructor_argument() async {
+    var content = '''
+var a = Foo(^);
+
+class Foo {
+  final int value;
+  const Foo({required this.value});
+}
+''';
+
+    await expectLabels(
+      content,
+      label: 'value:',
+      labelDetail: ' int',
+      labelDescription: null,
+      filterText: null,
+      detail: 'int',
+    );
+  }
+
+  Future<void> test_constructor_factory_argument() async {
+    var content = '''
+var a = Foo(^);
+
+class Foo {
+  final int value;
+  const Foo._({required this.value});
+  const factory Foo({required int value}) = Foo._;
+}
+''';
+
+    await expectLabels(
+      content,
+      label: 'value:',
+      labelDetail: ' int',
+      labelDescription: null,
+      filterText: null,
+      detail: 'int',
+    );
+  }
+
   Future<void> test_imported_function_returnType_args() async {
     newFile(fileAPath, '''
 String a(String a, {String b}) {}
