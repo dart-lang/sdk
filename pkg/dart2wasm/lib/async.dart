@@ -898,19 +898,26 @@ class AsyncCodeGenerator extends CodeGenerator {
             _cloneContext(cloneContextFor!, context, context.currentLocal);
       }
 
-      while (context!.parent != null) {
-        assert(!context.parent!.isEmpty);
-        b.local_get(context.currentLocal);
-        b.struct_get(context.struct, context.parentFieldIndex);
-        b.ref_as_non_null();
-        context = context.parent!;
-        b.local_set(context.currentLocal);
-      }
-      if (context.containsThis) {
-        b.local_get(context.currentLocal);
-        b.struct_get(context.struct, context.thisFieldIndex);
-        b.ref_as_non_null();
-        b.local_set(thisLocal!);
+      bool restoredThis = false;
+      while (context != null) {
+        if (context.containsThis) {
+          assert(!restoredThis);
+          b.local_get(context.currentLocal);
+          b.struct_get(context.struct, context.thisFieldIndex);
+          b.ref_as_non_null();
+          b.local_set(thisLocal!);
+          restoredThis = true;
+        }
+
+        final parent = context.parent;
+        if (parent != null) {
+          assert(!parent.isEmpty);
+          b.local_get(context.currentLocal);
+          b.struct_get(context.struct, context.parentFieldIndex);
+          b.ref_as_non_null();
+          b.local_set(parent.currentLocal);
+        }
+        context = parent;
       }
     }
   }
