@@ -3049,7 +3049,6 @@
   "../../../tests/language/sync_star/yieldstar_test.dart",
   "../../../tests/language/syntax/nested_comments_test.dart",
   "../../../tests/language/syntax/statement_test.dart",
-  "../../../tests/language/syntax/syntax_native_test.dart",
   "../../../tests/language/this/as_covariant_call_checks_test.dart",
   "../../../tests/language/this/as_dynamic_call_checks_test.dart",
   "../../../tests/language/this/call_this_test.dart",
