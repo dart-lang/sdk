@@ -13,6 +13,8 @@ import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
+import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -28,8 +30,6 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/file_paths.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
-import 'package:server_plugin/edit/fix/dart_fix_context.dart';
-import 'package:server_plugin/edit/fix/fix.dart';
 import 'package:yaml/yaml.dart';
 
 /// The handler for the `edit.getFixes` request.

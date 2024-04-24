@@ -4,6 +4,8 @@
 
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
+import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/instrumentation/service.dart';
@@ -12,8 +14,6 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/services/top_level_declarations.dart';
-import 'package:server_plugin/edit/fix/dart_fix_context.dart';
-import 'package:server_plugin/edit/fix/fix.dart';
 
 class CiderErrorFixes {
   final AnalysisError error;

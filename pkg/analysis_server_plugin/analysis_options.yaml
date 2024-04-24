@@ -10,6 +10,7 @@ analyzer:
     # 'analyzer' package, because it is tightly integrated. This will not
     # likely change any time soon.
     implementation_imports: ignore
+    non_constant_identifier_names: ignore
 
 linter:
   rules:
