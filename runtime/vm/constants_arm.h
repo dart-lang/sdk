@@ -1337,6 +1337,9 @@ inline Register ConcreteRegister(LinkRegister) {
 
 #define LINK_REGISTER (LinkRegister())
 
+// Prioritize code size over performance.
+const intptr_t kPreferredLoopAlignment = 1;
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_CONSTANTS_ARM_H_

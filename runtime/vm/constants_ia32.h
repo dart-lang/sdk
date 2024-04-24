@@ -531,6 +531,9 @@ struct DartCallingConvention {
 
 const uword kBreakInstructionFiller = 0xCCCCCCCC;
 
+// Prioritize code size over performance.
+const intptr_t kPreferredLoopAlignment = 1;
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_CONSTANTS_IA32_H_

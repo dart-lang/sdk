@@ -1973,7 +1973,6 @@ class UntaggedInstructions : public UntaggedObject {
   VISIT_NOTHING();
 
   // Instructions size in bytes and flags.
-  // Currently, only flag indicates 1 or 2 entry points.
   uint32_t size_and_flags_;
 
   // Variable length data follows here.

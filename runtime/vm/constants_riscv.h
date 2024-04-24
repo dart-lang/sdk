@@ -1606,6 +1606,9 @@ inline Register ConcreteRegister(Register r) {
 }
 #define LINK_REGISTER RA
 
+// No information available.
+const intptr_t kPreferredLoopAlignment = 1;
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_CONSTANTS_RISCV_H_

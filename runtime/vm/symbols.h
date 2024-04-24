@@ -562,7 +562,8 @@ class ObjectPointerVisitor;
   V(vm_recognized, "vm:recognized")                                            \
   V(vm_testing_print_flow_graph, "vm:testing:print-flow-graph")                \
   V(vm_trace_entrypoints, "vm:testing.unsafe.trace-entrypoints-fn")            \
-  V(vm_unsafe_no_interrupts, "vm:unsafe:no-interrupts")
+  V(vm_unsafe_no_interrupts, "vm:unsafe:no-interrupts")                        \
+  V(vm_align_loops, "vm:align-loops")
 
 // Contains a list of frequently used strings in a canonicalized form. This
 // list is kept in the vm_isolate in order to share the copy across isolates

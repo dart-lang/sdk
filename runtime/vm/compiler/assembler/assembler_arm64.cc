@@ -270,6 +270,22 @@ void Assembler::Bind(Label* label) {
   label->BindTo(bound_pc, lr_state());
 }
 
+void Assembler::Align(intptr_t alignment, intptr_t offset) {
+  ASSERT(Utils::IsPowerOfTwo(alignment));
+  intptr_t pos = offset + buffer_.GetPosition();
+  intptr_t mod = pos & (alignment - 1);
+  if (mod == 0) {
+    return;
+  }
+  intptr_t bytes_needed = alignment - mod;
+  ASSERT((bytes_needed % Instr::kInstrSize) == 0);
+  while (bytes_needed > 0) {
+    nop();
+    bytes_needed -= Instr::kInstrSize;
+  }
+  ASSERT(((offset + buffer_.GetPosition()) & (alignment - 1)) == 0);
+}
+
 #if defined(TARGET_USES_THREAD_SANITIZER)
 void Assembler::TsanLoadAcquire(Register addr) {
   LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);

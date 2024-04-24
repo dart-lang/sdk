@@ -601,8 +601,6 @@ class AssemblerBase : public StackResource {
  public:
   explicit AssemblerBase(ObjectPoolBuilder* object_pool_builder)
       : StackResource(ThreadState::Current()),
-        prologue_offset_(-1),
-        has_monomorphic_entry_(false),
         object_pool_builder_(object_pool_builder) {}
   virtual ~AssemblerBase();
 
@@ -621,6 +619,11 @@ class AssemblerBase : public StackResource {
 
   intptr_t prologue_offset() const { return prologue_offset_; }
   bool has_monomorphic_entry() const { return has_monomorphic_entry_; }
+
+  // Tracks if the resulting code should be aligned by kPreferredLoopAlignment
+  // boundary.
+  void mark_should_be_aligned() { should_be_aligned_ = true; }
+  bool should_be_aligned() const { return should_be_aligned_; }
 
   void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   static bool EmittingComments();
@@ -1223,8 +1226,9 @@ class AssemblerBase : public StackResource {
 
  protected:
   AssemblerBuffer buffer_;  // Contains position independent code.
-  int32_t prologue_offset_;
-  bool has_monomorphic_entry_;
+  int32_t prologue_offset_ = -1;
+  bool has_monomorphic_entry_ = false;
+  bool should_be_aligned_ = false;
 
   intptr_t unchecked_entry_offset_ = 0;
 

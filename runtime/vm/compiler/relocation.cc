@@ -152,6 +152,17 @@ bool CodeRelocator::AddInstructionsToText(CodePtr code) {
   if (text_offsets_.HasKey(instructions)) {
     return false;
   }
+
+  if (Instructions::ShouldBeAligned(instructions) &&
+      !Utils::IsAligned(next_text_offset_, kPreferredLoopAlignment)) {
+    const intptr_t padding_size =
+        Utils::RoundUp(next_text_offset_, kPreferredLoopAlignment) -
+        next_text_offset_;
+
+    commands_->Add(ImageWriterCommand(next_text_offset_, padding_size));
+    next_text_offset_ += padding_size;
+  }
+
   text_offsets_.Insert({instructions, next_text_offset_});
   commands_->Add(ImageWriterCommand(next_text_offset_, code));
   next_text_offset_ += ImageWriter::SizeInSnapshot(instructions);
@@ -447,10 +458,13 @@ void CodeRelocator::BuildTrampolinesForAlmostOutOfRangeCalls(
     const Array& next_caller_targets) {
   const bool all_functions_emitted = next_caller.IsNull();
 
+  bool next_requires_alignment = false;
   uword next_size = 0;
   uword next_call_count = 0;
   if (!all_functions_emitted) {
     next_size = ImageWriter::SizeInSnapshot(next_caller.instructions());
+    next_requires_alignment =
+        Instructions::ShouldBeAligned(next_caller.instructions());
     if (!next_caller_targets.IsNull()) {
       StaticCallsTable calls(next_caller_targets);
       next_call_count = calls.Length();
@@ -465,8 +479,12 @@ void CodeRelocator::BuildTrampolinesForAlmostOutOfRangeCalls(
       // unresolved forward calls to become out-of-range, we'll not resolve it
       // yet (maybe the target function will come very soon and we don't need
       // a trampoline at all).
+      const intptr_t next_start =
+          next_requires_alignment
+              ? Utils::RoundUp(next_text_offset_, kPreferredLoopAlignment)
+              : next_text_offset_;
       const intptr_t future_boundary =
-          next_text_offset_ + next_size +
+          next_start + next_size +
           kTrampolineSize *
               (unresolved_calls_by_destination_.Length() + next_call_count - 1);
       if (IsTargetInRangeFor(unresolved_call, future_boundary) &&

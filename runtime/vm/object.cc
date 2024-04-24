@@ -15493,7 +15493,9 @@ void Library::CheckFunctionFingerprints() {
 }
 #endif  // defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME).
 
-InstructionsPtr Instructions::New(intptr_t size, bool has_monomorphic_entry) {
+InstructionsPtr Instructions::New(intptr_t size,
+                                  bool has_monomorphic_entry,
+                                  bool should_be_aligned) {
   ASSERT(size >= 0);
   ASSERT(Object::instructions_class() != Class::null());
   if (size < 0 || size > kMaxElements) {
@@ -15509,6 +15511,7 @@ InstructionsPtr Instructions::New(intptr_t size, bool has_monomorphic_entry) {
     // Set this within the NoSafepointScope as well since it is contained in
     // the same bitfield as the size.
     result.SetHasMonomorphicEntry(has_monomorphic_entry);
+    result.SetShouldBeAligned(should_be_aligned);
   }
   ASSERT(result.stats() == nullptr);
   return result.ptr();
@@ -18102,7 +18105,8 @@ CodePtr Code::FinalizeCode(FlowGraphCompiler* compiler,
   assembler->GetSelfHandle() = code.ptr();
 #endif
   Instructions& instrs = Instructions::ZoneHandle(Instructions::New(
-      assembler->CodeSize(), assembler->has_monomorphic_entry()));
+      assembler->CodeSize(), assembler->has_monomorphic_entry(),
+      assembler->should_be_aligned()));
 
   {
     // Important: if GC is triggered at any point between Instructions::New

@@ -657,6 +657,8 @@ static constexpr dart::compiler::target::word Instructions_UnalignedHeaderSize =
     0x8;
 static constexpr dart::compiler::target::word
     InstructionsSection_UnalignedHeaderSize = 0x14;
+static constexpr dart::compiler::target::word InstructionsSection_HeaderSize =
+    0x20;
 static constexpr dart::compiler::target::word InstructionsTable_InstanceSize =
     0x18;
 static constexpr dart::compiler::target::word Int32x4_InstanceSize = 0x18;
@@ -1371,6 +1373,8 @@ static constexpr dart::compiler::target::word Instructions_UnalignedHeaderSize =
     0x10;
 static constexpr dart::compiler::target::word
     InstructionsSection_UnalignedHeaderSize = 0x28;
+static constexpr dart::compiler::target::word InstructionsSection_HeaderSize =
+    0x40;
 static constexpr dart::compiler::target::word InstructionsTable_InstanceSize =
     0x30;
 static constexpr dart::compiler::target::word Int32x4_InstanceSize = 0x18;
@@ -2074,6 +2078,8 @@ static constexpr dart::compiler::target::word Instructions_UnalignedHeaderSize =
     0x8;
 static constexpr dart::compiler::target::word
     InstructionsSection_UnalignedHeaderSize = 0x14;
+static constexpr dart::compiler::target::word InstructionsSection_HeaderSize =
+    0x20;
 static constexpr dart::compiler::target::word InstructionsTable_InstanceSize =
     0x18;
 static constexpr dart::compiler::target::word Int32x4_InstanceSize = 0x18;
@@ -2790,6 +2796,8 @@ static constexpr dart::compiler::target::word Instructions_UnalignedHeaderSize =
     0x10;
 static constexpr dart::compiler::target::word
     InstructionsSection_UnalignedHeaderSize = 0x28;
+static constexpr dart::compiler::target::word InstructionsSection_HeaderSize =
+    0x40;
 static constexpr dart::compiler::target::word InstructionsTable_InstanceSize =
     0x30;
 static constexpr dart::compiler::target::word Int32x4_InstanceSize = 0x18;
@@ -3500,6 +3508,8 @@ static constexpr dart::compiler::target::word Instructions_UnalignedHeaderSize =
     0x10;
 static constexpr dart::compiler::target::word
     InstructionsSection_UnalignedHeaderSize = 0x28;
+static constexpr dart::compiler::target::word InstructionsSection_HeaderSize =
+    0x40;
 static constexpr dart::compiler::target::word InstructionsTable_InstanceSize =
     0x30;
 static constexpr dart::compiler::target::word Int32x4_InstanceSize = 0x18;
@@ -4212,6 +4222,8 @@ static constexpr dart::compiler::target::word Instructions_UnalignedHeaderSize =
     0x10;
 static constexpr dart::compiler::target::word
     InstructionsSection_UnalignedHeaderSize = 0x28;
+static constexpr dart::compiler::target::word InstructionsSection_HeaderSize =
+    0x40;
 static constexpr dart::compiler::target::word InstructionsTable_InstanceSize =
     0x30;
 static constexpr dart::compiler::target::word Int32x4_InstanceSize = 0x18;
@@ -4917,6 +4929,8 @@ static constexpr dart::compiler::target::word Instructions_UnalignedHeaderSize =
     0x8;
 static constexpr dart::compiler::target::word
     InstructionsSection_UnalignedHeaderSize = 0x14;
+static constexpr dart::compiler::target::word InstructionsSection_HeaderSize =
+    0x20;
 static constexpr dart::compiler::target::word InstructionsTable_InstanceSize =
     0x18;
 static constexpr dart::compiler::target::word Int32x4_InstanceSize = 0x18;
@@ -5632,6 +5646,8 @@ static constexpr dart::compiler::target::word Instructions_UnalignedHeaderSize =
     0x10;
 static constexpr dart::compiler::target::word
     InstructionsSection_UnalignedHeaderSize = 0x28;
+static constexpr dart::compiler::target::word InstructionsSection_HeaderSize =
+    0x40;
 static constexpr dart::compiler::target::word InstructionsTable_InstanceSize =
     0x30;
 static constexpr dart::compiler::target::word Int32x4_InstanceSize = 0x18;
@@ -6328,6 +6344,8 @@ static constexpr dart::compiler::target::word Instructions_UnalignedHeaderSize =
     0x8;
 static constexpr dart::compiler::target::word
     InstructionsSection_UnalignedHeaderSize = 0x14;
+static constexpr dart::compiler::target::word InstructionsSection_HeaderSize =
+    0x20;
 static constexpr dart::compiler::target::word InstructionsTable_InstanceSize =
     0x18;
 static constexpr dart::compiler::target::word Int32x4_InstanceSize = 0x18;
@@ -7034,6 +7052,8 @@ static constexpr dart::compiler::target::word Instructions_UnalignedHeaderSize =
     0x10;
 static constexpr dart::compiler::target::word
     InstructionsSection_UnalignedHeaderSize = 0x28;
+static constexpr dart::compiler::target::word InstructionsSection_HeaderSize =
+    0x40;
 static constexpr dart::compiler::target::word InstructionsTable_InstanceSize =
     0x30;
 static constexpr dart::compiler::target::word Int32x4_InstanceSize = 0x18;
@@ -7729,6 +7749,8 @@ static constexpr dart::compiler::target::word Instructions_UnalignedHeaderSize =
     0x8;
 static constexpr dart::compiler::target::word
     InstructionsSection_UnalignedHeaderSize = 0x14;
+static constexpr dart::compiler::target::word InstructionsSection_HeaderSize =
+    0x20;
 static constexpr dart::compiler::target::word InstructionsTable_InstanceSize =
     0x18;
 static constexpr dart::compiler::target::word Int32x4_InstanceSize = 0x18;
@@ -8437,6 +8459,8 @@ static constexpr dart::compiler::target::word Instructions_UnalignedHeaderSize =
     0x10;
 static constexpr dart::compiler::target::word
     InstructionsSection_UnalignedHeaderSize = 0x28;
+static constexpr dart::compiler::target::word InstructionsSection_HeaderSize =
+    0x40;
 static constexpr dart::compiler::target::word InstructionsTable_InstanceSize =
     0x30;
 static constexpr dart::compiler::target::word Int32x4_InstanceSize = 0x18;
@@ -9139,6 +9163,8 @@ static constexpr dart::compiler::target::word Instructions_UnalignedHeaderSize =
     0x10;
 static constexpr dart::compiler::target::word
     InstructionsSection_UnalignedHeaderSize = 0x28;
+static constexpr dart::compiler::target::word InstructionsSection_HeaderSize =
+    0x40;
 static constexpr dart::compiler::target::word InstructionsTable_InstanceSize =
     0x30;
 static constexpr dart::compiler::target::word Int32x4_InstanceSize = 0x18;
@@ -9843,6 +9869,8 @@ static constexpr dart::compiler::target::word Instructions_UnalignedHeaderSize =
     0x10;
 static constexpr dart::compiler::target::word
     InstructionsSection_UnalignedHeaderSize = 0x28;
+static constexpr dart::compiler::target::word InstructionsSection_HeaderSize =
+    0x40;
 static constexpr dart::compiler::target::word InstructionsTable_InstanceSize =
     0x30;
 static constexpr dart::compiler::target::word Int32x4_InstanceSize = 0x18;
@@ -10540,6 +10568,8 @@ static constexpr dart::compiler::target::word Instructions_UnalignedHeaderSize =
     0x8;
 static constexpr dart::compiler::target::word
     InstructionsSection_UnalignedHeaderSize = 0x14;
+static constexpr dart::compiler::target::word InstructionsSection_HeaderSize =
+    0x20;
 static constexpr dart::compiler::target::word InstructionsTable_InstanceSize =
     0x18;
 static constexpr dart::compiler::target::word Int32x4_InstanceSize = 0x18;
@@ -11247,6 +11277,8 @@ static constexpr dart::compiler::target::word Instructions_UnalignedHeaderSize =
     0x10;
 static constexpr dart::compiler::target::word
     InstructionsSection_UnalignedHeaderSize = 0x28;
+static constexpr dart::compiler::target::word InstructionsSection_HeaderSize =
+    0x40;
 static constexpr dart::compiler::target::word InstructionsTable_InstanceSize =
     0x30;
 static constexpr dart::compiler::target::word Int32x4_InstanceSize = 0x18;
@@ -12018,6 +12050,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_InstructionsSection_UnalignedHeaderSize = 0x14;
 static constexpr dart::compiler::target::word
+    AOT_InstructionsSection_HeaderSize = 0x20;
+static constexpr dart::compiler::target::word
     AOT_InstructionsTable_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word AOT_Int32x4_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word AOT_Integer_InstanceSize = 0x4;
@@ -12804,6 +12838,8 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_UnalignedHeaderSize = 0x10;
 static constexpr dart::compiler::target::word
     AOT_InstructionsSection_UnalignedHeaderSize = 0x28;
+static constexpr dart::compiler::target::word
+    AOT_InstructionsSection_HeaderSize = 0x40;
 static constexpr dart::compiler::target::word
     AOT_InstructionsTable_InstanceSize = 0x30;
 static constexpr dart::compiler::target::word AOT_Int32x4_InstanceSize = 0x18;
@@ -13601,6 +13637,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_InstructionsSection_UnalignedHeaderSize = 0x28;
 static constexpr dart::compiler::target::word
+    AOT_InstructionsSection_HeaderSize = 0x40;
+static constexpr dart::compiler::target::word
     AOT_InstructionsTable_InstanceSize = 0x30;
 static constexpr dart::compiler::target::word AOT_Int32x4_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word AOT_Integer_InstanceSize = 0x8;
@@ -14390,6 +14428,8 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_UnalignedHeaderSize = 0x10;
 static constexpr dart::compiler::target::word
     AOT_InstructionsSection_UnalignedHeaderSize = 0x28;
+static constexpr dart::compiler::target::word
+    AOT_InstructionsSection_HeaderSize = 0x40;
 static constexpr dart::compiler::target::word
     AOT_InstructionsTable_InstanceSize = 0x30;
 static constexpr dart::compiler::target::word AOT_Int32x4_InstanceSize = 0x18;
@@ -15183,6 +15223,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_InstructionsSection_UnalignedHeaderSize = 0x28;
 static constexpr dart::compiler::target::word
+    AOT_InstructionsSection_HeaderSize = 0x40;
+static constexpr dart::compiler::target::word
     AOT_InstructionsTable_InstanceSize = 0x30;
 static constexpr dart::compiler::target::word AOT_Int32x4_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word AOT_Integer_InstanceSize = 0x8;
@@ -15972,6 +16014,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_InstructionsSection_UnalignedHeaderSize = 0x14;
 static constexpr dart::compiler::target::word
+    AOT_InstructionsSection_HeaderSize = 0x20;
+static constexpr dart::compiler::target::word
     AOT_InstructionsTable_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word AOT_Int32x4_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word AOT_Integer_InstanceSize = 0x4;
@@ -16760,6 +16804,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_InstructionsSection_UnalignedHeaderSize = 0x28;
 static constexpr dart::compiler::target::word
+    AOT_InstructionsSection_HeaderSize = 0x40;
+static constexpr dart::compiler::target::word
     AOT_InstructionsTable_InstanceSize = 0x30;
 static constexpr dart::compiler::target::word AOT_Int32x4_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word AOT_Integer_InstanceSize = 0x8;
@@ -17539,6 +17585,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_InstructionsSection_UnalignedHeaderSize = 0x14;
 static constexpr dart::compiler::target::word
+    AOT_InstructionsSection_HeaderSize = 0x20;
+static constexpr dart::compiler::target::word
     AOT_InstructionsTable_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word AOT_Int32x4_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word AOT_Integer_InstanceSize = 0x4;
@@ -18316,6 +18364,8 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_UnalignedHeaderSize = 0x10;
 static constexpr dart::compiler::target::word
     AOT_InstructionsSection_UnalignedHeaderSize = 0x28;
+static constexpr dart::compiler::target::word
+    AOT_InstructionsSection_HeaderSize = 0x40;
 static constexpr dart::compiler::target::word
     AOT_InstructionsTable_InstanceSize = 0x30;
 static constexpr dart::compiler::target::word AOT_Int32x4_InstanceSize = 0x18;
@@ -19104,6 +19154,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_InstructionsSection_UnalignedHeaderSize = 0x28;
 static constexpr dart::compiler::target::word
+    AOT_InstructionsSection_HeaderSize = 0x40;
+static constexpr dart::compiler::target::word
     AOT_InstructionsTable_InstanceSize = 0x30;
 static constexpr dart::compiler::target::word AOT_Int32x4_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word AOT_Integer_InstanceSize = 0x8;
@@ -19884,6 +19936,8 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_UnalignedHeaderSize = 0x10;
 static constexpr dart::compiler::target::word
     AOT_InstructionsSection_UnalignedHeaderSize = 0x28;
+static constexpr dart::compiler::target::word
+    AOT_InstructionsSection_HeaderSize = 0x40;
 static constexpr dart::compiler::target::word
     AOT_InstructionsTable_InstanceSize = 0x30;
 static constexpr dart::compiler::target::word AOT_Int32x4_InstanceSize = 0x18;
@@ -20668,6 +20722,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_InstructionsSection_UnalignedHeaderSize = 0x28;
 static constexpr dart::compiler::target::word
+    AOT_InstructionsSection_HeaderSize = 0x40;
+static constexpr dart::compiler::target::word
     AOT_InstructionsTable_InstanceSize = 0x30;
 static constexpr dart::compiler::target::word AOT_Int32x4_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word AOT_Integer_InstanceSize = 0x8;
@@ -21448,6 +21504,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_InstructionsSection_UnalignedHeaderSize = 0x14;
 static constexpr dart::compiler::target::word
+    AOT_InstructionsSection_HeaderSize = 0x20;
+static constexpr dart::compiler::target::word
     AOT_InstructionsTable_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word AOT_Int32x4_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word AOT_Integer_InstanceSize = 0x4;
@@ -22226,6 +22284,8 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_UnalignedHeaderSize = 0x10;
 static constexpr dart::compiler::target::word
     AOT_InstructionsSection_UnalignedHeaderSize = 0x28;
+static constexpr dart::compiler::target::word
+    AOT_InstructionsSection_HeaderSize = 0x40;
 static constexpr dart::compiler::target::word
     AOT_InstructionsTable_InstanceSize = 0x30;
 static constexpr dart::compiler::target::word AOT_Int32x4_InstanceSize = 0x18;

@@ -719,6 +719,12 @@ const int MAX_NOP_SIZE = 8;
 
 const uint64_t kBreakInstructionFiller = 0xCCCCCCCCCCCCCCCCL;
 
+// Based on presentation "Causes of Performance Instability due to Code
+// Placement in X86 - Zia Ansari, Intel"[1].
+//
+// [1]: https://www.youtube.com/watch?v=IX16gcX4vDQ
+const intptr_t kPreferredLoopAlignment = 32;
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_CONSTANTS_X64_H_

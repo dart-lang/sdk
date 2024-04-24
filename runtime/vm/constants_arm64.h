@@ -1641,6 +1641,22 @@ inline Register ConcreteRegister(LinkRegister) {
 
 #define LINK_REGISTER (LinkRegister())
 
+// There are many different ARM64 CPUs out there with different alignment
+// requirements which are mostly not very well documented.
+//
+// Apple Silicon CPU Optimization Guide explicitly discourages alignment of
+// branch targets (see section 4.4.3).
+//
+// Aligning to 32 seems like a safe bet based on LLVM's implementation:
+//
+//    https://github.com/llvm/llvm-project/blob/05c1447b3eabe9cc4a27866094e46c57350c5d5a/llvm/lib/Target/AArch64/AArch64Subtarget.cpp#L107
+//
+#if defined(DART_TARGET_OS_MACOS_IOS) || defined(DART_TARGET_OS_MACOS)
+const intptr_t kPreferredLoopAlignment = 1;
+#else
+const intptr_t kPreferredLoopAlignment = 32;
+#endif
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_CONSTANTS_ARM64_H_
