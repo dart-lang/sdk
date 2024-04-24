@@ -8,8 +8,8 @@
   any enum value declaration.
 - Introduce `TargetKind.typeParameter`, to indicate that an annotation is valid
   on any type parameter declaration.
-- Introduce `@doNotSubmit` to annotate members that should not be submitted to
-  source control, typically because they are intended to be used ephemerally
+- Introduce `@doNotSubmit` to annotate members that should not be accessed in
+  checked-in code, typically because they are intended to be used ephemerally
   during development.
 
   One example is `package:test`'s `solo: ...` parameter, which skips all other

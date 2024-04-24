@@ -544,6 +544,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var name = nameToken.lexeme;
 
     var element = ExtensionTypeElementImpl(name, nameToken.offset);
+    element.isAugmentation = node.augmentKeyword != null;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
     _setDocumentation(element, node);
@@ -556,12 +557,22 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _libraryBuilder.declare(name, reference);
     }
 
+    element.isAugmentationChainStart = true;
+    _libraryBuilder.updateAugmentationTarget(name, element, (target) {
+      if (element.isAugmentation) {
+        target.augmentation = element;
+        element.augmentationTarget = target;
+        element.isAugmentationChainStart = false;
+      }
+    });
+
     var holder = _EnclosingContext(reference, element);
     _withEnclosing(holder, () {
       node.typeParameters?.accept(this);
       _builtRepresentationDeclaration(
         extensionNode: node,
         representation: node.representation,
+        extensionElement: element,
       );
       _visitPropertyFirst<FieldDeclaration>(node.members);
     });
@@ -1427,42 +1438,53 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   void _builtRepresentationDeclaration({
+    required ExtensionTypeElementImpl extensionElement,
     required ExtensionTypeDeclarationImpl extensionNode,
     required RepresentationDeclarationImpl representation,
   }) {
     var fieldNameToken = representation.fieldName;
     var fieldName = fieldNameToken.lexeme.ifNotEmptyOrElse('<empty>');
-    var fieldElement = FieldElementImpl(
-      fieldName,
-      fieldNameToken.offset,
-    );
-    fieldElement.isFinal = true;
-    fieldElement.metadata = _buildAnnotations(representation.fieldMetadata);
 
-    var fieldBeginToken =
-        representation.fieldMetadata.beginToken ?? representation.fieldType;
-    var fieldCodeRangeOffset = fieldBeginToken.offset;
-    var fieldCodeRangeLength = fieldNameToken.end - fieldCodeRangeOffset;
-    fieldElement.setCodeRange(fieldCodeRangeOffset, fieldCodeRangeLength);
+    ParameterElementImpl formalParameterElement;
+    if (extensionElement.augmentationTarget == null) {
+      var fieldElement = FieldElementImpl(
+        fieldName,
+        fieldNameToken.offset,
+      );
+      fieldElement.isFinal = true;
+      fieldElement.metadata = _buildAnnotations(representation.fieldMetadata);
 
-    representation.fieldElement = fieldElement;
-    _linker.elementNodes[fieldElement] = representation;
-    _enclosingContext.addNonSyntheticField(fieldElement);
+      var fieldBeginToken =
+          representation.fieldMetadata.beginToken ?? representation.fieldType;
+      var fieldCodeRangeOffset = fieldBeginToken.offset;
+      var fieldCodeRangeLength = fieldNameToken.end - fieldCodeRangeOffset;
+      fieldElement.setCodeRange(fieldCodeRangeOffset, fieldCodeRangeLength);
 
-    var fieldFormalParameterElement = FieldFormalParameterElementImpl(
-      name: fieldName,
-      nameOffset: fieldNameToken.offset,
-      parameterKind: ParameterKind.REQUIRED,
-    );
-    fieldFormalParameterElement
-      ..field = fieldElement
-      ..hasImplicitType = true;
-    fieldFormalParameterElement.setCodeRange(
-      fieldCodeRangeOffset,
-      fieldCodeRangeLength,
-    );
+      representation.fieldElement = fieldElement;
+      _linker.elementNodes[fieldElement] = representation;
+      _enclosingContext.addNonSyntheticField(fieldElement);
 
-    ConstructorElementImpl constructorElement;
+      formalParameterElement = FieldFormalParameterElementImpl(
+        name: fieldName,
+        nameOffset: fieldNameToken.offset,
+        parameterKind: ParameterKind.REQUIRED,
+      )
+        ..field = fieldElement
+        ..hasImplicitType = true;
+      formalParameterElement.setCodeRange(
+        fieldCodeRangeOffset,
+        fieldCodeRangeLength,
+      );
+
+      extensionElement.augmented.representation = fieldElement;
+    } else {
+      formalParameterElement = ParameterElementImpl(
+        name: fieldName,
+        nameOffset: fieldNameToken.offset,
+        parameterKind: ParameterKind.REQUIRED,
+      );
+    }
+
     {
       String name;
       int? periodOffset;
@@ -1481,17 +1503,21 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         nameEnd = extensionNode.name.end;
       }
 
-      constructorElement = ConstructorElementImpl(name, nameOffset);
-      constructorElement
+      var constructorElement = ConstructorElementImpl(name, nameOffset)
+        ..isAugmentation = extensionNode.augmentKeyword != null
         ..isConst = extensionNode.constKeyword != null
         ..nameEnd = nameEnd
-        ..parameters = [fieldFormalParameterElement]
+        ..parameters = [formalParameterElement]
         ..periodOffset = periodOffset;
       _setCodeRange(constructorElement, representation);
 
       representation.constructorElement = constructorElement;
       _linker.elementNodes[constructorElement] = representation;
       _enclosingContext.addConstructor(constructorElement);
+
+      if (extensionElement.augmentationTarget == null) {
+        extensionElement.augmented.primaryConstructor = constructorElement;
+      }
     }
 
     representation.fieldType.accept(this);

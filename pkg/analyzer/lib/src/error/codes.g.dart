@@ -896,6 +896,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "The assertion in this constant expression failed.",
   );
 
+  ///  Parameters:
+  ///  0: the message of the assertion
+  static const CompileTimeErrorCode CONST_EVAL_ASSERTION_FAILURE_WITH_MESSAGE =
+      CompileTimeErrorCode(
+    'CONST_EVAL_ASSERTION_FAILURE_WITH_MESSAGE',
+    "An assertion failed with message '{0}'.",
+  );
+
   static const CompileTimeErrorCode CONST_EVAL_EXTENSION_METHOD =
       CompileTimeErrorCode(
     'CONST_EVAL_EXTENSION_METHOD',

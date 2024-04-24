@@ -1200,8 +1200,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitRepresentationDeclaration(
     covariant RepresentationDeclarationImpl node,
   ) {
-    node.fieldElement = _elementWalker!.getVariable() as FieldElementImpl;
-    node.constructorElement = _elementWalker!.getConstructor();
+    var element = _elementWalker!.element as ExtensionTypeElementImpl;
+    if (element.augmentationTarget == null) {
+      node.fieldElement = _elementWalker!.getVariable() as FieldElementImpl;
+      node.constructorElement = _elementWalker!.getConstructor();
+    }
 
     super.visitRepresentationDeclaration(node);
   }

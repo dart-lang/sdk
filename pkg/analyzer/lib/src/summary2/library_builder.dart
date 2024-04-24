@@ -1339,9 +1339,11 @@ class _FieldPromotability extends FieldPromotability<InterfaceElement,
       // Private representation fields of extension types are always promotable.
       // They also don't affect promotability of any other fields.
       for (var extensionType in unitElement.extensionTypes) {
-        var representation = extensionType.representation;
-        if (representation.name.startsWith('_')) {
-          representation.isPromotable = true;
+        if (extensionType.augmentationTarget == null) {
+          var representation = extensionType.representation;
+          if (representation.name.startsWith('_')) {
+            representation.isPromotable = true;
+          }
         }
       }
     }

@@ -70,9 +70,19 @@ advantage of these improvements, set your package's
 #### Analyzer
 
 - Improved code completion. Fixed over 50% of completion correctness bugs,
-  tagged `analyzer-completion-correctness` in the [issue tracker][analyzer-completion-correction-issues].
+  tagged `analyzer-completion-correctness` in the [issue
+  tracker][analyzer-completion-correction-issues].
+- Support for new annotations introduced in version 1.14.0 of the [meta]
+  package.
+  - Support for the [`@doNotSubmit`] annotation, noting that any usage of an
+    annotated member should not be submitted to source control.
+  - Support for the [`@mustBeConst`] annotation, which indicates that an
+    annotated parameter only accepts constant arguments.
 
 [analyzer-completion-correction-issues]: https://github.com/dart-lang/sdk/labels/analyzer-completion-correctness
+[meta]: https://pub.dev/packages/meta
+[`@doNotSubmit`]: https://pub.dev/documentation/meta/latest/meta/doNotSubmit-constant.html
+[`@mustBeConst`]: https://pub.dev/documentation/meta/latest/meta/mustBeConst-constant.html
 
 #### Compilers
 

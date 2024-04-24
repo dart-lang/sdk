@@ -431,8 +431,22 @@ class ExtensionTypeElementLinkedData
       unitElement: element.enclosingElement,
     );
     _readTypeParameters(reader, element.typeParameters);
-    element.typeErasure = reader.readRequiredType();
     element.interfaces = reader._readInterfaceTypeList();
+    element.augmentationTarget =
+        reader.readElement() as ExtensionTypeElementImpl?;
+    element.augmentation = reader.readElement() as ExtensionTypeElementImpl?;
+    if (element.augmentationTarget == null) {
+      if (reader.readBool()) {
+        var augmented = AugmentedExtensionTypeElementImpl(element);
+        element.augmentedInternal = augmented;
+        augmented.interfaces = reader._readInterfaceTypeList();
+        augmented.fields = reader.readElementList();
+        augmented.accessors = reader.readElementList();
+        augmented.constructors = reader.readElementList();
+        augmented.methods = reader.readElementList();
+      }
+      element.augmented.typeErasure = reader.readRequiredType();
+    }
     applyConstantOffsets?.perform();
   }
 }
@@ -1133,6 +1147,12 @@ class LibraryReader {
 
     element.constructors = _readConstructors(unitElement, element, reference);
     element.methods = _readMethods(unitElement, element, reference);
+
+    if (element.isAugmentationChainStart) {
+      element.augmentedInternal
+        ..primaryConstructor = element.constructors.first
+        ..representation = element.fields.first;
+    }
 
     return element;
   }

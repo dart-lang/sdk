@@ -245,6 +245,12 @@ class _ElementWriter {
           writeFields();
           writeAccessors();
           writeMethods();
+        case AugmentedExtensionTypeElement():
+          _elementPrinter.writeTypeList('interfaces', augmented.interfaces);
+          writeFields();
+          writeConstructors();
+          writeAccessors();
+          writeMethods();
         case AugmentedMixinElement():
           _elementPrinter.writeTypeList(
             'superclassConstraints',
@@ -648,10 +654,12 @@ class _ElementWriter {
       }
 
       if (e is ExtensionTypeElementImpl) {
-        _elementPrinter.writeNamedElement('representation', e.representation);
-        _elementPrinter.writeNamedElement(
-            'primaryConstructor', e.primaryConstructor);
-        _elementPrinter.writeNamedType('typeErasure', e.typeErasure);
+        if (e.augmentationTarget == null) {
+          _elementPrinter.writeNamedElement('representation', e.representation);
+          _elementPrinter.writeNamedElement(
+              'primaryConstructor', e.primaryConstructor);
+          _elementPrinter.writeNamedType('typeErasure', e.typeErasure);
+        }
       }
 
       if (e is MixinElementImpl) {

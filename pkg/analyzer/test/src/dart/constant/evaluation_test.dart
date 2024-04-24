@@ -4869,6 +4869,49 @@ const a = const A(0);
     ]);
   }
 
+  test_assertInitializer_usingArgument_false_withMessage() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A(int x): assert(x > 0, '$x must be greater than 0');
+}
+const a = const A(0);
+''', [
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        84,
+        10,
+        contextMessages: [
+          ExpectedContextMessage(testFile, 28, 42,
+              text:
+                  "The exception is 'An assertion failed with message '0 must be greater than 0'.' and occurs here."),
+        ],
+      ),
+    ]);
+  }
+
+  test_assertInitializer_usingArgument_false_withMessage_cannotCompute() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A(int x): assert(x > 0, '${throw ''}');
+}
+const a = const A(0);
+''', [
+      error(CompileTimeErrorCode.INVALID_CONSTANT, 45, 8),
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION, 45, 8),
+      error(WarningCode.DEAD_CODE, 54, 3),
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        70,
+        10,
+        contextMessages: [
+          ExpectedContextMessage(testFile, 28, 28,
+              text:
+                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
+        ],
+      ),
+    ]);
+  }
+
   test_assertInitializer_usingArgument_true() async {
     await assertNoErrorsInCode('''
 class A {

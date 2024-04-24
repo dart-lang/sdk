@@ -211,6 +211,10 @@ mixin ElementsTypesMixin {
     field.type = representationType;
     element.fields = [field];
 
+    element.augmented
+      ..representation = field
+      ..typeErasure = representationType;
+
     return element;
   }
 

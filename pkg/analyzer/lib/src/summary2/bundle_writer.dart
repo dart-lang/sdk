@@ -381,8 +381,23 @@ class BundleWriter {
     _resolutionSink._writeAnnotationList(element.metadata);
 
     _writeTypeParameters(element.typeParameters, () {
-      _resolutionSink.writeType(element.typeErasure);
       _resolutionSink._writeTypeList(element.interfaces);
+      _resolutionSink.writeElement(element.augmentationTarget);
+      _resolutionSink.writeElement(element.augmentation);
+      if (element.augmentationTarget == null) {
+        _resolutionSink.writeIfType<AugmentedExtensionTypeElementImpl>(
+          element.augmented,
+          (augmented) {
+            _resolutionSink._writeTypeList(augmented.interfaces);
+            _resolutionSink._writeElementList(augmented.fields);
+            _resolutionSink._writeElementList(augmented.accessors);
+            _resolutionSink._writeElementList(augmented.constructors);
+            _resolutionSink._writeElementList(augmented.methods);
+          },
+        );
+        _resolutionSink.writeType(element.augmented.typeErasure);
+      }
+
       _writeList(
         element.fields.where((e) => !e.isSynthetic).toList(),
         _writeFieldElement,

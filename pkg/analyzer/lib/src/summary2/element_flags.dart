@@ -123,7 +123,9 @@ class ExtensionElementFlags {
 class ExtensionTypeElementFlags {
   static const int _hasRepresentationSelfReference = 1 << 0;
   static const int _hasImplementsSelfReference = 1 << 1;
-  static const int _isSimplyBounded = 1 << 2;
+  static const int _isAugmentation = 1 << 2;
+  static const int _isAugmentationChainStart = 1 << 3;
+  static const int _isSimplyBounded = 1 << 4;
 
   static void read(SummaryDataReader reader, ExtensionTypeElementImpl element) {
     var byte = reader.readByte();
@@ -131,6 +133,8 @@ class ExtensionTypeElementFlags {
         (byte & _hasRepresentationSelfReference) != 0;
     element.hasImplementsSelfReference =
         (byte & _hasImplementsSelfReference) != 0;
+    element.isAugmentation = (byte & _isAugmentation) != 0;
+    element.isAugmentationChainStart = (byte & _isAugmentationChainStart) != 0;
     element.isSimplyBounded = (byte & _isSimplyBounded) != 0;
   }
 
@@ -141,6 +145,8 @@ class ExtensionTypeElementFlags {
         : 0;
     result |=
         element.hasImplementsSelfReference ? _hasImplementsSelfReference : 0;
+    result |= element.isAugmentation ? _isAugmentation : 0;
+    result |= element.isAugmentationChainStart ? _isAugmentationChainStart : 0;
     result |= element.isSimplyBounded ? _isSimplyBounded : 0;
     sink.writeByte(result);
   }

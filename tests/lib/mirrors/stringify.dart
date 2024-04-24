@@ -62,6 +62,7 @@ void writeVariableOn(VariableMirror variable, StringBuffer buffer) {
   writeDeclarationOn(variable, buffer);
   if (variable.isStatic) buffer.write(', static');
   if (variable.isFinal) buffer.write(', final');
+  if (variable.isConst) buffer.write(', const');
 }
 
 String stringifyVariable(VariableMirror variable) {

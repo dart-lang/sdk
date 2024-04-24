@@ -410,6 +410,8 @@ CompileTimeErrorCode.CONST_DEFERRED_CLASS:
     Remove the `deferred` keyword from the import.
 CompileTimeErrorCode.CONST_EVAL_ASSERTION_FAILURE:
   status: needsEvaluation
+CompileTimeErrorCode.CONST_EVAL_ASSERTION_FAILURE_WITH_MESSAGE:
+  status: needsEvaluation
 CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD:
   status: needsEvaluation
 CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD:

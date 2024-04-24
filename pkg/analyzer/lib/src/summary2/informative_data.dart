@@ -444,44 +444,65 @@ class InformativeDataApplier {
       info.typeParameters,
     );
 
-    var representationField = element.representation;
-    var infoRep = info.representation;
-    representationField.nameOffset = infoRep.fieldNameOffset;
-    representationField.setCodeRange(
-      infoRep.fieldCodeOffset,
-      infoRep.fieldCodeLength,
-    );
+    if (element.isAugmentationChainStart) {
+      var representationField = element.representation;
+      var infoRep = info.representation;
+      representationField.nameOffset = infoRep.fieldNameOffset;
+      representationField.setCodeRange(
+        infoRep.fieldCodeOffset,
+        infoRep.fieldCodeLength,
+      );
 
-    var fieldApplyOffsets = ApplyConstantOffsets(
-      infoRep.fieldConstantOffsets,
-      (applier) {
-        applier.applyToMetadata(representationField);
-      },
-    );
+      var fieldApplyOffsets = ApplyConstantOffsets(
+        infoRep.fieldConstantOffsets,
+        (applier) {
+          applier.applyToMetadata(representationField);
+        },
+      );
 
-    var fieldLinkedData = representationField.linkedData;
-    if (fieldLinkedData is FieldElementLinkedData) {
-      fieldLinkedData.applyConstantOffsets = fieldApplyOffsets;
+      var fieldLinkedData = representationField.linkedData;
+      if (fieldLinkedData is FieldElementLinkedData) {
+        fieldLinkedData.applyConstantOffsets = fieldApplyOffsets;
+      } else {
+        fieldApplyOffsets.perform();
+      }
+
+      var primaryConstructor = element.constructors.first;
+      primaryConstructor.setCodeRange(
+        infoRep.constructorCodeOffset,
+        infoRep.constructorCodeLength,
+      );
+      primaryConstructor.periodOffset = infoRep.constructorPeriodOffset;
+      primaryConstructor.nameOffset = infoRep.constructorNameOffset;
+      primaryConstructor.nameEnd = infoRep.constructorNameEnd;
+
+      var primaryConstructorParameter = primaryConstructor
+          .parameters_unresolved.first as ParameterElementImpl;
+      primaryConstructorParameter.nameOffset = infoRep.fieldNameOffset;
+      primaryConstructorParameter.setCodeRange(
+        infoRep.fieldCodeOffset,
+        infoRep.fieldCodeLength,
+      );
     } else {
-      fieldApplyOffsets.perform();
+      var infoRep = info.representation;
+
+      var primaryConstructor = element.constructors.first;
+      primaryConstructor.setCodeRange(
+        infoRep.constructorCodeOffset,
+        infoRep.constructorCodeLength,
+      );
+      primaryConstructor.periodOffset = infoRep.constructorPeriodOffset;
+      primaryConstructor.nameOffset = infoRep.constructorNameOffset;
+      primaryConstructor.nameEnd = infoRep.constructorNameEnd;
+
+      var primaryConstructorParameter = primaryConstructor
+          .parameters_unresolved.first as ParameterElementImpl;
+      primaryConstructorParameter.nameOffset = infoRep.fieldNameOffset;
+      primaryConstructorParameter.setCodeRange(
+        infoRep.fieldCodeOffset,
+        infoRep.fieldCodeLength,
+      );
     }
-
-    var primaryConstructor = element.constructors.first;
-    primaryConstructor.setCodeRange(
-      infoRep.constructorCodeOffset,
-      infoRep.constructorCodeLength,
-    );
-    primaryConstructor.periodOffset = infoRep.constructorPeriodOffset;
-    primaryConstructor.nameOffset = infoRep.constructorNameOffset;
-    primaryConstructor.nameEnd = infoRep.constructorNameEnd;
-
-    var primaryConstructorParameter =
-        primaryConstructor.parameters_unresolved.first as ParameterElementImpl;
-    primaryConstructorParameter.nameOffset = infoRep.fieldNameOffset;
-    primaryConstructorParameter.setCodeRange(
-      infoRep.fieldCodeOffset,
-      infoRep.fieldCodeLength,
-    );
 
     var restFields = element.fields.skip(1).toList();
     _applyToFields(restFields, info.fields);
