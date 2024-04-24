@@ -7,12 +7,16 @@ environment:
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
-  # TODO(srawlins): Move all code from `server_plugin` here, and remove dep.
-  server_plugin: any
+  _fe_analyzer_shared: any
+  analyzer: any
+  analyzer_plugin: any
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
   lints: any
+  meta: any
+  test_reflective_loader: any
+  test: any
 
 dependency_overrides:
   _fe_analyzer_shared:

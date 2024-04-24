@@ -4,10 +4,10 @@
 
 import 'package:analysis_server/src/cider/fixes.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' show SourceEdit;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:server_plugin/edit/fix/fix.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

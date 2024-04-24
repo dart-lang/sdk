@@ -1,22 +1,42 @@
-// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../abstract_single_unit.dart';
+import '../single_unit.dart';
 
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CorrectionUtilsTest);
-    defineReflectiveTests(UtilTest);
   });
 }
 
 @reflectiveTest
-class CorrectionUtilsTest extends AbstractSingleUnitTest {
+final class CorrectionUtilsTest extends SingleUnitTest {
+  Future<void> assert_invertCondition(String expr, String expected) async {
+    await resolveTestCode('''
+void f(bool? b4, bool? b5) {
+  int? v1, v2, v3, v4, v5;
+  bool b1 = true, b2 = true, b3 = true;
+  if ($expr) {
+    0;
+  } else {
+    1;
+  }
+}
+''');
+    var ifStatement = findNode.ifStatement('if (');
+    var condition = ifStatement.expression;
+    var result = CorrectionUtils(testAnalysisResult).invertCondition(condition);
+    expect(result, expected);
+    // For compactness we put multiple cases into one test method.
+    // Prepare for resolving the test file one again.
+    changeFile(testFile);
+  }
+
   Future<void> assertReplacedIndentation(
     String source,
     String expected, {
@@ -25,8 +45,6 @@ class CorrectionUtilsTest extends AbstractSingleUnitTest {
     bool includeLeading = false,
     bool ensureTrailingNewline = false,
   }) async {
-    // Use strings as-is, because tests are explicit and cover both kinds of eols.
-    useLineEndingsForPlatform = false;
     await parseTestCode(source);
     var util = CorrectionUtils(testParsedResult);
     var actual = util.replaceSourceIndent(
@@ -37,6 +55,51 @@ class CorrectionUtilsTest extends AbstractSingleUnitTest {
       ensureTrailingNewline: ensureTrailingNewline,
     );
     expect(actual, expected);
+  }
+
+  Future<void> test_invertCondition_binary_compare() async {
+    await assert_invertCondition('0 < 1', '0 >= 1');
+    await assert_invertCondition('0 > 1', '0 <= 1');
+    await assert_invertCondition('0 <= 1', '0 > 1');
+    await assert_invertCondition('0 >= 1', '0 < 1');
+    await assert_invertCondition('0 == 1', '0 != 1');
+    await assert_invertCondition('0 != 1', '0 == 1');
+  }
+
+  Future<void> test_invertCondition_binary_compare_boolean() async {
+    await assert_invertCondition('b4 == null', 'b4 != null');
+    await assert_invertCondition('b4 != null', 'b4 == null');
+  }
+
+  Future<void> test_invertCondition_binary_logical() async {
+    await assert_invertCondition('b1 && b2', '!b1 || !b2');
+    await assert_invertCondition('!b1 && !b2', 'b1 || b2');
+    await assert_invertCondition('b1 || b2', '!b1 && !b2');
+    await assert_invertCondition('!b1 || !b2', 'b1 && b2');
+  }
+
+  Future<void> test_invertCondition_complex() async {
+    await assert_invertCondition('b1 && b2 || b3', '(!b1 || !b2) && !b3');
+    await assert_invertCondition('b1 || b2 && b3', '!b1 && (!b2 || !b3)');
+    await assert_invertCondition('(!b1 || !b2) && !b3', 'b1 && b2 || b3');
+    await assert_invertCondition('!b1 && (!b2 || !b3)', 'b1 || b2 && b3');
+  }
+
+  Future<void> test_invertCondition_is() async {
+    await assert_invertCondition('v1 is int', 'v1 is! int');
+    await assert_invertCondition('v1 is! int', 'v1 is int');
+  }
+
+  Future<void> test_invertCondition_literal() async {
+    await assert_invertCondition('true', 'false');
+    await assert_invertCondition('false', 'true');
+  }
+
+  Future<void> test_invertCondition_not() async {
+    await assert_invertCondition('b1', '!b1');
+    await assert_invertCondition('!b1', 'b1');
+    await assert_invertCondition('!((b1))', 'b1');
+    await assert_invertCondition('(((b1)))', '!b1');
   }
 
   Future<void> test_replaceSourceIndent_leading_empty_crlf() async {
@@ -151,74 +214,5 @@ class CorrectionUtilsTest extends AbstractSingleUnitTest {
       '  a\r\n  b\r\n  c\r\n',
       '  a\r\n    b\r\n    c\r\n',
     );
-  }
-}
-
-@reflectiveTest
-class UtilTest extends AbstractSingleUnitTest {
-  Future<void> assert_invertCondition(String expr, String expected) async {
-    await resolveTestCode('''
-void f(bool? b4, bool? b5) {
-  int? v1, v2, v3, v4, v5;
-  bool b1 = true, b2 = true, b3 = true;
-  if ($expr) {
-    0;
-  } else {
-    1;
-  }
-}
-''');
-    var ifStatement = findNode.ifStatement('if (');
-    var condition = ifStatement.expression;
-    var result = CorrectionUtils(testAnalysisResult).invertCondition(condition);
-    expect(result, expected);
-    // For compactness we put multiple cases into one test method.
-    // Prepare for resolving the test file one again.
-    changeFile(testFile);
-  }
-
-  Future<void> test_invertCondition_binary_compare() async {
-    await assert_invertCondition('0 < 1', '0 >= 1');
-    await assert_invertCondition('0 > 1', '0 <= 1');
-    await assert_invertCondition('0 <= 1', '0 > 1');
-    await assert_invertCondition('0 >= 1', '0 < 1');
-    await assert_invertCondition('0 == 1', '0 != 1');
-    await assert_invertCondition('0 != 1', '0 == 1');
-  }
-
-  Future<void> test_invertCondition_binary_compare_boolean() async {
-    await assert_invertCondition('b4 == null', 'b4 != null');
-    await assert_invertCondition('b4 != null', 'b4 == null');
-  }
-
-  Future<void> test_invertCondition_binary_logical() async {
-    await assert_invertCondition('b1 && b2', '!b1 || !b2');
-    await assert_invertCondition('!b1 && !b2', 'b1 || b2');
-    await assert_invertCondition('b1 || b2', '!b1 && !b2');
-    await assert_invertCondition('!b1 || !b2', 'b1 && b2');
-  }
-
-  Future<void> test_invertCondition_complex() async {
-    await assert_invertCondition('b1 && b2 || b3', '(!b1 || !b2) && !b3');
-    await assert_invertCondition('b1 || b2 && b3', '!b1 && (!b2 || !b3)');
-    await assert_invertCondition('(!b1 || !b2) && !b3', 'b1 && b2 || b3');
-    await assert_invertCondition('!b1 && (!b2 || !b3)', 'b1 || b2 && b3');
-  }
-
-  Future<void> test_invertCondition_is() async {
-    await assert_invertCondition('v1 is int', 'v1 is! int');
-    await assert_invertCondition('v1 is! int', 'v1 is int');
-  }
-
-  Future<void> test_invertCondition_literal() async {
-    await assert_invertCondition('true', 'false');
-    await assert_invertCondition('false', 'true');
-  }
-
-  Future<void> test_invertCondition_not() async {
-    await assert_invertCondition('b1', '!b1');
-    await assert_invertCondition('!b1', 'b1');
-    await assert_invertCondition('!((b1))', 'b1');
-    await assert_invertCondition('(((b1)))', '!b1');
   }
 }

@@ -7,6 +7,8 @@ import 'dart:math' as math;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/utilities/selection.dart';
+import 'package:analysis_server_plugin/edit/correction_utils.dart';
+import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -33,7 +35,6 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
-import 'package:server_plugin/edit/fix/dart_fix_context.dart';
 
 /// An object that can compute a correction (fix or assist) in a Dart file.
 abstract class CorrectionProducer<T extends ParsedUnitResult>

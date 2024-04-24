@@ -69,11 +69,13 @@ enum RuntimePlatforms {
 class ReloadTestConfiguration {
   final Map<String, dynamic> _values;
   final Set<RuntimePlatforms> excludedPlaforms;
+  final String? expectedError;
 
-  ReloadTestConfiguration._(this._values, this.excludedPlaforms);
+  ReloadTestConfiguration._(
+      this._values, this.excludedPlaforms, this.expectedError);
 
   factory ReloadTestConfiguration() => ReloadTestConfiguration._(
-      const <String, dynamic>{}, <RuntimePlatforms>{});
+      const <String, dynamic>{}, <RuntimePlatforms>{}, null);
 
   factory ReloadTestConfiguration.fromJsonFile(Uri file) {
     final Map<String, dynamic> jsonData =
@@ -86,7 +88,8 @@ class ReloadTestConfiguration {
         excludedPlaforms.add(runtimePlatform);
       }
     }
-    return ReloadTestConfiguration._(jsonData, excludedPlaforms);
+    return ReloadTestConfiguration._(
+        jsonData, excludedPlaforms, jsonData['expectedError']);
   }
 
   String toJson() {

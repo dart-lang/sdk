@@ -8,6 +8,7 @@ environment:
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
   _fe_analyzer_shared: any
+  analysis_server_plugin: any
   analyzer: any
   analyzer_plugin: any
   args: any
@@ -21,7 +22,6 @@ dependencies:
   memory_usage: any
   meta: any
   path: any
-  server_plugin: any
   stream_channel: any
   telemetry: any
   test: any
@@ -44,6 +44,8 @@ dev_dependencies:
 dependency_overrides:
   _fe_analyzer_shared:
     path: ../_fe_analyzer_shared
+  analysis_server_plugin:
+    path: ../analysis_server_plugin
   analyzer:
     path: ../analyzer
   analyzer_plugin:
