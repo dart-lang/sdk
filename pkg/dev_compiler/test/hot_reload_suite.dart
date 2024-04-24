@@ -155,8 +155,8 @@ Future<void> main(List<String> args) async {
         // Ignore Dart source files, which may be imported as helpers
         continue;
       }
-      throw Exception(
-          'Non-directory or file entity found in ${allTestsUri.toFilePath()}: $testDir');
+      throw Exception('Non-directory or file entity found in '
+          '${allTestsUri.toFilePath()}: $testDir');
     }
     final testDirParts = testDir.uri.pathSegments;
     final testName = testDirParts[testDirParts.length - 2];
@@ -166,6 +166,20 @@ Future<void> main(List<String> args) async {
       testName: testName,
     );
     var stopwatch = Stopwatch()..start();
+
+    // Report results for this test.
+    Future<void> reportTestOutcome(String testOutput, bool testPassed) async {
+      stopwatch.stop();
+      outcome.elapsedTime = stopwatch.elapsed;
+      outcome.testOutput = testOutput;
+      outcome.matchedExpectations = testPassed;
+      testOutcomes.add(outcome);
+      if (testPassed) {
+        _print('PASSED with:\n$testOutput', label: testName);
+      } else {
+        _print('FAILED with:\n$testOutput', label: testName);
+      }
+    }
 
     final tempUri = generatedCodeUri.resolve('$testName/');
     Directory.fromUri(tempUri).createSync();
@@ -221,6 +235,7 @@ Future<void> main(List<String> args) async {
     _print('Generating code over ${maxGenerations + 1} generations.',
         label: testName);
 
+    var hasCompileError = false;
     // Generate hot reload/restart generations as subdirectories in a loop.
     var currentGeneration = 0;
     while (currentGeneration <= maxGenerations) {
@@ -231,7 +246,8 @@ Future<void> main(List<String> args) async {
       // names restored (e.g., path/to/main' from 'path/to/main.0.dart).
       // TODO(markzipan): support subdirectories.
       _debugPrint(
-          'Copying Dart files to snapshot directory: ${snapshotUri.toFilePath()}',
+          'Copying Dart files to snapshot directory: '
+          '${snapshotUri.toFilePath()}',
           label: testName);
       for (var file in testDir.listSync()) {
         // Convert a name like `/path/foo.bar.25.dart` to `/path/foo.bar.dart`.
@@ -267,21 +283,49 @@ Future<void> main(List<String> args) async {
       _print(
           'Compiling generation $currentGeneration with the Frontend Server.',
           label: testName);
+      CompilerOutput compilerOutput;
       if (currentGeneration == 0) {
         _debugPrint(
             'Compiling snapshot entrypoint: $snapshotEntrypointWithScheme',
             label: testName);
         outputDirectoryPath = outputDillUri.toFilePath();
-        await controller.sendCompileAndAccept(snapshotEntrypointWithScheme);
+        compilerOutput =
+            await controller.sendCompile(snapshotEntrypointWithScheme);
       } else {
         _debugPrint(
             'Recompiling snapshot entrypoint: $snapshotEntrypointWithScheme',
             label: testName);
         outputDirectoryPath = outputIncrementalDillUri.toFilePath();
         // TODO(markzipan): Add logic to reject bad compiles.
-        await controller.sendRecompileAndAccept(snapshotEntrypointWithScheme,
+        compilerOutput = await controller.sendRecompile(
+            snapshotEntrypointWithScheme,
             invalidatedFiles: updatedFilesInCurrentGeneration);
       }
+      // Frontend Server reported compile errors. Fail if they weren't
+      // expected, and do not run tests.
+      if (compilerOutput.errorCount > 0) {
+        hasCompileError = true;
+        await controller.sendReject();
+        // TODO(markzipan): Determine if 'contains' is good enough to determine
+        // compilation error correctness.
+        if (testConfig.expectedError != null &&
+            compilerOutput.outputText.contains(testConfig.expectedError!)) {
+          await reportTestOutcome(
+              'Expected error found during compilation: '
+              '${testConfig.expectedError}',
+              true);
+        } else {
+          await reportTestOutcome(
+              'Test failed with compile error: ${compilerOutput.outputText}',
+              false);
+        }
+      } else {
+        controller.sendAccept();
+      }
+
+      // Stop processing further generations if compilation failed.
+      if (hasCompileError) break;
+
       _debugPrint(
           'Frontend Server successfully compiled outputs to: '
           '$outputDirectoryPath',
@@ -322,6 +366,14 @@ Future<void> main(List<String> args) async {
             label: testName);
       }
       currentGeneration++;
+    }
+
+    // Skip to the next test and avoid execution if we encountered a
+    // compilation error.
+    if (hasCompileError) {
+      _print('Did not emit all assets due to compilation error.',
+          label: testName);
+      continue;
     }
 
     _print('Finished emitting assets.', label: testName);
@@ -369,7 +421,8 @@ Future<void> main(List<String> args) async {
         ];
         final vm = await Process.start(Platform.executable, vmArgs);
         _debugPrint(
-            'Starting VM with command: ${Platform.executable} ${vmArgs.join(" ")}',
+            'Starting VM with command: '
+            '${Platform.executable} ${vmArgs.join(" ")}',
             label: testName);
         vm.stdout
             .transform(utf8.decoder)
@@ -398,19 +451,7 @@ Future<void> main(List<String> args) async {
         testPassed = vmExitCode == 0;
     }
 
-    stopwatch.stop();
-    final testOutput = testOutputBuffer.toString();
-    outcome.elapsedTime = stopwatch.elapsed;
-    outcome.matchedExpectations = testPassed;
-    outcome.testOutput = testOutput;
-    testOutcomes.add(outcome);
-    if (testPassed) {
-      _print('PASSED with:\n$testOutput', label: testName);
-    } else {
-      _print('FAILED with:\n$testOutput', label: testName);
-      await shutdown();
-      exit(1);
-    }
+    await reportTestOutcome(testOutputBuffer.toString(), testPassed);
   }
 
   await shutdown();
@@ -443,6 +484,17 @@ Future<void> main(List<String> args) async {
     }
     _print('Emitted logs to ${testResultsUri.toFilePath()} '
         'and ${testLogsUri.toFilePath()}.');
+  }
+
+  // Report failed tests.
+  var failedTests =
+      testOutcomes.where((outcome) => !outcome.matchedExpectations);
+  if (failedTests.isNotEmpty) {
+    print('Some tests failed:');
+    failedTests.forEach((outcome) {
+      print('${outcome.testName} failed with:\n${outcome.testOutput}');
+    });
+    exit(1);
   }
 }
 
