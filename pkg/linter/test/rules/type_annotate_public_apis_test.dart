@@ -19,6 +19,190 @@ class TypeAnnotatePublicApisTest extends LintRuleTest {
   @override
   String get lintRule => 'type_annotate_public_apis';
 
+  test_augmentationClass_field() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+
+class A { }
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+
+augment class A {
+  var i;
+}
+''');
+
+    result = await resolveFile(a.path);
+    await assertNoDiagnosticsIn(errors);
+
+    result = await resolveFile(b.path);
+    await assertDiagnosticsIn(errors, [
+      lint(51, 1),
+    ]);
+  }
+
+  test_augmentationClass_method() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+
+class A { }
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+
+augment class A {
+  void f(x) { }
+}
+''');
+
+    result = await resolveFile(a.path);
+    await assertNoDiagnosticsIn(errors);
+
+    result = await resolveFile(b.path);
+    await assertDiagnosticsIn(errors, [
+      lint(54, 1),
+    ]);
+  }
+
+  test_augmentationTopLevelFunction() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+
+void f(x) { }
+''');
+
+    result = await resolveFile(a.path);
+    await assertNoDiagnosticsIn(errors);
+
+    result = await resolveFile(b.path);
+    await assertDiagnosticsIn(errors, [
+      lint(34, 1),
+    ]);
+  }
+
+  test_augmentationTopLevelVariable() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+
+var x;
+''');
+
+    result = await resolveFile(a.path);
+    await assertNoDiagnosticsIn(errors);
+
+    result = await resolveFile(b.path);
+    await assertDiagnosticsIn(errors, [
+      lint(31, 1),
+    ]);
+  }
+
+  test_augmentedField() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+
+class A {
+  var x;
+}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+
+augment class A {
+  augment var x;
+}
+''');
+
+    result = await resolveFile(a.path);
+    await assertDiagnosticsIn(errors, [
+      lint(42, 1),
+    ]);
+
+    result = await resolveFile(b.path);
+    await assertNoDiagnosticsIn(errors);
+  }
+
+  test_augmentedMethod() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+
+class A {
+  void f(x) { }
+}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+
+augment class A {
+  augment void f(x) { }
+}
+''');
+
+    result = await resolveFile(a.path);
+    await assertDiagnosticsIn(errors, [
+      lint(45, 1),
+    ]);
+
+    result = await resolveFile(b.path);
+    await assertNoDiagnosticsIn(errors);
+  }
+
+  test_augmentedTopLevelFunction() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+
+void f(x) { }
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+
+augment void f(x) { }
+''');
+
+    result = await resolveFile(a.path);
+    await assertDiagnosticsIn(errors, [
+      lint(33, 1),
+    ]);
+
+    result = await resolveFile(b.path);
+    await assertNoDiagnosticsIn(errors);
+  }
+
+  test_augmentedTopLevelVariable() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+
+var x;
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+
+augment var x;
+''');
+
+    result = await resolveFile(a.path);
+    await assertDiagnosticsIn(errors, [
+      lint(30, 1),
+    ]);
+
+    result = await resolveFile(b.path);
+    await assertNoDiagnosticsIn(errors);
+  }
+
   test_instanceField_onClass_hasInitializer() async {
     await assertNoDiagnostics(r'''
 class A {
