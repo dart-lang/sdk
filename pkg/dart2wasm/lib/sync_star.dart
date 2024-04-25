@@ -280,49 +280,6 @@ class SyncStarCodeGenerator extends CodeGenerator {
     b.end();
   }
 
-  /// Clones the context pointed to by the [srcContext] local. Returns a local
-  /// pointing to the cloned context.
-  ///
-  /// It is assumed that the context is the function-level context for the
-  /// `sync*` function.
-  w.Local cloneContext(
-      FunctionNode functionNode, Context context, w.Local srcContext) {
-    assert(context.owner == functionNode);
-
-    final w.Local destContext = addLocal(context.currentLocal.type);
-    b.struct_new_default(context.struct);
-    b.local_set(destContext);
-
-    void copyCapture(TreeNode node) {
-      Capture? capture = closures.captures[node];
-      if (capture != null) {
-        assert(capture.context == context);
-        b.local_get(destContext);
-        b.local_get(srcContext);
-        b.struct_get(context.struct, capture.fieldIndex);
-        b.struct_set(context.struct, capture.fieldIndex);
-      }
-    }
-
-    if (context.containsThis) {
-      b.local_get(destContext);
-      b.local_get(srcContext);
-      b.struct_get(context.struct, context.thisFieldIndex);
-      b.struct_set(context.struct, context.thisFieldIndex);
-    }
-    if (context.parent != null) {
-      b.local_get(destContext);
-      b.local_get(srcContext);
-      b.struct_get(context.struct, context.parentFieldIndex);
-      b.struct_set(context.struct, context.parentFieldIndex);
-    }
-    functionNode.positionalParameters.forEach(copyCapture);
-    functionNode.namedParameters.forEach(copyCapture);
-    functionNode.typeParameters.forEach(copyCapture);
-
-    return destContext;
-  }
-
   void generateInner(FunctionNode functionNode, Context? context,
       w.FunctionBuilder resumeFun) {
     // Set the current Wasm function for the code generator to the inner
@@ -375,7 +332,9 @@ class SyncStarCodeGenerator extends CodeGenerator {
     emitTargetLabel(initialTarget);
 
     // Clone context on first execution.
-    restoreContextsAndThis(context, cloneContextFor: functionNode);
+    b.restoreSuspendStateContext(suspendStateLocal, suspendStateInfo.struct,
+        FieldIndex.suspendStateContext, closures, context, thisLocal,
+        cloneContextFor: functionNode);
 
     visitStatement(functionNode.body!);
 
@@ -418,37 +377,6 @@ class SyncStarCodeGenerator extends CodeGenerator {
       b.local_set(targetIndexLocal);
       b.br(masterLoop);
       b.end(); // block
-    }
-  }
-
-  void restoreContextsAndThis(Context? context,
-      {FunctionNode? cloneContextFor}) {
-    if (context != null) {
-      assert(!context.isEmpty);
-      b.local_get(suspendStateLocal);
-      b.struct_get(suspendStateInfo.struct, FieldIndex.suspendStateContext);
-      b.ref_cast(context.currentLocal.type as w.RefType);
-      b.local_set(context.currentLocal);
-
-      if (context.owner == cloneContextFor) {
-        context.currentLocal =
-            cloneContext(cloneContextFor!, context, context.currentLocal);
-      }
-
-      while (context!.parent != null) {
-        assert(!context.parent!.isEmpty);
-        b.local_get(context.currentLocal);
-        b.struct_get(context.struct, context.parentFieldIndex);
-        b.ref_as_non_null();
-        context = context.parent!;
-        b.local_set(context.currentLocal);
-      }
-      if (context.containsThis) {
-        b.local_get(context.currentLocal);
-        b.struct_get(context.struct, context.thisFieldIndex);
-        b.ref_as_non_null();
-        b.local_set(thisLocal!);
-      }
     }
   }
 
@@ -615,7 +543,8 @@ class SyncStarCodeGenerator extends CodeGenerator {
       b.end(); // exceptionCheck
     }
 
-    restoreContextsAndThis(context);
+    b.restoreSuspendStateContext(suspendStateLocal, suspendStateInfo.struct,
+        FieldIndex.suspendStateContext, closures, context, thisLocal);
   }
 
   @override
