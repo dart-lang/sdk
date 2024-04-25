@@ -40,11 +40,6 @@ extension type E(A a) implements A {
     ]);
   }
 
-  @FailingTest(
-    reason:
-        "CompileTimeErrorCode.AUGMENTATION_WITHOUT_DECLARATION [61, 7, The declaration being augmented doesn't exist.]",
-    issue: 'https://github.com/dart-lang/linter/issues/4927',
-  )
   test_augmentationMethodWithAnnotation() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import augment 'test.dart';

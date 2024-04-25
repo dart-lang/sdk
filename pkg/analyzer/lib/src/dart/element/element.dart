@@ -3078,17 +3078,11 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
 
   @override
   ConstructorElementImpl get primaryConstructor {
-    if (isAugmentationChainStart) {
-      return augmentedInternal.primaryConstructor;
-    }
     return augmented.primaryConstructor;
   }
 
   @override
   FieldElementImpl get representation {
-    if (isAugmentationChainStart) {
-      return augmentedInternal.representation;
-    }
     return augmented.representation;
   }
 
@@ -5892,7 +5886,6 @@ class NotAugmentedExtensionTypeElementImpl
     var augmented = AugmentedExtensionTypeElementImpl(declaration);
     augmented.primaryConstructor = primaryConstructor;
     augmented.representation = representation;
-    augmented.typeErasure = typeErasure;
     declaration.augmentedInternal = augmented;
     return augmented;
   }
@@ -7361,7 +7354,7 @@ abstract class VariableElementImpl extends ElementImpl
   String get name => super.name!;
 
   @override
-  DartType get type => _type ?? InvalidTypeImpl.instance;
+  DartType get type => _type!;
 
   set type(DartType type) {
     _type = type;

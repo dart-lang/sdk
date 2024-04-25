@@ -445,7 +445,7 @@ class InformativeDataApplier {
     );
 
     if (element.isAugmentationChainStart) {
-      var representationField = element.representation;
+      var representationField = element.fields.first;
       var infoRep = info.representation;
       representationField.nameOffset = infoRep.fieldNameOffset;
       representationField.setCodeRange(
@@ -483,32 +483,16 @@ class InformativeDataApplier {
         infoRep.fieldCodeOffset,
         infoRep.fieldCodeLength,
       );
+
+      var restFields = element.fields.skip(1).toList();
+      _applyToFields(restFields, info.fields);
+
+      var restConstructors = element.constructors.skip(1).toList();
+      _applyToConstructors(restConstructors, info.constructors);
     } else {
-      var infoRep = info.representation;
-
-      var primaryConstructor = element.constructors.first;
-      primaryConstructor.setCodeRange(
-        infoRep.constructorCodeOffset,
-        infoRep.constructorCodeLength,
-      );
-      primaryConstructor.periodOffset = infoRep.constructorPeriodOffset;
-      primaryConstructor.nameOffset = infoRep.constructorNameOffset;
-      primaryConstructor.nameEnd = infoRep.constructorNameEnd;
-
-      var primaryConstructorParameter = primaryConstructor
-          .parameters_unresolved.first as ParameterElementImpl;
-      primaryConstructorParameter.nameOffset = infoRep.fieldNameOffset;
-      primaryConstructorParameter.setCodeRange(
-        infoRep.fieldCodeOffset,
-        infoRep.fieldCodeLength,
-      );
+      _applyToFields(element.fields, info.fields);
+      _applyToConstructors(element.constructors, info.constructors);
     }
-
-    var restFields = element.fields.skip(1).toList();
-    _applyToFields(restFields, info.fields);
-
-    var restConstructors = element.constructors.skip(1).toList();
-    _applyToConstructors(restConstructors, info.constructors);
 
     _applyToAccessors(element.accessors, info.accessors);
     _applyToMethods(element.methods, info.methods);
