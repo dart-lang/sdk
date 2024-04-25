@@ -18,7 +18,7 @@ class CreateConstructor extends ResolvedCorrectionProducer {
   late String _constructorName;
 
   @override
-  List<Object> get fixArguments => [_constructorName];
+  List<String> get fixArguments => [_constructorName];
 
   @override
   FixKind get fixKind => DartFixKind.CREATE_CONSTRUCTOR;

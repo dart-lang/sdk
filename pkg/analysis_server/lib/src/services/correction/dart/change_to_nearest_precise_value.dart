@@ -14,7 +14,7 @@ class ChangeToNearestPreciseValue extends ResolvedCorrectionProducer {
   String _correction = '';
 
   @override
-  List<Object> get fixArguments => [_correction];
+  List<String> get fixArguments => [_correction];
 
   @override
   FixKind get fixKind => DartFixKind.CHANGE_TO_NEAREST_PRECISE_VALUE;

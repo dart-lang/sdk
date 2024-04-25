@@ -44,7 +44,7 @@ class _AddOverride extends ResolvedCorrectionProducer {
   _AddOverride(this._expression, this._name);
 
   @override
-  List<Object> get fixArguments => [_name];
+  List<String> get fixArguments => [_name];
 
   @override
   FixKind get fixKind => DartFixKind.ADD_EXTENSION_OVERRIDE;

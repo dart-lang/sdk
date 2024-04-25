@@ -14,7 +14,7 @@ class MakeFieldPublic extends ResolvedCorrectionProducer {
   late String _fieldName;
 
   @override
-  List<Object>? get fixArguments => [_fieldName];
+  List<String>? get fixArguments => [_fieldName];
 
   @override
   FixKind get fixKind => DartFixKind.MAKE_FIELD_PUBLIC;

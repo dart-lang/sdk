@@ -20,7 +20,7 @@ class ReplaceWithEightDigitHex extends ResolvedCorrectionProducer {
   bool get canBeAppliedToFile => true;
 
   @override
-  List<Object> get fixArguments => [_replacement];
+  List<String> get fixArguments => [_replacement];
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_WITH_EIGHT_DIGIT_HEX;

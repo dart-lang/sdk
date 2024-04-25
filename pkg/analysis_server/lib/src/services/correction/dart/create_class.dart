@@ -15,7 +15,7 @@ class CreateClass extends ResolvedCorrectionProducer {
   String className = '';
 
   @override
-  List<Object> get fixArguments => [className];
+  List<String> get fixArguments => [className];
 
   @override
   FixKind get fixKind => DartFixKind.CREATE_CLASS;

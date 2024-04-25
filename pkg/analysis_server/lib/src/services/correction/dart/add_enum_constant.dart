@@ -21,7 +21,7 @@ class AddEnumConstant extends ResolvedCorrectionProducer {
   bool get canBeAppliedToFile => false;
 
   @override
-  List<Object> get fixArguments => [_constantName];
+  List<String> get fixArguments => [_constantName];
 
   @override
   FixKind get fixKind => DartFixKind.ADD_ENUM_CONSTANT;

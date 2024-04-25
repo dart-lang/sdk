@@ -12,7 +12,7 @@ class ExtendClassForMixin extends ResolvedCorrectionProducer {
   String _typeName = '';
 
   @override
-  List<Object> get fixArguments => [_typeName];
+  List<String> get fixArguments => [_typeName];
 
   @override
   FixKind get fixKind => DartFixKind.EXTEND_CLASS_FOR_MIXIN;

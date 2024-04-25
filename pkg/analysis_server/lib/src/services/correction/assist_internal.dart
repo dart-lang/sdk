@@ -84,7 +84,7 @@ import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_except
 /// The computer for Dart assists.
 class AssistProcessor {
   /// A list of the generators used to produce assists.
-  static const List<ProducerGenerator> generators = [
+  static const List<ProducerGenerator> _generators = [
     AddDiagnosticPropertyReference.new,
     AddReturnType.new,
     AddTypeAnnotation.bulkFixable,
@@ -155,23 +155,23 @@ class AssistProcessor {
   ];
 
   /// A list of the multi-generators used to produce assists.
-  static const List<MultiProducerGenerator> multiGenerators = [
+  static const List<MultiProducerGenerator> _multiGenerators = [
     FlutterWrap.new,
     SurroundWith.new,
   ];
 
-  final DartAssistContext assistContext;
+  final DartAssistContext _assistContext;
 
-  final List<Assist> assists = <Assist>[];
+  final List<Assist> _assists = [];
 
-  AssistProcessor(this.assistContext);
+  AssistProcessor(this._assistContext);
 
   Future<List<Assist>> compute() async {
-    if (isMacroGenerated(assistContext.resolveResult.file.path)) {
-      return assists;
+    if (isMacroGenerated(_assistContext.resolveResult.file.path)) {
+      return _assists;
     }
     await _addFromProducers();
-    return assists;
+    return _assists;
   }
 
   void _addAssistFromBuilder(ChangeBuilder builder, AssistKind kind,
@@ -182,15 +182,14 @@ class AssistProcessor {
     }
     change.id = kind.id;
     change.message = formatList(kind.message, args);
-    assists.add(Assist(kind, change));
+    _assists.add(Assist(kind, change));
   }
 
   Future<void> _addFromProducers() async {
     var context = CorrectionProducerContext.createResolved(
-      selectionOffset: assistContext.selectionOffset,
-      selectionLength: assistContext.selectionLength,
-      resolvedResult: assistContext.resolveResult,
-      workspace: assistContext.workspace,
+      selectionOffset: _assistContext.selectionOffset,
+      selectionLength: _assistContext.selectionLength,
+      resolvedResult: _assistContext.resolveResult,
     );
     if (context == null) {
       return;
@@ -198,8 +197,8 @@ class AssistProcessor {
 
     Future<void> compute(CorrectionProducer producer) async {
       producer.configure(context);
-      var builder = ChangeBuilder(
-          workspace: context.workspace, eol: context.utils.endOfLine);
+      var builder =
+          ChangeBuilder(workspace: _assistContext.workspace, eol: producer.eol);
       try {
         await producer.compute(builder);
         var assistKind = producer.assistKind;
@@ -210,21 +209,21 @@ class AssistProcessor {
       } on ConflictingEditException catch (exception, stackTrace) {
         // Handle the exception by (a) not adding an assist based on the
         // producer and (b) logging the exception.
-        assistContext.instrumentationService
+        _assistContext.instrumentationService
             .logException(exception, stackTrace);
       }
     }
 
-    for (var generator in generators) {
+    for (var generator in _generators) {
       if (!_generatorAppliesToAnyLintRule(
         generator,
-        assistContext.producerGeneratorsForLintRules[generator] ?? {},
+        _assistContext.producerGeneratorsForLintRules[generator] ?? {},
       )) {
         var producer = generator();
         await compute(producer);
       }
     }
-    for (var multiGenerator in multiGenerators) {
+    for (var multiGenerator in _multiGenerators) {
       var multiProducer = multiGenerator();
       multiProducer.configure(context);
       for (var producer in await multiProducer.producers) {
@@ -240,17 +239,17 @@ class AssistProcessor {
     Set<String> errorCodes,
   ) {
     var selectionEnd =
-        assistContext.selectionOffset + assistContext.selectionLength;
-    var locator = NodeLocator(assistContext.selectionOffset, selectionEnd);
-    var node = locator.searchWithin(assistContext.resolveResult.unit);
+        _assistContext.selectionOffset + _assistContext.selectionLength;
+    var locator = NodeLocator(_assistContext.selectionOffset, selectionEnd);
+    var node = locator.searchWithin(_assistContext.resolveResult.unit);
     if (node == null) {
       return false;
     }
 
     var fileOffset = node.offset;
-    for (var error in assistContext.resolveResult.errors) {
+    for (var error in _assistContext.resolveResult.errors) {
       var errorSource = error.source;
-      if (assistContext.resolveResult.path == errorSource.fullName) {
+      if (_assistContext.resolveResult.path == errorSource.fullName) {
         if (fileOffset >= error.offset &&
             fileOffset <= error.offset + error.length) {
           if (errorCodes.contains(error.errorCode.name)) {
@@ -263,7 +262,7 @@ class AssistProcessor {
   }
 
   static Map<ProducerGenerator, Set<String>> computeLintRuleMap() => {
-        for (var generator in generators)
+        for (var generator in _generators)
           generator: {
             for (var MapEntry(key: lintName, value: generators)
                 in FixProcessor.lintProducerMap.entries)

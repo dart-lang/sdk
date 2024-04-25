@@ -49,7 +49,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
       : _kind = _ReplacementKind.superFormalParameter;
 
   @override
-  List<Object> get fixArguments => [_proposedName];
+  List<String> get fixArguments => [_proposedName];
 
   @override
   FixKind get fixKind => DartFixKind.CHANGE_TO;

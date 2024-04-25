@@ -17,7 +17,7 @@ class ReplaceWithPartOrUriEmpty extends ResolvedCorrectionProducer {
   FixKind fixKind = DartFixKind.REPLACE_WITH_PART_OF_URI;
 
   @override
-  List<Object>? get fixArguments => [_uriStr];
+  List<String> get fixArguments => [_uriStr];
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -16,7 +16,7 @@ class CreateSetter extends ResolvedCorrectionProducer {
   String _setterName = '';
 
   @override
-  List<Object> get fixArguments => [_setterName];
+  List<String> get fixArguments => [_setterName];
 
   @override
   FixKind get fixKind => DartFixKind.CREATE_SETTER;

@@ -39,7 +39,7 @@ class CreateMethod extends ResolvedCorrectionProducer {
         canBeAppliedToFile = false;
 
   @override
-  List<Object> get fixArguments => [_memberName];
+  List<String> get fixArguments => [_memberName];
 
   @override
   FixKind get fixKind => DartFixKind.CREATE_METHOD;

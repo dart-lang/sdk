@@ -13,7 +13,7 @@ class ReplaceWithExtensionName extends ResolvedCorrectionProducer {
   String _extensionName = '';
 
   @override
-  List<Object> get fixArguments => [_extensionName];
+  List<String> get fixArguments => [_extensionName];
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_WITH_EXTENSION_NAME;

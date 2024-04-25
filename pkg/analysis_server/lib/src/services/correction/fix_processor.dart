@@ -30,9 +30,10 @@ class FixProcessor {
       {};
 
   /// A map from the names of lint rules to a list of the generators that are
-  /// used to create correction producers. The generators are then used to build
-  /// fixes for those diagnostics. The generators used for non-lint diagnostics
-  /// are in the [nonLintProducerMap].
+  /// used to create correction producers.
+  ///
+  /// The generators are then used to build fixes for those diagnostics. The
+  /// generators used for non-lint diagnostics are in the [nonLintProducerMap].
   ///
   /// The keys of the map are the unique names of the lint codes without the
   /// `LintCode.` prefix. Generally the unique name is the same as the name of
@@ -42,41 +43,35 @@ class FixProcessor {
   static final Map<String, List<ProducerGenerator>> lintProducerMap = {};
 
   /// A map from error codes to a list of generators used to create multiple
-  /// correction producers used to build fixes for those diagnostics. The
-  /// generators used for lint rules are in the [lintMultiProducerMap].
+  /// correction producers used to build fixes for those diagnostics.
+  ///
+  /// The generators used for lint rules are in the [lintMultiProducerMap].
   static final Map<ErrorCode, List<MultiProducerGenerator>>
       nonLintMultiProducerMap = {};
 
   /// A map from error codes to a list of the generators that are used to create
-  /// correction producers. The generators are then used to build fixes for
-  /// those diagnostics. The generators used for lint rules are in the
-  /// [lintProducerMap].
+  /// correction producers.
+  ///
+  /// The generators are then used to build fixes for those diagnostics. The
+  /// generators used for lint rules are in the [lintProducerMap].
   static final Map<ErrorCode, List<ProducerGenerator>> nonLintProducerMap = {};
 
   /// A map from error codes to a list of fix generators that work with only
   /// parsed results.
   static final Map<String, List<ProducerGenerator>> parseLintProducerMap = {};
 
-  final DartFixContext fixContext;
+  final DartFixContext _fixContext;
 
   final List<Fix> fixes = <Fix>[];
 
-  FixProcessor(this.fixContext);
+  FixProcessor(this._fixContext);
 
   Future<List<Fix>> compute() async {
-    if (isMacroGenerated(fixContext.resolvedResult.file.path)) {
+    if (isMacroGenerated(_fixContext.resolvedResult.file.path)) {
       return fixes;
     }
     await _addFromProducers();
     return fixes;
-  }
-
-  Future<Fix?> computeFix() async {
-    // TODO(brianwilkerson): This method doesn't appear to be used. Attempt to
-    //  remove it.
-    await _addFromProducers();
-    fixes.sort(Fix.compareFixes);
-    return fixes.isNotEmpty ? fixes.first : null;
   }
 
   void _addFixFromBuilder(ChangeBuilder builder, CorrectionProducer producer) {
@@ -96,14 +91,13 @@ class FixProcessor {
   }
 
   Future<void> _addFromProducers() async {
-    var error = fixContext.error;
+    var error = _fixContext.error;
     var context = CorrectionProducerContext.createResolved(
-      dartFixContext: fixContext,
+      dartFixContext: _fixContext,
       diagnostic: error,
-      resolvedResult: fixContext.resolvedResult,
-      selectionOffset: fixContext.error.offset,
-      selectionLength: fixContext.error.length,
-      workspace: fixContext.workspace,
+      resolvedResult: _fixContext.resolvedResult,
+      selectionOffset: _fixContext.error.offset,
+      selectionLength: _fixContext.error.length,
     );
     if (context == null) {
       return;
@@ -111,8 +105,8 @@ class FixProcessor {
 
     Future<void> compute(CorrectionProducer producer) async {
       producer.configure(context);
-      var builder = ChangeBuilder(
-          workspace: context.workspace, eol: context.utils.endOfLine);
+      var builder =
+          ChangeBuilder(workspace: _fixContext.workspace, eol: producer.eol);
       try {
         var fixKind = producer.fixKind;
         await producer.compute(builder);
@@ -127,7 +121,7 @@ class FixProcessor {
       } on ConflictingEditException catch (exception, stackTrace) {
         // Handle the exception by (a) not adding a fix based on the producer
         // and (b) logging the exception.
-        fixContext.instrumentationService.logException(exception, stackTrace);
+        _fixContext.instrumentationService.logException(exception, stackTrace);
       }
     }
 
@@ -202,8 +196,8 @@ class FixProcessor {
     });
   }
 
-  /// Associate the given correction producer [generator] with the lint with the
-  /// given [lintName].
+  /// Associates the given correction producer [generator] with the lint with
+  /// the given [lintName].
   static void registerFixForLint(String lintName, ProducerGenerator generator) {
     lintProducerMap.putIfAbsent(lintName, () => []).add(generator);
   }
