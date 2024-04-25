@@ -226,6 +226,10 @@ class InheritanceManager3 {
   /// Return the interface of the given [element].  It might include
   /// private members, not necessary accessible in all libraries.
   Interface getInterface(InterfaceElement element) {
+    if (element.augmentationTarget != null) {
+      throw ArgumentError('Interfaces can only be asked for declarations');
+    }
+
     var result = _interfaces[element];
     if (result != null) {
       return result;

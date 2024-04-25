@@ -91,7 +91,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     var element = node.declaredElement;
     if (element == null || element.hasRedeclare) return;
 
-    var extensionType = parent.declaredElement;
+    var parentElement = parent.declaredElement;
+    var extensionType = parentElement?.augmented.declaration;
     if (extensionType == null) return;
 
     if (_redeclaresMember(element, extensionType)) {

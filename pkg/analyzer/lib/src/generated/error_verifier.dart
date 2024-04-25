@@ -756,12 +756,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForExtensionTypeImplementsItself(node, element);
       _checkForExtensionTypeMemberConflicts(
         node: node,
-        element: element,
+        element: declarationElement,
       );
       _checkForExtensionTypeWithAbstractMember(node);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
 
-      var interface = _inheritanceManager.getInterface(element);
+      var interface = _inheritanceManager.getInterface(declarationElement);
       GetterSetterTypesVerifier(
         typeSystem: typeSystem,
         errorReporter: errorReporter,
