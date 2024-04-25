@@ -106,30 +106,47 @@ class BaseMarshaller : public ZoneAllocated {
   // Recurses into VarArgs if needed.
   AbstractTypePtr CType(intptr_t arg_index) const;
 
+  AbstractTypePtr DartType(intptr_t arg_index) const;
+
+ protected:
+  bool IsPointerDartType(intptr_t arg_index) const;
+  bool IsPointerCType(intptr_t arg_index) const;
+
+ public:
   // The Dart and C Type is Pointer.
   //
   // Requires boxing or unboxing the Pointer object to int.
-  bool IsPointer(intptr_t arg_index) const {
-    if (IsHandle(arg_index)) {
-      return false;
-    }
-    return AbstractType::Handle(zone_, CType(arg_index)).type_class_id() ==
-           kPointerCid;
-  }
+  bool IsPointerPointer(intptr_t arg_index) const;
 
-  // The C type is Handle.
+  // The Dart type is TypedData and the C type is Pointer.
+  //
+  // Requires passing the typed data base in as tagged pointer.
+  //
+  // TODO(https://dartbug.com/55444): The typed data address load could be
+  // done in IL.
+  bool IsTypedDataPointer(intptr_t arg_index) const;
+
+  // The Dart type is a compound (for example an Array or a TypedData+offset),
+  // and the C type is Pointer.
+  //
+  // Requires passing in two definitions in IL: TypedDataBase + offset.
+  //
+  // TODO(https://dartbug.com/55444): The typed data address load could be
+  // done in IL.
+  bool IsCompoundPointer(intptr_t arg_index) const;
+
+  // The C type is Handle, the Dart type can be anything.
   //
   // Requires passing the pointer to the Dart object in a handle.
-  bool IsHandle(intptr_t arg_index) const {
-    return AbstractType::Handle(zone_, CType(arg_index)).type_class_id() ==
-           kFfiHandleCid;
-  }
-  bool IsBool(intptr_t arg_index) const {
-    return AbstractType::Handle(zone_, CType(arg_index)).type_class_id() ==
-           kFfiBoolCid;
-  }
+  bool IsHandleCType(intptr_t arg_index) const;
 
-  bool IsCompound(intptr_t arg_index) const;
+  // The Dart and C Types are boolean.
+  //
+  // Requires converting the boolean into an int in IL.
+  bool IsBool(intptr_t arg_index) const;
+
+  // The Dart and C Types are compound (pass by value).
+  bool IsCompoundCType(intptr_t arg_index) const;
 
   // Treated as a null constant in Dart.
   bool IsVoid(intptr_t arg_index) const {

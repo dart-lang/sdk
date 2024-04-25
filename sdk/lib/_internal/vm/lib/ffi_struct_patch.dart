@@ -9,7 +9,7 @@ import 'dart:typed_data';
 
 @pragma("vm:entry-point")
 @patch
-abstract final class _Compound implements NativeType {}
+final class _Compound implements NativeType {}
 
 @pragma("vm:entry-point")
 @patch

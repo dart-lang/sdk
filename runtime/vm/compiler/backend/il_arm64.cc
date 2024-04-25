@@ -1593,7 +1593,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(branch == R9);
     __ blr(temp1);
 
-    if (marshaller_.IsHandle(compiler::ffi::kResultIndex)) {
+    if (marshaller_.IsHandleCType(compiler::ffi::kResultIndex)) {
       __ Comment("Check Dart_Handle for Error.");
       compiler::Label not_error;
       __ ldr(temp1,

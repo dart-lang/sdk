@@ -194,6 +194,19 @@ class FundamentalType extends CType {
     }
     return primitiveSizesInBytes[primitive]!;
   }
+
+  String get zero {
+    if (isBool) return 'false';
+    if (isInteger) return '0';
+    if (isFloatingPoint) return '0.0';
+    throw 'Unknown type $primitive';
+  }
+
+  String get addAssignOp {
+    if (isBool) return '^=';
+    if (isInteger || isFloatingPoint) return '+=';
+    throw 'Unknown type $primitive';
+  }
 }
 
 class PointerType extends CType {

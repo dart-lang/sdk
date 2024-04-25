@@ -5039,6 +5039,17 @@ FfiAbiSpecificIntegerMappingInvalid:
   problemMessage: "Classes extending 'AbiSpecificInteger' must have exactly one 'AbiSpecificIntegerMapping' annotation specifying the mapping from ABI to a NativeType integer with a fixed size."
   external: test/ffi_test.dart
 
+FfiAddressPosition:
+  # Used by dart:ffi
+  problemMessage: "The '.address' expression can only be used as argument to a leaf native external call."
+  external: test/ffi_test.dart
+
+FfiAddressReceiver:
+  # Used by dart:ffi
+  problemMessage: "The receiver of '.address' must be a concrete 'TypedData', a concrete 'TypedData' '[]', an 'Array', an 'Array' '[]', a Struct field, or a Union field."
+  correctionMessage: "Change the receiver of '.address' to one of the allowed kinds."
+  external: test/ffi_test.dart
+
 FfiCreateOfStructOrUnion:
   # Used by dart:ffi
   problemMessage: "Subclasses of 'Struct' and 'Union' are backed by native memory, and can't be instantiated by a generative constructor. Try allocating it via allocation, or load from a 'Pointer'."

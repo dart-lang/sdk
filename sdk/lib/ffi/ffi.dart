@@ -1202,6 +1202,316 @@ extension BoolArray on Array<Bool> {
   external void operator []=(int index, bool value);
 }
 
+@Since('3.5')
+extension Int8ListAddress on Int8List {
+  /// The memory address of the underlying data.
+  ///
+  /// An expression of the form `expression.address` denoting this `address`
+  /// can only occurr as an entire argument expression in the invocation of
+  /// a leaf [Native] external function.
+  ///
+  /// Example:
+  ///
+  /// ```dart import:typed_data
+  /// @Native<Void Function(Pointer<Int8>)>(isLeaf: true)
+  /// external void myFunction(Pointer<Int8> pointer);
+  ///
+  /// void main() {
+  ///   final list = Int8List(10);
+  ///   myFunction(list.address);
+  /// }
+  /// ```
+  ///
+  /// The expression before `.address` is evaluated like the left-hand-side of
+  /// an assignment, to something that gives access to the storage behind the
+  /// expression, which can be used both for reading and writing. The `.address`
+  /// then gives a native pointer to that storage.
+  ///
+  /// The `.address` is evaluated just before calling into native code when
+  /// invoking a leaf [Native] external function. This ensures the Dart garbage
+  /// collector will not move the object that the address points in to.
+  external Pointer<Int8> get address;
+}
+
+@Since('3.5')
+extension Int16ListAddress on Int16List {
+  /// The memory address of the underlying data.
+  ///
+  /// An expression of the form `expression.address` denoting this `address`
+  /// can only occurr as an entire argument expression in the invocation of
+  /// a leaf [Native] external function.
+  ///
+  /// Example:
+  ///
+  /// ```dart import:typed_data
+  /// @Native<Void Function(Pointer<Int16>)>(isLeaf: true)
+  /// external void myFunction(Pointer<Int16> pointer);
+  ///
+  /// void main() {
+  ///   final list = Int16List(10);
+  ///   myFunction(list.address);
+  /// }
+  /// ```
+  ///
+  /// The expression before `.address` is evaluated like the left-hand-side of
+  /// an assignment, to something that gives access to the storage behind the
+  /// expression, which can be used both for reading and writing. The `.address`
+  /// then gives a native pointer to that storage.
+  ///
+  /// The `.address` is evaluated just before calling into native code when
+  /// invoking a leaf [Native] external function. This ensures the Dart garbage
+  /// collector will not move the object that the address points in to.
+  external Pointer<Int16> get address;
+}
+
+@Since('3.5')
+extension Int32ListAddress on Int32List {
+  /// The memory address of the underlying data.
+  ///
+  /// An expression of the form `expression.address` denoting this `address`
+  /// can only occurr as an entire argument expression in the invocation of
+  /// a leaf [Native] external function.
+  ///
+  /// Example:
+  ///
+  /// ```dart import:typed_data
+  /// @Native<Void Function(Pointer<Int32>)>(isLeaf: true)
+  /// external void myFunction(Pointer<Int32> pointer);
+  ///
+  /// void main() {
+  ///   final list = Int32List(10);
+  ///   myFunction(list.address);
+  /// }
+  /// ```
+  ///
+  /// The expression before `.address` is evaluated like the left-hand-side of
+  /// an assignment, to something that gives access to the storage behind the
+  /// expression, which can be used both for reading and writing. The `.address`
+  /// then gives a native pointer to that storage.
+  ///
+  /// The `.address` is evaluated just before calling into native code when
+  /// invoking a leaf [Native] external function. This ensures the Dart garbage
+  /// collector will not move the object that the address points in to.
+  external Pointer<Int32> get address;
+}
+
+@Since('3.5')
+extension Int64ListAddress on Int64List {
+  /// The memory address of the underlying data.
+  ///
+  /// An expression of the form `expression.address` denoting this `address`
+  /// can only occurr as an entire argument expression in the invocation of
+  /// a leaf [Native] external function.
+  ///
+  /// Example:
+  ///
+  /// ```dart import:typed_data
+  /// @Native<Void Function(Pointer<Int64>)>(isLeaf: true)
+  /// external void myFunction(Pointer<Int64> pointer);
+  ///
+  /// void main() {
+  ///   final list = Int64List(10);
+  ///   myFunction(list.address);
+  /// }
+  /// ```
+  ///
+  /// The expression before `.address` is evaluated like the left-hand-side of
+  /// an assignment, to something that gives access to the storage behind the
+  /// expression, which can be used both for reading and writing. The `.address`
+  /// then gives a native pointer to that storage.
+  ///
+  /// The `.address` is evaluated just before calling into native code when
+  /// invoking a leaf [Native] external function. This ensures the Dart garbage
+  /// collector will not move the object that the address points in to.
+  external Pointer<Int64> get address;
+}
+
+@Since('3.5')
+extension Uint8ListAddress on Uint8List {
+  /// The memory address of the underlying data.
+  ///
+  /// An expression of the form `expression.address` denoting this `address`
+  /// can only occurr as an entire argument expression in the invocation of
+  /// a leaf [Native] external function.
+  ///
+  /// Example:
+  ///
+  /// ```dart import:typed_data
+  /// @Native<Void Function(Pointer<Uint8>)>(isLeaf: true)
+  /// external void myFunction(Pointer<Uint8> pointer);
+  ///
+  /// void main() {
+  ///   final list = Uint8List(10);
+  ///   myFunction(list.address);
+  /// }
+  /// ```
+  ///
+  /// The expression before `.address` is evaluated like the left-hand-side of
+  /// an assignment, to something that gives access to the storage behind the
+  /// expression, which can be used both for reading and writing. The `.address`
+  /// then gives a native pointer to that storage.
+  ///
+  /// The `.address` is evaluated just before calling into native code when
+  /// invoking a leaf [Native] external function. This ensures the Dart garbage
+  /// collector will not move the object that the address points in to.
+  external Pointer<Uint8> get address;
+}
+
+@Since('3.5')
+extension Uint16ListAddress on Uint16List {
+  /// The memory address of the underlying data.
+  ///
+  /// An expression of the form `expression.address` denoting this `address`
+  /// can only occurr as an entire argument expression in the invocation of
+  /// a leaf [Native] external function.
+  ///
+  /// Example:
+  ///
+  /// ```dart import:typed_data
+  /// @Native<Void Function(Pointer<Uint16>)>(isLeaf: true)
+  /// external void myFunction(Pointer<Uint16> pointer);
+  ///
+  /// void main() {
+  ///   final list = Uint16List(10);
+  ///   myFunction(list.address);
+  /// }
+  /// ```
+  ///
+  /// The expression before `.address` is evaluated like the left-hand-side of
+  /// an assignment, to something that gives access to the storage behind the
+  /// expression, which can be used both for reading and writing. The `.address`
+  /// then gives a native pointer to that storage.
+  ///
+  /// The `.address` is evaluated just before calling into native code when
+  /// invoking a leaf [Native] external function. This ensures the Dart garbage
+  /// collector will not move the object that the address points in to.
+  external Pointer<Uint16> get address;
+}
+
+@Since('3.5')
+extension Uint32ListAddress on Uint32List {
+  /// The memory address of the underlying data.
+  ///
+  /// An expression of the form `expression.address` denoting this `address`
+  /// can only occurr as an entire argument expression in the invocation of
+  /// a leaf [Native] external function.
+  ///
+  /// Example:
+  ///
+  /// ```dart import:typed_data
+  /// @Native<Void Function(Pointer<Uint32>)>(isLeaf: true)
+  /// external void myFunction(Pointer<Uint32> pointer);
+  ///
+  /// void main() {
+  ///   final list = Uint32List(10);
+  ///   myFunction(list.address);
+  /// }
+  /// ```
+  ///
+  /// The expression before `.address` is evaluated like the left-hand-side of
+  /// an assignment, to something that gives access to the storage behind the
+  /// expression, which can be used both for reading and writing. The `.address`
+  /// then gives a native pointer to that storage.
+  ///
+  /// The `.address` is evaluated just before calling into native code when
+  /// invoking a leaf [Native] external function. This ensures the Dart garbage
+  /// collector will not move the object that the address points in to.
+  external Pointer<Uint32> get address;
+}
+
+@Since('3.5')
+extension Uint64ListAddress on Uint64List {
+  /// The memory address of the underlying data.
+  ///
+  /// An expression of the form `expression.address` denoting this `address`
+  /// can only occurr as an entire argument expression in the invocation of
+  /// a leaf [Native] external function.
+  ///
+  /// Example:
+  ///
+  /// ```dart import:typed_data
+  /// @Native<Void Function(Pointer<Uint64>)>(isLeaf: true)
+  /// external void myFunction(Pointer<Uint64> pointer);
+  ///
+  /// void main() {
+  ///   final list = Uint64List(10);
+  ///   myFunction(list.address);
+  /// }
+  /// ```
+  ///
+  /// The expression before `.address` is evaluated like the left-hand-side of
+  /// an assignment, to something that gives access to the storage behind the
+  /// expression, which can be used both for reading and writing. The `.address`
+  /// then gives a native pointer to that storage.
+  ///
+  /// The `.address` is evaluated just before calling into native code when
+  /// invoking a leaf [Native] external function. This ensures the Dart garbage
+  /// collector will not move the object that the address points in to.
+  external Pointer<Uint64> get address;
+}
+
+@Since('3.5')
+extension Float32ListAddress on Float32List {
+  /// The memory address of the underlying data.
+  ///
+  /// An expression of the form `expression.address` denoting this `address`
+  /// can only occurr as an entire argument expression in the invocation of
+  /// a leaf [Native] external function.
+  ///
+  /// Example:
+  ///
+  /// ```dart import:typed_data
+  /// @Native<Void Function(Pointer<Float>)>(isLeaf: true)
+  /// external void myFunction(Pointer<Float> pointer);
+  ///
+  /// void main() {
+  ///   final list = Float32List(10);
+  ///   myFunction(list.address);
+  /// }
+  /// ```
+  ///
+  /// The expression before `.address` is evaluated like the left-hand-side of
+  /// an assignment, to something that gives access to the storage behind the
+  /// expression, which can be used both for reading and writing. The `.address`
+  /// then gives a native pointer to that storage.
+  ///
+  /// The `.address` is evaluated just before calling into native code when
+  /// invoking a leaf [Native] external function. This ensures the Dart garbage
+  /// collector will not move the object that the address points in to.
+  external Pointer<Float> get address;
+}
+
+@Since('3.5')
+extension Float64ListAddress on Float64List {
+  /// The memory address of the underlying data.
+  ///
+  /// An expression of the form `expression.address` denoting this `address`
+  /// can only occurr as an entire argument expression in the invocation of
+  /// a leaf [Native] external function.
+  ///
+  /// Example:
+  ///
+  /// ```dart import:typed_data
+  /// @Native<Void Function(Pointer<Double>)>(isLeaf: true)
+  /// external void myFunction(Pointer<Double> pointer);
+  ///
+  /// void main() {
+  ///   final list = Float64List(10);
+  ///   myFunction(list.address);
+  /// }
+  /// ```
+  ///
+  /// The expression before `.address` is evaluated like the left-hand-side of
+  /// an assignment, to something that gives access to the storage behind the
+  /// expression, which can be used both for reading and writing. The `.address`
+  /// then gives a native pointer to that storage.
+  ///
+  /// The `.address` is evaluated just before calling into native code when
+  /// invoking a leaf [Native] external function. This ensures the Dart garbage
+  /// collector will not move the object that the address points in to.
+  external Pointer<Double> get address;
+}
+
 //
 // End of generated code.
 //
@@ -1469,6 +1779,264 @@ extension AbiSpecificIntegerArray<T extends AbiSpecificInteger> on Array<T> {
   external int operator [](int index);
 
   external void operator []=(int index, int value);
+}
+
+@Since('3.5')
+extension ArrayAddress<T extends NativeType> on Array<T> {
+  /// The memory address of the underlying data.
+  ///
+  /// An expression of the form `expression.address` denoting this `address` can
+  /// only occurr as an entire argument expression in the invocation of a leaf
+  /// [Native] external function.
+  ///
+  /// Example:
+  ///
+  /// ```dart
+  /// @Native<Void Function(Pointer<Int8>)>(isLeaf: true)
+  /// external void myFunction(Pointer<Int8> pointer);
+  ///
+  /// final class MyStruct extends Struct {
+  ///   @Array(10)
+  ///   external Array<Int8> array;
+  /// }
+  ///
+  /// void main() {
+  ///   final array = Struct.create<MyStruct>().array;
+  ///   myFunction(array.address);
+  /// }
+  /// ```
+  ///
+  /// The expression before `.address` is evaluated like the left-hand-side of
+  /// an assignment, to something that gives access to the storage behind the
+  /// expression, which can be used both for reading and writing. The `.address`
+  /// then gives a native pointer to that storage.
+  ///
+  /// The `.address` is evaluated just before calling into native code when
+  /// invoking a leaf [Native] external function. This ensures the Dart garbage
+  /// collector will not move the object that the address points in to.
+  external Pointer<T> get address;
+}
+
+@Since('3.5')
+extension StructAddress<T extends Struct> on T {
+  /// The memory address of the underlying data.
+  ///
+  /// An expression of the form `expression.address` denoting this `address` can
+  /// only occurr as an entire argument expression in the invocation of a leaf
+  /// [Native] external function.
+  ///
+  /// Example:
+  ///
+  /// ```dart
+  /// @Native<Void Function(Pointer<MyStruct>)>(isLeaf: true)
+  /// external void myFunction(Pointer<MyStruct> pointer);
+  ///
+  /// final class MyStruct extends Struct {
+  ///   @Int8()
+  ///   external int x;
+  /// }
+  ///
+  /// void main() {
+  ///   final myStruct = Struct.create<MyStruct>();
+  ///   myFunction(myStruct.address);
+  /// }
+  /// ```
+  ///
+  /// The expression before `.address` is evaluated like the left-hand-side of
+  /// an assignment, to something that gives access to the storage behind the
+  /// expression, which can be used both for reading and writing. The `.address`
+  /// then gives a native pointer to that storage.
+  ///
+  /// The `.address` is evaluated just before calling into native code when
+  /// invoking a leaf [Native] external function. This ensures the Dart garbage
+  /// collector will not move the object that the address points in to.
+  external Pointer<T> get address;
+}
+
+@Since('3.5')
+extension UnionAddress<T extends Union> on T {
+  /// The memory address of the underlying data.
+  ///
+  /// An expression of the form `expression.address` denoting this `address` can
+  /// only occurr as an entire argument expression in the invocation of a leaf
+  /// [Native] external function.
+  ///
+  /// Example:
+  ///
+  /// ```dart
+  /// @Native<Void Function(Pointer<MyUnion>)>(isLeaf: true)
+  /// external void myFunction(Pointer<MyUnion> pointer);
+  ///
+  /// final class MyUnion extends Union {
+  ///   @Int8()
+  ///   external int x;
+  /// }
+  ///
+  /// void main() {
+  ///   final myUnion = Union.create<MyUnion>();
+  ///   myFunction(myUnion.address);
+  /// }
+  /// ```
+  ///
+  /// The expression before `.address` is evaluated like the left-hand-side of
+  /// an assignment, to something that gives access to the storage behind the
+  /// expression, which can be used both for reading and writing. The `.address`
+  /// then gives a native pointer to that storage.
+  ///
+  /// The `.address` is evaluated just before calling into native code when
+  /// invoking a leaf [Native] external function. This ensures the Dart garbage
+  /// collector will not move the object that the address points in to.
+  external Pointer<T> get address;
+}
+
+@Since('3.5')
+extension IntAddress on int {
+  /// The memory address of the underlying data.
+  ///
+  /// An expression of the form `expression.address` denoting this `address` can
+  /// only occurr as an entire argument expression in the invocation of a leaf
+  /// [Native] external function.
+  ///
+  /// Can only be used on fields of [Struct] subtypes, fields of [Union]
+  /// subtypes, [Array] elements, or [TypedData] elements. In other words, the
+  /// number whose address is being accessed must itself be acccessed through a
+  /// [Struct], [Union], [Array], or [TypedData].
+  ///
+  /// Example:
+  ///
+  /// ```dart import:typed_data
+  /// @Native<Void Function(Pointer<Int8>)>(isLeaf: true)
+  /// external void myFunction(Pointer<Int8> pointer);
+  ///
+  /// final class MyStruct extends Struct {
+  ///   @Int8()
+  ///   external int x;
+  ///
+  ///   @Int8()
+  ///   external int y;
+  ///
+  ///   @Array(10)
+  ///   external Array<Int8> array;
+  /// }
+  ///
+  /// void main() {
+  ///   final myStruct = Struct.create<MyStruct>();
+  ///   myFunction(myStruct.y.address);
+  ///   myFunction(myStruct.array[5].address);
+  ///
+  ///   final list = Int8List(10);
+  ///   myFunction(list[5].address);
+  /// }
+  /// ```
+  ///
+  /// The expression before `.address` is evaluated like the left-hand-side of
+  /// an assignment, to something that gives access to the storage behind the
+  /// expression, which can be used both for reading and writing. The `.address`
+  /// then gives a native pointer to that storage.
+  ///
+  /// The `.address` is evaluated just before calling into native code when
+  /// invoking a leaf [Native] external function. This ensures the Dart garbage
+  /// collector will not move the object that the address points in to.
+  external Pointer<Never> address;
+}
+
+@Since('3.5')
+extension DoubleAddress on double {
+  /// The memory address of the underlying data.
+  ///
+  /// An expression of the form `expression.address` denoting this `address` can
+  /// only occurr as an entire argument expression in the invocation of a leaf
+  /// [Native] external function.
+  ///
+  /// Can only be used on fields of [Struct] subtypes, fields of [Union]
+  /// subtypes, [Array] elements, or [TypedData] elements. In other words, the
+  /// number whose address is being accessed must itself be acccessed through a
+  /// [Struct], [Union], [Array], or [TypedData].
+  ///
+  /// Example:
+  ///
+  /// ```dart import:typed_data
+  /// @Native<Void Function(Pointer<Float>)>(isLeaf: true)
+  /// external void myFunction(Pointer<Float> pointer);
+  ///
+  /// final class MyStruct extends Struct {
+  ///   @Float()
+  ///   external double x;
+  ///
+  ///   @Float()
+  ///   external double y;
+  ///
+  ///   @Array(10)
+  ///   external Array<Float> array;
+  /// }
+  ///
+  /// void main() {
+  ///   final myStruct = Struct.create<MyStruct>();
+  ///   myFunction(myStruct.y.address);
+  ///   myFunction(myStruct.array[5].address);
+  ///
+  ///   final list = Float32List(10);
+  ///   myFunction(list[5].address);
+  /// }
+  /// ```
+  ///
+  /// The expression before `.address` is evaluated like the left-hand-side of
+  /// an assignment, to something that gives access to the storage behind the
+  /// expression, which can be used both for reading and writing. The `.address`
+  /// then gives a native pointer to that storage.
+  ///
+  /// The `.address` is evaluated just before calling into native code when
+  /// invoking a leaf [Native] external function. This ensures the Dart garbage
+  /// collector will not move the object that the address points in to.
+  external Pointer<Never> address;
+}
+
+@Since('3.5')
+extension BoolAddress on bool {
+  /// The memory address of the underlying data.
+  ///
+  /// An expression of the form `expression.address` denoting this `address` can
+  /// only occurr as an entire argument expression in the invocation of a leaf
+  /// [Native] external function.
+  ///
+  /// Can only be used on fields of [Struct] subtypes, fields of [Union]
+  /// subtypes, or [Array] elements. In other words, the boolean whose address
+  /// is being accessed must itself be acccessed through a [Struct], [Union] or
+  /// [Array].
+  ///
+  /// Example:
+  ///
+  /// ```dart
+  /// @Native<Void Function(Pointer<Int8>)>(isLeaf: true)
+  /// external void myFunction(Pointer<Int8> pointer);
+  ///
+  /// final class MyStruct extends Struct {
+  ///   @Bool()
+  ///   external bool x;
+  ///
+  ///   @Bool()
+  ///   external bool y;
+  ///
+  ///   @Array(10)
+  ///   external Array<Bool> array;
+  /// }
+  ///
+  /// void main() {
+  ///   final myStruct = Struct.create<MyStruct>();
+  ///   myFunction(myStruct.y.address);
+  ///   myFunction(myStruct.array[5].address);
+  /// }
+  /// ```
+  ///
+  /// The expression before `.address` is evaluated like the left-hand-side of
+  /// an assignment, to something that gives access to the storage behind the
+  /// expression, which can be used both for reading and writing. The `.address`
+  /// then gives a native pointer to that storage.
+  ///
+  /// The `.address` is evaluated just before calling into native code when
+  /// invoking a leaf [Native] external function. This ensures the Dart garbage
+  /// collector will not move the object that the address points in to.
+  external Pointer<Never> address;
 }
 
 /// Extension to retrieve the native `Dart_Port` from a [SendPort].

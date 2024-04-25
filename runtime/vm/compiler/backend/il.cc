@@ -7351,7 +7351,7 @@ Representation FfiCallInstr::RequiredInputRepresentation(intptr_t idx) const {
     // All input handles are passed as tagged values to FfiCallInstr and
     // are given stack locations. FfiCallInstr then passes an untagged pointer
     // to the handle on the stack (Dart_Handle) to the C function.
-    if (marshaller_.IsHandle(marshaller_.ArgumentIndex(idx))) {
+    if (marshaller_.IsHandleCType(marshaller_.ArgumentIndex(idx))) {
       return kTagged;
     }
     return marshaller_.RepInFfiCall(idx);
@@ -7396,13 +7396,14 @@ LocationSummary* FfiCallInstr::MakeLocationSummaryInternal(
       marshaller_.contains_varargs()
           ? R13
           : CallingConventions::kFirstNonArgumentRegister;  // RAX
+#else
+  const Register target_address = CallingConventions::kFirstNonArgumentRegister;
+#endif
+#define R(r) (1 << r)
+  ASSERT_EQUAL(temps & R(target_address), 0x0);
+#undef R
   summary->set_in(TargetAddressIndex(),
                   Location::RegisterLocation(target_address));
-#else
-  summary->set_in(TargetAddressIndex(),
-                  Location::RegisterLocation(
-                      CallingConventions::kFirstNonArgumentRegister));
-#endif
   for (intptr_t i = 0, n = marshaller_.NumArgumentDefinitions(); i < n; ++i) {
     summary->set_in(i, marshaller_.LocInFfiCall(i));
   }
@@ -7458,7 +7459,9 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
     // First deal with moving all individual definitions passed in to the
     // FfiCall to the right native location based on calling convention.
     for (intptr_t i = 0; i < num_defs; i++) {
-      if (arg_target.IsPointerToMemory() && i == 1) {
+      if ((arg_target.IsPointerToMemory() ||
+           marshaller_.IsCompoundPointer(arg_index)) &&
+          i == 1) {
         // The offset_in_bytes is not an argument for C, so don't move it.
         // It is used as offset_in_bytes_loc below and moved there if
         // necessary.
@@ -7466,7 +7469,7 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
         continue;
       }
       __ Comment("  def_index %" Pd, def_index);
-      const Location origin = rebase.Rebase(locs()->in(def_index));
+      Location origin = rebase.Rebase(locs()->in(def_index));
       const Representation origin_rep = RequiredInputRepresentation(def_index);
 
       // Find the native location where this individual definition should be
@@ -7482,17 +7485,21 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
       ConstantTemporaryAllocator temp_alloc(temp0);
       if (origin.IsConstant()) {
         __ Comment("origin.IsConstant()");
-        ASSERT(!marshaller_.IsHandle(arg_index));
+        ASSERT(!marshaller_.IsHandleCType(arg_index));
+        ASSERT(!marshaller_.IsTypedDataPointer(arg_index));
+        ASSERT(!marshaller_.IsCompoundPointer(arg_index));
         compiler->EmitMoveConst(def_target, origin, origin_rep, &temp_alloc);
       } else if (origin.IsPairLocation() &&
                  (origin.AsPairLocation()->At(0).IsConstant() ||
                   origin.AsPairLocation()->At(1).IsConstant())) {
         // Note: half of the pair can be constant.
         __ Comment("origin.IsPairLocation() and constant");
-        ASSERT(!marshaller_.IsHandle(arg_index));
+        ASSERT(!marshaller_.IsHandleCType(arg_index));
+        ASSERT(!marshaller_.IsTypedDataPointer(arg_index));
+        ASSERT(!marshaller_.IsCompoundPointer(arg_index));
         compiler->EmitMoveConst(def_target, origin, origin_rep, &temp_alloc);
-      } else if (marshaller_.IsHandle(arg_index)) {
-        __ Comment("marshaller_.IsHandle(arg_index)");
+      } else if (marshaller_.IsHandleCType(arg_index)) {
+        __ Comment("marshaller_.IsHandleCType(arg_index)");
         // Handles are passed into FfiCalls as Tagged values on the stack, and
         // then we pass pointers to these handles to the native function here.
         ASSERT(origin_rep == kTagged);
@@ -7529,6 +7536,35 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
                  marshaller_.RequiredStackSpaceInBytes());
         }
 #endif
+        if (marshaller_.IsTypedDataPointer(arg_index) ||
+            marshaller_.IsCompoundPointer(arg_index)) {
+          // Unwrap typed data before move to native location.
+          __ Comment("Load typed data base address");
+          if (origin.IsStackSlot()) {
+            compiler->EmitMove(Location::RegisterLocation(temp0), origin,
+                               &temp_alloc);
+            origin = Location::RegisterLocation(temp0);
+          }
+          ASSERT(origin.IsRegister());
+          __ LoadFromSlot(origin.reg(), origin.reg(), Slot::PointerBase_data());
+          if (marshaller_.IsCompoundPointer(arg_index)) {
+            __ Comment("Load offset in bytes");
+            const intptr_t offset_in_bytes_def_index = def_index + 1;
+            const Location offset_in_bytes_loc =
+                rebase.Rebase(locs()->in(offset_in_bytes_def_index));
+            Register offset_in_bytes_reg = kNoRegister;
+            if (offset_in_bytes_loc.IsRegister()) {
+              offset_in_bytes_reg = offset_in_bytes_loc.reg();
+            } else {
+              offset_in_bytes_reg = temp1;
+              NoTemporaryAllocator no_temp;
+              compiler->EmitMove(
+                  Location::RegisterLocation(offset_in_bytes_reg),
+                  offset_in_bytes_loc, &no_temp);
+            }
+            __ AddRegisters(origin.reg(), offset_in_bytes_reg);
+          }
+        }
         compiler->EmitMoveToNative(def_target, origin, origin_rep, &temp_alloc);
       }
       def_index++;
@@ -7910,7 +7946,7 @@ Representation FfiCallInstr::representation() const {
     // Don't care, we're discarding the value.
     return kTagged;
   }
-  if (marshaller_.IsHandle(compiler::ffi::kResultIndex)) {
+  if (marshaller_.IsHandleCType(compiler::ffi::kResultIndex)) {
     // The call returns a Dart_Handle, from which we need to extract the
     // tagged pointer using LoadField with an appropriate slot.
     return kUntagged;

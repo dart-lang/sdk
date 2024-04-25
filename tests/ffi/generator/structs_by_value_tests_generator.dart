@@ -502,7 +502,7 @@ extension on List<Member> {
   }
 }
 
-extension on CompositeType {
+extension CompositeTypeGenerator on CompositeType {
   String dartClass() {
     final self = this;
     final packingAnnotation = (self is StructType) && self.hasPacking

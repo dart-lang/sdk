@@ -1198,9 +1198,11 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
                                                    bool is_optimizing) const {
+  COMPILE_ASSERT(R(CallingConventions::kSecondNonArgumentRegister) < R(EDX));
+  COMPILE_ASSERT(R(EDX) < R(CallingConventions::kFfiAnyNonAbiRegister));
   return MakeLocationSummaryInternal(
       zone, is_optimizing,
-      (R(CallingConventions::kSecondNonArgumentRegister) |
+      (R(CallingConventions::kSecondNonArgumentRegister) | R(EDX) |
        R(CallingConventions::kFfiAnyNonAbiRegister)));
 }
 
@@ -1215,7 +1217,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // during EmitParamMoves.
   // For leaf calls, this holds the SP used to restore the pre-aligned SP after
   // the call.
-  const Register saved_fp_or_sp = locs()->temp(1).reg();
+  const Register saved_fp_or_sp = locs()->temp(2).reg();
 
   // Ensure these are callee-saved register and are preserved across the call.
   ASSERT(IsCalleeSavedRegister(saved_fp_or_sp));
@@ -1243,9 +1245,8 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 #endif
 
-  // No second temp: PointerToMemoryLocation is not used for arguments in ia32.
   EmitParamMoves(compiler, is_leaf_ ? FPREG : saved_fp_or_sp, temp,
-                 kNoRegister);
+                 locs()->temp(1).reg());
 
   if (is_leaf_) {
     // We store the pre-align SP at a fixed offset from the final SP.
@@ -1306,7 +1307,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(branch == EAX);
     __ call(temp);
 
-    if (marshaller_.IsHandle(compiler::ffi::kResultIndex)) {
+    if (marshaller_.IsHandleCType(compiler::ffi::kResultIndex)) {
       __ Comment("Check Dart_Handle for Error.");
       compiler::Label not_error;
       __ movl(temp,

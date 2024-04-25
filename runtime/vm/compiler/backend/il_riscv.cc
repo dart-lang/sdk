@@ -1749,7 +1749,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ jalr(temp1);
     }
 
-    if (marshaller_.IsHandle(compiler::ffi::kResultIndex)) {
+    if (marshaller_.IsHandleCType(compiler::ffi::kResultIndex)) {
       __ Comment("Check Dart_Handle for Error.");
       ASSERT(temp1 != CallingConventions::kReturnReg);
       ASSERT(temp2 != CallingConventions::kReturnReg);

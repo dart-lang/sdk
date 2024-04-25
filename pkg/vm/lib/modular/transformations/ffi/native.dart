@@ -62,7 +62,6 @@ class FfiNativeTransformer extends FfiTransformer {
   final Field assetAssetField;
   final Field nativeSymbolField;
   final Field nativeAssetField;
-  final Field nativeIsLeafField;
   final Field resolverField;
 
   StringConstant? currentAsset;
@@ -83,7 +82,6 @@ class FfiNativeTransformer extends FfiTransformer {
         assetAssetField = index.getField('dart:ffi', 'DefaultAsset', 'id'),
         nativeSymbolField = index.getField('dart:ffi', 'Native', 'symbol'),
         nativeAssetField = index.getField('dart:ffi', 'Native', 'assetId'),
-        nativeIsLeafField = index.getField('dart:ffi', 'Native', 'isLeaf'),
         resolverField = index.getField('dart:ffi', 'Native', '_ffi_resolver'),
         super(index, coreTypes, hierarchy, diagnosticReporter,
             referenceFromIndex);

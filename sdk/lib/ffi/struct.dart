@@ -4,12 +4,15 @@
 
 part of dart.ffi;
 
+/// A memory range, represented by its starting address.
+///
 /// Shared supertype of the FFI compound [Struct], [Union], and [Array] types.
 ///
-/// FFI struct and union types should extend [Struct] and [Union]. For more
-/// information see the documentation on those classes.
+/// This class is not abstract because instances can be created as an anonymous
+/// representation of a memory area, with no structure on top. (In particular,
+/// during the transformation of `.address` in FFI leaf calls.)
 @pragma("wasm:entry-point")
-abstract final class _Compound implements NativeType {
+final class _Compound implements NativeType {
   /// The underlying [TypedData] or [Pointer] that a subtype uses.
   @pragma("vm:entry-point")
   final Object _typedDataBase;

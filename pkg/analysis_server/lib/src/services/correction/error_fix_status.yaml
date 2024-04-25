@@ -1743,6 +1743,12 @@ FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_MISSING:
 FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED:
   status: noFix
   since: ~2.16
+FfiCode.ADDRESS_POSITION:
+  status: needsEvaluation
+  since: ~3.5
+FfiCode.ADDRESS_RECEIVER:
+  status: needsEvaluation
+  since: ~3.5
 FfiCode.ANNOTATION_ON_POINTER_FIELD:
   status: needsFix
 FfiCode.ARGUMENT_MUST_BE_A_CONSTANT:

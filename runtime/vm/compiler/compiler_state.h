@@ -105,7 +105,12 @@ class CompilerState : public ThreadStackResource {
   const Function& TypedListGetFloat64x2();
   const Function& TypedListSetFloat64x2();
 
+  const Class& ArrayClass();
   const Class& CompoundClass();
+  const Class& StructClass();
+  const Class& TypedDataClass();
+  const Class& UnionClass();
+
   const Field& CompoundOffsetInBytesField();
   const Field& CompoundTypedDataBaseField();
 
@@ -147,7 +152,11 @@ class CompilerState : public ThreadStackResource {
   const Function* interpolate_ = nullptr;
   const Function* interpolate_single_ = nullptr;
   const Class* typed_list_class_ = nullptr;
+  const Class* array_class_ = nullptr;
   const Class* compound_class_ = nullptr;
+  const Class* struct_class_ = nullptr;
+  const Class* typed_data_class_ = nullptr;
+  const Class* union_class_ = nullptr;
   const Field* compound_offset_in_bytes_field_ = nullptr;
   const Field* compound_typed_data_base_field_ = nullptr;
   const Function* typed_list_get_float32_ = nullptr;
