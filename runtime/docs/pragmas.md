@@ -31,6 +31,7 @@ understands potential repercussions.
 | Pragma | Meaning |
 | --- | --- |
 | `vm:unsafe:no-interrupts` | Removes all `CheckStackOverflow` instructions from the optimized version of the marked function, which disables stack overflow checking and interruption within that function. This pragma exists mainly for performance evaluation and should not be used in a general-purpose code, because VM relies on these checks for OOB message delivery and GC scheduling. |
+| `vm:unsafe:no-bounds-checks` | Removes all array bounds checks from the optimized version of the marked function in AOT mode. This pragma exists for optimizing throughput of extremely tight loops. |
 
 ## Pragmas for internal use
 
