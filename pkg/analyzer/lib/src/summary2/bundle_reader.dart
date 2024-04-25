@@ -445,7 +445,10 @@ class ExtensionTypeElementLinkedData
         augmented.constructors = reader.readElementList();
         augmented.methods = reader.readElementList();
       }
-      element.augmented.typeErasure = reader.readRequiredType();
+      element.augmented
+        ..primaryConstructor = element.constructors.first
+        ..representation = element.fields.first
+        ..typeErasure = reader.readRequiredType();
     }
     applyConstantOffsets?.perform();
   }
@@ -1152,12 +1155,6 @@ class LibraryReader {
 
     element.constructors = _readConstructors(unitElement, element, reference);
     element.methods = _readMethods(unitElement, element, reference);
-
-    if (element.isAugmentationChainStart) {
-      element.augmentedInternal
-        ..primaryConstructor = element.constructors.first
-        ..representation = element.fields.first;
-    }
 
     return element;
   }

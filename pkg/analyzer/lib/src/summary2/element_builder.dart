@@ -595,6 +595,20 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     // TODO(scheglov): We cannot do this anymore.
     // Not for class augmentations, not for classes.
     _resolveConstructorFieldFormals(element);
+
+    if (element.augmentationTarget != null) {
+      var builder = _libraryBuilder.getAugmentedBuilder(name);
+      if (builder is AugmentedExtensionTypeDeclarationBuilder) {
+        builder.augment(element);
+      }
+    } else {
+      _libraryBuilder.putAugmentedBuilder(
+        name,
+        AugmentedExtensionTypeDeclarationBuilder(
+          declaration: element,
+        ),
+      );
+    }
   }
 
   @override
@@ -1442,48 +1456,43 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     required ExtensionTypeDeclarationImpl extensionNode,
     required RepresentationDeclarationImpl representation,
   }) {
+    if (extensionElement.augmentationTarget != null) {
+      return;
+    }
+
     var fieldNameToken = representation.fieldName;
     var fieldName = fieldNameToken.lexeme.ifNotEmptyOrElse('<empty>');
 
-    ParameterElementImpl formalParameterElement;
-    if (extensionElement.augmentationTarget == null) {
-      var fieldElement = FieldElementImpl(
-        fieldName,
-        fieldNameToken.offset,
-      );
-      fieldElement.isFinal = true;
-      fieldElement.metadata = _buildAnnotations(representation.fieldMetadata);
+    var fieldElement = FieldElementImpl(
+      fieldName,
+      fieldNameToken.offset,
+    );
+    fieldElement.isFinal = true;
+    fieldElement.metadata = _buildAnnotations(representation.fieldMetadata);
 
-      var fieldBeginToken =
-          representation.fieldMetadata.beginToken ?? representation.fieldType;
-      var fieldCodeRangeOffset = fieldBeginToken.offset;
-      var fieldCodeRangeLength = fieldNameToken.end - fieldCodeRangeOffset;
-      fieldElement.setCodeRange(fieldCodeRangeOffset, fieldCodeRangeLength);
+    var fieldBeginToken =
+        representation.fieldMetadata.beginToken ?? representation.fieldType;
+    var fieldCodeRangeOffset = fieldBeginToken.offset;
+    var fieldCodeRangeLength = fieldNameToken.end - fieldCodeRangeOffset;
+    fieldElement.setCodeRange(fieldCodeRangeOffset, fieldCodeRangeLength);
 
-      representation.fieldElement = fieldElement;
-      _linker.elementNodes[fieldElement] = representation;
-      _enclosingContext.addNonSyntheticField(fieldElement);
+    representation.fieldElement = fieldElement;
+    _linker.elementNodes[fieldElement] = representation;
+    _enclosingContext.addNonSyntheticField(fieldElement);
 
-      formalParameterElement = FieldFormalParameterElementImpl(
-        name: fieldName,
-        nameOffset: fieldNameToken.offset,
-        parameterKind: ParameterKind.REQUIRED,
-      )
-        ..field = fieldElement
-        ..hasImplicitType = true;
-      formalParameterElement.setCodeRange(
-        fieldCodeRangeOffset,
-        fieldCodeRangeLength,
-      );
+    var formalParameterElement = FieldFormalParameterElementImpl(
+      name: fieldName,
+      nameOffset: fieldNameToken.offset,
+      parameterKind: ParameterKind.REQUIRED,
+    )
+      ..field = fieldElement
+      ..hasImplicitType = true;
+    formalParameterElement.setCodeRange(
+      fieldCodeRangeOffset,
+      fieldCodeRangeLength,
+    );
 
-      extensionElement.augmented.representation = fieldElement;
-    } else {
-      formalParameterElement = ParameterElementImpl(
-        name: fieldName,
-        nameOffset: fieldNameToken.offset,
-        parameterKind: ParameterKind.REQUIRED,
-      );
-    }
+    extensionElement.augmented.representation = fieldElement;
 
     {
       String name;
@@ -1515,9 +1524,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _linker.elementNodes[constructorElement] = representation;
       _enclosingContext.addConstructor(constructorElement);
 
-      if (extensionElement.augmentationTarget == null) {
-        extensionElement.augmented.primaryConstructor = constructorElement;
-      }
+      extensionElement.augmented.primaryConstructor = constructorElement;
     }
 
     representation.fieldType.accept(this);

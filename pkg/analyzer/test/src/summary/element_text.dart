@@ -138,9 +138,15 @@ class _ElementWriter {
     while (current != null) {
       expect(current.augmented, same(e.augmented));
       expect(current.thisType, same(e.thisType));
-      if (e is ExtensionElementImpl) {
-        current as ExtensionElementImpl;
-        expect(current.extendedType, same(e.extendedType));
+      switch (e) {
+        case ExtensionElementImpl():
+          current as ExtensionElementImpl;
+          expect(current.extendedType, same(e.extendedType));
+        case ExtensionTypeElementImpl():
+          current as ExtensionTypeElementImpl;
+          expect(current.primaryConstructor, same(e.primaryConstructor));
+          expect(current.representation, same(e.representation));
+          expect(current.typeErasure, same(e.typeErasure));
       }
       current = current.augmentationTarget;
     }
