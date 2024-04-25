@@ -67,7 +67,7 @@ class _AddInvocation extends ResolvedCorrectionProducer {
   _AddInvocation(this._constructor, this._insertOffset, this._prefix);
 
   @override
-  List<Object> get fixArguments {
+  List<String> get fixArguments {
     var buffer = StringBuffer();
     buffer.write('super');
     var constructorName = _constructor.name;

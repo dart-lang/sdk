@@ -24,7 +24,7 @@ class AddNullCheck extends ResolvedCorrectionProducer {
   FixKind fixKind = DartFixKind.ADD_NULL_CHECK;
 
   @override
-  List<Object>? fixArguments;
+  List<String>? fixArguments;
 
   AddNullCheck()
       : skipAssignabilityCheck = false,

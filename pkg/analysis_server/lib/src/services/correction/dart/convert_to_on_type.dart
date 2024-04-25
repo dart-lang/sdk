@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertToOnType extends ResolvedCorrectionProducer {
   @override
-  final List<Object> fixArguments = [];
+  final List<String> fixArguments = [];
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_ON_TYPE;
@@ -29,7 +29,7 @@ class ConvertToOnType extends ResolvedCorrectionProducer {
             catchClause.exceptionParameter == exceptionParameter &&
             rightParenthesis != null) {
           var exceptionTypeName = exceptionParameter.name;
-          fixArguments.add(exceptionTypeName);
+          fixArguments.add(exceptionTypeName.toString());
           await builder.addDartFileEdit(file, (builder) {
             var stackTraceParameter = catchClause.stackTraceParameter;
             if (stackTraceParameter != null) {

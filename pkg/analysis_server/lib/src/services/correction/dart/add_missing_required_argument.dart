@@ -26,7 +26,7 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
   bool get canBeAppliedToFile => false;
 
   @override
-  List<Object> get fixArguments => [_missingParameterName];
+  List<String> get fixArguments => [_missingParameterName];
 
   @override
   FixKind get fixKind => DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT;

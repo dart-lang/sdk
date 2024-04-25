@@ -22,7 +22,7 @@ class RemoveNameFromCombinator extends ResolvedCorrectionProducer {
   bool get canBeAppliedToFile => false;
 
   @override
-  List<Object> get fixArguments => [_combinatorKind];
+  List<String> get fixArguments => [_combinatorKind];
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_NAME_FROM_COMBINATOR;

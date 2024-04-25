@@ -1624,7 +1624,6 @@ class FixInFileProcessor {
       resolvedResult: resolvedResult,
       selectionOffset: error.offset,
       selectionLength: error.length,
-      workspace: workspace,
     );
     if (correctionContext == null) {
       return const <Fix>[];
@@ -1688,7 +1687,6 @@ class FixInFileProcessor {
       resolvedResult: fixContext.resolvedResult,
       selectionOffset: diagnostic.offset,
       selectionLength: diagnostic.length,
-      workspace: fixContext.workspace,
     );
     if (context == null) {
       return fixState;

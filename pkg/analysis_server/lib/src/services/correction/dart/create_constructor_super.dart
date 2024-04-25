@@ -51,7 +51,7 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
   _CreateConstructor(this._constructor, this._targetClass);
 
   @override
-  List<Object> get fixArguments {
+  List<String> get fixArguments {
     var buffer = StringBuffer();
     buffer.write('super');
     var constructorName = _constructor.name;

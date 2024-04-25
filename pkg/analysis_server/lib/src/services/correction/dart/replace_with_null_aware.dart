@@ -33,7 +33,7 @@ class ReplaceWithNullAware extends ResolvedCorrectionProducer {
   bool get canBeAppliedToFile => false;
 
   @override
-  List<Object> get fixArguments => [_operator, '?$_operator'];
+  List<String> get fixArguments => [_operator, '?$_operator'];
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_WITH_NULL_AWARE;

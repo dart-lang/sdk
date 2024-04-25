@@ -405,7 +405,7 @@ class _ImportAbsoluteLibrary extends ResolvedCorrectionProducer {
   _ImportAbsoluteLibrary(this._fixKind, this._library);
 
   @override
-  List<Object> get fixArguments => [_uriText];
+  List<String> get fixArguments => [_uriText];
 
   @override
   FixKind get fixKind => _fixKind;
@@ -451,7 +451,7 @@ class _ImportLibraryContainingExtension extends ResolvedCorrectionProducer {
   );
 
   @override
-  List<Object> get fixArguments => [_uriText];
+  List<String> get fixArguments => [_uriText];
 
   @override
   FixKind get fixKind => DartFixKind.IMPORT_LIBRARY_PROJECT1;
@@ -478,7 +478,7 @@ class _ImportLibraryPrefix extends ResolvedCorrectionProducer {
   _ImportLibraryPrefix(this._importedLibrary, this._importPrefix);
 
   @override
-  List<Object> get fixArguments {
+  List<String> get fixArguments {
     var uriStr = _importedLibrary.source.uri.toString();
     return [uriStr, _prefixName];
   }
@@ -514,7 +514,7 @@ class _ImportLibraryShow extends ResolvedCorrectionProducer {
   _ImportLibraryShow(this._libraryName, this._showCombinator, this._addedName);
 
   @override
-  List<Object> get fixArguments => [_libraryName];
+  List<String> get fixArguments => [_libraryName];
 
   @override
   FixKind get fixKind => DartFixKind.IMPORT_LIBRARY_SHOW;
@@ -545,7 +545,7 @@ class _ImportRelativeLibrary extends ResolvedCorrectionProducer {
   _ImportRelativeLibrary(this._fixKind, this._library);
 
   @override
-  List<Object> get fixArguments => [_uriText];
+  List<String> get fixArguments => [_uriText];
 
   @override
   FixKind get fixKind => _fixKind;

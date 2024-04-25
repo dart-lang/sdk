@@ -24,7 +24,7 @@ class ConvertAddAllToSpread extends ResolvedCorrectionProducer {
   MethodInvocation? _invocation;
 
   @override
-  List<Object> get assistArguments => _args;
+  List<String> get assistArguments => _args;
 
   @override
   AssistKind get assistKind => _isInlineInvocation
@@ -38,7 +38,7 @@ class ConvertAddAllToSpread extends ResolvedCorrectionProducer {
   bool get canBeAppliedToFile => true;
 
   @override
-  List<Object> get fixArguments => _args;
+  List<String> get fixArguments => _args;
 
   @override
   FixKind get fixKind => _isInlineInvocation

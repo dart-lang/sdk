@@ -11,7 +11,6 @@ import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
@@ -30,7 +29,6 @@ import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:meta/meta.dart';
@@ -39,27 +37,25 @@ import 'package:path/path.dart' as path;
 /// An object that can compute a correction (fix or assist) in a Dart file.
 abstract class CorrectionProducer<T extends ParsedUnitResult>
     extends _AbstractCorrectionProducer<T> {
-  /// Return the arguments that should be used when composing the message for an
+  /// The arguments that should be used when composing the message for an
   /// assist, or `null` if the assist message has no parameters or if this
   /// producer doesn't support assists.
-  List<Object>? get assistArguments => null;
+  List<String>? get assistArguments => null;
 
-  /// Return the assist kind that should be used to build an assist, or `null`
-  /// if this producer doesn't support assists.
+  /// The assist kind that should be used to build an assist, or `null` if this
+  /// producer doesn't support assists.
   AssistKind? get assistKind => null;
 
-  /// Return `true` if fixes from this producer are acceptable to run
-  /// automatically (such as during a save operation) when code could be
-  /// incomplete.
+  /// Whether fixes from this producer are acceptable to run automatically (such
+  /// as during a save operation) when code could be incomplete.
   ///
   /// By default this value matches [canBeAppliedInBulk] but may return `false`
   /// for fixes that perform actions like removing unused code, which could be
   /// unused only because the code is still being worked on.
   bool get canBeAppliedAutomatically => canBeAppliedInBulk;
 
-  /// Return `true` if this producer can be used to fix diagnostics across
-  /// multiple files and/or at the same time as applying fixes from other
-  /// producers.
+  /// Whether this producer can be used to fix diagnostics across mltiple files
+  /// and/or at the same time as applying fixes from other producers.
   ///
   /// This flag is used when the user has chosen to apply fixes but may not have
   /// chosen to apply a specific fix (such as running `dart fix`).
@@ -70,12 +66,12 @@ abstract class CorrectionProducer<T extends ParsedUnitResult>
   ///   way.
   bool get canBeAppliedInBulk => false;
 
-  /// Return `true` if this producer can be used to fix multiple diagnostics in
-  /// the same file.
+  /// Whether this producer can be used to fix multiple diagnostics in the same
+  /// file.
   ///
   /// Unlike [canBeAppliedInBulk], this flag is used to provide the option for
   /// a user to fix a specific diagnostic across a file (such as a quick-fix to
-  /// "fix all x in this file").
+  /// "fix all _something_ in this file").
   ///
   /// Cases where this will return `false` include fixes for which
   /// - the modified regions can overlap,
@@ -88,25 +84,25 @@ abstract class CorrectionProducer<T extends ParsedUnitResult>
   /// [multiFixKind] and [multiFixArguments].
   bool get canBeAppliedToFile => false;
 
-  /// Return the length of the error message being fixed, or `null` if there is
-  /// no diagnostic.
+  /// The length of the error message being fixed, or `null` if there is no
+  /// diagnostic.
   int? get errorLength => diagnostic?.problemMessage.length;
 
-  /// Return the text of the error message being fixed, or `null` if there is
-  /// no diagnostic.
+  /// The text of the error message being fixed, or `null` if there is no
+  /// diagnostic.
   String? get errorMessage =>
       diagnostic?.problemMessage.messageText(includeUrl: true);
 
-  /// Return the offset of the error message being fixed, or `null` if there is
-  /// no diagnostic.
+  /// The offset of the error message being fixed, or `null` if there is no
+  /// diagnostic.
   int? get errorOffset => diagnostic?.problemMessage.offset;
 
-  /// Return the arguments that should be used when composing the message for a
-  /// fix, or `null` if the fix message has no parameters or if this producer
-  /// doesn't support fixes.
-  List<Object>? get fixArguments => null;
+  /// The arguments that should be used when composing the message for a fix, or
+  /// `null` if the fix message has no parameters or if this producer doesn't
+  /// support fixes.
+  List<String>? get fixArguments => null;
 
-  /// Return the fix kind that should be used to build a fix, or `null` if this
+  /// The fix kind that should be used to build a fix, or `null` if this
   /// producer doesn't support fixes.
   ///
   /// If the kind of fix is dynamic, it should be computed during [configure]
@@ -114,13 +110,13 @@ abstract class CorrectionProducer<T extends ParsedUnitResult>
   /// in advance of computing.
   FixKind? get fixKind => null;
 
-  /// Return the arguments that should be used when composing the message for a
+  /// The arguments that should be used when composing the message for a
   /// multi-fix, or `null` if the fix message has no parameters or if this
   /// producer doesn't support multi-fixes.
-  List<Object>? get multiFixArguments => null;
+  List<String>? get multiFixArguments => null;
 
-  /// Return the fix kind that should be used to build a multi-fix, or `null` if
-  /// this producer doesn't support multi-fixes.
+  /// The fix kind that should be used to build a multi-fix, or `null` if this
+  /// producer doesn't support multi-fixes.
   FixKind? get multiFixKind => null;
 
   /// Computes the changes for this producer using [builder].
@@ -129,7 +125,7 @@ abstract class CorrectionProducer<T extends ParsedUnitResult>
   /// multiple kinds of fixes, the kind should be computed during [configure].
   Future<void> compute(ChangeBuilder builder);
 
-  /// Configure this producer based on the [context].
+  /// Configures this producer based on the [context].
   ///
   /// If the fix needs to dynamically set [fixKind], it should be done here.
   @override
@@ -139,55 +135,52 @@ abstract class CorrectionProducer<T extends ParsedUnitResult>
 }
 
 class CorrectionProducerContext<UnitResult extends ParsedUnitResult> {
-  final int selectionOffset;
-  final int selectionLength;
-  final int selectionEnd;
+  final int _selectionOffset;
+  final int _selectionLength;
 
-  final CompilationUnit unit;
-  final CorrectionUtils utils;
-  final String file;
+  final CorrectionUtils _utils;
 
-  final AnalysisSession session;
-  final AnalysisSessionHelper sessionHelper;
-  final UnitResult unitResult;
-  final ChangeWorkspace workspace;
+  final AnalysisSessionHelper _sessionHelper;
+  final UnitResult _unitResult;
 
   // TODO(migration): Make it non-nullable, specialize "fix" context?
   final DartFixContext? dartFixContext;
 
   /// A flag indicating whether the correction producers will be run in the
   /// context of applying bulk fixes.
-  final bool applyingBulkFixes;
+  final bool _applyingBulkFixes;
 
-  final Diagnostic? diagnostic;
+  final Diagnostic? _diagnostic;
 
-  final AstNode node;
+  final AstNode _node;
 
-  final Token token;
-  final TypeProvider? typeProvider;
+  final Token _token;
 
   CorrectionProducerContext._({
-    required this.unitResult,
-    required this.workspace,
-    this.applyingBulkFixes = false,
+    required UnitResult unitResult,
+    bool applyingBulkFixes = false,
     this.dartFixContext,
-    this.diagnostic,
-    required this.node,
-    required this.token,
-    this.selectionOffset = -1,
-    this.selectionLength = 0,
-  })  : file = unitResult.path,
-        session = unitResult.session,
-        sessionHelper = AnalysisSessionHelper(unitResult.session),
-        selectionEnd = selectionOffset + selectionLength,
-        unit = unitResult.unit,
-        utils = CorrectionUtils(unitResult),
-        typeProvider =
-            unitResult is ResolvedUnitResult ? unitResult.typeProvider : null;
+    Diagnostic? diagnostic,
+    required AstNode node,
+    required Token token,
+    int selectionOffset = -1,
+    int selectionLength = 0,
+  })  : _unitResult = unitResult,
+        _sessionHelper = AnalysisSessionHelper(unitResult.session),
+        _utils = CorrectionUtils(unitResult),
+        _applyingBulkFixes = applyingBulkFixes,
+        _diagnostic = diagnostic,
+        _node = node,
+        _token = token,
+        _selectionOffset = selectionOffset,
+        _selectionLength = selectionLength;
+
+  String get path => _unitResult.path;
+
+  int get _selectionEnd => _selectionOffset + _selectionLength;
 
   static CorrectionProducerContext<ParsedUnitResult> createParsed({
     required ParsedUnitResult resolvedResult,
-    required ChangeWorkspace workspace,
     bool applyingBulkFixes = false,
     DartFixContext? dartFixContext,
     Diagnostic? diagnostic,
@@ -205,7 +198,6 @@ class CorrectionProducerContext<UnitResult extends ParsedUnitResult> {
 
     return CorrectionProducerContext._(
       unitResult: resolvedResult,
-      workspace: workspace,
       node: node,
       token: token,
       applyingBulkFixes: applyingBulkFixes,
@@ -218,7 +210,6 @@ class CorrectionProducerContext<UnitResult extends ParsedUnitResult> {
 
   static CorrectionProducerContext<ResolvedUnitResult>? createResolved({
     required ResolvedUnitResult resolvedResult,
-    required ChangeWorkspace workspace,
     bool applyingBulkFixes = false,
     DartFixContext? dartFixContext,
     Diagnostic? diagnostic,
@@ -234,7 +225,6 @@ class CorrectionProducerContext<UnitResult extends ParsedUnitResult> {
 
     return CorrectionProducerContext._(
       unitResult: resolvedResult,
-      workspace: workspace,
       node: node,
       token: token,
       applyingBulkFixes: applyingBulkFixes,
@@ -272,17 +262,17 @@ abstract class CorrectionProducerWithDiagnostic
 /// assists).
 abstract class MultiCorrectionProducer
     extends _AbstractCorrectionProducer<ResolvedUnitResult> {
-  /// Return the library element for the library in which a correction is being
+  /// The library element for the library in which a correction is being
   /// produced.
   LibraryElement get libraryElement => unitResult.libraryElement;
 
-  /// Return the individual producers generated by this producer.
+  /// The individual producers generated by this producer.
   Future<List<ResolvedCorrectionProducer>> get producers;
 
   TypeProvider get typeProvider => unitResult.typeProvider;
 
-  /// Return the type system appropriate to the library in which the correction
-  /// was requested.
+  /// The type system appropriate to the library in which the correction is
+  /// requested.
   TypeSystem get typeSystem => unitResult.typeSystem;
 }
 
@@ -299,36 +289,37 @@ abstract class ResolvedCorrectionProducer
       sessionHelper.session.analysisContext
           .getAnalysisOptionsForFile(unitResult.file) as AnalysisOptionsImpl;
 
-  /// Return the type for the class `bool` from `dart:core`.
+  /// The type for the class `bool` from `dart:core`.
   DartType get coreTypeBool => unitResult.typeProvider.boolType;
 
-  /// Returns `true` if [node] is in a static context.
+  /// Whether [node] is in a static context.
   bool get inStaticContext {
-    // constructor initializer cannot reference "this"
+    // Constructor initializers cannot reference `this`.
     if (node.thisOrAncestorOfType<ConstructorInitializer>() != null) {
       return true;
     }
-    // field initializer cannot reference "this"
+    // Field initializers cannot reference `this`.
     var fieldDeclaration = node.thisOrAncestorOfType<FieldDeclaration>();
     if (fieldDeclaration != null) {
       return fieldDeclaration.isStatic || !fieldDeclaration.fields.isLate;
     }
-    // static method
+    // Static method.
     var method = node.thisOrAncestorOfType<MethodDeclaration>();
     return method != null && method.isStatic;
   }
 
-  /// Return the library element for the library in which a correction is being
+  /// The library element for the library in which a correction is being
   /// produced.
   LibraryElement get libraryElement => unitResult.libraryElement;
 
   TypeProvider get typeProvider => unitResult.typeProvider;
 
-  /// Return the type system appropriate to the library in which the correction
-  /// was requested.
+  /// The type system appropriate to the library in which the correction is
+  /// requested.
   TypeSystem get typeSystem => unitResult.typeSystem;
 
-  /// Return the class for the given [element].
+  /// Returns the class declaration for the given [element], or `null` if there
+  /// is no such class.
   Future<ClassDeclaration?> getClassDeclaration(ClassElement element) async {
     var result = await sessionHelper.getElementDeclaration(element);
     var node = result?.node;
@@ -338,7 +329,8 @@ abstract class ResolvedCorrectionProducer
     return null;
   }
 
-  /// Return the extension declaration for the given [element].
+  /// Returns the extension declaration for the given [element], or `null` if
+  /// there is no such extension.
   Future<ExtensionDeclaration?> getExtensionDeclaration(
       ExtensionElement element) async {
     var result = await sessionHelper.getElementDeclaration(element);
@@ -349,7 +341,8 @@ abstract class ResolvedCorrectionProducer
     return null;
   }
 
-  /// Return the extension type for the given [element].
+  /// Returns the extension type for the given [element], or `null` if there
+  /// is no such extension type.
   Future<ExtensionTypeDeclaration?> getExtensionTypeDeclaration(
       ExtensionTypeElement element) async {
     var result = await sessionHelper.getElementDeclaration(element);
@@ -362,19 +355,20 @@ abstract class ResolvedCorrectionProducer
 
   LinterContext getLinterContext(path.Context pathContext) {
     return LinterContextImpl(
-      [], // unused
+      [] /* allUnits, unused */,
       LinterContextUnit(unitResult.content, unitResult.unit),
       unitResult.session.declaredVariables,
       typeProvider,
       typeSystem as TypeSystemImpl,
-      InheritanceManager3(), // unused
+      InheritanceManager3(), // Unused.
       analysisOptions,
       null,
       pathContext,
     );
   }
 
-  /// Return the mixin declaration for the given [element].
+  /// Returns the mixin declaration for the given [element], or `null` if there
+  /// is no such mixin.
   Future<MixinDeclaration?> getMixinDeclaration(MixinElement element) async {
     var result = await sessionHelper.getElementDeclaration(element);
     var node = result?.node;
@@ -384,8 +378,8 @@ abstract class ResolvedCorrectionProducer
     return null;
   }
 
-  /// Return the class element associated with the [target], or `null` if there
-  /// is no such class element.
+  /// Returns the class element associated with the [target], or `null` if there
+  /// is no such element.
   InterfaceElement? getTargetInterfaceElement(Expression target) {
     var type = target.staticType;
     if (type is InterfaceType) {
@@ -403,18 +397,18 @@ abstract class ResolvedCorrectionProducer
   /// inferred.
   DartType? inferUndefinedExpressionType(Expression expression) {
     var parent = expression.parent;
-    // myFunction();
+    // `myFunction();`.
     if (parent is ExpressionStatement) {
       if (expression is MethodInvocation) {
         return VoidTypeImpl.instance;
       }
     }
-    // return myFunction();
+    // `return myFunction();`.
     if (parent is ReturnStatement) {
       var executable = getEnclosingExecutableElement(expression);
       return executable?.returnType;
     }
-    // int v = myFunction();
+    // `int v = myFunction();`.
     if (parent is VariableDeclaration) {
       var variableDeclaration = parent;
       if (variableDeclaration.initializer == expression) {
@@ -424,7 +418,7 @@ abstract class ResolvedCorrectionProducer
         }
       }
     }
-    // myField = 42;
+    // `myField = 42;`.
     if (parent is AssignmentExpression) {
       var assignment = parent;
       if (assignment.leftHandSide == expression) {
@@ -432,15 +426,15 @@ abstract class ResolvedCorrectionProducer
         return rhs.staticType;
       }
     }
-    // v = myFunction();
+    // `v = myFunction();`.
     if (parent is AssignmentExpression) {
       var assignment = parent;
       if (assignment.rightHandSide == expression) {
         if (assignment.operator.type == TokenType.EQ) {
-          // v = myFunction();
+          // `v = myFunction();`.
           return assignment.writeType;
         } else {
-          // v += myFunction();
+          // `v += myFunction();`.
           var method = assignment.staticElement;
           if (method != null) {
             var parameters = method.parameters;
@@ -451,7 +445,7 @@ abstract class ResolvedCorrectionProducer
         }
       }
     }
-    // v + myFunction();
+    // `v + myFunction();`.
     if (parent is BinaryExpression) {
       var binary = parent;
       var method = binary.staticElement;
@@ -462,49 +456,49 @@ abstract class ResolvedCorrectionProducer
         }
       }
     }
-    // foo( myFunction() );
+    // `foo( myFunction() );`.
     if (parent is ArgumentList) {
       var parameter = expression.staticParameterElement;
       return parameter?.type;
     }
-    // bool
+    // `bool`.
     {
-      // assert( myFunction() );
+      // `assert( myFunction() );`.
       if (parent is AssertStatement) {
         var statement = parent;
         if (statement.condition == expression) {
           return coreTypeBool;
         }
       }
-      // if ( myFunction() ) {}
+      // `if ( myFunction() ) {}`.
       if (parent is IfStatement) {
         var statement = parent;
         if (statement.expression == expression) {
           return coreTypeBool;
         }
       }
-      // while ( myFunction() ) {}
+      // `while ( myFunction() ) {}`.
       if (parent is WhileStatement) {
         var statement = parent;
         if (statement.condition == expression) {
           return coreTypeBool;
         }
       }
-      // do {} while ( myFunction() );
+      // `do {} while ( myFunction() );`.
       if (parent is DoStatement) {
         var statement = parent;
         if (statement.condition == expression) {
           return coreTypeBool;
         }
       }
-      // !myFunction()
+      // `!myFunction()`.
       if (parent is PrefixExpression) {
         var prefixExpression = parent;
         if (prefixExpression.operator.type == TokenType.BANG) {
           return coreTypeBool;
         }
       }
-      // binary expression '&&' or '||'
+      // Binary expression `&&` or `||`.
       if (parent is BinaryExpression) {
         var binaryExpression = parent;
         var operatorType = binaryExpression.operator.type;
@@ -514,12 +508,13 @@ abstract class ResolvedCorrectionProducer
         }
       }
     }
-    // we don't know
+    // We don't know.
     return null;
   }
 }
 
-/// The behavior shared by [ResolvedCorrectionProducer] and [MultiCorrectionProducer].
+/// The behavior shared by [ResolvedCorrectionProducer] and
+/// [MultiCorrectionProducer].
 abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
   /// The context used to produce corrections.
   // TODO(migration): Make it not `late`, require in constructor.
@@ -527,15 +522,13 @@ abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
 
   /// The most deeply nested node that completely covers the highlight region of
   /// the diagnostic, or `null` if there is no diagnostic, such a node does not
-  /// exist, or if it hasn't been computed yet. Use [coveredNode] to access this
-  /// field.
+  /// exist, or if it hasn't been computed yet.
+  ///
+  /// Use [coveredNode] to access this field.
   AstNode? _coveredNode;
 
-  /// Initialize a newly created producer.
-  _AbstractCorrectionProducer();
-
-  /// Return `true` if the fixes are being built for the bulk-fix request.
-  bool get applyingBulkFixes => _context.applyingBulkFixes;
+  /// Whether the fixes are being built for the bulk-fix request.
+  bool get applyingBulkFixes => _context._applyingBulkFixes;
 
   /// The most deeply nested node that completely covers the highlight region of
   /// the diagnostic, or `null` if there is no diagnostic or if such a node does
@@ -556,48 +549,48 @@ abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
     return _coveredNode;
   }
 
-  /// Return the diagnostic being fixed, or `null` if this producer is being
+  /// The diagnostic being fixed, or `null` if this producer is being
   /// used to produce an assist.
-  Diagnostic? get diagnostic => _context.diagnostic;
+  Diagnostic? get diagnostic => _context._diagnostic;
 
-  /// Returns the EOL to use for this [CompilationUnit].
+  /// The EOL sequence to use for this [CompilationUnit].
   String get eol => utils.endOfLine;
 
-  String get file => _context.file;
+  String get file => _context.path;
 
-  /// See [CompilationUnitImpl.invalidNodes]
+  /// See [CompilationUnitImpl.invalidNodes].
   List<AstNode> get invalidNodes {
     return (unit as CompilationUnitImpl).invalidNodes;
   }
 
-  AstNode get node => _context.node;
+  AstNode get node => _context._node;
 
   ResourceProvider get resourceProvider => unitResult.session.resourceProvider;
 
-  int get selectionEnd => _context.selectionEnd;
+  int get selectionEnd => _context._selectionEnd;
 
-  int get selectionLength => _context.selectionLength;
+  int get selectionLength => _context._selectionLength;
 
-  int get selectionOffset => _context.selectionOffset;
+  int get selectionOffset => _context._selectionOffset;
 
-  AnalysisSessionHelper get sessionHelper => _context.sessionHelper;
+  AnalysisSessionHelper get sessionHelper => _context._sessionHelper;
 
   bool get strictCasts {
     var file = _context.dartFixContext?.resolvedResult.file;
     // TODO(pq): can this ever happen?
     if (file == null) return false;
-    var analysisOptions = _context.session.analysisContext
+    var analysisOptions = _context._unitResult.session.analysisContext
         .getAnalysisOptionsForFile(file) as AnalysisOptionsImpl;
     return analysisOptions.strictCasts;
   }
 
-  Token get token => _context.token;
+  Token get token => _context._token;
 
-  CompilationUnit get unit => _context.unit;
+  CompilationUnit get unit => _context._unitResult.unit;
 
-  T get unitResult => _context.unitResult;
+  T get unitResult => _context._unitResult;
 
-  CorrectionUtils get utils => _context.utils;
+  CorrectionUtils get utils => _context._utils;
 
   /// Configure this producer based on the [context].
   @mustCallSuper
@@ -605,7 +598,7 @@ abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
     _context = context;
   }
 
-  /// Return the text that should be displayed to users when referring to the
+  /// Returns the text that should be displayed to users when referring to the
   /// given [type].
   String displayStringForType(DartType type) => type.getDisplayString();
 
@@ -614,8 +607,9 @@ abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
           .getAnalysisOptionsForFile(file)
           .codeStyleOptions;
 
-  /// Return the function body of the most deeply nested method or function that
-  /// encloses the [node], or `null` if the node is not in a method or function.
+  /// Returns the function body of the most deeply nested method or function
+  /// that encloses the [node], or `null` if the node is not in a method or
+  /// function.
   FunctionBody? getEnclosingFunctionBody() {
     var closure = node.thisOrAncestorOfType<FunctionExpression>();
     if (closure != null) {
@@ -636,12 +630,12 @@ abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
     return null;
   }
 
-  /// Return the text of the given [range] in the unit.
+  /// Returns the text of the given [range] in the unit.
   String getRangeText(SourceRange range) {
     return utils.getRangeText(range);
   }
 
-  /// Return the mapping from a library (that is available to this context) to
+  /// Returns the mapping from a library (that is available to this context) to
   /// a top-level declaration that is exported (not necessary declared) by this
   /// library, and has the requested base name. For getters and setters the
   /// corresponding top-level variable is returned.
@@ -651,17 +645,17 @@ abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
     return _context.dartFixContext!.getTopLevelDeclarations(baseName);
   }
 
-  /// Return `true` if the selection covers an operator of the given
+  /// Returns whether the selection covers an operator of the given
   /// [binaryExpression].
   bool isOperatorSelected(BinaryExpression binaryExpression) {
     AstNode left = binaryExpression.leftOperand;
     AstNode right = binaryExpression.rightOperand;
-    // between the nodes
+    // Between the nodes.
     if (selectionOffset >= left.end &&
         selectionOffset + selectionLength <= right.offset) {
       return true;
     }
-    // or exactly select the node (but not with infix expressions)
+    // Or exactly select the node (but not with infix expressions).
     if (selectionOffset == left.offset &&
         selectionOffset + selectionLength == right.end) {
       if (left is BinaryExpression || right is BinaryExpression) {
@@ -669,7 +663,7 @@ abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
       }
       return true;
     }
-    // invalid selection (part of node, etc)
+    // Invalid selection (part of node, etc).
     return false;
   }
 

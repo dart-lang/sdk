@@ -75,7 +75,7 @@ class DataDrivenFix extends ResolvedCorrectionProducer {
   ElementDescriptor get element => _transform.element;
 
   @override
-  List<Object> get fixArguments => [_transform.title];
+  List<String> get fixArguments => [_transform.title];
 
   @override
   FixKind get fixKind => DartFixKind.DATA_DRIVEN;

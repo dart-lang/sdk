@@ -13,7 +13,7 @@ class CreateFunction extends ResolvedCorrectionProducer {
   String _functionName = '';
 
   @override
-  List<Object> get fixArguments => [_functionName];
+  List<String> get fixArguments => [_functionName];
 
   @override
   FixKind get fixKind => DartFixKind.CREATE_FUNCTION;

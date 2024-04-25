@@ -13,7 +13,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class InlineInvocation extends ResolvedCorrectionProducer {
   @override
-  List<Object> get assistArguments => ['add'];
+  List<String> get assistArguments => ['add'];
 
   @override
   AssistKind get assistKind => DartAssistKind.INLINE_INVOCATION;
@@ -25,7 +25,7 @@ class InlineInvocation extends ResolvedCorrectionProducer {
   bool get canBeAppliedToFile => true;
 
   @override
-  List<Object> get fixArguments => ['add'];
+  List<String> get fixArguments => ['add'];
 
   @override
   FixKind get fixKind => DartFixKind.INLINE_INVOCATION;

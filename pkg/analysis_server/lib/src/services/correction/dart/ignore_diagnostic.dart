@@ -201,7 +201,7 @@ abstract class _BaseIgnoreDiagnostic extends ResolvedCorrectionProducer {
   AnalysisError get error => diagnostic as AnalysisError;
 
   @override
-  List<Object>? get fixArguments => [_code];
+  List<String> get fixArguments => [_code];
 
   String get _code => error.errorCode.name.toLowerCase();
 

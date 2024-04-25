@@ -85,7 +85,7 @@ class _ChangeName extends ResolvedCorrectionProducer {
   _ChangeName(this._argumentName, this._proposedName);
 
   @override
-  List<Object> get fixArguments => [_proposedName];
+  List<String> get fixArguments => [_proposedName];
 
   @override
   FixKind get fixKind => DartFixKind.CHANGE_ARGUMENT_NAME;

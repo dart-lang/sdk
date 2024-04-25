@@ -627,7 +627,6 @@ class BulkFixProcessor {
         resolvedResult: unit,
         selectionOffset: diagnostic.offset,
         selectionLength: diagnostic.length,
-        workspace: workspace,
       );
     }
 
@@ -721,7 +720,6 @@ class BulkFixProcessor {
       resolvedResult: result,
       selectionOffset: diagnostic.offset,
       selectionLength: diagnostic.length,
-      workspace: workspace,
     );
     if (context == null) {
       return;
@@ -784,7 +782,6 @@ class BulkFixProcessor {
       resolvedResult: result,
       selectionOffset: diagnostic.offset,
       selectionLength: diagnostic.length,
-      workspace: workspace,
     );
 
     var errorCode = diagnostic.errorCode;
@@ -854,7 +851,7 @@ class BulkFixProcessor {
     await _applyProducer(context, producer);
     var newHash = computeChangeHash();
     if (newHash != oldHash) {
-      changeMap.add(context.unitResult.path, code.toLowerCase());
+      changeMap.add(context.path, code.toLowerCase());
     }
   }
 

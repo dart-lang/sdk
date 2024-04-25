@@ -19,7 +19,7 @@ class RemovePrint extends ResolvedCorrectionProducer {
   FixKind get fixKind => DartFixKind.REMOVE_PRINT;
 
   @override
-  List<Object> get multiFixArguments => [];
+  List<String> get multiFixArguments => [];
 
   @override
   FixKind get multiFixKind => DartFixKind.REMOVE_PRINT_MULTI;

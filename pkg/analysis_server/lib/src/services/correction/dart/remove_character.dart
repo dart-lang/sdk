@@ -20,7 +20,7 @@ class RemoveCharacter extends ResolvedCorrectionProducer {
   bool get canBeAppliedToFile => false;
 
   @override
-  List<Object> get fixArguments => [_codePoint];
+  List<String> get fixArguments => [_codePoint];
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_CHARACTER;
