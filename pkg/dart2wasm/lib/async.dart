@@ -696,49 +696,6 @@ class AsyncCodeGenerator extends CodeGenerator {
     b.end();
   }
 
-  /// Clones the context pointed to by the [srcContext] local. Returns a local
-  /// pointing to the cloned context.
-  ///
-  /// It is assumed that the context is the function-level context for the
-  /// `async` function.
-  w.Local _cloneContext(
-      FunctionNode functionNode, Context context, w.Local srcContext) {
-    assert(context.owner == functionNode);
-
-    final w.Local destContext = addLocal(context.currentLocal.type);
-    b.struct_new_default(context.struct);
-    b.local_set(destContext);
-
-    void copyCapture(TreeNode node) {
-      Capture? capture = closures.captures[node];
-      if (capture != null) {
-        assert(capture.context == context);
-        b.local_get(destContext);
-        b.local_get(srcContext);
-        b.struct_get(context.struct, capture.fieldIndex);
-        b.struct_set(context.struct, capture.fieldIndex);
-      }
-    }
-
-    if (context.containsThis) {
-      b.local_get(destContext);
-      b.local_get(srcContext);
-      b.struct_get(context.struct, context.thisFieldIndex);
-      b.struct_set(context.struct, context.thisFieldIndex);
-    }
-    if (context.parent != null) {
-      b.local_get(destContext);
-      b.local_get(srcContext);
-      b.struct_get(context.struct, context.parentFieldIndex);
-      b.struct_set(context.struct, context.parentFieldIndex);
-    }
-    functionNode.positionalParameters.forEach(copyCapture);
-    functionNode.namedParameters.forEach(copyCapture);
-    functionNode.typeParameters.forEach(copyCapture);
-
-    return destContext;
-  }
-
   void _generateInner(FunctionNode functionNode, Context? context,
       w.FunctionBuilder resumeFun) {
     // void Function(_AsyncSuspendState, Object?)
@@ -795,7 +752,14 @@ class AsyncCodeGenerator extends CodeGenerator {
     _emitTargetLabel(initialTarget);
 
     // Clone context on first execution.
-    _restoreContextsAndThis(context, cloneContextFor: functionNode);
+    b.restoreSuspendStateContext(
+        suspendStateLocal,
+        asyncSuspendStateInfo.struct,
+        FieldIndex.asyncSuspendStateContext,
+        closures,
+        context,
+        thisLocal,
+        cloneContextFor: functionNode);
 
     visitStatement(functionNode.body!);
 
@@ -880,45 +844,6 @@ class AsyncCodeGenerator extends CodeGenerator {
       b.local_set(targetIndexLocal);
       b.br(masterLoop);
       b.end(); // block
-    }
-  }
-
-  void _restoreContextsAndThis(Context? context,
-      {FunctionNode? cloneContextFor}) {
-    if (context != null) {
-      assert(!context.isEmpty);
-      b.local_get(suspendStateLocal);
-      b.struct_get(
-          asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateContext);
-      b.ref_cast(context.currentLocal.type as w.RefType);
-      b.local_set(context.currentLocal);
-
-      if (context.owner == cloneContextFor) {
-        context.currentLocal =
-            _cloneContext(cloneContextFor!, context, context.currentLocal);
-      }
-
-      bool restoredThis = false;
-      while (context != null) {
-        if (context.containsThis) {
-          assert(!restoredThis);
-          b.local_get(context.currentLocal);
-          b.struct_get(context.struct, context.thisFieldIndex);
-          b.ref_as_non_null();
-          b.local_set(thisLocal!);
-          restoredThis = true;
-        }
-
-        final parent = context.parent;
-        if (parent != null) {
-          assert(!parent.isEmpty);
-          b.local_get(context.currentLocal);
-          b.struct_get(context.struct, context.parentFieldIndex);
-          b.ref_as_non_null();
-          b.local_set(parent.currentLocal);
-        }
-        context = parent;
-      }
     }
   }
 
@@ -1451,7 +1376,13 @@ class AsyncCodeGenerator extends CodeGenerator {
     // Generate resume label
     _emitTargetLabel(after);
 
-    _restoreContextsAndThis(context);
+    b.restoreSuspendStateContext(
+        suspendStateLocal,
+        asyncSuspendStateInfo.struct,
+        FieldIndex.asyncSuspendStateContext,
+        closures,
+        context,
+        thisLocal);
 
     // Handle exceptions
     final exceptionBlock = b.block();

@@ -137,6 +137,37 @@ const List<NativeType> unalignedLoadsStores = [
   NativeType.kDouble,
 ];
 
+const List<String> addressOfExtensionsTypedData = [
+  'Float32List',
+  'Float64List',
+  'Int16List',
+  'Int32List',
+  'Int64List',
+  'Int8List',
+  'Uint16List',
+  'Uint32List',
+  'Uint64List',
+  'Uint8List',
+];
+
+const List<String> addressOfExtensionsCompound = [
+  'Array',
+  'Struct',
+  'Union',
+];
+
+const List<String> addressOfExtensionsPrimitive = [
+  'Bool',
+  'Double',
+  'Int',
+];
+
+const List<String> addressOfExtensions = [
+  ...addressOfExtensionsCompound,
+  ...addressOfExtensionsPrimitive,
+  ...addressOfExtensionsTypedData,
+];
+
 enum FfiTypeCheckDirection {
   // Passing a value from native code to Dart code.
   nativeToDart,
@@ -258,6 +289,7 @@ class FfiTransformer extends Transformer {
   final Procedure arrayNestedDimensionsRest;
   final Procedure structCreate;
   final Procedure unionCreate;
+  final Constructor compoundFromTypedDataBase;
   final Constructor structFromTypedDataBase;
   final Constructor unionFromTypedDataBase;
   final Constructor structFromTypedData;
@@ -301,8 +333,13 @@ class FfiTransformer extends Transformer {
   final Field nativeCallablePointerField;
   final Procedure nativeAddressOf;
   final Procedure nativePrivateAddressOf;
+  final List<Procedure> addressOfMethods;
+  final List<Procedure> addressOfMethodsCompound;
+  final List<Procedure> addressOfMethodsPrimitive;
+  final List<Procedure> addressOfMethodsTypedData;
   final Class ffiCallClass;
   final Field ffiCallIsLeafField;
+  final Field nativeIsLeafField;
 
   late final InterfaceType nativeFieldWrapperClass1Type;
   late final InterfaceType voidType;
@@ -311,6 +348,7 @@ class FfiTransformer extends Transformer {
   late final InterfaceType nativeTypeType;
   // The Pointer type when instantiated to bounds.
   late final InterfaceType pointerNativeTypeType;
+  late final InterfaceType compoundType;
 
   /// Classes corresponding to [NativeType], indexed by [NativeType].
   final Map<NativeType, Class> nativeTypesClasses;
@@ -426,6 +464,8 @@ class FfiTransformer extends Transformer {
             'dart:ffi', 'Array', 'get:_nestedDimensionsRest'),
         structCreate = index.getProcedure('dart:ffi', 'Struct', 'create'),
         unionCreate = index.getProcedure('dart:ffi', 'Union', 'create'),
+        compoundFromTypedDataBase =
+            index.getConstructor('dart:ffi', '_Compound', '_fromTypedDataBase'),
         structFromTypedDataBase =
             index.getConstructor('dart:ffi', 'Struct', '_fromTypedDataBase'),
         unionFromTypedDataBase =
@@ -591,8 +631,25 @@ class FfiTransformer extends Transformer {
             index.getMember('dart:ffi', 'Native', 'addressOf') as Procedure,
         nativePrivateAddressOf =
             index.getMember('dart:ffi', 'Native', '_addressOf') as Procedure,
+        addressOfMethods = [
+          for (final name in addressOfExtensions)
+            index.getProcedure('dart:ffi', '${name}Address', 'get:address'),
+        ],
+        addressOfMethodsPrimitive = [
+          for (final name in addressOfExtensionsPrimitive)
+            index.getProcedure('dart:ffi', '${name}Address', 'get:address'),
+        ],
+        addressOfMethodsCompound = [
+          for (final name in addressOfExtensionsCompound)
+            index.getProcedure('dart:ffi', '${name}Address', 'get:address'),
+        ],
+        addressOfMethodsTypedData = [
+          for (final name in addressOfExtensionsTypedData)
+            index.getProcedure('dart:ffi', '${name}Address', 'get:address'),
+        ],
         ffiCallClass = index.getClass('dart:ffi', '_FfiCall'),
-        ffiCallIsLeafField = index.getField('dart:ffi', '_FfiCall', 'isLeaf') {
+        ffiCallIsLeafField = index.getField('dart:ffi', '_FfiCall', 'isLeaf'),
+        nativeIsLeafField = index.getField('dart:ffi', 'Native', 'isLeaf') {
     nativeFieldWrapperClass1Type = nativeFieldWrapperClass1Class.getThisType(
         coreTypes, Nullability.nonNullable);
     voidType = nativeTypesClasses[NativeType.kVoid]!
@@ -606,6 +663,11 @@ class FfiTransformer extends Transformer {
     intptrNativeTypeCfe =
         NativeTypeCfe(this, InterfaceType(intptrClass, Nullability.nonNullable))
             as AbiSpecificNativeTypeCfe;
+    compoundType = InterfaceType(
+      compoundClass,
+      Nullability.nonNullable,
+      const <DartType>[],
+    );
   }
 
   @override

@@ -3927,6 +3927,101 @@ extension MacroAssembler on w.InstructionsBuilder {
     struct_get(
         translator.closureLayouter.closureBaseStruct, FieldIndex.closureVtable);
   }
+
+  /// Will restore all context locals and `this` from a suspend state.
+  void restoreSuspendStateContext(
+      w.Local suspendStateLocal,
+      w.StructType suspendStateStruct,
+      int suspendStateContextField,
+      Closures closures,
+      Context? context,
+      w.Local? thisLocal,
+      {FunctionNode? cloneContextFor}) {
+    if (context != null) {
+      assert(!context.isEmpty);
+      local_get(suspendStateLocal);
+      struct_get(suspendStateStruct, suspendStateContextField);
+      ref_cast(context.currentLocal.type as w.RefType);
+      local_set(context.currentLocal);
+      if (context.owner == cloneContextFor) {
+        context.currentLocal =
+            cloneFunctionLevelContext(closures, context, cloneContextFor!);
+      }
+      restoreThisAndContextChain(context, thisLocal);
+    }
+  }
+
+  /// Will restore the parent context chain and `this` (if captured)
+  ///
+  /// Assumes the innermost context is already loaded.
+  void restoreThisAndContextChain(
+      Context innermostContext, w.Local? thisLocal) {
+    bool restoredThis = false;
+
+    Context? context = innermostContext;
+    while (context != null) {
+      if (context.containsThis) {
+        assert(!restoredThis);
+        local_get(context.currentLocal);
+        struct_get(context.struct, context.thisFieldIndex);
+        ref_as_non_null();
+        local_set(thisLocal!);
+        restoredThis = true;
+      }
+
+      final parent = context.parent;
+      if (parent != null) {
+        assert(!parent.isEmpty);
+        local_get(context.currentLocal);
+        struct_get(context.struct, context.parentFieldIndex);
+        ref_as_non_null();
+        local_set(parent.currentLocal);
+      }
+      context = parent;
+    }
+  }
+
+  /// Clones the [context] and returns a local to the clone it.
+  ///
+  /// It is assumed that the context is a function-level context.
+  w.Local cloneFunctionLevelContext(
+      Closures closures, Context context, FunctionNode functionNode) {
+    final w.Local srcContext = context.currentLocal;
+    final w.Local destContext =
+        addLocal(context.currentLocal.type, isParameter: false);
+
+    struct_new_default(context.struct);
+    local_set(destContext);
+
+    void copyCapture(TreeNode node) {
+      Capture? capture = closures.captures[node];
+      if (capture != null) {
+        assert(capture.context == context);
+        local_get(destContext);
+        local_get(srcContext);
+        struct_get(context.struct, capture.fieldIndex);
+        struct_set(context.struct, capture.fieldIndex);
+      }
+    }
+
+    if (context.containsThis) {
+      local_get(destContext);
+      local_get(srcContext);
+      struct_get(context.struct, context.thisFieldIndex);
+      struct_set(context.struct, context.thisFieldIndex);
+    }
+    if (context.parent != null) {
+      local_get(destContext);
+      local_get(srcContext);
+      struct_get(context.struct, context.parentFieldIndex);
+      struct_set(context.struct, context.parentFieldIndex);
+    }
+    functionNode.positionalParameters.forEach(copyCapture);
+    functionNode.namedParameters.forEach(copyCapture);
+    functionNode.typeParameters.forEach(copyCapture);
+
+    return destContext;
+  }
 }
 
 bool guardCanMatchJSException(Translator translator, DartType guard) {

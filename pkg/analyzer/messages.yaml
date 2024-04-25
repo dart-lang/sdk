@@ -18697,6 +18697,15 @@ FfiCode:
         const C();
       }
       ```
+  ADDRESS_POSITION:
+    problemMessage: "The '.address' expression can only be used as argument to a leaf native external call."
+    hasPublishedDocs: false
+    comment: No parameters.
+  ADDRESS_RECEIVER:
+    problemMessage: "The receiver of '.address' must be a concrete 'TypedData', a concrete 'TypedData' '[]', an 'Array', an 'Array' '[]', a Struct field, or a Union field."
+    correctionMessage: Change the receiver of '.address' to one of the allowed kinds.
+    hasPublishedDocs: false
+    comment: No parameters.
   ANNOTATION_ON_POINTER_FIELD:
     problemMessage: "Fields in a struct class whose type is 'Pointer' shouldn't have any annotations."
     correctionMessage: Try removing the annotation.

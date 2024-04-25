@@ -1,0 +1,36 @@
+library #lib;
+import self as self;
+import "dart:ffi" as ffi;
+import "dart:typed_data" as typ;
+import "dart:core" as core;
+
+import "dart:ffi";
+import "dart:typed_data";
+
+static method main() → void {
+  final ffi::Pointer<ffi::Int8> pointer = ffi::nullptr.{ffi::Pointer::cast}<ffi::Int8>(){() → ffi::Pointer<ffi::Int8>};
+  self::myNative(pointer, pointer, 1);
+  final typ::Int8List typedData = typ::Int8List::•(20);
+  self::myNative#TT(typedData, typedData, 2);
+  self::myNative#TT(typ::Int8List::sublistView(typedData, 4), typedData, 3);
+  self::myNative#PT(pointer, typedData, 4);
+}
+@#C6
+@#C8
+external static method myNative(ffi::Pointer<ffi::Int8> pointer, ffi::Pointer<ffi::Int8> pointer2, core::int nonPointer) → core::int;
+@#C6
+@#C8
+external static method myNative#TT(typ::TypedData pointer, typ::TypedData pointer2, core::int nonPointer) → core::int;
+@#C6
+@#C8
+external static method myNative#PT(ffi::Pointer<ffi::Int8> pointer, typ::TypedData pointer2, core::int nonPointer) → core::int;
+constants  {
+  #C1 = "cfe:ffi:native-marker"
+  #C2 = "myNative"
+  #C3 = "#lib"
+  #C4 = true
+  #C5 = ffi::Native<(ffi::Pointer<ffi::Int8>, ffi::Pointer<ffi::Int8>, ffi::Int8) → ffi::Int8> {symbol:#C2, assetId:#C3, isLeaf:#C4}
+  #C6 = core::pragma {name:#C1, options:#C5}
+  #C7 = "vm:ffi:native"
+  #C8 = core::pragma {name:#C7, options:#C5}
+}

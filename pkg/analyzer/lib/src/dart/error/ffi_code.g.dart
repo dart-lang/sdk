@@ -66,6 +66,23 @@ class FfiCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
+  static const FfiCode ADDRESS_POSITION = FfiCode(
+    'ADDRESS_POSITION',
+    "The '.address' expression can only be used as argument to a leaf native "
+        "external call.",
+  );
+
+  ///  No parameters.
+  static const FfiCode ADDRESS_RECEIVER = FfiCode(
+    'ADDRESS_RECEIVER',
+    "The receiver of '.address' must be a concrete 'TypedData', a concrete "
+        "'TypedData' '[]', an 'Array', an 'Array' '[]', a Struct field, or a "
+        "Union field.",
+    correctionMessage:
+        "Change the receiver of '.address' to one of the allowed kinds.",
+  );
+
+  ///  No parameters.
   static const FfiCode ANNOTATION_ON_POINTER_FIELD = FfiCode(
     'ANNOTATION_ON_POINTER_FIELD',
     "Fields in a struct class whose type is 'Pointer' shouldn't have any "

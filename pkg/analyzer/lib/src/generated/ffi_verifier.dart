@@ -35,6 +35,37 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   static const _nativeCallable = 'NativeCallable';
   static const _opaqueClassName = 'Opaque';
 
+  static const _addressOfExtensionNames = {
+    ..._addressOfCompoundExtensionNames,
+    ..._addressOfPrimitiveExtensionNames,
+    ..._addressOfTypedDataExtensionNames,
+  };
+
+  static const _addressOfCompoundExtensionNames = {
+    'ArrayAddress',
+    'StructAddress',
+    'UnionAddress',
+  };
+
+  static const _addressOfPrimitiveExtensionNames = {
+    'BoolAddress',
+    'DoubleAddress',
+    'IntAddress',
+  };
+
+  static const _addressOfTypedDataExtensionNames = {
+    'Float32ListAddress',
+    'Float64ListAddress',
+    'Int16ListAddress',
+    'Int32ListAddress',
+    'Int64ListAddress',
+    'Int8ListAddress',
+    'Uint16ListAddress',
+    'Uint32ListAddress',
+    'Uint64ListAddress',
+    'Uint8ListAddress',
+  };
+
   static const Set<String> _primitiveIntegerNativeTypesFixedSize = {
     'Int8',
     'Int16',
@@ -346,6 +377,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         if (element.name == 'ref') {
           _validateRefPrefixedIdentifier(node);
         }
+      } else if (enclosingElement.isAddressOfExtension) {
+        if (element.name == 'address') {
+          _validateAddressPrefixedIdentifier(node);
+        }
       }
     }
     super.visitPrefixedIdentifier(node);
@@ -360,6 +395,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           enclosingElement.isNativeUnionPointerExtension) {
         if (element.name == 'ref') {
           _validateRefPropertyAccess(node);
+        }
+      } else if (enclosingElement.isAddressOfExtension) {
+        if (element.name == 'address') {
+          _validateAddressPropertyAccess(node);
         }
       }
     }
@@ -984,6 +1023,84 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         }
       }
     }
+  }
+
+  /// Check that .address is only used in argument lists passed to native leaf
+  /// calls.
+  void _validateAddressPosition(Expression node, AstNode errorNode) {
+    final parent = node.parent;
+    final grandParent = parent?.parent;
+    if (parent is! ArgumentList ||
+        grandParent is! MethodInvocation ||
+        !grandParent.isNativeLeafInvocation) {
+      _errorReporter.atNode(
+        errorNode,
+        FfiCode.ADDRESS_POSITION,
+      );
+    }
+  }
+
+  void _validateAddressPrefixedIdentifier(PrefixedIdentifier node) {
+    final errorNode = node.identifier;
+    _validateAddressPosition(node, errorNode);
+    final extensionName = node.staticElement?.enclosingElement?.name;
+    final receiver = node.prefix;
+    _validateAddressReceiver(node, extensionName, receiver, errorNode);
+  }
+
+  void _validateAddressPropertyAccess(PropertyAccess node) {
+    final errorNode = node.propertyName;
+    _validateAddressPosition(node, errorNode);
+    final extensionName =
+        node.propertyName.staticElement?.enclosingElement?.name;
+    final receiver = node.target;
+    _validateAddressReceiver(node, extensionName, receiver, errorNode);
+  }
+
+  void _validateAddressReceiver(
+    Expression node,
+    String? extensionName,
+    Expression? receiver,
+    AstNode errorNode,
+  ) {
+    if (_addressOfCompoundExtensionNames.contains(extensionName) ||
+        _addressOfTypedDataExtensionNames.contains(extensionName)) {
+      return; // Only primitives need their reciever checked.
+    }
+    if (receiver == null) {
+      return;
+    }
+    switch (receiver) {
+      case IndexExpression _:
+        // Array or TypedData element.
+        final arrayOrTypedData = receiver.target;
+        final type = arrayOrTypedData?.staticType;
+        if (type?.isArray ?? false) {
+          return;
+        }
+        if (type?.isTypedData ?? false) {
+          return;
+        }
+      case PrefixedIdentifier _:
+        // Struct or Union field.
+        final compound = receiver.prefix;
+        final type = compound.staticType;
+        if (type?.isCompoundSubtype ?? false) {
+          return;
+        }
+      case PropertyAccess _:
+        // Struct or Union field.
+        final compound = receiver.target;
+        final type = compound?.staticType;
+        if (type?.isCompoundSubtype ?? false) {
+          return;
+        }
+      default:
+    }
+    _errorReporter.atNode(
+      errorNode,
+      FfiCode.ADDRESS_RECEIVER,
+    );
   }
 
   void _validateAllocate(FunctionExpressionInvocation node) {
@@ -1959,6 +2076,22 @@ extension on ElementAnnotation {
     // forwarding factory instead of the forwarded constructor.
   }
 
+  /// @Native(isLeaf: true)
+  bool get isNativeLeaf {
+    final annotationValue = computeConstantValue();
+    final annotationType = annotationValue?.type; // Native<T>
+    if (annotationValue == null || annotationType is! InterfaceType) {
+      return false;
+    }
+    if (!annotationValue.isNative) {
+      return false;
+    }
+    return annotationValue
+            .getField(FfiVerifier._isLeafParamName)
+            ?.toBoolValue() ??
+        false;
+  }
+
   bool get isPacked {
     final element = this.element;
     return element is ConstructorElement &&
@@ -1970,6 +2103,44 @@ extension on ElementAnnotation {
     assert(isPacked);
     var value = computeConstantValue();
     return value?.getField('memberAlignment')?.toIntValue();
+  }
+}
+
+extension on FunctionElement {
+  /// @Native(isLeaf: true) external function.
+  bool get isNativeLeaf {
+    for (final annotation in metadata) {
+      if (annotation.isNativeLeaf) {
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+extension on MethodElement {
+  /// @Native(isLeaf: true) external function.
+  bool get isNativeLeaf {
+    for (final annotation in metadata) {
+      if (annotation.isNativeLeaf) {
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+extension on MethodInvocation {
+  /// Calls @Native(isLeaf: true) external function.
+  bool get isNativeLeafInvocation {
+    final element = methodName.staticElement;
+    if (element is FunctionElement) {
+      return element.isNativeLeaf;
+    }
+    if (element is MethodElement) {
+      return element.isNativeLeaf;
+    }
+    return false;
   }
 }
 
@@ -2015,6 +2186,13 @@ extension on Element? {
   bool get isAbiSpecificIntegerSubclass {
     var element = this;
     return element is ClassElement && element.supertype.isAbiSpecificInteger;
+  }
+
+  bool get isAddressOfExtension {
+    final element = this;
+    return element is ExtensionElement &&
+        element.isFfiExtension &&
+        FfiVerifier._addressOfExtensionNames.contains(element.name);
   }
 
   /// Return `true` if this represents the extension `AllocatorAlloc`.

@@ -410,7 +410,86 @@ class ParserAstVisitor {
       MetadataEnd node, Token startInclusive, Token endInclusive) {}
 }
 
+enum MemberContentType {
+  ClassConstructor,
+  ClassFactoryMethod,
+  ClassFields,
+  ClassMethod,
+  ClassRecoverableError,
+  EnumConstructor,
+  EnumFactoryMethod,
+  EnumFields,
+  EnumMethod,
+  ExperimentNotEnabled,
+  ExtensionConstructor,
+  ExtensionFactoryMethod,
+  ExtensionFields,
+  ExtensionMethod,
+  ExtensionTypeConstructor,
+  ExtensionTypeFactoryMethod,
+  ExtensionTypeFields,
+  ExtensionTypeMethod,
+  MixinConstructor,
+  MixinFactoryMethod,
+  MixinFields,
+  MixinMethod,
+  Unknown,
+}
+
+enum GeneralAstContentType {
+  Class,
+  Import,
+  Export,
+  Unknown,
+  Enum,
+  Typedef,
+  Script,
+  Extension,
+  ExtensionType,
+  InvalidTopLevelDeclaration,
+  RecoverableError,
+  RecoverImport,
+  MixinDeclaration,
+  NamedMixinDeclaration,
+  TopLevelMethod,
+  TopLevelFields,
+  LibraryName,
+  Part,
+  PartOf,
+  Metadata,
+  FunctionBody,
+}
+
 extension GeneralASTContentExtension on ParserAstNode {
+  GeneralAstContentType getType() {
+    if (isClass()) return GeneralAstContentType.Class;
+    if (isImport()) return GeneralAstContentType.Import;
+    if (isExport()) return GeneralAstContentType.Export;
+    if (isExport()) return GeneralAstContentType.Export;
+    if (isEnum()) return GeneralAstContentType.Enum;
+    if (isTypedef()) return GeneralAstContentType.Typedef;
+    if (isScript()) return GeneralAstContentType.Script;
+    if (isExtension()) return GeneralAstContentType.Extension;
+    if (isExtensionType()) return GeneralAstContentType.ExtensionType;
+    if (isInvalidTopLevelDeclaration()) {
+      return GeneralAstContentType.InvalidTopLevelDeclaration;
+    }
+    if (isRecoverableError()) return GeneralAstContentType.RecoverableError;
+    if (isRecoverImport()) return GeneralAstContentType.RecoverImport;
+    if (isMixinDeclaration()) return GeneralAstContentType.MixinDeclaration;
+    if (isNamedMixinDeclaration()) {
+      return GeneralAstContentType.NamedMixinDeclaration;
+    }
+    if (isTopLevelMethod()) return GeneralAstContentType.TopLevelMethod;
+    if (isTopLevelFields()) return GeneralAstContentType.TopLevelFields;
+    if (isLibraryName()) return GeneralAstContentType.LibraryName;
+    if (isPart()) return GeneralAstContentType.Part;
+    if (isPartOf()) return GeneralAstContentType.PartOf;
+    if (isMetadata()) return GeneralAstContentType.Metadata;
+    if (isFunctionBody()) return GeneralAstContentType.FunctionBody;
+    return GeneralAstContentType.Unknown;
+  }
+
   bool isClass() {
     if (this is! TopLevelDeclarationEnd) {
       return false;
@@ -537,6 +616,25 @@ extension GeneralASTContentExtension on ParserAstNode {
   ExtensionDeclarationEnd asExtension() {
     if (!isExtension()) throw "Not extension";
     return children!.last as ExtensionDeclarationEnd;
+  }
+
+  bool isExtensionType() {
+    if (this is! TopLevelDeclarationEnd) {
+      return false;
+    }
+    if (children!.first is! ExtensionDeclarationPreludeBegin) {
+      return false;
+    }
+    if (children!.last is! ExtensionTypeDeclarationEnd) {
+      return false;
+    }
+
+    return true;
+  }
+
+  ExtensionTypeDeclarationEnd asExtensionType() {
+    if (!isExtensionType()) throw "Not extension type";
+    return children!.last as ExtensionTypeDeclarationEnd;
   }
 
   bool isInvalidTopLevelDeclaration() {
@@ -782,6 +880,18 @@ extension MetadataStarExtension on MetadataStarEnd {
   }
 }
 
+extension MetadataExtension on MetadataEnd {
+  List<IdentifierHandle> getIdentifiers() {
+    List<IdentifierHandle> result = [];
+    for (ParserAstNode child in children!) {
+      if (child is IdentifierHandle) {
+        result.add(child);
+      }
+    }
+    return result;
+  }
+}
+
 extension CompilationUnitExtension on CompilationUnitEnd {
   List<TopLevelDeclarationEnd> getClasses() {
     List<TopLevelDeclarationEnd> result = [];
@@ -899,6 +1009,20 @@ extension MixinDeclarationExtension on MixinDeclarationEnd {
     }
     throw "Not found.";
   }
+
+  IdentifierHandle getMixinIdentifier() {
+    ParserAstNode? parent = this.parent;
+    if (parent is! TopLevelDeclarationEnd) throw "Now nested as expected";
+    return parent.getIdentifier();
+  }
+}
+
+extension NamedMixinApplicationExtension on NamedMixinApplicationEnd {
+  IdentifierHandle getMixinIdentifier() {
+    ParserAstNode? parent = this.parent;
+    if (parent is! TopLevelDeclarationEnd) throw "Now nested as expected";
+    return parent.getIdentifier();
+  }
 }
 
 extension ClassDeclarationExtension on ClassDeclarationEnd {
@@ -935,6 +1059,12 @@ extension ClassDeclarationExtension on ClassDeclarationEnd {
     }
     return null;
   }
+
+  IdentifierHandle getClassIdentifier() {
+    ParserAstNode? parent = this.parent;
+    if (parent is! TopLevelDeclarationEnd) throw "Now nested as expected";
+    return parent.getIdentifier();
+  }
 }
 
 extension ClassOrMixinBodyExtension on ClassOrMixinOrExtensionBodyEnd {
@@ -950,6 +1080,46 @@ extension ClassOrMixinBodyExtension on ClassOrMixinOrExtensionBodyEnd {
 }
 
 extension MemberExtension on MemberEnd {
+  MemberContentType getMemberType() {
+    if (isClassConstructor()) return MemberContentType.ClassConstructor;
+    if (isClassFactoryMethod()) return MemberContentType.ClassFactoryMethod;
+    if (isClassFields()) return MemberContentType.ClassFields;
+    if (isClassMethod()) return MemberContentType.ClassMethod;
+
+    if (isMixinConstructor()) return MemberContentType.MixinConstructor;
+    if (isMixinFactoryMethod()) return MemberContentType.MixinFactoryMethod;
+    if (isMixinFields()) return MemberContentType.MixinFields;
+    if (isMixinMethod()) return MemberContentType.MixinMethod;
+
+    if (isExtensionConstructor()) return MemberContentType.ExtensionConstructor;
+    if (isExtensionFactoryMethod()) {
+      return MemberContentType.ExtensionFactoryMethod;
+    }
+    if (isExtensionFields()) return MemberContentType.ExtensionFields;
+    if (isExtensionMethod()) return MemberContentType.ExtensionMethod;
+
+    if (isExtensionTypeConstructor()) {
+      return MemberContentType.ExtensionTypeConstructor;
+    }
+    if (isExtensionTypeFactoryMethod()) {
+      return MemberContentType.ExtensionTypeFactoryMethod;
+    }
+    if (isExtensionTypeFields()) return MemberContentType.ExtensionTypeFields;
+    if (isExtensionTypeMethod()) return MemberContentType.ExtensionTypeMethod;
+
+    if (isEnumConstructor()) return MemberContentType.EnumConstructor;
+    if (isEnumFactoryMethod()) return MemberContentType.EnumFactoryMethod;
+    if (isEnumFields()) return MemberContentType.EnumFields;
+    if (isEnumMethod()) return MemberContentType.EnumMethod;
+
+    if (isClassRecoverableError()) {
+      return MemberContentType.ClassRecoverableError;
+    }
+    if (isExperimentNotEnabled()) return MemberContentType.ExperimentNotEnabled;
+
+    return MemberContentType.Unknown;
+  }
+
   bool isClassConstructor() {
     ParserAstNode child = children![1];
     if (child is ClassConstructorEnd) return true;
@@ -1051,6 +1221,156 @@ extension MemberExtension on MemberEnd {
     if (child is RecoverableErrorHandle) return true;
     return false;
   }
+
+  bool isExperimentNotEnabled() {
+    ParserAstNode child = children![1];
+    if (child is ExperimentNotEnabledHandle) return true;
+    return false;
+  }
+
+  bool isExtensionMethod() {
+    ParserAstNode child = children![1];
+    if (child is ExtensionMethodEnd) return true;
+    return false;
+  }
+
+  ExtensionMethodEnd getExtensionMethod() {
+    ParserAstNode child = children![1];
+    if (child is ExtensionMethodEnd) return child;
+    throw "Not found";
+  }
+
+  bool isExtensionFields() {
+    ParserAstNode child = children![1];
+    if (child is ExtensionFieldsEnd) return true;
+    return false;
+  }
+
+  ExtensionFieldsEnd getExtensionFields() {
+    ParserAstNode child = children![1];
+    if (child is ExtensionFieldsEnd) return child;
+    throw "Not found";
+  }
+
+  bool isExtensionConstructor() {
+    ParserAstNode child = children![1];
+    if (child is ExtensionConstructorEnd) return true;
+    return false;
+  }
+
+  ExtensionConstructorEnd getExtensionConstructor() {
+    ParserAstNode child = children![1];
+    if (child is ExtensionConstructorEnd) return child;
+    throw "Not found";
+  }
+
+  bool isExtensionFactoryMethod() {
+    ParserAstNode child = children![1];
+    if (child is ExtensionFactoryMethodEnd) return true;
+    return false;
+  }
+
+  ExtensionFactoryMethodEnd getExtensionFactoryMethod() {
+    ParserAstNode child = children![1];
+    if (child is ExtensionFactoryMethodEnd) return child;
+    throw "Not found";
+  }
+
+  bool isExtensionTypeMethod() {
+    ParserAstNode child = children![1];
+    if (child is ExtensionTypeMethodEnd) return true;
+    return false;
+  }
+
+  ExtensionTypeMethodEnd getExtensionTypeMethod() {
+    ParserAstNode child = children![1];
+    if (child is ExtensionTypeMethodEnd) return child;
+    throw "Not found";
+  }
+
+  bool isExtensionTypeFields() {
+    ParserAstNode child = children![1];
+    if (child is ExtensionTypeFieldsEnd) return true;
+    return false;
+  }
+
+  ExtensionTypeFieldsEnd getExtensionTypeFields() {
+    ParserAstNode child = children![1];
+    if (child is ExtensionTypeFieldsEnd) return child;
+    throw "Not found";
+  }
+
+  bool isExtensionTypeConstructor() {
+    ParserAstNode child = children![1];
+    if (child is ExtensionTypeConstructorEnd) return true;
+    return false;
+  }
+
+  ExtensionTypeConstructorEnd getExtensionTypeConstructor() {
+    ParserAstNode child = children![1];
+    if (child is ExtensionTypeConstructorEnd) return child;
+    throw "Not found";
+  }
+
+  bool isExtensionTypeFactoryMethod() {
+    ParserAstNode child = children![1];
+    if (child is ExtensionTypeFactoryMethodEnd) return true;
+    return false;
+  }
+
+  ExtensionTypeFactoryMethodEnd getExtensionTypeFactoryMethod() {
+    ParserAstNode child = children![1];
+    if (child is ExtensionTypeFactoryMethodEnd) return child;
+    throw "Not found";
+  }
+
+  bool isEnumMethod() {
+    ParserAstNode child = children![1];
+    if (child is EnumMethodEnd) return true;
+    return false;
+  }
+
+  EnumMethodEnd getEnumMethod() {
+    ParserAstNode child = children![1];
+    if (child is EnumMethodEnd) return child;
+    throw "Not found";
+  }
+
+  bool isEnumFields() {
+    ParserAstNode child = children![1];
+    if (child is EnumFieldsEnd) return true;
+    return false;
+  }
+
+  EnumFieldsEnd getEnumFields() {
+    ParserAstNode child = children![1];
+    if (child is EnumFieldsEnd) return child;
+    throw "Not found";
+  }
+
+  bool isEnumConstructor() {
+    ParserAstNode child = children![1];
+    if (child is EnumConstructorEnd) return true;
+    return false;
+  }
+
+  EnumConstructorEnd getEnumConstructor() {
+    ParserAstNode child = children![1];
+    if (child is EnumConstructorEnd) return child;
+    throw "Not found";
+  }
+
+  bool isEnumFactoryMethod() {
+    ParserAstNode child = children![1];
+    if (child is EnumFactoryMethodEnd) return true;
+    return false;
+  }
+
+  EnumFactoryMethodEnd getEnumFactoryMethod() {
+    ParserAstNode child = children![1];
+    if (child is EnumFactoryMethodEnd) return child;
+    throw "Not found";
+  }
 }
 
 extension MixinFieldsExtension on MixinFieldsEnd {
@@ -1076,6 +1396,50 @@ extension MixinFieldsExtension on MixinFieldsEnd {
 }
 
 extension ExtensionFieldsExtension on ExtensionFieldsEnd {
+  List<IdentifierHandle> getFieldIdentifiers() {
+    int countLeft = count;
+    List<IdentifierHandle>? identifiers;
+    for (int i = children!.length - 1; i >= 0; i--) {
+      ParserAstNode child = children![i];
+      if (child is IdentifierHandle &&
+          child.context == IdentifierContext.fieldDeclaration) {
+        countLeft--;
+        if (identifiers == null) {
+          identifiers = new List<IdentifierHandle>.filled(count, child);
+        } else {
+          identifiers[countLeft] = child;
+        }
+        if (countLeft == 0) break;
+      }
+    }
+    if (countLeft != 0) throw "Didn't find the expected number of identifiers";
+    return identifiers ?? [];
+  }
+}
+
+extension ExtensionTypeFieldsExtension on ExtensionTypeFieldsEnd {
+  List<IdentifierHandle> getFieldIdentifiers() {
+    int countLeft = count;
+    List<IdentifierHandle>? identifiers;
+    for (int i = children!.length - 1; i >= 0; i--) {
+      ParserAstNode child = children![i];
+      if (child is IdentifierHandle &&
+          child.context == IdentifierContext.fieldDeclaration) {
+        countLeft--;
+        if (identifiers == null) {
+          identifiers = new List<IdentifierHandle>.filled(count, child);
+        } else {
+          identifiers[countLeft] = child;
+        }
+        if (countLeft == 0) break;
+      }
+    }
+    if (countLeft != 0) throw "Didn't find the expected number of identifiers";
+    return identifiers ?? [];
+  }
+}
+
+extension EnumFieldsExtension on EnumFieldsEnd {
   List<IdentifierHandle> getFieldIdentifiers() {
     int countLeft = count;
     List<IdentifierHandle>? identifiers;
@@ -1141,6 +1505,22 @@ extension EnumExtension on EnumEnd {
     }
     return ids;
   }
+
+  IdentifierHandle getEnumIdentifier() {
+    ParserAstNode? parent = this.parent;
+    if (parent is! TopLevelDeclarationEnd) throw "Now nested as expected";
+    return parent.getIdentifier();
+  }
+
+  List<MemberEnd> getMembers() {
+    List<MemberEnd> members = [];
+    for (ParserAstNode child in children!) {
+      if (child is MemberEnd) {
+        members.add(child);
+      }
+    }
+    return members;
+  }
 }
 
 extension ExtensionDeclarationExtension on ExtensionDeclarationEnd {
@@ -1150,6 +1530,38 @@ extension ExtensionDeclarationExtension on ExtensionDeclarationEnd {
       if (child is IdentifierHandle) ids.add(child);
     }
     return ids;
+  }
+
+  Token? getExtensionName() {
+    ExtensionDeclarationBegin begin =
+        children!.first as ExtensionDeclarationBegin;
+    return begin.name;
+  }
+
+  ClassOrMixinOrExtensionBodyEnd getClassOrMixinOrExtensionBody() {
+    for (ParserAstNode child in children!) {
+      if (child is ClassOrMixinOrExtensionBodyEnd) {
+        return child;
+      }
+    }
+    throw "Not found.";
+  }
+}
+
+extension ExtensionTypeDeclarationExtension on ExtensionTypeDeclarationEnd {
+  Token? getExtensionTypeName() {
+    ExtensionTypeDeclarationBegin begin =
+        children!.first as ExtensionTypeDeclarationBegin;
+    return begin.name;
+  }
+
+  ClassOrMixinOrExtensionBodyEnd getClassOrMixinOrExtensionBody() {
+    for (ParserAstNode child in children!) {
+      if (child is ClassOrMixinOrExtensionBodyEnd) {
+        return child;
+      }
+    }
+    throw "Not found.";
   }
 }
 
@@ -1362,6 +1774,7 @@ extension ClassMethodExtension on ClassMethodEnd {
     bool foundType = false;
     for (ParserAstNode child in children!) {
       if (child is TypeHandle ||
+          child is RecordTypeEnd ||
           child is NoTypeHandle ||
           child is VoidKeywordHandle ||
           child is FunctionTypeEnd) {
@@ -1382,6 +1795,7 @@ extension MixinMethodExtension on MixinMethodEnd {
     bool foundType = false;
     for (ParserAstNode child in children!) {
       if (child is TypeHandle ||
+          child is RecordTypeEnd ||
           child is NoTypeHandle ||
           child is VoidKeywordHandle ||
           child is FunctionTypeEnd) {
@@ -1402,6 +1816,49 @@ extension ExtensionMethodExtension on ExtensionMethodEnd {
     bool foundType = false;
     for (ParserAstNode child in children!) {
       if (child is TypeHandle ||
+          child is RecordTypeEnd ||
+          child is NoTypeHandle ||
+          child is VoidKeywordHandle ||
+          child is FunctionTypeEnd) {
+        foundType = true;
+      }
+      if (foundType && child is IdentifierHandle) {
+        return child.token.lexeme;
+      } else if (foundType && child is OperatorNameHandle) {
+        return child.token.lexeme;
+      }
+    }
+    throw "No identifier found: $children";
+  }
+}
+
+extension ExtensionTypeMethodExtension on ExtensionTypeMethodEnd {
+  String getNameIdentifier() {
+    bool foundType = false;
+    for (ParserAstNode child in children!) {
+      if (child is TypeHandle ||
+          child is RecordTypeEnd ||
+          child is NoTypeHandle ||
+          child is VoidKeywordHandle ||
+          child is FunctionTypeEnd) {
+        foundType = true;
+      }
+      if (foundType && child is IdentifierHandle) {
+        return child.token.lexeme;
+      } else if (foundType && child is OperatorNameHandle) {
+        return child.token.lexeme;
+      }
+    }
+    throw "No identifier found: $children";
+  }
+}
+
+extension EnumMethodExtension on EnumMethodEnd {
+  String getNameIdentifier() {
+    bool foundType = false;
+    for (ParserAstNode child in children!) {
+      if (child is TypeHandle ||
+          child is RecordTypeEnd ||
           child is NoTypeHandle ||
           child is VoidKeywordHandle ||
           child is FunctionTypeEnd) {
@@ -1418,6 +1875,62 @@ extension ExtensionMethodExtension on ExtensionMethodEnd {
 }
 
 extension ClassFactoryMethodExtension on ClassFactoryMethodEnd {
+  List<IdentifierHandle> getIdentifiers() {
+    List<IdentifierHandle> result = [];
+    for (ParserAstNode child in children!) {
+      if (child is IdentifierHandle) {
+        result.add(child);
+      } else if (child is FormalParametersEnd) {
+        break;
+      }
+    }
+    return result;
+  }
+}
+
+extension MixinFactoryMethodExtension on MixinFactoryMethodEnd {
+  List<IdentifierHandle> getIdentifiers() {
+    List<IdentifierHandle> result = [];
+    for (ParserAstNode child in children!) {
+      if (child is IdentifierHandle) {
+        result.add(child);
+      } else if (child is FormalParametersEnd) {
+        break;
+      }
+    }
+    return result;
+  }
+}
+
+extension ExtensionFactoryMethodExtension on ExtensionFactoryMethodEnd {
+  List<IdentifierHandle> getIdentifiers() {
+    List<IdentifierHandle> result = [];
+    for (ParserAstNode child in children!) {
+      if (child is IdentifierHandle) {
+        result.add(child);
+      } else if (child is FormalParametersEnd) {
+        break;
+      }
+    }
+    return result;
+  }
+}
+
+extension ExtensionTypeFactoryMethodExtension on ExtensionTypeFactoryMethodEnd {
+  List<IdentifierHandle> getIdentifiers() {
+    List<IdentifierHandle> result = [];
+    for (ParserAstNode child in children!) {
+      if (child is IdentifierHandle) {
+        result.add(child);
+      } else if (child is FormalParametersEnd) {
+        break;
+      }
+    }
+    return result;
+  }
+}
+
+extension EnumFactoryMethodExtension on EnumFactoryMethodEnd {
   List<IdentifierHandle> getIdentifiers() {
     List<IdentifierHandle> result = [];
     for (ParserAstNode child in children!) {
@@ -1459,6 +1972,54 @@ extension ClassConstructorExtension on ClassConstructorEnd {
     return null;
   }
 
+  List<IdentifierHandle> getIdentifiers() {
+    List<IdentifierHandle> result = [];
+    for (ParserAstNode child in children!) {
+      if (child is IdentifierHandle) {
+        result.add(child);
+      }
+    }
+    return result;
+  }
+}
+
+extension ExtensionConstructorExtension on ExtensionConstructorEnd {
+  List<IdentifierHandle> getIdentifiers() {
+    List<IdentifierHandle> result = [];
+    for (ParserAstNode child in children!) {
+      if (child is IdentifierHandle) {
+        result.add(child);
+      }
+    }
+    return result;
+  }
+}
+
+extension ExtensionTypeConstructorExtension on ExtensionTypeConstructorEnd {
+  List<IdentifierHandle> getIdentifiers() {
+    List<IdentifierHandle> result = [];
+    for (ParserAstNode child in children!) {
+      if (child is IdentifierHandle) {
+        result.add(child);
+      }
+    }
+    return result;
+  }
+}
+
+extension EnumConstructorExtension on EnumConstructorEnd {
+  List<IdentifierHandle> getIdentifiers() {
+    List<IdentifierHandle> result = [];
+    for (ParserAstNode child in children!) {
+      if (child is IdentifierHandle) {
+        result.add(child);
+      }
+    }
+    return result;
+  }
+}
+
+extension MixinConstructorExtension on MixinConstructorEnd {
   List<IdentifierHandle> getIdentifiers() {
     List<IdentifierHandle> result = [];
     for (ParserAstNode child in children!) {

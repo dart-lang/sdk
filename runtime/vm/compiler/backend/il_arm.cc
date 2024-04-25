@@ -1748,9 +1748,11 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
                                                    bool is_optimizing) const {
+  COMPILE_ASSERT(R(CallingConventions::kFfiAnyNonAbiRegister) <
+                 R(CallingConventions::kSecondNonArgumentRegister));
   return MakeLocationSummaryInternal(
       zone, is_optimizing,
-      (R(R0) | R(CallingConventions::kFfiAnyNonAbiRegister) |
+      (R(CallingConventions::kFfiAnyNonAbiRegister) |
        R(CallingConventions::kSecondNonArgumentRegister)));
 }
 
@@ -1760,13 +1762,12 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register branch = locs()->in(TargetAddressIndex()).reg();
 
   // The temps are indexed according to their register number.
-  const Register temp2 = locs()->temp(0).reg();
   // For regular calls, this holds the FP for rebasing the original locations
   // during EmitParamMoves.
   // For leaf calls, this holds the SP used to restore the pre-aligned SP after
   // the call.
-  const Register saved_fp_or_sp = locs()->temp(1).reg();
-  const Register temp1 = locs()->temp(2).reg();
+  const Register saved_fp_or_sp = locs()->temp(0).reg();
+  const Register temp1 = locs()->temp(1).reg();
 
   // Ensure these are callee-saved register and are preserved across the call.
   ASSERT(IsCalleeSavedRegister(saved_fp_or_sp));
@@ -1791,7 +1792,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 #endif
 
-  EmitParamMoves(compiler, is_leaf_ ? FPREG : saved_fp_or_sp, temp1, temp2);
+  EmitParamMoves(compiler, is_leaf_ ? FPREG : saved_fp_or_sp, temp1, TMP);
 
   if (compiler::Assembler::EmittingComments()) {
     __ Comment(is_leaf_ ? "Leaf Call" : "Call");
@@ -1843,7 +1844,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                   "NOTFP should be a reserved register");
     __ blx(temp1);
 
-    if (marshaller_.IsHandle(compiler::ffi::kResultIndex)) {
+    if (marshaller_.IsHandleCType(compiler::ffi::kResultIndex)) {
       __ Comment("Check Dart_Handle for Error.");
       compiler::Label not_error;
       ASSERT(temp1 != CallingConventions::kReturnReg);
@@ -1882,7 +1883,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
   }
 
-  EmitReturnMoves(compiler, temp1, temp2);
+  EmitReturnMoves(compiler, temp1, TMP);
 
   if (is_leaf_) {
     // Restore the pre-aligned SP.

@@ -1,0 +1,42 @@
+library #lib;
+import self as self;
+import "dart:ffi" as ffi;
+import "dart:typed_data" as typ;
+import "dart:core" as core;
+
+import "dart:ffi";
+import "dart:typed_data";
+
+static method main() → void {
+  final ffi::Pointer<ffi::Int8> pointer = [@vm.direct-call.metadata=dart.ffi::Pointer.cast] [@vm.inferred-type.metadata=dart.ffi::Pointer (skip check)] [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::nullptr.{ffi::Pointer::cast}<ffi::Int8>(){() → ffi::Pointer<ffi::Int8>};
+  self::myNative(pointer, pointer, 1);
+  final typ::Int8List typedData = [@vm.inferred-type.metadata=dart.typed_data::_Int8List] typ::Int8List::•(20);
+  self::myNative#TT(typedData, typedData, 2);
+  self::myNative#TT([@vm.inferred-type.metadata=dart.typed_data::_Int8ArrayView] typ::Int8List::sublistView(typedData), typedData, 3);
+  self::myNative#PT(pointer, typedData, 4);
+}
+
+[@vm.unboxing-info.metadata=(b,b,i)->i]
+@#C6
+@#C8
+external static method myNative([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Int8> pointer, [@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Int8> pointer2, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 1)] core::int nonPointer) → core::int;
+
+[@vm.unboxing-info.metadata=(b,b,i)->i]
+@#C6
+@#C8
+external static method myNative#TT([@vm.inferred-arg-type.metadata=!] typ::TypedData pointer, [@vm.inferred-arg-type.metadata=dart.typed_data::_Int8List] typ::TypedData pointer2, [@vm.inferred-arg-type.metadata=dart.core::_Smi] core::int nonPointer) → core::int;
+
+[@vm.unboxing-info.metadata=(b,b,i)->i]
+@#C6
+@#C8
+external static method myNative#PT([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Int8> pointer, [@vm.inferred-arg-type.metadata=dart.typed_data::_Int8List] typ::TypedData pointer2, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 4)] core::int nonPointer) → core::int;
+constants  {
+  #C1 = "cfe:ffi:native-marker"
+  #C2 = "myNative"
+  #C3 = "#lib"
+  #C4 = true
+  #C5 = ffi::Native<(ffi::Pointer<ffi::Int8>, ffi::Pointer<ffi::Int8>, ffi::Int8) → ffi::Int8> {symbol:#C2, assetId:#C3, isLeaf:#C4}
+  #C6 = core::pragma {name:#C1, options:#C5}
+  #C7 = "vm:ffi:native"
+  #C8 = core::pragma {name:#C7, options:#C5}
+}

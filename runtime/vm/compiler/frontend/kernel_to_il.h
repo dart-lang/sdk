@@ -335,9 +335,13 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // semantics of FFI argument translation.
   //
   // Works for FFI call arguments, and FFI callback return values.
+  //
+  // If `marshaller.IsCompoundPointer(arg_index)`, then [variable] must point to
+  // a valid LocalVariable.
   Fragment FfiConvertPrimitiveToNative(
       const compiler::ffi::BaseMarshaller& marshaller,
-      intptr_t arg_index);
+      intptr_t arg_index,
+      LocalVariable* variable = nullptr);
 
   // Pops an unboxed native value, and pushes a Dart object, according to the
   // semantics of FFI argument translation.

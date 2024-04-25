@@ -5178,10 +5178,10 @@ Fragment FlowGraphBuilder::FfiCallbackConvertCompoundReturnToNative(
 Fragment FlowGraphBuilder::FfiConvertPrimitiveToDart(
     const compiler::ffi::BaseMarshaller& marshaller,
     intptr_t arg_index) {
-  ASSERT(!marshaller.IsCompound(arg_index));
+  ASSERT(!marshaller.IsCompoundCType(arg_index));
 
   Fragment body;
-  if (marshaller.IsPointer(arg_index)) {
+  if (marshaller.IsPointerPointer(arg_index)) {
     Class& result_class =
         Class::ZoneHandle(Z, IG->object_store()->ffi_pointer_class());
     // This class might only be instantiated as a return type of ffi calls.
@@ -5208,7 +5208,11 @@ Fragment FlowGraphBuilder::FfiConvertPrimitiveToDart(
                              StoreFieldInstr::Kind::kInitializing);
     body += DropTemporary(&address);  // address
     body += LoadLocal(result);
-  } else if (marshaller.IsHandle(arg_index)) {
+  } else if (marshaller.IsTypedDataPointer(arg_index)) {
+    UNREACHABLE();  // Only supported for FFI call arguments.
+  } else if (marshaller.IsCompoundPointer(arg_index)) {
+    UNREACHABLE();  // Only supported for FFI call arguments.
+  } else if (marshaller.IsHandleCType(arg_index)) {
     // The top of the stack is a Dart_Handle, so retrieve the tagged pointer
     // out of it.
     body += LoadNativeField(Slot::LocalHandle_ptr());
@@ -5235,15 +5239,24 @@ Fragment FlowGraphBuilder::FfiConvertPrimitiveToDart(
 
 Fragment FlowGraphBuilder::FfiConvertPrimitiveToNative(
     const compiler::ffi::BaseMarshaller& marshaller,
-    intptr_t arg_index) {
-  ASSERT(!marshaller.IsCompound(arg_index));
+    intptr_t arg_index,
+    LocalVariable* variable) {
+  ASSERT(!marshaller.IsCompoundCType(arg_index));
 
   Fragment body;
-  if (marshaller.IsPointer(arg_index)) {
+  if (marshaller.IsPointerPointer(arg_index)) {
     // This can only be Pointer, so it is safe to load the data field.
     body += LoadNativeField(Slot::PointerBase_data(),
                             InnerPointerAccess::kCannotBeInnerPointer);
-  } else if (marshaller.IsHandle(arg_index)) {
+  } else if (marshaller.IsTypedDataPointer(arg_index)) {
+    // Nothing to do. Unwrap in `FfiCallInstr::EmitNativeCode`.
+  } else if (marshaller.IsCompoundPointer(arg_index)) {
+    ASSERT(variable != nullptr);
+    body += LoadTypedDataBaseFromCompound();
+    body += LoadLocal(variable);  // User-defined struct.
+    body += LoadOffsetInBytesFromCompound();
+    body += UnboxTruncate(kUnboxedWord);
+  } else if (marshaller.IsHandleCType(arg_index)) {
     // FfiCallInstr specifies all handle locations as Stack, and will pass a
     // pointer to the stack slot as the native handle argument. Therefore the
     // only handles that need wrapping are function results.
@@ -5430,7 +5443,7 @@ Fragment FlowGraphBuilder::FfiCallFunctionBody(
   // catch our own null errors.
   const intptr_t num_args = marshaller.num_args();
   for (intptr_t i = 0; i < num_args; i++) {
-    if (marshaller.IsHandle(i)) {
+    if (marshaller.IsHandleCType(i)) {
       continue;
     }
     body += LoadLocal(parsed_function_->ParameterVariable(
@@ -5480,7 +5493,7 @@ Fragment FlowGraphBuilder::FfiCallFunctionBody(
 
   // Unbox and push the arguments.
   for (intptr_t i = 0; i < marshaller.num_args(); i++) {
-    if (marshaller.IsCompound(i)) {
+    if (marshaller.IsCompoundCType(i)) {
       body += FfiCallConvertCompoundArgumentToNative(
           parsed_function_->ParameterVariable(first_argument_parameter_offset +
                                               i),
@@ -5491,8 +5504,11 @@ Fragment FlowGraphBuilder::FfiCallFunctionBody(
       // FfiCallInstr specifies all handle locations as Stack, and will pass a
       // pointer to the stack slot as the native handle argument.
       // Therefore we do not need to wrap handles.
-      if (!marshaller.IsHandle(i)) {
-        body += FfiConvertPrimitiveToNative(marshaller, i);
+      if (!marshaller.IsHandleCType(i)) {
+        body += FfiConvertPrimitiveToNative(
+            marshaller, i,
+            parsed_function_->ParameterVariable(
+                first_argument_parameter_offset + i));
       }
     }
   }
@@ -5516,7 +5532,7 @@ Fragment FlowGraphBuilder::FfiCallFunctionBody(
     body += DropTemporary(&def);
   }
 
-  if (marshaller.IsCompound(compiler::ffi::kResultIndex)) {
+  if (marshaller.IsCompoundCType(compiler::ffi::kResultIndex)) {
     body += FfiCallConvertCompoundReturnToDart(marshaller,
                                                compiler::ffi::kResultIndex);
   } else {
@@ -5585,7 +5601,7 @@ Fragment FlowGraphBuilder::LoadNativeArg(
     defs->Add(def);
   }
 
-  if (marshaller.IsCompound(arg_index)) {
+  if (marshaller.IsCompoundCType(arg_index)) {
     fragment +=
         FfiCallbackConvertCompoundArgumentToDart(marshaller, arg_index, defs);
   } else {
@@ -5665,13 +5681,13 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfSyncFfiCallback(
                        ICData::kNoRebind);
   }
 
-  if (!marshaller.IsHandle(compiler::ffi::kResultIndex)) {
+  if (!marshaller.IsHandleCType(compiler::ffi::kResultIndex)) {
     body += CheckNullOptimized(
         String::ZoneHandle(Z, Symbols::New(H.thread(), "return_value")),
         CheckNullInstr::kArgumentError);
   }
 
-  if (marshaller.IsCompound(compiler::ffi::kResultIndex)) {
+  if (marshaller.IsCompoundCType(compiler::ffi::kResultIndex)) {
     body += FfiCallbackConvertCompoundReturnToNative(
         marshaller, compiler::ffi::kResultIndex);
   } else {
@@ -5694,16 +5710,16 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfSyncFfiCallback(
     // The exceptional return is always null -- return nullptr instead.
     ASSERT(function.FfiCallbackExceptionalReturn() == Object::null());
     catch_body += UnboxedIntConstant(0, kUnboxedIntPtr);
-  } else if (marshaller.IsPointer(compiler::ffi::kResultIndex)) {
+  } else if (marshaller.IsPointerPointer(compiler::ffi::kResultIndex)) {
     // The exceptional return is always null -- return nullptr instead.
     ASSERT(function.FfiCallbackExceptionalReturn() == Object::null());
     catch_body += UnboxedIntConstant(0, kUnboxedAddress);
     catch_body += ConvertUnboxedToUntagged();
-  } else if (marshaller.IsHandle(compiler::ffi::kResultIndex)) {
+  } else if (marshaller.IsHandleCType(compiler::ffi::kResultIndex)) {
     catch_body += UnhandledException();
     catch_body +=
         FfiConvertPrimitiveToNative(marshaller, compiler::ffi::kResultIndex);
-  } else if (marshaller.IsCompound(compiler::ffi::kResultIndex)) {
+  } else if (marshaller.IsCompoundCType(compiler::ffi::kResultIndex)) {
     ASSERT(function.FfiCallbackExceptionalReturn() == Object::null());
     // Manufacture empty result.
     const intptr_t size =

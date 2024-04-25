@@ -25,6 +25,7 @@ class ObjectPointerVisitor;
   V(ApiError, "ApiError")                                                      \
   V(ArgDescVar, ":arg_desc")                                                   \
   V(ArgumentError, "ArgumentError")                                            \
+  V(Array, "Array")                                                            \
   V(StateError, "StateError")                                                  \
   V(AssertionError, "_AssertionError")                                         \
   V(AssignIndexToken, "[]=")                                                   \
@@ -254,6 +255,7 @@ class ObjectPointerVisitor;
   V(Type, "Type")                                                              \
   V(TypeArguments, "TypeArguments")                                            \
   V(TypeArgumentsParameter, ":type_arguments")                                 \
+  V(TypedData, "TypedData")                                                    \
   V(TypeError, "_TypeError")                                                   \
   V(TypeParameters, "TypeParameters")                                          \
   V(TypeQuote, "type '")                                                       \
