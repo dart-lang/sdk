@@ -144,7 +144,7 @@ vars = {
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "a6ad7693555a9add6f98ad6fd94de80d35c89415", # disable tools/rev_sdk_deps.dart
-  "dartdoc_rev": "1ae5b4c0e8c63fb53df0540e42a709efb88d1af4",
+  "dartdoc_rev": "d9e31ff950c92350b464b859eaac272a97e15070",
   "ecosystem_rev": "9fabe464ea1d8408774de74d2ac759c1f90ae480",
   "file_rev": "f858c6fe9d1b0167b944aa62dd9b4321036b5238",
   "fixnum_rev": "dec16eb715f70f2fe0ed509da2e118354bea21d8",
@@ -193,7 +193,7 @@ vars = {
   "watcher_rev": "1bd2f20d0d924c8422aa2b9afdb165bff4f053c0",
   "web_rev": "9d8c802d13b785b1a5b201c4a43605d640841c98",
   "web_socket_channel_rev": "b612fc2caa9f4c3c8947b4ffbb274bce33c54a04",
-  "webdev_rev": "d4f9f6720e727c93781ec4425bc5f7a16ece33b0",
+  "webdev_rev": "50bf268794a4cb70b3a82d8177e55160ee4227df",
   "webdriver_rev": "c80e01e6ce121e55c31e33a31e5d3950023e6bc9",
   "webkit_inspection_protocol_rev": "153fea4fe5ac45bebf0c2e76bb3d76b0f1fcdaae",
   "yaml_rev": "5a1c4be2437bc4122ccf08a3a0f06a7683e62f30",
