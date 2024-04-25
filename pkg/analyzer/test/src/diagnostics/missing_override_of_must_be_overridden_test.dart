@@ -234,8 +234,8 @@ class B extends A {}
     ]);
   }
 
-  test_method_hasAbstractOverride() async {
-    await assertErrorsInCode('''
+  test_method_hasAbstractOverride_isOkBecauseNotConcreteClass() async {
+    await assertNoErrorsInCode('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -246,9 +246,7 @@ class A {
 abstract class B extends A {
   void m();
 }
-''', [
-      error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 96, 1),
-    ]);
+''');
   }
 
   test_method_hasConcreteOverride() async {
@@ -354,26 +352,6 @@ class B = Object with A;
     ]);
   }
 
-  test_method_multipleDirectSuperclass() async {
-    await assertErrorsInCode('''
-import 'package:meta/meta.dart';
-
-class A {
-  @mustBeOverridden
-  void m() {}
-}
-
-class B {
-  @mustBeOverridden
-  void m() {}
-}
-
-abstract class C implements A, B {}
-''', [
-      error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 143, 1),
-    ]);
-  }
-
   test_method_notVisible() async {
     newFile('$testPackageLibPath/a.dart', '''
 import 'package:meta/meta.dart';
@@ -391,8 +369,21 @@ class B extends A {}
 ''');
   }
 
-  test_method_superconstraint() async {
-    await assertErrorsInCode('''
+  test_method_sealedClassIsImplicitlyAbstract() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  @mustBeOverridden
+  void m() {}
+}
+
+sealed class B extends A {}
+''');
+  }
+
+  test_method_superconstraint_isOkBecauseMixinsAreNotConcrete() async {
+    await assertNoErrorsInCode('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -401,9 +392,7 @@ class A {
 }
 
 mixin M on A {}
-''', [
-      error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 87, 1),
-    ]);
+''');
   }
 
   test_operator_directSuperclass() async {

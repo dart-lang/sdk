@@ -696,25 +696,35 @@ class LibraryReader {
     var analysisSession = _elementFactory.analysisSession;
 
     _reader.offset = _offset;
-    var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
 
     // TODO(scheglov): https://github.com/dart-lang/sdk/issues/51855
     // This should not be needed.
     // But I have a suspicion that we attempt to read the library twice.
     _classMembersLengthsIndex = 0;
 
+    // Read enough data to create the library.
     var name = _reader.readStringReference();
     var featureSet = _readFeatureSet();
 
+    // Create the library, link to the reference.
     var libraryElement = LibraryElementImpl(
         analysisContext, analysisSession, name, -1, 0, featureSet);
     _reference.element = libraryElement;
     libraryElement.reference = _reference;
 
-    libraryElement.languageVersion = _readLanguageVersion();
-    _readLibraryOrAugmentationElement(libraryElement);
+    // Read the rest of non-resolution data for the library.
     LibraryElementFlags.read(_reader, libraryElement);
+    libraryElement.languageVersion = _readLanguageVersion();
 
+    libraryElement.exportedReferences = _reader.readTypedList(
+      _readExportedReference,
+    );
+
+    libraryElement.nameUnion = ElementNameUnion.read(
+      _reader.readUInt30List(),
+    );
+
+    // Read the library units.
     libraryElement.definingCompilationUnit = _readUnitElement(
       containerSource: librarySource,
       unitSource: librarySource,
@@ -727,13 +737,8 @@ class LibraryReader {
       );
     });
 
-    libraryElement.exportedReferences = _reader.readTypedList(
-      _readExportedReference,
-    );
-
-    libraryElement.nameUnion = ElementNameUnion.read(
-      _reader.readUInt30List(),
-    );
+    var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
+    _readLibraryOrAugmentationElement(libraryElement);
 
     var accessorAugmentationsOffset = _reader.readUInt30();
 

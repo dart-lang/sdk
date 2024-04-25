@@ -115,10 +115,21 @@ class BundleWriter {
     _accessorAugmentations = [];
     _propertyAugmentations = [];
 
-    _sink.writeUInt30(_resolutionSink.offset);
+    // Write non-resolution data for the library.
     _sink._writeStringReference(libraryElement.name);
     _writeFeatureSet(libraryElement.featureSet);
+    LibraryElementFlags.write(_sink, libraryElement);
     _writeLanguageVersion(libraryElement.languageVersion);
+    _writeExportedReferences(libraryElement.exportedReferences);
+    _sink.writeUint30List(libraryElement.nameUnion.mask);
+
+    // Write the library units.
+    // This will write also resolution data, e.g. for classes.
+    _writeUnitElement(libraryElement.definingCompilationUnit);
+    _writeList(libraryElement.parts, _writePartElement);
+
+    // Write resolution data for the library.
+    _sink.writeUInt30(_resolutionSink.offset);
     _writeLibraryOrAugmentationElement(libraryElement);
     for (var partElement in libraryElement.parts) {
       _resolutionSink._writeAnnotationList(partElement.metadata);
@@ -127,13 +138,6 @@ class BundleWriter {
     _resolutionSink.writeElement(libraryElement.entryPoint);
     _writeFieldNameNonPromotabilityInfo(
         libraryElement.fieldNameNonPromotabilityInfo);
-    LibraryElementFlags.write(_sink, libraryElement);
-    _writeUnitElement(libraryElement.definingCompilationUnit);
-    _writeList(libraryElement.parts, _writePartElement);
-
-    _writeExportedReferences(libraryElement.exportedReferences);
-
-    _sink.writeUint30List(libraryElement.nameUnion.mask);
 
     _writePropertyAccessorAugmentations();
 

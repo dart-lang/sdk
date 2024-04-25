@@ -56,6 +56,20 @@ class W extends Widget {
 ''');
   }
 
+  Future<void> test_notAvailable_augmentation() async {
+    await resolveTestCode('''
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+
+class W {}
+
+augment class W extends Widget {
+  String get foo/*caret*/ => '';
+}
+''');
+    await assertNoAssist();
+  }
+
   Future<void> test_notAvailable_mixin() async {
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
