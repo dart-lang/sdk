@@ -40,6 +40,14 @@ static bool ShouldReorderBlocks(const Function& function,
          FLAG_reorder_basic_blocks && !function.IsFfiCallbackTrampoline();
 }
 
+static bool IsMarkedWithNoBoundsChecks(const Function& function) {
+  Object& options = Object::Handle();
+  return Library::FindPragma(dart::Thread::Current(),
+                             /*only_core=*/false, function,
+                             Symbols::vm_unsafe_no_bounds_checks(),
+                             /*multiple=*/false, &options);
+}
+
 FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
                      GraphEntryInstr* graph_entry,
                      intptr_t max_block_id,
@@ -70,7 +78,10 @@ FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
       loop_invariant_loads_(nullptr),
       captured_parameters_(new(zone()) BitVector(zone(), variable_count())),
       inlining_id_(-1),
-      should_print_(false) {
+      should_print_(false),
+      should_remove_all_bounds_checks_(
+          CompilerState::Current().is_aot() &&
+          IsMarkedWithNoBoundsChecks(parsed_function.function())) {
   should_print_ = FlowGraphPrinter::ShouldPrint(parsed_function.function(),
                                                 &compiler_pass_filters_);
   ComputeLocationsOfFixedParameters(

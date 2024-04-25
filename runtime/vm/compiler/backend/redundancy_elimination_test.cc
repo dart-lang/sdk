@@ -1603,6 +1603,32 @@ ISOLATE_UNIT_TEST_CASE(CheckStackOverflowElimination_NoInterruptsPragma) {
   }
 }
 
+ISOLATE_UNIT_TEST_CASE(BoundsCheckElimination_Pragma) {
+  const char* kScript = R"(
+    import 'dart:typed_data';
+
+    @pragma('vm:unsafe:no-bounds-checks')
+    int test(Uint8List list) {
+      int result = 0;
+      for (int i = 0; i < 10; i++) {
+        result = list[i];
+      }
+      return result;
+    }
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  const auto& function = Function::Handle(GetFunction(root_library, "test"));
+
+  TestPipeline pipeline(function, CompilerPass::kAOT);
+  auto flow_graph = pipeline.RunPasses({});
+  for (auto block : flow_graph->postorder()) {
+    for (auto instr : block->instructions()) {
+      EXPECT_PROPERTY(instr, !it.IsCheckBoundBase());
+    }
+  }
+}
+
 // This test checks that CSE unwraps redefinitions when comparing all
 // instructions except loads, which are handled specially.
 ISOLATE_UNIT_TEST_CASE(CSE_Redefinitions) {
