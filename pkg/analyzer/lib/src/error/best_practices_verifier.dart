@@ -396,16 +396,20 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           var element = field.declaredElement;
           if (element is PropertyAccessorElement || element is FieldElement) {
             Name name = Name(_currentLibrary.source.uri, element!.name);
-            Element enclosingElement = element.enclosingElement!;
-            if (enclosingElement is InterfaceElement) {
+            var enclosingElement = element.enclosingElement!;
+            var enclosingDeclaration = enclosingElement is InstanceElement
+                ? enclosingElement.augmented.declaration
+                : enclosingElement;
+            if (enclosingDeclaration is InterfaceElement) {
               var overridden = _inheritanceManager
-                  .getMember2(enclosingElement, name, forSuper: true);
+                  .getMember2(enclosingDeclaration, name, forSuper: true);
               // Check for a setter.
               if (overridden == null) {
                 Name setterName =
                     Name(_currentLibrary.source.uri, '${element.name}=');
-                overridden = _inheritanceManager
-                    .getMember2(enclosingElement, setterName, forSuper: true);
+                overridden = _inheritanceManager.getMember2(
+                    enclosingDeclaration, setterName,
+                    forSuper: true);
               }
               return overridden;
             }
