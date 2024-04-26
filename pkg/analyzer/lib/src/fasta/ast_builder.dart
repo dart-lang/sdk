@@ -930,11 +930,11 @@ class AstBuilder extends StackListener {
 
   @override
   void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
-      Token? comma, Token semicolon) {
+      Token? comma, Token endToken) {
     assert(optional('assert', assertKeyword));
     assert(optional('(', leftParenthesis));
     assert(optionalOrNull(',', comma));
-    assert(kind != Assert.Statement || optionalOrNull(';', semicolon));
+    assert(kind != Assert.Statement || optionalOrNull(';', endToken.next!));
     debugEvent("Assert");
 
     var message = popIfNotNull(comma) as ExpressionImpl?;
@@ -978,7 +978,7 @@ class AstBuilder extends StackListener {
             comma: comma,
             message: message,
             rightParenthesis: leftParenthesis.endGroup!,
-            semicolon: semicolon,
+            semicolon: endToken.next!,
           ),
         );
     }
@@ -1485,7 +1485,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endConstLiteral(Token token) {
+  void endConstLiteral(Token endToken) {
     debugEvent("endConstLiteral");
   }
 
@@ -1737,7 +1737,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endFieldInitializer(Token equals, Token token) {
+  void endFieldInitializer(Token equals, Token endToken) {
     assert(optional('=', equals));
     debugEvent("FieldInitializer");
 
@@ -1796,7 +1796,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endForInBody(Token token) {
+  void endForInBody(Token endToken) {
     debugEvent("endForInBody");
   }
 
@@ -2056,12 +2056,12 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endForStatementBody(Token token) {
+  void endForStatementBody(Token endToken) {
     debugEvent("endForStatementBody");
   }
 
   @override
-  void endFunctionExpression(Token beginToken, Token token) {
+  void endFunctionExpression(Token beginToken, Token endToken) {
     // TODO(paulberry): set up scopes properly to resolve parameters and type
     // variables.  Note that this is tricky due to the handling of initializers
     // in constructors, so the logic should be shared with BodyBuilder as much
@@ -3343,7 +3343,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endTopLevelDeclaration(Token token) {
+  void endTopLevelDeclaration(Token endToken) {
     debugEvent("TopLevelDeclaration");
   }
 
@@ -3695,7 +3695,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endWhileStatementBody(Token token) {
+  void endWhileStatementBody(Token endToken) {
     debugEvent("endWhileStatementBody");
   }
 

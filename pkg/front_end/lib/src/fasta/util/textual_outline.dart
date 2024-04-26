@@ -791,9 +791,7 @@ class TextualOutlineListener extends Listener {
 
   @override
   void endMetadata(Token beginToken, Token? periodBeforeName, Token endToken) {
-    // Metadata's endToken is the one *after* the actual end of the metadata.
-    metadataStartToChunk[beginToken] =
-        new _MetadataChunk(beginToken, endToken.previous!);
+    metadataStartToChunk[beginToken] = new _MetadataChunk(beginToken, endToken);
   }
 
   @override

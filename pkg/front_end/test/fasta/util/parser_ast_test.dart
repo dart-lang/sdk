@@ -102,9 +102,9 @@ void testTopLevelStuff() {
       'c hide d, e, f show foo;',
       foundChunks[4]);
   expect("part 'top_level_stuff_helper.dart';", foundChunks[5]);
-  expect('@metadataOneOnThisOne("bla")\n', foundChunks[6]);
-  expect("@metadataTwoOnThisOne\n", foundChunks[7]);
-  expect('@metadataThree.OnThisOne<int>("hello")\n', foundChunks[8]);
+  expect('@metadataOneOnThisOne("bla")', foundChunks[6]);
+  expect("@metadataTwoOnThisOne", foundChunks[7]);
+  expect('@metadataThree.OnThisOne<int>("hello")', foundChunks[8]);
   expect("""void toplevelMethod() {
   // no content
 }""", foundChunks[9]);
@@ -310,7 +310,7 @@ List<String> processItem(ParserAstNode item, List<int> data) {
         // Check that we can get the identifiers without throwing.
         metadata.getIdentifiers();
         chunks.add(getCutContent(
-            data, metadata.beginToken.offset, metadata.endToken.offset));
+            data, metadata.beginToken.offset, metadata.endToken.charEnd));
       }
       return chunks;
     }
