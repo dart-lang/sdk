@@ -302,9 +302,7 @@ class _VariablesInfoCollector extends RecursiveVisitor {
   LocalFunction? summaryFunction;
   int numVariablesAtSummaryFunctionEntry = 0;
 
-  _VariablesInfoCollector(Member member, this.summaryFunction) {
-    member.accept(this);
-  }
+  _VariablesInfoCollector(this.summaryFunction);
 
   int get numVariables => varDeclarations.length;
 
@@ -638,7 +636,10 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     }
 
     _staticTypeContext = StaticTypeContext(member, _environment);
-    _variablesInfo = _VariablesInfoCollector(member, localFunction);
+    _variablesInfo = _VariablesInfoCollector(localFunction);
+    if (fieldSummaryType != FieldSummaryType.kFieldGuard) {
+      member.accept(_variablesInfo);
+    }
     _variableValues = List<TypeExpr?>.filled(_variablesInfo.numVariables, null);
     _aggregateVariable = List<bool>.filled(_variablesInfo.numVariables, false);
     _capturedVariableReads = null;
