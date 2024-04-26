@@ -501,7 +501,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         success = false;
       } else {
         final DartType nativeType =
-            InterfaceType(nativeTypeAnnos.first, Nullability.legacy);
+            InterfaceType(nativeTypeAnnos.first, Nullability.nonNullable);
         final DartType? shouldBeDartType = convertNativeTypeToDartType(
           nativeType,
           allowStructAndUnion: true,
@@ -1105,7 +1105,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         ProcedureKind.Getter,
         FunctionNode(
           ReturnStatement(runtimeBranchOnLayout(sizes)),
-          returnType: InterfaceType(intClass, Nullability.legacy),
+          returnType: coreTypes.intNonNullableRawType,
         ),
         fileUri: compound.fileUri,
         reference: getterReference,

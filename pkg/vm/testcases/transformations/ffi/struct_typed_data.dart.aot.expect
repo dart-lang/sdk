@@ -26,7 +26,7 @@ final class Coordinate extends ffi::Struct {
     return result;
   }
   static factory fromTypedList([@vm.inferred-arg-type.metadata=dart.typed_data::_Float64List] typ::TypedData typedList) → self::Coordinate {
-    return let final typ::TypedData #t1 = typedList in let final core::int* #t2 = [@vm.inferred-type.metadata=dart.core::_Smi (value: 16)] self::Coordinate::#sizeOf in new self::Coordinate::#fromTypedData(#t1);
+    return let final typ::TypedData #t1 = typedList in let final core::int #t2 = [@vm.inferred-type.metadata=dart.core::_Smi (value: 16)] self::Coordinate::#sizeOf in new self::Coordinate::#fromTypedData(#t1);
   }
 
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
@@ -52,17 +52,17 @@ final class Coordinate extends ffi::Struct {
   [@vm.unboxing-info.metadata=()->i]
   @#C8
   static get x#offsetOf() → core::int
-    return #C10.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+    return #C10.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 
   [@vm.unboxing-info.metadata=()->i]
   @#C8
   static get y#offsetOf() → core::int
-    return #C12.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+    return #C12.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 
   [@vm.unboxing-info.metadata=()->i]
   @#C8
-  static get #sizeOf() → core::int*
-    return #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+  static get #sizeOf() → core::int
+    return #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 static method main() → void {
   for (core::int i = 0; [@vm.direct-call.metadata=dart.core::_IntegerImplementation.<] [@vm.inferred-type.metadata=dart.core::bool (skip check)] i.{core::num::<}(100){(core::num) → core::bool}; i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1){(core::num) → core::int}) {
@@ -97,9 +97,9 @@ constants  {
   #C7 = "vm:prefer-inline"
   #C8 = core::pragma {name:#C7, options:#C4}
   #C9 = 0
-  #C10 = <core::int*>[#C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9]
+  #C10 = <core::int>[#C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9]
   #C11 = 8
-  #C12 = <core::int*>[#C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11]
+  #C12 = <core::int>[#C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11]
   #C13 = 16
-  #C14 = <core::int*>[#C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13]
+  #C14 = <core::int>[#C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13]
 }

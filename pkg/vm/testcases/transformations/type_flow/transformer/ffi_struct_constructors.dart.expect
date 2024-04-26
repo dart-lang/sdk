@@ -47,7 +47,7 @@ final class Struct11 extends ffi::Struct {
   [@vm.unboxing-info.metadata=()->i]
   @#C13
   static get nested#offsetOf() → core::int
-    return #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+    return #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 @#C6
 final class Struct12 extends ffi::Struct {
@@ -176,7 +176,7 @@ constants  {
   #C11 = core::pragma {name:#C1, options:#C10}
   #C12 = "vm:prefer-inline"
   #C13 = core::pragma {name:#C12, options:#C4}
-  #C14 = <core::int*>[#C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7]
+  #C14 = <core::int>[#C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7]
   #C15 = static-tearoff self::useStruct3
   #C16 = static-tearoff self::returnStruct7
   #C17 = 1

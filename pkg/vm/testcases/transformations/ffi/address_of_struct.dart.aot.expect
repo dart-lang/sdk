@@ -19,12 +19,12 @@ final class MyStruct extends ffi::Struct {
   [@vm.unboxing-info.metadata=()->i]
   @#C11
   static get a#offsetOf() → core::int
-    return #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+    return #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 
   [@vm.unboxing-info.metadata=()->i]
   @#C11
-  static get #sizeOf() → core::int*
-    return #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+  static get #sizeOf() → core::int
+    return #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 @#C17
 final class MyUnion extends ffi::Union {
@@ -34,8 +34,8 @@ final class MyUnion extends ffi::Union {
 
   [@vm.unboxing-info.metadata=()->i]
   @#C11
-  static get #sizeOf() → core::int*
-    return #C19.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+  static get #sizeOf() → core::int
+    return #C19.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 static method main() → void {
   final self::MyStruct myStruct = new self::MyStruct::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•([@vm.inferred-type.metadata=dart.core::_Smi (value: 10)] self::MyStruct::#sizeOf));
@@ -62,17 +62,17 @@ constants  {
   #C6 = null
   #C7 = ffi::_FfiStructLayout {fieldTypes:#C5, packing:#C6}
   #C8 = core::pragma {name:#C1, options:#C7}
-  #C9 = <core::int*>[]
+  #C9 = <core::int>[]
   #C10 = "vm:prefer-inline"
   #C11 = core::pragma {name:#C10, options:#C6}
   #C12 = 0
-  #C13 = <core::int*>[#C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12]
-  #C14 = <core::int*>[#C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3]
+  #C13 = <core::int>[#C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12]
+  #C14 = <core::int>[#C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3]
   #C15 = <core::Type>[#C2]
   #C16 = ffi::_FfiStructLayout {fieldTypes:#C15, packing:#C6}
   #C17 = core::pragma {name:#C1, options:#C16}
   #C18 = 1
-  #C19 = <core::int*>[#C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18]
+  #C19 = <core::int>[#C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18]
   #C20 = "cfe:ffi:native-marker"
   #C21 = "myNative"
   #C22 = "#lib"

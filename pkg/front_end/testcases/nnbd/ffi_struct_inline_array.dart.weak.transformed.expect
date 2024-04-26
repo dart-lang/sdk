@@ -23,13 +23,13 @@ final class StructInlineArray extends ffi::Struct {
     return new ffi::Array::_<ffi::Uint8>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::StructInlineArray::a0#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #C3, #C10);
   @#C9
   set a0(synthesized ffi::Array<ffi::Uint8> #externalFieldValue) → void
-    return ffi::_memCopy(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::StructInlineArray::a0#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue.{ffi::_Compound::_typedDataBase}{core::Object}, #externalFieldValue.{ffi::_Compound::_offsetInBytes}{core::int}, #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
+    return ffi::_memCopy(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::StructInlineArray::a0#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue.{ffi::_Compound::_typedDataBase}{core::Object}, #externalFieldValue.{ffi::_Compound::_offsetInBytes}{core::int}, #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int});
   @#C13
   static get a0#offsetOf() → core::int
-    return #C15.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+    return #C15.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C13
-  static get #sizeOf() → core::int*
-    return #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+  static get #sizeOf() → core::int
+    return #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 static method main() → dynamic {}
 
@@ -43,12 +43,12 @@ constants  {
   #C7 = ffi::_FfiStructLayout {fieldTypes:#C5, packing:#C6}
   #C8 = core::pragma {name:#C1, options:#C7}
   #C9 = ffi::_ArraySize<ffi::NativeType*> {dimension1:#C3, dimension2:#C6, dimension3:#C6, dimension4:#C6, dimension5:#C6, dimensions:#C6}
-  #C10 = <core::int*>[]
-  #C11 = <core::int*>[#C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3]
+  #C10 = <core::int>[]
+  #C11 = <core::int>[#C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3]
   #C12 = "vm:prefer-inline"
   #C13 = core::pragma {name:#C12, options:#C6}
   #C14 = 0
-  #C15 = <core::int*>[#C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14]
+  #C15 = <core::int>[#C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14]
 }
 
 

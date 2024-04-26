@@ -19,13 +19,13 @@ class MA = self::A with self::M {
     : super self::A::•()
     ;
   no-such-method-forwarder method m1(core::int v, [has-declared-initializer core::String s]) → core::String
-    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#m1, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[v, s]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::String;
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#m1, 0, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[v, s]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::String;
   no-such-method-forwarder method /* signature-type: (core::int, {s: core::String}) → core::String */ m2(core::int v, {core::String? s}) → core::String
-    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#m2, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[v]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#s: s}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::String;
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#m2, 0, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[v]), core::Map::unmodifiable<core::Symbol, dynamic>(<core::Symbol, dynamic>{#s: s}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::String;
   no-such-method-forwarder method m3(core::int v, {required core::String s}) → core::String
-    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#m3, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[v]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#s: s}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::String;
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#m3, 0, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[v]), core::Map::unmodifiable<core::Symbol, dynamic>(<core::Symbol, dynamic>{#s: s}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::String;
   no-such-method-forwarder method m4(core::int v, [covariant-by-declaration core::String s]) → core::String
-    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#m4, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[v, s]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::String;
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#m4, 0, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[v, s]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::String;
 }
 static method main() → dynamic
   ;

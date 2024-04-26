@@ -20,7 +20,7 @@ class C extends self::B {
     : super self::B::•()
     ;
   no-such-method-forwarder method foo() → void
-    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation) → dynamic};
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4))){(core::Invocation) → dynamic};
 }
 class D extends self::C {
   synthetic constructor •() → self::D
@@ -31,7 +31,7 @@ static method main() → dynamic {}
 
 constants  {
   #C1 = #foo
-  #C2 = <core::Type*>[]
+  #C2 = <core::Type>[]
   #C3 = <dynamic>[]
-  #C4 = <core::Symbol*, dynamic>{}
+  #C4 = <core::Symbol, dynamic>{}
 }

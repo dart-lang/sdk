@@ -180,12 +180,8 @@ class ForInLowering {
           InvalidExpression('Invalid iterable type in for-in'));
     }
 
-    // The NNBD sdk declares that Iterable.get:iterator returns a non-nullable
-    // `Iterator<E>`.
-    assert(const [
-      Nullability.nonNullable,
-      Nullability.legacy
-    ].contains(coreTypes.iterableGetIterator.function.returnType.nullability));
+    assert(coreTypes.iterableGetIterator.function.returnType.nullability ==
+        Nullability.nonNullable);
 
     final DartType elementType = stmt.getElementType(staticTypeContext);
     final iteratorType = InterfaceType(

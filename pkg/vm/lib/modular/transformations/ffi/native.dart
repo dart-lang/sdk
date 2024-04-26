@@ -946,7 +946,7 @@ class FfiNativeTransformer extends FfiTransformer {
         _wrapFunctionType(dartFunctionType, ffiFunctionType);
 
     final nativeType = InterfaceType(
-        nativeFunctionClass, Nullability.legacy, [ffiFunctionType]);
+        nativeFunctionClass, Nullability.nonNullable, [ffiFunctionType]);
 
     try {
       ensureNativeTypeValid(nativeType, node);

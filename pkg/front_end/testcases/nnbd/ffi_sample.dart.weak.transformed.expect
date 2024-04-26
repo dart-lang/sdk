@@ -40,16 +40,16 @@ final class Coordinate extends ffi::Struct {
   }
   @#C11
   static get x#offsetOf() → core::int
-    return #C12.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+    return #C12.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C11
   static get y#offsetOf() → core::int
-    return #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+    return #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C11
   static get next#offsetOf() → core::int
-    return #C16.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+    return #C16.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C11
-  static get #sizeOf() → core::int*
-    return #C19.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+  static get #sizeOf() → core::int
+    return #C19.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 static method main() → dynamic {}
 
@@ -65,14 +65,14 @@ constants  {
   #C9 = 0
   #C10 = "vm:prefer-inline"
   #C11 = core::pragma {name:#C10, options:#C5}
-  #C12 = <core::int*>[#C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9]
+  #C12 = <core::int>[#C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9]
   #C13 = 8
-  #C14 = <core::int*>[#C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13]
+  #C14 = <core::int>[#C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13]
   #C15 = 16
-  #C16 = <core::int*>[#C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15]
+  #C16 = <core::int>[#C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15]
   #C17 = 24
   #C18 = 20
-  #C19 = <core::int*>[#C17, #C17, #C18, #C17, #C17, #C17, #C17, #C17, #C18, #C17, #C17, #C17, #C17, #C18, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17]
+  #C19 = <core::int>[#C17, #C17, #C18, #C17, #C17, #C17, #C17, #C17, #C18, #C17, #C17, #C17, #C17, #C18, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17]
 }
 
 

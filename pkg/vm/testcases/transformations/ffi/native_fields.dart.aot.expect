@@ -25,12 +25,12 @@ final class Vec2d extends ffi::Struct {
   [@vm.unboxing-info.metadata=()->i]
   @#C8
   static get x#offsetOf() → core::int
-    return #C10.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+    return #C10.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 
   [@vm.unboxing-info.metadata=()->i]
   @#C8
   static get y#offsetOf() → core::int
-    return #C12.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+    return #C12.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 @#C17
 final class MyUnion extends ffi::Union {
@@ -45,7 +45,7 @@ final class MyUnion extends ffi::Union {
   [@vm.unboxing-info.metadata=()->i]
   @#C8
   static get indirectVector#offsetOf() → core::int
-    return #C10.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+    return #C10.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 @#C23
 static get aString() → ffi::Pointer<ffi::Char>
@@ -71,7 +71,7 @@ static get union() → self::MyUnion
 static get manyNumbers() → ffi::Array<ffi::Array<ffi::Array<ffi::Double>>>
   return new ffi::Array::_<ffi::Array<ffi::Array<ffi::Double>>>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<ffi::Array<ffi::Array<ffi::Array<ffi::Double>>>>(#C34), #C9, #C36, #C39);
 static set manyNumbers([@vm.inferred-arg-type.metadata=dart.ffi::Array<dart.ffi::Array<dart.ffi::Array<dart.ffi::Double>>>] synthesized ffi::Array<ffi::Array<ffi::Array<ffi::Double>>> #externalFieldValue) → void
-  ffi::_memCopy([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<ffi::Array<ffi::Array<ffi::Array<ffi::Double>>>>(#C34), #C9, [@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] #externalFieldValue.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] #externalFieldValue.{ffi::_Compound::_offsetInBytes}{core::int}, #C41.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
+  ffi::_memCopy([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<ffi::Array<ffi::Array<ffi::Array<ffi::Double>>>>(#C34), #C9, [@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] #externalFieldValue.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] #externalFieldValue.{ffi::_Compound::_offsetInBytes}{core::int}, #C41.{core::List::[]}(ffi::_abi()){(core::int) → core::int});
 static method main() → void {
   core::print("first char of string: ${ffi::_loadAbiSpecificInt<ffi::Char>([@vm.inferred-type.metadata=dart.ffi::Pointer] self::aString, #C9)}");
   core::print("global int: {${self::anInt}}");
@@ -126,9 +126,9 @@ constants  {
   #C7 = "vm:prefer-inline"
   #C8 = core::pragma {name:#C7, options:#C4}
   #C9 = 0
-  #C10 = <core::int*>[#C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9]
+  #C10 = <core::int>[#C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9]
   #C11 = 8
-  #C12 = <core::int*>[#C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11]
+  #C12 = <core::int>[#C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11]
   #C13 = TypeLiteralConstant(self::Vec2d)
   #C14 = TypeLiteralConstant(ffi::Pointer<core::Object>)
   #C15 = <core::Type>[#C13, #C14]
@@ -155,9 +155,9 @@ constants  {
   #C36 = 1
   #C37 = 2
   #C38 = 3
-  #C39 = <core::int*>[#C37, #C38]
+  #C39 = <core::int>[#C37, #C38]
   #C40 = 48
-  #C41 = <core::int*>[#C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40]
+  #C41 = <core::int>[#C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40]
   #C42 = "anotherInt"
   #C43 = ffi::Native<ffi::Int> {symbol:#C42, assetId:#C20, isLeaf:#C21}
 }
