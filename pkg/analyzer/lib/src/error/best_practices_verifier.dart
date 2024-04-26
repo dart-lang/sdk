@@ -396,16 +396,20 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           var element = field.declaredElement;
           if (element is PropertyAccessorElement || element is FieldElement) {
             Name name = Name(_currentLibrary.source.uri, element!.name);
-            Element enclosingElement = element.enclosingElement!;
-            if (enclosingElement is InterfaceElement) {
+            var enclosingElement = element.enclosingElement!;
+            var enclosingDeclaration = enclosingElement is InstanceElement
+                ? enclosingElement.augmented.declaration
+                : enclosingElement;
+            if (enclosingDeclaration is InterfaceElement) {
               var overridden = _inheritanceManager
-                  .getMember2(enclosingElement, name, forSuper: true);
+                  .getMember2(enclosingDeclaration, name, forSuper: true);
               // Check for a setter.
               if (overridden == null) {
                 Name setterName =
                     Name(_currentLibrary.source.uri, '${element.name}=');
-                overridden = _inheritanceManager
-                    .getMember2(enclosingElement, setterName, forSuper: true);
+                overridden = _inheritanceManager.getMember2(
+                    enclosingDeclaration, setterName,
+                    forSuper: true);
               }
               return overridden;
             }
@@ -579,6 +583,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     bool wasInDoNotStoreMember = _inDoNotStoreMember;
     var element = node.declaredElement!;
     var enclosingElement = element.enclosingElement;
+    var enclosingDeclaration = enclosingElement is InstanceElement
+        ? enclosingElement.augmented.declaration
+        : enclosingElement;
 
     _deprecatedVerifier.pushInDeprecatedValue(element.hasDeprecated);
     if (element.hasDoNotStore) {
@@ -591,8 +598,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
       var name = Name(_currentLibrary.source.uri, element.name);
       var elementIsOverride = element is ClassMemberElement &&
-              enclosingElement is InterfaceElement
-          ? _inheritanceManager.getOverridden2(enclosingElement, name) != null
+              enclosingDeclaration is InterfaceElement
+          ? _inheritanceManager.getOverridden2(enclosingDeclaration, name) !=
+              null
           : false;
 
       if (!node.isSetter && !elementIsOverride) {
@@ -603,8 +611,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _checkStrictInferenceInParameters(node.parameters, body: node.body);
       }
 
-      var overriddenElement = enclosingElement is InterfaceElement
-          ? _inheritanceManager.getMember2(enclosingElement, name,
+      var overriddenElement = enclosingDeclaration is InterfaceElement
+          ? _inheritanceManager.getMember2(enclosingDeclaration, name,
               forSuper: true)
           : null;
 

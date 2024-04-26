@@ -307,12 +307,13 @@ class ElementResolver {
       // TODO(brianwilkerson): Report this error.
       return;
     }
+    var enclosingAugmented = enclosingClass.augmented;
     ConstructorElement? element;
     var name = node.constructorName;
     if (name == null) {
-      element = enclosingClass.unnamedConstructor;
+      element = enclosingAugmented.unnamedConstructor;
     } else {
-      element = enclosingClass.getNamedConstructor(name.name);
+      element = enclosingAugmented.getNamedConstructor(name.name);
     }
     if (element == null) {
       // TODO(brianwilkerson): Report this error and decide what element to

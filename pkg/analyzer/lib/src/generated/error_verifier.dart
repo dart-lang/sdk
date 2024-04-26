@@ -640,6 +640,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var element = node.declaredElement as EnumElementImpl;
 
       var augmented = element.augmented;
+      _checkAugmentations(
+        augmentKeyword: node.augmentKeyword,
+        element: element,
+      );
+
       _enclosingClass = element;
       _duplicateDefinitionVerifier.checkEnum(node);
 
@@ -707,6 +712,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
     var element = node.declaredElement!;
+
+    _checkAugmentations(
+      augmentKeyword: node.augmentKeyword,
+      element: element,
+    );
+
     _enclosingExtension = element;
     _duplicateDefinitionVerifier.checkExtension(node);
     _checkForConflictingExtensionTypeVariableErrorCodes();
@@ -734,6 +745,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var element = node.declaredElement!;
       var augmented = element.augmented;
       var declarationElement = augmented.declaration;
+
+      _checkAugmentations(
+        augmentKeyword: node.augmentKeyword,
+        element: element,
+      );
+
       _enclosingClass = declarationElement;
 
       _checkForBuiltInIdentifierAsName(node.name,
@@ -756,12 +773,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForExtensionTypeImplementsItself(node, element);
       _checkForExtensionTypeMemberConflicts(
         node: node,
-        element: element,
+        element: declarationElement,
       );
       _checkForExtensionTypeWithAbstractMember(node);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
 
-      var interface = _inheritanceManager.getInterface(element);
+      var interface = _inheritanceManager.getInterface(declarationElement);
       GetterSetterTypesVerifier(
         typeSystem: typeSystem,
         errorReporter: errorReporter,

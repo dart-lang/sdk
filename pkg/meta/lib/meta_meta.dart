@@ -92,6 +92,12 @@ class TargetKind {
   /// Indicates that an annotation is valid on any mixin declaration.
   static const mixinType = TargetKind._('mixins', 'mixinType');
 
+  /// Indicates that an annotation is valid on any optional formal parameter
+  /// declaration, whether it's in a constructor, function (named or anonymous),
+  /// function type, function-typed formal parameter, or method.
+  static const optionalParameter =
+      TargetKind._('optional parameters', 'optionalParameter');
+
   /// Indicates that an annotation is valid on any formal parameter declaration,
   /// whether it's in a constructor, function (named or anonymous), function
   /// type, function-typed formal parameter, or method.
@@ -138,6 +144,7 @@ class TargetKind {
     getter,
     method,
     mixinType,
+    optionalParameter,
     parameter,
     setter,
     topLevelVariable,

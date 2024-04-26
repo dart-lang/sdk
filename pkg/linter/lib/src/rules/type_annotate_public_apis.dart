@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
+import '../extensions.dart';
 import '../util/ascii_utils.dart';
 
 const _desc = r'Type annotate public APIs.';
@@ -83,6 +84,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule) : v = _VisitorHelper(rule);
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
+    if (node.isAugmentation) return;
+
     if (node.fields.type == null) {
       node.fields.accept(v);
     }
@@ -90,6 +93,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
+    if (node.isAugmentation) return;
+
     if (!isPrivate(node.name) &&
         // Only report on top-level functions, not those declared within the
         // scope of another function.
@@ -115,6 +120,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
+    if (node.isAugmentation) return;
+
     if (!isPrivate(node.name)) {
       if (node.returnType == null && !node.isSetter) {
         rule.reportLintForToken(node.name);
@@ -126,6 +133,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    if (node.isAugmentation) return;
+
     if (node.variables.type == null) {
       node.variables.accept(v);
     }

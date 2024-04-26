@@ -52,8 +52,10 @@ class DuplicateDefinitionVerifier {
 
   /// Check that there are no members with the same name.
   void checkEnum(EnumDeclaration node) {
-    var enumElement = node.declaredElement!;
-    var enumName = enumElement.name;
+    var element = node.declaredElement!;
+    var augmented = element.augmented;
+    var declarationElement = augmented.declaration;
+    var declarationName = declarationElement.name;
 
     var constructorNames = <String>{};
     var instanceGetters = <String, Element>{};
@@ -69,7 +71,7 @@ class DuplicateDefinitionVerifier {
 
     for (var member in node.members) {
       if (member is ConstructorDeclaration) {
-        if (member.returnType.name == enumElement.name) {
+        if (member.returnType.name == declarationElement.name) {
           var name = member.declaredElement!.name;
           if (!constructorNames.add(name)) {
             if (name.isEmpty) {
@@ -110,7 +112,7 @@ class DuplicateDefinitionVerifier {
       }
     }
 
-    if (enumName == 'values') {
+    if (declarationName == 'values') {
       _errorReporter.atToken(
         node.name,
         CompileTimeErrorCode.ENUM_WITH_NAME_VALUES,
@@ -118,7 +120,7 @@ class DuplicateDefinitionVerifier {
     }
 
     for (var constant in node.constants) {
-      if (constant.name.lexeme == enumName) {
+      if (constant.name.lexeme == declarationName) {
         _errorReporter.atToken(
           constant.name,
           CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING,
@@ -127,30 +129,30 @@ class DuplicateDefinitionVerifier {
     }
 
     _checkConflictingConstructorAndStatic(
-      interfaceElement: enumElement,
+      interfaceElement: declarationElement,
       staticGetters: staticGetters,
       staticSetters: staticSetters,
     );
 
-    for (var accessor in enumElement.accessors) {
+    for (var accessor in declarationElement.accessors) {
       var baseName = accessor.displayName;
       if (accessor.isStatic) {
-        var instance = _getInterfaceMember(enumElement, baseName);
+        var instance = _getInterfaceMember(declarationElement, baseName);
         if (instance != null && baseName != 'values') {
           _errorReporter.atElement(
             accessor,
             CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
-            arguments: [enumName, baseName, enumName],
+            arguments: [declarationName, baseName, declarationName],
           );
         }
       } else {
-        var inherited = _getInheritedMember(enumElement, baseName);
+        var inherited = _getInheritedMember(declarationElement, baseName);
         if (inherited is MethodElement) {
           _errorReporter.atElement(
             accessor,
             CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD,
             arguments: [
-              enumElement.displayName,
+              declarationElement.displayName,
               baseName,
               inherited.enclosingElement.displayName,
             ],
@@ -159,25 +161,25 @@ class DuplicateDefinitionVerifier {
       }
     }
 
-    for (var method in enumElement.methods) {
+    for (var method in declarationElement.methods) {
       var baseName = method.displayName;
       if (method.isStatic) {
-        var instance = _getInterfaceMember(enumElement, baseName);
+        var instance = _getInterfaceMember(declarationElement, baseName);
         if (instance != null) {
           _errorReporter.atElement(
             method,
             CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
-            arguments: [enumName, baseName, enumName],
+            arguments: [declarationName, baseName, declarationName],
           );
         }
       } else {
-        var inherited = _getInheritedMember(enumElement, baseName);
+        var inherited = _getInheritedMember(declarationElement, baseName);
         if (inherited is PropertyAccessorElement) {
           _errorReporter.atElement(
             method,
             CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD,
             arguments: [
-              enumElement.displayName,
+              declarationElement.displayName,
               baseName,
               inherited.enclosingElement.displayName,
             ],

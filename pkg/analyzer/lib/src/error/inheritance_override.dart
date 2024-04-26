@@ -61,6 +61,10 @@ class InheritanceOverrideVerifier {
           withClause: declaration.withClause,
         );
       } else if (declaration is ClassTypeAlias) {
+        var element = declaration.declaredElement!;
+        if (element.isAugmentation) {
+          continue;
+        }
         verifier = _ClassVerifier(
           typeSystem: _typeSystem,
           typeProvider: _typeProvider,
@@ -69,13 +73,17 @@ class InheritanceOverrideVerifier {
           featureSet: unit.featureSet,
           library: library,
           classNameToken: declaration.name,
-          classElement: declaration.declaredElement!,
+          classElement: element,
           strictCasts: _strictCasts,
           implementsClause: declaration.implementsClause,
           superclass: declaration.superclass,
           withClause: declaration.withClause,
         );
       } else if (declaration is EnumDeclaration) {
+        var element = declaration.declaredElement!;
+        if (element.isAugmentation) {
+          continue;
+        }
         verifier = _ClassVerifier(
           typeSystem: _typeSystem,
           typeProvider: _typeProvider,
@@ -84,7 +92,7 @@ class InheritanceOverrideVerifier {
           featureSet: unit.featureSet,
           library: library,
           classNameToken: declaration.name,
-          classElement: declaration.declaredElement!,
+          classElement: element,
           strictCasts: _strictCasts,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
