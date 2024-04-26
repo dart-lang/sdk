@@ -5,7 +5,7 @@
 import 'dart:html';
 import 'dart:typed_data';
 
-import 'package:expect/minitest.dart';
+import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 const _FLOATING_POINT_ERROR = 0.0000000001;
 floatEquals(value) => closeTo(value, _FLOATING_POINT_ERROR);

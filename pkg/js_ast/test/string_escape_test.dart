@@ -4,7 +4,7 @@
 
 library js_ast.string_escape_test;
 
-import 'package:expect/minitest.dart';
+import 'package:expect/minitest.dart'; // ignore: deprecated_member_use
 import 'package:js_ast/js_ast.dart';
 import 'package:js_ast/src/characters.dart';
 

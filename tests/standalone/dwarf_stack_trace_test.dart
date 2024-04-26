@@ -181,7 +181,7 @@ Future<void> checkStackTrace(String rawStack, Dwarf dwarf,
   final gotCallsTrace =
       gotSymbolizedCalls.sublist(0, expectedCallCount).join('\n');
 
-  Expect.stringContainsInOrder(gotCallsTrace, expectedStrings);
+  Expect.containsInOrder(expectedStrings, gotCallsTrace);
 }
 
 final expectedCallsInfo = <List<DartCallInfo>>[

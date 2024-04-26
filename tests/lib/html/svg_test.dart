@@ -5,7 +5,7 @@
 import 'dart:html';
 import 'dart:svg' as svg;
 
-import 'package:expect/minitest.dart';
+import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 main() {
   group('svgPresence', () {

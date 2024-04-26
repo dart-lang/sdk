@@ -10,7 +10,7 @@ import 'dart:typed_data';
 
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:expect/minitest.dart';
+import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 const isJSBackend = const bool.fromEnvironment('dart.library.html');
 
