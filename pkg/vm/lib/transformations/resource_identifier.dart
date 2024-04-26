@@ -84,6 +84,7 @@ class _ResourceIdentifierVisitor extends RecursiveVisitor {
     } else if (fieldValue case PrimitiveConstant()) {
       return fieldValue.value.toString();
     } else {
+      // TODO(https://dartbug.com/55407): Support Map and List.
       return throw UnsupportedError(
           'The type ${fieldValue.runtimeType} is not a '
           'supported metadata type for `@ResourceIdentifier` annotations');
@@ -122,8 +123,18 @@ class _ResourceIdentifierVisitor extends RecursiveVisitor {
         );
   }
 
+  static Library? _enclosingLibrary(TreeNode node) {
+    while (node is! Library) {
+      final parent = node.parent;
+      if (parent == null) return null;
+      node = parent;
+    }
+    return node;
+  }
+
   ResourceFile _resourceFile(StaticInvocation node, Identifier identifier) {
-    final importUri = node.target.enclosingLibrary.importUri.toString();
+    final enclosingLibrary = _enclosingLibrary(node)!;
+    final importUri = enclosingLibrary.importUri.toString();
     final id = _loadingUnits
             .firstWhereOrNull(
                 (element) => element.libraryUris.contains(importUri))
@@ -166,13 +177,31 @@ class _ResourceIdentifierVisitor extends RecursiveVisitor {
       expression is BasicLiteral ? expression.value : null;
 }
 
-//TODO(mosum): Expose these classes externally, as they will have to be used
-//when parsing the generated JSON file.
+// TODO(mosum): Expose these classes externally, as they will have to be used
+// when parsing the generated JSON file.
+/// A method with a `@ResourceIdentifier` annotation.
+///
+/// Each identifier has a list of [ResourceReference]s (method invocations).
+/// These references are organized per [ResourceFile].
 class Identifier {
-  final String name;
-  final String id;
+  /// The uri of the library which contains [name].
   final String uri;
+
+  // TODO(https://dartbug.com/55494): Add the surrounding class/extension.
+  // TODO(https://dartbug.com/55494): Support extension getters/setters.
+  // Or make fully qualitified, non-conflicting canonical names in another way.
+  /// The name of the method that has a `@ResourceIdentifier` annotation.
+  final String name;
+
+  // TODO(https://dartbug.com/55494): Rename to metadata?
+  /// The metadata field of the first `@ResourceIdentifier` annotation on this
+  /// method.
+  final String id;
+
+  // TODO(dacoharkes): Replace with `isConstant` or `isConst`.
+  /// Whether the method is not `const`.
   final bool nonConstant;
+
   final List<ResourceFile> files;
 
   Identifier({
@@ -199,8 +228,25 @@ class Identifier {
   }
 }
 
+// TODO(https://dartbug.com/55494): Rename to loading unit. This 'File' refers
+// to an output file, not a source file.
+/// A loading unit.
+///
+/// With deferred loading, Dart is compiled into separate loading units.
+///
+/// [ResourceReference]s are in a loading unit. Knowing from which loading
+/// unit a resource is used means that loading such resource can be deferred
+/// to when that loading unit is loaded.
 class ResourceFile {
+  /// Unique identifier for the loading unit.
+  ///
+  /// Loading units are constructed by the Dart compiler based on the `deferred`
+  /// keyword. As such these parts are not stable.
+  ///
+  /// By convention, these unique identifiers are integers in the VM backend.
   final int part;
+
+  /// The invocations of a method with a `@ResourceIdentifier` annotation.
   final List<ResourceReference> references;
 
   ResourceFile({required this.part, required this.references});
@@ -216,10 +262,31 @@ class ResourceFile {
   String toString() => 'ResourceFile(part: $part, references: $references)';
 }
 
+/// An invocation of a method with a `@ResourceIdentifier` annotation.
 class ResourceReference {
+  // TODO(https://dartbug.com/55494): Make source locations optional.
+  /// Library uri of the invocation.
   final String uri;
+
+  // TODO(https://dartbug.com/55494): Make source locations optional.
+  /// Line number of the invocation.
   final int line;
+
+  // TODO(https://dartbug.com/55494): Make source locations optional.
+  /// Column of the invocation.
   final int column;
+
+  // TODO(https://dartbug.com/55494): Should positional arguments be 0 indexed?
+  /// The mapping from parameters to constant argument value.
+  ///
+  /// The map only contains entries for the arguments which are constant. (Note
+  /// that `null` is a valid constant argument.)
+  ///
+  /// For arguments to positional parameters, the keys in this map are
+  /// [int.toString] of the position, 1 indexed.
+  ///
+  /// For arguments to named parameters, the keys in this map are the name of
+  /// the parameter.
   final Map<String, Object?> arguments;
 
   ResourceReference({

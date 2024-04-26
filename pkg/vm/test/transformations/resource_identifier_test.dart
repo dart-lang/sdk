@@ -60,7 +60,8 @@ void runTestCaseAot(Uri source, bool throws) async {
     component,
   );
 
-  final actual = kernelLibraryToString(component.mainMethod!.enclosingLibrary);
+  final actual = kernelLibraryToString(component.mainMethod!.enclosingLibrary)
+      .replaceAll(_pkgVmDir.toString(), 'org-dartlang-test:///');
 
   compareResultWithExpectationsFile(source, actual, expectFilePostfix: '.aot');
   compareResultWithExpectationsFile(
@@ -81,6 +82,7 @@ void main(List<String> args) {
         .listSync(recursive: true, followLinks: false)
         .reversed) {
       if (file.path.endsWith('.dart') &&
+          !file.path.contains('helper') &&
           (filter == null || file.path.contains(filter))) {
         test('${file.path} aot',
             () => runTestCaseAot(file.uri, file.path.contains('throws')));

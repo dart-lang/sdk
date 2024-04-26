@@ -216,8 +216,9 @@ class _ParameterInfo {
       isChecked = true;
     }
 
-    /// Avoid inlining methods annotated with `@ResourceIdentifier`, where we
-    /// want to store which arguments were actually passed.
+    /// Disable signature shaking for annotated methods, to prevent removal of
+    /// parameters. The consumers of resources.json expect constant argument
+    /// values to be present for all parameters.
     if (member is Procedure &&
         ResourceIdentifiers.findResourceAnnotations(member).isNotEmpty) {
       isChecked = true;

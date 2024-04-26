@@ -1,0 +1,51 @@
+{
+  "_comment": "Resources referenced by annotated resource identifiers",
+  "AppTag": "TBD",
+  "environment": {
+    "dart.tool.dart2js": false
+  },
+  "identifiers": [
+    {
+      "name": "someStaticMethod",
+      "id": "id",
+      "uri": "pkg/vm/testcases/transformations/resource_identifier/loading_units_simple.dart",
+      "nonConstant": true,
+      "files": [
+        {
+          "part": 1,
+          "references": [
+            {
+              "@": {
+                "uri": "pkg/vm/testcases/transformations/resource_identifier/loading_units_simple.dart",
+                "line": 14,
+                "column": 13
+              },
+              "1": 42
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "someStaticMethod",
+      "id": "id",
+      "uri": "pkg/vm/testcases/transformations/resource_identifier/loading_units_simple_helper.dart",
+      "nonConstant": true,
+      "files": [
+        {
+          "part": 2,
+          "references": [
+            {
+              "@": {
+                "uri": "pkg/vm/testcases/transformations/resource_identifier/loading_units_simple_helper.dart",
+                "line": 8,
+                "column": 13
+              },
+              "1": 42
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
