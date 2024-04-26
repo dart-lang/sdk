@@ -9,6 +9,7 @@ import 'dart:math';
 
 import 'package:_fe_analyzer_shared/src/util/relativize.dart' as fe_shared;
 import 'package:args/args.dart';
+import 'package:collection/collection.dart';
 import 'package:dev_compiler/dev_compiler.dart' as ddc_names
     show libraryUriToJsIdentifier;
 import 'package:front_end/src/compute_platform_binaries_location.dart' as fe;
@@ -22,6 +23,11 @@ final globalMaxGenerations = 100;
 
 final testTimeoutSeconds = 10;
 
+// The separator between a test file and its inlined diff.
+//
+// All contents after this separator are considered are diff comments.
+final testDiffSeparator = '/** DIFF **/';
+
 final argParser = ArgParser()
   ..addOption('runtime',
       abbr: 'r',
@@ -33,6 +39,16 @@ final argParser = ArgParser()
       defaultsTo: 'no-configuration',
       help: 'configuration name to use for emitting test result files.')
   ..addOption('output-directory', help: 'directory to emit test results files.')
+  ..addOption('diff',
+      allowed: ['check', 'write', 'ignore'],
+      allowedHelp: {
+        'check': 'Validate that reload test diffs are generated and correct.',
+        'write': 'Write diffs for reload tests.',
+        'ignore': 'Ignore reload diffs.',
+      },
+      defaultsTo: 'check',
+      help:
+          'Selects whether test diffs should be checked, written, or ignored.')
   ..addFlag('debug',
       abbr: 'd',
       defaultsTo: false,
@@ -47,8 +63,6 @@ final argParser = ArgParser()
 late final bool verbose;
 late final bool debug;
 
-/// TODO(markzipan): Add arg parsing for additional execution modes
-/// (chrome, VM) and diffs across generations.
 Future<void> main(List<String> args) async {
   final argResults = argParser.parse(args);
   final runtimePlatform =
@@ -167,7 +181,7 @@ Future<void> main(List<String> args) async {
     );
     var stopwatch = Stopwatch()..start();
 
-    // Report results for this test.
+    // Report results for this test's execution.
     Future<void> reportTestOutcome(String testOutput, bool testPassed) async {
       stopwatch.stop();
       outcome.elapsedTime = stopwatch.elapsed;
@@ -175,9 +189,29 @@ Future<void> main(List<String> args) async {
       outcome.matchedExpectations = testPassed;
       testOutcomes.add(outcome);
       if (testPassed) {
-        _print('PASSED with:\n$testOutput', label: testName);
+        _print('PASSED with:\n  $testOutput', label: testName);
       } else {
-        _print('FAILED with:\n$testOutput', label: testName);
+        _print('FAILED with:\n  $testOutput', label: testName);
+      }
+    }
+
+    // Report results for this test's sources' diff validations.
+    void reportDiffOutcome(Uri fileUri, String testOutput, bool testPassed) {
+      final filePath = fileUri.path;
+      var outcome = TestResultOutcome(
+        configuration: argResults['named-configuration'] as String,
+        testName: '$filePath-diff',
+        testOutput: testOutput,
+      );
+      outcome.elapsedTime = stopwatch.elapsed;
+      outcome.matchedExpectations = testPassed;
+      testOutcomes.add(outcome);
+      if (testPassed) {
+        _debugPrint('PASSED (diff on $filePath) with:\n  $testOutput',
+            label: testName);
+      } else {
+        _debugPrint('FAILED (diff on $filePath) with:\n  $testOutput',
+            label: testName);
       }
     }
 
@@ -190,15 +224,20 @@ Future<void> main(List<String> args) async {
 
     var filesystem = HotReloadMemoryFilesystem(tempUri);
 
-    // Count the number of generations for this test.
+    // Perform checks on this test's files. Checks include:
+    // 1) Count the number of generations and ensure they're capped.
+    // 2) Validate or generate diffs if specified
     //
     // Assumes all files are named like '$name.$integer.dart', where 0 is the
     // first generation.
     //
     // TODO(markzipan): Account for subdirectories.
     var maxGenerations = 0;
-    var testConfig = ReloadTestConfiguration();
-    for (var file in testDir.listSync()) {
+    late ReloadTestConfiguration testConfig;
+    // All files in this test clustered by file name - in generation order.
+    final filesByGeneration = <String, PriorityQueue<(int, Uri)>>{};
+
+    for (final file in testDir.listSync()) {
       if (file is File) {
         final fileName = file.uri.pathSegments.last;
         // Process config files.
@@ -209,17 +248,140 @@ Future<void> main(List<String> args) async {
             throw Exception('Invalid test source file name: $fileName\n'
                 'Valid names look like "file_name.10.dart".');
           }
-          var strippedName =
-              file.path.substring(0, file.path.length - '.dart'.length);
-          var parts = strippedName.split('.');
-          var generationId = int.parse(parts[parts.length - 1]);
+          final strippedName =
+              fileName.substring(0, fileName.length - '.dart'.length);
+          final generationIndex = strippedName.lastIndexOf('.');
+          final generationId =
+              int.parse(strippedName.substring(generationIndex + 1));
           maxGenerations = max(maxGenerations, generationId);
+          final basename = strippedName.substring(0, generationIndex);
+          filesByGeneration
+              .putIfAbsent(
+                  basename,
+                  () => PriorityQueue(
+                      ((int, Uri) a, (int, Uri) b) => a.$1 - b.$1))
+              .add((generationId, file.uri));
         }
       }
     }
     if (maxGenerations > globalMaxGenerations) {
       throw Exception('Too many generations specified in test '
           '(requested: $maxGenerations, max: $globalMaxGenerations).');
+    }
+    switch (argResults['diff']) {
+      case 'check':
+        _print('Checking source file diffs.', label: testName);
+        filesByGeneration.forEach((basename, filesQueue) {
+          final files = filesQueue.toList();
+          _debugPrint('Checking source file diffs for $files.',
+              label: testName);
+          files.forEachIndexed((i, (int, Uri) element) {
+            var (_, file) = element;
+            if (i == 0) {
+              // Check that the first file does not have a diff.
+              !File.fromUri(file).readAsStringSync().contains(testDiffSeparator)
+                  ? reportDiffOutcome(
+                      file, 'First generation does not have a diff', true)
+                  : reportDiffOutcome(file,
+                      'First generation should not have any diffs', false);
+            } else {
+              // Check that exactly one diff exists.
+              final currentText = File.fromUri(file).readAsStringSync();
+              final diffCount =
+                  testDiffSeparator.allMatches(currentText).length;
+              if (diffCount == 0) {
+                reportDiffOutcome(file, 'No diff found for $file', false);
+                return;
+              }
+              if (diffCount > 1) {
+                reportDiffOutcome(
+                    file, 'Too many diffs found for $file (expected 1)', false);
+                return;
+              }
+              // Check that the diff is properly generated.
+              final (_, previousFile) = files[i - 1];
+              final (previousCode, _) = _splitTestByDiff(previousFile);
+              final (currentCode, currentDiff) = _splitTestByDiff(file);
+              // 'main' is allowed to have empty diffs since the first
+              // generation must be specified.
+              if (basename != 'main' && previousCode == currentCode) {
+                // TODO(markzipan): Should we make this an error?
+                _print(
+                    'Extraneous file detected. $file is identical to '
+                    '$previousFile and can be removed.',
+                    label: testName);
+              }
+              final previousTempUri = generatedCodeUri.resolve('__previous');
+              final currentTempUri = generatedCodeUri.resolve('__current');
+              File.fromUri(previousTempUri).writeAsStringSync(previousCode);
+              File.fromUri(currentTempUri).writeAsStringSync(currentCode);
+              final diffOutput = _diffWithFileUris(
+                  previousTempUri, currentTempUri,
+                  label: testName);
+              File.fromUri(previousTempUri).deleteSync();
+              File.fromUri(currentTempUri).deleteSync();
+              if (diffOutput != currentDiff) {
+                reportDiffOutcome(
+                    file,
+                    'Unexpected diff found for $file:\n'
+                    '-- Expected --\n$diffOutput\n'
+                    '-- Actual --\n$currentDiff',
+                    false);
+                return;
+              }
+              reportDiffOutcome(file, 'Correct diff found for $file', true);
+              return;
+            }
+          });
+        });
+        break;
+      case 'write':
+        _print('Generating source file diffs.', label: testName);
+        filesByGeneration.forEach((basename, filesQueue) {
+          final files = filesQueue.toList();
+          _debugPrint('Generating source file diffs for $files.',
+              label: testName);
+          files.forEachIndexed((i, (int, Uri) element) {
+            final (_, file) = element;
+            final (currentCode, currentDiff) = _splitTestByDiff(file);
+            // Don't generate a diff for the first file of any generation,
+            // and delete any diffs encountered.
+            if (i == 0) {
+              if (currentDiff.isNotEmpty) {
+                _print('Removing extraneous diff from $file', label: testName);
+                File.fromUri(file).writeAsStringSync(currentCode);
+              }
+              return;
+            }
+            final (_, previousFile) = files[i - 1];
+            final (previousCode, _) = _splitTestByDiff(previousFile);
+            final previousTempUri = generatedCodeUri.resolve('__previous');
+            final currentTempUri = generatedCodeUri.resolve('__current');
+            File.fromUri(previousTempUri).writeAsStringSync(previousCode);
+            File.fromUri(currentTempUri).writeAsStringSync(currentCode);
+            final diffOutput = _diffWithFileUris(
+                previousTempUri, currentTempUri,
+                label: testName);
+            File.fromUri(previousTempUri).deleteSync();
+            File.fromUri(currentTempUri).deleteSync();
+            final newCurrentText =
+                '$currentCode${currentCode.endsWith('\n') ? '' : '\n'}$diffOutput\n';
+            File.fromUri(file).writeAsStringSync(newCurrentText);
+            _print('Writing updated diff to $file', label: testName);
+            _debugPrint('Updated diff:\n$diffOutput', label: testName);
+            reportDiffOutcome(file, 'diff updated for $file', true);
+          });
+        });
+        break;
+      case 'ignore':
+        _print('Ignoring source file diffs.', label: testName);
+        filesByGeneration.forEach((basename, filesQueue) {
+          filesQueue.unorderedElements.forEach(((int, Uri) element) {
+            final (_, file) = element;
+            reportDiffOutcome(file, 'Ignoring diff for $file', true);
+          });
+        });
+        break;
     }
 
     // Skip this test directory if this platform is excluded.
@@ -492,7 +654,7 @@ Future<void> main(List<String> args) async {
   if (failedTests.isNotEmpty) {
     print('Some tests failed:');
     failedTests.forEach((outcome) {
-      print('${outcome.testName} failed with:\n${outcome.testOutput}');
+      print('${outcome.testName} failed with:\n  ${outcome.testOutput}');
     });
     exit(1);
   }
@@ -530,6 +692,46 @@ void _debugPrint(String message, {String? label}) {
     final labelText = label == null ? '' : '($label)';
     print('DEBUG$labelText: $message');
   }
+}
+
+/// Returns the diff'd output between two files.
+///
+/// These diffs are appended at the end of updated file generations for better
+/// test readability.
+///
+/// If [commented] is set, the output will be wrapped in multiline comments
+/// and the diff separator.
+String _diffWithFileUris(Uri file1, Uri file2,
+    {String label = '', bool commented = true}) {
+  final file1Path = file1.toFilePath();
+  final file2Path = file2.toFilePath();
+  _debugPrint(
+      "Running diff with 'diff -dy --suppress-common-lines"
+      " --expand-tabs $file1Path $file2Path'.",
+      label: label);
+  final diffProcess = Process.runSync('diff', [
+    '-dy',
+    '--suppress-common-lines',
+    '--expand-tabs',
+    file1Path,
+    file2Path
+  ]);
+  final errOutput = diffProcess.stderr as String;
+  if (errOutput.isNotEmpty) {
+    throw Exception('diff failed with:\n$errOutput');
+  }
+  final output = diffProcess.stdout as String;
+  return commented ? '$testDiffSeparator\n/*\n$output*/' : output;
+}
+
+/// Returns the code and diff portions of [file].
+(String, String) _splitTestByDiff(Uri file) {
+  final text = File.fromUri(file).readAsStringSync();
+  final diffIndex = text.indexOf(testDiffSeparator);
+  final diffSplitIndex = diffIndex == -1 ? text.length - 1 : diffIndex;
+  final codeText = text.substring(0, diffSplitIndex);
+  final diffText = text.substring(diffSplitIndex, text.length - 1);
+  return (codeText, diffText);
 }
 
 abstract class HotReloadSuiteRunner {
