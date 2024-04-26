@@ -268,7 +268,14 @@ Future<void> main(List<String> args) async {
       throw Exception('Too many generations specified in test '
           '(requested: $maxGenerations, max: $globalMaxGenerations).');
     }
-    switch (argResults['diff']) {
+
+    var diffMode = argResults['diff']!;
+    if (fe_shared.isWindows && diffMode != 'ignore') {
+      _print("Diffing isn't supported on Windows. Defaulting to 'ignore'.",
+          label: testName);
+      diffMode = 'ignore';
+    }
+    switch (diffMode) {
       case 'check':
         _print('Checking source file diffs.', label: testName);
         filesByGeneration.forEach((basename, filesQueue) {
@@ -701,26 +708,32 @@ void _debugPrint(String message, {String? label}) {
 ///
 /// If [commented] is set, the output will be wrapped in multiline comments
 /// and the diff separator.
+///
+/// If [trimHeaders] is set, the leading '+++' and '---' file headers will be
+/// removed.
 String _diffWithFileUris(Uri file1, Uri file2,
-    {String label = '', bool commented = true}) {
+    {String label = '', bool commented = true, bool trimHeaders = true}) {
   final file1Path = file1.toFilePath();
   final file2Path = file2.toFilePath();
-  _debugPrint(
-      "Running diff with 'diff -dy --suppress-common-lines"
-      " --expand-tabs $file1Path $file2Path'.",
-      label: label);
-  final diffProcess = Process.runSync('diff', [
-    '-dy',
-    '--suppress-common-lines',
+  final diffArgs = [
+    '-du',
+    '--width=120',
     '--expand-tabs',
     file1Path,
     file2Path
-  ]);
+  ];
+  _debugPrint("Running diff with 'diff ${diffArgs.join(' ')}'.", label: label);
+  final diffProcess = Process.runSync('diff', diffArgs);
   final errOutput = diffProcess.stderr as String;
   if (errOutput.isNotEmpty) {
     throw Exception('diff failed with:\n$errOutput');
   }
-  final output = diffProcess.stdout as String;
+  var output = diffProcess.stdout as String;
+  if (trimHeaders) {
+    // Skip the first two lines.
+    // TODO(markzipan): Add support for Windows-style line endings.
+    output = output.split('\n').skip(2).join('\n');
+  }
   return commented ? '$testDiffSeparator\n/*\n$output*/' : output;
 }
 
@@ -731,7 +744,9 @@ String _diffWithFileUris(Uri file1, Uri file2,
   final diffSplitIndex = diffIndex == -1 ? text.length - 1 : diffIndex;
   final codeText = text.substring(0, diffSplitIndex);
   final diffText = text.substring(diffSplitIndex, text.length - 1);
-  return (codeText, diffText);
+  // Avoid 'No newline at end of file' messages in the output by appending a
+  // newline if one is not already trailing.
+  return ('$codeText${codeText.endsWith('\n') ? '' : '\n'}', diffText);
 }
 
 abstract class HotReloadSuiteRunner {

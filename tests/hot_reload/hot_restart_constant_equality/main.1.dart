@@ -31,3 +31,15 @@ void main() {
   Expect.equals('ConstObject(reloadVariable: 45, ConstantEqualitySuccess)',
       '${const ConstObject().text}');
 }
+/** DIFF **/
+/*
+@@ -28,7 +28,6 @@
+ }
+ 
+ void main() {
+-  Expect.equals('ConstObject(reloadVariable: 23, ConstantEqualitySuccess)',
++  Expect.equals('ConstObject(reloadVariable: 45, ConstantEqualitySuccess)',
+       '${const ConstObject().text}');
+-  hotRestart();
+ }
+*/

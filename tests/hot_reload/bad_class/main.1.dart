@@ -19,3 +19,15 @@ Future<void> main() async {
   await hotReload();
   throw Exception('This should never run.');
 }
+/** DIFF **/
+/*
+@@ -9,7 +9,7 @@
+ // https://github.com/dart-lang/sdk/blob/36c0788137d55c6c77f4b9a8be12e557bc764b1c/runtime/vm/isolate_reload_test.cc#L364
+ 
+ class Foo {
+-  final a;
++  final a kjsdf ksjdf;
+   Foo(this.a);
+ }
+ 
+*/

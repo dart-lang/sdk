@@ -53,3 +53,6 @@ Future<void> main() async {
   Expect.equals('ac', topLevel);
   Expect.equals(5, hotReloadGeneration);
 }
+/** DIFF **/
+/*
+*/

@@ -53,3 +53,15 @@ Future<void> main() async {
   Expect.equals('ac', topLevel);
   Expect.equals(5, hotReloadGeneration);
 }
+/** DIFF **/
+/*
+@@ -11,7 +11,7 @@
+ import 'b.dart';
+ import 'c.dart';
+ 
+-f() => "$line part4";
++f() => "$line part6";
+ 
+ Future<void> main() async {
+   // Initial program is valid.
+*/
