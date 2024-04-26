@@ -66,8 +66,8 @@ void main() async {
 
     var toString = e.toString();
     Expect.contains("ParallelWaitError(2 errors):", toString);
-    Expect.containsOneOf(["error 1", "error 3"], toString);
-    Expect.containsOneOf(["stack 1", "stack 3"], e.stackTrace.toString());
+    Expect.containsAny(["error 1", "error 3"], toString);
+    Expect.containsAny(["stack 1", "stack 3"], e.stackTrace.toString());
   }
 
   // All errors.
@@ -89,10 +89,9 @@ void main() async {
 
     var toString = e.toString();
     Expect.contains("ParallelWaitError(5 errors):", toString);
-    Expect.containsOneOf(
+    Expect.containsAny(
         ["error 0", "error 1", "error 2", "error 3", "error 4"], toString);
-    Expect.containsOneOf(
-        ["stack 0", "stack 1", "stack 2", "stack 3", "stack 4"],
+    Expect.containsAny(["stack 0", "stack 1", "stack 2", "stack 3", "stack 4"],
         e.stackTrace.toString());
   }
 

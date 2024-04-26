@@ -7,7 +7,7 @@ library external_static_member_lowerings_trusttypes_test;
 
 import 'dart:js_interop';
 
-import 'package:expect/minitest.dart';
+import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 import 'package:js/js.dart' show trustTypes;
 
 @JS()

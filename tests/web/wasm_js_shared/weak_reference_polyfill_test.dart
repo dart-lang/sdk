@@ -5,7 +5,7 @@
 // Basic tests for the dart2js-only polyfill for WeakReference and Finalizer API
 // for the dart2js backends.
 
-import 'package:expect/minitest.dart';
+import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 import 'dart:js_interop_unsafe';
 import 'dart:js_interop';

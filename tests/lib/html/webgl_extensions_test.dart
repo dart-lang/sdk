@@ -7,7 +7,7 @@ library web_gl_test;
 import 'dart:html';
 import 'dart:web_gl';
 
-import 'package:expect/minitest.dart';
+import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 final isAngleInstancedArrays = (v) => v is AngleInstancedArrays;
 final isExtBlendMinMax = (v) => v is ExtBlendMinMax;

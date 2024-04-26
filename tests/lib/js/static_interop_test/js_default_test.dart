@@ -10,7 +10,7 @@ library js_default_test;
 
 import 'dart:js_interop';
 
-import 'package:expect/minitest.dart';
+import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 import 'js_default_with_namespaces.dart' as namespace;
 

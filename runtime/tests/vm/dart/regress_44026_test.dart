@@ -37,7 +37,7 @@ main() async {
     print('stdout: ${result.stdout}');
     print('stderr: ${result.stderr}');
     Expect.equals(kCompilationErrorExitCode, result.exitCode);
-    Expect.stringContainsInOrder(
-        result.stderr, ["Error: Library doesn't support null safety."]);
+    Expect.contains(
+        "Error: Library doesn't support null safety.", result.stderr);
   });
 }

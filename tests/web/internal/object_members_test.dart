@@ -10,7 +10,7 @@
 library object_members_test;
 
 import 'package:js/js.dart';
-import 'package:expect/minitest.dart';
+import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 import 'dart:html';
 import 'dart:_interceptors' show JSObject;

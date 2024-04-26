@@ -10,7 +10,7 @@ import 'dart:developer'
 
 import 'package:js/js.dart';
 import 'package:expect/expect.dart';
-import 'package:expect/minitest.dart';
+import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 @JS(r'$emitDebugEvent')
 external set emitDebugEvent(void Function(String, String)? func);

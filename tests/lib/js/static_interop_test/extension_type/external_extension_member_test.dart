@@ -7,7 +7,7 @@ library external_extension_member_test;
 
 import 'dart:js_interop';
 
-import 'package:expect/minitest.dart';
+import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 @JS()
 external void eval(String code);

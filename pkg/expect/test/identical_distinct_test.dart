@@ -68,6 +68,21 @@ main() {
     list.add(list[0]);
     Expect.allDistinct(list, msg);
   });
+
+  Expect.identical(o1, o1);
+  Expect.allIdentical([]);
+  Expect.allIdentical([o1]);
+  Expect.allIdentical([o1, o1]);
+  Expect.allIdentical([o1, o1, o1]);
+  fails((msg) {
+    Expect.identical(o1, o2, msg);
+  });
+  fails((msg) {
+    Expect.allIdentical([o1, o2], msg);
+  });
+  fails((msg) {
+    Expect.allIdentical([o1, o1, o2], msg);
+  });
 }
 
 class C {
