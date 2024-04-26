@@ -356,8 +356,9 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
     if (arch == Architecture.ia32) {
       multiplier *= 2;
     }
-    if (arch == Architecture.x64 && system == System.mac) {
-      multiplier *= 2; // Older, slower machines.
+    if ((arch == Architecture.x64 && system == System.mac) ||
+        (arch == Architecture.arm64 && system == System.win)) {
+      multiplier *= 2; // Slower machines.
     }
 
     if (mode.isDebug) {

@@ -2,8 +2,10 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+LibTest/io/FileSystemModifyEvent/*: Pass, Slow
+LibTest/io/FileSystemMoveEvent/*: Pass, Slow
+
 [ $system == windows ]
-LibTest/io/FileSystemModifyEvent/contentChanged_A01_t01: Pass, Slow
 LibTest/io/ProcessResult/exitCode_A01_t02: Skip # Issue 32138
 LibTest/io/Stdin/readByteSync_A01_t01: Skip # Issue 32138
 LibTest/io/Stdin/readByteSync_A01_t02: Skip # Issue 32138
