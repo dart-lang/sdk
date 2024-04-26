@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $system == windows ]
+LibTest/io/FileSystemModifyEvent/contentChanged_A01_t01: Pass, Slow
 LibTest/io/ProcessResult/exitCode_A01_t02: Skip # Issue 32138
 LibTest/io/Stdin/readByteSync_A01_t01: Skip # Issue 32138
 LibTest/io/Stdin/readByteSync_A01_t02: Skip # Issue 32138
