@@ -15,7 +15,7 @@ class Class<S extends core::Object? = dynamic, T extends core::Object? = dynamic
     return new self::Class::•<self::Class::_#new#tearOff::S%, self::Class::_#new#tearOff::T%>(a, b);
   static method _#named#tearOff<S extends core::Object? = dynamic, T extends core::Object? = dynamic>(self::Class::_#named#tearOff::S% a, [self::Class::_#named#tearOff::T? b, has-declared-initializer core::int c]) → self::Class<self::Class::_#named#tearOff::S%, self::Class::_#named#tearOff::T%>
     return new self::Class::named<self::Class::_#named#tearOff::S%, self::Class::_#named#tearOff::T%>(a, b, c);
-  static factory fact<S extends core::Object? = dynamic, T extends core::Object? = dynamic>(self::Class::fact::S% a, {self::Class::fact::T? b, has-declared-initializer core::int c}) → self::Class<self::Class::fact::S%, self::Class::fact::T%>
+  static factory fact<S extends core::Object? = dynamic, T extends core::Object? = dynamic>(self::Class::fact::S% a, {self::Class::fact::T? b = null, core::int c = 42}) → self::Class<self::Class::fact::S%, self::Class::fact::T%>
     ;
   static method _#fact#tearOff<S extends core::Object? = dynamic, T extends core::Object? = dynamic>(self::Class::_#fact#tearOff::S% a, {self::Class::_#fact#tearOff::T? b, has-declared-initializer core::int c}) → self::Class<self::Class::_#fact#tearOff::S%, self::Class::_#fact#tearOff::T%>
     return self::Class::fact<self::Class::_#fact#tearOff::S%, self::Class::_#fact#tearOff::T%>(a, b: b, c: c);

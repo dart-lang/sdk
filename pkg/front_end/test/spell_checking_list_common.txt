@@ -339,6 +339,7 @@ branch
 branched
 branches
 break
+breakage
 breaking
 breakpoint
 breaks
@@ -3342,6 +3343,7 @@ updater
 updaters
 updates
 updating
+uphold
 upon
 upper
 uppercase

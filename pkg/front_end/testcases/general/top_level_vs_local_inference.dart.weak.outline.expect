@@ -25,7 +25,7 @@ class Column extends core::Object {
 class TableSchema<F extends self::Column, C extends self::TableContext> extends core::Object {
   constructor _() → self::TableSchema<self::TableSchema::F, self::TableSchema::C>
     ;
-  static factory •<F extends self::Column, C extends self::TableContext>({required core::Iterable<self::TableSchema::•::F> fields, self::TableSchema::•::C? context}) → self::TableSchema<self::TableSchema::•::F, self::TableSchema::•::C>
+  static factory •<F extends self::Column, C extends self::TableContext>({required core::Iterable<self::TableSchema::•::F> fields, self::TableSchema::•::C? context = null}) → self::TableSchema<self::TableSchema::•::F, self::TableSchema::•::C>
     ;
 }
 static field self::TableSchema<dynamic, self::TableContext> schema;

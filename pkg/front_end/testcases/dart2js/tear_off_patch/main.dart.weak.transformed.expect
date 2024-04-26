@@ -73,9 +73,9 @@ static method _#Alias#new#tearOff<T extends core::num>({core::bool defaultValue 
   return new test::Class::•<test::_#Alias#new#tearOff::T>(defaultValue: defaultValue, value: value);
 static method _#Alias#fact#tearOff<T extends core::num>({core::bool defaultValue = #C14, required test::_#Alias#fact#tearOff::T value}) → test::Class<test::_#Alias#fact#tearOff::T>
   return test::Class::fact<test::_#Alias#fact#tearOff::T>(defaultValue: defaultValue, value: value);
-static method _#Alias#redirect#tearOff<T extends core::num>({core::bool defaultValue = #C15, required test::_#Alias#redirect#tearOff::T value}) → test::Class<test::_#Alias#redirect#tearOff::T>
+static method _#Alias#redirect#tearOff<T extends core::num>({core::bool defaultValue = #C14, required test::_#Alias#redirect#tearOff::T value}) → test::Class<test::_#Alias#redirect#tearOff::T>
   return test::Class::_#redirect#tearOff<test::_#Alias#redirect#tearOff::T>(defaultValue: defaultValue, value: value);
-static method _#Alias#redirect2#tearOff<T extends core::num>({core::bool defaultValue = #C15, required test::_#Alias#redirect2#tearOff::T value}) → test::Class<test::_#Alias#redirect2#tearOff::T>
+static method _#Alias#redirect2#tearOff<T extends core::num>({core::bool defaultValue = #C14, required test::_#Alias#redirect2#tearOff::T value}) → test::Class<test::_#Alias#redirect2#tearOff::T>
   return test::Class::_#redirect2#tearOff<test::_#Alias#redirect2#tearOff::T>(defaultValue: defaultValue, value: value);
 static method _#AliasImpl#new#tearOff<T extends core::num>({core::bool defaultValue = #C14, required test::_#AliasImpl#new#tearOff::T value}) → test::ClassImpl<test::_#AliasImpl#new#tearOff::T>
   return new test::ClassImpl::•<test::_#AliasImpl#new#tearOff::T>(defaultValue: defaultValue, value: value);

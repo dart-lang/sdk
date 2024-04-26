@@ -103,19 +103,19 @@ class A extends core::Object {
     ;
   external constructor constructor8([core::int i = null]) → self::A;
   external constructor constructor9({core::int i = null}) → self::A;
-  static factory factory3([core::int i]) → self::A /* redirection-target: self::A::constructor3 */
+  static factory factory3([core::int i = null]) → self::A /* redirection-target: self::A::constructor3 */
     return new self::A::constructor3(i);
-  static factory factory4({core::int i}) → self::A /* redirection-target: self::A::constructor4 */
+  static factory factory4({core::int i = null}) → self::A /* redirection-target: self::A::constructor4 */
     return new self::A::constructor4(i: i);
-  static factory factory5([core::int? i]) → self::A /* redirection-target: self::A::constructor5 */
+  static factory factory5([core::int? i = null]) → self::A /* redirection-target: self::A::constructor5 */
     return new self::A::constructor5(i);
-  static factory factory6({core::int? i}) → self::A /* redirection-target: self::A::constructor6 */
+  static factory factory6({core::int? i = null}) → self::A /* redirection-target: self::A::constructor6 */
     return new self::A::constructor6(i: i);
   static factory factory7({required core::int i}) → self::A /* redirection-target: self::A::constructor7 */
     return new self::A::constructor7(i: i);
-  static factory factory8([core::int i]) → self::A
+  static factory factory8([core::int i = null]) → self::A
     ;
-  static factory factory9({core::int i}) → self::A
+  static factory factory9({core::int i = null}) → self::A
     ;
   method method3([core::int i = null]) → dynamic
     ;
@@ -156,19 +156,19 @@ class C extends core::Object implements self::B {
     ;
   constructor constructor7({required core::int i}) → self::C
     ;
-  static factory factory3([core::int i]) → self::C /* redirection-target: self::C::constructor3 */
+  static factory factory3([core::int i = null]) → self::C /* redirection-target: self::C::constructor3 */
     return new self::C::constructor3(i);
-  static factory factory4({core::int i}) → self::C /* redirection-target: self::C::constructor4 */
+  static factory factory4({core::int i = null}) → self::C /* redirection-target: self::C::constructor4 */
     return new self::C::constructor4(i: i);
-  static factory factory5([core::int? i]) → self::C /* redirection-target: self::C::constructor5 */
+  static factory factory5([core::int? i = null]) → self::C /* redirection-target: self::C::constructor5 */
     return new self::C::constructor5(i);
-  static factory factory6({core::int? i}) → self::C /* redirection-target: self::C::constructor6 */
+  static factory factory6({core::int? i = null}) → self::C /* redirection-target: self::C::constructor6 */
     return new self::C::constructor6(i: i);
   static factory factory7({required core::int i}) → self::C /* redirection-target: self::C::constructor7 */
     return new self::C::constructor7(i: i);
-  static factory factory8([core::int i]) → self::C
+  static factory factory8([core::int i = null]) → self::C
     ;
-  static factory factory9({core::int i}) → self::C
+  static factory factory9({core::int i = null}) → self::C
     ;
   method method3([core::int i = null]) → dynamic
     ;

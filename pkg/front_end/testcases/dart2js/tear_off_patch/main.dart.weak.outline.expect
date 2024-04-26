@@ -22,16 +22,16 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
   static method _#new#tearOff<T extends core::Object? = dynamic>({has-declared-initializer core::bool defaultValue, required self2::Class::_#new#tearOff::T% value}) → self2::Class<self2::Class::_#new#tearOff::T%>
     return new self2::Class::•<self2::Class::_#new#tearOff::T%>(defaultValue: defaultValue, value: value);
   @_in::patch
-  external static factory fact<T extends core::Object? = dynamic>({has-declared-initializer core::bool defaultValue, required self2::Class::fact::T% value}) → self2::Class<self2::Class::fact::T%>;
+  external static factory fact<T extends core::Object? = dynamic>({core::bool defaultValue = true, required self2::Class::fact::T% value}) → self2::Class<self2::Class::fact::T%>;
   static method _#fact#tearOff<T extends core::Object? = dynamic>({has-declared-initializer core::bool defaultValue, required self2::Class::_#fact#tearOff::T% value}) → self2::Class<self2::Class::_#fact#tearOff::T%>
     return self2::Class::fact<self2::Class::_#fact#tearOff::T%>(defaultValue: defaultValue, value: value);
   @_in::patch
-  external static factory redirect<T extends core::Object? = dynamic>({core::bool defaultValue, required self2::Class::redirect::T% value}) → self2::Class<self2::Class::redirect::T%> /* redirection-target: self2::ClassImpl::•<self2::Class::redirect::T%>*/
+  external static factory redirect<T extends core::Object? = dynamic>({core::bool defaultValue = null, required self2::Class::redirect::T% value}) → self2::Class<self2::Class::redirect::T%> /* redirection-target: self2::ClassImpl::•<self2::Class::redirect::T%>*/
     return new self2::ClassImpl::•<self2::Class::redirect::T%>(defaultValue: defaultValue, value: value);
   static method _#redirect#tearOff<T extends core::Object? = dynamic>({core::bool defaultValue, required self2::Class::_#redirect#tearOff::T% value}) → self2::Class<self2::Class::_#redirect#tearOff::T%>
     return self2::Class::redirect<self2::Class::_#redirect#tearOff::T%>(defaultValue: defaultValue, value: value);
   @_in::patch
-  external static factory redirect2<T extends core::Object? = dynamic>({core::bool defaultValue, required self2::Class::redirect2::T% value}) → self2::Class<self2::Class::redirect2::T%> /* redirection-target: self2::ClassImpl::patched<self2::Class::redirect2::T%>*/
+  external static factory redirect2<T extends core::Object? = dynamic>({core::bool defaultValue = null, required self2::Class::redirect2::T% value}) → self2::Class<self2::Class::redirect2::T%> /* redirection-target: self2::ClassImpl::patched<self2::Class::redirect2::T%>*/
     return new self2::ClassImpl::patched<self2::Class::redirect2::T%>(defaultValue: defaultValue, value: value);
   static method _#redirect2#tearOff<T extends core::Object? = dynamic>({core::bool defaultValue, required self2::Class::_#redirect2#tearOff::T% value}) → self2::Class<self2::Class::_#redirect2#tearOff::T%>
     return self2::Class::redirect2<self2::Class::_#redirect2#tearOff::T%>(defaultValue: defaultValue, value: value);
