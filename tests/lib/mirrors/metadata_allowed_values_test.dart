@@ -117,6 +117,8 @@ class Q {}
    @V.tearOff
 // ^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_ANNOTATION
+//    ^
+// [cfe] This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 class V {
   static tearOff() {}
 }
@@ -126,6 +128,8 @@ topLevelTearOff() => 4;
    @topLevelTearOff
 // ^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_ANNOTATION
+//  ^
+// [cfe] This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 class W {}
 
    @TypeParameter
@@ -254,7 +258,7 @@ class JJ {}
 // ^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_ANNOTATION
 //  ^
-// [cfe] Constant evaluation error:
+// [cfe] This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 class KK {
   const KK();
 }

@@ -927,7 +927,8 @@ class BodyBuilder extends StackListenerImpl
       }
 
       ConstantContext savedConstantContext = pop() as ConstantContext;
-      if (expression is! StaticAccessGenerator &&
+      if (!(expression is StaticAccessGenerator &&
+              expression.readTarget is Field) &&
           expression is! VariableUseGenerator &&
           // TODO(johnniwinther): Stop using the type of the generator here.
           // Ask a property instead.
