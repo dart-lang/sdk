@@ -1008,6 +1008,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           mustBeStatic: node.inStaticContext,
         ).addLexicalDeclarations(node);
       }
+    } else if (expression is IndexExpression) {
+      expression.accept(this);
     } else if (expression is InstanceCreationExpression) {
       if (offset <= expression.beginToken.end) {
         _forStatement(node);
@@ -1585,7 +1587,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitIndexExpression(IndexExpression node) {
     collector.completionLocation = 'IndexExpression_index';
-    _forExpression(node);
+    _forExpression(node, mustBeNonVoid: true);
   }
 
   @override

@@ -37,6 +37,7 @@ import 'if_element_test.dart' as if_element;
 import 'if_statement_test.dart' as if_statement;
 import 'implements_clause_test.dart' as implements_clause;
 import 'import_directive_test.dart' as import_directive;
+import 'index_expression_test.dart' as index_expression;
 import 'instance_creation_expression_test.dart' as instance_creation_expression;
 import 'is_expression_test.dart' as is_expression;
 import 'library_directive_test.dart' as library_directive;
@@ -114,6 +115,7 @@ void main() {
     if_statement.main();
     implements_clause.main();
     import_directive.main();
+    index_expression.main();
     instance_creation_expression.main();
     is_expression.main();
     library_directive.main();
