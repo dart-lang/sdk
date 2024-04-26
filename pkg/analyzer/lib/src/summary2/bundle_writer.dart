@@ -184,7 +184,7 @@ class BundleWriter {
       _resolutionSink.writeType(element.supertype);
       _resolutionSink._writeTypeList(element.mixins);
       _resolutionSink._writeTypeList(element.interfaces);
-      _resolutionSink.writeElement(element.augmentationTarget);
+      _resolutionSink.writeElement(element.augmentationTargetAny);
       _resolutionSink.writeElement(element.augmentation);
       if (element.augmentationTarget == null) {
         _resolutionSink.writeIfType<AugmentedClassElementImpl>(
@@ -230,7 +230,7 @@ class BundleWriter {
       _resolutionSink.writeElement(element.redirectedConstructor);
       _resolutionSink._writeNodeList(element.constantInitializers);
       _resolutionSink.writeElement(element.augmentation);
-      _resolutionSink.writeElement(element.augmentationTarget);
+      _resolutionSink.writeElement(element.augmentationTargetAny);
     });
   }
 
@@ -284,7 +284,7 @@ class BundleWriter {
       _resolutionSink.writeType(element.supertype);
       _resolutionSink._writeTypeList(element.mixins);
       _resolutionSink._writeTypeList(element.interfaces);
-      _resolutionSink.writeElement(element.augmentationTarget);
+      _resolutionSink.writeElement(element.augmentationTargetAny);
       _resolutionSink.writeElement(element.augmentation);
       if (element.augmentationTarget == null) {
         _resolutionSink.writeIfType<AugmentedEnumElementImpl>(
@@ -352,7 +352,7 @@ class BundleWriter {
     _resolutionSink._writeAnnotationList(element.metadata);
 
     _writeTypeParameters(element.typeParameters, () {
-      _resolutionSink.writeElement(element.augmentationTarget);
+      _resolutionSink.writeElement(element.augmentationTargetAny);
       _resolutionSink.writeElement(element.augmentation);
       if (element.augmentationTarget == null) {
         _resolutionSink.writeType(element.augmented.extendedType);
@@ -386,7 +386,7 @@ class BundleWriter {
 
     _writeTypeParameters(element.typeParameters, () {
       _resolutionSink._writeTypeList(element.interfaces);
-      _resolutionSink.writeElement(element.augmentationTarget);
+      _resolutionSink.writeElement(element.augmentationTargetAny);
       _resolutionSink.writeElement(element.augmentation);
       if (element.augmentationTarget == null) {
         _resolutionSink.writeIfType<AugmentedExtensionTypeElementImpl>(
@@ -433,7 +433,7 @@ class BundleWriter {
     _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
     _resolutionSink.writeType(element.type);
 
-    _resolutionSink.writeElement(element.augmentationTarget);
+    _resolutionSink.writeElement(element.augmentationTargetAny);
     if (element.isAugmentation) {
       _propertyAugmentations.add(element);
     }
@@ -472,7 +472,7 @@ class BundleWriter {
     });
 
     _resolutionSink.writeElement(element.augmentation);
-    _resolutionSink.writeElement(element.augmentationTarget);
+    _resolutionSink.writeElement(element.augmentationTargetAny);
   }
 
   void _writeImportElement(LibraryImportElementImpl element) {
@@ -541,7 +541,7 @@ class BundleWriter {
       _sink._writeTopLevelInferenceError(element.typeInferenceError);
       _resolutionSink.writeType(element.returnType);
       _resolutionSink.writeElement(element.augmentation);
-      _resolutionSink.writeElement(element.augmentationTarget);
+      _resolutionSink.writeElement(element.augmentationTargetAny);
     });
   }
 
@@ -556,7 +556,7 @@ class BundleWriter {
     _writeTypeParameters(element.typeParameters, () {
       _resolutionSink._writeTypeList(element.superclassConstraints);
       _resolutionSink._writeTypeList(element.interfaces);
-      _resolutionSink.writeElement(element.augmentationTarget);
+      _resolutionSink.writeElement(element.augmentationTargetAny);
       _resolutionSink.writeElement(element.augmentation);
       if (element.augmentationTarget == null) {
         _resolutionSink.writeIfType<AugmentedMixinElementImpl>(
@@ -657,7 +657,7 @@ class BundleWriter {
     _resolutionSink.writeType(element.returnType);
     _writeList(element.parameters, _writeParameterElement);
 
-    _resolutionSink.writeElement(element.augmentationTarget);
+    _resolutionSink.writeElement(element.augmentationTargetAny);
     if (element.isAugmentation) {
       _accessorAugmentations.add(element);
     }
@@ -682,7 +682,7 @@ class BundleWriter {
     _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
     _resolutionSink.writeType(element.type);
 
-    _resolutionSink.writeElement(element.augmentationTarget);
+    _resolutionSink.writeElement(element.augmentationTargetAny);
     if (element.isAugmentation) {
       _propertyAugmentations.add(element);
     }

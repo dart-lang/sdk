@@ -178,10 +178,17 @@ class _ElementWriter {
 
   void _writeAugmentationTarget(ElementImpl e) {
     if (e is AugmentableElement && e.isAugmentation) {
-      _elementPrinter.writeNamedElement(
-        'augmentationTarget',
-        e.augmentationTarget,
-      );
+      if (e.augmentationTarget case var target?) {
+        _elementPrinter.writeNamedElement(
+          'augmentationTarget',
+          target,
+        );
+      } else if (e.augmentationTargetAny case var targetAny?) {
+        _elementPrinter.writeNamedElement(
+          'augmentationTargetAny',
+          targetAny,
+        );
+      }
     }
   }
 
