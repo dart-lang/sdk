@@ -36,6 +36,21 @@ var b = a % 3 == 1;
 ''');
   }
 
+  test_moduloTwoEqualEqualOne_inConstAssertInitializer() async {
+    await assertNoDiagnostics(r'''
+class C {
+	const C(int x) : assert(x % 2 == 0);
+}
+''');
+  }
+
+  test_moduloTwoEqualEqualOne_inConstContext() async {
+    await assertNoDiagnostics(r'''
+const a = 3;
+const b = a % 2 == 0;
+''');
+  }
+
   test_moduloTwoEqualEqualOne_intTypedExpression() async {
     await assertDiagnostics(r'''
 var a = 3;

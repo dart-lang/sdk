@@ -58,9 +58,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitBinaryExpression(BinaryExpression node) {
     // This lint error only happens when the operator is equality.
-    if (node.operator.type != TokenType.EQ_EQ) {
-      return;
-    }
+    if (node.operator.type != TokenType.EQ_EQ) return;
+    if (node.inConstantContext) return;
+
     var left = node.leftOperand;
     var leftType = left.staticType;
     var right = node.rightOperand;
@@ -72,19 +72,32 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
     // The left side expression has to be modulo by 2 type.
-    if (left is BinaryExpression) {
-      var rightChild = left.rightOperand;
-      var rightChildType = rightChild.staticType;
-      if (left.operator.type == TokenType.PERCENT &&
-          rightChild is IntegerLiteral &&
-          rightChild.value == 2 &&
-          (rightChildType?.isDartCoreInt ?? false)) {
-        var value = right.value;
-        if (value == null) {
-          return;
-        }
-        rule.reportLint(node, arguments: [value == 0 ? 'isEven' : 'isOdd']);
+    if (left is! BinaryExpression) return;
+    if (left.operator.type != TokenType.PERCENT) return;
+
+    var rightChild = left.rightOperand;
+
+    if (rightChild is! IntegerLiteral) return;
+    if (rightChild.value != 2) return;
+
+    // Now we have `x % 2 == y`.
+    var rightChildType = rightChild.staticType;
+    if (rightChildType == null) return;
+    if (!rightChildType.isDartCoreInt) return;
+
+    var value = right.value;
+    if (value == null) return;
+    var parentAssertInitializer =
+        node.thisOrAncestorOfType<AssertInitializer>();
+    if (parentAssertInitializer != null) {
+      var constructor = parentAssertInitializer.parent;
+      // `isEven` is not allowed in a const constructor assert initializer.
+      if (constructor is ConstructorDeclaration &&
+          constructor.constKeyword != null) {
+        return;
       }
     }
+
+    rule.reportLint(node, arguments: [value == 0 ? 'isEven' : 'isOdd']);
   }
 }
