@@ -399,9 +399,9 @@ static method test() → dynamic {
   self::new;
   self::E|call<dynamic>(self::new);
   self::E|call<core::int>(self::new);
-  let final core::Object* #t7 = CheckLibraryIsLoaded(prefix2) in self::c.{self::C::new}{core::int};
-  let final core::Object* #t8 = CheckLibraryIsLoaded(prefix2) in self::E|call<dynamic>(self::c.{self::C::new}{core::int});
-  let final core::Object* #t9 = CheckLibraryIsLoaded(prefix2) in self::E|call<core::int>(self::c.{self::C::new}{core::int});
+  let final core::Object? #t7 = CheckLibraryIsLoaded(prefix2) in self::c.{self::C::new}{core::int};
+  let final core::Object? #t8 = CheckLibraryIsLoaded(prefix2) in self::E|call<dynamic>(self::c.{self::C::new}{core::int});
+  let final core::Object? #t9 = CheckLibraryIsLoaded(prefix2) in self::E|call<core::int>(self::c.{self::C::new}{core::int});
   self::E|get#new(0);
   self::E|call<dynamic>(self::E|get#new(0));
   self::E|call<core::int>(self::E|get#new(0));

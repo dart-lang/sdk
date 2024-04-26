@@ -25,8 +25,8 @@ static method method1(core::int i) → dynamic
     {
       {
         hoisted core::num getter;
-        if((#0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool* #t2 = #0#1#isSet = true in #0#1 = self::Extension|get#getter(#0#0)) is core::num) {
-          getter = #0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool* #t3 = #0#1#isSet = true in #0#1 = self::Extension|get#getter(#0#0);
+        if((#0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool #t2 = #0#1#isSet = true in #0#1 = self::Extension|get#getter(#0#0)) is core::num) {
+          getter = #0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool #t3 = #0#1#isSet = true in #0#1 = self::Extension|get#getter(#0#0);
           #t1 = 0;
           break #L1;
         }
@@ -43,8 +43,8 @@ static method method2(core::int i) → dynamic
     {
       {
         hoisted core::int getter;
-        if((#0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool* #t5 = #0#1#isSet = true in #0#1 = self::Extension|get#getter(#0#0)) is core::int) {
-          getter = (#0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool* #t6 = #0#1#isSet = true in #0#1 = self::Extension|get#getter(#0#0)) as{Unchecked} core::int;
+        if((#0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool #t5 = #0#1#isSet = true in #0#1 = self::Extension|get#getter(#0#0)) is core::int) {
+          getter = (#0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool #t6 = #0#1#isSet = true in #0#1 = self::Extension|get#getter(#0#0)) as{Unchecked} core::int;
           #t4 = 0;
           break #L2;
         }

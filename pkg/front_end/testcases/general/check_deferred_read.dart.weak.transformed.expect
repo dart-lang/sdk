@@ -7,7 +7,7 @@ import "org-dartlang-testcase:///deferred_lib.dart" deferred as lib;
 
 static method main() → dynamic {}
 static method test() → dynamic {
-  core::print((let final core::Object* #t1 = CheckLibraryIsLoaded(lib) in def::x).{core::num::+}(1){(core::num) → core::int});
+  core::print((let final core::Object? #t1 = CheckLibraryIsLoaded(lib) in def::x).{core::num::+}(1){(core::num) → core::int});
 }
 
 library;

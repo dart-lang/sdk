@@ -597,16 +597,16 @@ static method test3(core::Object o) → core::String
     {
       {
         hoisted core::Object x;
-        if(#0#0 is core::List<core::Object?> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final core::bool* #t14 = #0#4#isSet = true in #0#4 = #0#0{core::List<core::Object?>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C9) && (let final core::Object? #t15 = (#0#6#isSet ?{core::Object?} #0#6{core::Object?} : let final core::bool* #t16 = #0#6#isSet = true in #0#6 = #0#0{core::List<core::Object?>}.{core::List::[]}(0){(core::int) → core::Object?})! in let final core::Object? #t17 = x = (#0#6#isSet ?{core::Object?} #0#6{core::Object?} : let final core::bool* #t18 = #0#6#isSet = true in #0#6 = #0#0{core::List<core::Object?>}.{core::List::[]}(0){(core::int) → core::Object?})! in true) && #C10 =={core::num::==}{(core::Object) → core::bool} (#0#8#isSet ?{core::Object?} #0#8{core::Object?} : let final core::bool* #t19 = #0#8#isSet = true in #0#8 = #0#0{core::List<core::Object?>}.{core::List::[]}(1){(core::int) → core::Object?})) {
+        if(#0#0 is core::List<core::Object?> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final core::bool #t14 = #0#4#isSet = true in #0#4 = #0#0{core::List<core::Object?>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C9) && (let final core::Object? #t15 = (#0#6#isSet ?{core::Object?} #0#6{core::Object?} : let final core::bool #t16 = #0#6#isSet = true in #0#6 = #0#0{core::List<core::Object?>}.{core::List::[]}(0){(core::int) → core::Object?})! in let final core::Object? #t17 = x = (#0#6#isSet ?{core::Object?} #0#6{core::Object?} : let final core::bool #t18 = #0#6#isSet = true in #0#6 = #0#0{core::List<core::Object?>}.{core::List::[]}(0){(core::int) → core::Object?})! in true) && #C10 =={core::num::==}{(core::Object) → core::bool} (#0#8#isSet ?{core::Object?} #0#8{core::Object?} : let final core::bool #t19 = #0#8#isSet = true in #0#8 = #0#0{core::List<core::Object?>}.{core::List::[]}(1){(core::int) → core::Object?})) {
           #t13 = "match-1";
           break #L3;
         }
       }
       {
         hoisted core::Object x;
-        if(#0#0 is core::List<core::Object?> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final core::bool* #t20 = #0#4#isSet = true in #0#4 = #0#0{core::List<core::Object?>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C9) && #C10 =={core::num::==}{(core::Object) → core::bool} (#0#6#isSet ?{core::Object?} #0#6{core::Object?} : let final core::bool* #t21 = #0#6#isSet = true in #0#6 = #0#0{core::List<core::Object?>}.{core::List::[]}(0){(core::int) → core::Object?})) {
-          (#0#8#isSet ?{core::Object?} #0#8{core::Object?} : let final core::bool* #t22 = #0#8#isSet = true in #0#8 = #0#0{core::List<core::Object?>}.{core::List::[]}(1){(core::int) → core::Object?})!;
-          x = (#0#8#isSet ?{core::Object?} #0#8{core::Object?} : let final core::bool* #t23 = #0#8#isSet = true in #0#8 = #0#0{core::List<core::Object?>}.{core::List::[]}(1){(core::int) → core::Object?})!;
+        if(#0#0 is core::List<core::Object?> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final core::bool #t20 = #0#4#isSet = true in #0#4 = #0#0{core::List<core::Object?>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C9) && #C10 =={core::num::==}{(core::Object) → core::bool} (#0#6#isSet ?{core::Object?} #0#6{core::Object?} : let final core::bool #t21 = #0#6#isSet = true in #0#6 = #0#0{core::List<core::Object?>}.{core::List::[]}(0){(core::int) → core::Object?})) {
+          (#0#8#isSet ?{core::Object?} #0#8{core::Object?} : let final core::bool #t22 = #0#8#isSet = true in #0#8 = #0#0{core::List<core::Object?>}.{core::List::[]}(1){(core::int) → core::Object?})!;
+          x = (#0#8#isSet ?{core::Object?} #0#8{core::Object?} : let final core::bool #t23 = #0#8#isSet = true in #0#8 = #0#0{core::List<core::Object?>}.{core::List::[]}(1){(core::int) → core::Object?})!;
           #t13 = "match-2";
           break #L3;
         }

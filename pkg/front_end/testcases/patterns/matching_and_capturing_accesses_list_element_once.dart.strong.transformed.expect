@@ -537,8 +537,8 @@ static method main() → dynamic {
     {
       hoisted core::int x;
       hoisted core::int y;
-      if(#0#0.{self::A::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C8 && ((#0#4#isSet ?{core::int} #0#4{core::int} : let final core::bool* #t10 = #0#4#isSet = true in #0#4 = #0#0.{self::A::[]}(0){(core::int) → core::int}) is core::int && (let final core::int #t11 = x = #0#4#isSet ?{core::int} #0#4{core::int} : let final core::bool* #t12 = #0#4#isSet = true in #0#4 = #0#0.{self::A::[]}(0){(core::int) → core::int} in true)) && (#0#5#isSet ?{core::int} #0#5{core::int} : let final core::bool* #t13 = #0#5#isSet = true in #0#5 = #0#0.{self::A::[]}(1){(core::int) → core::int}) is core::int) {
-        y = #0#5#isSet ?{core::int} #0#5{core::int} : let final core::bool* #t14 = #0#5#isSet = true in #0#5 = #0#0.{self::A::[]}(1){(core::int) → core::int};
+      if(#0#0.{self::A::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C8 && ((#0#4#isSet ?{core::int} #0#4{core::int} : let final core::bool #t10 = #0#4#isSet = true in #0#4 = #0#0.{self::A::[]}(0){(core::int) → core::int}) is core::int && (let final core::int #t11 = x = #0#4#isSet ?{core::int} #0#4{core::int} : let final core::bool #t12 = #0#4#isSet = true in #0#4 = #0#0.{self::A::[]}(0){(core::int) → core::int} in true)) && (#0#5#isSet ?{core::int} #0#5{core::int} : let final core::bool #t13 = #0#5#isSet = true in #0#5 = #0#0.{self::A::[]}(1){(core::int) → core::int}) is core::int) {
+        y = #0#5#isSet ?{core::int} #0#5{core::int} : let final core::bool #t14 = #0#5#isSet = true in #0#5 = #0#0.{self::A::[]}(1){(core::int) → core::int};
         {
           self::expectEquals(x, 0);
           self::expectEquals(y, 0);

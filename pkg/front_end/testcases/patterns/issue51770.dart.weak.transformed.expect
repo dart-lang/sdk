@@ -67,7 +67,7 @@ static method method1(core::List<dynamic> o) → dynamic {
     synthesized core::bool #5#1#isSet = false;
     {
       hoisted core::List<dynamic> a;
-      if((#5#1#isSet ?{core::int} #5#1{core::int} : let final core::bool* #t3 = #5#1#isSet = true in #5#1 = #5#0.{core::List::length}{core::int}).{core::num::>=}(#C1){(core::num) → core::bool} && (let final core::List<dynamic> #t4 = a = #5#0.{core::List::sublist}(0, (#5#1#isSet ?{core::int} #5#1{core::int} : let final core::bool* #t5 = #5#1#isSet = true in #5#1 = #5#0.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>} in true)) {
+      if((#5#1#isSet ?{core::int} #5#1{core::int} : let final core::bool #t3 = #5#1#isSet = true in #5#1 = #5#0.{core::List::length}{core::int}).{core::num::>=}(#C1){(core::num) → core::bool} && (let final core::List<dynamic> #t4 = a = #5#0.{core::List::sublist}(0, (#5#1#isSet ?{core::int} #5#1{core::int} : let final core::bool #t5 = #5#1#isSet = true in #5#1 = #5#0.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>} in true)) {
         {
           core::print(a);
         }
@@ -140,7 +140,7 @@ static method method2(dynamic o) → dynamic {
     synthesized core::bool #5#2#isSet = false;
     {
       hoisted core::List<dynamic> a;
-      if(#5#0 is core::List<dynamic> && (#5#2#isSet ?{core::int} #5#2{core::int} : let final core::bool* #t8 = #5#2#isSet = true in #5#2 = #5#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::>=}(#C1){(core::num) → core::bool} && (let final core::List<dynamic> #t9 = a = #5#0{core::List<dynamic>}.{core::List::sublist}(0, (#5#2#isSet ?{core::int} #5#2{core::int} : let final core::bool* #t10 = #5#2#isSet = true in #5#2 = #5#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>} in true)) {
+      if(#5#0 is core::List<dynamic> && (#5#2#isSet ?{core::int} #5#2{core::int} : let final core::bool #t8 = #5#2#isSet = true in #5#2 = #5#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::>=}(#C1){(core::num) → core::bool} && (let final core::List<dynamic> #t9 = a = #5#0{core::List<dynamic>}.{core::List::sublist}(0, (#5#2#isSet ?{core::int} #5#2{core::int} : let final core::bool #t10 = #5#2#isSet = true in #5#2 = #5#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>} in true)) {
         {
           core::print(a);
         }

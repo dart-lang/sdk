@@ -225,14 +225,14 @@ static method method(core::Map<core::int, core::String?> m) → core::int {
     synthesized core::String? #0#3;
     synthesized core::bool #0#3#isSet = false;
     {
-      if((#0#2#isSet ?{core::bool} #0#2{core::bool} : let final core::bool* #t21 = #0#2#isSet = true in #0#2 = #0#0.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && #C5 =={core::String::==}{(core::Object) → core::bool} (#0#3#isSet ?{core::String?} #0#3{core::String?} : let final core::bool* #t22 = #0#3#isSet = true in #0#3 = #0#0.{core::Map::[]}(#C4){(core::Object?) → core::String?})) {
+      if((#0#2#isSet ?{core::bool} #0#2{core::bool} : let final core::bool #t21 = #0#2#isSet = true in #0#2 = #0#0.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && #C5 =={core::String::==}{(core::Object) → core::bool} (#0#3#isSet ?{core::String?} #0#3{core::String?} : let final core::bool #t22 = #0#3#isSet = true in #0#3 = #0#0.{core::Map::[]}(#C4){(core::Object?) → core::String?})) {
         {
           return 0;
         }
       }
     }
     {
-      if((#0#2#isSet ?{core::bool} #0#2{core::bool} : let final core::bool* #t23 = #0#2#isSet = true in #0#2 = #0#0.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && #C6 =={core::String::==}{(core::Object) → core::bool} (#0#3#isSet ?{core::String?} #0#3{core::String?} : let final core::bool* #t24 = #0#3#isSet = true in #0#3 = #0#0.{core::Map::[]}(#C4){(core::Object?) → core::String?})) {
+      if((#0#2#isSet ?{core::bool} #0#2{core::bool} : let final core::bool #t23 = #0#2#isSet = true in #0#2 = #0#0.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && #C6 =={core::String::==}{(core::Object) → core::bool} (#0#3#isSet ?{core::String?} #0#3{core::String?} : let final core::bool #t24 = #0#3#isSet = true in #0#3 = #0#0.{core::Map::[]}(#C4){(core::Object?) → core::String?})) {
         {
           return 1;
         }

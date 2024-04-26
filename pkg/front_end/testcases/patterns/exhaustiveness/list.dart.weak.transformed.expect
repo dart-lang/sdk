@@ -126,13 +126,13 @@ static method exhaustive1a(core::List<core::num> list) → dynamic
     #L2:
     {
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t3 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t3 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
           #t2 = 0;
           break #L2;
         }
       }
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t4 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t4 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool}) {
           #t2 = 1;
           break #L2;
         }
@@ -149,13 +149,13 @@ static method exhaustive1b(core::List<core::num> list) → dynamic
     #L3:
     {
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t6 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t6 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
           #t5 = 0;
           break #L3;
         }
       }
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t7 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t7 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool}) {
           #t5 = 1;
           break #L3;
         }
@@ -172,19 +172,19 @@ static method exhaustive2a(core::List<core::num> list) → dynamic
     #L4:
     {
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t9 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t9 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
           #t8 = 0;
           break #L4;
         }
       }
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t10 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C2) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t10 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C2) {
           #t8 = 1;
           break #L4;
         }
       }
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t11 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C3){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t11 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C3){(core::num) → core::bool}) {
           #t8 = 2;
           break #L4;
         }
@@ -201,19 +201,19 @@ static method exhaustive2b(core::List<core::num> list) → dynamic
     #L5:
     {
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t13 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t13 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
           #t12 = 0;
           break #L5;
         }
       }
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t14 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C2) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t14 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C2) {
           #t12 = 1;
           break #L5;
         }
       }
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t15 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C3){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t15 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C3){(core::num) → core::bool}) {
           #t12 = 2;
           break #L5;
         }
@@ -230,19 +230,19 @@ static method exhaustive2c(core::List<core::num> list) → dynamic
     #L6:
     {
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t17 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t17 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
           #t16 = 0;
           break #L6;
         }
       }
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t18 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C2) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t18 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C2) {
           #t16 = 1;
           break #L6;
         }
       }
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t19 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C3){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t19 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C3){(core::num) → core::bool}) {
           #t16 = 2;
           break #L6;
         }
@@ -289,13 +289,13 @@ static method nonExhaustive2aMissing(core::List<core::num> list) → dynamic
     #L9:
     {
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t23 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t23 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
           #t22 = 0;
           break #L9;
         }
       }
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t24 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C3){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t24 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C3){(core::num) → core::bool}) {
           #t22 = 2;
           break #L9;
         }
@@ -312,13 +312,13 @@ static method nonExhaustive2bMissing(core::List<core::num> list) → dynamic
     #L10:
     {
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t26 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t26 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
           #t25 = 0;
           break #L10;
         }
       }
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t27 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C3){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t27 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C3){(core::num) → core::bool}) {
           #t25 = 2;
           break #L10;
         }
@@ -335,13 +335,13 @@ static method nonExhaustive2cMissing(core::List<core::num> list) → dynamic
     #L11:
     {
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t29 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t29 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
           #t28 = 0;
           break #L11;
         }
       }
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t30 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C3){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t30 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C3){(core::num) → core::bool}) {
           #t28 = 2;
           break #L11;
         }
@@ -373,13 +373,13 @@ static method nonExhaustive1aRestrictedValue(core::List<core::num> list) → dyn
     #L13:
     {
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t33 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t33 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
           #t32 = 0;
           break #L13;
         }
       }
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t34 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::List::[]}(0){(core::int) → core::num}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t34 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::List::[]}(0){(core::int) → core::num}) {
           #t32 = 1;
           break #L13;
         }
@@ -396,13 +396,13 @@ static method nonExhaustive1aRestrictedType(core::List<core::num> list) → dyna
     #L14:
     {
       {
-        if(#0#0 is core::List<core::int> && (#0#2#isSet ?{core::int} #0#2{core::int} : let final core::bool* #t36 = #0#2#isSet = true in #0#2 = #0#0{core::List<core::int>}.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
+        if(#0#0 is core::List<core::int> && (#0#2#isSet ?{core::int} #0#2{core::int} : let final core::bool #t36 = #0#2#isSet = true in #0#2 = #0#0{core::List<core::int>}.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
           #t35 = 0;
           break #L14;
         }
       }
       {
-        if((#0#2#isSet ?{core::int} #0#2{core::int} : let final core::bool* #t37 = #0#2#isSet = true in #0#2 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool}) {
+        if((#0#2#isSet ?{core::int} #0#2{core::int} : let final core::bool #t37 = #0#2#isSet = true in #0#2 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool}) {
           #t35 = 1;
           break #L14;
         }
@@ -419,13 +419,13 @@ static method nonExhaustive1bRestrictedValue(core::List<core::num> list) → dyn
     #L15:
     {
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t39 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t39 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
           #t38 = 0;
           break #L15;
         }
       }
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t40 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::List::[]}((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t41 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int) → core::num}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t40 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::List::[]}((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t41 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int) → core::num}) {
           #t38 = 1;
           break #L15;
         }
@@ -442,13 +442,13 @@ static method nonExhaustive1bRestrictedType(core::List<core::num> list) → dyna
     #L16:
     {
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t43 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t43 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
           #t42 = 0;
           break #L16;
         }
       }
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t44 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool} && #0#0.{core::List::sublist}(0, (#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t45 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<core::num>} is core::List<core::int>) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t44 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool} && #0#0.{core::List::sublist}(0, (#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t45 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<core::num>} is core::List<core::int>) {
           #t42 = 1;
           break #L16;
         }
@@ -465,19 +465,19 @@ static method nonExhaustive2aRestrictedValue(core::List<core::num> list) → dyn
     #L17:
     {
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t47 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t47 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
           #t46 = 0;
           break #L17;
         }
       }
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t48 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C2 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::List::[]}(0){(core::int) → core::num}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t48 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C2 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::List::[]}(0){(core::int) → core::num}) {
           #t46 = 1;
           break #L17;
         }
       }
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t49 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C3){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t49 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C3){(core::num) → core::bool}) {
           #t46 = 2;
           break #L17;
         }
@@ -494,19 +494,19 @@ static method nonExhaustive2bRestrictedValue(core::List<core::num> list) → dyn
     #L18:
     {
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t51 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t51 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
           #t50 = 0;
           break #L18;
         }
       }
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t52 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C2) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t52 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C2) {
           #t50 = 1;
           break #L18;
         }
       }
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t53 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C3){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::List::[]}(0){(core::int) → core::num}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t53 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C3){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::List::[]}(0){(core::int) → core::num}) {
           #t50 = 2;
           break #L18;
         }
@@ -523,19 +523,19 @@ static method nonExhaustive2cRestrictedValue(core::List<core::num> list) → dyn
     #L19:
     {
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t55 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t55 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
           #t54 = 0;
           break #L19;
         }
       }
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t56 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C2) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t56 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C2) {
           #t54 = 1;
           break #L19;
         }
       }
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t57 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C3){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::List::[]}(1){(core::int) → core::num}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t57 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C3){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::List::[]}(1){(core::int) → core::num}) {
           #t54 = 2;
           break #L19;
         }
@@ -552,19 +552,19 @@ static method nonExhaustive2dRestrictedValue(core::List<core::num> list) → dyn
     #L20:
     {
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t59 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t59 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
           #t58 = 0;
           break #L20;
         }
       }
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t60 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C2) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t60 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C2) {
           #t58 = 1;
           break #L20;
         }
       }
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t61 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C3){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::List::[]}((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t62 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int) → core::num}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t61 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C3){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::List::[]}((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t62 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int) → core::num}) {
           #t58 = 2;
           break #L20;
         }
@@ -581,19 +581,19 @@ static method nonExhaustive2eRestrictedValue(core::List<core::num> list) → dyn
     #L21:
     {
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t64 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t64 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
           #t63 = 0;
           break #L21;
         }
       }
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t65 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C2) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t65 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C2) {
           #t63 = 1;
           break #L21;
         }
       }
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t66 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C3){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::List::[]}((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t67 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::-}(2){(core::num) → core::int}){(core::int) → core::num}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t66 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C3){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::List::[]}((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t67 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::-}(2){(core::num) → core::int}){(core::int) → core::num}) {
           #t63 = 2;
           break #L21;
         }
@@ -610,19 +610,19 @@ static method nonExhaustive2fRestrictedValue(core::List<core::num> list) → dyn
     #L22:
     {
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t69 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t69 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
           #t68 = 0;
           break #L22;
         }
       }
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t70 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C2) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t70 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C2) {
           #t68 = 1;
           break #L22;
         }
       }
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t71 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C3){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::List::[]}((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t72 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int) → core::num}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t71 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C3){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::List::[]}((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t72 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int) → core::num}) {
           #t68 = 2;
           break #L22;
         }

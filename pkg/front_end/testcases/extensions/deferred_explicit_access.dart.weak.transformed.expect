@@ -15,14 +15,14 @@ import "org-dartlang-testcase:///deferred_explicit_access_lib.dart" deferred as 
 
 static method main() → dynamic async /* emittedValueType= dynamic */ {
   await LoadLibrary(prefix);
-  self::expect(0, let final core::Object* #t1 = CheckLibraryIsLoaded(prefix) in def::Extension|staticField);
-  self::expect(0, let final core::Object* #t2 = CheckLibraryIsLoaded(prefix) in def::Extension|get#property(0));
-  self::expect(42, let final core::Object* #t3 = CheckLibraryIsLoaded(prefix) in let final core::int #t4 = 0 in let final core::int #t5 = 42 in let final void #t6 = def::Extension|set#property(#t4, #t5) in #t5);
-  self::expect(84, let final core::Object* #t7 = CheckLibraryIsLoaded(prefix) in def::Extension|get#property(42));
-  self::expect(85, let final core::Object* #t8 = CheckLibraryIsLoaded(prefix) in def::Extension|method(43));
-  self::expect(42, let final core::Object* #t9 = CheckLibraryIsLoaded(prefix) in def::Extension|staticProperty);
-  self::expect(87, let final core::Object* #t10 = CheckLibraryIsLoaded(prefix) in def::Extension|staticProperty = 87);
-  self::expect(87, let final core::Object* #t11 = CheckLibraryIsLoaded(prefix) in def::Extension|staticMethod());
+  self::expect(0, let final core::Object? #t1 = CheckLibraryIsLoaded(prefix) in def::Extension|staticField);
+  self::expect(0, let final core::Object? #t2 = CheckLibraryIsLoaded(prefix) in def::Extension|get#property(0));
+  self::expect(42, let final core::Object? #t3 = CheckLibraryIsLoaded(prefix) in let final core::int #t4 = 0 in let final core::int #t5 = 42 in let final void #t6 = def::Extension|set#property(#t4, #t5) in #t5);
+  self::expect(84, let final core::Object? #t7 = CheckLibraryIsLoaded(prefix) in def::Extension|get#property(42));
+  self::expect(85, let final core::Object? #t8 = CheckLibraryIsLoaded(prefix) in def::Extension|method(43));
+  self::expect(42, let final core::Object? #t9 = CheckLibraryIsLoaded(prefix) in def::Extension|staticProperty);
+  self::expect(87, let final core::Object? #t10 = CheckLibraryIsLoaded(prefix) in def::Extension|staticProperty = 87);
+  self::expect(87, let final core::Object? #t11 = CheckLibraryIsLoaded(prefix) in def::Extension|staticMethod());
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))

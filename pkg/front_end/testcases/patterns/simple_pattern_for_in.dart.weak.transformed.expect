@@ -13,7 +13,7 @@ static method test1(dynamic x) → dynamic {
           final synthesized dynamic #0#0 = #t1;
           synthesized dynamic #0#6;
           synthesized core::bool #0#6#isSet = false;
-          if(!(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && ((#0#6#isSet ?{dynamic} #0#6{dynamic} : let final core::bool* #t2 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) is core::int && (let final core::int #t3 = y = (#0#6#isSet ?{dynamic} #0#6{dynamic} : let final core::bool* #t4 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) as{Unchecked} core::int in true))))
+          if(!(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && ((#0#6#isSet ?{dynamic} #0#6{dynamic} : let final core::bool #t2 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) is core::int && (let final core::int #t3 = y = (#0#6#isSet ?{dynamic} #0#6{dynamic} : let final core::bool #t4 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) as{Unchecked} core::int in true))))
             throw{for-error-handling} new core::StateError::•("Pattern matching error");
         }
         if(y.{core::num::%}(10){(core::num) → core::int} =={core::num::==}{(core::Object) → core::bool} 0) {
@@ -37,7 +37,7 @@ static method test2(core::Iterable<core::List<core::String>> x) → dynamic {
           synthesized core::bool #0#1#isSet = false;
           synthesized core::String #0#4;
           synthesized core::bool #0#4#isSet = false;
-          if(!((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t6 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C1){(core::num) → core::bool} && ((#0#4#isSet ?{core::String} #0#4{core::String} : let final core::bool* #t7 = #0#4#isSet = true in #0#4 = #0#0.{core::List::[]}((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t8 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int) → core::String}) is core::String && (let final core::String #t9 = y = #0#4#isSet ?{core::String} #0#4{core::String} : let final core::bool* #t10 = #0#4#isSet = true in #0#4 = #0#0.{core::List::[]}((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t11 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int) → core::String} in true))))
+          if(!((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t6 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C1){(core::num) → core::bool} && ((#0#4#isSet ?{core::String} #0#4{core::String} : let final core::bool #t7 = #0#4#isSet = true in #0#4 = #0#0.{core::List::[]}((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t8 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int) → core::String}) is core::String && (let final core::String #t9 = y = #0#4#isSet ?{core::String} #0#4{core::String} : let final core::bool #t10 = #0#4#isSet = true in #0#4 = #0#0.{core::List::[]}((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t11 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int) → core::String} in true))))
             throw{for-error-handling} new core::StateError::•("Pattern matching error");
         }
         if(y.{core::String::startsWith}("f"){(core::Pattern, [core::int]) → core::bool}) {
@@ -59,7 +59,7 @@ static method test3(core::Iterable<dynamic> x) → dynamic {
           final synthesized dynamic #0#0 = #t12;
           synthesized dynamic #0#6;
           synthesized core::bool #0#6#isSet = false;
-          if(!(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && ((#0#6#isSet ?{dynamic} #0#6{dynamic} : let final core::bool* #t13 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) is core::int && (let final core::int #t14 = y = (#0#6#isSet ?{dynamic} #0#6{dynamic} : let final core::bool* #t15 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) as{Unchecked} core::int in true))))
+          if(!(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && ((#0#6#isSet ?{dynamic} #0#6{dynamic} : let final core::bool #t13 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) is core::int && (let final core::int #t14 = y = (#0#6#isSet ?{dynamic} #0#6{dynamic} : let final core::bool #t15 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) as{Unchecked} core::int in true))))
             throw{for-error-handling} new core::StateError::•("Pattern matching error");
         }
         return y;
