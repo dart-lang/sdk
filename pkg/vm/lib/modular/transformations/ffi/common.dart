@@ -735,7 +735,7 @@ class FfiTransformer extends Transformer {
       if (nativeClass == abiSpecificIntegerClass) {
         return null;
       }
-      return InterfaceType(intClass, Nullability.legacy);
+      return coreTypes.intNonNullableRawType;
     }
     if (hierarchy.isSubclassOf(nativeClass, compoundClass)) {
       if (nativeClass == structClass || nativeClass == unionClass) {
@@ -750,13 +750,13 @@ class FfiTransformer extends Transformer {
       return nativeType;
     }
     if (nativeIntTypesFixedSize.contains(nativeType_)) {
-      return InterfaceType(intClass, Nullability.legacy);
+      return coreTypes.intNonNullableRawType;
     }
     if (nativeType_ == NativeType.kFloat || nativeType_ == NativeType.kDouble) {
-      return InterfaceType(doubleClass, Nullability.legacy);
+      return coreTypes.doubleNonNullableRawType;
     }
     if (nativeType_ == NativeType.kBool) {
-      return InterfaceType(boolClass, Nullability.legacy);
+      return coreTypes.boolNonNullableRawType;
     }
     if (nativeType_ == NativeType.kVoid) {
       if (!allowVoid) {
@@ -765,7 +765,7 @@ class FfiTransformer extends Transformer {
       return VoidType();
     }
     if (nativeType_ == NativeType.kHandle && allowHandle) {
-      return InterfaceType(objectClass, Nullability.legacy);
+      return coreTypes.objectNonNullableRawType;
     }
     if (nativeType_ != NativeType.kNativeFunction ||
         native.typeArguments[0] is! FunctionType) {
@@ -798,7 +798,7 @@ class FfiTransformer extends Transformer {
       );
     }
     if (argumentTypes.contains(dummyDartType)) return null;
-    return FunctionType(argumentTypes, returnType, Nullability.legacy);
+    return FunctionType(argumentTypes, returnType, Nullability.nonNullable);
   }
 
   /// Finds a native type for the given [dartType] if there is only one possible
@@ -869,30 +869,36 @@ class FfiTransformer extends Transformer {
     return classNativeTypes[c];
   }
 
-  InterfaceType _listOfIntType() => InterfaceType(
-      listClass, Nullability.legacy, [coreTypes.intLegacyRawType]);
+  InterfaceType _listOfIntType(Nullability elementNullability) => InterfaceType(
+      listClass,
+      Nullability.nonNullable,
+      [coreTypes.intRawType(elementNullability)]);
 
-  ConstantExpression intListConstantExpression(List<int?> values) =>
+  ConstantExpression intListConstantExpression(
+          List<int?> values, Nullability elementNullability) =>
       ConstantExpression(
-          ListConstant(coreTypes.intLegacyRawType, [
+          ListConstant(coreTypes.intRawType(elementNullability), [
             for (var v in values)
               if (v != null) IntConstant(v) else NullConstant()
           ]),
-          _listOfIntType());
+          _listOfIntType(elementNullability));
 
   /// Expression that queries VM internals at runtime to figure out on which ABI
   /// we are.
   Expression runtimeBranchOnLayout(Map<Abi, int?> values) {
+    final elementNullability =
+        values.isPartial ? Nullability.nullable : Nullability.nonNullable;
     final result = InstanceInvocation(
         InstanceAccessKind.Instance,
         intListConstantExpression([
           for (final abi in Abi.values) values[abi],
-        ]),
+        ], elementNullability),
         listElementAt.name,
         Arguments([StaticInvocation(abiMethod, Arguments([]))]),
         interfaceTarget: listElementAt,
-        functionType: Substitution.fromInterfaceType(_listOfIntType())
-            .substituteType(listElementAt.getterType) as FunctionType);
+        functionType:
+            Substitution.fromInterfaceType(_listOfIntType(elementNullability))
+                .substituteType(listElementAt.getterType) as FunctionType);
     if (values.isPartial) {
       return checkAbiSpecificIntegerMapping(result);
     }
@@ -949,7 +955,7 @@ class FfiTransformer extends Transformer {
     }
     return env.isSubtypeOf(
         type,
-        InterfaceType(arrayClass, Nullability.legacy, [nativeTypeType]),
+        InterfaceType(arrayClass, Nullability.nonNullable, [nativeTypeType]),
         SubtypeCheckMode.ignoringNullabilities);
   }
 
@@ -1087,7 +1093,7 @@ class FfiTransformer extends Transformer {
     }
     return env.isSubtypeOf(
         type,
-        InterfaceType(abiSpecificIntegerClass, Nullability.legacy),
+        InterfaceType(abiSpecificIntegerClass, Nullability.nonNullable),
         SubtypeCheckMode.ignoringNullabilities);
   }
 
@@ -1107,7 +1113,7 @@ class FfiTransformer extends Transformer {
     }
     return env.isSubtypeOf(
         type,
-        InterfaceType(compoundClass, Nullability.legacy),
+        InterfaceType(compoundClass, Nullability.nonNullable),
         SubtypeCheckMode.ignoringNullabilities);
   }
 

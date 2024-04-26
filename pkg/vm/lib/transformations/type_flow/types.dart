@@ -297,7 +297,8 @@ abstract class TypeHierarchy extends TypesBuilder
   /// Returns true if [cls] has allocated subtypes.
   bool hasAllocatedSubtypes(TFClass cls);
 
-  late final Type intType = fromStaticType(coreTypes.intLegacyRawType, true);
+  late final Type intType =
+      fromStaticType(coreTypes.intNonNullableRawType, false);
 }
 
 /// Base class for type expressions.

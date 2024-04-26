@@ -61,7 +61,7 @@ abstract class Link<T extends core::Object? = dynamic> extends core::Object {
  - 'Link' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart'.
   factory Link.create3(int i) = LinkFactory.create;
                                 ^";
-  static factory create4<T extends core::Object? = dynamic>({core::int i}) → self::Link<self::Link::create4::T%>
+  static factory create4<T extends core::Object? = dynamic>({core::int i = null}) → self::Link<self::Link::create4::T%>
     return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:9:35: Error: The constructor function type 'LinkFactory Function()' isn't a subtype of 'Link<T> Function({int i})'.
  - 'LinkFactory' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart'.
  - 'Link' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart'.

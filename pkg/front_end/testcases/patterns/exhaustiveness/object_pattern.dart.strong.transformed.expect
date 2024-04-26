@@ -83,8 +83,8 @@ static method exhaustiveWithTypedFields(self::A a) → dynamic
       {
         hoisted core::int field1;
         hoisted core::num field2;
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t7 = #0#1#isSet = true in #0#1 = #0#0.{self::A::field1}{core::int}) is core::int && (let final core::int #t8 = field1 = #0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t9 = #0#1#isSet = true in #0#1 = #0#0.{self::A::field1}{core::int} in true) && (#0#2#isSet ?{core::num} #0#2{core::num} : let final core::bool* #t10 = #0#2#isSet = true in #0#2 = #0#0.{self::A::field2}{core::num}) is core::num) {
-          field2 = #0#2#isSet ?{core::num} #0#2{core::num} : let final core::bool* #t11 = #0#2#isSet = true in #0#2 = #0#0.{self::A::field2}{core::num};
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t7 = #0#1#isSet = true in #0#1 = #0#0.{self::A::field1}{core::int}) is core::int && (let final core::int #t8 = field1 = #0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t9 = #0#1#isSet = true in #0#1 = #0#0.{self::A::field1}{core::int} in true) && (#0#2#isSet ?{core::num} #0#2{core::num} : let final core::bool #t10 = #0#2#isSet = true in #0#2 = #0#0.{self::A::field2}{core::num}) is core::num) {
+          field2 = #0#2#isSet ?{core::num} #0#2{core::num} : let final core::bool #t11 = #0#2#isSet = true in #0#2 = #0#0.{self::A::field2}{core::num};
           #t6 = 0;
           break #L4;
         }
@@ -115,8 +115,8 @@ static method nonExhaustiveTypedField(self::A a) → dynamic
     {
       {
         hoisted core::int field2;
-        if((#0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool* #t14 = #0#1#isSet = true in #0#1 = #0#0.{self::A::field2}{core::num}) is core::int) {
-          field2 = (#0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool* #t15 = #0#1#isSet = true in #0#1 = #0#0.{self::A::field2}{core::num}) as{Unchecked} core::int;
+        if((#0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool #t14 = #0#1#isSet = true in #0#1 = #0#0.{self::A::field2}{core::num}) is core::int) {
+          field2 = (#0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool #t15 = #0#1#isSet = true in #0#1 = #0#0.{self::A::field2}{core::num}) as{Unchecked} core::int;
           #t13 = 0;
           break #L6;
         }

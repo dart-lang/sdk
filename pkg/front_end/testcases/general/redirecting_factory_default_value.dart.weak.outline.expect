@@ -6,7 +6,7 @@ class A extends core::Object {
   final field core::int field;
   constructor •([core::int field = 42]) → self::A
     ;
-  static factory redirect([has-declared-initializer core::int field]) → self::A /* redirection-target: self::A::• */
+  static factory redirect([core::int field = 87]) → self::A /* redirection-target: self::A::• */
     return new self::A::•(field);
 }
 static method main() → dynamic

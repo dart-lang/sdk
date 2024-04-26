@@ -63,16 +63,16 @@ class B extends self::A {
 
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
   no-such-method-forwarder method foo() → dynamic
-    return _in::unsafeCast<dynamic>([@vm.direct-call.metadata=#lib::B.noSuchMethod] [@vm.inferred-type.metadata=#lib::T1 (skip check)] this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, [@vm.inferred-type.metadata=dart.collection::UnmodifiableMapView<dart.core::Symbol*, dynamic>] core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation) → dynamic});
+    return _in::unsafeCast<dynamic>([@vm.direct-call.metadata=#lib::B.noSuchMethod] [@vm.inferred-type.metadata=#lib::T1 (skip check)] this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, [@vm.inferred-type.metadata=dart.collection::UnmodifiableMapView<dart.core::Symbol, dynamic>] core::Map::unmodifiable<core::Symbol, dynamic>(#C4))){(core::Invocation) → dynamic});
 
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]
   no-such-method-forwarder get bar() → dynamic
-    return _in::unsafeCast<dynamic>([@vm.direct-call.metadata=#lib::B.noSuchMethod] [@vm.inferred-type.metadata=#lib::T1 (skip check)] this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 1, #C2, #C3, [@vm.inferred-type.metadata=dart.collection::UnmodifiableMapView<dart.core::Symbol*, dynamic>] core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation) → dynamic});
+    return _in::unsafeCast<dynamic>([@vm.direct-call.metadata=#lib::B.noSuchMethod] [@vm.inferred-type.metadata=#lib::T1 (skip check)] this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 1, #C2, #C3, [@vm.inferred-type.metadata=dart.collection::UnmodifiableMapView<dart.core::Symbol, dynamic>] core::Map::unmodifiable<core::Symbol, dynamic>(#C4))){(core::Invocation) → dynamic});
 
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5]
   [@vm.unboxing-info.metadata=(i,i,i,i)->b]
   no-such-method-forwarder method bazz([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 1)] dynamic a1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 2)] dynamic a2, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 3)] dynamic a3, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 4)] dynamic a4) → dynamic
-    return _in::unsafeCast<dynamic>([@vm.direct-call.metadata=#lib::B.noSuchMethod] [@vm.inferred-type.metadata=#lib::T1 (skip check)] this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 0, #C2, [@vm.inferred-type.metadata=dart.core::_ImmutableList] core::List::unmodifiable<dynamic>([@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic>] core::_GrowableList::_literal5<dynamic>()), [@vm.inferred-type.metadata=dart.collection::UnmodifiableMapView<dart.core::Symbol*, dynamic>] core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation) → dynamic});
+    return _in::unsafeCast<dynamic>([@vm.direct-call.metadata=#lib::B.noSuchMethod] [@vm.inferred-type.metadata=#lib::T1 (skip check)] this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 0, #C2, [@vm.inferred-type.metadata=dart.core::_ImmutableList] core::List::unmodifiable<dynamic>([@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic>] core::_GrowableList::_literal5<dynamic>()), [@vm.inferred-type.metadata=dart.collection::UnmodifiableMapView<dart.core::Symbol, dynamic>] core::Map::unmodifiable<core::Symbol, dynamic>(#C4))){(core::Invocation) → dynamic});
 }
 abstract class C extends core::Object {
   synthetic constructor •() → self::C
@@ -92,16 +92,16 @@ class D extends self::C implements self::A {
 
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
   no-such-method-forwarder method foo() → dynamic
-    return _in::unsafeCast<dynamic>([@vm.direct-call.metadata=#lib::C.noSuchMethod] [@vm.inferred-type.metadata=#lib::T2 (skip check)] this.{self::C::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, [@vm.inferred-type.metadata=dart.collection::UnmodifiableMapView<dart.core::Symbol*, dynamic>] core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation) → dynamic});
+    return _in::unsafeCast<dynamic>([@vm.direct-call.metadata=#lib::C.noSuchMethod] [@vm.inferred-type.metadata=#lib::T2 (skip check)] this.{self::C::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, [@vm.inferred-type.metadata=dart.collection::UnmodifiableMapView<dart.core::Symbol, dynamic>] core::Map::unmodifiable<core::Symbol, dynamic>(#C4))){(core::Invocation) → dynamic});
 
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]
   no-such-method-forwarder get bar() → dynamic
-    return _in::unsafeCast<dynamic>([@vm.direct-call.metadata=#lib::C.noSuchMethod] [@vm.inferred-type.metadata=#lib::T2 (skip check)] this.{self::C::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 1, #C2, #C3, [@vm.inferred-type.metadata=dart.collection::UnmodifiableMapView<dart.core::Symbol*, dynamic>] core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation) → dynamic});
+    return _in::unsafeCast<dynamic>([@vm.direct-call.metadata=#lib::C.noSuchMethod] [@vm.inferred-type.metadata=#lib::T2 (skip check)] this.{self::C::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 1, #C2, #C3, [@vm.inferred-type.metadata=dart.collection::UnmodifiableMapView<dart.core::Symbol, dynamic>] core::Map::unmodifiable<core::Symbol, dynamic>(#C4))){(core::Invocation) → dynamic});
 
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5]
   [@vm.unboxing-info.metadata=(i,i,i,i)->b]
   no-such-method-forwarder method bazz([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 1)] dynamic a1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 2)] dynamic a2, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 3)] dynamic a3, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 4)] dynamic a4) → dynamic
-    return _in::unsafeCast<dynamic>([@vm.direct-call.metadata=#lib::C.noSuchMethod] [@vm.inferred-type.metadata=#lib::T2 (skip check)] this.{self::C::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 0, #C2, [@vm.inferred-type.metadata=dart.core::_ImmutableList] core::List::unmodifiable<dynamic>([@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic>] core::_GrowableList::_literal5<dynamic>()), [@vm.inferred-type.metadata=dart.collection::UnmodifiableMapView<dart.core::Symbol*, dynamic>] core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation) → dynamic});
+    return _in::unsafeCast<dynamic>([@vm.direct-call.metadata=#lib::C.noSuchMethod] [@vm.inferred-type.metadata=#lib::T2 (skip check)] this.{self::C::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 0, #C2, [@vm.inferred-type.metadata=dart.core::_ImmutableList] core::List::unmodifiable<dynamic>([@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic>] core::_GrowableList::_literal5<dynamic>()), [@vm.inferred-type.metadata=dart.collection::UnmodifiableMapView<dart.core::Symbol, dynamic>] core::Map::unmodifiable<core::Symbol, dynamic>(#C4))){(core::Invocation) → dynamic});
 }
 class E extends core::Object implements self::A {
   synthetic constructor •() → self::E
@@ -185,9 +185,9 @@ static method main(core::List<core::String> args) → dynamic {
 }
 constants  {
   #C1 = #foo
-  #C2 = <core::Type*>[]
+  #C2 = <core::Type>[]
   #C3 = <dynamic>[]
-  #C4 = <core::Symbol*, dynamic>{}
+  #C4 = <core::Symbol, dynamic>{}
   #C5 = #bar
   #C6 = #bazz
   #C7 = null

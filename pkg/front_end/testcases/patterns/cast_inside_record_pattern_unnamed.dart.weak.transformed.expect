@@ -9,7 +9,7 @@ static method test(dynamic x) → dynamic {
     synthesized core::Object? #0#2;
     synthesized core::bool #0#2#isSet = false;
     {
-      if(#0#0 is (core::Object?, core::Object?) && (let final core::int #t1 = (#0#2#isSet ?{core::Object?} #0#2{core::Object?} : let final core::bool* #t2 = #0#2#isSet = true in #0#2 = #0#0{(core::Object?, core::Object?)}.$1{core::Object?}) as core::int in #C1 =={core::num::==}{(core::Object) → core::bool} (#0#2#isSet ?{core::Object?} #0#2{core::Object?} : let final core::bool* #t3 = #0#2#isSet = true in #0#2 = #0#0{(core::Object?, core::Object?)}.$1{core::Object?}) as core::int) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, core::Object?)}.$2{core::Object?}) {
+      if(#0#0 is (core::Object?, core::Object?) && (let final core::int #t1 = (#0#2#isSet ?{core::Object?} #0#2{core::Object?} : let final core::bool #t2 = #0#2#isSet = true in #0#2 = #0#0{(core::Object?, core::Object?)}.$1{core::Object?}) as core::int in #C1 =={core::num::==}{(core::Object) → core::bool} (#0#2#isSet ?{core::Object?} #0#2{core::Object?} : let final core::bool #t3 = #0#2#isSet = true in #0#2 = #0#0{(core::Object?, core::Object?)}.$1{core::Object?}) as core::int) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, core::Object?)}.$2{core::Object?}) {
         {
           break #L1;
         }

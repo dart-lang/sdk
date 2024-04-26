@@ -36,7 +36,7 @@ class Coordinate extends ffi::Struct {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
   @#C10
   static get /*isNonNullableByDefault*/ x#offsetOf() → core::int
-    return #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+    return #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C12
   get x() → core::double*
     return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::x#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
@@ -44,7 +44,7 @@ class Coordinate extends ffi::Struct {
     return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::x#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #v);
   @#C10
   static get /*isNonNullableByDefault*/ y#offsetOf() → core::int
-    return #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+    return #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C12
   get y() → core::double*
     return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::y#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
@@ -52,14 +52,14 @@ class Coordinate extends ffi::Struct {
     return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::y#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #v);
   @#C10
   static get /*isNonNullableByDefault*/ next#offsetOf() → core::int
-    return #C16.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+    return #C16.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   get next() → ffi::Pointer<self::Coordinate*>*
     return ffi::_loadPointer<self::Coordinate*>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::next#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
   set next(synthesized ffi::Pointer<self::Coordinate*>* #v) → void
     return ffi::_storePointer<self::Coordinate*>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::next#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #v);
   @#C10
-  static get /*isNonNullableByDefault*/ #sizeOf() → core::int*
-    return #C19.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+  static get /*isNonNullableByDefault*/ #sizeOf() → core::int
+    return #C19.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 static method main() → dynamic {}
 
@@ -74,15 +74,15 @@ constants  {
   #C8 = 0
   #C9 = "vm:prefer-inline"
   #C10 = core::pragma {name:#C9, options:#C5}
-  #C11 = <core::int*>[#C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8]
+  #C11 = <core::int>[#C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8]
   #C12 = ffi::Double {}
   #C13 = 8
-  #C14 = <core::int*>[#C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13]
+  #C14 = <core::int>[#C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13]
   #C15 = 16
-  #C16 = <core::int*>[#C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15]
+  #C16 = <core::int>[#C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15]
   #C17 = 24
   #C18 = 20
-  #C19 = <core::int*>[#C17, #C17, #C18, #C17, #C17, #C17, #C17, #C17, #C18, #C17, #C17, #C17, #C17, #C18, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17]
+  #C19 = <core::int>[#C17, #C17, #C18, #C17, #C17, #C17, #C17, #C17, #C18, #C17, #C17, #C17, #C17, #C18, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17]
 }
 
 

@@ -115,7 +115,7 @@ static method ifCase(dynamic o) → dynamic {
     {
       hoisted self::B b;
       hoisted self::C c;
-      if(#7#0 is self::A && (let final self::B #t2 = b = #7#2#isSet ?{self::B} #7#2{self::B} : let final core::bool* #t3 = #7#2#isSet = true in #7#2 = #7#0{self::A}.{self::A::b}{self::B} in true) && #C1 =={core::num::==}{(core::Object) → core::bool} #7#0{self::A}.{self::A::i}{core::int} && ((let final self::C #t4 = c = (#7#2#isSet ?{self::B} #7#2{self::B} : let final core::bool* #t5 = #7#2#isSet = true in #7#2 = #7#0{self::A}.{self::A::b}{self::B}).{self::B::c}{self::C} in true) && #C2 =={core::num::==}{(core::Object) → core::bool} (#7#2#isSet ?{self::B} #7#2{self::B} : let final core::bool* #t6 = #7#2#isSet = true in #7#2 = #7#0{self::A}.{self::A::b}{self::B}).{self::B::i}{core::int})) {
+      if(#7#0 is self::A && (let final self::B #t2 = b = #7#2#isSet ?{self::B} #7#2{self::B} : let final core::bool #t3 = #7#2#isSet = true in #7#2 = #7#0{self::A}.{self::A::b}{self::B} in true) && #C1 =={core::num::==}{(core::Object) → core::bool} #7#0{self::A}.{self::A::i}{core::int} && ((let final self::C #t4 = c = (#7#2#isSet ?{self::B} #7#2{self::B} : let final core::bool #t5 = #7#2#isSet = true in #7#2 = #7#0{self::A}.{self::A::b}{self::B}).{self::B::c}{self::C} in true) && #C2 =={core::num::==}{(core::Object) → core::bool} (#7#2#isSet ?{self::B} #7#2{self::B} : let final core::bool #t6 = #7#2#isSet = true in #7#2 = #7#0{self::A}.{self::A::b}{self::B}).{self::B::i}{core::int})) {
         core::print(b);
         core::print(c);
       }
@@ -147,7 +147,7 @@ static method switchExpression(dynamic o) → dynamic
       {
         hoisted self::B b;
         if(#0#0 is self::A) {
-          b = #0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool* #t8 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B};
+          b = #0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool #t8 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B};
           #t7 = b;
           break #L1;
         }
@@ -155,7 +155,7 @@ static method switchExpression(dynamic o) → dynamic
       {
         hoisted self::C c;
         if(#0#0 is self::A) {
-          c = #0#3#isSet ?{self::C} #0#3{self::C} : let final core::bool* #t9 = #0#3#isSet = true in #0#3 = (#0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool* #t10 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B}).{self::B::c}{self::C};
+          c = #0#3#isSet ?{self::C} #0#3{self::C} : let final core::bool #t9 = #0#3#isSet = true in #0#3 = (#0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool #t10 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B}).{self::B::c}{self::C};
           #t7 = c;
           break #L1;
         }
@@ -163,7 +163,7 @@ static method switchExpression(dynamic o) → dynamic
       {
         hoisted core::int i;
         if(#0#0 is self::A) {
-          i = (#0#3#isSet ?{self::C} #0#3{self::C} : let final core::bool* #t11 = #0#3#isSet = true in #0#3 = (#0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool* #t12 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B}).{self::B::c}{self::C}).{self::C::i}{core::int};
+          i = (#0#3#isSet ?{self::C} #0#3{self::C} : let final core::bool #t11 = #0#3#isSet = true in #0#3 = (#0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool #t12 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B}).{self::B::c}{self::C}).{self::C::i}{core::int};
           #t7 = i;
           break #L1;
         }
@@ -172,23 +172,23 @@ static method switchExpression(dynamic o) → dynamic
         hoisted self::B b;
         hoisted core::int i;
         if(#0#0 is self::A) {
-          b = #0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool* #t13 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B};
-          i = #0#5#isSet ?{core::int} #0#5{core::int} : let final core::bool* #t14 = #0#5#isSet = true in #0#5 = #0#0{self::A}.{self::A::i}{core::int};
+          b = #0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool #t13 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B};
+          i = #0#5#isSet ?{core::int} #0#5{core::int} : let final core::bool #t14 = #0#5#isSet = true in #0#5 = #0#0{self::A}.{self::A::i}{core::int};
           #t7 = "${b}${i}";
           break #L1;
         }
       }
       {
         hoisted self::B b;
-        if(#0#0 is self::A && (#0#7#isSet ?{core::bool} #0#7{core::bool} : let final core::bool* #t15 = #0#7#isSet = true in #0#7 = #C1 =={core::num::==}{(core::Object) → core::bool} (#0#5#isSet ?{core::int} #0#5{core::int} : let final core::bool* #t16 = #0#5#isSet = true in #0#5 = #0#0{self::A}.{self::A::i}{core::int}))) {
-          b = #0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool* #t17 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B};
+        if(#0#0 is self::A && (#0#7#isSet ?{core::bool} #0#7{core::bool} : let final core::bool #t15 = #0#7#isSet = true in #0#7 = #C1 =={core::num::==}{(core::Object) → core::bool} (#0#5#isSet ?{core::int} #0#5{core::int} : let final core::bool #t16 = #0#5#isSet = true in #0#5 = #0#0{self::A}.{self::A::i}{core::int}))) {
+          b = #0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool #t17 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B};
           #t7 = b;
           break #L1;
         }
       }
       {
         hoisted self::B b;
-        if(#0#0 is self::A && (let final self::B #t18 = b = #0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool* #t19 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B} in true) && (#0#7#isSet ?{core::bool} #0#7{core::bool} : let final core::bool* #t20 = #0#7#isSet = true in #0#7 = #C1 =={core::num::==}{(core::Object) → core::bool} (#0#5#isSet ?{core::int} #0#5{core::int} : let final core::bool* #t21 = #0#5#isSet = true in #0#5 = #0#0{self::A}.{self::A::i}{core::int}))) {
+        if(#0#0 is self::A && (let final self::B #t18 = b = #0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool #t19 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B} in true) && (#0#7#isSet ?{core::bool} #0#7{core::bool} : let final core::bool #t20 = #0#7#isSet = true in #0#7 = #C1 =={core::num::==}{(core::Object) → core::bool} (#0#5#isSet ?{core::int} #0#5{core::int} : let final core::bool #t21 = #0#5#isSet = true in #0#5 = #0#0{self::A}.{self::A::i}{core::int}))) {
           #t7 = b;
           break #L1;
         }
@@ -196,7 +196,7 @@ static method switchExpression(dynamic o) → dynamic
       {
         hoisted self::B b;
         hoisted self::C c;
-        if(#0#0 is self::A && (let final self::B #t22 = b = #0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool* #t23 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B} in true) && (#0#7#isSet ?{core::bool} #0#7{core::bool} : let final core::bool* #t24 = #0#7#isSet = true in #0#7 = #C1 =={core::num::==}{(core::Object) → core::bool} (#0#5#isSet ?{core::int} #0#5{core::int} : let final core::bool* #t25 = #0#5#isSet = true in #0#5 = #0#0{self::A}.{self::A::i}{core::int})) && ((let final self::C #t26 = c = #0#3#isSet ?{self::C} #0#3{self::C} : let final core::bool* #t27 = #0#3#isSet = true in #0#3 = (#0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool* #t28 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B}).{self::B::c}{self::C} in true) && #C2 =={core::num::==}{(core::Object) → core::bool} (#0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool* #t29 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B}).{self::B::i}{core::int})) {
+        if(#0#0 is self::A && (let final self::B #t22 = b = #0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool #t23 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B} in true) && (#0#7#isSet ?{core::bool} #0#7{core::bool} : let final core::bool #t24 = #0#7#isSet = true in #0#7 = #C1 =={core::num::==}{(core::Object) → core::bool} (#0#5#isSet ?{core::int} #0#5{core::int} : let final core::bool #t25 = #0#5#isSet = true in #0#5 = #0#0{self::A}.{self::A::i}{core::int})) && ((let final self::C #t26 = c = #0#3#isSet ?{self::C} #0#3{self::C} : let final core::bool #t27 = #0#3#isSet = true in #0#3 = (#0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool #t28 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B}).{self::B::c}{self::C} in true) && #C2 =={core::num::==}{(core::Object) → core::bool} (#0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool #t29 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B}).{self::B::i}{core::int})) {
           #t7 = "${b}${c}";
           break #L1;
         }
@@ -234,7 +234,7 @@ static method switchStatement(dynamic o) → dynamic {
     }
     {
       hoisted self::B b;
-      if(#0#0 is self::A && (let final self::B #t31 = b = #0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool* #t32 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B} in true)) {
+      if(#0#0 is self::A && (let final self::B #t31 = b = #0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool #t32 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B} in true)) {
         {
           v = b;
           break #L2;
@@ -243,7 +243,7 @@ static method switchStatement(dynamic o) → dynamic {
     }
     {
       hoisted self::C c;
-      if(#0#0 is self::A && (let final self::C #t33 = c = #0#3#isSet ?{self::C} #0#3{self::C} : let final core::bool* #t34 = #0#3#isSet = true in #0#3 = (#0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool* #t35 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B}).{self::B::c}{self::C} in true)) {
+      if(#0#0 is self::A && (let final self::C #t33 = c = #0#3#isSet ?{self::C} #0#3{self::C} : let final core::bool #t34 = #0#3#isSet = true in #0#3 = (#0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool #t35 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B}).{self::B::c}{self::C} in true)) {
         {
           v = c;
           break #L2;
@@ -252,7 +252,7 @@ static method switchStatement(dynamic o) → dynamic {
     }
     {
       hoisted core::int i;
-      if(#0#0 is self::A && (let final core::int #t36 = i = (#0#3#isSet ?{self::C} #0#3{self::C} : let final core::bool* #t37 = #0#3#isSet = true in #0#3 = (#0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool* #t38 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B}).{self::B::c}{self::C}).{self::C::i}{core::int} in true)) {
+      if(#0#0 is self::A && (let final core::int #t36 = i = (#0#3#isSet ?{self::C} #0#3{self::C} : let final core::bool #t37 = #0#3#isSet = true in #0#3 = (#0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool #t38 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B}).{self::B::c}{self::C}).{self::C::i}{core::int} in true)) {
         {
           v = i;
           break #L2;
@@ -262,7 +262,7 @@ static method switchStatement(dynamic o) → dynamic {
     {
       hoisted self::B b;
       hoisted core::int i;
-      if(#0#0 is self::A && (let final self::B #t39 = b = #0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool* #t40 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B} in true) && (let final core::int #t41 = i = #0#5#isSet ?{core::int} #0#5{core::int} : let final core::bool* #t42 = #0#5#isSet = true in #0#5 = #0#0{self::A}.{self::A::i}{core::int} in true)) {
+      if(#0#0 is self::A && (let final self::B #t39 = b = #0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool #t40 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B} in true) && (let final core::int #t41 = i = #0#5#isSet ?{core::int} #0#5{core::int} : let final core::bool #t42 = #0#5#isSet = true in #0#5 = #0#0{self::A}.{self::A::i}{core::int} in true)) {
         {
           v = "${b}${i}";
           break #L2;
@@ -271,7 +271,7 @@ static method switchStatement(dynamic o) → dynamic {
     }
     {
       hoisted self::B b;
-      if(#0#0 is self::A && (#0#7#isSet ?{core::bool} #0#7{core::bool} : let final core::bool* #t43 = #0#7#isSet = true in #0#7 = #C1 =={core::num::==}{(core::Object) → core::bool} (#0#5#isSet ?{core::int} #0#5{core::int} : let final core::bool* #t44 = #0#5#isSet = true in #0#5 = #0#0{self::A}.{self::A::i}{core::int})) && (let final self::B #t45 = b = #0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool* #t46 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B} in true)) {
+      if(#0#0 is self::A && (#0#7#isSet ?{core::bool} #0#7{core::bool} : let final core::bool #t43 = #0#7#isSet = true in #0#7 = #C1 =={core::num::==}{(core::Object) → core::bool} (#0#5#isSet ?{core::int} #0#5{core::int} : let final core::bool #t44 = #0#5#isSet = true in #0#5 = #0#0{self::A}.{self::A::i}{core::int})) && (let final self::B #t45 = b = #0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool #t46 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B} in true)) {
         {
           v = b;
           break #L2;
@@ -280,7 +280,7 @@ static method switchStatement(dynamic o) → dynamic {
     }
     {
       hoisted self::B b;
-      if(#0#0 is self::A && (let final self::B #t47 = b = #0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool* #t48 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B} in true) && (#0#7#isSet ?{core::bool} #0#7{core::bool} : let final core::bool* #t49 = #0#7#isSet = true in #0#7 = #C1 =={core::num::==}{(core::Object) → core::bool} (#0#5#isSet ?{core::int} #0#5{core::int} : let final core::bool* #t50 = #0#5#isSet = true in #0#5 = #0#0{self::A}.{self::A::i}{core::int}))) {
+      if(#0#0 is self::A && (let final self::B #t47 = b = #0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool #t48 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B} in true) && (#0#7#isSet ?{core::bool} #0#7{core::bool} : let final core::bool #t49 = #0#7#isSet = true in #0#7 = #C1 =={core::num::==}{(core::Object) → core::bool} (#0#5#isSet ?{core::int} #0#5{core::int} : let final core::bool #t50 = #0#5#isSet = true in #0#5 = #0#0{self::A}.{self::A::i}{core::int}))) {
         {
           v = b;
           break #L2;
@@ -290,7 +290,7 @@ static method switchStatement(dynamic o) → dynamic {
     {
       hoisted self::B b;
       hoisted self::C c;
-      if(#0#0 is self::A && (let final self::B #t51 = b = #0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool* #t52 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B} in true) && (#0#7#isSet ?{core::bool} #0#7{core::bool} : let final core::bool* #t53 = #0#7#isSet = true in #0#7 = #C1 =={core::num::==}{(core::Object) → core::bool} (#0#5#isSet ?{core::int} #0#5{core::int} : let final core::bool* #t54 = #0#5#isSet = true in #0#5 = #0#0{self::A}.{self::A::i}{core::int})) && ((let final self::C #t55 = c = #0#3#isSet ?{self::C} #0#3{self::C} : let final core::bool* #t56 = #0#3#isSet = true in #0#3 = (#0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool* #t57 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B}).{self::B::c}{self::C} in true) && #C2 =={core::num::==}{(core::Object) → core::bool} (#0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool* #t58 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B}).{self::B::i}{core::int})) {
+      if(#0#0 is self::A && (let final self::B #t51 = b = #0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool #t52 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B} in true) && (#0#7#isSet ?{core::bool} #0#7{core::bool} : let final core::bool #t53 = #0#7#isSet = true in #0#7 = #C1 =={core::num::==}{(core::Object) → core::bool} (#0#5#isSet ?{core::int} #0#5{core::int} : let final core::bool #t54 = #0#5#isSet = true in #0#5 = #0#0{self::A}.{self::A::i}{core::int})) && ((let final self::C #t55 = c = #0#3#isSet ?{self::C} #0#3{self::C} : let final core::bool #t56 = #0#3#isSet = true in #0#3 = (#0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool #t57 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B}).{self::B::c}{self::C} in true) && #C2 =={core::num::==}{(core::Object) → core::bool} (#0#2#isSet ?{self::B} #0#2{self::B} : let final core::bool #t58 = #0#2#isSet = true in #0#2 = #0#0{self::A}.{self::A::b}{self::B}).{self::B::i}{core::int})) {
         {
           v = "${b}${c}";
         }

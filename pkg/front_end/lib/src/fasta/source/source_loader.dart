@@ -1779,12 +1779,19 @@ severity: $severity
     ticker.logMs("Resolved $count constructors");
   }
 
-  void installTypedefTearOffs() {
+  List<DelayedDefaultValueCloner>? installTypedefTearOffs() {
+    List<DelayedDefaultValueCloner>? delayedDefaultValueCloners;
     if (target.backendTarget.isTypedefTearOffLoweringEnabled) {
       for (SourceLibraryBuilder library in sourceLibraryBuilders) {
-        library.installTypedefTearOffs();
+        List<DelayedDefaultValueCloner>? libraryDelayedDefaultValueCloners =
+            library.installTypedefTearOffs();
+        if (libraryDelayedDefaultValueCloners != null) {
+          (delayedDefaultValueCloners ??= [])
+              .addAll(libraryDelayedDefaultValueCloners);
+        }
       }
     }
+    return delayedDefaultValueCloners;
   }
 
   void finishTypeVariables(Iterable<SourceLibraryBuilder> libraryBuilders,

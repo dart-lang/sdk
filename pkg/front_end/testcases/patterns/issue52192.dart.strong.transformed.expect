@@ -24,7 +24,7 @@ static method foo(core::Object o, core::num value) → void {
     synthesized core::bool #0#2#isSet = false;
     {
       hoisted (core::num) → void f;
-      if(#0#0 is self::B && (let final (core::int) → void #t3 = #0#2#isSet ?{(core::int) → void} #0#2{(core::int) → void} : let final core::bool* #t4 = #0#2#isSet = true in #0#2 = #0#0{self::B}.{self::B::g}{(core::int) → void} in true) && (let final (core::num) → void #t5 = f = (#0#2#isSet ?{(core::num) → void} #0#2{(core::num) → void} : let final core::bool* #t6 = #0#2#isSet = true in #0#2 = #0#0{self::B}.{self::A::g}{(core::num) → void}) as{CovarianceCheck} (core::num) → void in true)) {
+      if(#0#0 is self::B && (let final (core::int) → void #t3 = #0#2#isSet ?{(core::int) → void} #0#2{(core::int) → void} : let final core::bool #t4 = #0#2#isSet = true in #0#2 = #0#0{self::B}.{self::B::g}{(core::int) → void} in true) && (let final (core::num) → void #t5 = f = (#0#2#isSet ?{(core::num) → void} #0#2{(core::num) → void} : let final core::bool #t6 = #0#2#isSet = true in #0#2 = #0#0{self::B}.{self::A::g}{(core::num) → void}) as{CovarianceCheck} (core::num) → void in true)) {
         {
           f(value){(core::num) → void};
         }

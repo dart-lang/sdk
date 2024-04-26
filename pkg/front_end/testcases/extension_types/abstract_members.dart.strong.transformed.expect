@@ -75,7 +75,7 @@ class A extends core::Object {
     : super core::Object::•()
     ;
   no-such-method-forwarder method x() → core::int
-    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
   method noSuchMethod(core::Invocation invocation) → dynamic
     return null;
 }
@@ -190,7 +190,7 @@ static abstract extension-member method E|set#setter(lowered final self::A #this
 
 constants  {
   #C1 = #x
-  #C2 = <core::Type*>[]
+  #C2 = <core::Type>[]
   #C3 = <dynamic>[]
-  #C4 = <core::Symbol*, dynamic>{}
+  #C4 = <core::Symbol, dynamic>{}
 }

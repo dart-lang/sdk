@@ -57,13 +57,13 @@ static method exhaustiveValue((core::int, core::String, {required named: core::b
     #L3:
     {
       {
-        if(#C1 =={core::Object::==}{(core::Object) → core::bool} (#0#3#isSet ?{core::bool} #0#3{core::bool} : let final core::bool* #t4 = #0#3#isSet = true in #0#3 = #0#0.named{core::bool})) {
+        if(#C1 =={core::Object::==}{(core::Object) → core::bool} (#0#3#isSet ?{core::bool} #0#3{core::bool} : let final core::bool #t4 = #0#3#isSet = true in #0#3 = #0#0.named{core::bool})) {
           #t3 = 0;
           break #L3;
         }
       }
       {
-        if(#C2 =={core::Object::==}{(core::Object) → core::bool} (#0#3#isSet ?{core::bool} #0#3{core::bool} : let final core::bool* #t5 = #0#3#isSet = true in #0#3 = #0#0.named{core::bool})) {
+        if(#C2 =={core::Object::==}{(core::Object) → core::bool} (#0#3#isSet ?{core::bool} #0#3{core::bool} : let final core::bool #t5 = #0#3#isSet = true in #0#3 = #0#0.named{core::bool})) {
           #t3 = 1;
           break #L3;
         }

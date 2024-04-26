@@ -23,7 +23,7 @@ class E extends core::Object implements self::D {
   method noSuchMethod(core::Invocation invocation) → dynamic
     ;
   no-such-method-forwarder get _f1() → core::int?
-    return this.{self::E::noSuchMethod}(new core::_InvocationMirror::_withType(#_f1, 1, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int?;
+    return this.{self::E::noSuchMethod}(new core::_InvocationMirror::_withType(#_f1, 1, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int?;
 }
 class F extends core::Object implements fie::C {
   synthetic constructor •() → self::F
@@ -32,7 +32,7 @@ class F extends core::Object implements fie::C {
   method noSuchMethod(core::Invocation invocation) → dynamic
     ;
   no-such-method-forwarder get _f2() → core::int?
-    return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_f2, 1, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
+    return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_f2, 1, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
 }
 static method acceptsInt(core::int x) → void
   ;

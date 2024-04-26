@@ -669,8 +669,10 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         _summary = new Summary(summaryName,
             parameterCount: numArgs, positionalParameterCount: numArgs);
         // TODO(alexmarkov): subclass cone
-        _receiver = _declareParameter("this",
-            _environment.coreTypes.legacyRawType(member.enclosingClass!), null,
+        _receiver = _declareParameter(
+            "this",
+            _environment.coreTypes.nonNullableRawType(member.enclosingClass!),
+            null,
             isReceiver: true);
         if (_variablesInfo.isReceiverCaptured) {
           final capturedReceiver =
@@ -722,8 +724,10 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         _declareParameter('#closure', const DynamicType(), null);
       } else if (hasReceiver) {
         // TODO(alexmarkov): subclass cone
-        _receiver = _declareParameter('this',
-            _environment.coreTypes.legacyRawType(member.enclosingClass!), null,
+        _receiver = _declareParameter(
+            'this',
+            _environment.coreTypes.nonNullableRawType(member.enclosingClass!),
+            null,
             isReceiver: true);
       }
 
@@ -1592,10 +1596,10 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       final rhs = node.right;
       if ((rhs is IntLiteral &&
               _isSubtype(lhs.variable.type,
-                  _environment.coreTypes.intLegacyRawType)) ||
+                  _environment.coreTypes.intNullableRawType)) ||
           (rhs is StringLiteral &&
               _isSubtype(lhs.variable.type,
-                  _environment.coreTypes.stringLegacyRawType)) ||
+                  _environment.coreTypes.stringNullableRawType)) ||
           (rhs is ConstantExpression &&
               !_hasOverriddenEquals(lhs.variable.type))) {
         // 'x == c', where x is a variable and c is a constant.

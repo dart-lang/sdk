@@ -359,10 +359,11 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
 
   Map<Procedure, Member>? _tearOffDependencies;
 
-  void buildTypedefTearOffs(
+  DelayedDefaultValueCloner? buildTypedefTearOffs(
       SourceLibraryBuilder libraryBuilder, void Function(Procedure) f) {
     TypeDeclarationBuilder? declaration = unaliasDeclaration(null);
     DartType? targetType = typedef.type;
+    DelayedDefaultValueCloner? delayedDefaultValueCloner;
     switch (declaration) {
       case ClassBuilder():
         if (targetType is InterfaceType &&
@@ -408,7 +409,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
                       tearOffReference);
               _tearOffDependencies![tearOff] = target;
 
-              buildTypedefTearOffProcedure(
+              delayedDefaultValueCloner = buildTypedefTearOffProcedure(
                   tearOff: tearOff,
                   declarationConstructor: target,
                   // TODO(johnniwinther): Handle augmented constructors.
@@ -461,7 +462,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
                       tearOffReference);
               _tearOffDependencies![tearOff] = target;
 
-              buildTypedefTearOffProcedure(
+              delayedDefaultValueCloner = buildTypedefTearOffProcedure(
                   tearOff: tearOff,
                   declarationConstructor: target,
                   // TODO(johnniwinther): Handle augmented constructors.
@@ -485,5 +486,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       case OmittedTypeDeclarationBuilder():
       case null:
     }
+
+    return delayedDefaultValueCloner;
   }
 }

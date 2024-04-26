@@ -25,21 +25,21 @@ class A extends core::Object {
         {
           final hoisted core::int? f1;
           if(true) {
-            f1 = #0#1#isSet ?{core::int?} #0#1{core::int?} : let final core::bool* #t2 = #0#1#isSet = true in #0#1 = #0#0.$1{core::int?};
+            f1 = #0#1#isSet ?{core::int?} #0#1{core::int?} : let final core::bool #t2 = #0#1#isSet = true in #0#1 = #0#0.$1{core::int?};
             #t1 = "${f1}";
             break #L1;
           }
         }
         {
           final hoisted core::double? f2;
-          if(#0#4#isSet ?{core::bool} #0#4{core::bool} : let final core::bool* #t3 = #0#4#isSet = true in #0#4 = (#0#1#isSet ?{core::int?} #0#1{core::int?} : let final core::bool* #t4 = #0#1#isSet = true in #0#1 = #0#0.$1{core::int?}) == null) {
-            f2 = #0#2#isSet ?{core::double?} #0#2{core::double?} : let final core::bool* #t5 = #0#2#isSet = true in #0#2 = #0#0.$2{core::double?};
+          if(#0#4#isSet ?{core::bool} #0#4{core::bool} : let final core::bool #t3 = #0#4#isSet = true in #0#4 = (#0#1#isSet ?{core::int?} #0#1{core::int?} : let final core::bool #t4 = #0#1#isSet = true in #0#1 = #0#0.$1{core::int?}) == null) {
+            f2 = #0#2#isSet ?{core::double?} #0#2{core::double?} : let final core::bool #t5 = #0#2#isSet = true in #0#2 = #0#0.$2{core::double?};
             #t1 = "${f2}";
             break #L1;
           }
         }
         {
-          if((#0#4#isSet ?{core::bool} #0#4{core::bool} : let final core::bool* #t6 = #0#4#isSet = true in #0#4 = (#0#1#isSet ?{core::int?} #0#1{core::int?} : let final core::bool* #t7 = #0#1#isSet = true in #0#1 = #0#0.$1{core::int?}) == null) && (#0#2#isSet ?{core::double?} #0#2{core::double?} : let final core::bool* #t8 = #0#2#isSet = true in #0#2 = #0#0.$2{core::double?}) == null) {
+          if((#0#4#isSet ?{core::bool} #0#4{core::bool} : let final core::bool #t6 = #0#4#isSet = true in #0#4 = (#0#1#isSet ?{core::int?} #0#1{core::int?} : let final core::bool #t7 = #0#1#isSet = true in #0#1 = #0#0.$1{core::int?}) == null) && (#0#2#isSet ?{core::double?} #0#2{core::double?} : let final core::bool #t8 = #0#2#isSet = true in #0#2 = #0#0.$2{core::double?}) == null) {
             #t1 = "?";
             break #L1;
           }

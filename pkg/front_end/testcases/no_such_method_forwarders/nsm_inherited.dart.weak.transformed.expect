@@ -14,7 +14,7 @@ class A extends self::M {
     : super self::M::•()
     ;
   no-such-method-forwarder method call(core::String s) → void
-    return this.{self::M::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(s)), core::Map::unmodifiable<core::Symbol*, dynamic>(#C3))){(core::Invocation) → dynamic};
+    return this.{self::M::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(s)), core::Map::unmodifiable<core::Symbol, dynamic>(#C3))){(core::Invocation) → dynamic};
 }
 static method main() → dynamic {}
 

@@ -10,7 +10,7 @@ static method test(dynamic x) → dynamic {
     synthesized core::bool #0#2#isSet = false;
     {
       hoisted dynamic n;
-      if(#0#0 is (core::Object?, {n: core::Object?}) && (let final core::Object? #t1 = (#0#2#isSet ?{core::Object?} #0#2{core::Object?} : let final core::bool* #t2 = #0#2#isSet = true in #0#2 = #0#0{(core::Object?, {n: core::Object?})}.n{core::Object?})! in let final core::Object? #t3 = n = (#0#2#isSet ?{core::Object?} #0#2{core::Object?} : let final core::bool* #t4 = #0#2#isSet = true in #0#2 = #0#0{(core::Object?, {n: core::Object?})}.n{core::Object?})! in true) && #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, {n: core::Object?})}.$1{core::Object?}) {
+      if(#0#0 is (core::Object?, {n: core::Object?}) && (let final core::Object? #t1 = (#0#2#isSet ?{core::Object?} #0#2{core::Object?} : let final core::bool #t2 = #0#2#isSet = true in #0#2 = #0#0{(core::Object?, {n: core::Object?})}.n{core::Object?})! in let final core::Object? #t3 = n = (#0#2#isSet ?{core::Object?} #0#2{core::Object?} : let final core::bool #t4 = #0#2#isSet = true in #0#2 = #0#0{(core::Object?, {n: core::Object?})}.n{core::Object?})! in true) && #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, {n: core::Object?})}.$1{core::Object?}) {
         {
           break #L1;
         }

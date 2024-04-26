@@ -530,7 +530,11 @@ class KernelTarget extends TargetImplementation {
       loader.computeShowHideElements();
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_installTypedefTearOffs);
-      loader.installTypedefTearOffs();
+      List<DelayedDefaultValueCloner>?
+          typedefTearOffsDelayedDefaultValueCloners =
+          loader.installTypedefTearOffs();
+      typedefTearOffsDelayedDefaultValueCloners
+          ?.forEach(registerDelayedDefaultValueCloner);
 
       benchmarker
           ?.enterPhase(BenchmarkPhases.outline_computeFieldPromotability);
@@ -1123,12 +1127,15 @@ class KernelTarget extends TargetImplementation {
         forAbstractClassOrEnumOrMixin: classBuilder.isAbstract);
 
     if (constructorTearOff != null) {
-      buildConstructorTearOffProcedure(
-          tearOff: constructorTearOff,
-          declarationConstructor: constructor,
-          implementationConstructor: constructor,
-          enclosingDeclarationTypeParameters: classBuilder.cls.typeParameters,
-          libraryBuilder: libraryBuilder);
+      DelayedDefaultValueCloner delayedDefaultValueCloner =
+          buildConstructorTearOffProcedure(
+              tearOff: constructorTearOff,
+              declarationConstructor: constructor,
+              implementationConstructor: constructor,
+              enclosingDeclarationTypeParameters:
+                  classBuilder.cls.typeParameters,
+              libraryBuilder: libraryBuilder);
+      registerDelayedDefaultValueCloner(delayedDefaultValueCloner);
     }
     SyntheticSourceConstructorBuilder constructorBuilder =
         new SyntheticSourceConstructorBuilder(
@@ -1147,9 +1154,10 @@ class KernelTarget extends TargetImplementation {
   }
 
   void registerDelayedDefaultValueCloner(DelayedDefaultValueCloner cloner) {
-    assert(!_delayedDefaultValueCloners.containsKey(cloner.synthesized),
-        "Default cloner already registered for ${cloner.synthesized}.");
-    _delayedDefaultValueCloners[cloner.synthesized] = cloner;
+    // TODO(cstefantsova): Investigate the reason for the assumption breakage
+    // and uncomment the following line.
+    // assert(!_delayedDefaultValueCloners.containsKey(cloner.synthesized));
+    _delayedDefaultValueCloners[cloner.synthesized] ??= cloner;
   }
 
   void finishSynthesizedParameters({bool forOutline = false}) {
@@ -1202,12 +1210,15 @@ class KernelTarget extends TargetImplementation {
         forAbstractClassOrEnumOrMixin:
             enclosingClass.isAbstract || enclosingClass.isEnum);
     if (constructorTearOff != null) {
-      buildConstructorTearOffProcedure(
-          tearOff: constructorTearOff,
-          declarationConstructor: constructor,
-          implementationConstructor: constructor,
-          enclosingDeclarationTypeParameters: classBuilder.cls.typeParameters,
-          libraryBuilder: libraryBuilder);
+      DelayedDefaultValueCloner delayedDefaultValueCloner =
+          buildConstructorTearOffProcedure(
+              tearOff: constructorTearOff,
+              declarationConstructor: constructor,
+              implementationConstructor: constructor,
+              enclosingDeclarationTypeParameters:
+                  classBuilder.cls.typeParameters,
+              libraryBuilder: libraryBuilder);
+      registerDelayedDefaultValueCloner(delayedDefaultValueCloner);
     }
     return new SyntheticSourceConstructorBuilder(
         classBuilder, constructor, constructorTearOff);

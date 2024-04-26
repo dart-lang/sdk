@@ -169,7 +169,7 @@ abstract base class _Invocation extends _DependencyTracker
     final nsmArgs = new Args<Type>([
       receiver,
       typeFlowAnalysis.hierarchyCache.fromStaticType(
-          typeFlowAnalysis.coreTypes.invocationLegacyRawType, false)
+          typeFlowAnalysis.coreTypes.invocationNonNullableRawType, false)
     ]);
 
     final nsmInvocation =

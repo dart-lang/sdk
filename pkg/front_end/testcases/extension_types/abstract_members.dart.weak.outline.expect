@@ -74,7 +74,7 @@ class A extends core::Object {
   synthetic constructor •() → self::A
     ;
   no-such-method-forwarder method x() → core::int
-    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#x, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#x, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
   method noSuchMethod(core::Invocation invocation) → dynamic
     ;
 }

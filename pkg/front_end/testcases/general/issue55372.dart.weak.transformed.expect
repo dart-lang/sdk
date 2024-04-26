@@ -43,8 +43,8 @@ static method main() → dynamic {
     core::Map<core::String, core::String>? x = let final core::Map<core::String, core::Map<core::String, core::String>> #t11 = nestedMap in #t11 == null ?{core::Map<core::String, core::String>?} null : let final core::String #t12 = "hello" in let final core::Map<core::String, core::String>? #t13 = #t11.{core::Map::[]}(#t12){(core::Object?) → core::Map<core::String, core::String>?} in #t13 == null ?{core::Map<core::String, core::String>} let final core::Map<core::String, core::String> #t14 = <core::String, core::String>{} in let final void #t15 = #t11.{core::Map::[]=}(#t12, #t14){(core::String, core::Map<core::String, core::String>) → void} in #t14 : #t13{core::Map<core::String, core::String>};
   }
   {
-    let final core::bool* #t16 = false in let final core::String #t17 = "hello" in self::E|[](#t16, #t17) == null ?{core::int?} self::E|[]=(#t16, #t17, 1) : null;
-    core::int x = let final core::bool* #t18 = false in let final core::String #t19 = "hello" in let final core::int? #t20 = self::E|[](#t18, #t19) in #t20 == null ?{core::int} let final core::int #t21 = 1 in let final void #t22 = self::E|[]=(#t18, #t19, #t21) in #t21 : #t20{core::int};
+    let final core::bool #t16 = false in let final core::String #t17 = "hello" in self::E|[](#t16, #t17) == null ?{core::int?} self::E|[]=(#t16, #t17, 1) : null;
+    core::int x = let final core::bool #t18 = false in let final core::String #t19 = "hello" in let final core::int? #t20 = self::E|[](#t18, #t19) in #t20 == null ?{core::int} let final core::int #t21 = 1 in let final void #t22 = self::E|[]=(#t18, #t19, #t21) in #t21 : #t20{core::int};
   }
   {
     self::A a = new self::A::•();
