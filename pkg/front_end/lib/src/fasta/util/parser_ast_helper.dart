@@ -407,8 +407,9 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endConstLiteral(Token token) {
-    ConstLiteralEnd data = new ConstLiteralEnd(ParserAstType.END, token: token);
+  void endConstLiteral(Token endToken) {
+    ConstLiteralEnd data =
+        new ConstLiteralEnd(ParserAstType.END, endToken: endToken);
     seen(data);
   }
 
@@ -468,9 +469,9 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endWhileStatementBody(Token token) {
+  void endWhileStatementBody(Token endToken) {
     WhileStatementBodyEnd data =
-        new WhileStatementBodyEnd(ParserAstType.END, token: token);
+        new WhileStatementBodyEnd(ParserAstType.END, endToken: endToken);
     seen(data);
   }
 
@@ -887,9 +888,9 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endForStatementBody(Token token) {
+  void endForStatementBody(Token endToken) {
     ForStatementBodyEnd data =
-        new ForStatementBodyEnd(ParserAstType.END, token: token);
+        new ForStatementBodyEnd(ParserAstType.END, endToken: endToken);
     seen(data);
   }
 
@@ -932,8 +933,8 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endForInBody(Token token) {
-    ForInBodyEnd data = new ForInBodyEnd(ParserAstType.END, token: token);
+  void endForInBody(Token endToken) {
+    ForInBodyEnd data = new ForInBodyEnd(ParserAstType.END, endToken: endToken);
     seen(data);
   }
 
@@ -1282,9 +1283,9 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endFieldInitializer(Token assignment, Token token) {
+  void endFieldInitializer(Token assignment, Token endToken) {
     FieldInitializerEnd data = new FieldInitializerEnd(ParserAstType.END,
-        assignment: assignment, token: token);
+        assignment: assignment, endToken: endToken);
     seen(data);
   }
 
@@ -1324,8 +1325,9 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endInitializer(Token token) {
-    InitializerEnd data = new InitializerEnd(ParserAstType.END, token: token);
+  void endInitializer(Token endToken) {
+    InitializerEnd data =
+        new InitializerEnd(ParserAstType.END, endToken: endToken);
     seen(data);
   }
 
@@ -1876,9 +1878,9 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endTopLevelDeclaration(Token nextToken) {
+  void endTopLevelDeclaration(Token endToken) {
     TopLevelDeclarationEnd data =
-        new TopLevelDeclarationEnd(ParserAstType.END, nextToken: nextToken);
+        new TopLevelDeclarationEnd(ParserAstType.END, endToken: endToken);
     seen(data);
   }
 
@@ -2204,9 +2206,9 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endFunctionExpression(Token beginToken, Token token) {
+  void endFunctionExpression(Token beginToken, Token endToken) {
     FunctionExpressionEnd data = new FunctionExpressionEnd(ParserAstType.END,
-        beginToken: beginToken, token: token);
+        beginToken: beginToken, endToken: endToken);
     seen(data);
   }
 
@@ -2527,13 +2529,13 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
-      Token? commaToken, Token semicolonToken) {
+      Token? commaToken, Token endToken) {
     AssertEnd data = new AssertEnd(ParserAstType.END,
         assertKeyword: assertKeyword,
         kind: kind,
         leftParenthesis: leftParenthesis,
         commaToken: commaToken,
-        semicolonToken: semicolonToken);
+        endToken: endToken);
     seen(data);
   }
 
@@ -3774,14 +3776,14 @@ class ConstLiteralBegin extends ParserAstNode {
 }
 
 class ConstLiteralEnd extends ParserAstNode {
-  final Token token;
+  final Token endToken;
 
-  ConstLiteralEnd(ParserAstType type, {required this.token})
+  ConstLiteralEnd(ParserAstType type, {required this.endToken})
       : super("ConstLiteral", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
-        "token": token,
+        "endToken": endToken,
       };
 }
 
@@ -3887,14 +3889,14 @@ class WhileStatementBodyBegin extends ParserAstNode {
 }
 
 class WhileStatementBodyEnd extends ParserAstNode {
-  final Token token;
+  final Token endToken;
 
-  WhileStatementBodyEnd(ParserAstType type, {required this.token})
+  WhileStatementBodyEnd(ParserAstType type, {required this.endToken})
       : super("WhileStatementBody", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
-        "token": token,
+        "endToken": endToken,
       };
 }
 
@@ -4630,14 +4632,14 @@ class ForStatementBodyBegin extends ParserAstNode {
 }
 
 class ForStatementBodyEnd extends ParserAstNode {
-  final Token token;
+  final Token endToken;
 
-  ForStatementBodyEnd(ParserAstType type, {required this.token})
+  ForStatementBodyEnd(ParserAstType type, {required this.endToken})
       : super("ForStatementBody", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
-        "token": token,
+        "endToken": endToken,
       };
 }
 
@@ -4714,14 +4716,14 @@ class ForInBodyBegin extends ParserAstNode {
 }
 
 class ForInBodyEnd extends ParserAstNode {
-  final Token token;
+  final Token endToken;
 
-  ForInBodyEnd(ParserAstType type, {required this.token})
+  ForInBodyEnd(ParserAstType type, {required this.endToken})
       : super("ForInBody", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
-        "token": token,
+        "endToken": endToken,
       };
 }
 
@@ -5336,16 +5338,16 @@ class FieldInitializerBegin extends ParserAstNode {
 
 class FieldInitializerEnd extends ParserAstNode {
   final Token assignment;
-  final Token token;
+  final Token endToken;
 
   FieldInitializerEnd(ParserAstType type,
-      {required this.assignment, required this.token})
+      {required this.assignment, required this.endToken})
       : super("FieldInitializer", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
         "assignment": assignment,
-        "token": token,
+        "endToken": endToken,
       };
 }
 
@@ -5410,14 +5412,14 @@ class InitializerBegin extends ParserAstNode {
 }
 
 class InitializerEnd extends ParserAstNode {
-  final Token token;
+  final Token endToken;
 
-  InitializerEnd(ParserAstType type, {required this.token})
+  InitializerEnd(ParserAstType type, {required this.endToken})
       : super("Initializer", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
-        "token": token,
+        "endToken": endToken,
       };
 }
 
@@ -6440,14 +6442,14 @@ class RethrowStatementEnd extends ParserAstNode {
 }
 
 class TopLevelDeclarationEnd extends ParserAstNode {
-  final Token nextToken;
+  final Token endToken;
 
-  TopLevelDeclarationEnd(ParserAstType type, {required this.nextToken})
+  TopLevelDeclarationEnd(ParserAstType type, {required this.endToken})
       : super("TopLevelDeclaration", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
-        "nextToken": nextToken,
+        "endToken": endToken,
       };
 }
 
@@ -7016,16 +7018,16 @@ class FunctionExpressionBegin extends ParserAstNode {
 
 class FunctionExpressionEnd extends ParserAstNode {
   final Token beginToken;
-  final Token token;
+  final Token endToken;
 
   FunctionExpressionEnd(ParserAstType type,
-      {required this.beginToken, required this.token})
+      {required this.beginToken, required this.endToken})
       : super("FunctionExpression", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
-        "token": token,
+        "endToken": endToken,
       };
 }
 
@@ -7586,14 +7588,14 @@ class AssertEnd extends ParserAstNode {
   final Assert kind;
   final Token leftParenthesis;
   final Token? commaToken;
-  final Token semicolonToken;
+  final Token endToken;
 
   AssertEnd(ParserAstType type,
       {required this.assertKeyword,
       required this.kind,
       required this.leftParenthesis,
       this.commaToken,
-      required this.semicolonToken})
+      required this.endToken})
       : super("Assert", type);
 
   @override
@@ -7602,7 +7604,7 @@ class AssertEnd extends ParserAstNode {
         "kind": kind,
         "leftParenthesis": leftParenthesis,
         "commaToken": commaToken,
-        "semicolonToken": semicolonToken,
+        "endToken": endToken,
       };
 }
 

@@ -195,7 +195,7 @@ abstract class StackListener extends Listener with StackChecker {
   }
 
   @override
-  void endInitializer(Token token) {
+  void endInitializer(Token endToken) {
     debugEvent("endInitializer");
   }
 
@@ -210,9 +210,9 @@ abstract class StackListener extends Listener with StackChecker {
   }
 
   @override
-  void endTopLevelDeclaration(Token nextToken) {
+  void endTopLevelDeclaration(Token endToken) {
     debugEvent("TopLevelDeclaration");
-    checkEmpty(nextToken.charOffset);
+    checkEmpty(endToken.charOffset);
   }
 
   @override

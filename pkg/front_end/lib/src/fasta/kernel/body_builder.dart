@@ -580,7 +580,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void endWhileStatementBody(Token token) {
+  void endWhileStatementBody(Token endToken) {
     debugEvent("endWhileStatementBody");
     Object? body = pop();
     exitLocalScope();
@@ -595,7 +595,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void endForStatementBody(Token token) {
+  void endForStatementBody(Token endToken) {
     debugEvent("endForStatementBody");
     Object? body = pop();
     exitLocalScope();
@@ -610,7 +610,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void endForInBody(Token token) {
+  void endForInBody(Token endToken) {
     debugEvent("endForInBody");
     Object? body = pop();
     exitLocalScope();
@@ -1219,8 +1219,8 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void endInitializer(Token token) {
-    assert(checkState(token, [
+  void endInitializer(Token endToken) {
+    assert(checkState(endToken, [
       unionOfKinds([
         ValueKinds.Initializer,
         ValueKinds.Generator,
@@ -1243,8 +1243,9 @@ class BodyBuilder extends StackListenerImpl
       initializers = node.buildFieldInitializer(initializedFields);
     } else if (node is ConstructorInvocation) {
       initializers = <Initializer>[
+        // TODO(jensj): Does this offset make sense?
         buildSuperInitializer(
-            false, node.target, node.arguments, token.charOffset)
+            false, node.target, node.arguments, endToken.next!.charOffset)
       ];
     } else {
       Expression value = toValue(node);
@@ -1255,7 +1256,8 @@ class BodyBuilder extends StackListenerImpl
       initializers = <Initializer>[
         // TODO(johnniwinther): This should probably be [value] instead of
         //  [node].
-        buildInvalidInitializer(node as Expression, token.charOffset)
+        // TODO(jensj): Does this offset make sense?
+        buildInvalidInitializer(node as Expression, endToken.next!.charOffset)
       ];
     }
 
@@ -3899,7 +3901,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void endFieldInitializer(Token assignmentOperator, Token token) {
+  void endFieldInitializer(Token assignmentOperator, Token endToken) {
     debugEvent("FieldInitializer");
     inFieldInitializer = false;
     inLateFieldInitializer = false;
@@ -6324,7 +6326,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void endConstLiteral(Token token) {
+  void endConstLiteral(Token endToken) {
     debugEvent("endConstLiteral");
     Object? literal = pop();
     constantContext = pop() as ConstantContext;
@@ -7377,7 +7379,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void endFunctionExpression(Token beginToken, Token token) {
+  void endFunctionExpression(Token beginToken, Token endToken) {
     debugEvent("FunctionExpression");
     assert(checkState(beginToken, [
       /* body */ ValueKinds.StatementOrNull,
@@ -7392,15 +7394,22 @@ class BodyBuilder extends StackListenerImpl
     Statement body = popNullableStatement() ??
         // In erroneous cases, there might not be function body. In such cases
         // we use an empty statement instead.
-        forest.createEmptyStatement(token.charOffset);
+        // TODO(jensj): Is this the offset we want?
+        forest.createEmptyStatement(endToken.next!.charOffset);
     AsyncMarker asyncModifier = pop() as AsyncMarker;
     exitLocalScope();
     FormalParameters formals = pop() as FormalParameters;
     exitFunction();
     List<NominalVariableBuilder>? typeParameters =
         pop() as List<NominalVariableBuilder>?;
-    FunctionNode function = formals.buildFunctionNode(libraryBuilder, null,
-        typeParameters, asyncModifier, body, token.charOffset)
+    FunctionNode function = formals.buildFunctionNode(
+        libraryBuilder,
+        null,
+        typeParameters,
+        asyncModifier,
+        body,
+        // TODO(jensj): Is this the offset we want?
+        endToken.next!.charOffset)
       ..fileOffset = beginToken.charOffset;
 
     Expression result;
@@ -7903,7 +7912,7 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
-      Token? commaToken, Token semicolonToken) {
+      Token? commaToken, Token endToken) {
     debugEvent("Assert");
     Expression? message = popForValueIfNotNull(commaToken);
     Expression condition = popForValue();

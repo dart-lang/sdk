@@ -326,7 +326,7 @@ class Listener implements UnescapeErrorListener {
 
   void beginConstLiteral(Token token) {}
 
-  void endConstLiteral(Token token) {
+  void endConstLiteral(Token endToken) {
     logEvent("ConstLiteral");
   }
 
@@ -352,7 +352,7 @@ class Listener implements UnescapeErrorListener {
 
   void beginWhileStatementBody(Token token) {}
 
-  void endWhileStatementBody(Token token) {
+  void endWhileStatementBody(Token endToken) {
     logEvent("WhileStatementBody");
   }
 
@@ -694,7 +694,7 @@ class Listener implements UnescapeErrorListener {
 
   void beginForStatementBody(Token token) {}
 
-  void endForStatementBody(Token token) {
+  void endForStatementBody(Token endToken) {
     logEvent("ForStatementBody");
   }
 
@@ -721,7 +721,7 @@ class Listener implements UnescapeErrorListener {
 
   void beginForInBody(Token token) {}
 
-  void endForInBody(Token token) {
+  void endForInBody(Token endToken) {
     logEvent("ForInBody");
   }
 
@@ -1008,7 +1008,7 @@ class Listener implements UnescapeErrorListener {
 
   /// Handle the end of a field initializer.  Substructures:
   /// - Initializer expression
-  void endFieldInitializer(Token assignment, Token token) {
+  void endFieldInitializer(Token assignment, Token endToken) {
     logEvent("FieldInitializer");
   }
 
@@ -1032,7 +1032,7 @@ class Listener implements UnescapeErrorListener {
 
   void beginInitializer(Token token) {}
 
-  void endInitializer(Token token) {
+  void endInitializer(Token endToken) {
     logEvent("ConstructorInitializer");
   }
 
@@ -1441,7 +1441,7 @@ class Listener implements UnescapeErrorListener {
   /// Started by one of [beginExtensionDeclarationPrelude],
   /// [beginClassOrMixinOrNamedMixinApplicationPrelude], [beginTopLevelMember]
   /// or [beginUncategorizedTopLevelDeclaration].
-  void endTopLevelDeclaration(Token nextToken) {
+  void endTopLevelDeclaration(Token endToken) {
     logEvent("TopLevelDeclaration");
   }
 
@@ -1701,7 +1701,7 @@ class Listener implements UnescapeErrorListener {
   /// - Formal parameters
   /// - Async marker
   /// - Body
-  void endFunctionExpression(Token beginToken, Token token) {
+  void endFunctionExpression(Token beginToken, Token endToken) {
     logEvent("FunctionExpression");
   }
 
@@ -1911,7 +1911,7 @@ class Listener implements UnescapeErrorListener {
   void beginAssert(Token assertKeyword, Assert kind) {}
 
   void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
-      Token? commaToken, Token semicolonToken) {
+      Token? commaToken, Token endToken) {
     logEvent("Assert");
   }
 

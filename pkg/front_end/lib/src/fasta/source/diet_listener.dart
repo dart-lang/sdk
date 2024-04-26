@@ -236,7 +236,7 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endFieldInitializer(Token assignmentOperator, Token token) {
+  void endFieldInitializer(Token assignmentOperator, Token endToken) {
     debugEvent("FieldInitializer");
   }
 
@@ -925,7 +925,7 @@ class DietListener extends StackListenerImpl {
 
   @override
   void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
-      Token? commaToken, Token semicolonToken) {
+      Token? commaToken, Token endToken) {
     debugEvent("Assert");
     // Do nothing
   }

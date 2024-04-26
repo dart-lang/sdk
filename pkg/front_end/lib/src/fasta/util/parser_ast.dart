@@ -265,9 +265,7 @@ class ParserAstVisitor {
     }
     if (node is MetadataEnd) {
       MetadataEnd decl = node;
-      // TODO(jensj): endToken is not part of the metadata! It's the first token
-      // of the next thing.
-      visitMetadata(decl, decl.beginToken, decl.endToken.previous!);
+      visitMetadata(decl, decl.beginToken, decl.endToken);
       return;
     }
 

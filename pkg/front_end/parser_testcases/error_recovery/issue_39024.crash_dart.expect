@@ -56,7 +56,7 @@ beginCompilationUnit(n)
       // WARNING: Reporting at eof for .
       handleInvalidFunctionBody({)
     endTopLevelMethod(n, null, })
-  endTopLevelDeclaration()
+  endTopLevelDeclaration(})
   handleErrorToken(UnmatchedToken(())
   handleRecoverableError(Message[UnmatchedToken, Can't find ')' to match '('., null, {string: ), lexeme: (}], UnmatchedToken((), UnmatchedToken(())
   handleErrorToken(UnmatchedToken(<))

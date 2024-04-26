@@ -2903,7 +2903,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
-      Token? commaToken, Token semicolonToken) {
+      Token? commaToken, Token endToken) {
     debugEvent("Assert");
     // Do nothing
   }
@@ -3977,25 +3977,12 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void endFieldInitializer(Token assignmentOperator, Token token) {
+  void endFieldInitializer(Token assignmentOperator, Token endToken) {
     debugEvent("FieldInitializer");
-    Token beforeLast = assignmentOperator.next!;
-    Token next = beforeLast.next!;
-    while (next != token && !next.isEof) {
-      // To avoid storing the rest of the token stream, we need to identify the
-      // token before [token]. That token will be the last token of the
-      // initializer expression and by setting its tail to EOF we only store
-      // the tokens for the expression.
-      // TODO(ahe): Might be clearer if this search was moved to
-      // `library.addFields`.
-      // TODO(ahe): I don't even think this is necessary. [token] points to ;
-      // or , and we don't otherwise store tokens.
-      beforeLast = next;
-      next = next.next!;
-    }
     push(assignmentOperator.next);
-    push(beforeLast);
-    push(token.charOffset);
+    push(endToken);
+    // TODO(jensj): Do we actually want the position of the "," or ";" here?
+    push(endToken.next!.charOffset);
   }
 
   @override

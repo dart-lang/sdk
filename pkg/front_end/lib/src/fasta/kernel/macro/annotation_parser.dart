@@ -1034,7 +1034,7 @@ class _MacroListener implements Listener {
 
   @override
   void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
-      Token? commaToken, Token semicolonToken) {
+      Token? commaToken, Token endToken) {
     _unsupported();
   }
 
@@ -1154,7 +1154,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endConstLiteral(Token token) {
+  void endConstLiteral(Token endToken) {
     _unknown();
   }
 
@@ -1264,7 +1264,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endFieldInitializer(Token assignment, Token token) {
+  void endFieldInitializer(Token assignment, Token endToken) {
     _unexpected();
   }
 
@@ -1279,7 +1279,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endForInBody(Token token) {
+  void endForInBody(Token endToken) {
     _unsupported();
   }
 
@@ -1299,7 +1299,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endForStatementBody(Token token) {
+  void endForStatementBody(Token endToken) {
     _unsupported();
   }
 
@@ -1328,7 +1328,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endFunctionExpression(Token beginToken, Token token) {
+  void endFunctionExpression(Token beginToken, Token endToken) {
     _unsupported();
   }
 
@@ -1383,7 +1383,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endInitializer(Token token) {
+  void endInitializer(Token endToken) {
     _unexpected();
   }
 
@@ -1575,7 +1575,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endTopLevelDeclaration(Token nextToken) {
+  void endTopLevelDeclaration(Token endToken) {
     _unexpected();
   }
 
@@ -1646,7 +1646,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endWhileStatementBody(Token token) {
+  void endWhileStatementBody(Token endToken) {
     _unsupported();
   }
 
