@@ -396,6 +396,7 @@ class StaticError implements Comparable<StaticError> {
   ///
   /// Takes into account unspecified errors and errors without lengths.
   bool _matchLocation(StaticError actual) {
+    if (path != actual.path) return false;
     if (line != actual.line) return false;
 
     // Ignore column and length for unspecified errors.
