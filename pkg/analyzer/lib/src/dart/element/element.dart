@@ -56,6 +56,7 @@ import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -63,7 +64,7 @@ import 'package:pub_semver/pub_semver.dart';
 /// Shared implementation of `augmentation` and `augmentationTarget`.
 mixin AugmentableElement<T extends ElementImpl> on ElementImpl {
   T? _augmentation;
-  T? _augmentationTarget;
+  ElementImpl? _augmentationTargetAny;
 
   T? get augmentation {
     linkedData?.read(this);
@@ -75,12 +76,16 @@ mixin AugmentableElement<T extends ElementImpl> on ElementImpl {
   }
 
   T? get augmentationTarget {
-    linkedData?.read(this);
-    return _augmentationTarget;
+    return augmentationTargetAny.ifTypeOrNull();
   }
 
-  set augmentationTarget(T? value) {
-    _augmentationTarget = value;
+  ElementImpl? get augmentationTargetAny {
+    linkedData?.read(this);
+    return _augmentationTargetAny;
+  }
+
+  set augmentationTargetAny(ElementImpl? value) {
+    _augmentationTargetAny = value;
   }
 
   bool get isAugmentation {
@@ -6330,6 +6335,16 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
     isAbstract = variable is FieldElementImpl && variable.isAbstract;
     isStatic = variable.isStatic;
     isSynthetic = true;
+  }
+
+  @override
+  PropertyAccessorElementImpl? get augmentationTarget {
+    if (super.augmentationTarget case var target?) {
+      if (target.kind == kind) {
+        return target;
+      }
+    }
+    return null;
   }
 
   @override

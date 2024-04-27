@@ -147,7 +147,7 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
     element.supertype = reader._readOptionalInterfaceType();
     element.mixins = reader._readInterfaceTypeList();
     element.interfaces = reader._readInterfaceTypeList();
-    element.augmentationTarget = reader.readElement() as ClassElementImpl?;
+    element.augmentationTargetAny = reader.readElement() as ElementImpl?;
     element.augmentation = reader.readElement() as ClassElementImpl?;
 
     if (element.augmentationTarget == null) {
@@ -215,8 +215,7 @@ class ConstructorElementLinkedData
     element.redirectedConstructor = reader.readElement() as ConstructorElement?;
     element.constantInitializers = reader._readNodeList();
     element.augmentation = reader.readElement() as ConstructorElementImpl?;
-    element.augmentationTarget =
-        reader.readElement() as ConstructorElementImpl?;
+    element.augmentationTargetAny = reader.readElement() as ElementImpl?;
     applyConstantOffsets?.perform();
   }
 }
@@ -351,7 +350,7 @@ class EnumElementLinkedData extends ElementLinkedData<EnumElementImpl> {
     element.supertype = reader._readOptionalInterfaceType();
     element.mixins = reader._readInterfaceTypeList();
     element.interfaces = reader._readInterfaceTypeList();
-    element.augmentationTarget = reader.readElement() as EnumElementImpl?;
+    element.augmentationTargetAny = reader.readElement() as ElementImpl?;
     element.augmentation = reader.readElement() as EnumElementImpl?;
     if (element.augmentationTarget == null) {
       if (reader.readBool()) {
@@ -391,7 +390,7 @@ class ExtensionElementLinkedData
       unitElement: element.enclosingElement,
     );
     _readTypeParameters(reader, element.typeParameters);
-    element.augmentationTarget = reader.readElement() as ExtensionElementImpl?;
+    element.augmentationTargetAny = reader.readElement() as ElementImpl?;
     element.augmentation = reader.readElement() as ExtensionElementImpl?;
     if (element.augmentationTarget == null) {
       var extendedType = reader.readRequiredType();
@@ -432,8 +431,7 @@ class ExtensionTypeElementLinkedData
     );
     _readTypeParameters(reader, element.typeParameters);
     element.interfaces = reader._readInterfaceTypeList();
-    element.augmentationTarget =
-        reader.readElement() as ExtensionTypeElementImpl?;
+    element.augmentationTargetAny = reader.readElement() as ElementImpl?;
     element.augmentation = reader.readElement() as ExtensionTypeElementImpl?;
     if (element.augmentationTarget == null) {
       if (reader.readBool()) {
@@ -478,10 +476,10 @@ class FieldElementLinkedData extends ElementLinkedData<FieldElementImpl> {
     element.macroDiagnostics = reader.readMacroDiagnostics();
     element.type = reader.readRequiredType();
 
-    var augmentationTarget = reader.readElement();
+    var augmentationTarget = reader.readElement() as ElementImpl?;
+    element.augmentationTargetAny = augmentationTarget;
     if (augmentationTarget is FieldElementImpl) {
       augmentationTarget.augmentation = element;
-      element.augmentationTarget = augmentationTarget;
     }
 
     if (element is ConstFieldElementImpl) {
@@ -520,7 +518,7 @@ class FunctionElementLinkedData extends ElementLinkedData<FunctionElementImpl> {
     element.returnType = reader.readRequiredType();
     _readFormalParameters(reader, element.parameters);
     element.augmentation = reader.readElement() as FunctionElementImpl?;
-    element.augmentationTarget = reader.readElement() as FunctionElementImpl?;
+    element.augmentationTargetAny = reader.readElement() as ElementImpl?;
     applyConstantOffsets?.perform();
   }
 }
@@ -1879,7 +1877,7 @@ class MethodElementLinkedData extends ElementLinkedData<MethodElementImpl> {
     _readFormalParameters(reader, element.parameters);
     element.returnType = reader.readRequiredType();
     element.augmentation = reader.readElement() as MethodElementImpl?;
-    element.augmentationTarget = reader.readElement() as MethodElementImpl?;
+    element.augmentationTargetAny = reader.readElement() as ElementImpl?;
     applyConstantOffsets?.perform();
   }
 }
@@ -1908,7 +1906,7 @@ class MixinElementLinkedData extends ElementLinkedData<MixinElementImpl> {
     _readTypeParameters(reader, element.typeParameters);
     element.superclassConstraints = reader._readInterfaceTypeList();
     element.interfaces = reader._readInterfaceTypeList();
-    element.augmentationTarget = reader.readElement() as MixinElementImpl?;
+    element.augmentationTargetAny = reader.readElement() as ElementImpl?;
     element.augmentation = reader.readElement() as MixinElementImpl?;
 
     if (element.augmentationTarget == null) {
@@ -1954,11 +1952,13 @@ class PropertyAccessorElementLinkedData
     element.returnType = reader.readRequiredType();
     _readFormalParameters(reader, element.parameters);
 
-    var augmentationTarget = reader.readElement();
+    var augmentationTarget = reader.readElement() as ElementImpl?;
+    element.augmentationTargetAny = augmentationTarget;
     if (augmentationTarget is PropertyAccessorElementImpl) {
-      augmentationTarget.augmentation = element;
-      element.augmentationTarget = augmentationTarget;
-      element.variable2 = augmentationTarget.variable2;
+      if (augmentationTarget.kind == element.kind) {
+        augmentationTarget.augmentation = element;
+        element.variable2 = augmentationTarget.variable2;
+      }
     }
 
     applyConstantOffsets?.perform();
@@ -2615,10 +2615,10 @@ class TopLevelVariableElementLinkedData
     element.macroDiagnostics = reader.readMacroDiagnostics();
     element.type = reader.readRequiredType();
 
-    var augmentationTarget = reader.readElement();
+    var augmentationTarget = reader.readElement() as ElementImpl?;
+    element.augmentationTargetAny = augmentationTarget;
     if (augmentationTarget is TopLevelVariableElementImpl) {
       augmentationTarget.augmentation = element;
-      element.augmentationTarget = augmentationTarget;
     }
 
     if (element is ConstTopLevelVariableElementImpl) {

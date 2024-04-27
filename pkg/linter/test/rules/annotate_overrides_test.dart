@@ -17,6 +17,41 @@ class AnnotateOverridesTest extends LintRuleTest {
   @override
   String get lintRule => 'annotate_overrides';
 
+  @FailingTest(
+    reason:
+        '`augmented.hasOverride` not implemented yet (https://github.com/dart-lang/sdk/issues/55579)',
+    issue: 'https://github.com/dart-lang/linter/issues/4925',
+  )
+  test_augmentationClass_implementsInterface() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+
+abstract interface class HasLength {
+  int get length;
+}
+
+class C {
+  int get length => 42;
+}
+''');
+
+    // TODO(pq): update getter to be abstract when supported.
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+
+augment class C implements HasLength {
+  @override
+  augment int get length => 42;
+}
+''');
+
+    result = await resolveFile(a.path);
+    await assertNoDiagnosticsIn(errors);
+
+    result = await resolveFile(b.path);
+    await assertNoDiagnosticsIn(errors);
+  }
+
   test_augmentationClass_methodWithoutAnnotation() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import augment 'test.dart';

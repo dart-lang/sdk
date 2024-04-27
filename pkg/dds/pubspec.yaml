@@ -16,7 +16,7 @@ dependencies:
   dds_service_extensions: ^2.0.0
   dap: ^1.2.0
   extension_discovery: ^2.0.0
-  devtools_shared: ^9.0.1
+  devtools_shared: ^10.0.0-dev.1
   http_multi_server: ^3.0.0
   json_rpc_2: ^3.0.0
   meta: ^1.1.8

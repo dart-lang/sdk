@@ -128,12 +128,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node.implementsClause?.accept(this);
     _buildClass(node);
 
-    _libraryBuilder.updateAugmentationTarget(name, element, (target) {
-      if (element.isAugmentation) {
-        target.augmentation = element;
-        element.augmentationTarget = target;
-      }
-    });
+    _libraryBuilder.updateAugmentationTarget(name, element);
 
     if (element.augmentationTarget != null) {
       switch (_libraryBuilder.getAugmentedBuilder(name)) {
@@ -252,12 +247,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var reference = _enclosingContext.addEnum(name, element);
     _libraryBuilder.declare(name, reference);
 
-    _libraryBuilder.updateAugmentationTarget(name, element, (target) {
-      if (element.isAugmentation) {
-        target.augmentation = element;
-        element.augmentationTarget = target;
-      }
-    });
+    _libraryBuilder.updateAugmentationTarget(name, element);
 
     var holder = _EnclosingContext(
       reference,
@@ -508,12 +498,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node.onClause?.accept(this);
 
     if (name != null) {
-      _libraryBuilder.updateAugmentationTarget(name, element, (target) {
-        if (element.isAugmentation) {
-          target.augmentation = element;
-          element.augmentationTarget = target;
-        }
-      });
+      _libraryBuilder.updateAugmentationTarget(name, element);
 
       if (element.augmentationTarget != null) {
         var builder = _libraryBuilder.getAugmentedBuilder(name);
@@ -558,13 +543,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     }
 
     element.isAugmentationChainStart = true;
-    _libraryBuilder.updateAugmentationTarget(name, element, (target) {
-      if (element.isAugmentation) {
-        target.augmentation = element;
-        element.augmentationTarget = target;
-        element.isAugmentationChainStart = false;
-      }
-    });
+    _libraryBuilder.updateAugmentationTarget(name, element);
 
     var holder = _EnclosingContext(reference, element);
     _withEnclosing(holder, () {
@@ -766,12 +745,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       reference = _enclosingContext.addFunction(name, element);
       executableElement = element;
 
-      _libraryBuilder.updateAugmentationTarget(name, element, (target) {
-        if (element.isAugmentation) {
-          target.augmentation = element;
-          element.augmentationTarget = target;
-        }
-      });
+      _libraryBuilder.updateAugmentationTarget(name, element);
     }
 
     executableElement.hasImplicitReturnType = node.returnType == null;
@@ -1082,12 +1056,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node.implementsClause?.accept(this);
     _buildMixin(node);
 
-    _libraryBuilder.updateAugmentationTarget(name, element, (target) {
-      if (element.isAugmentation) {
-        target.augmentation = element;
-        element.augmentationTarget = target;
-      }
-    });
+    _libraryBuilder.updateAugmentationTarget(name, element);
 
     if (element.augmentationTarget != null) {
       switch (_libraryBuilder.getAugmentedBuilder(name)) {

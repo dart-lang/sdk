@@ -26,3 +26,14 @@ Future<void> main() async {
   Expect.equals(3, hotReloadGeneration);
   Expect.equals("before", value);
 }
+/** DIFF **/
+/*
+@@ -17,6 +17,7 @@
+   await hotReload();
+ 
+   // The lazy static is now read and contains the updated value.
++  print(value);
+   Expect.equals(2, hotReloadGeneration);
+   Expect.equals("before", value);
+   await hotReload();
+*/

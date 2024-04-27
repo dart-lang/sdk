@@ -7,6 +7,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 
 class AugmentedClassDeclarationBuilder
     extends AugmentedInstanceDeclarationBuilder {
@@ -97,21 +98,38 @@ class AugmentedExtensionTypeDeclarationBuilder
 abstract class AugmentedInstanceDeclarationBuilder {
   final Map<String, FieldElementImpl> fields = {};
   final Map<String, ConstructorElementImpl> constructors = {};
-  final Map<String, PropertyAccessorElementImpl> accessors = {};
+  final Map<String, PropertyAccessorElementImpl> getters = {};
+  final Map<String, PropertyAccessorElementImpl> setters = {};
   final Map<String, MethodElementImpl> methods = {};
 
   void addAccessors(List<PropertyAccessorElementImpl> elements) {
     for (var element in elements) {
       var name = element.name;
-      if (element.isAugmentation) {
-        var existing = accessors[name];
-        if (existing != null) {
-          existing.augmentation = element;
-          element.augmentationTarget = existing;
-          element.variable2 = existing.variable2;
+      if (element.isGetter) {
+        if (element.isAugmentation) {
+          if (getters[name] case var target?) {
+            target.augmentation = element;
+            element.augmentationTargetAny = target;
+            element.variable2 = target.variable2;
+          } else {
+            var target = _recoveryAugmentationTarget(name);
+            element.augmentationTargetAny = target;
+          }
         }
+        getters[name] = element;
+      } else {
+        if (element.isAugmentation) {
+          if (setters[name] case var target?) {
+            target.augmentation = element;
+            element.augmentationTargetAny = target;
+            element.variable2 = target.variable2;
+          } else {
+            var target = _recoveryAugmentationTarget(name);
+            element.augmentationTargetAny = target;
+          }
+        }
+        setters[name] = element;
       }
-      accessors[name] = element;
     }
   }
 
@@ -122,7 +140,7 @@ abstract class AugmentedInstanceDeclarationBuilder {
         var existing = constructors[name];
         if (existing != null) {
           existing.augmentation = element;
-          element.augmentationTarget = existing;
+          element.augmentationTargetAny = existing;
         }
       }
       constructors[name] = element;
@@ -136,7 +154,7 @@ abstract class AugmentedInstanceDeclarationBuilder {
         var existing = fields[name];
         if (existing != null) {
           existing.augmentation = element;
-          element.augmentationTarget = existing;
+          element.augmentationTargetAny = existing;
         }
       }
       fields[name] = element;
@@ -147,10 +165,12 @@ abstract class AugmentedInstanceDeclarationBuilder {
     for (var element in elements) {
       var name = element.name;
       if (element.isAugmentation) {
-        var existing = methods[name];
-        if (existing != null) {
-          existing.augmentation = element;
-          element.augmentationTarget = existing;
+        if (methods[name] case var target?) {
+          target.augmentation = element;
+          element.augmentationTargetAny = target;
+        } else {
+          var target = _recoveryAugmentationTarget(name);
+          element.augmentationTargetAny = target;
         }
       }
       methods[name] = element;
@@ -190,6 +210,17 @@ abstract class AugmentedInstanceDeclarationBuilder {
     }
 
     return augmented;
+  }
+
+  ElementImpl? _recoveryAugmentationTarget(String name) {
+    name = name.removeSuffix('=') ?? name;
+
+    ElementImpl? target;
+    target ??= getters[name];
+    target ??= setters['$name='];
+    target ??= constructors[name];
+    target ??= methods[name];
+    return target;
   }
 
   void _updatedAugmented(InstanceElementImpl augmentation) {
@@ -284,17 +315,34 @@ class AugmentedMixinDeclarationBuilder
 }
 
 class AugmentedTopVariablesBuilder {
+  final Map<String, ElementImpl> augmentationTargets;
   final Map<String, TopLevelVariableElementImpl> variables = {};
   final Map<String, PropertyAccessorElementImpl> accessors = {};
+
+  AugmentedTopVariablesBuilder(this.augmentationTargets);
 
   void addAccessor(PropertyAccessorElementImpl element) {
     var name = element.name;
     if (element.isAugmentation) {
-      var existing = accessors[name];
-      if (existing != null) {
-        existing.augmentation = element;
-        element.augmentationTarget = existing;
-        element.variable2 = existing.variable2;
+      ElementImpl? target = accessors[name];
+      // Recovery.
+      if (target == null) {
+        if (name.removeSuffix('=') case var getterName?) {
+          target ??= accessors[getterName];
+          target ??= augmentationTargets[getterName];
+        } else {
+          target ??= accessors['$name='];
+          target ??= augmentationTargets[name];
+        }
+      }
+
+      if (target is PropertyAccessorElementImpl &&
+          target.isGetter == element.isGetter) {
+        target.augmentation = element;
+        element.augmentationTargetAny = target;
+        element.variable2 = target.variable2;
+      } else {
+        element.augmentationTargetAny = target;
       }
     }
     accessors[name] = element;
@@ -306,7 +354,7 @@ class AugmentedTopVariablesBuilder {
       var existing = variables[name];
       if (existing != null) {
         existing.augmentation = element;
-        element.augmentationTarget = existing;
+        element.augmentationTargetAny = existing;
       }
     }
     variables[name] = element;

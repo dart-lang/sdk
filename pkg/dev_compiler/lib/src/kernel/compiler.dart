@@ -2187,7 +2187,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
                   superMemberFunction!.positionalParameters[0])) {
         return const [];
       }
-      var setterType = substituteType(superMember.superSetterType);
+      var setterType =
+          substituteType(superMember.superSetterType).extensionTypeErasure;
       if (_types.isTop(setterType)) return const [];
       return [
         js_ast.Method(
@@ -3816,12 +3817,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       DartType typeParameterType;
       if (t is TypeParameter) {
         isCovariantByClass = t.isCovariantByClass;
-        bound = t.bound;
+        bound = t.bound.extensionTypeErasure;
         name = t.name!;
         typeParameterType = TypeParameterType(t, Nullability.undetermined);
       } else {
         t as StructuralParameter;
-        bound = t.bound;
+        bound = t.bound.extensionTypeErasure;
         name = t.name!;
         typeParameterType =
             StructuralParameterType(t, Nullability.undetermined);
@@ -4691,12 +4692,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     body.add(_visitStatement(node.body).toScopedBlock(vars));
     var then = js_ast.Block(body);
-
+    var guardType = node.guard.extensionTypeErasure;
     // Discard following clauses, if any, as they are unreachable.
-    if (_types.isTop(node.guard)) return then;
+    if (_types.isTop(guardType)) return then;
 
     var condition =
-        _emitIsExpression(VariableGet(exceptionParameter), node.guard);
+        _emitIsExpression(VariableGet(exceptionParameter), guardType);
     return js_ast.If(condition, then, otherwise)
       ..sourceInformation = _nodeStart(node);
   }
@@ -6841,9 +6842,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   js_ast.Expression _emitCast(js_ast.Expression expr, DartType type) {
-    if (_types.isTop(type)) return expr;
+    var normalizedType = type.extensionTypeErasure;
+    if (_types.isTop(normalizedType)) return expr;
     return js.call('#.#(#)', [
-      _emitType(type),
+      _emitType(normalizedType),
       _emitMemberName(js_ast.FixedNames.rtiAsField, memberClass: rtiClass),
       expr
     ]);

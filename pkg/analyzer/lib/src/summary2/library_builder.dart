@@ -83,8 +83,8 @@ class LibraryBuilder with MacroApplicationsContainer {
       {};
 
   /// The top-level variables and accessors that can be augmented.
-  final AugmentedTopVariablesBuilder topVariables =
-      AugmentedTopVariablesBuilder();
+  late final AugmentedTopVariablesBuilder topVariables =
+      AugmentedTopVariablesBuilder(_augmentationTargets);
 
   /// The top-level elements that can be augmented.
   final Map<String, ElementImpl> _augmentationTargets = {};
@@ -699,12 +699,18 @@ class LibraryBuilder with MacroApplicationsContainer {
 
   void updateAugmentationTarget<T extends ElementImpl>(
     String name,
-    T augmentation,
-    void Function(T target) update,
+    AugmentableElement<T> augmentation,
   ) {
-    var target = _augmentationTargets[name];
-    if (target is T) {
-      update(target);
+    if (augmentation.isAugmentation) {
+      var target = _augmentationTargets[name];
+      target ??= topVariables.accessors[name];
+      target ??= topVariables.accessors['$name='];
+
+      augmentation.augmentationTargetAny = target;
+      if (target case AugmentableElement<T> target) {
+        augmentation.isAugmentationChainStart = false;
+        target.augmentation = augmentation as T;
+      }
     }
     _augmentationTargets[name] = augmentation;
   }

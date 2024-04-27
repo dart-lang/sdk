@@ -645,7 +645,7 @@ extension ClassElementImplExtension on ClassElementImpl {
     for (var augmentation in augmentations) {
       expect(augmentation.isAugmentation, isTrue);
       augmentationTarget.augmentation = augmentation;
-      augmentation.augmentationTarget = augmentationTarget;
+      augmentation.augmentationTargetAny = augmentationTarget;
       augmentationTarget = augmentation;
 
       expect(augmentation.typeParameters, isEmpty,
@@ -667,7 +667,7 @@ extension MixinElementImplExtension on MixinElementImpl {
     for (var augmentation in augmentations) {
       expect(augmentation.isAugmentation, isTrue);
       augmentationTarget.augmentation = augmentation;
-      augmentation.augmentationTarget = augmentationTarget;
+      augmentation.augmentationTargetAny = augmentationTarget;
       augmentationTarget = augmentation;
 
       expect(augmentation.typeParameters, isEmpty,

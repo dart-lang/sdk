@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:devtools_shared/devtools_server.dart' show DTDConnectionInfo;
+import 'package:devtools_shared/devtools_shared.dart' show DTDConnectionInfo;
 import 'package:path/path.dart' as path;
 
 import 'utils.dart';

@@ -245,7 +245,7 @@ class TestConfiguration {
             arch: architecture,
             system: system);
 
-        _timeout = 60 * compilerMultiplier * runtimeMultiplier;
+        _timeout = 30 * compilerMultiplier * runtimeMultiplier;
       }
     }
 

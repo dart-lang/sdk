@@ -25,3 +25,23 @@ Future<void> main() async {
   Expect.equals(3, hotReloadGeneration);
   Expect.equals("before", value);
 }
+/** DIFF **/
+/*
+@@ -5,7 +5,7 @@
+ import 'package:expect/expect.dart';
+ import 'package:reload_test/reload_test_utils.dart';
+ 
+-var value = "before";
++var value = "after";
+ 
+ Future<void> main() async {
+   // Declare an unreferenced lazy static field.
+@@ -17,7 +17,6 @@
+   await hotReload();
+ 
+   // The lazy static is now read and contains the updated value.
+-  print(value);
+   Expect.equals(2, hotReloadGeneration);
+   Expect.equals("before", value);
+   await hotReload();
+*/
