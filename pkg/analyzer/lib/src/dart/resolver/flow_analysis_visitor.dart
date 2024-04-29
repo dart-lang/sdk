@@ -545,7 +545,7 @@ class TypeSystemOperations
 
   @override
   bool isNever(DartType type) {
-    return typeSystem.isBottom(type);
+    return type.isBottom;
   }
 
   @override

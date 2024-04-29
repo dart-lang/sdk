@@ -369,8 +369,8 @@ class LeastUpperBoundHelper {
       return T2;
     }
 
-    var T1_isBottom = _typeSystem.isBottom(T1);
-    var T2_isBottom = _typeSystem.isBottom(T2);
+    var T1_isBottom = T1.isBottom;
+    var T2_isBottom = T2.isBottom;
 
     // UP(T1, T2) where BOTTOM(T1) and BOTTOM(T2)
     if (T1_isBottom && T2_isBottom) {

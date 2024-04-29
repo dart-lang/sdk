@@ -151,7 +151,7 @@ class InvocationInferenceHelper {
   /// @param type the static type of the node
   void recordStaticType(ExpressionImpl expression, DartType type) {
     expression.staticType = type;
-    if (_typeSystem.isBottom(type)) {
+    if (type.isBottom) {
       _resolver.flowAnalysis.flow?.handleExit();
     }
   }

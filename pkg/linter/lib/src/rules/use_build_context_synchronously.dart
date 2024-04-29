@@ -6,6 +6,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+// ignore: implementation_imports
+import 'package:analyzer/src/lint/linter.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -180,8 +182,6 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
   /// Whether a check on an unrelated 'mounted' property has been seen.
   bool hasUnrelatedMountedCheck = false;
 
-  AsyncStateVisitor();
-
   /// Cache the async state between [node] and some reference node.
   ///
   /// Caching an async state is only valid when [node] is the parent of the
@@ -261,7 +261,8 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
         (AsyncState.mountedCheck, _) => AsyncState.mountedCheck,
         (AsyncState.notMountedCheck, _) => AsyncState.notMountedCheck,
       };
-    } else if (node.isOr) {
+    }
+    if (node.isOr) {
       var leftGuardState = node.leftOperand.accept(this);
       var rightGuardState = node.rightOperand.accept(this);
       return switch ((leftGuardState, rightGuardState)) {
@@ -277,6 +278,49 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
         // Otherwise it's just uninteresting.
         (_, _) => null,
       };
+    }
+
+    if (node.isEqual) {
+      var leftGuardState = node.leftOperand.accept(this);
+      var rightGuardState = node.rightOperand.accept(this);
+      if (leftGuardState == AsyncState.asynchronous ||
+          rightGuardState == AsyncState.asynchronous) {
+        return AsyncState.asynchronous;
+      }
+      if (leftGuardState == AsyncState.mountedCheck ||
+          leftGuardState == AsyncState.notMountedCheck) {
+        var rightConstantValue = node.rightOperand.constantBoolValue;
+        if (rightConstantValue == null) return null;
+        return _constantEquality(leftGuardState, constant: rightConstantValue);
+      }
+      if (rightGuardState == AsyncState.mountedCheck ||
+          rightGuardState == AsyncState.notMountedCheck) {
+        var leftConstantValue = node.leftOperand.constantBoolValue;
+        if (leftConstantValue == null) return null;
+        return _constantEquality(rightGuardState, constant: leftConstantValue);
+      }
+      return null;
+    }
+    if (node.isNotEqual) {
+      var leftGuardState = node.leftOperand.accept(this);
+      var rightGuardState = node.rightOperand.accept(this);
+      if (leftGuardState == AsyncState.asynchronous ||
+          rightGuardState == AsyncState.asynchronous) {
+        return AsyncState.asynchronous;
+      }
+      if (leftGuardState == AsyncState.mountedCheck ||
+          leftGuardState == AsyncState.notMountedCheck) {
+        var rightConstantValue = node.rightOperand.constantBoolValue;
+        if (rightConstantValue == null) return null;
+        return _constantEquality(leftGuardState, constant: !rightConstantValue);
+      }
+      if (rightGuardState == AsyncState.mountedCheck ||
+          rightGuardState == AsyncState.notMountedCheck) {
+        var leftConstantValue = node.leftOperand.constantBoolValue;
+        if (leftConstantValue == null) return null;
+        return _constantEquality(rightGuardState, constant: !leftConstantValue);
+      }
+      return null;
     } else {
       // Outside of a binary logical operation, a mounted check cannot guard a
       // later expression, so only check for asynchronous code.
@@ -688,6 +732,18 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
     }
   }
 
+  /// Returns an [AsyncState] representing [state] or its opposite, based on
+  /// equality with [constant].
+  AsyncState? _constantEquality(AsyncState? state, {required bool constant}) =>
+      switch ((state, constant)) {
+        // Representing `context.mounted == true`, etc.
+        (AsyncState.mountedCheck, true) => AsyncState.mountedCheck,
+        (AsyncState.notMountedCheck, true) => AsyncState.notMountedCheck,
+        (AsyncState.mountedCheck, false) => AsyncState.notMountedCheck,
+        (AsyncState.notMountedCheck, false) => AsyncState.mountedCheck,
+        _ => null,
+      };
+
   /// Walks backwards through [nodes] looking for "interesting" async states,
   /// determining the async state of [nodes], with respect to [_reference].
   ///
@@ -1036,6 +1092,8 @@ extension on PrefixExpression {
 
 extension on BinaryExpression {
   bool get isAnd => operator.type == TokenType.AMPERSAND_AMPERSAND;
+  bool get isEqual => operator.type == TokenType.EQ_EQ;
+  bool get isNotEqual => operator.type == TokenType.BANG_EQ;
   bool get isOr => operator.type == TokenType.BAR_BAR;
 }
 
@@ -1096,6 +1154,10 @@ extension on Statement {
     }
     return accept(ExitDetector()) ?? false;
   }
+}
+
+extension on Expression {
+  bool? get constantBoolValue => computeConstantValue.value?.toBoolValue();
 }
 
 @visibleForTesting

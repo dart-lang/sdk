@@ -32,10 +32,12 @@ abstract class YamlGeneratorTest with ResourceProviderMixin {
   }
 
   /// Assert that there is a suggestion with the given [completion].
-  void assertSuggestion(String completion) {
+  ///
+  /// Returns the matching completion.
+  CompletionSuggestion assertSuggestion(String completion) {
     for (var suggestion in results) {
       if (suggestion.completion == completion) {
-        return;
+        return suggestion;
       }
     }
     var buffer = StringBuffer();

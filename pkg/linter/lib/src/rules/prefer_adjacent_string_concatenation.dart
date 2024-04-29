@@ -41,6 +41,9 @@ class PreferAdjacentStringConcatenation extends LintRule {
             group: Group.style);
 
   @override
+  List<String> get incompatibleRules => const ['no_adjacent_strings_in_list'];
+
+  @override
   LintCode get lintCode => code;
 
   @override

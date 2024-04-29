@@ -106,7 +106,7 @@ class _LintRuleProducer extends Producer {
     for (var rule in Registry.ruleRegistry.rules) {
       // TODO(pq): consider suggesting internal lints if editing an SDK options file
       if (!rule.state.isInternal) {
-        yield identifier(rule.name);
+        yield identifier(rule.name, docComplete: rule.details);
       }
     }
   }

@@ -3206,7 +3206,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     ExtensionTypeElementImpl element,
   ) {
     var representationType = element.representation.type;
-    if (typeSystem.isBottom(representationType)) {
+    if (representationType.isBottom) {
       errorReporter.atNode(
         node.representation.fieldType,
         CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM,

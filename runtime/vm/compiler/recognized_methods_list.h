@@ -190,6 +190,7 @@ namespace dart {
   V(_Double, _mul, DoubleMul, 0x1f7bafac)                                      \
   V(_Double, _div, DoubleDiv, 0x28601fd1)                                      \
   V(_Double, _modulo, DoubleMod, 0xfd96802f)                                   \
+  V(_Double, _remainder, DoubleRem, 0xf0f45c93)                                \
   V(_Double, ceil, DoubleCeilToInt, 0xcedbc005)                                \
   V(_Double, ceilToDouble, DoubleCeilToDouble, 0x5efeb719)                     \
   V(_Double, floor, DoubleFloorToInt, 0x2a1527c8)                              \
