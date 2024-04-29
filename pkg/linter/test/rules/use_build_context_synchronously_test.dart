@@ -737,6 +737,113 @@ void foo(BuildContext context) async {
     expect(block.asyncStateFor(reference, contextElement), isNull);
   }
 
+  test_ifStatement_referenceAfter_conditionHasMountedEqEqFalse_exit() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  if (context.mounted == false) return;
+  context /* ref */;
+}
+''');
+    var block = findNode.ifStatement('if ').parent!;
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(block.asyncStateFor(reference, contextElement),
+        AsyncState.notMountedCheck);
+  }
+
+  test_ifStatement_referenceAfter_conditionHasMountedEqEqNonConstant_exit() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context, bool b) async {
+  if (context.mounted == b) return;
+  context /* ref */;
+}
+''');
+    var block = findNode.ifStatement('if ').parent!;
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(block.asyncStateFor(reference, contextElement), null);
+  }
+
+  test_ifStatement_referenceAfter_conditionHasMountedEqEqTrue_exit() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  if (context.mounted == true) return;
+  context /* ref */;
+}
+''');
+    var block = findNode.ifStatement('if ').parent!;
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(block.asyncStateFor(reference, contextElement), null);
+  }
+
+  test_ifStatement_referenceAfter_conditionHasMountedNotEqFalse_exit() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  if (context.mounted != false) return;
+  context /* ref */;
+}
+''');
+    var block = findNode.ifStatement('if ').parent!;
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(block.asyncStateFor(reference, contextElement), null);
+  }
+
+  test_ifStatement_referenceAfter_conditionHasMountedNotEqTrue_exit() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  if (context.mounted != true) return;
+  context /* ref */;
+}
+''');
+    var block = findNode.ifStatement('if ').parent!;
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(block.asyncStateFor(reference, contextElement),
+        AsyncState.notMountedCheck);
+  }
+
+  test_ifStatement_referenceAfter_conditionHasNotMountedEqEqFalse_exit() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  if (!context.mounted == false) return;
+  context /* ref */;
+}
+''');
+    var block = findNode.ifStatement('if ').parent!;
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(block.asyncStateFor(reference, contextElement), null);
+  }
+
+  test_ifStatement_referenceAfter_conditionHasNotMountedEqEqTrue_exit() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  if (!context.mounted == true) return;
+  context /* ref */;
+}
+''');
+    var block = findNode.ifStatement('if ').parent!;
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(block.asyncStateFor(reference, contextElement),
+        AsyncState.notMountedCheck);
+  }
+
+  test_ifStatement_referenceAfter_conditionHasNotMountedNotEqTrue_exit() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  if (!context.mounted != true) return;
+  context /* ref */;
+}
+''');
+    var block = findNode.ifStatement('if ').parent!;
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(block.asyncStateFor(reference, contextElement), null);
+  }
+
   test_ifStatement_referenceAfter_notMountedCheckInCondition_break() async {
     await resolveCode(r'''
 import 'package:flutter/widgets.dart';

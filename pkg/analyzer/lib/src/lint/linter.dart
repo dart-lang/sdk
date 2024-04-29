@@ -230,6 +230,9 @@ abstract class LinterContext {
   bool canBeConstConstructor(ConstructorDeclaration node);
 
   /// Returns the result of evaluating the given expression.
+  // TODO(srawlins): Maybe deprecate this in favor of the simpler
+  // [ExpressionExtension.computeConstantValue]. The one case where it might
+  // produce incorrect results is if `node` is not withn `currentUnit`.
   LinterConstantEvaluationResult evaluateConstant(Expression node);
 
   /// Returns `true` if the given [unit] is in a test directory.
@@ -339,39 +342,7 @@ class LinterContextImpl implements LinterContext {
 
   @override
   LinterConstantEvaluationResult evaluateConstant(Expression node) {
-    var unitElement = currentUnit.unit.declaredElement!;
-    var source = unitElement.source;
-    var libraryElement = unitElement.library as LibraryElementImpl;
-
-    var errorListener = RecordingErrorListener();
-    var errorReporter = ErrorReporter(errorListener, source);
-
-    var evaluationEngine = ConstantEvaluationEngine(
-      declaredVariables: _declaredVariables,
-      configuration: ConstantEvaluationConfiguration(),
-    );
-
-    var dependencies = <ConstantEvaluationTarget>[];
-    node.accept(
-      ReferenceFinder(dependencies.add),
-    );
-
-    computeConstants(
-      declaredVariables: _declaredVariables,
-      constants: dependencies,
-      featureSet: libraryElement.featureSet,
-      configuration: ConstantEvaluationConfiguration(),
-    );
-
-    var visitor = ConstantVisitor(
-      evaluationEngine,
-      libraryElement,
-      errorReporter,
-    );
-
-    var constant = visitor.evaluateAndReportInvalidConstant(node);
-    var dartObject = constant is DartObjectImpl ? constant : null;
-    return LinterConstantEvaluationResult(dartObject, errorListener.errors);
+    return node.computeConstantValue;
   }
 
   @override
@@ -915,4 +886,43 @@ enum _LinterNameInScopeResolutionResultState {
   /// Indicates that an element with the same basename, but different name
   /// was found.
   differentName
+}
+
+extension ExpressionExtension on Expression {
+  /// Computes the constant value of `this`, if it has one.
+  ///
+  /// Returns a [LinterConstantEvaluationResult], containing both the computed
+  /// constant value, and a list of errors that occurred during the computation.
+  LinterConstantEvaluationResult get computeConstantValue {
+    var unitElement = thisOrAncestorOfType<CompilationUnit>()?.declaredElement;
+    if (unitElement == null) return LinterConstantEvaluationResult(null, []);
+    var libraryElement = unitElement.library as LibraryElementImpl;
+
+    var errorListener = RecordingErrorListener();
+
+    var evaluationEngine = ConstantEvaluationEngine(
+      declaredVariables: unitElement.session.declaredVariables,
+      configuration: ConstantEvaluationConfiguration(),
+    );
+
+    var dependencies = <ConstantEvaluationTarget>[];
+    accept(ReferenceFinder(dependencies.add));
+
+    computeConstants(
+      declaredVariables: unitElement.session.declaredVariables,
+      constants: dependencies,
+      featureSet: libraryElement.featureSet,
+      configuration: ConstantEvaluationConfiguration(),
+    );
+
+    var visitor = ConstantVisitor(
+      evaluationEngine,
+      libraryElement,
+      ErrorReporter(errorListener, unitElement.source),
+    );
+
+    var constant = visitor.evaluateAndReportInvalidConstant(this);
+    var dartObject = constant is DartObjectImpl ? constant : null;
+    return LinterConstantEvaluationResult(dartObject, errorListener.errors);
+  }
 }
