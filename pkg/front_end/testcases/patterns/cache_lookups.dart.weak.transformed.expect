@@ -389,7 +389,7 @@ abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> e
     }
   }
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ fillRange(core::int start, core::int end, [covariant-by-class cac::_CustomList&Object&ListMixin::E? fill = #C5]) → void {
-    cac::_CustomList&Object&ListMixin::E% value = let cac::_CustomList&Object&ListMixin::E? #t18 = fill in #t18 == null ?{cac::_CustomList&Object&ListMixin::E%} #t18 as{Unchecked} cac::_CustomList&Object&ListMixin::E% : #t18{cac::_CustomList&Object&ListMixin::E%};
+    cac::_CustomList&Object&ListMixin::E% value = let cac::_CustomList&Object&ListMixin::E? #t18 = fill in #t18 == null ?{cac::_CustomList&Object&ListMixin::E%} let cac::_CustomList&Object&ListMixin::E? #t19 = #t18 in #t19 == null ?{cac::_CustomList&Object&ListMixin::E%} #t19 as cac::_CustomList&Object&ListMixin::E% : #t19{cac::_CustomList&Object&ListMixin::E%} : #t18{cac::_CustomList&Object&ListMixin::E%};
     core::RangeError::checkValidRange(start, end, this.{core::List::length}{core::int});
     for (core::int i = start; i.{core::num::<}(end){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
       this.{core::List::[]=}(i, value){(core::int, cac::_CustomList&Object&ListMixin::E%) → void};
@@ -563,7 +563,7 @@ abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> e
         for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
           cac::_CustomList&Object&ListMixin::E% element = :sync-for-iterator.{core::Iterator::current}{cac::_CustomList&Object&ListMixin::E%};
           {
-            this.{core::List::[]=}(let final core::int #t19 = index in let final core::int #t20 = index = #t19.{core::num::+}(1){(core::num) → core::int} in #t19, element){(core::int, cac::_CustomList&Object&ListMixin::E%) → void};
+            this.{core::List::[]=}(let final core::int #t20 = index in let final core::int #t21 = index = #t20.{core::num::+}(1){(core::num) → core::int} in #t20, element){(core::int, cac::_CustomList&Object&ListMixin::E%) → void};
           }
         }
       }
@@ -615,4 +615,4 @@ Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:462:12 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:471:12 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:480:12 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 1209, effectively constant: 4
+Extra constant evaluation: evaluated: 1215, effectively constant: 4

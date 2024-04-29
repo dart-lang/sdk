@@ -34,7 +34,7 @@ static method method(self::MyList<core::int> /* erasure=core::List<core::int> */
   hoisted has-declared-initializer core::bool b;
   {
     final synthesized self::MyMap<core::String, core::bool> /* erasure=core::Map<core::String, core::bool> */ #1#0 = map;
-    if(!(#1#0.{core::Map::containsKey}(#C2){(core::Object?) → core::bool} && (let final core::bool #t2 = b = #1#0.{core::Map::[]}(#C2){(core::Object?) → core::bool?} as{Unchecked} core::bool in true)))
+    if(!(#1#0.{core::Map::containsKey}(#C2){(core::Object?) → core::bool} && (let final core::bool #t2 = b = let core::bool? #t3 = #1#0.{core::Map::[]}(#C2){(core::Object?) → core::bool?} in #t3 == null ?{core::bool} #t3 as{Unchecked} core::bool : #t3{core::bool} in true)))
       throw{for-error-handling} new core::StateError::•("Pattern matching error");
   }
   {
@@ -52,7 +52,7 @@ static method method(self::MyList<core::int> /* erasure=core::List<core::int> */
     {
       hoisted core::bool d;
       if(#3#0.{core::Map::containsKey}(#C2){(core::Object?) → core::bool}) {
-        d = #3#0.{core::Map::[]}(#C2){(core::Object?) → core::bool?} as{Unchecked} core::bool;
+        d = let core::bool? #t4 = #3#0.{core::Map::[]}(#C2){(core::Object?) → core::bool?} in #t4 == null ?{core::bool} #t4 as{Unchecked} core::bool : #t4{core::bool};
         {}
       }
     }
@@ -62,12 +62,12 @@ static method method(self::MyList<core::int> /* erasure=core::List<core::int> */
     final synthesized self::MyList<core::int> /* erasure=core::List<core::int> */ #4#0 = list;
     synthesized core::int #4#1;
     synthesized core::bool #4#1#isSet = false;
-    dynamic #t3;
+    dynamic #t5;
     {
       lowered hoisted core::int e#case#0;
       lowered hoisted core::int e#case#1;
-      if((#4#1#isSet ?{core::int} #4#1{core::int} : let final core::bool #t4 = #4#1#isSet = true in #4#1 = #4#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C1 && (let final core::int #t5 = e#case#0 = #4#0.{core::List::[]}(0){(core::int) → core::int} in true) && e#case#0.{core::num::>}(5){(core::num) → core::bool} && (let final core::int #t6 = #t3 = e#case#0 in true) || (#4#1#isSet ?{core::int} #4#1{core::int} : let final core::bool #t7 = #4#1#isSet = true in #4#1 = #4#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C3 && (let final core::int #t8 = e#case#1 = #4#0.{core::List::[]}(1){(core::int) → core::int} in true) && e#case#1.{core::num::<}(5){(core::num) → core::bool} && (let final core::int #t9 = #t3 = e#case#1 in true)) {
-        core::int e = #t3{core::int};
+      if((#4#1#isSet ?{core::int} #4#1{core::int} : let final core::bool #t6 = #4#1#isSet = true in #4#1 = #4#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C1 && (let final core::int #t7 = e#case#0 = #4#0.{core::List::[]}(0){(core::int) → core::int} in true) && e#case#0.{core::num::>}(5){(core::num) → core::bool} && (let final core::int #t8 = #t5 = e#case#0 in true) || (#4#1#isSet ?{core::int} #4#1{core::int} : let final core::bool #t9 = #4#1#isSet = true in #4#1 = #4#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C3 && (let final core::int #t10 = e#case#1 = #4#0.{core::List::[]}(1){(core::int) → core::int} in true) && e#case#1.{core::num::<}(5){(core::num) → core::bool} && (let final core::int #t11 = #t5 = e#case#1 in true)) {
+        core::int e = #t5{core::int};
         {
           core::print(e);
         }
@@ -79,7 +79,7 @@ static method method(self::MyList<core::int> /* erasure=core::List<core::int> */
     final synthesized self::MyMap<core::String, core::bool> /* erasure=core::Map<core::String, core::bool> */ #5#0 = map;
     {
       hoisted core::bool e;
-      if(#5#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool} && (let final core::bool #t10 = e = #5#0.{core::Map::[]}(#C1){(core::Object?) → core::bool?} as{Unchecked} core::bool in true)) {
+      if(#5#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool} && (let final core::bool #t12 = e = let core::bool? #t13 = #5#0.{core::Map::[]}(#C1){(core::Object?) → core::bool?} in #t13 == null ?{core::bool} #t13 as{Unchecked} core::bool : #t13{core::bool} in true)) {
         {
           core::print(e);
         }

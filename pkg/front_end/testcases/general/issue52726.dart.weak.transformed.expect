@@ -19,6 +19,6 @@ class WeakMap<K extends core::Object, V extends core::Object? = dynamic> extends
     core::Object o = invalid-expression "pkg/front_end/testcases/general/issue52726.dart:10:22: Error: A value of type 'Object?' can't be assigned to a variable of type 'Object' because 'Object?' is nullable and 'Object' isn't.
  - 'Object' is from 'dart:core'.
     Object o = first.first; // Error.
-                     ^" in first.{core::Iterable::first}{core::Object?} as{TypeError,Unchecked} core::Object;
+                     ^" in let core::Object? #t1 = first.{core::Iterable::first}{core::Object?} in #t1 == null ?{core::Object} #t1 as{TypeError} core::Object : #t1{core::Object};
   }
 }

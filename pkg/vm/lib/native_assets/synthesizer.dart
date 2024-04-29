@@ -50,7 +50,6 @@ class NativeAssetsSynthesizer {
   /// The VM consumes this component in runtime/vm/ffi/native_assets.cc.
   static Library synthesizeLibrary(
     Map nativeAssetsYaml, {
-    nonNullableByDefaultCompiledMode = NonNullableByDefaultCompiledMode.Strong,
     Class? pragmaClass,
   }) {
     // We don't need the format-version in the VM.
@@ -72,10 +71,7 @@ class NativeAssetsSynthesizer {
           pragmaOptions.fieldReference: nativeAssetsConstant,
         }))
       ],
-    )
-      ..nonNullableByDefaultCompiledMode = nonNullableByDefaultCompiledMode
-      ..isNonNullableByDefault = nonNullableByDefaultCompiledMode ==
-          NonNullableByDefaultCompiledMode.Strong;
+    );
   }
 
   /// Loads [nativeAssetsYamlString], validates the contents, and synthesizes
@@ -87,8 +83,6 @@ class NativeAssetsSynthesizer {
   static Future<Library?> synthesizeLibraryFromYamlString(
     String? nativeAssetsYamlString,
     ErrorDetector errorDetector, {
-    NonNullableByDefaultCompiledMode nonNullableByDefaultCompiledMode =
-        NonNullableByDefaultCompiledMode.Strong,
     Class? pragmaClass,
   }) async {
     if (nativeAssetsYamlString == null) {
@@ -102,7 +96,6 @@ class NativeAssetsSynthesizer {
     }
     return NativeAssetsSynthesizer.synthesizeLibrary(
       nativeAssetsYaml,
-      nonNullableByDefaultCompiledMode: nonNullableByDefaultCompiledMode,
       pragmaClass: pragmaClass,
     );
   }
@@ -116,8 +109,6 @@ class NativeAssetsSynthesizer {
   static Future<Library?> synthesizeLibraryFromYamlFile(
     Uri? nativeAssetsUri,
     ErrorDetector errorDetector, {
-    NonNullableByDefaultCompiledMode nonNullableByDefaultCompiledMode =
-        NonNullableByDefaultCompiledMode.Strong,
     Class? pragmaClass,
   }) async {
     if (nativeAssetsUri == null) {
@@ -138,7 +129,6 @@ class NativeAssetsSynthesizer {
     return synthesizeLibraryFromYamlString(
       nativeAssetsYamlString,
       errorDetector,
-      nonNullableByDefaultCompiledMode: nonNullableByDefaultCompiledMode,
       pragmaClass: pragmaClass,
     );
   }

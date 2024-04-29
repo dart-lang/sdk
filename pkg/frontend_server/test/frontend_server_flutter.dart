@@ -16,10 +16,6 @@ import 'dart:io'
         exitCode;
 import 'dart:typed_data' show BytesBuilder, Uint8List;
 
-import 'package:front_end/src/api_prototype/language_version.dart'
-    show uriUsesLegacyLanguageVersion;
-import 'package:front_end/src/api_unstable/vm.dart'
-    show CompilerOptions, NnbdMode, StandardFileSystem;
 import 'package:frontend_server/starter.dart';
 import 'package:kernel/ast.dart' show Component, Library;
 import 'package:kernel/binary/multi_binary_loader.dart' show MultiBinaryLoader;
@@ -39,20 +35,6 @@ Future<void> main(List<String> args) async {
   }
 
   await compileTests(flutterDir, flutterPlatformDir, new StdoutLogger());
-}
-
-Future<NnbdMode> _getNNBDMode(Uri script, Uri packageConfigUri) async {
-  final CompilerOptions compilerOptions = new CompilerOptions()
-    ..sdkRoot = null
-    ..fileSystem = StandardFileSystem.instance
-    ..packagesFileUri = packageConfigUri
-    ..sdkSummary = null
-    ..nnbdMode = NnbdMode.Weak;
-
-  if (await uriUsesLegacyLanguageVersion(script, compilerOptions)) {
-    return NnbdMode.Weak;
-  }
-  return NnbdMode.Strong;
 }
 
 Future compileTests(
@@ -134,26 +116,9 @@ Future compileTests(
       return true;
     }));
 
-    // Split into NNBD Strong and Weak so only the ones that match are
-    // compiled together. If mixing-and-matching the first file (which could
-    // be either) will setup the compiler which can lead to compilation errors
-    // for another file, for instance if the first one is strong but a
-    // subsequent one tries to opt out (i.e. is weak) an error is issued that
-    // that's not possible.
-    List<File> weak = [];
-    List<File> strong = [];
-    for (File file in testFiles) {
-      if (await _getNNBDMode(file.uri, packageConfig.uri) == NnbdMode.Weak) {
-        weak.add(file);
-      } else {
-        strong.add(file);
-      }
-    }
-    for (List<File> files in [weak, strong]) {
-      if (files.isEmpty) continue;
-      queue.add(new _QueueEntry(files, packageConfig, testDir));
-      totalFiles += files.length;
-    }
+    if (testFiles.isEmpty) continue;
+    queue.add(new _QueueEntry(testFiles, packageConfig, testDir));
+    totalFiles += testFiles.length;
   }
 
   // Process queue, taking shards into account.

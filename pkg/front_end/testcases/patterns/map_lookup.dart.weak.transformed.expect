@@ -68,14 +68,14 @@ static method test1(core::Object o) → core::String {
     synthesized core::int? #0#9;
     synthesized core::bool #0#9#isSet = false;
     {
-      if(#0#0 is core::Map<core::String, core::int> && (#0#3#isSet ?{core::bool} #0#3{core::bool} : let final core::bool #t1 = #0#3#isSet = true in #0#3 = #0#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C5){(core::Object?) → core::bool}) && (#0#6#isSet ?{core::bool} #0#6{core::bool} : let final core::bool #t2 = #0#6#isSet = true in #0#6 = #C6 =={core::num::==}{(core::Object) → core::bool} #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C5){(core::Object?) → core::int?} as{Unchecked} core::int) && (#0#8#isSet ?{core::bool} #0#8{core::bool} : let final core::bool #t3 = #0#8#isSet = true in #0#8 = #0#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C7){(core::Object?) → core::bool}) && #C8 =={core::num::==}{(core::Object) → core::bool} (#0#9#isSet ?{core::int?} #0#9{core::int?} : let final core::bool #t4 = #0#9#isSet = true in #0#9 = #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C7){(core::Object?) → core::int?}) as{Unchecked} core::int) {
+      if(#0#0 is core::Map<core::String, core::int> && (#0#3#isSet ?{core::bool} #0#3{core::bool} : let final core::bool #t1 = #0#3#isSet = true in #0#3 = #0#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C5){(core::Object?) → core::bool}) && (#0#6#isSet ?{core::bool} #0#6{core::bool} : let final core::bool #t2 = #0#6#isSet = true in #0#6 = #C6 =={core::num::==}{(core::Object) → core::bool} (let core::int? #t3 = #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C5){(core::Object?) → core::int?} in #t3 == null ?{core::int} #t3 as{Unchecked} core::int : #t3{core::int})) && (#0#8#isSet ?{core::bool} #0#8{core::bool} : let final core::bool #t4 = #0#8#isSet = true in #0#8 = #0#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C7){(core::Object?) → core::bool}) && #C8 =={core::num::==}{(core::Object) → core::bool} (let core::int? #t5 = #0#9#isSet ?{core::int?} #0#9{core::int?} : let final core::bool #t6 = #0#9#isSet = true in #0#9 = #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C7){(core::Object?) → core::int?} in #t5 == null ?{core::int} #t5 as{Unchecked} core::int : #t5{core::int})) {
         {
           return "match-2";
         }
       }
     }
     {
-      if(#0#0 is core::Map<core::String, core::int> && (#0#3#isSet ?{core::bool} #0#3{core::bool} : let final core::bool #t5 = #0#3#isSet = true in #0#3 = #0#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C5){(core::Object?) → core::bool}) && (#0#6#isSet ?{core::bool} #0#6{core::bool} : let final core::bool #t6 = #0#6#isSet = true in #0#6 = #C6 =={core::num::==}{(core::Object) → core::bool} #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C5){(core::Object?) → core::int?} as{Unchecked} core::int) && (#0#8#isSet ?{core::bool} #0#8{core::bool} : let final core::bool #t7 = #0#8#isSet = true in #0#8 = #0#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C7){(core::Object?) → core::bool}) && #C9 =={core::num::==}{(core::Object) → core::bool} (#0#9#isSet ?{core::int?} #0#9{core::int?} : let final core::bool #t8 = #0#9#isSet = true in #0#9 = #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C7){(core::Object?) → core::int?}) as{Unchecked} core::int) {
+      if(#0#0 is core::Map<core::String, core::int> && (#0#3#isSet ?{core::bool} #0#3{core::bool} : let final core::bool #t7 = #0#3#isSet = true in #0#3 = #0#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C5){(core::Object?) → core::bool}) && (#0#6#isSet ?{core::bool} #0#6{core::bool} : let final core::bool #t8 = #0#6#isSet = true in #0#6 = #C6 =={core::num::==}{(core::Object) → core::bool} (let core::int? #t9 = #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C5){(core::Object?) → core::int?} in #t9 == null ?{core::int} #t9 as{Unchecked} core::int : #t9{core::int})) && (#0#8#isSet ?{core::bool} #0#8{core::bool} : let final core::bool #t10 = #0#8#isSet = true in #0#8 = #0#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C7){(core::Object?) → core::bool}) && #C9 =={core::num::==}{(core::Object) → core::bool} (let core::int? #t11 = #0#9#isSet ?{core::int?} #0#9{core::int?} : let final core::bool #t12 = #0#9#isSet = true in #0#9 = #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C7){(core::Object?) → core::int?} in #t11 == null ?{core::int} #t11 as{Unchecked} core::int : #t11{core::int})) {
         {
           return "match-3";
         }
@@ -92,7 +92,7 @@ static method test1(core::Object o) → core::String {
 }
 static method test2(core::Object o) → core::String
   return block {
-    core::String #t9;
+    core::String #t13;
     final synthesized core::Object #0#0 = o;
     synthesized core::bool #0#3;
     synthesized core::bool #0#3#isSet = false;
@@ -105,26 +105,26 @@ static method test2(core::Object o) → core::String
     #L2:
     {
       {
-        if(#0#0 is core::Map<core::String, core::int> && (#0#3#isSet ?{core::bool} #0#3{core::bool} : let final core::bool #t10 = #0#3#isSet = true in #0#3 = #0#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C5){(core::Object?) → core::bool}) && (#0#6#isSet ?{core::bool} #0#6{core::bool} : let final core::bool #t11 = #0#6#isSet = true in #0#6 = #C6 =={core::num::==}{(core::Object) → core::bool} #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C5){(core::Object?) → core::int?} as{Unchecked} core::int) && (#0#8#isSet ?{core::bool} #0#8{core::bool} : let final core::bool #t12 = #0#8#isSet = true in #0#8 = #0#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C7){(core::Object?) → core::bool}) && #C8 =={core::num::==}{(core::Object) → core::bool} (#0#9#isSet ?{core::int?} #0#9{core::int?} : let final core::bool #t13 = #0#9#isSet = true in #0#9 = #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C7){(core::Object?) → core::int?}) as{Unchecked} core::int) {
-          #t9 = "match-2";
+        if(#0#0 is core::Map<core::String, core::int> && (#0#3#isSet ?{core::bool} #0#3{core::bool} : let final core::bool #t14 = #0#3#isSet = true in #0#3 = #0#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C5){(core::Object?) → core::bool}) && (#0#6#isSet ?{core::bool} #0#6{core::bool} : let final core::bool #t15 = #0#6#isSet = true in #0#6 = #C6 =={core::num::==}{(core::Object) → core::bool} (let core::int? #t16 = #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C5){(core::Object?) → core::int?} in #t16 == null ?{core::int} #t16 as{Unchecked} core::int : #t16{core::int})) && (#0#8#isSet ?{core::bool} #0#8{core::bool} : let final core::bool #t17 = #0#8#isSet = true in #0#8 = #0#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C7){(core::Object?) → core::bool}) && #C8 =={core::num::==}{(core::Object) → core::bool} (let core::int? #t18 = #0#9#isSet ?{core::int?} #0#9{core::int?} : let final core::bool #t19 = #0#9#isSet = true in #0#9 = #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C7){(core::Object?) → core::int?} in #t18 == null ?{core::int} #t18 as{Unchecked} core::int : #t18{core::int})) {
+          #t13 = "match-2";
           break #L2;
         }
       }
       {
-        if(#0#0 is core::Map<core::String, core::int> && (#0#3#isSet ?{core::bool} #0#3{core::bool} : let final core::bool #t14 = #0#3#isSet = true in #0#3 = #0#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C5){(core::Object?) → core::bool}) && (#0#6#isSet ?{core::bool} #0#6{core::bool} : let final core::bool #t15 = #0#6#isSet = true in #0#6 = #C6 =={core::num::==}{(core::Object) → core::bool} #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C5){(core::Object?) → core::int?} as{Unchecked} core::int) && (#0#8#isSet ?{core::bool} #0#8{core::bool} : let final core::bool #t16 = #0#8#isSet = true in #0#8 = #0#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C7){(core::Object?) → core::bool}) && #C9 =={core::num::==}{(core::Object) → core::bool} (#0#9#isSet ?{core::int?} #0#9{core::int?} : let final core::bool #t17 = #0#9#isSet = true in #0#9 = #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C7){(core::Object?) → core::int?}) as{Unchecked} core::int) {
-          #t9 = "match-3";
+        if(#0#0 is core::Map<core::String, core::int> && (#0#3#isSet ?{core::bool} #0#3{core::bool} : let final core::bool #t20 = #0#3#isSet = true in #0#3 = #0#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C5){(core::Object?) → core::bool}) && (#0#6#isSet ?{core::bool} #0#6{core::bool} : let final core::bool #t21 = #0#6#isSet = true in #0#6 = #C6 =={core::num::==}{(core::Object) → core::bool} (let core::int? #t22 = #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C5){(core::Object?) → core::int?} in #t22 == null ?{core::int} #t22 as{Unchecked} core::int : #t22{core::int})) && (#0#8#isSet ?{core::bool} #0#8{core::bool} : let final core::bool #t23 = #0#8#isSet = true in #0#8 = #0#0{core::Map<core::String, core::int>}.{core::Map::containsKey}(#C7){(core::Object?) → core::bool}) && #C9 =={core::num::==}{(core::Object) → core::bool} (let core::int? #t24 = #0#9#isSet ?{core::int?} #0#9{core::int?} : let final core::bool #t25 = #0#9#isSet = true in #0#9 = #0#0{core::Map<core::String, core::int>}.{core::Map::[]}(#C7){(core::Object?) → core::int?} in #t24 == null ?{core::int} #t24 as{Unchecked} core::int : #t24{core::int})) {
+          #t13 = "match-3";
           break #L2;
         }
       }
       {
         if(true) {
-          #t9 = "no match";
+          #t13 = "no match";
           break #L2;
         }
       }
       throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t9;
+  } =>#t13;
 static method main() → dynamic {
   final self::MyMap<core::String, core::int> map = new self::MyMap::•<core::String, core::int>(<core::String, core::int>{"key1": 1, "key2": 2});
   self::expect("match-3", self::test1(map));
@@ -137,7 +137,7 @@ static method main() → dynamic {
   hoisted has-declared-initializer core::int x2;
   {
     final synthesized self::MyMap<core::String, core::int> #0#0 = map;
-    if(!(#0#0.{self::MyMap::containsKey}(#C5){(core::Object?) → core::bool} && (let final core::int #t18 = x1 = #0#0.{self::MyMap::[]}(#C5){(core::Object?) → core::int?} as{Unchecked} core::int in true) && #0#0.{self::MyMap::containsKey}(#C7){(core::Object?) → core::bool} && (let final core::int #t19 = x2 = #0#0.{self::MyMap::[]}(#C7){(core::Object?) → core::int?} as{Unchecked} core::int in true)))
+    if(!(#0#0.{self::MyMap::containsKey}(#C5){(core::Object?) → core::bool} && (let final core::int #t26 = x1 = let core::int? #t27 = #0#0.{self::MyMap::[]}(#C5){(core::Object?) → core::int?} in #t27 == null ?{core::int} #t27 as{Unchecked} core::int : #t27{core::int} in true) && #0#0.{self::MyMap::containsKey}(#C7){(core::Object?) → core::bool} && (let final core::int #t28 = x2 = let core::int? #t29 = #0#0.{self::MyMap::[]}(#C7){(core::Object?) → core::int?} in #t29 == null ?{core::int} #t29 as{Unchecked} core::int : #t29{core::int} in true)))
       throw{for-error-handling} new core::StateError::•("Pattern matching error");
   }
   self::expect(self::hasUnsoundNullSafety ?{core::String} self::unsoundResult : self::soundResult, map.{self::MyMap::log}{core::String});
@@ -146,7 +146,7 @@ static method main() → dynamic {
   final hoisted has-declared-initializer core::int y2;
   {
     final synthesized self::MyMap<core::String, core::int> #1#0 = map;
-    if(!(#1#0.{self::MyMap::containsKey}(#C5){(core::Object?) → core::bool} && (let final core::int #t20 = y1 = #1#0.{self::MyMap::[]}(#C5){(core::Object?) → core::int?} as{Unchecked} core::int in true) && #1#0.{self::MyMap::containsKey}(#C7){(core::Object?) → core::bool} && (let final core::int #t21 = y2 = #1#0.{self::MyMap::[]}(#C7){(core::Object?) → core::int?} as{Unchecked} core::int in true)))
+    if(!(#1#0.{self::MyMap::containsKey}(#C5){(core::Object?) → core::bool} && (let final core::int #t30 = y1 = let core::int? #t31 = #1#0.{self::MyMap::[]}(#C5){(core::Object?) → core::int?} in #t31 == null ?{core::int} #t31 as{Unchecked} core::int : #t31{core::int} in true) && #1#0.{self::MyMap::containsKey}(#C7){(core::Object?) → core::bool} && (let final core::int #t32 = y2 = let core::int? #t33 = #1#0.{self::MyMap::[]}(#C7){(core::Object?) → core::int?} in #t33 == null ?{core::int} #t33 as{Unchecked} core::int : #t33{core::int} in true)))
       throw{for-error-handling} new core::StateError::•("Pattern matching error");
   }
   self::expect(self::hasUnsoundNullSafety ?{core::String} self::unsoundResult : self::soundResult, map.{self::MyMap::log}{core::String});
@@ -170,4 +170,4 @@ constants  {
 
 Extra constant evaluation status:
 Evaluated: IsExpression @ org-dartlang-testcase:///map_lookup.dart:9:49 -> BoolConstant(true)
-Extra constant evaluation: evaluated: 343, effectively constant: 1
+Extra constant evaluation: evaluated: 415, effectively constant: 1

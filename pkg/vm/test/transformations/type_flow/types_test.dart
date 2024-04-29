@@ -19,7 +19,7 @@ class TestTypeHierarchy extends TypeHierarchy {
 
   TestTypeHierarchy(
       CoreTypes coreTypes, Target target, this.classes, this.specializations)
-      : super(coreTypes, target, /*soundNullSafety=*/ true);
+      : super(coreTypes, target);
 
   @override
   Type specializeTypeCone(TFClass base, {bool allowWideCone = false}) {

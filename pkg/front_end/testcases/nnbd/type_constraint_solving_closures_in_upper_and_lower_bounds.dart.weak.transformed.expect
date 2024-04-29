@@ -15,7 +15,7 @@ class C<X extends core::Object? = dynamic> extends core::Object {
     ;
 }
 static method check<T extends core::Object? = dynamic>(self::C<core::List<self::check::T%>> f) → self::check::T% {
-  return null as{Unchecked} self::check::T%;
+  return let Null #t1 = null in #t1 == null ?{self::check::T%} #t1 as self::check::T% : #t1{self::check::T%};
 }
 static method test() → void {
   core::int x = self::check<core::int>(new self::C::•<core::List<core::int>>((core::List<core::int> x) → void {}));
@@ -24,3 +24,10 @@ static method test() → void {
              ^" in x as{TypeError} core::String;
 }
 static method main() → dynamic {}
+
+
+Extra constant evaluation status:
+Evaluated: EqualsNull @ org-dartlang-testcase:///type_constraint_solving_closures_in_upper_and_lower_bounds.dart:10:3 -> BoolConstant(true)
+Evaluated: VariableGet @ org-dartlang-testcase:///type_constraint_solving_closures_in_upper_and_lower_bounds.dart:10:15 -> NullConstant(null)
+Evaluated: VariableGet @ org-dartlang-testcase:///type_constraint_solving_closures_in_upper_and_lower_bounds.dart:10:3 -> NullConstant(null)
+Extra constant evaluation: evaluated: 9, effectively constant: 3

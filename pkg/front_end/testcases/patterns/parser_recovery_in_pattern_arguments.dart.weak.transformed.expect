@@ -36,9 +36,9 @@ static method test() → dynamic {
              ^";
     if(!(#0#0.{core::Map::containsKey}(invalid-expression "pkg/front_end/testcases/patterns/parser_recovery_in_pattern_arguments.dart:13:14: Error: This couldn't be parsed.
   var {const C(:var t): a1} = foo();
-             ^"){(core::Object?) → core::bool} && (let final core::int #t1 = a1 = #0#0.{core::Map::[]}(invalid-expression "pkg/front_end/testcases/patterns/parser_recovery_in_pattern_arguments.dart:13:14: Error: This couldn't be parsed.
+             ^"){(core::Object?) → core::bool} && (let final core::int #t1 = a1 = let core::int? #t2 = #0#0.{core::Map::[]}(invalid-expression "pkg/front_end/testcases/patterns/parser_recovery_in_pattern_arguments.dart:13:14: Error: This couldn't be parsed.
   var {const C(:var t): a1} = foo();
-             ^"){(core::Object?) → core::int?} as{Unchecked} core::int in true)))
+             ^"){(core::Object?) → core::int?} in #t2 == null ?{core::int} #t2 as{Unchecked} core::int : #t2{core::int} in true)))
       throw{for-error-handling} new core::StateError::•("Pattern matching error");
   }
 }

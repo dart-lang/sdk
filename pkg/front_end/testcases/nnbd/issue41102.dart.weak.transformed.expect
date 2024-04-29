@@ -67,7 +67,7 @@ static final field core::List<dynamic> s1 = core::_GrowableList::•<dynamic>(0)
 static final field core::int? s2 = let final core::List<dynamic> #t1 = self::s1 in #t1 == null ?{core::int?} null : #t1.{core::List::length}{core::int};
 static final field core::List<core::int> s3 = core::_List::filled<core::int>(2, invalid-expression "pkg/front_end/testcases/nnbd/issue41102.dart:19:36: Error: The value 'null' can't be assigned to the parameter type 'int' because 'int' is not nullable.
 final s3 = new List<int>.filled(2, null);
-                                   ^" in null as{TypeError,Unchecked} core::int);
+                                   ^" in let Null #t2 = null in #t2 == null ?{core::int} #t2 as{TypeError} core::int : #t2{core::int});
 static final field dynamic s4 = (() → Null {
   core::int e = 0;
   switch(e) /* core::int */ {
@@ -91,10 +91,10 @@ static final field dynamic s8 = invalid-expression "pkg/front_end/testcases/nnbd
  - 'List' is from 'dart:core'.
 final s8 = s7[0];
              ^" in self::s7.{core::List::[]}{<nullable>}.(0){(core::int) → dynamic};
-static final field core::int s9 = let final core::List<dynamic>? #t2 = self::s7 in let final core::int #t3 = 0 in let final core::int #t4 = 0 in let final void #t5 = invalid-expression "pkg/front_end/testcases/nnbd/issue41102.dart:39:14: Error: Operator '[]=' cannot be called on 'List<dynamic>?' because it is potentially null.
+static final field core::int s9 = let final core::List<dynamic>? #t3 = self::s7 in let final core::int #t4 = 0 in let final core::int #t5 = 0 in let final void #t6 = invalid-expression "pkg/front_end/testcases/nnbd/issue41102.dart:39:14: Error: Operator '[]=' cannot be called on 'List<dynamic>?' because it is potentially null.
  - 'List' is from 'dart:core'.
 final s9 = s7[0] = 0;
-             ^" in #t2.{core::List::[]=}{<nullable>}.(#t3, #t4){(core::int, dynamic) → void} in #t4;
+             ^" in #t3.{core::List::[]=}{<nullable>}.(#t4, #t5){(core::int, dynamic) → void} in #t5;
 static final field core::int s10 = invalid-expression "pkg/front_end/testcases/nnbd/issue41102.dart:41:16: Error: Property 'length' cannot be accessed on 'List<dynamic>?' because it is potentially null.
  - 'List' is from 'dart:core'.
 Try accessing using ?. instead.

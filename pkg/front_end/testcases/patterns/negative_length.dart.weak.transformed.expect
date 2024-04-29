@@ -322,7 +322,7 @@ abstract class _NegativeLengthList&Object&ListMixin<E extends core::Object? = dy
     }
   }
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ fillRange(core::int start, core::int end, [covariant-by-class self::_NegativeLengthList&Object&ListMixin::E? fill = #C2]) → void {
-    self::_NegativeLengthList&Object&ListMixin::E% value = let self::_NegativeLengthList&Object&ListMixin::E? #t6 = fill in #t6 == null ?{self::_NegativeLengthList&Object&ListMixin::E%} #t6 as{Unchecked} self::_NegativeLengthList&Object&ListMixin::E% : #t6{self::_NegativeLengthList&Object&ListMixin::E%};
+    self::_NegativeLengthList&Object&ListMixin::E% value = let self::_NegativeLengthList&Object&ListMixin::E? #t6 = fill in #t6 == null ?{self::_NegativeLengthList&Object&ListMixin::E%} let self::_NegativeLengthList&Object&ListMixin::E? #t7 = #t6 in #t7 == null ?{self::_NegativeLengthList&Object&ListMixin::E%} #t7 as self::_NegativeLengthList&Object&ListMixin::E% : #t7{self::_NegativeLengthList&Object&ListMixin::E%} : #t6{self::_NegativeLengthList&Object&ListMixin::E%};
     core::RangeError::checkValidRange(start, end, this.{core::List::length}{core::int});
     for (core::int i = start; i.{core::num::<}(end){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
       this.{core::List::[]=}(i, value){(core::int, self::_NegativeLengthList&Object&ListMixin::E%) → void};
@@ -496,7 +496,7 @@ abstract class _NegativeLengthList&Object&ListMixin<E extends core::Object? = dy
         for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
           self::_NegativeLengthList&Object&ListMixin::E% element = :sync-for-iterator.{core::Iterator::current}{self::_NegativeLengthList&Object&ListMixin::E%};
           {
-            this.{core::List::[]=}(let final core::int #t7 = index in let final core::int #t8 = index = #t7.{core::num::+}(1){(core::num) → core::int} in #t7, element){(core::int, self::_NegativeLengthList&Object&ListMixin::E%) → void};
+            this.{core::List::[]=}(let final core::int #t8 = index in let final core::int #t9 = index = #t8.{core::num::+}(1){(core::num) → core::int} in #t8, element){(core::int, self::_NegativeLengthList&Object&ListMixin::E%) → void};
           }
         }
       }
@@ -530,33 +530,33 @@ class NegativeLengthList<E extends core::Object? = dynamic> extends self::_Negat
 }
 static method switchList(core::List<core::int> list) → core::int
   return block {
-    core::int #t9;
+    core::int #t10;
     final synthesized core::List<core::int> #0#0 = list;
     synthesized core::int #0#1;
     synthesized core::bool #0#1#isSet = false;
     #L1:
     {
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t10 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C8){(core::num) → core::bool}) {
-          #t9 = 2;
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t11 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C8){(core::num) → core::bool}) {
+          #t10 = 2;
           break #L1;
         }
       }
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t11 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C9) {
-          #t9 = 1;
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t12 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C9) {
+          #t10 = 1;
           break #L1;
         }
       }
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t12 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C7){(core::num) → core::bool}) {
-          #t9 = 0;
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t13 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C7){(core::num) → core::bool}) {
+          #t10 = 0;
           break #L1;
         }
       }
       throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t9;
+  } =>#t10;
 static method main() → dynamic {
   self::expect(0, self::switchList(core::_GrowableList::•<core::int>(0)));
   self::expect(1, self::switchList(core::_GrowableList::_literal1<core::int>(0)));
@@ -588,4 +588,4 @@ Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:471:12 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:480:12 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///negative_length.dart:12:41 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 1124, effectively constant: 5
+Extra constant evaluation: evaluated: 1130, effectively constant: 5

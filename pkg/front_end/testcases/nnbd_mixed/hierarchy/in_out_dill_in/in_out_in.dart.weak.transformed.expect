@@ -128,7 +128,7 @@ Try removing the extra positional arguments.
     i = super.{in_2::SuperQ::nullabilityGetter};
     this.{self::ClassQ::nullabilitySetter} = invalid-expression "pkg/front_end/testcases/nnbd_mixed/hierarchy/in_out_dill_in/in_out_in.dart:52:25: Error: The value 'null' can't be assigned to a variable of type 'int' because 'int' is not nullable.
     nullabilitySetter = null; // error
-                        ^" in null as{TypeError,Unchecked} core::int;
+                        ^" in let Null #t1 = null in #t1 == null ?{core::int} #t1 as{TypeError} core::int : #t1{core::int};
     super.{in_2::SuperQ::nullabilitySetter} = null;
   }
   abstract member-signature method noSuchMethod(core::Invocation invocation) → dynamic; -> core::Object::noSuchMethod
@@ -193,7 +193,7 @@ Try removing the extra positional arguments.
     i = super.{in_::_LegacyMixedInQ&Object&SuperQ::nullabilityGetter};
     this.{self::ClassMixedInQ::nullabilitySetter} = invalid-expression "pkg/front_end/testcases/nnbd_mixed/hierarchy/in_out_dill_in/in_out_in.dart:102:25: Error: The value 'null' can't be assigned to a variable of type 'int' because 'int' is not nullable.
     nullabilitySetter = null; // error
-                        ^" in null as{TypeError,Unchecked} core::int;
+                        ^" in let Null #t2 = null in #t2 == null ?{core::int} #t2 as{TypeError} core::int : #t2{core::int};
     super.{in_::_LegacyMixedInQ&Object&SuperQ::nullabilitySetter} = null;
   }
   abstract member-signature method noSuchMethod(core::Invocation invocation) → dynamic; -> core::Object::noSuchMethod

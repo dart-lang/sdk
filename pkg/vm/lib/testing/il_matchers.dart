@@ -28,8 +28,6 @@ class FlowGraph {
         codegenBlockOrder =
             codegenBlockOrder?.map((idx) => _blocks[idx as int]).toList();
 
-  bool get soundNullSafety => flags['nnbd'];
-
   PrettyPrinter get printer => PrettyPrinter(descriptors);
 
   List<dynamic> blocks({bool inCodegenBlockOrder = false}) {

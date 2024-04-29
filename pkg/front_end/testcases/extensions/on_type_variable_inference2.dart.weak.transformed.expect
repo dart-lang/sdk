@@ -152,15 +152,15 @@ static method errors() → dynamic {
   self::Extension|set#property<self::Struct>(new self::Struct::•(), invalid-expression "pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:52:27: Error: The value 'null' can't be assigned to a variable of type 'Struct' because 'Struct' is not nullable.
  - 'Struct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
   new Struct().property = null; // error
-                          ^" in null as{TypeError,Unchecked} self::Struct);
+                          ^" in let Null #t1 = null in #t1 == null ?{self::Struct} #t1 as{TypeError} self::Struct : #t1{self::Struct});
   self::Extension|set#property<self::StructA>(new self::StructA::•(), invalid-expression "pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:53:28: Error: The value 'null' can't be assigned to a variable of type 'StructA' because 'StructA' is not nullable.
  - 'StructA' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
   new StructA().property = null; // error
-                           ^" in null as{TypeError,Unchecked} self::StructA);
+                           ^" in let Null #t2 = null in #t2 == null ?{self::StructA} #t2 as{TypeError} self::StructA : #t2{self::StructA});
   self::Extension|set#property<self::StructB>(new self::StructB::•(), invalid-expression "pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:54:28: Error: The value 'null' can't be assigned to a variable of type 'StructB' because 'StructB' is not nullable.
  - 'StructB' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
   new StructB().property = null; // error
-                           ^" in null as{TypeError,Unchecked} self::StructB);
+                           ^" in let Null #t3 = null in #t3 == null ?{self::StructB} #t3 as{TypeError} self::StructB : #t3{self::StructB});
 }
 static method testNonStruct() → dynamic {
   self::NonStruct nonStruct;

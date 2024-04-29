@@ -72,7 +72,6 @@ Future<void> generateNative({
   String? resourcesFile,
   String enableExperiment = '',
   bool enableAsserts = false,
-  bool soundNullSafety = true,
   bool verbose = false,
   String verbosity = 'all',
   List<String> extraOptions = const [],
@@ -122,7 +121,6 @@ Future<void> generateNative({
       extraGenKernelOptions: [
         '--invocation-modes=compile',
         '--verbosity=$verbosity',
-        '--${soundNullSafety ? '' : 'no-'}sound-null-safety',
       ],
       resourcesFile: resourcesFile,
       aot: true,
@@ -150,7 +148,6 @@ Future<void> generateNative({
         extraGenKernelOptions: [
           '--invocation-modes=compile',
           '--verbosity=$verbosity',
-          '--${soundNullSafety ? '' : 'no-'}sound-null-safety',
         ],
         nativeAssets: nativeAssets,
         aot: true,
@@ -172,12 +169,8 @@ Future<void> generateNative({
       );
     }
 
-    final extraAotOptions = <String>[
-      if (!soundNullSafety) '--no-sound-null-safety',
-      ...extraOptions
-    ];
     if (verbose) {
-      print('Generating AOT snapshot. $genSnapshot $extraAotOptions');
+      print('Generating AOT snapshot. $genSnapshot $extraOptions');
     }
     final snapshotFile =
         kind == Kind.aot ? outputPath : path.join(tempDir.path, 'snapshot.aot');
@@ -186,7 +179,7 @@ Future<void> generateNative({
       snapshotFile,
       debugPath,
       enableAsserts,
-      extraAotOptions,
+      extraOptions,
     );
 
     if (verbose || snapshotResult.exitCode != 0) {
@@ -260,7 +253,6 @@ Future<void> generateKernel({
   //   What are the implications of using a product mode kernel
   //   in a non-product runtime?
   bool product = true,
-  bool soundNullSafety = true,
   bool verbose = false,
   String? nativeAssets,
   String? resourcesFile,
@@ -282,7 +274,6 @@ Future<void> generateKernel({
     extraGenKernelOptions: [
       '--invocation-modes=compile',
       '--verbosity=$verbosity',
-      '--${soundNullSafety ? '' : 'no-'}sound-null-safety',
     ],
     nativeAssets: nativeAssets,
     resourcesFile: resourcesFile,

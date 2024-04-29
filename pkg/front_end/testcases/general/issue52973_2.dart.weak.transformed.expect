@@ -17,7 +17,7 @@ static method f<X extends core::Object? = dynamic>(self::f::X? arg) → void {
     self::CheckType|expect<core::List<self::f::X%>, (core::List<self::f::X%>) → core::List<self::f::X%>>(ys);
     core::List<self::f::X?> ys2 = xs;
     self::CheckType|expect<core::List<self::f::X?>, (core::List<self::f::X?>) → core::List<self::f::X?>>(ys2);
-    core::List<core::Object> ys3 = xs as{Unchecked} core::List<core::Object>;
+    core::List<core::Object> ys3 = xs as core::List<core::Object>;
     self::CheckType|expect<core::List<core::Object>, (core::List<core::Object>) → core::List<core::Object>>(ys3);
   }
 }

@@ -52,10 +52,7 @@ main(List<String> args) {
 
   Expect.throws(() => doubleNull + 2.17, (e) => e is NoSuchMethodError);
 
-  Expect.throws(
-      () => 9.81 - doubleNull,
-      (e) =>
-          hasUnsoundNullSafety ? (e is NoSuchMethodError) : (e is TypeError));
+  Expect.throws(() => 9.81 - doubleNull, (e) => (e is TypeError));
 
   Expect.throws(() => intNull * 7, (e) => e is NoSuchMethodError);
 }
