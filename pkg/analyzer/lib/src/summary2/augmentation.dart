@@ -138,10 +138,12 @@ abstract class AugmentedInstanceDeclarationBuilder {
     for (var element in elements) {
       var name = element.name;
       if (element.isAugmentation) {
-        var existing = constructors[name];
-        if (existing != null) {
-          existing.augmentation = element;
-          element.augmentationTargetAny = existing;
+        if (constructors[name] case var target?) {
+          target.augmentation = element;
+          element.augmentationTargetAny = target;
+        } else {
+          var target = _recoveryAugmentationTarget(name);
+          element.augmentationTargetAny = target;
         }
       }
       constructors[name] = element;
@@ -152,14 +154,12 @@ abstract class AugmentedInstanceDeclarationBuilder {
     for (var element in elements) {
       var name = element.name;
       if (element.isAugmentation) {
-        ElementImpl? target = fields[name];
-        // Recovery
-        target ??= constructors[name];
-        target ??= methods[name];
-
-        element.augmentationTargetAny = target;
-        if (target is FieldElementImpl) {
+        if (fields[name] case var target?) {
           target.augmentation = element;
+          element.augmentationTargetAny = target;
+        } else {
+          var target = _recoveryAugmentationTarget(name);
+          element.augmentationTargetAny = target;
         }
       }
       fields[name] = element;
