@@ -1773,12 +1773,7 @@ class _TreeShakerPass1 extends RemovingTransformer {
       }
     }
     final right = transform(node.right);
-    // Without sound null safety arguments of logical expression
-    // are implicitly checked for null, so transform the node only
-    // if using sound null safety or it evaluates to a bool literal.
-    if (_isExtendedBoolLiteral(left) &&
-        (shaker.typeFlowAnalysis.target.flags.soundNullSafety ||
-            _isExtendedBoolLiteral(right))) {
+    if (_isExtendedBoolLiteral(left)) {
       return _evaluateArguments([left], right);
     }
     node.left = left..parent = node;

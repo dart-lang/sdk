@@ -388,22 +388,22 @@ static method test<T1 extends core::Object? = dynamic, T2 extends self::A, T3 ex
   o = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:39:7: Error: A value of type 'C' can't be assigned to a variable of type 'Object' because 'C' is nullable and 'Object' isn't.
  - 'Object' is from 'dart:core'.
   o = c; // Error
-      ^" in c as{TypeError,Unchecked} core::Object;
+      ^" in let self::C% /* erasure=core::Object?, declared=! */ #t1 = c in #t1 == null ?{core::Object} #t1 as{TypeError} core::Object : #t1{core::Object};
   o = d;
   o = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:41:7: Error: A value of type 'D2' can't be assigned to a variable of type 'Object' because 'D2' is nullable and 'Object' isn't.
  - 'Object' is from 'dart:core'.
   o = d2; // Error
-      ^" in d2 as{TypeError,Unchecked} core::Object;
+      ^" in let self::D2% /* erasure=core::Object, declared=! */ #t2 = d2 in #t2 == null ?{core::Object} #t2 as{TypeError} core::Object : #t2{core::Object};
   o = e;
   o = f;
   o = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:44:7: Error: A value of type 'G<T1>' can't be assigned to a variable of type 'Object' because 'G<T1>' is nullable and 'Object' isn't.
  - 'Object' is from 'dart:core'.
   o = g1; // Error
-      ^" in g1 as{TypeError,Unchecked} core::Object;
+      ^" in let self::G<self::test::T1%>% /* erasure=self::test::T1%, declared=! */ #t3 = g1 in #t3 == null ?{core::Object} #t3 as{TypeError} core::Object : #t3{core::Object};
   o = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:45:7: Error: A value of type 'G<T2>' can't be assigned to a variable of type 'Object' because 'G<T2>' is nullable and 'Object' isn't.
  - 'Object' is from 'dart:core'.
   o = g2; // Error
-      ^" in g2 as{TypeError,Unchecked} core::Object;
+      ^" in let self::G<self::test::T2>% /* erasure=self::test::T2, declared=! */ #t4 = g2 in #t4 == null ?{core::Object} #t4 as{TypeError} core::Object : #t4{core::Object};
   o = g3;
   a = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:48:7: Error: A value of type 'Object' can't be assigned to a variable of type 'A'.
  - 'Object' is from 'dart:core'.

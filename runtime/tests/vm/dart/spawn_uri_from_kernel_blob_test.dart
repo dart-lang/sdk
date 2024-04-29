@@ -22,7 +22,7 @@ main() async {
   final sourceUri =
       Platform.script.resolve('spawn_uri_from_kernel_blob_script.dart');
   final options = new CompilerOptions()
-    ..target = VmTarget(TargetFlags(soundNullSafety: hasSoundNullSafety))
+    ..target = VmTarget(TargetFlags())
     ..additionalDills = <Uri>[Uri.file(platformDill)]
     ..environmentDefines = {}
     ..nnbdMode = hasSoundNullSafety ? NnbdMode.Strong : NnbdMode.Weak

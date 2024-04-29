@@ -37,7 +37,6 @@ class IncrementalJavaScriptBundler {
     this.useDebuggerModuleNames = false,
     this.emitDebugMetadata = false,
     this.emitDebugSymbols = false,
-    this.soundNullSafety = false,
     this.canaryFeatures = false,
     String? moduleFormat,
   }) : _moduleFormat = parseModuleFormat(moduleFormat ?? 'amd');
@@ -46,7 +45,6 @@ class IncrementalJavaScriptBundler {
   final bool emitDebugMetadata;
   final bool emitDebugSymbols;
   final ModuleFormat _moduleFormat;
-  final bool soundNullSafety;
   final bool canaryFeatures;
   final FileSystem? _fileSystem;
   final Set<Library> _loadedLibraries;
@@ -212,7 +210,7 @@ class IncrementalJavaScriptBundler {
           emitDebugMetadata: emitDebugMetadata,
           emitDebugSymbols: emitDebugSymbols,
           moduleName: moduleName,
-          soundNullSafety: soundNullSafety,
+          soundNullSafety: true,
           canaryFeatures: canaryFeatures,
         ),
         _importToSummary,

@@ -99,15 +99,8 @@ main() async {
   throwsIfCumulativeListIsTooLargeOn32bitPlatform();
 
   dynamic myNull;
-  if (hasUnsoundNullSafety) {
-    Expect.throwsArgumentError(() => TransferableTypedData.fromList(myNull));
-    Expect.throwsArgumentError(() => TransferableTypedData.fromList([myNull]));
-    Expect.throwsArgumentError(
-        () => TransferableTypedData.fromList(MyList<Uint8List>()));
-  } else {
-    Expect.throwsTypeError(() => TransferableTypedData.fromList(myNull));
-    Expect.throwsTypeError(() => TransferableTypedData.fromList([myNull]));
-    Expect.throwsTypeError(
-        () => TransferableTypedData.fromList(MyList<Uint8List>()));
-  }
+  Expect.throwsTypeError(() => TransferableTypedData.fromList(myNull));
+  Expect.throwsTypeError(() => TransferableTypedData.fromList([myNull]));
+  Expect.throwsTypeError(
+      () => TransferableTypedData.fromList(MyList<Uint8List>()));
 }

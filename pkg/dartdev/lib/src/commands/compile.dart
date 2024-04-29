@@ -235,7 +235,6 @@ class CompileKernelSnapshotCommand extends CompileSubcommandCommand {
         enableExperiment: args.enabledExperiments.join(','),
         linkPlatform: args.flag('link-platform'),
         embedSources: args.flag('embed-sources'),
-        soundNullSafety: args.flag('sound-null-safety'),
         verbose: verbose,
         verbosity: args.option('verbosity')!,
       );
@@ -518,7 +517,6 @@ Remove debugging information from the output and save it separately to the speci
         packages: args.option('packages'),
         enableExperiment: args.enabledExperiments.join(','),
         enableAsserts: args.flag('enable-asserts'),
-        soundNullSafety: args.flag('sound-null-safety'),
         debugFile: args.option('save-debugging-info'),
         verbose: verbose,
         verbosity: args.option('verbosity')!,

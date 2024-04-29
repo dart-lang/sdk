@@ -529,7 +529,6 @@ class FrontendCompiler implements CompilerInterface {
       ..explicitExperimentalFlags = parseExperimentalFlags(
           parseExperimentalArguments(options['enable-experiment']),
           onError: (msg) => errors.add(msg))
-      ..nnbdMode = soundNullSafety ? NnbdMode.Strong : NnbdMode.Weak
       ..onDiagnostic = _onDiagnostic
       ..verbosity = Verbosity.parseArgument(options['verbosity'],
           onError: (msg) => errors.add(msg));
@@ -606,7 +605,6 @@ class FrontendCompiler implements CompilerInterface {
     compilerOptions.target = createFrontEndTarget(
       options['target'],
       trackWidgetCreation: options['track-widget-creation'],
-      soundNullSafety: compilerOptions.nnbdMode == NnbdMode.Strong,
       supportMirrors: options['support-mirrors'] ??
           !(options['aot'] || options['minimal-kernel']),
     );
@@ -828,7 +826,6 @@ class FrontendCompiler implements CompilerInterface {
     PackageConfig packageConfig = await loadPackageConfigUri(
         _compilerOptions.packagesFileUri ??
             new File('.dart_tool/package_config.json').absolute.uri);
-    bool soundNullSafety = _compilerOptions.nnbdMode == NnbdMode.Strong;
     final Component component = results.component!;
 
     final IncrementalJavaScriptBundler bundler =
@@ -839,7 +836,6 @@ class FrontendCompiler implements CompilerInterface {
       useDebuggerModuleNames: useDebuggerModuleNames,
       emitDebugMetadata: emitDebugMetadata,
       moduleFormat: moduleFormat,
-      soundNullSafety: soundNullSafety,
       canaryFeatures: canaryFeatures,
     );
     if (fullComponent) {

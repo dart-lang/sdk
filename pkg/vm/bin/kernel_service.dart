@@ -34,12 +34,13 @@ import 'package:front_end/src/api_prototype/front_end.dart' as fe
     show CompilerResult;
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/api_unstable/vm.dart';
+import 'package:kernel/ast.dart'
+    show Component, Library, NonNullableByDefaultCompiledMode, Procedure;
 import 'package:kernel/binary/ast_from_binary.dart'
     show BinaryBuilderWithMetadata;
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
-import 'package:kernel/kernel.dart' show Component, Library, Procedure;
 import 'package:kernel/target/targets.dart' show Target, TargetFlags;
 import 'package:vm/http_filesystem.dart';
 import 'package:vm/incremental_compiler.dart';
@@ -907,7 +908,7 @@ Future _processLoadRequest(request) async {
       if (nativeAssetsLibrary != null) {
         nativeAssetsComponent = Component(
           libraries: [nativeAssetsLibrary],
-          mode: nativeAssetsLibrary.nonNullableByDefaultCompiledMode,
+          mode: NonNullableByDefaultCompiledMode.Strong,
         );
       }
     }

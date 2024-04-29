@@ -16,21 +16,18 @@ import 'vm_constant_evaluator.dart' show VMConstantEvaluator;
 /// applied to certain types of expressions (currently only StaticGet).
 Component transformComponent(Target target, Component component,
     VMConstantEvaluator evaluator, bool enableAsserts) {
-  SimpleUnreachableCodeElimination(evaluator,
-          enableAsserts: enableAsserts,
-          soundNullSafety: target.flags.soundNullSafety)
+  SimpleUnreachableCodeElimination(evaluator, enableAsserts: enableAsserts)
       .visitComponent(component, null);
   return component;
 }
 
 class SimpleUnreachableCodeElimination extends RemovingTransformer {
-  final bool soundNullSafety;
   final bool enableAsserts;
   final VMConstantEvaluator constantEvaluator;
   StaticTypeContext? _staticTypeContext;
 
   SimpleUnreachableCodeElimination(this.constantEvaluator,
-      {required this.enableAsserts, required this.soundNullSafety});
+      {required this.enableAsserts});
 
   Never _throwPlatformConstError(Member node, String message) {
     final uri = constantEvaluator.getFileUri(node);
@@ -154,18 +151,11 @@ class SimpleUnreachableCodeElimination extends RemovingTransformer {
     // Because of short-circuiting, these operators cannot be treated as
     // symmetric, so a non-constant left and a constant right is left as-is.
     if (value == null) return node;
-    // If the RHS is not a known constant and may evaluate to null, then
-    // we must keep the whole node if the LHS does not short circuit, as the
-    // operator performs a null check on the RHS value.
-    final evaluateRight =
-        soundNullSafety || _getBoolConstantValue(node.right) != null
-            ? node.right
-            : node;
     switch (node.operatorEnum) {
       case LogicalExpressionOperator.OR:
-        return value ? node.left : evaluateRight;
+        return value ? node.left : node.right;
       case LogicalExpressionOperator.AND:
-        return value ? evaluateRight : node.left;
+        return value ? node.right : node.left;
     }
   }
 

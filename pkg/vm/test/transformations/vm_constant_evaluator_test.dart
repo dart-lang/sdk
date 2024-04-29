@@ -81,10 +81,7 @@ class TestOptions {
 }
 
 runTestCase(Uri source, TestCase testCase) async {
-  final soundNullSafety = true;
-  final nnbdMode = NnbdMode.Strong;
-  final target =
-      new VmTarget(new TargetFlags(soundNullSafety: soundNullSafety));
+  final target = new VmTarget(new TargetFlags());
   Component component = await compileTestCaseToKernelProgram(source,
       target: target,
       environmentDefines: {
@@ -93,8 +90,7 @@ runTestCase(Uri source, TestCase testCase) async {
       });
 
   final reporter = TestErrorReporter();
-  final evaluator = VMConstantEvaluator.create(
-      target, component, testCase.os, nnbdMode,
+  final evaluator = VMConstantEvaluator.create(target, component, testCase.os,
       enableAsserts: testCase.enableAsserts, errorReporter: reporter);
   late String actual;
   if (testCase.throws) {

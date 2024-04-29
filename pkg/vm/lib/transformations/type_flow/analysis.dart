@@ -1358,7 +1358,7 @@ class _ClassHierarchyCache extends TypeHierarchy {
       getTFClass(coreTypes.deprecatedNullClass);
 
   _ClassHierarchyCache(this._typeFlowAnalysis, this.genericInterfacesInfo,
-      super.coreTypes, super.target, super.soundNullSafety)
+      super.coreTypes, super.target)
       : objectNoSuchMethod =
             coreTypes.index.getProcedure('dart:core', 'Object', 'noSuchMethod');
 
@@ -1753,8 +1753,8 @@ class TypeFlowAnalysis
       : annotationMatcher =
             matcher ?? new ConstantPragmaAnnotationParser(coreTypes, target) {
     nativeCodeOracle = new NativeCodeOracle(libraryIndex, annotationMatcher);
-    hierarchyCache = new _ClassHierarchyCache(this, _genericInterfacesInfo,
-        coreTypes, target, target.flags.soundNullSafety);
+    hierarchyCache = new _ClassHierarchyCache(
+        this, _genericInterfacesInfo, coreTypes, target);
     summaryCollector = new SummaryCollector(
         target,
         environment,

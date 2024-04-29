@@ -84,7 +84,7 @@ class LinkFactory extends core::Object {
     return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:14:12: Error: The value 'null' can't be returned from a function with return type 'LinkFactory' because 'LinkFactory' is not nullable.
  - 'LinkFactory' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart'.
     return null;
-           ^" in null as{TypeError,Unchecked} self::LinkFactory;
+           ^" in let Null #t1 = null in #t1 == null ?{self::LinkFactory} #t1 as{TypeError} self::LinkFactory : #t1{self::LinkFactory};
   }
   static method _#create#tearOff() → self::LinkFactory
     return self::LinkFactory::create();
