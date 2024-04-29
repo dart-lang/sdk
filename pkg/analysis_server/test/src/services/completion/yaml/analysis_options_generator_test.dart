@@ -7,6 +7,7 @@ import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:linter/src/rules.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'yaml_generator_test_support.dart';
@@ -145,7 +146,11 @@ linter:
   rules:
     ^
 ''');
-    assertSuggestion('annotate_overrides');
+    var completion = assertSuggestion('annotate_overrides');
+    expect(
+      completion.docComplete,
+      contains('**DO** annotate overridden methods and fields'),
+    );
   }
 
   void test_linter_rules_internal() {
