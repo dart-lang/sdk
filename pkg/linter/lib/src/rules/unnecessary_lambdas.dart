@@ -6,7 +6,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -31,7 +30,7 @@ names.forEach(print);
 
 ''';
 
-Iterable<Element?> _extractElementsOfSimpleIdentifiers(AstNode node) =>
+Set<Element?> _extractElementsOfSimpleIdentifiers(AstNode node) =>
     _IdentifierVisitor().extractElements(node);
 
 class UnnecessaryLambdas extends LintRule {
@@ -62,33 +61,16 @@ class _FinalExpressionChecker {
 
   _FinalExpressionChecker(this.parameters);
 
-  /// Returns whether [element] is a `final` variable or property and not
-  /// `late`.
-  bool isFinalElement(Element? element) {
-    if (element is PropertyAccessorElement) {
-      var variable = element.variable2;
-      return element.isSynthetic &&
-          variable != null &&
-          variable.isFinal &&
-          !variable.isLate;
-    } else if (element is VariableElement) {
-      return element.isFinal && !element.isLate;
-    }
-    return true;
-  }
-
-  bool isFinalNode(Expression? node) {
-    if (node == null) {
+  bool isFinalNode(Expression? node_) {
+    if (node_ == null) {
       return true;
     }
+
+    var node = node_.unParenthesized;
 
     if (node is FunctionExpression) {
       var referencedElements = _extractElementsOfSimpleIdentifiers(node);
       return !referencedElements.any(parameters.contains);
-    }
-
-    if (node is ParenthesizedExpression) {
-      return isFinalNode(node.expression);
     }
 
     if (node is PrefixedIdentifier) {
@@ -104,7 +86,7 @@ class _FinalExpressionChecker {
       if (parameters.contains(element)) {
         return false;
       }
-      return isFinalElement(element);
+      return element.isFinal;
     }
 
     return false;
@@ -112,11 +94,11 @@ class _FinalExpressionChecker {
 }
 
 class _IdentifierVisitor extends RecursiveAstVisitor {
-  final _elements = <Element?>[];
+  final _elements = <Element?>{};
 
   _IdentifierVisitor();
 
-  List<Element?> extractElements(AstNode node) {
+  Set<Element?> extractElements(AstNode node) {
     node.accept(this);
     return _elements;
   }
@@ -131,11 +113,12 @@ class _IdentifierVisitor extends RecursiveAstVisitor {
 class _Visitor extends SimpleAstVisitor<void> {
   final bool constructorTearOffsEnabled;
   final LintRule rule;
-  final LinterContext context;
+  final TypeSystem typeSystem;
 
-  _Visitor(this.rule, this.context)
+  _Visitor(this.rule, LinterContext context)
       : constructorTearOffsEnabled =
-            context.isEnabled(Feature.constructor_tearoffs);
+            context.isEnabled(Feature.constructor_tearoffs),
+        typeSystem = context.typeSystem;
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
@@ -153,39 +136,51 @@ class _Visitor extends SimpleAstVisitor<void> {
           statement.expression is InvocationExpression) {
         var expression = statement.expression;
         if (expression is InvocationExpression) {
+          // In the code, `(e) { f(e); }`, check `f(e)`.
           _visitInvocationExpression(expression, node);
         }
       }
     } else if (body is ExpressionFunctionBody) {
       var expression = body.expression;
       if (expression is InvocationExpression) {
+        // In the code, `(e) { return f(e); }`, check `f(e)`.
         _visitInvocationExpression(expression, node);
       } else if (constructorTearOffsEnabled &&
           expression is InstanceCreationExpression) {
+        // In the code, `(e) => C(e)`, check `C(e)`.
         _visitInstanceCreation(expression, node);
       }
     }
   }
 
+  /// Checks [expression], the singular child the body of [node], to see whether
+  /// [node] unnecessarily wraps [node].
   void _visitInstanceCreation(
       InstanceCreationExpression expression, FunctionExpression node) {
     if (expression.isConst || expression.constructorName.type.isDeferred) {
       return;
     }
 
+    var nodeType = node.declaredElement?.type;
+    var invocationType = expression.constructorName.staticElement?.type;
+    if (nodeType == null) return;
+    if (invocationType == null) return;
+    // It is possible that the invocation function type is a valid replacement
+    // for the node's function type, even if each of the parameters of `node`
+    // is a valid argument for the corresponding parameter of `expression`.
+    if (!typeSystem.isAssignableTo(invocationType, nodeType)) {
+      return;
+    }
+
     var arguments = expression.argumentList.arguments;
+    if (arguments.any((a) => a is! SimpleIdentifier)) return;
+
+    var identifierArguments = arguments.cast<SimpleIdentifier>();
     var parameters = node.parameters?.parameters ?? <FormalParameter>[];
     if (parameters.length != arguments.length) return;
 
-    bool matches(Expression argument, FormalParameter parameter) {
-      if (argument is SimpleIdentifier) {
-        return argument.name == parameter.name?.lexeme;
-      }
-      return false;
-    }
-
     for (var i = 0; i < arguments.length; ++i) {
-      if (!matches(arguments[i], parameters[i])) {
+      if (identifierArguments[i].name != parameters[i].name?.lexeme) {
         return;
       }
     }
@@ -202,17 +197,6 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    bool isTearoffAssignable(DartType? assignedType) {
-      if (assignedType != null) {
-        var tearoffType = node.staticInvokeType;
-        if (tearoffType == null ||
-            !context.typeSystem.isSubtypeOf(tearoffType, assignedType)) {
-          return false;
-        }
-      }
-      return true;
-    }
-
     var parameters = nodeToLintParams.map((e) => e.declaredElement).toSet();
     if (node is FunctionExpressionInvocation) {
       // TODO(pq): consider checking for assignability
@@ -226,34 +210,28 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (target is SimpleIdentifier) {
         var element = target.staticElement;
         if (element is PrefixElement) {
-          for (var import in element.imports) {
-            if (import.isDeferred) {
-              return;
-            }
-          }
+          if (element.imports.any((e) => e.isDeferred)) return;
         }
       }
+
+      var tearoffType = node.staticInvokeType;
+      if (tearoffType == null) return;
 
       var parent = nodeToLint.parent;
       if (parent is NamedExpression) {
         var argType = parent.staticType;
-        if (!isTearoffAssignable(argType)) {
-          return;
-        }
+        if (argType == null) return;
+        if (!typeSystem.isSubtypeOf(tearoffType, argType)) return;
       } else if (parent is VariableDeclaration) {
-        var grandparent = parent.parent;
-        if (grandparent is VariableDeclarationList) {
-          var variableType = grandparent.type?.type;
-          if (!isTearoffAssignable(variableType)) {
-            return;
-          }
-        }
+        var variableType = parent.declaredElement?.type;
+        if (variableType == null) return;
+        if (!typeSystem.isSubtypeOf(tearoffType, variableType)) return;
       }
 
       var checker = _FinalExpressionChecker(parameters);
       if (!node.containsNullAwareInvocationInChain() &&
           checker.isFinalNode(node.target) &&
-          checker.isFinalElement(node.methodName.staticElement) &&
+          node.methodName.staticElement.isFinal &&
           node.typeArguments == null) {
         rule.reportLint(nodeToLint);
       }
@@ -261,6 +239,23 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 }
 
-extension LibraryImportElementExtension on LibraryImportElement {
+extension on LibraryImportElement {
   bool get isDeferred => prefix is DeferredImportElementPrefix;
+}
+
+extension on Element? {
+  /// Returns whether this is a `final` variable or property and not `late`.
+  bool get isFinal {
+    var self = this;
+    if (self is PropertyAccessorElement) {
+      var variable = self.variable2;
+      return self.isSynthetic &&
+          variable != null &&
+          variable.isFinal &&
+          !variable.isLate;
+    } else if (self is VariableElement) {
+      return self.isFinal && !self.isLate;
+    }
+    return true;
+  }
 }
