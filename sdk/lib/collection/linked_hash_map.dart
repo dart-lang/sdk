@@ -121,7 +121,7 @@ abstract final class LinkedHashMap<K, V> implements Map<K, V> {
   /// for keys in order to place them in the hash table. If it is omitted, the
   /// key's own [Object.hashCode] is used.
   ///
-  /// The used `equals` and `hashCode` method should always be consistent,
+  /// The used `equals` and `hashCode` methods should always be consistent,
   /// so that if `equals(a, b)` then `hashCode(a) == hashCode(b)`. The hash
   /// of an object, or what it compares equal to, should not change while the
   /// object is in the table. If it does change, the result is unpredictable.
@@ -192,7 +192,7 @@ abstract final class LinkedHashMap<K, V> implements Map<K, V> {
   /// Creates a [LinkedHashMap] that contains all key value pairs of [other].
   /// Example:
   /// ```dart
-  /// final baseMap = <int, String> {3: 'A', 2: 'B', 1: 'C', 4: 'D'};
+  /// final baseMap = <int, String>{3: 'A', 2: 'B', 1: 'C', 4: 'D'};
   /// final mapOf = LinkedHashMap<num, Object>.of(baseMap);
   /// print(mapOf); // {3: A, 2: B, 1: C, 4: D}
   /// ```
