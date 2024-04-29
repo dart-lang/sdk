@@ -891,42 +891,6 @@ class TypeSystemImpl implements TypeSystem {
     return fromType is DynamicType;
   }
 
-  /// Return `true`  for things in the equivalence class of `Never`.
-  bool isBottom(DartType type) {
-    if (type.nullabilitySuffix == NullabilitySuffix.question) {
-      assert(!type.isBottom);
-      return false;
-    }
-
-    // BOTTOM(Never) is true
-    if (type is NeverType) {
-      assert(type.isBottom);
-      return true;
-    }
-
-    // BOTTOM(X&T) is true iff BOTTOM(T)
-    // BOTTOM(X extends T) is true iff BOTTOM(T)
-    if (type is TypeParameterTypeImpl) {
-      var T = type.promotedBound;
-      if (T != null) {
-        var result = isBottom(T);
-        assert(type.isBottom == result);
-        return result;
-      }
-
-      T = type.element.bound;
-      if (T != null) {
-        var result = isBottom(T);
-        assert(type.isBottom == result);
-        return result;
-      }
-    }
-
-    // BOTTOM(T) is false otherwise
-    assert(!type.isBottom);
-    return false;
-  }
-
   /// A dynamic bounded type is either `dynamic` itself, or a type variable
   /// whose bound is dynamic bounded, or an intersection (promoted type
   /// parameter type) whose second operand is dynamic bounded.
@@ -1251,7 +1215,7 @@ class TypeSystemImpl implements TypeSystem {
     // The case for `Null?` is already checked above.
     if (nullabilitySuffix == NullabilitySuffix.question) {
       var T = typeImpl.withNullability(NullabilitySuffix.none);
-      return isBottom(T);
+      return T.isBottom;
     }
 
     // NULL(T) is false otherwise

@@ -31,7 +31,7 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
   static final Map<String, StackTrace> _isMoreTopChecked = {};
 
   void isBottom(DartType type) {
-    expect(typeSystem.isBottom(type), isTrue, reason: typeString(type));
+    expect(type.isBottom, isTrue, reason: typeString(type));
   }
 
   void isMoreBottom(DartType T, DartType S) {
@@ -55,7 +55,7 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
   }
 
   void isNotBottom(DartType type) {
-    expect(typeSystem.isBottom(type), isFalse, reason: typeString(type));
+    expect(type.isBottom, isFalse, reason: typeString(type));
   }
 
   void isNotMoreBottom(DartType T, DartType S) {
@@ -396,7 +396,7 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
   /// [TypeSystemImpl.isMoreBottom] can be used only for `BOTTOM` or `NULL`
   /// types. No need to check other types.
   void _assertIsBottomOrNull(DartType type) {
-    expect(typeSystem.isBottom(type) || typeSystem.isNull(type), isTrue,
+    expect(type.isBottom || typeSystem.isNull(type), isTrue,
         reason: typeString(type));
   }
 
@@ -3325,13 +3325,13 @@ class _BoundsTestBase extends AbstractTypeSystemTest with StringTypes {
   }
 
   void _assertBottom(DartType type) {
-    if (!typeSystem.isBottom(type)) {
+    if (!type.isBottom) {
       fail('isBottom must be true: ${typeString(type)}');
     }
   }
 
   void _assertNotBottom(DartType type) {
-    if (typeSystem.isBottom(type)) {
+    if (type.isBottom) {
       fail('isBottom must be false: ${typeString(type)}');
     }
   }
