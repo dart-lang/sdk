@@ -1126,6 +1126,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
       return true;
     case MethodRecognizer::kDoubleToInteger:
     case MethodRecognizer::kDoubleMod:
+    case MethodRecognizer::kDoubleRem:
     case MethodRecognizer::kDoubleRoundToDouble:
     case MethodRecognizer::kDoubleTruncateToDouble:
     case MethodRecognizer::kDoubleFloorToDouble:
@@ -1824,6 +1825,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += DoubleToInteger(kind);
     } break;
     case MethodRecognizer::kDoubleMod:
+    case MethodRecognizer::kDoubleRem:
     case MethodRecognizer::kDoubleRoundToDouble:
     case MethodRecognizer::kDoubleTruncateToDouble:
     case MethodRecognizer::kDoubleFloorToDouble:

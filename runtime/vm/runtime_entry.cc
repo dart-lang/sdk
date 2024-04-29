@@ -3886,6 +3886,11 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(DartModulo,
                               /*is_float=*/true,
                               static_cast<BinaryMathCFunction>(DartModulo));
 
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcFmod,
+                              2,
+                              /*is_float=*/true,
+                              static_cast<BinaryMathCFunction>(fmod_ieee));
+
 DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcAtan2,
                               2,
                               /*is_float=*/true,

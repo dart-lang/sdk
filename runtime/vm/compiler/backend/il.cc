@@ -7217,6 +7217,7 @@ intptr_t InvokeMathCFunctionInstr::ArgumentCountFor(
     case MethodRecognizer::kMathLog:
       return 1;
     case MethodRecognizer::kDoubleMod:
+    case MethodRecognizer::kDoubleRem:
     case MethodRecognizer::kMathDoublePow:
     case MethodRecognizer::kMathAtan2:
       return 2;
@@ -7240,6 +7241,8 @@ const RuntimeEntry& InvokeMathCFunctionInstr::TargetFunction() const {
       return kLibcPowRuntimeEntry;
     case MethodRecognizer::kDoubleMod:
       return kDartModuloRuntimeEntry;
+    case MethodRecognizer::kDoubleRem:
+      return kLibcFmodRuntimeEntry;
     case MethodRecognizer::kMathTan:
       return kLibcTanRuntimeEntry;
     case MethodRecognizer::kMathAsin:

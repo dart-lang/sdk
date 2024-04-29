@@ -87,6 +87,7 @@ namespace dart {
     uword /*ObjectPtr*/ object, Thread* thread)                                \
   V(double, LibcPow, double, double)                                           \
   V(double, DartModulo, double, double)                                        \
+  V(double, LibcFmod, double, double)                                          \
   V(double, LibcFloor, double)                                                 \
   V(double, LibcCeil, double)                                                  \
   V(double, LibcTrunc, double)                                                 \
