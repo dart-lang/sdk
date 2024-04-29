@@ -1142,6 +1142,7 @@ class _ElementWriter {
       if (e is FieldFormalParameterElement) {
         _sink.write('this.');
       } else if (e is SuperFormalParameterElement) {
+        _sink.writeIf(e.hasDefaultValue, 'hasDefaultValue ');
         _sink.write('super.');
       }
 

@@ -7249,6 +7249,43 @@ library
 ''');
   }
 
+  test_class_constructor_parameters_super_optionalNamed_defaultValue() async {
+    var library = await buildLibrary('''
+class A {
+  A({int a = 0});
+}
+
+class B extends A {
+  B({super.a});
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          @12
+            parameters
+              optionalNamed default a @19
+                type: int
+                constantInitializer
+                  IntegerLiteral
+                    literal: 0 @23
+                    staticType: int
+      class B @37
+        supertype: A
+        constructors
+          @53
+            parameters
+              optionalNamed default final hasDefaultValue super.a @62
+                type: int
+                superConstructorParameter: self::@class::A::@constructor::new::@parameter::a
+            superConstructor: self::@class::A::@constructor::new
+''');
+  }
+
   test_class_constructor_parameters_super_optionalNamed_unresolved() async {
     var library = await buildLibrary('''
 class A {
@@ -7396,6 +7433,43 @@ library
               requiredNamed default final super.b @170
                 type: double
                 superConstructorParameter: self::@class::A::@constructor::new::@parameter::b
+            superConstructor: self::@class::A::@constructor::new
+''');
+  }
+
+  test_class_constructor_parameters_super_requiredNamed_defaultValue() async {
+    var library = await buildLibrary('''
+class A {
+  A({int a = 0});
+}
+
+class B extends A {
+  B({required super.a});
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          @12
+            parameters
+              optionalNamed default a @19
+                type: int
+                constantInitializer
+                  IntegerLiteral
+                    literal: 0 @23
+                    staticType: int
+      class B @37
+        supertype: A
+        constructors
+          @53
+            parameters
+              requiredNamed default final super.a @71
+                type: int
+                superConstructorParameter: self::@class::A::@constructor::new::@parameter::a
             superConstructor: self::@class::A::@constructor::new
 ''');
   }
