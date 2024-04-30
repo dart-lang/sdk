@@ -58,7 +58,7 @@ import 'package:front_end/src/fasta/messages.dart' show LocatedMessage;
 import 'package:front_end/src/fasta/ticker.dart' show Ticker;
 import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 import 'package:front_end/src/fasta/util/parser_ast.dart'
-    show ParserAstVisitor, getAST;
+    show IgnoreSomeForCompatibilityAstVisitor, getAST;
 import 'package:front_end/src/fasta/util/parser_ast_helper.dart';
 import 'package:kernel/ast.dart'
     show
@@ -1637,7 +1637,19 @@ enum FuzzOriginalType {
   TypeDef,
 }
 
-class FuzzAstVisitorSorter extends ParserAstVisitor {
+// We extend IgnoreSomeForCompatibilityAstVisitor for compatibility with how
+// the code is currently written: At least visiting `TypeVariablesEnd` can
+// cause trouble with how metadata is handled here, e.g.
+// ```
+//   @Const()
+//   extension Extension<@Const() T> on Class<T> {
+//   }
+// ```
+// will visit the first metadata, then the type variables which itself has the
+// second metadata, only then it visits the extension (which is what we care
+// about here) --- and we will with the current handling of metadata think the
+// metadata for the extension goes from the first metadata to the second.
+class FuzzAstVisitorSorter extends IgnoreSomeForCompatibilityAstVisitor {
   final Uint8List bytes;
   final String asString;
   final bool nnbd;
@@ -1651,7 +1663,7 @@ class FuzzAstVisitorSorter extends ParserAstVisitor {
         enableExtensionMethods: true,
         enableNonNullable: nnbd,
         allowPatterns: allowPatterns);
-    accept(ast);
+    ast.accept(this);
 
     if (metadataStart == null &&
         ast.token.precedingComments != null &&
@@ -1765,111 +1777,102 @@ class FuzzAstVisitorSorter extends ParserAstVisitor {
   }
 
   @override
-  void visitExport(ExportEnd node, Token startInclusive, Token endInclusive) {
+  void visitExportEnd(ExportEnd node) {
     handleData(FuzzOriginalType.Export, FuzzSorterState.importExportSortable,
-        startInclusive, endInclusive);
+        node.exportKeyword, node.semicolon);
   }
 
   @override
-  void visitImport(ImportEnd node, Token startInclusive, Token? endInclusive) {
+  void visitImportEnd(ImportEnd node) {
     handleData(FuzzOriginalType.Import, FuzzSorterState.importExportSortable,
-        startInclusive, endInclusive!);
+        node.importKeyword, node.semicolon!);
   }
 
   @override
-  void visitClass(
-      ClassDeclarationEnd node, Token startInclusive, Token endInclusive) {
+  void visitClassDeclarationEnd(ClassDeclarationEnd node) {
     // TODO(jensj): Possibly sort stuff inside of this too.
     handleData(FuzzOriginalType.Class, FuzzSorterState.sortableRest,
-        startInclusive, endInclusive);
+        node.beginToken, node.endToken);
   }
 
   @override
-  void visitEnum(EnumEnd node, Token startInclusive, Token endInclusive) {
+  void visitEnumEnd(EnumEnd node) {
     handleData(FuzzOriginalType.Enum, FuzzSorterState.sortableRest,
-        startInclusive, endInclusive);
+        node.beginToken, node.endToken);
   }
 
   @override
-  void visitExtension(
-      ExtensionDeclarationEnd node, Token startInclusive, Token endInclusive) {
+  void visitExtensionDeclarationEnd(ExtensionDeclarationEnd node) {
     // TODO(jensj): Possibly sort stuff inside of this too.
     handleData(FuzzOriginalType.Extension, FuzzSorterState.sortableRest,
-        startInclusive, endInclusive);
+        node.beginToken, node.endToken);
   }
 
   @override
-  void visitExtensionTypeDeclaration(ExtensionTypeDeclarationEnd node,
-      Token startInclusive, Token endInclusive) {
+  void visitExtensionTypeDeclarationEnd(ExtensionTypeDeclarationEnd node) {
     // TODO(jensj): Possibly sort stuff inside of this too.
     handleData(FuzzOriginalType.ExtensionTypeDeclaration,
-        FuzzSorterState.sortableRest, startInclusive, endInclusive);
+        FuzzSorterState.sortableRest, node.beginToken, node.endToken);
   }
 
   @override
-  void visitLibraryName(
-      LibraryNameEnd node, Token startInclusive, Token endInclusive) {
+  void visitLibraryNameEnd(LibraryNameEnd node) {
     handleData(FuzzOriginalType.LibraryName, FuzzSorterState.nonSortable,
-        startInclusive, endInclusive);
+        node.libraryKeyword, node.semicolon);
   }
 
   @override
-  void visitMetadata(
-      MetadataEnd node, Token startInclusive, Token endInclusive) {
+  void visitMetadataEnd(MetadataEnd node) {
     if (metadataStart == null) {
-      metadataStart = startInclusive;
-      metadataEndInclusive = endInclusive;
+      metadataStart = node.beginToken;
+      metadataEndInclusive = node.endToken;
     } else {
-      metadataEndInclusive = endInclusive;
+      metadataEndInclusive = node.endToken;
     }
   }
 
   @override
-  void visitMixin(
-      MixinDeclarationEnd node, Token startInclusive, Token endInclusive) {
+  void visitMixinDeclarationEnd(MixinDeclarationEnd node) {
     // TODO(jensj): Possibly sort stuff inside of this too.
     handleData(FuzzOriginalType.Mixin, FuzzSorterState.sortableRest,
-        startInclusive, endInclusive);
+        node.beginToken, node.endToken);
   }
 
   @override
-  void visitNamedMixin(
-      NamedMixinApplicationEnd node, Token startInclusive, Token endInclusive) {
+  void visitNamedMixinApplicationEnd(NamedMixinApplicationEnd node) {
     // TODO(jensj): Possibly sort stuff inside of this too.
-    handleData(FuzzOriginalType.Mixin, FuzzSorterState.sortableRest,
-        startInclusive, endInclusive);
+    handleData(FuzzOriginalType.Mixin, FuzzSorterState.sortableRest, node.begin,
+        node.endToken);
   }
 
   @override
-  void visitPart(PartEnd node, Token startInclusive, Token endInclusive) {
+  void visitPartEnd(PartEnd node) {
     handleData(FuzzOriginalType.Part, FuzzSorterState.nonSortable,
-        startInclusive, endInclusive);
+        node.partKeyword, node.semicolon);
   }
 
   @override
-  void visitPartOf(PartOfEnd node, Token startInclusive, Token endInclusive) {
+  void visitPartOfEnd(PartOfEnd node) {
     handleData(FuzzOriginalType.PartOf, FuzzSorterState.nonSortable,
-        startInclusive, endInclusive);
+        node.partKeyword, node.semicolon);
   }
 
   @override
-  void visitTopLevelFields(
-      TopLevelFieldsEnd node, Token startInclusive, Token endInclusive) {
+  void visitTopLevelFieldsEnd(TopLevelFieldsEnd node) {
     handleData(FuzzOriginalType.TopLevelFields, FuzzSorterState.sortableRest,
-        startInclusive, endInclusive);
+        node.beginToken, node.endToken);
   }
 
   @override
-  void visitTopLevelMethod(
-      TopLevelMethodEnd node, Token startInclusive, Token endInclusive) {
+  void visitTopLevelMethodEnd(TopLevelMethodEnd node) {
     handleData(FuzzOriginalType.TopLevelMethod, FuzzSorterState.sortableRest,
-        startInclusive, endInclusive);
+        node.beginToken, node.endToken);
   }
 
   @override
-  void visitTypedef(TypedefEnd node, Token startInclusive, Token endInclusive) {
+  void visitTypedefEnd(TypedefEnd node) {
     handleData(FuzzOriginalType.TypeDef, FuzzSorterState.sortableRest,
-        startInclusive, endInclusive);
+        node.typedefKeyword, node.endToken);
   }
 }
 

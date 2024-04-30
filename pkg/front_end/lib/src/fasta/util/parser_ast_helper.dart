@@ -31,6 +31,16 @@ abstract class ParserAstNode {
 
   ParserAstNode(this.what, this.type);
 
+  R accept<R>(ParserAstVisitor<R> v);
+
+  void visitChildren(ParserAstVisitor v) {
+    List<ParserAstNode>? children = this.children;
+    if (children == null) return;
+    for (ParserAstNode child in children) {
+      child.accept(v);
+    }
+  }
+
   // TODO(jensj): Compare two ASTs.
 }
 
@@ -3122,6 +3132,9 @@ class ArgumentsBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitArgumentsBegin(this);
 }
 
 class ArgumentsEnd extends ParserAstNode {
@@ -3139,6 +3152,9 @@ class ArgumentsEnd extends ParserAstNode {
         "beginToken": beginToken,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitArgumentsEnd(this);
 }
 
 class ObjectPatternFieldsHandle extends ParserAstNode {
@@ -3156,6 +3172,9 @@ class ObjectPatternFieldsHandle extends ParserAstNode {
         "beginToken": beginToken,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitObjectPatternFieldsHandle(this);
 }
 
 class AsyncModifierHandle extends ParserAstNode {
@@ -3170,6 +3189,9 @@ class AsyncModifierHandle extends ParserAstNode {
         "asyncToken": asyncToken,
         "starToken": starToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitAsyncModifierHandle(this);
 }
 
 class AwaitExpressionBegin extends ParserAstNode {
@@ -3182,6 +3204,9 @@ class AwaitExpressionBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitAwaitExpressionBegin(this);
 }
 
 class AwaitExpressionEnd extends ParserAstNode {
@@ -3197,6 +3222,9 @@ class AwaitExpressionEnd extends ParserAstNode {
         "beginToken": beginToken,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitAwaitExpressionEnd(this);
 }
 
 class InvalidAwaitExpressionEnd extends ParserAstNode {
@@ -3216,6 +3244,9 @@ class InvalidAwaitExpressionEnd extends ParserAstNode {
         "endToken": endToken,
         "errorCode": errorCode,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitInvalidAwaitExpressionEnd(this);
 }
 
 class BlockBegin extends ParserAstNode {
@@ -3230,6 +3261,9 @@ class BlockBegin extends ParserAstNode {
         "token": token,
         "blockKind": blockKind,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitBlockBegin(this);
 }
 
 class BlockEnd extends ParserAstNode {
@@ -3252,6 +3286,9 @@ class BlockEnd extends ParserAstNode {
         "endToken": endToken,
         "blockKind": blockKind,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitBlockEnd(this);
 }
 
 class InvalidTopLevelBlockHandle extends ParserAstNode {
@@ -3264,6 +3301,9 @@ class InvalidTopLevelBlockHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitInvalidTopLevelBlockHandle(this);
 }
 
 class CascadeBegin extends ParserAstNode {
@@ -3276,6 +3316,9 @@ class CascadeBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitCascadeBegin(this);
 }
 
 class CascadeEnd extends ParserAstNode {
@@ -3283,6 +3326,9 @@ class CascadeEnd extends ParserAstNode {
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitCascadeEnd(this);
 }
 
 class CaseExpressionBegin extends ParserAstNode {
@@ -3295,6 +3341,9 @@ class CaseExpressionBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "caseKeyword": caseKeyword,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitCaseExpressionBegin(this);
 }
 
 class CaseExpressionEnd extends ParserAstNode {
@@ -3312,6 +3361,9 @@ class CaseExpressionEnd extends ParserAstNode {
         "when": when,
         "colon": colon,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitCaseExpressionEnd(this);
 }
 
 class ClassOrMixinOrExtensionBodyBegin extends ParserAstNode {
@@ -3327,6 +3379,10 @@ class ClassOrMixinOrExtensionBodyBegin extends ParserAstNode {
         "kind": kind,
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitClassOrMixinOrExtensionBodyBegin(this);
 }
 
 class ClassOrMixinOrExtensionBodyEnd extends ParserAstNode {
@@ -3349,6 +3405,10 @@ class ClassOrMixinOrExtensionBodyEnd extends ParserAstNode {
         "beginToken": beginToken,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitClassOrMixinOrExtensionBodyEnd(this);
 }
 
 class ClassOrMixinOrNamedMixinApplicationPreludeBegin extends ParserAstNode {
@@ -3362,6 +3422,10 @@ class ClassOrMixinOrNamedMixinApplicationPreludeBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitClassOrMixinOrNamedMixinApplicationPreludeBegin(this);
 }
 
 class ClassDeclarationBegin extends ParserAstNode {
@@ -3402,6 +3466,9 @@ class ClassDeclarationBegin extends ParserAstNode {
         "mixinToken": mixinToken,
         "name": name,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitClassDeclarationBegin(this);
 }
 
 class ClassExtendsHandle extends ParserAstNode {
@@ -3417,6 +3484,9 @@ class ClassExtendsHandle extends ParserAstNode {
         "extendsKeyword": extendsKeyword,
         "typeCount": typeCount,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitClassExtendsHandle(this);
 }
 
 class ImplementsHandle extends ParserAstNode {
@@ -3432,6 +3502,9 @@ class ImplementsHandle extends ParserAstNode {
         "implementsKeyword": implementsKeyword,
         "interfacesCount": interfacesCount,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitImplementsHandle(this);
 }
 
 class ClassHeaderHandle extends ParserAstNode {
@@ -3449,6 +3522,9 @@ class ClassHeaderHandle extends ParserAstNode {
         "classKeyword": classKeyword,
         "nativeToken": nativeToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitClassHeaderHandle(this);
 }
 
 class RecoverDeclarationHeaderHandle extends ParserAstNode {
@@ -3461,6 +3537,10 @@ class RecoverDeclarationHeaderHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "kind": kind,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitRecoverDeclarationHeaderHandle(this);
 }
 
 class ClassDeclarationEnd extends ParserAstNode {
@@ -3476,6 +3556,9 @@ class ClassDeclarationEnd extends ParserAstNode {
         "beginToken": beginToken,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitClassDeclarationEnd(this);
 }
 
 class MixinDeclarationBegin extends ParserAstNode {
@@ -3501,6 +3584,9 @@ class MixinDeclarationBegin extends ParserAstNode {
         "mixinKeyword": mixinKeyword,
         "name": name,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitMixinDeclarationBegin(this);
 }
 
 class MixinOnHandle extends ParserAstNode {
@@ -3515,6 +3601,9 @@ class MixinOnHandle extends ParserAstNode {
         "onKeyword": onKeyword,
         "typeCount": typeCount,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitMixinOnHandle(this);
 }
 
 class MixinHeaderHandle extends ParserAstNode {
@@ -3527,6 +3616,9 @@ class MixinHeaderHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "mixinKeyword": mixinKeyword,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitMixinHeaderHandle(this);
 }
 
 class RecoverMixinHeaderHandle extends ParserAstNode {
@@ -3535,6 +3627,9 @@ class RecoverMixinHeaderHandle extends ParserAstNode {
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitRecoverMixinHeaderHandle(this);
 }
 
 class MixinDeclarationEnd extends ParserAstNode {
@@ -3550,6 +3645,9 @@ class MixinDeclarationEnd extends ParserAstNode {
         "beginToken": beginToken,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitMixinDeclarationEnd(this);
 }
 
 class UncategorizedTopLevelDeclarationBegin extends ParserAstNode {
@@ -3563,6 +3661,10 @@ class UncategorizedTopLevelDeclarationBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitUncategorizedTopLevelDeclarationBegin(this);
 }
 
 class ExtensionDeclarationPreludeBegin extends ParserAstNode {
@@ -3576,6 +3678,10 @@ class ExtensionDeclarationPreludeBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "extensionKeyword": extensionKeyword,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitExtensionDeclarationPreludeBegin(this);
 }
 
 class ExtensionDeclarationBegin extends ParserAstNode {
@@ -3593,6 +3699,9 @@ class ExtensionDeclarationBegin extends ParserAstNode {
         "extensionKeyword": extensionKeyword,
         "name": name,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitExtensionDeclarationBegin(this);
 }
 
 class ExtensionDeclarationEnd extends ParserAstNode {
@@ -3615,6 +3724,9 @@ class ExtensionDeclarationEnd extends ParserAstNode {
         "onKeyword": onKeyword,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitExtensionDeclarationEnd(this);
 }
 
 class ExtensionTypeDeclarationBegin extends ParserAstNode {
@@ -3632,6 +3744,10 @@ class ExtensionTypeDeclarationBegin extends ParserAstNode {
         "extensionKeyword": extensionKeyword,
         "name": name,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitExtensionTypeDeclarationBegin(this);
 }
 
 class ExtensionTypeDeclarationEnd extends ParserAstNode {
@@ -3657,6 +3773,10 @@ class ExtensionTypeDeclarationEnd extends ParserAstNode {
         "typeKeyword": typeKeyword,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitExtensionTypeDeclarationEnd(this);
 }
 
 class PrimaryConstructorBegin extends ParserAstNode {
@@ -3669,6 +3789,9 @@ class PrimaryConstructorBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitPrimaryConstructorBegin(this);
 }
 
 class PrimaryConstructorEnd extends ParserAstNode {
@@ -3688,6 +3811,9 @@ class PrimaryConstructorEnd extends ParserAstNode {
         "constKeyword": constKeyword,
         "hasConstructorName": hasConstructorName,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitPrimaryConstructorEnd(this);
 }
 
 class NoPrimaryConstructorHandle extends ParserAstNode {
@@ -3703,6 +3829,9 @@ class NoPrimaryConstructorHandle extends ParserAstNode {
         "token": token,
         "constKeyword": constKeyword,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitNoPrimaryConstructorHandle(this);
 }
 
 class CombinatorsBegin extends ParserAstNode {
@@ -3715,6 +3844,9 @@ class CombinatorsBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitCombinatorsBegin(this);
 }
 
 class CombinatorsEnd extends ParserAstNode {
@@ -3727,6 +3859,9 @@ class CombinatorsEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "count": count,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitCombinatorsEnd(this);
 }
 
 class CompilationUnitBegin extends ParserAstNode {
@@ -3739,6 +3874,9 @@ class CompilationUnitBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitCompilationUnitBegin(this);
 }
 
 class DirectivesOnlyHandle extends ParserAstNode {
@@ -3746,6 +3884,9 @@ class DirectivesOnlyHandle extends ParserAstNode {
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitDirectivesOnlyHandle(this);
 }
 
 class CompilationUnitEnd extends ParserAstNode {
@@ -3761,6 +3902,9 @@ class CompilationUnitEnd extends ParserAstNode {
         "count": count,
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitCompilationUnitEnd(this);
 }
 
 class ConstLiteralBegin extends ParserAstNode {
@@ -3773,6 +3917,9 @@ class ConstLiteralBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitConstLiteralBegin(this);
 }
 
 class ConstLiteralEnd extends ParserAstNode {
@@ -3785,6 +3932,9 @@ class ConstLiteralEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitConstLiteralEnd(this);
 }
 
 class ConstructorReferenceBegin extends ParserAstNode {
@@ -3797,6 +3947,9 @@ class ConstructorReferenceBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "start": start,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitConstructorReferenceBegin(this);
 }
 
 class ConstructorReferenceEnd extends ParserAstNode {
@@ -3819,6 +3972,9 @@ class ConstructorReferenceEnd extends ParserAstNode {
         "endToken": endToken,
         "constructorReferenceContext": constructorReferenceContext,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitConstructorReferenceEnd(this);
 }
 
 class DoWhileStatementBegin extends ParserAstNode {
@@ -3831,6 +3987,9 @@ class DoWhileStatementBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitDoWhileStatementBegin(this);
 }
 
 class DoWhileStatementEnd extends ParserAstNode {
@@ -3850,6 +4009,9 @@ class DoWhileStatementEnd extends ParserAstNode {
         "whileKeyword": whileKeyword,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitDoWhileStatementEnd(this);
 }
 
 class DoWhileStatementBodyBegin extends ParserAstNode {
@@ -3862,6 +4024,9 @@ class DoWhileStatementBodyBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitDoWhileStatementBodyBegin(this);
 }
 
 class DoWhileStatementBodyEnd extends ParserAstNode {
@@ -3874,6 +4039,9 @@ class DoWhileStatementBodyEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitDoWhileStatementBodyEnd(this);
 }
 
 class WhileStatementBodyBegin extends ParserAstNode {
@@ -3886,6 +4054,9 @@ class WhileStatementBodyBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitWhileStatementBodyBegin(this);
 }
 
 class WhileStatementBodyEnd extends ParserAstNode {
@@ -3898,6 +4069,9 @@ class WhileStatementBodyEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitWhileStatementBodyEnd(this);
 }
 
 class EnumBegin extends ParserAstNode {
@@ -3910,6 +4084,9 @@ class EnumBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "enumKeyword": enumKeyword,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitEnumBegin(this);
 }
 
 class EnumEnd extends ParserAstNode {
@@ -3935,6 +4112,9 @@ class EnumEnd extends ParserAstNode {
         "memberCount": memberCount,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitEnumEnd(this);
 }
 
 class EnumConstructorEnd extends ParserAstNode {
@@ -3960,6 +4140,9 @@ class EnumConstructorEnd extends ParserAstNode {
         "beginInitializers": beginInitializers,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitEnumConstructorEnd(this);
 }
 
 class EnumElementsHandle extends ParserAstNode {
@@ -3975,6 +4158,9 @@ class EnumElementsHandle extends ParserAstNode {
         "elementsEndToken": elementsEndToken,
         "elementsCount": elementsCount,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitEnumElementsHandle(this);
 }
 
 class EnumHeaderHandle extends ParserAstNode {
@@ -3992,6 +4178,9 @@ class EnumHeaderHandle extends ParserAstNode {
         "enumKeyword": enumKeyword,
         "leftBrace": leftBrace,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitEnumHeaderHandle(this);
 }
 
 class EnumElementHandle extends ParserAstNode {
@@ -4007,6 +4196,9 @@ class EnumElementHandle extends ParserAstNode {
         "beginToken": beginToken,
         "augmentToken": augmentToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitEnumElementHandle(this);
 }
 
 class EnumFactoryMethodEnd extends ParserAstNode {
@@ -4026,6 +4218,9 @@ class EnumFactoryMethodEnd extends ParserAstNode {
         "factoryKeyword": factoryKeyword,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitEnumFactoryMethodEnd(this);
 }
 
 class ExportBegin extends ParserAstNode {
@@ -4038,6 +4233,9 @@ class ExportBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitExportBegin(this);
 }
 
 class ExportEnd extends ParserAstNode {
@@ -4053,6 +4251,9 @@ class ExportEnd extends ParserAstNode {
         "exportKeyword": exportKeyword,
         "semicolon": semicolon,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitExportEnd(this);
 }
 
 class ExtraneousExpressionHandle extends ParserAstNode {
@@ -4068,6 +4269,9 @@ class ExtraneousExpressionHandle extends ParserAstNode {
         "token": token,
         "message": message,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitExtraneousExpressionHandle(this);
 }
 
 class ExpressionStatementHandle extends ParserAstNode {
@@ -4080,6 +4284,9 @@ class ExpressionStatementHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitExpressionStatementHandle(this);
 }
 
 class FactoryMethodBegin extends ParserAstNode {
@@ -4102,6 +4309,9 @@ class FactoryMethodBegin extends ParserAstNode {
         "externalToken": externalToken,
         "constToken": constToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitFactoryMethodBegin(this);
 }
 
 class ClassFactoryMethodEnd extends ParserAstNode {
@@ -4121,6 +4331,9 @@ class ClassFactoryMethodEnd extends ParserAstNode {
         "factoryKeyword": factoryKeyword,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitClassFactoryMethodEnd(this);
 }
 
 class MixinFactoryMethodEnd extends ParserAstNode {
@@ -4140,6 +4353,9 @@ class MixinFactoryMethodEnd extends ParserAstNode {
         "factoryKeyword": factoryKeyword,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitMixinFactoryMethodEnd(this);
 }
 
 class ExtensionFactoryMethodEnd extends ParserAstNode {
@@ -4159,6 +4375,9 @@ class ExtensionFactoryMethodEnd extends ParserAstNode {
         "factoryKeyword": factoryKeyword,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitExtensionFactoryMethodEnd(this);
 }
 
 class ExtensionTypeFactoryMethodEnd extends ParserAstNode {
@@ -4178,6 +4397,10 @@ class ExtensionTypeFactoryMethodEnd extends ParserAstNode {
         "factoryKeyword": factoryKeyword,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitExtensionTypeFactoryMethodEnd(this);
 }
 
 class FormalParameterBegin extends ParserAstNode {
@@ -4203,6 +4426,9 @@ class FormalParameterBegin extends ParserAstNode {
         "covariantToken": covariantToken,
         "varFinalOrConst": varFinalOrConst,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitFormalParameterBegin(this);
 }
 
 class FormalParameterEnd extends ParserAstNode {
@@ -4237,6 +4463,9 @@ class FormalParameterEnd extends ParserAstNode {
         "kind": kind,
         "memberKind": memberKind,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitFormalParameterEnd(this);
 }
 
 class NoFormalParametersHandle extends ParserAstNode {
@@ -4252,6 +4481,9 @@ class NoFormalParametersHandle extends ParserAstNode {
         "token": token,
         "kind": kind,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitNoFormalParametersHandle(this);
 }
 
 class FormalParametersBegin extends ParserAstNode {
@@ -4267,6 +4499,9 @@ class FormalParametersBegin extends ParserAstNode {
         "token": token,
         "kind": kind,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitFormalParametersBegin(this);
 }
 
 class FormalParametersEnd extends ParserAstNode {
@@ -4289,6 +4524,9 @@ class FormalParametersEnd extends ParserAstNode {
         "endToken": endToken,
         "kind": kind,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitFormalParametersEnd(this);
 }
 
 class ClassFieldsEnd extends ParserAstNode {
@@ -4329,6 +4567,9 @@ class ClassFieldsEnd extends ParserAstNode {
         "beginToken": beginToken,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitClassFieldsEnd(this);
 }
 
 class MixinFieldsEnd extends ParserAstNode {
@@ -4369,6 +4610,9 @@ class MixinFieldsEnd extends ParserAstNode {
         "beginToken": beginToken,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitMixinFieldsEnd(this);
 }
 
 class ExtensionFieldsEnd extends ParserAstNode {
@@ -4409,6 +4653,9 @@ class ExtensionFieldsEnd extends ParserAstNode {
         "beginToken": beginToken,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitExtensionFieldsEnd(this);
 }
 
 class ExtensionTypeFieldsEnd extends ParserAstNode {
@@ -4449,6 +4696,9 @@ class ExtensionTypeFieldsEnd extends ParserAstNode {
         "beginToken": beginToken,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitExtensionTypeFieldsEnd(this);
 }
 
 class EnumFieldsEnd extends ParserAstNode {
@@ -4489,6 +4739,9 @@ class EnumFieldsEnd extends ParserAstNode {
         "beginToken": beginToken,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitEnumFieldsEnd(this);
 }
 
 class EnumMethodEnd extends ParserAstNode {
@@ -4514,6 +4767,9 @@ class EnumMethodEnd extends ParserAstNode {
         "beginInitializers": beginInitializers,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitEnumMethodEnd(this);
 }
 
 class ForInitializerEmptyStatementHandle extends ParserAstNode {
@@ -4526,6 +4782,10 @@ class ForInitializerEmptyStatementHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitForInitializerEmptyStatementHandle(this);
 }
 
 class ForInitializerExpressionStatementHandle extends ParserAstNode {
@@ -4541,6 +4801,10 @@ class ForInitializerExpressionStatementHandle extends ParserAstNode {
         "token": token,
         "forIn": forIn,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitForInitializerExpressionStatementHandle(this);
 }
 
 class ForInitializerLocalVariableDeclarationHandle extends ParserAstNode {
@@ -4556,6 +4820,10 @@ class ForInitializerLocalVariableDeclarationHandle extends ParserAstNode {
         "token": token,
         "forIn": forIn,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitForInitializerLocalVariableDeclarationHandle(this);
 }
 
 class ForInitializerPatternVariableAssignmentHandle extends ParserAstNode {
@@ -4571,6 +4839,10 @@ class ForInitializerPatternVariableAssignmentHandle extends ParserAstNode {
         "keyword": keyword,
         "equals": equals,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitForInitializerPatternVariableAssignmentHandle(this);
 }
 
 class ForStatementBegin extends ParserAstNode {
@@ -4583,6 +4855,9 @@ class ForStatementBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitForStatementBegin(this);
 }
 
 class ForLoopPartsHandle extends ParserAstNode {
@@ -4605,6 +4880,9 @@ class ForLoopPartsHandle extends ParserAstNode {
         "leftSeparator": leftSeparator,
         "updateExpressionCount": updateExpressionCount,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitForLoopPartsHandle(this);
 }
 
 class ForStatementEnd extends ParserAstNode {
@@ -4617,6 +4895,9 @@ class ForStatementEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitForStatementEnd(this);
 }
 
 class ForStatementBodyBegin extends ParserAstNode {
@@ -4629,6 +4910,9 @@ class ForStatementBodyBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitForStatementBodyBegin(this);
 }
 
 class ForStatementBodyEnd extends ParserAstNode {
@@ -4641,6 +4925,9 @@ class ForStatementBodyEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitForStatementBodyEnd(this);
 }
 
 class ForInLoopPartsHandle extends ParserAstNode {
@@ -4666,6 +4953,9 @@ class ForInLoopPartsHandle extends ParserAstNode {
         "patternKeyword": patternKeyword,
         "inKeyword": inKeyword,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitForInLoopPartsHandle(this);
 }
 
 class ForInEnd extends ParserAstNode {
@@ -4677,6 +4967,9 @@ class ForInEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitForInEnd(this);
 }
 
 class ForInExpressionBegin extends ParserAstNode {
@@ -4689,6 +4982,9 @@ class ForInExpressionBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitForInExpressionBegin(this);
 }
 
 class ForInExpressionEnd extends ParserAstNode {
@@ -4701,6 +4997,9 @@ class ForInExpressionEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitForInExpressionEnd(this);
 }
 
 class ForInBodyBegin extends ParserAstNode {
@@ -4713,6 +5012,9 @@ class ForInBodyBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitForInBodyBegin(this);
 }
 
 class ForInBodyEnd extends ParserAstNode {
@@ -4725,6 +5027,9 @@ class ForInBodyEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitForInBodyEnd(this);
 }
 
 class NamedFunctionExpressionBegin extends ParserAstNode {
@@ -4737,6 +5042,10 @@ class NamedFunctionExpressionBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitNamedFunctionExpressionBegin(this);
 }
 
 class NamedFunctionExpressionEnd extends ParserAstNode {
@@ -4749,6 +5058,9 @@ class NamedFunctionExpressionEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitNamedFunctionExpressionEnd(this);
 }
 
 class LocalFunctionDeclarationBegin extends ParserAstNode {
@@ -4761,6 +5073,10 @@ class LocalFunctionDeclarationBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitLocalFunctionDeclarationBegin(this);
 }
 
 class LocalFunctionDeclarationEnd extends ParserAstNode {
@@ -4773,6 +5089,10 @@ class LocalFunctionDeclarationEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitLocalFunctionDeclarationEnd(this);
 }
 
 class BlockFunctionBodyBegin extends ParserAstNode {
@@ -4785,6 +5105,9 @@ class BlockFunctionBodyBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitBlockFunctionBodyBegin(this);
 }
 
 class BlockFunctionBodyEnd extends ParserAstNode {
@@ -4802,6 +5125,9 @@ class BlockFunctionBodyEnd extends ParserAstNode {
         "beginToken": beginToken,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitBlockFunctionBodyEnd(this);
 }
 
 class NoFunctionBodyHandle extends ParserAstNode {
@@ -4814,6 +5140,9 @@ class NoFunctionBodyHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitNoFunctionBodyHandle(this);
 }
 
 class FunctionBodySkippedHandle extends ParserAstNode {
@@ -4829,6 +5158,9 @@ class FunctionBodySkippedHandle extends ParserAstNode {
         "token": token,
         "isExpressionBody": isExpressionBody,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitFunctionBodySkippedHandle(this);
 }
 
 class FunctionNameBegin extends ParserAstNode {
@@ -4841,6 +5173,9 @@ class FunctionNameBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitFunctionNameBegin(this);
 }
 
 class FunctionNameEnd extends ParserAstNode {
@@ -4856,6 +5191,9 @@ class FunctionNameEnd extends ParserAstNode {
         "beginToken": beginToken,
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitFunctionNameEnd(this);
 }
 
 class TypedefBegin extends ParserAstNode {
@@ -4868,6 +5206,9 @@ class TypedefBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitTypedefBegin(this);
 }
 
 class TypedefEnd extends ParserAstNode {
@@ -4885,6 +5226,9 @@ class TypedefEnd extends ParserAstNode {
         "equals": equals,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitTypedefEnd(this);
 }
 
 class ClassWithClauseHandle extends ParserAstNode {
@@ -4897,6 +5241,9 @@ class ClassWithClauseHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "withKeyword": withKeyword,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitClassWithClauseHandle(this);
 }
 
 class ClassNoWithClauseHandle extends ParserAstNode {
@@ -4905,6 +5252,9 @@ class ClassNoWithClauseHandle extends ParserAstNode {
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitClassNoWithClauseHandle(this);
 }
 
 class EnumWithClauseHandle extends ParserAstNode {
@@ -4917,6 +5267,9 @@ class EnumWithClauseHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "withKeyword": withKeyword,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitEnumWithClauseHandle(this);
 }
 
 class EnumNoWithClauseHandle extends ParserAstNode {
@@ -4924,6 +5277,9 @@ class EnumNoWithClauseHandle extends ParserAstNode {
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitEnumNoWithClauseHandle(this);
 }
 
 class MixinWithClauseHandle extends ParserAstNode {
@@ -4936,6 +5292,9 @@ class MixinWithClauseHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "withKeyword": withKeyword,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitMixinWithClauseHandle(this);
 }
 
 class NamedMixinApplicationBegin extends ParserAstNode {
@@ -4976,6 +5335,9 @@ class NamedMixinApplicationBegin extends ParserAstNode {
         "mixinToken": mixinToken,
         "name": name,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitNamedMixinApplicationBegin(this);
 }
 
 class NamedMixinApplicationWithClauseHandle extends ParserAstNode {
@@ -4989,6 +5351,10 @@ class NamedMixinApplicationWithClauseHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "withKeyword": withKeyword,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitNamedMixinApplicationWithClauseHandle(this);
 }
 
 class NamedMixinApplicationEnd extends ParserAstNode {
@@ -5014,6 +5380,9 @@ class NamedMixinApplicationEnd extends ParserAstNode {
         "implementsKeyword": implementsKeyword,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitNamedMixinApplicationEnd(this);
 }
 
 class HideBegin extends ParserAstNode {
@@ -5026,6 +5395,9 @@ class HideBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "hideKeyword": hideKeyword,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitHideBegin(this);
 }
 
 class HideEnd extends ParserAstNode {
@@ -5038,6 +5410,9 @@ class HideEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "hideKeyword": hideKeyword,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitHideEnd(this);
 }
 
 class IdentifierListHandle extends ParserAstNode {
@@ -5050,6 +5425,9 @@ class IdentifierListHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "count": count,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitIdentifierListHandle(this);
 }
 
 class TypeListBegin extends ParserAstNode {
@@ -5062,6 +5440,9 @@ class TypeListBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitTypeListBegin(this);
 }
 
 class TypeListEnd extends ParserAstNode {
@@ -5074,6 +5455,9 @@ class TypeListEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "count": count,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitTypeListEnd(this);
 }
 
 class IfStatementBegin extends ParserAstNode {
@@ -5086,6 +5470,9 @@ class IfStatementBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitIfStatementBegin(this);
 }
 
 class IfStatementEnd extends ParserAstNode {
@@ -5100,6 +5487,9 @@ class IfStatementEnd extends ParserAstNode {
         "ifToken": ifToken,
         "elseToken": elseToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitIfStatementEnd(this);
 }
 
 class ThenStatementBegin extends ParserAstNode {
@@ -5112,6 +5502,9 @@ class ThenStatementBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitThenStatementBegin(this);
 }
 
 class ThenStatementEnd extends ParserAstNode {
@@ -5124,6 +5517,9 @@ class ThenStatementEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitThenStatementEnd(this);
 }
 
 class ElseStatementBegin extends ParserAstNode {
@@ -5136,6 +5532,9 @@ class ElseStatementBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitElseStatementBegin(this);
 }
 
 class ElseStatementEnd extends ParserAstNode {
@@ -5148,6 +5547,9 @@ class ElseStatementEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitElseStatementEnd(this);
 }
 
 class ImportBegin extends ParserAstNode {
@@ -5160,6 +5562,9 @@ class ImportBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "importKeyword": importKeyword,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitImportBegin(this);
 }
 
 class ImportPrefixHandle extends ParserAstNode {
@@ -5174,6 +5579,9 @@ class ImportPrefixHandle extends ParserAstNode {
         "deferredKeyword": deferredKeyword,
         "asKeyword": asKeyword,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitImportPrefixHandle(this);
 }
 
 class ImportEnd extends ParserAstNode {
@@ -5191,6 +5599,9 @@ class ImportEnd extends ParserAstNode {
         "augmentToken": augmentToken,
         "semicolon": semicolon,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitImportEnd(this);
 }
 
 class RecoverImportHandle extends ParserAstNode {
@@ -5203,6 +5614,9 @@ class RecoverImportHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "semicolon": semicolon,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitRecoverImportHandle(this);
 }
 
 class ConditionalUrisBegin extends ParserAstNode {
@@ -5215,6 +5629,9 @@ class ConditionalUrisBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitConditionalUrisBegin(this);
 }
 
 class ConditionalUrisEnd extends ParserAstNode {
@@ -5227,6 +5644,9 @@ class ConditionalUrisEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "count": count,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitConditionalUrisEnd(this);
 }
 
 class ConditionalUriBegin extends ParserAstNode {
@@ -5239,6 +5659,9 @@ class ConditionalUriBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "ifKeyword": ifKeyword,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitConditionalUriBegin(this);
 }
 
 class ConditionalUriEnd extends ParserAstNode {
@@ -5256,6 +5679,9 @@ class ConditionalUriEnd extends ParserAstNode {
         "leftParen": leftParen,
         "equalSign": equalSign,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitConditionalUriEnd(this);
 }
 
 class DottedNameHandle extends ParserAstNode {
@@ -5271,6 +5697,9 @@ class DottedNameHandle extends ParserAstNode {
         "count": count,
         "firstIdentifier": firstIdentifier,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitDottedNameHandle(this);
 }
 
 class ImplicitCreationExpressionBegin extends ParserAstNode {
@@ -5283,6 +5712,10 @@ class ImplicitCreationExpressionBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitImplicitCreationExpressionBegin(this);
 }
 
 class ImplicitCreationExpressionEnd extends ParserAstNode {
@@ -5298,6 +5731,10 @@ class ImplicitCreationExpressionEnd extends ParserAstNode {
         "token": token,
         "openAngleBracket": openAngleBracket,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitImplicitCreationExpressionEnd(this);
 }
 
 class InitializedIdentifierBegin extends ParserAstNode {
@@ -5310,6 +5747,9 @@ class InitializedIdentifierBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitInitializedIdentifierBegin(this);
 }
 
 class InitializedIdentifierEnd extends ParserAstNode {
@@ -5322,6 +5762,9 @@ class InitializedIdentifierEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "nameToken": nameToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitInitializedIdentifierEnd(this);
 }
 
 class FieldInitializerBegin extends ParserAstNode {
@@ -5334,6 +5777,9 @@ class FieldInitializerBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitFieldInitializerBegin(this);
 }
 
 class FieldInitializerEnd extends ParserAstNode {
@@ -5349,6 +5795,9 @@ class FieldInitializerEnd extends ParserAstNode {
         "assignment": assignment,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitFieldInitializerEnd(this);
 }
 
 class NoFieldInitializerHandle extends ParserAstNode {
@@ -5361,6 +5810,9 @@ class NoFieldInitializerHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitNoFieldInitializerHandle(this);
 }
 
 class VariableInitializerBegin extends ParserAstNode {
@@ -5373,6 +5825,9 @@ class VariableInitializerBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitVariableInitializerBegin(this);
 }
 
 class VariableInitializerEnd extends ParserAstNode {
@@ -5385,6 +5840,9 @@ class VariableInitializerEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "assignmentOperator": assignmentOperator,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitVariableInitializerEnd(this);
 }
 
 class NoVariableInitializerHandle extends ParserAstNode {
@@ -5397,6 +5855,10 @@ class NoVariableInitializerHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitNoVariableInitializerHandle(this);
 }
 
 class InitializerBegin extends ParserAstNode {
@@ -5409,6 +5871,9 @@ class InitializerBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitInitializerBegin(this);
 }
 
 class InitializerEnd extends ParserAstNode {
@@ -5421,6 +5886,9 @@ class InitializerEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitInitializerEnd(this);
 }
 
 class InitializersBegin extends ParserAstNode {
@@ -5433,6 +5901,9 @@ class InitializersBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitInitializersBegin(this);
 }
 
 class InitializersEnd extends ParserAstNode {
@@ -5450,6 +5921,9 @@ class InitializersEnd extends ParserAstNode {
         "beginToken": beginToken,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitInitializersEnd(this);
 }
 
 class NoInitializersHandle extends ParserAstNode {
@@ -5457,6 +5931,9 @@ class NoInitializersHandle extends ParserAstNode {
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitNoInitializersHandle(this);
 }
 
 class InvalidExpressionHandle extends ParserAstNode {
@@ -5469,6 +5946,9 @@ class InvalidExpressionHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitInvalidExpressionHandle(this);
 }
 
 class InvalidFunctionBodyHandle extends ParserAstNode {
@@ -5481,6 +5961,9 @@ class InvalidFunctionBodyHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitInvalidFunctionBodyHandle(this);
 }
 
 class InvalidTypeReferenceHandle extends ParserAstNode {
@@ -5493,6 +5976,9 @@ class InvalidTypeReferenceHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitInvalidTypeReferenceHandle(this);
 }
 
 class LabelHandle extends ParserAstNode {
@@ -5504,6 +5990,9 @@ class LabelHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitLabelHandle(this);
 }
 
 class LabeledStatementBegin extends ParserAstNode {
@@ -5519,6 +6008,9 @@ class LabeledStatementBegin extends ParserAstNode {
         "token": token,
         "labelCount": labelCount,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitLabeledStatementBegin(this);
 }
 
 class LabeledStatementEnd extends ParserAstNode {
@@ -5531,6 +6023,9 @@ class LabeledStatementEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "labelCount": labelCount,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitLabeledStatementEnd(this);
 }
 
 class LibraryAugmentationBegin extends ParserAstNode {
@@ -5546,6 +6041,9 @@ class LibraryAugmentationBegin extends ParserAstNode {
         "augmentKeyword": augmentKeyword,
         "libraryKeyword": libraryKeyword,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitLibraryAugmentationBegin(this);
 }
 
 class LibraryAugmentationEnd extends ParserAstNode {
@@ -5565,6 +6063,9 @@ class LibraryAugmentationEnd extends ParserAstNode {
         "libraryKeyword": libraryKeyword,
         "semicolon": semicolon,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitLibraryAugmentationEnd(this);
 }
 
 class LibraryNameBegin extends ParserAstNode {
@@ -5577,6 +6078,9 @@ class LibraryNameBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitLibraryNameBegin(this);
 }
 
 class LibraryNameEnd extends ParserAstNode {
@@ -5596,6 +6100,9 @@ class LibraryNameEnd extends ParserAstNode {
         "semicolon": semicolon,
         "hasName": hasName,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitLibraryNameEnd(this);
 }
 
 class LiteralMapEntryHandle extends ParserAstNode {
@@ -5611,6 +6118,9 @@ class LiteralMapEntryHandle extends ParserAstNode {
         "colon": colon,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitLiteralMapEntryHandle(this);
 }
 
 class MapPatternEntryHandle extends ParserAstNode {
@@ -5626,6 +6136,9 @@ class MapPatternEntryHandle extends ParserAstNode {
         "colon": colon,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitMapPatternEntryHandle(this);
 }
 
 class LiteralStringBegin extends ParserAstNode {
@@ -5638,6 +6151,9 @@ class LiteralStringBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitLiteralStringBegin(this);
 }
 
 class InterpolationExpressionHandle extends ParserAstNode {
@@ -5653,6 +6169,10 @@ class InterpolationExpressionHandle extends ParserAstNode {
         "leftBracket": leftBracket,
         "rightBracket": rightBracket,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitInterpolationExpressionHandle(this);
 }
 
 class LiteralStringEnd extends ParserAstNode {
@@ -5668,6 +6188,9 @@ class LiteralStringEnd extends ParserAstNode {
         "interpolationCount": interpolationCount,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitLiteralStringEnd(this);
 }
 
 class StringJuxtapositionHandle extends ParserAstNode {
@@ -5683,6 +6206,9 @@ class StringJuxtapositionHandle extends ParserAstNode {
         "startToken": startToken,
         "literalCount": literalCount,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitStringJuxtapositionHandle(this);
 }
 
 class MemberBegin extends ParserAstNode {
@@ -5690,6 +6216,9 @@ class MemberBegin extends ParserAstNode {
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitMemberBegin(this);
 }
 
 class InvalidMemberHandle extends ParserAstNode {
@@ -5702,6 +6231,9 @@ class InvalidMemberHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitInvalidMemberHandle(this);
 }
 
 class MemberEnd extends ParserAstNode {
@@ -5709,6 +6241,9 @@ class MemberEnd extends ParserAstNode {
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitMemberEnd(this);
 }
 
 class MethodBegin extends ParserAstNode {
@@ -5743,6 +6278,9 @@ class MethodBegin extends ParserAstNode {
         "getOrSet": getOrSet,
         "name": name,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitMethodBegin(this);
 }
 
 class ClassMethodEnd extends ParserAstNode {
@@ -5768,6 +6306,9 @@ class ClassMethodEnd extends ParserAstNode {
         "beginInitializers": beginInitializers,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitClassMethodEnd(this);
 }
 
 class MixinMethodEnd extends ParserAstNode {
@@ -5793,6 +6334,9 @@ class MixinMethodEnd extends ParserAstNode {
         "beginInitializers": beginInitializers,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitMixinMethodEnd(this);
 }
 
 class ExtensionMethodEnd extends ParserAstNode {
@@ -5818,6 +6362,9 @@ class ExtensionMethodEnd extends ParserAstNode {
         "beginInitializers": beginInitializers,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitExtensionMethodEnd(this);
 }
 
 class ExtensionTypeMethodEnd extends ParserAstNode {
@@ -5843,6 +6390,9 @@ class ExtensionTypeMethodEnd extends ParserAstNode {
         "beginInitializers": beginInitializers,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitExtensionTypeMethodEnd(this);
 }
 
 class ClassConstructorEnd extends ParserAstNode {
@@ -5868,6 +6418,9 @@ class ClassConstructorEnd extends ParserAstNode {
         "beginInitializers": beginInitializers,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitClassConstructorEnd(this);
 }
 
 class MixinConstructorEnd extends ParserAstNode {
@@ -5893,6 +6446,9 @@ class MixinConstructorEnd extends ParserAstNode {
         "beginInitializers": beginInitializers,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitMixinConstructorEnd(this);
 }
 
 class ExtensionConstructorEnd extends ParserAstNode {
@@ -5918,6 +6474,9 @@ class ExtensionConstructorEnd extends ParserAstNode {
         "beginInitializers": beginInitializers,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitExtensionConstructorEnd(this);
 }
 
 class ExtensionTypeConstructorEnd extends ParserAstNode {
@@ -5943,6 +6502,10 @@ class ExtensionTypeConstructorEnd extends ParserAstNode {
         "beginInitializers": beginInitializers,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitExtensionTypeConstructorEnd(this);
 }
 
 class MetadataStarBegin extends ParserAstNode {
@@ -5955,6 +6518,9 @@ class MetadataStarBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitMetadataStarBegin(this);
 }
 
 class MetadataStarEnd extends ParserAstNode {
@@ -5967,6 +6533,9 @@ class MetadataStarEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "count": count,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitMetadataStarEnd(this);
 }
 
 class MetadataBegin extends ParserAstNode {
@@ -5979,6 +6548,9 @@ class MetadataBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitMetadataBegin(this);
 }
 
 class MetadataEnd extends ParserAstNode {
@@ -5996,6 +6568,9 @@ class MetadataEnd extends ParserAstNode {
         "periodBeforeName": periodBeforeName,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitMetadataEnd(this);
 }
 
 class OptionalFormalParametersBegin extends ParserAstNode {
@@ -6008,6 +6583,10 @@ class OptionalFormalParametersBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitOptionalFormalParametersBegin(this);
 }
 
 class OptionalFormalParametersEnd extends ParserAstNode {
@@ -6025,6 +6604,10 @@ class OptionalFormalParametersEnd extends ParserAstNode {
         "beginToken": beginToken,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitOptionalFormalParametersEnd(this);
 }
 
 class PartBegin extends ParserAstNode {
@@ -6036,6 +6619,9 @@ class PartBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitPartBegin(this);
 }
 
 class PartEnd extends ParserAstNode {
@@ -6051,6 +6637,9 @@ class PartEnd extends ParserAstNode {
         "partKeyword": partKeyword,
         "semicolon": semicolon,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitPartEnd(this);
 }
 
 class PartOfBegin extends ParserAstNode {
@@ -6063,6 +6652,9 @@ class PartOfBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitPartOfBegin(this);
 }
 
 class PartOfEnd extends ParserAstNode {
@@ -6085,6 +6677,9 @@ class PartOfEnd extends ParserAstNode {
         "semicolon": semicolon,
         "hasName": hasName,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitPartOfEnd(this);
 }
 
 class RedirectingFactoryBodyBegin extends ParserAstNode {
@@ -6097,6 +6692,10 @@ class RedirectingFactoryBodyBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitRedirectingFactoryBodyBegin(this);
 }
 
 class RedirectingFactoryBodyEnd extends ParserAstNode {
@@ -6112,6 +6711,9 @@ class RedirectingFactoryBodyEnd extends ParserAstNode {
         "beginToken": beginToken,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitRedirectingFactoryBodyEnd(this);
 }
 
 class ReturnStatementBegin extends ParserAstNode {
@@ -6124,6 +6726,9 @@ class ReturnStatementBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitReturnStatementBegin(this);
 }
 
 class NativeFunctionBodyHandle extends ParserAstNode {
@@ -6139,6 +6744,9 @@ class NativeFunctionBodyHandle extends ParserAstNode {
         "nativeToken": nativeToken,
         "semicolon": semicolon,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitNativeFunctionBodyHandle(this);
 }
 
 class NativeFunctionBodyIgnoredHandle extends ParserAstNode {
@@ -6154,6 +6762,10 @@ class NativeFunctionBodyIgnoredHandle extends ParserAstNode {
         "nativeToken": nativeToken,
         "semicolon": semicolon,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitNativeFunctionBodyIgnoredHandle(this);
 }
 
 class NativeFunctionBodySkippedHandle extends ParserAstNode {
@@ -6169,6 +6781,10 @@ class NativeFunctionBodySkippedHandle extends ParserAstNode {
         "nativeToken": nativeToken,
         "semicolon": semicolon,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitNativeFunctionBodySkippedHandle(this);
 }
 
 class EmptyFunctionBodyHandle extends ParserAstNode {
@@ -6181,6 +6797,9 @@ class EmptyFunctionBodyHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "semicolon": semicolon,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitEmptyFunctionBodyHandle(this);
 }
 
 class ExpressionFunctionBodyHandle extends ParserAstNode {
@@ -6196,6 +6815,10 @@ class ExpressionFunctionBodyHandle extends ParserAstNode {
         "arrowToken": arrowToken,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitExpressionFunctionBodyHandle(this);
 }
 
 class ReturnStatementEnd extends ParserAstNode {
@@ -6215,6 +6838,9 @@ class ReturnStatementEnd extends ParserAstNode {
         "beginToken": beginToken,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitReturnStatementEnd(this);
 }
 
 class SendHandle extends ParserAstNode {
@@ -6230,6 +6856,9 @@ class SendHandle extends ParserAstNode {
         "beginToken": beginToken,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitSendHandle(this);
 }
 
 class ShowBegin extends ParserAstNode {
@@ -6242,6 +6871,9 @@ class ShowBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "showKeyword": showKeyword,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitShowBegin(this);
 }
 
 class ShowEnd extends ParserAstNode {
@@ -6254,6 +6886,9 @@ class ShowEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "showKeyword": showKeyword,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitShowEnd(this);
 }
 
 class SwitchStatementBegin extends ParserAstNode {
@@ -6266,6 +6901,9 @@ class SwitchStatementBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitSwitchStatementBegin(this);
 }
 
 class SwitchStatementEnd extends ParserAstNode {
@@ -6281,6 +6919,9 @@ class SwitchStatementEnd extends ParserAstNode {
         "switchKeyword": switchKeyword,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitSwitchStatementEnd(this);
 }
 
 class SwitchExpressionBegin extends ParserAstNode {
@@ -6293,6 +6934,9 @@ class SwitchExpressionBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitSwitchExpressionBegin(this);
 }
 
 class SwitchExpressionEnd extends ParserAstNode {
@@ -6308,6 +6952,9 @@ class SwitchExpressionEnd extends ParserAstNode {
         "switchKeyword": switchKeyword,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitSwitchExpressionEnd(this);
 }
 
 class SwitchBlockBegin extends ParserAstNode {
@@ -6320,6 +6967,9 @@ class SwitchBlockBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitSwitchBlockBegin(this);
 }
 
 class SwitchBlockEnd extends ParserAstNode {
@@ -6339,6 +6989,9 @@ class SwitchBlockEnd extends ParserAstNode {
         "beginToken": beginToken,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitSwitchBlockEnd(this);
 }
 
 class SwitchExpressionBlockBegin extends ParserAstNode {
@@ -6351,6 +7004,9 @@ class SwitchExpressionBlockBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitSwitchExpressionBlockBegin(this);
 }
 
 class SwitchExpressionBlockEnd extends ParserAstNode {
@@ -6370,6 +7026,9 @@ class SwitchExpressionBlockEnd extends ParserAstNode {
         "beginToken": beginToken,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitSwitchExpressionBlockEnd(this);
 }
 
 class LiteralSymbolBegin extends ParserAstNode {
@@ -6382,6 +7041,9 @@ class LiteralSymbolBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitLiteralSymbolBegin(this);
 }
 
 class LiteralSymbolEnd extends ParserAstNode {
@@ -6397,6 +7059,9 @@ class LiteralSymbolEnd extends ParserAstNode {
         "hashToken": hashToken,
         "identifierCount": identifierCount,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitLiteralSymbolEnd(this);
 }
 
 class ThrowExpressionHandle extends ParserAstNode {
@@ -6412,6 +7077,9 @@ class ThrowExpressionHandle extends ParserAstNode {
         "throwToken": throwToken,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitThrowExpressionHandle(this);
 }
 
 class RethrowStatementBegin extends ParserAstNode {
@@ -6424,6 +7092,9 @@ class RethrowStatementBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitRethrowStatementBegin(this);
 }
 
 class RethrowStatementEnd extends ParserAstNode {
@@ -6439,6 +7110,9 @@ class RethrowStatementEnd extends ParserAstNode {
         "rethrowToken": rethrowToken,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitRethrowStatementEnd(this);
 }
 
 class TopLevelDeclarationEnd extends ParserAstNode {
@@ -6451,6 +7125,9 @@ class TopLevelDeclarationEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitTopLevelDeclarationEnd(this);
 }
 
 class InvalidTopLevelDeclarationHandle extends ParserAstNode {
@@ -6463,6 +7140,10 @@ class InvalidTopLevelDeclarationHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitInvalidTopLevelDeclarationHandle(this);
 }
 
 class TopLevelMemberBegin extends ParserAstNode {
@@ -6475,6 +7156,9 @@ class TopLevelMemberBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitTopLevelMemberBegin(this);
 }
 
 class FieldsBegin extends ParserAstNode {
@@ -6512,6 +7196,9 @@ class FieldsBegin extends ParserAstNode {
         "varFinalOrConst": varFinalOrConst,
         "lastConsumed": lastConsumed,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitFieldsBegin(this);
 }
 
 class TopLevelFieldsEnd extends ParserAstNode {
@@ -6549,6 +7236,9 @@ class TopLevelFieldsEnd extends ParserAstNode {
         "beginToken": beginToken,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitTopLevelFieldsEnd(this);
 }
 
 class TopLevelMethodBegin extends ParserAstNode {
@@ -6566,6 +7256,9 @@ class TopLevelMethodBegin extends ParserAstNode {
         "augmentToken": augmentToken,
         "externalToken": externalToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitTopLevelMethodBegin(this);
 }
 
 class TopLevelMethodEnd extends ParserAstNode {
@@ -6583,6 +7276,9 @@ class TopLevelMethodEnd extends ParserAstNode {
         "getOrSet": getOrSet,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitTopLevelMethodEnd(this);
 }
 
 class TryStatementBegin extends ParserAstNode {
@@ -6595,6 +7291,9 @@ class TryStatementBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitTryStatementBegin(this);
 }
 
 class CatchClauseBegin extends ParserAstNode {
@@ -6607,6 +7306,9 @@ class CatchClauseBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitCatchClauseBegin(this);
 }
 
 class CatchClauseEnd extends ParserAstNode {
@@ -6619,6 +7321,9 @@ class CatchClauseEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitCatchClauseEnd(this);
 }
 
 class CatchBlockHandle extends ParserAstNode {
@@ -6636,6 +7341,9 @@ class CatchBlockHandle extends ParserAstNode {
         "catchKeyword": catchKeyword,
         "comma": comma,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitCatchBlockHandle(this);
 }
 
 class FinallyBlockHandle extends ParserAstNode {
@@ -6648,6 +7356,9 @@ class FinallyBlockHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "finallyKeyword": finallyKeyword,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitFinallyBlockHandle(this);
 }
 
 class TryStatementEnd extends ParserAstNode {
@@ -6665,6 +7376,9 @@ class TryStatementEnd extends ParserAstNode {
         "tryKeyword": tryKeyword,
         "finallyKeyword": finallyKeyword,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitTryStatementEnd(this);
 }
 
 class TypeHandle extends ParserAstNode {
@@ -6679,6 +7393,9 @@ class TypeHandle extends ParserAstNode {
         "beginToken": beginToken,
         "questionMark": questionMark,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitTypeHandle(this);
 }
 
 class NonNullAssertExpressionHandle extends ParserAstNode {
@@ -6691,6 +7408,10 @@ class NonNullAssertExpressionHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "bang": bang,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitNonNullAssertExpressionHandle(this);
 }
 
 class NullAssertPatternHandle extends ParserAstNode {
@@ -6703,6 +7424,9 @@ class NullAssertPatternHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "bang": bang,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitNullAssertPatternHandle(this);
 }
 
 class NullCheckPatternHandle extends ParserAstNode {
@@ -6715,6 +7439,9 @@ class NullCheckPatternHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "question": question,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitNullCheckPatternHandle(this);
 }
 
 class AssignedVariablePatternHandle extends ParserAstNode {
@@ -6727,6 +7454,10 @@ class AssignedVariablePatternHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "variable": variable,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitAssignedVariablePatternHandle(this);
 }
 
 class DeclaredVariablePatternHandle extends ParserAstNode {
@@ -6744,6 +7475,10 @@ class DeclaredVariablePatternHandle extends ParserAstNode {
         "variable": variable,
         "inAssignmentPattern": inAssignmentPattern,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitDeclaredVariablePatternHandle(this);
 }
 
 class WildcardPatternHandle extends ParserAstNode {
@@ -6759,6 +7494,9 @@ class WildcardPatternHandle extends ParserAstNode {
         "keyword": keyword,
         "wildcard": wildcard,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitWildcardPatternHandle(this);
 }
 
 class NoNameHandle extends ParserAstNode {
@@ -6771,6 +7509,9 @@ class NoNameHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitNoNameHandle(this);
 }
 
 class RecordTypeBegin extends ParserAstNode {
@@ -6783,6 +7524,9 @@ class RecordTypeBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "leftBracket": leftBracket,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitRecordTypeBegin(this);
 }
 
 class RecordTypeEnd extends ParserAstNode {
@@ -6805,6 +7549,9 @@ class RecordTypeEnd extends ParserAstNode {
         "count": count,
         "hasNamedFields": hasNamedFields,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitRecordTypeEnd(this);
 }
 
 class RecordTypeEntryBegin extends ParserAstNode {
@@ -6812,6 +7559,9 @@ class RecordTypeEntryBegin extends ParserAstNode {
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitRecordTypeEntryBegin(this);
 }
 
 class RecordTypeEntryEnd extends ParserAstNode {
@@ -6819,6 +7569,9 @@ class RecordTypeEntryEnd extends ParserAstNode {
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitRecordTypeEntryEnd(this);
 }
 
 class RecordTypeNamedFieldsBegin extends ParserAstNode {
@@ -6831,6 +7584,9 @@ class RecordTypeNamedFieldsBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "leftBracket": leftBracket,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitRecordTypeNamedFieldsBegin(this);
 }
 
 class RecordTypeNamedFieldsEnd extends ParserAstNode {
@@ -6846,6 +7602,9 @@ class RecordTypeNamedFieldsEnd extends ParserAstNode {
         "count": count,
         "leftBracket": leftBracket,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitRecordTypeNamedFieldsEnd(this);
 }
 
 class FunctionTypeBegin extends ParserAstNode {
@@ -6858,6 +7617,9 @@ class FunctionTypeBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitFunctionTypeBegin(this);
 }
 
 class FunctionTypeEnd extends ParserAstNode {
@@ -6873,6 +7635,9 @@ class FunctionTypeEnd extends ParserAstNode {
         "functionToken": functionToken,
         "questionMark": questionMark,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitFunctionTypeEnd(this);
 }
 
 class TypeArgumentsBegin extends ParserAstNode {
@@ -6885,6 +7650,9 @@ class TypeArgumentsBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitTypeArgumentsBegin(this);
 }
 
 class TypeArgumentsEnd extends ParserAstNode {
@@ -6902,6 +7670,9 @@ class TypeArgumentsEnd extends ParserAstNode {
         "beginToken": beginToken,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitTypeArgumentsEnd(this);
 }
 
 class InvalidTypeArgumentsHandle extends ParserAstNode {
@@ -6914,6 +7685,9 @@ class InvalidTypeArgumentsHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitInvalidTypeArgumentsHandle(this);
 }
 
 class NoTypeArgumentsHandle extends ParserAstNode {
@@ -6926,6 +7700,9 @@ class NoTypeArgumentsHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitNoTypeArgumentsHandle(this);
 }
 
 class TypeVariableBegin extends ParserAstNode {
@@ -6938,6 +7715,9 @@ class TypeVariableBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitTypeVariableBegin(this);
 }
 
 class TypeVariablesDefinedHandle extends ParserAstNode {
@@ -6953,6 +7733,9 @@ class TypeVariablesDefinedHandle extends ParserAstNode {
         "token": token,
         "count": count,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitTypeVariablesDefinedHandle(this);
 }
 
 class TypeVariableEnd extends ParserAstNode {
@@ -6975,6 +7758,9 @@ class TypeVariableEnd extends ParserAstNode {
         "extendsOrSuper": extendsOrSuper,
         "variance": variance,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitTypeVariableEnd(this);
 }
 
 class TypeVariablesBegin extends ParserAstNode {
@@ -6987,6 +7773,9 @@ class TypeVariablesBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitTypeVariablesBegin(this);
 }
 
 class TypeVariablesEnd extends ParserAstNode {
@@ -7002,6 +7791,9 @@ class TypeVariablesEnd extends ParserAstNode {
         "beginToken": beginToken,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitTypeVariablesEnd(this);
 }
 
 class FunctionExpressionBegin extends ParserAstNode {
@@ -7014,6 +7806,9 @@ class FunctionExpressionBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitFunctionExpressionBegin(this);
 }
 
 class FunctionExpressionEnd extends ParserAstNode {
@@ -7029,6 +7824,9 @@ class FunctionExpressionEnd extends ParserAstNode {
         "beginToken": beginToken,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitFunctionExpressionEnd(this);
 }
 
 class VariablesDeclarationBegin extends ParserAstNode {
@@ -7046,6 +7844,9 @@ class VariablesDeclarationBegin extends ParserAstNode {
         "lateToken": lateToken,
         "varFinalOrConst": varFinalOrConst,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitVariablesDeclarationBegin(this);
 }
 
 class VariablesDeclarationEnd extends ParserAstNode {
@@ -7061,6 +7862,9 @@ class VariablesDeclarationEnd extends ParserAstNode {
         "count": count,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitVariablesDeclarationEnd(this);
 }
 
 class WhileStatementBegin extends ParserAstNode {
@@ -7073,6 +7877,9 @@ class WhileStatementBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitWhileStatementBegin(this);
 }
 
 class WhileStatementEnd extends ParserAstNode {
@@ -7088,6 +7895,9 @@ class WhileStatementEnd extends ParserAstNode {
         "whileKeyword": whileKeyword,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitWhileStatementEnd(this);
 }
 
 class AsOperatorTypeBegin extends ParserAstNode {
@@ -7100,6 +7910,9 @@ class AsOperatorTypeBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "operator": operator,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitAsOperatorTypeBegin(this);
 }
 
 class AsOperatorTypeEnd extends ParserAstNode {
@@ -7112,6 +7925,9 @@ class AsOperatorTypeEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "operator": operator,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitAsOperatorTypeEnd(this);
 }
 
 class AsOperatorHandle extends ParserAstNode {
@@ -7124,6 +7940,9 @@ class AsOperatorHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "operator": operator,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitAsOperatorHandle(this);
 }
 
 class CastPatternHandle extends ParserAstNode {
@@ -7136,6 +7955,9 @@ class CastPatternHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "operator": operator,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitCastPatternHandle(this);
 }
 
 class AssignmentExpressionHandle extends ParserAstNode {
@@ -7148,6 +7970,9 @@ class AssignmentExpressionHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitAssignmentExpressionHandle(this);
 }
 
 class BinaryExpressionBegin extends ParserAstNode {
@@ -7160,6 +7985,9 @@ class BinaryExpressionBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitBinaryExpressionBegin(this);
 }
 
 class BinaryExpressionEnd extends ParserAstNode {
@@ -7172,6 +8000,9 @@ class BinaryExpressionEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitBinaryExpressionEnd(this);
 }
 
 class BinaryPatternBegin extends ParserAstNode {
@@ -7184,6 +8015,9 @@ class BinaryPatternBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitBinaryPatternBegin(this);
 }
 
 class BinaryPatternEnd extends ParserAstNode {
@@ -7196,6 +8030,9 @@ class BinaryPatternEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitBinaryPatternEnd(this);
 }
 
 class EndingBinaryExpressionHandle extends ParserAstNode {
@@ -7208,6 +8045,10 @@ class EndingBinaryExpressionHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitEndingBinaryExpressionHandle(this);
 }
 
 class ConditionalExpressionBegin extends ParserAstNode {
@@ -7220,6 +8061,9 @@ class ConditionalExpressionBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "question": question,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitConditionalExpressionBegin(this);
 }
 
 class ConditionalExpressionColonHandle extends ParserAstNode {
@@ -7228,6 +8072,10 @@ class ConditionalExpressionColonHandle extends ParserAstNode {
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitConditionalExpressionColonHandle(this);
 }
 
 class ConditionalExpressionEnd extends ParserAstNode {
@@ -7243,6 +8091,9 @@ class ConditionalExpressionEnd extends ParserAstNode {
         "question": question,
         "colon": colon,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitConditionalExpressionEnd(this);
 }
 
 class ConstExpressionBegin extends ParserAstNode {
@@ -7255,6 +8106,9 @@ class ConstExpressionBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "constKeyword": constKeyword,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitConstExpressionBegin(this);
 }
 
 class ConstExpressionEnd extends ParserAstNode {
@@ -7267,6 +8121,9 @@ class ConstExpressionEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitConstExpressionEnd(this);
 }
 
 class ConstFactoryHandle extends ParserAstNode {
@@ -7279,6 +8136,9 @@ class ConstFactoryHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "constKeyword": constKeyword,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitConstFactoryHandle(this);
 }
 
 class ForControlFlowBegin extends ParserAstNode {
@@ -7294,6 +8154,9 @@ class ForControlFlowBegin extends ParserAstNode {
         "awaitToken": awaitToken,
         "forToken": forToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitForControlFlowBegin(this);
 }
 
 class ForControlFlowEnd extends ParserAstNode {
@@ -7306,6 +8169,9 @@ class ForControlFlowEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitForControlFlowEnd(this);
 }
 
 class ForInControlFlowEnd extends ParserAstNode {
@@ -7318,6 +8184,9 @@ class ForInControlFlowEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitForInControlFlowEnd(this);
 }
 
 class IfControlFlowBegin extends ParserAstNode {
@@ -7330,6 +8199,9 @@ class IfControlFlowBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "ifToken": ifToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitIfControlFlowBegin(this);
 }
 
 class ThenControlFlowHandle extends ParserAstNode {
@@ -7342,6 +8214,9 @@ class ThenControlFlowHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitThenControlFlowHandle(this);
 }
 
 class ElseControlFlowHandle extends ParserAstNode {
@@ -7354,6 +8229,9 @@ class ElseControlFlowHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "elseToken": elseToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitElseControlFlowHandle(this);
 }
 
 class IfControlFlowEnd extends ParserAstNode {
@@ -7366,6 +8244,9 @@ class IfControlFlowEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitIfControlFlowEnd(this);
 }
 
 class IfElseControlFlowEnd extends ParserAstNode {
@@ -7378,6 +8259,9 @@ class IfElseControlFlowEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitIfElseControlFlowEnd(this);
 }
 
 class SpreadExpressionHandle extends ParserAstNode {
@@ -7390,6 +8274,9 @@ class SpreadExpressionHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "spreadToken": spreadToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitSpreadExpressionHandle(this);
 }
 
 class RestPatternHandle extends ParserAstNode {
@@ -7405,6 +8292,9 @@ class RestPatternHandle extends ParserAstNode {
         "dots": dots,
         "hasSubPattern": hasSubPattern,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitRestPatternHandle(this);
 }
 
 class FunctionTypedFormalParameterBegin extends ParserAstNode {
@@ -7417,6 +8307,10 @@ class FunctionTypedFormalParameterBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitFunctionTypedFormalParameterBegin(this);
 }
 
 class FunctionTypedFormalParameterEnd extends ParserAstNode {
@@ -7432,6 +8326,10 @@ class FunctionTypedFormalParameterEnd extends ParserAstNode {
         "nameToken": nameToken,
         "question": question,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitFunctionTypedFormalParameterEnd(this);
 }
 
 class IdentifierHandle extends ParserAstNode {
@@ -7447,6 +8345,9 @@ class IdentifierHandle extends ParserAstNode {
         "token": token,
         "context": context,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitIdentifierHandle(this);
 }
 
 class IndexedExpressionHandle extends ParserAstNode {
@@ -7466,6 +8367,9 @@ class IndexedExpressionHandle extends ParserAstNode {
         "openSquareBracket": openSquareBracket,
         "closeSquareBracket": closeSquareBracket,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitIndexedExpressionHandle(this);
 }
 
 class IsOperatorTypeBegin extends ParserAstNode {
@@ -7478,6 +8382,9 @@ class IsOperatorTypeBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "operator": operator,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitIsOperatorTypeBegin(this);
 }
 
 class IsOperatorTypeEnd extends ParserAstNode {
@@ -7490,6 +8397,9 @@ class IsOperatorTypeEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "operator": operator,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitIsOperatorTypeEnd(this);
 }
 
 class IsOperatorHandle extends ParserAstNode {
@@ -7504,6 +8414,9 @@ class IsOperatorHandle extends ParserAstNode {
         "isOperator": isOperator,
         "not": not,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitIsOperatorHandle(this);
 }
 
 class LiteralBoolHandle extends ParserAstNode {
@@ -7516,6 +8429,9 @@ class LiteralBoolHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitLiteralBoolHandle(this);
 }
 
 class BreakStatementHandle extends ParserAstNode {
@@ -7535,6 +8451,9 @@ class BreakStatementHandle extends ParserAstNode {
         "breakKeyword": breakKeyword,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitBreakStatementHandle(this);
 }
 
 class ContinueStatementHandle extends ParserAstNode {
@@ -7554,6 +8473,9 @@ class ContinueStatementHandle extends ParserAstNode {
         "continueKeyword": continueKeyword,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitContinueStatementHandle(this);
 }
 
 class EmptyStatementHandle extends ParserAstNode {
@@ -7566,6 +8488,9 @@ class EmptyStatementHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitEmptyStatementHandle(this);
 }
 
 class AssertBegin extends ParserAstNode {
@@ -7581,6 +8506,9 @@ class AssertBegin extends ParserAstNode {
         "assertKeyword": assertKeyword,
         "kind": kind,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitAssertBegin(this);
 }
 
 class AssertEnd extends ParserAstNode {
@@ -7606,6 +8534,9 @@ class AssertEnd extends ParserAstNode {
         "commaToken": commaToken,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitAssertEnd(this);
 }
 
 class LiteralDoubleHandle extends ParserAstNode {
@@ -7618,6 +8549,9 @@ class LiteralDoubleHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitLiteralDoubleHandle(this);
 }
 
 class LiteralIntHandle extends ParserAstNode {
@@ -7630,6 +8564,9 @@ class LiteralIntHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitLiteralIntHandle(this);
 }
 
 class LiteralListHandle extends ParserAstNode {
@@ -7652,6 +8589,9 @@ class LiteralListHandle extends ParserAstNode {
         "constKeyword": constKeyword,
         "rightBracket": rightBracket,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitLiteralListHandle(this);
 }
 
 class ListPatternHandle extends ParserAstNode {
@@ -7671,6 +8611,9 @@ class ListPatternHandle extends ParserAstNode {
         "leftBracket": leftBracket,
         "rightBracket": rightBracket,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitListPatternHandle(this);
 }
 
 class LiteralSetOrMapHandle extends ParserAstNode {
@@ -7696,6 +8639,9 @@ class LiteralSetOrMapHandle extends ParserAstNode {
         "rightBrace": rightBrace,
         "hasSetEntry": hasSetEntry,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitLiteralSetOrMapHandle(this);
 }
 
 class MapPatternHandle extends ParserAstNode {
@@ -7713,6 +8659,9 @@ class MapPatternHandle extends ParserAstNode {
         "leftBrace": leftBrace,
         "rightBrace": rightBrace,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitMapPatternHandle(this);
 }
 
 class LiteralNullHandle extends ParserAstNode {
@@ -7725,6 +8674,9 @@ class LiteralNullHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitLiteralNullHandle(this);
 }
 
 class NativeClauseHandle extends ParserAstNode {
@@ -7740,6 +8692,9 @@ class NativeClauseHandle extends ParserAstNode {
         "nativeToken": nativeToken,
         "hasName": hasName,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitNativeClauseHandle(this);
 }
 
 class NamedArgumentHandle extends ParserAstNode {
@@ -7752,6 +8707,9 @@ class NamedArgumentHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "colon": colon,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitNamedArgumentHandle(this);
 }
 
 class PatternFieldHandle extends ParserAstNode {
@@ -7764,6 +8722,9 @@ class PatternFieldHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "colon": colon,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitPatternFieldHandle(this);
 }
 
 class NamedRecordFieldHandle extends ParserAstNode {
@@ -7776,6 +8737,9 @@ class NamedRecordFieldHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "colon": colon,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitNamedRecordFieldHandle(this);
 }
 
 class NewExpressionBegin extends ParserAstNode {
@@ -7788,6 +8752,9 @@ class NewExpressionBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitNewExpressionBegin(this);
 }
 
 class NewExpressionEnd extends ParserAstNode {
@@ -7800,6 +8767,9 @@ class NewExpressionEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitNewExpressionEnd(this);
 }
 
 class NoArgumentsHandle extends ParserAstNode {
@@ -7812,6 +8782,9 @@ class NoArgumentsHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitNoArgumentsHandle(this);
 }
 
 class NoConstructorReferenceContinuationAfterTypeArgumentsHandle
@@ -7826,6 +8799,10 @@ class NoConstructorReferenceContinuationAfterTypeArgumentsHandle
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitNoConstructorReferenceContinuationAfterTypeArgumentsHandle(this);
 }
 
 class NoTypeNameInConstructorReferenceHandle extends ParserAstNode {
@@ -7839,6 +8816,10 @@ class NoTypeNameInConstructorReferenceHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitNoTypeNameInConstructorReferenceHandle(this);
 }
 
 class NoTypeHandle extends ParserAstNode {
@@ -7851,6 +8832,9 @@ class NoTypeHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "lastConsumed": lastConsumed,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitNoTypeHandle(this);
 }
 
 class NoTypeVariablesHandle extends ParserAstNode {
@@ -7863,6 +8847,9 @@ class NoTypeVariablesHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitNoTypeVariablesHandle(this);
 }
 
 class OperatorHandle extends ParserAstNode {
@@ -7875,6 +8862,9 @@ class OperatorHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitOperatorHandle(this);
 }
 
 class SwitchCaseNoWhenClauseHandle extends ParserAstNode {
@@ -7887,6 +8877,10 @@ class SwitchCaseNoWhenClauseHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitSwitchCaseNoWhenClauseHandle(this);
 }
 
 class SwitchExpressionCasePatternHandle extends ParserAstNode {
@@ -7899,6 +8893,10 @@ class SwitchExpressionCasePatternHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitSwitchExpressionCasePatternHandle(this);
 }
 
 class SymbolVoidHandle extends ParserAstNode {
@@ -7911,6 +8909,9 @@ class SymbolVoidHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitSymbolVoidHandle(this);
 }
 
 class OperatorNameHandle extends ParserAstNode {
@@ -7926,6 +8927,9 @@ class OperatorNameHandle extends ParserAstNode {
         "operatorKeyword": operatorKeyword,
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitOperatorNameHandle(this);
 }
 
 class InvalidOperatorNameHandle extends ParserAstNode {
@@ -7941,6 +8945,9 @@ class InvalidOperatorNameHandle extends ParserAstNode {
         "operatorKeyword": operatorKeyword,
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitInvalidOperatorNameHandle(this);
 }
 
 class ParenthesizedConditionHandle extends ParserAstNode {
@@ -7958,6 +8965,10 @@ class ParenthesizedConditionHandle extends ParserAstNode {
         "case_": case_,
         "when": when,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitParenthesizedConditionHandle(this);
 }
 
 class PatternBegin extends ParserAstNode {
@@ -7970,6 +8981,9 @@ class PatternBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitPatternBegin(this);
 }
 
 class PatternGuardBegin extends ParserAstNode {
@@ -7982,6 +8996,9 @@ class PatternGuardBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "when": when,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitPatternGuardBegin(this);
 }
 
 class ParenthesizedExpressionOrRecordLiteralBegin extends ParserAstNode {
@@ -7995,6 +9012,10 @@ class ParenthesizedExpressionOrRecordLiteralBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitParenthesizedExpressionOrRecordLiteralBegin(this);
 }
 
 class SwitchCaseWhenClauseBegin extends ParserAstNode {
@@ -8007,6 +9028,9 @@ class SwitchCaseWhenClauseBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "when": when,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitSwitchCaseWhenClauseBegin(this);
 }
 
 class RecordLiteralEnd extends ParserAstNode {
@@ -8024,6 +9048,9 @@ class RecordLiteralEnd extends ParserAstNode {
         "count": count,
         "constKeyword": constKeyword,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitRecordLiteralEnd(this);
 }
 
 class RecordPatternHandle extends ParserAstNode {
@@ -8039,6 +9066,9 @@ class RecordPatternHandle extends ParserAstNode {
         "token": token,
         "count": count,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitRecordPatternHandle(this);
 }
 
 class PatternEnd extends ParserAstNode {
@@ -8051,6 +9081,9 @@ class PatternEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitPatternEnd(this);
 }
 
 class PatternGuardEnd extends ParserAstNode {
@@ -8063,6 +9096,9 @@ class PatternGuardEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitPatternGuardEnd(this);
 }
 
 class ParenthesizedExpressionEnd extends ParserAstNode {
@@ -8075,6 +9111,9 @@ class ParenthesizedExpressionEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitParenthesizedExpressionEnd(this);
 }
 
 class SwitchCaseWhenClauseEnd extends ParserAstNode {
@@ -8087,6 +9126,9 @@ class SwitchCaseWhenClauseEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitSwitchCaseWhenClauseEnd(this);
 }
 
 class ParenthesizedPatternHandle extends ParserAstNode {
@@ -8099,6 +9141,9 @@ class ParenthesizedPatternHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitParenthesizedPatternHandle(this);
 }
 
 class ConstantPatternBegin extends ParserAstNode {
@@ -8111,6 +9156,9 @@ class ConstantPatternBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "constKeyword": constKeyword,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitConstantPatternBegin(this);
 }
 
 class ConstantPatternEnd extends ParserAstNode {
@@ -8123,6 +9171,9 @@ class ConstantPatternEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "constKeyword": constKeyword,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitConstantPatternEnd(this);
 }
 
 class ObjectPatternHandle extends ParserAstNode {
@@ -8140,6 +9191,9 @@ class ObjectPatternHandle extends ParserAstNode {
         "dot": dot,
         "secondIdentifier": secondIdentifier,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitObjectPatternHandle(this);
 }
 
 class QualifiedHandle extends ParserAstNode {
@@ -8152,6 +9206,9 @@ class QualifiedHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "period": period,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitQualifiedHandle(this);
 }
 
 class StringPartHandle extends ParserAstNode {
@@ -8164,6 +9221,9 @@ class StringPartHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitStringPartHandle(this);
 }
 
 class SuperExpressionHandle extends ParserAstNode {
@@ -8179,6 +9239,9 @@ class SuperExpressionHandle extends ParserAstNode {
         "token": token,
         "context": context,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitSuperExpressionHandle(this);
 }
 
 class AugmentSuperExpressionHandle extends ParserAstNode {
@@ -8198,6 +9261,10 @@ class AugmentSuperExpressionHandle extends ParserAstNode {
         "superToken": superToken,
         "context": context,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitAugmentSuperExpressionHandle(this);
 }
 
 class SwitchCaseBegin extends ParserAstNode {
@@ -8217,6 +9284,9 @@ class SwitchCaseBegin extends ParserAstNode {
         "expressionCount": expressionCount,
         "firstToken": firstToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitSwitchCaseBegin(this);
 }
 
 class SwitchCaseEnd extends ParserAstNode {
@@ -8248,6 +9318,9 @@ class SwitchCaseEnd extends ParserAstNode {
         "firstToken": firstToken,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitSwitchCaseEnd(this);
 }
 
 class SwitchExpressionCaseBegin extends ParserAstNode {
@@ -8256,6 +9329,9 @@ class SwitchExpressionCaseBegin extends ParserAstNode {
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitSwitchExpressionCaseBegin(this);
 }
 
 class SwitchExpressionCaseEnd extends ParserAstNode {
@@ -8273,6 +9349,9 @@ class SwitchExpressionCaseEnd extends ParserAstNode {
         "arrow": arrow,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitSwitchExpressionCaseEnd(this);
 }
 
 class ThisExpressionHandle extends ParserAstNode {
@@ -8288,6 +9367,9 @@ class ThisExpressionHandle extends ParserAstNode {
         "token": token,
         "context": context,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitThisExpressionHandle(this);
 }
 
 class UnaryPostfixAssignmentExpressionHandle extends ParserAstNode {
@@ -8301,6 +9383,10 @@ class UnaryPostfixAssignmentExpressionHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitUnaryPostfixAssignmentExpressionHandle(this);
 }
 
 class UnaryPrefixExpressionHandle extends ParserAstNode {
@@ -8313,6 +9399,10 @@ class UnaryPrefixExpressionHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitUnaryPrefixExpressionHandle(this);
 }
 
 class RelationalPatternHandle extends ParserAstNode {
@@ -8325,6 +9415,9 @@ class RelationalPatternHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitRelationalPatternHandle(this);
 }
 
 class UnaryPrefixAssignmentExpressionHandle extends ParserAstNode {
@@ -8338,6 +9431,10 @@ class UnaryPrefixAssignmentExpressionHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitUnaryPrefixAssignmentExpressionHandle(this);
 }
 
 class FormalParameterDefaultValueExpressionBegin extends ParserAstNode {
@@ -8346,6 +9443,10 @@ class FormalParameterDefaultValueExpressionBegin extends ParserAstNode {
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitFormalParameterDefaultValueExpressionBegin(this);
 }
 
 class FormalParameterDefaultValueExpressionEnd extends ParserAstNode {
@@ -8354,6 +9455,10 @@ class FormalParameterDefaultValueExpressionEnd extends ParserAstNode {
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitFormalParameterDefaultValueExpressionEnd(this);
 }
 
 class ValuedFormalParameterHandle extends ParserAstNode {
@@ -8371,6 +9476,10 @@ class ValuedFormalParameterHandle extends ParserAstNode {
         "token": token,
         "kind": kind,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitValuedFormalParameterHandle(this);
 }
 
 class FormalParameterWithoutValueHandle extends ParserAstNode {
@@ -8383,6 +9492,10 @@ class FormalParameterWithoutValueHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitFormalParameterWithoutValueHandle(this);
 }
 
 class VoidKeywordHandle extends ParserAstNode {
@@ -8395,6 +9508,9 @@ class VoidKeywordHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitVoidKeywordHandle(this);
 }
 
 class VoidKeywordWithTypeArgumentsHandle extends ParserAstNode {
@@ -8407,6 +9523,10 @@ class VoidKeywordWithTypeArgumentsHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitVoidKeywordWithTypeArgumentsHandle(this);
 }
 
 class YieldStatementBegin extends ParserAstNode {
@@ -8419,6 +9539,9 @@ class YieldStatementBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitYieldStatementBegin(this);
 }
 
 class YieldStatementEnd extends ParserAstNode {
@@ -8436,6 +9559,9 @@ class YieldStatementEnd extends ParserAstNode {
         "starToken": starToken,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitYieldStatementEnd(this);
 }
 
 class InvalidYieldStatementEnd extends ParserAstNode {
@@ -8458,6 +9584,9 @@ class InvalidYieldStatementEnd extends ParserAstNode {
         "endToken": endToken,
         "errorCode": errorCode,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitInvalidYieldStatementEnd(this);
 }
 
 class RecoverableErrorHandle extends ParserAstNode {
@@ -8475,6 +9604,9 @@ class RecoverableErrorHandle extends ParserAstNode {
         "startToken": startToken,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitRecoverableErrorHandle(this);
 }
 
 class ExperimentNotEnabledHandle extends ParserAstNode {
@@ -8494,6 +9626,9 @@ class ExperimentNotEnabledHandle extends ParserAstNode {
         "startToken": startToken,
         "endToken": endToken,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitExperimentNotEnabledHandle(this);
 }
 
 class ErrorTokenHandle extends ParserAstNode {
@@ -8506,6 +9641,9 @@ class ErrorTokenHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitErrorTokenHandle(this);
 }
 
 class UnescapeErrorHandle extends ParserAstNode {
@@ -8528,6 +9666,9 @@ class UnescapeErrorHandle extends ParserAstNode {
         "stringOffset": stringOffset,
         "length": length,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitUnescapeErrorHandle(this);
 }
 
 class InvalidStatementHandle extends ParserAstNode {
@@ -8543,6 +9684,9 @@ class InvalidStatementHandle extends ParserAstNode {
         "token": token,
         "message": message,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitInvalidStatementHandle(this);
 }
 
 class ScriptHandle extends ParserAstNode {
@@ -8555,6 +9699,9 @@ class ScriptHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitScriptHandle(this);
 }
 
 class TypeArgumentApplicationHandle extends ParserAstNode {
@@ -8568,6 +9715,10 @@ class TypeArgumentApplicationHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "openAngleBracket": openAngleBracket,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitTypeArgumentApplicationHandle(this);
 }
 
 class NewAsIdentifierHandle extends ParserAstNode {
@@ -8580,6 +9731,9 @@ class NewAsIdentifierHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitNewAsIdentifierHandle(this);
 }
 
 class PatternVariableDeclarationStatementHandle extends ParserAstNode {
@@ -8597,6 +9751,10 @@ class PatternVariableDeclarationStatementHandle extends ParserAstNode {
         "equals": equals,
         "semicolon": semicolon,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitPatternVariableDeclarationStatementHandle(this);
 }
 
 class PatternAssignmentHandle extends ParserAstNode {
@@ -8609,4 +9767,1795 @@ class PatternAssignmentHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "equals": equals,
       };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitPatternAssignmentHandle(this);
+}
+
+abstract class ParserAstVisitor<R> {
+  R visitArgumentsBegin(ArgumentsBegin node);
+  R visitArgumentsEnd(ArgumentsEnd node);
+  R visitObjectPatternFieldsHandle(ObjectPatternFieldsHandle node);
+  R visitAsyncModifierHandle(AsyncModifierHandle node);
+  R visitAwaitExpressionBegin(AwaitExpressionBegin node);
+  R visitAwaitExpressionEnd(AwaitExpressionEnd node);
+  R visitInvalidAwaitExpressionEnd(InvalidAwaitExpressionEnd node);
+  R visitBlockBegin(BlockBegin node);
+  R visitBlockEnd(BlockEnd node);
+  R visitInvalidTopLevelBlockHandle(InvalidTopLevelBlockHandle node);
+  R visitCascadeBegin(CascadeBegin node);
+  R visitCascadeEnd(CascadeEnd node);
+  R visitCaseExpressionBegin(CaseExpressionBegin node);
+  R visitCaseExpressionEnd(CaseExpressionEnd node);
+  R visitClassOrMixinOrExtensionBodyBegin(
+      ClassOrMixinOrExtensionBodyBegin node);
+  R visitClassOrMixinOrExtensionBodyEnd(ClassOrMixinOrExtensionBodyEnd node);
+  R visitClassOrMixinOrNamedMixinApplicationPreludeBegin(
+      ClassOrMixinOrNamedMixinApplicationPreludeBegin node);
+  R visitClassDeclarationBegin(ClassDeclarationBegin node);
+  R visitClassExtendsHandle(ClassExtendsHandle node);
+  R visitImplementsHandle(ImplementsHandle node);
+  R visitClassHeaderHandle(ClassHeaderHandle node);
+  R visitRecoverDeclarationHeaderHandle(RecoverDeclarationHeaderHandle node);
+  R visitClassDeclarationEnd(ClassDeclarationEnd node);
+  R visitMixinDeclarationBegin(MixinDeclarationBegin node);
+  R visitMixinOnHandle(MixinOnHandle node);
+  R visitMixinHeaderHandle(MixinHeaderHandle node);
+  R visitRecoverMixinHeaderHandle(RecoverMixinHeaderHandle node);
+  R visitMixinDeclarationEnd(MixinDeclarationEnd node);
+  R visitUncategorizedTopLevelDeclarationBegin(
+      UncategorizedTopLevelDeclarationBegin node);
+  R visitExtensionDeclarationPreludeBegin(
+      ExtensionDeclarationPreludeBegin node);
+  R visitExtensionDeclarationBegin(ExtensionDeclarationBegin node);
+  R visitExtensionDeclarationEnd(ExtensionDeclarationEnd node);
+  R visitExtensionTypeDeclarationBegin(ExtensionTypeDeclarationBegin node);
+  R visitExtensionTypeDeclarationEnd(ExtensionTypeDeclarationEnd node);
+  R visitPrimaryConstructorBegin(PrimaryConstructorBegin node);
+  R visitPrimaryConstructorEnd(PrimaryConstructorEnd node);
+  R visitNoPrimaryConstructorHandle(NoPrimaryConstructorHandle node);
+  R visitCombinatorsBegin(CombinatorsBegin node);
+  R visitCombinatorsEnd(CombinatorsEnd node);
+  R visitCompilationUnitBegin(CompilationUnitBegin node);
+  R visitDirectivesOnlyHandle(DirectivesOnlyHandle node);
+  R visitCompilationUnitEnd(CompilationUnitEnd node);
+  R visitConstLiteralBegin(ConstLiteralBegin node);
+  R visitConstLiteralEnd(ConstLiteralEnd node);
+  R visitConstructorReferenceBegin(ConstructorReferenceBegin node);
+  R visitConstructorReferenceEnd(ConstructorReferenceEnd node);
+  R visitDoWhileStatementBegin(DoWhileStatementBegin node);
+  R visitDoWhileStatementEnd(DoWhileStatementEnd node);
+  R visitDoWhileStatementBodyBegin(DoWhileStatementBodyBegin node);
+  R visitDoWhileStatementBodyEnd(DoWhileStatementBodyEnd node);
+  R visitWhileStatementBodyBegin(WhileStatementBodyBegin node);
+  R visitWhileStatementBodyEnd(WhileStatementBodyEnd node);
+  R visitEnumBegin(EnumBegin node);
+  R visitEnumEnd(EnumEnd node);
+  R visitEnumConstructorEnd(EnumConstructorEnd node);
+  R visitEnumElementsHandle(EnumElementsHandle node);
+  R visitEnumHeaderHandle(EnumHeaderHandle node);
+  R visitEnumElementHandle(EnumElementHandle node);
+  R visitEnumFactoryMethodEnd(EnumFactoryMethodEnd node);
+  R visitExportBegin(ExportBegin node);
+  R visitExportEnd(ExportEnd node);
+  R visitExtraneousExpressionHandle(ExtraneousExpressionHandle node);
+  R visitExpressionStatementHandle(ExpressionStatementHandle node);
+  R visitFactoryMethodBegin(FactoryMethodBegin node);
+  R visitClassFactoryMethodEnd(ClassFactoryMethodEnd node);
+  R visitMixinFactoryMethodEnd(MixinFactoryMethodEnd node);
+  R visitExtensionFactoryMethodEnd(ExtensionFactoryMethodEnd node);
+  R visitExtensionTypeFactoryMethodEnd(ExtensionTypeFactoryMethodEnd node);
+  R visitFormalParameterBegin(FormalParameterBegin node);
+  R visitFormalParameterEnd(FormalParameterEnd node);
+  R visitNoFormalParametersHandle(NoFormalParametersHandle node);
+  R visitFormalParametersBegin(FormalParametersBegin node);
+  R visitFormalParametersEnd(FormalParametersEnd node);
+  R visitClassFieldsEnd(ClassFieldsEnd node);
+  R visitMixinFieldsEnd(MixinFieldsEnd node);
+  R visitExtensionFieldsEnd(ExtensionFieldsEnd node);
+  R visitExtensionTypeFieldsEnd(ExtensionTypeFieldsEnd node);
+  R visitEnumFieldsEnd(EnumFieldsEnd node);
+  R visitEnumMethodEnd(EnumMethodEnd node);
+  R visitForInitializerEmptyStatementHandle(
+      ForInitializerEmptyStatementHandle node);
+  R visitForInitializerExpressionStatementHandle(
+      ForInitializerExpressionStatementHandle node);
+  R visitForInitializerLocalVariableDeclarationHandle(
+      ForInitializerLocalVariableDeclarationHandle node);
+  R visitForInitializerPatternVariableAssignmentHandle(
+      ForInitializerPatternVariableAssignmentHandle node);
+  R visitForStatementBegin(ForStatementBegin node);
+  R visitForLoopPartsHandle(ForLoopPartsHandle node);
+  R visitForStatementEnd(ForStatementEnd node);
+  R visitForStatementBodyBegin(ForStatementBodyBegin node);
+  R visitForStatementBodyEnd(ForStatementBodyEnd node);
+  R visitForInLoopPartsHandle(ForInLoopPartsHandle node);
+  R visitForInEnd(ForInEnd node);
+  R visitForInExpressionBegin(ForInExpressionBegin node);
+  R visitForInExpressionEnd(ForInExpressionEnd node);
+  R visitForInBodyBegin(ForInBodyBegin node);
+  R visitForInBodyEnd(ForInBodyEnd node);
+  R visitNamedFunctionExpressionBegin(NamedFunctionExpressionBegin node);
+  R visitNamedFunctionExpressionEnd(NamedFunctionExpressionEnd node);
+  R visitLocalFunctionDeclarationBegin(LocalFunctionDeclarationBegin node);
+  R visitLocalFunctionDeclarationEnd(LocalFunctionDeclarationEnd node);
+  R visitBlockFunctionBodyBegin(BlockFunctionBodyBegin node);
+  R visitBlockFunctionBodyEnd(BlockFunctionBodyEnd node);
+  R visitNoFunctionBodyHandle(NoFunctionBodyHandle node);
+  R visitFunctionBodySkippedHandle(FunctionBodySkippedHandle node);
+  R visitFunctionNameBegin(FunctionNameBegin node);
+  R visitFunctionNameEnd(FunctionNameEnd node);
+  R visitTypedefBegin(TypedefBegin node);
+  R visitTypedefEnd(TypedefEnd node);
+  R visitClassWithClauseHandle(ClassWithClauseHandle node);
+  R visitClassNoWithClauseHandle(ClassNoWithClauseHandle node);
+  R visitEnumWithClauseHandle(EnumWithClauseHandle node);
+  R visitEnumNoWithClauseHandle(EnumNoWithClauseHandle node);
+  R visitMixinWithClauseHandle(MixinWithClauseHandle node);
+  R visitNamedMixinApplicationBegin(NamedMixinApplicationBegin node);
+  R visitNamedMixinApplicationWithClauseHandle(
+      NamedMixinApplicationWithClauseHandle node);
+  R visitNamedMixinApplicationEnd(NamedMixinApplicationEnd node);
+  R visitHideBegin(HideBegin node);
+  R visitHideEnd(HideEnd node);
+  R visitIdentifierListHandle(IdentifierListHandle node);
+  R visitTypeListBegin(TypeListBegin node);
+  R visitTypeListEnd(TypeListEnd node);
+  R visitIfStatementBegin(IfStatementBegin node);
+  R visitIfStatementEnd(IfStatementEnd node);
+  R visitThenStatementBegin(ThenStatementBegin node);
+  R visitThenStatementEnd(ThenStatementEnd node);
+  R visitElseStatementBegin(ElseStatementBegin node);
+  R visitElseStatementEnd(ElseStatementEnd node);
+  R visitImportBegin(ImportBegin node);
+  R visitImportPrefixHandle(ImportPrefixHandle node);
+  R visitImportEnd(ImportEnd node);
+  R visitRecoverImportHandle(RecoverImportHandle node);
+  R visitConditionalUrisBegin(ConditionalUrisBegin node);
+  R visitConditionalUrisEnd(ConditionalUrisEnd node);
+  R visitConditionalUriBegin(ConditionalUriBegin node);
+  R visitConditionalUriEnd(ConditionalUriEnd node);
+  R visitDottedNameHandle(DottedNameHandle node);
+  R visitImplicitCreationExpressionBegin(ImplicitCreationExpressionBegin node);
+  R visitImplicitCreationExpressionEnd(ImplicitCreationExpressionEnd node);
+  R visitInitializedIdentifierBegin(InitializedIdentifierBegin node);
+  R visitInitializedIdentifierEnd(InitializedIdentifierEnd node);
+  R visitFieldInitializerBegin(FieldInitializerBegin node);
+  R visitFieldInitializerEnd(FieldInitializerEnd node);
+  R visitNoFieldInitializerHandle(NoFieldInitializerHandle node);
+  R visitVariableInitializerBegin(VariableInitializerBegin node);
+  R visitVariableInitializerEnd(VariableInitializerEnd node);
+  R visitNoVariableInitializerHandle(NoVariableInitializerHandle node);
+  R visitInitializerBegin(InitializerBegin node);
+  R visitInitializerEnd(InitializerEnd node);
+  R visitInitializersBegin(InitializersBegin node);
+  R visitInitializersEnd(InitializersEnd node);
+  R visitNoInitializersHandle(NoInitializersHandle node);
+  R visitInvalidExpressionHandle(InvalidExpressionHandle node);
+  R visitInvalidFunctionBodyHandle(InvalidFunctionBodyHandle node);
+  R visitInvalidTypeReferenceHandle(InvalidTypeReferenceHandle node);
+  R visitLabelHandle(LabelHandle node);
+  R visitLabeledStatementBegin(LabeledStatementBegin node);
+  R visitLabeledStatementEnd(LabeledStatementEnd node);
+  R visitLibraryAugmentationBegin(LibraryAugmentationBegin node);
+  R visitLibraryAugmentationEnd(LibraryAugmentationEnd node);
+  R visitLibraryNameBegin(LibraryNameBegin node);
+  R visitLibraryNameEnd(LibraryNameEnd node);
+  R visitLiteralMapEntryHandle(LiteralMapEntryHandle node);
+  R visitMapPatternEntryHandle(MapPatternEntryHandle node);
+  R visitLiteralStringBegin(LiteralStringBegin node);
+  R visitInterpolationExpressionHandle(InterpolationExpressionHandle node);
+  R visitLiteralStringEnd(LiteralStringEnd node);
+  R visitStringJuxtapositionHandle(StringJuxtapositionHandle node);
+  R visitMemberBegin(MemberBegin node);
+  R visitInvalidMemberHandle(InvalidMemberHandle node);
+  R visitMemberEnd(MemberEnd node);
+  R visitMethodBegin(MethodBegin node);
+  R visitClassMethodEnd(ClassMethodEnd node);
+  R visitMixinMethodEnd(MixinMethodEnd node);
+  R visitExtensionMethodEnd(ExtensionMethodEnd node);
+  R visitExtensionTypeMethodEnd(ExtensionTypeMethodEnd node);
+  R visitClassConstructorEnd(ClassConstructorEnd node);
+  R visitMixinConstructorEnd(MixinConstructorEnd node);
+  R visitExtensionConstructorEnd(ExtensionConstructorEnd node);
+  R visitExtensionTypeConstructorEnd(ExtensionTypeConstructorEnd node);
+  R visitMetadataStarBegin(MetadataStarBegin node);
+  R visitMetadataStarEnd(MetadataStarEnd node);
+  R visitMetadataBegin(MetadataBegin node);
+  R visitMetadataEnd(MetadataEnd node);
+  R visitOptionalFormalParametersBegin(OptionalFormalParametersBegin node);
+  R visitOptionalFormalParametersEnd(OptionalFormalParametersEnd node);
+  R visitPartBegin(PartBegin node);
+  R visitPartEnd(PartEnd node);
+  R visitPartOfBegin(PartOfBegin node);
+  R visitPartOfEnd(PartOfEnd node);
+  R visitRedirectingFactoryBodyBegin(RedirectingFactoryBodyBegin node);
+  R visitRedirectingFactoryBodyEnd(RedirectingFactoryBodyEnd node);
+  R visitReturnStatementBegin(ReturnStatementBegin node);
+  R visitNativeFunctionBodyHandle(NativeFunctionBodyHandle node);
+  R visitNativeFunctionBodyIgnoredHandle(NativeFunctionBodyIgnoredHandle node);
+  R visitNativeFunctionBodySkippedHandle(NativeFunctionBodySkippedHandle node);
+  R visitEmptyFunctionBodyHandle(EmptyFunctionBodyHandle node);
+  R visitExpressionFunctionBodyHandle(ExpressionFunctionBodyHandle node);
+  R visitReturnStatementEnd(ReturnStatementEnd node);
+  R visitSendHandle(SendHandle node);
+  R visitShowBegin(ShowBegin node);
+  R visitShowEnd(ShowEnd node);
+  R visitSwitchStatementBegin(SwitchStatementBegin node);
+  R visitSwitchStatementEnd(SwitchStatementEnd node);
+  R visitSwitchExpressionBegin(SwitchExpressionBegin node);
+  R visitSwitchExpressionEnd(SwitchExpressionEnd node);
+  R visitSwitchBlockBegin(SwitchBlockBegin node);
+  R visitSwitchBlockEnd(SwitchBlockEnd node);
+  R visitSwitchExpressionBlockBegin(SwitchExpressionBlockBegin node);
+  R visitSwitchExpressionBlockEnd(SwitchExpressionBlockEnd node);
+  R visitLiteralSymbolBegin(LiteralSymbolBegin node);
+  R visitLiteralSymbolEnd(LiteralSymbolEnd node);
+  R visitThrowExpressionHandle(ThrowExpressionHandle node);
+  R visitRethrowStatementBegin(RethrowStatementBegin node);
+  R visitRethrowStatementEnd(RethrowStatementEnd node);
+  R visitTopLevelDeclarationEnd(TopLevelDeclarationEnd node);
+  R visitInvalidTopLevelDeclarationHandle(
+      InvalidTopLevelDeclarationHandle node);
+  R visitTopLevelMemberBegin(TopLevelMemberBegin node);
+  R visitFieldsBegin(FieldsBegin node);
+  R visitTopLevelFieldsEnd(TopLevelFieldsEnd node);
+  R visitTopLevelMethodBegin(TopLevelMethodBegin node);
+  R visitTopLevelMethodEnd(TopLevelMethodEnd node);
+  R visitTryStatementBegin(TryStatementBegin node);
+  R visitCatchClauseBegin(CatchClauseBegin node);
+  R visitCatchClauseEnd(CatchClauseEnd node);
+  R visitCatchBlockHandle(CatchBlockHandle node);
+  R visitFinallyBlockHandle(FinallyBlockHandle node);
+  R visitTryStatementEnd(TryStatementEnd node);
+  R visitTypeHandle(TypeHandle node);
+  R visitNonNullAssertExpressionHandle(NonNullAssertExpressionHandle node);
+  R visitNullAssertPatternHandle(NullAssertPatternHandle node);
+  R visitNullCheckPatternHandle(NullCheckPatternHandle node);
+  R visitAssignedVariablePatternHandle(AssignedVariablePatternHandle node);
+  R visitDeclaredVariablePatternHandle(DeclaredVariablePatternHandle node);
+  R visitWildcardPatternHandle(WildcardPatternHandle node);
+  R visitNoNameHandle(NoNameHandle node);
+  R visitRecordTypeBegin(RecordTypeBegin node);
+  R visitRecordTypeEnd(RecordTypeEnd node);
+  R visitRecordTypeEntryBegin(RecordTypeEntryBegin node);
+  R visitRecordTypeEntryEnd(RecordTypeEntryEnd node);
+  R visitRecordTypeNamedFieldsBegin(RecordTypeNamedFieldsBegin node);
+  R visitRecordTypeNamedFieldsEnd(RecordTypeNamedFieldsEnd node);
+  R visitFunctionTypeBegin(FunctionTypeBegin node);
+  R visitFunctionTypeEnd(FunctionTypeEnd node);
+  R visitTypeArgumentsBegin(TypeArgumentsBegin node);
+  R visitTypeArgumentsEnd(TypeArgumentsEnd node);
+  R visitInvalidTypeArgumentsHandle(InvalidTypeArgumentsHandle node);
+  R visitNoTypeArgumentsHandle(NoTypeArgumentsHandle node);
+  R visitTypeVariableBegin(TypeVariableBegin node);
+  R visitTypeVariablesDefinedHandle(TypeVariablesDefinedHandle node);
+  R visitTypeVariableEnd(TypeVariableEnd node);
+  R visitTypeVariablesBegin(TypeVariablesBegin node);
+  R visitTypeVariablesEnd(TypeVariablesEnd node);
+  R visitFunctionExpressionBegin(FunctionExpressionBegin node);
+  R visitFunctionExpressionEnd(FunctionExpressionEnd node);
+  R visitVariablesDeclarationBegin(VariablesDeclarationBegin node);
+  R visitVariablesDeclarationEnd(VariablesDeclarationEnd node);
+  R visitWhileStatementBegin(WhileStatementBegin node);
+  R visitWhileStatementEnd(WhileStatementEnd node);
+  R visitAsOperatorTypeBegin(AsOperatorTypeBegin node);
+  R visitAsOperatorTypeEnd(AsOperatorTypeEnd node);
+  R visitAsOperatorHandle(AsOperatorHandle node);
+  R visitCastPatternHandle(CastPatternHandle node);
+  R visitAssignmentExpressionHandle(AssignmentExpressionHandle node);
+  R visitBinaryExpressionBegin(BinaryExpressionBegin node);
+  R visitBinaryExpressionEnd(BinaryExpressionEnd node);
+  R visitBinaryPatternBegin(BinaryPatternBegin node);
+  R visitBinaryPatternEnd(BinaryPatternEnd node);
+  R visitEndingBinaryExpressionHandle(EndingBinaryExpressionHandle node);
+  R visitConditionalExpressionBegin(ConditionalExpressionBegin node);
+  R visitConditionalExpressionColonHandle(
+      ConditionalExpressionColonHandle node);
+  R visitConditionalExpressionEnd(ConditionalExpressionEnd node);
+  R visitConstExpressionBegin(ConstExpressionBegin node);
+  R visitConstExpressionEnd(ConstExpressionEnd node);
+  R visitConstFactoryHandle(ConstFactoryHandle node);
+  R visitForControlFlowBegin(ForControlFlowBegin node);
+  R visitForControlFlowEnd(ForControlFlowEnd node);
+  R visitForInControlFlowEnd(ForInControlFlowEnd node);
+  R visitIfControlFlowBegin(IfControlFlowBegin node);
+  R visitThenControlFlowHandle(ThenControlFlowHandle node);
+  R visitElseControlFlowHandle(ElseControlFlowHandle node);
+  R visitIfControlFlowEnd(IfControlFlowEnd node);
+  R visitIfElseControlFlowEnd(IfElseControlFlowEnd node);
+  R visitSpreadExpressionHandle(SpreadExpressionHandle node);
+  R visitRestPatternHandle(RestPatternHandle node);
+  R visitFunctionTypedFormalParameterBegin(
+      FunctionTypedFormalParameterBegin node);
+  R visitFunctionTypedFormalParameterEnd(FunctionTypedFormalParameterEnd node);
+  R visitIdentifierHandle(IdentifierHandle node);
+  R visitIndexedExpressionHandle(IndexedExpressionHandle node);
+  R visitIsOperatorTypeBegin(IsOperatorTypeBegin node);
+  R visitIsOperatorTypeEnd(IsOperatorTypeEnd node);
+  R visitIsOperatorHandle(IsOperatorHandle node);
+  R visitLiteralBoolHandle(LiteralBoolHandle node);
+  R visitBreakStatementHandle(BreakStatementHandle node);
+  R visitContinueStatementHandle(ContinueStatementHandle node);
+  R visitEmptyStatementHandle(EmptyStatementHandle node);
+  R visitAssertBegin(AssertBegin node);
+  R visitAssertEnd(AssertEnd node);
+  R visitLiteralDoubleHandle(LiteralDoubleHandle node);
+  R visitLiteralIntHandle(LiteralIntHandle node);
+  R visitLiteralListHandle(LiteralListHandle node);
+  R visitListPatternHandle(ListPatternHandle node);
+  R visitLiteralSetOrMapHandle(LiteralSetOrMapHandle node);
+  R visitMapPatternHandle(MapPatternHandle node);
+  R visitLiteralNullHandle(LiteralNullHandle node);
+  R visitNativeClauseHandle(NativeClauseHandle node);
+  R visitNamedArgumentHandle(NamedArgumentHandle node);
+  R visitPatternFieldHandle(PatternFieldHandle node);
+  R visitNamedRecordFieldHandle(NamedRecordFieldHandle node);
+  R visitNewExpressionBegin(NewExpressionBegin node);
+  R visitNewExpressionEnd(NewExpressionEnd node);
+  R visitNoArgumentsHandle(NoArgumentsHandle node);
+  R visitNoConstructorReferenceContinuationAfterTypeArgumentsHandle(
+      NoConstructorReferenceContinuationAfterTypeArgumentsHandle node);
+  R visitNoTypeNameInConstructorReferenceHandle(
+      NoTypeNameInConstructorReferenceHandle node);
+  R visitNoTypeHandle(NoTypeHandle node);
+  R visitNoTypeVariablesHandle(NoTypeVariablesHandle node);
+  R visitOperatorHandle(OperatorHandle node);
+  R visitSwitchCaseNoWhenClauseHandle(SwitchCaseNoWhenClauseHandle node);
+  R visitSwitchExpressionCasePatternHandle(
+      SwitchExpressionCasePatternHandle node);
+  R visitSymbolVoidHandle(SymbolVoidHandle node);
+  R visitOperatorNameHandle(OperatorNameHandle node);
+  R visitInvalidOperatorNameHandle(InvalidOperatorNameHandle node);
+  R visitParenthesizedConditionHandle(ParenthesizedConditionHandle node);
+  R visitPatternBegin(PatternBegin node);
+  R visitPatternGuardBegin(PatternGuardBegin node);
+  R visitParenthesizedExpressionOrRecordLiteralBegin(
+      ParenthesizedExpressionOrRecordLiteralBegin node);
+  R visitSwitchCaseWhenClauseBegin(SwitchCaseWhenClauseBegin node);
+  R visitRecordLiteralEnd(RecordLiteralEnd node);
+  R visitRecordPatternHandle(RecordPatternHandle node);
+  R visitPatternEnd(PatternEnd node);
+  R visitPatternGuardEnd(PatternGuardEnd node);
+  R visitParenthesizedExpressionEnd(ParenthesizedExpressionEnd node);
+  R visitSwitchCaseWhenClauseEnd(SwitchCaseWhenClauseEnd node);
+  R visitParenthesizedPatternHandle(ParenthesizedPatternHandle node);
+  R visitConstantPatternBegin(ConstantPatternBegin node);
+  R visitConstantPatternEnd(ConstantPatternEnd node);
+  R visitObjectPatternHandle(ObjectPatternHandle node);
+  R visitQualifiedHandle(QualifiedHandle node);
+  R visitStringPartHandle(StringPartHandle node);
+  R visitSuperExpressionHandle(SuperExpressionHandle node);
+  R visitAugmentSuperExpressionHandle(AugmentSuperExpressionHandle node);
+  R visitSwitchCaseBegin(SwitchCaseBegin node);
+  R visitSwitchCaseEnd(SwitchCaseEnd node);
+  R visitSwitchExpressionCaseBegin(SwitchExpressionCaseBegin node);
+  R visitSwitchExpressionCaseEnd(SwitchExpressionCaseEnd node);
+  R visitThisExpressionHandle(ThisExpressionHandle node);
+  R visitUnaryPostfixAssignmentExpressionHandle(
+      UnaryPostfixAssignmentExpressionHandle node);
+  R visitUnaryPrefixExpressionHandle(UnaryPrefixExpressionHandle node);
+  R visitRelationalPatternHandle(RelationalPatternHandle node);
+  R visitUnaryPrefixAssignmentExpressionHandle(
+      UnaryPrefixAssignmentExpressionHandle node);
+  R visitFormalParameterDefaultValueExpressionBegin(
+      FormalParameterDefaultValueExpressionBegin node);
+  R visitFormalParameterDefaultValueExpressionEnd(
+      FormalParameterDefaultValueExpressionEnd node);
+  R visitValuedFormalParameterHandle(ValuedFormalParameterHandle node);
+  R visitFormalParameterWithoutValueHandle(
+      FormalParameterWithoutValueHandle node);
+  R visitVoidKeywordHandle(VoidKeywordHandle node);
+  R visitVoidKeywordWithTypeArgumentsHandle(
+      VoidKeywordWithTypeArgumentsHandle node);
+  R visitYieldStatementBegin(YieldStatementBegin node);
+  R visitYieldStatementEnd(YieldStatementEnd node);
+  R visitInvalidYieldStatementEnd(InvalidYieldStatementEnd node);
+  R visitRecoverableErrorHandle(RecoverableErrorHandle node);
+  R visitExperimentNotEnabledHandle(ExperimentNotEnabledHandle node);
+  R visitErrorTokenHandle(ErrorTokenHandle node);
+  R visitUnescapeErrorHandle(UnescapeErrorHandle node);
+  R visitInvalidStatementHandle(InvalidStatementHandle node);
+  R visitScriptHandle(ScriptHandle node);
+  R visitTypeArgumentApplicationHandle(TypeArgumentApplicationHandle node);
+  R visitNewAsIdentifierHandle(NewAsIdentifierHandle node);
+  R visitPatternVariableDeclarationStatementHandle(
+      PatternVariableDeclarationStatementHandle node);
+  R visitPatternAssignmentHandle(PatternAssignmentHandle node);
+}
+
+class RecursiveParserAstVisitor implements ParserAstVisitor<void> {
+  @override
+  void visitArgumentsBegin(ArgumentsBegin node) => node.visitChildren(this);
+
+  @override
+  void visitArgumentsEnd(ArgumentsEnd node) => node.visitChildren(this);
+
+  @override
+  void visitObjectPatternFieldsHandle(ObjectPatternFieldsHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitAsyncModifierHandle(AsyncModifierHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitAwaitExpressionBegin(AwaitExpressionBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitAwaitExpressionEnd(AwaitExpressionEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitInvalidAwaitExpressionEnd(InvalidAwaitExpressionEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitBlockBegin(BlockBegin node) => node.visitChildren(this);
+
+  @override
+  void visitBlockEnd(BlockEnd node) => node.visitChildren(this);
+
+  @override
+  void visitInvalidTopLevelBlockHandle(InvalidTopLevelBlockHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitCascadeBegin(CascadeBegin node) => node.visitChildren(this);
+
+  @override
+  void visitCascadeEnd(CascadeEnd node) => node.visitChildren(this);
+
+  @override
+  void visitCaseExpressionBegin(CaseExpressionBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitCaseExpressionEnd(CaseExpressionEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitClassOrMixinOrExtensionBodyBegin(
+          ClassOrMixinOrExtensionBodyBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitClassOrMixinOrExtensionBodyEnd(
+          ClassOrMixinOrExtensionBodyEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitClassOrMixinOrNamedMixinApplicationPreludeBegin(
+          ClassOrMixinOrNamedMixinApplicationPreludeBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitClassDeclarationBegin(ClassDeclarationBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitClassExtendsHandle(ClassExtendsHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitImplementsHandle(ImplementsHandle node) => node.visitChildren(this);
+
+  @override
+  void visitClassHeaderHandle(ClassHeaderHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitRecoverDeclarationHeaderHandle(
+          RecoverDeclarationHeaderHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitClassDeclarationEnd(ClassDeclarationEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitMixinDeclarationBegin(MixinDeclarationBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitMixinOnHandle(MixinOnHandle node) => node.visitChildren(this);
+
+  @override
+  void visitMixinHeaderHandle(MixinHeaderHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitRecoverMixinHeaderHandle(RecoverMixinHeaderHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitMixinDeclarationEnd(MixinDeclarationEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitUncategorizedTopLevelDeclarationBegin(
+          UncategorizedTopLevelDeclarationBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitExtensionDeclarationPreludeBegin(
+          ExtensionDeclarationPreludeBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitExtensionDeclarationBegin(ExtensionDeclarationBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitExtensionDeclarationEnd(ExtensionDeclarationEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitExtensionTypeDeclarationBegin(ExtensionTypeDeclarationBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitExtensionTypeDeclarationEnd(ExtensionTypeDeclarationEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitPrimaryConstructorBegin(PrimaryConstructorBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitPrimaryConstructorEnd(PrimaryConstructorEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitNoPrimaryConstructorHandle(NoPrimaryConstructorHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitCombinatorsBegin(CombinatorsBegin node) => node.visitChildren(this);
+
+  @override
+  void visitCombinatorsEnd(CombinatorsEnd node) => node.visitChildren(this);
+
+  @override
+  void visitCompilationUnitBegin(CompilationUnitBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitDirectivesOnlyHandle(DirectivesOnlyHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitCompilationUnitEnd(CompilationUnitEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitConstLiteralBegin(ConstLiteralBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitConstLiteralEnd(ConstLiteralEnd node) => node.visitChildren(this);
+
+  @override
+  void visitConstructorReferenceBegin(ConstructorReferenceBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitConstructorReferenceEnd(ConstructorReferenceEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitDoWhileStatementBegin(DoWhileStatementBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitDoWhileStatementEnd(DoWhileStatementEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitDoWhileStatementBodyBegin(DoWhileStatementBodyBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitDoWhileStatementBodyEnd(DoWhileStatementBodyEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitWhileStatementBodyBegin(WhileStatementBodyBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitWhileStatementBodyEnd(WhileStatementBodyEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitEnumBegin(EnumBegin node) => node.visitChildren(this);
+
+  @override
+  void visitEnumEnd(EnumEnd node) => node.visitChildren(this);
+
+  @override
+  void visitEnumConstructorEnd(EnumConstructorEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitEnumElementsHandle(EnumElementsHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitEnumHeaderHandle(EnumHeaderHandle node) => node.visitChildren(this);
+
+  @override
+  void visitEnumElementHandle(EnumElementHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitEnumFactoryMethodEnd(EnumFactoryMethodEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitExportBegin(ExportBegin node) => node.visitChildren(this);
+
+  @override
+  void visitExportEnd(ExportEnd node) => node.visitChildren(this);
+
+  @override
+  void visitExtraneousExpressionHandle(ExtraneousExpressionHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitExpressionStatementHandle(ExpressionStatementHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitFactoryMethodBegin(FactoryMethodBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitClassFactoryMethodEnd(ClassFactoryMethodEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitMixinFactoryMethodEnd(MixinFactoryMethodEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitExtensionFactoryMethodEnd(ExtensionFactoryMethodEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitExtensionTypeFactoryMethodEnd(ExtensionTypeFactoryMethodEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitFormalParameterBegin(FormalParameterBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitFormalParameterEnd(FormalParameterEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitNoFormalParametersHandle(NoFormalParametersHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitFormalParametersBegin(FormalParametersBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitFormalParametersEnd(FormalParametersEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitClassFieldsEnd(ClassFieldsEnd node) => node.visitChildren(this);
+
+  @override
+  void visitMixinFieldsEnd(MixinFieldsEnd node) => node.visitChildren(this);
+
+  @override
+  void visitExtensionFieldsEnd(ExtensionFieldsEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitExtensionTypeFieldsEnd(ExtensionTypeFieldsEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitEnumFieldsEnd(EnumFieldsEnd node) => node.visitChildren(this);
+
+  @override
+  void visitEnumMethodEnd(EnumMethodEnd node) => node.visitChildren(this);
+
+  @override
+  void visitForInitializerEmptyStatementHandle(
+          ForInitializerEmptyStatementHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitForInitializerExpressionStatementHandle(
+          ForInitializerExpressionStatementHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitForInitializerLocalVariableDeclarationHandle(
+          ForInitializerLocalVariableDeclarationHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitForInitializerPatternVariableAssignmentHandle(
+          ForInitializerPatternVariableAssignmentHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitForStatementBegin(ForStatementBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitForLoopPartsHandle(ForLoopPartsHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitForStatementEnd(ForStatementEnd node) => node.visitChildren(this);
+
+  @override
+  void visitForStatementBodyBegin(ForStatementBodyBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitForStatementBodyEnd(ForStatementBodyEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitForInLoopPartsHandle(ForInLoopPartsHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitForInEnd(ForInEnd node) => node.visitChildren(this);
+
+  @override
+  void visitForInExpressionBegin(ForInExpressionBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitForInExpressionEnd(ForInExpressionEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitForInBodyBegin(ForInBodyBegin node) => node.visitChildren(this);
+
+  @override
+  void visitForInBodyEnd(ForInBodyEnd node) => node.visitChildren(this);
+
+  @override
+  void visitNamedFunctionExpressionBegin(NamedFunctionExpressionBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitNamedFunctionExpressionEnd(NamedFunctionExpressionEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitLocalFunctionDeclarationBegin(LocalFunctionDeclarationBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitLocalFunctionDeclarationEnd(LocalFunctionDeclarationEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitBlockFunctionBodyBegin(BlockFunctionBodyBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitBlockFunctionBodyEnd(BlockFunctionBodyEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitNoFunctionBodyHandle(NoFunctionBodyHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitFunctionBodySkippedHandle(FunctionBodySkippedHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitFunctionNameBegin(FunctionNameBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitFunctionNameEnd(FunctionNameEnd node) => node.visitChildren(this);
+
+  @override
+  void visitTypedefBegin(TypedefBegin node) => node.visitChildren(this);
+
+  @override
+  void visitTypedefEnd(TypedefEnd node) => node.visitChildren(this);
+
+  @override
+  void visitClassWithClauseHandle(ClassWithClauseHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitClassNoWithClauseHandle(ClassNoWithClauseHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitEnumWithClauseHandle(EnumWithClauseHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitEnumNoWithClauseHandle(EnumNoWithClauseHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitMixinWithClauseHandle(MixinWithClauseHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitNamedMixinApplicationBegin(NamedMixinApplicationBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitNamedMixinApplicationWithClauseHandle(
+          NamedMixinApplicationWithClauseHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitNamedMixinApplicationEnd(NamedMixinApplicationEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitHideBegin(HideBegin node) => node.visitChildren(this);
+
+  @override
+  void visitHideEnd(HideEnd node) => node.visitChildren(this);
+
+  @override
+  void visitIdentifierListHandle(IdentifierListHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitTypeListBegin(TypeListBegin node) => node.visitChildren(this);
+
+  @override
+  void visitTypeListEnd(TypeListEnd node) => node.visitChildren(this);
+
+  @override
+  void visitIfStatementBegin(IfStatementBegin node) => node.visitChildren(this);
+
+  @override
+  void visitIfStatementEnd(IfStatementEnd node) => node.visitChildren(this);
+
+  @override
+  void visitThenStatementBegin(ThenStatementBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitThenStatementEnd(ThenStatementEnd node) => node.visitChildren(this);
+
+  @override
+  void visitElseStatementBegin(ElseStatementBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitElseStatementEnd(ElseStatementEnd node) => node.visitChildren(this);
+
+  @override
+  void visitImportBegin(ImportBegin node) => node.visitChildren(this);
+
+  @override
+  void visitImportPrefixHandle(ImportPrefixHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitImportEnd(ImportEnd node) => node.visitChildren(this);
+
+  @override
+  void visitRecoverImportHandle(RecoverImportHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitConditionalUrisBegin(ConditionalUrisBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitConditionalUrisEnd(ConditionalUrisEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitConditionalUriBegin(ConditionalUriBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitConditionalUriEnd(ConditionalUriEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitDottedNameHandle(DottedNameHandle node) => node.visitChildren(this);
+
+  @override
+  void visitImplicitCreationExpressionBegin(
+          ImplicitCreationExpressionBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitImplicitCreationExpressionEnd(ImplicitCreationExpressionEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitInitializedIdentifierBegin(InitializedIdentifierBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitInitializedIdentifierEnd(InitializedIdentifierEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitFieldInitializerBegin(FieldInitializerBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitFieldInitializerEnd(FieldInitializerEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitNoFieldInitializerHandle(NoFieldInitializerHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitVariableInitializerBegin(VariableInitializerBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitVariableInitializerEnd(VariableInitializerEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitNoVariableInitializerHandle(NoVariableInitializerHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitInitializerBegin(InitializerBegin node) => node.visitChildren(this);
+
+  @override
+  void visitInitializerEnd(InitializerEnd node) => node.visitChildren(this);
+
+  @override
+  void visitInitializersBegin(InitializersBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitInitializersEnd(InitializersEnd node) => node.visitChildren(this);
+
+  @override
+  void visitNoInitializersHandle(NoInitializersHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitInvalidExpressionHandle(InvalidExpressionHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitInvalidFunctionBodyHandle(InvalidFunctionBodyHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitInvalidTypeReferenceHandle(InvalidTypeReferenceHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitLabelHandle(LabelHandle node) => node.visitChildren(this);
+
+  @override
+  void visitLabeledStatementBegin(LabeledStatementBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitLabeledStatementEnd(LabeledStatementEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitLibraryAugmentationBegin(LibraryAugmentationBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitLibraryAugmentationEnd(LibraryAugmentationEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitLibraryNameBegin(LibraryNameBegin node) => node.visitChildren(this);
+
+  @override
+  void visitLibraryNameEnd(LibraryNameEnd node) => node.visitChildren(this);
+
+  @override
+  void visitLiteralMapEntryHandle(LiteralMapEntryHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitMapPatternEntryHandle(MapPatternEntryHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitLiteralStringBegin(LiteralStringBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitInterpolationExpressionHandle(InterpolationExpressionHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitLiteralStringEnd(LiteralStringEnd node) => node.visitChildren(this);
+
+  @override
+  void visitStringJuxtapositionHandle(StringJuxtapositionHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitMemberBegin(MemberBegin node) => node.visitChildren(this);
+
+  @override
+  void visitInvalidMemberHandle(InvalidMemberHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitMemberEnd(MemberEnd node) => node.visitChildren(this);
+
+  @override
+  void visitMethodBegin(MethodBegin node) => node.visitChildren(this);
+
+  @override
+  void visitClassMethodEnd(ClassMethodEnd node) => node.visitChildren(this);
+
+  @override
+  void visitMixinMethodEnd(MixinMethodEnd node) => node.visitChildren(this);
+
+  @override
+  void visitExtensionMethodEnd(ExtensionMethodEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitExtensionTypeMethodEnd(ExtensionTypeMethodEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitClassConstructorEnd(ClassConstructorEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitMixinConstructorEnd(MixinConstructorEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitExtensionConstructorEnd(ExtensionConstructorEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitExtensionTypeConstructorEnd(ExtensionTypeConstructorEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitMetadataStarBegin(MetadataStarBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitMetadataStarEnd(MetadataStarEnd node) => node.visitChildren(this);
+
+  @override
+  void visitMetadataBegin(MetadataBegin node) => node.visitChildren(this);
+
+  @override
+  void visitMetadataEnd(MetadataEnd node) => node.visitChildren(this);
+
+  @override
+  void visitOptionalFormalParametersBegin(OptionalFormalParametersBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitOptionalFormalParametersEnd(OptionalFormalParametersEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitPartBegin(PartBegin node) => node.visitChildren(this);
+
+  @override
+  void visitPartEnd(PartEnd node) => node.visitChildren(this);
+
+  @override
+  void visitPartOfBegin(PartOfBegin node) => node.visitChildren(this);
+
+  @override
+  void visitPartOfEnd(PartOfEnd node) => node.visitChildren(this);
+
+  @override
+  void visitRedirectingFactoryBodyBegin(RedirectingFactoryBodyBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitRedirectingFactoryBodyEnd(RedirectingFactoryBodyEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitReturnStatementBegin(ReturnStatementBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitNativeFunctionBodyHandle(NativeFunctionBodyHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitNativeFunctionBodyIgnoredHandle(
+          NativeFunctionBodyIgnoredHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitNativeFunctionBodySkippedHandle(
+          NativeFunctionBodySkippedHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitEmptyFunctionBodyHandle(EmptyFunctionBodyHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitExpressionFunctionBodyHandle(ExpressionFunctionBodyHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitReturnStatementEnd(ReturnStatementEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitSendHandle(SendHandle node) => node.visitChildren(this);
+
+  @override
+  void visitShowBegin(ShowBegin node) => node.visitChildren(this);
+
+  @override
+  void visitShowEnd(ShowEnd node) => node.visitChildren(this);
+
+  @override
+  void visitSwitchStatementBegin(SwitchStatementBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitSwitchStatementEnd(SwitchStatementEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitSwitchExpressionBegin(SwitchExpressionBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitSwitchExpressionEnd(SwitchExpressionEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitSwitchBlockBegin(SwitchBlockBegin node) => node.visitChildren(this);
+
+  @override
+  void visitSwitchBlockEnd(SwitchBlockEnd node) => node.visitChildren(this);
+
+  @override
+  void visitSwitchExpressionBlockBegin(SwitchExpressionBlockBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitSwitchExpressionBlockEnd(SwitchExpressionBlockEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitLiteralSymbolBegin(LiteralSymbolBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitLiteralSymbolEnd(LiteralSymbolEnd node) => node.visitChildren(this);
+
+  @override
+  void visitThrowExpressionHandle(ThrowExpressionHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitRethrowStatementBegin(RethrowStatementBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitRethrowStatementEnd(RethrowStatementEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitTopLevelDeclarationEnd(TopLevelDeclarationEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitInvalidTopLevelDeclarationHandle(
+          InvalidTopLevelDeclarationHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitTopLevelMemberBegin(TopLevelMemberBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitFieldsBegin(FieldsBegin node) => node.visitChildren(this);
+
+  @override
+  void visitTopLevelFieldsEnd(TopLevelFieldsEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitTopLevelMethodBegin(TopLevelMethodBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitTopLevelMethodEnd(TopLevelMethodEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitTryStatementBegin(TryStatementBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitCatchClauseBegin(CatchClauseBegin node) => node.visitChildren(this);
+
+  @override
+  void visitCatchClauseEnd(CatchClauseEnd node) => node.visitChildren(this);
+
+  @override
+  void visitCatchBlockHandle(CatchBlockHandle node) => node.visitChildren(this);
+
+  @override
+  void visitFinallyBlockHandle(FinallyBlockHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitTryStatementEnd(TryStatementEnd node) => node.visitChildren(this);
+
+  @override
+  void visitTypeHandle(TypeHandle node) => node.visitChildren(this);
+
+  @override
+  void visitNonNullAssertExpressionHandle(NonNullAssertExpressionHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitNullAssertPatternHandle(NullAssertPatternHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitNullCheckPatternHandle(NullCheckPatternHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitAssignedVariablePatternHandle(AssignedVariablePatternHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitDeclaredVariablePatternHandle(DeclaredVariablePatternHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitWildcardPatternHandle(WildcardPatternHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitNoNameHandle(NoNameHandle node) => node.visitChildren(this);
+
+  @override
+  void visitRecordTypeBegin(RecordTypeBegin node) => node.visitChildren(this);
+
+  @override
+  void visitRecordTypeEnd(RecordTypeEnd node) => node.visitChildren(this);
+
+  @override
+  void visitRecordTypeEntryBegin(RecordTypeEntryBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitRecordTypeEntryEnd(RecordTypeEntryEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitRecordTypeNamedFieldsBegin(RecordTypeNamedFieldsBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitRecordTypeNamedFieldsEnd(RecordTypeNamedFieldsEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitFunctionTypeBegin(FunctionTypeBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitFunctionTypeEnd(FunctionTypeEnd node) => node.visitChildren(this);
+
+  @override
+  void visitTypeArgumentsBegin(TypeArgumentsBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitTypeArgumentsEnd(TypeArgumentsEnd node) => node.visitChildren(this);
+
+  @override
+  void visitInvalidTypeArgumentsHandle(InvalidTypeArgumentsHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitNoTypeArgumentsHandle(NoTypeArgumentsHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitTypeVariableBegin(TypeVariableBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitTypeVariablesDefinedHandle(TypeVariablesDefinedHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitTypeVariableEnd(TypeVariableEnd node) => node.visitChildren(this);
+
+  @override
+  void visitTypeVariablesBegin(TypeVariablesBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitTypeVariablesEnd(TypeVariablesEnd node) => node.visitChildren(this);
+
+  @override
+  void visitFunctionExpressionBegin(FunctionExpressionBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitFunctionExpressionEnd(FunctionExpressionEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitVariablesDeclarationBegin(VariablesDeclarationBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitVariablesDeclarationEnd(VariablesDeclarationEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitWhileStatementBegin(WhileStatementBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitWhileStatementEnd(WhileStatementEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitAsOperatorTypeBegin(AsOperatorTypeBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitAsOperatorTypeEnd(AsOperatorTypeEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitAsOperatorHandle(AsOperatorHandle node) => node.visitChildren(this);
+
+  @override
+  void visitCastPatternHandle(CastPatternHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitAssignmentExpressionHandle(AssignmentExpressionHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitBinaryExpressionBegin(BinaryExpressionBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitBinaryExpressionEnd(BinaryExpressionEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitBinaryPatternBegin(BinaryPatternBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitBinaryPatternEnd(BinaryPatternEnd node) => node.visitChildren(this);
+
+  @override
+  void visitEndingBinaryExpressionHandle(EndingBinaryExpressionHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitConditionalExpressionBegin(ConditionalExpressionBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitConditionalExpressionColonHandle(
+          ConditionalExpressionColonHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitConditionalExpressionEnd(ConditionalExpressionEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitConstExpressionBegin(ConstExpressionBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitConstExpressionEnd(ConstExpressionEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitConstFactoryHandle(ConstFactoryHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitForControlFlowBegin(ForControlFlowBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitForControlFlowEnd(ForControlFlowEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitForInControlFlowEnd(ForInControlFlowEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitIfControlFlowBegin(IfControlFlowBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitThenControlFlowHandle(ThenControlFlowHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitElseControlFlowHandle(ElseControlFlowHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitIfControlFlowEnd(IfControlFlowEnd node) => node.visitChildren(this);
+
+  @override
+  void visitIfElseControlFlowEnd(IfElseControlFlowEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitSpreadExpressionHandle(SpreadExpressionHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitRestPatternHandle(RestPatternHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitFunctionTypedFormalParameterBegin(
+          FunctionTypedFormalParameterBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitFunctionTypedFormalParameterEnd(
+          FunctionTypedFormalParameterEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitIdentifierHandle(IdentifierHandle node) => node.visitChildren(this);
+
+  @override
+  void visitIndexedExpressionHandle(IndexedExpressionHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitIsOperatorTypeBegin(IsOperatorTypeBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitIsOperatorTypeEnd(IsOperatorTypeEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitIsOperatorHandle(IsOperatorHandle node) => node.visitChildren(this);
+
+  @override
+  void visitLiteralBoolHandle(LiteralBoolHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitBreakStatementHandle(BreakStatementHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitContinueStatementHandle(ContinueStatementHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitEmptyStatementHandle(EmptyStatementHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitAssertBegin(AssertBegin node) => node.visitChildren(this);
+
+  @override
+  void visitAssertEnd(AssertEnd node) => node.visitChildren(this);
+
+  @override
+  void visitLiteralDoubleHandle(LiteralDoubleHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitLiteralIntHandle(LiteralIntHandle node) => node.visitChildren(this);
+
+  @override
+  void visitLiteralListHandle(LiteralListHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitListPatternHandle(ListPatternHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitLiteralSetOrMapHandle(LiteralSetOrMapHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitMapPatternHandle(MapPatternHandle node) => node.visitChildren(this);
+
+  @override
+  void visitLiteralNullHandle(LiteralNullHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitNativeClauseHandle(NativeClauseHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitNamedArgumentHandle(NamedArgumentHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitPatternFieldHandle(PatternFieldHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitNamedRecordFieldHandle(NamedRecordFieldHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitNewExpressionBegin(NewExpressionBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitNewExpressionEnd(NewExpressionEnd node) => node.visitChildren(this);
+
+  @override
+  void visitNoArgumentsHandle(NoArgumentsHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitNoConstructorReferenceContinuationAfterTypeArgumentsHandle(
+          NoConstructorReferenceContinuationAfterTypeArgumentsHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitNoTypeNameInConstructorReferenceHandle(
+          NoTypeNameInConstructorReferenceHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitNoTypeHandle(NoTypeHandle node) => node.visitChildren(this);
+
+  @override
+  void visitNoTypeVariablesHandle(NoTypeVariablesHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitOperatorHandle(OperatorHandle node) => node.visitChildren(this);
+
+  @override
+  void visitSwitchCaseNoWhenClauseHandle(SwitchCaseNoWhenClauseHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitSwitchExpressionCasePatternHandle(
+          SwitchExpressionCasePatternHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitSymbolVoidHandle(SymbolVoidHandle node) => node.visitChildren(this);
+
+  @override
+  void visitOperatorNameHandle(OperatorNameHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitInvalidOperatorNameHandle(InvalidOperatorNameHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitParenthesizedConditionHandle(ParenthesizedConditionHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitPatternBegin(PatternBegin node) => node.visitChildren(this);
+
+  @override
+  void visitPatternGuardBegin(PatternGuardBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitParenthesizedExpressionOrRecordLiteralBegin(
+          ParenthesizedExpressionOrRecordLiteralBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitSwitchCaseWhenClauseBegin(SwitchCaseWhenClauseBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitRecordLiteralEnd(RecordLiteralEnd node) => node.visitChildren(this);
+
+  @override
+  void visitRecordPatternHandle(RecordPatternHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitPatternEnd(PatternEnd node) => node.visitChildren(this);
+
+  @override
+  void visitPatternGuardEnd(PatternGuardEnd node) => node.visitChildren(this);
+
+  @override
+  void visitParenthesizedExpressionEnd(ParenthesizedExpressionEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitSwitchCaseWhenClauseEnd(SwitchCaseWhenClauseEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitParenthesizedPatternHandle(ParenthesizedPatternHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitConstantPatternBegin(ConstantPatternBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitConstantPatternEnd(ConstantPatternEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitObjectPatternHandle(ObjectPatternHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitQualifiedHandle(QualifiedHandle node) => node.visitChildren(this);
+
+  @override
+  void visitStringPartHandle(StringPartHandle node) => node.visitChildren(this);
+
+  @override
+  void visitSuperExpressionHandle(SuperExpressionHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitAugmentSuperExpressionHandle(AugmentSuperExpressionHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitSwitchCaseBegin(SwitchCaseBegin node) => node.visitChildren(this);
+
+  @override
+  void visitSwitchCaseEnd(SwitchCaseEnd node) => node.visitChildren(this);
+
+  @override
+  void visitSwitchExpressionCaseBegin(SwitchExpressionCaseBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitSwitchExpressionCaseEnd(SwitchExpressionCaseEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitThisExpressionHandle(ThisExpressionHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitUnaryPostfixAssignmentExpressionHandle(
+          UnaryPostfixAssignmentExpressionHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitUnaryPrefixExpressionHandle(UnaryPrefixExpressionHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitRelationalPatternHandle(RelationalPatternHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitUnaryPrefixAssignmentExpressionHandle(
+          UnaryPrefixAssignmentExpressionHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitFormalParameterDefaultValueExpressionBegin(
+          FormalParameterDefaultValueExpressionBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitFormalParameterDefaultValueExpressionEnd(
+          FormalParameterDefaultValueExpressionEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitValuedFormalParameterHandle(ValuedFormalParameterHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitFormalParameterWithoutValueHandle(
+          FormalParameterWithoutValueHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitVoidKeywordHandle(VoidKeywordHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitVoidKeywordWithTypeArgumentsHandle(
+          VoidKeywordWithTypeArgumentsHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitYieldStatementBegin(YieldStatementBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitYieldStatementEnd(YieldStatementEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitInvalidYieldStatementEnd(InvalidYieldStatementEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitRecoverableErrorHandle(RecoverableErrorHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitExperimentNotEnabledHandle(ExperimentNotEnabledHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitErrorTokenHandle(ErrorTokenHandle node) => node.visitChildren(this);
+
+  @override
+  void visitUnescapeErrorHandle(UnescapeErrorHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitInvalidStatementHandle(InvalidStatementHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitScriptHandle(ScriptHandle node) => node.visitChildren(this);
+
+  @override
+  void visitTypeArgumentApplicationHandle(TypeArgumentApplicationHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitNewAsIdentifierHandle(NewAsIdentifierHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitPatternVariableDeclarationStatementHandle(
+          PatternVariableDeclarationStatementHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitPatternAssignmentHandle(PatternAssignmentHandle node) =>
+      node.visitChildren(this);
 }

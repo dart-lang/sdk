@@ -65,7 +65,6 @@ inference_update_2/cascaded_field_promotion: semiFuzzFailureOnForceRebuildBodies
 records/nullable_access_extension: semiFuzzFailureOnForceRebuildBodies # unnamed extension
 
 # FUZZ FRAMEWORK FAILURES
-class_modifiers/invalid_enum_modifiers: SemiFuzzFailure # the invalid modifiers disappear
 general/script_tag_in_part_file: SemiFuzzFailure # `#!/usr/bin/env dart` goes away
 
 # UNSORTED ONES:

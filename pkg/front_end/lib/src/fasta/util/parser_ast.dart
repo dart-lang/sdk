@@ -75,10 +75,49 @@ CompilationUnitEnd getAST(List<int> rawBytes,
   return listener.data.single as CompilationUnitEnd;
 }
 
+/// Recursive Parser AST Visitor that ignores (and thus doesn't recursively
+/// visit) a few classes for compatibility with the previous
+/// on-the-side-visitor. For instance visiting all the nodes for
+/// ```
+///   @Const()
+///   extension Extension<@Const() T> on Class<T> {
+///   }
+/// ```
+/// will visit the first metadata, then the type variables which itself has the
+/// second metadata, only then it visits the extension - which old "visitor"
+/// code doesn't handle. This visitor for instance ignores the type variables
+/// to "fix" this case.
+class IgnoreSomeForCompatibilityAstVisitor extends RecursiveParserAstVisitor {
+  @override
+  void visitTypeVariablesEnd(TypeVariablesEnd node) {
+    // Ignored
+  }
+
+  @override
+  void visitTypeArgumentsEnd(TypeArgumentsEnd node) {
+    // Ignored
+  }
+
+  @override
+  void visitTypeListEnd(TypeListEnd node) {
+    // Ignored
+  }
+
+  @override
+  void visitFunctionTypeEnd(FunctionTypeEnd node) {
+    // Ignored
+  }
+
+  @override
+  void visitBlockEnd(BlockEnd node) {
+    // Ignored
+  }
+}
+
 /// Best-effort visitor for ParserAstNode that visits top-level entries
 /// and class members only (i.e. no bodies, no field initializer content, no
 /// names etc).
-class ParserAstVisitor {
+class BestEffortParserAstVisitor {
   void accept(ParserAstNode node) {
     if (node is CompilationUnitEnd ||
         node is TopLevelDeclarationEnd ||
