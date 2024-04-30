@@ -2762,10 +2762,10 @@ class UntaggedAbstractType : public UntaggedInstance {
     kFinalizedUninstantiated,  // Uninstantiated type ready for use.
   };
 
-  using NullabilityBits = BitField<uint32_t, uint8_t, 0, 2>;
-  static constexpr intptr_t kNullabilityMask = NullabilityBits::mask();
+  using NullabilityBit = BitField<uint32_t, uint8_t, 0, 1>;
+  static constexpr intptr_t kNullabilityMask = NullabilityBit::mask();
 
-  static constexpr intptr_t kTypeStateShift = NullabilityBits::kNextBit;
+  static constexpr intptr_t kTypeStateShift = NullabilityBit::kNextBit;
   static constexpr intptr_t kTypeStateBits = 2;
   using TypeStateBits =
       BitField<uint32_t, uint8_t, kTypeStateShift, kTypeStateBits>;

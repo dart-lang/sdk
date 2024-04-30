@@ -434,12 +434,11 @@ class Reader : public ValueObject {
     switch (kernel_nullability) {
       case KernelNullability::kNullable:
         return Nullability::kNullable;
-      case KernelNullability::kLegacy:
-        FATAL("Legacy nullability is not supported.");
-        return Nullability::kLegacy;
       case KernelNullability::kNonNullable:
       case KernelNullability::kUndetermined:
         return Nullability::kNonNullable;
+      case KernelNullability::kLegacy:
+        FATAL("Legacy nullability is not supported.");
     }
     UNREACHABLE();
   }

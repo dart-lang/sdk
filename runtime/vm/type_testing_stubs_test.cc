@@ -966,9 +966,8 @@ ISOLATE_UNIT_TEST_CASE(TTS_SubtypeRangeCheck) {
   // This is a regression test verifying that we don't fall through into
   // runtime for Null and Never.
   auto& type_nullable_int = Type::Handle(Type::IntType());
-  type_nullable_int = type_nullable_int.ToNullability(
-      TestCase::IsNNBD() ? Nullability::kNullable : Nullability::kLegacy,
-      Heap::kNew);
+  type_nullable_int =
+      type_nullable_int.ToNullability(Nullability::kNullable, Heap::kNew);
   auto& tav_nullable_int = TypeArguments::Handle(TypeArguments::New(1));
   tav_nullable_int.SetTypeAt(0, type_nullable_int);
   CanonicalizeTAV(&tav_nullable_int);
@@ -978,20 +977,18 @@ ISOLATE_UNIT_TEST_CASE(TTS_SubtypeRangeCheck) {
   RunTTSTest(type_base_nullable_int, {obj_base_null, tav_null, tav_null});
   RunTTSTest(type_base_nullable_int, {obj_base_never, tav_null, tav_null});
 
-  if (TestCase::IsNNBD()) {
-    // Base<Null|Never> as Base<int>
-    auto& type_int = Type::Handle(Type::IntType());
-    type_int = type_int.ToNullability(Nullability::kNonNullable, Heap::kNew);
-    auto& tav_int = TypeArguments::Handle(TypeArguments::New(1));
-    tav_int.SetTypeAt(0, type_int);
-    CanonicalizeTAV(&tav_int);
-    auto& type_base_int = Type::Handle(Type::New(class_base, tav_int));
-    type_base_int =
-        type_base_int.ToNullability(Nullability::kNonNullable, Heap::kNew);
-    FinalizeAndCanonicalize(&type_base_int);
-    RunTTSTest(type_base_int, Failure({obj_base_null, tav_null, tav_null}));
-    RunTTSTest(type_base_int, {obj_base_never, tav_null, tav_null});
-  }
+  // Base<Null|Never> as Base<int>
+  auto& type_int = Type::Handle(Type::IntType());
+  type_int = type_int.ToNullability(Nullability::kNonNullable, Heap::kNew);
+  auto& tav_int = TypeArguments::Handle(TypeArguments::New(1));
+  tav_int.SetTypeAt(0, type_int);
+  CanonicalizeTAV(&tav_int);
+  auto& type_base_int = Type::Handle(Type::New(class_base, tav_int));
+  type_base_int =
+      type_base_int.ToNullability(Nullability::kNonNullable, Heap::kNew);
+  FinalizeAndCanonicalize(&type_base_int);
+  RunTTSTest(type_base_int, Failure({obj_base_null, tav_null, tav_null}));
+  RunTTSTest(type_base_int, {obj_base_never, tav_null, tav_null});
 
   // <...> as I2
   const auto& type_i2 = AbstractType::Handle(class_i2.RareType());
@@ -1078,21 +1075,10 @@ ISOLATE_UNIT_TEST_CASE(TTS_GenericSubtypeRangeCheck) {
 
   const auto& type_dynamic = Type::Handle(Type::DynamicType());
   auto& type_int = Type::Handle(Type::IntType());
-  if (!TestCase::IsNNBD()) {
-    type_int = type_int.ToNullability(Nullability::kLegacy, Heap::kNew);
-  }
   auto& type_string = Type::Handle(Type::StringType());
-  if (!TestCase::IsNNBD()) {
-    type_string = type_string.ToNullability(Nullability::kLegacy, Heap::kNew);
-  }
   auto& type_object = Type::Handle(Type::ObjectType());
-  type_object = type_object.ToNullability(
-      TestCase::IsNNBD() ? Nullability::kNullable : Nullability::kLegacy,
-      Heap::kNew);
+  type_object = type_object.ToNullability(Nullability::kNullable, Heap::kNew);
   auto& type_a1 = Type::Handle(class_a1.DeclarationType());
-  if (!TestCase::IsNNBD()) {
-    type_a1 = type_a1.ToNullability(Nullability::kLegacy, Heap::kNew);
-  }
   FinalizeAndCanonicalize(&type_a1);
 
   const auto& tav_null = TypeArguments::Handle(TypeArguments::null());
@@ -1197,7 +1183,6 @@ ISOLATE_UNIT_TEST_CASE(TTS_GenericSubtypeRangeCheck) {
   tav_t.SetTypeAt(0,
                   TypeParameter::Handle(GetClassTypeParameter(class_base, 0)));
   auto& type_a2_t = Type::Handle(Type::New(class_a2, tav_t));
-  type_a2_t = type_a2_t.ToNullability(Nullability::kLegacy, Heap::kNew);
   FinalizeAndCanonicalize(&type_a2_t);
   const auto& tav_a2_t = TypeArguments::Handle(TypeArguments::New(1));
   tav_a2_t.SetTypeAt(0, type_a2_t);
@@ -1213,7 +1198,6 @@ ISOLATE_UNIT_TEST_CASE(TTS_GenericSubtypeRangeCheck) {
   const auto& tav_a1 = TypeArguments::Handle(TypeArguments::New(1));
   tav_a1.SetTypeAt(0, type_a1);
   auto& type_a2_a1 = Type::Handle(Type::New(class_a2, tav_a1));
-  type_a2_a1 = type_a2_a1.ToNullability(Nullability::kLegacy, Heap::kNew);
   FinalizeAndCanonicalize(&type_a2_a1);
   const auto& tav_a2_a1 = TypeArguments::Handle(TypeArguments::New(1));
   tav_a2_a1.SetTypeAt(0, type_a2_a1);
@@ -1348,8 +1332,6 @@ ISOLATE_UNIT_TEST_CASE(TTS_Future) {
   const auto& tav_null = Object::null_type_arguments();
   const auto& type_object = Type::Handle(
       IsolateGroup::Current()->object_store()->non_nullable_object_type());
-  const auto& type_legacy_object = Type::Handle(
-      IsolateGroup::Current()->object_store()->legacy_object_type());
   const auto& type_nullable_object = Type::Handle(
       IsolateGroup::Current()->object_store()->nullable_object_type());
   const auto& type_int = Type::Handle(
@@ -1369,9 +1351,6 @@ ISOLATE_UNIT_TEST_CASE(TTS_Future) {
   auto& tav_object = TypeArguments::Handle(TypeArguments::New(1));
   tav_object.SetTypeAt(0, type_object);
   CanonicalizeTAV(&tav_object);
-  auto& tav_legacy_object = TypeArguments::Handle(TypeArguments::New(1));
-  tav_legacy_object.SetTypeAt(0, type_legacy_object);
-  CanonicalizeTAV(&tav_legacy_object);
   auto& tav_nullable_object = TypeArguments::Handle(TypeArguments::New(1));
   tav_nullable_object.SetTypeAt(0, type_nullable_object);
   CanonicalizeTAV(&tav_nullable_object);
@@ -1394,9 +1373,6 @@ ISOLATE_UNIT_TEST_CASE(TTS_Future) {
   auto& type_future_object = Type::Handle(
       Type::New(class_future, tav_object, Nullability::kNonNullable));
   FinalizeAndCanonicalize(&type_future_object);
-  auto& type_future_legacy_object = Type::Handle(
-      Type::New(class_future, tav_legacy_object, Nullability::kNonNullable));
-  FinalizeAndCanonicalize(&type_future_legacy_object);
   auto& type_future_nullable_object = Type::Handle(
       Type::New(class_future, tav_nullable_object, Nullability::kNonNullable));
   FinalizeAndCanonicalize(&type_future_nullable_object);
@@ -1433,7 +1409,6 @@ ISOLATE_UNIT_TEST_CASE(TTS_Future) {
   RunTTSTest(type_future, {obj_futureint, tav_null, tav_null});
   RunTTSTest(type_future_dynamic, {obj_futureint, tav_null, tav_null});
   RunTTSTest(type_future_object, {obj_futureint, tav_null, tav_null});
-  RunTTSTest(type_future_legacy_object, {obj_futureint, tav_null, tav_null});
   RunTTSTest(type_future_nullable_object, {obj_futureint, tav_null, tav_null});
   RunTTSTest(type_future_int, {obj_futureint, tav_null, tav_null});
   RunTTSTest(type_future_num, {obj_futureint, tav_null, tav_null});
@@ -1456,18 +1431,12 @@ ISOLATE_UNIT_TEST_CASE(TTS_Future) {
   type_function =
       type_function.ToNullability(Nullability::kNonNullable, Heap::kNew);
   FinalizeAndCanonicalize(&type_function);
-  auto& type_legacy_function = Type::Handle(
-      type_function.ToNullability(Nullability::kLegacy, Heap::kNew));
-  FinalizeAndCanonicalize(&type_legacy_function);
   auto& type_nullable_function = Type::Handle(
       type_function.ToNullability(Nullability::kNullable, Heap::kOld));
   FinalizeAndCanonicalize(&type_nullable_function);
   auto& type_closure = Type::Handle(
       Type::New(class_closure, tav_null, Nullability::kNonNullable));
   FinalizeAndCanonicalize(&type_closure);
-  auto& type_legacy_closure = Type::Handle(
-      type_closure.ToNullability(Nullability::kLegacy, Heap::kOld));
-  FinalizeAndCanonicalize(&type_legacy_closure);
   auto& type_nullable_closure = Type::Handle(
       type_closure.ToNullability(Nullability::kNullable, Heap::kOld));
   FinalizeAndCanonicalize(&type_nullable_closure);
@@ -1481,10 +1450,6 @@ ISOLATE_UNIT_TEST_CASE(TTS_Future) {
   type_function_int_nullary.SetParameterTypeAt(0, Type::dynamic_type());
   type_function_int_nullary.set_result_type(type_int);
   FinalizeAndCanonicalize(&type_function_int_nullary);
-  auto& type_legacy_function_int_nullary =
-      FunctionType::Handle(type_function_int_nullary.ToNullability(
-          Nullability::kLegacy, Heap::kOld));
-  FinalizeAndCanonicalize(&type_legacy_function_int_nullary);
   auto& type_nullable_function_int_nullary =
       FunctionType::Handle(type_function_int_nullary.ToNullability(
           Nullability::kNullable, Heap::kOld));
@@ -1493,29 +1458,18 @@ ISOLATE_UNIT_TEST_CASE(TTS_Future) {
   auto& tav_function = TypeArguments::Handle(TypeArguments::New(1));
   tav_function.SetTypeAt(0, type_function);
   CanonicalizeTAV(&tav_function);
-  auto& tav_legacy_function = TypeArguments::Handle(TypeArguments::New(1));
-  tav_legacy_function.SetTypeAt(0, type_legacy_function);
-  CanonicalizeTAV(&tav_legacy_function);
   auto& tav_nullable_function = TypeArguments::Handle(TypeArguments::New(1));
   tav_nullable_function.SetTypeAt(0, type_nullable_function);
   CanonicalizeTAV(&tav_nullable_function);
   auto& tav_closure = TypeArguments::Handle(TypeArguments::New(1));
   tav_closure.SetTypeAt(0, type_closure);
   CanonicalizeTAV(&tav_closure);
-  auto& tav_legacy_closure = TypeArguments::Handle(TypeArguments::New(1));
-  tav_legacy_closure.SetTypeAt(0, type_legacy_closure);
-  CanonicalizeTAV(&tav_legacy_closure);
   auto& tav_nullable_closure = TypeArguments::Handle(TypeArguments::New(1));
   tav_nullable_closure.SetTypeAt(0, type_nullable_closure);
   CanonicalizeTAV(&tav_nullable_closure);
   auto& tav_function_int_nullary = TypeArguments::Handle(TypeArguments::New(1));
   tav_function_int_nullary.SetTypeAt(0, type_function_int_nullary);
   CanonicalizeTAV(&tav_function_int_nullary);
-  auto& tav_legacy_function_int_nullary =
-      TypeArguments::Handle(TypeArguments::New(1));
-  tav_legacy_function_int_nullary.SetTypeAt(0,
-                                            type_legacy_function_int_nullary);
-  CanonicalizeTAV(&tav_legacy_function_int_nullary);
   auto& tav_nullable_function_int_nullary =
       TypeArguments::Handle(TypeArguments::New(1));
   tav_nullable_function_int_nullary.SetTypeAt(
@@ -1525,27 +1479,18 @@ ISOLATE_UNIT_TEST_CASE(TTS_Future) {
   auto& type_future_function = Type::Handle(
       Type::New(class_future, tav_function, Nullability::kNonNullable));
   FinalizeAndCanonicalize(&type_future_function);
-  auto& type_future_legacy_function = Type::Handle(
-      Type::New(class_future, tav_legacy_function, Nullability::kNonNullable));
-  FinalizeAndCanonicalize(&type_future_legacy_function);
   auto& type_future_nullable_function = Type::Handle(Type::New(
       class_future, tav_nullable_function, Nullability::kNonNullable));
   FinalizeAndCanonicalize(&type_future_nullable_function);
   auto& type_future_closure = Type::Handle(
       Type::New(class_future, tav_closure, Nullability::kNonNullable));
   FinalizeAndCanonicalize(&type_future_closure);
-  auto& type_future_legacy_closure = Type::Handle(
-      Type::New(class_future, tav_legacy_closure, Nullability::kNonNullable));
-  FinalizeAndCanonicalize(&type_future_legacy_closure);
   auto& type_future_nullable_closure = Type::Handle(
       Type::New(class_future, tav_nullable_closure, Nullability::kNonNullable));
   FinalizeAndCanonicalize(&type_future_nullable_closure);
   auto& type_future_function_int_nullary =
       Type::Handle(Type::New(class_future, tav_function_int_nullary));
   FinalizeAndCanonicalize(&type_future_function_int_nullary);
-  auto& type_future_legacy_function_int_nullary =
-      Type::Handle(Type::New(class_future, tav_legacy_function_int_nullary));
-  FinalizeAndCanonicalize(&type_future_legacy_function_int_nullary);
   auto& type_future_nullable_function_int_nullary =
       Type::Handle(Type::New(class_future, tav_nullable_function_int_nullary));
   FinalizeAndCanonicalize(&type_future_nullable_function_int_nullary);
@@ -1578,23 +1523,16 @@ ISOLATE_UNIT_TEST_CASE(TTS_Future) {
   RunTTSTest(type_future_dynamic, {obj_futurefunction, tav_null, tav_null});
   RunTTSTest(type_future_nullable_object,
              {obj_futurefunction, tav_null, tav_null});
-  RunTTSTest(type_future_legacy_object,
-             {obj_futurefunction, tav_null, tav_null});
   RunTTSTest(type_future_object, {obj_futurefunction, tav_null, tav_null});
   RunTTSTest(type_future_nullable_object,
              {obj_futurefunction, tav_null, tav_null});
-  RunTTSTest(type_future_legacy_object,
-             {obj_futurefunction, tav_null, tav_null});
   RunTTSTest(type_future_object, {obj_futurefunction, tav_null, tav_null});
   RunTTSTest(type_future_nullable_function,
-             {obj_futurefunction, tav_null, tav_null});
-  RunTTSTest(type_future_legacy_function,
              {obj_futurefunction, tav_null, tav_null});
   RunTTSTest(type_future_function, {obj_futurefunction, tav_null, tav_null});
   RunTTSTest(type_future_t, {obj_futurefunction, tav_null, tav_null});
   RunTTSTest(type_future_t,
              {obj_futurefunction, tav_nullable_object, tav_null});
-  RunTTSTest(type_future_t, {obj_futurefunction, tav_legacy_object, tav_null});
   RunTTSTest(type_future_t, {obj_futurefunction, tav_object, tav_null});
   RunTTSTest(type_future_t,
              {obj_futurefunction, tav_function_int_nullary, tav_null});
@@ -1612,22 +1550,15 @@ ISOLATE_UNIT_TEST_CASE(TTS_Future) {
   //
   RunTTSTest(type_future_nullable_function_int_nullary,
              FalseNegative({obj_futurefunction, tav_null, tav_null}));
-  RunTTSTest(type_future_legacy_function_int_nullary,
-             FalseNegative({obj_futurefunction, tav_null, tav_null}));
   RunTTSTest(type_future_function_int_nullary,
              FalseNegative({obj_futurefunction, tav_null, tav_null}));
   RunTTSTest(type_future_t, FalseNegative({obj_futurefunction,
                                            tav_nullable_function, tav_null}));
-  RunTTSTest(type_future_t, FalseNegative({obj_futurefunction,
-                                           tav_legacy_function, tav_null}));
   RunTTSTest(type_future_t,
              FalseNegative({obj_futurefunction, tav_function, tav_null}));
   RunTTSTest(type_future_t,
              FalseNegative({obj_futurefunction,
                             tav_nullable_function_int_nullary, tav_null}));
-  RunTTSTest(type_future_t,
-             FalseNegative({obj_futurefunction, tav_legacy_function_int_nullary,
-                            tav_null}));
 
   // Errors:
   //   obj as Future<_Closure?> : Type arg is not a supertype
@@ -1640,14 +1571,10 @@ ISOLATE_UNIT_TEST_CASE(TTS_Future) {
   //
   RunTTSTest(type_future_nullable_closure,
              Failure({obj_futurefunction, tav_null, tav_null}));
-  RunTTSTest(type_future_legacy_closure,
-             Failure({obj_futurefunction, tav_null, tav_null}));
   RunTTSTest(type_future_closure,
              Failure({obj_futurefunction, tav_null, tav_null}));
   RunTTSTest(type_future_t,
              Failure({obj_futurefunction, tav_nullable_closure, tav_null}));
-  RunTTSTest(type_future_t,
-             Failure({obj_futurefunction, tav_legacy_closure, tav_null}));
   RunTTSTest(type_future_t,
              Failure({obj_futurefunction, tav_closure, tav_null}));
 
@@ -1680,21 +1607,13 @@ ISOLATE_UNIT_TEST_CASE(TTS_Future) {
              {obj_futurenullablefunction, tav_null, tav_null});
   RunTTSTest(type_future_nullable_object,
              {obj_futurenullablefunction, tav_null, tav_null});
-  RunTTSTest(type_future_legacy_object,
-             {obj_futurenullablefunction, tav_null, tav_null});
   RunTTSTest(type_future_nullable_object,
              {obj_futurefunction, tav_null, tav_null});
-  RunTTSTest(type_future_legacy_object,
-             {obj_futurenullablefunction, tav_null, tav_null});
   RunTTSTest(type_future_nullable_function,
-             {obj_futurenullablefunction, tav_null, tav_null});
-  RunTTSTest(type_future_legacy_function,
              {obj_futurenullablefunction, tav_null, tav_null});
   RunTTSTest(type_future_t, {obj_futurenullablefunction, tav_null, tav_null});
   RunTTSTest(type_future_t,
              {obj_futurenullablefunction, tav_nullable_object, tav_null});
-  RunTTSTest(type_future_t,
-             {obj_futurenullablefunction, tav_legacy_object, tav_null});
   RunTTSTest(type_future_t, {obj_futurenullablefunction,
                              tav_nullable_function_int_nullary, tav_null});
 
@@ -1714,15 +1633,8 @@ ISOLATE_UNIT_TEST_CASE(TTS_Future) {
 
   RunTTSTest(type_future_nullable_function_int_nullary,
              FalseNegative({obj_futurenullablefunction, tav_null, tav_null}));
-  RunTTSTest(type_future_legacy_function_int_nullary,
-             FalseNegative({obj_futurenullablefunction, tav_null, tav_null}));
   RunTTSTest(type_future_t, FalseNegative({obj_futurenullablefunction,
                                            tav_nullable_function, tav_null}));
-  RunTTSTest(type_future_t, FalseNegative({obj_futurenullablefunction,
-                                           tav_legacy_function, tav_null}));
-  RunTTSTest(type_future_t,
-             FalseNegative({obj_futurenullablefunction,
-                            tav_legacy_function_int_nullary, tav_null}));
 
   // Errors:
   //   obj as Future<_Closure?> : Type arg is not a supertype
@@ -1747,14 +1659,10 @@ ISOLATE_UNIT_TEST_CASE(TTS_Future) {
 
   RunTTSTest(type_future_nullable_closure,
              Failure({obj_futurenullablefunction, tav_null, tav_null}));
-  RunTTSTest(type_future_legacy_closure,
-             Failure({obj_futurenullablefunction, tav_null, tav_null}));
   RunTTSTest(type_future_closure,
              Failure({obj_futurenullablefunction, tav_null, tav_null}));
   RunTTSTest(type_future_t, Failure({obj_futurenullablefunction,
                                      tav_nullable_closure, tav_null}));
-  RunTTSTest(type_future_t, Failure({obj_futurenullablefunction,
-                                     tav_legacy_closure, tav_null}));
   RunTTSTest(type_future_t,
              Failure({obj_futurenullablefunction, tav_closure, tav_null}));
 
@@ -2021,11 +1929,6 @@ ISOLATE_UNIT_TEST_CASE(TTS_Partial) {
       0, Type::Handle(
              IsolateGroup::Current()->object_store()->nullable_object_type()));
   CanonicalizeTAV(&tav_nullable_object);
-  auto& tav_legacy_object = TypeArguments::Handle(TypeArguments::New(1));
-  tav_legacy_object.SetTypeAt(
-      0, Type::Handle(
-             IsolateGroup::Current()->object_store()->legacy_object_type()));
-  CanonicalizeTAV(&tav_legacy_object);
   auto& tav_object = TypeArguments::Handle(TypeArguments::New(1));
   tav_object.SetTypeAt(
       0, Type::Handle(IsolateGroup::Current()->object_store()->object_type()));
@@ -2043,9 +1946,6 @@ ISOLATE_UNIT_TEST_CASE(TTS_Partial) {
   auto& type_c_nullable =
       Type::Handle(Type::New(class_c, tav_null, Nullability::kNullable));
   FinalizeAndCanonicalize(&type_c_nullable);
-  auto& type_c_legacy =
-      Type::Handle(Type::New(class_c, tav_null, Nullability::kLegacy));
-  FinalizeAndCanonicalize(&type_c_legacy);
 
   auto& tav_e = TypeArguments::Handle(TypeArguments::New(1));
   tav_e.SetTypeAt(0, type_e);
@@ -2059,9 +1959,6 @@ ISOLATE_UNIT_TEST_CASE(TTS_Partial) {
   auto& tav_nullable_c = TypeArguments::Handle(TypeArguments::New(1));
   tav_nullable_c.SetTypeAt(0, type_c_nullable);
   CanonicalizeTAV(&tav_nullable_c);
-  auto& tav_legacy_c = TypeArguments::Handle(TypeArguments::New(1));
-  tav_legacy_c.SetTypeAt(0, type_c_legacy);
-  CanonicalizeTAV(&tav_legacy_c);
 
   // One case where optimized TTSes can be partial is if the type is
   // uninstantiated with a type parameter at the same position as one of the
@@ -2106,13 +2003,10 @@ ISOLATE_UNIT_TEST_CASE(TTS_Partial) {
 
   state.InvokeExistingStub({obj_b_never, tav_null, tav_d});
   state.InvokeExistingStub({obj_b_null, tav_null, tav_nullable_c});
-  state.InvokeExistingStub({obj_b_null, tav_null, tav_legacy_c});
   state.InvokeExistingStub(Failure({obj_b_null, tav_null, tav_c}));
 
   state.InvokeExistingStub({obj_b_e, tav_null, tav_nullable_object});
   state.InvokeExistingStub({obj_b_e_nullable, tav_null, tav_nullable_object});
-  state.InvokeExistingStub({obj_b_e, tav_null, tav_legacy_object});
-  state.InvokeExistingStub({obj_b_e_nullable, tav_null, tav_legacy_object});
   state.InvokeExistingStub({obj_b_e, tav_null, tav_object});
   state.InvokeExistingStub(Failure({obj_b_e_nullable, tav_null, tav_object}));
 }

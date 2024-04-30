@@ -4,6 +4,9 @@
 - The Dart VM only executes sound null safe code, running of unsound null
   safe code using the option `--no-sound-null-safety` has been removed.
 
+- `Dart_NewListOf` and `Dart_IsLegacyType` functions are
+  removed from Dart C API.
+
 ## 3.4.0
 
 ### Language

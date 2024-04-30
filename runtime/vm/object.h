@@ -1112,8 +1112,6 @@ typedef ZoneGrowableHandlePtrArray<const String> URIs;
 enum class Nullability : uint8_t {
   kNullable = 0,
   kNonNullable = 1,
-  kLegacy = 2,
-  // Adjust kNullabilityBitSize in app_snapshot.cc if adding new values.
 };
 
 // Equality kind between types.
@@ -8580,21 +8578,18 @@ class TypeArguments : public Instance {
   // of performing a more costly instantiation of the uninstantiated type
   // arguments (UTA).
   // The vector nullability is stored as a bit vector (in a Smi field), using
-  // 2 bits per type:
-  //  - the high bit is set if the type is nullable or legacy.
-  //  - the low bit is set if the type is nullable.
+  // 1 bit per type, which is set if the type is nullable.
   // The nullability is 0 if the vector is longer than kNullabilityMaxTypes.
   // The condition evaluated at runtime to decide whether UTA can share ITA is
   //   (UTA.nullability & ITA.nullability) == UTA.nullability
   // Note that this allows for ITA to be longer than UTA (the bit vector must be
   // stored in the same order as the corresponding type vector, i.e. with the
-  // least significant 2 bits representing the nullability of the first type).
-  static constexpr intptr_t kNullabilityBitsPerType = 2;
+  // least significant bit representing the nullability of the first type).
+  static constexpr intptr_t kNullabilityBitsPerType = 1;
   static constexpr intptr_t kNullabilityMaxTypes =
       kSmiBits / kNullabilityBitsPerType;
-  static constexpr intptr_t kNonNullableBits = 0;
-  static constexpr intptr_t kNullableBits = 3;
-  static constexpr intptr_t kLegacyBits = 2;
+  static constexpr intptr_t kNonNullableBit = 0;
+  static constexpr intptr_t kNullableBit = 1;
   intptr_t nullability() const;
   static intptr_t nullability_offset() {
     return OFFSET_OF(UntaggedTypeArguments, nullability_);
@@ -9036,7 +9031,7 @@ class AbstractType : public Instance {
 
   Nullability nullability() const {
     return static_cast<Nullability>(
-        UntaggedAbstractType::NullabilityBits::decode(untag()->flags()));
+        UntaggedAbstractType::NullabilityBit::decode(untag()->flags()));
   }
   // Returns true if type has '?' nullability suffix, or it is a
   // built-in type which is always nullable (Null, dynamic or void).
@@ -9048,9 +9043,6 @@ class AbstractType : public Instance {
   bool IsNonNullable() const {
     return nullability() == Nullability::kNonNullable;
   }
-  // Returns true if type has '*' nullability suffix, i.e.
-  // it is from a legacy (opted-out) library.
-  bool IsLegacy() const { return nullability() == Nullability::kLegacy; }
   // Returns true if it is guaranteed that null cannot be
   // assigned to this type.
   bool IsStrictlyNonNullable() const;
@@ -9471,7 +9463,7 @@ class Type : public AbstractType {
 
   static TypePtr New(const Class& clazz,
                      const TypeArguments& arguments,
-                     Nullability nullability = Nullability::kLegacy,
+                     Nullability nullability = Nullability::kNonNullable,
                      Heap::Space space = Heap::kOld);
 
  private:
@@ -9757,9 +9749,10 @@ class FunctionType : public AbstractType {
     return RoundedAllocationSize(sizeof(UntaggedFunctionType));
   }
 
-  static FunctionTypePtr New(intptr_t num_parent_type_arguments = 0,
-                             Nullability nullability = Nullability::kLegacy,
-                             Heap::Space space = Heap::kOld);
+  static FunctionTypePtr New(
+      intptr_t num_parent_type_arguments = 0,
+      Nullability nullability = Nullability::kNonNullable,
+      Heap::Space space = Heap::kOld);
 
   static FunctionTypePtr Clone(const FunctionType& orig, Heap::Space space);
 
@@ -11379,7 +11372,7 @@ class RecordType : public AbstractType {
 
   static RecordTypePtr New(RecordShape shape,
                            const Array& field_types,
-                           Nullability nullability = Nullability::kLegacy,
+                           Nullability nullability = Nullability::kNonNullable,
                            Heap::Space space = Heap::kOld);
 
  private:

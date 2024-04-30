@@ -1013,10 +1013,6 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedundantInitializerCallAfterIf) {
 }
 
 ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedundantInitializerCallInLoop) {
-  if (!TestCase::IsNNBD()) {
-    return;
-  }
-
   const char* kScript = R"(
     class A {
       late int x = int.parse('1');

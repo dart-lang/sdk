@@ -2420,25 +2420,6 @@ DART_EXPORT Dart_Handle Dart_StringGetProperties(Dart_Handle str,
  */
 DART_EXPORT Dart_Handle Dart_NewList(intptr_t length);
 
-typedef enum {
-  Dart_CoreType_Dynamic,
-  Dart_CoreType_Int,
-  Dart_CoreType_String,
-} Dart_CoreType_Id;
-
-// TODO(bkonyi): convert this to use nullable types once NNBD is enabled.
-/**
- * Returns a List of the desired length with the desired legacy element type.
- *
- * \param element_type_id The type of elements of the list.
- * \param length The length of the list.
- *
- * \return The List object if no error occurs. Otherwise returns an error
- * handle.
- */
-DART_EXPORT Dart_Handle Dart_NewListOf(Dart_CoreType_Id element_type_id,
-                                       intptr_t length);
-
 /**
  * Returns a List of the desired length with the desired element type.
  *
@@ -3590,7 +3571,6 @@ DART_EXPORT Dart_Handle Dart_TypeToNonNullableType(Dart_Handle type);
  */
 DART_EXPORT Dart_Handle Dart_IsNullableType(Dart_Handle type, bool* result);
 DART_EXPORT Dart_Handle Dart_IsNonNullableType(Dart_Handle type, bool* result);
-DART_EXPORT Dart_Handle Dart_IsLegacyType(Dart_Handle type, bool* result);
 
 /**
  * Lookup a class or interface by name from a Library.

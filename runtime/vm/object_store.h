@@ -30,10 +30,6 @@ class ObjectPointerVisitor;
   M(TypedData, typed_data)                                                     \
   M(VMService, _vmservice)
 
-// TODO(liama): Once NNBD is enabled, *_type will be deleted and all uses will
-// be replaced with *_type_non_nullable. Later, once we drop support for opted
-// out code, *_type_legacy will be deleted.
-//
 // R_ - needs getter only
 // RW - needs getter and setter
 // ARW_RELAXED - needs getter and setter with relaxed atomic access
@@ -71,7 +67,6 @@ class ObjectPointerVisitor;
   LAZY_ISOLATE(Function, handle_message_function)                              \
   RW(Class, object_class)                                                      \
   RW(Type, object_type)                                                        \
-  RW(Type, legacy_object_type)                                                 \
   RW(Type, non_nullable_object_type)                                           \
   RW(Type, nullable_object_type)                                               \
   RW(Class, null_class)                                                        \
@@ -85,7 +80,6 @@ class ObjectPointerVisitor;
   RW(Type, number_type)                                                        \
   RW(Type, nullable_number_type)                                               \
   RW(Type, int_type)                                                           \
-  RW(Type, legacy_int_type)                                                    \
   RW(Type, non_nullable_int_type)                                              \
   RW(Type, nullable_int_type)                                                  \
   RW(Class, integer_implementation_class)                                      \
@@ -101,13 +95,10 @@ class ObjectPointerVisitor;
   RW(Type, int32x4_type)                                                       \
   RW(Type, float64x2_type)                                                     \
   RW(Type, string_type)                                                        \
-  RW(Type, legacy_string_type)                                                 \
   RW(TypeArguments, type_argument_int)                                         \
-  RW(TypeArguments, type_argument_legacy_int)                                  \
   RW(TypeArguments, type_argument_double)                                      \
   RW(TypeArguments, type_argument_never)                                       \
   RW(TypeArguments, type_argument_string)                                      \
-  RW(TypeArguments, type_argument_legacy_string)                               \
   RW(TypeArguments, type_argument_string_dynamic)                              \
   RW(TypeArguments, type_argument_string_string)                               \
   RW(Class, compiletime_error_class)                                           \

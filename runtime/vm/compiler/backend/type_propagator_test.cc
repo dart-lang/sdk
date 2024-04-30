@@ -400,9 +400,7 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_Regress36156) {
 ISOLATE_UNIT_TEST_CASE(CompileType_CanBeSmi) {
   CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
 
-  const char* late_tag = TestCase::LateTag();
-  auto script_chars = Utils::CStringUniquePtr(
-      OS::SCreate(nullptr, R"(
+  const char* script_chars = R"(
 import 'dart:async';
 
 class G<T> {}
@@ -412,50 +410,44 @@ class C<NoBound,
         ComparableBound extends Comparable,
         StringBound extends String> {
   // Simple instantiated types.
-  @pragma('vm-test:can-be-smi') %s int t1;
-  @pragma('vm-test:can-be-smi') %s num t2;
-  @pragma('vm-test:can-be-smi') %s Object t3;
-  %s String t4;
+  @pragma('vm-test:can-be-smi') late int t1;
+  @pragma('vm-test:can-be-smi') late num t2;
+  @pragma('vm-test:can-be-smi') late Object t3;
+  late String t4;
 
   // Type parameters.
-  @pragma('vm-test:can-be-smi') %s NoBound tp1;
-  @pragma('vm-test:can-be-smi') %s NumBound tp2;
-  @pragma('vm-test:can-be-smi') %s ComparableBound tp3;
-  %s StringBound tp4;
+  @pragma('vm-test:can-be-smi') late NoBound tp1;
+  @pragma('vm-test:can-be-smi') late NumBound tp2;
+  @pragma('vm-test:can-be-smi') late ComparableBound tp3;
+  late StringBound tp4;
 
   // Comparable<T> instantiations.
-  @pragma('vm-test:can-be-smi') %s Comparable c1;
-  %s Comparable<String> c2;
-  @pragma('vm-test:can-be-smi') %s Comparable<num> c3;
-  %s Comparable<int> c4;  // int is not a subtype of Comparable<int>.
-  @pragma('vm-test:can-be-smi') %s Comparable<NoBound> c5;
-  @pragma('vm-test:can-be-smi') %s Comparable<NumBound> c6;
-  @pragma('vm-test:can-be-smi') %s Comparable<ComparableBound> c7;
-  %s Comparable<StringBound> c8;
+  @pragma('vm-test:can-be-smi') late Comparable c1;
+  late Comparable<String> c2;
+  @pragma('vm-test:can-be-smi') late Comparable<num> c3;
+  late Comparable<int> c4;  // int is not a subtype of Comparable<int>.
+  @pragma('vm-test:can-be-smi') late Comparable<NoBound> c5;
+  @pragma('vm-test:can-be-smi') late Comparable<NumBound> c6;
+  @pragma('vm-test:can-be-smi') late Comparable<ComparableBound> c7;
+  late Comparable<StringBound> c8;
 
   // FutureOr<T> instantiations.
-  @pragma('vm-test:can-be-smi') %s FutureOr fo1;
-  %s FutureOr<String> fo2;
-  @pragma('vm-test:can-be-smi') %s FutureOr<num> fo3;
-  @pragma('vm-test:can-be-smi') %s FutureOr<int> fo4;
-  @pragma('vm-test:can-be-smi') %s FutureOr<NoBound> fo5;
-  @pragma('vm-test:can-be-smi') %s FutureOr<NumBound> fo6;
-  @pragma('vm-test:can-be-smi') %s FutureOr<ComparableBound> fo7;
-  %s FutureOr<StringBound> fo8;
+  @pragma('vm-test:can-be-smi') late FutureOr fo1;
+  late FutureOr<String> fo2;
+  @pragma('vm-test:can-be-smi') late FutureOr<num> fo3;
+  @pragma('vm-test:can-be-smi') late FutureOr<int> fo4;
+  @pragma('vm-test:can-be-smi') late FutureOr<NoBound> fo5;
+  @pragma('vm-test:can-be-smi') late FutureOr<NumBound> fo6;
+  @pragma('vm-test:can-be-smi') late FutureOr<ComparableBound> fo7;
+  late FutureOr<StringBound> fo8;
 
   // Other generic classes.
-  %s G<int> g1;
-  %s G<NoBound> g2;
+  late G<int> g1;
+  late G<NoBound> g2;
 }
-)",
-                  late_tag, late_tag, late_tag, late_tag, late_tag, late_tag,
-                  late_tag, late_tag, late_tag, late_tag, late_tag, late_tag,
-                  late_tag, late_tag, late_tag, late_tag, late_tag, late_tag,
-                  late_tag, late_tag, late_tag, late_tag, late_tag, late_tag,
-                  late_tag, late_tag),
-      std::free);
+)";
 
-  const auto& lib = Library::Handle(LoadTestScript(script_chars.get()));
+  const auto& lib = Library::Handle(LoadTestScript(script_chars));
 
   const auto& pragma_can_be_smi =
       String::Handle(Symbols::New(thread, "vm-test:can-be-smi"));

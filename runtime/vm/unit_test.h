@@ -415,13 +415,6 @@ class TestCase : TestCaseBase {
   static void AddTestLib(const char* url, const char* source);
   static const char* GetTestLib(const char* url);
 
-  // Return true if non-nullable experiment is enabled.
-  static bool IsNNBD();
-
-  static const char* NullableTag() { return IsNNBD() ? "?" : ""; }
-  static const char* NullAssertTag() { return IsNNBD() ? "!" : ""; }
-  static const char* LateTag() { return IsNNBD() ? "late" : ""; }
-
  private:
   static Dart_Handle TriggerReload(
       std::function<bool(IsolateGroup*, JSONStream*)> do_reload);

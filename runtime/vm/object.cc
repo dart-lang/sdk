@@ -1949,9 +1949,6 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     type = Type::NewNonParameterizedType(cls);
     ASSERT(type.IsCanonical());
     object_store->set_object_type(type);
-    type = type.ToNullability(Nullability::kLegacy, Heap::kOld);
-    ASSERT(type.IsCanonical());
-    object_store->set_legacy_object_type(type);
     type = type.ToNullability(Nullability::kNonNullable, Heap::kOld);
     ASSERT(type.IsCanonical());
     object_store->set_non_nullable_object_type(type);
@@ -2292,8 +2289,6 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     pending_classes.Add(cls);
     type = Type::NewNonParameterizedType(cls);
     object_store->set_int_type(type);
-    type = type.ToNullability(Nullability::kLegacy, Heap::kOld);
-    object_store->set_legacy_int_type(type);
     type = type.ToNullability(Nullability::kNonNullable, Heap::kOld);
     object_store->set_non_nullable_int_type(type);
     type = type.ToNullability(Nullability::kNullable, Heap::kOld);
@@ -2321,8 +2316,6 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     pending_classes.Add(cls);
     type = Type::NewNonParameterizedType(cls);
     object_store->set_string_type(type);
-    type = type.ToNullability(Nullability::kLegacy, Heap::kOld);
-    object_store->set_legacy_string_type(type);
 
     cls = object_store->bool_class();
     type = Type::NewNonParameterizedType(cls);
@@ -2331,7 +2324,6 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     cls = object_store->smi_class();
     type = Type::NewNonParameterizedType(cls);
     object_store->set_smi_type(type);
-    type = type.ToNullability(Nullability::kLegacy, Heap::kOld);
 
     cls = object_store->mint_class();
     type = Type::NewNonParameterizedType(cls);
@@ -2374,11 +2366,6 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     type_args.SetTypeAt(0, type);
     type_args = type_args.Canonicalize(thread);
     object_store->set_type_argument_int(type_args);
-    type_args = TypeArguments::New(1);
-    type = object_store->legacy_int_type();
-    type_args.SetTypeAt(0, type);
-    type_args = type_args.Canonicalize(thread);
-    object_store->set_type_argument_legacy_int(type_args);
 
     type_args = TypeArguments::New(1);
     type = object_store->double_type();
@@ -2391,11 +2378,6 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     type_args.SetTypeAt(0, type);
     type_args = type_args.Canonicalize(thread);
     object_store->set_type_argument_string(type_args);
-    type_args = TypeArguments::New(1);
-    type = object_store->legacy_string_type();
-    type_args.SetTypeAt(0, type);
-    type_args = type_args.Canonicalize(thread);
-    object_store->set_type_argument_legacy_string(type_args);
 
     type_args = TypeArguments::New(2);
     type = object_store->string_type();
@@ -6810,13 +6792,10 @@ intptr_t TypeArguments::ComputeNullability() const {
       if (!type.IsNull()) {
         switch (type.nullability()) {
           case Nullability::kNullable:
-            type_bits = kNullableBits;
+            type_bits = kNullableBit;
             break;
           case Nullability::kNonNullable:
-            type_bits = kNonNullableBits;
-            break;
-          case Nullability::kLegacy:
-            type_bits = kLegacyBits;
+            type_bits = kNonNullableBit;
             break;
           default:
             UNREACHABLE();
@@ -7423,10 +7402,10 @@ bool TypeArguments::IsUninstantiatedIdentity() const {
     if ((type_param.index() != i) || type_param.IsFunctionTypeParameter()) {
       return false;
     }
-    // Instantiating nullable and legacy type parameters may change
+    // Instantiating nullable type parameters may change
     // nullability of a type, so type arguments vector containing such type
     // parameters cannot be substituted with instantiator type arguments.
-    if (type_param.IsNullable() || type_param.IsLegacy()) {
+    if (type_param.IsNullable()) {
       return false;
     }
   }
@@ -7483,14 +7462,14 @@ bool TypeArguments::CanShareInstantiatorTypeArguments(
     if ((type_param.index() != i) || type_param.IsFunctionTypeParameter()) {
       return false;
     }
-    // Instantiating nullable and legacy type parameters may change nullability
+    // Instantiating nullable type parameters may change nullability
     // of a type, so type arguments vector containing such type parameters
     // cannot be substituted with instantiator type arguments, unless we check
     // at runtime the nullability of the first 1 or 2 type arguments of the
     // instantiator.
     // Note that the presence of non-overlapping super type arguments (i.e.
     // first_type_param_offset > 0) will prevent this optimization.
-    if (type_param.IsNullable() || type_param.IsLegacy()) {
+    if (type_param.IsNullable()) {
       if (with_runtime_check == nullptr || i >= kNullabilityMaxTypes) {
         return false;
       }
@@ -7554,12 +7533,12 @@ bool TypeArguments::CanShareFunctionTypeArguments(
     if ((type_param.index() != i) || !type_param.IsFunctionTypeParameter()) {
       return false;
     }
-    // Instantiating nullable and legacy type parameters may change nullability
+    // Instantiating nullable type parameters may change nullability
     // of a type, so type arguments vector containing such type parameters
     // cannot be substituted with the enclosing function type arguments, unless
     // we check at runtime the nullability of the first 1 or 2 type arguments of
     // the enclosing function type arguments.
-    if (type_param.IsNullable() || type_param.IsLegacy()) {
+    if (type_param.IsNullable()) {
       if (with_runtime_check == nullptr || i >= kNullabilityMaxTypes) {
         return false;
       }
@@ -20707,16 +20686,16 @@ bool Instance::NullIsInstanceOf(
     return Instance::NullIsInstanceOf(type, Object::null_type_arguments(),
                                       Object::null_type_arguments());
   }
-  return other.IsLegacy() && (other.IsObjectType() || other.IsNeverType());
+  return false;
 }
 
 // Must be kept in sync with GenerateNullIsAssignableToType in
 // stub_code_compiler.cc if any changes are made.
 bool Instance::NullIsAssignableTo(const AbstractType& other) {
-  // "Left Null" rule: null is assignable when destination type is either
-  // legacy or nullable. Otherwise it is not assignable or we cannot tell
+  // "Left Null" rule: null is assignable when destination type is
+  // nullable. Otherwise it is not assignable or we cannot tell
   // without instantiating type parameter.
-  if (other.IsLegacy() || other.IsNullable()) {
+  if (other.IsNullable()) {
     return true;
   }
   if (other.IsFutureOrType()) {
@@ -21126,16 +21105,11 @@ AbstractTypePtr AbstractType::SetInstantiatedNullability(
   const Nullability arg_nullability = nullability();
   const Nullability var_nullability = type_param.nullability();
   // Adjust nullability of result 'arg' instantiated from 'var'.
-  // arg/var ! ? *
-  //  !      ! ? *
-  //  ?      ? ? ?
-  //  *      * ? *
-  if (var_nullability == Nullability::kNullable ||
-      arg_nullability == Nullability::kNullable) {
+  // arg/var ! ?
+  //  !      ! ?
+  //  ?      ? ?
+  if (var_nullability == Nullability::kNullable) {
     result_nullability = Nullability::kNullable;
-  } else if (var_nullability == Nullability::kLegacy ||
-             arg_nullability == Nullability::kLegacy) {
-    result_nullability = Nullability::kLegacy;
   } else {
     // Keep arg nullability.
     return ptr();
@@ -21171,12 +21145,9 @@ AbstractTypePtr AbstractType::NormalizeFutureOrType(Heap::Space space) const {
       if (IsNonNullable()) {
         return unwrapped_type.ptr();
       }
-      if (IsNullable() || unwrapped_type.IsNullable()) {
-        return Type::Cast(unwrapped_type)
-            .ToNullability(Nullability::kNullable, space);
-      }
+      ASSERT(IsNullable());
       return Type::Cast(unwrapped_type)
-          .ToNullability(Nullability::kLegacy, space);
+          .ToNullability(Nullability::kNullable, space);
     }
     if (cid == kNeverCid && unwrapped_type.IsNonNullable()) {
       ObjectStore* object_store = IsolateGroup::Current()->object_store();
@@ -21226,7 +21197,7 @@ void AbstractType::set_type_state(UntaggedAbstractType::TypeState value) const {
 
 void AbstractType::set_nullability(Nullability value) const {
   ASSERT(!IsCanonical());
-  set_flags(UntaggedAbstractType::NullabilityBits::update(
+  set_flags(UntaggedAbstractType::NullabilityBit::update(
       static_cast<uint8_t>(value), untag()->flags()));
 }
 
@@ -21253,16 +21224,8 @@ bool AbstractType::IsNullabilityEquivalent(Thread* thread,
       return false;
     }
   } else {
-    if (kind == TypeEquality::kSyntactical) {
-      if (this_type_nullability == Nullability::kLegacy) {
-        this_type_nullability = Nullability::kNonNullable;
-      }
-      if (other_type_nullability == Nullability::kLegacy) {
-        other_type_nullability = Nullability::kNonNullable;
-      }
-    } else {
-      ASSERT(kind == TypeEquality::kCanonical);
-    }
+    ASSERT((kind == TypeEquality::kSyntactical) ||
+           (kind == TypeEquality::kCanonical));
     if (this_type_nullability != other_type_nullability) {
       return false;
     }
@@ -21369,10 +21332,6 @@ const char* AbstractType::NullabilitySuffix(
       return "?";
     case Nullability::kNonNullable:
       return "";
-    case Nullability::kLegacy:
-      return (FLAG_show_internal_names || name_visibility != kUserVisibleName)
-                 ? "*"
-                 : "";
     default:
       UNREACHABLE();
   }
@@ -21443,7 +21402,7 @@ bool AbstractType::IsTopTypeForInstanceOf() const {
     return true;
   }
   if (cid == kInstanceCid) {  // Object type.
-    return !IsNonNullable();  // kLegacy or kNullable.
+    return IsNullable();
   }
   if (cid == kFutureOrCid) {
     // FutureOr<T> where T is a top type behaves as a top type.
@@ -22400,13 +22359,7 @@ void Type::PrintName(NameVisibility name_visibility,
 uword Type::ComputeHash() const {
   ASSERT(IsFinalized());
   uint32_t result = type_class_id();
-  // A legacy type should have the same hash as its non-nullable version to be
-  // consistent with the definition of type equality in Dart code.
-  Nullability type_nullability = nullability();
-  if (type_nullability == Nullability::kLegacy) {
-    type_nullability = Nullability::kNonNullable;
-  }
-  result = CombineHashes(result, static_cast<uint32_t>(type_nullability));
+  result = CombineHashes(result, static_cast<uint32_t>(nullability()));
   uint32_t type_args_hash = TypeArguments::kAllDynamicHash;
   if (arguments() != TypeArguments::null()) {
     const TypeArguments& args = TypeArguments::Handle(arguments());
@@ -22422,13 +22375,7 @@ uword FunctionType::ComputeHash() const {
   ASSERT(IsFinalized());
   uint32_t result =
       CombineHashes(packed_parameter_counts(), packed_type_parameter_counts());
-  // A legacy type should have the same hash as its non-nullable version to be
-  // consistent with the definition of type equality in Dart code.
-  Nullability type_nullability = nullability();
-  if (type_nullability == Nullability::kLegacy) {
-    type_nullability = Nullability::kNonNullable;
-  }
-  result = CombineHashes(result, static_cast<uint32_t>(type_nullability));
+  result = CombineHashes(result, static_cast<uint32_t>(nullability()));
   AbstractType& type = AbstractType::Handle();
   const intptr_t num_type_params = NumTypeParameters();
   if (num_type_params > 0) {
@@ -22978,13 +22925,7 @@ uword TypeParameter::ComputeHash() const {
   uint32_t result = parameterized_class_id();
   result = CombineHashes(result, base());
   result = CombineHashes(result, index());
-  // A legacy type should have the same hash as its non-nullable version to be
-  // consistent with the definition of type equality in Dart code.
-  Nullability type_param_nullability = nullability();
-  if (type_param_nullability == Nullability::kLegacy) {
-    type_param_nullability = Nullability::kNonNullable;
-  }
-  result = CombineHashes(result, static_cast<uint32_t>(type_param_nullability));
+  result = CombineHashes(result, static_cast<uint32_t>(nullability()));
   result = FinalizeHash(result, kHashBits);
   SetHash(result);
   return result;
@@ -27617,13 +27558,7 @@ bool RecordType::IsEquivalent(
 uword RecordType::ComputeHash() const {
   ASSERT(IsFinalized());
   uint32_t result = 0;
-  // A legacy type should have the same hash as its non-nullable version to be
-  // consistent with the definition of type equality in Dart code.
-  Nullability type_nullability = nullability();
-  if (type_nullability == Nullability::kLegacy) {
-    type_nullability = Nullability::kNonNullable;
-  }
-  result = CombineHashes(result, static_cast<uint32_t>(type_nullability));
+  result = CombineHashes(result, static_cast<uint32_t>(nullability()));
   result = CombineHashes(result, static_cast<uint32_t>(shape().AsInt()));
   AbstractType& type = AbstractType::Handle();
   const intptr_t num_fields = NumFields();

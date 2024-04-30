@@ -5426,8 +5426,7 @@ static void PrintMetadata(const char* name, const Object& data) {
 
 TEST_CASE(Metadata) {
   // clang-format off
-  auto kScriptChars =
-      Utils::CStringUniquePtr(OS::SCreate(nullptr,
+  const char* kScriptChars =
         "@metafoo                       \n"
         "class Meta {                   \n"
         "  final m;                     \n"
@@ -5438,7 +5437,7 @@ TEST_CASE(Metadata) {
         "const metabar = 'meta' 'bar';  \n"
         "                               \n"
         "@metafoo                       \n"
-        "@Meta(0) String%s gVar;        \n"
+        "@Meta(0) String? gVar;         \n"
         "                               \n"
         "@metafoo                       \n"
         "get tlGetter => gVar;          \n"
@@ -5457,11 +5456,10 @@ TEST_CASE(Metadata) {
         "@Meta('main')                  \n"
         "A main() {                     \n"
         "  return A();                  \n"
-        "}                              \n",
-        TestCase::NullableTag()), std::free);
+        "}                              \n";
   // clang-format on
 
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars.get(), nullptr);
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   EXPECT_VALID(h_lib);
   Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
@@ -7437,9 +7435,6 @@ ISOLATE_UNIT_TEST_CASE(ClosureType_SubtypeOfFunctionType) {
   auto& closure_type_nullable = Type::Handle(
       closure_type.ToNullability(Nullability::kNullable, Heap::kNew));
   FinalizeAndCanonicalize(&closure_type_nullable);
-  auto& closure_type_legacy = Type::Handle(
-      closure_type.ToNullability(Nullability::kLegacy, Heap::kNew));
-  FinalizeAndCanonicalize(&closure_type_legacy);
   auto& closure_type_nonnullable = Type::Handle(
       closure_type.ToNullability(Nullability::kNonNullable, Heap::kNew));
   FinalizeAndCanonicalize(&closure_type_nonnullable);
@@ -7449,21 +7444,13 @@ ISOLATE_UNIT_TEST_CASE(ClosureType_SubtypeOfFunctionType) {
   auto& function_type_nullable = Type::Handle(
       function_type.ToNullability(Nullability::kNullable, Heap::kNew));
   FinalizeAndCanonicalize(&function_type_nullable);
-  auto& function_type_legacy = Type::Handle(
-      function_type.ToNullability(Nullability::kLegacy, Heap::kNew));
-  FinalizeAndCanonicalize(&function_type_legacy);
   auto& function_type_nonnullable = Type::Handle(
       function_type.ToNullability(Nullability::kNonNullable, Heap::kNew));
   FinalizeAndCanonicalize(&function_type_nonnullable);
 
   EXPECT_SUBTYPE(closure_type_nonnullable, function_type_nullable);
-  EXPECT_SUBTYPE(closure_type_nonnullable, function_type_legacy);
   EXPECT_SUBTYPE(closure_type_nonnullable, function_type_nonnullable);
-  EXPECT_SUBTYPE(closure_type_legacy, function_type_nullable);
-  EXPECT_SUBTYPE(closure_type_legacy, function_type_legacy);
-  EXPECT_SUBTYPE(closure_type_legacy, function_type_nonnullable);
   EXPECT_SUBTYPE(closure_type_nullable, function_type_nullable);
-  EXPECT_SUBTYPE(closure_type_nullable, function_type_legacy);
   EXPECT_NOT_SUBTYPE(closure_type_nullable, function_type_nonnullable);
 
   const auto& async_lib = Library::Handle(Library::AsyncLibrary());
@@ -7472,9 +7459,6 @@ ISOLATE_UNIT_TEST_CASE(ClosureType_SubtypeOfFunctionType) {
   auto& tav_function_nullable = TypeArguments::Handle(TypeArguments::New(1));
   tav_function_nullable.SetTypeAt(0, function_type_nullable);
   tav_function_nullable = tav_function_nullable.Canonicalize(thread);
-  auto& tav_function_legacy = TypeArguments::Handle(TypeArguments::New(1));
-  tav_function_legacy.SetTypeAt(0, function_type_legacy);
-  tav_function_legacy = tav_function_legacy.Canonicalize(thread);
   auto& tav_function_nonnullable = TypeArguments::Handle(TypeArguments::New(1));
   tav_function_nonnullable.SetTypeAt(0, function_type_nonnullable);
   tav_function_nonnullable = tav_function_nonnullable.Canonicalize(thread);
@@ -7482,21 +7466,13 @@ ISOLATE_UNIT_TEST_CASE(ClosureType_SubtypeOfFunctionType) {
   auto& future_or_function_type_nullable =
       Type::Handle(Type::New(future_or_class, tav_function_nullable));
   FinalizeAndCanonicalize(&future_or_function_type_nullable);
-  auto& future_or_function_type_legacy =
-      Type::Handle(Type::New(future_or_class, tav_function_legacy));
-  FinalizeAndCanonicalize(&future_or_function_type_legacy);
   auto& future_or_function_type_nonnullable =
       Type::Handle(Type::New(future_or_class, tav_function_nonnullable));
   FinalizeAndCanonicalize(&future_or_function_type_nonnullable);
 
   EXPECT_SUBTYPE(closure_type_nonnullable, future_or_function_type_nullable);
-  EXPECT_SUBTYPE(closure_type_nonnullable, future_or_function_type_legacy);
   EXPECT_SUBTYPE(closure_type_nonnullable, future_or_function_type_nonnullable);
-  EXPECT_SUBTYPE(closure_type_legacy, future_or_function_type_nullable);
-  EXPECT_SUBTYPE(closure_type_legacy, future_or_function_type_legacy);
-  EXPECT_SUBTYPE(closure_type_legacy, future_or_function_type_nonnullable);
   EXPECT_SUBTYPE(closure_type_nullable, future_or_function_type_nullable);
-  EXPECT_SUBTYPE(closure_type_nullable, future_or_function_type_legacy);
   EXPECT_NOT_SUBTYPE(closure_type_nullable,
                      future_or_function_type_nonnullable);
 }
@@ -7696,16 +7672,6 @@ ISOLATE_UNIT_TEST_CASE(AbstractType_NormalizeFutureOrType) {
     EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(type_non_nullable_object, type);
   }
 
-  //   if S is Object* then S
-
-  {
-    const auto& type_legacy_object =
-        Type::Handle(object_store->legacy_object_type());
-    const auto& type = AbstractType::Handle(
-        normalized_future_or(type_legacy_object, Nullability::kNonNullable));
-    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(type_legacy_object, type);
-  }
-
   //   if S is Never then Future<Never>
 
   {
@@ -7787,8 +7753,6 @@ FutureOr<T?> bar<T>() { return null; }
       Type::Handle(object_store->nullable_object_type());
   const auto& type_non_nullable_object =
       Type::Handle(object_store->non_nullable_object_type());
-  const auto& type_legacy_object =
-      Type::Handle(object_store->legacy_object_type());
 
   // Testing same cases as AbstractType_NormalizeFutureOrType.
 
@@ -7840,27 +7804,11 @@ FutureOr<T?> bar<T>() { return null; }
     EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(type_nullable_object, got);
   }
 
-  // FutureOr<T?>[Object*] = Object?
-
-  {
-    const auto& got = AbstractType::Handle(
-        instantiate_future_or(future_or_nullable_T, type_legacy_object));
-    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(type_nullable_object, got);
-  }
-
   // FutureOr<T>?[Object] = Object?
 
   {
     const auto& got = AbstractType::Handle(
         instantiate_future_or(nullable_future_or_T, type_non_nullable_object));
-    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(type_nullable_object, got);
-  }
-
-  // FutureOr<T>?[Object*] = Object?
-
-  {
-    const auto& got = AbstractType::Handle(
-        instantiate_future_or(nullable_future_or_T, type_legacy_object));
     EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(type_nullable_object, got);
   }
 

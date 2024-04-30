@@ -214,10 +214,6 @@ const char* TestCase::GetTestLib(const char* url) {
   return nullptr;
 }
 
-bool TestCase::IsNNBD() {
-  return KernelIsolate::GetExperimentalFlag(ExperimentalFeature::non_nullable);
-}
-
 #ifndef PRODUCT
 static const char* kIsolateReloadTestLibSource = R"(
 @pragma("vm:external-name", "Test_Reload")

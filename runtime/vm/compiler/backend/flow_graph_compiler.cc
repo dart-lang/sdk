@@ -2723,10 +2723,7 @@ void FlowGraphCompiler::GenerateInstanceOf(const InstructionSource& source,
     // See NullIsInstanceOf().
     __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
     __ BranchIf(EQUAL,
-                (unwrapped_type.IsNullable() ||
-                 (unwrapped_type.IsLegacy() && unwrapped_type.IsNeverType()))
-                    ? &is_instance
-                    : &is_not_instance);
+                unwrapped_type.IsNullable() ? &is_instance : &is_not_instance);
   }
 
   // Generate inline instanceof test.

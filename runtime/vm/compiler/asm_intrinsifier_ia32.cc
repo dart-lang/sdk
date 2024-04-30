@@ -1342,7 +1342,7 @@ void AsmIntrinsifier::String_getHashCode(Assembler* assembler,
 
 void AsmIntrinsifier::Type_equality(Assembler* assembler,
                                     Label* normal_ir_body) {
-  Label equal, not_equal, equiv_cids_may_be_generic, equiv_cids, check_legacy;
+  Label equal, not_equal, equiv_cids_may_be_generic, equiv_cids;
 
   __ movl(EDI, Address(ESP, +1 * target::kWordSize));
   __ movl(EBX, Address(ESP, +2 * target::kWordSize));
@@ -1376,23 +1376,12 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
   __ LoadAbstractTypeNullability(EDI, EDI);
   __ LoadAbstractTypeNullability(EBX, EBX);
   __ cmpl(EDI, EBX);
-  __ j(NOT_EQUAL, &check_legacy, Assembler::kNearJump);
+  __ j(NOT_EQUAL, &not_equal, Assembler::kNearJump);
   // Fall through to equal case if nullability is strictly equal.
 
   __ Bind(&equal);
   __ LoadObject(EAX, CastHandle<Object>(TrueObject()));
   __ ret();
-
-  // At this point the nullabilities are different, so they can only be
-  // syntactically equivalent if they're both either kNonNullable or kLegacy.
-  // These are the two largest values of the enum, so we can just do a < check.
-  ASSERT(target::Nullability::kNullable < target::Nullability::kNonNullable &&
-         target::Nullability::kNonNullable < target::Nullability::kLegacy);
-  __ Bind(&check_legacy);
-  __ cmpl(EDI, Immediate(target::Nullability::kNonNullable));
-  __ j(LESS, &not_equal, Assembler::kNearJump);
-  __ cmpl(EBX, Immediate(target::Nullability::kNonNullable));
-  __ j(GREATER_EQUAL, &equal, Assembler::kNearJump);
 
   __ Bind(&not_equal);
   __ LoadObject(EAX, CastHandle<Object>(FalseObject()));

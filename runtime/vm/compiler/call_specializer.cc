@@ -1077,8 +1077,7 @@ BoolPtr CallSpecializer::InstanceOfAsBool(
           AbstractType::Handle(type.UnwrapFutureOr());
       ASSERT(unwrapped_type.IsInstantiated());
       is_subtype = unwrapped_type.IsTopTypeForInstanceOf() ||
-                   unwrapped_type.IsNullable() ||
-                   (unwrapped_type.IsLegacy() && unwrapped_type.IsNeverType());
+                   unwrapped_type.IsNullable();
     } else {
       is_subtype =
           Class::IsSubtypeOf(cls, Object::null_type_arguments(),
@@ -1167,17 +1166,14 @@ bool CallSpecializer::TryOptimizeInstanceOfUsingStaticTypes(
     return false;
   }
 
-  // If type is Null or Never*, or the static type of the receiver is a
+  // If type is Null or the static type of the receiver is a
   // subtype of the tested type, replace 'receiver is type' with
-  //  - 'receiver == null' if type is Null or Never*,
+  //  - 'receiver == null' if type is Null,
   //  - 'receiver != null' otherwise.
-  if (type.IsNullType() || (type.IsNeverType() && type.IsLegacy()) ||
-      left_value->Type()->IsSubtypeOf(type)) {
+  if (type.IsNullType() || left_value->Type()->IsSubtypeOf(type)) {
     Definition* replacement = new (Z) StrictCompareInstr(
         call->source(),
-        (type.IsNullType() || (type.IsNeverType() && type.IsLegacy()))
-            ? Token::kEQ_STRICT
-            : Token::kNE_STRICT,
+        type.IsNullType() ? Token::kEQ_STRICT : Token::kNE_STRICT,
         left_value->CopyWithType(Z),
         new (Z) Value(flow_graph()->constant_null()),
         /* number_check = */ false, DeoptId::kNone);
