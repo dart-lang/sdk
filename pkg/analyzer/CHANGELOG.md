@@ -1,4 +1,4 @@
-## 6.5.0-dev
+## 6.5.0
 * Deprecated `LibraryElement.toLegacyTypeIfOptOut`.
 * Deprecated `LibraryElement.toLegacyElementIfOptOut`.
 * Deprecated `LibraryElement.isNonNullableByDefault`.
