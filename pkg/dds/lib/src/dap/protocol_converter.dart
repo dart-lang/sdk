@@ -86,7 +86,7 @@ class ProtocolConverter {
       } else if (ref.kind == vm.InstanceKind.kInt) {
         return formatter.formatInt(int.tryParse(valueAsString));
       } else {
-        return valueAsString.toString();
+        return valueAsString;
       }
     } else if (ref.kind == 'PlainInstance') {
       var stringValue = ref.classRef?.name ?? '<unknown instance>';
@@ -705,29 +705,36 @@ class ProtocolConverter {
     if (service == null) {
       return null;
     }
-    var result = await service.invoke(
-      thread.isolate.id!,
-      ref.id!,
-      'toString',
-      [],
-      disableBreakpoints: true,
-    );
+    try {
+      var result = await service.invoke(
+        thread.isolate.id!,
+        ref.id!,
+        'toString',
+        [],
+        disableBreakpoints: true,
+      );
 
-    // If the response is a string and is truncated, use getObject() to get the
-    // full value.
-    if (result is vm.InstanceRef &&
-        result.kind == 'String' &&
-        (result.valueAsStringIsTruncated ?? false) &&
-        !allowTruncatedValue) {
-      result = await service.getObject(thread.isolate.id!, result.id!);
+      // If the response is a string and is truncated, use getObject() to get the
+      // full value.
+      if (result is vm.InstanceRef &&
+          result.kind == 'String' &&
+          (result.valueAsStringIsTruncated ?? false) &&
+          !allowTruncatedValue) {
+        result = await service.getObject(thread.isolate.id!, result.id!);
+      }
+
+      return convertVmResponseToDisplayString(
+        thread,
+        result,
+        allowCallingToString: false, // Don't allow recursing.
+        format: format,
+      );
+    } on vm.SentinelException catch (e) {
+      // invoke() will throw on sentinels, so we should return the appropriate
+      // text from the sentinel instead of letting this bubble up and require
+      // handling by all callers.
+      return e.sentinel.valueAsString ?? '<sentinel>';
     }
-
-    return convertVmResponseToDisplayString(
-      thread,
-      result,
-      allowCallingToString: false, // Don't allow recursing.
-      format: format,
-    );
   }
 
   /// Collect a list of all getter names for [classRef] and its super classes.
