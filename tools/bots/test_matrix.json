@@ -1591,6 +1591,14 @@
             "--os=fuchsia",
             "runtime"
           ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-${system}-${mode}-${arch}",
+            "-j1",
+            "ffi"
+          ]
         }
       ]
     },

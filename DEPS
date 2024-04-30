@@ -857,7 +857,7 @@ hooks = [
       'python3',
       'sdk/build/fuchsia/with_envs.py',
       'sdk/third_party/fuchsia/test_scripts/update_product_bundles.py',
-      'terminal.x64',
+      'terminal.x64,terminal.qemu-arm64',
     ],
     'condition': 'download_fuchsia_deps'
   },

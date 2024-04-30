@@ -349,6 +349,9 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
     if (_configuration.useQemu) {
       multiplier *= 2;
     }
+    if (system == System.fuchsia && arch == Architecture.arm64) {
+      multiplier *= 4; // Full system QEMU.
+    }
 
     // Configurations where `kernel-service` doesn't run from AppJIT snapshot
     // will make tests run very slow due to the `kernel-service` code slowly
@@ -543,7 +546,6 @@ class DartkFuchsiaEmulatorRuntimeConfiguration
     command.arguments
         .insert(command.arguments.length - 1, '--disable-dart-dev');
     command.environmentOverrides.addAll(environmentOverrides);
-    print("+ About to run command $command to test against fuchsia vm");
     return [command];
   }
 }
