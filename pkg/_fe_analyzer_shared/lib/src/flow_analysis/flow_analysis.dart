@@ -283,12 +283,14 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// be the pattern's constant expression, and [type] should be its static
   /// type.
   ///
+  /// [matchedValueType] should be the type returned by [getMatchedValueType].
+  ///
   /// If [patternsEnabled] is `true`, pattern support is enabled and this is an
   /// ordinary constant pattern.  if [patternsEnabled] is `false`, pattern
   /// support is disabled and this constant pattern is one of the cases of a
   /// legacy switch statement.
   void constantPattern_end(Expression expression, Type type,
-      {required bool patternsEnabled});
+      {required bool patternsEnabled, required Type matchedValueType});
 
   /// Copy promotion data associated with one promotion key to another.  This
   /// is used after analyzing a branch of a logical-or pattern, to move the
@@ -376,8 +378,10 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// equality operator (either `==` or `!=`).  [operand] should be the operand
   /// to the right of the operator, [operandType] should be its static type, and
   /// [notEqual] should be `true` iff the operator was `!=`.
+  ///
+  /// [matchedValueType] should be the type returned by [getMatchedValueType].
   void equalityRelationalPattern_end(Expression operand, Type operandType,
-      {bool notEqual = false});
+      {bool notEqual = false, required Type matchedValueType});
 
   /// Retrieves the [ExpressionInfo] associated with [target], if known.  Will
   /// return `null` if (a) no info is associated with [target], or (b) another
@@ -701,7 +705,10 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// Call this method before visiting the subpattern of a null-check or a
   /// null-assert pattern. [isAssert] indicates whether the pattern is a
   /// null-check or a null-assert pattern.
-  bool nullCheckOrAssertPattern_begin({required bool isAssert});
+  ///
+  /// [matchedValueType] should be the type returned by [getMatchedValueType].
+  bool nullCheckOrAssertPattern_begin(
+      {required bool isAssert, required Type matchedValueType});
 
   /// Call this method after visiting the subpattern of a null-check or a
   /// null-assert pattern.
@@ -1279,12 +1286,14 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
 
   @override
   void constantPattern_end(Expression expression, Type type,
-      {required bool patternsEnabled}) {
+      {required bool patternsEnabled, required Type matchedValueType}) {
     _wrap(
         'constantPattern_end($expression, $type, '
-        'patternsEnabled: $patternsEnabled)',
+        'patternsEnabled: $patternsEnabled, '
+        'matchedValueType: $matchedValueType)',
         () => _wrapped.constantPattern_end(expression, type,
-            patternsEnabled: patternsEnabled));
+            patternsEnabled: patternsEnabled,
+            matchedValueType: matchedValueType));
   }
 
   @override
@@ -1368,12 +1377,12 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
 
   @override
   void equalityRelationalPattern_end(Expression operand, Type operandType,
-      {bool notEqual = false}) {
+      {bool notEqual = false, required Type matchedValueType}) {
     _wrap(
         'equalityRelationalPattern_end($operand, $operandType, '
-        'notEqual: $notEqual)',
+        'notEqual: $notEqual, matchedValueType: $matchedValueType)',
         () => _wrapped.equalityRelationalPattern_end(operand, operandType,
-            notEqual: notEqual));
+            notEqual: notEqual, matchedValueType: matchedValueType));
   }
 
   @override
@@ -1651,10 +1660,15 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  bool nullCheckOrAssertPattern_begin({required bool isAssert}) {
-    return _wrap('nullCheckOrAssertPattern_begin(isAssert: $isAssert)',
-        () => _wrapped.nullCheckOrAssertPattern_begin(isAssert: isAssert),
-        isQuery: true, isPure: false);
+  bool nullCheckOrAssertPattern_begin(
+      {required bool isAssert, required Type matchedValueType}) {
+    return _wrap(
+        'nullCheckOrAssertPattern_begin(isAssert: $isAssert, '
+        'matchedValueType: $matchedValueType)',
+        () => _wrapped.nullCheckOrAssertPattern_begin(
+            isAssert: isAssert, matchedValueType: matchedValueType),
+        isQuery: true,
+        isPure: false);
   }
 
   @override
@@ -4462,10 +4476,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   void constantPattern_end(Expression expression, Type type,
-      {required bool patternsEnabled}) {
+      {required bool patternsEnabled, required Type matchedValueType}) {
     assert(_stack.last is _PatternContext<Type>);
     if (patternsEnabled) {
-      _handleEqualityCheckPattern(expression, type, notEqual: false);
+      _handleEqualityCheckPattern(expression, type,
+          notEqual: false, matchedValueType: matchedValueType);
     } else {
       // Before pattern support was added to Dart, flow analysis didn't do any
       // promotion based on the constants in individual case clauses.  Also, it
@@ -4599,8 +4614,9 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   void equalityRelationalPattern_end(Expression operand, Type operandType,
-      {bool notEqual = false}) {
-    _handleEqualityCheckPattern(operand, operandType, notEqual: notEqual);
+      {bool notEqual = false, required Type matchedValueType}) {
+    _handleEqualityCheckPattern(operand, operandType,
+        notEqual: notEqual, matchedValueType: matchedValueType);
   }
 
   @override
@@ -4691,14 +4707,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  Type getMatchedValueType() {
-    _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
-    return _current.promotionInfo
-            ?.get(this, context._matchedValueInfo.promotionKey)
-            ?.promotedTypes
-            ?.last ??
-        context._matchedValueInfo._type;
-  }
+  Type getMatchedValueType() => _getMatchedValueType();
 
   @override
   void handleBreak(Statement? target) {
@@ -5034,7 +5043,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  bool nullCheckOrAssertPattern_begin({required bool isAssert}) {
+  bool nullCheckOrAssertPattern_begin(
+      {required bool isAssert, required Type matchedValueType}) {
     if (!isAssert) {
       // Account for the possibility that the pattern might not match.  Note
       // that it's tempting to skip this step if matchedValueType is
@@ -5045,7 +5055,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       // assume the pattern might not match regardless of matchedValueType.
       _unmatched = _join(_unmatched, _current);
     }
-    FlowModel<Type>? ifNotNull = _nullCheckPattern();
+    FlowModel<Type>? ifNotNull =
+        _nullCheckPattern(matchedValueType: matchedValueType);
     if (ifNotNull != null) {
       _current = ifNotNull;
     }
@@ -5672,6 +5683,19 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     }
   }
 
+  /// Gets the matched value type that should be used to type check the pattern
+  /// currently being analyzed.
+  ///
+  /// May only be called in the context of a pattern.
+  Type _getMatchedValueType() {
+    _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
+    return _current.promotionInfo
+            ?.get(this, context._matchedValueInfo.promotionKey)
+            ?.promotedTypes
+            ?.last ??
+        context._matchedValueInfo._type;
+  }
+
   Map<Type, NonPromotionReason> Function() _getNonPromotionReasons(
       _Reference<Type> reference, PromotionModel<Type>? currentPromotionInfo) {
     if (reference is _PropertyReference<Type>) {
@@ -5759,10 +5783,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// equal to the operand; otherwise, it matches if the matched value is
   /// *equal* to the operand.
   void _handleEqualityCheckPattern(Expression operand, Type operandType,
-      {required bool notEqual}) {
+      {required bool notEqual, required Type matchedValueType}) {
+    assert(identical(matchedValueType, _getMatchedValueType()));
     _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
     _Reference<Type> newReference = context
-        .createReference(getMatchedValueType(), _current)
+        .createReference(matchedValueType, _current)
         .addPreviousInfo(context._matchedValueInfo, this, _current);
     _EqualityCheckResult equalityCheckResult =
         _equalityCheck(newReference, equalityOperand_end(operand, operandType));
@@ -5781,7 +5806,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         //
         // So we want to promote the type of `v` in the case where the
         // constant pattern *didn't* match.
-        ifNotNull = _nullCheckPattern();
+        ifNotNull = _nullCheckPattern(matchedValueType: matchedValueType);
         if (ifNotNull == null) {
           // `_nullCheckPattern` returns `null` in the case where the matched
           // value type is non-nullable.  In fully sound programs, this would
@@ -5923,9 +5948,9 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// to `null`.
   ///
   /// If the matched value's type is non-nullable, then `null` is returned.
-  FlowModel<Type>? _nullCheckPattern() {
+  FlowModel<Type>? _nullCheckPattern({required Type matchedValueType}) {
     _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
-    Type matchedValueType = getMatchedValueType();
+    assert(identical(matchedValueType, _getMatchedValueType()));
     _Reference<Type> matchedValueReference =
         context.createReference(matchedValueType, _current);
     // Promote
@@ -6311,7 +6336,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
 
   @override
   void constantPattern_end(Expression expression, Type type,
-      {required bool patternsEnabled}) {}
+      {required bool patternsEnabled, required Type matchedValueType}) {}
 
   @override
   void copyPromotionData(
@@ -6352,7 +6377,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
 
   @override
   void equalityRelationalPattern_end(Expression operand, Type operandType,
-      {bool notEqual = false}) {}
+      {bool notEqual = false, required Type matchedValueType}) {}
 
   @override
   ExpressionInfo<Type>? expressionInfoForTesting(Expression target) {
@@ -6619,7 +6644,9 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void nullAwareAccess_rightBegin(Expression? target, Type targetType) {}
 
   @override
-  bool nullCheckOrAssertPattern_begin({required bool isAssert}) => false;
+  bool nullCheckOrAssertPattern_begin(
+          {required bool isAssert, required Type matchedValueType}) =>
+      false;
 
   @override
   void nullCheckOrAssertPattern_end() {}

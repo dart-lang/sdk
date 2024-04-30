@@ -6,6 +6,7 @@ import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/doc_comment.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
@@ -833,11 +834,11 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
   }
 
   @override
-  void resolvePattern(
+  PatternResult<DartType> resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    resolverVisitor.resolveAssignedVariablePattern(
+    return resolverVisitor.resolveAssignedVariablePattern(
       node: this,
       context: context,
     );
@@ -2428,14 +2429,14 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
   }
 
   @override
-  void resolvePattern(
+  PatternResult<DartType> resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
     type.accept(resolverVisitor);
     var requiredType = type.typeOrThrow;
 
-    resolverVisitor.analyzeCastPattern(
+    var analysisResult = resolverVisitor.analyzeCastPattern(
       context: context,
       pattern: this,
       innerPattern: pattern,
@@ -2446,7 +2447,10 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
       context: context,
       pattern: this,
       requiredType: requiredType,
+      matchedValueType: analysisResult.matchedValueType,
     );
+
+    return analysisResult;
   }
 
   @override
@@ -4053,12 +4057,14 @@ final class ConstantPatternImpl extends DartPatternImpl
   }
 
   @override
-  void resolvePattern(
+  PatternResult<DartType> resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    resolverVisitor.analyzeConstantPattern(context, this, expression);
+    var analysisResult =
+        resolverVisitor.analyzeConstantPattern(context, this, expression);
     expression = resolverVisitor.popRewrite()!;
+    return analysisResult;
   }
 
   @override
@@ -4787,7 +4793,7 @@ sealed class DartPatternImpl extends AstNodeImpl
   /// Note: most code shouldn't call this method directly, but should instead
   /// call [ResolverVisitor.dispatchPattern], which has some special logic for
   /// handling dynamic contexts.
-  void resolvePattern(
+  PatternResult<DartType> resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   );
@@ -4982,7 +4988,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
   }
 
   @override
-  void resolvePattern(
+  PatternResult<DartType> resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
@@ -4994,7 +5000,10 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
       context: context,
       pattern: this,
       requiredType: result.staticType,
+      matchedValueType: result.matchedValueType,
     );
+
+    return result;
   }
 
   @override
@@ -11022,11 +11031,12 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
   }
 
   @override
-  void resolvePattern(
+  PatternResult<DartType> resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    resolverVisitor.listPatternResolver.resolve(node: this, context: context);
+    return resolverVisitor.listPatternResolver
+        .resolve(node: this, context: context);
   }
 
   @override
@@ -11121,11 +11131,11 @@ final class LogicalAndPatternImpl extends DartPatternImpl
   }
 
   @override
-  void resolvePattern(
+  PatternResult<DartType> resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    resolverVisitor.analyzeLogicalAndPattern(
+    return resolverVisitor.analyzeLogicalAndPattern(
         context, this, leftOperand, rightOperand);
   }
 
@@ -11196,13 +11206,14 @@ final class LogicalOrPatternImpl extends DartPatternImpl
   }
 
   @override
-  void resolvePattern(
+  PatternResult<DartType> resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    resolverVisitor.analyzeLogicalOrPattern(
+    var analysisResult = resolverVisitor.analyzeLogicalOrPattern(
         context, this, leftOperand, rightOperand);
     resolverVisitor.nullSafetyDeadCodeVerifier.flowEnd(rightOperand);
+    return analysisResult;
   }
 
   @override
@@ -11445,11 +11456,11 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
   }
 
   @override
-  void resolvePattern(
+  PatternResult<DartType> resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    resolverVisitor.resolveMapPattern(node: this, context: context);
+    return resolverVisitor.resolveMapPattern(node: this, context: context);
   }
 
   @override
@@ -12748,11 +12759,12 @@ final class NullAssertPatternImpl extends DartPatternImpl
   }
 
   @override
-  void resolvePattern(
+  PatternResult<DartType> resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    resolverVisitor.analyzeNullCheckOrAssertPattern(context, this, pattern,
+    return resolverVisitor.analyzeNullCheckOrAssertPattern(
+        context, this, pattern,
         isAssert: true);
   }
 
@@ -12818,11 +12830,12 @@ final class NullCheckPatternImpl extends DartPatternImpl
   }
 
   @override
-  void resolvePattern(
+  PatternResult<DartType> resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    resolverVisitor.analyzeNullCheckOrAssertPattern(context, this, pattern,
+    return resolverVisitor.analyzeNullCheckOrAssertPattern(
+        context, this, pattern,
         isAssert: false);
   }
 
@@ -12989,7 +13002,7 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
   }
 
   @override
-  void resolvePattern(
+  PatternResult<DartType> resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
@@ -13006,7 +13019,10 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
       context: context,
       pattern: this,
       requiredType: result.requiredType,
+      matchedValueType: result.matchedValueType,
     );
+
+    return result;
   }
 
   @override
@@ -13169,11 +13185,11 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
   }
 
   @override
-  void resolvePattern(
+  PatternResult<DartType> resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    resolverVisitor.dispatchPattern(context, pattern);
+    return resolverVisitor.dispatchPattern(context, pattern);
   }
 
   @override
@@ -14269,7 +14285,7 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   }
 
   @override
-  void resolvePattern(
+  PatternResult<DartType> resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
@@ -14287,8 +14303,11 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
         context: context,
         pattern: this,
         requiredType: result.requiredType,
+        matchedValueType: result.matchedValueType,
       );
     }
+
+    return result;
   }
 
   @override
@@ -14694,12 +14713,14 @@ final class RelationalPatternImpl extends DartPatternImpl
   }
 
   @override
-  void resolvePattern(
+  PatternResult<DartType> resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    resolverVisitor.analyzeRelationalPattern(context, this, operand);
+    var analysisResult =
+        resolverVisitor.analyzeRelationalPattern(context, this, operand);
     resolverVisitor.popRewrite();
+    return analysisResult;
   }
 
   @override
@@ -18309,12 +18330,12 @@ final class WildcardPatternImpl extends DartPatternImpl
   }
 
   @override
-  void resolvePattern(
+  PatternResult<DartType> resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
     var declaredType = type?.typeOrThrow;
-    resolverVisitor.analyzeWildcardPattern(
+    var analysisResult = resolverVisitor.analyzeWildcardPattern(
       context: context,
       node: this,
       declaredType: declaredType,
@@ -18325,8 +18346,11 @@ final class WildcardPatternImpl extends DartPatternImpl
         context: context,
         pattern: this,
         requiredType: declaredType,
+        matchedValueType: analysisResult.matchedValueType,
       );
     }
+
+    return analysisResult;
   }
 
   @override
