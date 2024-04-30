@@ -3159,7 +3159,7 @@ class Function : public Object {
   bool SafeToClosurize() const;
 
   static CodePtr CurrentCodeOf(const FunctionPtr function) {
-    return function->untag()->code();
+    return function->untag()->code<std::memory_order_acquire>();
   }
 
   CodePtr unoptimized_code() const {

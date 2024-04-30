@@ -7976,7 +7976,7 @@ void Function::SetInstructions(const Code& value) const {
 }
 
 void Function::SetInstructionsSafe(const Code& value) const {
-  untag()->set_code(value.ptr());
+  untag()->set_code<std::memory_order_release>(value.ptr());
   StoreNonPointer(&untag()->entry_point_, value.EntryPoint());
   StoreNonPointer(&untag()->unchecked_entry_point_,
                   value.UncheckedEntryPoint());
