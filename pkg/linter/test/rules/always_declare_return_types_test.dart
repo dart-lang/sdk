@@ -61,7 +61,8 @@ f() { }
     ]);
   }
 
-  /// Augmentation target chain variations tested in `augmentedTopLevelFunction{*}`.
+  /// Augmentation target chain variations tested in
+  /// `augmentedTopLevelFunction{*}`.
   test_augmentedMethod() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 import augment 'b.dart';
@@ -131,5 +132,106 @@ augment f() { }
 
     result = await resolveFile(b.path);
     await assertNoDiagnosticsIn(errors);
+  }
+
+  test_extensionMethod() async {
+    await assertDiagnostics(r'''
+extension E on int {
+  f() {}
+}
+''', [
+      lint(23, 1),
+    ]);
+  }
+
+  test_instanceSetter() async {
+    await assertNoDiagnostics(r'''
+class C {
+  set f(int p) {}
+}
+''');
+  }
+
+  test_method_expressionBody() async {
+    await assertDiagnostics(r'''
+class C {
+  f() => 42;
+}
+''', [
+      lint(12, 1),
+    ]);
+  }
+
+  test_method_withReturnType() async {
+    await assertNoDiagnostics(r'''
+class C {
+  int f() => 42;
+}
+''');
+  }
+
+  test_operator() async {
+    await assertNoDiagnostics(r'''
+class C {
+  operator []=(int index, int value) //OK: #300
+  {}
+}
+''');
+  }
+
+  test_staticSetter() async {
+    await assertNoDiagnostics(r'''
+class C {
+  static set f(int p) {}
+}
+''');
+  }
+
+  test_topLevelFunction_blockBody_withReturnType() async {
+    await assertNoDiagnostics(r'''
+int f() => 7;
+''');
+  }
+
+  test_topLevelFunction_expressionBody() async {
+    await assertDiagnostics(r'''
+f() => 7;
+''', [
+      lint(0, 1),
+    ]);
+  }
+
+  test_topLevelFunction_expressionBody_withReturnType() async {
+    await assertNoDiagnostics(r'''
+void f() { }
+''');
+  }
+
+  test_topLevelFunction_noReturn() async {
+    await assertDiagnostics(r'''
+f() {}
+''', [
+      lint(0, 1),
+    ]);
+  }
+
+  test_topLevelSetter() async {
+    await assertNoDiagnostics(r'''
+set f(int p) {}
+''');
+  }
+
+  test_typedef_oldStyle() async {
+    await assertDiagnostics(r'''
+typedef t(int x);
+''', [
+      lint(8, 1),
+    ]);
+  }
+
+  test_typedef_oldStyle_withReturnType() async {
+    await assertNoDiagnostics(r'''
+typedef bool t(int x);
+''');
   }
 }
