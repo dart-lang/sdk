@@ -18,6 +18,7 @@ import 'library_augmentation_directive_test.dart'
 import 'mixin_test.dart' as mixin_;
 import 'top_level_function_test.dart' as top_level_function;
 import 'top_level_variable_test.dart' as top_level_variable;
+import 'type_alias_test.dart' as type_alias;
 import 'variable_declaration_statement_test.dart'
     as variable_declaration_statement;
 
@@ -36,6 +37,7 @@ main() {
     mixin_.main();
     top_level_function.main();
     top_level_variable.main();
+    type_alias.main();
     variable_declaration_statement.main();
   }, name: 'parser');
 }

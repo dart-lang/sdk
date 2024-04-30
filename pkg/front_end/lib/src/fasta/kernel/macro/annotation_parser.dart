@@ -1626,7 +1626,8 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endTypedef(Token typedefKeyword, Token? equals, Token endToken) {
+  void endTypedef(Token? augmentToken, Token typedefKeyword, Token? equals,
+      Token endToken) {
     _unexpected();
   }
 

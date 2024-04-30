@@ -3048,12 +3048,6 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   @override
   final Token? finalKeyword;
 
-  /// The token for the `augment` keyword, or `null` if this isn't defining an
-  /// augmentation class.
-// TODO(brianwilkerson): Move this comment to the getter when it's added to
-  //  the public API.
-  final Token? augmentKeyword;
-
   @override
   final Token? mixinKeyword;
 
@@ -3091,7 +3085,7 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     required this.baseKeyword,
     required this.interfaceKeyword,
     required this.finalKeyword,
-    required this.augmentKeyword,
+    required super.augmentKeyword,
     required this.mixinKeyword,
     required NamedTypeImpl superclass,
     required WithClauseImpl withClause,
@@ -8505,6 +8499,7 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
   FunctionTypeAliasImpl({
     required super.comment,
     required super.metadata,
+    required super.augmentKeyword,
     required super.typedefKeyword,
     required TypeAnnotationImpl? returnType,
     required super.name,
@@ -8542,6 +8537,7 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
 
   @override
   ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('typedefKeyword', typedefKeyword)
     ..addNode('returnType', returnType)
     ..addToken('name', name)
@@ -8867,6 +8863,7 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   GenericTypeAliasImpl({
     required super.comment,
     required super.metadata,
+    required super.augmentKeyword,
     required super.typedefKeyword,
     required super.name,
     required TypeParameterListImpl? typeParameters,
@@ -8906,6 +8903,7 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNodeList('metadata', metadata)
+    ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('typedefKeyword', typedefKeyword)
     ..addToken('name', name)
     ..addNode('typeParameters', typeParameters)
@@ -17311,6 +17309,10 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
 ///      | [FunctionTypeAlias]
 ///      | [GenericTypeAlias]
 abstract final class TypeAlias implements NamedCompilationUnitMember {
+  /// The `augment` keyword, or `null` if the keyword was absent.
+  @experimental
+  Token? get augmentKeyword;
+
   /// The semicolon terminating the declaration.
   Token get semicolon;
 
@@ -17320,6 +17322,9 @@ abstract final class TypeAlias implements NamedCompilationUnitMember {
 
 sealed class TypeAliasImpl extends NamedCompilationUnitMemberImpl
     implements TypeAlias {
+  @override
+  final Token? augmentKeyword;
+
   @override
   final Token typedefKeyword;
 
@@ -17333,6 +17338,7 @@ sealed class TypeAliasImpl extends NamedCompilationUnitMemberImpl
   TypeAliasImpl({
     required super.comment,
     required super.metadata,
+    required this.augmentKeyword,
     required this.typedefKeyword,
     required super.name,
     required this.semicolon,
@@ -17342,7 +17348,9 @@ sealed class TypeAliasImpl extends NamedCompilationUnitMemberImpl
   Token get endToken => semicolon;
 
   @override
-  Token get firstTokenAfterCommentAndMetadata => typedefKeyword;
+  Token get firstTokenAfterCommentAndMetadata {
+    return augmentKeyword ?? typedefKeyword;
+  }
 }
 
 /// A type annotation.

@@ -821,7 +821,8 @@ class Listener implements UnescapeErrorListener {
   /// - Name (identifier)
   /// - Alias type variables
   /// - Type (FunctionTypeAnnotation)
-  void endTypedef(Token typedefKeyword, Token? equals, Token endToken) {
+  void endTypedef(Token? augmentToken, Token typedefKeyword, Token? equals,
+      Token endToken) {
     logEvent("FunctionTypeAlias");
   }
 

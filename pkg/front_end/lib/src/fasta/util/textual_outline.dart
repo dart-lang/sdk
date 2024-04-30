@@ -759,7 +759,8 @@ class TextualOutlineListener extends Listener {
   }
 
   @override
-  void endTypedef(Token typedefKeyword, Token? equals, Token endToken) {
+  void endTypedef(Token? augmentToken, Token typedefKeyword, Token? equals,
+      Token endToken) {
     elementStartToChunk[typedefKeyword] =
         new _FunctionTypeAliasChunk(typedefKeyword, endToken);
   }

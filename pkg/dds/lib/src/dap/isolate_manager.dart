@@ -15,6 +15,12 @@ import 'adapters/mixins.dart';
 import 'utils.dart';
 import 'variables.dart';
 
+/// A composite ID for breakpoints made up of an isolate ID and breakpoint ID.
+///
+/// Breakpoint IDs are not unique across all isolates so any place we need to
+/// know about a breakpoint specifically, we must use this.
+typedef _UniqueVmBreakpointId = ({String isolateId, String breakpointId});
+
 /// Manages state of Isolates (called Threads by the DAP protocol).
 ///
 /// Handles incoming Isolate and Debug events to track the lifetime of isolates
@@ -79,8 +85,9 @@ class IsolateManager {
   /// breakpoint ID.
   ///
   /// When an item is added to this map, any pending events in
-  /// [_pendingBreakpointEvents] MUST be processed immediately.
-  final Map<String, List<ClientBreakpoint>> _clientBreakpointsByVmId = {};
+  /// [_breakpointResolvedEventsByVmId] MUST be processed immediately.
+  final Map<_UniqueVmBreakpointId, List<ClientBreakpoint>>
+      _clientBreakpointsByVmId = {};
 
   /// Tracks `BreakpointAdded` or `BreakpointResolved` events for VM
   /// breakpoints.
@@ -93,7 +100,8 @@ class IsolateManager {
   /// When new breakpoints are added by the client, we must check this map to
   /// see it's al already-resolved breakpoint so that we can send resolution
   /// info to the client.
-  final Map<String, vm.Event> _breakpointResolvedEventsByVmId = {};
+  final Map<_UniqueVmBreakpointId, vm.Event> _breakpointResolvedEventsByVmId =
+      {};
 
   /// Tracks breakpoints created in the VM so they can be removed when the
   /// editor sends new breakpoints (currently the editor just sends a new list
@@ -563,7 +571,8 @@ class IsolateManager {
   Future<void> _handlePause(vm.Event event) async {
     final eventKind = event.kind;
     final isolate = event.isolate!;
-    final thread = _threadsByIsolateId[isolate.id!];
+    final isolateId = isolate.id!;
+    final thread = _threadsByIsolateId[isolateId];
 
     if (thread == null) {
       return;
@@ -607,10 +616,13 @@ class IsolateManager {
         // When multiple client breakpoints have been folded into a single VM
         // breakpoint, we (arbitrarily) use the first one for conditions and
         // logpoints.
-        final clientBreakpoints = event.pauseBreakpoints!
-            .map((bp) =>
-                _clientBreakpointsByVmId[bp.id!]?.firstOrNull?.breakpoint)
-            .toSet();
+        final clientBreakpoints = event.pauseBreakpoints!.map((bp) {
+          final uniqueBreakpointId =
+              (isolateId: isolateId, breakpointId: bp.id!);
+          return _clientBreakpointsByVmId[uniqueBreakpointId]
+              ?.firstOrNull
+              ?.breakpoint;
+        }).toSet();
 
         // Split into logpoints (which just print messages) and breakpoints.
         final logPoints = clientBreakpoints.nonNulls
@@ -691,19 +703,41 @@ class IsolateManager {
   /// we added breakpoints for.
   void _handleBreakpointAddedOrResolved(vm.Event event) {
     final breakpoint = event.breakpoint!;
+    final isolateId = event.isolate!.id!;
     final breakpointId = breakpoint.id!;
+    final uniqueBreakpointId =
+        (isolateId: isolateId, breakpointId: breakpointId);
 
     if (!(breakpoint.resolved ?? false)) {
       // Unresolved breakpoint, don't need to do anything.
       return;
     }
 
+    // If we already have an event, assert that the resolution location is the
+    // same because we are making assumptions that we can reuse these resolution
+    // events to speed up telling the client a breakpoint was resolved.
+    assert(() {
+      final existingResolvedEvent =
+          _breakpointResolvedEventsByVmId[uniqueBreakpointId];
+      if (existingResolvedEvent != null) {
+        final existingLocation =
+            existingResolvedEvent.breakpoint?.location as vm.SourceLocation?;
+        final newLocation = event.breakpoint?.location as vm.SourceLocation?;
+        assert(existingLocation!.line == newLocation!.line);
+        assert(existingLocation!.column == newLocation!.column);
+      }
+      return true;
+    }());
+
     // Store this event so if we get any future breakpoints that resolve to this
     // VM breakpoint, we can access the resolution info.
-    _breakpointResolvedEventsByVmId[breakpointId] = event;
+    _breakpointResolvedEventsByVmId[(
+      isolateId: isolateId,
+      breakpointId: breakpointId
+    )] = event;
 
     // And for existing breakpoints, send (or queue) resolved events.
-    final existingBreakpoints = _clientBreakpointsByVmId[breakpointId];
+    final existingBreakpoints = _clientBreakpointsByVmId[uniqueBreakpointId];
     for (final existingBreakpoint in existingBreakpoints ?? const []) {
       queueBreakpointResolutionEvent(event, existingBreakpoint);
     }
@@ -880,18 +914,23 @@ class IsolateManager {
               isolateId, vmUri.toString(), bp.breakpoint.line,
               column: bp.breakpoint.column);
           final vmBpId = vmBp.id!;
+          final uniqueBreakpointId =
+              (isolateId: isolateId, breakpointId: vmBp.id!);
           existingBreakpointsForIsolateAndUri[vmBpId] = vmBp;
 
           // Store this client breakpoint by the VM ID, so when we get events
           // from the VM we can map them back to client breakpoints (for example
           // to send resolved events).
-          _clientBreakpointsByVmId.putIfAbsent(vmBpId, () => []).add(bp);
+          _clientBreakpointsByVmId
+              .putIfAbsent(uniqueBreakpointId, () => [])
+              .add(bp);
 
           // Queue any resolved events that may have already arrived
           // (either because the VM sent them before responding to us, or
           // because it gave us an existing VM breakpoint because it resolved to
           // the same location as another).
-          final resolvedEvent = _breakpointResolvedEventsByVmId[vmBpId];
+          final resolvedEvent =
+              _breakpointResolvedEventsByVmId[uniqueBreakpointId];
           if (resolvedEvent != null) {
             queueBreakpointResolutionEvent(resolvedEvent, bp);
           }

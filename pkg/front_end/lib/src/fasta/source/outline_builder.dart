@@ -3250,7 +3250,8 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void endTypedef(Token typedefKeyword, Token? equals, Token endToken) {
+  void endTypedef(Token? augmentToken, Token typedefKeyword, Token? equals,
+      Token endToken) {
     debugEvent("endTypedef");
     assert(checkState(
         typedefKeyword,
