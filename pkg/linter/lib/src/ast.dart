@@ -131,14 +131,6 @@ bool hasConstantError(LinterContext context, Expression node) {
   return result.errors.isNotEmpty;
 }
 
-/// Returns `true` if this [element] has a `@literal` annotation.
-@Deprecated('prefer: element.hasLiteral')
-bool hasLiteralAnnotation(Element element) => element.hasLiteral;
-
-/// Returns `true` if this [element] has an `@override` annotation.
-@Deprecated('prefer: element.hasOverride')
-bool hasOverrideAnnotation(Element element) => element.hasOverride;
-
 /// Returns `true` if this [node] is the child of a private compilation unit
 /// member.
 bool inPrivateMember(AstNode node) {
