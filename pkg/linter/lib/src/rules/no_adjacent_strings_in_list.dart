@@ -47,10 +47,6 @@ class NoAdjacentStringsInList extends LintRule {
             group: Group.errors);
 
   @override
-  List<String> get incompatibleRules =>
-      const ['prefer_adjacent_string_concatenation'];
-
-  @override
   LintCode get lintCode => code;
 
   @override
