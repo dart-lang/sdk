@@ -900,6 +900,8 @@ class Listener implements UnescapeErrorListener {
   /// application, the implemented types are a TypeList, whereas for a class
   /// declaration, each implemented type is listed separately on the stack, and
   /// the number of implemented types is passed as a parameter.
+  ///
+  /// TODO(jensj): Rename `begin` to `beginToken` for consistency.
   void endNamedMixinApplication(Token begin, Token classKeyword, Token equals,
       Token? implementsKeyword, Token endToken) {
     logEvent("NamedMixinApplication");

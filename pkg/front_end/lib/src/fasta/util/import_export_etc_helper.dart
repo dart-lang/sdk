@@ -5,22 +5,20 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
-import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:front_end/src/fasta/util/parser_ast.dart';
 import 'package:front_end/src/fasta/util/parser_ast_helper.dart';
 
 FileInfoHelper getFileInfoHelper(Uint8List zeroTerminatedBytes) {
   ImportExportPartLibraryHelperVisitor visitor =
       new ImportExportPartLibraryHelperVisitor();
-  visitor.accept(getAST(
+  getAST(
     zeroTerminatedBytes,
     enableExtensionMethods: true,
     enableNonNullable: true,
     enableTripleShift: true,
     includeBody: false,
     includeComments: false,
-  ));
+  ).accept(visitor);
   return visitor.fileInfo;
 }
 
@@ -82,25 +80,25 @@ class FileInfoHelper {
   }
 }
 
-class ImportExportPartLibraryHelperVisitor extends ParserAstVisitor {
+class ImportExportPartLibraryHelperVisitor extends RecursiveParserAstVisitor {
   final FileInfoHelper fileInfo = new FileInfoHelper();
+
   @override
-  void visitExport(ExportEnd node, Token startInclusive, Token endInclusive) {
+  void visitExportEnd(ExportEnd node) {
     fileInfo.exports.add(node.getExportUriString());
     // TODO(jensj): Should the data from `node.getConditionalExportUriStrings()`
     // also be included?
   }
 
   @override
-  void visitImport(ImportEnd node, Token startInclusive, Token? endInclusive) {
+  void visitImportEnd(ImportEnd node) {
     fileInfo.imports.add(node.getImportUriString());
     // TODO(jensj): Should the data from `node.getConditionalImportUriStrings()`
     // also be included?
   }
 
   @override
-  void visitLibraryName(
-      LibraryNameEnd node, Token startInclusive, Token endInclusive) {
+  void visitLibraryNameEnd(LibraryNameEnd node) {
     if (node.hasName) {
       List<String> identifiers = node.getNameIdentifiers();
       if (identifiers.isNotEmpty) {
@@ -110,12 +108,12 @@ class ImportExportPartLibraryHelperVisitor extends ParserAstVisitor {
   }
 
   @override
-  void visitPart(PartEnd node, Token startInclusive, Token endInclusive) {
+  void visitPartEnd(PartEnd node) {
     fileInfo.parts.add(node.getPartUriString());
   }
 
   @override
-  void visitPartOf(PartOfEnd node, Token startInclusive, Token endInclusive) {
+  void visitPartOfEnd(PartOfEnd node) {
     String? uriString = node.getPartOfUriString();
     if (uriString != null) {
       fileInfo.partOfUri.add(uriString);

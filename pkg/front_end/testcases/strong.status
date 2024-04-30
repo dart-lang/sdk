@@ -81,7 +81,6 @@ dart2wasm/inference_update_2/issue52452: semiFuzzFailureOnForceRebuildBodies # p
 records/nullable_access_extension: semiFuzzFailureOnForceRebuildBodies # unnamed extension
 
 # FUZZ FRAMEWORK FAILURES
-class_modifiers/invalid_enum_modifiers: SemiFuzzFailure # the invalid modifiers disappear
 general/issue45101/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 general/mixin_from_patch/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 general/multiple_class_patches/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
