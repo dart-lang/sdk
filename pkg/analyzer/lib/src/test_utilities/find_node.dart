@@ -92,8 +92,12 @@ class FindNode {
 
   FunctionReference get singleFunctionReference => _single();
 
+  FunctionTypeAlias get singleFunctionTypeAlias => _single();
+
   FunctionTypedFormalParameter get singleFunctionTypedFormalParameter =>
       _single();
+
+  GenericTypeAlias get singleGenericTypeAlias => _single();
 
   GuardedPattern get singleGuardedPattern => _single();
 

@@ -1309,9 +1309,10 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endTypedef(Token typedefKeyword, Token? equals, Token endToken) {
+  void endTypedef(Token? augmentToken, Token typedefKeyword, Token? equals,
+      Token endToken) {
     end('FunctionTypeAlias');
-    super.endTypedef(typedefKeyword, equals, endToken);
+    super.endTypedef(augmentToken, typedefKeyword, equals, endToken);
   }
 
   @override

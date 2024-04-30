@@ -1027,9 +1027,13 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endTypedef(Token typedefKeyword, Token? equals, Token endToken) {
+  void endTypedef(Token? augmentToken, Token typedefKeyword, Token? equals,
+      Token endToken) {
     TypedefEnd data = new TypedefEnd(ParserAstType.END,
-        typedefKeyword: typedefKeyword, equals: equals, endToken: endToken);
+        augmentToken: augmentToken,
+        typedefKeyword: typedefKeyword,
+        equals: equals,
+        endToken: endToken);
     seen(data);
   }
 
@@ -5212,16 +5216,21 @@ class TypedefBegin extends ParserAstNode {
 }
 
 class TypedefEnd extends ParserAstNode {
+  final Token? augmentToken;
   final Token typedefKeyword;
   final Token? equals;
   final Token endToken;
 
   TypedefEnd(ParserAstType type,
-      {required this.typedefKeyword, this.equals, required this.endToken})
+      {this.augmentToken,
+      required this.typedefKeyword,
+      this.equals,
+      required this.endToken})
       : super("Typedef", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
+        "augmentToken": augmentToken,
         "typedefKeyword": typedefKeyword,
         "equals": equals,
         "endToken": endToken,

@@ -1163,12 +1163,18 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endTypedef(Token typedefKeyword, Token? equals, Token endToken) {
+  void endTypedef(Token? augmentToken, Token typedefKeyword, Token? equals,
+      Token endToken) {
     indent--;
+    seen(augmentToken);
     seen(typedefKeyword);
     seen(equals);
     seen(endToken);
-    doPrint('endTypedef(' '$typedefKeyword, ' '$equals, ' '$endToken)');
+    doPrint('endTypedef('
+        '$augmentToken, '
+        '$typedefKeyword, '
+        '$equals, '
+        '$endToken)');
   }
 
   @override

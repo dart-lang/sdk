@@ -734,9 +734,9 @@ class Parser {
           directiveState?.checkExport(this, keyword);
           return parseExport(keyword);
         } else if (identical(value, 'typedef')) {
-          context.parseTopLevelKeywordModifiers(modifierStart, keyword);
+          context.parseTypedefModifiers(modifierStart, keyword);
           directiveState?.checkDeclaration();
-          return parseTypedef(keyword);
+          return parseTypedef(context.augmentToken, keyword);
         } else if (identical(value, 'mixin')) {
           if (identical(nextValue, 'class')) {
             return _handleModifiersForClassDeclaration(
@@ -1373,7 +1373,7 @@ class Parser {
   ///   returnType? identifier
   /// ;
   /// ```
-  Token parseTypedef(Token typedefKeyword) {
+  Token parseTypedef(Token? augmentToken, Token typedefKeyword) {
     assert(optional('typedef', typedefKeyword));
     listener.beginUncategorizedTopLevelDeclaration(typedefKeyword);
     listener.beginTypedef(typedefKeyword);
@@ -1478,7 +1478,7 @@ class Parser {
           parseFormalParametersRequiredOpt(token, MemberKind.FunctionTypeAlias);
     }
     token = ensureSemicolon(token);
-    listener.endTypedef(typedefKeyword, equals, token);
+    listener.endTypedef(augmentToken, typedefKeyword, equals, token);
     return token;
   }
 

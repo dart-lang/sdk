@@ -3472,7 +3472,8 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endTypedef(Token typedefKeyword, Token? equals, Token semicolon) {
+  void endTypedef(Token? augmentToken, Token typedefKeyword, Token? equals,
+      Token semicolon) {
     assert(optional('typedef', typedefKeyword));
     assert(optionalOrNull('=', equals));
     assert(optional(';', semicolon));
@@ -3489,6 +3490,7 @@ class AstBuilder extends StackListener {
         FunctionTypeAliasImpl(
           comment: comment,
           metadata: metadata,
+          augmentKeyword: augmentToken,
           typedefKeyword: typedefKeyword,
           returnType: returnType,
           name: name.token,
@@ -3513,6 +3515,7 @@ class AstBuilder extends StackListener {
         GenericTypeAliasImpl(
           comment: comment,
           metadata: metadata,
+          augmentKeyword: augmentToken,
           typedefKeyword: typedefKeyword,
           name: name.token,
           typeParameters: templateParameters,

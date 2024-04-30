@@ -395,10 +395,10 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseTypedef(Token typedefKeyword) {
-    doPrint('parseTypedef(' '$typedefKeyword)');
+  Token parseTypedef(Token? augmentToken, Token typedefKeyword) {
+    doPrint('parseTypedef(' '$augmentToken, ' '$typedefKeyword)');
     indent++;
-    var result = super.parseTypedef(typedefKeyword);
+    var result = super.parseTypedef(augmentToken, typedefKeyword);
     indent--;
     return result;
   }

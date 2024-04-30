@@ -967,8 +967,9 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endTypedef(Token typedefKeyword, Token? equals, Token endToken) {
-    listener?.endTypedef(typedefKeyword, equals, endToken);
+  void endTypedef(Token? augmentToken, Token typedefKeyword, Token? equals,
+      Token endToken) {
+    listener?.endTypedef(augmentToken, typedefKeyword, equals, endToken);
   }
 
   @override

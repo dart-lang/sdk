@@ -285,6 +285,20 @@ class ModifierContext {
     return token;
   }
 
+  Token parseTypedefModifiers(Token token, Token keyword) {
+    token = _parseModifiers(token);
+    reportTopLevelModifierError(constToken, keyword);
+    reportTopLevelModifierError(externalToken, keyword);
+    reportExtraneousModifier(abstractToken);
+    reportExtraneousModifier(covariantToken);
+    reportExtraneousModifier(finalToken);
+    reportExtraneousModifier(lateToken);
+    reportExtraneousModifier(requiredToken);
+    reportExtraneousModifier(staticToken);
+    reportExtraneousModifier(varToken);
+    return token;
+  }
+
   /// Parse modifiers for variable declarations.
   Token parseVariableDeclarationModifiers(Token token) {
     token = _parseModifiers(token);
