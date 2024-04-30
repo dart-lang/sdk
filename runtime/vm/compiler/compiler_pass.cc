@@ -327,7 +327,6 @@ FlowGraph* CompilerPass::RunPipeline(PipelineMode mode,
   // unreachable code.
   INVOKE_PASS_AOT(ApplyICData);
   INVOKE_PASS_AOT(OptimizeTypedDataAccesses);
-  INVOKE_PASS(WidenSmiToInt32);
   INVOKE_PASS(SelectRepresentations);
   INVOKE_PASS(CSE);
   INVOKE_PASS(Canonicalize);
@@ -430,12 +429,6 @@ COMPILER_PASS_REPEAT(ConstantPropagation, {
 COMPILER_PASS(OptimisticallySpecializeSmiPhis, {
   LICM licm(flow_graph);
   licm.OptimisticallySpecializeSmiPhis();
-});
-
-COMPILER_PASS(WidenSmiToInt32, {
-  // Where beneficial convert Smi operations into Int32 operations.
-  // Only meaningful for 32bit platforms right now.
-  flow_graph->WidenSmiToInt32();
 });
 
 COMPILER_PASS(SelectRepresentations, {

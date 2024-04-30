@@ -912,7 +912,6 @@ FlowGraph* SetupFfiFlowgraph(TestPipeline* pipeline,
       CompilerPass::kSetOuterInliningId,
       CompilerPass::kTypePropagation,
       // Skipping passes that don't seem to do anything for this test.
-      CompilerPass::kWidenSmiToInt32,
       CompilerPass::kSelectRepresentations,
       // Skipping passes that don't seem to do anything for this test.
       CompilerPass::kTypePropagation,

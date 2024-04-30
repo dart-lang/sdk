@@ -1816,7 +1816,6 @@ ISOLATE_UNIT_TEST_CASE(AllocationSinking_NoViewDataMaterialization) {
       CompilerPass::kConstantPropagation,
       CompilerPass::kOptimisticallySpecializeSmiPhis,
       CompilerPass::kTypePropagation,
-      CompilerPass::kWidenSmiToInt32,
       CompilerPass::kSelectRepresentations,
       CompilerPass::kCSE,
       CompilerPass::kCanonicalize,
