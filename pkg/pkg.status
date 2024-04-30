@@ -228,8 +228,6 @@ analysis_server/test/services/refactoring/extract_method_test: Slow, Pass
 analysis_server/test/services/refactoring/inline_method_test: Slow, Pass
 analysis_server/test/socket_server_test: Skip # Pass, Slow
 analysis_server/test/src/plugin/plugin_manager_test: Slow, Pass
-analyzer/test/generated/strong_mode_driver_test: Slow, Pass
-analyzer/test/src/dart/analysis/driver_resolution_kernel_test: Slow, Pass
 analyzer/test/src/dart/analysis/driver_test: Slow, Pass
 analyzer/test/src/task/strong/inferred_type_test: Slow, Pass
 analyzer/tool/experiments/experiments_test: Skip # https://github.com/dart-lang/sdk/issues/46277
