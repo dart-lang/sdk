@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -12,7 +14,7 @@ class ListPatternResolver {
 
   ListPatternResolver(this.resolverVisitor);
 
-  void resolve({
+  PatternResult<DartType> resolve({
     required ListPatternImpl node,
     required SharedMatchContext context,
   }) {
@@ -39,6 +41,9 @@ class ListPatternResolver {
       context: context,
       pattern: node,
       requiredType: result.requiredType,
+      matchedValueType: result.matchedValueType,
     );
+
+    return result;
   }
 }

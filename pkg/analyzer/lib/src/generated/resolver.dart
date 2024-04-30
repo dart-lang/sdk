@@ -580,10 +580,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     required SharedMatchContext context,
     required DartPatternImpl pattern,
     required DartType requiredType,
+    required DartType matchedValueType,
   }) {
     if (context.irrefutableContext == null) {
-      var matchedType = pattern.matchedValueType!;
-      if (!typeSystem.canBeSubtypeOf(matchedType, requiredType)) {
+      if (!typeSystem.canBeSubtypeOf(matchedValueType, requiredType)) {
         AstNodeImpl? errorNode;
         if (pattern is CastPatternImpl) {
           errorNode = pattern.type;
@@ -598,7 +598,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         errorReporter.atNode(
           errorNode,
           WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE,
-          arguments: [matchedType, requiredType],
+          arguments: [matchedValueType, requiredType],
         );
       }
     }
@@ -750,20 +750,24 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void dispatchPattern(SharedMatchContext context, AstNode node) {
+  PatternResult<DartType> dispatchPattern(
+      SharedMatchContext context, AstNode node) {
+    shared.PatternResult<DartType> analysisResult;
     if (node is DartPatternImpl) {
-      node.matchedValueType = flow.getMatchedValueType();
-      node.resolvePattern(this, context);
+      analysisResult = node.resolvePattern(this, context);
+      node.matchedValueType = analysisResult.matchedValueType;
     } else {
       // This can occur inside conventional switch statements, since
       // [SwitchCase] points directly to an [Expression] rather than to a
       // [ConstantPattern].  So we mimic what
       // [ConstantPatternImpl.resolvePattern] would do.
-      analyzeConstantPattern(context, node, node as Expression);
+      analysisResult =
+          analyzeConstantPattern(context, node, node as Expression);
       // Stack: (Expression)
       popRewrite();
       // Stack: ()
     }
+    return analysisResult;
   }
 
   @override
@@ -1308,13 +1312,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     NodeReplacer.replace(oldNode, newNode, parent: parent);
   }
 
-  void resolveAssignedVariablePattern({
+  PatternResult<DartType> resolveAssignedVariablePattern({
     required AssignedVariablePatternImpl node,
     required SharedMatchContext context,
   }) {
     var element = node.element;
     if (element is! PromotableElement) {
-      return;
+      return PatternResult(matchedValueType: InvalidTypeImpl.instance);
     }
 
     if (element.isFinal) {
@@ -1337,7 +1341,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       }
     }
 
-    analyzeAssignedVariablePattern(context, node, element);
+    return analyzeAssignedVariablePattern(context, node, element);
   }
 
   /// Resolve LHS [node] of an assignment, an explicit [AssignmentExpression],
@@ -1427,7 +1431,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
   }
 
-  void resolveMapPattern({
+  PatternResult<DartType> resolveMapPattern({
     required MapPatternImpl node,
     required SharedMatchContext context,
   }) {
@@ -1463,7 +1467,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       context: context,
       pattern: node,
       requiredType: result.requiredType,
+      matchedValueType: result.matchedValueType,
     );
+
+    return result;
   }
 
   @override
