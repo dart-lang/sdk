@@ -3315,7 +3315,8 @@
             "--mode=debug,release",
             "--arch=x64,x64c",
             "runtime",
-            "dart_precompiled_runtime"
+            "dart_precompiled_runtime",
+            "dart2js_platform.dill"
           ]
         },
         {
@@ -3357,7 +3358,7 @@
           ]
         },
         {
-          "name": "make a fuzz",
+          "name": "dartfuzz - generated programs",
           "script": "out/ReleaseX64/dart",
           "arguments": [
             "runtime/tools/dartfuzz/dartfuzz_test.dart",
@@ -3367,7 +3368,16 @@
             "--time",
             "2700"
           ],
-          "shards": 100,
+          "shards": 50,
+          "fileset": "fuzzer"
+        },
+        {
+          "name": "dartfuzz - flags",
+          "script": "out/ReleaseX64/dart",
+          "arguments": [
+            "runtime/tools/dartfuzz/flag_fuzzer.dart"
+          ],
+          "shards": 50,
           "fileset": "fuzzer"
         }
       ]
