@@ -214,6 +214,17 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the name of the declaration kind.
+  ///  1: the name of the augmentation kind.
+  static const CompileTimeErrorCode AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND =
+      CompileTimeErrorCode(
+    'AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND',
+    "Can't augment a {0} with a {1}.",
+    correctionMessage:
+        "Try changing the augmentation to match the declaration kind.",
+  );
+
   static const CompileTimeErrorCode AUGMENTATION_WITHOUT_DECLARATION =
       CompileTimeErrorCode(
     'AUGMENTATION_WITHOUT_DECLARATION',

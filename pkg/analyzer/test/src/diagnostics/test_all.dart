@@ -38,6 +38,8 @@ import 'assignment_to_type_test.dart' as assignment_to_type;
 import 'async_for_in_wrong_context_test.dart' as async_for_in_wrong_context;
 import 'async_keyword_used_as_identifier_test.dart'
     as async_keyword_used_as_identifier;
+import 'augmentation_of_different_declaration_kind_test.dart'
+    as augmentation_of_different_declaration_kind;
 import 'augmentation_without_declaration_test.dart'
     as augmentation_without_declaration;
 import 'await_in_late_local_variable_initializer_test.dart'
@@ -938,6 +940,7 @@ main() {
     assignment_to_type.main();
     async_for_in_wrong_context.main();
     async_keyword_used_as_identifier.main();
+    augmentation_of_different_declaration_kind.main();
     augmentation_without_declaration.main();
     await_in_late_local_variable_initializer.main();
     await_in_wrong_context.main();

@@ -629,6 +629,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    var element = node.declaredElement as FieldElementImpl;
+
+    _checkAugmentations(
+      augmentKeyword: node.augmentKeyword,
+      element: element,
+    );
+
     _requiredParametersVerifier.visitEnumConstantDeclaration(node);
     _typeArgumentsVerifier.checkEnumConstantDeclaration(node);
     super.visitEnumConstantDeclaration(node);
@@ -1569,16 +1576,32 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    if (element is AugmentableElement<T>) {
-      var augmentationTarget = element.augmentationTarget;
-      if (augmentationTarget == null) {
-        errorReporter.atToken(
-          augmentKeyword,
-          CompileTimeErrorCode.AUGMENTATION_WITHOUT_DECLARATION,
-        );
-        return;
-      }
+    if (element is! AugmentableElement<T>) {
+      return;
     }
+
+    // OK
+    if (element.augmentationTarget != null) {
+      return;
+    }
+
+    // Not the same kind.
+    if (element.augmentationTargetAny case var target?) {
+      errorReporter.atToken(
+        augmentKeyword,
+        CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+        arguments: [
+          target.kind.displayName,
+          element.kind.displayName,
+        ],
+      );
+      return;
+    }
+
+    errorReporter.atToken(
+      augmentKeyword,
+      CompileTimeErrorCode.AUGMENTATION_WITHOUT_DECLARATION,
+    );
   }
 
   /// Checks the class for problems with the superclass, mixins, or implemented

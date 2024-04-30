@@ -1339,6 +1339,10 @@ class DefaultSuperFormalParameterElementImpl
 
   @override
   String? get defaultValueCode {
+    if (isRequired) {
+      return null;
+    }
+
     final constantInitializer = this.constantInitializer;
     if (constantInitializer != null) {
       return constantInitializer.toSource();

@@ -1109,6 +1109,13 @@ CompileTimeErrorCode:
         }
       }
       ```
+  AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND:
+    problemMessage: Can't augment a {0} with a {1}.
+    correctionMessage: Try changing the augmentation to match the declaration kind.
+    comment: |-
+      Parameters:
+      0: the name of the declaration kind.
+      1: the name of the augmentation kind.
   AUGMENTATION_WITHOUT_DECLARATION:
     problemMessage: The declaration being augmented doesn't exist.
     correctionMessage: Try changing the augmentation to match an existing declaration.

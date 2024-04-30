@@ -6,6 +6,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 
@@ -137,10 +138,12 @@ abstract class AugmentedInstanceDeclarationBuilder {
     for (var element in elements) {
       var name = element.name;
       if (element.isAugmentation) {
-        var existing = constructors[name];
-        if (existing != null) {
-          existing.augmentation = element;
-          element.augmentationTargetAny = existing;
+        if (constructors[name] case var target?) {
+          target.augmentation = element;
+          element.augmentationTargetAny = target;
+        } else {
+          var target = _recoveryAugmentationTarget(name);
+          element.augmentationTargetAny = target;
         }
       }
       constructors[name] = element;
@@ -151,10 +154,12 @@ abstract class AugmentedInstanceDeclarationBuilder {
     for (var element in elements) {
       var name = element.name;
       if (element.isAugmentation) {
-        var existing = fields[name];
-        if (existing != null) {
-          existing.augmentation = element;
-          element.augmentationTargetAny = existing;
+        if (fields[name] case var target?) {
+          target.augmentation = element;
+          element.augmentationTargetAny = target;
+        } else {
+          var target = _recoveryAugmentationTarget(name);
+          element.augmentationTargetAny = target;
         }
       }
       fields[name] = element;
@@ -315,7 +320,9 @@ class AugmentedMixinDeclarationBuilder
 }
 
 class AugmentedTopVariablesBuilder {
+  /// This map is shared with [LibraryBuilder].
   final Map<String, ElementImpl> augmentationTargets;
+
   final Map<String, TopLevelVariableElementImpl> variables = {};
   final Map<String, PropertyAccessorElementImpl> accessors = {};
 
@@ -351,10 +358,15 @@ class AugmentedTopVariablesBuilder {
   void addVariable(TopLevelVariableElementImpl element) {
     var name = element.name;
     if (element.isAugmentation) {
-      var existing = variables[name];
-      if (existing != null) {
-        existing.augmentation = element;
-        element.augmentationTargetAny = existing;
+      ElementImpl? target = variables[name];
+      // Recovery.
+      target ??= accessors[name];
+      target ??= accessors['$name='];
+      target ??= augmentationTargets[name];
+
+      element.augmentationTargetAny = target;
+      if (target is TopLevelVariableElementImpl) {
+        target.augmentation = element;
       }
     }
     variables[name] = element;
