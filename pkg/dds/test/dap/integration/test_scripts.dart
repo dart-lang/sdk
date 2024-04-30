@@ -322,6 +322,29 @@ const simpleFailingTestProgram = '''
   }
 ''';
 
+/// A program that pauses the debugger and when resumed, spawns a second
+/// isolate. This can be used to ensure correct breakpoint resolution
+/// in new isolates where breakpoint IDs may overlap with IDs already used by
+/// other isolates.
+///
+/// Two different lines are marked '// BREAKPOINT 1' and '// BREAKPOINT 2'.
+const multiIsolateBreakpointResolutionProgram = '''
+import 'dart:developer';
+import 'dart:isolate';
+
+Future<void> main() async {
+  print('1'); // BREAKPOINT 1
+  print('2'); // BREAKPOINT 2
+  debugger();
+  Isolate.run(f);
+}
+
+void f() {
+  debugger();
+}
+
+''';
+
 /// A simple test that should pass and contains a comment marker
 /// '// BREAKPOINT' on a blank line where a breakpoint should be resolved
 /// to the next line.

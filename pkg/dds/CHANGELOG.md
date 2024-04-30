@@ -1,4 +1,5 @@
 # 4.2.1
+- [DAP]: Fixed an issue where breakpoint `changed` events might contain incorrect location information when new isolates are created, causing breakpoints to appear to move in the editor.
 - [DAP]: For consistency with other values, automatic `toString()` invocations for debugger views no longer expand long strings and instead show truncated values. Full values continue to be returned for evaluation (`context=="repl"`) and when copying to the clipboard (`context=="clipboard"`).
 
 # 4.2.0
