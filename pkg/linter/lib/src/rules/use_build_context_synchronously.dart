@@ -1157,7 +1157,7 @@ extension on Statement {
 }
 
 extension on Expression {
-  bool? get constantBoolValue => computeConstantValue.value?.toBoolValue();
+  bool? get constantBoolValue => computeConstantValue().value?.toBoolValue();
 }
 
 @visibleForTesting

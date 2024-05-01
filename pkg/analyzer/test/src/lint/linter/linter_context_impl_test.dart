@@ -585,7 +585,7 @@ var x = 42;
 
   LinterConstantEvaluationResult _evaluateX() {
     var node = findNode.topVariableDeclarationByName('x').initializer!;
-    return context.evaluateConstant(node);
+    return node.computeConstantValue();
   }
 }
 
