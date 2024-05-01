@@ -305,6 +305,13 @@ abstract interface class RegExp implements Pattern {
   /// final match = regExp.firstMatch(string)!;
   /// print(match[0]); // chat
   /// ```
+  ///
+  /// If we need to find the [firstMatch] but starting from an offset, we can
+  /// achieve this using the [allMatches] method. Because [allMatches] is lazy,
+  /// it wont match beyond the first [RegExpMatch].
+  /// ```
+  /// RegExpMatch? match = pattern.allMatches(source, start).firstOrNull;
+  /// ```
   RegExpMatch? firstMatch(String input);
 
   Iterable<RegExpMatch> allMatches(String input, [int start = 0]);
