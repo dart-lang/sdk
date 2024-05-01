@@ -217,6 +217,7 @@ abstract class LinterContext {
   ///
   /// Note that this method can cause constant evaluation to occur, which can be
   /// computationally expensive.
+  @Deprecated('Use `expression.canBeConst`')
   bool canBeConst(Expression expression);
 
   /// Returns `true` if it would be valid for the given constructor declaration
@@ -227,6 +228,7 @@ abstract class LinterContext {
   ///
   /// Note that this method can cause constant evaluation to occur, which can be
   /// computationally expensive.
+  @Deprecated('Use `expression.canBeConstConstructor`')
   bool canBeConstConstructor(ConstructorDeclaration node);
 
   /// Returns `true` if the given [unit] is in a test directory.
@@ -304,35 +306,11 @@ class LinterContextImpl implements LinterContext {
   DeclaredVariables get declaredVariables => _declaredVariables;
 
   @override
-  bool canBeConst(Expression expression) {
-    if (expression is InstanceCreationExpressionImpl) {
-      return _canBeConstInstanceCreation(expression);
-    } else if (expression is TypedLiteralImpl) {
-      return _canBeConstTypedLiteral(expression);
-    } else {
-      return false;
-    }
-  }
+  bool canBeConst(Expression expression) => expression.canBeConst;
 
   @override
-  bool canBeConstConstructor(covariant ConstructorDeclarationImpl node) {
-    var element = node.declaredElement!;
-
-    var classElement = element.enclosingElement;
-    if (classElement is ClassElement && classElement.hasNonFinalField) {
-      return false;
-    }
-
-    var oldKeyword = node.constKeyword;
-    try {
-      temporaryConstConstructorElements[element] = true;
-      node.constKeyword = KeywordToken(Keyword.CONST, node.offset);
-      return !_hasConstantVerifierError(node);
-    } finally {
-      temporaryConstConstructorElements[element] = null;
-      node.constKeyword = oldKeyword;
-    }
-  }
+  bool canBeConstConstructor(covariant ConstructorDeclarationImpl node) =>
+      node.canBeConst;
 
   @override
   bool inTestDir(CompilationUnit unit) {
@@ -387,69 +365,6 @@ class LinterContextImpl implements LinterContext {
     }
 
     return const LinterNameInScopeResolutionResult._none();
-  }
-
-  bool _canBeConstInstanceCreation(InstanceCreationExpressionImpl node) {
-    //
-    // Verify that the invoked constructor is a const constructor.
-    //
-    var element = node.constructorName.staticElement;
-    if (element == null || !element.isConst) {
-      return false;
-    }
-
-    // Ensure that dependencies (e.g. default parameter values) are computed.
-    var implElement = element.declaration as ConstructorElementImpl;
-    implElement.computeConstantDependencies();
-
-    //
-    // Verify that the evaluation of the constructor would not produce an
-    // exception.
-    //
-    var oldKeyword = node.keyword;
-    try {
-      node.keyword = KeywordToken(Keyword.CONST, node.offset);
-      return !_hasConstantVerifierError(node);
-    } finally {
-      node.keyword = oldKeyword;
-    }
-  }
-
-  bool _canBeConstTypedLiteral(TypedLiteralImpl node) {
-    var oldKeyword = node.constKeyword;
-    try {
-      node.constKeyword = KeywordToken(Keyword.CONST, node.offset);
-      return !_hasConstantVerifierError(node);
-    } finally {
-      node.constKeyword = oldKeyword;
-    }
-  }
-
-  /// Returns whether [ConstantVerifier] reports an error for the [node].
-  bool _hasConstantVerifierError(AstNode node) {
-    var unitElement = currentUnit.unit.declaredElement!;
-    var libraryElement = unitElement.library as LibraryElementImpl;
-
-    var dependenciesFinder = ConstantExpressionsDependenciesFinder();
-    node.accept(dependenciesFinder);
-    computeConstants(
-      declaredVariables: _declaredVariables,
-      constants: dependenciesFinder.dependencies.toList(),
-      featureSet: libraryElement.featureSet,
-      configuration: ConstantEvaluationConfiguration(),
-    );
-
-    var listener = _ConstantAnalysisErrorListener();
-    var errorReporter = ErrorReporter(listener, unitElement.source);
-
-    node.accept(
-      ConstantVerifier(
-        errorReporter,
-        libraryElement,
-        _declaredVariables,
-      ),
-    );
-    return listener.hasConstError;
   }
 
   static List<String> getTestDirectories(p.Context pathContext) {
@@ -873,7 +788,73 @@ enum _LinterNameInScopeResolutionResultState {
   differentName
 }
 
+extension on AstNode {
+  /// Whether [ConstantVerifier] reports an error when computing the value of
+  /// `this` as a constant.
+  bool get hasConstantVerifierError {
+    var unitElement = thisOrAncestorOfType<CompilationUnit>()?.declaredElement;
+    if (unitElement == null) return false;
+    var libraryElement = unitElement.library as LibraryElementImpl;
+
+    var dependenciesFinder = ConstantExpressionsDependenciesFinder();
+    accept(dependenciesFinder);
+    computeConstants(
+      declaredVariables: unitElement.session.declaredVariables,
+      constants: dependenciesFinder.dependencies.toList(),
+      featureSet: libraryElement.featureSet,
+      configuration: ConstantEvaluationConfiguration(),
+    );
+
+    var listener = _ConstantAnalysisErrorListener();
+    var errorReporter = ErrorReporter(listener, unitElement.source);
+
+    accept(
+      ConstantVerifier(
+        errorReporter,
+        libraryElement,
+        unitElement.session.declaredVariables,
+      ),
+    );
+    return listener.hasConstError;
+  }
+}
+
+extension ConstructorDeclarationExtension on ConstructorDeclaration {
+  bool get canBeConst {
+    var element = declaredElement!;
+
+    var classElement = element.enclosingElement;
+    if (classElement is ClassElement && classElement.hasNonFinalField) {
+      return false;
+    }
+
+    var oldKeyword = constKeyword;
+    var self = this as ConstructorDeclarationImpl;
+    try {
+      temporaryConstConstructorElements[element] = true;
+      self.constKeyword = KeywordToken(Keyword.CONST, offset);
+      return !hasConstantVerifierError;
+    } finally {
+      temporaryConstConstructorElements[element] = null;
+      self.constKeyword = oldKeyword;
+    }
+  }
+}
+
 extension ExpressionExtension on Expression {
+  /// Whether it would be valid for this expression to have a `const` keyword.
+  ///
+  /// Note that this method can cause constant evaluation to occur, which can be
+  /// computationally expensive.
+  bool get canBeConst {
+    var self = this;
+    return switch (self) {
+      InstanceCreationExpressionImpl() => _canBeConstInstanceCreation(self),
+      TypedLiteralImpl() => _canBeConstTypedLiteral(self),
+      _ => false,
+    };
+  }
+
   /// Computes the constant value of `this`, if it has one.
   ///
   /// Returns a [LinterConstantEvaluationResult], containing both the computed
@@ -909,5 +890,34 @@ extension ExpressionExtension on Expression {
     var constant = visitor.evaluateAndReportInvalidConstant(this);
     var dartObject = constant is DartObjectImpl ? constant : null;
     return LinterConstantEvaluationResult(dartObject, errorListener.errors);
+  }
+
+  bool _canBeConstInstanceCreation(InstanceCreationExpressionImpl node) {
+    var element = node.constructorName.staticElement;
+    if (element == null || !element.isConst) return false;
+
+    // Ensure that dependencies (e.g. default parameter values) are computed.
+    var implElement = element.declaration as ConstructorElementImpl;
+    implElement.computeConstantDependencies();
+
+    // Verify that the evaluation of the constructor would not produce an
+    // exception.
+    var oldKeyword = node.keyword;
+    try {
+      node.keyword = KeywordToken(Keyword.CONST, offset);
+      return !hasConstantVerifierError;
+    } finally {
+      node.keyword = oldKeyword;
+    }
+  }
+
+  bool _canBeConstTypedLiteral(TypedLiteralImpl node) {
+    var oldKeyword = node.constKeyword;
+    try {
+      node.constKeyword = KeywordToken(Keyword.CONST, offset);
+      return !hasConstantVerifierError;
+    } finally {
+      node.constKeyword = oldKeyword;
+    }
   }
 }

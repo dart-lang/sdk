@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -59,8 +60,7 @@ class AddConst extends ResolvedCorrectionProducer {
     }
     if (targetNode is ConstantPattern) {
       var expression = targetNode.expression;
-      var canBeConst =
-          getLinterContext(resourceProvider.pathContext).canBeConst(expression);
+      var canBeConst = expression.canBeConst;
       if (canBeConst) {
         await builder.addDartFileEdit(file, (builder) {
           var offset = expression.offset;
