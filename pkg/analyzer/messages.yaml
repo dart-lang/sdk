@@ -1109,6 +1109,18 @@ CompileTimeErrorCode:
         }
       }
       ```
+  AUGMENTATION_MODIFIER_EXTRA:
+    problemMessage: The augmentation has the '{0}' modifier that the declaration doesn't have.
+    correctionMessage: Try removing the '{0}' modifier, or adding it to the declaration.
+    comment: |-
+      Parameters:
+      0: the lexeme of the modifier.
+  AUGMENTATION_MODIFIER_MISSING:
+    problemMessage: The augmentation is missing the '{0}' modifier that the declaration has.
+    correctionMessage: Try adding the '{0}' modifier, or removing it from the declaration.
+    comment: |-
+      Parameters:
+      0: the lexeme of the modifier.
   AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND:
     problemMessage: Can't augment a {0} with a {1}.
     correctionMessage: Try changing the augmentation to match the declaration kind.
