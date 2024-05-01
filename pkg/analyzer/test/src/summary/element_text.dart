@@ -1388,6 +1388,7 @@ class _ElementWriter {
     e as TypeAliasElementImpl;
 
     _sink.writeIndentedLine(() {
+      _sink.writeIf(e.isAugmentation, 'augment ');
       _sink.writeIf(e.isFunctionTypeAliasBased, 'functionTypeAliasBased ');
       _sink.writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
       _writeName(e);
@@ -1415,6 +1416,8 @@ class _ElementWriter {
       }
 
       _writeMacroDiagnostics(e);
+      _writeAugmentationTarget(e);
+      _writeAugmentation(e);
     });
 
     _assertNonSyntheticElementSelf(e);

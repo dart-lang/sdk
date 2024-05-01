@@ -684,6 +684,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(node.augmentKeyword, suffix: ' ');
     sink.write('typedef ');
     _visitToken(node.name);
     _visitNode(node.typeParameters);

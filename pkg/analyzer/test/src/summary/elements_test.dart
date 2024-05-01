@@ -36,6 +36,8 @@ main() {
     defineReflectiveTests(MixinAugmentationFromBytesTest);
     defineReflectiveTests(TopLevelVariableAugmentationKeepLinkingTest);
     defineReflectiveTests(TopLevelVariableAugmentationFromBytesTest);
+    defineReflectiveTests(TypeAliasAugmentationKeepLinkingTest);
+    defineReflectiveTests(TypeAliasAugmentationFromBytesTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
@@ -63271,6 +63273,174 @@ library
   exportNamespace
     foo: self::@augmentation::package:test/a.dart::@getter::foo
     foo=: self::@augmentation::package:test/a.dart::@setter::foo
+''');
+  }
+}
+
+@reflectiveTest
+class TypeAliasAugmentationFromBytesTest extends ElementsBaseTest
+    with TypeAliasAugmentationMixin {
+  @override
+  bool get keepLinkingLibraries => false;
+}
+
+@reflectiveTest
+class TypeAliasAugmentationKeepLinkingTest extends ElementsBaseTest
+    with TypeAliasAugmentationMixin {
+  @override
+  bool get keepLinkingLibraries => true;
+}
+
+mixin TypeAliasAugmentationMixin on ElementsBaseTest {
+  test_typeAlias_augments_class() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment typedef A = int;
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        typeAliases
+          augment A @45
+            aliasedType: int
+            augmentationTargetAny: self::@class::A
+''');
+  }
+
+  test_typeAlias_augments_function() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment typedef A = int;
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+void A() {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      A @30
+        returnType: void
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        typeAliases
+          augment A @45
+            aliasedType: int
+            augmentationTargetAny: self::@function::A
+''');
+  }
+
+  test_typeAlias_augments_getter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment typedef A = int;
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+int get A => 0;
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      synthetic static A @-1
+        type: int
+    accessors
+      static get A @33
+        returnType: int
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        typeAliases
+          augment A @45
+            aliasedType: int
+            augmentationTargetAny: self::@getter::A
+''');
+  }
+
+  test_typeAlias_augments_setter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment typedef A = int;
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+set A(int _) {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      synthetic static A @-1
+        type: int
+    accessors
+      static set A= @29
+        parameters
+          requiredPositional _ @35
+            type: int
+        returnType: void
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        typeAliases
+          augment A @45
+            aliasedType: int
+            augmentationTargetAny: self::@setter::A
+''');
+  }
+
+  test_typeAlias_augments_typeAlias() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment typedef A = int;
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+typedef A = int;
+''');
+
+    configuration.withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  definingUnit
+    reference: self
+    typeAliases
+      A @33
+        reference: self::@typeAlias::A
+        aliasedType: int
+        augmentation: self::@augmentation::package:test/a.dart::@typeAliasAugmentation::A
+  augmentationImports
+    package:test/a.dart
+      reference: self::@augmentation::package:test/a.dart
+      definingUnit
+        reference: self::@augmentation::package:test/a.dart
+        typeAliases
+          augment A @45
+            reference: self::@augmentation::package:test/a.dart::@typeAliasAugmentation::A
+            aliasedType: int
+            augmentationTarget: self::@typeAlias::A
 ''');
   }
 }

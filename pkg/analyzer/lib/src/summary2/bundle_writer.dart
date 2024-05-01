@@ -697,6 +697,9 @@ class BundleWriter {
     _sink.writeBool(element.isFunctionTypeAliasBased);
     TypeAliasElementFlags.write(_sink, element);
 
+    _resolutionSink.writeElement(element.augmentationTargetAny);
+    _resolutionSink.writeElement(element.augmentation);
+
     _resolutionSink._writeAnnotationList(element.metadata);
     _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
 

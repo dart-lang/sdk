@@ -1972,6 +1972,14 @@ $code
     _assertSource(code, findNode.genericTypeAlias(code));
   }
 
+  void test_visitGenericTypeAlias_augment() {
+    var code = 'augment typedef A = int;';
+    var findNode = _parseStringToFindNode('''
+$code
+''');
+    _assertSource(code, findNode.genericTypeAlias(code));
+  }
+
   void test_visitIfElement_else() {
     var code = 'if (b) 1 else 0';
     var findNode = _parseStringToFindNode('''

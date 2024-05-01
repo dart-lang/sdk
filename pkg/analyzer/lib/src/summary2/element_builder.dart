@@ -891,6 +891,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var name = nameToken.lexeme;
 
     var element = TypeAliasElementImpl(name, nameToken.offset);
+    element.isAugmentation = node.augmentKeyword != null;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
     _setDocumentation(element, node);
@@ -914,6 +915,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       element.aliasedElement =
           typeNode.declaredElement as GenericFunctionTypeElementImpl;
     }
+
+    _libraryBuilder.updateAugmentationTarget(name, element);
   }
 
   @override
@@ -1813,7 +1816,9 @@ class _EnclosingContext {
 
   Reference addTypeAlias(String name, TypeAliasElementImpl element) {
     _typeAliases.add(element);
-    return _addReference('@typeAlias', name, element);
+    var containerName =
+        element.isAugmentation ? '@typeAliasAugmentation' : '@typeAlias';
+    return _addReference(containerName, name, element);
   }
 
   void addTypeParameter(String name, TypeParameterElementImpl element) {
