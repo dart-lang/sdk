@@ -1319,6 +1319,22 @@ AnalysisFlush
 ''');
   }
 
+  @FailingTest(
+      issue: 'https://github.com/dart-lang/sdk/issues/55580', reason: '''
+-------- Actual --------
+
+AnalysisFlush
+  /home/test/analysis_options.yaml
+  /home/test/lib/test.dart
+  /home/test/pubspec.yaml
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/test.dart
+  errors: notEmpty
+------------------------
+''')
   Future<void> test_fileSystem_deleteFile_packageConfigJsonFile() async {
     var aaaRootPath = '/packages/aaa';
     var aPath = '$aaaRootPath/lib/a.dart';
