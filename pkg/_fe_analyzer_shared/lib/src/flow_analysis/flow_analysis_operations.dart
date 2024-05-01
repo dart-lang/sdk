@@ -74,9 +74,6 @@ abstract interface class FlowAnalysisTypeOperations<Type extends Object> {
   /// (c) is a type variable that has been promoted to `Never`
   bool isNever(Type type);
 
-  /// Returns `true` if [type1] and [type2] are the same type.
-  bool isSameType(Type type1, Type type2);
-
   /// Return `true` if the [leftType] is a subtype of the [rightType].
   bool isSubtypeOf(Type leftType, Type rightType);
 

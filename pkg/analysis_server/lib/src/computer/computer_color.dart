@@ -10,8 +10,6 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/constant/value.dart' show GenericState;
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
@@ -19,22 +17,9 @@ import 'package:path/path.dart' as path;
 /// Computer for dart:ui/Flutter Color references.
 class ColorComputer {
   final ResolvedUnitResult resolvedUnit;
-  final LinterContext _linterContext;
   final List<ColorReference> _colors = [];
 
-  ColorComputer(this.resolvedUnit, path.Context pathContext)
-      : _linterContext = LinterContextImpl(
-          [], // unused
-          LinterContextUnit(resolvedUnit.content, resolvedUnit.unit),
-          resolvedUnit.session.declaredVariables,
-          resolvedUnit.typeProvider,
-          resolvedUnit.typeSystem as TypeSystemImpl,
-          InheritanceManager3(), // unused
-          resolvedUnit.session.analysisContext
-              .getAnalysisOptionsForFile(resolvedUnit.file),
-          null,
-          pathContext,
-        );
+  ColorComputer(this.resolvedUnit, path.Context pathContext);
 
   /// Returns information about the color references in [resolvedUnit].
   ///
@@ -65,7 +50,7 @@ class ColorComputer {
     target ??= expression;
 
     // Try to evaluate the constant target.
-    var colorConstResult = _linterContext.evaluateConstant(target);
+    var colorConstResult = target.computeConstantValue();
     var colorConst = colorConstResult.value;
     if (colorConstResult.errors.isNotEmpty || colorConst == null) return false;
 

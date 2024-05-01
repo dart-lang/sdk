@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../types/shared_type.dart';
 import 'type_analyzer_operations.dart';
 
 /// Tracks a single constraint on a single type parameter.
@@ -36,7 +37,7 @@ class GeneratedTypeConstraint<Type extends Object, TypeSchema extends Object,
 
 /// A constraint on a type parameter that we're inferring.
 class MergedTypeConstraint<
-    Type extends Object,
+    Type extends SharedType,
     TypeSchema extends Object,
     TypeParameter extends Object,
     Variable extends Object,
@@ -119,8 +120,7 @@ class MergedTypeConstraint<
       TypeAnalyzerOperations<Variable, Type, TypeSchema, TypeParameter,
               TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations) {
-    return typeAnalyzerOperations.isUnknownType(lower) &&
-        typeAnalyzerOperations.isUnknownType(upper);
+    return lower is SharedUnknownType && upper is SharedUnknownType;
   }
 
   bool isSatisfiedBy(
@@ -173,7 +173,7 @@ class MergedTypeConstraint<
 /// readable error message during type inference as well as determining whether
 /// the constraint was used to fix the type parameter or not.
 abstract class TypeConstraintOrigin<
-    Type extends Object,
+    Type extends SharedType,
     TypeSchema extends Object,
     Variable extends Object,
     TypeParameter extends Object,
@@ -188,7 +188,7 @@ abstract class TypeConstraintOrigin<
 }
 
 class UnknownTypeConstraintOrigin<
-        Type extends Object,
+        Type extends SharedType,
         TypeSchema extends Object,
         Variable extends Object,
         InferableParameter extends Object,
@@ -208,7 +208,7 @@ class UnknownTypeConstraintOrigin<
 }
 
 class TypeConstraintFromArgument<
-        Type extends Object,
+        Type extends SharedType,
         TypeSchema extends Object,
         Variable extends Object,
         InferableParameter extends Object,
@@ -260,7 +260,7 @@ class TypeConstraintFromArgument<
 }
 
 class TypeConstraintFromExtendsClause<
-        Type extends Object,
+        Type extends SharedType,
         TypeSchema extends Object,
         Variable extends Object,
         InferableParameter extends Object,
@@ -303,7 +303,7 @@ class TypeConstraintFromExtendsClause<
 }
 
 class TypeConstraintFromFunctionContext<
-        Type extends Object,
+        Type extends SharedType,
         TypeSchema extends Object,
         Variable extends Object,
         InferableParameter extends Object,
@@ -332,7 +332,7 @@ class TypeConstraintFromFunctionContext<
 }
 
 class TypeConstraintFromReturnType<
-        Type extends Object,
+        Type extends SharedType,
         TypeSchema extends Object,
         Variable extends Object,
         InferableParameter extends Object,

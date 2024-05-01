@@ -69,6 +69,8 @@ import 'dart:convert' show utf8;
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     show Variance;
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart'
+    show SharedNamedType, SharedRecordType, SharedType;
 
 import 'src/extension_type_erasure.dart';
 import 'visitor.dart';
@@ -11060,7 +11062,7 @@ enum Nullability {
 ///
 /// The `==` operator on [DartType]s compare based on type equality, not
 /// object identity.
-sealed class DartType extends Node {
+sealed class DartType extends Node implements SharedType {
   const DartType();
 
   @override
@@ -11162,6 +11164,12 @@ sealed class DartType extends Node {
   /// Internal implementation of equality using [assumptions] to handle equality
   /// of type parameters on function types coinductively.
   bool equals(Object other, Assumptions? assumptions);
+
+  @override
+  bool isStructurallyEqualTo(SharedType other) {
+    // TODO(cstefantsova): Use the actual algorithm for structural equality.
+    return this == other;
+  }
 
   /// Returns a textual representation of the this type.
   ///
@@ -12172,11 +12180,14 @@ class ExtensionType extends TypeDeclarationType {
 }
 
 /// A named parameter in [FunctionType].
-class NamedType extends Node implements Comparable<NamedType> {
+class NamedType extends Node
+    implements Comparable<NamedType>, SharedNamedType<DartType> {
   // Flag used for serialization if [isRequired].
   static const int FlagRequiredNamedType = 1 << 0;
 
+  @override
   final String name;
+  @override
   final DartType type;
   final bool isRequired;
 
@@ -12898,7 +12909,7 @@ class StructuralParameterType extends DartType {
   }
 }
 
-class RecordType extends DartType {
+class RecordType extends DartType implements SharedRecordType<DartType> {
   final List<DartType> positional;
   final List<NamedType> named;
 
@@ -12923,6 +12934,9 @@ class RecordType extends DartType {
             "in a RecordType: ${named}");
 
   @override
+  Iterable<SharedNamedType<DartType>> get namedTypes => named;
+
+  @override
   Nullability get nullability => declaredNullability;
 
   @override
@@ -12935,6 +12949,9 @@ class RecordType extends DartType {
         Nullability.nonNullable => true,
         Nullability.legacy => true,
       };
+
+  @override
+  Iterable<DartType> get positionalTypes => positional;
 
   @override
   R accept<R>(DartTypeVisitor<R> v) {

@@ -3,23 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../flow_analysis/flow_analysis_operations.dart';
+import '../types/shared_type.dart';
 import 'nullability_suffix.dart';
-
-class RecordType<Type extends Object> {
-  final List<Type> positional;
-  final List<({String name, Type type})> named;
-
-  RecordType({
-    required this.positional,
-    required this.named,
-  });
-}
 
 /// Callback API used by the shared type analyzer to query and manipulate the
 /// client's representation of variables and types.
 abstract interface class TypeAnalyzerOperations<
         Variable extends Object,
-        Type extends Object,
+        Type extends SharedType,
         TypeSchema extends Object,
         InferableParameter extends Object,
         TypeDeclarationType extends Object,
@@ -51,12 +42,6 @@ abstract interface class TypeAnalyzerOperations<
 
   /// Returns the unknown type schema (`_`) used in type inference.
   TypeSchema get unknownType;
-
-  /// Returns `true` if [type1] and [type2] are structurally equal.
-  bool areStructurallyEqual(Type type1, Type type2);
-
-  /// If [type] is a record type, returns it.
-  RecordType<Type>? asRecordType(Type type);
 
   /// Returns the type `Future` with omitted nullability and type argument
   /// [argumentType].
@@ -153,9 +138,6 @@ abstract interface class TypeAnalyzerOperations<
   /// Returns `true` if the type [type] satisfies the type schema [typeSchema].
   bool isTypeSchemaSatisfied(
       {required TypeSchema typeSchema, required Type type});
-
-  /// Returns `true` if [typeSchema] is the unknown type context (`_`).
-  bool isUnknownType(TypeSchema typeSchema);
 
   /// Returns whether [node] is final.
   bool isVariableFinal(Variable node);

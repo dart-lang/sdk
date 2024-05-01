@@ -55,7 +55,7 @@ class PreferConstDeclarations extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this, context);
+    var visitor = _Visitor(this);
     registry.addFieldDeclaration(this, visitor);
     registry.addTopLevelVariableDeclaration(this, visitor);
     registry.addVariableDeclarationStatement(this, visitor);
@@ -65,9 +65,7 @@ class PreferConstDeclarations extends LintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  final LinterContext context;
-
-  _Visitor(this.rule, this.context);
+  _Visitor(this.rule);
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
@@ -91,7 +89,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return initializer != null &&
           (initializer is! TypedLiteral ||
               (initializer.beginToken.keyword == Keyword.CONST)) &&
-          !hasConstantError(context, initializer);
+          !hasConstantError(initializer);
     })) {
       rule.reportLint(node);
     }

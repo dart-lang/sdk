@@ -106,22 +106,24 @@ main() {
     group('record type:', () {
       test('no fields', () {
         var t = Type('()') as RecordType;
-        expect(t.positional, isEmpty);
-        expect(t.named, isEmpty);
+        expect(t.positionalTypes, isEmpty);
+        expect(t.namedTypes, isEmpty);
       });
 
       test('named field', () {
         var t = Type('({int x})') as RecordType;
-        expect(t.positional, isEmpty);
-        expect(t.named, hasLength(1));
-        expect(t.named['x']!.type, 'int');
+        expect(t.positionalTypes, isEmpty);
+        expect(t.namedTypes, hasLength(1));
+        expect(t.namedTypes[0].name, 'x');
+        expect(t.namedTypes[0].type.type, 'int');
       });
 
       test('named field followed by comma', () {
         var t = Type('({int x,})') as RecordType;
-        expect(t.positional, isEmpty);
-        expect(t.named, hasLength(1));
-        expect(t.named['x']!.type, 'int');
+        expect(t.positionalTypes, isEmpty);
+        expect(t.namedTypes, hasLength(1));
+        expect(t.namedTypes[0].name, 'x');
+        expect(t.namedTypes[0].type.type, 'int');
       });
 
       test('named field followed by invalid token', () {
@@ -134,10 +136,12 @@ main() {
 
       test('named fields', () {
         var t = Type('({int x, String y})') as RecordType;
-        expect(t.positional, isEmpty);
-        expect(t.named, hasLength(2));
-        expect(t.named['x']!.type, 'int');
-        expect(t.named['y']!.type, 'String');
+        expect(t.positionalTypes, isEmpty);
+        expect(t.namedTypes, hasLength(2));
+        expect(t.namedTypes[0].name, 'x');
+        expect(t.namedTypes[0].type.type, 'int');
+        expect(t.namedTypes[1].name, 'y');
+        expect(t.namedTypes[1].type.type, 'String');
       });
 
       test('curly braces followed by invalid token', () {
@@ -150,36 +154,37 @@ main() {
 
       test('positional field', () {
         var t = Type('(int,)') as RecordType;
-        expect(t.named, isEmpty);
-        expect(t.positional, hasLength(1));
-        expect(t.positional[0].type, 'int');
+        expect(t.namedTypes, isEmpty);
+        expect(t.positionalTypes, hasLength(1));
+        expect(t.positionalTypes[0].type, 'int');
       });
 
       group('positional fields:', () {
         test('two', () {
           var t = Type('(int, String)') as RecordType;
-          expect(t.named, isEmpty);
-          expect(t.positional, hasLength(2));
-          expect(t.positional[0].type, 'int');
-          expect(t.positional[1].type, 'String');
+          expect(t.namedTypes, isEmpty);
+          expect(t.positionalTypes, hasLength(2));
+          expect(t.positionalTypes[0].type, 'int');
+          expect(t.positionalTypes[1].type, 'String');
         });
 
         test('three', () {
           var t = Type('(int, String, double)') as RecordType;
-          expect(t.named, isEmpty);
-          expect(t.positional, hasLength(3));
-          expect(t.positional[0].type, 'int');
-          expect(t.positional[1].type, 'String');
-          expect(t.positional[2].type, 'double');
+          expect(t.namedTypes, isEmpty);
+          expect(t.positionalTypes, hasLength(3));
+          expect(t.positionalTypes[0].type, 'int');
+          expect(t.positionalTypes[1].type, 'String');
+          expect(t.positionalTypes[2].type, 'double');
         });
       });
 
       test('named and positional fields', () {
         var t = Type('(int, {String x})') as RecordType;
-        expect(t.positional, hasLength(1));
-        expect(t.positional[0].type, 'int');
-        expect(t.named, hasLength(1));
-        expect(t.named['x']!.type, 'String');
+        expect(t.positionalTypes, hasLength(1));
+        expect(t.positionalTypes[0].type, 'int');
+        expect(t.namedTypes, hasLength(1));
+        expect(t.namedTypes[0].name, 'x');
+        expect(t.namedTypes[0].type.type, 'String');
       });
 
       test('terminated by invalid token', () {

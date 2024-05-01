@@ -106,9 +106,7 @@ class _WhyNotPromoted extends Expression {
     var type =
         h.typeAnalyzer.analyzeExpression(target, h.operations.unknownType);
     h.flow.forwardExpression(this, target);
-    Type.withComparisonsAllowed(() {
-      callback(h.flow.whyNotPromoted(this)());
-    });
+    callback(h.flow.whyNotPromoted(this)());
     return new SimpleTypeAnalysisResult<Type>(type: type);
   }
 }
@@ -129,9 +127,7 @@ class _WhyNotPromoted_ImplicitThis extends Expression {
 
   @override
   ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
-    Type.withComparisonsAllowed(() {
-      callback(h.flow.whyNotPromotedImplicitThis(staticType)());
-    });
+    callback(h.flow.whyNotPromotedImplicitThis(staticType)());
     h.irBuilder.atom('noop', Kind.expression, location: location);
     return SimpleTypeAnalysisResult(type: h.typeAnalyzer.nullType);
   }

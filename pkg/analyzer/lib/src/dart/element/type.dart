@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -1079,6 +1080,11 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
   @override
   final NullabilitySuffix nullabilitySuffix;
 
+  @override
+  late final List<DartType> positionalTypes = [
+    for (var field in positionalFields) field.type
+  ];
+
   RecordTypeImpl({
     required this.positionalFields,
     required List<RecordTypeNamedFieldImpl> namedFields,
@@ -1121,6 +1127,9 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
   @Deprecated('Check element, or use getDisplayString()')
   @override
   String? get name => null;
+
+  @override
+  Iterable<SharedNamedType<DartType>> get namedTypes => namedFields;
 
   @override
   bool operator ==(Object other) {
@@ -1339,6 +1348,9 @@ abstract class TypeImpl implements DartType {
     appendTo(builder);
     return builder.toString();
   }
+
+  @override
+  bool isStructurallyEqualTo(SharedType other) => this == other;
 
   /// Returns true if this type references any of the [parameters].
   bool referencesAny(Set<TypeParameterElement> parameters) {

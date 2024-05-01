@@ -6,9 +6,7 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.d
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    as shared;
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    hide RecordType, Variance;
+    hide Variance;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyBase;
@@ -536,19 +534,6 @@ class OperationsCfe
   DartType get unknownType => const UnknownType();
 
   @override
-  shared.RecordType<DartType>? asRecordType(DartType type) {
-    if (type is RecordType) {
-      return new shared.RecordType(
-          positional: type.positional,
-          named: type.named
-              .map((field) => (name: field.name, type: field.type))
-              .toList());
-    } else {
-      return null;
-    }
-  }
-
-  @override
   TypeClassification classifyType(DartType? type) {
     if (type == null) {
       // Note: this can happen during top-level inference.
@@ -660,10 +645,6 @@ class OperationsCfe
     }
     return fieldNonPromotabilityInfo.individualPropertyReasons[property];
   }
-
-  // TODO(cstefantsova): Consider checking for mutual subtypes instead of ==.
-  @override
-  bool isSameType(DartType type1, DartType type2) => type1 == type2;
 
   @override
   bool isSubtypeOf(DartType leftType, DartType rightType) {
@@ -808,9 +789,6 @@ class OperationsCfe
       isSubtypeOf(type, typeSchema);
 
   @override
-  bool isUnknownType(DartType typeSchema) => typeSchema is UnknownType;
-
-  @override
   bool isVariableFinal(VariableDeclaration node) {
     return node.isFinal;
   }
@@ -919,12 +897,6 @@ class OperationsCfe
     } else {
       return null;
     }
-  }
-
-  @override
-  bool areStructurallyEqual(DartType type1, DartType type2) {
-    // TODO(cstefantsova): Use the actual algorithm for structural equality.
-    return type1 == type2;
   }
 
   @override

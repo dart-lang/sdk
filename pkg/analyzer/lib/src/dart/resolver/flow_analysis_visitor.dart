@@ -5,10 +5,7 @@
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    as shared;
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    hide RecordType;
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -419,23 +416,6 @@ class TypeSystemOperations
   DartType get unknownType => UnknownInferredType.instance;
 
   @override
-  bool areStructurallyEqual(DartType type1, DartType type2) {
-    return type1 == type2;
-  }
-
-  @override
-  shared.RecordType<DartType>? asRecordType(DartType type) {
-    if (type is RecordType) {
-      return shared.RecordType(
-        positional: type.positionalFields.map((e) => e.type).toList(),
-        named:
-            type.namedFields.map((e) => (name: e.name, type: e.type)).toList(),
-      );
-    }
-    return null;
-  }
-
-  @override
   TypeClassification classifyType(DartType type) {
     if (isSubtypeOf(type, typeSystem.typeProvider.objectType)) {
       return TypeClassification.nonNullable;
@@ -576,11 +556,6 @@ class TypeSystemOperations
   bool isRecordType(DartType type) => type is RecordType;
 
   @override
-  bool isSameType(covariant TypeImpl type1, covariant TypeImpl type2) {
-    return type1 == type2;
-  }
-
-  @override
   bool isSubtypeOf(DartType leftType, DartType rightType) {
     return typeSystem.isSubtypeOf(leftType, rightType);
   }
@@ -592,11 +567,6 @@ class TypeSystemOperations
   bool isTypeSchemaSatisfied(
           {required DartType typeSchema, required DartType type}) =>
       isSubtypeOf(type, typeSchema);
-
-  @override
-  bool isUnknownType(DartType typeSchema) {
-    return identical(typeSchema, UnknownInferredType.instance);
-  }
 
   @override
   bool isVariableFinal(PromotableElement element) {

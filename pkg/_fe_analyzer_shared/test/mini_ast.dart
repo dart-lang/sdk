@@ -27,11 +27,9 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     hide MapPatternEntry, RecordPatternField;
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    as shared show RecordType;
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    hide RecordType;
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/variable_bindings.dart';
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:test/test.dart';
 
 import 'mini_ir.dart';
@@ -2787,22 +2785,6 @@ class MiniAstOperations
   }
 
   @override
-  bool areStructurallyEqual(Type type1, Type type2) => '$type1' == '$type2';
-
-  @override
-  shared.RecordType<Type>? asRecordType(Type type) {
-    if (type is RecordType) {
-      return shared.RecordType<Type>(
-        positional: type.positional,
-        named: type.named.entries.map((entry) {
-          return (name: entry.key, type: entry.value);
-        }).toList(),
-      );
-    }
-    return null;
-  }
-
-  @override
   TypeClassification classifyType(Type type) {
     if (isSubtypeOf(type, Type('Object'))) {
       return TypeClassification.nonNullable;
@@ -2944,7 +2926,7 @@ class MiniAstOperations
   bool isNonNullable(TypeSchema typeSchema) {
     Type type = typeSchema.toType();
     if (isDynamic(type) ||
-        isUnknownType(typeSchema) ||
+        typeSchema is SharedUnknownType ||
         isVoid(type) ||
         isNull(type)) {
       return false;
@@ -2981,11 +2963,6 @@ class MiniAstOperations
   }
 
   @override
-  bool isSameType(Type type1, Type type2) {
-    return type1.type == type2.type;
-  }
-
-  @override
   bool isSubtypeOf(Type leftType, Type rightType) {
     return _typeSystem.isSubtype(leftType, rightType);
   }
@@ -2997,9 +2974,6 @@ class MiniAstOperations
   bool isTypeSchemaSatisfied(
           {required TypeSchema typeSchema, required Type type}) =>
       isSubtypeOf(type, typeSchema.toType());
-
-  @override
-  bool isUnknownType(TypeSchema type) => type.toType() is UnknownType;
 
   @override
   bool isVariableFinal(Var node) {
@@ -3026,18 +3000,16 @@ class MiniAstOperations
 
   @override
   Type lub(Type type1, Type type2) {
-    if (isSameType(type1, type2)) {
+    if (type1 == type2) {
       return type1;
-    } else if (isSameType(promoteToNonNull(type1), type2)) {
+    } else if (promoteToNonNull(type1) == type2) {
       return type1;
-    } else if (isSameType(promoteToNonNull(type2), type1)) {
+    } else if (promoteToNonNull(type2) == type1) {
       return type2;
-    } else if (type1.type == 'Null' &&
-        !isSameType(promoteToNonNull(type2), type2)) {
+    } else if (type1.type == 'Null' && promoteToNonNull(type2) != type2) {
       // type2 is already nullable
       return type2;
-    } else if (type2.type == 'Null' &&
-        !isSameType(promoteToNonNull(type1), type1)) {
+    } else if (type2.type == 'Null' && promoteToNonNull(type1) != type1) {
       // type1 is already nullable
       return type1;
     } else if (type1.type == 'Never') {
@@ -3182,8 +3154,10 @@ class MiniAstOperations
   RecordType recordType(
       {required List<Type> positional, required List<(String, Type)> named}) {
     return RecordType(
-      positional: positional,
-      named: {for (var (name, type) in named) name: type},
+      positionalTypes: positional,
+      namedTypes: [
+        for (var (name, type) in named) NamedType(name: name, type: type)
+      ],
     );
   }
 

@@ -914,7 +914,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         : node.elements.whereType<MapLiteralEntry>().map((entry) => entry.key);
     var alreadySeen = <DartObject>{};
     for (var expression in expressions) {
-      var constEvaluation = _linterContext.evaluateConstant(expression);
+      var constEvaluation = expression.computeConstantValue();
       if (constEvaluation.errors.isEmpty) {
         var value = constEvaluation.value;
         if (value != null && !alreadySeen.add(value)) {

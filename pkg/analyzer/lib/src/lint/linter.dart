@@ -229,12 +229,6 @@ abstract class LinterContext {
   /// computationally expensive.
   bool canBeConstConstructor(ConstructorDeclaration node);
 
-  /// Returns the result of evaluating the given expression.
-  // TODO(srawlins): Maybe deprecate this in favor of the simpler
-  // [ExpressionExtension.computeConstantValue]. The one case where it might
-  // produce incorrect results is if `node` is not withn `currentUnit`.
-  LinterConstantEvaluationResult evaluateConstant(Expression node);
-
   /// Returns `true` if the given [unit] is in a test directory.
   bool inTestDir(CompilationUnit unit);
 
@@ -338,11 +332,6 @@ class LinterContextImpl implements LinterContext {
       temporaryConstConstructorElements[element] = null;
       node.constKeyword = oldKeyword;
     }
-  }
-
-  @override
-  LinterConstantEvaluationResult evaluateConstant(Expression node) {
-    return node.computeConstantValue;
   }
 
   @override
@@ -519,10 +508,6 @@ class LinterContextParsedImpl implements LinterContext {
 
   @override
   bool canBeConstConstructor(ConstructorDeclaration node) =>
-      throw UnsupportedError('LinterContext with parsed results');
-
-  @override
-  LinterConstantEvaluationResult evaluateConstant(Expression node) =>
       throw UnsupportedError('LinterContext with parsed results');
 
   @override
@@ -893,7 +878,7 @@ extension ExpressionExtension on Expression {
   ///
   /// Returns a [LinterConstantEvaluationResult], containing both the computed
   /// constant value, and a list of errors that occurred during the computation.
-  LinterConstantEvaluationResult get computeConstantValue {
+  LinterConstantEvaluationResult computeConstantValue() {
     var unitElement = thisOrAncestorOfType<CompilationUnit>()?.declaredElement;
     if (unitElement == null) return LinterConstantEvaluationResult(null, []);
     var libraryElement = unitElement.library as LibraryElementImpl;

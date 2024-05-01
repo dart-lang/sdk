@@ -15,13 +15,13 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/macro_application.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:macros/src/bootstrap.dart' as macro;
 import 'package:macros/src/executor/serialization.dart' as macro;
 import 'package:path/path.dart' as package_path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../dart/resolution/context_collection_resolution.dart';
 import '../dart/resolution/node_text_expectations.dart';
 import 'element_text.dart';
 import 'elements_base.dart';
@@ -12858,7 +12858,9 @@ macro class MyMacro implements ClassTypesMacro {
       var a = newFile('$testPackageLibPath/a.dart', macroCode);
 
       // Disable compilation to kernel.
-      macroSupport = ExecutableMacroSupport();
+      macroSupportFactory = ExecutableMacroSupportFactory(
+        configure: (_) {},
+      );
 
       var analysisDriver = driverFor(a);
       aBundleBytes = await analysisDriver.buildPackageBundle(
@@ -12886,13 +12888,16 @@ macro class MyMacro implements ClassTypesMacro {
     }
 
     // Configure the macro executor.
-    macroSupport = ExecutableMacroSupport()
-      ..add(
-        executable: macroExecutable,
-        libraries: {
-          Uri.parse('package:test/a.dart'),
-        },
-      );
+    macroSupportFactory = ExecutableMacroSupportFactory(
+      configure: (macroSupport) {
+        macroSupport.add(
+          executable: macroExecutable,
+          libraries: {
+            Uri.parse('package:test/a.dart'),
+          },
+        );
+      },
+    );
 
     // Verify that we can use the executable to run the macro.
     {
@@ -14198,6 +14203,68 @@ elementFactory
     package:test/test.dart
   hasReader
     package:test/test.dart
+''');
+  }
+
+  test_multipleAnalysisContexts() async {
+    // No need to verify reading elements for this test.
+    if (!keepLinkingLibraries) {
+      return;
+    }
+
+    var otherRootPath = '$workspaceRootPath/other';
+    writePackageConfig(
+      otherRootPath,
+      PackageConfigFileBuilder()
+        ..add(name: 'test', rootPath: testPackageRootPath)
+        ..add(name: 'other', rootPath: otherRootPath),
+    );
+
+    newAnalysisOptionsYamlFile(
+      otherRootPath,
+      AnalysisOptionsFileConfig(
+        experiments: experiments,
+      ).toContent(),
+    );
+
+    var file = newFile('$otherRootPath/lib/other.dart', r'''
+import 'package:test/append.dart';
+
+@DeclareType('B', 'class B {}')
+class A {}
+''');
+
+    // Load the macro itself, in `package:test` analysis context.
+    await libraryElementForFile(
+      getFile('$testPackageLibPath/append.dart'),
+    );
+
+    // Load the macro from dependency, in `package:other` analysis context.
+    // It should not crash.
+    var library = await libraryElementForFile(file);
+
+    // ...but check it a little more.
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @74
+  augmentationImports
+    package:other/other.macro.dart
+      macroGeneratedCode
+---
+augment library 'package:other/other.dart';
+
+class B {}
+---
+      definingUnit
+        classes
+          class B @51
 ''');
   }
 }

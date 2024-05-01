@@ -7,9 +7,6 @@
 // used to cause a crash.
 
 import "package:expect/expect.dart";
-//        ^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_MEMBER
-// [cfe] Superclass has no setter named 'foo'.
 import "super_dependency_lib.dart" deferred as lib;
 
 main() async {

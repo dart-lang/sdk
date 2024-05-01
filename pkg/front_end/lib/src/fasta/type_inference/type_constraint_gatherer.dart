@@ -8,6 +8,9 @@ import 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart'
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     as shared show TypeDeclarationKind, TypeDeclarationMatchResult, Variance;
 
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart'
+    show SharedUnknownType;
+
 import 'package:kernel/ast.dart';
 
 import 'package:kernel/type_algebra.dart';
@@ -399,10 +402,10 @@ class TypeConstraintGatherer {
     if (p is InvalidType || q is InvalidType) return false;
 
     // If P is _ then the match holds with no constraints.
-    if (typeOperations.isUnknownType(p)) return true;
+    if (p is SharedUnknownType) return true;
 
     // If Q is _ then the match holds with no constraints.
-    if (typeOperations.isUnknownType(q)) return true;
+    if (q is SharedUnknownType) return true;
 
     // If P is a type variable X in L, then the match holds:
     //
@@ -979,10 +982,10 @@ class TypeConstraintGatherer {
       {required TreeNode? treeNodeForTesting}) {
     // The unknown type `?` is a subtype match for any type `Q` with no
     // constraints.
-    if (typeOperations.isUnknownType(subtype)) return true;
+    if (subtype is SharedUnknownType) return true;
     // Any type `P` is a subtype match for the unknown type `?` with no
     // constraints.
-    if (typeOperations.isUnknownType(supertype)) return true;
+    if (supertype is SharedUnknownType) return true;
     // A type variable `T` in `L` is a subtype match for any type schema `Q`:
     // - Under constraint `T <: Q`.
 

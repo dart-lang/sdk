@@ -1522,6 +1522,10 @@ DART_EXPORT DART_WARN_UNUSED_RESULT char* Dart_IsolateMakeRunnable(
  * A port is used to send or receive inter-isolate messages
  */
 typedef int64_t Dart_Port;
+typedef struct {
+  int64_t port_id;
+  int64_t origin_id;
+} Dart_PortEx;
 
 /**
  * ILLEGAL_PORT is a port number guaranteed never to be associated with a valid
@@ -1773,12 +1777,26 @@ DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle object);
 /**
  * Returns a new SendPort with the provided port id.
  *
+ * If there is a possibility of a port closing since port_id was acquired
+ * for a SendPort, one should use Dart_NewSendPortEx and
+ * Dart_SendPortGetIdEx.
+ *
  * \param port_id The destination port.
  *
  * \return A new SendPort if no errors occurs. Otherwise returns
  *   an error handle.
  */
 DART_EXPORT Dart_Handle Dart_NewSendPort(Dart_Port port_id);
+
+/**
+ * Returns a new SendPort with the provided port id and origin id.
+ *
+ * \param portex_id The destination composte port id.
+ *
+ * \return A new SendPort if no errors occurs. Otherwise returns
+ *   an error handle.
+ */
+DART_EXPORT Dart_Handle Dart_NewSendPortEx(Dart_PortEx portex_id);
 
 /**
  * Gets the SendPort id for the provided SendPort.
@@ -1790,6 +1808,15 @@ DART_EXPORT Dart_Handle Dart_NewSendPort(Dart_Port port_id);
 DART_EXPORT Dart_Handle Dart_SendPortGetId(Dart_Handle port,
                                            Dart_Port* port_id);
 
+/**
+ * Gets the SendPort and Origin ids for the provided SendPort.
+ * \param port A SendPort object whose id is desired.
+ * \param portex_id Returns composite id of the SendPort.
+ * \return Success if no error occurs. Otherwise returns
+ *   an error handle.
+ */
+DART_EXPORT Dart_Handle Dart_SendPortGetIdEx(Dart_Handle port,
+                                             Dart_PortEx* portex_id);
 /*
  * ======
  * Scopes
