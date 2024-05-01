@@ -2157,6 +2157,17 @@ DART_EXPORT Dart_Handle Dart_NewSendPort(Dart_Port port_id) {
   return Api::NewHandle(T, SendPort::New(port_id, origin_id));
 }
 
+DART_EXPORT Dart_Handle Dart_NewSendPortEx(Dart_PortEx portex_id) {
+  DARTSCOPE(Thread::Current());
+  CHECK_CALLBACK_STATE(T);
+  if (portex_id.port_id == ILLEGAL_PORT) {
+    return Api::NewError("%s: illegal port_id %" Pd64 ".", CURRENT_FUNC,
+                         portex_id.port_id);
+  }
+  return Api::NewHandle(T,
+                        SendPort::New(portex_id.port_id, portex_id.origin_id));
+}
+
 DART_EXPORT Dart_Handle Dart_SendPortGetId(Dart_Handle port,
                                            Dart_Port* port_id) {
   DARTSCOPE(Thread::Current());
@@ -2170,6 +2181,23 @@ DART_EXPORT Dart_Handle Dart_SendPortGetId(Dart_Handle port,
     RETURN_NULL_ERROR(port_id);
   }
   *port_id = send_port.Id();
+  return Api::Success();
+}
+
+DART_EXPORT Dart_Handle Dart_SendPortGetIdEx(Dart_Handle port,
+                                             Dart_PortEx* portex_id) {
+  DARTSCOPE(Thread::Current());
+  CHECK_CALLBACK_STATE(T);
+  API_TIMELINE_DURATION(T);
+  const SendPort& send_port = Api::UnwrapSendPortHandle(Z, port);
+  if (send_port.IsNull()) {
+    RETURN_TYPE_ERROR(Z, port, SendPort);
+  }
+  if (portex_id == nullptr) {
+    RETURN_NULL_ERROR(port_id);
+  }
+  portex_id->port_id = send_port.Id();
+  portex_id->origin_id = send_port.origin_id();
   return Api::Success();
 }
 
