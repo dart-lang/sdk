@@ -86,6 +86,30 @@ class ExecutableMacroSupport extends MacroSupport {
   }
 }
 
+final class ExecutableMacroSupportFactory extends MacroSupportFactory {
+  final void Function(ExecutableMacroSupport macroSupport) configure;
+  final List<ExecutableMacroSupport> _instances = [];
+
+  ExecutableMacroSupportFactory({
+    required this.configure,
+  });
+
+  @override
+  Future<void> dispose() async {
+    for (var instance in _instances) {
+      await instance.dispose();
+    }
+  }
+
+  @override
+  MacroSupport newInstance() {
+    var instance = ExecutableMacroSupport();
+    configure(instance);
+    _instances.add(instance);
+    return instance;
+  }
+}
+
 /// [BundleMacroExecutor] that runs macros from kernels.
 class KernelBundleMacroExecutor extends BundleMacroExecutor {
   final KernelMacroSupport support;
@@ -153,6 +177,24 @@ class KernelMacroSupport extends MacroSupport {
     for (var libraryUri in libraries) {
       _bundleExecutors[libraryUri] = bundleExecutor;
     }
+  }
+}
+
+final class KernelMacroSupportFactory extends MacroSupportFactory {
+  final List<KernelMacroSupport> _instances = [];
+
+  @override
+  Future<void> dispose() async {
+    for (var instance in _instances) {
+      await instance.dispose();
+    }
+  }
+
+  @override
+  MacroSupport newInstance() {
+    var instance = KernelMacroSupport();
+    _instances.add(instance);
+    return instance;
   }
 }
 
@@ -252,6 +294,33 @@ class MacroSupport {
   void removeLibrary(Uri uri) {
     var bundleExecutor = _bundleExecutors.remove(uri);
     bundleExecutor?.dispose();
+  }
+}
+
+/// Each analysis context has to have its own [MacroSupport] instance.
+/// The content collection is configured with this factory.
+sealed class MacroSupportFactory {
+  Future<void> dispose();
+
+  MacroSupport newInstance();
+}
+
+// TODO(scheglov): remove after migration.
+final class SingleInstanceMacroSupportFactory extends MacroSupportFactory {
+  final MacroSupport instance;
+
+  SingleInstanceMacroSupportFactory({
+    required this.instance,
+  });
+
+  @override
+  Future<void> dispose() async {
+    await instance.dispose();
+  }
+
+  @override
+  MacroSupport newInstance() {
+    return instance;
   }
 }
 

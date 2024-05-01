@@ -13,7 +13,9 @@ import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/summary2/kernel_compilation_service.dart';
@@ -142,7 +144,7 @@ abstract class ContextResolutionTest
   List<File>? librarySummaryFiles;
 
   /// By default the kernel implementation is used, this can override it.
-  MacroSupport? macroSupport;
+  MacroSupportFactory? macroSupportFactory;
 
   AnalyzerStatePrinterConfiguration analyzerStatePrinterConfiguration =
       AnalyzerStatePrinterConfiguration();
@@ -174,7 +176,7 @@ abstract class ContextResolutionTest
       sdkSummaryPath: sdkSummaryFile?.path,
       librarySummaryPaths: librarySummaryFiles?.map((e) => e.path).toList(),
       updateAnalysisOptions2: updateAnalysisOptions,
-      macroSupport: macroSupport,
+      macroSupportFactory: macroSupportFactory,
       drainStreams: false,
     );
 
@@ -258,6 +260,17 @@ abstract class ContextResolutionTest
 
   AnalysisDriver driverFor(File file) {
     return _contextFor(file).driver;
+  }
+
+  Future<LibraryElementImpl> libraryElementForFile(File file) async {
+    var analysisContext = contextFor(file);
+    var analysisSession = analysisContext.currentSession;
+
+    var uri = analysisSession.uriConverter.pathToUri(file.path);
+    var uriStr = uri.toString();
+    var libraryResult = await analysisSession.getLibraryByUri(uriStr);
+    libraryResult as LibraryElementResultImpl;
+    return libraryResult.element as LibraryElementImpl;
   }
 
   @override

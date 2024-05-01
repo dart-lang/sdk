@@ -28,7 +28,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
   final ResourceProvider resourceProvider;
 
   /// The support for executing macros.
-  late final MacroSupport macroSupport;
+  late final MacroSupportFactory macroSupportFactory;
 
   /// The shared container into which drivers record files ownership.
   final OwnedFiles ownedFiles = OwnedFiles();
@@ -65,7 +65,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
       required ContextRoot contextRoot,
       required DartSdk sdk,
     })? updateAnalysisOptions2,
-    MacroSupport? macroSupport,
+    MacroSupportFactory? macroSupportFactory,
   }) : resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE {
     sdkPath ??= getSdkPath();
@@ -86,7 +86,10 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     _throwIfAnyNotAbsoluteNormalizedPath(includedPaths);
     _throwIfNotAbsoluteNormalizedPath(sdkPath);
 
-    this.macroSupport = macroSupport ??= KernelMacroSupport();
+    macroSupportFactory ??= KernelMacroSupportFactory();
+    // TODO(scheglov): https://github.com/dart-lang/linter/issues/3134
+    // ignore: prefer_initializing_formals
+    this.macroSupportFactory = macroSupportFactory;
 
     var contextLocator = ContextLocator(
       resourceProvider: this.resourceProvider,
@@ -101,6 +104,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
       resourceProvider: this.resourceProvider,
     );
     for (var root in roots) {
+      var macroSupport = macroSupportFactory.newInstance();
       var context = contextBuilder.createContext(
         byteStore: byteStore,
         contextRoot: root,
@@ -158,7 +162,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     for (var analysisContext in contexts) {
       await analysisContext.driver.dispose2();
     }
-    await macroSupport.dispose();
+    await macroSupportFactory.dispose();
     // If there are other collections, they will have to start it again.
     if (!forTesting) {
       await KernelCompilationService.dispose();
