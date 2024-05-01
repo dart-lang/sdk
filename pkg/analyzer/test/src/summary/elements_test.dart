@@ -63376,6 +63376,31 @@ library
 ''');
   }
 
+  test_typeAlias_augments_nothing() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment typedef A = int;
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        typeAliases
+          augment A @45
+            aliasedType: int
+  exportedReferences
+  exportNamespace
+''');
+  }
+
   test_typeAlias_augments_setter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 augment library 'test.dart';

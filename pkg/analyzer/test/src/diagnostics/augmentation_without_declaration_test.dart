@@ -640,4 +640,18 @@ augment int foo = 0;
       error(CompileTimeErrorCode.AUGMENTATION_WITHOUT_DECLARATION, 27, 7),
     ]);
   }
+
+  test_typedef() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+''');
+
+    await assertErrorsInCode(r'''
+augment library 'a.dart';
+
+augment typedef A = int;
+''', [
+      error(CompileTimeErrorCode.AUGMENTATION_WITHOUT_DECLARATION, 27, 7),
+    ]);
+  }
 }

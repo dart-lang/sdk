@@ -985,6 +985,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitGenericTypeAlias(covariant GenericTypeAliasImpl node) {
     var element = node.declaredElement as TypeAliasElementImpl;
+
+    _checkAugmentations(
+      augmentKeyword: node.augmentKeyword,
+      element: element,
+    );
+
     _checkForBuiltInIdentifierAsName(
         node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
     _checkForMainFunction1(node.name, node.declaredElement!);
