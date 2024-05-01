@@ -5200,9 +5200,18 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
           .ifFalse;
     }
     _current = ifTrue;
-    if (matchMayFailEvenIfCorrectType ||
-        (matchFailsIfWrongType && !coversMatchedType)) {
-      _unmatched = _join(_unmatched!, coversMatchedType ? ifTrue : ifFalse);
+    if (matchFailsIfWrongType && !coversMatchedType) {
+      // There's a reachable control flow path where the match might fail due to
+      // a type mismatch. Therefore, we must update the `_unmatched` flow state
+      // based on the state of flow analysis assuming the type check failed.
+      _unmatched = _join(_unmatched!, ifFalse);
+    }
+    if (matchMayFailEvenIfCorrectType) {
+      // There's a reachable control flow path where the type might match, but
+      // the match might nonetheless fail for some other reason. Therefore, we
+      // must update the `_unmatched` flow state based on the state of flow
+      // analysis assuming the type check succeeded.
+      _unmatched = _join(_unmatched!, ifTrue);
     }
     return coversMatchedType;
   }
