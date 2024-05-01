@@ -134,6 +134,10 @@ class OSThread : public BaseThread {
     return GetCurrentStackPointer() > (stack_limit_ + headroom);
   }
 
+#ifdef SUPPORT_TIMELINE
+  static ThreadId GetCurrentThreadTraceId();
+#endif  // SUPPORT_TIMELINE
+
   // May fail for the main thread on Linux if resources are low.
   static bool GetCurrentStackBounds(uword* lower, uword* upper);
 
@@ -259,9 +263,6 @@ class OSThread : public BaseThread {
   void set_thread(ThreadState* value) { thread_ = value; }
 
   static void Cleanup();
-#ifdef SUPPORT_TIMELINE
-  static ThreadId GetCurrentThreadTraceId();
-#endif  // SUPPORT_TIMELINE
 
   // Retrieves the name given to the current thread at the OS level and returns
   // it as a heap-allocated string that must eventually be freed by the caller
