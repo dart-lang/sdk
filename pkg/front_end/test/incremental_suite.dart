@@ -74,6 +74,7 @@ import "incremental_utils.dart" as util;
 import 'test_utils.dart';
 import 'testing_utils.dart' show checkEnvironment;
 import 'utils/io_utils.dart' show computeRepoDir;
+import 'utils/symbolic_language_versions.dart';
 import 'utils/values.dart';
 
 void main([List<String> arguments = const []]) => internalMain(createContext,
@@ -772,14 +773,6 @@ Future<Map<String, List<int>>> createModules(
   return moduleResult;
 }
 
-String doStringReplacements(String input) {
-  Version enableNonNullableVersion =
-      ExperimentalFlag.nonNullable.experimentEnabledVersion;
-  String output = input.replaceAll("%NNBD_VERSION_MARKER%",
-      "${enableNonNullableVersion.major}.${enableNonNullableVersion.minor}");
-  return output;
-}
-
 class ExpressionCompilation {
   final bool errors;
   final bool warnings;
@@ -1250,7 +1243,7 @@ class NewWorldTest {
           packagesUri = uri;
         }
         if (world.enableStringReplacement) {
-          data = doStringReplacements(data);
+          data = replaceMarkersWithVersions(data);
         }
         fs.entityForUri(uri).writeAsStringSync(data);
       }

@@ -20,6 +20,7 @@ import 'package:front_end/src/fasta/scope.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart';
+import '../utils/symbolic_language_versions.dart';
 
 Future<void> main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
@@ -46,7 +47,9 @@ Future<void> main(List<String> args) async {
           'opt_out',
           'opt_out_patch',
         ]
-      });
+      },
+      preprocessFile: replaceMarkersWithVersions,
+      postProcessData: replaceVersionsWithMarkers);
 }
 
 class TestConfigWithLanguageVersion extends CfeTestConfig {
@@ -61,7 +64,8 @@ class TestConfigWithLanguageVersion extends CfeTestConfig {
 
   @override
   void customizeCompilerOptions(CompilerOptions options, TestData testData) {
-    options.currentSdkVersion = "2.9999";
+    options.currentSdkVersion =
+        SymbolicLanguageVersion.nnbdVersion.version.toText();
   }
 }
 

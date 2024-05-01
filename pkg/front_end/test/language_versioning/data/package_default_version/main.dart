@@ -5,12 +5,12 @@
 // Set version of this file (not technically in package) explicitly to test as
 // much as possibly separately.
 
-// @dart = 2.4
+// @dart = %VERSION_MARKER0%
 
 import 'package:foo/foo.dart';
 import 'package:foo/foo_with_part.dart';
 
-/*library: languageVersion=2.4*/
+/*library: languageVersion=%VERSION_MARKER0%*/
 
 main() {
   foo();
