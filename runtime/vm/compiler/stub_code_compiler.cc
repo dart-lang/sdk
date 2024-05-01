@@ -601,13 +601,6 @@ static void BuildInstantiateTypeParameterStub(Assembler* assembler,
       __ BranchIf(NOT_EQUAL, &runtime_call);
       __ Ret();
       break;
-    case Nullability::kLegacy:
-      __ CompareAbstractTypeNullabilityWith(
-          InstantiateTypeABI::kResultTypeReg,
-          static_cast<int8_t>(Nullability::kNonNullable),
-          InstantiateTypeABI::kScratchReg);
-      __ BranchIf(EQUAL, &runtime_call);
-      __ Ret();
   }
 
   // The TAV was null, so the value of the type parameter is "dynamic".
@@ -630,11 +623,6 @@ void StubCodeCompiler::GenerateInstantiateTypeNullableClassTypeParameterStub() {
                                     /*is_function_parameter=*/false);
 }
 
-void StubCodeCompiler::GenerateInstantiateTypeLegacyClassTypeParameterStub() {
-  BuildInstantiateTypeParameterStub(assembler, Nullability::kLegacy,
-                                    /*is_function_parameter=*/false);
-}
-
 void StubCodeCompiler::
     GenerateInstantiateTypeNonNullableFunctionTypeParameterStub() {
   BuildInstantiateTypeParameterStub(assembler, Nullability::kNonNullable,
@@ -644,12 +632,6 @@ void StubCodeCompiler::
 void StubCodeCompiler::
     GenerateInstantiateTypeNullableFunctionTypeParameterStub() {
   BuildInstantiateTypeParameterStub(assembler, Nullability::kNullable,
-                                    /*is_function_parameter=*/true);
-}
-
-void StubCodeCompiler::
-    GenerateInstantiateTypeLegacyFunctionTypeParameterStub() {
-  BuildInstantiateTypeParameterStub(assembler, Nullability::kLegacy,
                                     /*is_function_parameter=*/true);
 }
 

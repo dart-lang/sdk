@@ -425,8 +425,7 @@ void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
       left = instance_of->value()->definition();
     }
     if (!type->IsTopTypeForInstanceOf()) {
-      const bool is_nullable = (type->IsNullable() || type->IsTypeParameter() ||
-                                (type->IsNeverType() && type->IsLegacy()))
+      const bool is_nullable = (type->IsNullable() || type->IsTypeParameter())
                                    ? CompileType::kCanBeNull
                                    : CompileType::kCannotBeNull;
       EnsureMoreAccurateRedefinition(

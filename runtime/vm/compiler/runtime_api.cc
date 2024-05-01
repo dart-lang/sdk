@@ -1020,8 +1020,6 @@ const uint8_t Nullability::kNullable =
     static_cast<uint8_t>(dart::Nullability::kNullable);
 const uint8_t Nullability::kNonNullable =
     static_cast<uint8_t>(dart::Nullability::kNonNullable);
-const uint8_t Nullability::kLegacy =
-    static_cast<uint8_t>(dart::Nullability::kLegacy);
 
 bool Heap::IsAllocatableInNewSpace(intptr_t instance_size) {
   return dart::IsAllocatableInNewSpace(instance_size);

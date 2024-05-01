@@ -374,6 +374,47 @@ void main(List<String> args) {
       );
     });
 
+    test(
+        'toString() throwing expired sentinel is handled per-item in variables',
+        () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile('''
+class S {
+  final int i;
+  S(this.i);
+  @override
+  String toString() => 'Item \$i';
+}
+
+void main(List<String> args) {
+  final myList = List.generate(10000, S.new);
+  print('Hello!'); $breakpointMarker
+}
+    ''');
+
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+      final stop = await client.hitBreakpoint(
+        testFile,
+        breakpointLine,
+        evaluateToStringInDebugViews: true,
+      );
+      final topFrameId = await client.getTopFrameId(stop.threadId!);
+
+      final listVariable = await client.expectEvalResult(
+          topFrameId, "myList", "List (10000 items)");
+      // Try to fetch all 10000 items (which is more than the buffer).
+      final variables = await client.getValidVariables(
+        listVariable.variablesReference,
+        start: 0,
+        count: 10000,
+      );
+      // Ensure we get all 10000 items (not just a single one with an error).
+      expect(variables.variables.length, equals(10000));
+      // toString() would have returned an expired sentinel and the error should
+      // have been inlined into the value.
+      expect(variables.variables.first.value, equals('S (<expired>)'));
+    });
+
     /// Helper to verify variables types of list.
     checkList(
       String typeName, {

@@ -1201,7 +1201,7 @@ void AsmIntrinsifier::String_getHashCode(Assembler* assembler,
 
 void AsmIntrinsifier::Type_equality(Assembler* assembler,
                                     Label* normal_ir_body) {
-  Label equal, not_equal, equiv_cids_may_be_generic, equiv_cids, check_legacy;
+  Label equal, not_equal, equiv_cids_may_be_generic, equiv_cids;
 
   __ ldm(IA, SP, (1 << R1 | 1 << R2));
   __ cmp(R1, Operand(R2));
@@ -1234,23 +1234,12 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
   __ LoadAbstractTypeNullability(R1, R1);
   __ LoadAbstractTypeNullability(R2, R2);
   __ cmp(R1, Operand(R2));
-  __ b(&check_legacy, NE);
-  // Fall through to equal case if nullability is strictly equal.
+  __ b(&not_equal, NE);
+  // Fall through to equal case if nullability is equal.
 
   __ Bind(&equal);
   __ LoadObject(R0, CastHandle<Object>(TrueObject()));
   __ Ret();
-
-  // At this point the nullabilities are different, so they can only be
-  // syntactically equivalent if they're both either kNonNullable or kLegacy.
-  // These are the two largest values of the enum, so we can just do a < check.
-  ASSERT(target::Nullability::kNullable < target::Nullability::kNonNullable &&
-         target::Nullability::kNonNullable < target::Nullability::kLegacy);
-  __ Bind(&check_legacy);
-  __ CompareImmediate(R1, target::Nullability::kNonNullable);
-  __ b(&not_equal, LT);
-  __ CompareImmediate(R2, target::Nullability::kNonNullable);
-  __ b(&equal, GE);
 
   __ Bind(&not_equal);
   __ LoadObject(R0, CastHandle<Object>(FalseObject()));

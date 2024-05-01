@@ -169,6 +169,182 @@ group("compressed_observatory_archive") {
 if (is_fuchsia) {
   import("third_party/fuchsia/gn-sdk/src/component.gni")
   import("third_party/fuchsia/gn-sdk/src/package.gni")
+  import("utils/application_snapshot.gni")
+
+  # tests/ffi/**_test.dart except those with compile-time errors
+  test_sources = [
+    "tests/ffi/abi_specific_int_incomplete_aot_test.dart",
+    "tests/ffi/abi_specific_int_incomplete_jit_test.dart",
+    "tests/ffi/abi_specific_int_test.dart",
+    "tests/ffi/abi_test.dart",
+    "tests/ffi/address_of_array_generated_test.dart",
+    "tests/ffi/address_of_struct_generated_test.dart",
+    "tests/ffi/address_of_test.dart",
+    "tests/ffi/address_of_typeddata_generated_test.dart",
+    "tests/ffi/aliasing_test.dart",
+    "tests/ffi/allocator_test.dart",
+    "tests/ffi/async_void_function_callbacks_test.dart",
+    "tests/ffi/bool_test.dart",
+    "tests/ffi/c_types_test.dart",
+    "tests/ffi/callback_unwind_error_test.dart",
+    "tests/ffi/calloc_test.dart",
+    "tests/ffi/data_not_asan_test.dart",
+    "tests/ffi/data_test.dart",
+    "tests/ffi/deeply_immutable_c_api_finalizer_test.dart",
+    "tests/ffi/dl_api_exit_enter_isolate_test.dart",
+    "tests/ffi/dylib_close_test.dart",
+    "tests/ffi/dylib_isolates_test.dart",
+    "tests/ffi/dylib_open_test.dart",
+    "tests/ffi/expando_test.dart",
+    "tests/ffi/extension_methods_test.dart",
+    "tests/ffi/external_typed_data_finalizer_test.dart",
+    "tests/ffi/external_typed_data_test.dart",
+    "tests/ffi/ffi_callback_unique_test.dart",
+    "tests/ffi/ffi_induce_a_crash_test.dart",
+    "tests/ffi/ffi_native_test.dart",
+    "tests/ffi/finalizer_external_size_accounting_test.dart",
+    "tests/ffi/function_callbacks_many_test.dart",
+    "tests/ffi/function_callbacks_structs_by_value_generated_test.dart",
+    "tests/ffi/function_callbacks_structs_by_value_native_callable_generated_test.dart",
+    "tests/ffi/function_callbacks_structs_by_value_test.dart",
+    "tests/ffi/function_callbacks_subtype_test.dart",
+    "tests/ffi/function_callbacks_test.dart",
+    "tests/ffi/function_callbacks_varargs_generated_test.dart",
+    "tests/ffi/function_callbacks_varargs_native_callable_generated_test.dart",
+    "tests/ffi/function_callbacks_very_many_test.dart",
+    "tests/ffi/function_struct_by_value_out_of_bounds_test.dart",
+    "tests/ffi/function_structs_by_value_generated_args_leaf_test.dart",
+    "tests/ffi/function_structs_by_value_generated_args_native_leaf_test.dart",
+    "tests/ffi/function_structs_by_value_generated_args_native_test.dart",
+    "tests/ffi/function_structs_by_value_generated_args_test.dart",
+    "tests/ffi/function_structs_by_value_generated_ret_arg_leaf_test.dart",
+    "tests/ffi/function_structs_by_value_generated_ret_arg_native_leaf_test.dart",
+    "tests/ffi/function_structs_by_value_generated_ret_arg_native_test.dart",
+    "tests/ffi/function_structs_by_value_generated_ret_arg_test.dart",
+    "tests/ffi/function_structs_by_value_generated_ret_leaf_test.dart",
+    "tests/ffi/function_structs_by_value_generated_ret_native_leaf_test.dart",
+    "tests/ffi/function_structs_by_value_generated_ret_native_test.dart",
+    "tests/ffi/function_structs_by_value_generated_ret_test.dart",
+    "tests/ffi/function_structs_test.dart",
+    "tests/ffi/function_test.dart",
+    "tests/ffi/function_varargs_generated_leaf_test.dart",
+    "tests/ffi/function_varargs_generated_native_leaf_test.dart",
+    "tests/ffi/function_varargs_generated_native_test.dart",
+    "tests/ffi/function_varargs_generated_test.dart",
+    "tests/ffi/function_varargs_name_test.dart",
+    "tests/ffi/function_varargs_test.dart",
+    "tests/ffi/function_very_many_test.dart",
+    "tests/ffi/hardfp_test.dart",
+    "tests/ffi/has_symbol_test.dart",
+    "tests/ffi/inline_array_multi_dimensional_test.dart",
+    "tests/ffi/inline_array_test.dart",
+    "tests/ffi/invoke_callback_after_suspension_test.dart",
+    "tests/ffi/isolate_local_function_callbacks_test.dart",
+    "tests/ffi/msan_test.dart",
+    "tests/ffi/native_assets/asset_absolute_test.dart",
+    "tests/ffi/native_assets/asset_executable_test.dart",
+    "tests/ffi/native_assets/asset_library_annotation_test.dart",
+    "tests/ffi/native_assets/asset_process_test.dart",
+    "tests/ffi/native_assets/asset_relative_test.dart",
+    "tests/ffi/native_assets/asset_system_test.dart",
+    "tests/ffi/native_assets/infer_native_assets_yaml_dart_kernel_snapshot_test.dart",
+    "tests/ffi/native_assets/infer_native_assets_yaml_isolate_spawnuri_2_test.dart",
+    "tests/ffi/native_assets/infer_native_assets_yaml_isolate_spawnuri_3_test.dart",
+    "tests/ffi/native_assets/infer_native_assets_yaml_isolate_spawnuri_test.dart",
+    "tests/ffi/native_assets/infer_native_assets_yaml_process_run_test.dart",
+    "tests/ffi/native_assets/process_test.dart",
+    "tests/ffi/native_callables_async_structs_by_value_generated_test.dart",
+    "tests/ffi/native_callables_sync_structs_by_value_generated_test.dart",
+    "tests/ffi/native_effect_test.dart",
+    "tests/ffi/negative_function_test.dart",
+    "tests/ffi/pointer_arithmetic_operators_test.dart",
+    "tests/ffi/regress_37254_test.dart",
+    "tests/ffi/regress_39044_test.dart",
+    "tests/ffi/regress_39063_test.dart",
+    "tests/ffi/regress_39885_test.dart",
+    "tests/ffi/regress_40537_test.dart",
+    "tests/ffi/regress_43016_test.dart",
+    "tests/ffi/regress_43693_test.dart",
+    "tests/ffi/regress_45189_test.dart",
+    "tests/ffi/regress_45198_test.dart",
+    "tests/ffi/regress_45507_test.dart",
+    "tests/ffi/regress_45988_test.dart",
+    "tests/ffi/regress_46004_test.dart",
+    "tests/ffi/regress_46127_test.dart",
+    "tests/ffi/regress_47594_test.dart",
+    "tests/ffi/regress_47673_test.dart",
+    "tests/ffi/regress_49402_test.dart",
+    "tests/ffi/regress_49684_test.dart",
+    "tests/ffi/regress_51315_test.dart",
+    "tests/ffi/regress_51321_test.dart",
+    "tests/ffi/regress_51504_test.dart",
+    "tests/ffi/regress_51538_2_test.dart",
+    "tests/ffi/regress_51538_3_test.dart",
+    "tests/ffi/regress_51538_test.dart",
+    "tests/ffi/regress_52298_test.dart",
+    "tests/ffi/regress_52399_test.dart",
+    "tests/ffi/regress_b_261224444_test.dart",
+    "tests/ffi/regress_flutter79441_test.dart",
+    "tests/ffi/regress_flutter97301_test.dart",
+    "tests/ffi/regress_jump_to_frame_test.dart",
+    "tests/ffi/sizeof_test.dart",
+    "tests/ffi/snapshot_test.dart",
+    "tests/ffi/stacktrace_regress_37910_test.dart",
+    "tests/ffi/structs_nested_test.dart",
+    "tests/ffi/structs_nnbd_workaround_test.dart",
+    "tests/ffi/structs_packed_test.dart",
+    "tests/ffi/structs_test.dart",
+    "tests/ffi/structs_typed_data_test.dart",
+    "tests/ffi/unaligned_test.dart",
+    "tests/ffi/variance_function_test.dart",
+    "tests/ffi/vmspecific_deprecated_funcs_test.dart",
+    "tests/ffi/vmspecific_dynamic_library_test.dart",
+    "tests/ffi/vmspecific_enable_ffi_test.dart",
+    "tests/ffi/vmspecific_ffi_native_handles_test.dart",
+    "tests/ffi/vmspecific_ffi_native_test.dart",
+    "tests/ffi/vmspecific_function_callbacks_exit_test.dart",
+    "tests/ffi/vmspecific_function_callbacks_test.dart",
+    "tests/ffi/vmspecific_function_gc_test.dart",
+    "tests/ffi/vmspecific_function_test.dart",
+    "tests/ffi/vmspecific_handle_dynamically_linked_test.dart",
+    "tests/ffi/vmspecific_handle_test.dart",
+    "tests/ffi/vmspecific_highmem_32bit_test.dart",
+    "tests/ffi/vmspecific_leaf_call_test.dart",
+    "tests/ffi/vmspecific_native_finalizer_2_test.dart",
+    "tests/ffi/vmspecific_native_finalizer_deeply_immutable_test.dart",
+    "tests/ffi/vmspecific_native_finalizer_isolate_groups_test.dart",
+    "tests/ffi/vmspecific_native_finalizer_isolates_test.dart",
+    "tests/ffi/vmspecific_native_finalizer_test.dart",
+    "tests/ffi/vmspecific_object_gc_test.dart",
+    "tests/ffi/vmspecific_pointer_load_il_test.dart",
+    "tests/ffi/vmspecific_regress_37100_test.dart",
+    "tests/ffi/vmspecific_regress_37511_callbacks_test.dart",
+    "tests/ffi/vmspecific_regress_37511_test.dart",
+    "tests/ffi/vmspecific_regress_37780_test.dart",
+    "tests/ffi/vmspecific_regress_51794_test.dart",
+    "tests/ffi/vmspecific_send_port_id_test.dart",
+  ]
+
+  test_deps = []
+  test_resources = []
+  foreach(test_source, test_sources) {
+    label = string_replace(test_source, "/", "_")
+
+    application_snapshot(label) {
+      dart_snapshot_kind = "kernel"
+      main_dart = test_source
+      training_args = []  # Not used
+      output = "$target_gen_dir/$test_source.dill"
+    }
+
+    test_deps += [ ":$label" ]
+    test_resources += [
+      {
+        path = rebase_path("$target_gen_dir/$test_source.dill")
+        dest = "data/$test_source"
+      },
+    ]
+  }
 
   test_binaries = [
     "dart",
@@ -193,14 +369,6 @@ if (is_fuchsia) {
         ".dart_tool/package_config.json",
         "tools/addlatexhash.dart",
       ]
-      resource_dirs = [
-        "pkg/async_helper",
-        "pkg/expect",
-        "pkg/meta",
-        "tests/ffi",
-        "third_party/pkg/native/pkgs/ffi",
-        "third_party/pkg/path",
-      ]
       resources = []
       foreach(file, library_files) {
         resources += [
@@ -218,8 +386,8 @@ if (is_fuchsia) {
           },
         ]
       }
-      resources +=
-          exec_script("tools/fuchsia/find_resources.py", resource_dirs, "json")
+      deps = test_deps
+      resources += test_resources
     }
   }
 

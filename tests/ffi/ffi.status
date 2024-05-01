@@ -51,7 +51,19 @@ regress_47594_test: Skip # DartDev is not available on Android.
 vmspecific_native_finalizer_isolate_groups_test: Skip # SpawnUri not available on Android tester.
 
 [ $system == fuchsia ]
+async_void_function_callbacks_test/*: Skip # Test harness doesn't support multitest with Fuchsia
+ffi_induce_a_crash_test/*: Skip # Test harness doesn't support multitest with Fuchsia
+function_callbacks_many_test/*: Skip # Test harness doesn't support multitest with Fuchsia
+function_callbacks_structs_by_value_generated_test/*: Skip # Test harness doesn't support multitest with Fuchsia
+function_callbacks_structs_by_value_native_callable_generated_test/*: Skip # Test harness doesn't support multitest with Fuchsia
+function_callbacks_subtype_test/*: Skip # Test harness doesn't support multitest with Fuchsia
+native_assets/*: Skip # Source not available in the emulator
 static_checks/*: SkipByDesign # Expecting compile time failures in multi tests doesn't work on the Fuchsia test runner.
+unaligned_test/*: Skip # Test harness doesn't support multitest with Fuchsia
+vmspecific_enable_ffi_test/*: Skip # Test harness doesn't support multitest with Fuchsia
+vmspecific_function_callbacks_exit_test/*: Skip # Test harness doesn't support multitest with Fuchsia
+vmspecific_highmem_32bit_test/*: Skip # Test harness doesn't support multitest with Fuchsia
+vmspecific_leaf_call_test/*: Skip # Test harness doesn't support multitest with Fuchsia
 vmspecific_pointer_load_il_test: SkipByDesign # Not bloating the Fuchsia test package with package:vm/testing/il_matchers.dart
 
 [ $system == windows ]

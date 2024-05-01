@@ -708,15 +708,13 @@ ISOLATE_UNIT_TEST_CASE(SerializeEmptyByteArray) {
 
 VM_UNIT_TEST_CASE(FullSnapshot) {
   // clang-format off
-  auto kScriptChars = Utils::CStringUniquePtr(
-      OS::SCreate(
-          nullptr,
+  const char* kScriptChars =
           "class Fields  {\n"
           "  Fields(int i, int j) : fld1 = i, fld2 = j {}\n"
           "  int fld1;\n"
           "  final int fld2;\n"
           "  final int bigint_fld = 0xfffffffffff;\n"
-          "  static int%s fld3;\n"
+          "  static int? fld3;\n"
           "  static const int smi_sfld = 10;\n"
           "  static const int bigint_sfld = 0xfffffffffff;\n"
           "}\n"
@@ -732,9 +730,7 @@ VM_UNIT_TEST_CASE(FullSnapshot) {
           "    Expect.equals(true, obj.bigint_fld == 0xfffffffffff);\n"
           "    return obj;\n"
           "  }\n"
-          "}\n",
-          TestCase::NullableTag()),
-      std::free);
+          "}\n";
   // clang-format on
   Dart_Handle result;
 
@@ -747,7 +743,7 @@ VM_UNIT_TEST_CASE(FullSnapshot) {
     TestIsolateScope __test_isolate__;
 
     // Create a test library and Load up a test script in it.
-    TestCase::LoadTestScript(kScriptChars.get(), nullptr);
+    TestCase::LoadTestScript(kScriptChars, nullptr);
 
     Thread* thread = Thread::Current();
     TransitionNativeToVM transition(thread);

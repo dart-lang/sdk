@@ -194,7 +194,6 @@ void TestPipeline::RunForcedOptimizedAfterSSAPasses() {
       CompilerPass::kIfConvert,
       CompilerPass::kConstantPropagation,
       CompilerPass::kTypePropagation,
-      CompilerPass::kWidenSmiToInt32,
       CompilerPass::kSelectRepresentations_Final,
       CompilerPass::kTypePropagation,
       CompilerPass::kTryCatchOptimization,

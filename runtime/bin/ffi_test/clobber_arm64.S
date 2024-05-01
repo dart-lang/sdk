@@ -1,6 +1,6 @@
 .text
 
-#if defined(__linux__) || defined(__FreeBSD__) /* HOST_OS_LINUX */
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__Fuchsia__)
 .globl ClobberAndCall
 .type ClobberAndCall, @function
 .align 4

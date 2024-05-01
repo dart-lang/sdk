@@ -473,8 +473,6 @@ class FlowGraph : public ZoneAllocated {
 
   void SelectRepresentations();
 
-  void WidenSmiToInt32();
-
   // Remove environments from the instructions which do not deoptimize.
   void EliminateEnvironments();
 

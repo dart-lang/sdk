@@ -1013,10 +1013,6 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedundantInitializerCallAfterIf) {
 }
 
 ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedundantInitializerCallInLoop) {
-  if (!TestCase::IsNNBD()) {
-    return;
-  }
-
   const char* kScript = R"(
     class A {
       late int x = int.parse('1');
@@ -1820,7 +1816,6 @@ ISOLATE_UNIT_TEST_CASE(AllocationSinking_NoViewDataMaterialization) {
       CompilerPass::kConstantPropagation,
       CompilerPass::kOptimisticallySpecializeSmiPhis,
       CompilerPass::kTypePropagation,
-      CompilerPass::kWidenSmiToInt32,
       CompilerPass::kSelectRepresentations,
       CompilerPass::kCSE,
       CompilerPass::kCanonicalize,

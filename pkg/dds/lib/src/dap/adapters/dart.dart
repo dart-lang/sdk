@@ -1977,26 +1977,34 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       // WrappedInstanceVariables are used to support DAP-over-DDS clients that
       // had a VM Instance ID and wanted to convert it to a variable for use in
       // `variables` requests.
-      final response = await isolateManager.getObject(
-        storedData.thread.isolate,
-        vm.ObjRef(id: data.instanceId),
-        offset: childStart,
-        count: childCount,
-      );
-      // Because `variables` requests are a request for _child_ variables but we
-      // want DAP-over-DDS clients to be able to get the whole variable (eg.
-      // including toe initial string representation of the variable itself) the
-      // initial request will return a list containing a single variable named
-      // `value`. This will contain both the `variablesReference` to get the
-      // children, and also a `value` field with the display string.
-      final variable = await _converter.convertVmResponseToVariable(
-        thread,
-        response,
-        name: 'value',
-        evaluateName: null,
-        allowCallingToString: evaluateToStringInDebugViews,
-      );
-      variables.add(variable);
+      try {
+        final response = await isolateManager.getObject(
+          storedData.thread.isolate,
+          vm.ObjRef(id: data.instanceId),
+          offset: childStart,
+          count: childCount,
+        );
+        // Because `variables` requests are a request for _child_ variables but we
+        // want DAP-over-DDS clients to be able to get the whole variable (eg.
+        // including toe initial string representation of the variable itself) the
+        // initial request will return a list containing a single variable named
+        // `value`. This will contain both the `variablesReference` to get the
+        // children, and also a `value` field with the display string.
+        final variable = await _converter.convertVmResponseToVariable(
+          thread,
+          response,
+          name: 'value',
+          evaluateName: null,
+          allowCallingToString: evaluateToStringInDebugViews,
+        );
+        variables.add(variable);
+      } on vm.SentinelException catch (e) {
+        variables.add(Variable(
+          name: 'value',
+          value: e.sentinel.valueAsString ?? '<sentinel>',
+          variablesReference: 0,
+        ));
+      }
     } else if (data is vm.MapAssociation) {
       final key = data.key;
       final value = data.value;
@@ -2032,33 +2040,41 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         ]);
       }
     } else if (data is vm.ObjRef) {
-      final object = await isolateManager.getObject(
-        storedData.thread.isolate,
-        data,
-        offset: childStart,
-        count: childCount,
-      );
+      try {
+        final object = await isolateManager.getObject(
+          storedData.thread.isolate,
+          data,
+          offset: childStart,
+          count: childCount,
+        );
 
-      if (object is vm.Sentinel) {
+        if (object is vm.Sentinel) {
+          variables.add(Variable(
+            name: '<eval error>',
+            value: object.valueAsString ?? '<sentinel>',
+            variablesReference: 0,
+          ));
+        } else if (object is vm.Instance) {
+          variables.addAll(await _converter.convertVmInstanceToVariablesList(
+            thread,
+            object,
+            evaluateName: buildEvaluateName('', parentInstanceRefId: data.id),
+            allowCallingToString: evaluateToStringInDebugViews,
+            startItem: childStart,
+            numItems: childCount,
+            format: format,
+          ));
+        } else {
+          variables.add(Variable(
+            name: '<eval error>',
+            value: object.runtimeType.toString(),
+            variablesReference: 0,
+          ));
+        }
+      } on vm.SentinelException catch (e) {
         variables.add(Variable(
           name: '<eval error>',
-          value: object.valueAsString.toString(),
-          variablesReference: 0,
-        ));
-      } else if (object is vm.Instance) {
-        variables.addAll(await _converter.convertVmInstanceToVariablesList(
-          thread,
-          object,
-          evaluateName: buildEvaluateName('', parentInstanceRefId: data.id),
-          allowCallingToString: evaluateToStringInDebugViews,
-          startItem: childStart,
-          numItems: childCount,
-          format: format,
-        ));
-      } else {
-        variables.add(Variable(
-          name: '<eval error>',
-          value: object.runtimeType.toString(),
+          value: e.sentinel.valueAsString ?? '<sentinel>',
           variablesReference: 0,
         ));
       }

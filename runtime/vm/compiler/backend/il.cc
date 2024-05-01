@@ -6102,12 +6102,6 @@ void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                 ? StubCode::InstantiateTypeNullableFunctionTypeParameter().ptr()
                 : StubCode::InstantiateTypeNullableClassTypeParameter().ptr();
         break;
-      case Nullability::kLegacy:
-        stub =
-            is_function_parameter
-                ? StubCode::InstantiateTypeLegacyFunctionTypeParameter().ptr()
-                : StubCode::InstantiateTypeLegacyClassTypeParameter().ptr();
-        break;
     }
   }
   __ LoadObject(InstantiateTypeABI::kTypeReg, type());

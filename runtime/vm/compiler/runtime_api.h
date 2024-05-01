@@ -761,7 +761,6 @@ class Nullability : public AllStatic {
  public:
   static const uint8_t kNullable;
   static const uint8_t kNonNullable;
-  static const uint8_t kLegacy;
 };
 
 class Double : public AllStatic {

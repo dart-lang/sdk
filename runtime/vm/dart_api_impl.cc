@@ -3048,46 +3048,15 @@ DART_EXPORT Dart_Handle Dart_StringGetProperties(Dart_Handle object,
 // --- Lists ---
 
 DART_EXPORT Dart_Handle Dart_NewList(intptr_t length) {
-  return Dart_NewListOf(Dart_CoreType_Dynamic, length);
-}
-
-static TypeArgumentsPtr TypeArgumentsForElementType(
-    ObjectStore* store,
-    Dart_CoreType_Id element_type_id) {
-  switch (element_type_id) {
-    case Dart_CoreType_Dynamic:
-      return TypeArguments::null();
-    case Dart_CoreType_Int:
-      return store->type_argument_legacy_int();
-    case Dart_CoreType_String:
-      return store->type_argument_legacy_string();
-  }
-  UNREACHABLE();
-  return TypeArguments::null();
-}
-
-DART_EXPORT Dart_Handle Dart_NewListOf(Dart_CoreType_Id element_type_id,
-                                       intptr_t length) {
   DARTSCOPE(Thread::Current());
-  if (element_type_id != Dart_CoreType_Dynamic) {
-    return Api::NewError(
-        "Cannot use legacy types with --sound-null-safety enabled. "
-        "Use Dart_NewListOfType or Dart_NewListOfTypeFilled instead.");
-  }
   CHECK_LENGTH(length, Array::kMaxElements);
   CHECK_CALLBACK_STATE(T);
   const Array& arr = Array::Handle(Z, Array::New(length));
-  if (element_type_id != Dart_CoreType_Dynamic) {
-    arr.SetTypeArguments(TypeArguments::Handle(
-        Z, TypeArgumentsForElementType(T->isolate_group()->object_store(),
-                                       element_type_id)));
-  }
   return Api::NewHandle(T, arr.ptr());
 }
 
 static bool CanTypeContainNull(const Type& type) {
-  return (type.nullability() == Nullability::kLegacy) ||
-         (type.nullability() == Nullability::kNullable);
+  return (type.nullability() == Nullability::kNullable);
 }
 
 DART_EXPORT Dart_Handle Dart_NewListOfType(Dart_Handle element_type,
@@ -5662,10 +5631,6 @@ DART_EXPORT Dart_Handle Dart_IsNullableType(Dart_Handle type, bool* result) {
 
 DART_EXPORT Dart_Handle Dart_IsNonNullableType(Dart_Handle type, bool* result) {
   return IsOfTypeNullabilityHelper(type, Nullability::kNonNullable, result);
-}
-
-DART_EXPORT Dart_Handle Dart_IsLegacyType(Dart_Handle type, bool* result) {
-  return IsOfTypeNullabilityHelper(type, Nullability::kLegacy, result);
 }
 
 DART_EXPORT Dart_Handle Dart_LibraryUrl(Dart_Handle library) {
