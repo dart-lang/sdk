@@ -6,7 +6,7 @@
 // but light weight enough to be suitable for unit testing of code in the
 // `_fe_analyzer_shared` package.
 
-import 'package:test/test.dart';
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 
 /// Representation of a function type suitable for unit testing of code in the
 /// `_fe_analyzer_shared` package.
@@ -55,6 +55,16 @@ class FunctionType extends Type {
     }
     return result;
   }
+}
+
+class NamedType implements SharedNamedType<Type> {
+  @override
+  final String name;
+
+  @override
+  final Type type;
+
+  NamedType({required this.name, required this.type});
 }
 
 /// Exception thrown if a type fails to parse properly.
@@ -187,97 +197,103 @@ class QuestionType extends Type {
   }
 }
 
-class RecordType extends Type {
-  final List<Type> positional;
-  final Map<String, Type> named;
+class RecordType extends Type implements SharedRecordType<Type> {
+  @override
+  final List<Type> positionalTypes;
+
+  @override
+  final List<NamedType> namedTypes;
 
   RecordType({
-    required this.positional,
-    required this.named,
+    required this.positionalTypes,
+    required this.namedTypes,
   }) : super._();
 
   @override
   Type? closureWithRespectToUnknown({required bool covariant}) {
     List<Type>? newPositional;
-    for (var i = 0; i < positional.length; i++) {
+    for (var i = 0; i < positionalTypes.length; i++) {
       var newType =
-          positional[i].closureWithRespectToUnknown(covariant: covariant);
+          positionalTypes[i].closureWithRespectToUnknown(covariant: covariant);
       if (newType != null) {
-        newPositional ??= positional.toList();
+        newPositional ??= positionalTypes.toList();
         newPositional[i] = newType;
       }
     }
 
-    Map<String, Type>? newNamed =
+    List<NamedType>? newNamed =
         _closureWithRespectToUnknownNamed(covariant: covariant);
 
     if (newPositional == null && newNamed == null) {
       return null;
     }
     return RecordType(
-      positional: newPositional ?? positional,
-      named: newNamed ?? named,
+      positionalTypes: newPositional ?? positionalTypes,
+      namedTypes: newNamed ?? namedTypes,
     );
   }
 
   @override
   Type? recursivelyDemote({required bool covariant}) {
     List<Type>? newPositional;
-    for (var i = 0; i < positional.length; i++) {
-      var newType = positional[i].recursivelyDemote(covariant: covariant);
+    for (var i = 0; i < positionalTypes.length; i++) {
+      var newType = positionalTypes[i].recursivelyDemote(covariant: covariant);
       if (newType != null) {
-        newPositional ??= positional.toList();
+        newPositional ??= positionalTypes.toList();
         newPositional[i] = newType;
       }
     }
 
-    Map<String, Type>? newNamed = _recursivelyDemoteNamed(covariant: covariant);
+    List<NamedType>? newNamed = _recursivelyDemoteNamed(covariant: covariant);
 
     if (newPositional == null && newNamed == null) {
       return null;
     }
     return RecordType(
-      positional: newPositional ?? positional,
-      named: newNamed ?? named,
+      positionalTypes: newPositional ?? positionalTypes,
+      namedTypes: newNamed ?? namedTypes,
     );
   }
 
-  Map<String, Type>? _closureWithRespectToUnknownNamed(
+  List<NamedType>? _closureWithRespectToUnknownNamed(
       {required bool covariant}) {
-    Map<String, Type> newNamed = {};
-    bool hasChanged = false;
-    for (var entry in named.entries) {
-      var value = entry.value;
-      var newType = value.closureWithRespectToUnknown(covariant: covariant);
-      if (newType != null) hasChanged = true;
-      newNamed[entry.key] = newType ?? value;
+    List<NamedType>? newNamed;
+    for (var i = 0; i < namedTypes.length; i++) {
+      var namedType = namedTypes[i];
+      var newType =
+          namedType.type.closureWithRespectToUnknown(covariant: covariant);
+      if (newType != null) {
+        (newNamed ??= namedTypes.toList())[i] =
+            NamedType(name: namedType.name, type: newType);
+      }
     }
-    return hasChanged ? newNamed : null;
+    return newNamed;
   }
 
-  Map<String, Type>? _recursivelyDemoteNamed({required bool covariant}) {
-    Map<String, Type> newNamed = {};
-    bool hasChanged = false;
-    for (var entry in named.entries) {
-      var value = entry.value;
-      var newType = value.recursivelyDemote(covariant: covariant);
-      if (newType != null) hasChanged = true;
-      newNamed[entry.key] = newType ?? value;
+  List<NamedType>? _recursivelyDemoteNamed({required bool covariant}) {
+    List<NamedType>? newNamed;
+    for (var i = 0; i < namedTypes.length; i++) {
+      var namedType = namedTypes[i];
+      var newType = namedType.type.recursivelyDemote(covariant: covariant);
+      if (newType != null) {
+        (newNamed ??= namedTypes.toList())[i] =
+            NamedType(name: namedType.name, type: newType);
+      }
     }
-    return hasChanged ? newNamed : null;
+    return newNamed;
   }
 
   @override
   String _toString({required bool allowSuffixes}) {
-    var positionalStr = positional.map((e) => '$e').join(', ');
-    var namedStr = named.entries.map((e) => '${e.value} ${e.key}').join(', ');
+    var positionalStr = positionalTypes.map((e) => '$e').join(', ');
+    var namedStr = namedTypes.map((e) => '${e.type} ${e.name}').join(', ');
     if (namedStr.isNotEmpty) {
-      if (positional.isNotEmpty) {
+      if (positionalTypes.isNotEmpty) {
         return '($positionalStr, {$namedStr})';
       } else {
         return '({$namedStr})';
       }
-    } else if (positional.length == 1) {
+    } else if (positionalTypes.length == 1) {
       return '($positionalStr,)';
     } else {
       return '($positionalStr)';
@@ -330,34 +346,18 @@ class StarType extends Type {
 /// help ensure this, both `==` and `hashCode` throw exceptions by default.  To
 /// defeat this behavior (e.g. so that a type can be passed to `expect`, use
 /// [Type.withComparisonsAllowed].
-abstract class Type {
-  static bool _allowComparisons = false;
-
+abstract class Type implements SharedType {
   factory Type(String typeStr) => _TypeParser.parse(typeStr);
 
   const Type._();
 
   @override
-  int get hashCode {
-    if (!_allowComparisons) {
-      // Types should not be compared using hashCode.  They should be compared
-      // using relations like subtyping and assignability.
-      fail('Unexpected use of operator== on types');
-    }
-    return type.hashCode;
-  }
+  int get hashCode => type.hashCode;
 
   String get type => _toString(allowSuffixes: true);
 
   @override
-  bool operator ==(Object other) {
-    if (!_allowComparisons) {
-      // Types should not be compared using hashCode.  They should be compared
-      // using relations like subtyping and assignability.
-      fail('Unexpected use of operator== on types');
-    }
-    return other is Type && this.type == other.type;
-  }
+  bool operator ==(Object other) => other is Type && this.type == other.type;
 
   /// Finds the nearest type that doesn't involve the unknown type (`_`).
   ///
@@ -365,6 +365,9 @@ abstract class Type {
   /// `Object?`); otherwise a subtype will be returned (replacing `_` with
   /// `Never`).
   Type? closureWithRespectToUnknown({required bool covariant});
+
+  @override
+  bool isStructurallyEqualTo(SharedType other) => '$this' == '$other';
 
   /// Finds the nearest type that doesn't involve any type parameter promotion.
   /// If `covariant` is `true`, a supertype will be returned (replacing promoted
@@ -381,18 +384,6 @@ abstract class Type {
   /// `false`, then the result will be surrounded in parenthesis if it would
   /// otherwise have ended in a suffix.
   String _toString({required bool allowSuffixes});
-
-  /// Executes [callback] while temporarily allowing types to be compared using
-  /// `==` and `hashCode`.
-  static T withComparisonsAllowed<T>(T Function() callback) {
-    assert(!_allowComparisons);
-    _allowComparisons = true;
-    try {
-      return callback();
-    } finally {
-      Type._allowComparisons = false;
-    }
-  }
 }
 
 class TypeSchema {
@@ -801,14 +792,18 @@ class TypeSystem {
     // - and Vi <: Si for i in 0...m
     bool isRecordSubtype() {
       if (t0 is! RecordType || t1 is! RecordType) return false;
-      if (t0.positional.length != t1.positional.length) return false;
-      for (int i = 0; i < t0.positional.length; i++) {
-        if (!isSubtype(t0.positional[i], t1.positional[i])) return false;
+      if (t0.positionalTypes.length != t1.positionalTypes.length) return false;
+      for (int i = 0; i < t0.positionalTypes.length; i++) {
+        if (!isSubtype(t0.positionalTypes[i], t1.positionalTypes[i])) {
+          return false;
+        }
       }
-      if (t0.named.length != t1.named.length) return false;
-      for (var entry in t0.named.entries) {
-        var vi = entry.value;
-        var si = t1.named[entry.key];
+      if (t0.namedTypes.length != t1.namedTypes.length) return false;
+      var t1NamedMap = {
+        for (var NamedType(:name, :type) in t1.namedTypes) name: type
+      };
+      for (var NamedType(:name, type: vi) in t0.namedTypes) {
+        var si = t1NamedMap[name];
         if (si == null) return false;
         if (!isSubtype(vi, si)) return false;
       }
@@ -858,7 +853,7 @@ class TypeSystem {
 
 /// Representation of the unknown type suitable for unit testing of code in the
 /// `_fe_analyzer_shared` package.
-class UnknownType extends Type {
+class UnknownType extends Type implements SharedUnknownType {
   const UnknownType() : super._();
 
   @override
@@ -899,17 +894,17 @@ class _TypeParser {
         'Error parsing type `$_typeStr` at token $_currentToken: $message');
   }
 
-  Map<String, Type> _parseRecordTypeNamedFields() {
+  List<NamedType> _parseRecordTypeNamedFields() {
     assert(_currentToken == '{');
     _next();
-    var namedTypes = <String, Type>{};
+    var namedTypes = <NamedType>[];
     while (_currentToken != '}') {
       var type = _parseType();
       var name = _currentToken;
       if (_identifierRegexp.matchAsPrefix(name) == null) {
         _parseFailure('Expected an identifier');
       }
-      namedTypes[name] = type;
+      namedTypes.add(NamedType(name: name, type: type));
       _next();
       if (_currentToken == ',') {
         _next();
@@ -928,7 +923,7 @@ class _TypeParser {
   }
 
   Type _parseRecordTypeRest(List<Type> positionalTypes) {
-    Map<String, Type>? namedTypes;
+    List<NamedType>? namedTypes;
     while (_currentToken != ')') {
       if (_currentToken == '{') {
         namedTypes = _parseRecordTypeNamedFields();
@@ -949,7 +944,7 @@ class _TypeParser {
     }
     _next();
     return RecordType(
-        positional: positionalTypes, named: namedTypes ?? const {});
+        positionalTypes: positionalTypes, namedTypes: namedTypes ?? const []);
   }
 
   Type? _parseSuffix(Type type) {

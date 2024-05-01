@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     as shared show TypeDeclarationKind, TypeDeclarationMatchResult, Variance;
 import 'package:_fe_analyzer_shared/src/type_inference/type_constraint.dart';
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -83,12 +84,12 @@ class TypeConstraintGatherer {
   bool trySubtypeMatch(DartType P, DartType Q, bool leftSchema,
       {required AstNode? nodeForTesting}) {
     // If `P` is `_` then the match holds with no constraints.
-    if (_typeSystemOperations.isUnknownType(P)) {
+    if (P is SharedUnknownType) {
       return true;
     }
 
     // If `Q` is `_` then the match holds with no constraints.
-    if (_typeSystemOperations.isUnknownType(Q)) {
+    if (Q is SharedUnknownType) {
       return true;
     }
 

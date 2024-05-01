@@ -2464,7 +2464,7 @@ class FlowModel<Type extends Object> {
 
     Type previousType = reference._type;
     Type newType = helper.typeOperations.promoteToNonNull(previousType);
-    if (helper.typeOperations.isSameType(newType, previousType)) {
+    if (newType == previousType) {
       return new ExpressionInfo<Type>.trivial(
           after: this, type: helper.boolType);
     }
@@ -2495,8 +2495,7 @@ class FlowModel<Type extends Object> {
 
     Type previousType = reference._type;
     Type? newType = helper.typeOperations.tryPromoteToType(type, previousType);
-    if (newType == null ||
-        helper.typeOperations.isSameType(newType, previousType)) {
+    if (newType == null || newType == previousType) {
       return this;
     }
 
@@ -2527,8 +2526,7 @@ class FlowModel<Type extends Object> {
     FlowModel<Type> ifTrue = this;
     Type? typeIfSuccess =
         helper.typeOperations.tryPromoteToType(type, previousType);
-    if (typeIfSuccess != null &&
-        !helper.typeOperations.isSameType(typeIfSuccess, previousType)) {
+    if (typeIfSuccess != null && typeIfSuccess != previousType) {
       assert(helper.typeOperations.isSubtypeOf(typeIfSuccess, previousType),
           "Expected $typeIfSuccess to be a subtype of $previousType.");
       ifTrue = _finishTypeTest(helper, reference, info, type, typeIfSuccess);
@@ -2540,7 +2538,7 @@ class FlowModel<Type extends Object> {
       // Promoting to `Never` would mark the code as unreachable.  But it might
       // be reachable due to mixed mode unsoundness.  So don't promote.
       typeIfFalse = null;
-    } else if (helper.typeOperations.isSameType(factoredType, previousType)) {
+    } else if (factoredType == previousType) {
       // No change to the type, so don't promote.
       typeIfFalse = null;
     } else {
@@ -3210,7 +3208,7 @@ class PromotionModel<Type extends Object> {
 
       // Must be more specific that the currently promoted type.
       if (currentlyPromotedType != null) {
-        if (typeOperations.isSameType(type, currentlyPromotedType)) {
+        if (type == currentlyPromotedType) {
           return;
         }
         if (!typeOperations.isSubtypeOf(type, currentlyPromotedType)) {
@@ -3219,7 +3217,7 @@ class PromotionModel<Type extends Object> {
       }
 
       // This is precisely the type we want to promote to; take it.
-      if (typeOperations.isSameType(type, writtenType)) {
+      if (type == writtenType) {
         result = _addToPromotedTypes(promotedTypes, writtenType);
       }
 
@@ -3238,7 +3236,7 @@ class PromotionModel<Type extends Object> {
     // The declared type is always a type of interest, but we never promote
     // to the declared type. So, try NonNull of it.
     Type declaredTypeNonNull = typeOperations.promoteToNonNull(declaredType);
-    if (!typeOperations.isSameType(declaredTypeNonNull, declaredType)) {
+    if (declaredTypeNonNull != declaredType) {
       handleTypeOfInterest(declaredTypeNonNull);
       if (result != null) {
         return result!;
@@ -3254,7 +3252,7 @@ class PromotionModel<Type extends Object> {
       }
 
       Type typeNonNull = typeOperations.promoteToNonNull(type);
-      if (!typeOperations.isSameType(typeNonNull, type)) {
+      if (typeNonNull != type) {
         handleTypeOfInterest(typeNonNull);
         if (result != null) {
           return result!;
@@ -3378,7 +3376,7 @@ class PromotionModel<Type extends Object> {
     while (index1 < chain1.length && index2 < chain2.length) {
       Type type1 = chain1[index1];
       Type type2 = chain2[index2];
-      if (typeOperations.isSameType(type1, type2)) {
+      if (type1 == type2) {
         result ??= <Type>[];
         result.add(type1);
         index1++;
@@ -3420,7 +3418,7 @@ class PromotionModel<Type extends Object> {
     // Determine the length of the common prefix the two lists share.
     int shared = 0;
     for (; shared < types1.length; shared++) {
-      if (!typeOperations.isSameType(types1[shared], types2[shared])) break;
+      if (types1[shared] != types2[shared]) break;
     }
     // Use types2 as a starting point and add any entries from types1 that are
     // not present in it.
@@ -3468,7 +3466,7 @@ class PromotionModel<Type extends Object> {
       for (int i = 0; i < thisPromotedTypes.length; i++) {
         Type nextType = thisPromotedTypes[i];
         if (typeOperations.isSubtypeOf(nextType, otherPromotedType) &&
-            !typeOperations.isSameType(nextType, otherPromotedType)) {
+            nextType != otherPromotedType) {
           newPromotedTypes = basePromotedTypes.toList()
             ..addAll(thisPromotedTypes.skip(i));
           break;
@@ -3527,7 +3525,7 @@ class PromotionModel<Type extends Object> {
       List<Type> list,
       Type searchType) {
     for (Type type in list) {
-      if (typeOperations.isSameType(type, searchType)) return true;
+      if (type == searchType) return true;
     }
     return false;
   }
@@ -4506,8 +4504,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void declare(Variable variable, Type staticType,
       {required bool initialized, bool skipDuplicateCheck = false}) {
-    assert(
-        operations.isSameType(staticType, operations.variableType(variable)));
+    assert(staticType == operations.variableType(variable));
     assert(_debugDeclaredVariables.add(variable) || skipDuplicateCheck,
         'Variable $variable already declared');
     _current = _current.declare(
@@ -6500,8 +6497,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
       Type currentType =
           _knownTypes[variableKey] ?? _operations.variableType(variable);
       Type? promotedType = _operations.tryPromoteToType(type, currentType);
-      if (promotedType != null &&
-          !_operations.isSameType(currentType, promotedType)) {
+      if (promotedType != null && currentType != promotedType) {
         _storeExpressionInfo(isExpression,
             new _LegacyExpressionInfo<Type>({variableKey: promotedType}));
       }
@@ -6571,8 +6567,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
       } else {
         Type? newShownType =
             _operations.tryPromoteToType(entry.value, previouslyShownType);
-        if (newShownType != null &&
-            !_operations.isSameType(previouslyShownType, newShownType)) {
+        if (newShownType != null && previouslyShownType != newShownType) {
           newShownTypes[entry.key] = newShownType;
         }
       }

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../flow_analysis/flow_analysis.dart';
+import '../types/shared_type.dart';
 import 'type_analysis_result.dart';
 import 'type_analyzer_operations.dart';
 
@@ -129,7 +130,7 @@ enum RelationalOperatorKind {
 }
 
 /// Information about a relational operator.
-class RelationalOperatorResolution<Type extends Object> {
+class RelationalOperatorResolution<Type extends SharedType> {
   final RelationalOperatorKind kind;
   final Type parameterType;
   final Type returnType;
@@ -264,7 +265,7 @@ mixin TypeAnalyzer<
     Statement extends Node,
     Expression extends Node,
     Variable extends Object,
-    Type extends Object,
+    Type extends SharedType,
     Pattern extends Node,
     Error,
     TypeSchema extends Object,
@@ -1547,10 +1548,8 @@ mixin TypeAnalyzer<
         matchedType: matchedValueType, knownType: requiredType);
 
     // Stack: ()
-    RecordType<Type>? matchedRecordType =
-        operations.asRecordType(matchedValueType);
-    if (matchedRecordType != null) {
-      List<Type>? fieldTypes = _matchRecordTypeShape(fields, matchedRecordType);
+    if (matchedValueType is SharedRecordType<Type>) {
+      List<Type>? fieldTypes = _matchRecordTypeShape(fields, matchedValueType);
       if (fieldTypes != null) {
         assert(fieldTypes.length == fields.length);
         for (int i = 0; i < fields.length; i++) {
@@ -2447,16 +2446,16 @@ mixin TypeAnalyzer<
   /// Otherwise returns `null`.
   List<Type>? _matchRecordTypeShape(
     List<RecordPatternField<Node, Pattern>> fields,
-    RecordType<Type> matchedType,
+    SharedRecordType<Type> matchedType,
   ) {
     Map<String, Type> matchedTypeNamed = {};
-    for (var (:name, :type) in matchedType.named) {
+    for (var SharedNamedType(:name, :type) in matchedType.namedTypes) {
       matchedTypeNamed[name] = type;
     }
 
     List<Type> result = [];
-    int positionalIndex = 0;
     int namedCount = 0;
+    Iterator<Type> positionalIterator = matchedType.positionalTypes.iterator;
     for (RecordPatternField<Node, Pattern> field in fields) {
       Type? fieldType;
       String? name = field.name;
@@ -2467,14 +2466,14 @@ mixin TypeAnalyzer<
         }
         namedCount++;
       } else {
-        if (positionalIndex >= matchedType.positional.length) {
+        if (!positionalIterator.moveNext()) {
           return null;
         }
-        fieldType = matchedType.positional[positionalIndex++];
+        fieldType = positionalIterator.current;
       }
       result.add(fieldType);
     }
-    if (positionalIndex != matchedType.positional.length) {
+    if (positionalIterator.moveNext()) {
       return null;
     }
     if (namedCount != matchedTypeNamed.length) {
@@ -2513,7 +2512,7 @@ mixin TypeAnalyzer<
   bool _structurallyEqualAfterNormTypes(Type type1, Type type2) {
     Type norm1 = operations.normalize(type1);
     Type norm2 = operations.normalize(type2);
-    return operations.areStructurallyEqual(norm1, norm2);
+    return norm1.isStructurallyEqualTo(norm2);
   }
 }
 
@@ -2524,7 +2523,7 @@ abstract class TypeAnalyzerErrors<
     Statement extends Node,
     Expression extends Node,
     Variable extends Object,
-    Type extends Object,
+    Type extends SharedType,
     Pattern extends Node,
     Error> implements TypeAnalyzerErrorsBase {
   /// Called if pattern support is disabled and a case constant's static type
