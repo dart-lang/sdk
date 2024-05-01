@@ -1,3 +1,3 @@
-/*library: languageVersion=2.8*/
+/*library: languageVersion=%CURRENT_VERSION_MARKER%*/
 
 import 'pack/web/pack.dart';

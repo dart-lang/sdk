@@ -3,10 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // If no language version is specified, and none if given in a
-// .dart_tool/package_config.json file,
-// we default to the most reason one. In the tests this is hard-coded to 2.8.
+// .dart_tool/package_config.json file, we default to the most recent one.
 
-/*library: languageVersion=2.8*/
+/*library: languageVersion=%CURRENT_VERSION_MARKER%*/
 
 foo() {
   print("Hello from foo!");

@@ -5,11 +5,11 @@
 // Set version of this file (not technically in package) explicitly to test as
 // much as possibly separately.
 
-// @dart = 2.4
+// @dart = %VERSION_MARKER0%
 
 import /*error: errors=UntranslatableUri*/ 'package:foo/foo.dart';
 
-/*library: languageVersion=2.4*/
+/*library: languageVersion=%VERSION_MARKER0%*/
 
 main() {
   var result = /*error: errors=MethodNotFound*/ notNamedFoo();

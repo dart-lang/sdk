@@ -25,6 +25,8 @@ import 'package:front_end/src/testing/id_testing_helper.dart'
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart' show Component, Library, Version;
 
+import '../utils/symbolic_language_versions.dart';
+
 Future<void> main(List<String> args) async {
   // Fix default/max major and minor version so we can test it.
   // This config sets it to 2.8.
@@ -40,7 +42,9 @@ Future<void> main(List<String> args) async {
       skipList: [
         // Two language versions specified, the last one is ok and is used here.
         "package_default_version_is_wrong_2",
-      ]);
+      ],
+      preprocessFile: replaceMarkersWithVersions,
+      postProcessData: replaceVersionsWithMarkers);
 }
 
 class TestConfigWithLanguageVersion extends CfeTestConfig {
@@ -50,7 +54,8 @@ class TestConfigWithLanguageVersion extends CfeTestConfig {
   @override
   CompilerOptions customizeCompilerOptions(
       CompilerOptions options, TestData testData) {
-    options.currentSdkVersion = "2.8";
+    options.currentSdkVersion =
+        SymbolicLanguageVersion.currentVersion.version.toText();
 
     File f = new File.fromUri(testData.testFileUri.resolve("test.options"));
     if (f.existsSync()) {

@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// .dart_tool/package_config.json specifies 2.5, this library tries to go above
-// that, which is fine.
+// .dart_tool/package_config.json specifies %VERSION_MARKER1%, this library
+// tries to go above that, which is fine.
 
-// @dart = 2.6
+// @dart = %VERSION_MARKER2%
 
-/*library: languageVersion=2.6*/
+/*library: languageVersion=%VERSION_MARKER2%*/
 
 foo3() {
   print("Hello from foo3!");

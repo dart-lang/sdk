@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9999
+// @dart=%NNBD_VERSION_MARKER%
 
 // ignore: import_internal_library
 import 'dart:_internal';

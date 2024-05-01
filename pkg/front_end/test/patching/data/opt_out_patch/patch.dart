@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*cfe:nnbd.error: message=The language version override has to be the same in the library and its patch(es).*/
-// @dart=2.6
+// @dart=%LEGACY_VERSION_MARKER%
 
 // ignore: import_internal_library
 import 'dart:_internal';

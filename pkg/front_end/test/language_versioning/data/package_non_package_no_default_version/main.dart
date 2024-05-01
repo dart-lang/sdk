@@ -4,7 +4,7 @@
 
 import 'package:foo/foo.dart';
 
-/*library: languageVersion=2.8*/
+/*library: languageVersion=%CURRENT_VERSION_MARKER%*/
 
 main() {
   foo();

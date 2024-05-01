@@ -4,7 +4,7 @@
     {
       "name": "pack",
       "rootUri": "../pack/lib/",
-      "languageVersion": "2.7"
+      "languageVersion": "%VERSION_MARKER2%"
     }
   ]
 }

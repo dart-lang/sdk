@@ -4,6 +4,6 @@
 
 /*cfe:nnbd.library: nnbd=false*/
 
-// @dart=2.6
+// @dart=%LEGACY_VERSION_MARKER%
 
 external int method();
