@@ -480,9 +480,10 @@ intptr_t MyCallbackBlocking(intptr_t a) {
   auto callback = my_callback_blocking_fp_;  // Define storage duration.
   std::condition_variable cv;
   bool notified = false;
-  const Work work = [a, &result, callback, &cv, &notified]() {
+  const Work work = [a, &result, callback, &mutex, &cv, &notified]() {
     result = callback(a);
     printf("C Da:     Notify result ready.\n");
+    std::unique_lock<std::mutex> lock(mutex);
     notified = true;
     cv.notify_one();
   };
