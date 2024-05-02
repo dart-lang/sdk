@@ -368,13 +368,15 @@ macro class JsonCodable
     } else if (classDecl.isExactly('Map', _dartCore)) {
       return RawCode.fromParts([
         if (nullCheck != null) nullCheck,
-        '{ for (final entry in ',
+        '{ for (final ',
+        introspectionData.mapEntry,
+        '(:key, :value) in (',
         jsonReference,
         ' as ',
         introspectionData.jsonMapCode,
-        '.entries) entry.key: ',
-        await _convertTypeFromJson(type.typeArguments.single,
-            RawCode.fromString('entry.value'), builder, introspectionData),
+        ').entries) key: ',
+        await _convertTypeFromJson(type.typeArguments.last,
+            RawCode.fromString('value'), builder, introspectionData),
         '}',
       ]);
     }
@@ -451,10 +453,19 @@ macro class JsonCodable
           "throw 'Unable to serialize type ${type.code.debugString}'");
     }
 
+    var nullCheck = type.isNullable
+        ? RawCode.fromParts([
+            valueReference,
+            // `null` is a reserved word, we can just use it.
+            ' == null ? null : ',
+          ])
+        : null;
+
     // Check for the supported collection types, and serialize them accordingly.
     if (classDecl.isExactly('List', _dartCore) ||
         classDecl.isExactly('Set', _dartCore)) {
       return RawCode.fromParts([
+        if (nullCheck != null) nullCheck,
         '[ for (final item in ',
         valueReference,
         ') ',
@@ -464,11 +475,13 @@ macro class JsonCodable
       ]);
     } else if (classDecl.isExactly('Map', _dartCore)) {
       return RawCode.fromParts([
-        '{ for (final entry in ',
+        if (nullCheck != null) nullCheck,
+        '{ for (final ', introspectionData.mapEntry,
+        '(:key, :value) in ',
         valueReference,
-        '.entries) entry.key: ',
-        await _convertTypeToJson(type.typeArguments.single,
-            RawCode.fromString('entry.value'), builder, introspectionData),
+        '.entries) key: ',
+        await _convertTypeToJson(type.typeArguments.last,
+            RawCode.fromString('value'), builder, introspectionData),
         '}',
       ]);
     }
@@ -480,6 +493,7 @@ macro class JsonCodable
         ?.identifier;
     if (toJson != null) {
       return RawCode.fromParts([
+        if (nullCheck != null) nullCheck,
         valueReference,
         '.toJson()',
       ]);
@@ -539,6 +553,9 @@ final class _SharedIntrospectionData {
   /// The resolved [StaticType] representing the [Map<String, Object?>] type.
   final StaticType jsonMapType;
 
+  /// The resolved identifier for the [MapEntry] class.
+  final Identifier mapEntry;
+
   /// A [Code] representation of the type [Object].
   final NamedTypeAnnotationCode objectCode;
 
@@ -554,6 +571,7 @@ final class _SharedIntrospectionData {
     required this.jsonListCode,
     required this.jsonMapCode,
     required this.jsonMapType,
+    required this.mapEntry,
     required this.objectCode,
     required this.stringCode,
     required this.superclass,
@@ -561,9 +579,10 @@ final class _SharedIntrospectionData {
 
   static Future<_SharedIntrospectionData> build(
       DeclarationPhaseIntrospector builder, ClassDeclaration clazz) async {
-    final (list, map, object, string) = await (
+    final (list, map, mapEntry, object, string) = await (
       builder.resolveIdentifier(_dartCore, 'List'),
       builder.resolveIdentifier(_dartCore, 'Map'),
+      builder.resolveIdentifier(_dartCore, 'MapEntry'),
       builder.resolveIdentifier(_dartCore, 'Object'),
       builder.resolveIdentifier(_dartCore, 'String'),
     ).wait;
@@ -592,6 +611,7 @@ final class _SharedIntrospectionData {
       jsonListCode: jsonListCode,
       jsonMapCode: jsonMapCode,
       jsonMapType: jsonMapType,
+      mapEntry: mapEntry,
       objectCode: objectCode,
       stringCode: stringCode,
       superclass: superclassDecl as ClassDeclaration?,
