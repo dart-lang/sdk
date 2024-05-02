@@ -15781,8 +15781,8 @@ void ObjectPool::DebugPrint() const {
     } else if (TypeAt(i) == EntryType::kNativeFunction) {
       uword pc = RawValueAt(i);
       uintptr_t start = 0;
-      char* name = NativeSymbolResolver::LookupSymbolName(pc, &start);
-      char* dso_name;
+      const char* name = NativeSymbolResolver::LookupSymbolName(pc, &start);
+      const char* dso_name;
       uword dso_base;
       if (name != nullptr) {
         THR_Print("%s (native function)\n", name);

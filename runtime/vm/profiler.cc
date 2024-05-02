@@ -87,7 +87,7 @@ void DumpStackFrame(intptr_t frame_index, uword pc, uword fp) {
     return;
   }
 
-  char* dso_name;
+  const char* dso_name;
   uword dso_base;
   if (NativeSymbolResolver::LookupSharedObject(pc, &dso_base, &dso_name)) {
     DumpStackFrame(pc, fp, dso_name, pc - dso_base);

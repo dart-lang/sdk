@@ -4923,7 +4923,7 @@ class PersistentHandleVisitor : public HandleVisitor {
         "callbackAddress", "0x%" Px "",
         reinterpret_cast<uintptr_t>(weak_persistent_handle->callback()));
     // Attempt to include a native symbol name.
-    char* name = NativeSymbolResolver::LookupSymbolName(
+    const char* name = NativeSymbolResolver::LookupSymbolName(
         reinterpret_cast<uword>(weak_persistent_handle->callback()), nullptr);
     obj.AddProperty("callbackSymbolName", (name == nullptr) ? "" : name);
     if (name != nullptr) {
