@@ -1041,6 +1041,7 @@ class Closures {
   final Map<TreeNode, Capture> captures = {};
   bool isThisCaptured = false;
   final Map<FunctionNode, Lambda> lambdas = {};
+  late final w.RefType? nullableThisType;
 
   // This [TreeNode] is the context owner, and can be a [FunctionNode],
   // [Constructor], [ForStatement], [DoStatement] or a [WhileStatement].
@@ -1048,7 +1049,12 @@ class Closures {
   final Set<FunctionDeclaration> closurizedFunctions = {};
 
   Closures(this.translator, Member member)
-      : enclosingClass = member.enclosingClass;
+      : enclosingClass = member.enclosingClass {
+    final hasThis = member is Constructor || member.isInstanceMember;
+    nullableThisType = hasThis
+        ? translator.preciseThisFor(member, nullable: true) as w.RefType
+        : null;
+  }
 
   w.ModuleBuilder get m => translator.m;
 
@@ -1104,8 +1110,7 @@ class Closures {
         }
         if (context.containsThis) {
           assert(enclosingClass != null);
-          struct.fields.add(
-              w.FieldType(translator.classInfo[enclosingClass!]!.nullableType));
+          struct.fields.add(w.FieldType(nullableThisType!));
         }
         for (VariableDeclaration variable in context.variables) {
           int index = struct.fields.length;

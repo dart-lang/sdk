@@ -104,8 +104,6 @@ class Forwarder {
         if (targetMember.isAbstract) {
           continue;
         }
-        final targetClass = targetMember.enclosingClass!;
-        final targetClassInfo = translator.classInfo[targetClass]!;
 
         b.local_get(receiverLocal);
         b.struct_get(translator.topInfo.struct, FieldIndex.classId);
@@ -113,7 +111,6 @@ class Forwarder {
         b.i32_eq();
         b.if_();
 
-        final w.ValueType receiverType = targetClassInfo.nonNullableType;
         final Reference targetReference;
         if (targetMember is Procedure) {
           targetReference = targetMember.isGetter
@@ -128,7 +125,8 @@ class Forwarder {
         final w.BaseFunction targetFunction =
             translator.functions.getFunction(targetReference);
         b.local_get(receiverLocal);
-        translator.convertType(function, receiverLocal.type, receiverType);
+        translator.convertType(
+            function, receiverLocal.type, targetFunction.type.inputs.first);
         b.call(targetFunction);
         // Box return value if needed
         translator.convertType(function, targetFunction.type.outputs.single,
@@ -528,8 +526,6 @@ class Forwarder {
         if (targetMember is Procedure && !targetMember.isGetter) {
           continue;
         }
-        final targetClass = targetMember.enclosingClass!;
-        final targetClassInfo = translator.classInfo[targetClass]!;
 
         b.local_get(receiverLocal);
         b.struct_get(translator.topInfo.struct, FieldIndex.classId);
@@ -537,7 +533,6 @@ class Forwarder {
         b.i32_eq();
         b.if_();
 
-        final w.ValueType receiverType = targetClassInfo.nonNullableType;
         final Reference targetReference;
         if (targetMember is Procedure) {
           assert(targetMember.isGetter); // methods are skipped above
@@ -553,7 +548,8 @@ class Forwarder {
 
         // Get field value
         b.local_get(receiverLocal);
-        translator.convertType(function, receiverLocal.type, receiverType);
+        translator.convertType(
+            function, receiverLocal.type, targetFunction.type.inputs.first);
         b.call(targetFunction);
         translator.convertType(function, targetFunction.type.outputs.single,
             translator.topInfo.nullableType);
