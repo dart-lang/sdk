@@ -48,8 +48,8 @@ Future<void> main(List<String> args) async {
           'opt_out_patch',
         ]
       },
-      preprocessFile: replaceMarkersWithVersions,
-      postProcessData: replaceVersionsWithMarkers);
+      preProcessFile: replaceMarkersWithVersions,
+      postProcessFile: replaceVersionsWithMarkers);
 }
 
 class TestConfigWithLanguageVersion extends CfeTestConfig {

@@ -43,8 +43,8 @@ Future<void> main(List<String> args) async {
         // Two language versions specified, the last one is ok and is used here.
         "package_default_version_is_wrong_2",
       ],
-      preprocessFile: replaceMarkersWithVersions,
-      postProcessData: replaceVersionsWithMarkers);
+      preProcessFile: replaceMarkersWithVersions,
+      postProcessFile: replaceVersionsWithMarkers);
 }
 
 class TestConfigWithLanguageVersion extends CfeTestConfig {

@@ -6,8 +6,6 @@ import 'package:_fe_analyzer_shared/src/testing/annotated_code_helper.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 
-String _noProcessing(String text) => text;
-
 Map<Uri, List<Annotation>> computeAnnotationsPerUri<T>(
     Map<Uri, AnnotatedCode> annotatedCode,
     Map<String, MemberAnnotations<IdValue>> expectedMaps,
@@ -15,8 +13,7 @@ Map<Uri, List<Annotation>> computeAnnotationsPerUri<T>(
     Map<String, Map<Uri, Map<Id, ActualData<T>>>> actualData,
     DataInterpreter<T> dataInterpreter,
     {Annotation? Function(Annotation? expected, Annotation? actual)? createDiff,
-    bool forceUpdate = false,
-    String Function(String) postProcessData = _noProcessing}) {
+    bool forceUpdate = false}) {
   Set<Uri> uriSet = {};
   Set<String> actualMarkers = actualData.keys.toSet();
   Map<Uri, Map<Id, Map<String, IdValue>>> idValuePerUri = {};
@@ -67,10 +64,7 @@ Map<Uri, List<Annotation>> computeAnnotationsPerUri<T>(
       // Annotations are not computed from synthesized code.
       result[uri] = _computeAnnotations(code, expectedMaps.keys, actualMarkers,
           idValuePerId, actualDataPerId, dataInterpreter,
-          sortMarkers: false,
-          createDiff: createDiff,
-          forceUpdate: forceUpdate,
-          postProcessData: postProcessData);
+          sortMarkers: false, createDiff: createDiff, forceUpdate: forceUpdate);
     }
   }
   return result;
@@ -87,8 +81,7 @@ List<Annotation> _computeAnnotations<T>(
     String defaultSuffix = '*/',
     bool sortMarkers = true,
     Annotation? Function(Annotation? expected, Annotation? actual)? createDiff,
-    bool forceUpdate = false,
-    required String Function(String) postProcessData}) {
+    bool forceUpdate = false}) {
   Annotation createAnnotationFromData(
       ActualData<T> actualData, Annotation? annotation) {
     String getIndentationFromOffset(int offset) {
@@ -149,10 +142,8 @@ List<Annotation> _computeAnnotations<T>(
         annotation?.columnNo ?? -1,
         offset,
         prefix,
-        IdValue.idToString(
-            actualData.id,
-            postProcessData(
-                dataInterpreter.getText(actualData.value, indentation))),
+        IdValue.idToString(actualData.id,
+            dataInterpreter.getText(actualData.value, indentation)),
         suffix);
   }
 
