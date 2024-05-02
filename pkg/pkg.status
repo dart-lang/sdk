@@ -182,6 +182,7 @@ vm_service/test/regress_45684_test: SkipByDesign # Debugger is disabled in AOT m
 vm_service/test/regress_46419_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/regress_46559_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/regress_48279_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/regress_55559_test: SkipByDesign # Spawns a child process from source.
 vm_service/test/regress_88104_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/reload_sources_rpc_triggers_isolate_reload_event_test: SkipByDesign # Hot reload is disabled in AOT mode.
 vm_service/test/reload_sources_test: SkipByDesign # Hot reload is disabled in AOT mode.

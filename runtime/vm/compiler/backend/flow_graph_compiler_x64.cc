@@ -550,20 +550,11 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
   __ Comment("InstanceCallAOT (%s)", switchable_call_mode);
   __ movq(RDX, compiler::Address(
                    RSP, (ic_data.SizeWithoutTypeArgs() - 1) * kWordSize));
-  if (FLAG_precompiled_mode) {
-    // The AOT runtime will replace the slot in the object pool with the
-    // entrypoint address - see app_snapshot.cc.
-    const auto snapshot_behavior =
-        compiler::ObjectPoolBuilderEntry::kResetToSwitchableCallMissEntryPoint;
-    __ LoadUniqueObject(RCX, initial_stub, snapshot_behavior);
-  } else {
-    const intptr_t entry_point_offset =
-        entry_kind == Code::EntryKind::kNormal
-            ? Code::entry_point_offset(Code::EntryKind::kMonomorphic)
-            : Code::entry_point_offset(Code::EntryKind::kMonomorphicUnchecked);
-    __ LoadUniqueObject(CODE_REG, initial_stub);
-    __ movq(RCX, compiler::FieldAddress(CODE_REG, entry_point_offset));
-  }
+  // The AOT runtime will replace the slot in the object pool with the
+  // entrypoint address - see app_snapshot.cc.
+  const auto snapshot_behavior =
+      compiler::ObjectPoolBuilderEntry::kResetToSwitchableCallMissEntryPoint;
+  __ LoadUniqueObject(RCX, initial_stub, snapshot_behavior);
   __ LoadUniqueObject(RBX, data);
   __ call(RCX);
 

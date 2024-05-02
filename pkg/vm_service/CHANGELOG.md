@@ -1,3 +1,7 @@
+## 14.2.2
+- Fixes issue where outstanding service requests were not automatically completed
+  with an error when the VM service connection was closed.
+
 ## 14.2.1
 - Fixes heap snapshot decoding error (dart-lang/sdk#55475).
 

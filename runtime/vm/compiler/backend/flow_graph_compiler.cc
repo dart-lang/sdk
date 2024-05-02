@@ -2059,16 +2059,30 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
     intptr_t total_ic_calls,
     bool receiver_can_be_smi) {
   ASSERT(call != nullptr);
-  if (FLAG_polymorphic_with_deopt) {
-    compiler::Label* deopt =
-        AddDeoptStub(deopt_id, ICData::kDeoptPolymorphicInstanceCallTestFail);
-    compiler::Label ok;
-    EmitTestAndCall(targets, call->function_name(), args_info,
-                    deopt,  // No cid match.
-                    &ok,    // Found cid.
-                    deopt_id, source, locs, complete, total_ic_calls,
-                    call->entry_kind());
-    assembler()->Bind(&ok);
+  if (!FLAG_precompiled_mode) {
+    if (FLAG_polymorphic_with_deopt) {
+      compiler::Label* deopt =
+          AddDeoptStub(deopt_id, ICData::kDeoptPolymorphicInstanceCallTestFail);
+      compiler::Label ok;
+      EmitTestAndCall(targets, call->function_name(), args_info,
+                      deopt,  // No cid match.
+                      &ok,    // Found cid.
+                      deopt_id, source, locs, complete, total_ic_calls,
+                      call->entry_kind());
+      assembler()->Bind(&ok);
+    } else {
+      compiler::Label megamorphic, ok;
+      EmitTestAndCall(targets, call->function_name(), args_info,
+                      &megamorphic,  // No cid match.
+                      &ok,           // Found cid.
+                      deopt_id, source, locs, complete, total_ic_calls,
+                      call->entry_kind());
+      assembler()->Bind(&megamorphic);
+      // Instead of deoptimizing, do a megamorphic call when no matching
+      // cid found.
+      EmitMegamorphicInstanceCall(*call->ic_data(), deopt_id, source, locs);
+      assembler()->Bind(&ok);
+    }
   } else {
     if (complete) {
       compiler::Label ok;

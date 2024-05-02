@@ -300,6 +300,8 @@ class VmService {
   Future<void> get onDone => _onDoneCompleter.future;
   final _onDoneCompleter = Completer<void>();
 
+  bool _disposed = false;
+
   final _eventControllers = <String, StreamController<Event>>{};
 
   StreamController<Event> _getEventController(String eventName) {
@@ -321,16 +323,14 @@ class VmService {
     Future? streamClosed,
     this.wsUri,
   }) {
-    _streamSub = inStream.listen(_processMessage,
-        onDone: () => _onDoneCompleter.complete());
+    _streamSub = inStream.listen(
+      _processMessage,
+      onDone: () async => await dispose(),
+    );
     _writeMessage = writeMessage;
     _log = log ?? _NullLog();
     _disposeHandler = disposeHandler;
-    streamClosed?.then((_) {
-      if (!_onDoneCompleter.isCompleted) {
-        _onDoneCompleter.complete();
-      }
-    });
+    streamClosed?.then((_) async => await dispose());
   }
 
   static VmService defaultFactory({
@@ -1735,6 +1735,10 @@ class VmService {
   }
 
   Future<void> dispose() async {
+    if (_disposed) {
+      return;
+    }
+    _disposed = true;
     await _streamSub.cancel();
     _outstandingRequests.forEach((id, request) {
       request._completer.completeError(RPCError(
@@ -1748,9 +1752,8 @@ class VmService {
     if (handler != null) {
       await handler();
     }
-    if (!_onDoneCompleter.isCompleted) {
-      _onDoneCompleter.complete();
-    }
+    assert(!_onDoneCompleter.isCompleted);
+    _onDoneCompleter.complete();
   }
 
   /// When overridden, this method wraps [future] with logic.
