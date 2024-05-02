@@ -1872,6 +1872,37 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  void visitAugmentedInvocation(
+    covariant AugmentedInvocationImpl node, {
+    DartType contextType = UnknownInferredType.instance,
+  }) {
+    checkUnreachableNode(node);
+    var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
+
+    var enclosingAugmentation = _enclosingAugmentation;
+    var augmentationTarget = enclosingAugmentation?.augmentationTarget;
+    FunctionType? rawType;
+    if (augmentationTarget is ExecutableElementImpl) {
+      node.element = augmentationTarget;
+      rawType = augmentationTarget.type;
+    }
+
+    var returnType = AugmentedInvocationInferrer(
+      resolver: this,
+      node: node,
+      argumentList: node.arguments,
+      contextType: contextType,
+      whyNotPromotedList: whyNotPromotedList,
+    ).resolveInvocation(rawType: rawType);
+
+    if (augmentationTarget is ExecutableElementImpl) {
+      node.staticType = returnType;
+    } else {
+      node.staticType = InvalidTypeImpl.instance;
+    }
+  }
+
+  @override
   void visitAwaitExpression(AwaitExpression node,
       {DartType contextType = UnknownInferredType.instance}) {
     checkUnreachableNode(node);
@@ -2080,15 +2111,19 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
+    var element = node.declaredElement!;
+
     flowAnalysis.topLevelDeclaration_enter(node, node.parameters);
     flowAnalysis.executableDeclaration_enter(node, node.parameters,
         isClosure: false);
 
-    var returnType = node.declaredElement!.type.returnType;
+    var returnType = element.type.returnType;
 
     var outerFunction = _enclosingFunction;
+    var outerAugmentation = _enclosingAugmentation;
     try {
-      _enclosingFunction = node.declaredElement;
+      _enclosingFunction = element;
+      _enclosingAugmentation = element.ifTypeOrNull();
       assert(_thisType == null);
       _setupThisType();
       checkUnreachableNode(node);
@@ -2102,6 +2137,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       elementResolver.visitConstructorDeclaration(node);
     } finally {
       _enclosingFunction = outerFunction;
+      _enclosingAugmentation = outerAugmentation;
       _thisType = null;
     }
 
