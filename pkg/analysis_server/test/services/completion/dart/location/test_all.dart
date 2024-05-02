@@ -77,6 +77,7 @@ import 'try_statement_test.dart' as try_statement;
 import 'type_argument_list_test.dart' as type_argument_list;
 import 'type_test_test.dart' as type_test;
 import 'variable_declaration_list_test.dart' as variable_declaration_list;
+import 'wildcard_pattern_test.dart' as wildcard_pattern;
 import 'with_clause_test.dart' as with_clause;
 
 /// Tests suggestions produced at specific locations.
@@ -154,6 +155,7 @@ void main() {
     type_argument_list.main();
     type_test.main();
     variable_declaration_list.main();
+    wildcard_pattern.main();
     with_clause.main();
   });
 }
