@@ -74,6 +74,12 @@ class TargetKind {
   /// declaration.
   static const function = TargetKind._('top-level functions', 'function');
 
+  /// Indicates that an annotation is valid on any overridable instance member
+  /// declaration, whether it's in a class, enum, extension type, or mixin. This
+  /// includes instance fields, getters, setters, methods, and operators.
+  static const overridableMember =
+      TargetKind._('overridable members', 'overridableMember');
+
   /// Indicates that an annotation is valid on the first directive in a library,
   /// whether that's a `library`, `import`, `export` or `part` directive. This
   /// doesn't include the `part of` directive in a part file.
@@ -140,6 +146,7 @@ class TargetKind {
     extensionType,
     field,
     function,
+    overridableMember,
     library,
     getter,
     method,

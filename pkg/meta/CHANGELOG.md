@@ -33,6 +33,8 @@
   See <https://github.com/dart-lang/sdk/issues/52965> for more information.
 - Introduce `TargetKind.optionalParameter`, to indicate that an annotation is
   valid on any optional parameter declaration.
+- Introduce `TargetKind.instanceMember`, to indicate that an annotation is valid
+  on any instance member declaration.
 
 ## 1.14.0
 
