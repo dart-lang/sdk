@@ -2,90 +2,72 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
-import 'dart:io';
-import 'dart:async';
+// This test verifies that vm:align-loops pragma works as expected.
+//
+// * This test should run without crashing in AOT mode.
+// * `align_loops_verify_alignment_test.dart` will AOT compile this test
+//   and then verify that [alignedFunction1] and [alignedFunction2] are
+//   aligned.
 
-import 'package:expect/expect.dart';
-import 'package:native_stack_traces/elf.dart';
-import 'package:path/path.dart' as path;
+import 'dart:typed_data';
 
-import 'use_flag_test_helper.dart';
-
-void checkAligned(Symbol sym) {
-  // We only expect to run this test on X64 Linux.
-  final expectedAlignment = 32;
-  if ((sym.value & (expectedAlignment - 1)) != 0) {
-    throw 'Symbol $sym has value ${sym.value} which is not aligned by '
-        '$expectedAlignment';
-  }
+// Having a static call to this function verifies that relocation works
+// as expected even when caller needs to be aligned.
+@pragma('vm:never-inline')
+void printOk() {
+  print("ok");
 }
 
-Future<void> testAOT(String dillPath, {bool useAsm = false}) async {
-  await withTempDir('align-loops-test-${useAsm ? 'asm' : 'elf'}',
-      (String tempDir) async {
-    // Generate the snapshot
-    final snapshotPath = path.join(tempDir, 'libtest.so');
-    final commonSnapshotArgs = [dillPath];
-
-    if (useAsm) {
-      final assemblyPath = path.join(tempDir, 'test.S');
-
-      await run(genSnapshot, <String>[
-        '--snapshot-kind=app-aot-assembly',
-        '--assembly=$assemblyPath',
-        ...commonSnapshotArgs,
-      ]);
-
-      await assembleSnapshot(assemblyPath, snapshotPath);
-    } else {
-      await run(genSnapshot, <String>[
-        '--snapshot-kind=app-aot-elf',
-        '--elf=$snapshotPath',
-        ...commonSnapshotArgs,
-      ]);
-    }
-
-    print("Snapshot generated at $snapshotPath.");
-
-    final elf = Elf.fromFile(snapshotPath)!;
-    // The very first symbol should be aligned by 32 bytes because it is
-    // the start of the instructions section.
-    checkAligned(elf.staticSymbols.first);
-    for (var symbol in elf.staticSymbols) {
-      if (symbol.name.startsWith('alignedFunction')) {
-        checkAligned(symbol);
-      }
-    }
-  });
+@pragma('vm:never-inline')
+int foo(Uint8List list) {
+  printOk();
+  var result = 0;
+  for (var i = 0; i < list.length; i++) {
+    result ^= list[i];
+  }
+  printOk();
+  return result;
 }
 
-void main() async {
-  // Only run this test on Linux X64 for simplicity.
-  if (!(Platform.isLinux && buildDir.endsWith('X64'))) {
-    return;
+@pragma('vm:never-inline')
+@pragma('vm:align-loops')
+int alignedFunction1(Uint8List list) {
+  printOk();
+  var result = 0;
+  for (var i = 0; i < list.length; i++) {
+    result ^= list[i];
   }
+  printOk();
+  return result;
+}
 
-  await withTempDir('align_loops', (String tempDir) async {
-    final testProgram = path.join(sdkDir, 'runtime', 'tests', 'vm', 'dart',
-        'align_loops_test_program.dart');
+@pragma('vm:never-inline')
+int baz(Uint8List list) {
+  printOk();
+  var result = 1;
+  for (var i = 0; i < list.length; i++) {
+    result ^= list[i];
+  }
+  printOk();
+  return result;
+}
 
-    final aotDillPath = path.join(tempDir, 'aot_test.dill');
-    await run(genKernel, <String>[
-      '--aot',
-      '--platform',
-      platformDill,
-      ...Platform.executableArguments
-          .where((arg) => arg.startsWith('--enable-experiment=')),
-      '-o',
-      aotDillPath,
-      testProgram
-    ]);
+@pragma('vm:never-inline')
+@pragma('vm:align-loops')
+int alignedFunction2(Uint8List list) {
+  printOk();
+  var result = 2;
+  for (var i = 0; i < list.length; i++) {
+    result ^= list[i];
+  }
+  printOk();
+  return result;
+}
 
-    await Future.wait([
-      // Test unstripped ELF generation directly.
-      testAOT(aotDillPath),
-      testAOT(aotDillPath, useAsm: true),
-    ]);
-  });
+void main(List<String> args) {
+  final v = Uint8List(10);
+  foo(v);
+  alignedFunction1(v);
+  baz(v);
+  alignedFunction2(v);
 }

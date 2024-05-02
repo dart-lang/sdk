@@ -837,8 +837,8 @@ Future<void> runTests<T>(Directory dataDir,
     Map<String, List<String>>? skipMap,
     bool preserveWhitespaceInAnnotations = false,
     bool preserveInfixWhitespaceInAnnotations = false,
-    String Function(String) preprocessFile = _noProcessing,
-    String Function(String) postProcessData = _noProcessing}) async {
+    String Function(String) preProcessFile = _noProcessing,
+    String Function(String) postProcessFile = _noProcessing}) async {
   ParsedOptions parsedOptions = ParsedOptions.parse(args, idTestOptions);
   MarkerOptions markerOptions =
       new MarkerOptions.fromDataDir(dataDir, shouldFindScript: shards == 1);
@@ -910,7 +910,7 @@ Future<void> runTests<T>(Directory dataDir,
         preserveWhitespaceInAnnotations: preserveWhitespaceInAnnotations,
         preserveInfixWhitespaceInAnnotations:
             preserveInfixWhitespaceInAnnotations,
-        preprocessFile: preprocessFile);
+        preprocessFile: preProcessFile);
     print('Test: ${testData.testFileUri}');
 
     Map<String, TestResult<T>> results = await runTest(markerOptions, testData,
@@ -973,8 +973,7 @@ Future<void> runTests<T>(Directory dataDir,
             testData.entryPoint,
             actualData,
             dataInterpreter!,
-            forceUpdate: forceUpdate,
-            postProcessData: postProcessData);
+            forceUpdate: forceUpdate);
         annotations.forEach((Uri uri, List<Annotation> annotations) {
           AnnotatedCode? code = testData.code[uri];
           assert(code != null,
@@ -982,7 +981,8 @@ Future<void> runTests<T>(Directory dataDir,
           AnnotatedCode generated = new AnnotatedCode(
               code?.annotatedCode ?? "", code?.sourceCode ?? "", annotations);
           Uri fileUri = testToFileUri[uri]!;
-          new File.fromUri(fileUri).writeAsStringSync(generated.toText());
+          new File.fromUri(fileUri)
+              .writeAsStringSync(postProcessFile(generated.toText()));
           print('Generated annotations for ${fileUri}');
         });
       } else {

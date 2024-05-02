@@ -88,8 +88,8 @@ void CodeRelocator::Relocate(bool is_vm_isolate) {
   for (intptr_t i = 0; i < code_objects_->length(); ++i) {
     current_caller = (*code_objects_)[i];
 
-    const intptr_t code_text_offset = next_text_offset_;
-    if (!AddInstructionsToText(current_caller.ptr())) {
+    intptr_t code_text_offset;
+    if (!AddInstructionsToText(current_caller.ptr(), &code_text_offset)) {
       continue;
     }
 
@@ -144,7 +144,8 @@ void CodeRelocator::Relocate(bool is_vm_isolate) {
   // however we might need it to write information into V8 snapshot profile.
 }
 
-bool CodeRelocator::AddInstructionsToText(CodePtr code) {
+bool CodeRelocator::AddInstructionsToText(CodePtr code,
+                                          intptr_t* code_text_offset) {
   InstructionsPtr instructions = Code::InstructionsOf(code);
 
   // If two [Code] objects point to the same [Instructions] object, we'll just
@@ -163,6 +164,7 @@ bool CodeRelocator::AddInstructionsToText(CodePtr code) {
     next_text_offset_ += padding_size;
   }
 
+  *code_text_offset = next_text_offset_;
   text_offsets_.Insert({instructions, next_text_offset_});
   commands_->Add(ImageWriterCommand(next_text_offset_, code));
   next_text_offset_ += ImageWriter::SizeInSnapshot(instructions);
