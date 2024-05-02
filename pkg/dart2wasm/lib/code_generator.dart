@@ -310,8 +310,21 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         ? member.enclosingClass.typeParameters
         : member.function!.typeParameters;
     for (int i = 0; i < typeParameters.length; i++) {
-      typeLocals[typeParameters[i]] = paramLocals[parameterOffset + i];
+      final typeParameter = typeParameters[i];
+      typeLocals[typeParameter] = paramLocals[parameterOffset + i];
     }
+    if (!translator.options.omitImplicitTypeChecks) {
+      for (int i = 0; i < typeParameters.length; i++) {
+        final typeParameter = typeParameters[i];
+        if (typeParameter.isCovariantByClass &&
+            typeParameter.bound != translator.coreTypes.objectNullableRawType) {
+          _generateTypeArgumentBoundCheck(typeParameter.name!,
+              typeLocals[typeParameter]!, typeParameter.bound);
+        }
+      }
+    }
+
+    w.Local? tempLocalForType;
 
     void setupParamLocal(
         VariableDeclaration variable, int index, Constant? defaultValue) {
@@ -331,6 +344,20 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         wrap(variable.initializer!, local.type);
         b.local_set(local);
         b.end();
+      }
+
+      if (!translator.options.omitImplicitTypeChecks) {
+        if (variable.isCovariantByClass || variable.isCovariantByDeclaration) {
+          final typeLocal = tempLocalForType ??= addLocal(
+              translator.classInfo[translator.typeClass]!.nonNullableType);
+          _generateArgumentTypeCheck(
+            variable.name!,
+            () => b.local_get(local),
+            () => types.makeType(this, variable.type),
+            local,
+            typeLocal,
+          );
+        }
       }
     }
 
@@ -485,52 +512,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     return superclassFields.reversed.toList() + typeFields + orderedFieldLocals;
   }
 
-  void generateTypeChecks(List<TypeParameter> typeParameters,
-      FunctionNode function, ParameterInfo paramInfo) {
-    if (translator.options.omitImplicitTypeChecks) {
-      return;
-    }
-
-    for (TypeParameter typeParameter in typeParameters) {
-      if (typeParameter.isCovariantByClass &&
-          typeParameter.bound != translator.coreTypes.objectNullableRawType) {
-        _generateTypeArgumentBoundCheck(typeParameter.name!,
-            typeLocals[typeParameter]!, typeParameter.bound);
-      }
-    }
-
-    // Local for the parameter type if any of the parameters need type checks
-    w.Local? parameterExpectedTypeLocal;
-
-    final int parameterOffset = thisLocal == null ? 0 : 1;
-    final int implicitParams = parameterOffset + paramInfo.typeParamCount;
-    void generateValueParameterCheck(VariableDeclaration variable, int index) {
-      if (!variable.isCovariantByClass && !variable.isCovariantByDeclaration) {
-        return;
-      }
-      final w.Local local = paramLocals[implicitParams + index];
-      final typeLocal = parameterExpectedTypeLocal ??=
-          addLocal(translator.classInfo[translator.typeClass]!.nonNullableType);
-      _generateArgumentTypeCheck(
-        variable.name!,
-        () => b.local_get(local),
-        () => types.makeType(this, variable.type),
-        local,
-        typeLocal,
-      );
-    }
-
-    final List<VariableDeclaration> positional = function.positionalParameters;
-    for (int i = 0; i < positional.length; i++) {
-      generateValueParameterCheck(positional[i], i);
-    }
-
-    final List<VariableDeclaration> named = function.namedParameters;
-    for (var param in named) {
-      generateValueParameterCheck(param, paramInfo.nameIndex[param.name]!);
-    }
-  }
-
   List<w.Local> _getConstructorArgumentLocals(Reference target,
       [reverse = false]) {
     Constructor member = target.asConstructor;
@@ -571,10 +552,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     assert(member is! Constructor);
     setupParametersAndContexts(member.reference);
 
-    final List<TypeParameter> typeParameters = member.function!.typeParameters;
-    generateTypeChecks(
-        typeParameters, member.function!, translator.paramInfoFor(reference));
-
     Statement? body = member.function!.body;
     if (body != null) {
       visitStatement(body);
@@ -589,11 +566,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   // the object.
   void generateConstructorAllocator(Constructor member) {
     setupParameters(member.reference);
-
-    final List<TypeParameter> typeParameters =
-        member.enclosingClass.typeParameters;
-    generateTypeChecks(
-        typeParameters, member.function, translator.paramInfoFor(reference));
 
     w.FunctionType initializerMethodType =
         translator.functions.getFunctionType(member.initializerReference);
