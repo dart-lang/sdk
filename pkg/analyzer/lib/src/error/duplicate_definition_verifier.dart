@@ -544,6 +544,8 @@ class DuplicateDefinitionVerifier {
         if (element.isAugmentation) return;
       case InstanceElement _:
         if (element.isAugmentation) return;
+      case TypeAliasElement _:
+        if (element.isAugmentation) return;
       case TopLevelVariableElement _:
         if (element.isAugmentation) return;
     }

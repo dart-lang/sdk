@@ -209,6 +209,10 @@ CompileTimeErrorCode.ASSIGNMENT_TO_TYPE:
   status: noFix
 CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT:
   status: hasFix
+CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA:
+  status: needsFix
+CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING:
+  status: needsFix
 CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND:
   status: noFix
 CompileTimeErrorCode.AUGMENTATION_WITHOUT_DECLARATION:

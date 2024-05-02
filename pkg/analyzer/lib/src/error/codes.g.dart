@@ -215,6 +215,27 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the lexeme of the modifier.
+  static const CompileTimeErrorCode AUGMENTATION_MODIFIER_EXTRA =
+      CompileTimeErrorCode(
+    'AUGMENTATION_MODIFIER_EXTRA',
+    "The augmentation has the '{0}' modifier that the declaration doesn't "
+        "have.",
+    correctionMessage:
+        "Try removing the '{0}' modifier, or adding it to the declaration.",
+  );
+
+  ///  Parameters:
+  ///  0: the lexeme of the modifier.
+  static const CompileTimeErrorCode AUGMENTATION_MODIFIER_MISSING =
+      CompileTimeErrorCode(
+    'AUGMENTATION_MODIFIER_MISSING',
+    "The augmentation is missing the '{0}' modifier that the declaration has.",
+    correctionMessage:
+        "Try adding the '{0}' modifier, or removing it from the declaration.",
+  );
+
+  ///  Parameters:
   ///  0: the name of the declaration kind.
   ///  1: the name of the augmentation kind.
   static const CompileTimeErrorCode AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND =

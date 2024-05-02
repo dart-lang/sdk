@@ -101,6 +101,23 @@ augment mixin A {}
     ]);
   }
 
+  test_class_augmentedBy_typedef() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class A {}
+''');
+
+    await assertErrorsInCode(r'''
+augment library 'a.dart';
+
+augment typedef A = int;
+''', [
+      error(CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND, 27,
+          7),
+    ]);
+  }
+
   test_class_augmentedBy_variable() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import augment 'test.dart';

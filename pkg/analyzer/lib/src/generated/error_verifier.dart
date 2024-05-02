@@ -453,6 +453,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         element: element,
       );
 
+      _checkClassAugmentationModifiers(
+        augmentKeyword: node.augmentKeyword,
+        augmentationNode: node,
+        augmentationElement: element,
+      );
+
       _isInNativeClass = node.nativeClause != null;
 
       var augmented = element.augmented;
@@ -985,6 +991,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitGenericTypeAlias(covariant GenericTypeAliasImpl node) {
     var element = node.declaredElement as TypeAliasElementImpl;
+
+    _checkAugmentations(
+      augmentKeyword: node.augmentKeyword,
+      element: element,
+    );
+
     _checkForBuiltInIdentifierAsName(
         node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
     _checkForMainFunction1(node.name, node.declaredElement!);
@@ -1158,6 +1170,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkAugmentations(
         augmentKeyword: node.augmentKeyword,
         element: element,
+      );
+
+      _checkMixinAugmentationModifiers(
+        augmentKeyword: node.augmentKeyword,
+        augmentationNode: node,
+        augmentationElement: element,
       );
 
       var augmented = element.augmented;
@@ -1601,6 +1619,86 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     errorReporter.atToken(
       augmentKeyword,
       CompileTimeErrorCode.AUGMENTATION_WITHOUT_DECLARATION,
+    );
+  }
+
+  void _checkClassAugmentationModifiers({
+    required Token? augmentKeyword,
+    required ClassDeclarationImpl augmentationNode,
+    required ClassElementImpl augmentationElement,
+  }) {
+    if (augmentKeyword == null) {
+      return;
+    }
+
+    var target = augmentationElement.augmentationTarget;
+    if (target == null) {
+      return;
+    }
+
+    var declaration = target.augmented.declaration;
+
+    void singleModifier({
+      required String modifierName,
+      required bool declarationFlag,
+      required Token? augmentationModifier,
+    }) {
+      if (declarationFlag) {
+        if (augmentationModifier == null) {
+          errorReporter.atToken(
+            augmentKeyword,
+            CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING,
+            arguments: [modifierName],
+          );
+        }
+      } else {
+        if (augmentationModifier != null) {
+          errorReporter.atToken(
+            augmentationModifier,
+            CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA,
+            arguments: [modifierName],
+          );
+        }
+      }
+    }
+
+    // Sealed classes are also abstract, report just `sealed` mismatch.
+    if (!declaration.isSealed) {
+      singleModifier(
+        modifierName: 'abstract',
+        declarationFlag: declaration.isAbstract,
+        augmentationModifier: augmentationNode.abstractKeyword,
+      );
+    }
+
+    singleModifier(
+      modifierName: 'base',
+      declarationFlag: declaration.isBase,
+      augmentationModifier: augmentationNode.baseKeyword,
+    );
+
+    singleModifier(
+      modifierName: 'final',
+      declarationFlag: declaration.isFinal,
+      augmentationModifier: augmentationNode.finalKeyword,
+    );
+
+    singleModifier(
+      modifierName: 'interface',
+      declarationFlag: declaration.isInterface,
+      augmentationModifier: augmentationNode.interfaceKeyword,
+    );
+
+    singleModifier(
+      modifierName: 'mixin',
+      declarationFlag: declaration.isMixinClass,
+      augmentationModifier: augmentationNode.mixinKeyword,
+    );
+
+    singleModifier(
+      modifierName: 'sealed',
+      declarationFlag: declaration.isSealed,
+      augmentationModifier: augmentationNode.sealedKeyword,
     );
   }
 
@@ -5760,6 +5858,53 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         );
       }
     }
+  }
+
+  void _checkMixinAugmentationModifiers({
+    required Token? augmentKeyword,
+    required MixinDeclarationImpl augmentationNode,
+    required MixinElementImpl augmentationElement,
+  }) {
+    if (augmentKeyword == null) {
+      return;
+    }
+
+    var target = augmentationElement.augmentationTarget;
+    if (target == null) {
+      return;
+    }
+
+    var declaration = target.augmented.declaration;
+
+    void singleModifier({
+      required String modifierName,
+      required bool declarationFlag,
+      required Token? augmentationModifier,
+    }) {
+      if (declarationFlag) {
+        if (augmentationModifier == null) {
+          errorReporter.atToken(
+            augmentKeyword,
+            CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING,
+            arguments: [modifierName],
+          );
+        }
+      } else {
+        if (augmentationModifier != null) {
+          errorReporter.atToken(
+            augmentationModifier,
+            CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA,
+            arguments: [modifierName],
+          );
+        }
+      }
+    }
+
+    singleModifier(
+      modifierName: 'base',
+      declarationFlag: declaration.isBase,
+      augmentationModifier: augmentationNode.baseKeyword,
+    );
   }
 
   /// Checks the class for problems with the superclass, mixins, or implemented

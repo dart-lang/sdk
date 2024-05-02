@@ -235,21 +235,11 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
         lower_bound_(stack_lower) {}
 
   void walk() {
-    const uword kMaxStep = VirtualMemory::PageSize();
-
     Append(original_pc_, original_fp_);
 
     uword* pc = reinterpret_cast<uword*>(original_pc_);
     uword* fp = reinterpret_cast<uword*>(original_fp_);
     uword* previous_fp = fp;
-
-    uword gap = original_fp_ - original_sp_;
-    if (gap >= kMaxStep) {
-      // Gap between frame pointer and stack pointer is
-      // too large.
-      counters_->incomplete_sample_fp_step.fetch_add(1);
-      return;
-    }
 
     if (!ValidFramePointer(fp)) {
       counters_->incomplete_sample_fp_bounds.fetch_add(1);
@@ -267,13 +257,6 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
 
       if (fp <= previous_fp) {
         // Frame pointer did not move to a higher address.
-        counters_->incomplete_sample_fp_step.fetch_add(1);
-        return;
-      }
-
-      gap = fp - previous_fp;
-      if (gap >= kMaxStep) {
-        // Frame pointer step is too large.
         counters_->incomplete_sample_fp_step.fetch_add(1);
         return;
       }
@@ -363,6 +346,7 @@ static bool ValidateThreadStackBounds(uintptr_t fp,
   return true;
 }
 
+#if !defined(PRODUCT)
 // Get |thread|'s stack boundary and verify that |sp| and |fp| are within
 // it. Return |false| if anything looks suspicious.
 static bool GetAndValidateThreadStackBounds(OSThread* os_thread,
@@ -399,6 +383,30 @@ static bool GetAndValidateThreadStackBounds(OSThread* os_thread,
   }
 
   if (!use_simulator_stack_bounds && (sp > *stack_lower)) {
+    // The stack pointer gives us a tighter lower bound.
+    *stack_lower = sp;
+  }
+
+  return ValidateThreadStackBounds(fp, sp, *stack_lower, *stack_upper);
+}
+#endif  // !defined(PRODUCT)
+
+static bool GetAndValidateCurrentThreadStackBounds(uintptr_t fp,
+                                                   uintptr_t sp,
+                                                   uword* stack_lower,
+                                                   uword* stack_upper) {
+  ASSERT(stack_lower != nullptr);
+  ASSERT(stack_upper != nullptr);
+
+  if (!OSThread::GetCurrentStackBounds(stack_lower, stack_upper)) {
+    return false;
+  }
+
+  if ((*stack_lower == 0) || (*stack_upper == 0)) {
+    return false;
+  }
+
+  if (sp > *stack_lower) {
     // The stack pointer gives us a tighter lower bound.
     *stack_lower = sp;
   }
@@ -477,8 +485,6 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
     }
   }
 
-  auto os_thread = OSThread::Current();
-  ASSERT(os_thread != nullptr);
   auto thread = Thread::Current();  // nullptr if no current isolate.
   auto isolate = thread == nullptr ? nullptr : thread->isolate();
   auto isolate_group = thread == nullptr ? nullptr : thread->isolate_group();
@@ -488,12 +494,12 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
   const char* isolate_group_name =
       isolate_group == nullptr ? "(nil)" : isolate_group->source()->name;
   const char* isolate_name = isolate == nullptr ? "(nil)" : isolate->name();
-#if defined(PRODUCT)
-  const intptr_t thread_id = -1;
+#ifdef SUPPORT_TIMELINE
+  const intptr_t thread_id =
+      OSThread::ThreadIdToIntPtr(OSThread::GetCurrentThreadTraceId());
 #else
-  const intptr_t thread_id = OSThread::ThreadIdToIntPtr(os_thread->trace_id());
+  const intptr_t thread_id = -1;
 #endif
-
   OS::PrintErr("version=%s\n", Version::String());
   OS::PrintErr("pid=%" Pd ", thread=%" Pd
                ", isolate_group=%s(%p), isolate=%s(%p)\n",
@@ -522,8 +528,8 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
 
   uword stack_lower = 0;
   uword stack_upper = 0;
-  if (!GetAndValidateThreadStackBounds(os_thread, thread, fp, sp, &stack_lower,
-                                       &stack_upper)) {
+  if (!GetAndValidateCurrentThreadStackBounds(fp, sp, &stack_lower,
+                                              &stack_upper)) {
     OS::PrintErr(
         "Stack dump aborted because GetAndValidateThreadStackBounds failed.\n");
     if (pc != 0) {  // At the very least dump the top frame.

@@ -2650,6 +2650,9 @@ class TypeAliasElementLinkedData
 
   @override
   void _read(element, reader) {
+    element.augmentationTargetAny = reader.readElement() as ElementImpl?;
+    element.augmentation = reader.readElement() as TypeAliasElementImpl?;
+
     element.metadata = reader._readAnnotationList(
       unitElement: unitElement,
     );

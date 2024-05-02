@@ -321,6 +321,18 @@ abstract interface class Process {
   /// shell. On Linux and OS X, `/bin/sh` is used, while
   /// `%WINDIR%\system32\cmd.exe` is used on Windows.
   ///
+  /// **NOTE**: On Windows, if [executable] is a batch file
+  /// ('*.bat' or '*.cmd'), it may be launched by the operating system in a
+  /// system shell regardless of the value of [runInShell]. This could result in
+  /// arguments being parsed according to shell rules. For example:
+  ///
+  /// ```
+  /// void main() async {
+  ///   // Will launch notepad.
+  ///   Process.start('test.bat', ['test&notepad.exe']);
+  /// }
+  /// ```
+  ///
   /// Users must read all data coming on the [stdout] and [stderr]
   /// streams of processes started with `Process.start`. If the user
   /// does not read all data on the streams the underlying system
@@ -387,6 +399,18 @@ abstract interface class Process {
   /// If [runInShell] is true, the process will be spawned through a system
   /// shell. On Linux and OS X, `/bin/sh` is used, while
   /// `%WINDIR%\system32\cmd.exe` is used on Windows.
+  ///
+  /// **NOTE**: On Windows, if [executable] is a batch file
+  /// ('*.bat' or '*.cmd'), it may be launched by the operating system in a
+  /// system shell regardless of the value of [runInShell]. This could result in
+  /// arguments being parsed according to shell rules. For example:
+  ///
+  /// ```
+  /// void main() async {
+  ///   // Will launch notepad.
+  ///   await Process.run('test.bat', ['test&notepad.exe']);
+  /// }
+  /// ```
   ///
   /// The encoding used for decoding `stdout` and `stderr` into text is
   /// controlled through [stdoutEncoding] and [stderrEncoding]. The

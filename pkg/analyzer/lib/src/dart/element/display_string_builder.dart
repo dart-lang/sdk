@@ -281,6 +281,10 @@ class ElementDisplayStringBuilder {
   }
 
   void writeTypeAliasElement(TypeAliasElementImpl element) {
+    if (element.isAugmentation) {
+      _write('augment ');
+    }
+
     _write('typedef ');
     _write(element.displayName);
     _writeTypeParameters(element.typeParameters);

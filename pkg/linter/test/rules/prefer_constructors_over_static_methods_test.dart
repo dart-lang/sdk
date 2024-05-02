@@ -62,7 +62,7 @@ class A {
   }
 
   test_staticMethod_expressionBody_extensionType() async {
-    // Since the check logic is shared one test should be sufficient to verify
+    // Since the check logic is shared, one test should be sufficient to verify
     // extension types are supported.
     await assertDiagnostics(r'''
 extension type E(int i) {
@@ -125,13 +125,19 @@ class A {
 ''');
   }
 
+  test_staticMethod_returnsSubtype() async {
+    await assertNoDiagnostics(r'''
+class A {
+  static B f() => B();
+}
+class B extends A {}
+''');
+  }
+
   test_staticMethod_returnsUnrelatedType() async {
     await assertNoDiagnostics(r'''
 class A {
-  A.named();
   static Object staticM() => Object();
-
-  /*static A? ok2() => 1==1 ? null : A.internal(); // OK*/
 }
 ''');
   }

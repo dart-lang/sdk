@@ -2516,6 +2516,11 @@ abstract class TypeAliasElement
   @override
   CompilationUnitElement get enclosingElement;
 
+  /// Whether the element is an augmentation.
+  ///
+  /// If `true`, declaration has the explicit `augment` modifier.
+  bool get isAugmentation;
+
   @override
   String get name;
 
