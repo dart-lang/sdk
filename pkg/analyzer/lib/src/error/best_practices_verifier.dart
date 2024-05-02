@@ -1155,9 +1155,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     if (constructor == null) {
       return;
     }
-    if (!node.isConst &&
-        constructor.hasLiteral &&
-        _linterContext.canBeConst(node)) {
+    if (!node.isConst && constructor.hasLiteral && node.canBeConst) {
       // Echoing jwren's `TODO` from _checkForDeprecatedMemberUse:
       // TODO(jwren): We should modify ConstructorElement.getDisplayName(), or
       // have the logic centralized elsewhere, instead of doing this logic

@@ -21,18 +21,14 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:meta/meta.dart';
-import 'package:path/path.dart' as path;
 
 /// An object that can compute a correction (fix or assist) in a Dart file.
 abstract class CorrectionProducer<T extends ParsedUnitResult>
@@ -351,20 +347,6 @@ abstract class ResolvedCorrectionProducer
       return node;
     }
     return null;
-  }
-
-  LinterContext getLinterContext(path.Context pathContext) {
-    return LinterContextImpl(
-      [] /* allUnits, unused */,
-      LinterContextUnit(unitResult.content, unitResult.unit),
-      unitResult.session.declaredVariables,
-      typeProvider,
-      typeSystem as TypeSystemImpl,
-      InheritanceManager3(), // Unused.
-      analysisOptions,
-      null,
-      pathContext,
-    );
   }
 
   /// Returns the mixin declaration for the given [element], or `null` if there

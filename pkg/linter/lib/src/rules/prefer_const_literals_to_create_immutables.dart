@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 
@@ -55,7 +56,7 @@ class PreferConstLiteralsToCreateImmutables extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this, context);
+    var visitor = _Visitor(this);
     registry.addListLiteral(this, visitor);
     registry.addSetOrMapLiteral(this, visitor);
   }
@@ -64,9 +65,7 @@ class PreferConstLiteralsToCreateImmutables extends LintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  final LinterContext context;
-
-  _Visitor(this.rule, this.context);
+  _Visitor(this.rule);
 
   @override
   void visitListLiteral(ListLiteral node) => _visitTypedLiteral(node);
@@ -95,7 +94,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    if (context.canBeConst(literal)) {
+    if (literal.canBeConst) {
       rule.reportLint(literal);
     }
   }
