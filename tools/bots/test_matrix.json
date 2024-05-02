@@ -1250,6 +1250,7 @@
       "builders": [
         "vm-asan-linux-release-x64",
         "vm-msan-linux-release-x64",
+        "vm-tsan-linux-release-x64",
         "vm-ubsan-linux-release-x64"
       ],
       "meta": {
@@ -1266,42 +1267,7 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-nvm-${sanitizer}-${system}-${mode}-${arch}",
-            "corelib",
-            "ffi",
-            "language",
-            "lib",
-            "samples",
-            "standalone",
-            "utils",
-            "vm"
-          ],
-          "fileset": "vm",
-          "shards": 4
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-tsan-linux-release-x64"
-      ],
-      "meta": {
-        "description": "This configuration is used by the VM/JIT builders with sanitizers."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "runtime"
-          ]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-nvm-${sanitizer}-${system}-${mode}-${arch}",
-            "vm",
-            "standalone"
+            "-nvm-${sanitizer}-${system}-${mode}-${arch}"
           ],
           "fileset": "vm",
           "shards": 8
@@ -1312,6 +1278,7 @@
       "builders": [
         "vm-aot-asan-linux-release-x64",
         "vm-aot-msan-linux-release-x64",
+        "vm-aot-tsan-linux-release-x64",
         "vm-aot-ubsan-linux-release-x64"
       ],
       "meta": {
@@ -1329,40 +1296,10 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-nvm-aot-${sanitizer}-${system}-${mode}-${arch}",
-            "vm",
-            "standalone"
+            "-nvm-aot-${sanitizer}-${system}-${mode}-${arch}"
           ],
           "fileset": "vm",
-          "shards": 4
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-aot-tsan-linux-release-x64"
-      ],
-      "meta": {
-        "description": "This configuration is used by the VM/AOT builders with sanitizers."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "runtime",
-            "runtime_precompiled"
-          ]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-nvm-aot-${sanitizer}-${system}-${mode}-${arch}",
-            "vm",
-            "standalone"
-          ],
-          "fileset": "vm",
-          "shards": 8
+          "shards": 12
         }
       ]
     },
