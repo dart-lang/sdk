@@ -305,7 +305,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   }
 
   void _setupLocalParameters(Member member, ParameterInfo paramInfo,
-      int parameterOffset, int implicitParams) {
+      int parameterOffset, int implicitParams,
+      {bool isForwarder = false}) {
     List<TypeParameter> typeParameters = member is Constructor
         ? member.enclosingClass.typeParameters
         : member.function!.typeParameters;
@@ -326,10 +327,24 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     w.Local? tempLocalForType;
 
-    void setupParamLocal(
-        VariableDeclaration variable, int index, Constant? defaultValue) {
+    void setupParamLocal(VariableDeclaration variable, int index,
+        Constant? defaultValue, bool isRequired) {
       w.Local local = paramLocals[implicitParams + index];
-      locals[variable] = local;
+      if (!isForwarder) {
+        // TFA may have inferred a very precise type for the incoming arguments,
+        // but the wasm function parameter type may not reflect this (e.g. due
+        // to upper-bounding in dispatch table row building)
+        // => This means, we may need to do a downcast here.
+        final incomingArgumentType =
+            translator.translateTypeOfParameter(variable, isRequired);
+        if (!local.type.isSubtypeOf(incomingArgumentType)) {
+          final newLocal = addLocal(incomingArgumentType);
+          b.local_get(local);
+          translator.convertType(function, local.type, newLocal.type);
+          b.local_set(newLocal);
+          local = newLocal;
+        }
+      }
       if (defaultValue == ParameterInfo.defaultValueSentinel) {
         // The default value for this parameter differs between implementations
         // within the same selector. This means that callers will pass the
@@ -345,31 +360,59 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         b.local_set(local);
         b.end();
       }
-
       if (!translator.options.omitImplicitTypeChecks) {
         if (variable.isCovariantByClass || variable.isCovariantByDeclaration) {
           final typeLocal = tempLocalForType ??= addLocal(
               translator.classInfo[translator.typeClass]!.nonNullableType);
+
+          final boxedType = variable.type.isPotentiallyNullable
+              ? translator.topInfo.nullableType
+              : translator.topInfo.nonNullableType;
+          w.Local operand = local;
+          if (!operand.type.isSubtypeOf(boxedType)) {
+            final boxedOperand = addLocal(boxedType);
+            b.local_get(operand);
+            translator.convertType(function, operand.type, boxedOperand.type);
+            b.local_set(boxedOperand);
+            operand = boxedOperand;
+          }
           _generateArgumentTypeCheck(
             variable.name!,
-            () => b.local_get(local),
+            () => b.local_get(operand),
             () => types.makeType(this, variable.type),
-            local,
+            operand,
             typeLocal,
           );
         }
       }
+      if (!isForwarder) {
+        // We now have a precise local that can contain the values passed by
+        // callers, but the body may assign less precise types to this variable,
+        // so we may introduce another local variable that is less precise.
+        // => Binaryen will simplify the above downcast and this upcast.
+        final variableType = translator.translateTypeOfLocalVariable(variable);
+        if (!variableType.isSubtypeOf(local.type)) {
+          w.Local newLocal = addLocal(variableType);
+          b.local_get(local);
+          translator.convertType(function, local.type, newLocal.type);
+          b.local_set(newLocal);
+          local = newLocal;
+        }
+      }
+
+      locals[variable] = local;
     }
 
-    List<VariableDeclaration> positional =
-        member.function!.positionalParameters;
+    final memberFunction = member.function!;
+    List<VariableDeclaration> positional = memberFunction.positionalParameters;
     for (int i = 0; i < positional.length; i++) {
-      setupParamLocal(positional[i], i, paramInfo.positional[i]);
+      final bool isRequired = i < memberFunction.requiredParameterCount;
+      setupParamLocal(positional[i], i, paramInfo.positional[i], isRequired);
     }
-    List<VariableDeclaration> named = member.function!.namedParameters;
+    List<VariableDeclaration> named = memberFunction.namedParameters;
     for (var param in named) {
-      setupParamLocal(
-          param, paramInfo.nameIndex[param.name]!, paramInfo.named[param.name]);
+      setupParamLocal(param, paramInfo.nameIndex[param.name]!,
+          paramInfo.named[param.name], param.isRequired);
     }
 
     // For all parameters whose Wasm type has been forced to `externref` due to
@@ -389,14 +432,15 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     });
   }
 
-  void setupParameters(Reference reference) {
+  void setupParameters(Reference reference, {bool isForwarder = false}) {
     Member member = reference.asMember;
     ParameterInfo paramInfo = translator.paramInfoFor(reference);
 
     int parameterOffset = _initializeThis(reference);
     int implicitParams = parameterOffset + paramInfo.typeParamCount;
 
-    _setupLocalParameters(member, paramInfo, parameterOffset, implicitParams);
+    _setupLocalParameters(member, paramInfo, parameterOffset, implicitParams,
+        isForwarder: isForwarder);
   }
 
   void setupParametersAndContexts(Reference reference) {
@@ -411,7 +455,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   }
 
   void setupInitializerListParametersAndContexts(Reference reference) {
-    setupParameters(reference);
+    setupParameters(reference, isForwarder: true);
     allocateContext(member);
     captureParameters();
   }
@@ -565,7 +609,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   // initializer list and constructor body methods, and allocates a struct for
   // the object.
   void generateConstructorAllocator(Constructor member) {
-    setupParameters(member.reference);
+    setupParameters(member.reference, isForwarder: true);
 
     w.FunctionType initializerMethodType =
         translator.functions.getFunctionType(member.initializerReference);
@@ -991,7 +1035,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    w.ValueType type = translateType(node.type);
+    final w.ValueType type = translator.translateTypeOfLocalVariable(node);
     w.Local? local;
     Capture? capture = closures.captures[node];
     if (capture == null || !capture.written) {
@@ -1031,7 +1075,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   /// over how the variable is initialized.
   void initializeVariable(
       VariableDeclaration node, void Function() pushInitialValue) {
-    final w.ValueType type = translateType(node.type);
+    final w.ValueType type = translator.translateTypeOfLocalVariable(node);
     w.Local? local;
     final Capture? capture = closures.captures[node];
     if (capture == null || !capture.written) {

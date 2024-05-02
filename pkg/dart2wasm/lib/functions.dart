@@ -409,14 +409,17 @@ List<w.ValueType> _getInputTypes(
         .length;
     List<String> names = [for (var p in function.namedParameters) p.name!]
       ..sort();
+    final typeForParam = translator.typeOfParameterVariable;
     Map<String, DartType> nameTypes = {
-      for (var p in function.namedParameters) p.name!: p.type
+      for (var p in function.namedParameters)
+        p.name!: typeForParam(p, p.isRequired)
     };
+    final positionals = function.positionalParameters;
     params = [
-      for (var p in function.positionalParameters) p.type,
+      for (int i = 0; i < positionals.length; ++i)
+        typeForParam(positionals[i], i < function.requiredParameterCount),
       for (String name in names) nameTypes[name]!
     ];
-    function.positionalParameters.map((p) => p.type);
   }
 
   final List<w.ValueType> typeParameters = List.filled(
