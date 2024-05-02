@@ -84,6 +84,7 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 
 typedef SharedMatchContext = shared.MatchContext<AstNode, Expression,
     DartPattern, DartType, PromotableElement>;
@@ -154,6 +155,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// The element representing the function containing the current node, or
   /// `null` if the current node is not contained in a function.
   ExecutableElement? _enclosingFunction;
+
+  /// The element that can be referenced by the `augmented` expression.
+  AugmentableElement? _enclosingAugmentation;
 
   /// The manager for the inheritance mappings.
   final InheritanceManager3 inheritance;
@@ -1350,7 +1354,20 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     required Expression node,
     required bool hasRead,
   }) {
-    if (node is IndexExpression) {
+    if (node is AugmentedExpressionImpl) {
+      var augmentation = _enclosingAugmentation;
+      var augmentationTarget = augmentation?.augmentationTarget;
+      if (augmentation is PropertyAccessorElementImpl &&
+          augmentation.isSetter &&
+          augmentationTarget is PropertyAccessorElementImpl &&
+          augmentationTarget.isSetter) {
+        node.element = augmentationTarget;
+        return PropertyElementResolverResult(
+          writeElementRequested: augmentationTarget,
+        );
+      }
+      return PropertyElementResolverResult();
+    } else if (node is IndexExpression) {
       var target = node.target;
       if (target != null) {
         analyzeExpression(target, UnknownInferredType.instance);
@@ -1627,7 +1644,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }) {
     DartType writeType =
         atDynamicTarget ? DynamicTypeImpl.instance : InvalidTypeImpl.instance;
-    if (node is IndexExpression) {
+    if (node is AugmentedExpression) {
+      if (element is PropertyAccessorElement && element.isSetter) {
+        if (element.parameters case [var valueParameter]) {
+          writeType = valueParameter.type;
+        }
+      }
+    } else if (node is IndexExpression) {
       if (element is MethodElement) {
         var parameters = element.parameters;
         if (parameters.length == 2) {
@@ -1829,6 +1852,23 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   ) {
     node.visitChildren(this);
     elementResolver.visitAugmentationImportDirective(node);
+  }
+
+  @override
+  void visitAugmentedExpression(covariant AugmentedExpressionImpl node) {
+    if (_enclosingAugmentation case var augmentation?) {
+      var augmentationTarget = augmentation.augmentationTarget;
+      if (augmentation is PropertyAccessorElementImpl &&
+          augmentation.isGetter &&
+          augmentationTarget is PropertyAccessorElementImpl &&
+          augmentationTarget.isGetter) {
+        node.element = augmentationTarget;
+        node.staticType = augmentationTarget.returnType;
+        return;
+      }
+    }
+
+    node.staticType = InvalidTypeImpl.instance;
   }
 
   @override
@@ -2474,6 +2514,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
     bool isLocal = node.parent is FunctionDeclarationStatement;
+    var element = node.declaredElement!;
 
     if (isLocal) {
       flowAnalysis.flow!.functionExpression_begin(node);
@@ -2490,8 +2531,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var functionType = node.declaredElement!.type;
 
     var outerFunction = _enclosingFunction;
+    var outerAugmentation = _enclosingAugmentation;
     try {
-      _enclosingFunction = node.declaredElement;
+      _enclosingFunction = element;
+      if (!isLocal) {
+        _enclosingAugmentation = element.ifTypeOrNull();
+      }
       checkUnreachableNode(node);
       node.documentationComment?.accept(this);
       node.metadata.accept(this);
@@ -2501,6 +2546,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       elementResolver.visitFunctionDeclaration(node);
     } finally {
       _enclosingFunction = outerFunction;
+      _enclosingAugmentation = outerAugmentation;
     }
 
     if (!node.isSetter) {
@@ -2819,15 +2865,19 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
+    var element = node.declaredElement!;
+
     flowAnalysis.topLevelDeclaration_enter(node, node.parameters);
     flowAnalysis.executableDeclaration_enter(node, node.parameters,
         isClosure: false);
 
-    DartType returnType = node.declaredElement!.returnType;
+    DartType returnType = element.returnType;
 
     var outerFunction = _enclosingFunction;
+    var outerAugmentation = _enclosingAugmentation;
     try {
-      _enclosingFunction = node.declaredElement;
+      _enclosingFunction = element;
+      _enclosingAugmentation = element.ifTypeOrNull();
       assert(_thisType == null);
       _setupThisType();
       checkUnreachableNode(node);
@@ -2840,6 +2890,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       elementResolver.visitMethodDeclaration(node);
     } finally {
       _enclosingFunction = outerFunction;
+      _enclosingAugmentation = outerAugmentation;
       _thisType = null;
     }
 

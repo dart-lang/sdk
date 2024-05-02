@@ -9,6 +9,7 @@ import 'as_expression_test.dart' as as_expression;
 import 'assignment_test.dart' as assignment;
 import 'ast_rewrite_test.dart' as ast_rewrite;
 import 'augmentation_import_test.dart' as augmentation_import;
+import 'augmented_expression_test.dart' as augmented_expression;
 import 'await_expression_test.dart' as await_expression;
 import 'binary_expression_test.dart' as binary_expression;
 import 'cast_pattern_test.dart' as cast_pattern;
@@ -124,6 +125,7 @@ main() {
     assignment.main();
     ast_rewrite.main();
     augmentation_import.main();
+    augmented_expression.main();
     await_expression.main();
     binary_expression.main();
     cast_pattern.main();
