@@ -557,21 +557,9 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
       initial_stub, ObjectPool::Patchability::kPatchable, snapshot_behavior);
   ASSERT((data_index + 1) == initial_stub_index);
 
-  if (FLAG_precompiled_mode) {
-    // The AOT runtime will replace the slot in the object pool with the
-    // entrypoint address - see app_snapshot.cc.
-    CLOBBERS_LR(__ LoadDoubleWordFromPoolIndex(R5, LR, data_index));
-  } else {
-    __ LoadDoubleWordFromPoolIndex(R5, CODE_REG, data_index);
-    const intptr_t entry_point_offset =
-        entry_kind == Code::EntryKind::kNormal
-            ? compiler::target::Code::entry_point_offset(
-                  Code::EntryKind::kMonomorphic)
-            : compiler::target::Code::entry_point_offset(
-                  Code::EntryKind::kMonomorphicUnchecked);
-    CLOBBERS_LR(
-        __ ldr(LR, compiler::FieldAddress(CODE_REG, entry_point_offset)));
-  }
+  // The AOT runtime will replace the slot in the object pool with the
+  // entrypoint address - see app_snapshot.cc.
+  CLOBBERS_LR(__ LoadDoubleWordFromPoolIndex(R5, LR, data_index));
   CLOBBERS_LR(__ blr(LR));
 
   EmitCallsiteMetadata(source, DeoptId::kNone, UntaggedPcDescriptors::kOther,
