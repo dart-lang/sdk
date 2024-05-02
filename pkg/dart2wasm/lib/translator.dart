@@ -902,6 +902,24 @@ class Translator with KernelNodes {
     }
   }
 
+  w.ValueType preciseThisFor(Member member, {bool nullable = false}) {
+    assert(member.isInstanceMember || member is Constructor);
+
+    Class cls = member.enclosingClass!;
+    final w.StorageType? builtin = builtinTypes[cls];
+    final boxClass = boxedClasses[builtin];
+    if (boxClass != null) {
+      // We represent `this` as an unboxed type.
+      if (!nullable) return builtin as w.ValueType;
+      // Otherwise we use [boxClass] to represent `this`.
+      cls = boxClass;
+    }
+    final representationClassInfo = classInfo[cls]!.repr;
+    return nullable
+        ? representationClassInfo.nullableType
+        : representationClassInfo.nonNullableType;
+  }
+
   /// Get the Wasm table declared by [field], or `null` if [field] is not a
   /// declaration of a Wasm table.
   ///

@@ -36,7 +36,7 @@ void testCovariantMethodCheck() {
 }
 
 void testDynamicCall() {
-  final dynamic a = kTrue ? (String a) => 'closure($a)' : A();
+  final dynamic a = kTrue ? (List a) => 'closure($a)' : A();
   Expect.equals('closure(B)', a(B()));
 }
 

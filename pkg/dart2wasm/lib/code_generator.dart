@@ -724,23 +724,15 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   /// parameter if there are no type parameters).
   int _initializeThis(Reference reference) {
     Member member = reference.asMember;
-    bool hasThis =
+    final hasThis =
         member.isInstanceMember || reference.isConstructorBodyReference;
     if (hasThis) {
       thisLocal = paramLocals[0];
-      assert(!thisLocal!.type.nullable);
-      Class cls = member.enclosingClass!;
-      w.StorageType? builtin = translator.builtinTypes[cls];
-      w.ValueType thisType = translator.boxedClasses.containsKey(builtin)
-          ? builtin as w.ValueType
-          : translator.classInfo[cls]!.nonNullableType;
-      if (translator.needsConversion(thisLocal!.type, thisType) &&
-          !(cls == translator.objectInfo.cls ||
-              cls == translator.ffiPointerClass ||
-              translator.isWasmType(cls))) {
-        preciseThisLocal = addLocal(thisType);
+      final preciseThisType = translator.preciseThisFor(member);
+      if (translator.needsConversion(thisLocal!.type, preciseThisType)) {
+        preciseThisLocal = addLocal(preciseThisType);
         b.local_get(thisLocal!);
-        translator.convertType(function, thisLocal!.type, thisType);
+        translator.convertType(function, thisLocal!.type, preciseThisType);
         b.local_set(preciseThisLocal!);
       } else {
         preciseThisLocal = thisLocal!;
@@ -1739,14 +1731,19 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     w.ValueType preciseThisType = preciseThisLocal!.type;
     assert(!thisType.nullable);
     assert(!preciseThisType.nullable);
-    if (!thisType.isSubtypeOf(expectedType) &&
-        preciseThisType.isSubtypeOf(expectedType)) {
-      b.local_get(preciseThisLocal!);
-      return preciseThisType;
-    } else {
+    if (thisType.isSubtypeOf(expectedType)) {
       b.local_get(thisLocal!);
       return thisType;
     }
+    if (preciseThisType.isSubtypeOf(expectedType)) {
+      b.local_get(preciseThisLocal!);
+      return preciseThisType;
+    }
+    // A user of `this` may have more precise type information, in which case
+    // we downcast it here.
+    b.local_get(thisLocal!);
+    translator.convertType(function, thisType, expectedType);
+    return expectedType;
   }
 
   @override
@@ -1787,7 +1784,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         _lookupSuperTarget(node.interfaceTarget, setter: false).reference;
     w.FunctionType targetFunctionType =
         translator.functions.getFunctionType(target);
-    w.ValueType receiverType = targetFunctionType.inputs[0];
+    final w.ValueType receiverType = translator.preciseThisFor(target.asMember);
 
     // When calling `==` and the argument is potentially nullable, check if the
     // argument is `null`.
