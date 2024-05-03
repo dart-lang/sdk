@@ -959,7 +959,7 @@ class UseBuildContextSynchronously extends LintRule {
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var unit = context.currentUnit.unit;
-    if (!context.inTestDir(unit)) {
+    if (!unit.inTestDir) {
       var visitor = _Visitor(this);
       registry.addMethodInvocation(this, visitor);
       registry.addInstanceCreationExpression(this, visitor);

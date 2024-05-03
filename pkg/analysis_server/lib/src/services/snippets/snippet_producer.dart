@@ -12,7 +12,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
-import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart'
     show DartFileEditBuilderImpl;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
@@ -49,12 +49,7 @@ abstract class DartSnippetProducer extends SnippetProducer {
       .getAnalysisOptionsForFile(request.unit.file)
       .codeStyleOptions;
 
-  bool get isInTestDirectory {
-    var path = request.unit.path;
-    return LinterContextImpl.getTestDirectories(
-            request.resourceProvider.pathContext)
-        .any(path.contains);
-  }
+  bool get isInTestDirectory => request.unit.unit.inTestDir;
 
   /// Adds public imports for any elements fetched by [getClass] and [getMixin]
   /// to [builder].

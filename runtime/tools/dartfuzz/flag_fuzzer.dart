@@ -115,7 +115,29 @@ List<String> someOf(List<String> choices) {
   return result;
 }
 
+// LUCI will kill recipe steps if they go 1200 seconds without any output.
+const statusTimeout = Duration(minutes: 5);
+int pendingTaskCount = 0;
+late Timer pendingTimer;
+Stopwatch stopwatch = new Stopwatch();
+taskStart() {
+  if (pendingTaskCount++ == 0) {
+    pendingTimer = new Timer.periodic(statusTimeout, (timer) {
+      print("$pendingTaskCount tasks still running after "
+          "${stopwatch.elapsed.inMinutes} minutes");
+    });
+  }
+}
+
+taskEnd() {
+  if (--pendingTaskCount == 0) {
+    pendingTimer.cancel();
+  }
+}
+
 test(int taskIndex) async {
+  taskStart();
+
   var buildDir = oneOf(buildDirs);
 
   var commands;
@@ -196,7 +218,7 @@ test(int taskIndex) async {
     timer.cancel();
     if (timedOut) {
       print("Timeout: $cmdline");
-      return;
+      break;
     } else if (exitCode == 0) {
       print("Success: $cmdline");
       process.stdout.drain();
@@ -215,12 +237,16 @@ test(int taskIndex) async {
       print("stderr:");
       print(stderr);
       exitCode = 1;
-      return;
+      break;
     }
   }
+
+  taskEnd();
 }
 
 main() async {
+  stopwatch.start();
+
   await Directory("out/dartfuzz").create();
 
   var executable = "out/ReleaseX64/dart";

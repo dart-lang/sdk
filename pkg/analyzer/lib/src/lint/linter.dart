@@ -41,6 +41,7 @@ import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/lint/state.dart';
 import 'package:analyzer/src/services/lint.dart' show Linter;
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
@@ -232,6 +233,7 @@ abstract class LinterContext {
   bool canBeConstConstructor(ConstructorDeclaration node);
 
   /// Returns `true` if the given [unit] is in a test directory.
+  @Deprecated('Use `CompilationUnitExtension.inTestDir`.')
   bool inTestDir(CompilationUnit unit);
 
   /// Returns `true` if the [feature] is enabled in the library being linted.
@@ -277,8 +279,6 @@ class LinterContextImpl implements LinterContext {
   @override
   final InheritanceManager3 inheritanceManager;
 
-  final List<String> _testDirectories;
-
   LinterContextImpl(
     this.allUnits,
     this.currentUnit,
@@ -288,10 +288,8 @@ class LinterContextImpl implements LinterContext {
     this.inheritanceManager,
     AnalysisOptions analysisOptions,
     this.package,
-    p.Context pathContext,
   )   : _declaredVariables = declaredVariables,
-        _analysisOptions = analysisOptions,
-        _testDirectories = getTestDirectories(pathContext);
+        _analysisOptions = analysisOptions;
 
   @override
   @Deprecated('This field is being removed; for access to the analysis options '
@@ -313,10 +311,7 @@ class LinterContextImpl implements LinterContext {
       node.canBeConst;
 
   @override
-  bool inTestDir(CompilationUnit unit) {
-    var path = unit.declaredElement?.source.fullName;
-    return path != null && _testDirectories.any(path.contains);
-  }
+  bool inTestDir(CompilationUnit unit) => unit.inTestDir;
 
   @override
   bool isEnabled(Feature feature) {
@@ -365,16 +360,6 @@ class LinterContextImpl implements LinterContext {
     }
 
     return const LinterNameInScopeResolutionResult._none();
-  }
-
-  static List<String> getTestDirectories(p.Context pathContext) {
-    var separator = pathContext.separator;
-    return [
-      '${separator}test$separator',
-      '${separator}integration_test$separator',
-      '${separator}test_driver$separator',
-      '${separator}testing$separator',
-    ];
   }
 }
 

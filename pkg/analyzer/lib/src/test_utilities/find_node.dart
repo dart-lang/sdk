@@ -165,6 +165,8 @@ class FindNode {
 
   RethrowExpression get singleRethrowExpression => _single();
 
+  ReturnStatement get singleReturnStatement => _single();
+
   SetOrMapLiteral get singleSetOrMapLiteral => _single();
 
   SuperConstructorInvocation get singleSuperConstructorInvocation => _single();

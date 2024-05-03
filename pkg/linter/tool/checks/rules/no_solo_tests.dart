@@ -39,7 +39,7 @@ class NoSoloTests extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    if (context.inTestDir(context.currentUnit.unit)) {
+    if (context.currentUnit.unit.inTestDir) {
       var visitor = _Visitor(this);
       registry.addMethodDeclaration(this, visitor);
     }

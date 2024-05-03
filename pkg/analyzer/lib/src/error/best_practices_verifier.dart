@@ -4,7 +4,6 @@
 
 import 'dart:collection';
 
-import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -33,10 +32,10 @@ import 'package:analyzer/src/error/must_call_super_verifier.dart';
 import 'package:analyzer/src/error/null_safe_api_verifier.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:meta/meta.dart';
-import 'package:path/path.dart' as path;
 
 /// Instances of the class `BestPracticesVerifier` traverse an AST structure
 /// looking for violations of Dart best practices.
@@ -82,9 +81,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// The [WorkspacePackage] in which [_currentLibrary] is declared.
   final WorkspacePackage? _workspacePackage;
 
-  /// The [LinterContext] used for possible const calculations.
-  final LinterContext _linterContext;
-
   /// True if inference failures should be reported, otherwise false.
   final bool _strictInference;
 
@@ -96,14 +92,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     this._errorReporter,
     TypeProviderImpl typeProvider,
     this._currentLibrary,
-    CompilationUnit unit,
-    String content, {
+    CompilationUnit unit, {
     required TypeSystemImpl typeSystem,
     required InheritanceManager3 inheritanceManager,
-    required DeclaredVariables declaredVariables,
     required AnalysisOptions analysisOptions,
     required WorkspacePackage? workspacePackage,
-    required path.Context pathContext,
   })  : _nullType = typeProvider.nullType,
         _typeSystem = typeSystem,
         _strictInference =
@@ -118,24 +111,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             _errorReporter, typeProvider, typeSystem,
             strictCasts: analysisOptions.strictCasts),
         _invalidAccessVerifier = _InvalidAccessVerifier(
-            _errorReporter, _currentLibrary, workspacePackage),
+            _errorReporter, unit, _currentLibrary, workspacePackage),
         _mustCallSuperVerifier = MustCallSuperVerifier(_errorReporter),
         _nullSafeApiVerifier = NullSafeApiVerifier(_errorReporter, typeSystem),
-        _workspacePackage = workspacePackage,
-        _linterContext = LinterContextImpl(
-          [],
-          LinterContextUnit(content, unit),
-          declaredVariables,
-          typeProvider,
-          typeSystem,
-          inheritanceManager,
-          analysisOptions,
-          workspacePackage,
-          pathContext,
-        ) {
+        _workspacePackage = workspacePackage {
     _deprecatedVerifier.pushInDeprecatedValue(_currentLibrary.hasDeprecated);
     _inDoNotStoreMember = _currentLibrary.hasDoNotStore;
-    _invalidAccessVerifier._inTestDirectory = _linterContext.inTestDir(unit);
   }
 
   @override
@@ -1607,14 +1588,15 @@ class _InvalidAccessVerifier {
   final WorkspacePackage? _workspacePackage;
 
   final bool _inTemplateSource;
-  late final bool _inTestDirectory;
+  final bool _inTestDirectory;
 
   InterfaceElement? _enclosingClass;
 
-  _InvalidAccessVerifier(
-      this._errorReporter, this._library, this._workspacePackage)
+  _InvalidAccessVerifier(this._errorReporter, CompilationUnit unit,
+      this._library, this._workspacePackage)
       : _inTemplateSource =
-            _library.source.fullName.contains(_templateExtension);
+            _library.source.fullName.contains(_templateExtension),
+        _inTestDirectory = unit.inTestDir;
 
   /// Produces a warning if [identifier] is accessed from an invalid location.
   ///

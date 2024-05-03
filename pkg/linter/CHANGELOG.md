@@ -3,6 +3,25 @@
 - new lint: `unintended_html_in_doc_comment`
 - new lint: `unnecessary_library_name`
 - new lint: `missing_code_block_language_in_doc_comment`
+- update `noop_primitive_operations` to allow an empty string literal at the
+  beginning or end of adjacent string literals:
+
+  ```dart
+  // LINT
+  var s = 'a'
+      ''
+      'b';
+
+  // OK
+  var s = ''
+      'a'
+      'b';
+
+  // OK
+  var s = 'a'
+      'b';
+      '';
+  ```
 
 # 3.3.0
 
@@ -41,7 +60,7 @@
 
 # 1.35.0
 
-- add new lints: 
+- add new lints:
   - `implicit_reopen`
   - `unnecessary_breaks`
   - `type_literal_in_constant_pattern`
@@ -75,7 +94,7 @@
 
 - update `only_throw_errors` to not report on values of type `Never`
 - update `prefer_mixin` to handle class mixins
-- update `unnecessary_null_checks` to ignore `Future.value` and 
+- update `unnecessary_null_checks` to ignore `Future.value` and
   `Completer.complete`
 - fix `unnecessary_parenthesis` false positives on constant patterns
 - new lint: `invalid_case_patterns`
@@ -88,7 +107,7 @@
 # 1.33.0
 
 - fix `unnecessary_parenthesis` false-positive with null-aware expressions
-- fix `void_checks` to allow assignments of `Future<dynamic>?` to parameters 
+- fix `void_checks` to allow assignments of `Future<dynamic>?` to parameters
   typed `FutureOr<void>?`
 - removed support for:
   - `enable_null_safety`
@@ -100,7 +119,7 @@
 - update `void_checks` to allow returning `Never` as void
 - new lint: `unnecessary_breaks`
 - fix `use_build_context_synchronously` in if conditions
-- update `no_adjacent_strings_in_list` to support set literals and for- and 
+- update `no_adjacent_strings_in_list` to support set literals and for- and
   if-elements
 
 # 1.32.0
@@ -131,14 +150,14 @@
 - new lint: `dangling_library_doc_comments`
 - fix `no_leading_underscores_for_local_identifiers` to not report super formals as local variables
 - fix `unnecessary_overrides` false negatives
-- fix `cancel_subscriptions` for nullable fields 
+- fix `cancel_subscriptions` for nullable fields
 - new lint: `collection_methods_unrelated_type`
 - update `library_names` to support unnamed libraries
 - fix `unnecessary_parenthesis` support for as-expressions
 - fix `use_build_context_synchronously` to check for context property accesses
 - fix false positive in `comment_references`
 - improved unrelated type checks to handle enums and cascades
-- fix `unnecessary_brace_in_string_interps` for `this` expressions 
+- fix `unnecessary_brace_in_string_interps` for `this` expressions
 - update `use_build_context_synchronously` for `BuildContext.mounted`
 - improve `flutter_style_todos` to handle more cases
 - fix `use_build_context_synchronously` to check for `BuildContext`s in named expressions
@@ -176,7 +195,7 @@
 
 # 1.27.0
 
-- fix `avoid_redundant_argument_values` when referencing required 
+- fix `avoid_redundant_argument_values` when referencing required
   parameters in legacy libraries
 - performance improvements for `use_late_for_private_fields_and_variables`
 - new lint: `use_string_in_part_of_directives`
@@ -229,7 +248,7 @@
 # 1.23.0
 
 - fixed `no_leading_underscores_for_local_identifiers`
-  to lint local function declarations 
+  to lint local function declarations
 - fixed `avoid_init_to_null` to correctly handle super
   initializing defaults that are non-null
 - updated `no_leading_underscores_for_local_identifiers`
@@ -238,7 +257,7 @@
   start with a digit
 - updated `require_trailing_commas` to handle functions
   in asserts and multi-line strings
-- updated `unsafe_html` to allow assignments to 
+- updated `unsafe_html` to allow assignments to
   `img.src`
 - fixed `unnecessary_null_checks` to properly handle map
   literal entries
@@ -267,7 +286,7 @@
   with `key` super parameter initializers
 - fixed `use_super_parameters` false positive with field
   formal params
-- updated `unnecessary_null_checks` and 
+- updated `unnecessary_null_checks` and
   `null_check_on_nullable_type_parameter` to handle
   list/set/map literals, and `yield` and `await`
   expressions
@@ -285,7 +304,7 @@
 - new lint: `use_colored_box`
 - performance improvements for `sort_constructors`
 - doc improvements for `always_use_package_imports`,
-  `avoid_print`, and `avoid_relative_lib_imports` 
+  `avoid_print`, and `avoid_relative_lib_imports`
 - update `avoid_void_async` to skip `main` functions
 - update `prefer_final_parameters` to not super on super params
 - lint updates for enhanced-enums and super-initializer language
@@ -296,7 +315,7 @@
 # 1.18.0
 
 - extend `camel_case_types` to cover enums
-- fix `no_leading_underscores_for_local_identifiers` to not 
+- fix `no_leading_underscores_for_local_identifiers` to not
   mis-flag field formal parameters with default values
 - fix `prefer_function_declarations_over_variables` to not
   mis-flag non-final fields
@@ -320,7 +339,7 @@
 - updates to `secure_pubspec_urls` to check `issue_tracker` and
   `repository` entries
 - new lint: `conditional_uri_does_not_exist`
-- performance improvements for 
+- performance improvements for
   `missing_whitespace_between_adjacent_strings`
 
 # 1.15.0
@@ -335,13 +354,13 @@
 
 # 1.14.0
 
-- fix `omit_local_variable_types` to not flag a local type that is 
+- fix `omit_local_variable_types` to not flag a local type that is
   required for inference
 
 # 1.13.0
 
 - allow `while (true) { ...}` in `literal_only_boolean_expressions`
-- fixed `file_names` to report at the start of the file (not the entire 
+- fixed `file_names` to report at the start of the file (not the entire
   compilation unit)
 - fixed `prefer_collection_literals` named typed param false positive
 - control flow improvements for `use_build_context_synchronously`
@@ -355,19 +374,19 @@
 
 # 1.11.0
 
-- added support for constructor tear-offs to `avoid_redundant_argument_values`, 
+- added support for constructor tear-offs to `avoid_redundant_argument_values`,
   `unnecessary_lambdas`, and `unnecessary_parenthesis`
 - new lint: `unnecessary_constructor_name` to flag unnecessary uses of `.new`
 
 # 1.10.0
 
-- improved regular expression parsing performance for common checks 
+- improved regular expression parsing performance for common checks
   (`camel_case_types`, `file_names`, etc.)
 - (internal) migrated to analyzer 2.1.0 APIs
-- fixed false positive in `use_build_context_synchronously` in awaits inside 
+- fixed false positive in `use_build_context_synchronously` in awaits inside
   anonymous functions
 - fixed `overridden_fields` false positive w/ static fields
-- fixed false positive in `avoid_null_checks_in_equality_operators` w/ 
+- fixed false positive in `avoid_null_checks_in_equality_operators` w/
   non-nullable params
 - fixed false positive for deferred imports in `prefer_const_constructors`
 
@@ -399,7 +418,7 @@
 - fixed `curly_braces_in_flow_control_structures` to properly flag terminating `else-if`
   blocks
 - improved `always_specify_types` to support type aliases
-- fixed false positive in `unnecessary_string_interpolations` w/ nullable interpolated 
+- fixed false positive in `unnecessary_string_interpolations` w/ nullable interpolated
   strings
 - fixed false positive in `avoid_function_literals_in_foreach_calls` for nullable
   iterables
@@ -417,7 +436,7 @@
 # 1.7.0
 
 - fixed case-sensitive false positive in `use_full_hex_values_for_flutter_colors`
-- improved try-block and switch statement flow analysis for 
+- improved try-block and switch statement flow analysis for
   `use_build_context_synchronously`
 - updated `use_setters_to_change_properties` to only highlight a method name,
   not the entire body and doc comment
@@ -430,7 +449,7 @@
 
 # 1.6.1
 
-- reverted relaxation of `sort_child_properties_last` to allow for a 
+- reverted relaxation of `sort_child_properties_last` to allow for a
   trailing Widget in instance creations
 
 # 1.6.0
@@ -439,14 +458,14 @@
   underscore
 - fixed false negative in `prefer_final_parameters` where first parameter
   is final
-- improved `directives_ordering` sorting of directives with dot paths and 
+- improved `directives_ordering` sorting of directives with dot paths and
   dot-separated package names
 - relaxed `sort_child_properties_last` to allow for a trailing Widget in
   instance creations
 
 # 1.5.0
 
-- (internal) migrated to `SecurityLintCode` instead of deprecated 
+- (internal) migrated to `SecurityLintCode` instead of deprecated
   `SecurityLintCodeWithUniqueName`
 - (internal) fixed `avoid_types_as_parameter_names` to skip field formal
   parameters

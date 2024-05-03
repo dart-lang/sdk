@@ -1788,8 +1788,7 @@ final class AugmentedInvocationImpl extends ExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    // TODO(scheglov): implement
-    throw UnimplementedError();
+    resolver.visitAugmentedInvocation(this, contextType: contextType);
   }
 
   @override

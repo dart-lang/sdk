@@ -51,7 +51,6 @@ import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/version.dart';
 import 'package:analyzer/src/workspace/pub.dart';
-import 'package:path/path.dart' as path;
 
 class AnalysisForCompletionResult {
   final FileState fileState;
@@ -71,7 +70,6 @@ class LibraryAnalyzer {
   final DeclaredVariables _declaredVariables;
   final LibraryFileKind _library;
   final InheritanceManager3 _inheritance;
-  final path.Context _pathContext;
 
   final LibraryElementImpl _libraryElement;
 
@@ -82,7 +80,7 @@ class LibraryAnalyzer {
   final TypeSystemOperations _typeSystemOperations;
 
   LibraryAnalyzer(this._analysisOptions, this._declaredVariables,
-      this._libraryElement, this._inheritance, this._library, this._pathContext,
+      this._libraryElement, this._inheritance, this._library,
       {TestingData? testingData,
       required TypeSystemOperations typeSystemOperations})
       : _testingData = testingData,
@@ -373,7 +371,6 @@ class LibraryAnalyzer {
       _inheritance,
       analysisOptions,
       unitAnalysis.file.workspacePackage,
-      _pathContext,
     );
     for (var linter in analysisOptions.lintRules) {
       linter.reporter = errorReporter;
@@ -449,13 +446,10 @@ class LibraryAnalyzer {
         _typeProvider,
         _libraryElement,
         unit,
-        unitAnalysis.file.content,
-        declaredVariables: _declaredVariables,
         typeSystem: _typeSystem,
         inheritanceManager: _inheritance,
         analysisOptions: _analysisOptions,
         workspacePackage: _library.file.workspacePackage,
-        pathContext: _pathContext,
       ),
     );
 

@@ -2476,6 +2476,19 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         }
       }
 
+      // `case ^ _:`
+      // The user want a type for incomplete WildcardPattern.
+      if (pattern is WildcardPattern) {
+        if (offset < pattern.name.offset) {
+          state.request.opType.includeConstructorSuggestions = false;
+          state.request.opType.mustBeConst = true;
+          declarationHelper(
+            mustBeType: true,
+          ).addLexicalDeclarations(node);
+          return;
+        }
+      }
+
       // `case Name ^:`
       // The user wants the pattern variable name.
       if (pattern is ConstantPattern) {
@@ -2501,6 +2514,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             return;
           case ObjectPattern():
             collector.completionLocation = 'ObjectPattern_type';
+            state.request.opType.includeConstructorSuggestions = false;
+            type.accept(this);
+            return;
+          case WildcardPattern():
+            collector.completionLocation = 'WildcardPattern_type';
             state.request.opType.includeConstructorSuggestions = false;
             type.accept(this);
             return;
@@ -2876,6 +2894,18 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitWildcardPattern(WildcardPattern node) {
+    var type = node.type;
+    if (type != null) {
+      if (type.coversOffset(offset)) {
+        declarationHelper(
+          mustBeType: true,
+        ).addLexicalDeclarations(node);
+      }
+    }
+  }
+
+  @override
   void visitWithClause(WithClause node) {
     var parent = node.parent;
     var whenKeyword = node.withKeyword;
@@ -3219,10 +3249,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void _forPattern(AstNode node, {bool mustBeConst = true}) {
     var coveringNode = state.selection.coveringNode;
 
-    // `if (x case ^ y)`
-    // The user want a type for incomplete DeclaredVariablePattern.
     if (node case CaseClause caseClause) {
       var pattern = caseClause.guardedPattern.pattern;
+      // `if (x case ^ y)`
+      // The user wants a type for incomplete DeclaredVariablePattern.
       if (pattern is ConstantPattern) {
         if (pattern.expression case SimpleIdentifier identifier) {
           if (!identifier.isSynthetic && offset < identifier.offset) {
@@ -3233,6 +3263,18 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             ).addLexicalDeclarations(node);
             return;
           }
+        }
+      }
+      // `if (x case ^ _)`
+      // The user wants a type for incomplete WildcardPattern.
+      if (pattern is WildcardPattern) {
+        if (offset < pattern.name.offset) {
+          state.request.opType.includeConstructorSuggestions = false;
+          state.request.opType.mustBeConst = true;
+          declarationHelper(
+            mustBeType: true,
+          ).addLexicalDeclarations(node);
+          return;
         }
       }
     }
@@ -3268,6 +3310,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           return;
         case ObjectPattern():
           collector.completionLocation = 'ObjectPattern_type';
+          state.request.opType.includeConstructorSuggestions = false;
+          type.accept(this);
+          return;
+        case WildcardPattern():
+          collector.completionLocation = 'WildcardPattern_type';
           state.request.opType.includeConstructorSuggestions = false;
           type.accept(this);
           return;

@@ -600,7 +600,6 @@ class FileResolver {
           libraryElement,
           analysisSession.inheritanceManager,
           libraryKind,
-          resourceProvider.pathContext,
           typeSystemOperations: typeSystemOperations,
         );
 
@@ -675,7 +674,6 @@ class FileResolver {
           libraryElement,
           libraryContext!.elementFactory.analysisSession.inheritanceManager,
           libraryKind,
-          resourceProvider.pathContext,
           typeSystemOperations: typeSystemOperations,
         );
 

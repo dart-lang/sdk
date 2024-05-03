@@ -1380,7 +1380,6 @@ class AnalysisDriver {
           libraryElement,
           libraryContext.elementFactory.analysisSession.inheritanceManager,
           library,
-          resourceProvider.pathContext,
           testingData: testingData,
           typeSystemOperations: typeSystemOperations,
         ).analyze();
@@ -2108,7 +2107,6 @@ class AnalysisDriver {
         libraryElement,
         libraryContext.elementFactory.analysisSession.inheritanceManager,
         library,
-        resourceProvider.pathContext,
         testingData: testingData,
         typeSystemOperations: typeSystemOperations,
       ).analyzeForCompletion(
