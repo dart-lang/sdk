@@ -10,7 +10,7 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 
 /// Representation of the type `dynamic` suitable for unit testing of code in
 /// the `_fe_analyzer_shared` package.
-class DynamicType extends _SpecialSimpleType {
+class DynamicType extends _SpecialSimpleType implements SharedDynamicType {
   static final instance = DynamicType._();
 
   DynamicType._() : super._('dynamic');
@@ -91,7 +91,7 @@ class FutureOrType extends PrimaryType {
 
 /// Representation of an invalid type suitable for unit testing of code in the
 /// `_fe_analyzer_shared` package.
-class InvalidType extends _SpecialSimpleType {
+class InvalidType extends _SpecialSimpleType implements SharedInvalidType {
   static final instance = InvalidType._();
 
   InvalidType._() : super._('error');
@@ -435,6 +435,9 @@ abstract class Type implements SharedType {
   /// `Object?`); otherwise a subtype will be returned (replacing `_` with
   /// `Never`).
   Type? closureWithRespectToUnknown({required bool covariant});
+
+  @override
+  String getDisplayString() => type;
 
   @override
   bool isStructurallyEqualTo(SharedType other) => '$this' == '$other';
@@ -932,7 +935,7 @@ class UnknownType extends Type implements SharedUnknownType {
 
 /// Representation of the type `void` suitable for unit testing of code in the
 /// `_fe_analyzer_shared` package.
-class VoidType extends _SpecialSimpleType {
+class VoidType extends _SpecialSimpleType implements SharedVoidType {
   static final instance = VoidType._();
 
   VoidType._() : super._('void');

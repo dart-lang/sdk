@@ -3,6 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Common interface for data structures used by the implementations to
+/// represent the type `dynamic`.
+abstract interface class SharedDynamicType implements SharedType {}
+
+/// Common interface for data structures used by the implementations to
+/// represent a type resulting from a compile-time error.
+///
+/// The implementations may choose to suppress further errors that arise from
+/// the use of this type.
+abstract interface class SharedInvalidType implements SharedType {}
+
+/// Common interface for data structures used by the implementations to
 /// represent a name/type pair.
 abstract interface class SharedNamedType<Type extends SharedType> {
   String get name;
@@ -21,9 +32,20 @@ abstract interface class SharedRecordType<Type extends SharedType>
 /// Common interface for data structures used by the implementations to
 /// represent a type.
 abstract interface class SharedType {
+  /// Return the presentation of this type as it should appear when presented
+  /// to users in contexts such as error messages.
+  ///
+  /// Clients should not depend on the content of the returned value as it will
+  /// be changed if doing so would improve the UX.
+  String getDisplayString();
+
   bool isStructurallyEqualTo(SharedType other);
 }
 
 /// Common interface for data structures used by the implementations to
 /// represent the unknown type schema (`_`).
 abstract interface class SharedUnknownType implements SharedType {}
+
+/// Common interface for data structures used by the implementations to
+/// represent the type `void`.
+abstract interface class SharedVoidType implements SharedType {}

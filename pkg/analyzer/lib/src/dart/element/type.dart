@@ -31,7 +31,8 @@ List<DartType> fixedTypeList(DartType e1, [DartType? e2]) {
 }
 
 /// The [Type] representing the type `dynamic`.
-class DynamicTypeImpl extends TypeImpl implements DynamicType {
+class DynamicTypeImpl extends TypeImpl
+    implements DynamicType, SharedDynamicType {
   /// The unique instance of this class.
   static final DynamicTypeImpl instance = DynamicTypeImpl._();
 
@@ -933,7 +934,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 }
 
-class InvalidTypeImpl extends TypeImpl implements InvalidType {
+class InvalidTypeImpl extends TypeImpl
+    implements InvalidType, SharedInvalidType {
   /// The unique instance of this class.
   static final InvalidTypeImpl instance = InvalidTypeImpl._();
 
@@ -1544,7 +1546,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
 }
 
 /// A concrete implementation of a [VoidType].
-class VoidTypeImpl extends TypeImpl implements VoidType {
+class VoidTypeImpl extends TypeImpl implements VoidType, SharedVoidType {
   /// The unique instance of this class, with indeterminate nullability.
   static final VoidTypeImpl instance = VoidTypeImpl._();
 

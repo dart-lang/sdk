@@ -12,7 +12,6 @@ import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyBase;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/src/norm.dart';
-import 'package:kernel/src/printer.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
@@ -766,12 +765,6 @@ class OperationsCfe
   }
 
   @override
-  bool isDynamic(DartType type) => type is DynamicType;
-
-  @override
-  bool isError(DartType type) => type is InvalidType;
-
-  @override
   bool isFunctionType(DartType type) => type is FunctionType;
 
   @override
@@ -792,9 +785,6 @@ class OperationsCfe
   bool isVariableFinal(VariableDeclaration node) {
     return node.isFinal;
   }
-
-  @override
-  bool isVoid(DartType type) => type is VoidType;
 
   @override
   DartType iterableTypeSchema(DartType elementTypeSchema) {
@@ -961,11 +951,6 @@ class OperationsCfe
 
   @override
   DartType typeToSchema(DartType type) => type;
-
-  @override
-  String getDisplayString(DartType type) {
-    return type.toText(const AstTextStrategy());
-  }
 
   @override
   DartType typeSchemaLub(DartType typeSchema1, DartType typeSchema2) {

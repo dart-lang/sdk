@@ -178,8 +178,7 @@ class TypeConstraintGatherer {
 
       // Or if `P` is `dynamic` or `void` and `Object` is a subtype match
       // for `Q0` under constraint set `C`.
-      if (_typeSystemOperations.isDynamic(P) ||
-          _typeSystemOperations.isVoid(P)) {
+      if (P is SharedDynamicType || P is SharedVoidType) {
         if (trySubtypeMatch(_typeSystem.objectNone, Q0, leftSchema,
             nodeForTesting: nodeForTesting)) {
           return true;
@@ -246,8 +245,8 @@ class TypeConstraintGatherer {
 
     // If `Q` is `dynamic`, `Object?`, or `void` then the match holds under
     // no constraints.
-    if (_typeSystemOperations.isDynamic(Q) ||
-        _typeSystemOperations.isVoid(Q) ||
+    if (Q is SharedDynamicType ||
+        Q is SharedVoidType ||
         Q == _typeSystemOperations.objectQuestionType) {
       return true;
     }

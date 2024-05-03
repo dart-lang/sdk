@@ -2820,9 +2820,6 @@ class MiniAstOperations
   }
 
   @override
-  String getDisplayString(Type type) => type.type;
-
-  @override
   NullabilitySuffix getNullabilitySuffix(Type type) {
     if (type is QuestionType) {
       return NullabilitySuffix.question;
@@ -2890,12 +2887,6 @@ class MiniAstOperations
   bool isDartCoreFunction(Type type) {
     return type is PrimaryType && type.name == 'Function' && type.args.isEmpty;
   }
-
-  @override
-  bool isDynamic(Type type) => type is DynamicType;
-
-  @override
-  bool isError(Type type) => type is InvalidType;
 
   @override
   bool isExtensionType(Type type) {
@@ -2975,9 +2966,6 @@ class MiniAstOperations
   bool isVariableFinal(Var node) {
     return node.isFinal;
   }
-
-  @override
-  bool isVoid(Type type) => type is VoidType;
 
   @override
   TypeSchema iterableTypeSchema(TypeSchema elementTypeSchema) {

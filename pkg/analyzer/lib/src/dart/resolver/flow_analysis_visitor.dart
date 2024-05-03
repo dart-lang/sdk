@@ -442,9 +442,6 @@ class TypeSystemOperations
   }
 
   @override
-  String getDisplayString(DartType type) => type.getDisplayString();
-
-  @override
   NullabilitySuffix getNullabilitySuffix(DartType type) {
     return type.nullabilitySuffix;
   }
@@ -498,12 +495,6 @@ class TypeSystemOperations
     return getNullabilitySuffix(type) == NullabilitySuffix.none &&
         type.isDartCoreFunction;
   }
-
-  @override
-  bool isDynamic(DartType type) => type is DynamicType;
-
-  @override
-  bool isError(DartType type) => type is InvalidType;
 
   @override
   bool isExtensionType(DartType type) {
@@ -571,11 +562,6 @@ class TypeSystemOperations
   @override
   bool isVariableFinal(PromotableElement element) {
     return element.isFinal;
-  }
-
-  @override
-  bool isVoid(DartType type) {
-    return identical(type, VoidTypeImpl.instance);
   }
 
   @override
