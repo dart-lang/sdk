@@ -90,9 +90,9 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
   /// Returns `null` if an error occurred.
   ///
   /// The method substitutes through the chain of type aliases denoted by
-  /// [this], such that the returned [TypeBuilder]s are appropriate type
-  /// arguments for passing to the [ClassBuilder] which is the end of the
-  /// unaliasing chain.
+  /// this [TypeAliasBuilder], such that the returned [TypeBuilder]s are
+  /// appropriate type arguments for passing to the [ClassBuilder] which is the
+  /// end of the unaliasing chain.
   // TODO(johnniwinther): Should we enforce that [typeArguments] are non-null
   // as stated in the docs? It is not needed for the implementation.
   List<TypeBuilder>? unaliasTypeArguments(List<TypeBuilder>? typeArguments);
@@ -521,8 +521,8 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
   /// Returns `null` if an error occurred.
   ///
   /// The method substitutes through the chain of type aliases denoted by
-  /// [this], such that the returned [TypeBuilder]s are appropriate type
-  /// arguments for passing to the [ClassBuilder] or
+  /// this [TypeAliasBuilderImpl], such that the returned [TypeBuilder]s are
+  /// appropriate type arguments for passing to the [ClassBuilder] or
   /// [ExtensionTypeDeclarationBuilder] which is the end of the unaliasing
   /// chain.
   @override
