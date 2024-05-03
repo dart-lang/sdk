@@ -143,7 +143,7 @@ class JSArray<E> extends JavaScriptObject
     return false;
   }
 
-  /// Removes elements matching [test] from [this] List.
+  /// Removes elements matching [test] from this [JSArray].
   void removeWhere(bool Function(E) test) {
     checkGrowable('removeWhere');
     _removeWhere(test, true);

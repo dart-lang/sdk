@@ -556,7 +556,7 @@ class _SyncStarIterator<T> implements Iterator<T> {
   // statements. For non-sync* iterators, [_nestedIterator] contains the
   // iterator. We delegate to [_nestedIterator] when it is not `null`.
   //
-  // For nested sync* iterators, [this] iterator acts on behalf of the innermost
+  // For nested sync* iterators, this [Iterator] acts on behalf of the innermost
   // nested sync* iterator. The current state machine is suspended on a stack
   // until the inner state machine ends.
 

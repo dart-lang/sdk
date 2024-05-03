@@ -269,7 +269,7 @@ abstract interface class Map<K, V> {
   /// Otherwise the key/value pair is added to the map.
   void operator []=(K key, V value);
 
-  /// The map entries of [this].
+  /// The map entries of this [Map].
   Iterable<MapEntry<K, V>> get entries;
 
   /// Returns a new map where all entries of this map are transformed by
@@ -417,7 +417,7 @@ abstract interface class Map<K, V> {
   /// ```
   void forEach(void action(K key, V value));
 
-  /// The keys of [this].
+  /// The keys of this [Map].
   ///
   /// The returned iterable has efficient `length` and `contains` operations,
   /// based on [length] and [containsKey] of the map.
@@ -428,7 +428,7 @@ abstract interface class Map<K, V> {
   /// Modifying the map while iterating the keys may break the iteration.
   Iterable<K> get keys;
 
-  /// The values of [this].
+  /// The values of this [Map].
   ///
   /// The values are iterated in the order of their corresponding keys.
   /// This means that iterating [keys] and [values] in parallel will

@@ -131,7 +131,7 @@ abstract final class WeakReference<T extends Object> {
   /// the `null` value, or certain other types of special objects.
   external factory WeakReference(T target);
 
-  /// The current object weakly referenced by [this], if any.
+  /// The current object weakly referenced by this [WeakReference], if any.
   ///
   /// The value is either the object supplied in the constructor,
   /// or `null` if the weak reference has been cleared.

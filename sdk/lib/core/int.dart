@@ -353,7 +353,7 @@ abstract final class int extends num {
   /// `i == int.parse(i.toString())`.
   String toString();
 
-  /// Converts [this] to a string representation in the given [radix].
+  /// Converts this [int] to a string representation in the given [radix].
   ///
   /// In the string representation, lower-case letters are used for digits above
   /// '9', with 'a' being 10 and 'z' being 35.
