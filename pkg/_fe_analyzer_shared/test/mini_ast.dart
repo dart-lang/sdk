@@ -1004,7 +1004,7 @@ class CheckPromoted extends Expression {
   ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
     var promotedType = promotable._getPromotedType(h);
     expect(promotedType?.type, expectedTypeStr, reason: 'at $location');
-    return SimpleTypeAnalysisResult(type: Type('Null'));
+    return SimpleTypeAnalysisResult(type: NullType.instance);
   }
 }
 
@@ -1023,7 +1023,7 @@ class CheckReachable extends Expression {
   ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
     expect(h.flow.isReachable, expectedReachable, reason: 'at $location');
     h.irBuilder.atom('null', Kind.expression, location: location);
-    return new SimpleTypeAnalysisResult(type: Type('Null'));
+    return new SimpleTypeAnalysisResult(type: NullType.instance);
   }
 }
 
@@ -1790,7 +1790,7 @@ class Harness {
         return _members['Object.$memberName']!;
       default:
         // It's legal to look up any member on the type `dynamic`.
-        if (type.type == 'dynamic') {
+        if (type is DynamicType) {
           return null;
         }
         // But an attempt to look up an unknown member on any other type
@@ -2703,16 +2703,7 @@ class MiniAstOperations
   late final Type intType = Type('int');
 
   @override
-  late final Type neverType = Type('Never');
-
-  @override
-  late final Type nullType = Type('Null');
-
-  @override
   late final Type doubleType = Type('double');
-
-  @override
-  late final Type dynamicType = Type('dynamic');
 
   bool? _legacy;
 
@@ -2737,13 +2728,22 @@ class MiniAstOperations
   final Type boolType = Type('bool');
 
   @override
-  Type get errorType => Type('error');
+  Type get dynamicType => DynamicType.instance;
+
+  @override
+  Type get errorType => InvalidType.instance;
 
   bool get legacy => _legacy ?? false;
 
   set legacy(bool value) {
     _legacy = value;
   }
+
+  @override
+  Type get neverType => NeverType.instance;
+
+  @override
+  Type get nullType => NullType.instance;
 
   /// Updates the harness with a new result for [downwardInfer].
   void addDownwardInfer({
@@ -2788,7 +2788,7 @@ class MiniAstOperations
   TypeClassification classifyType(Type type) {
     if (isSubtypeOf(type, Type('Object'))) {
       return TypeClassification.nonNullable;
-    } else if (isSubtypeOf(type, Type('Null'))) {
+    } else if (isSubtypeOf(type, NullType.instance)) {
       return TypeClassification.nullOrEquivalent;
     } else {
       return TypeClassification.potentiallyNullable;
@@ -2881,8 +2881,8 @@ class MiniAstOperations
   @override
   bool isAssignableTo(Type fromType, Type toType) {
     if (legacy && isSubtypeOf(toType, fromType)) return true;
-    if (fromType.type == 'dynamic') return true;
-    if (fromType.type == 'error') return true;
+    if (fromType is DynamicType) return true;
+    if (fromType is InvalidType) return true;
     return isSubtypeOf(fromType, toType);
   }
 
@@ -2892,12 +2892,10 @@ class MiniAstOperations
   }
 
   @override
-  bool isDynamic(Type type) =>
-      type is PrimaryType && type.name == 'dynamic' && type.args.isEmpty;
+  bool isDynamic(Type type) => type is DynamicType;
 
   @override
-  bool isError(Type type) =>
-      type is PrimaryType && type.name == 'error' && type.args.isEmpty;
+  bool isError(Type type) => type is InvalidType;
 
   @override
   bool isExtensionType(Type type) {
@@ -2919,16 +2917,16 @@ class MiniAstOperations
 
   @override
   bool isNever(Type type) {
-    return type.type == 'Never';
+    return type is NeverType;
   }
 
   @override
   bool isNonNullable(TypeSchema typeSchema) {
     Type type = typeSchema.toType();
-    if (isDynamic(type) ||
+    if (type is DynamicType ||
         typeSchema is SharedUnknownType ||
-        isVoid(type) ||
-        isNull(type)) {
+        type is VoidType ||
+        type is NullType) {
       return false;
     } else if (type is PromotedTypeVariableType) {
       return isNonNullable(typeToSchema(type.promotion));
@@ -2940,13 +2938,11 @@ class MiniAstOperations
     // TODO(cstefantsova): Update to a fast-pass implementation when the
     // mini-ast testing framework supports looking up superinterfaces of
     // extension types or looking up bounds of type parameters.
-    return _typeSystem.isSubtype(new Type('Null'), type);
+    return _typeSystem.isSubtype(NullType.instance, type);
   }
 
   @override
-  bool isNull(Type type) {
-    return type.type == 'Null';
-  }
+  bool isNull(Type type) => type is NullType;
 
   @override
   bool isObject(Type type) {
@@ -2981,8 +2977,7 @@ class MiniAstOperations
   }
 
   @override
-  bool isVoid(Type type) =>
-      type is PrimaryType && type.name == 'void' && type.args.isEmpty;
+  bool isVoid(Type type) => type is VoidType;
 
   @override
   TypeSchema iterableTypeSchema(TypeSchema elementTypeSchema) {
@@ -3006,15 +3001,15 @@ class MiniAstOperations
       return type1;
     } else if (promoteToNonNull(type2) == type1) {
       return type2;
-    } else if (type1.type == 'Null' && promoteToNonNull(type2) != type2) {
+    } else if (type1 is NullType && promoteToNonNull(type2) != type2) {
       // type2 is already nullable
       return type2;
-    } else if (type2.type == 'Null' && promoteToNonNull(type1) != type1) {
+    } else if (type2 is NullType && promoteToNonNull(type1) != type1) {
       // type1 is already nullable
       return type1;
-    } else if (type1.type == 'Never') {
+    } else if (type1 is NeverType) {
       return type2;
-    } else if (type2.type == 'Never') {
+    } else if (type2 is NeverType) {
       return type1;
     } else {
       var typeNames = [type1.type, type2.type];
@@ -3025,11 +3020,11 @@ class MiniAstOperations
   }
 
   @override
-  Type makeNullable(Type type) => lub(type, Type('Null'));
+  Type makeNullable(Type type) => lub(type, NullType.instance);
 
   @override
   TypeSchema makeTypeSchemaNullable(TypeSchema typeSchema) =>
-      TypeSchema.fromType(lub(typeSchema.toType(), Type('Null')));
+      TypeSchema.fromType(lub(typeSchema.toType(), NullType.instance));
 
   @override
   Type mapType({
@@ -3050,10 +3045,8 @@ class MiniAstOperations
   @override
   Type? matchFutureOr(Type type) {
     Type underlyingType = withNullabilitySuffix(type, NullabilitySuffix.none);
-    if (underlyingType is PrimaryType && underlyingType.args.length == 1) {
-      if (underlyingType.name == 'FutureOr') {
-        return underlyingType.args[0];
-      }
+    if (underlyingType is FutureOrType) {
+      return underlyingType.typeArgument;
     }
     return null;
   }
@@ -3143,8 +3136,8 @@ class MiniAstOperations
   Type promoteToNonNull(Type type) {
     if (type is QuestionType) {
       return type.innerType;
-    } else if (type.type == 'Null') {
-      return Type('Never');
+    } else if (type is NullType) {
+      return NeverType.instance;
     } else {
       return type;
     }
@@ -3202,7 +3195,7 @@ class MiniAstOperations
   @override
   bool typeSchemaIsDynamic(TypeSchema typeSchema) {
     var type = typeSchema.toType();
-    return type is PrimaryType && type.name == 'dynamic' && type.args.isEmpty;
+    return type is DynamicType;
   }
 
   @override
@@ -3366,7 +3359,7 @@ class NullAwareAccess extends Expression {
     var rhsType =
         h.typeAnalyzer.analyzeExpression(rhs, h.operations.unknownType);
     h.flow.nullAwareAccess_end();
-    var type = h.operations.lub(rhsType, Type('Null'));
+    var type = h.operations.lub(rhsType, NullType.instance);
     h.irBuilder.apply(
         _fakeMethodName, [Kind.expression, Kind.expression], Kind.expression,
         location: location);
@@ -5404,8 +5397,6 @@ class _MiniAstTypeAnalyzer
 
   final _irBuilder = MiniIRBuilder();
 
-  late final Type nullType = Type('Null');
-
   @override
   final TypeAnalyzerOptions options;
 
@@ -5424,6 +5415,8 @@ class _MiniAstTypeAnalyzer
   @override
   FlowAnalysis<Node, Statement, Expression, Var, Type> get flow =>
       _harness.flow;
+
+  Type get nullType => NullType.instance;
 
   @override
   MiniAstOperations get operations => _harness.operations;

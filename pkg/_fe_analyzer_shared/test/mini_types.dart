@@ -8,6 +8,14 @@
 
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 
+/// Representation of the type `dynamic` suitable for unit testing of code in
+/// the `_fe_analyzer_shared` package.
+class DynamicType extends _SpecialSimpleType {
+  static final instance = DynamicType._();
+
+  DynamicType._() : super._('dynamic');
+}
+
 /// Representation of a function type suitable for unit testing of code in the
 /// `_fe_analyzer_shared` package.
 ///
@@ -57,6 +65,38 @@ class FunctionType extends Type {
   }
 }
 
+/// Representation of the type `FutureOr<T>` suitable for unit testing of code
+/// in the `_fe_analyzer_shared` package.
+class FutureOrType extends PrimaryType {
+  FutureOrType(Type typeArgument)
+      : super._withSpecialName('FutureOr', args: [typeArgument]);
+
+  Type get typeArgument => args.single;
+
+  @override
+  Type? closureWithRespectToUnknown({required bool covariant}) {
+    Type? newArg =
+        typeArgument.closureWithRespectToUnknown(covariant: covariant);
+    if (newArg == null) return null;
+    return FutureOrType(newArg);
+  }
+
+  @override
+  Type? recursivelyDemote({required bool covariant}) {
+    Type? newArg = typeArgument.recursivelyDemote(covariant: covariant);
+    if (newArg == null) return null;
+    return FutureOrType(newArg);
+  }
+}
+
+/// Representation of an invalid type suitable for unit testing of code in the
+/// `_fe_analyzer_shared` package.
+class InvalidType extends _SpecialSimpleType {
+  static final instance = InvalidType._();
+
+  InvalidType._() : super._('error');
+}
+
 class NamedType implements SharedNamedType<Type> {
   @override
   final String name;
@@ -65,6 +105,22 @@ class NamedType implements SharedNamedType<Type> {
   final Type type;
 
   NamedType({required this.name, required this.type});
+}
+
+/// Representation of the type `Never` suitable for unit testing of code in the
+/// `_fe_analyzer_shared` package.
+class NeverType extends _SpecialSimpleType {
+  static final instance = NeverType._();
+
+  NeverType._() : super._('Never');
+}
+
+/// Representation of the type `Null` suitable for unit testing of code in the
+/// `_fe_analyzer_shared` package.
+class NullType extends _SpecialSimpleType {
+  static final instance = NullType._();
+
+  NullType._() : super._('Null');
 }
 
 /// Exception thrown if a type fails to parse properly.
@@ -85,10 +141,12 @@ class ParseError extends Error {
 class PrimaryType extends Type {
   /// Names of primary types not originating from a class, a mixin, or an enum.
   static const List<String> namedNonInterfaceTypes = [
+    'dynamic',
+    'error',
     'FutureOr',
     'Never',
     'Null',
-    'dynamic',
+    'void'
   ];
 
   /// The name of the type.
@@ -97,7 +155,19 @@ class PrimaryType extends Type {
   /// The type arguments, or `const []` if there are no type arguments.
   final List<Type> args;
 
-  PrimaryType(this.name, {this.args = const []}) : super._();
+  PrimaryType(this.name, {this.args = const []}) : super._() {
+    if (namedNonInterfaceTypes.contains(name)) {
+      throw StateError('Tried to create a PrimaryType with special name $name');
+    }
+  }
+
+  PrimaryType._withSpecialName(this.name, {this.args = const []}) : super._() {
+    if (!namedNonInterfaceTypes.contains(name)) {
+      throw StateError(
+          'Tried to use PrimaryType._withSpecialName with non-special name '
+          '$name');
+    }
+  }
 
   bool get isInterfaceType => !namedNonInterfaceTypes.contains(name);
 
@@ -148,7 +218,7 @@ class PromotedTypeVariableType extends Type {
 
   @override
   Type? recursivelyDemote({required bool covariant}) =>
-      covariant ? innerType : new PrimaryType('Never');
+      covariant ? innerType : NeverType.instance;
 
   @override
   String _toString({required bool allowSuffixes}) {
@@ -413,8 +483,6 @@ class TypeSystem {
     'String': (_) => [Type('Object')],
   };
 
-  static final _nullType = Type('Null');
-
   static final _objectQuestionType = Type('Object?');
 
   static final _objectType = Type('Object');
@@ -435,10 +503,10 @@ class TypeSystem {
 
   Type factor(Type t, Type s) {
     // If T <: S then Never
-    if (isSubtype(t, s)) return Type('Never');
+    if (isSubtype(t, s)) return NeverType.instance;
 
     // Else if T is R? and Null <: S then factor(R, S)
-    if (t is QuestionType && isSubtype(_nullType, s)) {
+    if (t is QuestionType && isSubtype(NullType.instance, s)) {
       return factor(t.innerType, s);
     }
 
@@ -446,20 +514,22 @@ class TypeSystem {
     if (t is QuestionType) return QuestionType(factor(t.innerType, s));
 
     // Else if T is R* and Null <: S then factor(R, S)
-    if (t is StarType && isSubtype(_nullType, s)) return factor(t.innerType, s);
+    if (t is StarType && isSubtype(NullType.instance, s)) {
+      return factor(t.innerType, s);
+    }
 
     // Else if T is R* then factor(R, S)*
     if (t is StarType) return StarType(factor(t.innerType, s));
 
     // Else if T is FutureOr<R> and Future<R> <: S then factor(R, S)
-    if (t is PrimaryType && t.args.length == 1 && t.name == 'FutureOr') {
-      var r = t.args[0];
+    if (t is FutureOrType) {
+      var r = t.typeArgument;
       if (isSubtype(PrimaryType('Future', args: [r]), s)) return factor(r, s);
     }
 
     // Else if T is FutureOr<R> and R <: S then factor(Future<R>, S)
-    if (t is PrimaryType && t.args.length == 1 && t.name == 'FutureOr') {
-      var r = t.args[0];
+    if (t is FutureOrType) {
+      var r = t.typeArgument;
       if (isSubtype(r, s)) return factor(PrimaryType('Future', args: [r]), s);
     }
 
@@ -492,14 +562,12 @@ class TypeSystem {
     if (_isTop(t1)) return true;
 
     // Left Top: if T0 is dynamic or void then T0 <: T1 if Object? <: T1
-    if (t0 is PrimaryType &&
-        t0.args.isEmpty &&
-        (t0.name == 'dynamic' || t0.name == 'error' || t0.name == 'void')) {
+    if (t0 is DynamicType || t0 is InvalidType || t0 is VoidType) {
       return isSubtype(_objectQuestionType, t1);
     }
 
     // Left Bottom: if T0 is Never then T0 <: T1
-    if (t0 is PrimaryType && t0.args.isEmpty && t0.name == 'Never') return true;
+    if (t0 is NeverType) return true;
 
     // Right Object: if T1 is Object then:
     if (t1 is PrimaryType && t1.args.isEmpty && t1.name == 'Object') {
@@ -515,8 +583,8 @@ class TypeSystem {
       }
 
       // - if T0 is FutureOr<S> for some S, then T0 <: T1 iff S <: Object.
-      if (t0 is PrimaryType && t0.args.length == 1 && t0.name == 'FutureOr') {
-        return isSubtype(t0.args[0], _objectType);
+      if (t0 is FutureOrType) {
+        return isSubtype(t0.typeArgument, _objectType);
       }
 
       // - if T0 is S* for any S, then T0 <: T1 iff S <: T1
@@ -525,12 +593,10 @@ class TypeSystem {
       // - if T0 is Null, dynamic, void, or S? for any S, then the subtyping
       //   does not hold (per above, the result of the subtyping query is
       //   false).
-      if (t0 is PrimaryType &&
-              t0.args.isEmpty &&
-              (t0.name == 'Null' ||
-                  t0.name == 'dynamic' ||
-                  t0.name == 'error' ||
-                  t0.name == 'void') ||
+      if (t0 is NullType ||
+          t0 is DynamicType ||
+          t0 is InvalidType ||
+          t0 is VoidType ||
           t0 is QuestionType) {
         return false;
       }
@@ -540,20 +606,18 @@ class TypeSystem {
     }
 
     // Left Null: if T0 is Null then:
-    if (t0 is PrimaryType && t0.args.isEmpty && t0.name == 'Null') {
+    if (t0 is NullType) {
       // - if T1 is a type variable (promoted or not) the query is false
       if (_isTypeVar(t1)) return false;
 
       // - If T1 is FutureOr<S> for some S, then the query is true iff
       //   Null <: S.
-      if (t1 is PrimaryType && t1.args.length == 1 && t1.name == 'FutureOr') {
-        return isSubtype(_nullType, t1.args[0]);
+      if (t1 is FutureOrType) {
+        return isSubtype(NullType.instance, t1.typeArgument);
       }
 
       // - If T1 is Null, S? or S* for some S, then the query is true.
-      if (t1 is PrimaryType && t1.args.isEmpty && t1.name == 'Null' ||
-          t1 is QuestionType ||
-          t1 is StarType) {
+      if (t1 is NullType || t1 is QuestionType || t1 is StarType) {
         return true;
       }
 
@@ -574,8 +638,8 @@ class TypeSystem {
     }
 
     // Left FutureOr: if T0 is FutureOr<S0> then:
-    if (t0 is PrimaryType && t0.args.length == 1 && t0.name == 'FutureOr') {
-      var s0 = t0.args[0];
+    if (t0 is FutureOrType) {
+      var s0 = t0.typeArgument;
 
       // - T0 <: T1 iff Future<S0> <: T1 and S0 <: T1
       return isSubtype(PrimaryType('Future', args: [s0]), t1) &&
@@ -585,7 +649,7 @@ class TypeSystem {
     // Left Nullable: if T0 is S0? then:
     if (t0 is QuestionType) {
       // - T0 <: T1 iff S0 <: T1 and Null <: T1
-      return isSubtype(t0.innerType, t1) && isSubtype(_nullType, t1);
+      return isSubtype(t0.innerType, t1) && isSubtype(NullType.instance, t1);
     }
 
     // Type Variable Reflexivity 1: if T0 is a type variable X0 or a promoted
@@ -614,8 +678,8 @@ class TypeSystem {
     }
 
     // Right FutureOr: if T1 is FutureOr<S1> then:
-    if (t1 is PrimaryType && t1.args.length == 1 && t1.name == 'FutureOr') {
-      var s1 = t1.args[0];
+    if (t1 is FutureOrType) {
+      var s1 = t1.typeArgument;
 
       // - T0 <: T1 iff any of the following hold:
       return
@@ -640,7 +704,7 @@ class TypeSystem {
           //   - either T0 <: S1
           isSubtype(t0, s1) ||
               //   - or T0 <: Null
-              isSubtype(t0, _nullType) ||
+              isSubtype(t0, NullType.instance) ||
               //   - or T0 is X0 and X0 has bound S0 and S0 <: T1
               t0 is PrimaryType &&
                   _isTypeVar(t0) &&
@@ -817,8 +881,7 @@ class TypeSystem {
 
   bool _isTop(Type t) {
     if (t is PrimaryType) {
-      return t.args.isEmpty &&
-          (t.name == 'dynamic' || t.name == 'error' || t.name == 'void');
+      return t is DynamicType || t is InvalidType || t is VoidType;
     } else if (t is QuestionType) {
       var innerType = t.innerType;
       return innerType is PrimaryType &&
@@ -858,13 +921,37 @@ class UnknownType extends Type implements SharedUnknownType {
 
   @override
   Type closureWithRespectToUnknown({required bool covariant}) =>
-      covariant ? Type('Object?') : Type('Never');
+      covariant ? Type('Object?') : NeverType.instance;
 
   @override
   Type? recursivelyDemote({required bool covariant}) => null;
 
   @override
   String _toString({required bool allowSuffixes}) => '?';
+}
+
+/// Representation of the type `void` suitable for unit testing of code in the
+/// `_fe_analyzer_shared` package.
+class VoidType extends _SpecialSimpleType {
+  static final instance = VoidType._();
+
+  VoidType._() : super._('void');
+}
+
+/// Shared implementation of the types `void`, `dynamic`, `null`, `Never`, and
+/// the invalid type.
+///
+/// These types share the property that they are special cases of [PrimaryType]
+/// that don't need special functionality for the [closureWithRespectToUnknown]
+/// and [recursivelyDemote] methods.
+class _SpecialSimpleType extends PrimaryType {
+  _SpecialSimpleType._(super.name) : super._withSpecialName();
+
+  @override
+  Type? closureWithRespectToUnknown({required bool covariant}) => null;
+
+  @override
+  Type? recursivelyDemote({required bool covariant}) => null;
 }
 
 class _TypeParser {
@@ -1053,7 +1140,39 @@ class _TypeParser {
     } else {
       typeArgs = const [];
     }
-    return PrimaryType(typeName, args: typeArgs);
+    if (typeName == 'dynamic') {
+      if (typeArgs.isNotEmpty) {
+        throw ParseError('`dynamic` does not accept type arguments');
+      }
+      return DynamicType.instance;
+    } else if (typeName == 'error') {
+      if (typeArgs.isNotEmpty) {
+        throw ParseError('`error` does not accept type arguments');
+      }
+      return InvalidType.instance;
+    } else if (typeName == 'FutureOr') {
+      if (typeArgs.length != 1) {
+        throw ParseError('`FutureOr` requires exactly one type argument');
+      }
+      return FutureOrType(typeArgs.single);
+    } else if (typeName == 'Never') {
+      if (typeArgs.isNotEmpty) {
+        throw ParseError('`Never` does not accept type arguments');
+      }
+      return NeverType.instance;
+    } else if (typeName == 'Null') {
+      if (typeArgs.isNotEmpty) {
+        throw ParseError('`Null` does not accept type arguments');
+      }
+      return NullType.instance;
+    } else if (typeName == 'void') {
+      if (typeArgs.isNotEmpty) {
+        throw ParseError('`void` does not accept type arguments');
+      }
+      return VoidType.instance;
+    } else {
+      return PrimaryType(typeName, args: typeArgs);
+    }
   }
 
   static Type parse(String typeStr) {

@@ -35,6 +35,31 @@ main() {
       test('invalid type arg separator', () {
         expect(() => Type('Map<int) String>'), throwsParseError);
       });
+
+      test('dynamic', () {
+        expect(Type('dynamic'), same(DynamicType.instance));
+      });
+
+      test('error', () {
+        expect(Type('error'), same(InvalidType.instance));
+      });
+
+      test('FutureOr', () {
+        var t = Type('FutureOr<int>') as FutureOrType;
+        expect(t.typeArgument.type, 'int');
+      });
+
+      test('Never', () {
+        expect(Type('Never'), same(NeverType.instance));
+      });
+
+      test('Null', () {
+        expect(Type('Null'), same(NullType.instance));
+      });
+
+      test('void', () {
+        expect(Type('void'), same(VoidType.instance));
+      });
     });
 
     test('invalid initial token', () {
