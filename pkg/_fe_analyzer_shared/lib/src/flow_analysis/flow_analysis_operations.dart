@@ -63,9 +63,6 @@ abstract interface class FlowAnalysisTypeOperations<Type extends Object> {
   /// consideration by an instance check.
   Type factor(Type from, Type what);
 
-  /// Returns `true` if [type] is the error type.
-  bool isError(Type type);
-
   /// Determines whether the given [type] is equivalent to the `Never` type.
   ///
   /// A type is equivalent to `Never` if it:

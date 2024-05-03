@@ -326,8 +326,8 @@ mixin TypeAnalyzer<
         'Assigned variables must only appear in irrefutable pattern contexts');
     Error? patternTypeMismatchInIrrefutableContextError;
     if (irrefutableContext != null &&
-        !operations.isDynamic(matchedValueType) &&
-        !operations.isError(matchedValueType) &&
+        matchedValueType is! SharedDynamicType &&
+        matchedValueType is! SharedInvalidType &&
         !operations.isSubtypeOf(matchedValueType, variableDeclaredType)) {
       patternTypeMismatchInIrrefutableContextError =
           errors.patternTypeMismatchInIrrefutableContext(
@@ -371,7 +371,7 @@ mixin TypeAnalyzer<
         knownType: requiredType,
         matchFailsIfWrongType: false);
     if (operations.isSubtypeOf(matchedValueType, requiredType) &&
-        !operations.isError(requiredType)) {
+        requiredType is! SharedInvalidType) {
       errors.matchedTypeIsSubtypeOfRequired(
         pattern: pattern,
         matchedType: matchedValueType,
@@ -488,8 +488,8 @@ mixin TypeAnalyzer<
     Node? irrefutableContext = context.irrefutableContext;
     Error? patternTypeMismatchInIrrefutableContextError;
     if (irrefutableContext != null &&
-        !operations.isDynamic(matchedValueType) &&
-        !operations.isError(matchedValueType) &&
+        matchedValueType is! SharedDynamicType &&
+        matchedValueType is! SharedInvalidType &&
         !operations.isSubtypeOf(matchedValueType, staticType)) {
       patternTypeMismatchInIrrefutableContextError =
           errors.patternTypeMismatchInIrrefutableContext(
@@ -774,9 +774,9 @@ mixin TypeAnalyzer<
       Type? listElementType = operations.matchListType(matchedValueType);
       if (listElementType != null) {
         valueType = listElementType;
-      } else if (operations.isDynamic(matchedValueType)) {
+      } else if (matchedValueType is SharedDynamicType) {
         valueType = operations.dynamicType;
-      } else if (operations.isError(matchedValueType)) {
+      } else if (matchedValueType is SharedInvalidType) {
         valueType = operations.errorType;
       } else {
         valueType = operations.objectQuestionType;
@@ -1040,11 +1040,11 @@ mixin TypeAnalyzer<
         keyType = typeArguments.keyType;
         valueType = typeArguments.valueType;
         keySchema = operations.typeToSchema(keyType);
-      } else if (operations.isDynamic(matchedValueType)) {
+      } else if (matchedValueType is SharedDynamicType) {
         keyType = operations.dynamicType;
         valueType = operations.dynamicType;
         keySchema = operations.unknownType;
-      } else if (operations.isError(matchedValueType)) {
+      } else if (matchedValueType is SharedInvalidType) {
         keyType = operations.errorType;
         valueType = operations.errorType;
         keySchema = operations.unknownType;
@@ -1258,8 +1258,8 @@ mixin TypeAnalyzer<
     // If the required type is `dynamic` or `Never`, then every getter is
     // treated as having the same type.
     (Object?, Type)? overridePropertyGetType;
-    if (operations.isDynamic(requiredType) ||
-        operations.isError(requiredType) ||
+    if (requiredType is SharedDynamicType ||
+        requiredType is SharedInvalidType ||
         operations.isNever(requiredType)) {
       overridePropertyGetType = (null, requiredType);
     }
@@ -1392,9 +1392,9 @@ mixin TypeAnalyzer<
         ? operations.matchStreamType(expressionType)
         : operations.matchIterableType(expressionType);
     if (elementType == null) {
-      if (operations.isDynamic(expressionType)) {
+      if (expressionType is SharedDynamicType) {
         elementType = operations.dynamicType;
-      } else if (operations.isError(expressionType)) {
+      } else if (expressionType is SharedInvalidType) {
         elementType = operations.errorType;
       } else {
         patternForInExpressionIsNotIterableError =
@@ -1558,9 +1558,9 @@ mixin TypeAnalyzer<
       } else {
         dispatchFields(operations.objectQuestionType);
       }
-    } else if (operations.isDynamic(matchedValueType)) {
+    } else if (matchedValueType is SharedDynamicType) {
       dispatchFields(operations.dynamicType);
-    } else if (operations.isError(matchedValueType)) {
+    } else if (matchedValueType is SharedInvalidType) {
       dispatchFields(operations.errorType);
     } else {
       dispatchFields(operations.objectQuestionType);

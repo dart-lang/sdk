@@ -251,10 +251,8 @@ class TypeConstraintFromArgument<
 
     return [
       prefix,
-      "declared as     "
-          "'${typeAnalyzerOperations.getDisplayString(parameterType)}'",
-      "but argument is "
-          "'${typeAnalyzerOperations.getDisplayString(argumentType)}'."
+      "declared as     '${parameterType.getDisplayString()}'",
+      "but argument is '${argumentType.getDisplayString()}'."
     ];
   }
 }
@@ -293,8 +291,8 @@ class TypeConstraintFromExtendsClause<
       TypeAnalyzerOperations<Variable, Type, TypeSchema, InferableParameter,
               TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations) {
-    String boundStr = typeAnalyzerOperations.getDisplayString(boundType);
-    String extendsStr = typeAnalyzerOperations.getDisplayString(extendsType);
+    String boundStr = boundType.getDisplayString();
+    String extendsStr = extendsType.getDisplayString();
     return [
       "Type parameter '${typeParameterName}'",
       "is declared to extend '${boundStr}' producing '${extendsStr}'."
@@ -324,9 +322,8 @@ class TypeConstraintFromFunctionContext<
           typeAnalyzerOperations) {
     return [
       "Function type",
-      "declared as '${typeAnalyzerOperations.getDisplayString(functionType)}'",
-      "used where  '${typeAnalyzerOperations.getDisplayString(contextType)}' "
-          "is required."
+      "declared as '${functionType.getDisplayString()}'",
+      "used where  '${contextType.getDisplayString()}' is required."
     ];
   }
 }
@@ -353,9 +350,8 @@ class TypeConstraintFromReturnType<
           typeAnalyzerOperations) {
     return [
       "Return type",
-      "declared as '${typeAnalyzerOperations.getDisplayString(declaredType)}'",
-      "used where  '${typeAnalyzerOperations.getDisplayString(contextType)}' "
-          "is required."
+      "declared as '${declaredType.getDisplayString()}'",
+      "used where  '${contextType.getDisplayString()}' is required."
     ];
   }
 }

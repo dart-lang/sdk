@@ -70,7 +70,13 @@ import 'dart:convert' show utf8;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     show Variance;
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart'
-    show SharedNamedType, SharedRecordType, SharedType;
+    show
+        SharedDynamicType,
+        SharedInvalidType,
+        SharedNamedType,
+        SharedRecordType,
+        SharedType,
+        SharedVoidType;
 
 import 'src/extension_type_erasure.dart';
 import 'visitor.dart';
@@ -11166,6 +11172,9 @@ sealed class DartType extends Node implements SharedType {
   bool equals(Object other, Assumptions? assumptions);
 
   @override
+  String getDisplayString() => toText(const AstTextStrategy());
+
+  @override
   bool isStructurallyEqualTo(SharedType other) {
     // TODO(cstefantsova): Use the actual algorithm for structural equality.
     return this == other;
@@ -11214,7 +11223,7 @@ abstract class AuxiliaryType extends DartType {
 ///
 /// Can usually be treated as 'dynamic', but should occasionally be handled
 /// differently, e.g. `x is ERROR` should evaluate to false.
-class InvalidType extends DartType {
+class InvalidType extends DartType implements SharedInvalidType {
   @override
   final int hashCode = 12345;
 
@@ -11267,7 +11276,7 @@ class InvalidType extends DartType {
   }
 }
 
-class DynamicType extends DartType {
+class DynamicType extends DartType implements SharedDynamicType {
   @override
   final int hashCode = 54321;
 
@@ -11312,7 +11321,7 @@ class DynamicType extends DartType {
   }
 }
 
-class VoidType extends DartType {
+class VoidType extends DartType implements SharedVoidType {
   @override
   final int hashCode = 123121;
 

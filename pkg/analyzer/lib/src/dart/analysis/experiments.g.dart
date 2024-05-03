@@ -548,7 +548,7 @@ class IsExpired {
   static const bool inference_update_2 = true;
 
   /// Expiration status of the experiment "inference-update-3"
-  static const bool inference_update_3 = false;
+  static const bool inference_update_3 = true;
 
   /// Expiration status of the experiment "inline-class"
   static const bool inline_class = true;

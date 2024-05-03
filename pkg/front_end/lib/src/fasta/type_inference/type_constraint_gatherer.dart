@@ -9,7 +9,7 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.
     as shared show TypeDeclarationKind, TypeDeclarationMatchResult, Variance;
 
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart'
-    show SharedUnknownType;
+    show SharedDynamicType, SharedUnknownType, SharedVoidType;
 
 import 'package:kernel/ast.dart';
 
@@ -462,7 +462,7 @@ class TypeConstraintGatherer {
     if (qNullability == NullabilitySuffix.star) {
       final int baseConstraintCount = _protoConstraints.length;
 
-      if ((typeOperations.isDynamic(p) || typeOperations.isVoid(p)) &&
+      if ((p is SharedDynamicType || p is SharedVoidType) &&
           _isNullabilityAwareSubtypeMatch(p,
               typeOperations.withNullabilitySuffix(q, NullabilitySuffix.none),
               constrainSupertype: constrainSupertype,
@@ -471,8 +471,8 @@ class TypeConstraintGatherer {
       }
       _protoConstraints.length = baseConstraintCount;
 
-      if (!typeOperations.isDynamic(p) &&
-          !typeOperations.isVoid(p) &&
+      if (p is! SharedDynamicType &&
+          p is! SharedVoidType &&
           _isNullabilityAwareSubtypeMatch(
               p,
               typeOperations.withNullabilitySuffix(
@@ -550,7 +550,7 @@ class TypeConstraintGatherer {
       }
       _protoConstraints.length = baseConstraintCount;
 
-      if ((typeOperations.isDynamic(p) || typeOperations.isVoid(p)) &&
+      if ((p is SharedDynamicType || p is SharedVoidType) &&
           _isNullabilityAwareSubtypeMatch(typeOperations.objectType, rawQ,
               constrainSupertype: constrainSupertype,
               treeNodeForTesting: treeNodeForTesting)) {
@@ -619,8 +619,8 @@ class TypeConstraintGatherer {
 
     // If Q is dynamic, Object?, or void then the match holds under no
     // constraints.
-    if (typeOperations.isDynamic(q) ||
-        typeOperations.isVoid(q) ||
+    if (q is SharedDynamicType ||
+        q is SharedVoidType ||
         q == typeOperations.objectQuestionType) {
       return true;
     }

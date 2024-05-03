@@ -154,6 +154,7 @@ features:
         print('feature enabled');
       }
     help: "Better handling of conditional expressions, and switch expressions."
+    expired: true
 
   inline-class:
     enabledIn: '3.3.0'

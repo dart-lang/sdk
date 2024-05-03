@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:meta/meta.dart';
 
 import '../type_inference/assigned_variables.dart';
@@ -5152,7 +5153,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       required Type knownType,
       bool matchFailsIfWrongType = true,
       bool matchMayFailEvenIfCorrectType = false}) {
-    if (operations.isError(knownType)) {
+    if (knownType is SharedInvalidType) {
       _unmatched = _join(_unmatched!, _current);
       return false;
     }

@@ -47,13 +47,6 @@ abstract interface class TypeAnalyzerOperations<
   /// [argumentType].
   Type futureType(Type argumentType);
 
-  /// Return the presentation of this type as it should appear when presented
-  /// to users in contexts such as error messages.
-  ///
-  /// Clients should not depend on the content of the returned value as it will
-  /// be changed if doing so would improve the UX.
-  String getDisplayString(Type type);
-
   /// Returns the nullability modifier of [type].
   NullabilitySuffix getNullabilitySuffix(Type type);
 
@@ -101,9 +94,6 @@ abstract interface class TypeAnalyzerOperations<
   /// returns `false` for `Object?` and `Object*`.
   bool isDartCoreFunction(Type type);
 
-  /// Returns `true` if [type] is the type `dynamic`.
-  bool isDynamic(Type type);
-
   /// Returns `true` if [type] is `E<T1, ..., Tn>`, `E<T1, ..., Tn>?`, or
   /// `E<T1, ..., Tn>*` for some extension type declaration E, some
   /// non-negative n, and some types T1, ..., Tn.
@@ -141,9 +131,6 @@ abstract interface class TypeAnalyzerOperations<
 
   /// Returns whether [node] is final.
   bool isVariableFinal(Variable node);
-
-  /// Returns `true` if [type] is the type `void`.
-  bool isVoid(Type type);
 
   /// Returns the type schema `Iterable`, with type argument.
   TypeSchema iterableTypeSchema(TypeSchema elementTypeSchema);
