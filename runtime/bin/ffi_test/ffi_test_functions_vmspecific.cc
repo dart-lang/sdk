@@ -688,6 +688,7 @@ class PendingCall {
     *response_length_ = response_length;
 
     printf("C   :     Notify result ready.\n");
+    std::unique_lock<std::mutex> lock(mutex);
     notified = true;
     cv.notify_one();
   }

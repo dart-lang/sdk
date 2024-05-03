@@ -126,7 +126,8 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType>
       } else {
         // This only happens in invalid but unreachable code produced by the
         // TFA dead-code elimination.
-        b.comment("Constant in incompatible context");
+        b.comment("Constant in incompatible context (constant: $constant, "
+            "expectedType: $expectedType, resultType: $resultType)");
         b.unreachable();
       }
     }

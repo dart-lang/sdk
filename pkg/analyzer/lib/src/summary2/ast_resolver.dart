@@ -49,6 +49,7 @@ class AstResolver {
   late final _resolverVisitor = ResolverVisitor(
     _linker.inheritance,
     _unitElement.library,
+    LibraryResolutionContext(),
     _unitElement.source,
     _unitElement.library.typeProvider,
     _errorListener,

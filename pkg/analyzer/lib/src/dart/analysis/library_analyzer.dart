@@ -69,6 +69,8 @@ class LibraryAnalyzer {
   final AnalysisOptionsImpl _analysisOptions;
   final DeclaredVariables _declaredVariables;
   final LibraryFileKind _library;
+  final LibraryResolutionContext libraryResolutionContext =
+      LibraryResolutionContext();
   final InheritanceManager3 _inheritance;
 
   final LibraryElementImpl _libraryElement;
@@ -176,7 +178,7 @@ class LibraryAnalyzer {
           file.uri, flowAnalysisHelper.dataForTesting!);
 
       var resolverVisitor = ResolverVisitor(_inheritance, _libraryElement,
-          file.source, _typeProvider, errorListener,
+          libraryResolutionContext, file.source, _typeProvider, errorListener,
           featureSet: _libraryElement.featureSet,
           analysisOptions: _library.file.analysisOptions,
           flowAnalysisHelper: flowAnalysisHelper);
@@ -883,8 +885,8 @@ class LibraryAnalyzer {
     _testingData?.recordFlowAnalysisDataForTesting(
         unitAnalysis.file.uri, flowAnalysisHelper.dataForTesting!);
 
-    var resolver = ResolverVisitor(
-        _inheritance, _libraryElement, source, _typeProvider, errorListener,
+    var resolver = ResolverVisitor(_inheritance, _libraryElement,
+        libraryResolutionContext, source, _typeProvider, errorListener,
         analysisOptions: _library.file.analysisOptions,
         featureSet: unit.featureSet,
         flowAnalysisHelper: flowAnalysisHelper);

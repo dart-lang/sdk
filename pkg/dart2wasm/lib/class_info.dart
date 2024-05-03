@@ -400,7 +400,7 @@ class ClassInfoCollector {
       // Add fields for Dart instance fields
       for (Field field in info.cls!.fields) {
         if (field.isInstanceMember) {
-          w.ValueType wasmType = translator.translateType(field.type);
+          final w.ValueType wasmType = translator.translateTypeOfField(field);
           translator.fieldIndex[field] = info.struct.fields.length;
           info._addField(w.FieldType(wasmType, mutable: !field.isFinal));
         }

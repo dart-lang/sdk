@@ -14,6 +14,32 @@ main() {
 
 @reflectiveTest
 class AugmentedExpressionResolutionTest extends PubPackageResolutionTest {
+  test_class_field() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class A {
+  num foo = 0;
+}
+''');
+
+    await assertNoErrorsInCode('''
+augment library 'a.dart';
+
+augment class A {
+  augment num foo = augmented;
+}
+''');
+
+    var node = findNode.singleVariableDeclaration.initializer!;
+    assertResolvedNodeText(node, r'''
+AugmentedExpression
+  augmentedKeyword: augmented
+  element: self::@class::A::@field::foo
+  staticType: int
+''');
+  }
+
   test_class_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import augment 'test.dart';
@@ -157,6 +183,28 @@ Block
         staticType: int
       semicolon: ;
   rightBracket: }
+''');
+  }
+
+  test_topLevel_variable() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+num foo = 0;
+''');
+
+    await assertNoErrorsInCode('''
+augment library 'a.dart';
+
+augment num foo = augmented;
+''');
+
+    var node = findNode.singleVariableDeclaration.initializer!;
+    assertResolvedNodeText(node, r'''
+AugmentedExpression
+  augmentedKeyword: augmented
+  element: self::@variable::foo
+  staticType: int
 ''');
   }
 }

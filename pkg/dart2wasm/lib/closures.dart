@@ -1114,8 +1114,9 @@ class Closures {
         }
         for (VariableDeclaration variable in context.variables) {
           int index = struct.fields.length;
-          struct.fields.add(w.FieldType(
-              translator.translateType(variable.type).withNullability(true)));
+          struct.fields.add(w.FieldType(translator
+              .translateTypeOfLocalVariable(variable)
+              .withNullability(true)));
           captures[variable]!.fieldIndex = index;
         }
         for (TypeParameter parameter in context.typeParameters) {

@@ -96,6 +96,13 @@ typedef SharedPatternField
 /// promoted.
 typedef WhyNotPromotedGetter = Map<DartType, NonPromotionReason> Function();
 
+/// The context shared between different units of the same library.
+final class LibraryResolutionContext {
+  /// The declarations for [VariableElement]s.
+  final Map<VariableElement, VariableDeclaration> _variableNodes =
+      Map.identity();
+}
+
 /// Instances of the class `ResolverVisitor` are used to resolve the nodes
 /// within a single compilation unit.
 class ResolverVisitor extends ThrowingAstVisitor<void>
@@ -119,6 +126,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   /// The element for the library containing the compilation unit being visited.
   final LibraryElementImpl definingLibrary;
+
+  /// The context shared between different units of the same library.
+  final LibraryResolutionContext libraryResolutionContext;
 
   /// If the resolver visitor is visiting a switch statement and patterns
   /// support is disabled, the tracker that determines whether the switch is
@@ -289,6 +299,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   ResolverVisitor(
       InheritanceManager3 inheritanceManager,
       LibraryElementImpl definingLibrary,
+      LibraryResolutionContext libraryResolutionContext,
       Source source,
       TypeProvider typeProvider,
       AnalysisErrorListener errorListener,
@@ -298,6 +309,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       : this._(
             inheritanceManager,
             definingLibrary,
+            libraryResolutionContext,
             source,
             definingLibrary.typeSystem,
             typeProvider as TypeProviderImpl,
@@ -309,6 +321,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   ResolverVisitor._(
       this.inheritance,
       this.definingLibrary,
+      this.libraryResolutionContext,
       this.source,
       this.typeSystem,
       this.typeProvider,
@@ -1857,14 +1870,26 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitAugmentedExpression(covariant AugmentedExpressionImpl node) {
     if (_enclosingAugmentation case var augmentation?) {
-      var augmentationTarget = augmentation.augmentationTarget;
+      var augmentedElement = augmentation.augmentationTarget;
       if (augmentation is PropertyAccessorElementImpl &&
           augmentation.isGetter &&
-          augmentationTarget is PropertyAccessorElementImpl &&
-          augmentationTarget.isGetter) {
-        node.element = augmentationTarget;
-        node.staticType = augmentationTarget.returnType;
+          augmentedElement is PropertyAccessorElementImpl &&
+          augmentedElement.isGetter) {
+        node.element = augmentedElement;
+        node.staticType = augmentedElement.returnType;
         return;
+      }
+      if (augmentation is PropertyInducingElementImpl &&
+          augmentedElement is PropertyInducingElementImpl) {
+        node.element = augmentedElement;
+        var augmentedNode =
+            libraryResolutionContext._variableNodes[augmentedElement];
+        if (augmentedNode != null) {
+          if (augmentedNode.initializer case var augmentedInitializer?) {
+            node.staticType = augmentedInitializer.staticType;
+            return;
+          }
+        }
       }
     }
 
@@ -3535,22 +3560,30 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    _variableDeclarationResolver.resolve(node as VariableDeclarationImpl);
+  void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
+    var element = node.declaredElement!;
 
-    var declaredElement = node.declaredElement!;
+    var outerAugmentation = _enclosingAugmentation;
+    try {
+      _enclosingAugmentation = element.ifTypeOrNull();
+      libraryResolutionContext._variableNodes[element] = node;
+      _variableDeclarationResolver.resolve(node);
+    } finally {
+      _enclosingAugmentation = outerAugmentation;
+    }
 
     var initializer = node.initializer;
-    var parent = node.parent as VariableDeclarationList;
-    var declaredType = parent.type;
     if (initializer != null) {
+      var parent = node.parent as VariableDeclarationList;
+      var declaredType = parent.type;
       var initializerStaticType = initializer.typeOrThrow;
-      flowAnalysis.flow?.initialize(declaredElement as PromotableElement,
-          initializerStaticType, initializer,
+      flowAnalysis.flow?.initialize(
+          element as PromotableElement, initializerStaticType, initializer,
           isFinal: parent.isFinal,
           isLate: parent.isLate,
           isImplicitlyTyped: declaredType == null);
     }
+
     _checkTopLevelCycle(node);
   }
 

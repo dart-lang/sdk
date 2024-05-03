@@ -5,6 +5,8 @@
 // This file exercises the sample files so that they are tested.
 //
 // SharedObjects=ffi_test_dynamic_library ffi_test_functions
+// Environment=MSAN_OPTIONS=handle_segv=0:detect_stack_use_after_return=1:allocator_may_return_null=1
+// Environment=TSAN_OPTIONS=handle_segv=0:detect_stack_use_after_return=1:allocator_may_return_null=1
 
 import 'sample_ffi_bitfield.dart' as bitfield;
 import 'sample_ffi_data.dart' as data;

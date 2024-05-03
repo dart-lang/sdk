@@ -2550,7 +2550,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
       break;
 
     case Token::kMOD:
-      if (std::abs(rhs) == 1) {
+      if ((rhs == -1) || (rhs == 1)) {
         return flow_graph->TryCreateConstantReplacementFor(this,
                                                            Object::smi_zero());
       }

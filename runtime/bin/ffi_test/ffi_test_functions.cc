@@ -9,9 +9,11 @@
 
 #include <stdarg.h>
 #include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 
+#include <cinttypes>
 #include <cmath>
 #include <iostream>
 #include <limits>
@@ -898,7 +900,7 @@ DART_EXPORT void CallbackWithStruct(void (*f)(Struct8BytesNestedIntCopy)) {
 // Sanity test.
 DART_EXPORT intptr_t TestSimpleAddition(intptr_t (*add)(int, int)) {
   const intptr_t result = add(10, 20);
-  std::cout << "result " << result << "\n";
+  printf("result %" PRIdPTR "\n", result);
   CHECK_EQ(result, 30);
   return 0;
 }
