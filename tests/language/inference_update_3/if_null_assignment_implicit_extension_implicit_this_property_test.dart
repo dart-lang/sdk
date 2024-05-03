@@ -7,8 +7,6 @@
 // using if-null assignments whose target is a property of the current
 // extension, accessed through implicit `this`.
 
-// SharedOptions=--enable-experiment=inference-update-3
-
 import '../static_type_helper.dart';
 
 /// Ensures a context type of `Iterable<T>` for the operand, or `Iterable<_>` if

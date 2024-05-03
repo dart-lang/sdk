@@ -142,7 +142,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag inferenceUpdate3 = const ExperimentalFlag(
       name: 'inference-update-3',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       enabledVersion: const Version(3, 4),
       experimentEnabledVersion: const Version(3, 4),
       experimentReleasedVersion: const Version(3, 4));

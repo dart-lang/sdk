@@ -7,8 +7,6 @@
 // using if-null assignments whose target is a null-aware index expression that
 // refers to operators defined in an extension.
 
-// SharedOptions=--enable-experiment=inference-update-3
-
 import '../static_type_helper.dart';
 
 /// Ensures a context type of `Iterable<T>?` for the operand, or `Iterable<_>?`
