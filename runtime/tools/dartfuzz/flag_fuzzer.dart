@@ -8,6 +8,7 @@
 import "dart:async";
 import "dart:convert";
 import "dart:io";
+import "dart:io" as io;
 import "dart:math";
 
 const timeout = Duration(minutes: 25);
@@ -236,7 +237,7 @@ test(int taskIndex) async {
       print(stdout);
       print("stderr:");
       print(stderr);
-      exitCode = 1;
+      io.exitCode = 1;
       break;
     }
   }
@@ -266,7 +267,7 @@ main() async {
     print(processResult.stdout);
     print("stderr:");
     print(processResult.stderr);
-    exitCode = 1;
+    io.exitCode = 1;
     return;
   }
 
