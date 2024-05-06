@@ -84,7 +84,6 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
-import 'package:analyzer/src/utilities/extensions/object.dart';
 
 typedef SharedMatchContext = shared.MatchContext<AstNode, Expression,
     DartPattern, DartType, PromotableElement>;
@@ -2148,7 +2147,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var outerAugmentation = _enclosingAugmentation;
     try {
       _enclosingFunction = element;
-      _enclosingAugmentation = element.ifTypeOrNull();
+      _enclosingAugmentation = element;
       assert(_thisType == null);
       _setupThisType();
       checkUnreachableNode(node);
@@ -2596,7 +2595,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     try {
       _enclosingFunction = element;
       if (!isLocal) {
-        _enclosingAugmentation = element.ifTypeOrNull();
+        if (element case AugmentableElement enclosingAugmentation) {
+          _enclosingAugmentation = enclosingAugmentation;
+        }
       }
       checkUnreachableNode(node);
       node.documentationComment?.accept(this);
@@ -2938,7 +2939,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var outerAugmentation = _enclosingAugmentation;
     try {
       _enclosingFunction = element;
-      _enclosingAugmentation = element.ifTypeOrNull();
+      if (element case AugmentableElement enclosingAugmentation) {
+        _enclosingAugmentation = enclosingAugmentation;
+      }
       assert(_thisType == null);
       _setupThisType();
       checkUnreachableNode(node);
@@ -3565,7 +3568,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     var outerAugmentation = _enclosingAugmentation;
     try {
-      _enclosingAugmentation = element.ifTypeOrNull();
+      if (element case AugmentableElement enclosingAugmentation) {
+        _enclosingAugmentation = enclosingAugmentation;
+      }
       libraryResolutionContext._variableNodes[element] = node;
       _variableDeclarationResolver.resolve(node);
     } finally {
