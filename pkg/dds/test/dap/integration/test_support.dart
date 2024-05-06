@@ -88,6 +88,7 @@ Future<Process> startDartProcessPaused(
   List<String> args, {
   required String cwd,
   List<String>? vmArgs,
+  required bool pauseOnExit,
 }) async {
   final vmPath = Platform.resolvedExecutable;
   vmArgs ??= [];
@@ -95,7 +96,7 @@ Future<Process> startDartProcessPaused(
     '--enable-vm-service=0',
     '--pause_isolates_on_start',
     // Use pause-on-exit so we don't lose async output events in attach tests.
-    '--pause_isolates_on_exit',
+    if (pauseOnExit) '--pause_isolates_on_exit',
   ]);
   final processArgs = [
     ...vmArgs,

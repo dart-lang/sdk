@@ -25,13 +25,15 @@ main() {
         testFile.path,
         args,
         cwd: dap.testAppDir.path,
+        pauseOnExit: true, // To ensure we capture all output
       );
       final vmServiceUri = await waitForStdoutVmServiceBanner(proc);
 
       final outputEvents = await dap.client.collectOutput(
         launch: () => dap.client.attach(
           vmServiceUri: vmServiceUri.toString(),
-          autoResume: true,
+          autoResumeOnEntry: true,
+          autoResumeOnExit: true,
           cwd: dap.testAppDir.path,
         ),
       );
@@ -78,11 +80,13 @@ main() {
         ['one', 'two'],
         cwd: dap.testAppDir.path,
         vmArgs: ['--write-service-info=${Uri.file(vmServiceInfoFilePath)}'],
+        pauseOnExit: true, // To ensure we capture all output
       );
       final outputEvents = await dap.client.collectOutput(
         launch: () => dap.client.attach(
           vmServiceInfoFile: vmServiceInfoFilePath,
-          autoResume: true,
+          autoResumeOnEntry: true,
+          autoResumeOnExit: true,
           cwd: dap.testAppDir.path,
         ),
       );
@@ -125,6 +129,11 @@ main() {
         testFile.path,
         [],
         cwd: dap.testAppDir.path,
+        // Disable user-pause-on-exit because we're checking DAP resumes and
+        // if the VM waits for user-resume, we won't complete. We don't want to
+        // send an explicit user-resume because that would force resume,
+        // invalidating this test that we did a DAP resume.
+        pauseOnExit: false,
       );
       final vmServiceUri = await waitForStdoutVmServiceBanner(proc);
 
@@ -135,7 +144,8 @@ main() {
         client.start(
           launch: () => client.attach(
             vmServiceUri: vmServiceUri.toString(),
-            autoResume: false,
+            autoResumeOnEntry: false,
+            autoResumeOnExit: false,
             cwd: dap.testAppDir.path,
           ),
         ),

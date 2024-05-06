@@ -298,7 +298,8 @@ main() {
       final outputEvents = await client.collectTestOutput(
         launch: () => client.attach(
           vmServiceUri: 'ws://bogus.local/',
-          autoResume: false,
+          autoResumeOnEntry: false,
+          autoResumeOnExit: false,
         ),
       );
 

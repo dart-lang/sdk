@@ -2,6 +2,7 @@
 - [DAP]: Fixed an issue where breakpoint `changed` events might contain incorrect location information when new isolates are created, causing breakpoints to appear to move in the editor.
 - [DAP]: For consistency with other values, automatic `toString()` invocations for debugger views no longer expand long strings and instead show truncated values. Full values continue to be returned for evaluation (`context=="repl"`) and when copying to the clipboard (`context=="clipboard"`).
 - [DAP]: Improved handling of sentinel responses when building `variables` responses. This prevents entire map/list requests from failing when only some values inside are sentinels.
+- [DAP] Set `requirePermissionToResume` and `requireUserPermissionToResume` for `onPauseStart` and `onPauseExit` so that DDS waits for DAP's permission before resuming the isolate.
 
 # 4.2.0
 - [DAP] All `OutputEvent`s are now scanned for stack frames to attach `source` metadata to. The [parseStackFrames] parameter for `sendOutput` is ignored and deprecated.

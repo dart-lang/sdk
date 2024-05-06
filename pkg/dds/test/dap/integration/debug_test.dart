@@ -161,7 +161,7 @@ main() {
       final testFile = dap.createTestFile(simpleArgPrintingProgram);
 
       // Run the script, expecting a Stopped event.
-      final stop = dap.client.expectStop('pause');
+      final stop = dap.client.expectStop('exit');
       await Future.wait([
         stop,
         dap.client.initialize(),
@@ -174,6 +174,97 @@ main() {
         dap.client.event('terminated'),
         dap.client.continue_((await stop).threadId!),
       ], eagerError: true);
+    });
+
+    test('does not resume isolates if user passes --pause-isolates-on-start',
+        () async {
+      // Internally we always pass --pause-isolates-on-start and resume the
+      // isolates after setting any breakpoints.
+      //
+      // However if a user passes this flag explicitly, we should not
+      // auto-resume because they might be trying to debug something.
+      final testFile = dap.createTestFile(simpleArgPrintingProgram);
+
+      // Run the script, expecting a Stopped event.
+      final stop = dap.client.expectStop('entry');
+      await Future.wait([
+        stop,
+        dap.client.initialize(),
+        dap.client.launch(
+          testFile.path,
+          toolArgs: ["--pause-isolates-on-start"],
+        ),
+      ], eagerError: true);
+
+      // Resume and expect termination.
+      await Future.wait([
+        dap.client.event('terminated'),
+        dap.client.continue_((await stop).threadId!),
+      ], eagerError: true);
+    });
+
+    test('receives thread, stopped, continued events during pause/resume',
+        () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(debuggerPauseAndPrintManyProgram);
+
+      // Collect interesting events that we want to verify exist and in the
+      // right order.
+      final interestingEvents = const {
+        'thread',
+        'stopped',
+        'continued',
+        'terminated'
+      };
+      final eventsFuture = client.allEvents
+          .where((e) => interestingEvents.contains(e.event))
+          .map((e) {
+        // Map onto a descriptive string for verifying later.
+        final reason = (e.body as Map<String, Object?>)['reason'] as String?;
+        return reason != null ? '${e.event} ($reason)' : e.event;
+      }).toList();
+
+      // Start the program and wait to pause on `debugger()`.
+      final stoppedFuture = client.expectStop('step');
+      await client.start(file: testFile);
+      final threadId = (await stoppedFuture).threadId!;
+
+      // Step 3 times and wait for the corresponding stop.
+      for (var i = 0; i < 3; i++) {
+        client.next(threadId);
+        await client.stoppedEvents.first;
+      }
+
+      // Resume to run to end.
+      client.continue_(threadId);
+
+      // Verify we had the expected events.
+      expect(
+        await eventsFuture,
+        [
+          'thread (started)',
+          'stopped (entry)',
+          'continued',
+          // stop on debugger()
+          'stopped (step)',
+          // step 1
+          'continued',
+          'stopped (step)',
+          // step 2
+          'continued',
+          'stopped (step)',
+          // step 3
+          'continued',
+          'stopped (step)',
+          // continue
+          'continued',
+          // pause-on-exit to drain stdout and handle looking up URIs
+          'stopped (exit)',
+          // finished
+          'thread (exited)',
+          'terminated',
+        ],
+      );
     });
 
     for (final outputKind in ['stdout', 'stderr']) {
@@ -760,18 +851,21 @@ main() {
   }, timeout: Timeout.none);
 
   group('debug mode', () {
-    test('can run without DDS', () async {
-      final dap = await DapTestSession.setUp(additionalArgs: ['--no-dds']);
-      addTearDown(dap.tearDown);
+    test(
+      'can run without DDS',
+      () async {
+        final dap = await DapTestSession.setUp(additionalArgs: ['--no-dds']);
+        addTearDown(dap.tearDown);
 
-      final client = dap.client;
-      final testFile = dap.createTestFile(simpleBreakpointProgram);
-      final breakpointLine = lineWith(testFile, breakpointMarker);
+        final client = dap.client;
+        final testFile = dap.createTestFile(simpleBreakpointProgram);
+        final breakpointLine = lineWith(testFile, breakpointMarker);
 
-      await client.hitBreakpoint(testFile, breakpointLine);
+        await client.hitBreakpoint(testFile, breakpointLine);
 
-      expect(await client.ddsAvailable, isFalse);
-    });
+        expect(await client.ddsAvailable, isFalse);
+      },
+    );
 
     test('can run without auth codes', () async {
       final dap =

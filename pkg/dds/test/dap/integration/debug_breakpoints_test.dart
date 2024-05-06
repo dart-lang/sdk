@@ -646,7 +646,8 @@ void main(List<String> args) async {
         client2.start(
           launch: () => client2.attach(
             vmServiceUri: vmServiceUri.toString(),
-            autoResume: false,
+            autoResumeOnEntry: false,
+            autoResumeOnExit: false,
             cwd: dap.testAppDir.path,
           ),
         ),
