@@ -87,6 +87,49 @@ AugmentedInvocation
 ''');
   }
 
+  test_class_getter_functionTyped() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class A {
+  int Function(int a) get foo => throw 0;
+}
+''');
+
+    await assertNoErrorsInCode('''
+augment library 'a.dart';
+
+augment class A {
+  augment int Function(int a) get foo {
+    augmented(42);
+    throw 0;
+  }
+}
+''');
+
+    var node = findNode.expressionStatement('augmented(');
+    assertResolvedNodeText(node, r'''
+ExpressionStatement
+  expression: FunctionExpressionInvocation
+    function: AugmentedExpression
+      augmentedKeyword: augmented
+      element: self::@class::A::@getter::foo
+      staticType: int Function(int)
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        IntegerLiteral
+          literal: 42
+          parameter: root::@parameter::a
+          staticType: int
+      rightParenthesis: )
+    staticElement: <null>
+    staticInvokeType: int Function(int)
+    staticType: int
+  semicolon: ;
+''');
+  }
+
   test_class_method() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import augment 'test.dart';
@@ -448,6 +491,152 @@ AugmentedInvocation
     rightParenthesis: )
   element: self::@function::foo
   staticType: dynamic
+''');
+  }
+
+  test_topLevel_getter_functionTyped() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+int Function(int a) get foo => throw 0;
+''');
+
+    await assertNoErrorsInCode('''
+augment library 'a.dart';
+
+augment int Function(int a) get foo {
+  augmented(42);
+  throw 0;
+}
+''');
+
+    var node = findNode.expressionStatement('augmented(');
+    assertResolvedNodeText(node, r'''
+ExpressionStatement
+  expression: FunctionExpressionInvocation
+    function: AugmentedExpression
+      augmentedKeyword: augmented
+      element: self::@getter::foo
+      staticType: int Function(int)
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        IntegerLiteral
+          literal: 42
+          parameter: root::@parameter::a
+          staticType: int
+      rightParenthesis: )
+    staticElement: <null>
+    staticInvokeType: int Function(int)
+    staticType: int
+  semicolon: ;
+''');
+  }
+
+  test_topLevel_getter_notFunctionTyped() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+int get foo => 0;
+''');
+
+    await assertErrorsInCode('''
+augment library 'a.dart';
+
+augment int get foo {
+  augmented();
+  return 0;
+}
+''', [
+      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 51, 9),
+    ]);
+
+    var node = findNode.expressionStatement('augmented(');
+    assertResolvedNodeText(node, r'''
+ExpressionStatement
+  expression: AugmentedInvocation
+    augmentedKeyword: augmented
+    arguments: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    element: self::@getter::foo
+    staticType: InvalidType
+  semicolon: ;
+''');
+  }
+
+  test_topLevel_getter_notFunctionTyped_variableClosure() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+int get foo => 0;
+''');
+
+    await assertErrorsInCode('''
+augment library 'a.dart';
+
+augment int get foo {
+  var v = () {
+    augmented();
+  };
+  return 0;
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 55, 1),
+      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 68, 9),
+    ]);
+
+    var node = findNode.expressionStatement('augmented(');
+    assertResolvedNodeText(node, r'''
+ExpressionStatement
+  expression: AugmentedInvocation
+    augmentedKeyword: augmented
+    arguments: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    element: self::@getter::foo
+    staticType: InvalidType
+  semicolon: ;
+''');
+  }
+
+  test_topLevel_setter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+set foo(int _) {}
+''');
+
+    await assertErrorsInCode('''
+augment library 'a.dart';
+
+augment set foo(int _) {
+  augmented(0, 1);
+}
+''', [
+      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 54, 9),
+    ]);
+
+    var node = findNode.expressionStatement('augmented(');
+    assertResolvedNodeText(node, r'''
+ExpressionStatement
+  expression: AugmentedInvocation
+    augmentedKeyword: augmented
+    arguments: ArgumentList
+      leftParenthesis: (
+      arguments
+        IntegerLiteral
+          literal: 0
+          parameter: <null>
+          staticType: int
+        IntegerLiteral
+          literal: 1
+          parameter: <null>
+          staticType: int
+      rightParenthesis: )
+    element: self::@setter::foo
+    staticType: InvalidType
+  semicolon: ;
 ''');
   }
 }

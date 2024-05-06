@@ -1905,6 +1905,39 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     var enclosingAugmentation = _enclosingAugmentation;
     var augmentationTarget = enclosingAugmentation?.augmentationTarget;
+
+    // Rewrite invocation of a function-typed getter.
+    if (augmentationTarget is PropertyAccessorElementImpl) {
+      if (augmentationTarget.returnType case FunctionType functionType) {
+        var augmentedExpression = AugmentedExpressionImpl(
+          augmentedKeyword: node.augmentedKeyword,
+        );
+        augmentedExpression.element = augmentationTarget;
+        augmentedExpression.staticType = functionType;
+        var rewrite = FunctionExpressionInvocationImpl(
+          function: augmentedExpression,
+          typeArguments: node.typeArguments,
+          argumentList: node.arguments,
+        );
+        replaceExpression(node, rewrite);
+        flowAnalysis.transferTestData(node, rewrite);
+        _resolveRewrittenFunctionExpressionInvocation(
+            rewrite, whyNotPromotedList,
+            contextType: contextType);
+      } else {
+        node.element = augmentationTarget;
+        node.staticType = InvalidTypeImpl.instance;
+        errorReporter.atToken(
+          node.augmentedKeyword,
+          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
+        );
+        for (var argument in node.arguments.arguments) {
+          argument.resolveExpression(this, InvalidTypeImpl.instance);
+        }
+      }
+      return;
+    }
+
     FunctionType? rawType;
     if (augmentationTarget is ExecutableElementImpl) {
       node.element = augmentationTarget;
