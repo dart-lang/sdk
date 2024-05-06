@@ -28,6 +28,11 @@ class TextExpectationsCollector {
       argument: _ArgumentIndex(0),
     ),
     _AssertMethod(
+      className: '_AnalysisDomainTest',
+      methodName: 'assertNotificationsText',
+      argument: _ArgumentIndex(0),
+    ),
+    _AssertMethod(
       className: 'SelectionTest',
       methodName: '_assertSelection',
       argument: _ArgumentIndex(1),

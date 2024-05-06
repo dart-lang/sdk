@@ -602,6 +602,8 @@ class ContextManagerImpl implements ContextManager {
               _analyzeAndroidManifestXml(driver, file);
             } else if (file_paths.isDart(pathContext, file)) {
               driver.addFile(file);
+            } else if (file_paths.isPubspecYaml(pathContext, file)) {
+              _analyzePubspecYaml(driver, file);
             }
           }
 
@@ -618,13 +620,6 @@ class ContextManagerImpl implements ContextManager {
               .getChildAssumingFolder(file_paths.fixDataYamlFolder);
           if (fixDataFolder.exists) {
             _analyzeFixDataFolder(driver, fixDataFolder, packageName);
-          }
-
-          var pubspecFile =
-              rootFolder.getChildAssumingFile(file_paths.pubspecYaml);
-          if (pubspecFile.exists &&
-              analysisContext.contextRoot.isAnalyzed(pubspecFile.path)) {
-            _analyzePubspecYaml(driver, pubspecFile.path);
           }
         }
 
