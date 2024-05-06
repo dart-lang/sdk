@@ -1,3 +1,5 @@
 void Function<T>()? genericFunction;
+
 void foo(void Function()? arg) {}
+
 void main() {}

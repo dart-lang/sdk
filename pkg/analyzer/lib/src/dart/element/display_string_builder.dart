@@ -21,7 +21,8 @@ class ElementDisplayStringBuilder {
   final bool _multiline;
 
   ElementDisplayStringBuilder({
-    required bool withNullability,
+    @Deprecated('Only non-nullable by default mode is supported')
+    bool withNullability = true,
     bool multiline = false,
   })  : _withNullability = withNullability,
         _multiline = multiline;
@@ -70,6 +71,10 @@ class ElementDisplayStringBuilder {
   }
 
   void writeConstructorElement(ConstructorElement element) {
+    if (element.isAugmentation) {
+      _write('augment ');
+    }
+
     _writeType(element.returnType);
     _write(' ');
 
@@ -87,6 +92,10 @@ class ElementDisplayStringBuilder {
   }
 
   void writeEnumElement(EnumElement element) {
+    if (element.isAugmentation) {
+      _write('augment ');
+    }
+
     _write('enum ');
     _write(element.displayName);
     _writeTypeParameters(element.typeParameters);
@@ -122,11 +131,36 @@ class ElementDisplayStringBuilder {
   }
 
   void writeExtensionElement(ExtensionElement element) {
-    _write('extension ');
-    _write(element.displayName);
-    _writeTypeParameters(element.typeParameters);
+    if (element.isAugmentation) {
+      _write('augment ');
+    }
+
+    _write('extension');
+    if (element.displayName.isNotEmpty) {
+      _write(' ');
+      _write(element.displayName);
+      _writeTypeParameters(element.typeParameters);
+    }
     _write(' on ');
     _writeType(element.extendedType);
+  }
+
+  void writeExtensionTypeElement(ExtensionTypeElementImpl element) {
+    if (element.isAugmentation) {
+      _write('augment ');
+    }
+
+    _write('extension type ');
+    _write(element.displayName);
+
+    _writeTypeParameters(element.typeParameters);
+    _write('(');
+    _writeType(element.representation.type);
+    _write(' ');
+    _write(element.representation.name);
+    _write(')');
+
+    _writeTypesIfNotEmpty(' implements ', element.interfaces);
   }
 
   void writeFormalParameter(ParameterElement element) {
@@ -341,7 +375,7 @@ class ElementDisplayStringBuilder {
     var multiline = allowMultiline && _multiline && parameters.length >= 3;
 
     // The prefix for open groups is included in separator for single-line but
-    // not for multline so must be added explicitly.
+    // not for multiline so must be added explicitly.
     var openGroupPrefix = multiline ? ' ' : '';
     var separator = multiline ? ',' : ', ';
     var trailingComma = multiline ? ',\n' : '';

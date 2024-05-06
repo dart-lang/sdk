@@ -162,6 +162,41 @@ analyzer:
     expect(excludes, unorderedEquals(['foo/bar.dart', 'test/**']));
   }
 
+  test_analyzer_optionalChecks_propagateLinterExceptions_default() {
+    configureContext('''
+analyzer:
+  optional-checks:
+''');
+    expect(analysisOptions.propagateLinterExceptions, false);
+  }
+
+  test_analyzer_optionalChecks_propagateLinterExceptions_empty() {
+    configureContext('''
+analyzer:
+  optional-checks:
+    propagate-linter-exceptions
+''');
+    expect(analysisOptions.propagateLinterExceptions, true);
+  }
+
+  test_analyzer_optionalChecks_propagateLinterExceptions_false() {
+    configureContext('''
+analyzer:
+  optional-checks:
+    propagate-linter-exceptions: false
+''');
+    expect(analysisOptions.propagateLinterExceptions, false);
+  }
+
+  test_analyzer_optionalChecks_propagateLinterExceptions_true() {
+    configureContext('''
+analyzer:
+  optional-checks:
+    propagate-linter-exceptions: true
+''');
+    expect(analysisOptions.propagateLinterExceptions, true);
+  }
+
   test_analyzer_plugins_list() {
     // TODO(srawlins): Test plugins as a list of non-scalar values
     // (`- angular2: yes`).

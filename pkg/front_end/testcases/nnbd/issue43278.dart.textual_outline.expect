@@ -15,4 +15,5 @@ extension Extension on B {
 }
 
 testExtension<T extends B?>(B? b, T t, int x) {}
+
 main() {}

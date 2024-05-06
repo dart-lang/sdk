@@ -147,7 +147,7 @@ getNativeInterceptor(object) {
       // instance-cached tag, defaulting to instance-cached if caching
       // unspecified.
       var discriminatedTag = JS('', '(#)(#, #)', proto, object, record);
-      throw new UnimplementedError('Return interceptor for $discriminatedTag');
+      throw UnimplementedError('Return interceptor for $discriminatedTag');
     }
   }
 
@@ -341,7 +341,7 @@ abstract class Interceptor {
   // calls to use interceptor calling convention).  If we did allow it, the
   // interceptor context would select the correct `this`.
   dynamic noSuchMethod(Invocation invocation) {
-    throw new NoSuchMethodError.withInvocation(this, invocation);
+    throw NoSuchMethodError.withInvocation(this, invocation);
   }
 
   Type get runtimeType =>

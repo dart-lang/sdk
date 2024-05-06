@@ -28,6 +28,6 @@ const List<String> idTests = <String>[
   'pkg/compiler/test/equivalence/id_testing_test.dart',
 ];
 
-main() async {
+Future<void> main() async {
   await id.updateAllTests(idTests);
 }

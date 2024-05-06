@@ -81,10 +81,10 @@ class ClientManager {
   }
 
   /// Require permission from this client before resuming an isolate.
-  Map<String, dynamic> requirePermissionToResume(
+  Future<Map<String, dynamic>> requirePermissionToResume(
     DartDevelopmentServiceClient client,
     json_rpc.Parameters parameters,
-  ) {
+  ) async {
     int pauseTypeMask = 0;
     if (parameters['onPauseStart'].asBoolOr(false)) {
       pauseTypeMask |= PauseTypeMasks.pauseOnStartMask;
@@ -95,8 +95,12 @@ class ClientManager {
     if (parameters['onPauseExit'].asBoolOr(false)) {
       pauseTypeMask |= PauseTypeMasks.pauseOnExitMask;
     }
-
     clientResumePermissions[client.name!]!.permissionsMask = pauseTypeMask;
+
+    // Check to see if any isolates should resume as a result of the
+    // resume permissions being updated.
+    await dds.isolateManager.maybeResumeIsolates();
+
     return RPCResponses.success;
   }
 

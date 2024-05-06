@@ -6,4 +6,5 @@ class C<T> {
 }
 
 test(num y) {}
+
 main() {}

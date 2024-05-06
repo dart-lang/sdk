@@ -9,4 +9,5 @@ typedef H<X2> = (void Function<Y2 extends X2>(), int);
 class C<X3 extends I<num>> {}
 
 typedef I<X3> = ({void Function<Y3 extends X3>() a, int b});
+
 main() {}

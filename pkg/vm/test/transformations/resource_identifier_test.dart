@@ -11,7 +11,7 @@ import 'package:kernel/verifier.dart';
 import 'package:test/test.dart';
 import 'package:vm/kernel_front_end.dart'
     show runGlobalTransformations, ErrorDetector;
-import 'package:vm/target/vm.dart' show VmTarget;
+import 'package:vm/modular/target/vm.dart' show VmTarget;
 
 import '../common_test_utils.dart';
 
@@ -19,11 +19,19 @@ import 'package:path/path.dart' as path;
 
 final Uri _pkgVmDir = Platform.script.resolve('../..');
 
-void runTestCaseAot(Uri source) async {
+void runTestCaseAot(Uri source, bool throws) async {
   final target = VmTarget(TargetFlags(supportMirrors: false));
 
-  Component component =
-      await compileTestCaseToKernelProgram(source, target: target);
+  Component component;
+  try {
+    component = await compileTestCaseToKernelProgram(source, target: target);
+  } catch (e) {
+    if (throws) {
+      return;
+    } else {
+      rethrow;
+    }
+  }
 
   const bool useGlobalTypeFlowAnalysis = true;
   const bool enableAsserts = false;
@@ -74,7 +82,8 @@ void main(List<String> args) {
         .reversed) {
       if (file.path.endsWith('.dart') &&
           (filter == null || file.path.contains(filter))) {
-        test('${file.path} aot', () => runTestCaseAot(file.uri));
+        test('${file.path} aot',
+            () => runTestCaseAot(file.uri, file.path.contains('throws')));
       }
     }
   });

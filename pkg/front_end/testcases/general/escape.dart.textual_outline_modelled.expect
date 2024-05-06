@@ -15,6 +15,9 @@ class X implements A, B {
 }
 
 main() {}
+
 void escape(x) {}
+
 void useAsA(A object) {}
+
 void useAsB(B object) {}

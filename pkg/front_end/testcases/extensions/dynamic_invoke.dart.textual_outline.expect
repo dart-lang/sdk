@@ -11,4 +11,5 @@ extension Extension on dynamic {
 }
 
 main() {}
+
 expect(expected, actual) {}

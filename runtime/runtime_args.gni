@@ -49,23 +49,12 @@ declare_args() {
   # Windows for now.
   dart_use_crashpad = false
 
-  # Controls the kind of core snapshot linked into the standalone VM. Using a
-  # core-jit snapshot breaks the ability to change various flags that affect
-  # code generation.
-  dart_core_snapshot_kind = "core"
-
   # Whether the Dart binary version string should include the git hash and
   # git commit time.
   dart_version_git_info = true
 
   # Controls whether the VM is built as a static library or a shared library.
-  if (is_fuchsia) {
-    # Allow for deduping the VM between standalone, flutter_runner and dart_runner.
-    # TODO(dartbug.com/42473): Use shared_library once elf_loader is untangled.
-    dart_component_kind = "static_library"
-  } else {
-    dart_component_kind = "static_library"
-  }
+  dart_component_kind = "static_library"
 
   # Whether the VM includes the kernel service in all modes (debug, release,
   # product).
@@ -95,4 +84,15 @@ declare_args() {
        target_os == "fuchsia") &&
       (dart_target_arch == "x64" || dart_target_arch == "arm64" ||
        dart_target_arch == "riscv64")
+}
+
+if (is_fuchsia) {
+  declare_args() {
+    # In case some repo uses build rules in dart/sdk, but put fuchsia-gn-sdk in
+    # a different folder, this gn arg can specify the location of fuchsia-gn-sdk.
+    if (!defined(fuchsia_gn_sdk)) {
+      fuchsia_gn_sdk = "//third_party/fuchsia/gn-sdk"
+    }
+  }
+  import(fuchsia_gn_sdk + "/src/gn_configs.gni")
 }

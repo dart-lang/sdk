@@ -101,7 +101,7 @@ static field <T extends core::Object? = dynamic>(T%) → Null fieldDirect = <T e
   lowered T? #local2;
   lowered core::bool #local2#isSet = false;
   function #local2#get() → T%
-    return #local2#isSet ?{T%} #local2{T%} : throw new _in::LateError::localNI("local2");
+    return #local2#isSet ?{T%} #local2{T%} : throw{for-error-handling} new _in::LateError::localNI("local2");
   function #local2#set(T% local2#param) → dynamic {
     #local2#isSet = true;
     return #local2 = local2#param;
@@ -110,7 +110,7 @@ static field <T extends core::Object? = dynamic>(T%) → Null fieldDirect = <T e
   lowered core::int? #local4;
   lowered core::bool #local4#isSet = false;
   function #local4#get() → core::int
-    return #local4#isSet ?{core::int} #local4{core::int} : throw new _in::LateError::localNI("local4");
+    return #local4#isSet ?{core::int} #local4{core::int} : throw{for-error-handling} new _in::LateError::localNI("local4");
   function #local4#set(core::int local4#param) → dynamic {
     #local4#isSet = true;
     return #local4 = local4#param;
@@ -119,7 +119,7 @@ static field <T extends core::Object? = dynamic>(T%) → Null fieldDirect = <T e
   lowered FutureOr<core::int>? #local6;
   lowered core::bool #local6#isSet = false;
   function #local6#get() → FutureOr<core::int>
-    return #local6#isSet ?{FutureOr<core::int>} #local6{FutureOr<core::int>} : throw new _in::LateError::localNI("local6");
+    return #local6#isSet ?{FutureOr<core::int>} #local6{FutureOr<core::int>} : throw{for-error-handling} new _in::LateError::localNI("local6");
   function #local6#set(FutureOr<core::int>local6#param) → dynamic {
     #local6#isSet = true;
     return #local6 = local6#param;
@@ -162,7 +162,7 @@ static field <T extends core::Object? = dynamic>(core::bool, T%) → Null fieldC
   lowered T? #local2;
   lowered core::bool #local2#isSet = false;
   function #local2#get() → T%
-    return #local2#isSet ?{T%} #local2{T%} : throw new _in::LateError::localNI("local2");
+    return #local2#isSet ?{T%} #local2{T%} : throw{for-error-handling} new _in::LateError::localNI("local2");
   function #local2#set(T% local2#param) → dynamic {
     #local2#isSet = true;
     return #local2 = local2#param;
@@ -171,7 +171,7 @@ static field <T extends core::Object? = dynamic>(core::bool, T%) → Null fieldC
   lowered core::int? #local4;
   lowered core::bool #local4#isSet = false;
   function #local4#get() → core::int
-    return #local4#isSet ?{core::int} #local4{core::int} : throw new _in::LateError::localNI("local4");
+    return #local4#isSet ?{core::int} #local4{core::int} : throw{for-error-handling} new _in::LateError::localNI("local4");
   function #local4#set(core::int local4#param) → dynamic {
     #local4#isSet = true;
     return #local4 = local4#param;
@@ -180,7 +180,7 @@ static field <T extends core::Object? = dynamic>(core::bool, T%) → Null fieldC
   lowered FutureOr<core::int>? #local6;
   lowered core::bool #local6#isSet = false;
   function #local6#get() → FutureOr<core::int>
-    return #local6#isSet ?{FutureOr<core::int>} #local6{FutureOr<core::int>} : throw new _in::LateError::localNI("local6");
+    return #local6#isSet ?{FutureOr<core::int>} #local6{FutureOr<core::int>} : throw{for-error-handling} new _in::LateError::localNI("local6");
   function #local6#set(FutureOr<core::int>local6#param) → dynamic {
     #local6#isSet = true;
     return #local6 = local6#param;
@@ -226,7 +226,7 @@ static field () → Null fieldCompound = () → Null {
   lowered core::int? #local4;
   lowered core::bool #local4#isSet = false;
   function #local4#get() → core::int
-    return #local4#isSet ?{core::int} #local4{core::int} : throw new _in::LateError::localNI("local4");
+    return #local4#isSet ?{core::int} #local4{core::int} : throw{for-error-handling} new _in::LateError::localNI("local4");
   function #local4#set(core::int local4#param) → dynamic {
     #local4#isSet = true;
     return #local4 = local4#param;
@@ -243,7 +243,7 @@ static method methodDirect<T extends core::Object? = dynamic>(self::methodDirect
   lowered self::methodDirect::T? #local2;
   lowered core::bool #local2#isSet = false;
   function #local2#get() → self::methodDirect::T%
-    return #local2#isSet ?{self::methodDirect::T%} #local2{self::methodDirect::T%} : throw new _in::LateError::localNI("local2");
+    return #local2#isSet ?{self::methodDirect::T%} #local2{self::methodDirect::T%} : throw{for-error-handling} new _in::LateError::localNI("local2");
   function #local2#set(self::methodDirect::T% local2#param) → dynamic {
     #local2#isSet = true;
     return #local2 = local2#param;
@@ -252,7 +252,7 @@ static method methodDirect<T extends core::Object? = dynamic>(self::methodDirect
   lowered core::int? #local4;
   lowered core::bool #local4#isSet = false;
   function #local4#get() → core::int
-    return #local4#isSet ?{core::int} #local4{core::int} : throw new _in::LateError::localNI("local4");
+    return #local4#isSet ?{core::int} #local4{core::int} : throw{for-error-handling} new _in::LateError::localNI("local4");
   function #local4#set(core::int local4#param) → dynamic {
     #local4#isSet = true;
     return #local4 = local4#param;
@@ -261,7 +261,7 @@ static method methodDirect<T extends core::Object? = dynamic>(self::methodDirect
   lowered FutureOr<core::int>? #local6;
   lowered core::bool #local6#isSet = false;
   function #local6#get() → FutureOr<core::int>
-    return #local6#isSet ?{FutureOr<core::int>} #local6{FutureOr<core::int>} : throw new _in::LateError::localNI("local6");
+    return #local6#isSet ?{FutureOr<core::int>} #local6{FutureOr<core::int>} : throw{for-error-handling} new _in::LateError::localNI("local6");
   function #local6#set(FutureOr<core::int>local6#param) → dynamic {
     #local6#isSet = true;
     return #local6 = local6#param;
@@ -304,7 +304,7 @@ static method methodConditional<T extends core::Object? = dynamic>(core::bool b,
   lowered self::methodConditional::T? #local2;
   lowered core::bool #local2#isSet = false;
   function #local2#get() → self::methodConditional::T%
-    return #local2#isSet ?{self::methodConditional::T%} #local2{self::methodConditional::T%} : throw new _in::LateError::localNI("local2");
+    return #local2#isSet ?{self::methodConditional::T%} #local2{self::methodConditional::T%} : throw{for-error-handling} new _in::LateError::localNI("local2");
   function #local2#set(self::methodConditional::T% local2#param) → dynamic {
     #local2#isSet = true;
     return #local2 = local2#param;
@@ -313,7 +313,7 @@ static method methodConditional<T extends core::Object? = dynamic>(core::bool b,
   lowered core::int? #local4;
   lowered core::bool #local4#isSet = false;
   function #local4#get() → core::int
-    return #local4#isSet ?{core::int} #local4{core::int} : throw new _in::LateError::localNI("local4");
+    return #local4#isSet ?{core::int} #local4{core::int} : throw{for-error-handling} new _in::LateError::localNI("local4");
   function #local4#set(core::int local4#param) → dynamic {
     #local4#isSet = true;
     return #local4 = local4#param;
@@ -322,7 +322,7 @@ static method methodConditional<T extends core::Object? = dynamic>(core::bool b,
   lowered FutureOr<core::int>? #local6;
   lowered core::bool #local6#isSet = false;
   function #local6#get() → FutureOr<core::int>
-    return #local6#isSet ?{FutureOr<core::int>} #local6{FutureOr<core::int>} : throw new _in::LateError::localNI("local6");
+    return #local6#isSet ?{FutureOr<core::int>} #local6{FutureOr<core::int>} : throw{for-error-handling} new _in::LateError::localNI("local6");
   function #local6#set(FutureOr<core::int>local6#param) → dynamic {
     #local6#isSet = true;
     return #local6 = local6#param;
@@ -368,7 +368,7 @@ static method methodCompound() → dynamic {
   lowered core::int? #local4;
   lowered core::bool #local4#isSet = false;
   function #local4#get() → core::int
-    return #local4#isSet ?{core::int} #local4{core::int} : throw new _in::LateError::localNI("local4");
+    return #local4#isSet ?{core::int} #local4{core::int} : throw{for-error-handling} new _in::LateError::localNI("local4");
   function #local4#set(core::int local4#param) → dynamic {
     #local4#isSet = true;
     return #local4 = local4#param;

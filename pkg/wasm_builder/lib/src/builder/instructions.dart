@@ -251,6 +251,8 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     return _stackTypes.sublist(_stackTypes.length - n);
   }
 
+  List<ir.ValueType> get stack => _stackTypes;
+
   List<ir.ValueType> _checkStackTypes(List<ir.ValueType> inputs,
       [List<ir.ValueType>? stack]) {
     stack ??= _stack(inputs.length);

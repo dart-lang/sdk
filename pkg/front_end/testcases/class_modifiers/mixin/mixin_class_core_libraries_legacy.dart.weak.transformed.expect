@@ -5,7 +5,7 @@ library;
 // pkg/front_end/testcases/class_modifiers/mixin/mixin_class_core_libraries_legacy.dart:14:7: Error: Can't use 'Error' as a mixin because it has constructors.
 // class B with Error {} /* Error */
 //       ^
-// sdk/lib/core/errors.dart:73:3: Context: This constructor prevents using 'Error' as a mixin.
+// sdk/lib/core/errors.dart:*: Context: This constructor prevents using 'Error' as a mixin.
 //   Error(); // Prevent use as mixin.
 //   ^
 //
@@ -59,10 +59,11 @@ abstract class _B&Object&Error extends core::Object implements core::Error /*isA
   static method /* from org-dartlang-sdk:///sdk/lib/core/errors.dart */ throwWithStackTrace(core::Object error, core::StackTrace stackTrace) → Never {
     _in::checkNotNullable<core::Object>(error, "error");
     _in::checkNotNullable<core::StackTrace>(stackTrace, "stackTrace");
-    let final Never #t1 = core::Error::_throw(error, stackTrace) in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+    let final Never #t1 = core::Error::_throw(error, stackTrace) in throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
   }
   @#C4
   @#C10
+  @#C12
   external static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/errors_patch.dart */ _throw(core::Object error, core::StackTrace stackTrace) → Never;
 }
 class B extends self::_B&Object&Error {
@@ -82,4 +83,6 @@ constants  {
   #C8 = "vm:external-name"
   #C9 = "Error_throwWithStackTrace"
   #C10 = core::pragma {name:#C8, options:#C9}
+  #C11 = "wasm:entry-point"
+  #C12 = core::pragma {name:#C11, options:#C2}
 }

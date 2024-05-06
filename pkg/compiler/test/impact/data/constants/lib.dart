@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 const dynamic nullLiteralField = null;
 
 const dynamic boolLiteralField = true;
@@ -91,8 +89,8 @@ const typeLiteralField = String;
   inst:JSFixedArray<dynamic>,
   inst:JSMutableArray<dynamic>,
   inst:JSUnmodifiableArray<dynamic>,
-  param:Object*,
-  param:id.T*]
+  param:Object?,
+  param:id.T]
 */
 T id<T>(T t) => t;
 

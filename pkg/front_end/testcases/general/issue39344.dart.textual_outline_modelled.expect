@@ -10,7 +10,11 @@ class Class<T extends A> {
 }
 
 late List<B> xs;
+
 late List<List<B>> xss;
+
 void errors() {}
+
 void main() {}
+
 void throws(void Function() f) {}

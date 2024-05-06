@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -26,12 +25,6 @@ void main() {
 
 @reflectiveTest
 class AnalysisNotificationHighlightsTest extends HighlightsTestSupport {
-  @override
-  List<String> get experiments => [
-        Feature.inline_class.enableString,
-        ...super.experiments,
-      ];
-
   void assertHighlightText(TestCode testCode, int index, String expected) {
     var actual = _getHighlightText(testCode, index);
     if (actual != expected) {
@@ -116,6 +109,155 @@ void f() {
     assertHasStringRegion(HighlightRegionType.BUILT_IN, 'async');
     assertHasStringRegion(HighlightRegionType.BUILT_IN, 'async*');
     assertNoRegion(HighlightRegionType.BUILT_IN, 'async = false');
+  }
+
+  Future<void> test_BUILT_IN_augment_onClass() async {
+    final testCode = TestCode.parse(r'''
+augment class A {}
+''');
+    addTestFile(testCode.code);
+    await prepareHighlights();
+    assertHighlightText(testCode, -1, r'''
+0 + 7 |augment| BUILT_IN
+8 + 5 |class| KEYWORD
+14 + 1 |A| CLASS
+''');
+  }
+
+  Future<void> test_BUILT_IN_augment_onConstructor() async {
+    addTestFile('''
+class C {
+  augment C() {}
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'augment');
+  }
+
+  @SkippedTest(reason: 'The token is not supported')
+  Future<void> test_BUILT_IN_augment_onEnum() async {
+    addTestFile('''
+augment enum E {a, b}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'augment');
+  }
+
+  @SkippedTest(reason: 'The token is not supported')
+  Future<void> test_BUILT_IN_augment_onExtension() async {
+    addTestFile('''
+augment extension on int {}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'augment');
+  }
+
+  Future<void> test_BUILT_IN_augment_onImport() async {
+    addTestFile('''
+import augment 'a.dart';
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'import');
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'augment');
+  }
+
+  Future<void> test_BUILT_IN_augment_onInstanceGetter() async {
+    addTestFile('''
+class C {
+  augment int get g => 0;
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'augment');
+  }
+
+  Future<void> test_BUILT_IN_augment_onInstanceMethod() async {
+    addTestFile('''
+class C {
+  augment int m() => 0;
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'augment');
+  }
+
+  Future<void> test_BUILT_IN_augment_onInstanceSetter() async {
+    addTestFile('''
+class C {
+  augment set s(int x) {}
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'augment');
+  }
+
+  Future<void> test_BUILT_IN_augment_onLibrary() async {
+    addTestFile('''
+library augment 'a.dart';
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'library');
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'augment');
+  }
+
+  Future<void> test_BUILT_IN_augment_onMixin() async {
+    addTestFile('''
+augment mixin M {}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'augment');
+  }
+
+  Future<void> test_BUILT_IN_augment_onOperator() async {
+    addTestFile('''
+class C {
+  augment int operator -() => 0;
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'augment');
+  }
+
+  Future<void> test_BUILT_IN_augment_onStaticMethod() async {
+    addTestFile('''
+class C {
+  augment static int m() => 0;
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'augment');
+  }
+
+  Future<void> test_BUILT_IN_augment_onTopLevelFunction() async {
+    addTestFile('''
+augment int f(int x) => 0;
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'augment');
+  }
+
+  Future<void> test_BUILT_IN_augment_onTopLevelGetter() async {
+    addTestFile('''
+augment int get g => 0;
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'augment');
+  }
+
+  Future<void> test_BUILT_IN_augment_onTopLevelSetter() async {
+    addTestFile('''
+augment set s(int x) {}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'augment');
+  }
+
+  Future<void> test_BUILT_IN_augment_onTopLevelVariable() async {
+    addTestFile('''
+augment int v = 0;
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'augment');
   }
 
   Future<void> test_BUILT_IN_await() async {
@@ -567,19 +709,6 @@ Never nnn() => throw '';
     assertHasRegion(HighlightRegionType.CLASS, 'AAA {}');
     assertHasRegion(HighlightRegionType.CLASS, 'AAA aaa');
     assertHasRegion(HighlightRegionType.CLASS, 'Never nnn');
-  }
-
-  Future<void> test_class_augmentKeyword() async {
-    final testCode = TestCode.parse(r'''
-augment class A {}
-''');
-    addTestFile(testCode.code);
-    await prepareHighlights();
-    assertHighlightText(testCode, -1, r'''
-0 + 7 |augment| BUILT_IN
-8 + 5 |class| KEYWORD
-14 + 1 |A| CLASS
-''');
   }
 
   Future<void> test_class_constructor_fieldFormalParameter() async {
@@ -1857,6 +1986,25 @@ void f() {
 ''');
   }
 
+  Future<void> test_record_field() async {
+    addTestFile(r'''
+void f((int, {int field1}) record) {
+  record.$1; // 1
+  record.field1; // 2
+  (1,).$1; // 3
+  (field1: 1).field1; // 4
+  (1,).notResolved;
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.INSTANCE_FIELD_REFERENCE, r'$1; // 1');
+    assertHasRegion(
+        HighlightRegionType.INSTANCE_FIELD_REFERENCE, 'field1; // 2');
+    assertHasRegion(HighlightRegionType.INSTANCE_FIELD_REFERENCE, r'$1; // 3');
+    assertHasRegion(HighlightRegionType.UNRESOLVED_INSTANCE_MEMBER_REFERENCE,
+        'notResolved');
+  }
+
   Future<void> test_recordTypeAnnotation_named() async {
     addTestFile('''
 ({int f1, String f2})? r;
@@ -2323,7 +2471,8 @@ class HighlightsTestSupport extends PubPackageAnalysisServerTest {
         }
         if (!(c >= 'a'.codeUnitAt(0) && c <= 'z'.codeUnitAt(0) ||
             c >= 'A'.codeUnitAt(0) && c <= 'Z'.codeUnitAt(0) ||
-            c >= '0'.codeUnitAt(0) && c <= '9'.codeUnitAt(0))) {
+            c >= '0'.codeUnitAt(0) && c <= '9'.codeUnitAt(0) ||
+            c == r'$'.codeUnitAt(0))) {
           break;
         }
         length++;

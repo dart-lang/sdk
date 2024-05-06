@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:macros/macros.dart';
 
 /// Does not do anything useful, just augments the target in the definitions
 /// phase, so that any omitted types are written into the augmentation.

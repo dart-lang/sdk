@@ -9,12 +9,11 @@ import 'dart:async';
 import 'dart:io' show File, IOSink;
 
 import 'package:args/args.dart' show ArgParser, ArgResults;
-
 import 'package:build_integration/file_system/multi_root.dart'
     show MultiRootFileSystem, MultiRootFileSystemEntity;
-
 import 'package:crypto/crypto.dart';
-
+import 'package:front_end/src/api_prototype/macros.dart' as macros
+    show isMacroLibraryUri;
 import 'package:front_end/src/api_unstable/vm.dart'
     show
         CompilerContext,
@@ -36,37 +35,37 @@ import 'package:front_end/src/api_unstable/vm.dart'
         parseExperimentalFlags,
         printDiagnosticMessage,
         resolveInputUri;
-
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/ast.dart'
     show Component, Library, NonNullableByDefaultCompiledMode;
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/kernel.dart' show loadComponentFromBinary;
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 import 'package:package_config/package_config.dart' show loadPackageConfigUri;
 
 import 'http_filesystem.dart' show HttpAwareFileSystem;
-import 'target_os.dart';
+import 'modular/target/install.dart' show installAdditionalTargets;
+import 'modular/transformations/call_site_annotator.dart'
+    as call_site_annotator;
 import 'native_assets/synthesizer.dart';
-import 'target/install.dart' show installAdditionalTargets;
+import 'target_os.dart';
+import 'transformations/deferred_loading.dart' as deferred_loading;
 import 'transformations/devirtualization.dart' as devirtualization
     show transformComponent;
 import 'transformations/mixin_deduplication.dart' as mixin_deduplication
     show transformComponent;
 import 'transformations/no_dynamic_invocations_annotator.dart'
     as no_dynamic_invocations_annotator show transformComponent;
-import 'transformations/type_flow/transformer.dart' as globalTypeFlow
-    show transformComponent;
 import 'transformations/obfuscation_prohibitions_annotator.dart'
     as obfuscationProhibitions;
-import 'transformations/call_site_annotator.dart' as call_site_annotator;
+import 'transformations/resource_identifier.dart' as resource_identifier;
+import 'transformations/to_string_transformer.dart' as to_string_transformer;
+import 'transformations/type_flow/transformer.dart' as globalTypeFlow
+    show transformComponent;
 import 'transformations/unreachable_code_elimination.dart'
     as unreachable_code_elimination;
 import 'transformations/vm_constant_evaluator.dart' as vm_constant_evaluator;
-import 'transformations/deferred_loading.dart' as deferred_loading;
-import 'transformations/resource_identifier.dart' as resource_identifier;
-import 'transformations/to_string_transformer.dart' as to_string_transformer;
 
 /// Declare options consumed by [runCompiler].
 void declareCompilerOptions(ArgParser args) {
@@ -471,7 +470,10 @@ Future<KernelCompilationResults> compileToKernel(
         additionalSources: additionalSources);
   }
   final Component? component = compilerResult?.component;
-  Iterable<Uri>? compiledSources = component?.uriToSource.keys;
+
+  // TODO(https://dartbug.com/55246): track macro deps when available.
+  Iterable<Uri>? compiledSources = component?.uriToSource.keys
+      .where((uri) => !macros.isMacroLibraryUri(uri));
 
   Set<Library> loadedLibraries = createLoadedLibrariesSet(
       compilerResult?.loadedComponents, compilerResult?.sdkComponent,
@@ -577,7 +579,9 @@ Future runGlobalTransformations(
   final os = targetOS != null ? TargetOS.fromString(targetOS)! : null;
   final evaluator = vm_constant_evaluator.VMConstantEvaluator.create(
       target, component, os, nnbdMode,
-      environmentDefines: environmentDefines, coreTypes: coreTypes);
+      enableAsserts: enableAsserts,
+      environmentDefines: environmentDefines,
+      coreTypes: coreTypes);
   unreachable_code_elimination.transformComponent(
       target, component, evaluator, enableAsserts);
 
@@ -880,6 +884,8 @@ Future<void> writeDepfile(FileSystem fileSystem, Iterable<Uri> compiledSources,
   final IOSink file = new File(depfile).openWrite();
   file.write(_escapePath(output));
   file.write(':');
+
+  // TODO(https://dartbug.com/55246): track macro deps when available.
   for (Uri dep in compiledSources) {
     // Skip corelib dependencies.
     if (dep.scheme == 'org-dartlang-sdk') continue;

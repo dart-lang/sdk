@@ -57,8 +57,6 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
         startCharacter: lineFoldingOnly ? null : range.start.character,
         endLine: range.end.line,
         endCharacter: lineFoldingOnly ? null : range.end.character,
-        // We (and VS Code) don't currently support this.
-        collapsedText: null,
         kind: entry.value,
       );
     }).toSet();
@@ -104,18 +102,18 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     f/*[0*/(int i) {
       do {/*[1*/
         print('with statements');/*1]*/
-      } while (i == 0)
+      } while (i == 0);
 
       do {/*[2*/
         // only comments/*2]*/
-      } while (i == 0)
+      } while (i == 0);
 
       // empty
       do {
-      } while (i == 0)
+      } while (i == 0);
 
       // no body
-      do;
+      while (false);
     }/*0]*/
     ''';
 
@@ -138,6 +136,25 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
 
     await computeRanges(content);
     expectRanges({
+      0: noFoldingKind,
+    });
+  }
+
+  Future<void> test_forLoop() async {
+    final content = '''
+void f() {
+  for (int i = 0; i < 1; i++) /*[0*/{
+    ;
+  }/*0]*/
+
+  for (int i = 0; i < 1; i++) {}
+
+  for (int i = 0; i < 1; i++);
+}
+    ''';
+
+    await computeRanges(content);
+    expectRangesContain({
       0: noFoldingKind,
     });
   }
@@ -194,6 +211,21 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     );
     expectRanges({
       0: noFoldingKind, // From plugin
+    });
+  }
+
+  Future<void> test_functionExpression() async {
+    final content = '''
+var x = () /*[0*/{
+  ;
+  ;
+  ;
+}/*0]*/;
+    ''';
+
+    await computeRanges(content);
+    expectRangesContain({
+      0: noFoldingKind,
     });
   }
 
@@ -394,6 +426,7 @@ void f(int a) {
   }
 
   Future<void> test_switchStatement() async {
+    failTestOnErrorDiagnostic = false; // Tests cases without breaks.
     final content = '''
 // @dart = 2.19
 

@@ -140,15 +140,12 @@ FlowGraph* TestPipeline::RunPasses(
     flow_graph_->PopulateWithICData(function_);
   }
 
-  const bool reorder_blocks =
-      FlowGraph::ShouldReorderBlocks(function_, optimized);
-  if (mode_ == CompilerPass::kJIT && reorder_blocks) {
+  if (mode_ == CompilerPass::kJIT && flow_graph_->should_reorder_blocks()) {
     BlockScheduler::AssignEdgeWeights(flow_graph_);
   }
 
   pass_state_ =
       new CompilerPassState(thread, flow_graph_, speculative_policy_.get());
-  pass_state_->reorder_blocks = reorder_blocks;
 
   if (optimized) {
     JitCallSpecializer jit_call_specializer(flow_graph_,

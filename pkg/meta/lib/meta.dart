@@ -14,11 +14,10 @@
 /// of a function that's been marked `@deprecated`, or it might display the
 /// function's name differently.
 ///
-/// For information on installing and importing this library, see the [meta
-/// package on pub.dev](https://pub.dev/packages/meta). For examples of using
-/// annotations, see
-/// [Metadata](https://dart.dev/guides/language/language-tour#metadata) in the
-/// language tour.
+/// For information on installing and importing this library,
+/// see the [meta package on pub.dev](https://pub.dev/packages/meta).
+/// To learn more about using annotations, check out the
+/// [Metadata](https://dart.dev/language/metadata) documentation.
 library meta;
 
 import 'meta_meta.dart';
@@ -51,6 +50,11 @@ import 'meta_meta.dart';
 /// Tools, such as the analyzer, can also expect this contract to be enforced;
 /// that is, tools may emit warnings if a function with this annotation
 /// _doesn't_ always throw.
+///
+/// **Deprecated:** This annotation is deprecated and will be
+/// removed in a future release of `package:meta`.
+/// After Dart 2.9, you can instead specify a return type of `Never`
+/// to indicate that a function never returns.
 @Deprecated("Use a return type of 'Never' instead")
 const _AlwaysThrows alwaysThrows = _AlwaysThrows();
 
@@ -61,6 +65,9 @@ const _AlwaysThrows alwaysThrows = _AlwaysThrows();
 /// its superclass. The actual argument will be checked at runtime to ensure it
 /// is a subtype of the overridden parameter type.
 ///
+/// **Deprecated:** This annotation is deprecated and will be
+/// removed in a future release of `package:meta`.
+/// In Dart 2 and later, you can instead use the built-in `covariant` modifier.
 @Deprecated('Use the `covariant` modifier instead')
 const _Checked checked = _Checked();
 
@@ -124,6 +131,7 @@ const _Factory factory = _Factory();
 /// defined directly or inherited, are `final`.
 ///
 /// Tools, such as the analyzer, can provide feedback if
+///
 /// * the annotation is associated with anything other than a class, or
 /// * a class that has this annotation or extends, implements or mixes in a
 ///   class that has this annotation is not immutable.
@@ -297,8 +305,8 @@ const _Redeclare redeclare = _Redeclare();
 ///   `final` based on the modifiers of its superinterfaces
 ///
 /// A declaration annotated with `@reopen` will suppress warnings from the
-/// [`implicit_reopen`](https://dart.dev/tools/linter-rules/implicit_reopen)
-/// lint. That lint will otherwise warn when a subtype has restrictions that are
+/// [`implicit_reopen`](https://dart.dev/lints/implicit_reopen) lint.
+/// That lint will otherwise warn when a subtype has restrictions that are
 /// not sufficient to enforce the restrictions declared by class modifiers on
 /// one or more superinterfaces.
 ///
@@ -323,9 +331,17 @@ const _Reopen reopen = _Reopen();
 ///   name that does not have this annotation, or
 /// * an invocation of a method or function does not include an argument
 ///   corresponding to a named parameter that has this annotation.
+///
+/// **Deprecated:** This annotation is set to be deprecated and later
+/// removed in a future release of `package:meta`.
+/// In Dart 2.12 and later, use the built-in `required` keyword
+/// to mark a named parameter as required.
+/// To learn more about `required`, check out the documentation on
+/// [named parameters](https://dart.dev/language/functions#named-parameters).
 const Required required = Required();
 
-/// Annotation marking a class as not allowed as a super-type.
+/// Annotation marking a class as not allowed as a super-type
+/// outside of the current package.
 ///
 /// Classes in the same package as the marked class may extend, implement or
 /// mix-in the annotated class.
@@ -336,6 +352,11 @@ const Required required = Required();
 /// * the annotation is associated with a class `C`, and there is a class or
 ///   mixin `D`, which extends, implements, mixes in, or constrains to `C`, and
 ///   `C` and `D` are declared in different packages.
+///
+/// **Note:** In Dart 3 and later, you can use built-in class modifiers to
+/// control what forms of subtyping are allowed outside the current library.
+/// To learn more about using class modifiers, check out the
+/// [Class modifiers](https://dart.dev/language/class-modifiers) documentation.
 const _Sealed sealed = _Sealed();
 
 /// Used to annotate a method, field, or getter within a class, mixin, or
@@ -354,9 +375,11 @@ const UseResult useResult = UseResult();
 
 /// Used to annotate a field that is allowed to be overridden in Strong Mode.
 ///
-/// Deprecated: Most of strong mode is now the default in 2.0, but the notion of
-/// virtual fields was dropped, so this annotation no longer has any meaning.
-/// Uses of the annotation should be removed.
+/// **Deprecated:** This annotation is deprecated and will be
+/// removed in a future release of `package:meta`.
+/// In Dart 2 and later, overriding fields is allowed by default,
+/// so this annotation no longer has any meaning.
+/// All uses of the annotation should be removed.
 @Deprecated('No longer has meaning')
 const _Virtual virtual = _Virtual();
 
@@ -405,25 +428,44 @@ class ResourceIdentifier {
   /// An identifier which can be used when retrieving the stored calls.
   ///
   /// This could, for example, be the name of the package which places and
-  /// retrieves the annotation.
+  /// retrieves the annotation. Allowed types are bool, int, double, and String.
   final Object? metadata;
 
-  const ResourceIdentifier([this.metadata]);
+  /// Initialize a newly created [ResourceIdentifier] instance
+  /// to be used as an annotation with the given [metadata] identifier.
+  const ResourceIdentifier([this.metadata])
+      : assert(
+          metadata == null ||
+              metadata is bool ||
+              metadata is int ||
+              metadata is double ||
+              metadata is String,
+          'Valid metadata types are bool, int, double, and String.',
+        );
 }
 
 /// Used to annotate a named parameter `p` in a method or function `f`.
 ///
 /// See [required] for more details.
+///
+/// **Deprecated:** This annotation is set to be deprecated and later
+/// removed in a future release of `package:meta`.
+/// In Dart 2.12 and later, use the built-in `required` keyword
+/// to mark a named parameter as required.
+/// To learn more about `required`, check out the documentation on
+/// [named parameters](https://dart.dev/language/functions#named-parameters).
 class Required {
   /// A human-readable explanation of the reason why the annotated parameter is
   /// required. For example, the annotation might look like:
   ///
-  ///     ButtonWidget({
-  ///         Function onHover,
-  ///         @Required('Buttons must do something when pressed')
-  ///         Function onPressed,
-  ///         ...
-  ///     }) ...
+  /// ```dart
+  /// ButtonWidget({
+  ///     Function onHover,
+  ///     @Required('Buttons must do something when pressed')
+  ///     Function onPressed,
+  ///     ...
+  /// }) ...
+  /// ```
   final String reason;
 
   /// Initialize a newly created instance to have the given [reason].

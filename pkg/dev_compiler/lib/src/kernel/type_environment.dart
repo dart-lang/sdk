@@ -14,18 +14,15 @@ import 'package:kernel/ast.dart';
 abstract class DDCTypeEnvironment {
   /// Creates a new environment by adding [parameters] to those already in this
   /// environment.
-  DDCTypeEnvironment extend(
-      List< /* TypeParameter | StructuralParameter */ Object> parameters);
+  DDCTypeEnvironment extend(List<TypeParameter> parameters);
 
   /// Reduces this environment down to an environment that will contain
   /// [requiredTypes] and be output in a compact representation.
-  DDCTypeEnvironment prune(
-      Iterable< /* TypeParameter | StructuralParameter */ Object>
-          requiredParameters);
+  DDCTypeEnvironment prune(Iterable<TypeParameter> requiredParameters);
 
   /// Returns the index of [parameter] in this environment for use in a type
   /// recipe or a negative value if the parameter was not found.
-  int recipeIndexOf(/* TypeParameter | StructuralParameter */ Object parameter);
+  int recipeIndexOf(TypeParameter parameter);
 }
 
 /// An empty environment that signals no type parameters are present or needed.
@@ -35,26 +32,17 @@ class EmptyTypeEnvironment implements DDCTypeEnvironment {
   const EmptyTypeEnvironment();
 
   @override
-  DDCTypeEnvironment extend(
-      List< /* TypeParameter | StructuralParameter */ Object> parameters) {
-    assert(parameters.every((parameter) =>
-        parameter is TypeParameter || parameter is StructuralParameter));
+  DDCTypeEnvironment extend(List<TypeParameter> parameters) {
     return parameters.isEmpty ? this : BindingTypeEnvironment(parameters);
   }
 
   @override
-  DDCTypeEnvironment prune(
-      Iterable< /* TypeParameter | StructuralParameter */ Object>
-          requiredParameters) {
-    assert(requiredParameters.every((parameter) =>
-        parameter is TypeParameter || parameter is StructuralParameter));
+  DDCTypeEnvironment prune(Iterable<TypeParameter> requiredParameters) {
     return this;
   }
 
   @override
-  int recipeIndexOf(
-      /* TypeParameter | StructuralParameter */ Object parameter) {
-    assert(parameter is TypeParameter || parameter is StructuralParameter);
+  int recipeIndexOf(TypeParameter parameter) {
     return -1;
   }
 }
@@ -62,28 +50,19 @@ class EmptyTypeEnvironment implements DDCTypeEnvironment {
 /// A type environment introduced by a class with one or more generic type
 /// parameters.
 class ClassTypeEnvironment implements DDCTypeEnvironment {
-  final List< /* TypeParameter | StructuralParameter */ Object> _typeParameters;
+  final List<TypeParameter> _typeParameters;
 
-  ClassTypeEnvironment(this._typeParameters)
-      : assert(_typeParameters.every((parameter) =>
-            parameter is TypeParameter || parameter is StructuralParameter));
+  ClassTypeEnvironment(this._typeParameters);
 
   @override
-  DDCTypeEnvironment extend(
-      List< /* TypeParameter | StructuralParameter */ Object> parameters) {
-    assert(parameters.every((parameter) =>
-        parameter is TypeParameter || parameter is StructuralParameter));
+  DDCTypeEnvironment extend(List<TypeParameter> parameters) {
     return parameters.isEmpty
         ? this
         : ExtendedClassTypeEnvironment(this, [...parameters]);
   }
 
   @override
-  DDCTypeEnvironment prune(
-      Iterable< /* TypeParameter | StructuralParameter */ Object>
-          requiredParameters) {
-    assert(requiredParameters.every((parameter) =>
-        parameter is TypeParameter || parameter is StructuralParameter));
+  DDCTypeEnvironment prune(Iterable<TypeParameter> requiredParameters) {
     // If any parameters are required, the class type environment already
     // exists and a reference to it is suitably compact.
     return requiredParameters.any(_typeParameters.contains)
@@ -92,9 +71,7 @@ class ClassTypeEnvironment implements DDCTypeEnvironment {
   }
 
   @override
-  int recipeIndexOf(
-      /* TypeParameter | StructuralParameter */ Object parameter) {
-    assert(parameter is TypeParameter || parameter is StructuralParameter);
+  int recipeIndexOf(TypeParameter parameter) {
     var i = _typeParameters.indexOf(parameter);
     if (i < 0) return i;
     // Index for class type parameters is one based. Zero refers to the full
@@ -105,17 +82,12 @@ class ClassTypeEnvironment implements DDCTypeEnvironment {
 
 /// A type environment containing multiple type parameters.
 class BindingTypeEnvironment implements DDCTypeEnvironment {
-  final List< /* TypeParameter | StructuralParameter */ Object> _typeParameters;
+  final List<TypeParameter> _typeParameters;
 
-  BindingTypeEnvironment(this._typeParameters)
-      : assert(_typeParameters.every((parameter) =>
-            parameter is TypeParameter || parameter is StructuralParameter));
+  BindingTypeEnvironment(this._typeParameters);
 
   @override
-  DDCTypeEnvironment extend(
-      List< /* TypeParameter | StructuralParameter */ Object> parameters) {
-    assert(parameters.every((parameter) =>
-        parameter is TypeParameter || parameter is StructuralParameter));
+  DDCTypeEnvironment extend(List<TypeParameter> parameters) {
     return parameters.isEmpty
         ? this
         : BindingTypeEnvironment([
@@ -126,9 +98,7 @@ class BindingTypeEnvironment implements DDCTypeEnvironment {
   }
 
   @override
-  DDCTypeEnvironment prune(
-      Iterable< /* TypeParameter | StructuralParameter */ Object>
-          requiredParameters) {
+  DDCTypeEnvironment prune(Iterable<TypeParameter> requiredParameters) {
     var foundParameters = requiredParameters.where(_typeParameters.contains);
     if (foundParameters.isEmpty) return const EmptyTypeEnvironment();
     if (foundParameters.length == _typeParameters.length) return this;
@@ -136,9 +106,7 @@ class BindingTypeEnvironment implements DDCTypeEnvironment {
   }
 
   @override
-  int recipeIndexOf(
-      /* TypeParameter | StructuralParameter */ Object parameter) {
-    assert(parameter is TypeParameter || parameter is StructuralParameter);
+  int recipeIndexOf(TypeParameter parameter) {
     var i = _typeParameters.indexOf(parameter);
     if (i < 0) return i;
     // Environments containing a single parameter can have a more compact
@@ -148,8 +116,7 @@ class BindingTypeEnvironment implements DDCTypeEnvironment {
   }
 
   /// The type parameters in this environment.
-  List< /* TypeParameter | StructuralParameter */ Object> get parameters =>
-      UnmodifiableListView(_typeParameters);
+  List<TypeParameter> get parameters => UnmodifiableListView(_typeParameters);
 
   /// Returns `true` if this environment only contains a single type parameter.
   bool get isSingleTypeParameter => _typeParameters.length == 1;
@@ -159,17 +126,12 @@ class BindingTypeEnvironment implements DDCTypeEnvironment {
 /// with additional parameters from methods with generic type parameters.
 class ExtendedClassTypeEnvironment implements DDCTypeEnvironment {
   final ClassTypeEnvironment _classEnvironment;
-  final List< /* TypeParameter | StructuralParameter */ Object> _typeParameters;
+  final List<TypeParameter> _typeParameters;
 
-  ExtendedClassTypeEnvironment(this._classEnvironment, this._typeParameters)
-      : assert(_typeParameters.every((parameter) =>
-            parameter is TypeParameter || parameter is StructuralParameter));
+  ExtendedClassTypeEnvironment(this._classEnvironment, this._typeParameters);
 
   @override
-  DDCTypeEnvironment extend(
-      List< /* TypeParameter | StructuralParameter */ Object> parameters) {
-    assert(parameters.every((parameter) =>
-        parameter is TypeParameter || parameter is StructuralParameter));
+  DDCTypeEnvironment extend(List<TypeParameter> parameters) {
     return parameters.isEmpty
         ? this
         : ExtendedClassTypeEnvironment(_classEnvironment, [
@@ -180,12 +142,7 @@ class ExtendedClassTypeEnvironment implements DDCTypeEnvironment {
   }
 
   @override
-  DDCTypeEnvironment prune(
-      Iterable< /* TypeParameter | StructuralParameter */ Object>
-          requiredParameters) {
-    assert(requiredParameters.every((parameter) =>
-        parameter is TypeParameter || parameter is StructuralParameter));
-
+  DDCTypeEnvironment prune(Iterable<TypeParameter> requiredParameters) {
     var classEnvironmentNeeded =
         requiredParameters.any(_classEnvironment._typeParameters.contains);
     var additionalParameters =
@@ -210,10 +167,7 @@ class ExtendedClassTypeEnvironment implements DDCTypeEnvironment {
   }
 
   @override
-  int recipeIndexOf(
-      /* TypeParameter | StructuralParameter */ Object parameter) {
-    assert(parameter is TypeParameter || parameter is StructuralParameter);
-
+  int recipeIndexOf(TypeParameter parameter) {
     // Search in the extended type parameters first. They can shadow parameters
     // from the class.
     var i = _typeParameters.indexOf(parameter);
@@ -229,6 +183,6 @@ class ExtendedClassTypeEnvironment implements DDCTypeEnvironment {
     return -1;
   }
 
-  List< /* TypeParameter | StructuralParameter */ Object>
-      get extendedParameters => UnmodifiableListView(_typeParameters);
+  List<TypeParameter> get extendedParameters =>
+      UnmodifiableListView(_typeParameters);
 }

@@ -6,5 +6,7 @@ class Base {
 }
 
 class Application = Base with Mixin;
+
 main() {}
+
 expect(expected, actual) {}

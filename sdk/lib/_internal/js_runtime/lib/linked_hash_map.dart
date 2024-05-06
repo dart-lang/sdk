@@ -45,11 +45,11 @@ class JsLinkedHashMap<K, V> extends MapBase<K, V>
   bool get isNotEmpty => !isEmpty;
 
   Iterable<K> get keys {
-    return new LinkedHashMapKeyIterable<K>(this);
+    return LinkedHashMapKeyIterable<K>(this);
   }
 
   Iterable<V> get values {
-    return new MappedIterable<K, V>(keys, (each) => this[each] as V);
+    return MappedIterable<K, V>(keys, (each) => this[each] as V);
   }
 
   bool containsKey(Object? key) {
@@ -228,7 +228,7 @@ class JsLinkedHashMap<K, V> extends MapBase<K, V>
 
   // Create a new cell and link it in as the last one in the list.
   LinkedHashMapCell _newLinkedCell(K key, V value) {
-    LinkedHashMapCell cell = new LinkedHashMapCell(key, value);
+    LinkedHashMapCell cell = LinkedHashMapCell(key, value);
     if (_first == null) {
       _first = _last = cell;
     } else {
@@ -348,7 +348,7 @@ class LinkedHashMapKeyIterable<E> extends EfficientLengthIterable<E>
   bool get isEmpty => _map._length == 0;
 
   Iterator<E> get iterator {
-    return new LinkedHashMapKeyIterator<E>(_map, _map._modifications);
+    return LinkedHashMapKeyIterator<E>(_map, _map._modifications);
   }
 
   bool contains(Object? element) {

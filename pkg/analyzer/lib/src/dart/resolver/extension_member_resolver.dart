@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/generic_inferrer.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
@@ -33,9 +34,6 @@ class ExtensionMemberResolver {
 
   bool get _genericMetadataIsEnabled =>
       _resolver.definingLibrary.featureSet.isEnabled(Feature.generic_metadata);
-
-  bool get _isNonNullableByDefault =>
-      _resolver.definingLibrary.featureSet.isEnabled(Feature.non_nullable);
 
   TypeProvider get _typeProvider => _resolver.typeProvider;
 
@@ -109,19 +107,18 @@ class ExtensionMemberResolver {
         return extension.asResolutionResult;
       },
       (noneMoreSpecific) {
-        _errorReporter.reportErrorForOffset(
-          CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS,
-          nameEntity.offset,
-          nameEntity.length,
-          [
+        _errorReporter.atOffset(
+          offset: nameEntity.offset,
+          length: nameEntity.length,
+          errorCode: CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS,
+          arguments: [
             name,
             noneMoreSpecific.map((e) {
               var name = e.extension.name;
               if (name != null) {
                 return "extension '$name'";
               }
-              var type = e.extension.extendedType
-                  .getDisplayString(withNullability: _isNonNullableByDefault);
+              var type = e.extension.extendedType.getDisplayString();
               return "unnamed extension on '$type'";
             }).commaSeparatedWithAnd,
           ],
@@ -162,9 +159,6 @@ class ExtensionMemberResolver {
     var setterMember =
         setter != null ? ExecutableMember.from2(setter, substitution) : null;
 
-    getterMember = _resolver.toLegacyElement(getterMember);
-    setterMember = _resolver.toLegacyElement(setterMember);
-
     return ResolutionResult(getter: getterMember, setter: setterMember);
   }
 
@@ -177,9 +171,9 @@ class ExtensionMemberResolver {
 
     if (!_isValidContext(node)) {
       if (!_isCascadeTarget(node)) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.EXTENSION_OVERRIDE_WITHOUT_ACCESS,
+        _errorReporter.atNode(
           node,
+          CompileTimeErrorCode.EXTENSION_OVERRIDE_WITHOUT_ACCESS,
         );
       }
       nodeImpl.staticType = _dynamicType;
@@ -187,9 +181,9 @@ class ExtensionMemberResolver {
 
     var arguments = node.argumentList.arguments;
     if (arguments.length != 1) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT,
+      _errorReporter.atNode(
         node.argumentList,
+        CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT,
       );
       nodeImpl.typeArgumentTypes = _listOfDynamic(typeParameters);
       nodeImpl.extendedType = _dynamicType;
@@ -203,7 +197,9 @@ class ExtensionMemberResolver {
       receiverType = _typeSystem.promoteToNonNull(receiverType);
     }
 
-    var typeArgumentTypes = _inferTypeArguments(node, receiverType)!;
+    var typeArgumentTypes = _inferTypeArguments(node, receiverType,
+        dataForTesting: _resolver.inferenceHelper.dataForTesting,
+        nodeForTesting: node)!;
     nodeImpl.typeArgumentTypes = typeArgumentTypes;
 
     var substitution = Substitution.fromPairs(
@@ -222,17 +218,19 @@ class ExtensionMemberResolver {
     );
 
     if (receiverType is VoidType) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.USE_OF_VOID_RESULT, receiverExpression);
+      _errorReporter.atNode(
+        receiverExpression,
+        CompileTimeErrorCode.USE_OF_VOID_RESULT,
+      );
     } else if (!_typeSystem.isAssignableTo(receiverType, extendedType,
         strictCasts: _resolver.analysisOptions.strictCasts)) {
       var whyNotPromoted =
           whyNotPromotedList.isEmpty ? null : whyNotPromotedList[0];
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
+      _errorReporter.atNode(
         receiverExpression,
-        [receiverType, extendedType],
-        _resolver.computeWhyNotPromotedMessages(
+        CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
+        arguments: [receiverType, extendedType],
+        contextMessages: _resolver.computeWhyNotPromotedMessages(
             receiverExpression, whyNotPromoted?.call()),
       );
     }
@@ -251,12 +249,11 @@ class ExtensionMemberResolver {
         var parameterBound = parameter.bound;
         if (parameterBound != null) {
           parameterBound = substitution.substituteType(parameterBound);
-          parameterBound = _typeSystem.toLegacyTypeIfOptOut(parameterBound);
           if (!_typeSystem.isSubtypeOf(argument, parameterBound)) {
-            _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+            _errorReporter.atNode(
               typeArgumentList.arguments[i],
-              [argument, parameter.name, parameterBound],
+              CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+              arguments: [argument, parameter.name, parameterBound],
             );
           }
         }
@@ -317,9 +314,9 @@ class ExtensionMemberResolver {
   /// of extension's type parameters, or inference fails, return `dynamic`
   /// for all type parameters.
   List<DartType>? _inferTypeArguments(
-    ExtensionOverride node,
-    DartType receiverType,
-  ) {
+      ExtensionOverride node, DartType receiverType,
+      {required TypeConstraintGenerationDataForTesting? dataForTesting,
+      required AstNode? nodeForTesting}) {
     var element = node.element;
     var typeParameters = element.typeParameters;
     var typeArguments = node.typeArguments;
@@ -335,10 +332,10 @@ class ExtensionMemberResolver {
         // We can safely assume `element.name` is non-`null` because type
         // arguments can only be applied to explicit extension overrides, and
         // explicit extension overrides cannot refer to unnamed extensions.
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION,
+        _errorReporter.atNode(
           typeArguments,
-          [element.name!, typeParameters.length, arguments.length],
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION,
+          arguments: [element.name!, typeParameters.length, arguments.length],
         );
         return _listOfDynamic(typeParameters);
       }
@@ -350,11 +347,14 @@ class ExtensionMemberResolver {
         errorNode: SimpleIdentifierImpl(node.name),
         genericMetadataIsEnabled: _genericMetadataIsEnabled,
         strictInference: _resolver.analysisOptions.strictInference,
+        typeSystemOperations: _resolver.flowAnalysis.typeOperations,
+        dataForTesting: dataForTesting,
       );
       inferrer.constrainArgument(
         receiverType,
         element.extendedType,
         'extendedType',
+        nodeForTesting: nodeForTesting,
       );
       return inferrer.chooseFinalTypes();
     }

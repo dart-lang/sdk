@@ -41,4 +41,5 @@ enum E7 with A {
 }
 
 checkEqual(x, y) {}
+
 main() {}

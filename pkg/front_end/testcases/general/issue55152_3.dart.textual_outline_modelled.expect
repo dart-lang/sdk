@@ -1,0 +1,17 @@
+abstract class Const<X> {
+  const factory Const.impl() = _ConstImpl;
+}
+
+class Class {
+  const Class.named(
+      {dynamic x = (({dynamic y = const [Alias2.impl()]}) =>
+          const [Alias.impl()])});
+}
+
+class _ConstImpl<T> implements Const<T> {
+  const _ConstImpl();
+}
+
+typedef Alias<X> = Const<X>;
+
+typedef Alias2<X> = Const<X>;

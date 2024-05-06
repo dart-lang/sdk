@@ -127,12 +127,12 @@ class PathToObjectTest extends AbstractTypeSystemTest {
     ClassElementImpl classC = class_(name: "C");
     ClassElementImpl classD = class_(name: "D");
     ClassElementImpl classE = class_(name: "E");
-    classB.interfaces = <InterfaceType>[interfaceTypeStar(classA)];
-    classC.interfaces = <InterfaceType>[interfaceTypeStar(classA)];
-    classD.interfaces = <InterfaceType>[interfaceTypeStar(classC)];
+    classB.interfaces = <InterfaceType>[interfaceTypeNone(classA)];
+    classC.interfaces = <InterfaceType>[interfaceTypeNone(classA)];
+    classD.interfaces = <InterfaceType>[interfaceTypeNone(classC)];
     classE.interfaces = <InterfaceType>[
-      interfaceTypeStar(classB),
-      interfaceTypeStar(classD)
+      interfaceTypeNone(classB),
+      interfaceTypeNone(classD)
     ];
     // assertion: even though the longest path to Object for typeB is 2, and
     // typeE implements typeB, the longest path for typeE is 4 since it also
@@ -157,14 +157,14 @@ class PathToObjectTest extends AbstractTypeSystemTest {
     //
     ClassElement classA = class_(name: "A");
     ClassElement classB =
-        class_(name: "B", superType: interfaceTypeStar(classA));
+        class_(name: "B", superType: interfaceTypeNone(classA));
     ClassElement classC =
-        class_(name: "C", superType: interfaceTypeStar(classA));
+        class_(name: "C", superType: interfaceTypeNone(classA));
     ClassElement classD =
-        class_(name: "D", superType: interfaceTypeStar(classC));
+        class_(name: "D", superType: interfaceTypeNone(classC));
     ClassElementImpl classE =
-        class_(name: "E", superType: interfaceTypeStar(classB));
-    classE.interfaces = <InterfaceType>[interfaceTypeStar(classD)];
+        class_(name: "E", superType: interfaceTypeNone(classB));
+    classE.interfaces = <InterfaceType>[interfaceTypeNone(classD)];
     // assertion: even though the longest path to Object for typeB is 2, and
     // typeE extends typeB, the longest path for typeE is 4 since it also
     // implements typeD
@@ -184,8 +184,8 @@ class PathToObjectTest extends AbstractTypeSystemTest {
   void test_class_recursion() {
     ClassElementImpl classA = class_(name: "A");
     ClassElementImpl classB =
-        class_(name: "B", superType: interfaceTypeStar(classA));
-    classA.supertype = interfaceTypeStar(classB);
+        class_(name: "B", superType: interfaceTypeNone(classA));
+    classA.supertype = interfaceTypeNone(classB);
     expect(_toElement(classA), 2);
   }
 
@@ -204,8 +204,8 @@ class PathToObjectTest extends AbstractTypeSystemTest {
     ClassElementImpl classA = class_(name: "A");
     ClassElementImpl classB = class_(name: "B");
     ClassElementImpl classC = class_(name: "C");
-    classB.interfaces = <InterfaceType>[interfaceTypeStar(classA)];
-    classC.interfaces = <InterfaceType>[interfaceTypeStar(classB)];
+    classB.interfaces = <InterfaceType>[interfaceTypeNone(classA)];
+    classC.interfaces = <InterfaceType>[interfaceTypeNone(classB)];
     expect(_toElement(classA), 2);
     expect(_toElement(classB), 3);
     expect(_toElement(classC), 4);
@@ -225,9 +225,9 @@ class PathToObjectTest extends AbstractTypeSystemTest {
     //
     ClassElement classA = class_(name: "A");
     ClassElement classB =
-        class_(name: "B", superType: interfaceTypeStar(classA));
+        class_(name: "B", superType: interfaceTypeNone(classA));
     ClassElement classC =
-        class_(name: "C", superType: interfaceTypeStar(classB));
+        class_(name: "C", superType: interfaceTypeNone(classB));
     expect(_toElement(classA), 2);
     expect(_toElement(classB), 3);
     expect(_toElement(classC), 4);
@@ -393,7 +393,7 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
       typeParameters: [CT],
       interfaces: [
         interfaceTypeNone(classB, typeArguments: [
-          typeParameterTypeStar(CT),
+          typeParameterTypeNone(CT),
         ]),
       ],
     );
@@ -410,7 +410,7 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
     expect(
       _superInterfaces(
         interfaceTypeNone(classB, typeArguments: [
-          interfaceTypeStar(classD),
+          interfaceTypeNone(classD),
         ]),
       ),
       unorderedEquals([objectQuestion, objectNone, instA]),
@@ -420,7 +420,7 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
     expect(
       _superInterfaces(
         interfaceTypeNone(classC, typeArguments: [
-          interfaceTypeStar(classD),
+          interfaceTypeNone(classD),
         ]),
       ),
       unorderedEquals([
@@ -428,7 +428,7 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
         objectNone,
         instA,
         interfaceTypeNone(classB, typeArguments: [
-          interfaceTypeStar(classD),
+          interfaceTypeNone(classD),
         ]),
       ]),
     );
@@ -459,7 +459,7 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
       name: 'B',
       typeParameters: typeParametersC,
       superType: interfaceTypeNone(classB, typeArguments: [
-        typeParameterTypeStar(typeParametersC[0]),
+        typeParameterTypeNone(typeParametersC[0]),
       ]),
     );
 
@@ -475,7 +475,7 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
     expect(
       _superInterfaces(
         interfaceTypeNone(classB, typeArguments: [
-          interfaceTypeStar(classD),
+          interfaceTypeNone(classD),
         ]),
       ),
       unorderedEquals([objectQuestion, objectNone, instA]),
@@ -485,7 +485,7 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
     expect(
       _superInterfaces(
         interfaceTypeNone(classC, typeArguments: [
-          interfaceTypeStar(classD),
+          interfaceTypeNone(classD),
         ]),
       ),
       unorderedEquals([
@@ -493,7 +493,7 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
         objectNone,
         instA,
         interfaceTypeNone(classB, typeArguments: [
-          interfaceTypeStar(classD),
+          interfaceTypeNone(classD),
         ]),
       ]),
     );

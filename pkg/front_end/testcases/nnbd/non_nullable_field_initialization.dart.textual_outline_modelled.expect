@@ -43,10 +43,15 @@ extension Q on Foo {
 }
 
 int? nullableTopLevelField;
+
 int topLevelField;
+
 int topLevelFieldWithInitializer = 42;
+
 late int lateTopLevelField;
+
 main() {}
+
 mixin L<X extends Object?, Y extends Object> {
   Null fieldOfL4;
   X? fieldOfL;
@@ -61,10 +66,12 @@ mixin L<X extends Object?, Y extends Object> {
   static int staticFieldOfLInitialized = 42;
   static late int lateStaticFieldOfM;
 }
+
 mixin M {
   int fieldOfM;
   static int staticFieldOfM;
 }
+
 mixin N<X extends Object?, Y extends Object> {
   X fieldOfN;
   Y fieldOfN2;

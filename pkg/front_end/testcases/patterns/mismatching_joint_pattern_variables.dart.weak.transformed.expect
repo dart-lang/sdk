@@ -2,19 +2,19 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/patterns/mismatching_joint_pattern_variables.dart:12:14: Error: Variable pattern 'y' doesn't have the same type or finality in all cases.
+// pkg/front_end/testcases/patterns/mismatching_joint_pattern_variables.dart:14:14: Error: Variable pattern 'y' doesn't have the same type or finality in all cases.
 //       return y;
 //              ^
 //
-// pkg/front_end/testcases/patterns/mismatching_joint_pattern_variables.dart:13:14: Error: Variable pattern 'y' doesn't have the same type or finality in all cases.
+// pkg/front_end/testcases/patterns/mismatching_joint_pattern_variables.dart:15:14: Error: Variable pattern 'y' doesn't have the same type or finality in all cases.
 //     case int y || [var y] when y == 0: // Error.
 //              ^
 //
-// pkg/front_end/testcases/patterns/mismatching_joint_pattern_variables.dart:15:14: Error: Variable pattern 'y' doesn't have the same type or finality in all cases.
+// pkg/front_end/testcases/patterns/mismatching_joint_pattern_variables.dart:17:14: Error: Variable pattern 'y' doesn't have the same type or finality in all cases.
 //     case int y || [final int y] when y == 0: // Error.
 //              ^
 //
-// pkg/front_end/testcases/patterns/mismatching_joint_pattern_variables.dart:9:14: Error: Variable pattern 'y' doesn't have the same type or finality in all cases.
+// pkg/front_end/testcases/patterns/mismatching_joint_pattern_variables.dart:10:14: Error: Variable pattern 'y' doesn't have the same type or finality in all cases.
 //       return y;
 //              ^
 //
@@ -35,7 +35,7 @@ static method test(dynamic x) → dynamic {
       lowered hoisted core::int y#case#0;
       lowered hoisted dynamic y#case#1;
       if(#0#0 is core::int && (let final core::int #t3 = y#case#0 = #0#0{core::int} in true) && y#case#0 =={core::num::==}{(core::Object) → core::bool} 0 && (let final core::int #t4 = #t1 = y#case#0 in true) || #0#0 is core::List<dynamic> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final core::bool* #t5 = #0#4#isSet = true in #0#4 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1) && (let final dynamic #t6 = y#case#1 = #0#6#isSet ?{dynamic} #0#6{dynamic} : let final core::bool* #t7 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && y#case#1 =={core::Object::==}{(core::Object) → core::bool} 0 && (let final dynamic #t8 = #t1 = y#case#1 in true)) {
-        core::int y = invalid-expression "pkg/front_end/testcases/patterns/mismatching_joint_pattern_variables.dart:9:14: Error: Variable pattern 'y' doesn't have the same type or finality in all cases.
+        core::int y = invalid-expression "pkg/front_end/testcases/patterns/mismatching_joint_pattern_variables.dart:10:14: Error: Variable pattern 'y' doesn't have the same type or finality in all cases.
       return y;
              ^";
         {

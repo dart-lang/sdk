@@ -63,6 +63,75 @@ suggestions
 ''');
   }
 
+  Future<void> test_identifier_imported() async {
+    includeKeywords = false;
+
+    newFile('$testPackageLibPath/a.dart', r'''
+extension type E0(int it) {}
+''');
+
+    await computeSuggestions('''
+import 'a.dart';
+
+void f() {
+  ^
+}
+''');
+    assertResponse(r'''
+suggestions
+  E0
+    kind: extensionType
+''');
+  }
+
+  Future<void> test_identifier_local() async {
+    includeKeywords = false;
+
+    await computeSuggestions('''
+extension type E0(int it) {}
+
+void f() {
+  ^
+}
+''');
+    assertResponse(r'''
+suggestions
+  E0
+    kind: extensionType
+''');
+  }
+
+  Future<void> test_identifier_notImported() async {
+    includeKeywords = false;
+
+    newFile('$testPackageLibPath/a.dart', r'''
+extension type E0(int it) {}
+''');
+
+    await computeSuggestions('''
+void f() {
+  ^
+}
+''');
+    assertResponse(r'''
+suggestions
+  E0
+    kind: extensionType
+''');
+  }
+
+  Future<void> test_name() async {
+    allowedIdentifiers = {'Test'};
+    await computeSuggestions('''
+extension type ^
+''');
+    assertResponse(r'''
+suggestions
+  Test
+    kind: identifier
+''');
+  }
+
   Future<void> test_representationField_annotation() async {
     await computeSuggestions('''
 extension type E(@^)
@@ -84,6 +153,8 @@ class C0 {}
 ''');
     assertResponse(r'''
 suggestions
+  _c0
+    kind: identifier
   c0
     kind: identifier
 ''');

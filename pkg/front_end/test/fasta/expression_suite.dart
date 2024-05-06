@@ -46,13 +46,14 @@ import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:kernel/text/ast_to_text.dart' show Printer;
 import "package:testing/src/log.dart" show splitLines;
 import "package:testing/testing.dart"
-    show Chain, ChainContext, Result, Step, TestDescription, runMe;
-import 'package:vm/target/vm.dart' show VmTarget;
+    show Chain, ChainContext, Result, Step, TestDescription;
+import 'package:vm/modular/target/vm.dart' show VmTarget;
 import "package:yaml/yaml.dart" show YamlMap, YamlList, loadYamlNode;
 
 import '../testing_utils.dart' show checkEnvironment;
 import '../utils/kernel_chain.dart' show runDiff, openWrite;
-import 'testing/suite.dart';
+import 'suite_utils.dart';
+import 'testing/environment_keys.dart';
 
 class Context extends ChainContext {
   final CompilerContext compilerContext;
@@ -654,8 +655,8 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
 Future<Context> createContext(
     Chain suite, Map<String, String> environment) async {
   const Set<String> knownEnvironmentKeys = {
-    UPDATE_EXPECTATIONS,
-    "fuzz",
+    EnvironmentKeys.updateExpectations,
+    EnvironmentKeys.fuzz,
   };
   checkEnvironment(environment, knownEnvironmentKeys);
 
@@ -714,9 +715,10 @@ Future<Context> createContext(
   final ProcessedOptions optionsNoNNBD =
       new ProcessedOptions(options: optionBuilderNoNNBD, inputs: [entryPoint]);
 
-  final bool updateExpectations = environment[UPDATE_EXPECTATIONS] == "true";
+  final bool updateExpectations =
+      environment[EnvironmentKeys.updateExpectations] == "true";
 
-  final bool fuzz = environment["fuzz"] == "true";
+  final bool fuzz = environment[EnvironmentKeys.fuzz] == "true";
 
   final CompilerContext compilerContext = new CompilerContext(options);
   final CompilerContext compilerContextNoNNBD =
@@ -730,5 +732,8 @@ Future<Context> createContext(
       compilerContext, compilerContextNoNNBD, errors, updateExpectations, fuzz);
 }
 
-void main([List<String> arguments = const []]) =>
-    runMe(arguments, createContext, configurationPath: "../../testing.json");
+void main([List<String> arguments = const []]) => internalMain(
+      createContext,
+      arguments: arguments,
+      displayName: "expression suite",
+    );

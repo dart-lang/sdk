@@ -2,16 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 /*spec.library: 
  a_pre_fragments=[
-  p1: {units: [3{liba}], usedBy: [], needs: []},
-  p2: {units: [1{libb}], usedBy: [], needs: []},
+  p1: {units: [1{liba}], usedBy: [], needs: []},
+  p2: {units: [3{libb}], usedBy: [], needs: []},
   p3: {units: [2{liba, libb}], usedBy: [], needs: []}],
  b_finalized_fragments=[
-  f1: [3{liba}],
-  f2: [1{libb}]],
+  f1: [1{liba}],
+  f2: [3{libb}]],
  c_steps=[
   liba=(f1),
   libb=(f2)]
@@ -19,12 +17,12 @@
 
 /*two-frag|three-frag.library: 
  a_pre_fragments=[
-  p1: {units: [3{liba}], usedBy: [p3], needs: []},
-  p2: {units: [1{libb}], usedBy: [p3], needs: []},
+  p1: {units: [1{liba}], usedBy: [p3], needs: []},
+  p2: {units: [3{libb}], usedBy: [p3], needs: []},
   p3: {units: [2{liba, libb}], usedBy: [], needs: [p1, p2]}],
  b_finalized_fragments=[
-  f1: [3{liba}],
-  f2: [1{libb}]],
+  f1: [1{liba}],
+  f2: [3{libb}]],
  c_steps=[
   liba=(f1),
   libb=(f2)]

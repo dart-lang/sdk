@@ -76,22 +76,27 @@ extension on AnalysisOptionsImpl {
   }
 
   void applyOptionalChecks(YamlNode? config) {
-    if (config is YamlMap) {
-      config.nodes.forEach((k, v) {
-        if (k is YamlScalar && v is YamlScalar) {
-          var feature = k.value?.toString();
-          var boolValue = v.boolValue;
-          if (boolValue != null) {
-            if (feature == AnalyzerOptions.chromeOsManifestChecks) {
-              chromeOsManifestChecks = boolValue;
+    switch (config) {
+      case YamlMap():
+        for (var MapEntry(:key, :value) in config.nodes.entries) {
+          if (key is YamlScalar && value is YamlScalar) {
+            if (value.boolValue case var boolValue?) {
+              switch ('${key.value}') {
+                case AnalyzerOptions.chromeOsManifestChecks:
+                  chromeOsManifestChecks = boolValue;
+                case AnalyzerOptions.propagateLinterExceptions:
+                  propagateLinterExceptions = boolValue;
+              }
             }
           }
         }
-      });
-    } else if (config is YamlScalar) {
-      if (config.value?.toString() == AnalyzerOptions.chromeOsManifestChecks) {
-        chromeOsManifestChecks = true;
-      }
+      case YamlScalar():
+        switch ('${config.value}') {
+          case AnalyzerOptions.chromeOsManifestChecks:
+            chromeOsManifestChecks = true;
+          case AnalyzerOptions.propagateLinterExceptions:
+            propagateLinterExceptions = true;
+        }
     }
   }
 

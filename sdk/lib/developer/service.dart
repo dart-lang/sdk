@@ -23,6 +23,7 @@ final class ServiceProtocolInfo {
 
   /// The Uri to connect to the service via web socket. If the web server is
   /// not running, this will be null.
+  @Since('2.14')
   Uri? get serverWebSocketUri {
     Uri? uri = serverUri;
     if (uri != null) {
@@ -102,6 +103,9 @@ final class Service {
   ///
   /// Returns null if the running Dart environment does not support the service
   /// protocol.
+  ///
+  /// To get the isolate id of the current isolate, pass [Isolate.current] as
+  /// the [isolate] parameter.
   @Since('3.2')
   static String? getIsolateId(Isolate isolate) {
     // TODO: When NNBD is complete, delete the following line.
@@ -124,6 +128,7 @@ final class Service {
   ///
   /// Returns null if the running Dart environment does not support the service
   /// protocol.
+  @Since('3.2')
   static String? getObjectId(Object object) {
     return _getObjectId(object);
   }

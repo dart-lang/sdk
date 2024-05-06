@@ -1,0 +1,38 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extension_types/issue54625_2.dart:9:1: Error: Type argument 'Null' doesn't conform to the bound 'Supertype' of the type variable 'Subtype' on 'A'.
+// Try changing type arguments so that they conform to the bounds.
+// A<X, Null> Function<X extends E>() // Error.
+// ^
+// pkg/front_end/testcases/extension_types/issue54625_2.dart:7:20: Context: This is the type variable whose bound isn't conformed to.
+// class A<Supertype, Subtype extends Supertype> {}
+//                    ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A<Supertype extends core::Object? = dynamic, Subtype extends self::A::Supertype% = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::Supertype%, self::A::Subtype%>
+    ;
+}
+extension type E(core::num it) implements core::num {
+  abstract extension-type-member representation-field get it() → core::num;
+  constructor • = self::E|constructor#;
+  constructor tearoff • = self::E|constructor#_#new#tearOff;
+}
+static method foo() → <X extends self::E /* erasure=core::num */ = dynamic>() → X
+  ;
+static method test1() → <X extends self::E /* erasure=core::num */ = dynamic>() → self::A<X, Null>
+  ;
+static method test2() → <X extends self::E /* erasure=core::num */ = dynamic>() → self::A<core::Object, X>
+  ;
+static extension-type-member method E|constructor#(core::num it) → self::E /* erasure=core::num */
+  ;
+static extension-type-member method E|constructor#_#new#tearOff(core::num it) → self::E /* erasure=core::num */
+  return self::E|constructor#(it);
+static method returnsNull<Y extends self::E /* erasure=core::num */>() → Null
+  ;
+static method test3() → dynamic
+  ;

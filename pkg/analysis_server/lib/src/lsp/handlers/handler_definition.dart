@@ -20,7 +20,6 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
-import 'package:collection/collection.dart';
 
 typedef StaticOptions = Either2<bool, DefinitionOptions>;
 
@@ -116,7 +115,7 @@ class DefinitionHandler extends LspMessageHandler<TextDocumentPositionParams,
             mergedTargets,
             (NavigationTarget target) =>
                 _toLocationLink(mergedResults, lineInfo, target),
-          ).whereNotNull().toList();
+          ).nonNulls.toList();
 
           final results = _filterResults(
             convertedResults,
@@ -131,7 +130,7 @@ class DefinitionHandler extends LspMessageHandler<TextDocumentPositionParams,
           final convertedResults = convert(
             mergedTargets,
             (NavigationTarget target) => _toLocation(mergedResults, target),
-          ).whereNotNull().toList();
+          ).nonNulls.toList();
 
           final results = _filterResults(
             convertedResults,
@@ -175,11 +174,11 @@ class DefinitionHandler extends LspMessageHandler<TextDocumentPositionParams,
 
   /// Get the location of the code (excluding leading doc comments) for this element.
   Future<protocol.Location?> _getCodeLocation(Element element) async {
-    var codeElement = element;
+    Element? codeElement = element;
     // For synthetic getters created for fields, we need to access the associated
     // variable to get the codeOffset/codeLength.
-    if (codeElement.isSynthetic && codeElement is PropertyAccessorElementImpl) {
-      codeElement = codeElement.variable;
+    if (codeElement is PropertyAccessorElementImpl && codeElement.isSynthetic) {
+      codeElement = codeElement.variable2!;
     }
 
     // Read the main codeOffset from the element. This may include doc comments
@@ -217,7 +216,7 @@ class DefinitionHandler extends LspMessageHandler<TextDocumentPositionParams,
   Location? _toLocation(
       AnalysisNavigationParams mergedResults, NavigationTarget target) {
     final targetFilePath = mergedResults.files[target.fileIndex];
-    final targetFileUri = pathContext.toUri(targetFilePath);
+    final targetFileUri = uriConverter.toClientUri(targetFilePath);
     final targetLineInfo = server.getLineInfo(targetFilePath);
     return targetLineInfo != null
         ? navigationTargetToLocation(targetFileUri, target, targetLineInfo)
@@ -228,7 +227,7 @@ class DefinitionHandler extends LspMessageHandler<TextDocumentPositionParams,
       LineInfo sourceLineInfo, NavigationTarget target) {
     final region = mergedResults.regions.first;
     final targetFilePath = mergedResults.files[target.fileIndex];
-    final targetFileUri = pathContext.toUri(targetFilePath);
+    final targetFileUri = uriConverter.toClientUri(targetFilePath);
     final targetLineInfo = server.getLineInfo(targetFilePath);
 
     return targetLineInfo != null

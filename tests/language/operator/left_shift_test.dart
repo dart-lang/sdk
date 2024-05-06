@@ -3,12 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import 'package:expect/variations.dart' as v;
 
 main() {
   for (int i = 0; i < 80; i++) {
     var a = -1 << i;
     // web shifts produce a 32-bit unsigned result. Make it signed.
-    if (webNumbers) a = a.toSigned(32);
+    if (v.jsNumbers) a = a.toSigned(32);
     var b = -1;
     Expect.equals(1 << i, a ~/ b);
   }

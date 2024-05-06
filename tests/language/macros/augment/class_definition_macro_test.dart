@@ -21,18 +21,19 @@ class A {
 
 @ClassDefinitionBuildField(
   name: 'x',
-  getter: '=> 3',
+  getter: '`int` get x => 3;',
   setter: null, // TODO(davidmorgan): test setter.
   initializer: null, // TODO(davidmorgan): test initializer.
   initializerComments: null, // TODO(davidmorgan): test comments.
 )
 class B {
-  int get x;
+  // TODO(davidmorgan): should "abstract" be allowed, required?
+  abstract final int x;
 }
 
 @ClassDefinitionBuildMethod(
   name: 'x',
-  body: '=> 3',
+  body: '=> 3;',
   comments: null, // TODO(davidmorgan): test comments.
 )
 class C {

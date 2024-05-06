@@ -14,8 +14,6 @@
   "canonicalUri": "memory:sdk/tests/web/native/lib.dart"
 }]*/
 
-// @dart = 2.7
-
 /*member: defaultArg:function=[{
   "id": "function/memory:sdk/tests/web/native/lib.dart::defaultArg",
   "kind": "function",

@@ -7,5 +7,7 @@ class C<T> {
 }
 
 void g(C<num> c) {}
+
 void test() {}
+
 void main() {}

@@ -38,10 +38,10 @@ static method test(self::A a, ({required foo: core::int}) r) → dynamic {
  - 'A' is from 'pkg/front_end/testcases/records/issue50157.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'foo'.
   a.foo = 1; // Error.
-    ^^^" in a{<unresolved>}.foo = 1;
+    ^^^" in a.{<unresolved>}foo = 1;
   r.foo{core::int};
   invalid-expression "pkg/front_end/testcases/records/issue50157.dart:23:5: Error: The setter 'foo' isn't defined for the class '({int foo})'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'foo'.
   r.foo = 2; // Error.
-    ^^^" in r{<unresolved>}.foo = 2;
+    ^^^" in r.{<unresolved>}foo = 2;
 }

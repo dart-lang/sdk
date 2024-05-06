@@ -8,6 +8,7 @@ part of "core_patch.dart";
 class _GrowableList<E> extends _ModifiableList<E> {
   _GrowableList._(int length, int capacity) : super(length, capacity);
 
+  @pragma("wasm:entry-point")
   _GrowableList._withData(WasmArray<Object?> data)
       : super._withData(data.length, data);
 
@@ -21,6 +22,7 @@ class _GrowableList<E> extends _ModifiableList<E> {
 
   // Specialization of List.empty constructor for growable == true.
   // Used by pkg/dart2wasm/lib/list_factory_specializer.dart.
+  @pragma("wasm:entry-point")
   factory _GrowableList.empty() => _GrowableList(0);
 
   // Specialization of List.filled constructor for growable == true.
@@ -97,7 +99,7 @@ class _GrowableList<E> extends _ModifiableList<E> {
       data = WasmArray<Object?>(_nextCapacity(_capacity));
       if (index != 0) {
         // Copy elements before the insertion point.
-        data.copy(0, _data, 0, index - 1);
+        data.copy(0, _data, 0, index);
       }
     } else {
       data = _data;

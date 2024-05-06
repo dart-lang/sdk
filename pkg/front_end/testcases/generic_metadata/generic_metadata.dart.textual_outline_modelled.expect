@@ -25,6 +25,7 @@ class D<S extends num, T extends S> {
 @D<num, num>()
 @D<num, int>()
 main() {}
+
 @A<int, num>()
 @B<int>()
 @C<String>()

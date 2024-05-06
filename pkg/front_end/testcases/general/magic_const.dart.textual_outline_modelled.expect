@@ -5,5 +5,7 @@ class Constant {
 class NotConstant {}
 
 foo({a = Constant(), b = Constant(), c = []}) {}
+
 main() {}
+
 test() {}

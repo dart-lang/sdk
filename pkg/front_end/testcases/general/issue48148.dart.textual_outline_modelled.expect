@@ -47,10 +47,16 @@ const HInvalid invalidExample = HInvalidComposite(
     HInvalidError("error message"),
   ],
 );
+
 main() {}
+
 typedef HInvalid = HBase<HKindInvalid>;
+
 typedef HInvalidChild<CHILD extends HInvalid> = HBaseChild<HKindInvalid, CHILD>;
+
 typedef HInvalidComposite<CHILD extends HInvalid>
     = HBaseComposite<HKindInvalid, CHILD>;
+
 typedef HInvalidError = HBaseError<HKindInvalid>;
+
 typedef HInvalidLeaf = HBaseLeaf<HKindInvalid>;

@@ -49,7 +49,7 @@ class TransformSetManager {
     var packages = package.packagesAvailableTo(libraryPath);
     for (var package in packages.packages) {
       var folder = package.libFolder;
-      transformSets.addAll(fromFolder(folder));
+      transformSets.addAll(fromFolder(folder, packageName: package.name));
     }
     if (_sdkCache != null) {
       transformSets.add(_sdkCache!);
@@ -114,7 +114,6 @@ class TransformSetManager {
           ErrorReporter(
             AnalysisErrorListener.NULL_LISTENER,
             file.createSource(),
-            isNonNullableByDefault: false,
           ),
           packageName);
       return parser.parse(content);

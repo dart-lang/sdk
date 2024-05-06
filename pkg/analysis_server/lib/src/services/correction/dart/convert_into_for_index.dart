@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -65,7 +66,7 @@ class ConvertIntoForIndex extends ResolvedCorrectionProducer {
     String indexName;
     {
       var conflicts =
-          utils.findPossibleLocalVariableConflicts(forStatement.offset);
+          unit.findPossibleLocalVariableConflicts(forStatement.offset);
       if (!conflicts.contains('i')) {
         indexName = 'i';
       } else if (!conflicts.contains('j')) {
@@ -78,7 +79,7 @@ class ConvertIntoForIndex extends ResolvedCorrectionProducer {
     }
     // prepare environment
     var prefix = utils.getNodePrefix(forStatement);
-    var indent = utils.getIndent(1);
+    var indent = utils.oneIndent;
     var firstBlockLine = utils.getLineContentEnd(body.leftBracket.end);
     // add change
     await builder.addDartFileEdit(file, (builder) {

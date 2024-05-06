@@ -1,4 +1,5 @@
 // @dart = 2.19
+
 class Base {}
 
 class C1a extends Base with Mixin1a {}
@@ -14,4 +15,5 @@ class Mixin1a extends Base {}
 class Mixin1b extends Mixin1a {}
 
 mixin Mixin2a on Base {}
+
 mixin Mixin2b on Base, Mixin2a {}

@@ -42,7 +42,7 @@ main() {
         memorySourceFiles: {'main.dart': CODE},
         options: ['--experimental-powersets']);
     Expect.isTrue(result.isSuccess);
-    Compiler compiler = result.compiler;
+    Compiler compiler = result.compiler!;
     var results = compiler.globalInference.resultsForTesting!;
     JClosedWorld closedWorld = results.closedWorld;
     final powersetDomain = closedWorld.abstractValueDomain as PowersetDomain;
@@ -58,8 +58,7 @@ main() {
     checkBits('b', powersetBitsDomain.boolValue);
     checkBits('c', powersetBitsDomain.boolValue);
     checkBits('d', powersetBitsDomain.boolValue);
-    checkBits(
-        'e', powersetBitsDomain.falseValue | powersetBitsDomain.nullValue);
+    checkBits('e', powersetBitsDomain.falseValue);
   }
 
   asyncTest(() async {

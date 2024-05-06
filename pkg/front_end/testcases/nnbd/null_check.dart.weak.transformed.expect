@@ -1,90 +1,4 @@
 library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/nnbd/null_check.dart:14:3: Warning: Operand of null-aware operation '!' has type 'Class' which excludes null.
-//  - 'Class' is from 'pkg/front_end/testcases/nnbd/null_check.dart'.
-//   c!.field;
-//   ^
-//
-// pkg/front_end/testcases/nnbd/null_check.dart:15:3: Warning: Operand of null-aware operation '!' has type 'Class' which excludes null.
-//  - 'Class' is from 'pkg/front_end/testcases/nnbd/null_check.dart'.
-//   c!.field = 42;
-//   ^
-//
-// pkg/front_end/testcases/nnbd/null_check.dart:16:3: Warning: Operand of null-aware operation '!' has type 'Class' which excludes null.
-//  - 'Class' is from 'pkg/front_end/testcases/nnbd/null_check.dart'.
-//   c!.method;
-//   ^
-//
-// pkg/front_end/testcases/nnbd/null_check.dart:17:3: Warning: Operand of null-aware operation '!' has type 'Class' which excludes null.
-//  - 'Class' is from 'pkg/front_end/testcases/nnbd/null_check.dart'.
-//   c!.method();
-//   ^
-//
-// pkg/front_end/testcases/nnbd/null_check.dart:18:3: Warning: Operand of null-aware operation '!' has type 'Class' which excludes null.
-//  - 'Class' is from 'pkg/front_end/testcases/nnbd/null_check.dart'.
-//   c!.field!.toString();
-//   ^
-//
-// pkg/front_end/testcases/nnbd/null_check.dart:19:3: Warning: Operand of null-aware operation '!' has type 'Class' which excludes null.
-//  - 'Class' is from 'pkg/front_end/testcases/nnbd/null_check.dart'.
-//   c!.method()!.toString();
-//   ^
-//
-// pkg/front_end/testcases/nnbd/null_check.dart:20:3: Warning: Operand of null-aware operation '!' has type 'Class' which excludes null.
-//  - 'Class' is from 'pkg/front_end/testcases/nnbd/null_check.dart'.
-//   c! + c;
-//   ^
-//
-// pkg/front_end/testcases/nnbd/null_check.dart:21:3: Warning: Operand of null-aware operation '!' has type 'Class' which excludes null.
-//  - 'Class' is from 'pkg/front_end/testcases/nnbd/null_check.dart'.
-//   c! + c!;
-//   ^
-//
-// pkg/front_end/testcases/nnbd/null_check.dart:21:8: Warning: Operand of null-aware operation '!' has type 'Class' which excludes null.
-//  - 'Class' is from 'pkg/front_end/testcases/nnbd/null_check.dart'.
-//   c! + c!;
-//        ^
-//
-// pkg/front_end/testcases/nnbd/null_check.dart:22:7: Warning: Operand of null-aware operation '!' has type 'Class' which excludes null.
-//  - 'Class' is from 'pkg/front_end/testcases/nnbd/null_check.dart'.
-//   c + c!;
-//       ^
-//
-// pkg/front_end/testcases/nnbd/null_check.dart:23:6: Warning: Operand of null-aware operation '!' has type 'Class' which excludes null.
-//  - 'Class' is from 'pkg/front_end/testcases/nnbd/null_check.dart'.
-//   (c + c)!;
-//      ^
-//
-// pkg/front_end/testcases/nnbd/null_check.dart:26:10: Warning: Operand of null-aware operation '!' has type 'bool' which excludes null.
-//   !o! ? !o! : !!o!!;
-//          ^
-//
-// pkg/front_end/testcases/nnbd/null_check.dart:26:17: Warning: Operand of null-aware operation '!' has type 'bool' which excludes null.
-//   !o! ? !o! : !!o!!;
-//                 ^
-//
-// pkg/front_end/testcases/nnbd/null_check.dart:26:18: Warning: Operand of null-aware operation '!' has type 'bool' which excludes null.
-//   !o! ? !o! : !!o!!;
-//                  ^
-//
-// pkg/front_end/testcases/nnbd/null_check.dart:27:5: Warning: Operand of null-aware operation '!' has type 'bool' which excludes null.
-//   !(o!) ? (!o)! : (!(!o)!)!;
-//     ^
-//
-// pkg/front_end/testcases/nnbd/null_check.dart:27:12: Warning: Operand of null-aware operation '!' has type 'bool' which excludes null.
-//   !(o!) ? (!o)! : (!(!o)!)!;
-//            ^
-//
-// pkg/front_end/testcases/nnbd/null_check.dart:27:22: Warning: Operand of null-aware operation '!' has type 'bool' which excludes null.
-//   !(o!) ? (!o)! : (!(!o)!)!;
-//                      ^
-//
-// pkg/front_end/testcases/nnbd/null_check.dart:27:20: Warning: Operand of null-aware operation '!' has type 'bool' which excludes null.
-//   !(o!) ? (!o)! : (!(!o)!)!;
-//                    ^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -99,7 +13,7 @@ class Class extends core::Object {
     return new self::Class::•();
 }
 static method main() → dynamic {
-  self::Class? c = new self::Class::•();
+  self::Class? c = new self::Class::•() as{Unchecked} self::Class?;
   c!;
   c{self::Class}!.{self::Class::field}{core::int?};
   c{self::Class}!.{self::Class::field} = 42;
@@ -111,7 +25,12 @@ static method main() → dynamic {
   c{self::Class}!.{self::Class::+}(c{self::Class}!){(self::Class) → self::Class};
   c{self::Class}.{self::Class::+}(c{self::Class}!){(self::Class) → self::Class};
   c{self::Class}.{self::Class::+}(c{self::Class}){(self::Class) → self::Class}!;
-  core::bool? o = true;
+  core::bool? o = true as{Unchecked} core::bool?;
   !o! ?{core::bool} !o{core::bool}! : !!o{core::bool}!!;
   !o{core::bool}! ?{core::bool} (!o{core::bool})! : (!(!o{core::bool})!)!;
 }
+
+
+Extra constant evaluation status:
+Evaluated: AsExpression @ org-dartlang-testcase:///null_check.dart:25:18 -> BoolConstant(true)
+Extra constant evaluation: evaluated: 71, effectively constant: 1

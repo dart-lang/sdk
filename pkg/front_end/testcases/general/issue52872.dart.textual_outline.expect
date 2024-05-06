@@ -9,4 +9,5 @@ mixin class M1 {
 }
 
 class C = A with M1;
+
 test() {}

@@ -1,0 +1,92 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "dart:ffi" as ffi;
+import "dart:typed_data" as typ;
+import "package:expect/expect.dart" as exp;
+
+import "dart:ffi";
+import "dart:typed_data";
+import "package:expect/expect.dart";
+
+@#C6
+final class Coordinate extends ffi::Struct {
+  constructor #fromTypedDataBase(synthesized core::Object #typedDataBase, synthesized core::int #offsetInBytes) → self::Coordinate
+    : super ffi::Struct::_fromTypedDataBase(#typedDataBase, #offsetInBytes)
+    ;
+  constructor #fromTypedData(synthesized typ::TypedData #typedData, synthesized core::int #offset, synthesized core::int #sizeInBytes) → self::Coordinate
+    : super ffi::Struct::_fromTypedData(#typedData, #offset, #sizeInBytes)
+    ;
+  static factory •({core::double? x = #C4, core::double? y = #C4}) → self::Coordinate {
+    final self::Coordinate result = new self::Coordinate::#fromTypedDataBase(typ::Uint8List::•(self::Coordinate::#sizeOf), #C7);
+    if(!(x == null))
+      result.{self::Coordinate::x} = x{core::double};
+    if(!(y == null))
+      result.{self::Coordinate::y} = y{core::double};
+    return result;
+  }
+  static factory fromTypedList(typ::TypedData typedList) → self::Coordinate {
+    return new self::Coordinate::#fromTypedData(typedList, #C7, self::Coordinate::#sizeOf);
+  }
+  @#C8
+  get x() → core::double
+    return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::x#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
+  @#C8
+  set x(synthesized core::double #externalFieldValue) → void
+    return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::x#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
+  @#C8
+  get y() → core::double
+    return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::y#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
+  @#C8
+  set y(synthesized core::double #externalFieldValue) → void
+    return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::y#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
+  @#C10
+  static get x#offsetOf() → core::int
+    return #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+  @#C10
+  static get y#offsetOf() → core::int
+    return #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+  @#C10
+  static get #sizeOf() → core::int*
+    return #C15.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+}
+static method main() → void {
+  for (core::int i = 0; i.{core::num::<}(100){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
+    self::testStructAllocateDart();
+  }
+  core::print("done");
+}
+static method testStructAllocateDart() → void {
+  final self::Coordinate c1 = let final self::Coordinate #t1 = self::Coordinate::•() in block {
+    #t1.{self::Coordinate::x} = 10.0;
+    #t1.{self::Coordinate::y} = 20.0;
+  } =>#t1;
+  exp::Expect::equals(10.0, c1.{self::Coordinate::x}{core::double});
+  exp::Expect::equals(20.0, c1.{self::Coordinate::y}{core::double});
+  final typ::Float64List typedList = typ::Float64List::•(2);
+  [@vm.call-site-attributes.metadata=receiverType:dart.typed_data::Float64List] typedList.{core::List::[]=}(0, 30.0){(core::int, core::double) → void};
+  [@vm.call-site-attributes.metadata=receiverType:dart.typed_data::Float64List] typedList.{core::List::[]=}(1, 40.0){(core::int, core::double) → void};
+  final self::Coordinate c2 = self::Coordinate::fromTypedList(typedList);
+  exp::Expect::equals(30.0, c2.{self::Coordinate::x}{core::double});
+  exp::Expect::equals(40.0, c2.{self::Coordinate::y}{core::double});
+  final self::Coordinate c3 = self::Coordinate::•(x: 50.0, y: 60.0);
+  exp::Expect::equals(50.0, c3.{self::Coordinate::x}{core::double});
+  exp::Expect::equals(60.0, c3.{self::Coordinate::y}{core::double});
+}
+constants  {
+  #C1 = "vm:ffi:struct-fields"
+  #C2 = TypeLiteralConstant(ffi::Double)
+  #C3 = <core::Type>[#C2, #C2]
+  #C4 = null
+  #C5 = ffi::_FfiStructLayout {fieldTypes:#C3, packing:#C4}
+  #C6 = core::pragma {name:#C1, options:#C5}
+  #C7 = 0
+  #C8 = ffi::Double {}
+  #C9 = "vm:prefer-inline"
+  #C10 = core::pragma {name:#C9, options:#C4}
+  #C11 = <core::int*>[#C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7]
+  #C12 = 8
+  #C13 = <core::int*>[#C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12]
+  #C14 = 16
+  #C15 = <core::int*>[#C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14]
+}

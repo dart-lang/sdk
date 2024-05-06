@@ -6,33 +6,47 @@ import "dart:_internal" as _in;
 
 import "dart:ffi";
 
+
+[@vm.closure-id=1]
 static method testVoidNoArg() → dynamic {
   final ffi::Pointer<ffi::NativeFunction<() → ffi::Void>> pointer = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Pointer::fromAddress<ffi::NativeFunction<() → ffi::Void>>(3735928559);
   final () → void function = block {
     [@vm.inferred-type.metadata=dart.ffi::Pointer] synthesized ffi::Pointer<ffi::NativeFunction<() → ffi::Void>> #ffiTarget0 = pointer;
+
+    [@vm.closure-id=1]
     @#C4
     function #ffiClosure0() → void {
       return ffi::_ffiCall<void>(#ffiTarget0);
     }
   } =>#ffiClosure0;
-  function(){() → void};
+  [@vm.direct-call.metadata=closure 1 in #lib::testVoidNoArg] [@vm.inferred-type.metadata=!? (receiver not int)] function(){() → void};
 }
-[@vm.unboxing-info.metadata=()->i]static method testIntInt() → dynamic {
+
+[@vm.closure-id=1]
+[@vm.unboxing-info.metadata=()->i]
+static method testIntInt() → dynamic {
   final ffi::Pointer<ffi::NativeFunction<(ffi::Int64) → ffi::Int32>> pointer = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Pointer::fromAddress<ffi::NativeFunction<(ffi::Int64) → ffi::Int32>>(3735928559);
   final (core::int) → core::int function = block {
     [@vm.inferred-type.metadata=dart.ffi::Pointer] synthesized ffi::Pointer<ffi::NativeFunction<(ffi::Int64) → ffi::Int32>> #ffiTarget1 = pointer;
+
+    [@vm.closure-id=1]
     @#C6
     function #ffiClosure1(core::int arg1) → core::int {
       _in::_nativeEffect(arg1);
-      return ffi::_ffiCall<core::int>(#ffiTarget1);
+      return [@vm.inferred-type.metadata=int] ffi::_ffiCall<core::int>(#ffiTarget1);
     }
   } =>#ffiClosure1;
-  return function(42){(core::int) → core::int};
+  return [@vm.direct-call.metadata=closure 1 in #lib::testIntInt] [@vm.inferred-type.metadata=int (receiver not int)] function(42){(core::int) → core::int};
 }
-[@vm.unboxing-info.metadata=()->i]static method testLeaf5Args() → dynamic {
+
+[@vm.closure-id=1]
+[@vm.unboxing-info.metadata=()->i]
+static method testLeaf5Args() → dynamic {
   final ffi::Pointer<ffi::NativeFunction<(ffi::Int32, ffi::Int32, ffi::Int32, ffi::Int32, ffi::Int32) → ffi::Int32>> pointer = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Pointer::fromAddress<ffi::NativeFunction<(ffi::Int32, ffi::Int32, ffi::Int32, ffi::Int32, ffi::Int32) → ffi::Int32>>(3735928559);
   final (core::int, core::int, core::int, core::int, core::int) → core::int function = block {
     [@vm.inferred-type.metadata=dart.ffi::Pointer] synthesized ffi::Pointer<ffi::NativeFunction<(ffi::Int32, ffi::Int32, ffi::Int32, ffi::Int32, ffi::Int32) → ffi::Int32>> #ffiTarget2 = pointer;
+
+    [@vm.closure-id=1]
     @#C9
     function #ffiClosure2(core::int arg1, core::int arg2, core::int arg3, core::int arg4, core::int arg5) → core::int {
       _in::_nativeEffect(arg1);
@@ -40,10 +54,10 @@ static method testVoidNoArg() → dynamic {
       _in::_nativeEffect(arg3);
       _in::_nativeEffect(arg4);
       _in::_nativeEffect(arg5);
-      return ffi::_ffiCall<core::int>(#ffiTarget2);
+      return [@vm.inferred-type.metadata=int] ffi::_ffiCall<core::int>(#ffiTarget2);
     }
   } =>#ffiClosure2;
-  return function(1, 2, 3, 4, 5){(core::int, core::int, core::int, core::int, core::int) → core::int};
+  return [@vm.direct-call.metadata=closure 1 in #lib::testLeaf5Args] [@vm.inferred-type.metadata=int (receiver not int)] function(1, 2, 3, 4, 5){(core::int, core::int, core::int, core::int, core::int) → core::int};
 }
 static method main() → void {
   self::testVoidNoArg();

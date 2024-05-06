@@ -6,8 +6,6 @@
 // whether field promotion should be inhibited due to a `noSuchMethod`
 // forwarder.
 
-// SharedOptions=--enable-experiment=inference-update-2
-
 import "../static_type_helper.dart";
 
 mixin M on C {}

@@ -106,6 +106,12 @@ class TopLevelDeclarations {
   static Element? _findElement(LibraryElement libraryElement, String name) {
     var element = libraryElement.exportNamespace.get(name) ??
         libraryElement.exportNamespace.get('$name=');
-    return element is PropertyAccessorElement ? element.variable : element;
+    if (element is PropertyAccessorElement) {
+      var variable = element.variable2;
+      if (variable != null) {
+        return variable;
+      }
+    }
+    return element;
   }
 }

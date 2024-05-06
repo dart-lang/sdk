@@ -10,25 +10,12 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NotMapSpreadTest);
-    defineReflectiveTests(NotMapSpreadWithoutNullSafetyTest);
     defineReflectiveTests(NotMapSpreadWithStrictCastsTest);
   });
 }
 
 @reflectiveTest
-class NotMapSpreadTest extends PubPackageResolutionTest
-    with NotMapSpreadTestCases {
-  test_map_typeParameter_bound_mapQuestion() async {
-    await assertNoErrorsInCode('''
-void f<T extends Map<int, String>?>(T a) {
-  var v = <int, String>{...?a};
-  v;
-}
-''');
-  }
-}
-
-mixin NotMapSpreadTestCases on PubPackageResolutionTest {
+class NotMapSpreadTest extends PubPackageResolutionTest {
   test_map() async {
     await assertNoErrorsInCode('''
 var a = {0: 0};
@@ -46,6 +33,15 @@ var v = <int, int>{...?null};
     await assertNoErrorsInCode('''
 void f<T extends Map<int, String>>(T a) {
   var v = <int, String>{...a};
+  v;
+}
+''');
+  }
+
+  test_map_typeParameter_bound_mapQuestion() async {
+    await assertNoErrorsInCode('''
+void f<T extends Map<int, String>?>(T a) {
+  var v = <int, String>{...?a};
   v;
 }
 ''');
@@ -99,10 +95,6 @@ void f<T extends num>(T a) {
     ]);
   }
 }
-
-@reflectiveTest
-class NotMapSpreadWithoutNullSafetyTest extends PubPackageResolutionTest
-    with NotMapSpreadTestCases, WithoutNullSafetyMixin {}
 
 @reflectiveTest
 class NotMapSpreadWithStrictCastsTest extends PubPackageResolutionTest

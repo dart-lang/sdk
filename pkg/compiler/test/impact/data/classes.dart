@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*member: main:
  static=[
   testAbstractClassWithField(0),
@@ -122,7 +120,7 @@ class Sub5 extends Super5 {
 /*member: testSuperClosurization:static=[Sub5.(0)]*/
 testSuperClosurization() => Sub5();
 
-class EmptyMixin {}
+mixin EmptyMixin {}
 
 class ForwardingConstructorSuperClass {
   /*member: ForwardingConstructorSuperClass.:static=[Object.(0)]*/
@@ -180,9 +178,9 @@ class ForwardingConstructorTypedSuperClass {
    type=[
     inst:Closure,
     inst:JSBool,
-    param:int*]
+    param:int?]
   */
-  ForwardingConstructorTypedSuperClass(int arg);
+  ForwardingConstructorTypedSuperClass(int? arg);
 }
 
 class ForwardingConstructorTypedClass = ForwardingConstructorTypedSuperClass
@@ -242,7 +240,7 @@ class ForwardingConstructorGenericSuperClass<T> {
     inst:JSFixedArray<dynamic>,
     inst:JSMutableArray<dynamic>,
     inst:JSUnmodifiableArray<dynamic>,
-    param:ForwardingConstructorGenericSuperClass.T*]
+    param:ForwardingConstructorGenericSuperClass.T]
   */
   ForwardingConstructorGenericSuperClass(T arg);
 }
@@ -257,7 +255,7 @@ class ForwardingConstructorGenericClass<
  type=[inst:JSNull]
 */
 testForwardingConstructorGeneric() {
-  ForwardingConstructorGenericClass<int>(null);
+  ForwardingConstructorGenericClass<int?>(null);
 }
 
 enum Enum { A }
@@ -324,14 +322,14 @@ testEnum() => Enum.A;
   inst:JSFixedArray<dynamic>,
   inst:JSMutableArray<dynamic>,
   inst:JSUnmodifiableArray<dynamic>,
-  inst:List<staticGenericMethod.T*>,
-  param:Object*,
-  param:staticGenericMethod.T*]
+  inst:List<staticGenericMethod.T>,
+  param:Object?,
+  param:staticGenericMethod.T]
 */
 List<T> staticGenericMethod<T>(T arg) => [arg];
 
 /*member: testStaticGenericMethod:
- static=[staticGenericMethod<bool*>(1)],
+ static=[staticGenericMethod<bool>(1)],
  type=[inst:JSBool]
 */
 testStaticGenericMethod() {
@@ -339,7 +337,7 @@ testStaticGenericMethod() {
 }
 
 /*member: testInstanceGenericMethod:
- dynamic=[exact:GenericClass.genericMethod<bool*>(1)],
+ dynamic=[GenericClass.genericMethod<bool>(1)],
  static=[
   GenericClass.generative(0),
   checkTypeBound(4)],
@@ -351,14 +349,14 @@ testInstanceGenericMethod() {
 
 abstract class AbstractClass {
   // ignore: UNUSED_FIELD
-  final _field;
+  final _field = null;
 
-  /*member: AbstractClass.:type=[inst:JSNull]*/
-  factory AbstractClass() => null;
+  /*member: AbstractClass.build:type=[inst:JSNull]*/
+  static build() => null;
 }
 
-/*member: testAbstractClassWithField:static=[AbstractClass.(0)]*/
-testAbstractClassWithField() => AbstractClass();
+/*member: testAbstractClassWithField:static=[AbstractClass.build(0)]*/
+testAbstractClassWithField() => AbstractClass.build();
 
 /*member: testMixinInstantiation:static=[Sub.(0)]*/
 testMixinInstantiation() => Sub();
@@ -431,19 +429,19 @@ class GenericClass<X, Y> {
     inst:JSMutableArray<dynamic>,
     inst:JSNull,
     inst:JSUnmodifiableArray<dynamic>,
-    inst:Map<GenericClass.X*,genericMethod.T*>,
-    param:Object*,
-    param:genericMethod.T*]
+    inst:Map<GenericClass.X?,genericMethod.T>,
+    param:Object?,
+    param:genericMethod.T]
   */
-  Map<X, T> genericMethod<T>(T arg) => {null: arg};
+  Map<X?, T> genericMethod<T>(T arg) => {null: arg};
 }
 
 /*member: Super.:static=[Object.(0)]*/
 class Super {}
 
-class Mixin1 {}
+mixin Mixin1 {}
 
-class Mixin2 {}
+mixin Mixin2 {}
 
 /*member: Sub.:static=[_Sub&Super&Mixin1&Mixin2.(0)]*/
 class Sub extends Super with Mixin1, Mixin2 {}
@@ -453,9 +451,9 @@ class NamedMixin = Super with Mixin1, Mixin2;
 /*member: GenericSuper.:static=[Object.(0)]*/
 class GenericSuper<X1, Y1> {}
 
-class GenericMixin1<X2, Y2> {}
+mixin GenericMixin1<X2, Y2> {}
 
-class GenericMixin2<X3, Y3> {}
+mixin GenericMixin2<X3, Y3> {}
 
 /*member: GenericSub.:
   static=[_GenericSub&GenericSuper&GenericMixin1&GenericMixin2.(0)]

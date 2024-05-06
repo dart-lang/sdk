@@ -116,4 +116,13 @@ class StringExtensionTest {
   void test_ifNotEmptyOrElse_notEmpty() {
     expect('test'.ifNotEmptyOrElse('orElse'), 'test');
   }
+
+  void test_removeSuffix() {
+    expect('01234'.removeSuffix(''), '01234');
+    expect('01234'.removeSuffix('4'), '0123');
+    expect('01234'.removeSuffix('34'), '012');
+    expect('01234'.removeSuffix('01234'), '');
+    expect('01234'.removeSuffix('012345'), isNull);
+    expect('01234'.removeSuffix('5'), isNull);
+  }
 }

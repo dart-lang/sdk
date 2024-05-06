@@ -6,7 +6,6 @@ library subtype_test;
 
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart' show ClassEntity;
 import 'package:compiler/src/elements/types.dart';
 import 'package:expect/expect.dart';
@@ -59,8 +58,7 @@ Future testInterfaceSubtype() async {
       main() {
         C();
       }
-      """, options: [Flags.noSoundNullSafety], expectNoErrors: true)
-      .then((env) {
+      """, expectNoErrors: true).then((env) {
     void expect(bool expectSubtype, DartType T, DartType S) {
       testTypes(env, T, S, expectSubtype);
     }
@@ -80,9 +78,8 @@ Future testInterfaceSubtype() async {
 
     expect(true, void_, void_);
     expect(true, void_, dynamic_);
-    // Unsure about the next one, see dartbug.com/14933.
     expect(true, dynamic_, void_);
-    expect(true, void_, Object_);
+    expect(false, void_, Object_);
     expect(true, Object_, void_);
     expect(true, Null_, void_);
 
@@ -90,29 +87,29 @@ Future testInterfaceSubtype() async {
     expect(true, num_, Object_);
     expect(true, int_, Object_);
     expect(true, String_, Object_);
-    expect(true, dynamic_, Object_);
-    expect(true, Null_, Object_);
+    expect(false, dynamic_, Object_);
+    expect(false, Null_, Object_);
 
     expect(false, Object_, num_);
     expect(true, num_, num_);
     expect(true, int_, num_);
     expect(false, String_, num_);
     expect(false, dynamic_, num_);
-    expect(true, Null_, num_);
+    expect(false, Null_, num_);
 
     expect(false, Object_, int_);
     expect(false, num_, int_);
     expect(true, int_, int_);
     expect(false, String_, int_);
     expect(false, dynamic_, int_);
-    expect(true, Null_, int_);
+    expect(false, Null_, int_);
 
     expect(false, Object_, String_);
     expect(false, num_, String_);
     expect(false, int_, String_);
     expect(true, String_, String_);
     expect(false, dynamic_, String_);
-    expect(true, Null_, String_);
+    expect(false, Null_, String_);
 
     expect(true, Object_, dynamic_);
     expect(true, num_, dynamic_);
@@ -146,29 +143,29 @@ Future testInterfaceSubtype() async {
     expect(true, A_num, A_Object);
     expect(true, A_int, A_Object);
     expect(true, A_String, A_Object);
-    expect(true, A_dynamic, A_Object);
-    expect(true, A_Null, A_Object);
+    expect(false, A_dynamic, A_Object);
+    expect(false, A_Null, A_Object);
 
     expect(false, A_Object, A_num);
     expect(true, A_num, A_num);
     expect(true, A_int, A_num);
     expect(false, A_String, A_num);
     expect(false, A_dynamic, A_num);
-    expect(true, A_Null, A_num);
+    expect(false, A_Null, A_num);
 
     expect(false, A_Object, A_int);
     expect(false, A_num, A_int);
     expect(true, A_int, A_int);
     expect(false, A_String, A_int);
     expect(false, A_dynamic, A_int);
-    expect(true, A_Null, A_int);
+    expect(false, A_Null, A_int);
 
     expect(false, A_Object, A_String);
     expect(false, A_num, A_String);
     expect(false, A_int, A_String);
     expect(true, A_String, A_String);
     expect(false, A_dynamic, A_String);
-    expect(true, A_Null, A_String);
+    expect(false, A_Null, A_String);
 
     expect(true, A_Object, A_dynamic);
     expect(true, A_num, A_dynamic);
@@ -212,7 +209,7 @@ Future testInterfaceSubtype() async {
     expect(true, B_int_num, A_dynamic);
 
     expect(true, B_dynamic_dynamic, Object_);
-    expect(true, B_dynamic_dynamic, A_Object);
+    expect(false, B_dynamic_dynamic, A_Object);
     expect(false, B_dynamic_dynamic, A_num);
     expect(false, B_dynamic_dynamic, A_int);
     expect(false, B_dynamic_dynamic, A_String);
@@ -228,8 +225,8 @@ Future testInterfaceSubtype() async {
     expect(true, B_Object_Object, B_Object_Object);
     expect(true, B_num_num, B_Object_Object);
     expect(true, B_int_num, B_Object_Object);
-    expect(true, B_dynamic_dynamic, B_Object_Object);
-    expect(true, B_String_dynamic, B_Object_Object);
+    expect(false, B_dynamic_dynamic, B_Object_Object);
+    expect(false, B_String_dynamic, B_Object_Object);
 
     expect(false, B_Object_Object, B_num_num);
     expect(true, B_num_num, B_num_num);
@@ -278,7 +275,7 @@ Future testInterfaceSubtype() async {
     expect(true, C_int_String, B_dynamic_dynamic);
     expect(true, C_int_String, B_String_dynamic);
 
-    expect(true, C_dynamic_dynamic, B_Object_Object);
+    expect(false, C_dynamic_dynamic, B_Object_Object);
     expect(false, C_dynamic_dynamic, B_num_num);
     expect(false, C_dynamic_dynamic, B_int_num);
     expect(true, C_dynamic_dynamic, B_dynamic_dynamic);
@@ -299,13 +296,13 @@ Future testCallableSubtype() async {
       class V extends U {}
       class W extends V {}
       class A {
-        int call(V v, int i) => null;
+        int? call(V? v, int? i) => null;
 
-        int m1(U u, int i) => null;
-        int m2(W w, num n) => null;
-        U m3(V v, int i) => null;
-        int m4(V v, U u) => null;
-        void m5(V v, int i) => null;
+        int? m1(U? u, int? i) => null;
+        int? m2(W? w, num? n) => null;
+        U? m3(V? v, int? i) => null;
+        int? m4(V? v, U? u) => null;
+        void m5(V? v, int? i) => null;
       }
 
       main() {
@@ -318,8 +315,7 @@ Future testCallableSubtype() async {
         a.m4(null, null);
         a.m5(null, null);
       }
-      """, options: [Flags.noSoundNullSafety], expectNoErrors: true)
-      .then((env) {
+      """, expectNoErrors: true).then((env) {
     void expect(bool expectSubtype, DartType T, DartType S) {
       testTypes(env, T, S, expectSubtype);
     }
@@ -372,7 +368,6 @@ Future testFunctionSubtyping() async {
     ${createUses(functionTypesData)}
   }
   """),
-          options: [Flags.noSoundNullSafety],
           expectNoErrors: true)
       .then(functionSubtypingHelper);
 }
@@ -384,7 +379,6 @@ Future testTypedefSubtyping() async {
     ${createUses(functionTypesData)}
   }
   """),
-          options: [Flags.noSoundNullSafety],
           expectNoErrors: true)
       .then(functionSubtypingHelper);
 }
@@ -446,18 +440,18 @@ const List<FunctionTypeData> optionalFunctionTypesData =
     const <FunctionTypeData>[
   const FunctionTypeData('void', 'void_', '()'),
   const FunctionTypeData('void', 'void__int', '(int i)'),
-  const FunctionTypeData('void', 'void___int', '([int i])'),
-  const FunctionTypeData('void', 'void___int2', '([int i])'),
-  const FunctionTypeData('void', 'void___Object', '([Object o])'),
-  const FunctionTypeData('void', 'void__int__int', '(int i1, [int i2])'),
-  const FunctionTypeData('void', 'void__int__int2', '(int i1, [int i2])'),
+  const FunctionTypeData('void', 'void___int', '([int? i])'),
+  const FunctionTypeData('void', 'void___int2', '([int? i])'),
+  const FunctionTypeData('void', 'void___Object', '([Object? o])'),
+  const FunctionTypeData('void', 'void__int__int', '(int i1, [int? i2])'),
+  const FunctionTypeData('void', 'void__int__int2', '(int i1, [int? i2])'),
   const FunctionTypeData(
-      'void', 'void__int__int_int', '(int i1, [int i2, int i3])'),
+      'void', 'void__int__int_int', '(int i1, [int? i2, int? i3])'),
   const FunctionTypeData('void', 'void___double', '(double d)'),
-  const FunctionTypeData('void', 'void___int_int', '([int i1, int i2])'),
+  const FunctionTypeData('void', 'void___int_int', '([int? i1, int? i2])'),
   const FunctionTypeData(
-      'void', 'void___int_int_int', '([int i1, int i2, int i3])'),
-  const FunctionTypeData('void', 'void___Object_int', '([Object o, int i])'),
+      'void', 'void___int_int_int', '([int? i1, int? i2, int? i3])'),
+  const FunctionTypeData('void', 'void___Object_int', '([Object? o, int? i])'),
 ];
 
 Future testFunctionSubtypingOptional() async {
@@ -467,7 +461,6 @@ Future testFunctionSubtypingOptional() async {
     ${createUses(optionalFunctionTypesData)}
   }
   """),
-          options: [Flags.noSoundNullSafety],
           expectNoErrors: true)
       .then((env) => functionSubtypingOptionalHelper(env));
 }
@@ -479,7 +472,6 @@ Future testTypedefSubtypingOptional() async {
     ${createUses(optionalFunctionTypesData)}
   }
   """),
-          options: [Flags.noSoundNullSafety],
           expectNoErrors: true)
       .then((env) => functionSubtypingOptionalHelper(env));
 }
@@ -528,19 +520,19 @@ functionSubtypingOptionalHelper(TypeEnvironment env) {
 const List<FunctionTypeData> namedFunctionTypesData = const <FunctionTypeData>[
   const FunctionTypeData('void', 'void_', '()'),
   const FunctionTypeData('void', 'void__int', '(int i)'),
-  const FunctionTypeData('void', 'void___a_int', '({int a})'),
-  const FunctionTypeData('void', 'void___a_int2', '({int a})'),
-  const FunctionTypeData('void', 'void___b_int', '({int b})'),
-  const FunctionTypeData('void', 'void___a_Object', '({Object a})'),
-  const FunctionTypeData('void', 'void__int__a_int', '(int i1, {int a})'),
-  const FunctionTypeData('void', 'void__int__a_int2', '(int i1, {int a})'),
-  const FunctionTypeData('void', 'void___a_double', '({double a})'),
-  const FunctionTypeData('void', 'void___a_int_b_int', '({int a, int b})'),
+  const FunctionTypeData('void', 'void___a_int', '({int? a})'),
+  const FunctionTypeData('void', 'void___a_int2', '({int? a})'),
+  const FunctionTypeData('void', 'void___b_int', '({int? b})'),
+  const FunctionTypeData('void', 'void___a_Object', '({Object? a})'),
+  const FunctionTypeData('void', 'void__int__a_int', '(int i1, {int? a})'),
+  const FunctionTypeData('void', 'void__int__a_int2', '(int i1, {int? a})'),
+  const FunctionTypeData('void', 'void___a_double', '({double? a})'),
+  const FunctionTypeData('void', 'void___a_int_b_int', '({int? a, int? b})'),
   const FunctionTypeData(
-      'void', 'void___a_int_b_int_c_int', '({int a, int b, int c})'),
-  const FunctionTypeData('void', 'void___a_int_c_int', '({int a, int c})'),
-  const FunctionTypeData('void', 'void___b_int_c_int', '({int b, int c})'),
-  const FunctionTypeData('void', 'void___c_int', '({int c})'),
+      'void', 'void___a_int_b_int_c_int', '({int? a, int? b, int? c})'),
+  const FunctionTypeData('void', 'void___a_int_c_int', '({int? a, int? c})'),
+  const FunctionTypeData('void', 'void___b_int_c_int', '({int? b, int? c})'),
+  const FunctionTypeData('void', 'void___c_int', '({int? c})'),
 ];
 
 Future testFunctionSubtypingNamed() async {
@@ -550,7 +542,6 @@ Future testFunctionSubtypingNamed() async {
     ${createUses(namedFunctionTypesData)}
   }
   """),
-          options: [Flags.noSoundNullSafety],
           expectNoErrors: true)
       .then((env) => functionSubtypingNamedHelper(env));
 }
@@ -562,7 +553,6 @@ Future testTypedefSubtypingNamed() async {
     ${createUses(namedFunctionTypesData)}
   }
   """),
-          options: [Flags.noSoundNullSafety],
           expectNoErrors: true)
       .then((env) => functionSubtypingNamedHelper(env));
 }
@@ -619,8 +609,7 @@ Future testTypeVariableSubtype() async {
         E<int, num>();
         F();
       }
-      """, options: [Flags.noSoundNullSafety], expectNoErrors: true)
-      .then((env) {
+      """, expectNoErrors: true).then((env) {
     void expect(bool expectSubtype, DartType T, DartType S) {
       testTypes(env, T, S, expectSubtype);
     }
@@ -732,15 +721,15 @@ Future testStrongModeSubtyping() async {
       class ClassWithCall {
         void call() {}
       }
-      num returnNum() => null;
-      int returnInt() => null;
+      num? returnNum() => null;
+      int? returnInt() => null;
       void returnVoid() => null;
-      Object returnObject() => null;
+      Object? returnObject() => null;
 
-      takeNum(num o) => null;
-      takeInt(int o) => null;
+      takeNum(num? o) => null;
+      takeInt(int? o) => null;
       takeVoid(void o) => null;
-      takeObject(Object o) => null;
+      takeObject(Object? o) => null;
       
       main() {
         ClassWithCall().call;
@@ -754,8 +743,7 @@ Future testStrongModeSubtyping() async {
         takeVoid(null);
         takeObject(null);
       }
-      """, options: [Flags.noSoundNullSafety], expectNoErrors: true)
-      .then((env) {
+      """, expectNoErrors: true).then((env) {
     void expect(bool expectSubtype, DartType T, DartType S) {
       Expect.equals(expectSubtype, env.isSubtype(T, S), '$T <: $S');
       if (expectSubtype) {
@@ -764,18 +752,18 @@ Future testStrongModeSubtyping() async {
     }
 
     InterfaceType ClassWithCall = env['ClassWithCall'] as InterfaceType;
-    DartType Object_ = env['Object'];
+    DartType top = env.types.nullableType(env['Object']);
+    DartType bottom = env['Never'];
     DartType dynamic_ = env['dynamic'];
     DartType void_ = env['void'];
-    DartType Null_ = env['Null'];
     DartType Function_ = env['Function'];
     DartType ClassWithCallType =
         env.getMemberType('call', ClassWithCall.element);
 
-    InterfaceType List_Object = env.commonElements.listType(Object_);
+    InterfaceType List_top = env.commonElements.listType(top);
     InterfaceType List_dynamic = env.commonElements.listType(dynamic_);
     InterfaceType List_void = env.commonElements.listType(void_);
-    InterfaceType List_Null = env.commonElements.listType(Null_);
+    InterfaceType List_bottom = env.commonElements.listType(bottom);
     InterfaceType List_Function = env.commonElements.listType(Function_);
 
     DartType returnNum = env.getMemberType('returnNum');
@@ -794,69 +782,69 @@ Future testStrongModeSubtyping() async {
     // call method.
     expect(false, ClassWithCall, ClassWithCallType);
 
-    // At runtime `Object`, `dynamic` and `void` are the same and are therefore
+    // At runtime `Object?`, `dynamic` and `void` are the same and are therefore
     // subtypes and supertypes of each other.
     //
-    // `dynamic` is no longer a bottom type but `Null` is.
+    // `dynamic` is no longer a bottom type but `Never` is.
 
-    expect(true, Object_, Object_);
-    expect(true, Object_, void_);
-    expect(true, Object_, dynamic_);
-    expect(false, Object_, Null_);
-    expect(false, Object_, Function_);
+    expect(true, top, top);
+    expect(true, top, void_);
+    expect(true, top, dynamic_);
+    expect(false, top, bottom);
+    expect(false, top, Function_);
 
-    expect(true, dynamic_, Object_);
+    expect(true, dynamic_, top);
     expect(true, dynamic_, void_);
     expect(true, dynamic_, dynamic_);
-    expect(false, dynamic_, Null_);
+    expect(false, dynamic_, bottom);
     expect(false, dynamic_, Function_);
 
-    expect(true, void_, Object_);
+    expect(true, void_, top);
     expect(true, void_, void_);
     expect(true, void_, dynamic_);
-    expect(false, void_, Null_);
+    expect(false, void_, bottom);
     expect(false, void_, Function_);
 
-    expect(true, Null_, Object_);
-    expect(true, Null_, void_);
-    expect(true, Null_, dynamic_);
-    expect(true, Null_, Null_);
-    expect(true, Null_, Function_);
+    expect(true, bottom, top);
+    expect(true, bottom, void_);
+    expect(true, bottom, dynamic_);
+    expect(true, bottom, bottom);
+    expect(true, bottom, Function_);
 
-    expect(true, Function_, Object_);
+    expect(true, Function_, top);
     expect(true, Function_, void_);
     expect(true, Function_, dynamic_);
-    expect(false, Function_, Null_);
+    expect(false, Function_, bottom);
     expect(true, Function_, Function_);
 
-    expect(true, List_Object, List_Object);
-    expect(true, List_Object, List_void);
-    expect(true, List_Object, List_dynamic);
-    expect(false, List_Object, List_Null);
-    expect(false, List_Object, List_Function);
+    expect(true, List_top, List_top);
+    expect(true, List_top, List_void);
+    expect(true, List_top, List_dynamic);
+    expect(false, List_top, List_bottom);
+    expect(false, List_top, List_Function);
 
-    expect(true, List_dynamic, List_Object);
+    expect(true, List_dynamic, List_top);
     expect(true, List_dynamic, List_void);
     expect(true, List_dynamic, List_dynamic);
-    expect(false, List_dynamic, List_Null);
+    expect(false, List_dynamic, List_bottom);
     expect(false, List_dynamic, List_Function);
 
-    expect(true, List_void, List_Object);
+    expect(true, List_void, List_top);
     expect(true, List_void, List_void);
     expect(true, List_void, List_dynamic);
-    expect(false, List_void, List_Null);
+    expect(false, List_void, List_bottom);
     expect(false, List_void, List_Function);
 
-    expect(true, List_Null, List_Object);
-    expect(true, List_Null, List_void);
-    expect(true, List_Null, List_dynamic);
-    expect(true, List_Null, List_Null);
-    expect(true, List_Null, List_Function);
+    expect(true, List_bottom, List_top);
+    expect(true, List_bottom, List_void);
+    expect(true, List_bottom, List_dynamic);
+    expect(true, List_bottom, List_bottom);
+    expect(true, List_bottom, List_Function);
 
-    expect(true, List_Function, List_Object);
+    expect(true, List_Function, List_top);
     expect(true, List_Function, List_void);
     expect(true, List_Function, List_dynamic);
-    expect(false, List_Function, List_Null);
+    expect(false, List_Function, List_bottom);
     expect(true, List_Function, List_Function);
 
     // Return type are now covariant.

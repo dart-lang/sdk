@@ -1,7 +1,11 @@
 // @dart = 2.9
+
 library test;
 
 var h = null;
+
 void foo(int f(Object _)) {}
+
 test() {}
+
 main() {}

@@ -43,4 +43,5 @@ class Foo5<T> {
 }
 
 typedef Baz<T> = T Function(T);
+
 void main() {}

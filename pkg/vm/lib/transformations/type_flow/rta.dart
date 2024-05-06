@@ -18,7 +18,7 @@ import 'calls.dart' as calls
 import 'native_code.dart'
     show EntryPointsListener, NativeCodeOracle, PragmaEntryPointsVisitor;
 import 'protobuf_handler.dart' show ProtobufHandler;
-import 'types.dart' show TFClass, Type, ConcreteType, RecordShape;
+import 'types.dart' show Closure, ConcreteType, RecordShape, TFClass, Type;
 import 'utils.dart' show combineHashes;
 import '../pragma.dart' show ConstantPragmaAnnotationParser;
 
@@ -151,11 +151,13 @@ class _ClassHierarchyCache {
 
   void addDynamicCall(Selector selector, Class cl, RapidTypeAnalysis rta) {
     final ClassInfo classInfo = getClassInfo(cl);
-    for (var sub in classInfo.subtypes) {
-      if (sub.calledDynamicSelectors.add(selector) && sub.isAllocated) {
-        final member = sub.getDispatchTarget(selector);
-        if (member != null) {
-          rta.addMember(member);
+    if (!classInfo.calledDynamicSelectors.contains(selector)) {
+      for (var sub in classInfo.subtypes) {
+        if (sub.calledDynamicSelectors.add(selector) && sub.isAllocated) {
+          final member = sub.getDispatchTarget(selector);
+          if (member != null) {
+            rta.addMember(member);
+          }
         }
       }
     }
@@ -163,11 +165,13 @@ class _ClassHierarchyCache {
 
   void addVirtualCall(Selector selector, Class cl, RapidTypeAnalysis rta) {
     final ClassInfo classInfo = getClassInfo(cl);
-    for (var sub in classInfo.subclasses) {
-      if (sub.calledVirtualSelectors.add(selector) && sub.isAllocated) {
-        final member = sub.getDispatchTarget(selector);
-        if (member != null) {
-          rta.addMember(member);
+    if (!classInfo.calledVirtualSelectors.contains(selector)) {
+      for (var sub in classInfo.subclasses) {
+        if (sub.calledVirtualSelectors.add(selector) && sub.isAllocated) {
+          final member = sub.getDispatchTarget(selector);
+          if (member != null) {
+            rta.addMember(member);
+          }
         }
       }
     }
@@ -574,4 +578,8 @@ class _EntryPointsListenerImpl implements EntryPointsListener {
 
   @override
   void recordTearOff(Member target) => throw 'Unsupported operation';
+
+  @override
+  Procedure getClosureCallMethod(Closure closure) =>
+      throw 'Unsupported operation';
 }

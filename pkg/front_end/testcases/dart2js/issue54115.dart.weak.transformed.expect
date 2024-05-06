@@ -20,14 +20,16 @@ class C extends core::Object {
   @#C3
   method pattern() → void {
     {
-      hoisted core::int x;
       final synthesized core::int? #0#0 = this.{self::C::_x}{core::int?};
-      if(!(#0#0 == null)) {
-        x = #0#0{core::int};
-        core::print(x);
+      {
+        hoisted core::int x;
+        if(!(#0#0 == null)) {
+          x = #0#0{core::int};
+          core::print(x);
+        }
+        else
+          core::print("null");
       }
-      else
-        core::print("null");
     }
   }
   @#C3

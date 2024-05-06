@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*member: main:calls=*,params=0*/
 main() {
   method1(new Class1a()..field1);
@@ -16,7 +14,7 @@ main() {
 
 class Class1a {
   /*member: Class1a.field1:emitted*/
-  int field1;
+  int? field1;
 }
 
 /*member: method1:assign=[field1],params=1*/
@@ -31,7 +29,7 @@ class Class2a<T> {
    emitted
   */
   /*prod.member: Class2a.field2:emitted*/
-  T field2;
+  T? field2;
 }
 
 @pragma('dart2js:noInline')
@@ -56,7 +54,7 @@ class Class3a {
    emitted,
    set=simple
   */
-  int field3;
+  int? field3;
 }
 
 class Class3b {
@@ -68,7 +66,7 @@ class Class3b {
    emitted,
    set=simple
   */
-  int field3;
+  int? field3;
 }
 
 /*member: method3:calls=[set$field3(1)],params=1*/
@@ -86,7 +84,7 @@ class Class4a {
    emitted,
    set=simple
   */
-  int field4;
+  int? field4;
 }
 
 class Class4b implements Class4a {
@@ -99,7 +97,7 @@ class Class4b implements Class4a {
    emitted,
    set=simple
   */
-  int field4;
+  int? field4;
 }
 
 /*member: method4:calls=[set$field4(1)],params=1*/

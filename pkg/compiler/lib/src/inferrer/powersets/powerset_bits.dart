@@ -9,7 +9,6 @@ import '../../constants/values.dart';
 import '../../elements/entities.dart';
 import '../../elements/names.dart';
 import '../../elements/types.dart';
-import '../../ir/static_type.dart';
 import '../../js_model/js_world.dart';
 import '../../universe/selector.dart';
 import '../abstract_value_domain.dart';
@@ -441,19 +440,15 @@ class PowersetBitsDomain {
     return classInfo.exactBits;
   }
 
-  int createFromStaticType(DartType type,
-      {ClassRelation classRelation = ClassRelation.subtype,
-      required bool nullable}) {
-    if ((classRelation == ClassRelation.subtype ||
-            classRelation == ClassRelation.thisExpression) &&
-        dartTypes.isTopType(type)) {
+  int createFromStaticType(DartType type, {required bool nullable}) {
+    if (dartTypes.isTopType(type)) {
       // A cone of a top type includes all values. This would be 'precise' if we
       // tracked that.
       return dynamicType;
     }
 
     if (type is NullableType) {
-      return _createFromStaticType(type.baseType, classRelation, true);
+      return _createFromStaticType(type.baseType, true);
     }
 
     if (type is LegacyType) {
@@ -466,20 +461,19 @@ class PowersetBitsDomain {
       // Object* is a top type for both 'is' and 'as'. This is handled in the
       // 'cone of top type' case above.
 
-      return _createFromStaticType(baseType, classRelation, nullable);
+      return _createFromStaticType(baseType, nullable);
     }
 
     if (dartTypes.useLegacySubtyping) {
       // In legacy and weak mode, `String` is nullable depending on context.
-      return _createFromStaticType(type, classRelation, nullable);
+      return _createFromStaticType(type, nullable);
     } else {
       // In strong mode nullability comes from explicit NullableType.
-      return _createFromStaticType(type, classRelation, false);
+      return _createFromStaticType(type, false);
     }
   }
 
-  int _createFromStaticType(
-      DartType type, ClassRelation classRelation, bool nullable) {
+  int _createFromStaticType(DartType type, bool nullable) {
     int finish(int value, bool isPrecise) {
       // [isPrecise] is ignored since we only treat singleton partitions as
       // precise.
@@ -493,7 +487,6 @@ class PowersetBitsDomain {
       TypeVariableType typeVariable = type;
       type = _closedWorld.elementEnvironment
           .getTypeVariableBound(typeVariable.element);
-      classRelation = ClassRelation.subtype;
       isPrecise = false;
       if (type is NullableType) {
         // <A extends B?, B extends num>  ...  null is A --> can be `true`.
@@ -503,9 +496,7 @@ class PowersetBitsDomain {
       }
     }
 
-    if ((classRelation == ClassRelation.thisExpression ||
-            classRelation == ClassRelation.subtype) &&
-        dartTypes.isTopType(type)) {
+    if (dartTypes.isTopType(type)) {
       // A cone of a top type includes all values. Since we already tested this
       // in [createFromStaticType], we get here only for type parameter bounds.
       return finish(dynamicType, isPrecise);
@@ -535,17 +526,6 @@ class PowersetBitsDomain {
           }
           isPrecise = false;
         }
-      }
-      switch (classRelation) {
-        case ClassRelation.exact:
-          return finish(createNonNullExact(cls), isPrecise);
-        case ClassRelation.thisExpression:
-          if (!_closedWorld.isUsedAsMixin(cls)) {
-            return finish(createNonNullSubclass(cls), isPrecise);
-          }
-          break;
-        case ClassRelation.subtype:
-          break;
       }
       return finish(createNonNullSubtype(cls), isPrecise);
     }

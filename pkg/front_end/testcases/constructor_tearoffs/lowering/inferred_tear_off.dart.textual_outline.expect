@@ -1,6 +1,9 @@
 var A_new = A.new;
+
 var B_new = B.new;
+
 var F_new = F.new;
+
 var G_new = G.new;
 
 class A {
@@ -17,9 +20,15 @@ class B<T> implements A {
 }
 
 typedef F<T> = A;
+
 typedef G<T extends num> = B;
+
 var A_named = A.named;
+
 var B_named = B<int>.named;
+
 var F_named = F.named;
+
 var G_named = G<int>.named;
+
 main() {}

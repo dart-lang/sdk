@@ -1,6 +1,7 @@
 abstract class D<T> {
   int method(T x);
 }
+
 class A<in T, out U, V> {
   Map<U, ContraFunction<V>> get mapContraFn => new Map<U, ContraFunction<V>>();
   Map<U, Contravariant<V>> get mapContra => new Map<U, Contravariant<V>>();
@@ -11,30 +12,41 @@ class A<in T, out U, V> {
   void method2(T x, [T? y]) {}
   void set x(T t) {}
 }
+
 class B<inout T> {
   T? x;
   T method(T x) => x;
   void set y(T x) {}
 }
+
 class C<in T> {
   final void Function(T)? field = null;
   void method(T x, [T? y]) {}
   void set x(T t) {}
 }
+
 class Contravariant<in T> {}
+
 class E<inout T> {
   E(this.f);
   final void Function(T) f;
   int method(T x) {}
 }
+
 class F<inout T> extends E<T> implements D<T> {
   F(void Function(T) f) : super(f);
 }
+
 class Invariant<inout T> {}
+
 class NoSuchMethod<inout T> implements B<T> {
   noSuchMethod(_) => 3;
 }
+
 expect(expected, actual) {}
+
 main() {}
+
 typedef ContraFunction<T> = void Function(T);
+
 typedef InvFunction<T> = T Function(T);

@@ -122,7 +122,7 @@ class AcqRelAtomic {
       T& expected,  // NOLINT
       T desired,
       std::memory_order success_order = std::memory_order_acq_rel,
-      std::memory_order failure_order = std::memory_order_seq_cst) {
+      std::memory_order failure_order = std::memory_order_acquire) {
     return value_.compare_exchange_weak(expected, desired, success_order,
                                         failure_order);
   }
@@ -130,7 +130,7 @@ class AcqRelAtomic {
       T& expected,  // NOLINT
       T desired,
       std::memory_order success_order = std::memory_order_acq_rel,
-      std::memory_order failure_order = std::memory_order_seq_cst) {
+      std::memory_order failure_order = std::memory_order_acquire) {
     return value_.compare_exchange_strong(expected, desired, success_order,
                                           failure_order);
   }
@@ -145,6 +145,13 @@ class AcqRelAtomic {
  private:
   std::atomic<T> value_;
 };
+
+template <typename T>
+static inline T LoadRelaxed(const T* ptr) {
+  static_assert(sizeof(std::atomic<T>) == sizeof(T));
+  return reinterpret_cast<const std::atomic<T>*>(ptr)->load(
+      std::memory_order_relaxed);
+}
 
 }  // namespace dart
 

@@ -32,6 +32,7 @@ import 'package:vm/transformations/pragma.dart';
 
 import 'analysis.dart';
 import 'calls.dart';
+import 'config.dart';
 import 'finalizable_types.dart';
 import 'protobuf_handler.dart' show ProtobufHandler;
 import 'rta.dart' show RapidTypeAnalysis;
@@ -50,6 +51,7 @@ const bool kDumpClassHierarchy =
 Component transformComponent(
     Target target, CoreTypes coreTypes, Component component,
     {PragmaAnnotationParser? matcher,
+    TFAConfiguration config = defaultTFAConfiguration,
     bool treeShakeSignatures = true,
     bool treeShakeWriteOnlyFields = true,
     bool treeShakeProtobufs = false,
@@ -91,6 +93,7 @@ Component transformComponent(
   MoveFieldInitializers().transformComponent(component);
 
   final typeFlowAnalysis = new TypeFlowAnalysis(
+      config,
       target,
       component,
       coreTypes,
@@ -130,8 +133,10 @@ Component transformComponent(
       treeShakeWriteOnlyFields: treeShakeWriteOnlyFields);
   treeShaker.transformComponent(component);
 
-  new TFADevirtualization(
-          component, typeFlowAnalysis, hierarchy, treeShaker.fieldMorpher)
+  final closureIdMetadata = ClosureIdMetadataRepository();
+
+  new TFADevirtualization(component, typeFlowAnalysis, hierarchy,
+          treeShaker.fieldMorpher, closureIdMetadata)
       .visitComponent(component);
 
   final tableSelectorAssigner = new TableSelectorAssigner(component);
@@ -145,8 +150,14 @@ Component transformComponent(
   final unboxingInfo = new UnboxingInfoManager(typeFlowAnalysis)
     ..analyzeComponent(component, typeFlowAnalysis, tableSelectorAssigner);
 
-  new AnnotateKernel(component, typeFlowAnalysis, hierarchy,
-          treeShaker.fieldMorpher, tableSelectorAssigner, unboxingInfo)
+  new AnnotateKernel(
+          component,
+          typeFlowAnalysis,
+          hierarchy,
+          treeShaker.fieldMorpher,
+          tableSelectorAssigner,
+          unboxingInfo,
+          closureIdMetadata)
       .visitComponent(component);
 
   transformsStopWatch.stop();
@@ -290,9 +301,10 @@ class CleanupAnnotations extends RecursiveVisitor {
 class TFADevirtualization extends Devirtualization {
   final TypeFlowAnalysis _typeFlowAnalysis;
   final FieldMorpher fieldMorpher;
+  final ClosureIdMetadataRepository _closureIdMetadata;
 
   TFADevirtualization(Component component, this._typeFlowAnalysis,
-      ClassHierarchy hierarchy, this.fieldMorpher)
+      ClassHierarchy hierarchy, this.fieldMorpher, this._closureIdMetadata)
       : super(_typeFlowAnalysis.environment.coreTypes, component, hierarchy);
 
   @override
@@ -303,8 +315,28 @@ class TFADevirtualization extends Devirtualization {
       final Member? singleTarget = fieldMorpher
           .getMorphedMember(callSite.monomorphicTarget, isSetter: setter);
       if (singleTarget != null) {
-        return new DirectCallMetadata(
-            singleTarget, callSite.isNullableReceiver);
+        if (node is FunctionInvocation) {
+          final closure =
+              _typeFlowAnalysis.getClosureByCallMethod(singleTarget)!;
+          final function = closure.function;
+          int closureId;
+          if (function != null) {
+            _closureIdMetadata.indexClosures(closure.member);
+            closureId = _closureIdMetadata.getClosureId(function);
+            if (closureId < 0) {
+              return null;
+            } else {
+              assert(closureId > 0);
+            }
+          } else {
+            closureId = 0;
+          }
+          return DirectCallMetadata.targetClosure(
+              closure.member, closureId, callSite.isNullableReceiver);
+        } else if (!isArtificialNode(singleTarget)) {
+          return DirectCallMetadata.targetMember(
+              singleTarget, callSite.isNullableReceiver);
+        }
       }
     }
     return null;
@@ -330,8 +362,14 @@ class AnnotateKernel extends RecursiveVisitor {
   final TFClass _intTFClass;
   late final Constant _nullConstant = NullConstant();
 
-  AnnotateKernel(Component component, this._typeFlowAnalysis, this.hierarchy,
-      this.fieldMorpher, this._tableSelectorAssigner, this._unboxingInfo)
+  AnnotateKernel(
+      Component component,
+      this._typeFlowAnalysis,
+      this.hierarchy,
+      this.fieldMorpher,
+      this._tableSelectorAssigner,
+      this._unboxingInfo,
+      this._closureIdMetadata)
       : _directCallMetadataRepository =
             component.metadata[DirectCallMetadataRepository.repositoryTag]
                 as DirectCallMetadataRepository,
@@ -340,7 +378,6 @@ class AnnotateKernel extends RecursiveVisitor {
         _unreachableNodeMetadata = UnreachableNodeMetadataRepository(),
         _procedureAttributesMetadata = ProcedureAttributesMetadataRepository(),
         _tableSelectorMetadata = TableSelectorMetadataRepository(),
-        _closureIdMetadata = ClosureIdMetadataRepository(),
         _unboxingInfoMetadata = UnboxingInfoMetadataRepository(),
         _intClass = _typeFlowAnalysis.environment.coreTypes.intClass,
         _intTFClass = _typeFlowAnalysis.hierarchyCache
@@ -558,7 +595,7 @@ class AnnotateKernel extends RecursiveVisitor {
 
       final unboxingInfoMetadata =
           _unboxingInfo.getUnboxingInfoOfMember(member);
-      if (unboxingInfoMetadata != null && !unboxingInfoMetadata.isFullyBoxed) {
+      if (unboxingInfoMetadata != null && !unboxingInfoMetadata.isTrivial) {
         _unboxingInfoMetadata.mapping[member] = unboxingInfoMetadata;
       }
     } else {
@@ -580,7 +617,7 @@ class AnnotateKernel extends RecursiveVisitor {
               unboxingInfoMetadata.argsInfo[i] = UnboxingType.kBoxed;
             }
           }
-          if (!unboxingInfoMetadata.isFullyBoxed) {
+          if (!unboxingInfoMetadata.isTrivial) {
             _unboxingInfoMetadata.mapping[member] = unboxingInfoMetadata;
           }
         }

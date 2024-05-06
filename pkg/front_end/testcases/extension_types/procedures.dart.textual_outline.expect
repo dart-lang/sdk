@@ -6,6 +6,7 @@ extension type Class._(int it) {
   static void staticMethod() {}
   static S genericStaticMethod<S>(S s) => s;
 }
+
 extension type GenericClass<T>._(T it) {
   void instanceMethod() {}
   T get instanceGetter => throw '';

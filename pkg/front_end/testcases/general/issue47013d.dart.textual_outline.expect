@@ -7,4 +7,5 @@ class B extends A {
 }
 
 main() {}
+
 throws(void Function() f) {}

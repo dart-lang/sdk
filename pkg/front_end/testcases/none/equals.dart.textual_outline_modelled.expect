@@ -4,8 +4,11 @@ class Class<T> {
 }
 
 const Object? nullValue = null;
+
 main() {}
+
 nullEqualsIndexGet(Map<int, String> map) {}
+
 test<T1 extends Function, T2 extends int Function(int)>(
     Object o,
     Object nonNullableObject,

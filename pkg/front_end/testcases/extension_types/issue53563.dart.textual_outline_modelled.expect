@@ -11,5 +11,7 @@ extension type B<T>(int it) {
   get g6 => A.redirect(1);
   get g7 => A.redirect;
 }
+
 typedef A<X> = B<X>;
+
 void main() {}

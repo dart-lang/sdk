@@ -6,4 +6,5 @@ class C extends B {
 }
 
 f(B b) {}
+
 main() {}

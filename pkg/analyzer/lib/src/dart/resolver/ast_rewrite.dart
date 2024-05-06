@@ -429,7 +429,12 @@ class AstRewriter {
     required SimpleIdentifierImpl constructorIdentifier,
     required InterfaceElement classElement,
   }) {
-    var constructorElement = classElement.getNamedConstructor(
+    var augmented = classElement.augmented;
+    if (augmented == null) {
+      return node;
+    }
+
+    var constructorElement = augmented.getNamedConstructor(
       constructorIdentifier.name,
     );
     if (constructorElement == null) {
@@ -438,10 +443,11 @@ class AstRewriter {
 
     var typeArguments = node.typeArguments;
     if (typeArguments != null) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
-          typeArguments,
-          [typeNameIdentifier.toString(), constructorIdentifier.name]);
+      _errorReporter.atNode(
+        typeArguments,
+        CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+        arguments: [typeNameIdentifier.toString(), constructorIdentifier.name],
+      );
     }
 
     var typeName = NamedTypeImpl(
@@ -594,18 +600,24 @@ class AstRewriter {
     required SimpleIdentifierImpl constructorIdentifier,
     required InterfaceElement classElement,
   }) {
+    var augmented = classElement.augmented;
+    if (augmented == null) {
+      return node;
+    }
+
     var name = constructorIdentifier.name;
-    var constructorElement = classElement.getNamedConstructor(name);
+    var constructorElement = augmented.getNamedConstructor(name);
     if (constructorElement == null) {
       return node;
     }
 
     var typeArguments = node.typeArguments;
     if (typeArguments != null) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
-          typeArguments,
-          [typeIdentifier.name, constructorIdentifier.name]);
+      _errorReporter.atNode(
+        typeArguments,
+        CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+        arguments: [typeIdentifier.name, constructorIdentifier.name],
+      );
     }
     var typeName = NamedTypeImpl(
       importPrefix: null,

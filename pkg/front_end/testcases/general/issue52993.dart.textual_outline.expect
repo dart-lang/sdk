@@ -1,4 +1,5 @@
 void main() {}
+
 void foo<X>(bool not, X b, X c) {}
 
 class A {}

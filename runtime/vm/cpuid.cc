@@ -5,6 +5,8 @@
 #include "vm/globals.h"
 #if !defined(DART_HOST_OS_MACOS)
 #include "vm/cpuid.h"
+#include "vm/flags.h"
+#include "vm/os.h"
 
 #if defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64)
 // GetCpuId() on Windows, __get_cpuid() on Linux
@@ -16,6 +18,8 @@
 #endif
 
 namespace dart {
+
+DEFINE_FLAG(bool, trace_cpuid, false, "Trace CPU ID discovery")
 
 bool CpuId::sse2_ = false;
 bool CpuId::sse41_ = false;
@@ -38,9 +42,16 @@ static void GetCpuId(int32_t level, uint32_t info[4]) {
 }
 
 void CpuId::Init() {
-  uint32_t info[4] = {static_cast<uint32_t>(-1)};
+  const int info_length = 4;
+  uint32_t info[info_length] = {static_cast<uint32_t>(-1)};
 
   GetCpuId(0, info);
+  if (FLAG_trace_cpuid) {
+    for (intptr_t i = 0; i < info_length; i++) {
+      OS::PrintErr("cpuid(0) info[%" Pd "]: %0x\n", i, info[i]);
+    }
+  }
+
   char* id_string = reinterpret_cast<char*>(malloc(3 * sizeof(int32_t)));
 
   // Yes, these are supposed to be out of order.
@@ -48,13 +59,31 @@ void CpuId::Init() {
   *reinterpret_cast<uint32_t*>(id_string + 4) = info[3];
   *reinterpret_cast<uint32_t*>(id_string + 8) = info[2];
   CpuId::id_string_ = id_string;
+  if (FLAG_trace_cpuid) {
+    OS::PrintErr("id_string: %s\n", id_string);
+  }
 
   GetCpuId(1, info);
+  if (FLAG_trace_cpuid) {
+    for (intptr_t i = 0; i < info_length; i++) {
+      OS::PrintErr("cpuid(1) info[%" Pd "]: %0x\n", i, info[i]);
+    }
+  }
   CpuId::sse41_ = (info[2] & (1 << 19)) != 0;
   CpuId::sse2_ = (info[3] & (1 << 26)) != 0;
   CpuId::popcnt_ = (info[2] & (1 << 23)) != 0;
+  if (FLAG_trace_cpuid) {
+    OS::PrintErr("sse41? %s sse2? %s popcnt? %s\n",
+                 CpuId::sse41_ ? "yes" : "no", CpuId::sse2_ ? "yes" : "no",
+                 CpuId::popcnt_ ? "yes" : "no");
+  }
 
   GetCpuId(0x80000001, info);
+  if (FLAG_trace_cpuid) {
+    for (intptr_t i = 0; i < info_length; i++) {
+      OS::PrintErr("cpuid(0x80000001) info[%" Pd "]: %0x\n", i, info[i]);
+    }
+  }
   CpuId::abm_ = (info[2] & (1 << 5)) != 0;
 
   // Brand string returned by CPUID is expected to be nullptr-terminated,
@@ -66,9 +95,18 @@ void CpuId::Init() {
   char* brand_string = reinterpret_cast<char*>(calloc(3 * sizeof(info) + 1, 1));
   for (uint32_t i = 0; i < 2; i++) {
     GetCpuId(0x80000002U + i, info);
+    if (FLAG_trace_cpuid) {
+      for (intptr_t j = 0; j < info_length; j++) {
+        OS::PrintErr("cpuid(0x80000002U + %u) info[%" Pd "]: %0x\n", i, j,
+                     info[j]);
+      }
+    }
     memmove(&brand_string[i * sizeof(info)], &info, sizeof(info));
   }
   CpuId::brand_string_ = brand_string;
+  if (FLAG_trace_cpuid) {
+    OS::PrintErr("brand_string: %s\n", brand_string_);
+  }
 }
 
 void CpuId::Cleanup() {

@@ -7,8 +7,6 @@
 // implementation generates the appropriate "why not promoted" context message
 // when promotion fails.
 
-// SharedOptions=--enable-experiment=inline-class
-
 extension type E(dynamic d) {
   int? get i1 => 0;
   //       ^^

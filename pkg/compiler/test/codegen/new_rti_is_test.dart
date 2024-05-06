@@ -12,7 +12,7 @@ import '../helpers/compiler_helper.dart';
 // TODO(sra): Add tests with non-nullable input types.
 
 const TEST1N = r"""
-foo(int a) {
+foo(int? a) {
   return a is double;
   // absent: 'return true'
   // absent: 'return false'
@@ -20,7 +20,7 @@ foo(int a) {
 """;
 
 const TEST2N = r"""
-foo(int a) {
+foo(int? a) {
   return a is num;
   // absent: 'return true'
   // absent: 'return false'
@@ -28,7 +28,7 @@ foo(int a) {
 """;
 
 const TEST3N = r"""
-foo(double a) {
+foo(double? a) {
   return a is int;
   // absent: 'return true'
   // absent: 'return false'
@@ -36,7 +36,7 @@ foo(double a) {
 """;
 
 const TEST4N = r"""
-foo(double a) {
+foo(double? a) {
   return a is num;
   // absent: 'return true'
   // absent: 'return false'
@@ -44,7 +44,7 @@ foo(double a) {
 """;
 
 const TEST5N = r"""
-foo(num a) {
+foo(num? a) {
   return a is int;
   // absent: 'return true'
   // absent: 'return false'
@@ -52,7 +52,7 @@ foo(num a) {
 """;
 
 const TEST6N = r"""
-foo(num a) {
+foo(num? a) {
   return a is double;
   // absent: 'return true'
   // absent: 'return false'

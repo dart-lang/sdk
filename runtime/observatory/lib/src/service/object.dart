@@ -2896,8 +2896,6 @@ class Instance extends HeapObject implements M.Instance {
   Breakpoint? activationBreakpoint; // If a Closure.
   ServiceFunction? oneByteFunction; // If a RegExp.
   ServiceFunction? twoByteFunction; // If a RegExp.
-  ServiceFunction? externalOneByteFunction; // If a RegExp.
-  ServiceFunction? externalTwoByteFunction; // If a RegExp.
   Instance? oneByteBytecode; // If a RegExp.
   Instance? twoByteBytecode; // If a RegExp.
   bool? isCaseSensitive; // If a RegExp.
@@ -2984,10 +2982,6 @@ class Instance extends HeapObject implements M.Instance {
     bool isCompiled = map['_oneByteFunction'] is ServiceFunction;
     oneByteFunction = isCompiled ? map['_oneByteFunction'] : null;
     twoByteFunction = isCompiled ? map['_twoByteFunction'] : null;
-    externalOneByteFunction =
-        isCompiled ? map['_externalOneByteFunction'] : null;
-    externalTwoByteFunction =
-        isCompiled ? map['_externalTwoByteFunction'] : null;
     oneByteBytecode = map['_oneByteBytecode'];
     twoByteBytecode = map['_twoByteBytecode'];
 

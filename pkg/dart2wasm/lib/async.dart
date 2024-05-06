@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dart2wasm/class_info.dart';
-import 'package:dart2wasm/closures.dart';
-import 'package:dart2wasm/code_generator.dart';
-import 'package:dart2wasm/sync_star.dart'
-    show StateTarget, StateTargetPlacement;
-
 import 'package:kernel/ast.dart';
-
 import 'package:wasm_builder/wasm_builder.dart' as w;
+
+import 'class_info.dart';
+import 'closures.dart';
+import 'code_generator.dart';
+import 'sync_star.dart' show StateTarget, StateTargetPlacement;
 
 /// Identify which statements contain `await` statements, and assign target
 /// indices to all control flow targets of these.
@@ -32,7 +30,7 @@ class _YieldFinder extends RecursiveVisitor {
     recurse(function.body!);
     // Final state
     addTarget(function.body!, StateTargetPlacement.After);
-    return this.targets;
+    return targets;
   }
 
   /// Recurse into a statement and then remove any targets added by the
@@ -165,6 +163,8 @@ class _YieldFinder extends RecursiveVisitor {
   // transform the expression as expected.
   @override
   void visitAwaitExpression(AwaitExpression node) {
+    // Await expressions should've been converted to `VariableSet` statements
+    // by `_AwaitTransformer`.
     throw 'Unexpected await expression: $node (${node.location})';
   }
 
@@ -244,7 +244,8 @@ class _ExceptionHandlerStack {
     return null;
   }
 
-  void forEachFinalizer(void f(Finalizer finalizer, bool lastFinalizer)) {
+  void forEachFinalizer(
+      void Function(Finalizer finalizer, bool lastFinalizer) f) {
     Finalizer? finalizer = nextFinalizer;
     while (finalizer != null) {
       Finalizer? next = finalizer.parentFinalizer;
@@ -337,13 +338,13 @@ class Catcher extends _ExceptionHandler {
     }
   }
 
-  void setException(void pushException()) {
+  void setException(void Function() pushException) {
     for (final exceptionVar in _exceptionVars) {
       codeGen._setVariable(exceptionVar, pushException);
     }
   }
 
-  void setStackTrace(void pushStackTrace()) {
+  void setStackTrace(void Function() pushStackTrace) {
     for (final stackTraceVar in _stackTraceVars) {
       codeGen._setVariable(stackTraceVar, pushStackTrace);
     }
@@ -385,7 +386,8 @@ class Finalizer extends _ExceptionHandler {
     });
   }
 
-  void setContinuationRethrow(void pushException(), void pushStackTrace()) {
+  void setContinuationRethrow(
+      void Function() pushException, void Function() pushStackTrace) {
     codeGen._setVariable(_continuationVar, () {
       codeGen.b.i64_const(continuationRethrow);
     });
@@ -448,12 +450,12 @@ class IndirectLabelTarget implements LabelTarget {
 
   @override
   void jump(AsyncCodeGenerator codeGen) {
-    final currentFinalizerDepth = codeGen.exceptionHandlers.numFinalizers;
+    final currentFinalizerDepth = codeGen._exceptionHandlers.numFinalizers;
     final finalizersToRun = currentFinalizerDepth - finalizerDepth;
 
     // Control flow overridden by a `break`, reset finalizer continuations.
     var i = finalizersToRun;
-    codeGen.exceptionHandlers.forEachFinalizer((finalizer, last) {
+    codeGen._exceptionHandlers.forEachFinalizer((finalizer, last) {
       if (i <= 0) {
         // Finalizer won't be run by the `break`, reset continuation.
         finalizer.setContinuationFallthrough();
@@ -470,7 +472,7 @@ class IndirectLabelTarget implements LabelTarget {
     if (finalizersToRun == 0) {
       codeGen.jumpToTarget(stateTarget);
     } else {
-      codeGen.jumpToTarget(codeGen.exceptionHandlers.nextFinalizer!.target);
+      codeGen.jumpToTarget(codeGen._exceptionHandlers.nextFinalizer!.target);
     }
   }
 }
@@ -517,7 +519,7 @@ class AsyncCodeGenerator extends CodeGenerator {
 
   /// Exception handlers wrapping the current CFG block. Used to generate Wasm
   /// `try` and `catch` blocks around the CFG blocks.
-  late final _ExceptionHandlerStack exceptionHandlers;
+  late final _ExceptionHandlerStack _exceptionHandlers;
 
   /// Maps jump targets to their CFG targets. Used when jumping to a CFG block
   /// on `break`. Keys are [LabeledStatement]s or [SwitchCase]s.
@@ -564,7 +566,7 @@ class AsyncCodeGenerator extends CodeGenerator {
       }
     }
 
-    exceptionHandlers = _ExceptionHandlerStack(this);
+    _exceptionHandlers = _ExceptionHandlerStack(this);
 
     // Wasm function containing the body of the `async` function
     // (`_AyncResumeFun`).
@@ -619,20 +621,7 @@ class AsyncCodeGenerator extends CodeGenerator {
     }
 
     // _AsyncCompleter _completer
-    final DartType returnType = functionNode.returnType;
-    final DartType completerType;
-    if (returnType is InterfaceType &&
-        returnType.classNode == translator.coreTypes.futureClass) {
-      // Return type = Future<T>, completer type = _AsyncCompleter<T>.
-      completerType = returnType.typeArguments.single;
-    } else if (returnType is FutureOrType) {
-      // Return type = FutureOr<T>, completer type = _AsyncCompleter<T>.
-      completerType = returnType.typeArgument;
-    } else {
-      // In all other cases we use _AsyncCompleter<dynamic>.
-      completerType = const DynamicType();
-    }
-    types.makeType(this, completerType);
+    types.makeType(this, functionNode.emittedValueType!);
     call(translator.makeAsyncCompleter.reference);
 
     // Allocate `_AsyncSuspendState`
@@ -774,8 +763,6 @@ class AsyncCodeGenerator extends CodeGenerator {
     b.local_get(suspendStateLocal);
     b.struct_get(
         asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateCompleter);
-    // Non-null Dart field represented as nullable Wasm field.
-    b.ref_as_non_null();
     b.ref_null(translator.topInfo.struct);
     call(translator.completerComplete.reference);
     b.return_();
@@ -790,7 +777,6 @@ class AsyncCodeGenerator extends CodeGenerator {
       b.local_get(suspendStateLocal);
       b.struct_get(
           asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateCompleter);
-      b.ref_as_non_null();
       b.local_get(exceptionLocal);
       b.local_get(stackTraceLocal);
       call(translator.completerCompleteError.reference);
@@ -834,9 +820,9 @@ class AsyncCodeGenerator extends CodeGenerator {
         'target.index = ${target.index}, '
         'currentTargetIndex = $currentTargetIndex, '
         'target.node.location = ${target.node.location}');
-    exceptionHandlers.terminateTryBlocks();
+    _exceptionHandlers.terminateTryBlocks();
     b.end();
-    exceptionHandlers.generateTryBlocks(b);
+    _exceptionHandlers.generateTryBlocks(b);
   }
 
   void jumpToTarget(StateTarget target,
@@ -946,7 +932,7 @@ class AsyncCodeGenerator extends CodeGenerator {
       b.end();
     } else {
       labelTargets[node] =
-          IndirectLabelTarget(exceptionHandlers.numFinalizers, after);
+          IndirectLabelTarget(_exceptionHandlers.numFinalizers, after);
       visitStatement(node.body);
       labelTargets.remove(node);
       _emitTargetLabel(after);
@@ -1033,7 +1019,7 @@ class AsyncCodeGenerator extends CodeGenerator {
     // Add jump infos
     for (final SwitchCase case_ in node.cases) {
       labelTargets[case_] = IndirectLabelTarget(
-          exceptionHandlers.numFinalizers, innerTargets[case_]!);
+          _exceptionHandlers.numFinalizers, innerTargets[case_]!);
     }
 
     // Emit case bodies
@@ -1072,19 +1058,19 @@ class AsyncCodeGenerator extends CodeGenerator {
       }
     }
 
-    exceptionHandlers.pushTryCatch(node);
-    exceptionHandlers.generateTryBlocks(b);
+    _exceptionHandlers.pushTryCatch(node);
+    _exceptionHandlers.generateTryBlocks(b);
     visitStatement(node.body);
     jumpToTarget(after);
-    exceptionHandlers.terminateTryBlocks();
-    exceptionHandlers.pop();
+    _exceptionHandlers.terminateTryBlocks();
+    _exceptionHandlers.pop();
 
     void emitCatchBlock(Catch catch_, Catch? nextCatch, bool emitGuard) {
       if (emitGuard) {
         _getCurrentException();
         b.ref_as_non_null();
-        types.emitTypeCheck(this, catch_.guard,
-            translator.coreTypes.objectNonNullableRawType, catch_);
+        types.emitIsTest(this, catch_.guard,
+            translator.coreTypes.objectNonNullableRawType, catch_.location);
         b.i32_eqz();
         // When generating guards we can't generate the catch body inside the
         // `if` block for the guard as the catch body can have suspension
@@ -1100,8 +1086,8 @@ class AsyncCodeGenerator extends CodeGenerator {
           b.ref_as_non_null();
           // TODO (omersa): When there is a finalizer we can jump to it
           // directly, instead of via throw/catch. Would that be faster?
-          exceptionHandlers.forEachFinalizer(
-              (finalizer, _last) => finalizer.setContinuationRethrow(
+          _exceptionHandlers.forEachFinalizer(
+              (finalizer, last) => finalizer.setContinuationRethrow(
                     () => _getVariableBoxed(catch_.exception!),
                     () => _getVariable(catch_.stackTrace!),
                   ));
@@ -1171,16 +1157,16 @@ class AsyncCodeGenerator extends CodeGenerator {
     final StateTarget fallthroughContinuationTarget = afterTargets[node]!;
 
     // Body
-    final finalizer = exceptionHandlers.pushTryFinally(node);
-    exceptionHandlers.generateTryBlocks(b);
+    final finalizer = _exceptionHandlers.pushTryFinally(node);
+    _exceptionHandlers.generateTryBlocks(b);
     visitStatement(node.body);
 
     // Set continuation of the finalizer.
     finalizer.setContinuationFallthrough();
 
     jumpToTarget(finalizerTarget);
-    exceptionHandlers.terminateTryBlocks();
-    exceptionHandlers.pop();
+    _exceptionHandlers.terminateTryBlocks();
+    _exceptionHandlers.pop();
 
     // Finalizer
     {
@@ -1205,8 +1191,6 @@ class AsyncCodeGenerator extends CodeGenerator {
       b.local_get(suspendStateLocal);
       b.struct_get(
           asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateCompleter);
-      // Non-null Dart field represented as nullable Wasm field.
-      b.ref_as_non_null();
       b.local_get(suspendStateLocal);
       b.struct_get(asyncSuspendStateInfo.struct,
           FieldIndex.asyncSuspendStateCurrentReturnValue);
@@ -1258,14 +1242,12 @@ class AsyncCodeGenerator extends CodeGenerator {
 
   @override
   void visitReturnStatement(ReturnStatement node) {
-    final Finalizer? firstFinalizer = exceptionHandlers.nextFinalizer;
+    final Finalizer? firstFinalizer = _exceptionHandlers.nextFinalizer;
 
     if (firstFinalizer == null) {
       b.local_get(suspendStateLocal);
       b.struct_get(
           asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateCompleter);
-      // Non-null Dart field represented as nullable Wasm field.
-      b.ref_as_non_null();
     }
 
     final value = node.expression;
@@ -1290,7 +1272,7 @@ class AsyncCodeGenerator extends CodeGenerator {
 
       // Update continuation variables of finalizers. Last finalizer returns
       // the value.
-      exceptionHandlers.forEachFinalizer((finalizer, last) {
+      _exceptionHandlers.forEachFinalizer((finalizer, last) {
         if (last) {
           finalizer.setContinuationReturn();
         } else {
@@ -1315,7 +1297,7 @@ class AsyncCodeGenerator extends CodeGenerator {
     call(translator.stackTraceCurrent.reference);
     b.local_set(stackTraceLocal);
 
-    exceptionHandlers.forEachFinalizer((finalizer, _last) {
+    _exceptionHandlers.forEachFinalizer((finalizer, last) {
       finalizer.setContinuationRethrow(() => b.local_get(exceptionLocal),
           () => b.local_get(stackTraceLocal));
     });
@@ -1325,7 +1307,7 @@ class AsyncCodeGenerator extends CodeGenerator {
     // try-finally. Would that be more efficient?
     b.local_get(exceptionLocal);
     b.local_get(stackTraceLocal);
-    b.throw_(translator.exceptionTag);
+    call(translator.errorThrow.reference);
 
     b.unreachable();
     return expectedType;
@@ -1335,7 +1317,7 @@ class AsyncCodeGenerator extends CodeGenerator {
   w.ValueType visitRethrow(Rethrow node, w.ValueType expectedType) {
     final catchVars = catchVariableStack.last;
 
-    exceptionHandlers.forEachFinalizer((finalizer, _last) {
+    _exceptionHandlers.forEachFinalizer((finalizer, last) {
       finalizer.setContinuationRethrow(
         () => _getVariableBoxed(catchVars.exception),
         () => _getVariable(catchVars.stackTrace),
@@ -1394,9 +1376,25 @@ class AsyncCodeGenerator extends CodeGenerator {
     b.struct_set(
         asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateTargetIndex);
 
+    final DartType? runtimeType = node.runtimeCheckType;
+    DartType? futureTypeParam;
+    if (runtimeType != null) {
+      final futureType = runtimeType as InterfaceType;
+      assert(futureType.classNode == translator.coreTypes.futureClass);
+      assert(futureType.typeArguments.length == 1);
+      futureTypeParam = futureType.typeArguments[0];
+    }
+
+    if (futureTypeParam != null) {
+      types.makeType(this, futureTypeParam);
+    }
     b.local_get(suspendStateLocal);
     wrap(node.operand, translator.topInfo.nullableType);
-    call(translator.awaitHelper.reference);
+    if (runtimeType != null) {
+      call(translator.awaitHelperWithTypeCheck.reference);
+    } else {
+      call(translator.awaitHelper.reference);
+    }
     b.return_();
 
     // Generate resume label
@@ -1409,7 +1407,7 @@ class AsyncCodeGenerator extends CodeGenerator {
     b.local_get(pendingExceptionLocal);
     b.br_on_null(exceptionBlock);
 
-    exceptionHandlers.forEachFinalizer((finalizer, _last) {
+    _exceptionHandlers.forEachFinalizer((finalizer, last) {
       finalizer.setContinuationRethrow(() {
         b.local_get(pendingExceptionLocal);
         b.ref_as_non_null();
@@ -1429,7 +1427,7 @@ class AsyncCodeGenerator extends CodeGenerator {
     });
   }
 
-  void _setVariable(VariableDeclaration variable, void pushValue()) {
+  void _setVariable(VariableDeclaration variable, void Function() pushValue) {
     final w.Local? local = locals[variable];
     final Capture? capture = closures.captures[variable];
     if (capture != null) {
@@ -1439,7 +1437,7 @@ class AsyncCodeGenerator extends CodeGenerator {
       b.struct_set(capture.context.struct, capture.fieldIndex);
     } else {
       if (local == null) {
-        throw "Write of undefined variable ${variable}";
+        throw "Write of undefined variable $variable";
       }
       pushValue();
       b.local_set(local);
@@ -1460,7 +1458,7 @@ class AsyncCodeGenerator extends CodeGenerator {
       }
     } else {
       if (local == null) {
-        throw "Write of undefined variable ${variable}";
+        throw "Write of undefined variable $variable";
       }
       b.local_get(local);
       return local.type;

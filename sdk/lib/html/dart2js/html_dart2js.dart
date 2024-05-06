@@ -1,6 +1,11 @@
 /// HTML elements and other resources for web-based applications that need to
 /// interact with the browser and the DOM (Document Object Model).
 ///
+/// > [!Note]
+/// > New projects should prefer to use
+/// > [package:web](https://pub.dev/packages/web). For existing projects, see
+/// > our [migration guide](https://dart.dev/go/package-web).
+///
 /// This library includes DOM element types, CSS styling, local storage,
 /// media, speech, events, and more.
 /// To get started,
@@ -9,7 +14,7 @@
 ///
 /// For information on writing web apps with Dart, see https://dart.dev/web.
 ///
-/// {@category Web}
+/// {@category Web (Legacy)}
 /// {@canonicalFor dart:_internal.HttpStatus}
 library dart.dom.html;
 
@@ -16961,8 +16966,8 @@ class Geolocation extends JavaScriptObject {
         new StreamController<Geoposition>(
             sync: true,
             onCancel: () {
-              assert(watchId != null);
-              _clearWatch(watchId!);
+              final id = watchId;
+              if (id != null) _clearWatch(id);
             });
     controller.onListen = () {
       assert(watchId == null);
@@ -27715,7 +27720,8 @@ class SelectElement extends HtmlElement {
       var options = this.options.where((o) => o.selected).toList();
       return new UnmodifiableListView(options);
     } else {
-      return [this.options[this.selectedIndex!]];
+      var i = this.selectedIndex!;
+      return i < 0 ? [] : [this.options[i]];
     }
   }
 }

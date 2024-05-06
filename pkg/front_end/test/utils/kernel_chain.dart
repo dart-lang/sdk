@@ -5,7 +5,17 @@
 library fasta.testing.kernel_chain;
 
 import 'dart:async';
+
 import 'dart:io' show Directory, File, IOSink, Platform;
+
+import 'dart:typed_data';
+
+import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
+    show ScannerConfiguration;
+import 'package:_fe_analyzer_shared/src/scanner/token.dart';
+
+import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
+    show Utf8BytesScanner;
 
 import 'package:_fe_analyzer_shared/src/util/relativize.dart'
     show isWindows, relativizeUri;
@@ -34,6 +44,7 @@ import 'package:kernel/ast.dart'
         Block,
         Component,
         Library,
+        LibraryPart,
         Procedure,
         ReturnStatement,
         Source,
@@ -61,7 +72,8 @@ import 'package:testing/testing.dart'
         Step,
         TestDescription;
 
-import '../fasta/testing/suite.dart' show CompilationSetup;
+import '../fasta/testing/suite.dart' show CompilationSetup, CompileMode;
+
 import '../test_utils.dart';
 
 final Uri platformBinariesLocation = computePlatformBinariesLocation();
@@ -141,6 +153,266 @@ $actual""",
       });
     }
     return new Result<O>.pass(output);
+  }
+}
+
+class ErrorCommentChecker
+    extends Step<ComponentResult, ComponentResult, ChainContext> {
+  final CompileMode compileMode;
+  const ErrorCommentChecker(this.compileMode);
+  static const bool throwOnNoMatch = false;
+
+  @override
+  String get name => "ErrorCommentChecker";
+
+  static const Set<String> ignoreBecauseOfFailures = {
+    "extension_types/conflicting_static_and_instance",
+    "extension_types/implements_conflicts",
+    "general/bounds_enums",
+    "general/bounds_type_parameters",
+    "general/covariant_equals",
+    "general/getter_vs_setter_type",
+    "general/nested_variance",
+    "general/nested_variance2",
+    "general/new_as_selector",
+    "general/top_level_variance_test",
+    "general/top_level_variance2",
+    "general/type_variable_uses",
+    "generic_metadata/alias_from_opt_in",
+    "inference/block_bodied_lambdas_infer_bottom_sync",
+    "inference/future_then_conditional",
+    "inference/future_then_ifNull",
+    "inference/generic_methods_infer_js_builtin",
+    "inference/instantiate_to_bounds_generic2_has_bound_defined_after",
+    "inference/instantiate_to_bounds_generic2_has_bound_defined_before",
+    "inference/void_return_type_subtypes_dynamic",
+    "nnbd_mixed/hierarchy/in_dill_out_in/in_out_in",
+    "nnbd_mixed/hierarchy/in_out_dill_in/in_out_in",
+    "nnbd/getter_vs_setter_type_nnbd",
+    "nnbd/getter_vs_setter_type",
+    "nnbd/null_access",
+    "patterns/exhaustiveness/bool_switch",
+    "patterns/exhaustiveness/enum_switch",
+    "patterns/for_final_variable",
+    "patterns/pattern_types",
+    "records/type_record_as_supertype"
+  };
+
+  @override
+  Future<Result<ComponentResult>> run(
+      ComponentResult result, ChainContext context) {
+    if (compileMode != CompileMode.full) return Future.value(pass(result));
+    // TODO(jensj): Delete this once failures are fixed.
+    if (ignoreBecauseOfFailures.contains(result.description.shortName)) {
+      return Future.value(pass(result));
+    }
+
+    Component component = result.component;
+    for (Library lib in component.libraries) {
+      if (!result.userLibraries.contains(lib.importUri)) continue;
+      if (!lib.fileUri.isScheme("file")) continue;
+      List<Uri> uris = [];
+      List<String> filenames = [];
+      for (LibraryPart part in lib.parts) {
+        // This is a bit simplistic but will probably work for our use here.
+        uris.add(lib.fileUri.resolve(part.partUri));
+        filenames.add(uris.last.pathSegments.last);
+      }
+      uris.add(lib.fileUri);
+      filenames.add(uris.last.pathSegments.last);
+
+      Set<String> expectProblemOn = {};
+      Set<String> expectNoProblemOn = {};
+      for (Uri uri in uris) {
+        Set<int> expectErrorOnLines = {};
+        Set<int> expectNoErrorOnLines = {};
+        Map<int, List<CommentToken>> linesToComments =
+            extractCommentsFromLines(uri);
+        categorizeCommentLines(
+            linesToComments, expectErrorOnLines, expectNoErrorOnLines);
+        for (int line in expectErrorOnLines) {
+          expectProblemOn.add("${uri.pathSegments.last}:$line");
+        }
+        for (int line in expectNoErrorOnLines) {
+          expectNoProblemOn.add("${uri.pathSegments.last}:$line");
+        }
+      }
+
+      // Now check.
+      if (expectProblemOn.isNotEmpty || expectNoProblemOn.isNotEmpty) {
+        List<String> failures = [];
+        Set<String> notYetSeen = new Set<String>.of(expectProblemOn);
+        // Sanity check: No overlap between error and no-error expectations.
+        Set<String> overlap = expectProblemOn.intersection(expectNoProblemOn);
+        if (overlap.isNotEmpty) {
+          for (String fileAndLine in overlap) {
+            failures.add("Test error: "
+                "$fileAndLine is marked as both error and no error.");
+          }
+        }
+
+        List<String>? libraryProblems = lib.problemsAsJson;
+        RegExp extractLineRegExp = RegExp(
+            "(${filenames.map((e) => RegExp.escape(e)).join("|")}):(\\d+)");
+
+        if (libraryProblems != null) {
+          for (String jsonString in libraryProblems) {
+            DiagnosticMessageFromJson message =
+                new DiagnosticMessageFromJson.fromJson(jsonString);
+            // By taking all of these we accept it if it's just mentioned in a
+            // context message too. Is that the precision we want?
+            for (String plainTextProblem in message.plainTextFormatted) {
+              List<RegExpMatch> matches =
+                  extractLineRegExp.allMatches(plainTextProblem).toList();
+              if (matches.isEmpty && throwOnNoMatch) {
+                throw "Couldn't extract any offsets from "
+                    "'$plainTextProblem' with '$extractLineRegExp'";
+              }
+              for (RegExpMatch match in matches) {
+                String lineString = match.group(0)!;
+                notYetSeen.remove(lineString);
+                if (expectNoProblemOn.contains(lineString)) {
+                  failures.add("Found error at $lineString "
+                      "but didn't expect any:\n"
+                      "$plainTextProblem");
+                }
+              }
+            }
+          }
+        }
+
+        for (String line in notYetSeen) {
+          failures.add("Expected error on $line but didn't find any.");
+        }
+
+        if (failures.isNotEmpty) {
+          return new Future.value(new Result<ComponentResult>(
+              result,
+              context.expectationSet["ErrorCommentCheckFailure"],
+              "Found ${failures.length} failures:\n\n * "
+              "${failures.join("\n\n * ")}\n"));
+        }
+      }
+    }
+
+    return Future.value(pass(result));
+  }
+
+  void categorizeCommentLines(Map<int, List<CommentToken>> linesToComments,
+      Set<int> expectErrorOnLines, Set<int> expectNoErrorOnLines) {
+    for (MapEntry<int, List<CommentToken>> entry in linesToComments.entries) {
+      for (CommentToken comment in entry.value) {
+        String message = comment.lexeme.trim().toLowerCase();
+        while (message.startsWith("//") || message.startsWith("/*")) {
+          message = message.substring(2).trim();
+        }
+        // TODO(jensj): Possibly reduce these cases by updating tests.
+        // See discussion in
+        // https://dart-review.googlesource.com/c/sdk/+/346301.
+        if (message == "error" ||
+            message == "error." ||
+            message == "error */" ||
+            message == "error*/" ||
+            message.startsWith("error in strong mode") ||
+            message.startsWith("error:") ||
+            message.startsWith("error,") ||
+            message.startsWith("error.") ||
+            message.startsWith("error - ") ||
+            message.startsWith("error (") ||
+            message.startsWith("error on ") ||
+            message.startsWith("error in ") ||
+            message.startsWith("error since ") ||
+            message.startsWith("error because ") ||
+            message.startsWith("not ok.") ||
+            message.startsWith("note: illegal ") ||
+            message.startsWith("parse error:") ||
+            message.startsWith("parse error,") ||
+            message.startsWith("compile-time error") ||
+            message.endsWith(" compile-time error")) {
+          expectErrorOnLines.add(entry.key);
+        } else if (message == "ok" ||
+            message == "ok." ||
+            message == "ok," ||
+            message == "ok */" ||
+            message.startsWith("ok: ") ||
+            message.startsWith("ok, ") ||
+            message.startsWith("ok (") ||
+            message.startsWith("ok because ") ||
+            message.startsWith("ok to ") ||
+            message.startsWith("now ok") ||
+            message.startsWith("no error.") ||
+            message.startsWith("no error:") ||
+            message.startsWith("no error ") ||
+            message.startsWith("not a compile time error") ||
+            message.startsWith("not an error") ||
+            message == "shouldn't result in a compile-time error.") {
+          expectNoErrorOnLines.add(entry.key);
+        }
+      }
+    }
+  }
+
+  Map<int, List<CommentToken>> extractCommentsFromLines(Uri uri) {
+    if (!uri.isScheme("file")) return const {};
+    File f = new File.fromUri(uri);
+    if (!f.existsSync()) return const {};
+    Uint8List rawBytes = f.readAsBytesSync();
+
+    Uint8List bytes = new Uint8List(rawBytes.length + 1);
+    bytes.setRange(0, rawBytes.length, rawBytes);
+
+    Utf8BytesScanner scanner = new Utf8BytesScanner(
+      bytes,
+      configuration: const ScannerConfiguration(
+          enableExtensionMethods: true,
+          enableNonNullable: true,
+          enableTripleShift: true),
+      includeComments: true,
+      languageVersionChanged: (scanner, languageVersion) {
+        // Nothing - but don't overwrite the previous settings.
+      },
+    );
+    Token firstToken = scanner.tokenize();
+    List<int> lineStarts = scanner.lineStarts;
+
+    Token? token = firstToken;
+    Token? previousToken;
+    Source lineStartsHelper = new Source(lineStarts, const [], null, null);
+    Map<int, List<CommentToken>> linesToComments = {};
+    while (token != null && !token.isEof) {
+      CommentToken? precedingComments = token.precedingComments;
+      while (precedingComments != null) {
+        int commentLine = lineStartsHelper
+            .getLocation(Uri.base /* dummy */, precedingComments.offset)
+            .line;
+        int tokenLine = lineStartsHelper
+            .getLocation(Uri.base /* dummy */, token.offset)
+            .line;
+        int likelyAboutLine = tokenLine;
+        if (previousToken != null) {
+          int previousTokenLine = lineStartsHelper
+              .getLocation(Uri.base /* dummy */, previousToken.offset)
+              .line;
+          if (previousTokenLine == commentLine) likelyAboutLine = commentLine;
+        }
+        if (!precedingComments.lexeme.startsWith("// Copyright (c)") &&
+            !precedingComments.lexeme
+                .startsWith("// for details. All rights reserved.") &&
+            !precedingComments.lexeme.startsWith("// BSD-style license")) {
+          (linesToComments[likelyAboutLine] ??= []).add(precedingComments);
+        }
+
+        Token? next = precedingComments.next;
+        if (next is CommentToken) {
+          precedingComments = next;
+        } else {
+          precedingComments = null;
+        }
+      }
+      previousToken = token;
+      token = token.next;
+    }
+    return linesToComments;
   }
 }
 
@@ -255,7 +527,6 @@ class MatchExpectation
     Iterable<Library> libraries =
         componentToText.libraries.where(result.isUserLibrary);
     Uri base = uri.resolve(".");
-    Uri dartBase = Uri.base;
 
     StringBuffer buffer = new StringBuffer();
 
@@ -326,20 +597,45 @@ class MatchExpectation
     String binariesPath =
         relativizeUri(Uri.base, platformBinariesLocation, isWindows);
     if (binariesPath.endsWith("/dart-sdk/lib/_internal/")) {
-      // We are running from the built SDK.
-      actual = actual.replaceAll(
-          binariesPath.substring(
-              0, binariesPath.length - "lib/_internal/".length),
-          "sdk/");
+      // We are running from something like out/ReleaseX64/dart-sdk/bin/dart
+      String search = binariesPath.substring(
+          0, binariesPath.length - "lib/_internal/".length);
+      actual = _replaceSdkLocation(actual, search, "sdk/");
+    } else {
+      // We are running from something like out/ReleaseX64/dart
+      actual = _replaceSdkLocation(actual, "sdk/", "sdk/");
     }
     actual = actual.replaceAll("$base", "org-dartlang-testcase:///");
-    actual = actual.replaceAll("$dartBase", "org-dartlang-testcase-sdk:///");
     actual = actual.replaceAll("\\n", "\n");
     return context.match<ComponentResult>(suffix, actual, uri, result,
         onMismatch: serializeFirst
             ? context.expectationFileMismatchSerialized
             : context.expectationFileMismatch,
         overwriteUpdateExpectationsWith: serializeFirst ? false : null);
+  }
+
+  /// Replace SDK locations starting with [path] with [replacement] and '*'
+  /// instead of the line/column.
+  ///
+  /// For instance replacing
+  ///
+  ///     out/ReleaseX64/dart-sdk/lib/core/enum.dart:101:13
+  ///
+  /// with
+  ///
+  ///     sdk/lib/core/enum.dart:*
+  ///
+  /// This is done to avoid expectations to depend on the actual location
+  /// of the SDK or the position within the SDK file.
+  String _replaceSdkLocation(String text, String path, String replacement) {
+    // Replace path with line/column.
+    RegExp regExp = new RegExp(
+        '^// ${RegExp.escape(path)}([^:\r\n]*):\\d+:\\d+:',
+        multiLine: true);
+    text = text.replaceAllMapped(
+        regExp, (Match match) => '// $replacement${match[1]}:*:');
+    // Replace path with no line/column.
+    return text.replaceAll(path, replacement);
   }
 }
 

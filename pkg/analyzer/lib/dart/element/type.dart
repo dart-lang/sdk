@@ -188,7 +188,10 @@ abstract class DartType {
   ///
   /// Clients should not depend on the content of the returned value as it will
   /// be changed if doing so would improve the UX.
-  String getDisplayString({required bool withNullability});
+  String getDisplayString({
+    @Deprecated('Only non-nullable by default mode is supported')
+    bool withNullability = true,
+  });
 
   /// If this type is a [TypeParameterType], returns its bound if it has one, or
   /// [objectType] otherwise.

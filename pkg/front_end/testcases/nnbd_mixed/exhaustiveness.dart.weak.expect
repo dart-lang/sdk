@@ -69,7 +69,7 @@ static method boolSwitchStatement(core::bool b) → core::bool {
       }
     #L4:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method boolSwitchExpression(core::bool b) → core::bool
@@ -91,7 +91,7 @@ static method boolSwitchExpression(core::bool b) → core::bool
         }
       #L8:
       default:
-        throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+        throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t1;
 static method sealedSwitchStatement(exh::A a) → core::int {
@@ -112,7 +112,7 @@ static method sealedSwitchStatement(exh::A a) → core::int {
         }
       }
     }
-    throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+    throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method sealedSwitchExpression(exh::A a) → core::int
@@ -133,7 +133,7 @@ static method sealedSwitchExpression(exh::A a) → core::int
           break #L10;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t2;
 

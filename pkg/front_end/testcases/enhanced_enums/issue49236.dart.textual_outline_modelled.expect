@@ -39,6 +39,7 @@ enum E7 with A {
 }
 
 main() {}
+
 mixin M {
   String toString() => "M";
 }

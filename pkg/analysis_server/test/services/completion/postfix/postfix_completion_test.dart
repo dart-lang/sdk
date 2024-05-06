@@ -481,9 +481,6 @@ f() {
 
 @reflectiveTest
 class _NotNullTest extends PostfixCompletionTest {
-  @override
-  String? get testPackageLanguageVersion => '2.9';
-
   Future<void> test_nn() async {
     await _prepareCompletion('.nn', '''
 f() {
@@ -590,7 +587,7 @@ f() {
 @reflectiveTest
 class _ParenTest extends PostfixCompletionTest {
   @override
-  String? get testPackageLanguageVersion => '2.9';
+  String get testPackageLanguageVersion => '2.9';
 
   Future<void> test_paren() async {
     await _prepareCompletion('.par', '''
@@ -609,7 +606,7 @@ f(expr) {
 @reflectiveTest
 class _ReturnTest extends PostfixCompletionTest {
   @override
-  String? get testPackageLanguageVersion => '2.9';
+  String get testPackageLanguageVersion => '2.9';
 
   Future<void> test_return() async {
     await _prepareCompletion('.return', '''
@@ -628,7 +625,7 @@ f(expr) {
 @reflectiveTest
 class _SwitchTest extends PostfixCompletionTest {
   @override
-  String? get testPackageLanguageVersion => '2.9';
+  String get testPackageLanguageVersion => '2.9';
 
   Future<void> test_return() async {
     await _prepareCompletion('.switch', '''
@@ -744,100 +741,6 @@ f() {
   try {
     throw 'error';/*caret*/
   } on String catch (e, s) {
-    print(s);
-  }
-}
-''');
-  }
-
-  Future<void> test_tryonThrowStatement_nnbd_into_legacy() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-String? x;
-''');
-    await _prepareCompletion('.tryon', '''
-// @dart = 2.8
-import 'a.dart';
-f() {
-  throw x;.tryon
-}
-''');
-    _assertHasChange('Expand .tryon', '''
-// @dart = 2.8
-import 'a.dart';
-f() {
-  try {
-    throw x;/*caret*/
-  } on String catch (e, s) {
-    print(s);
-  }
-}
-''');
-  }
-
-  Future<void> test_tryonThrowStatement_nnbd_into_legacy_nested() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-List<String?> x;
-''');
-    await _prepareCompletion('.tryon', '''
-// @dart = 2.8
-import 'a.dart';
-f() {
-  throw x;.tryon
-}
-''');
-    _assertHasChange('Expand .tryon', '''
-// @dart = 2.8
-import 'a.dart';
-f() {
-  try {
-    throw x;/*caret*/
-  } on List<String> catch (e, s) {
-    print(s);
-  }
-}
-''');
-  }
-
-  Future<void> test_tryonThrowStatement_nnbd_legacy() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 2.8
-String x;
-''');
-    await _prepareCompletion('.tryon', '''
-import 'a.dart';
-f() {
-  throw x;.tryon
-}
-''');
-    _assertHasChange('Expand .tryon', '''
-import 'a.dart';
-f() {
-  try {
-    throw x;/*caret*/
-  } on String catch (e, s) {
-    print(s);
-  }
-}
-''');
-  }
-
-  Future<void> test_tryonThrowStatement_nnbd_legacy_nested() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 2.8
-List<String> x;
-''');
-    await _prepareCompletion('.tryon', '''
-import 'a.dart';
-f() {
-  throw x;.tryon
-}
-''');
-    _assertHasChange('Expand .tryon', '''
-import 'a.dart';
-f() {
-  try {
-    throw x;/*caret*/
-  } on List<String> catch (e, s) {
     print(s);
   }
 }

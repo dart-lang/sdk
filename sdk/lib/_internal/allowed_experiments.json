@@ -1,19 +1,11 @@
 {
   "version": 1,
   "experimentSets": {
-    "sdkExperiments": [],
-    "extensionTypes": [
-      "inline-class"
-    ]
+    "sdkExperiments": []
   },
   "sdk": {
     "default": {
       "experimentSet": "sdkExperiments"
-    },
-    "libraries": {
-      "js_interop": {
-        "experimentSet": "extensionTypes"
-      }
     },
     "_example_libraries": {
       "ui": {
@@ -21,9 +13,5 @@
       }
     }
   },
-  "packages": {
-    "web": {
-      "experimentSet": "extensionTypes"
-    }
-  }
+  "packages": {}
 }

@@ -265,7 +265,7 @@ part of 'ir.dart';
     outputIRToStringMixin();
     outputParameterShapes();
     outputOpcode();
-    return _substringsToOutput.join('');
+    return _substringsToOutput.join();
   }
 }
 

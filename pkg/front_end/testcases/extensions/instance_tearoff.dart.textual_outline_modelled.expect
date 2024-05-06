@@ -23,5 +23,7 @@ extension Extension2 on Class2 {
 }
 
 main() {}
+
 testExtension1() {}
+
 testExtension2() {}

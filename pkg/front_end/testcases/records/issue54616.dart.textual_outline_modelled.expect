@@ -1,0 +1,3 @@
+int intId(int x) => x;
+
+void main() {}

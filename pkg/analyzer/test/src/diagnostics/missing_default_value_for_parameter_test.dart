@@ -134,6 +134,20 @@ class B extends A{
 ''');
   }
 
+  test_constructor_generative_nonNullable_named_optional_super_hasDefault_fromSuper_extensionType() async {
+    await assertNoErrorsInCode('''
+extension type const E(int it) {}
+
+class A {
+  A({E a = const E(0)});
+}
+
+class B extends A {
+  B({super.a});
+}
+''');
+  }
+
   test_constructor_generative_nonNullable_named_optional_super_noDefault() async {
     await assertErrorsInCode('''
 class A {

@@ -1,0 +1,27 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+typedef E<invariant S extends core::Object? = dynamic> = (S%) → S%;
+extension Est<T extends core::Object? = dynamic> on T% {
+  method st = self::Est|st;
+  method tearoff st = self::Est|get#st;
+}
+extension type F(asy::Future<core::int> _) implements asy::Future<core::int> {
+  abstract extension-type-member representation-field get _() → asy::Future<core::int>;
+  constructor • = self::F|constructor#;
+  constructor tearoff • = self::F|constructor#_#new#tearOff;
+}
+static method cfeAwait<XF extends self::F /* erasure=asy::Future<core::int> */>(self::cfeAwait::XF xf) → void async 
+  ;
+static extension-type-member method F|constructor#(asy::Future<core::int> _) → self::F /* erasure=asy::Future<core::int> */
+  ;
+static extension-type-member method F|constructor#_#new#tearOff(asy::Future<core::int> _) → self::F /* erasure=asy::Future<core::int> */
+  return self::F|constructor#(_);
+static method main() → void
+  ;
+static extension-member method Est|st<T extends core::Object? = dynamic, X extends (self::Est|st::T%) → self::Est|st::T% = (dynamic) → dynamic>(lowered final self::Est|st::T% #this) → void
+  ;
+static extension-member method Est|get#st<T extends core::Object? = dynamic>(lowered final self::Est|get#st::T% #this) → <X extends (self::Est|get#st::T%) → self::Est|get#st::T% = (dynamic) → dynamic>() → void
+  return <X extends (self::Est|get#st::T%) → self::Est|get#st::T% = (dynamic) → dynamic>() → void => self::Est|st<self::Est|get#st::T%, X>(#this);

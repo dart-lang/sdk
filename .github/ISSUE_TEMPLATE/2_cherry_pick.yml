@@ -8,25 +8,25 @@ assignees:
   - vsmenon
   - itsjustkevin
 body:
-  - type: input
+  - type: textarea
     id: commit_hash
     attributes:
       label: Commit(s) to merge
-      description: What are the commit hash(es) that have been merged to main?
+      description: What are the changelist(s) that have been merged to main?
     validations:
       required: true
   - type: input
     id: target
     attributes:
       label: Target
-      description: Should this be cherry-picked to beta, stable or both?
+      description: Should the changes be cherry-picked to beta, stable, or both?
     validations:
       required: true
   - type: input
     id: changelist
     attributes:
       label: Prepared changelist for beta/stable
-      description: Gerrit changelist against beta/stable per https://github.com/dart-lang/sdk/wiki/Cherry-picks-to-a-release-channel
+      description: Gerrit changelist(s) against beta and/or stable per https://github.com/dart-lang/sdk/wiki/Cherry-picks-to-a-release-channel
     validations:
       required: true
   - type: textarea
@@ -50,15 +50,11 @@ body:
       description: Describe the reasons, impacted users and functional issues to explain why this should be cherry-picked.
     validations:
       required: true
-  - type: dropdown
+  - type: textarea
     id: risk
     attributes:
       label: Risk
       description: What is the risk level of this cherry-pick?
-      options:
-        - low
-        - medium
-        - high
     validations:
       required: true
   - type: input

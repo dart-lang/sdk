@@ -158,8 +158,6 @@ abstract class LibraryBuilder implements ModifierBuilder {
   /// reported.
   Builder? lookupLocalMember(String name, {bool required = false});
 
-  Builder? lookup(String name, int charOffset, Uri fileUri);
-
   void recordAccess(
       LibraryBuilder accessor, int charOffset, int length, Uri fileUri);
 
@@ -185,11 +183,6 @@ abstract class LibraryBuilder implements ModifierBuilder {
   /// Returns `true` if [cls] is the 'Record' class defined in [coreLibrary].
   static bool isRecord(Class cls, LibraryBuilder coreLibrary) {
     return cls.name == 'Record' && _isCoreClass(cls, coreLibrary);
-  }
-
-  /// Returns `true` if [cls] is the 'Object' class defined in [coreLibrary].
-  static bool isObject(Class cls, LibraryBuilder coreLibrary) {
-    return cls.name == 'Object' && _isCoreClass(cls, coreLibrary);
   }
 
   static bool _isCoreClass(Class cls, LibraryBuilder coreLibrary) {
@@ -383,11 +376,6 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   }
 
   @override
-  Builder? lookup(String name, int charOffset, Uri fileUri) {
-    return scope.lookup(name, charOffset, fileUri);
-  }
-
-  @override
   void recordAccess(
       LibraryBuilder accessor, int charOffset, int length, Uri fileUri) {}
 
@@ -432,6 +420,6 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
 
   @override
   StringBuffer printOn(StringBuffer buffer) {
-    return buffer..write(isPart || isPatch ? fileUri : importUri);
+    return buffer..write(isPart || isAugmenting ? fileUri : importUri);
   }
 }

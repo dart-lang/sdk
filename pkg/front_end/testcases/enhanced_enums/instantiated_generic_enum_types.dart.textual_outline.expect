@@ -7,10 +7,17 @@ enum E<X> {
 }
 
 test() {}
+
 foo(E<int> ei, E<String> es) {}
+
 bar(E<int> ei, E<String> es) {}
+
 baz(E<Object> ei, E<Object> es) {}
+
 boz(E<Never> ei, E<Never> es) {}
+
 checkIsType<T>(x) {}
+
 checkIsNotType<T>(x) {}
+
 main() {}

@@ -5,23 +5,41 @@ class ConcreteClass implements Class<ConcreteClass> {}
 class G<X extends Class<X>> {}
 
 main() {}
+
 typedef F<X extends Class<X>> = X;
+
 typedef S1 = G;
+
 typedef S2 = G<dynamic>;
+
 typedef S3 = G<Class>;
+
 typedef S4 = G<Class<dynamic>>;
+
 typedef S5 = G<ConcreteClass>;
+
 typedef S6 = G<Class<ConcreteClass>>;
+
 typedef S7 = G<Object>;
+
 typedef S8 = G<int>;
+
 typedef T1 = F;
+
 typedef T2 = F<dynamic>;
+
 typedef T3 = F<Class>;
+
 typedef T4 = F<Class<dynamic>>;
+
 typedef T5 = F<ConcreteClass>;
+
 typedef T6 = F<Class<ConcreteClass>>;
+
 typedef T7 = F<Object>;
+
 typedef T8 = F<int>;
+
 typedef Typedef1 = void Function<
     T1 extends F,
     T2 extends F<dynamic>,

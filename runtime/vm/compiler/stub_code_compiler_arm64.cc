@@ -36,10 +36,14 @@ namespace compiler {
 // WARNING: This might clobber all registers except for [R0], [THR] and [FP].
 // The caller should simply call LeaveStubFrame() and return.
 void StubCodeCompiler::EnsureIsNewOrRemembered() {
-  // If the object is not remembered we call a leaf-runtime to add it to the
-  // remembered set.
+  // If the object is not in an active TLAB, we call a leaf-runtime to add it to
+  // the remembered set and/or deferred marking worklist. This test assumes a
+  // Page's TLAB use is always ascending.
   Label done;
-  __ tbnz(&done, R0, target::ObjectAlignment::kNewObjectBitPosition);
+  __ AndImmediate(TMP, R0, target::kPageMask);
+  __ LoadFromOffset(TMP, Address(TMP, target::Page::original_top_offset()));
+  __ CompareRegisters(R0, TMP);
+  __ BranchIf(UNSIGNED_GREATER_EQUAL, &done);
 
   {
     LeafRuntimeScope rt(assembler, /*frame_size=*/0,
@@ -204,8 +208,6 @@ void StubCodeCompiler::GenerateCallToRuntimeStub() {
     // Set thread in NativeArgs.
     __ mov(R0, THR);
 
-    // There are no runtime calls to closures, so we do not need to set the tag
-    // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
     ASSERT(argc_tag_offset == 1 * target::kWordSize);
     __ mov(R1, R4);  // Set argc in target::NativeArguments.
 
@@ -655,101 +657,6 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 #endif  // !defined(HOST_ARCH_ARM64)
 }
 
-// R1: The extracted method.
-// R4: The type_arguments_field_offset (or 0)
-void StubCodeCompiler::GenerateBuildMethodExtractorStub(
-    const Code& closure_allocation_stub,
-    const Code& context_allocation_stub,
-    bool generic) {
-  const intptr_t kReceiverOffset = target::frame_layout.param_end_from_fp + 1;
-
-  __ EnterStubFrame();
-
-  // Build type_arguments vector (or null)
-  Label no_type_args;
-  __ ldr(R3, Address(THR, target::Thread::object_null_offset()), kEightBytes);
-  __ cmp(R4, Operand(0));
-  __ b(&no_type_args, EQ);
-  __ ldr(R0, Address(FP, kReceiverOffset * target::kWordSize));
-  __ LoadCompressed(R3, Address(R0, R4));
-  __ Bind(&no_type_args);
-
-  // Push type arguments & extracted method.
-  __ Push(R3);
-  __ Push(R1);
-
-  // Allocate context.
-  {
-    Label done, slow_path;
-    if (!FLAG_use_slow_path && FLAG_inline_alloc) {
-      __ TryAllocateArray(kContextCid, target::Context::InstanceSize(1),
-                          &slow_path,
-                          R0,  // instance
-                          R1,  // end address
-                          R2, R3);
-      __ StoreCompressedIntoObjectNoBarrier(
-          R0, FieldAddress(R0, target::Context::parent_offset()), NULL_REG);
-      __ LoadImmediate(R1, 1);
-      __ str(R1, FieldAddress(R0, target::Context::num_variables_offset()),
-             kFourBytes);
-      __ b(&done);
-    }
-
-    __ Bind(&slow_path);
-
-    __ LoadImmediate(/*num_vars=*/R1, 1);
-    __ LoadObject(CODE_REG, context_allocation_stub);
-    __ ldr(R0, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-    __ blr(R0);
-
-    __ Bind(&done);
-  }
-
-  // Put context in right register for AllocateClosure call.
-  __ MoveRegister(AllocateClosureABI::kContextReg, R0);
-
-  // Store receiver in context
-  __ ldr(AllocateClosureABI::kScratchReg,
-         Address(FP, target::kWordSize * kReceiverOffset));
-  __ StoreCompressedIntoObject(
-      AllocateClosureABI::kContextReg,
-      FieldAddress(AllocateClosureABI::kContextReg,
-                   target::Context::variable_offset(0)),
-      AllocateClosureABI::kScratchReg);
-
-  // Pop function before pushing context.
-  __ Pop(AllocateClosureABI::kFunctionReg);
-
-  // Allocate closure. After this point, we only use the registers in
-  // AllocateClosureABI.
-  __ LoadObject(CODE_REG, closure_allocation_stub);
-  __ ldr(AllocateClosureABI::kScratchReg,
-         FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-  __ blr(AllocateClosureABI::kScratchReg);
-
-  // Populate closure object.
-  __ Pop(AllocateClosureABI::kScratchReg);  // Pop type arguments.
-  __ StoreCompressedIntoObjectNoBarrier(
-      AllocateClosureABI::kResultReg,
-      FieldAddress(AllocateClosureABI::kResultReg,
-                   target::Closure::instantiator_type_arguments_offset()),
-      AllocateClosureABI::kScratchReg);
-  // Keep delayed_type_arguments as null if non-generic (see Closure::New).
-  if (generic) {
-    __ LoadObject(AllocateClosureABI::kScratchReg, EmptyTypeArguments());
-    __ StoreCompressedIntoObjectNoBarrier(
-        AllocateClosureABI::kResultReg,
-        FieldAddress(AllocateClosureABI::kResultReg,
-                     target::Closure::delayed_type_arguments_offset()),
-        AllocateClosureABI::kScratchReg);
-  }
-
-  __ LeaveStubFrame();
-  // No-op if the two are the same.
-  __ MoveRegister(R0, AllocateClosureABI::kResultReg);
-  __ Ret();
-}
-
 void StubCodeCompiler::GenerateDispatchTableNullErrorStub() {
   __ EnterStubFrame();
   __ SmiTag(DispatchTableNullErrorABI::kClassIdReg);
@@ -880,8 +787,6 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
     // Set thread in NativeArgs.
     __ mov(R0, THR);
 
-    // There are no native calls to closures, so we do not need to set the tag
-    // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
     ASSERT(argc_tag_offset == 1 * target::kWordSize);
     // Set argc in target::NativeArguments: R1 already contains argc.
 
@@ -1183,6 +1088,8 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
       COMPILE_ASSERT(IP0 == R16);
       __ mov(IP0, R15);
       __ str(IP0, Address(SP, -1 * target::kWordSize, Address::PreIndex));
+    } else if (r == R31) {
+      __ str(ZR, Address(SP, -1 * target::kWordSize, Address::PreIndex));
     } else {
       __ str(r, Address(SP, -1 * target::kWordSize, Address::PreIndex));
     }
@@ -1987,21 +1894,20 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ b(&skip_marking, ZERO);
 
   {
-    // Atomically clear kOldAndNotMarkedBit.
+    // Atomically clear kNotMarkedBit.
     Label retry, done;
     __ PushRegisters(spill_set);
     __ AddImmediate(R3, R0, target::Object::tags_offset() - kHeapObjectTag);
     // R3: Untagged address of header word (atomics do not support offsets).
     if (TargetCPUFeatures::atomic_memory_supported()) {
-      __ LoadImmediate(TMP, 1 << target::UntaggedObject::kOldAndNotMarkedBit);
+      __ LoadImmediate(TMP, 1 << target::UntaggedObject::kNotMarkedBit);
       __ ldclr(TMP, TMP, R3);
-      __ tbz(&done, TMP, target::UntaggedObject::kOldAndNotMarkedBit);
+      __ tbz(&done, TMP, target::UntaggedObject::kNotMarkedBit);
     } else {
       __ Bind(&retry);
       __ ldxr(R2, R3, kEightBytes);
-      __ tbz(&done, R2, target::UntaggedObject::kOldAndNotMarkedBit);
-      __ AndImmediate(R2, R2,
-                      ~(1 << target::UntaggedObject::kOldAndNotMarkedBit));
+      __ tbz(&done, R2, target::UntaggedObject::kNotMarkedBit);
+      __ AndImmediate(R2, R2, ~(1 << target::UntaggedObject::kNotMarkedBit));
       __ stxr(R4, R2, R3, kEightBytes);
       __ cbnz(&retry, R4);
     }
@@ -2154,6 +2060,16 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
 
   {
     Label slow_case;
+
+#if !defined(PRODUCT)
+    {
+      const Register kTraceAllocationTempReg = R8;
+      const Register kCidRegister = R9;
+      __ ExtractClassIdFromTags(kCidRegister, AllocateObjectABI::kTagsReg);
+      __ MaybeTraceAllocation(kCidRegister, &slow_case,
+                              kTraceAllocationTempReg);
+    }
+#endif
 
     const Register kNewTopReg = R3;
 

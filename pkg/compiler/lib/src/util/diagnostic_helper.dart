@@ -44,36 +44,36 @@ class DiagnosticCollector implements api.CompilerDiagnostics {
   }
 
   Iterable<CollectedMessage> get errors {
-    return filterMessagesByKinds([api.Diagnostic.ERROR]);
+    return filterMessagesByKinds([api.Diagnostic.error]);
   }
 
   Iterable<CollectedMessage> get warnings {
-    return filterMessagesByKinds([api.Diagnostic.WARNING]);
+    return filterMessagesByKinds([api.Diagnostic.warning]);
   }
 
   Iterable<CollectedMessage> get hints {
-    return filterMessagesByKinds([api.Diagnostic.HINT]);
+    return filterMessagesByKinds([api.Diagnostic.hint]);
   }
 
   Iterable<CollectedMessage> get infos {
-    return filterMessagesByKinds([api.Diagnostic.INFO]);
+    return filterMessagesByKinds([api.Diagnostic.info]);
   }
 
   Iterable<CollectedMessage> get crashes {
-    return filterMessagesByKinds([api.Diagnostic.CRASH]);
+    return filterMessagesByKinds([api.Diagnostic.crash]);
   }
 
   Iterable<CollectedMessage> get contexts {
-    return filterMessagesByKinds([api.Diagnostic.CONTEXT]);
+    return filterMessagesByKinds([api.Diagnostic.context]);
   }
 
   Iterable<CollectedMessage> get verboseInfos {
-    return filterMessagesByKinds([api.Diagnostic.VERBOSE_INFO]);
+    return filterMessagesByKinds([api.Diagnostic.verboseInfo]);
   }
 
   /// `true` if non-verbose messages has been collected.
   bool get hasRegularMessages {
-    return messages.any((m) => m.kind != api.Diagnostic.VERBOSE_INFO);
+    return messages.any((m) => m.kind != api.Diagnostic.verboseInfo);
   }
 
   void clear() {

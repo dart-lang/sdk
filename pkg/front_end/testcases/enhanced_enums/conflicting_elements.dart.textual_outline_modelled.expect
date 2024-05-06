@@ -46,12 +46,15 @@ enum E8 with A8 { element }
 enum E9 with A9 { element }
 
 main() {}
+
 mixin A10 {
   void element() {}
 }
+
 mixin A8 {
   void set element(dynamic value) {}
 }
+
 mixin A9 {
   int element = 42;
 }

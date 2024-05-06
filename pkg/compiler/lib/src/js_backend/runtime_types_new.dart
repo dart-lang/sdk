@@ -136,7 +136,8 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
     }
   }
 
-  void _startFullTypeEnvironmentRecipe(FullTypeEnvironmentRecipe recipe, _) {
+  void _startFullTypeEnvironmentRecipe(
+      FullTypeEnvironmentRecipe recipe, void _) {
     if (recipe.classType == null) {
       _emitCode(Recipe.pushDynamic);
       assert(recipe.types.isNotEmpty);

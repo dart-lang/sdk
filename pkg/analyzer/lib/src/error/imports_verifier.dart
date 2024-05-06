@@ -366,8 +366,10 @@ class ImportsVerifier {
   void generateDuplicateExportWarnings(ErrorReporter errorReporter) {
     var length = _duplicateExports.length;
     for (var i = 0; i < length; i++) {
-      errorReporter.reportErrorForNode(
-          WarningCode.DUPLICATE_EXPORT, _duplicateExports[i].uri);
+      errorReporter.atNode(
+        _duplicateExports[i].uri,
+        WarningCode.DUPLICATE_EXPORT,
+      );
     }
   }
 
@@ -378,8 +380,10 @@ class ImportsVerifier {
   void generateDuplicateImportWarnings(ErrorReporter errorReporter) {
     var length = _duplicateImports.length;
     for (var i = 0; i < length; i++) {
-      errorReporter.reportErrorForNode(
-          WarningCode.DUPLICATE_IMPORT, _duplicateImports[i].uri);
+      errorReporter.atNode(
+        _duplicateImports[i].uri,
+        WarningCode.DUPLICATE_IMPORT,
+      );
     }
   }
 
@@ -395,8 +399,10 @@ class ImportsVerifier {
       int length = identifiers.length;
       for (int i = 0; i < length; i++) {
         Identifier identifier = identifiers[i];
-        reporter.reportErrorForNode(
-            WarningCode.DUPLICATE_HIDDEN_NAME, identifier);
+        reporter.atNode(
+          identifier,
+          WarningCode.DUPLICATE_HIDDEN_NAME,
+        );
       }
     });
     _duplicateShownNamesMap.forEach(
@@ -404,8 +410,10 @@ class ImportsVerifier {
       int length = identifiers.length;
       for (int i = 0; i < length; i++) {
         Identifier identifier = identifiers[i];
-        reporter.reportErrorForNode(
-            WarningCode.DUPLICATE_SHOWN_NAME, identifier);
+        reporter.atNode(
+          identifier,
+          WarningCode.DUPLICATE_SHOWN_NAME,
+        );
       }
     });
   }
@@ -449,8 +457,11 @@ class ImportsVerifier {
       // only way for it to be `null` is if the import contains a string
       // interpolation, in which case the import wouldn't have resolved and
       // would not have been included in [_unusedImports].
-      errorReporter.reportErrorForNode(
-          WarningCode.UNUSED_IMPORT, uri, [uri.stringValue!]);
+      errorReporter.atNode(
+        uri,
+        WarningCode.UNUSED_IMPORT,
+        arguments: [uri.stringValue!],
+      );
     }
   }
 
@@ -475,8 +486,11 @@ class ImportsVerifier {
         if (duplicateNames == null || !duplicateNames.contains(identifier)) {
           // Only generate a hint if we won't also generate a
           // "duplicate_shown_name" hint for the same identifier.
-          reporter.reportErrorForNode(
-              WarningCode.UNUSED_SHOWN_NAME, identifier, [identifier.name]);
+          reporter.atNode(
+            identifier,
+            WarningCode.UNUSED_SHOWN_NAME,
+            arguments: [identifier.name],
+          );
         }
       }
     });
@@ -670,7 +684,8 @@ class ImportsVerifier {
       if (element is PropertyAccessorElement) {
         // If the getter or setter of a variable is used, then the variable (the
         // shown name) is used.
-        if (hasElement(identifier, element.variable)) {
+        var variable = element.variable2;
+        if (variable != null && hasElement(identifier, variable)) {
           identifiers.remove(identifier);
           break;
         }
@@ -790,8 +805,11 @@ class _UnnecessaryImportsVerifier {
             // would have failed to resolve, and we would never reach here.  So
             // it is safe to assume that `uri.stringValue` and
             // `otherImport.uri.stringValue` are both non-`null`.
-            errorReporter.reportErrorForNode(HintCode.UNNECESSARY_IMPORT, uri,
-                [uri.stringValue!, otherImport.uri.stringValue!]);
+            errorReporter.atNode(
+              uri,
+              HintCode.UNNECESSARY_IMPORT,
+              arguments: [uri.stringValue!, otherImport.uri.stringValue!],
+            );
             // Break out of the loop of "other imports" to prevent reporting
             // UNNECESSARY_IMPORT on [importDirective] multiple times.
             break;

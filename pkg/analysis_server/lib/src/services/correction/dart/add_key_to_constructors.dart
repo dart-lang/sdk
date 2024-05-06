@@ -170,12 +170,9 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
     if (keyClass == null) {
       return null;
     }
-    var isNonNullable =
-        unitResult.libraryElement.featureSet.isEnabled(Feature.non_nullable);
     return keyClass.instantiate(
       typeArguments: const [],
-      nullabilitySuffix:
-          isNonNullable ? NullabilitySuffix.question : NullabilitySuffix.star,
+      nullabilitySuffix: NullabilitySuffix.question,
     );
   }
 

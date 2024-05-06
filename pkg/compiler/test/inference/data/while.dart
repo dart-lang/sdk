@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*member: main:[null]*/
 main() {
   simpleWhile();
@@ -51,7 +49,7 @@ whileNull() {
 /*member: whileNotNull:[exact=JSString]*/
 whileNotNull() {
   var o = '';
-  while (o /*invoke: [null|exact=JSString]*/ != null) {
+  while (o /*invoke: [exact=JSString]*/ != null) {
     o = o. /*invoke: [exact=JSString]*/ toString();
   }
   return o;
@@ -61,11 +59,11 @@ whileNotNull() {
 /// While loop with null test with an unreachable body.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: whileNullUnreachable:[exact=JSString]*/
+/*member: whileNullUnreachable:Value([exact=JSString], value: "")*/
 whileNullUnreachable() {
   var o = '';
-  while (o /*invoke: [null|exact=JSString]*/ == null) {
-    o = o. /*invoke: [null]*/ toString();
+  while (o /*invoke: [exact=JSString]*/ == null) {
+    o = o. /*invoke: [empty]*/ toString();
   }
   return o;
 }

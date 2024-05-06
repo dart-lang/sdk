@@ -11,7 +11,7 @@ class A extends core::Object {
     core::print(n.{core::Object::runtimeType}{core::Type});
     return 1.1;
   }
-  method bar({required core::int x = #C1}) → core::num {
+  method bar({required core::int x}) → core::num {
     core::print(x.{core::Object::runtimeType}{core::Type});
     return 1.1;
   }
@@ -21,7 +21,7 @@ class A extends core::Object {
 }
 abstract class B<X extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
   abstract method foo(covariant-by-class self::B::X% x) → self::B::X%;
-  abstract method bar({required covariant-by-class self::B::X% x = #C1}) → self::B::X%;
+  abstract method bar({required covariant-by-class self::B::X% x}) → self::B::X%;
   abstract set baz(covariant-by-class self::B::X% x) → void;
   abstract set boz(covariant-by-class self::B::X% x) → void;
 }
@@ -33,7 +33,7 @@ abstract class _C&A&B = self::A with self::B<core::num> /*isAnonymousMixin*/  {
     return super.{self::A::boz} = x as{ForLegacy} core::int;
   forwarding-stub method foo(covariant-by-class core::num x) → core::num
     return super.{self::A::foo}(x as{ForLegacy} core::int);
-  forwarding-stub method bar({required covariant-by-class core::num x = #C1}) → core::num
+  forwarding-stub method bar({required covariant-by-class core::num x}) → core::num
     return super.{self::A::bar}(x: x as{ForLegacy} core::int);
   forwarding-stub set baz(covariant-by-class core::num x) → void
     return super.{self::A::baz} = x as{ForLegacy} core::int;
@@ -63,8 +63,4 @@ static method throws(() → void f) → dynamic {
     return;
   }
   throw "Exception expected";
-}
-
-constants  {
-  #C1 = null
 }

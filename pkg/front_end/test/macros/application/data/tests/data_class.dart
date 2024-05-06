@@ -8,6 +8,8 @@ Declarations Order:
 Definition Order:
  Foo:DataClass.new()
 Definitions:
+library augment 'org-dartlang-test:///a/b/c/main.dart';
+
 import 'dart:core' as prefix0;
 
 augment class Foo {
@@ -21,13 +23,16 @@ augment class Foo {
   augment prefix0.String toString() {
     return "Foo(bar=${this.bar},baz=${this.baz})";
   }
-}*/
+}
+*/
 
 import 'package:macro/data_class.dart';
 
 @DataClass()
 /*class: Foo:
 declarations:
+library augment 'org-dartlang-test:///a/b/c/main.dart';
+
 import 'dart:core' as prefix0;
 
 augment class Foo {

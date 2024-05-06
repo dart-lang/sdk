@@ -5,14 +5,14 @@
 // Test for unhandled exception treatment on Windows.
 //
 // SharedObjects=ffi_test_functions
+// VMOptions=
+// VMOptions=--force_load_elf_from_memory
 
 import 'dart:ffi';
 import 'dart:io';
-import 'dart:isolate';
 
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:path/path.dart' as path;
 
 import 'dylib_utils.dart';
 

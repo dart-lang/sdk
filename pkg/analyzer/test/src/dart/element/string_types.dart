@@ -26,65 +26,56 @@ mixin StringTypes on AbstractTypeSystemTest {
     _defineType('void', voidNone);
 
     _defineType('Never', neverNone);
-    _defineType('Never*', neverStar);
     _defineType('Never?', neverQuestion);
 
     _defineType('Null?', nullQuestion);
 
     _defineType('Object', objectNone);
-    _defineType('Object*', objectStar);
     _defineType('Object?', objectQuestion);
 
-    _defineType('Comparable<Object*>*', comparableStar(objectStar));
-    _defineType('Comparable<num*>*', comparableStar(numStar));
-    _defineType('Comparable<int*>*', comparableStar(intStar));
+    _defineType('Comparable<Object>', comparableNone(objectNone));
+    _defineType('Comparable<num>', comparableNone(numNone));
+    _defineType('Comparable<int>', comparableNone(intNone));
 
     _defineType('num', numNone);
-    _defineType('num*', numStar);
     _defineType('num?', numQuestion);
 
     _defineType('int', intNone);
-    _defineType('int*', intStar);
     _defineType('int?', intQuestion);
 
     _defineType('double', doubleNone);
-    _defineType('double*', doubleStar);
     _defineType('double?', doubleQuestion);
 
-    _defineType('List<Object*>*', listStar(objectStar));
-    _defineType('List<num*>*', listStar(numStar));
+    _defineType('List<Object>', listNone(objectNone));
+    _defineType('List<num>', listNone(numNone));
     _defineType('List<int>', listNone(intNone));
-    _defineType('List<int>*', listStar(intNone));
     _defineType('List<int>?', listQuestion(intNone));
-    _defineType('List<int*>', listNone(intStar));
-    _defineType('List<int*>*', listStar(intStar));
-    _defineType('List<int*>?', listQuestion(intStar));
     _defineType('List<int?>', listNone(intQuestion));
 
     _defineType(
-      'List<Comparable<Object*>*>*',
-      listStar(
-        comparableStar(objectStar),
+      'List<Comparable<Object>>',
+      listNone(
+        comparableNone(objectNone),
       ),
     );
     _defineType(
-      'List<Comparable<num*>*>*',
-      listStar(
-        comparableStar(numStar),
+      'List<Comparable<num>>',
+      listNone(
+        comparableNone(numNone),
       ),
     );
     _defineType(
-      'List<Comparable<Comparable<num*>*>*>*',
-      listStar(
-        comparableStar(
-          comparableStar(numStar),
+      'List<Comparable<Comparable<num>>>',
+      listNone(
+        comparableNone(
+          comparableNone(numNone),
         ),
       ),
     );
 
-    _defineType('Iterable<Object*>*', iterableStar(objectStar));
-    _defineType('Iterable<int*>*', iterableStar(intStar));
-    _defineType('Iterable<num*>*', iterableStar(numStar));
+    _defineType('Iterable<Object>', iterableNone(objectNone));
+    _defineType('Iterable<num>', iterableNone(numNone));
+    _defineType('Iterable<int>', iterableNone(intNone));
 
     _defineFunctionTypes();
     _defineFutureTypes();
@@ -105,13 +96,11 @@ mixin StringTypes on AbstractTypeSystemTest {
   }
 
   String typeString(DartType type) {
-    return type.getDisplayString(withNullability: true) +
-        _typeParametersStr(type);
+    return type.getDisplayString() + _typeParametersStr(type);
   }
 
   void _defineFunctionTypes() {
     _defineType('Function', functionNone);
-    _defineType('Function*', functionStar);
     _defineType('Function?', functionQuestion);
 
     _defineType(
@@ -122,21 +111,15 @@ mixin StringTypes on AbstractTypeSystemTest {
     );
 
     _defineType(
-      'int* Function()',
+      'int Function()',
       functionTypeNone(
-        returnType: intStar,
+        returnType: intNone,
       ),
     );
     _defineType(
-      'int* Function()*',
-      functionTypeStar(
-        returnType: intStar,
-      ),
-    );
-    _defineType(
-      'int* Function()?',
+      'int Function()?',
       functionTypeQuestion(
-        returnType: intStar,
+        returnType: intNone,
       ),
     );
 
@@ -154,71 +137,34 @@ mixin StringTypes on AbstractTypeSystemTest {
         returnType: numNone,
       ),
     );
+
     _defineType(
-      'num Function(num)*',
-      functionTypeStar(
-        parameters: [requiredParameter(type: numNone)],
+      'num Function(int)',
+      functionTypeNone(
+        parameters: [requiredParameter(type: intNone)],
+        returnType: numNone,
+      ),
+    );
+    _defineType(
+      'num Function(int)?',
+      functionTypeQuestion(
+        parameters: [requiredParameter(type: intNone)],
         returnType: numNone,
       ),
     );
 
     _defineType(
-      'num* Function(num*)',
+      'int Function(num)',
       functionTypeNone(
-        parameters: [requiredParameter(type: numStar)],
-        returnType: numStar,
+        parameters: [requiredParameter(type: numNone)],
+        returnType: intNone,
       ),
     );
     _defineType(
-      'num* Function(num*)*',
-      functionTypeStar(
-        parameters: [requiredParameter(type: numStar)],
-        returnType: numStar,
-      ),
-    );
-    _defineType(
-      'num* Function(num*)?',
-      functionTypeQuestion(
-        parameters: [requiredParameter(type: numStar)],
-        returnType: numStar,
-      ),
-    );
-
-    _defineType(
-      'int* Function(num*)*',
-      functionTypeStar(
-        parameters: [requiredParameter(type: numStar)],
-        returnType: intStar,
-      ),
-    );
-
-    _defineType(
-      'num* Function(int*)',
+      'int Function(int)',
       functionTypeNone(
-        parameters: [requiredParameter(type: intStar)],
-        returnType: numStar,
-      ),
-    );
-    _defineType(
-      'num* Function(int*)*',
-      functionTypeStar(
-        parameters: [requiredParameter(type: intStar)],
-        returnType: numStar,
-      ),
-    );
-    _defineType(
-      'num* Function(int*)?',
-      functionTypeQuestion(
-        parameters: [requiredParameter(type: intStar)],
-        returnType: numStar,
-      ),
-    );
-
-    _defineType(
-      'int* Function(int*)*',
-      functionTypeStar(
-        parameters: [requiredParameter(type: intStar)],
-        returnType: intStar,
+        parameters: [requiredParameter(type: intNone)],
+        returnType: intNone,
       ),
     );
 
@@ -304,15 +250,15 @@ mixin StringTypes on AbstractTypeSystemTest {
   }
 
   void _defineFutureTypes() {
-    _defineType('FutureOr<Object*>*', futureOrStar(objectStar));
-    _defineType('FutureOr<num*>*', futureOrStar(numStar));
-    _defineType('FutureOr<int*>*', futureOrStar(intStar));
-    _defineType('FutureOr<num?>?', futureOrQuestion(numQuestion));
-
     _defineType('FutureOr<Object>', futureOrNone(objectNone));
     _defineType('FutureOr<Object>?', futureOrQuestion(objectNone));
     _defineType('FutureOr<Object?>', futureOrNone(objectQuestion));
     _defineType('FutureOr<Object?>?', futureOrQuestion(objectQuestion));
+
+    _defineType('FutureOr<num>', futureOrNone(numNone));
+    _defineType('FutureOr<num?>', futureOrNone(numQuestion));
+    _defineType('FutureOr<num>?', futureOrQuestion(numNone));
+    _defineType('FutureOr<num?>?', futureOrQuestion(numQuestion));
 
     _defineType('Future<num>', futureNone(numNone));
     _defineType('Future<num>?', futureQuestion(numNone));
@@ -324,16 +270,10 @@ mixin StringTypes on AbstractTypeSystemTest {
     _defineType('FutureOr<int?>', futureOrNone(intQuestion));
     _defineType('FutureOr<int?>?', futureOrQuestion(intQuestion));
 
-    _defineType('FutureOr<int>*', futureOrStar(intNone));
-    _defineType('FutureOr<int*>', futureOrNone(intStar));
-    _defineType('Future<int*>*', futureStar(intStar));
-
-    _defineType('FutureOr<num>', futureOrNone(numNone));
-    _defineType('FutureOr<num>*', futureOrStar(numNone));
-    _defineType('FutureOr<num>?', futureOrQuestion(numNone));
-
-    _defineType('FutureOr<num*>', futureOrNone(numStar));
-    _defineType('FutureOr<num?>', futureOrNone(numQuestion));
+    _defineType('Future<int>', futureNone(intNone));
+    _defineType('Future<int>?', futureQuestion(intNone));
+    _defineType('Future<int?>', futureNone(intQuestion));
+    _defineType('Future<int?>?', futureQuestion(intQuestion));
 
     _defineType('Future<Object>', futureNone(objectNone));
     _defineType(
@@ -435,27 +375,14 @@ mixin StringTypes on AbstractTypeSystemTest {
       _defineType(str, type);
     }
 
-    void allPositionalStar(String str, List<DartType> types) {
-      final type = recordTypeStar(
-        positionalTypes: types,
-      );
-      _defineType(str, type);
-    }
-
     allPositional('(double,)', [doubleNone]);
     allPositional('(int,)', [intNone]);
     allPositional('(int?,)', [intQuestion]);
-    allPositional('(int*,)', [intStar]);
     allPositional('(num,)', [numNone]);
     allPositional('(Never,)', [neverNone]);
 
     allPositionalQuestion('(int,)?', [intNone]);
     allPositionalQuestion('(int?,)?', [intQuestion]);
-    allPositionalQuestion('(int*,)?', [intStar]);
-
-    allPositionalStar('(int,)*', [intNone]);
-    allPositionalStar('(int?,)*', [intQuestion]);
-    allPositionalStar('(int*,)*', [intStar]);
 
     allPositional('(double, int)', [doubleNone, intNone]);
     allPositional('(int, double)', [intNone, doubleNone]);
@@ -478,17 +405,9 @@ mixin StringTypes on AbstractTypeSystemTest {
       _defineType(str, type);
     }
 
-    void allNamedStar(String str, Map<String, DartType> types) {
-      final type = recordTypeStar(
-        namedTypes: types,
-      );
-      _defineType(str, type);
-    }
-
     allNamed('({double f1})', {'f1': doubleNone});
     allNamed('({int f1})', {'f1': intNone});
     allNamed('({int? f1})', {'f1': intQuestion});
-    allNamed('({int* f1})', {'f1': intStar});
     allNamed('({num f1})', {'f1': numNone});
     allNamed('({int f2})', {'f2': intNone});
     allNamed('({Never f1})', {'f1': neverNone});
@@ -496,11 +415,6 @@ mixin StringTypes on AbstractTypeSystemTest {
 
     allNamedQuestion('({int f1})?', {'f1': intNone});
     allNamedQuestion('({int? f1})?', {'f1': intQuestion});
-    allNamedQuestion('({int* f1})?', {'f1': intStar});
-
-    allNamedStar('({int f1})*', {'f1': intNone});
-    allNamedStar('({int? f1})*', {'f1': intQuestion});
-    allNamedStar('({int* f1})*', {'f1': intStar});
 
     allNamed('({double f1, int f2})', {'f1': doubleNone, 'f2': intNone});
     allNamed('({int f1, double f2})', {'f1': intNone, 'f2': doubleNone});
@@ -611,7 +525,7 @@ class _TypeParameterCollector extends TypeVisitor<void> {
 
       var str = '';
 
-      var boundStr = bound.getDisplayString(withNullability: true);
+      var boundStr = bound.getDisplayString();
       str += '${type.element.name} extends $boundStr';
 
       typeParameters.add(str);

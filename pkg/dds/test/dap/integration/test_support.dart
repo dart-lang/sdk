@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:dap/dap.dart';
 import 'package:dds/src/dap/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -81,6 +82,7 @@ expectResponseError<T>(Future<T> response, Matcher messageMatcher) {
 int lineWith(File file, String searchText) =>
     file.readAsLinesSync().indexWhere((line) => line.contains(searchText)) + 1;
 
+/// Starts a process paused (and with pause-on-exit).
 Future<Process> startDartProcessPaused(
   String script,
   List<String> args, {
@@ -92,6 +94,8 @@ Future<Process> startDartProcessPaused(
   vmArgs.addAll([
     '--enable-vm-service=0',
     '--pause_isolates_on_start',
+    // Use pause-on-exit so we don't lose async output events in attach tests.
+    '--pause_isolates_on_exit',
   ]);
   final processArgs = [
     ...vmArgs,
@@ -174,16 +178,40 @@ class DapTestSession {
     );
   }
 
-  /// Create a simple package named `foo` that has an empty `foo` function.
-  Future<Uri> createFooPackage([String? filename]) {
+  /// Create a simple package named `foo` that has an empty `foo` function and
+  /// a top-level variable `fooGlobal`.
+  Future<(Uri, File)> createFooPackage([String? filename]) {
     return createSimplePackage(
       'foo',
       '''
+var fooGlobal = 'Hello, foo!';
+
 foo() {
   // Does nothing.
 }
       ''',
       filename,
+    );
+  }
+
+  /// Sets up packages for macro support.
+  Future<void> enableMacroSupport() async {
+    // Compute a path to the local package that we can use.
+    final dapIntegrationTestFolder = path.dirname(Platform.script.toFilePath());
+    assert(path.split(dapIntegrationTestFolder).last == 'integration');
+
+    final sdkRoot =
+        path.normalize(path.join(dapIntegrationTestFolder, '../../../../..'));
+    final macrosPath = path.join(sdkRoot, 'pkg', 'macros');
+    await addPackageDependency(testAppDir, 'macros', Uri.file(macrosPath));
+
+    createTestFile(
+      filename: 'analysis_options.yaml',
+      '''
+analyzer:
+  enable-experiment:
+    - macros
+''',
     );
   }
 
@@ -196,13 +224,13 @@ name: $projectName
 version: 1.0.0
 
 environment:
-  sdk: '>=2.13.0 <3.0.0'
+  sdk: '>=3.3.0 <4.0.0'
 ''');
   }
 
   /// Creates a simple package script and adds the package to
   /// .dart_tool/package_config.json
-  Future<Uri> createSimplePackage(
+  Future<(Uri, File)> createSimplePackage(
     String name,
     String content, [
     String? filename,
@@ -222,14 +250,15 @@ environment:
     final fileUri = Uri.file('${packageDir.path}/');
     await addPackageDependency(testAppDir, name, fileUri);
 
-    return Uri.parse('package:$name/$filename');
+    return (Uri.parse('package:$name/$filename'), testFile);
   }
 
   /// Creates a file in a temporary folder to be used as an application for testing.
   ///
   /// The file will be deleted at the end of the test run.
-  File createTestFile(String content, [String filename = 'test_file.dart']) {
-    final testFile = File(path.join(testAppDir.path, filename));
+  File createTestFile(String content, {String filename = 'test_file.dart'}) {
+    final testFile = File(path.join(testAppDir.path, path.normalize(filename)));
+    Directory(path.dirname(testFile.path)).createSync(recursive: true);
     testFile.writeAsStringSync(content);
     return testFile;
   }
@@ -269,7 +298,9 @@ environment:
     }
   }
 
-  static Future<DapTestSession> setUp({List<String>? additionalArgs}) async {
+  static Future<DapTestSession> setUp({
+    List<String>? additionalArgs,
+  }) async {
     final server = await startServer(additionalArgs: additionalArgs);
     final client = await DapTestClient.connect(
       server,
@@ -296,5 +327,30 @@ environment:
             onError: onError,
             additionalArgs: additionalArgs,
           );
+  }
+}
+
+/// A helper to run [testFunc] as a test in various configurations of URI
+/// support.
+///
+/// This should be used to ensure coverage of each configuration where
+/// breakpoints and stack traces are being tested.
+@isTest
+void testWithUriConfigurations(
+  DapTestSession Function() dapFunc,
+  String name,
+  FutureOr<void> Function() testFunc,
+) {
+  for (final (supportUris, sendFileUris) in [
+    (false, false),
+    (true, false),
+    (true, true),
+  ]) {
+    test('$name (supportUris: $supportUris, sendFileUris: $sendFileUris)', () {
+      final client = dapFunc().client;
+      client.supportUris = supportUris;
+      client.sendFileUris = sendFileUris;
+      return testFunc();
+    });
   }
 }

@@ -36,7 +36,7 @@ class FlutterConvertToChildren extends ResolvedCorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       _convertFlutterChildToChildren(namedExp, eol, utils.getNodeText,
-          utils.getLinePrefix, utils.getIndent, utils.getText, builder);
+          utils.getLinePrefix, utils.getText, builder);
     });
   }
 
@@ -45,7 +45,6 @@ class FlutterConvertToChildren extends ResolvedCorrectionProducer {
       String eol,
       String Function(Expression) getNodeText,
       String Function(int) getLinePrefix,
-      String Function(int) getIndent,
       String Function(int, int) getText,
       FileEditBuilder builder) {
     var childArg = namedExp.expression;
@@ -62,7 +61,7 @@ class FlutterConvertToChildren extends ResolvedCorrectionProducer {
         newlineLoc -= 1;
       }
       var indentOld = getLinePrefix(childArg.offset + eol.length + newlineLoc);
-      var indentNew = '$indentOld${getIndent(1)}';
+      var indentNew = '$indentOld${utils.oneIndent}';
       // The separator includes 'child:' but that has no newlines.
       var separator =
           getText(namedExp.offset, childArg.offset - namedExp.offset);

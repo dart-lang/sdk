@@ -36,6 +36,7 @@ class Super {
 }
 
 main() {}
+
 mixin Mixin {
   void mixedInDuplicate1() {}
   void mixedInDuplicate2() {}

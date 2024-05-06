@@ -1,4 +1,5 @@
 // @dart = 2.9
+
 library test;
 
 import 'dart:async';
@@ -11,4 +12,5 @@ class MyFuture<T> implements Future<T> {
 }
 
 main() {}
+
 void test() {}

@@ -37,7 +37,6 @@ import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../ir/element_map.dart' show IrToElementMap;
-import '../ir/static_type_cache.dart';
 import '../js_backend/annotations.dart';
 import '../ordered_typeset.dart';
 import '../serialization/serialization.dart';
@@ -74,6 +73,8 @@ class RecordData {
 
   List<MemberEntity> gettersForShape(RecordShape shape) =>
       _gettersByShape[shape]!;
+
+  Iterable<ClassEntity> get allClasses => _classToRepresentation.keys;
 
   factory RecordData.readFromDataSource(
       JsToElementMap elementMap, DataSourceReader source) {
@@ -431,12 +432,6 @@ abstract class RecordMemberData implements JMemberData {
   final InterfaceType? memberThisType;
 
   RecordMemberData(this.definition, this.memberThisType);
-
-  @override
-  StaticTypeCache get staticTypes {
-    // The cached types are stored in the data for enclosing member.
-    throw UnsupportedError('RecordMemberData.staticTypes');
-  }
 
   @override
   InterfaceType? getMemberThisType(covariant JsToElementMap elementMap) {

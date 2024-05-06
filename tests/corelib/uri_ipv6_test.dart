@@ -211,7 +211,76 @@ void testParseIPv6Address() {
       [32, 16, 131, 107, 65, 121, 0, 0, 0, 0, 0, 0, 127, 0, 0, 1]);
 }
 
+void testPropagateIPv6() {
+  // A regression test for https://dartbug.com/55085
+
+  // A "Normal" URI. Simple URIs cannot have IPv6 addresses.
+  var ipv6Uri = Uri.parse("s://u:p@[::127.0.0.1]:1/p1/p2?q#f");
+
+  // A non-IPv6 URI.
+  var plainUri = Uri.parse("s2://u2:p2@host:2/p3/p4?q2#f2");
+
+  void expectSame(Uri expected, Uri actual) {
+    Expect.equals(expected, actual, "URI equality");
+    Expect.equals(
+        expected.toString(), actual.toString(), "URI.toString() equality");
+  }
+
+  Expect.equals("s://u:p@[::127.0.0.1]:1/p1/p2?q#f", ipv6Uri.toString());
+  Expect.equals("::127.0.0.1", ipv6Uri.host);
+  Expect.equals("u:p", ipv6Uri.userInfo);
+  Expect.equals(1, ipv6Uri.port);
+
+  // Using resolve to change parts of an IPv6 URI.
+  expectSame(
+      Uri.parse("s://u:p@[::127.0.0.1]:1/p1/p2?q#f2"), ipv6Uri.resolve("#f2"));
+  expectSame(Uri.parse("s://u:p@[::127.0.0.1]:1/p1/p2?q2#f2"),
+      ipv6Uri.resolve("?q2#f2"));
+  expectSame(Uri.parse("s://u:p@[::127.0.0.1]:1/p1/p3?q2#f2"),
+      ipv6Uri.resolve("p3?q2#f2"));
+  expectSame(Uri.parse("s://u:p@[::127.0.0.1]:1/p3/p4?q2#f2"),
+      ipv6Uri.resolve("/p3/p4?q2#f2"));
+  expectSame(Uri.parse("s://u:p@[::127.0.0.1]:1/p3/p4?q2#f2"),
+      ipv6Uri.resolve("/p3/p4?q2#f2"));
+  expectSame(Uri.parse("s://u2:p2@192.168.0.1:2/p3/p4?q2#f2"),
+      ipv6Uri.resolve("//u2:p2@192.168.0.1:2/p3/p4?q2#f2"));
+  expectSame(Uri.parse("s2://u2:p2@192.168.0.1:2/p3/p4?q2#f2"),
+      ipv6Uri.resolve("s2://u2:p2@192.168.0.1:2/p3/p4?q2#f2"));
+
+  // Using resolve to change parts to an IPv6 URI.
+  expectSame(Uri.parse("s2://u:p@[::127.0.0.1]:1/p1/p2?q#f"),
+      plainUri.resolve("//u:p@[::127.0.0.1]:1/p1/p2?q#f"));
+  expectSame(Uri.parse("s://u:p@[::127.0.0.1]:1/p1/p2?q#f"),
+      plainUri.resolveUri(ipv6Uri));
+
+  // Using replace to change non-host parts of an IPv6 URI.
+  expectSame(Uri.parse("s2://u:p@[::127.0.0.1]:1/p1/p2?q#f"),
+      ipv6Uri.replace(scheme: "s2"));
+  expectSame(
+      Uri.parse("s://u:p@[::127.0.0.1]:2/p1/p2?q#f"), ipv6Uri.replace(port: 2));
+  expectSame(Uri.parse("s://u:p@[::127.0.0.1]:1/p3/p4?q#f"),
+      ipv6Uri.replace(path: "p3/p4"));
+  expectSame(
+      Uri.parse("s://u:p@[::127.0.0.1]:1?q#f"), ipv6Uri.replace(path: ""));
+  expectSame(Uri.parse("s://u:p@[::127.0.0.1]:1/p1/p2?q2#f"),
+      ipv6Uri.replace(query: "q2"));
+  expectSame(Uri.parse("s://u:p@[::127.0.0.1]:1/p1/p2?q#f2"),
+      ipv6Uri.replace(fragment: "f2"));
+  // Replacing the host to or from an IPv6 address.
+  expectSame(
+      Uri.parse("s://u:p@host:1/p1/p2?q#f"), ipv6Uri.replace(host: "host"));
+  expectSame(Uri.parse("s2://u2:p2@[::127.0.0.1]:2/p3/p4?q2#f2"),
+      plainUri.replace(host: "[::127.0.0.1]"));
+  expectSame(Uri.parse("s2://u2:p2@[::127.0.0.1]:2/p3/p4?q2#f2"),
+      plainUri.replace(host: "::127.0.0.1"));
+
+  // Removing fragment.
+  expectSame(
+      Uri.parse("s://u:p@[::127.0.0.1]:1/p1/p2?q"), ipv6Uri.removeFragment());
+}
+
 void main() {
   testValidIpv6Uri();
   testParseIPv6Address();
+  testPropagateIPv6();
 }

@@ -72,10 +72,9 @@ Future runTest(AnnotatedCode annotatedCode, String config,
     '--out=$outputFile',
     inputFile,
     Flags.disableInlining,
-    Flags.noSoundNullSafety,
     // Unsound platform dill files are no longer packaged in the SDK and must
     // be read from the build directory during tests.
-    '--platform-binaries=$buildPlatformBinariesPath',
+    '--platform-binaries=$sdkPlatformBinariesPath',
     '--libraries-spec=$sdkLibrariesSpecificationUri',
   ];
   CompilationResult compilationResult = await entry.internalMain(arguments);

@@ -38,7 +38,7 @@ String? BUILD_ID;
 typedef HandleOption = void Function(String data);
 typedef HandleMultiOption = void Function(Iterator<String> data);
 
-abstract class OptionHandler<T> {
+abstract class OptionHandler<T extends Object> {
   String get pattern;
   void handle(T argument);
 }
@@ -236,7 +236,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     }
   }
 
-  setStrip(String argument) {
+  Never setStrip(String argument) {
     _helpAndFail("Option '--force-strip' is not in use now that"
         "--output-type=dart is no longer supported.");
   }
@@ -502,6 +502,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     _OneOption(Flags.omitImplicitChecks, passThrough),
     _OneOption(Flags.omitAsCasts, passThrough),
     _OneOption(Flags.laxRuntimeTypeToString, passThrough),
+    _OneOption(Flags.enableProtoShaking, passThrough),
     _OneOption(Flags.benchmarkingProduction, passThrough),
     _OneOption(Flags.benchmarkingExperiment, passThrough),
     _OneOption(Flags.soundNullSafety, setNullSafetyMode),
@@ -618,7 +619,7 @@ Future<api.CompilationResult> compile(List<String> argv,
   }
 
   for (String hint in hints) {
-    diagnostic.info(hint, api.Diagnostic.HINT);
+    diagnostic.info(hint, api.Diagnostic.hint);
   }
 
   if (wantHelp || wantVersion) {
@@ -831,11 +832,17 @@ Future<api.CompilationResult> compile(List<String> argv,
         processName = 'Serialized';
         outputName = 'bytes data';
         outputSize = outputProvider.totalDataWritten;
+        final producesDill = compilerOptions.producesModifiedDill;
         String dataOutput = fe.relativizeUri(
             Uri.base,
             compilerOptions.dataOutputUriForStage(compilerOptions.stage),
             Platform.isWindows);
-        summary += 'serialized to data: ${dataOutput}.';
+        String summaryLine = dataOutput;
+        if (producesDill) {
+          summaryLine += ' and ';
+          summaryLine += fe.relativizeUri(Uri.base, out!, Platform.isWindows);
+        }
+        summary += 'serialized to data: $summaryLine.';
         break;
       case Dart2JSStage.deferredLoadIds:
         processName = 'Serialized';
@@ -921,13 +928,6 @@ String _formatDurationAsSeconds(Duration duration, [int width = 4]) {
   return text;
 }
 
-class AbortLeg {
-  final message;
-  AbortLeg(this.message);
-  @override
-  toString() => 'Aborted due to --throw-on-error: $message';
-}
-
 void writeString(Uri uri, String text) {
   if (!enableWriteString) return;
   if (!uri.isScheme('file')) {
@@ -942,7 +942,7 @@ void writeString(Uri uri, String text) {
 Never _fail(String message) {
   if (diagnosticHandler != null) {
     diagnosticHandler!
-        .report(null, null, -1, -1, message, api.Diagnostic.ERROR);
+        .report(null, null, -1, -1, message, api.Diagnostic.error);
   } else {
     print('Error: $message');
   }
@@ -1206,7 +1206,7 @@ Never _helpAndFail(String message) {
 void warning(String message) {
   if (diagnosticHandler != null) {
     diagnosticHandler!
-        .report(null, null, -1, -1, message, api.Diagnostic.WARNING);
+        .report(null, null, -1, -1, message, api.Diagnostic.warning);
   } else {
     print('Warning: $message');
   }
@@ -1269,7 +1269,7 @@ bool enableWriteString = true;
 
 Future<api.CompilationResult> internalMain(List<String> arguments,
     {fe.InitializedCompilerState? kernelInitializedCompilerState}) {
-  Future<api.CompilationResult> onError(exception, trace) {
+  Future<api.CompilationResult> onError(Object exception, StackTrace? trace) {
     // If we are already trying to exit, just continue exiting.
     if (exception == _EXIT_SIGNAL) throw exception;
 
@@ -1315,13 +1315,12 @@ void batchMain(List<String> batchArguments) {
   };
 
   var stream = stdin.transform(utf8.decoder).transform(LineSplitter());
-  late StreamSubscription subscription;
+  late StreamSubscription<String> subscription;
   fe.InitializedCompilerState? kernelInitializedCompilerState;
-  subscription = stream.listen((String? line) {
+  subscription = stream.listen((String line) {
     Future.sync(() {
       subscription.pause();
       exitCode = 0;
-      if (line == null) exit(0);
       List<String> testArgs = splitLine(line, windows: Platform.isWindows);
 
       // Ignore experiment flags given to the batch runner.
@@ -1348,7 +1347,7 @@ void batchMain(List<String> batchArguments) {
       if (result != null) {
         kernelInitializedCompilerState = result.kernelInitializedCompilerState;
       }
-    }).catchError((exception, trace) {
+    }).catchError((Object exception, StackTrace trace) {
       if (!identical(exception, _EXIT_SIGNAL)) {
         exitCode = 253;
       }

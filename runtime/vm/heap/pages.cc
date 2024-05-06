@@ -63,7 +63,7 @@ PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
       tasks_(0),
       concurrent_marker_tasks_(0),
       concurrent_marker_tasks_active_(0),
-      pause_concurrent_marking_(false),
+      pause_concurrent_marking_(0),
       phase_(kDone),
 #if defined(DEBUG)
       iterating_thread_(nullptr),
@@ -428,15 +428,16 @@ void PageSpace::AcquireLock(FreeList* freelist) {
 }
 
 void PageSpace::ReleaseLock(FreeList* freelist) {
-  intptr_t size = freelist->TakeUnaccountedSizeLocked();
-  usage_.used_in_words += (size >> kWordSizeLog2);
+  usage_.used_in_words +=
+      (freelist->TakeUnaccountedSizeLocked() >> kWordSizeLog2);
   freelist->mutex()->Unlock();
+  usage_.used_in_words -= (freelist->ReleaseBumpAllocation() >> kWordSizeLog2);
 }
 
 void PageSpace::PauseConcurrentMarking() {
   MonitorLocker ml(&tasks_lock_);
-  ASSERT(!pause_concurrent_marking_);
-  pause_concurrent_marking_ = true;
+  ASSERT(pause_concurrent_marking_.load() == 0);
+  pause_concurrent_marking_.store(1);
   while (concurrent_marker_tasks_active_ != 0) {
     ml.Wait();
   }
@@ -444,20 +445,20 @@ void PageSpace::PauseConcurrentMarking() {
 
 void PageSpace::ResumeConcurrentMarking() {
   MonitorLocker ml(&tasks_lock_);
-  ASSERT(pause_concurrent_marking_);
-  pause_concurrent_marking_ = false;
+  ASSERT(pause_concurrent_marking_.load() != 0);
+  pause_concurrent_marking_.store(0);
   ml.NotifyAll();
 }
 
 void PageSpace::YieldConcurrentMarking() {
   MonitorLocker ml(&tasks_lock_);
-  if (pause_concurrent_marking_) {
+  if (pause_concurrent_marking_.load() != 0) {
     TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "Pause");
     concurrent_marker_tasks_active_--;
     if (concurrent_marker_tasks_active_ == 0) {
       ml.NotifyAll();
     }
-    while (pause_concurrent_marking_) {
+    while (pause_concurrent_marking_.load() != 0) {
       ml.Wait();
     }
     concurrent_marker_tasks_active_++;
@@ -570,9 +571,10 @@ void PageSpace::MakeIterable() const {
   }
 }
 
-void PageSpace::AbandonBumpAllocation() {
+void PageSpace::ReleaseBumpAllocation() {
   for (intptr_t i = 0; i < num_freelists_; i++) {
-    freelists_[i].AbandonBumpAllocation();
+    size_t leftover = freelists_[i].ReleaseBumpAllocation();
+    usage_.used_in_words -= (leftover >> kWordSizeLog2);
   }
 }
 
@@ -713,7 +715,7 @@ void PageSpace::ResetProgressBars() const {
 void PageSpace::WriteProtect(bool read_only) {
   if (read_only) {
     // Avoid MakeIterable trying to write to the heap.
-    AbandonBumpAllocation();
+    ReleaseBumpAllocation();
   }
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
     if (!it.page()->is_image()) {
@@ -1046,6 +1048,9 @@ void PageSpace::CollectGarbageHelper(Thread* thread,
     return;
   }
 
+  // Abandon the remainder of the bump allocation block.
+  ReleaseBumpAllocation();
+
   marker_->MarkObjects(this);
   usage_.used_in_words = marker_->marked_words() + allocated_black_in_words_;
   allocated_black_in_words_ = 0;
@@ -1053,8 +1058,6 @@ void PageSpace::CollectGarbageHelper(Thread* thread,
   delete marker_;
   marker_ = nullptr;
 
-  // Abandon the remainder of the bump allocation block.
-  AbandonBumpAllocation();
   // Reset the freelists and setup sweeping.
   for (intptr_t i = 0; i < num_freelists_; i++) {
     freelists_[i].Reset();
@@ -1102,6 +1105,7 @@ void PageSpace::CollectGarbageHelper(Thread* thread,
   }
 
   bool can_verify;
+  SweepNew();
   if (compact) {
     Compact(thread);
     set_phase(kDone);
@@ -1142,6 +1146,20 @@ void PageSpace::CollectGarbageHelper(Thread* thread,
   if (heap_ != nullptr) {
     heap_->UpdateGlobalMaxUsed();
   }
+}
+
+void PageSpace::SweepNew() {
+  // TODO(rmacnak): Run in parallel with SweepExecutable.
+  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "SweepNew");
+
+  GCSweeper sweeper;
+  intptr_t free = 0;
+  for (Page* page = heap_->new_space()->head(); page != nullptr;
+       page = page->next()) {
+    page->Release();
+    free += sweeper.SweepNewPage(page);
+  }
+  heap_->new_space()->set_freed_in_words(free >> kWordSizeLog2);
 }
 
 void PageSpace::SweepLarge() {
@@ -1259,17 +1277,20 @@ uword PageSpace::TryAllocateDataBumpLocked(FreeList* freelist, intptr_t size) {
     }
     intptr_t block_size = block->HeapSize();
     if (remaining > 0) {
+      usage_.used_in_words -= (remaining >> kWordSizeLog2);
       freelist->FreeLocked(freelist->top(), remaining);
     }
     freelist->set_top(reinterpret_cast<uword>(block));
     freelist->set_end(freelist->top() + block_size);
+    // To avoid accounting overhead during each bump pointer allocation, we add
+    // the size of the whole bump area here and subtract the remaining size
+    // when switching to a new area.
+    usage_.used_in_words += (block_size >> kWordSizeLog2);
     remaining = block_size;
   }
   ASSERT(remaining >= size);
   uword result = freelist->top();
   freelist->set_top(result + size);
-
-  freelist->AddUnaccountedSize(size);
 
 // Note: Remaining block is unwalkable until MakeIterable is called.
 #ifdef DEBUG

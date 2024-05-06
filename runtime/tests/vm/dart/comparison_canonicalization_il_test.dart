@@ -47,11 +47,11 @@ void matchIL$strictCompareValueEqConstant(FlowGraph graph) {
     ]),
     'B1' <<
         match.block('Target', [
-          match.Return('int 0'),
+          match.DartReturn('int 0'),
         ]),
     'B2' <<
         match.block('Target', [
-          match.Return('int 42'),
+          match.DartReturn('int 42'),
         ]),
   ]);
 }
@@ -80,11 +80,11 @@ void matchIL$strictCompareConstantEqValue(FlowGraph graph) {
     ]),
     'B1' <<
         match.block('Target', [
-          match.Return('int 0'),
+          match.DartReturn('int 0'),
         ]),
     'B2' <<
         match.block('Target', [
-          match.Return('int 42'),
+          match.DartReturn('int 42'),
         ]),
   ]);
 }
@@ -113,11 +113,11 @@ void matchIL$strictCompareValueNeConstant(FlowGraph graph) {
     ]),
     'B1' <<
         match.block('Target', [
-          match.Return('int 42'),
+          match.DartReturn('int 42'),
         ]),
     'B2' <<
         match.block('Target', [
-          match.Return('int 0'),
+          match.DartReturn('int 0'),
         ]),
   ]);
 }
@@ -146,11 +146,11 @@ void matchIL$strictCompareConstantNeValue(FlowGraph graph) {
     ]),
     'B1' <<
         match.block('Target', [
-          match.Return('int 42'),
+          match.DartReturn('int 42'),
         ]),
     'B2' <<
         match.block('Target', [
-          match.Return('int 0'),
+          match.DartReturn('int 0'),
         ]),
   ]);
 }
@@ -179,11 +179,11 @@ void matchIL$strictCompareBoolEqTrue(FlowGraph graph) {
     ]),
     'B1' <<
         match.block('Target', [
-          match.Return('false'),
+          match.DartReturn('false'),
         ]),
     'B2' <<
         match.block('Target', [
-          match.Return('true'),
+          match.DartReturn('true'),
         ]),
   ]);
 }
@@ -212,11 +212,11 @@ void matchIL$strictCompareBoolNeTrue(FlowGraph graph) {
     ]),
     'B1' <<
         match.block('Target', [
-          match.Return('true'),
+          match.DartReturn('true'),
         ]),
     'B2' <<
         match.block('Target', [
-          match.Return('false'),
+          match.DartReturn('false'),
         ]),
   ]);
 }
@@ -245,11 +245,11 @@ void matchIL$equalityCompareValueEqConstant(FlowGraph graph) {
     ]),
     'B1' <<
         match.block('Target', [
-          match.Return('int 1'),
+          match.DartReturn('int 1'),
         ]),
     'B2' <<
         match.block('Target', [
-          match.Return('int 42'),
+          match.DartReturn('int 42'),
         ]),
   ]);
 }
@@ -282,11 +282,11 @@ void matchIL$foldingOfRepeatedComparison(FlowGraph graph) {
     ]),
     'B1' <<
         match.block('Target', [
-          match.Return('int 1'),
+          match.DartReturn('int 1'),
         ]),
     'B2' <<
         match.block('Target', [
-          match.Return('int 42'),
+          match.DartReturn('int 42'),
         ]),
   ]);
 }

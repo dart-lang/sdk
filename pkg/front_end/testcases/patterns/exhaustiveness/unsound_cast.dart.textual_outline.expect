@@ -16,4 +16,5 @@ method(S s) => switch (s) {
       X() as A => 0,
       Y() as B => 1,
     };
+
 test() {}

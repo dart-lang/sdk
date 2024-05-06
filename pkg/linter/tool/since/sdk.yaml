@@ -44,7 +44,7 @@ avoid_type_to_string: 2.12.0
 avoid_types_as_parameter_names: 2.0.0
 avoid_types_on_closure_parameters: 2.0.0
 avoid_unnecessary_containers: 2.7.0
-avoid_unstable_final_fields: 3.3.0-wip
+avoid_unstable_final_fields: 3.3.0
 avoid_unused_constructor_parameters: 2.0.0
 avoid_void_async: 2.1.0
 avoid_web_libraries_in_flutter: 2.6.0
@@ -95,6 +95,7 @@ lines_longer_than_80_chars: 2.0.0
 list_remove_unrelated_type: 2.0.0
 literal_only_boolean_expressions: 2.0.0
 matching_super_parameters: 3.0.0
+missing_code_block_language_in_doc_comment: 3.4.0-wip
 missing_whitespace_between_adjacent_strings: 2.8.1
 no_adjacent_strings_in_list: 2.0.0
 no_default_cases: 2.9.0
@@ -189,6 +190,7 @@ unnecessary_getters_setters: 2.0.0
 unnecessary_lambdas: 2.0.0
 unnecessary_late: 2.16.0
 unnecessary_library_directive: 2.19.0
+unnecessary_library_name: 3.4.0-wip
 unnecessary_new: 2.0.0
 unnecessary_null_aware_assignments: 2.0.0
 unnecessary_null_aware_operator_on_extension_on_nullable: 2.18.0

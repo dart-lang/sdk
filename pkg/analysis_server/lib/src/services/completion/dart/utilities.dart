@@ -5,9 +5,9 @@
 /// A collection of utility methods used by completion contributors.
 library;
 
-import 'package:analysis_server/src/protocol_server.dart'
-    show CompletionSuggestion, Location;
+import 'package:analysis_server/src/protocol_server.dart' show Location;
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -23,7 +23,7 @@ const DYNAMIC = 'dynamic';
 
 /// Sort by relevance first, highest to lowest, and then by the completion
 /// alphabetically.
-Comparator<CompletionSuggestion> completionComparator = (a, b) {
+Comparator<CompletionSuggestionBuilder> completionComparator = (a, b) {
   if (a.relevance == b.relevance) {
     return a.completion.compareTo(b.completion);
   }
@@ -95,42 +95,9 @@ CompletionDefaultArgumentList computeCompletionDefaultArgumentList(
     }
     offset = sb.length;
 
-    var parameterType = param.type;
-    if (parameterType is FunctionType) {
-      var rangeStart = offset;
-      int rangeLength;
-
-      // TODO(pq): consider adding ranges for params
-      // pending: https://github.com/dart-lang/sdk/issues/40207
-      // (types in closure param completions make this UX awkward)
-      final parametersString = buildClosureParameters(parameterType);
-      final blockBuffer = StringBuffer(parametersString);
-
-      blockBuffer.write(' ');
-
-      // TODO(pq): consider refactoring to share common logic w/
-      //  ArgListContributor.buildClosureSuggestions
-      final returnType = parameterType.returnType;
-      if (returnType is VoidType) {
-        blockBuffer.write('{');
-        rangeStart = sb.length + blockBuffer.length;
-        blockBuffer.write(' }');
-        rangeLength = 1;
-      } else {
-        final returnValue = returnType.isDartCoreBool ? 'false' : 'null';
-        blockBuffer.write('=> ');
-        rangeStart = sb.length + blockBuffer.length;
-        blockBuffer.write(returnValue);
-        rangeLength = returnValue.length;
-      }
-
-      sb.write(blockBuffer);
-      ranges.addAll([rangeStart, rangeLength]);
-    } else {
-      var name = param.name;
-      sb.write(name);
-      ranges.addAll([offset, name.length]);
-    }
+    var name = param.name;
+    sb.write(name);
+    ranges.addAll([offset, name.length]);
   }
 
   for (var param in namedParams) {
@@ -176,8 +143,7 @@ protocol.Element createLocalElement(
 
 /// Return a default argument value for the given [parameter].
 DefaultArgument? getDefaultStringParameterValue(
-    ParameterElement parameter, CodeStyleOptions codeStyleOptions,
-    {required bool withNullability}) {
+    ParameterElement parameter, CodeStyleOptions codeStyleOptions) {
   var type = parameter.type;
   if (type is InterfaceType) {
     if (type.isDartCoreList) {
@@ -190,8 +156,7 @@ DefaultArgument? getDefaultStringParameterValue(
     }
   } else if (type is FunctionType) {
     var params = type.parameters
-        .map((p) =>
-            '${getTypeString(p.type, withNullability: withNullability)}${p.name}')
+        .map((p) => '${getTypeString(p.type)}${p.name}')
         .join(', ');
     // TODO(devoncarew): Support having this method return text with newlines.
     var text = '($params) {  }';
@@ -216,11 +181,11 @@ String getRequestLineIndent(DartCompletionRequest request) {
   return content.substring(lineStartOffset, notWhitespaceOffset);
 }
 
-String getTypeString(DartType type, {required bool withNullability}) {
+String getTypeString(DartType type) {
   if (type is DynamicType) {
     return '';
   } else {
-    return '${type.getDisplayString(withNullability: withNullability)} ';
+    return '${type.getDisplayString()} ';
   }
 }
 
@@ -257,7 +222,7 @@ String? nameForType(SimpleIdentifier identifier, TypeAnnotation? declaredType) {
     }
     return DYNAMIC;
   }
-  return type.getDisplayString(withNullability: false);
+  return type.getDisplayString();
 }
 
 class CompletionDefaultArgumentList {

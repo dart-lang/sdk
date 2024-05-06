@@ -121,7 +121,7 @@ static method foo6() → dynamic
   return #C2;
 static method foo7(core::Record r) → dynamic
   return null;
-static method foo8({required core::Record r = #C3}) → dynamic
+static method foo8({required core::Record r}) → dynamic
   return null;
 static method foo9() → core::List<core::Record>
   return throw "";
@@ -142,7 +142,7 @@ static method foo16(core::Record l) → dynamic
 static method foo17() → dynamic
   return #C1;
 static method foo18() → dynamic
-  return #C4;
+  return #C3;
 static method foo19() → dynamic
   return #C1;
 static method main() → dynamic {}
@@ -163,6 +163,5 @@ abstract mixin class A<X extends core::Object? = dynamic> extends core::Object {
 constants  {
   #C1 = TypeLiteralConstant(core::Record*)
   #C2 = TypeLiteralConstant(core::List<core::Record*>*)
-  #C3 = null
-  #C4 = TypeLiteralConstant(typ::A<core::Record*>*)
+  #C3 = TypeLiteralConstant(typ::A<core::Record*>*)
 }

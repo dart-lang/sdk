@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // Test file for testing source mappings of various expression and statements.
 
 main() {
@@ -165,7 +163,9 @@ class Class2 {
   var field2;
 
   operator ==(other) {
-    return other != null && field1 == other.field1 && field2 == other.field2;
+    return other != null &&
+        field1 == (other as Class2).field1 &&
+        field2 == other.field2;
   }
 }
 

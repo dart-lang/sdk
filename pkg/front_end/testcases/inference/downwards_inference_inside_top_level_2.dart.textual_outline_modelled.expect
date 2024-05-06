@@ -5,4 +5,5 @@ class A<T> {
 }
 
 main() {}
+
 var t1 = <A<int>>[new A(1)];

@@ -108,8 +108,11 @@ class _Visitor extends SimpleAstVisitor<void> {
             var reference = comment.substring(leftIndex + 1, rightIndex);
             if (_isParserSpecialCase(reference)) {
               var nameOffset = token.offset + leftIndex + 1;
-              rule.reporter.reportErrorForOffset(
-                  rule.lintCode, nameOffset, reference.length);
+              rule.reporter.atOffset(
+                offset: nameOffset,
+                length: reference.length,
+                errorCode: rule.lintCode,
+              );
             }
             if (rightIndex + 1 < comment.length &&
                 comment[rightIndex + 1] == ':') {

@@ -56,9 +56,9 @@ class ReturnTypeVerifier {
 
     if (enclosingExecutable.isGenerativeConstructor) {
       if (expression != null) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR,
+        _errorReporter.atNode(
           expression,
+          CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR,
         );
       }
       return;
@@ -88,7 +88,10 @@ class ReturnTypeVerifier {
     ) {
       void reportError() {
         enclosingExecutable.hasLegalReturnType = false;
-        _errorReporter.reportErrorForNode(errorCode, returnType);
+        _errorReporter.atNode(
+          returnType,
+          errorCode,
+        );
       }
 
       // It is a compile-time error if the declared return type of
@@ -143,14 +146,6 @@ class ReturnTypeVerifier {
       return;
     }
 
-    if (_typeSystem.isNonNullableByDefault) {
-      _checkReturnExpression_nullSafety(expression);
-    } else {
-      _checkReturnExpression_legacy(expression);
-    }
-  }
-
-  void _checkReturnExpression_legacy(Expression expression) {
     // `T` is the declared return type.
     // `S` is the static type of the expression.
     var T = enclosingExecutable.returnType;
@@ -158,166 +153,46 @@ class ReturnTypeVerifier {
 
     void reportTypeError() {
       if (enclosingExecutable.catchErrorOnErrorReturnType != null) {
-        _errorReporter.reportErrorForNode(
-          WarningCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR,
+        _errorReporter.atNode(
           expression,
-          [S, T],
+          WarningCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR,
+          arguments: [S, T],
         );
       } else if (enclosingExecutable.isClosure) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
+        _errorReporter.atNode(
           expression,
-          [S, T],
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
+          arguments: [S, T],
         );
       } else if (enclosingExecutable.isConstructor) {
         // [EnclosingExecutableContext.displayName] will only return `null` if
         // there is no enclosing element, in which case the `if` test above
         // would have failed.  So it's safe to assume that
         // `enclosingExecutable.displayName` is non-`null`.
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR,
+        _errorReporter.atNode(
           expression,
-          [S, T, enclosingExecutable.displayName!],
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR,
+          arguments: [S, T, enclosingExecutable.displayName!],
         );
       } else if (enclosingExecutable.isFunction) {
         // [EnclosingExecutableContext.displayName] will only return `null` if
         // there is no enclosing element, in which case the `if` test above
         // would have failed.  So it's safe to assume that
         // `enclosingExecutable.displayName` is non-`null`.
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+        _errorReporter.atNode(
           expression,
-          [S, T, enclosingExecutable.displayName!],
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+          arguments: [S, T, enclosingExecutable.displayName!],
         );
       } else if (enclosingExecutable.isMethod) {
         // [EnclosingExecutableContext.displayName] will only return `null` if
         // there is no enclosing element, in which case the `if` test above
         // would have failed.  So it's safe to assume that
         // `enclosingExecutable.displayName` is non-`null`.
-        _errorReporter.reportErrorForNode(
+        _errorReporter.atNode(
+          expression,
           CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
-          expression,
-          [S, T, enclosingExecutable.displayName!],
-        );
-      }
-    }
-
-    if (enclosingExecutable.isSynchronous) {
-      // It is a compile-time error if `T` is `void`,
-      // and `S` is neither `void`, `dynamic`, nor `Null`.
-      if (T is VoidType) {
-        if (!_isVoidDynamicOrNull(S)) {
-          reportTypeError();
-          return;
-        }
-      }
-      // It is a compile-time error if `S` is `void`,
-      // and `T` is neither `void`, `dynamic`, nor `Null`.
-      if (S is VoidType) {
-        if (!_isVoidDynamicOrNull(T)) {
-          reportTypeError();
-          return;
-        }
-      }
-      // It is a compile-time error if `S` is not `void`,
-      // and `S` is not assignable to `T`.
-      if (S is! VoidType) {
-        if (!_typeSystem.isAssignableTo(S, T, strictCasts: _strictCasts)) {
-          reportTypeError();
-          return;
-        }
-      }
-      // OK
-      return;
-    }
-
-    if (enclosingExecutable.isAsynchronous) {
-      var flatten_T = _typeSystem.flatten(T);
-      var flatten_S = _typeSystem.flatten(S);
-      // It is a compile-time error if `T` is `void`,
-      // and `flatten(S)` is neither `void`, `dynamic`, nor `Null`.
-      //
-      // Note, the specification was not implemented correctly, and
-      // implementing it now would be a breaking change. So, the code below
-      // intentionally does not implement the specification.
-      // https://github.com/dart-lang/sdk/issues/41803#issuecomment-635852474
-      if (T is VoidType) {
-        if (!_isVoidDynamicOrNull(flatten_S)) {
-          reportTypeError();
-          return;
-        }
-      }
-      // It is a compile-time error if `flatten(S)` is `void`,
-      // and `flatten(T)` is neither `void`, `dynamic`, nor `Null`.
-      if (flatten_S is VoidType) {
-        if (!_isVoidDynamicOrNull(flatten_T)) {
-          reportTypeError();
-          return;
-        }
-      }
-      // It is a compile-time error if `flatten(S)` is not `void`,
-      // and `Future<flatten(S)>` is not assignable to `T`.
-      if (flatten_S is! VoidType) {
-        var future_flatten_S = _typeProvider.futureType(flatten_S);
-        if (!_typeSystem.isAssignableTo(future_flatten_S, T,
-            strictCasts: _strictCasts)) {
-          reportTypeError();
-          return;
-        }
-        // OK
-        return;
-      }
-    }
-  }
-
-  void _checkReturnExpression_nullSafety(Expression expression) {
-    // `T` is the declared return type.
-    // `S` is the static type of the expression.
-    var T = enclosingExecutable.returnType;
-    var S = expression.typeOrThrow;
-
-    void reportTypeError() {
-      if (enclosingExecutable.catchErrorOnErrorReturnType != null) {
-        _errorReporter.reportErrorForNode(
-          WarningCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR,
-          expression,
-          [S, T],
-        );
-      } else if (enclosingExecutable.isClosure) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
-          expression,
-          [S, T],
-        );
-      } else if (enclosingExecutable.isConstructor) {
-        // [EnclosingExecutableContext.displayName] will only return `null` if
-        // there is no enclosing element, in which case the `if` test above
-        // would have failed.  So it's safe to assume that
-        // `enclosingExecutable.displayName` is non-`null`.
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR,
-          expression,
-          [S, T, enclosingExecutable.displayName!],
-        );
-      } else if (enclosingExecutable.isFunction) {
-        // [EnclosingExecutableContext.displayName] will only return `null` if
-        // there is no enclosing element, in which case the `if` test above
-        // would have failed.  So it's safe to assume that
-        // `enclosingExecutable.displayName` is non-`null`.
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
-          expression,
-          [S, T, enclosingExecutable.displayName!],
-        );
-      } else if (enclosingExecutable.isMethod) {
-        // [EnclosingExecutableContext.displayName] will only return `null` if
-        // there is no enclosing element, in which case the `if` test above
-        // would have failed.  So it's safe to assume that
-        // `enclosingExecutable.displayName` is non-`null`.
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
-          expression,
-          [S, T, enclosingExecutable.displayName!],
+          arguments: [S, T, enclosingExecutable.displayName!],
         );
       }
     }
@@ -349,10 +224,10 @@ class ReturnTypeVerifier {
           var field = T.positionalFields.first;
           if (_typeSystem.isAssignableTo(field.type, S,
               strictCasts: _strictCasts)) {
-            _errorReporter.reportErrorForNode(
-              WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+            _errorReporter.atNode(
               expression,
-              [],
+              CompileTimeErrorCode
+                  .RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
             );
             return;
           }
@@ -401,28 +276,21 @@ class ReturnTypeVerifier {
   }
 
   void _checkReturnWithoutValue(ReturnStatement statement) {
-    if (_typeSystem.isNonNullableByDefault) {
-      var T = enclosingExecutable.returnType;
-      if (enclosingExecutable.isSynchronous) {
-        if (_isVoidDynamicOrNull(T)) {
-          return;
-        }
-      } else {
-        var T_v = _typeSystem.futureValueType(T);
-        if (_isVoidDynamicOrNull(T_v)) {
-          return;
-        }
+    var T = enclosingExecutable.returnType;
+    if (enclosingExecutable.isSynchronous) {
+      if (_isVoidDynamicOrNull(T)) {
+        return;
       }
     } else {
-      var returnType = _flattenedReturnType;
-      if (_isVoidDynamicOrNull(returnType)) {
+      var T_v = _typeSystem.futureValueType(T);
+      if (_isVoidDynamicOrNull(T_v)) {
         return;
       }
     }
 
-    _errorReporter.reportErrorForToken(
-      CompileTimeErrorCode.RETURN_WITHOUT_VALUE,
+    _errorReporter.atToken(
       statement.returnKeyword,
+      CompileTimeErrorCode.RETURN_WITHOUT_VALUE,
     );
   }
 
@@ -448,7 +316,7 @@ class ReturnTypeVerifier {
     //
     var lowerBound = expectedElement.instantiate(
       typeArguments: [NeverTypeImpl.instance],
-      nullabilitySuffix: NullabilitySuffix.star,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
     return _typeSystem.isSubtypeOf(lowerBound, returnType);
   }

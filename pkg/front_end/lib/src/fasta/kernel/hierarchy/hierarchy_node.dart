@@ -16,7 +16,7 @@ import '../../builder/declaration_builders.dart';
 import '../../builder/library_builder.dart';
 import '../../builder/named_type_builder.dart';
 import '../../builder/type_builder.dart';
-import '../../fasta_codes.dart';
+import '../../codes/fasta_codes.dart';
 import '../../source/source_library_builder.dart';
 import '../../type_inference/type_schema.dart' show UnknownType;
 import 'hierarchy_builder.dart';
@@ -128,7 +128,7 @@ class ClassHierarchyNodeBuilder extends HierarchyNodeBuilder {
   Uri get _fileUri => _classBuilder.fileUri;
 
   ClassHierarchyNode build() {
-    assert(!_classBuilder.isPatch);
+    assert(!_classBuilder.isAugmenting);
     ClassHierarchyNode? supernode;
     if (_objectClass != _classBuilder.origin) {
       ClassBuilder? superClassBuilder =
@@ -287,17 +287,8 @@ class ClassHierarchyNodeBuilder extends HierarchyNodeBuilder {
     if (typeArguments.isEmpty || typeArguments.first is! UnknownType) {
       return mixinNode;
     }
-    FreshStructuralParametersFromTypeParameters freshTypeParameters =
-        getFreshStructuralParametersFromTypeParameters(
-            mixedInType.classNode.typeParameters);
     new BuilderMixinInferrer(
-            _classBuilder,
-            _hierarchy.coreTypes,
-            new TypeBuilderConstraintGatherer(
-                _hierarchy, freshTypeParameters.freshTypeParameters,
-                isNonNullableByDefault:
-                    cls.enclosingLibrary.isNonNullableByDefault),
-            freshTypeParameters.substitutionMap)
+            _classBuilder, _hierarchy, mixedInType.classNode.typeParameters)
         .infer(cls);
     List<TypeBuilder> inferredArguments = new List<TypeBuilder>.generate(
         typeArguments.length,
@@ -428,7 +419,7 @@ class ExtensionTypeHierarchyNodeBuilder extends HierarchyNodeBuilder {
   Uri get _fileUri => _extensionTypeBuilder.fileUri;
 
   ExtensionTypeHierarchyNode build() {
-    assert(!_extensionTypeBuilder.isPatch);
+    assert(!_extensionTypeBuilder.isAugmenting);
     Map<Class, Supertype> superclasses = {};
     Map<ExtensionTypeDeclaration, ExtensionType> superExtensionTypes = {};
     List<ClassHierarchyNode>? superclassNodes;

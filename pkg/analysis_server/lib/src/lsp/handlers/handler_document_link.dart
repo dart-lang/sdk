@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide Element;
-import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
@@ -59,7 +58,7 @@ class DocumentLinkRegistrations extends FeatureRegistration
 
   @override
   ToJsonable? get options => DocumentLinkRegistrationOptions(
-        documentSelector: [dartFiles],
+        documentSelector: dartFiles,
         resolveProvider: false,
       );
 

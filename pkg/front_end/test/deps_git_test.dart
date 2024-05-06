@@ -8,6 +8,8 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart';
 import 'package:expect/expect.dart' show Expect;
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/base/processed_options.dart';
+import 'package:front_end/src/compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
 import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart';
 import 'package:front_end/src/fasta/kernel/kernel_target.dart';
@@ -15,9 +17,8 @@ import 'package:front_end/src/fasta/ticker.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
-import 'package:front_end/src/compute_platform_binaries_location.dart'
-    show computePlatformBinariesLocation;
-import "package:vm/target/vm.dart" show VmTarget;
+import 'package:vm/modular/target/vm.dart' show VmTarget;
+
 import 'utils/io_utils.dart' show computeRepoDirUri;
 
 final Uri repoDir = computeRepoDirUri();
@@ -43,7 +44,8 @@ Set<String> allowlistedExternalDartFiles = {
   "pkg/meta/lib/meta_meta.dart",
 };
 
-Future<void> main() async {
+/// Returns true on no errors and false if errors was found.
+Future<bool> main() async {
   Ticker ticker = new Ticker(isVerbose: false);
   CompilerOptions compilerOptions = getOptions();
 
@@ -89,24 +91,35 @@ Future<void> main() async {
   Set<Uri> otherNonDartUris = new Set<Uri>();
   Set<Uri> frontEndUris = new Set<Uri>();
   Set<Uri> kernelUris = new Set<Uri>();
+  Set<Uri> vmModularUris = new Set<Uri>();
   Set<Uri> feAnalyzerSharedUris = new Set<Uri>();
   Set<Uri> dartPlatformUris = new Set<Uri>();
+  Set<Uri> macrosUris = new Set<Uri>();
   Uri kernelUri = repoDir.resolve("pkg/kernel/");
+  Uri vmModularUri = repoDir.resolve("pkg/vm/lib/modular/");
   Uri feAnalyzerSharedUri = repoDir.resolve("pkg/_fe_analyzer_shared/");
   Uri platformUri1 = repoDir.resolve("sdk/lib/");
   Uri platformUri2 = repoDir.resolve("runtime/lib/");
   Uri platformUri3 = repoDir.resolve("runtime/bin/");
+  Uri macrosUri = repoDir.resolve("pkg/macros");
+  Uri _macrosUri = repoDir.resolve("pkg/_macros");
   for (Uri uri in result) {
     if (uri.toString().startsWith(frontendLibUri.toString())) {
       frontEndUris.add(uri);
     } else if (uri.toString().startsWith(kernelUri.toString())) {
       kernelUris.add(uri);
+    } else if (uri.toString().startsWith(vmModularUri.toString())) {
+      // For VmTarget for macros.
+      vmModularUris.add(uri);
     } else if (uri.toString().startsWith(feAnalyzerSharedUri.toString())) {
       feAnalyzerSharedUris.add(uri);
     } else if (uri.toString().startsWith(platformUri1.toString()) ||
         uri.toString().startsWith(platformUri2.toString()) ||
         uri.toString().startsWith(platformUri3.toString())) {
       dartPlatformUris.add(uri);
+    } else if (uri.toString().startsWith(_macrosUri.toString()) ||
+        uri.toString().startsWith(macrosUri.toString())) {
+      macrosUris.add(uri);
     } else if (uri.toString().endsWith(".dart")) {
       otherDartUris.add(uri);
     } else {
@@ -117,6 +130,7 @@ Future<void> main() async {
   // * Everything in frontEndUris is okay --- the frontend can import itself.
   // * Everything in kernel is okay --- the frontend is allowed to
   //   import package:kernel.
+  // * Everything in vm/modular is okay, it's specifically for the CFE.
   // * For other entries, remove allowlisted entries.
   // * Everything else is an error.
 
@@ -139,7 +153,9 @@ Future<void> main() async {
       print(" - $uri");
     }
     exitCode = 1;
+    return false;
   }
+  return true;
 }
 
 CompilerOptions getOptions() {

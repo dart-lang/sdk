@@ -14,6 +14,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf;
 
 import 'src/devtools/client.dart';
+import 'src/devtools/dtd.dart';
 import 'src/devtools/handler.dart';
 import 'src/devtools/machine_mode_command_handler.dart';
 import 'src/devtools/memory_profile.dart';
@@ -23,6 +24,8 @@ import 'src/utils/console.dart';
 class DevToolsServer {
   static const protocolVersion = '1.2.0';
   static const defaultTryPorts = 10;
+  static const defaultDdsHost = '127.0.0.1';
+  static const defaultDdsPort = 0;
   static const commandDescription =
       'Open DevTools (optionally connecting to an existing application).';
 
@@ -33,7 +36,11 @@ class DevToolsServer {
   static const argAppSizeBase = 'app-size-base';
   static const argAppSizeTest = 'app-size-test';
   static const argHeadlessMode = 'headless';
+  static const argDdsHost = 'dds-host';
+  static const argDdsPort = 'dds-port';
   static const argDebugMode = 'debug';
+  static const argDtdUri = 'dtd-uri';
+  static const argPrintDtd = 'print-dtd';
   static const argLaunchBrowser = 'launch-browser';
   static const argMachine = 'machine';
   static const argHost = 'host';
@@ -93,6 +100,12 @@ class DevToolsServer {
         help: 'Port to serve DevTools on; specify 0 to automatically use any '
             'available port.',
       )
+      ..addOption(
+        argDtdUri,
+        valueHelp: 'uri',
+        help: 'A URI pointing to a Dart Tooling Daemon that DevTools should '
+            'interface with.',
+      )
       ..addFlag(
         argLaunchBrowser,
         help:
@@ -144,7 +157,27 @@ class DevToolsServer {
         defaultsTo: DevToolsServer.defaultTryPorts.toString(),
         valueHelp: 'count',
         help: 'The number of ascending ports to try binding to before failing '
-            'with an error. ',
+            'with an error.',
+        hide: !verbose,
+      )
+      ..addOption(
+        argDdsHost,
+        defaultsTo: DevToolsServer.defaultDdsHost,
+        valueHelp: 'bind-address',
+        help:
+            "The address the Dart Development Service (DDS) should attempt to "
+            "bind to if a DDS instance isn't active and a VM service URI is "
+            "provided.",
+        hide: !verbose,
+      )
+      ..addOption(
+        argDdsPort,
+        defaultsTo: DevToolsServer.defaultDdsPort.toString(),
+        valueHelp: 'port',
+        help:
+            "The address the Dart Development Service (DDS) should attempt to "
+            "bind to if a DDS instance isn't active and a VM service URI is "
+            "provided.",
         hide: !verbose,
       )
       ..addFlag(
@@ -164,6 +197,13 @@ class DevToolsServer {
         negatable: false,
         help: 'Causes the server to spawn Chrome in headless mode for use in '
             'automated testing.',
+        hide: !verbose,
+      )
+      ..addFlag(
+        argPrintDtd,
+        negatable: false,
+        help: 'Print the address of the Dart Tooling Daemon, if one is hosted '
+            'by the DevTools server.',
         hide: !verbose,
       );
 
@@ -206,6 +246,7 @@ class DevToolsServer {
     bool allowEmbedding = true,
     bool headlessMode = false,
     bool verboseMode = false,
+    bool printDtdUri = false,
     String? hostname,
     String? customDevToolsPath,
     int port = 0,
@@ -215,6 +256,7 @@ class DevToolsServer {
     String? profileFilename,
     String? appSizeBase,
     String? appSizeTest,
+    String? dtdUri,
   }) async {
     hostname ??= 'localhost';
 
@@ -241,9 +283,22 @@ class DevToolsServer {
     clientManager = ClientManager(
       requestNotificationPermissions: enableNotifications,
     );
+
+    String? dtdSecret;
+    if (dtdUri == null) {
+      final (:uri, :secret) = await startDtd(
+        machineMode: machineMode,
+        printDtdUri: printDtdUri,
+      );
+      dtdUri = uri;
+      dtdSecret = secret;
+    }
+
     handler ??= await defaultHandler(
       buildDir: customDevToolsPath!,
       clientManager: clientManager,
+      analytics: DevToolsUtils.initializeAnalytics(),
+      dtd: (uri: dtdUri, secret: dtdSecret),
     );
 
     HttpServer? server;
@@ -307,7 +362,7 @@ class DevToolsServer {
           .replace(queryParameters: queryParameters)
           .toString();
 
-      // If app size parameters are present, open to the standalone `appsize`
+      // If app size parameters are present, open to the standalone `app-size`
       // page, regardless if there is a vm service uri specified. We only check
       // for the presence of [appSizeBase] here because [appSizeTest] may or may
       // not be specified (it should only be present for diffs). If [appSizeTest]
@@ -316,7 +371,7 @@ class DevToolsServer {
         final startQueryParamIndex = url.indexOf('?');
         if (startQueryParamIndex != -1) {
           url = '${url.substring(0, startQueryParamIndex)}'
-              '/#/appsize'
+              '/#/app-size'
               '${url.substring(startQueryParamIndex)}';
         }
       }
@@ -431,6 +486,13 @@ class DevToolsServer {
     final bool verboseMode = args[argVerbose];
     final String? hostname = args[argHost];
 
+    String? dtdUri;
+    if (args.wasParsed(argDtdUri)) {
+      dtdUri = args[argDtdUri];
+    }
+
+    final printDtdUri = args.wasParsed(argPrintDtd);
+
     if (help) {
       print(
           'Dart DevTools version ${await DevToolsUtils.getVersion(customDevToolsPath ?? "")}');
@@ -497,6 +559,8 @@ class DevToolsServer {
       hostname: hostname,
       appSizeBase: appSizeBase,
       appSizeTest: appSizeTest,
+      dtdUri: dtdUri,
+      printDtdUri: printDtdUri,
     );
   }
 

@@ -657,6 +657,8 @@ class Object {
     kNo,
   };
 
+  static bool ShouldHaveImmutabilityBitSet(classid_t class_id);
+
  protected:
   friend ObjectPtr AllocateObject(intptr_t, intptr_t, intptr_t);
 
@@ -1018,8 +1020,6 @@ class Object {
   friend class Simd128MessageDeserializationCluster;
   friend class OneByteString;
   friend class TwoByteString;
-  friend class ExternalOneByteString;
-  friend class ExternalTwoByteString;
   friend class Thread;
 
 #define REUSABLE_FRIEND_DECLARATION(name)                                      \
@@ -1373,8 +1373,11 @@ class Class : public Object {
   }
 
   // Returns a canonicalized vector of the type parameters instantiated
-  // to bounds. If non-generic, the empty type arguments vector is returned.
-  TypeArgumentsPtr InstantiateToBounds(Thread* thread) const;
+  // to bounds (e.g., the type arguments used if no TAV is provided for class
+  // instantiation).
+  //
+  // If non-generic, the empty type arguments vector is returned.
+  TypeArgumentsPtr DefaultTypeArguments(Zone* zone) const;
 
   // If this class is parameterized, each instance has a type_arguments field.
   static constexpr intptr_t kNoTypeArguments = -1;
@@ -2059,9 +2062,19 @@ class Class : public Object {
     //    - super class / super interface classes are marked as unsendable.
     //    - class has native fields.
     kIsIsolateUnsendableBit,
-    // True if this class has `@pragma('vm:isolate-unsendable') annotation or
+    // True if this class has `@pragma('vm:isolate-unsendable')` annotation or
     // base class or implemented interfaces has this bit.
     kIsIsolateUnsendableDueToPragmaBit,
+    // Will be set to 1 for the following classes:
+    //
+    // 1. Deeply immutable class.
+    //    a. Statically guaranteed deeply immutable classes.
+    //       `@pragma('vm:deeply-immutable')`.
+    //    b. VM recognized deeply immutable classes.
+    //       `IsDeeplyImmutableCid(intptr_t predefined_cid)`.
+    //
+    // See also ImmutableBit in raw_object.h.
+    kIsDeeplyImmutableBit,
     // This class is a subtype of Future.
     kIsFutureSubtypeBit,
     // This class has a non-abstract subtype which is a subtype of Future.
@@ -2101,6 +2114,8 @@ class Class : public Object {
   class IsIsolateUnsendableDueToPragmaBit
       : public BitField<uint32_t, bool, kIsIsolateUnsendableDueToPragmaBit, 1> {
   };
+  class IsDeeplyImmutableBit
+      : public BitField<uint32_t, bool, kIsDeeplyImmutableBit, 1> {};
   class IsFutureSubtypeBit
       : public BitField<uint32_t, bool, kIsFutureSubtypeBit, 1> {};
   class CanBeFutureBit : public BitField<uint32_t, bool, kCanBeFutureBit, 1> {};
@@ -2154,6 +2169,14 @@ class Class : public Object {
   void set_is_isolate_unsendable_due_to_pragma(bool value) const;
   bool is_isolate_unsendable_due_to_pragma() const {
     return IsIsolateUnsendableDueToPragmaBit::decode(state_bits());
+  }
+
+  void set_is_deeply_immutable(bool value) const;
+  bool is_deeply_immutable() const {
+    return IsDeeplyImmutableBit::decode(state_bits());
+  }
+  static bool IsDeeplyImmutable(ClassPtr clazz) {
+    return IsDeeplyImmutableBit::decode(clazz->untag()->state_bits_);
   }
 
   void set_is_future_subtype(bool value) const;
@@ -3219,18 +3242,22 @@ class Function : public Object {
   // Enclosing function of this local function.
   FunctionPtr parent_function() const;
 
-  using DefaultTypeArgumentsKind =
-      UntaggedClosureData::DefaultTypeArgumentsKind;
-
   // Returns a canonicalized vector of the type parameters instantiated
-  // to bounds. If non-generic, the empty type arguments vector is returned.
-  TypeArgumentsPtr InstantiateToBounds(
-      Thread* thread,
-      DefaultTypeArgumentsKind* kind_out = nullptr) const;
+  // to bounds (e.g., the local type arguments that are used if no TAV is
+  // provided when the function is invoked).
+  //
+  // If the function is owned by a generic class or has any generic parent
+  // functions, then the returned vector may require instantiation, see
+  // default_type_arguments_instantiation_mode() for Closure functions
+  // or TypeArguments::GetInstantiationMode() otherwise.
+  //
+  // If non-generic, the empty type arguments vector is returned.
+  TypeArgumentsPtr DefaultTypeArguments(Zone* zone) const;
 
   // Only usable for closure functions.
-  DefaultTypeArgumentsKind default_type_arguments_kind() const;
-  void set_default_type_arguments_kind(DefaultTypeArgumentsKind value) const;
+  InstantiationMode default_type_arguments_instantiation_mode() const;
+  void set_default_type_arguments_instantiation_mode(
+      InstantiationMode value) const;
 
   // Enclosing outermost function of this local function.
   FunctionPtr GetOutermostFunction() const;
@@ -3317,8 +3344,9 @@ class Function : public Object {
   FunctionPtr ForwardingTarget() const;
   void SetForwardingTarget(const Function& target) const;
 
-  UntaggedFunction::Kind kind() const {
-    return untag()->kind_tag_.Read<KindBits>();
+  UntaggedFunction::Kind kind() const { return KindOf(ptr()); }
+  static UntaggedFunction::Kind KindOf(FunctionPtr func) {
+    return func->untag()->kind_tag_.Read<KindBits>();
   }
 
   UntaggedFunction::AsyncModifier modifier() const {
@@ -3390,6 +3418,7 @@ class Function : public Object {
       case UntaggedFunction::kNoSuchMethodDispatcher:
       case UntaggedFunction::kInvokeFieldDispatcher:
       case UntaggedFunction::kDynamicInvocationForwarder:
+      case UntaggedFunction::kFfiTrampoline:
       case UntaggedFunction::kRecordFieldGetter:
         return false;
       default:
@@ -3486,6 +3515,10 @@ class Function : public Object {
     return HasOptionalParameters() || IsSuspendableFunction();
   }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  intptr_t MaxNumberOfParametersInRegisters(Zone* zone) const;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 #if defined(DART_PRECOMPILED_RUNTIME)
 #define DEFINE_GETTERS_AND_SETTERS(return_type, type, name)                    \
   static intptr_t name##_offset() {                                            \
@@ -3565,6 +3598,9 @@ class Function : public Object {
   // dependencies. It will be compiled into optimized code immediately when it's
   // run.
   bool ForceOptimize() const;
+
+  // Whether this function should be inlined if at all possible.
+  bool IsPreferInline() const;
 
   // Whether this function is idempotent (i.e. calling it twice has the same
   // effect as calling it once - no visible side effects).
@@ -3867,6 +3903,9 @@ class Function : public Object {
   bool IsImplicitClosureFunction() const {
     return kind() == UntaggedFunction::kImplicitClosureFunction;
   }
+  static bool IsImplicitClosureFunction(FunctionPtr func) {
+    return KindOf(func) == UntaggedFunction::kImplicitClosureFunction;
+  }
 
   // Returns true if this function represents a non implicit closure function.
   bool IsNonImplicitClosureFunction() const {
@@ -3885,6 +3924,7 @@ class Function : public Object {
   bool IsImplicitInstanceClosureFunction() const {
     return IsImplicitClosureFunction() && !is_static();
   }
+  static bool IsImplicitInstanceClosureFunction(FunctionPtr func);
 
   // Returns true if this function has a parent function.
   bool HasParent() const { return parent_function() != Function::null(); }
@@ -4230,10 +4270,6 @@ class Function : public Object {
     kTearOff,
     kLength,
   };
-  // Given the provided defaults type arguments, determines which
-  // DefaultTypeArgumentsKind applies.
-  DefaultTypeArgumentsKind DefaultTypeArgumentsKindFor(
-      const TypeArguments& defaults) const;
 
   void set_ic_data_array(const Array& value) const;
   void set_name(const String& value) const;
@@ -4283,10 +4319,7 @@ class ClosureData : public Object {
     return OFFSET_OF(UntaggedClosureData, packed_fields_);
   }
 
-  using DefaultTypeArgumentsKind =
-      UntaggedClosureData::DefaultTypeArgumentsKind;
-  using PackedDefaultTypeArgumentsKind =
-      UntaggedClosureData::PackedDefaultTypeArgumentsKind;
+  using PackedInstantiationMode = UntaggedClosureData::PackedInstantiationMode;
 
   static constexpr uint8_t kNoAwaiterLinkDepth =
       UntaggedClosureData::kNoAwaiterLinkDepth;
@@ -4310,8 +4343,15 @@ class ClosureData : public Object {
   }
   void set_implicit_static_closure(const Closure& closure) const;
 
-  DefaultTypeArgumentsKind default_type_arguments_kind() const;
-  void set_default_type_arguments_kind(DefaultTypeArgumentsKind value) const;
+  static InstantiationMode DefaultTypeArgumentsInstantiationMode(
+      ClosureDataPtr ptr) {
+    return ptr->untag()->packed_fields_.Read<PackedInstantiationMode>();
+  }
+  InstantiationMode default_type_arguments_instantiation_mode() const {
+    return DefaultTypeArgumentsInstantiationMode(ptr());
+  }
+  void set_default_type_arguments_instantiation_mode(
+      InstantiationMode value) const;
 
   static ClosureDataPtr New();
 
@@ -8242,6 +8282,7 @@ class Instance : public Object {
   // Equivalent to invoking identityHashCode with this instance.
   IntegerPtr IdentityHashCode(Thread* thread) const;
 
+  static intptr_t UnroundedSize() { return sizeof(UntaggedInstance); }
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedInstance));
   }
@@ -8581,6 +8622,22 @@ class TypeArguments : public Instance {
   // Concatenate [this] and [other] vectors of type parameters.
   TypeArgumentsPtr ConcatenateTypeParameters(Zone* zone,
                                              const TypeArguments& other) const;
+
+  // Returns an InstantiationMode for this type argument vector, which
+  // specifies whether the type argument vector requires instantiation and
+  // shortcuts to instantiate the vector when possible.
+  //
+  // If [function] is provided, any function type arguments used in the type
+  // arguments vector are assumed to be bound by the function or its parent
+  // functions.
+  //
+  // If [class] is provided, any class type arguments used in the type arguments
+  // vector are assumed to be bound by that class. If [function] is provided
+  // but [class] is not, then the owning class of the function is retrieved
+  // and used.
+  InstantiationMode GetInstantiationMode(Zone* zone,
+                                         const Function* function = nullptr,
+                                         const Class* cls = nullptr) const;
 
   // Check if the vectors are equal (they may be null).
   bool Equals(const TypeArguments& other) const {
@@ -9060,15 +9117,18 @@ class AbstractType : public Instance {
   virtual const char* NullabilitySuffix(NameVisibility name_visibility) const;
 
   // The name of this type, including the names of its type arguments, if any.
-  virtual StringPtr Name() const;
+  StringPtr Name() const;
+  const char* NameCString() const;
 
   // The name of this type, including the names of its type arguments, if any.
   // Names of internal classes are mapped to their public interfaces.
-  virtual StringPtr UserVisibleName() const;
+  StringPtr UserVisibleName() const;
+  const char* UserVisibleNameCString() const;
 
   // The name of this type, including the names of its type arguments, if any.
   // Privacy suffixes are dropped.
-  virtual StringPtr ScrubbedName() const;
+  StringPtr ScrubbedName() const;
+  const char* ScrubbedNameCString() const;
 
   // Return the internal or public name of this type, including the names of its
   // type arguments, if any.
@@ -10228,20 +10288,6 @@ class String : public Instance {
     return ptr()->GetClassId() == kTwoByteStringCid;
   }
 
-  bool IsExternalOneByteString() const {
-    return ptr()->GetClassId() == kExternalOneByteStringCid;
-  }
-
-  bool IsExternalTwoByteString() const {
-    return ptr()->GetClassId() == kExternalTwoByteStringCid;
-  }
-
-  bool IsExternal() const {
-    return IsExternalStringClassId(ptr()->GetClassId());
-  }
-
-  void* GetPeer() const;
-
   char* ToMallocCString() const;
   void ToUTF8(uint8_t* utf8_array, intptr_t array_len) const;
   static const char* ToCString(Thread* thread, StringPtr ptr);
@@ -10415,8 +10461,6 @@ class String : public Instance {
   friend class ConcatString;  // SetHash
   friend class OneByteString;
   friend class TwoByteString;
-  friend class ExternalOneByteString;
-  friend class ExternalTwoByteString;
   friend class UntaggedOneByteString;
   friend class RODataSerializationCluster;  // SetHash
   friend class Pass2Visitor;                // Stack "handle"
@@ -10576,7 +10620,6 @@ class OneByteString : public AllStatic {
   ALLSTATIC_CONTAINS_COMPRESSED_IMPLEMENTATION(OneByteString, String);
 
   friend class Class;
-  friend class ExternalOneByteString;
   friend class FlowGraphSerializer;
   friend class ImageWriter;
   friend class String;
@@ -10706,187 +10749,6 @@ class TwoByteString : public AllStatic {
   friend class StringHasher;
   friend class Symbols;
   friend class TwoByteStringMessageSerializationCluster;
-  friend class JSONWriter;
-};
-
-class ExternalOneByteString : public AllStatic {
- public:
-  static uint16_t CharAt(const String& str, intptr_t index) {
-    ASSERT(str.IsExternalOneByteString());
-    return ExternalOneByteString::CharAt(
-        static_cast<ExternalOneByteStringPtr>(str.ptr()), index);
-  }
-
-  static uint16_t CharAt(ExternalOneByteStringPtr str, intptr_t index) {
-    ASSERT(index >= 0 && index < String::LengthOf(str));
-    return str->untag()->external_data_[index];
-  }
-
-  static void* GetPeer(const String& str) { return untag(str)->peer_; }
-
-  static intptr_t external_data_offset() {
-    return OFFSET_OF(UntaggedExternalOneByteString, external_data_);
-  }
-
-  // We use the same maximum elements for all strings.
-  static constexpr intptr_t kBytesPerElement = 1;
-  static constexpr intptr_t kMaxElements = String::kMaxElements;
-
-  static intptr_t InstanceSize() {
-    return String::RoundedAllocationSize(sizeof(UntaggedExternalOneByteString));
-  }
-
-  static ExternalOneByteStringPtr New(const uint8_t* characters,
-                                      intptr_t len,
-                                      void* peer,
-                                      intptr_t external_allocation_size,
-                                      Dart_HandleFinalizer callback,
-                                      Heap::Space space);
-
-  static ExternalOneByteStringPtr null() {
-    return static_cast<ExternalOneByteStringPtr>(Object::null());
-  }
-
-  static OneByteStringPtr EscapeSpecialCharacters(const String& str);
-  static OneByteStringPtr EncodeIRI(const String& str);
-  static OneByteStringPtr DecodeIRI(const String& str);
-
-  static const ClassId kClassId = kExternalOneByteStringCid;
-
- private:
-  static ExternalOneByteStringPtr raw(const String& str) {
-    return static_cast<ExternalOneByteStringPtr>(str.ptr());
-  }
-
-  static const UntaggedExternalOneByteString* untag(const String& str) {
-    return reinterpret_cast<const UntaggedExternalOneByteString*>(str.untag());
-  }
-
-  static const uint8_t* CharAddr(const String& str, intptr_t index) {
-    ASSERT((index >= 0) && (index < str.Length()));
-    ASSERT(str.IsExternalOneByteString());
-    return &(untag(str)->external_data_[index]);
-  }
-
-  static const uint8_t* DataStart(const String& str) {
-    ASSERT(str.IsExternalOneByteString());
-    return untag(str)->external_data_;
-  }
-
-  static void SetExternalData(const String& str,
-                              const uint8_t* data,
-                              void* peer) {
-    ASSERT(str.IsExternalOneByteString());
-    ASSERT(!IsolateGroup::Current()->heap()->Contains(
-        reinterpret_cast<uword>(data)));
-    str.StoreNonPointer(&untag(str)->external_data_, data);
-    str.StoreNonPointer(&untag(str)->peer_, peer);
-  }
-
-  static void Finalize(void* isolate_callback_data,
-                       Dart_WeakPersistentHandle handle,
-                       void* peer);
-
-  static intptr_t NextFieldOffset() {
-    // Indicates this class cannot be extended by dart code.
-    return -kWordSize;
-  }
-
-  ALLSTATIC_CONTAINS_COMPRESSED_IMPLEMENTATION(ExternalOneByteString, String);
-
-  friend class Class;
-  friend class String;
-  friend class StringHasher;
-  friend class Symbols;
-  friend class Utf8;
-  friend class JSONWriter;
-};
-
-class ExternalTwoByteString : public AllStatic {
- public:
-  static uint16_t CharAt(const String& str, intptr_t index) {
-    ASSERT(str.IsExternalTwoByteString());
-    return ExternalTwoByteString::CharAt(
-        static_cast<ExternalTwoByteStringPtr>(str.ptr()), index);
-  }
-
-  static uint16_t CharAt(ExternalTwoByteStringPtr str, intptr_t index) {
-    ASSERT(index >= 0 && index < String::LengthOf(str));
-    return str->untag()->external_data_[index];
-  }
-
-  static void* GetPeer(const String& str) { return untag(str)->peer_; }
-
-  static intptr_t external_data_offset() {
-    return OFFSET_OF(UntaggedExternalTwoByteString, external_data_);
-  }
-
-  // We use the same maximum elements for all strings.
-  static constexpr intptr_t kBytesPerElement = 2;
-  static constexpr intptr_t kMaxElements = String::kMaxElements;
-
-  static intptr_t InstanceSize() {
-    return String::RoundedAllocationSize(sizeof(UntaggedExternalTwoByteString));
-  }
-
-  static ExternalTwoByteStringPtr New(const uint16_t* characters,
-                                      intptr_t len,
-                                      void* peer,
-                                      intptr_t external_allocation_size,
-                                      Dart_HandleFinalizer callback,
-                                      Heap::Space space = Heap::kNew);
-
-  static ExternalTwoByteStringPtr null() {
-    return static_cast<ExternalTwoByteStringPtr>(Object::null());
-  }
-
-  static const ClassId kClassId = kExternalTwoByteStringCid;
-
- private:
-  static ExternalTwoByteStringPtr raw(const String& str) {
-    return static_cast<ExternalTwoByteStringPtr>(str.ptr());
-  }
-
-  static const UntaggedExternalTwoByteString* untag(const String& str) {
-    return reinterpret_cast<const UntaggedExternalTwoByteString*>(str.untag());
-  }
-
-  static const uint16_t* CharAddr(const String& str, intptr_t index) {
-    ASSERT((index >= 0) && (index < str.Length()));
-    ASSERT(str.IsExternalTwoByteString());
-    return &(untag(str)->external_data_[index]);
-  }
-
-  static const uint16_t* DataStart(const String& str) {
-    ASSERT(str.IsExternalTwoByteString());
-    return untag(str)->external_data_;
-  }
-
-  static void SetExternalData(const String& str,
-                              const uint16_t* data,
-                              void* peer) {
-    ASSERT(str.IsExternalTwoByteString());
-    ASSERT(!IsolateGroup::Current()->heap()->Contains(
-        reinterpret_cast<uword>(data)));
-    str.StoreNonPointer(&untag(str)->external_data_, data);
-    str.StoreNonPointer(&untag(str)->peer_, peer);
-  }
-
-  static void Finalize(void* isolate_callback_data,
-                       Dart_WeakPersistentHandle handle,
-                       void* peer);
-
-  static intptr_t NextFieldOffset() {
-    // Indicates this class cannot be extended by dart code.
-    return -kWordSize;
-  }
-
-  ALLSTATIC_CONTAINS_COMPRESSED_IMPLEMENTATION(ExternalTwoByteString, String);
-
-  friend class Class;
-  friend class String;
-  friend class StringHasher;
-  friend class Symbols;
   friend class JSONWriter;
 };
 
@@ -11044,13 +10906,15 @@ class Array : public Instance {
     return 0;
   }
 
-  static constexpr intptr_t InstanceSize(intptr_t len) {
+  static constexpr intptr_t UnroundedSize(intptr_t len) {
     // Ensure that variable length data is not adding to the object length.
     ASSERT(sizeof(UntaggedArray) ==
            (sizeof(UntaggedInstance) + (2 * kBytesPerElement)));
     ASSERT(IsValidLength(len));
-    return RoundedAllocationSize(sizeof(UntaggedArray) +
-                                 (len * kBytesPerElement));
+    return sizeof(UntaggedArray) + (len * kBytesPerElement);
+  }
+  static constexpr intptr_t InstanceSize(intptr_t len) {
+    return RoundedAllocationSize(UnroundedSize(len));
   }
 
   virtual void CanonicalizeFieldsLocked(Thread* thread) const;
@@ -11301,6 +11165,9 @@ class Float32x4 : public Instance {
     return OFFSET_OF(UntaggedFloat32x4, value_);
   }
 
+  virtual bool CanonicalizeEquals(const Instance& other) const;
+  virtual uint32_t CanonicalizeHash() const;
+
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Float32x4, Instance);
   friend class Class;
@@ -11334,6 +11201,9 @@ class Int32x4 : public Instance {
 
   static intptr_t value_offset() { return OFFSET_OF(UntaggedInt32x4, value_); }
 
+  virtual bool CanonicalizeEquals(const Instance& other) const;
+  virtual uint32_t CanonicalizeHash() const;
+
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Int32x4, Instance);
   friend class Class;
@@ -11363,6 +11233,9 @@ class Float64x2 : public Instance {
   static intptr_t value_offset() {
     return OFFSET_OF(UntaggedFloat64x2, value_);
   }
+
+  virtual bool CanonicalizeEquals(const Instance& other) const;
+  virtual uint32_t CanonicalizeHash() const;
 
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Float64x2, Instance);
@@ -11636,21 +11509,24 @@ class TypedDataBase : public PointerBase {
       return kUint8ArrayElement;
     } else if (IsTypedDataClassId(cid)) {
       const intptr_t index =
-          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderInternal) / 4;
+          (cid - kFirstTypedDataCid - kTypedDataCidRemainderInternal) /
+          kNumTypedDataCidRemainders;
       return static_cast<TypedDataElementType>(index);
     } else if (IsTypedDataViewClassId(cid)) {
       const intptr_t index =
-          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderView) / 4;
+          (cid - kFirstTypedDataCid - kTypedDataCidRemainderView) /
+          kNumTypedDataCidRemainders;
       return static_cast<TypedDataElementType>(index);
     } else if (IsExternalTypedDataClassId(cid)) {
       const intptr_t index =
-          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderExternal) / 4;
+          (cid - kFirstTypedDataCid - kTypedDataCidRemainderExternal) /
+          kNumTypedDataCidRemainders;
       return static_cast<TypedDataElementType>(index);
     } else {
       ASSERT(IsUnmodifiableTypedDataViewClassId(cid));
       const intptr_t index =
-          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderUnmodifiable) /
-          4;
+          (cid - kFirstTypedDataCid - kTypedDataCidRemainderUnmodifiable) /
+          kNumTypedDataCidRemainders;
       return static_cast<TypedDataElementType>(index);
     }
   }
@@ -11716,7 +11592,8 @@ class TypedDataBase : public PointerBase {
     return size;
   }
   static constexpr intptr_t kNumElementSizes =
-      (kTypedDataFloat64x2ArrayCid - kTypedDataInt8ArrayCid) / 4 + 1;
+      ((kLastTypedDataCid + 1) - kFirstTypedDataCid) /
+      kNumTypedDataCidRemainders;
   static const intptr_t element_size_table[kNumElementSizes];
 
   HEAP_OBJECT_IMPLEMENTATION(TypedDataBase, PointerBase);
@@ -11929,7 +11806,7 @@ class TypedDataView : public TypedDataBase {
   virtual uint8_t* Validate(uint8_t* data) const { return data; }
 
  private:
-  void RecomputeDataField() { ptr()->untag()->RecomputeDataField(); }
+  void RecomputeDataField() const { ptr()->untag()->RecomputeDataField(); }
 
   void Clear() {
     untag()->set_length(Smi::New(0));
@@ -11940,6 +11817,7 @@ class TypedDataView : public TypedDataBase {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(TypedDataView, TypedDataBase);
   friend class Class;
+  friend class DeferredObject;
   friend class Object;
   friend class TypedDataViewDeserializationCluster;
 };
@@ -12445,12 +12323,20 @@ class Closure : public Instance {
     return closure.untag()->function();
   }
 
-  ContextPtr context() const { return untag()->context(); }
+  ObjectPtr RawContext() const { return untag()->context(); }
+
+  ContextPtr GetContext() const {
+    ASSERT(!Function::IsImplicitClosureFunction(function()));
+    return Context::RawCast(RawContext());
+  }
+
+  InstancePtr GetImplicitClosureReceiver() const {
+    ASSERT(Function::IsImplicitInstanceClosureFunction(function()));
+    return Instance::RawCast(RawContext());
+  }
+
   static intptr_t context_offset() {
     return OFFSET_OF(UntaggedClosure, context_);
-  }
-  static ContextPtr ContextOf(ClosurePtr closure) {
-    return closure.untag()->context();
   }
 
   // Returns whether the closure is generic, that is, it has a generic closure
@@ -12476,14 +12362,14 @@ class Closure : public Instance {
   static ClosurePtr New(const TypeArguments& instantiator_type_arguments,
                         const TypeArguments& function_type_arguments,
                         const Function& function,
-                        const Context& context,
+                        const Object& context,
                         Heap::Space space = Heap::kNew);
 
   static ClosurePtr New(const TypeArguments& instantiator_type_arguments,
                         const TypeArguments& function_type_arguments,
                         const TypeArguments& delayed_type_arguments,
                         const Function& function,
-                        const Context& context,
+                        const Object& context,
                         Heap::Space space = Heap::kNew);
 
   FunctionTypePtr GetInstantiatedSignature(Zone* zone) const;
@@ -12905,10 +12791,6 @@ class RegExp : public Instance {
           return OFFSET_OF(UntaggedRegExp, one_byte_sticky_);
         case kTwoByteStringCid:
           return OFFSET_OF(UntaggedRegExp, two_byte_sticky_);
-        case kExternalOneByteStringCid:
-          return OFFSET_OF(UntaggedRegExp, external_one_byte_sticky_);
-        case kExternalTwoByteStringCid:
-          return OFFSET_OF(UntaggedRegExp, external_two_byte_sticky_);
       }
     } else {
       switch (cid) {
@@ -12916,10 +12798,6 @@ class RegExp : public Instance {
           return OFFSET_OF(UntaggedRegExp, one_byte_);
         case kTwoByteStringCid:
           return OFFSET_OF(UntaggedRegExp, two_byte_);
-        case kExternalOneByteStringCid:
-          return OFFSET_OF(UntaggedRegExp, external_one_byte_);
-        case kExternalTwoByteStringCid:
-          return OFFSET_OF(UntaggedRegExp, external_two_byte_);
       }
     }
 
@@ -12934,10 +12812,6 @@ class RegExp : public Instance {
           return static_cast<FunctionPtr>(untag()->one_byte_sticky());
         case kTwoByteStringCid:
           return static_cast<FunctionPtr>(untag()->two_byte_sticky());
-        case kExternalOneByteStringCid:
-          return static_cast<FunctionPtr>(untag()->external_one_byte_sticky());
-        case kExternalTwoByteStringCid:
-          return static_cast<FunctionPtr>(untag()->external_two_byte_sticky());
       }
     } else {
       switch (cid) {
@@ -12945,10 +12819,6 @@ class RegExp : public Instance {
           return static_cast<FunctionPtr>(untag()->one_byte());
         case kTwoByteStringCid:
           return static_cast<FunctionPtr>(untag()->two_byte());
-        case kExternalOneByteStringCid:
-          return static_cast<FunctionPtr>(untag()->external_one_byte());
-        case kExternalTwoByteStringCid:
-          return static_cast<FunctionPtr>(untag()->external_two_byte());
       }
     }
 
@@ -13516,12 +13386,6 @@ inline uint16_t String::CharAt(StringPtr str, intptr_t index) {
       return OneByteString::CharAt(static_cast<OneByteStringPtr>(str), index);
     case kTwoByteStringCid:
       return TwoByteString::CharAt(static_cast<TwoByteStringPtr>(str), index);
-    case kExternalOneByteStringCid:
-      return ExternalOneByteString::CharAt(
-          static_cast<ExternalOneByteStringPtr>(str), index);
-    case kExternalTwoByteStringCid:
-      return ExternalTwoByteString::CharAt(
-          static_cast<ExternalTwoByteStringPtr>(str), index);
   }
   UNREACHABLE();
   return 0;

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:expect/expect.dart';
 
@@ -222,18 +221,16 @@ void main() {
 
 doTest(String allocation, {required bool nullify}) async {
   String source = generateTest(allocation);
-  var result = await runCompiler(
-      memorySourceFiles: {'main.dart': source},
-      options: [Flags.soundNullSafety]);
+  var result = await runCompiler(memorySourceFiles: {'main.dart': source});
   Expect.isTrue(result.isSuccess);
-  var compiler = result.compiler;
-  var results = compiler.globalInference.resultsForTesting;
+  var compiler = result.compiler!;
+  var results = compiler.globalInference.resultsForTesting!;
   var closedWorld = results.closedWorld;
   var commonMasks = closedWorld.abstractValueDomain;
 
   checkType(String name, type) {
     var element = findMember(closedWorld, name);
-    ContainerTypeMask mask = results.resultOfMember(element).type;
+    final mask = results.resultOfMember(element).type as ContainerTypeMask;
     if (nullify) type = type.nullable();
     Expect.equals(type, simplify(mask.elementType, commonMasks), name);
   }
@@ -254,7 +251,8 @@ doTest(String allocation, {required bool nullify}) async {
   checkType('listEscapingInIndexSet', commonMasks.uint31Type);
   checkType('listEscapingTwiceInIndexSet', commonMasks.numType);
   checkType('listSetInNonFinalField', commonMasks.numType);
-  checkType('listWithChangedLength', commonMasks.uint31Type.nullable());
+  checkType(
+      'listWithChangedLength', (commonMasks.uint31Type as TypeMask).nullable());
 
   checkType('listPassedToClosure', commonMasks.dynamicType);
   checkType('listReturnedFromClosure', commonMasks.dynamicType);

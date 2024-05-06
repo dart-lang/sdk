@@ -4,7 +4,6 @@
 
 import 'dart:collection' show HashMap, HashSet, Queue;
 
-import 'package:collection/collection.dart' show IterableNullableExtension;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/type_environment.dart';
@@ -146,8 +145,8 @@ class _LibraryVirtualFieldModel {
         // Look in all super classes to see if we're overriding a field in our
         // library, if so mark that field as overridden.
         var name = member.name.text;
-        _overriddenPrivateFields.addAll(
-            superclasses.map((c) => allFields[c]![name]).whereNotNull());
+        _overriddenPrivateFields
+            .addAll(superclasses.map((c) => allFields[c]![name]).nonNulls);
       }
     }
   }

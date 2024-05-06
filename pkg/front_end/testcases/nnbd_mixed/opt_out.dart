@@ -4,8 +4,8 @@
 
 // @dart=2.12
 
-// This file contains benign use of NNBD features that shouldn't result in
-// compile-time errors.
+// This file contains benign use of NNBD features
+// that shouldn't result in compile-time errors.
 
 import 'opt_out_lib.dart';
 

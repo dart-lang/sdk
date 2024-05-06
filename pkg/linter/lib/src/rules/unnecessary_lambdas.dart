@@ -66,9 +66,11 @@ class _FinalExpressionChecker {
   /// `late`.
   bool isFinalElement(Element? element) {
     if (element is PropertyAccessorElement) {
+      var variable = element.variable2;
       return element.isSynthetic &&
-          element.variable.isFinal &&
-          !element.variable.isLate;
+          variable != null &&
+          variable.isFinal &&
+          !variable.isLate;
     } else if (element is VariableElement) {
       return element.isFinal && !element.isLate;
     }
@@ -167,7 +169,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void _visitInstanceCreation(
       InstanceCreationExpression expression, FunctionExpression node) {
-    if (expression.isConst) return;
+    if (expression.isConst || expression.constructorName.type.isDeferred) {
+      return;
+    }
 
     var arguments = expression.argumentList.arguments;
     var parameters = node.parameters?.parameters ?? <FormalParameter>[];

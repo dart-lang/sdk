@@ -87,7 +87,7 @@ abstract class DeclarationBuilderImpl extends TypeDeclarationBuilderImpl
     }
     MemberBuilder? declaration =
         constructorScope.lookup(name == 'new' ? '' : name, charOffset, uri);
-    if (declaration == null && isPatch) {
+    if (declaration == null && isAugmenting) {
       return origin.findConstructorOrFactory(
           name, charOffset, uri, accessingLibrary);
     }

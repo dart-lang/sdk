@@ -1,4 +1,5 @@
 // @dart = 2.6
+
 library opted_out_lib;
 
 import 'issue41498b_lib.dart' as opt_in;
@@ -11,4 +12,5 @@ class C {
 }
 
 test() {}
+
 main() {}

@@ -5,11 +5,38 @@
 part of dart.io;
 
 // TODO(bkonyi): refactor into io_resource_info.dart
-const int _versionMajor = 3;
+const int _versionMajor = 4;
 const int _versionMinor = 0;
 
 const String _tcpSocket = 'tcp';
 const String _udpSocket = 'udp';
+
+// Creates a Map conforming to the HttpProfileRequest type defined in the
+// dart:io service extension spec from an element of dart:developer's
+// [_developerProfilingData].
+Future<Map<String, dynamic>> _createHttpProfileRequestFromProfileMap(
+    Map<String, dynamic> requestProfile,
+    {required bool ref}) async {
+  final responseData = requestProfile['responseData'] as Map<String, dynamic>;
+
+  return <String, dynamic>{
+    'type': '${ref ? '@' : ''}HttpProfileRequest',
+    'id': requestProfile['id']!,
+    'isolateId': requestProfile['isolateId']!,
+    'method': requestProfile['requestMethod']!,
+    'uri': requestProfile['requestUri']!,
+    'events': requestProfile['events']!,
+    'startTime': requestProfile['requestStartTimestamp']!,
+    if (requestProfile['requestEndTimestamp'] != null)
+      'endTime': requestProfile['requestEndTimestamp'],
+    'request': requestProfile['requestData']!,
+    'response': responseData,
+    if (!ref && requestProfile['requestEndTimestamp'] != null)
+      'requestBody': requestProfile['requestBodyBytes']!,
+    if (!ref && responseData['endTime'] != null)
+      'responseBody': requestProfile['responseBodyBytes']!,
+  };
+}
 
 @pragma('vm:entry-point', !const bool.fromEnvironment("dart.vm.product"))
 abstract class _NetworkProfiling {
@@ -43,7 +70,7 @@ abstract class _NetworkProfiling {
   }
 
   static Future<ServiceExtensionResponse> _serviceExtensionHandler(
-      String method, Map<String, String> parameters) {
+      String method, Map<String, String> parameters) async {
     try {
       String responseJson;
       switch (method) {
@@ -54,14 +81,25 @@ abstract class _NetworkProfiling {
           responseJson = _getHttpEnableTimelineLogging();
           break;
         case _kGetHttpProfileRPC:
-          responseJson = HttpProfiler.toJson(
-            parameters.containsKey('updatedSince')
-                ? int.tryParse(parameters['updatedSince']!)
-                : null,
-          );
+          final updatedSince = parameters.containsKey('updatedSince')
+              ? int.tryParse(parameters['updatedSince']!)
+              : null;
+          responseJson = json.encode({
+            'type': 'HttpProfile',
+            'timestamp': DateTime.now().microsecondsSinceEpoch,
+            'requests': [
+              ...HttpProfiler.serializeHttpProfileRequests(updatedSince),
+              ...await Future.wait(getHttpClientProfilingData()
+                  .where((final Map<String, dynamic> p) =>
+                      updatedSince == null ||
+                      (p['_lastUpdateTime'] as int) >= updatedSince)
+                  .map((p) =>
+                      _createHttpProfileRequestFromProfileMap(p, ref: true)))
+            ],
+          });
           break;
         case _kGetHttpProfileRequestRPC:
-          responseJson = _getHttpProfileRequest(parameters);
+          responseJson = await _getHttpProfileRequest(parameters);
           break;
         case _kClearHttpProfileRPC:
           HttpProfiler.clear();
@@ -80,22 +118,16 @@ abstract class _NetworkProfiling {
           responseJson = getVersion();
           break;
         default:
-          return Future.value(
-            ServiceExtensionResponse.error(
-              ServiceExtensionResponse.extensionError,
-              'Method $method does not exist',
-            ),
+          return ServiceExtensionResponse.error(
+            ServiceExtensionResponse.extensionError,
+            'Method $method does not exist',
           );
       }
-      return Future.value(
-        ServiceExtensionResponse.result(responseJson),
-      );
+      return ServiceExtensionResponse.result(responseJson);
     } catch (errorMessage) {
-      return Future.value(
-        ServiceExtensionResponse.error(
-          ServiceExtensionResponse.invalidParams,
-          errorMessage.toString(),
-        ),
+      return ServiceExtensionResponse.error(
+        ServiceExtensionResponse.invalidParams,
+        errorMessage.toString(),
       );
     }
   }
@@ -134,19 +166,26 @@ String _setHttpEnableTimelineLogging(Map<String, String> parameters) {
   return _success();
 }
 
-String _getHttpProfileRequest(Map<String, String> parameters) {
+Future<String> _getHttpProfileRequest(Map<String, String> parameters) async {
   if (!parameters.containsKey('id')) {
     throw _missingArgument('id');
   }
-  String id = parameters['id']!;
+  final id = parameters['id']!;
+  final request;
+  if (id.startsWith('from_package/')) {
+    final profileMap = getHttpClientProfilingData()
+        .elementAtOrNull(int.parse(id.substring('from_package/'.length)) - 1);
+    request = profileMap == null
+        ? null
+        : await _createHttpProfileRequestFromProfileMap(profileMap, ref: false);
+  } else {
+    request = HttpProfiler.getHttpProfileRequest(id)?.toJson(ref: false);
+  }
 
-  final request = HttpProfiler.getHttpProfileRequest(id);
   if (request == null) {
     throw "Unable to find request with id: '$id'";
   }
-  return json.encode(
-    request.toJson(ref: false),
-  );
+  return json.encode(request);
 }
 
 String _socketProfilingEnabled(Map<String, String> parameters) {

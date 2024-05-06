@@ -7,4 +7,5 @@ class C {
 }
 
 void test(C c, dynamic d) {}
+
 main() {}

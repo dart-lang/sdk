@@ -311,6 +311,12 @@ struct base_ptr_type<
 #define DEFINE_COMPRESSED_POINTER(klass, base)                                 \
   class Compressed##klass##Ptr : public Compressed##base##Ptr {                \
    public:                                                                     \
+    Compressed##klass##Ptr* operator->() {                                     \
+      return this;                                                             \
+    }                                                                          \
+    const Compressed##klass##Ptr* operator->() const {                         \
+      return this;                                                             \
+    }                                                                          \
     explicit Compressed##klass##Ptr(klass##Ptr uncompressed)                   \
         : Compressed##base##Ptr(uncompressed) {}                               \
     const klass##Ptr& operator=(const klass##Ptr& other) {                     \
@@ -417,8 +423,6 @@ DEFINE_TAGGED_POINTER(PointerBase, Instance)
 DEFINE_TAGGED_POINTER(TypedDataBase, PointerBase)
 DEFINE_TAGGED_POINTER(TypedData, TypedDataBase)
 DEFINE_TAGGED_POINTER(TypedDataView, TypedDataBase)
-DEFINE_TAGGED_POINTER(ExternalOneByteString, String)
-DEFINE_TAGGED_POINTER(ExternalTwoByteString, String)
 DEFINE_TAGGED_POINTER(Bool, Instance)
 DEFINE_TAGGED_POINTER(Array, Instance)
 DEFINE_TAGGED_POINTER(ImmutableArray, Array)

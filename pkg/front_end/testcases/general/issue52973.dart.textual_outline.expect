@@ -13,4 +13,5 @@ extension CheckTypeArgumentOfFoo<T> on Foo<T> {
 }
 
 typedef Exactly<T> = T Function(T);
+
 void main() {}

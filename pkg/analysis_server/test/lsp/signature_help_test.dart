@@ -150,7 +150,44 @@ final a = A(^);
   void setUp() {
     super.setUp();
 
+    // Signature help tests have incomplete signatures.
+    failTestOnErrorDiagnostic = false;
+
     setSignatureHelpContentFormat([MarkupKind.Markdown]);
+  }
+
+  Future<void> test_augmentation_method() async {
+    final content = '''
+import augment 'a.dart';
+
+class Foo {}
+
+void bar() {
+  Foo().myMethod(^);
+}
+''';
+
+    var augmentationFilePath = join(projectFolderPath, 'lib', 'a.dart');
+    final augmentationCode = '''
+library augment 'main.dart';
+
+augment class Foo {
+  /// My method.
+  void myMethod(String s) {}
+}
+''';
+    newFile(augmentationFilePath, augmentationCode);
+    final expectedLabel = 'myMethod(String s)';
+    final expectedDoc = 'My method.';
+
+    await _expectSignature(
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        ParameterInformation(label: 'String s'),
+      ],
+    );
   }
 
   Future<void> test_dartDocMacro() async {
@@ -253,7 +290,6 @@ foo(String s, int i) {
         ParameterInformation(label: 'String s'),
         ParameterInformation(label: 'int i'),
       ],
-      expectedFormat: MarkupKind.Markdown,
     );
   }
 
@@ -329,7 +365,6 @@ foo(String s, int i) {
         ParameterInformation(label: 'String s'),
         ParameterInformation(label: 'int i'),
       ],
-      expectedFormat: MarkupKind.Markdown,
     );
   }
 
@@ -353,7 +388,6 @@ foo(String s, int i) {
           ParameterInformation(label: 'String s'),
           ParameterInformation(label: 'int i'),
         ],
-        expectedFormat: MarkupKind.Markdown,
         context: SignatureHelpContext(
           triggerKind: SignatureHelpTriggerKind.Invoked,
           isRetrigger: false,
@@ -597,7 +631,6 @@ foo(String s, int i) {
           ParameterInformation(label: 'String s'),
           ParameterInformation(label: 'int i'),
         ],
-        expectedFormat: MarkupKind.Markdown,
         context: SignatureHelpContext(
           triggerKind: SignatureHelpTriggerKind.Invoked,
           isRetrigger: false,

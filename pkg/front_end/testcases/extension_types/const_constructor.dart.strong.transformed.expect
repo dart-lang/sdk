@@ -33,29 +33,29 @@ extension type Class(core::int i) {
   static redirecting-factory redirect2 = self::Class|constructor#redirect2;
   static redirecting-factory tearoff redirect2 = self::Class|constructor#_#redirect2#tearOff;
 }
-static extension-type-member method Class|constructor#(core::int i) → self::Class /* = core::int */ {
-  lowered final self::Class /* = core::int */ #this = i;
+static extension-type-member method Class|constructor#(core::int i) → self::Class% /* erasure=core::int, declared=! */ {
+  lowered final self::Class% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }
-static extension-type-member method Class|constructor#_#new#tearOff(core::int i) → self::Class /* = core::int */
+static extension-type-member method Class|constructor#_#new#tearOff(core::int i) → self::Class% /* erasure=core::int, declared=! */
   return self::Class|constructor#(i);
-static extension-type-member method Class|constructor#named(core::int i) → self::Class /* = core::int */ {
-  lowered final self::Class /* = core::int */ #this = i;
+static extension-type-member method Class|constructor#named(core::int i) → self::Class% /* erasure=core::int, declared=! */ {
+  lowered final self::Class% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }
-static extension-type-member method Class|constructor#_#named#tearOff(core::int i) → self::Class /* = core::int */
+static extension-type-member method Class|constructor#_#named#tearOff(core::int i) → self::Class% /* erasure=core::int, declared=! */
   return self::Class|constructor#named(i);
-static extension-type-member method Class|constructor#redirect(core::int i) → self::Class /* = core::int */ /* redirection-target: self::Class|constructor# */
+static extension-type-member method Class|constructor#redirect(core::int i) → self::Class% /* erasure=core::int, declared=! */ /* redirection-target: self::Class|constructor# */
   return self::Class|constructor#(i);
-static extension-type-member method Class|constructor#_#redirect#tearOff(core::int i) → self::Class /* = core::int */
+static extension-type-member method Class|constructor#_#redirect#tearOff(core::int i) → self::Class% /* erasure=core::int, declared=! */
   return self::Class|constructor#(i);
-static extension-type-member method Class|constructor#fact(core::int i) → self::Class /* = core::int */
+static extension-type-member method Class|constructor#fact(core::int i) → self::Class% /* erasure=core::int, declared=! */
   return self::Class|constructor#(i);
-static extension-type-member method Class|constructor#_#fact#tearOff(core::int i) → self::Class /* = core::int */
+static extension-type-member method Class|constructor#_#fact#tearOff(core::int i) → self::Class% /* erasure=core::int, declared=! */
   return self::Class|constructor#fact(i);
-static extension-type-member method Class|constructor#redirect2(core::int i) → self::Class /* = core::int */ /* redirection-target: self::Class|constructor# */
+static extension-type-member method Class|constructor#redirect2(core::int i) → self::Class% /* erasure=core::int, declared=! */ /* redirection-target: self::Class|constructor# */
   return self::Class|constructor#(i);
-static extension-type-member method Class|constructor#_#redirect2#tearOff(core::int i) → self::Class /* = core::int */
+static extension-type-member method Class|constructor#_#redirect2#tearOff(core::int i) → self::Class% /* erasure=core::int, declared=! */
   return self::Class|constructor#(i);
 static method test() → dynamic {
   invalid-expression "pkg/front_end/testcases/extension_types/const_constructor.dart:16:9: Error: Cannot invoke a non-'const' constructor where a const expression is expected.

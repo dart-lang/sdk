@@ -1,7 +1,9 @@
 abstract class B extends A with C {}
 
 mixin C on D {}
+
 B get x => super.x;
+
 void f() {}
 
 abstract class E {}

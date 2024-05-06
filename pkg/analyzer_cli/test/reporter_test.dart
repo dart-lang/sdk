@@ -7,6 +7,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer_cli/src/ansi.dart' as ansi;
 import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:test/test.dart' hide ErrorFormatter;
@@ -115,6 +116,7 @@ ErrorsResultImpl mockResult(ErrorType type, ErrorSeverity severity) {
   return ErrorsResultImpl(
     session: _MockAnalysisSession(),
     file: file,
+    content: '<mock>',
     uri: uri,
     lineInfo: lineInfo,
     isAugmentation: false,
@@ -122,6 +124,7 @@ ErrorsResultImpl mockResult(ErrorType type, ErrorSeverity severity) {
     isMacroAugmentation: false,
     isPart: false,
     errors: [error],
+    analysisOptions: AnalysisOptionsImpl(),
   );
 }
 

@@ -3,4 +3,5 @@ class Class {
 }
 
 external void externalMethod();
+
 void main() {}

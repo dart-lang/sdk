@@ -72,7 +72,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
 
   int _augmentationIndex = 0;
 
-  List<SourceProcedureBuilder>? _patches;
+  List<SourceProcedureBuilder>? _augmentations;
 
   final MemberName _memberName;
 
@@ -137,7 +137,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   @override
   Name get memberName => _memberName.name;
 
-  List<SourceProcedureBuilder>? get patchesForTesting => _patches;
+  List<SourceProcedureBuilder>? get augmentationsForTesting => _augmentations;
 
   @override
   AsyncMarker get asyncModifier => actualAsyncModifier;
@@ -171,7 +171,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   SourceProcedureBuilder get origin => _origin ?? this;
 
   @override
-  Procedure get procedure => isPatch ? origin.procedure : _procedure;
+  Procedure get procedure => isAugmenting ? origin.procedure : _procedure;
 
   Procedure get actualProcedure => _procedure;
 
@@ -520,18 +520,19 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   }
 
   @override
-  void applyPatch(Builder patch) {
-    if (patch is SourceProcedureBuilder) {
-      if (checkPatch(patch)) {
-        patch._origin = this;
+  void applyAugmentation(Builder augmentation) {
+    if (augmentation is SourceProcedureBuilder) {
+      if (checkAugmentation(augmentation)) {
+        augmentation._origin = this;
         SourceProcedureBuilder augmentedBuilder =
-            _patches == null ? this : _patches!.last;
-        patch._augmentedBuilder = augmentedBuilder;
-        patch._augmentationIndex = augmentedBuilder._augmentationIndex + 1;
-        (_patches ??= []).add(patch);
+            _augmentations == null ? this : _augmentations!.last;
+        augmentation._augmentedBuilder = augmentedBuilder;
+        augmentation._augmentationIndex =
+            augmentedBuilder._augmentationIndex + 1;
+        (_augmentations ??= []).add(augmentation);
       }
     } else {
-      reportPatchMismatch(patch);
+      reportAugmentationMismatch(augmentation);
     }
   }
 
@@ -602,8 +603,8 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
 
   @override
   int buildBodyNodes(BuildNodesCallback f) {
-    List<SourceProcedureBuilder>? patches = _patches;
-    if (patches != null) {
+    List<SourceProcedureBuilder>? augmentations = _augmentations;
+    if (augmentations != null) {
       void addAugmentedProcedure(SourceProcedureBuilder builder) {
         Procedure? augmentedProcedure = builder._augmentedProcedure;
         if (augmentedProcedure != null) {
@@ -618,12 +619,13 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       }
 
       addAugmentedProcedure(this);
-      for (SourceProcedureBuilder patch in patches) {
-        addAugmentedProcedure(patch);
+      for (SourceProcedureBuilder augmentation in augmentations) {
+        addAugmentedProcedure(augmentation);
       }
-      finishProcedurePatch(procedure, patches.last.actualProcedure);
+      finishProcedureAugmentation(
+          procedure, augmentations.last.actualProcedure);
 
-      return patches.length;
+      return augmentations.length;
     }
     return 0;
   }
@@ -633,10 +635,10 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {
     sourceClassBuilder.checkVarianceInFunction(
         procedure, typeEnvironment, sourceClassBuilder.cls.typeParameters);
-    List<SourceProcedureBuilder>? patches = _patches;
-    if (patches != null) {
-      for (SourceProcedureBuilder patch in patches) {
-        patch.checkVariance(sourceClassBuilder, typeEnvironment);
+    List<SourceProcedureBuilder>? augmentations = _augmentations;
+    if (augmentations != null) {
+      for (SourceProcedureBuilder augmentation in augmentations) {
+        augmentation.checkVariance(sourceClassBuilder, typeEnvironment);
       }
     }
   }
@@ -645,10 +647,10 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   void checkTypes(
       SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {
     library.checkTypesInFunctionBuilder(this, typeEnvironment);
-    List<SourceProcedureBuilder>? patches = _patches;
-    if (patches != null) {
-      for (SourceProcedureBuilder patch in patches) {
-        patch.checkTypes(library, typeEnvironment);
+    List<SourceProcedureBuilder>? augmentations = _augmentations;
+    if (augmentations != null) {
+      for (SourceProcedureBuilder augmentation in augmentations) {
+        augmentation.checkTypes(library, typeEnvironment);
       }
     }
   }
@@ -663,10 +665,10 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
 
   @override
   bool get isAugmented {
-    if (isPatch) {
-      return origin._patches!.last != this;
+    if (isAugmenting) {
+      return origin._augmentations!.last != this;
     } else {
-      return _patches != null;
+      return _augmentations != null;
     }
   }
 }

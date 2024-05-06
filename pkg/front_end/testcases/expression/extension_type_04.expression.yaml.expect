@@ -1,4 +1,4 @@
 Errors: {
 }
-method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(lowered #lib1::Foo /* = dart.core::int */ #this) → dynamic
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(lowered #lib1::Foo% /* erasure=dart.core::int, declared=! */ #this) → dynamic
   return #this as{Unchecked} dart.core::int;

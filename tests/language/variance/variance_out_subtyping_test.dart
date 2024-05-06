@@ -95,8 +95,22 @@ main() {
   iterableMiddle = listLower;
 
   testCall(listLower);
+  Expect.subtype<List<Covariant<Lower>>, Iterable<Covariant<Middle>>>();
+  Expect.notSubtype<Iterable<Covariant<Middle>>, List<Covariant<Lower>>>();
+  Expect.notSubtype<List<Covariant<Upper>>, Iterable<Covariant<Middle>>>();
 
   Expect.subtype<Covariant<Lower>, Covariant<Middle>>();
   Expect.subtype<Covariant<Middle>, Covariant<Middle>>();
   Expect.notSubtype<Covariant<Upper>, Covariant<Middle>>();
+
+  Expect.subtype<Covariant<Lower> Function(String),
+      Covariant<Middle> Function(String)>();
+  Expect.notSubtype<Covariant<Middle> Function(String),
+      Covariant<Lower> Function(String)>();
+  Expect.subtype<String Function(Covariant<Upper>),
+      String Function(Covariant<Middle>)>();
+  Expect.notSubtype<String Function(Covariant<Middle>),
+      String Function(Covariant<Upper>)>();
+  Expect.notSubtype<Covariant<Upper> Function(String),
+      Covariant<Middle> Function(String)>();
 }

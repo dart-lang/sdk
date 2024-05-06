@@ -112,7 +112,7 @@ class C {
   }
 }
 ''');
-    _assertMatcher('g;', expectedComponents: ['g']);
+    _assertMatcher('g;', expectedComponents: ['g', 'C']);
   }
 
   Future<void> test_getter_withoutTarget_unresolved() async {

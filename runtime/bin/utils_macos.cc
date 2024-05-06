@@ -71,25 +71,15 @@ bool ShellUtils::GetUtf8Argv(int argc, char** argv) {
   return false;
 }
 
-static mach_timebase_info_data_t timebase_info;
-
-void TimerUtils::InitOnce() {
-  kern_return_t kr = mach_timebase_info(&timebase_info);
-  ASSERT(KERN_SUCCESS == kr);
-}
+void TimerUtils::InitOnce() {}
 
 int64_t TimerUtils::GetCurrentMonotonicMillis() {
   return GetCurrentMonotonicMicros() / 1000;
 }
 
 int64_t TimerUtils::GetCurrentMonotonicMicros() {
-  ASSERT(timebase_info.denom != 0);
-  // timebase_info converts absolute time tick units into nanoseconds.  Convert
-  // to microseconds.
-  int64_t result = mach_absolute_time() / kNanosecondsPerMicrosecond;
-  result *= timebase_info.numer;
-  result /= timebase_info.denom;
-  return result;
+  return clock_gettime_nsec_np(CLOCK_MONOTONIC_RAW) /
+         kNanosecondsPerMicrosecond;
 }
 
 void TimerUtils::Sleep(int64_t millis) {

@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
@@ -25,14 +26,14 @@ class MakeConditionalOnDebugMode extends ResolvedCorrectionProducer {
     if (unitResult.session.uriConverter.uriToPath(_foundationUri) == null) {
       return;
     }
-    var printInvocation = utils.findSimplePrintInvocation(node);
+    var printInvocation = node.findSimplePrintInvocation();
     if (printInvocation != null) {
       var indent = utils.getLinePrefix(printInvocation.offset);
       await builder.addDartFileEdit(file, (builder) {
         builder.addInsertion(printInvocation.offset, (builder) {
           builder.writeln('if (kDebugMode) {');
           builder.write(indent);
-          builder.write(utils.getIndent(1));
+          builder.write(utils.oneIndent);
         });
         builder.addInsertion(printInvocation.end, (builder) {
           builder.writeln();

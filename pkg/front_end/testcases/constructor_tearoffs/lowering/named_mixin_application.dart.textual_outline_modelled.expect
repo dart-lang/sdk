@@ -14,9 +14,15 @@ class Class<T> implements Interface {
 }
 
 class NamedMixinApplication<T, S> = Class<T> with Mixin<S>;
+
 main() {}
+
 mixin Mixin<S> {}
+
 test() {}
+
 var f1 = NamedMixinApplication.new;
+
 var f2 = NamedMixinApplication.named;
+
 var f3 = NamedMixinApplication.redirectingGenerative;

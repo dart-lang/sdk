@@ -61,7 +61,7 @@ Try accessing using ?. instead.
 Try accessing using ?. instead.
   t.foo ??= x; // Error.
     ^^^" in #t2.{self::A::foo}{<nullable>}. = x : null;
-  let final dynamic #t3 = d in #t3{dynamic}.foo == null ?{dynamic} #t3{dynamic}.foo = x : null;
+  let final dynamic #t3 = d in #t3{dynamic}.foo == null ?{dynamic} #t3.{dynamic}foo = x : null;
   let final self::A? #t4 = a in #t4 == null ?{core::int?} null : let final self::A #t5 = #t4{self::A}.{self::A::bar}{self::A} in #t5.{self::A::foo}{core::int?} == null ?{core::int} #t5.{self::A::foo} = x : null;
 }
 static extension-member method Extension|get#fooExtension(lowered final self::B #this) → core::int?

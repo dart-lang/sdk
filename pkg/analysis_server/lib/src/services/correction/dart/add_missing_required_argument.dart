@@ -97,10 +97,8 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
       }
 
       var codeStyleOptions = getCodeStyleOptions(unitResult.file);
-      var defaultValue = getDefaultStringParameterValue(
-          missingParameter, codeStyleOptions,
-          withNullability: libraryElement.isNonNullableByDefault &&
-              (missingParameter.library?.isNonNullableByDefault ?? false));
+      var defaultValue =
+          getDefaultStringParameterValue(missingParameter, codeStyleOptions);
 
       await builder.addDartFileEdit(file, (builder) {
         builder.addInsertion(offset, (builder) {

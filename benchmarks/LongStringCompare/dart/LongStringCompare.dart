@@ -27,13 +27,6 @@ class LongStringCompare extends BenchmarkBase {
   }
 
   @override
-  void warmup() {
-    for (int i = 0; i < reps / 2; i++) {
-      run();
-    }
-  }
-
-  @override
   void run() {
     for (int i = 0; i < reps; i++) {
       // Make string comparison code hoisting harder for the compiler to do.

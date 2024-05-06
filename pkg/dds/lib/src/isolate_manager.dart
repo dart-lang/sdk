@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert' show base64Decode, base64Encode;
 
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
@@ -37,6 +38,7 @@ enum _IsolateState {
   pauseStart,
   pauseExit,
   pausePostRequest,
+  unknown,
 }
 
 class RunningIsolate {
@@ -44,7 +46,8 @@ class RunningIsolate {
       : cpuSamplesManager = CpuSamplesManager(
           isolateManager.dds,
           id,
-        );
+        ),
+        _state = _IsolateState.unknown;
 
   // State setters.
   void pausedOnExit() => _state = _IsolateState.pauseExit;
@@ -87,6 +90,16 @@ class RunningIsolate {
       // Mark approval by the client.
       _resumeApprovalsByName.add(resumingClient.name);
     }
+
+    // If the user is required to resume the isolate, we won't resume until a
+    // `resume` request is received or `setRequireUserPermissionToResume` is
+    // invoked and removes the requirement for this pause type.
+    final userPermissionMask =
+        isolateManager._requireUserPermissionToResumeMask;
+    if (userPermissionMask & _isolateStateMask != 0) {
+      return false;
+    }
+
     final requiredClientApprovals = <String>{};
     final permissions =
         isolateManager.dds.clientManager.clientResumePermissions;
@@ -146,7 +159,7 @@ class RunningIsolate {
   final String name;
   final String id;
   final Set<String?> _resumeApprovalsByName = {};
-  _IsolateState? _state;
+  _IsolateState _state;
 }
 
 class IsolateManager {
@@ -217,49 +230,70 @@ class IsolateManager {
     if (_initialized) {
       return;
     }
-    await _mutex.runGuarded(
-      () async {
-        final vm = await dds.vmServiceClient.sendRequest('getVM');
-        final List<Map> isolateRefs =
-            vm['isolates'].cast<Map<String, dynamic>>();
-        // Check the pause event for each isolate to determine whether or not the
-        // isolate is already paused.
-        for (final isolateRef in isolateRefs) {
-          final id = isolateRef['id'];
-          final isolate = await dds.vmServiceClient.sendRequest('getIsolate', {
-            'isolateId': id,
-          });
-          // If the isolate has shutdown after the getVM request, ignore it and
-          // continue to the next isolate.
-          if (isolate['type'] == 'Sentinel') {
-            continue;
-          }
-          final name = isolate['name'];
-          if (isolate.containsKey('pauseEvent')) {
-            isolates[id] = RunningIsolate(this, id, name);
-            final eventKind = isolate['pauseEvent']['kind'];
-            _updateIsolateState(id, name, eventKind);
-          } else {
-            // If the isolate doesn't have a pauseEvent, assume it's running.
-            isolateStarted(id, name);
-          }
-        }
-        if (dds.cachedUserTags.isNotEmpty) {
-          await dds.vmServiceClient.sendRequestAndIgnoreMethodNotFound(
-            'streamCpuSamplesWithUserTag',
-            {
-              'userTags': dds.cachedUserTags,
+    final vm = await dds.vmServiceClient.sendRequest('getVM');
+    final isolateRefs = vm['isolates'].cast<Map<String, dynamic>>();
+    // Check the pause event for each isolate to determine whether or not the
+    // isolate is already paused.
+    for (final isolateRef in isolateRefs) {
+      final id = isolateRef['id'];
+      final name = isolateRef['name'];
+
+      // Create an entry for the running isolate.
+      initializeRunningIsolate(id, name);
+
+      // The calls to `getIsolate` are intentionally unawaited as it's
+      // possible for the isolate to be in a state where it is unable to
+      // process service messages, potentially indefinitely. For example,
+      // an isolate that invoked FFI code will be blocked until control is
+      // returned from native code.
+      //
+      // See b/323386606 for details.
+      unawaited(
+        dds.vmServiceClient.sendRequest('getIsolate', {
+          'isolateId': id,
+        }).then(
+          (isolate) async => await _mutex.runGuarded(
+            () {
+              // If the isolate has shutdown after the getVM request, ignore it and
+              // continue to the next isolate.
+              if (isolate['type'] == 'Sentinel') {
+                return;
+              }
+              if (isolate.containsKey('pauseEvent')) {
+                isolates[id] = RunningIsolate(this, id, name);
+                final eventKind = isolate['pauseEvent']['kind'];
+                _updateIsolateState(id, name, eventKind);
+              } else {
+                // If the isolate doesn't have a pauseEvent, assume it's running.
+                isolateStarted(id, name);
+              }
             },
-          );
-        }
-      },
-    );
+          ),
+        ),
+      );
+      if (dds.cachedUserTags.isNotEmpty) {
+        await dds.vmServiceClient.sendRequestAndIgnoreMethodNotFound(
+          'streamCpuSamplesWithUserTag',
+          {
+            'userTags': dds.cachedUserTags,
+          },
+        );
+      }
+    }
     _initialized = true;
   }
 
+  /// This method creates an entry for a running isolate, leaves its run state
+  /// as [_IsolateState.unknown].
+  RunningIsolate initializeRunningIsolate(String id, String name) =>
+      isolates.putIfAbsent(
+        id,
+        () => RunningIsolate(this, id, name),
+      );
+
   /// Initializes state for a newly started isolate.
   void isolateStarted(String id, String name) {
-    final isolate = RunningIsolate(this, id, name);
+    final isolate = initializeRunningIsolate(id, name);
     isolate.running();
     isolates[id] = isolate;
   }
@@ -269,12 +303,11 @@ class IsolateManager {
     isolates.remove(id);
   }
 
-  /// Handles `resume` RPC requests. If the client requires that approval be
-  /// given before resuming an isolate, this method will:
+  /// Handles `resume` RPC requests.
   ///
-  ///   - Update the approval state for the isolate.
-  ///   - Resume the isolate if approval has been given by all clients which
-  ///     require approval.
+  /// Invocations of `resume` are treated as user initiated and will bypass any
+  /// resume permissions set by tooling, force resuming the isolate and clear
+  /// any resume approvals.
   ///
   /// Returns a collected sentinel if the isolate no longer exists.
   Future<Map<String, dynamic>> resumeIsolate(
@@ -288,13 +321,98 @@ class IsolateManager {
         if (isolate == null) {
           return RPCResponses.collectedSentinel;
         }
+        return await _resumeCommon(isolate, parameters);
+      },
+    );
+  }
+
+  /// Handles `readyToResume` RPC requests. If the client requires
+  /// that approval be given before resuming an isolate, this method will:
+  ///
+  ///   - Update the approval state for the isolate.
+  ///   - Resume the isolate if approval has been given by all clients which
+  ///     require approval.
+  ///
+  /// Returns a collected sentinel if the isolate no longer exists.
+  Future<Map<String, dynamic>> readyToResume(
+    DartDevelopmentServiceClient client,
+    json_rpc.Parameters parameters,
+  ) async {
+    return await _mutex.runGuarded(
+      () async {
+        final isolateId = parameters['isolateId'].asString;
+        final isolate = isolates[isolateId];
+        if (isolate == null) {
+          return RPCResponses.collectedSentinel;
+        }
         if (isolate.shouldResume(resumingClient: client)) {
-          isolate.clearResumeApprovals();
-          return await _sendResumeRequest(isolateId, parameters);
+          return await _resumeCommon(isolate, parameters);
         }
         return RPCResponses.success;
       },
     );
+  }
+
+  Future<void> maybeResumeIsolates() async {
+    await _mutex.runGuarded(() async {
+      for (final isolate in isolates.values) {
+        if (isolate.shouldResume()) {
+          await _resumeCommon(isolate, json_rpc.Parameters('', {}));
+        }
+      }
+    });
+  }
+
+  Future<Map<String, dynamic>> _resumeCommon(
+    RunningIsolate isolate,
+    json_rpc.Parameters parameters,
+  ) async {
+    isolate.clearResumeApprovals();
+    return await _sendResumeRequest(isolate.id, parameters);
+  }
+
+  /// Handles `requireUserPermissionToResume` requests.
+  ///
+  /// Notifies DDS if it should wait for a `resume` request to resume isolates
+  /// paused on start or exit.
+  ///
+  /// This RPC should only be invoked by tooling which launched the target Dart
+  /// process and knows if the user indicated they wanted isolates paused on
+  /// start or exit.
+  Future<Map<String, dynamic>> requireUserPermissionToResume(
+    DartDevelopmentServiceClient client,
+    json_rpc.Parameters parameters,
+  ) async {
+    int pauseTypeMask = 0;
+    if (parameters['onPauseStart'].asBoolOr(false)) {
+      pauseTypeMask |= PauseTypeMasks.pauseOnStartMask;
+    }
+    if (parameters['onPauseExit'].asBoolOr(false)) {
+      pauseTypeMask |= PauseTypeMasks.pauseOnExitMask;
+    }
+    _requireUserPermissionToResumeMask = pauseTypeMask;
+
+    // Check if isolates have been waiting for a user resume and resume any
+    // isolates that no longer need to wait for a user resume.
+    await maybeResumeIsolates();
+
+    return RPCResponses.success;
+  }
+
+  /// Handles `getRequireUserPermissionToResume` requests.
+  ///
+  /// Returns an object indicating whether or not a `resume` request is
+  /// required for DDS to resume an isolate paused on start or exit.
+  Future<Map<String, dynamic>> getRequireUserPermissionToResume(
+      DartDevelopmentServiceClient client,
+      json_rpc.Parameters parameters) async {
+    bool flagFromMask(int mask) =>
+        _requireUserPermissionToResumeMask & mask != 0;
+    return <String, dynamic>{
+      'type': 'ResumePermissionsRequired',
+      'onPauseStart': flagFromMask(PauseTypeMasks.pauseOnStartMask),
+      'onPauseExit': flagFromMask(PauseTypeMasks.pauseOnExitMask),
+    };
   }
 
   Future<Map<String, dynamic>> getCachedCpuSamples(
@@ -322,13 +440,17 @@ class IsolateManager {
     final combinedBytes = base64Decode(timelineResult['trace']).toList();
 
     for (final isolateId in isolates.keys) {
-      final samplesResult =
-          await dds.vmServiceClient.sendRequest('getPerfettoCpuSamples', {
-        'isolateId': isolateId,
-        'timeOriginMicros': timeOriginMicros,
-        'timeExtentMicros': timeExtentMicros
-      });
-      combinedBytes.addAll(base64Decode(samplesResult['samples']));
+      try {
+        final samplesResult =
+            await dds.vmServiceClient.sendRequest('getPerfettoCpuSamples', {
+          'isolateId': isolateId,
+          'timeOriginMicros': timeOriginMicros,
+          'timeExtentMicros': timeExtentMicros
+        });
+        combinedBytes.addAll(base64Decode(samplesResult['samples']));
+      } on json_rpc.RpcException {
+        // The isolate may not yet be runnable.
+      }
     }
     timelineResult['trace'] = base64Encode(combinedBytes);
     return timelineResult;
@@ -353,5 +475,6 @@ class IsolateManager {
   bool _initialized = false;
   final DartDevelopmentServiceImpl dds;
   final _mutex = Mutex();
-  final Map<String, RunningIsolate> isolates = {};
+  int _requireUserPermissionToResumeMask = 0;
+  final isolates = <String, RunningIsolate>{};
 }

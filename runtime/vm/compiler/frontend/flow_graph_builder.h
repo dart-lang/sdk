@@ -26,7 +26,7 @@ class InlineExitCollector : public ZoneAllocated {
   InlineExitCollector(FlowGraph* caller_graph, Definition* call)
       : caller_graph_(caller_graph), call_(call), exits_(4) {}
 
-  void AddExit(ReturnInstr* exit);
+  void AddExit(DartReturnInstr* exit);
 
   void Union(const InlineExitCollector* other);
 
@@ -49,7 +49,7 @@ class InlineExitCollector : public ZoneAllocated {
  private:
   struct Data {
     BlockEntryInstr* exit_block;
-    ReturnInstr* exit_return;
+    DartReturnInstr* exit_return;
   };
 
   BlockEntryInstr* ExitBlockAt(intptr_t i) const {
@@ -63,7 +63,7 @@ class InlineExitCollector : public ZoneAllocated {
 
   Value* ValueAt(intptr_t i) const { return ReturnAt(i)->value(); }
 
-  ReturnInstr* ReturnAt(intptr_t i) const { return exits_[i].exit_return; }
+  DartReturnInstr* ReturnAt(intptr_t i) const { return exits_[i].exit_return; }
 
   static int LowestBlockIdFirst(const Data* a, const Data* b);
   void SortExits();

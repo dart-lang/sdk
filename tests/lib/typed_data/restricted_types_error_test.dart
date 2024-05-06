@@ -228,36 +228,42 @@ abstract class CMFloat64x2List with Float64x2List {}
 abstract class CIInt32x4 implements Int32x4 {}
 //             ^
 // [cfe] 'Int32x4' is restricted and can't be extended or implemented.
+// [cfe] Subtypes of deeply immutable classes must be deeply immutable.
 //                                  ^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_DISALLOWED_TYPE
 
 abstract class CMInt32x4 with Int32x4 {}
 //             ^
 // [cfe] 'Int32x4' is restricted and can't be extended or implemented.
+// [cfe] Subtypes of deeply immutable classes must be deeply immutable.
 //                            ^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_DISALLOWED_TYPE
 
 abstract class CIFloat32x4 implements Float32x4 {}
 //             ^
 // [cfe] 'Float32x4' is restricted and can't be extended or implemented.
+// [cfe] Subtypes of deeply immutable classes must be deeply immutable.
 //                                    ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_DISALLOWED_TYPE
 
 abstract class CMFloat32x4 with Float32x4 {}
 //             ^
 // [cfe] 'Float32x4' is restricted and can't be extended or implemented.
+// [cfe] Subtypes of deeply immutable classes must be deeply immutable.
 //                              ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_DISALLOWED_TYPE
 
 abstract class CIFloat64x2 implements Float64x2 {}
 //             ^
 // [cfe] 'Float64x2' is restricted and can't be extended or implemented.
+// [cfe] Subtypes of deeply immutable classes must be deeply immutable.
 //                                    ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_DISALLOWED_TYPE
 
 abstract class CMFloat64x2 with Float64x2 {}
 //             ^
 // [cfe] 'Float64x2' is restricted and can't be extended or implemented.
+// [cfe] Subtypes of deeply immutable classes must be deeply immutable.
 //                              ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_DISALLOWED_TYPE
 

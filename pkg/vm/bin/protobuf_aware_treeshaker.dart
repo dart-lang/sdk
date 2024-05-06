@@ -28,13 +28,13 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:args/args.dart';
-import 'package:kernel/kernel.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/core_types.dart' show CoreTypes;
+import 'package:kernel/kernel.dart';
+import 'package:kernel/target/targets.dart' show TargetFlags, getTarget;
 import 'package:vm/kernel_front_end.dart'
     show runGlobalTransformations, ErrorDetector;
-import 'package:kernel/target/targets.dart' show TargetFlags, getTarget;
-import 'package:vm/target/install.dart' show installAdditionalTargets;
+import 'package:vm/modular/target/install.dart' show installAdditionalTargets;
 import 'package:vm/transformations/type_flow/transformer.dart' as globalTypeFlow
     show transformComponent;
 

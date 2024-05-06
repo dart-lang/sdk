@@ -2,15 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == dart2wasm ]
-LanguageFeatures/FinalizationRegistry/ffi/*: SkipByDesign # Uses FFI OS calls to trigger GC
-LibTest/ffi/*: SkipByDesign
-LibTest/html/*: SkipByDesign
-LibTest/io/*: SkipByDesign
-LibTest/isolate/*: SkipByDesign
-LibTest/mirrors/*: SkipByDesign
-
 [ $runtime == dart_precompiled ]
+Language/Expressions/Constants/Constant_Contexts/constant_context_A02_t01: SkipByDesign # dart:mirrors is not supported.
 LibTest/mirrors/*: SkipByDesign # dart:mirrors is not supported:
 
 [ $runtime == vm ]

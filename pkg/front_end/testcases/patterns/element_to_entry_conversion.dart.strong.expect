@@ -8,11 +8,13 @@ static method test1(dynamic x, dynamic another) → dynamic {
     final core::Map<dynamic, dynamic> #t1 = <dynamic, dynamic>{};
     #t1.{core::Map::[]=}{Invariant}(1, 1){(dynamic, dynamic) → void};
     {
-      hoisted core::String y;
       final synthesized dynamic #0#0 = x;
-      if(#0#0 is core::String) {
-        y = #0#0{core::String};
-        #t1.{core::Map::addAll}{Invariant}(another){(core::Map<dynamic, dynamic>) → void};
+      {
+        hoisted core::String y;
+        if(#0#0 is core::String) {
+          y = #0#0{core::String};
+          #t1.{core::Map::addAll}{Invariant}(another){(core::Map<dynamic, dynamic>) → void};
+        }
       }
     }
     #t1.{core::Map::[]=}{Invariant}(3, 3){(dynamic, dynamic) → void};
@@ -23,11 +25,13 @@ static method test2(core::bool b, dynamic x, dynamic another) → dynamic {
     final core::Map<dynamic, dynamic> #t2 = <dynamic, dynamic>{};
     #t2.{core::Map::[]=}{Invariant}(1, 1){(dynamic, dynamic) → void};
     if(b) {
-      hoisted core::String y;
       final synthesized dynamic #0#0 = x;
-      if(#0#0 is core::String) {
-        y = #0#0{core::String};
-        #t2.{core::Map::addAll}{Invariant}(another){(core::Map<dynamic, dynamic>) → void};
+      {
+        hoisted core::String y;
+        if(#0#0 is core::String) {
+          y = #0#0{core::String};
+          #t2.{core::Map::addAll}{Invariant}(another){(core::Map<dynamic, dynamic>) → void};
+        }
       }
     }
     #t2.{core::Map::[]=}{Invariant}(3, 3){(dynamic, dynamic) → void};
@@ -38,18 +42,22 @@ static method test3(dynamic x, dynamic y, dynamic another) → dynamic {
     final core::Map<dynamic, dynamic> #t3 = <dynamic, dynamic>{};
     #t3.{core::Map::[]=}{Invariant}(1, 1){(dynamic, dynamic) → void};
     {
-      hoisted core::int x2;
       final synthesized dynamic #0#0 = x;
-      if(#0#0 is core::int) {
-        x2 = #0#0{core::int};
-        #t3.{core::Map::[]=}{Invariant}(2, x2){(dynamic, dynamic) → void};
-      }
-      else {
-        hoisted core::int y2;
-        final synthesized dynamic #1#0 = y;
-        if(#1#0 is core::int) {
-          y2 = #1#0{core::int};
-          #t3.{core::Map::addAll}{Invariant}(another){(core::Map<dynamic, dynamic>) → void};
+      {
+        hoisted core::int x2;
+        if(#0#0 is core::int) {
+          x2 = #0#0{core::int};
+          #t3.{core::Map::[]=}{Invariant}(2, x2){(dynamic, dynamic) → void};
+        }
+        else {
+          final synthesized dynamic #1#0 = y;
+          {
+            hoisted core::int y2;
+            if(#1#0 is core::int) {
+              y2 = #1#0{core::int};
+              #t3.{core::Map::addAll}{Invariant}(another){(core::Map<dynamic, dynamic>) → void};
+            }
+          }
         }
       }
     }

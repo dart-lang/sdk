@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/type_inference/type_constraint.dart'
+    as shared;
+
 import 'package:kernel/ast.dart';
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -23,9 +26,20 @@ import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
 
 import 'type_demotion.dart';
 
-import 'type_schema.dart' show UnknownType, typeSchemaToString, isKnown;
+import 'type_inference_engine.dart';
+
+import 'type_schema.dart' show UnknownType, isKnown;
 
 import 'type_schema_elimination.dart' show greatestClosure, leastClosure;
+
+typedef GeneratedTypeConstraint = shared.GeneratedTypeConstraint<DartType,
+    DartType, StructuralParameter, VariableDeclaration>;
+
+typedef MergedTypeConstraint = shared.MergedTypeConstraint<DartType, DartType,
+    StructuralParameter, VariableDeclaration>;
+
+typedef UnknownTypeConstraintOrigin = shared
+    .UnknownTypeConstraintOrigin<DartType, DartType, VariableDeclaration>;
 
 /// Given a [FunctionType], gets the type of the named parameter with the given
 /// [name], or `dynamic` if there is no parameter with the given name.
@@ -43,29 +57,6 @@ DartType getPositionalParameterType(FunctionType functionType, int i) {
   }
 }
 
-/// A constraint on a type parameter that we're inferring.
-class TypeConstraint {
-  /// The lower bound of the type being constrained.  This bound must be a
-  /// subtype of the type being constrained.
-  DartType lower;
-
-  /// The upper bound of the type being constrained.  The type being constrained
-  /// must be a subtype of this bound.
-  DartType upper;
-
-  TypeConstraint()
-      : lower = const UnknownType(),
-        upper = const UnknownType();
-
-  TypeConstraint._(this.lower, this.upper);
-
-  TypeConstraint clone() => new TypeConstraint._(lower, upper);
-
-  @override
-  String toString() =>
-      '${typeSchemaToString(lower)} <: <type> <: ${typeSchemaToString(upper)}';
-}
-
 class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     with TypeSchemaStandardBounds {
   @override
@@ -76,24 +67,6 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
 
   InterfaceType functionRawType(Nullability nullability) {
     return coreTypes.functionRawType(nullability);
-  }
-
-  InterfaceType objectRawType(Nullability nullability) {
-    return coreTypes.objectRawType(nullability);
-  }
-
-  /// Modify the given [constraint]'s lower bound to include [lower].
-  void addLowerBound(TypeConstraint constraint, DartType lower,
-      {required bool isNonNullableByDefault}) {
-    constraint.lower = getStandardUpperBound(constraint.lower, lower,
-        isNonNullableByDefault: isNonNullableByDefault);
-  }
-
-  /// Modify the given [constraint]'s upper bound to include [upper].
-  void addUpperBound(TypeConstraint constraint, DartType upper,
-      {required bool isNonNullableByDefault}) {
-    constraint.upper = getStandardLowerBound(constraint.upper, upper,
-        isNonNullableByDefault: isNonNullableByDefault);
   }
 
   /// Performs partial (either downwards or horizontal) inference, producing a
@@ -233,11 +206,12 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   /// If [preliminary] is `false`, then we are in the final pass of inference,
   /// and must not conclude `?` for any type formal.
   List<DartType> inferTypeFromConstraints(
-      Map<StructuralParameter, TypeConstraint> constraints,
+      Map<StructuralParameter, MergedTypeConstraint> constraints,
       List<StructuralParameter> typeParametersToInfer,
       List<DartType>? previouslyInferredTypes,
       {required bool isNonNullableByDefault,
-      bool preliminary = false}) {
+      bool preliminary = false,
+      required OperationsCfe operations}) {
     List<DartType> inferredTypes =
         previouslyInferredTypes?.toList(growable: false) ??
             new List.filled(typeParametersToInfer.length, const UnknownType());
@@ -253,18 +227,20 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
             .substitute(typeParamBound);
       }
 
-      TypeConstraint constraint = constraints[typeParam]!;
+      MergedTypeConstraint constraint = constraints[typeParam]!;
       if (preliminary) {
         inferredTypes[i] = _inferTypeParameterFromContext(
             previouslyInferredTypes?[i], constraint, extendsConstraint,
             isNonNullableByDefault: isNonNullableByDefault,
-            isLegacyCovariant: typeParam.isLegacyCovariant);
+            isLegacyCovariant: typeParam.isLegacyCovariant,
+            operations: operations);
       } else {
         inferredTypes[i] = _inferTypeParameterFromAll(
             previouslyInferredTypes?[i], constraint, extendsConstraint,
             isNonNullableByDefault: isNonNullableByDefault,
             isContravariant: typeParam.variance == Variance.contravariant,
-            isLegacyCovariant: typeParam.isLegacyCovariant);
+            isLegacyCovariant: typeParam.isLegacyCovariant,
+            operations: operations);
       }
     }
 
@@ -375,7 +351,10 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       List<StructuralParameter> typeParametersToInfer,
       DartType? returnContextType,
       {required bool isNonNullableByDefault,
-      bool isConst = false}) {
+      bool isConst = false,
+      required OperationsCfe typeOperations,
+      required TypeInferenceResultForTesting? inferenceResultForTesting,
+      required TreeNode? treeNodeForTesting}) {
     assert(typeParametersToInfer.isNotEmpty);
 
     // Create a TypeConstraintGatherer that will allow certain type parameters
@@ -384,7 +363,9 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     // are implied by this.
     TypeConstraintGatherer gatherer = new TypeConstraintGatherer(
         this, typeParametersToInfer,
-        isNonNullableByDefault: isNonNullableByDefault);
+        isNonNullableByDefault: isNonNullableByDefault,
+        typeOperations: typeOperations,
+        inferenceResultForTesting: inferenceResultForTesting);
 
     if (!isEmptyContext(returnContextType)) {
       if (isConst) {
@@ -400,7 +381,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
                   .substituteType(returnContextType!);
         }
       }
-      gatherer.tryConstrainUpper(declaredReturnType!, returnContextType!);
+      gatherer.tryConstrainUpper(declaredReturnType!, returnContextType!,
+          treeNodeForTesting: treeNodeForTesting);
     }
     return gatherer;
   }
@@ -417,7 +399,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   /// type parameter which means we choose the upper bound rather than the
   /// lower bound for normally covariant type parameters.
   DartType solveTypeConstraint(
-      TypeConstraint constraint, DartType topType, DartType bottomType,
+      MergedTypeConstraint constraint, DartType topType, DartType bottomType,
       {bool grounded = false, bool isContravariant = false}) {
     assert(bottomType == const NeverType.nonNullable() ||
         bottomType == const NullType());
@@ -461,7 +443,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   }
 
   /// Determine if the given [type] satisfies the given type [constraint].
-  bool typeSatisfiesConstraint(DartType type, TypeConstraint constraint) {
+  bool typeSatisfiesConstraint(DartType type, MergedTypeConstraint constraint) {
     return isSubtypeOf(
             constraint.lower, type, SubtypeCheckMode.withNullabilities) &&
         isSubtypeOf(type, constraint.upper, SubtypeCheckMode.withNullabilities);
@@ -491,7 +473,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
         typeParametersToInfer,
         previouslyInferredTypes,
         isNonNullableByDefault: isNonNullableByDefault,
-        preliminary: preliminary);
+        preliminary: preliminary,
+        operations: gatherer.typeOperations);
 
     for (int i = 0; i < inferredTypes.length; i++) {
       inferredTypes[i] = demoteTypeInLibrary(inferredTypes[i],
@@ -501,10 +484,11 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   }
 
   DartType _inferTypeParameterFromAll(DartType? typeFromPreviousInference,
-      TypeConstraint constraint, DartType? extendsConstraint,
+      MergedTypeConstraint constraint, DartType? extendsConstraint,
       {required bool isNonNullableByDefault,
       bool isContravariant = false,
-      bool isLegacyCovariant = true}) {
+      bool isLegacyCovariant = true,
+      required OperationsCfe operations}) {
     // See if we already fixed this type in a previous inference step.
     // If so, then we aren't allowed to change it unless [isLegacyCovariant] is
     // false.
@@ -516,8 +500,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
 
     if (extendsConstraint != null) {
       constraint = constraint.clone();
-      addUpperBound(constraint, extendsConstraint,
-          isNonNullableByDefault: isNonNullableByDefault);
+      constraint.mergeInTypeSchemaUpper(extendsConstraint, operations);
     }
 
     return solveTypeConstraint(
@@ -533,8 +516,10 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   }
 
   DartType _inferTypeParameterFromContext(DartType? typeFromPreviousInference,
-      TypeConstraint constraint, DartType? extendsConstraint,
-      {required bool isNonNullableByDefault, bool isLegacyCovariant = true}) {
+      MergedTypeConstraint constraint, DartType? extendsConstraint,
+      {required bool isNonNullableByDefault,
+      bool isLegacyCovariant = true,
+      required OperationsCfe operations}) {
     // See if we already fixed this type in a previous inference step.
     // If so, then we aren't allowed to change it unless [isLegacyCovariant] is
     // false.
@@ -565,8 +550,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     // If we consider the `T extends num` we conclude `<num>`, which works.
     if (extendsConstraint != null) {
       constraint = constraint.clone();
-      addUpperBound(constraint, extendsConstraint,
-          isNonNullableByDefault: isNonNullableByDefault);
+      constraint.mergeInTypeSchemaUpper(extendsConstraint, operations);
       return solveTypeConstraint(
           constraint,
           isNonNullableByDefault

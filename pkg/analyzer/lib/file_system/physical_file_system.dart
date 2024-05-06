@@ -59,6 +59,12 @@ class PhysicalResourceProvider implements ResourceProvider {
   }
 
   @override
+  Link getLink(String path) {
+    _ensureAbsoluteAndNormalized(path);
+    return _PhysicalLink(io.Link(path));
+  }
+
+  @override
   Resource getResource(String path) {
     _ensureAbsoluteAndNormalized(path);
     if (io.FileSystemEntity.isDirectorySync(path)) {
@@ -71,7 +77,7 @@ class PhysicalResourceProvider implements ResourceProvider {
   @override
   Folder? getStateLocation(String pluginId) {
     if (_stateLocation != null) {
-      io.Directory directory = io.Directory(join(_stateLocation!, pluginId));
+      io.Directory directory = io.Directory(join(_stateLocation, pluginId));
       directory.createSync(recursive: true);
       return _PhysicalFolder(directory);
     }
@@ -277,7 +283,7 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
     try {
       List<Resource> children = <Resource>[];
       io.Directory directory = _entry as io.Directory;
-      List<io.FileSystemEntity> entries = directory.listSync(recursive: false);
+      List<io.FileSystemEntity> entries = directory.listSync();
       int numEntries = entries.length;
       for (int i = 0; i < numEntries; i++) {
         io.FileSystemEntity entity = entries[i];
@@ -327,6 +333,27 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
       events.transform(_exceptionTransformer),
       () => watcher.ready,
     );
+  }
+}
+
+/// A `dart:io` based implementation of [Link].
+class _PhysicalLink implements Link {
+  final io.Link _link;
+
+  _PhysicalLink(this._link);
+
+  @override
+  bool get exists {
+    try {
+      return _link.existsSync();
+    } on FileSystemException {
+      return false;
+    }
+  }
+
+  @override
+  void create(String target) {
+    _link.createSync(target, recursive: true);
   }
 }
 

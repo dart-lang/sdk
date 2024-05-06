@@ -11,8 +11,6 @@ import '../reference_from_index.dart';
 import '../verifier.dart';
 import 'changed_structure_notifier.dart';
 
-final List<String> targetNames = targets.keys.toList();
-
 class TargetFlags {
   final bool trackWidgetCreation;
   final bool soundNullSafety;
@@ -166,9 +164,9 @@ abstract class DartLibrarySupport {
   /// libraries specification.
   ///
   /// This is used to allow AOT to consider `dart:mirrors` as unsupported
-  /// despite it being supported in the platform dill, and dart2js to consider
-  /// `dart:_dart2js_runtime_metrics` to be supported despite it being an
-  /// internal library.
+  /// despite it being supported in the platform dill, and for dart2js and DDC
+  /// to consider `dart:_dart2js_only` and `dart:_ddc_only`, respectively, to be
+  /// supported despite them being internal libraries.
   bool computeDartLibrarySupport(String libraryName,
       {required bool isSupportedBySpec});
 
@@ -183,12 +181,13 @@ abstract class DartLibrarySupport {
     return dottedName.substring(dartLibraryPrefix.length);
   }
 
-  /// Returns `"true"` if the "dart:[libraryName]" is supported and `""`
-  /// otherwise.
+  /// Whether the "dart:[libraryName]" is supported.
   ///
   /// This is used to determine conditional imports and `bool.fromEnvironment`
   /// constant values for "dart.library.[libraryName]" values.
-  static String getDartLibrarySupportValue(String libraryName,
+  /// If the value is `false`, no environment entry exists for the library name,
+  /// otherwise an entry with value `"true"` is created.
+  static bool isDartLibrarySupported(String libraryName,
       {required bool libraryExists,
       required bool isSynthetic,
       required bool isUnsupported,
@@ -210,7 +209,7 @@ abstract class DartLibrarySupport {
     bool isSupported = libraryExists && !isSynthetic && !isUnsupported;
     isSupported = dartLibrarySupport.computeDartLibrarySupport(libraryName,
         isSupportedBySpec: isSupported);
-    return isSupported ? "true" : "";
+    return isSupported;
   }
 }
 
@@ -361,17 +360,8 @@ abstract class Target {
   /// with the given import [uri].
   ///
   /// The `native` language extension is not part of the language specification,
-  /// it means something else to each target, and it is enabled under different
-  /// circumstances for each target implementation. For example, the VM target
-  /// enables it everywhere because of existing support for "dart-ext:" native
-  /// extensions, but targets like dart2js only enable it on the core libraries.
+  /// it is an extension that is used by dart2js/ddc.
   bool enableNative(Uri uri) => false;
-
-  /// There are two variants of the `native` language extension. The VM expects
-  /// the native token to be followed by string, whereas dart2js and DDC do not.
-  // TODO(sigmund, ahe): ideally we should remove the `native` syntax, if not,
-  // we should at least unify the VM and non-VM variants.
-  bool get nativeExtensionExpectsString => false;
 
   /// Whether integer literals that cannot be represented exactly on the web
   /// (i.e. in JavaScript) should cause an error to be issued.
@@ -944,9 +934,6 @@ class TargetWrapper extends Target {
 
   @override
   String get name => _target.name;
-
-  @override
-  bool get nativeExtensionExpectsString => _target.nativeExtensionExpectsString;
 
   @override
   void performModularTransformationsOnLibraries(

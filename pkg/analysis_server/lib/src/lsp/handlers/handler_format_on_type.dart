@@ -67,7 +67,7 @@ class FormatOnTypeRegistrations extends FeatureRegistration
   @override
   ToJsonable? get options {
     return DocumentOnTypeFormattingRegistrationOptions(
-      documentSelector: [dartFiles], // This is currently Dart-specific
+      documentSelector: dartFiles, // This is currently Dart-specific
       firstTriggerCharacter: dartTypeFormattingCharacters.first,
       moreTriggerCharacter: dartTypeFormattingCharacters.skip(1).toList(),
     );

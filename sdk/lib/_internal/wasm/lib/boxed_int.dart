@@ -136,13 +136,7 @@ final class _BoxedInt extends int {
   }
 
   @pragma("wasm:prefer-inline")
-  int get sign {
-    return (this > 0)
-        ? 1
-        : (this < 0)
-            ? -1
-            : 0;
-  }
+  int get sign => (this >> 63) | (-this >>> 63);
 
   @pragma("wasm:prefer-inline")
   bool get isEven => (this & 1) == 0;

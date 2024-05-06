@@ -23,8 +23,13 @@ class StaticIdentityTest {
 }
 
 test1() => const StaticIdentityTest(A1.new, B1.new);
+
 test2() => const StaticIdentityTest(A2.new, B2.new);
+
 test3() => const StaticIdentityTest(A3.new, B3.new);
+
 test4() => const StaticIdentityTest(A4.new, B4.new);
+
 test5() => const StaticIdentityTest(A5.new, B5.new);
+
 main() {}

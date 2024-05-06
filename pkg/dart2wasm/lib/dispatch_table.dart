@@ -4,17 +4,15 @@
 
 import 'dart:math' show min;
 
-import 'package:dart2wasm/class_info.dart';
-import 'package:dart2wasm/param_info.dart';
-import 'package:dart2wasm/reference_extensions.dart';
-import 'package:dart2wasm/translator.dart';
-
 import 'package:kernel/ast.dart';
-
 import 'package:vm/metadata/procedure_attributes.dart';
 import 'package:vm/metadata/table_selector.dart';
-
 import 'package:wasm_builder/wasm_builder.dart' as w;
+
+import 'class_info.dart';
+import 'param_info.dart';
+import 'reference_extensions.dart';
+import 'translator.dart';
 
 /// Information for a dispatch table selector.
 ///
@@ -131,9 +129,9 @@ class SelectorInfo {
                 // parameter.
                 return translator.coreTypes.objectNullableRawType;
               }
-              if (!translator.options.omitTypeChecks) {
+              if (!translator.options.omitImplicitTypeChecks) {
                 // A runtime type check of the parameter will be generated.
-                // The value therefore must be boxed.
+                // The value must therefore be boxed.
                 ensureBoxed[index] = true;
               }
             }
@@ -331,10 +329,11 @@ class DispatchTable {
     // Collect class/selector combinations
 
     // Maps class IDs to selector IDs of the class
-    List<Set<int>> selectorsInClass = [];
+    List<Set<int>> selectorsInClass =
+        List.filled(translator.classes.length, const {});
 
     // Add classes to selector targets for their members
-    for (ClassInfo info in translator.classes) {
+    for (ClassInfo info in translator.classesSupersFirst) {
       Set<int> selectorIds = {};
       final ClassInfo? superInfo = info.superInfo;
 
@@ -393,7 +392,7 @@ class DispatchTable {
         }
       }
 
-      selectorsInClass.add(selectorIds);
+      selectorsInClass[info.classId] = selectorIds;
     }
 
     // Build lists of class IDs and count targets

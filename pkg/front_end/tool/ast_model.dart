@@ -13,7 +13,7 @@ import 'package:kernel/src/printer.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
-import 'package:vm/target/vm.dart';
+import 'package:vm/modular/target/vm.dart';
 
 final Uri astLibraryUri = Uri.parse('package:kernel/ast.dart');
 final Uri canonicalNameLibraryUri =
@@ -138,7 +138,7 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
     'typeParameters': FieldRule(isDeclaration: true),
   },
   'TypedefTearOff': {
-    'typeParameters': FieldRule(isDeclaration: true),
+    'structuralParameters': FieldRule(isDeclaration: true),
   },
   'TypedefTearOffConstant': {
     'parameters': FieldRule(isDeclaration: true),
@@ -566,9 +566,12 @@ Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump = false}) async {
   };
 
   InternalCompilerResult compilerResult = (await kernelForProgramInternal(
-      astLibraryUri, options,
-      retainDataForTesting: true,
-      requireMain: false)) as InternalCompilerResult;
+    astLibraryUri,
+    options,
+    retainDataForTesting: true,
+    requireMain: false,
+    buildComponent: false,
+  )) as InternalCompilerResult;
   if (errorsFound) {
     throw 'Errors found';
   }

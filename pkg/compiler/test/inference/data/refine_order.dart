@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*member: Class.:[exact=Class]*/
 class Class {
   /*member: Class.field:[exact=JSUInt31]*/
@@ -136,8 +134,8 @@ conditionalCondition(/*[null|subclass=Object]*/ o) {
 // Access both branches of a conditional expression.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: flag:Value([null|exact=JSBool], value: true)*/
-bool flag; // late
+/*member: _#flag:[exact=_Cell]*/
+late bool /*Value([exact=JSBool], value: true)*/ /*update: [exact=_Cell]*/ flag;
 
 /*member: conditionalBothBranches:[null]*/
 @pragma('dart2js:assumeDynamic')

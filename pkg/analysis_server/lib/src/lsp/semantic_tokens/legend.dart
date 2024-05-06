@@ -7,6 +7,7 @@ import 'dart:math' as math;
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/semantic_tokens/mapping.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:meta/meta.dart';
 
 final semanticTokenLegend = SemanticTokenLegendLookup();
@@ -33,8 +34,8 @@ class SemanticTokenLegendLookup {
     _usedTokenTypes = Set.of(highlightRegionTokenTypes.values
             .followedBy(CustomSemanticTokenTypes.values))
         .toList();
-    _usedTokenModifiers = Set.of(highlightRegionTokenModifiers.values
-            .expand((v) => v)
+    _usedTokenModifiers = Set.of(highlightRegionTokenModifiers
+            .values.flattenedToList2
             .followedBy(CustomSemanticTokenModifiers.values))
         .toList();
 

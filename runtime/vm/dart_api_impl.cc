@@ -567,22 +567,10 @@ bool Api::StringGetPeerHelper(NativeArguments* arguments,
     return false;
   }
   intptr_t cid = raw_obj->GetClassId();
-  if (cid == kExternalOneByteStringCid) {
-    ExternalOneByteStringPtr raw_string =
-        static_cast<ExternalOneByteStringPtr>(raw_obj);
-    *peer = raw_string->untag()->peer_;
-    return true;
-  }
   if (cid == kOneByteStringCid || cid == kTwoByteStringCid) {
     auto isolate_group = arguments->thread()->isolate_group();
     *peer = isolate_group->heap()->GetPeer(raw_obj);
     return (*peer != nullptr);
-  }
-  if (cid == kExternalTwoByteStringCid) {
-    ExternalTwoByteStringPtr raw_string =
-        static_cast<ExternalTwoByteStringPtr>(raw_obj);
-    *peer = raw_string->untag()->peer_;
-    return true;
   }
   return false;
 }
@@ -1311,20 +1299,6 @@ static Dart_Isolate CreateIsolate(IsolateGroup* group,
   return static_cast<Dart_Isolate>(nullptr);
 }
 
-static bool IsServiceOrKernelIsolateName(const char* name) {
-  if (ServiceIsolate::NameEquals(name)) {
-    ASSERT(!ServiceIsolate::Exists());
-    return true;
-  }
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  if (KernelIsolate::NameEquals(name)) {
-    ASSERT(!KernelIsolate::Exists());
-    return true;
-  }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-  return false;
-}
-
 Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
                                           const char* name,
                                           char** error) {
@@ -1369,9 +1343,11 @@ Dart_CreateIsolateGroup(const char* script_uri,
   std::unique_ptr<IsolateGroupSource> source(
       new IsolateGroupSource(script_uri, non_null_name, snapshot_data,
                              snapshot_instructions, nullptr, -1, *flags));
-  auto group = new IsolateGroup(std::move(source), isolate_group_data, *flags);
+  auto group = new IsolateGroup(std::move(source), isolate_group_data, *flags,
+                                /*is_vm_isolate=*/false);
   group->CreateHeap(
-      /*is_vm_isolate=*/false, IsServiceOrKernelIsolateName(non_null_name));
+      /*is_vm_isolate=*/false,
+      flags->is_service_isolate || flags->is_kernel_isolate);
   IsolateGroup::RegisterIsolateGroup(group);
   Dart_Isolate isolate = CreateIsolate(group, /*is_new_group=*/true,
                                        non_null_name, isolate_data, error);
@@ -1402,10 +1378,12 @@ Dart_CreateIsolateGroupFromKernel(const char* script_uri,
   std::shared_ptr<IsolateGroupSource> source(
       new IsolateGroupSource(script_uri, non_null_name, nullptr, nullptr,
                              kernel_buffer, kernel_buffer_size, *flags));
-  auto group = new IsolateGroup(source, isolate_group_data, *flags);
+  auto group = new IsolateGroup(source, isolate_group_data, *flags,
+                                /*is_vm_isolate=*/false);
   IsolateGroup::RegisterIsolateGroup(group);
   group->CreateHeap(
-      /*is_vm_isolate=*/false, IsServiceOrKernelIsolateName(non_null_name));
+      /*is_vm_isolate=*/false,
+      flags->is_service_isolate || flags->is_kernel_isolate);
   Dart_Isolate isolate = CreateIsolate(group, /*is_new_group=*/true,
                                        non_null_name, isolate_data, error);
   if (isolate != nullptr) {
@@ -2119,68 +2097,6 @@ DART_EXPORT Dart_Handle Dart_HandleMessage() {
   return Api::Success();
 }
 
-DART_EXPORT Dart_Handle Dart_WaitForEvent(int64_t timeout_millis) {
-  if (!FLAG_enable_deprecated_wait_for) {
-    return Dart_NewUnhandledExceptionError(Dart_NewStringFromCString(
-        "Synchronous waiting using dart:cli waitFor "
-        "and C API Dart_WaitForEvent is deprecated and disabled by default. "
-        "This feature will be fully removed in Dart 3.4 release. "
-        "You can currently still enable it by passing "
-        "--enable_deprecated_wait_for "
-        "to the Dart VM. "
-        "See https://dartbug.com/52121."));
-  }
-
-  Thread* T = Thread::Current();
-  Isolate* I = T->isolate();
-  CHECK_API_SCOPE(T);
-  CHECK_CALLBACK_STATE(T);
-  API_TIMELINE_BEGIN_END(T);
-  TransitionNativeToVM transition(T);
-  if (I->message_notify_callback() != nullptr) {
-    return Api::NewError("waitForEventSync is not supported by this embedder");
-  }
-  Object& result =
-      Object::Handle(Z, DartLibraryCalls::EnsureScheduleImmediate());
-  if (result.IsError()) {
-    return Api::NewHandle(T, result.ptr());
-  }
-
-  // Drain the microtask queue. Propagate any errors to the entry frame.
-  result = DartLibraryCalls::DrainMicrotaskQueue();
-  if (result.IsError()) {
-    // Persist the error across unwiding scopes before propagating.
-    const Error* error;
-    {
-      NoSafepointScope no_safepoint;
-      ErrorPtr raw_error = Error::Cast(result).ptr();
-      T->UnwindScopes(T->top_exit_frame_info());
-      error = &Error::Handle(T->zone(), raw_error);
-    }
-    Exceptions::PropagateToEntry(*error);
-    UNREACHABLE();
-    return Api::NewError("Unreachable");
-  }
-
-  // Block to wait for messages and then handle them. Propagate any errors to
-  // the entry frame.
-  if (I->message_handler()->PauseAndHandleAllMessages(timeout_millis) !=
-      MessageHandler::kOK) {
-    // Persist the error across unwiding scopes before propagating.
-    const Error* error;
-    {
-      NoSafepointScope no_safepoint;
-      ErrorPtr raw_error = T->StealStickyError();
-      T->UnwindScopes(T->top_exit_frame_info());
-      error = &Error::Handle(T->zone(), raw_error);
-    }
-    Exceptions::PropagateToEntry(*error);
-    UNREACHABLE();
-    return Api::NewError("Unreachable");
-  }
-  return Api::Success();
-}
-
 DART_EXPORT bool Dart_HandleServiceMessages() {
 #if defined(PRODUCT)
   return true;
@@ -2440,13 +2356,6 @@ DART_EXPORT bool Dart_IsStringLatin1(Dart_Handle object) {
   CHECK_ISOLATE(thread->isolate());
   TransitionNativeToVM transition(thread);
   return IsOneByteStringClassId(Api::ClassId(object));
-}
-
-DART_EXPORT bool Dart_IsExternalString(Dart_Handle object) {
-  Thread* thread = Thread::Current();
-  CHECK_ISOLATE(thread->isolate());
-  TransitionNativeToVM transition(thread);
-  return IsExternalStringClassId(Api::ClassId(object));
 }
 
 DART_EXPORT bool Dart_IsList(Dart_Handle object) {
@@ -2981,50 +2890,6 @@ DART_EXPORT Dart_Handle Dart_NewStringFromUTF32(const int32_t* utf32_array,
   return Api::NewHandle(T, String::FromUTF32(utf32_array, length));
 }
 
-DART_EXPORT Dart_Handle
-Dart_NewExternalLatin1String(const uint8_t* latin1_array,
-                             intptr_t length,
-                             void* peer,
-                             intptr_t external_allocation_size,
-                             Dart_HandleFinalizer callback) {
-  DARTSCOPE(Thread::Current());
-  API_TIMELINE_DURATION(T);
-  if (latin1_array == nullptr && length != 0) {
-    RETURN_NULL_ERROR(latin1_array);
-  }
-  if (callback == nullptr) {
-    RETURN_NULL_ERROR(callback);
-  }
-  CHECK_LENGTH(length, String::kMaxElements);
-  CHECK_CALLBACK_STATE(T);
-  return Api::NewHandle(
-      T,
-      String::NewExternal(latin1_array, length, peer, external_allocation_size,
-                          callback, T->heap()->SpaceForExternal(length)));
-}
-
-DART_EXPORT Dart_Handle
-Dart_NewExternalUTF16String(const uint16_t* utf16_array,
-                            intptr_t length,
-                            void* peer,
-                            intptr_t external_allocation_size,
-                            Dart_HandleFinalizer callback) {
-  DARTSCOPE(Thread::Current());
-  if (utf16_array == nullptr && length != 0) {
-    RETURN_NULL_ERROR(utf16_array);
-  }
-  if (callback == nullptr) {
-    RETURN_NULL_ERROR(callback);
-  }
-  CHECK_LENGTH(length, String::kMaxElements);
-  CHECK_CALLBACK_STATE(T);
-  intptr_t bytes = length * sizeof(*utf16_array);
-  return Api::NewHandle(
-      T,
-      String::NewExternal(utf16_array, length, peer, external_allocation_size,
-                          callback, T->heap()->SpaceForExternal(bytes)));
-}
-
 DART_EXPORT Dart_Handle Dart_StringToCString(Dart_Handle object,
                                              const char** cstr) {
   DARTSCOPE(Thread::Current());
@@ -3170,13 +3035,8 @@ DART_EXPORT Dart_Handle Dart_StringGetProperties(Dart_Handle object,
     ReusableObjectHandleScope reused_obj_handle(thread);
     const String& str = Api::UnwrapStringHandle(reused_obj_handle, object);
     if (!str.IsNull()) {
-      if (str.IsExternal()) {
-        *peer = str.GetPeer();
-        ASSERT(*peer != nullptr);
-      } else {
-        NoSafepointScope no_safepoint_scope;
-        *peer = thread->heap()->GetPeer(str.ptr());
-      }
+      NoSafepointScope no_safepoint_scope;
+      *peer = thread->heap()->GetPeer(str.ptr());
       *char_size = str.CharSize();
       *str_len = str.Length();
       return Api::Success();
@@ -6170,7 +6030,7 @@ DART_EXPORT bool Dart_IsKernelIsolate(Dart_Isolate isolate) {
   return false;
 #else
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
-  return KernelIsolate::IsKernelIsolate(iso);
+  return iso->is_kernel_isolate();
 #endif
 }
 
@@ -6283,7 +6143,7 @@ DART_EXPORT bool Dart_DetectNullSafety(const char* script_uri,
 
 DART_EXPORT bool Dart_IsServiceIsolate(Dart_Isolate isolate) {
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
-  return ServiceIsolate::IsServiceIsolate(iso);
+  return iso->is_service_isolate();
 }
 
 DART_EXPORT void Dart_RegisterIsolateServiceRequestCallback(
@@ -6444,18 +6304,6 @@ DART_EXPORT int64_t Dart_TimelineGetTicks() {
 
 DART_EXPORT int64_t Dart_TimelineGetTicksFrequency() {
   return OS::GetCurrentMonotonicFrequency();
-}
-
-DART_EXPORT void Dart_TimelineEvent(const char* label,
-                                    int64_t timestamp0,
-                                    int64_t timestamp1_or_id,
-                                    Dart_Timeline_Event_Type type,
-                                    intptr_t argument_count,
-                                    const char** argument_names,
-                                    const char** argument_values) {
-  Dart_RecordTimelineEvent(label, timestamp0, timestamp1_or_id,
-                           /*flow_id_count=*/0, /*flow_ids=*/nullptr, type,
-                           argument_count, argument_names, argument_values);
 }
 
 DART_EXPORT void Dart_RecordTimelineEvent(const char* label,
@@ -6935,74 +6783,6 @@ static void DropRegExpMatchCode(Zone* zone) {
 }
 
 #endif  // (!defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME))
-
-DART_EXPORT Dart_Handle Dart_CreateCoreJITSnapshotAsBlobs(
-    uint8_t** vm_snapshot_data_buffer,
-    intptr_t* vm_snapshot_data_size,
-    uint8_t** vm_snapshot_instructions_buffer,
-    intptr_t* vm_snapshot_instructions_size,
-    uint8_t** isolate_snapshot_data_buffer,
-    intptr_t* isolate_snapshot_data_size,
-    uint8_t** isolate_snapshot_instructions_buffer,
-    intptr_t* isolate_snapshot_instructions_size) {
-#if defined(TARGET_ARCH_IA32)
-  return Api::NewError("Snapshots with code are not supported on IA32.");
-#elif defined(DART_PRECOMPILED_RUNTIME)
-  return Api::NewError("JIT app snapshots cannot be taken from an AOT runtime");
-#else
-  DARTSCOPE(Thread::Current());
-  API_TIMELINE_DURATION(T);
-  CHECK_NULL(vm_snapshot_data_buffer);
-  CHECK_NULL(vm_snapshot_data_size);
-  CHECK_NULL(vm_snapshot_instructions_buffer);
-  CHECK_NULL(vm_snapshot_instructions_size);
-  CHECK_NULL(isolate_snapshot_data_buffer);
-  CHECK_NULL(isolate_snapshot_data_size);
-  CHECK_NULL(isolate_snapshot_instructions_buffer);
-  CHECK_NULL(isolate_snapshot_instructions_size);
-  // Finalize all classes if needed.
-  Dart_Handle state = Api::CheckAndFinalizePendingClasses(T);
-  if (Api::IsError(state)) {
-    return state;
-  }
-
-  NoBackgroundCompilerScope no_bg_compiler(T);
-
-  DropRegExpMatchCode(Z);
-
-  ProgramVisitor::Dedup(T);
-
-  TIMELINE_DURATION(T, Isolate, "WriteCoreJITSnapshot");
-  ZoneWriteStream vm_snapshot_data(Api::TopScope(T)->zone(),
-                                   FullSnapshotWriter::kInitialSize);
-  ZoneWriteStream vm_snapshot_instructions(Api::TopScope(T)->zone(),
-                                           FullSnapshotWriter::kInitialSize);
-  ZoneWriteStream isolate_snapshot_data(Api::TopScope(T)->zone(),
-                                        FullSnapshotWriter::kInitialSize);
-  ZoneWriteStream isolate_snapshot_instructions(
-      Api::TopScope(T)->zone(), FullSnapshotWriter::kInitialSize);
-
-  BlobImageWriter image_writer(T, &vm_snapshot_instructions,
-                               &isolate_snapshot_instructions);
-  FullSnapshotWriter writer(Snapshot::kFullJIT, &vm_snapshot_data,
-                            &isolate_snapshot_data, &image_writer,
-                            &image_writer);
-  writer.WriteFullSnapshot();
-
-  *vm_snapshot_data_buffer = vm_snapshot_data.buffer();
-  *vm_snapshot_data_size = vm_snapshot_data.bytes_written();
-  *vm_snapshot_instructions_buffer = vm_snapshot_instructions.buffer();
-  *vm_snapshot_instructions_size = vm_snapshot_instructions.bytes_written();
-  *isolate_snapshot_data_buffer = isolate_snapshot_data.buffer();
-  *isolate_snapshot_data_size = isolate_snapshot_data.bytes_written();
-  *isolate_snapshot_instructions_buffer =
-      isolate_snapshot_instructions.buffer();
-  *isolate_snapshot_instructions_size =
-      isolate_snapshot_instructions.bytes_written();
-
-  return Api::Success();
-#endif
-}
 
 #if !defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME)
 static void KillNonMainIsolatesSlow(Thread* thread, Isolate* main_isolate) {

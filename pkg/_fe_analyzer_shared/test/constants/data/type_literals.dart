@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore: illegal_language_version_override
-// @dart = 2.9
-
 import 'dart:async';
 
 typedef Typedef();
@@ -34,14 +31,12 @@ main() {
       genericTypedef);
 
   print(
-      /*analyzer.TypeLiteral(void Function<T>(T*))*/
-      /*cfe.TypeLiteral(void Function<T>(T))*/
+      /*cfe|analyzer.TypeLiteral(void Function<T>(T))*/
       /*dart2js.TypeLiteral((0)->void)*/
       genericFunctionTypedef);
 
   print(
-      /*analyzer.TypeLiteral(void Function<T>(FutureOr<T*>*))*/
-      /*cfe.TypeLiteral(void Function<T>(FutureOr<T>))*/
+      /*cfe|analyzer.TypeLiteral(void Function<T>(FutureOr<T>))*/
       /*dart2js.TypeLiteral((FutureOr<0>)->void)*/
       typedefWithFutureOr);
 

@@ -1,7 +1,9 @@
 // @dart = 2.12
+
 import 'alias_from_opt_in_lib.dart';
 
 main() {}
+
 test(
   T1 t1a,
   List<T1> t1b,

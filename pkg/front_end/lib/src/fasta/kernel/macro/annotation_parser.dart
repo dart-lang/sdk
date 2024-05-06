@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/experiments/flags.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
+import 'package:macros/src/executor.dart' as macro;
 import 'package:_fe_analyzer_shared/src/messages/codes.dart';
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';
 import 'package:_fe_analyzer_shared/src/parser/quote.dart';
@@ -18,13 +18,15 @@ import '../../builder/prefix_builder.dart';
 import '../../scope.dart';
 import '../../source/diet_parser.dart';
 import '../../source/source_library_builder.dart';
+import '../../uri_offset.dart';
 import 'macro.dart';
 
 List<MacroApplication>? prebuildAnnotations(
     {required SourceLibraryBuilder enclosingLibrary,
     required List<MetadataBuilder>? metadataBuilders,
     required Uri fileUri,
-    required Scope scope}) {
+    required Scope scope,
+    required Set<ClassBuilder> currentMacroDeclarations}) {
   if (metadataBuilders == null) return null;
   List<MacroApplication>? result;
   for (MetadataBuilder metadataBuilder in metadataBuilders) {
@@ -37,7 +39,20 @@ List<MacroApplication>? prebuildAnnotations(
     MacroApplication? application = listener.popMacroApplication();
     if (application != null) {
       result ??= [];
-      result.add(application);
+      if (currentMacroDeclarations.contains(application.classBuilder)) {
+        ClassBuilder classBuilder = application.classBuilder;
+        UriOffset uriOffset = application.uriOffset;
+        enclosingLibrary.addProblem(
+            templateMacroDefinitionApplicationSameLibraryCycle
+                .withArguments(classBuilder.name),
+            uriOffset.fileOffset,
+            noLength,
+            uriOffset.uri);
+        result.add(
+            new MacroApplication.invalid(classBuilder, uriOffset: uriOffset));
+      } else {
+        result.add(application);
+      }
     }
   }
   if (result != null && result.length > 1) {
@@ -89,12 +104,12 @@ class _ArgumentsNode implements _Node {
   _ArgumentsNode(this.positionalArguments, this.namedArguments);
 }
 
-class _PrimitiveValueNode implements _Node {
+class _MacroArgumentNode implements _Node {
   Object? get value => argument.value;
 
   final macro.Argument argument;
 
-  _PrimitiveValueNode(this.argument);
+  _MacroArgumentNode(this.argument);
 }
 
 class _TokenNode implements _Node {
@@ -119,6 +134,8 @@ class _NamedArgumentNode implements _Node {
 }
 
 class _MacroListener implements Listener {
+  ClassBuilder? _macroClassBuilder;
+
   final SourceLibraryBuilder currentLibrary;
 
   @override
@@ -141,6 +158,19 @@ class _MacroListener implements Listener {
     }
   }
 
+  String? _unhandledReason;
+
+  String? get unhandled => _unhandledReason;
+
+  void set unhandled(String? value) {
+    if (value != null) {
+      _unhandledReason ??= value;
+    }
+    unrecognized = true;
+  }
+
+  MacroApplication? _erroneousMacroApplication;
+
   _MacroListener(this.currentLibrary, this.uri, this.scope);
 
   void pushUnsupported() {
@@ -155,13 +185,13 @@ class _MacroListener implements Listener {
   _Node pop() => _stack.removeLast();
 
   MacroApplication? popMacroApplication() {
-    if (unrecognized) return null;
-    if (_stack.length != 1) return null;
+    if (unrecognized) return _erroneousMacroApplication;
+    if (_stack.length != 1) return _erroneousMacroApplication;
     _Node node = pop();
     if (node is _MacroApplicationNode) {
       return node.application;
     }
-    return null;
+    return _erroneousMacroApplication;
   }
 
   @override
@@ -196,8 +226,14 @@ class _MacroListener implements Listener {
             constructorName,
             new macro.Arguments(argumentsNode.positionalArguments,
                 argumentsNode.namedArguments),
-            fileOffset: beginToken.next!.charOffset)));
+            uriOffset: new UriOffset(uri, beginToken.next!.charOffset))));
         return;
+      }
+    } else {
+      if (_macroClassBuilder != null && _unhandledReason != null) {
+        _erroneousMacroApplication = new MacroApplication.unhandled(
+            _unhandledReason!, _macroClassBuilder!,
+            uriOffset: new UriOffset(uri, beginToken.next!.charOffset));
       }
     }
     pushUnsupported();
@@ -209,6 +245,7 @@ class _MacroListener implements Listener {
       case IdentifierContext.metadataReference:
         Builder? builder = scope.lookup(token.lexeme, token.charOffset, uri);
         if (builder is ClassBuilder && builder.isMacro) {
+          _macroClassBuilder ??= builder;
           push(new _MacroClassNode(token, builder));
         } else if (builder is PrefixBuilder) {
           push(new _PrefixNode(builder));
@@ -222,6 +259,7 @@ class _MacroListener implements Listener {
           Builder? builder =
               node.prefixBuilder.lookup(token.lexeme, token.charOffset, uri);
           if (builder is ClassBuilder && builder.isMacro) {
+            _macroClassBuilder ??= builder;
             push(new _MacroClassNode(token, builder));
           } else {
             pushUnsupported();
@@ -276,7 +314,7 @@ class _MacroListener implements Listener {
     Map<String, macro.Argument> namedArguments = {};
     for (int i = 0; i < count; i++) {
       _Node node = pop();
-      if (node is _PrimitiveValueNode) {
+      if (node is _MacroArgumentNode) {
         positionalArguments.add(node.argument);
       } else if (node is _NamedArgumentNode &&
           !namedArguments.containsKey(node.name)) {
@@ -288,7 +326,8 @@ class _MacroListener implements Listener {
     if (unrecognized) {
       pushUnsupported();
     } else {
-      push(new _ArgumentsNode(positionalArguments, namedArguments));
+      push(new _ArgumentsNode(
+          positionalArguments.reversed.toList(), namedArguments));
     }
   }
 
@@ -320,8 +359,7 @@ class _MacroListener implements Listener {
     } else {
       _Node value = pop();
       _Node name = pop();
-      if (name is _NamedArgumentIdentifierNode &&
-          value is _PrimitiveValueNode) {
+      if (name is _NamedArgumentIdentifierNode && value is _MacroArgumentNode) {
         push(new _NamedArgumentNode(name.name, value.argument));
       } else {
         pushUnsupported();
@@ -340,25 +378,25 @@ class _MacroListener implements Listener {
 
   @override
   void handleLiteralNull(Token token) {
-    push(new _PrimitiveValueNode(new macro.NullArgument()));
+    push(new _MacroArgumentNode(new macro.NullArgument()));
   }
 
   @override
   void handleLiteralBool(Token token) {
-    push(new _PrimitiveValueNode(
-        new macro.BoolArgument(token.lexeme == 'true')));
+    push(
+        new _MacroArgumentNode(new macro.BoolArgument(token.lexeme == 'true')));
   }
 
   @override
   void handleLiteralDouble(Token token) {
-    push(new _PrimitiveValueNode(
+    push(new _MacroArgumentNode(
         new macro.DoubleArgument(double.parse(token.lexeme))));
   }
 
   @override
   void handleLiteralInt(Token token) {
-    push(new _PrimitiveValueNode(
-        new macro.IntArgument(int.parse(token.lexeme))));
+    push(
+        new _MacroArgumentNode(new macro.IntArgument(int.parse(token.lexeme))));
   }
 
   @override
@@ -379,7 +417,7 @@ class _MacroListener implements Listener {
         if (unrecognized) {
           pushUnsupported();
         } else {
-          push(new _PrimitiveValueNode(new macro.StringArgument(text)));
+          push(new _MacroArgumentNode(new macro.StringArgument(text)));
         }
       } else {
         pushUnsupported();
@@ -393,7 +431,7 @@ class _MacroListener implements Listener {
   @override
   void handleStringPart(Token token) {
     // TODO(johnniwinther): Should we support this?
-    _unhandled();
+    _unhandled('string interpolation');
   }
 
   @override
@@ -404,7 +442,7 @@ class _MacroListener implements Listener {
       List<String> values = [];
       for (int i = 0; i < literalCount; i++) {
         _Node node = pop();
-        if (node is _PrimitiveValueNode && node.value is String) {
+        if (node is _MacroArgumentNode && node.value is String) {
           values.add(node.value as String);
         } else {
           _unsupported();
@@ -413,7 +451,7 @@ class _MacroListener implements Listener {
       if (unrecognized) {
         pushUnsupported();
       } else {
-        push(new _PrimitiveValueNode(
+        push(new _MacroArgumentNode(
             new macro.StringArgument(values.reversed.join())));
       }
     }
@@ -434,8 +472,8 @@ class _MacroListener implements Listener {
   }
 
   /// Called for listener events that are supported but not handled yet.
-  void _unhandled() {
-    unrecognized = true;
+  void _unhandled(String what) {
+    unhandled = what;
   }
 
   /// Called for listener events whose use in unknown.
@@ -545,12 +583,16 @@ class _MacroListener implements Listener {
 
   @override
   void beginConstExpression(Token constKeyword) {
-    _unhandled();
+    // TODO(johnniwinther): This is called before an explicitly const
+    //  constructor invocation. If supported this is probably a no-op.
+    _unhandled('const expression');
   }
 
   @override
   void beginConstLiteral(Token token) {
-    _unhandled();
+    // TODO(johnniwinther): This is called before an explicitly const
+    //  list/map/set literal. This is probably a no-op.
+    _unhandled('const literal');
   }
 
   @override
@@ -584,7 +626,8 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void beginExtensionDeclaration(Token extensionKeyword, Token? name) {
+  void beginExtensionDeclaration(
+      Token? augmentToken, Token extensionKeyword, Token? name) {
     _unexpected();
   }
 
@@ -671,38 +714,38 @@ class _MacroListener implements Listener {
 
   @override
   void beginRecordType(Token beginToken) {
-    _unhandled();
+    _unhandled('record type');
   }
 
   @override
   void endRecordType(
       Token leftBracket, Token? questionMark, int count, bool hasNamedFields) {
-    _unhandled();
+    _unhandled('record type');
   }
 
   @override
   void beginRecordTypeEntry() {
-    _unhandled();
+    _unhandled('record type entry');
   }
 
   @override
   void endRecordTypeEntry() {
-    _unhandled();
+    _unhandled('record type entry');
   }
 
   @override
   void beginRecordTypeNamedFields(Token leftBracket) {
-    _unhandled();
+    _unhandled('record type named field');
   }
 
   @override
   void endRecordTypeNamedFields(int count, Token leftBracket) {
-    _unhandled();
+    _unhandled('record type named field');
   }
 
   @override
   void beginFunctionType(Token beginToken) {
-    _unhandled();
+    _unhandled('function type');
   }
 
   @override
@@ -727,7 +770,8 @@ class _MacroListener implements Listener {
 
   @override
   void beginImplicitCreationExpression(Token token) {
-    _unhandled();
+    // TODO(johnniwinther): Should this be supported?
+    _unhandled('constructor invocation');
   }
 
   @override
@@ -752,7 +796,7 @@ class _MacroListener implements Listener {
 
   @override
   void beginIsOperatorType(Token operator) {
-    _unhandled();
+    _unhandled('is-test');
   }
 
   @override
@@ -778,7 +822,7 @@ class _MacroListener implements Listener {
 
   @override
   void beginLiteralSymbol(Token token) {
-    _unhandled();
+    _unhandled('symbol constant');
   }
 
   @override
@@ -928,7 +972,8 @@ class _MacroListener implements Listener {
 
   @override
   void beginTypeArguments(Token token) {
-    _unhandled();
+    // TODO(johnniwinther): Should we support this?
+    _unhandled('type argument');
   }
 
   @override
@@ -984,7 +1029,7 @@ class _MacroListener implements Listener {
 
   @override
   void endAsOperatorType(Token operator) {
-    _unhandled();
+    _unhandled('cast');
   }
 
   @override
@@ -1090,7 +1135,7 @@ class _MacroListener implements Listener {
 
   @override
   void endConditionalExpression(Token question, Token colon) {
-    _unhandled();
+    _unhandled('conditional expression');
   }
 
   @override
@@ -1294,7 +1339,7 @@ class _MacroListener implements Listener {
 
   @override
   void endFunctionType(Token functionToken, Token? questionMark) {
-    _unhandled();
+    _unhandled('function type');
   }
 
   @override
@@ -1324,7 +1369,7 @@ class _MacroListener implements Listener {
 
   @override
   void endImplicitCreationExpression(Token token, Token openAngleBracket) {
-    _unhandled();
+    _unhandled('constructor invocation');
   }
 
   @override
@@ -1361,7 +1406,7 @@ class _MacroListener implements Listener {
 
   @override
   void endIsOperatorType(Token operator) {
-    _unhandled();
+    _unhandled('is-test');
   }
 
   @override
@@ -1376,7 +1421,7 @@ class _MacroListener implements Listener {
 
   @override
   void endLiteralSymbol(Token hashToken, int identifierCount) {
-    _unhandled();
+    _unhandled('symbol constant');
   }
 
   @override
@@ -1536,6 +1581,7 @@ class _MacroListener implements Listener {
 
   @override
   void endTopLevelFields(
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -1560,7 +1606,7 @@ class _MacroListener implements Listener {
 
   @override
   void endTypeArguments(int count, Token beginToken, Token endToken) {
-    _unhandled();
+    _unhandled('type argument');
   }
 
   @override
@@ -1611,7 +1657,7 @@ class _MacroListener implements Listener {
 
   @override
   void handleAsOperator(Token operator) {
-    _unhandled();
+    _unhandled('cast');
   }
 
   @override
@@ -1667,7 +1713,7 @@ class _MacroListener implements Listener {
 
   @override
   void handleConditionalExpressionColon() {
-    _unhandled();
+    _unhandled('conditional expression');
   }
 
   @override
@@ -1827,7 +1873,7 @@ class _MacroListener implements Listener {
 
   @override
   void handleInterpolationExpression(Token leftBracket, Token? rightBracket) {
-    _unhandled();
+    _unhandled('string interpolation');
   }
 
   @override
@@ -1877,7 +1923,7 @@ class _MacroListener implements Listener {
 
   @override
   void handleIsOperator(Token isOperator, Token? not) {
-    _unhandled();
+    _unhandled('is-test');
   }
 
   @override
@@ -1888,7 +1934,28 @@ class _MacroListener implements Listener {
   @override
   void handleLiteralList(
       int count, Token leftBracket, Token? constKeyword, Token rightBracket) {
-    _unhandled();
+    if (unrecognized) {
+      pushUnsupported();
+      return;
+    }
+    List<macro.Argument> elements =
+        new List.filled(count, new macro.NullArgument());
+    for (int i = count - 1; i >= 0; i--) {
+      _Node node = pop();
+      if (node is _MacroArgumentNode) {
+        elements[i] = node.argument;
+      } else {
+        _unsupported();
+      }
+    }
+    if (unrecognized) {
+      pushUnsupported();
+    } else {
+      push(new _MacroArgumentNode(new macro.ListArgument(
+          elements,
+          // TODO(johnniwinther): Support argument kinds
+          [macro.ArgumentKind.dynamic])));
+    }
   }
 
   @override
@@ -1898,7 +1965,7 @@ class _MacroListener implements Listener {
 
   @override
   void handleLiteralMapEntry(Token colon, Token endToken) {
-    _unhandled();
+    _unhandled('map entry');
   }
 
   @override
@@ -1914,7 +1981,7 @@ class _MacroListener implements Listener {
   @override
   void handleLiteralSetOrMap(int count, Token leftBrace, Token? constKeyword,
       Token rightBrace, bool hasSetEntry) {
-    _unhandled();
+    _unhandled('map or set literal');
   }
 
   @override
@@ -1954,7 +2021,7 @@ class _MacroListener implements Listener {
 
   @override
   void handleNewAsIdentifier(Token token) {
-    _unhandled();
+    _unhandled("'new' as an identifier");
   }
 
   @override
@@ -2055,27 +2122,27 @@ class _MacroListener implements Listener {
 
   @override
   void beginPattern(Token token) {
-    _unhandled();
+    _unsupported();
   }
 
   @override
   void beginPatternGuard(Token token) {
-    _unhandled();
+    _unsupported();
   }
 
   @override
   void beginParenthesizedExpressionOrRecordLiteral(Token token) {
-    _unhandled();
+    _unhandled('parenthesized expression or record literal');
   }
 
   @override
   void beginSwitchCaseWhenClause(Token when) {
-    _unhandled();
+    _unsupported();
   }
 
   @override
   void endRecordLiteral(Token token, int count, Token? constKeyword) {
-    _unhandled();
+    _unhandled('record literal');
   }
 
   @override
@@ -2085,22 +2152,22 @@ class _MacroListener implements Listener {
 
   @override
   void endPattern(Token token) {
-    _unhandled();
+    _unsupported();
   }
 
   @override
   void endPatternGuard(Token token) {
-    _unhandled();
+    _unsupported();
   }
 
   @override
   void endParenthesizedExpression(Token token) {
-    _unhandled();
+    _unhandled('parenthesized expression');
   }
 
   @override
   void endSwitchCaseWhenClause(Token token) {
-    _unhandled();
+    _unsupported();
   }
 
   @override
@@ -2152,7 +2219,8 @@ class _MacroListener implements Listener {
 
   @override
   void handleSend(Token beginToken, Token endToken) {
-    _unhandled();
+    // TODO(johnniwinther): Should we support this?
+    _unhandled('send');
   }
 
   @override
@@ -2178,17 +2246,17 @@ class _MacroListener implements Listener {
 
   @override
   void handleSwitchCaseNoWhenClause(Token token) {
-    _unhandled();
+    _unsupported();
   }
 
   @override
   void handleSwitchExpressionCasePattern(Token token) {
-    _unhandled();
+    _unsupported();
   }
 
   @override
   void handleSymbolVoid(Token token) {
-    _unhandled();
+    _unhandled('void');
   }
 
   @override
@@ -2213,7 +2281,8 @@ class _MacroListener implements Listener {
 
   @override
   void handleTypeArgumentApplication(Token openAngleBracket) {
-    _unhandled();
+    // TODO(johnniwinther): Should we support this?
+    _unhandled('instantiation');
   }
 
   @override

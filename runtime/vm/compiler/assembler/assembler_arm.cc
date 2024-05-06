@@ -419,7 +419,8 @@ void Assembler::EmitDivOp(Condition cond,
   int32_t encoding = opcode | (static_cast<int32_t>(cond) << kConditionShift) |
                      (static_cast<int32_t>(rn) << kDivRnShift) |
                      (static_cast<int32_t>(rd) << kDivRdShift) | B26 | B25 |
-                     B24 | B20 | B4 | (static_cast<int32_t>(rm) << kDivRmShift);
+                     B24 | B20 | B15 | B14 | B13 | B12 | B4 |
+                     (static_cast<int32_t>(rm) << kDivRmShift);
   Emit(encoding);
 }
 
@@ -2290,50 +2291,20 @@ void Assembler::LoadCompressedSmi(Register dest, const Address& slot) {
 }
 
 OperandSize Address::OperandSizeFor(intptr_t cid) {
-  switch (cid) {
-    case kArrayCid:
-    case kImmutableArrayCid:
-    case kRecordCid:
-    case kTypeArgumentsCid:
-      return kFourBytes;
-    case kOneByteStringCid:
-    case kExternalOneByteStringCid:
-      return kByte;
-    case kTwoByteStringCid:
-    case kExternalTwoByteStringCid:
-      return kTwoBytes;
-    case kTypedDataInt8ArrayCid:
-      return kByte;
-    case kTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
-    case kExternalTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
-      return kUnsignedByte;
-    case kTypedDataInt16ArrayCid:
-      return kTwoBytes;
-    case kTypedDataUint16ArrayCid:
-      return kUnsignedTwoBytes;
-    case kTypedDataInt32ArrayCid:
-      return kFourBytes;
-    case kTypedDataUint32ArrayCid:
-      return kUnsignedFourBytes;
-    case kTypedDataInt64ArrayCid:
-    case kTypedDataUint64ArrayCid:
+  auto const rep = RepresentationUtils::RepresentationOfArrayElement(cid);
+  switch (rep) {
+    case kUnboxedInt64:
       return kDWord;
-    case kTypedDataFloat32ArrayCid:
+    case kUnboxedFloat:
       return kSWord;
-    case kTypedDataFloat64ArrayCid:
+    case kUnboxedDouble:
       return kDWord;
-    case kTypedDataFloat32x4ArrayCid:
-    case kTypedDataInt32x4ArrayCid:
-    case kTypedDataFloat64x2ArrayCid:
+    case kUnboxedInt32x4:
+    case kUnboxedFloat32x4:
+    case kUnboxedFloat64x2:
       return kRegList;
-    case kTypedDataInt8ArrayViewCid:
-      UNREACHABLE();
-      return kByte;
     default:
-      UNREACHABLE();
-      return kByte;
+      return RepresentationUtils::OperandSize(rep);
   }
 }
 
@@ -3590,6 +3561,28 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
   MaybeTraceAllocation(temp_reg, trace);
 }
 
+void Assembler::MaybeTraceAllocation(Register cid,
+                                     Label* trace,
+                                     Register temp_reg,
+                                     JumpDistance distance) {
+  LoadAllocationTracingStateAddress(temp_reg, cid);
+  MaybeTraceAllocation(temp_reg, trace);
+}
+
+void Assembler::LoadAllocationTracingStateAddress(Register dest, Register cid) {
+  ASSERT(dest != kNoRegister);
+  ASSERT(dest != TMP);
+
+  LoadIsolateGroup(dest);
+  ldr(dest, Address(dest, target::IsolateGroup::class_table_offset()));
+  ldr(dest,
+      Address(dest,
+              target::ClassTable::allocation_tracing_state_table_offset()));
+  AddScaled(cid, cid, TIMES_1,
+            target::ClassTable::AllocationTracingStateSlotOffsetFor(0));
+  AddRegisters(dest, cid);
+}
+
 void Assembler::LoadAllocationTracingStateAddress(Register dest, intptr_t cid) {
   ASSERT(dest != kNoRegister);
   ASSERT(dest != TMP);
@@ -3732,6 +3725,39 @@ void Assembler::GenerateUnRelocatedPcRelativeTailCall(
   pattern.set_distance(offset_into_target);
 }
 
+bool Assembler::AddressCanHoldConstantIndex(const Object& constant,
+                                            bool is_load,
+                                            bool is_external,
+                                            intptr_t cid,
+                                            intptr_t index_scale,
+                                            bool* needs_base) {
+  ASSERT(needs_base != nullptr);
+  auto const rep = RepresentationUtils::RepresentationOfArrayElement(cid);
+  if ((rep == kUnboxedInt32x4) || (rep == kUnboxedFloat32x4) ||
+      (rep == kUnboxedFloat64x2)) {
+    // We are using vldmd/vstmd which do not support offset.
+    return false;
+  }
+
+  if (!IsSafeSmi(constant)) return false;
+  const int64_t index = target::SmiValue(constant);
+  const intptr_t offset_base =
+      (is_external ? 0
+                   : (target::Instance::DataOffsetFor(cid) - kHeapObjectTag));
+  const int64_t offset = index * index_scale + offset_base;
+  ASSERT(Utils::IsInt(32, offset));
+  if (Address::CanHoldImmediateOffset(is_load, cid, offset)) {
+    *needs_base = false;
+    return true;
+  }
+  if (Address::CanHoldImmediateOffset(is_load, cid, offset - offset_base)) {
+    *needs_base = true;
+    return true;
+  }
+
+  return false;
+}
+
 Address Assembler::ElementAddressForIntIndex(bool is_load,
                                              bool is_external,
                                              intptr_t cid,
@@ -3787,9 +3813,9 @@ Address Assembler::ElementAddressForRegIndex(bool is_load,
   ASSERT(array != IP);
   ASSERT(index != IP);
   const Register base = is_load ? IP : index;
-  if ((offset != 0) || (is_load && (size == kByte)) || (size == kTwoBytes) ||
-      (size == kUnsignedTwoBytes) || (size == kSWord) || (size == kDWord) ||
-      (size == kRegList)) {
+  if ((offset != 0) || (is_load && (size == kByte || size == kUnsignedByte)) ||
+      (size == kTwoBytes) || (size == kUnsignedTwoBytes) || (size == kSWord) ||
+      (size == kDWord) || (size == kRegList)) {
     if (shift < 0) {
       ASSERT(shift == -1);
       add(base, array, Operand(index, ASR, 1));

@@ -134,17 +134,31 @@ class Variable {
 }
 
 const NORMAL = const Strength(4, "normal");
+
 const PREFERRED = const Strength(2, "preferred");
+
 const REQUIRED = const Strength(0, "required");
+
 const STRONG_DEFAULT = const Strength(3, "strongDefault");
+
 const STRONG_PREFERRED = const Strength(1, "strongPreferred");
+
 const WEAKEST = const Strength(6, "weakest");
+
 const WEAK_DEFAULT = const Strength(5, "weakDefault");
+
 const int BACKWARD = 0;
+
 const int FORWARD = 2;
+
 const int NONE = 1;
+
 late Planner planner;
+
 main() {}
+
 void chainTest(int n) {}
+
 void change(Variable v, int newValue) {}
+
 void projectionTest(int n) {}

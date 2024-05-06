@@ -9,4 +9,5 @@ mixin B {
   abstract final int finalInstanceField;
   abstract covariant num covariantInstanceField;
 }
+
 main() {}

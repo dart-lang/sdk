@@ -1,6 +1,11 @@
 /// High-fidelity audio programming in the browser.
 ///
-/// {@category Web}
+/// > [!Note]
+/// > New projects should prefer to use
+/// > [package:web](https://pub.dev/packages/web). For existing projects, see
+/// > our [migration guide](https://dart.dev/go/package-web).
+///
+/// {@category Web (Legacy)}
 library dart.dom.web_audio;
 
 import 'dart:async';

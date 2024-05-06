@@ -4,4 +4,5 @@ class B<S> {
 }
 
 main() {}
+
 typedef A<T>(T p);

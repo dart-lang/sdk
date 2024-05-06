@@ -167,9 +167,7 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
 #if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
     return new TimelineEventSystraceRecorder();
 #elif defined(DART_HOST_OS_MACOS)
-    if (__builtin_available(iOS 12.0, macOS 10.14, *)) {
-      return new TimelineEventMacosRecorder();
-    }
+    return new TimelineEventMacosRecorder();
 #elif defined(DART_HOST_OS_FUCHSIA)
     return new TimelineEventFuchsiaRecorder();
 #else
@@ -1076,10 +1074,8 @@ TimelineStream::TimelineStream(const char* name,
 #endif
 {
 #if defined(DART_HOST_OS_MACOS)
-  if (__builtin_available(iOS 12.0, macOS 10.14, *)) {
-    macos_log_ = os_log_create("Dart", name);
-    has_static_labels_ = has_static_labels;
-  }
+  macos_log_ = os_log_create("Dart", name);
+  has_static_labels_ = has_static_labels;
 #endif
 }
 

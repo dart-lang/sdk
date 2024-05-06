@@ -122,7 +122,7 @@ class ImportLibrary extends MultiCorrectionProducer {
       if (targetNode is Annotation) {
         var name = targetNode.name;
         if (name.staticElement == null) {
-          if (targetNode.arguments == null) {
+          if (targetNode.period != null && targetNode.arguments == null) {
             return const [];
           }
           targetNode = name;
@@ -150,18 +150,19 @@ class ImportLibrary extends MultiCorrectionProducer {
   @override
   String? nameOfType(AstNode node) {
     final parent = node.parent;
-    if (node is NamedType) {
-      final importPrefix = node.importPrefix;
-      if (parent is ConstructorName && importPrefix != null) {
-        return importPrefix.name.lexeme;
-      }
-      return node.name2.lexeme;
-    } else if (node is PrefixedIdentifier) {
-      if (parent is NamedType) {
+    switch (node) {
+      case NamedType():
+        final importPrefix = node.importPrefix;
+        if (parent is ConstructorName && importPrefix != null) {
+          return importPrefix.name.lexeme;
+        }
+        return node.name2.lexeme;
+      case PrefixedIdentifier():
         return node.prefix.name;
-      }
+      case SimpleIdentifier():
+        return node.name;
     }
-    return super.nameOfType(node);
+    return null;
   }
 
   void _importExtensionInLibrary(
@@ -183,10 +184,7 @@ class ImportLibrary extends MultiCorrectionProducer {
       foundImport = true;
       var instantiatedExtensions = importedLibrary.exportedExtensions
           .hasMemberWithBaseName(memberName)
-          .applicableTo(
-            targetLibrary: libraryElement,
-            targetType: targetType,
-          );
+          .applicableTo(targetLibrary: libraryElement, targetType: targetType);
       for (var instantiatedExtension in instantiatedExtensions) {
         // If the import has a combinator that needs to be updated, then offer
         // to update it.
@@ -262,7 +260,10 @@ class ImportLibrary extends MultiCorrectionProducer {
         continue;
       }
       if (element is PropertyAccessorElement) {
-        element = element.variable;
+        element = element.variable2;
+        if (element == null) {
+          continue;
+        }
       }
       if (!kinds.contains(element.kind)) {
         continue;
@@ -459,10 +460,7 @@ class _ImportLibraryContainingExtension extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     var instantiatedExtensions = library.exportedExtensions
         .hasMemberWithBaseName(memberName)
-        .applicableTo(
-          targetLibrary: libraryElement,
-          targetType: targetType,
-        );
+        .applicableTo(targetLibrary: libraryElement, targetType: targetType);
     if (instantiatedExtensions.isNotEmpty) {
       await builder.addDartFileEdit(file, (builder) {
         _uriText = builder.importLibrary(library.source.uri);

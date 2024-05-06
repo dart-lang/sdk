@@ -216,4 +216,31 @@ LOAD_FROM_BOX_TEST(Int64, int64_t, 0xFFFFFFFFFFFFFFFF, true)
 LOAD_FROM_BOX_TEST(Int64, int64_t, 0xFFFFFFFFFFFFFFFF, false)
 #endif
 
+#if defined(TARGET_ARCH_ARM)
+ISOLATE_UNIT_TEST_CASE(Assembler_Regress54621) {
+  auto zone = thread->zone();
+  const classid_t cid = kTypedDataInt32ArrayCid;
+  const intptr_t index_scale = 1;
+  const intptr_t kMaxAllowedOffsetForExternal = (2 << 11) - 1;
+  auto& smi = Smi::Handle(zone, Smi::New(kMaxAllowedOffsetForExternal));
+  bool needs_base;
+  EXPECT(compiler::Assembler::AddressCanHoldConstantIndex(
+      smi, /*is_load=*/true,
+      /*is_external=*/true, cid, index_scale, &needs_base));
+  EXPECT(!needs_base);
+  EXPECT(compiler::Assembler::AddressCanHoldConstantIndex(
+      smi, /*is_load=*/true,
+      /*is_external=*/false, cid, index_scale, &needs_base));
+  EXPECT(needs_base);
+  // Double-checking we're on a boundary of what's allowed.
+  smi = Smi::New(kMaxAllowedOffsetForExternal + 1);
+  EXPECT(!compiler::Assembler::AddressCanHoldConstantIndex(
+      smi, /*is_load=*/true,
+      /*is_external=*/false, cid, index_scale));
+  EXPECT(!compiler::Assembler::AddressCanHoldConstantIndex(
+      smi, /*is_load=*/true,
+      /*is_external=*/true, cid, index_scale));
+}
+#endif
+
 }  // namespace dart

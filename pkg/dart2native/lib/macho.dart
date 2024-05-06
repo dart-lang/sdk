@@ -9,7 +9,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import './macho_utils.dart';
+import 'src/macho_utils.dart';
 
 class OffsetsAdjuster {
   /// A sorted list of non-negative offsets signifying the start of
@@ -42,7 +42,7 @@ class OffsetsAdjuster {
     }
     // Adjust the adjustments for all ranges that start at the given offset
     // or later.
-    for (int i = startingIndex; i < offsets.length; i++) {
+    for (var i = startingIndex; i < offsets.length; i++) {
       final off = offsets[i];
       adjustments[off] = adjustments[offset]! + adjustment;
     }
@@ -198,11 +198,11 @@ enum LoadCommandType {
 
   const LoadCommandType(this.code, this._headerName);
 
-  static const _prefix = "LC";
+  static const _prefix = 'LC';
 
   static LoadCommandType? fromCode(int code) {
     for (final value in values) {
-      if ((value.code & _reqDyld != 0)) {
+      if ((value.code & _reqDyld) != 0) {
         /// LC_REQ_DYLD is set on the enum value, so it can only match exactly.
         if (value.code == code) {
           return value;
@@ -250,35 +250,34 @@ abstract class MachOLoadCommand {
       return MachOGenericLoadCommand(code, size, contents);
     }
 
-    switch (type) {
-      case LoadCommandType.segment:
-      case LoadCommandType.segment64:
-        return MachOSegmentCommand.fromStream(code, size, stream);
-      case LoadCommandType.dynamicLibraryInfo:
-        return MachODyldInfoCommand.fromStream(code, size, stream);
-      case LoadCommandType.symbolTable:
-        return MachOSymtabCommand.fromStream(code, size, stream);
-      case LoadCommandType.dynamicSymbolTable:
-        return MachODysymtabCommand.fromStream(code, size, stream);
-      case LoadCommandType.codeSignature:
-      case LoadCommandType.segmentSplitInfo:
-      case LoadCommandType.functionStarts:
-      case LoadCommandType.dataInCode:
-      case LoadCommandType.dynamicLibraryCodeSigningDRs:
-      case LoadCommandType.linkerOptimizationHint:
-      case LoadCommandType.dynamicLibraryExportsTrie:
-      case LoadCommandType.dynamicLibraryChainedFixups:
-        return MachOLinkeditDataCommand.fromStream(code, size, stream);
-      case LoadCommandType.encryptionInfo:
-      case LoadCommandType.encryptionInfo64:
-        return MachOEncryptionInfoCommand.fromStream(code, size, stream);
-      case LoadCommandType.main:
-        return MachOEntryPointCommand.fromStream(code, size, stream);
-      case LoadCommandType.note:
-        return MachONoteCommand.fromStream(code, size, stream);
-      case LoadCommandType.fileSetEntry:
-        return MachOFileSetEntryCommand.fromStream(code, size, stream);
-    }
+    return switch (type) {
+      LoadCommandType.segment ||
+      LoadCommandType.segment64 =>
+        MachOSegmentCommand.fromStream(code, size, stream),
+      LoadCommandType.dynamicLibraryInfo =>
+        MachODyldInfoCommand.fromStream(code, size, stream),
+      LoadCommandType.symbolTable =>
+        MachOSymtabCommand.fromStream(code, size, stream),
+      LoadCommandType.dynamicSymbolTable =>
+        MachODysymtabCommand.fromStream(code, size, stream),
+      LoadCommandType.codeSignature ||
+      LoadCommandType.segmentSplitInfo ||
+      LoadCommandType.functionStarts ||
+      LoadCommandType.dataInCode ||
+      LoadCommandType.dynamicLibraryCodeSigningDRs ||
+      LoadCommandType.linkerOptimizationHint ||
+      LoadCommandType.dynamicLibraryExportsTrie ||
+      LoadCommandType.dynamicLibraryChainedFixups =>
+        MachOLinkeditDataCommand.fromStream(code, size, stream),
+      LoadCommandType.encryptionInfo ||
+      LoadCommandType.encryptionInfo64 =>
+        MachOEncryptionInfoCommand.fromStream(code, size, stream),
+      LoadCommandType.main =>
+        MachOEntryPointCommand.fromStream(code, size, stream),
+      LoadCommandType.note => MachONoteCommand.fromStream(code, size, stream),
+      LoadCommandType.fileSetEntry =>
+        MachOFileSetEntryCommand.fromStream(code, size, stream),
+    };
   }
 
   /// The type for this load command. Returns null for MachOGenericLoadCommand.
@@ -526,10 +525,10 @@ class MachOSegmentCommand extends MachOLoadCommand {
 
   static MachOSegmentCommand fromStream(
       int code, int size, MachOReader stream) {
-    bool is64Bit = LoadCommandType.fromCode(code) == LoadCommandType.segment64;
+    final is64Bit = LoadCommandType.fromCode(code) == LoadCommandType.segment64;
     final wordSize = is64Bit ? 8 : 4;
 
-    final String name = stream.readFixedLengthNullTerminatedString(_nameLength);
+    final name = stream.readFixedLengthNullTerminatedString(_nameLength);
     final memoryAddress = stream.readUword(wordSize);
     final memorySize = stream.readUword(wordSize);
     final fileOffset = stream.readUword(wordSize);
@@ -701,8 +700,8 @@ class MachOSection {
   static MachOSection fromStream(MachOReader stream, bool is64Bit) {
     final wordSize = is64Bit ? 8 : 4;
 
-    final String name = stream.readFixedLengthNullTerminatedString(_nameLength);
-    final String segmentName = stream
+    final name = stream.readFixedLengthNullTerminatedString(_nameLength);
+    final segmentName = stream
         .readFixedLengthNullTerminatedString(MachOSegmentCommand._nameLength);
     final memoryAddress = stream.readUword(wordSize);
     final size = stream.readUword(wordSize);
@@ -736,11 +735,6 @@ class MachOSection {
   static const _nameLength = 16;
   static const _attributesMask = 0xffffffff & ~SectionType._typeMask;
 
-  static int combineIntoFlags(SectionType type, int attributes) {
-    assert((attributes & ~_attributesMask) == 0);
-    return attributes & type._code;
-  }
-
   bool get is64Bit => reserved3 != null;
 
   SectionType? get type => SectionType.fromFlags(flags);
@@ -768,7 +762,7 @@ class MachOSection {
       reserved3);
 
   void writeContentsSync(MachOWriter stream) {
-    final int wordSize = is64Bit ? 8 : 4;
+    final wordSize = is64Bit ? 8 : 4;
     stream.writeFixedLengthNullTerminatedString(name, _nameLength);
     stream.writeFixedLengthNullTerminatedString(
         segmentName, MachOSegmentCommand._nameLength);
@@ -1481,17 +1475,17 @@ class MachOFile {
 
   static MachOFile fromFile(File file) {
     // Ensure the file is long enough to contain the magic bytes.
-    final int fileLength = file.lengthSync();
+    final fileLength = file.lengthSync();
     if (fileLength < 4) {
       throw FormatException(
-          "File was not formatted properly. Length was too short: $fileLength");
+          'File was not formatted properly. Length was too short: $fileLength');
     }
 
     final stream = file.openSync();
     final header = MachOHeader.fromStream(stream);
     if (header == null) {
       throw FormatException(
-          "Could not parse a MachO header from the file: ${file.path}");
+          'Could not parse a MachO header from the file: ${file.path}');
     }
 
     final uses64BitPointers = CpuType.cpuTypeUses64BitPointers(header.cpu);
@@ -1517,24 +1511,24 @@ class MachOFile {
   MachOFile adjustHeaderForSnapshot(int snapshotSize) {
     // This is not an idempotent operation.
     if (snapshotNote != null) {
-      throw FormatException(
-          "The executable already has a Dart snapshot inserted");
+      throw const FormatException(
+          'The executable already has a Dart snapshot inserted');
     }
 
     final reserved = reservedSegment;
     if (reserved == null) {
-      throw FormatException("$reservedSegmentName segment not found");
+      throw const FormatException('$reservedSegmentName segment not found');
     }
 
     final linkedit = linkEditSegment;
     if (linkedit == null) {
-      throw FormatException("__LINKEDIT segment not found");
+      throw const FormatException('__LINKEDIT segment not found');
     }
 
     // We insert the contents of the snapshot where the old linkedit segment
     // started in the original executable, aligned appropriately.
-    final int fileOffset = align(linkedit.fileOffset, segmentAlignment);
-    final int fileSize = snapshotSize;
+    final fileOffset = align(linkedit.fileOffset, segmentAlignment);
+    final fileSize = snapshotSize;
 
     final note =
         MachONoteCommand.fromFields(snapshotNoteName, fileOffset, fileSize);
@@ -1575,8 +1569,8 @@ class MachOFile {
     final newFile = MachOFile._(newHeader, newCommands, hasCodeSignature);
 
     if (newFile.size > size) {
-      throw FormatException("Cannot add new note load command to header: "
-          "new size ${newFile.size} > the old size $size)");
+      throw FormatException('Cannot add new note load command to header: '
+          'new size ${newFile.size} > the old size $size)');
     }
 
     return newFile;
@@ -1584,7 +1578,7 @@ class MachOFile {
 
   /// The name of the segment containing all the structs created and maintained
   /// by the link editor.
-  static const _linkEditSegmentName = "__LINKEDIT";
+  static const _linkEditSegmentName = '__LINKEDIT';
 
   /// Retrieves the segment load command used to reserve header space for the
   /// snapshot information. Returns null if not found or if it is of an
@@ -1642,7 +1636,7 @@ class MachOFile {
     final uses64BitPointers = CpuType.cpuTypeUses64BitPointers(header.cpu);
     final writer = MachOWriter(stream, header.endian, uses64BitPointers);
     // Write all of the commands.
-    for (var command in commands) {
+    for (final command in commands) {
       command.writeSync(writer);
     }
   }

@@ -9,4 +9,5 @@ class B<T> {
 }
 
 main() {}
+
 var t3 = [new B(3)];

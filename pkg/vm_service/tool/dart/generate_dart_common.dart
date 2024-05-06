@@ -1056,7 +1056,7 @@ class TypeField extends Member {
 
   @override
   String? get docs {
-    String str = _docs == null ? '' : _docs!;
+    String str = _docs ?? '';
     if (type.isMultipleReturns) {
       str += '\n\n[$generatableName] can be one of '
           '${joinLast(type.types.map((t) => '[$t]'), ', ', ' or ')}.';

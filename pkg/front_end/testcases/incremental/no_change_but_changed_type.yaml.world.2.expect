@@ -4,7 +4,7 @@ library from "org-dartlang-test:///lib.dart" as lib {
   abstract class TestMixin<T extends dart.core::Object? = dynamic> extends dart.core::Object /*isMixinDeclaration*/  {
     method test(covariant-by-class dart.async::Future<lib::TestMixin::T%> fetch) → dart.async::Future<lib::TestMixin::T%> async /* emittedValueType= lib::TestMixin::T% */ {
       final lib::TestMixin::T% response = await fetch;
-      return response;
+      return response as{Unchecked} lib::TestMixin::T%;
     }
   }
 }
@@ -18,7 +18,7 @@ library from "org-dartlang-test:///main.dart" as main {
       ;
     method /* from org-dartlang-test:///lib.dart */ test(covariant-by-class dart.async::Future<dart.core::String> fetch) → dart.async::Future<dart.core::String> async /* emittedValueType= dart.core::String */ {
       final dart.core::String response = await fetch;
-      return response;
+      return response as{Unchecked} dart.core::String;
     }
   }
   class Class2 extends main::_Class2&Object&TestMixin {

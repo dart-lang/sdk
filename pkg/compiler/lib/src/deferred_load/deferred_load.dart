@@ -446,7 +446,7 @@ class DeferredLoadTask extends CompilerTask {
       return _buildResult();
     }
 
-    work() {
+    void work() {
       algorithmState = AlgorithmState.create(
           main, compiler, _elementMap, closedWorld, importSets!);
     }

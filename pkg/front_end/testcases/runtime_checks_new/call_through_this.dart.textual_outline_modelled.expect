@@ -15,5 +15,7 @@ class E extends C<num> {
 }
 
 main() {}
+
 test() {}
+
 typedef F<T>(T x);

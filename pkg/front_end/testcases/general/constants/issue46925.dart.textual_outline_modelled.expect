@@ -1,4 +1,5 @@
 // @dart = 2.14
+
 class MyClass<T> {
   const MyClass(int i, int j) : a = (i + j);
   const MyClass.constr() : a = 0;
@@ -6,4 +7,5 @@ class MyClass<T> {
 }
 
 main() {}
+
 test() {}

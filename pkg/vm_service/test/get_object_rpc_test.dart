@@ -1,7 +1,6 @@
 // Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=3.0
 
 // ignore_for_file: library_private_types_in_public_api
 
@@ -10,6 +9,7 @@ library get_object_rpc_test;
 import 'dart:collection';
 import 'dart:convert' show base64Decode;
 import 'dart:developer';
+import 'dart:ffi';
 import 'dart:typed_data';
 
 import 'package:test/test.dart';
@@ -100,6 +100,29 @@ _DummyClassWithMixins getDummyClassWithMixins() => _DummyClassWithMixins();
 
 @pragma('vm:entry-point')
 UserTag getUserTag() => UserTag('Test Tag');
+
+@pragma('vm:entry-point')
+Finalizer getFinalizer() {
+  // Ensure at least one FinalizerEntry.
+  finalizer.attach(
+    nonGcedObject,
+    _DummyClass(),
+    detach: _DummyClass(),
+  );
+  return finalizer;
+}
+
+final finalizer = Finalizer((p0) {});
+final nonGcedObject = _DummyClass();
+
+@pragma('vm:entry-point')
+NativeFinalizer getNativeFinalizer() {
+  // Avoid adding entries here to avoid running on shutdown
+  return nativeFinalizer;
+}
+
+final nativeFinalizer =
+    NativeFinalizer(DynamicLibrary.process().lookup('free'));
 
 var tests = <IsolateTest>[
   // null object.
@@ -1886,6 +1909,83 @@ var tests = <IsolateTest>[
       expect(e.code, equals(RPCErrorKind.kInvalidParams.code));
       expect(e.message, 'Invalid params');
     }
+  },
+
+  // A finalizer
+  (VmService service, IsolateRef isolateRef) async {
+    final isolateId = isolateRef.id!;
+    final isolate = await service.getIsolate(isolateId);
+    final evalResult = await service.invoke(
+      isolateId,
+      isolate.rootLib!.id!,
+      'getFinalizer',
+      [],
+    ) as InstanceRef;
+    final objectId = evalResult.id!;
+    final result = await service.getObject(isolateId, objectId) as Instance;
+    expect(result.kind, InstanceKind.kFinalizer);
+    expect(result.json!['_vmType'], equals('Finalizer'));
+    expect(result.id, startsWith('objects/'));
+    expect(result.classRef!.name, equals('_FinalizerImpl'));
+    expect(result.size, isPositive);
+    expect(result.fields, isEmpty);
+    expect(result.length, isNull);
+    expect(result.offset, isNull);
+    expect(result.count, isNull);
+    final callback = result.callback;
+    expect(callback, isNotNull);
+    expect(callback!.kind, equals(InstanceKind.kClosure));
+    final allEntriesRef = result.allEntries;
+    expect(allEntriesRef, isNotNull);
+    final allEntries =
+        await service.getObject(isolateId, allEntriesRef!.id!) as Instance;
+    for (final entryRef in allEntries.elements!) {
+      final entry =
+          await service.getObject(isolateId, entryRef!.id!) as Instance;
+      expect(entry.kind, InstanceKind.kFinalizerEntry);
+      expect(entry.json!['_vmType'], equals('FinalizerEntry'));
+      expect(entry.id, startsWith('objects/'));
+      expect(entry.classRef!.name, equals('FinalizerEntry'));
+      expect(entry.size, isPositive);
+      expect(entry.fields, isEmpty);
+      expect(entry.length, isNull);
+      expect(entry.offset, isNull);
+      expect(entry.count, isNull);
+      expect(entry.value!.classRef!.name, '_DummyClass');
+      expect(entry.token!.classRef!.name, '_DummyClass');
+      expect(entry.detach!.classRef!.name, '_DummyClass');
+    }
+  },
+
+  // A native finalizer
+  (VmService service, IsolateRef isolateRef) async {
+    final isolateId = isolateRef.id!;
+    final isolate = await service.getIsolate(isolateId);
+    final evalResult = await service.invoke(
+      isolateId,
+      isolate.rootLib!.id!,
+      'getNativeFinalizer',
+      [],
+    ) as InstanceRef;
+    final objectId = evalResult.id!;
+    final result = await service.getObject(isolateId, objectId) as Instance;
+    expect(result.kind, InstanceKind.kNativeFinalizer);
+    expect(result.json!['_vmType'], equals('NativeFinalizer'));
+    expect(result.id, startsWith('objects/'));
+    expect(result.classRef!.name, equals('_NativeFinalizer'));
+    expect(result.size, isPositive);
+    expect(result.fields, isEmpty);
+    expect(result.length, isNull);
+    expect(result.offset, isNull);
+    expect(result.count, isNull);
+    final callbackAddress = result.callbackAddress;
+    expect(callbackAddress, isNotNull);
+    expect(callbackAddress!.classRef!.name, equals('Pointer'));
+    final allEntriesRef = result.allEntries;
+    expect(allEntriesRef, isNotNull);
+    final allEntries =
+        await service.getObject(isolateId, allEntriesRef!.id!) as Instance;
+    expect(allEntries.elements, isEmpty);
   },
 ];
 

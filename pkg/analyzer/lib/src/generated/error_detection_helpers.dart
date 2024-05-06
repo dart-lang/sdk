@@ -94,10 +94,10 @@ mixin ErrorDetectionHelpers {
         var field = expectedStaticType.positionalFields.first;
         if (typeSystem.isAssignableTo(field.type, actualStaticType,
             strictCasts: strictCasts)) {
-          errorReporter.reportErrorForNode(
-            WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+          errorReporter.atNode(
             expression,
-            [],
+            CompileTimeErrorCode
+                .RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
           );
           return;
         }
@@ -127,24 +127,30 @@ mixin ErrorDetectionHelpers {
               if (!namedFields.any((element) =>
                   element.name == field.name && field.type == element.type)) {
                 additionalInfo.add(
-                    'Unexpected named argument `${field.name}` with type `${field.type.getDisplayString(withNullability: true)}`.');
+                    'Unexpected named argument `${field.name}` with type `${field.type.getDisplayString()}`.');
               }
             }
           }
         }
-        errorReporter.reportErrorForNode(
-          errorCode,
+        errorReporter.atNode(
           getErrorNode(expression),
-          [actualStaticType, expectedStaticType, additionalInfo.join(' ')],
-          computeWhyNotPromotedMessages(expression, whyNotPromoted?.call()),
+          errorCode,
+          arguments: [
+            actualStaticType,
+            expectedStaticType,
+            additionalInfo.join(' ')
+          ],
+          contextMessages:
+              computeWhyNotPromotedMessages(expression, whyNotPromoted?.call()),
         );
         return;
       }
-      errorReporter.reportErrorForNode(
-        errorCode,
+      errorReporter.atNode(
         getErrorNode(expression),
-        [actualStaticType, expectedStaticType],
-        computeWhyNotPromotedMessages(expression, whyNotPromoted?.call()),
+        errorCode,
+        arguments: [actualStaticType, expectedStaticType],
+        contextMessages:
+            computeWhyNotPromotedMessages(expression, whyNotPromoted?.call()),
       );
     }
   }
@@ -178,17 +184,19 @@ mixin ErrorDetectionHelpers {
     if (isConstConstructor) {
       // TODO(paulberry): this error should be based on the actual type of the
       // constant, not the static type.  See dartbug.com/21119.
-      errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
-          expression,
-          [staticType, fieldType],
-          messages);
+      errorReporter.atNode(
+        expression,
+        CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
+        arguments: [staticType, fieldType],
+        contextMessages: messages,
+      );
     } else {
-      errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE,
-          expression,
-          [staticType, fieldType],
-          messages);
+      errorReporter.atNode(
+        expression,
+        CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE,
+        arguments: [staticType, fieldType],
+        contextMessages: messages,
+      );
     }
 
     // TODO(brianwilkerson): Define a hint corresponding to these errors and
@@ -227,11 +235,15 @@ mixin ErrorDetectionHelpers {
 
     if (expression is MethodInvocation) {
       SimpleIdentifier methodName = expression.methodName;
-      errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.USE_OF_VOID_RESULT, methodName, []);
+      errorReporter.atNode(
+        methodName,
+        CompileTimeErrorCode.USE_OF_VOID_RESULT,
+      );
     } else {
-      errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.USE_OF_VOID_RESULT, expression, []);
+      errorReporter.atNode(
+        expression,
+        CompileTimeErrorCode.USE_OF_VOID_RESULT,
+      );
     }
 
     return true;
@@ -292,9 +304,16 @@ mixin ErrorDetectionHelpers {
   /// > a method named `call`. In the case where the context type for `e`
   /// > is a function type or the type `Function`, `e` is treated as `e.call`.
   MethodElement? getImplicitCallMethod(
-      DartType type, DartType? context, SyntacticEntity errorNode) {
-    if (context != null &&
-        typeSystem.acceptsFunctionType(context) &&
+      DartType type, DartType context, SyntacticEntity errorNode) {
+    var visitedTypes = {type};
+    while (type is TypeParameterType) {
+      type = type.bound;
+      if (!visitedTypes.add(type)) {
+        // A cycle!
+        return null;
+      }
+    }
+    if (typeSystem.acceptsFunctionType(context) &&
         type is InterfaceType &&
         type.nullabilitySuffix != NullabilitySuffix.question) {
       return type.lookUpMethod2(

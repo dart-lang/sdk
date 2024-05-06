@@ -9,7 +9,11 @@ abstract class SuperClass2 {
 }
 
 mixin Mixin {}
+
 class NamedMixin1 = SuperClass1 with Mixin;
+
 class NamedMixin2 = SuperClass2 with Mixin;
+
 void main() {}
+
 errors() {}

@@ -64,7 +64,9 @@ typedef JSSymbolRepType = interceptors.JavaScriptSymbol;
 
 typedef JSBigIntRepType = interceptors.JavaScriptBigInt;
 
-/// [JSVoid] is just a typedef for [void]. While we could just use
-/// `JSUndefined`, in the future we may be able to use this to elide `return`s
-/// in JS trampolines.
+// While this type is not a JS type, it is here for convenience so we don't need
+// to create a new shared library.
+typedef ExternalDartReferenceRepType = Object;
+
+// JSVoid is just a typedef for void.
 typedef JSVoidRepType = void;

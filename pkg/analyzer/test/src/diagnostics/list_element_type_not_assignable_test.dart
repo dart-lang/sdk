@@ -10,58 +10,12 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ListElementTypeNotAssignableTest);
-    defineReflectiveTests(ListElementTypeNotAssignableWithoutNullSafetyTest);
     defineReflectiveTests(ListElementTypeNotAssignableWithStrictCastsTest);
   });
 }
 
 @reflectiveTest
-class ListElementTypeNotAssignableTest extends PubPackageResolutionTest
-    with ListElementTypeNotAssignableTestCases {
-  test_const_stringQuestion_null_value() async {
-    await assertNoErrorsInCode('''
-var v = const <String?>[null];
-''');
-  }
-
-  test_nonConst_genericFunction_genericContext() async {
-    await assertNoErrorsInCode('''
-List<U Function<U>(U)> foo(T Function<T>(T a) f) {
-  return [f];
-}
-''');
-  }
-
-  test_nonConst_genericFunction_genericContext_nonAssignable() async {
-    await assertErrorsInCode('''
-List<U Function<U>(U, int)> foo(T Function<T>(T a) f) {
-  return [f];
-}
-''', [
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 66, 1),
-    ]);
-  }
-
-  test_nonConst_genericFunction_nonGenericContext() async {
-    await assertNoErrorsInCode('''
-List<int Function(int)> foo(T Function<T>(T a) f) {
-  return [f];
-}
-''');
-  }
-
-  test_nonConst_genericFunction_nonGenericContext_nonAssignable() async {
-    await assertErrorsInCode('''
-List<int Function(int, int)> foo(T Function<T>(T a) f) {
-  return [f];
-}
-''', [
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 67, 1),
-    ]);
-  }
-}
-
-mixin ListElementTypeNotAssignableTestCases on PubPackageResolutionTest {
+class ListElementTypeNotAssignableTest extends PubPackageResolutionTest {
   test_const_ifElement_thenElseFalse_intInt() async {
     await assertNoErrorsInCode('''
 const dynamic a = 0;
@@ -119,22 +73,20 @@ var v2 = const <int> [42];
   }
 
   test_const_intNull_dynamic() async {
-    var errors = expectedErrorsByNullability(nullable: [
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 36, 1),
-    ], legacy: []);
     await assertErrorsInCode('''
 const a = null;
 var v = const <int>[a];
-''', errors);
+''', [
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 36, 1),
+    ]);
   }
 
   test_const_intNull_value() async {
-    var errors = expectedErrorsByNullability(nullable: [
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 20, 4),
-    ], legacy: []);
     await assertErrorsInCode('''
 var v = const <int>[null];
-''', errors);
+''', [
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 20, 4),
+    ]);
   }
 
   test_const_spread_intInt() async {
@@ -160,10 +112,52 @@ var v = const <String>[x];
     ]);
   }
 
+  test_const_stringQuestion_null_value() async {
+    await assertNoErrorsInCode('''
+var v = const <String?>[null];
+''');
+  }
+
   test_const_voidInt() async {
     await assertNoErrorsInCode('''
 var v = const <void>[42];
 ''');
+  }
+
+  test_nonConst_genericFunction_genericContext() async {
+    await assertNoErrorsInCode('''
+List<U Function<U>(U)> foo(T Function<T>(T a) f) {
+  return [f];
+}
+''');
+  }
+
+  test_nonConst_genericFunction_genericContext_nonAssignable() async {
+    await assertErrorsInCode('''
+List<U Function<U>(U, int)> foo(T Function<T>(T a) f) {
+  return [f];
+}
+''', [
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 66, 1),
+    ]);
+  }
+
+  test_nonConst_genericFunction_nonGenericContext() async {
+    await assertNoErrorsInCode('''
+List<int Function(int)> foo(T Function<T>(T a) f) {
+  return [f];
+}
+''');
+  }
+
+  test_nonConst_genericFunction_nonGenericContext_nonAssignable() async {
+    await assertErrorsInCode('''
+List<int Function(int, int)> foo(T Function<T>(T a) f) {
+  return [f];
+}
+''', [
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 67, 1),
+    ]);
   }
 
   test_nonConst_ifElement_thenElseFalse_intDynamic() async {
@@ -231,11 +225,6 @@ var v = <void>[42];
 ''');
   }
 }
-
-@reflectiveTest
-class ListElementTypeNotAssignableWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, ListElementTypeNotAssignableTestCases {}
 
 @reflectiveTest
 class ListElementTypeNotAssignableWithStrictCastsTest

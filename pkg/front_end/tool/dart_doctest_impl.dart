@@ -8,24 +8,17 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/parser/parser.dart' show Parser;
-
 import 'package:_fe_analyzer_shared/src/messages/codes.dart' as codes;
-
 import 'package:_fe_analyzer_shared/src/parser/async_modifier.dart'
     show AsyncModifier;
-
 import 'package:_fe_analyzer_shared/src/parser/forwarding_listener.dart'
     show NullListener;
-
+import 'package:_fe_analyzer_shared/src/parser/parser.dart' show Parser;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ScannerConfiguration;
-
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
-
 import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
     show Utf8BytesScanner;
-
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
@@ -33,17 +26,15 @@ import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/builder/library_builder.dart';
+import 'package:front_end/src/fasta/codes/fasta_codes.dart';
 import 'package:front_end/src/fasta/combinator.dart';
-
 import 'package:front_end/src/fasta/command_line_reporting.dart'
     as command_line_reporting;
-
 import 'package:front_end/src/fasta/compiler_context.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:front_end/src/fasta/dill/dill_library_builder.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:front_end/src/fasta/dill/dill_target.dart';
-import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:front_end/src/fasta/hybrid_file_system.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:front_end/src/fasta/incremental_compiler.dart';
@@ -59,7 +50,7 @@ import 'package:kernel/kernel.dart' as kernel
     show Combinator, Component, LibraryDependency, Library, Location, Source;
 import 'package:kernel/target/targets.dart';
 // ignore: import_of_legacy_library_into_null_safe
-import 'package:vm/target/vm.dart';
+import 'package:vm/modular/target/vm.dart';
 
 // ignore: import_of_legacy_library_into_null_safe
 import '../test/incremental_suite.dart' show getOptions;
@@ -835,6 +826,7 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
       nameOrigin: libraryBuilder,
       isUnsupported: false,
       isAugmentation: false,
+      isPatch: false,
     );
 
     if (libraryBuilder is DillLibraryBuilder) {
@@ -919,7 +911,8 @@ class DocTestSourceLoader extends SourceLoader {
       SourceLibraryBuilder? origin,
       kernel.Library? referencesFrom,
       bool? referenceIsPartOwner,
-      bool isAugmentation = false}) {
+      bool isAugmentation = false,
+      bool isPatch = false}) {
     if (importUri == DocTestIncrementalCompiler.dartDocTestUri) {
       HybridFileSystem hfs = target.fileSystem as HybridFileSystem;
       MemoryFileSystem fs = hfs.memory;
@@ -937,6 +930,7 @@ class DocTestSourceLoader extends SourceLoader {
         origin: origin,
         referencesFrom: referencesFrom,
         referenceIsPartOwner: referenceIsPartOwner,
-        isAugmentation: isAugmentation);
+        isAugmentation: isAugmentation,
+        isPatch: isPatch);
   }
 }

@@ -129,6 +129,7 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   RELEASE_ASSERT(kernel_buffer != nullptr);
 
   flags->load_vmservice_library = true;
+  flags->is_service_isolate = true;
   isolate_group_data->SetKernelBufferUnowned(
       const_cast<uint8_t*>(kernel_buffer), kernel_buffer_size);
   isolate = Dart_CreateIsolateGroupFromKernel(
@@ -149,11 +150,13 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   // Load embedder specific bits and return.
   if (!bin::VmService::Setup("127.0.0.1", 0,
                              /*dev_mode=*/false, /*auth_disabled=*/true,
-                             /*write_service_info_filename*/ "",
+                             /*write_service_info_filename=*/"",
                              /*trace_loading=*/false, /*deterministic=*/true,
                              /*enable_service_port_fallback=*/false,
-                             /*wait_for_dds_to_advertise_service*/ false,
-                             /*serve_observatory*/ true)) {
+                             /*wait_for_dds_to_advertise_service=*/false,
+                             /*serve_devtools=*/false,
+                             /*serve_observatory=*/true,
+                             /*print_dtd=*/false)) {
     *error = Utils::StrDup(bin::VmService::GetErrorMessage());
     return nullptr;
   }

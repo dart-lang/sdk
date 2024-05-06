@@ -19,6 +19,7 @@ ok<
     XpotentiallyNull xPotentiallyNullArg,
     YnonNull yNonNullArg,
     YpotentiallyNull yPotentiallyNullArg) {}
+
 error<
         XnonNull extends Object,
         YnonNull extends XnonNull,
@@ -46,4 +47,5 @@ error<
     YnonNull? yNonNullNullableArg,
     YpotentiallyNull yPotentiallyNullArg,
     YpotentiallyNull? yPotentiallyNullNullableArg) {}
+
 main() {}

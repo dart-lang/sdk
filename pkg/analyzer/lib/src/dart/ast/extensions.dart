@@ -93,25 +93,6 @@ extension ArgumentListExtension on ArgumentList {
   }
 }
 
-extension AstNodeNullableExtension on AstNode? {
-  List<ClassMember> get classMembers {
-    final self = this;
-    if (self is ClassDeclaration) {
-      return self.members;
-    } else if (self is EnumDeclaration) {
-      return self.members;
-    } else if (self is ExtensionDeclaration) {
-      return self.members;
-    } else if (self is ExtensionTypeDeclaration) {
-      return self.members;
-    } else if (self is MixinDeclaration) {
-      return self.members;
-    } else {
-      throw UnimplementedError('(${self.runtimeType}) $self');
-    }
-  }
-}
-
 extension ConstructorDeclarationExtension on ConstructorDeclaration {
   bool get isNonRedirectingGenerative {
     // Must be generative.
@@ -237,7 +218,7 @@ extension IdentifierExtension on Identifier {
 extension IdentifierImplExtension on IdentifierImpl {
   NamedTypeImpl toNamedType({
     required TypeArgumentListImpl? typeArguments,
-    Token? question,
+    required Token? question,
   }) {
     final self = this;
     if (self is PrefixedIdentifierImpl) {

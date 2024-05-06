@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:io';
 
+import 'package:expect/config.dart';
 import 'package:path/path.dart' as path;
 
 import 'use_flag_test_helper.dart';
@@ -58,8 +58,6 @@ void main(List<String> args) async {
     return;
   }
 
-  final bool isAot = Platform.executable.contains('dart_precompiled_runtime');
-
   await withTempDir('tts', (String temp) async {
     final script = path.join(temp, 'script.dart');
     await File(script).writeAsString(generateExample());
@@ -69,7 +67,7 @@ void main(List<String> args) async {
     // binaries).
     final scriptDill = path.join(temp, 'script.dart.dill');
     await run('pkg/vm/tool/gen_kernel', <String>[
-      isAot ? '--aot' : '--no-aot',
+      isVmAotConfiguration ? '--aot' : '--no-aot',
       '--platform=$platformDill',
       '-o',
       scriptDill,
@@ -77,7 +75,7 @@ void main(List<String> args) async {
     ]);
 
     String mainFile = scriptDill;
-    if (isAot) {
+    if (isVmAotConfiguration) {
       final elfFile = path.join(temp, 'script.dart.dill.elf');
       await run(genSnapshot, <String>[
         '--snapshot-kind=app-aot-elf',

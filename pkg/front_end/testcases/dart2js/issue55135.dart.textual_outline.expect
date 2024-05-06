@@ -10,5 +10,7 @@ abstract class A {
 extension type C._(A point) implements A {
   C() : point = A();
 }
+
 void main() {}
+
 expectEquals(x, y) {}

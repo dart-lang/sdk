@@ -81,7 +81,7 @@ bool isDart(p.Context pathContext, String path) {
 bool isFixDataYaml(p.Context pathContext, String path) {
   return pathContext.basename(path) == fixDataYaml ||
       (pathContext.split(path).contains(fixDataYamlFolder) &&
-          pathContext.extension(path) == '.yaml');
+          isYaml(pathContext, path));
 }
 
 /// Return `true` if the given [path] refers to a file that is assumed to be
@@ -104,6 +104,12 @@ bool isGenerated(String path) {
   return false;
 }
 
+/// Returns `true` if the [filePath] should be assumed to be the path of a
+/// macro generated file.
+bool isMacroGenerated(String filePath) {
+  return filePath.endsWith('.macro.dart');
+}
+
 /// Return `true` if [path] is a `.dart_tool/package_config.json` file.
 bool isPackageConfigJson(p.Context pathContext, String path) {
   var components = pathContext.split(path);
@@ -115,4 +121,9 @@ bool isPackageConfigJson(p.Context pathContext, String path) {
 /// Return `true` if [path] is a `pubspec.yaml` file.
 bool isPubspecYaml(p.Context pathContext, String path) {
   return pathContext.basename(path) == pubspecYaml;
+}
+
+/// Return `true` if [path] is a YAML file.
+bool isYaml(p.Context pathContext, String path) {
+  return pathContext.extension(path) == '.yaml';
 }

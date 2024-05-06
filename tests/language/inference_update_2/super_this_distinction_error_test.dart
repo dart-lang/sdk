@@ -10,8 +10,6 @@
 // that the implementation properly tracks promotions when determining whether
 // it's legal to invoke a member whose type is a nullable function type.
 
-// SharedOptions=--enable-experiment=inference-update-2
-
 class Base {
   final void Function()? _f;
   Base(this._f);

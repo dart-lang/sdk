@@ -62,10 +62,10 @@ suggestions
     kind: class
   B0
     kind: class
-  F1
-    kind: function
   P0
     kind: class
+  F1
+    kind: function
   T1
     kind: topLevelVariable
 ''');
@@ -117,8 +117,6 @@ suggestions
     kind: import
   dart:convert
     kind: import
-  dart:core
-    kind: import
   dart:ffi
     kind: import
   dart:html
@@ -136,6 +134,8 @@ suggestions
   package:test/
     kind: import
   package:test/test.dart
+    kind: import
+  dart:core
     kind: import
 ''');
   }
@@ -380,14 +380,14 @@ suggestions
     kind: class
   C1
     kind: class
-  F1
-    kind: function
-  F2
-    kind: typeAlias
   P1
     kind: class
   T1
     kind: topLevelVariable
+  F1
+    kind: function
+  F2
+    kind: typeAlias
 ''');
   }
 

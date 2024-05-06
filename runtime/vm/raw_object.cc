@@ -51,21 +51,12 @@ void UntaggedObject::Validate(IsolateGroup* isolate_group) const {
     if (!NewBit::decode(tags)) {
       FATAL("New object missing kNewBit: %" Px "\n", tags);
     }
-    if (OldBit::decode(tags)) {
-      FATAL("New object has kOldBit: %" Px "\n", tags);
-    }
-    if (OldAndNotMarkedBit::decode(tags)) {
-      FATAL("New object has kOldAndNotMarkedBit: %" Px "\n", tags);
-    }
     if (OldAndNotRememberedBit::decode(tags)) {
       FATAL("New object has kOldAndNotRememberedBit: %" Px "\n", tags);
     }
   } else {
     if (NewBit::decode(tags)) {
       FATAL("Old object has kNewBit: %" Px "\n", tags);
-    }
-    if (!OldBit::decode(tags)) {
-      FATAL("Old object missing kOldBit: %" Px "\n", tags);
     }
   }
   const intptr_t class_id = ClassIdTag::decode(tags);
@@ -547,8 +538,6 @@ COMPRESSED_VISITOR(ApiError)
 COMPRESSED_VISITOR(LanguageError)
 COMPRESSED_VISITOR(UnhandledException)
 COMPRESSED_VISITOR(UnwindError)
-COMPRESSED_VISITOR(ExternalOneByteString)
-COMPRESSED_VISITOR(ExternalTwoByteString)
 COMPRESSED_VISITOR(GrowableObjectArray)
 COMPRESSED_VISITOR(Map)
 COMPRESSED_VISITOR(Set)

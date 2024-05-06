@@ -23,22 +23,6 @@ f(dynamic a) {
 ''');
   }
 
-  test_legacy() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 2.7
-int a = 0;
-''');
-    await assertErrorsInCode('''
-import 'a.dart';
-
-f() {
-  throw a;
-}
-''', [
-      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-    ]);
-  }
-
   test_nonNullable() async {
     await assertNoErrorsInCode('''
 f(int a) {

@@ -95,7 +95,7 @@ DEFINE_NATIVE_ENTRY(Developer_registerExtension, 0, 2) {
   // service isolate.  This can happen, for example, because the
   // service isolate uses dart:io.  If we decide that we want to start
   // supporting this in the future, it will take some work.
-  if (!ServiceIsolate::IsServiceIsolateDescendant(isolate)) {
+  if (!isolate->is_service_isolate()) {
     isolate->RegisterServiceExtensionHandler(name, handler);
   }
   return Object::null();

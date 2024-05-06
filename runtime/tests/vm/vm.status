@@ -197,6 +197,7 @@ cc/Profiler_TypedArrayAllocation: SkipByDesign
 cc/Service_Profile: SkipByDesign
 dart/gc/splay_c_finalizer_test: SkipByDesign # No FFI on simulators
 dart/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https://dartbug.com/37299 Test uses dart:ffi which is not supported on simulators.
+dart/isolates/regress_54528_test: SkipByDesign # Invokes gen_kernel/gen_snapshot
 dart/isolates/thread_pool_test: SkipByDesign # https://dartbug.com/37299 Test uses dart:ffi which is not supported on simulators.
 dart/reachability_test: SkipByDesign # Test takes too long on the simulator
 dart/regress_41971_test: SkipByDesign # https://dartbug.com/37299 dart:ffi is not supported on simulator
@@ -271,6 +272,7 @@ dart/snapshot_version_test: RuntimeError # Please triage.
 dart/awaiter_stacks/sync_async_start_pkg_test_test: SkipSlow
 dart/data_uri_spawn_test: SkipSlow
 dart/heap_snapshot_referrers_test: SkipSlow
+dart/heap_snapshot_test: SkipSlow
 dart/heapsnapshot_cli_test: SkipSlow
 dart/isolates/reload_many_isolates_live_and_die_test: SkipSlow # The test itself does reloading of subprocesses.
 dart/kernel_determinism_test: SkipSlow
@@ -282,6 +284,7 @@ dart/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https://d
 
 [ $compiler == dartkp && $simulator ]
 dart/awaiter_stacks/async_throws_stack_lazy_non_symbolic_test: Pass, Slow
+dart/awaiter_stacks/stream_methods_test/1: Pass, Slow
 dart/isolates/fast_object_copy2_test*: Skip # Uses ffi which is not available on simulated architectures
 dart/isolates/fast_object_copy_test*: SkipSlow
 

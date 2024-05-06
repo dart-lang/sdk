@@ -8,7 +8,16 @@ import 'dart:convert' hide JsonDecoder;
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
+import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
+import 'package:path/path.dart' as path;
+
+/// This can be set by server (or tests) to change into URI mode for all legacy
+/// protocol JSON.
+///
+// TODO(dantup): Consider replacing this global with encoders being passed to
+//  toJson/fromJson methods.
+var clientUriConverter = ClientUriConverter.noop(path.context);
 
 final Map<String, RefactoringKind> REQUEST_ID_REFACTORING_KINDS =
     HashMap<String, RefactoringKind>();

@@ -138,8 +138,6 @@
   FIELD(Context, num_variables_offset)                                         \
   FIELD(Context, parent_offset)                                                \
   FIELD(Double, value_offset)                                                  \
-  FIELD(ExternalOneByteString, external_data_offset)                           \
-  FIELD(ExternalTwoByteString, external_data_offset)                           \
   FIELD(Float32x4, value_offset)                                               \
   FIELD(Float64x2, value_offset)                                               \
   FIELD(Field, initializer_function_offset)                                    \
@@ -160,6 +158,8 @@
   FIELD(GrowableObjectArray, length_offset)                                    \
   FIELD(GrowableObjectArray, type_arguments_offset)                            \
   FIELD(Page, card_table_offset)                                               \
+  FIELD(Page, original_top_offset)                                             \
+  FIELD(Page, original_end_offset)                                             \
   FIELD(CallSiteData, arguments_descriptor_offset)                             \
   FIELD(ICData, NumArgsTestedMask)                                             \
   FIELD(ICData, NumArgsTestedShift)                                            \
@@ -310,7 +310,6 @@
   FIELD(Thread, return_async_not_future_stub_offset)                           \
   FIELD(Thread, return_async_star_stub_offset)                                 \
   FIELD(Thread, return_async_stub_offset)                                      \
-                                                                               \
   FIELD(Thread, object_null_offset)                                            \
   FIELD(Thread, predefined_symbols_address_offset)                             \
   FIELD(Thread, resume_pc_offset)                                              \
@@ -324,7 +323,6 @@
   FIELD(Thread, stack_overflow_shared_with_fpu_regs_entry_point_offset)        \
   FIELD(Thread, stack_overflow_shared_with_fpu_regs_stub_offset)               \
   FIELD(Thread, stack_overflow_shared_without_fpu_regs_entry_point_offset)     \
-                                                                               \
   FIELD(Thread, stack_overflow_shared_without_fpu_regs_stub_offset)            \
   FIELD(Thread, store_buffer_block_offset)                                     \
   FIELD(Thread, suspend_state_await_entry_point_offset)                        \
@@ -406,7 +404,6 @@
         kNumberOfCpuRegisters - 1, [](Register reg) {                          \
           return (kDartAvailableCpuRegs & (1 << reg)) != 0;                    \
         })                                                                     \
-                                                                               \
   SIZEOF(AbstractType, InstanceSize, UntaggedAbstractType)                     \
   SIZEOF(ApiError, InstanceSize, UntaggedApiError)                             \
   SIZEOF(Array, header_size, UntaggedArray)                                    \
@@ -422,8 +419,6 @@
   SIZEOF(Context, header_size, UntaggedContext)                                \
   SIZEOF(Double, InstanceSize, UntaggedDouble)                                 \
   SIZEOF(DynamicLibrary, InstanceSize, UntaggedDynamicLibrary)                 \
-  SIZEOF(ExternalOneByteString, InstanceSize, UntaggedExternalOneByteString)   \
-  SIZEOF(ExternalTwoByteString, InstanceSize, UntaggedExternalTwoByteString)   \
   SIZEOF(ExternalTypedData, InstanceSize, UntaggedExternalTypedData)           \
   SIZEOF(FfiTrampolineData, InstanceSize, UntaggedFfiTrampolineData)           \
   SIZEOF(Field, InstanceSize, UntaggedField)                                   \

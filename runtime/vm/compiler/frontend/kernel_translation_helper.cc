@@ -5,6 +5,7 @@
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 
 #include "vm/class_finalizer.h"
+#include "vm/closure_functions_cache.h"
 #include "vm/compiler/aot/precompiler.h"
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/frontend/constant_reader.h"
@@ -572,31 +573,34 @@ ClassPtr TranslationHelper::LookupClassByKernelClass(NameIndex kernel_class,
   return info_.InsertClass(thread_, name_index_handle_, klass);
 }
 
+ClassPtr TranslationHelper::LookupClassByKernelClassOrLibrary(
+    NameIndex kernel_name,
+    bool required) {
+  if (IsLibrary(kernel_name)) {
+    const auto& library =
+        Library::Handle(Z, LookupLibraryByKernelLibrary(kernel_name, required));
+    if (library.IsNull()) {
+      return Class::null();
+    }
+    return library.toplevel_class();
+  } else {
+    ASSERT(IsClass(kernel_name));
+    return LookupClassByKernelClass(kernel_name, required);
+  }
+}
+
 FieldPtr TranslationHelper::LookupFieldByKernelField(NameIndex kernel_field,
                                                      bool required) {
   ASSERT(IsField(kernel_field));
   NameIndex enclosing = EnclosingName(kernel_field);
 
-  Class& klass = Class::Handle(Z);
-  if (IsLibrary(enclosing)) {
-    Library& library = Library::Handle(
-        Z, LookupLibraryByKernelLibrary(enclosing, /*required=*/false));
-    if (library.IsNull()) {
-      if (required) {
-        LookupFailed(kernel_field);
-      }
-      return Field::null();
+  const Class& klass = Class::Handle(
+      Z, LookupClassByKernelClassOrLibrary(enclosing, /*required=*/false));
+  if (klass.IsNull()) {
+    if (required) {
+      LookupFailed(kernel_field);
     }
-    klass = library.toplevel_class();
-  } else {
-    ASSERT(IsClass(enclosing));
-    klass = LookupClassByKernelClass(enclosing, /*required=*/false);
-    if (klass.IsNull()) {
-      if (required) {
-        LookupFailed(kernel_field);
-      }
-      return Field::null();
-    }
+    return Field::null();
   }
   Field& field = Field::Handle(
       Z, klass.LookupFieldAllowPrivate(
@@ -613,28 +617,15 @@ FieldPtr TranslationHelper::LookupFieldByKernelGetterOrSetter(
   ASSERT(IsGetter(kernel_field) || IsSetter(kernel_field));
   NameIndex enclosing = EnclosingName(kernel_field);
 
-  Class& klass = Class::Handle(Z);
-  if (IsLibrary(enclosing)) {
-    Library& library = Library::Handle(
-        Z, LookupLibraryByKernelLibrary(enclosing, /*required=*/false));
-    if (library.IsNull()) {
-      if (required) {
-        LookupFailed(kernel_field);
-      }
-      return Field::null();
+  const Class& klass = Class::Handle(
+      Z, LookupClassByKernelClassOrLibrary(enclosing, /*required=*/false));
+  if (klass.IsNull()) {
+    if (required) {
+      LookupFailed(kernel_field);
     }
-    klass = library.toplevel_class();
-  } else {
-    ASSERT(IsClass(enclosing));
-    klass = LookupClassByKernelClass(enclosing, /*required=*/false);
-    if (klass.IsNull()) {
-      if (required) {
-        LookupFailed(kernel_field);
-      }
-      return Field::null();
-    }
+    return Field::null();
   }
-  Field& field = Field::Handle(
+  const Field& field = Field::Handle(
       Z, klass.LookupFieldAllowPrivate(
              DartSymbolObfuscate(CanonicalNameString(kernel_field))));
   if (field.IsNull() && required) {
@@ -651,26 +642,13 @@ FunctionPtr TranslationHelper::LookupStaticMethodByKernelProcedure(
   // The parent is either a library or a class (in which case the procedure is a
   // static method).
   NameIndex enclosing = EnclosingName(procedure);
-  Class& klass = Class::Handle(Z);
-  if (IsLibrary(enclosing)) {
-    Library& library = Library::Handle(
-        Z, LookupLibraryByKernelLibrary(enclosing, /*required=*/false));
-    if (library.IsNull()) {
-      if (required) {
-        LookupFailed(procedure);
-      }
-      return Function::null();
+  const Class& klass = Class::Handle(
+      Z, LookupClassByKernelClassOrLibrary(enclosing, /*required=*/false));
+  if (klass.IsNull()) {
+    if (required) {
+      LookupFailed(procedure);
     }
-    klass = library.toplevel_class();
-  } else {
-    ASSERT(IsClass(enclosing));
-    klass = LookupClassByKernelClass(enclosing, /*required=*/false);
-    if (klass.IsNull()) {
-      if (required) {
-        LookupFailed(procedure);
-      }
-      return Function::null();
-    }
+    return Function::null();
   }
 
   const auto& error = klass.EnsureIsFinalized(thread_);
@@ -751,6 +729,36 @@ FunctionPtr TranslationHelper::LookupMethodByMember(NameIndex target,
     LookupFailed(target);
   }
   return function.ptr();
+}
+
+ObjectPtr TranslationHelper::LookupMemberByMember(NameIndex kernel_name,
+                                                  bool required) {
+  // The parent is either a library or a class.
+  NameIndex enclosing = EnclosingName(kernel_name);
+  const Class& klass = Class::Handle(
+      Z, LookupClassByKernelClassOrLibrary(enclosing, /*required=*/false));
+  if (klass.IsNull()) {
+    if (required) {
+      LookupFailed(kernel_name);
+    }
+    return Object::null();
+  }
+
+  Object& member = Object::Handle(Z);
+  if (IsField(kernel_name)) {
+    member = klass.LookupFieldAllowPrivate(
+        DartSymbolObfuscate(CanonicalNameString(kernel_name)));
+  } else {
+    const String& procedure_name = DartProcedureName(kernel_name);
+
+    const auto& error = klass.EnsureIsFinalized(thread_);
+    ASSERT(error == Error::null());
+    member = klass.LookupFunctionAllowPrivate(procedure_name);
+  }
+  if (member.IsNull() && required) {
+    LookupFailed(kernel_name);
+  }
+  return member.ptr();
 }
 
 FunctionPtr TranslationHelper::LookupDynamicFunction(const Class& klass,
@@ -1737,7 +1745,8 @@ DirectCallMetadataHelper::DirectCallMetadataHelper(KernelReaderHelper* helper)
 
 bool DirectCallMetadataHelper::ReadMetadata(intptr_t node_offset,
                                             NameIndex* target_name,
-                                            bool* check_receiver_for_null) {
+                                            bool* check_receiver_for_null,
+                                            intptr_t* closure_id) {
   intptr_t md_offset = GetNextMetadataPayloadOffset(node_offset);
   if (md_offset < 0) {
     return false;
@@ -1747,7 +1756,15 @@ bool DirectCallMetadataHelper::ReadMetadata(intptr_t node_offset,
                                          &H.metadata_payloads(), md_offset);
 
   *target_name = helper_->ReadCanonicalNameReference();
-  *check_receiver_for_null = helper_->ReadBool();
+  const intptr_t flags = helper_->ReadByte();
+  *check_receiver_for_null =
+      ((flags & DirectCallMetadata::kFlagCheckReceiverForNull) != 0);
+  if ((flags & DirectCallMetadata::kFlagClosure) != 0) {
+    const intptr_t id = helper_->ReadUInt();
+    if (closure_id != nullptr) {
+      *closure_id = id;
+    }
+  }
   return true;
 }
 
@@ -1807,6 +1824,45 @@ DirectCallMetadata DirectCallMetadataHelper::GetDirectTargetForMethodInvocation(
       helper_->zone_, H.LookupMethodByMember(kernel_name, method_name));
 
   return DirectCallMetadata(target, check_receiver_for_null);
+}
+
+DirectCallMetadata
+DirectCallMetadataHelper::GetDirectTargetForFunctionInvocation(
+    intptr_t node_offset) {
+  NameIndex kernel_name;
+  bool check_receiver_for_null = false;
+  intptr_t closure_id = -1;
+  if (!ReadMetadata(node_offset, &kernel_name, &check_receiver_for_null,
+                    &closure_id)) {
+    return DirectCallMetadata(Function::null_function(), false);
+  }
+
+  const auto& member =
+      Object::Handle(helper_->zone_, H.LookupMemberByMember(kernel_name));
+  Function& function = Function::ZoneHandle(helper_->zone_);
+  if (member.IsField()) {
+    const auto& field = Field::Cast(member);
+    // Non-trivial initializers of instance non-late fields should be
+    // inlined into constructors on kernel AST
+    // during MoveFieldInitializers transformation.
+    ASSERT(field.is_static() || field.is_late());
+    ASSERT(field.has_nontrivial_initializer());
+    function = field.EnsureInitializerFunction();
+  } else {
+    function = Function::Cast(member).ptr();
+  }
+
+  ASSERT(closure_id >= 0);
+  if (closure_id == 0) {
+    // Tear-off
+    ASSERT(!member.IsField());
+    function = function.ImplicitClosureFunction();
+    ASSERT(!function.IsNull());
+    return DirectCallMetadata(function, check_receiver_for_null);
+  }
+
+  // TODO(alexmarkov): support devirtualization of arbitrary closure calls.
+  return DirectCallMetadata(Function::null_function(), false);
 }
 
 InferredTypeMetadataHelper::InferredTypeMetadataHelper(
@@ -2062,10 +2118,19 @@ UnboxingInfoMetadata* UnboxingInfoMetadataHelper::GetUnboxingInfoMetadata(
   const intptr_t num_args = helper_->ReadUInt();
   const auto info = new (helper_->zone_) UnboxingInfoMetadata();
   info->SetArgsCount(num_args);
-  for (intptr_t i = 0; i < num_args; i++) {
-    info->unboxed_args_info[i] = ReadUnboxingType();
+  const int8_t flags = helper_->ReadByte();
+  info->must_use_stack_calling_convention =
+      (flags & UnboxingInfoMetadata::kMustUseStackCallingConventionFlag) != 0;
+  info->has_overrides_with_less_direct_parameters =
+      (flags &
+       UnboxingInfoMetadata::kHasOverridesWithLessDirectParametersFlag) != 0;
+  if ((flags & UnboxingInfoMetadata::kHasUnboxedParameterOrReturnValueFlag) !=
+      0) {
+    for (intptr_t i = 0; i < num_args; i++) {
+      info->unboxed_args_info[i] = ReadUnboxingType();
+    }
+    info->return_info = ReadUnboxingType();
   }
-  info->return_info = ReadUnboxingType();
   return info;
 }
 
@@ -2246,21 +2311,39 @@ void KernelReaderHelper::ReportUnexpectedTag(const char* variant, Tag tag) {
 
 void KernelReaderHelper::ReadUntilFunctionNode() {
   const Tag tag = PeekTag();
-  if (tag == kProcedure) {
-    ProcedureHelper procedure_helper(this);
-    procedure_helper.ReadUntilExcluding(ProcedureHelper::kFunction);
-    // Now at start of FunctionNode.
-  } else if (tag == kConstructor) {
-    ConstructorHelper constructor_helper(this);
-    constructor_helper.ReadUntilExcluding(ConstructorHelper::kFunction);
-    // Now at start of FunctionNode.
-    // Notice that we also have a list of initializers after that!
-  } else if (tag == kFunctionNode) {
-    // Already at start of FunctionNode.
-  } else {
-    ReportUnexpectedTag("a procedure, a constructor or a function node", tag);
-    UNREACHABLE();
+  switch (tag) {
+    case kProcedure: {
+      ProcedureHelper procedure_helper(this);
+      procedure_helper.ReadUntilExcluding(ProcedureHelper::kFunction);
+      // Now at start of FunctionNode.
+      break;
+    }
+    case kConstructor: {
+      ConstructorHelper constructor_helper(this);
+      constructor_helper.ReadUntilExcluding(ConstructorHelper::kFunction);
+      // Now at start of FunctionNode.
+      // Notice that we also have a list of initializers after that!
+      break;
+    }
+    case kFunctionDeclaration:
+      ReadTag();
+      ReadPosition();
+      SkipVariableDeclaration();
+      break;
+    case kFunctionExpression:
+      ReadTag();
+      ReadPosition();
+      break;
+    case kFunctionNode:
+      // Already at start of FunctionNode.
+      break;
+    default:
+      ReportUnexpectedTag(
+          "a procedure, a constructor, a local function or a function node",
+          tag);
+      UNREACHABLE();
   }
+  ASSERT(PeekTag() == kFunctionNode);
 }
 
 void KernelReaderHelper::SkipDartType() {
@@ -2577,6 +2660,7 @@ void KernelReaderHelper::SkipExpression() {
       return;
     case kDynamicInvocation:
       ReadByte();        // read kind.
+      ReadByte();        // read flags.
       ReadPosition();    // read position.
       SkipExpression();  // read receiver.
       SkipName();        // read name.
@@ -2677,6 +2761,7 @@ void KernelReaderHelper::SkipExpression() {
       return;
     case kThrow:
       ReadPosition();    // read position.
+      SkipFlags();       // read flags.
       SkipExpression();  // read expression.
       return;
     case kListLiteral:

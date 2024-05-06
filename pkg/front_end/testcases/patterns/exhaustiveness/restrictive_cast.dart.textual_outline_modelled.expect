@@ -16,6 +16,7 @@ int? method(S s) => switch (s) {
       A(b: true) as A => 0,
       B(b: true) as B => value,
     };
+
 int? value = 1;
 
 sealed class S {

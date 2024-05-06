@@ -1,4 +1,5 @@
 // @dart = 2.9
+
 bad() {}
 
 class C {
@@ -13,5 +14,7 @@ class C {
 class D extends C {}
 
 main() {}
+
 ok() {}
+
 void topLevelFunction(int i) {}

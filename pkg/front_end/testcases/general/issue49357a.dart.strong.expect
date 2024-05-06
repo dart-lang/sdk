@@ -18,7 +18,7 @@ import self as self;
 import "dart:core" as core;
 
 abstract class A extends core::Object {
-  constructor •({required invalid-type field = #C1}) → self::A
+  constructor •({required invalid-type field}) → self::A
     : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/issue49357a.dart:6:3: Error: The superclass, 'B', has no unnamed constructor that takes no arguments.
   A({
   ^"
@@ -32,8 +32,4 @@ class C extends core::Object {
     for (final dynamic element in list as{TypeError,ForDynamic} core::Iterable<dynamic>) {
     }
   }
-}
-
-constants  {
-  #C1 = null
 }

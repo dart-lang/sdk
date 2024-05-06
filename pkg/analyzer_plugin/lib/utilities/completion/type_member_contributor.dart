@@ -323,7 +323,9 @@ class _SuggestionBuilder {
           if (propertyAccessor.isSynthetic) {
             // Avoid visiting a field twice
             if (propertyAccessor.isGetter) {
-              _addSuggestion(propertyAccessor.variable);
+              if (propertyAccessor.variable2 case var variable?) {
+                _addSuggestion(variable);
+              }
             }
           } else {
             _addSuggestion(propertyAccessor);
@@ -415,7 +417,7 @@ class _SuggestionBuilder {
     // classes seen (not the interfaces) so that we won't be fooled by nonsense
     // like "class C<T> extends C<List<T>> {}"
     var result = <InterfaceType>[];
-    final classesSeen = <InterfaceElement>{};
+    var classesSeen = <InterfaceElement>{};
     var typesToVisit = <InterfaceType>[type];
     while (typesToVisit.isNotEmpty) {
       var nextType = typesToVisit.removeLast();

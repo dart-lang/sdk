@@ -6,18 +6,14 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/resolver/exit_detector.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:collection/collection.dart';
 
 typedef _CatchClausesVerifierReporter = void Function(
   CatchClause first,
@@ -27,7 +23,7 @@ typedef _CatchClausesVerifierReporter = void Function(
 );
 
 /// A visitor that finds dead code, other than unreachable code that is
-/// handled in [NullSafetyDeadCodeVerifier] or [LegacyDeadCodeVerifier].
+/// handled in [NullSafetyDeadCodeVerifier].
 class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// The error reporter by which errors will be reported.
   final ErrorReporter _errorReporter;
@@ -115,8 +111,11 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
       Element? element = namespace.get(nameStr);
       element ??= namespace.get("$nameStr=");
       if (element == null) {
-        _errorReporter.reportErrorForNode(
-            warningCode, name, [library.identifier, nameStr]);
+        _errorReporter.atNode(
+          name,
+          warningCode,
+          arguments: [library.identifier, nameStr],
+        );
       }
     }
   }
@@ -128,319 +127,14 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
       f();
     } finally {
       for (Label label in labelTracker.unusedLabels()) {
-        _errorReporter.reportErrorForNode(
-            WarningCode.UNUSED_LABEL, label, [label.label.name]);
+        _errorReporter.atNode(
+          label,
+          WarningCode.UNUSED_LABEL,
+          arguments: [label.label.name],
+        );
       }
       _labelTracker = labelTracker.outerTracker;
     }
-  }
-}
-
-/// A visitor that finds dead code.
-class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
-  /// The error reporter by which errors will be reported.
-  final ErrorReporter _errorReporter;
-
-  ///  The type system for this visitor
-  final TypeSystemImpl _typeSystem;
-
-  /// Initialize a newly created dead code verifier that will report dead code
-  /// to the given [errorReporter] and will use the given [typeSystem] if one is
-  /// provided.
-  LegacyDeadCodeVerifier(this._errorReporter,
-      {required TypeSystemImpl typeSystem})
-      : _typeSystem = typeSystem;
-
-  @override
-  void visitBinaryExpression(BinaryExpression node) {
-    Token operator = node.operator;
-    bool isAmpAmp = operator.type == TokenType.AMPERSAND_AMPERSAND;
-    bool isBarBar = operator.type == TokenType.BAR_BAR;
-    if (isAmpAmp || isBarBar) {
-      Expression lhsCondition = node.leftOperand;
-      if (!_isDebugConstant(lhsCondition)) {
-        var lhsResult = _constantBooleanValue(lhsCondition);
-        if (lhsResult != null) {
-          var value = lhsResult.toBoolValue();
-          // Report error on "else" block: true || !e!
-          // or on "if" block: false && !e!
-          if (value == true && isBarBar || value == false && isAmpAmp) {
-            var offset = node.operator.offset;
-            var length = node.rightOperand.end - offset;
-            _errorReporter.reportErrorForOffset(
-                WarningCode.DEAD_CODE, offset, length);
-            // Only visit the LHS:
-            lhsCondition.accept(this);
-            return;
-          }
-        }
-      }
-      // How do we want to handle the RHS? It isn't dead code, but "pointless"
-      // or "obscure"...
-//            Expression rhsCondition = node.getRightOperand();
-//            ValidResult rhsResult = getConstantBooleanValue(rhsCondition);
-//            if (rhsResult != null) {
-//              if (rhsResult == ValidResult.RESULT_TRUE && isBarBar) {
-//                // report error on else block: !e! || true
-//                errorReporter.reportError(HintCode.DEAD_CODE, node.getRightOperand());
-//                // only visit the RHS:
-//                rhsCondition?.accept(this);
-//                return null;
-//              } else if (rhsResult == ValidResult.RESULT_FALSE && isAmpAmp) {
-//                // report error on if block: !e! && false
-//                errorReporter.reportError(HintCode.DEAD_CODE, node.getRightOperand());
-//                // only visit the RHS:
-//                rhsCondition?.accept(this);
-//                return null;
-//              }
-//            }
-    }
-    super.visitBinaryExpression(node);
-  }
-
-  /// For each block, this method reports and error on all statements between
-  /// the end of the block and the first return statement (assuming there it is
-  /// not at the end of the block.)
-  @override
-  void visitBlock(Block node) {
-    NodeList<Statement> statements = node.statements;
-    _checkForDeadStatementsInNodeList(statements);
-  }
-
-  @override
-  void visitConditionalExpression(ConditionalExpression node) {
-    Expression conditionExpression = node.condition;
-    conditionExpression.accept(this);
-    if (!_isDebugConstant(conditionExpression)) {
-      var result = _constantBooleanValue(conditionExpression);
-      if (result != null) {
-        if (result.toBoolValue() == true) {
-          // Report error on "else" block: true ? 1 : !2!
-          _errorReporter.reportErrorForNode(
-              WarningCode.DEAD_CODE, node.elseExpression);
-          node.thenExpression.accept(this);
-          return;
-        } else {
-          // Report error on "if" block: false ? !1! : 2
-          _errorReporter.reportErrorForNode(
-              WarningCode.DEAD_CODE, node.thenExpression);
-          node.elseExpression.accept(this);
-          return;
-        }
-      }
-    }
-    super.visitConditionalExpression(node);
-  }
-
-  @override
-  void visitIfElement(IfElement node) {
-    Expression conditionExpression = node.expression;
-    conditionExpression.accept(this);
-    if (!_isDebugConstant(conditionExpression)) {
-      var result = _constantBooleanValue(conditionExpression);
-      if (result != null) {
-        if (result.toBoolValue() == true) {
-          // Report error on else block: if(true) {} else {!}
-          var elseElement = node.elseElement;
-          if (elseElement != null) {
-            _errorReporter.reportErrorForNode(
-                WarningCode.DEAD_CODE, elseElement);
-            node.thenElement.accept(this);
-            return;
-          }
-        } else {
-          // Report error on if block: if (false) {!} else {}
-          _errorReporter.reportErrorForNode(
-              WarningCode.DEAD_CODE, node.thenElement);
-          node.elseElement?.accept(this);
-          return;
-        }
-      }
-    }
-    super.visitIfElement(node);
-  }
-
-  @override
-  void visitIfStatement(IfStatement node) {
-    Expression conditionExpression = node.expression;
-    conditionExpression.accept(this);
-    if (!_isDebugConstant(conditionExpression)) {
-      var result = _constantBooleanValue(conditionExpression);
-      if (result != null) {
-        if (result.toBoolValue() == true) {
-          // Report error on else block: if(true) {} else {!}
-          var elseStatement = node.elseStatement;
-          if (elseStatement != null) {
-            _errorReporter.reportErrorForNode(
-                WarningCode.DEAD_CODE, elseStatement);
-            node.thenStatement.accept(this);
-            return;
-          }
-        } else {
-          // Report error on if block: if (false) {!} else {}
-          _errorReporter.reportErrorForNode(
-              WarningCode.DEAD_CODE, node.thenStatement);
-          node.elseStatement?.accept(this);
-          return;
-        }
-      }
-    }
-    super.visitIfStatement(node);
-  }
-
-  @override
-  void visitSwitchCase(SwitchCase node) {
-    _checkForDeadStatementsInNodeList(node.statements, allowMandated: true);
-    super.visitSwitchCase(node);
-  }
-
-  @override
-  void visitSwitchDefault(SwitchDefault node) {
-    _checkForDeadStatementsInNodeList(node.statements, allowMandated: true);
-    super.visitSwitchDefault(node);
-  }
-
-  @override
-  void visitTryStatement(TryStatement node) {
-    node.body.accept(this);
-    node.finallyBlock?.accept(this);
-
-    var verifier = _CatchClausesVerifier(
-      _typeSystem,
-      (first, last, errorCode, arguments) {
-        var offset = first.offset;
-        var length = last.end - offset;
-        _errorReporter.reportErrorForOffset(
-          errorCode,
-          offset,
-          length,
-          arguments,
-        );
-      },
-      node.catchClauses,
-    );
-    for (var catchClause in node.catchClauses) {
-      verifier.nextCatchClause(catchClause);
-      if (verifier._done) {
-        break;
-      }
-      catchClause.accept(this);
-    }
-  }
-
-  @override
-  void visitWhileStatement(WhileStatement node) {
-    Expression conditionExpression = node.condition;
-    conditionExpression.accept(this);
-    if (!_isDebugConstant(conditionExpression)) {
-      var result = _constantBooleanValue(conditionExpression);
-      if (result != null) {
-        if (result.toBoolValue() == false) {
-          // Report error on while block: while (false) {!}
-          _errorReporter.reportErrorForNode(WarningCode.DEAD_CODE, node.body);
-          return;
-        }
-      }
-    }
-    node.body.accept(this);
-  }
-
-  /// Given some list of [statements], loop through the list searching for dead
-  /// statements. If [allowMandated] is true, then allow dead statements that
-  /// are mandated by the language spec. This allows for a final break,
-  /// continue, return, or throw statement at the end of a switch case, that are
-  /// mandated by the language spec.
-  void _checkForDeadStatementsInNodeList(NodeList<Statement> statements,
-      {bool allowMandated = false}) {
-    bool statementExits(Statement statement) {
-      if (statement is BreakStatement) {
-        return statement.label == null;
-      } else if (statement is ContinueStatement) {
-        return statement.label == null;
-      }
-      return ExitDetector.exits(statement);
-    }
-
-    int size = statements.length;
-    for (int i = 0; i < size; i++) {
-      Statement currentStatement = statements[i];
-      currentStatement.accept(this);
-      if (statementExits(currentStatement) && i != size - 1) {
-        Statement nextStatement = statements[i + 1];
-        Statement lastStatement = statements[size - 1];
-        // If mandated statements are allowed, and only the last statement is
-        // dead, and it's a BreakStatement, then assume it is a statement
-        // mandated by the language spec, there to avoid a
-        // CASE_BLOCK_NOT_TERMINATED error.
-        if (allowMandated && i == size - 2) {
-          if (_isMandatedSwitchCaseTerminatingStatement(nextStatement)) {
-            return;
-          }
-        }
-        int offset = nextStatement.offset;
-        int length = lastStatement.end - offset;
-        _errorReporter.reportErrorForOffset(
-            WarningCode.DEAD_CODE, offset, length);
-        return;
-      }
-    }
-  }
-
-  /// A boolean [DartObjectImpl] from evaluating [expression].
-  ///
-  /// Is `null` if [expression] does not evaluate to a boolean value.
-  DartObjectImpl? _constantBooleanValue(Expression expression) {
-    if (expression is BooleanLiteral) {
-      return DartObjectImpl(
-        _typeSystem,
-        _typeSystem.typeProvider.boolType,
-        BoolState.from(expression.value),
-      );
-    }
-
-    // Don't consider situations where we could evaluate to a constant boolean
-    // expression with the ConstantVisitor
-    // else {
-    // EvaluationResultImpl result = expression.accept(new ConstantVisitor());
-    // if (result == ValidResult.RESULT_TRUE) {
-    // return ValidResult.RESULT_TRUE;
-    // } else if (result == ValidResult.RESULT_FALSE) {
-    // return ValidResult.RESULT_FALSE;
-    // }
-    // return null;
-    // }
-    return null;
-  }
-
-  /// Return `true` if the given [expression] is resolved to a constant
-  /// variable.
-  bool _isDebugConstant(Expression expression) {
-    Element? element;
-    if (expression is Identifier) {
-      element = expression.staticElement;
-    } else if (expression is PropertyAccess) {
-      element = expression.propertyName.staticElement;
-    }
-    if (element is PropertyAccessorElement) {
-      PropertyInducingElement variable = element.variable;
-      return variable.isConst;
-    }
-    return false;
-  }
-
-  static bool _isMandatedSwitchCaseTerminatingStatement(Statement node) {
-    if (node is BreakStatement ||
-        node is ContinueStatement ||
-        node is ReturnStatement) {
-      return true;
-    }
-    if (node is ExpressionStatement) {
-      var expression = node.expression;
-      if (expression is RethrowExpression || expression is ThrowExpression) {
-        return true;
-      }
-    }
-    return false;
   }
 }
 
@@ -489,7 +183,10 @@ class NullSafetyDeadCodeVerifier {
       }
 
       if (node is SwitchMember && node == firstDeadNode) {
-        _errorReporter.reportErrorForToken(WarningCode.DEAD_CODE, node.keyword);
+        _errorReporter.atToken(
+          node.keyword,
+          WarningCode.DEAD_CODE,
+        );
         _firstDeadNode = null;
         return;
       }
@@ -536,10 +233,16 @@ class NullSafetyDeadCodeVerifier {
             doEnd = body.leftBracket.end;
             whileOffset = body.rightBracket.offset;
           }
-          _errorReporter.reportErrorForOffset(
-              WarningCode.DEAD_CODE, doOffset, doEnd - doOffset);
-          _errorReporter.reportErrorForOffset(
-              WarningCode.DEAD_CODE, whileOffset, whileEnd - whileOffset);
+          _errorReporter.atOffset(
+            offset: doOffset,
+            length: doEnd - doOffset,
+            errorCode: WarningCode.DEAD_CODE,
+          );
+          _errorReporter.atOffset(
+            offset: whileOffset,
+            length: whileEnd - whileOffset,
+            errorCode: WarningCode.DEAD_CODE,
+          );
           offset = parent.semicolon.next!.offset;
           if (parent.hasBreakStatement) {
             offset = node.end;
@@ -559,8 +262,11 @@ class NullSafetyDeadCodeVerifier {
 
         var length = node.end - offset;
         if (length > 0) {
-          _errorReporter.reportErrorForOffset(
-              WarningCode.DEAD_CODE, offset, length);
+          _errorReporter.atOffset(
+            offset: offset,
+            length: length,
+            errorCode: WarningCode.DEAD_CODE,
+          );
         }
       }
 
@@ -574,11 +280,11 @@ class NullSafetyDeadCodeVerifier {
       (first, last, errorCode, arguments) {
         var offset = first.offset;
         var length = last.end - offset;
-        _errorReporter.reportErrorForOffset(
-          errorCode,
-          offset,
-          length,
-          arguments,
+        _errorReporter.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: errorCode,
+          arguments: arguments,
         );
         _deadCatchClauseRanges.add(SourceRange(offset, length));
       },
@@ -664,8 +370,11 @@ class NullSafetyDeadCodeVerifier {
       var beginToken = updaters.beginToken;
       var endToken = updaters.endToken;
       if (beginToken != null && endToken != null) {
-        _errorReporter.reportErrorForOffset(WarningCode.DEAD_CODE,
-            beginToken.offset, endToken.end - beginToken.offset);
+        _errorReporter.atOffset(
+          offset: beginToken.offset,
+          length: endToken.end - beginToken.offset,
+          errorCode: WarningCode.DEAD_CODE,
+        );
       }
     }
   }
@@ -697,7 +406,10 @@ class NullSafetyDeadCodeVerifier {
           node = parent!;
           parent = node.parent;
         }
-        _errorReporter.reportErrorForNode(WarningCode.DEAD_CODE, node);
+        _errorReporter.atNode(
+          node,
+          WarningCode.DEAD_CODE,
+        );
       }
     }
   }

@@ -72,7 +72,6 @@ CantUsePrefixWithNullAware/part_wrapped_script: Fail # Importing file in the (no
 CantUseSuperBoundedTypeForInstanceCreation/analyzerCode: Fail
 CantUseSuperBoundedTypeForInstanceCreation/example: Fail
 ClassImplementsDeferredClass/part_wrapped_script: Fail # Uses imports
-ClassInNullAwareReceiver/analyzerCode: Fail
 ColonInPlaceOfIn/example: Fail
 CompilingWithSoundNullSafety/analyzerCode: Fail
 CompilingWithoutSoundNullSafety/analyzerCode: Fail
@@ -382,6 +381,11 @@ FfiAbiSpecificIntegerMappingInvalid/analyzerCode: Fail
 FfiCompoundImplementsFinalizable/analyzerCode: Fail
 FfiCreateOfStructOrUnion/analyzerCode: Fail
 FfiDartTypeMismatch/analyzerCode: Fail
+FfiDeeplyImmutableClassesMustBeFinalOrSealed/analyzerCode: Fail
+FfiDeeplyImmutableFieldsModifiers/analyzerCode: Fail
+FfiDeeplyImmutableFieldsMustBeDeeplyImmutable/analyzerCode: Fail
+FfiDeeplyImmutableSubtypesMustBeDeeplyImmutable/analyzerCode: Fail
+FfiDeeplyImmutableSupertypeMustBeDeeplyImmutable/analyzerCode: Fail
 FfiEmptyStruct/analyzerCode: Fail
 FfiExceptionalReturnNull/analyzerCode: Fail
 FfiExpectedConstant/analyzerCode: Fail
@@ -565,6 +569,8 @@ InvalidGetterSetterTypeSetterInheritedFieldLegacy/analyzerCode: Fail
 InvalidGetterSetterTypeSetterInheritedGetter/analyzerCode: Fail
 InvalidGetterSetterTypeSetterInheritedGetterLegacy/analyzerCode: Fail
 InvalidInitializer/example: Fail
+InvalidMacroApplicationTarget/analyzerCode: Fail
+InvalidMacroApplicationTarget/example: Fail
 InvalidNnbdDillLibrary/analyzerCode: Fail
 InvalidNnbdDillLibrary/example: Fail
 InvalidPackageUri/analyzerCode: Fail
@@ -637,6 +643,14 @@ JsInteropFunctionToJSTypeParameters/analyzerCode: Fail # Web compiler specific
 JsInteropFunctionToJSTypeParameters/example: Fail # Web compiler specific
 JsInteropInvalidStaticClassMemberName/analyzerCode: Fail
 JsInteropInvalidStaticClassMemberName/example: Fail
+JsInteropIsAInvalidType/analyzerCode: Fail # Web compiler specific
+JsInteropIsAInvalidType/example: Fail # Web compiler specific
+JsInteropIsAObjectLiteralType/analyzerCode: Fail # Web compiler specific
+JsInteropIsAObjectLiteralType/example: Fail # Web compiler specific
+JsInteropIsAPrimitiveExtensionType/analyzerCode: Fail # Web compiler specific
+JsInteropIsAPrimitiveExtensionType/example: Fail # Web compiler specific
+JsInteropIsATearoff/analyzerCode: Fail # Web compiler specific
+JsInteropIsATearoff/example: Fail # Web compiler specific
 JsInteropJSClassExtendsDartClass/analyzerCode: Fail # Web compiler specific
 JsInteropJSClassExtendsDartClass/example: Fail # Web compiler specific
 JsInteropNamedParameters/analyzerCode: Fail # Web compiler specific
@@ -655,8 +669,12 @@ JsInteropOperatorCannotBeRenamed/analyzerCode: Fail # Web compiler specific
 JsInteropOperatorCannotBeRenamed/example: Fail # Web compiler specific
 JsInteropOperatorsNotSupported/analyzerCode: Fail # Web compiler specific
 JsInteropOperatorsNotSupported/example: Fail # Web compiler specific
-JsInteropStaticInteropExternalTypeViolation/analyzerCode: Fail # Web compiler specific
-JsInteropStaticInteropExternalTypeViolation/example: Fail # Web compiler specific
+JsInteropStaticInteropExternalAccessorTypeViolation/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropExternalAccessorTypeViolation/example: Fail # Web compiler specific
+JsInteropStaticInteropExternalFunctionTypeViolation/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropExternalFunctionTypeViolation/example: Fail # Web compiler specific
+JsInteropStaticInteropToJSFunctionTypeViolation/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropToJSFunctionTypeViolation/example: Fail # Web compiler specific
 JsInteropStaticInteropGenerativeConstructor/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropGenerativeConstructor/example: Fail # Web compiler specific
 JsInteropStaticInteropMockMissingGetterOrSetter/analyzerCode: Fail # Web compiler specific
@@ -701,6 +719,8 @@ ListLiteralTooManyTypeArguments/example: Fail
 LoadLibraryTakesNoArguments/example: Fail
 MacroClassNotDeclaredMacro/analyzerCode: Fail
 MacroClassNotDeclaredMacro/example: Fail
+MacroDefinitionApplicationSameLibraryCycle/analyzerCode: Fail
+MacroDefinitionApplicationSameLibraryCycle/example: Fail
 MainNotFunctionDeclaration/analyzerCode: Fail
 MainNotFunctionDeclarationExported/analyzerCode: Fail
 MainNotFunctionDeclarationExported/part_wrapped_script: Fail
@@ -771,6 +791,8 @@ NoAugmentSuperReadTarget/part_wrapped_script: Fail # Uses imports
 NoAugmentSuperWriteTarget/analyzerCode: Fail
 NoAugmentSuperWriteTarget/part_wrapped_script: Fail # Uses imports
 NoFormals/example: Fail
+NoMacroApplicationTarget/analyzerCode: Fail
+NoMacroApplicationTarget/example: Fail
 NoSuchNamedParameter/example: Fail
 NoUnnamedConstructorInObject/analyzerCode: Fail
 NoUnnamedConstructorInObject/example: Fail
@@ -922,6 +944,9 @@ PrefixAfterCombinator/example: Fail
 PreviousUseOfName/analyzerCode: Fail
 PreviousUseOfName/example: Fail
 PrivateNamedParameter/example: Fail
+RecordUsedAsCallable/analyzerCode: Fail
+RecordUsedAsCallable/part_wrapped_script: Fail
+RecordUsedAsCallable/script: Fail
 RedirectingConstructorWithBody/part_wrapped_script1: Fail
 RedirectingConstructorWithBody/script1: Fail
 RedirectingFactoryIncompatibleTypeArgumentWarning/example: Fail
@@ -1035,6 +1060,8 @@ UndefinedExtensionSetter/analyzerCode: Fail
 UndefinedExtensionSetter/example: Fail
 UnexpectedToken/part_wrapped_script1: Fail
 UnexpectedToken/script1: Fail
+UnhandledMacroApplication/analyzerCode: Fail
+UnhandledMacroApplication/example: Fail
 UnmatchedAugmentationClass/analyzerCode: Fail
 UnmatchedAugmentationClass/part_wrapped_script: Fail
 UnmatchedAugmentationClassMember/analyzerCode: Fail

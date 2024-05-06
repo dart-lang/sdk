@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:collection/collection.dart' show IterableNullableExtension;
 import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart';
 import 'package:stack_trace/stack_trace.dart';
@@ -68,7 +67,7 @@ StackTrace mapStackTrace(Mapping sourceMap, StackTrace stackTrace,
 
     return Frame(Uri.parse(sourceUrl), span.start.line + 1,
         span.start.column + 1, _prettifyMember(frame.member!));
-  }).whereNotNull());
+  }).nonNulls);
 }
 
 final escapedPipe = '\$124';

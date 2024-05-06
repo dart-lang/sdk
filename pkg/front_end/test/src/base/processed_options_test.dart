@@ -7,9 +7,9 @@ import 'dart:convert' show jsonEncode;
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/base/processed_options.dart';
+import 'package:front_end/src/fasta/codes/fasta_codes.dart';
 import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:front_end/src/fasta/util/bytes_sink.dart' show BytesSink;
-import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/kernel.dart'
     show
@@ -400,6 +400,17 @@ class ProcessedOptionsTest {
     var raw = new CompilerOptions()
       ..fileSystem = fileSystem
       ..packagesFileUri = new Uri()
+      ..onDiagnostic = errors.add;
+    var processed = new ProcessedOptions(options: raw);
+    var uriTranslator = await processed.getUriTranslator();
+    expect(uriTranslator.packages.packages, isEmpty);
+  }
+
+  Future<void> test_getUriTranslator_missingPackages() async {
+    var errors = <DiagnosticMessage>[];
+    var raw = new CompilerOptions()
+      ..fileSystem = fileSystem
+      ..packagesFileUri = new Uri(path: '/')
       ..onDiagnostic = errors.add;
     var processed = new ProcessedOptions(options: raw);
     var uriTranslator = await processed.getUriTranslator();

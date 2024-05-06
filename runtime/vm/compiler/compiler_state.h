@@ -72,19 +72,6 @@ class CompilerState : public ThreadStackResource {
   SlotCache* slot_cache() const { return slot_cache_; }
   void set_slot_cache(SlotCache* cache) { slot_cache_ = cache; }
 
-  // Create a dummy list of local variables representing a context object
-  // with the given number of captured variables and given ID.
-  const ZoneGrowableArray<const Slot*>& GetDummyContextSlots(
-      intptr_t context_id,
-      intptr_t num_context_slots);
-
-  // Create a dummy LocalVariable that represents a captured local variable
-  // at the given index in the context with given ID.
-  //
-  // This function returns the same variable when it is called with the
-  // same index.
-  LocalVariable* GetDummyCapturedVariable(intptr_t context_id, intptr_t index);
-
   bool is_aot() const { return is_aot_; }
 
   bool is_optimizing() const { return is_optimizing_; }
@@ -107,6 +94,21 @@ class CompilerState : public ThreadStackResource {
   // Returns _StringBase._interpolateSingle
   const Function& StringBaseInterpolateSingle();
 
+  const Function& TypedListGetFloat32();
+  const Function& TypedListSetFloat32();
+  const Function& TypedListGetFloat64();
+  const Function& TypedListSetFloat64();
+  const Function& TypedListGetFloat32x4();
+  const Function& TypedListSetFloat32x4();
+  const Function& TypedListGetInt32x4();
+  const Function& TypedListSetInt32x4();
+  const Function& TypedListGetFloat64x2();
+  const Function& TypedListSetFloat64x2();
+
+  const Class& CompoundClass();
+  const Field& CompoundOffsetInBytesField();
+  const Field& CompoundTypedDataBaseField();
+
   const Function* function() const { return function_; }
 
   void set_function(const Function& function) { function_ = &function; }
@@ -122,6 +124,8 @@ class CompilerState : public ThreadStackResource {
   void ReportCrash();
 
  private:
+  const Class& TypedListClass();
+
   CHA cha_;
   intptr_t deopt_id_ = 0;
 
@@ -142,6 +146,20 @@ class CompilerState : public ThreadStackResource {
   const Class* comparable_class_ = nullptr;
   const Function* interpolate_ = nullptr;
   const Function* interpolate_single_ = nullptr;
+  const Class* typed_list_class_ = nullptr;
+  const Class* compound_class_ = nullptr;
+  const Field* compound_offset_in_bytes_field_ = nullptr;
+  const Field* compound_typed_data_base_field_ = nullptr;
+  const Function* typed_list_get_float32_ = nullptr;
+  const Function* typed_list_set_float32_ = nullptr;
+  const Function* typed_list_get_float64_ = nullptr;
+  const Function* typed_list_set_float64_ = nullptr;
+  const Function* typed_list_get_float32x4_ = nullptr;
+  const Function* typed_list_set_float32x4_ = nullptr;
+  const Function* typed_list_get_int32x4_ = nullptr;
+  const Function* typed_list_set_int32x4_ = nullptr;
+  const Function* typed_list_get_float64x2_ = nullptr;
+  const Function* typed_list_set_float64x2_ = nullptr;
 
   const Function* function_ = nullptr;
   const CompilerPass* pass_ = nullptr;

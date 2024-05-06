@@ -9,4 +9,5 @@ enum E {
 }
 
 expectEquals(a, b) {}
+
 main() {}

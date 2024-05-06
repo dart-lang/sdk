@@ -27,28 +27,23 @@ class FutureOrBaseTest extends AbstractTypeSystemTest {
 
     check(intNone, 'int');
     check(intQuestion, 'int?');
-    check(intStar, 'int*');
 
     check(dynamicType, 'dynamic');
     check(voidNone, 'void');
 
     check(neverNone, 'Never');
     check(neverQuestion, 'Never?');
-    check(neverStar, 'Never*');
 
     check(objectNone, 'Object');
     check(objectQuestion, 'Object?');
-    check(objectStar, 'Object*');
   }
 
   test_other() {
     _check(intNone, 'int');
     _check(intQuestion, 'int?');
-    _check(intStar, 'int*');
 
     _check(objectNone, 'Object');
     _check(objectQuestion, 'Object?');
-    _check(objectStar, 'Object*');
   }
 
   /// futureValueType(`void`) = `void`.
@@ -59,7 +54,7 @@ class FutureOrBaseTest extends AbstractTypeSystemTest {
   void _check(DartType T, String expected) {
     var result = typeSystem.futureOrBase(T);
     expect(
-      result.getDisplayString(withNullability: true),
+      result.getDisplayString(),
       expected,
     );
   }

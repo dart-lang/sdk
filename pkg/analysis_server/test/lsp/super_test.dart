@@ -18,26 +18,147 @@ void main() {
 
 @reflectiveTest
 class SuperTest extends AbstractLspAnalysisServerTest {
+  /// Class augmentations do not affect super behaviour.
+  Future<void> test_augmentation_class() async {
+    await verifyGoToSuper(TestCode.parse('''
+class [!A!] {}
+
+augment class A {}
+
+class B^ extends A {}
+'''));
+  }
+
+  Future<void> test_augmentation_constructor() async {
+    await verifyGoToSuper(TestCode.parse('''
+class A {
+  A();
+}
+
+augment class A {
+  augment A();
+}
+
+augment class A {
+  augment [!A!]();
+}
+
+class B extends A {
+  B^();
+}
+'''));
+  }
+
+  /// "Go to Super" for method goes to the last item in the augmentation chain
+  /// of the super method since that's what `super.x()` would invoke.
+  Future<void> test_augmentation_method() async {
+    await verifyGoToSuper(TestCode.parse('''
+class A {
+  void foo() {}
+}
+
+augment class A {
+  augment void foo() {}
+}
+
+augment class A {
+  augment void [!foo!]() {}
+}
+
+class B extends A {}
+
+class C extends B {
+  @override
+  void fo^o() {}
+}
+'''));
+  }
+
   Future<void> test_className() async {
-    final code = TestCode.parse('''
+    await verifyGoToSuper(TestCode.parse('''
 class A {}
 
 class [!B!] extends A {}
 
 class C^ extends B {}
-''');
-    await initialize();
-    await openFile(mainFileUri, code.code);
-    final res = await getSuper(
-      mainFileUri,
-      code.position.position,
-    );
+'''));
+  }
 
-    expect(res, equals(Location(uri: mainFileUri, range: code.range.range)));
+  Future<void> test_constructor_named_callsSuperNamed() async {
+    await verifyGoToSuper(TestCode.parse('''
+class A {
+  A();
+  A.foo();
+  A.[!bar!]();
+}
+
+class B extends A {
+  B.foo(): super.bar() {
+    ^
+  }
+}
+'''));
+  }
+
+  Future<void> test_constructor_named_callsSuperUnnamed() async {
+    await verifyGoToSuper(TestCode.parse('''
+class A {
+  [!A!]();
+  A.foo();
+}
+
+class B extends A {
+  B.foo() {
+    ^
+  }
+}
+'''));
+  }
+
+  Future<void> test_constructor_unnamed_callsSuperNamed() async {
+    await verifyGoToSuper(TestCode.parse('''
+class A {
+  A();
+  A.[!foo!]();
+}
+
+class B extends A {
+  B^() : super.foo();
+}
+
+'''));
+  }
+
+  Future<void> test_constructor_unnamed_callsSuperUnnamed() async {
+    await verifyGoToSuper(TestCode.parse('''
+class A {
+  [!A!]();
+}
+
+class B extends A {
+  B^();
+}
+
+'''));
+  }
+
+  Future<void> test_getter() async {
+    await verifyGoToSuper(TestCode.parse('''
+class A {
+  String get [!foo!] => '';
+}
+
+class B extends A {}
+
+class C extends B {
+  @override
+  String get fo^o => '';
+}
+'''));
   }
 
   Future<void> test_insideClass() async {
-    final code = TestCode.parse('''
+    await verifyGoToSuper(TestCode.parse('''
 class A {}
 
 class [!B!] extends A {}
@@ -45,19 +166,11 @@ class [!B!] extends A {}
 class C extends B {
   ^
 }
-''');
-    await initialize();
-    await openFile(mainFileUri, code.code);
-    final res = await getSuper(
-      mainFileUri,
-      code.position.position,
-    );
-
-    expect(res, equals(Location(uri: mainFileUri, range: code.range.range)));
+'''));
   }
 
   Future<void> test_insideMethod() async {
-    final code = TestCode.parse('''
+    await verifyGoToSuper(TestCode.parse('''
 class A {
   void [!foo!]() {}
 }
@@ -67,22 +180,14 @@ class B extends A {}
 class C extends B {
   @override
   void foo() {
-    // fo^oC
+    ^
   }
 }
-''');
-    await initialize();
-    await openFile(mainFileUri, code.code);
-    final res = await getSuper(
-      mainFileUri,
-      code.position.position,
-    );
-
-    expect(res, equals(Location(uri: mainFileUri, range: code.range.range)));
+'''));
   }
 
   Future<void> test_methodName() async {
-    final code = TestCode.parse('''
+    await verifyGoToSuper(TestCode.parse('''
 class A {
   void [!foo!]() {}
 }
@@ -91,23 +196,13 @@ class B extends A {}
 
 class C extends B {
   @override
-  void fo^o() {
-    // fooC
-  }
+  void fo^o() {}
 }
-''');
-    await initialize();
-    await openFile(mainFileUri, code.code);
-    final res = await getSuper(
-      mainFileUri,
-      code.position.position,
-    );
-
-    expect(res, equals(Location(uri: mainFileUri, range: code.range.range)));
+'''));
   }
 
   Future<void> test_methodName_startOfParameterList() async {
-    final code = TestCode.parse('''
+    await verifyGoToSuper(TestCode.parse('''
 class A {
   void [!foo!]() {}
 }
@@ -116,23 +211,13 @@ class B extends A {}
 
 class C extends B {
   @override
-  void foo^() {
-    // fooC
-  }
+  void foo^() {}
 }
-''');
-    await initialize();
-    await openFile(mainFileUri, code.code);
-    final res = await getSuper(
-      mainFileUri,
-      code.position.position,
-    );
-
-    expect(res, equals(Location(uri: mainFileUri, range: code.range.range)));
+'''));
   }
 
   Future<void> test_methodName_startOfTypeParameterList() async {
-    final code = TestCode.parse('''
+    await verifyGoToSuper(TestCode.parse('''
 class A {
   void [!foo!]<T>() {}
 }
@@ -141,23 +226,13 @@ class B extends A {}
 
 class C extends B {
   @override
-  void foo^<T>() {
-    // fooC
-  }
+  void foo^<T>() {}
 }
-''');
-    await initialize();
-    await openFile(mainFileUri, code.code);
-    final res = await getSuper(
-      mainFileUri,
-      code.position.position,
-    );
-
-    expect(res, equals(Location(uri: mainFileUri, range: code.range.range)));
+'''));
   }
 
   Future<void> test_methodReturnType() async {
-    final code = TestCode.parse('''
+    await verifyGoToSuper(TestCode.parse('''
 class A {
   void [!foo!]() {}
 }
@@ -166,14 +241,30 @@ class B extends A {}
 
 class C extends B {
   @override
-  vo^id foo() {
-    // fooC
-  }
+  vo^id foo() {}
 }
-''');
+'''));
+  }
+
+  Future<void> test_setter() async {
+    await verifyGoToSuper(TestCode.parse('''
+class A {
+  set [!foo!](String value) {}
+}
+
+class B extends A {}
+
+class C extends B {
+  @override
+  set fo^o(String value) {}
+}
+'''));
+  }
+
+  Future<void> verifyGoToSuper(TestCode code) async {
     await initialize();
     await openFile(mainFileUri, code.code);
-    final res = await getSuper(
+    var res = await getSuper(
       mainFileUri,
       code.position.position,
     );

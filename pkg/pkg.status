@@ -9,6 +9,7 @@
 */*/*/packages/*/*: Skip
 */*/packages/*/*: Skip
 */packages/*/*: Skip
+analyzer/test/src/summary/macro_test: Slow, Pass
 analyzer/test/src/task/strong/checker_test: Slow, Pass
 analyzer/test/verify_diagnostics_test.dart: Slow, Pass
 analyzer/test/verify_docs_test.dart: Slow, Pass
@@ -56,7 +57,6 @@ dev_compiler/test/worker/*: Skip # test needs fixes
 front_end/test/fasta/analyze_git_test: Pass, Slow
 front_end/test/fasta/bootstrap_test: Pass, Slow
 front_end/test/fasta/rasta/*: SkipByDesign # Anything in rasta is input to fasta unit tests and shouldn't be run as tests.
-front_end/test/fasta/sdk_test: SkipByDesign # sdk_test would take too long to complete, and should be run in a different way.
 front_end/test/fasta/types/dart2js_benchmark_test: Pass, Slow
 front_end/test/fasta/types/large_app_benchmark_test: Pass, ExtraSlow
 front_end/test/incremental_compiler_leak_test: Pass, ExtraSlow
@@ -66,6 +66,7 @@ front_end/tool/incremental_perf_test: Slow, Pass
 kernel/test/dart_scope_calculator_test: Slow, Pass
 kernel/testcases/*: Skip # These are not tests but input for tests.
 vm/test/kernel_front_end_test: Slow, Pass
+vm/test/transformations/ffi_test: Slow, Pass # https://github.com/dart-lang/sdk/issues/54950
 vm/test/transformations/type_flow/transformer_test: Slow, Pass
 vm/testcases/*: SkipByDesign # These are not tests but input for tests.
 vm_service/test/cpu_samples_stream_test: Slow, Pass # Requires CPU sample buffer to fill.
@@ -193,6 +194,7 @@ vm_service/test/sigquit_starts_service_test: SkipByDesign # Spawns a secondary p
 vm_service/test/simple_reload_test: SkipByDesign # Hot reload is disabled in AOT mode.
 vm_service/test/source_report_libraries_already_compiled_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/source_report_package_filters_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/stdio_newline_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/step_*: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/super_constructor_invocation_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/uri_mappings_lookup_test: SkipByDesign # Uses Platform.script for URI mappings.
@@ -331,7 +333,7 @@ crypto/test/sha256_test: Slow, Pass
 [ $compiler == dart2js && $checked ]
 crypto/test/base64_test: Slow, Pass
 
-[ $compiler == dart2js && $host_checked ]
+[ $compiler == dart2js && $host_asserts ]
 js_ast/test/printer_callback_test: Slow, Pass
 js_ast/test/string_escape_test: Slow, Pass
 

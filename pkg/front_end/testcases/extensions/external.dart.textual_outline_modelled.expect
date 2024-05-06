@@ -20,4 +20,5 @@ extension Extension<T extends num> on List<T> {
 }
 
 main() {}
+
 test() {}

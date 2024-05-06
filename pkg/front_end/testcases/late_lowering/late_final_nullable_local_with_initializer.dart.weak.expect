@@ -14,7 +14,7 @@ static method main() → dynamic {
     if(!#lateLocal#isSet) {
       final core::int? #t1 = initLateLocal(123){(core::int?) → core::int?};
       if(#lateLocal#isSet)
-        throw new _in::LateError::localADI("lateLocal");
+        throw{for-error-handling} new _in::LateError::localADI("lateLocal");
       #lateLocal = #t1;
       #lateLocal#isSet = true;
     }
@@ -34,7 +34,7 @@ static method main() → dynamic {
       if(!#lateGenericLocal#isSet) {
         final T? #t2 = initLateGenericLocal(value){(T?) → T?};
         if(#lateGenericLocal#isSet)
-          throw new _in::LateError::localADI("lateGenericLocal");
+          throw{for-error-handling} new _in::LateError::localADI("lateGenericLocal");
         #lateGenericLocal = #t2;
         #lateGenericLocal#isSet = true;
       }

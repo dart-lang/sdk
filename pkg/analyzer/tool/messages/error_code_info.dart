@@ -98,6 +98,13 @@ final Map<String, FrontEndErrorCodeInfo> frontEndMessages =
 final String frontEndPkgPath =
     normalize(join(pkg_root.packageRoot, 'front_end'));
 
+/// The path to the `linter` package.
+final String linterPkgPath = normalize(join(pkg_root.packageRoot, 'linter'));
+
+/// Decoded messages from the linter's `messages.yaml` file.
+final Map<String, Map<String, AnalyzerErrorCodeInfo>> lintMessages =
+    _loadLintMessages();
+
 /// Pattern used by the front end to identify placeholders in error message
 /// strings.
 // TODO(paulberry): share this regexp (and the code for interpreting
@@ -202,6 +209,71 @@ Map<String, FrontEndErrorCodeInfo> decodeCfeMessagesYaml(Object? yaml) {
   return result;
 }
 
+/// Decodes a YAML object (obtained from `pkg/linter/messages.yaml`) into a
+/// two-level map of [ErrorCodeInfo], indexed first by class name and then by
+/// error name.
+Map<String, Map<String, AnalyzerErrorCodeInfo>> decodeLinterMessagesYaml(
+    Object? yaml) {
+  Never problem(String message) {
+    throw 'Problem in pkg/linter/messages.yaml: $message';
+  }
+
+  var result = <String, Map<String, AnalyzerErrorCodeInfo>>{};
+  if (yaml is! Map<Object?, Object?>) {
+    problem('root node is not a map');
+  }
+  for (var classEntry in yaml.entries) {
+    var className = classEntry.key;
+    if (className is! String) {
+      problem('non-string class key ${json.encode(className)}');
+    }
+    var classValue = classEntry.value;
+    if (classValue is! Map<Object?, Object?>) {
+      problem('value associated with class key $className is not a map');
+    }
+    for (var errorEntry in classValue.entries) {
+      var errorName = errorEntry.key;
+      if (errorName is! String) {
+        problem('in class $className, non-string error key '
+            '${json.encode(errorName)}');
+      }
+      var errorValue = errorEntry.value;
+      if (errorValue is! Map<Object?, Object?>) {
+        problem('value associated with error $className.$errorName is not a '
+            'map');
+      }
+
+      try {
+        var aliasFor = errorValue['aliasFor'];
+        if (aliasFor is String) {
+          var aliasForPath = aliasFor.split('.');
+          if (aliasForPath.isEmpty) {
+            problem("The 'aliasFor' value at '$className.$errorName is empty");
+          }
+          var node = yaml;
+          for (var key in aliasForPath) {
+            var value = node[key];
+            if (value is! Map<Object?, Object?>) {
+              problem('No Map value at "$aliasFor", aliased from '
+                  '$className.$errorName');
+            }
+            node = value;
+          }
+
+          (result[className] ??= {})[errorName] = AliasErrorCodeInfo(
+              aliasFor: aliasFor, comment: errorValue['comment'] as String?);
+        } else {
+          (result[className] ??= {})[errorName] =
+              AnalyzerErrorCodeInfo.fromLinterYaml(errorValue);
+        }
+      } catch (e) {
+        problem('while processing $className.$errorName, $e');
+      }
+    }
+  }
+  return result;
+}
+
 /// Loads analyzer messages from the analyzer's `messages.yaml` file.
 Map<String, Map<String, AnalyzerErrorCodeInfo>> _loadAnalyzerMessages() {
   Object? messagesYaml =
@@ -214,6 +286,13 @@ Map<String, FrontEndErrorCodeInfo> _loadFrontEndMessages() {
   Object? messagesYaml =
       loadYaml(File(join(frontEndPkgPath, 'messages.yaml')).readAsStringSync());
   return decodeCfeMessagesYaml(messagesYaml);
+}
+
+/// Loads linter messages from the linters's `messages.yaml` file.
+Map<String, Map<String, AnalyzerErrorCodeInfo>> _loadLintMessages() {
+  Object? messagesYaml =
+      loadYaml(File(join(linterPkgPath, 'messages.yaml')).readAsStringSync());
+  return decodeLinterMessagesYaml(messagesYaml);
 }
 
 /// Splits [text] on spaces using the given [maxWidth] (and [firstLineWidth] if
@@ -291,6 +370,8 @@ class AnalyzerErrorCodeInfo extends ErrorCodeInfo {
     super.removedIn,
     super.sharedName,
   });
+
+  AnalyzerErrorCodeInfo.fromLinterYaml(super.yaml) : super.fromLinterYaml();
 
   AnalyzerErrorCodeInfo.fromYaml(super.yaml) : super.fromYaml();
 }
@@ -479,6 +560,13 @@ abstract class ErrorCodeInfo {
     this.previousName,
     this.removedIn,
   });
+
+  /// Decodes an [ErrorCodeInfo] object from its YAML representation.
+  ErrorCodeInfo.fromLinterYaml(Map<Object?, Object?> yaml)
+      : this(
+            documentation: yaml['documentation'] as String?,
+            hasPublishedDocs: yaml['hasPublishedDocs'] as bool? ?? false,
+            problemMessage: '');
 
   /// Decodes an [ErrorCodeInfo] object from its YAML representation.
   ErrorCodeInfo.fromYaml(Map<Object?, Object?> yaml)

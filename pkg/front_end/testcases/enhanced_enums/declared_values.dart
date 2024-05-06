@@ -18,7 +18,7 @@ enum E3 {
   element;
 
   static const List<E3> values = [E3.element]; // Error in E3.
-  int values = 42; // Duplicate.
+  int values = 42; // Error: Duplicate.
 }
 
 enum E4 {

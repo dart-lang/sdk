@@ -14,7 +14,11 @@ class C {
 }
 
 var c = C();
+
 void testUninitializedNonFinalInstanceField() {}
+
 void testUninitializedFinalInstanceField() {}
+
 void testInitializedNonFinalInstanceField() {}
+
 void testInitializedFinalInstanceField() {}

@@ -4,28 +4,66 @@
 
 library fasta.test.suite_utils;
 
+import 'dart:io';
+
 import 'package:testing/testing.dart' show Step, TestDescription;
 import 'package:testing/src/chain.dart' show CreateContext;
 import 'package:testing/src/log.dart' show Logger, StdoutLogger;
 import 'package:testing/src/suite.dart' as testing show Suite;
 
+import '../coverage_helper.dart';
+
 import 'testing/suite.dart';
 
-Future<void> internalMain(CreateContext createContext,
-    {List<String> arguments = const [], int shards = 1, int shard = 0}) async {
+Future<void> internalMain(
+  CreateContext createContext, {
+  List<String> arguments = const [],
+  int shards = 1,
+  int shard = 0,
+  required String displayName,
+  String? configurationPath,
+}) async {
   Logger logger = const StdoutLogger();
-  if (arguments.contains("--traceStepTiming")) {
-    logger = new TracingLogger();
-    arguments = arguments.toList()..remove("--traceStepTiming");
+  List<String>? argumentsTrimmed;
+  Uri? coverageUri;
+  for (int i = 0; i < arguments.length; i++) {
+    String argument = arguments[i];
+    bool trimmed = false;
+    if (argument == "--traceStepTiming") {
+      logger = new TracingLogger();
+      trimmed = true;
+    } else if (argument.startsWith("--coverage=")) {
+      coverageUri = Uri.base
+          .resolveUri(Uri.file(argument.substring("--coverage=".length)));
+      trimmed = true;
+    }
+
+    if (trimmed && argumentsTrimmed == null) {
+      argumentsTrimmed = []..addAll(arguments.sublist(0, i));
+    } else if (!trimmed && argumentsTrimmed != null) {
+      argumentsTrimmed.add(argument);
+    }
   }
+  if (argumentsTrimmed != null) {
+    arguments = argumentsTrimmed;
+  }
+
   await runMe(
     arguments,
     createContext,
-    configurationPath: "../../testing.json",
+    configurationPath: configurationPath ?? "../../testing.json",
     shards: shards,
     shard: shard,
     logger: logger,
   );
+  if (coverageUri != null) {
+    File f = new File.fromUri(coverageUri.resolve("$displayName.coverage"));
+    // Suites generally takes a while to run --- so setting force compile to
+    // true shouldn't be a big issue. It seems to add something like a second
+    // to the collection time.
+    (await collectCoverage(displayName: displayName, forceCompile: true))
+        ?.writeToFile(f);
+  }
 }
 
 class TracingLogger extends StdoutLogger {

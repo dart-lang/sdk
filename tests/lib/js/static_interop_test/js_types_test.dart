@@ -8,6 +8,7 @@ import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
 import 'dart:typed_data';
 
+import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:expect/minitest.dart';
 
@@ -172,6 +173,7 @@ void syncTests() {
   expect(edo is JSBoxedDartObject, true);
   expect(confuse(edo) is JSBoxedDartObject, true);
   expect(((edo as JSBoxedDartObject).toDart as DartObject).foo, 'bar');
+  expect(edo.instanceOfString('Object'), true);
   // Functions should be boxed without assertInterop.
   final concat = (String a, String b) => a + b;
   edo = concat.toJSBox;
@@ -583,7 +585,7 @@ Future<void> asyncTests() async {
   }
 }
 
-void main() async {
+void main() {
   syncTests();
-  await asyncTests();
+  asyncTest(() async => await asyncTests());
 }

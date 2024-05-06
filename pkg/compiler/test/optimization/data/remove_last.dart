@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:collection';
 import 'dart:typed_data';
 
@@ -23,7 +21,7 @@ unknownList(List list) {
 @pragma('dart2js:noInline')
 possiblyNullMutableList(bool b) {
   var list = b ? [0] : null;
-  return list.removeLast();
+  return list!.removeLast();
 }
 
 /*member: mutableList:Specializer=[RemoveLast]*/
@@ -51,9 +49,9 @@ main() {
   typedList();
 }
 
-class MyList<E> extends ListBase<E> {
-  E operator [](int index) => null;
-  void operator []=(int index, E value) {}
+class MyList<E> extends ListBase<E?> {
+  E? operator [](int index) => null;
+  void operator []=(int index, E? value) {}
   int get length => 0;
   void set length(int value) {}
 }

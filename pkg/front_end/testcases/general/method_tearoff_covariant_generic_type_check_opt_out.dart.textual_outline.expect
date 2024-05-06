@@ -1,7 +1,9 @@
 // @dart = 2.9
+
 class A<X extends num> {
   void f<Y extends X>(Y y) {}
 }
 
 expectThrows(void Function() f) {}
+
 main() {}

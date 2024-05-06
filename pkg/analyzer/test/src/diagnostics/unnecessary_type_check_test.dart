@@ -10,15 +10,20 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnnecessaryTypeCheckFalseTest);
-    defineReflectiveTests(UnnecessaryTypeCheckFalseWithoutNullSafetyTest);
     defineReflectiveTests(UnnecessaryTypeCheckTrueTest);
-    defineReflectiveTests(UnnecessaryTypeCheckTrueWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class UnnecessaryTypeCheckFalseTest extends PubPackageResolutionTest
-    with UnnecessaryTypeCheckFalseTestCases {
+class UnnecessaryTypeCheckFalseTest extends PubPackageResolutionTest {
+  test_null_isNot_Null() async {
+    await assertErrorsInCode(r'''
+var b = null is! Null;
+''', [
+      error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 8, 13),
+    ]);
+  }
+
   test_typeNonNullable_isNot_same() async {
     await assertErrorsInCode(r'''
 void f(int a) {
@@ -99,26 +104,6 @@ void f(int? a) {
 ''');
   }
 
-  test_typeParameter_isNot_objectQuestion() async {
-    await assertErrorsInCode(r'''
-void f<T>(T a) {
-  a is! Object?;
-}
-''', [
-      error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 13),
-    ]);
-  }
-}
-
-mixin UnnecessaryTypeCheckFalseTestCases on PubPackageResolutionTest {
-  test_null_isNot_Null() async {
-    await assertErrorsInCode(r'''
-var b = null is! Null;
-''', [
-      error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 8, 13),
-    ]);
-  }
-
   test_typeParameter_isNot_dynamic() async {
     await assertErrorsInCode(r'''
 void f<T>(T a) {
@@ -130,28 +115,26 @@ void f<T>(T a) {
   }
 
   test_typeParameter_isNot_object() async {
-    var expectedErrors = expectedErrorsByNullability(
-      nullable: [],
-      legacy: [
-        error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 12),
-      ],
-    );
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 void f<T>(T a) {
   a is! Object;
 }
-''', expectedErrors);
+''');
+  }
+
+  test_typeParameter_isNot_objectQuestion() async {
+    await assertErrorsInCode(r'''
+void f<T>(T a) {
+  a is! Object?;
+}
+''', [
+      error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 13),
+    ]);
   }
 }
 
 @reflectiveTest
-class UnnecessaryTypeCheckFalseWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, UnnecessaryTypeCheckFalseTestCases {}
-
-@reflectiveTest
-class UnnecessaryTypeCheckTrueTest extends PubPackageResolutionTest
-    with UnnecessaryTypeCheckTrueTestCases {
+class UnnecessaryTypeCheckTrueTest extends PubPackageResolutionTest {
   test_expressionInvalidType() async {
     await assertErrorsInCode(r'''
 void f(A a) {
@@ -159,6 +142,34 @@ void f(A a) {
 }
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_CLASS, 7, 1),
+    ]);
+  }
+
+  test_null_is_Null() async {
+    await assertErrorsInCode(r'''
+var b = null is Null;
+''', [
+      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 8, 12),
+    ]);
+  }
+
+  test_type_is_dynamic() async {
+    await assertErrorsInCode(r'''
+void f(int a) {
+  a is dynamic;
+}
+''', [
+      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 18, 12),
+    ]);
+  }
+
+  test_type_is_unresolved() async {
+    await assertErrorsInCode(r'''
+void f(int a) {
+  a is Unresolved;
+}
+''', [
+      error(CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME, 23, 10),
     ]);
   }
 
@@ -242,46 +253,6 @@ void f(int? a) {
 ''');
   }
 
-  test_typeParameter_is_objectQuestion() async {
-    await assertErrorsInCode(r'''
-void f<T>(T a) {
-  a is Object?;
-}
-''', [
-      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 19, 12),
-    ]);
-  }
-}
-
-mixin UnnecessaryTypeCheckTrueTestCases on PubPackageResolutionTest {
-  test_null_is_Null() async {
-    await assertErrorsInCode(r'''
-var b = null is Null;
-''', [
-      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 8, 12),
-    ]);
-  }
-
-  test_type_is_dynamic() async {
-    await assertErrorsInCode(r'''
-void f(int a) {
-  a is dynamic;
-}
-''', [
-      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 18, 12),
-    ]);
-  }
-
-  test_type_is_unresolved() async {
-    await assertErrorsInCode(r'''
-void f(int a) {
-  a is Unresolved;
-}
-''', [
-      error(CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME, 23, 10),
-    ]);
-  }
-
   test_typeParameter_is_dynamic() async {
     await assertErrorsInCode(r'''
 void f<T>(T a) {
@@ -293,21 +264,20 @@ void f<T>(T a) {
   }
 
   test_typeParameter_is_object() async {
-    var expectedErrors = expectedErrorsByNullability(
-      nullable: [],
-      legacy: [
-        error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 19, 11),
-      ],
-    );
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 void f<T>(T a) {
   a is Object;
 }
-''', expectedErrors);
+''');
+  }
+
+  test_typeParameter_is_objectQuestion() async {
+    await assertErrorsInCode(r'''
+void f<T>(T a) {
+  a is Object?;
+}
+''', [
+      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 19, 12),
+    ]);
   }
 }
-
-@reflectiveTest
-class UnnecessaryTypeCheckTrueWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, UnnecessaryTypeCheckTrueTestCases {}

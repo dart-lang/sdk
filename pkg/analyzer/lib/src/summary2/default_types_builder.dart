@@ -195,12 +195,8 @@ class DefaultTypesBuilder {
   ) {
     if (parameterList == null) return;
 
-    var library = declarationElement.library!;
-    var typeProvider = library.typeProvider;
     var dynamicType = DynamicTypeImpl.instance;
-    var bottomType = library.isNonNullableByDefault
-        ? NeverTypeImpl.instance
-        : typeProvider.nullType;
+    var bottomType = NeverTypeImpl.instance;
 
     var nodes = parameterList.typeParameters;
     var length = nodes.length;

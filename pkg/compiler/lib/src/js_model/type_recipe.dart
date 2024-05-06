@@ -533,13 +533,13 @@ class _Substitution extends DartTypeSubstitutionVisitor<Null> {
   // Returns `null` if not bound.
   DartType? _lookupTypeVariableType(TypeVariableType type) {
     if (_variables != null) {
-      int index = _variables!.indexOf(type);
+      int index = _variables.indexOf(type);
       if (index >= 0) return _replacements![index];
     }
     if (_classEnvironment == null) return null;
 
-    if (_classEnvironment!.element == _classValue?.element) {
-      int index = _classEnvironment!.typeArguments.indexOf(type);
+    if (_classEnvironment.element == _classValue?.element) {
+      int index = _classEnvironment.typeArguments.indexOf(type);
       if (index >= 0) return _classValue!.typeArguments[index];
       return null;
     }

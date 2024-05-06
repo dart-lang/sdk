@@ -2,37 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:_runtime' show gFnType, typeRep, isSubtypeOf;
+import 'dart:_foreign_helper' show JS_EMBEDDED_GLOBAL;
+import 'dart:_js_shared_embedded_names' show RTI_UNIVERSE;
+import 'dart:_rti' show isSubtype;
 
 import 'package:expect/expect.dart';
 
-/// Returns an unwrapped generic function type with a bounded type argument in
-/// the form: <T extends [bound]> void -> void.
-///
-// TODO(nshahan): The generic function type is created as a legacy type.
-genericFunction(bound) => gFnType((T) => [typeRep<void>(), []], (T) => [bound]);
-
-/// Returns an unwrapped generic function type with a bounded type argument in
-/// the form: <T extends [bound]> [argumentType] -> T.
-///
-// TODO(nshahan): The generic function type is created as a legacy type.
-functionGenericReturn(bound, argumentType) => gFnType(
-    (T) => [
-          T,
-          [argumentType]
-        ],
-    (T) => [bound]);
-
-/// Returns an unwrapped generic function type with a bounded type argument in
-/// the form: <T extends [bound]> T -> [returnType].
-///
-// TODO(nshahan): The generic function type is created as a legacy type.
-functionGenericArg(bound, returnType) => gFnType(
-    (T) => [
-          returnType,
-          [T]
-        ],
-    (T) => [bound]);
+bool isSubtypeOf(s, t) => isSubtype(JS_EMBEDDED_GLOBAL('', RTI_UNIVERSE), s, t);
 
 void checkSubtype(s, t) =>
     Expect.isTrue(isSubtypeOf(s, t), '$s should be subtype of $t.');

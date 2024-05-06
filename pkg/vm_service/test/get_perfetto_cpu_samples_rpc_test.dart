@@ -8,6 +8,7 @@ import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart' hide Timeline;
 import 'package:vm_service_protos/vm_service_protos.dart';
 
+import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
 int fib(n) {
@@ -63,6 +64,7 @@ Iterable<PerfSample> extractPerfSamplesFromTracePackets(
 }
 
 final tests = <IsolateTest>[
+  hasStoppedAtExit,
   (VmService service, IsolateRef isolateRef) async {
     final result = await service.getPerfettoCpuSamples(isolateRef.id!);
     expect(result.type, 'PerfettoCpuSamples');
@@ -94,15 +96,30 @@ final tests = <IsolateTest>[
     // Calculate the time window of events.
     final timeOriginNanos = computeTimeOriginNanos(packets);
     final timeExtentNanos = computeTimeExtentNanos(packets, timeOriginNanos);
+    print(
+      'Requesting CPU samples within the filter window of '
+      'timeOriginNanos=$timeOriginNanos and timeExtentNanos=$timeExtentNanos',
+    );
     // Query for the samples within the time window.
     final filteredResult = await service.getPerfettoCpuSamples(
       isolateRef.id!,
       timeOriginMicros: timeOriginNanos ~/ 1000,
       timeExtentMicros: timeExtentNanos ~/ 1000,
     );
-    // Verify that we have the same number of [PerfSample]s.
     final filteredTrace =
         Trace.fromBuffer(base64Decode(filteredResult.samples!));
+    final filteredTraceTimeOriginNanos =
+        computeTimeOriginNanos(filteredTrace.packet);
+    final filteredTraceTimeExtentNanos = computeTimeExtentNanos(
+      filteredTrace.packet,
+      filteredTraceTimeOriginNanos,
+    );
+    print(
+      'The returned CPU samples span a time window of '
+      'timeOriginNanos=$filteredTraceTimeOriginNanos and '
+      'timeExtentNanos=$filteredTraceTimeExtentNanos',
+    );
+    // Verify that we have the same number of [PerfSample]s.
     expect(
       extractPerfSamplesFromTracePackets(filteredTrace.packet).length,
       extractPerfSamplesFromTracePackets(packets).length,
@@ -115,6 +132,7 @@ void main([args = const <String>[]]) => runIsolateTests(
       tests,
       'get_perfetto_cpu_samples_rpc_test.dart',
       testeeBefore: testeeDo,
+      pauseOnExit: true,
       extraArgs: [
         '--profiler=true',
         // Crank up the sampling rate to make sure we get samples.

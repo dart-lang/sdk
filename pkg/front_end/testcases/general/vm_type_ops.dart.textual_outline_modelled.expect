@@ -31,6 +31,9 @@ class H<T> extends G<T> implements F<T> {
 }
 
 foo1(x) {}
+
 late List<Iterable> globalVar;
+
 main() {}
+
 void foo5(x) {}

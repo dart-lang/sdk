@@ -273,10 +273,17 @@ class NullErrorSlowPath : public ThrowErrorSlowPathCode {
 class RangeErrorSlowPath : public ThrowErrorSlowPathCode {
  public:
   explicit RangeErrorSlowPath(GenericCheckBoundInstr* instruction)
-      : ThrowErrorSlowPathCode(instruction, kRangeErrorRuntimeEntry) {}
+      : ThrowErrorSlowPathCode(
+            instruction,
+            GenericCheckBoundInstr::UseUnboxedRepresentation()
+                ? kRangeErrorUnboxedInt64RuntimeEntry
+                : kRangeErrorRuntimeEntry) {}
   virtual const char* name() { return "check bound"; }
 
   virtual intptr_t GetNumberOfArgumentsForRuntimeCall() {
+    if (GenericCheckBoundInstr::UseUnboxedRepresentation()) {
+      return 0;  // Unboxed arguments are passed through Thread.
+    }
     return 2;  // length and index
   }
 
@@ -1081,11 +1088,6 @@ class FlowGraphCompiler : public ValueObject {
   void GenerateBoolToJump(Register bool_reg,
                           compiler::Label* is_true,
                           compiler::Label* is_false);
-
-  void GenerateMethodExtractorIntrinsic(const Function& extracted_method,
-                                        intptr_t type_arguments_field_offset);
-
-  void GenerateGetterIntrinsic(const Function& accessor, const Field& field);
 
   // Perform a greedy local register allocation.  Consider all registers free.
   void AllocateRegistersLocally(Instruction* instr);

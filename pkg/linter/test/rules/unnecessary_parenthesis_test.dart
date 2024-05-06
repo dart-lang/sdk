@@ -9,12 +9,11 @@ import '../rule_test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnnecessaryParenthesisTest);
-    defineReflectiveTests(UnnecessaryParenthesisPatternsTest);
   });
 }
 
 @reflectiveTest
-class UnnecessaryParenthesisPatternsTest extends LintRuleTest {
+class UnnecessaryParenthesisTest extends LintRuleTest {
   @override
   String get lintRule => 'unnecessary_parenthesis';
 
@@ -31,12 +30,80 @@ void f(int i) {
 }
 ''');
   }
-}
 
-@reflectiveTest
-class UnnecessaryParenthesisTest extends LintRuleTest {
-  @override
-  String get lintRule => 'unnecessary_parenthesis';
+  test_constructorFieldInitializer_binaryInside() async {
+    await assertDiagnostics(r'''
+class C {
+  bool f;
+  C() : f = (true && false);
+}
+''', [
+      lint(32, 15),
+    ]);
+  }
+
+  test_constructorFieldInitializer_equalityInside() async {
+    await assertNoDiagnostics(r'''
+class C {
+  bool f;
+  C() : f = (1 == 2);
+}
+''');
+  }
+
+  test_constructorFieldInitializer_functionExpressionInAssignment() async {
+    await assertNoDiagnostics(r'''
+class C {
+  final bool Function() e;
+
+  C(bool Function()? e) : e = e ??= (() => true);
+}
+''');
+  }
+
+  /// https://github.com/dart-lang/linter/issues/1395
+  test_constructorFieldInitializer_functionExpressionInCascade() async {
+    await assertNoDiagnostics(r'''
+class C {
+  Object f;
+
+  C() : f = (C()..f = () => 42);
+}
+''');
+  }
+
+  /// https://github.com/dart-lang/linter/issues/1395
+  test_constructorFieldInitializer_functionExpressionInCascade2() async {
+    await assertNoDiagnostics(r'''
+class C {
+  dynamic f;
+
+  C()
+      : f = (C()..f = (C()..f = () => 42));
+}
+''');
+  }
+
+  test_constructorFieldInitializer_functionExpressionInNullAware() async {
+    await assertNoDiagnostics(r'''
+class C {
+  final bool Function() e;
+
+  C(bool Function()? e) : e = e ?? (() => true);
+}
+''');
+  }
+
+  /// https://github.com/dart-lang/linter/issues/1473
+  test_constructorFieldInitializer_functionExpressionInNullAware2() async {
+    await assertNoDiagnostics(r'''
+class C {
+  final bool Function() e;
+
+  C(bool Function()? e) : e = (e ?? () => true);
+}
+''');
+  }
 
   /// https://github.com/dart-lang/linter/issues/4041
   test_nullAware_cascadeAssignment() async {
@@ -56,6 +123,86 @@ void g(List<int>? list) {
   (list?..[0] = 1)?.length;
 }
 ''');
+  }
+
+  test_record_assignment() async {
+    await assertDiagnostics(r'''
+void f() {
+  (int,) r = ((3,));
+}
+''', [
+      lint(24, 6),
+    ]);
+  }
+
+  test_record_namedParam() async {
+    await assertDiagnostics(r'''
+void f() {
+  g(i: ((3,)));
+}
+
+void g({required (int,) i}) { }
+''', [
+      lint(18, 6),
+    ]);
+  }
+
+  test_record_param() async {
+    await assertDiagnostics(r'''
+void f() {
+  g(((3,)));
+}
+
+void g((int,) i) { }
+''', [
+      lint(15, 6),
+    ]);
+  }
+
+  test_singleElementRecordWithNoTrailingComma_assignment() async {
+    await assertDiagnostics(r'''
+void f() {
+  (int,) r = (3);
+}
+''', [
+      error(
+          CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+          24,
+          3),
+    ]);
+  }
+
+  test_singleElementRecordWithNoTrailingComma_namedParam() async {
+    await assertDiagnostics(r'''
+void f() {
+  g(i: (3));
+}
+
+void g({required (int,) i}) { }
+''', [
+      error(
+        CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+        18,
+        3,
+      ),
+    ]);
+  }
+
+  /// https://github.com/dart-lang/linter/issues/4876
+  test_singleElementRecordWithNoTrailingComma_param() async {
+    await assertDiagnostics(r'''
+void f() {
+  g((3));
+}
+
+void g((int,) i) { }
+''', [
+      error(
+        CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+        15,
+        3,
+      ),
+    ]);
   }
 
   test_switchExpression_expressionStatement() async {
@@ -84,5 +231,37 @@ void f(Object? x) {
 ''', [
       lint(32, 23),
     ]);
+  }
+
+  test_targetOfGetterInNullableExtension() async {
+    await assertNoDiagnostics(r'''
+void f(C? c) {
+  (c?.s).g;
+}
+
+class C {
+  String? get s => 'yay';
+}
+
+extension on String? {
+  bool get g => false;
+}
+''');
+  }
+
+  test_targetOfMethodInNullableExtension() async {
+    await assertNoDiagnostics(r'''
+void f(C? c) {
+  (c?.s).g();
+}
+
+class C {
+  String? get s => 'yay';
+}
+
+extension on String? {
+  bool g() => false;
+}
+''');
   }
 }

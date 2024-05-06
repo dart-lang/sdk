@@ -6,8 +6,6 @@
 // promotable, the implementation generates the appropriate "why not promoted"
 // context message.
 
-// SharedOptions=--enable-experiment=inline-class
-
 extension type E(int? i) {
 //                    ^
 // [context 1] 'i' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field

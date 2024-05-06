@@ -5,16 +5,21 @@
 library fasta.test.strong_suite;
 
 import 'suite_utils.dart' show internalMain;
+import 'testing/environment_keys.dart';
 import 'testing/suite.dart';
 
 Future<FastaContext> createContext(
     Chain suite, Map<String, String> environment) {
-  environment[COMPILATION_MODE] = CompileMode.full.name;
-  environment['soundNullSafety'] = "true";
-  environment["semiFuzz"] ??= "true";
+  environment[EnvironmentKeys.compilationMode] = CompileMode.full.name;
+  environment[EnvironmentKeys.soundNullSafety] = "true";
+  environment[EnvironmentKeys.semiFuzz] ??= "true";
   return FastaContext.create(suite, environment);
 }
 
 Future<void> main([List<String> arguments = const []]) async {
-  await internalMain(createContext, arguments: arguments);
+  await internalMain(
+    createContext,
+    arguments: arguments,
+    displayName: "strong suite",
+  );
 }

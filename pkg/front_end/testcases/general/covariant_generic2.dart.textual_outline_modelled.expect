@@ -10,4 +10,5 @@ class Foo<T> {
 }
 
 main() {}
+
 typedef void Callback<T>(T x);

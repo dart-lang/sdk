@@ -9,6 +9,7 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:collection/collection.dart';
 import 'package:language_server_protocol/json_parsing.dart';
 import 'package:path/path.dart' as path;
@@ -77,6 +78,13 @@ mixin LspEditHelpersMixin {
     indexedEdits.sort(TextEditWithIndex.compare);
     return indexedEdits.map((e) => e.edit).fold(content, applyTextEdit);
   }
+
+  /// Returns the text for [range] in [content].
+  String getTextForRange(String content, Range range) {
+    var lineInfo = LineInfo.fromContent(content);
+    var sourceRange = toSourceRange(lineInfo, range).result;
+    return content.substring(sourceRange.offset, sourceRange.end);
+  }
 }
 
 /// Helpers to simplify building LSP requests for use in tests.
@@ -98,6 +106,19 @@ mixin LspRequestHelpersMixin {
 
   /// Whether to include 'clientRequestTime' fields in outgoing messages.
   bool includeClientRequestTime = false;
+
+  /// A stream of [DartTextDocumentContentDidChangeParams] for any
+  /// `dart/textDocumentContentDidChange` notifications.
+  Stream<DartTextDocumentContentDidChangeParams>
+      get dartTextDocumentContentDidChangeNotifications =>
+          notificationsFromServer
+              .where((notification) =>
+                  notification.method ==
+                  CustomMethods.dartTextDocumentContentDidChange)
+              .map((message) => DartTextDocumentContentDidChangeParams.fromJson(
+                  message.params as Map<String, Object?>));
+
+  Stream<NotificationMessage> get notificationsFromServer;
 
   Future<List<CallHierarchyIncomingCall>?> callHierarchyIncoming(
       CallHierarchyItem item) {
@@ -177,6 +198,34 @@ mixin LspRequestHelpersMixin {
         request, _fromJsonList(TextEdit.fromJson));
   }
 
+  Future<Location?> getAugmentation(
+    Uri uri,
+    Position pos,
+  ) {
+    final request = makeRequest(
+      CustomMethods.augmentation,
+      TextDocumentPositionParams(
+        textDocument: TextDocumentIdentifier(uri: uri),
+        position: pos,
+      ),
+    );
+    return expectSuccessfulResponseTo(request, Location.fromJson);
+  }
+
+  Future<Location?> getAugmented(
+    Uri uri,
+    Position pos,
+  ) {
+    final request = makeRequest(
+      CustomMethods.augmented,
+      TextDocumentPositionParams(
+        textDocument: TextDocumentIdentifier(uri: uri),
+        position: pos,
+      ),
+    );
+    return expectSuccessfulResponseTo(request, Location.fromJson);
+  }
+
   Future<List<Either2<Command, CodeAction>>> getCodeActions(
     Uri fileUri, {
     Range? range,
@@ -209,6 +258,17 @@ mixin LspRequestHelpersMixin {
       _fromJsonList(_generateFromJsonFor(Command.canParse, Command.fromJson,
           CodeAction.canParse, CodeAction.fromJson)),
     );
+  }
+
+  Future<TextDocumentCodeLensResult> getCodeLens(Uri uri) {
+    final request = makeRequest(
+      Method.textDocument_codeLens,
+      CodeLensParams(
+        textDocument: TextDocumentIdentifier(uri: uri),
+      ),
+    );
+    return expectSuccessfulResponseTo(
+        request, _fromJsonList(CodeLens.fromJson));
   }
 
   Future<List<ColorPresentation>> getColorPresentation(
@@ -247,6 +307,15 @@ mixin LspRequestHelpersMixin {
         await expectSuccessfulResponseTo(request, CompletionList.fromJson);
     _assertMinimalCompletionListPayload(completions);
     return completions;
+  }
+
+  Future<DartTextDocumentContent?> getDartTextDocumentContent(Uri uri) {
+    final request = makeRequest(
+      CustomMethods.dartTextDocumentContent,
+      DartTextDocumentContentParams(uri: uri),
+    );
+    return expectSuccessfulResponseTo(
+        request, DartTextDocumentContent.fromJson);
   }
 
   Future<Either2<List<Location>, List<LocationLink>>> getDefinition(
@@ -822,6 +891,8 @@ mixin LspVerifyEditHelpersMixin on LspEditHelpersMixin {
 
   String get projectFolderPath;
 
+  ClientUriConverter get uriConverter;
+
   /// A function to get the current contents of a file to apply edits.
   String? getCurrentFileContent(Uri uri);
 
@@ -835,5 +906,5 @@ mixin LspVerifyEditHelpersMixin on LspEditHelpersMixin {
   /// Formats a path relative to the project root always using forward slashes.
   ///
   /// This is used in the text format for comparing edits.
-  String relativeUri(Uri uri) => relativePath(pathContext.fromUri(uri));
+  String relativeUri(Uri uri) => relativePath(uriConverter.fromClientUri(uri));
 }

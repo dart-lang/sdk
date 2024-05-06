@@ -2,9 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
+
 import 'package:collection/collection.dart';
 
 extension IterableExtension<E> on Iterable<E> {
+  /// Note, elements must be unique.
+  Map<E, int> get asElementToIndexMap {
+    return {
+      for (final (index, element) in indexed) element: index,
+    };
+  }
+
   /// Returns the fixed-length [List] with elements of `this`.
   List<E> toFixedList() {
     var result = toList(growable: false);
@@ -16,6 +25,26 @@ extension IterableExtension<E> on Iterable<E> {
 
   Iterable<E> whereNotType<U>() {
     return whereNot((element) => element is U);
+  }
+}
+
+extension IterableIterableExtension<T> on Iterable<Iterable<T>> {
+  /// Elements of each iterable in this iterable.
+  ///
+  /// At the moment of writing, this method is `2.75` times faster than
+  /// `expand((e) => e)`, and `3.5` faster than `flattened` from
+  /// `package:collection`.
+  List<T> get flattenedToList2 {
+    return [
+      for (final elements in this) ...elements,
+    ];
+  }
+
+  /// Elements of each iterable in this iterable.
+  Set<T> get flattenedToSet2 {
+    return {
+      for (final elements in this) ...elements,
+    };
   }
 }
 
@@ -70,6 +99,13 @@ extension ListExtension<E> on List<E> {
     }
   }
 
+  E? removeLastOrNull() {
+    if (isNotEmpty) {
+      return removeLast();
+    }
+    return null;
+  }
+
   /// Returns a new list with all elements of the target, arranged such that
   /// all elements for which the [predicate] specified returns `true` come
   /// before those for which the [predicate] returns `false`. The partitioning
@@ -79,6 +115,29 @@ extension ListExtension<E> on List<E> {
       ...where(predicate),
       ...whereNot(predicate),
     ];
+  }
+}
+
+extension ListQueueExtension<T> on ListQueue<T> {
+  T? removeFirstOrNull() {
+    return isNotEmpty ? removeFirst() : null;
+  }
+}
+
+extension MapExtension<K, V> on Map<K, V> {
+  K? get firstKey {
+    return keys.firstOrNull;
+  }
+}
+
+extension MapOfListExtension<K, V> on Map<K, List<V>> {
+  void add(K key, V value) {
+    (this[key] ??= []).add(value);
+  }
+
+  /// Ensure that [key] is present in the target, maybe with the empty list.
+  void addKey(K key) {
+    this[key] ??= [];
   }
 }
 

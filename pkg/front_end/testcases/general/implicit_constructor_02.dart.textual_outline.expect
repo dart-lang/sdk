@@ -7,6 +7,9 @@ class A {
 mixin M1 {
   num v2 = -1;
 }
+
 class C = A with M1;
+
 main() {}
+
 expect(expected, actual) {}

@@ -24,9 +24,36 @@ class TransformSetManagerTest extends AbstractContextTest {
   TransformSetManager manager = TransformSetManager.instance;
 
   @override
-  void tearDown() {
-    super.tearDown();
+  Future<void> tearDown() async {
+    await super.tearDown();
     manager.clearCache();
+  }
+
+  Future<void> test_package_folder_with_version() async {
+    _addDataFile('p1-1.0');
+
+    writeTestPackageConfig(
+        config: PackageConfigFileBuilder()
+          ..add(name: 'p1', rootPath: '$workspaceRootPath/p1-1.0'));
+
+    newFile('/home/test/pubspec.yaml', '');
+
+    var testFile = convertPath('$testPackageLibPath/test.dart');
+    newFile(testFile, '');
+    var result = await (await session).getResolvedLibraryValid(testFile);
+    var sets = manager.forLibrary(result.element);
+    expect(sets, hasLength(1));
+    var elementMatcher = ElementMatcher(
+        importedUris: [Uri.parse('package:p1/test.dart')],
+        components: ['A'],
+        kinds: [ElementKind.classKind]);
+
+    var set = sets.first.transformsFor(elementMatcher, applyingBulkFixes: true);
+    expect(set, isNotEmpty);
+    expect(
+      set.first.element.libraryUris.first.path,
+      equals('p1/test.dart'),
+    );
   }
 
   Future<void> test_twoFiles_onePackage() async {

@@ -35,6 +35,9 @@ if [[ "$1" != "" ]] ; then
   fi
 fi
 
+# vpython3 is available through depot_tools. See
+# https://github.com/dart-lang/sdk/wiki/Building for instructions on installing
+# depot_tools.
 reset && \
 vpython3 ./dartdomgenerator.py --systems="$SYSTEMS" --logging=40 --update-dom-metadata --gen-interop "$ARG_OPTION"
 

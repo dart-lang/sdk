@@ -580,7 +580,7 @@ DART_EXPORT const char* Dart_VersionString(void);
  * for each part.
  */
 
-#define DART_FLAGS_CURRENT_VERSION (0x0000000c)
+#define DART_FLAGS_CURRENT_VERSION (0x0000000d)
 
 typedef struct {
   int32_t version;
@@ -589,9 +589,10 @@ typedef struct {
   bool use_osr;
   bool obfuscate;
   bool load_vmservice_library;
-  bool copy_parent_code;
   bool null_safety;
   bool is_system_isolate;
+  bool is_service_isolate;
+  bool is_kernel_isolate;
   bool snapshot_is_dontneed_safe;
   bool branch_coverage;
 } Dart_IsolateFlags;
@@ -867,7 +868,7 @@ typedef struct Dart_CodeObserver {
  * implement registration of kernel blobs for the subsequent Isolate.spawnUri
  * If no callback is provided, the registration of kernel blobs will throw
  * an error.
- * 
+ *
  * \param kernel_buffer A buffer which contains a kernel program. Callback
  *                      should copy the contents of `kernel_buffer` as
  *                      it may be freed immediately after registration.
@@ -887,7 +888,7 @@ typedef const char* (*Dart_RegisterKernelBlobCallback)(
  * unregister kernel blobs.
  * If no callback is provided, the unregistration of kernel blobs will throw
  * an error.
- * 
+ *
  * \param kernel_blob_uri URI of the kernel blob to unregister.
  */
 typedef void (*Dart_UnregisterKernelBlobCallback)(const char* kernel_blob_uri);
@@ -1679,17 +1680,6 @@ DART_EXPORT Dart_Handle Dart_GetStickyError(void);
 DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_HandleMessage(void);
 
 /**
- * Drains the microtask queue, then blocks the calling thread until the current
- * isolate receives a message, then handles all messages.
- *
- * \param timeout_millis When non-zero, the call returns after the indicated
-          number of milliseconds even if no message was received.
- * \return A valid handle if no error occurs, otherwise an error handle.
- */
-DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
-Dart_WaitForEvent(int64_t timeout_millis);
-
-/**
  * Handles any pending messages for the vm service for the current
  * isolate.
  *
@@ -1936,7 +1926,6 @@ DART_EXPORT bool Dart_IsDouble(Dart_Handle object);
 DART_EXPORT bool Dart_IsBoolean(Dart_Handle object);
 DART_EXPORT bool Dart_IsString(Dart_Handle object);
 DART_EXPORT bool Dart_IsStringLatin1(Dart_Handle object); /* (ISO-8859-1) */
-DART_EXPORT bool Dart_IsExternalString(Dart_Handle object);
 DART_EXPORT bool Dart_IsList(Dart_Handle object);
 DART_EXPORT bool Dart_IsMap(Dart_Handle object);
 DART_EXPORT bool Dart_IsLibrary(Dart_Handle object);
@@ -2302,48 +2291,6 @@ DART_EXPORT Dart_Handle Dart_NewStringFromUTF16(const uint16_t* utf16_array,
  */
 DART_EXPORT Dart_Handle Dart_NewStringFromUTF32(const int32_t* utf32_array,
                                                 intptr_t length);
-
-/**
- * Returns a String which references an external array of
- * Latin-1 (ISO-8859-1) encoded characters.
- *
- * \param latin1_array Array of Latin-1 encoded characters. This must not move.
- * \param length The length of the characters array.
- * \param peer An external pointer to associate with this string.
- * \param external_allocation_size The number of externally allocated
- *   bytes for peer. Used to inform the garbage collector.
- * \param callback A callback to be called when this string is finalized.
- *
- * \return The String object if no error occurs. Otherwise returns
- *   an error handle.
- */
-DART_EXPORT Dart_Handle
-Dart_NewExternalLatin1String(const uint8_t* latin1_array,
-                             intptr_t length,
-                             void* peer,
-                             intptr_t external_allocation_size,
-                             Dart_HandleFinalizer callback);
-
-/**
- * Returns a String which references an external array of UTF-16 encoded
- * characters.
- *
- * \param utf16_array An array of UTF-16 encoded characters. This must not move.
- * \param length The length of the characters array.
- * \param peer An external pointer to associate with this string.
- * \param external_allocation_size The number of externally allocated
- *   bytes for peer. Used to inform the garbage collector.
- * \param callback A callback to be called when this string is finalized.
- *
- * \return The String object if no error occurs. Otherwise returns
- *   an error handle.
- */
-DART_EXPORT Dart_Handle
-Dart_NewExternalUTF16String(const uint16_t* utf16_array,
-                            intptr_t length,
-                            void* peer,
-                            intptr_t external_allocation_size,
-                            Dart_HandleFinalizer callback);
 
 /**
  * Gets the C string representation of a String.
@@ -4123,20 +4070,6 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
                                  intptr_t* isolate_snapshot_data_size,
                                  uint8_t** isolate_snapshot_instructions_buffer,
                                  intptr_t* isolate_snapshot_instructions_size);
-
-/**
- * Like Dart_CreateAppJITSnapshotAsBlobs, but also creates a new VM snapshot.
- */
-DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
-Dart_CreateCoreJITSnapshotAsBlobs(
-    uint8_t** vm_snapshot_data_buffer,
-    intptr_t* vm_snapshot_data_size,
-    uint8_t** vm_snapshot_instructions_buffer,
-    intptr_t* vm_snapshot_instructions_size,
-    uint8_t** isolate_snapshot_data_buffer,
-    intptr_t* isolate_snapshot_data_size,
-    uint8_t** isolate_snapshot_instructions_buffer,
-    intptr_t* isolate_snapshot_instructions_size);
 
 /**
  * Get obfuscation map for precompiled code.

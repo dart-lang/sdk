@@ -15,7 +15,7 @@ class VisibilityTracker {
   /// whether the name of the element has already been added, in order to
   /// prevent suggesting elements that are shadowed.
   bool isVisible(Element? element) {
-    var name = element?.name;
+    var name = element?.displayName;
     return name != null && declaredNames.add(name);
   }
 }

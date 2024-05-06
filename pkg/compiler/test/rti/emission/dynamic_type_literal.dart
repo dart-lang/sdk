@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*class: global#Type:instance,typeLiteral*/
 
 import "package:compiler/src/util/testing.dart";
 
-void main(bool b) {
+late bool b;
+
+void main() {
   makeLive(dynamic is Type);
   makeLive(dynamic == (b ? Type : dynamic)); // ?: avoids constant folding
 }

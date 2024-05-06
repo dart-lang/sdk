@@ -115,7 +115,7 @@ class DocumentSymbolHandler extends SharedMessageHandler<DocumentSymbolParams,
     } else {
       // Otherwise, we need to use the original flat SymbolInformation.
       final allSymbols = <SymbolInformation>[];
-      final documentUri = pathContext.toUri(path);
+      final documentUri = uriConverter.toClientUri(path);
 
       // Adds a symbol and it's children recursively, supplying the parent
       // name as required by SymbolInformation.

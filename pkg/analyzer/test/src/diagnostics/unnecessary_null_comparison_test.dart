@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -24,35 +23,6 @@ f(int a, int? b) {
   0 == a;
   b == 0;
   0 == b;
-}
-''');
-  }
-
-  test_equal_legacy() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 2.5
-var a = 0;
-''');
-
-    await assertErrorsInCode('''
-import 'a.dart';
-
-f() {
-  a == null;
-  null == a;
-}
-''', [
-      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-    ]);
-  }
-
-  test_equal_legacyLibrary() async {
-    noSoundNullSafety = false;
-    await assertNoErrorsInCode('''
-// @dart = 2.5
-f(int a) {
-  a == null;
-  null == a;
 }
 ''');
   }
@@ -114,35 +84,6 @@ f(int a, int? b) {
   0 != a;
   b != 0;
   0 != b;
-}
-''');
-  }
-
-  test_notEqual_legacy() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 2.5
-var a = 0;
-''');
-
-    await assertErrorsInCode('''
-import 'a.dart';
-
-f() {
-  a != null;
-  null != a;
-}
-''', [
-      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-    ]);
-  }
-
-  test_notEqual_legacyLibrary() async {
-    noSoundNullSafety = false;
-    await assertNoErrorsInCode('''
-// @dart = 2.5
-f(int a) {
-  a != null;
-  null != a;
 }
 ''');
   }

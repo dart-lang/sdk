@@ -22,6 +22,7 @@ mixin Mixin {
   void abstractExtendsAbstractMixin();
   void abstractMixin();
 }
+
 abstract class ClassEqMixinClass = Super with MixinClass;
 
 abstract class ClassExtendsMixinClass extends Super with MixinClass {}

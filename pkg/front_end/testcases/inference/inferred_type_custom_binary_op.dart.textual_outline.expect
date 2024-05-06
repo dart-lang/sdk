@@ -5,5 +5,7 @@ class C {
 }
 
 C c = new C();
+
 var x = c * c;
+
 main() {}

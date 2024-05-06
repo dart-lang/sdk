@@ -22,6 +22,7 @@ class InlineExitCollector;
 namespace kernel {
 
 class BaseFlowGraphBuilder;
+struct InferredTypeMetadata;
 class TryCatchBlock;
 
 class Fragment {
@@ -187,10 +188,12 @@ class BaseFlowGraphBuilder {
                        intptr_t index_scale = compiler::target::kWordSize,
                        bool index_unboxed = false,
                        AlignmentType alignment = kAlignedAccess);
+  Fragment GenericCheckBound();
 
   Fragment LoadUntagged(intptr_t offset);
-  Fragment ConvertUntaggedToUnboxed(Representation to);
-  Fragment ConvertUnboxedToUntagged(Representation from);
+  Fragment CalculateElementAddress(intptr_t index_scale);
+  Fragment ConvertUntaggedToUnboxed();
+  Fragment ConvertUnboxedToUntagged();
   Fragment FloatToDouble();
   Fragment DoubleToFloat();
 
@@ -342,9 +345,6 @@ class BaseFlowGraphBuilder {
                       classid_t dest_cid,
                       bool unboxed_inputs,
                       bool can_overlap = true);
-  Fragment MemoryCopyUntagged(intptr_t element_size,
-                              bool unboxed_inputs,
-                              bool can_overlap = true);
   Fragment TailCall(const Code& code);
   Fragment Utf8Scan();
 
@@ -386,7 +386,10 @@ class BaseFlowGraphBuilder {
   Fragment BooleanNegate();
   Fragment AllocateContext(const ZoneGrowableArray<const Slot*>& scope);
   // Top of the stack should be the closure function.
-  Fragment AllocateClosure(TokenPosition position = TokenPosition::kNoSource);
+  Fragment AllocateClosure(TokenPosition position,
+                           bool has_instantiator_type_args,
+                           bool is_generic,
+                           bool is_tear_off);
   Fragment CreateArray();
   Fragment AllocateRecord(TokenPosition position, RecordShape shape);
   Fragment AllocateSmallRecord(TokenPosition position, RecordShape shape);
@@ -455,7 +458,8 @@ class BaseFlowGraphBuilder {
                        TokenPosition position,
                        intptr_t type_args_len,
                        intptr_t argument_count,
-                       const Array& argument_names);
+                       const Array& argument_names,
+                       const InferredTypeMetadata* result_type = nullptr);
 
   // Pops function type arguments, instantiator type arguments, dst_type, and
   // value; and type checks value against the type arguments.

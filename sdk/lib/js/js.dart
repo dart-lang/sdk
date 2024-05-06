@@ -4,8 +4,10 @@
 
 /// Low-level support for interoperating with JavaScript.
 ///
-/// You should usually use `package:js` instead of this library. For more
-/// information, see the [JS interop page](https://dart.dev/web/js-interop).
+/// > [!Note]
+/// > You should usually use `dart:js_interop` instead of this library.
+/// > To learn more, check out the
+/// > [JS interop documentation](https://dart.dev/interop/js-interop).
 ///
 /// This library provides access to JavaScript objects from Dart, allowing
 /// Dart code to get and set properties, and call methods of JavaScript objects
@@ -81,7 +83,7 @@
 ///
 ///     var jsArray = JsObject.jsify([1, 2, 3]);
 ///
-/// {@category Web}
+/// {@category Web (Legacy)}
 library dart.js;
 
 import 'dart:collection' show ListMixin;

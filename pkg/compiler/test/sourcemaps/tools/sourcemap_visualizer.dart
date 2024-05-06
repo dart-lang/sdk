@@ -21,7 +21,15 @@ main(List<String> args) {
   generateHtml(jsFileName, jsMapFileName);
 }
 
-class MappingState {
+enum MappingState {
+  initial('initial', 0, 1),
+  mapped0('mapped0', 2, 3),
+  mapped0Continued('mapped0continued', 2, 3),
+  mapped1('mapped1', 4, 1),
+  mapped1Continued('mapped1continued', 4, 1),
+  unmapped('unmapped', 5, 1),
+  ;
+
   final String cssClass;
   final int _continuedState;
   final int _nextState;
@@ -31,24 +39,6 @@ class MappingState {
   MappingState get continuedState => values[_continuedState];
 
   MappingState get nextState => values[_nextState];
-
-  static const MappingState INITIAL = const MappingState('initial', 0, 1);
-  static const MappingState MAPPED0 = const MappingState('mapped0', 2, 3);
-  static const MappingState MAPPED0_CONTINUED =
-      const MappingState('mapped0continued', 2, 3);
-  static const MappingState MAPPED1 = const MappingState('mapped1', 4, 1);
-  static const MappingState MAPPED1_CONTINUED =
-      const MappingState('mapped1continued', 4, 1);
-  static const MappingState UNMAPPED = const MappingState('unmapped', 5, 1);
-
-  static const List<MappingState> values = const <MappingState>[
-    INITIAL,
-    MAPPED0,
-    MAPPED0_CONTINUED,
-    MAPPED1,
-    MAPPED1_CONTINUED,
-    UNMAPPED
-  ];
 }
 
 void generateHtml(String jsFileName, String jsMapFileName) {
@@ -114,7 +104,7 @@ void generateHtml(String jsFileName, String jsMapFileName) {
   <pre class="code">
 ''');
 
-  MappingState state = MappingState.INITIAL;
+  MappingState state = MappingState.initial;
   TargetEntry? lastEntry;
 
   void write(String text, TargetEntry? entry) {
@@ -173,7 +163,7 @@ void generateHtml(String jsFileName, String jsMapFileName) {
           columnNo = entry.column;
         }
         state =
-            entry.sourceUrlId != null ? state.nextState : MappingState.UNMAPPED;
+            entry.sourceUrlId != null ? state.nextState : MappingState.unmapped;
         int end;
         if (index + 1 < targetLineEntry.entries.length) {
           end = targetLineEntry.entries[index + 1].column;

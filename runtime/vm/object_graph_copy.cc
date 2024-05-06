@@ -160,10 +160,13 @@ static bool CanShareObject(ObjectPtr obj, uword tags) {
           ->untag()
           ->IsImmutable();
     }
+
     // All other objects that have immutability bit set are deeply immutable.
     return true;
   }
 
+  // TODO(https://dartbug.com/55136): Mark Closures as shallowly imutable.
+  // And move this into the if above.
   if (cid == kClosureCid) {
     // We can share a closure iff it doesn't close over any state.
     return Closure::RawCast(obj)->untag()->context() == Object::null();
@@ -190,8 +193,6 @@ static bool MightNeedReHashing(ObjectPtr object) {
   // same hash codes.
   if (cid == kOneByteStringCid) return false;
   if (cid == kTwoByteStringCid) return false;
-  if (cid == kExternalOneByteStringCid) return false;
-  if (cid == kExternalTwoByteStringCid) return false;
   if (cid == kMintCid) return false;
   if (cid == kDoubleCid) return false;
   if (cid == kBoolCid) return false;
@@ -230,8 +231,8 @@ void SetNewSpaceTaggingWord(ObjectPtr to, classid_t cid, uint32_t size) {
 
   tags = UntaggedObject::SizeTag::update(size, tags);
   tags = UntaggedObject::ClassIdTag::update(cid, tags);
-  tags = UntaggedObject::OldBit::update(false, tags);
-  tags = UntaggedObject::OldAndNotMarkedBit::update(false, tags);
+  tags = UntaggedObject::AlwaysSetBit::update(true, tags);
+  tags = UntaggedObject::NotMarkedBit::update(true, tags);
   tags = UntaggedObject::OldAndNotRememberedBit::update(false, tags);
   tags = UntaggedObject::CanonicalBit::update(false, tags);
   tags = UntaggedObject::NewBit::update(true, tags);
@@ -473,8 +474,6 @@ class IdentityMap {
           break;
         case kOneByteStringCid:
         case kTwoByteStringCid:
-        case kExternalOneByteStringCid:
-        case kExternalTwoByteStringCid:
           hash = String::Hash(static_cast<StringPtr>(object));
           hash = Object::SetCachedHashIfNotSet(object, hash);
           break;
@@ -1031,7 +1030,7 @@ class RetainingPath {
           if (cid == kClosureCid) {
             closure ^= raw;
             // Only context has to be checked.
-            working_list->Add(closure.context());
+            working_list->Add(closure.RawContext());
             break;
           }
           // These we are not expected to drill into as they can't be on

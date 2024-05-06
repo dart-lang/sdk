@@ -8,5 +8,7 @@ class C {
 }
 
 main() {}
+
 typedef void F();
+
 void test(C c, F f, dynamic d) {}

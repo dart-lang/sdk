@@ -17,4 +17,5 @@ class F extends E {
 }
 
 main() {}
+
 expect(expected, actual) {}

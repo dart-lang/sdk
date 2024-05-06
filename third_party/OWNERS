@@ -3,4 +3,5 @@ file:/tools/OWNERS_INFRA #{LAST_RESORT_SUGGESTION}
 
 # Test status files
 per-file pkg/c_compiler.status=file:/tools/OWNERS_VM
+per-file pkg/native_assets_builder.status=file:/tools/OWNERS_VM
 per-file pkg/native_assets_cli.status=file:/tools/OWNERS_VM

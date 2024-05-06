@@ -59,6 +59,20 @@ int noopOr(int a) {
   return (a == 1 || a == 3 || a == 5 || a == 7 || a == 9) ? 100 : 100;
 }
 
+/*member: constantFoldedControlFlow3:function(a) {
+  return a;
+}*/
+bool constantFoldedControlFlow3(bool a) {
+  return a && 1 == 1 && 2 == 2;
+}
+
+/*member: constantFoldedControlFlow4:function(a) {
+  return a;
+}*/
+bool constantFoldedControlFlow4(bool a) {
+  return 1 == 1 && a && 2 == 2;
+}
+
 // Problem cases.
 //
 // Move the following cases above this comment when the code quality improves.
@@ -130,29 +144,15 @@ bool constantFoldedControlFlow1(bool a, bool b) {
 }
 
 /*member: constantFoldedControlFlow2:function(a, b) {
-  return a && b && true;
-}*/
-bool constantFoldedControlFlow2(bool a, bool b) {
-  return 1 == 1 && a && 2 == 2 && b && 3 == 3;
-}
-
-/*member: constantFoldedControlFlow3:function(a) {
   var t1;
   if (a)
-    t1 = true;
+    t1 = b;
   else
     t1 = false;
   return t1;
 }*/
-bool constantFoldedControlFlow3(bool a) {
-  return a && 1 == 1 && 2 == 2;
-}
-
-/*member: constantFoldedControlFlow4:function(a) {
-  return a && true;
-}*/
-bool constantFoldedControlFlow4(bool a) {
-  return 1 == 1 && a && 2 == 2;
+bool constantFoldedControlFlow2(bool a, bool b) {
+  return 1 == 1 && a && 2 == 2 && b && 3 == 3;
 }
 
 @pragma('dart2js:disable-inlining')

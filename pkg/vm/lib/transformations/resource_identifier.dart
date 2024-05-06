@@ -5,10 +5,12 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:_fe_analyzer_shared/src/util/relativize.dart'
+    show relativizeUri;
 import 'package:collection/collection.dart';
 import 'package:front_end/src/fasta/kernel/resource_identifier.dart'
     as ResourceIdentifiers;
-import 'package:kernel/import_table.dart' show relativeUriPath;
+import 'package:kernel/ast.dart';
 import 'package:kernel/kernel.dart';
 import 'package:vm/metadata/loading_units.dart';
 
@@ -50,7 +52,7 @@ String _toJson(List<Identifier> identifiers) {
   });
 }
 
-class _ResourceIdentifierVisitor extends RecursiveVisitor<void> {
+class _ResourceIdentifierVisitor extends RecursiveVisitor {
   final List<Identifier> identifiers = [];
   final List<LoadingUnit> _loadingUnits;
 
@@ -72,7 +74,20 @@ class _ResourceIdentifierVisitor extends RecursiveVisitor<void> {
   String _firstResourceId(InstanceConstant instance) {
     final fields = instance.fieldValues;
     final firstField = fields.entries.first;
-    return (firstField.value as StringConstant).value;
+    final fieldValue = firstField.value;
+    return _evaluateConstant(fieldValue);
+  }
+
+  String _evaluateConstant(Constant fieldValue) {
+    if (fieldValue case NullConstant()) {
+      return '';
+    } else if (fieldValue case PrimitiveConstant()) {
+      return fieldValue.value.toString();
+    } else {
+      return throw UnsupportedError(
+          'The type ${fieldValue.runtimeType} is not a '
+          'supported metadata type for `@ResourceIdentifier` annotations');
+    }
   }
 
   /// Collects all the information needed to transform [node].
@@ -92,8 +107,8 @@ class _ResourceIdentifierVisitor extends RecursiveVisitor<void> {
   }
 
   Identifier _identifierOf(StaticInvocation node, String resourceId) {
-    final identifierUri =
-        relativeUriPath(node.target.enclosingLibrary.fileUri, Uri.base);
+    final identifierUri = relativizeUri(
+        Uri.base, node.target.enclosingLibrary.fileUri, Platform.isWindows);
 
     return identifiers
             .where((id) => id.name == node.name.text && id.uri == identifierUri)
@@ -140,7 +155,7 @@ class _ResourceIdentifierVisitor extends RecursiveVisitor<void> {
 
     final location = node.location!;
     return ResourceReference(
-      uri: relativeUriPath(location.file, Uri.base),
+      uri: relativizeUri(Uri.base, location.file, Platform.isWindows),
       line: location.line,
       column: location.column,
       arguments: arguments,

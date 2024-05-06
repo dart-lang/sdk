@@ -13,4 +13,5 @@ base class ImplementsBaseMixinTypeDef2 implements MTypeDef2 {}
 base class ImplementsBaseMixinTypeDefOutside implements MOutsideTypedef {}
 
 typedef AOutsideTypedef = A;
+
 typedef MOutsideTypedef = M;

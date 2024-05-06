@@ -6,7 +6,6 @@ import 'package:kernel/ast.dart';
 
 import '../kernel/expression_generator_helper.dart';
 import '../type_inference/inference_results.dart';
-import 'class_declaration.dart';
 import 'source_field_builder.dart';
 import 'source_function_builder.dart';
 
@@ -14,9 +13,6 @@ import 'source_function_builder.dart';
 /// source code, such as a generative constructor in a regular class or a
 /// generative constructor in an extension type declaration.
 abstract class ConstructorDeclaration implements SourceFunctionBuilder {
-  /// Returns the enclosing [ClassDeclaration].
-  ClassDeclaration get classDeclaration;
-
   /// Returns `true` if this constructor, including its augmentations, is
   /// external.
   ///

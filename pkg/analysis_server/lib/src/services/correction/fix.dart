@@ -2,35 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
-import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
-import 'package:analysis_server/src/services/correction/fix/dart/extensions.dart';
-import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generator.dart';
-import 'package:analysis_server/src/services/correction/fix_internal.dart';
-import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/error.dart';
-import 'package:analyzer/instrumentation/service.dart';
-import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/services/top_level_declarations.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-
-/// Return `true` if this [errorCode] is likely to have a fix associated with
-/// it.
-bool hasFix(ErrorCode errorCode) {
-  if (errorCode is LintCode) {
-    var lintName = errorCode.name;
-    return FixProcessor.lintProducerMap.containsKey(lintName) ||
-        FixProcessor.lintMultiProducerMap.containsKey(lintName);
-  }
-  // TODO(brianwilkerson): Either deprecate the part of the protocol supported
-  //  by this function, or handle error codes associated with non-dart files.
-  return FixProcessor.nonLintProducerMap.containsKey(errorCode) ||
-      FixProcessor.nonLintMultiProducerMap.containsKey(errorCode) ||
-      AnalysisOptionsFixGenerator.codesWithFixes.contains(errorCode) ||
-      PubspecFixGenerator.codesWithFixes.contains(errorCode);
-}
 
 /// An enumeration of quick fix kinds for the errors found in an analysis
 /// options file.
@@ -55,39 +27,6 @@ class AnalysisOptionsFixKind {
     50,
     'Replace with the strict-raw-types analysis mode',
   );
-}
-
-/// The implementation of [DartFixContext].
-class DartFixContextImpl implements DartFixContext {
-  @override
-  final InstrumentationService instrumentationService;
-
-  @override
-  final ChangeWorkspace workspace;
-
-  @override
-  final ResolvedUnitResult resolveResult;
-
-  @override
-  final AnalysisError error;
-
-  @override
-  final bool autoTriggered;
-
-  DartFixContextImpl(this.instrumentationService, this.workspace,
-      this.resolveResult, this.error,
-      {this.autoTriggered = false});
-
-  @override
-  Future<Map<LibraryElement, Element>> getTopLevelDeclarations(
-      String name) async {
-    return TopLevelDeclarations(resolveResult).withName(name);
-  }
-
-  @override
-  Stream<LibraryElement> librariesWithExtensions(String memberName) {
-    return Extensions(resolveResult).libraries(memberName);
-  }
 }
 
 /// An enumeration of quick fix kinds found in a Dart file.
@@ -804,6 +743,11 @@ class DartFixKind {
     DartFixKindPriority.IGNORE - 1,
     "Ignore '{0}' for the whole file",
   );
+  static const IGNORE_ERROR_ANALYSIS_FILE = FixKind(
+    'dart.fix.ignore.analysis',
+    DartFixKindPriority.IGNORE - 2,
+    "Ignore '{0}' in `analysis_options.yaml`",
+  );
   static const IMPORT_ASYNC = FixKind(
     'dart.fix.import.async',
     49,
@@ -1190,6 +1134,11 @@ class DartFixKind {
     'dart.fix.remove.leadingUnderscore.multi',
     DartFixKindPriority.IN_FILE,
     'Remove leading underscores in file',
+  );
+  static const REMOVE_LIBRARY_NAME = FixKind(
+    'dart.fix.remove.library.name',
+    DartFixKindPriority.DEFAULT,
+    'Remove the library name',
   );
   static const REMOVE_METHOD_DECLARATION = FixKind(
     'dart.fix.remove.methodDeclaration',
@@ -1905,6 +1854,8 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     "Use x.isNotEmpty instead of '!x.isEmpty' everywhere in file",
   );
+  static const USE_NAMED_CONSTANTS = FixKind('dart.fix.use.namedConstants',
+      DartFixKindPriority.DEFAULT, 'Replace with a predefined named constant');
   static const USE_NOT_EQ_NULL = FixKind(
     'dart.fix.use.notEqNull',
     DartFixKindPriority.DEFAULT,

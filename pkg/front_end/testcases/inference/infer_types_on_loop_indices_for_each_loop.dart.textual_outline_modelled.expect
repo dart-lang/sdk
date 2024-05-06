@@ -13,4 +13,5 @@ class Foo {
 }
 
 main() {}
+
 test() {}

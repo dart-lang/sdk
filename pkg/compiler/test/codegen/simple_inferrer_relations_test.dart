@@ -25,7 +25,7 @@ class A {
     // Make the source size and AST size bigger so that it is not analyzed
     // first.
     1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+11+1+1+1+11+1+1+11+1+1;
-    return this.foo == other.foo;
+    return this.foo == (other as A).foo;
   }
 }
 
@@ -33,14 +33,14 @@ class B extends A {
   B(int foo, this.bar) : super(foo);
   int bar;
   operator==(other) {
-    if (other.bar != bar) return false;
+    if ((other as B).bar != bar) return false;
     return other.foo == foo;
   }
 }
 
 main() {
-  var a = A(inscrutable(0) == 0 ? 42 : "fish");
-  var b = B(0, inscrutable(0) == 0 ? 2 : "horse");
+  var a = A(inscrutable(0) == 0 ? 42 : "fish" as dynamic);
+  var b = B(0, inscrutable(0) == 0 ? 2 : "horse" as dynamic);
   var c = inscrutable(0) == 0 ? a : "kurt";
   var d = inscrutable(0) == 0 ? b : "gert";
   if (c == d) {

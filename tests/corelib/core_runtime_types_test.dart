@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:expect/variations.dart" as v;
 
 /**
  * A test of simple runtime behavior on numbers, strings and lists with
@@ -85,6 +86,7 @@ class CoreRuntimeTypesTest {
   }
 
   static testOperatorErrors() {
+    if (!v.checkedParameters) return;
     var objs = [
       1,
       '2',

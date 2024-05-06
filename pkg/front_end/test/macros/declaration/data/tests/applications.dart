@@ -4,13 +4,16 @@
 
 /*library: 
  compilationSequence=[
-  package:_fe_analyzer_shared/src/macros/api.dart|package:macro/macro.dart,
+  package:_macros/src/api.dart|package:macro/macro.dart|package:macros/macros.dart,
   main.dart],
  macroInstanceIds=[
   package:macro/macro.dart/Macro1/(),
   package:macro/macro.dart/Macro1/(),
+  package:macro/macro.dart/Macro1/(),
   package:macro/macro.dart/Macro1/named(),
   package:macro/macro.dart/Macro2/(),
+  package:macro/macro.dart/Macro2/(),
+  package:macro/macro.dart/Macro2/named(),
   package:macro/macro.dart/Macro2/named(),
   package:macro/macro.dart/Macro2/named(),
   package:macro/macro.dart/Macro2/named(),
@@ -18,11 +21,18 @@
   package:macro/macro.dart/Macro3/(),
   package:macro/macro.dart/Macro3/(),
   package:macro/macro.dart/Macro3/named(),
+  package:macro/macro.dart/Macro3/named(),
   package:macro/macro.dart/Macro3/named()],
  macrosAreApplied,
  macrosAreAvailable,
  neededPrecompilations=[package:macro/macro.dart=Macro1(named/new)|Macro2(named/new)|Macro3(named/new)|Macro4(new)]
 */
+
+@Macro2.named()
+@prefix.Macro2()
+@prefix.Macro3.named()
+@Macro1()
+library;
 
 import 'package:macro/macro.dart';
 import 'package:macro/macro.dart' as prefix;

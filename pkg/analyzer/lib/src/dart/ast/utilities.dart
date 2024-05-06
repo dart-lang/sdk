@@ -1764,6 +1764,18 @@ class NodeLocator extends UnifyingAstVisitor<void> {
   }
 
   @override
+  void visitClassDeclaration(ClassDeclaration node) {
+    // Names do not have AstNodes but offsets at the end should be treated as
+    // part of the declaration (not parameter list).
+    if (_startOffset == _endOffset && _startOffset == node.name.end) {
+      _foundNode = node;
+      return;
+    }
+
+    super.visitClassDeclaration(node);
+  }
+
+  @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     // Names do not have AstNodes but offsets at the end should be treated as
     // part of the declaration (not parameter list).
@@ -1891,6 +1903,18 @@ class NodeLocator2 extends UnifyingAstVisitor<void> {
       return null;
     }
     return _foundNode;
+  }
+
+  @override
+  void visitClassDeclaration(ClassDeclaration node) {
+    // Names do not have AstNodes but offsets at the end should be treated as
+    // part of the declaration (not parameter list).
+    if (_startOffset == _endOffset && _startOffset == node.name.end) {
+      _foundNode = node;
+      return;
+    }
+
+    super.visitClassDeclaration(node);
   }
 
   @override
@@ -2366,9 +2390,9 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
       node.defaultValue = _newNode as ExpressionImpl;
       var parameterElement = node.declaredElement;
       if (parameterElement is DefaultParameterElementImpl) {
-        parameterElement.constantInitializer = _newNode as ExpressionImpl;
+        parameterElement.constantInitializer = _newNode;
       } else if (parameterElement is DefaultFieldFormalParameterElementImpl) {
-        parameterElement.constantInitializer = _newNode as ExpressionImpl;
+        parameterElement.constantInitializer = _newNode;
       }
       return true;
     }

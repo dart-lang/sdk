@@ -15,7 +15,7 @@ equals(o1, o2) {
 
   var b = /*
    checkingOrder={Object?,Object,Null},
-   error=non-exhaustive:Object(),
+   error=non-exhaustive:Object();null,
    subtypes={Object,Null},
    type=Object?
   */
@@ -37,7 +37,7 @@ greaterThan(o1, o2) {
 
   var b = /*
    checkingOrder={Object?,Object,Null},
-   error=non-exhaustive:Object(),
+   error=non-exhaustive:Object();null,
    subtypes={Object,Null},
    type=Object?
   */

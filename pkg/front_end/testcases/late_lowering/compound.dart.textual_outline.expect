@@ -1,3 +1,5 @@
 main() {}
+
 error() {}
+
 expect(expected, actual) {}

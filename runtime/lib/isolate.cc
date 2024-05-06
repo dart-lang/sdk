@@ -238,7 +238,7 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
       case kClosureCid:
         closure ^= raw;
         // Only context has to be checked.
-        working_set->Add(closure.context());
+        working_set->Add(closure.RawContext());
         continue;
 
 #define MESSAGE_SNAPSHOT_ILLEGAL(type)                                         \
@@ -595,7 +595,24 @@ class SpawnIsolateTask : public ThreadPool::Task {
 
     // Make a copy of the state's isolate flags and hand it to the callback.
     Dart_IsolateFlags api_flags = *(state_->isolate_flags());
-    api_flags.is_system_isolate = false;
+
+    // Inherit the system isolate property to work around issues with
+    // --pause-isolates-on-start and --pause-isolates-on-exit impacting macro
+    // generation isolates which are spawned by the kernel-service
+    // (see https://github.com/dart-lang/sdk/issues/54729 for details).
+    //
+    // This flag isn't inherited in the case that the main isolate is marked as
+    // a system isolate in the standalone VM using the
+    // --mark-main-isolate-as-system-isolate flag as it's currently used to
+    // hide test runner implementation details and spawns isolates that should
+    // be debuggable as non-system isolates.
+    //
+    // TODO(bkonyi): revisit this decision, see
+    // https://github.com/dart-lang/sdk/issues/54736 for the tracking issue.
+    const bool is_parent_main_isolate =
+        strcmp(parent_isolate_->name(), "main") == 0;
+    api_flags.is_system_isolate =
+        api_flags.is_system_isolate && !is_parent_main_isolate;
     Dart_Isolate isolate =
         (create_group_callback)(state_->script_url(), name, nullptr,
                                 state_->package_config(), &api_flags,
@@ -896,9 +913,6 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 10) {
       paused.value(), fatal_errors, on_exit_port, on_error_port,
       utf8_debug_name, isolate->group()));
 
-  // Since this is a call to Isolate.spawn, copy the parent isolate's code.
-  state->isolate_flags()->copy_parent_code = true;
-
   isolate->group()->thread_pool()->Run<SpawnIsolateTask>(isolate,
                                                          std::move(state));
   return Object::null();
@@ -992,9 +1006,6 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 12) {
     Dart_IsolateFlags* flags = state->isolate_flags();
     flags->enable_asserts = checked.value();
   }
-
-  // Since this is a call to Isolate.spawnUri, don't copy the parent's code.
-  state->isolate_flags()->copy_parent_code = false;
 
   isolate->group()->thread_pool()->Run<SpawnIsolateTask>(isolate,
                                                          std::move(state));

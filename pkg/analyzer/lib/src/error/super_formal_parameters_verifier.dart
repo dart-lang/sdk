@@ -24,10 +24,10 @@ VerifySuperFormalParametersResult verifySuperFormalParameters({
       } else {
         result.positionalArgumentCount++;
         if (hasExplicitPositionalArguments) {
-          errorReporter?.reportErrorForToken(
+          errorReporter?.atToken(
+            parameter.name,
             CompileTimeErrorCode
                 .POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT,
-            parameter.name,
           );
         }
       }

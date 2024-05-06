@@ -17,7 +17,7 @@ import 'service_extension_registry.dart';
 
 export 'service_extension_registry.dart' show ServiceExtensionRegistry;
 
-const String vmServiceVersion = '4.13.0';
+const String vmServiceVersion = '4.15.0';
 
 /// A class representation of the Dart VM Service Protocol.
 abstract interface class VmServiceInterface {
@@ -30,6 +30,19 @@ abstract interface class VmServiceInterface {
   /// Handler for calling extra service extensions.
   Future<Response> callServiceExtension(String method,
       {String? isolateId, Map<String, dynamic>? args});
+
+  /// Invoked by the Dart Development Service (DDS) immediately after it
+  /// connects.
+  ///
+  /// [uri] is a HTTP URI pointing to the connected DDS instance.
+  ///
+  /// When invoked, the VM service implementation should enter single-client
+  /// mode, disconnecting all non-DDS clients and rejecting any other future
+  /// direct connections to the service. This is to ensure that assumptions
+  /// about state made by DDS are valid, as DDS assumes responsibility for
+  /// client management, stream management, and service extension routing upon
+  /// connection.
+  Future<void> yieldControlToDDS(String uri);
 
   /// The `addBreakpoint` RPC is used to add a breakpoint at a specific line of
   /// some script.
@@ -1639,6 +1652,10 @@ class VmServerConnection {
               },
             });
           });
+          response = Success();
+          break;
+        case '_yieldControlToDDS':
+          await _serviceImplementation.yieldControlToDDS(params!['uri']!);
           response = Success();
           break;
         default:

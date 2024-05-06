@@ -6,7 +6,6 @@ import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
@@ -59,26 +58,25 @@ main() {
 
   Map<String, Impact> expectedImpactMap = <String, Impact>{
     'method1': const Impact(),
-    'method2': Impact(implicitCasts: ['int*']),
-    'method3': Impact(parameterChecks: ['int*']),
-    'method4': Impact(asCasts: ['int*']),
+    'method2': Impact(implicitCasts: ['int']),
+    'method3': Impact(parameterChecks: ['int']),
+    'method4': Impact(asCasts: ['int']),
     'method5': const Impact(),
     'method6': const Impact(),
     'method7': const Impact(),
     'method8': const Impact(),
-    'method9': Impact(implicitCasts: ['int*']),
+    'method9': Impact(implicitCasts: ['int']),
     'method10': const Impact(),
     'method11': const Impact(),
     'method12': const Impact(),
-    'method13': Impact(implicitCasts: ['int*'], parameterChecks: ['String*']),
+    'method13': Impact(implicitCasts: ['int'], parameterChecks: ['String']),
   };
 
   retainDataForTesting = true;
-  CompilationResult result = await runCompiler(
-      memorySourceFiles: {'main.dart': source},
-      options: [Flags.printLegacyStars]);
+  CompilationResult result =
+      await runCompiler(memorySourceFiles: {'main.dart': source});
   Expect.isTrue(result.isSuccess);
-  Compiler compiler = result.compiler;
+  Compiler compiler = result.compiler!;
   var options = compiler.options;
 
   KClosedWorld closedWorld = compiler.frontendClosedWorldForTesting!;

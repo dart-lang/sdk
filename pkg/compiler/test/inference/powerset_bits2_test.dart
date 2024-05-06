@@ -29,7 +29,7 @@ main() {
       '--experimental-powersets',
     ]);
     Expect.isTrue(result.isSuccess);
-    Compiler compiler = result.compiler;
+    Compiler compiler = result.compiler!;
     var results = compiler.globalInference.resultsForTesting!;
     JClosedWorld closedWorld = results.closedWorld;
     CommonElements commonElements = closedWorld.commonElements;

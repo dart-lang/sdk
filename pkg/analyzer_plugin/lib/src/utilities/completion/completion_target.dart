@@ -121,7 +121,7 @@ class CompletionTarget {
 
   /// The enclosing [InterfaceElement], or `null` if not in a class.
   late final InterfaceElement? enclosingInterfaceElement = () {
-    final unitMember =
+    var unitMember =
         containingNode.thisOrAncestorOfType<CompilationUnitMember>();
     if (unitMember is ClassDeclaration) {
       return unitMember.declaredElement;
@@ -279,7 +279,7 @@ class CompletionTarget {
       }
     }
     if (node is NamedType) {
-      final importPrefix = node.importPrefix;
+      var importPrefix = node.importPrefix;
       if (importPrefix != null && identical(node.name2, entity)) {
         return SimpleIdentifierImpl(importPrefix.name)
           ..staticElement = importPrefix.element;
@@ -356,7 +356,7 @@ class CompletionTarget {
       var invocation = argumentList.parent;
 
       if (invocation is FunctionExpressionInvocation) {
-        final invokeType = invocation.staticInvokeType;
+        var invokeType = invocation.staticInvokeType;
         if (invokeType is FunctionType) {
           _functionType = invokeType;
         }
@@ -398,7 +398,7 @@ class CompletionTarget {
           token.type == TokenType.COMMA;
     }
 
-    final token = lastTokenOfEntity;
+    var token = lastTokenOfEntity;
     if (token == null) {
       return false;
     }
@@ -427,6 +427,18 @@ class CompletionTarget {
     }
 
     return isExistingRightParenthesis(token.next);
+  }
+
+  bool get isInClassLikeBody {
+    switch (containingNode) {
+      case ClassDeclaration():
+      case EnumDeclaration():
+      case ExtensionDeclaration():
+      case ExtensionTypeDeclaration():
+      case MixinDeclaration():
+        return true;
+    }
+    return false;
   }
 
   Token? get lastTokenOfEntity {
@@ -486,7 +498,7 @@ class CompletionTarget {
           directive = containingNode;
           uri = containingNode.uri;
           // Check whether the offset was in a configurations URI.
-          for (final configuration in containingNode.configurations) {
+          for (var configuration in containingNode.configurations) {
             if (configuration.uri.offset <= requestOffset &&
                 configuration.uri.end >= requestOffset) {
               uri = configuration.uri;
@@ -643,7 +655,7 @@ class CompletionTarget {
     if (!token.isEof && offset >= token.offset) {
       return null;
     }
-    final startToken = token;
+    var startToken = token;
     token = token.precedingComments;
     while (token != null) {
       if (offset <= token.offset) {

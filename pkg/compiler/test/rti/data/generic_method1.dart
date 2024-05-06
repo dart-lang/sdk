@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:compiler/src/util/testing.dart';
 
-/*class: A:deps=[method2],explicit=[A.T*],needsArgs,test*/
+/*class: A:deps=[method2],explicit=[A.T],needsArgs,test*/
 class A<T> {
   @pragma('dart2js:noInline')
   foo(x) {

@@ -10,7 +10,7 @@ import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/type_builder.dart';
-import '../fasta_codes.dart'
+import '../codes/fasta_codes.dart'
     show
         messagePatchDeclarationMismatch,
         messagePatchDeclarationOrigin,
@@ -28,7 +28,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   final Extension _extension;
 
   SourceExtensionBuilder? _origin;
-  SourceExtensionBuilder? patchForTesting;
+  SourceExtensionBuilder? augmentationForTesting;
 
   MergedClassMemberScope? _mergedScope;
 
@@ -76,12 +76,12 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   SourceExtensionBuilder get origin => _origin ?? this;
 
   // TODO(johnniwinther): Add merged scope for extensions.
-  MergedClassMemberScope get mergedScope => _mergedScope ??= isPatch
+  MergedClassMemberScope get mergedScope => _mergedScope ??= isAugmenting
       ? origin.mergedScope
       : throw new UnimplementedError("SourceExtensionBuilder.mergedScope");
 
   @override
-  Extension get extension => isPatch ? origin._extension : _extension;
+  Extension get extension => isAugmenting ? origin._extension : _extension;
 
   @override
   BodyBuilderContext get bodyBuilderContext =>
@@ -169,32 +169,32 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   }
 
   @override
-  void applyPatch(Builder patch) {
-    if (patch is SourceExtensionBuilder) {
-      patch._origin = this;
+  void applyAugmentation(Builder augmentation) {
+    if (augmentation is SourceExtensionBuilder) {
+      augmentation._origin = this;
       if (retainDataForTesting) {
-        patchForTesting = patch;
+        augmentationForTesting = augmentation;
       }
       // TODO(johnniwinther): Check that type parameters and on-type match
       // with origin declaration.
 
       scope.forEachLocalMember((String name, Builder member) {
-        Builder? memberPatch =
-            patch.scope.lookupLocalMember(name, setter: false);
-        if (memberPatch != null) {
-          member.applyPatch(memberPatch);
+        Builder? memberAugmentation =
+            augmentation.scope.lookupLocalMember(name, setter: false);
+        if (memberAugmentation != null) {
+          member.applyAugmentation(memberAugmentation);
         }
       });
       scope.forEachLocalSetter((String name, Builder member) {
-        Builder? memberPatch =
-            patch.scope.lookupLocalMember(name, setter: true);
-        if (memberPatch != null) {
-          member.applyPatch(memberPatch);
+        Builder? memberAugmentation =
+            augmentation.scope.lookupLocalMember(name, setter: true);
+        if (memberAugmentation != null) {
+          member.applyAugmentation(memberAugmentation);
         }
       });
     } else {
       libraryBuilder.addProblem(messagePatchDeclarationMismatch,
-          patch.charOffset, noLength, patch.fileUri, context: [
+          augmentation.charOffset, noLength, augmentation.fileUri, context: [
         messagePatchDeclarationOrigin.withLocation(
             fileUri, charOffset, noLength)
       ]);

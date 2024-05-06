@@ -21,12 +21,17 @@ class Class {
 }
 
 int nonNullableTopLevelFieldReads = 0;
+
 int nullableTopLevelFieldReads = 0;
+
 late final int? nullableTopLevelField = nullableTopLevelFieldReads++ == 0
     ? nullableTopLevelField
     : computeInitialValue();
+
 late final int nonNullableTopLevelField = nonNullableTopLevelFieldReads++ == 0
     ? nonNullableTopLevelField
     : computeInitialValue();
+
 throws(f(), String message) {}
+
 void main() {}

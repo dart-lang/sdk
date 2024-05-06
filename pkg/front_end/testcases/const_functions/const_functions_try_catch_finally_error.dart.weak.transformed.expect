@@ -62,7 +62,7 @@ static method finallyThrow(core::int x) → core::int {
 }
 static method unhandledThrow(dynamic x) → core::int {
   try {
-    throw x;
+    throw x as{TypeError,Unchecked} core::Object;
   }
   on core::String catch(final core::String e) {
     throw e;

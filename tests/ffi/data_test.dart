@@ -41,13 +41,8 @@ void main() {
   testPointerPointerNull();
   testSizeOf();
   testPointerChain(100);
-  testTypeTest();
   testToString();
   testEquality();
-  testAllocateVoid();
-  testAllocateNativeFunction();
-  testSizeOfVoid();
-  testSizeOfNativeFunction();
   testDynamicInvocation();
   testMemoryAddressTruncation();
   testNullptrCast();
@@ -141,7 +136,8 @@ void testCastGeneric() {
   }
 
   Pointer<Int16> p = calloc();
-  Pointer<Int64> p2 = generic(p);
+  // ignore: unused_local_variable
+  Pointer<Int64> p2 = generic<Int64>(p);
   calloc.free(p);
 }
 
@@ -151,6 +147,7 @@ void testCastGeneric2() {
   }
 
   Pointer<Int16> p = calloc();
+  // ignore: unused_local_variable
   Pointer<Int64> p2 = generic(p);
   calloc.free(p);
 }
@@ -409,12 +406,6 @@ void testPointerChain(int length) {
   freeChain(head, length);
 }
 
-void testTypeTest() {
-  Pointer<Int8> p = calloc();
-  Expect.isTrue(p is Pointer);
-  calloc.free(p);
-}
-
 void testToString() {
   Pointer<Int16> p = calloc();
   Expect.stringEquals("Pointer: address=0x", p.toString().substring(0, 19));
@@ -437,40 +428,16 @@ void testEquality() {
 
 typedef Int8UnOp = Int8 Function(Int8);
 
-void testAllocateVoid() {
-  Expect.throws(() {
-    Pointer<Void> p = calloc();
-  });
-}
-
-void testAllocateNativeFunction() {
-  Expect.throws(() {
-    Pointer<NativeFunction<Int8UnOp>> p = calloc();
-  });
-}
-
-void testSizeOfVoid() {
-  Expect.throws(() {
-    sizeOf<Void>();
-  });
-}
-
-void testSizeOfNativeFunction() {
-  Expect.throws(() {
-    sizeOf<NativeFunction<Int8UnOp>>();
-  });
-}
-
 void testDynamicInvocation() {
   dynamic p = calloc<Int8>();
   Expect.throws(() {
-    final int i = p.value;
+    p.value;
   });
   Expect.throws(() => p.value = 1);
   Expect.throws(() => p.elementAt(5));
   Expect.throws(() => p += 5);
-  final int addr = p.address;
-  final Pointer<Int16> p2 = p.cast<Int16>();
+  p.address;
+  p.cast<Int16>();
   calloc.free(p);
 }
 

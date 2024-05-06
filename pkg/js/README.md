@@ -1,6 +1,9 @@
 [![pub package](https://img.shields.io/pub/v/js.svg)](https://pub.dev/packages/js)
 [![package publisher](https://img.shields.io/pub/publisher/js.svg)](https://pub.dev/packages/js/publisher)
 
+**Important:** Prefer using `dart:js_interop` instead of this package for JS
+interop. See the [JS interop documentation] for more details.
+
 Use this package when you want to call JavaScript APIs from Dart code, or vice
 versa.
 
@@ -9,14 +12,17 @@ you specify how your Dart code interoperates with JavaScript code. The
 Dart-to-JavaScript compilers — dartdevc and dart2js — recognize these
 annotations, using them to connect your Dart code with JavaScript.
 
-**Important:** This library supersedes `dart:js`, so don't import `dart:js`.
-Instead, import `package:js/js.dart`.
-
 A second library in this package, `js_util`, provides low-level utilities that
 you can use when it isn't possible to wrap JavaScript with a static, annotated
 API.
 
+[JS interop documentation]: https://dart.dev/interop/js-interop
+
 ## Static Interop
+
+**Important:** Static interop is now supported with extension types in Dart 3.3.
+Prefer using `dart:js_interop` with extension types instead of `@staticInterop`.
+See the [JS interop documentation] for more details.
 
 In the past, `package:js` has allowed users to use JavaScript interoperability
 in more dynamic, class-based ways. While we will continue to allow users to use

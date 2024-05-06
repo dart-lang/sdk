@@ -1,4 +1,5 @@
 import 'dart:collection';
+
 import "main_lib.dart";
 
 abstract class LegacyExtendsBase<E extends LinkedListEntry<E>>
@@ -13,4 +14,5 @@ class LegacyWithFinal with LegacyImplementFinalCore {}
 
 mixin LegacyOnBase<E extends LinkedListEntry<E>>
     on LegacyImplementBaseCore<E> {}
+
 mixin LegacyOnFinal on LegacyImplementFinalCore {}

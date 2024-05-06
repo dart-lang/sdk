@@ -1,66 +1,58 @@
 library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/patterns/null_check_inside_if_case.dart:11:19: Warning: The null-check pattern will have no effect because the matched type isn't nullable.
-// Try replacing the null-check pattern with its nested pattern.
-//   if (x case var y?) {}
-//                   ^
-//
-// pkg/front_end/testcases/patterns/null_check_inside_if_case.dart:12:19: Warning: The null-check pattern will have no effect because the matched type isn't nullable.
-// Try replacing the null-check pattern with its nested pattern.
-//   if (x case int y?) {}
-//                   ^
-//
-// pkg/front_end/testcases/patterns/null_check_inside_if_case.dart:13:22: Warning: The null-check pattern will have no effect because the matched type isn't nullable.
-// Try replacing the null-check pattern with its nested pattern.
-//   if (x case String y?) {}
-//                      ^
-//
 import self as self;
 import "dart:core" as core;
 
 static method test1(dynamic x) → dynamic {
   {
-    hoisted dynamic y;
     final synthesized dynamic #0#0 = x;
-    if(!(#0#0 == null)) {
-      y = #0#0;
-      {}
+    {
+      hoisted dynamic y;
+      if(!(#0#0 == null)) {
+        y = #0#0;
+        {}
+      }
     }
   }
   {
-    hoisted core::int y;
     final synthesized dynamic #1#0 = x;
-    if(!(#1#0 == null) && #1#0 is core::int) {
-      y = #1#0{core::int};
-      {}
+    {
+      hoisted core::int y;
+      if(!(#1#0 == null) && #1#0 is core::int) {
+        y = #1#0{core::int};
+        {}
+      }
     }
   }
 }
 static method test2(core::num x) → dynamic {
   {
-    hoisted core::num y;
     final synthesized core::num #0#0 = x;
-    if(!(#0#0 == null)) {
-      y = #0#0;
-      {}
+    {
+      hoisted core::num y;
+      if(!(#0#0 == null)) {
+        y = #0#0;
+        {}
+      }
     }
   }
   {
-    hoisted core::int y;
     final synthesized core::num #1#0 = x;
-    if(!(#1#0 == null) && #1#0 is core::int) {
-      y = #1#0{core::int};
-      {}
+    {
+      hoisted core::int y;
+      if(!(#1#0 == null) && #1#0 is core::int) {
+        y = #1#0{core::int};
+        {}
+      }
     }
   }
   {
-    hoisted core::String y;
     final synthesized core::num #2#0 = x;
-    if(!(#2#0 == null) && #2#0 is core::String) {
-      y = #2#0{core::String};
-      {}
+    {
+      hoisted core::String y;
+      if(!(#2#0 == null) && #2#0 is core::String) {
+        y = #2#0{core::String};
+        {}
+      }
     }
   }
 }

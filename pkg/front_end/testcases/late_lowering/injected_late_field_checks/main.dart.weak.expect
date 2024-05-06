@@ -23,7 +23,7 @@ class Class extends core::Object {
     : self2::Class::_#Class#foo#isSet = true, self2::Class::_#Class#foo = foo, super core::Object::•()
     ;
   get /* from org-dartlang-testcase:///patch_lib.dart */ foo() → core::int
-    return this.{self2::Class::_#Class#foo#isSet}{core::bool} ?{core::int} let final core::int? #t1 = this.{self2::Class::_#Class#foo}{core::int?} in #t1{core::int} : throw new _in::LateError::fieldNI("foo");
+    return this.{self2::Class::_#Class#foo#isSet}{core::bool} ?{core::int} let final core::int? #t1 = this.{self2::Class::_#Class#foo}{core::int?} in #t1{core::int} : throw{for-error-handling} new _in::LateError::fieldNI("foo");
   set /* from org-dartlang-testcase:///patch_lib.dart */ foo(core::int foo#param) → void {
     this.{self2::Class::_#Class#foo#isSet} = true;
     this.{self2::Class::_#Class#foo} = foo#param;

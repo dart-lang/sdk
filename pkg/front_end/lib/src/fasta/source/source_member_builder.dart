@@ -41,7 +41,7 @@ abstract class SourceMemberBuilder implements MemberBuilder {
 
   /// Builds the AST nodes for this member as needed for the full compilation.
   ///
-  /// This includes adding patched bodies and augmented members.
+  /// This includes adding augmented bodies and augmented members.
   int buildBodyNodes(BuildNodesCallback f);
 
   /// Checks the variance of type parameters [sourceClassBuilder] used in the
@@ -53,7 +53,7 @@ abstract class SourceMemberBuilder implements MemberBuilder {
   void checkTypes(
       SourceLibraryBuilder library, TypeEnvironment typeEnvironment);
 
-  /// Returns `true` if this member is an augmentation.
+  /// Returns `true` if this member is declared using the `augment` modifier.
   bool get isAugmentation;
 
   /// Returns `true` if this member is a member declared in an augmentation

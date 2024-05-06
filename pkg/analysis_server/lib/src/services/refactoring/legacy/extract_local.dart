@@ -85,8 +85,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     String? typeString;
     if (codeStyleOptions.specifyTypes) {
       typeString = singleExpression != null
-          ? singleExpression?.staticType
-              ?.getDisplayString(withNullability: unit.isNonNullableByDefault)
+          ? singleExpression?.staticType?.getDisplayString()
           : stringLiteralPart != null
               ? 'String'
               : null;
@@ -121,7 +120,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     _prepareOffsetsLengths();
     // names
     excludedVariableNames =
-        utils.findPossibleLocalVariableConflicts(selectionOffset);
+        unit.findPossibleLocalVariableConflicts(selectionOffset);
     _prepareNames();
     // done
     return Future.value(result);
@@ -193,7 +192,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
         occurrencesShift = edit.replacement.length;
       } else if (target is ExpressionFunctionBody) {
         var prefix = utils.getNodePrefix(target.parent!);
-        var indent = utils.getIndent(1);
+        var indent = utils.oneIndent;
         var expr = target.expression;
         {
           var code = '{$eol$prefix$indent';

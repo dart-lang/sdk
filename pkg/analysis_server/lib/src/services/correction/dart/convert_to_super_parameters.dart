@@ -12,6 +12,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -358,9 +359,7 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
   Map<ParameterElement, _Parameter> _parameterMap(
       FormalParameterList parameterList) {
     bool validParameter(FormalParameter parameter) {
-      if (parameter is DefaultFormalParameter) {
-        parameter = parameter.parameter;
-      }
+      parameter = parameter.notDefault;
       return parameter is SimpleFormalParameter ||
           parameter is FunctionTypedFormalParameter;
     }

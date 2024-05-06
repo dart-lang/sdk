@@ -35,6 +35,7 @@ class AnalysisServer {
     required this.commandName,
     required this.argResults,
     this.enabledExperiments = const [],
+    this.disableStatusNotificationDebouncing = false,
     this.suppressAnalytics = false,
   });
 
@@ -45,6 +46,7 @@ class AnalysisServer {
   final String commandName;
   final ArgResults? argResults;
   final List<String> enabledExperiments;
+  final bool disableStatusNotificationDebouncing;
   final bool suppressAnalytics;
 
   Process? _process;
@@ -105,6 +107,8 @@ class AnalysisServer {
       '--${Driver.CLIENT_ID}=dart-$commandName',
       '--disable-server-feature-completion',
       '--disable-server-feature-search',
+      if (disableStatusNotificationDebouncing)
+        '--disable-status-notification-debouncing',
       '--sdk',
       sdkPath.path,
       if (cacheDirectoryPath != null) '--cache=$cacheDirectoryPath',

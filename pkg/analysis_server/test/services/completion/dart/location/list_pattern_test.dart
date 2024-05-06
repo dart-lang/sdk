@@ -35,15 +35,15 @@ suggestions
     kind: topLevelVariable
   c11
     kind: localVariable
-  const
-    kind: keyword
   false
-    kind: keyword
-  final
     kind: keyword
   null
     kind: keyword
   true
+    kind: keyword
+  const
+    kind: keyword
+  final
     kind: keyword
   v01
     kind: topLevelVariable
@@ -70,15 +70,15 @@ suggestions
     kind: topLevelVariable
   c11
     kind: localVariable
-  const
-    kind: keyword
   false
-    kind: keyword
-  final
     kind: keyword
   null
     kind: keyword
   true
+    kind: keyword
+  const
+    kind: keyword
+  final
     kind: keyword
   v01
     kind: topLevelVariable
@@ -105,15 +105,15 @@ suggestions
     kind: topLevelVariable
   c11
     kind: localVariable
-  const
-    kind: keyword
   false
-    kind: keyword
-  final
     kind: keyword
   null
     kind: keyword
   true
+    kind: keyword
+  const
+    kind: keyword
+  final
     kind: keyword
   v01
     kind: topLevelVariable
@@ -140,15 +140,15 @@ suggestions
     kind: topLevelVariable
   c11
     kind: localVariable
-  const
-    kind: keyword
   false
-    kind: keyword
-  final
     kind: keyword
   null
     kind: keyword
   true
+    kind: keyword
+  const
+    kind: keyword
+  final
     kind: keyword
   v01
     kind: topLevelVariable

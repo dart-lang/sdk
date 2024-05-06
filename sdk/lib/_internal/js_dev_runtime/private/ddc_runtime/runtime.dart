@@ -18,6 +18,7 @@ import 'dart:_foreign_helper'
         JS_GET_NAME,
         JSExportName,
         rest,
+        TYPE_REF,
         spread;
 import 'dart:_interceptors'
     show

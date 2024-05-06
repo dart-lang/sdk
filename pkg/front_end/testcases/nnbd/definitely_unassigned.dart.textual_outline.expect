@@ -1,6 +1,7 @@
 import 'dart:async';
 
 methodDirect<T>(T value) {}
+
 var fieldDirect = <T>(T value) {
   T local1;
   late T local2;
@@ -17,7 +18,9 @@ var fieldDirect = <T>(T value) {
   local6;
   local7;
 };
+
 methodConditional<T>(bool b, T value) {}
+
 var fieldConditional = <T>(bool b, T value) {
   T local1;
   late T local2;
@@ -43,11 +46,14 @@ var fieldConditional = <T>(bool b, T value) {
   local6;
   local7;
 };
+
 methodCompound() {}
+
 var fieldCompound = () {
   int local3;
   late int local4;
   local3 += 0;
   local4 += 0;
 };
+
 main() {}

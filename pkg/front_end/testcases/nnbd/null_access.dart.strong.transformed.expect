@@ -74,25 +74,11 @@ library;
 //   nullableClass?.nullableField += 2; // error
 //                                ^
 //
-// pkg/front_end/testcases/nnbd/null_access.dart:54:35: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
-//   nullableClass?.nonNullableClass.nonNullableField ??= 0; // ok
-//                                   ^
-//
 // pkg/front_end/testcases/nnbd/null_access.dart:57:16: Error: Can't use an expression of type 'Class?' as a function because it's potentially null.
 //  - 'Class' is from 'pkg/front_end/testcases/nnbd/null_access.dart'.
 // Try calling using ?.call instead.
 //   nullableClass(); // error
 //                ^
-//
-// pkg/front_end/testcases/nnbd/null_access.dart:59:3: Warning: Operand of null-aware operation '?.' has type 'Class' which excludes null.
-//  - 'Class' is from 'pkg/front_end/testcases/nnbd/null_access.dart'.
-//   nonNullableClass?.nonNullableClass(); // ok
-//   ^
-//
-// pkg/front_end/testcases/nnbd/null_access.dart:60:3: Warning: Operand of null-aware operation '?.' has type 'Class' which excludes null.
-//  - 'Class' is from 'pkg/front_end/testcases/nnbd/null_access.dart'.
-//   nonNullableClass?.nonNullableClass.nonNullableClass(); // ok
-//   ^
 //
 import self as self;
 import "dart:core" as core;
@@ -183,12 +169,12 @@ Try accessing using ?. instead.
   nonNullableClass.nullableField += 2; // error
                                  ^" in invalid-expression "pkg/front_end/testcases/nnbd/null_access.dart:48:34: Error: Operator '+' cannot be called on 'int?' because it is potentially null.
   nonNullableClass.nullableField += 2; // error
-                                 ^" in #t19.{self::Class::nullableField}{core::int?}.{core::num::+}(2){(core::num) → core::num};
+                                 ^" in #t19.{self::Class::nullableField}{core::int?}.{core::num::+}(2){(core::num) → core::num} as{TypeError,Unchecked} core::int?;
   let final self::Class? #t20 = nullableClass in #t20 == null ?{core::num?} null : #t20.{self::Class::nullableField} = invalid-expression "pkg/front_end/testcases/nnbd/null_access.dart:49:32: Error: A value of type 'num' can't be assigned to a variable of type 'int?'.
   nullableClass?.nullableField += 2; // error
                                ^" in invalid-expression "pkg/front_end/testcases/nnbd/null_access.dart:49:32: Error: Operator '+' cannot be called on 'int?' because it is potentially null.
   nullableClass?.nullableField += 2; // error
-                               ^" in #t20.{self::Class::nullableField}{core::int?}.{core::num::+}(2){(core::num) → core::num};
+                               ^" in #t20.{self::Class::nullableField}{core::int?}.{core::num::+}(2){(core::num) → core::num} as{TypeError,Unchecked} core::int?;
   let final self::Class? #t21 = nullableClass in #t21 == null ?{core::int?} null : #t21.{self::Class::nonNullableField}{core::int} == null ?{core::int} #t21.{self::Class::nonNullableField} = 0 : null;
   let final self::Class? #t22 = nullableClass in #t22 == null ?{core::int?} null : #t22.{self::Class::nullableField}{core::int?} == null ?{core::int} #t22.{self::Class::nullableField} = 0 : null;
   let final self::Class? #t23 = nullableClass in #t23 == null ?{core::int?} null : let final self::Class #t24 = #t23{self::Class}.{self::Class::nonNullableClass}{self::Class} in #t24.{self::Class::nonNullableField}{core::int} == null ?{core::int} #t24.{self::Class::nonNullableField} = 0 : null;

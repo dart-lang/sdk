@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:expect/variations.dart" as v;
 import 'dart:collection';
 
 class MyList extends ListBase {
@@ -25,10 +26,6 @@ void testModifiableList(l1) {
   // Index must be integer and in range.
   Expect.throwsRangeError(() => l1.removeAt(-1), "negative");
   Expect.throwsRangeError(() => l1.removeAt(5), "too large");
-  Expect.throws(() => l1.removeAt(null),
-      // With sound null safety a TypeError is thrown.
-      // Without sound null safety an ArgumentError is thrown.
-      (e) => e is TypeError || e is ArgumentError, "is null");
 
   Expect.equals(2, l1.removeAt(2), "l1-remove2");
   Expect.equals(1, l1[1], "l1-1[1]");
@@ -42,6 +39,17 @@ void testModifiableList(l1) {
   Expect.equals(3, l1[1], "l1-2[1]");
   Expect.equals(4, l1[2], "l1-2[2]");
   Expect.equals(3, l1.length, "length-2");
+
+  // Note: this is the last expectation because, when `!v.checkedParameters`
+  // this ends up modifying [l1].
+  final e = Expect.throwsWhen(
+      v.checkedParameters, () => l1.removeAt(null), "index is null");
+  if (e != null) {
+    Expect.equals(!v.unsoundNullSafety, e is TypeError,
+        "TypeError expected in sound null safety");
+    Expect.equals(v.unsoundNullSafety, e is ArgumentError,
+        "ArgumentError expected in unsound null safety");
+  }
 }
 
 void main() {

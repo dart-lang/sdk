@@ -89,8 +89,6 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     return resolveResult.unit.featureSet;
   }
 
-  bool get _isNonNullable => _featureSet.isEnabled(Feature.non_nullable);
-
   @override
   Future<RefactoringStatus> checkFinalConditions() async {
     var result = RefactoringStatus();
@@ -305,9 +303,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
       var parameterList = method.parameters;
       if (parameterList != null) {
         for (var parameter in parameterList.parameters) {
-          if (parameter is DefaultFormalParameter) {
-            parameter = parameter.parameter;
-          }
+          parameter = parameter.notDefault;
           if (parameter is NormalFormalParameter) {
             final element = parameter.declaredElement!;
             _parameters.add(_Parameter(element.name, element.type,
@@ -429,9 +425,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
                   'key',
                   type: classKey!.instantiate(
                     typeArguments: const [],
-                    nullabilitySuffix: _isNonNullable
-                        ? NullabilitySuffix.question
-                        : NullabilitySuffix.star,
+                    nullabilitySuffix: NullabilitySuffix.question,
                   ),
                 );
               }
@@ -439,14 +433,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
               // Add parameters for fields, local, and method parameters.
               for (var parameter in _parameters) {
-                builder.write('    ');
-                if (_isNonNullable) {
-                  builder.write('required');
-                } else {
-                  builder.write('@');
-                  builder.writeReference(accessorRequired!);
-                }
-                builder.write(' ');
+                builder.write('    required ');
                 if (parameter.constructorName != parameter.name) {
                   builder.writeType(parameter.type);
                   builder.write(' ');
@@ -642,7 +629,10 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
         }
       }
     } else if (element is PropertyAccessorElement) {
-      var field = element.variable;
+      var field = element.variable2;
+      if (field == null) {
+        return;
+      }
       if (_isMemberOfEnclosingClass(field)) {
         if (node.inSetterContext()) {
           status.addError("Write to '$elementName' cannot be extracted.");

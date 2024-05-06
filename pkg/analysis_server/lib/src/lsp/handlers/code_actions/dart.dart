@@ -8,11 +8,11 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/abstract_code_actions_producer.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
-import 'package:analysis_server/src/protocol_server.dart' hide Position;
+import 'package:analysis_server/src/protocol_server.dart'
+    hide AnalysisOptions, Position;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
-import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_processor.dart';
@@ -22,6 +22,7 @@ import 'package:analyzer/dart/analysis/session.dart'
     show InconsistentAnalysisException;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:server_plugin/edit/fix/dart_fix_context.dart';
 
 /// Produces [CodeAction]s from Dart source commands, fixes, assists and
 /// refactors from the server.
@@ -44,6 +45,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
     required super.length,
     required super.shouldIncludeKind,
     required super.capabilities,
+    required super.analysisOptions,
     required this.triggerKind,
   });
 
@@ -123,6 +125,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         server.instrumentationService,
         workspace,
         unit,
+        server.producerGeneratorsForLintRules,
         offset,
         length,
       );
@@ -151,7 +154,6 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
 
     final lineInfo = unit.lineInfo;
     final codeActions = <CodeActionWithPriority>[];
-    final fixContributor = DartFixContributor();
 
     try {
       final workspace = DartChangeWorkspace(await server.currentSessions);
@@ -167,12 +169,16 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
             range.start.line > errorEndLine) {
           continue;
         }
-        var context = DartFixContextImpl(
-            server.instrumentationService, workspace, unit, error);
-        final fixes = await fixContributor.computeFixes(context);
+        var context = DartFixContext(
+          instrumentationService: server.instrumentationService,
+          workspace: workspace,
+          resolvedResult: unit,
+          error: error,
+        );
+        final fixes = await computeFixes(context);
         if (fixes.isNotEmpty) {
           final diagnostic = toDiagnostic(
-            server.pathContext,
+            server.uriConverter,
             unit,
             error,
             supportedTags: supportedDiagnosticTags,

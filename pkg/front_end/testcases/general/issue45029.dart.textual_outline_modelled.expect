@@ -10,4 +10,5 @@ class C {
 var c = () {
   throw "Baz";
 };
+
 void test() {}

@@ -24,6 +24,7 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
     required super.length,
     required super.shouldIncludeKind,
     required super.capabilities,
+    required super.analysisOptions,
   });
 
   @override
@@ -61,7 +62,7 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
     final contextRoot = session.analysisContext.contextRoot;
     final package = contextRoot.workspace.findPackageFor(optionsFile.path);
     final sdkVersionConstraint =
-        (package is PubWorkspacePackage) ? package.sdkVersionConstraint : null;
+        (package is PubPackage) ? package.sdkVersionConstraint : null;
 
     final errors = analyzeAnalysisOptions(
       optionsFile.createSource(),

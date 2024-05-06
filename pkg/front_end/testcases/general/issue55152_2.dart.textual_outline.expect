@@ -1,0 +1,23 @@
+class A {
+  const A();
+  const factory A.redir() = B;
+  const factory A.redir2() = B;
+  const A.named();
+  const A.named2();
+  const factory A.selfRedir() = A.named;
+  const factory A.selfRedir2() = A.named2;
+}
+
+class B extends A {
+  const B();
+}
+
+typedef TA = A;
+
+test(@TA.redir() int x, @TA.named() int x2, @A.redir() int x3,
+    @A.selfRedir() int x4) {}
+
+class Test {
+  test(@TA.redir() int x, @TA.named() int x2, @A.redir() int x3,
+      @A.selfRedir() int x4) {}
+}

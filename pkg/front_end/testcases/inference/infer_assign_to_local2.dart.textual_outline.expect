@@ -12,5 +12,7 @@ class B extends A {
 class C extends B {}
 
 T f<T>() => throw '';
+
 void test(B local, B? local2, B? local3) {}
+
 main() {}

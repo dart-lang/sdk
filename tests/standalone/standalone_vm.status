@@ -2,6 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+io/non_utf8_output_test: NonUtf8Output
+
 [ $arch == ia32 ]
 check_for_aot_snapshot_jit_test: SkipByDesign # No AOT mode on IA32.
 link_natives_lazily_test: SkipByDesign # Not supported.
@@ -41,6 +43,7 @@ io/socket_upgrade_to_secure_test: Skip # Issue 27638
 
 [ $system == windows ]
 io/process_sync_test: Pass, Timeout # Issue 24596
+io/regress_54516_test: SkipByDesign # Test uses a shell script which won't run on windows
 io/sleep_test: Pass, Fail # Issue 25757
 verbose_gc_to_bmu_test: Skip
 

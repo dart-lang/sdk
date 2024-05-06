@@ -569,7 +569,7 @@ void f(int p) {
 }
 ''');
     _createRefactoringForStartEndComments();
-    return _assertConditionsError(ExtractMethodRefactoringImpl.ERROR_EXITS);
+    return _assertConditionsError(ExtractMethodRefactoringImpl.errorExits);
   }
 
   Future<void> test_bad_statements_return_andAssignsVariable() async {
@@ -1049,15 +1049,16 @@ class C {
 process(f(x)) {}
 void f() {
   int k = 2;
-  process((x) => x * k);
+  int a = 3;
+  process((x) => x * k * a);
 }
 ''');
-    _createRefactoringForString('(x) => x * k');
+    _createRefactoringForString('(x) => x * k * a');
     // check
     var status = await refactoring.checkInitialConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedMessage:
-            'Cannot extract closure as method, it references 1 external variable.');
+        expectedMessage: 'Cannot extract the closure as a method,'
+            'it references the external variables \'k\' and \'a\'.');
   }
 
   Future<void> test_closure_bad_referencesParameter() async {
@@ -1071,8 +1072,8 @@ void f(int k) {
     // check
     var status = await refactoring.checkInitialConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedMessage:
-            'Cannot extract closure as method, it references 1 external variable.');
+        expectedMessage: 'Cannot extract the closure as a method,'
+            'it references the external variable \'k\'.');
   }
 
   Future<void> test_fromTopLevelVariableInitializerClosure() async {
@@ -1246,7 +1247,7 @@ void f() {
     expect(refactoring.lengths, unorderedEquals([5, 6]));
   }
 
-  Future<void> test_parameterType_nullableTypeWithArguments() async {
+  Future<void> test_parameterType_nullableTypeWithTypeArguments() async {
     await indexTestUnit('''
 abstract class C {
   List<int>? get x;
@@ -1255,9 +1256,7 @@ class D {
   f(C c) {
     var x = c.x;
 // start
-    if (x != null) {
-      print(x);
-    }
+    print(x);
 // end
   }
 }
@@ -1266,6 +1265,54 @@ class D {
     // do check
     await refactoring.checkInitialConditions();
     expect(refactoring.parameters[0].type, 'List<int>?');
+  }
+
+  Future<void> test_parameterType_prefixed() async {
+    await indexTestUnit('''
+import 'dart:core' as core;
+class C {
+  f(core.String p) {
+// start
+    p;
+// end
+  }
+}
+''');
+    _createRefactoringForStartEndComments();
+    await refactoring.checkInitialConditions();
+    expect(refactoring.parameters[0].type, 'core.String');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/55254')
+  Future<void> test_parameterType_typeParameterOfEnclosingClass() async {
+    await indexTestUnit('''
+class C<T> {
+  f(T p) {
+// start
+    p;
+// end
+  }
+}
+''');
+    _createRefactoringForStartEndComments();
+    await refactoring.checkInitialConditions();
+    expect(refactoring.parameters[0].type, 'T');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/55254')
+  Future<void> test_parameterType_typeParameterOfEnclosingFunction() async {
+    await indexTestUnit('''
+class C {
+  f<T>(T p) {
+// start
+    p;
+// end
+  }
+}
+''');
+    _createRefactoringForStartEndComments();
+    await refactoring.checkInitialConditions();
+    expect(refactoring.parameters[0].type, 'T');
   }
 
   Future<void> test_prefixPartOfQualified() async {
@@ -1678,6 +1725,29 @@ class A {
   }
 }
 ''');
+  }
+
+  Future<void> test_singleExpression_occurrences_referencedInMacro() async {
+    addMacros([declareInTypeMacro()]);
+
+    await indexTestUnit('''
+import 'macros.dart';
+    
+void f() {
+  print('!');
+}
+
+@DeclareInType("  void m() { print('!'); }")
+class A { }
+''');
+
+    _createRefactoringForString("print('!');");
+    await assertRefactoringConditionsOK();
+    var refactoringChange = await refactoring.createChange();
+
+    // Verify that `test.macro.dart` is unmodified.
+    expect(refactoringChange.edits.map((e) => e.file),
+        unorderedEquals([testFile.path]));
   }
 
   Future<void> test_singleExpression_parameter_functionTypeAlias() async {

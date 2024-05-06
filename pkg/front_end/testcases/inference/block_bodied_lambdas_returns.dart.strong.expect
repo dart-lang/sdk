@@ -6,14 +6,6 @@ library test /*isLegacy*/;
 // // @dart=2.9
 // ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/inference/block_bodied_lambdas_returns.dart:37:7: Warning: Must explicitly return a value from a non-void function.
-//       return;
-//       ^
-//
-// pkg/front_end/testcases/inference/block_bodied_lambdas_returns.dart:67:7: Warning: Must explicitly return a value from a non-void function.
-//       return;
-//       ^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -46,7 +38,7 @@ static method main() → dynamic {
   };
   (core::bool*) →* core::int* g = (core::bool* b) → core::int* {
     if(b) {
-      return null;
+      return;
     }
     else {
       return 0;
@@ -81,7 +73,7 @@ static method main() → dynamic {
       return 0;
     }
     else {
-      return null;
+      return;
     }
   };
   (core::bool*) →* core::int* l = (core::bool* b) → core::int* {

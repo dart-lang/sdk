@@ -71,5 +71,6 @@ function_type/*: Skip # Needs checked mode.
 identifier/built_in_type_annotation_test/set: Crash # Not supported by legacy VM front-end.
 
 [ $hot_reload || $hot_reload_rollback ]
+macros/introspect/declaration_introspect_cycle_failure_test: Skip # Issue 54779
 regress/regress22780_test/01: Crash # Issue 29094
 vm/optimized_stacktrace_test: Slow, Pass

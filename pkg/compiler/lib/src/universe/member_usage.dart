@@ -717,7 +717,7 @@ class ParameterUsage {
 
   ParameterUsage.cloned(this._parameterStructure,
       {required bool hasInvoke,
-      required providedPositionalParameters,
+      required int? providedPositionalParameters,
       required bool areAllTypeParametersProvided,
       required Set<String>? unprovidedNamedParameters})
       : _hasInvoke = hasInvoke,

@@ -56,7 +56,7 @@ void main() {
     var options = [Flags.omitImplicitChecks];
     var result = await runCompiler(
         memorySourceFiles: {'main.dart': TEST}, options: options);
-    Compiler compiler = result.compiler;
+    Compiler compiler = result.compiler!;
     var results = compiler.globalInference.resultsForTesting!;
     var closedWorld = results.closedWorld;
     var elementEnvironment = closedWorld.elementEnvironment;

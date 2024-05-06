@@ -529,7 +529,7 @@ bool _isJavaScriptPromise(value) =>
 
 DateTime _dateToDateTime(date) {
   int millisSinceEpoch = JS('int', '#.getTime()', date);
-  return new DateTime.fromMillisecondsSinceEpoch(millisSinceEpoch, isUtc: true);
+  return DateTime.fromMillisecondsSinceEpoch(millisSinceEpoch, isUtc: true);
 }
 
 bool _noDartifyRequired(Object? o) =>
@@ -590,7 +590,7 @@ Object? dartify(Object? o) {
     if (_isJavaScriptRegExp(o)) {
       // TODO(joshualitt): Consider investigating if there is a way to convert
       // from `JSRegExp` to `RegExp`.
-      throw new ArgumentError('structured clone of RegExp');
+      throw ArgumentError('structured clone of RegExp');
     }
 
     if (_isJavaScriptPromise(o)) {

@@ -1182,18 +1182,19 @@ VM_TYPE_TESTING_STUB_CODE_LIST(GENERATE_BREAKPOINT_STUB)
 // Called for inline allocation of closure.
 // Input (preserved):
 //   AllocateClosureABI::kFunctionReg: closure function.
+//   AllocateClosureABI::kContextReg: closure context.
+//   AllocateClosureABI::kInstantiatorTypeArgs: instantiator type arguments.
 // Output:
 //   AllocateClosureABI::kResultReg: new allocated Closure object.
 // Clobbered:
 //   AllocateClosureABI::kScratchReg
-void StubCodeCompiler::GenerateAllocateClosureStub() {
+void StubCodeCompiler::GenerateAllocateClosureStub(
+    bool has_instantiator_type_args,
+    bool is_generic) {
   const intptr_t instance_size =
       target::RoundedAllocationSize(target::Closure::InstanceSize());
   __ EnsureHasClassIdInDEBUG(kFunctionCid, AllocateClosureABI::kFunctionReg,
                              AllocateClosureABI::kScratchReg);
-  __ EnsureHasClassIdInDEBUG(kContextCid, AllocateClosureABI::kContextReg,
-                             AllocateClosureABI::kScratchReg,
-                             /*can_be_null=*/true);
   if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
     __ Comment("Inline allocation of uninitialized closure");
@@ -1213,15 +1214,23 @@ void StubCodeCompiler::GenerateAllocateClosureStub() {
     // Since the TryAllocateObject above did not go to the slow path, we're
     // guaranteed an object in new space here, and thus no barriers are needed.
     __ LoadObject(AllocateClosureABI::kScratchReg, NullObject());
-    __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
-                            AllocateClosureABI::kResultReg,
-                            Slot::Closure_instantiator_type_arguments());
+    if (has_instantiator_type_args) {
+      __ StoreToSlotNoBarrier(AllocateClosureABI::kInstantiatorTypeArgsReg,
+                              AllocateClosureABI::kResultReg,
+                              Slot::Closure_instantiator_type_arguments());
+    } else {
+      __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
+                              AllocateClosureABI::kResultReg,
+                              Slot::Closure_instantiator_type_arguments());
+    }
     __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
                             AllocateClosureABI::kResultReg,
                             Slot::Closure_function_type_arguments());
-    __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
-                            AllocateClosureABI::kResultReg,
-                            Slot::Closure_delayed_type_arguments());
+    if (!is_generic) {
+      __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
+                              AllocateClosureABI::kResultReg,
+                              Slot::Closure_delayed_type_arguments());
+    }
     __ StoreToSlotNoBarrier(AllocateClosureABI::kFunctionReg,
                             AllocateClosureABI::kResultReg,
                             Slot::Closure_function());
@@ -1231,6 +1240,12 @@ void StubCodeCompiler::GenerateAllocateClosureStub() {
     __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
                             AllocateClosureABI::kResultReg,
                             Slot::Closure_hash());
+    if (is_generic) {
+      __ LoadObject(AllocateClosureABI::kScratchReg, EmptyTypeArguments());
+      __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
+                              AllocateClosureABI::kResultReg,
+                              Slot::Closure_delayed_type_arguments());
+    }
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
     if (FLAG_precompiled_mode) {
       // Set the closure entry point in precompiled mode, either to the function
@@ -1257,7 +1272,23 @@ void StubCodeCompiler::GenerateAllocateClosureStub() {
   __ PushObject(NullObject());  // Space on the stack for the return value.
   __ PushRegistersInOrder(
       {AllocateClosureABI::kFunctionReg, AllocateClosureABI::kContextReg});
-  __ CallRuntime(kAllocateClosureRuntimeEntry, 2);
+  if (has_instantiator_type_args) {
+    __ PushRegister(AllocateClosureABI::kInstantiatorTypeArgsReg);
+  } else {
+    __ PushObject(NullObject());
+  }
+  if (is_generic) {
+    __ PushObject(EmptyTypeArguments());
+  } else {
+    __ PushObject(NullObject());
+  }
+  __ CallRuntime(kAllocateClosureRuntimeEntry, 4);
+  if (has_instantiator_type_args) {
+    __ Drop(1);
+    __ PopRegister(AllocateClosureABI::kInstantiatorTypeArgsReg);
+  } else {
+    __ Drop(2);
+  }
   __ PopRegister(AllocateClosureABI::kContextReg);
   __ PopRegister(AllocateClosureABI::kFunctionReg);
   __ PopRegister(AllocateClosureABI::kResultReg);
@@ -1267,6 +1298,26 @@ void StubCodeCompiler::GenerateAllocateClosureStub() {
 
   // AllocateClosureABI::kResultReg: new object
   __ Ret();
+}
+
+void StubCodeCompiler::GenerateAllocateClosureStub() {
+  GenerateAllocateClosureStub(/*has_instantiator_type_args=*/false,
+                              /*is_generic=*/false);
+}
+
+void StubCodeCompiler::GenerateAllocateClosureGenericStub() {
+  GenerateAllocateClosureStub(/*has_instantiator_type_args=*/false,
+                              /*is_generic=*/true);
+}
+
+void StubCodeCompiler::GenerateAllocateClosureTAStub() {
+  GenerateAllocateClosureStub(/*has_instantiator_type_args=*/true,
+                              /*is_generic=*/false);
+}
+
+void StubCodeCompiler::GenerateAllocateClosureTAGenericStub() {
+  GenerateAllocateClosureStub(/*has_instantiator_type_args=*/true,
+                              /*is_generic=*/true);
 }
 
 // Generates allocation stub for _GrowableList class.
@@ -1870,7 +1921,7 @@ void StubCodeCompiler::GenerateSuspendStub(
   const Register kSrcFrame = SuspendStubABI::kSrcFrameReg;
   const Register kDstFrame = SuspendStubABI::kDstFrameReg;
   Label alloc_slow_case, alloc_done, init_done, resize_suspend_state,
-      old_gen_object, call_dart;
+      remember_object, call_dart;
 
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
   SPILLS_LR_TO_FRAME({});  // Simulate entering the caller (Dart) frame.
@@ -1966,11 +2017,6 @@ void StubCodeCompiler::GenerateSuspendStub(
   }
 #endif
 
-  __ LoadFromOffset(
-      kTemp, Address(FPREG, kSavedCallerPcSlotFromFp * target::kWordSize));
-  __ StoreToOffset(
-      kTemp, FieldAddress(kSuspendState, target::SuspendState::pc_offset()));
-
   if (kSrcFrame == THR) {
     __ PushRegister(THR);
   }
@@ -1981,6 +2027,11 @@ void StubCodeCompiler::GenerateSuspendStub(
   if (kSrcFrame == THR) {
     __ PopRegister(THR);
   }
+
+  __ LoadFromOffset(
+      kTemp, Address(FPREG, kSavedCallerPcSlotFromFp * target::kWordSize));
+  __ StoreToOffset(
+      kTemp, FieldAddress(kSuspendState, target::SuspendState::pc_offset()));
 
 #ifdef DEBUG
   {
@@ -2008,8 +2059,13 @@ void StubCodeCompiler::GenerateSuspendStub(
   }
 
   // Write barrier.
-  __ BranchIfBit(kSuspendState, target::ObjectAlignment::kNewObjectBitPosition,
-                 ZERO, &old_gen_object);
+  __ AndImmediate(kTemp, kSuspendState, target::kPageMask);
+  __ LoadFromOffset(kTemp, Address(kTemp, target::Page::original_top_offset()));
+  __ CompareRegisters(kSuspendState, kTemp);
+  __ BranchIf(UNSIGNED_LESS, &remember_object);
+  // Assumption: SuspendStates are always on non-image pages.
+  // TODO(rmacnak): Also check original_end if we bound TLABs to smaller than a
+  // heap page.
 
   __ Bind(&call_dart);
   if (call_suspend_function) {
@@ -2085,7 +2141,7 @@ void StubCodeCompiler::GenerateSuspendStub(
   __ PopRegister(kArgument);      // Restore argument.
   __ Jump(&alloc_done);
 
-  __ Bind(&old_gen_object);
+  __ Bind(&remember_object);
   __ Comment("Old gen SuspendState slow case");
   if (!call_suspend_function) {
     // Save kArgument which contains the return value
@@ -2559,6 +2615,7 @@ void StubCodeCompiler::GenerateCloneSuspendStateStub() {
                                            SuspendStateFpOffset()));
 
   __ MoveRegister(CallingConventions::kReturnReg, kDestination);
+  EnsureIsNewOrRemembered();
   __ Ret();
 
   __ Bind(&alloc_slow_case);

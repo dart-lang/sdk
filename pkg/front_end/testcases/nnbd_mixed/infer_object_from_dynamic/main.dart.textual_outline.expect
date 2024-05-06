@@ -1,4 +1,5 @@
 import './opt_out_lib.dart';
 
 foo(dynamic d, void v, Object? onull, Object o, String? snull, String s) {}
+
 main() {}

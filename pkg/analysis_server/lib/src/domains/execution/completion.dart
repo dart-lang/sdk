@@ -25,7 +25,7 @@ class RuntimeCompletionComputer {
       this.code, this.offset, this.contextPath, this.contextOffset);
 
   Future<RuntimeCompletionResult> compute() async {
-    var contextResult = await analysisDriver.getResult(contextPath);
+    var contextResult = await analysisDriver.getResolvedUnit(contextPath);
     if (contextResult is! ResolvedUnitResult) {
       return RuntimeCompletionResult([], []);
     }
@@ -63,7 +63,7 @@ class RuntimeCompletionComputer {
     // Update the context file content to include the code being completed.
     // Then resolve it, and restore the file to its initial state.
     var targetResult = await _withContextFileContent(targetCode, () async {
-      return await analysisDriver.getResult(contextPath);
+      return await analysisDriver.getResolvedUnit(contextPath);
     });
     if (targetResult is! ResolvedUnitResult) {
       return RuntimeCompletionResult([], []);

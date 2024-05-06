@@ -24,25 +24,22 @@ abstract final class HttpProfiler {
 
   static void clear() => _profile.clear();
 
-  static String toJson(int? updatedSince) {
-    return json.encode({
-      'type': _kType,
-      'timestamp': Timeline.now,
-      'requests': [
-        for (final request in _profile.values.where(
-          (e) {
-            return (updatedSince == null) || e.lastUpdateTime >= updatedSince;
-          },
-        ))
-          request.toJson(),
-      ],
-    });
+  /// Returns a list of Maps, where each map conforms to the @HttpProfileRequest
+  /// type defined in the dart:io service extension spec.
+  static List<Map<String, dynamic>> serializeHttpProfileRequests(
+      int? updatedSince) {
+    return _profile.values
+        .where(
+          (e) => (updatedSince == null) || e.lastUpdateTime >= updatedSince,
+        )
+        .map((e) => e.toJson(ref: true))
+        .toList();
   }
 }
 
 class _HttpProfileEvent {
   _HttpProfileEvent(this.name, this.arguments);
-  final int timestamp = Timeline.now;
+  final int timestamp = DateTime.now().microsecondsSinceEpoch;
   final String name;
   final Map? arguments;
 
@@ -66,7 +63,7 @@ class _HttpProfileData {
     // to the timeline.
     id = _timeline.pass().toString();
     requestInProgress = true;
-    requestStartTimestamp = Timeline.now;
+    requestStartTimestamp = DateTime.now().microsecondsSinceEpoch;
     _timeline.start('HTTP CLIENT $method', arguments: {
       'method': method.toUpperCase(),
       'uri': uri.toString(),
@@ -119,7 +116,7 @@ class _HttpProfileData {
   }) {
     // TODO(bkonyi): include encoding?
     requestInProgress = false;
-    requestEndTimestamp = Timeline.now;
+    requestEndTimestamp = DateTime.now().microsecondsSinceEpoch;
     requestDetails = <String, dynamic>{
       // TODO(bkonyi): consider exposing certificate information?
       // 'certificate': response.certificate,
@@ -176,7 +173,7 @@ class _HttpProfileData {
       filterKey: 'HTTP/client',
     );
 
-    responseStartTimestamp = Timeline.now;
+    responseStartTimestamp = DateTime.now().microsecondsSinceEpoch;
     _responseTimeline.start(
       'HTTP CLIENT response of $method',
       arguments: {
@@ -189,7 +186,7 @@ class _HttpProfileData {
 
   void finishRequestWithError(String error) {
     requestInProgress = false;
-    requestEndTimestamp = Timeline.now;
+    requestEndTimestamp = DateTime.now().microsecondsSinceEpoch;
     requestError = error;
     _timeline.finish(arguments: {
       'error': error,
@@ -199,7 +196,7 @@ class _HttpProfileData {
 
   void finishResponse() {
     responseInProgress = false;
-    responseEndTimestamp = Timeline.now;
+    responseEndTimestamp = DateTime.now().microsecondsSinceEpoch;
     requestEvent('Content Download');
     _responseTimeline.finish();
     _updated();
@@ -210,7 +207,7 @@ class _HttpProfileData {
     // the response stream is listened to with `cancelOnError: false`.
     if (!responseInProgress!) return;
     responseInProgress = false;
-    responseEndTimestamp = Timeline.now;
+    responseEndTimestamp = DateTime.now().microsecondsSinceEpoch;
     responseError = error;
     _responseTimeline.finish(arguments: {
       'error': error,
@@ -223,20 +220,20 @@ class _HttpProfileData {
     _updated();
   }
 
-  Map<String, dynamic> toJson({bool ref = true}) {
+  Map<String, dynamic> toJson({required bool ref}) {
     return <String, dynamic>{
       'type': '${ref ? '@' : ''}HttpProfileRequest',
       'id': id,
       'isolateId': isolateId,
       'method': method,
       'uri': uri.toString(),
+      'events': <Map<String, dynamic>>[
+        for (final event in requestEvents) event.toJson(),
+      ],
       'startTime': requestStartTimestamp,
       if (!requestInProgress) 'endTime': requestEndTimestamp,
       if (!requestInProgress)
         'request': {
-          'events': <Map<String, dynamic>>[
-            for (final event in requestEvents) event.toJson(),
-          ],
           if (proxyDetails != null) 'proxyDetails': proxyDetails!,
           if (requestDetails != null) ...requestDetails!,
           if (requestError != null) 'error': requestError,
@@ -255,7 +252,7 @@ class _HttpProfileData {
     };
   }
 
-  void _updated() => _lastUpdateTime = Timeline.now;
+  void _updated() => _lastUpdateTime = DateTime.now().microsecondsSinceEpoch;
 
   static final String isolateId = Service.getIsolateID(Isolate.current)!;
 

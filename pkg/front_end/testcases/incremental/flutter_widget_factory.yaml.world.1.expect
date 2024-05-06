@@ -30,10 +30,10 @@ library from "package:flutter/src/widgets/widget_inspector.dart" as wid {
     final field dart.core::int column;
     final field dart.core::String name;
     final field dart.core::List<wid::_Location> parameterLocations;
-    const constructor •({required dart.core::String file = #C1, required dart.core::int line = #C1, required dart.core::int column = #C1, required dart.core::String name = #C1, required dart.core::List<wid::_Location> parameterLocations = #C1}) → wid::_Location
+    const constructor •({required dart.core::String file, required dart.core::int line, required dart.core::int column, required dart.core::String name, required dart.core::List<wid::_Location> parameterLocations}) → wid::_Location
       : wid::_Location::file = file, wid::_Location::line = line, wid::_Location::column = column, wid::_Location::name = name, wid::_Location::parameterLocations = parameterLocations, super dart.core::Object::•()
       ;
-    static method _#new#tearOff({required dart.core::String file = #C1, required dart.core::int line = #C1, required dart.core::int column = #C1, required dart.core::String name = #C1, required dart.core::List<wid::_Location> parameterLocations = #C1}) → wid::_Location
+    static method _#new#tearOff({required dart.core::String file, required dart.core::int line, required dart.core::int column, required dart.core::String name, required dart.core::List<wid::_Location> parameterLocations}) → wid::_Location
       return new wid::_Location::•(file: file, line: line, column: column, name: name, parameterLocations: parameterLocations);
   }
   class _WidgetFactory extends dart.core::Object /*hasConstConstructor*/  {

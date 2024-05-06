@@ -1,4 +1,5 @@
 // @dart = 2.9
+
 extension Test<T> on T {
   T Function(T) get test => (a) => this;
 }

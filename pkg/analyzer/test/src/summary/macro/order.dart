@@ -4,13 +4,14 @@
 
 import 'dart:async';
 
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:macros/macros.dart';
 
 /*macro*/ class AddClass
     implements
         ClassTypesMacro,
         EnumTypesMacro,
         EnumValueTypesMacro,
+        LibraryTypesMacro,
         MethodTypesMacro,
         MixinTypesMacro {
   final String name;
@@ -29,6 +30,11 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
   @override
   buildTypesForEnumValue(declaration, builder) async {
+    _add(builder);
+  }
+
+  @override
+  buildTypesForLibrary(declaration, builder) async {
     _add(builder);
   }
 

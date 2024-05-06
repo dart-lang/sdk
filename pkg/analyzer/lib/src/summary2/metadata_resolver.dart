@@ -13,26 +13,24 @@ import 'package:analyzer/src/summary2/linking_node_scope.dart';
 
 class MetadataResolver extends ThrowingAstVisitor<void> {
   final Linker _linker;
-  final Scope _libraryScope;
+  final Scope _containerScope;
   final LibraryBuilder _libraryBuilder;
   final CompilationUnitElementImpl _unitElement;
-  Scope _scope;
+  late Scope _scope;
 
   MetadataResolver(
     this._linker,
     this._unitElement,
     this._libraryBuilder,
-  )   : _libraryScope = _libraryBuilder.element.scope,
-        _scope = _libraryBuilder.element.scope;
+  ) : _containerScope = _unitElement.enclosingElement.scope {
+    _scope = _containerScope;
+  }
 
   @override
   void visitAnnotation(covariant AnnotationImpl node) {
     var annotationElement = node.elementAnnotation;
     if (annotationElement is ElementAnnotationImpl) {
-      var file = _libraryBuilder.kind.file.resource;
-      // TODO(pq): precache options in file state and fetch them from there
-      var analysisOptions =
-          _linker.analysisContext.getAnalysisOptionsForFile(file);
+      var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
       var astResolver =
           AstResolver(_linker, _unitElement, _scope, analysisOptions);
       astResolver.resolveAnnotation(node);
@@ -55,7 +53,7 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
     try {
       node.members.accept(this);
     } finally {
-      _scope = _libraryScope;
+      _scope = _containerScope;
     }
   }
 
@@ -97,7 +95,7 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
       node.constants.accept(this);
       node.members.accept(this);
     } finally {
-      _scope = _libraryScope;
+      _scope = _containerScope;
     }
   }
 
@@ -119,7 +117,7 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
     try {
       node.members.accept(this);
     } finally {
-      _scope = _libraryScope;
+      _scope = _containerScope;
     }
   }
 
@@ -133,7 +131,7 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
     try {
       node.members.accept(this);
     } finally {
-      _scope = _libraryScope;
+      _scope = _containerScope;
     }
   }
 
@@ -227,7 +225,7 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
     try {
       node.members.accept(this);
     } finally {
-      _scope = _libraryScope;
+      _scope = _containerScope;
     }
   }
 

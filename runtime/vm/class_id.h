@@ -132,9 +132,7 @@ static constexpr intptr_t kClassIdTagMax = (1 << 20) - 1;
 #define CLASS_LIST_STRINGS(V)                                                  \
   V(String)                                                                    \
   V(OneByteString)                                                             \
-  V(TwoByteString)                                                             \
-  V(ExternalOneByteString)                                                     \
-  V(ExternalTwoByteString)
+  V(TwoByteString)
 
 #define CLASS_LIST_TYPED_DATA(V)                                               \
   V(Int8Array)                                                                 \
@@ -264,6 +262,7 @@ const int kTypedDataCidRemainderInternal = 0;
 const int kTypedDataCidRemainderView = 1;
 const int kTypedDataCidRemainderExternal = 2;
 const int kTypedDataCidRemainderUnmodifiable = 3;
+const int kNumTypedDataCidRemainders = kTypedDataCidRemainderUnmodifiable + 1;
 
 // Class Id predicates.
 
@@ -273,7 +272,6 @@ bool IsNumberClassId(intptr_t index);
 bool IsIntegerClassId(intptr_t index);
 bool IsStringClassId(intptr_t index);
 bool IsOneByteStringClassId(intptr_t index);
-bool IsExternalStringClassId(intptr_t index);
 bool IsBuiltinListClassId(intptr_t index);
 bool IsTypeClassId(intptr_t index);
 bool IsTypedDataBaseClassId(intptr_t index);
@@ -308,7 +306,7 @@ inline bool IsInternalOnlyClassId(intptr_t index) {
   return index <= kLastInternalOnlyCid;
 }
 
-  // Make sure this function is updated when new Error types are added.
+// Make sure this function is updated when new Error types are added.
 static const ClassId kFirstErrorCid = kErrorCid;
 static const ClassId kLastErrorCid = kUnwindErrorCid;
 COMPILE_ASSERT(kFirstErrorCid == kErrorCid &&
@@ -347,21 +345,14 @@ inline bool IsIntegerClassId(intptr_t index) {
 
 // Make sure this check is updated when new StringCid types are added.
 COMPILE_ASSERT(kOneByteStringCid == kStringCid + 1 &&
-               kTwoByteStringCid == kStringCid + 2 &&
-               kExternalOneByteStringCid == kStringCid + 3 &&
-               kExternalTwoByteStringCid == kStringCid + 4);
+               kTwoByteStringCid == kStringCid + 2);
 
 inline bool IsStringClassId(intptr_t index) {
-  return (index >= kStringCid && index <= kExternalTwoByteStringCid);
+  return (index >= kStringCid && index <= kTwoByteStringCid);
 }
 
 inline bool IsOneByteStringClassId(intptr_t index) {
-  return (index == kOneByteStringCid || index == kExternalOneByteStringCid);
-}
-
-inline bool IsExternalStringClassId(intptr_t index) {
-  return (index == kExternalOneByteStringCid ||
-          index == kExternalTwoByteStringCid);
+  return (index == kOneByteStringCid);
 }
 
 inline bool IsArrayClassId(intptr_t index) {
@@ -383,57 +374,140 @@ inline bool IsTypeClassId(intptr_t index) {
          index == kRecordTypeCid;
 }
 
+static const ClassId kFirstTypedDataCid = kTypedDataInt8ArrayCid;
+static const ClassId kLastTypedDataCid =
+    kUnmodifiableTypedDataFloat64x2ArrayViewCid;
+
+// Make sure the following checks are updated when adding new TypedData types.
+
+// The following asserts assume this.
+COMPILE_ASSERT(kTypedDataCidRemainderInternal == 0);
+// Ensure that each typed data type comes in internal/view/external variants
+// next to each other.
+COMPILE_ASSERT(kTypedDataInt8ArrayCid + kTypedDataCidRemainderView ==
+               kTypedDataInt8ArrayViewCid);
+COMPILE_ASSERT(kTypedDataInt8ArrayCid + kTypedDataCidRemainderExternal ==
+               kExternalTypedDataInt8ArrayCid);
+COMPILE_ASSERT(kTypedDataInt8ArrayCid + kTypedDataCidRemainderUnmodifiable ==
+               kUnmodifiableTypedDataInt8ArrayViewCid);
+// Ensure the order of the typed data members in 3-step.
+COMPILE_ASSERT(kFirstTypedDataCid == kTypedDataInt8ArrayCid);
+COMPILE_ASSERT(kFirstTypedDataCid + 1 * kNumTypedDataCidRemainders ==
+               kTypedDataUint8ArrayCid);
+COMPILE_ASSERT(kFirstTypedDataCid + 2 * kNumTypedDataCidRemainders ==
+               kTypedDataUint8ClampedArrayCid);
+COMPILE_ASSERT(kFirstTypedDataCid + 3 * kNumTypedDataCidRemainders ==
+               kTypedDataInt16ArrayCid);
+COMPILE_ASSERT(kFirstTypedDataCid + 4 * kNumTypedDataCidRemainders ==
+               kTypedDataUint16ArrayCid);
+COMPILE_ASSERT(kFirstTypedDataCid + 5 * kNumTypedDataCidRemainders ==
+               kTypedDataInt32ArrayCid);
+COMPILE_ASSERT(kFirstTypedDataCid + 6 * kNumTypedDataCidRemainders ==
+               kTypedDataUint32ArrayCid);
+COMPILE_ASSERT(kFirstTypedDataCid + 7 * kNumTypedDataCidRemainders ==
+               kTypedDataInt64ArrayCid);
+COMPILE_ASSERT(kFirstTypedDataCid + 8 * kNumTypedDataCidRemainders ==
+               kTypedDataUint64ArrayCid);
+COMPILE_ASSERT(kFirstTypedDataCid + 9 * kNumTypedDataCidRemainders ==
+               kTypedDataFloat32ArrayCid);
+COMPILE_ASSERT(kFirstTypedDataCid + 10 * kNumTypedDataCidRemainders ==
+               kTypedDataFloat64ArrayCid);
+COMPILE_ASSERT(kFirstTypedDataCid + 11 * kNumTypedDataCidRemainders ==
+               kTypedDataFloat32x4ArrayCid);
+COMPILE_ASSERT(kFirstTypedDataCid + 12 * kNumTypedDataCidRemainders ==
+               kTypedDataInt32x4ArrayCid);
+COMPILE_ASSERT(kFirstTypedDataCid + 13 * kNumTypedDataCidRemainders ==
+               kTypedDataFloat64x2ArrayCid);
+COMPILE_ASSERT(kFirstTypedDataCid + 13 * kNumTypedDataCidRemainders +
+                   kTypedDataCidRemainderUnmodifiable ==
+               kLastTypedDataCid);
+// Checks for possible new typed data entries added before or after the current
+// entries.
+COMPILE_ASSERT(kFfiStructCid + 1 == kFirstTypedDataCid);
+COMPILE_ASSERT(kLastTypedDataCid + 1 == kByteDataViewCid);
+
 inline bool IsTypedDataBaseClassId(intptr_t index) {
-  // Make sure this is updated when new TypedData types are added.
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 4 == kTypedDataUint8ArrayCid);
-  return index >= kTypedDataInt8ArrayCid && index < kByteDataViewCid;
+  return index >= kFirstTypedDataCid && index <= kLastTypedDataCid;
 }
 
 inline bool IsTypedDataClassId(intptr_t index) {
-  // Make sure this is updated when new TypedData types are added.
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 4 == kTypedDataUint8ArrayCid);
-  return IsTypedDataBaseClassId(index) && ((index - kTypedDataInt8ArrayCid) %
-                                           4) == kTypedDataCidRemainderInternal;
+  return IsTypedDataBaseClassId(index) &&
+         ((index - kFirstTypedDataCid) % kNumTypedDataCidRemainders) ==
+             kTypedDataCidRemainderInternal;
 }
 
 inline bool IsTypedDataViewClassId(intptr_t index) {
-  // Make sure this is updated when new TypedData types are added.
-  COMPILE_ASSERT(kTypedDataInt8ArrayViewCid + 4 == kTypedDataUint8ArrayViewCid);
-
   const bool is_byte_data_view = index == kByteDataViewCid;
   return is_byte_data_view ||
          (IsTypedDataBaseClassId(index) &&
-          ((index - kTypedDataInt8ArrayCid) % 4) == kTypedDataCidRemainderView);
+          ((index - kFirstTypedDataCid) % kNumTypedDataCidRemainders) ==
+              kTypedDataCidRemainderView);
 }
 
 inline bool IsExternalTypedDataClassId(intptr_t index) {
-  // Make sure this is updated when new TypedData types are added.
-  COMPILE_ASSERT(kExternalTypedDataInt8ArrayCid + 4 ==
-                 kExternalTypedDataUint8ArrayCid);
-
-  return IsTypedDataBaseClassId(index) && ((index - kTypedDataInt8ArrayCid) %
-                                           4) == kTypedDataCidRemainderExternal;
+  return IsTypedDataBaseClassId(index) &&
+         ((index - kFirstTypedDataCid) % kNumTypedDataCidRemainders) ==
+             kTypedDataCidRemainderExternal;
 }
 
 inline bool IsUnmodifiableTypedDataViewClassId(intptr_t index) {
-  // Make sure this is updated when new TypedData types are added.
-  COMPILE_ASSERT(kExternalTypedDataInt8ArrayCid + 4 ==
-                 kExternalTypedDataUint8ArrayCid);
-
   const bool is_byte_data_view = index == kUnmodifiableByteDataViewCid;
-  return is_byte_data_view || (IsTypedDataBaseClassId(index) &&
-                               ((index - kTypedDataInt8ArrayCid) % 4) ==
-                                   kTypedDataCidRemainderUnmodifiable);
+  return is_byte_data_view ||
+         (IsTypedDataBaseClassId(index) &&
+          ((index - kFirstTypedDataCid) % kNumTypedDataCidRemainders) ==
+              kTypedDataCidRemainderUnmodifiable);
 }
 
-inline bool ShouldHaveImmutabilityBitSet(intptr_t index) {
-  return IsUnmodifiableTypedDataViewClassId(index) || IsStringClassId(index) ||
-         index == kMintCid || index == kNeverCid || index == kSentinelCid ||
-         index == kStackTraceCid || index == kDoubleCid ||
-         index == kFloat32x4Cid || index == kFloat64x2Cid ||
-         index == kInt32x4Cid || index == kSendPortCid ||
-         index == kCapabilityCid || index == kRegExpCid || index == kBoolCid ||
-         index == kNullCid;
+inline bool IsClampedTypedDataBaseClassId(intptr_t index) {
+  if (!IsTypedDataBaseClassId(index)) return false;
+  const intptr_t internal_cid =
+      index - ((index - kFirstTypedDataCid) % kNumTypedDataCidRemainders) +
+      kTypedDataCidRemainderInternal;
+  // Currently, the only clamped typed data arrays are Uint8.
+  return internal_cid == kTypedDataUint8ClampedArrayCid;
+}
+
+// Whether the given cid is an external array cid, that is, an array where
+// the payload is not in GC-managed memory.
+inline bool IsExternalPayloadClassId(classid_t cid) {
+  return cid == kPointerCid || IsExternalTypedDataClassId(cid);
+}
+
+// For predefined cids only. Refer to Class::is_deeply_immutable for
+// instances of non-predefined classes.
+//
+// Having the `@pragma('vm:deeply-immutable')`, which means statically proven
+// deeply immutable, implies true for this function. The other way around is not
+// guaranteed, predefined classes can be marked deeply immutable in the VM while
+// not having their subtypes or super type being deeply immutable.
+//
+// Keep consistent with runtime/docs/deeply_immutable.md.
+inline bool IsDeeplyImmutableCid(intptr_t predefined_cid) {
+  ASSERT(predefined_cid < kNumPredefinedCids);
+  return IsStringClassId(predefined_cid) || predefined_cid == kNumberCid ||
+         predefined_cid == kIntegerCid || predefined_cid == kSmiCid ||
+         predefined_cid == kMintCid || predefined_cid == kNeverCid ||
+         predefined_cid == kSentinelCid || predefined_cid == kStackTraceCid ||
+         predefined_cid == kDoubleCid || predefined_cid == kFloat32x4Cid ||
+         predefined_cid == kFloat64x2Cid || predefined_cid == kInt32x4Cid ||
+         predefined_cid == kSendPortCid || predefined_cid == kCapabilityCid ||
+         predefined_cid == kRegExpCid || predefined_cid == kBoolCid ||
+         predefined_cid == kNullCid || predefined_cid == kPointerCid ||
+         predefined_cid == kTypeCid || predefined_cid == kRecordTypeCid ||
+         predefined_cid == kFunctionTypeCid;
+}
+
+inline bool IsShallowlyImmutableCid(intptr_t predefined_cid) {
+  ASSERT(predefined_cid < kNumPredefinedCids);
+  // TODO(https://dartbug.com/55136): Mark kClosureCid as shallowly imutable.
+  return IsUnmodifiableTypedDataViewClassId(predefined_cid);
+}
+
+// See documentation on ImmutableBit in raw_object.h
+inline bool ShouldHaveImmutabilityBitSetCid(intptr_t predefined_cid) {
+  ASSERT(predefined_cid < kNumPredefinedCids);
+  return IsDeeplyImmutableCid(predefined_cid) ||
+         IsShallowlyImmutableCid(predefined_cid);
 }
 
 inline bool IsFfiTypeClassId(intptr_t index) {
@@ -483,29 +557,6 @@ inline bool IsImplicitFieldClassId(intptr_t index) {
   return index == kByteBufferCid;
 }
 
-// Make sure the following checks are updated when adding new TypedData types.
-
-// Ensure that each typed data type comes in internal/view/external variants
-// next to each other.
-COMPILE_ASSERT(kTypedDataInt8ArrayCid + 1 == kTypedDataInt8ArrayViewCid);
-COMPILE_ASSERT(kTypedDataInt8ArrayCid + 2 == kExternalTypedDataInt8ArrayCid);
-
-// Ensure the order of the typed data members in 3-step.
-COMPILE_ASSERT(kTypedDataInt8ArrayCid + 1 * 4 == kTypedDataUint8ArrayCid);
-COMPILE_ASSERT(kTypedDataInt8ArrayCid + 2 * 4 ==
-               kTypedDataUint8ClampedArrayCid);
-COMPILE_ASSERT(kTypedDataInt8ArrayCid + 3 * 4 == kTypedDataInt16ArrayCid);
-COMPILE_ASSERT(kTypedDataInt8ArrayCid + 4 * 4 == kTypedDataUint16ArrayCid);
-COMPILE_ASSERT(kTypedDataInt8ArrayCid + 5 * 4 == kTypedDataInt32ArrayCid);
-COMPILE_ASSERT(kTypedDataInt8ArrayCid + 6 * 4 == kTypedDataUint32ArrayCid);
-COMPILE_ASSERT(kTypedDataInt8ArrayCid + 7 * 4 == kTypedDataInt64ArrayCid);
-COMPILE_ASSERT(kTypedDataInt8ArrayCid + 8 * 4 == kTypedDataUint64ArrayCid);
-COMPILE_ASSERT(kTypedDataInt8ArrayCid + 9 * 4 == kTypedDataFloat32ArrayCid);
-COMPILE_ASSERT(kTypedDataInt8ArrayCid + 10 * 4 == kTypedDataFloat64ArrayCid);
-COMPILE_ASSERT(kTypedDataInt8ArrayCid + 11 * 4 == kTypedDataFloat32x4ArrayCid);
-COMPILE_ASSERT(kTypedDataInt8ArrayCid + 12 * 4 == kTypedDataInt32x4ArrayCid);
-COMPILE_ASSERT(kTypedDataInt8ArrayCid + 13 * 4 == kTypedDataFloat64x2ArrayCid);
-COMPILE_ASSERT(kTypedDataInt8ArrayCid + 14 * 4 == kByteDataViewCid);
 COMPILE_ASSERT(kByteBufferCid + 1 == kNullCid);
 
 }  // namespace dart

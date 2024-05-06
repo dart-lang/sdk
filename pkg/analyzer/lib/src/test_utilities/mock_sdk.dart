@@ -5,7 +5,6 @@
 import 'dart:convert';
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:meta/meta.dart';
@@ -714,63 +713,88 @@ final MockSdkLibrary _LIB_FFI = MockSdkLibrary('ffi', [
 @Since('2.6')
 library dart.ffi;
 
-final class NativeType {
-  const NativeType();
-}
+abstract final class NativeType {}
+
+@Since('3.4')
+abstract final class SizedNativeType implements NativeType {}
 
 @Since('2.9')
-abstract final class Handle extends NativeType {}
+abstract final class Handle implements NativeType {}
 
 @Since('2.12')
-abstract base class Opaque extends NativeType {}
+abstract base class Opaque implements NativeType {}
 
-final class Void extends NativeType {}
+final class Void implements NativeType {}
 
-final class Int8 extends NativeType {
+final class Int8 implements SizedNativeType {
   const Int8();
 }
 
-final class Uint8 extends NativeType {
+final class Uint8 implements SizedNativeType {
   const Uint8();
 }
 
-final class Int16 extends NativeType {
+final class Int16 implements SizedNativeType {
   const Int16();
 }
 
-final class Uint16 extends NativeType {
+final class Uint16 implements SizedNativeType {
   const Uint16();
 }
 
-final class Int32 extends NativeType {
+final class Int32 implements SizedNativeType {
   const Int32();
 }
 
-final class Uint32 extends NativeType {
+final class Uint32 implements SizedNativeType {
   const Uint32();
 }
 
-final class Int64 extends NativeType {
+final class Int64 implements SizedNativeType {
   const Int64();
 }
 
-final class Uint64 extends NativeType {
+final class Uint64 implements SizedNativeType {
   const Uint64();
 }
 
-final class Float extends NativeType {
+final class Float implements SizedNativeType {
   const Float();
 }
 
-final class Double extends NativeType {
+final class Double implements SizedNativeType {
   const Double();
 }
 
-final class IntPtr extends NativeType {
+@AbiSpecificIntegerMapping({
+  Abi.androidArm: Int32(),
+  Abi.androidArm64: Int64(),
+  Abi.androidIA32: Int32(),
+  Abi.androidX64: Int64(),
+  Abi.androidRiscv64: Int64(),
+  Abi.fuchsiaArm64: Int64(),
+  Abi.fuchsiaX64: Int64(),
+  Abi.fuchsiaRiscv64: Int64(),
+  Abi.iosArm: Int32(),
+  Abi.iosArm64: Int64(),
+  Abi.iosX64: Int64(),
+  Abi.linuxArm: Int32(),
+  Abi.linuxArm64: Int64(),
+  Abi.linuxIA32: Int32(),
+  Abi.linuxX64: Int64(),
+  Abi.linuxRiscv32: Int32(),
+  Abi.linuxRiscv64: Int64(),
+  Abi.macosArm64: Int64(),
+  Abi.macosX64: Int64(),
+  Abi.windowsArm64: Int64(),
+  Abi.windowsIA32: Int32(),
+  Abi.windowsX64: Int64(),
+})
+final class IntPtr extends AbiSpecificInteger {
   const IntPtr();
 }
 
-final class Pointer<T extends NativeType> extends NativeType {
+final class Pointer<T extends NativeType> implements SizedNativeType {
   external factory Pointer.fromAddress(int ptr);
 
   static Pointer<NativeFunction<T>> fromFunction<T extends Function>(
@@ -797,13 +821,13 @@ extension NativeFunctionPointer<NF extends Function>
   external DF asFunction<DF extends Function>({bool isLeaf = false});
 }
 
-final class _Compound extends NativeType {}
+abstract final class _Compound implements NativeType {}
 
 @Since('2.12')
-base class Struct extends _Compound {}
+abstract base class Struct extends _Compound implements SizedNativeType {}
 
 @Since('2.14')
-base class Union extends _Compound {}
+abstract base class Union extends _Compound implements SizedNativeType {}
 
 @Since('2.13')
 final class Packed {
@@ -823,14 +847,14 @@ extension DynamicLibraryExtension on DynamicLibrary {
       String symbolName, {bool isLeaf:false});
 }
 
-abstract final class NativeFunction<T extends Function> extends NativeType {}
+abstract final class NativeFunction<T extends Function> implements NativeType {}
 
 final class DartRepresentationOf {
   const DartRepresentationOf(String nativeType);
 }
 
 @Since('2.13')
-final class Array<T extends NativeType> extends NativeType {
+final class Array<T extends NativeType> extends _Compound {
   const factory Array(int dimension1,
       [int dimension2,
       int dimension3,
@@ -930,7 +954,7 @@ enum _OS {
 }
 
 @Since('2.16')
-base class AbiSpecificInteger extends NativeType {
+base class AbiSpecificInteger implements SizedNativeType {
   const AbiSpecificInteger();
 }
 
@@ -952,7 +976,7 @@ abstract interface class Finalizable {
 }
 
 @Since('3.0')
-abstract final class VarArgs<T extends Record> extends NativeType {}
+abstract final class VarArgs<T extends Record> implements NativeType {}
 ''',
   )
 ]);
@@ -1429,7 +1453,7 @@ final List<MockSdkLibrary> _LIBRARIES = [
 /// It has enough libraries to run analyzer and analysis server tests,
 /// but some libraries, classes, and methods are missing.
 void createMockSdk({
-  required MemoryResourceProvider resourceProvider,
+  required ResourceProvider resourceProvider,
   required Folder root,
   @internal List<MockSdkLibrary> additionalLibraries = const [],
 }) {

@@ -489,6 +489,9 @@ class CompletionHandler
           capabilities,
           unit.lineInfo,
           item,
+          uriConverter: uriConverter,
+          pathContext: pathContext,
+          completionFilePath: unit.path,
           hasDefaultTextMode: defaults?.insertTextMode != null,
           hasDefaultEditRange: defaults?.editRange != null &&
               insertionRange == defaultInsertionRange &&
@@ -589,12 +592,12 @@ class CompletionHandler
   Future<ErrorOr<_CompletionResults>> _getServerYamlItems(
     YamlCompletionGenerator generator,
     LspClientCapabilities capabilities,
-    String path,
+    String filePath,
     LineInfo lineInfo,
     int offset,
     CancellationToken token,
   ) async {
-    final suggestions = generator.getSuggestions(path, offset);
+    final suggestions = generator.getSuggestions(filePath, offset);
     final insertLength = _computeInsertLength(
       offset,
       suggestions.replacementOffset,
@@ -608,8 +611,7 @@ class CompletionHandler
     // Perform fuzzy matching based on the identifier in front of the caret to
     // reduce the size of the payload.
     final fuzzyPattern = suggestions.targetPrefix;
-    final fuzzyMatcher =
-        FuzzyMatcher(fuzzyPattern, matchStyle: MatchStyle.TEXT);
+    final fuzzyMatcher = FuzzyMatcher(fuzzyPattern);
 
     final completionItems = suggestions.suggestions
         .where((item) =>
@@ -626,6 +628,9 @@ class CompletionHandler
         capabilities,
         lineInfo,
         item,
+        uriConverter: uriConverter,
+        pathContext: pathContext,
+        completionFilePath: filePath,
         replacementRange: replacementRange,
         insertionRange: insertionRange,
         commitCharactersEnabled: false,
@@ -670,7 +675,7 @@ class CompletionHandler
 
   Iterable<CompletionItem> _pluginResultsToItems(
     LspClientCapabilities capabilities,
-    String path,
+    String filePath,
     LineInfo lineInfo,
     int offset,
     List<plugin.CompletionGetSuggestionsResult> pluginResults,
@@ -693,7 +698,7 @@ class CompletionHandler
         DartCompletionResolutionInfo? resolutionInfo;
         if (isNotImported && importUri != null) {
           resolutionInfo = DartCompletionResolutionInfo(
-            file: path,
+            file: filePath,
             importUris: [importUri],
           );
         }
@@ -702,6 +707,9 @@ class CompletionHandler
           capabilities,
           lineInfo,
           item,
+          uriConverter: uriConverter,
+          pathContext: pathContext,
+          completionFilePath: filePath,
           replacementRange: replacementRange,
           insertionRange: insertionRange,
           includeDocumentation:
@@ -834,7 +842,7 @@ class CompletionRegistrations extends FeatureRegistration
       (
         Method.textDocument_completion,
         CompletionRegistrationOptions(
-          documentSelector: [dartFiles],
+          documentSelector: dartFiles,
           triggerCharacters: dartCompletionTriggerCharacters,
           allCommitCharacters:
               previewCommitCharacters ? dartCompletionCommitCharacters : null,
@@ -945,8 +953,7 @@ class _FuzzyScoreHelper {
 
   final FuzzyMatcher _matcher;
 
-  _FuzzyScoreHelper(this.prefix)
-      : _matcher = FuzzyMatcher(prefix, matchStyle: MatchStyle.TEXT);
+  _FuzzyScoreHelper(this.prefix) : _matcher = FuzzyMatcher(prefix);
 
   bool completionItemMatches(CompletionItem item) =>
       stringMatches(item.filterText ?? item.label);

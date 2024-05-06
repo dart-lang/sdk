@@ -32,9 +32,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   final TypeSystemImpl _typeSystem;
   final NodesToBuildType nodesToBuildType;
 
-  /// Indicates whether the library is opted into NNBD.
-  final bool isNNBD;
-
   Scope scope;
 
   ReferenceResolver(
@@ -42,8 +39,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     this.nodesToBuildType,
     LibraryOrAugmentationElementImpl container,
   )   : _typeSystem = container.library.typeSystem,
-        scope = container.scope,
-        isNNBD = container.isNonNullableByDefault;
+        scope = container.scope;
 
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {}
@@ -278,7 +274,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.parameters.accept(this);
 
     var nullabilitySuffix = _getNullabilitySuffix(node.question != null);
-    var builder = FunctionTypeBuilder.of(isNNBD, nodeImpl, nullabilitySuffix);
+    var builder = FunctionTypeBuilder.of(nodeImpl, nullabilitySuffix);
     nodeImpl.type = builder;
     nodesToBuildType.addTypeBuilder(builder);
 
@@ -499,14 +495,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   NullabilitySuffix _getNullabilitySuffix(bool hasQuestion) {
-    if (isNNBD) {
-      if (hasQuestion) {
-        return NullabilitySuffix.question;
-      } else {
-        return NullabilitySuffix.none;
-      }
+    if (hasQuestion) {
+      return NullabilitySuffix.question;
     } else {
-      return NullabilitySuffix.star;
+      return NullabilitySuffix.none;
     }
   }
 }

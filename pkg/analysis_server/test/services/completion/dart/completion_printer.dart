@@ -21,6 +21,7 @@ class CompletionResponsePrinter {
   });
 
   void writeResponse() {
+    _writeLocation();
     _writeResponseReplacement();
     _writeSuggestions();
   }
@@ -89,13 +90,15 @@ class CompletionResponsePrinter {
       } else if (elementKind == ElementKind.CLASS) {
         return 'class';
       } else if (elementKind == ElementKind.CONSTRUCTOR) {
-        return 'constructorInvocation';
+        return 'constructor';
       } else if (elementKind == ElementKind.ENUM) {
         return 'enum';
       } else if (elementKind == ElementKind.ENUM_CONSTANT) {
         return 'enumConstant';
       } else if (elementKind == ElementKind.EXTENSION) {
         return 'extension';
+      } else if (elementKind == ElementKind.EXTENSION_TYPE) {
+        return 'extensionType';
       } else if (elementKind == ElementKind.FIELD) {
         return 'field';
       } else if (elementKind == ElementKind.FUNCTION) {
@@ -248,6 +251,18 @@ class CompletionResponsePrinter {
     buffer.writeln(line);
   }
 
+  void _writeLocation() {
+    if (configuration.withLocationName) {
+      if (response.requestLocationName case var location?) {
+        _writelnWithIndent('location: $location');
+      }
+      // TODO(scheglov): will be removed
+      if (response.opTypeLocationName case var location?) {
+        _writelnWithIndent('locationOpType: $location');
+      }
+    }
+  }
+
   void _writeParameterNames(CompletionSuggestion suggestion) {
     if (configuration.withParameterNames) {
       var parameterNames = suggestion.parameterNames?.join(',') ?? '';
@@ -366,6 +381,7 @@ class Configuration {
   bool withIsNotImported;
   bool withKind;
   bool withLibraryUri;
+  bool withLocationName;
   bool withParameterNames;
   bool withRelevance;
   bool withReplacement;
@@ -374,7 +390,7 @@ class Configuration {
   bool Function(CompletionSuggestion suggestion) filter;
 
   Configuration({
-    this.sorting = Sorting.completionThenKind,
+    this.sorting = Sorting.relevanceThenCompletionThenKind,
     this.withDeclaringType = false,
     this.withDefaultArgumentList = false,
     this.withDisplayText = false,
@@ -384,6 +400,7 @@ class Configuration {
     this.withIsNotImported = false,
     this.withKind = true,
     this.withLibraryUri = false,
+    this.withLocationName = false,
     this.withParameterNames = false,
     this.withReplacement = true,
     this.withRelevance = false,

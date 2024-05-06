@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:expect/variations.dart" as v;
 
 // Testing Function.apply calls correctly.
 // This test is not testing error handling, only that correct parameters
@@ -72,11 +73,8 @@ main() {
 
   // Test that apply works on callable objects when it is passed to a method
   // that expects Function (and not dynamic).
-  if (dart2jsProductionMode) {
-    testList(42, new Callable(), [13, 29]);
-  } else {
-    Expect.throws(() => testList(42, new Callable(), [13, 29]));
-  }
+  Expect.throwsWhen(
+      v.checkedImplicitDowncasts, () => testList(42, new Callable(), [13, 29]));
 
   testListTyped(42, new Callable(), [13, 29]);
 }

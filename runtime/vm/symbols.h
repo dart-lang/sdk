@@ -18,6 +18,7 @@ class ObjectPointerVisitor;
 #define PREDEFINED_SYMBOLS_LIST(V)                                             \
   V(AbiSpecificInteger, "AbiSpecificInteger")                                  \
   V(AbstractClassInstantiationError, "AbstractClassInstantiationError")        \
+  V(_AddStreamState, "_AddStreamState")                                        \
   V(AllocateInvocationMirror, "_allocateInvocationMirror")                     \
   V(AllocateInvocationMirrorForClosure, "_allocateInvocationMirrorForClosure") \
   V(AnonymousClosure, "<anonymous closure>")                                   \
@@ -97,8 +98,6 @@ class ObjectPointerVisitor;
   V(ExceptionVar, ":exception_var")                                            \
   V(Expando, "Expando")                                                        \
   V(ExprTemp, ":expr_temp")                                                    \
-  V(ExternalOneByteString, "_ExternalOneByteString")                           \
-  V(ExternalTwoByteString, "_ExternalTwoByteString")                           \
   V(FfiAbiSpecificMapping, "_FfiAbiSpecificMapping")                           \
   V(FfiAsyncCallback, "_FfiAsyncCallback")                                     \
   V(FfiBool, "Bool")                                                           \
@@ -377,6 +376,7 @@ class ObjectPointerVisitor;
   V(_SpecialTypeMirror, "_SpecialTypeMirror")                                  \
   V(_StackTrace, "_StackTrace")                                                \
   V(_StreamController, "_StreamController")                                    \
+  V(_StreamControllerAddStreamState, "_StreamControllerAddStreamState")        \
   V(_StreamIterator, "_StreamIterator")                                        \
   V(_String, "String")                                                         \
   V(_SuspendState, "_SuspendState")                                            \
@@ -386,6 +386,7 @@ class ObjectPointerVisitor;
   V(_Type, "_Type")                                                            \
   V(_TypeParameter, "_TypeParameter")                                          \
   V(_TypeVariableMirror, "_TypeVariableMirror")                                \
+  V(_TypedList, "_TypedList")                                                  \
   V(_TypedListBase, "_TypedListBase")                                          \
   V(_Uint16ArrayFactory, "Uint16List.")                                        \
   V(_Uint16ArrayView, "_Uint16ArrayView")                                      \
@@ -451,12 +452,26 @@ class ObjectPointerVisitor;
   V(_mapGet, "_mapGet")                                                        \
   V(_mapKeys, "_mapKeys")                                                      \
   V(_name, "_name")                                                            \
+  V(_nextListener, "_nextListener")                                            \
+  V(_nativeGetFloat32, "_nativeGetFloat32")                                    \
+  V(_nativeSetFloat32, "_nativeSetFloat32")                                    \
+  V(_nativeGetFloat64, "_nativeGetFloat64")                                    \
+  V(_nativeSetFloat64, "_nativeSetFloat64")                                    \
+  V(_nativeGetFloat32x4, "_nativeGetFloat32x4")                                \
+  V(_nativeSetFloat32x4, "_nativeSetFloat32x4")                                \
+  V(_nativeGetInt32x4, "_nativeGetInt32x4")                                    \
+  V(_nativeSetInt32x4, "_nativeSetInt32x4")                                    \
+  V(_nativeGetFloat64x2, "_nativeGetFloat64x2")                                \
+  V(_nativeSetFloat64x2, "_nativeSetFloat64x2")                                \
   V(_nativeSetRange, "_nativeSetRange")                                        \
   V(_objectEquals, "_objectEquals")                                            \
   V(_objectHashCode, "_objectHashCode")                                        \
   V(_objectNoSuchMethod, "_objectNoSuchMethod")                                \
   V(_objectToString, "_objectToString")                                        \
+  V(_offsetInBytes, "_offsetInBytes")                                          \
   V(_onData, "_onData")                                                        \
+  V(_onDone, "_onDone")                                                        \
+  V(_onError, "_onError")                                                      \
   V(_rehashObjects, "_rehashObjects")                                          \
   V(_resultOrListeners, "_resultOrListeners")                                  \
   V(_returnAsync, "_returnAsync")                                              \
@@ -482,6 +497,7 @@ class ObjectPointerVisitor;
   V(absolute, "absolute")                                                      \
   V(add, "add")                                                                \
   V(addStream, "addStream")                                                    \
+  V(addStreamFuture, "addStreamFuture")                                        \
   V(asyncStarBody, "asyncStarBody")                                            \
   V(byteOffset, "byteOffset")                                                  \
   V(c_result, ":result")                                                       \

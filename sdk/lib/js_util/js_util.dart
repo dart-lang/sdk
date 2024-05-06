@@ -5,10 +5,15 @@
 /// Utility methods to manipulate `package:js` annotated JavaScript interop
 /// objects in cases where the name to call is not known at runtime.
 ///
+/// > [!Note]
+/// > You should usually use `dart:js_interop` instead of this library.
+/// > To learn more, check out the
+/// > [JS interop documentation](https://dart.dev/interop/js-interop).
+///
 /// You should only use these methods when the same effect cannot be achieved
 /// with `@JS()` annotations.
 ///
-/// {@category Web}
+/// {@category Web (Legacy)}
 library dart.js_util;
 
 // Examples can assume:

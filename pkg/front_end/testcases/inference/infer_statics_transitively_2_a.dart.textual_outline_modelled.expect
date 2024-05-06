@@ -6,4 +6,5 @@ class A {
 }
 
 final a1 = m2;
+
 main() {}

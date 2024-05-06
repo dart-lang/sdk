@@ -5,10 +5,17 @@ var NonType = 0;
 extension Extension on int {}
 
 testUnresolved(o) {}
+
 testNonType(o) {}
+
 testExtension(o) {}
+
 testPrefixedUnresolved(o) {}
+
 testPrefixedNonType(o) {}
+
 testPrefixedExtension(o) {}
+
 testUnresolvedPrefix(o) {}
+
 testMemberAccess(o) {}

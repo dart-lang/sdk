@@ -477,7 +477,7 @@ class MissingPatternTypePart extends MissingPatternPart {
 
   @override
   String toString() {
-    return type.getDisplayString(withNullability: true);
+    return type.getDisplayString();
   }
 }
 

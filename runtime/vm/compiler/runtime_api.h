@@ -418,7 +418,7 @@ class UntaggedObject : public AllStatic {
   static const word kCanonicalBit;
   static const word kNewBit;
   static const word kOldAndNotRememberedBit;
-  static const word kOldAndNotMarkedBit;
+  static const word kNotMarkedBit;
   static const word kImmutableBit;
   static const word kSizeTagPos;
   static const word kSizeTagSize;
@@ -811,20 +811,6 @@ class TwoByteString : public AllStatic {
 
  private:
   static word element_offset(intptr_t index);
-};
-
-class ExternalOneByteString : public AllStatic {
- public:
-  static word external_data_offset();
-  static word InstanceSize();
-  FINAL_CLASS();
-};
-
-class ExternalTwoByteString : public AllStatic {
- public:
-  static word external_data_offset();
-  static word InstanceSize();
-  FINAL_CLASS();
 };
 
 class Int32x4 : public AllStatic {
@@ -1498,6 +1484,8 @@ class Page : public AllStatic {
   static const word kBytesPerCardLog2;
 
   static word card_table_offset();
+  static word original_top_offset();
+  static word original_end_offset();
 };
 
 class Heap : public AllStatic {

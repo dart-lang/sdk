@@ -157,8 +157,8 @@ void compareResultWithExpectationsFile(
   String actual, {
   String expectFilePostfix = '',
 }) {
-  final expectFile =
-      new File('${source.toFilePath()}$expectFilePostfix.expect');
+  final baseFilename = '${source.toFilePath()}$expectFilePostfix';
+  final expectFile = new File('$baseFilename.expect');
   final expected = expectFile.existsSync() ? expectFile.readAsStringSync() : '';
 
   if (actual != expected) {
@@ -167,7 +167,7 @@ void compareResultWithExpectationsFile(
       print("  Updated $expectFile");
     } else {
       if (bool.fromEnvironment(kDumpActualResult)) {
-        new File(source.toFilePath() + '.actual').writeAsStringSync(actual);
+        new File('$baseFilename.actual').writeAsStringSync(actual);
       }
       Difference diff = findFirstDifference(actual, expected);
       fail("""

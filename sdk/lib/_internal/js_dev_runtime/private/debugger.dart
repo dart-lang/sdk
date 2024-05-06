@@ -432,8 +432,9 @@ class JsonMLFormatter {
       if (_typeof(child.value) == 'object' ||
           _typeof(child.value) == 'function') {
         var valueSpan = JsonMLElement('span')..setStyle(valueStyle);
-        valueSpan.createObjectTag(child.value)
-          ..addAttribute('config', child.config);
+        valueSpan
+            .createObjectTag(child.value)
+            .addAttribute('config', child.config);
         if (nameSpan != null) {
           li.appendChild(nameSpan);
         }
@@ -646,7 +647,7 @@ class LibraryFormatter implements Formatter {
       // interested in seeing the actual classes.
       if (dart.getGenericTypeCtor(value) != null) return;
 
-      children.add(dart.isType(value)
+      children.add(dart.isDartClass(value)
           ? classChild(name, value)
           : NameValuePair(name: name, value: value));
     });
@@ -972,7 +973,7 @@ class TypeFormatter implements Formatter {
   List<NameValuePair> children(object) => [];
 }
 
-typedef String StackTraceMapper(String stackTrace);
+typedef StackTraceMapper = String Function(String stackTrace);
 
 /// Hook for other parts of the SDK To use to map JS stack traces to Dart
 /// stack traces.

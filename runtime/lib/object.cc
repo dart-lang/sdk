@@ -209,10 +209,8 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 0, 4) {
     THR_Print("Native Object.instanceOf: result %s\n", result_str);
     const AbstractType& instance_type =
         AbstractType::Handle(zone, instance.GetType(Heap::kNew));
-    THR_Print("  instance type: %s\n",
-              String::Handle(zone, instance_type.Name()).ToCString());
-    THR_Print("  test type: %s\n",
-              String::Handle(zone, type.Name()).ToCString());
+    THR_Print("  instance type: %s\n", instance_type.NameCString());
+    THR_Print("  test type: %s\n", type.NameCString());
   }
   return Bool::Get(is_instance_of).ptr();
 }

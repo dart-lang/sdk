@@ -59,9 +59,10 @@ class Module implements Serializable {
     CodeSection(functions.defined, watchPoints).serialize(s);
     DataSection(dataSegments.defined, watchPoints).serialize(s);
     if (functions.namedCount > 0 || types.namedCount > 0) {
-      NameSection(functions.all, types.defined, watchPoints,
+      NameSection(functions.all, types.defined, globals.defined, watchPoints,
               functionNameCount: functions.namedCount,
-              typeNameCount: types.namedCount)
+              typeNameCount: types.namedCount,
+              globalNameCount: globals.namedCount)
           .serialize(s);
     }
   }

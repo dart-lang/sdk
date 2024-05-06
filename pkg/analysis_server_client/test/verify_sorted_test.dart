@@ -75,8 +75,8 @@ Future<Server> connectToServer(String packagePath) async {
   await server.send(ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS,
       AnalysisSetAnalysisRootsParams([packagePath], const []).toJson());
 
-  // wait for analysis to complete
-  await handler.analysisFinished.future;
+  // wait for initial analysis to complete
+  await handler.initialAnalysis.future;
 
   return server;
 }
@@ -108,15 +108,15 @@ class StatusHandler with NotificationHandler, ConnectionHandler {
   @override
   final Server server;
 
-  final Completer<bool> analysisFinished = Completer();
+  final Completer<bool> initialAnalysis = Completer();
 
   StatusHandler(this.server);
 
   @override
   void onServerStatus(ServerStatusParams params) {
     if (params.analysis != null) {
-      if (!params.analysis!.isAnalyzing) {
-        analysisFinished.complete(true);
+      if (!params.analysis!.isAnalyzing && !initialAnalysis.isCompleted) {
+        initialAnalysis.complete(true);
       }
     }
   }

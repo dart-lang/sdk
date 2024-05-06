@@ -8,32 +8,24 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(MethodDeclarationTest);
+    defineReflectiveTests(MethodDeclarationInClassTest);
+    defineReflectiveTests(MethodDeclarationInExtensionTypeTest);
   });
 }
 
-mixin MethodDeclarationInClassTestCases on AbstractCompletionDriverTest {
-  Future<void> test__afterParameterList_beforeRightBrace_partial() async {
-    await computeSuggestions('''
-class A { foo() a^}
-''');
-    assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  async
-    kind: keyword
-  async*
-    kind: keyword
-''');
-  }
+@reflectiveTest
+class MethodDeclarationInClassTest extends AbstractCompletionDriverTest
+    with MethodDeclarationInClassTestCases {}
 
+mixin MethodDeclarationInClassTestCases on AbstractCompletionDriverTest {
   Future<void> test_afterAnnotation_beforeName() async {
     await computeSuggestions('''
 class A { @override ^ foo() {}}
 ''');
     assertResponse(r'''
 suggestions
+  void
+    kind: keyword
   const
     kind: keyword
   covariant
@@ -55,8 +47,6 @@ suggestions
   static
     kind: keyword
   var
-    kind: keyword
-  void
     kind: keyword
 ''');
   }
@@ -80,19 +70,19 @@ class A { foo() async => ^ Foo foo;}
 ''');
     assertResponse(r'''
 suggestions
+  null
+    kind: keyword
+  false
+    kind: keyword
+  this
+    kind: keyword
   await
     kind: keyword
   const
     kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
   super
     kind: keyword
   switch
-    kind: keyword
-  this
     kind: keyword
   true
     kind: keyword
@@ -105,17 +95,17 @@ class A { foo() => ^ Foo foo;}
 ''');
     assertResponse(r'''
 suggestions
-  const
+  null
     kind: keyword
   false
     kind: keyword
-  null
+  this
+    kind: keyword
+  const
     kind: keyword
   super
     kind: keyword
   switch
-    kind: keyword
-  this
     kind: keyword
   true
     kind: keyword
@@ -128,19 +118,19 @@ class A { foo() async => ^}
 ''');
     assertResponse(r'''
 suggestions
+  null
+    kind: keyword
+  false
+    kind: keyword
+  this
+    kind: keyword
   await
     kind: keyword
   const
     kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
   super
     kind: keyword
   switch
-    kind: keyword
-  this
     kind: keyword
   true
     kind: keyword
@@ -153,17 +143,17 @@ class A { foo() => ^}
 ''');
     assertResponse(r'''
 suggestions
-  const
+  null
     kind: keyword
   false
     kind: keyword
-  null
+  this
+    kind: keyword
+  const
     kind: keyword
   super
     kind: keyword
   switch
-    kind: keyword
-  this
     kind: keyword
   true
     kind: keyword
@@ -176,19 +166,19 @@ class A { foo() async => ^;}
 ''');
     assertResponse(r'''
 suggestions
+  null
+    kind: keyword
+  false
+    kind: keyword
+  this
+    kind: keyword
   await
     kind: keyword
   const
     kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
   super
     kind: keyword
   switch
-    kind: keyword
-  this
     kind: keyword
   true
     kind: keyword
@@ -201,17 +191,17 @@ class A { foo() => ^;}
 ''');
     assertResponse(r'''
 suggestions
-  const
+  null
     kind: keyword
   false
     kind: keyword
-  null
+  this
+    kind: keyword
+  const
     kind: keyword
   super
     kind: keyword
   switch
-    kind: keyword
-  this
     kind: keyword
   true
     kind: keyword
@@ -226,15 +216,21 @@ class A { ^foo() {}}
 replacement
   right: 3
 suggestions
+  final
+    kind: keyword
+  static
+    kind: keyword
+  void
+    kind: keyword
   const
+    kind: keyword
+  set
+    kind: keyword
+  factory
     kind: keyword
   covariant
     kind: keyword
   dynamic
-    kind: keyword
-  factory
-    kind: keyword
-  final
     kind: keyword
   get
     kind: keyword
@@ -242,13 +238,7 @@ suggestions
     kind: keyword
   operator
     kind: keyword
-  set
-    kind: keyword
-  static
-    kind: keyword
   var
-    kind: keyword
-  void
     kind: keyword
 ''');
   }
@@ -360,8 +350,68 @@ class A { foo() ^}
 suggestions
 ''');
   }
+
+  Future<void> test_afterParameterList_beforeRightBrace_partial() async {
+    await computeSuggestions('''
+class A { foo() a^}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  async
+    kind: keyword
+  async*
+    kind: keyword
+''');
+  }
 }
 
 @reflectiveTest
-class MethodDeclarationTest extends AbstractCompletionDriverTest
-    with MethodDeclarationInClassTestCases {}
+class MethodDeclarationInExtensionTypeTest extends AbstractCompletionDriverTest
+    with MethodDeclarationInExtensionTypeTestCases {}
+
+mixin MethodDeclarationInExtensionTypeTestCases
+    on AbstractCompletionDriverTest {
+  Future<void> test_afterArrow_beforeRightBrace_sync() async {
+    await computeSuggestions('''
+extension type C(int v0) {
+  int m() => ^
+}
+''');
+    assertResponse(r'''
+suggestions
+  v0
+    kind: field
+  null
+    kind: keyword
+  false
+    kind: keyword
+  true
+    kind: keyword
+  this
+    kind: keyword
+  const
+    kind: keyword
+  super
+    kind: keyword
+  switch
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterArrow_beforeRightBrace_sync_partial() async {
+    await computeSuggestions('''
+extension type C(int v0) {
+  int m() => v^
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  v0
+    kind: field
+''');
+  }
+}

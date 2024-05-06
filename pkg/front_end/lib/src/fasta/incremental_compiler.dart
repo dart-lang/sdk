@@ -7,8 +7,7 @@ library fasta.incremental_compiler;
 import 'dart:async' show Completer;
 import 'dart:convert' show JsonEncoder;
 
-import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
-    as macros;
+import 'package:macros/src/executor/multi_executor.dart' as macros;
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
 import 'package:front_end/src/fasta/kernel/benchmarker.dart'
@@ -85,6 +84,7 @@ import 'builder/member_builder.dart' show MemberBuilder;
 import 'builder/name_iterator.dart' show NameIterator;
 import 'builder/type_builder.dart' show NamedTypeBuilder, TypeBuilder;
 import 'builder_graph.dart' show BuilderGraph;
+import 'codes/fasta_codes.dart';
 import 'combinator.dart' show CombinatorBuilder;
 import 'compiler_context.dart' show CompilerContext;
 import 'dill/dill_class_builder.dart' show DillClassBuilder;
@@ -92,7 +92,6 @@ import 'dill/dill_library_builder.dart' show DillLibraryBuilder;
 import 'dill/dill_loader.dart' show DillLoader;
 import 'dill/dill_target.dart' show DillTarget;
 import 'export.dart' show Export;
-import 'fasta_codes.dart';
 import 'hybrid_file_system.dart' show HybridFileSystem;
 import 'import.dart' show Import;
 import 'incremental_serializer.dart' show IncrementalSerializer;
@@ -128,7 +127,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   DillTarget? _dillLoadedData;
   List<LibraryBuilder>? _platformBuilders;
+  List<LibraryBuilder>? get platformBuildersForTesting => _platformBuilders;
   Map<Uri, LibraryBuilder>? _userBuilders;
+  Map<Uri, LibraryBuilder>? get userBuildersForTesting => _userBuilders;
 
   final _InitializationStrategy _initializationStrategy;
 
@@ -1318,7 +1319,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     Set<Uri> seenUris = new Set<Uri>();
     for (LibraryBuilder builder in reusedResult.notReusedLibraries) {
       if (builder.isPart) continue;
-      if (builder.isPatch) continue;
+      if (builder.isAugmenting) continue;
       if (rebuildBodies!.contains(builder)) continue;
       if (!seenUris.add(builder.importUri)) continue;
       reusedResult.reusedLibraries.add(builder);
@@ -1951,6 +1952,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         nameOrigin: libraryBuilder,
         isUnsupported: libraryBuilder.isUnsupported,
         isAugmentation: false,
+        isPatch: false,
       );
       libraryBuilder.scope.forEachLocalMember((name, member) {
         debugLibrary.scope.addLocalMember(name, member, setter: false);
@@ -2008,6 +2010,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         nameOrigin: libraryBuilder,
         isUnsupported: libraryBuilder.isUnsupported,
         isAugmentation: false,
+        isPatch: false,
       );
 
       HybridFileSystem hfs =
@@ -2040,8 +2043,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
       }
 
-      debugLibrary.buildOutlineNodes(lastGoodKernelTarget.loader.coreLibrary,
-          modifyTarget: false);
+      debugLibrary.buildOutlineNodes(lastGoodKernelTarget.loader.coreLibrary);
       Expression compiledExpression = await lastGoodKernelTarget.loader
           .buildExpression(
               debugLibrary,
@@ -2244,7 +2246,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       if (builder.isPart) continue;
       // TODO(jensj/ahe): This line can probably go away once
       // https://dart-review.googlesource.com/47442 lands.
-      if (builder.isPatch) continue;
+      if (builder.isAugmenting) continue;
       if (!seenUris.add(builder.importUri)) continue;
       reusedLibraries.add(builder);
     }

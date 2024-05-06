@@ -23,7 +23,6 @@ void test(MyFuture<int> f) {
     return /*info:DOWN_CAST_COMPOSITE*/ await x ?? new Future<int>.value(3);
   });
   Future<int> t5 = f. /*@typeArgs=int*/ /*@target=MyFuture.then*/ then(
-      /*error:INVALID_CAST_FUNCTION_EXPR*/
       /*@returnType=FutureOr<int>*/ (/*@type=int*/ x) =>
           x ?? new Future<int>.value(3));
   Future<int> t6 = f. /*@typeArgs=int*/ /*@target=MyFuture.then*/ then(

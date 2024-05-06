@@ -3,4 +3,5 @@ class Class<E> {
 }
 
 T id<T>(T t) => t;
+
 main() {}

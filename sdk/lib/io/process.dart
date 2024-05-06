@@ -108,7 +108,7 @@ int get pid => _ProcessUtils._pid(null);
 
 /// Methods for retrieving information about the current process.
 abstract final class ProcessInfo {
-  /// The current resident set size of memory for the process.
+  /// The current resident set size of memory for the process, in bytes.
   ///
   /// Note that the meaning of this field is platform dependent. For example,
   /// some memory accounted for here may be shared with other processes, or if

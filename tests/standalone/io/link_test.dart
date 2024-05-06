@@ -275,6 +275,20 @@ testRelativeLinksSync() {
   tempDirectory.deleteSync(recursive: true);
 }
 
+void testRelativeLinkToDirectoryNotRelativeToCurrentWorkingDirectory() {
+  final tempDirectory = Directory.systemTemp.createTempSync('dart_link');
+  final dir2 = Directory(join(tempDirectory.path, 'dir1', 'dir2'))
+    ..createSync(recursive: true);
+
+  final link = Link(join(tempDirectory.path, 'link'))
+    ..createSync(join('dir1', 'dir2'));
+
+  String resolvedDir2Path = link.resolveSymbolicLinksSync();
+  Expect.isTrue(FileSystemEntity.identicalSync(dir2.path, resolvedDir2Path));
+
+  tempDirectory.deleteSync(recursive: true);
+}
+
 testIsDir() async {
   // Only run on Platforms that supports file watcher
   if (!Platform.isWindows && !Platform.isLinux && !Platform.isMacOS) return;
@@ -326,12 +340,24 @@ testBrokenLinkTypeSync() {
       FileSystemEntity.typeSync(link, followLinks: true));
 }
 
+void testTopLevelLinkSync() {
+  if (!Platform.isWindows) return;
+  try {
+    Link(r"C:\").createSync('the target does not matter');
+    Expect.fail("expected FileSystemException");
+  } on FileSystemException catch (e) {
+    Expect.equals(5, e.osError!.errorCode); // ERROR_ACCESS_DENIED
+  }
+}
+
 main() {
   testCreateSync();
   testCreateLoopingLink();
   testRenameSync();
   testLinkErrorSync();
   testRelativeLinksSync();
+  testRelativeLinkToDirectoryNotRelativeToCurrentWorkingDirectory();
   testIsDir();
   testBrokenLinkTypeSync();
+  testTopLevelLinkSync();
 }

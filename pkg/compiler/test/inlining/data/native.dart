@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:html';
 
 /*member: main:[]*/
@@ -36,7 +34,7 @@ class CustomElement extends HtmlElement {
   static final tag = 'x-foo';
 
   /*member: CustomElement.:[newCustom:CustomElement]*/
-  factory CustomElement() => Element.tag(tag);
+  factory CustomElement() => Element.tag(tag) as CustomElement;
 
   /*member: CustomElement.created:[]*/
   CustomElement.created() : super.created() {
@@ -62,8 +60,11 @@ newNormalCreated() {
 }
 
 class NormalElement {
+  /*member: NormalElement._:[newNormal:NormalElement]*/
+  NormalElement._();
+
   /*member: NormalElement.:[newNormal:NormalElement]*/
-  factory NormalElement() => null;
+  factory NormalElement() => NormalElement._();
 
   /*member: NormalElement.created:[newNormalCreated+,newNormalCreated:NormalElement]*/
   NormalElement.created() {

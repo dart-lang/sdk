@@ -24,10 +24,6 @@ int retrieveFromBase(Int8List src, int n) => src[n];
 int retrieveFromExternal(Int8List src, int n) => src[n];
 
 void matchIL$retrieveFromView(FlowGraph graph) {
-  // TODO(https://github.com/flutter/flutter/issues/138689): Once the regression
-  // for doing the replacement with the GenericCheckBound instruction is fixed
-  // on 32-bit archs, remove this.
-  if (is32BitConfiguration) return;
   graph.match([
     match.block('Graph'),
     match.block('Function', [
@@ -46,24 +42,22 @@ void matchIL$retrieveFromView(FlowGraph graph) {
           match.LoadField('src', slot: 'TypedDataView.offset_in_bytes'),
       'offset' << match.UnboxInt64('boxed_offset'),
       'index' << match.BinaryInt64Op('offset', 'n', op_kind: '+'),
-      'data' << match.LoadField('typed_data', slot: 'PointerBase.data'),
       if (is32BitConfiguration) ...[
         'boxed_index' << match.BoxInt64('index'),
+      ],
+      'data' << match.LoadField('typed_data', slot: 'PointerBase.data'),
+      if (is32BitConfiguration) ...[
         'retval32' << match.LoadIndexed('data', 'boxed_index'),
         'retval' << match.IntConverter('retval32', from: 'int32', to: 'int64'),
       ] else ...[
         'retval' << match.LoadIndexed('data', 'index'),
       ],
-      match.Return('retval'),
+      match.DartReturn('retval'),
     ]),
   ]);
 }
 
 void matchIL$retrieveFromBase(FlowGraph graph) {
-  // TODO(https://github.com/flutter/flutter/issues/138689): Once the regression
-  // for doing the replacement with the GenericCheckBound instruction is fixed
-  // on 32-bit archs, remove this.
-  if (is32BitConfiguration) return;
   graph.match([
     match.block('Graph'),
     match.block('Function', [
@@ -80,16 +74,12 @@ void matchIL$retrieveFromBase(FlowGraph graph) {
         match.GenericCheckBound('unboxed_len', 'n'),
         'retval' << match.LoadIndexed('src', 'n'),
       ],
-      match.Return('retval'),
+      match.DartReturn('retval'),
     ]),
   ]);
 }
 
 void matchIL$retrieveFromExternal(FlowGraph graph) {
-  // TODO(https://github.com/flutter/flutter/issues/138689): Once the regression
-  // for doing the replacement with the GenericCheckBound instruction is fixed
-  // on 32-bit archs, remove this.
-  if (is32BitConfiguration) return;
   graph.match([
     match.block('Graph'),
     match.block('Function', [
@@ -110,7 +100,7 @@ void matchIL$retrieveFromExternal(FlowGraph graph) {
       ] else ...[
         'retval' << match.LoadIndexed('data', 'n'),
       ],
-      match.Return('retval'),
+      match.DartReturn('retval'),
     ]),
   ]);
 }

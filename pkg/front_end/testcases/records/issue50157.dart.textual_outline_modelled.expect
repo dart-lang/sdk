@@ -11,4 +11,5 @@ extension on R {
 }
 
 test(A a, R r) {}
+
 typedef R = ({int foo});

@@ -8,6 +8,7 @@ extension type E(int foo) {
   factory E.redirTooMany3(int foo, [dynamic bar]) = E;
   factory E.redirTooMany4(int foo, {required Object bar}) = E;
 }
+
 extension type GE<X>(X foo) {
   factory GE.redirNotEnough1() = GE;
   factory GE.redirNotEnough2() = GE.redirNotEnough1;

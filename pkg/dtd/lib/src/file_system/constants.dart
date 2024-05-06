@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../dtd_file_system_service.dart';
+const String kFileSystemServiceName = 'FileSystem';
 
-/// The service methods exposed through [DTDFileService].
-enum FileSystemServiceMethods {
-  readFileAsString,
-  writeFileAsString,
-  listDirectories,
-}
+/// The default value for the `depth` parameter in the
+/// `DartToolingDaemon.getProjectRoots` API.
+///
+/// This represents the maximum depth of the directory tree that will be
+/// searched for project roots. This is a performance optimization in case
+/// the workspace roots being searched are large directories; for example, if
+/// a user opened their home directory in their IDE.
+const int defaultGetProjectRootsDepth = 4;

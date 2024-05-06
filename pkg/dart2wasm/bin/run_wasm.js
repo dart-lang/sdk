@@ -11,6 +11,14 @@
 //       -- /abs/path/to/<dart_module>.mjs <dart_module>.wasm [<ffi_module>.wasm] \
 //       [-- Dart commandline arguments...]
 //
+// Run as follows on JSC:
+//
+// $> export JSC_useWebAssemblyTypedFunctionReferences=1
+// $> export JSC_useWebAssemblyExtendedConstantExpressions=1
+// $> export JSC_useWebAssemblyGC=1
+// $> jsc run_wasm.js -- <dart_module>.ms <dart_module>.wasm  \
+//       [-- Dart commandline arguments...]
+//
 // Run as follows on JSShell:
 //
 // $> js run_wasm.js \
@@ -35,6 +43,26 @@
 const jsRuntimeArg = 0;
 const wasmArg = 1;
 const ffiArg = 2;
+
+// This script is intended to be used by D8, JSShell or JSC. We distinguish
+// them by the functions they offer to read files:
+//
+// Engine         | Shell    | FileRead             |  Arguments
+// --------------------------------------------------------------
+// V8             | D8       | readbuffer           |  arguments (arg0 arg1)
+// JavaScriptCore | JSC      | readFile             |  arguments (arg0 arg1)
+// SpiderMonkey   | JSShell  | readRelativeToScript |  scriptArgs (-- arg0 arg1)
+//
+const isD8 = (typeof readbuffer === "function");
+const isJSC = (typeof readFile === "function");
+const isJSShell = (typeof readRelativeToScript === "function");
+
+if (isD8) {
+  // D8's performance.measure is API incompatible with the browser version.
+  //
+  // (see also dart2js's `sdk/**/js_runtime/lib/preambles/d8.js`)
+  delete performance.measure;
+}
 
 // d8's `setTimeout` doesn't work as expected (it doesn't wait before calling
 // the callback), and d8 also doesn't have `setInterval` and `queueMicrotask`.
@@ -282,10 +310,16 @@ const ffiArg = 2;
   }
 
   async function eventLoop(action) {
+    if (isJSC) asyncTestStart(1);
     while (action) {
       try {
         await action();
       } catch (e) {
+        // JSC doesn't report/print uncaught async exceptions for some reason.
+        if (isJSC) {
+          print('Error: ' + e);
+          print('Stack: ' + e.stack);
+        }
         if (typeof onerror == "function") {
           onerror(e, null, -1);
         } else {
@@ -294,6 +328,7 @@ const ffiArg = 2;
       }
       action = nextEvent();
     }
+    if (isJSC) asyncTestPassed();
   }
 
   // Global properties. "self" refers to the global object, so adding a
@@ -315,17 +350,11 @@ const ffiArg = 2;
   self.dartUseDateNowForTicks = true;
 })(this, []);
 
-
-// This script is intended to be used by either D8 or JSShell. We distinguish
-// the two by seeing whether the global `arguments` exists (D8 uses `arguments`
-// and JsShell uses `scriptArgs`).
-var isD8 = (typeof arguments != "undefined");
-
 // We would like this itself to be a ES module rather than a script, but
 // unfortunately d8 does not return a failed error code if an unhandled
 // exception occurs asynchronously in an ES module.
 const main = async () => {
-    var args =  isD8 ? arguments : scriptArgs;
+    var args =  (isD8 || isJSC) ? arguments : scriptArgs;
     var dartArgs = [];
     const argsSplit = args.indexOf("--");
     if (argsSplit != -1) {
@@ -334,14 +363,32 @@ const main = async () => {
     }
 
     const dart2wasm = await import(args[jsRuntimeArg]);
-    function compile(filename) {
-        // Create a Wasm module from the binary wasm file.
-        var bytes = isD8 ? readbuffer(filename) : readRelativeToScript(filename, "binary") ;
-        return new WebAssembly.Module(bytes);
+
+    /// Returns whether the `js-string` built-in is supported.
+    function detectImportedStrings() {
+        let bytes = [
+            0,   97,  115, 109, 1,   0,   0,  0,   1,   4,   1,   96,  0,
+            0,   2,   23,  1,   14,  119, 97, 115, 109, 58,  106, 115, 45,
+            115, 116, 114, 105, 110, 103, 4,  99,  97,  115, 116, 0,   0
+        ];
+        return !WebAssembly.validate(
+            new Uint8Array(bytes), {builtins: ['js-string']});
     }
 
-    function instantiate(filename, imports) {
-        return new WebAssembly.Instance(compile(filename), imports);
+    function compile(filename, withJsStringBuiltins) {
+        // Create a Wasm module from the binary Wasm file.
+        var bytes;
+        if (isJSC) {
+          bytes = readFile(filename, "binary");
+        } else if (isD8) {
+          bytes = readbuffer(filename);
+        } else {
+          bytes = readRelativeToScript(filename, "binary");
+        }
+        return WebAssembly.compile(
+            bytes,
+            withJsStringBuiltins ? {builtins: ['js-string']} : {}
+        );
     }
 
     globalThis.window ??= globalThis;
@@ -350,14 +397,17 @@ const main = async () => {
 
     // Is an FFI module specified?
     if (args.length > 2) {
-        // instantiate FFI module
-        var ffiInstance = instantiate(args[ffiArg], {});
-        // Make its exports available as imports under the 'ffi' module name
+        // Instantiate FFI module.
+        var ffiInstance = await WebAssembly.instantiate(await compile(args[ffiArg], false), {});
+        // Make its exports available as imports under the 'ffi' module name.
         importObject.ffi = ffiInstance.exports;
     }
 
     // Instantiate the Dart module, importing from the global scope.
-    var dartInstance = await dart2wasm.instantiate(Promise.resolve(compile(args[wasmArg])), Promise.resolve(importObject));
+    var dartInstance = await dart2wasm.instantiate(
+        compile(args[wasmArg], detectImportedStrings()),
+        Promise.resolve(importObject),
+    );
 
     // Call `main`. If tasks are placed into the event loop (by scheduling tasks
     // explicitly or awaiting Futures), these will automatically keep the script

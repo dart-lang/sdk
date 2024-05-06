@@ -46,7 +46,7 @@ class BinaryDataSource implements DataSource {
     _byteOffset += bytes.length;
     String string = utf8.decode(bytes);
     if (_stringInterner == null) return string;
-    return _stringInterner!.internString(string);
+    return _stringInterner.internString(string);
   }
 
   @override
@@ -68,7 +68,7 @@ class BinaryDataSource implements DataSource {
   }
 
   @override
-  E readEnum<E>(List<E> values) {
+  E readEnum<E extends Enum>(List<E> values) {
     int index = readInt();
     assert(
         0 <= index && index < values.length,

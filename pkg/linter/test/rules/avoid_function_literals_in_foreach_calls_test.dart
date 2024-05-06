@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -10,7 +9,6 @@ import '../rule_test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AvoidFunctionLiteralsInForeachCalls);
-    defineReflectiveTests(AvoidFunctionLiteralsInForeachCallsPreNNBDTest);
   });
 }
 
@@ -140,40 +138,6 @@ void f(List<String> people) {
   people
       .map((person) => person.toUpperCase())
       .forEach(print);
-}
-''');
-  }
-}
-
-@reflectiveTest
-class AvoidFunctionLiteralsInForeachCallsPreNNBDTest extends LintRuleTest {
-  @override
-  String get lintRule => 'avoid_function_literals_in_foreach_calls';
-
-  @override
-  void setUp() {
-    super.setUp();
-    noSoundNullSafety = false;
-  }
-
-  void tearDown() {
-    noSoundNullSafety = true;
-  }
-
-  test_functionExpression_basic() async {
-    await assertDiagnostics(r'''
-// @dart=2.9
-void f(List<String> people) {
-  people.forEach((person) => print('$person'));
-}
-''', [lint(52, 7)]);
-  }
-
-  test_functionExpression_nullAware() async {
-    await assertNoDiagnostics(r'''
-// @dart=2.9
-void f(List<String> people) {
-  people?.forEach((person) => print('$person'));
 }
 ''');
   }

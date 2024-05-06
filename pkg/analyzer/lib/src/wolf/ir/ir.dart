@@ -14,7 +14,7 @@ library;
 import 'dart:collection';
 import 'dart:convert';
 
-import 'package:analyzer/src/generated/utilities_collection.dart';
+import 'package:collection/collection.dart';
 
 part 'ir.g.dart';
 
@@ -251,10 +251,10 @@ class RawIRWriter with _RawIRWriterMixin {
   final _params1 = <int>[];
   final _argumentNamesTable = <List<String?>>[];
   final _argumentNamesToRef = LinkedHashMap<List<String?>, ArgumentNamesRef>(
-      equals: listsEqual, hashCode: Object.hashAll);
+      equals: const ListEquality<String?>().equals, hashCode: Object.hashAll);
   final _stackIndicesTable = <List<int>>[];
   final _stackIndicesToRef = LinkedHashMap<List<int>, StackIndicesRef>(
-      equals: listsEqual, hashCode: Object.hashAll);
+      equals: const ListEquality<int>().equals, hashCode: Object.hashAll);
 
   int _localVariableCount = 0;
 

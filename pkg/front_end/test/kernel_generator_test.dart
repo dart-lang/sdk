@@ -2,9 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/api_prototype/front_end.dart'
+    show CompilerOptions, DiagnosticMessage;
+import 'package:front_end/src/fasta/codes/fasta_codes.dart'
+    show FormattedMessage, messageMissingMain;
+import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
+import 'package:front_end/src/testing/compiler_common.dart'
+    show
+        compileScript,
+        compileUnit,
+        findLibrary,
+        invalidCoreLibsSpecUri,
+        isDartCoreLibrary;
 import 'package:kernel/ast.dart'
     show EmptyStatement, Component, ReturnStatement, StaticInvocation;
-
 import 'package:test/test.dart'
     show
         expect,
@@ -16,22 +27,6 @@ import 'package:test/test.dart'
         isTrue,
         same,
         test;
-
-import 'package:front_end/src/api_prototype/front_end.dart'
-    show CompilerOptions, DiagnosticMessage;
-
-import 'package:front_end/src/fasta/fasta_codes.dart'
-    show FormattedMessage, messageMissingMain;
-
-import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
-
-import 'package:front_end/src/testing/compiler_common.dart'
-    show
-        compileScript,
-        compileUnit,
-        findLibrary,
-        invalidCoreLibsSpecUri,
-        isDartCoreLibrary;
 
 void main() {
   group('kernelForProgram', () {

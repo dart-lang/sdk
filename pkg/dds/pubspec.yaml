@@ -1,5 +1,5 @@
 name: dds
-version: 3.1.2
+version: 4.0.0
 description: >-
   A library used to spawn the Dart Developer Service, used to communicate with
   a Dart VM Service instance.
@@ -14,9 +14,9 @@ dependencies:
   browser_launcher: ^1.0.0
   collection: ^1.15.0
   dds_service_extensions: ^1.6.0
-  dap: ^1.1.0
+  dap: ^1.2.0
   extension_discovery: ^2.0.0
-  devtools_shared: ^6.0.3
+  devtools_shared: ^8.0.1
   http_multi_server: ^3.0.0
   json_rpc_2: ^3.0.0
   meta: ^1.1.8
@@ -31,13 +31,13 @@ dependencies:
   stream_channel: ^2.0.0
   vm_service: ^14.0.0
   web_socket_channel: ^2.0.0
+  unified_analytics: ^5.8.2
 
 # We use 'any' version constraints here as we get our package versions from
 # the dart-lang/sdk repo's DEPS file. Note that this is a special case; the
 # best practice for packages is to specify their compatible version ranges.
 # See also https://dart.dev/tools/pub/dependencies.
 dev_dependencies:
-  http: any
   lints: any
   test: any
   webdriver: any

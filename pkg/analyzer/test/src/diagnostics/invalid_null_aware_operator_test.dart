@@ -26,7 +26,7 @@ void f(String? s) {
 ''', [
       error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
           31, 2,
-          contextMessages: [message('$testPackageLibPath/test.dart', 23, 2)]),
+          contextMessages: [message(testFile, 23, 2)]),
     ]);
   }
 
@@ -38,7 +38,7 @@ void f(String? s) {
 ''', [
       error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
           27, 2,
-          contextMessages: [message('$testPackageLibPath/test.dart', 23, 1)]),
+          contextMessages: [message(testFile, 23, 1)]),
     ]);
   }
 
@@ -54,7 +54,7 @@ class C {
 ''', [
       error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
           75, 2,
-          contextMessages: [message('$testPackageLibPath/test.dart', 69, 2)]),
+          contextMessages: [message(testFile, 69, 2)]),
     ]);
   }
 
@@ -66,7 +66,7 @@ void f(String? s) {
 ''', [
       error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
           40, 2,
-          contextMessages: [message('$testPackageLibPath/test.dart', 23, 2)]),
+          contextMessages: [message(testFile, 23, 2)]),
     ]);
   }
 
@@ -78,10 +78,10 @@ void f(String? s) {
 ''', [
       error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
           40, 2,
-          contextMessages: [message('$testPackageLibPath/test.dart', 23, 2)]),
+          contextMessages: [message(testFile, 23, 2)]),
       error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
           55, 2,
-          contextMessages: [message('$testPackageLibPath/test.dart', 23, 2)]),
+          contextMessages: [message(testFile, 23, 2)]),
     ]);
   }
 }
@@ -198,24 +198,6 @@ f() {
     ]);
   }
 
-  test_getter_legacy() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 2.5
-var x = 0;
-''');
-
-    await assertErrorsInCode('''
-import 'a.dart';
-
-f() {
-  x?.isEven;
-  x?..isEven;
-}
-''', [
-      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-    ]);
-  }
-
   test_getter_mixin() async {
     await assertErrorsInCode('''
 mixin M {
@@ -266,24 +248,6 @@ f() {
 }
 ''', [
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 31, 1),
-    ]);
-  }
-
-  test_index_legacy() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 2.5
-var x = [0];
-''');
-
-    await assertErrorsInCode('''
-import 'a.dart';
-
-f() {
-  x?[0];
-  x?..[0];
-}
-''', [
-      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
     ]);
   }
 
@@ -372,24 +336,6 @@ f() {
     ]);
   }
 
-  test_method_legacy() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 2.5
-var x = 0;
-''');
-
-    await assertErrorsInCode('''
-import 'a.dart';
-
-f() {
-  x?.round();
-  x?..round();
-}
-''', [
-      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-    ]);
-  }
-
   test_method_mixin() async {
     await assertErrorsInCode('''
 mixin M {
@@ -465,23 +411,6 @@ f(List<int> x) {
   [...x];
 }
 ''');
-  }
-
-  test_nullableSpread_legacyType() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 2.5
-var x = <int>[];
-''');
-
-    await assertErrorsInCode('''
-import 'a.dart';
-
-f() {
-  [...?x];
-}
-''', [
-      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-    ]);
   }
 
   test_nullableSpread_nonNullableType() async {

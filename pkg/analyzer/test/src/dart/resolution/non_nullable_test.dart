@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/error/codes.g.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -58,23 +56,9 @@ class C {
   }
 
   test_library_typeProvider_typeSystem() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {}
-''');
-    await resolveTestCode(r'''
-// @dart = 2.5
-import 'a.dart';
-''');
+    await resolveTestCode('');
     var testLibrary = result.libraryElement;
-    var testTypeSystem = testLibrary.typeSystem as TypeSystemImpl;
-    assertType(testLibrary.typeProvider.intType, 'int*');
-    expect(testTypeSystem.isNonNullableByDefault, isFalse);
-
-    var aImport = findElement.importFind('package:test/a.dart');
-    var aLibrary = aImport.importedLibrary;
-    var aTypeSystem = aLibrary.typeSystem as TypeSystemImpl;
-    assertType(aLibrary.typeProvider.intType, 'int');
-    expect(aTypeSystem.isNonNullableByDefault, isTrue);
+    assertType(testLibrary.typeProvider.intType, 'int');
   }
 
   test_local_getterNullAwareAccess_interfaceType() async {

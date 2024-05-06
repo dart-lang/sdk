@@ -1,5 +1,7 @@
 // @dart = 2.9
+
 class Hest<TypeX extends Fisk> {}
 
 typedef Fisk = void Function<TypeY extends Hest>();
+
 main() {}

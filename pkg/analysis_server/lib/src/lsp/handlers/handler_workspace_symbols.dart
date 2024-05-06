@@ -102,7 +102,7 @@ class WorkspaceSymbolHandler extends SharedMessageHandler<WorkspaceSymbolParams,
       declaration.codeLength,
     );
     final location = Location(
-      uri: pathContext.toUri(filePath),
+      uri: uriConverter.toClientUri(filePath),
       range: range,
     );
 
@@ -111,11 +111,11 @@ class WorkspaceSymbolHandler extends SharedMessageHandler<WorkspaceSymbolParams,
     final nameSuffix = hasParameters ? (parameters == '()' ? '()' : '(…)') : '';
 
     return SymbolInformation(
-        name: '${declaration.name}$nameSuffix',
-        kind: kind,
-        deprecated: null, // We don't have easy access to isDeprecated here.
-        location: location,
-        containerName: declaration.className ?? declaration.mixinName);
+      name: '${declaration.name}$nameSuffix',
+      kind: kind,
+      location: location,
+      containerName: declaration.className ?? declaration.mixinName,
+    );
   }
 }
 

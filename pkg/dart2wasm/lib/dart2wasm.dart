@@ -8,8 +8,8 @@ import 'package:args/args.dart' as args;
 import 'package:front_end/src/api_unstable/vm.dart' show resolveInputUri;
 import 'package:front_end/src/api_unstable/vm.dart' as fe;
 
-import 'package:dart2wasm/generate_wasm.dart';
-import 'package:dart2wasm/option.dart';
+import 'generate_wasm.dart';
+import 'option.dart';
 
 // Used to allow us to keep defaults on their respective option structs.
 // Note: When adding new options, consider if CLI options should be add
@@ -25,8 +25,8 @@ final List<Option> options = [
       defaultsTo: _d.translatorOptions.importSharedMemory),
   Flag("inlining", (o, value) => o.translatorOptions.inlining = value,
       defaultsTo: _d.translatorOptions.inlining),
-  Flag("name-section", (o, value) => o.translatorOptions.nameSection = value,
-      defaultsTo: _d.translatorOptions.nameSection),
+  Flag("minify", (o, value) => o.translatorOptions.minify = value,
+      defaultsTo: _d.translatorOptions.minify),
   Flag("polymorphic-specialization",
       (o, value) => o.translatorOptions.polymorphicSpecialization = value,
       defaultsTo: _d.translatorOptions.polymorphicSpecialization),
@@ -34,15 +34,31 @@ final List<Option> options = [
       defaultsTo: _d.translatorOptions.printKernel),
   Flag("print-wasm", (o, value) => o.translatorOptions.printWasm = value,
       defaultsTo: _d.translatorOptions.printWasm),
-  Flag("js-compatibility",
-      (o, value) => o.translatorOptions.jsCompatibility = value,
-      defaultsTo: _d.translatorOptions.jsCompatibility),
+  Flag("js-compatibility", (o, value) {
+    o.translatorOptions.jsCompatibility = value;
+    o.environment['dart.wasm.js_compatibility'] = 'true';
+  }, defaultsTo: _d.translatorOptions.jsCompatibility),
   Flag(
       "enable-asserts", (o, value) => o.translatorOptions.enableAsserts = value,
       defaultsTo: _d.translatorOptions.enableAsserts),
-  Flag("omit-type-checks",
-      (o, value) => o.translatorOptions.omitTypeChecks = value,
-      defaultsTo: _d.translatorOptions.omitTypeChecks),
+  Flag("omit-explicit-checks",
+      (o, value) => o.translatorOptions.omitExplicitTypeChecks = value,
+      defaultsTo: _d.translatorOptions.omitExplicitTypeChecks),
+  Flag("omit-implicit-checks",
+      (o, value) => o.translatorOptions.omitImplicitTypeChecks = value,
+      defaultsTo: _d.translatorOptions.omitImplicitTypeChecks),
+  // TODO(http://dartbug.com/54675): Deprecate & Remove this one.
+  Flag("omit-type-checks", (o, value) {
+    o.translatorOptions.omitImplicitTypeChecks = value;
+    o.translatorOptions.omitExplicitTypeChecks = value;
+  },
+      defaultsTo: _d.translatorOptions.omitImplicitTypeChecks &&
+          _d.translatorOptions.omitExplicitTypeChecks),
+  Flag("omit-bounds-checks", (o, value) {
+    o.translatorOptions.omitBoundsChecks = value;
+  }, defaultsTo: _d.translatorOptions.omitBoundsChecks),
+  Flag("verbose", (o, value) => o.translatorOptions.verbose = value,
+      defaultsTo: _d.translatorOptions.verbose),
   Flag("verify-type-checks",
       (o, value) => o.translatorOptions.verifyTypeChecks = value,
       defaultsTo: _d.translatorOptions.verifyTypeChecks),
@@ -59,7 +75,7 @@ final List<Option> options = [
   IntMultiOption(
       "watch", (o, values) => o.translatorOptions.watchPoints = values),
   StringMultiOption(
-      "define", (o, values) => o.environment = processEnvironment(values),
+      "define", (o, values) => o.environment.addAll(processEnvironment(values)),
       abbr: "D"),
   StringMultiOption(
       "enable-experiment",
@@ -67,6 +83,8 @@ final List<Option> options = [
           o.feExperimentalFlags = processFeExperimentalFlags(values)),
   StringOption("multi-root-scheme", (o, value) => o.multiRootScheme = value),
   UriMultiOption("multi-root", (o, values) => o.multiRoots = values),
+  StringMultiOption("delete-tostring-package-uri",
+      (o, values) => o.deleteToStringPackageUri = values),
   StringOption("depfile", (o, value) => o.depFile = value),
   StringOption(
       "js-runtime-output", (o, value) => o.outputJSRuntimeFile = value),
@@ -134,12 +152,12 @@ WasmCompilerOptions parseArguments(List<String> arguments) {
     return compilerOptions;
   } catch (e, s) {
     print(s);
-    print('Argument Error: ' + e.toString());
+    print('Argument Error: $e');
     usage();
   }
 }
 
 Future<int> main(List<String> args) async {
   WasmCompilerOptions options = parseArguments(args);
-  return generateWasm(options);
+  return generateWasm(options, errorPrinter: stderr.writeln);
 }

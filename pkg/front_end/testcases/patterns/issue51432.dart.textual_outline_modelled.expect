@@ -1,3 +1,5 @@
 main() {}
+
 method() {}
+
 throws(void Function() f) {}

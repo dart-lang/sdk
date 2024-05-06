@@ -1,9 +1,15 @@
 foo1((int, String?) r) {}
+
 foo2((int, String?) r, X Function<X>() f) {}
+
 foo3() {}
+
 foo4() {}
+
 foo5((int, String?) r, (int, X) Function<X>() f) {}
+
 foo6((X, Y) Function<X, Y>(X x, Y y) f, int x, String y) {}
+
 foo7(
     (X, (Y, Z)) Function<X, Y, Z>(X x, Y y, Z z) f, int x, String y, bool? z) {}
 
@@ -18,5 +24,7 @@ foo9(A9 a) {}
 class A10<X, Y> {}
 
 A10<(T, T), T> foo10<T>() => throw 0;
+
 bar10() {}
+
 main() {}

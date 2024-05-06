@@ -1,5 +1,7 @@
 late int lateTopLevelField;
+
 late final int lateFinalTopLevelField;
+
 late final int lateFinalTopLevelFieldWithInit = 0;
 
 class Class {
@@ -18,5 +20,7 @@ class Class {
 }
 
 main() {}
+
 noErrors() {}
+
 errors() {}

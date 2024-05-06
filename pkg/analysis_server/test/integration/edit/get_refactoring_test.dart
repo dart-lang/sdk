@@ -65,4 +65,42 @@ void bar() {
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isEmpty);
   }
+
+  Future<void> test_rename_macro() async {
+    addMacros([declareInTypeMacro()]);
+    var pathname = sourcePath('lib/test.dart');
+    var text = r'''
+import 'macros.dart';
+
+@DeclareInType('  /// named\\n  C.named();')
+class C {}
+''';
+    writeFile(pathname, text);
+    await standardAnalysisSetup();
+    await analysisFinished;
+    expect(currentAnalysisErrors[pathname], isEmpty);
+
+    // expect a valid rename refactoring
+    var result = await sendEditGetRefactoring(
+        RefactoringKind.RENAME, pathname, text.indexOf('C {'), 0, false,
+        options: RenameOptions('Coo'));
+    expect(result.initialProblems, isEmpty);
+    expect(result.optionsProblems, isEmpty);
+    expect(result.finalProblems, isEmpty);
+    expect(result.potentialEdits, isNull);
+
+    var change = result.change!;
+    expect(change.edits.length, 1);
+    var fileEdit = change.edits.first;
+
+    // apply the refactoring, expect that the new code has no errors
+    expect(fileEdit.edits.length, 1);
+    for (var edit in fileEdit.edits) {
+      text = text.replaceRange(edit.offset, edit.end, edit.replacement);
+    }
+    await sendAnalysisUpdateContent({pathname: AddContentOverlay(text)});
+
+    await analysisFinished;
+    expect(currentAnalysisErrors[pathname], isEmpty);
+  }
 }

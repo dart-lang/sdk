@@ -296,9 +296,13 @@ class _VariablesInfoCollector extends RecursiveVisitor {
   /// Number of variables at entry of active statements.
   List<int>? numVariablesAtActiveStatements;
 
-  _VariablesInfoCollector(Member member) {
-    member.accept(this);
-  }
+  bool isInsideLocalFunction = false;
+  bool isReceiverCaptured = false;
+
+  LocalFunction? summaryFunction;
+  int numVariablesAtSummaryFunctionEntry = 0;
+
+  _VariablesInfoCollector(this.summaryFunction);
 
   int get numVariables => varDeclarations.length;
 
@@ -318,6 +322,12 @@ class _VariablesInfoCollector extends RecursiveVisitor {
     numVariablesAtActiveStatements = null;
     final savedNumVariablesAtFunctionEntry = numVariablesAtFunctionEntry;
     numVariablesAtFunctionEntry = numVariables;
+    final savedIsInsideLocalFunction = isInsideLocalFunction;
+    isInsideLocalFunction = true;
+
+    if (node == summaryFunction) {
+      numVariablesAtSummaryFunctionEntry = numVariablesAtFunctionEntry;
+    }
 
     final function = node.function;
     function.accept(this);
@@ -325,6 +335,7 @@ class _VariablesInfoCollector extends RecursiveVisitor {
     activeStatements = savedActiveStatements;
     numVariablesAtActiveStatements = savedNumVariablesAtActiveStatements;
     numVariablesAtFunctionEntry = savedNumVariablesAtFunctionEntry;
+    isInsideLocalFunction = savedIsInsideLocalFunction;
   }
 
   bool _isDeclaredBefore(int variableIndex, int entryDeclarationCounter) =>
@@ -361,6 +372,12 @@ class _VariablesInfoCollector extends RecursiveVisitor {
   void _endCollectingModifiedVariables() {
     activeStatements!.removeLast();
     numVariablesAtActiveStatements!.removeLast();
+  }
+
+  void _useReceiver() {
+    if (isInsideLocalFunction) {
+      isReceiverCaptured = true;
+    }
   }
 
   @override
@@ -459,6 +476,56 @@ class _VariablesInfoCollector extends RecursiveVisitor {
     visitList(node.cases, this);
     _endCollectingModifiedVariables();
   }
+
+  @override
+  visitSuperMethodInvocation(SuperMethodInvocation node) {
+    _useReceiver();
+    super.visitSuperMethodInvocation(node);
+  }
+
+  @override
+  visitSuperPropertyGet(SuperPropertyGet node) {
+    _useReceiver();
+    super.visitSuperPropertyGet(node);
+  }
+
+  @override
+  visitSuperPropertySet(SuperPropertySet node) {
+    _useReceiver();
+    super.visitSuperPropertySet(node);
+  }
+
+  @override
+  visitThisExpression(ThisExpression node) {
+    _useReceiver();
+    super.visitThisExpression(node);
+  }
+
+  @override
+  visitFieldInitializer(FieldInitializer node) {
+    assert(!isInsideLocalFunction);
+    super.visitFieldInitializer(node);
+  }
+
+  @override
+  visitRedirectingInitializer(RedirectingInitializer node) {
+    assert(!isInsideLocalFunction);
+    super.visitRedirectingInitializer(node);
+  }
+
+  @override
+  visitSuperInitializer(SuperInitializer node) {
+    assert(!isInsideLocalFunction);
+    super.visitSuperInitializer(node);
+  }
+
+  @override
+  visitTypeParameterType(TypeParameterType node) {
+    if (node.parameter.declaration is Class) {
+      _useReceiver();
+    }
+    super.visitTypeParameterType(node);
+  }
 }
 
 Iterable<Name> getSelectors(ClassHierarchy hierarchy, Class cls,
@@ -527,13 +594,10 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   Join? _returnValue;
 
   Member? _enclosingMember;
-  Parameter? _receiver;
+  TypeExpr? _receiver;
   late ConstantAllocationCollector constantAllocationCollector;
   late RuntimeTypeTranslatorImpl _translator;
   StaticTypeContext? _staticTypeContext;
-
-  // Currently only used for factory constructors.
-  Map<TypeParameter, TypeExpr>? _fnTypeVariables;
 
   SummaryCollector(
       this.target,
@@ -554,32 +618,51 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         setters: true));
   }
 
-  Summary createSummary(Member member,
+  Summary createSummary(Member member, LocalFunction? localFunction,
       {fieldSummaryType = FieldSummaryType.kInitializer}) {
-    final String summaryName =
-        "${member}${fieldSummaryType == FieldSummaryType.kFieldGuard ? " (guard)" : ""}";
+    String summaryName = member.toString();
+    if (fieldSummaryType == FieldSummaryType.kFieldGuard) {
+      summaryName += ' (guard)';
+    }
+    if (localFunction != null) {
+      summaryName += '::${localFunctionName(localFunction)}';
+    }
     debugPrint("===== $summaryName =====");
     assert(!member.isAbstract);
     _enclosingMember = member;
 
-    _protobufHandler?.beforeSummaryCreation(member);
+    if (localFunction == null) {
+      _protobufHandler?.beforeSummaryCreation(member);
+    }
 
-    _staticTypeContext = new StaticTypeContext(member, _environment);
-    _variablesInfo = new _VariablesInfoCollector(member);
-    _variableValues =
-        new List<TypeExpr?>.filled(_variablesInfo.numVariables, null);
-    _aggregateVariable =
-        new List<bool>.filled(_variablesInfo.numVariables, false);
+    _staticTypeContext = StaticTypeContext(member, _environment);
+    _variablesInfo = _VariablesInfoCollector(localFunction);
+    if (fieldSummaryType != FieldSummaryType.kFieldGuard) {
+      member.accept(_variablesInfo);
+    }
+    _variableValues = List<TypeExpr?>.filled(_variablesInfo.numVariables, null);
+    _aggregateVariable = List<bool>.filled(_variablesInfo.numVariables, false);
     _capturedVariableReads = null;
-    _variableVersions = new List<int>.filled(_variablesInfo.numVariables, 0);
+    _variableVersions = List<int>.filled(_variablesInfo.numVariables, 0);
     _jumpHandlers = null;
     _returnValue = null;
     _receiver = null;
     _currentCondition = null;
 
+    // Summary collector doesn't visit outer functions, so
+    // captured variables declared in the outer functions should be
+    // "pre-declared" and marked as aggregate.
+    for (int i = 0;
+        i < _variablesInfo.numVariablesAtSummaryFunctionEntry;
+        ++i) {
+      if (_variablesInfo.isCaptured(_variablesInfo.varDeclarations[i])) {
+        _aggregateVariable[i] = true;
+      }
+    }
+
     final hasReceiver = hasReceiverArg(member);
 
-    if (member is Field) {
+    if (member is Field && localFunction == null) {
       if (hasReceiver) {
         final int numArgs =
             fieldSummaryType == FieldSummaryType.kInitializer ? 1 : 2;
@@ -589,12 +672,18 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         _receiver = _declareParameter("this",
             _environment.coreTypes.legacyRawType(member.enclosingClass!), null,
             isReceiver: true);
+        if (_variablesInfo.isReceiverCaptured) {
+          final capturedReceiver =
+              _sharedVariableBuilder.getSharedCapturedThis(_enclosingMember!);
+          final write = WriteVariable(capturedReceiver, _receiver!);
+          _summary.add(write);
+        }
       } else {
         _summary = new Summary(summaryName);
       }
 
-      _translator = new RuntimeTypeTranslatorImpl(_environment.coreTypes,
-          _summary, _receiver, null, _genericInterfacesInfo);
+      _translator = new RuntimeTypeTranslatorImpl(
+          _environment.coreTypes, _summary, this, null, _genericInterfacesInfo);
 
       if (fieldSummaryType == FieldSummaryType.kInitializer) {
         _summary.result = _visit(member.initializer!);
@@ -604,10 +693,13 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         _summary.result = _typeCheck(valueParam, member.type, member);
       }
     } else {
-      final FunctionNode function = member.function!;
+      final FunctionNode function =
+          localFunction != null ? localFunction.function : member.function!;
 
-      final numTypeParameters = numTypeParams(member);
-      final firstParamIndex = (hasReceiver ? 1 : 0) + numTypeParameters;
+      final numTypeParameters =
+          localFunction == null ? numTypeParams(member) : 0;
+      final firstParamIndex =
+          ((hasReceiver || localFunction != null) ? 1 : 0) + numTypeParameters;
 
       _summary = new Summary(summaryName,
           parameterCount: firstParamIndex +
@@ -618,27 +710,32 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
           requiredParameterCount:
               firstParamIndex + function.requiredParameterCount);
 
+      Map<TypeParameter, TypeExpr>? fnTypeVariables;
       if (numTypeParameters > 0) {
-        _fnTypeVariables = <TypeParameter, TypeExpr>{
+        fnTypeVariables = <TypeParameter, TypeExpr>{
           for (TypeParameter tp in function.typeParameters)
             tp: _declareParameter(tp.name!, null, null)
         };
       }
 
-      if (hasReceiver) {
+      if (localFunction != null) {
+        _declareParameter('#closure', const DynamicType(), null);
+      } else if (hasReceiver) {
         // TODO(alexmarkov): subclass cone
-        _receiver = _declareParameter("this",
+        _receiver = _declareParameter('this',
             _environment.coreTypes.legacyRawType(member.enclosingClass!), null,
             isReceiver: true);
       }
 
       _translator = new RuntimeTypeTranslatorImpl(_environment.coreTypes,
-          _summary, _receiver, _fnTypeVariables, _genericInterfacesInfo);
+          _summary, this, fnTypeVariables, _genericInterfacesInfo);
 
       // Handle forwarding stubs. We need to check types against the types of
       // the forwarding stub's target, [member.concreteForwardingStubTarget].
       FunctionNode useTypesFrom = function;
-      if (member is Procedure && member.isForwardingStub) {
+      if (member is Procedure &&
+          member.isForwardingStub &&
+          localFunction == null) {
         final target = member.concreteForwardingStubTarget;
         if (target != null) {
           if (target is Field) {
@@ -671,6 +768,18 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
             decl.initializer);
       }
 
+      if (hasReceiver && _variablesInfo.isReceiverCaptured) {
+        final capturedReceiver =
+            _sharedVariableBuilder.getSharedCapturedThis(_enclosingMember!);
+        if (localFunction != null) {
+          final read = _receiver = ReadVariable(capturedReceiver);
+          _summary.add(read);
+        } else {
+          final write = WriteVariable(capturedReceiver, _receiver!);
+          _summary.add(write);
+        }
+      }
+
       int count = firstParamIndex;
       for (int i = 0; i < function.positionalParameters.length; ++i) {
         final decl = function.positionalParameters[i];
@@ -695,7 +804,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       _returnValue = new Join("%result", function.returnType);
       _summary.add(_returnValue!);
 
-      if (member is Constructor) {
+      if (member is Constructor && localFunction == null) {
         // Make sure instance field initializers are visited.
         for (var f in member.enclosingClass.members) {
           if ((f is Field) &&
@@ -710,6 +819,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       }
 
       if (function.body == null) {
+        assert(localFunction == null);
         TypeExpr type = _nativeCodeOracle.handleNativeProcedure(
             member, _entryPointsListener, _typesBuilder, _translator);
         if (type is! ConcreteType && type is! Statement) {
@@ -730,7 +840,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
       _currentCondition = null;
 
-      if (member.name.text == '==') {
+      if (member.name.text == '==' && localFunction == null) {
         // In addition to what is returned from the function body,
         // operator == performs implicit comparison with null
         // and returns bool.
@@ -767,9 +877,11 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       }
     }
 
-    member.annotations.forEach(_visit);
-    member.enclosingClass?.annotations.forEach(_visit);
-    member.enclosingLibrary.annotations.forEach(_visit);
+    if (localFunction == null) {
+      member.annotations.forEach(_visit);
+      member.enclosingClass?.annotations.forEach(_visit);
+      member.enclosingLibrary.annotations.forEach(_visit);
+    }
 
     _enclosingMember = null;
     _staticTypeContext = null;
@@ -778,7 +890,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     debugPrint(_summary);
     debugPrint("---------------------------------");
 
-    new _SummaryNormalizer(_summary, _typesBuilder).normalize();
+    _SummaryNormalizer(_summary, _typesBuilder).normalize();
 
     debugPrint("---------- NORM SUMMARY ---------");
     debugPrint(_summary);
@@ -804,10 +916,18 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     }
 
     if (hasReceiverArg(member)) {
-      assert(member.enclosingClass != null);
-      final receiver =
-          _typesBuilder.getTFClass(member.enclosingClass!).coneType;
-      args.add(receiver);
+      final enclosingClass = member.enclosingClass;
+      if (enclosingClass == null) {
+        if (isArtificialNode(member) && member.name == Name.callName) {
+          // Approximate closure parameter of the artificial call method.
+          args.add(nullableAnyType);
+        } else {
+          throw 'Unexpected $member without enclosing class.';
+        }
+      } else {
+        final receiver = _typesBuilder.getTFClass(enclosingClass).coneType;
+        args.add(receiver);
+      }
     }
 
     switch (selector.callKind) {
@@ -948,6 +1068,8 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       _variableValues[varIndex] = value;
     }
   }
+
+  TypeExpr _readReceiver() => _receiver!;
 
   TypeExpr _readVariable(VariableDeclaration variable, TreeNode node) {
     if (_variablesInfo.isCaptured(variable)) {
@@ -1161,7 +1283,10 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     if (target is Procedure && node is Expression) {
       final returnType = target.function.returnType;
       final staticDartType = _staticDartType(node);
-      if (returnType is TypeParameterType || returnType != staticDartType) {
+      // TODO(dartbug.com/54200): static type cannot be trusted when
+      // function type is returned.
+      if (returnType is TypeParameterType ||
+          (returnType != staticDartType && returnType is! FunctionType)) {
         staticResultType = _typesBuilder.fromStaticType(staticDartType, true);
       }
     }
@@ -1354,25 +1479,6 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
           .constantConcreteType(constant);
     }
     return _stringType;
-  }
-
-  void _handleNestedFunctionNode(FunctionNode node) {
-    final savedReturn = _returnValue;
-    _returnValue = null;
-    final savedCondition = _currentCondition;
-    final savedVariableValues = _variableValues;
-    _variableValues = _makeEmptyVariableValues();
-
-    // Approximate parameters of nested functions with static types.
-    // TODO(sjindel/tfa): Use TypeCheck for closure parameters.
-    node.positionalParameters.forEach(_declareVariableWithStaticType);
-    node.namedParameters.forEach(_declareVariableWithStaticType);
-
-    _visitWithoutResult(node.body!);
-
-    _currentCondition = savedCondition;
-    _variableValues = savedVariableValues;
-    _returnValue = savedReturn;
   }
 
   TypeExpr _closureType(LocalFunction node) {
@@ -1649,7 +1755,12 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   @override
   TypeExpr visitFunctionExpression(FunctionExpression node) {
-    _handleNestedFunctionNode(node.function);
+    final closure = Closure(_enclosingMember!, node);
+    final callMethod = _entryPointsListener.getClosureCallMethod(closure);
+    // In order to keep analysis scalable, targets of function calls are
+    // not calculated when target closure is not inferred.
+    // Raw call is added to account for such approximated function calls.
+    _entryPointsListener.addRawCall(DirectSelector(callMethod));
     return _closureType(node);
   }
 
@@ -1841,17 +1952,19 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   @override
   TypeExpr visitLocalFunctionInvocation(LocalFunctionInvocation node) {
-    _visitArguments(null, node.arguments);
-    return _staticType(node);
+    final closure = Closure(_enclosingMember!, node.localFunction);
+    final callMethod = _entryPointsListener.getClosureCallMethod(closure);
+    final args = _visitArguments(anyInstanceType, node.arguments);
+    return _makeCall(node, DirectSelector(callMethod), args);
   }
 
   @override
   TypeExpr visitFunctionInvocation(FunctionInvocation node) {
     final receiverNode = node.receiver;
     final receiver = _visit(receiverNode);
-    _visitArguments(receiver, node.arguments);
-    final result = _staticType(node);
-    _updateReceiverAfterCall(receiverNode, receiver, Name('call'));
+    final args = _visitArguments(receiver, node.arguments);
+    final result = _makeCall(node, FunctionSelector(_staticType(node)), args);
+    _updateReceiverAfterCall(receiverNode, receiver, Name.callName);
     return result;
   }
 
@@ -1958,8 +2071,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   @override
   TypeExpr visitSuperMethodInvocation(SuperMethodInvocation node) {
     assert(kPartialMixinResolution);
-    assert(_receiver != null, "Should have receiver. Node: $node");
-    final args = _visitArguments(_receiver, node.arguments);
+    final args = _visitArguments(_readReceiver(), node.arguments);
     // Re-resolve target due to partial mixin resolution.
     final target = _hierarchy.getDispatchTarget(_superclass, node.name);
     if (target == null) {
@@ -1974,7 +2086,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   @override
   TypeExpr visitSuperPropertyGet(SuperPropertyGet node) {
     assert(kPartialMixinResolution);
-    final args = new Args<TypeExpr>([_receiver!]);
+    final args = new Args<TypeExpr>([_readReceiver()]);
     // Re-resolve target due to partial mixin resolution.
     final target = _hierarchy.getDispatchTarget(_superclass, node.name);
     if (target == null) {
@@ -1989,7 +2101,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   TypeExpr visitSuperPropertySet(SuperPropertySet node) {
     assert(kPartialMixinResolution);
     final value = _visit(node.value);
-    final args = new Args<TypeExpr>([_receiver!, value]);
+    final args = new Args<TypeExpr>([_readReceiver(), value]);
     // Re-resolve target due to partial mixin resolution.
     final target =
         _hierarchy.getDispatchTarget(_superclass, node.name, setter: true);
@@ -2094,7 +2206,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   @override
   TypeExpr visitThisExpression(ThisExpression node) {
-    return _receiver!;
+    return _readReceiver();
   }
 
   @override
@@ -2249,7 +2361,12 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   TypeExpr? visitFunctionDeclaration(FunctionDeclaration node) {
     node.variable.annotations.forEach(_visit);
     _declareVariable(node.variable, _closureType(node));
-    _handleNestedFunctionNode(node.function);
+    final closure = Closure(_enclosingMember!, node);
+    final callMethod = _entryPointsListener.getClosureCallMethod(closure);
+    // In order to keep analysis scalable, targets of function calls are
+    // not calculated when target closure is not inferred.
+    // Raw call is added to account for such approximated function calls.
+    _entryPointsListener.addRawCall(DirectSelector(callMethod));
     return null;
   }
 
@@ -2454,7 +2571,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   @override
   TypeExpr? visitFieldInitializer(FieldInitializer node) {
     final value = _visit(node.value);
-    final args = new Args<TypeExpr>([_receiver!, value]);
+    final args = new Args<TypeExpr>([_readReceiver(), value]);
     _makeCall(
         node,
         new DirectSelector(node.field,
@@ -2465,14 +2582,14 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   @override
   TypeExpr? visitRedirectingInitializer(RedirectingInitializer node) {
-    final args = _visitArguments(_receiver, node.arguments);
+    final args = _visitArguments(_readReceiver(), node.arguments);
     _makeCall(node, new DirectSelector(node.target), args);
     return null;
   }
 
   @override
   TypeExpr? visitSuperInitializer(SuperInitializer node) {
-    final args = _visitArguments(_receiver, node.arguments);
+    final args = _visitArguments(_readReceiver(), node.arguments);
 
     Constructor? target = null;
     if (kPartialMixinResolution) {
@@ -2525,12 +2642,12 @@ class RuntimeTypeTranslatorImpl
     implements RuntimeTypeTranslator, DartTypeVisitor<TypeExpr> {
   final CoreTypes coreTypes;
   final Summary? summary;
+  final SummaryCollector? summaryCollector;
   final Map<TypeParameter, TypeExpr>? functionTypeVariables;
   final Map<DartType, TypeExpr> typesCache = <DartType, TypeExpr>{};
-  final TypeExpr? receiver;
   final GenericInterfacesInfo genericInterfacesInfo;
 
-  RuntimeTypeTranslatorImpl(this.coreTypes, this.summary, this.receiver,
+  RuntimeTypeTranslatorImpl(this.coreTypes, this.summary, this.summaryCollector,
       this.functionTypeVariables, this.genericInterfacesInfo) {}
 
   // Create a type translator which can be used only for types with no free type
@@ -2538,8 +2655,8 @@ class RuntimeTypeTranslatorImpl
   RuntimeTypeTranslatorImpl.forClosedTypes(
       this.coreTypes, this.genericInterfacesInfo)
       : summary = null,
-        functionTypeVariables = null,
-        receiver = null {}
+        summaryCollector = null,
+        functionTypeVariables = null {}
 
   TypeExpr instantiateConcreteType(ConcreteType type, List<DartType> typeArgs) {
     if (typeArgs.isEmpty) return type;
@@ -2687,7 +2804,7 @@ class RuntimeTypeTranslatorImpl
     if (nullability == Nullability.undetermined) {
       nullability = Nullability.nonNullable;
     }
-    final extract = new Extract(receiver!, interfaceClass,
+    final extract = Extract(summaryCollector!._readReceiver(), interfaceClass,
         interfaceClass.typeParameters.indexOf(type.parameter), nullability);
     summary!.add(extract);
     return extract;

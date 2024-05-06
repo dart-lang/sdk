@@ -9,15 +9,15 @@ import 'dart:typed_data';
 
 @pragma("vm:entry-point")
 @patch
-abstract final class _Compound extends NativeType {}
+abstract final class _Compound implements NativeType {}
 
 @pragma("vm:entry-point")
 @patch
-abstract base class Struct extends _Compound {}
+abstract base class Struct extends _Compound implements SizedNativeType {}
 
 @pragma("vm:entry-point")
 @patch
-abstract base class Union extends _Compound {}
+abstract base class Union extends _Compound implements SizedNativeType {}
 
 @pragma("vm:entry-point")
 final class _FfiStructLayout {

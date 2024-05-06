@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
 import '../util/dart_type_utilities.dart';
@@ -191,8 +190,8 @@ class _Visitor extends SimpleAstVisitor<void> {
         node.operator,
         errorCode: UnrelatedTypeEqualityChecks.expressionCode,
         arguments: [
-          rightType.getDisplayString(withNullability: true),
-          leftType.getDisplayString(withNullability: true),
+          rightType.getDisplayString(),
+          leftType.getDisplayString(),
         ],
       );
     }
@@ -210,8 +209,8 @@ class _Visitor extends SimpleAstVisitor<void> {
         node,
         errorCode: UnrelatedTypeEqualityChecks.patternCode,
         arguments: [
-          operandType.getDisplayString(withNullability: true),
-          valueType.getDisplayString(withNullability: true),
+          operandType.getDisplayString(),
+          valueType.getDisplayString(),
         ],
       );
     }

@@ -6,6 +6,7 @@ import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
+import 'package:analysis_server/src/services/correction/fix_processor.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
@@ -15,7 +16,12 @@ class CiderAssistsComputer {
   final PerformanceLog _logger;
   final FileResolver _fileResolver;
 
-  CiderAssistsComputer(this._logger, this._fileResolver);
+  /// A mapping of [ProducerGenerator]s to the set of lint names with which they
+  /// are associated (can fix).
+  final Map<ProducerGenerator, Set<String>> _producerGeneratorsForLintRules;
+
+  CiderAssistsComputer(
+      this._logger, this._fileResolver, this._producerGeneratorsForLintRules);
 
   /// Compute quick assists on the line and character position.
   Future<List<Assist>> compute(
@@ -32,6 +38,7 @@ class CiderAssistsComputer {
           InstrumentationService.NULL_SERVICE,
           workspace,
           resolvedUnit,
+          _producerGeneratorsForLintRules,
           offset,
           length,
         );

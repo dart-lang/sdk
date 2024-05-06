@@ -71,7 +71,7 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
   Future<void> test_method_excludesClassesWithoutImplementations() =>
       _testMarkedContent('''
       abstract class A {
-        void ^b();
+        void ^b() {}
       }
 
       class B extends A {}
@@ -201,7 +201,7 @@ class C implements MyInterface {
   String get [!interfaceField!] => '';
 }
 
-class MyInterface {
+abstract class MyInterface {
   String get interf^aceField;
 }
 ''';
@@ -239,9 +239,9 @@ class MyInterface {
     if (otherCode != null) {
       newFile(otherFilePath, otherCode.code);
     }
+    newFile(mainFilePath, code.code);
 
     await initialize();
-    await openFile(mainFileUri, code.code);
 
     final res = await getImplementations(
       mainFileUri,

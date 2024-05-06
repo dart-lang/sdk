@@ -146,6 +146,23 @@ DEFINE_RUNTIME_ENTRY(RangeError, 2) {
   Exceptions::ThrowByType(Exceptions::kRange, args);
 }
 
+DEFINE_RUNTIME_ENTRY(RangeErrorUnboxedInt64, 0) {
+  int64_t unboxed_length = thread->unboxed_int64_runtime_arg();
+  int64_t unboxed_index = thread->unboxed_int64_runtime_second_arg();
+  const auto& length = Integer::Handle(zone, Integer::New(unboxed_length));
+  const auto& index = Integer::Handle(zone, Integer::New(unboxed_index));
+  // Throw: new RangeError.range(index, 0, length - 1, "length");
+  const Array& args = Array::Handle(zone, Array::New(4));
+  args.SetAt(0, index);
+  args.SetAt(1, Integer::Handle(zone, Integer::New(0)));
+  args.SetAt(
+      2, Integer::Handle(
+             zone, Integer::Cast(length).ArithmeticOp(
+                       Token::kSUB, Integer::Handle(zone, Integer::New(1)))));
+  args.SetAt(3, Symbols::Length());
+  Exceptions::ThrowByType(Exceptions::kRange, args);
+}
+
 DEFINE_RUNTIME_ENTRY(WriteError, 0) {
   Exceptions::ThrowUnsupportedError("Cannot modify an unmodifiable list");
 }
@@ -527,25 +544,18 @@ DEFINE_LEAF_RUNTIME_ENTRY(uword /*ObjectPtr*/,
                           uword /*ObjectPtr*/ object_in,
                           Thread* thread) {
   ObjectPtr object = static_cast<ObjectPtr>(object_in);
-  // The allocation stubs will call this leaf method for newly allocated
-  // old space objects.
-  RELEASE_ASSERT(object->IsOldObject());
 
   // If we eliminate a generational write barriers on allocations of an object
   // we need to ensure it's either a new-space object or it has been added to
   // the remembered set.
   //
-  // NOTE: We use reinterpret_cast<>() instead of ::RawCast() to avoid handle
+  // NOTE: We use static_cast<>() instead of ::RawCast() to avoid handle
   // allocations in debug mode. Handle allocations in leaf runtimes can cause
   // memory leaks because they will allocate into a handle scope from the next
   // outermost runtime code (to which the generated Dart code might not return
   // in a long time).
   bool add_to_remembered_set = true;
-  if (object->untag()->IsRemembered()) {
-    // Objects must not be added to the remembered set twice because the
-    // scavenger's visitor is not idempotent.
-    // Might already be remembered because of type argument store in
-    // AllocateArray or any field in CloneContext.
+  if (object->IsNewObject()) {
     add_to_remembered_set = false;
   } else if (object->IsArray()) {
     const intptr_t length = Array::LengthOf(static_cast<ArrayPtr>(object));
@@ -633,9 +643,8 @@ static void PrintSubtypeCheck(const AbstractType& subtype,
 
   LogBlock lb;
   THR_Print("SubtypeCheck: '%s' %d %s '%s' %d (pc: %#" Px ").\n",
-            String::Handle(subtype.Name()).ToCString(), subtype.type_class_id(),
-            result ? "is" : "is !",
-            String::Handle(supertype.Name()).ToCString(),
+            subtype.NameCString(), subtype.type_class_id(),
+            result ? "is" : "is !", supertype.NameCString(),
             supertype.type_class_id(), caller_frame->pc());
 
   const Function& function =
@@ -694,19 +703,24 @@ DEFINE_RUNTIME_ENTRY(SubtypeCheck, 5) {
   UNREACHABLE();
 }
 
-// Allocate a new closure and initializes its function and context fields with
-// the arguments and all other fields to null.
+// Allocate a new closure and initializes its function, context,
+// instantiator type arguments and delayed type arguments fields.
 // Arg0: function.
 // Arg1: context.
+// Arg2: instantiator type arguments.
+// Arg3: delayed type arguments.
 // Return value: newly allocated closure.
-DEFINE_RUNTIME_ENTRY(AllocateClosure, 2) {
+DEFINE_RUNTIME_ENTRY(AllocateClosure, 4) {
   const auto& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
-  const auto& context = Context::CheckedHandle(zone, arguments.ArgAt(1));
+  const auto& context = Object::Handle(zone, arguments.ArgAt(1));
+  const auto& instantiator_type_args =
+      TypeArguments::CheckedHandle(zone, arguments.ArgAt(2));
+  const auto& delayed_type_args =
+      TypeArguments::CheckedHandle(zone, arguments.ArgAt(3));
   const Closure& closure = Closure::Handle(
-      zone,
-      Closure::New(Object::null_type_arguments(), Object::null_type_arguments(),
-                   Object::null_type_arguments(), function, context,
-                   SpaceForRuntimeAllocation()));
+      zone, Closure::New(instantiator_type_args, Object::null_type_arguments(),
+                         delayed_type_args, function, context,
+                         SpaceForRuntimeAllocation()));
   arguments.SetReturn(closure);
   RuntimeAllocationEpilogue(thread);
 }
@@ -847,21 +861,19 @@ static void PrintTypeCheck(const char* message,
   LogBlock lb;
   if (type.IsInstantiated()) {
     THR_Print("%s: '%s' %d %s '%s' %d (pc: %#" Px ").\n", message,
-              String::Handle(instance_type.Name()).ToCString(),
-              instance_type.type_class_id(),
+              instance_type.NameCString(), instance_type.type_class_id(),
               (result.ptr() == Bool::True().ptr()) ? "is" : "is !",
-              String::Handle(type.Name()).ToCString(), type.type_class_id(),
-              caller_frame->pc());
+              type.NameCString(), type.type_class_id(), caller_frame->pc());
   } else {
     // Instantiate type before printing.
     const AbstractType& instantiated_type = AbstractType::Handle(
         type.InstantiateFrom(instantiator_type_arguments,
                              function_type_arguments, kAllFree, Heap::kOld));
     THR_Print("%s: '%s' %s '%s' instantiated from '%s' (pc: %#" Px ").\n",
-              message, String::Handle(instance_type.Name()).ToCString(),
+              message, instance_type.NameCString(),
               (result.ptr() == Bool::True().ptr()) ? "is" : "is !",
-              String::Handle(instantiated_type.Name()).ToCString(),
-              String::Handle(type.Name()).ToCString(), caller_frame->pc());
+              instantiated_type.NameCString(), type.NameCString(),
+              caller_frame->pc());
   }
   const Function& function =
       Function::Handle(caller_frame->LookupDartFunction());

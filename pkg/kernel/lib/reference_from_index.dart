@@ -81,9 +81,6 @@ abstract class IndexedContainerImpl
   @override
   Reference? lookupSetterReference(Name name) => _setterReferences[name];
 
-  @override
-  Library get library;
-
   void _addFields(List<Field> fields) {
     for (int i = 0; i < fields.length; i++) {
       Field field = fields[i];
@@ -167,7 +164,6 @@ class IndexedLibrary extends IndexedContainerImpl {
   Reference get reference => library.reference;
 
   Typedef? lookupTypedef(String name) => _typedefs[name];
-  Class? lookupClass(String name) => _indexedClasses[name]?.cls;
   IndexedClass? lookupIndexedClass(String name) => _indexedClasses[name];
 
   Extension? lookupExtension(String name) => _extensions[name];
@@ -175,8 +171,6 @@ class IndexedLibrary extends IndexedContainerImpl {
   IndexedExtensionTypeDeclaration? lookupIndexedExtensionTypeDeclaration(
           String name) =>
       _indexedExtensionTypeDeclarations[name];
-  ExtensionTypeDeclaration? lookupExtensionTypeDeclaration(String name) =>
-      _indexedExtensionTypeDeclarations[name]?.extensionTypeDeclaration;
 
   @override
   Reference? lookupConstructorReference(Name name) {

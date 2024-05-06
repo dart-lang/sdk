@@ -9,6 +9,8 @@ Definition Order:
  topLevelFunction3:FunctionDefinitionMacro1.new()
  topLevelFunction4:FunctionDefinitionMacro1.new()
 Definitions:
+library augment 'org-dartlang-test:///a/b/c/main.dart';
+
 import 'dart:core' as prefix0;
 
 augment void topLevelFunction1(prefix0.int a, ) {
@@ -22,7 +24,8 @@ augment void topLevelFunction3(prefix0.int a, [prefix0.int? b, ]) {
 }
 augment void topLevelFunction4(prefix0.int a, {prefix0.int? b, prefix0.int? c, }) {
   throw 42;
-}*/
+}
+*/
 
 import 'package:macro/macro.dart';
 

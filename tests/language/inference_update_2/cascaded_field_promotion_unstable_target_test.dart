@@ -6,8 +6,6 @@
 // expression, that promotion isn't over-applied to uses of the field within
 // subsequent cascades.
 
-// SharedOptions=--enable-experiment=inference-update-2
-
 import '../static_type_helper.dart';
 
 class C {

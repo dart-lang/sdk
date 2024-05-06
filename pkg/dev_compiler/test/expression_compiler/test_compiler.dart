@@ -123,8 +123,10 @@ class TestExpressionCompiler {
         setup, component, compiler, code.metadata, sourceMap);
   }
 
+  // Line and column are 1-based.
   Future<TestCompilationResult> compileExpression(
-      {required Uri input,
+      {required Uri libraryUri,
+      Uri? scriptUri,
       required int line,
       required int column,
       required Map<String, String> scope,
@@ -132,9 +134,14 @@ class TestExpressionCompiler {
     // clear previous errors
     setup.errors.clear();
 
-    var libraryUri = metadataForLibraryUri(input);
+    var libraryMetadata = metadataForLibraryUri(libraryUri);
     var jsExpression = await compiler.compileExpressionToJs(
-        libraryUri.importUri, line, column, scope, expression);
+        libraryMetadata.importUri,
+        scriptUri?.toString(),
+        line,
+        column,
+        scope,
+        expression);
     if (setup.errors.isNotEmpty) {
       jsExpression = setup.errors.toString().replaceAll(
           RegExp(

@@ -243,7 +243,7 @@ ISOLATE_UNIT_TEST_CASE(Inliner_List_generate) {
 
       // After loop
       kMatchAndMoveTargetEntry,
-      kMatchReturn,
+      kMatchDartReturn,
   }));
 }
 
@@ -310,7 +310,7 @@ ISOLATE_UNIT_TEST_CASE(Inliner_always_consider_inlining) {
       kMoveGlob,
       {kMatchAndMoveStaticCall, &call_print3},
       kMoveGlob,
-      kMatchReturn,
+      kMatchDartReturn,
   }));
   EXPECT(strcmp(call_print1->function().UserVisibleNameCString(), "print") ==
          0);
@@ -358,7 +358,7 @@ ISOLATE_UNIT_TEST_CASE(Inliner_List_of_inlined) {
       kMoveGlob,
       {kMatchAndMoveStaticCall, &call_print},
       kMoveGlob,
-      kMatchReturn,
+      kMatchDartReturn,
   }));
   EXPECT(strcmp(call_print->function().UserVisibleNameCString(), "print") == 0);
   // Length is fully forwarded and string interpolation is constant folded.

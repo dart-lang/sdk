@@ -141,6 +141,10 @@ class BinaryBuilder {
   List<Uri> _sourceUriTable = const [];
   List<Constant> _constantTable = const <Constant>[];
   late List<CanonicalName> _linkTable;
+
+  /// Advanced use only. Coordinate with the kernel team.
+  List<CanonicalName> get linkTable => _linkTable;
+
   late Map<int, DartType?> _cachedSimpleInterfaceTypes;
   List<FunctionType?> _voidFunctionFunctionTypesCache = [
     null,
@@ -507,7 +511,8 @@ class BinaryBuilder {
   }
 
   Constant _readTypedefTearOffConstant() {
-    final List<TypeParameter> parameters = readAndPushTypeParameterList();
+    final List<StructuralParameter> parameters =
+        readAndPushStructuralParameterList();
     final TearOffConstant tearOffConstant =
         readConstantReference() as TearOffConstant;
     final List<DartType> types = readDartTypeList();
@@ -576,17 +581,6 @@ class BinaryBuilder {
     }
     return new List<String>.generate(length, (_) => readStringReference(),
         growable: useGrowableLists);
-  }
-
-  List<Reference> readNonNullReferenceList(List<Reference> result) {
-    int length = readUInt30();
-    if (!useGrowableLists && length == 0) {
-      return emptyListOfReference;
-    }
-    for (int i = 0; i < length; ++i) {
-      result.add(readNonNullMemberReference());
-    }
-    return result;
   }
 
   String? readStringOrNullIfEmpty() {
@@ -664,6 +658,28 @@ class BinaryBuilder {
     }
   }
 
+  /// Splits the input into views of the sub-components.
+  ///
+  /// Note that the result will not have the libraries filled out.
+  static List<SubComponentView> index(Uint8List bytes) {
+    BinaryBuilder bb = new BinaryBuilder(bytes);
+    bb._verifyComponentInitialBytes(resetOffset: true);
+    List<int> componentFileSizes = bb._indexComponents();
+    int componentFileIndex = 0;
+    List<SubComponentView> views = [];
+    while (bb._byteOffset < bb._bytes.length) {
+      int componentStartOffset = bb._byteOffset;
+      int componentFileSize = componentFileSizes[componentFileIndex];
+      bb._verifyComponentInitialBytes(resetOffset: true);
+      views.add(new SubComponentView(
+          const [], componentStartOffset, componentFileSize));
+
+      bb._byteOffset = componentStartOffset + componentFileSize;
+      ++componentFileIndex;
+    }
+    return views;
+  }
+
   /// Deserializes a kernel component and stores it in [component].
   ///
   /// When linking with a non-empty component, canonical names must have been
@@ -678,23 +694,8 @@ class BinaryBuilder {
       {bool checkCanonicalNames = false, bool createView = false}) {
     return Timeline.timeSync<List<SubComponentView>?>(
         "BinaryBuilder.readComponent", () {
-      _checkEmptyInput();
+      _verifyComponentInitialBytes(resetOffset: true);
 
-      // Check that we have a .dill file and it has the correct version before
-      // we start decoding it.  Otherwise we will fail for cryptic reasons.
-      int offset = _byteOffset;
-      int magic = readUint32();
-      if (magic != Tag.ComponentFile) {
-        throw ArgumentError('Not a .dill file (wrong magic number).');
-      }
-      int version = readUint32();
-      if (version != Tag.BinaryFormatVersion) {
-        throw InvalidKernelVersionError(filename, version);
-      }
-
-      _readAndVerifySdkHash();
-
-      _byteOffset = offset;
       List<int> componentFileSizes = _indexComponents();
       if (componentFileSizes.length > 1) {
         _disableLazyReading = true;
@@ -834,18 +835,7 @@ class BinaryBuilder {
 
   void _readOneComponentSource(Component component, int componentFileSize) {
     _componentStartOffset = _byteOffset;
-
-    final int magic = readUint32();
-    if (magic != Tag.ComponentFile) {
-      throw ArgumentError('Not a .dill file (wrong magic number).');
-    }
-
-    final int formatVersion = readUint32();
-    if (formatVersion != Tag.BinaryFormatVersion) {
-      throw InvalidKernelVersionError(filename, formatVersion);
-    }
-
-    _readAndVerifySdkHash();
+    _verifyComponentInitialBytes(resetOffset: false);
 
     // Read component index from the end of this ComponentFiles serialized data.
     _ComponentIndex index = _readComponentIndex(componentFileSize);
@@ -857,22 +847,42 @@ class BinaryBuilder {
     _byteOffset = _componentStartOffset + componentFileSize;
   }
 
+  /// Verify the initial bytes could correspond to a valid component.
+  ///
+  /// * Checks we have non-empty input.
+  /// * Verifies that the magic number is correct.
+  /// * Verifies the binary format version.
+  /// * Verifies the sdk hash.
+  ///
+  /// If [resetOffset] is true the [_byteOffset] will be reset to match what it
+  /// was before this method was called. If false it will be so we read passed
+  /// the sdk hash.
+  void _verifyComponentInitialBytes({required bool resetOffset}) {
+    // Check that we have a .dill file and it has the correct version before
+    // we start decoding it.  Otherwise we will fail for cryptic reasons.
+    _checkEmptyInput();
+    int offset = _byteOffset;
+    int magic = readUint32();
+    if (magic != Tag.ComponentFile) {
+      throw ArgumentError('Not a .dill file (wrong magic number).');
+    }
+    int version = readUint32();
+    if (version != Tag.BinaryFormatVersion) {
+      throw InvalidKernelVersionError(filename, version);
+    }
+
+    _readAndVerifySdkHash();
+
+    if (resetOffset) {
+      _byteOffset = offset;
+    }
+  }
+
   SubComponentView? _readOneComponent(
       Component component, int componentFileSize,
       {bool createView = false}) {
     _componentStartOffset = _byteOffset;
-
-    final int magic = readUint32();
-    if (magic != Tag.ComponentFile) {
-      throw ArgumentError('Not a .dill file (wrong magic number).');
-    }
-
-    final int formatVersion = readUint32();
-    if (formatVersion != Tag.BinaryFormatVersion) {
-      throw InvalidKernelVersionError(filename, formatVersion);
-    }
-
-    _readAndVerifySdkHash();
+    _verifyComponentInitialBytes(resetOffset: false);
 
     List<String>? problemsAsJson = readListOfStrings();
     if (problemsAsJson != null) {
@@ -1086,11 +1096,6 @@ class BinaryBuilder {
     return _currentLibrary!.dependencies[index];
   }
 
-  Reference? readNullableClassReference() {
-    CanonicalName? name = readNullableCanonicalNameReference();
-    return name?.reference;
-  }
-
   Reference readNonNullClassReference() {
     CanonicalName? name = readNullableCanonicalNameReference();
     if (name == null) {
@@ -1125,12 +1130,6 @@ class BinaryBuilder {
     return name.reference;
   }
 
-  Reference? readNullableInstanceMemberReference() {
-    Reference? reference = readNullableMemberReference();
-    readNullableMemberReference(); // Skip origin
-    return reference;
-  }
-
   Reference readNonNullInstanceMemberReference() {
     Reference reference = readNonNullMemberReference();
     readNullableMemberReference(); // Skip origin
@@ -1139,10 +1138,6 @@ class BinaryBuilder {
 
   Reference? getNullableMemberReferenceFromInt(int index) {
     return getNullableCanonicalNameReferenceFromInt(index)?.reference;
-  }
-
-  Reference? readNullableTypedefReference() {
-    return readNullableCanonicalNameReference()?.reference;
   }
 
   Reference readNonNullTypedefReference() {
@@ -2495,11 +2490,12 @@ class BinaryBuilder {
 
   Expression _readTypedefTearOff() {
     int offset = readOffset();
-    List<TypeParameter> typeParameters = readAndPushTypeParameterList();
+    List<StructuralParameter> structuralParameters =
+        readAndPushStructuralParameterList();
     Expression expression = readExpression();
     List<DartType> typeArguments = readDartTypeList();
-    typeParameterStack.length -= typeParameters.length;
-    return new TypedefTearOff(typeParameters, expression, typeArguments)
+    typeParameterStack.length -= structuralParameters.length;
+    return new TypedefTearOff(structuralParameters, expression, typeArguments)
       ..fileOffset = offset;
   }
 
@@ -2557,10 +2553,12 @@ class BinaryBuilder {
 
   Expression _readDynamicInvocation() {
     DynamicAccessKind kind = DynamicAccessKind.values[readByte()];
+    int flags = readByte();
     int offset = readOffset();
     return new DynamicInvocation(
         kind, readExpression(), readName(), readArguments())
-      ..fileOffset = offset;
+      ..fileOffset = offset
+      ..flags = flags;
   }
 
   Expression _readFunctionInvocation() {
@@ -2830,7 +2828,10 @@ class BinaryBuilder {
 
   Expression _readThrow() {
     int offset = readOffset();
-    return new Throw(readExpression())..fileOffset = offset;
+    int flags = readByte();
+    return new Throw(readExpression())
+      ..fileOffset = offset
+      ..flags = flags;
   }
 
   Expression _readListLiteral() {
@@ -3436,17 +3437,6 @@ class BinaryBuilder {
     caseNode.isDefault = (flags & 0x1) != 0;
     caseNode.hasLabel = (flags & 0x2) != 0;
     caseNode.body = readStatement()..parent = caseNode;
-  }
-
-  List<Statement> readStatementList() {
-    int length = readUInt30();
-    if (!useGrowableLists && length == 0) {
-      // When lists don't have to be growable anyway, we might as well use an
-      // almost constant one for the empty list.
-      return emptyListOfStatement;
-    }
-    return new List<Statement>.generate(length, (_) => readStatement(),
-        growable: useGrowableLists);
   }
 
   List<Statement> readStatementListAlwaysGrowable() {
@@ -4239,20 +4229,6 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   }
 
   @override
-  void enterScope({List<TypeParameter>? typeParameters}) {
-    if (typeParameters != null) {
-      typeParameterStack.addAll(typeParameters);
-    }
-  }
-
-  @override
-  void leaveScope({List<TypeParameter>? typeParameters}) {
-    if (typeParameters != null) {
-      typeParameterStack.length -= typeParameters.length;
-    }
-  }
-
-  @override
   T _associateMetadata<T extends Node>(T node, int nodeOffset) {
     if (_subsections == null) {
       return node;
@@ -4434,12 +4410,6 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
     final Name result = super.readName();
     return _associateMetadata(result, nodeOffset);
   }
-
-  @override
-  int get currentOffset => _byteOffset;
-
-  @override
-  List<int> get bytes => _bytes;
 }
 
 /// Deserialized MetadataMapping corresponding to the given metadata repository.

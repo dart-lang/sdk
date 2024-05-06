@@ -28,8 +28,8 @@ void f(Object? x) {
 ''');
 
     assertOrder([
-      suggestionWith(completion: 'return'),
       suggestionWith(completion: 'x'),
+      suggestionWith(completion: 'return'),
       suggestionWith(completion: 'break'),
     ]);
   }

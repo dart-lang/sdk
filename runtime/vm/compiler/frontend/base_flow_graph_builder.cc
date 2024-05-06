@@ -8,6 +8,7 @@
 
 #include "vm/compiler/backend/range_analysis.h"  // For Range.
 #include "vm/compiler/frontend/flow_graph_builder.h"  // For InlineExitCollector.
+#include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/compiler/jit/compiler.h"  // For Compiler::IsBackgroundCompilation().
 #include "vm/compiler/runtime_api.h"
 #include "vm/growable_array.h"
@@ -213,7 +214,7 @@ Fragment BaseFlowGraphBuilder::Return(TokenPosition position) {
   const Function& function = parsed_function_->function();
   const Representation representation =
       FlowGraph::ReturnRepresentationOf(function);
-  ReturnInstr* return_instr = new (Z) ReturnInstr(
+  DartReturnInstr* return_instr = new (Z) DartReturnInstr(
       InstructionSource(position), value, GetNextDeoptId(), representation);
   if (exit_collector_ != nullptr) exit_collector_->AddExit(return_instr);
 
@@ -281,20 +282,6 @@ Fragment BaseFlowGraphBuilder::MemoryCopy(classid_t src_cid,
   return Fragment(copy);
 }
 
-Fragment BaseFlowGraphBuilder::MemoryCopyUntagged(intptr_t element_size,
-                                                  bool unboxed_inputs,
-                                                  bool can_overlap) {
-  Value* length = Pop();
-  Value* dest_start = Pop();
-  Value* src_start = Pop();
-  Value* dest = Pop();
-  Value* src = Pop();
-  auto copy =
-      new (Z) MemoryCopyInstr(element_size, src, dest, src_start, dest_start,
-                              length, unboxed_inputs, can_overlap);
-  return Fragment(copy);
-}
-
 Fragment BaseFlowGraphBuilder::TailCall(const Code& code) {
   Value* arg_desc = Pop();
   return Fragment(new (Z) TailCallInstr(code, arg_desc)).closed();
@@ -311,9 +298,8 @@ Fragment BaseFlowGraphBuilder::LoadArgDescriptor() {
   if (has_saved_args_desc_array()) {
     const ArgumentsDescriptor descriptor(saved_args_desc_array());
     // Double-check that compile-time Size() matches runtime size on target.
-    ASSERT_EQUAL(descriptor.Size(),
-                 FlowGraph::ParameterOffsetAt(function_, descriptor.Count(),
-                                              /*last_slot=*/false));
+    ASSERT_EQUAL(descriptor.Size(), FlowGraph::ComputeArgumentsSizeInWords(
+                                        function_, descriptor.Count()));
     return Constant(saved_args_desc_array());
   }
   ASSERT(parsed_function_->has_arg_desc_var());
@@ -411,6 +397,14 @@ Fragment BaseFlowGraphBuilder::LoadIndexed(classid_t class_id,
   return Fragment(instr);
 }
 
+Fragment BaseFlowGraphBuilder::GenericCheckBound() {
+  Value* index = Pop();
+  Value* length = Pop();
+  auto* instr = new (Z) GenericCheckBoundInstr(length, index, GetNextDeoptId());
+  Push(instr);
+  return Fragment(instr);
+}
+
 Fragment BaseFlowGraphBuilder::LoadUntagged(intptr_t offset) {
   Value* object = Pop();
   auto load = new (Z) LoadUntaggedInstr(object, offset);
@@ -418,28 +412,32 @@ Fragment BaseFlowGraphBuilder::LoadUntagged(intptr_t offset) {
   return Fragment(load);
 }
 
-Fragment BaseFlowGraphBuilder::ConvertUntaggedToUnboxed(
-    Representation to_representation) {
-  ASSERT(to_representation == kUnboxedIntPtr ||
-         to_representation == kUnboxedFfiIntPtr);
+Fragment BaseFlowGraphBuilder::ConvertUntaggedToUnboxed() {
   Value* value = Pop();
   auto converted = new (Z)
-      IntConverterInstr(kUntagged, to_representation, value, DeoptId::kNone);
+      IntConverterInstr(kUntagged, kUnboxedAddress, value, DeoptId::kNone);
   converted->mark_truncating();
   Push(converted);
   return Fragment(converted);
 }
 
-Fragment BaseFlowGraphBuilder::ConvertUnboxedToUntagged(
-    Representation from_representation) {
-  ASSERT(from_representation == kUnboxedIntPtr ||
-         from_representation == kUnboxedFfiIntPtr);
+Fragment BaseFlowGraphBuilder::ConvertUnboxedToUntagged() {
   Value* value = Pop();
   auto converted = new (Z)
-      IntConverterInstr(from_representation, kUntagged, value, DeoptId::kNone);
+      IntConverterInstr(kUnboxedAddress, kUntagged, value, DeoptId::kNone);
   converted->mark_truncating();
   Push(converted);
   return Fragment(converted);
+}
+
+Fragment BaseFlowGraphBuilder::CalculateElementAddress(intptr_t index_scale) {
+  Value* offset = Pop();
+  Value* index = Pop();
+  Value* base = Pop();
+  auto adjust =
+      new (Z) CalculateElementAddressInstr(base, index, index_scale, offset);
+  Push(adjust);
+  return Fragment(adjust);
 }
 
 Fragment BaseFlowGraphBuilder::FloatToDouble() {
@@ -619,6 +617,8 @@ Fragment BaseFlowGraphBuilder::StoreStaticField(TokenPosition position,
 }
 
 Fragment BaseFlowGraphBuilder::StoreIndexed(classid_t class_id) {
+  // This fragment builder cannot be used for typed data accesses.
+  ASSERT(!IsTypedDataBaseClassId(class_id));
   Value* value = Pop();
   Value* index = Pop();
   const StoreBarrierType emit_store_barrier =
@@ -635,6 +635,7 @@ Fragment BaseFlowGraphBuilder::StoreIndexedTypedData(classid_t class_id,
                                                      intptr_t index_scale,
                                                      bool index_unboxed,
                                                      AlignmentType alignment) {
+  ASSERT(IsTypedDataBaseClassId(class_id));
   Value* value = Pop();
   Value* index = Pop();
   Value* c_pointer = Pop();
@@ -911,11 +912,17 @@ Fragment BaseFlowGraphBuilder::AllocateContext(
   return Fragment(allocate);
 }
 
-Fragment BaseFlowGraphBuilder::AllocateClosure(TokenPosition position) {
+Fragment BaseFlowGraphBuilder::AllocateClosure(TokenPosition position,
+                                               bool has_instantiator_type_args,
+                                               bool is_generic,
+                                               bool is_tear_off) {
+  Value* instantiator_type_args =
+      (has_instantiator_type_args ? Pop() : nullptr);
   auto const context = Pop();
   auto const function = Pop();
   auto* allocate = new (Z) AllocateClosureInstr(
-      InstructionSource(position), function, context, GetNextDeoptId());
+      InstructionSource(position), function, context, instantiator_type_args,
+      is_generic, is_tear_off, GetNextDeoptId());
   Push(allocate);
   return Fragment(allocate);
 }
@@ -1019,9 +1026,15 @@ Fragment BaseFlowGraphBuilder::AllocateObject(TokenPosition position,
 }
 
 Fragment BaseFlowGraphBuilder::Box(Representation from) {
+  Fragment instructions;
+  if (from == kUnboxedFloat) {
+    instructions += FloatToDouble();
+    from = kUnboxedDouble;
+  }
   BoxInstr* box = BoxInstr::Create(from, Pop());
+  instructions <<= box;
   Push(box);
-  return Fragment(box);
+  return instructions;
 }
 
 Fragment BaseFlowGraphBuilder::DebugStepCheck(TokenPosition position) {
@@ -1133,12 +1146,14 @@ Fragment BaseFlowGraphBuilder::BuildEntryPointsIntrospection() {
   return call_hook;
 }
 
-Fragment BaseFlowGraphBuilder::ClosureCall(const Function& target_function,
-                                           TokenPosition position,
-                                           intptr_t type_args_len,
-                                           intptr_t argument_count,
-                                           const Array& argument_names) {
-  Fragment result = RecordCoverage(position);
+Fragment BaseFlowGraphBuilder::ClosureCall(
+    const Function& target_function,
+    TokenPosition position,
+    intptr_t type_args_len,
+    intptr_t argument_count,
+    const Array& argument_names,
+    const InferredTypeMetadata* result_type) {
+  Fragment instructions = RecordCoverage(position);
   const intptr_t total_count =
       (type_args_len > 0 ? 1 : 0) + argument_count +
       /*closure (bare instructions) or function (otherwise)*/ 1;
@@ -1147,8 +1162,12 @@ Fragment BaseFlowGraphBuilder::ClosureCall(const Function& target_function,
       target_function, std::move(arguments), type_args_len, argument_names,
       InstructionSource(position), GetNextDeoptId());
   Push(call);
-  result <<= call;
-  return result;
+  instructions <<= call;
+  if (result_type != nullptr && result_type->IsConstant()) {
+    instructions += Drop();
+    instructions += Constant(result_type->constant_value);
+  }
+  return instructions;
 }
 
 void BaseFlowGraphBuilder::reset_context_depth_for_deopt_id(intptr_t deopt_id) {

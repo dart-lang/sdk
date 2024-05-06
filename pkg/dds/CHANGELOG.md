@@ -1,3 +1,31 @@
+# 4.0.0
+- Updated DDS protocol to version 2.0.
+- Added `readyToResume` and `requireUserPermissionToResume` RPCs.
+- **Breaking change:** `resume` is now treated as a user-initiated resume request and force resumes paused isolates, regardless of required resume approvals. Tooling relying on resume permissions should use the `readyToResume` RPC to indicate to DDS that they are ready to resume.
+
+# 3.4.0
+- Start the Dart Tooling Daemon from the DevTools server when a connection is not passed to the server on start.
+
+# 3.3.1
+- [DAP] Fixed an issue introduced in 3.3.0 where `Source.name` could contain a file paths when a `package:` or `dart:` URI should have been used.
+- Updated `package:devtools_shared` version to ^8.0.1.
+
+# 3.3.0
+- **Breaking change:** [DAP] Several signatures in DAP debug adapter classes have been updated to use `Uri`s where they previously used `String path`s. This is to support communicating with the DAP client using URIs instead of file paths. URIs may be used only when the client sets the custom `supportsDartUris` client capability during initialization.
+- [DAP] Added support for using mapping `dart-macro+file:///` URIs in communication with the client if the `supportsDartUris` flag is set in arguments for `initializeRequest`.
+- Fixed issue where DDS would fail to initialize when an isolate in the target process was unable to handle service requests (b/323386606).
+- Updated `package:dap` version to 1.2.0.
+
+# 3.2.1
+- Adding `unified_analytics` as a dependency and added static method `DevToolsUtils.initializeAnalytics` to create analytics instance for DevTools.
+- Updated `devtools_shared` constraint to ^7.0.0.
+
+# 3.2.0
+- [DAP] Fixed "Unable to find library" errors when using global evaluation when the context file resolves to a `package:` URI.
+- Updated `devtools_shared` to ^6.0.4.
+- Added `--dtd-uri=<uri>` flag to DevTools server.
+- Updated `vm_service` constraint to ^14.0.0.
+
 # 3.1.2
 - Improved error handling for serving static DevTools assets.
 - Updated `devtools_shared` constraint to ^6.0.3.
@@ -5,9 +33,20 @@
 - [DAP] Error messages shown on the client no longer contain verbose stack traces (although they are still included in the JSON payloads).
 - [DAP] `stackTraceRequest` now returns an empty stack instead of throwing if called for a thread that has exited.
 - [DAP] Fixed an issue that could cause a crash during shutdown if an isolate was being resumed.
+- Updated `vm_service` constraint to ^13.0.0.
 
 # 3.1.1
 - Updated `vm_service` constraint to ^14.0.0.
+
+# 3.1.0+1
+Hot-fix release of changes in 3.1.2 without the changes in 3.1.1
+
+- Improved error handling for serving static DevTools assets.
+- Updated `devtools_shared` constraint to ^6.0.3.
+- [DAP] The error message shown when global evaluation is unavailable been improved.
+- [DAP] Error messages shown on the client no longer contain verbose stack traces (although they are still included in the JSON payloads).
+- [DAP] `stackTraceRequest` now returns an empty stack instead of throwing if called for a thread that has exited.
+- [DAP] Fixed an issue that could cause a crash during shutdown if an isolate was being resumed.
 
 # 3.1.0
 - Updated `devtools_shared` to ^6.0.0.

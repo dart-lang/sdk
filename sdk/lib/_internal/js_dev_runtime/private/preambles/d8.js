@@ -277,6 +277,7 @@ if (typeof global != "undefined") self = global;  // Node.js.
 
   // Global properties. "self" refers to the global object, so adding a
   // property to "self" defines a global variable.
+  self.self = self;
   self.dartMainRunner = function(main, args) {
     // Initialize.
     var action = function() { main(args); }
@@ -287,5 +288,51 @@ if (typeof global != "undefined") self = global;  // Node.js.
   self.setInterval = addInterval;
   self.clearInterval = cancelTimer;
   self.scheduleImmediate = addTask;
-  self.self = self;
+
+  // Some js-interop code accesses 'window' as 'self.window'
+  if (typeof self.window == "undefined") self.window = self;
+
+  function computeCurrentScript() {
+    try {
+      throw new Error();
+    } catch (e) {
+      var stack = e.stack;
+      // The V8 stack looks like:
+      //    at computeCurrentScript (preambles/d8.js:286:13)
+      //    at Object.currentScript (preambles/d8.js:308:31)
+      //    at init.currentScript (/tmp/foo.js:308:19)
+      //    at /tmp/foo.js:320:7
+      //    at /tmp/foo.js:331:4
+      // Sometimes the 'init.currentScript' line is in the format without the
+      // function name, so match with or without parentheses.
+
+      //              vvvvvvvvvvvv Optional prefix up to '('.
+      var re = /^ *at (?:[^(]*\()?(.*):[0-9]*:[0-9]*\)?$/mg
+      //              Optional ')' at end           ^^^
+
+      var lastMatch = null;
+      do {
+        var match = re.exec(stack);
+        if (match != null) lastMatch = match;
+      } while (match != null);
+      return lastMatch[1];
+    }
+  }
+
+  // Adding a 'document' is dangerous since it invalidates the 'typeof document'
+  // test to see if we are running in the browser. It means that the runtime
+  // needs to do more precise checks.
+  // Note that we can't run "currentScript" right away, since that would give
+  // us the location of the preamble file. Instead we wait for the first access
+  // which should happen just before invoking main. At this point we are in
+  // the main file and setting the currentScript property is correct.
+  var cachedCurrentScript = null;
+  self.document = {
+    get currentScript() {
+      if (cachedCurrentScript == null) {
+        cachedCurrentScript = { src: computeCurrentScript() };
+      }
+      return cachedCurrentScript;
+    }
+  };
 })(self);

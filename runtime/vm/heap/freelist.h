@@ -37,6 +37,7 @@ class FreeListElement {
   }
 
   static FreeListElement* AsElement(uword addr, intptr_t size);
+  static FreeListElement* AsElementNew(uword addr, intptr_t size);
 
   static void Init();
 
@@ -124,7 +125,6 @@ class FreeList {
     uword new_top = top + size;
     if (new_top <= end_) {
       top_ = new_top;
-      unaccounted_size_ += size;
       *result = top;
       return true;
     }
@@ -145,12 +145,15 @@ class FreeList {
     }
   }
   // Returns the bump region to the free list.
-  void AbandonBumpAllocation() {
-    if (top_ < end_) {
-      Free(top_, end_ - top_);
+  DART_WARN_UNUSED_RESULT
+  intptr_t ReleaseBumpAllocation() {
+    intptr_t remaining = end_ - top_;
+    if (remaining != 0) {
+      Free(top_, remaining);
       top_ = 0;
       end_ = 0;
     }
+    return remaining;
   }
 
   uword top() const { return top_; }
@@ -205,9 +208,8 @@ class FreeList {
   uword top_ = 0;
   uword end_ = 0;
 
-  // Allocated from the bump pointer region, but not yet added to
-  // PageSpace::usage_. Used to avoid expensive atomic adds during parallel
-  // scavenge.
+  // Allocated from the free list, but not yet added to PageSpace::usage_. Used
+  // to avoid expensive atomic adds during parallel scavenge.
   intptr_t unaccounted_size_ = 0;
 
   // Lock protecting the free list data structures.

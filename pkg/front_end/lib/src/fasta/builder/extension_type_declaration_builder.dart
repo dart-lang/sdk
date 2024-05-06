@@ -24,21 +24,8 @@ abstract class ExtensionTypeDeclarationBuilder
   /// extension type.
   List<TypeBuilder>? get interfaceBuilders;
 
-  /// Looks up extension type member by [name] taking privacy into account.
-  ///
-  /// If [setter] is `true` the sought member is a setter or assignable field.
-  /// If [required] is `true` and no member is found an internal problem is
-  /// reported.
-  ///
-  /// If the extension type member is a duplicate, `null` is returned.
-  // TODO(johnniwinther): Support [AmbiguousBuilder] here and in instance
-  // member lookup to avoid reporting that the member doesn't exist when it is
-  // duplicate.
-  Builder? lookupLocalMemberByName(Name name,
-      {bool setter = false, bool required = false});
-
-  /// Calls [f] for each member declared in this extension.
-  void forEach(void f(String name, Builder builder));
+  /// Returns `true` if the interfaces of the declaration are built.
+  bool get hasInterfacesBuilt;
 
   @override
   Uri get fileUri;
@@ -79,4 +66,14 @@ abstract class ExtensionTypeDeclarationBuilderImpl
 
   @override
   String get debugName => "ExtensionTypeDeclarationBuilder";
+
+  @override
+  bool get hasInterfacesBuilt {
+    if (interfaceBuilders == null) {
+      return true;
+    } else {
+      return interfaceBuilders!.length ==
+          extensionTypeDeclaration.implements.length;
+    }
+  }
 }

@@ -1,4 +1,5 @@
 A<num?>? bar() {}
+
 baz<T extends A<num?>>() {}
 
 class A<X extends num> {}
@@ -12,6 +13,9 @@ class Hest {
 }
 
 fisk(Hest h) {}
+
 foo(A<num?> a) {}
+
 main() {}
+
 void hest<T extends num>() {}

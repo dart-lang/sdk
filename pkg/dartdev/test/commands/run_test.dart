@@ -23,6 +23,50 @@ final dartVMServiceRegExp =
     RegExp(r'The Dart VM service is listening on (http://127.0.0.1:.*)');
 const residentFrontendServerPrefix =
     'The Resident Frontend Compiler is listening at 127.0.0.1:';
+const dtdMessagePrefix = 'The Dart Tooling Daemon (DTD) is available at:';
+
+final observeScript = r'''
+void main() async {
+  print('Observe smoke test!');
+  int i = 0;
+  while(true) {
+    await Future.delayed(Duration(milliseconds: 10));
+    i++;
+  }
+}
+''';
+
+void Function(String) onVmServicesData(
+  TestProject p, {
+  bool expectDevtoolsMsg = true,
+  bool expectDtdMsg = false,
+}) {
+  bool sawDevtoolsMsg = false;
+  bool sawVmServiceMsg = false;
+  bool sawProgramMsg = false;
+  bool sawDtdMsg = false;
+  void onDataImpl(event) {
+    if (event.contains(devToolsMessagePrefix)) {
+      sawDevtoolsMsg = true;
+    } else if (event.contains(dartVMServiceMessagePrefix)) {
+      sawVmServiceMsg = true;
+    } else if (event.contains('Observe smoke test!')) {
+      sawProgramMsg = true;
+    } else if (event.contains(dtdMessagePrefix)) {
+      sawDtdMsg = true;
+    }
+    if (sawProgramMsg &&
+        sawVmServiceMsg &&
+        (sawDtdMsg || !expectDtdMsg) &&
+        (sawDevtoolsMsg || !expectDevtoolsMsg)) {
+      expect(sawDtdMsg, expectDtdMsg);
+      expect(sawDevtoolsMsg, expectDevtoolsMsg);
+      p.kill();
+    }
+  }
+
+  return onDataImpl;
+}
 
 void main() async {
   ensureRunFromSdkBinDart();
@@ -241,8 +285,7 @@ void main(List<String> args) => print("$b $args");
   });
 
   test('with accepted VM flags', () async {
-    p = project(mainSrc: "void main() { print('Hello World'); }");
-
+    p = project(mainSrc: observeScript);
     // --observe sets the following flags by default:
     //   --enable-vm-service
     //   --pause-isolate-on-exit
@@ -251,7 +294,16 @@ void main(List<String> args) => print("$b $args");
     //
     // This test ensures that allowed arguments for dart run which are valid VM
     // arguments are properly handled by the VM.
-    ProcessResult result = await p.run([
+    void onData1(event) {
+      if (event.contains('The Dart VM service is listening on')) {
+        final re = RegExp(
+            r'The Dart VM service is listening on http:\/\/127.0.0.1:\d+\/[a-zA-Z0-9_-]+=\/.*');
+        expect(re.hasMatch(event), true);
+        p.kill();
+      }
+    }
+
+    await p.runWithVmService([
       'run',
       '--observe=0',
       '--pause-isolates-on-start',
@@ -262,17 +314,19 @@ void main(List<String> args) => print("$b $args");
       '-Dfoo=bar',
       '--define=bar=foo',
       p.relativeFilePath,
-    ]);
-    expect(
-      result.stdout,
-      matches(
-          r'The Dart VM service is listening on http:\/\/127.0.0.1:\d+\/[a-zA-Z0-9_-]+=\/\n.*'),
-    );
-    expect(result.stderr, isEmpty);
-    expect(result.exitCode, 0);
+    ], onData1);
 
     // Again, with --disable-service-auth-codes.
-    result = await p.run([
+    void onData2(event) {
+      if (event.contains('The Dart VM service is listening on')) {
+        final re = RegExp(
+            r'The Dart VM service is listening on http:\/\/127.0.0.1:\d+\/');
+        expect(re.hasMatch(event), true);
+        p.kill();
+      }
+    }
+
+    await p.runWithVmService([
       'run',
       '--observe=0',
       '--pause-isolates-on-start',
@@ -284,18 +338,19 @@ void main(List<String> args) => print("$b $args");
       '-Dfoo=bar',
       '--define=bar=foo',
       p.relativeFilePath,
-    ]);
-
-    expect(
-      result.stdout,
-      matches(
-          r'The Dart VM service is listening on http:\/\/127.0.0.1:\d+\/\n'),
-    );
-    expect(result.stderr, isEmpty);
-    expect(result.exitCode, 0);
+    ], onData2);
 
     // Again, with IPv6.
-    result = await p.run([
+    void onData3(event) {
+      if (event.contains('The Dart VM service is listening on')) {
+        final re = RegExp(
+            r'The Dart VM service is listening on http:\/\/\[::1\]:\d+\/[a-zA-Z0-9_-]+=\/.*');
+        expect(re.hasMatch(event), true);
+        p.kill();
+      }
+    }
+
+    await p.runWithVmService([
       'run',
       '--observe=0/::1',
       '--pause-isolates-on-start',
@@ -306,15 +361,7 @@ void main(List<String> args) => print("$b $args");
       '-Dfoo=bar',
       '--define=bar=foo',
       p.relativeFilePath,
-    ]);
-
-    expect(
-      result.stdout,
-      matches(
-          r'The Dart VM service is listening on http:\/\/\[::1\]:\d+\/[a-zA-Z0-9_-]+=\/\n.*'),
-    );
-    expect(result.stderr, isEmpty);
-    expect(result.exitCode, 0);
+    ], onData3);
   });
 
   test('with accepted VM flags related to the timeline', () async {
@@ -409,22 +456,48 @@ void main(List<String> args) => print("$b $args");
   });
 
   test('--enable-service-port-fallback', () async {
-    final p = project(mainSrc: '''void main() {}''');
+    final p = project(mainSrc: observeScript);
     final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
-    final result = await p.run(
-      [
-        'run',
-        '--enable-vm-service=${server.port}',
-        '--enable-service-port-fallback',
-        p.relativeFilePath,
-      ],
-    );
     final regexp = RegExp(
-      r'The Dart VM service is listening on http:\/\/127.0.0.1:(\d*)\/[a-zA-Z0-9_-]+=\/\n.*',
+      r'The Dart VM service is listening on http:\/\/127.0.0.1:(\d*)\/[a-zA-Z0-9_-]+=\/.*',
     );
-    final vmServicePort =
-        int.parse(regexp.firstMatch(result.stdout)!.group(1)!);
-    expect(server.port != vmServicePort, isTrue);
+    void onData(event) {
+      if (event.contains('The Dart VM service is listening on')) {
+        final vmServicePort = int.parse(regexp.firstMatch(event)!.group(1)!);
+        expect(server.port != vmServicePort, isTrue);
+        p.kill();
+      }
+    }
+
+    await p.runWithVmService([
+      'run',
+      '--enable-vm-service=${server.port}',
+      '--enable-service-port-fallback',
+      p.relativeFilePath,
+    ], onData);
+    await server.close();
+  });
+
+  test('regression test for dartbug.com/55185', () async {
+    final p = project(mainSrc: observeScript);
+    final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+    void onData(event) {
+      if (event.contains('The Dart VM service is listening on')) {
+        p.kill();
+      }
+    }
+
+    await p.runWithVmService([
+      'run',
+      '--enable-service-port-fallback',
+      // This argument must be the final option before the script name to
+      // correctly reproduce the failure. Without the fix, dart run's argument
+      // parser will assume the argument after --observe is the value for
+      // --observe, causing the script path to be swallowed, resulting in Pub
+      // trying to resolve the package path for the empty string.
+      '--observe',
+      p.relativeFilePath,
+    ], onData);
     await server.close();
   });
 
@@ -448,115 +521,145 @@ void main(List<String> args) => print("$b $args");
   group('DDS', () {
     group('disable', () {
       test('dart run simple', () async {
-        p = project(mainSrc: "void main() { print('Hello World'); }");
-        ProcessResult result = await p.run([
-          'run',
-          '--no-dds',
-          '--enable-vm-service=0',
-          p.relativeFilePath,
-        ]);
-        expect(result.stdout, isNot(contains(devToolsMessagePrefix)));
-        expect(result.stdout, contains(dartVMServiceMessagePrefix));
+        p = project(mainSrc: observeScript);
+        await p.runWithVmService(
+          [
+            'run',
+            '--no-dds',
+            '--enable-vm-service=0',
+            p.relativeFilePath,
+          ],
+          onVmServicesData(
+            p,
+            expectDevtoolsMsg: false,
+          ),
+        );
       });
 
       test('dart simple', () async {
-        p = project(mainSrc: "void main() { print('Hello World'); }");
-        ProcessResult result = await p.run([
-          '--no-dds',
-          '--enable-vm-service=0',
-          p.relativeFilePath,
-        ]);
-        expect(result.stdout, isNot(contains(devToolsMessagePrefix)));
-        expect(result.stdout, contains(dartVMServiceMessagePrefix));
+        p = project(mainSrc: observeScript);
+        await p.runWithVmService(
+          [
+            '--no-dds',
+            '--enable-vm-service=0',
+            p.relativeFilePath,
+          ],
+          onVmServicesData(
+            p,
+            expectDevtoolsMsg: false,
+          ),
+        );
       });
     });
 
     group('explicit enable', () {
       test('dart run simple', () async {
-        p = project(mainSrc: "void main() { print('Hello World'); }");
-        ProcessResult result = await p.run([
-          'run',
-          '--dds',
-          '--enable-vm-service=0',
-          p.relativeFilePath,
-        ]);
-        expect(result.stdout, contains(devToolsMessagePrefix));
-        expect(result.stdout, contains(dartVMServiceMessagePrefix));
+        p = project(mainSrc: observeScript);
+        final tempDir = Directory.systemTemp.createTempSync('a');
+        final serviceInfo = path.join(tempDir.path, 'service.json');
+        await p.runWithVmService(
+          [
+            'run',
+            '--dds',
+            '--enable-vm-service=0',
+            '--write-service-info=$serviceInfo',
+            p.relativeFilePath,
+          ],
+          onVmServicesData(p),
+        );
+        expect(File(serviceInfo).existsSync(), true);
       });
 
       test('dart simple', () async {
-        p = project(mainSrc: "void main() { print('Hello World'); }");
-        ProcessResult result = await p.run([
-          '--dds',
-          '--enable-vm-service=0',
-          p.relativeFilePath,
-        ]);
-        expect(result.stdout, contains(devToolsMessagePrefix));
-        expect(result.stdout, contains(dartVMServiceMessagePrefix));
+        p = project(mainSrc: observeScript);
+        final tempDir = Directory.systemTemp.createTempSync('a');
+        final serviceInfo = path.join(tempDir.path, 'service.json');
+        await p.runWithVmService(
+          [
+            '--dds',
+            '--enable-vm-service=0',
+            '--write-service-info=$serviceInfo',
+            p.relativeFilePath,
+          ],
+          onVmServicesData(p),
+        );
+        expect(File(serviceInfo).existsSync(), true);
       });
     });
   });
 
   group('DevTools', () {
     test('dart run simple', () async {
-      p = project(mainSrc: "void main() { print('Hello World'); }");
-      ProcessResult result = await p.run([
+      p = project(mainSrc: observeScript);
+      await p.runWithVmService([
         'run',
         '--enable-vm-service=0',
         p.relativeFilePath,
-      ]);
-      expect(result.stdout, contains(devToolsMessagePrefix));
+      ], onVmServicesData(p));
     });
 
     test('dart simple', () async {
-      p = project(mainSrc: "void main() { print('Hello World'); }");
-      ProcessResult result = await p.run([
-        '--enable-vm-service=0',
-        p.relativeFilePath,
-      ]);
-      expect(result.stdout, contains(devToolsMessagePrefix));
+      p = project(mainSrc: observeScript);
+      await p.runWithVmService(
+        [
+          '--enable-vm-service=0',
+          p.relativeFilePath,
+        ],
+        onVmServicesData(p),
+      );
     });
 
     test('dart run explicit', () async {
-      p = project(mainSrc: "void main() { print('Hello World'); }");
-      ProcessResult result = await p.run([
-        'run',
-        '--serve-devtools',
-        '--enable-vm-service=0',
-        p.relativeFilePath,
-      ]);
-      expect(result.stdout, contains(devToolsMessagePrefix));
+      p = project(mainSrc: observeScript);
+      await p.runWithVmService(
+        [
+          'run',
+          '--serve-devtools',
+          '--enable-vm-service=0',
+          p.relativeFilePath,
+        ],
+        onVmServicesData(p),
+      );
     });
 
     test('dart explicit', () async {
-      p = project(mainSrc: "void main() { print('Hello World'); }");
-      ProcessResult result = await p.run([
+      p = project(mainSrc: observeScript);
+      await p.runWithVmService([
         '--serve-devtools',
         '--enable-vm-service=0',
         p.relativeFilePath,
-      ]);
-      expect(result.stdout, contains(devToolsMessagePrefix));
+      ], onVmServicesData(p));
     });
 
     test('dart run disabled', () async {
-      p = project(mainSrc: "void main() { print('Hello World'); }");
-      ProcessResult result = await p.run([
-        'run',
-        '--enable-vm-service=0',
-        '--no-serve-devtools',
-        p.relativeFilePath,
-      ]);
-      expect(result.stdout, isNot(contains(devToolsMessagePrefix)));
+      p = project(mainSrc: observeScript);
+      await p.runWithVmService(
+        [
+          'run',
+          '--enable-vm-service=0',
+          '--no-serve-devtools',
+          p.relativeFilePath,
+        ],
+        onVmServicesData(
+          p,
+          expectDevtoolsMsg: false,
+        ),
+      );
     });
 
     test('dart disabled', () async {
-      p = project(mainSrc: "void main() { print('Hello World'); }");
-      ProcessResult result = await p.run([
-        '--enable-vm-service=0',
-        '--no-serve-devtools',
-        p.relativeFilePath,
-      ]);
-      expect(result.stdout, isNot(contains(devToolsMessagePrefix)));
+      p = project(mainSrc: observeScript);
+      await p.runWithVmService(
+        [
+          '--enable-vm-service=0',
+          '--no-serve-devtools',
+          p.relativeFilePath,
+        ],
+        onVmServicesData(
+          p,
+          expectDevtoolsMsg: false,
+        ),
+      );
     });
 
     test('dart run VM service not enabled', () async {
@@ -610,6 +713,38 @@ void main(List<String> args) => print("$b $args");
       // No support for SIGQUIT on Windows.
       skip: Platform.isWindows,
     );
+  });
+
+  group('--print-dtd', () {
+    test('dart', () async {
+      p = project(mainSrc: observeScript);
+      await p.runWithVmService(
+          [
+            '--enable-vm-service=0',
+            '--print-dtd',
+            p.relativeFilePath,
+          ],
+          onVmServicesData(
+            p,
+            expectDtdMsg: true,
+          ));
+    });
+
+    test('dart run', () async {
+      p = project(mainSrc: observeScript);
+      await p.runWithVmService(
+        [
+          'run',
+          '--enable-vm-service=0',
+          '--print-dtd',
+          p.relativeFilePath,
+        ],
+        onVmServicesData(
+          p,
+          expectDtdMsg: true,
+        ),
+      );
+    });
   });
 
   group('Observatory', () {
@@ -767,6 +902,28 @@ void residentRun() {
     expect(kernelCache, isNot(null));
   });
 
+  test('--resident-server-info-file handles relative paths correctly',
+      () async {
+    p = project(mainSrc: "void main() { print('Hello World'); }");
+    final result = await p.run([
+      'run',
+      '--$serverInfoOption=${path.relative(serverInfoFile, from: p.dirPath)}',
+      p.relativeFilePath,
+    ]);
+    Directory? kernelCache = p.findDirectory('.dart_tool/kernel');
+
+    expect(result.exitCode, 0);
+    expect(
+      result.stdout,
+      allOf(
+        contains('Hello World'),
+        isNot(contains(residentFrontendServerPrefix)),
+      ),
+    );
+    expect(result.stderr, isEmpty);
+    expect(kernelCache, isNotNull);
+  });
+
   test('Handles experiments', () async {
     p = project(
       mainSrc: r"void main() { print(('hello','world').$1); }",
@@ -858,7 +1015,7 @@ void residentRun() {
 
   test('standalone dart program', () async {
     p = project(mainSrc: 'void main() {}');
-    p.deleteFile('pubspec.yaml');
+    p.deleteFile('.dart_tool/package_config.json');
     final runResult = await p.run([
       'run',
       '--$serverInfoOption=$serverInfoFile',
@@ -866,7 +1023,7 @@ void residentRun() {
     ]);
 
     expect(runResult.stderr,
-        contains('resident mode is only supported for Dart packages.'));
+        contains('Unable to locate .dart_tool/package_config.json'));
     expect(runResult.exitCode, isNot(0));
     expect(File(serverInfoFile).existsSync(), true);
   });
@@ -916,7 +1073,10 @@ void residentRun() {
   });
 
   test('VM flags are passed properly', () async {
-    p = project(mainSrc: "void main() { print('Hello World'); }");
+    p = project(mainSrc: observeScript);
+    var sawVmServiceMsg = false;
+    var sawCFEMsg = false;
+    var sawProgramMsg = false;
 
     // --observe sets the following flags by default:
     //   --enable-vm-service
@@ -926,7 +1086,28 @@ void residentRun() {
     //
     // This test ensures that allowed arguments for dart run which are valid VM
     // arguments are properly handled by the VM.
-    ProcessResult result = await p.run([
+    void onData1(event) {
+      if (event.contains('The Dart VM service is listening on')) {
+        final re = RegExp(
+            r'The Dart VM service is listening on http:\/\/127.0.0.1:[0-9+]');
+        expect(re.hasMatch(event), true);
+        sawVmServiceMsg = true;
+      }
+      if (event.contains('Observe smoke test!')) {
+        sawProgramMsg = true;
+      }
+      if (event.contains('The Resident Frontend Compiler is listening')) {
+        final re = RegExp(
+            r'The Resident Frontend Compiler is listening at 127.0.0.1:[0-9]+');
+        expect(re.hasMatch(event), true);
+        sawCFEMsg = true;
+      }
+      if (sawVmServiceMsg && sawProgramMsg) {
+        p.kill();
+      }
+    }
+
+    await p.runWithVmService([
       'run',
       '--$serverInfoOption=$serverInfoFile',
       '--observe=0',
@@ -938,24 +1119,16 @@ void residentRun() {
       '-Dfoo=bar',
       '--define=bar=foo',
       p.relativeFilePath,
-    ]);
-
-    expect(
-      result.stdout,
-      isNot(
-        matches(
-            r'The Resident Frontend Compiler is listening at 127.0.0.1:[0-9]+'),
-      ),
-    );
-    expect(
-      result.stdout,
-      matches(r'The Dart VM service is listening on http:\/\/127.0.0.1:[0-9+]'),
-    );
-    expect(result.stderr, isEmpty);
-    expect(result.exitCode, 0);
+    ], onData1);
+    expect(sawVmServiceMsg, true);
+    expect(sawProgramMsg, true);
+    expect(sawCFEMsg, false);
 
     // Again, with --disable-service-auth-codes.
-    result = await p.run([
+    sawVmServiceMsg = false;
+    sawProgramMsg = false;
+    sawCFEMsg = false;
+    await p.runWithVmService([
       'run',
       '--$serverInfoOption=$serverInfoFile',
       '--observe=0',
@@ -968,24 +1141,37 @@ void residentRun() {
       '-Dfoo=bar',
       '--define=bar=foo',
       p.relativeFilePath,
-    ]);
-
-    expect(
-      result.stdout,
-      isNot(
-        matches(
-            r'The Resident Frontend Compiler is listening at 127.0.0.1:[0-9]+'),
-      ),
-    );
-    expect(
-      result.stdout,
-      contains('The Dart VM service is listening on http://127.0.0.1:'),
-    );
-    expect(result.stderr, isEmpty);
-    expect(result.exitCode, 0);
+    ], onData1);
+    expect(sawVmServiceMsg, true);
+    expect(sawProgramMsg, true);
+    expect(sawCFEMsg, false);
 
     // Again, with IPv6.
-    result = await p.run([
+    sawVmServiceMsg = false;
+    sawProgramMsg = false;
+    sawCFEMsg = false;
+    void onData2(event) {
+      if (event.contains('The Dart VM service is listening on')) {
+        final re = RegExp(
+            r'The Dart VM service is listening on http:\/\/\[::1\]:\d+\/[a-zA-Z0-9_-]+=\/.*');
+        expect(re.hasMatch(event), true);
+        sawVmServiceMsg = true;
+      }
+      if (event.contains('Observe smoke test!')) {
+        sawProgramMsg = true;
+      }
+      if (event.contains('The Resident Frontend Compiler is listening')) {
+        final re = RegExp(
+            r'The Resident Frontend Compiler is listening at 127.0.0.1:[0-9]+');
+        expect(re.hasMatch(event), true);
+        sawCFEMsg = true;
+      }
+      if (sawVmServiceMsg && sawProgramMsg) {
+        p.kill();
+      }
+    }
+
+    await p.runWithVmService([
       'run',
       '--$serverInfoOption=$serverInfoFile',
       '--observe=0/::1',
@@ -997,22 +1183,10 @@ void residentRun() {
       '-Dfoo=bar',
       '--define=bar=foo',
       p.relativeFilePath,
-    ]);
-
-    expect(
-      result.stdout,
-      isNot(
-        matches(
-            r'The Resident Frontend Compiler is listening at 127.0.0.1:[0-9]+'),
-      ),
-    );
-    expect(
-      result.stdout,
-      matches(
-          r'The Dart VM service is listening on http:\/\/\[::1\]:\d+\/[a-zA-Z0-9_-]+=\/\n.*'),
-    );
-    expect(result.stderr, isEmpty);
-    expect(result.exitCode, 0);
+    ], onData2);
+    expect(sawVmServiceMsg, true);
+    expect(sawProgramMsg, true);
+    expect(sawCFEMsg, false);
   });
 
   test('custom package_config path', () async {

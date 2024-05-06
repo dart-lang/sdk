@@ -4,6 +4,7 @@
 
 part of "core_patch.dart";
 
+@pragma('vm:deeply-immutable')
 @pragma("vm:entry-point")
 final class _Double implements double {
   @pragma("vm:recognized", "asm-intrinsic")

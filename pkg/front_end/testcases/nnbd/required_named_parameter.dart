@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Should be a compile-time error / warning.
-foo({required int parameter = 42}) {}
-foo2({int parameter}) {}
-foo3([int parameter]) {}
+foo({required int parameter = 42}) {} // error
+foo2({int parameter}) {} // error
+foo3([int parameter]) {} // error
 
-// Should be ok.
-bar({required int parameter}) {}
-bar2({int parameter = 42}) {}
-bar3([int parameter = 42]) {}
+bar({required int parameter}) {} // ok
+bar2({int parameter = 42}) {} // ok
+bar3([int parameter = 42]) {} // ok
 
 main() {}

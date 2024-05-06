@@ -443,7 +443,9 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
                   if (node is! Block &&
                       node.parent != null &&
                       node.parent is! Member &&
-                      node.parent is! FunctionNode) node = node.parent!;
+                      node.parent is! FunctionNode) {
+                    node = node.parent!;
+                  }
                 }
               }
               print("-----------");

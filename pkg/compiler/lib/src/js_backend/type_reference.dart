@@ -64,6 +64,8 @@ library js_backend.type_reference;
 import 'package:front_end/src/api_unstable/dart2js.dart'
     show $0, $9, $A, $Z, $_, $a, $z;
 
+import 'package:js_ast/src/precedence.dart' as js_precedence;
+
 import '../common/elements.dart' show CommonElements;
 import '../elements/types.dart';
 import '../js/js.dart' as js;
@@ -146,7 +148,7 @@ class TypeReference extends js.DeferredExpression implements js.AstContainer {
   // Precedence will be CALL or LEFT_HAND_SIDE depending on what expression the
   // reference is resolved to.
   @override
-  int get precedenceLevel => value.precedenceLevel;
+  js_precedence.Precedence get precedenceLevel => value.precedenceLevel;
 
   @override
   TypeReference withSourceInformation(

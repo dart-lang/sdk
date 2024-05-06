@@ -6,11 +6,14 @@ import 'dart:io';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:path/path.dart' as path;
+import 'package:path/path.dart';
 
-/// A mixin for test classes that adds a memory-backed [ResourceProvider] and
-/// utility methods for manipulating the file system.
+/// A mixin for test classes that adds a memory-backed [ResourceProvider] (that
+/// can be overriden via [createResourceProvider]) and utility methods for
+/// manipulating the file system.
 ///
 /// The resource provider will use paths in the same style as the current
 /// platform unless the `TEST_ANALYZER_WINDOWS_PATHS` environment variable is
@@ -19,12 +22,17 @@ import 'package:path/path.dart' as path;
 /// The utility methods all take a posix style path and convert it as
 /// appropriate for the actual platform.
 mixin ResourceProviderMixin {
-  MemoryResourceProvider resourceProvider =
-      Platform.environment['TEST_ANALYZER_WINDOWS_PATHS'] == 'true'
-          ? MemoryResourceProvider(context: path.windows)
-          : MemoryResourceProvider();
+  late final resourceProvider = createResourceProvider();
 
-  String convertPath(String path) => resourceProvider.convertPath(path);
+  path.Context get pathContext => resourceProvider.pathContext;
+
+  String convertPath(String filePath) => resourceProvider.convertPath(filePath);
+
+  ResourceProvider createResourceProvider() {
+    return Platform.environment['TEST_ANALYZER_WINDOWS_PATHS'] == 'true'
+        ? MemoryResourceProvider(context: path.windows)
+        : MemoryResourceProvider();
+  }
 
   void deleteAnalysisOptionsYamlFile(String directoryPath) {
     var path = join(directoryPath, file_paths.analysisOptionsYaml);
@@ -33,12 +41,16 @@ mixin ResourceProviderMixin {
 
   void deleteFile(String path) {
     String convertedPath = convertPath(path);
-    resourceProvider.deleteFile(convertedPath);
+    resourceProvider.getFile(convertedPath).delete();
+  }
+
+  void deleteFile2(File file) {
+    deleteFile(file.path);
   }
 
   void deleteFolder(String path) {
     String convertedPath = convertPath(path);
-    resourceProvider.deleteFolder(convertedPath);
+    resourceProvider.getFolder(convertedPath).delete();
   }
 
   void deletePackageConfigJsonFile(String directoryPath) {
@@ -77,7 +89,11 @@ mixin ResourceProviderMixin {
 
   void modifyFile(String path, String content) {
     String convertedPath = convertPath(path);
-    resourceProvider.modifyFile(convertedPath, content);
+    resourceProvider.getFile(convertedPath).writeAsStringSync(content);
+  }
+
+  void modifyFile2(File file, String content) {
+    modifyFile(file.path, content);
   }
 
   File newAnalysisOptionsYamlFile(String directoryPath, String content) {
@@ -102,18 +118,24 @@ mixin ResourceProviderMixin {
 
   File newFile(String path, String content) {
     String convertedPath = convertPath(path);
-    return resourceProvider.newFile(convertedPath, content);
+    return resourceProvider.getFile(convertedPath)..writeAsStringSync(content);
   }
 
   @Deprecated('Use newFile() instead')
   File newFile2(String path, String content) {
     String convertedPath = convertPath(path);
-    return resourceProvider.newFile(convertedPath, content);
+    return resourceProvider.getFile(content)..writeAsStringSync(convertedPath);
   }
 
   Folder newFolder(String path) {
     String convertedPath = convertPath(path);
-    return resourceProvider.newFolder(convertedPath);
+    return resourceProvider.getFolder(convertedPath)..create();
+  }
+
+  Link newLink(String path, String target) {
+    String convertedPath = convertPath(path);
+    String convertedTarget = convertPath(target);
+    return resourceProvider.getLink(convertedPath)..create(convertedTarget);
   }
 
   File newPackageConfigJsonFile(String directoryPath, String content) {
@@ -125,9 +147,26 @@ mixin ResourceProviderMixin {
     return newFile(path, content);
   }
 
+  File newPackageConfigJsonFileFromBuilder(
+    String directoryPath,
+    PackageConfigFileBuilder builder,
+  ) {
+    final content = builder.toContent(toUriStr: toUriStr);
+    return newPackageConfigJsonFile(directoryPath, content);
+  }
+
   File newPubspecYamlFile(String directoryPath, String content) {
     String path = join(directoryPath, file_paths.pubspecYaml);
     return newFile(path, content);
+  }
+
+  void newSinglePackageConfigJsonFile({
+    required String packagePath,
+    required String name,
+  }) {
+    final builder = PackageConfigFileBuilder()
+      ..add(name: name, rootPath: packagePath);
+    newPackageConfigJsonFileFromBuilder(packagePath, builder);
   }
 
   Uri toUri(String path) {
@@ -137,5 +176,20 @@ mixin ResourceProviderMixin {
 
   String toUriStr(String path) {
     return toUri(path).toString();
+  }
+}
+
+extension ResourceProviderExtensions on ResourceProvider {
+  /// Convert the given posix [path] to conform to this provider's path context.
+  ///
+  /// This is a utility method for testing.
+  String convertPath(String filePath) {
+    if (pathContext.style == windows.style) {
+      if (filePath.startsWith(posix.separator)) {
+        filePath = r'C:' + filePath;
+      }
+      filePath = filePath.replaceAll(posix.separator, windows.separator);
+    }
+    return filePath;
   }
 }

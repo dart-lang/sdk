@@ -32,14 +32,14 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  field ({required s: core::String}) → void f = ({required core::String s = #C1}) → void {};
-  constructor •({required core::int x = #C1}) → self::A
+  field ({required s: core::String}) → void f = ({required core::String s}) → void {};
+  constructor •({required core::int x}) → self::A
     : super core::Object::•()
     ;
-  method foo({required core::int y = #C1}) → dynamic {}
+  method foo({required core::int y}) → dynamic {}
 }
-static field ({required s: core::String}) → void g = ({required core::String s = #C1}) → void {};
-static method foo({required core::String s = #C1}) → void {}
+static field ({required s: core::String}) → void g = ({required core::String s}) → void {};
+static method foo({required core::String s}) → void {}
 static method bar() → dynamic {
   invalid-expression "pkg/front_end/testcases/nnbd/missing_required_named_parameter.dart:15:6: Error: Required named parameter 's' must be provided.
   foo();
@@ -59,7 +59,3 @@ static method bar() → dynamic {
    ^" in self::g{<inapplicable>}.();
 }
 static method main() → dynamic {}
-
-constants  {
-  #C1 = null
-}

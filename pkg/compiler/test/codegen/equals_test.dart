@@ -9,7 +9,7 @@ import 'package:async_helper/async_helper.dart';
 import '../helpers/compiler_helper.dart';
 
 const String TEST1 = r"""
-foo(int a) {
+foo(int? a) {
   return a == null;
   // present: 'a == null'
   // absent: 'eq'
@@ -25,7 +25,7 @@ foo(int a) {
 """;
 
 const String TEST3 = r"""
-foo(int a, int b) {
+foo(int? a, int? b) {
   return a == b;
   // present: 'a == b'
   // absent: 'eq'
@@ -34,7 +34,7 @@ foo(int a, int b) {
 """;
 
 const String TEST4 = r"""
-foo(String a, String b) {
+foo(String? a, String? b) {
   return a == b;
   // present: 'a == b'
   // absent: 'eq'
@@ -45,7 +45,7 @@ foo(String a, String b) {
 // Comparable includes String and int, so can't be compared with `a == b` since
 // that will convert an operand to make `2 == "2"` true.
 const String TEST5 = r"""
-foo(Comparable a, Comparable b) {
+foo(Comparable? a, Comparable? b) {
   return a == b;
   // present: 'a === b'
   // present: 'a == null'
@@ -66,7 +66,7 @@ foo(dynamic a, dynamic b) {
 // StringBuffer uses `Object.==`, i.e. `identical`.  This can be lowered to `==`
 // because no operand will cause JavaScript conversions.
 const String TEST7 = r"""
-foo(StringBuffer a, StringBuffer b) {
+foo(StringBuffer? a, StringBuffer? b) {
   return a == b;
   // present: ' == '
   // absent: '==='

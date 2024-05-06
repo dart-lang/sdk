@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*member: A.:[exact=A]*/
 class A {
   /*member: A.noSuchMethod:[exact=JSUInt31]*/
   noSuchMethod(
           /*spec.[null|subclass=Object]*/
-          /*prod.[null|exact=JSInvocationMirror]*/
+          /*prod.[exact=JSInvocationMirror]*/
           im) =>
       42;
 }

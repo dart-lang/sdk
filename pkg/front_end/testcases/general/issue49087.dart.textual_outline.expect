@@ -4,5 +4,7 @@ class A {
 }
 
 test1() => const A(y: "foo", 0);
+
 test2() => const A.redir(y: "foo", 0);
+
 main() {}

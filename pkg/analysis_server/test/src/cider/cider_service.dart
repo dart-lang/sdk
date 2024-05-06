@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
@@ -54,6 +55,7 @@ class CiderServiceTest with ResourceProviderMixin {
 
   void setUp() {
     registerLintRules();
+    registerBuiltInProducers();
 
     logger = PerformanceLog(logBuffer);
 

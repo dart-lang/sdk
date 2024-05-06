@@ -1,0 +1,54 @@
+@#lib1::JS::•("library1")
+library;
+import self as self;
+import "dart:js_interop" as js_;
+
+import "dart:js_interop";
+
+extension type CustomJSAny(js_::JSAny /* erasure=dart.core::Object */ _) implements js_::JSAny /* erasure=dart.core::Object */ {
+  abstract extension-type-member representation-field get _() → js_::JSAny /* erasure=dart.core::Object */;
+  constructor • = self::CustomJSAny|constructor#;
+  constructor tearoff • = self::CustomJSAny|constructor#_#new#tearOff;
+}
+extension type CustomJSObject(js_::JSObject /* erasure=_interceptors::JSObject */ _) implements js_::JSObject /* erasure=_interceptors::JSObject */ {
+  abstract extension-type-member representation-field get _() → js_::JSObject /* erasure=_interceptors::JSObject */;
+  constructor • = self::CustomJSObject|constructor#;
+  constructor tearoff • = self::CustomJSObject|constructor#_#new#tearOff;
+}
+extension type CustomTypedArray(js_::JSTypedArray /* erasure=dart.typed_data.implementation::NativeTypedData */ _) implements js_::JSObject /* erasure=_interceptors::JSObject */ {
+  abstract extension-type-member representation-field get _() → js_::JSTypedArray /* erasure=dart.typed_data.implementation::NativeTypedData */;
+  constructor • = self::CustomTypedArray|constructor#;
+  constructor tearoff • = self::CustomTypedArray|constructor#_#new#tearOff;
+}
+@js_::JS::•("RenamedJSArray")
+extension type CustomJSArray(js_::JSArray<js_::JSAny? /* erasure=dart.core::Object? */> /* erasure=_interceptors::JSArray<dart.core::Object?> */ _) implements js_::JSObject /* erasure=_interceptors::JSObject */ {
+  abstract extension-type-member representation-field get _() → js_::JSArray<js_::JSAny? /* erasure=dart.core::Object? */> /* erasure=_interceptors::JSArray<dart.core::Object?> */;
+  constructor • = self::CustomJSArray|constructor#;
+  constructor tearoff • = self::CustomJSArray|constructor#_#new#tearOff;
+}
+static extension-type-member method CustomJSAny|constructor#(js_::JSAny /* erasure=dart.core::Object */ _) → self::CustomJSAny /* erasure=dart.core::Object */
+  ;
+static extension-type-member method CustomJSAny|constructor#_#new#tearOff(js_::JSAny /* erasure=dart.core::Object */ _) → self::CustomJSAny /* erasure=dart.core::Object */
+  return self::CustomJSAny|constructor#(_);
+static extension-type-member method CustomJSObject|constructor#(js_::JSObject /* erasure=_interceptors::JSObject */ _) → self::CustomJSObject /* erasure=_interceptors::JSObject */
+  ;
+static extension-type-member method CustomJSObject|constructor#_#new#tearOff(js_::JSObject /* erasure=_interceptors::JSObject */ _) → self::CustomJSObject /* erasure=_interceptors::JSObject */
+  return self::CustomJSObject|constructor#(_);
+static extension-type-member method CustomTypedArray|constructor#(js_::JSTypedArray /* erasure=dart.typed_data.implementation::NativeTypedData */ _) → self::CustomTypedArray /* erasure=dart.typed_data.implementation::NativeTypedData */
+  ;
+static extension-type-member method CustomTypedArray|constructor#_#new#tearOff(js_::JSTypedArray /* erasure=dart.typed_data.implementation::NativeTypedData */ _) → self::CustomTypedArray /* erasure=dart.typed_data.implementation::NativeTypedData */
+  return self::CustomTypedArray|constructor#(_);
+static extension-type-member method CustomJSArray|constructor#(js_::JSArray<js_::JSAny? /* erasure=dart.core::Object? */> /* erasure=_interceptors::JSArray<dart.core::Object?> */ _) → self::CustomJSArray /* erasure=_interceptors::JSArray<dart.core::Object?> */
+  ;
+static extension-type-member method CustomJSArray|constructor#_#new#tearOff(js_::JSArray<js_::JSAny? /* erasure=dart.core::Object? */> /* erasure=_interceptors::JSArray<dart.core::Object?> */ _) → self::CustomJSArray /* erasure=_interceptors::JSArray<dart.core::Object?> */
+  return self::CustomJSArray|constructor#(_);
+static method test(js_::JSAny /* erasure=dart.core::Object */ any) → void
+  ;
+static method main() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///isa.dart:5:2 -> InstanceConstant(const JS{JS.name: "library1"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///isa.dart:16:2 -> InstanceConstant(const JS{JS.name: "RenamedJSArray"})
+Extra constant evaluation: evaluated: 10, effectively constant: 2

@@ -14,4 +14,5 @@ extension E on String {
 }
 
 main() {}
+
 warning(String s, List<String> l, Map<String, int> m) {}

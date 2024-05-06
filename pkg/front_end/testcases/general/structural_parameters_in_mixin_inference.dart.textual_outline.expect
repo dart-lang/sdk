@@ -1,0 +1,5 @@
+abstract class A<X> {}
+
+mixin M1<Y> on A<void Function<Z>(void Function(Z, Y))> {}
+
+class B1 extends A<void Function<Z>(void Function(Z, int))> with M1 {}

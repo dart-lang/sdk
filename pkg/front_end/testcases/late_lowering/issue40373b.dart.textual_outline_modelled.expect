@@ -4,5 +4,7 @@ class C {
 }
 
 expect(expected, actual) {}
+
 late final g;
+
 main() {}

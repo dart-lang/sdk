@@ -2,39 +2,33 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io' show Directory, File, FileSystemEntity;
-
+import 'dart:io' show File;
 import 'dart:typed_data' show Uint8List;
 
+import 'package:_fe_analyzer_shared/src/parser/listener.dart' show Listener;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show FormalParameterKind, MemberKind, Parser;
-
-import 'package:_fe_analyzer_shared/src/parser/listener.dart' show Listener;
-
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
-
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
-
 import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
     show Utf8BytesScanner;
-
 import 'package:front_end/src/fasta/command_line_reporting.dart'
     as command_line_reporting;
 import 'package:front_end/src/fasta/source/diet_parser.dart'
     show useImplicitCreationExpressionInCfe;
-
 import 'package:kernel/kernel.dart';
-
 import 'package:package_config/package_config.dart';
-
 import 'package:testing/testing.dart'
-    show Chain, ChainContext, Result, Step, TestDescription, runMe;
+    show Chain, ChainContext, Result, Step, TestDescription;
 
-import 'testing_utils.dart' show checkEnvironment, getGitFiles;
+import 'fasta/suite_utils.dart';
+import 'testing_utils.dart' show checkEnvironment, filterList;
 
-void main([List<String> arguments = const []]) =>
-    runMe(arguments, createContext, configurationPath: "../testing.json");
+void main([List<String> arguments = const []]) => internalMain(createContext,
+    arguments: arguments,
+    displayName: "lint suite",
+    configurationPath: "../testing.json");
 
 Future<Context> createContext(
     Chain suite, Map<String, String> environment) async {
@@ -87,64 +81,44 @@ class Context extends ChainContext {
     const LintStep(),
   ];
 
-  // Override special handling of negative tests.
   @override
-  Result processTestResult(
-      TestDescription description, Result result, bool last) {
-    return result;
-  }
+  Future<List<LintTestDescription>> list(Chain suite) async {
+    String rootString = "${suite.root}";
+    Uri apiUnstableUri =
+        Uri.base.resolve("pkg/front_end/lib/src/api_unstable/");
+    String apiUnstableString = apiUnstableUri.toString();
 
-  @override
-  Stream<LintTestDescription> list(Chain suite) async* {
-    late Set<Uri> gitFiles;
-    if (onlyInGit) {
-      gitFiles = await getGitFiles(suite.uri);
-    }
+    List<LintTestDescription> result = [];
+    for (TestDescription description
+        in await filterList(suite, onlyInGit, await super.list(suite))) {
+      String baseName = "${description.uri}".substring(rootString.length);
+      baseName = baseName.substring(0, baseName.length - ".dart".length);
+      LintTestCache cache = new LintTestCache();
 
-    Directory testRoot = new Directory.fromUri(suite.uri);
-    if (await testRoot.exists()) {
-      Stream<FileSystemEntity> files =
-          testRoot.list(recursive: true, followLinks: false);
-      await for (FileSystemEntity entity in files) {
-        if (entity is! File) continue;
-        String path = entity.uri.path;
-        if (suite.exclude.any((RegExp r) => path.contains(r))) continue;
-        if (suite.pattern.any((RegExp r) => path.contains(r))) {
-          if (onlyInGit && !gitFiles.contains(entity.uri)) continue;
-          Uri root = suite.uri;
-          String baseName = "${entity.uri}".substring("$root".length);
-          baseName = baseName.substring(0, baseName.length - ".dart".length);
-          LintTestCache cache = new LintTestCache();
+      result.add(new LintTestDescription(
+        "$baseName/ExplicitType",
+        description.uri,
+        cache,
+        new ExplicitTypeLintListener(),
+      ));
 
-          yield new LintTestDescription(
-            "$baseName/ExplicitType",
-            entity.uri,
-            cache,
-            new ExplicitTypeLintListener(),
-          );
+      result.add(new LintTestDescription(
+        "$baseName/ImportsTwice",
+        description.uri,
+        cache,
+        new ImportsTwiceLintListener(),
+      ));
 
-          yield new LintTestDescription(
-            "$baseName/ImportsTwice",
-            entity.uri,
-            cache,
-            new ImportsTwiceLintListener(),
-          );
-
-          Uri apiUnstableUri =
-              Uri.base.resolve("pkg/front_end/lib/src/api_unstable/");
-          if (!entity.uri.toString().startsWith(apiUnstableUri.toString())) {
-            yield new LintTestDescription(
-              "$baseName/Exports",
-              entity.uri,
-              cache,
-              new ExportsLintListener(),
-            );
-          }
-        }
+      if (!description.uri.toString().startsWith(apiUnstableString)) {
+        result.add(new LintTestDescription(
+          "$baseName/Exports",
+          description.uri,
+          cache,
+          new ExportsLintListener(),
+        ));
       }
-    } else {
-      throw "${suite.uri} isn't a directory";
     }
+    return result;
   }
 }
 
@@ -255,6 +229,7 @@ class ExplicitTypeLintListener extends LintListener {
 
   @override
   void endTopLevelFields(
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -359,6 +334,18 @@ class ExportsLintListener extends LintListener {
       exportUri = exportUri.substring(1, exportUri.length - 1);
     }
     Uri resolved = uri.resolve(exportUri);
+
+    if (resolved.isScheme("package") && resolved.path.startsWith('kernel/')) {
+      // Exporting from `package:kernel` is allowed.
+      return;
+    }
+
+    // Allowlist specific exports.
+    if (resolved.isScheme('package') &&
+        ['_fe_analyzer_shared/src/macros/uri.dart'].contains(resolved.path)) {
+      return;
+    }
+
     if (resolved.isScheme("package")) {
       if (description.cache.packages != null) {
         resolved = description.cache.packages!.resolve(resolved)!;

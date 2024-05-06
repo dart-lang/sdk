@@ -1,6 +1,9 @@
 abstract int topLevelField;
+
 abstract final int finalTopLevelField = 0;
+
 abstract const int constField = 0;
+
 abstract class A {
   abstract int fieldWithInitializer = 0;
   abstract int initializedField1;
@@ -17,6 +20,7 @@ abstract class A {
   abstract external covariant num externalCovariantInstanceField2;
   external abstract late int externalLateInstanceField;
 }
+
 mixin B {
   abstract static int staticField;
   abstract static final int finalStaticField;
@@ -24,10 +28,12 @@ mixin B {
   external abstract final int externalFinalInstanceField;
   external abstract covariant num externalCovariantInstanceField;
 }
+
 extension Extension on A {
   abstract int extensionInstanceField;
   abstract final int finalExtensionInstanceField;
   abstract static int extensionStaticField = 0;
   abstract static final int finalExtensionStaticField = 0;
 }
+
 main() {}

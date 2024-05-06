@@ -10,62 +10,11 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidImplementationOverrideTest);
-    defineReflectiveTests(InvalidImplementationOverrideWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class InvalidImplementationOverrideTest extends PubPackageResolutionTest
-    with InvalidImplementationOverrideTestCases {
-  test_enum_getter_abstractOverridesConcrete() async {
-    await assertErrorsInCode('''
-mixin M {
-  num get foo => 0;
-}
-enum E with M {
-  v;
-  int get foo;
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 37, 1),
-    ]);
-  }
-
-  test_enum_method_abstractOverridesConcrete() async {
-    await assertErrorsInCode('''
-mixin M {
-  num foo() => 0;
-}
-enum E with M {
-  v;
-  int foo();
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 35, 1),
-    ]);
-  }
-
-  test_enum_method_mixin_toString() async {
-    await assertErrorsInCode('''
-abstract class I {
-  String toString([int? value]);
-}
-
-enum E1 implements I {
-  v
-}
-
-enum E2 implements I {
-  v;
-  String toString([int? value]) => '';
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 60, 2),
-    ]);
-  }
-}
-
-mixin InvalidImplementationOverrideTestCases on PubPackageResolutionTest {
+class InvalidImplementationOverrideTest extends PubPackageResolutionTest {
   test_class_generic_method_generic_hasCovariantParameter() async {
     await assertNoErrorsInCode('''
 class A<T> {
@@ -99,7 +48,7 @@ class B	extends A {
 ''', [
       error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 52, 1),
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 72, 3,
-          contextMessages: [message('/home/test/lib/test.dart', 16, 3)]),
+          contextMessages: [message(testFile, 16, 3)]),
     ]);
   }
 
@@ -151,7 +100,7 @@ class A with M {
 ''', [
       error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 52, 1),
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 69, 3,
-          contextMessages: [message('/home/test/lib/test.dart', 16, 3)]),
+          contextMessages: [message(testFile, 16, 3)]),
     ]);
   }
 
@@ -167,7 +116,7 @@ class B	extends A with M {}
 ''', [
       error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 77, 1),
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 94, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 16, 3)]),
+          contextMessages: [message(testFile, 16, 3)]),
     ]);
   }
 
@@ -205,9 +154,51 @@ class B extends A {
           messageContains: ["'A.c'", "'B.c'"]),
     ]);
   }
+
+  test_enum_getter_abstractOverridesConcrete() async {
+    await assertErrorsInCode('''
+mixin M {
+  num get foo => 0;
+}
+enum E with M {
+  v;
+  int get foo;
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 37, 1),
+    ]);
+  }
+
+  test_enum_method_abstractOverridesConcrete() async {
+    await assertErrorsInCode('''
+mixin M {
+  num foo() => 0;
+}
+enum E with M {
+  v;
+  int foo();
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 35, 1),
+    ]);
+  }
+
+  test_enum_method_mixin_toString() async {
+    await assertErrorsInCode('''
+abstract class I {
+  String toString([int? value]);
 }
 
-@reflectiveTest
-class InvalidImplementationOverrideWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with InvalidImplementationOverrideTestCases, WithoutNullSafetyMixin {}
+enum E1 implements I {
+  v
+}
+
+enum E2 implements I {
+  v;
+  String toString([int? value]) => '';
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 60, 2),
+    ]);
+  }
+}

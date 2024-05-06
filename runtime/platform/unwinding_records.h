@@ -12,27 +12,23 @@ namespace dart {
 
 class UnwindingRecordsPlatform : public AllStatic {
  public:
-  static void Init();
-  static void Cleanup();
-
   static intptr_t SizeInBytes();
 
   static void RegisterExecutableMemory(void* start,
                                        intptr_t size,
                                        void** pp_dynamic_table);
   static void UnregisterDynamicTable(void* p_dynamic_table);
-
-  static void* GetAddGrowableFunctionTableFunc();
-  static void* GetDeleteGrowableFunctionTableFunc();
 };
 
-#if defined(DART_HOST_OS_WINDOWS) && defined(TARGET_ARCH_X64)
+#if (defined(DART_TARGET_OS_WINDOWS) || defined(DART_HOST_OS_WINDOWS)) &&      \
+    defined(TARGET_ARCH_X64)
 
 #pragma pack(push, 1)
 //
 // Refer to https://learn.microsoft.com/en-us/cpp/build/exception-handling-x64
 //
 typedef unsigned char UBYTE;
+typedef uint16_t USHORT;
 typedef union _UNWIND_CODE {
   struct {
     UBYTE CodeOffset;
@@ -52,11 +48,24 @@ typedef struct _UNWIND_INFO {
   UNWIND_CODE UnwindCode[2];
 } UNWIND_INFO, *PUNWIND_INFO;
 
+#if !defined(DART_HOST_OS_WINDOWS)
+typedef uint32_t ULONG;
+typedef struct _RUNTIME_FUNCTION {
+  ULONG BeginAddress;
+  ULONG EndAddress;
+  ULONG UnwindData;
+} RUNTIME_FUNCTION, *PRUNTIME_FUNCTION;
+#endif
+
 static constexpr int kPushRbpInstructionLength = 1;
 static const int kMovRbpRspInstructionLength = 3;
 static constexpr int kRbpPrefixLength =
     kPushRbpInstructionLength + kMovRbpRspInstructionLength;
 static constexpr int kRBP = 5;
+
+#ifndef UNW_FLAG_NHANDLER
+#define UNW_FLAG_NHANDLER 0
+#endif
 
 struct GeneratedCodeUnwindInfo {
   UNWIND_INFO unwind_info;
@@ -77,8 +86,11 @@ struct GeneratedCodeUnwindInfo {
   }
 };
 
+static constexpr uint32_t kUnwindingRecordMagic = 0xAABBCCDD;
+
 struct CodeRangeUnwindingRecord {
   void* dynamic_table;
+  uint32_t magic;
   uint32_t runtime_function_count;
   GeneratedCodeUnwindInfo unwind_info;
   intptr_t exception_handler;
@@ -87,7 +99,8 @@ struct CodeRangeUnwindingRecord {
 
 #pragma pack(pop)
 
-#elif defined(DART_HOST_OS_WINDOWS) && defined(TARGET_ARCH_ARM64)
+#elif (defined(DART_TARGET_OS_WINDOWS) || defined(DART_HOST_OS_WINDOWS)) &&    \
+    defined(TARGET_ARCH_ARM64)
 
 #pragma pack(push, 1)
 
@@ -125,6 +138,16 @@ struct UNWIND_INFO {
   uint32_t EpilogCount : 5;
   uint32_t CodeWords : 5;
 };
+
+#if !defined(DART_HOST_OS_WINDOWS)
+typedef uint32_t ULONG;
+typedef uint32_t DWORD;
+typedef struct _RUNTIME_FUNCTION {
+  ULONG BeginAddress;
+  ULONG EndAddress;
+  ULONG UnwindData;
+} RUNTIME_FUNCTION, *PRUNTIME_FUNCTION;
+#endif
 
 /**
  * Base on below doc, unwind record has 18 bits (unsigned) to encode function
@@ -187,9 +210,11 @@ struct UnwindData {
 };
 
 static const uint32_t kDefaultRuntimeFunctionCount = 1;
+static constexpr uint32_t kUnwindingRecordMagic = 0xAABBCCEE;
 
 struct CodeRangeUnwindingRecord {
   void* dynamic_table;
+  uint32_t magic;
   uint32_t runtime_function_count;
   UnwindData<> unwind_info;
   uint32_t exception_handler;
@@ -208,7 +233,7 @@ struct CodeRangeUnwindingRecord {
 
 #pragma pack(pop)
 
-#endif  // defined(DART_HOST_OS_WINDOWS) && defined(TARGET_ARCH_X64)
+#endif  // (defined(DART_TARGET_OS_WINDOWS) || defined(DART_HOST_OS_WINDOWS))
 
 }  // namespace dart
 

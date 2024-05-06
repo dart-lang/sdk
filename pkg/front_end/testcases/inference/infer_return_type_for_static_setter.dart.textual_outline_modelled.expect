@@ -5,4 +5,5 @@ class C {
 }
 
 main() {}
+
 set bar(int x) {}

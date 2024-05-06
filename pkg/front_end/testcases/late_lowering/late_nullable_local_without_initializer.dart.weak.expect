@@ -7,7 +7,7 @@ static method main() → dynamic {
   lowered core::int? #lateLocal;
   lowered core::bool #lateLocal#isSet = false;
   function #lateLocal#get() → core::int?
-    return #lateLocal#isSet ?{core::int?} #lateLocal : throw new _in::LateError::localNI("lateLocal");
+    return #lateLocal#isSet ?{core::int?} #lateLocal : throw{for-error-handling} new _in::LateError::localNI("lateLocal");
   function #lateLocal#set(core::int? lateLocal#param) → dynamic {
     #lateLocal#isSet = true;
     return #lateLocal = lateLocal#param;
@@ -19,7 +19,7 @@ static method main() → dynamic {
     lowered T? #lateGenericLocal;
     lowered core::bool #lateGenericLocal#isSet = false;
     function #lateGenericLocal#get() → T?
-      return #lateGenericLocal#isSet ?{T?} #lateGenericLocal : throw new _in::LateError::localNI("lateGenericLocal");
+      return #lateGenericLocal#isSet ?{T?} #lateGenericLocal : throw{for-error-handling} new _in::LateError::localNI("lateGenericLocal");
     function #lateGenericLocal#set(T? lateGenericLocal#param) → dynamic {
       #lateGenericLocal#isSet = true;
       return #lateGenericLocal = lateGenericLocal#param;

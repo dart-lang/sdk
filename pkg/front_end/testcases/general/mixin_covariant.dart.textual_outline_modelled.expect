@@ -59,26 +59,43 @@ class Superclass {
 mixin M1 {
   method(covariant int? a, int? b) {}
 }
+
 mixin M2 {
   method(int? a, covariant int? b) {}
 }
+
 mixin Mixin1 {
   void method(int? a, int? b, covariant int? c, int? d, int? e) {}
 }
+
 mixin Mixin2 {
   void method(int? a, int? b, int? c, covariant int? d, int? e) {}
 }
+
 typedef void TakeInts(int? a, int? b, int? c, int? d, int? e);
+
 typedef void TakeNamedInts({int? a, int? b, int? c, int? d});
+
 typedef void TakeNamedObjectsAndInts({Object? a, int? b, Object? c, int? d});
+
 typedef void TakeObjects(Object? a, Object? b, Object? c, Object? d, Object? e);
+
 typedef void TakeObjectsAndInts(Object? a, int? b, Object? c, int? d, int? e);
+
 typedef void TakeOptionalInts([int? a, int? b, int? c, int? d]);
+
 typedef void TakeOptionalObjectsAndInts([Object? a, int? b, Object? c, int? d]);
+
 void isTrue(bool value) {}
+
 void main() {}
+
 void testDirect() {}
+
 void testImplemented() {}
+
 void testInherited() {}
+
 void testMixed() {}
+
 void testOverridden() {}

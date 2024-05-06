@@ -9,5 +9,7 @@ class Foo {
 }
 
 void f([List<int> l = const [1]]) {}
+
 Function2<List<int>, String> g = ([llll = const [1]]) => "hello";
+
 main() {}

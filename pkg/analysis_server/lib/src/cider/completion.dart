@@ -79,13 +79,13 @@ class CiderCompletionComputer {
 
       _dartCompletionRequest = DartCompletionRequest(
         analysisSession: analysisSession,
+        fileState: resolvedUnit.fileState,
         filePath: resolvedUnit.path,
         fileContent: resolvedUnit.content,
         unitElement: resolvedUnit.unitElement,
         enclosingNode: enclosingNode,
         offset: offset,
         unit: resolvedUnit.parsedUnit,
-        dartdocDirectiveInfo: null,
       );
 
       var suggestions = await performance.runAsync(
@@ -193,10 +193,7 @@ class CiderCompletionComputer {
     performance.getDataInt('libraryCount').increment();
 
     var path = element.source.fullName;
-    var signature = _fileResolver.getLibraryLinkedSignature(
-      path: path,
-      performance: performance,
-    );
+    var signature = _fileResolver.getLibraryLinkedSignature(path);
 
     var cacheEntry = _cache._importedLibraries[path];
     if (cacheEntry == null || cacheEntry.signature != signature) {

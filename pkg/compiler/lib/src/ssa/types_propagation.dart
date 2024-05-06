@@ -259,12 +259,9 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
   }
 
   void convertInput(HInvokeDynamic instruction, HInstruction input,
-      AbstractValue type, int kind, DartType typeExpression) {
-    assert(kind == HPrimitiveCheck.RECEIVER_TYPE_CHECK ||
-        kind == HPrimitiveCheck.ARGUMENT_TYPE_CHECK);
-    Selector? selector = (kind == HPrimitiveCheck.RECEIVER_TYPE_CHECK)
-        ? instruction.selector
-        : null;
+      AbstractValue type, PrimitiveCheckKind kind, DartType typeExpression) {
+    Selector? selector =
+        (kind == PrimitiveCheckKind.receiverType) ? instruction.selector : null;
     HPrimitiveCheck converted = HPrimitiveCheck(
         typeExpression, kind, type, input, instruction.sourceInformation,
         receiverTypeCheckSelector: selector);
@@ -300,7 +297,7 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
           instruction,
           receiver,
           abstractValueDomain.excludeNull(receiver.instructionType),
-          HPrimitiveCheck.RECEIVER_TYPE_CHECK,
+          PrimitiveCheckKind.receiverType,
           commonElements.numType);
       return true;
     } else if (instruction.element == null) {
@@ -326,7 +323,7 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
         if (!isCheckEnoughForNsmOrAe(receiver, type)) return false;
         instruction.element = target;
         convertInput(instruction, receiver, type,
-            HPrimitiveCheck.RECEIVER_TYPE_CHECK, typeExpression);
+            PrimitiveCheckKind.receiverType, typeExpression);
         return true;
       }
     }
@@ -354,8 +351,8 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
       // variant and will do the check in their method anyway. We
       // still add a check because it allows to GVN these operations,
       // but we should find a better way.
-      convertInput(instruction, right, type,
-          HPrimitiveCheck.ARGUMENT_TYPE_CHECK, commonElements.numType);
+      convertInput(instruction, right, type, PrimitiveCheckKind.argumentType,
+          commonElements.numType);
       return true;
     }
     return false;

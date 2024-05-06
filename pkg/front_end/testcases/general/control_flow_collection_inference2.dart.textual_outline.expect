@@ -1,7 +1,10 @@
 oracle<T>([T? t]) => true;
+
 testIfElement(dynamic dynVar, List<int> listInt, List<double> listDouble,
     Map<String, int> mapToInt, Map<String, double> mapToDouble) {}
+
 testIfElementErrors(Map<int, int> map) {}
+
 testForElement(
     dynamic dynVar,
     List<int> listInt,
@@ -9,7 +12,9 @@ testForElement(
     int index,
     Map<String, int> mapStringInt,
     Map<String, double> mapStringDouble) {}
+
 testForElementErrors(Map<int, int> map, List<int> list) async {}
+
 testForElementErrorsNotAsync(Stream<int> stream) {}
 
 class A {}
@@ -19,4 +24,5 @@ class B extends A {
 }
 
 testPromotion(A a) {}
+
 main() {}

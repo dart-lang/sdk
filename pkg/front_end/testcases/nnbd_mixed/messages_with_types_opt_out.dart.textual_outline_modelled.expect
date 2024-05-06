@@ -1,4 +1,5 @@
 // @dart = 2.5
+
 import 'messages_with_types_opt_in.dart';
 
 String legacyVar = "legacy";

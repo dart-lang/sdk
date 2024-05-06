@@ -111,7 +111,7 @@ abstract class Value {
 class IntValue extends Value {
   final BigInt value;
 
-  const IntValue(this.value, info) : super(info);
+  const IntValue(this.value, super.info);
 
   @override
   Value operator +(Value other) {
@@ -376,7 +376,7 @@ class PositiveValue extends InstructionValue {
 abstract class BinaryOperationValue extends Value {
   final Value left;
   final Value right;
-  BinaryOperationValue(this.left, this.right, info) : super(info);
+  BinaryOperationValue(this.left, this.right, super.info);
 }
 
 class AddValue extends BinaryOperationValue {
@@ -508,7 +508,7 @@ class SubtractValue extends BinaryOperationValue {
 
 class NegateValue extends Value {
   final Value value;
-  NegateValue(this.value, info) : super(info);
+  NegateValue(this.value, super.info);
 
   @override
   bool operator ==(other) {
@@ -903,14 +903,14 @@ class SsaValueRangeAnalyzer extends HBaseVisitor<Range>
       checkBlock.rewrite(check, check.index);
       checkBlock.remove(check);
     } else if (indexRange.isNegative || lengthRange < indexRange) {
-      check.staticChecks = HBoundsCheck.ALWAYS_FALSE;
+      check.staticChecks = StaticBoundsChecks.alwaysFalse;
       // The check is always false, and whatever instruction it
       // dominates is dead code.
       return indexRange;
     } else if (indexRange.isPositive) {
-      check.staticChecks = HBoundsCheck.ALWAYS_ABOVE_ZERO;
+      check.staticChecks = StaticBoundsChecks.alwaysAboveZero;
     } else if (belowLength) {
-      check.staticChecks = HBoundsCheck.ALWAYS_BELOW_LENGTH;
+      check.staticChecks = StaticBoundsChecks.alwaysBelowLength;
     }
 
     if (indexRange.isPositive) {

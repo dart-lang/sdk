@@ -7,9 +7,9 @@ import 'package:front_end/src/fasta/type_inference/external_ast_helper.dart';
 import 'package:front_end/src/fasta/type_inference/matching_cache.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/names.dart';
 
 import '../../api_prototype/constant_evaluator.dart';
-import '../names.dart';
 
 /// Visitor that creates the [DelayedExpression] needed to match expressions,
 /// using [MatchingCache] to create cacheable expressions.

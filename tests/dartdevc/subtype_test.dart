@@ -4,7 +4,7 @@
 
 // Requirements=nnbd-strong
 
-import 'dart:_runtime' show typeRep, legacyTypeRep;
+import 'dart:_foreign_helper' show LEGACY_TYPE_REF, TYPE_REF;
 import 'dart:async' show FutureOr;
 
 import 'runtime_utils.dart'
@@ -13,7 +13,6 @@ import 'runtime_utils.dart'
         checkProperSubtype,
         checkMutualSubtype,
         checkSubtypeFailure;
-import 'runtime_utils_nnbd.dart';
 
 class A {}
 
@@ -30,258 +29,258 @@ class F extends E<B, B> {}
 void main() {
   // Top type symmetry.
   // Object? <:> dynamic
-  checkMutualSubtype(typeRep<Object?>(), typeRep<dynamic>());
+  checkMutualSubtype(TYPE_REF<Object?>(), TYPE_REF<dynamic>());
   // Object? <:> void
-  checkMutualSubtype(typeRep<Object?>(), typeRep<void>());
+  checkMutualSubtype(TYPE_REF<Object?>(), TYPE_REF<void>());
   // void <:> dynamic
-  checkMutualSubtype(typeRep<void>(), typeRep<dynamic>());
+  checkMutualSubtype(TYPE_REF<void>(), TYPE_REF<dynamic>());
 
   // Bottom is subtype of top.
   // Never <: dynamic
-  checkProperSubtype(typeRep<Never>(), typeRep<dynamic>());
+  checkProperSubtype(TYPE_REF<Never>(), TYPE_REF<dynamic>());
   // Never <: void
-  checkProperSubtype(typeRep<Never>(), typeRep<void>());
+  checkProperSubtype(TYPE_REF<Never>(), TYPE_REF<void>());
   // Never <: Object?
-  checkProperSubtype(typeRep<Never>(), typeRep<Object?>());
+  checkProperSubtype(TYPE_REF<Never>(), TYPE_REF<Object?>());
 
   // Object is between top and bottom.
   // Object <: Object?
-  checkSubtype(typeRep<Object>(), typeRep<Object?>());
+  checkSubtype(TYPE_REF<Object>(), TYPE_REF<Object?>());
   // Never <: Object
-  checkProperSubtype(typeRep<Never>(), typeRep<Object>());
+  checkProperSubtype(TYPE_REF<Never>(), TYPE_REF<Object>());
 
   // Null is between top and bottom.
   // Null <: Object?
-  checkProperSubtype(typeRep<Null>(), typeRep<Object?>());
+  checkProperSubtype(TYPE_REF<Null>(), TYPE_REF<Object?>());
   // Never <: Null
-  checkProperSubtype(typeRep<Never>(), typeRep<Null>());
+  checkProperSubtype(TYPE_REF<Never>(), TYPE_REF<Null>());
 
   // Class is between Object and bottom.
   // A <: Object
-  checkProperSubtype(typeRep<A>(), typeRep<dynamic>());
+  checkProperSubtype(TYPE_REF<A>(), TYPE_REF<dynamic>());
   // Never <: A
-  checkProperSubtype(typeRep<Never>(), typeRep<A>());
+  checkProperSubtype(TYPE_REF<Never>(), TYPE_REF<A>());
 
   // Nullable types are a union of T and Null.
   // A <: A?
-  checkProperSubtype(typeRep<A>(), typeRep<A?>());
+  checkProperSubtype(TYPE_REF<A>(), TYPE_REF<A?>());
   // Null <: A?
-  checkProperSubtype(typeRep<Null>(), typeRep<A?>());
+  checkProperSubtype(TYPE_REF<Null>(), TYPE_REF<A?>());
   // A? <: Object?
-  checkProperSubtype(typeRep<A?>(), typeRep<Object?>());
+  checkProperSubtype(TYPE_REF<A?>(), TYPE_REF<Object?>());
 
   // Legacy types will eventually be migrated to T or T? but until then are
   // symmetric with both.
   // Object* <:> Object
-  checkMutualSubtype(legacyTypeRep<Object>(), typeRep<Object>());
+  checkMutualSubtype(LEGACY_TYPE_REF<Object>(), TYPE_REF<Object>());
   // Object* <:> Object?
-  checkMutualSubtype(legacyTypeRep<Object>(), typeRep<Object?>());
+  checkMutualSubtype(LEGACY_TYPE_REF<Object>(), TYPE_REF<Object?>());
 
   // Bottom Types
   // Null <: Object*
-  checkSubtype(typeRep<Null>(), legacyTypeRep<Object>());
+  checkSubtype(TYPE_REF<Null>(), LEGACY_TYPE_REF<Object>());
   // Never <: Object*
-  checkSubtype(typeRep<Never>(), legacyTypeRep<Object>());
+  checkSubtype(TYPE_REF<Never>(), LEGACY_TYPE_REF<Object>());
   // A* <:> A
-  checkMutualSubtype(legacyTypeRep<A>(), typeRep<A>());
+  checkMutualSubtype(LEGACY_TYPE_REF<A>(), TYPE_REF<A>());
   // A* <:> A?
-  checkMutualSubtype(legacyTypeRep<A>(), typeRep<A?>());
+  checkMutualSubtype(LEGACY_TYPE_REF<A>(), TYPE_REF<A?>());
   // A* <: Object
-  checkProperSubtype(legacyTypeRep<A>(), typeRep<Object>());
+  checkProperSubtype(LEGACY_TYPE_REF<A>(), TYPE_REF<Object>());
   // A* <: Object?
-  checkProperSubtype(legacyTypeRep<A>(), typeRep<Object?>());
+  checkProperSubtype(LEGACY_TYPE_REF<A>(), TYPE_REF<Object?>());
   // Null <: A*
-  checkProperSubtype(typeRep<Null>(), legacyTypeRep<A>());
+  checkProperSubtype(TYPE_REF<Null>(), LEGACY_TYPE_REF<A>());
   // Never <: A*
-  checkProperSubtype(typeRep<Never>(), legacyTypeRep<A>());
+  checkProperSubtype(TYPE_REF<Never>(), LEGACY_TYPE_REF<A>());
 
   // Futures.
   // Null <: FutureOr<Object?>
-  checkProperSubtype(typeRep<Null>(), typeRep<FutureOr<Object?>>());
+  checkProperSubtype(TYPE_REF<Null>(), TYPE_REF<FutureOr<Object?>>());
   // Object <: FutureOr<Object?>
-  checkProperSubtype(typeRep<Object>(), typeRep<FutureOr<Object?>>());
+  checkProperSubtype(TYPE_REF<Object>(), TYPE_REF<FutureOr<Object?>>());
   // Object? <:> FutureOr<Object?>
-  checkMutualSubtype(typeRep<Object?>(), typeRep<FutureOr<Object?>>());
+  checkMutualSubtype(TYPE_REF<Object?>(), TYPE_REF<FutureOr<Object?>>());
   // Object <:> FutureOr<Object>
-  checkMutualSubtype(typeRep<Object>(), typeRep<FutureOr<Object>>());
+  checkMutualSubtype(TYPE_REF<Object>(), TYPE_REF<FutureOr<Object>>());
   // Object <: FutureOr<dynamic>
-  checkProperSubtype(typeRep<Object>(), typeRep<FutureOr<dynamic>>());
+  checkProperSubtype(TYPE_REF<Object>(), TYPE_REF<FutureOr<dynamic>>());
   // Object <: FutureOr<void>
-  checkProperSubtype(typeRep<Object>(), typeRep<FutureOr<void>>());
+  checkProperSubtype(TYPE_REF<Object>(), TYPE_REF<FutureOr<void>>());
   // Future<Object> <: FutureOr<Object?>
-  checkProperSubtype(typeRep<Future<Object>>(), typeRep<FutureOr<Object?>>());
+  checkProperSubtype(TYPE_REF<Future<Object>>(), TYPE_REF<FutureOr<Object?>>());
   // Future<Object?> <: FutureOr<Object?>
-  checkProperSubtype(typeRep<Future<Object?>>(), typeRep<FutureOr<Object?>>());
+  checkProperSubtype(
+      TYPE_REF<Future<Object?>>(), TYPE_REF<FutureOr<Object?>>());
   // FutureOr<Never> <: Future<Never>
-  checkSubtype(typeRep<FutureOr<Never>>(), typeRep<Future<Never>>());
+  checkSubtype(TYPE_REF<FutureOr<Never>>(), TYPE_REF<Future<Never>>());
   // Future<B> <: FutureOr<A>
-  checkProperSubtype(typeRep<Future<B>>(), typeRep<FutureOr<A>>());
+  checkProperSubtype(TYPE_REF<Future<B>>(), TYPE_REF<FutureOr<A>>());
   // B <: <: FutureOr<A>
-  checkProperSubtype(typeRep<B>(), typeRep<FutureOr<A>>());
+  checkProperSubtype(TYPE_REF<B>(), TYPE_REF<FutureOr<A>>());
   // Future<B> <: Future<A>
-  checkProperSubtype(typeRep<Future<B>>(), typeRep<Future<A>>());
+  checkProperSubtype(TYPE_REF<Future<B>>(), TYPE_REF<Future<A>>());
 
   // Interface subtypes.
   // A <: A
-  checkSubtype(typeRep<A>(), typeRep<A>());
+  checkSubtype(TYPE_REF<A>(), TYPE_REF<A>());
   // B <: A
-  checkProperSubtype(typeRep<B>(), typeRep<A>());
+  checkProperSubtype(TYPE_REF<B>(), TYPE_REF<A>());
   // C <: B
-  checkProperSubtype(typeRep<C>(), typeRep<B>());
+  checkProperSubtype(TYPE_REF<C>(), TYPE_REF<B>());
   // C <: A
-  checkProperSubtype(typeRep<C>(), typeRep<A>());
+  checkProperSubtype(TYPE_REF<C>(), TYPE_REF<A>());
 
   // Functions.
   // A -> B <: Function
-  checkProperSubtype(typeRep<B Function(A)>(), typeRep<Function>());
+  checkProperSubtype(TYPE_REF<B Function(A)>(), TYPE_REF<Function>());
 
   // A -> B <: A -> B
-  checkSubtype(typeRep<B Function(A)>(), typeRep<B Function(A)>());
+  checkSubtype(TYPE_REF<B Function(A)>(), TYPE_REF<B Function(A)>());
 
   // A -> B <: B -> B
-  checkProperSubtype(typeRep<B Function(A)>(), typeRep<B Function(B)>());
+  checkProperSubtype(TYPE_REF<B Function(A)>(), TYPE_REF<B Function(B)>());
 
   // A -> B <: A -> A
-  checkProperSubtype(typeRep<B Function(A)>(), typeRep<A Function(A)>());
+  checkProperSubtype(TYPE_REF<B Function(A)>(), TYPE_REF<A Function(A)>());
 
   // Generic Function Subtypes.
   // Bound is a built in type.
   // <T extends int> void -> void <: <T extends int> void -> void
-  checkSubtype(
-      genericFunction(typeRep<int>()), genericFunction(typeRep<int>()));
+  checkSubtype(TYPE_REF<void Function<T extends int>()>(),
+      TYPE_REF<void Function<T extends int>()>());
 
   // <T extends String> A -> T <: <T extends String> B -> T
-  checkProperSubtype(functionGenericReturn(typeRep<String>(), typeRep<A>()),
-      functionGenericReturn(typeRep<String>(), typeRep<B>()));
+  checkProperSubtype(TYPE_REF<T Function<T extends String>(A)>(),
+      TYPE_REF<T Function<T extends String>(B)>());
 
   // <T extends double> T -> B <: <T extends double> T -> A
-  checkProperSubtype(functionGenericArg(typeRep<double>(), typeRep<B>()),
-      functionGenericArg(typeRep<double>(), typeRep<A>()));
+  checkProperSubtype(TYPE_REF<B Function<T extends double>(T)>(),
+      TYPE_REF<A Function<T extends double>(T)>());
 
   // Bound is a function type.
   // <T extends A -> B> void -> void <: <T extends A -> B> void -> void
-  checkSubtype(genericFunction(typeRep<A Function(B)>()),
-      genericFunction(typeRep<A Function(B)>()));
+  checkSubtype(TYPE_REF<void Function<T extends A Function(B)>()>(),
+      TYPE_REF<void Function<T extends A Function(B)>()>());
 
   // <T extends A -> B> A -> T <: <T extends A -> B> B -> T
-  checkProperSubtype(
-      functionGenericReturn(typeRep<A Function(B)>(), typeRep<A>()),
-      functionGenericReturn(typeRep<A Function(B)>(), typeRep<B>()));
+  checkProperSubtype(TYPE_REF<T Function<T extends A Function(B)>(A)>(),
+      TYPE_REF<T Function<T extends A Function(B)>(B)>());
 
   // <T extends A -> B> T -> B <: <T extends A -> B> T -> A
-  checkProperSubtype(functionGenericArg(typeRep<A Function(B)>(), typeRep<B>()),
-      functionGenericArg(typeRep<A Function(B)>(), typeRep<A>()));
+  checkProperSubtype(TYPE_REF<B Function<T extends A Function(B)>(T)>(),
+      TYPE_REF<A Function<T extends A Function(B)>(T)>());
 
   // Bound is a user defined class.
   // <T extends B> void -> void <: <T extends B> void -> void
-  checkSubtype(genericFunction(typeRep<B>()), genericFunction(typeRep<B>()));
+  checkSubtype(TYPE_REF<void Function<T extends B>()>(),
+      TYPE_REF<void Function<T extends B>()>());
 
   // <T extends B> A -> T <: <T extends B> B -> T
-  checkProperSubtype(functionGenericReturn(typeRep<B>(), typeRep<A>()),
-      functionGenericReturn(typeRep<B>(), typeRep<B>()));
+  checkProperSubtype(TYPE_REF<T Function<T extends B>(A)>(),
+      TYPE_REF<T Function<T extends B>(B)>());
 
-  // <T extends B> T -> B <: <T extends B> T -> A
-  checkProperSubtype(functionGenericArg(typeRep<B>(), typeRep<B>()),
-      functionGenericArg(typeRep<B>(), typeRep<A>()));
+  // // <T extends B> T -> B <: <T extends B> T -> A
+  checkProperSubtype(TYPE_REF<B Function<T extends B>(T)>(),
+      TYPE_REF<A Function<T extends B>(T)>());
 
   // Bound is a Future.
   // <T extends Future<B>> void -> void <: <T extends Future<B>> void -> void
-  checkSubtype(genericFunction(typeRep<Future<B>>()),
-      genericFunction(typeRep<Future<B>>()));
+  checkSubtype(TYPE_REF<void Function<T extends Future<B>>()>(),
+      TYPE_REF<void Function<T extends Future<B>>()>());
 
   // <T extends Future<B>> A -> T <: <T extends Future<B>> B -> T
-  checkProperSubtype(functionGenericReturn(typeRep<Future<B>>(), typeRep<A>()),
-      functionGenericReturn(typeRep<Future<B>>(), typeRep<B>()));
+  checkProperSubtype(TYPE_REF<T Function<T extends Future<B>>(A)>(),
+      TYPE_REF<T Function<T extends Future<B>>(B)>());
 
   // <T extends Future<B>> T -> B <: <T extends Future<B>> T -> A
-  checkProperSubtype(functionGenericArg(typeRep<Future<B>>(), typeRep<B>()),
-      functionGenericArg(typeRep<Future<B>>(), typeRep<A>()));
+  checkProperSubtype(TYPE_REF<B Function<T extends Future<B>>(T)>(),
+      TYPE_REF<A Function<T extends Future<B>>(T)>());
 
   // Bound is a FutureOr.
   // <T extends FutureOr<B>> void -> void <:
   //    <T extends FutureOr<B>> void -> void
-  checkSubtype(genericFunction(typeRep<FutureOr<B>>()),
-      genericFunction(typeRep<FutureOr<B>>()));
+  checkSubtype(TYPE_REF<void Function<T extends FutureOr<B>>()>(),
+      TYPE_REF<void Function<T extends FutureOr<B>>()>());
 
   // <T extends FutureOr<B>> A -> T <: <T extends FutureOr<B>> B -> T
-  checkProperSubtype(
-      functionGenericReturn(typeRep<FutureOr<B>>(), typeRep<A>()),
-      functionGenericReturn(typeRep<FutureOr<B>>(), typeRep<B>()));
+  checkProperSubtype(TYPE_REF<T Function<T extends FutureOr<B>>(A)>(),
+      TYPE_REF<T Function<T extends FutureOr<B>>(B)>());
 
   // <T extends FutureOr<B>> T -> B <: <T extends FutureOr<B>> T -> A
-  checkProperSubtype(functionGenericArg(typeRep<FutureOr<B>>(), typeRep<B>()),
-      functionGenericArg(typeRep<FutureOr<B>>(), typeRep<A>()));
+  checkProperSubtype(TYPE_REF<B Function<T extends FutureOr<B>>(T)>(),
+      TYPE_REF<A Function<T extends FutureOr<B>>(T)>());
 
   // Generics.
   // D <:> D<B>
-  checkMutualSubtype(typeRep<D>(), typeRep<D<B>>());
+  checkMutualSubtype(TYPE_REF<D>(), TYPE_REF<D<B>>());
   // D<C> <: D<B>
-  checkProperSubtype(typeRep<D<C>>(), typeRep<D<B>>());
+  checkProperSubtype(TYPE_REF<D<C>>(), TYPE_REF<D<B>>());
 
   // F <: E
-  checkProperSubtype(typeRep<F>(), typeRep<E>());
+  checkProperSubtype(TYPE_REF<F>(), TYPE_REF<E>());
   // F <: E<A, A>
-  checkProperSubtype(typeRep<F>(), typeRep<E<A, A>>());
+  checkProperSubtype(TYPE_REF<F>(), TYPE_REF<E<A, A>>());
   // E<B, B> <: E
-  checkProperSubtype(typeRep<E<B, B>>(), typeRep<E>());
+  checkProperSubtype(TYPE_REF<E<B, B>>(), TYPE_REF<E>());
   // E<B, B> <: E<A, A>
-  checkProperSubtype(typeRep<E<B, B>>(), typeRep<E<A, A>>());
+  checkProperSubtype(TYPE_REF<E<B, B>>(), TYPE_REF<E<A, A>>());
 
   // Nullable interface subtypes.
   // B <: A?
-  checkProperSubtype(typeRep<B>(), typeRep<A?>());
+  checkProperSubtype(TYPE_REF<B>(), TYPE_REF<A?>());
   // C <: A?
-  checkProperSubtype(typeRep<C>(), typeRep<A?>());
+  checkProperSubtype(TYPE_REF<C>(), TYPE_REF<A?>());
   // B? <: A?
-  checkProperSubtype(typeRep<B?>(), typeRep<A?>());
+  checkProperSubtype(TYPE_REF<B?>(), TYPE_REF<A?>());
   // C? <: A?
-  checkProperSubtype(typeRep<C?>(), typeRep<A?>());
+  checkProperSubtype(TYPE_REF<C?>(), TYPE_REF<A?>());
 
   // Mixed mode.
   // B* <: A
-  checkProperSubtype(legacyTypeRep<B>(), typeRep<A>());
+  checkProperSubtype(LEGACY_TYPE_REF<B>(), TYPE_REF<A>());
   // B* <: A?
-  checkProperSubtype(legacyTypeRep<B>(), typeRep<A?>());
+  checkProperSubtype(LEGACY_TYPE_REF<B>(), TYPE_REF<A?>());
   // A* <\: B
-  checkSubtypeFailure(legacyTypeRep<A>(), typeRep<B>());
+  checkSubtypeFailure(LEGACY_TYPE_REF<A>(), TYPE_REF<B>());
   // B? <: A*
-  checkProperSubtype(typeRep<B?>(), legacyTypeRep<A>());
+  checkProperSubtype(TYPE_REF<B?>(), LEGACY_TYPE_REF<A>());
   // B <: A*
-  checkProperSubtype(typeRep<B>(), legacyTypeRep<A>());
+  checkProperSubtype(TYPE_REF<B>(), LEGACY_TYPE_REF<A>());
   // A <: B*
-  checkSubtypeFailure(typeRep<A>(), legacyTypeRep<B>());
+  checkSubtypeFailure(TYPE_REF<A>(), LEGACY_TYPE_REF<B>());
   // A? <: B*
-  checkSubtypeFailure(typeRep<A?>(), legacyTypeRep<B>());
+  checkSubtypeFailure(TYPE_REF<A?>(), LEGACY_TYPE_REF<B>());
 
   // Allowed in weak mode.
   // dynamic <\: Object
-  checkSubtypeFailure(typeRep<dynamic>(), typeRep<Object>());
+  checkSubtypeFailure(TYPE_REF<dynamic>(), TYPE_REF<Object>());
   // void <\: Object
-  checkSubtypeFailure(typeRep<void>(), typeRep<Object>());
+  checkSubtypeFailure(TYPE_REF<void>(), TYPE_REF<Object>());
   // Object? <\: Object
-  checkSubtypeFailure(typeRep<Object?>(), typeRep<Object>());
+  checkSubtypeFailure(TYPE_REF<Object?>(), TYPE_REF<Object>());
   // A? <\: Object
-  checkSubtypeFailure(typeRep<A?>(), typeRep<Object>());
+  checkSubtypeFailure(TYPE_REF<A?>(), TYPE_REF<Object>());
   // A? <\: A
-  checkSubtypeFailure(typeRep<A?>(), typeRep<A>());
+  checkSubtypeFailure(TYPE_REF<A?>(), TYPE_REF<A>());
   // Null <\: Never
-  checkSubtypeFailure(typeRep<Null>(), typeRep<Never>());
+  checkSubtypeFailure(TYPE_REF<Null>(), TYPE_REF<Never>());
   // Null <\: Object
-  checkSubtypeFailure(typeRep<Null>(), typeRep<Object>());
+  checkSubtypeFailure(TYPE_REF<Null>(), TYPE_REF<Object>());
   // Null <\: A
-  checkSubtypeFailure(typeRep<Null>(), typeRep<A>());
+  checkSubtypeFailure(TYPE_REF<Null>(), TYPE_REF<A>());
   // Null <\: FutureOr<A>
-  checkSubtypeFailure(typeRep<Null>(), typeRep<FutureOr<A>>());
+  checkSubtypeFailure(TYPE_REF<Null>(), TYPE_REF<FutureOr<A>>());
   // Null <\: Future<A>
-  checkSubtypeFailure(typeRep<Null>(), typeRep<Future<A>>());
+  checkSubtypeFailure(TYPE_REF<Null>(), TYPE_REF<Future<A>>());
   // FutureOr<Null> <\: Future<Null>
-  checkSubtypeFailure(typeRep<FutureOr<Null>>(), typeRep<Future<Null>>());
+  checkSubtypeFailure(TYPE_REF<FutureOr<Null>>(), TYPE_REF<Future<Null>>());
   // Null <\: Future<A?>
-  checkSubtypeFailure(typeRep<Null>(), typeRep<Future<A?>>());
+  checkSubtypeFailure(TYPE_REF<Null>(), TYPE_REF<Future<A?>>());
   // FutureOr<Object?> <\: Object
-  checkSubtypeFailure(typeRep<FutureOr<Object?>>(), typeRep<Object>());
+  checkSubtypeFailure(TYPE_REF<FutureOr<Object?>>(), TYPE_REF<Object>());
   // FutureOr<dynamic> <\: Object
-  checkSubtypeFailure(typeRep<FutureOr<dynamic>>(), typeRep<Object>());
+  checkSubtypeFailure(TYPE_REF<FutureOr<dynamic>>(), TYPE_REF<Object>());
   // FutureOr<void> <\: Object
-  checkSubtypeFailure(typeRep<FutureOr<void>>(), typeRep<Object>());
+  checkSubtypeFailure(TYPE_REF<FutureOr<void>>(), TYPE_REF<Object>());
 }

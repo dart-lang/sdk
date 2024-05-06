@@ -18,21 +18,33 @@ class ConvertAllFormalParametersToNamedTest extends RefactoringTest {
   @override
   String get refactoringName => ConvertAllFormalParametersToNamed.commandName;
 
-  Future<void> test_formalParameters_optionalNamed() async {
+  Future<void> test_formalParameters_empty() async {
     addTestSource(r'''
-void ^test({int? a}) {}
+void ^test() {}
 
 void f() {
-  test(a: 0);
+  test();
+}
+''');
+
+    await _assertNoRefactoring();
+  }
+
+  Future<void> test_formalParameters_optionalNamed() async {
+    addTestSource(r'''
+void ^test(int a, {int? b}) {}
+
+void f() {
+  test(0, b: 1);
 }
 ''');
 
     await verifyRefactoring(r'''
 >>>>>>>>>> lib/main.dart
-void test({required int? a}) {}
+void test({required int a, int? b}) {}
 
 void f() {
-  test(a: 0);
+  test(a: 0, b: 1);
 }
 ''');
   }
@@ -65,14 +77,7 @@ void f() {
 }
 ''');
 
-    await verifyRefactoring(r'''
->>>>>>>>>> lib/main.dart
-void test({required int? a}) {}
-
-void f() {
-  test(a: 0);
-}
-''');
+    await _assertNoRefactoring();
   }
 
   Future<void> test_formalParameters_requiredPositional() async {

@@ -6,12 +6,9 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/names.dart';
 
 import '../kernel/internal_ast.dart';
-import '../names.dart';
-import 'inference_results.dart';
-import 'inference_visitor_base.dart';
-import 'object_access_target.dart';
 
 /// Creates an invocation of the [target] constructor with the given
 /// [arguments].
@@ -25,65 +22,6 @@ ConstructorInvocation createConstructorInvocation(
 StaticInvocation createStaticInvocation(Procedure target, Arguments arguments,
     {required int fileOffset}) {
   return new StaticInvocation(target, arguments)..fileOffset = fileOffset;
-}
-
-/// Creates a statically resolved instance invocation of the operator
-/// [operatorName] on [left] of type [leftType] with argument [right]. For
-/// instance for creating `left + right`.
-InstanceInvocation createOperatorInvocation(InferenceVisitorBase base,
-    DartType leftType, Expression left, Name operatorName, Expression right,
-    {required int fileOffset}) {
-  ObjectAccessTarget target = base
-      .findInterfaceMember(leftType, operatorName, fileOffset, isSetter: false);
-  return new InstanceInvocation(InstanceAccessKind.Instance, left, operatorName,
-      createArguments([right], fileOffset: fileOffset),
-      functionType: target.getFunctionType(base),
-      interfaceTarget: target.classMember as Procedure)
-    ..fileOffset = fileOffset;
-}
-
-/// Creates a statically resolved getter/field access of [name] on [receiver] of
-/// type [receiverType].
-InstanceGet createInstanceGet(InferenceVisitorBase base, DartType receiverType,
-    Expression receiver, Name name,
-    {required int fileOffset}) {
-  ObjectAccessTarget target =
-      base.findInterfaceMember(receiverType, name, fileOffset, isSetter: false);
-  Member? member = target.classMember;
-  assert(member is Field || member is Procedure && member.isGetter);
-  return new InstanceGet(InstanceAccessKind.Instance, receiver, name,
-      resultType: target.getGetterType(base), interfaceTarget: member!)
-    ..fileOffset = fileOffset;
-}
-
-/// Creates a statically resolved method invocation of [name] on [receiver] of
-/// type [receiverType] with the given [positionalArguments].
-InstanceInvocation createInstanceInvocation(
-    InferenceVisitorBase base,
-    DartType receiverType,
-    Expression receiver,
-    Name name,
-    List<Expression> positionalArguments,
-    {required int fileOffset}) {
-  ObjectAccessTarget target =
-      base.findInterfaceMember(receiverType, name, fileOffset, isSetter: false);
-  return new InstanceInvocation(InstanceAccessKind.Instance, receiver, name,
-      createArguments(positionalArguments, fileOffset: fileOffset),
-      functionType: target.getFunctionType(base),
-      interfaceTarget: target.classMember as Procedure)
-    ..fileOffset = fileOffset;
-}
-
-/// Creates a call to `==` on [left] of type [leftType] with argument [right].
-EqualsCall createEqualsCall(InferenceVisitorBase base, DartType leftType,
-    Expression left, Expression right,
-    {required int fileOffset}) {
-  ObjectAccessTarget target = base
-      .findInterfaceMember(leftType, equalsName, fileOffset, isSetter: false);
-  return new EqualsCall(left, right,
-      functionType: target.getFunctionType(base),
-      interfaceTarget: target.classMember as Procedure)
-    ..fileOffset = fileOffset;
 }
 
 /// Creates a `== null` test on [expression].
@@ -182,12 +120,6 @@ VariableDeclaration createVariable(Expression expression, DartType type) {
     ..fileOffset = expression.fileOffset;
 }
 
-/// Creates a [VariableDeclaration] for the expression inference [result]
-/// using `result.expression.fileOffset` as the file offset for the declaration.
-VariableDeclaration createVariableForResult(ExpressionInferenceResult result) {
-  return createVariable(result.expression, result.inferredType);
-}
-
 /// Creates a [VariableGet] of [variable] using `variable.fileOffset` as the
 /// file offset for the expression.
 VariableGet createVariableGet(VariableDeclaration variable,
@@ -270,30 +202,6 @@ NullCheck createNullCheck(Expression expression, {required int fileOffset}) {
   return new NullCheck(expression)..fileOffset = fileOffset;
 }
 
-/// Creates a record indexed access of [index] on [receiver] of type
-/// [receiverType].
-RecordIndexGet createRecordIndexGet(
-    RecordType receiverType, Expression receiver, int index,
-    {required int fileOffset}) {
-  return new RecordIndexGet(receiver, receiverType, index)
-    ..fileOffset = fileOffset;
-}
-
-/// Creates a record named access of [name] on [receiver] of type
-/// [receiverType].
-RecordNameGet createRecordNameGet(
-    RecordType receiverType, Expression receiver, String name,
-    {required int fileOffset}) {
-  return new RecordNameGet(receiver, receiverType, name)
-    ..fileOffset = fileOffset;
-}
-
-/// Creates a [StringConcatenation] of the [parts].
-StringConcatenation createStringConcatenation(List<Expression> parts,
-    {required int fileOffset}) {
-  return new StringConcatenation(parts)..fileOffset = fileOffset;
-}
-
 /// Creates a block expression using [body] as the body and [value] as the
 /// resulting value.
 BlockExpression createBlockExpression(Block body, Expression value,
@@ -303,8 +211,10 @@ BlockExpression createBlockExpression(Block body, Expression value,
 
 /// Creates a throw of [expression] using the file offset of [expression] for
 /// the throw expression.
-Throw createThrow(Expression expression) {
-  return new Throw(expression)..fileOffset = expression.fileOffset;
+Throw createThrow(Expression expression, {bool forErrorHandling = false}) {
+  return new Throw(expression)
+    ..fileOffset = expression.fileOffset
+    ..forErrorHandling = forErrorHandling;
 }
 
 /// Creates an [ExpressionStatement] of [expression] using the file offset of
@@ -374,10 +284,4 @@ SwitchStatement createSwitchStatement(
 LabeledStatement createLabeledStatement(Statement statement,
     {required int fileOffset}) {
   return new LabeledStatement(statement)..fileOffset = fileOffset;
-}
-
-/// Creates a return statement of [expression].
-ReturnStatement createReturnStatement(Expression expression,
-    {required int fileOffset}) {
-  return new ReturnStatement(expression)..fileOffset = fileOffset;
 }

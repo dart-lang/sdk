@@ -8,6 +8,7 @@ environment:
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
+  _fe_analyzer_shared: any
   args: any
   build_integration: any
   collection: any

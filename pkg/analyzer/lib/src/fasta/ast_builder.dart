@@ -68,7 +68,7 @@ import 'package:analyzer/src/fasta/doc_comment_builder.dart';
 import 'package:analyzer/src/fasta/error_converter.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
-import 'package:collection/collection.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -309,7 +309,8 @@ class AstBuilder extends StackListener {
   void beginEnum(Token enumKeyword) {}
 
   @override
-  void beginExtensionDeclaration(Token extensionKeyword, Token? nameToken) {
+  void beginExtensionDeclaration(
+      Token? augmentKeyword, Token extensionKeyword, Token? nameToken) {
     assert(optional('extension', extensionKeyword));
     assert(_classLikeBuilder == null);
     debugEvent("ExtensionHeader");
@@ -321,6 +322,7 @@ class AstBuilder extends StackListener {
     _classLikeBuilder = _ExtensionDeclarationBuilder(
       comment: comment,
       metadata: metadata,
+      augmentKeyword: augmentKeyword,
       extensionKeyword: extensionKeyword,
       name: nameToken,
       typeParameters: typeParameters,
@@ -1655,6 +1657,14 @@ class AstBuilder extends StackListener {
           rightParenthesis: rightParenthesis,
         );
       }
+      // Check for extension type name conflict.
+      var representationName = representation.fieldName;
+      if (representationName.lexeme == builder.name.lexeme) {
+        errorReporter.errorReporter?.atToken(
+          representationName,
+          ParserErrorCode.MEMBER_WITH_CLASS_NAME,
+        );
+      }
       declarations.add(
         builder.build(
           typeKeyword: typeKeyword,
@@ -2617,8 +2627,10 @@ class AstBuilder extends StackListener {
     var withClause = pop(NullValues.WithClause) as WithClauseImpl;
     var superclass = pop() as TypeAnnotationImpl;
     if (superclass is! NamedTypeImpl) {
-      errorReporter.errorReporter?.reportErrorForNode(
-          ParserErrorCode.EXPECTED_NAMED_TYPE_EXTENDS, superclass);
+      errorReporter.errorReporter?.atNode(
+        superclass,
+        ParserErrorCode.EXPECTED_NAMED_TYPE_EXTENDS,
+      );
       var beginToken = superclass.beginToken;
       var endToken = superclass.endToken;
       var currentToken = beginToken;
@@ -2813,9 +2825,9 @@ class AstBuilder extends StackListener {
         case final formalParameterType?:
           fieldType = formalParameterType;
         case null:
-          errorReporter.errorReporter?.reportErrorForToken(
-            ParserErrorCode.EXPECTED_REPRESENTATION_TYPE,
+          errorReporter.errorReporter?.atToken(
             leftParenthesis.next!,
+            ParserErrorCode.EXPECTED_REPRESENTATION_TYPE,
           );
           final typeNameToken = parser.rewriter.insertSyntheticIdentifier(
             leftParenthesis,
@@ -2829,9 +2841,9 @@ class AstBuilder extends StackListener {
       }
       if (firstFormalParameter.keyword case final keyword?) {
         if (keyword.keyword != Keyword.CONST) {
-          errorReporter.errorReporter?.reportErrorForToken(
-            ParserErrorCode.REPRESENTATION_FIELD_MODIFIER,
+          errorReporter.errorReporter?.atToken(
             keyword,
+            ParserErrorCode.REPRESENTATION_FIELD_MODIFIER,
           );
         }
       }
@@ -2840,21 +2852,21 @@ class AstBuilder extends StackListener {
       final maybeComma = firstFormalParameter.endToken.next;
       if (maybeComma != null && maybeComma.type == TokenType.COMMA) {
         if (formalParameterList.parameters.length == 1) {
-          errorReporter.errorReporter?.reportErrorForToken(
-            ParserErrorCode.REPRESENTATION_FIELD_TRAILING_COMMA,
+          errorReporter.errorReporter?.atToken(
             maybeComma,
+            ParserErrorCode.REPRESENTATION_FIELD_TRAILING_COMMA,
           );
         } else {
-          errorReporter.errorReporter?.reportErrorForToken(
-            ParserErrorCode.MULTIPLE_REPRESENTATION_FIELDS,
+          errorReporter.errorReporter?.atToken(
             maybeComma,
+            ParserErrorCode.MULTIPLE_REPRESENTATION_FIELDS,
           );
         }
       }
     } else {
-      errorReporter.errorReporter?.reportErrorForToken(
-        ParserErrorCode.EXPECTED_REPRESENTATION_FIELD,
+      errorReporter.errorReporter?.atToken(
         leftParenthesis.next!,
+        ParserErrorCode.EXPECTED_REPRESENTATION_FIELD,
       );
       fieldMetadata = [];
       final typeNameToken = parser.rewriter.insertSyntheticIdentifier(
@@ -3071,7 +3083,7 @@ class AstBuilder extends StackListener {
     debugEvent("SwitchBlock");
 
     var membersList = popTypedList2<List<SwitchMemberImpl>>(caseCount);
-    var members = membersList.expand((members) => members).toList();
+    var members = membersList.flattenedToList2;
 
     Set<String> labels = <String>{};
     for (var member in members) {
@@ -3175,17 +3187,15 @@ class AstBuilder extends StackListener {
         members[index] = updateSwitchMember(
           member: member,
           labels: labels,
-          statements: null,
         );
       }
       assert(labelCount == 0);
     }
 
-    var members2 = members.whereNotNull().toList();
+    var members2 = members.nonNulls.toList();
     if (members2.isNotEmpty) {
       members2.last = updateSwitchMember(
         member: members2.last,
-        labels: null,
         statements: statements,
       );
     }
@@ -3286,6 +3296,7 @@ class AstBuilder extends StackListener {
 
   @override
   void endTopLevelFields(
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -3323,6 +3334,7 @@ class AstBuilder extends StackListener {
       TopLevelVariableDeclarationImpl(
         comment: comment,
         metadata: metadata,
+        augmentKeyword: augmentToken,
         externalKeyword: externalToken,
         variableList: variableList,
         semicolon: semicolon,
@@ -3538,6 +3550,62 @@ class AstBuilder extends StackListener {
     var comment = _findComment(metadata, variables[0].beginToken);
     // var comment = _findComment(metadata,
     //     variables[0].beginToken ?? type?.beginToken ?? modifiers.beginToken);
+
+    // https://github.com/dart-lang/sdk/issues/53964
+    if (semicolon != null && semicolon.isSynthetic) {
+      if (variables.singleOrNull case var variable?) {
+        if (type is NamedTypeImpl) {
+          var importPrefix = type.importPrefix;
+          if (importPrefix != null) {
+            // x.^
+            // await y.foo();
+            {
+              var awaitToken = type.name2;
+              if (awaitToken.type == Keyword.AWAIT) {
+                push(
+                  ExpressionStatementImpl(
+                    expression: PrefixedIdentifierImpl(
+                      prefix: SimpleIdentifierImpl(importPrefix.name),
+                      period: importPrefix.period,
+                      identifier: SimpleIdentifierImpl(
+                        parser.rewriter.insertSyntheticIdentifier(
+                          importPrefix.period,
+                        ),
+                      ),
+                    ),
+                    semicolon: semicolon,
+                  ),
+                );
+                parser.rewriter.insertToken(semicolon, awaitToken);
+                parser.rewriter.insertToken(awaitToken, variable.name);
+                return;
+              }
+            }
+            // x.foo^
+            // await y.bar();
+            {
+              var awaitToken = variable.name;
+              if (awaitToken.type == Keyword.AWAIT ||
+                  awaitToken.type == TokenType.IDENTIFIER) {
+                push(
+                  ExpressionStatementImpl(
+                    expression: PrefixedIdentifierImpl(
+                      prefix: SimpleIdentifierImpl(importPrefix.name),
+                      period: importPrefix.period,
+                      identifier: SimpleIdentifierImpl(type.name2),
+                    ),
+                    semicolon: semicolon,
+                  ),
+                );
+                parser.rewriter.insertToken(semicolon, awaitToken);
+                return;
+              }
+            }
+          }
+        }
+      }
+    }
+
     push(
       VariableDeclarationStatementImpl(
         variableList: VariableDeclarationListImpl(
@@ -3770,9 +3838,9 @@ class AstBuilder extends StackListener {
       //  any type annotation for recovery purposes, and (b) extending the
       //  parser to parse a generic function type at this location.
       if (supertype != null) {
-        errorReporter.errorReporter?.reportErrorForNode(
-          ParserErrorCode.EXPECTED_NAMED_TYPE_EXTENDS,
+        errorReporter.errorReporter?.atNode(
           supertype,
+          ParserErrorCode.EXPECTED_NAMED_TYPE_EXTENDS,
         );
       }
     }
@@ -5567,7 +5635,7 @@ class AstBuilder extends StackListener {
 
     final tailList = List<T?>.filled(count, null, growable: true);
     stack.popList(count, tailList, null);
-    return tailList.whereNotNull().toList();
+    return tailList.nonNulls.toList();
   }
 
   // TODO(scheglov): This is probably not optimal.
@@ -5663,10 +5731,11 @@ class AstBuilder extends StackListener {
 
     if (modifiers?.externalKeyword != null) {
       for (final formalParameter in parameters.parameters) {
-        if (formalParameter is FieldFormalParameterImpl) {
-          errorReporter.errorReporter?.reportErrorForToken(
+        final notDefault = formalParameter.notDefault;
+        if (notDefault is FieldFormalParameterImpl) {
+          errorReporter.errorReporter?.atToken(
+            notDefault.thisKeyword,
             ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS,
-            formalParameter.thisKeyword,
           );
         }
       }
@@ -5818,7 +5887,10 @@ class AstBuilder extends StackListener {
       if (type is NamedTypeImpl) {
         namedTypes.add(type);
       } else {
-        errorReporter.errorReporter?.reportErrorForNode(errorCode, type);
+        errorReporter.errorReporter?.atNode(
+          type,
+          errorCode,
+        );
       }
     }
     return namedTypes;
@@ -6016,6 +6088,7 @@ class _EnumDeclarationBuilder extends _ClassLikeDeclarationBuilder {
 }
 
 class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
+  final Token? augmentKeyword;
   final Token extensionKeyword;
   final Token? name;
 
@@ -6025,6 +6098,7 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required super.typeParameters,
     required super.leftBracket,
     required super.rightBracket,
+    required this.augmentKeyword,
     required this.extensionKeyword,
     required this.name,
   });
@@ -6037,6 +6111,7 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     return ExtensionDeclarationImpl(
       comment: comment,
       metadata: metadata,
+      augmentKeyword: augmentKeyword,
       extensionKeyword: extensionKeyword,
       typeKeyword: typeKeyword,
       name: name,

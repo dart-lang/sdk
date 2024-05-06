@@ -73,10 +73,12 @@ static method test2() → void {
 }
 static method test3() → void {
   {
-    hoisted core::int v;
     final synthesized core::int #0#0 = 42;
-    if((let final core::int #t4 = v = #0#0 in true) && (v = 1).{core::num::>}(0){(core::num) → core::bool}) {
-      core::print(v);
+    {
+      hoisted core::int v;
+      if((let final core::int #t4 = v = #0#0 in true) && (v = 1).{core::num::>}(0){(core::num) → core::bool}) {
+        core::print(v);
+      }
     }
   }
 }
@@ -84,12 +86,14 @@ static method test4() → void {
   core::List<dynamic> l = block {
     final core::List<dynamic> #t5 = core::_GrowableList::_literal1<dynamic>(1);
     {
-      hoisted core::int v;
       final synthesized core::int #0#0 = 42;
-      if(#0#0 is core::int && (let final core::int #t6 = v = #0#0 in true) && (v = 1).{core::num::>}(0){(core::num) → core::bool})
-        #t5.{core::List::add}{Invariant}(v){(dynamic) → void};
-      else
-        #t5.{core::List::add}{Invariant}(1){(dynamic) → void};
+      {
+        hoisted core::int v;
+        if(#0#0 is core::int && (let final core::int #t6 = v = #0#0 in true) && (v = 1).{core::num::>}(0){(core::num) → core::bool})
+          #t5.{core::List::add}{Invariant}(v){(dynamic) → void};
+        else
+          #t5.{core::List::add}{Invariant}(1){(dynamic) → void};
+      }
     }
     #t5.{core::List::add}{Invariant}(3){(dynamic) → void};
   } =>#t5;
@@ -97,28 +101,30 @@ static method test4() → void {
 }
 static method test5(dynamic o) → void {
   {
-    hoisted dynamic a;
     final synthesized dynamic #1#0 = o;
-    if(#1#0 is core::List<dynamic> && #1#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t7 = a = #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && ( block {
-      core::bool #t8;
-      final synthesized dynamic #0#0 = a;
-      #L3:
-      {
+    {
+      hoisted dynamic a;
+      if(#1#0 is core::List<dynamic> && #1#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t7 = a = #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && ( block {
+        core::bool #t8;
+        final synthesized dynamic #0#0 = a;
+        #L3:
         {
-          if(#C2 =={core::num::==}{(core::Object) → core::bool} #0#0 && (a = 4).{core::num::<}(1){(core::num) → core::bool}) {
-            #t8 = true;
-            break #L3;
+          {
+            if(#C2 =={core::num::==}{(core::Object) → core::bool} #0#0 && (a = 4).{core::num::<}(1){(core::num) → core::bool}) {
+              #t8 = true;
+              break #L3;
+            }
+          }
+          {
+            if(true) {
+              #t8 = false;
+              break #L3;
+            }
           }
         }
-        {
-          if(true) {
-            #t8 = false;
-            break #L3;
-          }
-        }
+      } =>#t8)) {
+        core::print(a);
       }
-    } =>#t8)) {
-      core::print(a);
     }
   }
 }

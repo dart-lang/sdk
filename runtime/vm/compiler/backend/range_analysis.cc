@@ -34,7 +34,7 @@ static void CheckRangeForRepresentation(const Assert& assert,
     assert.Fail(
         "During range analysis for:\n  %s\n"
         "expected range containing only %s-representable values, but got %s",
-        instr->ToCString(), RepresentationToCString(rep),
+        instr->ToCString(), RepresentationUtils::ToCString(rep),
         Range::ToCString(range));
   }
 }
@@ -2105,6 +2105,9 @@ static RangeBoundary::RangeSize RepresentationToRangeSize(Representation r) {
   switch (r) {
     case kTagged:
       return RangeBoundary::kRangeBoundarySmi;
+    case kUnboxedInt8:
+      return RangeBoundary::kRangeBoundaryInt8;
+    case kUnboxedInt16:
     case kUnboxedUint8:  // Overapproximate Uint8 as Int16.
       return RangeBoundary::kRangeBoundaryInt16;
     case kUnboxedInt32:
@@ -2746,6 +2749,8 @@ static const Range* GetInputRange(RangeAnalysis* analysis,
   switch (size) {
     case RangeBoundary::kRangeBoundarySmi:
       return analysis->GetSmiRange(input);
+    case RangeBoundary::kRangeBoundaryInt8:
+    case RangeBoundary::kRangeBoundaryInt16:
     case RangeBoundary::kRangeBoundaryInt32:
       return input->definition()->range();
     case RangeBoundary::kRangeBoundaryInt64:
@@ -2937,45 +2942,14 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
 }
 
 void LoadIndexedInstr::InferRange(RangeAnalysis* analysis, Range* range) {
-  switch (class_id()) {
-    case kTypedDataInt8ArrayCid:
-      *range = Range(RangeBoundary::FromConstant(-128),
-                     RangeBoundary::FromConstant(127));
-      break;
-    case kTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
-    case kExternalTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
-      *range = Range(RangeBoundary::FromConstant(0),
-                     RangeBoundary::FromConstant(255));
-      break;
-    case kTypedDataInt16ArrayCid:
-      *range = Range(RangeBoundary::FromConstant(-32768),
-                     RangeBoundary::FromConstant(32767));
-      break;
-    case kTypedDataUint16ArrayCid:
-      *range = Range(RangeBoundary::FromConstant(0),
-                     RangeBoundary::FromConstant(65535));
-      break;
-    case kTypedDataInt32ArrayCid:
-      *range = Range(RangeBoundary::FromConstant(kMinInt32),
-                     RangeBoundary::FromConstant(kMaxInt32));
-      break;
-    case kTypedDataUint32ArrayCid:
-      *range = Range(RangeBoundary::FromConstant(0),
-                     RangeBoundary::FromConstant(kMaxUint32));
-      break;
-    case kOneByteStringCid:
-      *range = Range(RangeBoundary::FromConstant(0),
-                     RangeBoundary::FromConstant(0xFF));
-      break;
-    case kTwoByteStringCid:
-      *range = Range(RangeBoundary::FromConstant(0),
-                     RangeBoundary::FromConstant(0xFFFF));
-      break;
-    default:
-      Definition::InferRange(analysis, range);
-      break;
+  // Use the precise array element representation instead of the returned
+  // representation to avoid overapproximating the range for small elements.
+  auto const rep =
+      RepresentationUtils::RepresentationOfArrayElement(class_id());
+  if (RepresentationUtils::IsUnboxed(rep)) {
+    *range = Range::Full(rep);
+  } else {
+    Definition::InferRange(analysis, range);
   }
 }
 
@@ -3024,13 +2998,11 @@ void LoadCodeUnitsInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   ASSERT(element_count_ > 0);
   switch (class_id()) {
     case kOneByteStringCid:
-    case kExternalOneByteStringCid:
       ASSERT(element_count_ <= 4);
       *range = Range(zero, RangeBoundary::FromConstant(
                                Utils::NBitMask(kBitsPerByte * element_count_)));
       break;
     case kTwoByteStringCid:
-    case kExternalTwoByteStringCid:
       ASSERT(element_count_ <= 2);
       *range = Range(zero, RangeBoundary::FromConstant(Utils::NBitMask(
                                2 * kBitsPerByte * element_count_)));
@@ -3173,8 +3145,8 @@ void IntConverterInstr::InferRange(RangeAnalysis* analysis, Range* range) {
     *range = to_range;
   } else if (RepresentationUtils::ValueSize(to()) >
                  RepresentationUtils::ValueSize(from()) &&
-             (!RepresentationUtils::IsUnsigned(to()) ||
-              RepresentationUtils::IsUnsigned(from()))) {
+             (!RepresentationUtils::IsUnsignedInteger(to()) ||
+              RepresentationUtils::IsUnsignedInteger(from()))) {
     // All signed unboxed ints of larger sizes can represent all values for
     // signed or unsigned unboxed ints of smaller sizes, and all unsigned
     // unboxed ints of larger sizes can represent all values for unsigned

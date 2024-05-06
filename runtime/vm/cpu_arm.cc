@@ -15,10 +15,9 @@
 #include <libkern/OSCacheControl.h>
 #elif defined(DART_HOST_OS_WINDOWS)
 #include <processthreadsapi.h>
-#endif
-#if !defined(DART_HOST_OS_WINDOWS)
-#include <string.h>      /* NOLINT */
-#include <sys/utsname.h> /* NOLINT */
+#elif defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
+#include <asm/hwcap.h>
+#include <sys/auxv.h>
 #endif
 #endif
 
@@ -140,72 +139,37 @@ void HostCPUFeatures::Init() {
 }
 #else  // DART_HOST_OS_IOS
 void HostCPUFeatures::Init() {
-  bool is_arm64 = false;
+  // Reading /proc/cpuinfo under QEMU can report the host CPU instead of the
+  // emulated CPU.
+  unsigned long hwcap = getauxval(AT_HWCAP);  // NOLINT
+  integer_division_supported_ = (hwcap & HWCAP_IDIVA) != 0;
+  neon_supported_ = (hwcap & HWCAP_NEON) != 0;
+
   CpuInfo::Init();
   hardware_ = CpuInfo::GetCpuModel();
 
-  // QEMU may report host cpuinfo instead of emulated cpuinfo, use uname as a
-  // fallback for checking if CPU is AArch64 or ARMv7.
-  struct utsname uname_;
-  int ret_ = uname(&uname_);
-
-  // Check for ARMv7, or aarch64.
-  // It can be in either the Processor or Model information fields.
-  if (CpuInfo::FieldContains(kCpuInfoProcessor, "aarch64") ||
-      CpuInfo::FieldContains(kCpuInfoModel, "aarch64") ||
-      CpuInfo::FieldContains(kCpuInfoArchitecture, "8") ||
-      CpuInfo::FieldContains(kCpuInfoArchitecture, "AArch64") ||
-      (ret_ == 0 && (strstr(uname_.machine, "aarch64") != nullptr ||
-                     strstr(uname_.machine, "arm64") != nullptr ||
-                     strstr(uname_.machine, "armv8") != nullptr))) {
-    // pretend that this arm64 cpu is really an ARMv7
-    is_arm64 = true;
-  } else if (!CpuInfo::FieldContains(kCpuInfoProcessor, "ARMv7") &&
-             !CpuInfo::FieldContains(kCpuInfoModel, "ARMv7") &&
-             !CpuInfo::FieldContains(kCpuInfoArchitecture, "7") &&
-             !(ret_ == 0 && strstr(uname_.machine, "armv7") != nullptr)) {
-    FATAL("Unrecognized ARM CPU architecture.");
+  // Qualcomm Krait CPUs (QCT APQ8064) in Nexus 4 and 7 incorrectly report that
+  // they lack integer division.
+  if (CpuInfo::FieldContains(kCpuInfoHardware, "QCT APQ8064")) {
+    integer_division_supported_ = true;
+  }
+  // Marvell Armada 370/XP incorrectly reports that it has integer division.
+  if (CpuInfo::FieldContains(kCpuInfoHardware, "Marvell Armada 370/XP")) {
+    integer_division_supported_ = false;
+  }
+  // Some Android ARM emulators claim support for integer division but do not
+  // actually support it.
+  if (CpuInfo::FieldContains(kCpuInfoHardware, "Dummy Virtual Machine")) {
+    integer_division_supported_ = false;
   }
 
-  // Has integer division.
-  // Special cases:
-  // - Qualcomm Krait CPUs (QCT APQ8064) in Nexus 4 and 7 incorrectly report
-  //   that they lack integer division.
-  // - Marvell Armada 370/XP incorrectly reports that it has integer division.
-  bool is_krait = CpuInfo::FieldContains(kCpuInfoHardware, "QCT APQ8064");
-  bool is_armada_370xp =
-      CpuInfo::FieldContains(kCpuInfoHardware, "Marvell Armada 370/XP");
-  bool is_virtual_machine =
-      CpuInfo::FieldContains(kCpuInfoHardware, "Dummy Virtual Machine");
-#if defined(DART_HOST_OS_ANDROID)
-  bool is_android = true;
-#else
-  bool is_android = false;
-#endif
-  if (is_krait) {
-    integer_division_supported_ = FLAG_use_integer_division;
-  } else if (is_android && is_arm64) {
-    // Various Android ARM64 devices, including the Qualcomm Snapdragon 820/821
-    // CPUs (MSM 8996 and MSM8996pro) in Xiaomi MI5 and Pixel lack integer
-    // division even though ARMv8 requires it in A32. Instead of attempting to
-    // track all of these devices, we conservatively disable use of integer
-    // division on Android ARM64 devices.
-    // TODO(29270): /proc/self/auxv might be more reliable here.
+  // Allow flags to override feature detection.
+  if (!FLAG_use_integer_division) {
     integer_division_supported_ = false;
-  } else if (is_armada_370xp) {
-    integer_division_supported_ = false;
-  } else if (is_android && !is_arm64 && is_virtual_machine) {
-    // Some Android ARM emulators claim support for integer division in
-    // /proc/cpuinfo but do not actually support it.
-    integer_division_supported_ = false;
-  } else {
-    integer_division_supported_ =
-        (CpuInfo::FieldContains(kCpuInfoFeatures, "idiva") || is_arm64) &&
-        FLAG_use_integer_division;
   }
-  neon_supported_ =
-      (CpuInfo::FieldContains(kCpuInfoFeatures, "neon") || is_arm64) &&
-      FLAG_use_neon;
+  if (!FLAG_use_neon) {
+    neon_supported_ = false;
+  }
 
 // Use the cross-compiler's predefined macros to determine whether we should
 // use the hard or soft float ABI.

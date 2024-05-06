@@ -22,7 +22,7 @@ class RemoveDuplicateCaseBulkTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.no_duplicate_case_values;
 
   @override
-  String? get testPackageLanguageVersion => '2.19';
+  String get testPackageLanguageVersion => '2.19';
 
   Future<void> test_singleFile() async {
     await resolveTestCode('''
@@ -65,7 +65,7 @@ class RemoveDuplicateCaseTest extends FixProcessorLintTest {
   String get lintCode => LintNames.no_duplicate_case_values;
 
   @override
-  String? get testPackageLanguageVersion => '2.19';
+  String get testPackageLanguageVersion => '2.19';
 
   Future<void> test_fallThroughFromPrevious() async {
     await resolveTestCode('''

@@ -48,7 +48,7 @@ import 'package:kernel/ast.dart';
 
 import 'package:kernel/target/targets.dart' show TargetFlags;
 
-import "package:vm/target/vm.dart" show VmTarget;
+import "package:vm/modular/target/vm.dart" show VmTarget;
 
 import "utils/io_utils.dart" show computeRepoDirUri;
 

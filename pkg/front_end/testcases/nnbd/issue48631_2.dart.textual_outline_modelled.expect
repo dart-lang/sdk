@@ -18,5 +18,7 @@ class C<Y> {
 final baz = C<int>((a) {
   return a.foo(B(Future.value(0)));
 });
+
 main() {}
+
 typedef Bar<V, U extends A> = V Function(U);

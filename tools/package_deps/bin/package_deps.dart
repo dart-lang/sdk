@@ -251,9 +251,10 @@ class Package implements Comparable<Package> {
     }
 
     if (publishable) {
-      // Validate that deps for published packages use semver (but not any).
+      // Validate that deps for published packages use semver (but not any),
+      // except for SDK vendored packages.
       for (PubDep dep in _declaredPubDeps) {
-        if (dep is SemverPubDep) continue;
+        if (dep is SemverPubDep || dep is SdkPubDep) continue;
 
         out('  Published packages should use semver deps:');
         out('    $dep');
@@ -269,9 +270,10 @@ class Package implements Comparable<Package> {
         fail = true;
       }
     } else {
-      // Validate that non-publishable packages use an 'any' constraint.
+      // Validate that non-publishable packages use an 'any' constraint,
+      // except for SDK vendored deps.
       for (PubDep dep in [..._declaredPubDeps, ..._declaredDevPubDeps]) {
-        if (dep is AnyPubDep) continue;
+        if (dep is AnyPubDep || dep is SdkPubDep) continue;
 
         out('  Prefer an `any` constraint for unpublished packages');
         out('    $dep');
@@ -375,6 +377,7 @@ class Package implements Comparable<Package> {
           line.startsWith('extension ') ||
           line.startsWith('void ') ||
           line.startsWith('Future ') ||
+          line.startsWith('Future<') ||
           line.startsWith('final ') ||
           line.startsWith('const ')) {
         break;
@@ -498,6 +501,8 @@ abstract class PubDep {
     } else if (dep is Map) {
       if (dep.containsKey('path')) {
         return PathPubDep(name, dep['path']);
+      } else if (dep.containsKey('sdk')) {
+        return SdkPubDep(name, dep['sdk'], dep['version']);
       } else {
         return UnhandledPubDep(name);
       }
@@ -512,6 +517,16 @@ class AnyPubDep extends PubDep {
 
   @override
   String toString() => '$name: any';
+}
+
+class SdkPubDep extends PubDep {
+  final String sdk;
+  final String? version;
+
+  SdkPubDep(String name, this.sdk, this.version) : super(name);
+
+  @override
+  String toString() => '$name: (sdk: $sdk, version: $version)';
 }
 
 class SemverPubDep extends PubDep {

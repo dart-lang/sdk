@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:macros/macros.dart';
 
 const Map<String, ClassData> expectedClassData = {
   'Class1': ClassData(fieldsOf: ['field1'], constructorsOf: ['']),
@@ -107,8 +107,8 @@ void checkTypeAnnotation(
   }
 }
 
-void checkParameterDeclaration(
-    ParameterData expected, ParameterDeclaration declaration, String context) {
+void checkParameterDeclaration(ParameterData expected,
+    FormalParameterDeclaration declaration, String context) {
   expect(
       expected.name, declaration.identifier.name, '$context.identifier.name');
   expect(expected.isNamed, declaration.isNamed, '$context.isNamed');
@@ -264,8 +264,8 @@ Future<void> checkTypeDeclarationResolver(
       await throws(() async {
         await introspector.typeDeclarationOf(identifier);
       }, '$name from $identifier',
-          expectedError: (e) => e is! ArgumentError
-              ? 'Expected ArgumentError, got ${e.runtimeType}: $e'
+          expectedError: (e) => e is! MacroImplementationException
+              ? 'Expected MacroImplementationException, got ${e.runtimeType}: $e'
               : null);
     } else {
       TypeDeclaration result = await introspector.typeDeclarationOf(identifier);

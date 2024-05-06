@@ -18,6 +18,7 @@
 /// kernel class, because multiple constructs in Dart may desugar to a tree
 /// with the same kind of root node.
 import 'package:kernel/ast.dart';
+import 'package:kernel/names.dart';
 import 'package:kernel/src/printer.dart';
 import 'package:kernel/text/ast_to_text.dart' show Precedence;
 import 'package:kernel/type_environment.dart';
@@ -26,7 +27,6 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart
     as shared;
 
 import '../builder/declaration_builders.dart';
-import '../names.dart';
 import '../problems.dart' show unsupported;
 import '../type_inference/inference_visitor.dart';
 import '../type_inference/inference_results.dart';
@@ -40,15 +40,6 @@ typedef SharedMatchContext = shared
 int getExtensionTypeParameterCount(Arguments arguments) {
   if (arguments is ArgumentsImpl) {
     return arguments._extensionTypeParameterCount;
-  } else {
-    // TODO(johnniwinther): Remove this path or assert why it is accepted.
-    return 0;
-  }
-}
-
-int getExtensionTypeArgumentCount(Arguments arguments) {
-  if (arguments is ArgumentsImpl) {
-    return arguments._explicitExtensionTypeArgumentCount;
   } else {
     // TODO(johnniwinther): Remove this path or assert why it is accepted.
     return 0;
@@ -695,7 +686,7 @@ class TypeAliasedFactoryInvocation extends StaticInvocation
 
   @override
   String toString() {
-    return "TypeAliasedConstructorInvocation(${toStringInternal()})";
+    return "TypeAliasedFactoryInvocation(${toStringInternal()})";
   }
 
   @override
@@ -730,27 +721,6 @@ class FunctionDeclarationImpl extends FunctionDeclaration {
   @override
   String toString() {
     return "FunctionDeclarationImpl(${toStringInternal()})";
-  }
-}
-
-/// Concrete shadow object representing a super initializer in kernel form.
-class InvalidSuperInitializerJudgment extends LocalInitializer
-    implements InitializerJudgment {
-  final Constructor target;
-  final ArgumentsImpl argumentsJudgment;
-
-  InvalidSuperInitializerJudgment(
-      this.target, this.argumentsJudgment, VariableDeclaration variable)
-      : super(variable);
-
-  @override
-  InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitInvalidSuperInitializerJudgment(this);
-  }
-
-  @override
-  String toString() {
-    return "InvalidSuperInitializerJudgment(${toStringInternal()})";
   }
 }
 
@@ -1150,12 +1120,6 @@ class VariableDeclarationImpl extends VariableDeclaration {
   /// This is static to avoid introducing a method that would be visible to
   /// the kernel.
   final bool isImplicitlyTyped;
-
-  // TODO(ahe): Remove this field. It's only used locally when compiling a
-  // method, and this can thus be tracked in a [Set] (actually, tracking this
-  // information in a [List] is probably even faster as the average size will
-  // be close to zero).
-  bool mutatedInClosure = false;
 
   /// Determines whether the given [VariableDeclarationImpl] represents a
   /// local function.
@@ -1698,38 +1662,6 @@ class StaticPostIncDec extends InternalExpression {
   @override
   String toString() {
     return "StaticPostIncDec(${toStringInternal()})";
-  }
-}
-
-/// Internal expression representing an static member post inc/dec expression.
-///
-/// An local variable post inc/dec expression of the form `super.a++` is encoded
-/// as the expression:
-///
-///     let v1 = super.a in let v2 = super.a = v1 + 1 in v1
-///
-class SuperPostIncDec extends InternalExpression {
-  /// The expression that reads the static member.
-  VariableDeclarationImpl read;
-
-  /// The expression that writes the result of the binary operation to the
-  /// static member.
-  VariableDeclarationImpl write;
-
-  SuperPostIncDec(this.read, this.write) {
-    read.parent = this;
-    write.parent = this;
-  }
-
-  @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
-    return visitor.visitSuperPostIncDec(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "SuperPostIncDec(${toStringInternal()})";
   }
 }
 
@@ -3229,11 +3161,6 @@ class IfCaseMapEntry extends TreeNode
     otherwise?.parent = this;
   }
 
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
-    throw new UnsupportedError("IfCaseMapEntry.acceptInference");
-  }
-
   @override
   void toTextInternal(AstPrinter printer) {
     printer.write('if (');
@@ -3344,11 +3271,6 @@ class PatternForMapEntry extends TreeNode
       required this.condition,
       required this.updates,
       required this.body});
-
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
-    throw new UnsupportedError("PatternForElement.acceptInference");
-  }
 
   @override
   void toTextInternal(AstPrinter printer) {

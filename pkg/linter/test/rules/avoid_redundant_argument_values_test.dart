@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -37,16 +36,6 @@ class AvoidRedundantArgumentValuesTest extends LintRuleTest {
   @override
   String get lintRule => 'avoid_redundant_argument_values';
 
-  @override
-  void setUp() {
-    super.setUp();
-    noSoundNullSafety = false;
-  }
-
-  void tearDown() {
-    noSoundNullSafety = true;
-  }
-
   /// https://github.com/dart-lang/linter/issues/3617
   test_enumDeclaration() async {
     await assertDiagnostics(r'''
@@ -73,26 +62,6 @@ void g() {
   f(
     test: !someDefine,
   );
-}
-''');
-  }
-
-  /// https://github.com/dart-lang/sdk/issues/49596
-  test_legacyRequired() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-class Foo {
-  int? foo;
-  Foo({required this.foo});
-}
-''');
-    await resolveFile(a.path);
-
-    await assertNoDiagnostics(r'''
-// @dart = 2.9
-import 'a.dart';
-
-void f() {
-  Foo(foo: null);
 }
 ''');
   }

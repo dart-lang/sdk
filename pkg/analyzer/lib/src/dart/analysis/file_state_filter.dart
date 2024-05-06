@@ -5,28 +5,44 @@
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/workspace/pub.dart';
-import 'package:collection/collection.dart';
 
 abstract class FileStateFilter {
   /// Return a filter of files that can be accessed by the [file].
   factory FileStateFilter(FileState file) {
     var workspacePackage = file.workspacePackage;
-    if (workspacePackage is PubWorkspacePackage) {
+    if (workspacePackage is PubPackage) {
       return _PubFilter(workspacePackage, file.path);
     } else {
       return _AnyFilter();
     }
   }
 
-  /// Return a filter of files in the package named [packageName].
-  factory FileStateFilter.packageName(
-    String? packageName, {
-    required bool excludeSrc,
-  }) {
-    return _PackageNameFilter(packageName, excludeSrc: excludeSrc);
-  }
-
   bool shouldInclude(FileState file);
+
+  static bool shouldIncludeSdk(FileState file, FileUriProperties uri) {
+    assert(identical(file.uriProperties, uri));
+    assert(uri.isDart);
+
+    // Exclude internal libraries.
+    if (uri.isDartInternal) {
+      return false;
+    }
+
+    // Exclude "soft deprecated" libraries.
+    if (const {
+      'dart:html',
+      'dart:indexed_db',
+      'dart:js',
+      'dart:js_util',
+      'dart:svg',
+      'dart:web_audio',
+      'dart:web_gl'
+    }.contains(file.uriStr)) {
+      return false;
+    }
+
+    return true;
+  }
 }
 
 class _AnyFilter implements FileStateFilter {
@@ -34,46 +50,31 @@ class _AnyFilter implements FileStateFilter {
   bool shouldInclude(FileState file) {
     var uri = file.uriProperties;
     if (uri.isDart) {
-      return !uri.isDartInternal;
+      return FileStateFilter.shouldIncludeSdk(file, uri);
     }
     return true;
   }
 }
 
-/// Matches any file in the package [packageName].
-///
-/// If [packageName] is `null`, matches files that also have no `packageName`.
-class _PackageNameFilter implements FileStateFilter {
-  final String? packageName;
-  final bool excludeSrc;
-
-  _PackageNameFilter(this.packageName, {required this.excludeSrc});
-
-  @override
-  bool shouldInclude(FileState file) {
-    var uri = file.uriProperties;
-    return uri.packageName == packageName && !(uri.isSrc && excludeSrc);
-  }
-}
-
 class _PubFilter implements FileStateFilter {
-  final PubWorkspacePackage targetPackage;
+  final PubPackage targetPackage;
   final String? targetPackageName;
   final bool targetPackageIsAnalysisServer;
-  final bool targetInLib;
+  final bool targetInLibOrEntryPoint;
   final Set<String> dependencies;
 
-  factory _PubFilter(PubWorkspacePackage package, String path) {
-    var inLib = package.workspace.provider
-        .getFolder(package.root)
-        .getChildAssumingFolder('lib')
-        .contains(path);
+  factory _PubFilter(PubPackage package, String path) {
+    var packageRootFolder = package.workspace.provider.getFolder(package.root);
+    var inLibOrEntryPoint =
+        packageRootFolder.getChildAssumingFolder('lib').contains(path) ||
+            packageRootFolder.getChildAssumingFolder('bin').contains(path) ||
+            packageRootFolder.getChildAssumingFolder('web').contains(path);
 
     var dependencies = <String>{};
     var pubspec = package.pubspec;
     if (pubspec != null) {
       dependencies.addAll(pubspec.dependencies.names);
-      if (!inLib) {
+      if (!inLibOrEntryPoint) {
         dependencies.addAll(pubspec.devDependencies.names);
       }
     }
@@ -84,7 +85,7 @@ class _PubFilter implements FileStateFilter {
       targetPackage: package,
       targetPackageName: packageName,
       targetPackageIsAnalysisServer: packageName == 'analysis_server',
-      targetInLib: inLib,
+      targetInLibOrEntryPoint: inLibOrEntryPoint,
       dependencies: dependencies,
     );
   }
@@ -93,7 +94,7 @@ class _PubFilter implements FileStateFilter {
     required this.targetPackage,
     required this.targetPackageName,
     required this.targetPackageIsAnalysisServer,
-    required this.targetInLib,
+    required this.targetInLibOrEntryPoint,
     required this.dependencies,
   });
 
@@ -101,18 +102,18 @@ class _PubFilter implements FileStateFilter {
   bool shouldInclude(FileState file) {
     var uri = file.uriProperties;
     if (uri.isDart) {
-      return !uri.isDartInternal;
+      return FileStateFilter.shouldIncludeSdk(file, uri);
     }
 
     // Normally only package URIs are available.
-    // But outside of lib/ we allow any files of this package.
+    // But outside of lib/ and entry points we allow any files of this package.
     var packageName = uri.packageName;
     if (packageName == null) {
-      if (targetInLib) {
+      if (targetInLibOrEntryPoint) {
         return false;
       } else {
         var filePackage = file.workspacePackage;
-        return filePackage is PubWorkspacePackage &&
+        return filePackage is PubPackage &&
             filePackage.root == targetPackage.root;
       }
     }
@@ -141,10 +142,7 @@ extension on PSDependencyList? {
     if (self == null) {
       return const [];
     } else {
-      return self
-          .map((dependency) => dependency.name?.text)
-          .whereNotNull()
-          .toList();
+      return self.map((dependency) => dependency.name?.text).nonNulls.toList();
     }
   }
 }

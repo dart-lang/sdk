@@ -37,6 +37,7 @@ final testSuiteDirectories = [
   Path('tests/dartdevc'),
   Path('tests/ffi'),
   Path('tests/language'),
+  Path('tests/macro_build'),
   Path('tests/lib'),
   Path('tests/standalone'),
   Path('tests/web'),
@@ -57,7 +58,6 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
   var firstConf = configurations[0];
   var maxProcesses = firstConf.taskCount;
   var progress = firstConf.progress;
-  BuildbotProgressIndicator.stepName = firstConf.stepName;
   var verbose = firstConf.isVerbose;
   var printTiming = firstConf.printTiming;
   var listTests = firstConf.listTests;

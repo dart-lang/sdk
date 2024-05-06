@@ -32,6 +32,30 @@ var x = [() => const C()];
 ''');
   }
 
+  test_constructorCall_imported() async {
+    newFile('$testPackageLibPath/b.dart', r'''
+class C {}
+''');
+    await assertDiagnostics(r'''
+import 'b.dart' as b;
+
+var x = [() => b.C()];
+''', [
+      lint(32, 11),
+    ]);
+  }
+
+  test_constructorCall_importedDeferred() async {
+    newFile('$testPackageLibPath/b.dart', r'''
+class C {}
+''');
+    await assertNoDiagnostics(r'''
+import 'b.dart' deferred as b;
+
+var x = [() => b.C()];
+''');
+  }
+
   test_constructorCall_matchingArg() async {
     await assertDiagnostics(r'''
 class C {

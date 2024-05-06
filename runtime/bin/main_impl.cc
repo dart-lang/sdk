@@ -153,6 +153,7 @@ static void OnExitHook(int64_t exit_code) {
 static Dart_Handle SetupCoreLibraries(Dart_Isolate isolate,
                                       IsolateData* isolate_data,
                                       bool is_isolate_group_start,
+                                      bool is_kernel_isolate,
                                       const char** resolved_packages_config) {
   auto isolate_group_data = isolate_data->isolate_group_data();
   const auto packages_file = isolate_data->packages_file();
@@ -193,8 +194,7 @@ static Dart_Handle SetupCoreLibraries(Dart_Isolate isolate,
   Builtin::SetNativeResolver(Builtin::kCLILibrary);
   VmService::SetNativeResolver();
 
-  const char* namespc =
-      Dart_IsKernelIsolate(isolate) ? nullptr : Options::namespc();
+  const char* namespc = is_kernel_isolate ? nullptr : Options::namespc();
   result =
       DartUtils::SetupIOLibrary(namespc, script_uri, Options::exit_disabled());
   if (Dart_IsError(result)) return result;
@@ -218,6 +218,7 @@ static bool OnIsolateInitialize(void** child_callback_data, char** error) {
       isolate_group_data->RunFromAppSnapshot();
   Dart_Handle result = SetupCoreLibraries(isolate, isolate_data,
                                           /*group_start=*/false,
+                                          /*is_kernel_isolate=*/false,
                                           /*resolved_packages_config=*/nullptr);
   if (Dart_IsError(result)) goto failed;
 
@@ -270,9 +271,10 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
   auto isolate_data = reinterpret_cast<IsolateData*>(Dart_IsolateData(isolate));
 
   const char* resolved_packages_config = nullptr;
-  result = SetupCoreLibraries(isolate, isolate_data,
-                              /*is_isolate_group_start=*/true,
-                              &resolved_packages_config);
+  result =
+      SetupCoreLibraries(isolate, isolate_data,
+                         /*is_isolate_group_start=*/true,
+                         flags->is_kernel_isolate, &resolved_packages_config);
   CHECK_RESULT(result);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -430,11 +432,12 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
   IsolateData* isolate_data = nullptr;
   bool isolate_run_app_snapshot = false;
   AppSnapshot* app_snapshot = nullptr;
-  // Kernel isolate uses an app snapshot or uses the dill file.
+  // Kernel isolate uses an app JIT snapshot or uses the dill file.
   if ((kernel_snapshot_uri != nullptr) &&
-      (app_snapshot = Snapshot::TryReadAppSnapshot(
-           kernel_snapshot_uri, /*force_load_elf_from_memory=*/false,
-           /*decode_uri=*/false)) != nullptr) {
+      ((app_snapshot = Snapshot::TryReadAppSnapshot(
+            kernel_snapshot_uri, /*force_load_elf_from_memory=*/false,
+            /*decode_uri=*/false)) != nullptr) &&
+      app_snapshot->IsJIT()) {
     const uint8_t* isolate_snapshot_data = nullptr;
     const uint8_t* isolate_snapshot_instructions = nullptr;
     const uint8_t* ignore_vm_snapshot_data;
@@ -520,6 +523,7 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
 
   // Set flag to load and retain the vmservice library.
   flags->load_vmservice_library = true;
+  flags->null_safety = true;  // Service isolate runs in sound null safe mode.
   const uint8_t* isolate_snapshot_data = core_isolate_snapshot_data;
   const uint8_t* isolate_snapshot_instructions =
       core_isolate_snapshot_instructions;
@@ -540,31 +544,21 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   result = Dart_SetDeferredLoadHandler(Loader::DeferredLoadHandler);
   CHECK_RESULT(result);
 
-  int vm_service_server_port = INVALID_VM_SERVICE_SERVER_PORT;
-  if (Options::disable_dart_dev() || Options::disable_dds()) {
-    vm_service_server_port = Options::vm_service_server_port();
-  } else if (Options::vm_service_server_port() !=
-             INVALID_VM_SERVICE_SERVER_PORT) {
-    vm_service_server_port = 0;
-  }
-
-  // We do not want to wait for DDS to advertise availability of VM service in
-  // the following scenarios:
-  // - The DartDev CLI is disabled (CLI isolate starts DDS) and VM service is
-  //   enabled.
+  // We do not spawn the external dds process in the following scenarios:
+  // - The DartDev CLI is disabled and VM service is enabled.
   // - DDS is disabled.
-  // TODO(bkonyi): do we want to tie DevTools / DDS to the CLI in the long run?
   bool wait_for_dds_to_advertise_service =
       !(Options::disable_dart_dev() || Options::disable_dds());
+  bool serve_devtools =
+      Options::enable_devtools() || !Options::disable_devtools();
   // Load embedder specific bits and return.
   if (!VmService::Setup(
-          !wait_for_dds_to_advertise_service ? Options::vm_service_server_ip()
-                                             : DEFAULT_VM_SERVICE_SERVER_IP,
-          vm_service_server_port, Options::vm_service_dev_mode(),
-          Options::vm_service_auth_disabled(),
+          Options::vm_service_server_ip(), Options::vm_service_server_port(),
+          Options::vm_service_dev_mode(), Options::vm_service_auth_disabled(),
           Options::vm_write_service_info_filename(), Options::trace_loading(),
           Options::deterministic(), Options::enable_service_port_fallback(),
-          wait_for_dds_to_advertise_service, Options::enable_observatory())) {
+          wait_for_dds_to_advertise_service, serve_devtools,
+          Options::enable_observatory(), Options::print_dtd())) {
     *error = Utils::StrDup(VmService::GetErrorMessage());
     return nullptr;
   }
@@ -611,9 +605,11 @@ static Dart_Isolate CreateAndSetupDartDevIsolate(const char* script_uri,
   IsolateData* isolate_data = nullptr;
   AppSnapshot* app_snapshot = nullptr;
   bool isolate_run_app_snapshot = true;
-  if ((app_snapshot = Snapshot::TryReadAppSnapshot(
-           dartdev_path.get(), /*force_load_elf_from_memory=*/false,
-           /*decode_uri=*/false)) != nullptr) {
+  // dartdev isolate uses an app JIT snapshot or uses the dill file.
+  if (((app_snapshot = Snapshot::TryReadAppSnapshot(
+            dartdev_path.get(), /*force_load_elf_from_memory=*/false,
+            /*decode_uri=*/false)) != nullptr) &&
+      app_snapshot->IsJIT()) {
     const uint8_t* isolate_snapshot_data = nullptr;
     const uint8_t* isolate_snapshot_instructions = nullptr;
     const uint8_t* ignore_vm_snapshot_data;
@@ -647,7 +643,7 @@ static Dart_Isolate CreateAndSetupDartDevIsolate(const char* script_uri,
                              isolate_run_app_snapshot);
     uint8_t* application_kernel_buffer = nullptr;
     intptr_t application_kernel_buffer_size = 0;
-    dfe.ReadScript(dartdev_path.get(), &application_kernel_buffer,
+    dfe.ReadScript(dartdev_path.get(), nullptr, &application_kernel_buffer,
                    &application_kernel_buffer_size, /*decode_uri=*/false);
     isolate_group_data->SetKernelBufferNewlyOwned(
         application_kernel_buffer, application_kernel_buffer_size);
@@ -702,10 +698,11 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
     const bool kForceLoadElfFromMemory = false;
     app_snapshot =
         Snapshot::TryReadAppSnapshot(script_uri, kForceLoadElfFromMemory);
-    if (app_snapshot == nullptr) {
-      *error = Utils::StrDup(
-          "The uri provided to `Isolate.spawnUri()` does not "
-          "contain a valid AOT snapshot.");
+    if (app_snapshot == nullptr || !app_snapshot->IsAOT()) {
+      *error = Utils::SCreate(
+          "The uri(%s) provided to `Isolate.spawnUri()` does not "
+          "contain a valid AOT snapshot.",
+          script_uri);
       return nullptr;
     }
 
@@ -735,7 +732,15 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
     isolate_snapshot_instructions = app_isolate_snapshot_instructions;
   } else if (!is_main_isolate) {
     app_snapshot = Snapshot::TryReadAppSnapshot(script_uri);
-    if (app_snapshot != nullptr) {
+    if (app_snapshot != nullptr && app_snapshot->IsJITorAOT()) {
+      if (app_snapshot->IsAOT()) {
+        *error = Utils::SCreate(
+            "The uri(%s) provided to `Isolate.spawnUri()` is an "
+            "AOT snapshot and the JIT VM cannot spawn an isolate using it.",
+            script_uri);
+        delete app_snapshot;
+        return nullptr;
+      }
       isolate_run_app_snapshot = true;
       const uint8_t* ignore_vm_snapshot_data;
       const uint8_t* ignore_vm_snapshot_instructions;
@@ -745,17 +750,10 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
     }
   }
 
-  if (flags->copy_parent_code && callback_data != nullptr) {
-    auto parent_isolate_group_data =
-        reinterpret_cast<IsolateData*>(callback_data)->isolate_group_data();
-    kernel_buffer_ptr = parent_isolate_group_data->kernel_buffer();
-    kernel_buffer = kernel_buffer_ptr.get();
-    kernel_buffer_size = parent_isolate_group_data->kernel_buffer_size();
-  }
-
   if (kernel_buffer == nullptr && !isolate_run_app_snapshot) {
-    dfe.ReadScript(script_uri, &kernel_buffer, &kernel_buffer_size,
-                   /*decode_uri=*/true, &kernel_buffer_ptr);
+    dfe.ReadScript(script_uri, app_snapshot, &kernel_buffer,
+                   &kernel_buffer_size, /*decode_uri=*/true,
+                   &kernel_buffer_ptr);
   }
   PathSanitizer script_uri_sanitizer(script_uri);
   PathSanitizer packages_config_sanitizer(packages_config);
@@ -1195,6 +1193,39 @@ void main(int argc, char** argv) {
   }
   vm_options.AddArgument("--new_gen_growth_factor=4");
 
+  auto parse_arguments = [&](int argc, char** argv,
+                             CommandLineOptions* vm_options,
+                             CommandLineOptions* dart_options) {
+    bool success = Options::ParseArguments(
+        argc, argv, vm_run_app_snapshot, vm_options, &script_name, dart_options,
+        &print_flags_seen, &verbose_debug_seen);
+    if (!success) {
+      if (Options::help_option()) {
+        Options::PrintUsage();
+        Platform::Exit(0);
+      } else if (Options::version_option()) {
+        Options::PrintVersion();
+        Platform::Exit(0);
+      } else if (print_flags_seen) {
+        // Will set the VM flags, print them out and then we exit as no
+        // script was specified on the command line.
+        char* error =
+            Dart_SetVMFlags(vm_options->count(), vm_options->arguments());
+        if (error != nullptr) {
+          Syslog::PrintErr("Setting VM flags failed: %s\n", error);
+          free(error);
+          Platform::Exit(kErrorExitCode);
+        }
+        Platform::Exit(0);
+      } else {
+        // This usage error case will only be invoked when
+        // Options::disable_dart_dev() is false.
+        Options::PrintUsage();
+        Platform::Exit(kErrorExitCode);
+      }
+    }
+  };
+
   AppSnapshot* app_snapshot = nullptr;
 #if defined(DART_PRECOMPILED_RUNTIME)
   // If the executable binary contains the runtime together with an appended
@@ -1216,40 +1247,23 @@ void main(int argc, char** argv) {
       for (int i = 1; i < argc; i++) {
         dart_options.AddArgument(argv[i]);
       }
+
+      // Parse DART_VM_OPTIONS options.
+      int env_argc = 0;
+      char** env_argv = Options::GetEnvArguments(&env_argc);
+      if (env_argv != nullptr) {
+        // Any Dart options that are generated based on parsing DART_VM_OPTIONS
+        // are useless, so we'll throw them away rather than passing them along.
+        CommandLineOptions tmp_options(env_argc + EXTRA_VM_ARGUMENTS);
+        parse_arguments(env_argc, env_argv, &vm_options, &tmp_options);
+      }
     }
   }
 #endif
 
   // Parse command line arguments.
   if (app_snapshot == nullptr) {
-    bool success = Options::ParseArguments(
-        argc, argv, vm_run_app_snapshot, &vm_options, &script_name,
-        &dart_options, &print_flags_seen, &verbose_debug_seen);
-    if (!success) {
-      if (Options::help_option()) {
-        Options::PrintUsage();
-        Platform::Exit(0);
-      } else if (Options::version_option()) {
-        Options::PrintVersion();
-        Platform::Exit(0);
-      } else if (print_flags_seen) {
-        // Will set the VM flags, print them out and then we exit as no
-        // script was specified on the command line.
-        char* error =
-            Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
-        if (error != nullptr) {
-          Syslog::PrintErr("Setting VM flags failed: %s\n", error);
-          free(error);
-          Platform::Exit(kErrorExitCode);
-        }
-        Platform::Exit(0);
-      } else {
-        // This usage error case will only be invoked when
-        // Options::disable_dart_dev() is false.
-        Options::PrintUsage();
-        Platform::Exit(kErrorExitCode);
-      }
-    }
+    parse_arguments(argc, argv, &vm_options, &dart_options);
   }
 
   DartUtils::SetEnvironment(Options::environment());
@@ -1271,7 +1285,13 @@ void main(int argc, char** argv) {
       app_snapshot =
           Snapshot::TryReadAppSnapshot(script_name, force_load_elf_from_memory);
     }
-    if (app_snapshot != nullptr) {
+    if (app_snapshot != nullptr && app_snapshot->IsJITorAOT()) {
+      if (app_snapshot->IsAOT() && !Dart_IsPrecompiledRuntime()) {
+        Syslog::PrintErr(
+            "%s is an AOT snapshot and should be run with 'dartaotruntime'\n",
+            script_name);
+        Platform::Exit(kErrorExitCode);
+      }
       vm_run_app_snapshot = true;
       app_snapshot->SetBuffers(&vm_snapshot_data, &vm_snapshot_instructions,
                                &app_isolate_snapshot_data,
@@ -1331,7 +1351,7 @@ void main(int argc, char** argv) {
   if (script_name != nullptr) {
     uint8_t* application_kernel_buffer = nullptr;
     intptr_t application_kernel_buffer_size = 0;
-    dfe.ReadScript(script_name, &application_kernel_buffer,
+    dfe.ReadScript(script_name, app_snapshot, &application_kernel_buffer,
                    &application_kernel_buffer_size);
     if (application_kernel_buffer != nullptr) {
       // Since we loaded the script anyway, save it.
@@ -1415,21 +1435,12 @@ void main(int argc, char** argv) {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   if (should_run_user_program) {
-    if (!Dart_IsPrecompiledRuntime() && Snapshot::IsAOTSnapshot(script_name)) {
-      Syslog::PrintErr(
-          "%s is an AOT snapshot and should be run with 'dartaotruntime'\n",
-          script_name);
-      Platform::Exit(kErrorExitCode);
+    if (Options::gen_snapshot_kind() == kKernel) {
+      CompileAndSaveKernel(script_name, package_config_override, &dart_options);
     } else {
-      if (Options::gen_snapshot_kind() == kKernel) {
-        CompileAndSaveKernel(script_name, package_config_override,
-                             &dart_options);
-
-      } else {
-        // Run the main isolate until we aren't told to restart.
-        RunMainIsolate(script_name, package_config_override,
-                       force_no_sound_null_safety, &dart_options);
-      }
+      // Run the main isolate until we aren't told to restart.
+      RunMainIsolate(script_name, package_config_override,
+                     force_no_sound_null_safety, &dart_options);
     }
   }
 
@@ -1458,7 +1469,7 @@ void main(int argc, char** argv) {
   }
 
   // Free environment if any.
-  Options::DestroyEnvironment();
+  Options::Cleanup();
 
   Platform::Exit(global_exit_code);
 }

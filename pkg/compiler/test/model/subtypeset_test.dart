@@ -15,12 +15,11 @@ import '../helpers/type_test_helper.dart';
 
 void main() {
   asyncTest(() async {
-    // TODO(johnniwinther): Remove code for Dart 1 tests.
-    await runTests(strongMode: true);
+    await runTests();
   });
 }
 
-runTests({bool strongMode = false}) async {
+runTests() async {
   var env = await TypeEnvironment.create(r"""
       ///        A
       ///       / \
@@ -93,6 +92,5 @@ runTests({bool strongMode = false}) async {
   checkClass(G, [G]);
   checkClass(H, [H, I]);
   checkClass(I, [I]);
-  checkClass(Function_, strongMode ? [] : [A, B, C, D, E, F, G],
-      checkSubset: true);
+  checkClass(Function_, [], checkSubset: true);
 }

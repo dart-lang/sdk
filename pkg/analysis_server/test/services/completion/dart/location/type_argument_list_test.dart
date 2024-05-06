@@ -27,9 +27,9 @@ void m() {
 ''');
     assertResponse(r'''
 suggestions
-  dynamic
-    kind: keyword
   void
+    kind: keyword
+  dynamic
     kind: keyword
 ''');
   }
@@ -40,8 +40,54 @@ void m() {List<^> list;}
 ''');
     assertResponse(r'''
 suggestions
+  void
+    kind: keyword
   dynamic
     kind: keyword
+''');
+  }
+
+  Future<void> test_afterLess_beforeGreater_topLevel() async {
+    await computeSuggestions('''
+class A01 {}
+
+Future<^>
+''');
+    assertResponse(r'''
+suggestions
+  A01
+    kind: class
+  void
+    kind: keyword
+  dynamic
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterLess_beforeGreater_topLevel_partial() async {
+    await computeSuggestions('''
+class A01 {}
+
+Future<A0^>
+''');
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  A01
+    kind: class
+''');
+  }
+
+  Future<void>
+      test_afterLess_beforeGreater_topLevel_withVariableName_partial() async {
+    await computeSuggestions('''
+Future<v^> x
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
   void
     kind: keyword
 ''');
@@ -68,9 +114,9 @@ suggestions
     kind: class
   B01
     kind: class
-  dynamic
-    kind: keyword
   void
+    kind: keyword
+  dynamic
     kind: keyword
 ''');
   }
@@ -95,9 +141,9 @@ suggestions
     kind: class
   B01
     kind: class
-  dynamic
-    kind: keyword
   void
+    kind: keyword
+  dynamic
     kind: keyword
 ''');
   }
@@ -122,9 +168,9 @@ suggestions
     kind: class
   B01
     kind: class
-  dynamic
-    kind: keyword
   void
+    kind: keyword
+  dynamic
     kind: keyword
 ''');
   }
@@ -149,9 +195,9 @@ suggestions
     kind: class
   B01
     kind: class
-  dynamic
-    kind: keyword
   void
+    kind: keyword
+  dynamic
     kind: keyword
 ''');
   }

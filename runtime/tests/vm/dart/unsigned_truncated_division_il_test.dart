@@ -48,7 +48,7 @@ void matchIL$testUnsignedTruncatingDivision(FlowGraph graph) {
         'unboxed_len' << match.UnboxInt64('len'),
         'retval' << match.BinaryInt64Op('unboxed_len', 'c32', op_kind: '~/'),
       ],
-      match.Return('retval'),
+      match.DartReturn('retval'),
     ]),
   ]);
 }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*member: Class.:static=[Object.(0)]*/
 class Class {
   /*member: Class.field1:type=[inst:JSNull]*/
@@ -12,12 +10,14 @@ class Class {
   /*member: Class.field2:type=[inst:JSNull]*/
   var field2;
 
-  /*member: Class.method1:dynamic=[this:Class.method2(0)]*/
+  /*member: Class.method1:dynamic=[Class.method2(0)]*/
   method1() {
     method2();
   }
 
-  /*member: Class.method2:dynamic=[this:Class.field1=,this:Class.field2]*/
+  /*member: Class.method2:dynamic=[
+    Class.field1=,
+    Class.field2]*/
   method2() {
     field1 = field2;
   }
@@ -33,7 +33,7 @@ class Subclass extends Class {
   /*member: Subclass.method1:*/
   method1() {}
 
-  /*member: Subclass.method2:dynamic=[this:Subclass.method3(0)]*/
+  /*member: Subclass.method2:dynamic=[Subclass.method3(0)]*/
   method2() {
     method3();
   }
@@ -50,10 +50,12 @@ class Subtype implements Class {
 
   method1() {}
 
+  /*member: Subtype.method2:dynamic=[Subtype.method4(0)]*/
   method2() {
     method4();
   }
 
+  /*member: Subtype.method4:dynamic=[Subtype.method2(0)]*/
   method4() {
     method2();
   }

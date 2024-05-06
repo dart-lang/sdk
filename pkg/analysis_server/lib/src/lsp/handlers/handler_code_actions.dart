@@ -14,6 +14,8 @@ import 'package:analysis_server/src/lsp/handlers/code_actions/pubspec.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
+import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/src/clients/build_resolvers/build_resolvers.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:collection/collection.dart' show groupBy;
 
@@ -35,12 +37,13 @@ class CodeActionHandler
       MessageInfo message, CancellationToken token) async {
     final performance = message.performance;
 
-    final path = pathOfDoc(params.textDocument);
+    var textDocument = params.textDocument;
+    final path = pathOfDoc(textDocument);
     if (path.isError) {
       return failure(path);
     }
     final unitPath = path.result;
-    if (!server.isAnalyzed(unitPath)) {
+    if (!server.isAnalyzed(unitPath) || !isEditableDocument(textDocument.uri)) {
       return success(const []);
     }
 
@@ -141,6 +144,17 @@ class CodeActionHandler
     final includeQuickFixes = shouldIncludeAnyOfKind(CodeActionKind.QuickFix);
     final includeRefactors = shouldIncludeAnyOfKind(CodeActionKind.Refactor);
 
+    Future<AnalysisOptions> getOptions() async {
+      if (unit != null) return unit.analysisOptions;
+      var session = await server.getAnalysisSession(unitPath);
+      var fileResult = session?.getFile(unitPath);
+      if (fileResult is FileResult) return fileResult.analysisOptions;
+      // Default to empty options.
+      return AnalysisOptionsImpl();
+    }
+
+    var analysisOptions = await getOptions();
+
     final actionComputers = [
       if (isDart && libraryResult != null && unit != null)
         DartCodeActionsProducer(
@@ -156,6 +170,7 @@ class CodeActionHandler
           shouldIncludeKind: shouldIncludeKind,
           capabilities: capabilities,
           triggerKind: params.context.triggerKind,
+          analysisOptions: analysisOptions,
         ),
       if (isPubspec)
         PubspecCodeActionsProducer(
@@ -167,6 +182,7 @@ class CodeActionHandler
           length: length,
           shouldIncludeKind: shouldIncludeKind,
           capabilities: capabilities,
+          analysisOptions: analysisOptions,
         ),
       if (isAnalysisOptions)
         AnalysisOptionsCodeActionsProducer(
@@ -178,6 +194,7 @@ class CodeActionHandler
           length: length,
           shouldIncludeKind: shouldIncludeKind,
           capabilities: capabilities,
+          analysisOptions: analysisOptions,
         ),
       PluginCodeActionsProducer(
         server,
@@ -188,6 +205,7 @@ class CodeActionHandler
         length: length,
         shouldIncludeKind: shouldIncludeKind,
         capabilities: capabilities,
+        analysisOptions: analysisOptions,
       ),
     ];
     final sorter = _CodeActionSorter(params.range, shouldIncludeKind);

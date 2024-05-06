@@ -7,28 +7,84 @@ part of 'declaration_builders.dart';
 const Uri? noUri = null;
 
 abstract class ClassMemberAccess {
-  /// [Iterator] for all members declared in this class or any of its
+  /// [Iterator] for all constructors declared in this class or any of its
   /// augmentations.
   ///
   /// Duplicates and augmenting constructor are _not_ included.
+  ///
+  /// For instance:
+  ///
+  ///     class Class {
+  ///       Class(); // declared, so it is included
+  ///       Class.named(); // declared, so it is included
+  ///       Class.named(); // duplicate, so it is *not* included
+  ///     }
+  ///
+  ///     augment class Class {
+  ///       augment Class(); // augmenting, so it is *not* included
+  ///       Class.extra(); // declared, so it is included
+  ///     }
+  ///
   Iterator<T> fullConstructorIterator<T extends MemberBuilder>();
 
   /// [NameIterator] for all constructors declared in this class or any of its
   /// augmentations.
   ///
   /// Duplicates and augmenting constructors are _not_ included.
+  ///
+  /// For instance:
+  ///
+  ///     class Class {
+  ///       Class(); // declared, so it is included
+  ///       Class.named(); // declared, so it is included
+  ///       Class.named(); // duplicate, so it is *not* included
+  ///     }
+  ///
+  ///     augment class Class {
+  ///       augment Class(); // augmenting, so it is *not* included
+  ///       Class.extra(); // declared, so it is included
+  ///     }
+  ///
   NameIterator<T> fullConstructorNameIterator<T extends MemberBuilder>();
 
   /// [Iterator] for all members declared in this class or any of its
   /// augmentations.
   ///
   /// Duplicates and augmenting members are _not_ included.
+  ///
+  /// For instance:
+  ///
+  ///     class Class {
+  ///       method() {} // Declared, so it is included.
+  ///       method2() {} // Declared, so it is included.
+  ///       method2() {} // Duplicate, so it is *not* included.
+  ///     }
+  ///
+  ///     augment class Class {
+  ///       augment method() {} // Augmenting, so it is *not* included.
+  ///       extra() {} // Declared, so it is included.
+  ///     }
+  ///
   Iterator<T> fullMemberIterator<T extends Builder>();
 
   /// [NameIterator] for all members declared in this class or any of its
   /// augmentations.
   ///
   /// Duplicates and augmenting members are _not_ included.
+  ///
+  /// For instance:
+  ///
+  ///     class Class {
+  ///       method() {} // Declared, so it is included.
+  ///       method2() {} // Declared, so it is included.
+  ///       method2() {} // Duplicate, so it is *not* included.
+  ///     }
+  ///
+  ///     augment class Class {
+  ///       augment method() {} // Augmenting, so it is *not* included.
+  ///       extra() {} // Declared, so it is included.
+  ///     }
+  ///
   NameIterator<T> fullMemberNameIterator<T extends Builder>();
 }
 
@@ -64,11 +120,7 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
   @override
   bool get isFinal;
 
-  bool get isAugmentation;
-
   bool get declaresConstConstructor;
-
-  bool get isMixin;
 
   bool get isMixinClass;
 
@@ -82,7 +134,7 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
 
   /// The [Class] built by this builder.
   ///
-  /// For a patch class the origin class is returned.
+  /// For an augmentation class the origin class is returned.
   Class get cls;
 
   @override
@@ -92,14 +144,6 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
 
   @override
   InterfaceType get thisType;
-
-  InterfaceType get legacyRawType;
-
-  InterfaceType get nullableRawType;
-
-  InterfaceType get nonNullableRawType;
-
-  InterfaceType rawType(Nullability nullability);
 
   Supertype buildMixedInType(
       LibraryBuilder library, List<TypeBuilder>? arguments);
@@ -114,9 +158,9 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
   /// the class built by this class builder. If [isSuper] is `true`, the member
   /// is found among the class members of the superclass.
   ///
-  /// If this class builder is a patch, interface members declared in this
-  /// patch are searched before searching the interface members in the origin
-  /// class.
+  /// If this class builder is an augmentation, interface members declared in
+  /// this augmentation are searched before searching the interface members in
+  /// the origin class.
   Member? lookupInstanceMember(ClassHierarchy hierarchy, Name name,
       {bool isSetter = false, bool isSuper = false});
 }
@@ -149,9 +193,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   bool get isAbstract => (modifiers & abstractMask) != 0;
 
   @override
-  bool get isMixin => (modifiers & mixinDeclarationMask) != 0;
-
-  @override
   bool get isMixinApplication => mixedInTypeBuilder != null;
 
   @override
@@ -180,7 +221,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     Builder? declaration = isSetter
         ? scope.lookupSetter(name, charOffset, fileUri, isInstanceScope: false)
         : scope.lookup(name, charOffset, fileUri, isInstanceScope: false);
-    if (declaration == null && isPatch) {
+    if (declaration == null && isAugmenting) {
       return origin.findStaticBuilder(
           name, charOffset, fileUri, accessingLibrary,
           isSetter: isSetter);
@@ -192,7 +233,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   Builder? lookupLocalMember(String name,
       {bool setter = false, bool required = false}) {
     Builder? builder = scope.lookupLocalMember(name, setter: setter);
-    if (builder == null && isPatch) {
+    if (builder == null && isAugmenting) {
       builder = origin.scope.lookupLocalMember(name, setter: setter);
     }
     if (required && builder == null) {
@@ -228,19 +269,16 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         getAsTypeArguments(cls.typeParameters, libraryBuilder.library));
   }
 
-  @override
   InterfaceType get legacyRawType {
     return _legacyRawType ??= new InterfaceType(cls, Nullability.legacy,
         new List<DartType>.filled(typeVariablesCount, const DynamicType()));
   }
 
-  @override
   InterfaceType get nullableRawType {
     return _nullableRawType ??= new InterfaceType(cls, Nullability.nullable,
         new List<DartType>.filled(typeVariablesCount, const DynamicType()));
   }
 
-  @override
   InterfaceType get nonNullableRawType {
     return _nonNullableRawType ??= new InterfaceType(
         cls,
@@ -248,7 +286,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         new List<DartType>.filled(typeVariablesCount, const DynamicType()));
   }
 
-  @override
   InterfaceType rawType(Nullability nullability) {
     switch (nullability) {
       case Nullability.legacy:
@@ -270,12 +307,12 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   DartType buildAliasedTypeWithBuiltArguments(
       LibraryBuilder library,
       Nullability nullability,
-      List<DartType>? arguments,
+      List<DartType> arguments,
       TypeUse typeUse,
       Uri fileUri,
       int charOffset,
       {required bool hasExplicitTypeArguments}) {
-    assert(arguments == null || cls.typeParameters.length == arguments.length);
+    assert(cls.typeParameters.length == arguments.length);
     if (isNullClass) {
       return const NullType();
     }
@@ -283,36 +320,33 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       LibraryBuilder parentLibrary = parent as LibraryBuilder;
       if (parentLibrary.importUri.isScheme("dart") &&
           parentLibrary.importUri.path == "async") {
-        assert(arguments != null && arguments.length == 1);
-        return new FutureOrType(arguments!.single, nullability);
+        assert(arguments.length == 1);
+        return new FutureOrType(arguments.single, nullability);
       }
     }
-    DartType type;
-    if (arguments == null) {
-      type = rawType(nullability);
-    } else {
-      if (aliasedTypeWithBuiltArgumentsCacheNonNullable != null &&
-          nullability == Nullability.nonNullable) {
-        assert(aliasedTypeWithBuiltArgumentsCacheNonNullable!.classReference ==
-            cls.reference);
-        assert(arguments.isEmpty);
-        return aliasedTypeWithBuiltArgumentsCacheNonNullable!;
-      } else if (aliasedTypeWithBuiltArgumentsCacheNullable != null &&
-          nullability == Nullability.nullable) {
-        assert(aliasedTypeWithBuiltArgumentsCacheNullable!.classReference ==
-            cls.reference);
-        assert(arguments.isEmpty);
-        return aliasedTypeWithBuiltArgumentsCacheNullable!;
-      }
-      InterfaceType cacheable =
-          type = new InterfaceType(cls, nullability, arguments);
-      if (arguments.isEmpty) {
-        assert(typeVariablesCount == 0);
-        if (nullability == Nullability.nonNullable) {
-          aliasedTypeWithBuiltArgumentsCacheNonNullable = cacheable;
-        } else if (nullability == Nullability.nullable) {
-          aliasedTypeWithBuiltArgumentsCacheNullable = cacheable;
-        }
+    if (arguments.isEmpty) {
+      return rawType(nullability);
+    }
+    if (aliasedTypeWithBuiltArgumentsCacheNonNullable != null &&
+        nullability == Nullability.nonNullable) {
+      assert(aliasedTypeWithBuiltArgumentsCacheNonNullable!.classReference ==
+          cls.reference);
+      assert(arguments.isEmpty);
+      return aliasedTypeWithBuiltArgumentsCacheNonNullable!;
+    } else if (aliasedTypeWithBuiltArgumentsCacheNullable != null &&
+        nullability == Nullability.nullable) {
+      assert(aliasedTypeWithBuiltArgumentsCacheNullable!.classReference ==
+          cls.reference);
+      assert(arguments.isEmpty);
+      return aliasedTypeWithBuiltArgumentsCacheNullable!;
+    }
+    InterfaceType type = new InterfaceType(cls, nullability, arguments);
+    if (arguments.isEmpty) {
+      assert(typeVariablesCount == 0);
+      if (nullability == Nullability.nonNullable) {
+        aliasedTypeWithBuiltArgumentsCacheNonNullable = type;
+      } else if (nullability == Nullability.nullable) {
+        aliasedTypeWithBuiltArgumentsCacheNullable = type;
       }
     }
 
@@ -355,7 +389,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   @override
   Supertype buildMixedInType(
       LibraryBuilder library, List<TypeBuilder>? arguments) {
-    Class cls = isPatch ? origin.cls : this.cls;
+    Class cls = isAugmenting ? origin.cls : this.cls;
     if (arguments != null) {
       List<DartType> typeArguments =
           buildAliasedTypeArguments(library, arguments, /* hierarchy = */ null);
@@ -383,7 +417,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   Member? lookupInstanceMember(ClassHierarchy hierarchy, Name name,
       {bool isSetter = false, bool isSuper = false}) {
     Class? instanceClass = cls;
-    if (isPatch) {
+    if (isAugmenting) {
       assert(identical(instanceClass, origin.cls),
           "Found ${origin.cls} expected $instanceClass");
       if (isSuper) {
@@ -393,7 +427,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         Member? member =
             hierarchy.getInterfaceMember(instanceClass, name, setter: isSetter);
         if (member?.parent == instanceClass) {
-          // Only if the member is found in the patch can we use it.
+          // Only if the member is found in the augmentation can we use it.
           return member;
         } else {
           // Otherwise, we need to keep searching in the origin class.

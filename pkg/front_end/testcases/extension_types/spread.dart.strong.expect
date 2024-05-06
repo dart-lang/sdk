@@ -36,25 +36,25 @@ extension type MyMap<K extends core::Object? = dynamic, V extends core::Object? 
   constructor • = self::MyMap|constructor#;
   constructor tearoff • = self::MyMap|constructor#_#new#tearOff;
 }
-static extension-type-member method MyList|constructor#<T extends core::Object? = dynamic>(core::List<self::MyList|constructor#::T%> it) → self::MyList<self::MyList|constructor#::T%> /* = core::List<self::MyList|constructor#::T%> */ {
-  lowered final self::MyList<self::MyList|constructor#::T%> /* = core::List<self::MyList|constructor#::T%> */ #this = it;
+static extension-type-member method MyList|constructor#<T extends core::Object? = dynamic>(core::List<self::MyList|constructor#::T%> it) → self::MyList<self::MyList|constructor#::T%> /* erasure=core::List<self::MyList|constructor#::T%> */ {
+  lowered final self::MyList<self::MyList|constructor#::T%> /* erasure=core::List<self::MyList|constructor#::T%> */ #this = it;
   return #this;
 }
-static extension-type-member method MyList|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::List<self::MyList|constructor#_#new#tearOff::T%> it) → self::MyList<self::MyList|constructor#_#new#tearOff::T%> /* = core::List<self::MyList|constructor#_#new#tearOff::T%> */
+static extension-type-member method MyList|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::List<self::MyList|constructor#_#new#tearOff::T%> it) → self::MyList<self::MyList|constructor#_#new#tearOff::T%> /* erasure=core::List<self::MyList|constructor#_#new#tearOff::T%> */
   return self::MyList|constructor#<self::MyList|constructor#_#new#tearOff::T%>(it);
-static extension-type-member method MySet|constructor#<T extends core::Object? = dynamic>(core::Set<self::MySet|constructor#::T%> it) → self::MySet<self::MySet|constructor#::T%> /* = core::Set<self::MySet|constructor#::T%> */ {
-  lowered final self::MySet<self::MySet|constructor#::T%> /* = core::Set<self::MySet|constructor#::T%> */ #this = it;
+static extension-type-member method MySet|constructor#<T extends core::Object? = dynamic>(core::Set<self::MySet|constructor#::T%> it) → self::MySet<self::MySet|constructor#::T%> /* erasure=core::Set<self::MySet|constructor#::T%> */ {
+  lowered final self::MySet<self::MySet|constructor#::T%> /* erasure=core::Set<self::MySet|constructor#::T%> */ #this = it;
   return #this;
 }
-static extension-type-member method MySet|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::Set<self::MySet|constructor#_#new#tearOff::T%> it) → self::MySet<self::MySet|constructor#_#new#tearOff::T%> /* = core::Set<self::MySet|constructor#_#new#tearOff::T%> */
+static extension-type-member method MySet|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::Set<self::MySet|constructor#_#new#tearOff::T%> it) → self::MySet<self::MySet|constructor#_#new#tearOff::T%> /* erasure=core::Set<self::MySet|constructor#_#new#tearOff::T%> */
   return self::MySet|constructor#<self::MySet|constructor#_#new#tearOff::T%>(it);
-static extension-type-member method MyMap|constructor#<K extends core::Object? = dynamic, V extends core::Object? = dynamic>(core::Map<self::MyMap|constructor#::K%, self::MyMap|constructor#::V%> it) → self::MyMap<self::MyMap|constructor#::K%, self::MyMap|constructor#::V%> /* = core::Map<self::MyMap|constructor#::K%, self::MyMap|constructor#::V%> */ {
-  lowered final self::MyMap<self::MyMap|constructor#::K%, self::MyMap|constructor#::V%> /* = core::Map<self::MyMap|constructor#::K%, self::MyMap|constructor#::V%> */ #this = it;
+static extension-type-member method MyMap|constructor#<K extends core::Object? = dynamic, V extends core::Object? = dynamic>(core::Map<self::MyMap|constructor#::K%, self::MyMap|constructor#::V%> it) → self::MyMap<self::MyMap|constructor#::K%, self::MyMap|constructor#::V%> /* erasure=core::Map<self::MyMap|constructor#::K%, self::MyMap|constructor#::V%> */ {
+  lowered final self::MyMap<self::MyMap|constructor#::K%, self::MyMap|constructor#::V%> /* erasure=core::Map<self::MyMap|constructor#::K%, self::MyMap|constructor#::V%> */ #this = it;
   return #this;
 }
-static extension-type-member method MyMap|constructor#_#new#tearOff<K extends core::Object? = dynamic, V extends core::Object? = dynamic>(core::Map<self::MyMap|constructor#_#new#tearOff::K%, self::MyMap|constructor#_#new#tearOff::V%> it) → self::MyMap<self::MyMap|constructor#_#new#tearOff::K%, self::MyMap|constructor#_#new#tearOff::V%> /* = core::Map<self::MyMap|constructor#_#new#tearOff::K%, self::MyMap|constructor#_#new#tearOff::V%> */
+static extension-type-member method MyMap|constructor#_#new#tearOff<K extends core::Object? = dynamic, V extends core::Object? = dynamic>(core::Map<self::MyMap|constructor#_#new#tearOff::K%, self::MyMap|constructor#_#new#tearOff::V%> it) → self::MyMap<self::MyMap|constructor#_#new#tearOff::K%, self::MyMap|constructor#_#new#tearOff::V%> /* erasure=core::Map<self::MyMap|constructor#_#new#tearOff::K%, self::MyMap|constructor#_#new#tearOff::V%> */
   return self::MyMap|constructor#<self::MyMap|constructor#_#new#tearOff::K%, self::MyMap|constructor#_#new#tearOff::V%>(it);
-static method method(self::MyList<core::int> /* = core::List<core::int> */ list, self::MySet<core::String> /* = core::Set<core::String> */ set, self::MyMap<core::bool, core::num> /* = core::Map<core::bool, core::num> */ map) → dynamic {
+static method method(self::MyList<core::int> /* erasure=core::List<core::int> */ list, self::MySet<core::String> /* erasure=core::Set<core::String> */ set, self::MyMap<core::bool, core::num> /* erasure=core::Map<core::bool, core::num> */ map) → dynamic {
   core::List<core::int> list2 = block {
     final core::List<core::int> #t1 = core::List::of<core::int>(list);
   } =>#t1;
@@ -66,18 +66,18 @@ static method method(self::MyList<core::int> /* = core::List<core::int> */ list,
   } =>#t3;
 }
 static method test() → dynamic {
-  self::MyList<core::int> /* = core::List<core::int> */ list = invalid-expression "pkg/front_end/testcases/extension_types/spread.dart:18:22: Error: A value of type 'List<dynamic>' can't be assigned to a variable of type 'MyList<int>'.
+  self::MyList<core::int> /* erasure=core::List<core::int> */ list = invalid-expression "pkg/front_end/testcases/extension_types/spread.dart:18:22: Error: A value of type 'List<dynamic>' can't be assigned to a variable of type 'MyList<int>'.
  - 'List' is from 'dart:core'.
   MyList<int> list = []; // Error
-                     ^" in <dynamic>[] as{TypeError} self::MyList<core::int> /* = core::List<core::int> */;
-  self::MySet<core::String> /* = core::Set<core::String> */ set = invalid-expression "pkg/front_end/testcases/extension_types/spread.dart:19:23: Error: A value of type 'Set<dynamic>' can't be assigned to a variable of type 'MySet<String>'.
+                     ^" in <dynamic>[] as{TypeError} self::MyList<core::int> /* erasure=core::List<core::int> */;
+  self::MySet<core::String> /* erasure=core::Set<core::String> */ set = invalid-expression "pkg/front_end/testcases/extension_types/spread.dart:19:23: Error: A value of type 'Set<dynamic>' can't be assigned to a variable of type 'MySet<String>'.
  - 'Set' is from 'dart:core'.
   MySet<String> set = {}; // Error
                       ^" in ( block {
     final core::Set<dynamic> #t4 = col::LinkedHashSet::•<dynamic>();
-  } =>#t4) as{TypeError} self::MySet<core::String> /* = core::Set<core::String> */;
-  self::MyMap<core::String, core::bool> /* = core::Map<core::String, core::bool> */ map = invalid-expression "pkg/front_end/testcases/extension_types/spread.dart:20:29: Error: A value of type 'Map<dynamic, dynamic>' can't be assigned to a variable of type 'MyMap<String, bool>'.
+  } =>#t4) as{TypeError} self::MySet<core::String> /* erasure=core::Set<core::String> */;
+  self::MyMap<core::String, core::bool> /* erasure=core::Map<core::String, core::bool> */ map = invalid-expression "pkg/front_end/testcases/extension_types/spread.dart:20:29: Error: A value of type 'Map<dynamic, dynamic>' can't be assigned to a variable of type 'MyMap<String, bool>'.
  - 'Map' is from 'dart:core'.
   MyMap<String, bool> map = {}; // Error
-                            ^" in <dynamic, dynamic>{} as{TypeError} self::MyMap<core::String, core::bool> /* = core::Map<core::String, core::bool> */;
+                            ^" in <dynamic, dynamic>{} as{TypeError} self::MyMap<core::String, core::bool> /* erasure=core::Map<core::String, core::bool> */;
 }

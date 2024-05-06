@@ -13,10 +13,6 @@ library;
 // const fromDeferredLib = lib.x;
 //                         ^^^
 //
-// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:14:30: Warning: Operand of null-aware operation '??' has type 'bool' which excludes null.
-// const bool nullAwareOnNull = barFromEnvOrNull ?? true;
-//                              ^
-//
 // pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:101:34: Error: The argument type 'A' can't be assigned to the parameter type 'T'.
 //  - 'A' is from 'pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart'.
 //   const Class.method(T t) : this(-t);

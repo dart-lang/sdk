@@ -84,6 +84,10 @@ class ForResolver {
       dispatchBody: dispatchBody,
     );
     _resolver.popRewrite();
+    _resolver.nullableDereferenceVerifier.expression(
+      CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR,
+      forLoopParts.iterable,
+    );
   }
 
   /// Given an iterable expression from a foreach loop, attempt to infer
@@ -110,8 +114,7 @@ class ForResolver {
       return InvalidTypeImpl.instance;
     }
 
-    var elementType = iteratedType.typeArguments.single;
-    return _resolver.toLegacyTypeIfOptOut(elementType);
+    return iteratedType.typeArguments.single;
   }
 
   void _forEachParts(AstNode node, bool isAsync, ForEachParts forEachParts,
@@ -155,7 +158,8 @@ class ForResolver {
           : _resolver.typeProvider.iterableType(valueType);
     }
 
-    _resolver.analyzeExpression(iterable, targetType);
+    _resolver.analyzeExpression(
+        iterable, targetType ?? UnknownInferredType.instance);
     iterable = _resolver.popRewrite()!;
 
     _resolver.nullableDereferenceVerifier.expression(

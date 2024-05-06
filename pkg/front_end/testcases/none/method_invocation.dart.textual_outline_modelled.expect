@@ -21,9 +21,13 @@ class Class2<T> {
 }
 
 const int i = 4;
+
 const int j = 24;
+
 const int k = i * j;
+
 main() {}
+
 test<T1 extends Function, T2 extends int Function(int), T3>(
     Class1 nonNullableClass1,
     Class1? nullableClass1,

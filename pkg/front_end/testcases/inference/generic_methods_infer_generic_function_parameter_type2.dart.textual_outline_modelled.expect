@@ -9,4 +9,5 @@ class C<T> extends D<T> {
 }
 
 main() {}
+
 typedef List<V> G<V>();

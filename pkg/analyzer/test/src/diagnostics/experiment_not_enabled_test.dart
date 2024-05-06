@@ -4,7 +4,6 @@
 
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -30,23 +29,6 @@ main() {
 ''', [
       error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 86, 5),
       error(CompileTimeErrorCode.UNDEFINED_METHOD, 96, 3),
-    ]);
-  }
-
-  test_constructor_tearoffs_disabled_grammar_pre_nnbd() async {
-    noSoundNullSafety = false;
-    await assertErrorsInCode('''
-// @dart=2.9
-class Foo<X> {
-  const Foo.bar();
-  int get baz => 0;
-}
-main() {
-  Foo<int>.bar.baz();
-}
-''', [
-      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 83, 5),
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 93, 3),
     ]);
   }
 

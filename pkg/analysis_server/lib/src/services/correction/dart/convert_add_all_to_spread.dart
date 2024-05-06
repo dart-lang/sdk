@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -19,6 +20,8 @@ class ConvertAddAllToSpread extends ResolvedCorrectionProducer {
   /// A flag indicating whether the change that was built is one that inlines
   /// the elements of another list into the target list.
   bool _isInlineInvocation = false;
+
+  MethodInvocation? _invocation;
 
   @override
   List<Object> get assistArguments => _args;
@@ -49,20 +52,8 @@ class ConvertAddAllToSpread extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var name = node;
-    if (name is! SimpleIdentifier) {
-      return;
-    }
-
-    var invocation = name.parent;
-    if (invocation is! MethodInvocation) {
-      return;
-    }
-
-    if (name != invocation.methodName ||
-        name.name != 'addAll' ||
-        !invocation.isCascaded ||
-        invocation.argumentList.arguments.length != 1) {
+    var invocation = _invocation;
+    if (invocation == null) {
       return;
     }
 
@@ -82,6 +73,8 @@ class ConvertAddAllToSpread extends ResolvedCorrectionProducer {
         expression is ListLiteral && expression.elements.isEmpty;
 
     var argument = invocation.argumentList.arguments[0];
+    assert(argument is ListLiteral == _isInlineInvocation);
+
     String? elementText;
     if (argument is BinaryExpression &&
         argument.operator.type == TokenType.QUESTION_QUESTION) {
@@ -113,7 +106,6 @@ class ConvertAddAllToSpread extends ResolvedCorrectionProducer {
       var endOffset = elements.last.end;
       elementText = utils.getText(startOffset, endOffset - startOffset);
       _args = ['addAll'];
-      _isInlineInvocation = true;
     }
     elementText ??= '...${utils.getNodeText(argument)}';
 
@@ -134,5 +126,34 @@ class ConvertAddAllToSpread extends ResolvedCorrectionProducer {
       }
       builder.addDeletion(range.node(invocation));
     });
+  }
+
+  @override
+  void configure(CorrectionProducerContext<ResolvedUnitResult> context) {
+    super.configure(context);
+
+    var name = node;
+    if (name is! SimpleIdentifier) {
+      return;
+    }
+
+    var invocation = name.parent;
+    if (invocation is! MethodInvocation) {
+      return;
+    }
+
+    if (name != invocation.methodName ||
+        name.name != 'addAll' ||
+        !invocation.isCascaded ||
+        invocation.argumentList.arguments.length != 1) {
+      return;
+    }
+
+    var argument = invocation.argumentList.arguments[0];
+    if (argument is ListLiteral) {
+      _isInlineInvocation = true;
+    }
+
+    _invocation = invocation;
   }
 }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:expect/expect.dart';
 
 /*member: _field4:params=0*/
@@ -65,14 +63,14 @@ class Class4 extends Class1 {
 
 /*member: method6:access=[toString],params=1*/
 @pragma('dart2js:noInline')
-method6(Class1 c) {
-  return c.field1;
+method6(Class1? c) {
+  return c!.field1;
 }
 
 /*member: method7:access=[toString],calls=[_field4(0)],params=1*/
 @pragma('dart2js:noInline')
-method7(Class1 c) {
-  return c.field4();
+method7(Class1? c) {
+  return c!.field4();
 }
 
 var field8;

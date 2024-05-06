@@ -41,6 +41,9 @@ class OverlayResourceProvider implements ResourceProvider {
       _OverlayFolder(this, baseProvider.getFolder(path));
 
   @override
+  Link getLink(String path) => baseProvider.getLink(path);
+
+  @override
   Resource getResource(String path) {
     if (hasOverlay(path)) {
       return _OverlayResource._from(this, baseProvider.getFile(path));

@@ -25,7 +25,7 @@ class GeneratorResult<T extends ResponseResult?> {
   /// Use the given communications [channel] to send the notifications to the
   /// server.
   void sendNotifications(PluginCommunicationChannel channel) {
-    for (final notification in notifications) {
+    for (var notification in notifications) {
       channel.sendNotification(notification);
     }
   }

@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -11,24 +13,32 @@ import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
-import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import 'src/utilities/mock_packages.dart';
+import 'support/configuration_files.dart';
+import 'test_macros.dart';
 
-class AbstractContextTest with ResourceProviderMixin {
+class AbstractContextTest
+    with
+        MockPackagesMixin,
+        ConfigurationFilesMixin,
+        ResourceProviderMixin,
+        TestMacros {
   static bool _lintRulesAreRegistered = false;
 
   static final ByteStore _byteStore = MemoryByteStore();
+
+  /// Whether to rewrite line endings in test code based on platform.
+  bool useLineEndingsForPlatform = false;
 
   final Map<String, String> _declaredVariables = {};
   AnalysisContextCollectionImpl? _analysisContextCollection;
@@ -55,15 +65,11 @@ class AbstractContextTest with ResourceProviderMixin {
   /// Return a list of the experiments that are to be enabled for tests in this
   /// class, an empty list if there are no experiments that should be enabled.
   List<String> get experiments => [
-        EnableString.inline_class,
-        EnableString.macros,
+        Feature.macros.enableString,
       ];
 
-  String get latestLanguageVersion =>
-      '${ExperimentStatus.currentVersion.major}.'
-      '${ExperimentStatus.currentVersion.minor}';
-
   /// The path that is not in [workspaceRootPath], contains external packages.
+  @override
   String get packagesRootPath => '/packages';
 
   Folder get sdkRoot => newFolder('/sdk');
@@ -76,10 +82,9 @@ class AbstractContextTest with ResourceProviderMixin {
 
   File get testFile => getFile(testFilePath);
 
-  String? get testPackageLanguageVersion => latestLanguageVersion;
-
   String get testPackageLibPath => '$testPackageRootPath/lib';
 
+  @override
   String get testPackageRootPath => '$workspaceRootPath/test';
 
   String get testPackageTestPath => '$testPackageRootPath/test';
@@ -122,31 +127,41 @@ class AbstractContextTest with ResourceProviderMixin {
 
   /// Create an analysis options file based on the given arguments.
   void createAnalysisOptionsFile({
-    List<String>? experiments,
-    List<String>? cannotIgnore,
-    List<String>? lints,
+    List<String> experiments = const [],
+    List<String> cannotIgnore = const [],
+    List<String> lints = const [],
+    Map<String, Object?> errors = const {},
   }) {
     var buffer = StringBuffer();
 
-    if (experiments != null || cannotIgnore != null) {
+    if (experiments.isNotEmpty ||
+        cannotIgnore.isNotEmpty ||
+        errors.isNotEmpty) {
       buffer.writeln('analyzer:');
     }
 
-    if (experiments != null) {
+    if (errors.isNotEmpty) {
+      buffer.writeln('  errors:');
+      for (var error in errors.entries) {
+        buffer.writeln('    ${error.key}: ${error.value}');
+      }
+    }
+
+    if (experiments.isNotEmpty) {
       buffer.writeln('  enable-experiment:');
       for (var experiment in experiments) {
         buffer.writeln('    - $experiment');
       }
     }
 
-    if (cannotIgnore != null) {
+    if (cannotIgnore.isNotEmpty) {
       buffer.writeln('  cannot-ignore:');
       for (var unignorable in cannotIgnore) {
         buffer.writeln('    - $unignorable');
       }
     }
 
-    if (lints != null) {
+    if (lints.isNotEmpty) {
       buffer.writeln('linter:');
       buffer.writeln('  rules:');
       for (var lint in lints) {
@@ -154,7 +169,7 @@ class AbstractContextTest with ResourceProviderMixin {
       }
     }
 
-    newFile(analysisOptionsPath, buffer.toString());
+    writeAnalysisOptionsFile(buffer.toString());
   }
 
   /// Returns the existing analysis driver that should be used to analyze the
@@ -184,10 +199,15 @@ class AbstractContextTest with ResourceProviderMixin {
       throw StateError('Only dart files can be changed after analysis.');
     }
 
-    final file = super.newFile(path, content);
+    final file = super.newFile(path, normalizeSource(content));
     _addAnalyzedFileToDrivers(file);
     return file;
   }
+
+  /// Convenience function to normalize newlines in [code] for the current
+  /// platform if [useLineEndingsForPlatform] is `true`.
+  String normalizeSource(String code) =>
+      useLineEndingsForPlatform ? normalizeNewlinesForPlatform(code) : code;
 
   Future<AnalysisSession> sessionFor(File file) async {
     var analysisContext = _contextFor(file);
@@ -200,6 +220,7 @@ class AbstractContextTest with ResourceProviderMixin {
     if (!_lintRulesAreRegistered) {
       registerLintRules();
       _lintRulesAreRegistered = true;
+      registerBuiltInProducers();
     }
 
     setupResourceProvider();
@@ -218,9 +239,10 @@ class AbstractContextTest with ResourceProviderMixin {
 
   void setupResourceProvider() {}
 
-  void tearDown() {
-    noSoundNullSafety = true;
+  @mustCallSuper
+  Future<void> tearDown() async {
     AnalysisEngine.instance.clearCaches();
+    await _analysisContextCollection?.dispose();
   }
 
   /// Update `pubspec.yaml` and create the driver.
@@ -230,52 +252,9 @@ class AbstractContextTest with ResourceProviderMixin {
 
   void verifyCreatedCollection() {}
 
-  void writePackageConfig(String path, PackageConfigFileBuilder config) {
-    newFile(path, config.toContent(toUriStr: toUriStr));
-  }
-
-  void writeTestPackageConfig({
-    PackageConfigFileBuilder? config,
-    String? languageVersion,
-    bool flutter = false,
-    bool meta = false,
-    bool vector_math = false,
-  }) {
-    if (config == null) {
-      config = PackageConfigFileBuilder();
-    } else {
-      config = config.copy();
-    }
-
-    config.add(
-      name: 'test',
-      rootPath: testPackageRootPath,
-      languageVersion: languageVersion ?? testPackageLanguageVersion,
-    );
-
-    if (meta || flutter) {
-      var libFolder = MockPackages.instance.addMeta(resourceProvider);
-      config.add(name: 'meta', rootPath: libFolder.parent.path);
-    }
-
-    if (flutter) {
-      {
-        var libFolder = MockPackages.instance.addUI(resourceProvider);
-        config.add(name: 'ui', rootPath: libFolder.parent.path);
-      }
-      {
-        var libFolder = MockPackages.instance.addFlutter(resourceProvider);
-        config.add(name: 'flutter', rootPath: libFolder.parent.path);
-      }
-    }
-
-    if (vector_math) {
-      var libFolder = MockPackages.instance.addVectorMath(resourceProvider);
-      config.add(name: 'vector_math', rootPath: libFolder.parent.path);
-    }
-
-    var path = '$testPackageRootPath/.dart_tool/package_config.json';
-    writePackageConfig(path, config);
+  /// Writes string content as an analysis options file.
+  void writeAnalysisOptionsFile(String content) {
+    newFile(analysisOptionsPath, content);
   }
 
   void _addAnalyzedFilesToDrivers() {

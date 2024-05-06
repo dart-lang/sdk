@@ -121,13 +121,14 @@ import 'package:testing/testing.dart'
         Step,
         TestDescription,
         StdioProcess;
-import 'package:vm/target/vm.dart' show VmTarget;
+import 'package:vm/modular/target/vm.dart' show VmTarget;
 
 import '../../incremental_suite.dart' show TestRecorderForTesting;
 import '../../testing_utils.dart' show checkEnvironment;
 import '../../utils/kernel_chain.dart'
     show
         ComponentResult,
+        ErrorCommentChecker,
         MatchContext,
         MatchExpectation,
         Print,
@@ -135,15 +136,11 @@ import '../../utils/kernel_chain.dart'
         WriteDill;
 import '../../utils/validating_instrumentation.dart'
     show ValidatingInstrumentation;
+import 'environment_keys.dart';
 import 'folder_options.dart';
 import 'test_options.dart';
 
 export 'package:testing/testing.dart' show Chain, runMe;
-
-const String COMPILATION_MODE = " compilation mode ";
-
-const String UPDATE_EXPECTATIONS = "updateExpectations";
-const String UPDATE_COMMENTS = "updateComments";
 
 const String EXPECTATIONS = '''
 [
@@ -190,6 +187,10 @@ const String EXPECTATIONS = '''
   {
     "name": "SemiFuzzCrash",
     "group": "Fail"
+  },
+  {
+    "name": "ErrorCommentCheckFailure",
+    "group": "Fail"
   }
 ]
 ''';
@@ -211,7 +212,6 @@ class FastaContext extends ChainContext with MatchContext {
   @override
   final List<Step> steps;
   final Uri vm;
-  final bool onlyCrashes;
   final Map<ExperimentalFlag, bool> forcedExperimentalFlags;
   final bool skipVm;
   final bool semiFuzz;
@@ -227,7 +227,8 @@ class FastaContext extends ChainContext with MatchContext {
   final bool updateExpectations;
 
   @override
-  String get updateExpectationsOption => '${UPDATE_EXPECTATIONS}=true';
+  String get updateExpectationsOption =>
+      '${EnvironmentKeys.updateExpectations}=true';
 
   @override
   bool get canBeFixWithUpdateExpectations => true;
@@ -241,7 +242,6 @@ class FastaContext extends ChainContext with MatchContext {
       this.baseUri,
       this.vm,
       this.platformBinaries,
-      this.onlyCrashes,
       this.forcedExperimentalFlags,
       bool ignoreExpectations,
       this.updateExpectations,
@@ -253,6 +253,7 @@ class FastaContext extends ChainContext with MatchContext {
       this.soundNullSafety)
       : steps = <Step>[
           new Outline(compileMode, updateComments: updateComments),
+          new ErrorCommentChecker(compileMode),
           const Print(),
           new Verify(compileMode == CompileMode.full
               ? VerificationStage.afterConstantEvaluation
@@ -419,19 +420,6 @@ class FastaContext extends ChainContext with MatchContext {
   }
 
   @override
-  Result processTestResult(
-      TestDescription description, Result result, bool last) {
-    if (onlyCrashes) {
-      Expectation outcome = result.outcome;
-      if (outcome == Expectation.crash || outcome == verificationError) {
-        return result;
-      }
-      return result.copyWithOutcome(Expectation.pass);
-    }
-    return super.processTestResult(description, result, last);
-  }
-
-  @override
   Set<Expectation> processExpectedOutcomes(
       Set<Expectation> outcomes, TestDescription description) {
     // Remove outcomes related to phases not currently in effect.
@@ -470,18 +458,15 @@ class FastaContext extends ChainContext with MatchContext {
   static Future<FastaContext> create(
       Chain suite, Map<String, String> environment) {
     const Set<String> knownEnvironmentKeys = {
-      "enableExtensionMethods",
-      "enableNonNullable",
-      "soundNullSafety",
-      "onlyCrashes",
-      "ignoreExpectations",
-      UPDATE_EXPECTATIONS,
-      UPDATE_COMMENTS,
-      "skipVm",
-      "semiFuzz",
-      "verify",
-      "platformBinaries",
-      COMPILATION_MODE,
+      EnvironmentKeys.soundNullSafety,
+      EnvironmentKeys.ignoreExpectations,
+      EnvironmentKeys.updateExpectations,
+      EnvironmentKeys.updateComments,
+      EnvironmentKeys.skipVm,
+      EnvironmentKeys.semiFuzz,
+      EnvironmentKeys.verify,
+      EnvironmentKeys.platformBinaries,
+      EnvironmentKeys.compilationMode,
     };
     checkEnvironment(environment, knownEnvironmentKeys);
 
@@ -491,32 +476,33 @@ class FastaContext extends ChainContext with MatchContext {
     Map<ExperimentalFlag, bool> experimentalFlags =
         SuiteFolderOptions.computeForcedExperimentalFlags(environment);
 
-    bool soundNullSafety = environment["soundNullSafety"] == "true";
-    bool onlyCrashes = environment["onlyCrashes"] == "true";
-    bool ignoreExpectations = environment["ignoreExpectations"] == "true";
-    bool updateExpectations = environment[UPDATE_EXPECTATIONS] == "true";
-    bool updateComments = environment[UPDATE_COMMENTS] == "true";
-    bool skipVm = environment["skipVm"] == "true";
-    bool semiFuzz = environment["semiFuzz"] == "true";
-    bool verify = environment["verify"] != "false";
-    String? platformBinaries = environment["platformBinaries"];
+    bool soundNullSafety =
+        environment[EnvironmentKeys.soundNullSafety] == "true";
+    bool ignoreExpectations =
+        environment[EnvironmentKeys.ignoreExpectations] == "true";
+    bool updateExpectations =
+        environment[EnvironmentKeys.updateExpectations] == "true";
+    bool updateComments = environment[EnvironmentKeys.updateComments] == "true";
+    bool skipVm = environment[EnvironmentKeys.skipVm] == "true";
+    bool semiFuzz = environment[EnvironmentKeys.semiFuzz] == "true";
+    bool verify = environment[EnvironmentKeys.verify] != "false";
+    String? platformBinaries = environment[EnvironmentKeys.platformBinaries];
     if (platformBinaries != null && !platformBinaries.endsWith('/')) {
       platformBinaries = '$platformBinaries/';
     }
     return new Future.value(new FastaContext(
-        suite.uri,
+        suite.root,
         vm,
         platformBinaries == null
             ? computePlatformBinariesLocation(forceBuildDir: true)
             : Uri.base.resolve(platformBinaries),
-        onlyCrashes,
         experimentalFlags,
         ignoreExpectations,
         updateExpectations,
         updateComments,
         skipVm,
         semiFuzz,
-        compileModeFromName(environment[COMPILATION_MODE]),
+        compileModeFromName(environment[EnvironmentKeys.compilationMode]),
         verify,
         soundNullSafety));
   }
@@ -2126,7 +2112,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
                       compilationSetup, sourceTarget),
                   context.expectationSet["InstrumentationMismatch"],
                   instrumentation.problemsAsString,
-                  autoFixCommand: '${UPDATE_COMMENTS}=true',
+                  autoFixCommand: '${EnvironmentKeys.updateComments}=true',
                   canBeFixWithUpdateExpectations: true);
             }
           }

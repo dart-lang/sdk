@@ -75,10 +75,7 @@ abstract class DataSink {
       {bool allowNull = false});
 
   /// Writes the enum value [value] to this data sink.
-  // TODO(johnniwinther): Change the signature to
-  // `void writeEnum<E extends Enum<E>>(E value);` when an interface for enums
-  // is added to the language.
-  void writeEnum(dynamic value);
+  void writeEnum<E extends Enum>(E value);
 
   /// Writes the URI [value] to this data sink.
   void writeUri(Uri value);
@@ -194,7 +191,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   }
 
   @override
-  void writeEnum(dynamic value) {
+  void writeEnum<E extends Enum>(E value) {
     _writeEnumInternal(value);
   }
 
@@ -238,7 +235,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   void _writeIntInternal(int value);
 
   /// Actual serialization of an enum value, implemented by subclasses.
-  void _writeEnumInternal(dynamic value);
+  void _writeEnumInternal<E extends Enum>(E value);
 }
 
 /// [DataSink] that writes data as a sequence of bytes.
@@ -282,8 +279,7 @@ class BinarySink extends AbstractDataSink {
   }
 
   @override
-  void _writeEnumInternal(dynamic value) {
-    // ignore: avoid_dynamic_calls
+  void _writeEnumInternal<E extends Enum>(E value) {
     _writeIntInternal(value.index);
   }
 

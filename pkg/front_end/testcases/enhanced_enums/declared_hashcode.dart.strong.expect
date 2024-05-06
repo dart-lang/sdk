@@ -33,28 +33,28 @@ library;
 // pkg/front_end/testcases/enhanced_enums/declared_hashcode.dart:26:16: Error: Can't declare a member that conflicts with an inherited one.
 //   List<String> hashCode() => []; // Error.
 //                ^^^^^^^^
-// sdk/lib/_internal/vm/lib/object_patch.dart:24:11: Context: This is the inherited member.
+// sdk/lib/_internal/vm/lib/object_patch.dart:*: Context: This is the inherited member.
 //   int get hashCode => _getHash(this);
 //           ^^^^^^^^
 //
 // pkg/front_end/testcases/enhanced_enums/declared_hashcode.dart:64:18: Error: Can't declare a member that conflicts with an inherited one.
 //   static int get hashCode => 42; // Error.
 //                  ^^^^^^^^
-// sdk/lib/_internal/vm/lib/object_patch.dart:24:11: Context: This is the inherited member.
+// sdk/lib/_internal/vm/lib/object_patch.dart:*: Context: This is the inherited member.
 //   int get hashCode => _getHash(this);
 //           ^^^^^^^^
 //
 // pkg/front_end/testcases/enhanced_enums/declared_hashcode.dart:70:19: Error: Can't declare a member that conflicts with an inherited one.
 //   static void set hashCode(int value) {} // Error.
 //                   ^^^^^^^^
-// sdk/lib/_internal/vm/lib/object_patch.dart:24:11: Context: This is the inherited member.
+// sdk/lib/_internal/vm/lib/object_patch.dart:*: Context: This is the inherited member.
 //   int get hashCode => _getHash(this);
 //           ^^^^^^^^
 //
 // pkg/front_end/testcases/enhanced_enums/declared_hashcode.dart:74:3: Error: Can't declare a member that conflicts with an inherited one.
 //   hashCode // Error.
 //   ^^^^^^^^
-// sdk/lib/_internal/vm/lib/object_patch.dart:24:11: Context: This is the inherited member.
+// sdk/lib/_internal/vm/lib/object_patch.dart:*: Context: This is the inherited member.
 //   int get hashCode => _getHash(this);
 //           ^^^^^^^^
 //
@@ -62,14 +62,14 @@ library;
 // Change to a subtype of 'int'.
 //   String get hashCode => "foo"; // Error.
 //              ^
-// sdk/lib/_internal/vm/lib/object_patch.dart:24:11: Context: This is the overridden method ('hashCode').
+// sdk/lib/_internal/vm/lib/object_patch.dart:*: Context: This is the overridden method ('hashCode').
 //   int get hashCode => _getHash(this);
 //           ^
 //
 // pkg/front_end/testcases/enhanced_enums/declared_hashcode.dart:52:12: Error: The type 'int' of the inherited getter 'Object.hashCode' is not a subtype of the type 'String' of the setter 'E8.hashCode'.
 //   void set hashCode(String value) {} // Error.
 //            ^^^^^^^^
-// sdk/lib/_internal/vm/lib/object_patch.dart:24:11: Context: This is the declaration of the getter 'Object.hashCode'.
+// sdk/lib/_internal/vm/lib/object_patch.dart:*: Context: This is the declaration of the getter 'Object.hashCode'.
 //   int get hashCode => _getHash(this);
 //           ^^^^^^^^
 //
@@ -77,14 +77,14 @@ library;
 // Change to a subtype of 'int'.
 //   double get hashCode; // Error.
 //              ^
-// sdk/lib/_internal/vm/lib/object_patch.dart:24:11: Context: This is the overridden method ('hashCode').
+// sdk/lib/_internal/vm/lib/object_patch.dart:*: Context: This is the overridden method ('hashCode').
 //   int get hashCode => _getHash(this);
 //           ^
 //
 // pkg/front_end/testcases/enhanced_enums/declared_hashcode.dart:55:6: Error: The implementation of 'hashCode' in the non-abstract class 'E9' does not conform to its interface.
 // enum E9 {
 //      ^^
-// sdk/lib/_internal/vm/lib/object_patch.dart:24:11: Context: The return type of the method 'Object.hashCode' is 'int', which does not match the return type, 'double', of the overridden method, 'E9.hashCode'.
+// sdk/lib/_internal/vm/lib/object_patch.dart:*: Context: The return type of the method 'Object.hashCode' is 'int', which does not match the return type, 'double', of the overridden method, 'E9.hashCode'.
 // Change to a subtype of 'double'.
 //   int get hashCode => _getHash(this);
 //           ^
@@ -95,7 +95,7 @@ library;
 // pkg/front_end/testcases/enhanced_enums/declared_hashcode.dart:87:6: Error: The implementation of 'hashCode' in the non-abstract class 'E14' does not conform to its interface.
 // enum E14 implements I14 { element } // Error.
 //      ^^^
-// sdk/lib/_internal/vm/lib/object_patch.dart:24:11: Context: The return type of the method 'Object.hashCode' is 'int', which does not match the return type, 'Never', of the overridden method, 'I14.hashCode'.
+// sdk/lib/_internal/vm/lib/object_patch.dart:*: Context: The return type of the method 'Object.hashCode' is 'int', which does not match the return type, 'Never', of the overridden method, 'I14.hashCode'.
 // Change to a subtype of 'Never'.
 //   int get hashCode => _getHash(this);
 //           ^

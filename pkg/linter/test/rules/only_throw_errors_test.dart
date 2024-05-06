@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -17,16 +16,6 @@ main() {
 class OnlyThrowErrorsTest extends LintRuleTest {
   @override
   String get lintRule => 'only_throw_errors';
-
-  @override
-  void setUp() {
-    super.setUp();
-    noSoundNullSafety = false;
-  }
-
-  void tearDown() {
-    noSoundNullSafety = true;
-  }
 
   test_argumentError() async {
     await assertNoDiagnostics(r'''
@@ -99,17 +88,6 @@ void f() {
 
 Never e() => throw Exception();
 ''');
-  }
-
-  test_nullInPreNullSafe() async {
-    await assertDiagnostics(r'''
-// @dart=2.9
-void f() {
-  throw null;
-}
-''', [
-      lint(32, 4),
-    ]);
   }
 
   test_object() async {

@@ -143,7 +143,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
     invalid-expression "pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:31:13: Error: The setter 'foo' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'foo'.
     (0 + 1).foo = new Class1();
-            ^^^" in 0.{core::num::+}(1){(core::num) → core::int}{<unresolved>}.foo = new self::Class1::_();
+            ^^^" in 0.{core::num::+}(1){(core::num) → core::int}.{<unresolved>}foo = new self::Class1::_();
     invalid-expression "pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:33:18: Error: The method 'foo' isn't defined for the class 'Class1'.
  - 'Class1' is from 'pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart'.
 Try correcting the name to the name of an existing method, or defining a method named 'foo'.

@@ -10,7 +10,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/inject_private_patch/origin_lib.dart:35:7: Error: The non-abstract class 'ClassImplements' is missing implementations for these members:
+// pkg/front_end/testcases/general/inject_private_patch/origin_lib.dart:36:7: Error: The non-abstract class 'ClassImplements' is missing implementations for these members:
 //  - Class._privateInjectedInstanceMember1
 //  - Class._privateInjectedInstanceMember2
 // Try to either
@@ -19,7 +19,7 @@ library;
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
 //
-// class ClassImplements
+// class ClassImplements implements Class {
 //       ^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/general/inject_private_patch/patch_lib1.dart:10:8: Context: 'Class._privateInjectedInstanceMember1' is defined here.
 //   void _privateInjectedInstanceMember1(Class c) {

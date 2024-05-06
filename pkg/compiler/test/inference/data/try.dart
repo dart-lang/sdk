@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*member: main:[null]*/
 main() {
   emptyTryCatch();
@@ -75,7 +73,7 @@ emptyTryCatchFinally() {
 
 /*member: tryCatchAssignmentInTry:[null|exact=JSUInt31]*/
 tryCatchAssignmentInTry() {
-  var o = 0;
+  int? o = 0;
   try {
     o = null;
   } catch (e) {}
@@ -88,7 +86,7 @@ tryCatchAssignmentInTry() {
 
 /*member: tryCatchAssignmentInCatch:[null|exact=JSUInt31]*/
 tryCatchAssignmentInCatch() {
-  var o = 0;
+  int? o = 0;
   try {} catch (e) {
     o = null;
   }
@@ -101,7 +99,7 @@ tryCatchAssignmentInCatch() {
 
 /*member: tryFinallyAssignmentInFinally:[null]*/
 tryFinallyAssignmentInFinally() {
-  var o = 0;
+  int? o = 0;
   try {} finally {
     o = null;
   }

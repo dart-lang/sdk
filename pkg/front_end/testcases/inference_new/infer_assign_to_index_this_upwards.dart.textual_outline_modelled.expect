@@ -1,4 +1,5 @@
 // @dart = 2.9
+
 library test;
 
 abstract class Test1 {
@@ -56,6 +57,9 @@ abstract class Test9 {
 }
 
 double getDouble() => 0.0;
+
 int getInt() => 0;
+
 main() {}
+
 num getNum() => 0;

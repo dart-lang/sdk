@@ -4,6 +4,7 @@
 // Dart test for testing Math.min and Math.max.
 
 import "package:expect/expect.dart";
+import 'package:expect/variations.dart' as v;
 
 negate(x) => -x;
 
@@ -36,9 +37,9 @@ main() {
   var matrix = [
     -inf,
     -maxFiniteAsDouble,
-    [minInt64, if (!webNumbers) minInt64AsDouble],
-    if (!webNumbers) [-maxInt64, -maxFiniteAsInt],
-    if (!webNumbers) -two53p1,
+    [minInt64, if (!v.jsNumbers) minInt64AsDouble],
+    if (!v.jsNumbers) [-maxInt64, -maxFiniteAsInt],
+    if (!v.jsNumbers) -two53p1,
     [-two53, -maxExactIntAsInt, -maxExactIntAsDouble],
     -maxNonInt,
     [-maxNonIntFloorAsDouble, -maxNonIntFloorAsInt],
@@ -61,9 +62,9 @@ main() {
     [maxNonIntFloorAsDouble, maxNonIntFloorAsInt],
     maxNonInt,
     [two53, maxExactIntAsInt, maxExactIntAsDouble],
-    if (!webNumbers) two53p1,
-    [maxInt64, if (!webNumbers) maxFiniteAsInt],
-    if (!webNumbers) maxInt64AsDouble,
+    if (!v.jsNumbers) two53p1,
+    [maxInt64, if (!v.jsNumbers) maxFiniteAsInt],
+    if (!v.jsNumbers) maxInt64AsDouble,
     maxFiniteAsDouble,
     inf,
     [nan, mnan],

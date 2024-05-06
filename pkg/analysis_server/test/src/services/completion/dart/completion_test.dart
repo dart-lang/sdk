@@ -11,7 +11,6 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ArgumentListCompletionTest);
     defineReflectiveTests(AsExpressionCompletionTest);
-    defineReflectiveTests(AssertStatementCompletionTest);
     defineReflectiveTests(ConstructorCompletionTest);
     defineReflectiveTests(DeclaredIdentifierCompletionTest);
     defineReflectiveTests(ExpressionFunctionBodyCompletionTest);
@@ -83,21 +82,6 @@ void f(Object o) {
 }
 ''');
     assertHasCompletion('dynamic');
-  }
-}
-
-@reflectiveTest
-class AssertStatementCompletionTest extends CompletionTestCase {
-  @failingTest
-  Future<void> test_message() async {
-    await getTestCodeSuggestions('''
-void f() {
-  assert(true, ^);
-}
-
-const c = <int>[];
-''');
-    assertHasCompletion('c');
   }
 }
 
@@ -436,7 +420,7 @@ typedef F = ^
 
 @reflectiveTest
 class PropertyAccessCompletionTest extends CompletionTestCase {
-  Future<void> test_nullSafe_extension() async {
+  Future<void> test_extension() async {
     await getTestCodeSuggestions('''
 void f(C c) {
   c.a?.^;
@@ -566,7 +550,6 @@ class A {
 @reflectiveTest
 class RedirectingConstructorInvocationCompletionTest
     extends CompletionTestCase {
-  @failingTest
   Future<void> test_instanceMember() async {
     await getTestCodeSuggestions('''
 class C {

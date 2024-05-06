@@ -1,0 +1,31 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Expect extends core::Object {
+  synthetic constructor •() → self::Expect
+    ;
+  static method equals(dynamic x, dynamic y) → void
+    ;
+  static method isTrue(core::bool b) → void
+    ;
+}
+extension type ET(core::Object? _) {
+  abstract extension-type-member representation-field get _() → core::Object?;
+  method call = self::ET|call;
+  method tearoff call = self::ET|get#call;
+  constructor • = self::ET|constructor#;
+  constructor tearoff • = self::ET|constructor#_#new#tearOff;
+}
+static extension-type-member method ET|constructor#(core::Object? _) → self::ET% /* erasure=core::Object?, declared=! */
+  ;
+static extension-type-member method ET|constructor#_#new#tearOff(core::Object? _) → self::ET% /* erasure=core::Object?, declared=! */
+  return self::ET|constructor#(_);
+static extension-type-member method ET|call(lowered final self::ET% /* erasure=core::Object?, declared=! */ #this) → core::String
+  ;
+static extension-type-member method ET|get#call(lowered final self::ET% /* erasure=core::Object?, declared=! */ #this) → () → core::String
+  return () → core::String => self::ET|call(#this);
+static method func(core::Function callable) → core::Function
+  ;
+static method main() → void
+  ;

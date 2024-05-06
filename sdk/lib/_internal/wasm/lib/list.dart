@@ -21,13 +21,13 @@ abstract class _ListBase<E> extends ListBase<E> {
 
   _ListBase._withData(this._length, this._data);
 
+  @pragma('wasm:prefer-inline')
   E operator [](int index) {
-    if (WasmI64.fromInt(_length).leU(WasmI64.fromInt(index))) {
-      throw IndexError.withLength(index, length, name: "[]");
-    }
+    indexCheckWithName(index, _length, "[]");
     return unsafeCast(_data[index]);
   }
 
+  @pragma('wasm:prefer-inline')
   int get length => _length;
 
   List<E> sublist(int start, [int? end]) {
@@ -58,10 +58,9 @@ abstract class _ModifiableList<E> extends _ListBase<E> {
   _ModifiableList._withData(int length, WasmArray<Object?> data)
       : super._withData(length, data);
 
+  @pragma('wasm:prefer-inline')
   void operator []=(int index, E value) {
-    if (WasmI64.fromInt(_length).leU(WasmI64.fromInt(index))) {
-      throw IndexError.withLength(index, length, name: "[]=");
-    }
+    indexCheckWithName(index, _length, "[]=");
     _data[index] = value;
   }
 

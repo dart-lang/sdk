@@ -335,7 +335,7 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
 
   @override
   TreeNode visitThrow(Throw node) {
-    return new Throw(clone(node.expression));
+    return new Throw(clone(node.expression))..flags = node.flags;
   }
 
   @override
@@ -751,7 +751,8 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   @override
   TreeNode visitDynamicInvocation(DynamicInvocation node) {
     return new DynamicInvocation(
-        node.kind, clone(node.receiver), node.name, clone(node.arguments));
+        node.kind, clone(node.receiver), node.name, clone(node.arguments))
+      ..flags = node.flags;
   }
 
   @override
@@ -848,10 +849,7 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
 
   @override
   TreeNode visitTypedefTearOff(TypedefTearOff node) {
-    prepareTypeParameters(node.typeParameters);
-    return new TypedefTearOff(
-        node.typeParameters.map(visitTypeParameter).toList(),
-        clone(node.expression),
+    return new TypedefTearOff(node.structuralParameters, clone(node.expression),
         node.typeArguments.map(visitType).toList());
   }
 
@@ -1253,6 +1251,31 @@ class CloneProcedureWithoutBody extends CloneVisitorWithMembers {
       : super(
             typeSubstitution: typeSubstitution,
             cloneAnnotations: cloneAnnotations);
+
+  /// Clones procedure and replaces its parts with those passed as arguments
+  ///
+  /// [cloneProcedureWith] is a shortcut that can be helpful, for example, for
+  /// transforming external procedures.
+  ///
+  /// Since this cloner clones procedures without the body, it's safe to replace
+  /// the parameters of the cloned procedure, since they aren't referenced
+  /// anywhere. If either [positionalParameters] or [namedParameters] are
+  /// passed in, they are used in place of the freshly cloned
+  /// [FunctionNode.positionalParameters] and [FunctionNode.namedParameters].
+  Procedure cloneProcedureWith(Procedure node, Reference? reference,
+      {List<VariableDeclaration>? positionalParameters,
+      List<VariableDeclaration>? namedParameters}) {
+    Procedure cloned = cloneProcedure(node, reference);
+    if (positionalParameters != null) {
+      cloned.function.positionalParameters = positionalParameters;
+      setParents(positionalParameters, cloned.function);
+    }
+    if (namedParameters != null) {
+      cloned.function.namedParameters = namedParameters;
+      setParents(namedParameters, cloned.function);
+    }
+    return cloned;
+  }
 
   @override
   Statement? cloneFunctionNodeBody(FunctionNode node) => null;

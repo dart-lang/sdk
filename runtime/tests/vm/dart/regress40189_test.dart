@@ -4,8 +4,6 @@
 
 import "package:expect/expect.dart";
 
-import 'dart:collection';
-
 main() {
   for (final value in [const [], const {}.values]) {
     final other = List.from(value);

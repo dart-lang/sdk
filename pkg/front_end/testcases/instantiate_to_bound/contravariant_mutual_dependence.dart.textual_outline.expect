@@ -5,4 +5,5 @@ D d = throw '';
 class E<X extends void Function(X)> {}
 
 E e = throw '';
+
 main() {}

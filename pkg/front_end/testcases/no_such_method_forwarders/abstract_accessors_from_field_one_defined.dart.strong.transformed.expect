@@ -49,7 +49,7 @@ static method expectTypeError(() → dynamic callback) → void {
 }
 static method main() → dynamic {
   self::C c = new self::C::•();
-  self::expectTypeError(() → core::String => (c as dynamic){dynamic}.foo = "bar");
+  self::expectTypeError(() → core::String => (c as dynamic).{dynamic}foo = "bar");
   self::E e = new self::E::•();
   self::expectTypeError(() → core::int? => e.{self::E::foo}{core::int?});
 }

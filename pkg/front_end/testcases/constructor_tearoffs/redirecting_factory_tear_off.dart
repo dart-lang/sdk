@@ -95,7 +95,7 @@ testArgs() {
   var c3a = f3a(42);
   expect(42, c3a.field);
   () {
-    f3a(); // error
+    f3a(); // error 
     f3a(42, 87); // error
   };
 

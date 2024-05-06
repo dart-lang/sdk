@@ -63,9 +63,6 @@ for more information.
 
 ''';
 
-bool _isSubscription(DartType type) =>
-    type.implementsInterface('StreamSubscription', 'dart.async');
-
 class CancelSubscriptions extends LintRule {
   static const LintCode code = LintCode(
       'cancel_subscriptions', "Uncancelled instance of 'StreamSubscription'.",
@@ -92,12 +89,15 @@ class CancelSubscriptions extends LintRule {
 }
 
 class _Visitor extends LeakDetectorProcessors {
-  static const _cancelMethodName = 'cancel';
-
-  @override
-  Map<DartTypePredicate, String> predicates = {
-    _isSubscription: _cancelMethodName
+  static final _predicates = {
+    _isSubscription: 'cancel',
   };
 
   _Visitor(super.rule);
+
+  @override
+  Map<DartTypePredicate, String> get predicates => _predicates;
+
+  static bool _isSubscription(DartType type) =>
+      type.implementsInterface('StreamSubscription', 'dart.async');
 }

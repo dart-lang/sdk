@@ -5,7 +5,7 @@
 library fasta.formal_parameter_builder;
 
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart'
-    show FormalParameterKind, FormalParameterKindExtension;
+    show FormalParameterKind;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:front_end/src/fasta/source/constructor_declaration.dart';
 import 'package:kernel/ast.dart'
@@ -245,10 +245,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
     }
   }
 
-  /// Builds the default value from this [initializerToken] if this is a
-  /// formal parameter on a const constructor or instance method.
-  void buildOutlineExpressions(SourceLibraryBuilder libraryBuilder,
-      List<DelayedActionPerformer> delayedActionPerformers) {
+  bool get needsDefaultValuesBuiltAsOutlineExpressions {
     // For modular compilation we need to include default values for optional
     // and named parameters in several cases:
     // * for const constructors to enable constant evaluation,
@@ -256,15 +253,20 @@ class FormalParameterBuilder extends ModifierBuilderImpl
     //   noSuchMethod forwarders, and
     // * for generative constructors to support forwarding constructors
     //   in mixin applications.
-    bool needsDefaultValues = false;
     if (parent is ConstructorBuilder) {
-      needsDefaultValues = true;
+      return true;
     } else if (parent is SourceFactoryBuilder) {
-      needsDefaultValues = parent!.isFactory && parent!.isConst;
+      return parent!.isFactory && parent!.isConst;
     } else {
-      needsDefaultValues = parent!.isClassInstanceMember;
+      return parent!.isClassInstanceMember;
     }
-    if (needsDefaultValues) {
+  }
+
+  /// Builds the default value from this [initializerToken] if this is a
+  /// formal parameter on a const constructor or instance method.
+  void buildOutlineExpressions(SourceLibraryBuilder libraryBuilder,
+      List<DelayedActionPerformer> delayedActionPerformers) {
+    if (needsDefaultValuesBuiltAsOutlineExpressions) {
       if (initializerToken != null) {
         final DeclarationBuilder declarationBuilder =
             parent!.parent as DeclarationBuilder;
@@ -285,8 +287,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
         bodyBuilder.performBacklogComputations(
             delayedActionPerformers: delayedActionPerformers,
             allowFurtherDelays: false);
-      } else if (kind != FormalParameterKind.requiredPositional &&
-          !isSuperInitializingFormal) {
+      } else if (kind.isOptional) {
         // As done by BodyBuilder.endFormalParameter.
         variable!.initializer = new NullLiteral()..parent = variable;
       }

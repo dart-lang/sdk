@@ -12,7 +12,195 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IgnoreDiagnosticLineTest);
     defineReflectiveTests(IgnoreDiagnosticFileTest);
+    defineReflectiveTests(IgnoreDiagnosticAnaylsisOptionFileTest);
   });
+}
+
+@reflectiveTest
+class IgnoreDiagnosticAnaylsisOptionFileTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.IGNORE_ERROR_ANALYSIS_FILE;
+
+  @override
+  void setUp() {
+    useLineEndingsForPlatform = true;
+    super.setUp();
+  }
+
+  Future<void> test_addFixToExistingErrorMap() async {
+    createAnalysisOptionsFile(
+      errors: {'unused_label': 'ignore'},
+    );
+
+    await resolveTestCode('''
+void f() {
+  var a = 1;
+}
+''');
+    await assertHasFix(
+      '''
+analyzer:
+  errors:
+    unused_label: ignore
+    unused_local_variable: ignore
+''',
+      target: analysisOptionsPath,
+    );
+  }
+
+  Future<void> test_emptyAnalysisOptionsFile() async {
+    // This overwrites the file created by `super.setUp` method.
+    writeBlankAnalysisOptionsFile();
+
+    await resolveTestCode('''
+void f() {
+  var a = 1;
+}
+''');
+    await assertHasFix(
+      '''
+analyzer:
+  errors:
+    unused_local_variable: ignore
+''',
+      target: analysisOptionsPath,
+    );
+  }
+
+  Future<void> test_invalidAnalysisOptionsFormat() async {
+    // This overwrites the file created by `super.setUp` method.
+    // Note: a label without a value is an `invalid_section_format` for dart.
+    writeAnalysisOptionsFile('''
+analyzer:
+  linter:
+''');
+
+    await resolveTestCode('''
+  void f() {
+    var a = 1;
+  }
+  ''');
+    await assertNoFix();
+  }
+
+  Future<void> test_noAnalysisOptionsFile() async {
+    // TODO(osaxma): we should be able to prevent creating the file in the first
+    //  place. Overriding `setUp` won't solve the issue since it's marked with
+    //  `@mustCallSuper` and does several other operations besides creating the
+    //  file. See discussion at:
+    //  https://dart-review.googlesource.com/c/sdk/+/352220
+    //
+    // This deletes the file created by `super.setUp` method.
+    resourceProvider.getFile(analysisOptionsPath).delete();
+    await resolveTestCode('''
+void f() {
+  var a = 1;
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_noAnalyzerLabel() async {
+    writeBlankAnalysisOptionsFile();
+
+    await resolveTestCode('''
+void f() {
+  var a = 1;
+}
+''');
+    await assertHasFix(
+      '''
+analyzer:
+  errors:
+    unused_local_variable: ignore
+''',
+      target: analysisOptionsPath,
+    );
+  }
+
+  Future<void> test_noErrorLabel() async {
+    createAnalysisOptionsFile(
+      // To create a valid `analyzer` label, we add a `cannot-ignore` label.
+      // This also  implicitly tests when unrelated label is in `cannot-ignore`
+      cannotIgnore: ['unused_label'],
+    );
+
+    await resolveTestCode('''
+void f() {
+  var a = 1;
+}
+''');
+    await assertHasFix(
+      '''
+analyzer:
+  errors:
+    unused_local_variable: ignore
+  cannot-ignore:
+    - unused_label
+''',
+      target: analysisOptionsPath,
+    );
+  }
+
+  Future<void> test_noFixWhenErrorIsIgnored() async {
+    createAnalysisOptionsFile(
+      errors: {'unused_local_variable': 'ignore'},
+    );
+
+    await resolveTestCode('''
+void f() {
+  var a = 1;
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_onlyIncludeLabel() async {
+    // This overwrites the file created by `super.setUp` method.
+    // Having a newline is important because yaml_edit copies existing
+    // newlines and we want to test the current platforms EOLs.
+    // The content is normalized in newFile().
+    writeAnalysisOptionsFile('''
+include: package:lints/recommended.yaml
+''');
+
+    await resolveTestCode('''
+  void f() {
+    var a = 1;
+  }
+  ''');
+    await assertHasFix(
+      '''
+analyzer:
+  errors:
+    unused_local_variable: ignore
+include: package:lints/recommended.yaml
+''',
+      target: analysisOptionsPath,
+    );
+  }
+
+  Future<void> test_unignorable() async {
+    createAnalysisOptionsFile(
+      experiments: experiments,
+      cannotIgnore: ['unused_local_variable'],
+    );
+
+    await resolveTestCode('''
+void f() {
+  var a = 1;
+}
+''');
+    await assertNoFix();
+  }
+
+  void writeBlankAnalysisOptionsFile() {
+    // Include a newline because yaml_edit will copy existing newlines and
+    // this newline will be normalized for the current platform. Without it,
+    // yaml_edit will produce new content using \n on Windows which may not
+    // match the expectations here depending on Git EOL settings.
+    writeAnalysisOptionsFile('\n');
+  }
 }
 
 @reflectiveTest

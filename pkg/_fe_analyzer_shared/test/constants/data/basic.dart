@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore: illegal_language_version_override
-// @dart = 2.9
-
 const null0 = /*cfe.Null()*/ null;
 const bool0 = /*cfe.Bool(true)*/ true;
 const bool1 = /*cfe.Bool(false)*/ false;

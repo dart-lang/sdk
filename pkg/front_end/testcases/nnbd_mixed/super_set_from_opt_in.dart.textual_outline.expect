@@ -1,4 +1,5 @@
 // @dart = 2.9
+
 import 'super_set_from_opt_in_lib.dart';
 
 abstract class Class extends SuperClass {}

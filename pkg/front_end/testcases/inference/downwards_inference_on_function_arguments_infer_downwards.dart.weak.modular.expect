@@ -46,10 +46,10 @@ import self as self;
 import "dart:core" as core;
 
 static method f0(core::List<core::int> a) → void {}
-static method f1({required core::List<core::int> a = #C1}) → void {}
+static method f1({required core::List<core::int> a}) → void {}
 static method f2(core::Iterable<core::int> a) → void {}
 static method f3(core::Iterable<core::Iterable<core::int>> a) → void {}
-static method f4({required core::Iterable<core::Iterable<core::int>> a = #C1}) → void {}
+static method f4({required core::Iterable<core::Iterable<core::int>> a}) → void {}
 static method test() → void {
   self::f0(<core::int>[]);
   self::f0(<core::int>[3]);
@@ -93,7 +93,3 @@ static method test() → void {
                                                                   ^" in "hello" as{TypeError} core::int], <core::int>[3]]);
 }
 static method main() → dynamic {}
-
-constants  {
-  #C1 = null
-}

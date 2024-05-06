@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=inline-class
-
 // This test verifies that extension type erasure is used when computing whether
 // a pattern fully covers the matched value type. This is necessary to avoid a
 // "catch-22" situation in which flow analysis and the exhaustiveness checker

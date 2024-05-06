@@ -150,7 +150,7 @@ class SnippetBuilder {
 
   /// Regex used by [escapeSnippetChoiceText].
   static final _escapeSnippetChoiceTextRegex =
-      RegExp(r'[$}\\\|,]'); // Replace any of $ } \ | ,
+      RegExp(r'[\\\|,]'); // Replace any of \ | ,
 
   /// Regex used by [escapeSnippetPlainText].
   static final _escapeSnippetPlainTextRegex =

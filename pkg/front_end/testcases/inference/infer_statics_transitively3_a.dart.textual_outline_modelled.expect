@@ -3,5 +3,7 @@ class A {
 }
 
 const a1 = 3;
+
 const a2 = 4;
+
 main() {}

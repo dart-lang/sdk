@@ -22,5 +22,7 @@ class SubOutIn extends SuperOut {
 }
 
 int Function()? nullableVar = () => 3;
+
 double nonNullableVar = 4.0;
+
 testOptIn() {}

@@ -5,5 +5,7 @@ class ConcreteClass implements Class<ConcreteClass> {}
 class G<X extends Class<X>> {}
 
 main() {}
+
 test() {}
+
 typedef F<X extends Class<X>> = X;

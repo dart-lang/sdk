@@ -273,22 +273,6 @@ library;
 //     use(super.n(87));
 //                ^
 //
-// pkg/front_end/testcases/rasta/super.dart:197:11: Warning: Operand of null-aware operation '??=' has type 'void Function()' which excludes null.
-//     super.m ??= 42;
-//           ^
-//
-// pkg/front_end/testcases/rasta/super.dart:198:15: Warning: Operand of null-aware operation '??=' has type 'void Function()' which excludes null.
-//     use(super.m ??= 42);
-//               ^
-//
-// pkg/front_end/testcases/rasta/super.dart:199:11: Warning: Operand of null-aware operation '??=' has type 'void Function()' which excludes null.
-//     super.n ??= 42;
-//           ^
-//
-// pkg/front_end/testcases/rasta/super.dart:200:15: Warning: Operand of null-aware operation '??=' has type 'void Function()' which excludes null.
-//     use(super.n ??= 42);
-//               ^
-//
 // pkg/front_end/testcases/rasta/super.dart:224:13: Error: The operator '+' isn't defined for the class 'void Function()'.
 // Try correcting the operator to an existing operator, or defining a '+' operator.
 //     super.n += 42;
@@ -507,30 +491,30 @@ Try correcting the operator to an existing operator, or defining a '+' operator.
 Try correcting the operator to an existing operator, or defining a '+' operator.
     use(++super.n);
         ^" in super.{self::A::n}{<unresolved>}.+(1));
-    super.{self::A::a}{dynamic}.call();
-    self::use(super.{self::A::a}{dynamic}.call());
-    super.{self::B::b}{dynamic}.call();
-    self::use(super.{self::B::b}{dynamic}.call());
-    super.{self::A::c}{dynamic}.call();
-    self::use(super.{self::A::c}{dynamic}.call());
-    super.{self::B::d}{dynamic}.call();
-    self::use(super.{self::B::d}{dynamic}.call());
-    super.{self::A::e}{dynamic}.call();
-    self::use(super.{self::A::e}{dynamic}.call());
-    super.{self::A::f}{dynamic}.call();
-    self::use(super.{self::A::f}{dynamic}.call());
+    super.{self::A::a}{dynamic}();
+    self::use(super.{self::A::a}{dynamic}());
+    super.{self::B::b}{dynamic}();
+    self::use(super.{self::B::b}{dynamic}());
+    super.{self::A::c}{dynamic}();
+    self::use(super.{self::A::c}{dynamic}());
+    super.{self::B::d}{dynamic}();
+    self::use(super.{self::B::d}{dynamic}());
+    super.{self::A::e}{dynamic}();
+    self::use(super.{self::A::e}{dynamic}());
+    super.{self::A::f}{dynamic}();
+    self::use(super.{self::A::f}{dynamic}());
     invalid-expression "pkg/front_end/testcases/rasta/super.dart:137:11: Error: Superclass has no method named 'g'.
     super.g();
           ^";
     self::use(invalid-expression "pkg/front_end/testcases/rasta/super.dart:138:15: Error: Superclass has no method named 'g'.
     use(super.g());
               ^");
-    super.{self::A::h}{dynamic}.call();
-    self::use(super.{self::A::h}{dynamic}.call());
-    super.{self::A::i}{dynamic}.call();
-    self::use(super.{self::A::i}{dynamic}.call());
-    super.{self::A::[]}(87){dynamic}.call();
-    self::use(super.{self::A::[]}(87){dynamic}.call());
+    super.{self::A::h}{dynamic}();
+    self::use(super.{self::A::h}{dynamic}());
+    super.{self::A::i}{dynamic}();
+    self::use(super.{self::A::i}{dynamic}());
+    super.{self::A::[]}(87){dynamic}();
+    self::use(super.{self::A::[]}(87){dynamic}());
     super.{self::A::m}();
     self::use(invalid-expression "pkg/front_end/testcases/rasta/super.dart:146:15: Error: This expression has type 'void' and can't be used.
     use(super.m());

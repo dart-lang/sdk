@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -37,11 +36,6 @@ class AddNullCheck extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (!unit.featureSet.isEnabled(Feature.non_nullable)) {
-      // Don't suggest a feature that isn't supported.
-      return;
-    }
-
     Expression? target;
     final coveredNode = this.coveredNode;
     var coveredNodeParent = coveredNode?.parent;

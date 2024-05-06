@@ -1486,6 +1486,11 @@ class Assembler : public MicroAssembler {
                             Register temp_reg,
                             JumpDistance distance = JumpDistance::kFarJump);
 
+  void MaybeTraceAllocation(Register cid,
+                            Label* trace,
+                            Register temp_reg,
+                            JumpDistance distance = JumpDistance::kFarJump);
+
   void TryAllocateObject(intptr_t cid,
                          intptr_t instance_size,
                          Label* failure,
@@ -1549,6 +1554,11 @@ class Assembler : public MicroAssembler {
   // See also above for the pc-relative call.
   void GenerateUnRelocatedPcRelativeTailCall(intptr_t offset_into_target = 0);
 
+  static bool AddressCanHoldConstantIndex(const Object& constant,
+                                          bool is_external,
+                                          intptr_t cid,
+                                          intptr_t index_scale);
+
   Address ElementAddressForIntIndex(bool is_external,
                                     intptr_t cid,
                                     intptr_t index_scale,
@@ -1567,18 +1577,6 @@ class Assembler : public MicroAssembler {
                                     Register array,
                                     Register index,
                                     Register temp);
-
-  // Special version of ElementAddressForRegIndex for the case when cid and
-  // operand size for the target load don't match (e.g. when loading a few
-  // elements of the array with one load).
-  Address ElementAddressForRegIndexWithSize(bool is_external,
-                                            intptr_t cid,
-                                            OperandSize size,
-                                            intptr_t index_scale,
-                                            bool index_unboxed,
-                                            Register array,
-                                            Register index,
-                                            Register temp);
 
   void ComputeElementAddressForRegIndex(Register address,
                                         bool is_external,

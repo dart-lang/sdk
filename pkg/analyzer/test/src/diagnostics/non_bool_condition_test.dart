@@ -9,7 +9,6 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(NonBoolConditionWithoutNullSafetyTest);
     defineReflectiveTests(NonBoolConditionTest);
     defineReflectiveTests(NonBoolConditionWithStrictCastsTest);
   });
@@ -17,6 +16,30 @@ main() {
 
 @reflectiveTest
 class NonBoolConditionTest extends PubPackageResolutionTest {
+  test_conditional() async {
+    await assertErrorsInCode('''
+f() { return 3 ? 2 : 1; }
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 13, 1),
+    ]);
+  }
+
+  test_conditional_fromLiteral() async {
+    await assertErrorsInCode('''
+f() { return [1, 2, 3] ? 2 : 1; }
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 13, 9),
+    ]);
+  }
+
+  test_conditional_fromSupertype() async {
+    await assertErrorsInCode('''
+f(Object o) { return o ? 2 : 1; }
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 21, 1),
+    ]);
+  }
+
   test_const_list_ifElement() async {
     await assertErrorsInCode(r'''
 const dynamic c = 2;
@@ -34,81 +57,6 @@ const x = [1, if (1) 2 else 3, 4];
     ]);
   }
 
-  test_guardedPattern_whenClause() async {
-    await assertErrorsInCode(r'''
-void f() {
-  if (0 case _ when 1) {}
-}
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 31, 1),
-    ]);
-  }
-
-  test_if_map() async {
-    await assertErrorsInCode(r'''
-const dynamic nonBool = null;
-const c = const {if (nonBool) 'a' : 1};
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 51, 7),
-    ]);
-  }
-
-  test_if_null() async {
-    await assertErrorsInCode(r'''
-void f(Null a) {
-  if (a) {}
-}
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 23, 1),
-    ]);
-  }
-
-  test_if_set() async {
-    await assertErrorsInCode(r'''
-const dynamic nonBool = 'a';
-const c = const {if (nonBool) 3};
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 50, 7),
-    ]);
-  }
-
-  test_ternary_condition_null() async {
-    await assertErrorsInCode(r'''
-void f(Null a) {
-  a ? 0 : 1;
-}
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 19, 1),
-    ]);
-  }
-}
-
-@reflectiveTest
-class NonBoolConditionWithoutNullSafetyTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
-  test_conditional() async {
-    await assertErrorsInCode('''
-f() { return 3 ? 2 : 1; }
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 13, 1),
-    ]);
-  }
-
-  test_conditional_implicitCast_fromLiteral() async {
-    await assertErrorsInCode('''
-f() { return [1, 2, 3] ? 2 : 1; }
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 13, 9),
-    ]);
-  }
-
-  test_conditional_implicitCast_fromSupertype() async {
-    await assertNoErrorsInCode('''
-Object o;
-f() { return o ? 2 : 1; }
-''');
-  }
-
   test_do() async {
     await assertErrorsInCode(r'''
 f() {
@@ -119,24 +67,24 @@ f() {
     ]);
   }
 
-  test_do_implicitCast_fromLiteral() async {
+  test_do_fromLiteral() async {
     await assertErrorsInCode('''
-Object o;
-f() {
+f(Object o) {
   do {} while ([1, 2, 3]);
 }
 ''', [
-      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 31, 9),
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 29, 9),
     ]);
   }
 
-  test_do_implicitCast_fromSupertype() async {
-    await assertNoErrorsInCode('''
-Object o;
-f() {
+  test_do_fromSupertype() async {
+    await assertErrorsInCode('''
+f(Object o) {
   do {} while (o);
 }
-''');
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 29, 1),
+    ]);
   }
 
   test_for() async {
@@ -174,7 +122,7 @@ f() {
     ]);
   }
 
-  test_for_implicitCast_fromLiteral() async {
+  test_for_fromLiteral() async {
     await assertErrorsInCode('''
 f() {
   for (;[1, 2, 3];) {}
@@ -184,13 +132,14 @@ f() {
     ]);
   }
 
-  test_for_implicitCast_fromSupertype() async {
-    await assertNoErrorsInCode('''
-Object o;
-f() {
+  test_for_fromSupertype() async {
+    await assertErrorsInCode('''
+f(Object o) {
   for (;o;) {}
 }
-''');
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 22, 1),
+    ]);
   }
 
   test_forElement() async {
@@ -198,6 +147,16 @@ f() {
 var v = [for (; 0;) 1];
 ''', [
       error(CompileTimeErrorCode.NON_BOOL_CONDITION, 16, 1),
+    ]);
+  }
+
+  test_guardedPattern_whenClause() async {
+    await assertErrorsInCode(r'''
+void f() {
+  if (0 case _ when 1) {}
+}
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 31, 1),
     ]);
   }
 
@@ -211,7 +170,7 @@ f() {
     ]);
   }
 
-  test_if_implicitCast_fromLiteral() async {
+  test_if_fromLiteral() async {
     await assertErrorsInCode('''
 f() {
   if ([1, 2, 3]) return 2; else return 1;
@@ -221,12 +180,42 @@ f() {
     ]);
   }
 
-  test_if_implicitCast_fromSupertype() async {
-    await assertNoErrorsInCode('''
+  test_if_fromSupertype() async {
+    await assertErrorsInCode('''
 f(Object o) {
   if (o) return 2; else return 1;
 }
-''');
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 20, 1),
+    ]);
+  }
+
+  test_if_map() async {
+    await assertErrorsInCode(r'''
+const dynamic nonBool = null;
+const c = const {if (nonBool) 'a' : 1};
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 51, 7),
+    ]);
+  }
+
+  test_if_null() async {
+    await assertErrorsInCode(r'''
+void f(Null a) {
+  if (a) {}
+}
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 23, 1),
+    ]);
+  }
+
+  test_if_set() async {
+    await assertErrorsInCode(r'''
+const dynamic nonBool = 'a';
+const c = const {if (nonBool) 3};
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 50, 7),
+    ]);
   }
 
   test_ifElement() async {
@@ -237,7 +226,7 @@ var v = [if (3) 1];
     ]);
   }
 
-  test_ifElement_implicitCast_fromLiteral() async {
+  test_ifElement_fromLiteral() async {
     await assertErrorsInCode('''
 var v = [if ([1, 2, 3]) 'x'];
 ''', [
@@ -245,11 +234,23 @@ var v = [if ([1, 2, 3]) 'x'];
     ]);
   }
 
-  test_ifElement_implicitCast_fromSupertype() async {
-    await assertNoErrorsInCode('''
-Object o;
+  test_ifElement_fromSupertype() async {
+    await assertErrorsInCode('''
+final o = Object();
 var v = [if (o) 'x'];
-''');
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 33, 1),
+    ]);
+  }
+
+  test_ternary_condition_null() async {
+    await assertErrorsInCode(r'''
+void f(Null a) {
+  a ? 0 : 1;
+}
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 19, 1),
+    ]);
   }
 
   test_while() async {
@@ -262,7 +263,7 @@ f() {
     ]);
   }
 
-  test_while_implicitCast_fromLiteral() async {
+  test_while_fromLiteral() async {
     await assertErrorsInCode('''
 f() {
   while ([1, 2, 3]) {}
@@ -272,12 +273,14 @@ f() {
     ]);
   }
 
-  test_while_implicitCast_fromSupertype() async {
-    await assertNoErrorsInCode('''
+  test_while_fromSupertype() async {
+    await assertErrorsInCode('''
 f(Object o) {
   while (o) {}
 }
-''');
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 23, 1),
+    ]);
   }
 }
 

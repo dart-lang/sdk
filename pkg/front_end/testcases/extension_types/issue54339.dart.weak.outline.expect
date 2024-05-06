@@ -23,9 +23,9 @@ class D extends core::Object {
     ;
   method method2<T extends self::C>(self::D::method2::T c) → core::Function
     ;
-  method method3<T extends self::Ext /* = core::Function */>(self::Ext /* = core::Function */ e) → core::Function
+  method method3<T extends self::Ext% /* erasure=core::Function, declared=! */>(self::Ext% /* erasure=core::Function, declared=! */ e) → core::Function
     ;
-  method method4<T extends self::Ext2 /* = self::C */>(self::Ext2 /* = self::C */ e) → core::Function
+  method method4<T extends self::Ext2 /* erasure=self::C */>(self::Ext2 /* erasure=self::C */ e) → core::Function
     ;
   method method5<T extends core::Object? = dynamic>(self::D::method5::T% c) → core::Function
     ;
@@ -47,9 +47,9 @@ class E extends core::Object {
     ;
   method method2<T extends self::C>(self::E::method2::T c) → core::String
     ;
-  method method3<T extends self::Ext /* = core::Function */>(self::Ext /* = core::Function */ e) → core::String
+  method method3<T extends self::Ext% /* erasure=core::Function, declared=! */>(self::Ext% /* erasure=core::Function, declared=! */ e) → core::String
     ;
-  method method4<T extends self::Ext2 /* = self::C */>(self::Ext2 /* = self::C */ e) → core::String
+  method method4<T extends self::Ext2 /* erasure=self::C */>(self::Ext2 /* erasure=self::C */ e) → core::String
     ;
   method method5<T extends core::Object? = dynamic>(self::E::method5::T% c) → core::String
     ;
@@ -68,17 +68,17 @@ extension type Ext2(self::C c) implements self::C {
   constructor • = self::Ext2|constructor#;
   constructor tearoff • = self::Ext2|constructor#_#new#tearOff;
 }
-static extension-type-member method Ext|constructor#(core::Function it) → self::Ext /* = core::Function */
+static extension-type-member method Ext|constructor#(core::Function it) → self::Ext% /* erasure=core::Function, declared=! */
   ;
-static extension-type-member method Ext|constructor#_#new#tearOff(core::Function it) → self::Ext /* = core::Function */
+static extension-type-member method Ext|constructor#_#new#tearOff(core::Function it) → self::Ext% /* erasure=core::Function, declared=! */
   return self::Ext|constructor#(it);
-static extension-type-member method Ext|call(lowered final self::Ext /* = core::Function */ #this) → core::String
+static extension-type-member method Ext|call(lowered final self::Ext% /* erasure=core::Function, declared=! */ #this) → core::String
   ;
-static extension-type-member method Ext|get#call(lowered final self::Ext /* = core::Function */ #this) → () → core::String
+static extension-type-member method Ext|get#call(lowered final self::Ext% /* erasure=core::Function, declared=! */ #this) → () → core::String
   return () → core::String => self::Ext|call(#this);
-static extension-type-member method Ext2|constructor#(self::C c) → self::Ext2 /* = self::C */
+static extension-type-member method Ext2|constructor#(self::C c) → self::Ext2 /* erasure=self::C */
   ;
-static extension-type-member method Ext2|constructor#_#new#tearOff(self::C c) → self::Ext2 /* = self::C */
+static extension-type-member method Ext2|constructor#_#new#tearOff(self::C c) → self::Ext2 /* erasure=self::C */
   return self::Ext2|constructor#(c);
 static method main() → void
   ;

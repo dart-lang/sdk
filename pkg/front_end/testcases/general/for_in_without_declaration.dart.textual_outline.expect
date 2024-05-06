@@ -1,4 +1,5 @@
 bool topLevelField = true;
+
 var untypedTopLevelField;
 
 class Super {

@@ -11,5 +11,7 @@ abstract class B extends A {
 }
 
 g(B b) {}
+
 main() {}
+
 typedef int F();

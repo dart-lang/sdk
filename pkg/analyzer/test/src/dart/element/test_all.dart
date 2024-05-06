@@ -25,7 +25,6 @@ import 'name_union_test.dart' as name_union;
 import 'non_covariant_type_parameter_position_test.dart'
     as non_covariant_type_parameter_position;
 import 'normalize_type_test.dart' as normalize_type;
-import 'nullability_eliminator_test.dart' as nullability_eliminator;
 import 'nullable_test.dart' as nullable;
 import 'replace_top_bottom_test.dart' as replace_top_bottom;
 import 'resolve_to_bound_test.dart' as resolve_to_bound;
@@ -64,7 +63,6 @@ main() {
     name_union.main();
     non_covariant_type_parameter_position.main();
     normalize_type.main();
-    nullability_eliminator.main();
     nullable.main();
     replace_top_bottom.main();
     resolve_to_bound.main();

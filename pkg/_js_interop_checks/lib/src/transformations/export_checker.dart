@@ -21,13 +21,6 @@ enum ExportStatus {
   nonExportable,
 }
 
-class GetSet {
-  Member? getter;
-  Member? setter;
-
-  GetSet(this.getter, this.setter);
-}
-
 class ExportChecker {
   final JsInteropDiagnosticReporter _diagnosticReporter;
   final Map<Reference, Map<String, Set<Member>>> exportClassToMemberMap = {};
@@ -45,7 +38,7 @@ class ExportChecker {
   ///
   /// [exports] should be a set of members from the [exportClassToMemberMap]. If
   /// missing a getter and/or setter, the corresponding field will be `null`.
-  GetSet getGetterSetter(Set<Member> exports) {
+  ({Member? getter, Member? setter}) getGetterSetter(Set<Member> exports) {
     assert(exports.isNotEmpty && exports.length <= 2);
     Member? getter;
     Member? setter;
@@ -71,7 +64,7 @@ class ExportChecker {
       }
     }
 
-    return GetSet(getter, setter);
+    return (getter: getter, setter: setter);
   }
 
   /// Calculates the overrides, including inheritance, for [cls].
@@ -84,7 +77,7 @@ class ExportChecker {
     var superclass = cls.superclass;
     if (superclass != null && superclass != _objectClass) {
       _collectOverrides(superclass);
-      memberMap = Map.from(_overrideMap[superclass.reference]!);
+      memberMap = Map.of(_overrideMap[superclass.reference]!);
     } else {
       memberMap = {};
     }
@@ -156,8 +149,8 @@ class ExportChecker {
 
     // Walk through the export map and determine if there are any unresolvable
     // conflicts.
-    for (var exportName in exports.keys) {
-      var existingMembers = exports[exportName]!;
+    for (var MapEntry(key: exportName, value: existingMembers)
+        in exports.entries) {
       if (existingMembers.length == 1) continue;
       if (existingMembers.length == 2) {
         // There are two instances where you can resolve collisions:

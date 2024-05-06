@@ -6,5 +6,7 @@ class C<T> {
 }
 
 void optional_toplevel([x = const [0]]) {}
+
 void named_toplevel({x = const [0]}) {}
+
 main() {}

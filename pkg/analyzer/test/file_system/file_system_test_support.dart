@@ -47,10 +47,6 @@ abstract class FileSystemTestSupport {
   /// to work.
   String get tempPath;
 
-  /// Create a link from [path] to [target].
-  /// The [target] does not have to exist, can be create later, or not at all.
-  void createLink({required String path, required String target});
-
   /// Return a file accessed through the resource provider. If [exists] is
   /// `true` then the returned file will exist, otherwise it won't. If [content]
   /// is provided then the file will have the given content, otherwise it will
@@ -64,6 +60,11 @@ abstract class FileSystemTestSupport {
   /// [folderPath] is provided, then the folder will be located at that path;
   /// otherwise the folder will have the [defaultFolderPath].
   Folder getFolder({required bool exists, String? folderPath});
+
+  /// Return a link accessed through the resource provider. If [target] is
+  /// supplied then the returned link will exist and point to [target],
+  /// otherwise it won't.
+  Link getLink({required String linkPath, String? target});
 
   /// Return a file path composed of the provided parts as defined by the
   /// current path context.
@@ -194,7 +195,7 @@ mixin FileTestMixin implements FileSystemTestSupport {
     var a_path = join(tempPath, 'a.dart');
     var b_path = join(tempPath, 'b.dart');
 
-    createLink(path: b_path, target: a_path);
+    getLink(linkPath: b_path, target: a_path);
     getFile(exists: true, filePath: a_path);
 
     var a = provider.getFile(a_path);
@@ -210,7 +211,7 @@ mixin FileTestMixin implements FileSystemTestSupport {
     var a_path = join(tempPath, 'a.dart');
     var b_path = join(tempPath, 'b.dart');
 
-    createLink(path: b_path, target: a_path);
+    getLink(linkPath: b_path, target: a_path);
 
     var a = provider.getFile(a_path);
     var b = provider.getFile(b_path);
@@ -428,7 +429,7 @@ mixin FileTestMixin implements FileSystemTestSupport {
     var b_path = join(tempPath, 'bbb', 'b.dart');
 
     getFile(exists: true, filePath: a_path);
-    createLink(path: b_path, target: a_path);
+    getLink(linkPath: b_path, target: a_path);
 
     var resolved = provider.getFile(b_path).resolveSymbolicLinksSync();
     expect(resolved.path, a_path);
@@ -442,8 +443,8 @@ mixin FileTestMixin implements FileSystemTestSupport {
     var c = join(tempPath, 'ccc', 'c.dart');
 
     getFile(exists: true, filePath: a);
-    createLink(path: b, target: a);
-    createLink(path: c, target: b);
+    getLink(linkPath: b, target: a);
+    getLink(linkPath: c, target: b);
 
     var resolved = provider.getFile(c).resolveSymbolicLinksSync();
     expect(resolved.path, a);
@@ -455,7 +456,7 @@ mixin FileTestMixin implements FileSystemTestSupport {
     var a = join(tempPath, 'a.dart');
     var b = join(tempPath, 'b.dart');
 
-    createLink(path: b, target: a);
+    getLink(linkPath: b, target: a);
 
     expect(() {
       provider.getFile(b).resolveSymbolicLinksSync();
@@ -655,7 +656,7 @@ mixin FolderTestMixin implements FileSystemTestSupport {
     var foo_path = join(tempPath, 'foo');
     var bar_path = join(tempPath, 'bar');
 
-    createLink(path: bar_path, target: foo_path);
+    getLink(linkPath: bar_path, target: foo_path);
     getFolder(exists: true, folderPath: foo_path);
 
     var foo = provider.getFolder(foo_path);
@@ -671,7 +672,7 @@ mixin FolderTestMixin implements FileSystemTestSupport {
     var foo_path = join(tempPath, 'foo');
     var bar_path = join(tempPath, 'bar');
 
-    createLink(path: bar_path, target: foo_path);
+    getLink(linkPath: bar_path, target: foo_path);
 
     var foo = provider.getFolder(foo_path);
     var bar = provider.getFolder(bar_path);
@@ -796,7 +797,7 @@ mixin FolderTestMixin implements FileSystemTestSupport {
     var a_path = join(tempPath, 'a.dart');
     var b_path = join(tempPath, 'b.dart');
 
-    createLink(path: b_path, target: a_path);
+    getLink(linkPath: b_path, target: a_path);
     var a = getFile(exists: true, filePath: a_path);
 
     var children = provider.getFolder(tempPath).getChildren();
@@ -817,7 +818,7 @@ mixin FolderTestMixin implements FileSystemTestSupport {
     var bar_path = join(tempPath, 'bar');
 
     var foo = getFolder(exists: true, folderPath: foo_path);
-    createLink(path: bar_path, target: foo_path);
+    getLink(linkPath: bar_path, target: foo_path);
 
     var children = provider.getFolder(tempPath).getChildren();
     expect(children, hasLength(2));
@@ -842,7 +843,7 @@ mixin FolderTestMixin implements FileSystemTestSupport {
 
     var foo_a = getFile(exists: true, filePath: foo_a_path);
     var foo_b = getFolder(exists: true, folderPath: foo_b_path);
-    createLink(path: bar_path, target: foo_path);
+    getLink(linkPath: bar_path, target: foo_path);
 
     var children = provider.getFolder(bar_path).getChildren();
     expect(children, hasLength(2));
@@ -972,7 +973,7 @@ mixin FolderTestMixin implements FileSystemTestSupport {
     var bar = join(tempPath, 'bar');
 
     getFolder(exists: true, folderPath: foo);
-    createLink(path: bar, target: foo);
+    getLink(linkPath: bar, target: foo);
 
     var resolved = provider.getFolder(bar).resolveSymbolicLinksSync();
     expect(resolved.path, foo);
@@ -984,7 +985,7 @@ mixin FolderTestMixin implements FileSystemTestSupport {
     var foo = join(tempPath, 'foo');
     var bar = join(tempPath, 'bar');
 
-    createLink(path: bar, target: foo);
+    getLink(linkPath: bar, target: foo);
 
     expect(() {
       provider.getFolder(bar).resolveSymbolicLinksSync();
@@ -1047,6 +1048,26 @@ mixin FolderTestMixin implements FileSystemTestSupport {
       }
       _verifyStructure(copiedChild, sourceChild);
     }
+  }
+}
+
+mixin LinkTestMixin implements FileSystemTestSupport {
+  test_exists_created() {
+    var link = getLink(linkPath: join(tempPath, 'link.dart'))
+      ..create(join(tempPath, 'target.dart'));
+    expect(link.exists, isTrue);
+  }
+
+  test_exists_existing() {
+    var link = getLink(
+        linkPath: join(tempPath, 'link.dart'),
+        target: join(tempPath, 'target.dart'));
+    expect(link.exists, isTrue);
+  }
+
+  test_exists_notExisting() {
+    var link = getLink(linkPath: join(tempPath, 'link.dart'));
+    expect(link.exists, isFalse);
   }
 }
 

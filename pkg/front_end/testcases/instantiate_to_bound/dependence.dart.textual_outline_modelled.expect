@@ -1,4 +1,5 @@
 C c = throw '';
+
 D d = throw '';
 
 class A<X> {}

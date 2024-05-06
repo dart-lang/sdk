@@ -4,6 +4,9 @@ var a = () {
   int f3() {}
   Future<int> f4() async {}
 };
+
 var b = (f) async => await f;
+
 var c = (f) => f;
+
 main() {}

@@ -1,8 +1,11 @@
 // @dart = 2.6
+
 import 'never_opt_out_lib.dart';
 
 Never optOutNever;
+
 var inferredOptOutNever = optInNever;
+
 genericMethod<T>() {}
 
 class GenericClass<T> {}

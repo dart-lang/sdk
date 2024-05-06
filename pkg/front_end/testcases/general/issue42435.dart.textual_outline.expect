@@ -13,9 +13,13 @@ class B {
 }
 
 bar2(Function<Z extends A>() a) {}
+
 Function<Z extends A>() bar3() => throw 42;
+
 Function<Z extends A>() get bar4 => throw 42;
+
 void set bar5(Function<Z extends A>() a) {}
+
 Function<Z extends A>() bar6 = (() => throw 42)();
 
 extension E on int {

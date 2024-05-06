@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // Note: When an interface is implemented by single instantiated class, an `is`
 // test on the interface can be compiled to an `is` test on the instantiated
 // class and implemented as an `instanceof` test.
@@ -19,7 +17,7 @@ import 'package:compiler/src/util/testing.dart';
 class A {}
 
 /*class: B:checks=[]*/
-class B implements A {}
+mixin B implements A {}
 
 /*class: C:checks=[],indirectInstance*/
 class C = Object with B;
@@ -39,7 +37,7 @@ testSingleInstantatiedSubtype() {
 class A2 {}
 
 /*class: B2:checks=[]*/
-class B2 implements A2 {}
+mixin B2 implements A2 {}
 
 /*class: C2:checks=[$isA2],indirectInstance*/
 class C2 = Object with B2;

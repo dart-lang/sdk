@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/dart/ast/ast.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/member.dart'; // ignore: implementation_imports
 import 'package:collection/collection.dart';
 
@@ -24,6 +24,21 @@ class EnumLikeClassDescription {
 
 extension AstNodeExtension on AstNode {
   Iterable<AstNode> get childNodes => childEntities.whereType<AstNode>();
+
+  bool get isAugmentation {
+    var self = this;
+    return switch (self) {
+      ClassDeclaration() => self.augmentKeyword != null,
+      ConstructorDeclaration() => self.augmentKeyword != null,
+      FunctionDeclarationImpl() => self.augmentKeyword != null,
+      FunctionExpression() => self.parent?.isAugmentation ?? false,
+      MethodDeclaration() => self.augmentKeyword != null,
+      MixinDeclaration() => self.augmentKeyword != null,
+      // TODO(pq): unimplemented
+      // VariableDeclaration() => self.augmentKeyword != null,
+      _ => false
+    };
+  }
 
   bool get isEffectivelyPrivate {
     var node = this;
@@ -48,37 +63,22 @@ extension AstNodeExtension on AstNode {
     var element = parent.declaredElement;
     return element != null && element.hasInternal;
   }
-
-  /// Builds the list resulting from traversing the node in DFS and does not
-  /// include the node itself.
-  ///
-  /// It excludes the nodes for which the [excludeCriteria] returns true. If
-  /// [excludeCriteria] is not provided, all nodes are included.
-  @Deprecated(
-      'This approach is slow and slated for removal. Traversal via a standard visitor is preferred.')
-  Iterable<AstNode> traverseNodesInDFS({AstNodePredicate? excludeCriteria}) {
-    var nodes = <AstNode>{};
-    var nodesToVisit = List.of(childNodes);
-    if (excludeCriteria == null) {
-      while (nodesToVisit.isNotEmpty) {
-        var node = nodesToVisit.removeAt(0);
-        nodes.add(node);
-        nodesToVisit.insertAll(0, node.childNodes);
-      }
-    } else {
-      while (nodesToVisit.isNotEmpty) {
-        var node = nodesToVisit.removeAt(0);
-        if (excludeCriteria(node)) continue;
-        nodes.add(node);
-        nodesToVisit.insertAll(0, node.childNodes);
-      }
-    }
-
-    return nodes;
-  }
 }
 
 extension AstNodeNullableExtension on AstNode? {
+  Element? get canonicalElement {
+    var self = this;
+    if (self is Expression) {
+      var node = self.unParenthesized;
+      if (node is Identifier) {
+        return node.staticElement?.canonicalElement;
+      } else if (node is PropertyAccess) {
+        return node.propertyName.staticElement?.canonicalElement;
+      }
+    }
+    return null;
+  }
+
   bool get isFieldNameShortcut {
     var node = this;
     if (node is NullCheckPattern) node = node.parent;
@@ -286,7 +286,7 @@ extension ElementExtension on Element {
   Element get canonicalElement {
     var self = this;
     if (self is PropertyAccessorElement) {
-      var variable = self.variable;
+      var variable = self.variable2;
       if (variable is FieldMember) {
         // A field element defined in a parameterized type where the values of
         // the type parameters are known.
@@ -296,12 +296,11 @@ extension ElementExtension on Element {
         // equivalent to equivalent FieldMembers. See
         // https://github.com/dart-lang/sdk/issues/35343.
         return variable.declaration;
-      } else {
+      } else if (variable != null) {
         return variable;
       }
-    } else {
-      return self;
     }
+    return self;
   }
 }
 
@@ -407,7 +406,8 @@ extension MethodDeclarationExtension on MethodDeclaration {
     }
     var parent = declaredElement.enclosingElement;
     if (parent is InterfaceElement) {
-      return parent.lookUpGetter(name.lexeme, declaredElement.library);
+      return parent.augmented
+          ?.lookUpGetter(name: name.lexeme, library: declaredElement.library);
     }
     if (parent is ExtensionElement) {
       return parent.getGetter(name.lexeme);
@@ -462,21 +462,6 @@ extension MethodDeclarationExtension on MethodDeclaration {
       if (parent is InterfaceElement) {
         return parent.lookUpInheritedMethod(
             name.lexeme, declaredElement.library);
-      }
-    }
-    return null;
-  }
-}
-
-extension NullableAstNodeExtension on AstNode? {
-  Element? get canonicalElement {
-    var self = this;
-    if (self is Expression) {
-      var node = self.unParenthesized;
-      if (node is Identifier) {
-        return node.staticElement?.canonicalElement;
-      } else if (node is PropertyAccess) {
-        return node.propertyName.staticElement?.canonicalElement;
       }
     }
     return null;

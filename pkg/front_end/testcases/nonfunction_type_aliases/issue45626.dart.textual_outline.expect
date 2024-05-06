@@ -15,8 +15,13 @@ class D4 implements C, self.C {}
 class D5 implements self.C, C {}
 
 mixin CM on C, C {}
+
 mixin CM2 on C, CAlias {}
+
 mixin CM3 on CAlias, C {}
+
 mixin CM4 on self.C, C {}
+
 mixin CM5 on C, self.C {}
+
 main() {}

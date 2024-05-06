@@ -51,6 +51,8 @@ class GCMarker {
   intptr_t marked_words() const { return marked_bytes_ >> kWordSizeLog2; }
   intptr_t MarkedWordsPerMicro() const;
 
+  void PruneWeak(Scavenger* scavenger);
+
  private:
   void Prologue();
   void Epilogue();
@@ -69,11 +71,11 @@ class GCMarker {
   IsolateGroup* const isolate_group_;
   Heap* const heap_;
   MarkingStack marking_stack_;
+  MarkingStack new_marking_stack_;
   MarkingStack deferred_marking_stack_;
   GCLinkedLists global_list_;
   MarkingVisitorBase<true>** visitors_;
 
-  Page* new_page_;
   Monitor root_slices_monitor_;
   RelaxedAtomic<intptr_t> root_slices_started_;
   intptr_t root_slices_finished_;
@@ -85,6 +87,9 @@ class GCMarker {
 
   friend class ConcurrentMarkTask;
   friend class ParallelMarkTask;
+  friend class Scavenger;
+  template <bool sync>
+  friend class MarkingVisitorBase;
   DISALLOW_IMPLICIT_CONSTRUCTORS(GCMarker);
 };
 

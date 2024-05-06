@@ -4,7 +4,6 @@
 
 // VMOptions=--old_gen_heap_size=20
 
-import "dart:io";
 import "dart:isolate";
 
 import "package:expect/expect.dart";

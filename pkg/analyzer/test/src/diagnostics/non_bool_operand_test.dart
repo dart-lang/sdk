@@ -10,39 +10,12 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonBoolOperandTest);
-    defineReflectiveTests(NonBoolOperandWithoutNullSafetyTest);
     defineReflectiveTests(NonBoolOperandWithStrictCastsTest);
   });
 }
 
 @reflectiveTest
 class NonBoolOperandTest extends PubPackageResolutionTest {
-  test_and_null() async {
-    await assertErrorsInCode(r'''
-m() {
-  Null x;
-  if(x && true) {}
-}
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_OPERAND, 21, 1),
-    ]);
-  }
-
-  test_or_null() async {
-    await assertErrorsInCode(r'''
-m() {
-  Null x;
-  if(x || false) {}
-}
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_OPERAND, 21, 1),
-    ]);
-  }
-}
-
-@reflectiveTest
-class NonBoolOperandWithoutNullSafetyTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
   test_and_left() async {
     await assertErrorsInCode(r'''
 bool f(int left, bool right) {
@@ -53,7 +26,7 @@ bool f(int left, bool right) {
     ]);
   }
 
-  test_and_left_implicitCast_fromInstanceCreationExpression() async {
+  test_and_left_fromInstanceCreationExpression() async {
     await assertErrorsInCode('''
 main() {
   new Object() && true;
@@ -63,7 +36,7 @@ main() {
     ]);
   }
 
-  test_and_left_implicitCast_fromLiteral() async {
+  test_and_left_fromLiteral() async {
     await assertErrorsInCode('''
 bool f(List<int> left, bool right) {
   return left && right;
@@ -73,12 +46,25 @@ bool f(List<int> left, bool right) {
     ]);
   }
 
-  test_and_left_implicitCast_fromSupertype() async {
-    await assertNoErrorsInCode('''
+  test_and_left_fromSupertype() async {
+    await assertErrorsInCode('''
 bool f(Object left, bool right) {
   return left && right;
 }
-''');
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_OPERAND, 43, 4),
+    ]);
+  }
+
+  test_and_null() async {
+    await assertErrorsInCode(r'''
+m() {
+  Null x;
+  if(x && true) {}
+}
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_OPERAND, 21, 1),
+    ]);
   }
 
   test_and_right() async {
@@ -98,6 +84,17 @@ bool f(List<int> left, bool right) {
 }
 ''', [
       error(CompileTimeErrorCode.NON_BOOL_OPERAND, 46, 4),
+    ]);
+  }
+
+  test_or_null() async {
+    await assertErrorsInCode(r'''
+m() {
+  Null x;
+  if(x || false) {}
+}
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_OPERAND, 21, 1),
     ]);
   }
 

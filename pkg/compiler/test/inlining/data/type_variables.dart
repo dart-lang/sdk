@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*member: main:[]*/
 main() {
   inlineTypeTests();
 }
 
 /*member: Mixin1.:closure*/
-class Mixin1<S> {
+mixin class Mixin1<S> {
   var field = /*[]*/ (S s) => null;
 }
 

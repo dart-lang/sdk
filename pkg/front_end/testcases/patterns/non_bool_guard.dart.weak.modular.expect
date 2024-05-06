@@ -47,13 +47,15 @@ Try changing the condition.
 }
 static method test2(core::List<core::int> v) → core::String {
   {
-    hoisted core::int a;
     final synthesized core::List<core::int> #0#0 = v;
-    if(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t2 = a = #0#0.{core::List::[]}(0){(core::int) → core::int} in true) && invalid-expression "pkg/front_end/testcases/patterns/non_bool_guard.dart:15:32: Error: Conditions must have a static type of 'bool'.
+    {
+      hoisted core::int a;
+      if(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t2 = a = #0#0.{core::List::[]}(0){(core::int) → core::int} in true) && invalid-expression "pkg/front_end/testcases/patterns/non_bool_guard.dart:15:32: Error: Conditions must have a static type of 'bool'.
 Try changing the condition.
   if (v case [var a, _] when a - 1) {
                                ^") {
-      return "match";
+        return "match";
+      }
     }
   }
   return "no match";
@@ -80,7 +82,7 @@ Try changing the condition.
           break #L2;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t3;
 

@@ -10,106 +10,7 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FunctionExpressionInvocationTest);
-    defineReflectiveTests(
-        FunctionExpressionInvocationResolutionTest_WithoutNullSafety);
   });
-}
-
-@reflectiveTest
-class FunctionExpressionInvocationResolutionTest_WithoutNullSafety
-    extends PubPackageResolutionTest with WithoutNullSafetyMixin {
-  test_dynamic_withoutTypeArguments() async {
-    await assertNoErrorsInCode(r'''
-main() {
-  (main as dynamic)(0);
-}
-''');
-
-    final node = findNode.functionExpressionInvocation('(0)');
-    assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function: ParenthesizedExpression
-    leftParenthesis: (
-    expression: AsExpression
-      expression: SimpleIdentifier
-        token: main
-        staticElement: self::@function::main
-        staticType: dynamic Function()*
-      asOperator: as
-      type: NamedType
-        name: dynamic
-        element: dynamic@-1
-        type: dynamic
-      staticType: dynamic
-    rightParenthesis: )
-    staticType: dynamic
-  argumentList: ArgumentList
-    leftParenthesis: (
-    arguments
-      IntegerLiteral
-        literal: 0
-        parameter: <null>
-        staticType: int*
-    rightParenthesis: )
-  staticElement: <null>
-  staticInvokeType: dynamic
-  staticType: dynamic
-''');
-  }
-
-  test_dynamic_withTypeArguments() async {
-    await assertNoErrorsInCode(r'''
-main() {
-  (main as dynamic)<bool, int>(0);
-}
-''');
-
-    final node = findNode.functionExpressionInvocation('(0)');
-    assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function: ParenthesizedExpression
-    leftParenthesis: (
-    expression: AsExpression
-      expression: SimpleIdentifier
-        token: main
-        staticElement: self::@function::main
-        staticType: dynamic Function()*
-      asOperator: as
-      type: NamedType
-        name: dynamic
-        element: dynamic@-1
-        type: dynamic
-      staticType: dynamic
-    rightParenthesis: )
-    staticType: dynamic
-  typeArguments: TypeArgumentList
-    leftBracket: <
-    arguments
-      NamedType
-        name: bool
-        element: dart:core::@class::bool
-        type: bool*
-      NamedType
-        name: int
-        element: dart:core::@class::int
-        type: int*
-    rightBracket: >
-  argumentList: ArgumentList
-    leftParenthesis: (
-    arguments
-      IntegerLiteral
-        literal: 0
-        parameter: <null>
-        staticType: int*
-    rightParenthesis: )
-  staticElement: <null>
-  staticInvokeType: dynamic
-  staticType: dynamic
-  typeArgumentTypes
-    bool*
-    int*
-''');
-  }
 }
 
 @reflectiveTest
@@ -138,7 +39,7 @@ FunctionExpressionInvocation
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: root::@parameter::t
+          base: self::@class::A::@method::call::@parameter::t
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -181,7 +82,7 @@ FunctionExpressionInvocation
             staticType: int
         rightBracket: ]
         parameter: ParameterMember
-          base: root::@parameter::_
+          base: self::@class::A::@method::call::@parameter::_
           substitution: {T: int}
         staticType: List<int>
     rightParenthesis: )
@@ -259,6 +160,99 @@ FunctionExpressionInvocation
   staticInvokeType: int Function()
   staticType: int
   typeArgumentTypes
+    int
+''');
+  }
+
+  test_dynamic_withoutTypeArguments() async {
+    await assertNoErrorsInCode(r'''
+main() {
+  (main as dynamic)(0);
+}
+''');
+
+    final node = findNode.functionExpressionInvocation('(0)');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: ParenthesizedExpression
+    leftParenthesis: (
+    expression: AsExpression
+      expression: SimpleIdentifier
+        token: main
+        staticElement: self::@function::main
+        staticType: dynamic Function()
+      asOperator: as
+      type: NamedType
+        name: dynamic
+        element: dynamic@-1
+        type: dynamic
+      staticType: dynamic
+    rightParenthesis: )
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+  }
+
+  test_dynamic_withTypeArguments() async {
+    await assertNoErrorsInCode(r'''
+main() {
+  (main as dynamic)<bool, int>(0);
+}
+''');
+
+    final node = findNode.functionExpressionInvocation('(0)');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: ParenthesizedExpression
+    leftParenthesis: (
+    expression: AsExpression
+      expression: SimpleIdentifier
+        token: main
+        staticElement: self::@function::main
+        staticType: dynamic Function()
+      asOperator: as
+      type: NamedType
+        name: dynamic
+        element: dynamic@-1
+        type: dynamic
+      staticType: dynamic
+    rightParenthesis: )
+    staticType: dynamic
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: bool
+        element: dart:core::@class::bool
+        type: bool
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+  typeArgumentTypes
+    bool
     int
 ''');
   }

@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:compiler/src/util/testing.dart';
 
-/*spec.class: Class1a:explicit=[Class1a*],needsArgs*/
+/*spec.class: Class1a:explicit=[Class1a],needsArgs*/
 /*prod.class: Class1a:needsArgs*/
 class Class1a<T> {
   Class1a();

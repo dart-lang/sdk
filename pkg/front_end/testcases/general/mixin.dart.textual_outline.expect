@@ -5,6 +5,7 @@ class B extends Object with M1, M2 {
 mixin M1 {
   m() => print("M1");
 }
+
 mixin M2 {
   m() => print("M2");
 }

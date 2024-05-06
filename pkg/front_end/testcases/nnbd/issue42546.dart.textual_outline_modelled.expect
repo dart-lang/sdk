@@ -5,4 +5,5 @@ class Divergent<T> implements Future<Divergent<Divergent<T>>> {
 }
 
 main() {}
+
 test() async {}

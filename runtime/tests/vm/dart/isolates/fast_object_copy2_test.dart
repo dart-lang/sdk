@@ -18,9 +18,12 @@ import 'package:ffi/ffi.dart';
 import 'fast_object_copy_test.dart'
     show UserObject, SendReceiveTestBase, notAllocatableInTLAB;
 
+typedef TypeLiteral<T> = T;
+
 topLevelClosure(a, b) {}
 topLevelClosureG<T>(T a, T b) {}
 Type getType<T>() => T;
+Type invokeWithType<T>(Type Function<T>() fun) => fun<T>();
 
 class A<T> {
   dynamic m<H>(T a, H b) => this;
@@ -67,8 +70,27 @@ final sharableObjects = [
     final Function(int, int) partialInstantiatedInnerClosure = topLevelClosureG;
     return partialInstantiatedInnerClosure;
   }(),
+
+  // Types: Type literal constants
+  getType<int>(),
+  getType<(int, double, Object)>(),
   getType<void Function(int, double, Object)>(),
   getType<T Function<T>(int, double, T)>(),
+
+  // Types: Instantiated & canonicalized types.
+  invokeWithType<int>(<T>() => getType<T>()),
+  invokeWithType<int>(<T>() => getType<(T, T)>()),
+  invokeWithType<int>(<T>() => getType<List<T>>()),
+  invokeWithType<int>(<T>() => getType<T Function(T, T)>()),
+  invokeWithType<int>(<T>() => getType<H Function<H>(T, T)>()),
+
+  // Types: Instantiated but non-canonicalized types.
+  invokeWithType<int>(<T>() => TypeLiteral<T>),
+  invokeWithType<int>(<T>() => TypeLiteral<(T, T)>),
+  invokeWithType<int>(<T>() => TypeLiteral<List<T>>),
+  invokeWithType<int>(<T>() => TypeLiteral<T Function(T, T)>),
+  invokeWithType<int>(<T>() => TypeLiteral<H Function<H>(T, T)>),
+
   const [1, 2, 3],
   const {1: 1, 2: 2, 3: 2},
   const {1, 2, 3},
@@ -78,6 +100,31 @@ final sharableObjects = [
   Float32x4(1.0, 2.0, 3.0, 4.0),
   Float64x2(1.0, 2.0),
   StackTrace.current,
+  Pointer<Int8>.fromAddress(0xdeadbeef),
+  DeeplyImmutable(
+    someString: 'someString',
+    someNullableString: 'someString',
+    someInt: 3,
+    someDouble: 3.3,
+    someBool: false,
+    someNull: null,
+    someInt32x4: Int32x4(0, 1, 2, 3),
+    someFloat32x4: Float32x4(0.0, 1.1, 2.2, 3.3),
+    someFloat64x2: Float64x2(4.4, 5.5),
+    someDeeplyImmutable: DeeplyImmutable(
+      someString: 'someString',
+      someInt: 3,
+      someDouble: 3.3,
+      someBool: false,
+      someNull: null,
+      someInt32x4: Int32x4(0, 1, 2, 3),
+      someFloat32x4: Float32x4(0.0, 1.1, 2.2, 3.3),
+      someFloat64x2: Float64x2(4.4, 5.5),
+      someDeeplyImmutable: null,
+      somePointer: Pointer.fromAddress(0x8badf00d),
+    ),
+    somePointer: Pointer.fromAddress(0xdeadbeef),
+  ),
 ];
 
 final copyableClosures = <dynamic>[
@@ -201,4 +248,33 @@ void msanUnpoison(Pointer<Uint8> pointer, int size) {
     msanUnpoisonPointer.asFunction<void Function(Pointer<Void>, int)>()(
         pointer.cast(), size);
   }
+}
+
+@pragma('vm:deeply-immutable')
+final class DeeplyImmutable {
+  final String someString;
+  final String? someNullableString;
+  final int someInt;
+  final double someDouble;
+  final bool someBool;
+  final Null someNull;
+  final Int32x4 someInt32x4;
+  final Float32x4 someFloat32x4;
+  final Float64x2 someFloat64x2;
+  final DeeplyImmutable? someDeeplyImmutable;
+  final Pointer somePointer;
+
+  DeeplyImmutable({
+    required this.someString,
+    this.someNullableString,
+    required this.someInt,
+    required this.someDouble,
+    required this.someBool,
+    required this.someNull,
+    required this.someInt32x4,
+    required this.someFloat32x4,
+    required this.someFloat64x2,
+    this.someDeeplyImmutable,
+    required this.somePointer,
+  });
 }

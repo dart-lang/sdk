@@ -9,12 +9,16 @@ part of "core_patch.dart";
 @pragma('wasm:entry-point')
 @patch
 abstract class Record {
-  _Type get _recordRuntimeType;
+  _RecordType get _masqueradedRecordRuntimeType;
+  _RecordType get _recordRuntimeType;
 
-  // An instance member needs a call from Dart code to be properly included in
-  // the dispatch table. Hence we use an inlined static wrapper as entry point.
-  @pragma("wasm:entry-point")
+  bool _checkRecordType(WasmArray<_Type> types, WasmArray<String> names);
+
   @pragma("wasm:prefer-inline")
-  static _Type _getRecordRuntimeType(Record record) =>
+  static _RecordType _getRecordRuntimeType(Record record) =>
       record._recordRuntimeType;
+
+  @pragma("wasm:prefer-inline")
+  static _RecordType _getMasqueradedRecordRuntimeType(Record record) =>
+      record._masqueradedRecordRuntimeType;
 }

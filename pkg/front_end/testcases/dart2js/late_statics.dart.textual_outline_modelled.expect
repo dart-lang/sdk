@@ -9,11 +9,19 @@ class Statics {
 }
 
 void main() {}
+
 void testInitializedFinalStaticField() {}
+
 void testInitializedFinalTopLevelField() {}
+
 void testInitializedNonFinalStaticField() {}
+
 void testInitializedNonFinalTopLevelField() {}
+
 void testUninitializedFinalStaticField() {}
+
 void testUninitializedFinalTopLevelField() {}
+
 void testUninitializedNonFinalStaticField() {}
+
 void testUninitializedNonFinalTopLevelField() {}

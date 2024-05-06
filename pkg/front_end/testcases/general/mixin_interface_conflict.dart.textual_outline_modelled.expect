@@ -7,4 +7,5 @@ class C {
 }
 
 main() {}
+
 mixin M on B, C {}

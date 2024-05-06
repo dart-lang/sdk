@@ -21,4 +21,5 @@ class EnumClass2 extends AbstractEnumClass {}
 class EnumClass3 extends AbstractEnumClass2 {}
 
 main() {}
+
 mixin EnumMixin on Enum {}

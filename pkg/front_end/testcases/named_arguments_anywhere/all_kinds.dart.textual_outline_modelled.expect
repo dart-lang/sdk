@@ -17,6 +17,9 @@ extension E on A {
 }
 
 foo(int x, int y, {required int z}) {}
+
 main() {}
+
 test(dynamic d, Function f, A a) {}
+
 typedef B = A;

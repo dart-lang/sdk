@@ -16,4 +16,5 @@ class D {
 }
 
 main() {}
+
 test() {}

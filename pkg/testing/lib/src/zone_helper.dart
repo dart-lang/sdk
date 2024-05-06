@@ -28,7 +28,7 @@ Future runGuarded(
 
   Completer completer = Completer();
 
-  handleUncaughtError(error, StackTrace stackTrace) {
+  void handleUncaughtError(error, StackTrace stackTrace) {
     StdoutLogger().logUncaughtError(error, stackTrace);
     if (!completer.isCompleted) {
       completer.completeError(error, stackTrace);
@@ -51,6 +51,7 @@ Future runGuarded(
 
   ReceivePort errorPort = ReceivePort();
   Future errorFuture = errorPort.listen((errors) {
+    Isolate.current.setErrorsFatal(true);
     Isolate.current.removeErrorListener(errorPort.sendPort);
     errorPort.close();
     var error = (errors as List)[0];
@@ -72,6 +73,7 @@ Future runGuarded(
 
     return completer.future.whenComplete(() {
       errorPort.close();
+      Isolate.current.setErrorsFatal(true);
       Isolate.current.removeErrorListener(errorPort.sendPort);
       return acknowledgeControlMessages(Isolate.current)
           .then((_) => errorFuture);

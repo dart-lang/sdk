@@ -285,8 +285,10 @@ void foo() {
     });
 
     group('global evaluation', () {
-      test('can evaluate when not paused given a script URI', () async {
+      test('can evaluate in a bin/ file when not paused given a bin/ URI',
+          () async {
         final client = dap.client;
+        await dap.createFooPackage();
         final testFile = dap.createTestFile(globalEvaluationProgram);
 
         await Future.wait([
@@ -305,12 +307,34 @@ void foo() {
         );
       });
 
+      test('can evaluate when not paused given a lib/ URI', () async {
+        final client = dap.client;
+        final (_, libFile) = await dap.createFooPackage();
+        final binFile = dap.createTestFile(globalEvaluationProgram);
+
+        await Future.wait([
+          client.initialize(),
+          client.launch(binFile.path),
+        ], eagerError: true);
+
+        // Wait for a '.' to be printed to know the script is up and running.
+        await dap.client.outputEvents
+            .firstWhere((event) => event.output.trim() == '.');
+
+        await client.expectGlobalEvalResult(
+          'fooGlobal',
+          '"Hello, foo!"',
+          context: Uri.file(libFile.path).toString(),
+        );
+      });
+
       test('returns a suitable error with no context', () async {
         const expectedErrorMessage = 'Evaluation is only supported when the '
             'debugger is paused unless you have a Dart file active in the '
             'editor';
 
         final client = dap.client;
+        await dap.createFooPackage();
         final testFile = dap.createTestFile(globalEvaluationProgram);
 
         await Future.wait([
@@ -343,6 +367,7 @@ void foo() {
 
       test('returns a suitable error with an unknown script context', () async {
         final client = dap.client;
+        await dap.createFooPackage();
         final testFile = dap.createTestFile(globalEvaluationProgram);
 
         await Future.wait([

@@ -4,6 +4,7 @@
 
 part of "core_patch.dart";
 
+@pragma('vm:deeply-immutable')
 abstract final class _IntegerImplementation implements int {
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
@@ -188,13 +189,8 @@ abstract final class _IntegerImplementation implements int {
     return this < 0 ? -this : this;
   }
 
-  int get sign {
-    return (this > 0)
-        ? 1
-        : (this < 0)
-            ? -1
-            : 0;
-  }
+  @pragma('vm:prefer-inline')
+  int get sign => (this >> 63) | (-this >>> 63);
 
   bool get isEven => ((this & 1) == 0);
   bool get isOdd => !isEven;
@@ -557,6 +553,7 @@ abstract final class _IntegerImplementation implements int {
   }
 }
 
+@pragma('vm:deeply-immutable')
 @pragma("vm:entry-point")
 final class _Smi extends _IntegerImplementation {
   factory _Smi._uninstantiable() {
@@ -759,6 +756,7 @@ final class _Smi extends _IntegerImplementation {
 }
 
 // Represents integers that cannot be represented by Smi but fit into 64bits.
+@pragma('vm:deeply-immutable')
 @pragma("vm:entry-point")
 final class _Mint extends _IntegerImplementation {
   factory _Mint._uninstantiable() {

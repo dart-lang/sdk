@@ -11,136 +11,11 @@ import '../context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MapLiteralTest);
-    defineReflectiveTests(MapLiteralWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class MapLiteralTest extends PubPackageResolutionTest with MapLiteralTestCases {
-  test_context_noTypeArgs_noEntries_typeParameterNullable() async {
-    await assertNoErrorsInCode('''
-class C<T extends Object?> {
-  Map<String, T> a = {}; // 1
-  Map<String, T>? b = {}; // 2
-  Map<String, T?> c = {}; // 3
-  Map<String, T?>? d = {}; // 4
-}
-''');
-    assertType(setOrMapLiteral('{}; // 1'), 'Map<String, T>');
-    assertType(setOrMapLiteral('{}; // 2'), 'Map<String, T>');
-    assertType(setOrMapLiteral('{}; // 3'), 'Map<String, T?>');
-    assertType(setOrMapLiteral('{}; // 4'), 'Map<String, T?>');
-  }
-
-  test_context_spread_nullAware() async {
-    await assertNoErrorsInCode('''
-T f<T>(T t) => t;
-
-main() {
-  <int, double>{...?f(null)};
-}
-''');
-
-    var node = findNode.methodInvocation('f(null)');
-    assertResolvedNodeText(node, r'''
-MethodInvocation
-  methodName: SimpleIdentifier
-    token: f
-    staticElement: self::@function::f
-    staticType: T Function<T>(T)
-  argumentList: ArgumentList
-    leftParenthesis: (
-    arguments
-      NullLiteral
-        literal: null
-        parameter: ParameterMember
-          base: root::@parameter::t
-          substitution: {T: Map<int, double>?}
-        staticType: Null
-    rightParenthesis: )
-  staticInvokeType: Map<int, double>? Function(Map<int, double>?)
-  staticType: Map<int, double>?
-  typeArgumentTypes
-    Map<int, double>?
-''');
-  }
-
-  test_noContext_noTypeArgs_spread_never() async {
-    await assertErrorsInCode('''
-void f(Never a, bool b) async {
-  // ignore:unused_local_variable
-  var v = {...a, if (b) throw 0: throw 0};
-}
-''', [
-      error(WarningCode.DEAD_CODE, 87, 21),
-    ]);
-    assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
-  }
-
-  test_noContext_noTypeArgs_spread_nullAware_never() async {
-    await assertErrorsInCode('''
-void f(Never a, bool b) async {
-  // ignore:unused_local_variable
-  var v = {...?a, if (b) throw 0: throw 0};
-}
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 77, 4),
-      error(WarningCode.DEAD_CODE, 88, 21),
-    ]);
-    assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
-  }
-
-  test_noContext_noTypeArgs_spread_nullAware_null() async {
-    await assertErrorsInCode('''
-void f(Null a, bool b) async {
-  // ignore:unused_local_variable
-  var v = {...?a, if (b) throw 0: throw 0};
-}
-''', [
-      error(WarningCode.DEAD_CODE, 99, 7),
-    ]);
-    assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
-  }
-
-  test_noContext_noTypeArgs_spread_nullAware_typeParameter_never() async {
-    await assertErrorsInCode('''
-void f<T extends Never>(T a, bool b) async {
-  // ignore:unused_local_variable
-  var v = {...?a, if (b) throw 0: throw 0};
-}
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 90, 4),
-      error(WarningCode.DEAD_CODE, 101, 21),
-    ]);
-    assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
-  }
-
-  test_noContext_noTypeArgs_spread_nullAware_typeParameter_null() async {
-    await assertErrorsInCode('''
-void f<T extends Null>(T a, bool b) async {
-  // ignore:unused_local_variable
-  var v = {...?a, if (b) throw 0: throw 0};
-}
-''', [
-      error(WarningCode.DEAD_CODE, 112, 7),
-    ]);
-    assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
-  }
-
-  test_noContext_noTypeArgs_spread_typeParameter_never() async {
-    await assertErrorsInCode('''
-void f<T extends Never>(T a, bool b) async {
-  // ignore:unused_local_variable
-  var v = {...a, if (b) throw 0: throw 0};
-}
-''', [
-      error(WarningCode.DEAD_CODE, 100, 21),
-    ]);
-    assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
-  }
-}
-
-mixin MapLiteralTestCases on PubPackageResolutionTest {
+class MapLiteralTest extends PubPackageResolutionTest {
   AstNode setOrMapLiteral(String search) => findNode.setOrMapLiteral(search);
 
   test_context_noTypeArgs_entry_conflictingKey() async {
@@ -196,38 +71,74 @@ Map<String, String> a = {};
     assertType(setOrMapLiteral('{'), 'Map<String, String>');
   }
 
+  test_context_noTypeArgs_noEntries_typeParameterNullable() async {
+    await assertNoErrorsInCode('''
+class C<T extends Object?> {
+  Map<String, T> a = {}; // 1
+  Map<String, T>? b = {}; // 2
+  Map<String, T?> c = {}; // 3
+  Map<String, T?>? d = {}; // 4
+}
+''');
+    assertType(setOrMapLiteral('{}; // 1'), 'Map<String, T>');
+    assertType(setOrMapLiteral('{}; // 2'), 'Map<String, T>');
+    assertType(setOrMapLiteral('{}; // 3'), 'Map<String, T?>');
+    assertType(setOrMapLiteral('{}; // 4'), 'Map<String, T?>');
+  }
+
   test_context_noTypeArgs_noEntries_typeParameters() async {
-    var expectedErrors = expectedErrorsByNullability(
-      nullable: [
-        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 46, 2),
-      ],
-      legacy: [
-        error(CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP, 46, 2),
-      ],
-    );
     await assertErrorsInCode('''
 class A<E extends Map<int, String>> {
   E a = {};
 }
-''', expectedErrors);
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 46, 2),
+    ]);
     assertType(setOrMapLiteral('{}'), 'Map<dynamic, dynamic>');
   }
 
   test_context_noTypeArgs_noEntries_typeParameters_dynamic() async {
-    var expectedErrors = expectedErrorsByNullability(
-      nullable: [
-        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 51, 2),
-      ],
-      legacy: [
-        error(CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP, 51, 2),
-      ],
-    );
     await assertErrorsInCode('''
 class A<E extends Map<dynamic, dynamic>> {
   E a = {};
 }
-''', expectedErrors);
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 51, 2),
+    ]);
     assertType(setOrMapLiteral('{}'), 'Map<dynamic, dynamic>');
+  }
+
+  test_context_spread_nullAware() async {
+    await assertNoErrorsInCode('''
+T f<T>(T t) => t;
+
+main() {
+  <int, double>{...?f(null)};
+}
+''');
+
+    var node = findNode.methodInvocation('f(null)');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    staticElement: self::@function::f
+    staticType: T Function<T>(T)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NullLiteral
+        literal: null
+        parameter: ParameterMember
+          base: self::@function::f::@parameter::t
+          substitution: {T: Map<int, double>?}
+        staticType: Null
+    rightParenthesis: )
+  staticInvokeType: Map<int, double>? Function(Map<int, double>?)
+  staticType: Map<int, double>?
+  typeArgumentTypes
+    Map<int, double>?
+''');
   }
 
   test_context_typeArgs_entry_conflictingKey() async {
@@ -443,6 +354,43 @@ var a = {if (0 < 1) ...c else ...d};
     assertType(setOrMapLiteral('{if'), 'Map<dynamic, dynamic>');
   }
 
+  test_noContext_noTypeArgs_spread_never() async {
+    await assertErrorsInCode('''
+void f(Never a, bool b) async {
+  // ignore:unused_local_variable
+  var v = {...a, if (b) throw 0: throw 0};
+}
+''', [
+      error(WarningCode.DEAD_CODE, 87, 21),
+    ]);
+    assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
+  }
+
+  test_noContext_noTypeArgs_spread_nullAware_never() async {
+    await assertErrorsInCode('''
+void f(Never a, bool b) async {
+  // ignore:unused_local_variable
+  var v = {...?a, if (b) throw 0: throw 0};
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 77, 4),
+      error(WarningCode.DEAD_CODE, 88, 21),
+    ]);
+    assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
+  }
+
+  test_noContext_noTypeArgs_spread_nullAware_null() async {
+    await assertErrorsInCode('''
+void f(Null a, bool b) async {
+  // ignore:unused_local_variable
+  var v = {...?a, if (b) throw 0: throw 0};
+}
+''', [
+      error(WarningCode.DEAD_CODE, 99, 7),
+    ]);
+    assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
+  }
+
   test_noContext_noTypeArgs_spread_nullAware_nullAndNotNull_map() async {
     await assertNoErrorsInCode('''
 void f(Null a) {
@@ -475,6 +423,31 @@ void f(Null a) {
     assertType(setOrMapLiteral('{...'), 'dynamic');
   }
 
+  test_noContext_noTypeArgs_spread_nullAware_typeParameter_never() async {
+    await assertErrorsInCode('''
+void f<T extends Never>(T a, bool b) async {
+  // ignore:unused_local_variable
+  var v = {...?a, if (b) throw 0: throw 0};
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 90, 4),
+      error(WarningCode.DEAD_CODE, 101, 21),
+    ]);
+    assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
+  }
+
+  test_noContext_noTypeArgs_spread_nullAware_typeParameter_null() async {
+    await assertErrorsInCode('''
+void f<T extends Null>(T a, bool b) async {
+  // ignore:unused_local_variable
+  var v = {...?a, if (b) throw 0: throw 0};
+}
+''', [
+      error(WarningCode.DEAD_CODE, 112, 7),
+    ]);
+    assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
+  }
+
   test_noContext_noTypeArgs_spread_typeParameter_implementsMap() async {
     await assertNoErrorsInCode('''
 void f<T extends Map<int, String>>(T a) {
@@ -483,6 +456,18 @@ void f<T extends Map<int, String>>(T a) {
 }
 ''');
     assertType(setOrMapLiteral('{...'), 'Map<int, String>');
+  }
+
+  test_noContext_noTypeArgs_spread_typeParameter_never() async {
+    await assertErrorsInCode('''
+void f<T extends Never>(T a, bool b) async {
+  // ignore:unused_local_variable
+  var v = {...a, if (b) throw 0: throw 0};
+}
+''', [
+      error(WarningCode.DEAD_CODE, 100, 21),
+    ]);
+    assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
   }
 
   // TODO(scheglov): Should report [CompileTimeErrorCode.NOT_ITERABLE_SPREAD].
@@ -560,7 +545,3 @@ var a = <num, String>{};
     assertType(setOrMapLiteral('{'), 'Map<num, String>');
   }
 }
-
-@reflectiveTest
-class MapLiteralWithoutNullSafetyTest extends PubPackageResolutionTest
-    with MapLiteralTestCases, WithoutNullSafetyMixin {}

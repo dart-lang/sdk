@@ -15,7 +15,7 @@ abstract class DataSink {
   void writeInt(int value);
 
   /// Serialization of an enum value.
-  void writeEnum(dynamic value);
+  void writeEnum<E extends Enum>(E value);
 
   /// Serialization of a String value.
   void writeString(String value);
@@ -29,6 +29,18 @@ abstract class DataSink {
   /// Writes a deferred entity which can be skipped when reading and read later
   /// via an offset read.
   void writeDeferred(void writer());
+
+  /// Begins a block of data that can later be read as a deferred block.
+  /// [endDeferred] must eventually be called to end the block. This creates a
+  /// block similar to [writeDeferred] but does not require the data to be
+  /// written in a single closure.
+  void startDeferred();
+
+  /// End a block of data that can later be read as a deferred block.
+  /// [startDeferred] must be called before this to start the block. This
+  /// creates a block similar to [writeDeferred] but does not require the data
+  /// to be written in a single closure.
+  void endDeferred();
 
   /// Closes any underlying data sinks.
   void close();
@@ -129,6 +141,14 @@ class DataSinkWriter {
 
   void writeDeferrable(void f()) {
     _sinkWriter.writeDeferred(f);
+  }
+
+  void startDeferrable() {
+    _sinkWriter.startDeferred();
+  }
+
+  void endDeferrable() {
+    _sinkWriter.endDeferred();
   }
 
   /// Writes a reference to [value] to this data sink. If [value] has not yet
@@ -287,11 +307,7 @@ class DataSinkWriter {
   }
 
   /// Writes the enum value [value] to this data sink.
-  // TODO(johnniwinther): Change the signature to
-  // `void writeEnum<E extends Enum<E>>(E value);` when an interface for enums
-  // is added to the language.
-
-  void writeEnum(dynamic value) {
+  void writeEnum<E extends Enum>(E value) {
     _writeDataKind(DataKind.enumValue);
     _sinkWriter.writeEnum(value);
   }
@@ -413,30 +429,11 @@ class DataSinkWriter {
     writeMapOrNull(map, writeMemberNode, f);
   }
 
-  /// Writes a kernel name node to this data sink.
-  void writeName(ir.Name value) {
-    writeString(value.text);
-    writeValueOrNull(value.library, writeLibraryNode);
-  }
-
   /// Writes a [Name] to this data sink.
   void writeMemberName(Name value) {
     writeString(value.text);
     writeValueOrNull(value.uri, writeUri);
     writeBool(value.isSetter);
-  }
-
-  /// Writes a kernel library dependency node [value] to this data sink.
-  void writeLibraryDependencyNode(ir.LibraryDependency value) {
-    final library = value.parent as ir.Library;
-    writeLibraryNode(library);
-    writeInt(library.dependencies.indexOf(value));
-  }
-
-  /// Writes a potentially `null` kernel library dependency node [value] to
-  /// this data sink.
-  void writeLibraryDependencyNodeOrNull(ir.LibraryDependency? value) {
-    writeValueOrNull(value, writeLibraryDependencyNode);
   }
 
   /// Writes a reference to the kernel tree node [value] to this data sink.

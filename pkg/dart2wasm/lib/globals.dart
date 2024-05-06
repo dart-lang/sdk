@@ -6,7 +6,7 @@ import 'package:kernel/ast.dart';
 
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
-import 'package:dart2wasm/translator.dart';
+import 'translator.dart';
 
 /// Handles lazy initialization of static fields.
 class Globals {
@@ -119,7 +119,7 @@ class Globals {
             b.global_get(_prepareDummyValue(type)!);
           }
         } else {
-          throw "Unsupported global type ${type} ($type)";
+          throw "Unsupported global type $type ($type)";
         }
         break;
     }

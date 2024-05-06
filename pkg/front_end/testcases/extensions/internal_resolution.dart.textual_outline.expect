@@ -13,4 +13,5 @@ extension on Class {
 }
 
 main() {}
+
 expect(expected, actual) {}

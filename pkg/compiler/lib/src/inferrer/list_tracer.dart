@@ -152,12 +152,13 @@ class ListTracerVisitor extends TracerVisitor {
   }
 
   @override
-  visitClosureCallSiteTypeInformation(ClosureCallSiteTypeInformation info) {
+  void visitClosureCallSiteTypeInformation(
+      ClosureCallSiteTypeInformation info) {
     bailout('Passed to a closure');
   }
 
   @override
-  visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info) {
+  void visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info) {
     super.visitStaticCallSiteTypeInformation(info);
     final commonElements = inferrer.closedWorld.commonElements;
     MemberEntity called = info.calledElement;
@@ -173,7 +174,8 @@ class ListTracerVisitor extends TracerVisitor {
   }
 
   @override
-  visitDynamicCallSiteTypeInformation(DynamicCallSiteTypeInformation info) {
+  void visitDynamicCallSiteTypeInformation(
+      DynamicCallSiteTypeInformation info) {
     super.visitDynamicCallSiteTypeInformation(info);
     final selector = info.selector!;
     String selectorName = selector.name;

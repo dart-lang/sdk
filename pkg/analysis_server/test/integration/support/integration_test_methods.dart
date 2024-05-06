@@ -104,8 +104,25 @@ abstract class IntegrationTest {
   ///
   ///   - openUrlRequest
   ///   - showMessageRequest
-  Future<void> sendServerSetClientCapabilities(List<String> requests) async {
-    var params = ServerSetClientCapabilitiesParams(requests).toJson();
+  ///
+  /// supportsUris: bool (optional)
+  ///
+  ///   True if the client supports the server sending URIs in place of file
+  ///   paths.
+  ///
+  ///   In this mode, the server will use URIs in all protocol fields with the
+  ///   type FilePath. Returned URIs may be `file://` URIs or custom schemes.
+  ///   The client can fetch the file contents for URIs with custom schemes
+  ///   (and receive modification events) through the LSP protocol (see the
+  ///   "lsp" domain).
+  ///
+  ///   LSP notifications are automatically enabled when the client sets this
+  ///   capability.
+  Future<void> sendServerSetClientCapabilities(List<String> requests,
+      {bool? supportsUris}) async {
+    var params =
+        ServerSetClientCapabilitiesParams(requests, supportsUris: supportsUris)
+            .toJson();
     var result = await server.send('server.setClientCapabilities', params);
     outOfTestExpect(result, isNull);
   }
@@ -2565,6 +2582,20 @@ abstract class IntegrationTest {
     return LspHandleResult.fromJson(decoder, 'result', result);
   }
 
+  /// Reports an LSP notification from the server.
+  ///
+  /// Parameters
+  ///
+  /// lspNotification: object
+  ///
+  ///   The LSP NotificationMessage sent by the server.
+  late final Stream<LspNotificationParams> onLspNotification =
+      _onLspNotification.stream.asBroadcastStream();
+
+  /// Stream controller for [onLspNotification].
+  final _onLspNotification =
+      StreamController<LspNotificationParams>(sync: true);
+
   /// Dispatch the notification named [event], and containing parameters
   /// [params], to the appropriate stream.
   void dispatchNotification(String event, params) {
@@ -2650,6 +2681,10 @@ abstract class IntegrationTest {
         outOfTestExpect(params, isFlutterOutlineParams);
         _onFlutterOutline
             .add(FlutterOutlineParams.fromJson(decoder, 'params', params));
+      case 'lsp.notification':
+        outOfTestExpect(params, isLspNotificationParams);
+        _onLspNotification
+            .add(LspNotificationParams.fromJson(decoder, 'params', params));
       default:
         fail('Unexpected notification: $event');
     }

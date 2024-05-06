@@ -1356,6 +1356,11 @@ class Assembler : public AssemblerBase {
                             Register temp_reg = kNoRegister,
                             JumpDistance distance = JumpDistance::kFarJump);
 
+  void MaybeTraceAllocation(Register cid,
+                            Label* trace,
+                            Register temp_reg = kNoRegister,
+                            JumpDistance distance = JumpDistance::kFarJump);
+
   void TryAllocateObject(intptr_t cid,
                          intptr_t instance_size,
                          Label* failure,
@@ -1420,6 +1425,11 @@ class Assembler : public AssemblerBase {
 
   // Debugging and bringup support.
   void Breakpoint() override { int3(); }
+
+  static bool AddressCanHoldConstantIndex(const Object& constant,
+                                          bool is_external,
+                                          intptr_t cid,
+                                          intptr_t index_scale);
 
   static Address ElementAddressForIntIndex(bool is_external,
                                            intptr_t cid,

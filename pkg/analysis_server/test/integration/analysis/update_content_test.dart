@@ -28,34 +28,29 @@ void f() {
     await standardAnalysisSetup();
 
     // The contents on disk (badText) are missing a semicolon.
-    await analysisFinished;
-    expect(currentAnalysisErrors[path], isNotEmpty);
+    expect(await waitForFileErrors(path), isNotEmpty);
 
     // There should be no errors now because the contents on disk have been
     // overridden with goodText.
     await sendAnalysisUpdateContent({path: AddContentOverlay(goodText)});
-    await analysisFinished;
-    expect(currentAnalysisErrors[path], isEmpty);
+    expect(await waitForFileErrors(path), isEmpty);
 
     // There should be errors now because we've removed the semicolon.
     await sendAnalysisUpdateContent({
       path: ChangeContentOverlay([SourceEdit(goodText.indexOf(';'), 1, '')])
     });
-    await analysisFinished;
-    expect(currentAnalysisErrors[path], isNotEmpty);
+    expect(await waitForFileErrors(path), isNotEmpty);
 
     // There should be no errors now because we've added the semicolon back.
     await sendAnalysisUpdateContent({
       path: ChangeContentOverlay([SourceEdit(goodText.indexOf(';'), 0, ';')])
     });
-    await analysisFinished;
-    expect(currentAnalysisErrors[path], isEmpty);
+    expect(await waitForFileErrors(path), isEmpty);
 
     // Now there should be errors again, because the contents on disk are no
     // longer overridden.
     await sendAnalysisUpdateContent({path: RemoveContentOverlay()});
-    await analysisFinished;
-    expect(currentAnalysisErrors[path], isNotEmpty);
+    expect(await waitForFileErrors(path), isNotEmpty);
   }
 
   Future<void> test_updateContent_multipleAdds() async {

@@ -10,16 +10,12 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(YieldOfInvalidTypeTest);
-    defineReflectiveTests(YieldOfInvalidTypeWithoutNullSafetyTest);
     defineReflectiveTests(YieldOfInvalidTypeWithStrictCastsTest);
   });
 }
 
 @reflectiveTest
-class YieldOfInvalidTypeTest extends PubPackageResolutionTest
-    with YieldOfInvalidTypeTestCases {}
-
-mixin YieldOfInvalidTypeTestCases on PubPackageResolutionTest {
+class YieldOfInvalidTypeTest extends PubPackageResolutionTest {
   test_none_asyncStar_dynamic_to_streamInt() async {
     await assertNoErrorsInCode('''
 Stream<int> f(dynamic a) async* {
@@ -104,14 +100,13 @@ f() async* {
   }
 
   test_none_asyncStar_null_to_streamInt() async {
-    var errors = expectedErrorsByNullability(nullable: [
-      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 33, 4),
-    ], legacy: []);
     await assertErrorsInCode('''
 Stream<int> f() async* {
   yield null;
 }
-''', errors);
+''', [
+      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 33, 4),
+    ]);
   }
 
   test_none_syncStar_dynamic_to_iterableInt() async {
@@ -281,17 +276,15 @@ Stream g() => throw 0;
   }
 
   test_star_asyncStar_streamDynamic_to_streamInt() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 Stream<int> f() async* {
   yield* g();
 }
 
 Stream g() => throw 0;
-''',
-        expectedErrorsByNullability(nullable: [
-          error(CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE, 34, 3),
-        ], legacy: []));
+''', [
+      error(CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE, 34, 3),
+    ]);
   }
 
   test_star_asyncStar_streamInt_to_dynamic() async {
@@ -390,17 +383,15 @@ Iterable g() => throw 0;
   }
 
   test_star_syncStar_iterableDynamic_to_iterableInt() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 Iterable<int> f() sync* {
   yield* g();
 }
 
 Iterable g() => throw 0;
-''',
-        expectedErrorsByNullability(nullable: [
-          error(CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE, 35, 3),
-        ], legacy: []));
+''', [
+      error(CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE, 35, 3),
+    ]);
   }
 
   test_star_syncStar_iterableInt_to_dynamic() async {
@@ -435,10 +426,6 @@ Iterable<String> g() => throw 0;
     ]);
   }
 }
-
-@reflectiveTest
-class YieldOfInvalidTypeWithoutNullSafetyTest extends PubPackageResolutionTest
-    with YieldOfInvalidTypeTestCases, WithoutNullSafetyMixin {}
 
 @reflectiveTest
 class YieldOfInvalidTypeWithStrictCastsTest extends PubPackageResolutionTest

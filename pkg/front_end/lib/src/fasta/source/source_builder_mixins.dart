@@ -172,7 +172,7 @@ mixin SourceDeclarationBuilderMixin implements DeclarationBuilderMixin {
   void _buildMember(SourceMemberBuilder memberBuilder, Member member,
       Member? tearOff, BuiltMemberKind memberKind,
       {required bool addMembersToLibrary}) {
-    if (!memberBuilder.isPatch &&
+    if (!memberBuilder.isAugmenting &&
         !memberBuilder.isDuplicate &&
         !memberBuilder.isConflictingSetter) {
       if (memberKind == BuiltMemberKind.ExtensionTypeRepresentationField) {

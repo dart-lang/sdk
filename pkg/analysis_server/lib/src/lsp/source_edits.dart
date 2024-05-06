@@ -81,8 +81,7 @@ ErrorOr<List<TextEdit>?> generateEditsForFormatting(
 }) {
   final unformattedSource = result.content;
 
-  final code =
-      SourceCode(unformattedSource, uri: null, isCompilationUnit: true);
+  final code = SourceCode(unformattedSource);
   SourceCode formattedResult;
   try {
     // Create a new formatter on every request because it may contain state that
@@ -383,6 +382,17 @@ Token? _parse(String s, FeatureSet featureSet) {
   } catch (e) {
     return null;
   }
+}
+
+enum ChangeAnnotations {
+  /// Do not include change annotations.
+  none,
+
+  /// Include change annotations but do not require a user to confirm changes.
+  include,
+
+  /// Include change annotations and require the user to confirm changes.
+  requireConfirmation,
 }
 
 /// Helper class that bundles up all information required when converting server

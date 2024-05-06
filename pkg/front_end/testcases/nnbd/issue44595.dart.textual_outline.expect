@@ -1,6 +1,7 @@
 import "dart:async";
 
 T id<T>(T value) => value;
+
 main() async {}
 
 extension<T> on T {
@@ -8,4 +9,5 @@ extension<T> on T {
 }
 
 typedef Exactly<T> = T Function(T);
+
 T contextType<T>(Object? o) => o as T;

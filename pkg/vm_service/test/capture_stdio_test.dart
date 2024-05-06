@@ -14,6 +14,7 @@ import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
 void test() {
+  debugger();
   print('start');
   debugger();
   print('stdout');
@@ -26,6 +27,14 @@ void test() {
 }
 
 var tests = <IsolateTest>[
+  // The testeee will print the VM service is listening message
+  // which could race with the regular stdio prints from the testee
+  // The first debugger stop ensures we have these VM service
+  // messages outputed before the testee writes anything to stdout.
+  hasStoppedAtBreakpoint,
+  (VmService service, IsolateRef isolateRef) async {
+    await service.resume(isolateRef.id!);
+  },
   hasStoppedAtBreakpoint,
   (VmService service, IsolateRef isolateRef) async {
     final completer = Completer<void>();
@@ -37,11 +46,11 @@ var tests = <IsolateTest>[
       // initial stream subscription. Wait for the initial sentinel before
       // executing test logic.
       if (!started) {
-        started = output == 'start';
+        started = output == 'start\n';
         return;
       }
       expect(event.kind, EventKind.kWriteEvent);
-      expect(output, 'stdout');
+      expect(output, 'stdout\n');
       await stdoutSub.cancel();
       await service.streamCancel(EventStreams.kStdout);
       completer.complete();
@@ -57,7 +66,7 @@ var tests = <IsolateTest>[
     stdoutSub = service.onStdoutEvent.listen((event) async {
       expect(event.kind, EventKind.kWriteEvent);
       final decoded = utf8.decode(base64Decode(event.bytes!));
-      expect(decoded, 'print');
+      expect(decoded, 'print\n');
       await service.streamCancel(EventStreams.kStdout);
       await stdoutSub.cancel();
       completer.complete();

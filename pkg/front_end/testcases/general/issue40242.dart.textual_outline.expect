@@ -5,4 +5,5 @@ extension E on C {
 }
 
 errors() {}
+
 main() {}

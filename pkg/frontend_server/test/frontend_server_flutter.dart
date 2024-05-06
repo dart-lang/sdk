@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async' show StreamController, Zone;
+import 'dart:collection' show HashSet;
 import 'dart:convert' show Encoding, LineSplitter, utf8;
 import 'dart:io'
     show
@@ -20,8 +21,8 @@ import 'package:front_end/src/api_prototype/language_version.dart'
 import 'package:front_end/src/api_unstable/vm.dart'
     show CompilerOptions, NnbdMode, StandardFileSystem;
 import 'package:frontend_server/starter.dart';
-import 'package:kernel/ast.dart' show Component;
-import 'package:kernel/kernel.dart' show loadComponentFromBytes;
+import 'package:kernel/ast.dart' show Component, Library;
+import 'package:kernel/binary/multi_binary_loader.dart' show MultiBinaryLoader;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/verifier.dart' show VerificationStage, verifyComponent;
 import 'package:vm/kernel_front_end.dart';
@@ -253,7 +254,7 @@ Future<List<String>> attemptStuff(
     throw "$dillFile already exists.";
   }
 
-  List<int> platformData = new File.fromUri(
+  Uint8List platformData = new File.fromUri(
           flutterPlatformDirectory.uri.resolve("platform_strong.dill"))
       .readAsBytesSync();
   final String targetName = 'flutter';
@@ -266,7 +267,6 @@ Future<List<String>> attemptStuff(
     '--packages',
     packageConfig.path,
     '--output-dill=${dillFile.path}',
-    // '--unsafe-package-serialization',
   ];
 
   Stopwatch stopwatch = new Stopwatch()..start();
@@ -308,6 +308,9 @@ Future<List<String>> attemptStuff(
     return f;
   });
 
+  Set<Library> alreadyVerifiedLibraries = new HashSet.identity();
+  MultiBinaryLoader multiBinaryLoader = new MultiBinaryLoader();
+
   String testName =
       testFileIterator.current.path.substring(flutterDirectory.path.length);
 
@@ -324,28 +327,78 @@ Future<List<String>> attemptStuff(
     bool error = false;
     try {
       compiledResult.expectNoErrors();
-      logger.logExpectedResult(testName);
     } catch (e) {
       logger.log("Got errors. Compiler output for this compile:");
       outputParser.allReceived.forEach(logger.log);
       compilationErrors.add(testFileIterator.current.path);
       error = true;
-      logger.logUnexpectedResult(testName);
     }
+
     if (!error) {
-      Uint8List resultBytes = files[dillFile.path]!.writeSink!.bb.takeBytes();
-      Component component = loadComponentFromBytes(platformData);
-      component = loadComponentFromBytes(resultBytes, component);
-      verifyComponent(
-        target,
-        VerificationStage.afterModularTransformations,
-        component,
-        // We load the platform from dill so it's guranteed to not have changed
-        // and has been verified already.
-        skipPlatform: true,
-      );
-      logger
-          .log("        => verified in ${stopwatch2.elapsedMilliseconds} ms.");
+      try {
+        _MockIOSink sink = files[dillFile.path]!.writeSink!;
+        Uint8List resultBytes = sink.bb.takeBytes();
+        List<List<int>> originalDataChunks = sink.originalDataChunks;
+        // The frontend-server serializes with the incremental serializer which
+        // works by outputting previously serialized component bytes, i.e. a
+        // single dill actually contains several components, and many of these
+        // components will byte-for-byte be the same between compiles.
+        // Furthermore what's added to the sink will be the *identical*
+        // Uint8List for the same bytes.
+        // We utilize this here by a) loading with the (same) MultiBinaryLoader
+        // which generally (with no additional help) figure out if a
+        // sub-component was previously loaded from the exact same bytes;
+        // b) additionally help it by returning the *identical* chunk
+        // representing a sub components bytes if available, which will allow it
+        // to not having to compare bytes, but simple use an identity hash on
+        // the list.
+        Component component = multiBinaryLoader.load(
+            [platformData, resultBytes], (Uint8List data, int from, int to) {
+          if (!identical(data, resultBytes)) return null;
+          // We're asked if we have an alternative to the bytes in [data]
+          // between [from] and [to]: We search the chunks used, and return the
+          // matching one if any. This will generally be *identical* to any
+          // previous one which allows us to not compare bytes.
+          int at = 0;
+          for (List<int> chunk in originalDataChunks) {
+            if (from == at && chunk is Uint8List) {
+              int length = to - from;
+              if (chunk.length == length) {
+                return chunk;
+              }
+            }
+            if (at > from) return null;
+            at += chunk.length;
+          }
+          return null;
+        });
+        verifyComponent(
+          target,
+          VerificationStage.afterModularTransformations,
+          component,
+          skipPlatform: true,
+          librarySkipFilter: (library) =>
+              !alreadyVerifiedLibraries.add(library),
+        );
+        logger.log(
+            "        => verified in ${stopwatch2.elapsedMilliseconds} ms.");
+      } catch (e, st) {
+        logger.log("Crash when trying to verify:");
+        logger.log("Error: $e");
+        logger.log("Stack trace: $st");
+        error = true;
+
+        // If there's been a crash we might have left the AST in a bad state.
+        // To avoid any potential issues caused by this we reset the loader etc.
+        alreadyVerifiedLibraries = new HashSet.identity();
+        multiBinaryLoader = new MultiBinaryLoader();
+      }
+    }
+
+    if (!error) {
+      logger.logExpectedResult(testName);
+    } else {
+      logger.logUnexpectedResult(testName);
     }
 
     files.clear();
@@ -544,12 +597,14 @@ class _MockFile implements File {
 
 class _MockIOSink implements IOSink {
   BytesBuilder bb = new BytesBuilder();
+  List<List<int>> originalDataChunks = [];
   bool _closed = false;
 
   @override
   void add(List<int> data) {
     if (_closed) throw "Adding to closed";
     bb.add(data);
+    originalDataChunks.add(data);
   }
 
   @override

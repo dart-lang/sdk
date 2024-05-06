@@ -93,7 +93,7 @@ static method exhaustiveSwitch(self::Enum e) → void {
       }
     #L5:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method nonExhaustiveSwitch1(self::Enum e) → void {
@@ -113,7 +113,7 @@ static method nonExhaustiveSwitch1(self::Enum e) → void {
       }
     #L9:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method nonExhaustiveSwitch2(self::Enum e) → void {
@@ -133,7 +133,7 @@ static method nonExhaustiveSwitch2(self::Enum e) → void {
       }
     #L13:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method nonExhaustiveSwitch3(self::Enum e) → void {
@@ -153,7 +153,7 @@ static method nonExhaustiveSwitch3(self::Enum e) → void {
       }
     #L17:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method nonExhaustiveSwitch4(self::Enum e) → void {
@@ -167,7 +167,7 @@ static method nonExhaustiveSwitch4(self::Enum e) → void {
       }
     #L20:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method nonExhaustiveSwitchWithDefault(self::Enum e) → void {
@@ -216,7 +216,7 @@ static method exhaustiveNullableSwitch(self::Enum? e) → void {
       }
     #L29:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method nonExhaustiveNullableSwitch1(self::Enum? e) → void {
@@ -242,7 +242,7 @@ static method nonExhaustiveNullableSwitch1(self::Enum? e) → void {
       }
     #L34:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method nonExhaustiveNullableSwitch2(self::Enum? e) → void {
@@ -268,7 +268,7 @@ static method nonExhaustiveNullableSwitch2(self::Enum? e) → void {
       }
     #L39:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method unreachableCase1(self::Enum e) → void {
@@ -300,7 +300,7 @@ static method unreachableCase1(self::Enum e) → void {
       }
     #L45:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method unreachableCase2(self::Enum e) → void {
@@ -326,7 +326,7 @@ static method unreachableCase2(self::Enum e) → void {
       }
     #L50:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method unreachableCase3(self::Enum e) → void {
@@ -358,7 +358,7 @@ static method unreachableCase3(self::Enum e) → void {
       }
     #L56:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method unreachableCase4(self::Enum? e) → void {
@@ -396,7 +396,7 @@ static method unreachableCase4(self::Enum? e) → void {
       }
     #L63:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method exhaustiveGenericSwitch(self::GenericEnum<dynamic> e) → void {
@@ -422,7 +422,7 @@ static method exhaustiveGenericSwitch(self::GenericEnum<dynamic> e) → void {
       }
     #L68:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method exhaustiveGenericSwitchTyped(self::GenericEnum<core::int> e) → void {
@@ -436,7 +436,7 @@ static method exhaustiveGenericSwitchTyped(self::GenericEnum<core::int> e) → v
       }
     #L71:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 

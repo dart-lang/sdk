@@ -10,13 +10,11 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConcreteClassWithAbstractMemberTest);
-    defineReflectiveTests(ConcreteClassWithAbstractMemberWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class ConcreteClassWithAbstractMemberTest extends PubPackageResolutionTest
-    with ConcreteClassWithAbstractMemberTestCases {
+class ConcreteClassWithAbstractMemberTest extends PubPackageResolutionTest {
   test_abstract_field() async {
     await assertErrorsInCode('''
 class A {
@@ -39,6 +37,15 @@ class A {
     ]);
   }
 
+  test_direct() async {
+    await assertErrorsInCode('''
+class A {
+  m();
+}''', [
+      error(CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, 12, 4),
+    ]);
+  }
+
   test_external_field() async {
     await assertNoErrorsInCode('''
 class A {
@@ -55,28 +62,6 @@ class A {
 ''');
   }
 
-  test_setter() async {
-    await assertErrorsInCode('''
-class A {
-  set s(int i);
-}
-''', [
-      error(CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, 12, 13,
-          text: "'s' must have a method body because 'A' isn't abstract."),
-    ]);
-  }
-}
-
-mixin ConcreteClassWithAbstractMemberTestCases on PubPackageResolutionTest {
-  test_direct() async {
-    await assertErrorsInCode('''
-class A {
-  m();
-}''', [
-      error(CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, 12, 4),
-    ]);
-  }
-
   test_noSuchMethod_interface() async {
     await assertErrorsInCode('''
 class I {
@@ -88,9 +73,15 @@ class A implements I {
       error(CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, 62, 4),
     ]);
   }
-}
 
-@reflectiveTest
-class ConcreteClassWithAbstractMemberWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, ConcreteClassWithAbstractMemberTestCases {}
+  test_setter() async {
+    await assertErrorsInCode('''
+class A {
+  set s(int i);
+}
+''', [
+      error(CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, 12, 13,
+          text: "'s' must have a method body because 'A' isn't abstract."),
+    ]);
+  }
+}

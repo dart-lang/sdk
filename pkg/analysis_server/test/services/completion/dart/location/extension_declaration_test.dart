@@ -53,4 +53,36 @@ suggestions
     kind: keyword
 ''');
   }
+
+  Future<void> test_name() async {
+    allowedIdentifiers = {'Test'};
+    await computeSuggestions('''
+extension ^
+''');
+    assertResponse(r'''
+suggestions
+  Test
+    kind: identifier
+  on
+    kind: keyword
+  type
+    kind: keyword
+''');
+  }
+
+  Future<void> test_name_partial() async {
+    allowedIdentifiers = {'Test'};
+    await computeSuggestions('''
+extension T^
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  Test
+    kind: identifier
+  type
+    kind: keyword
+''');
+  }
 }

@@ -22,52 +22,64 @@ class ResultClass {
 }
 
 @pragma('vm:prefer-inline')
+@pragma('wasm:prefer-inline')
 @pragma('dart2js:prefer-inline')
 List<Object> inlinedList() => [input1, input2];
 
 @pragma('vm:never-inline')
+@pragma('wasm:never-inline')
 @pragma('dart2js:never-inline')
 List<Object> notInlinedList() => [input1, input2];
 
 @pragma('vm:never-inline')
+@pragma('wasm:never-inline')
 @pragma('dart2js:never-inline')
 List<Object> forwardedList() => notInlinedList();
 
 @pragma('vm:prefer-inline')
+@pragma('wasm:prefer-inline')
 @pragma('dart2js:prefer-inline')
 ResultClass inlinedClass() => ResultClass(input1, input2);
 
 @pragma('vm:never-inline')
+@pragma('wasm:never-inline')
 @pragma('dart2js:never-inline')
 ResultClass notInlinedClass() => ResultClass(input1, input2);
 
 @pragma('vm:never-inline')
+@pragma('wasm:never-inline')
 @pragma('dart2js:never-inline')
 ResultClass forwardedClass() => notInlinedClass();
 
 @pragma('vm:prefer-inline')
+@pragma('wasm:prefer-inline')
 @pragma('dart2js:prefer-inline')
 (int, String) inlinedRecord() => (input1, input2);
 
 @pragma('vm:never-inline')
+@pragma('wasm:never-inline')
 @pragma('dart2js:never-inline')
 (int, String) notInlinedRecord() => (input1, input2);
 
 @pragma('vm:never-inline')
+@pragma('wasm:never-inline')
 @pragma('dart2js:never-inline')
 (int, String) forwardedRecord() => notInlinedRecord();
 
 @pragma('vm:prefer-inline')
+@pragma('wasm:prefer-inline')
 @pragma('dart2js:prefer-inline')
 ({int result0, String result1}) inlinedRecordNamed() =>
     (result0: input1, result1: input2);
 
 @pragma('vm:never-inline')
+@pragma('wasm:never-inline')
 @pragma('dart2js:never-inline')
 ({int result0, String result1}) notInlinedRecordNamed() =>
     (result0: input1, result1: input2);
 
 @pragma('vm:never-inline')
+@pragma('wasm:never-inline')
 @pragma('dart2js:never-inline')
 ({int result0, String result1}) forwardedRecordNamed() =>
     notInlinedRecordNamed();

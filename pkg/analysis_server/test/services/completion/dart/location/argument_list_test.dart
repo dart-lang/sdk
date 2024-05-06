@@ -27,13 +27,13 @@ void f() {foo(bar: ^);}
 suggestions
   const
     kind: keyword
+  true
+    kind: keyword
   false
     kind: keyword
   null
     kind: keyword
   switch
-    kind: keyword
-  true
     kind: keyword
 ''');
   }
@@ -68,13 +68,13 @@ void f() {foo(^);}
 suggestions
   const
     kind: keyword
+  true
+    kind: keyword
   false
     kind: keyword
   null
     kind: keyword
   switch
-    kind: keyword
-  true
     kind: keyword
 ''');
   }
@@ -930,20 +930,43 @@ var v = f$arguments;
 
     await computeAndCheck('''
 $languageVersionLine
-class A {
-  A$parameters;
+void foo(void Function$parameters f) {
+  f$arguments;
 }
-class B extends A {
-  B() : super$arguments;
+''', ' (invocation, function typed formal parameter)');
+
+    await computeAndCheck('''
+$languageVersionLine
+void foo() {
+  void Function$parameters f; // not initialized
+  f$arguments;
 }
-''', ' (super constructor invocation)');
+''', ' (invocation, function typed local variable)');
+
+    await computeAndCheck('''
+$languageVersionLine
+void Function$parameters foo() => throw 0;
+void f() {
+  foo()$arguments;
+}
+''', ' (invocation, function typed expression)');
 
     await computeAndCheck('''
 $languageVersionLine
 class A {
-  A$parameters;
-  A.named() : this$arguments;
+  void Function$parameters get f => throw 0;
+  void foo() {
+    f$arguments;
+  }
 }
-''', ' (this constructor invocation)');
+''', ' (invocation, function typed class getter)');
+
+    await computeAndCheck('''
+$languageVersionLine
+void Function$parameters get f => throw 0;
+void foo() {
+  f$arguments;
+}
+''', ' (invocation, function typed top-level getter)');
   }
 }

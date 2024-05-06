@@ -1,6 +1,7 @@
 library test;
 
 void expectTypeError(void callback()) {}
+
 void expect(Object value, Object expected) {}
 
 class B {
@@ -23,6 +24,9 @@ mixin M {
   int get y => 3;
   void set y(int value) {}
 }
+
 class C = B with M implements I<int>;
+
 void test(I<Object> i) {}
+
 void main() {}

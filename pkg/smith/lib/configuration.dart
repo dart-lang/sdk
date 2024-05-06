@@ -281,7 +281,7 @@ class Configuration {
         enableAsserts: boolOption("enable-asserts"),
         isChecked: boolOption("checked"),
         isCsp: boolOption("csp"),
-        isHostChecked: boolOption("host-checked"),
+        enableHostAsserts: boolOption("host-asserts"),
         isMinified: boolOption("minified"),
         useAnalyzerCfe: boolOption("use-cfe"),
         useAnalyzerFastaParser: boolOption("analyzer-use-fasta-parser"),
@@ -350,8 +350,8 @@ class Configuration {
 
   final bool isCsp;
 
-  /// Enables asserts in the dart2js compiler.
-  final bool isHostChecked;
+  /// Enables asserts in the backend compilers.
+  final bool enableHostAsserts;
 
   final bool isMinified;
 
@@ -384,7 +384,7 @@ class Configuration {
       bool? enableAsserts,
       bool? isChecked,
       bool? isCsp,
-      bool? isHostChecked,
+      bool? enableHostAsserts,
       bool? isMinified,
       bool? useAnalyzerCfe,
       bool? useAnalyzerFastaParser,
@@ -407,7 +407,7 @@ class Configuration {
         enableAsserts = enableAsserts ?? false,
         isChecked = isChecked ?? false,
         isCsp = isCsp ?? false,
-        isHostChecked = isHostChecked ?? false,
+        enableHostAsserts = enableHostAsserts ?? false,
         isMinified = isMinified ?? false,
         useAnalyzerCfe = useAnalyzerCfe ?? false,
         useAnalyzerFastaParser = useAnalyzerFastaParser ?? false,
@@ -447,7 +447,7 @@ class Configuration {
     required this.enableAsserts,
     required this.isChecked,
     required this.isCsp,
-    required this.isHostChecked,
+    required this.enableHostAsserts,
     required this.isMinified,
     required this.useAnalyzerCfe,
     required this.useAnalyzerFastaParser,
@@ -485,7 +485,7 @@ class Configuration {
         enableAsserts: source.enableAsserts,
         isChecked: source.isChecked,
         isCsp: source.isCsp,
-        isHostChecked: source.isHostChecked,
+        enableHostAsserts: source.enableHostAsserts,
         isMinified: source.isMinified,
         useAnalyzerCfe: source.useAnalyzerCfe,
         useAnalyzerFastaParser: source.useAnalyzerFastaParser,
@@ -522,7 +522,7 @@ class Configuration {
       enableAsserts == other.enableAsserts &&
       isChecked == other.isChecked &&
       isCsp == other.isCsp &&
-      isHostChecked == other.isHostChecked &&
+      enableHostAsserts == other.enableHostAsserts &&
       isMinified == other.isMinified &&
       useAnalyzerCfe == other.useAnalyzerCfe &&
       useAnalyzerFastaParser == other.useAnalyzerFastaParser &&
@@ -575,7 +575,7 @@ class Configuration {
         enableAsserts,
         isChecked,
         isCsp,
-        isHostChecked,
+        enableHostAsserts,
         isMinified,
         useAnalyzerCfe,
         useAnalyzerFastaParser,
@@ -618,7 +618,7 @@ class Configuration {
     if (enableAsserts) fields.add("enable-asserts");
     if (isChecked) fields.add("checked");
     if (isCsp) fields.add("csp");
-    if (isHostChecked) fields.add("host-checked");
+    if (enableHostAsserts) fields.add("host-asserts");
     if (isMinified) fields.add("minified");
     if (useAnalyzerCfe) fields.add("use-cfe");
     if (useAnalyzerFastaParser) fields.add("analyzer-use-fasta-parser");
@@ -677,12 +677,11 @@ class Configuration {
     boolField("enable-asserts", enableAsserts, other.enableAsserts);
     boolField("checked", isChecked, other.isChecked);
     boolField("csp", isCsp, other.isCsp);
-    boolField("host-checked", isHostChecked, other.isHostChecked);
+    boolField("host-asserts", enableHostAsserts, other.enableHostAsserts);
     boolField("minified", isMinified, other.isMinified);
     boolField("use-cfe", useAnalyzerCfe, other.useAnalyzerCfe);
     boolField("analyzer-use-fasta-parser", useAnalyzerFastaParser,
         other.useAnalyzerFastaParser);
-    boolField("host-checked", isHostChecked, other.isHostChecked);
     boolField("hot-reload", useHotReload, other.useHotReload);
     boolField("hot-reload-rollback", useHotReloadRollback,
         other.useHotReloadRollback);
@@ -868,6 +867,7 @@ class Compiler extends NamedEnum {
       case Compiler.dart2wasm:
         return const [
           Runtime.none,
+          Runtime.jsc,
           Runtime.jsshell,
           Runtime.d8,
           Runtime.chrome,
@@ -980,6 +980,7 @@ class Runtime extends NamedEnum {
   static const flutter = Runtime._('flutter');
   static const dartPrecompiled = Runtime._('dart_precompiled');
   static const d8 = Runtime._('d8');
+  static const jsc = Runtime._('jsc');
   static const jsshell = Runtime._('jsshell');
   static const firefox = Runtime._('firefox');
   static const chrome = Runtime._('chrome');
@@ -998,6 +999,7 @@ class Runtime extends NamedEnum {
     flutter,
     dartPrecompiled,
     d8,
+    jsc,
     jsshell,
     firefox,
     chrome,
@@ -1035,7 +1037,7 @@ class Runtime extends NamedEnum {
   bool get isSafari => name.startsWith("safari");
 
   /// Whether this runtime is a command-line JavaScript environment.
-  bool get isJSCommandLine => const [d8, jsshell].contains(this);
+  bool get isJSCommandLine => const [d8, jsc, jsshell].contains(this);
 
   /// If the runtime doesn't support `Window.open`, we use iframes instead.
   bool get requiresIFrame => !const [ie11, ie10].contains(this);
@@ -1062,6 +1064,9 @@ class Runtime extends NamedEnum {
       case edge:
       case chromeOnAndroid:
         return Compiler.dart2js;
+
+      case jsc:
+        return Compiler.dart2wasm;
 
       case none:
         // If we aren't running it, we probably just want to analyze it.

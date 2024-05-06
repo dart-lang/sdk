@@ -1,7 +1,9 @@
 // @dart = 2.9
+
 library test;
 
 Object o = 1;
+
 bool topLevelValue = o;
 
 class C {

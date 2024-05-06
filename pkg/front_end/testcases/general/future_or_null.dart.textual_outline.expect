@@ -1,5 +1,7 @@
 // @dart = 2.6
+
 import 'dart:async';
 
 FutureOr<Null> get foo => null;
+
 main() {}

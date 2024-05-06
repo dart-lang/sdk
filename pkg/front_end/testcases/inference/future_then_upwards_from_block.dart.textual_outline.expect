@@ -3,4 +3,5 @@ library test;
 import 'dart:async';
 
 test(Future<int> base) {}
+
 main() {}

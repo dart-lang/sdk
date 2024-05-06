@@ -15,6 +15,14 @@ void main() {
 
 @reflectiveTest
 class ClosingLabelsTest extends AbstractLspAnalysisServerTest {
+  @override
+  void setUp() {
+    super.setUp();
+
+    // These tests reference classes/constructors that don't exist.
+    failTestOnErrorDiagnostic = false;
+  }
+
   Future<void> test_afterChange() async {
     final initialContent = 'void f() {}';
     final updatedContent = '''

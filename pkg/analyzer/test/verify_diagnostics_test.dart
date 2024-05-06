@@ -92,6 +92,35 @@ class DocumentationValidator {
     // The code has been replaced but is not yet removed.
     'HintCode.DEPRECATED_MEMBER_USE',
 
+    // Missing support for example files outside of `lib`.
+    'LintCode.avoid_relative_lib_imports',
+    // Produces a CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY.
+    'LintCode.control_flow_in_finally',
+    // Missing support for creating an indirect dependency on a package.
+    'LintCode.depend_on_referenced_packages',
+    // Missing support for specifying the name of the test file.
+    'LintCode.file_names',
+    // Produces an unused import diagnostic.
+    'LintCode.implementation_imports',
+    // Doesn't produce a lint for the second example, even though the analyzer
+    // does when the example is pasted into a file.
+    'LintCode.prefer_inlined_adds',
+    // Produces an unused import diagnostic.
+    'LintCode.library_prefixes',
+    // Produces an unused element diagnostic.
+    'LintCode.library_private_types_in_public_api',
+    // Missing support for YAML files.
+    'LintCode.package_names',
+    // The lint does nothing.
+    'LintCode.package_prefixed_library_names',
+    // Missing support for YAML files.
+    'LintCode.secure_pubspec_urls',
+    // Extra warning.
+    'LintCode.recursive_getters',
+
+    // Has `language=2.9`
+    'ParserErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD',
+
     //
     // The following can't currently be verified because the examples aren't
     // Dart code.
@@ -146,6 +175,10 @@ class DocumentationValidator {
   /// Validate the documentation.
   Future<void> validate() async {
     for (var classEntry in analyzerMessages.entries) {
+      var errorClass = classEntry.key;
+      await _validateMessages(errorClass, classEntry.value);
+    }
+    for (var classEntry in lintMessages.entries) {
       var errorClass = classEntry.key;
       await _validateMessages(errorClass, classEntry.value);
     }
@@ -271,7 +304,6 @@ class DocumentationValidator {
       if (errorCodeInfo.isRemoved) {
         continue;
       }
-
       var docs = parseErrorCodeDocumentation(
           '$className.$errorName', errorCodeInfo.documentation);
       if (docs != null) {
@@ -291,7 +323,11 @@ class DocumentationValidator {
           firstExample = exampleSnippets[0];
         }
         for (int i = 0; i < exampleSnippets.length; i++) {
-          await _validateSnippet('example', i, exampleSnippets[i]);
+          _SnippetData snippet = exampleSnippets[i];
+          if (className == 'LintCode') {
+            snippet.lintCode = codeName;
+          }
+          await _validateSnippet('example', i, snippet);
         }
 
         List<_SnippetData> fixesSnippets =
@@ -300,6 +336,9 @@ class DocumentationValidator {
           _SnippetData snippet = fixesSnippets[i];
           if (firstExample != null) {
             snippet.auxiliaryFiles.addAll(firstExample.auxiliaryFiles);
+          }
+          if (className == 'LintCode') {
+            snippet.lintCode = codeName;
           }
           await _validateSnippet('fixes', i, snippet);
         }
@@ -426,6 +465,7 @@ class _SnippetData {
   final Map<String, String> auxiliaryFiles;
   final List<String> experiments;
   final String? languageVersion;
+  String? lintCode;
 
   _SnippetData(this.content, this.offset, this.length, this.auxiliaryFiles,
       this.experiments, this.languageVersion);
@@ -457,8 +497,17 @@ class _SnippetTest extends PubPackageResolutionTest {
   @override
   void setUp() {
     super.setUp();
+    _createAnalysisOptionsFile();
     _createAuxiliaryFiles(snippet.auxiliaryFiles);
     addTestFile(snippet.content);
+  }
+
+  void _createAnalysisOptionsFile() {
+    var lintCode = snippet.lintCode;
+    if (lintCode != null) {
+      writeTestPackageAnalysisOptionsFile(
+          AnalysisOptionsFileConfig(lints: [lintCode]));
+    }
   }
 
   void _createAuxiliaryFiles(Map<String, String> auxiliaryFiles) {

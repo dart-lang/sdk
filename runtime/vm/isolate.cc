@@ -325,11 +325,13 @@ void MutatorThreadPool::NotifyIdle() {
 IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
                            void* embedder_data,
                            ObjectStore* object_store,
-                           Dart_IsolateFlags api_flags)
+                           Dart_IsolateFlags api_flags,
+                           bool is_vm_isolate)
     : class_table_(nullptr),
       cached_class_table_table_(nullptr),
       object_store_(object_store),
       class_table_allocator_(),
+      is_vm_isolate_(is_vm_isolate),
       embedder_data_(embedder_data),
       thread_pool_(),
       isolates_lock_(new SafepointRwLock()),
@@ -384,7 +386,6 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
 #endif
 {
   FlagsCopyFrom(api_flags);
-  const bool is_vm_isolate = Dart::VmIsolateNameEquals(source_->name);
   if (!is_vm_isolate) {
     thread_pool_.reset(
         new MutatorThreadPool(this, FLAG_disable_thread_pool_limit
@@ -406,8 +407,13 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
 
 IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
                            void* embedder_data,
-                           Dart_IsolateFlags api_flags)
-    : IsolateGroup(source, embedder_data, new ObjectStore(), api_flags) {
+                           Dart_IsolateFlags api_flags,
+                           bool is_vm_isolate)
+    : IsolateGroup(source,
+                   embedder_data,
+                   new ObjectStore(),
+                   api_flags,
+                   is_vm_isolate) {
   if (object_store() != nullptr) {
     object_store()->InitStubs();
   }
@@ -477,8 +483,6 @@ void IsolateGroup::CreateHeap(bool is_vm_isolate,
                                            : FLAG_old_gen_heap_size) *
                  MBInWords);
 
-  is_vm_isolate_heap_ = is_vm_isolate;
-
 #define ISOLATE_GROUP_METRIC_CONSTRUCTORS(type, variable, name, unit)          \
   metric_##variable##_.InitInstance(this, name, nullptr, Metric::unit);
   ISOLATE_GROUP_METRIC_LIST(ISOLATE_GROUP_METRIC_CONSTRUCTORS)
@@ -503,12 +507,16 @@ void IsolateGroup::Shutdown() {
   // pool can trigger idle notification, which can start new GC tasks).
   //
   // (The vm-isolate doesn't have a thread pool.)
-  const bool is_vm_isolate = Dart::VmIsolateNameEquals(source()->name);
-  if (!is_vm_isolate) {
+  if (!is_vm_isolate_) {
     ASSERT(thread_pool_ != nullptr);
     thread_pool_->Shutdown();
     thread_pool_.reset();
   }
+
+  // Needs to happen before starting to destroy the heap so helper tasks like
+  // the SampleBlockProcessor don't try to enter the group during this
+  // tear-down.
+  UnregisterIsolateGroup(this);
 
   // Wait for any pending GC tasks.
   if (heap_ != nullptr) {
@@ -524,12 +532,10 @@ void IsolateGroup::Shutdown() {
     old_space->AbandonMarkingForShutdown();
   }
 
-  UnregisterIsolateGroup(this);
-
   // If the creation of the isolate group (or the first isolate within the
   // isolate group) failed, we do not invoke the cleanup callback (the
   // embedder is responsible for handling the creation error).
-  if (initial_spawn_successful_ && !is_vm_isolate) {
+  if (initial_spawn_successful_ && !is_vm_isolate_) {
     auto group_shutdown_callback = Isolate::GroupCleanupCallback();
     if (group_shutdown_callback != nullptr) {
       group_shutdown_callback(embedder_data());
@@ -712,7 +718,7 @@ bool IsolateGroup::HasApplicationIsolateGroups() {
 bool IsolateGroup::HasOnlyVMIsolateGroup() {
   ReadRwLocker wl(ThreadState::Current(), isolate_groups_rwlock_);
   for (auto group : *isolate_groups_) {
-    if (!Dart::VmIsolateNameEquals(group->source()->name)) {
+    if (!group->is_vm_isolate()) {
       return false;
     }
   }
@@ -1536,7 +1542,8 @@ void IsolateGroup::FlagsInitialize(Dart_IsolateFlags* api_flags) {
   api_flags->isolate_flag = flag;
   BOOL_ISOLATE_GROUP_FLAG_LIST(INIT_FROM_FLAG)
 #undef INIT_FROM_FLAG
-  api_flags->copy_parent_code = false;
+  api_flags->is_service_isolate = false;
+  api_flags->is_kernel_isolate = false;
 }
 
 void IsolateGroup::FlagsCopyTo(Dart_IsolateFlags* api_flags) {
@@ -1545,7 +1552,8 @@ void IsolateGroup::FlagsCopyTo(Dart_IsolateFlags* api_flags) {
   api_flags->isolate_flag = name();
   BOOL_ISOLATE_GROUP_FLAG_LIST(INIT_FROM_FIELD)
 #undef INIT_FROM_FIELD
-  api_flags->copy_parent_code = false;
+  api_flags->is_service_isolate = false;
+  api_flags->is_kernel_isolate = false;
 }
 
 void IsolateGroup::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
@@ -1585,7 +1593,8 @@ void Isolate::FlagsInitialize(Dart_IsolateFlags* api_flags) {
   api_flags->isolate_flag = flag;
   BOOL_ISOLATE_FLAG_LIST(INIT_FROM_FLAG)
 #undef INIT_FROM_FLAG
-  api_flags->copy_parent_code = false;
+  api_flags->is_service_isolate = false;
+  api_flags->is_kernel_isolate = false;
 }
 
 void Isolate::FlagsCopyTo(Dart_IsolateFlags* api_flags) const {
@@ -1596,11 +1605,11 @@ void Isolate::FlagsCopyTo(Dart_IsolateFlags* api_flags) const {
   api_flags->isolate_flag = name();
   BOOL_ISOLATE_FLAG_LIST(INIT_FROM_FIELD)
 #undef INIT_FROM_FIELD
-  api_flags->copy_parent_code = false;
+  api_flags->is_service_isolate = false;
+  api_flags->is_kernel_isolate = false;
 }
 
 void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
-  const bool copy_parent_code_ = copy_parent_code();
 #if defined(DART_PRECOMPILER)
 #define FLAG_FOR_PRECOMPILER(action) action
 #else
@@ -1620,7 +1629,6 @@ void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
                       api_flags.isolate_flag, isolate_flags_));
 
   BOOL_ISOLATE_FLAG_LIST(SET_FROM_FLAG)
-  isolate_flags_ = CopyParentCodeBit::update(copy_parent_code_, isolate_flags_);
 #undef FLAG_FOR_NONPRODUCT
 #undef FLAG_FOR_PRECOMPILER
 #undef FLAG_FOR_PRODUCT
@@ -1760,6 +1768,7 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
                               const Dart_IsolateFlags& api_flags,
                               bool is_vm_isolate) {
   Isolate* result = new Isolate(isolate_group, api_flags);
+  result->set_is_vm_isolate(is_vm_isolate);
   result->BuildName(name_prefix);
   if (!is_vm_isolate) {
     // vm isolate object store is initialized later, after null instance
@@ -1817,11 +1826,11 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
   // to vm-isolate objects, e.g. null)
   isolate_group->RegisterIsolate(result);
 
-  if (ServiceIsolate::NameEquals(name_prefix)) {
+  if (api_flags.is_service_isolate) {
     ASSERT(!ServiceIsolate::Exists());
     ServiceIsolate::SetServiceIsolate(result);
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  } else if (KernelIsolate::NameEquals(name_prefix)) {
+  } else if (api_flags.is_kernel_isolate) {
     ASSERT(!KernelIsolate::Exists());
     KernelIsolate::SetKernelIsolate(result);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -2537,11 +2546,11 @@ void Isolate::Shutdown() {
 
 void Isolate::LowLevelCleanup(Isolate* isolate) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  if (KernelIsolate::IsKernelIsolate(isolate)) {
+  if (isolate->is_kernel_isolate()) {
     KernelIsolate::SetKernelIsolate(nullptr);
   }
 #endif
-  if (ServiceIsolate::IsServiceIsolate(isolate)) {
+  if (isolate->is_service_isolate()) {
     ServiceIsolate::SetServiceIsolate(nullptr);
   }
 
@@ -2674,7 +2683,7 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   if (debugger() != nullptr) {
     debugger()->VisitObjectPointers(visitor);
   }
-  if (ServiceIsolate::IsServiceIsolate(this)) {
+  if (is_service_isolate()) {
     ServiceIsolate::VisitObjectPointers(visitor);
   }
 #endif  // !defined(PRODUCT)
@@ -2704,6 +2713,10 @@ void Isolate::VisitStackPointers(ObjectPointerVisitor* visitor,
 
 void IsolateGroup::ReleaseStoreBuffers() {
   thread_registry()->ReleaseStoreBuffers();
+}
+
+void IsolateGroup::FlushMarkingStacks() {
+  thread_registry()->FlushMarkingStacks();
 }
 
 void Isolate::RememberLiveTemporaries() {
@@ -3523,7 +3536,7 @@ bool IsolateGroup::IsSystemIsolateGroup(const IsolateGroup* group) {
 
 bool Isolate::IsVMInternalIsolate(const Isolate* isolate) {
   return isolate->is_kernel_isolate() || isolate->is_service_isolate() ||
-         (Dart::vm_isolate() == isolate);
+         isolate->is_vm_isolate();
 }
 
 void Isolate::KillLocked(LibMsgId msg_id) {
@@ -3567,11 +3580,14 @@ void Isolate::KillLocked(LibMsgId msg_id) {
 
 class IsolateKillerVisitor : public IsolateVisitor {
  public:
-  explicit IsolateKillerVisitor(Isolate::LibMsgId msg_id)
-      : target_(nullptr), msg_id_(msg_id) {}
+  IsolateKillerVisitor(Isolate::LibMsgId msg_id,
+                       bool kill_system_isolates = false)
+      : target_(nullptr),
+        msg_id_(msg_id),
+        kill_system_isolates_(kill_system_isolates) {}
 
   IsolateKillerVisitor(Isolate* isolate, Isolate::LibMsgId msg_id)
-      : target_(isolate), msg_id_(msg_id) {
+      : target_(isolate), msg_id_(msg_id), kill_system_isolates_(false) {
     ASSERT(isolate != Dart::vm_isolate());
   }
 
@@ -3589,6 +3605,11 @@ class IsolateKillerVisitor : public IsolateVisitor {
 
  private:
   bool ShouldKill(Isolate* isolate) {
+    if (kill_system_isolates_) {
+      ASSERT(target_ == nullptr);
+      // Don't kill the service isolate or vm isolate.
+      return IsSystemIsolate(isolate) && !Isolate::IsVMInternalIsolate(isolate);
+    }
     // If a target_ is specified, then only kill the target_.
     // Otherwise, don't kill the service isolate or vm isolate.
     return (((target_ != nullptr) && (isolate == target_)) ||
@@ -3597,10 +3618,16 @@ class IsolateKillerVisitor : public IsolateVisitor {
 
   Isolate* target_;
   Isolate::LibMsgId msg_id_;
+  bool kill_system_isolates_;
 };
 
 void Isolate::KillAllIsolates(LibMsgId msg_id) {
   IsolateKillerVisitor visitor(msg_id);
+  VisitIsolates(&visitor);
+}
+
+void Isolate::KillAllSystemIsolates(LibMsgId msg_id) {
+  IsolateKillerVisitor visitor(msg_id, /*kill_system_isolates=*/true);
   VisitIsolates(&visitor);
 }
 

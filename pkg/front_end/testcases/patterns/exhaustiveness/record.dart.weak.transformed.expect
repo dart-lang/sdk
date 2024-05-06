@@ -33,7 +33,7 @@ static method exhaustiveWildcard((core::int, core::String, {required named: core
           break #L1;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t1;
 static method exhaustiveTyped((core::int, core::String, {required named: core::bool}) r) → dynamic
@@ -48,7 +48,7 @@ static method exhaustiveTyped((core::int, core::String, {required named: core::b
           break #L2;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t2;
 static method exhaustiveValue((core::int, core::String, {required named: core::bool}) r) → dynamic
@@ -71,7 +71,7 @@ static method exhaustiveValue((core::int, core::String, {required named: core::b
           break #L3;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t3;
 static method nonExhaustiveRestrictedValue1((core::int, core::String, {required named: core::bool}) r) → dynamic
@@ -86,7 +86,7 @@ static method nonExhaustiveRestrictedValue1((core::int, core::String, {required 
           break #L4;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t6;
 static method nonExhaustiveRestrictedValue2((core::int, core::String, {required named: core::bool}) r) → dynamic
@@ -101,7 +101,7 @@ static method nonExhaustiveRestrictedValue2((core::int, core::String, {required 
           break #L5;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t7;
 static method nonExhaustiveRestrictedValue3((core::int, core::String, {required named: core::bool}) r) → dynamic
@@ -116,7 +116,7 @@ static method nonExhaustiveRestrictedValue3((core::int, core::String, {required 
           break #L6;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t8;
 

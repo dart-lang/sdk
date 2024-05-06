@@ -1,4 +1,5 @@
 // @dart = 2.9
+
 class A<T> {
   var field1 = 0;
   var field2 = 0;
@@ -60,25 +61,7 @@ class C implements A<int>, B<int, String> {
   var field16;
   var field17;
   var field18;
-  C(
-      this.field1,
-      this.field2,
-      this.field3,
-      this.field4,
-      this.field5,
-      this.field6,
-      this.field7,
-      this.field8,
-      this.field9,
-      this.field10,
-      this.field11,
-      this.field12,
-      this.field13,
-      this.field14,
-      this.field15,
-      this.field16,
-      this.field17,
-      this.field18);
+  C( this.field1, this.field2, this.field3, this.field4, this.field5, this.field6, this.field7, this.field8, this.field9, this.field10, this.field11, this.field12, this.field13, this.field14, this.field15, this.field16, this.field17, this.field18);
 }
 
 class D<T> implements A<T>, B<T, T> {
@@ -100,23 +83,5 @@ class D<T> implements A<T>, B<T, T> {
   var field16;
   var field17;
   var field18;
-  D(
-      this.field1,
-      this.field2,
-      this.field3,
-      this.field4,
-      this.field5,
-      this.field6,
-      this.field7,
-      this.field8,
-      this.field9,
-      this.field10,
-      this.field11,
-      this.field12,
-      this.field13,
-      this.field14,
-      this.field15,
-      this.field16,
-      this.field17,
-      this.field18);
+  D( this.field1, this.field2, this.field3, this.field4, this.field5, this.field6, this.field7, this.field8, this.field9, this.field10, this.field11, this.field12, this.field13, this.field14, this.field15, this.field16, this.field17, this.field18);
 }

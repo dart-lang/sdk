@@ -40,7 +40,7 @@ const int quux = 20;
 ```
 
 NOTE: Using the the `@optionalTypeArgs` annotation in the `meta` package, API
-authors can special-case type variables whose type needs to by dynamic but whose
+authors can special-case type variables whose type needs to be dynamic but whose
 declaration should be treated as optional.  For example, suppose you have a
 `Key` object whose type parameter you'd like to treat as optional.  Using the
 `@optionalTypeArgs` would look like this:
@@ -269,7 +269,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         type ??= variable.initializer?.staticType;
 
         if (type != null) {
-          types.add(type.getDisplayString(withNullability: true));
+          types.add(type.getDisplayString());
         }
       }
     }

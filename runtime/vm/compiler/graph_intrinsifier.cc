@@ -81,7 +81,8 @@ bool GraphIntrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
                              CompilerState::Current().GetNextDeoptId()));
 
   FlowGraph* graph =
-      new FlowGraph(parsed_function, graph_entry, block_id, prologue_info);
+      new FlowGraph(parsed_function, graph_entry, block_id, prologue_info,
+                    FlowGraph::CompilationMode::kIntrinsic);
   compiler->set_intrinsic_flow_graph(*graph);
 
   const Function& function = parsed_function.function();
@@ -189,12 +190,17 @@ static Definition* CreateBoxedResultIfNeeded(BlockBuilder* builder,
                                              Representation representation) {
   const auto& function = builder->function();
   ASSERT(!function.has_unboxed_record_return());
-  if (function.has_unboxed_return()) {
-    return value;
-  } else {
-    return builder->AddDefinition(
-        BoxInstr::Create(representation, new Value(value)));
+  Definition* result = value;
+  if (representation == kUnboxedFloat) {
+    result = builder->AddDefinition(
+        new FloatToDoubleInstr(new Value(result), DeoptId::kNone));
+    representation = kUnboxedDouble;
   }
+  if (!function.has_unboxed_return()) {
+    result = builder->AddDefinition(BoxInstr::Create(
+        Boxing::NativeRepresentation(representation), new Value(result)));
+  }
+  return result;
 }
 
 static Definition* CreateUnboxedResultIfNeeded(BlockBuilder* builder,
@@ -213,10 +219,10 @@ static bool IntrinsifyArrayGetIndexed(FlowGraph* flow_graph,
                                       intptr_t array_cid) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
+  BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);
 
-  Definition* array = builder.AddParameter(0, /*with_frame=*/false);
-  Definition* index = builder.AddParameter(1, /*with_frame=*/false);
+  Definition* array = builder.AddParameter(0);
+  Definition* index = builder.AddParameter(1);
 
   VerifyParameterIsBoxed(&builder, 0);
 
@@ -239,72 +245,16 @@ static bool IntrinsifyArrayGetIndexed(FlowGraph* flow_graph,
   // following boxing instruction about a more precise range we attach it here
   // manually.
   // http://dartbug.com/36632
-  const bool known_range =
-      array_cid == kTypedDataInt8ArrayCid ||
-      array_cid == kTypedDataUint8ArrayCid ||
-      array_cid == kTypedDataUint8ClampedArrayCid ||
-      array_cid == kExternalTypedDataUint8ArrayCid ||
-      array_cid == kExternalTypedDataUint8ClampedArrayCid ||
-      array_cid == kTypedDataInt16ArrayCid ||
-      array_cid == kTypedDataUint16ArrayCid ||
-      array_cid == kTypedDataInt32ArrayCid ||
-      array_cid == kTypedDataUint32ArrayCid || array_cid == kOneByteStringCid ||
-      array_cid == kTwoByteStringCid;
-
-  bool clear_environment = false;
-  if (known_range) {
-    Range range;
-    result->InferRange(/*range_analysis=*/nullptr, &range);
-    result->set_range(range);
-    clear_environment = range.Fits(RangeBoundary::kRangeBoundarySmi);
+  auto const rep = RepresentationUtils::RepresentationOfArrayElement(array_cid);
+  if (RepresentationUtils::IsUnboxedInteger(rep)) {
+    result->set_range(Range::Full(rep));
   }
+  const bool clear_environment =
+      RangeUtils::Fits(result->range(), RangeBoundary::kRangeBoundarySmi);
 
   // Box and/or convert result if necessary.
-  switch (array_cid) {
-    case kTypedDataInt32ArrayCid:
-    case kExternalTypedDataInt32ArrayCid:
-      result = CreateBoxedResultIfNeeded(&builder, result, kUnboxedInt32);
-      break;
-    case kTypedDataUint32ArrayCid:
-    case kExternalTypedDataUint32ArrayCid:
-      result = CreateBoxedResultIfNeeded(&builder, result, kUnboxedUint32);
-      break;
-    case kTypedDataFloat32ArrayCid:
-      result = builder.AddDefinition(
-          new FloatToDoubleInstr(new Value(result), DeoptId::kNone));
-      FALL_THROUGH;
-    case kTypedDataFloat64ArrayCid:
-      result = CreateBoxedResultIfNeeded(&builder, result, kUnboxedDouble);
-      break;
-    case kTypedDataFloat32x4ArrayCid:
-      result = CreateBoxedResultIfNeeded(&builder, result, kUnboxedFloat32x4);
-      break;
-    case kTypedDataInt32x4ArrayCid:
-      result = CreateBoxedResultIfNeeded(&builder, result, kUnboxedInt32x4);
-      break;
-    case kTypedDataFloat64x2ArrayCid:
-      result = CreateBoxedResultIfNeeded(&builder, result, kUnboxedFloat64x2);
-      break;
-    case kArrayCid:
-    case kImmutableArrayCid:
-      // Nothing to do.
-      break;
-    case kTypedDataInt8ArrayCid:
-    case kTypedDataInt16ArrayCid:
-    case kTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
-    case kTypedDataUint16ArrayCid:
-    case kExternalTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
-      result = CreateBoxedResultIfNeeded(&builder, result, kUnboxedIntPtr);
-      break;
-    case kTypedDataInt64ArrayCid:
-    case kTypedDataUint64ArrayCid:
-      result = CreateBoxedResultIfNeeded(&builder, result, kUnboxedInt64);
-      break;
-    default:
-      UNREACHABLE();
-      break;
+  if (RepresentationUtils::IsUnboxed(rep)) {
+    result = CreateBoxedResultIfNeeded(&builder, result, rep);
   }
   if (result->IsBoxInteger() && clear_environment) {
     result->AsBoxInteger()->ClearEnv();
@@ -318,11 +268,11 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
                                       intptr_t array_cid) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
+  BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);
 
-  Definition* array = builder.AddParameter(0, /*with_frame=*/false);
-  Definition* index = builder.AddParameter(1, /*with_frame=*/false);
-  Definition* value = builder.AddParameter(2, /*with_frame=*/false);
+  Definition* array = builder.AddParameter(0);
+  Definition* index = builder.AddParameter(1);
+  Definition* value = builder.AddParameter(2);
 
   VerifyParameterIsBoxed(&builder, 0);
   VerifyParameterIsBoxed(&builder, 2);
@@ -332,81 +282,29 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
                            Slot::GetLengthFieldForArrayCid(array_cid));
 
   // Value check/conversion.
-  switch (array_cid) {
-    case kTypedDataUint8ClampedArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
+  auto const rep = RepresentationUtils::RepresentationOfArrayElement(array_cid);
+  if (IsClampedTypedDataBaseClassId(array_cid)) {
 #if defined(TARGET_ARCH_IS_32_BIT)
-      // On 32-bit architectures, clamping operations need the exact value
-      // for proper operations. On 64-bit architectures, kUnboxedIntPtr
-      // maps to kUnboxedInt64. All other situations get away with
-      // truncating even non-smi values.
-      builder.AddInstruction(new CheckSmiInstr(new Value(value), DeoptId::kNone,
-                                               builder.Source()));
-      FALL_THROUGH;
+    // On 32-bit architectures, clamping operations need the exact value
+    // for proper operations. On 64-bit architectures, kUnboxedIntPtr
+    // maps to kUnboxedInt64. All other situations get away with
+    // truncating even non-smi values.
+    builder.AddInstruction(
+        new CheckSmiInstr(new Value(value), DeoptId::kNone, builder.Source()));
 #endif
-    case kTypedDataInt8ArrayCid:
-    case kTypedDataInt16ArrayCid:
-    case kTypedDataUint8ArrayCid:
-    case kTypedDataUint16ArrayCid:
-    case kExternalTypedDataUint8ArrayCid:
-      value = builder.AddUnboxInstr(kUnboxedIntPtr, new Value(value),
-                                    /* is_checked = */ false);
-      value->AsUnboxInteger()->mark_truncating();
-      break;
-    case kTypedDataInt32ArrayCid:
-    case kExternalTypedDataInt32ArrayCid:
-      // Use same truncating unbox-instruction for int32 and uint32.
-      FALL_THROUGH;
-    case kTypedDataUint32ArrayCid:
-    case kExternalTypedDataUint32ArrayCid:
-      // Supports smi and mint, slow-case for bigints.
-      value = builder.AddUnboxInstr(kUnboxedUint32, new Value(value),
-                                    /* is_checked = */ false);
-      break;
-    case kTypedDataInt64ArrayCid:
-    case kTypedDataUint64ArrayCid:
-      value = builder.AddUnboxInstr(kUnboxedInt64, new Value(value),
-                                    /* is_checked = */ false);
-      break;
-
-    case kTypedDataFloat32ArrayCid:
-    case kTypedDataFloat64ArrayCid:
-    case kTypedDataFloat32x4ArrayCid:
-    case kTypedDataInt32x4ArrayCid:
-    case kTypedDataFloat64x2ArrayCid: {
-      intptr_t value_check_cid = kDoubleCid;
-      Representation rep = kUnboxedDouble;
-      switch (array_cid) {
-        case kTypedDataFloat32x4ArrayCid:
-          value_check_cid = kFloat32x4Cid;
-          rep = kUnboxedFloat32x4;
-          break;
-        case kTypedDataInt32x4ArrayCid:
-          value_check_cid = kInt32x4Cid;
-          rep = kUnboxedInt32x4;
-          break;
-        case kTypedDataFloat64x2ArrayCid:
-          value_check_cid = kFloat64x2Cid;
-          rep = kUnboxedFloat64x2;
-          break;
-        default:
-          // Float32/Float64 case already handled.
-          break;
-      }
-      Zone* zone = flow_graph->zone();
-      Cids* value_check = Cids::CreateMonomorphic(zone, value_check_cid);
-      builder.AddInstruction(new CheckClassInstr(
-          new Value(value), DeoptId::kNone, *value_check, builder.Source()));
-      value = builder.AddUnboxInstr(rep, new Value(value),
-                                    /* is_checked = */ true);
-      if (array_cid == kTypedDataFloat32ArrayCid) {
-        value = builder.AddDefinition(
-            new DoubleToFloatInstr(new Value(value), DeoptId::kNone));
-      }
-      break;
-    }
-    default:
-      UNREACHABLE();
+  }
+  if (RepresentationUtils::IsUnboxedInteger(rep)) {
+    // Use same truncating unbox-instruction for int32 and uint32.
+    auto const unbox_rep = rep == kUnboxedInt32 ? kUnboxedUint32 : rep;
+    value = builder.AddUnboxInstr(unbox_rep, new Value(value),
+                                  /* is_checked = */ false);
+  } else if (RepresentationUtils::IsUnboxed(rep)) {
+    Zone* zone = flow_graph->zone();
+    Cids* value_check = Cids::CreateMonomorphic(zone, Boxing::BoxCid(rep));
+    builder.AddInstruction(new CheckClassInstr(new Value(value), DeoptId::kNone,
+                                               *value_check, builder.Source()));
+    value = builder.AddUnboxInstr(rep, new Value(value),
+                                  /* is_checked = */ true);
   }
 
   if (IsExternalTypedDataClassId(array_cid)) {
@@ -533,85 +431,18 @@ DEFINE_SIMD_ARRAY_GETTER_SETTER_INTRINSICS(Float64x2Array)
 #undef DEFINE_SIMD_ARRAY_GETTER_INTRINSIC
 #undef DEFINE_SIMD_ARRAY_SETTER_INTRINSIC
 
-static bool BuildCodeUnitAt(FlowGraph* flow_graph, intptr_t cid) {
-  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
-
-  Definition* str = builder.AddParameter(0, /*with_frame=*/false);
-  Definition* index = builder.AddParameter(1, /*with_frame=*/false);
-
-  VerifyParameterIsBoxed(&builder, 0);
-
-  index = CreateBoxedParameterIfNeeded(&builder, index, kUnboxedInt64, 1);
-  index =
-      PrepareIndexedOp(flow_graph, &builder, str, index, Slot::String_length());
-
-  // For external strings: Load external data.
-  if (cid == kExternalOneByteStringCid) {
-    str = builder.AddDefinition(new LoadFieldInstr(
-        new Value(str), Slot::ExternalOneByteString_external_data(),
-        InnerPointerAccess::kCannotBeInnerPointer, builder.Source()));
-  } else if (cid == kExternalTwoByteStringCid) {
-    str = builder.AddDefinition(new LoadFieldInstr(
-        new Value(str), Slot::ExternalTwoByteString_external_data(),
-        InnerPointerAccess::kCannotBeInnerPointer, builder.Source()));
-  }
-
-  Definition* load = builder.AddDefinition(new LoadIndexedInstr(
-      new Value(str), new Value(index), /*index_unboxed=*/false,
-      target::Instance::ElementSizeFor(cid), cid, kAlignedAccess,
-      DeoptId::kNone, builder.Source()));
-
-  // We don't perform [RangeAnalysis] for graph intrinsics. To inform the
-  // following boxing instruction about a more precise range we attach it here
-  // manually.
-  // http://dartbug.com/36632
-  Range range;
-  load->InferRange(/*range_analysis=*/nullptr, &range);
-  load->set_range(range);
-
-  Definition* result =
-      CreateBoxedResultIfNeeded(&builder, load, kUnboxedIntPtr);
-
-  if (result->IsBoxInteger()) {
-    result->AsBoxInteger()->ClearEnv();
-  }
-
-  builder.AddReturn(new Value(result));
-  return true;
-}
-
-bool GraphIntrinsifier::Build_OneByteStringCodeUnitAt(FlowGraph* flow_graph) {
-  return BuildCodeUnitAt(flow_graph, kOneByteStringCid);
-}
-
-bool GraphIntrinsifier::Build_TwoByteStringCodeUnitAt(FlowGraph* flow_graph) {
-  return BuildCodeUnitAt(flow_graph, kTwoByteStringCid);
-}
-
-bool GraphIntrinsifier::Build_ExternalOneByteStringCodeUnitAt(
-    FlowGraph* flow_graph) {
-  return BuildCodeUnitAt(flow_graph, kExternalOneByteStringCid);
-}
-
-bool GraphIntrinsifier::Build_ExternalTwoByteStringCodeUnitAt(
-    FlowGraph* flow_graph) {
-  return BuildCodeUnitAt(flow_graph, kExternalTwoByteStringCid);
-}
-
 static bool BuildSimdOp(FlowGraph* flow_graph, intptr_t cid, Token::Kind kind) {
   if (!FlowGraphCompiler::SupportsUnboxedSimd128()) return false;
 
-  const Representation rep = RepresentationForCid(cid);
+  auto const rep = RepresentationForCid(cid);
 
   Zone* zone = flow_graph->zone();
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
+  BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);
 
-  Definition* left = builder.AddParameter(0, /*with_frame=*/false);
-  Definition* right = builder.AddParameter(1, /*with_frame=*/false);
+  Definition* left = builder.AddParameter(0);
+  Definition* right = builder.AddParameter(1);
 
   VerifyParameterIsBoxed(&builder, 0);
   VerifyParameterIsBoxed(&builder, 1);
@@ -675,9 +506,9 @@ static bool BuildFloat32x4Get(FlowGraph* flow_graph,
   }
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
+  BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);
 
-  Definition* receiver = builder.AddParameter(0, /*with_frame=*/false);
+  Definition* receiver = builder.AddParameter(0);
 
   const auto& function = flow_graph->function();
   Definition* unboxed_receiver =
@@ -715,9 +546,9 @@ bool GraphIntrinsifier::Build_Float32x4GetW(FlowGraph* flow_graph) {
 static bool BuildLoadField(FlowGraph* flow_graph, const Slot& field) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
+  BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);
 
-  Definition* array = builder.AddParameter(0, /*with_frame=*/false);
+  Definition* array = builder.AddParameter(0);
   VerifyParameterIsBoxed(&builder, 0);
 
   Definition* length = builder.AddDefinition(
@@ -751,9 +582,9 @@ bool GraphIntrinsifier::Build_ByteDataViewLength(FlowGraph* flow_graph) {
 bool GraphIntrinsifier::Build_GrowableArrayCapacity(FlowGraph* flow_graph) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
+  BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);
 
-  Definition* array = builder.AddParameter(0, /*with_frame=*/false);
+  Definition* array = builder.AddParameter(0);
   VerifyParameterIsBoxed(&builder, 0);
 
   Definition* backing_store = builder.AddDefinition(new LoadFieldInstr(
@@ -768,10 +599,10 @@ bool GraphIntrinsifier::Build_GrowableArrayCapacity(FlowGraph* flow_graph) {
 bool GraphIntrinsifier::Build_GrowableArrayGetIndexed(FlowGraph* flow_graph) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
+  BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);
 
-  Definition* growable_array = builder.AddParameter(0, /*with_frame=*/false);
-  Definition* index = builder.AddParameter(1, /*with_frame=*/false);
+  Definition* growable_array = builder.AddParameter(0);
+  Definition* index = builder.AddParameter(1);
 
   VerifyParameterIsBoxed(&builder, 0);
 
@@ -795,11 +626,11 @@ bool GraphIntrinsifier::Build_ObjectArraySetIndexedUnchecked(
     FlowGraph* flow_graph) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
+  BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);
 
-  Definition* array = builder.AddParameter(0, /*with_frame=*/false);
-  Definition* index = builder.AddParameter(1, /*with_frame=*/false);
-  Definition* value = builder.AddParameter(2, /*with_frame=*/false);
+  Definition* array = builder.AddParameter(0);
+  Definition* index = builder.AddParameter(1);
+  Definition* value = builder.AddParameter(2);
 
   VerifyParameterIsBoxed(&builder, 0);
   VerifyParameterIsBoxed(&builder, 2);
@@ -823,11 +654,11 @@ bool GraphIntrinsifier::Build_GrowableArraySetIndexedUnchecked(
     FlowGraph* flow_graph) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
+  BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);
 
-  Definition* array = builder.AddParameter(0, /*with_frame=*/false);
-  Definition* index = builder.AddParameter(1, /*with_frame=*/false);
-  Definition* value = builder.AddParameter(2, /*with_frame=*/false);
+  Definition* array = builder.AddParameter(0);
+  Definition* index = builder.AddParameter(1);
+  Definition* value = builder.AddParameter(2);
 
   VerifyParameterIsBoxed(&builder, 0);
   VerifyParameterIsBoxed(&builder, 2);
@@ -853,10 +684,10 @@ bool GraphIntrinsifier::Build_GrowableArraySetIndexedUnchecked(
 bool GraphIntrinsifier::Build_GrowableArraySetData(FlowGraph* flow_graph) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
+  BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);
 
-  Definition* growable_array = builder.AddParameter(0, /*with_frame=*/false);
-  Definition* data = builder.AddParameter(1, /*with_frame=*/false);
+  Definition* growable_array = builder.AddParameter(0);
+  Definition* data = builder.AddParameter(1);
   Zone* zone = flow_graph->zone();
 
   VerifyParameterIsBoxed(&builder, 0);
@@ -878,10 +709,10 @@ bool GraphIntrinsifier::Build_GrowableArraySetData(FlowGraph* flow_graph) {
 bool GraphIntrinsifier::Build_GrowableArraySetLength(FlowGraph* flow_graph) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
+  BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);
 
-  Definition* growable_array = builder.AddParameter(0, /*with_frame=*/false);
-  Definition* length = builder.AddParameter(1, /*with_frame=*/false);
+  Definition* growable_array = builder.AddParameter(0);
+  Definition* length = builder.AddParameter(1);
 
   VerifyParameterIsBoxed(&builder, 0);
   VerifyParameterIsBoxed(&builder, 1);
@@ -901,8 +732,8 @@ static bool BuildUnarySmiOp(FlowGraph* flow_graph, Token::Kind op_kind) {
   ASSERT(!flow_graph->function().is_unboxed_parameter_at(0));
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
-  Definition* left = builder.AddParameter(0, /*with_frame=*/false);
+  BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);
+  Definition* left = builder.AddParameter(0);
   builder.AddInstruction(
       new CheckSmiInstr(new Value(left), DeoptId::kNone, builder.Source()));
   Definition* result = builder.AddDefinition(
@@ -925,9 +756,9 @@ static bool BuildBinarySmiOp(FlowGraph* flow_graph, Token::Kind op_kind) {
   ASSERT(!flow_graph->function().is_unboxed_parameter_at(1));
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
-  Definition* left = builder.AddParameter(0, /*with_frame=*/false);
-  Definition* right = builder.AddParameter(1, /*with_frame=*/false);
+  BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);
+  Definition* left = builder.AddParameter(0);
+  Definition* right = builder.AddParameter(1);
   builder.AddInstruction(
       new CheckSmiInstr(new Value(left), DeoptId::kNone, builder.Source()));
   builder.AddInstruction(
@@ -1004,9 +835,9 @@ bool GraphIntrinsifier::Build_DoubleFlipSignBit(FlowGraph* flow_graph) {
   }
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
+  BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);
 
-  Definition* receiver = builder.AddParameter(0, /*with_frame=*/false);
+  Definition* receiver = builder.AddParameter(0);
   Definition* unboxed_value = ConvertOrUnboxDoubleParameter(
       &builder, receiver, 0, /* is_checked = */ true);
   if (unboxed_value == nullptr) {

@@ -140,54 +140,6 @@ SwitchStatement
 ''');
   }
 
-  /// https://github.com/dart-lang/sdk/issues/52425
-  test_partLanguage219_switchCase() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 2.9
-part of 'test.dart';
-
-void f(Object? x) {
-  switch (x) {
-    case 0:
-      break;
-  }
-}
-''');
-
-    await assertErrorsInCode(r'''
-part 'a.dart';
-''', [
-      error(CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE, 5, 8),
-    ]);
-
-    await resolveFile2(a);
-
-    final node = findNode.switchStatement('switch');
-    assertResolvedNodeText(node, r'''
-SwitchStatement
-  switchKeyword: switch
-  leftParenthesis: (
-  expression: SimpleIdentifier
-    token: x
-    staticElement: self::@function::f::@parameter::x
-    staticType: Object?
-  rightParenthesis: )
-  leftBracket: {
-  members
-    SwitchCase
-      keyword: case
-      expression: IntegerLiteral
-        literal: 0
-        staticType: int
-      colon: :
-      statements
-        BreakStatement
-          breakKeyword: break
-          semicolon: ;
-  rightBracket: }
-''');
-  }
-
   test_rewrite_pattern() async {
     await assertNoErrorsInCode(r'''
 void f(Object? x) {
@@ -1429,7 +1381,7 @@ void f(Object? x) {
       error(CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION, 68,
           1),
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 68, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 62, 1)]),
+          contextMessages: [message(testFile, 62, 1)]),
     ]);
 
     final node = findNode.switchStatement('switch');

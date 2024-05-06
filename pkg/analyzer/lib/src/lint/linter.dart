@@ -104,11 +104,7 @@ class DartLinter implements AnalysisErrorListener {
         // processing gets pushed down, this hack can go away.)
         if (sourceUrl != null) {
           var source = createSource(sourceUrl);
-          rule.reporter = ErrorReporter(
-            this,
-            source,
-            isNonNullableByDefault: true,
-          );
+          rule.reporter = ErrorReporter(this, source);
         }
         try {
           spec.accept(visitor);
@@ -348,15 +344,10 @@ class LinterContextImpl implements LinterContext {
     var libraryElement = unitElement.library as LibraryElementImpl;
 
     var errorListener = RecordingErrorListener();
-    var errorReporter = ErrorReporter(
-      errorListener,
-      source,
-      isNonNullableByDefault: libraryElement.isNonNullableByDefault,
-    );
+    var errorReporter = ErrorReporter(errorListener, source);
 
     var evaluationEngine = ConstantEvaluationEngine(
       declaredVariables: _declaredVariables,
-      isNonNullableByDefault: isEnabled(Feature.non_nullable),
       configuration: ConstantEvaluationConfiguration(),
     );
 
@@ -489,11 +480,7 @@ class LinterContextImpl implements LinterContext {
     );
 
     var listener = _ConstantAnalysisErrorListener();
-    var errorReporter = ErrorReporter(
-      listener,
-      unitElement.source,
-      isNonNullableByDefault: libraryElement.isNonNullableByDefault,
-    );
+    var errorReporter = ErrorReporter(listener, unitElement.source);
 
     node.accept(
       ConstantVerifier(
@@ -751,8 +738,12 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
       ErrorCode? errorCode,
       bool ignoreSyntheticNodes = true}) {
     if (node != null && (!node.isSynthetic || !ignoreSyntheticNodes)) {
-      reporter.reportErrorForNode(
-          errorCode ?? lintCode, node, arguments, contextMessages);
+      reporter.atNode(
+        node,
+        errorCode ?? lintCode,
+        arguments: arguments,
+        contextMessages: contextMessages,
+      );
     }
   }
 
@@ -760,8 +751,13 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
       {List<Object> arguments = const [],
       List<DiagnosticMessage>? contextMessages,
       ErrorCode? errorCode}) {
-    reporter.reportErrorForOffset(
-        errorCode ?? lintCode, offset, length, arguments, contextMessages);
+    reporter.atOffset(
+      offset: offset,
+      length: length,
+      errorCode: errorCode ?? lintCode,
+      arguments: arguments,
+      contextMessages: contextMessages,
+    );
   }
 
   void reportLintForToken(Token? token,
@@ -770,8 +766,12 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
       ErrorCode? errorCode,
       bool ignoreSyntheticTokens = true}) {
     if (token != null && (!token.isSynthetic || !ignoreSyntheticTokens)) {
-      reporter.reportErrorForToken(
-          errorCode ?? lintCode, token, arguments, contextMessages);
+      reporter.atToken(
+        token,
+        errorCode ?? lintCode,
+        arguments: arguments,
+        contextMessages: contextMessages,
+      );
     }
   }
 

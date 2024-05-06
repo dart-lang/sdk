@@ -8,12 +8,10 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../analysis_server_base.dart';
-import '../utilities/mock_packages.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -23,8 +21,6 @@ void main() {
 
 @reflectiveTest
 class FlutterNotificationOutlineTest extends PubPackageAnalysisServerTest {
-  late Folder flutterFolder;
-
   final Completer<void> _outlineReceived = Completer();
   late FlutterOutline outline;
 
@@ -56,17 +52,11 @@ class FlutterNotificationOutlineTest extends PubPackageAnalysisServerTest {
   @override
   Future<void> setUp() async {
     super.setUp();
+    writeTestPackageConfig(flutter: true);
     await setRoots(included: [workspaceRootPath], excluded: []);
-    flutterFolder = MockPackages.instance.addFlutter(resourceProvider);
   }
 
   Future<void> test_children() async {
-    newPackageConfigJsonFile(
-      testPackageRootPath,
-      (PackageConfigFileBuilder()
-            ..add(name: 'flutter', rootPath: flutterFolder.parent.path))
-          .toContent(toUriStr: toUriStr),
-    );
     newAnalysisOptionsYamlFile(testPackageRootPath, '''
 analyzer:
   strong-mode: true

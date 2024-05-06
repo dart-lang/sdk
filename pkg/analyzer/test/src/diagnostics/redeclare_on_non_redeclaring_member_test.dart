@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class RedeclareOnNonRedeclaringMemberTest extends PubPackageResolutionTest {
   @override
-  List<String> get experiments => ['inline-class'];
+  List<String> get experiments => [];
 
   @override
   void setUp() {

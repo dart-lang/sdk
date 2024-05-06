@@ -158,7 +158,7 @@ class GenericListView<D> extends View {
     // rather than tracking it ourselves.
     _select(findIndex(_lastSelectedItem), false);
     _select(findIndex(_selectedItem!.value), true);
-    _lastSelectedItem = _selectedItem!.value;
+    _lastSelectedItem = _selectedItem.value;
   }
 
   @override
@@ -221,7 +221,7 @@ class GenericListView<D> extends View {
               : 1);
       scroller!.onContentMoved.listen((e) => renderVisibleItems(false));
       if (_pages != null) {
-        watch(_pages!.target, (s) => _onPageSelected());
+        watch(_pages.target, (s) => _onPageSelected());
       }
 
       if (_snapToItems) {
@@ -258,7 +258,7 @@ class GenericListView<D> extends View {
     }
 
     if (_selectedItem != null) {
-      watch(_selectedItem!, (EventSummary summary) => onSelectedItemChange());
+      watch(_selectedItem, (EventSummary summary) => onSelectedItemChange());
     }
   }
 
@@ -348,7 +348,7 @@ class GenericListView<D> extends View {
     } else {
       // Update the target page only after we are all done animating.
       if (_pages != null) {
-        _pages!.target.value = _layout.getPage(targetIndex, _viewLength);
+        _pages.target.value = _layout.getPage(targetIndex, _viewLength);
       }
     }
   }
@@ -368,7 +368,7 @@ class GenericListView<D> extends View {
   void _onPageSelected() {
     if (_pages!.target != _layout.getPage(_activeInterval.start, _viewLength)) {
       _throwTo(_layout.getOffset(
-          _layout.getPageStartIndex(_pages!.target.value, _viewLength)));
+          _layout.getPageStartIndex(_pages.target.value, _viewLength)));
     }
   }
 
@@ -393,11 +393,10 @@ class GenericListView<D> extends View {
     }
 
     if (_pages != null) {
-      _pages!.current.value =
-          _layout.getPage(targetInterval.start, _viewLength);
+      _pages.current.value = _layout.getPage(targetInterval.start, _viewLength);
     }
     if (_pages != null) {
-      _pages!.length.value = _data.isNotEmpty
+      _pages.length.value = _data.isNotEmpty
           ? _layout.getPage(_data.length - 1, _viewLength) + 1
           : 0;
     }

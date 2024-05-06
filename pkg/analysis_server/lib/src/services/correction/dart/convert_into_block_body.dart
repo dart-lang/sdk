@@ -72,7 +72,7 @@ class ConvertIntoBlockBody extends ResolvedCorrectionProducer {
 
     // prepare prefix
     var prefix = utils.getNodePrefix(body.parent!);
-    var indent = utils.getIndent(1);
+    var indent = utils.oneIndent;
     var sourceRange = range.endEnd(body.beginToken.previous!, body);
 
     await builder.addDartFileEdit(file, (builder) {

@@ -72,7 +72,7 @@ String f() {
     await waitForTasksFinished();
     await _getNavigation(search: examplePath, length: 1);
     expect(regions, hasLength(1));
-    assertHasRegion(examplePath, examplePath.length);
+    assertHasRegion(examplePath, length: examplePath.length);
   }
 
   Future<void> test_comment_toolSeeCodeComment_multiple() async {
@@ -94,7 +94,7 @@ String f() {
     // Ensure we only get the expected region when there are multiple.
     await _getNavigation(search: example2Path, length: 1);
     expect(regions, hasLength(1));
-    assertHasRegion(example2Path, example2Path.length);
+    assertHasRegion(example2Path, length: example2Path.length);
   }
 
   Future<void> test_constructorInvocation() async {
@@ -347,7 +347,7 @@ part of 'test.dart';
 part 'a.dart';
 ''');
     await waitForTasksFinished();
-    await _getNavigation(offset: 8, length: 0);
+    await _getNavigation(offset: 8);
     expect(regions, hasLength(1));
     assertHasRegionString("'a.dart'");
     expect(testTargets, hasLength(1));
@@ -367,7 +367,7 @@ part 'test.dart';
 part of foo;
 ''');
     await waitForTasksFinished();
-    await _getNavigation(offset: 10, length: 0);
+    await _getNavigation(offset: 10);
     expect(regions, hasLength(1));
     assertHasRegionString('foo');
     expect(testTargets, hasLength(1));
@@ -386,7 +386,7 @@ part 'test.dart';
 part of 'a.dart';
 ''');
     await waitForTasksFinished();
-    await _getNavigation(offset: 11, length: 0);
+    await _getNavigation(offset: 11);
     expect(regions, hasLength(1));
     assertHasRegionString("'a.dart'");
     expect(testTargets, hasLength(1));

@@ -1,0 +1,4 @@
+Member: os
+File: not_static_field.dart
+Offset: 344
+Message: not a static field

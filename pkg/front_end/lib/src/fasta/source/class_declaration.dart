@@ -11,8 +11,8 @@ import '../builder/function_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/type_builder.dart';
+import '../codes/fasta_codes.dart';
 import '../dill/dill_member_builder.dart';
-import '../fasta_codes.dart';
 import '../problems.dart';
 import '../scope.dart';
 import '../type_inference/type_schema.dart';
@@ -179,12 +179,17 @@ class ClassDeclarationMemberIterator<D extends ClassDeclaration,
   Iterator<D>? augmentationBuilders;
   final bool includeDuplicates;
 
-  factory ClassDeclarationMemberIterator(
-      ClassDeclarationAugmentationAccess<D> patching, D classBuilder,
+  factory ClassDeclarationMemberIterator.full(
+      ClassDeclarationAugmentationAccess<D> access, D classBuilder,
       {required bool includeDuplicates}) {
-    return new ClassDeclarationMemberIterator._(
-        patching.getOrigin(classBuilder),
-        patching.getAugmentations(classBuilder)?.iterator,
+    return new ClassDeclarationMemberIterator._(access.getOrigin(classBuilder),
+        access.getAugmentations(classBuilder)?.iterator,
+        includeDuplicates: includeDuplicates);
+  }
+
+  factory ClassDeclarationMemberIterator.local(D classBuilder,
+      {required bool includeDuplicates}) {
+    return new ClassDeclarationMemberIterator._(classBuilder, null,
         includeDuplicates: includeDuplicates);
   }
 
@@ -229,11 +234,11 @@ class ClassDeclarationMemberNameIterator<D extends ClassDeclaration,
   final bool includeDuplicates;
 
   factory ClassDeclarationMemberNameIterator(
-      ClassDeclarationAugmentationAccess<D> patching, D classBuilder,
+      ClassDeclarationAugmentationAccess<D> access, D classBuilder,
       {required bool includeDuplicates}) {
     return new ClassDeclarationMemberNameIterator._(
-        patching.getOrigin(classBuilder),
-        patching.getAugmentations(classBuilder)?.iterator,
+        access.getOrigin(classBuilder),
+        access.getAugmentations(classBuilder)?.iterator,
         includeDuplicates: includeDuplicates);
   }
 
@@ -280,12 +285,18 @@ class ClassDeclarationConstructorIterator<D extends ClassDeclaration,
   Iterator<D>? augmentationBuilders;
   final bool includeDuplicates;
 
-  factory ClassDeclarationConstructorIterator(
-      ClassDeclarationAugmentationAccess<D> patching, D classBuilder,
+  factory ClassDeclarationConstructorIterator.full(
+      ClassDeclarationAugmentationAccess<D> access, D classBuilder,
       {required bool includeDuplicates}) {
     return new ClassDeclarationConstructorIterator._(
-        patching.getOrigin(classBuilder),
-        patching.getAugmentations(classBuilder)?.iterator,
+        access.getOrigin(classBuilder),
+        access.getAugmentations(classBuilder)?.iterator,
+        includeDuplicates: includeDuplicates);
+  }
+
+  factory ClassDeclarationConstructorIterator.local(D classBuilder,
+      {required bool includeDuplicates}) {
+    return new ClassDeclarationConstructorIterator._(classBuilder, null,
         includeDuplicates: includeDuplicates);
   }
 
@@ -331,11 +342,11 @@ class ClassDeclarationConstructorNameIterator<D extends ClassDeclaration,
   final bool includeDuplicates;
 
   factory ClassDeclarationConstructorNameIterator(
-      ClassDeclarationAugmentationAccess<D> patching, D classDeclaration,
+      ClassDeclarationAugmentationAccess<D> access, D classDeclaration,
       {required bool includeDuplicates}) {
     return new ClassDeclarationConstructorNameIterator._(
-        patching.getOrigin(classDeclaration),
-        patching.getAugmentations(classDeclaration)?.iterator,
+        access.getOrigin(classDeclaration),
+        access.getAugmentations(classDeclaration)?.iterator,
         includeDuplicates: includeDuplicates);
   }
 

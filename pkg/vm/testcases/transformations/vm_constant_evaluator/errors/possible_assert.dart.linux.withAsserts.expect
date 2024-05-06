@@ -1,0 +1,6 @@
+Constant evaluation error: Constant evaluation error:
+possible_assert.dart:245 Constant evaluation error: The invocation of 'toCheck' is not allowed in a constant expression.
+Member: possibleAssert
+File: possible_assert.dart
+Offset: 219
+Message: cannot evaluate to a constant

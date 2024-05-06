@@ -12,6 +12,7 @@ mixin _PointerEventDescription on PointerEvent {
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {}
 }
+
 mixin _CopyPointerScrollEvent on PointerEvent {}
 
 class PointerScrollEvent extends PointerSignalEvent

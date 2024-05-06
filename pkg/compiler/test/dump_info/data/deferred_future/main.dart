@@ -113,7 +113,7 @@
   "id": "outputUnit/1",
   "kind": "outputUnit",
   "name": "1",
-  "size": 930,
+  "size": 928,
   "filename": "out_1.part.js",
   "imports": [
     "lib1"
@@ -127,8 +127,6 @@
   "imports": []
 }]
 */
-
-// @dart = 2.7
 
 import 'dart:async';
 import 'lib1.dart' deferred as lib1;

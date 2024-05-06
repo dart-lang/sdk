@@ -7,5 +7,7 @@ class C {
 class D<T> {}
 
 C c = throw '';
+
 var f = c.f<int>();
+
 main() {}

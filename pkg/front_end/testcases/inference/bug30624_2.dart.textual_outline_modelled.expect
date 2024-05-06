@@ -11,4 +11,5 @@ class C<E> {
 }
 
 main() {}
+
 void foo<E>(C<E> c, int cmp(E a, E b)) {}

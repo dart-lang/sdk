@@ -11,19 +11,25 @@ class Foo extends core::Object implements ffi::Finalizable {
     : super core::Object::•()
     ;
 }
+
+[@vm.closure-id=3]
 static method main() → void {
   [@vm.inferred-type.metadata=#lib::Foo?] self::Foo? :foo:finalizableValue;
+
+  [@vm.closure-id=1]
   function #foo#initializer() → self::Foo
     return :foo:finalizableValue = new self::Foo::•();
-  [@vm.inferred-type.metadata=#lib::Foo] late final self::Foo foo = #foo#initializer(){() → self::Foo};
-  (() → Null {
+  [@vm.inferred-type.metadata=#lib::Foo] late final self::Foo foo = [@vm.inferred-type.metadata=#lib::Foo (receiver not int)] #foo#initializer(){() → self::Foo};
+  [@vm.direct-call.metadata=closure 2 in #lib::main] [@vm.inferred-type.metadata=!? (receiver not int)]([@vm.closure-id=2]() → Null {
     core::print(foo);
     _in::reachabilityFence(:foo:finalizableValue);
   })(){() → Null};
   [@vm.inferred-type.metadata=#lib::Foo?] self::Foo? :foo2:finalizableValue;
+
+  [@vm.closure-id=3]
   function #foo2#initializer() → self::Foo
     return :foo2:finalizableValue = new self::Foo::•();
-  late final self::Foo foo2 = #foo2#initializer(){() → self::Foo};
+  late final self::Foo foo2 = [@vm.inferred-type.metadata=#lib::Foo (receiver not int)] #foo2#initializer(){() → self::Foo};
   if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.direct-call.metadata=dart.core::_IntegerImplementation.%] [@vm.inferred-type.metadata=int (skip check)] [@vm.direct-call.metadata=dart.core::DateTime.millisecond] [@vm.inferred-type.metadata=int] new core::DateTime::now().{core::DateTime::millisecond}{core::int}.{core::num::%}(2){(core::num) → core::int} =={core::num::==}{(core::Object) → core::bool} 0) {
     core::print(foo2);
   }

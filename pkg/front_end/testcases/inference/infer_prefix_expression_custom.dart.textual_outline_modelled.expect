@@ -7,6 +7,9 @@ class A {
 }
 
 main() {}
+
 var a = new A();
+
 var v_complement = ~a;
+
 var v_negate = -a;

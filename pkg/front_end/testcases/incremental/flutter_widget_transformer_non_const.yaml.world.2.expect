@@ -27,10 +27,10 @@ library from "package:flutter/src/widgets/widget_inspector.dart" as wid {
     final field dart.core::int column;
     final field dart.core::String name;
     final field dart.core::List<wid::_Location> parameterLocations;
-    const constructor •({required dart.core::String file = #C1, required dart.core::int line = #C1, required dart.core::int column = #C1, required dart.core::String name = #C1, required dart.core::List<wid::_Location> parameterLocations = #C1}) → wid::_Location
+    const constructor •({required dart.core::String file, required dart.core::int line, required dart.core::int column, required dart.core::String name, required dart.core::List<wid::_Location> parameterLocations}) → wid::_Location
       : wid::_Location::file = file, wid::_Location::line = line, wid::_Location::column = column, wid::_Location::name = name, wid::_Location::parameterLocations = parameterLocations, super dart.core::Object::•()
       ;
-    static method _#new#tearOff({required dart.core::String file = #C1, required dart.core::int line = #C1, required dart.core::int column = #C1, required dart.core::String name = #C1, required dart.core::List<wid::_Location> parameterLocations = #C1}) → wid::_Location
+    static method _#new#tearOff({required dart.core::String file, required dart.core::int line, required dart.core::int column, required dart.core::String name, required dart.core::List<wid::_Location> parameterLocations}) → wid::_Location
       return new wid::_Location::•(file: file, line: line, column: column, name: name, parameterLocations: parameterLocations);
   }
 }
@@ -41,10 +41,10 @@ library from "org-dartlang-test:///foo.dart" as foo {
 
   class Foo extends fra::Widget {
     final field dart.core::String name;
-    constructor •({required dart.core::String name = #C1, wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Foo
+    constructor •({required dart.core::String name, wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Foo
       : foo::Foo::name = name, super fra::Widget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
       ;
-    static method _#new#tearOff({required dart.core::String name = #C1}) → foo::Foo
+    static method _#new#tearOff({required dart.core::String name}) → foo::Foo
       return new foo::Foo::•(name: name, $creationLocationd_0dea112b090073317d4: #C6);
   }
 }

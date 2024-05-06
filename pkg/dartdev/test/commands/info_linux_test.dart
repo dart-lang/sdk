@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @TestOn('linux')
+library;
 
 import 'package:dartdev/src/processes.dart';
 import 'package:test/test.dart';

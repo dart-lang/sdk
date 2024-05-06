@@ -16,8 +16,11 @@ class MyMap<K, V> with MapMixin<K, V> {
 }
 
 expect(expected, actual, message) {}
+
 int method(Map<int, String?> m) {}
+
 main() {}
+
 test(Map<int, String> map,
     {required int expectedValue,
     required int expectedContainsKeyCount,

@@ -3,5 +3,7 @@ class C<X> {
 }
 
 T check<T>(C<List<T>> f) {}
+
 void test() {}
+
 main() {}

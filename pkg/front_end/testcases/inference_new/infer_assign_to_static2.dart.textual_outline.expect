@@ -14,8 +14,13 @@ class B extends A {
 class C extends B {}
 
 T f<T>() => throw '';
+
 B topLevelVariable = throw '';
+
 B? topLevelVariable2;
+
 void test_topLevelVariable() {}
+
 void test_staticVariable() {}
+
 main() {}

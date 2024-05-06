@@ -44,9 +44,9 @@ import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
+import '../codes/fasta_codes.dart';
 import '../combinator.dart' show CombinatorBuilder;
 import '../configuration.dart' show Configuration;
-import '../fasta_codes.dart';
 import '../identifiers.dart'
     show Identifier, OperatorIdentifier, SimpleIdentifier, flattenName;
 import '../ignored_parser_errors.dart' show isIgnoredParserError;
@@ -508,7 +508,6 @@ class OutlineBuilder extends StackListenerImpl {
   final SourceLibraryBuilder libraryBuilder;
 
   final bool enableNative;
-  final bool stringExpectedAfterNative;
   bool inAbstractOrSealedClass = false;
   bool inConstructor = false;
   bool inConstructorName = false;
@@ -545,9 +544,7 @@ class OutlineBuilder extends StackListenerImpl {
   OutlineBuilder(SourceLibraryBuilder library)
       : libraryBuilder = library,
         enableNative =
-            library.loader.target.backendTarget.enableNative(library.importUri),
-        stringExpectedAfterNative =
-            library.loader.target.backendTarget.nativeExtensionExpectsString;
+            library.loader.target.backendTarget.enableNative(library.importUri);
 
   DeclarationContext get declarationContext => _declarationContext.head;
 
@@ -964,6 +961,22 @@ class OutlineBuilder extends StackListenerImpl {
       reportIfNotEnabled(
           libraryFeatures.unnamedLibraries, semicolon.charOffset, noLength);
     }
+    libraryBuilder.metadata = metadata;
+  }
+
+  @override
+  void endLibraryAugmentation(
+      Token libraryKeyword, Token augmentKeyword, Token semicolon) {
+    debugEvent("endLibraryAugmentation");
+    assert(checkState(libraryKeyword, [
+      /* uri offset */ ValueKinds.Integer,
+      /* uri string */ ValueKinds.String,
+      /* metadata */ ValueKinds.MetadataListOrNull,
+    ]));
+    // TODO(johnniwinther): Pass uri to [libraryBuilder] and verify it.
+    pop() as int;
+    pop() as String;
+    List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
     libraryBuilder.metadata = metadata;
   }
 
@@ -1480,7 +1493,8 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void beginExtensionDeclaration(Token extensionKeyword, Token? nameToken) {
+  void beginExtensionDeclaration(
+      Token? augmentToken, Token extensionKeyword, Token? nameToken) {
     assert(checkState(extensionKeyword,
         [ValueKinds.NominalVariableListOrNull, ValueKinds.MetadataListOrNull]));
     debugEvent("beginExtensionDeclaration");
@@ -3440,6 +3454,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void endTopLevelFields(
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,

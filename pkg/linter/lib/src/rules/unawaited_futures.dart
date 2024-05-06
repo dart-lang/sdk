@@ -46,7 +46,7 @@ class UnawaitedFutures extends LintRule {
   static const LintCode code = LintCode('unawaited_futures',
       "Missing an 'await' for the 'Future' computed by this expression.",
       correctionMessage:
-          "Try adding an 'await' or wrapping the expression un 'unawaited'.");
+          "Try adding an 'await' or wrapping the expression with 'unawaited'.");
 
   UnawaitedFutures()
       : super(

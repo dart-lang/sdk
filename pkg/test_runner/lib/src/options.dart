@@ -87,8 +87,9 @@ fasta:                Compile using CFE for errors, but do not run.
         help: '''Where the tests should be run.
 vm:               Run Dart code on the standalone Dart VM.
 dart_precompiled: Run a precompiled snapshot on the VM without a JIT.
-d8:               Run JavaScript from the command line using v8.
-jsshell:          Run JavaScript from the command line using Firefox js-shell.
+d8:               Run JavaScript from the command line using Chrome's v8.
+jsc:              Run JavaScript from the command line using Safari/WebKit's jsc.
+jsshell:          Run JavaScript from the command line using Firefox's js-shell.
 
 firefox:
 chrome:
@@ -135,12 +136,10 @@ test options, specifying how tests should be run.''')
             'flag with without specifying a named configuration.')
     ..addFlag('build',
         help: 'Build the necessary targets to test this configuration')
-    // TODO(sigmund): rename flag once we migrate all dart2js bots to the test
-    // matrix.
-    ..addFlag('host-checked',
-        aliases: ['host_checked'],
+    ..addFlag('host-asserts',
+        aliases: ['host_asserts'],
         hide: true,
-        help: 'Run compiler with assertions enabled.')
+        help: 'Run the compiler with assertions enabled.')
     ..addFlag('minified',
         hide: true, help: 'Enable minification in the compiler.')
     ..addFlag('csp',
@@ -152,7 +151,7 @@ test options, specifying how tests should be run.''')
         help: 'Only run tests that are not marked `Slow` or `Timeout`.')
     ..addFlag('enable-asserts',
         aliases: ['enable_asserts'],
-        help: 'Pass the --enable-asserts flag to dart2js or to the vm.')
+        help: 'Pass the --enable-asserts flag to the compilers or to the vm.')
     ..addFlag('use-cfe',
         aliases: ['use_cfe'],
         hide: true,
@@ -188,11 +187,7 @@ test options, specifying how tests should be run.''')
         help: '''Progress indication mode.
 
 Allowed values are:
-compact, color, line, verbose, silent, status, buildbot''')
-    ..addOption('step-name',
-        aliases: ['step_name'],
-        hide: true,
-        help: 'Step name for use by -pbuildbot.')
+compact, color, line, verbose, silent, status''')
     ..addFlag('report',
         hide: true,
         help: 'Print a summary report of the number of tests, by expectation.')
@@ -406,7 +401,6 @@ has been specified on the command line.''')
     'shard',
     'shards',
     'silent-failures',
-    'step-name',
     'tasks',
     'tests',
     'time',
@@ -433,7 +427,7 @@ has been specified on the command line.''')
     'use-sdk',
     'hot-reload',
     'hot-reload-rollback',
-    'host-checked',
+    'host-asserts',
     'csp',
     'minified',
     'vm-options',
@@ -614,10 +608,7 @@ has been specified on the command line.''')
       data['report'] = true;
     }
 
-    // Use verbose progress indication for verbose output unless buildbot
-    // progress indication is requested.
-    if ((data['verbose'] as bool) &&
-        (data['progress'] as String?) != 'buildbot') {
+    if (data['verbose'] as bool) {
       data['progress'] = 'verbose';
     }
 
@@ -682,7 +673,6 @@ has been specified on the command line.''')
           taskCount: int.parse(data["tasks"] as String),
           shardCount: int.parse(data["shards"] as String),
           shard: int.parse(data["shard"] as String),
-          stepName: data["step-name"] as String?,
           testServerPort: int.parse(data['test-server-port'] as String),
           testServerCrossOriginPort:
               int.parse(data['test-server-cross-origin-port'] as String),
@@ -810,7 +800,7 @@ has been specified on the command line.''')
                   useSdk: data["use-sdk"] as bool,
                   useHotReload: data["hot-reload"] as bool,
                   useHotReloadRollback: data["hot-reload-rollback"] as bool,
-                  isHostChecked: data["host-checked"] as bool,
+                  enableHostAsserts: data["host-asserts"] as bool,
                   isCsp: data["csp"] as bool,
                   isMinified: data["minified"] as bool,
                   vmOptions: vmOptions,

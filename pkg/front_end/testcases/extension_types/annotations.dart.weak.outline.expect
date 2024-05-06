@@ -12,19 +12,19 @@ extension type A(core::int i) {
   constructor constructor = self::A|constructor#constructor;
   constructor tearoff constructor = self::A|constructor#_#constructor#tearOff;
 }
-static extension-type-member method A|constructor#(core::int i) → self::A /* = core::int */
+static extension-type-member method A|constructor#(core::int i) → self::A% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method A|constructor#_#new#tearOff(core::int i) → self::A /* = core::int */
+static extension-type-member method A|constructor#_#new#tearOff(core::int i) → self::A% /* erasure=core::int, declared=! */
   return self::A|constructor#(i);
 @core::Deprecated::•("")
-static extension-type-member method A|constructor#constructor(core::int i) → self::A /* = core::int */
+static extension-type-member method A|constructor#constructor(core::int i) → self::A% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method A|constructor#_#constructor#tearOff(core::int i) → self::A /* = core::int */
+static extension-type-member method A|constructor#_#constructor#tearOff(core::int i) → self::A% /* erasure=core::int, declared=! */
   return self::A|constructor#constructor(i);
 @core::Deprecated::•("")
-static extension-type-member method A|m(lowered final self::A /* = core::int */ #this) → void
+static extension-type-member method A|m(lowered final self::A% /* erasure=core::int, declared=! */ #this) → void
   ;
-static extension-type-member method A|get#m(lowered final self::A /* = core::int */ #this) → () → void
+static extension-type-member method A|get#m(lowered final self::A% /* erasure=core::int, declared=! */ #this) → () → void
   return () → void => self::A|m(#this);
 
 

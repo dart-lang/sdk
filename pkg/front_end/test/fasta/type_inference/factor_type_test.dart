@@ -60,9 +60,6 @@ class FactorTypeTest extends Object with FactorTypeTestMixin<DartType> {
   DartType get intQuestion => coreTypes.intNullableRawType;
 
   @override
-  DartType get intStar => coreTypes.intLegacyRawType;
-
-  @override
   DartType get nullNone => const NullType();
 
   @override
@@ -72,25 +69,16 @@ class FactorTypeTest extends Object with FactorTypeTestMixin<DartType> {
   DartType get numQuestion => coreTypes.numNullableRawType;
 
   @override
-  DartType get numStar => coreTypes.numLegacyRawType;
-
-  @override
   DartType get objectNone => coreTypes.objectNonNullableRawType;
 
   @override
   DartType get objectQuestion => coreTypes.objectNullableRawType;
 
   @override
-  DartType get objectStar => coreTypes.objectLegacyRawType;
-
-  @override
   DartType get stringNone => coreTypes.stringNonNullableRawType;
 
   @override
   DartType get stringQuestion => coreTypes.stringNullableRawType;
-
-  @override
-  DartType get stringStar => coreTypes.stringLegacyRawType;
 
   @override
   DartType get voidType => const VoidType();

@@ -2,23 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:compiler/src/util/testing.dart';
 
-String method() => null;
+String? method() => null;
 
-/*spec.class: Class1:explicit=[Class1.T*],needsArgs,test*/
+/*spec.class: Class1:explicit=[Class1.T],needsArgs,test*/
 /*prod.class: Class1:needsArgs*/
 class Class1<T> {
   Class1();
 
   method() {
     /*needsSignature*/
-    T local1a() => null;
+    T? local1a() => null;
 
     /*needsSignature*/
-    T local1b() => null;
+    T? local1b() => null;
 
     /*needsSignature*/
     T local2(T t, String s) => t;

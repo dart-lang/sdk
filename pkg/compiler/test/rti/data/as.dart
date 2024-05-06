@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
-// Derived from tests/web_2/generic_type_error_message_test.
+// Derived from tests/web/generic_type_error_message_test.
 
 import 'package:compiler/src/util/testing.dart';
 
@@ -14,7 +12,7 @@ class Foo<T extends num> {}
 /*class: Bar:*/
 class Bar<T extends num> {}
 
-/*class: Baz:explicit=[Baz<num*>*],needsArgs*/
+/*class: Baz:explicit=[Baz<num>],needsArgs*/
 class Baz<T extends num> {}
 
 @pragma('dart2js:disableFinal')
@@ -27,7 +25,7 @@ main() {
   test(c as Baz<num>, Baz, expectTypeArguments: true);
 }
 
-void test(dynamic object, Type type, {bool expectTypeArguments}) {
+void test(dynamic object, Type type, {required bool expectTypeArguments}) {
   bool caught = false;
   try {
     makeLive(type);

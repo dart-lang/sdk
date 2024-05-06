@@ -36,7 +36,7 @@ class F extends core::Object implements fie::C {
   method noSuchMethod(core::Invocation invocation) → dynamic
     return super.{core::Object::noSuchMethod}(invocation);
   no-such-method-forwarder get _f2() → core::int?
-    return throw core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C6, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5)));
+    return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C6, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5)));
 }
 static method acceptsInt(core::int x) → void {}
 static method testConflictsWithNoSuchMethodForwarder(self::C c) → void {

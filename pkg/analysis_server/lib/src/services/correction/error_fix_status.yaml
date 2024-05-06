@@ -209,6 +209,8 @@ CompileTimeErrorCode.ASSIGNMENT_TO_TYPE:
   status: noFix
 CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT:
   status: hasFix
+CompileTimeErrorCode.AUGMENTATION_WITHOUT_DECLARATION:
+  status: noFix
 CompileTimeErrorCode.AUGMENTATION_WITHOUT_IMPORT:
   status: needsFix
   notes: |-
@@ -268,11 +270,6 @@ CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME:
   status: noFix
   notes: |-
     The correction is to change the name.
-CompileTimeErrorCode.CASE_BLOCK_NOT_TERMINATED:
-  status: needsFix
-  notes: |-
-    The typical fix, when someone thought a termination was not needed, is to
-    add a break.
 CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS:
   status: needsFix
   notes: |-
@@ -358,6 +355,10 @@ CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
+CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE:
+  status: noFix
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
 CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS:
   status: noFix
   notes: |-
@@ -368,6 +369,10 @@ CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM:
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
 CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION:
+  status: noFix
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
+CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
@@ -406,6 +411,8 @@ CompileTimeErrorCode.CONST_DEFERRED_CLASS:
 CompileTimeErrorCode.CONST_EVAL_ASSERTION_FAILURE:
   status: needsEvaluation
 CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD:
+  status: needsEvaluation
+CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD:
   status: needsEvaluation
 CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT:
   status: needsEvaluation
@@ -608,10 +615,6 @@ CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY:
   status: needsFix
   notes: |-
     Remove the export.
-CompileTimeErrorCode.EXPORT_LEGACY_SYMBOL:
-  status: noFix
-  notes: |-
-    Removed as of Dart 3.0.
 CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY:
   status: needsFix
   notes: |-
@@ -968,6 +971,8 @@ CompileTimeErrorCode.INVALID_INLINE_FUNCTION_TYPE:
   status: needsFix
   notes: |-
     Replace with the equivalent generic function type.
+CompileTimeErrorCode.INVALID_MACRO_APPLICATION_TARGET:
+  status: noFix
 CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR:
   status: needsFix
   notes: |-
@@ -1029,7 +1034,15 @@ CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED:
     Remove `final`.
 CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE:
   status: noFix
+CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE:
+  status: needsEvaluation
+CompileTimeErrorCode.MACRO_DEFINITION_APPLICATION_SAME_LIBRARY_CYCLE:
+  status: noFix
+CompileTimeErrorCode.MACRO_APPLICATION_ARGUMENT_ERROR:
+  status: noFix
 CompileTimeErrorCode.MACRO_ERROR:
+  status: noFix
+CompileTimeErrorCode.MACRO_INTERNAL_EXCEPTION:
   status: noFix
 CompileTimeErrorCode.MAIN_FIRST_POSITIONAL_PARAMETER_TYPE:
   status: needsFix
@@ -1368,6 +1381,8 @@ CompileTimeErrorCode.PRIVATE_SETTER:
   status: noFix
 CompileTimeErrorCode.READ_POTENTIALLY_UNASSIGNED_FINAL:
   status: noFix
+CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
+  status: hasFix
 CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR:
   status: noFix
 CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT:
@@ -1506,8 +1521,6 @@ CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST:
   status: hasFix
 CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY:
   status: hasFix
-CompileTimeErrorCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE:
-  status: noFix
 CompileTimeErrorCode.TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS:
   status: noFix
   since: 2.15
@@ -1753,14 +1766,6 @@ FfiCode.FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET:
   status: needsEvaluation
 FfiCode.FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS:
   status: needsEvaluation
-FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER:
-  status: needsFix
-  notes: |-
-    The fix is to remove the initializer and add the `external` modifier.
-FfiCode.FIELD_INITIALIZER_IN_STRUCT:
-  status: needsFix
-  notes: |-
-    The fix is to remove the initializer and add the `external` modifier.
 FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT:
   status: needsFix
   since: ~2.15
@@ -1838,9 +1843,6 @@ HintCode.DIVISION_OPTIMIZATION:
   status: hasFix
 HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION:
   status: noFix
-HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE:
-  status: noFix
-  notes: Deprecated
 HintCode.MACRO_INFO:
   status: noFix
 HintCode.UNNECESSARY_CAST:
@@ -2142,6 +2144,8 @@ LintCode.matching_super_parameters:
        parameter name.
     2. Transpose two super parameters if doing so would match up their
        super-constructor parameters.
+LintCode.missing_code_block_language_in_doc_comment:
+  status: needsEvaluation
 LintCode.missing_whitespace_between_adjacent_strings:
   status: needsFix
   notes: |-
@@ -2381,6 +2385,8 @@ LintCode.unnecessary_late:
   status: hasFix
 LintCode.unnecessary_library_directive:
   status: hasFix
+LintCode.unnecessary_library_name:
+  status: hasFix
 LintCode.unnecessary_new:
   status: hasFix
 LintCode.no_wildcard_variable_uses:
@@ -2449,7 +2455,7 @@ LintCode.use_key_in_widget_constructors:
 LintCode.use_late_for_private_fields_and_variables:
   status: needsFix
 LintCode.use_named_constants:
-  status: needsFix
+  status: hasFix
 LintCode.use_raw_strings:
   status: hasFix
 LintCode.use_rethrow_when_possible:
@@ -3696,8 +3702,6 @@ WarningCode.MISSING_REQUIRED_PARAM:
   status: hasFix
 WarningCode.MISSING_REQUIRED_PARAM_WITH_DETAILS:
   status: hasFix
-WarningCode.MISSING_RETURN:
-  status: hasFix
 WarningCode.MIXIN_ON_SEALED_CLASS:
   status: noFix
   notes: |-
@@ -3743,8 +3747,6 @@ WarningCode.RECEIVER_OF_TYPE_NEVER:
   status: needsFix
   notes: |-
     We _could_ remove the thing being received (method invocation, etc.)
-WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
-  status: hasFix
 WarningCode.REDECLARE_ON_NON_REDECLARING_MEMBER:
   status: hasFix
 WarningCode.REMOVED_LINT_USE:
@@ -3764,9 +3766,6 @@ WarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS:
   since: 2.15
 WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR:
   status: hasFix
-WarningCode.SDK_VERSION_NEVER:
-  status: noFix
-  notes: Deprecated
 WarningCode.SDK_VERSION_SINCE:
   status: needsFix
   notes: |-

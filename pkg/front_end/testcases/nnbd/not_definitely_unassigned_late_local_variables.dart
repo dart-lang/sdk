@@ -11,8 +11,8 @@ abstract class A<T> {
   foo() {
     late T value;
     late int intValue;
-    // The use of variable "value" below shouldn't be a compile-time
-    // error because it's late and not definitely unassigned.
+    // The use of variable "value" below shouldn't be
+    // a compile-time error because it's late and not definitely unassigned.
     var result = () {
       bar(value);
       barInt(intValue);

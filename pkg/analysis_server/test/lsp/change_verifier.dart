@@ -32,7 +32,14 @@ class LspChangeVerifier {
   }
 
   void verifyFiles(String expected, {Map<Uri, int>? expectedVersions}) {
-    expect(_toChangeString(), equals(expected));
+    var actual = _toChangeString();
+    if (actual != expected) {
+      print('-' * 64);
+      print(actual.trimRight());
+      print('-' * 64);
+    }
+    expect(actual, equals(expected));
+
     if (expectedVersions != null) {
       _verifyDocumentVersions(expectedVersions);
     }
@@ -42,6 +49,14 @@ class LspChangeVerifier {
     changes.forEach((fileUri, edits) {
       final change = _change(fileUri);
       change.content = _applyTextEdits(change.content!, edits);
+
+      // Record annotations with their ranges.
+      for (final edit in edits.whereType<AnnotatedTextEdit>()) {
+        final annotation = this.edit.changeAnnotations![edit.annotationId]!;
+        change.annotations
+            .putIfAbsent(annotation, () => [])
+            .add(edit.range.toDisplayString());
+      }
     });
   }
 
@@ -80,6 +95,11 @@ class LspChangeVerifier {
     }
     _change(uri).content = '';
     change.actions.add('created');
+
+    if (create.annotationId case String annotationId) {
+      final annotation = edit.changeAnnotations![annotationId]!;
+      change.annotations.putIfAbsent(annotation, () => []).add('create');
+    }
   }
 
   void _applyResourceDelete(DeleteFile delete) {
@@ -92,6 +112,11 @@ class LspChangeVerifier {
 
     change.content = null;
     change.actions.add('deleted');
+
+    if (delete.annotationId case String annotationId) {
+      final annotation = edit.changeAnnotations![annotationId]!;
+      change.annotations.putIfAbsent(annotation, () => []).add('delete');
+    }
   }
 
   void _applyResourceRename(RenameFile rename) {
@@ -110,17 +135,39 @@ class LspChangeVerifier {
     newChange.actions.add('renamed from ${_relativeUri(oldUri)}');
     oldChange.content = null;
     oldChange.actions.add('renamed to ${_relativeUri(newUri)}');
+
+    if (rename.annotationId case String annotationId) {
+      final annotation = edit.changeAnnotations![annotationId]!;
+      newChange.annotations.putIfAbsent(annotation, () => []).add('rename');
+      oldChange.annotations.putIfAbsent(annotation, () => []).add('rename');
+    }
   }
 
-  void _applyTextDocumentEdit(TextDocumentEdit edit) {
-    final uri = edit.textDocument.uri;
+  void _applyTextDocumentEdit(TextDocumentEdit documentEdit) {
+    final uri = documentEdit.textDocument.uri;
     final change = _change(uri);
 
+    // Compute new content from the edits.
     if (change.content == null) {
       throw 'Received edits for $uri which does not exist. '
           'Perhaps a CreateFile change was missing from the edits?';
     }
-    change.content = _applyTextDocumentEditEdit(change.content!, edit);
+    change.content = _applyTextDocumentEditEdit(change.content!, documentEdit);
+
+    // Record annotations with their ranges.
+    for (final editEither in documentEdit.edits) {
+      editEither.map(
+        (annotated) {
+          final annotation = edit.changeAnnotations![annotated.annotationId]!;
+          change.annotations
+              .putIfAbsent(annotation, () => [])
+              .add(annotated.range.toDisplayString());
+        },
+        // No annotations on these other kinds.
+        (snippet) {},
+        (textEdit) {},
+      );
+    }
   }
 
   String _applyTextDocumentEditEdit(String content, TextDocumentEdit edit) {
@@ -162,12 +209,12 @@ class LspChangeVerifier {
 
   String _toChangeString() {
     final buffer = StringBuffer();
-    for (final entry
+    for (final MapEntry(key: uri, value: change)
         in _changes.entries.sortedBy((entry) => _relativeUri(entry.key))) {
       // Write the path in a common format for Windows/non-Windows.
-      final relativePath = _relativeUri(entry.key);
-      final change = entry.value;
+      final relativePath = _relativeUri(uri);
       final content = change.content;
+      final annotations = change.annotations;
 
       // Write header/actions.
       buffer.write('$editMarkerStart $relativePath');
@@ -178,6 +225,19 @@ class LspChangeVerifier {
         buffer.write(' empty');
       }
       buffer.writeln();
+
+      // Write any annotations.
+      if (annotations.isNotEmpty) {
+        for (final MapEntry(key: annotation, value: operations)
+            in annotations.entries) {
+          buffer.write('$editMarkerStart   ${annotation.label}');
+          if (annotation.description != null) {
+            buffer.write(' (${annotation.description})');
+          }
+          buffer.write(': ${operations.join(', ')}');
+          buffer.writeln();
+        }
+      }
 
       // Write content.
       if (content != null) {
@@ -245,6 +305,13 @@ class TextEditWithIndex {
 class _Change {
   String? content;
   final actions = <String>[];
+  final annotations = <ChangeAnnotation, List<String>>{};
 
   _Change(this.content);
+}
+
+extension on Range {
+  String toDisplayString() => start.line == end.line
+      ? 'line ${start.line + 1}'
+      : 'lines ${start.line + 1}-${end.line + 1}';
 }

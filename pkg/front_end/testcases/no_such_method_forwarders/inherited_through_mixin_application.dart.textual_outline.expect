@@ -16,4 +16,5 @@ mixin M on A {
 class MA extends C with M {}
 
 main() {}
+
 expect(expected, actual) {}

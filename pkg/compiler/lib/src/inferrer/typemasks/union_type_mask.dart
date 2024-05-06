@@ -156,7 +156,7 @@ class UnionTypeMask extends TypeMask {
     late _FlatTypeMaskKind bestKind;
     late int bestSize;
     for (ClassEntity candidate in candidates) {
-      bool isInstantiatedStrictSubclass(cls) =>
+      bool isInstantiatedStrictSubclass(ClassEntity cls) =>
           cls != candidate &&
           domain._closedWorld.classHierarchy.isExplicitlyInstantiated(cls) &&
           domain._closedWorld.classHierarchy.isSubclassOf(cls, candidate);

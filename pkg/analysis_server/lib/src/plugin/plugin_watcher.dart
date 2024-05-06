@@ -49,26 +49,22 @@ class PluginWatcher implements DriverWatcher {
       var uri = 'package:$hostPackageName/$hostPackageName.dart';
       var source = driver.sourceFactory.forUri(uri);
       if (source == null) {
-        manager.recordPluginFailure(hostPackageName,
-            'Could not resolve "$uri" in ${contextRoot.root}.');
-      } else {
-        var context = resourceProvider.pathContext;
-        var packageRoot = context.dirname(context.dirname(source.fullName));
-        var pluginPath = _locator.findPlugin(packageRoot);
-        if (pluginPath == null) {
-          manager.recordPluginFailure(
-              hostPackageName, 'Could not find plugin in "$packageRoot".');
-        } else {
-          //
-          // Add the plugin to the context root.
-          //
-          // TODO(brianwilkerson): Do we need to wait for the plugin to be added?
-          // If we don't, then tests don't have any way to know when to expect
-          // that the list of plugins has been updated.
-          manager.addPluginToContextRoot(
-              driver.analysisContext!.contextRoot, pluginPath);
-        }
+        return;
       }
+      var context = resourceProvider.pathContext;
+      var packageRoot = context.dirname(context.dirname(source.fullName));
+      var pluginPath = _locator.findPlugin(packageRoot);
+      if (pluginPath == null) {
+        return;
+      }
+      //
+      // Add the plugin to the context root.
+      //
+      // TODO(brianwilkerson): Do we need to wait for the plugin to be added?
+      // If we don't, then tests don't have any way to know when to expect
+      // that the list of plugins has been updated.
+      manager.addPluginToContextRoot(
+          driver.analysisContext!.contextRoot, pluginPath);
     }
   }
 

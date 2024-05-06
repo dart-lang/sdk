@@ -53,11 +53,7 @@ class ConstructorInitializerResolver {
       element,
     );
 
-    var file = _libraryBuilder.kind.file.resource;
-    // TODO(pq): precache options in file state and fetch them from there
-    var analysisOptions =
-        _linker.analysisContext.getAnalysisOptionsForFile(file);
-
+    var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
     var astResolver = AstResolver(
         _linker, unitElement, initializerScope, analysisOptions,
         enclosingClassElement: classElement,

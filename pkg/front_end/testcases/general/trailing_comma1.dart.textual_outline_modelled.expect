@@ -1,4 +1,5 @@
 // @dart = 2.16
+
 class Bad {
   method() {}
 }
@@ -9,5 +10,7 @@ class C {
 }
 
 main() {}
+
 var c = new C();
+
 var z = 42;

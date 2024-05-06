@@ -11,5 +11,7 @@ extension Extension on Class {
 }
 
 int? get value => 42;
+
 main() {}
+
 test(Class? c) {}

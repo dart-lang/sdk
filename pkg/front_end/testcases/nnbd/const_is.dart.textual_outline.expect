@@ -1,8 +1,13 @@
 bool inStrongMode = <int?>[] is! List<int>;
+
 int f({required int i}) {}
+
 int g({int i = 1}) {}
+
 typedef int fType({required int i});
+
 typedef int gType({int i});
+
 typedef int bigType(
     {required int i1,
     required int i2,
@@ -88,11 +93,13 @@ class C implements B {}
 class D implements C {}
 
 typedef B func(Object o);
+
 typedef B t1(int i, B b, Map<int, num> m, var x,
     {required var ox,
     required B ob,
     required List<num> ol,
     required bool obool});
+
 B f1(int i, B b, Map<int, num> m, var x,
         {required extraParam,
         required bool obool,
@@ -100,12 +107,14 @@ B f1(int i, B b, Map<int, num> m, var x,
         required D ob,
         required List<num>? ol}) =>
     new B();
+
 D f2(int i, D b, Map<int, int> m, func x,
         {required func ox,
         required D ob,
         required List<int> ol,
         required bool obool}) =>
     new D();
+
 C f3(num i, A b, Map<Object, Object> m, var x,
         {required var ox,
         required extraParam,
@@ -113,6 +122,7 @@ C f3(num i, A b, Map<Object, Object> m, var x,
         required List ol,
         required Object obool}) =>
     new C();
+
 C f4(num i, A b, Map<Object, Object> m, var x,
         {required var ox,
         required A2 ob,
@@ -121,18 +131,31 @@ C f4(num i, A b, Map<Object, Object> m, var x,
         required A xx,
         required B yy}) =>
     new C();
+
 C f5(int i, A b, Map<Object, Object> m, var x,
         {required ox, required B ob, required List ol, required obool}) =>
     new C();
+
 const f_is_fType = f is fType;
+
 const f_is_gType = f is gType;
+
 const g_is_fType = g is fType;
+
 const g_is_gType = g is gType;
+
 const f_is_bigType = f is bigType;
+
 const f1_is_t1 = f1 is t1;
+
 const f2_is_t1 = f2 is t1;
+
 const f3_is_t1 = f3 is t1;
+
 const f4_is_t1 = f4 is t1;
+
 const f5_is_t1 = f5 is t1;
+
 main() {}
+
 expect(expected, actual) {}

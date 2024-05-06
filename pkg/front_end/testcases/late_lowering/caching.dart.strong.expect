@@ -178,26 +178,30 @@ static method ifCase(dynamic o) → core::int {
     }
   }
   {
-    hoisted dynamic a;
     final synthesized dynamic #23#0 = o;
     synthesized dynamic #23#4;
     synthesized core::bool #23#4#isSet = false;
-    if(#23#0 is core::Map<dynamic, dynamic> && (!((#23#4#isSet ?{dynamic} #23#4{dynamic} : let final dynamic #t48 = #23#4#isSet = true in #23#4 = #23#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C7){(core::Object?) → dynamic}) == null) || null is dynamic && #23#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C7){(core::Object?) → core::bool})) {
-      a = #23#4#isSet ?{dynamic} #23#4{dynamic} : let final dynamic #t49 = #23#4#isSet = true in #23#4 = #23#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C7){(core::Object?) → dynamic};
-      {
-        return 24;
+    {
+      hoisted dynamic a;
+      if(#23#0 is core::Map<dynamic, dynamic> && (!((#23#4#isSet ?{dynamic} #23#4{dynamic} : let final dynamic #t48 = #23#4#isSet = true in #23#4 = #23#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C7){(core::Object?) → dynamic}) == null) || null is dynamic && #23#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C7){(core::Object?) → core::bool})) {
+        a = #23#4#isSet ?{dynamic} #23#4{dynamic} : let final dynamic #t49 = #23#4#isSet = true in #23#4 = #23#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C7){(core::Object?) → dynamic};
+        {
+          return 24;
+        }
       }
     }
   }
   {
-    hoisted core::int b;
     final synthesized dynamic #24#0 = o;
     synthesized dynamic #24#4;
     synthesized core::bool #24#4#isSet = false;
-    if(#24#0 is core::Map<dynamic, dynamic> && (!((#24#4#isSet ?{dynamic} #24#4{dynamic} : let final dynamic #t50 = #24#4#isSet = true in #24#4 = #24#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic}) == null) || null is dynamic && #24#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C2){(core::Object?) → core::bool}) && (#24#4#isSet ?{dynamic} #24#4{dynamic} : let final dynamic #t51 = #24#4#isSet = true in #24#4 = #24#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic}) is core::int) {
-      b = (#24#4#isSet ?{dynamic} #24#4{dynamic} : let final dynamic #t52 = #24#4#isSet = true in #24#4 = #24#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic}) as{Unchecked} core::int;
-      {
-        return 25;
+    {
+      hoisted core::int b;
+      if(#24#0 is core::Map<dynamic, dynamic> && (!((#24#4#isSet ?{dynamic} #24#4{dynamic} : let final dynamic #t50 = #24#4#isSet = true in #24#4 = #24#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic}) == null) || null is dynamic && #24#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C2){(core::Object?) → core::bool}) && (#24#4#isSet ?{dynamic} #24#4{dynamic} : let final dynamic #t51 = #24#4#isSet = true in #24#4 = #24#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic}) is core::int) {
+        b = (#24#4#isSet ?{dynamic} #24#4{dynamic} : let final dynamic #t52 = #24#4#isSet = true in #24#4 = #24#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic}) as{Unchecked} core::int;
+        {
+          return 25;
+        }
       }
     }
   }
@@ -208,20 +212,24 @@ static method ifCase(dynamic o) → core::int {
     }
   }
   {
-    hoisted dynamic c;
     final synthesized dynamic #26#0 = o;
-    if(#26#0 is ({a: core::Object?, b: core::Object?}) && #C12 =={core::num::==}{(core::Object) → core::bool} #26#0{({a: core::Object?, b: core::Object?})}.a{core::Object?}) {
-      c = #26#0{({a: core::Object?, b: core::Object?})}.b{core::Object?};
-      {
-        return 27;
+    {
+      hoisted dynamic c;
+      if(#26#0 is ({a: core::Object?, b: core::Object?}) && #C12 =={core::num::==}{(core::Object) → core::bool} #26#0{({a: core::Object?, b: core::Object?})}.a{core::Object?}) {
+        c = #26#0{({a: core::Object?, b: core::Object?})}.b{core::Object?};
+        {
+          return 27;
+        }
       }
     }
   }
   {
-    hoisted dynamic d;
     final synthesized dynamic #27#0 = o;
-    if(#27#0 is ({c: core::Object?, d: core::Object?}) && #C12 =={core::num::==}{(core::Object) → core::bool} #27#0{({c: core::Object?, d: core::Object?})}.c{core::Object?} && (let final dynamic #t53 = d = #27#0{({c: core::Object?, d: core::Object?})}.d{core::Object?} in true) && d is core::int) {
-      return 28;
+    {
+      hoisted dynamic d;
+      if(#27#0 is ({c: core::Object?, d: core::Object?}) && #C12 =={core::num::==}{(core::Object) → core::bool} #27#0{({c: core::Object?, d: core::Object?})}.c{core::Object?} && (let final dynamic #t53 = d = #27#0{({c: core::Object?, d: core::Object?})}.d{core::Object?} in true) && d is core::int) {
+        return 28;
+      }
     }
   }
   return 0;
@@ -370,49 +378,57 @@ static method ifCaseElse(dynamic o) → core::int {
                                                   return 23;
                                                 }
                                                 else {
-                                                  hoisted dynamic a;
                                                   final synthesized dynamic #23#0 = o;
                                                   synthesized dynamic #23#4;
                                                   synthesized core::bool #23#4#isSet = false;
-                                                  if(#23#0 is core::Map<dynamic, dynamic> && (!((#23#4#isSet ?{dynamic} #23#4{dynamic} : let final dynamic #t101 = #23#4#isSet = true in #23#4 = #23#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C7){(core::Object?) → dynamic}) == null) || null is dynamic && #23#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C7){(core::Object?) → core::bool})) {
-                                                    a = #23#4#isSet ?{dynamic} #23#4{dynamic} : let final dynamic #t102 = #23#4#isSet = true in #23#4 = #23#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C7){(core::Object?) → dynamic};
-                                                    {
-                                                      return 24;
-                                                    }
-                                                  }
-                                                  else {
-                                                    hoisted core::int b;
-                                                    final synthesized dynamic #24#0 = o;
-                                                    synthesized dynamic #24#4;
-                                                    synthesized core::bool #24#4#isSet = false;
-                                                    if(#24#0 is core::Map<dynamic, dynamic> && (!((#24#4#isSet ?{dynamic} #24#4{dynamic} : let final dynamic #t103 = #24#4#isSet = true in #24#4 = #24#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic}) == null) || null is dynamic && #24#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C2){(core::Object?) → core::bool}) && (#24#4#isSet ?{dynamic} #24#4{dynamic} : let final dynamic #t104 = #24#4#isSet = true in #24#4 = #24#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic}) is core::int) {
-                                                      b = (#24#4#isSet ?{dynamic} #24#4{dynamic} : let final dynamic #t105 = #24#4#isSet = true in #24#4 = #24#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic}) as{Unchecked} core::int;
+                                                  {
+                                                    hoisted dynamic a;
+                                                    if(#23#0 is core::Map<dynamic, dynamic> && (!((#23#4#isSet ?{dynamic} #23#4{dynamic} : let final dynamic #t101 = #23#4#isSet = true in #23#4 = #23#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C7){(core::Object?) → dynamic}) == null) || null is dynamic && #23#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C7){(core::Object?) → core::bool})) {
+                                                      a = #23#4#isSet ?{dynamic} #23#4{dynamic} : let final dynamic #t102 = #23#4#isSet = true in #23#4 = #23#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C7){(core::Object?) → dynamic};
                                                       {
-                                                        return 25;
+                                                        return 24;
                                                       }
                                                     }
                                                     else {
-                                                      final synthesized dynamic #25#0 = o;
-                                                      if(#25#0 is (core::Object?, core::Object?) && #C12 =={core::num::==}{(core::Object) → core::bool} #25#0{(core::Object?, core::Object?)}.$1{core::Object?} && #C1 =={core::num::==}{(core::Object) → core::bool} #25#0{(core::Object?, core::Object?)}.$2{core::Object?}) {
-                                                        return 26;
-                                                      }
-                                                      else {
-                                                        hoisted dynamic c;
-                                                        final synthesized dynamic #26#0 = o;
-                                                        if(#26#0 is ({a: core::Object?, b: core::Object?}) && #C12 =={core::num::==}{(core::Object) → core::bool} #26#0{({a: core::Object?, b: core::Object?})}.a{core::Object?}) {
-                                                          c = #26#0{({a: core::Object?, b: core::Object?})}.b{core::Object?};
+                                                      final synthesized dynamic #24#0 = o;
+                                                      synthesized dynamic #24#4;
+                                                      synthesized core::bool #24#4#isSet = false;
+                                                      {
+                                                        hoisted core::int b;
+                                                        if(#24#0 is core::Map<dynamic, dynamic> && (!((#24#4#isSet ?{dynamic} #24#4{dynamic} : let final dynamic #t103 = #24#4#isSet = true in #24#4 = #24#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic}) == null) || null is dynamic && #24#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C2){(core::Object?) → core::bool}) && (#24#4#isSet ?{dynamic} #24#4{dynamic} : let final dynamic #t104 = #24#4#isSet = true in #24#4 = #24#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic}) is core::int) {
+                                                          b = (#24#4#isSet ?{dynamic} #24#4{dynamic} : let final dynamic #t105 = #24#4#isSet = true in #24#4 = #24#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic}) as{Unchecked} core::int;
                                                           {
-                                                            return 27;
+                                                            return 25;
                                                           }
                                                         }
                                                         else {
-                                                          hoisted dynamic d;
-                                                          final synthesized dynamic #27#0 = o;
-                                                          if(#27#0 is ({c: core::Object?, d: core::Object?}) && #C12 =={core::num::==}{(core::Object) → core::bool} #27#0{({c: core::Object?, d: core::Object?})}.c{core::Object?} && (let final dynamic #t106 = d = #27#0{({c: core::Object?, d: core::Object?})}.d{core::Object?} in true) && d is core::int) {
-                                                            return 28;
+                                                          final synthesized dynamic #25#0 = o;
+                                                          if(#25#0 is (core::Object?, core::Object?) && #C12 =={core::num::==}{(core::Object) → core::bool} #25#0{(core::Object?, core::Object?)}.$1{core::Object?} && #C1 =={core::num::==}{(core::Object) → core::bool} #25#0{(core::Object?, core::Object?)}.$2{core::Object?}) {
+                                                            return 26;
                                                           }
                                                           else {
-                                                            return 0;
+                                                            final synthesized dynamic #26#0 = o;
+                                                            {
+                                                              hoisted dynamic c;
+                                                              if(#26#0 is ({a: core::Object?, b: core::Object?}) && #C12 =={core::num::==}{(core::Object) → core::bool} #26#0{({a: core::Object?, b: core::Object?})}.a{core::Object?}) {
+                                                                c = #26#0{({a: core::Object?, b: core::Object?})}.b{core::Object?};
+                                                                {
+                                                                  return 27;
+                                                                }
+                                                              }
+                                                              else {
+                                                                final synthesized dynamic #27#0 = o;
+                                                                {
+                                                                  hoisted dynamic d;
+                                                                  if(#27#0 is ({c: core::Object?, d: core::Object?}) && #C12 =={core::num::==}{(core::Object) → core::bool} #27#0{({c: core::Object?, d: core::Object?})}.c{core::Object?} && (let final dynamic #t106 = d = #27#0{({c: core::Object?, d: core::Object?})}.d{core::Object?} in true) && d is core::int) {
+                                                                    return 28;
+                                                                  }
+                                                                  else {
+                                                                    return 0;
+                                                                  }
+                                                                }
+                                                              }
+                                                            }
                                                           }
                                                         }
                                                       }

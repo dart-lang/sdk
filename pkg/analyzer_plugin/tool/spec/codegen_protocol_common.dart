@@ -10,19 +10,28 @@ import 'codegen_dart_protocol.dart';
 import 'from_html.dart';
 import 'implied_types.dart';
 
-GeneratedFile clientTarget(bool responseRequiresRequestTime) => GeneratedFile(
+GeneratedFile clientTarget(
+        bool responseRequiresRequestTime, bool requiresProtocolJsonMethods) =>
+    GeneratedFile(
         '../analysis_server_client/lib/src/protocol/protocol_common.dart',
         (String pkgPath) async {
       var visitor = CodegenCommonVisitor(
-          path.basename(pkgPath), responseRequiresRequestTime, readApi(pkgPath),
+          path.basename(pkgPath),
+          responseRequiresRequestTime,
+          requiresProtocolJsonMethods,
+          readApi(pkgPath),
           forClient: true);
       return visitor.collectCode(visitor.visitApi);
     });
 
-GeneratedFile pluginTarget(bool responseRequiresRequestTime) =>
+GeneratedFile pluginTarget(
+        bool responseRequiresRequestTime, bool requiresProtocolJsonMethods) =>
     GeneratedFile('lib/protocol/protocol_common.dart', (String pkgPath) async {
-      var visitor = CodegenCommonVisitor(path.basename(pkgPath),
-          responseRequiresRequestTime, readApi(pkgPath));
+      var visitor = CodegenCommonVisitor(
+          path.basename(pkgPath),
+          responseRequiresRequestTime,
+          requiresProtocolJsonMethods,
+          readApi(pkgPath));
       return visitor.collectCode(visitor.visitApi);
     });
 
@@ -34,8 +43,8 @@ class CodegenCommonVisitor extends CodegenProtocolVisitor {
   /// Initialize a newly created visitor to generate code in the package with
   /// the given [packageName] corresponding to the types in the given [api] that
   /// are common to multiple protocols.
-  CodegenCommonVisitor(
-      super.packageName, super.responseRequiresRequestTime, super.api,
+  CodegenCommonVisitor(super.packageName, super.responseRequiresRequestTime,
+      super.requiresProtocolJsonMethods, super.api,
       {this.forClient = false});
 
   @override

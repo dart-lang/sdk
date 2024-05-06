@@ -234,8 +234,8 @@ class NominalVariableBuilder extends TypeVariableBuilderBase {
   TypeParameter get parameter => origin.actualParameter;
 
   @override
-  void applyPatch(covariant NominalVariableBuilder patch) {
-    patch.actualOrigin = this;
+  void applyAugmentation(covariant NominalVariableBuilder augmentation) {
+    augmentation.actualOrigin = this;
   }
 
   @override
@@ -319,10 +319,16 @@ class NominalVariableBuilder extends TypeVariableBuilderBase {
     }
     // If the bound is not set yet, the actual value is not important yet as it
     // will be set later.
+    TypeBuilder? boundBuilder = bound;
+    TypeDeclarationBuilder? boundDeclarationBuilder =
+        boundBuilder is NamedTypeBuilder ? boundBuilder.declaration : null;
     bool needsPostUpdate =
         nullabilityBuilder.isOmitted && hasUnsetParameterBound ||
             library is SourceLibraryBuilder &&
-                library.hasPendingNullability(parameterBound);
+                library.hasPendingNullability(parameterBound) ||
+            nullabilityBuilder.isOmitted &&
+                boundDeclarationBuilder is ExtensionTypeDeclarationBuilder &&
+                !boundDeclarationBuilder.hasInterfacesBuilt;
     Nullability nullability;
     if (nullabilityBuilder.isOmitted) {
       if (needsPostUpdate) {
@@ -367,7 +373,7 @@ class NominalVariableBuilder extends TypeVariableBuilderBase {
   @override
   void finish(SourceLibraryBuilder library, ClassBuilder object,
       TypeBuilder dynamicType) {
-    if (isPatch) return;
+    if (isAugmenting) return;
     DartType objectType = object.buildAliasedType(
         library,
         library.nullableBuilder,
@@ -392,19 +398,6 @@ class NominalVariableBuilder extends TypeVariableBuilderBase {
               ? objectType
               : dynamicType.build(library, TypeUse.typeParameterDefaultType));
     }
-  }
-
-  NominalVariableBuilder clone(
-      List<NamedTypeBuilder> newTypes,
-      SourceLibraryBuilder contextLibrary,
-      TypeParameterScopeBuilder contextDeclaration) {
-    // TODO(cstefantsova): Figure out if using [charOffset] here is a good
-    // idea.  An alternative is to use the offset of the node the cloned type
-    // variable is declared on.
-    return new NominalVariableBuilder(name, parent!, charOffset, fileUri,
-        bound: bound?.clone(newTypes, contextLibrary, contextDeclaration),
-        variableVariance: variance,
-        kind: kind);
   }
 
   static List<TypeParameter>? typeParametersFromBuilders(
@@ -665,11 +658,17 @@ class StructuralVariableBuilder extends TypeVariableBuilderBase {
     }
     // If the bound is not set yet, the actual value is not important yet as it
     // will be set later.
+    TypeBuilder? boundBuilder = bound;
+    TypeDeclarationBuilder? boundDeclarationBuilder =
+        boundBuilder is NamedTypeBuilder ? boundBuilder.declaration : null;
     bool needsPostUpdate = nullabilityBuilder.isOmitted &&
             identical(
                 parameter.bound, StructuralParameter.unsetBoundSentinel) ||
         library is SourceLibraryBuilder &&
-            library.hasPendingNullability(parameter.bound);
+            library.hasPendingNullability(parameter.bound) ||
+        nullabilityBuilder.isOmitted &&
+            boundDeclarationBuilder is ExtensionTypeDeclarationBuilder &&
+            !boundDeclarationBuilder.hasInterfacesBuilt;
     Nullability nullability;
     if (nullabilityBuilder.isOmitted) {
       if (needsPostUpdate) {
@@ -725,7 +724,7 @@ class StructuralVariableBuilder extends TypeVariableBuilderBase {
   @override
   void finish(
       LibraryBuilder library, ClassBuilder object, TypeBuilder dynamicType) {
-    if (isPatch) return;
+    if (isAugmenting) return;
     DartType objectType = object.buildAliasedType(
         library,
         library.nullableBuilder,
@@ -754,37 +753,9 @@ class StructuralVariableBuilder extends TypeVariableBuilderBase {
   }
 
   @override
-  void applyPatch(covariant StructuralVariableBuilder patch) {
-    patch.actualOrigin = this;
+  void applyAugmentation(covariant StructuralVariableBuilder augmentation) {
+    augmentation.actualOrigin = this;
   }
-
-  StructuralVariableBuilder clone(
-      List<NamedTypeBuilder> newTypes,
-      SourceLibraryBuilder contextLibrary,
-      TypeParameterScopeBuilder contextDeclaration) {
-    // TODO(cstefantsova): Figure out if using [charOffset] here is a good
-    // idea.  An alternative is to use the offset of the node the cloned type
-    // variable is declared on.
-    return new StructuralVariableBuilder(name, parent!, charOffset, fileUri,
-        bound: bound?.clone(newTypes, contextLibrary, contextDeclaration),
-        variableVariance: variance);
-  }
-
-  static List<TypeParameter>? typeParametersFromBuilders(
-      List<NominalVariableBuilder>? builders) {
-    if (builders == null) return null;
-    return new List<TypeParameter>.generate(
-        builders.length, (int i) => builders[i].parameter,
-        growable: true);
-  }
-}
-
-class FreshStructuralVariableBuildersFromNominalVariableBuilders {
-  final List<StructuralVariableBuilder> freshStructuralVariableBuilders;
-  final Map<NominalVariableBuilder, TypeBuilder> substitutionMap;
-
-  FreshStructuralVariableBuildersFromNominalVariableBuilders(
-      this.freshStructuralVariableBuilders, this.substitutionMap);
 }
 
 /// This enum is used internally for dependency analysis of type variables.

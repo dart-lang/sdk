@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // Tests for simplifying that we know a condition is true in the then-branch and
 // false in the else-branch, and sometimes after join when a diamond exits.
 

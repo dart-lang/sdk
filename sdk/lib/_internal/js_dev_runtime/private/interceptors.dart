@@ -7,8 +7,7 @@ library dart._interceptors;
 import 'dart:collection';
 import 'dart:_internal' hide Symbol;
 import 'dart:_js_helper';
-import 'dart:_foreign_helper'
-    show JS, JS_EMBEDDED_GLOBAL, JS_GET_FLAG, JSExportName;
+import 'dart:_foreign_helper' show JS, JS_GET_FLAG, TYPE_REF;
 import 'dart:math' show Random, ln2;
 import 'dart:_rti' as rti show createRuntimeType, Rti;
 import 'dart:_runtime' as dart;
@@ -26,9 +25,7 @@ abstract class Interceptor {
   String toString() => JS<String>('!', '#.toString()', this);
 }
 
-/**
- * The interceptor class for [bool].
- */
+/// The interceptor class for [bool].
 @JsPeerInterface(name: 'Boolean')
 final class JSBool extends Interceptor implements bool, TrustedGetRuntimeType {
   const JSBool();
@@ -56,11 +53,9 @@ final class JSBool extends Interceptor implements bool, TrustedGetRuntimeType {
   Type get runtimeType => bool;
 }
 
-/**
- * The supertype for JSString and JSArray. Used by the backend as to
- * have a type mask that contains the objects that we can use the
- * native JS [] operator and length on.
- */
+/// The supertype for JSString and JSArray. Used by the backend as to
+/// have a type mask that contains the objects that we can use the
+/// native JS [] operator and length on.
 abstract class JSIndexable<E> {
   int get length;
   E operator [](int index);
@@ -174,13 +169,12 @@ class JSNoSuchMethodError extends NativeError implements NoSuchMethodError {
 @JsPeerInterface(name: 'Function')
 class JSFunction extends Interceptor {
   toString() {
-    // If the function is a Type object, we should just display the type name.
-    //
-    // Regular Dart code should typically get wrapped type objects instead of
-    // raw type (aka JS constructor) objects, however raw type objects can be
-    // exposed to Dart code via JS interop or debugging tools.
-    if (dart.isType(this)) return dart.typeName(this);
-
+    if (dart.isDartClass(this)) {
+      // If the function is a Dart class, we should just display the class name.
+      // Regular Dart code shouldn't be able to access these values to call
+      // `.toString()` but they might be accessed through debugging tools.
+      return 'Dart class: ${JS<String>('!', '#.name', this)}';
+    }
     return JS<String>('!', r'"Closure: " + # + " from: " + #',
         dart.typeName(dart.getReifiedType(this)), this);
   }
@@ -207,7 +201,7 @@ class JSFunction extends Interceptor {
       var typeArgs = JS('!', '#._typeArgs', this);
       var otherTypeArgs = JS('', '#._typeArgs', other);
       // Test if all instantiated type arguments are equal.
-      if (dart.compileTimeFlag('soundNullSafety')) {
+      if (JS_GET_FLAG('SOUND_NULL_SAFETY')) {
         // The list has been canonicalized on creation so reference equality
         // is sufficient.
         if (JS<bool>('!', '# !== #', typeArgs, otherTypeArgs)) return false;
@@ -220,24 +214,13 @@ class JSFunction extends Interceptor {
           return false;
         }
         for (var i = 0; i < typeArgCount; i++) {
-          if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
-            var typeArg = JS<rti.Rti>('!', '#[#]', typeArgs, i);
-            var otherTypeArg = JS<rti.Rti>('!', '#[#]', otherTypeArgs, i);
-            if (dart.compileTimeFlag('soundNullSafety')) {
-              if (typeArg != otherTypeArg) return false;
-            } else {
-              if (rti.Rti.getLegacyErasedRecipe(typeArg) !=
-                  rti.Rti.getLegacyErasedRecipe(otherTypeArg)) {
-                return false;
-              }
-            }
+          var typeArg = JS<rti.Rti>('!', '#[#]', typeArgs, i);
+          var otherTypeArg = JS<rti.Rti>('!', '#[#]', otherTypeArgs, i);
+          if (JS_GET_FLAG('SOUND_NULL_SAFETY')) {
+            if (typeArg != otherTypeArg) return false;
           } else {
-            var typeArg = JS('!', '#[#]', typeArgs, i);
-            var otherTypeArg = JS('!', '#[#]', otherTypeArgs, i);
-            // TODO(nshahan) Replace wrapType() with a lighter weight legacy
-            // erasure.
-            if (JS<bool>('!', '# !== #', dart.wrapType(typeArg),
-                dart.wrapType(otherTypeArg))) {
+            if (rti.Rti.getLegacyErasedRecipe(typeArg) !=
+                rti.Rti.getLegacyErasedRecipe(otherTypeArg)) {
               return false;
             }
           }
@@ -271,9 +254,8 @@ class JSFunction extends Interceptor {
     return (hash * 31 + identityHashCode(boundMethod)) & 0x1fffffff;
   }
 
-  Type get runtimeType => JS_GET_FLAG('NEW_RUNTIME_TYPES')
-      ? rti.createRuntimeType(JS<rti.Rti>('!', '#', dart.getReifiedType(this)))
-      : dart.wrapType(dart.getReifiedType(this));
+  Type get runtimeType =>
+      rti.createRuntimeType(JS<rti.Rti>('!', '#', dart.getReifiedType(this)));
 }
 
 /// A class used for implementing `null` tear-offs.

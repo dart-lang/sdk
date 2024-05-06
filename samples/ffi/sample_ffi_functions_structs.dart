@@ -50,8 +50,8 @@ main() {
     NativeCoordinateOp f1 = p1.asFunction();
 
     Pointer<Coordinate> c1 = calloc<Coordinate>(3);
-    Pointer<Coordinate> c2 = c1.elementAt(1);
-    Pointer<Coordinate> c3 = c1.elementAt(2);
+    Pointer<Coordinate> c2 = c1 + 1;
+    Pointer<Coordinate> c3 = c1 + 2;
     c1.ref.x = 10.0;
     c1.ref.y = 10.0;
     c1.ref.next = c3;

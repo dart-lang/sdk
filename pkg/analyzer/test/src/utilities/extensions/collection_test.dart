@@ -9,8 +9,11 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IterableExtensionTest);
+    defineReflectiveTests(IterableIterableExtensionTest);
     defineReflectiveTests(IterableMapEntryExtensionTest);
     defineReflectiveTests(ListExtensionTest);
+    defineReflectiveTests(MapExtensionTest);
+    defineReflectiveTests(MapOfListExtensionTest);
   });
 }
 
@@ -18,6 +21,43 @@ main() {
 class IterableExtensionTest {
   test_whereNotType() {
     expect(<Object>['0', 1, '2'].whereNotType<int>(), ['0', '2']);
+  }
+}
+
+@reflectiveTest
+class IterableIterableExtensionTest {
+  test_asElementToIndexMap() {
+    expect(
+      <String>[].asElementToIndexMap,
+      <String, int>{},
+    );
+
+    expect(
+      ['a', 'b', 'c'].asElementToIndexMap,
+      {'a': 0, 'b': 1, 'c': 2},
+    );
+  }
+
+  test_flattenedToList() {
+    expect(
+      [
+        [0],
+        [1, 2],
+        [3, 3]
+      ].flattenedToList2,
+      [0, 1, 2, 3, 3],
+    );
+  }
+
+  test_flattenedToSet() {
+    expect(
+      [
+        [0, 0],
+        [1, 2, 1],
+        [3, 3]
+      ].flattenedToSet2,
+      {0, 1, 2, 3},
+    );
   }
 }
 
@@ -74,6 +114,12 @@ class ListExtensionTest {
     expect(elements.nextOrNull(3), null);
   }
 
+  test_removeLastOrNull() {
+    expect([0, 1, 2].removeLastOrNull(), 2);
+    expect([0].removeLastOrNull(), 0);
+    expect(<int>[].removeLastOrNull(), isNull);
+  }
+
   test_stablePartition() {
     expect(
       [0, 1, 2, 3, 4, 5].stablePartition((e) => e.isEven),
@@ -90,6 +136,59 @@ class ListExtensionTest {
     expect([0, 1].withoutLast, [0]);
     expect([0].withoutLast, <int>[]);
     expect(<int>[].withoutLast, <int>[]);
+  }
+}
+
+@reflectiveTest
+class MapExtensionTest {
+  test_firstKey() {
+    expect({0: 1, 2: 3}.firstKey, 0);
+    expect(<int, int>{}.firstKey, isNull);
+  }
+}
+
+@reflectiveTest
+class MapOfListExtensionTest {
+  test_add_existingKey() {
+    var map = {
+      0: [1, 2],
+    };
+    map.add(0, 3);
+    expect(map, {
+      0: [1, 2, 3],
+    });
+  }
+
+  test_add_newKey() {
+    var map = {
+      1: [2, 3],
+    };
+    map.add(4, 5);
+    expect(map, {
+      1: [2, 3],
+      4: [5],
+    });
+  }
+
+  test_addKey_existing() {
+    var map = {
+      0: [1, 2],
+    };
+    map.addKey(0);
+    expect(map, {
+      0: [1, 2],
+    });
+  }
+
+  test_addKey_new() {
+    var map = {
+      1: [2, 3],
+    };
+    map.addKey(4);
+    expect(map, {
+      1: [2, 3],
+      4: <int>[],
+    });
   }
 }
 

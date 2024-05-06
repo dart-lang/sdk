@@ -165,9 +165,9 @@ class TopMergeTest extends AbstractTypeSystemTest {
   }
 
   test_function_typeParameters_boundsMerge() {
-    var T1 = typeParameter('T', bound: intNone);
-    var T2 = typeParameter('T', bound: intStar);
-    var TR = typeParameter('T', bound: intNone);
+    var T1 = typeParameter('T', bound: dynamicType);
+    var T2 = typeParameter('T', bound: objectQuestion);
+    var TR = typeParameter('T', bound: objectQuestion);
     _check(
       functionTypeNone(
         typeFormals: [T1],
@@ -212,17 +212,6 @@ class TopMergeTest extends AbstractTypeSystemTest {
       listNone(objectQuestion),
     );
 
-    _check(
-      listQuestion(intNone),
-      listStar(intNone),
-      listQuestion(intNone),
-    );
-    _check(
-      listNone(intQuestion),
-      listNone(intStar),
-      listNone(intQuestion),
-    );
-
     _checkThrows(
       iterableNone(intNone),
       listNone(intNone),
@@ -238,30 +227,9 @@ class TopMergeTest extends AbstractTypeSystemTest {
     _check(neverNone, neverNone, neverNone);
   }
 
-  test_null() {
-    // NNBD_TOP_MERGE(Never*, Null) = Null
-    // NNBD_TOP_MERGE(Null, Never*) = Null
-    _check(neverStar, nullNone, nullNone);
-  }
-
   test_nullability() {
     // NNBD_TOP_MERGE(T?, S?) = NNBD_TOP_MERGE(T, S)?
     _check(intQuestion, intQuestion, intQuestion);
-
-    // NNBD_TOP_MERGE(T?, S*) = NNBD_TOP_MERGE(T, S)?
-    _check(intQuestion, intStar, intQuestion);
-
-    // NNBD_TOP_MERGE(T*, S?) = NNBD_TOP_MERGE(T, S)?
-    _check(intStar, intQuestion, intQuestion);
-
-    // NNBD_TOP_MERGE(T*, S*) = NNBD_TOP_MERGE(T, S)*
-    _check(intStar, intStar, intStar);
-
-    // NNBD_TOP_MERGE(T*, S) = NNBD_TOP_MERGE(T, S)
-    _check(intStar, intNone, intNone);
-
-    // NNBD_TOP_MERGE(T, S*) = NNBD_TOP_MERGE(T, S)
-    _check(intNone, intStar, intNone);
   }
 
   test_objectQuestion() {
@@ -275,16 +243,6 @@ class TopMergeTest extends AbstractTypeSystemTest {
     // NNBD_TOP_MERGE(Object?, dynamic) = Object?
     // NNBD_TOP_MERGE(dynamic, Object?) = Object?
     _check(objectQuestion, dynamicType, objectQuestion);
-  }
-
-  test_objectStar() {
-    // NNBD_TOP_MERGE(Object*, void) = Object?
-    // NNBD_TOP_MERGE(void, Object*) = Object?
-    _check(objectStar, voidNone, objectQuestion);
-
-    // NNBD_TOP_MERGE(Object*, dynamic) = Object?
-    // NNBD_TOP_MERGE(dynamic, Object*) = Object?
-    _check(objectStar, dynamicType, objectQuestion);
   }
 
   test_record() {
@@ -339,15 +297,15 @@ class TopMergeTest extends AbstractTypeSystemTest {
   void _check(DartType T, DartType S, DartType expected) {
     var result = typeSystem.topMerge(T, S);
     if (result != expected) {
-      var expectedStr = expected.getDisplayString(withNullability: true);
-      var resultStr = result.getDisplayString(withNullability: true);
+      var expectedStr = expected.getDisplayString();
+      var resultStr = result.getDisplayString();
       fail('Expected: $expectedStr, actual: $resultStr');
     }
 
     result = typeSystem.topMerge(S, T);
     if (result != expected) {
-      var expectedStr = expected.getDisplayString(withNullability: true);
-      var resultStr = result.getDisplayString(withNullability: true);
+      var expectedStr = expected.getDisplayString();
+      var resultStr = result.getDisplayString();
       fail('Expected: $expectedStr, actual: $resultStr');
     }
   }

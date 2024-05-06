@@ -216,7 +216,7 @@ class JClosedWorldBuilder {
         map.toBackendMemberMap(oldAnnotationsData.pragmaAnnotations, identity));
 
     OutputUnitData outputUnitData =
-        _convertOutputUnitData(map, kOutputUnitData, closureData);
+        _convertOutputUnitData(map, kOutputUnitData, closureData, recordData);
 
     Map<MemberEntity, MemberAccess> memberAccess = map.toBackendMemberMap(
         closedWorld.liveMemberUsage,
@@ -284,8 +284,7 @@ class JClosedWorldBuilder {
         requiresStartupMetrics: backendUsage.requiresStartupMetrics,
         runtimeTypeUses: runtimeTypeUses,
         isFunctionApplyUsed: backendUsage.isFunctionApplyUsed,
-        isNoSuchMethodUsed: backendUsage.isNoSuchMethodUsed,
-        isHtmlLoaded: backendUsage.isHtmlLoaded);
+        isNoSuchMethodUsed: backendUsage.isNoSuchMethodUsed);
   }
 
   InterceptorDataImpl _convertInterceptorData(JsToFrontendMap map,
@@ -396,7 +395,10 @@ class JClosedWorldBuilder {
   }
 
   OutputUnitData _convertOutputUnitData(
-      JsToFrontendMap map, OutputUnitData data, ClosureData closureDataLookup) {
+      JsToFrontendMap map,
+      OutputUnitData data,
+      ClosureData closureDataLookup,
+      RecordData recordData) {
     // Convert front-end maps containing K-class and K-local function keys to a
     // backend map using J-classes as keys.
     Map<ClassEntity, OutputUnit> convertClassMap(
@@ -415,6 +417,10 @@ class JClosedWorldBuilder {
           result[closureInfo.closureClassEntity!] = unit;
         }
       });
+      // TODO(51016): Determine which record classes can go in deferred units.
+      for (final cls in recordData.allClasses) {
+        result[cls] ??= data.mainOutputUnit;
+      }
       return result;
     }
 

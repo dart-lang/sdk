@@ -9,14 +9,12 @@ import '../context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LogicalAndTest);
-    defineReflectiveTests(LogicalAndWithoutNullSafetyTest);
     defineReflectiveTests(LogicalOrTest);
-    defineReflectiveTests(LogicalOrWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class LogicalAndTest extends PubPackageResolutionTest with LogicalAndTestCases {
+class LogicalAndTest extends PubPackageResolutionTest {
   test_downward() async {
     await resolveTestCode('''
 void f(b) {
@@ -59,9 +57,7 @@ BinaryExpression
   staticType: bool
 ''');
   }
-}
 
-mixin LogicalAndTestCases on PubPackageResolutionTest {
   test_upward() async {
     await resolveTestCode('''
 void f(bool a, bool b) {
@@ -71,8 +67,7 @@ void f(bool a, bool b) {
 ''');
 
     final node = findNode.singleBinaryExpression;
-    if (isNullSafetyEnabled) {
-      assertResolvedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -88,33 +83,11 @@ BinaryExpression
   staticInvokeType: null
   staticType: bool
 ''');
-    } else {
-      assertResolvedNodeText(node, r'''
-BinaryExpression
-  leftOperand: SimpleIdentifier
-    token: a
-    staticElement: self::@function::f::@parameter::a
-    staticType: bool*
-  operator: &&
-  rightOperand: SimpleIdentifier
-    token: b
-    parameter: <null>
-    staticElement: self::@function::f::@parameter::b
-    staticType: bool*
-  staticElement: <null>
-  staticInvokeType: null
-  staticType: bool*
-''');
-    }
   }
 }
 
 @reflectiveTest
-class LogicalAndWithoutNullSafetyTest extends PubPackageResolutionTest
-    with LogicalAndTestCases, WithoutNullSafetyMixin {}
-
-@reflectiveTest
-class LogicalOrTest extends PubPackageResolutionTest with LogicalOrTestCases {
+class LogicalOrTest extends PubPackageResolutionTest {
   test_downward() async {
     await resolveTestCode('''
 void f(b) {
@@ -157,9 +130,7 @@ BinaryExpression
   staticType: bool
 ''');
   }
-}
 
-mixin LogicalOrTestCases on PubPackageResolutionTest {
   test_upward() async {
     await resolveTestCode('''
 void f(bool a, bool b) {
@@ -169,8 +140,7 @@ void f(bool a, bool b) {
 ''');
 
     final node = findNode.singleBinaryExpression;
-    if (isNullSafetyEnabled) {
-      assertResolvedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -186,27 +156,5 @@ BinaryExpression
   staticInvokeType: null
   staticType: bool
 ''');
-    } else {
-      assertResolvedNodeText(node, r'''
-BinaryExpression
-  leftOperand: SimpleIdentifier
-    token: a
-    staticElement: self::@function::f::@parameter::a
-    staticType: bool*
-  operator: ||
-  rightOperand: SimpleIdentifier
-    token: b
-    parameter: <null>
-    staticElement: self::@function::f::@parameter::b
-    staticType: bool*
-  staticElement: <null>
-  staticInvokeType: null
-  staticType: bool*
-''');
-    }
   }
 }
-
-@reflectiveTest
-class LogicalOrWithoutNullSafetyTest extends PubPackageResolutionTest
-    with LogicalOrTestCases, WithoutNullSafetyMixin {}

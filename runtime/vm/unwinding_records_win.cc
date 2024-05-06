@@ -8,10 +8,10 @@
 
 #include "platform/unwinding_records.h"
 
-#if defined(DART_HOST_OS_WINDOWS) &&                                           \
-    (defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64))
-
 namespace dart {
+
+#if (defined(DART_TARGET_OS_WINDOWS) || defined(DART_HOST_OS_WINDOWS)) &&      \
+    (defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64))
 
 static void InitUnwindingRecord(intptr_t offset,
                                 CodeRangeUnwindingRecord* record,
@@ -90,6 +90,7 @@ static void InitUnwindingRecord(intptr_t offset,
 #else
 #error What architecture?
 #endif
+  record->magic = kUnwindingRecordMagic;
 }
 
 const void* UnwindingRecords::GenerateRecordsInto(intptr_t offset,
@@ -100,14 +101,14 @@ const void* UnwindingRecords::GenerateRecordsInto(intptr_t offset,
   return target_buffer;
 }
 
+#endif  // (defined(DART_TARGET_OS_WINDOWS) || defined(DART_HOST_OS_WINDOWS))
+
+#if defined(DART_HOST_OS_WINDOWS) &&                                           \
+    (defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64))
+
 // Special exception-unwinding records are put at the end of executable
 // page on Windows for 64-bit applications.
 void UnwindingRecords::RegisterExecutablePage(Page* page) {
-  // Won't set up unwinding records on Windows 7, so users won't be able
-  // to benefit from proper unhandled exceptions filtering.
-  auto function = static_cast<decltype(&::RtlAddGrowableFunctionTable)>(
-      UnwindingRecordsPlatform::GetAddGrowableFunctionTableFunc());
-  if (function == nullptr) return;
   ASSERT(page->is_executable());
   ASSERT(sizeof(CodeRangeUnwindingRecord) <=
          UnwindingRecordsPlatform::SizeInBytes());
@@ -118,7 +119,8 @@ void UnwindingRecords::RegisterExecutablePage(Page* page) {
       new (reinterpret_cast<uint8_t*>(page->memory_->start()) +
            unwinding_record_offset) CodeRangeUnwindingRecord();
   InitUnwindingRecord(unwinding_record_offset, record, page->memory_->size());
-  DWORD status = function(
+  RELEASE_ASSERT(record->magic == kUnwindingRecordMagic);
+  DWORD status = RtlAddGrowableFunctionTable(
       /*DynamicTable=*/&record->dynamic_table,
       /*FunctionTable=*/record->runtime_function,
       /*EntryCount=*/record->runtime_function_count,
@@ -131,9 +133,6 @@ void UnwindingRecords::RegisterExecutablePage(Page* page) {
 }
 
 void UnwindingRecords::UnregisterExecutablePage(Page* page) {
-  auto function = static_cast<decltype(&::RtlDeleteGrowableFunctionTable)>(
-      UnwindingRecordsPlatform::GetDeleteGrowableFunctionTableFunc());
-  if (function == nullptr) return;
   ASSERT(page->is_executable() && !page->is_image());
   intptr_t unwinding_record_offset =
       page->memory_->size() - UnwindingRecordsPlatform::SizeInBytes();
@@ -141,9 +140,10 @@ void UnwindingRecords::UnregisterExecutablePage(Page* page) {
       reinterpret_cast<CodeRangeUnwindingRecord*>(
           reinterpret_cast<uint8_t*>(page->memory_->start()) +
           unwinding_record_offset);
-  function(record->dynamic_table);
+  RELEASE_ASSERT(record->magic == kUnwindingRecordMagic);
+  RtlDeleteGrowableFunctionTable(record->dynamic_table);
 }
 
-}  // namespace dart
-
 #endif  // defined(DART_HOST_OS_WINDOWS)
+
+}  // namespace dart

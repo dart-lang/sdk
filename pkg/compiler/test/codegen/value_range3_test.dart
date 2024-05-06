@@ -25,10 +25,10 @@ main() {
 main() {
   runTest() async {
     var result = await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
-    var compiler = result.compiler;
+    var compiler = result.compiler!;
     var element =
-        compiler.backendClosedWorldForTesting.elementEnvironment.mainFunction;
-    var code = compiler.backendStrategy.getGeneratedCodeForTesting(element);
+        compiler.backendClosedWorldForTesting!.elementEnvironment.mainFunction!;
+    var code = compiler.backendStrategy.getGeneratedCodeForTesting(element)!;
     Expect.isFalse(code.contains('ioore'));
   }
 

@@ -369,7 +369,7 @@ class LineColumnMap<T> {
   /// Calls [f] with the line number for each line with associated elements.
   ///
   /// [f] is called in increasing line order.
-  void forEachLine(f(int line)) {
+  void forEachLine(void f(int line)) {
     List<int> lines = _map.keys.toList()..sort();
     lines.forEach(f);
   }
@@ -386,7 +386,7 @@ class LineColumnMap<T> {
   /// Calls [f] for each column with associated elements in [line].
   ///
   /// [f] is called in increasing column order.
-  void forEachColumn(int line, f(int column, List<T> elements)) {
+  void forEachColumn(int line, void f(int column, List<T> elements)) {
     Map<int, List<T>>? lineMap = _map[line];
     if (lineMap != null) {
       List<int> columns = lineMap.keys.toList()..sort();
@@ -399,7 +399,7 @@ class LineColumnMap<T> {
   /// Calls [f] for each line/column/element triplet in the map.
   ///
   /// [f] is called in increasing line, column, element order.
-  void forEach(f(int line, int column, T element)) {
+  void forEach(void f(int line, int column, T element)) {
     List<int> lines = _map.keys.toList()..sort();
     for (int line in lines) {
       Map<int, List<T>> lineMap = _map[line]!;
@@ -413,7 +413,7 @@ class LineColumnMap<T> {
   /// Calls [f] for each element associated in the map.
   ///
   /// [f] is called in increasing line, column, element order.
-  void forEachElement(f(T element)) {
+  void forEachElement(void f(T element)) {
     forEach((line, column, element) => f(element));
   }
 }

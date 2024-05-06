@@ -31,6 +31,9 @@ abstract class RuntimeConfiguration {
         // TODO(ahe): Replace this with one or more browser runtimes.
         return DummyRuntimeConfiguration();
 
+      case Runtime.jsc:
+        return JSCRuntimeConfiguration(configuration.compiler);
+
       case Runtime.jsshell:
         return JsshellRuntimeConfiguration(configuration.compiler);
 
@@ -144,6 +147,14 @@ abstract class RuntimeConfiguration {
     return d8;
   }
 
+  String get jscFileName {
+    final jscPath =
+        Repository.dir.append('third_party/jsc/jsc$executableExtension');
+    final jsc = jscPath.toNativePath();
+    TestUtils.ensureExists(jsc, _configuration);
+    return jsc;
+  }
+
   String get jsShellFileName {
     var executable = 'jsshell$executableExtension';
     var jsshellDir = Repository.uri.resolve("tools/testing/bin").path;
@@ -214,6 +225,35 @@ class D8RuntimeConfiguration extends CommandLineJavaScriptRuntime {
     return [
       preambleDir.resolve('seal_native_object.js').toFilePath(),
       preambleDir.resolve('d8.js').toFilePath()
+    ];
+  }
+}
+
+/// Safari/WebKit/JavaScriptCore-based development shell (jsc).
+class JSCRuntimeConfiguration extends CommandLineJavaScriptRuntime {
+  final Compiler compiler;
+
+  JSCRuntimeConfiguration(this.compiler) : super('jsc');
+
+  @override
+  List<Command> computeRuntimeCommands(
+      CommandArtifact? artifact,
+      List<String> arguments,
+      Map<String, String> environmentOverrides,
+      List<String> extraLibs,
+      bool isCrashExpected) {
+    checkArtifact(artifact!);
+    if (compiler != Compiler.dart2wasm) {
+      throw 'No test runner setup for jsc + dart2js yet';
+    }
+    final environment = {
+      ...environmentOverrides,
+      'JSC_useWebAssemblyTypedFunctionReferences': '1',
+      'JSC_useWebAssemblyExtendedConstantExpression': '1',
+      'JSC_useWebAssemblyGC': '1',
+    };
+    return [
+      Dart2WasmCommandLineCommand(moniker, jscFileName, arguments, environment)
     ];
   }
 }

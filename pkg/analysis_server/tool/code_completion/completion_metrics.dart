@@ -172,25 +172,21 @@ ArgParser createArgParser() {
             'completion will be requested this many characters in from the '
             'start of the token being completed.')
     ..addFlag(CompletionMetricsQualityOptions.PRINT_MISSED_COMPLETION_DETAILS,
-        defaultsTo: false,
         help:
             'Print detailed information every time a completion request fails '
             'to produce a suggestions matching the expected suggestion.',
         negatable: false)
     ..addFlag(CompletionMetricsQualityOptions.PRINT_MISSED_COMPLETION_SUMMARY,
-        defaultsTo: false,
         help: 'Print summary information about the times that a completion '
             'request failed to produce a suggestions matching the expected '
             'suggestion.',
         negatable: false)
     ..addFlag(CompletionMetricsQualityOptions.PRINT_MISSING_INFORMATION,
-        defaultsTo: false,
         help: 'Print information about places where no completion location was '
             'computed and about information that is missing in the completion '
             'tables.',
         negatable: false)
     ..addFlag(CompletionMetricsQualityOptions.PRINT_MRR_BY_LOCATION,
-        defaultsTo: false,
         help:
             'Print information about the mrr score achieved at each completion '
             'location. This can help focus efforts to improve the overall '
@@ -198,18 +194,15 @@ ArgParser createArgParser() {
             'impact.',
         negatable: false)
     ..addFlag(CompletionMetricsQualityOptions.PRINT_SHADOWED_COMPLETION_DETAILS,
-        defaultsTo: false,
         help: 'Print detailed information every time a completion request '
             'produces a suggestion whose name matches the expected suggestion '
             'but that is referencing a different element',
         negatable: false)
     ..addFlag(CompletionMetricsOptions.PRINT_SLOWEST_RESULTS,
-        defaultsTo: false,
         help: 'Print information about the completion requests that were the '
             'slowest to return suggestions.',
         negatable: false)
     ..addFlag(CompletionMetricsQualityOptions.PRINT_WORST_RESULTS,
-        defaultsTo: false,
         help: 'Print information about the completion requests that had the '
             'worst mrr scores.',
         negatable: false)
@@ -530,7 +523,7 @@ class CompletionMetrics {
   void recordShadowedCompletion(
       String? completionLocation,
       ExpectedCompletion expectedCompletion,
-      protocol.CompletionSuggestion closeMatchSuggestion) {
+      CompletionSuggestionLite closeMatchSuggestion) {
     shadowedCompletions
         .putIfAbsent(completionLocation ?? 'unknown', () => [])
         .add(ShadowedCompletion(expectedCompletion, closeMatchSuggestion));
@@ -791,8 +784,7 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
   Future<void> computeMetrics() async {
     // To compare two or more changes to completions, add a `CompletionMetrics`
     // object with enable and disable functions to the list of `targetMetrics`.
-    targetMetrics.add(CompletionMetrics('shipping',
-        enableFunction: null, disableFunction: null));
+    targetMetrics.add(CompletionMetrics('shipping'));
 
     // To compare two or more relevance tables, uncomment the line below and
     // add the `RelevanceTables` to the list. The default relevance tables
@@ -871,7 +863,7 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
       MetricsSuggestionListener listener,
       ExpectedCompletion expectedCompletion,
       String? completionLocation,
-      List<protocol.CompletionSuggestion> suggestions,
+      List<CompletionSuggestionLite> suggestions,
       CompletionMetrics metrics,
       int elapsedMS) {
     var place = placementInSuggestionList(suggestions, expectedCompletion);
@@ -933,7 +925,7 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
 
       if (options.printMissedCompletionDetails ||
           options.printShadowedCompletionDetails) {
-        protocol.CompletionSuggestion? closeMatchSuggestion;
+        CompletionSuggestionLite? closeMatchSuggestion;
         for (var suggestion in suggestions) {
           if (suggestion.completion == expectedCompletion.completion) {
             closeMatchSuggestion = suggestion;
@@ -1384,8 +1376,8 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
   @override
   void setupForResolution(AnalysisContext context) {}
 
-  int _computeCharsBeforeTop(ExpectedCompletion target,
-      List<protocol.CompletionSuggestion> suggestions,
+  int _computeCharsBeforeTop(
+      ExpectedCompletion target, List<CompletionSuggestionLite> suggestions,
       {int minRank = 1}) {
     var rank = placementInSuggestionList(suggestions, target).rank;
     if (rank <= minRank) {
@@ -1405,15 +1397,13 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
 
   /// Computes completion suggestions for [dartRequest], and returns the
   /// suggestions, sorted by rank and then by completion text.
-  Future<List<protocol.CompletionSuggestion>> _computeCompletionSuggestions(
+  Future<List<CompletionSuggestionLite>> _computeCompletionSuggestions(
       MetricsSuggestionListener listener,
       OperationPerformanceImpl performance,
       DartCompletionRequest dartRequest,
       NotImportedSuggestions notImportedSuggestions) async {
-    List<protocol.CompletionSuggestion> suggestions;
-
     var budget = CompletionBudget(Duration(seconds: 30));
-    var serverSuggestions = await DartCompletionManager(
+    var suggestions = await DartCompletionManager(
       budget: budget,
       listener: listener,
       notImportedSuggestions: notImportedSuggestions,
@@ -1422,19 +1412,16 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
       performance,
       useFilter: true,
     );
-    suggestions = serverSuggestions.map((serverSuggestion) {
-      return serverSuggestion.build();
-    }).toList();
 
     // Note that some routes sort suggestions before responding differently.
     // The Cider and legacy handlers use [fuzzyFilterSort], which does not match
     // [completionComparator].
     suggestions.sort(completionComparator);
-    return suggestions;
+    return suggestions.map(CompletionSuggestionLite.fromBuilder).toList();
   }
 
-  List<protocol.CompletionSuggestion> _filterSuggestions(
-      String prefix, List<protocol.CompletionSuggestion> suggestions) {
+  List<CompletionSuggestionLite> _filterSuggestions(
+      String prefix, List<CompletionSuggestionLite> suggestions) {
     // TODO(brianwilkerson): Replace this with a more realistic filtering
     //  algorithm.
     return suggestions
@@ -1529,7 +1516,7 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
   ///
   /// If [expectedCompletion] is not found, `Place.none()` is returned.
   static Place placementInSuggestionList(
-      List<protocol.CompletionSuggestion> suggestions,
+      List<CompletionSuggestionLite> suggestions,
       ExpectedCompletion expectedCompletion) {
     for (var i = 0; i < suggestions.length; i++) {
       if (expectedCompletion.matches(suggestions[i])) {
@@ -1713,6 +1700,78 @@ class CompletionResult {
   }
 }
 
+/// Enough data from [CompletionSuggestionBuilder] to compute metrics.
+///
+/// It excludes expensive parts that are not necessary, such as element
+/// properties.
+class CompletionSuggestionLite {
+  final String completion;
+  final protocol.ElementKind? elementKind;
+  final int relevance;
+  final protocol.CompletionSuggestionKind kind;
+
+  CompletionSuggestionLite({
+    required this.completion,
+    required this.elementKind,
+    required this.relevance,
+    required this.kind,
+  });
+
+  factory CompletionSuggestionLite.fromBuilder(
+    CompletionSuggestionBuilder builder,
+  ) {
+    return CompletionSuggestionLite(
+      completion: builder.completion,
+      elementKind: builder.elementKind,
+      relevance: builder.relevance,
+      kind: builder.kind,
+    );
+  }
+
+  factory CompletionSuggestionLite.fromJson(Map<String, Object?> map) {
+    var elementKindStr = map['elementKind'] as String?;
+
+    return CompletionSuggestionLite(
+      completion: map['completion'] as String,
+      elementKind: elementKindStr != null
+          ? protocol.ElementKind.fromJson(
+              ResponseDecoder(null),
+              '',
+              elementKindStr,
+            )
+          : null,
+      relevance: map['relevance'] as int,
+      kind: protocol.CompletionSuggestionKind.fromJson(
+        ResponseDecoder(null),
+        '',
+        map['kind'] as String,
+      ),
+    );
+  }
+
+  @override
+  int get hashCode => Object.hash(completion, kind);
+
+  @override
+  bool operator ==(Object other) {
+    return other is CompletionSuggestionLite &&
+        other.completion == completion &&
+        other.kind == kind &&
+        other.elementKind == elementKind &&
+        other.relevance == relevance;
+  }
+
+  /// Return a map used to represent this suggestion data in a JSON structure.
+  Map<String, Object?> toJson() {
+    return {
+      'completion': completion,
+      if (elementKind case var elementKind?) 'elementKind': elementKind.name,
+      'relevance': relevance,
+      'kind': kind.name,
+    };
+  }
+}
+
 /// The data to be printed on a single line in the table of mrr values per
 /// completion location.
 class LocationTableLine {
@@ -1746,7 +1805,7 @@ class MetricsSuggestionListener implements SuggestionListener {
     0.0
   ];
 
-  Map<protocol.CompletionSuggestion, List<double>> featureMap = Map.identity();
+  Map<CompletionSuggestionLite, List<double>> featureMap = Map.identity();
 
   List<double> cachedFeatures = noFeatures;
 
@@ -1755,8 +1814,8 @@ class MetricsSuggestionListener implements SuggestionListener {
   String? missingCompletionLocationTable;
 
   @override
-  void builtSuggestion(CompletionSuggestionBuilder suggestionBuilder) {
-    var suggestion = suggestionBuilder.build();
+  void builtSuggestion(CompletionSuggestionBuilder builder) {
+    var suggestion = CompletionSuggestionLite.fromBuilder(builder);
     featureMap[suggestion] = cachedFeatures;
     cachedFeatures = noFeatures;
   }
@@ -1834,7 +1893,7 @@ class RelevanceTables {
 class ShadowedCompletion {
   final ExpectedCompletion expectedCompletion;
 
-  final protocol.CompletionSuggestion closeMatchSuggestion;
+  final CompletionSuggestionLite closeMatchSuggestion;
 
   ShadowedCompletion(this.expectedCompletion, this.closeMatchSuggestion);
 }
@@ -1842,7 +1901,7 @@ class ShadowedCompletion {
 /// The information being remembered about an individual suggestion.
 class SuggestionData {
   /// The suggestion that was produced.
-  protocol.CompletionSuggestion suggestion;
+  CompletionSuggestionLite suggestion;
 
   /// The values of the features used to compute the suggestion.
   List<double> features;
@@ -1852,9 +1911,11 @@ class SuggestionData {
   /// Return an instance extracted from the decoded JSON [map].
   factory SuggestionData.fromJson(Map<String, dynamic> map) {
     return SuggestionData(
-        protocol.CompletionSuggestion.fromJson(ResponseDecoder(null), '',
-            map['suggestion'] as Map<String, dynamic>),
-        (map['features'] as List<dynamic>).cast<double>());
+      CompletionSuggestionLite.fromJson(
+        map['suggestion'] as Map<String, Object?>,
+      ),
+      (map['features'] as List<dynamic>).cast<double>(),
+    );
   }
 
   /// Return a map used to represent this suggestion data in a JSON structure.

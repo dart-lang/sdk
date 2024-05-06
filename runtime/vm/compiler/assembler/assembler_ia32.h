@@ -826,6 +826,7 @@ class Assembler : public AssemblerBase {
 
   void LoadSImmediate(XmmRegister dst, float value);
   void LoadDImmediate(XmmRegister dst, double value);
+  void LoadQImmediate(XmmRegister dst, simd128_value_t value);
 
   void Drop(intptr_t stack_elements);
 
@@ -1017,6 +1018,11 @@ class Assembler : public AssemblerBase {
                             intptr_t class_id,
                             Register scratch,
                             Label* is_smi);
+
+  static bool AddressCanHoldConstantIndex(const Object& constant,
+                                          bool is_external,
+                                          intptr_t cid,
+                                          intptr_t index_scale);
 
   static Address ElementAddressForIntIndex(bool is_external,
                                            intptr_t cid,

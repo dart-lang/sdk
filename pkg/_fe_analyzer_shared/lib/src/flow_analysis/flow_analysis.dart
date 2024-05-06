@@ -5678,7 +5678,9 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       Object? propertyMember = reference.propertyMember;
       if (propertyMember != null) {
         PropertyNonPromotabilityReason? whyNotPromotable =
-            operations.whyPropertyIsNotPromotable(propertyMember);
+            reference.propertyName.startsWith('_')
+                ? operations.whyPropertyIsNotPromotable(propertyMember)
+                : PropertyNonPromotabilityReason.isNotPrivate;
         _PropertySsaNode<Type>? ssaNode =
             (reference.ssaNode as _PropertySsaNode<Type>).previousSsaNode;
         List<List<Type>>? allPreviouslyPromotedTypes;

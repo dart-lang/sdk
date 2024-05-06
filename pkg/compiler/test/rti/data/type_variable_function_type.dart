@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:compiler/src/util/testing.dart';
 
 // Based on tests\language_2\type_variable_function_type_test.dart
 
 typedef T Func<T>();
 
-/*class: Foo:explicit=[Foo.S* Function()*],needsArgs,test*/
+/*class: Foo:explicit=[Foo.S Function()],needsArgs,test*/
 class Foo<S> {
   m(x) => x is Func<S>;
 }
@@ -18,7 +16,7 @@ class Foo<S> {
 /*class: Bar:needsArgs*/
 class Bar<T> {
   f() {
-    /*needsSignature*/ T local() => null;
+    /*needsSignature*/ T? local() => null;
     return local;
   }
 }

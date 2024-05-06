@@ -9,6 +9,7 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_parser.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
@@ -72,6 +73,9 @@ abstract class ContextManager {
   /// Returns owners of files.
   OwnedFiles get ownedFiles;
 
+  /// Disposes and cleans up any analysis contexts.
+  Future<void> dispose();
+
   /// Return the existing analysis context that should be used to analyze the
   /// given [path], or `null` if the [path] is not analyzed in any of the
   /// created analysis contexts.
@@ -134,6 +138,9 @@ abstract class ContextManagerCallbacks {
 
   /// Sent the given watch [event] to any interested plugins.
   void broadcastWatchEvent(WatchEvent event);
+
+  /// Invoked on any [FileResult] in the analyzer events stream.
+  void handleFileResult(FileResult result);
 
   /// Add listeners to the [driver]. This must be the only listener.
   ///
@@ -282,6 +289,11 @@ class ContextManagerImpl implements ContextManager {
   }
 
   @override
+  Future<void> dispose() async {
+    await _destroyAnalysisContexts();
+  }
+
+  @override
   DriverBasedAnalysisContext? getContextFor(String path) {
     try {
       return _collection?.contextFor(path);
@@ -361,9 +373,8 @@ class ContextManagerImpl implements ContextManager {
       var analysisOptions = driver.getAnalysisOptionsForFile(file);
       var content = file.readAsStringSync();
       var lineInfo = LineInfo.fromContent(content);
-      var sdkVersionConstraint = (package is PubWorkspacePackage)
-          ? package.sdkVersionConstraint
-          : null;
+      var sdkVersionConstraint =
+          (package is PubPackage) ? package.sdkVersionConstraint : null;
       var errors = analyzeAnalysisOptions(
         file.createSource(),
         content,
@@ -429,7 +440,6 @@ class ContextManagerImpl implements ContextManager {
       var errorReporter = ErrorReporter(
         errorListener,
         file.createSource(),
-        isNonNullableByDefault: false,
       );
       var parser = TransformSetParser(errorReporter, packageName);
       parser.parse(content);
@@ -584,20 +594,15 @@ class ContextManagerImpl implements ContextManager {
           _watchBlazeFilesIfNeeded(rootFolder, driver);
 
           for (var file in analysisContext.contextRoot.analyzedFiles()) {
-            if (file_paths.isAndroidManifestXml(pathContext, file)) {
+            if (file_paths.isAnalysisOptionsYaml(pathContext, file)) {
+              var package =
+                  analysisContext.contextRoot.workspace.findPackageFor(file);
+              _analyzeAnalysisOptionsYaml(driver, package, file);
+            } else if (file_paths.isAndroidManifestXml(pathContext, file)) {
               _analyzeAndroidManifestXml(driver, file);
             } else if (file_paths.isDart(pathContext, file)) {
               driver.addFile(file);
             }
-          }
-
-          var optionsFile = analysisContext.contextRoot.optionsFile;
-
-          if (optionsFile != null &&
-              analysisContext.contextRoot.isAnalyzed(optionsFile.path)) {
-            var package = analysisContext.contextRoot.workspace
-                .findPackageFor(optionsFile.path);
-            _analyzeAnalysisOptionsYaml(driver, package, optionsFile.path);
           }
 
           var packageName = rootFolder.shortName;
@@ -728,6 +733,7 @@ class ContextManagerImpl implements ContextManager {
     watcherSubscriptions.clear();
 
     final collection = _collection;
+    _collection = null;
     if (collection != null) {
       for (final analysisContext in collection.contexts) {
         _destroyAnalysisContext(analysisContext);
@@ -795,8 +801,7 @@ class ContextManagerImpl implements ContextManager {
     if (file_paths.isAnalysisOptionsYaml(pathContext, path) ||
         file_paths.isBlazeBuild(pathContext, path) ||
         file_paths.isPackageConfigJson(pathContext, path) ||
-        isPubspec ||
-        false) {
+        isPubspec) {
       _createAnalysisContexts().then((_) {
         if (isPubspec) {
           if (type == ChangeType.REMOVE) {
@@ -916,6 +921,9 @@ class NoopContextManagerCallbacks implements ContextManagerCallbacks {
 
   @override
   void broadcastWatchEvent(WatchEvent event) {}
+
+  @override
+  void handleFileResult(FileResult result) {}
 
   @override
   void listenAnalysisDriver(AnalysisDriver driver) {}

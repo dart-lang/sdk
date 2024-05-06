@@ -4,11 +4,11 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/names.dart';
 import 'package:kernel/src/printer.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../../api_unstable/util.dart';
-import '../names.dart';
 import '../type_inference/external_ast_helper.dart';
 import 'delayed_expressions.dart';
 import 'type_schema.dart';
@@ -793,26 +793,6 @@ class AndKey extends CacheKey {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is AndKey && left == other.left && right == other.right;
-  }
-}
-
-/// A key for a lazy-or, defined by the [left] key and [right] key.
-class OrKey extends CacheKey {
-  final CacheKey left;
-  final CacheKey right;
-
-  OrKey(this.left, this.right);
-
-  @override
-  String get name => '${left.name}_||_${right.name}';
-
-  @override
-  int get hashCode => Object.hash(left, right);
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is OrKey && left == other.left && right == other.right;
   }
 }
 

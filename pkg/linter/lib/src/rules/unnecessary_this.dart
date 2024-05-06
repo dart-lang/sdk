@@ -100,7 +100,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     if (_canReferenceElementWithoutThisPrefix(element, node)) {
-      rule.reportLint(parent);
+      rule.reportLintForToken(node.thisKeyword);
     }
   }
 

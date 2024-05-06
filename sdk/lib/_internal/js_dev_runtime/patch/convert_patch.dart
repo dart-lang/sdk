@@ -10,22 +10,20 @@ import 'dart:_interceptors' show JSExtendableArray;
 import 'dart:_internal' show MappedIterable, ListIterable, patch;
 import 'dart:collection' show LinkedHashMap, MapBase;
 
-/**
- * Parses [json] and builds the corresponding parsed JSON value.
- *
- * Parsed JSON values Nare of the types [num], [String], [bool], [Null],
- * [List]s of parsed JSON values or [Map]s from [String] to parsed
- * JSON values.
- *
- * The optional [reviver] function, if provided, is called once for each object
- * or list property parsed. The arguments are the property name ([String]) or
- * list index ([int]), and the value is the parsed value.  The return value of
- * the reviver will be used as the value of that property instead of the parsed
- * value.  The top level value is passed to the reviver with the empty string as
- * a key.
- *
- * Throws [FormatException] if the input is not valid JSON text.
- */
+/// Parses [json] and builds the corresponding parsed JSON value.
+///
+/// Parsed JSON values Nare of the types [num], [String], [bool], [Null],
+/// [List]s of parsed JSON values or [Map]s from [String] to parsed
+/// JSON values.
+///
+/// The optional [reviver] function, if provided, is called once for each object
+/// or list property parsed. The arguments are the property name ([String]) or
+/// list index ([int]), and the value is the parsed value.  The return value of
+/// the reviver will be used as the value of that property instead of the parsed
+/// value.  The top level value is passed to the reviver with the empty string
+/// as a key.
+///
+/// Throws [FormatException] if the input is not valid JSON text.
 @patch
 _parseJson(String source, reviver(key, value)?) {
   if (source is! String) throw argumentErrorValue(source);
@@ -45,11 +43,9 @@ _parseJson(String source, reviver(key, value)?) {
   }
 }
 
-/**
- * Walks the raw JavaScript value [json], replacing JavaScript Objects with
- * Maps. [json] is expected to be freshly allocated so elements can be replaced
- * in-place.
- */
+/// Walks the raw JavaScript value [json], replacing JavaScript Objects with
+/// Maps. [json] is expected to be freshly allocated so elements can be replaced
+/// in-place.
 _convertJsonToDart(json, reviver(Object? key, Object? value)) {
   walk(e) {
     // JavaScript null, string, number, bool are in the correct representation.
@@ -58,10 +54,7 @@ _convertJsonToDart(json, reviver(Object? key, Object? value)) {
       return e;
     }
 
-    // This test is needed to avoid identifying '{"__proto__":[]}' as an Array.
-    // TODO(sra): Replace this test with cheaper '#.constructor === Array' when
-    // bug 621 below is fixed.
-    if (JS<bool>('!', 'Object.getPrototypeOf(#) === Array.prototype', e)) {
+    if (JS<bool>('!', 'Array.isArray(#)', e)) {
       // In-place update of the elements since JS Array is a Dart List.
       for (int i = 0; i < JS<int>('!', '#.length', e); i++) {
         // Use JS indexing to avoid range checks.  We know this is the only
@@ -103,10 +96,7 @@ _convertJsonToDartLazy(object) {
     return object;
   }
 
-  // This test is needed to avoid identifying '{"__proto__":[]}' as an array.
-  // TODO(sra): Replace this test with cheaper '#.constructor === Array' when
-  // bug https://code.google.com/p/v8/issues/detail?id=621 is fixed.
-  if (JS<bool>('!', 'Object.getPrototypeOf(#) !== Array.prototype', object)) {
+  if (JS<bool>('!', '!Array.isArray(#)', object)) {
     return _JsonMap(object);
   }
 
@@ -364,12 +354,10 @@ class JsonDecoder {
   }
 }
 
-/**
- * Implements the chunked conversion from a JSON string to its corresponding
- * object.
- *
- * The sink only creates one object, but its input can be chunked.
- */
+/// Implements the chunked conversion from a JSON string to its corresponding
+/// object.
+///
+/// The sink only creates one object, but its input can be chunked.
 // TODO(floitsch): don't accumulate everything before starting to decode.
 class _JsonDecoderSink extends _StringSinkConversionSink<StringBuffer> {
   final Object? Function(Object? key, Object? value)? _reviver;

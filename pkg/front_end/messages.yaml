@@ -820,7 +820,6 @@ ExpectedExtensionTypeBody:
   correctionMessage: "Try adding an empty body."
   analyzerCode: ParserErrorCode.EXPECTED_EXTENSION_TYPE_BODY
   sharedName: EXPECTED_BODY
-  experiments: inline-class
   script: |
     extension type ExtensionType(int i)
 
@@ -2734,7 +2733,6 @@ ExtensionTypeDeclaresAbstractMember:
   problemMessage: "Extension types can't declare abstract members."
   correctionMessage: "Try providing an implementation for the member."
   analyzerCode: EXTENSION_TYPE_WITH_ABSTRACT_MEMBER
-  experiments: inline-class
   script: |
     extension type ET(int id) {
       void method();
@@ -2813,7 +2811,6 @@ ExtensionTypeDeclaresInstanceField:
   problemMessage: "Extension types can't declare instance fields"
   correctionMessage: "Try removing the field declaration or making it a static field"
   analyzerCode: EXTENSION_TYPE_DECLARES_INSTANCE_FIELD
-  experiments: inline-class
   script: |
     extension type ET(int id) {
       int? field;
@@ -3680,20 +3677,17 @@ SupertypeIsTypeVariable:
 
 SuperExtensionTypeIsIllegal:
   problemMessage: "The type '#name' can't be implemented by an extension type."
-  experiments: inline-class
   script: |
     extension type E(dynamic it) implements dynamic {}
 
 SuperExtensionTypeIsIllegalAliased:
   problemMessage: "The type '#name' which is an alias of '#type' can't be implemented by an extension type."
-  experiments: inline-class
   script: |
     typedef F = void Function();
     extension type E(F it) implements F {}
 
 SuperExtensionTypeIsNullableAliased:
   problemMessage: "The type '#name' which is an alias of '#type' can't be implemented by an extension type because it is nullable."
-  experiments: inline-class
   script: |
     class A {}
     typedef B = A?;
@@ -3701,7 +3695,6 @@ SuperExtensionTypeIsNullableAliased:
 
 SuperExtensionTypeIsTypeVariable:
   problemMessage: "The type variable '#name' can't be implemented by an extension type."
-  experiments: inline-class
   script: |
     extension type E<T>(T it) implements T {}
 
@@ -4708,14 +4701,6 @@ ReturnFromVoidFunction:
   analyzerCode: RETURN_OF_INVALID_TYPE
   declaration: "void foo() { return 1; }"
 
-ReturnWithoutExpression:
-  problemMessage: "Must explicitly return a value from a non-void function."
-  severity: WARNING
-  analyzerCode: RETURN_WITHOUT_VALUE
-  script: |
-    // @dart=2.9
-    int foo() { return; }
-
 ReturnWithoutExpressionSync:
   problemMessage: "A value must be explicitly returned from a non-void function."
   configuration: nnbd-strong
@@ -5172,6 +5157,36 @@ FfiDartTypeMismatch:
   problemMessage: "Expected '#type' to be a subtype of '#type2'."
   external: test/ffi_test.dart
 
+FfiDeeplyImmutableClassesMustBeFinalOrSealed:
+  # Used by dart:ffi
+  problemMessage: 'Deeply immutable classes must be final or sealed.'
+  correctionMessage: 'Try marking this class as final or sealed.'
+  external: test/ffi_test.dart
+
+FfiDeeplyImmutableFieldsMustBeDeeplyImmutable:
+  # Used by dart:ffi
+  problemMessage: "Deeply immutable classes must only have deeply immutable instance fields. Deeply immutable types include 'int', 'double', 'bool', 'String', 'Pointer', 'Float32x4', 'Float64x2', 'Int32x4', and classes annotated with `@pragma('vm:deeply-immutable')`."
+  correctionMessage: 'Try changing the type of this field to a deeply immutable type or mark the type of this field as deeply immutable.'
+  external: test/ffi_test.dart
+
+FfiDeeplyImmutableFieldsModifiers:
+  # Used by dart:ffi
+  problemMessage: 'Deeply immutable classes must only have final non-late instance fields.'
+  correctionMessage: "Add the 'final' modifier to this field, and remove 'late' modifier from this field."
+  external: test/ffi_test.dart
+
+FfiDeeplyImmutableSubtypesMustBeDeeplyImmutable:
+  # Used by dart:ffi
+  problemMessage: 'Subtypes of deeply immutable classes must be deeply immutable.'
+  correctionMessage: "Try marking this class deeply immutable by adding `@pragma('vm:deeply-immutable')`."
+  external: test/ffi_test.dart
+
+FfiDeeplyImmutableSupertypeMustBeDeeplyImmutable:
+  # Used by dart:ffi
+  problemMessage: 'The super type of deeply immutable classes must be deeply immutable.'
+  correctionMessage: "Try marking the super class deeply immutable by adding `@pragma('vm:deeply-immutable')`."
+  external: test/ffi_test.dart
+
 FfiDefaultAssetDuplicate:
   # Used by dart:ffi
   problemMessage: "There may be at most one @DefaultAsset annotation on a library."
@@ -5476,7 +5491,6 @@ ExtensionTypeCombinedMemberSignatureFailed:
   problemMessage: "Extension type '#name' inherits multiple members named '#name2' with incompatible signatures."
   correctionMessage: "Try adding a declaration of '#name2' to '#name'."
   analyzerCode: INCONSISTENT_INHERITANCE
-  experiments: inline-class
   script:
     - |
       abstract class I1 {
@@ -5767,13 +5781,16 @@ AwaitInLateLocalInitializer:
   problemMessage: "`await` expressions are not supported in late local initializers."
 
 NullableSuperclassError:
-  problemMessage: "Can't extend '#name' because it's marked with '?'."
+  problemMessage: "Can't extend '#name' because it's nullable."
+  correctionMessage: "Try removing the question mark."
 
 NullableInterfaceError:
-  problemMessage: "Can't implement '#name' because it's marked with '?'."
+  problemMessage: "Can't implement '#name' because it's nullable."
+  correctionMessage: "Try removing the question mark."
 
 NullableMixinError:
-  problemMessage: "Can't mix '#name' in because it's marked with '?'."
+  problemMessage: "Can't mix '#name' in because it's nullable."
+  correctionMessage: "Try removing the question mark."
 
 JsInteropDartClassExtendsJSClass:
   problemMessage: "Dart class '#name' cannot extend JS interop class '#name2'."
@@ -5824,6 +5841,22 @@ JsInteropExportNoExportableMembers:
   problemMessage: "Class '#name' has no exportable members in the class or the inheritance chain."
   correctionMessage: "Using `@JSExport`, annotate at least one instance member with a body or annotate a class that has such a member in the inheritance chain."
 
+JsInteropIsAInvalidType:
+  problemMessage: "Type argument '#type' needs to be an interop 'ExtensionType'."
+  correctionMessage: "Use a valid interop extension type as the type argument instead."
+
+JsInteropIsAObjectLiteralType:
+  problemMessage: "Type argument '#type' has an object literal constructor. Because 'isA' uses the type's name or '@JS()' rename, this may result in an incorrect type check."
+  correctionMessage: "Use 'JSObject' as the type argument instead."
+
+JsInteropIsAPrimitiveExtensionType:
+  problemMessage: "Type argument '#type' wraps primitive JS type '#string', which is specially handled using 'typeof'."
+  correctionMessage: "Use the primitive JS type '#string' as the type argument instead."
+
+JsInteropIsATearoff:
+  problemMessage: "'isA' can't be torn off."
+  correctionMessage: "Use a method that calls 'isA' and tear off that method instead."
+
 JsInteropExtensionTypeNotInterop:
   problemMessage: "Extension type '#name' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '#type'."
   correctionMessage: "Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop extension types."
@@ -5837,8 +5870,8 @@ JsInteropExtensionTypeUsedWithWrongJsAnnotation:
   correctionMessage: "Try using the '@JS' annotation from 'dart:js_interop' annotation on this extension type instead."
 
 JsInteropExternalExtensionMemberOnTypeInvalid:
-  problemMessage: "JS interop or Native class required for 'external' extension members."
-  correctionMessage: "Try adding a JS interop annotation to the on type class of the extension."
+  problemMessage: "JS interop type or @Native type from an SDK web library required for 'external' extension members."
+  correctionMessage: "Try making the on-type a JS interop type or an @Native SDK web library type."
 
 JsInteropExternalExtensionMemberWithStaticDisallowed:
   problemMessage: "External extension members with the keyword 'static' on JS interop and @Native types are disallowed."
@@ -5895,9 +5928,19 @@ JsInteropNonStaticWithStaticInteropSupertype:
   problemMessage: "Class '#name' does not have an `@staticInterop` annotation, but has supertype '#name2', which does."
   correctionMessage: "Try marking '#name' as a `@staticInterop` class, or don't inherit '#name2'."
 
-JsInteropStaticInteropExternalTypeViolation:
-  problemMessage: "Type '#type' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type."
-  correctionMessage: "Use one of the valid types instead."
+# TODO(srujzs): Is there any way to save the correction message into a variable
+# to avoid duplication?
+JsInteropStaticInteropExternalAccessorTypeViolation:
+  problemMessage: "External JS interop member contains an invalid type: '#type'."
+  correctionMessage: "Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type."
+
+JsInteropStaticInteropExternalFunctionTypeViolation:
+  problemMessage: "External JS interop member contains invalid types in its function signature: '#string2'."
+  correctionMessage: "Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type."
+
+JsInteropStaticInteropToJSFunctionTypeViolation:
+  problemMessage: "Function converted via 'toJS' contains invalid types in its function signature: '#string2'."
+  correctionMessage: "Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type."
 
 JsInteropStaticInteropGenerativeConstructor:
   problemMessage: "`@staticInterop` classes should not contain any generative constructors."
@@ -5951,49 +5994,6 @@ JsInteropStaticInteropWithInstanceMembers:
 JsInteropStaticInteropWithNonStaticSupertype:
   problemMessage: "JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which does not."
   correctionMessage: "Try marking the supertype as a static interop class using `@staticInterop`."
-
-NonNullableInNullAware:
-  problemMessage: "Operand of null-aware operation '#name' has type '#type' which excludes null."
-  severity: WARNING
-
-ThisInNullAwareReceiver:
-  problemMessage: "The receiver 'this' cannot be null."
-  correctionMessage: "Try replacing '?.' with '.'"
-  severity: WARNING
-  configuration: nnbd-strong
-  script: |
-    class C {
-      var field;
-      method() {
-        this?.field;
-      }
-    }
-
-ClassInNullAwareReceiver:
-  problemMessage: "The class '#name' cannot be null."
-  correctionMessage: "Try replacing '?.' with '.'"
-  severity: WARNING
-  configuration: nnbd-strong
-  script: |
-    class C {
-      static var field;
-    }
-    method() {
-      C?.field;
-    }
-
-ExtensionInNullAwareReceiver:
-  problemMessage: "The extension '#name' cannot be null."
-  correctionMessage: "Try replacing '?.' with '.'"
-  severity: WARNING
-  configuration: nnbd-strong
-  script: |
-    extension E on int {
-      static var field;
-    }
-    method() {
-      E?.field;
-    }
 
 NonNullableNotAssignedError:
   problemMessage: "Non-nullable variable '#name' must be assigned before it can be used."
@@ -6109,10 +6109,6 @@ NonVoidReturnSetter:
 NeverReachableSwitchDefaultError:
   problemMessage: "`null` encountered as case in a switch expression with a non-nullable enum type."
 
-NeverReachableSwitchDefaultWarning:
-  problemMessage: "The default case is not reachable with sound null safety because the switch expression is non-nullable."
-  severity: WARNING
-
 NeverReachableSwitchExpressionError:
   problemMessage: "`null` encountered as case in a switch expression with a non-nullable type."
 
@@ -6127,10 +6123,6 @@ UnsoundSwitchStatementError:
 
 NeverValueError:
   problemMessage: "`null` encountered as the result from expression with type `Never`."
-
-NeverValueWarning:
-  problemMessage: "The expression can not result in a value with sound null safety because the expression type is `Never`."
-  severity: WARNING
 
 MainNotFunctionDeclaration:
   problemMessage: "The 'main' declaration must be a function declaration."
@@ -6859,23 +6851,6 @@ NonExhaustiveSwitchStatement:
       }
     }
 
-UnreachableSwitchCase:
-  problemMessage: "This case is covered by the previous cases."
-  analyzerCode: UNREACHABLE_SWITCH_CASE
-  severity: WARNING # TODO(johnniwinther): Should this be an error, warning or not emitted at all?
-  script: |
-    enum Enum { a, b }
-    method(Enum e) {
-      switch (e) {
-        case Enum.a:
-          break;
-        case Enum.b:
-          break;
-        case Enum.a:
-          break;
-      }
-    }
-
 PatternTypeMismatchInIrrefutableContext:
   problemMessage: "The matched value of type '#type' isn't assignable to the required type '#type2'."
   correctionMessage: "Try changing the required type of the pattern, or the matched value type."
@@ -6933,27 +6908,6 @@ RestPatternInMapPattern:
   problemMessage: "The '...' pattern can't appear in map patterns."
   script: |
     test(dynamic x) { if (x case {1: 1, ...}) {} }
-
-UnnecessaryNullAssertPattern:
-  problemMessage: The null-assert pattern will have no effect because the matched type isn't nullable.
-  correctionMessage: Try replacing the null-assert pattern with its nested pattern.
-  analyzerCode: UNNECESSARY_NULL_ASSERT_PATTERN
-  severity: WARNING
-  script: |
-    method(List<int> list) {
-      if (list case [var a!]) {}
-    }
-
-UnnecessaryNullCheckPattern:
-  problemMessage: The null-check pattern will have no effect because the matched type isn't nullable.
-  correctionMessage: Try replacing the null-check pattern with its nested pattern.
-  analyzerCode: UNNECESSARY_NULL_CHECK_PATTERN
-  comment: No parameters.
-  severity: WARNING
-  script: |
-    method(List<int> list) {
-      if (list case [var a?]) {}
-    }
 
 NonBoolCondition:
   problemMessage: "Conditions must have a static type of 'bool'."
@@ -7310,6 +7264,9 @@ JointPatternVariableWithLabelDefault:
 UnsupportedMacroApplication:
   problemMessage: "This macro application didn't apply correctly."
 
+UnhandledMacroApplication:
+  problemMessage: "This macro application didn't apply correctly due to an unhandled #name."
+
 ScriptTagInPartFile:
   problemMessage: "A part file cannot have script tag."
   correctionMessage: "Try removing the script tag or the 'part of' directive."
@@ -7317,13 +7274,11 @@ ScriptTagInPartFile:
 NonCovariantTypeParameterInRepresentationType:
   problemMessage: "An extension type parameter can't be used non-covariantly in its representation type."
   correctionMessage: "Try removing the type parameters from function parameter types and type parameter bounds."
-  experiments: inline-class
   script: |
     extension type E<T>(void Function(T) f) {}
 
 CyclicRepresentationDependency:
   problemMessage: "An extension type can't depend on itself through its representation type."
-  experiments: inline-class
   script: |
     extension type E(E it) {}
 
@@ -7334,14 +7289,12 @@ ExtensionTypeDeclarationCause:
 InvalidExtensionTypeSuperInterface:
   problemMessage: "The implemented interface '#type' must be a supertype of the representation type '#type2' of extension type '#name'."
   correctionMessage: "Try changing the interface type to a supertype of '#type2' or the representation type to a subtype of '#type'."
-  experiments: inline-class
   script: |
     extension type E(num n) implements int {}
 
 InvalidExtensionTypeSuperExtensionType:
   problemMessage: "The representation type '#type' of extension type '#name' must be either a subtype of the representation type '#type2' of the implemented extension type '#type3' or a subtype of '#type3' itself."
   correctionMessage: "Try changing the representation type to a subtype of '#type2'."
-  experiments: inline-class
   script: |
     extension type E1(int i) {}
     extension type E2(num n) implements E1 {}
@@ -7351,7 +7304,6 @@ MissingPrimaryConstructor:
   correctionMessage: "Try adding a primary constructor to the extension type declaration."
   index: 162
   analyzerCode: ParserErrorCode.MISSING_PRIMARY_CONSTRUCTOR
-  experiments: inline-class
   script: |
     extension type E {}
 
@@ -7360,7 +7312,6 @@ MissingPrimaryConstructorParameters:
   correctionMessage: "Try adding formal parameters after the primary constructor name."
   index: 163
   analyzerCode: ParserErrorCode.MISSING_PRIMARY_CONSTRUCTOR_PARAMETERS
-  experiments: inline-class
   script: |
     extension type E.name {}
 
@@ -7369,7 +7320,6 @@ ExtensionTypeExtends:
   correctionMessage: "Try removing the 'extends' clause or replacing the 'extends' with 'implements'."
   index: 164
   analyzerCode: ParserErrorCode.EXTENSION_TYPE_EXTENDS
-  experiments: inline-class
   script: |
     extension type F(int i) {}
     extension type E(int i) extends F {}
@@ -7379,7 +7329,6 @@ ExtensionTypeWith:
   correctionMessage: "Try removing the 'with' clause or replacing the 'with' with 'implements'."
   index: 165
   analyzerCode: ParserErrorCode.EXTENSION_TYPE_WITH
-  experiments: inline-class
   script: |
     extension type F(int i) {}
     extension type E(int i) with F {}
@@ -7397,7 +7346,6 @@ LocalVariableUsedBeforeDeclaredContext:
 ImplementNonExtensionTypeAndExtensionTypeMember:
   problemMessage: "The extension type '#name' can't inherit the member '#name2' as both an extension type member and a non-extension type member."
   correctionMessage: "Try declaring a member '#name2' in '#name' to resolve the conflict."
-  experiments: inline-class
   script: |
     class Class {
       void method() {}
@@ -7426,7 +7374,6 @@ NonExtensionTypeMemberOneOfContext:
 ImplementMultipleExtensionTypeMembers:
   problemMessage: "The extension type '#name' can't inherit the member '#name2' from more than one extension type."
   correctionMessage: "Try declaring a member '#name2' in '#name' to resolve the conflict."
-  experiments: inline-class
   script: |
     extension type ExtensionType1(int i) {
       void method() {}
@@ -7438,35 +7385,30 @@ ImplementMultipleExtensionTypeMembers:
 
 RepresentationFieldModifier:
   problemMessage: "Representation fields can't have modifiers."
-  experiments: inline-class
   script: |
     extension type E(final int foo) {}
   analyzerCode: REPRESENTATION_FIELD_MODIFIER
 
 ExpectedRepresentationType:
   problemMessage: "Expected a representation type."
-  experiments: inline-class
   script: |
     extension type E(var foo) {}
   analyzerCode: EXPECTED_REPRESENTATION_TYPE
 
 ExpectedRepresentationField:
   problemMessage: "Expected a representation field."
-  experiments: inline-class
   script: |
     extension type E() {}
   analyzerCode: EXPECTED_REPRESENTATION_FIELD
 
 MultipleRepresentationFields:
   problemMessage: "Each extension type should have exactly one representation field."
-  experiments: inline-class
   script: |
     extension type E(int foo, String bar) {}
   analyzerCode: MULTIPLE_REPRESENTATION_FIELDS
 
 ExtensionTypeConstructorWithSuperFormalParameter:
   problemMessage: "Extension type constructors can't declare super formal parameters."
-  experiments: inline-class
   script: |
     extension type A(int foo) { A.named(this.foo, super.bar); }
   analyzerCode: EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER
@@ -7474,54 +7416,46 @@ ExtensionTypeConstructorWithSuperFormalParameter:
 ExtensionTypePrimaryConstructorWithInitializingFormal:
   problemMessage: "Primary constructors in extension types can't use initializing formals."
   correctionMessage: "Try removing `this.` from the formal parameter."
-  experiments: inline-class
   script: |
     extension type A(int this.foo) { }
 
 ExtensionTypePrimaryConstructorFunctionFormalParameterSyntax:
   problemMessage: "Primary constructors in extension types can't use function formal parameter syntax."
   correctionMessage: "Try rewriting with an explicit function type, like `int Function() f`."
-  experiments: inline-class
   script: |
     extension type A(int foo()) { }
 
 ExtensionTypeRepresentationTypeBottom:
   problemMessage: "The representation type can't be a bottom type."
-  experiments: inline-class
   script: |
     extension type E1(Never foo) {}
   analyzerCode: EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM
 
 RepresentationFieldTrailingComma:
   problemMessage: "The representation field can't have a trailing comma."
-  experiments: inline-class
   script: |
     extension type E(int foo,) {}
   analyzerCode: REPRESENTATION_FIELD_TRAILING_COMMA
 
 WrongTypeParameterVarianceInSuperinterface:
   problemMessage: "'#name' can't be used contravariantly or invariantly in '#type'."
-  experiments: inline-class
   script: |
     extension type E<X>(List<Function(Object?)> foo) implements List<Function(X)> {}
   analyzerCode: WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
 
 AwaitOfExtensionTypeNotFuture:
   problemMessage: "The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'."
-  experiments: inline-class
   script: |
     extension type E(num foo) { test(E e) async { await e; } }
   analyzerCode: AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE
 
 NamedParametersInExtensionTypeDeclaration:
   problemMessage: "Extension type declarations can't have named parameters."
-  experiments: inline-class
   script: |
     extension type E(int foo, {dynamic bar}) {}
 
 OptionalParametersInExtensionTypeDeclaration:
   problemMessage: "Extension type declarations can't have optional parameters."
-  experiments: inline-class
   script: |
     extension type E(int foo, [dynamic bar]) {}
 
@@ -7579,3 +7513,18 @@ ExtensionTypeImplementsDeferred:
       extension type ET(d.A id) implements d.A {}
     lib.dart: |
       class A {}
+
+RecordUsedAsCallable:
+  problemMessage: "The 'call' property on the record type isn't directly callable but could be invoked by `.call(...)`"
+  script: |
+    test(({dynamic call} r) => r(0);
+
+InvalidMacroApplicationTarget:
+  problemMessage: "The macro can only be applied to #string."
+
+NoMacroApplicationTarget:
+  problemMessage: "The macro can not be applied to this declaration."
+
+MacroDefinitionApplicationSameLibraryCycle:
+  problemMessage: "The macro '#name' can't be applied in the same library cycle where it is defined."
+  correctionMessage: Try moving it to a different library that does not import the one where it is applied.

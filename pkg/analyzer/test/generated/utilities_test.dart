@@ -16,7 +16,7 @@ import '../util/feature_sets.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(BooleanArrayTest);
+    defineReflectiveTests(EnumSetTest);
     defineReflectiveTests(LineInfoTest);
     defineReflectiveTests(NodeReplacerTest);
     defineReflectiveTests(SourceRangeTest);
@@ -24,62 +24,39 @@ main() {
 }
 
 @reflectiveTest
-class BooleanArrayTest {
-  void test_get_negative() {
-    try {
-      BooleanArray.get(0, -1);
-      fail("Expected ");
-    } on RangeError {
-      // Expected
-    }
-  }
+class EnumSetTest {
+  void test_it() {
+    var enumSet = EnumSet<_MyEnum>.empty();
 
-  void test_get_tooBig() {
-    try {
-      BooleanArray.get(0, 61);
-      fail("Expected ");
-    } on RangeError {
-      // Expected
-    }
-  }
+    // Can set `foo`.
+    enumSet = enumSet.updated(_MyEnum.foo, true);
+    expect(enumSet[_MyEnum.foo], true);
+    expect(enumSet[_MyEnum.bar], false);
 
-  void test_get_valid() {
-    expect(BooleanArray.get(0, 0), false);
-    expect(BooleanArray.get(1, 0), true);
-    expect(BooleanArray.get(0, 30), false);
-    expect(BooleanArray.get(1 << 30, 30), true);
-  }
+    // Can set `bar`.
+    enumSet = enumSet.updated(_MyEnum.bar, true);
+    expect(enumSet[_MyEnum.foo], true);
+    expect(enumSet[_MyEnum.bar], true);
 
-  void test_set_negative() {
-    try {
-      BooleanArray.set(0, -1, true);
-      fail("Expected ");
-    } on RangeError {
-      // Expected
-    }
-  }
+    // Can set `foo` again.
+    enumSet = enumSet.updated(_MyEnum.foo, true);
+    expect(enumSet[_MyEnum.foo], true);
+    expect(enumSet[_MyEnum.bar], true);
 
-  void test_set_tooBig() {
-    try {
-      BooleanArray.set(0, 61, true);
-      fail("Expected ");
-    } on RangeError {
-      // Expected
-    }
-  }
+    // Can clear `foo`.
+    enumSet = enumSet.updated(_MyEnum.foo, false);
+    expect(enumSet[_MyEnum.foo], false);
+    expect(enumSet[_MyEnum.bar], true);
 
-  void test_set_valueChanging() {
-    expect(BooleanArray.set(0, 0, true), 1);
-    expect(BooleanArray.set(1, 0, false), 0);
-    expect(BooleanArray.set(0, 30, true), 1 << 30);
-    expect(BooleanArray.set(1 << 30, 30, false), 0);
-  }
+    // Can clear `foo` again.
+    enumSet = enumSet.updated(_MyEnum.foo, false);
+    expect(enumSet[_MyEnum.foo], false);
+    expect(enumSet[_MyEnum.bar], true);
 
-  void test_set_valuePreserving() {
-    expect(BooleanArray.set(0, 0, false), 0);
-    expect(BooleanArray.set(1, 0, true), 1);
-    expect(BooleanArray.set(0, 30, false), 0);
-    expect(BooleanArray.set(1 << 30, 30, true), 1 << 30);
+    // Can clear `bar`.
+    enumSet = enumSet.updated(_MyEnum.bar, false);
+    expect(enumSet[_MyEnum.foo], false);
+    expect(enumSet[_MyEnum.bar], false);
   }
 }
 
@@ -1844,7 +1821,9 @@ class A<T extends int, U extends double> {}
     var findNode = _parseStringToFindNode(r'''
 class A<T, U> {}
 ''');
-    var node = findNode.typeParameterList('<T, U>');
+    // Find from the offset after the `<` because NodeLocator usually picks
+    // the name for the offset between the name and `<`.
+    var node = findNode.typeParameterList('T, U>');
     _assertReplaceInList(
       destination: node,
       child: node.typeParameters[0],
@@ -2191,3 +2170,5 @@ class SourceRangeTest {
     expect(r.toString(), "[offset=10, length=1]");
   }
 }
+
+enum _MyEnum { foo, bar }

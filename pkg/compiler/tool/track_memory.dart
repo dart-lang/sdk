@@ -21,7 +21,7 @@ import 'dart:convert';
 /// Socket to connect to the vm observatory service.
 late WebSocket socket;
 
-main(args) async {
+Future<void> main(List<String> args) async {
   _printHeader();
   _showProgress(0, 0, 0, 0);
   try {
@@ -45,18 +45,18 @@ main(args) async {
 
 /// Internal counter for request ids.
 int _requestId = 0;
-Map _pendingResponses = {};
+Map<int, Completer<dynamic>> _pendingResponses = {};
 
 /// Subscribe to listen to a vm service data stream.
-_streamListen(String streamId) =>
+Future<void> _streamListen(String streamId) =>
     _sendMessage('streamListen', {'streamId': '$streamId'});
 
 /// Tell the vm service to resume a specific isolate.
-_resumeIsolate(String isolateId) =>
+Future<void> _resumeIsolate(String isolateId) =>
     _sendMessage('resume', {'isolateId': '$isolateId'});
 
 /// Resumes the main isolate if it was paused on start.
-_resumeMainIsolateIfPaused() async {
+Future<void> _resumeMainIsolateIfPaused() async {
   var vm = await _sendMessage('getVM');
   var isolateId = vm['isolates'][0]['id'];
   var isolate = await _sendMessage('getIsolate', {'isolateId': isolateId});
@@ -65,16 +65,18 @@ _resumeMainIsolateIfPaused() async {
 }
 
 /// Send a message to the vm service.
-Future _sendMessage(String method, [Map args = const {}]) {
+Future<dynamic> _sendMessage(String method,
+    [Map<String, dynamic> args = const {}]) {
   var id = _requestId++;
-  _pendingResponses[id] = new Completer();
+  final completer = new Completer<dynamic>();
+  _pendingResponses[id] = completer;
   socket.add(jsonEncode({
     'jsonrpc': '2.0',
     'id': '$id',
     'method': '$method',
     'params': args,
   }));
-  return _pendingResponses[id].future;
+  return completer.future;
 }
 
 /// Handle all responses
@@ -84,7 +86,7 @@ void _handleResponse(Object? s) {
     var id = json['id'];
     if (id is String) id = int.parse(id);
     if (id == null || !_pendingResponses.containsKey(id)) return;
-    _pendingResponses.remove(id).complete(json['result']);
+    _pendingResponses.remove(id)!.complete(json['result']);
     return;
   }
 
@@ -99,7 +101,7 @@ void _handleResponse(Object? s) {
 }
 
 /// Handle a `Debug` notification.
-_handleDebug(Map json) {
+void _handleDebug(Map<String, dynamic> json) {
   var isolateId = json['params']['event']['isolate']['id'];
   if (json['params']['event']['kind'] == 'PauseStart') {
     _resumeIsolate(isolateId);
@@ -110,7 +112,7 @@ _handleDebug(Map json) {
 }
 
 /// Handle a `Isolate` notification.
-_handleIsolate(Map json) {
+void _handleIsolate(Map<String, dynamic> json) {
   if (json['params']['event']['kind'] == 'IsolateExit') {
     print('');
     socket.close();
@@ -118,7 +120,7 @@ _handleIsolate(Map json) {
 }
 
 /// Handle a `GC` notification.
-_handleGC(Map json) {
+void _handleGC(Map<String, dynamic> json) {
   // print(new JsonEncoder.withIndent(' ').convert(json));
   var event = json['params']['event'];
   var newUsed = event['new']['used'];
@@ -137,7 +139,7 @@ int lastMaxCapacity = 0;
 
 /// Shows a status line with use/capacity numbers for new/old/total/max,
 /// highlighting in red when capacity increases, and in green when it decreases.
-_showProgress(newUsed, newCapacity, oldUsed, oldCapacity) {
+void _showProgress(int newUsed, int newCapacity, int oldUsed, int oldCapacity) {
   var sb = new StringBuffer();
   sb.write('\r '); // replace the status-line in place
   _writeNumber(sb, lastNewUsed, newUsed);
@@ -168,7 +170,7 @@ _showProgress(newUsed, newCapacity, oldUsed, oldCapacity) {
 }
 
 const mega = 1024 * 1024;
-_writeNumber(sb, before, now, {color = false}) {
+bool _writeNumber(StringBuffer sb, int before, int now, {bool color = false}) {
   if (color)
     sb.write(before < now
         ? _RED
@@ -189,7 +191,7 @@ _writeNumber(sb, before, now, {color = false}) {
   return before > now;
 }
 
-_printHeader() {
+void _printHeader() {
   print('''
 Memory usage:
  new generation   | old generation   | total            | max

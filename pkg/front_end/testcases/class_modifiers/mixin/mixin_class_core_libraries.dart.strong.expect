@@ -2,18 +2,18 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_core_libraries.dart:7:14: Error: The class 'Comparable' can't be used as a mixin because it isn't a mixin class nor a mixin.
+// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_core_libraries.dart:8:14: Error: The class 'Comparable' can't be used as a mixin because it isn't a mixin class nor a mixin.
 // class A with Comparable<int> {
 //              ^
 //
-// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_core_libraries.dart:11:7: Error: Can't use 'Error' as a mixin because it has constructors.
+// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_core_libraries.dart:12:7: Error: Can't use 'Error' as a mixin because it has constructors.
 // class B with Error {} /* Error */
 //       ^
-// sdk/lib/core/errors.dart:73:3: Context: This constructor prevents using 'Error' as a mixin.
+// sdk/lib/core/errors.dart:*: Context: This constructor prevents using 'Error' as a mixin.
 //   Error(); // Prevent use as mixin.
 //   ^
 //
-// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_core_libraries.dart:11:14: Error: The class 'Error' can't be used as a mixin because it isn't a mixin class nor a mixin.
+// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_core_libraries.dart:12:14: Error: The class 'Error' can't be used as a mixin because it isn't a mixin class nor a mixin.
 // class B with Error {} /* Error */
 //              ^
 //

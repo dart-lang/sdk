@@ -14,5 +14,7 @@ class C implements A<int>, B {
 }
 
 test(o) {}
+
 main() {}
+
 expect(expected, actual) {}

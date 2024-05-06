@@ -28,14 +28,14 @@ final class JSString extends Interceptor
     checkString(string);
     checkInt(start);
     if (0 > start || start > string.length) {
-      throw new RangeError.range(start, 0, string.length);
+      throw RangeError.range(start, 0, string.length);
     }
     return allMatchesInStringUnchecked(this, string, start);
   }
 
   Match? matchAsPrefix(String string, [int start = 0]) {
     if (start < 0 || start > string.length) {
-      throw new RangeError.range(start, 0, string.length);
+      throw RangeError.range(start, 0, string.length);
     }
     if (start + this.length > string.length) return null;
     // TODO(lrn): See if this can be optimized.
@@ -44,11 +44,11 @@ final class JSString extends Interceptor
         return null;
       }
     }
-    return new StringMatch(start, string, this);
+    return StringMatch(start, string, this);
   }
 
   String operator +(String other) {
-    if (other is! String) throw new ArgumentError.value(other);
+    if (other is! String) throw ArgumentError.value(other);
     return JS('String', r'# + #', this, other);
   }
 
@@ -138,7 +138,7 @@ final class JSString extends Interceptor
   bool startsWith(Pattern pattern, [int index = 0]) {
     checkInt(index);
     if (index < 0 || index > this.length) {
-      throw new RangeError.range(index, 0, this.length);
+      throw RangeError.range(index, 0, this.length);
     }
     if (pattern is String) {
       String other = pattern;
@@ -346,15 +346,15 @@ final class JSString extends Interceptor
     return this + padding * delta;
   }
 
-  List<int> get codeUnits => new CodeUnits(this);
+  List<int> get codeUnits => CodeUnits(this);
 
-  Runes get runes => new Runes(this);
+  Runes get runes => Runes(this);
 
   int indexOf(Pattern pattern, [int start = 0]) {
     checkNull(pattern);
     if (start is! int) throw argumentErrorValue(start);
     if (start < 0 || start > this.length) {
-      throw new RangeError.range(start, 0, this.length);
+      throw RangeError.range(start, 0, this.length);
     }
     if (pattern is String) {
       return stringIndexOfStringUnchecked(this, pattern, start);
@@ -377,7 +377,7 @@ final class JSString extends Interceptor
     } else if (start is! int) {
       throw argumentErrorValue(start);
     } else if (start < 0 || start > this.length) {
-      throw new RangeError.range(start, 0, this.length);
+      throw RangeError.range(start, 0, this.length);
     }
     if (pattern is String) {
       String other = pattern;
@@ -395,7 +395,7 @@ final class JSString extends Interceptor
   bool contains(Pattern other, [int startIndex = 0]) {
     checkNull(other);
     if (startIndex < 0 || startIndex > this.length) {
-      throw new RangeError.range(startIndex, 0, this.length);
+      throw RangeError.range(startIndex, 0, this.length);
     }
     return stringContainsUnchecked(this, other, startIndex);
   }

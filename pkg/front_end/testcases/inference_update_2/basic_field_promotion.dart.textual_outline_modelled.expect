@@ -13,12 +13,21 @@ abstract class C {
 }
 
 main() {}
+
 void acceptsInt(int x) {}
+
 void testPrivateAbstractGetter(C c) {}
+
 void testPrivateConcreteGetter(C c) {}
+
 void testPrivateField(C c) {}
+
 void testPrivateFinalField(C c) {}
+
 void testPublicAbstractGetter(C c) {}
+
 void testPublicConcreteGetter(C c) {}
+
 void testPublicField(C c) {}
+
 void testPublicFinalField(C c) {}

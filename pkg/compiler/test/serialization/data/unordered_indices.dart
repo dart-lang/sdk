@@ -1,10 +1,8 @@
-// @dart=2.7
-
 // Introduce a named parameter with a given string name.
 typedef Bar = String Function({String someString});
 
 class Foo {
-  Bar _bar;
+  Bar? _bar;
   Foo(this._bar);
 }
 

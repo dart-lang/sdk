@@ -37,42 +37,6 @@ T* PutIfAbsent(Thread* thread,
   return array->At(index);
 }
 
-LocalVariable* CompilerState::GetDummyCapturedVariable(intptr_t context_id,
-                                                       intptr_t index) {
-  return PutIfAbsent<LocalVariable>(
-      thread(), &dummy_captured_vars_, index, [&]() {
-        Zone* const Z = thread()->zone();
-        const AbstractType& dynamic_type =
-            AbstractType::ZoneHandle(Z, Type::DynamicType());
-        const String& name = String::ZoneHandle(
-            Z, Symbols::NewFormatted(thread(), ":context_var%" Pd, index));
-        LocalVariable* var =
-            new (Z) LocalVariable(TokenPosition::kNoSource,
-                                  TokenPosition::kNoSource, name, dynamic_type);
-        var->set_is_captured();
-        var->set_index(VariableIndex(index));
-        return var;
-      });
-}
-
-const ZoneGrowableArray<const Slot*>& CompilerState::GetDummyContextSlots(
-    intptr_t context_id,
-    intptr_t num_context_variables) {
-  return *PutIfAbsent<ZoneGrowableArray<const Slot*>>(
-      thread(), &dummy_slots_, num_context_variables, [&]() {
-        Zone* const Z = thread()->zone();
-
-        auto slots =
-            new (Z) ZoneGrowableArray<const Slot*>(num_context_variables);
-        for (intptr_t i = 0; i < num_context_variables; i++) {
-          LocalVariable* var = GetDummyCapturedVariable(context_id, i);
-          slots->Add(&Slot::GetContextVariableSlotFor(thread(), *var));
-        }
-
-        return slots;
-      });
-}
-
 CompilerTracing CompilerState::ShouldTrace(const Function& func) {
   return FlowGraphPrinter::ShouldPrint(func) ? CompilerTracing::kOn
                                              : CompilerTracing::kOff;
@@ -127,6 +91,96 @@ const Function& CompilerState::StringBaseInterpolate() {
     ASSERT(!interpolate_->IsNull());
   }
   return *interpolate_;
+}
+
+const Class& CompilerState::TypedListClass() {
+  if (typed_list_class_ == nullptr) {
+    Thread* thread = Thread::Current();
+    Zone* zone = thread->zone();
+
+    const Library& lib = Library::Handle(zone, Library::TypedDataLibrary());
+    const Class& cls = Class::ZoneHandle(
+        zone, lib.LookupClassAllowPrivate(Symbols::_TypedList()));
+    ASSERT(!cls.IsNull());
+    const Error& error = Error::Handle(zone, cls.EnsureIsFinalized(thread));
+    ASSERT(error.IsNull());
+    typed_list_class_ = &cls;
+  }
+  return *typed_list_class_;
+}
+
+#define DEFINE_TYPED_LIST_NATIVE_FUNCTION_GETTER(Upper, Lower)                 \
+  const Function& CompilerState::TypedListGet##Upper() {                       \
+    if (typed_list_get_##Lower##_ == nullptr) {                                \
+      Thread* thread = Thread::Current();                                      \
+      Zone* zone = thread->zone();                                             \
+      const auto& cls = CompilerState::TypedListClass();                       \
+      typed_list_get_##Lower##_ = &Function::ZoneHandle(                       \
+          zone, cls.LookupFunctionAllowPrivate(Symbols::_nativeGet##Upper())); \
+      ASSERT(!typed_list_get_##Lower##_->IsNull());                            \
+    }                                                                          \
+    return *typed_list_get_##Lower##_;                                         \
+  }                                                                            \
+  const Function& CompilerState::TypedListSet##Upper() {                       \
+    if (typed_list_set_##Lower##_ == nullptr) {                                \
+      Thread* thread = Thread::Current();                                      \
+      Zone* zone = thread->zone();                                             \
+      const auto& cls = CompilerState::TypedListClass();                       \
+      typed_list_set_##Lower##_ = &Function::ZoneHandle(                       \
+          zone, cls.LookupFunctionAllowPrivate(Symbols::_nativeSet##Upper())); \
+      ASSERT(!typed_list_set_##Lower##_->IsNull());                            \
+    }                                                                          \
+    return *typed_list_set_##Lower##_;                                         \
+  }
+
+DEFINE_TYPED_LIST_NATIVE_FUNCTION_GETTER(Float32, float32)
+DEFINE_TYPED_LIST_NATIVE_FUNCTION_GETTER(Float64, float64)
+DEFINE_TYPED_LIST_NATIVE_FUNCTION_GETTER(Float32x4, float32x4)
+DEFINE_TYPED_LIST_NATIVE_FUNCTION_GETTER(Int32x4, int32x4)
+DEFINE_TYPED_LIST_NATIVE_FUNCTION_GETTER(Float64x2, float64x2)
+
+#undef DEFINE_TYPED_LIST_NATIVE_FUNCTION_GETTER
+
+const Class& CompilerState::CompoundClass() {
+  if (compound_class_ == nullptr) {
+    Thread* thread = Thread::Current();
+    Zone* zone = thread->zone();
+
+    const auto& lib_ffi = Library::Handle(zone, Library::FfiLibrary());
+    const auto& cls = Class::Handle(
+        zone, lib_ffi.LookupClassAllowPrivate(Symbols::Compound()));
+    ASSERT(!cls.IsNull());
+    const Error& error = Error::Handle(zone, cls.EnsureIsFinalized(thread));
+    ASSERT(error.IsNull());
+    compound_class_ = &cls;
+  }
+  return *compound_class_;
+}
+
+const Field& CompilerState::CompoundOffsetInBytesField() {
+  if (compound_offset_in_bytes_field_ == nullptr) {
+    Thread* thread = Thread::Current();
+    Zone* zone = thread->zone();
+    const auto& field =
+        Field::ZoneHandle(zone, CompoundClass().LookupInstanceFieldAllowPrivate(
+                                    Symbols::_offsetInBytes()));
+    ASSERT(!field.IsNull());
+    compound_offset_in_bytes_field_ = &field;
+  }
+  return *compound_offset_in_bytes_field_;
+}
+
+const Field& CompilerState::CompoundTypedDataBaseField() {
+  if (compound_typed_data_base_field_ == nullptr) {
+    Thread* thread = Thread::Current();
+    Zone* zone = thread->zone();
+    const auto& field =
+        Field::ZoneHandle(zone, CompoundClass().LookupInstanceFieldAllowPrivate(
+                                    Symbols::_typedDataBase()));
+    ASSERT(!field.IsNull());
+    compound_typed_data_base_field_ = &field;
+  }
+  return *compound_typed_data_base_field_;
 }
 
 void CompilerState::ReportCrash() {

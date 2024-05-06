@@ -77,7 +77,7 @@ class UseCurlyBraces extends ParsedCorrectionProducer {
     if (body is Block) return;
 
     var prefix = utils.getLinePrefix(node.offset);
-    var indent = prefix + utils.getIndent(1);
+    var indent = prefix + utils.oneIndent;
 
     await builder.addDartFileEdit(file, (builder) {
       _replaceRange(
@@ -100,7 +100,7 @@ class UseCurlyBraces extends ParsedCorrectionProducer {
     if (body is Block) return;
 
     var prefix = utils.getLinePrefix(node.offset);
-    var indent = prefix + utils.getIndent(1);
+    var indent = prefix + utils.oneIndent;
 
     await builder.addDartFileEdit(file, (builder) {
       _replace(builder, node.rightParenthesis, body, indent, prefix);
@@ -115,7 +115,7 @@ class UseCurlyBraces extends ParsedCorrectionProducer {
     }
 
     var prefix = utils.getLinePrefix(node.offset);
-    var indent = prefix + utils.getIndent(1);
+    var indent = prefix + utils.oneIndent;
 
     await builder.addDartFileEdit(file, (builder) {
       var thenStatement = node.thenStatement;
@@ -155,7 +155,7 @@ class UseCurlyBraces extends ParsedCorrectionProducer {
 
   void _replaceLeftParenthesis(DartFileEditBuilder builder,
       SyntacticEntity left, SyntacticEntity right, String indent) {
-    // Keep any comments preceeding right.
+    // Keep any comments preceding right.
     if (right is AstNode) {
       right = right.beginToken.precedingComments ?? right;
     }
@@ -182,7 +182,7 @@ class UseCurlyBraces extends ParsedCorrectionProducer {
     if (body is Block) return;
 
     var prefix = utils.getLinePrefix(node.offset);
-    var indent = prefix + utils.getIndent(1);
+    var indent = prefix + utils.oneIndent;
 
     await builder.addDartFileEdit(file, (builder) {
       _replace(builder, node.rightParenthesis, body, indent, prefix);

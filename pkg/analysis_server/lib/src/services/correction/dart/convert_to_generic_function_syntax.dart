@@ -7,6 +7,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -49,9 +50,7 @@ class ConvertToGenericFunctionSyntax extends ParsedCorrectionProducer {
   /// have an explicit type annotation.
   bool _allParametersHaveTypes(FormalParameterList parameters) {
     for (var parameter in parameters.parameters) {
-      if (parameter is DefaultFormalParameter) {
-        parameter = parameter.parameter;
-      }
+      parameter = parameter.notDefault;
       if (parameter is SimpleFormalParameter) {
         if (parameter.type == null) {
           return false;

@@ -9,7 +9,6 @@ library dart2js.kernel.compiler_helper;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:compiler/src/commandline_options.dart' show Flags;
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/dart2js.dart' as dart2js;
 import 'package:_fe_analyzer_shared/src/util/filenames.dart';
@@ -63,10 +62,6 @@ Future<CompilationResult> getCompilationResultsForD8(
     '-o${outputFile.toFilePath()}',
     if (Platform.packageConfig != null) '--packages=${Platform.packageConfig}',
     ...options,
-    if (options.contains(Flags.noSoundNullSafety))
-      // Unsound platform dill files are no longer packaged in the SDK and must
-      // be read from the build directory during tests.
-      '--platform-binaries=$buildPlatformBinariesPath',
   ];
   if (printSteps) print('Running: dart2js ${dart2jsArgs.join(' ')}');
 

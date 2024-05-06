@@ -55,7 +55,7 @@ class DiagnosticReporter {
 
   void reportError(DiagnosticMessage message,
       [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
-    _reportDiagnosticInternal(message, infos, api.Diagnostic.ERROR);
+    _reportDiagnosticInternal(message, infos, api.Diagnostic.error);
   }
 
   void reportErrorMessage(Spannable spannable, MessageKind messageKind,
@@ -65,7 +65,7 @@ class DiagnosticReporter {
 
   void reportWarning(DiagnosticMessage message,
       [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
-    _reportDiagnosticInternal(message, infos, api.Diagnostic.WARNING);
+    _reportDiagnosticInternal(message, infos, api.Diagnostic.warning);
   }
 
   void reportWarningMessage(Spannable spannable, MessageKind messageKind,
@@ -75,7 +75,7 @@ class DiagnosticReporter {
 
   void reportHint(DiagnosticMessage message,
       [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
-    _reportDiagnosticInternal(message, infos, api.Diagnostic.HINT);
+    _reportDiagnosticInternal(message, infos, api.Diagnostic.hint);
   }
 
   void reportHintMessage(Spannable spannable, MessageKind messageKind,
@@ -85,7 +85,7 @@ class DiagnosticReporter {
 
   void reportInfo(DiagnosticMessage message,
       [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
-    _reportDiagnosticInternal(message, infos, api.Diagnostic.INFO);
+    _reportDiagnosticInternal(message, infos, api.Diagnostic.info);
   }
 
   void reportInfoMessage(Spannable node, MessageKind errorCode,
@@ -98,8 +98,8 @@ class DiagnosticReporter {
     if (!options.showAllPackageWarnings &&
         message.spannable != NO_LOCATION_SPANNABLE) {
       switch (kind) {
-        case api.Diagnostic.WARNING:
-        case api.Diagnostic.HINT:
+        case api.Diagnostic.warning:
+        case api.Diagnostic.hint:
           Entity? element = _elementFromSpannable(message.spannable);
           if (element != null && !_compiler.inUserCode(element)) {
             Uri uri = _compiler.getCanonicalUri(element)!;
@@ -109,7 +109,7 @@ class DiagnosticReporter {
             }
             SuppressionInfo info =
                 _suppressedWarnings.putIfAbsent(uri, () => SuppressionInfo());
-            if (kind == api.Diagnostic.WARNING) {
+            if (kind == api.Diagnostic.warning) {
               info.warnings++;
             } else {
               info.hints++;
@@ -118,10 +118,15 @@ class DiagnosticReporter {
             return;
           }
           break;
-        case api.Diagnostic.INFO:
+        case api.Diagnostic.info:
           if (_lastDiagnosticWasFiltered) {
             return;
           }
+          break;
+        case api.Diagnostic.error:
+        case api.Diagnostic.verboseInfo:
+        case api.Diagnostic.crash:
+        case api.Diagnostic.context:
           break;
       }
     }
@@ -132,9 +137,9 @@ class DiagnosticReporter {
   void _reportDiagnostic(DiagnosticMessage message,
       List<DiagnosticMessage> infos, api.Diagnostic kind) {
     _compiler.reportDiagnostic(message, infos, kind);
-    if (kind == api.Diagnostic.ERROR ||
-        kind == api.Diagnostic.CRASH ||
-        (options.fatalWarnings && kind == api.Diagnostic.WARNING)) {
+    if (kind == api.Diagnostic.error ||
+        kind == api.Diagnostic.crash ||
+        (options.fatalWarnings && kind == api.Diagnostic.warning)) {
       _compiler.fatalDiagnosticReported(message, infos, kind);
     }
   }
@@ -178,11 +183,11 @@ class DiagnosticReporter {
 
   void _reportAssertionFailure(SpannableAssertionFailure ex) {
     String message =
-        (ex.message != null) ? tryToString(ex.message) : tryToString(ex);
+        (ex.message != null) ? tryToString(ex.message!) : tryToString(ex);
     _reportDiagnosticInternal(
         createMessage(ex.node, MessageKind.GENERIC, {'text': message}),
         const <DiagnosticMessage>[],
-        api.Diagnostic.CRASH);
+        api.Diagnostic.crash);
   }
 
   /// Use the compiler context [SourceSpan] from spannable using the
@@ -216,13 +221,13 @@ class DiagnosticReporter {
     return _spanFromStrategy(spannable);
   }
 
-  dynamic internalError(Spannable? spannable, reason) {
+  Never internalError(Spannable? spannable, Object reason) {
     String message = tryToString(reason);
     _reportDiagnosticInternal(
         createMessage(spannable ?? SourceSpan.unknown(), MessageKind.GENERIC,
             {'text': message}),
         const <DiagnosticMessage>[],
-        api.Diagnostic.CRASH);
+        api.Diagnostic.crash);
     throw 'Internal Error: $message';
   }
 
@@ -230,7 +235,7 @@ class DiagnosticReporter {
     if (_hasCrashed) return;
     _hasCrashed = true;
     _reportDiagnostic(createMessage(element, MessageKind.COMPILER_CRASHED),
-        const <DiagnosticMessage>[], api.Diagnostic.CRASH);
+        const <DiagnosticMessage>[], api.Diagnostic.crash);
     _pleaseReportCrash();
   }
 
@@ -251,16 +256,16 @@ class DiagnosticReporter {
     return element ?? currentElement;
   }
 
-  void log(message) {
+  void log(Object message) {
     Message msg = MessageTemplate.TEMPLATES[MessageKind.GENERIC]!
         .message({'text': '$message'}, options);
     _reportDiagnostic(
         DiagnosticMessage(SourceSpan.unknown(), NO_LOCATION_SPANNABLE, msg),
         const <DiagnosticMessage>[],
-        api.Diagnostic.VERBOSE_INFO);
+        api.Diagnostic.verboseInfo);
   }
 
-  String tryToString(object) {
+  String tryToString(Object object) {
     try {
       return object.toString();
     } catch (_) {
@@ -268,7 +273,7 @@ class DiagnosticReporter {
     }
   }
 
-  Future onError(Uri? uri, error, StackTrace stackTrace) {
+  Future<Never> onError(Uri? uri, Object error, StackTrace stackTrace) {
     try {
       if (!_hasCrashed) {
         _hasCrashed = true;
@@ -279,7 +284,7 @@ class DiagnosticReporter {
               createMessage(
                   SourceSpan(uri ?? Uri(), 0, 0), MessageKind.COMPILER_CRASHED),
               const <DiagnosticMessage>[],
-              api.Diagnostic.CRASH);
+              api.Diagnostic.crash);
         }
         _pleaseReportCrash();
       }
@@ -291,7 +296,8 @@ class DiagnosticReporter {
 
   /// Called when an [exception] is thrown from user-provided code, like from
   /// the input provider or diagnostics handler.
-  void onCrashInUserCode(String message, exception, stackTrace) {
+  void onCrashInUserCode(
+      String message, Object exception, StackTrace stackTrace) {
     _hasCrashed = true;
     print('$message: ${tryToString(exception)}');
     print(tryToString(stackTrace));
@@ -316,7 +322,7 @@ class DiagnosticReporter {
             DiagnosticMessage(
                 SourceSpan.unknown(), NO_LOCATION_SPANNABLE, message),
             const <DiagnosticMessage>[],
-            api.Diagnostic.HINT);
+            api.Diagnostic.hint);
       });
     }
   }

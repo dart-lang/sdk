@@ -51,8 +51,6 @@ main() {
   {
     C c = new C(1);
     Expect.equals(2, c?.v = 2);
-    //               ^
-    // [cfe] Operand of null-aware operation '?.' has type 'C' which excludes null.
     //                ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.equals(2, c.v);
@@ -62,8 +60,6 @@ main() {
   {
     C.staticInt = 1;
     Expect.equals(2, C?.staticInt = 2);
-    //               ^
-    // [cfe] The class 'C' cannot be null.
     //                ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.equals(2, C.staticInt);
@@ -71,8 +67,6 @@ main() {
   {
     h.C.staticInt = 1;
     Expect.equals(2, h.C?.staticInt = 2);
-    //                 ^
-    // [cfe] The class 'C' cannot be null.
     //                  ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.equals(2, h.C.staticInt);
@@ -97,8 +91,6 @@ main() {
     D.staticE = new E();
     G g = new G();
     F? f = (D?.staticE = g);
-    //      ^
-    // [cfe] The class 'D' cannot be null.
     //       ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.identical(f, g);
@@ -107,8 +99,6 @@ main() {
     h.D.staticE = new h.E();
     h.G g = new h.G();
     h.F? f = (h.D?.staticE = g);
-    //          ^
-    // [cfe] The class 'D' cannot be null.
     //           ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.identical(f, g);
@@ -119,7 +109,6 @@ main() {
     F? f = (D?.staticE = e);
     //      ^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-    // [cfe] The class 'D' cannot be null.
     //       ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     //         ^
@@ -131,8 +120,6 @@ main() {
     h.F f = (h.D?.staticE = e);
     //       ^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-    //         ^
-    // [cfe] The class 'D' cannot be null.
     //          ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     //            ^
@@ -148,8 +135,6 @@ main() {
   {
     B b = new C(1);
     Expect.equals(2, b?.v = 2);
-    //               ^
-    // [cfe] Operand of null-aware operation '?.' has type 'B' which excludes null.
     //                ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     //                  ^
@@ -162,8 +147,6 @@ main() {
   {
     C c = new C(1);
     Expect.equals(3, c?.v += 2);
-    //               ^
-    // [cfe] Operand of null-aware operation '?.' has type 'C' which excludes null.
     //                ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.equals(3, c.v);
@@ -173,13 +156,9 @@ main() {
   {
     C.staticInt = 1;
     Expect.equals(3, C?.staticInt += 2);
-    //               ^
-    // [cfe] The class 'C' cannot be null.
     //                ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.equals(3, C?.staticInt);
-    //               ^
-    // [cfe] The class 'C' cannot be null.
     //                ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   }
@@ -188,8 +167,6 @@ main() {
   {
     D d = new D(new E());
     F? f = (d?.v += 1);
-    //      ^
-    // [cfe] Operand of null-aware operation '?.' has type 'D' which excludes null.
     //       ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.identical(d.v, f);
@@ -197,8 +174,6 @@ main() {
   {
     D.staticE = new E();
     F? f = (D?.staticE += 1);
-    //      ^
-    // [cfe] The class 'D' cannot be null.
     //       ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.identical(D.staticE, f);
@@ -206,8 +181,6 @@ main() {
   {
     h.D.staticE = new h.E();
     h.F? f = (h.D?.staticE += 1);
-    //          ^
-    // [cfe] The class 'D' cannot be null.
     //           ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.identical(h.D.staticE, f);
@@ -223,8 +196,6 @@ main() {
   {
     B bname = new C(1);
     bname?.v += 2;
-//  ^
-// [cfe] Operand of null-aware operation '?.' has type 'B' which excludes null.
 //       ^^
 // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 //         ^
@@ -236,8 +207,6 @@ main() {
   {
     D d = new D(new E());
     F? f = (d?.v += nullC());
-    //      ^
-    // [cfe] Operand of null-aware operation '?.' has type 'D' which excludes null.
     //       ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     //              ^^^^^^^
@@ -250,15 +219,12 @@ main() {
     //      ^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     // [cfe] A value of type 'G?' can't be assigned to a variable of type 'H?'.
-    // [cfe] Operand of null-aware operation '?.' has type 'D' which excludes null.
     //       ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   }
   {
     D.staticE = new E();
     F? f = (D?.staticE += nullC());
-    //      ^
-    // [cfe] The class 'D' cannot be null.
     //       ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     //                    ^^^^^^^
@@ -268,8 +234,6 @@ main() {
   {
     h.D.staticE = new h.E();
     h.F? f = (h.D?.staticE += h.nullC());
-    //          ^
-    // [cfe] The class 'D' cannot be null.
     //           ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     //                        ^^^^^^^^^
@@ -282,7 +246,6 @@ main() {
     H? h = (D?.staticE += 1);
     //      ^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-    // [cfe] The class 'D' cannot be null.
     //       ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     //         ^
@@ -293,8 +256,6 @@ main() {
     h.H? hh = (h.D?.staticE += 1);
     //         ^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-    //           ^
-    // [cfe] The class 'D' cannot be null.
     //            ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     //              ^

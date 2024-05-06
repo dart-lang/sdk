@@ -40,7 +40,7 @@ main() {
     CompilationResult result =
         await runCompiler(memorySourceFiles: {'main.dart': code});
     Expect.isTrue(result.isSuccess);
-    Compiler compiler = result.compiler;
+    Compiler compiler = result.compiler!;
     JsBackendStrategy backendStrategy = compiler.backendStrategy;
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     RuntimeTypesNeed rtiNeed = closedWorld.rtiNeed;

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*member: main:
  static=[
   effectivelyFinalList(0),
@@ -20,10 +18,11 @@ main() {
 
 /*member: effectivelyFinalList:
  dynamic=[
-  List.add(1),
-  List.length,
-  List.length=,
-  int.+],
+  +,
+  add(1),
+  call(1),
+  length,
+  length=],
  type=[
   inst:JSInt,
   inst:JSNull,
@@ -67,12 +66,12 @@ notEffectivelyFinalList() {
 }
 
 /*member: _method1:type=[inst:JSNull]*/
-num _method1() => null;
+num? _method1() => null;
 
 /*member: effectivelyFinalPromoted:
  dynamic=[
-  int.+,
-  num.+],
+  +,
+  int.+],
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -119,7 +118,7 @@ num _method1() => null;
   inst:JSPositiveInt,
   inst:JSUInt31,
   inst:JSUInt32,
-  is:int*]
+  is:int]
 */
 effectivelyFinalPromoted() {
   dynamic c = _method1();
@@ -130,11 +129,11 @@ effectivelyFinalPromoted() {
 }
 
 /*member: _method2:type=[inst:JSNull]*/
-String _method2() => null;
+String? _method2() => null;
 
 /*member: effectivelyFinalPromotedInvalid:
  dynamic=[
-  String.+,
+  +,
   int.+],
  static=[
   Rti._bind(1),
@@ -183,7 +182,7 @@ String _method2() => null;
   inst:JSString,
   inst:JSUInt31,
   inst:JSUInt32,
-  is:int*]
+  is:int]
 */
 effectivelyFinalPromotedInvalid() {
   dynamic c = _method2();

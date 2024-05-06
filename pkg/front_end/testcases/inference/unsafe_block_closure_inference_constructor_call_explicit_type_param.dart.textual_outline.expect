@@ -7,4 +7,5 @@ class C<T> {
 var v = new C<int>(() {
   return 1;
 });
+
 main() {}

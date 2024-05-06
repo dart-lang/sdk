@@ -27,4 +27,5 @@ class P2 extends C {
 }
 
 expect(expected, actual) {}
+
 main() {}

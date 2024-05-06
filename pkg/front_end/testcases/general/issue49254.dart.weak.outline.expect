@@ -4,7 +4,7 @@ library;
 //
 // pkg/front_end/testcases/general/issue49254.dart:10:7: Error: Can't infer the type of 'bar': circularity found during type inference.
 // Specify the type explicitly.
-//   var bar = A3.initializeFoo;
+//   var bar = A3.initializeFoo; // Error.
 //       ^^^
 //
 import self as self;

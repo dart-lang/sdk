@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // Tests for the heuristics on conditional expression whose condition is a
 // parameter for which the max, instead of the sum, of the branch sizes is used.
 
@@ -21,7 +19,9 @@ main() {
 /*member: _method1:[_conditionalField]*/
 _method1() => 42;
 
-bool _field1;
+/*member: _field1=:[conditionalField]*/
+/*member: _field1:[_conditionalField]*/
+late bool _field1;
 
 /*member: _conditionalField:[]*/
 _conditionalField() {

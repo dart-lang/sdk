@@ -656,7 +656,7 @@ intptr_t ActivationFrame::ContextLevel() {
 
 bool ActivationFrame::HandlesException(const Instance& exc_obj) {
   if (kind_ == kAsyncSuspensionMarker) {
-    return has_catch_error();
+    return false;
   }
   intptr_t try_index = TryIndex();
   const auto& handlers = ExceptionHandlers::Handle(code().exception_handlers());
@@ -717,7 +717,7 @@ const Context& ActivationFrame::GetSavedCurrentContext() {
         ASSERT(function().name() == Symbols::call().ptr());
         ASSERT(function().IsInvokeFieldDispatcher());
         // Closure.call frames.
-        ctx_ = Closure::Cast(obj).context();
+        ctx_ = Closure::Cast(obj).GetContext();
       } else if (obj.IsContext()) {
         ctx_ = Context::Cast(obj).ptr();
       } else {
@@ -732,13 +732,18 @@ const Context& ActivationFrame::GetSavedCurrentContext() {
 
 ActivationFrame* DebuggerStackTrace::GetHandlerFrame(
     const Instance& exc_obj) const {
+  if (FLAG_trace_debugger_stacktrace) {
+    OS::PrintErr("GetHandlerFrame(%s)\n", exc_obj.ToCString());
+  }
+
   for (intptr_t frame_index = 0; frame_index < Length(); frame_index++) {
     ActivationFrame* frame = FrameAt(frame_index);
+    const bool can_handle = frame->HandlesException(exc_obj);
     if (FLAG_trace_debugger_stacktrace) {
-      OS::PrintErr("GetHandlerFrame: #%04" Pd " %s", frame_index,
-                   frame->ToCString());
+      OS::PrintErr("    #%04" Pd " (%s) %s", frame_index,
+                   can_handle ? "+" : "-", frame->ToCString());
     }
-    if (frame->HandlesException(exc_obj)) {
+    if (can_handle) {
       return frame;
     }
   }
@@ -1111,7 +1116,8 @@ TypeArgumentsPtr ActivationFrame::BuildParameters(
       type_arguments_available = true;
       type_arguments ^= value.ptr();
     } else if (!name.Equals(Symbols::This()) &&
-               !IsSyntheticVariableName(name)) {
+               !IsSyntheticVariableName(name) &&
+               value.ptr() != Object::optimized_out().ptr()) {
       if (IsPrivateVariableName(name)) {
         name = Symbols::New(Thread::Current(), String::ScrubName(name));
       }
@@ -1287,7 +1293,7 @@ void DebuggerStackTrace::AddActivation(ActivationFrame* frame) {
   }
 }
 
-void DebuggerStackTrace::AddAsyncSuspension(bool has_catch_error) {
+void DebuggerStackTrace::AddAsyncSuspension() {
   // We might start asynchronous unwinding in one of the internal
   // dart:async functions which would make synchronous part of the
   // stack empty. This would not happen normally but might happen
@@ -1295,9 +1301,6 @@ void DebuggerStackTrace::AddAsyncSuspension(bool has_catch_error) {
   if (trace_.is_empty() ||
       trace_.Last()->kind() != ActivationFrame::kAsyncSuspensionMarker) {
     trace_.Add(new ActivationFrame(ActivationFrame::kAsyncSuspensionMarker));
-  }
-  if (has_catch_error) {
-    trace_.Last()->set_has_catch_error(true);
   }
 }
 
@@ -1736,15 +1739,17 @@ DebuggerStackTrace* DebuggerStackTrace::CollectAsyncAwaiters() {
   auto stack_trace = new DebuggerStackTrace(kDefaultStackAllocation);
 
   bool has_async = false;
+  bool has_async_catch_error = false;
   StackTraceUtils::CollectFrames(
-      thread, /*skip_frames=*/0, [&](const StackTraceUtils::Frame& frame) {
+      thread, /*skip_frames=*/0,
+      [&](const StackTraceUtils::Frame& frame) {
         if (frame.frame != nullptr) {  // Synchronous portion of the stack.
           stack_trace->AppendCodeFrames(frame.frame, frame.code);
         } else {
           has_async = true;
 
           if (frame.code.ptr() == StubCode::AsynchronousGapMarker().ptr()) {
-            stack_trace->AddAsyncSuspension(frame.has_async_catch_error);
+            stack_trace->AddAsyncSuspension();
             return;
           }
 
@@ -1758,12 +1763,15 @@ DebuggerStackTrace* DebuggerStackTrace::CollectAsyncAwaiters() {
           stack_trace->AddAsyncAwaiterFrame(absolute_pc, frame.code,
                                             frame.closure);
         }
-      });
+      },
+      &has_async_catch_error);
 
   // If the entire stack is sync, return no (async) trace.
   if (!has_async) {
     return nullptr;
   }
+
+  stack_trace->set_has_async_catch_error(has_async_catch_error);
 
   return stack_trace;
 }
@@ -1869,6 +1877,11 @@ bool Debugger::ShouldPauseOnException(DebuggerStackTrace* stack_trace,
     return true;
   }
   ASSERT(exc_pause_info_ == kPauseOnUnhandledExceptions);
+  // There might be no Dart stack if we hit an exception in the runtime, most
+  // likely OutOfMemory.
+  if (stack_trace->Length() == 0) {
+    return false;
+  }
   // Exceptions coming from invalid token positions should be skipped
   ActivationFrame* top_frame = stack_trace->FrameAt(0);
   if (!top_frame->TokenPos().IsReal() && top_frame->TryIndex() != -1) {
@@ -1881,7 +1894,7 @@ bool Debugger::ShouldPauseOnException(DebuggerStackTrace* stack_trace,
     // uninstantiated types, i.e. types containing type parameters.
     // Thus, we may report an exception as unhandled when in fact
     // it will be caught once we unwind the stack.
-    return true;
+    return !stack_trace->has_async_catch_error();
   }
 
   auto& handler_function = Function::Handle(handler_frame->function().ptr());

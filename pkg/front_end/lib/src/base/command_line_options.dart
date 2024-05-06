@@ -35,6 +35,8 @@ class Flags {
   static const String omitPlatform = "--omit-platform";
   static const String fatal = "--fatal";
   static const String fatalSkip = "--fatal-skip";
+  static const String showGeneratedMacroSources = "--show-macros";
+  static const String checkMacroOffsets = "--check-macro-offsets";
   static const String help = "--help";
   static const String librariesJson = "--libraries-json";
   static const String noDefines = "--no-defines";
@@ -74,6 +76,10 @@ class Options {
       const Option(Flags.fatal, const StringListValue());
   static const Option<String?> fatalSkip =
       const Option(Flags.fatalSkip, const StringValue());
+  static const Option<bool> showGeneratedMacroSources =
+      const Option(Flags.showGeneratedMacroSources, const BoolValue(false));
+  static const Option<bool> checkMacroOffsets =
+      const Option(Flags.checkMacroOffsets, const BoolValue(false));
   static const Option<int?> forceLateLowering = const Option(
       Flags.forceLateLowering,
       const IntValue(defaultValue: null, noArgValue: LateLowering.all));

@@ -48,6 +48,7 @@ class Super {
 }
 
 main() {}
+
 mixin Mixin {
   num mixedInMethod() => 0;
 }

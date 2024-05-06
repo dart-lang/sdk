@@ -28,9 +28,9 @@ callLoadLibrary() => expect.loadLibrary();
 
 main() async {
   asyncTest(() async {
-    print('--test Dart 2 ----------------------------------------------------');
+    print('--test ----------------------------------------------------');
     await runTest([], trust: false);
-    print('--test Dart 2 --omit-implicit-checks -----------------------------');
+    print('--test --omit-implicit-checks -----------------------------');
     await runTest([Flags.omitImplicitChecks]);
   });
 }
@@ -39,7 +39,7 @@ runTest(List<String> options, {bool trust = true}) async {
   CompilationResult result = await runCompiler(
       memorySourceFiles: {'main.dart': source}, options: options);
   Expect.isTrue(result.isSuccess);
-  Compiler compiler = result.compiler;
+  Compiler compiler = result.compiler!;
   JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
   AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
@@ -59,11 +59,7 @@ runTest(List<String> options, {bool trust = true}) async {
       localsMap.getLocalVariable(
           procedure.function.positionalParameters.first)) as TypeMask;
 
-  if (trust) {
-    Expect.equals(
-        abstractValueDomain.includeNull(abstractValueDomain.stringType),
-        typeMask);
-  } else {
-    Expect.equals(abstractValueDomain.dynamicType, typeMask);
-  }
+  Expect.equals(
+      trust ? abstractValueDomain.stringType : abstractValueDomain.dynamicType,
+      typeMask);
 }

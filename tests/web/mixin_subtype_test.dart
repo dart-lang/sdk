@@ -2,11 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(https://github.com/dart-lang/sdk/issues/51557): Decide if the mixins
-// being applied in this test should be "mixin", "mixin class" or the test
-// should be left at 2.19.
-// @dart=2.19
-
 import "package:expect/expect.dart";
 
 class A {}
@@ -19,13 +14,13 @@ class J {}
 
 mixin M1 on A, B implements I, J {}
 
-class M2 implements A, B, I, J {}
+mixin M2 implements A, B, I, J {}
 
-class M3 implements A, B, I, J {}
+mixin class M3 implements A, B, I, J {}
 
-class M4 implements A, B, I, J {}
+mixin M4 implements A, B, I, J {}
 
-class M5 implements A, B, I, J {}
+mixin M5 implements A, B, I, J {}
 
 class C implements A, B {}
 

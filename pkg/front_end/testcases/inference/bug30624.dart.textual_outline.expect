@@ -1,4 +1,5 @@
 // @dart = 2.9
+
 library test;
 
 void foo<E>(C<E> c, int cmp(E a, E b)) {}

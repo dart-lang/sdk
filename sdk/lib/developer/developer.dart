@@ -80,6 +80,7 @@ import 'dart:convert';
 import 'dart:isolate' show Isolate, RawReceivePort, SendPort;
 
 part 'extension.dart';
+part 'http_profiling.dart';
 part 'profiler.dart';
 part 'service.dart';
 part 'timeline.dart';
@@ -139,9 +140,11 @@ external void log(
 ///
 /// NOTE: There are no guarantees of forward progress. An implementation may
 /// return the same value forever for this barrier state.
+@Since('2.19')
 external int get reachabilityBarrier;
 
 /// Functionality available on the native runtime.
+@Since('3.0')
 abstract final class NativeRuntime {
   /// The build ID for the running application.
   ///
@@ -153,6 +156,7 @@ abstract final class NativeRuntime {
   ///
   /// The build ID is only available for ahead-of-time compiled programs. If a
   /// build ID is not available, the value is `null`.
+  @Since('3.1')
   external static String? get buildId;
 
   /// Writes a snapshot of the heap to [filepath].

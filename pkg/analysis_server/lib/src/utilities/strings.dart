@@ -146,14 +146,6 @@ String? removeEnd(String? str, String? remove) {
   return str;
 }
 
-String repeat(String s, int n) {
-  var sb = StringBuffer();
-  for (var i = 0; i < n; i++) {
-    sb.write(s);
-  }
-  return sb.toString();
-}
-
 /// If the [text] length is above the [limit], replace the middle with `...`.
 String shorten(String text, int limit) {
   if (text.length > limit) {

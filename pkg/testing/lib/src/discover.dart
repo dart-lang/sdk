@@ -12,8 +12,6 @@ import '../testing.dart' show FileBasedTestDescription;
 
 final Uri packageConfig = computePackageConfig();
 
-final Uri dartSdk = computeDartSdk();
-
 /// Common arguments when running a dart program. Returns a copy that can
 /// safely be modified by caller.
 List<String> get dartArguments =>
@@ -63,24 +61,6 @@ Uri computePackageConfig() {
   String? path = Platform.packageConfig;
   if (path != null) return Uri.base.resolve(path);
   return Uri.base.resolve(".dart_tool/package_config.json");
-}
-
-// TODO(eernst): Use `bool.hasEnvironment` below when possible;
-// for now we use a dual `defaultValue` rewrite.
-const _dartSdk = (String.fromEnvironment("DART_SDK", defaultValue: "1") ==
-        String.fromEnvironment("DART_SDK", defaultValue: "2"))
-    ? String.fromEnvironment("DART_SDK")
-    : null;
-
-Uri computeDartSdk() {
-  String? dartSdkPath = Platform.environment["DART_SDK"] ?? _dartSdk;
-  if (dartSdkPath != null) {
-    return Uri.base.resolveUri(Uri.file(dartSdkPath));
-  } else {
-    return Uri.base
-        .resolveUri(Uri.file(Platform.resolvedExecutable))
-        .resolve("../");
-  }
 }
 
 Future<Process> startDart(Uri program,

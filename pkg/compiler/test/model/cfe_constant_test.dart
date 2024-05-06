@@ -20,7 +20,7 @@ import '../helpers/shared_helper.dart';
 main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = Directory.fromUri(Platform.script
-        .resolve('../../../../pkg/_fe_analyzer_shared/test/constants/data_2'));
+        .resolve('../../../../pkg/_fe_analyzer_shared/test/constants/data'));
     await checkTests<String>(dataDir, ConstantDataComputer(),
         args: args, testedConfigs: [sharedConfig]);
   });
@@ -82,9 +82,7 @@ class ConstantDataExtractor extends IrDataExtractor<String> {
   String? computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.ConstantExpression) {
       return constantToText(
-          elementMap.types,
-          elementMap.getConstantValue(
-              elementMap.getStaticTypeContext(member), node)!);
+          elementMap.types, elementMap.getConstantValue(node)!);
     }
     return null;
   }

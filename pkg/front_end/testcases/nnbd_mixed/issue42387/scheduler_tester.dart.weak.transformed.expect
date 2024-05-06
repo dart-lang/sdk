@@ -15,7 +15,7 @@ abstract class _TestSchedulerBinding&BindingBase&SchedulerBinding extends fou::B
     : super fou::BindingBase::•()
     ;
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature method registerSignalServiceExtension({core::String* name = #C1, () →* asy::Future<Null>* callback = #C1}) → void; -> fou::BindingBase::registerSignalServiceExtension
+  abstract member-signature method registerSignalServiceExtension({core::String* name, () →* asy::Future<Null>* callback}) → void; -> fou::BindingBase::registerSignalServiceExtension
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -55,7 +55,7 @@ abstract class BindingBase extends core::Object {
   synthetic constructor •() → fou::BindingBase
     : super core::Object::•()
     ;
-  method registerSignalServiceExtension({required core::String name = #C1, required () → asy::Future<Null> callback = #C1}) → void {}
+  method registerSignalServiceExtension({required core::String name, required () → asy::Future<Null> callback}) → void {}
 }
 
 library /*isLegacy*/;
@@ -79,7 +79,7 @@ import "org-dartlang-testcase:///foundation_lib.dart";
 
 abstract class SchedulerBinding extends fou::BindingBase /*isMixinDeclaration*/  {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature method registerSignalServiceExtension({core::String* name = #C1, () →* asy::Future<Null>* callback = #C1}) → void; -> fou::BindingBase::registerSignalServiceExtension
+  abstract member-signature method registerSignalServiceExtension({core::String* name, () →* asy::Future<Null>* callback}) → void; -> fou::BindingBase::registerSignalServiceExtension
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -123,7 +123,7 @@ abstract class _ServicesBinding&BindingBase&SchedulerBinding extends core::Objec
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  abstract member-signature method registerSignalServiceExtension({core::String* name = #C1, () →* asy::Future<Null>* callback = #C1}) → void; -> fou::BindingBase::registerSignalServiceExtension
+  abstract member-signature method registerSignalServiceExtension({core::String* name, () →* asy::Future<Null>* callback}) → void; -> fou::BindingBase::registerSignalServiceExtension
 }
 abstract class ServicesBinding extends ser::_ServicesBinding&BindingBase&SchedulerBinding /*isMixinDeclaration*/  {
 }
@@ -134,8 +134,3 @@ import "services_binding_lib.dart" as ser;
 additionalExports = (ser::ServicesBinding)
 
 export "org-dartlang-testcase:///services_binding_lib.dart";
-
-
-constants  {
-  #C1 = null
-}

@@ -28,8 +28,8 @@ class E1 {
 
 class E2 {
   E2._();
-  factory E2.new() => E2._(); // Error.
-  E2();
+  factory E2.new() => E2._();
+  E2(); // Error.
 }
 
 class E3 {

@@ -9,9 +9,15 @@ class FooGeneric<X> {
 }
 
 const Bar bar = Bar.named();
+
 const Bar bar2 = Bar.namedFactory();
+
 const BarGeneric<int> barGeneric = BarGeneric.named();
+
 const BarGeneric<int> barGeneric2 = BarGeneric.namedFactory();
+
 main() {}
+
 typedef Bar = Foo;
+
 typedef BarGeneric<X> = FooGeneric<X>;

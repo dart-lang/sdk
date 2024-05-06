@@ -1,0 +1,69 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+class B1 extends core::Object {
+  synthetic constructor •() → self::B1
+    : super core::Object::•()
+    ;
+}
+abstract class M1<T extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
+}
+abstract class _SA1&B1&M1 extends self::B1 implements self::M1<core::int> /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •() → self::_SA1&B1&M1
+    : super self::B1::•()
+    ;
+}
+class SA1 extends self::_SA1&B1&M1 {
+  synthetic constructor •() → self::SA1
+    : super self::_SA1&B1&M1::•()
+    ;
+}
+class SA2 extends self::_SA1&B1&M1 {
+  synthetic constructor •() → self::SA2
+    : super self::_SA1&B1&M1::•()
+    ;
+}
+abstract class _SA3&B1&M1 extends self::B1 implements self::M1<core::String> /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •() → self::_SA3&B1&M1
+    : super self::B1::•()
+    ;
+}
+class SA3 extends self::_SA3&B1&M1 {
+  synthetic constructor •() → self::SA3
+    : super self::_SA3&B1&M1::•()
+    ;
+}
+class B2<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::B2<self::B2::T%>
+    : super core::Object::•()
+    ;
+}
+abstract class M2 extends core::Object /*isMixinDeclaration*/  {
+}
+abstract class _SB1&B2&M2 extends self::B2<core::int> implements self::M2 /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •() → self::_SB1&B2&M2
+    : super self::B2::•()
+    ;
+}
+class SB1 extends self::_SB1&B2&M2 {
+  synthetic constructor •() → self::SB1
+    : super self::_SB1&B2&M2::•()
+    ;
+}
+class SB2 extends self::_SB1&B2&M2 {
+  synthetic constructor •() → self::SB2
+    : super self::_SB1&B2&M2::•()
+    ;
+}
+abstract class _SB3&B2&M2 extends self::B2<core::String> implements self::M2 /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •() → self::_SB3&B2&M2
+    : super self::B2::•()
+    ;
+}
+class SB3 extends self::_SB3&B2&M2 {
+  synthetic constructor •() → self::SB3
+    : super self::_SB3&B2&M2::•()
+    ;
+}
+static method main() → dynamic {}

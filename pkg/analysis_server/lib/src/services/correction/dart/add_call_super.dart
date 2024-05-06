@@ -9,7 +9,6 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
-import 'package:collection/collection.dart';
 
 class AddCallSuper extends ResolvedCorrectionProducer {
   var _addition = '';
@@ -53,7 +52,7 @@ class AddCallSuper extends ResolvedCorrectionProducer {
               }
               return null;
             })
-            .whereNotNull()
+            .nonNulls
             .join(', ') ??
         '';
 
@@ -83,7 +82,7 @@ class AddCallSuper extends ResolvedCorrectionProducer {
     var expression = body.expression;
     var semicolon = body.semicolon;
     var prefix = utils.getLinePrefix(expression.offset);
-    var prefixWithLine = eol + prefix + utils.getIndent(1);
+    var prefixWithLine = eol + prefix + utils.oneIndent;
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(

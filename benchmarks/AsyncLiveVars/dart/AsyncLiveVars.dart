@@ -15,27 +15,33 @@ class MockClass {
       List<int>.filled(int.parse('3'), int.parse('42'));
 
   @pragma('vm:never-inline')
+  @pragma('wasm:never-inline')
   @pragma('dart2js:noInline')
   String get1() => str;
 
   @pragma('vm:never-inline')
+  @pragma('wasm:never-inline')
   @pragma('dart2js:noInline')
   List<int> get2() => list;
 
   @pragma('vm:never-inline')
+  @pragma('wasm:never-inline')
   @pragma('dart2js:noInline')
   void use1(String a0) => a0.length;
 
   @pragma('vm:never-inline')
+  @pragma('wasm:never-inline')
   @pragma('dart2js:noInline')
   void use2(String a0, List<int> a1) => a0.length + a1.length;
 
   @pragma('vm:never-inline')
+  @pragma('wasm:never-inline')
   @pragma('dart2js:noInline')
   void use4(String a0, List<int> a1, String a2, List<int> a3) =>
       a0.length + a1.length + a2.length + a3.length;
 
   @pragma('vm:never-inline')
+  @pragma('wasm:never-inline')
   @pragma('dart2js:noInline')
   void use8(String a0, List<int> a1, String a2, List<int> a3, String a4,
           List<int> a5, String a6, List<int> a7) =>
@@ -49,6 +55,7 @@ class MockClass {
       a7.length;
 
   @pragma('vm:never-inline')
+  @pragma('wasm:never-inline')
   @pragma('dart2js:noInline')
   Future<void> asyncMethod() async {}
 }
@@ -58,26 +65,32 @@ class MockClass2 {
   static int val2 = int.parse('43');
 
   @pragma('vm:never-inline')
+  @pragma('wasm:never-inline')
   @pragma('dart2js:noInline')
   int get1() => val1;
 
   @pragma('vm:never-inline')
+  @pragma('wasm:never-inline')
   @pragma('dart2js:noInline')
   int get2() => val2;
 
   @pragma('vm:never-inline')
+  @pragma('wasm:never-inline')
   @pragma('dart2js:noInline')
   void use1(int a0) => a0;
 
   @pragma('vm:never-inline')
+  @pragma('wasm:never-inline')
   @pragma('dart2js:noInline')
   void use2(int a0, int a1) => a0 + a1;
 
   @pragma('vm:never-inline')
+  @pragma('wasm:never-inline')
   @pragma('dart2js:noInline')
   void use4(int a0, int a1, int a2, int a3) => a0 + a1 + a2 + a3;
 
   @pragma('vm:never-inline')
+  @pragma('wasm:never-inline')
   @pragma('dart2js:noInline')
   Future<void> asyncMethod() async {}
 }

@@ -26,12 +26,15 @@ import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/context/source.dart';
+import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/workspace/pub.dart';
+import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service_io.dart' as vm_service;
@@ -159,6 +162,17 @@ String writeOption(String name, dynamic value) {
   return '$name: <code>$value</code><br> ';
 }
 
+_CollectedOptionsData _collectOptionsData(AnalysisDriver driver) {
+  var collectedData = _CollectedOptionsData();
+  if (driver.analysisContext?.allAnalysisOptions case var allAnalysisOptions?) {
+    for (var analysisOptions in allAnalysisOptions) {
+      collectedData.lints.addAll(analysisOptions.lintRules.map((e) => e.name));
+      collectedData.plugins.addAll(analysisOptions.enabledPluginNames);
+    }
+  }
+  return collectedData;
+}
+
 class AnalyticsPage extends DiagnosticPageWithNav {
   AnalyticsPage(DiagnosticsSite site)
       : super(site, 'analytics', 'Analytics',
@@ -219,7 +233,7 @@ class AstPage extends DiagnosticPageWithNav {
           raw: true);
       return;
     }
-    var result = await driver.getResult(filePath);
+    var result = await driver.getResolvedUnit(filePath);
     if (result is ResolvedUnitResult) {
       var writer = AstWriter(buf);
       result.unit.accept(writer);
@@ -346,18 +360,15 @@ class CollectReportPage extends DiagnosticPage {
       var contextData = {};
       contexts.add(contextData);
       // We don't include the name as some might see that as "secret".
+      var knownFiles = data.knownFiles.map((f) => f.path).toSet();
       contextData['priorityFiles'] = data.priorityFiles.length;
       contextData['addedFiles'] = data.addedFiles.length;
-      contextData['knownFiles'] = data.knownFiles.length;
-      uniqueKnownFiles.addAll(data.knownFiles);
+      contextData['knownFiles'] = knownFiles.length;
+      uniqueKnownFiles.addAll(knownFiles);
 
-      contextData['lints'] =
-          // TODO(pq): migrate to *all* analysis options
-          // ignore: deprecated_member_use
-          data.analysisOptions.lintRules.map((e) => e.name).toList();
-      // TODO(pq): migrate to *all* analysis options
-      // ignore: deprecated_member_use
-      contextData['plugins'] = data.analysisOptions.enabledPluginNames.toList();
+      var collectedOptionsData = _collectOptionsData(data);
+      contextData['lints'] = collectedOptionsData.lints.toList();
+      contextData['plugins'] = collectedOptionsData.plugins.toList();
     }
     collectedData['uniqueKnownFiles'] = uniqueKnownFiles.length;
 
@@ -464,8 +475,7 @@ class CollectReportPage extends DiagnosticPage {
     }
 
     if (startedServiceProtocol) {
-      await developer.Service.controlWebServer(
-          enable: false, silenceOutput: true);
+      await developer.Service.controlWebServer(silenceOutput: true);
     }
 
     const JsonEncoder encoder = JsonEncoder.withIndent('  ');
@@ -682,17 +692,6 @@ class ContextsPage extends DiagnosticPageWithNav {
   @override
   String get navDetail => '${server.driverMap.length}';
 
-  String describe(AnalysisOptionsImpl options) {
-    var b = StringBuffer();
-
-    b.write(writeOption('Feature set', options.contextFeatures.toString()));
-    b.write('<br>');
-
-    b.write(writeOption('Generate hints', options.hint));
-
-    return b.toString();
-  }
-
   @override
   Future<void> generateContent(Map<String, String> params) async {
     var driverMap = server.driverMap;
@@ -732,66 +731,68 @@ class ContextsPage extends DiagnosticPageWithNav {
     buf.writeln('</div>');
 
     buf.writeln(writeOption('Context location', escape(contextPath)));
-    buf.writeln(writeOption(
-        'Analysis options path',
-        escape(
-            driver.analysisContext?.contextRoot.optionsFile?.path ?? 'none')));
     buf.writeln(
         writeOption('SDK root', escape(driver.analysisContext?.sdkRoot?.path)));
 
-    buf.writeln('<div class="columns">');
-
-    buf.writeln('<div class="column one-half">');
     h3('Analysis options');
-    // TODO(pq): migrate to *all* analysis options
-    // ignore: deprecated_member_use
-    p(describe(driver.analysisOptions as AnalysisOptionsImpl), raw: true);
 
-    h3('Pub files');
+    // Display analysis options entries inside this context root.
+    var optionsInContextRoot = driver.analysisOptionsMap.entries.where(
+        (OptionsMapEntry entry) => contextPath!.startsWith(entry.folder.path));
+    ul(optionsInContextRoot, (OptionsMapEntry entry) {
+      var folder = entry.folder;
+      buf.write(escape(folder.path));
+      var optionsPath = path.join(folder.path, 'analysis_options.yaml');
+      var contentsPath =
+          '/contents?file=${Uri.encodeQueryComponent(optionsPath)}';
+      buf.writeln(' <a href="$contentsPath">analysis_options.yaml</a>');
+    }, classes: 'scroll-table');
+
+    String lenCounter(int length) {
+      return '<span class="counter" style="float: right;">$length</span>';
+    }
+
+    h3('Workspace');
+    var workspace = driver.analysisContext?.contextRoot.workspace;
     buf.writeln('<p>');
+    buf.writeln(writeOption('Workspace root', escape(workspace?.root)));
+    var workspaceFolder = folder.provider.getFolder(workspace!.root);
 
-    var packageConfig = folder
+    void writePackage(WorkspacePackage package) {
+      buf.writeln(writeOption('Package root', escape(package.root)));
+      if (package is PubPackage) {
+        buf.writeln(writeOption(
+            'pubspec file',
+            escape(workspaceFolder
+                .getChildAssumingFile(file_paths.pubspecYaml)
+                .path)));
+      }
+    }
+
+    var packageConfig = workspaceFolder
         .getChildAssumingFolder(file_paths.dotDartTool)
         .getChildAssumingFile(file_paths.packageConfigJson);
     buf.writeln(
         writeOption('Has package_config.json file', packageConfig.exists));
-    buf.writeln(writeOption('Has pubspec.yaml file',
-        folder.getChild(file_paths.pubspecYaml).exists));
+    if (workspace is PackageConfigWorkspace) {
+      var packages = workspace.allPackages;
+      h4('Packages ${lenCounter(packages.length)}', raw: true);
+      ul(packages, writePackage, classes: 'scroll-table');
+    }
     buf.writeln('</p>');
 
     buf.writeln('</div>');
 
-    buf.writeln('</div>');
-
-    h3('Lints');
-    // TODO(pq): migrate to *all* analysis options
-    // ignore: deprecated_member_use
-    var lints = driver.analysisOptions.lintRules.map((l) => l.name).toList()
-      ..sort();
-    ul(lints, (String lint) => buf.write(lint), classes: 'scroll-table');
-
-    h3('Error processors');
-    // TODO(pq): migrate to *all* analysis options
-    // ignore: deprecated_member_use
-    p(driver.analysisOptions.errorProcessors
-        .map((e) => e.description)
-        .join(', '));
-
     h3('Plugins');
-    // TODO(pq): migrate to *all* analysis options
-    // ignore: deprecated_member_use
-    p(driver.analysisOptions.enabledPluginNames.join(', '));
+    var optionsData = _collectOptionsData(driver);
+    p(optionsData.plugins.toList().join(', '));
 
     var priorityFiles = driver.priorityFiles;
     var addedFiles = driver.addedFiles.toList();
-    var implicitFiles =
-        driver.knownFiles.difference(driver.addedFiles).toList();
+    var knownFiles = driver.knownFiles.map((f) => f.path).toSet();
+    var implicitFiles = knownFiles.difference(driver.addedFiles).toList();
     addedFiles.sort();
     implicitFiles.sort();
-
-    String lenCounter(List<String> list) {
-      return '<span class="counter" style="float: right;">${list.length}</span>';
-    }
 
     h3('Context files');
 
@@ -808,13 +809,13 @@ class ContextsPage extends DiagnosticPageWithNav {
           ' <a href="$contentsPath">contents${hasOverlay ? '*' : ''}</a>');
     }
 
-    h4('Priority files ${lenCounter(priorityFiles)}', raw: true);
+    h4('Priority files ${lenCounter(priorityFiles.length)}', raw: true);
     ul(priorityFiles, writeFile, classes: 'scroll-table');
 
-    h4('Added files ${lenCounter(addedFiles)}', raw: true);
+    h4('Added files ${lenCounter(addedFiles.length)}', raw: true);
     ul(addedFiles, writeFile, classes: 'scroll-table');
 
-    h4('Implicit files ${lenCounter(implicitFiles)}', raw: true);
+    h4('Implicit files ${lenCounter(implicitFiles.length)}', raw: true);
     ul(implicitFiles, writeFile, classes: 'scroll-table');
 
     var sourceFactory = driver.sourceFactory;
@@ -1109,7 +1110,7 @@ class ElementModelPage extends DiagnosticPageWithNav {
           raw: true);
       return;
     }
-    var result = await driver.getResult(filePath);
+    var result = await driver.getResolvedUnit(filePath);
     CompilationUnitElement? compilationUnitElement;
     if (result is ResolvedUnitResult) {
       compilationUnitElement = result.unit.declaredElement;
@@ -1684,6 +1685,11 @@ class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
       _emitTable(itemsSlow);
     }
   }
+}
+
+class _CollectedOptionsData {
+  final Set<String> lints = <String>{};
+  final Set<String> plugins = <String>{};
 }
 
 extension on String {

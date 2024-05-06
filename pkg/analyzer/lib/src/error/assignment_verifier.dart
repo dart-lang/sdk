@@ -13,10 +13,9 @@ import 'package:analyzer/src/error/codes.dart';
 /// an [AssignmentExpression], or a [PrefixExpression] or [PostfixExpression]
 /// when the operator is an increment operator.
 class AssignmentVerifier {
-  final LibraryElement _definingLibrary;
   final ErrorReporter _errorReporter;
 
-  AssignmentVerifier(this._definingLibrary, this._errorReporter);
+  AssignmentVerifier(this._errorReporter);
 
   /// We resolved [node] and found that it references the [requested] element.
   /// Verify that this element is actually writable.
@@ -37,20 +36,10 @@ class AssignmentVerifier {
     if (requested != null) {
       if (requested is VariableElement) {
         if (requested.isConst) {
-          _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.ASSIGNMENT_TO_CONST,
+          _errorReporter.atNode(
             node,
+            CompileTimeErrorCode.ASSIGNMENT_TO_CONST,
           );
-        } else if (requested.isFinal) {
-          if (_definingLibrary.isNonNullableByDefault) {
-            // Handled during resolution, with flow analysis.
-          } else {
-            _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL,
-              node,
-              [requested.name],
-            );
-          }
         }
       }
       return;
@@ -60,44 +49,47 @@ class AssignmentVerifier {
         recovery is InterfaceElement ||
         recovery is TypeAliasElement ||
         recovery is TypeParameterElement) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.ASSIGNMENT_TO_TYPE,
+      _errorReporter.atNode(
         node,
+        CompileTimeErrorCode.ASSIGNMENT_TO_TYPE,
       );
     } else if (recovery is FunctionElement) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.ASSIGNMENT_TO_FUNCTION,
+      _errorReporter.atNode(
         node,
+        CompileTimeErrorCode.ASSIGNMENT_TO_FUNCTION,
       );
     } else if (recovery is MethodElement) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.ASSIGNMENT_TO_METHOD,
+      _errorReporter.atNode(
         node,
+        CompileTimeErrorCode.ASSIGNMENT_TO_METHOD,
       );
     } else if (recovery is PrefixElement) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+      _errorReporter.atNode(
         node,
-        [recovery.name],
+        CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+        arguments: [recovery.name],
       );
     } else if (recovery is PropertyAccessorElement && recovery.isGetter) {
-      var variable = recovery.variable;
+      var variable = recovery.variable2;
+      if (variable == null) {
+        return;
+      }
       if (variable.isConst) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.ASSIGNMENT_TO_CONST,
+        _errorReporter.atNode(
           node,
+          CompileTimeErrorCode.ASSIGNMENT_TO_CONST,
         );
       } else if (variable is FieldElement && variable.isSynthetic) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER,
+        _errorReporter.atNode(
           node,
-          [variable.name, variable.enclosingElement.displayName],
+          CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER,
+          arguments: [variable.name, variable.enclosingElement.displayName],
         );
       } else {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.ASSIGNMENT_TO_FINAL,
+        _errorReporter.atNode(
           node,
-          [variable.name],
+          CompileTimeErrorCode.ASSIGNMENT_TO_FINAL,
+          arguments: [variable.name],
         );
       }
     } else if (recovery is MultiplyDefinedElementImpl) {
@@ -107,16 +99,16 @@ class AssignmentVerifier {
         return;
       }
       if (receiverType != null) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.UNDEFINED_SETTER,
+        _errorReporter.atNode(
           node,
-          [node.name, receiverType],
+          CompileTimeErrorCode.UNDEFINED_SETTER,
+          arguments: [node.name, receiverType],
         );
       } else {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
+        _errorReporter.atNode(
           node,
-          [node.name],
+          CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
+          arguments: [node.name],
         );
       }
     }

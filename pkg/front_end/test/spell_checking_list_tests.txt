@@ -30,6 +30,7 @@ aligns
 allocations
 allowlist
 allowlisting
+alphabetically
 alt
 amend
 amended
@@ -95,6 +96,7 @@ blah
 blorp
 bold
 boo
+boollist
 bools
 bots
 boundaries
@@ -112,6 +114,7 @@ builddir
 bulkcompile
 busy
 busywait
+bx
 bye
 c's
 ca
@@ -124,6 +127,7 @@ caption
 captions
 carefully
 categorization
+categorize
 causal
 cb
 cc
@@ -133,10 +137,12 @@ cells
 center
 certificate
 cf
+cfasta
 characteristics
 charset
 checkme
 checkout
+chk
 chromes
 chunked
 cipd
@@ -156,6 +162,7 @@ commit
 commits
 companion
 comparative
+comparators
 comparer
 compiler's
 complement
@@ -176,6 +183,7 @@ corge
 corners
 costing
 cov
+coverable
 coverages
 cp
 cpu
@@ -234,6 +242,7 @@ dijkstra
 dijkstras
 dinteractive
 dirname
+dirs
 disagree
 disagreement
 disconnect
@@ -281,6 +290,7 @@ equally
 erase
 err
 esc
+est
 estat
 et
 everytime
@@ -289,6 +299,7 @@ ex
 examines
 exceed
 excess
+excuse
 exe
 exercised
 exercises
@@ -301,6 +312,7 @@ extern
 f\u
 fa
 fac
+failsafe
 faking
 falling
 faults
@@ -368,6 +380,7 @@ ha
 hackish
 hardcoding
 hardly
+hardware
 hb
 hc
 helpfully
@@ -392,6 +405,7 @@ i'm
 ia
 identification
 idle
+if's
 ikg
 illustrate
 image
@@ -407,7 +421,9 @@ inconsistencies
 increasing
 incrementally
 increments
+indention
 indents
+indexable
 ing
 inhibit
 inlinable
@@ -442,6 +458,7 @@ kitty
 ko
 koo
 la
+lambdas
 lat
 launch
 launching
@@ -472,6 +489,7 @@ mds
 meaningless
 measured
 measurement
+merger
 mf
 mfs
 micro
@@ -508,6 +526,7 @@ mxn
 mysdk
 naively
 naturally
+needle
 negatable
 newworld
 ninja
@@ -521,9 +540,11 @@ nondefault
 nonexisting
 noo
 noted
+noting
 nottest
 nq
 null'ed
+numbered
 numerator
 nums
 ob
@@ -589,6 +610,7 @@ prerequisite
 press
 pretends
 preventing
+primitives
 printouts
 processes
 processors
@@ -623,6 +645,7 @@ rediscover
 reducer
 reenable
 referential
+refname
 refusing
 regards
 regenerate
@@ -630,11 +653,13 @@ regressions
 reify
 reject
 remap
+remapping
 remaps
 rendition
 reorder
 reordering
 repaint
+representative
 repro
 reproduce
 reproduction
@@ -648,6 +673,7 @@ revealed
 revisions
 risky
 rk
+rnone
 row
 rows
 rr
@@ -680,6 +706,7 @@ series
 services
 setups
 severe
+sharp
 sheets
 shipped
 shortest
@@ -688,8 +715,10 @@ shuffle
 sidebar
 sigint
 signalled
+sigterm
 sigwinch
 silence
+simplistic
 slashes
 slight
 sliver
@@ -699,6 +728,7 @@ somehow
 sorter
 soundly
 spans
+specializer
 spell
 spellcheck
 spelled
@@ -734,6 +764,7 @@ subs
 subtool
 subtools
 successes
+sudo
 sueta
 suggest
 summarization
@@ -789,6 +820,8 @@ ugly
 unassignment
 unawaited
 unbreak
+uncaught
+uncompiled
 unconverted
 uncover
 uncovers
@@ -807,7 +840,9 @@ unusual
 unversioned
 upgrade
 upload
+upstream
 upward
+useless
 uuid
 val
 verbatim
@@ -822,6 +857,7 @@ walt
 warmup
 week
 weekly
+went
 wherever
 whiskers
 wildcards

@@ -7,7 +7,7 @@ class F3<T extends core::Object? = dynamic> extends core::Object {
     ;
 }
 class F4<T extends core::Object? = dynamic> extends core::Object {
-  constructor •({required core::Iterable<core::Iterable<self::F4::T%>> a = null}) → self::F4<self::F4::T%>
+  constructor •({required core::Iterable<core::Iterable<self::F4::T%>> a}) → self::F4<self::F4::T%>
     ;
 }
 static method main() → void

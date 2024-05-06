@@ -48,7 +48,6 @@ const/const2_test: Crash # Flaky
 main/no_main_test/01: Skip
 mixin/illegal_super_use_test: Skip # Issues 24478 and 23773
 mixin/illegal_superclass_test: Skip # Issues 24478 and 23773
-unsorted/disassemble_test: Slow, Crash # dartbug.com/34971
 vm/closure_memory_retention_test: Skip # KernelVM bug: Hits OOM
 vm/regress_29145_test: Skip # Issue 29145
 

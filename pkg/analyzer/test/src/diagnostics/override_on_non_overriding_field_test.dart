@@ -42,7 +42,7 @@ class B extends A {
   int c = 0;
 }''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 131, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 39, 1)]),
+          contextMessages: [message(testFile, 39, 1)]),
     ]);
   }
 
@@ -62,7 +62,7 @@ class B implements A {
   int c = 0;
 }''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 134, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 39, 1)]),
+          contextMessages: [message(testFile, 39, 1)]),
     ]);
   }
 

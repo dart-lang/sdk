@@ -2,34 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:typed_data' show Uint8List;
-
 import 'dart:io' show File;
+import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/parser/class_member_parser.dart'
     show ClassMemberParser;
-
 import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart';
-
+import 'package:_fe_analyzer_shared/src/parser/listener.dart';
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
-
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ErrorToken, LanguageVersionToken, Scanner;
-
+import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
     show Utf8BytesScanner;
-
-import 'package:_fe_analyzer_shared/src/parser/listener.dart';
-
-import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
-
 import 'package:kernel/ast.dart' show Version;
 
 import '../../api_prototype/experimental_flags.dart' show ExperimentalFlag;
-
-import '../fasta_codes.dart' show codeNativeClauseShouldBeAnnotation;
-
+import '../codes/fasta_codes.dart' show codeNativeClauseShouldBeAnnotation;
 import '../messages.dart' show Message;
 
 abstract class _Chunk implements Comparable<_Chunk> {
@@ -404,21 +394,7 @@ class _ScriptTagChunk extends _TokenChunk {
 }
 
 class _UnknownChunk extends _TokenChunk {
-  final bool addMarkerForUnknownForTest;
-  _UnknownChunk(
-      this.addMarkerForUnknownForTest, Token startToken, Token endToken)
-      : super(startToken, endToken);
-
-  @override
-  void _printOnWithoutHeaderAndMetadata(StringBuffer sb) {
-    if (addMarkerForUnknownForTest) {
-      sb.write("---- unknown chunk starts ----\n");
-      super._printOnWithoutHeaderAndMetadata(sb);
-      sb.write("\n---- unknown chunk ends ----");
-      return;
-    }
-    super._printOnWithoutHeaderAndMetadata(sb);
-  }
+  _UnknownChunk(Token startToken, Token endToken) : super(startToken, endToken);
 }
 
 class _UnknownTokenBuilder {
@@ -444,7 +420,6 @@ String? textualOutline(
   ScannerConfiguration configuration, {
   bool throwOnUnexpected = false,
   bool performModelling = false,
-  bool addMarkerForUnknownForTest = false,
   bool returnNullOnError = true,
   required bool enablePatterns,
   TextualOutlineInfoForTesting? infoForTesting,
@@ -468,6 +443,7 @@ String? textualOutline(
     parsedChunks.add(new _LanguageVersionChunk(
         languageVersionToken.major, languageVersionToken.minor)
       ..originalPosition = originalPosition.value++);
+    infoForTesting?.languageVersionTokens.add(languageVersionToken);
   });
   Token firstToken = scanner.tokenize();
   TextualOutlineListener listener = new TextualOutlineListener();
@@ -488,10 +464,10 @@ String? textualOutline(
     if (nextToken.isEof) break;
 
     nextToken = _textualizeTokens(listener, nextToken, currentUnknown,
-        parsedChunks, originalPosition, addMarkerForUnknownForTest);
+        parsedChunks, originalPosition, infoForTesting);
   }
-  outputUnknownChunk(currentUnknown, parsedChunks, originalPosition,
-      addMarkerForUnknownForTest);
+  outputUnknownChunk(
+      currentUnknown, parsedChunks, originalPosition, infoForTesting);
 
   if (nextToken == null) return null;
 
@@ -564,21 +540,21 @@ Token? _textualizeTokens(
     _UnknownTokenBuilder currentUnknown,
     List<_Chunk> parsedChunks,
     BoxedInt originalPosition,
-    bool addMarkerForUnknownForTest) {
+    TextualOutlineInfoForTesting? infoForTesting) {
   _ClassChunk? classChunk = listener.classStartToChunk[token];
   if (classChunk != null) {
-    outputUnknownChunk(currentUnknown, parsedChunks, originalPosition,
-        addMarkerForUnknownForTest);
+    outputUnknownChunk(
+        currentUnknown, parsedChunks, originalPosition, infoForTesting);
     parsedChunks.add(classChunk..originalPosition = originalPosition.value++);
     return _textualizeClass(
-        listener, classChunk, originalPosition, addMarkerForUnknownForTest);
+        listener, classChunk, originalPosition, infoForTesting);
   }
 
   _SingleImportExportChunk? singleImportExport =
       listener.importExportsStartToChunk[token];
   if (singleImportExport != null) {
-    outputUnknownChunk(currentUnknown, parsedChunks, originalPosition,
-        addMarkerForUnknownForTest);
+    outputUnknownChunk(
+        currentUnknown, parsedChunks, originalPosition, infoForTesting);
     parsedChunks
         .add(singleImportExport..originalPosition = originalPosition.value++);
     return singleImportExport.endToken.next;
@@ -587,8 +563,8 @@ Token? _textualizeTokens(
   _TokenChunk? knownUnsortableChunk =
       listener.unsortableElementStartToChunk[token];
   if (knownUnsortableChunk != null) {
-    outputUnknownChunk(currentUnknown, parsedChunks, originalPosition,
-        addMarkerForUnknownForTest);
+    outputUnknownChunk(
+        currentUnknown, parsedChunks, originalPosition, infoForTesting);
     parsedChunks
         .add(knownUnsortableChunk..originalPosition = originalPosition.value++);
     return knownUnsortableChunk.endToken.next;
@@ -596,16 +572,16 @@ Token? _textualizeTokens(
 
   _TokenChunk? elementChunk = listener.elementStartToChunk[token];
   if (elementChunk != null) {
-    outputUnknownChunk(currentUnknown, parsedChunks, originalPosition,
-        addMarkerForUnknownForTest);
+    outputUnknownChunk(
+        currentUnknown, parsedChunks, originalPosition, infoForTesting);
     parsedChunks.add(elementChunk..originalPosition = originalPosition.value++);
     return elementChunk.endToken.next;
   }
 
   _MetadataChunk? metadataChunk = listener.metadataStartToChunk[token];
   if (metadataChunk != null) {
-    outputUnknownChunk(currentUnknown, parsedChunks, originalPosition,
-        addMarkerForUnknownForTest);
+    outputUnknownChunk(
+        currentUnknown, parsedChunks, originalPosition, infoForTesting);
     parsedChunks
         .add(metadataChunk..originalPosition = originalPosition.value++);
     return metadataChunk.endToken.next;
@@ -625,7 +601,7 @@ Token? _textualizeTokens(
 }
 
 Token _textualizeClass(TextualOutlineListener listener, _ClassChunk classChunk,
-    BoxedInt originalPosition, bool addMarkerForUnknownForTest) {
+    BoxedInt originalPosition, TextualOutlineInfoForTesting? infoForTesting) {
   Token? token = classChunk.startToken;
   // Class header.
   while (token != classChunk.endToken) {
@@ -648,10 +624,10 @@ Token _textualizeClass(TextualOutlineListener listener, _ClassChunk classChunk,
     _UnknownTokenBuilder currentUnknown = new _UnknownTokenBuilder();
     while (token != classChunk.endToken) {
       token = _textualizeTokens(listener, token!, currentUnknown,
-          classChunk.content, originalPosition, addMarkerForUnknownForTest);
+          classChunk.content, originalPosition, infoForTesting);
     }
-    outputUnknownChunk(currentUnknown, classChunk.content, originalPosition,
-        addMarkerForUnknownForTest);
+    outputUnknownChunk(
+        currentUnknown, classChunk.content, originalPosition, infoForTesting);
     classChunk.footerStart = classChunk.endToken;
   }
 
@@ -665,11 +641,12 @@ void outputUnknownChunk(
     _UnknownTokenBuilder _currentUnknown,
     List<_Chunk> parsedChunks,
     BoxedInt originalPosition,
-    bool addMarkerForUnknownForTest) {
+    TextualOutlineInfoForTesting? infoForTesting) {
   if (_currentUnknown.start == null) return;
-  parsedChunks.add(new _UnknownChunk(addMarkerForUnknownForTest,
-      _currentUnknown.start!, _currentUnknown.interimEnd!)
-    ..originalPosition = originalPosition.value++);
+  infoForTesting?.hasUnknownChunk = true;
+  parsedChunks.add(
+      new _UnknownChunk(_currentUnknown.start!, _currentUnknown.interimEnd!)
+        ..originalPosition = originalPosition.value++);
   _currentUnknown.start = null;
   _currentUnknown.interimEnd = null;
 }
@@ -768,6 +745,7 @@ class TextualOutlineListener extends Listener {
 
   @override
   void endTopLevelFields(
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -927,4 +905,6 @@ class TextualOutlineListener extends Listener {
 
 class TextualOutlineInfoForTesting {
   bool hasParserErrors = false;
+  bool hasUnknownChunk = false;
+  List<LanguageVersionToken> languageVersionTokens = [];
 }

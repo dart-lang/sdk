@@ -7,20 +7,35 @@ typedef F<X extends Class<X>> = X;
 class G<X extends Class<X>> {}
 
 F? field1a, field1b;
+
 F<dynamic>? field2a, field2b;
+
 F<Class>? field3a, field3b;
+
 F<Class<dynamic>>? field4a, field4b;
+
 F<ConcreteClass>? field5a, field5b;
+
 F<Class<ConcreteClass>>? field6a, field6b;
+
 F<Object>? field7a, field7b;
+
 F<int>? field8a, field8b;
+
 G? field1c, field1d;
+
 G<dynamic>? field2c, field2d;
+
 G<Class>? field3c, field3d;
+
 G<Class<dynamic>>? field4c, field4d;
+
 G<ConcreteClass>? field5c, field5d;
+
 G<Class<ConcreteClass>>? field6c, field6d;
+
 G<Object>? field7c, field8d;
+
 G<int>? field8c, field7d;
 
 class Class1 {

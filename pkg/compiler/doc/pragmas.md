@@ -12,7 +12,7 @@
 | `dart2js:noElision` | Disables an optimization whereby unused fields or unused parameters are removed |
 | `dart2js:load-priority:normal` | [Affects deferred library loading](#load-priority) |
 | `dart2js:load-priority:high` | [Affects deferred library loading](#load-priority) |
-| `dart2js:resource-identifer` | [Collects data references to resources](resource-identifers.md) |
+| `dart2js:resource-identifier` | [Collects data references to resources](resource_identifiers.md) |
 | `weak-tearoff-reference` | [Declaring a static weak reference intrinsic method.](#declaring-a-static-weak-reference-intrinsic-method) |
 
 ## Unsafe pragmas for general use
@@ -93,7 +93,7 @@ evolving capabilities of the compiler.
 ```
 
 ```dart
-@pragma('dart2js:prefer-inline) // Alias for the above annotation.
+@pragma('dart2js:prefer-inline') // Alias for the above annotation.
 ```
 
 This annotation may be placed on a function or method.
@@ -109,7 +109,7 @@ candidate.
 ```
 
 ```dart
-@pragma('dart2js:never-inline) // Alias for the above annotation.
+@pragma('dart2js:never-inline') // Alias for the above annotation.
 ```
 
 This annotation may be placed on a function or method to prevent the function
@@ -224,7 +224,7 @@ variables, static variables, and top-level variables.
 
 ```dart
 @pragma('dart2js:load-priority:normal')
-@pragma('dart2js:load-priority:high)
+@pragma('dart2js:load-priority:high')
 ```
 
 By default, a call to `prefix.loadLibrary()` loads the library with 'normal'

@@ -28,7 +28,7 @@ class A {
   void m2(int x) {}
 }
 ''', [
-      lint(67, 10),
+      lint(67, 4),
     ]);
   }
 
@@ -41,7 +41,7 @@ class A {
   }
 }
 ''', [
-      lint(46, 6),
+      lint(46, 4),
     ]);
   }
 
@@ -55,7 +55,7 @@ class A {
   void m() {}
 }
 ''', [
-      lint(28, 8),
+      lint(28, 4),
     ]);
   }
 
@@ -114,7 +114,7 @@ extension type E(Object o) {
   String m()=> this.toString();
 }
 ''', [
-      lint(44, 15),
+      lint(44, 4),
     ]);
   }
 
@@ -155,34 +155,86 @@ class A {
   void m2() {}
 }
 ''', [
-      lint(101, 9),
+      lint(101, 4),
     ]);
+  }
+
+  test_shadowInMethodBody() async {
+    await assertNoDiagnostics(r'''
+class C {
+  int x = 0;
+
+  void m(bool b) {
+    var x = this.x;
+    print(x);
+  }
+}
+''');
   }
 
   test_shadowInObjectPattern() async {
     await assertNoDiagnostics(r'''
 class C {
   Object? value;
-  bool equals(Object other) =>
-      switch (other) { C(:var value) => this.value == value, _ => false };
+  bool equals(Object other) => switch (other) {
+        C(:var value) => this.value == value,
+        _ => false,
+      };
 }
 ''');
   }
 
   /// https://github.com/dart-lang/linter/issues/4457
-  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/4457')
-  test_shadowSwitchPatternCase() async {
+  test_shadowInSwitchPatternCase() async {
     await assertNoDiagnostics(r'''
 class C {
-  String? name;
+  int x = 0;
 
-  void m(bool b) {
+  int m(bool b) {
     switch (b) {
       case true:
-        var name = this.name!;
-        print(name);
+        var x = this.x;
+        return x;
       case false:
-        break;
+        return 7;
+    }
+  }
+}
+''');
+  }
+
+  /// https://github.com/dart-lang/linter/issues/4457
+  test_shadowInSwitchPatternCase2() async {
+    await assertNoDiagnostics(r'''
+class C {
+  bool isEven = false;
+
+  bool m(int p) {
+    switch (p) {
+      case int(:var isEven) when isEven:
+        isEven = this.isEven;
+        return isEven;
+      default:
+        return false;
+    }
+  }
+}
+''');
+  }
+
+  /// https://github.com/dart-lang/linter/issues/4457
+  test_shadowInSwitchPatternCase3() async {
+    await assertNoDiagnostics(r'''
+class C {
+  bool isEven = false;
+
+  bool m(int p) {
+    switch (p) {
+      case int(:var isEven) when this.isEven:
+        isEven = this.isEven;
+        return isEven;
+      default:
+        return false;
     }
   }
 }
@@ -200,7 +252,7 @@ class D extends C {
   }
 }
 ''', [
-      lint(67, 6),
+      lint(67, 4),
     ]);
   }
 

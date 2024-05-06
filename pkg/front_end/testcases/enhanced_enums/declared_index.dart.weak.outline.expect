@@ -33,28 +33,28 @@ library;
 // pkg/front_end/testcases/enhanced_enums/declared_index.dart:26:16: Error: Can't declare a member that conflicts with an inherited one.
 //   List<String> index() => []; // Error.
 //                ^^^^^
-// sdk/lib/core/enum.dart:101:13: Context: This is the inherited member.
+// sdk/lib/core/enum.dart:*: Context: This is the inherited member.
 //   final int index;
 //             ^^^^^
 //
 // pkg/front_end/testcases/enhanced_enums/declared_index.dart:64:18: Error: Can't declare a member that conflicts with an inherited one.
 //   static int get index => 42; // Error.
 //                  ^^^^^
-// sdk/lib/core/enum.dart:101:13: Context: This is the inherited member.
+// sdk/lib/core/enum.dart:*: Context: This is the inherited member.
 //   final int index;
 //             ^^^^^
 //
 // pkg/front_end/testcases/enhanced_enums/declared_index.dart:70:19: Error: Can't declare a member that conflicts with an inherited one.
 //   static void set index(int value) {} // Error.
 //                   ^^^^^
-// sdk/lib/core/enum.dart:101:13: Context: This is the inherited member.
+// sdk/lib/core/enum.dart:*: Context: This is the inherited member.
 //   final int index;
 //             ^^^^^
 //
 // pkg/front_end/testcases/enhanced_enums/declared_index.dart:74:3: Error: Can't declare a member that conflicts with an inherited one.
 //   index // Error.
 //   ^^^^^
-// sdk/lib/core/enum.dart:101:13: Context: This is the inherited member.
+// sdk/lib/core/enum.dart:*: Context: This is the inherited member.
 //   final int index;
 //             ^^^^^
 //
@@ -62,14 +62,14 @@ library;
 // Change to a subtype of 'int'.
 //   String get index => "foo"; // Error.
 //              ^
-// sdk/lib/core/enum.dart:101:13: Context: This is the overridden method ('index').
+// sdk/lib/core/enum.dart:*: Context: This is the overridden method ('index').
 //   final int index;
 //             ^
 //
 // pkg/front_end/testcases/enhanced_enums/declared_index.dart:52:12: Error: The type 'int' of the inherited field '_Enum.index' is not a subtype of the type 'String' of the setter 'E8.index'.
 //   void set index(String value) {} // Error.
 //            ^^^^^
-// sdk/lib/core/enum.dart:101:13: Context: This is the declaration of the field '_Enum.index'.
+// sdk/lib/core/enum.dart:*: Context: This is the declaration of the field '_Enum.index'.
 //   final int index;
 //             ^^^^^
 //
@@ -77,14 +77,14 @@ library;
 // Change to a subtype of 'int'.
 //   double get index; // Error.
 //              ^
-// sdk/lib/core/enum.dart:101:13: Context: This is the overridden method ('index').
+// sdk/lib/core/enum.dart:*: Context: This is the overridden method ('index').
 //   final int index;
 //             ^
 //
 // pkg/front_end/testcases/enhanced_enums/declared_index.dart:55:6: Error: The implementation of 'index' in the non-abstract class 'E9' does not conform to its interface.
 // enum E9 {
 //      ^^
-// sdk/lib/core/enum.dart:101:13: Context: The return type of the method '_Enum.index' is 'int', which does not match the return type, 'double', of the overridden method, 'E9.index'.
+// sdk/lib/core/enum.dart:*: Context: The return type of the method '_Enum.index' is 'int', which does not match the return type, 'double', of the overridden method, 'E9.index'.
 // Change to a subtype of 'double'.
 //   final int index;
 //             ^
@@ -95,7 +95,7 @@ library;
 // pkg/front_end/testcases/enhanced_enums/declared_index.dart:87:6: Error: The implementation of 'index' in the non-abstract class 'E14' does not conform to its interface.
 // enum E14 implements I14 { element } // Error.
 //      ^^^
-// sdk/lib/core/enum.dart:101:13: Context: The return type of the method '_Enum.index' is 'int', which does not match the return type, 'Never', of the overridden method, 'I14.index'.
+// sdk/lib/core/enum.dart:*: Context: The return type of the method '_Enum.index' is 'int', which does not match the return type, 'Never', of the overridden method, 'I14.index'.
 // Change to a subtype of 'Never'.
 //   final int index;
 //             ^

@@ -11,5 +11,7 @@ extension Extension<@A() T> on T {
 }
 
 main() {}
+
 typedef F<@A() T> = void Function(T);
+
 void method<@A() T>() {}

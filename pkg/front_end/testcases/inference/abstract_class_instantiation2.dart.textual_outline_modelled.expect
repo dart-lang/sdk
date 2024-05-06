@@ -7,4 +7,5 @@ abstract class D<T> {
 }
 
 main() {}
+
 void test() {}

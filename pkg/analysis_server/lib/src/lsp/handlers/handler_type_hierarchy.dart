@@ -8,7 +8,6 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_lazy_type_hierarchy.dart'
     as type_hierarchy;
-import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
@@ -81,7 +80,7 @@ class TypeHierarchyRegistrations extends FeatureRegistration
 
   @override
   ToJsonable? get options => TypeHierarchyRegistrationOptions(
-        documentSelector: [dartFiles],
+        documentSelector: dartFiles,
       );
 
   @override
@@ -198,7 +197,7 @@ mixin _TypeHierarchyUtils on HandlerHelperMixin<AnalysisServer> {
     return TypeHierarchyItem(
       name: item.displayName,
       kind: SymbolKind.Class,
-      uri: pathContext.toUri(item.file),
+      uri: uriConverter.toClientUri(item.file),
       range: sourceRangeToRange(lineInfo, item.codeRange),
       selectionRange: sourceRangeToRange(lineInfo, item.nameRange),
       data: TypeHierarchyItemInfo(

@@ -8,11 +8,11 @@ extension type MetadataIndex(core::Map<core::String, dynamic> map) {
   constructor • = self::MetadataIndex|constructor#;
   constructor tearoff • = self::MetadataIndex|constructor#_#new#tearOff;
 }
-static extension-type-member method MetadataIndex|constructor#(core::Map<core::String, dynamic> map) → self::MetadataIndex /* = core::Map<core::String, dynamic> */
+static extension-type-member method MetadataIndex|constructor#(core::Map<core::String, dynamic> map) → self::MetadataIndex% /* erasure=core::Map<core::String, dynamic>, declared=! */
   ;
-static extension-type-member method MetadataIndex|constructor#_#new#tearOff(core::Map<core::String, dynamic> map) → self::MetadataIndex /* = core::Map<core::String, dynamic> */
+static extension-type-member method MetadataIndex|constructor#_#new#tearOff(core::Map<core::String, dynamic> map) → self::MetadataIndex% /* erasure=core::Map<core::String, dynamic>, declared=! */
   return self::MetadataIndex|constructor#(map);
-static extension-type-member method MetadataIndex|get#key(lowered final self::MetadataIndex /* = core::Map<core::String, dynamic> */ #this) → core::Map<core::String, dynamic>
+static extension-type-member method MetadataIndex|get#key(lowered final self::MetadataIndex% /* erasure=core::Map<core::String, dynamic>, declared=! */ #this) → core::Map<core::String, dynamic>
   ;
-static method test(self::MetadataIndex /* = core::Map<core::String, dynamic> */ index) → dynamic
+static method test(self::MetadataIndex% /* erasure=core::Map<core::String, dynamic>, declared=! */ index) → dynamic
   ;

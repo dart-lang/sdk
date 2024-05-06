@@ -53,12 +53,12 @@ class MetricsBase implements Metrics {
   Iterable<Metric> get secondary => _secondary;
 }
 
-abstract class Metric<T> {
+abstract class Metric {
   String get name;
   String formatValue();
 }
 
-class DurationMetric implements Metric<Duration> {
+class DurationMetric implements Metric {
   @override
   final String name;
   Duration _duration = Duration.zero;
@@ -85,7 +85,7 @@ class DurationMetric implements Metric<Duration> {
   String toString() => 'DurationMetric("$name", $_duration)';
 }
 
-class CountMetric implements Metric<int> {
+class CountMetric implements Metric {
   @override
   final String name;
   int _count = 0;

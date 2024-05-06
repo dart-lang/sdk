@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:macros/macros.dart';
 
 /// Resolves top-level identifier references of form `{{uri@name}}`.
 Future<List<Object>> resolveIdentifiers(
@@ -17,7 +17,7 @@ Future<List<Object>> resolveIdentifiers(
     result.add(str);
   }
 
-  final pattern = RegExp(r'\{\{(.+)@(\w+)\}\}');
+  final pattern = RegExp(r'\{\{(.+?)@(\w+?)\}\}');
   for (final match in pattern.allMatches(withIdentifiers)) {
     addStringPart(match.start);
     // ignore: deprecated_member_use
@@ -132,27 +132,28 @@ class A {}
 
   @override
   buildDeclarationsForClass(clazz, builder) async {
-    _declare(builder);
+    await _declare(builder);
   }
 
   @override
   buildDeclarationsForConstructor(constructor, builder) async {
-    _declare(builder);
+    await _declare(builder);
   }
 
   @override
   buildDeclarationsForField(field, builder) async {
-    _declare(builder);
+    await _declare(builder);
   }
 
   @override
   buildDeclarationsForMethod(method, builder) async {
-    _declare(builder);
+    await _declare(builder);
   }
 
-  void _declare(MemberDeclarationBuilder builder) {
+  Future<void> _declare(MemberDeclarationBuilder builder) async {
+    final parts = await resolveIdentifiers(builder, code);
     builder.declareInType(
-      DeclarationCode.fromString(code),
+      DeclarationCode.fromParts(parts),
     );
   }
 }

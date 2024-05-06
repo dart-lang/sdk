@@ -15,4 +15,5 @@ void test(
     FutureOr<FutureOr<int>> x7,
     FutureOr<MyFuture> x8,
     MyFuture x9) async {}
+
 main() {}

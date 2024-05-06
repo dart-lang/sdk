@@ -28,16 +28,10 @@ import 'package:front_end/src/fasta/util/parser_ast_helper.dart'
     show ParserAstNode;
 import 'package:kernel/ast.dart';
 import 'package:testing/testing.dart'
-    show
-        Chain,
-        ChainContext,
-        ExpectationSet,
-        Result,
-        Step,
-        TestDescription,
-        runMe;
+    show Chain, ChainContext, ExpectationSet, Result, Step, TestDescription;
 
-import 'fasta/testing/suite.dart' show UPDATE_EXPECTATIONS;
+import 'fasta/suite_utils.dart';
+import 'fasta/testing/environment_keys.dart';
 import 'parser_test_listener.dart' show ParserTestListener;
 import 'parser_test_parser.dart' show TestParser;
 import 'testing_utils.dart' show checkEnvironment;
@@ -56,21 +50,24 @@ const String EXPECTATIONS = '''
 ]
 ''';
 
-void main([List<String> arguments = const []]) =>
-    runMe(arguments, createContext, configurationPath: "../testing.json");
+void main([List<String> arguments = const []]) => internalMain(createContext,
+    arguments: arguments,
+    displayName: "parser suite",
+    configurationPath: "../testing.json");
 
 Future<Context> createContext(
     Chain suite, Map<String, String> environment) async {
   const Set<String> knownEnvironmentKeys = {
-    UPDATE_EXPECTATIONS,
-    "trace",
-    "annotateLines"
+    EnvironmentKeys.updateExpectations,
+    EnvironmentKeys.trace,
+    EnvironmentKeys.annotateLines,
   };
   checkEnvironment(environment, knownEnvironmentKeys);
 
-  bool updateExpectations = environment[UPDATE_EXPECTATIONS] == "true";
-  bool trace = environment["trace"] == "true";
-  bool annotateLines = environment["annotateLines"] == "true";
+  bool updateExpectations =
+      environment[EnvironmentKeys.updateExpectations] == "true";
+  bool trace = environment[EnvironmentKeys.trace] == "true";
+  bool annotateLines = environment[EnvironmentKeys.annotateLines] == "true";
 
   return new Context(suite.name, updateExpectations, trace, annotateLines);
 }
@@ -106,7 +103,8 @@ class Context extends ChainContext with MatchContext {
   final bool updateExpectations;
 
   @override
-  String get updateExpectationsOption => '${UPDATE_EXPECTATIONS}=true';
+  String get updateExpectationsOption =>
+      '${EnvironmentKeys.updateExpectations}=true';
 
   @override
   bool get canBeFixWithUpdateExpectations => true;
@@ -129,13 +127,6 @@ class Context extends ChainContext with MatchContext {
   @override
   final ExpectationSet expectationSet =
       new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
-
-  // Override special handling of negative tests.
-  @override
-  Result processTestResult(
-      TestDescription description, Result result, bool last) {
-    return result;
-  }
 }
 
 class ContextChecksOnly extends Context {
@@ -150,13 +141,6 @@ class ContextChecksOnly extends Context {
   @override
   final ExpectationSet expectationSet =
       new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
-
-  // Override special handling of negative tests.
-  @override
-  Result processTestResult(
-      TestDescription description, Result result, bool last) {
-    return result;
-  }
 }
 
 class ParserAstStep extends Step<TestDescription, TestDescription, Context> {

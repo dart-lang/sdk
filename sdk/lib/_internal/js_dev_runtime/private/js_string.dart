@@ -4,12 +4,10 @@
 
 part of dart._interceptors;
 
-/**
- * The interceptor class for [String]. The compiler recognizes this
- * class as an interceptor, and changes references to [:this:] to
- * actually use the receiver of the method, which is generated as an extra
- * argument added to each member.
- */
+/// The interceptor class for [String]. The compiler recognizes this
+/// class as an interceptor, and changes references to [:this:] to
+/// actually use the receiver of the method, which is generated as an extra
+/// argument added to each member.
 @JsPeerInterface(name: 'String')
 final class JSString extends Interceptor
     implements String, JSIndexable<String>, TrustedGetRuntimeType {
@@ -443,12 +441,10 @@ final class JSString extends Interceptor
   @notNull
   String toString() => this;
 
-  /**
-   * This is the [Jenkins hash function][1] but using masking to keep
-   * values in SMI range.
-   *
-   * [1]: http://en.wikipedia.org/wiki/Jenkins_hash_function
-   */
+  /// This is the [Jenkins hash function][1] but using masking to keep
+  /// values in SMI range.
+  ///
+  /// [1]: http://en.wikipedia.org/wiki/Jenkins_hash_function
   @notNull
   int get hashCode {
     // TODO(ahe): This method shouldn't have to use JS. Update when our

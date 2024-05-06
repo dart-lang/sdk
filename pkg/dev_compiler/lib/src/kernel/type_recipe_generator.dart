@@ -454,15 +454,11 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
       return '$i'
           '${Recipe.genericFunctionTypeParameterIndexString}'
           '${_nullabilityRecipe(node)}';
-    }
-    i = _typeEnvironment.recipeIndexOf(node.parameter);
-    if (i < 0) {
+    } else {
       throw UnsupportedError(
-          'Type parameter $node was not found in the environment '
-          '$_typeEnvironment or in the unbound parameters '
+          'Type parameter $node was not found in the unbound parameters '
           '$_unboundTypeParameters.');
     }
-    return '$i${_nullabilityRecipe(node)}';
   }
 
   @override

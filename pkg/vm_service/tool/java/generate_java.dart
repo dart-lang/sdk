@@ -929,7 +929,7 @@ class TypeField extends Member {
 
   @override
   String? get docs {
-    String str = _docs == null ? '' : _docs!;
+    String str = _docs ?? '';
     if (type.isMultipleReturns) {
       str += '\n\n@return one of '
           '${joinLast(type.types.map((t) => '<code>$t</code>'), ', ', ' or ')}';

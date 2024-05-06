@@ -800,14 +800,19 @@ void FUNCTION_NAME(SecurityContext_UsePrivateKeyBytes)(
   const char* password = SSLCertContext::GetPasswordArgument(args, 2);
 
   int status;
+  EVP_PKEY* key;
   {
     ScopedMemBIO bio(ThrowIfError(Dart_GetNativeArgument(args, 1)));
-    EVP_PKEY* key = GetPrivateKey(bio.bio(), password);
-    status = SSL_CTX_use_PrivateKey(context->context(), key);
-    // SSL_CTX_use_PrivateKey increments the reference count of key on success,
-    // so we have to call EVP_PKEY_free on both success and failure.
-    EVP_PKEY_free(key);
+    key = GetPrivateKey(bio.bio(), password);
   }
+  if (key == nullptr) {
+    Dart_ThrowException(DartUtils::NewDartArgumentError(
+        "Expected private key, but none was found"));
+  }
+  status = SSL_CTX_use_PrivateKey(context->context(), key);
+  // SSL_CTX_use_PrivateKey increments the reference count of key on success,
+  // so we have to call EVP_PKEY_free on both success and failure.
+  EVP_PKEY_free(key);
 
   // TODO(24184): Handle different expected errors here - file missing,
   // incorrect password, file not a PEM, and throw exceptions.

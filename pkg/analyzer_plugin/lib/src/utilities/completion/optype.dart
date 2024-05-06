@@ -392,6 +392,26 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitCaseClause(CaseClause node) {
+    var pattern = node.guardedPattern.pattern;
+    switch (pattern) {
+      case ObjectPattern():
+        // case Na^():
+        if (pattern.type.end == offset) {
+          optype.completionLocation = 'ObjectPattern_type';
+          optype.includeTypeNameSuggestions = true;
+          return;
+        }
+      case RecordPattern():
+        // case ^():
+        if (pattern.leftParenthesis.offset == offset) {
+          optype.completionLocation = 'ObjectPattern_type';
+          optype.includeTypeNameSuggestions = true;
+          return;
+        }
+      default:
+        break;
+    }
+
     optype.completionLocation = 'CaseClause_pattern';
     optype.includeTypeNameSuggestions = true;
     optype.includeReturnValueSuggestions = true;
@@ -418,9 +438,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   void visitClassDeclaration(ClassDeclaration node) {
     // Make suggestions in the body of the class declaration
     final entity = this.entity;
-    final isMember = node.members.contains(entity);
-    final isClosingBrace = identical(entity, node.rightBracket);
-    final isAnnotation = isClosingBrace &&
+    var isMember = node.members.contains(entity);
+    var isClosingBrace = identical(entity, node.rightBracket);
+    var isAnnotation = isClosingBrace &&
         entity is Token &&
         _isPotentialAnnotation(entity.previous);
 
@@ -692,9 +712,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     // Make suggestions in the body of the extension type declaration
     final entity = this.entity;
-    final isMember = node.members.contains(entity);
-    final isClosingBrace = identical(entity, node.rightBracket);
-    final isAnnotation = isClosingBrace &&
+    var isMember = node.members.contains(entity);
+    var isClosingBrace = identical(entity, node.rightBracket);
+    var isAnnotation = isClosingBrace &&
         entity is Token &&
         _isPotentialAnnotation(entity.previous);
 
@@ -831,7 +851,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitFormalParameterList(FormalParameterList node) {
     optype.completionLocation = 'FormalParameterList_parameter';
-    final entity = this.entity;
+    var entity = this.entity;
     if (entity is Token) {
       var previous = node.findPrevious(entity);
       if (previous != null) {
@@ -1049,6 +1069,28 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitLogicalAndPattern(LogicalAndPattern node) {
+    switch (node.rightOperand) {
+      case ObjectPattern pattern:
+        // case Na^():
+        if (pattern.type.end == offset) {
+          optype.completionLocation = 'ObjectPattern_type';
+          optype.includeTypeNameSuggestions = true;
+          return;
+        }
+      case RecordPattern pattern:
+        // case ^():
+        if (pattern.leftParenthesis.offset == offset) {
+          optype.includeTypeNameSuggestions = true;
+          optype.completionLocation = 'ObjectPattern_type';
+          return;
+        }
+      default:
+        break;
+    }
+  }
+
+  @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
     optype.completionLocation = 'MapLiteralEntry_value';
     optype.includeReturnValueSuggestions = true;
@@ -1162,7 +1204,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    final nameToken = node.name2;
+    var nameToken = node.name2;
     if (identical(entity, nameToken) ||
         // In addition to the standard case,
         // handle the exceptional case where the parser considers the would-be
@@ -1353,11 +1395,11 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   void visitRecordPattern(RecordPattern node) {
     if (node.leftParenthesis.end <= offset &&
         offset <= node.rightParenthesis.offset) {
-      final targetField = node.fields.skipWhile((field) {
+      var targetField = node.fields.skipWhile((field) {
         return field.end < offset;
       }).firstOrNull;
       if (targetField != null) {
-        final nameNode = targetField.name;
+        var nameNode = targetField.name;
         if (nameNode != null && offset <= nameNode.colon.offset) {
           optype.patternLocation = NamedPatternFieldWantsName(
             matchedType: node.matchedValueTypeOrThrow,
@@ -1376,7 +1418,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
     final entity = this.entity;
     if (entity is Token && entity == node.rightParenthesis) {
-      final previous = entity.previous;
+      var previous = entity.previous;
       if (previous != null) {
         if (previous.type != TokenType.COMMA) {
           optype.includeVarNameSuggestions = true;
@@ -1611,6 +1653,11 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
         }
       } else if (pattern is ConstantPattern) {
         optype.includeTypeNameSuggestions = true;
+      } else if (pattern is ObjectPattern) {
+        if (pattern.type.end == offset) {
+          optype.completionLocation = 'ObjectPattern_type';
+          optype.includeTypeNameSuggestions = true;
+        }
       }
     } else if (node.statements.contains(entity)) {
       optype.completionLocation = 'SwitchMember_statement';
@@ -1798,7 +1845,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   void _extractPatternFieldInfo(PatternFieldImpl node) {
     optype.completionLocation = 'PatternField_pattern';
 
-    final parent = node.parent;
+    var parent = node.parent;
     DartType parentMatchedValueType;
     List<PatternField> existingFields;
     if (parent is ObjectPattern) {
@@ -1811,10 +1858,10 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       return;
     }
 
-    final nameNode = node.name;
+    var nameNode = node.name;
     if (nameNode != null && nameNode.name == null) {
-      final pattern = node.pattern;
-      final patternContext = pattern.patternContext;
+      var pattern = node.pattern;
+      var patternContext = pattern.patternContext;
       if (pattern is DeclaredVariablePatternImpl ||
           patternContext is ForEachPartsWithPattern ||
           patternContext is PatternVariableDeclaration) {

@@ -39,6 +39,8 @@ class WorldImpact {
 
   Iterable<ConstantUse> get constantUses => const [];
 
+  Iterable<ConditionalUse> get conditionalUses => const [];
+
   void _forEach<U>(
           Iterable<U> uses, void Function(MemberEntity?, U) visitUse) =>
       uses.forEach((use) => visitUse(member, use));
@@ -51,6 +53,9 @@ class WorldImpact {
       _forEach(typeUses, visitUse);
   void forEachConstantUse(void Function(MemberEntity?, ConstantUse) visitUse) =>
       _forEach(constantUses, visitUse);
+  void forEachConditionalUse(
+          void Function(MemberEntity?, ConditionalUse) visitUse) =>
+      _forEach(conditionalUses, visitUse);
 
   bool get isEmpty => true;
 
@@ -66,7 +71,7 @@ class WorldImpact {
   static void printOn(StringBuffer sb, WorldImpact worldImpact) {
     sb.write('member: ${worldImpact.member}');
 
-    void add(String title, Iterable iterable) {
+    void add(String title, Iterable<Object?> iterable) {
       if (iterable.isNotEmpty) {
         sb.write('\n $title:');
         iterable.forEach((e) => sb.write('\n  $e'));
@@ -85,6 +90,7 @@ abstract class WorldImpactBuilder extends WorldImpact {
   void registerTypeUse(TypeUse typeUse);
   void registerStaticUse(StaticUse staticUse);
   void registerConstantUse(ConstantUse constantUse);
+  void registerConditionalUse(ConditionalUse conditionalUse);
 }
 
 class WorldImpactBuilderImpl extends WorldImpactBuilder {
@@ -98,6 +104,7 @@ class WorldImpactBuilderImpl extends WorldImpactBuilder {
   Set<StaticUse>? _staticUses;
   Set<TypeUse>? _typeUses;
   Set<ConstantUse>? _constantUses;
+  List<ConditionalUse>? _conditionalUses;
 
   WorldImpactBuilderImpl([this.member]);
 
@@ -110,7 +117,8 @@ class WorldImpactBuilderImpl extends WorldImpactBuilder {
       _dynamicUses == null &&
       _staticUses == null &&
       _typeUses == null &&
-      _constantUses == null;
+      _constantUses == null &&
+      _conditionalUses == null;
 
   /// Copy uses in [impact] to this impact builder.
   void addImpact(WorldImpact impact) {
@@ -119,6 +127,7 @@ class WorldImpactBuilderImpl extends WorldImpactBuilder {
     impact.staticUses.forEach(registerStaticUse);
     impact.typeUses.forEach(registerTypeUse);
     impact.constantUses.forEach(registerConstantUse);
+    impact.conditionalUses.forEach(registerConditionalUse);
   }
 
   @override
@@ -159,6 +168,16 @@ class WorldImpactBuilderImpl extends WorldImpactBuilder {
   @override
   Iterable<ConstantUse> get constantUses {
     return _constantUses ?? const [];
+  }
+
+  @override
+  void registerConditionalUse(ConditionalUse conditionalUse) {
+    (_conditionalUses ??= []).add(conditionalUse);
+  }
+
+  @override
+  Iterable<ConditionalUse> get conditionalUses {
+    return _conditionalUses ?? const [];
   }
 }
 
@@ -229,6 +248,12 @@ class TransformedWorldImpact extends WorldImpactBuilder {
     _constantUses ??= Setlet.of(worldImpact.constantUses);
     _constantUses!.add(constantUse);
   }
+
+  @override
+  void registerConditionalUse(ConditionalUse conditionalUse) {}
+
+  @override
+  Iterable<ConditionalUse> get conditionalUses => const [];
 
   @override
   String toString() {

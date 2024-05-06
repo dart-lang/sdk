@@ -6,8 +6,6 @@ import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    as shared;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/doc_comment.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
@@ -20,6 +18,7 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
 import 'package:analyzer/src/fasta/token_utils.dart' as util show findPrevious;
 import 'package:analyzer/src/generated/resolver.dart';
@@ -82,7 +81,7 @@ final class AdjacentStringsImpl extends StringLiteralImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitAdjacentStrings(this, contextType: contextType);
+    resolver.visitAdjacentStrings(this);
   }
 
   @override
@@ -305,7 +304,7 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
 
   /// The element annotation representing this annotation in the element model.
   @override
-  ElementAnnotation? elementAnnotation;
+  ElementAnnotationImpl? elementAnnotation;
 
   /// Initialize a newly created annotation. Both the [period] and the
   /// [constructorName] can be `null` if the annotation is not referencing a
@@ -2030,7 +2029,7 @@ final class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitBooleanLiteral(this, contextType: contextType);
+    resolver.visitBooleanLiteral(this);
   }
 
   @override
@@ -2727,11 +2726,6 @@ abstract final class ClassDeclaration implements NamedCompilationUnitMember {
   /// does not implement any interfaces.
   ImplementsClause? get implementsClause;
 
-  /// Return the 'inline' keyword, or `null` if the keyword was absent.
-  @Deprecated('Replaced with extension types')
-  @experimental
-  Token? get inlineKeyword;
-
   /// Return the 'interface' keyword, or `null` if the keyword was absent.
   Token? get interfaceKeyword;
 
@@ -2867,12 +2861,6 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
         augmentKeyword ??
         mixinKeyword ??
         classKeyword;
-  }
-
-  @Deprecated('Replaced with extension types')
-  @override
-  Token? get inlineKeyword {
-    return null;
   }
 
   @override
@@ -4352,7 +4340,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @override
   Token get firstTokenAfterCommentAndMetadata {
     return Token.lexicallyFirst(
-            externalKeyword, constKeyword, factoryKeyword) ??
+            externalKeyword, constKeyword, factoryKeyword, augmentKeyword) ??
         _returnType.beginToken;
   }
 
@@ -5325,7 +5313,7 @@ sealed class Directive implements AnnotatedNode {
 sealed class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
   /// The element associated with this directive, or `null` if the AST structure
   /// has not been resolved or if this directive could not be resolved.
-  Element? _element;
+  ElementImpl? _element;
 
   /// Initialize a newly create directive. Either or both of the [comment] and
   /// [metadata] can be `null` if the directive does not have the corresponding
@@ -5336,10 +5324,10 @@ sealed class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
   });
 
   @override
-  Element? get element => _element;
+  ElementImpl? get element => _element;
 
   /// Set the element associated with this directive to be the given [element].
-  set element(Element? element) {
+  set element(ElementImpl? element) {
     _element = element;
   }
 }
@@ -5558,7 +5546,7 @@ final class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitDoubleLiteral(this, contextType: contextType);
+    resolver.visitDoubleLiteral(this);
   }
 
   @override
@@ -6307,7 +6295,8 @@ sealed class ExpressionImpl extends AstNodeImpl
   @override
   void resolveElement(
       ResolverVisitor resolver, CollectionLiteralContext? context) {
-    resolver.analyzeExpression(this, context?.elementType);
+    resolver.analyzeExpression(
+        this, context?.elementType ?? UnknownInferredType.instance);
   }
 
   /// Dispatches this expression to the [resolver], with the given [contextType]
@@ -6457,6 +6446,10 @@ final class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
 ///        'on' [TypeAnnotation] [ShowClause]? [HideClause]?
 ///        '{' [ClassMember]* '}'
 abstract final class ExtensionDeclaration implements CompilationUnitMember {
+  /// The 'augment' keyword, or `null` if the keyword was absent.
+  @experimental
+  Token? get augmentKeyword;
+
   @override
   ExtensionElement? get declaredElement;
 
@@ -6498,6 +6491,9 @@ abstract final class ExtensionDeclaration implements CompilationUnitMember {
 final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     implements ExtensionDeclaration {
   @override
+  final Token? augmentKeyword;
+
+  @override
   final Token extensionKeyword;
 
   @override
@@ -6531,6 +6527,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   ExtensionDeclarationImpl({
     required super.comment,
     required super.metadata,
+    required this.augmentKeyword,
     required this.extensionKeyword,
     required this.typeKeyword,
     required this.name,
@@ -6558,7 +6555,8 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @override
-  Token get firstTokenAfterCommentAndMetadata => extensionKeyword;
+  Token get firstTokenAfterCommentAndMetadata =>
+      augmentKeyword ?? extensionKeyword;
 
   @override
   NodeListImpl<ClassMemberImpl> get members => _members;
@@ -6572,6 +6570,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
 
   @override
   ChildEntities get _childEntities => ChildEntities()
+    ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('extensionKeyword', extensionKeyword)
     ..addToken('name', name)
     ..addNode('typeParameters', typeParameters)
@@ -6723,7 +6722,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitExtensionOverride(this, contextType: contextType);
+    resolver.visitExtensionOverride(this);
   }
 
   @override
@@ -6884,6 +6883,10 @@ abstract final class FieldDeclaration implements ClassMember {
   /// The `abstract` keyword, or `null` if the keyword was not used.
   Token? get abstractKeyword;
 
+  /// Return the 'augment' keyword, or `null` if the keyword was absent.
+  @experimental
+  Token? get augmentKeyword;
+
   /// The 'covariant' keyword, or `null` if the keyword was not used.
   Token? get covariantKeyword;
 
@@ -6913,7 +6916,7 @@ final class FieldDeclarationImpl extends ClassMemberImpl
   @override
   final Token? abstractKeyword;
 
-  /// The 'augment' keyword, or `null` if the keyword was not used.
+  @override
   final Token? augmentKeyword;
 
   /// The 'covariant' keyword, or `null` if the keyword was not used.
@@ -6978,6 +6981,10 @@ final class FieldDeclarationImpl extends ClassMemberImpl
 
   @override
   ChildEntities get _childEntities => super._childEntities
+    ..addToken('abstractKeyword', abstractKeyword)
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('covariantKeyword', covariantKeyword)
+    ..addToken('externalKeyword', externalKeyword)
     ..addToken('staticKeyword', staticKeyword)
     ..addNode('fields', fields)
     ..addToken('semicolon', semicolon);
@@ -7636,6 +7643,9 @@ sealed class FormalParameterImpl extends AstNodeImpl
 
   /// Return the kind of this parameter.
   ParameterKind get kind;
+
+  @override
+  NodeList<AnnotationImpl> get metadata;
 }
 
 /// The formal parameter list of a method declaration, function declaration, or
@@ -8245,6 +8255,10 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
 ///    functionSignature ::=
 ///        [Type]? ('get' | 'set')? name [FormalParameterList]
 abstract final class FunctionDeclaration implements NamedCompilationUnitMember {
+  /// The 'augment' keyword.
+  @experimental
+  Token? get augmentKeyword;
+
   @override
   ExecutableElement? get declaredElement;
 
@@ -8283,8 +8297,7 @@ abstract final class FunctionDeclaration implements NamedCompilationUnitMember {
 ///        [Type]? ('get' | 'set')? [SimpleIdentifier] [FormalParameterList]
 final class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
     implements FunctionDeclaration {
-  /// The token representing the 'augment' keyword, or `null` if this is not an
-  /// function augmentation.
+  @override
   final Token? augmentKeyword;
 
   /// The token representing the 'external' keyword, or `null` if this is not an
@@ -8722,7 +8735,7 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitFunctionReference(this, contextType: contextType);
+    resolver.visitFunctionReference(this);
   }
 
   @override
@@ -9865,7 +9878,7 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitImplicitCallReference(this, contextType: contextType);
+    resolver.visitImplicitCallReference(this);
   }
 
   @override
@@ -10967,7 +10980,7 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitIsExpression(this, contextType: contextType);
+    resolver.visitIsExpression(this);
   }
 
   @override
@@ -11309,7 +11322,7 @@ final class LibraryIdentifierImpl extends IdentifierImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitLibraryIdentifier(this, contextType: contextType);
+    resolver.visitLibraryIdentifier(this);
   }
 
   @override
@@ -11936,10 +11949,10 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
 
   @override
   DartType computePatternSchema(ResolverVisitor resolverVisitor) {
-    shared.MapPatternTypeArguments<DartType>? typeArguments;
+    ({DartType keyType, DartType valueType})? typeArguments;
     final typeArgumentNodes = this.typeArguments?.arguments;
     if (typeArgumentNodes != null && typeArgumentNodes.length == 2) {
-      typeArguments = shared.MapPatternTypeArguments(
+      typeArguments = (
         keyType: typeArgumentNodes[0].typeOrThrow,
         valueType: typeArgumentNodes[1].typeOrThrow,
       );
@@ -12641,8 +12654,7 @@ abstract final class NamedType implements TypeAnnotation {
 ///    typeName ::=
 ///        [Identifier] typeArguments? '?'?
 final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
-  @override
-  final ImportPrefixReferenceImpl? importPrefix;
+  ImportPrefixReferenceImpl? _importPrefix;
 
   @override
   final Token name2;
@@ -12664,12 +12676,12 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   /// Initialize a newly created type name. The [typeArguments] can be `null` if
   /// there are no type arguments.
   NamedTypeImpl({
-    required this.importPrefix,
+    required ImportPrefixReferenceImpl? importPrefix,
     required this.name2,
     required this.typeArguments,
     required this.question,
   }) {
-    _becomeParentOf(importPrefix);
+    this.importPrefix = importPrefix;
     _becomeParentOf(typeArguments);
   }
 
@@ -12678,6 +12690,16 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
 
   @override
   Token get endToken => question ?? typeArguments?.endToken ?? name2;
+
+  @override
+  ImportPrefixReferenceImpl? get importPrefix {
+    return _importPrefix;
+  }
+
+  set importPrefix(ImportPrefixReferenceImpl? value) {
+    _importPrefix = value;
+    _becomeParentOf(value);
+  }
 
   @override
   bool get isDeferred {
@@ -13377,7 +13399,7 @@ final class NullLiteralImpl extends LiteralImpl implements NullLiteral {
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitNullLiteral(this, contextType: contextType);
+    resolver.visitNullLiteral(this);
   }
 
   @override
@@ -13804,8 +13826,8 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
   });
 
   @override
-  PartElement? get element {
-    return super.element as PartElement?;
+  PartElementImpl? get element {
+    return super.element as PartElementImpl?;
   }
 
   @override
@@ -15457,7 +15479,7 @@ final class RepresentationDeclarationImpl extends AstNodeImpl
   final Token leftParenthesis;
 
   @override
-  final NodeListImpl<Annotation> fieldMetadata = NodeListImpl._();
+  final NodeListImpl<AnnotationImpl> fieldMetadata = NodeListImpl._();
 
   @override
   final TypeAnnotationImpl fieldType;
@@ -15606,7 +15628,7 @@ final class RethrowExpressionImpl extends ExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitRethrowExpression(this, contextType: contextType);
+    resolver.visitRethrowExpression(this);
   }
 
   @override
@@ -16412,7 +16434,7 @@ final class SimpleStringLiteralImpl extends SingleStringLiteralImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitSimpleStringLiteral(this, contextType: contextType);
+    resolver.visitSimpleStringLiteral(this);
   }
 
   @override
@@ -16679,7 +16701,7 @@ final class StringInterpolationImpl extends SingleStringLiteralImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitStringInterpolation(this, contextType: contextType);
+    resolver.visitStringInterpolation(this);
   }
 
   @override
@@ -16964,7 +16986,7 @@ final class SuperExpressionImpl extends ExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitSuperExpression(this, contextType: contextType);
+    resolver.visitSuperExpression(this);
   }
 
   @override
@@ -17767,7 +17789,7 @@ final class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitSymbolLiteral(this, contextType: contextType);
+    resolver.visitSymbolLiteral(this);
   }
 
   @override
@@ -17902,7 +17924,7 @@ final class ThrowExpressionImpl extends ExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitThrowExpression(this, contextType: contextType);
+    resolver.visitThrowExpression(this);
   }
 
   @override
@@ -17925,6 +17947,10 @@ final class ThrowExpressionImpl extends ExpressionImpl
 /// directives).
 abstract final class TopLevelVariableDeclaration
     implements CompilationUnitMember {
+  /// The 'augment' keyword, or `null` if the keyword was absent.
+  @experimental
+  Token? get augmentKeyword;
+
   /// The `external` keyword, or `null` if the keyword was not used.
   Token? get externalKeyword;
 
@@ -17946,6 +17972,9 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   VariableDeclarationListImpl _variableList;
 
   @override
+  final Token? augmentKeyword;
+
+  @override
   final Token? externalKeyword;
 
   /// The semicolon terminating the declaration.
@@ -17958,6 +17987,7 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   TopLevelVariableDeclarationImpl({
     required super.comment,
     required super.metadata,
+    required this.augmentKeyword,
     required this.externalKeyword,
     required VariableDeclarationListImpl variableList,
     required this.semicolon,
@@ -17973,7 +18003,7 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
 
   @override
   Token get firstTokenAfterCommentAndMetadata =>
-      externalKeyword ?? _variableList.beginToken;
+      augmentKeyword ?? externalKeyword ?? _variableList.beginToken;
 
   @override
   VariableDeclarationListImpl get variables => _variableList;
@@ -17984,6 +18014,8 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
 
   @override
   ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('externalKeyword', externalKeyword)
     ..addNode('variables', variables)
     ..addToken('semicolon', semicolon);
 
@@ -18391,7 +18423,7 @@ final class TypeLiteralImpl extends CommentReferableExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitTypeLiteral(this, contextType: contextType);
+    resolver.visitTypeLiteral(this);
   }
 
   @override

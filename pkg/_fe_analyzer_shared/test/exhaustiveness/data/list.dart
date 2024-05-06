@@ -327,7 +327,7 @@ nonExhaustiveRestrictedHeadElement(List list) {
 nonExhaustiveRestrictedTailElement(List list) {
   return /*
    checkingOrder={List<dynamic>,[],[()],[(), ()],[(), (), ()],[(), (), (), ()],[(), (), (), (), (), ...]},
-   error=non-exhaustive:[Object(), _, Object(), Object()],
+   error=non-exhaustive:[Object(), _, Object(), Object()];[Object(), _, _, ...[...], Object(), Object()]/[Object(), _, _, ..., Object(), Object()],
    subtypes={[],[()],[(), ()],[(), (), ()],[(), (), (), ()],[(), (), (), (), (), ...]},
    type=List<dynamic>
   */
@@ -359,7 +359,7 @@ nonExhaustiveRestrictedRest(List list) {
 nonExhaustiveRestrictedRestWithTail(List list) {
   return /*
    checkingOrder={List<dynamic>,[],[()],[(), ()],[(), (), ()],[(), (), (), ()],[(), (), (), (), (), ...]},
-   error=non-exhaustive:[Object(), _, Object(), Object()],
+   error=non-exhaustive:[Object(), _, Object(), Object()];[Object(), _, _, ...[...], Object(), Object()]/[Object(), _, _, ..., Object(), Object()],
    subtypes={[],[()],[(), ()],[(), (), ()],[(), (), (), ()],[(), (), (), (), (), ...]},
    type=List<dynamic>
   */

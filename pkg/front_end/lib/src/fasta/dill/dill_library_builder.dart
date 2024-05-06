@@ -16,7 +16,7 @@ import '../builder/member_builder.dart';
 import '../builder/modifier_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/never_type_declaration_builder.dart';
-import '../fasta_codes.dart'
+import '../codes/fasta_codes.dart'
     show Message, noLength, templateDuplicatedDeclaration, templateUnspecified;
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/utils.dart';

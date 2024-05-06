@@ -97,7 +97,7 @@ class NotImportedContributor extends DartCompletionContributor {
       var exportElements = exportNamespace.definedNames.values.toList();
 
       builder.libraryUriStr = file.uriStr;
-      builder.requiredImports.add(file.uri);
+      builder.requiredImports = [file.uri];
       builder.isNotImportedLibrary = true;
       builder.laterReplacesEarlier = false;
 
@@ -112,7 +112,7 @@ class NotImportedContributor extends DartCompletionContributor {
       );
 
       builder.libraryUriStr = null;
-      builder.requiredImports.clear();
+      builder.requiredImports = const [];
       builder.isNotImportedLibrary = false;
       builder.laterReplacesEarlier = true;
     }

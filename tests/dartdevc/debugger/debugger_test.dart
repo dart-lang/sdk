@@ -57,7 +57,7 @@ List get devtoolsFormatters => _devtoolsFormatters;
 @JS('JSON.stringify')
 external stringify(value, [Function replacer, int space]);
 
-// TODO(jacobr): this is only valid if the legacy library loader is used.
+// TODO(jacobr): this is only valid if the DDC library loader is used.
 // We need a solution that works with all library loaders.
 @JS('dart_library.import')
 external importDartLibrary(String path);

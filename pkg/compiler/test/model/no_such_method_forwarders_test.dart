@@ -13,7 +13,7 @@ import 'package:compiler/src/util/memory_compiler.dart';
 
 const String source = '''
 abstract class I<T> {
-  T method();
+  T? method();
 }
 
 class A<T> implements I<T> {
@@ -42,10 +42,10 @@ class D3<T> extends D2<T> {
 }
 
 class E1<T> {
-  T method() => null;
+  T? method() => null;
 }
 
-abstract class E2<T> implements I<T> {
+mixin E2<T> implements I<T> {
   noSuchMethod(_) => null;
 }
 
@@ -53,10 +53,10 @@ class E3<T> extends E1<T> with E2<T> {
 }
 
 class F1<T> {
-  T method() => null;
+  T? method() => null;
 }
 
-class F2<T> implements I<T> {
+mixin class F2<T> implements I<T> {
   noSuchMethod(_) => null;
 }
 
@@ -64,10 +64,10 @@ class F3<T> extends F1<T> with F2<T> {
 }
 
 abstract class G1<T> {
-  T method();
+  T? method();
 }
 
-abstract class G2<T> implements I<T> {
+mixin G2<T> implements I<T> {
   noSuchMethod(_) => null;
 }
 
@@ -75,10 +75,10 @@ class G3<T> extends G1<T> with G2<T> {
 }
 
 abstract class H1<T> {
-  T method();
+  T? method();
 }
 
-abstract class H2<T> implements I<T> {
+mixin H2<T> implements I<T> {
   noSuchMethod(_) => null;
 }
 
@@ -108,7 +108,7 @@ main() {
     CompilationResult result =
         await runCompiler(memorySourceFiles: {'main.dart': source});
     Expect.isTrue(result.isSuccess);
-    Compiler compiler = result.compiler;
+    Compiler compiler = result.compiler!;
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
 
     void check(String className,

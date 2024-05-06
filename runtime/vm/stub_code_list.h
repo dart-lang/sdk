@@ -51,6 +51,9 @@ namespace dart {
   V(AllocateMintSharedWithFPURegs)                                             \
   V(AllocateMintSharedWithoutFPURegs)                                          \
   V(AllocateClosure)                                                           \
+  V(AllocateClosureGeneric)                                                    \
+  V(AllocateClosureTA)                                                         \
+  V(AllocateClosureTAGeneric)                                                  \
   V(AllocateContext)                                                           \
   V(AllocateGrowableArray)                                                     \
   V(AllocateObject)                                                            \

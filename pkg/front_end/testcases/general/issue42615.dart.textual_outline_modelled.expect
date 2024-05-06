@@ -1,4 +1,5 @@
 // @dart = 2.9
+
 import 'dart:async';
 
 class Class<T> {
@@ -6,4 +7,5 @@ class Class<T> {
 }
 
 dynamic method() => null;
+
 main() {}

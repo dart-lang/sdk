@@ -124,7 +124,7 @@ static field invalid-type string5 = invalid-expression "pkg/front_end/testcases/
 Try changing 'call' to a method or explicitly invoke 'call'.
 var string5 = callableGetter(1);
                             ^";
-static field dynamic string6 = let final self::CallableGetter #t1 = self::callableGetter in let final core::int #t2 = 1 in #t1.{self::CallableGetter::call}{dynamic}{dynamic}.call(#t2);
+static field dynamic string6 = let final self::CallableGetter #t1 = self::callableGetter in let final core::int #t2 = 1 in #t1.{self::CallableGetter::call}{dynamic}{dynamic}(#t2);
 static field dynamic string7 = self::callableGetter.{self::CallableGetter::call}{dynamic}{dynamic}.call(1);
 static field dynamic string8 = self::callableGetter.{self::CallableGetter::call}{dynamic}{dynamic}.call{dynamic}.call(1);
 static field invalid-type nothing1 = invalid-expression "pkg/front_end/testcases/general/call.dart:68:23: Error: Too few positional arguments: 1 required, 0 given.
@@ -156,7 +156,7 @@ static field invalid-type nothing9 = invalid-expression "pkg/front_end/testcases
 Try changing 'call' to a method or explicitly invoke 'call'.
 var nothing9 = callableGetter();
                              ^";
-static field dynamic nothing10 = self::callableGetter.{self::CallableGetter::call}{dynamic}{dynamic}.call();
+static field dynamic nothing10 = self::callableGetter.{self::CallableGetter::call}{dynamic}{dynamic}();
 static field dynamic nothing11 = self::callableGetter.{self::CallableGetter::call}{dynamic}{dynamic}.call();
 static field dynamic nothing12 = self::callableGetter.{self::CallableGetter::call}{dynamic}{dynamic}.call{dynamic}.call();
 static method main() → dynamic {
@@ -176,7 +176,7 @@ static method main() → dynamic {
 Try changing 'call' to a method or explicitly invoke 'call'.
   var string5 = callableGetter(1);
                               ^";
-  dynamic string6 = let final self::CallableGetter #t3 = callableGetter in let final core::int #t4 = 1 in #t3.{self::CallableGetter::call}{dynamic}{dynamic}.call(#t4);
+  dynamic string6 = let final self::CallableGetter #t3 = callableGetter in let final core::int #t4 = 1 in #t3.{self::CallableGetter::call}{dynamic}{dynamic}(#t4);
   dynamic string7 = callableGetter.{self::CallableGetter::call}{dynamic}{dynamic}.call(1);
   dynamic string8 = callableGetter.{self::CallableGetter::call}{dynamic}{dynamic}.call{dynamic}.call(1);
   invalid-type nothing1 = invalid-expression "pkg/front_end/testcases/general/call.dart:34:25: Error: Too few positional arguments: 1 required, 0 given.
@@ -208,7 +208,7 @@ Try changing 'call' to a method or explicitly invoke 'call'.
 Try changing 'call' to a method or explicitly invoke 'call'.
   var nothing9 = callableGetter();
                                ^";
-  dynamic nothing10 = callableGetter.{self::CallableGetter::call}{dynamic}{dynamic}.call();
+  dynamic nothing10 = callableGetter.{self::CallableGetter::call}{dynamic}{dynamic}();
   dynamic nothing11 = callableGetter.{self::CallableGetter::call}{dynamic}{dynamic}.call();
   dynamic nothing12 = callableGetter.{self::CallableGetter::call}{dynamic}{dynamic}.call{dynamic}.call();
 }

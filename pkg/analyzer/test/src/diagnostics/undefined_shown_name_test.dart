@@ -10,15 +10,11 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UndefinedShownNameTest);
-    defineReflectiveTests(UndefinedShownNameWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class UndefinedShownNameTest extends PubPackageResolutionTest
-    with UndefinedShownNameTestCases {}
-
-mixin UndefinedShownNameTestCases on PubPackageResolutionTest {
+class UndefinedShownNameTest extends PubPackageResolutionTest {
   test_export() async {
     newFile('$testPackageLibPath/lib1.dart', '');
     await assertErrorsInCode(r'''
@@ -38,7 +34,3 @@ import 'lib1.dart' show a;
     ]);
   }
 }
-
-@reflectiveTest
-class UndefinedShownNameWithoutNullSafetyTest extends PubPackageResolutionTest
-    with UndefinedShownNameTestCases, WithoutNullSafetyMixin {}

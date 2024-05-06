@@ -36,10 +36,17 @@ extension NumberExtension on Number {
 }
 
 main() {}
+
 testExplicitIntProperties() {}
+
 testExplicitNullAwareIntProperties(IntClass? v) {}
+
 testExplicitNullAwareProperties(Class? v) {}
+
 testExplicitProperties() {}
+
 testIntProperties() {}
+
 testLocals() {}
+
 testProperties() {}

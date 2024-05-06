@@ -18,8 +18,6 @@ DIR=$(dirname -- "$(which -- "$0")")
 
 ensure_in_checkout_root
 
-# Apply patches to the Flutter Framework if needed.
-src/third_party/dart/tools/patches/flutter-flutter/apply.sh
-
-# Apply patches to the Flutter Engine if needed.
+# Copy changed dependencies from Dart DEPS to engine DEPS and update them in
+# checkout.
 src/third_party/dart/tools/patches/flutter-engine/apply.sh

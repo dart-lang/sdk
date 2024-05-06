@@ -1,5 +1,7 @@
 // @dart = 2.9
+
 StateA a = StateA();
+
 StateB b = StateB();
 
 class Diagnosticable {}
@@ -13,4 +15,5 @@ class StateA extends State {}
 class StateB extends State<int> {}
 
 foo<T>(T x) {}
+
 main() {}

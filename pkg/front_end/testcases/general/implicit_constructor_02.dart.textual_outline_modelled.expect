@@ -5,8 +5,11 @@ class A {
 }
 
 class C = A with M1;
+
 expect(expected, actual) {}
+
 main() {}
+
 mixin M1 {
   num v2 = -1;
 }

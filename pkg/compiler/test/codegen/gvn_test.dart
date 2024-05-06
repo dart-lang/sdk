@@ -20,8 +20,8 @@ void foo(bar) {
 const String TEST_TWO = r"""
 void foo(a) {
   var list = <int>[];
-  list[0] = list[0 % a];
-  list[1] = list[1 % a];
+  list[0] = list[0 % a as int];
+  list[1] = list[1 % a as int];
 }
 """;
 
@@ -53,7 +53,7 @@ class A {
 class B {}
 
 main() {
-  helper([new A(32), A(21), B(), null][0]);
+  helper([new A(32), A(21), B(), null][0] as A);
 }
 
 helper(A a) {
@@ -106,7 +106,7 @@ class A {
 main() {
   dynamic a = A();
   dynamic b = A.bar();
-  for (int i = 0; i < a.field; i++) { a.field = 42; b.field = 42; }
+  for (int i = 0; i < a.field!; i++) { a.field = 42; b.field = 42; }
 }
 """;
 

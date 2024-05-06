@@ -13,4 +13,5 @@ class C<T> {
 class D extends C<int> {}
 
 main() {}
+
 test(A a, B b, C c_dynamic, C<int> c_int, C<String> c_string, D d) {}

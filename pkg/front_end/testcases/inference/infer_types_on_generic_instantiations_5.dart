@@ -26,8 +26,8 @@ class B<E> extends A<E> implements M {
 }
 
 foo() {
-  int y = /*error:INVALID_ASSIGNMENT*/ new /*@typeArgs=dynamic*/ B()
-      . /*@target=B.m*/ m(throw '', throw '');
+  // Error:INVALID_ASSIGNMENT
+  int y = new /*@typeArgs=dynamic*/ B(). /*@target=B.m*/ m(throw '', throw '');
   String z =
       new /*@typeArgs=dynamic*/ B(). /*@target=B.m*/ m(throw '', throw '');
 }

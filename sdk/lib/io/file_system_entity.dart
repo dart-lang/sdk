@@ -834,7 +834,11 @@ abstract class FileSystemEntity {
     // TODO(40614): Remove once non-nullability is sound.
     ArgumentError.checkNotNull(path, "path");
     if (Platform.isWindows) {
-      while (path.length > 1 &&
+      // "C:" and "C:\" are semantically different on Windows and only "C:\" is an
+      // absolute path.
+      // See https://learn.microsoft.com/en-us/dotnet/standard/io/file-path-formats
+      final minimumCharToNotTrim = _isAbsolute(path) ? 3 : 1;
+      while (path.length > minimumCharToNotTrim &&
           (path.endsWith(Platform.pathSeparator) || path.endsWith('/'))) {
         path = path.substring(0, path.length - 1);
       }

@@ -29,13 +29,13 @@ void f(Map<String, int> m1) {
 suggestions
   c1
     kind: localVariable
-  const
-    kind: keyword
   false
     kind: keyword
   null
     kind: keyword
   true
+    kind: keyword
+  const
     kind: keyword
 ''');
   }
@@ -52,13 +52,13 @@ void f(Map<String, int> m1) {
 suggestions
   c1
     kind: localVariable
-  const
-    kind: keyword
   false
     kind: keyword
   null
     kind: keyword
   true
+    kind: keyword
+  const
     kind: keyword
 ''');
   }
@@ -77,13 +77,13 @@ void f(Object o1) {
 suggestions
   c1
     kind: localVariable
-  const
-    kind: keyword
   false
     kind: keyword
   null
     kind: keyword
   true
+    kind: keyword
+  const
     kind: keyword
 ''');
   }
@@ -102,13 +102,13 @@ void f(Object o1) {
 suggestions
   c1
     kind: localVariable
-  const
-    kind: keyword
   false
     kind: keyword
   null
     kind: keyword
   true
+    kind: keyword
+  const
     kind: keyword
 ''');
   }
@@ -127,13 +127,13 @@ void f(Object o1) {
 suggestions
   c1
     kind: localVariable
-  const
-    kind: keyword
   false
     kind: keyword
   null
     kind: keyword
   true
+    kind: keyword
+  const
     kind: keyword
 ''');
   }
@@ -173,13 +173,13 @@ void f(Object o1) {
 suggestions
   c1
     kind: localVariable
-  const
-    kind: keyword
   false
     kind: keyword
   null
     kind: keyword
   true
+    kind: keyword
+  const
     kind: keyword
 ''');
   }
@@ -217,22 +217,22 @@ void f(Object o1) {
 ''');
     assertResponse(r'''
 suggestions
+  v1
+    kind: localVariable
   c1
     kind: localVariable
-  const
-    kind: keyword
+  o1
+    kind: parameter
   false
-    kind: keyword
-  final
     kind: keyword
   null
     kind: keyword
-  o1
-    kind: parameter
   true
     kind: keyword
-  v1
-    kind: localVariable
+  const
+    kind: keyword
+  final
+    kind: keyword
   var
     kind: keyword
 ''');

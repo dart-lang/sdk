@@ -7,4 +7,5 @@ Iterable<(Iterable<A>, Iterable<A>)> split<A>(Iterable<A> it) => switch (it) {
           for (var (ls, rs) in split(it.skip(1))) yield ([x, ...ls], rs);
         }(),
     };
+
 void main() {}

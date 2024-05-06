@@ -1,6 +1,9 @@
 int foo() {}
+
 int bar() => 0;
+
 int baz(int x) {}
+
 int boz(int x) => x;
 
 class Class {

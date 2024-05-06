@@ -21,14 +21,10 @@ import '../elements/entity_utils.dart' as utils;
 import '../elements/entity_map.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
-import '../ir/cached_static_type.dart';
 import '../ir/closure.dart';
 import '../ir/element_map.dart';
 import '../ir/types.dart';
 import '../ir/visitors.dart';
-import '../ir/static_type_base.dart';
-import '../ir/static_type_cache.dart';
-import '../ir/static_type_provider.dart';
 import '../ir/util.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/native_data.dart';
@@ -607,8 +603,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       } else {
         data.instantiationToBounds = getInterfaceType(ir.instantiateToBounds(
             coreTypes.legacyRawType(node), coreTypes.objectClass,
-            isNonNullableByDefault: node
-                .enclosingLibrary.isNonNullableByDefault) as ir.InterfaceType);
+            isNonNullableByDefault: true) as ir.InterfaceType);
       }
     }
   }
@@ -797,10 +792,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       // isCovariant implies this FunctionNode is a class Procedure.
       var isCovariant =
           variable.isCovariantByDeclaration || variable.isCovariantByClass;
-      var isFromNonNullableByDefaultLibrary = isCovariant &&
-          (node.parent as ir.Procedure).enclosingLibrary.isNonNullableByDefault;
-      return types.getTearOffParameterType(getDartType(variable.type),
-          isCovariant, isFromNonNullableByDefaultLibrary);
+      return types.getTearOffParameterType(
+          getDartType(variable.type), isCovariant);
     }
 
     for (ir.VariableDeclaration variable in node.positionalParameters) {
@@ -1073,68 +1066,6 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   late final ir.ClassHierarchy classHierarchy =
       ir.ClassHierarchy(programEnv.mainComponent, coreTypes);
 
-  ir.StaticTypeContext getStaticTypeContext(ir.Member node) {
-    // TODO(johnniwinther): Cache the static type context.
-    return ir.StaticTypeContext(node, typeEnvironment);
-  }
-
-  @override
-  StaticTypeProvider getStaticTypeProvider(MemberEntity member) {
-    MemberDefinition memberDefinition =
-        members.getData(member as JMember).definition;
-    late StaticTypeCache cachedStaticTypes;
-    late ir.StaticTypeContext staticTypeContext;
-    switch (memberDefinition.kind) {
-      case MemberKind.regular:
-      case MemberKind.constructor:
-      case MemberKind.constructorBody:
-        final node = memberDefinition.node as ir.Member;
-        staticTypeContext = getStaticTypeContext(node);
-        cachedStaticTypes = members.getData(member).staticTypes;
-        break;
-      case MemberKind.closureCall:
-        var node = memberDefinition.node as ir.TreeNode?;
-        while (node != null) {
-          if (node is ir.Member) {
-            ir.Member member = node;
-            staticTypeContext = getStaticTypeContext(member);
-            cachedStaticTypes =
-                members.getData(getMember(member) as JMember).staticTypes;
-            break;
-          }
-          node = node.parent;
-        }
-        break;
-      case MemberKind.closureField:
-      case MemberKind.signature:
-      case MemberKind.generatorBody:
-        cachedStaticTypes = const StaticTypeCache();
-        var node = memberDefinition.node as ir.TreeNode?;
-        while (node != null) {
-          if (node is ir.Member) {
-            ir.Member member = node;
-            staticTypeContext = getStaticTypeContext(member);
-            break;
-          } else if (node is ir.Library) {
-            // Closure field may use class nodes or type parameter nodes as
-            // the definition node.
-            staticTypeContext =
-                ir.StaticTypeContext.forAnnotations(node, typeEnvironment);
-          }
-          node = node.parent;
-        }
-        break;
-
-      case MemberKind.recordGetter:
-      case MemberKind.parameterStub:
-        // TODO(51310): Avoid calling [getStaticTypeProvider] for synthetic
-        // elements that have no Kernel Node context.
-        return NoStaticTypeProvider();
-    }
-    return CachedStaticType(staticTypeContext, cachedStaticTypes,
-        ThisInterfaceType.from(staticTypeContext.thisType));
-  }
-
   @override
   Name getName(ir.Name name, {bool setter = false}) {
     return Name(name.text, name.isPrivate ? name.library!.importUri : null,
@@ -1326,18 +1257,15 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     if (node.arguments.positional.length < 1) {
       reporter.internalError(
           CURRENT_ELEMENT_SPANNABLE, "JS builtin expression has no type.");
-      return NativeBehavior();
     }
     if (node.arguments.positional.length < 2) {
       reporter.internalError(
           CURRENT_ELEMENT_SPANNABLE, "JS builtin is missing name.");
-      return NativeBehavior();
     }
     String? specString = _getStringArgument(node, 0);
     if (specString == null) {
       reporter.internalError(
           CURRENT_ELEMENT_SPANNABLE, "Unexpected first argument.");
-      return NativeBehavior();
     }
     return NativeBehavior.ofJsBuiltinCall(
         specString,
@@ -1354,24 +1282,20 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     if (node.arguments.positional.length < 1) {
       reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
           "JS embedded global expression has no type.");
-      return NativeBehavior();
     }
     if (node.arguments.positional.length < 2) {
       reporter.internalError(
           CURRENT_ELEMENT_SPANNABLE, "JS embedded global is missing name.");
-      return NativeBehavior();
     }
     if (node.arguments.positional.length > 2 ||
         node.arguments.named.isNotEmpty) {
       reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
           "JS embedded global has more than 2 arguments.");
-      return NativeBehavior();
     }
     String? specString = _getStringArgument(node, 0);
     if (specString == null) {
       reporter.internalError(
           CURRENT_ELEMENT_SPANNABLE, "Unexpected first argument.");
-      return NativeBehavior();
     }
     return NativeBehavior.ofJsEmbeddedGlobalCall(
         specString,
@@ -1403,30 +1327,6 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   @override
   ConstantValue getRequiredSentinelConstantValue() {
     return ConstructedConstantValue(_commonElements.requiredSentinelType, {});
-  }
-
-  @override
-  FunctionEntity getSuperNoSuchMethod(ClassEntity cls) {
-    while (true) {
-      ClassEntity? superclass = elementEnvironment.getSuperClass(cls);
-      if (superclass == null) break;
-      MemberEntity? member = elementEnvironment.lookupLocalClassMember(
-          superclass, Names.noSuchMethod_);
-      if (member != null && !member.isAbstract) {
-        if (member.isFunction) {
-          final function = member as FunctionEntity;
-          if (function.parameterStructure.positionalParameters >= 1) {
-            return function;
-          }
-        }
-        // If [member] is not a valid `noSuchMethod` the target is
-        // `Object.superNoSuchMethod`.
-        break;
-      }
-      cls = superclass;
-    }
-    return elementEnvironment.lookupLocalClassMember(
-        commonElements.objectClass, Names.noSuchMethod_)! as FunctionEntity;
   }
 
   JTypeVariable createTypeVariable(
@@ -1540,11 +1440,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       JConstructorBody constructorBody) {
     members.register<JFunction, FunctionData>(
         constructorBody,
-        ConstructorBodyDataImpl(
-            data.node,
-            data.node.function!,
-            SpecialMemberDefinition(data.node, MemberKind.constructorBody),
-            data.staticTypes));
+        ConstructorBodyDataImpl(data.node, data.node.function!,
+            SpecialMemberDefinition(data.node, MemberKind.constructorBody)));
     final cls = constructor.enclosingClass;
     final classEnv = classes.getEnv(cls) as JClassEnvImpl;
     // TODO(johnniwinther): Avoid this by only including live members in the
@@ -2297,8 +2194,6 @@ class JsElementEnvironment extends ElementEnvironment
         return elementMap.getDartType(
             getFunctionNode(elementMap, function)!.emittedValueType!);
     }
-    throw failedAt(
-        CURRENT_ELEMENT_SPANNABLE, 'Unexpected marker ${asyncMarker}');
   }
 
   @override

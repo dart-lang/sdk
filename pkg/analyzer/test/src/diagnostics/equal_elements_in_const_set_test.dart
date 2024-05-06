@@ -23,7 +23,7 @@ mixin EqualElementsInConstSetTestCases on PubPackageResolutionTest {
 var c = const {1, 2, 1};
 ''', [
       error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 21, 1,
-          contextMessages: [message('$testPackageLibPath/test.dart', 15, 1)]),
+          contextMessages: [message(testFile, 15, 1)]),
     ]);
   }
 
@@ -33,7 +33,7 @@ const x = {int, E};
 extension type E(int it) {}
 ''', [
       error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 16, 1,
-          contextMessages: [message('$testPackageLibPath/test.dart', 11, 3)]),
+          contextMessages: [message(testFile, 11, 3)]),
     ]);
   }
 
@@ -42,7 +42,7 @@ extension type E(int it) {}
 var c = const {1, if (1 < 0) 2 else 1};
 ''', [
       error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 36, 1,
-          contextMessages: [message('$testPackageLibPath/test.dart', 15, 1)]),
+          contextMessages: [message(testFile, 15, 1)]),
     ]);
   }
 
@@ -75,7 +75,7 @@ var c = const {2, if (1 < 0) 2};
 var c = const {1, if (0 < 1) 1};
 ''', [
       error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 29, 1,
-          contextMessages: [message('$testPackageLibPath/test.dart', 15, 1)]),
+          contextMessages: [message(testFile, 15, 1)]),
     ]);
   }
 
@@ -88,7 +88,7 @@ class A<T> {
 var c = const {const A<int>(), const A<int>()};
 ''', [
       error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 60, 14,
-          contextMessages: [message('$testPackageLibPath/test.dart', 44, 14)]),
+          contextMessages: [message(testFile, 44, 14)]),
     ]);
   }
 
@@ -108,7 +108,7 @@ var c = const {const A<int>(), const A<num>()};
 const x = {[0], [0]};
 ''', [
       error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 16, 3,
-          contextMessages: [message('/home/test/lib/test.dart', 11, 3)]),
+          contextMessages: [message(testFile, 11, 3)]),
     ]);
   }
 
@@ -123,7 +123,7 @@ const x = {[0], [1]};
 const x = {(0, 1), (0, 1)};
 ''', [
       error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 19, 6,
-          contextMessages: [message('/home/test/lib/test.dart', 11, 6)]),
+          contextMessages: [message(testFile, 11, 6)]),
     ]);
   }
 
@@ -144,7 +144,7 @@ var c = const {1, ...{2}};
 var c = const {1, ...{1}};
 ''', [
       error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 21, 3,
-          contextMessages: [message('$testPackageLibPath/test.dart', 15, 1)]),
+          contextMessages: [message(testFile, 15, 1)]),
     ]);
   }
 

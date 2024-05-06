@@ -10,7 +10,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/verifier.dart';
 import 'package:test/test.dart';
-import 'package:vm/target/vm.dart' show VmTarget;
+import 'package:vm/modular/target/vm.dart' show VmTarget;
 import 'package:vm/transformations/unreachable_code_elimination.dart'
     show transformComponent;
 import 'package:vm/transformations/vm_constant_evaluator.dart';
@@ -34,8 +34,9 @@ runTestCase(Uri source) async {
         'test.define.isTrue': 'true',
         'test.define.isFalse': 'false'
       });
-  final evaluator =
-      VMConstantEvaluator.create(target, component, targetOS, nnbdMode);
+  final evaluator = VMConstantEvaluator.create(
+      target, component, targetOS, nnbdMode,
+      enableAsserts: enableAsserts);
   component = transformComponent(target, component, evaluator, enableAsserts);
   verifyComponent(
       target, VerificationStage.afterGlobalTransformations, component);

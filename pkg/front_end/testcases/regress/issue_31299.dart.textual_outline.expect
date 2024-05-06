@@ -6,4 +6,5 @@ class A {
 }
 
 test() {}
+
 main() {}

@@ -5,10 +5,8 @@
 // SharedObjects=ffi_test_functions
 
 import 'dart:ffi';
-import 'dart:io';
 
 import 'package:expect/expect.dart';
-import 'package:ffi/ffi.dart';
 
 import 'dylib_utils.dart';
 
@@ -20,8 +18,10 @@ void main() {
   testVariadicAt1Int64x5NativeLeaf();
 }
 
-@Native<Int64 Function(Int64, VarArgs<(Int64, Int64, Int64, Int64)>)>(symbol: 'VariadicAt1Int64x5', isLeaf:true)
-external int variadicAt1Int64x5NativeLeaf(int a0, int a1, int a2, int a3, int a4);
+@Native<Int64 Function(Int64, VarArgs<(Int64, Int64, Int64, Int64)>)>(
+    symbol: 'VariadicAt1Int64x5', isLeaf: true)
+external int variadicAt1Int64x5NativeLeaf(
+    int a0, int a1, int a2, int a3, int a4);
 
 void testVariadicAt1Int64x5NativeLeaf() {
   final result = variadicAt1Int64x5NativeLeaf(1, 2, 3, 4, 5);

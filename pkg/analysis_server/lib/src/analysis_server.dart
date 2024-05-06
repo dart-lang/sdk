@@ -6,8 +6,7 @@ import 'dart:async';
 import 'dart:io' as io;
 import 'dart:io';
 
-import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp
-    show MessageType, OptionalVersionedTextDocumentIdentifier;
+import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/context_manager.dart';
@@ -15,6 +14,8 @@ import 'package:analysis_server/src/domains/completion/available_suggestions.dar
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/client_configuration.dart';
+import 'package:analysis_server/src/lsp/constants.dart' as lsp;
+import 'package:analysis_server/src/lsp/handlers/handler_execute_command.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
@@ -25,6 +26,8 @@ import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
+import 'package:analysis_server/src/services/correction/assist_internal.dart';
+import 'package:analysis_server/src/services/correction/fix_processor.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/pub/pub_api.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
@@ -72,7 +75,9 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
-import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
+import 'package:analyzer_plugin/src/protocol/protocol_internal.dart'
+    as analyzer_plugin;
+import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
@@ -116,6 +121,12 @@ abstract class AnalysisServer {
   /// This field is `null` when the new plugin support is disabled.
   AbstractNotificationManager notificationManager;
 
+  /// A reference to the handler for executing commands.
+  ///
+  /// This allows the server to call commands itself, such as "Fix All in
+  /// Workspace" triggered from the [DartFixPromptManager].
+  ExecuteCommandHandler? executeCommandHandler;
+
   /// The object used to manage the execution of plugins.
   late PluginManager pluginManager;
 
@@ -134,6 +145,8 @@ abstract class AnalysisServer {
   final InfoDeclarationStore infoDeclarationStore = InfoDeclarationStoreImpl();
 
   late analysis.AnalysisDriverScheduler analysisDriverScheduler;
+
+  late StreamSubscription<Object?>? analysisDriverSchedulerEventsSubscription;
 
   DeclarationsTracker? declarationsTracker;
 
@@ -204,9 +217,21 @@ abstract class AnalysisServer {
   /// Starts completed and will be replaced each time a context rebuild starts.
   Completer<void> analysisContextRebuildCompleter = Completer()..complete();
 
+  /// A completer for tracking LSP client initialization
+  /// (see [lspClientInitialized]).
+  final Completer<void> _lspClientInitializedCompleter = Completer();
+
   /// The workspace for rename refactorings.
   late final refactoringWorkspace =
       RefactoringWorkspace(driverMap.values, searchEngine);
+
+  /// The paths of files for which [ResolvedUnitResult] was produced since
+  /// the last idle state.
+  final Set<String> filesResolvedSinceLastIdle = {};
+
+  /// A mapping of [ProducerGenerator]s to the set of lint names with which they
+  /// are associated (can fix).
+  final Map<ProducerGenerator, Set<String>> producerGeneratorsForLintRules;
 
   AnalysisServer(
     this.options,
@@ -224,7 +249,12 @@ abstract class AnalysisServer {
     DartFixPromptManager? dartFixPromptManager,
   })  : resourceProvider = OverlayResourceProvider(baseResourceProvider),
         pubApi = PubApi(instrumentationService, httpClient,
-            Platform.environment['PUB_HOSTED_URL']) {
+            Platform.environment['PUB_HOSTED_URL']),
+        producerGeneratorsForLintRules = AssistProcessor.computeLintRuleMap() {
+    // Set the default URI converter. This uses the resource providers path
+    // context (unlike the initialized value) which allows tests to override it.
+    uriConverter = ClientUriConverter.noop(baseResourceProvider.pathContext);
+
     // We can only spawn processes (eg. to run pub commands) when backed by
     // a real file system, otherwise we may try to run commands in folders that
     // don't really exist. If processRunner was supplied, it's likely a mock
@@ -348,6 +378,19 @@ abstract class AnalysisServer {
   /// by the client.
   LspClientConfiguration get lspClientConfiguration;
 
+  /// A [Future] that completes once the client has initialized.
+  ///
+  /// For the LSP server, this happens when the client sends the `initialized`
+  /// notification. For LSP-over-Legacy this happens when the first LSP request
+  /// triggers initializetion.
+  ///
+  /// This future can be used by handlers requiring unit results to wait for
+  /// complete initialization even if the client sends the requests before
+  /// analysis roots have been initialized (for example because of async
+  /// requests to get configuration back from the client).
+  Future<void> get lspClientInitialized =>
+      _lspClientInitializedCompleter.future;
+
   /// Returns the function that can send `openUri` request to the client.
   /// Returns `null` is the client does not support it.
   OpenUriNotificationSender? get openUriNotificationSender;
@@ -368,6 +411,21 @@ abstract class AnalysisServer {
         DateTime.fromMillisecondsSinceEpoch(performanceDuringStartup.startTime);
     return DateTime.now().difference(start);
   }
+
+  /// Gets the converter to change incoming client URIs into analyzer file
+  /// references (and back).
+  ///
+  /// Currently backed by a global for use by toJson/fromJson in the legacy
+  /// protocol classes.
+  ClientUriConverter get uriConverter => analyzer_plugin.clientUriConverter;
+
+  /// Sets the converter to change incoming client URIs into analyzer file
+  /// references (and back).
+  ///
+  /// Currently backed by a global for use by toJson/fromJson in the legacy
+  /// protocol classes.
+  set uriConverter(ClientUriConverter converter) =>
+      analyzer_plugin.clientUriConverter = converter;
 
   /// Returns the function for sending prompts to the user and collecting button
   /// presses.
@@ -398,7 +456,8 @@ abstract class AnalysisServer {
   /// the plugins have sent a response, or an empty list if no [driver] is
   /// provided.
   Map<PluginInfo, Future<Response>> broadcastRequestToPlugins(
-      RequestParams requestParams, analysis.AnalysisDriver? driver) {
+      analyzer_plugin.RequestParams requestParams,
+      analysis.AnalysisDriver? driver) {
     if (driver == null || !AnalysisServer.supportsPlugins) {
       return <PluginInfo, Future<Response>>{};
     }
@@ -413,6 +472,14 @@ abstract class AnalysisServer {
   void checkConsistency(List<AnalysisSessionImpl> sessions) {
     for (final session in sessions) {
       session.checkConsistency();
+    }
+  }
+
+  /// Completes [lspClientInitialized], signalling that LSP has finished
+  /// initializing.
+  void completeLspInitialization() {
+    if (!_lspClientInitializedCompleter.isCompleted) {
+      _lspClientInitializedCompleter.complete();
     }
   }
 
@@ -461,8 +528,8 @@ abstract class AnalysisServer {
       });
       var driver = drivers.firstWhereOrNull(
           (driver) => driver.analysisContext!.contextRoot.isAnalyzed(path));
-      driver ??= drivers
-          .firstWhereOrNull((driver) => driver.knownFiles.contains(path));
+      driver ??= drivers.firstWhereOrNull(
+          (driver) => driver.fsState.getExistingFromPath(path) != null);
       driver ??= drivers.first;
       return driver;
     }
@@ -637,7 +704,7 @@ abstract class AnalysisServer {
     }
 
     return driver
-        .getResult(path, sendCachedToStream: sendCachedToStream)
+        .getResolvedUnit(path, sendCachedToStream: sendCachedToStream)
         .then((value) => value is ResolvedUnitResult ? value : null)
         .catchError((Object e, StackTrace st) {
       instrumentationService.logException(e, st);
@@ -656,8 +723,18 @@ abstract class AnalysisServer {
   }
 
   @mustCallSuper
+  void handleAnalysisEvent(Object event) {
+    switch (event) {
+      case FileResult():
+        contextManager.callbacks.handleFileResult(event);
+      case analysis.AnalysisStatus():
+        handleAnalysisStatusChange(event);
+    }
+  }
+
+  @mustCallSuper
   FutureOr<void> handleAnalysisStatusChange(analysis.AnalysisStatus status) {
-    if (isFirstAnalysisSinceContextsBuilt && !status.isAnalyzing) {
+    if (isFirstAnalysisSinceContextsBuilt && !status.isWorking) {
       isFirstAnalysisSinceContextsBuilt = false;
       _dartFixPrompt.triggerCheck();
     }
@@ -690,7 +767,7 @@ abstract class AnalysisServer {
   /// changed - added, updated, or removed.  Schedule processing of the file.
   void notifyDeclarationsTracker(String path) {
     declarationsTracker?.changeFile(path);
-    analysisDriverScheduler.notify(null);
+    analysisDriverScheduler.notify();
   }
 
   /// Notify the flutter widget properties support that the file with the
@@ -707,7 +784,6 @@ abstract class AnalysisServer {
   /// analyzed.
   void reportAnalysisAnalytics() {
     var packagesFileMap = <String, File?>{};
-    var optionsFileMap = <String, File?>{};
     var immediateFileCount = 0;
     var immediateFileLineCount = 0;
     var transitiveFileCount = 0;
@@ -721,7 +797,6 @@ abstract class AnalysisServer {
       var contextRoot = driver.analysisContext?.contextRoot;
       if (contextRoot != null) {
         packagesFileMap[rootPath] = contextRoot.packagesFile;
-        optionsFileMap[rootPath] = contextRoot.optionsFile;
       }
       var fileSystemState = driver.fsState;
       for (var fileState in fileSystemState.knownFiles) {
@@ -746,20 +821,15 @@ abstract class AnalysisServer {
     var styleCounts = [
       0, // neither
       0, // only packages
-      0, // only options
-      0, // both
+      0, // only options -- (No longer incremented. Options files do not imply unique contexts.)
+      0, // both -- (No longer incremented. Options files do not imply unique contexts.)
     ];
     var packagesFiles = <File>{};
-    var optionsFiles = <File>{};
     for (var rootPath in rootPaths) {
       var packagesFile = packagesFileMap[rootPath];
       var hasUniquePackageFile =
           packagesFile != null && packagesFiles.add(packagesFile);
-      var optionsFile = optionsFileMap[rootPath];
-      var hasUniqueOptionsFile =
-          optionsFile != null && optionsFiles.add(optionsFile);
-      var style =
-          (hasUniquePackageFile ? 1 : 0) + (hasUniqueOptionsFile ? 2 : 0);
+      var style = hasUniquePackageFile ? 1 : 0;
       styleCounts[style]++;
     }
 
@@ -805,6 +875,12 @@ abstract class AnalysisServer {
     return null;
   }
 
+  /// Sends an LSP notification to the client.
+  ///
+  /// The legacy server will wrap LSP notifications inside an
+  /// 'lsp.notification' notification.
+  void sendLspNotification(lsp.NotificationMessage notification);
+
   /// Sends an error notification to the user.
   void sendServerErrorNotification(
     String message,
@@ -828,6 +904,9 @@ abstract class AnalysisServer {
 
   @mustCallSuper
   Future<void> shutdown() async {
+    await analysisDriverSchedulerEventsSubscription?.cancel();
+    analysisDriverSchedulerEventsSubscription = null;
+
     // For now we record plugins only on shutdown. We might want to record them
     // every time the set of plugins changes, in which case we'll need to listen
     // to the `PluginManager.pluginsChanged` stream.
@@ -840,6 +919,7 @@ abstract class AnalysisServer {
 
     pubPackageService.shutdown();
     surveyManager?.shutdown();
+    await contextManager.dispose();
     await analyticsManager.shutdown();
   }
 
@@ -913,6 +993,7 @@ abstract class CommonServerContextManagerCallbacks
 
   void flushResults(List<String> files);
 
+  @override
   @mustCallSuper
   void handleFileResult(FileResult result) {
     var path = result.path;
@@ -926,7 +1007,25 @@ abstract class CommonServerContextManagerCallbacks
     }
 
     if (result is ResolvedUnitResult) {
+      analysisServer.filesResolvedSinceLastIdle.add(path);
       handleResolvedUnitResult(result);
+    }
+
+    // If this is a virtual file and the client supports URIs, we need to notify
+    // that it's been updated.
+    var lspUri = analysisServer.uriConverter.toClientUri(result.path);
+    if (!lspUri.isScheme('file')) {
+      // TODO(dantup): Should we do any kind of tracking here to avoid sending
+      //  lots of notifications if there aren't actual changes?
+      // TODO(dantup): We may be able to skip sending this if the file is not
+      //  open (priority) depending on the response to
+      //  https://github.com/microsoft/vscode/issues/202017
+      var message = lsp.NotificationMessage(
+        method: lsp.CustomMethods.dartTextDocumentContentDidChange,
+        params: lsp.DartTextDocumentContentDidChangeParams(uri: lspUri),
+        jsonrpc: lsp.jsonRpcVersion,
+      );
+      analysisServer.sendLspNotification(message);
     }
   }
 
@@ -935,11 +1034,6 @@ abstract class CommonServerContextManagerCallbacks
   @override
   @mustCallSuper
   void listenAnalysisDriver(analysis.AnalysisDriver driver) {
-    driver.results.listen((result) {
-      if (result is FileResult) {
-        handleFileResult(result);
-      }
-    });
     driver.exceptions.listen(analysisServer.logExceptionResult);
     driver.priorityFiles = analysisServer.priorityFiles.toList();
   }

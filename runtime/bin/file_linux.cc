@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(DART_HOST_OS_LINUX)
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
 
 #include "bin/file.h"
 
@@ -102,9 +102,23 @@ MappedMemory* File::Map(MapType type,
     flags |= MAP_FIXED;
   }
   void* addr = mmap(hint, length, prot, flags, handle_->fd(), position);
+
+#if defined(DART_HOST_OS_LINUX)
+  // On WSL 1 trying to allocate memory close to the binary by supplying a hint
+  // fails with ENOMEM for unclear reason. Some reports suggest that this might
+  // be related to the alignment of the hint but aligning it by 64Kb does not
+  // make the issue go away in our experiments. Instead just retry without any
+  // hint.
+  if (addr == MAP_FAILED && hint != nullptr && start == nullptr &&
+      Utils::IsWindowsSubsystemForLinux()) {
+    addr = mmap(nullptr, length, prot, flags, handle_->fd(), position);
+  }
+#endif
+
   if (addr == MAP_FAILED) {
     return nullptr;
   }
+
   return new MappedMemory(addr, length, /*should_unmap=*/start == nullptr);
 }
 
@@ -129,7 +143,7 @@ bool File::VPrint(const char* format, va_list args) {
   // Measure.
   va_list measure_args;
   va_copy(measure_args, args);
-  intptr_t len = vsnprintf(nullptr, 0, format, measure_args);
+  intptr_t len = Utils::VSNPrint(nullptr, 0, format, measure_args);
   va_end(measure_args);
 
   char* buffer = reinterpret_cast<char*>(malloc(len + 1));
@@ -137,7 +151,7 @@ bool File::VPrint(const char* format, va_list args) {
   // Print.
   va_list print_args;
   va_copy(print_args, args);
-  vsnprintf(buffer, len + 1, format, print_args);
+  Utils::VSNPrint(buffer, len + 1, format, print_args);
   va_end(print_args);
 
   bool result = WriteFully(buffer, len);
@@ -783,4 +797,4 @@ File::Identical File::AreIdentical(Namespace* namespc_1,
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(DART_HOST_OS_LINUX)
+#endif  // defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)

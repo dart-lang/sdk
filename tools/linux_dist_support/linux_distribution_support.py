@@ -108,8 +108,8 @@ def SrcSteps():
     # We build the runtime target to get everything we need to test the
     # standalone target.
     Run([
-        sys.executable, 'tools/build.py', '--no-goma', '--mode=release',
-        '--arch=x64', 'runtime'
+        sys.executable, 'tools/build.py', '--mode=release', '--arch=x64',
+        'runtime'
     ])
     # Copy in the installed binary to avoid polluting /usr/bin (and having to
     # run as root)

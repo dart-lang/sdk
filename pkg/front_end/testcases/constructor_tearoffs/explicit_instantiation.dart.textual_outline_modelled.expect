@@ -21,5 +21,7 @@ mixin M on C {
   static T mstat<T>(T value) => value;
   void mmethod() {}
 }
+
 typedef ListList<T> = List<List<T>>;
+
 void main() {}

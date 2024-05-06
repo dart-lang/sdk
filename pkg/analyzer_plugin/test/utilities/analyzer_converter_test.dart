@@ -257,7 +257,7 @@ class A {
       expect(location.startLine, 2);
       expect(location.startColumn, 11);
     }
-    expect(element.parameters, '(int a, [String b])');
+    expect(element.parameters, '(int a, [String? b])');
     expect(element.returnType, 'A');
     expect(element.flags, plugin.Element.FLAG_CONST);
   }
@@ -498,7 +498,7 @@ class A {
       expect(location.startLine, 2);
       expect(location.startColumn, 23);
     }
-    expect(element.parameters, '(int a, {String b, int c})');
+    expect(element.parameters, '(int a, {String? b, int? c})');
     expect(element.returnType, 'List<String>');
     expect(element.flags, plugin.Element.FLAG_STATIC);
   }

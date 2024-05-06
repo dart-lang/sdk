@@ -1,5 +1,21 @@
+## 6.5.0-dev
+* Deprecated `LibraryElement.toLegacyTypeIfOptOut`.
+* Deprecated `LibraryElement.toLegacyElementIfOptOut`.
+* Deprecated `LibraryElement.isNonNullableByDefault`.
+* Deprecated `InterfaceElement.lookUpGetter`, `InterfaceElement.lookUpMethod`,
+  and `InterfaceElement.lookUpSetter`.
+* Fixed `GeneralizingAstVisitor.visitNamedType` to invoke `visitTypeAnnotation`.
+* Deprecated `PropertyInducingElement get variable` in `PropertyAccessorElement`,
+  use `PropertyInducingElement? get variable2` instead.
+  The reason for this is that when the property accessor is an augmentation
+  without the corresponding declaration, there is no corresponding variable.
+
+## 6.4.1
+* Patch for crash in ffi_verifier.
+
 ## 6.3.0
 * Updated the current language version to `3.3`.
+* Removed generated `ConstantEvaluator`.
 
 ## 6.2.0
 * Improvements for extension types.
@@ -185,7 +201,7 @@
 * Update SDK constraints to `>=2.17.0 <3.0.0`.
 * Deprecated `ImportDirective.COMPARATOR`, use appropriate custom logic, if necessary.
 * Deprecated `Element.isAccessibleIn()`, use `isAccessibleIn2()` instead.
-* Bug fixes: 49225. 
+* Bug fixes: 49225.
 
 ## 4.1.0
 * Deprecated `ParameterElement.isNotOptional`, use `isRequired` instead.

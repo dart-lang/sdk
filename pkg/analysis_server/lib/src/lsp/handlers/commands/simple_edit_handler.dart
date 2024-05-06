@@ -35,14 +35,14 @@ abstract class SimpleEditCommandHandler
       return success(null);
     }
 
-    final clientCapabilities = server.lspClientCapabilities;
+    var clientCapabilities = server.lspClientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return serverNotInitializedError;
     }
 
-    final lineInfo = unit.lineInfo;
-    final workspaceEdit = toWorkspaceEdit(
+    var lineInfo = unit.lineInfo;
+    var workspaceEdit = toWorkspaceEdit(
       clientCapabilities,
       [
         FileEditInformation(
@@ -64,7 +64,7 @@ abstract class SimpleEditCommandHandler
       WorkspaceEdit workspaceEdit) async {
     // Send the edit to the client via a applyEdit request (this is a request
     // from server -> client and the client will provide a response).
-    final editResponse = await server.sendRequest(Method.workspace_applyEdit,
+    var editResponse = await server.sendRequest(Method.workspace_applyEdit,
         ApplyWorkspaceEditParams(label: commandName, edit: workspaceEdit));
 
     if (editResponse.error != null) {
@@ -80,15 +80,21 @@ abstract class SimpleEditCommandHandler
     // sent - and may have failed to apply - was related to this command
     // execution).
     // We need to fromJson to convert the JSON map to the real types.
-    final editResponseResult = ApplyWorkspaceEditResult.fromJson(
+    var editResponseResult = ApplyWorkspaceEditResult.fromJson(
         editResponse.result as Map<String, Object?>);
-    if (editResponseResult.applied) {
+    var ApplyWorkspaceEditResult(:applied, :failureReason) = editResponseResult;
+    if (applied) {
+      return success(null);
+    } else if (failureReason == null) {
+      // If the user cancels a previewed refactoring, we will get applied=false
+      // but no failure reason. In this case, we do not want to reject this as
+      // an error.
       return success(null);
     } else {
       return error(
         ServerErrorCodes.ClientFailedToApplyEdit,
         'Client failed to apply workspace edit for $commandName '
-        '(reason: ${editResponseResult.failureReason ?? 'Client did not provide a reason'})',
+        '(reason: $failureReason)',
         workspaceEdit.toString(),
       );
     }

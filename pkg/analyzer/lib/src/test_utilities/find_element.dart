@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
-import 'package:collection/collection.dart';
 
 /// Helper for finding elements declared in the resolved [unit].
 class FindElement extends _FindElementBase {
@@ -517,7 +516,7 @@ abstract class _FindElementBase {
     var results = [
       ...classes.where(filter).map(fromClass),
       ...unitElement.extensions.where(filter).map(fromExtension),
-    ].whereNotNull().toList();
+    ].nonNulls.toList();
 
     var result = results.singleOrNull;
     if (result != null) {

@@ -121,7 +121,7 @@ class _TokenProgressReporter extends ProgressReporter {
   }
 
   void _sendNotification(ToJsonable value) async {
-    _server.sendNotification(NotificationMessage(
+    _server.sendLspNotification(NotificationMessage(
         method: Method.progress,
         params: ProgressParams(
           token: _token,

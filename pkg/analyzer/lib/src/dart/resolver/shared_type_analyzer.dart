@@ -11,7 +11,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:collection/collection.dart';
 
 typedef SharedPatternField
     = shared.RecordPatternField<PatternFieldImpl, DartPatternImpl>;
@@ -36,28 +35,12 @@ class SharedTypeAnalyzerErrors
       required DartType scrutineeType,
       required DartType caseExpressionType,
       required bool nullSafetyEnabled}) {
-    if (nullSafetyEnabled) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode
-              .CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE,
-          caseExpression,
-          [caseExpressionType, scrutineeType]);
-    } else {
-      // We only report the error if it occurs on the first case; otherwise
-      // separate logic will report that different cases have different types.
-      var switchStatement = scrutinee.parent as SwitchStatement;
-      if (identical(
-          switchStatement.members
-              .whereType<SwitchCase>()
-              .firstOrNull
-              ?.expression,
-          caseExpression)) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE,
-            scrutinee,
-            [scrutineeType, caseExpressionType]);
-      }
-    }
+    _errorReporter.atNode(
+      caseExpression,
+      CompileTimeErrorCode
+          .CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE,
+      arguments: [caseExpressionType, scrutineeType],
+    );
   }
 
   @override
@@ -115,9 +98,9 @@ class SharedTypeAnalyzerErrors
   void emptyMapPattern({
     required DartPattern pattern,
   }) {
-    _errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.EMPTY_MAP_PATTERN,
+    _errorReporter.atNode(
       pattern,
+      CompileTimeErrorCode.EMPTY_MAP_PATTERN,
     );
   }
 
@@ -126,10 +109,10 @@ class SharedTypeAnalyzerErrors
     required PromotableElement variable,
     required PromotableElement component,
   }) {
-    _errorReporter.reportErrorForElement(
-      CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR,
+    _errorReporter.atElement(
       component,
-      [variable.name],
+      CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR,
+      arguments: [variable.name],
     );
   }
 
@@ -139,14 +122,14 @@ class SharedTypeAnalyzerErrors
     required DartType matchedType,
   }) {
     if (pattern is NullAssertPattern) {
-      _errorReporter.reportErrorForToken(
-        StaticWarningCode.UNNECESSARY_NULL_ASSERT_PATTERN,
+      _errorReporter.atToken(
         pattern.operator,
+        StaticWarningCode.UNNECESSARY_NULL_ASSERT_PATTERN,
       );
     } else if (pattern is NullCheckPattern) {
-      _errorReporter.reportErrorForToken(
-        StaticWarningCode.UNNECESSARY_NULL_CHECK_PATTERN,
+      _errorReporter.atToken(
         pattern.operator,
+        StaticWarningCode.UNNECESSARY_NULL_CHECK_PATTERN,
       );
     } else {
       throw UnimplementedError('(${pattern.runtimeType}) $pattern');
@@ -159,17 +142,17 @@ class SharedTypeAnalyzerErrors
     required DartType matchedType,
     required DartType requiredType,
   }) {
-    _errorReporter.reportErrorForToken(
-      WarningCode.UNNECESSARY_CAST_PATTERN,
+    _errorReporter.atToken(
       pattern.asToken,
+      WarningCode.UNNECESSARY_CAST_PATTERN,
     );
   }
 
   @override
   void nonBooleanCondition({required Expression node}) {
-    _errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.NON_BOOL_CONDITION,
+    _errorReporter.atNode(
       node,
+      CompileTimeErrorCode.NON_BOOL_CONDITION,
     );
   }
 
@@ -179,10 +162,10 @@ class SharedTypeAnalyzerErrors
     required Expression expression,
     required DartType expressionType,
   }) {
-    _errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE,
+    _errorReporter.atNode(
       expression,
-      [expressionType, 'Iterable'],
+      CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE,
+      arguments: [expressionType, 'Iterable'],
     );
   }
 
@@ -193,19 +176,19 @@ class SharedTypeAnalyzerErrors
     required DartType matchedType,
     required DartType requiredType,
   }) {
-    _errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT,
+    _errorReporter.atNode(
       pattern,
-      [matchedType, requiredType],
+      CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT,
+      arguments: [matchedType, requiredType],
     );
   }
 
   @override
   void refutablePatternInIrrefutableContext(
       {required AstNode pattern, required AstNode context}) {
-    _errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT,
+    _errorReporter.atNode(
       pattern,
+      CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT,
     );
   }
 
@@ -215,10 +198,10 @@ class SharedTypeAnalyzerErrors
     required DartType operandType,
     required DartType parameterType,
   }) {
-    _errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE,
+    _errorReporter.atNode(
       pattern.operand,
-      [operandType, parameterType, pattern.operator.lexeme],
+      CompileTimeErrorCode.RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE,
+      arguments: [operandType, parameterType, pattern.operator.lexeme],
     );
   }
 
@@ -227,10 +210,10 @@ class SharedTypeAnalyzerErrors
     required covariant RelationalPatternImpl pattern,
     required DartType returnType,
   }) {
-    _errorReporter.reportErrorForToken(
+    _errorReporter.atToken(
+      pattern.operator,
       CompileTimeErrorCode
           .RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL,
-      pattern.operator,
     );
   }
 
@@ -239,18 +222,19 @@ class SharedTypeAnalyzerErrors
     required covariant MapPatternImpl node,
     required covariant RestPatternElementImpl element,
   }) {
-    _errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN,
+    _errorReporter.atNode(
       element,
+      CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN,
     );
   }
 
   @override
   void switchCaseCompletesNormally(
       {required covariant SwitchStatement node, required int caseIndex}) {
-    _errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY,
-        node.members[caseIndex].keyword);
+    _errorReporter.atToken(
+      node.members[caseIndex].keyword,
+      CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY,
+    );
   }
 
   @override
@@ -260,9 +244,9 @@ class SharedTypeAnalyzerErrors
   }) {
     switch (kind) {
       case UnnecessaryWildcardKind.logicalAndPatternOperand:
-        _errorReporter.reportErrorForNode(
-          WarningCode.UNNECESSARY_WILDCARD_PATTERN,
+        _errorReporter.atNode(
           pattern,
+          WarningCode.UNNECESSARY_WILDCARD_PATTERN,
         );
     }
   }

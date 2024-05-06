@@ -10,6 +10,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/clients/build_resolvers/build_resolvers.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -28,10 +29,11 @@ class AstResolver {
   final ExecutableElement? enclosingExecutableElement;
   late final _resolutionVisitor = ResolutionVisitor(
     unitElement: _unitElement,
-    featureSet: _featureSet,
     nameScope: _nameScope,
     errorListener: _errorListener,
     strictInference: analysisOptions.strictInference,
+    strictCasts: analysisOptions.strictCasts,
+    dataForTesting: null,
   );
   late final _scopeResolverVisitor = ScopeResolverVisitor(
     _unitElement.library,
@@ -40,9 +42,10 @@ class AstResolver {
     _errorListener,
     nameScope: _nameScope,
   );
-  late final _flowAnalysis = FlowAnalysisHelper(
-      _unitElement.library.typeSystem, false, _featureSet,
-      strictCasts: analysisOptions.strictCasts);
+  late final _flowAnalysis = FlowAnalysisHelper(false, _featureSet,
+      typeSystemOperations: TypeSystemOperations(
+          _unitElement.library.typeSystem,
+          strictCasts: analysisOptions.strictCasts));
   late final _resolverVisitor = ResolverVisitor(
     _linker.inheritance,
     _unitElement.library,
@@ -95,7 +98,7 @@ class AstResolver {
 
   void resolveExpression(
     Expression Function() getNode, {
-    DartType? contextType,
+    DartType contextType = UnknownInferredType.instance,
   }) {
     Expression node = getNode();
     node.accept(_resolutionVisitor);

@@ -1,0 +1,18 @@
+@JS('library1')
+
+library;
+
+import 'dart:js_interop';
+
+extension type CustomJSAny(JSAny _) implements JSAny {}
+
+extension type CustomJSObject(JSObject _) implements JSObject {}
+
+extension type CustomTypedArray(JSTypedArray _) implements JSObject {}
+
+@JS('RenamedJSArray')
+extension type CustomJSArray(JSArray _) implements JSObject {}
+
+void test(JSAny any) {}
+
+void main() {}

@@ -4,15 +4,16 @@
 
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart'
     show ExtensionIndex;
-import 'package:dart2wasm/js/callback_specializer.dart';
-import 'package:dart2wasm/js/inline_expander.dart';
-import 'package:dart2wasm/js/interop_specializer.dart';
-import 'package:dart2wasm/js/method_collector.dart';
-import 'package:dart2wasm/js/util.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_environment.dart';
+
+import 'callback_specializer.dart';
+import 'inline_expander.dart';
+import 'interop_specializer.dart';
+import 'method_collector.dart';
+import 'util.dart';
 
 /// Lowers static interop to JS, generating specialized JS methods as required.
 /// We lower methods to JS, but wait to emit the runtime until after we complete
@@ -35,12 +36,12 @@ class InteropTransformer extends Transformer {
 
   InteropTransformer._(this._staticTypeContext, this._util,
       this._methodCollector, extensionIndex)
-      : _callbackSpecializer = CallbackSpecializer(
-            _staticTypeContext, _util, _methodCollector, extensionIndex),
+      : _callbackSpecializer =
+            CallbackSpecializer(_staticTypeContext, _util, _methodCollector),
         _inlineExpander =
             InlineExpander(_staticTypeContext, _util, _methodCollector),
         _interopSpecializerFactory = InteropSpecializerFactory(
-            _staticTypeContext, _util, _methodCollector, extensionIndex) {}
+            _staticTypeContext, _util, _methodCollector, extensionIndex);
 
   factory InteropTransformer(CoreTypes coreTypes, ClassHierarchy hierarchy) {
     final typeEnvironment = TypeEnvironment(coreTypes, hierarchy);

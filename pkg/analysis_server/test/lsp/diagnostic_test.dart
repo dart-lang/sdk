@@ -72,6 +72,14 @@ String b = "Test";
     expect(related.location.range.end.character, equals(16));
   }
 
+  @override
+  void setUp() {
+    super.setUp();
+
+    // These tests deliberately generate diagnostics.
+    failTestOnErrorDiagnostic = false;
+  }
+
   Future<void> test_afterDocumentEdits() async {
     const initialContents = 'int a = 1;';
     newFile(mainFilePath, initialContents);
@@ -79,11 +87,11 @@ String b = "Test";
     await initialize();
     await openFile(mainFileUri, initialContents);
     await pumpEventQueue(times: 5000);
-    expect(diagnostics[mainFilePath], isNull);
+    expect(diagnostics[mainFileUri], isNull);
 
     await replaceFile(222, mainFileUri, 'String a = 1;');
     await pumpEventQueue(times: 5000);
-    expect(diagnostics[mainFilePath], isNotEmpty);
+    expect(diagnostics[mainFileUri], isNotEmpty);
   }
 
   Future<void> test_analysisOptionsFile() async {
@@ -120,7 +128,7 @@ include: package:pedantic/analysis_options.yaml
 
     // // Write a package file that allows resolving the include.
     // final secondDiagnosticsUpdate = waitForDiagnostics(analysisOptionsUri);
-    // writePackageConfig(projectFolderPath, pedantic: true);
+    // writeTestPackageConfig(pedantic: true);
     //
     // // Ensure the error disappeared.
     // final updatedDiagnostics = await secondDiagnosticsUpdate;
@@ -178,8 +186,7 @@ void f() {
     setDiagnosticTagSupport([DiagnosticTag.Deprecated]);
 
     var onePackagePath = convertPath('/home/one');
-    writePackageConfig(
-      projectFolderPath,
+    writeTestPackageConfig(
       config: PackageConfigFileBuilder()
         ..add(name: 'one', rootPath: onePackagePath),
     );
@@ -203,8 +210,7 @@ void f() {
 
   Future<void> test_diagnosticTag_notSupported() async {
     var onePackagePath = convertPath('/home/one');
-    writePackageConfig(
-      projectFolderPath,
+    writeTestPackageConfig(
       config: PackageConfigFileBuilder()
         ..add(name: 'one', rootPath: onePackagePath),
     );
@@ -551,7 +557,7 @@ analyzer:
       initialize,
       {'showTodos': true},
     );
-    expect(diagnostics[mainFilePath], hasLength(2));
+    expect(diagnostics[mainFileUri], hasLength(2));
   }
 
   Future<void> test_todos_disabled() async {
@@ -564,7 +570,7 @@ analyzer:
     // TODOs are disabled by default so we don't need to send any config.
     await initialize();
     await pumpEventQueue(times: 5000);
-    expect(diagnostics[mainFilePath], isNull);
+    expect(diagnostics[mainFileUri], isNull);
   }
 
   Future<void> test_todos_enabledAfterAnalysis() async {
@@ -576,12 +582,11 @@ analyzer:
     await provideConfig(initialize, {});
     await openFile(mainFileUri, contents);
     await initialAnalysis;
-    expect(diagnostics[mainFilePath], isNull);
+    expect(diagnostics[mainFileUri], isNull);
 
-    final nextAnalysis = waitForAnalysisComplete();
     await updateConfig({'showTodos': true});
-    await nextAnalysis;
-    expect(diagnostics[mainFilePath], hasLength(1));
+    await waitForAnalysisComplete();
+    expect(diagnostics[mainFileUri], hasLength(1));
   }
 
   Future<void> test_todos_specific() async {
@@ -604,7 +609,7 @@ analyzer:
     );
     await initialAnalysis;
 
-    final initialDiagnostics = diagnostics[mainFilePath]!;
+    final initialDiagnostics = diagnostics[mainFileUri]!;
     expect(initialDiagnostics, hasLength(2));
     expect(
       initialDiagnostics.map((e) => e.code!),

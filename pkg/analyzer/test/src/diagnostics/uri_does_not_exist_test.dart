@@ -37,6 +37,41 @@ void f() {
     ]);
   }
 
+  test_libraryDocImport_cannotResolve_dart() async {
+    await assertErrorsInCode(r'''
+/// @docImport 'dart:foo';
+library;
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 15, 10),
+    ]);
+  }
+
+  test_libraryDocImport_cannotResolve_file() async {
+    await assertErrorsInCode(r'''
+/// @docImport 'foo.dart';
+library;
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 15, 10),
+    ]);
+  }
+
+  test_libraryDocImport_canResolve_dart() async {
+    await assertNoErrorsInCode(r'''
+/// @docImport 'dart:math';
+library;
+''');
+  }
+
+  test_libraryDocImport_canResolve_file() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+class A {}
+''');
+    await assertNoErrorsInCode(r'''
+/// @docImport 'foo.dart';
+library;
+''');
+  }
+
   test_libraryExport() async {
     await assertErrorsInCode('''
 export 'unknown.dart';
@@ -69,7 +104,7 @@ import 'unknown.dart';
     ]);
   }
 
-  test_libraryImport_appears_after_deleting_target() async {
+  test_libraryImport_appearsAfterDeletingTarget() async {
     String filePath = newFile('$testPackageLibPath/target.dart', '').path;
 
     await assertErrorsInCode('''

@@ -16,6 +16,36 @@ main() {
 @reflectiveTest
 class FinalInitializedInDeclarationAndConstructorTest
     extends PubPackageResolutionTest {
+  test_class_augmentation() async {
+    newFile(testFile.path, r'''
+import augment 'a.dart';
+
+class A {
+  final int f = 0;
+  A(this.f);
+}
+''');
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+augment class A {
+  augment A(this.f);
+}
+''');
+
+    await resolveFile2(testFile);
+    assertErrorsInResult([
+      error(
+          CompileTimeErrorCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
+          64,
+          1),
+    ]);
+
+    await resolveFile2(a);
+    assertNoErrorsInResult();
+  }
+
   test_class_fieldFormalParameter() async {
     await assertErrorsInCode('''
 class A {

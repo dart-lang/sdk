@@ -48,7 +48,7 @@ class TypeEnvironment {
         beforeRun: (compiler) {
           compiler.stopAfterGlobalTypeInferenceForTesting = true;
         });
-    Compiler compiler = result.compiler;
+    Compiler compiler = result.compiler!;
     if (expectNoErrors || expectNoWarningsOrErrors) {
       var errors = collector.errors;
       Expect.isTrue(errors.isEmpty, 'Unexpected errors: ${errors}');
@@ -61,10 +61,6 @@ class TypeEnvironment {
   }
 
   TypeEnvironment._(Compiler this.compiler, {this.testBackendWorld = false});
-
-  DartType legacyWrap(DartType type) {
-    return options.useLegacySubtyping ? types.legacyType(type) : type;
-  }
 
   ElementEnvironment get elementEnvironment {
     if (testBackendWorld) {
@@ -129,6 +125,9 @@ class TypeEnvironment {
     }
     if (name == 'void') {
       return types.voidType();
+    }
+    if (name == 'Never') {
+      return types.neverType();
     }
     return getElementType(name);
   }
@@ -202,7 +201,7 @@ class TypeEnvironment {
       types.map(printType).toList();
 
   DartType instantiate(ClassEntity element, List<DartType> arguments) =>
-      types.interfaceType(element, arguments.map(legacyWrap).toList());
+      types.interfaceType(element, arguments);
 }
 
 /// Data used to create a function type either as method declaration or a
@@ -221,13 +220,13 @@ class FunctionTypeData {
 /// Return source code that declares the function types in [dataList] as
 /// method declarations of the form:
 ///
-///     $returnType $name$parameters => null;
+///     $returnType $name$parameters => throw "";
 String createMethods(List<FunctionTypeData> dataList,
     {String additionalData = '', String prefix = ''}) {
   StringBuffer sb = StringBuffer();
   for (FunctionTypeData data in dataList) {
     sb.writeln(
-        '${data.returnType} $prefix${data.name}${data.parameters} => null;');
+        '${data.returnType} $prefix${data.name}${data.parameters} => throw "";');
   }
   sb.write(additionalData);
   return sb.toString();
@@ -250,7 +249,7 @@ String createTypedefs(List<FunctionTypeData> dataList,
   }
   for (int index = 0; index < dataList.length; index++) {
     FunctionTypeData data = dataList[index];
-    sb.writeln('f$index $prefix${data.name};');
+    sb.writeln('f$index $prefix${data.name} = throw "";');
   }
   sb.write(additionalData);
   return sb.toString();

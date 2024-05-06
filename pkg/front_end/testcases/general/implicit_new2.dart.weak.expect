@@ -27,7 +27,7 @@ static method test5() → FutureOr<FutureOr<void>> {
   return 42;
 }
 static method test6() → FutureOr<FutureOr<void>> {
-  return asy::Future::value<FutureOr<void>?>(42);
+  return asy::Future::value<FutureOr<void>>(42);
 }
 static method test() → FutureOr<FutureOr<void>> {
   return asy::Future::value<asy::Future<asy::Future<void>>>(asy::Future::value<asy::Future<void>>(asy::Future::value<void>(null)));

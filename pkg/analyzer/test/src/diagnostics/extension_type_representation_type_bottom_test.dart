@@ -24,4 +24,37 @@ extension type A(Never it) {}
           5),
     ]);
   }
+
+  test_neverQuestion() async {
+    await assertNoErrorsInCode('''
+extension type A(Never? it) {}
+''');
+  }
+
+  test_typeParameter_never_none() async {
+    await assertErrorsInCode('''
+extension type A<T extends Never>(T it) {}
+''', [
+      error(CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM, 34,
+          1),
+    ]);
+  }
+
+  test_typeParameter_never_question() async {
+    await assertNoErrorsInCode('''
+extension type A<T extends Never>(T? it) {}
+''');
+  }
+
+  test_typeParameter_never_question2() async {
+    await assertNoErrorsInCode('''
+extension type A<T extends Never, S extends T>(S? it) {}
+''');
+  }
+
+  test_typeParameter_never_question3() async {
+    await assertNoErrorsInCode('''
+extension type A<T extends Never, S extends T?>(S it) {}
+''');
+  }
 }

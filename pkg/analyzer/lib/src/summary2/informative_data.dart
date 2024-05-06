@@ -4,12 +4,12 @@
 
 import 'dart:typed_data';
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
@@ -19,7 +19,6 @@ import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/not_serializable_nodes.dart';
 import 'package:analyzer/src/util/collection.dart';
 import 'package:analyzer/src/util/comment.dart';
-import 'package:collection/collection.dart';
 
 Uint8List writeUnitInformative(CompilationUnit unit) {
   var byteSink = ByteSink();
@@ -301,6 +300,10 @@ class InformativeDataApplier {
       infoList,
       (element, info) {
         if (element is ShowElementCombinatorImpl) {
+          element.offset = info.offset;
+          element.end = info.end;
+        }
+        if (element is HideElementCombinatorImpl) {
           element.offset = info.offset;
           element.end = info.end;
         }
@@ -2175,7 +2178,7 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
 
   void _applyToEnumConstantInitializer(ConstFieldElementImpl element) {
     var initializer = element.constantInitializer;
-    if (initializer is InstanceCreationExpression) {
+    if (initializer is InstanceCreationExpressionImpl) {
       initializer.constructorName.type.typeArguments?.accept(this);
       for (var argument in initializer.argumentList.arguments) {
         argument.accept(this);

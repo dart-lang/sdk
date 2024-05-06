@@ -4,18 +4,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 #
-# When in a Flutter Engine checkout, this script checks what version of the Dart
-# SDK the engine is pinned to, and patches the engine if there is a known patch
-# that needs to be applied on the next Dart SDK roll in the engine.
-#
-# This script is meant to be used by 3xHEAD CI infrastructure, allowing
-# incompatible changes to be made to the Dart SDK requiring a matching change
-# to the Flutter Engine, without breaking the CI. The patch is associated with
-# the Dart SDK version the engine is pinned so. When the engine rolls its SDK,
-# then it stops applying patches atomically as there isn't a patch available yet
-# for the new roll.
-#
-# Additionally, this script updates the flutter engine DEPS file with the
+# This script updates the flutter engine DEPS file with the
 # Dart SDK dependencies.
 #
 # Usage: src/third_party/dart/tools/patches/flutter-engine/apply.sh
@@ -30,17 +19,6 @@ ensure_in_checkout_root
 
 pinned_dart_sdk=$(get_pinned_dart_version)
 need_runhooks=false
-patch=src/third_party/dart/tools/patches/flutter-engine/${pinned_dart_sdk}.flutter.patch
-if [ -e "$patch" ]; then
-  (cd flutter && git apply ../$patch)
-  need_runhooks=true
-fi
-
-patch=src/third_party/dart/tools/patches/flutter-engine/${pinned_dart_sdk}.patch
-if [ -e "$patch" ]; then
-  (cd src/flutter && git apply ../../$patch)
-  need_runhooks=true
-fi
 
 # Update the flutter DEPS with the revisions in the Dart SDK DEPS.
 src/tools/dart/create_updated_flutter_deps.py

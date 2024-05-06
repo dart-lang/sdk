@@ -1,5 +1,7 @@
 // @dart = 2.19
+
 bar() {}
+
 foo(int x, bool b) {}
 
 abstract class A {

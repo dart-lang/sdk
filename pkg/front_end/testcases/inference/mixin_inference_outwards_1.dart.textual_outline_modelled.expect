@@ -5,4 +5,5 @@ class I<X> {}
 class M0<T> extends I<T> {}
 
 main() {}
+
 mixin M1<T> on I<T> {}

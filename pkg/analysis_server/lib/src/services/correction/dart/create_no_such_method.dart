@@ -19,7 +19,7 @@ class CreateNoSuchMethod extends ResolvedCorrectionProducer {
       return;
     }
     // prepare environment
-    var prefix = utils.getIndent(1);
+    var prefix = utils.oneIndent;
     var insertOffset = targetClass.end - 1;
     await builder.addDartFileEdit(file, (builder) {
       builder.addInsertion(insertOffset, (builder) {

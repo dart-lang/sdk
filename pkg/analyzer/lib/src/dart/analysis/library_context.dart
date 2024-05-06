@@ -9,6 +9,7 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/element/element.dart'
     show CompilationUnitElement, LibraryElement;
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -18,8 +19,6 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/exception/exception.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
@@ -56,14 +55,14 @@ class LibraryContext {
     required this.byteStore,
     required this.infoDeclarationStore,
     required this.fileSystemState,
-    required AnalysisOptionsImpl analysisOptions,
+    required AnalysisOptionsMap analysisOptionsMap,
     required DeclaredVariables declaredVariables,
     required SourceFactory sourceFactory,
     required this.macroSupport,
     required SummaryDataStore? externalSummaries,
   }) {
     analysisContext = AnalysisContextImpl(
-      analysisOptions: analysisOptions,
+      analysisOptionsMap: analysisOptionsMap,
       declaredVariables: declaredVariables,
       sourceFactory: sourceFactory,
     );
@@ -312,7 +311,6 @@ class LibraryContext {
           if (libraryKind.file.uri == libraryReader.uri) {
             libraryKind.addMacroAugmentation(
               macroGeneratedCode,
-              addLibraryAugmentDirective: false,
               partialIndex: null,
             );
           }

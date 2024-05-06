@@ -1,0 +1,10 @@
+import 'dart:ffi';
+
+part "ffi_external_in_part_lib.dart";
+
+final class Struct1ByteInt extends Struct {
+  @Int8()
+  external int a0;
+}
+
+void notMain() {}

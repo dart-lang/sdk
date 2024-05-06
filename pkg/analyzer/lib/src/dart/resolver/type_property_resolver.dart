@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -21,7 +22,6 @@ import 'package:analyzer/src/generated/resolver.dart';
 class TypePropertyResolver {
   final ResolverVisitor _resolver;
   final LibraryElement _definingLibrary;
-  final bool _isNonNullableByDefault;
   final TypeSystemImpl _typeSystem;
   final TypeProviderImpl _typeProvider;
   final ExtensionMemberResolver _extensionResolver;
@@ -42,7 +42,6 @@ class TypePropertyResolver {
 
   TypePropertyResolver(this._resolver)
       : _definingLibrary = _resolver.definingLibrary,
-        _isNonNullableByDefault = _resolver.typeSystem.isNonNullableByDefault,
         _typeSystem = _resolver.typeSystem,
         _typeProvider = _resolver.typeProvider,
         _extensionResolver = _resolver.extensionResolver;
@@ -72,8 +71,6 @@ class TypePropertyResolver {
     _nameErrorEntity = nameErrorEntity;
     _resetResult();
 
-    receiverType = _resolveTypeParameter(receiverType, ifLegacy: true);
-
     if (name == 'new') {
       _needsGetterError = true;
       _needsSetterError = true;
@@ -91,9 +88,14 @@ class TypePropertyResolver {
       return _toResult();
     }
 
-    if (_isNonNullableByDefault &&
-        _typeSystem.isPotentiallyNullable(receiverType) &&
-        !receiverType.isExtensionType) {
+    bool isNullable;
+    if (receiverType.isExtensionType) {
+      isNullable = receiverType.nullabilitySuffix == NullabilitySuffix.question;
+    } else {
+      isNullable = _typeSystem.isPotentiallyNullable(receiverType);
+    }
+
+    if (isNullable) {
       _lookupInterfaceType(_typeProvider.objectType);
       if (_hasGetterOrSetter) {
         return _toResult();
@@ -166,15 +168,14 @@ class TypePropertyResolver {
       _reportedSetterError = true;
 
       // Recovery, get some resolution.
-      receiverType = _resolveTypeParameter(receiverType, ifNullSafe: true);
+      receiverType = _typeSystem.resolveToBound(receiverType);
       if (receiverType is InterfaceType) {
         _lookupInterfaceType(receiverType);
       }
 
       return _toResult();
     } else {
-      var receiverTypeResolved =
-          _resolveTypeParameter(receiverType, ifNullSafe: true);
+      var receiverTypeResolved = _typeSystem.resolveToBound(receiverType);
 
       if (receiverTypeResolved is InterfaceType) {
         _lookupInterfaceType(receiverTypeResolved);
@@ -192,9 +193,7 @@ class TypePropertyResolver {
       if (receiverTypeResolved is FunctionType &&
           _name == FunctionElement.CALL_METHOD_NAME) {
         return ResolutionResult(
-          getter: null,
           needsGetterError: false,
-          setter: null,
           needsSetterError: false,
           callFunctionType: receiverTypeResolved,
         );
@@ -291,33 +290,7 @@ class TypePropertyResolver {
     _setterRecovery = null;
   }
 
-  /// If the given [type] is a type parameter, replace it with its bound.
-  /// Otherwise, return the original type.
-  ///
-  /// See https://github.com/dart-lang/language/issues/1182
-  /// There was a bug in the analyzer (and CFE) - we were always resolving
-  /// types to bounds before searching for a property.  But  extensions should
-  /// be applied to original types.  Fixing this would be a breaking change,
-  /// so we fix it together with null safety.
-  DartType _resolveTypeParameter(
-    DartType type, {
-    bool ifLegacy = false,
-    bool ifNullSafe = false,
-  }) {
-    if (_typeSystem.isNonNullableByDefault ? ifNullSafe : ifLegacy) {
-      return _typeSystem.resolveToBound(type);
-    } else {
-      return type;
-    }
-  }
-
   ResolutionResult _toResult() {
-    _getterRequested = _resolver.toLegacyElement(_getterRequested);
-    _getterRecovery = _resolver.toLegacyElement(_getterRecovery);
-
-    _setterRequested = _resolver.toLegacyElement(_setterRequested);
-    _setterRecovery = _resolver.toLegacyElement(_setterRecovery);
-
     var getter = _getterRequested ?? _getterRecovery;
     var setter = _setterRequested ?? _setterRecovery;
 

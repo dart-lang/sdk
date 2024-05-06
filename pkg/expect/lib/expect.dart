@@ -4,38 +4,18 @@
 
 /// This library contains an Expect class with static methods that can be used
 /// for simple unit-tests.
+///
+/// This library is deliberately simple and uses very few language features.
+/// This makes it safer to use for writing the language test suite.
 library expect;
 
 /// Whether the program is running without sound null safety.
+// TODO(54798): migrate uses to directly import variations.dart
 bool get hasUnsoundNullSafety => const <Null>[] is List<Object>;
 
 /// Whether the program is running with sound null safety.
+// TODO(54798): migrate uses to directly import variations.dart
 bool get hasSoundNullSafety => !hasUnsoundNullSafety;
-
-/// Whether the test was compiled by Dart2JS as production web code.
-///
-/// Production code unsafely omits some type checks that are required by the
-/// language, under the assumption that production code will have no type
-/// errors.
-///
-/// For example an invalid implicit down-cast like
-/// `dynamic d = 3; String s = d;` might not be caught in production code.
-final dart2jsProductionMode = const bool.fromEnvironment(
-    'dart.tool.dart2js.types:trust',
-    defaultValue: false);
-
-/// Whether the test is running in a web environment, using JavaScript numbers.
-///
-/// In web compiled code, Dart integers are compiled to JavaScript numbers,
-/// and have different ranges and behaviors of some operations, compared to
-/// native compiled code (see [int] for more details about the difference
-/// between native numbers and numbers on the web).
-///
-/// For example, using JavaScript numbers, an `int` value like `1` also
-/// implements `double` and is the same object as `1.0`. In native numbers,
-/// those values are two different objects, and integers do not implement
-/// `double`.
-final bool webNumbers = identical(1, 1.0);
 
 /// Expect is used for tests that do not want to make use of the
 /// Dart unit test library - for example, the core language tests.
@@ -629,6 +609,22 @@ class Expect {
     _fail('Expect.throws$msg fails: Did not throw');
   }
 
+  /// Calls [computation] and checks that it throws an [E] when [condition] is
+  /// `true`.
+  ///
+  /// If [condition] is `true`, the test succeeds if an [E] is thrown, and then
+  /// that error is returned. The test fails if nothing is thrown or a different
+  /// error is thrown.
+  /// If [condition] is `false`, the test succeeds if nothing is thrown,
+  /// returning `null`, and fails if anything is thrown.
+  static E? throwsWhen<E extends Object>(
+      bool condition, void Function() computation,
+      [String? reason]) {
+    if (condition) return throws<E>(computation, null, reason);
+    computation();
+    return null;
+  }
+
   static ArgumentError throwsArgumentError(void Function() f,
           [String reason = "ArgumentError"]) =>
       Expect.throws<ArgumentError>(f, _defaultCheck, reason);
@@ -661,6 +657,11 @@ class Expect {
   static TypeError throwsTypeError(void Function() f,
           [String reason = "TypeError"]) =>
       Expect.throws<TypeError>(f, _defaultCheck, reason);
+
+  /// Checks that [f] throws a [TypeError] if an only if [condition] is `true`.
+  static TypeError? throwsTypeErrorWhen(bool condition, void Function() f,
+          [String? reason]) =>
+      Expect.throwsWhen<TypeError>(condition, f, reason);
 
   static UnsupportedError throwsUnsupportedError(void Function() f,
           [String reason = "UnsupportedError"]) =>

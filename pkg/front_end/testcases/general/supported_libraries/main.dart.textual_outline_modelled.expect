@@ -24,4 +24,5 @@ import 'import_default_lib.dart'
     as from_supported_by_spec_last;
 
 expect(expected, actual) {}
+
 main() {}

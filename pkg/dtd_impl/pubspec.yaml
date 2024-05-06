@@ -8,6 +8,8 @@ environment:
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
+  args: any
+  collection: any
   dart_service_protocol_shared: any
   json_rpc_2: any
   shelf: any
@@ -23,3 +25,4 @@ dependencies:
 # See also https://dart.dev/tools/pub/dependencies.
 dev_dependencies:
   lints: any
+  test: any

@@ -23,5 +23,4 @@ void main() async {
     Expect.equals(8, sizeOf<Pointer>());
     Expect.equals(24, sizeOf<Coordinate>());
   }
-  Expect.throws(() => sizeOf<Void>());
 }

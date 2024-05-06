@@ -3,5 +3,7 @@ extension SafeAccess<T> on Iterable<T> {
 }
 
 main() {}
+
 void test() {}
+
 void errors() {}

@@ -63,7 +63,7 @@ library;
 // pkg/front_end/testcases/records/type_record_as_supertype.dart:29:16: Error: 'RR' is restricted and can't be extended or implemented.
 // abstract class C2 with RR {} // Error.
 //                ^
-// sdk/lib/core/record.dart:82:22: Context: This is the type denoted by the type alias.
+// sdk/lib/core/record.dart:*: Context: This is the type denoted by the type alias.
 // abstract final class Record {
 //                      ^
 //

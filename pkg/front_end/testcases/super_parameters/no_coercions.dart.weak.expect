@@ -88,17 +88,17 @@ class B1 extends self::A1 {
     ;
 }
 class A2 extends core::Object {
-  constructor •({required core::String x = #C1}) → self::A2
+  constructor •({required core::String x}) → self::A2
     : super core::Object::•()
     ;
 }
 class B2 extends self::A2 {
-  constructor one({required dynamic x = #C1}) → self::B2
+  constructor one({required dynamic x}) → self::B2
     : super self::A2::•(x: invalid-expression "pkg/front_end/testcases/super_parameters/no_coercions.dart:19:34: Error: The argument type 'dynamic' can't be assigned to the parameter type 'String'.
   B2.one({required dynamic super.x}); // Error.
                                  ^" in x as{TypeError} core::String)
     ;
-  constructor two({required dynamic x = #C1}) → self::B2
+  constructor two({required dynamic x}) → self::B2
     : super self::A2::•(x: invalid-expression "pkg/front_end/testcases/super_parameters/no_coercions.dart:20:34: Error: The argument type 'dynamic' can't be assigned to the parameter type 'String'.
   B2.two({required dynamic super.x}) : super(); // Error.
                                  ^" in x as{TypeError} core::String)
@@ -122,17 +122,17 @@ class B3 extends self::A3 {
     ;
 }
 class A4 extends core::Object {
-  constructor •({required (core::double) → core::num f = #C1}) → self::A4
+  constructor •({required (core::double) → core::num f}) → self::A4
     : super core::Object::•()
     ;
 }
 class B4 extends self::A4 {
-  constructor one({required <X extends core::Object? = dynamic>(core::double) → X% f = #C1}) → self::B4
+  constructor one({required <X extends core::Object? = dynamic>(core::double) → X% f}) → self::B4
     : super self::A4::•(f: invalid-expression "pkg/front_end/testcases/super_parameters/no_coercions.dart:37:48: Error: The argument type 'X Function<X>(double)' can't be assigned to the parameter type 'num Function(double)'.
   B4.one({required X Function<X>(double) super.f}); // Error.
                                                ^" in f as{TypeError} (core::double) → core::num)
     ;
-  constructor two({required <X extends core::Object? = dynamic>(core::double) → X% f = #C1}) → self::B4
+  constructor two({required <X extends core::Object? = dynamic>(core::double) → X% f}) → self::B4
     : super self::A4::•(f: invalid-expression "pkg/front_end/testcases/super_parameters/no_coercions.dart:38:48: Error: The argument type 'X Function<X>(double)' can't be assigned to the parameter type 'num Function(double)'.
   B4.two({required X Function<X>(double) super.f}) : super(); // Error.
                                                ^" in f as{TypeError} (core::double) → core::num)
@@ -164,18 +164,18 @@ class B5 extends self::A5 {
     ;
 }
 class A6 extends core::Object {
-  constructor •({required (core::int, core::num) → core::String f = #C1}) → self::A6
+  constructor •({required (core::int, core::num) → core::String f}) → self::A6
     : super core::Object::•()
     ;
 }
 class B6 extends self::A6 {
-  constructor one({required self::C5 f = #C1}) → self::B6
+  constructor one({required self::C5 f}) → self::B6
     : super self::A6::•(f: invalid-expression "pkg/front_end/testcases/super_parameters/no_coercions.dart:59:29: Error: The argument type 'C5' can't be assigned to the parameter type 'String Function(int, num)'.
  - 'C5' is from 'pkg/front_end/testcases/super_parameters/no_coercions.dart'.
   B6.one({required C5 super.f}); // Error.
                             ^" in f as{TypeError} (core::int, core::num) → core::String)
     ;
-  constructor two({required self::C5 f = #C1}) → self::B6
+  constructor two({required self::C5 f}) → self::B6
     : super self::A6::•(f: invalid-expression "pkg/front_end/testcases/super_parameters/no_coercions.dart:60:29: Error: The argument type 'C5' can't be assigned to the parameter type 'String Function(int, num)'.
  - 'C5' is from 'pkg/front_end/testcases/super_parameters/no_coercions.dart'.
   B6.two({required C5 super.f}) : super(); // Error.
@@ -183,12 +183,12 @@ class B6 extends self::A6 {
     ;
 }
 class A7 extends core::Object {
-  constructor •({required core::int x1 = #C1, required core::int x2 = #C1, required (core::Object) → core::bool f1 = #C1, required (core::Object) → core::bool f2 = #C1, required (dynamic) → void g1 = #C1, required (dynamic) → void g2 = #C1}) → self::A7
+  constructor •({required core::int x1, required core::int x2, required (core::Object) → core::bool f1, required (core::Object) → core::bool f2, required (dynamic) → void g1, required (dynamic) → void g2}) → self::A7
     : super core::Object::•()
     ;
 }
 class B7 extends self::A7 {
-  constructor •({required dynamic x1 = #C1, required dynamic x2 = #C1, required <X extends core::Object? = dynamic>(core::Object) → X% f1 = #C1, required <X extends core::Object? = dynamic>(core::Object) → X% f2 = #C1, required <X extends core::Object? = dynamic>(X%) → void g1 = #C1, required <X extends core::Object? = dynamic>(X%) → void g2 = #C1}) → self::B7
+  constructor •({required dynamic x1, required dynamic x2, required <X extends core::Object? = dynamic>(core::Object) → X% f1, required <X extends core::Object? = dynamic>(core::Object) → X% f2, required <X extends core::Object? = dynamic>(X%) → void g1, required <X extends core::Object? = dynamic>(X%) → void g2}) → self::B7
     : super self::A7::•(x2: x2 as{TypeError,ForDynamic} core::int, f2: f2<core::bool>, g2: g2<dynamic>, x1: invalid-expression "pkg/front_end/testcases/super_parameters/no_coercions.dart:73:30: Error: The argument type 'dynamic' can't be assigned to the parameter type 'int'.
   B7({required dynamic super.x1, // Error.
                              ^" in x1 as{TypeError} core::int, f1: invalid-expression "pkg/front_end/testcases/super_parameters/no_coercions.dart:75:44: Error: The argument type 'X Function<X>(Object)' can't be assigned to the parameter type 'bool Function(Object)'.
@@ -200,7 +200,3 @@ class B7 extends self::A7 {
     ;
 }
 static method main() → dynamic {}
-
-constants  {
-  #C1 = null
-}

@@ -5,4 +5,5 @@ class Foo {
 class Bar {}
 
 useCallback(callback) {}
+
 main() {}

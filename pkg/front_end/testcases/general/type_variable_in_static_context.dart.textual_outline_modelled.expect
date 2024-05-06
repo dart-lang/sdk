@@ -31,6 +31,7 @@ class Class<T> {
   @Class<void Function<S extends T>()>()
   static void Function<S extends T>()? method7<U extends void Function<S extends T>()>(void Function<S extends T>() arg) {}
 }
+
 extension Extension<T> on T {
   Extension(T t);
   @T()
@@ -43,7 +44,9 @@ extension Extension<T> on T {
   @T()
   static T field0;
 }
+
 main() {}
+
 mixin Mixin<T> {
   Mixin(T t);
   @T()
@@ -56,5 +59,7 @@ mixin Mixin<T> {
   @T()
   static T field0;
 }
+
 typedef A<T> = Class<T>;
+
 typedef B<T extends num> = Class<T>;

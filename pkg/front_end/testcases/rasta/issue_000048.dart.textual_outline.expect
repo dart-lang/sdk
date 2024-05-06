@@ -7,5 +7,7 @@ class A {
 mixin M1 {
   num v2 = 0;
 }
+
 class C = A with M1;
+
 main() {}

@@ -48,23 +48,23 @@ abstract class _EventDispatch<T> {
 class _BufferingStreamSubscription<T>
     implements StreamSubscription<T>, _EventSink<T>, _EventDispatch<T> {
   /// The `cancelOnError` flag from the `listen` call.
-  static const int _STATE_CANCEL_ON_ERROR = 1;
+  static const int _STATE_CANCEL_ON_ERROR = 1 << 0;
 
   /// Whether the "done" event has been received.
   /// No further events are accepted after this.
-  static const int _STATE_CLOSED = 2;
+  static const int _STATE_CLOSED = 1 << 1;
 
   /// Set if the input has been asked not to send events.
   ///
   /// This is not the same as being paused, since the input will remain paused
   /// after a call to [resume] if there are pending events.
-  static const int _STATE_INPUT_PAUSED = 4;
+  static const int _STATE_INPUT_PAUSED = 1 << 2;
 
   /// Whether the subscription has been canceled.
   ///
   /// Set by calling [cancel], or by handling a "done" event, or an "error" event
   /// when `cancelOnError` is true.
-  static const int _STATE_CANCELED = 8;
+  static const int _STATE_CANCELED = 1 << 3;
 
   /// Set when either:
   ///
@@ -73,20 +73,39 @@ class _BufferingStreamSubscription<T>
   ///
   /// If the subscription is canceled while _STATE_WAIT_FOR_CANCEL is set, the
   /// state is unset, and no further events must be delivered.
-  static const int _STATE_WAIT_FOR_CANCEL = 16;
-  static const int _STATE_IN_CALLBACK = 32;
-  static const int _STATE_HAS_PENDING = 64;
-  static const int _STATE_PAUSE_COUNT = 128;
+  static const int _STATE_WAIT_FOR_CANCEL = 1 << 4;
+
+  /// Set when [_onError] is set to something other than [_nullErrorHandler].
+  /// Is used by VM to decide whether subscription is going to handle an
+  /// error or not.
+  ///
+  /// When changing this value make sure to update runtime/vm/stack_trace.cc
+  static const int _STATE_HAS_ERROR_HANDLER = 1 << 5;
+
+  /// Caveat: [_canFire] expects these bits to be at the top so that it
+  /// can use a single `< _STATE_IN_CALLBACK` comparison to test for all
+  /// of them.
+  static const int _STATE_IN_CALLBACK = 1 << 6;
+  static const int _STATE_HAS_PENDING = 1 << 7;
+  static const int _STATE_PAUSE_COUNT = 1 << 8;
 
   /* Event handlers provided in constructor. */
   @pragma("vm:entry-point")
   void Function(T) _onData;
+
+  @pragma("vm:entry-point")
   Function _onError;
+
+  @pragma("vm:entry-point")
   void Function() _onDone;
 
   final Zone _zone;
 
   /// Bit vector based on state-constants above.
+  ///
+  /// Upper bits (starting at _STATE_PAUSE_COUNT) contain number of times
+  /// this subscription was paused.
+  @pragma("vm:entry-point")
   int _state;
 
   // TODO(floitsch): reuse another field
@@ -104,7 +123,8 @@ class _BufferingStreamSubscription<T>
 
   _BufferingStreamSubscription.zoned(this._zone, void onData(T data)?,
       Function? onError, void onDone()?, bool cancelOnError)
-      : _state = (cancelOnError ? _STATE_CANCEL_ON_ERROR : 0),
+      : _state = (cancelOnError ? _STATE_CANCEL_ON_ERROR : 0) |
+            (onError != null ? _STATE_HAS_ERROR_HANDLER : 0),
         _onData = _registerDataHandler<T>(_zone, onData),
         _onError = _registerErrorHandler(_zone, onError),
         _onDone = _registerDoneHandler(_zone, onDone);
@@ -135,6 +155,11 @@ class _BufferingStreamSubscription<T>
   }
 
   void onError(Function? handleError) {
+    if (handleError == null) {
+      _state &= ~_STATE_HAS_ERROR_HANDLER;
+    } else {
+      _state |= _STATE_HAS_ERROR_HANDLER;
+    }
     _onError = _registerErrorHandler(_zone, handleError);
   }
 
@@ -215,6 +240,7 @@ class _BufferingStreamSubscription<T>
     _onDone = () {
       result._complete(resultValue);
     };
+    _state |= _STATE_HAS_ERROR_HANDLER;
     _onError = (Object error, StackTrace stackTrace) {
       Future cancelFuture = cancel();
       if (!identical(cancelFuture, Future._nullFuture)) {

@@ -104,12 +104,12 @@ nonExhaustiveNonNullableFutureOr1(
 nonExhaustiveNonNullableFutureOr2(
         FutureOr<int?>
             o) => /*
- checkingOrder={FutureOr<int?>,int?,Future<int?>,int,Null},
- error=non-exhaustive:Future<int?>(),
- expandedSubtypes={int,Null,Future<int?>},
- subtypes={int?,Future<int?>},
- type=FutureOr<int?>
-*/
+             checkingOrder={FutureOr<int?>,int?,Future<int?>,int,Null},
+             error=non-exhaustive:Future<int?>();null,
+             expandedSubtypes={int,Null,Future<int?>},
+             subtypes={int?,Future<int?>},
+             type=FutureOr<int?>
+            */
     switch (o) {
       FutureOr<int>() as FutureOr<int?> /*space=FutureOr<int>*/ => 0,
     };
@@ -154,12 +154,12 @@ nonExhaustiveNonNullableFutureOrTypeVariable1<T extends Object>(
 nonExhaustiveNonNullableFutureOrTypeVariable2<T extends Object>(
         FutureOr<T?>
             o) => /*
- checkingOrder={FutureOr<T?>,Object?,Future<T?>,Object,Null},
- error=non-exhaustive:Future<T?>(),
- expandedSubtypes={Object,Null,Future<T?>},
- subtypes={Object?,Future<T?>},
- type=FutureOr<T?>
-*/
+             checkingOrder={FutureOr<T?>,Object?,Future<T?>,Object,Null},
+             error=non-exhaustive:Future<T?>();null,
+             expandedSubtypes={Object,Null,Future<T?>},
+             subtypes={Object?,Future<T?>},
+             type=FutureOr<T?>
+            */
     switch (o) {
       FutureOr<T>() as FutureOr<T?> /*space=FutureOr<T>*/ => 0,
     };
@@ -204,12 +204,12 @@ nonExhaustiveNullableFutureOrTypeVariable3<T>(
 nonExhaustiveNullableFutureOrTypeVariable4<T>(
         FutureOr<T?>
             o) => /*
- checkingOrder={FutureOr<T?>,Object?,Future<T?>,Object,Null},
- error=non-exhaustive:Future<T?>(),
- expandedSubtypes={Object,Null,Future<T?>},
- subtypes={Object?,Future<T?>},
- type=FutureOr<T?>
-*/
+             checkingOrder={FutureOr<T?>,Object?,Future<T?>,Object,Null},
+             error=non-exhaustive:Future<T?>();null,
+             expandedSubtypes={Object,Null,Future<T?>},
+             subtypes={Object?,Future<T?>},
+             type=FutureOr<T?>
+            */
     switch (o) {
       FutureOr<T>() as FutureOr<T?> /*space=FutureOr<T>*/ => 0,
     };

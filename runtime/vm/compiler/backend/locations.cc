@@ -5,6 +5,7 @@
 #include "vm/compiler/backend/locations.h"
 #include <limits>
 
+#include "vm/class_id.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/log.h"
@@ -12,90 +13,37 @@
 
 namespace dart {
 
-#define REP_IN_SET_CLAUSE(name, __, ___)                                       \
-  case k##name:                                                                \
-    return true;
-#define REP_SIZEOF_CLAUSE(name, __, type)                                      \
-  case k##name:                                                                \
-    return sizeof(type);
-#define REP_IS_UNSIGNED_CLAUSE(name, unsigned, ___)                            \
-  case k##name:                                                                \
-    return unsigned;
-
-bool RepresentationUtils::IsUnboxedInteger(Representation rep) {
-  switch (rep) {
-    FOR_EACH_INTEGER_REPRESENTATION_KIND(REP_IN_SET_CLAUSE)
-    default:
-      return false;
-  }
-}
-
-bool RepresentationUtils::IsUnboxed(Representation rep) {
-  switch (rep) {
-    FOR_EACH_UNBOXED_REPRESENTATION_KIND(REP_IN_SET_CLAUSE)
-    default:
-      return false;
-  }
-}
-
-size_t RepresentationUtils::ValueSize(Representation rep) {
-  switch (rep) {
-    FOR_EACH_SIMPLE_REPRESENTATION_KIND(REP_SIZEOF_CLAUSE)
-    default:
-      UNREACHABLE();
-      return compiler::target::kWordSize;
-  }
-}
-
-bool RepresentationUtils::IsUnsigned(Representation rep) {
-  switch (rep) {
-    FOR_EACH_SIMPLE_REPRESENTATION_KIND(REP_IS_UNSIGNED_CLAUSE)
-    default:
-      UNREACHABLE();
-      return false;
-  }
-}
-
-#undef REP_IS_UNSIGNED_CLAUSE
-#undef REP_SIZEOF_CLAUSE
-#undef REP_IN_SET_CLAUSE
-
 compiler::OperandSize RepresentationUtils::OperandSize(Representation rep) {
-  if (rep == kTagged) {
-    return compiler::kObjectBytes;
-  } else if (rep == kUntagged) {
-    // Untagged addresses are either loaded from and stored to word size native
-    // fields or generated from already-extended tagged addresses when
-    // compressed pointers are enabled.
-    return compiler::kWordBytes;
+  if (rep == kTagged) return compiler::kObjectBytes;
+
+  // Untagged addresses are either loaded from and stored to word size native
+  // fields or generated from already-extended tagged addresses when
+  // compressed pointers are enabled.
+  if (rep == kUntagged) return compiler::kWordBytes;
+
+  if (IsUnboxedInteger(rep)) {
+    switch (ValueSize(rep)) {
+      case 8:
+        ASSERT(!IsUnsignedInteger(rep));
+        ASSERT_EQUAL(compiler::target::kWordSize, 8);
+        return compiler::kEightBytes;
+      case 4:
+        return IsUnsignedInteger(rep) ? compiler::kUnsignedFourBytes
+                                      : compiler::kFourBytes;
+      case 2:
+        return IsUnsignedInteger(rep) ? compiler::kUnsignedTwoBytes
+                                      : compiler::kTwoBytes;
+      case 1:
+        return IsUnsignedInteger(rep) ? compiler::kUnsignedByte
+                                      : compiler::kByte;
+    }
   }
-  ASSERT(IsUnboxedInteger(rep));
-  switch (ValueSize(rep)) {
-    case 8:
-      ASSERT(!IsUnsigned(rep));
-      ASSERT_EQUAL(compiler::target::kWordSize, 8);
-      return compiler::kEightBytes;
-    case 4:
-      return IsUnsigned(rep) ? compiler::kUnsignedFourBytes
-                             : compiler::kFourBytes;
-    case 2:
-      // No kUnboxedInt16 yet.
-      if (!IsUnsigned(rep)) {
-        UNIMPLEMENTED();
-      }
-      return compiler::kUnsignedTwoBytes;
-    case 1:
-      if (!IsUnsigned(rep)) {
-        // No kUnboxedInt8 yet.
-        UNIMPLEMENTED();
-      }
-      return compiler::kUnsignedByte;
-  }
+
   UNREACHABLE();
   return compiler::kObjectBytes;
 }
 
-#define REP_MIN_VALUE_CLAUSE(name, ____, type)                                 \
+#define REP_MIN_VALUE_CLAUSE(name, ___, ____, type)                            \
   case k##name:                                                                \
     return static_cast<int64_t>(std::numeric_limits<type>::min());
 int64_t RepresentationUtils::MinValue(Representation rep) {
@@ -108,7 +56,7 @@ int64_t RepresentationUtils::MinValue(Representation rep) {
 }
 #undef REP_MIN_VALUE_CLAUSE
 
-#define REP_MAX_VALUE_CLAUSE(name, ____, type)                                 \
+#define REP_MAX_VALUE_CLAUSE(name, ___, ____, type)                            \
   case k##name:                                                                \
     return static_cast<int64_t>(std::numeric_limits<type>::max());
 int64_t RepresentationUtils::MaxValue(Representation rep) {
@@ -122,34 +70,73 @@ int64_t RepresentationUtils::MaxValue(Representation rep) {
 #undef REP_MAX_VALUE_CLAUSE
 
 bool RepresentationUtils::IsRepresentable(Representation rep, int64_t value) {
+  ASSERT(IsUnboxedInteger(rep));
   const intptr_t bit_size = ValueSize(rep) * kBitsPerByte;
-  return IsUnsigned(rep) ? Utils::IsUint(bit_size, value)
-                         : Utils::IsInt(bit_size, value);
+  return IsUnsignedInteger(rep) ? Utils::IsUint(bit_size, value)
+                                : Utils::IsInt(bit_size, value);
 }
 
-const char* Location::RepresentationToCString(Representation repr) {
+Representation RepresentationUtils::RepresentationOfArrayElement(
+    classid_t cid) {
+  if (IsTypedDataBaseClassId(cid)) {
+    // Normalize typed data cids to the internal cid for the switch statement.
+    cid = cid - ((cid - kFirstTypedDataCid) % kNumTypedDataCidRemainders) +
+          kTypedDataCidRemainderInternal;
+  }
+  switch (cid) {
+#define ARRAY_CASE(Name) case k##Name##Cid:
+    CLASS_LIST_ARRAYS(ARRAY_CASE)
+#undef ARRAY_CASE
+    case kRecordCid:
+    case kTypeArgumentsCid:
+      return kTagged;
+    case kTypedDataInt8ArrayCid:
+      return kUnboxedInt8;
+    case kOneByteStringCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+      return kUnboxedUint8;
+    case kTypedDataInt16ArrayCid:
+      return kUnboxedInt16;
+    case kTwoByteStringCid:
+    case kTypedDataUint16ArrayCid:
+      return kUnboxedUint16;
+    case kTypedDataInt32ArrayCid:
+      return kUnboxedInt32;
+    case kTypedDataUint32ArrayCid:
+      return kUnboxedUint32;
+    case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid:
+      return kUnboxedInt64;
+    case kTypedDataFloat32ArrayCid:
+      return kUnboxedFloat;
+    case kTypedDataFloat64ArrayCid:
+      return kUnboxedDouble;
+    case kTypedDataInt32x4ArrayCid:
+      return kUnboxedInt32x4;
+    case kTypedDataFloat32x4ArrayCid:
+      return kUnboxedFloat32x4;
+    case kTypedDataFloat64x2ArrayCid:
+      return kUnboxedFloat64x2;
+    default:
+      FATAL("Unexpected array cid %u", cid);
+      return kTagged;
+  }
+}
+
+const char* RepresentationUtils::ToCString(Representation repr) {
   switch (repr) {
-#define REPR_CASE(Name, __, ___)                                               \
+#define REPR_CASE(Name, PrintName, __, ___)                                    \
   case k##Name:                                                                \
-    return #Name;
+    return #PrintName;
     FOR_EACH_REPRESENTATION_KIND(REPR_CASE)
 #undef KIND_CASE
     default:
       UNREACHABLE();
   }
   return nullptr;
-}
-
-bool Location::ParseRepresentation(const char* str, Representation* out) {
-  ASSERT(str != nullptr && out != nullptr);
-#define KIND_CASE(Name, __, ___)                                               \
-  if (strcmp(str, #Name) == 0) {                                               \
-    *out = k##Name;                                                            \
-    return true;                                                               \
-  }
-  FOR_EACH_REPRESENTATION_KIND(KIND_CASE)
-#undef KIND_CASE
-  return false;
 }
 
 intptr_t RegisterSet::RegisterCount(intptr_t registers) {
@@ -248,6 +235,37 @@ void LocationSummary::set_out(intptr_t index, Location loc) {
          (loc.IsUnallocated() && loc.policy() == Location::kSameAsFirstInput &&
           num_inputs_ > 0 && ValidOutputForAlwaysCalls(in(0))));
   output_location_ = loc;
+}
+
+Location Location::ToSpRelative(intptr_t fp_to_sp_delta) const {
+  if (IsPairLocation()) {
+    auto pair = AsPairLocation();
+    return Pair(pair->At(0).ToSpRelative(fp_to_sp_delta),
+                pair->At(1).ToSpRelative(fp_to_sp_delta));
+  }
+
+  if (HasStackIndex()) {
+    ASSERT(base_reg() == FPREG);
+    uword payload = StackSlotBaseField::encode(SPREG) |
+                    StackIndexField::encode(
+                        EncodeStackIndex(stack_index() - fp_to_sp_delta));
+    return Location(kind(), payload);
+  }
+
+  return *this;
+}
+
+Location Location::ToEntrySpRelative() const {
+  const auto fp_to_entry_sp_delta =
+      (compiler::target::frame_layout.param_end_from_fp + 1) -
+      compiler::target::frame_layout.last_param_from_entry_sp;
+  return ToSpRelative(fp_to_entry_sp_delta);
+}
+
+Location Location::ToCallerSpRelative() const {
+  const auto fp_to_caller_sp_delta =
+      (compiler::target::frame_layout.param_end_from_fp + 1);
+  return ToSpRelative(fp_to_caller_sp_delta);
 }
 
 Location Location::Pair(Location first, Location second) {
@@ -403,12 +421,16 @@ void Location::PrintTo(BaseTextBuffer* f) const {
   if (!FLAG_support_il_printer) {
     return;
   }
-  if (kind() == kStackSlot) {
-    f->Printf("S%+" Pd "", stack_index());
-  } else if (kind() == kDoubleStackSlot) {
-    f->Printf("DS%+" Pd "", stack_index());
-  } else if (kind() == kQuadStackSlot) {
-    f->Printf("QS%+" Pd "", stack_index());
+  if (kind() == kStackSlot || kind() == kDoubleStackSlot ||
+      kind() == kQuadStackSlot) {
+    const char* suffix = "";
+    if (kind() == kDoubleStackSlot) {
+      suffix = " f64";
+    } else if (kind() == kQuadStackSlot) {
+      suffix = " f128";
+    }
+    f->Printf("%s[%" Pd "]%s", base_reg() == FPREG ? "fp" : "sp", stack_index(),
+              suffix);
   } else if (IsPairLocation()) {
     f->AddString("(");
     AsPairLocation()->At(0).PrintTo(f);
@@ -428,8 +450,16 @@ const char* Location::ToCString() const {
 }
 
 void Location::Print() const {
-  if (kind() == kStackSlot) {
-    THR_Print("S%+" Pd "", stack_index());
+  if (kind() == kStackSlot || kind() == kDoubleStackSlot ||
+      kind() == kQuadStackSlot) {
+    const char* suffix = "";
+    if (kind() == kDoubleStackSlot) {
+      suffix = " f64";
+    } else if (kind() == kQuadStackSlot) {
+      suffix = " f128";
+    }
+    THR_Print("%s[%" Pd "] %s", base_reg() == FPREG ? "fp" : "sp",
+              stack_index(), suffix);
   } else {
     THR_Print("%s", Name());
   }

@@ -1,0 +1,6 @@
+Constant evaluation error: Constant evaluation error:
+platform_impl.dart:2770 Constant evaluation error: The invocation of '_environmentCache' is not allowed in a constant expression.
+Member: notConstant
+File: not_constant_field.dart
+Offset: 350
+Message: cannot evaluate to a constant

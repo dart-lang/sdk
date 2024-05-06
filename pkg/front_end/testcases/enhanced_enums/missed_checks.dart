@@ -6,8 +6,9 @@ enum E1 {
   element.new(); // Ok: invocation of the unnamed constructor.
 }
 
+// Error.
 enum E2<values> {
-  element; // Error.
+  element;
 }
 
 enum E3<element> {

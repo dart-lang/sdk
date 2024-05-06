@@ -642,6 +642,7 @@ class CallSites : public ValueObject {
     const Function& function = static_call->function();
     if (!inline_only_profitable_methods || function.IsRecognized() ||
         function.IsDispatcherOrImplicitAccessor() ||
+        function.IsMethodExtractor() ||
         (function.is_const() && function.IsGenerativeConstructor())) {
       // Consider static call for further inlining. Note that it will
       // still be subject to all the inlining heuristics.
@@ -696,7 +697,8 @@ static bool IsSmallLeafOrReduction(int inlining_depth,
     BlockEntryInstr* entry = block_it.Current();
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
-      if (current->IsReturn()) continue;
+      if (current->IsDartReturn()) continue;
+      ASSERT(!current->IsNativeReturn());
       ++instruction_count;
       if (current->IsInstanceCall() || current->IsPolymorphicInstanceCall() ||
           current->IsClosureCall()) {
@@ -982,46 +984,18 @@ static void ReplaceParameterStubs(Zone* zone,
 
   defns = callee_graph->graph_entry()->normal_entry()->initial_definitions();
   for (intptr_t i = 0; i < defns->length(); ++i) {
-    ConstantInstr* constant = (*defns)[i]->AsConstant();
-    if (constant != nullptr && constant->HasUses()) {
+    auto defn = (*defns)[i];
+    if (!defn->HasUses()) continue;
+
+    if (auto constant = defn->AsConstant()) {
       constant->ReplaceUsesWith(caller_graph->GetConstant(
           constant->value(), constant->representation()));
     }
 
-    SpecialParameterInstr* param = (*defns)[i]->AsSpecialParameter();
-    if (param != nullptr && param->HasUses()) {
-      switch (param->kind()) {
-        case SpecialParameterInstr::kContext: {
-          ASSERT(!is_polymorphic);
-          // We do not support polymorphic inlining of closure calls.
-          ASSERT(call_data->call->IsClosureCall());
-          LoadFieldInstr* context_load = new (zone) LoadFieldInstr(
-              new Value((*arguments)[first_arg_index]->definition()),
-              Slot::Closure_context(), call_data->call->source());
-          caller_graph->AllocateSSAIndex(context_load);
-          context_load->InsertBefore(callee_entry->next());
-          param->ReplaceUsesWith(context_load);
-          break;
-        }
-        case SpecialParameterInstr::kTypeArgs: {
-          Definition* type_args;
-          if (first_arg_index > 0) {
-            type_args = (*arguments)[0]->definition();
-          } else {
-            type_args = caller_graph->constant_null();
-          }
-          param->ReplaceUsesWith(type_args);
-          break;
-        }
-        case SpecialParameterInstr::kArgDescriptor: {
-          param->ReplaceUsesWith(
-              caller_graph->GetConstant(call_data->arguments_descriptor));
-          break;
-        }
-        default: {
-          UNREACHABLE();
-          break;
-        }
+    if (auto param = defn->AsParameter()) {
+      if (param->location().Equals(Location::RegisterLocation(ARGS_DESC_REG))) {
+        param->ReplaceUsesWith(
+            caller_graph->GetConstant(call_data->arguments_descriptor));
       }
     }
   }
@@ -1169,8 +1143,8 @@ class CallSiteInliner : public ValueObject {
       return graph->GetConstant(constant->value());
     }
     ParameterInstr* param = new (Z) ParameterInstr(
-        /*env_index=*/i, /*param_index=*/i,
-        /*param_offset=*/-1, graph->graph_entry(), kNoRepresentation);
+        graph->graph_entry(),
+        /*env_index=*/i, /*param_index=*/i, Location(), kNoRepresentation);
     if (i >= 0) {
       // Compute initial parameter type using static and inferred types
       // and combine it with an argument type from the caller.
@@ -2045,9 +2019,9 @@ PolymorphicInliner::PolymorphicInliner(CallSiteInliner* owner,
       num_variants_(call->NumberOfChecks()),
       variants_(call->targets_),
       inlined_variants_(zone()),
-      non_inlined_variants_(new (zone()) CallTargets(zone())),
+      non_inlined_variants_(new(zone()) CallTargets(zone())),
       inlined_entries_(num_variants_),
-      exit_collector_(new (Z) InlineExitCollector(owner->caller_graph(), call)),
+      exit_collector_(new(Z) InlineExitCollector(owner->caller_graph(), call)),
       caller_function_(caller_function) {}
 
 IsolateGroup* PolymorphicInliner::isolate_group() const {
@@ -2209,8 +2183,8 @@ bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
     redefinition->InsertAfter(entry);
     InlineExitCollector* exit_collector =
         new (Z) InlineExitCollector(owner_->caller_graph(), call_);
-    ReturnInstr* return_result = new (Z)
-        ReturnInstr(call_->source(), new (Z) Value(result), DeoptId::kNone);
+    DartReturnInstr* return_result = new (Z)
+        DartReturnInstr(call_->source(), new (Z) Value(result), DeoptId::kNone);
     owner_->caller_graph()->AppendTo(
         last, return_result,
         call_->env(),  // Return can become deoptimization target.
@@ -2408,7 +2382,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
     owner_->caller_graph()->AllocateSSAIndex(fallback_call);
     fallback_call->InheritDeoptTarget(zone(), call_);
     fallback_call->set_total_call_count(call_->CallCount());
-    ReturnInstr* fallback_return = new ReturnInstr(
+    DartReturnInstr* fallback_return = new DartReturnInstr(
         call_->source(), new Value(fallback_call), DeoptId::kNone);
     fallback_return->InheritDeoptTargetAfter(owner_->caller_graph(), call_,
                                              fallback_call);
@@ -2653,6 +2627,11 @@ bool FlowGraphInliner::AlwaysInline(const Function& function) {
     return true;
   }
 
+  if (function.IsMethodExtractor()) {
+    // Tear-off closure allocation has about the same size as the call.
+    return true;
+  }
+
   if (function.IsGetterFunction() || function.IsSetterFunction() ||
       IsInlineableOperator(function) ||
       (function.kind() == UntaggedFunction::kConstructor)) {
@@ -2757,13 +2736,6 @@ static bool InlineTypedDataIndexCheck(FlowGraph* flow_graph,
                                       Instruction** last,
                                       Definition** result,
                                       const String& symbol) {
-#if defined(TARGET_ARCH_IS_32_BIT)
-  // TODO(https://github.com/flutter/flutter/issues/138689): We only convert
-  // the index check to a GenericCheckBound instruction on 64-bit architectures,
-  // where the inputs are always unboxed. Once the regressions on 32-bit
-  // architectures has been identified and fixed, remove the #ifdef.
-  return false;
-#else
   *entry =
       new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
                                  call->GetBlock()->try_index(), DeoptId::kNone);
@@ -2790,7 +2762,6 @@ static bool InlineTypedDataIndexCheck(FlowGraph* flow_graph,
   *last = cursor;
   *result = index;
   return true;
-#endif
 }
 
 static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
@@ -2862,50 +2833,26 @@ static bool InlineGetIndexed(FlowGraph* flow_graph,
       new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
                                  call->GetBlock()->try_index(), DeoptId::kNone);
   (*entry)->InheritDeoptTarget(Z, call);
-  Instruction* cursor = *entry;
+  *last = *entry;
 
-  array_cid = PrepareInlineIndexedOp(flow_graph, call, array_cid, &array,
-                                     &index, &cursor);
-
-  intptr_t deopt_id = DeoptId::kNone;
-  if ((array_cid == kTypedDataInt32ArrayCid) ||
-      (array_cid == kTypedDataUint32ArrayCid)) {
-    // Deoptimization may be needed if result does not always fit in a Smi.
-    deopt_id =
-        (compiler::target::kSmiBits >= 32) ? DeoptId::kNone : call->deopt_id();
-  }
+  array_cid =
+      PrepareInlineIndexedOp(flow_graph, call, array_cid, &array, &index, last);
 
   // Array load and return.
   intptr_t index_scale = compiler::target::Instance::ElementSizeFor(array_cid);
-  LoadIndexedInstr* load = new (Z) LoadIndexedInstr(
-      new (Z) Value(array), new (Z) Value(index), /*index_unboxed=*/false,
-      index_scale, array_cid, kAlignedAccess, deopt_id, call->source(),
-      ResultType(call));
+  *result = new (Z) LoadIndexedInstr(
+      new (Z) Value(array), new (Z) Value(index),
+      /*index_unboxed=*/false, index_scale, array_cid, kAlignedAccess,
+      call->deopt_id(), call->source(), ResultType(call));
+  *last = flow_graph->AppendTo(*last, *result, call->env(), FlowGraph::kValue);
 
-  *last = load;
-  cursor = flow_graph->AppendTo(
-      cursor, load, deopt_id != DeoptId::kNone ? call->env() : nullptr,
-      FlowGraph::kValue);
-
-  const bool value_needs_boxing =
-      array_cid == kTypedDataInt8ArrayCid ||
-      array_cid == kTypedDataInt16ArrayCid ||
-      array_cid == kTypedDataUint8ArrayCid ||
-      array_cid == kTypedDataUint8ClampedArrayCid ||
-      array_cid == kTypedDataUint16ArrayCid ||
-      array_cid == kExternalTypedDataUint8ArrayCid ||
-      array_cid == kExternalTypedDataUint8ClampedArrayCid;
-
-  if (array_cid == kTypedDataFloat32ArrayCid) {
-    *last = new (Z) FloatToDoubleInstr(new (Z) Value(load), deopt_id);
-    flow_graph->AppendTo(cursor, *last,
-                         deopt_id != DeoptId::kNone ? call->env() : nullptr,
-                         FlowGraph::kValue);
-  } else if (value_needs_boxing) {
-    *last = BoxInstr::Create(kUnboxedIntPtr, new Value(load));
-    flow_graph->AppendTo(cursor, *last, nullptr, FlowGraph::kValue);
+  if (LoadIndexedInstr::ReturnRepresentation(array_cid) == kUnboxedFloat) {
+    *result =
+        new (Z) FloatToDoubleInstr(new (Z) Value(*result), call->deopt_id());
+    *last =
+        flow_graph->AppendTo(*last, *result, call->env(), FlowGraph::kValue);
   }
-  *result = (*last)->AsDefinition();
+
   return true;
 }
 
@@ -2921,6 +2868,7 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
                              Instruction** last,
                              Definition** result) {
   intptr_t array_cid = MethodRecognizer::MethodKindToReceiverCid(kind);
+  auto const rep = StoreIndexedInstr::ValueRepresentation(array_cid);
 
   Definition* array = receiver;
   Definition* index = call->ArgumentAt(1);
@@ -2930,6 +2878,7 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
       new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
                                  call->GetBlock()->try_index(), DeoptId::kNone);
   (*entry)->InheritDeoptTarget(Z, call);
+  *last = *entry;
 
   bool is_unchecked_call = false;
   if (StaticCallInstr* static_call = call->AsStaticCall()) {
@@ -2944,7 +2893,6 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
         instance_call->entry_kind() == Code::EntryKind::kUnchecked;
   }
 
-  Instruction* cursor = *entry;
   if (!is_unchecked_call &&
       (kind != MethodRecognizer::kObjectArraySetIndexedUnchecked &&
        kind != MethodRecognizer::kGrowableArraySetIndexedUnchecked)) {
@@ -2954,68 +2902,35 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
     const AbstractType& value_type =
         AbstractType::ZoneHandle(Z, target.ParameterTypeAt(2));
     Definition* type_args = nullptr;
-    switch (array_cid) {
-      case kArrayCid:
-      case kGrowableObjectArrayCid: {
-        const Class& instantiator_class = Class::Handle(Z, target.Owner());
-        LoadFieldInstr* load_type_args = new (Z)
-            LoadFieldInstr(new (Z) Value(array),
-                           Slot::GetTypeArgumentsSlotFor(flow_graph->thread(),
-                                                         instantiator_class),
-                           call->source());
-        cursor = flow_graph->AppendTo(cursor, load_type_args, nullptr,
-                                      FlowGraph::kValue);
-        type_args = load_type_args;
-        break;
-      }
-      case kTypedDataInt8ArrayCid:
-        FALL_THROUGH;
-      case kTypedDataUint8ArrayCid:
-        FALL_THROUGH;
-      case kTypedDataUint8ClampedArrayCid:
-        FALL_THROUGH;
-      case kExternalTypedDataUint8ArrayCid:
-        FALL_THROUGH;
-      case kExternalTypedDataUint8ClampedArrayCid:
-        FALL_THROUGH;
-      case kTypedDataInt16ArrayCid:
-        FALL_THROUGH;
-      case kTypedDataUint16ArrayCid:
-        FALL_THROUGH;
-      case kTypedDataInt32ArrayCid:
-        FALL_THROUGH;
-      case kTypedDataUint32ArrayCid:
-        FALL_THROUGH;
-      case kTypedDataInt64ArrayCid:
-        FALL_THROUGH;
-      case kTypedDataUint64ArrayCid:
-        ASSERT(value_type.IsIntType());
-        FALL_THROUGH;
-      case kTypedDataFloat32ArrayCid:
-        FALL_THROUGH;
-      case kTypedDataFloat64ArrayCid: {
-        type_args = flow_graph->constant_null();
-        ASSERT((array_cid != kTypedDataFloat32ArrayCid &&
-                array_cid != kTypedDataFloat64ArrayCid) ||
-               value_type.IsDoubleType());
-        ASSERT(value_type.IsInstantiated());
-        break;
-      }
-      case kTypedDataFloat32x4ArrayCid: {
-        type_args = flow_graph->constant_null();
+    if (rep == kTagged) {
+      const Class& instantiator_class = Class::Handle(Z, target.Owner());
+      LoadFieldInstr* load_type_args =
+          new (Z) LoadFieldInstr(new (Z) Value(array),
+                                 Slot::GetTypeArgumentsSlotFor(
+                                     flow_graph->thread(), instantiator_class),
+                                 call->source());
+      *last = flow_graph->AppendTo(*last, load_type_args, call->env(),
+                                   FlowGraph::kValue);
+      type_args = load_type_args;
+    } else if (!RepresentationUtils::IsUnboxed(rep)) {
+      UNREACHABLE();
+    } else {
+      type_args = flow_graph->constant_null();
+      ASSERT(value_type.IsInstantiated());
+#if defined(DEBUG)
+      if (rep == kUnboxedFloat || rep == kUnboxedDouble) {
+        ASSERT(value_type.IsDoubleType());
+      } else if (rep == kUnboxedFloat32x4) {
         ASSERT(value_type.IsFloat32x4Type());
-        ASSERT(value_type.IsInstantiated());
-        break;
-      }
-      case kTypedDataFloat64x2ArrayCid: {
-        type_args = flow_graph->constant_null();
+      } else if (rep == kUnboxedInt32x4) {
+        ASSERT(value_type.IsInt32x4Type());
+      } else if (rep == kUnboxedFloat64x2) {
         ASSERT(value_type.IsFloat64x2Type());
-        ASSERT(value_type.IsInstantiated());
-        break;
+      } else {
+        ASSERT(RepresentationUtils::IsUnboxedInteger(rep));
+        ASSERT(value_type.IsIntType());
       }
-      default:
-        // TODO(fschneider): Add support for other array types.
-        UNREACHABLE();
+#endif
     }
 
     if (exactness != nullptr && exactness->is_exact) {
@@ -3027,32 +2942,19 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
           source, new (Z) Value(stored_value), new (Z) Value(dst_type),
           new (Z) Value(type_args), new (Z) Value(function_type_args),
           Symbols::Value(), call->deopt_id());
-      cursor = flow_graph->AppendSpeculativeTo(cursor, assert_value,
-                                               call->env(), FlowGraph::kValue);
+      *last = flow_graph->AppendSpeculativeTo(*last, assert_value, call->env(),
+                                              FlowGraph::kValue);
     }
   }
 
-  array_cid = PrepareInlineIndexedOp(flow_graph, call, array_cid, &array,
-                                     &index, &cursor);
+  array_cid =
+      PrepareInlineIndexedOp(flow_graph, call, array_cid, &array, &index, last);
 
-  const bool is_typed_data_store =
-      (IsTypedDataClassId(array_cid) || IsTypedDataViewClassId(array_cid) ||
-       IsExternalTypedDataClassId(array_cid));
+  const bool is_typed_data_store = IsTypedDataBaseClassId(array_cid);
 
   // Check if store barrier is needed. Byte arrays don't need a store barrier.
   StoreBarrierType needs_store_barrier =
       is_typed_data_store ? kNoStoreBarrier : kEmitStoreBarrier;
-
-  const bool value_needs_unboxing =
-      array_cid == kTypedDataInt8ArrayCid ||
-      array_cid == kTypedDataInt16ArrayCid ||
-      array_cid == kTypedDataInt32ArrayCid ||
-      array_cid == kTypedDataUint8ArrayCid ||
-      array_cid == kTypedDataUint8ClampedArrayCid ||
-      array_cid == kTypedDataUint16ArrayCid ||
-      array_cid == kTypedDataUint32ArrayCid ||
-      array_cid == kExternalTypedDataUint8ArrayCid ||
-      array_cid == kExternalTypedDataUint8ClampedArrayCid;
 
   // We know that the incomming type matches, but we still need to handle the
   // null check.
@@ -3060,50 +2962,31 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
     String& name = String::ZoneHandle(Z, target.name());
     Instruction* check = new (Z) CheckNullInstr(
         new (Z) Value(stored_value), name, call->deopt_id(), call->source());
-    cursor =
-        flow_graph->AppendTo(cursor, check, call->env(), FlowGraph::kEffect);
+    *last = flow_graph->AppendTo(*last, check, call->env(), FlowGraph::kEffect);
   }
 
-  if (array_cid == kTypedDataFloat32ArrayCid) {
+  if (rep == kUnboxedFloat) {
     stored_value = new (Z)
         DoubleToFloatInstr(new (Z) Value(stored_value), call->deopt_id());
-    cursor =
-        flow_graph->AppendTo(cursor, stored_value, nullptr, FlowGraph::kValue);
-  } else if (value_needs_unboxing) {
-    Representation representation = kNoRepresentation;
-    switch (array_cid) {
-      case kTypedDataInt32ArrayCid:
-        representation = kUnboxedInt32;
-        break;
-      case kTypedDataUint32ArrayCid:
-        representation = kUnboxedUint32;
-        break;
-      case kTypedDataInt8ArrayCid:
-      case kTypedDataInt16ArrayCid:
-      case kTypedDataUint8ArrayCid:
-      case kTypedDataUint8ClampedArrayCid:
-      case kTypedDataUint16ArrayCid:
-      case kExternalTypedDataUint8ArrayCid:
-      case kExternalTypedDataUint8ClampedArrayCid:
-        representation = kUnboxedIntPtr;
-        break;
-      default:
-        UNREACHABLE();
-    }
-    stored_value = UnboxInstr::Create(
-        representation, new (Z) Value(stored_value), call->deopt_id());
-    stored_value->AsUnboxInteger()->mark_truncating();
-    cursor = flow_graph->AppendTo(cursor, stored_value, call->env(),
-                                  FlowGraph::kValue);
+    *last = flow_graph->AppendTo(*last, stored_value, call->env(),
+                                 FlowGraph::kValue);
+  } else if (RepresentationUtils::IsUnboxedInteger(rep)) {
+    // Insert explicit unboxing instructions with truncation to avoid relying
+    // on [SelectRepresentations] which doesn't mark them as truncating.
+    stored_value =
+        UnboxInstr::Create(rep, new (Z) Value(stored_value), call->deopt_id(),
+                           Instruction::kNotSpeculative);
+    *last = flow_graph->AppendTo(*last, stored_value, call->env(),
+                                 FlowGraph::kValue);
   }
 
   const intptr_t index_scale =
       compiler::target::Instance::ElementSizeFor(array_cid);
-  *last = new (Z) StoreIndexedInstr(
+  auto* const store = new (Z) StoreIndexedInstr(
       new (Z) Value(array), new (Z) Value(index), new (Z) Value(stored_value),
       needs_store_barrier, /*index_unboxed=*/false, index_scale, array_cid,
       kAlignedAccess, call->deopt_id(), call->source());
-  flow_graph->AppendTo(cursor, *last, call->env(), FlowGraph::kEffect);
+  *last = flow_graph->AppendTo(*last, store, call->env(), FlowGraph::kEffect);
   // We need a return value to replace uses of the original definition. However,
   // the final instruction is a use of 'void operator[]=()', so we use null.
   *result = flow_graph->constant_null();
@@ -3214,236 +3097,6 @@ static bool InlineLoadClassId(FlowGraph* flow_graph,
   return true;
 }
 
-// Emits preparatory code for a typed getter/setter.
-// Handles three cases:
-//   (1) dynamic:  generates load untagged (internal or external)
-//   (2) external: generates load untagged
-//   (3) internal: no code required.
-static void PrepareInlineByteArrayBaseOp(FlowGraph* flow_graph,
-                                         Instruction* call,
-                                         Definition* receiver,
-                                         intptr_t array_cid,
-                                         Definition** array,
-                                         Instruction** cursor) {
-  if (array_cid == kDynamicCid || IsExternalTypedDataClassId(array_cid)) {
-    // Internal or External typed data: load the untagged base address.
-    auto const loads_inner_pointer =
-        IsExternalTypedDataClassId(array_cid)
-            ? InnerPointerAccess::kCannotBeInnerPointer
-            : InnerPointerAccess::kMayBeInnerPointer;
-    auto* const elements =
-        new (Z) LoadFieldInstr(new (Z) Value(*array), Slot::PointerBase_data(),
-                               loads_inner_pointer, call->source());
-    *cursor =
-        flow_graph->AppendTo(*cursor, elements, nullptr, FlowGraph::kValue);
-    *array = elements;
-  } else {
-    // Internal typed data: no action.
-    ASSERT(IsTypedDataClassId(array_cid));
-  }
-}
-
-static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
-                                    Definition* call,
-                                    Definition* receiver,
-                                    intptr_t array_cid,
-                                    intptr_t view_cid,
-                                    GraphEntryInstr* graph_entry,
-                                    FunctionEntryInstr** entry,
-                                    Instruction** last,
-                                    Definition** result) {
-  ASSERT(array_cid != kIllegalCid);
-
-  // Dynamic calls are polymorphic due to:
-  // (A) extra bounds check computations (length stored in receiver),
-  // (B) external/internal typed data in receiver.
-  // Both issues are resolved in the inlined code.
-  // All getters that go through InlineByteArrayBaseLoad() have explicit
-  // bounds checks in all their clients in the library, so we can omit yet
-  // another inlined bounds check.
-  if (array_cid == kDynamicCid) {
-    ASSERT(call->IsStaticCall());
-  }
-
-  Definition* array = receiver;
-  Definition* index = call->ArgumentAt(1);
-  *entry =
-      new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
-                                 call->GetBlock()->try_index(), DeoptId::kNone);
-  (*entry)->InheritDeoptTarget(Z, call);
-  Instruction* cursor = *entry;
-
-  // Generates a template for the load, either a dynamic conditional
-  // that dispatches on external and internal storage, or a single
-  // case that deals with either external or internal storage.
-  PrepareInlineByteArrayBaseOp(flow_graph, call, receiver, array_cid, &array,
-                               &cursor);
-
-  // Fill out the generated template with loads.
-  // Load from either external or internal.
-  LoadIndexedInstr* load = new (Z) LoadIndexedInstr(
-      new (Z) Value(array), new (Z) Value(index),
-      /*index_unboxed=*/false, /*index_scale=*/1, view_cid, kUnalignedAccess,
-      DeoptId::kNone, call->source(), ResultType(call));
-  flow_graph->AppendTo(
-      cursor, load, call->deopt_id() != DeoptId::kNone ? call->env() : nullptr,
-      FlowGraph::kValue);
-  cursor = *last = load;
-
-  if (view_cid == kTypedDataFloat32ArrayCid) {
-    *last = new (Z) FloatToDoubleInstr(new (Z) Value((*last)->AsDefinition()),
-                                       DeoptId::kNone);
-    flow_graph->AppendTo(cursor, *last, nullptr, FlowGraph::kValue);
-  }
-  *result = (*last)->AsDefinition();
-  return true;
-}
-
-static StoreIndexedInstr* NewStore(FlowGraph* flow_graph,
-                                   Instruction* call,
-                                   Definition* array,
-                                   Definition* index,
-                                   Definition* stored_value,
-                                   intptr_t view_cid) {
-  return new (Z) StoreIndexedInstr(
-      new (Z) Value(array), new (Z) Value(index), new (Z) Value(stored_value),
-      kNoStoreBarrier, /*index_unboxed=*/false,
-      /*index_scale=*/1, view_cid, kUnalignedAccess, call->deopt_id(),
-      call->source());
-}
-
-static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
-                                     const Function& target,
-                                     Instruction* call,
-                                     Definition* receiver,
-                                     intptr_t array_cid,
-                                     intptr_t view_cid,
-                                     GraphEntryInstr* graph_entry,
-                                     FunctionEntryInstr** entry,
-                                     Instruction** last,
-                                     Definition** result) {
-  ASSERT(array_cid != kIllegalCid);
-
-  // Dynamic calls are polymorphic due to:
-  // (A) extra bounds check computations (length stored in receiver),
-  // (B) external/internal typed data in receiver.
-  // Both issues are resolved in the inlined code.
-  // All setters that go through InlineByteArrayBaseLoad() have explicit
-  // bounds checks in all their clients in the library, so we can omit yet
-  // another inlined bounds check.
-  if (array_cid == kDynamicCid) {
-    ASSERT(call->IsStaticCall());
-  }
-
-  Definition* array = receiver;
-  Definition* index = call->ArgumentAt(1);
-  *entry =
-      new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
-                                 call->GetBlock()->try_index(), DeoptId::kNone);
-  (*entry)->InheritDeoptTarget(Z, call);
-  Instruction* cursor = *entry;
-
-  Definition* stored_value = call->ArgumentAt(2);
-
-  // We know that the incomming type matches, but we still need to handle the
-  // null check.
-  if (!IsCompilingForSoundNullSafety()) {
-    String& name = String::ZoneHandle(Z, target.name());
-    Instruction* check = new (Z) CheckNullInstr(
-        new (Z) Value(stored_value), name, call->deopt_id(), call->source());
-    cursor =
-        flow_graph->AppendTo(cursor, check, call->env(), FlowGraph::kEffect);
-  }
-
-  // Handle conversions and special unboxing (to ensure unboxing instructions
-  // are marked as truncating, since [SelectRepresentations] does not take care
-  // of that).
-  switch (view_cid) {
-    case kTypedDataInt8ArrayCid:
-    case kTypedDataInt16ArrayCid:
-    case kTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
-    case kTypedDataUint16ArrayCid:
-    case kExternalTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid: {
-      stored_value =
-          UnboxInstr::Create(kUnboxedIntPtr, new (Z) Value(stored_value),
-                             call->deopt_id(), Instruction::kNotSpeculative);
-      stored_value->AsUnboxInteger()->mark_truncating();
-      cursor = flow_graph->AppendTo(cursor, stored_value, call->env(),
-                                    FlowGraph::kValue);
-      break;
-    }
-
-    case kTypedDataInt64ArrayCid:
-    case kTypedDataUint64ArrayCid: {
-      stored_value =
-          new (Z) UnboxInt64Instr(new (Z) Value(stored_value), call->deopt_id(),
-                                  Instruction::kNotSpeculative);
-      cursor = flow_graph->AppendTo(cursor, stored_value, call->env(),
-                                    FlowGraph::kValue);
-      break;
-    }
-
-    case kTypedDataFloat32ArrayCid:
-    case kTypedDataFloat64ArrayCid: {
-      stored_value =
-          UnboxInstr::Create(kUnboxedDouble, new (Z) Value(stored_value),
-                             call->deopt_id(), Instruction::kNotSpeculative);
-      cursor = flow_graph->AppendTo(cursor, stored_value, call->env(),
-                                    FlowGraph::kValue);
-      if (view_cid == kTypedDataFloat32ArrayCid) {
-        stored_value = new (Z)
-            DoubleToFloatInstr(new (Z) Value(stored_value), call->deopt_id());
-        cursor = flow_graph->AppendTo(cursor, stored_value, call->env(),
-                                      FlowGraph::kValue);
-      }
-      break;
-    }
-
-    case kTypedDataInt32ArrayCid: {
-      stored_value = new (Z)
-          UnboxInt32Instr(UnboxInt32Instr::kTruncate,
-                          new (Z) Value(stored_value), call->deopt_id());
-      cursor = flow_graph->AppendTo(cursor, stored_value, call->env(),
-                                    FlowGraph::kValue);
-      break;
-    }
-    case kTypedDataUint32ArrayCid: {
-      stored_value = new (Z)
-          UnboxUint32Instr(new (Z) Value(stored_value), call->deopt_id());
-      ASSERT(stored_value->AsUnboxInteger()->is_truncating());
-      cursor = flow_graph->AppendTo(cursor, stored_value, call->env(),
-                                    FlowGraph::kValue);
-      break;
-    }
-    default:
-      break;
-  }
-
-  // Generates a template for the store, either a dynamic conditional
-  // that dispatches on external and internal storage, or a single
-  // case that deals with either external or internal storage.
-  PrepareInlineByteArrayBaseOp(flow_graph, call, receiver, array_cid, &array,
-                               &cursor);
-
-  // Fill out the generated template with stores.
-  {
-    // Store on either external or internal.
-    StoreIndexedInstr* store =
-        NewStore(flow_graph, call, array, index, stored_value, view_cid);
-    flow_graph->AppendTo(
-        cursor, store,
-        call->deopt_id() != DeoptId::kNone ? call->env() : nullptr,
-        FlowGraph::kEffect);
-    *last = store;
-  }
-  // We need a return value to replace uses of the original definition. However,
-  // the final instruction is a use of 'void operator[]=()', so we use null.
-  *result = flow_graph->constant_null();
-  return true;
-}
-
 // Returns the LoadIndexedInstr.
 static Definition* PrepareInlineStringIndexOp(FlowGraph* flow_graph,
                                               Instruction* call,
@@ -3469,23 +3122,10 @@ static Definition* PrepareInlineStringIndexOp(FlowGraph* flow_graph,
   index = flow_graph->CreateCheckBound(length, index, call->deopt_id());
   cursor = flow_graph->AppendTo(cursor, index, call->env(), FlowGraph::kValue);
 
-  // For external strings: Load backing store.
-  if (cid == kExternalOneByteStringCid) {
-    str = new LoadFieldInstr(
-        new Value(str), Slot::ExternalOneByteString_external_data(),
-        InnerPointerAccess::kCannotBeInnerPointer, call->source());
-    cursor = flow_graph->AppendTo(cursor, str, nullptr, FlowGraph::kValue);
-  } else if (cid == kExternalTwoByteStringCid) {
-    str = new LoadFieldInstr(
-        new Value(str), Slot::ExternalTwoByteString_external_data(),
-        InnerPointerAccess::kCannotBeInnerPointer, call->source());
-    cursor = flow_graph->AppendTo(cursor, str, nullptr, FlowGraph::kValue);
-  }
-
   LoadIndexedInstr* load_indexed = new (Z) LoadIndexedInstr(
       new (Z) Value(str), new (Z) Value(index), /*index_unboxed=*/false,
       compiler::target::Instance::ElementSizeFor(cid), cid, kAlignedAccess,
-      DeoptId::kNone, call->source());
+      call->deopt_id(), call->source());
   cursor =
       flow_graph->AppendTo(cursor, load_indexed, nullptr, FlowGraph::kValue);
 
@@ -3504,7 +3144,7 @@ static bool InlineStringBaseCharAt(FlowGraph* flow_graph,
                                    FunctionEntryInstr** entry,
                                    Instruction** last,
                                    Definition** result) {
-  if ((cid != kOneByteStringCid) && (cid != kExternalOneByteStringCid)) {
+  if (cid != kOneByteStringCid) {
     return false;
   }
   Definition* str = receiver;
@@ -3527,20 +3167,18 @@ static bool InlineStringBaseCharAt(FlowGraph* flow_graph,
   return true;
 }
 
-static bool InlineStringCodeUnitAt(FlowGraph* flow_graph,
-                                   Instruction* call,
-                                   Definition* receiver,
-                                   intptr_t cid,
-                                   GraphEntryInstr* graph_entry,
-                                   FunctionEntryInstr** entry,
-                                   Instruction** last,
-                                   Definition** result) {
+static bool InlineStringBaseCodeUnitAt(FlowGraph* flow_graph,
+                                       Instruction* call,
+                                       Definition* receiver,
+                                       intptr_t cid,
+                                       GraphEntryInstr* graph_entry,
+                                       FunctionEntryInstr** entry,
+                                       Instruction** last,
+                                       Definition** result) {
   if (cid == kDynamicCid) {
     ASSERT(call->IsStaticCall());
     return false;
-  } else if ((cid != kOneByteStringCid) && (cid != kTwoByteStringCid) &&
-             (cid != kExternalOneByteStringCid) &&
-             (cid != kExternalTwoByteStringCid)) {
+  } else if ((cid != kOneByteStringCid) && (cid != kTwoByteStringCid)) {
     return false;
   }
   Definition* str = receiver;
@@ -3583,8 +3221,11 @@ bool FlowGraphInliner::TryReplaceInstanceCallWithInline(
     ASSERT((last != nullptr && result != nullptr) ||
            (target.recognized_kind() == MethodRecognizer::kObjectConstructor));
     // Determine if inlining instance methods needs a check.
+    // StringBase.codeUnitAt is monomorphic but its implementation is selected
+    // based on the receiver cid.
     FlowGraph::ToCheck check = FlowGraph::ToCheck::kNoCheck;
-    if (target.is_polymorphic_target()) {
+    if (target.is_polymorphic_target() ||
+        (target.recognized_kind() == MethodRecognizer::kStringBaseCodeUnitAt)) {
       check = FlowGraph::ToCheck::kCheckCid;
     } else {
       check = flow_graph->CheckForInstanceCall(call, target.kind());
@@ -4579,73 +4220,6 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
     case MethodRecognizer::kUint64ArrayGetIndexed:
       return InlineGetIndexed(flow_graph, can_speculate, is_dynamic_call, kind,
                               call, receiver, graph_entry, entry, last, result);
-    case MethodRecognizer::kByteArrayBaseGetInt8:
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataInt8ArrayCid, graph_entry, entry,
-                                     last, result);
-    case MethodRecognizer::kByteArrayBaseGetUint8:
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataUint8ArrayCid, graph_entry,
-                                     entry, last, result);
-    case MethodRecognizer::kByteArrayBaseGetInt16:
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataInt16ArrayCid, graph_entry,
-                                     entry, last, result);
-    case MethodRecognizer::kByteArrayBaseGetUint16:
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataUint16ArrayCid, graph_entry,
-                                     entry, last, result);
-    case MethodRecognizer::kByteArrayBaseGetInt32:
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataInt32ArrayCid, graph_entry,
-                                     entry, last, result);
-    case MethodRecognizer::kByteArrayBaseGetUint32:
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataUint32ArrayCid, graph_entry,
-                                     entry, last, result);
-    case MethodRecognizer::kByteArrayBaseGetInt64:
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataInt64ArrayCid, graph_entry,
-                                     entry, last, result);
-    case MethodRecognizer::kByteArrayBaseGetUint64:
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataUint64ArrayCid, graph_entry,
-                                     entry, last, result);
-    case MethodRecognizer::kByteArrayBaseGetFloat32:
-      if (!CanUnboxDouble()) {
-        return false;
-      }
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataFloat32ArrayCid, graph_entry,
-                                     entry, last, result);
-    case MethodRecognizer::kByteArrayBaseGetFloat64:
-      if (!CanUnboxDouble()) {
-        return false;
-      }
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataFloat64ArrayCid, graph_entry,
-                                     entry, last, result);
-    case MethodRecognizer::kByteArrayBaseGetFloat32x4:
-      if (!ShouldInlineSimd()) {
-        return false;
-      }
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataFloat32x4ArrayCid, graph_entry,
-                                     entry, last, result);
-    case MethodRecognizer::kByteArrayBaseGetFloat64x2:
-      if (!ShouldInlineSimd()) {
-        return false;
-      }
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataFloat64x2ArrayCid, graph_entry,
-                                     entry, last, result);
-    case MethodRecognizer::kByteArrayBaseGetInt32x4:
-      if (!ShouldInlineSimd()) {
-        return false;
-      }
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataInt32x4ArrayCid, graph_entry,
-                                     entry, last, result);
     case MethodRecognizer::kClassIDgetID:
       return InlineLoadClassId(flow_graph, call, graph_entry, entry, last,
                                result);
@@ -4704,79 +4278,10 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
       return InlineSetIndexed(flow_graph, kind, target, call, receiver, source,
                               exactness, graph_entry, entry, last, result);
     }
-    case MethodRecognizer::kByteArrayBaseSetInt8:
-      return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
-                                      receiver_cid, kTypedDataInt8ArrayCid,
-                                      graph_entry, entry, last, result);
-    case MethodRecognizer::kByteArrayBaseSetUint8:
-      return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
-                                      receiver_cid, kTypedDataUint8ArrayCid,
-                                      graph_entry, entry, last, result);
-    case MethodRecognizer::kByteArrayBaseSetInt16:
-      return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
-                                      receiver_cid, kTypedDataInt16ArrayCid,
-                                      graph_entry, entry, last, result);
-    case MethodRecognizer::kByteArrayBaseSetUint16:
-      return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
-                                      receiver_cid, kTypedDataUint16ArrayCid,
-                                      graph_entry, entry, last, result);
-    case MethodRecognizer::kByteArrayBaseSetInt32:
-      return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
-                                      receiver_cid, kTypedDataInt32ArrayCid,
-                                      graph_entry, entry, last, result);
-    case MethodRecognizer::kByteArrayBaseSetUint32:
-      return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
-                                      receiver_cid, kTypedDataUint32ArrayCid,
-                                      graph_entry, entry, last, result);
-    case MethodRecognizer::kByteArrayBaseSetInt64:
-      return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
-                                      receiver_cid, kTypedDataInt64ArrayCid,
-                                      graph_entry, entry, last, result);
-    case MethodRecognizer::kByteArrayBaseSetUint64:
-      return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
-                                      receiver_cid, kTypedDataUint64ArrayCid,
-                                      graph_entry, entry, last, result);
-    case MethodRecognizer::kByteArrayBaseSetFloat32:
-      if (!CanUnboxDouble()) {
-        return false;
-      }
-      return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
-                                      receiver_cid, kTypedDataFloat32ArrayCid,
-                                      graph_entry, entry, last, result);
-    case MethodRecognizer::kByteArrayBaseSetFloat64:
-      if (!CanUnboxDouble()) {
-        return false;
-      }
-      return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
-                                      receiver_cid, kTypedDataFloat64ArrayCid,
-                                      graph_entry, entry, last, result);
-    case MethodRecognizer::kByteArrayBaseSetFloat32x4:
-      if (!ShouldInlineSimd()) {
-        return false;
-      }
-      return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
-                                      receiver_cid, kTypedDataFloat32x4ArrayCid,
-                                      graph_entry, entry, last, result);
-    case MethodRecognizer::kByteArrayBaseSetFloat64x2:
-      if (!ShouldInlineSimd()) {
-        return false;
-      }
-      return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
-                                      receiver_cid, kTypedDataFloat64x2ArrayCid,
-                                      graph_entry, entry, last, result);
-    case MethodRecognizer::kByteArrayBaseSetInt32x4:
-      if (!ShouldInlineSimd()) {
-        return false;
-      }
-      return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
-                                      receiver_cid, kTypedDataInt32x4ArrayCid,
-                                      graph_entry, entry, last, result);
-    case MethodRecognizer::kOneByteStringCodeUnitAt:
-    case MethodRecognizer::kTwoByteStringCodeUnitAt:
-    case MethodRecognizer::kExternalOneByteStringCodeUnitAt:
-    case MethodRecognizer::kExternalTwoByteStringCodeUnitAt:
-      return InlineStringCodeUnitAt(flow_graph, call, receiver, receiver_cid,
-                                    graph_entry, entry, last, result);
+    case MethodRecognizer::kStringBaseCodeUnitAt:
+      return InlineStringBaseCodeUnitAt(flow_graph, call, receiver,
+                                        receiver_cid, graph_entry, entry, last,
+                                        result);
     case MethodRecognizer::kStringBaseCharAt:
       return InlineStringBaseCharAt(flow_graph, call, receiver, receiver_cid,
                                     graph_entry, entry, last, result);
@@ -4794,6 +4299,7 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
                             graph_entry, entry, last, result);
     case MethodRecognizer::kDouble_getIsNaN:
     case MethodRecognizer::kDouble_getIsInfinite:
+    case MethodRecognizer::kDouble_getIsNegative:
       return InlineDoubleTestOp(flow_graph, call, receiver, kind, graph_entry,
                                 entry, last, result);
     case MethodRecognizer::kGrowableArraySetData:
@@ -4974,24 +4480,22 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
       Definition* index = call->ArgumentAt(1);
       Definition* value = call->ArgumentAt(2);
 
-      auto env = call->deopt_id() != DeoptId::kNone ? call->env() : nullptr;
-
-      // Insert explicit unboxing instructions with truncation to avoid relying
-      // on [SelectRepresentations] which doesn't mark them as truncating.
-      value =
-          UnboxInstr::Create(kUnboxedIntPtr, new (Z) Value(value),
-                             call->deopt_id(), Instruction::kNotSpeculative);
-      value->AsUnboxInteger()->mark_truncating();
-      flow_graph->AppendTo(*entry, value, env, FlowGraph::kValue);
-
       const bool is_onebyte = kind == MethodRecognizer::kWriteIntoOneByteString;
       const intptr_t index_scale = is_onebyte ? 1 : 2;
       const intptr_t cid = is_onebyte ? kOneByteStringCid : kTwoByteStringCid;
+
+      // Insert explicit unboxing instructions with truncation to avoid relying
+      // on [SelectRepresentations] which doesn't mark them as truncating.
+      value = UnboxInstr::Create(StoreIndexedInstr::ValueRepresentation(cid),
+                                 new (Z) Value(value), call->deopt_id(),
+                                 Instruction::kNotSpeculative);
+      flow_graph->AppendTo(*entry, value, call->env(), FlowGraph::kValue);
+
       *last = new (Z) StoreIndexedInstr(
           new (Z) Value(str), new (Z) Value(index), new (Z) Value(value),
           kNoStoreBarrier, /*index_unboxed=*/false, index_scale, cid,
           kAlignedAccess, call->deopt_id(), call->source());
-      flow_graph->AppendTo(value, *last, env, FlowGraph::kEffect);
+      flow_graph->AppendTo(value, *last, call->env(), FlowGraph::kEffect);
 
       // We need a return value to replace uses of the original definition.
       // The final instruction is a use of 'void operator[]=()', so we use null.

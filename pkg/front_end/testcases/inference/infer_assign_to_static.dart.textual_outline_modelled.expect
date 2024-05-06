@@ -1,7 +1,9 @@
 // @dart = 2.9
+
 library test;
 
 B topLevelVariable;
+
 T f<T>() => null;
 
 class A {}
@@ -17,5 +19,7 @@ class B extends A {
 class C extends B {}
 
 main() {}
+
 void test_staticVariable() {}
+
 void test_topLevelVariable() {}

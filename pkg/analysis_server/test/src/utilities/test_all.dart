@@ -7,6 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'extensions/test_all.dart' as extensions;
 import 'flutter_test.dart' as flutter;
 import 'import_analyzer_test.dart' as import_analyzer;
+import 'json_test.dart' as json;
 import 'profiling_test.dart' as profiling;
 import 'selection_coverage_test.dart' as selection_coverage;
 import 'selection_test.dart' as selection;
@@ -17,6 +18,7 @@ void main() {
   defineReflectiveSuite(() {
     extensions.main();
     flutter.main();
+    json.main();
     import_analyzer.main();
     profiling.main();
     selection_coverage.main();

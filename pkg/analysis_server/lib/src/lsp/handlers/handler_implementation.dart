@@ -12,7 +12,6 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
-import 'package:collection/collection.dart';
 
 typedef StaticOptions
     = Either3<bool, ImplementationOptions, ImplementationRegistrationOptions>;
@@ -82,7 +81,7 @@ class ImplementationHandler
                   ? helper.findMemberElement(element)?.nonSynthetic
                   : element;
             })
-            .whereNotNull()
+            .nonNulls
             .toSet()
             .map((element) {
               final unitElement =
@@ -91,7 +90,7 @@ class ImplementationHandler
                 return null;
               }
               return Location(
-                uri: pathContext.toUri(unitElement.source.fullName),
+                uri: uriConverter.toClientUri(unitElement.source.fullName),
                 range: toRange(
                   unitElement.lineInfo,
                   element.nameOffset,
@@ -99,7 +98,7 @@ class ImplementationHandler
                 ),
               );
             })
-            .whereNotNull()
+            .nonNulls
             .toList());
 
     return success(locations);

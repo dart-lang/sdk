@@ -6,17 +6,14 @@ import 'dart:io' as io;
 import 'dart:isolate';
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/macros/bootstrap.dart' as macro;
-import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
-import 'package:_fe_analyzer_shared/src/macros/executor/isolated_executor.dart'
-    as isolated_executor;
-import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
-    as macro;
-import 'package:_fe_analyzer_shared/src/macros/executor/process_executor.dart'
-    as process_executor;
-import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart'
-    as macro;
 import 'package:analyzer/src/summary2/kernel_compilation_service.dart';
+import 'package:macros/src/bootstrap.dart' as macro;
+import 'package:macros/src/executor.dart' as macro;
+import 'package:macros/src/executor/isolated_executor.dart'
+    as isolated_executor;
+import 'package:macros/src/executor/multi_executor.dart' as macro;
+import 'package:macros/src/executor/process_executor.dart' as process_executor;
+import 'package:macros/src/executor/serialization.dart' as macro;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as package_path;
 

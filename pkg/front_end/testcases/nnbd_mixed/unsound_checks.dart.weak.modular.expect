@@ -292,78 +292,6 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:13:23: Warning: Operand of null-aware operation '??' has type 'int' which excludes null.
-// ifNullOptIn(int i) => i ?? 42;
-//                       ^
-//
-// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:22:66: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
-// extensionIfNullOptIn1(int i) => OptInExtension(new OptInClass1())[i] ??= 42;
-//                                                                  ^
-//
-// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:25:36: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
-//   OptInExtension(new OptInClass1())[i] ??= 42;
-//                                    ^
-//
-// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:28:50: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
-// extensionIfNullOptIn2(int i) => new OptInClass1()[i] ??= 42;
-//                                                  ^
-//
-// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:31:20: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
-//   new OptInClass1()[i] ??= 42;
-//                    ^
-//
-// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:39:48: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
-// ifNullIndexSetOptIn(int i) => new OptInClass2()[i] ??= 42;
-//                                                ^
-//
-// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:42:20: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
-//   new OptInClass2()[i] ??= 42;
-//                    ^
-//
-// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:51:53: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
-// ifNullPropertySetOptIn(int i) => new OptInClass3(i).field ??= 42;
-//                                                     ^
-//
-// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:54:22: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
-//   new OptInClass3(i).field ??= 42;
-//                      ^
-//
-// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:57:26: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
-// ifNullSetOptIn(int i) => i ??= 42;
-//                          ^
-//
-// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:60:3: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
-//   i ??= 42;
-//   ^
-//
-// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:69:25: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
-//   method(int i) => super[i] ??= 42;
-//                         ^
-//
-// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:71:10: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
-//     super[i] ??= 42;
-//          ^
-//
-// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:113:28: Warning: Operand of null-aware operation '?.' has type 'int' which excludes null.
-// nullAwareAccess1(int i) => i?.isEven;
-//                            ^
-//
-// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:116:3: Warning: Operand of null-aware operation '?.' has type 'int' which excludes null.
-//   i?.isEven;
-//   ^
-//
-// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:128:11: Warning: Operand of null-aware operation '??' has type 'int' which excludes null.
-//   return f() ??
-//           ^
-//
-// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:134:4: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
-//   x[0] ??= f();
-//    ^
-//
-// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:138:4: Warning: Operand of null-aware operation '?.' has type 'int' which excludes null.
-//   f()?.gcd(0); // Should not throw if `f` returns null
-//    ^
-//
 // pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:195:10: Error: Not enough type information to disambiguate between literal set and literal map.
 // Try providing type arguments for the literal explicitly to disambiguate it.
 //   return {...d}; // Should not throw ReachabilityError.
@@ -520,7 +448,7 @@ static method unnecessaryNullAwareAccess(() → core::int f) → dynamic {
   let final core::int #t74 = f(){() → core::int} in #t74 == null ?{core::int?} null : #t74.{core::int::gcd}(0){(core::int) → core::int};
 }
 static method callReturningNever(() → Never f) → dynamic {
-  let final Never #t75 = f(){() → Never} in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  let final Never #t75 = f(){() → Never} in throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
 }
 static method switchOnEnum(uns::E e) → dynamic {
   #L1:
@@ -537,7 +465,7 @@ static method switchOnEnum(uns::E e) → dynamic {
       }
     #L4:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method switchOnEnumWithBreak(uns::E e) → dynamic {
@@ -555,7 +483,7 @@ static method switchOnEnumWithBreak(uns::E e) → dynamic {
       }
     #L8:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method switchOnEnumWithFallThrough1(uns::E e) → dynamic {
@@ -573,7 +501,7 @@ static method switchOnEnumWithFallThrough1(uns::E e) → dynamic {
       }
     #L12:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method switchOnEnumWithFallThrough2(uns::E e) → dynamic {
@@ -587,7 +515,7 @@ static method switchOnEnumWithFallThrough2(uns::E e) → dynamic {
       }
     #L15:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method handleThrow() → dynamic {

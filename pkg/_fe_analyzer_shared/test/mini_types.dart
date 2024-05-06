@@ -23,6 +23,19 @@ class FunctionType extends Type {
   FunctionType(this.returnType, this.positionalParameters) : super._();
 
   @override
+  Type? closureWithRespectToUnknown({required bool covariant}) {
+    Type? newReturnType =
+        returnType.closureWithRespectToUnknown(covariant: covariant);
+    List<Type>? newPositionalParameters =
+        positionalParameters.closureWithRespectToUnknown(covariant: !covariant);
+    if (newReturnType == null && newPositionalParameters == null) {
+      return null;
+    }
+    return FunctionType(newReturnType ?? returnType,
+        newPositionalParameters ?? positionalParameters);
+  }
+
+  @override
   Type? recursivelyDemote({required bool covariant}) {
     Type? newReturnType = returnType.recursivelyDemote(covariant: covariant);
     List<Type>? newPositionalParameters =
@@ -60,6 +73,14 @@ class ParseError extends Error {
 /// reference to a type parameter, or one of the special types whose name is a
 /// single word (e.g. `dynamic`).
 class PrimaryType extends Type {
+  /// Names of primary types not originating from a class, a mixin, or an enum.
+  static const List<String> namedNonInterfaceTypes = [
+    'FutureOr',
+    'Never',
+    'Null',
+    'dynamic',
+  ];
+
   /// The name of the type.
   final String name;
 
@@ -67,6 +88,16 @@ class PrimaryType extends Type {
   final List<Type> args;
 
   PrimaryType(this.name, {this.args = const []}) : super._();
+
+  bool get isInterfaceType => !namedNonInterfaceTypes.contains(name);
+
+  @override
+  Type? closureWithRespectToUnknown({required bool covariant}) {
+    List<Type>? newArgs =
+        args.closureWithRespectToUnknown(covariant: covariant);
+    if (newArgs == null) return null;
+    return PrimaryType(name, args: newArgs);
+  }
 
   @override
   Type? recursivelyDemote({required bool covariant}) {
@@ -98,6 +129,14 @@ class PromotedTypeVariableType extends Type {
   PromotedTypeVariableType(this.innerType, this.promotion) : super._();
 
   @override
+  Type? closureWithRespectToUnknown({required bool covariant}) {
+    var newPromotion =
+        promotion.closureWithRespectToUnknown(covariant: covariant);
+    if (newPromotion == null) return null;
+    return PromotedTypeVariableType(innerType, newPromotion);
+  }
+
+  @override
   Type? recursivelyDemote({required bool covariant}) =>
       covariant ? innerType : new PrimaryType('Never');
 
@@ -120,6 +159,16 @@ class QuestionType extends Type {
   final Type innerType;
 
   QuestionType(this.innerType) : super._();
+
+  @override
+  Type? closureWithRespectToUnknown({required bool covariant}) {
+    Type? newInnerType =
+        innerType.closureWithRespectToUnknown(covariant: covariant);
+    if (newInnerType == null) return null;
+    if (newInnerType is QuestionType) return newInnerType;
+    if (newInnerType is StarType) return QuestionType(newInnerType.innerType);
+    return QuestionType(newInnerType);
+  }
 
   @override
   Type? recursivelyDemote({required bool covariant}) {
@@ -148,6 +197,30 @@ class RecordType extends Type {
   }) : super._();
 
   @override
+  Type? closureWithRespectToUnknown({required bool covariant}) {
+    List<Type>? newPositional;
+    for (var i = 0; i < positional.length; i++) {
+      var newType =
+          positional[i].closureWithRespectToUnknown(covariant: covariant);
+      if (newType != null) {
+        newPositional ??= positional.toList();
+        newPositional[i] = newType;
+      }
+    }
+
+    Map<String, Type>? newNamed =
+        _closureWithRespectToUnknownNamed(covariant: covariant);
+
+    if (newPositional == null && newNamed == null) {
+      return null;
+    }
+    return RecordType(
+      positional: newPositional ?? positional,
+      named: newNamed ?? named,
+    );
+  }
+
+  @override
   Type? recursivelyDemote({required bool covariant}) {
     List<Type>? newPositional;
     for (var i = 0; i < positional.length; i++) {
@@ -167,6 +240,19 @@ class RecordType extends Type {
       positional: newPositional ?? positional,
       named: newNamed ?? named,
     );
+  }
+
+  Map<String, Type>? _closureWithRespectToUnknownNamed(
+      {required bool covariant}) {
+    Map<String, Type> newNamed = {};
+    bool hasChanged = false;
+    for (var entry in named.entries) {
+      var value = entry.value;
+      var newType = value.closureWithRespectToUnknown(covariant: covariant);
+      if (newType != null) hasChanged = true;
+      newNamed[entry.key] = newType ?? value;
+    }
+    return hasChanged ? newNamed : null;
   }
 
   Map<String, Type>? _recursivelyDemoteNamed({required bool covariant}) {
@@ -205,6 +291,16 @@ class StarType extends Type {
   final Type innerType;
 
   StarType(this.innerType) : super._();
+
+  @override
+  Type? closureWithRespectToUnknown({required bool covariant}) {
+    Type? newInnerType =
+        innerType.closureWithRespectToUnknown(covariant: covariant);
+    if (newInnerType == null) return null;
+    if (newInnerType is StarType) return newInnerType;
+    if (newInnerType is QuestionType) return newInnerType;
+    return StarType(newInnerType);
+  }
 
   @override
   Type? recursivelyDemote({required bool covariant}) {
@@ -263,6 +359,13 @@ abstract class Type {
     return other is Type && this.type == other.type;
   }
 
+  /// Finds the nearest type that doesn't involve the unknown type (`_`).
+  ///
+  /// If [covariant] is `true`, a supertype will be returned (replacing `_` with
+  /// `Object?`); otherwise a subtype will be returned (replacing `_` with
+  /// `Never`).
+  Type? closureWithRespectToUnknown({required bool covariant});
+
   /// Finds the nearest type that doesn't involve any type parameter promotion.
   /// If `covariant` is `true`, a supertype will be returned (replacing promoted
   /// type parameters with their unpromoted counterparts); otherwise a subtype
@@ -290,6 +393,18 @@ abstract class Type {
       Type._allowComparisons = false;
     }
   }
+}
+
+class TypeSchema {
+  final Type _type;
+
+  TypeSchema(String typeString) : _type = Type(typeString);
+
+  TypeSchema.fromType(this._type);
+
+  String get typeString => _type.type;
+
+  Type toType() => _type;
 }
 
 class TypeSystem {
@@ -747,6 +862,10 @@ class UnknownType extends Type {
   const UnknownType() : super._();
 
   @override
+  Type closureWithRespectToUnknown({required bool covariant}) =>
+      covariant ? Type('Object?') : Type('Never');
+
+  @override
   Type? recursivelyDemote({required bool covariant}) => null;
 
   @override
@@ -872,7 +991,7 @@ class _TypeParser {
     // We currently accept the following grammar for types:
     //   type := unsuffixedType nullability suffix*
     //   unsuffixedType := identifier typeArgs?
-    //                   | `?`
+    //                   | `_`
     //                   | `(` type `)`
     //                   | `(` recordTypeFields `,` recordTypeNamedFields `)`
     //                   | `(` recordTypeFields `,`? `)`
@@ -898,7 +1017,7 @@ class _TypeParser {
   }
 
   Type _parseUnsuffixedType() {
-    if (_currentToken == '?') {
+    if (_currentToken == '_') {
       _next();
       return const UnknownType();
     }
@@ -920,7 +1039,7 @@ class _TypeParser {
     }
     var typeName = _currentToken;
     if (_identifierRegexp.matchAsPrefix(typeName) == null) {
-      _parseFailure('Expected an identifier, `?`, or `(`');
+      _parseFailure('Expected an identifier, `_`, or `(`');
     }
     _next();
     List<Type> typeArgs;
@@ -975,6 +1094,23 @@ class _TypeParser {
 }
 
 extension on List<Type> {
+  /// Calls [Type.closureWithRespectToUnknown] to translate every list member
+  /// into a type that doesn't involve the unknown type (`_`).  If no type would
+  /// be changed by this operation, returns `null`.
+  List<Type>? closureWithRespectToUnknown({required bool covariant}) {
+    List<Type>? newList;
+    for (int i = 0; i < length; i++) {
+      Type type = this[i];
+      Type? newType = type.closureWithRespectToUnknown(covariant: covariant);
+      if (newList == null) {
+        if (newType == null) continue;
+        newList = sublist(0, i);
+      }
+      newList.add(newType ?? type);
+    }
+    return newList;
+  }
+
   /// Calls [Type.recursivelyDemote] to translate every list member into a type
   /// that doesn't involve any type promotion.  If no type would be changed by
   /// this operation, returns `null`.

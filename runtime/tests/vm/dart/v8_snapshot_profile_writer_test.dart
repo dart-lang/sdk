@@ -60,7 +60,6 @@ Snapshot testProfile(String profilePath) {
 }
 
 Future<void> testJIT(String dillPath, String snapshotKind) async {
-  final includesCode = snapshotKind == 'core-jit';
   final description = snapshotKind;
   Expect.isTrue(_seenDescriptions.add(description),
       "test configuration $description would be run multiple times");
@@ -68,17 +67,11 @@ Future<void> testJIT(String dillPath, String snapshotKind) async {
   await withTempDir('v8-snapshot-profile-$description', (String tempDir) async {
     // Generate the snapshot profile.
     final profilePath = path.join(tempDir, 'profile.heapsnapshot');
-    final vmTextPath = path.join(tempDir, 'vm_instructions.bin');
-    final isolateTextPath = path.join(tempDir, 'isolate_instructions.bin');
     final vmDataPath = path.join(tempDir, 'vm_data.bin');
     final isolateDataPath = path.join(tempDir, 'isolate_data.bin');
 
     await run(genSnapshot, <String>[
       '--snapshot-kind=$snapshotKind',
-      if (includesCode) ...<String>[
-        '--vm_snapshot_instructions=$vmTextPath',
-        '--isolate_snapshot_instructions=$isolateTextPath',
-      ],
       '--vm_snapshot_data=$vmDataPath',
       '--isolate_snapshot_data=$isolateDataPath',
       "--write-v8-snapshot-profile-to=$profilePath",
@@ -94,10 +87,6 @@ Future<void> testJIT(String dillPath, String snapshotKind) async {
     // This ensures that all bytes are accounted for in some way.
     int actualSize =
         await File(vmDataPath).length() + await File(isolateDataPath).length();
-    if (includesCode) {
-      actualSize += await File(vmTextPath).length() +
-          await File(isolateTextPath).length();
-    }
     final expectedSize =
         profile.nodes.fold<int>(0, (size, n) => size + n.selfSize);
 
@@ -423,8 +412,6 @@ main() async {
 
     // Test profile generation with a core snapshot (no code).
     await testJIT(jitDillPath, 'core');
-    // Test profile generation with a core JIT snapshot (with code).
-    await testJIT(jitDillPath, 'core-jit');
 
     // Test unstripped ELF generation directly.
     await testAOT(aotDillPath);

@@ -75,7 +75,7 @@ class S5 extends core::Object {
     ;
 }
 class C5 extends self::S5 {
-  constructor •([core::int x]) → self::C5
+  constructor •([core::int x = null]) → self::C5
     ;
 }
 class S6 extends core::Object {
@@ -85,11 +85,11 @@ class S6 extends core::Object {
 }
 class C6 extends self::S6 {
   field core::int? b;
-  constructor •([core::int? x]) → self::C6
+  constructor •([core::int? x = null]) → self::C6
     ;
 }
 class D6 extends self::C6 {
-  constructor •([core::int x]) → self::D6
+  constructor •([core::int x = null]) → self::D6
     ;
 }
 class S7 extends core::Object {
@@ -143,7 +143,7 @@ class S5b extends core::Object {
     ;
 }
 class C5b extends self::S5b {
-  constructor •({core::int x}) → self::C5b
+  constructor •({core::int x = null}) → self::C5b
     ;
 }
 class S6b extends core::Object {
@@ -153,11 +153,11 @@ class S6b extends core::Object {
 }
 class C6b extends self::S6b {
   field core::int? b;
-  constructor •({core::int? x}) → self::C6b
+  constructor •({core::int? x = null}) → self::C6b
     ;
 }
 class D6b extends self::C6b {
-  constructor •({core::int x}) → self::D6b
+  constructor •({core::int x = null}) → self::D6b
     ;
 }
 class S7b extends core::Object {
@@ -213,7 +213,7 @@ class Ap extends core::Object {
     ;
 }
 class Bp extends self::Ap {
-  constructor •([core::int x]) → self::Bp
+  constructor •([core::int x = null]) → self::Bp
     ;
   constructor req(core::int x) → self::Bp
     ;
@@ -223,7 +223,7 @@ class An extends core::Object {
     ;
 }
 class Bn extends self::An {
-  constructor •({core::int x}) → self::Bn
+  constructor •({core::int x = null}) → self::Bn
     ;
   constructor req({required core::int x}) → self::Bn
     ;

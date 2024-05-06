@@ -191,6 +191,7 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
 
         var completionRequest = DartCompletionRequest(
           analysisSession: analysisSession,
+          fileState: resolvedUnit.fileState,
           filePath: resolvedUnit.path,
           fileContent: resolvedUnit.content,
           unitElement: resolvedUnit.unitElement,

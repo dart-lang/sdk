@@ -226,7 +226,7 @@ const String TEST_18 = """
 
 main() {
   var a = [42, true];
-  if (a[1]) {
+  if (a[1] as bool) {
     a[0] = 1;
   } else {
     a[0] = 2;

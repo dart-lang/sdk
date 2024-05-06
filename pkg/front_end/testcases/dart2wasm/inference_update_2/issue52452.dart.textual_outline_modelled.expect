@@ -30,13 +30,19 @@ class E extends B with M1 implements D {
 }
 
 main() {}
+
 mixin M1 {
   late final int? _f3;
   late final int? _f4 = 0;
   late int? _f2;
 }
+
 mixin M3 {}
+
 void acceptsInt(int x) {}
+
 void testConflictWithNoSuchMethodForwarderIfImplementedInMixin(C c) {}
+
 void testNoConflictWithNoSuchMethodForwarderIfImplementedInMixin1(C c) {}
+
 void testNoConflictWithNoSuchMethodForwarderIfImplementedInMixin2(C c) {}

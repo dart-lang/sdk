@@ -166,6 +166,7 @@ appearing
 appears
 append
 appended
+appending
 appends
 application
 application's
@@ -290,6 +291,7 @@ below
 beneficial
 benefit
 benign
+besides
 best
 bets
 better
@@ -457,6 +459,7 @@ circularities
 circularity
 circumstance
 circumstances
+clarifying
 clashing
 class
 classes
@@ -562,6 +565,7 @@ completer
 completion
 complex
 compliance
+complication
 component
 components
 composed
@@ -834,8 +838,10 @@ derivation
 derive
 derived
 derives
+descend
 descendant
 descendants
+descends
 describe
 described
 describes
@@ -985,6 +991,7 @@ edges
 edit
 edition
 editor
+edits
 effect
 effective
 effectively
@@ -994,6 +1001,7 @@ either
 elapsed
 element
 elements
+elided
 eligible
 eliminate
 eliminated
@@ -1061,6 +1069,7 @@ enumerations
 enums
 environment
 equal
+equalities
 equality
 equals
 equate
@@ -1425,6 +1434,7 @@ hermetic
 heuristic
 hex
 hexadecimal
+hi
 hidden
 hide
 hides
@@ -1472,12 +1482,14 @@ ignore
 ignored
 ignores
 ignoring
+ill
 illegal
 imaginary
 imitation
 immediate
 immediately
 immutable
+impact
 implement
 implementation
 implementations
@@ -1533,11 +1545,13 @@ indicate
 indicated
 indicates
 indicating
+indication
 indices
 indirect
 indirectly
 induce
 induced
+inducing
 infer
 inference
 inferrable
@@ -1605,6 +1619,7 @@ instruction
 instructions
 instrumentation
 instrumented
+insufficient
 int
 intact
 integer
@@ -2024,6 +2039,7 @@ neighbors
 neither
 nest
 nested
+nestedness
 nesting
 net
 never
@@ -2059,6 +2075,7 @@ nothing
 notice
 noticed
 notifies
+notions
 now
 nowhere
 null
@@ -2079,6 +2096,7 @@ observed
 obtain
 obtained
 obvious
+obviously
 occur
 occurred
 occurrence
@@ -2089,6 +2107,7 @@ odd
 odds
 of
 off
+offer
 offs
 offset
 offsets
@@ -2123,6 +2142,7 @@ optimistically
 optimization
 optimize
 optimized
+optimizer
 option
 optional
 optionally
@@ -2332,6 +2352,7 @@ prepending
 prepends
 presence
 present
+presentation
 preserve
 preserved
 preserves
@@ -2413,6 +2434,7 @@ pseudo
 pub
 public
 publications
+publicly
 published
 pull
 punctuation
@@ -2522,6 +2544,7 @@ refinements
 reflecting
 reflects
 regardless
+regards
 region
 regions
 register
@@ -2544,6 +2567,7 @@ relations
 relationship
 relationships
 relative
+relaxed
 release
 releases
 relevant
@@ -2937,6 +2961,8 @@ string
 strings
 stripped
 strong
+stronger
+strongest
 strongly
 struct
 structural
@@ -2982,6 +3008,7 @@ successively
 succinct
 such
 suffice
+sufficiency
 sufficient
 sufficiently
 suffix
@@ -3291,6 +3318,7 @@ unserializable
 unsigned
 unsized
 unskip
+unsolvable
 unsorted
 unsoundness
 unspecified
@@ -3333,6 +3361,7 @@ utf
 utilities
 utility
 utilized
+ux
 valid
 validate
 validated

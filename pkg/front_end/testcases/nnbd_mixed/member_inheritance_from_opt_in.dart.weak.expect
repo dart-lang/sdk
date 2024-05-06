@@ -63,8 +63,8 @@ class LegacyClass extends mem::Class implements mem::Interface {
   abstract member-signature method method5c([core::int* a = #C2, core::int* b = #C1]) → core::int*; -> mem::Class::method5c
   abstract member-signature method method7a(core::int* a, {core::int* b = #C1}) → core::int*; -> mem::Class::method7a
   abstract member-signature method method7b({core::int* a = #C2, core::int* b = #C1}) → core::int*; -> mem::Class::method7b
-  abstract member-signature method method9a(core::int* a, {core::int* b = #C1}) → core::int*; -> mem::Class::method9a
-  abstract member-signature method method9b({core::int* a = #C1, core::int* b = #C1}) → core::int*; -> mem::Class::method9b
+  abstract member-signature method method9a(core::int* a, {core::int* b}) → core::int*; -> mem::Class::method9a
+  abstract member-signature method method9b({core::int* a, core::int* b}) → core::int*; -> mem::Class::method9b
   abstract member-signature get getter1() → core::int*; -> mem::Class::getter1
   abstract member-signature get getter2() → core::int*; -> mem::Class::getter2
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -107,10 +107,10 @@ abstract class Interface extends core::Object {
   abstract method method7b({core::int a = #C2, core::int? b = #C1}) → core::int;
   abstract method method8a(core::int? a, {core::int b = #C2}) → core::int?;
   abstract method method8b({core::int? a = #C1, core::int b = #C2}) → core::int?;
-  abstract method method9a(core::int a, {required core::int? b = #C1}) → core::int;
-  abstract method method9b({required core::int a = #C1, required core::int? b = #C1}) → core::int;
-  abstract method method10a(core::int? a, {required core::int b = #C1}) → core::int?;
-  abstract method method10b({required core::int? a = #C1, required core::int b = #C1}) → core::int?;
+  abstract method method9a(core::int a, {required core::int? b}) → core::int;
+  abstract method method9b({required core::int a, required core::int? b}) → core::int;
+  abstract method method10a(core::int? a, {required core::int b}) → core::int?;
+  abstract method method10b({required core::int? a, required core::int b}) → core::int?;
   abstract get getter1() → core::int?;
   abstract get getter2() → core::int;
   abstract get getter3() → core::int;
@@ -158,9 +158,9 @@ class Class extends core::Object {
     return 0;
   method method7b({core::int a = #C2, core::int? b = #C1}) → core::int
     return 0;
-  method method9a(core::int a, {required core::int? b = #C1}) → core::int
+  method method9a(core::int a, {required core::int? b}) → core::int
     return 0;
-  method method9b({required core::int a = #C1, required core::int? b = #C1}) → core::int
+  method method9b({required core::int a, required core::int? b}) → core::int
     return 0;
   get getter1() → core::int
     return 0;

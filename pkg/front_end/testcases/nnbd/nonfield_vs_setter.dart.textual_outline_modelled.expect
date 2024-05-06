@@ -10,7 +10,9 @@ class Class {
   void set instanceMethodAndSetter(value) {}
   void set staticMethodAndInstanceSetter(value) {}
 }
+
 class classAndSetter {}
+
 extension Extension on int? {
   extensionInstanceMethodAndSetter() {}
   extensionInstanceMethodAndStaticSetter() {}
@@ -21,10 +23,17 @@ extension Extension on int? {
   void set extensionInstanceMethodAndSetter(value) {}
   void set extensionStaticMethodAndInstanceSetter(value) {}
 }
+
 main() {}
+
 test() {}
+
 topLevelMethodAndSetter() {}
+
 typedef typedefAndSetter = Function();
+
 void set classAndSetter(value) {}
+
 void set topLevelMethodAndSetter(value) {}
+
 void set topLevelMethodAndSetter(value) {}

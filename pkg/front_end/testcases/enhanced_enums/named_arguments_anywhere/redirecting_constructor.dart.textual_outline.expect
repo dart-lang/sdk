@@ -15,4 +15,5 @@ enum C {
 }
 
 main() {}
+
 expect(expected, actual) {}

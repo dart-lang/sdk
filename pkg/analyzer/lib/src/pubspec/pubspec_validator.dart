@@ -43,11 +43,7 @@ List<AnalysisError> validatePubspec({
   AnalysisOptions? analysisOptions,
 }) {
   final recorder = RecordingErrorListener();
-  ErrorReporter reporter = ErrorReporter(
-    recorder,
-    source,
-    isNonNullableByDefault: false,
-  );
+  ErrorReporter reporter = ErrorReporter(recorder, source);
   final ctx = PubspecValidationContext._(
     contents: contents,
     source: source,
@@ -166,13 +162,13 @@ final class PubspecValidationContext {
     Object? data,
   ]) {
     final span = node.span;
-    reporter.reportErrorForOffset(
-      errorCode,
-      span.start.offset,
-      span.length,
-      arguments,
-      messages,
-      data,
+    reporter.atOffset(
+      offset: span.start.offset,
+      length: span.length,
+      errorCode: errorCode,
+      arguments: arguments,
+      contextMessages: messages,
+      data: data,
     );
   }
 }

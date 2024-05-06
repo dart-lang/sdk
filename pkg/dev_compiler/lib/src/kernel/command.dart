@@ -734,10 +734,10 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
   text = text.replaceFirst(SharedCompiler.sourceMapLocationID, rawSourceMap);
 
   // This is intended to be used by our build/debug tools to gather metrics.
-  // See pkg/dev_compiler/lib/js/legacy/dart_library.js for runtime code that
+  // See pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js for runtime code that
   // reads this.
   //
-  // These keys (see corresponding logic in dart_library.js) include:
+  // These keys (see corresponding logic in ddc_module_loader.js) include:
   // - dartSize: <size of Dart input code in bytes>
   // - sourceMapSize: <size of JS source map in bytes>
   //

@@ -16,68 +16,68 @@ abstract final class NativeType {}
 
 @patch
 @pragma("vm:entry-point")
-final class _NativeInteger extends NativeType {}
+abstract final class _NativeInteger implements SizedNativeType {}
 
 @patch
 @pragma("vm:entry-point")
-final class _NativeDouble extends NativeType {}
+abstract final class _NativeDouble implements SizedNativeType {}
 
 @patch
 @pragma("vm:entry-point")
-final class Int8 extends _NativeInteger {}
+final class Int8 implements _NativeInteger {}
 
 @patch
 @pragma("vm:entry-point")
-final class Int16 extends _NativeInteger {}
+final class Int16 implements _NativeInteger {}
 
 @patch
 @pragma("vm:entry-point")
-final class Int32 extends _NativeInteger {}
+final class Int32 implements _NativeInteger {}
 
 @patch
 @pragma("vm:entry-point")
-final class Int64 extends _NativeInteger {}
+final class Int64 implements _NativeInteger {}
 
 @patch
 @pragma("vm:entry-point")
-final class Uint8 extends _NativeInteger {}
+final class Uint8 implements _NativeInteger {}
 
 @patch
 @pragma("vm:entry-point")
-final class Uint16 extends _NativeInteger {}
+final class Uint16 implements _NativeInteger {}
 
 @patch
 @pragma("vm:entry-point")
-final class Uint32 extends _NativeInteger {}
+final class Uint32 implements _NativeInteger {}
 
 @patch
 @pragma("vm:entry-point")
-final class Uint64 extends _NativeInteger {}
+final class Uint64 implements _NativeInteger {}
 
 @patch
 @pragma("vm:entry-point")
-final class Float extends _NativeDouble {}
+final class Float implements _NativeDouble {}
 
 @patch
 @pragma("vm:entry-point")
-final class Double extends _NativeDouble {}
+final class Double implements _NativeDouble {}
 
 @patch
 @pragma("vm:entry-point")
-abstract final class Bool extends NativeType {}
+abstract final class Bool implements SizedNativeType {}
 
 @patch
 @pragma("vm:entry-point")
-abstract final class Void extends NativeType {}
+abstract final class Void implements NativeType {}
 
 @patch
 @pragma("vm:entry-point")
-abstract final class Handle extends NativeType {}
+abstract final class Handle implements NativeType {}
 
 @patch
 @pragma("vm:entry-point")
-abstract final class NativeFunction<T extends Function> extends NativeType {}
+abstract final class NativeFunction<T extends Function> implements NativeType {}
 
 @patch
 @pragma("vm:entry-point")
-abstract final class VarArgs<T extends Record> extends NativeType {}
+abstract final class VarArgs<T extends Record> implements NativeType {}

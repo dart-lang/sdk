@@ -14,6 +14,6 @@ static method f(dynamic x) → dynamic {
   {
     final synthesized dynamic #0#0 = x;
     if(!(#0#0 is invalid-type && (let final invalid-type #t1 = a = #0#0{invalid-type}{<invalid>}.f in true)))
-      throw new core::StateError::•("Pattern matching error");
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
   }
 }

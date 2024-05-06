@@ -4,4 +4,5 @@ class Foo<T> {
 }
 
 T bar<T>(String o) => o as T;
+
 void main() {}

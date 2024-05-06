@@ -15,8 +15,6 @@ import '../ir/constants.dart';
 import '../ir/impact.dart';
 import '../ir/impact_data.dart';
 import '../ir/runtime_type_analysis.dart';
-import '../ir/static_type.dart';
-import '../ir/util.dart';
 import '../ir/visitors.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/backend_impact.dart';
@@ -39,7 +37,6 @@ import 'element_map.dart';
 /// [ImpactRegistry] that converts kernel based impact data to world impact
 /// object based on the K model.
 class KernelImpactConverter implements ImpactRegistry {
-  final WorldImpactBuilder impactBuilder;
   final KernelToElementMap elementMap;
   final DiagnosticReporter reporter;
   final CompilerOptions _options;
@@ -52,6 +49,8 @@ class KernelImpactConverter implements ImpactRegistry {
   final CustomElementsResolutionAnalysis _customElementsResolutionAnalysis;
   final RuntimeTypesNeedBuilder _rtiNeedBuilder;
   final AnnotationsData _annotationsData;
+  WorldImpactBuilder? _impactBuilder;
+  WorldImpactBuilder get impactBuilder => _impactBuilder!;
 
   KernelImpactConverter(
       this.elementMap,
@@ -65,8 +64,7 @@ class KernelImpactConverter implements ImpactRegistry {
       this._backendUsageBuilder,
       this._customElementsResolutionAnalysis,
       this._rtiNeedBuilder,
-      this._annotationsData)
-      : this.impactBuilder = WorldImpactBuilderImpl(currentMember);
+      this._annotationsData);
 
   ir.TypeEnvironment get typeEnvironment => elementMap.typeEnvironment;
 
@@ -81,17 +79,12 @@ class KernelImpactConverter implements ImpactRegistry {
   String typeToString(DartType type) =>
       type.toStructuredText(dartTypes, _options);
 
-  Object? _computeReceiverConstraint(
-      ir.DartType receiverType, ClassRelation relation) {
+  Object? _computeReceiverConstraint(ir.DartType receiverType) {
     if (receiverType is ir.InterfaceType) {
-      return StrongModeConstraint(commonElements, _nativeBasicData,
-          elementMap.getClass(receiverType.classNode), relation);
+      return defaultReceiverClass(commonElements, _nativeBasicData,
+          elementMap.getClass(receiverType.classNode));
     } else if (receiverType is ir.NullType) {
-      return StrongModeConstraint(
-          commonElements,
-          _nativeBasicData,
-          elementMap.getClass(typeEnvironment.coreTypes.deprecatedNullClass),
-          relation);
+      return elementMap.getClass(typeEnvironment.coreTypes.deprecatedNullClass);
     }
     return null;
   }
@@ -481,63 +474,36 @@ class KernelImpactConverter implements ImpactRegistry {
   }
 
   @override
-  void registerSuperInvocation(ir.Member? target, int positionalArguments,
+  void registerSuperInvocation(ir.Member target, int positionalArguments,
       List<String> namedArguments, List<ir.DartType> typeArguments) {
-    if (target != null) {
-      FunctionEntity method = elementMap.getMember(target) as FunctionEntity;
-      List<DartType>? dartTypeArguments = _getTypeArguments(typeArguments);
-      impactBuilder.registerStaticUse(StaticUse.superInvoke(
-          method,
-          CallStructure(positionalArguments + namedArguments.length,
-              namedArguments, typeArguments.length),
-          dartTypeArguments));
+    FunctionEntity method = elementMap.getMember(target) as FunctionEntity;
+    List<DartType>? dartTypeArguments = _getTypeArguments(typeArguments);
+    impactBuilder.registerStaticUse(StaticUse.superInvoke(
+        method,
+        CallStructure(positionalArguments + namedArguments.length,
+            namedArguments, typeArguments.length),
+        dartTypeArguments));
+  }
+
+  @override
+  void registerSuperGet(ir.Member target) {
+    MemberEntity member = elementMap.getMember(target);
+    if (member.isFunction) {
+      impactBuilder
+          .registerStaticUse(StaticUse.superTearOff(member as FunctionEntity));
     } else {
-      // TODO(johnniwinther): Remove this when the CFE checks for missing
-      //  concrete super targets.
-      impactBuilder.registerStaticUse(StaticUse.superInvoke(
-          elementMap.getSuperNoSuchMethod(currentMember.enclosingClass!),
-          CallStructure.ONE_ARG));
-      registerBackendImpact(_impacts.superNoSuchMethod);
+      impactBuilder.registerStaticUse(StaticUse.superGet(member));
     }
   }
 
   @override
-  void registerSuperGet(ir.Member? target) {
-    if (target != null) {
-      MemberEntity member = elementMap.getMember(target);
-      if (member.isFunction) {
-        impactBuilder.registerStaticUse(
-            StaticUse.superTearOff(member as FunctionEntity));
-      } else {
-        impactBuilder.registerStaticUse(StaticUse.superGet(member));
-      }
+  void registerSuperSet(ir.Member target) {
+    MemberEntity member = elementMap.getMember(target);
+    if (member is FieldEntity) {
+      impactBuilder.registerStaticUse(StaticUse.superFieldSet(member));
     } else {
-      // TODO(johnniwinther): Remove this when the CFE checks for missing
-      //  concrete super targets.
-      impactBuilder.registerStaticUse(StaticUse.superInvoke(
-          elementMap.getSuperNoSuchMethod(currentMember.enclosingClass!),
-          CallStructure.ONE_ARG));
-      registerBackendImpact(_impacts.superNoSuchMethod);
-    }
-  }
-
-  @override
-  void registerSuperSet(ir.Member? target) {
-    if (target != null) {
-      MemberEntity member = elementMap.getMember(target);
-      if (member is FieldEntity) {
-        impactBuilder.registerStaticUse(StaticUse.superFieldSet(member));
-      } else {
-        impactBuilder.registerStaticUse(
-            StaticUse.superSetterSet(member as FunctionEntity));
-      }
-    } else {
-      // TODO(johnniwinther): Remove this when the CFE checks for missing
-      //  concrete super targets.
-      impactBuilder.registerStaticUse(StaticUse.superInvoke(
-          elementMap.getSuperNoSuchMethod(currentMember.enclosingClass!),
-          CallStructure.ONE_ARG));
-      registerBackendImpact(_impacts.superNoSuchMethod);
+      impactBuilder.registerStaticUse(
+          StaticUse.superSetterSet(member as FunctionEntity));
     }
   }
 
@@ -568,7 +534,6 @@ class KernelImpactConverter implements ImpactRegistry {
   @override
   void registerDynamicInvocation(
       ir.DartType receiverType,
-      ClassRelation relation,
       ir.Name name,
       int positionalArguments,
       List<String> namedArguments,
@@ -576,8 +541,8 @@ class KernelImpactConverter implements ImpactRegistry {
     Selector selector = elementMap.getInvocationSelector(
         name, positionalArguments, namedArguments, typeArguments.length);
     List<DartType>? dartTypeArguments = _getTypeArguments(typeArguments);
-    impactBuilder.registerDynamicUse(DynamicUse(selector,
-        _computeReceiverConstraint(receiverType, relation), dartTypeArguments));
+    impactBuilder.registerDynamicUse(DynamicUse(
+        selector, _computeReceiverConstraint(receiverType), dartTypeArguments));
   }
 
   @override
@@ -591,16 +556,13 @@ class KernelImpactConverter implements ImpactRegistry {
         namedArguments,
         typeArguments.length);
     List<DartType>? dartTypeArguments = _getTypeArguments(typeArguments);
-    impactBuilder.registerDynamicUse(DynamicUse(
-        callStructure.callSelector,
-        _computeReceiverConstraint(receiverType, ClassRelation.subtype),
-        dartTypeArguments));
+    impactBuilder.registerDynamicUse(DynamicUse(callStructure.callSelector,
+        _computeReceiverConstraint(receiverType), dartTypeArguments));
   }
 
   @override
   void registerInstanceInvocation(
       ir.DartType receiverType,
-      ClassRelation relation,
       ir.Member target,
       int positionalArguments,
       List<String> namedArguments,
@@ -609,44 +571,36 @@ class KernelImpactConverter implements ImpactRegistry {
     impactBuilder.registerDynamicUse(DynamicUse(
         elementMap.getInvocationSelector(target.name, positionalArguments,
             namedArguments, typeArguments.length),
-        _computeReceiverConstraint(receiverType, relation),
+        _computeReceiverConstraint(receiverType),
         dartTypeArguments));
   }
 
   @override
-  void registerDynamicGet(
-      ir.DartType receiverType, ClassRelation relation, ir.Name name) {
+  void registerDynamicGet(ir.DartType receiverType, ir.Name name) {
     impactBuilder.registerDynamicUse(DynamicUse(
         Selector.getter(elementMap.getName(name)),
-        _computeReceiverConstraint(receiverType, relation),
-        const <DartType>[]));
+        _computeReceiverConstraint(receiverType), const <DartType>[]));
   }
 
   @override
-  void registerInstanceGet(
-      ir.DartType receiverType, ClassRelation relation, ir.Member target) {
+  void registerInstanceGet(ir.DartType receiverType, ir.Member target) {
     impactBuilder.registerDynamicUse(DynamicUse(
         Selector.getter(elementMap.getName(target.name)),
-        _computeReceiverConstraint(receiverType, relation),
-        const <DartType>[]));
+        _computeReceiverConstraint(receiverType), const <DartType>[]));
   }
 
   @override
-  void registerDynamicSet(
-      ir.DartType receiverType, ClassRelation relation, ir.Name name) {
+  void registerDynamicSet(ir.DartType receiverType, ir.Name name) {
     impactBuilder.registerDynamicUse(DynamicUse(
         Selector.setter(elementMap.getName(name)),
-        _computeReceiverConstraint(receiverType, relation),
-        const <DartType>[]));
+        _computeReceiverConstraint(receiverType), const <DartType>[]));
   }
 
   @override
-  void registerInstanceSet(
-      ir.DartType receiverType, ClassRelation relation, ir.Member target) {
+  void registerInstanceSet(ir.DartType receiverType, ir.Member target) {
     impactBuilder.registerDynamicUse(DynamicUse(
         Selector.setter(elementMap.getName(target.name)),
-        _computeReceiverConstraint(receiverType, relation),
-        const <DartType>[]));
+        _computeReceiverConstraint(receiverType), const <DartType>[]));
   }
 
   @override
@@ -742,10 +696,8 @@ class KernelImpactConverter implements ImpactRegistry {
   }
 
   @override
-  void registerSyncForIn(ir.DartType iterableType, ir.DartType iteratorType,
-      ClassRelation iteratorClassRelation) {
-    Object? receiverConstraint =
-        _computeReceiverConstraint(iteratorType, iteratorClassRelation);
+  void registerSyncForIn(ir.DartType iterableType, ir.DartType iteratorType) {
+    Object? receiverConstraint = _computeReceiverConstraint(iteratorType);
     registerBackendImpact(_impacts.syncForIn);
     impactBuilder.registerDynamicUse(
         DynamicUse(Selectors.iterator, receiverConstraint, const []));
@@ -756,10 +708,8 @@ class KernelImpactConverter implements ImpactRegistry {
   }
 
   @override
-  void registerAsyncForIn(ir.DartType iterableType, ir.DartType iteratorType,
-      ClassRelation iteratorClassRelation) {
-    Object? receiverConstraint =
-        _computeReceiverConstraint(iteratorType, iteratorClassRelation);
+  void registerAsyncForIn(ir.DartType iterableType, ir.DartType iteratorType) {
+    Object? receiverConstraint = _computeReceiverConstraint(iteratorType);
     registerBackendImpact(_impacts.asyncForIn);
     impactBuilder.registerDynamicUse(
         DynamicUse(Selectors.cancel, receiverConstraint, const []));
@@ -835,56 +785,25 @@ class KernelImpactConverter implements ImpactRegistry {
     registerBackendImpact(_impacts.loadLibrary);
   }
 
-  @override
-  void registerSwitchStatementNode(ir.SwitchStatement node) {
-    bool overridesEquals(InterfaceType type) {
-      if (type == commonElements.symbolImplementationType) {
-        // Treat symbol constants as if Symbol doesn't override `==`.
-        return false;
-      }
-      ClassEntity? cls = type.element;
-      while (cls != null) {
-        MemberEntity member = elementMap.elementEnvironment
-            .lookupClassMember(cls, Names.EQUALS_NAME)!;
-        if (member.isAbstract) {
-          cls = elementMap.elementEnvironment.getSuperClass(cls);
-        } else {
-          return member.enclosingClass != commonElements.objectClass &&
-              member.enclosingClass != commonElements.jsInterceptorClass;
-        }
-      }
-      return false;
-    }
-
-    for (ir.SwitchCase switchCase in node.cases) {
-      for (ir.Expression expression in switchCase.expressions) {
-        ConstantValue value =
-            elementMap.getConstantValue(staticTypeContext, expression)!;
-        DartType type = value.getType(elementMap.commonElements);
-        if (type == commonElements.doubleType) {
-          reporter.reportErrorMessage(
-              computeSourceSpanFromTreeNode(expression),
-              MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS,
-              {'type': "double"});
-        } else if (type == commonElements.functionType) {
-          reporter.reportErrorMessage(computeSourceSpanFromTreeNode(node),
-              MessageKind.SWITCH_CASE_FORBIDDEN, {'type': "Function"});
-        } else if (value is ObjectConstantValue &&
-            type != commonElements.typeLiteralType &&
-            overridesEquals(type as InterfaceType)) {
-          reporter.reportErrorMessage(
-              computeSourceSpanFromTreeNode(expression),
-              MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS,
-              {'type': typeToString(type)});
-        }
-      }
-    }
-  }
-
   /// Converts a [ImpactData] object based on kernel to the corresponding
   /// [WorldImpact] based on the K model.
   WorldImpact convert(ImpactData impactData) {
+    final oldBuilder = _impactBuilder;
+    final newBuilder = _impactBuilder = WorldImpactBuilderImpl(currentMember);
     impactData.apply(this);
-    return impactBuilder;
+    _impactBuilder = oldBuilder;
+    return newBuilder;
+  }
+
+  @override
+  void registerConditionalImpact(ConditionalImpactData impact) {
+    final conditionalUse = ConditionalUse.withReplacement(
+        impact: convert(impact.impactData),
+        replacementImpact: convert(impact.replacementImpactData),
+        originalConditions:
+            impact.originalConditions.map(elementMap.getMember).toList(),
+        original: impact.original,
+        replacement: impact.replacement);
+    impactBuilder.registerConditionalUse(conditionalUse);
   }
 }

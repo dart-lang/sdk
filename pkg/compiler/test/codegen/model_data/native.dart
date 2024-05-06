@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // ignore: import_internal_library
 import 'dart:_js_helper';
 
@@ -14,9 +12,9 @@ class Class {
   }
 
   @pragma('dart2js:noElision')
-  int field1;
+  int? field1;
 
-  int field2;
+  int? field2;
 
   /*member: Class.method1:
    calls=[method1(a,b,c)],

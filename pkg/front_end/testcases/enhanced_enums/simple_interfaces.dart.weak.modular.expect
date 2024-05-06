@@ -2,7 +2,8 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/enhanced_enums/simple_interfaces.dart:21:20: Error: Can't implement 'I' because it's marked with '?'.
+// pkg/front_end/testcases/enhanced_enums/simple_interfaces.dart:21:20: Error: Can't implement 'I?' because it's nullable.
+// Try removing the question mark.
 // enum E3 implements I? { // Error.
 //                    ^^
 //

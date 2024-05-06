@@ -49,6 +49,13 @@ class Sdk {
         'dart2js.dart.snapshot',
       );
 
+  String get dart2wasmSnapshot => path.absolute(
+        sdkPath,
+        'bin',
+        'snapshots',
+        'dart2wasm_product.snapshot',
+      );
+
   String get ddsSnapshot => path.absolute(
         sdkPath,
         'bin',
@@ -77,12 +84,24 @@ class Sdk {
         'frontend_server_aot.dart.snapshot',
       );
 
+  String get dtdSnapshot => path.absolute(
+        sdkPath,
+        'bin',
+        'snapshots',
+        'dart_tooling_daemon.dart.snapshot',
+      );
+
   String get devToolsBinaries => path.absolute(
         sdkPath,
         'bin',
         'resources',
         'devtools',
       );
+
+  String get wasmOpt => path.join(sdkPath, 'bin', 'utils',
+      Platform.isWindows ? 'wasm-opt.exe' : 'wasm-opt');
+
+  String get librariesJson => path.absolute(sdkPath, 'lib', 'libraries.json');
 
   static bool checkArtifactExists(String path, {bool logError = true}) {
     if (!File(path).existsSync()) {

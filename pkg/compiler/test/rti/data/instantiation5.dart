@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
-/*spec.member: f:deps=[method],explicit=[f.T*],needsArgs,needsInst=[<method.S*>],test*/
+/*spec.member: f:deps=[method],explicit=[f.T],needsArgs,needsInst=[<method.S>],test*/
 /*prod.member: f:deps=[method]*/
-int f<T>(T a) => null;
+int? f<T>(T a) => null;
 
-typedef int F<R>(R a);
+typedef int? F<R>(R a);
 
 /*spec.member: method:implicit=[method.S],needsArgs,test*/
 /*prod.member: method:needsArgs*/

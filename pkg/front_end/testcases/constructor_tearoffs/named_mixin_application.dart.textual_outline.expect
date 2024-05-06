@@ -12,10 +12,17 @@ class Class<T> implements Interface {
 }
 
 mixin Mixin<S> {}
+
 class NamedMixinApplication<T, S> = Class<T> with Mixin<S>;
+
 abstract class AbstractNamedMixinApplication<T, S> = Class<T> with Mixin<S>;
+
 test() {}
+
 var f1 = NamedMixinApplication.new;
+
 var f2 = NamedMixinApplication.named;
+
 var f3 = NamedMixinApplication.redirectingGenerative;
+
 main() {}

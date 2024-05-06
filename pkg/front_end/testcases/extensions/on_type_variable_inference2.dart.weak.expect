@@ -177,7 +177,7 @@ Try correcting the name to the name of an existing setter, or defining a setter 
   nonStruct.property = nonStruct.property; // error
             ^^^^^^^^" in invalid-expression "pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:60:3: Error: Non-nullable variable 'nonStruct' must be assigned before it can be used.
   nonStruct.property = nonStruct.property; // error
-  ^^^^^^^^^" in nonStruct{<unresolved>}.property = invalid-expression "pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:60:34: Error: The getter 'property' isn't defined for the class 'NonStruct'.
+  ^^^^^^^^^" in nonStruct.{<unresolved>}property = invalid-expression "pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:60:34: Error: The getter 'property' isn't defined for the class 'NonStruct'.
  - 'NonStruct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'property'.
   nonStruct.property = nonStruct.property; // error
@@ -198,5 +198,5 @@ Try correcting the name to the name of an existing getter, or defining a getter 
  - 'NonStruct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'property'.
   new NonStruct().property = null; // error
-                  ^^^^^^^^" in new self::NonStruct::•(){<unresolved>}.property = null;
+                  ^^^^^^^^" in new self::NonStruct::•().{<unresolved>}property = null;
 }

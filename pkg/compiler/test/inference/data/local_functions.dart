@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*member: main:[null]*/
 main() {
   namedLocalFunctionInvoke();
@@ -33,7 +31,7 @@ namedLocalFunctionInvoke() {
 // Invocation of an unnamed local function.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: unnamedLocalFunctionInvoke:[null|subclass=JSInt]*/
+/*member: unnamedLocalFunctionInvoke:[subclass=JSInt]*/
 unnamedLocalFunctionInvoke() {
   var local = /*[exact=JSUInt31]*/ () => 0;
   return local();
@@ -123,7 +121,7 @@ closureCallToString() {
 
 /*member: _callCompare:[subclass=Closure]*/
 _callCompare(int /*[subclass=Closure]*/ compare({a, b})) {
-  compare(a: 0, b: 1) /*invoke: [null|subclass=JSInt]*/ == 0;
+  compare(a: 0, b: 1) /*invoke: [subclass=JSInt]*/ == 0;
   return compare;
 }
 

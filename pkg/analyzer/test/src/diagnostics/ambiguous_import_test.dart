@@ -96,20 +96,18 @@ class N {}
 library lib2;
 class N {}
 ''');
-    newFile('$testPackageLibPath/part.dart', '''
+    var partFile = newFile('$testPackageLibPath/part.dart', '''
 part of lib;
 class A extends N {}
 ''');
-    newFile('$testPackageLibPath/lib.dart', '''
+    var libFile = newFile('$testPackageLibPath/lib.dart', '''
 library lib;
 import 'lib1.dart';
 import 'lib2.dart';
 part 'part.dart';
 ''');
-    ResolvedUnitResult libResult =
-        await resolveFile(convertPath('$testPackageLibPath/lib.dart'));
-    ResolvedUnitResult partResult =
-        await resolveFile(convertPath('$testPackageLibPath/part.dart'));
+    ResolvedUnitResult libResult = await resolveFile(libFile);
+    ResolvedUnitResult partResult = await resolveFile(partFile);
     expect(libResult.errors, hasLength(0));
     GatheringErrorListener()
       ..addAll(partResult.errors)

@@ -6,24 +6,15 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/candidate_suggestion.dart';
-import 'package:analysis_server/src/services/completion/dart/closure_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_state.dart';
-import 'package:analysis_server/src/services/completion/dart/enum_constant_constructor_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/extension_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/in_scope_completion_pass.dart';
 import 'package:analysis_server/src/services/completion/dart/library_member_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/library_prefix_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/named_constructor_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/not_imported_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/override_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/record_literal_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/static_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
-import 'package:analysis_server/src/services/completion/dart/type_member_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/variable_name_contributor.dart';
 import 'package:analysis_server/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -36,6 +27,8 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
@@ -129,18 +122,9 @@ class DartCompletionManager {
     var builder =
         SuggestionBuilder(request, useFilter: useFilter, listener: listener);
     var contributors = <DartCompletionContributor>[
-      ClosureContributor(request, builder),
-      EnumConstantConstructorContributor(request, builder),
       ExtensionMemberContributor(request, builder),
       LibraryMemberContributor(request, builder),
-      LibraryPrefixContributor(request, builder),
-      NamedConstructorContributor(request, builder),
-      if (enableOverrideContributor) OverrideContributor(request, builder),
       RecordLiteralContributor(request, builder),
-      StaticMemberContributor(request, builder),
-      TypeMemberContributor(request, builder),
-      if (enableUriContributor) UriContributor(request, builder),
-      VariableNameContributor(request, builder),
     ];
 
     if (includedElementKinds != null) {
@@ -159,7 +143,13 @@ class DartCompletionManager {
       await performance.runAsync(
         'InScopeCompletionPass',
         (performance) async {
-          _runFirstPass(request, builder, includedElementKinds != null);
+          _runFirstPass(
+            request: request,
+            builder: builder,
+            skipImports: includedElementKinds != null,
+            suggestOverrides: enableOverrideContributor,
+            suggestUris: enableUriContributor,
+          );
         },
       );
       for (var contributor in contributors) {
@@ -220,8 +210,13 @@ class DartCompletionManager {
   }
 
   // Run the first pass of the code completion algorithm.
-  void _runFirstPass(DartCompletionRequest request, SuggestionBuilder builder,
-      bool skipImports) {
+  void _runFirstPass({
+    required DartCompletionRequest request,
+    required SuggestionBuilder builder,
+    required bool skipImports,
+    required bool suggestOverrides,
+    required bool suggestUris,
+  }) {
     var collector = SuggestionCollector();
     var selection = request.unit.select(offset: request.offset, length: 0);
     if (selection == null) {
@@ -229,8 +224,14 @@ class DartCompletionManager {
     }
     var state = CompletionState(request, selection);
     var pass = InScopeCompletionPass(
-        state: state, collector: collector, skipImports: skipImports);
+      state: state,
+      collector: collector,
+      skipImports: skipImports,
+      suggestOverrides: suggestOverrides,
+      suggestUris: suggestUris,
+    );
     pass.computeSuggestions();
+    request.collectorLocationName = collector.completionLocation;
     builder.suggestFromCandidates(collector.suggestions);
   }
 }
@@ -267,6 +268,9 @@ class DartCompletionRequest {
   /// request.
   final OpType opType;
 
+  /// The file where completion is requested.
+  final FileState fileState;
+
   /// The absolute path of the file where completion is requested.
   final String path;
 
@@ -286,10 +290,20 @@ class DartCompletionRequest {
   /// The compilation unit in which completion is being requested.
   final CompilationUnit unit;
 
+  /// The location name from [SuggestionCollector].
+  String? collectorLocationName;
+
   bool _aborted = false;
+
+  /// Return `true` if the completion is occurring in a constant context.
+  late final bool inConstantContext = () {
+    var entity = target.entity;
+    return entity is Expression && entity.inConstantContext;
+  }();
 
   factory DartCompletionRequest({
     required AnalysisSession analysisSession,
+    required FileState fileState,
     required String filePath,
     required String fileContent,
     required CompilationUnitElement unitElement,
@@ -327,6 +341,7 @@ class DartCompletionRequest {
       libraryElement: libraryElement,
       offset: offset,
       opType: opType,
+      fileState: fileState,
       path: filePath,
       replacementRange: target.computeReplacementRange(offset),
       source: unitElement.source,
@@ -341,8 +356,10 @@ class DartCompletionRequest {
     DartdocDirectiveInfo? dartdocDirectiveInfo,
     CompletionPreference completionPreference = CompletionPreference.insert,
   }) {
+    resolvedUnit as ResolvedUnitResultImpl;
     return DartCompletionRequest(
       analysisSession: resolvedUnit.session,
+      fileState: resolvedUnit.fileState,
       filePath: resolvedUnit.path,
       fileContent: resolvedUnit.content,
       unitElement: resolvedUnit.unit.declaredElement!,
@@ -364,6 +381,7 @@ class DartCompletionRequest {
     required this.libraryElement,
     required this.offset,
     required this.opType,
+    required this.fileState,
     required this.path,
     required this.replacementRange,
     required this.source,
@@ -383,12 +401,6 @@ class DartCompletionRequest {
   /// Return `true` if free standing identifiers should be suggested
   bool get includeIdentifiers {
     return opType.includeIdentifiers;
-  }
-
-  /// Return `true` if the completion is occurring in a constant context.
-  bool get inConstantContext {
-    var entity = target.entity;
-    return entity is Expression && entity.inConstantContext;
   }
 
   InheritanceManager3 get inheritanceManager {

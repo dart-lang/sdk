@@ -1,10 +1,13 @@
 import 'initializer_rewrite_from_opt_out_lib.dart';
 
 int nonNullableTopLevelFieldReads = 0;
+
 late final int nonNullableTopLevelField = nonNullableTopLevelFieldReads++ == 0
     ? nonNullableTopLevelField
     : computeInitialValue();
+
 int nullableTopLevelFieldReads = 0;
+
 late final int? nullableTopLevelField = nullableTopLevelFieldReads++ == 0
     ? nullableTopLevelField
     : computeInitialValue();
@@ -30,4 +33,5 @@ class Class {
 }
 
 void main() {}
+
 throws(f(), String message) {}

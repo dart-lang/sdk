@@ -15,6 +15,56 @@ main() {
 
 @reflectiveTest
 class DuplicateConstructorDefaultTest extends PubPackageResolutionTest {
+  test_class_augmentation_augments() async {
+    newFile(testFile.path, r'''
+import augment 'a.dart';
+
+class A {
+  A();
+}
+''');
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+augment class A {
+  augment A();
+}
+''');
+
+    await resolveFile2(testFile);
+    assertNoErrorsInResult();
+
+    await resolveFile2(a);
+    assertNoErrorsInResult();
+  }
+
+  test_class_augmentation_declares() async {
+    newFile(testFile.path, r'''
+import augment 'a.dart';
+
+class A {
+  A();
+}
+''');
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+augment class A {
+  A();
+}
+''');
+
+    await resolveFile2(testFile);
+    assertNoErrorsInResult();
+
+    await resolveFile2(a);
+    assertErrorsInResult([
+      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 50, 1),
+    ]);
+  }
+
   test_class_empty_empty() async {
     await assertErrorsInCode(r'''
 class C {

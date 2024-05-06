@@ -244,8 +244,6 @@ const Slot& Slot::GetLengthFieldForArrayCid(intptr_t array_cid) {
 
     case kOneByteStringCid:
     case kTwoByteStringCid:
-    case kExternalOneByteStringCid:
-    case kExternalTwoByteStringCid:
       return GetNativeSlot(Kind::kString_length);
 
     case kArrayCid:
@@ -331,7 +329,10 @@ const Slot& Slot::GetCanonicalSlot(Thread* thread,
 
 FieldGuardState::FieldGuardState(const Field& field)
     : state_(GuardedCidBits::encode(field.guarded_cid()) |
-             IsNullableBit::encode(field.is_nullable())) {}
+             IsNullableBit::encode(field.is_nullable())) {
+  ASSERT(compiler::target::UntaggedObject::kClassIdTagSize <=
+         GuardedCidBits::bitsize());
+}
 
 const Slot& Slot::Get(const Field& field,
                       const ParsedFunction* parsed_function) {

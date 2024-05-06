@@ -25,15 +25,15 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/modifier_builder.dart';
-import '../constant_context.dart' show ConstantContext;
-import '../crash.dart' show Crash;
-import '../fasta_codes.dart'
+import '../codes/fasta_codes.dart'
     show
         Code,
         LocatedMessage,
         Message,
         messageExpectedBlockToSkip,
         templateInternalProblemNotFound;
+import '../constant_context.dart' show ConstantContext;
+import '../crash.dart' show Crash;
 import '../identifiers.dart'
     show Identifier, OperatorIdentifier, QualifiedName, SimpleIdentifier;
 import '../ignored_parser_errors.dart' show isIgnoredParserError;
@@ -67,8 +67,6 @@ class DietListener extends StackListenerImpl {
 
   final bool enableNative;
 
-  final bool stringExpectedAfterNative;
-
   final TypeInferenceEngine typeInferenceEngine;
 
   int importExportDirectiveIndex = 0;
@@ -96,8 +94,6 @@ class DietListener extends StackListenerImpl {
         memberScope = library.scope,
         enableNative =
             library.loader.target.backendTarget.enableNative(library.importUri),
-        stringExpectedAfterNative =
-            library.loader.target.backendTarget.nativeExtensionExpectsString,
         _benchmarker = library.loader.target.benchmarker;
 
   DeclarationBuilder? get currentDeclaration => _currentDeclaration;
@@ -371,6 +367,7 @@ class DietListener extends StackListenerImpl {
 
   @override
   void endTopLevelFields(
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -442,6 +439,16 @@ class DietListener extends StackListenerImpl {
     if (hasName) {
       pop(); // Name.
     }
+    pop(); // Annotations.
+  }
+
+  @override
+  void endLibraryAugmentation(
+      Token libraryKeyword, Token augmentKeyword, Token semicolon) {
+    debugEvent("endLibraryAugmentation");
+    assert(checkState(libraryKeyword, [
+      /* metadata */ ValueKinds.TokenOrNull,
+    ]));
     pop(); // Annotations.
   }
 
@@ -547,7 +554,7 @@ class DietListener extends StackListenerImpl {
     if (importUri.startsWith("dart-ext:")) return;
 
     Library libraryNode = libraryBuilder.library;
-    LibraryDependency dependency =
+    LibraryDependency? dependency =
         libraryNode.dependencies[importExportDirectiveIndex++];
     parseMetadata(libraryBuilder.bodyBuilderContext, libraryBuilder, metadata,
         dependency);
@@ -995,7 +1002,8 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void beginExtensionDeclaration(Token extensionKeyword, Token? nameToken) {
+  void beginExtensionDeclaration(
+      Token? augmentToken, Token extensionKeyword, Token? nameToken) {
     debugEvent("beginExtensionDeclaration");
     push(nameToken != null
         ? new SimpleIdentifier(nameToken)
@@ -1402,44 +1410,6 @@ class DietListener extends StackListenerImpl {
       return listener.finishMetadata(parent);
     }
     return null;
-  }
-
-  /// Returns [Token] found between [start] (inclusive) and [end]
-  /// (non-inclusive) that has its [Token.charOffset] equal to [offset].  If
-  /// there is no such token, null is returned.
-  Token? tokenForOffset(Token start, Token end, int offset) {
-    if (offset < start.charOffset || offset >= end.charOffset) {
-      return null;
-    }
-    while (start != end) {
-      if (offset == start.charOffset) {
-        return start;
-      }
-      start = start.next!;
-    }
-    return null;
-  }
-
-  /// Returns list of [Token]s found between [start] (inclusive) and [end]
-  /// (non-inclusive) that correspond to [offsets].  If there's no token between
-  /// [start] and [end] for the given offset, the corresponding item in the
-  /// resulting list is set to null.  [offsets] are assumed to be in ascending
-  /// order.
-  List<Token?> tokensForOffsets(Token start, Token end, List<int> offsets) {
-    List<Token?> result =
-        new List<Token?>.filled(offsets.length, null, growable: false);
-    for (int i = 0; start != end && i < offsets.length;) {
-      int offset = offsets[i];
-      if (offset < start.charOffset) {
-        ++i;
-      } else if (offset == start.charOffset) {
-        result[i] = start;
-        start = start.next!;
-      } else {
-        start = start.next!;
-      }
-    }
-    return result;
   }
 
   @override

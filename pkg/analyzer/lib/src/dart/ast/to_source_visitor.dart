@@ -264,6 +264,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(node.augmentKeyword, suffix: ' ');
     _visitToken(node.externalKeyword, suffix: ' ');
     _visitToken(node.constKeyword, suffix: ' ');
     _visitToken(node.factoryKeyword, suffix: ' ');
@@ -511,7 +512,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitForEachPartsWithPattern(ForEachPartsWithPattern node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
-    sink.write(node.keyword.lexeme);
+    _visitToken(node.keyword, suffix: ' ');
     _visitNode(node.pattern);
     sink.write(' in ');
     _visitNode(node.iterable);

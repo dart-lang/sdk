@@ -6,5 +6,7 @@ class A {
 }
 
 external final fx;
+
 external int s1;
+
 main() {}

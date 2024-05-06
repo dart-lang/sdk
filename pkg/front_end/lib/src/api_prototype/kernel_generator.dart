@@ -52,16 +52,22 @@ Future<CompilerResult?> kernelForProgram(Uri source, CompilerOptions options,
 }
 
 Future<CompilerResult?> kernelForProgramInternal(
-    Uri source, CompilerOptions options,
-    {List<Uri> additionalSources = const <Uri>[],
-    bool retainDataForTesting = false,
-    bool requireMain = true}) async {
+  Uri source,
+  CompilerOptions options, {
+  List<Uri> additionalSources = const <Uri>[],
+  bool retainDataForTesting = false,
+  bool requireMain = true,
+  bool buildComponent = true,
+}) async {
   ProcessedOptions pOptions = new ProcessedOptions(
       options: options, inputs: [source, ...additionalSources]);
   return await CompilerContext.runWithOptions(pOptions, (context) async {
     CompilerResult result = await generateKernelInternal(
-        includeHierarchyAndCoreTypes: true,
-        retainDataForTesting: retainDataForTesting);
+      includeHierarchyAndCoreTypes: true,
+      retainDataForTesting: retainDataForTesting,
+      buildComponent: buildComponent,
+    );
+
     Component? component = result.component;
     if (component == null) return null;
 

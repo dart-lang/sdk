@@ -33,16 +33,14 @@ class SearchFindElementReferencesHandler extends LegacyHandler {
       element = element.field;
     }
     if (element is PropertyAccessorElement) {
-      element = element.variable;
+      element = element.variable2;
     }
     // respond
     var searchId = (server.nextSearchId++).toString();
     var result = protocol.SearchFindElementReferencesResult();
     if (element != null) {
       result.id = searchId;
-      var withNullability = element.library?.isNonNullableByDefault ?? false;
-      result.element =
-          protocol.convertElement(element, withNullability: withNullability);
+      result.element = protocol.convertElement(element);
     }
     sendResult(result);
     // search elements

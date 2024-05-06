@@ -1319,7 +1319,7 @@ final class NativeFloat32x4 implements Float32x4 {
   /// Extract the sign bit from each lane return them in the first 4 bits.
   int get signMask {
     var view = _uint32view;
-    var mx, my, mz, mw;
+    int mx, my, mz, mw;
     _list[0] = x;
     _list[1] = y;
     _list[2] = z;

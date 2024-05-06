@@ -158,30 +158,6 @@ library;
 //     use(Foo.staticField());
 //                        ^
 //
-// pkg/front_end/testcases/rasta/static.dart:75:9: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
-//     Foo.staticConstant ??= 87;
-//         ^
-//
-// pkg/front_end/testcases/rasta/static.dart:76:13: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
-//     use(Foo.staticConstant ??= 87);
-//             ^
-//
-// pkg/front_end/testcases/rasta/static.dart:77:9: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
-//     Foo.staticField ??= 87;
-//         ^
-//
-// pkg/front_end/testcases/rasta/static.dart:78:13: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
-//     use(Foo.staticField ??= 87);
-//             ^
-//
-// pkg/front_end/testcases/rasta/static.dart:79:9: Warning: Operand of null-aware operation '??=' has type 'dynamic Function()' which excludes null.
-//     Foo.staticFunction ??= 87;
-//         ^
-//
-// pkg/front_end/testcases/rasta/static.dart:80:13: Warning: Operand of null-aware operation '??=' has type 'dynamic Function()' which excludes null.
-//     use(Foo.staticFunction ??= 87);
-//             ^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -286,14 +262,14 @@ Try correcting the name to the name of an existing method, or defining a method 
                        ^" in self::Foo::staticField{<unresolved>}.call());
     self::Foo::staticFunction();
     self::use(self::Foo::staticFunction());
-    self::Foo::staticGetter{dynamic}.call();
-    self::use(self::Foo::staticGetter{dynamic}.call());
+    self::Foo::staticGetter{dynamic}();
+    self::use(self::Foo::staticGetter{dynamic}());
     invalid-expression "pkg/front_end/testcases/rasta/static.dart:61:9: Error: Getter not found: 'staticSetter'.
     Foo.staticSetter();
-        ^^^^^^^^^^^^"{dynamic}.call();
+        ^^^^^^^^^^^^"{dynamic}();
     self::use(invalid-expression "pkg/front_end/testcases/rasta/static.dart:62:13: Error: Getter not found: 'staticSetter'.
     use(Foo.staticSetter());
-            ^^^^^^^^^^^^"{dynamic}.call());
+            ^^^^^^^^^^^^"{dynamic}());
     invalid-expression "pkg/front_end/testcases/rasta/static.dart:64:9: Error: Setter not found: 'staticConstant'.
     Foo.staticConstant = 87;
         ^^^^^^^^^^^^^^";

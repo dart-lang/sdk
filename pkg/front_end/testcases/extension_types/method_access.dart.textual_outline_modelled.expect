@@ -15,4 +15,5 @@ extension type InlineClass(int it) {
   void operator []=(int index, int value) {}
   void set setter(int value) {}
 }
+
 test(InlineClass ic) {}

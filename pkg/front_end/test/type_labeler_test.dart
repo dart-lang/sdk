@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/ast.dart';
-
-import 'package:front_end/src/fasta/kernel/type_labeler.dart';
-
 import 'package:expect/expect.dart';
+import 'package:front_end/src/fasta/codes/type_labeler.dart';
+import 'package:kernel/ast.dart';
 
 void main() {
   void check(Map<Node, String> expectations, int bulletCount) {

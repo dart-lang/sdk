@@ -32,10 +32,63 @@ class SimpleUnreachableCodeElimination extends RemovingTransformer {
   SimpleUnreachableCodeElimination(this.constantEvaluator,
       {required this.enableAsserts, required this.soundNullSafety});
 
+  Never _throwPlatformConstError(Member node, String message) {
+    final uri = constantEvaluator.getFileUri(node);
+    final offset = constantEvaluator.getFileOffset(uri, node);
+    throw PlatformConstError(message, node, uri, offset);
+  }
+
+  void _checkPlatformConstMember(Member node) {
+    if (node is Field) {
+      if (!node.isStatic) {
+        _throwPlatformConstError(node, 'not a static field');
+      }
+      // Static fields currently always have an initializer set, even if it's
+      // the implicit null initializer for a nullable field.
+      assert(node.initializer != null);
+    } else if (node is Procedure) {
+      if (!node.isStatic) {
+        _throwPlatformConstError(node, 'not a static method');
+      }
+      if (!node.isGetter) {
+        _throwPlatformConstError(node, 'not a getter');
+      }
+    } else {
+      _throwPlatformConstError(node, 'not a field or method');
+    }
+  }
+
   @override
   TreeNode defaultMember(Member node, TreeNode? removalSentinel) {
     _staticTypeContext =
         StaticTypeContext(node, constantEvaluator.typeEnvironment);
+    if (constantEvaluator.shouldEvaluateMember(node)) {
+      _checkPlatformConstMember(node);
+      // Create a StaticGet to ensure the member is evaluated at least once,
+      // and then replace the field initializer or getter body with the result.
+      final staticGet = StaticGet(node)..fileOffset = node.fileOffset;
+      final result =
+          staticGet.accept1(this, cannotRemoveSentinel) as ConstantExpression;
+      if (node is Field) {
+        final initializer = node.initializer;
+        if (initializer == null) {
+          assert(node.isExternal);
+        } else {
+          node.initializer = result
+            ..fileOffset = initializer.fileOffset
+            ..parent = node;
+        }
+      } else if (node is Procedure) {
+        final body = node.function.body;
+        if (body == null) {
+          assert(node.isExternal);
+        } else {
+          node.function.body = ReturnStatement(result)
+            ..fileOffset = body.fileOffset
+            ..parent = node.function;
+        }
+      }
+    }
     final result = super.defaultMember(node, removalSentinel);
     _staticTypeContext = null;
     return result;
@@ -48,25 +101,10 @@ class SimpleUnreachableCodeElimination extends RemovingTransformer {
     return constant is BoolConstant ? constant.value : null;
   }
 
-  Expression _makeConstantExpression(Constant constant, Expression node) {
-    if (constant is UnevaluatedConstant &&
-        constant.expression is InvalidExpression) {
-      return constant.expression;
-    }
-    ConstantExpression constantExpression = new ConstantExpression(
-        constant, node.getStaticType(_staticTypeContext!))
-      ..fileOffset = node.fileOffset;
-    if (node is FileUriExpression) {
-      return new FileUriConstantExpression(constantExpression.constant,
-          type: constantExpression.type, fileUri: node.fileUri)
-        ..fileOffset = node.fileOffset;
-    }
-    return constantExpression;
-  }
-
   Expression _createBoolConstantExpression(bool value, Expression node) =>
-      _makeConstantExpression(
-          constantEvaluator.canonicalize(BoolConstant(value)), node);
+      ConstantExpression(constantEvaluator.makeBoolConstant(value),
+          node.getStaticType(_staticTypeContext!))
+        ..fileOffset = node.fileOffset;
 
   Statement _makeEmptyBlockIfEmptyStatement(Statement node, TreeNode parent) =>
       node is EmptyStatement ? (Block(<Statement>[])..parent = parent) : node;
@@ -219,11 +257,18 @@ class SimpleUnreachableCodeElimination extends RemovingTransformer {
     if (target is Field && target.isConst) {
       throw 'StaticGet from const field $target should be evaluated by front-end: $node';
     }
-    if (!constantEvaluator.transformerShouldEvaluateExpression(node)) {
-      return node;
+
+    if (!constantEvaluator.shouldEvaluateMember(target)) {
+      return super.visitStaticGet(node, removalSentinel);
     }
-    final result = constantEvaluator.evaluate(_staticTypeContext!, node);
-    return _makeConstantExpression(result, node);
+
+    _checkPlatformConstMember(target);
+    final constant = constantEvaluator.evaluate(_staticTypeContext!, node);
+    if (constant is UnevaluatedConstant) {
+      _throwPlatformConstError(target, 'cannot evaluate to a constant');
+    }
+    final type = node.getStaticType(_staticTypeContext!);
+    return ConstantExpression(constant, type)..fileOffset = node.fileOffset;
   }
 
   @override
@@ -339,4 +384,17 @@ class ContinueSwitchStatementTargetCollector extends RecursiveVisitor {
       collected.add(node.target);
     }
   }
+}
+
+class PlatformConstError extends Error {
+  final Object? message;
+  final Member member;
+  final Uri? uri;
+  final int offset;
+
+  PlatformConstError(this.message, this.member, this.uri, this.offset);
+
+  @override
+  String toString() => '${uri ?? ''}:$offset '
+      'Error for annotated member ${member.name}: $message';
 }

@@ -663,7 +663,6 @@ CompileTimeErrorCode:
       assigned to a `String`:
 
       ```dart
-      %language=2.9
       String f(String x) => x;
       String g(num y) => f([!y!]);
       ```
@@ -674,7 +673,6 @@ CompileTimeErrorCode:
       example above you might be able to change the type of the parameter `y`:
 
       ```dart
-      %language=2.9
       String f(String x) => x;
       String g(String y) => f(y);
       ```
@@ -684,7 +682,6 @@ CompileTimeErrorCode:
       types to the required type:
 
       ```dart
-      %language=2.9
       String f(String x) => x;
       String g(num y) => f(y.toString());
       ```
@@ -692,9 +689,8 @@ CompileTimeErrorCode:
       Another approach is to add explicit type tests and fallback code:
 
       ```dart
-      %language=2.9
       String f(String x) => x;
-      String g(num y) => f(y is String ? y : '');
+      String g(Object y) => f(y is String ? y : '');
       ```
 
       If you believe that the runtime type of the argument will always be the
@@ -1113,6 +1109,9 @@ CompileTimeErrorCode:
         }
       }
       ```
+  AUGMENTATION_WITHOUT_DECLARATION:
+    problemMessage: The declaration being augmented doesn't exist.
+    correctionMessage: Try changing the augmentation to match an existing declaration.
   AUGMENTATION_WITHOUT_IMPORT:
     problemMessage: The library does not import this augmentation.
     correctionMessage: Try updating the augmented library to import this augmentation.
@@ -1510,6 +1509,7 @@ CompileTimeErrorCode:
       Parameters:
       0: the built-in identifier that is being used
   CASE_BLOCK_NOT_TERMINATED:
+    removedIn: "3.0"
     problemMessage: "The last statement of the 'case' should be 'break', 'continue', 'rethrow', 'return', or 'throw'."
     correctionMessage: Try adding one of the required statements.
     hasPublishedDocs: true
@@ -1987,6 +1987,10 @@ CompileTimeErrorCode:
         }
       }
       ```
+  RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
+    problemMessage: "A record literal with exactly one positional field requires a trailing comma."
+    correctionMessage: Try adding a trailing comma.
+    hasPublishedDocs: true
   SET_ELEMENT_FROM_DEFERRED_LIBRARY:
     sharedName: COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY
     problemMessage: "Constant values from a deferred library can't be used as values in a 'const' set literal."
@@ -2295,6 +2299,14 @@ CompileTimeErrorCode:
     comment: |-
       Parameters:
       0: the name of the type variable
+  CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE:
+    sharedName: CONFLICTING_TYPE_VARIABLE_AND_CONTAINER
+    problemMessage: "'{0}' can't be used to name both a type variable and the extension type in which the type variable is defined."
+    correctionMessage: Try renaming either the type variable or the extension.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the type variable
   CONFLICTING_TYPE_VARIABLE_AND_MIXIN:
     sharedName: CONFLICTING_TYPE_VARIABLE_AND_CONTAINER
     problemMessage: "'{0}' can't be used to name both a type variable and the mixin in which the type variable is defined."
@@ -2357,6 +2369,14 @@ CompileTimeErrorCode:
   CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION:
     sharedName: CONFLICTING_TYPE_VARIABLE_AND_MEMBER
     problemMessage: "'{0}' can't be used to name both a type variable and a member in this extension."
+    correctionMessage: Try renaming either the type variable or the member.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the type variable
+  CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE:
+    sharedName: CONFLICTING_TYPE_VARIABLE_AND_MEMBER
+    problemMessage: "'{0}' can't be used to name both a type variable and a member in this extension type."
     correctionMessage: Try renaming either the type variable or the member.
     hasPublishedDocs: true
     comment: |-
@@ -2689,6 +2709,8 @@ CompileTimeErrorCode:
     problemMessage: "The assertion in this constant expression failed."
   CONST_EVAL_EXTENSION_METHOD:
     problemMessage: "Extension methods can't be used in constant expressions."
+  CONST_EVAL_EXTENSION_TYPE_METHOD:
+    problemMessage: "Extension type methods can't be used in constant expressions."
   CONST_EVAL_FOR_ELEMENT:
     problemMessage: "Constant expressions don't support 'for' elements."
     correctionMessage: "Try replacing the 'for' element with a spread, or removing 'const'."
@@ -3060,8 +3082,7 @@ CompileTimeErrorCode:
       `null`, which is neither a list nor a set:
 
       ```dart
-      %language=2.9
-      const List<int> list1 = null;
+      const dynamic list1 = 42;
       const List<int> list2 = [...[!list1!]];
       ```
 
@@ -3071,8 +3092,7 @@ CompileTimeErrorCode:
       or a constant set:
 
       ```dart
-      %language=2.9
-      const List<int> list1 = [];
+      const dynamic list1 = [42];
       const List<int> list2 = [...list1];
       ```
   CONST_SPREAD_EXPECTED_MAP:
@@ -3091,8 +3111,7 @@ CompileTimeErrorCode:
       `null`, which isn't a map:
 
       ```dart
-      %language=2.9
-      const Map<String, int> map1 = null;
+      const dynamic map1 = 42;
       const Map<String, int> map2 = {...[!map1!]};
       ```
 
@@ -3101,8 +3120,7 @@ CompileTimeErrorCode:
       Change the expression to something that evaluates to a constant map:
 
       ```dart
-      %language=2.9
-      const Map<String, int> map1 = {};
+      const dynamic map1 = {'answer': 42};
       const Map<String, int> map2 = {...map1};
       ```
   CONST_TYPE_PARAMETER:
@@ -3920,13 +3938,12 @@ CompileTimeErrorCode:
       with the name `a`:
 
       ```dart
-      %language=2.9
       void f(C c) {
         c.m(a: 0, [!a!]: 1);
       }
 
       class C {
-        void m({int a, int b}) {}
+        void m({int? a, int? b}) {}
       }
       ```
 
@@ -3935,26 +3952,24 @@ CompileTimeErrorCode:
       If one of the arguments should have a different name, then change the name:
 
       ```dart
-      %language=2.9
       void f(C c) {
         c.m(a: 0, b: 1);
       }
 
       class C {
-        void m({int a, int b}) {}
+        void m({int? a, int? b}) {}
       }
       ```
 
       If one of the arguments is wrong, then remove it:
 
       ```dart
-      %language=2.9
       void f(C c) {
         c.m(a: 1);
       }
 
       class C {
-        void m({int a, int b}) {}
+        void m({int? a, int? b}) {}
       }
       ```
   DUPLICATE_PART:
@@ -4728,6 +4743,7 @@ CompileTimeErrorCode:
 
       Remove the export directive.
   EXPORT_LEGACY_SYMBOL:
+    removedIn: "3.0"
     problemMessage: "The symbol '{0}' is defined in a legacy library, and can't be re-exported from a library with null safety enabled."
     correctionMessage: Try removing the export or migrating the legacy library.
     hasPublishedDocs: true
@@ -5792,8 +5808,7 @@ CompileTimeErrorCode:
       third argument:
 
       ```dart
-      %language=2.9
-      void f(int a, int b, {int c}) {}
+      void f(int a, int b, {int? c}) {}
       void g() {
         f(1, 2, [!3!]);
       }
@@ -5805,8 +5820,7 @@ CompileTimeErrorCode:
       the names before the arguments:
 
       ```dart
-      %language=2.9
-      void f(int a, int b, {int c}) {}
+      void f(int a, int b, {int? c}) {}
       void g() {
         f(1, 2, c: 3);
       }
@@ -5816,8 +5830,7 @@ CompileTimeErrorCode:
       parameters:
 
       ```dart
-      %language=2.9
-      void f(int a, int b, {int c}) {}
+      void f(int a, int b, {int? c}) {}
       void g() {
         f(1, 2);
       }
@@ -7325,13 +7338,12 @@ CompileTimeErrorCode:
       the signature of `m` that's inherited from `B`:
 
       ```dart
-      %language=2.9
       class A {
-        void m({int a}) {}
+        void m({int? a}) {}
       }
 
       class B {
-        void m({int b}) {}
+        void m({int? b}) {}
       }
 
       class [!C!] extends A implements B {
@@ -7344,17 +7356,16 @@ CompileTimeErrorCode:
       signatures:
 
       ```dart
-      %language=2.9
       class A {
-        void m({int a}) {}
+        void m({int? a}) {}
       }
 
       class B {
-        void m({int b}) {}
+        void m({int? b}) {}
       }
 
       class C extends A implements B {
-        void m({int a, int b}) {}
+        void m({int? a, int? b}) {}
       }
       ```
   INCONSISTENT_INHERITANCE_GETTER_AND_METHOD:
@@ -7517,9 +7528,8 @@ CompileTimeErrorCode:
       initializing `x`, but `x` isn't a field in the class:
 
       ```dart
-      %language=2.9
       class C {
-        int y;
+        int? y;
 
         C() : [!x = 0!];
       }
@@ -7531,9 +7541,8 @@ CompileTimeErrorCode:
       name of the field:
 
       ```dart
-      %language=2.9
       class C {
-        int y;
+        int? y;
 
         C() : y = 0;
       }
@@ -7542,10 +7551,9 @@ CompileTimeErrorCode:
       If the field must be declared, then add a declaration:
 
       ```dart
-      %language=2.9
       class C {
-        int x;
-        int y;
+        int? x;
+        int? y;
 
         C() : x = 0;
       }
@@ -7632,9 +7640,8 @@ CompileTimeErrorCode:
       defined:
 
       ```dart
-      %language=2.9
       class C {
-        int y;
+        int? y;
 
         C([!this.x!]);
       }
@@ -7646,9 +7653,8 @@ CompileTimeErrorCode:
       field:
 
       ```dart
-      %language=2.9
       class C {
-        int y;
+        int? y;
 
         C(this.y);
       }
@@ -7658,10 +7664,9 @@ CompileTimeErrorCode:
       field:
 
       ```dart
-      %language=2.9
       class C {
-        int x;
-        int y;
+        int? x;
+        int? y;
 
         C(this.x);
       }
@@ -7671,7 +7676,6 @@ CompileTimeErrorCode:
       it to a normal parameter and use it:
 
       ```dart
-      %language=2.9
       class C {
         int y;
 
@@ -7682,9 +7686,8 @@ CompileTimeErrorCode:
       If the parameter isn't needed, then remove it:
 
       ```dart
-      %language=2.9
       class C {
-        int y;
+        int? y;
 
         C();
       }
@@ -7802,9 +7805,8 @@ CompileTimeErrorCode:
       is being referenced in a static method:
 
       ```dart
-      %language=2.9
       class C {
-        int x;
+        int x = 0;
 
         static int m() {
           return [!x!];
@@ -7818,9 +7820,8 @@ CompileTimeErrorCode:
       so remove the keyword:
 
       ```dart
-      %language=2.9
       class C {
-        int x;
+        int x = 0;
 
         int m() {
           return x;
@@ -7832,9 +7833,8 @@ CompileTimeErrorCode:
       that an instance of the class can be passed in:
 
       ```dart
-      %language=2.9
       class C {
-        int x;
+        int x = 0;
 
         static int m(C c) {
           return c.x;
@@ -8662,6 +8662,11 @@ CompileTimeErrorCode:
       ```dart
       typedef F = int Function(int Function(String));
       ```
+  INVALID_MACRO_APPLICATION_TARGET:
+    problemMessage: "The macro can be applied only to a {0}."
+    comment: |-
+      Parameters:
+      0: the list of target kind names
   INVALID_MODIFIER_ON_CONSTRUCTOR:
     problemMessage: "The modifier '{0}' can't be applied to the body of a constructor."
     correctionMessage: Try removing the modifier.
@@ -8765,12 +8770,12 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when a member of a class is found
       that overrides a member from a supertype and the override isn't valid. An
       override is valid if all of these are true:
-      * It allows all of the arguments allowed by the overridden member.
-      * It doesn't require any arguments that aren't required by the overridden
+      - It allows all of the arguments allowed by the overridden member.
+      - It doesn't require any arguments that aren't required by the overridden
         member.
-      * The type of every parameter of the overridden member is assignable to the
+      - The type of every parameter of the overridden member is assignable to the
         corresponding parameter of the override.
-      * The return type of the override is assignable to the return type of the
+      - The return type of the override is assignable to the return type of the
         overridden member.
 
       #### Example
@@ -9521,11 +9526,39 @@ CompileTimeErrorCode:
       ```dart
       List<num> x = [1, 2.5, 3];
       ```
+  MACRO_APPLICATION_ARGUMENT_ERROR:
+    problemMessage: "{0}"
+    comment: |-
+      Reported when there is an issue converting a macro application argument
+      into a value. So, we cannot instantiate the macro, and run it.
+      Parameters:
+      0: the message
   MACRO_ERROR:
     problemMessage: "{0}"
     comment: |-
+      Reported when the macro uses `Builder.report()` with `Severity.error`.
       Parameters:
       0: the message
+  MACRO_INTERNAL_EXCEPTION:
+    problemMessage: "{0} {1}"
+    comment: |-
+      Reported when there is an exception inside the analyzer when running
+      macros. Should not happen, but just in case.
+      Parameters:
+      0: the message
+      1: the stack trace
+  MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE:
+    problemMessage: "The declaration '{0}' can't be introspected because there is a cycle of macro applications."
+    correctionMessage: Try removing one or more macro applications to break the cycle.
+    comment: |-
+      Parameters:
+      0: the name of the introspected declaration
+  MACRO_DEFINITION_APPLICATION_SAME_LIBRARY_CYCLE:
+    problemMessage: "The macro '{0}' can't be applied in the same library cycle where it is defined."
+    correctionMessage: Try moving it to a different library that does not import the one where it is applied.
+    comment: |-
+      Parameters:
+      0: the name of the macro class
   MAIN_FIRST_POSITIONAL_PARAMETER_TYPE:
     problemMessage: "The type of the first positional parameter of the 'main' function must be a supertype of 'List<String>'."
     correctionMessage: Try changing the type of the parameter.
@@ -11219,7 +11252,6 @@ CompileTimeErrorCode:
       The following code produces this diagnostic:
 
       ```dart
-      %language=2.9
       var defaultValue = 3;
 
       void f([int value = [!defaultValue!]]) {}
@@ -11230,7 +11262,6 @@ CompileTimeErrorCode:
       If the default value can be converted to be a constant, then convert it:
 
       ```dart
-      %language=2.9
       const defaultValue = 3;
 
       void f([int value = defaultValue]) {}
@@ -11240,10 +11271,9 @@ CompileTimeErrorCode:
       value inside the function:
 
       ```dart
-      %language=2.9
       var defaultValue = 3;
 
-      void f([int value]) {
+      void f([int? value]) {
         value ??= defaultValue;
       }
       ```
@@ -12006,7 +12036,6 @@ CompileTimeErrorCode:
       a type:
 
       ```dart
-      %language=2.9
       void f() {
         try {
           // ...
@@ -12021,7 +12050,6 @@ CompileTimeErrorCode:
       Change the name to the type of object that should be caught:
 
       ```dart
-      %language=2.9
       void f() {
         try {
           // ...
@@ -12755,15 +12783,16 @@ CompileTimeErrorCode:
       class B extends A {}
       ```
   NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE:
-    problemMessage: "A class or mixin can't implement a nullable type."
+    problemMessage: "A class, mixin, or extension type can't implement a nullable type."
     correctionMessage: Try removing the question mark.
     hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when a class or mixin declaration has
-      an `implements` clause, and an interface is followed by a `?`.
+      The analyzer produces this diagnostic when a class, mixin, or
+      extension type declaration has an `implements` clause, and an
+      interface is followed by a `?`.
 
       It isn't valid to specify a nullable interface because doing so would have
       no meaning; it wouldn't change the interface being inherited by the class
@@ -15155,11 +15184,10 @@ CompileTimeErrorCode:
       field:
 
       ```dart
-      %language=2.9
       class C {
-        static int a;
+        static int a = 0;
 
-        int b;
+        int b = 0;
       }
 
       int f() => C.[!b!];
@@ -15171,11 +15199,10 @@ CompileTimeErrorCode:
       to an existing static field:
 
       ```dart
-      %language=2.9
       class C {
-        static int a;
+        static int a = 0;
 
-        int b;
+        int b = 0;
       }
 
       int f() => C.a;
@@ -15185,11 +15212,10 @@ CompileTimeErrorCode:
       class to access the field:
 
       ```dart
-      %language=2.9
       class C {
-        static int a;
+        static int a = 0;
 
-        int b;
+        int b = 0;
       }
 
       int f(C c) => c.b;
@@ -15896,6 +15922,7 @@ CompileTimeErrorCode:
       - a `continue`, or
       - an invocation of a function or method whose return type is `Never`.
   SWITCH_EXPRESSION_NOT_ASSIGNABLE:
+    removedIn: "3.0"
     problemMessage: "Type '{0}' of the switch expression isn't assignable to the type '{1}' of case expressions."
     hasPublishedDocs: true
     comment: |-
@@ -17328,9 +17355,8 @@ CompileTimeErrorCode:
       named parameter named `a`:
 
       ```dart
-      %language=2.9
       class C {
-        m({int b}) {}
+        m({int? b}) {}
       }
 
       void f(C c) {
@@ -17344,9 +17370,8 @@ CompileTimeErrorCode:
       The example above can be fixed by changing `a` to `b`:
 
       ```dart
-      %language=2.9
       class C {
-        m({int b}) {}
+        m({int? b}) {}
       }
 
       void f(C c) {
@@ -17358,13 +17383,12 @@ CompileTimeErrorCode:
       receiver to the subclass:
 
       ```dart
-      %language=2.9
       class C {
-        m({int b}) {}
+        m({int? b}) {}
       }
 
       class D extends C {
-        m({int a, int b}) {}
+        m({int? a, int? b}) {}
       }
 
       void f(C c) {
@@ -17375,9 +17399,8 @@ CompileTimeErrorCode:
       If the parameter should be added to the function, then add it:
 
       ```dart
-      %language=2.9
       class C {
-        m({int a, int b}) {}
+        m({int? a, int? b}) {}
       }
 
       void f(C c) {
@@ -17905,8 +17928,7 @@ CompileTimeErrorCode:
       `int`, which can't be assigned to `y` because an `int` isn't a `String`:
 
       ```dart
-      %language=2.9
-      const Object x = 0;
+      const dynamic x = 0;
       const String y = [!x!];
       ```
 
@@ -17916,8 +17938,7 @@ CompileTimeErrorCode:
       assigned to be of the correct type:
 
       ```dart
-      %language=2.9
-      const Object x = 0;
+      const dynamic x = 0;
       const String y = '$x';
       ```
 
@@ -17925,8 +17946,7 @@ CompileTimeErrorCode:
       correct type:
 
       ```dart
-      %language=2.9
-      const Object x = 0;
+      const int x = 0;
       const int y = x;
       ```
   WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE:
@@ -18013,7 +18033,6 @@ CompileTimeErrorCode:
       two required parameters:
 
       ```dart
-      %language=2.9
       class C {
         set [!s!](int x, int y) {}
       }
@@ -18023,9 +18042,8 @@ CompileTimeErrorCode:
       one optional parameter:
 
       ```dart
-      %language=2.9
       class C {
-        set [!s!]([int x]) {}
+        set [!s!]([int? x]) {}
       }
       ```
 
@@ -18035,7 +18053,6 @@ CompileTimeErrorCode:
       parameter:
 
       ```dart
-      %language=2.9
       class C {
         set s(int x) {}
       }
@@ -19192,6 +19209,7 @@ FfiCode:
     correctionMessage: "Try removing the extra annotation."
     comment: No parameters
   FIELD_INITIALIZER_IN_STRUCT:
+    removedIn: "3.0"
     problemMessage: "Constructors in subclasses of 'Struct' and 'Union' can't have field initializers."
     correctionMessage: Try removing the field initializer and marking the field as external.
     comment: No parameters.
@@ -19237,6 +19255,7 @@ FfiCode:
       }
       ```
   FIELD_IN_STRUCT_WITH_INITIALIZER:
+    removedIn: "3.0"
     problemMessage: "Fields in subclasses of 'Struct' and 'Union' can't have initializers."
     correctionMessage: Try removing the initializer and marking the field as external.
     comment: No parameters.
@@ -20542,7 +20561,7 @@ HintCode:
       `x` and `y` is converted to an integer using `toInt`:
 
       ```dart
-      int divide(num x, num y) => [!(x / y).toInt()!];
+      int divide(int x, int y) => [!(x / y).toInt()!];
       ```
 
       #### Common fixes
@@ -20550,7 +20569,7 @@ HintCode:
       Use the integer division operator (`~/`):
 
       ```dart
-      int divide(num x, num y) => x ~/ y;
+      int divide(int x, int y) => x ~/ y;
       ```
   IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION:
     problemMessage: "The imported library defines a top-level function named 'loadLibrary' that is hidden by deferring this library."
@@ -20626,6 +20645,7 @@ HintCode:
       }
       ```
   IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE:
+    removedIn: "3.0"
     problemMessage: "The library '{0}' is legacy, and shouldn't be imported into a null safe library."
     correctionMessage: Try migrating the imported library.
     comment: |-
@@ -20671,6 +20691,7 @@ HintCode:
   MACRO_INFO:
     problemMessage: "{0}"
     comment: |-
+      Reported when the macro uses `Builder.report()` with `Severity.info`.
       Parameters:
       0: the message
   UNNECESSARY_CAST:
@@ -20844,9 +20865,8 @@ HintCode:
       invocation of `_m`, the following code produces this diagnostic:
 
       ```dart
-      %language=2.9
       class C {
-        void _m(int x, [int [!y!]]) {}
+        void _m(int x, [int? [!y!]]) {}
 
         void n() => _m(0);
       }
@@ -24487,6 +24507,7 @@ WarningCode:
   MACRO_WARNING:
     problemMessage: "{0}"
     comment: |-
+      Reported when the macro uses `Builder.report()` with `Severity.warning`.
       Parameters:
       0: the message
   MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE:
@@ -24590,10 +24611,9 @@ WarningCode:
       is required:
 
       ```dart
-      %language=2.9
       import 'package:meta/meta.dart';
 
-      void f({@required int x}) {}
+      void f({@required int? x}) {}
 
       void g() {
         [!f!]();
@@ -24605,10 +24625,9 @@ WarningCode:
       Provide the required value:
 
       ```dart
-      %language=2.9
       import 'package:meta/meta.dart';
 
-      void f({@required int x}) {}
+      void f({@required int? x}) {}
 
       void g() {
         f(x: 2);
@@ -24626,6 +24645,7 @@ WarningCode:
       0: the name of the parameter
       1: message details
   MISSING_RETURN:
+    removedIn: "3.0"
     problemMessage: "This function has a return type of '{0}', but doesn't end with a return statement."
     correctionMessage: "Try adding a return statement, or changing the return type to 'void'."
     hasPublishedDocs: true
@@ -25087,10 +25107,6 @@ WarningCode:
       the call are unreachable.
 
       Parameters: none
-  RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
-    problemMessage: "A record literal with exactly one positional field requires a trailing comma."
-    correctionMessage: Try adding a trailing comma.
-    hasPublishedDocs: true
   REDECLARE_ON_NON_REDECLARING_MEMBER:
     problemMessage: "The {0} doesn't redeclare a {0} declared in a superinterface."
     correctionMessage: Try updating this member to match a declaration in a superinterface, or removing the redeclare annotation.
@@ -25671,6 +25687,7 @@ WarningCode:
       var y = x is int ? 0 : 1;
       ```
   SDK_VERSION_NEVER:
+    removedIn: "3.0"
     problemMessage: "The type 'Never' wasn't supported until version 2.12.0, but this code is required to be able to run on earlier versions."
     correctionMessage: Try updating the SDK constraints.
     hasPublishedDocs: true

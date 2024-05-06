@@ -96,7 +96,7 @@ class Timer {
   static Timer _createTimer(Duration duration, void callback()) {
     int milliseconds = duration.inMilliseconds;
     if (milliseconds < 0) milliseconds = 0;
-    return new _TimerImpl(milliseconds, callback);
+    return _TimerImpl(milliseconds, callback);
   }
 
   @patch
@@ -104,7 +104,7 @@ class Timer {
       Duration duration, void callback(Timer timer)) {
     int milliseconds = duration.inMilliseconds;
     if (milliseconds < 0) milliseconds = 0;
-    return new _TimerImpl.periodic(milliseconds, callback);
+    return _TimerImpl.periodic(milliseconds, callback);
   }
 }
 
@@ -124,7 +124,7 @@ class _TimerImpl implements Timer {
       _handle = JS('int', 'self.setTimeout(#, #)',
           convertDartClosureToJS(internalCallback, 0), milliseconds);
     } else {
-      throw new UnsupportedError('`setTimeout()` not found.');
+      throw UnsupportedError('`setTimeout()` not found.');
     }
   }
 
@@ -149,7 +149,7 @@ class _TimerImpl implements Timer {
           }, 0),
           milliseconds);
     } else {
-      throw new UnsupportedError('Periodic timer.');
+      throw UnsupportedError('Periodic timer.');
     }
   }
 
@@ -170,7 +170,7 @@ class _TimerImpl implements Timer {
       }
       _handle = null;
     } else {
-      throw new UnsupportedError('Canceling a timer.');
+      throw UnsupportedError('Canceling a timer.');
     }
   }
 }
@@ -181,7 +181,7 @@ bool _hasTimer() {
 }
 
 class _AsyncAwaitCompleter<T> implements Completer<T> {
-  final _future = new _Future<T>();
+  final _future = _Future<T>();
   bool isSync;
 
   _AsyncAwaitCompleter() : isSync = false;
@@ -217,7 +217,7 @@ class _AsyncAwaitCompleter<T> implements Completer<T> {
 /// Used as part of the runtime support for the async/await transformation.
 @pragma('dart2js:assumeDynamic') // Global type inference can't see call site.
 Completer<T> _makeAsyncAwaitCompleter<T>() {
-  return new _AsyncAwaitCompleter<T>();
+  return _AsyncAwaitCompleter<T>();
 }
 
 /// Initiates the computation of an `async` function and starts the body
@@ -280,7 +280,7 @@ void _awaitOnObject(object, _WrappedAsyncBody bodyFunction) {
 
   Function errorCallback = (dynamic error, StackTrace stackTrace) {
     ExceptionAndStackTrace wrappedException =
-        new ExceptionAndStackTrace(error, stackTrace);
+        ExceptionAndStackTrace(error, stackTrace);
     bodyFunction(async_status_codes.ERROR, wrappedException);
   };
 
@@ -291,14 +291,14 @@ void _awaitOnObject(object, _WrappedAsyncBody bodyFunction) {
   } else if (object is Future) {
     object.then(thenCallback, onError: errorCallback);
   } else {
-    _Future future = new _Future().._setValue(object);
+    _Future future = _Future().._setValue(object);
     // We can skip the zone registration, since the bodyFunction is already
     // registered (see [_wrapJsFunctionForAsync]).
     future._thenAwait(thenCallback, errorCallback);
   }
 }
 
-typedef void _WrappedAsyncBody(int errorCode, dynamic result);
+typedef _WrappedAsyncBody = void Function(int errorCode, dynamic result);
 
 _WrappedAsyncBody _wrapJsFunctionForAsync(dynamic /* js function */ function) {
   var protected = JS(
@@ -407,19 +407,21 @@ void _asyncStarHelper(
           controller.isSuspended = true;
           return;
         }
-        bodyFunction(async_status_codes.SUCCESS, null);
+        bodyFunction(
+            controller.isCanceled
+                ? async_status_codes.STREAM_WAS_CANCELED
+                : async_status_codes.SUCCESS,
+            null);
       });
       return;
     } else if (object.state == _IterationMarker.YIELD_STAR) {
       Stream stream = object.value;
       // Errors of [stream] are passed though to the main stream. (see
       // [AsyncStreamController.addStream]).
-      // TODO(sigurdm): The spec is not very clear here. Clarify with Gilad.
       controller.addStream(stream).then((_) {
-        // No check for isPaused here because the spec 17.16.2 only
-        // demands checks *before* each element in [stream] not after the last
-        // one. On the other hand we check for isCanceled, as that check happens
-        // after insertion of each element.
+        // No need to check for pause because to get here the stream either
+        // completed normally or was cancelled. The stream cannot be paused
+        // after either of these states.
         int errorCode = controller.isCanceled
             ? async_status_codes.STREAM_WAS_CANCELED
             : async_status_codes.SUCCESS;
@@ -482,7 +484,7 @@ class _AsyncStarStreamController<T> {
       });
     }
 
-    controller = new StreamController<T>(onListen: () {
+    controller = StreamController<T>(onListen: () {
       _resumeBody();
     }, onResume: () {
       // Only schedule again if the async* function actually is suspended.
@@ -495,7 +497,7 @@ class _AsyncStarStreamController<T> {
     }, onCancel: () {
       // If the async* is finished we ignore cancel events.
       if (!controller.isClosed) {
-        cancelationFuture = new _Future();
+        cancelationFuture = _Future();
         if (isSuspended) {
           // Resume the suspended async* function to run finalizers.
           isSuspended = false;
@@ -514,7 +516,7 @@ class _AsyncStarStreamController<T> {
 /// Used as part of the runtime support for the async/await transformation.
 @pragma('dart2js:assumeDynamic') // Global type inference can't see call site.
 _makeAsyncStarStreamController<T>(_WrappedAsyncBody body) {
-  return new _AsyncStarStreamController<T>(body);
+  return _AsyncStarStreamController<T>(body);
 }
 
 class _IterationMarker {
@@ -529,7 +531,7 @@ class _IterationMarker {
   const _IterationMarker._(this.state, this.value);
 
   static yieldStar(dynamic /* Iterable or Stream */ values) {
-    return new _IterationMarker._(YIELD_STAR, values);
+    return _IterationMarker._(YIELD_STAR, values);
   }
 
   static endOfIteration() {
@@ -537,11 +539,11 @@ class _IterationMarker {
   }
 
   static yieldSingle(dynamic value) {
-    return new _IterationMarker._(YIELD_SINGLE, value);
+    return _IterationMarker._(YIELD_SINGLE, value);
   }
 
   static uncaughtError(dynamic error) {
-    return new _IterationMarker._(UNCAUGHT_ERROR, error);
+    return _IterationMarker._(UNCAUGHT_ERROR, error);
   }
 
   toString() => "IterationMarker($state, $value)";
@@ -711,7 +713,7 @@ class _SyncStarIterator<T> implements Iterator<T> {
 /// Used as part of the runtime support for the async/await transformation.
 @pragma('dart2js:assumeDynamic') // Global type inference can't see call site.
 _SyncStarIterable<T> _makeSyncStarIterable<T>(body) {
-  return new _SyncStarIterable<T>(body);
+  return _SyncStarIterable<T>(body);
 }
 
 /// An Iterable corresponding to a sync* method.
@@ -728,7 +730,7 @@ class _SyncStarIterable<T> extends Iterable<T> {
 
   @pragma('dart2js:prefer-inline')
   _SyncStarIterator<T> get iterator =>
-      new _SyncStarIterator<T>(JS('', '#()', _outerHelper));
+      _SyncStarIterator<T>(JS('', '#()', _outerHelper));
 }
 
 /// Wraps an `await`ed expression in [Future.value] if needed.

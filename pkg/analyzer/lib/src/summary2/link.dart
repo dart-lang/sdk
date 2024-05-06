@@ -4,8 +4,6 @@
 
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
-    as macro;
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/dart/element/element.dart';
@@ -29,6 +27,7 @@ import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/summary2/variance_builder.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
+import 'package:macros/src/executor/multi_executor.dart' as macro;
 
 Future<LinkResult> link({
   required LinkedElementFactory elementFactory,
@@ -224,6 +223,7 @@ class Linker {
     );
 
     _buildClassSyntheticConstructors();
+    _replaceConstFieldsIfNoConstConstructor();
     _resolveConstructorFieldFormals();
     _buildEnumChildren();
     _computeFieldPromotability();
@@ -323,7 +323,7 @@ class Linker {
   }
 
   Future<void> _executeMacroDeclarationsPhase({
-    required Element? targetElement,
+    required ElementImpl? targetElement,
   }) async {
     while (true) {
       var hasProgress = false;
@@ -369,6 +369,12 @@ class Linker {
 
   void _performTopLevelInference() {
     TopLevelInference(this).infer();
+  }
+
+  void _replaceConstFieldsIfNoConstConstructor() {
+    for (final library in builders.values) {
+      library.replaceConstFieldsIfNoConstConstructor();
+    }
   }
 
   void _resolveConstantInitializers() {

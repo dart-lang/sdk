@@ -135,7 +135,6 @@ namespace dart {
   V(String_getHashCode, 1)                                                     \
   V(String_getLength, 1)                                                       \
   V(String_charAt, 2)                                                          \
-  V(String_codeUnitAt, 2)                                                      \
   V(String_concat, 2)                                                          \
   V(String_fromEnvironment, 3)                                                 \
   V(String_toLowerCase, 1)                                                     \
@@ -160,22 +159,6 @@ namespace dart {
   V(Timeline_reportTaskEvent, 5)                                               \
   V(TypedDataBase_length, 1)                                                   \
   V(TypedDataBase_setClampedRange, 5)                                          \
-  V(TypedData_GetInt8, 2)                                                      \
-  V(TypedData_SetInt8, 3)                                                      \
-  V(TypedData_GetUint8, 2)                                                     \
-  V(TypedData_SetUint8, 3)                                                     \
-  V(TypedData_GetInt16, 2)                                                     \
-  V(TypedData_SetInt16, 3)                                                     \
-  V(TypedData_GetUint16, 2)                                                    \
-  V(TypedData_SetUint16, 3)                                                    \
-  V(TypedData_GetInt32, 2)                                                     \
-  V(TypedData_SetInt32, 3)                                                     \
-  V(TypedData_GetUint32, 2)                                                    \
-  V(TypedData_SetUint32, 3)                                                    \
-  V(TypedData_GetInt64, 2)                                                     \
-  V(TypedData_SetInt64, 3)                                                     \
-  V(TypedData_GetUint64, 2)                                                    \
-  V(TypedData_SetUint64, 3)                                                    \
   V(TypedData_GetFloat32, 2)                                                   \
   V(TypedData_SetFloat32, 3)                                                   \
   V(TypedData_GetFloat64, 2)                                                   \

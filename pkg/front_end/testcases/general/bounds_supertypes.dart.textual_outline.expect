@@ -167,20 +167,35 @@ enum EnumWithS7 with G<Object> { a }
 enum EnumWithS8 with G<int> { a }
 
 mixin MixinOnT1 on F {}
+
 mixin MixinOnT2 on F<dynamic> {}
+
 mixin MixinOnT3 on F<Class> {}
+
 mixin MixinOnT4 on F<Class<dynamic>> {}
+
 mixin MixinOnT5 on F<ConcreteClass> {}
+
 mixin MixinOnT6 on F<Class<ConcreteClass>> {}
+
 mixin MixinOnT7 on F<Object> {}
+
 mixin MixinOnT8 on F<int> {}
+
 mixin MixinOnS1 on G {}
+
 mixin MixinOnS2 on G<dynamic> {}
+
 mixin MixinOnS3 on G<Class> {}
+
 mixin MixinOnS4 on G<Class<dynamic>> {}
+
 mixin MixinOnS5 on G<ConcreteClass> {}
+
 mixin MixinOnS6 on G<Class<ConcreteClass>> {}
+
 mixin MixinOnS7 on G<Object> {}
+
 mixin MixinOnS8 on G<int> {}
 
 extension ExtensionOnT1 on F {}

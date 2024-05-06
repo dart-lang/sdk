@@ -20,12 +20,21 @@ extension type E<T>(T value) {
   factory E.factory(T value) => E<T>(value);
   factory E.factoryRedirect(T value) = E<T>;
 }
+
 typedef ACI = C<int>;
+
 typedef ACN<T extends num> = C<T>;
+
 typedef ACR<T> = C<T>;
+
 typedef AEI = E<int>;
+
 typedef AEN<T extends num> = E<T>;
+
 typedef AER<T> = E<T>;
+
 void checkClass() {}
+
 void checkExtensionType() {}
+
 void main() {}

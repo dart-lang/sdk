@@ -356,44 +356,6 @@ typedef enum {
 /**
  * Add a timeline event to the embedder stream.
  *
- * DEPRECATED: this function will be removed in Dart SDK v3.2.
- *
- * \param label The name of the event. Its lifetime must extend at least until
- *     Dart_Cleanup.
- * \param timestamp0 The first timestamp of the event.
- * \param timestamp1_or_id When reporting an event of type
- *     |Dart_Timeline_Event_Duration|, the second (end) timestamp of the event
- *     should be passed through |timestamp1_or_id|. When reporting an event of
- *     type |Dart_Timeline_Event_Async_Begin|, |Dart_Timeline_Event_Async_End|,
- *     or |Dart_Timeline_Event_Async_Instant|, the async ID associated with the
- *     event should be passed through |timestamp1_or_id|. When reporting an
- *     event of type |Dart_Timeline_Event_Flow_Begin|,
- *     |Dart_Timeline_Event_Flow_Step|, or |Dart_Timeline_Event_Flow_End|, the
- *     flow ID associated with the event should be passed through
- *     |timestamp1_or_id|. When reporting an event of type
- *     |Dart_Timeline_Event_Begin| or |Dart_Timeline_Event_End|, the event ID
- *     associated with the event should be passed through |timestamp1_or_id|.
- *     Note that this event ID will only be used by the MacOS recorder. The
- *     argument to |timestamp1_or_id| will not be used when reporting events of
- *     other types.
- * \param argument_count The number of argument names and values.
- * \param argument_names An array of names of the arguments. The lifetime of the
- *     names must extend at least until Dart_Cleanup. The array may be reclaimed
- *     when this call returns.
- * \param argument_values An array of values of the arguments. The values and
- *     the array may be reclaimed when this call returns.
- */
-DART_EXPORT void Dart_TimelineEvent(const char* label,
-                                    int64_t timestamp0,
-                                    int64_t timestamp1_or_id,
-                                    Dart_Timeline_Event_Type type,
-                                    intptr_t argument_count,
-                                    const char** argument_names,
-                                    const char** argument_values);
-
-/**
- * Add a timeline event to the embedder stream.
- *
  * Note regarding flow events: events must be associated with flow IDs in two
  * different ways to allow flow events to be serialized correctly in both
  * Chrome's JSON trace event format and Perfetto's proto trace format. Events
@@ -404,6 +366,13 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
  * |Dart_Timeline_Event_Duration|, |Dart_Timeline_Event_Instant|,
  * |Dart_Timeline_Event_Async_Begin|, and |Dart_Timeline_Event_Async_Instant| to
  * support serialization in Perfetto's proto format.
+ *
+ * The Dart VM can use various underlying recorders depending on configuration
+ * and operating system. Many recorders do not support all event types;
+ * unsupported event types are siliently dropped. Some recorders do not accept
+ * timestamps as input, instead implicitly using the time the event is recorded.
+ * For maximum compatibility, record events with the Begin and End types as they
+ * occur instead of using the Duration type or buffering.
  *
  * \param label The name of the event. Its lifetime must extend at least until
  *     Dart_Cleanup.
@@ -520,8 +489,8 @@ typedef void (*Dart_TimelineRecorderCallback)(
  * The callback will be invoked without a current isolate.
  *
  * The callback will be invoked on the thread completing the event. Because
- * `Dart_TimelineEvent` may be called by any thread, the callback may be called
- * on any thread.
+ * `Dart_RecordTimelineEvent` may be called by any thread, the callback may be
+ * called on any thread.
  *
  * The callback may be invoked at any time after `Dart_Initialize` is called and
  * before `Dart_Cleanup` returns.

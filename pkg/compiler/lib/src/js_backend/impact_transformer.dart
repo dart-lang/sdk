@@ -36,7 +36,7 @@ class CodegenImpactTransformer {
   final RuntimeTypesNeed _rtiNeed;
   final NativeCodegenEnqueuer _nativeCodegenEnqueuer;
   final Namer _namer;
-  final OneShotInterceptorData _oneShotInterceptorData;
+  final OneShotInterceptorData oneShotInterceptorData;
   final RuntimeTypesChecksBuilder _rtiChecksBuilder;
   final NativeEmitter _nativeEmitter;
 
@@ -49,7 +49,7 @@ class CodegenImpactTransformer {
       this._rtiNeed,
       this._nativeCodegenEnqueuer,
       this._namer,
-      this._oneShotInterceptorData,
+      this.oneShotInterceptorData,
       this._rtiChecksBuilder,
       this._nativeEmitter);
 
@@ -162,7 +162,7 @@ class CodegenImpactTransformer {
     }
 
     for (Set<ClassEntity> classes in impact.specializedGetInterceptors) {
-      _oneShotInterceptorData.registerSpecializedGetInterceptor(classes);
+      oneShotInterceptorData.registerSpecializedGetInterceptor(classes);
     }
 
     if (impact.usesInterceptor) {
@@ -208,7 +208,7 @@ class CodegenImpactTransformer {
     }
 
     for (Selector selector in impact.oneShotInterceptors) {
-      _oneShotInterceptorData.registerOneShotInterceptor(
+      oneShotInterceptorData.registerOneShotInterceptor(
           selector, _namer, _closedWorld);
     }
 

@@ -50,6 +50,7 @@ typedef Typedef1<
         W7 extends H<(Object, int)>,
         W8 extends H<(int, int)>>
     = void Function();
+
 typedef Typedef2 = void Function<
     T1 extends F,
     T2 extends F<dynamic>,
@@ -91,6 +92,7 @@ typedef Typedef2 = void Function<
     W6 extends H<(Class<ConcreteClass>, int)>,
     W7 extends H<(Object, int)>,
     W8 extends H<(int, int)>>();
+
 typedef void Typedef3<
     T1 extends F,
     T2 extends F<dynamic>,
@@ -216,6 +218,7 @@ class Class2<
     W6 extends H<(Class<ConcreteClass>, int)>,
     W7 extends H<(Object, int)>,
     W8 extends H<(int, int)>> = Object with Class;
+
 mixin Mixin1<
     T1 extends F,
     T2 extends F<dynamic>,
@@ -425,5 +428,7 @@ void method1<
     W6 extends H<(Class<ConcreteClass>, int)>,
     W7 extends H<(Object, int)>,
     W8 extends H<(int, int)>>() {}
+
 test() {}
+
 main() {}

@@ -22,13 +22,6 @@ class SHA1Bench extends BenchmarkBase {
   }
 
   @override
-  void warmup() {
-    for (int i = 0; i < 4; i++) {
-      run();
-    }
-  }
-
-  @override
   void run() {
     final hash = sha1.convert(data);
     if (hex.encode(hash.bytes) != expected) {

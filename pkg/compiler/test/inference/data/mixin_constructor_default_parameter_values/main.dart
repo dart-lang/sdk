@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // Ensure that the inferrer looks at default values for parameters in
 // synthetic constructors using the correct context. If the constructor call
 // to D without optional parameters is inferred using D's context, the default
@@ -11,7 +9,7 @@
 
 import 'lib.dart';
 
-class Mixin {
+mixin Mixin {
   /*member: Mixin.foo:[exact=JSString]*/
   String get foo => "Mixin:$this";
 }

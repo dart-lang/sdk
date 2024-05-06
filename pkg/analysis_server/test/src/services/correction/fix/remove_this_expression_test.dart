@@ -50,7 +50,6 @@ class RemoveThisExpressionTest extends FixProcessorLintTest {
 
   @override
   String get lintCode => LintNames.unnecessary_this;
-
   Future<void> test_constructorInitializer() async {
     await resolveTestCode('''
 class A {

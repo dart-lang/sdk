@@ -5,14 +5,19 @@
 library fasta.test.modular_suite;
 
 import 'suite_utils.dart' show internalMain;
+import 'testing/environment_keys.dart';
 import 'testing/suite.dart';
 
 Future<FastaContext> createContext(
     Chain suite, Map<String, String> environment) {
-  environment[COMPILATION_MODE] = CompileMode.modular.name;
+  environment[EnvironmentKeys.compilationMode] = CompileMode.modular.name;
   return FastaContext.create(suite, environment);
 }
 
 Future<void> main([List<String> arguments = const []]) async {
-  await internalMain(createContext, arguments: arguments);
+  await internalMain(
+    createContext,
+    arguments: arguments,
+    displayName: "modular suite",
+  );
 }

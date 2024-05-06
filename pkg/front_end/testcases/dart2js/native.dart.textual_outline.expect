@@ -1,15 +1,25 @@
 // @dart = 2.7
+
 import 'dart:_js_helper';
 
 var topLevelField;
+
 get topLevelGetter => null;
+
 set topLevelSetter(_) {}
+
 topLevelFunction() {}
+
 external get externalTopLevelGetter;
+
 external set externalTopLevelSetter(_);
+
 external externalTopLevelFunction();
+
 get nativeTopLevelGetter native;
+
 set nativeTopLevelSetter(_) native;
+
 nativeTopLevelFunction() native;
 
 class Class {
@@ -42,6 +52,7 @@ class Class {
 }
 
 @Native('d')
+
 class NativeClass {
   NativeClass.generative();
   factory NativeClass.fact() => null;

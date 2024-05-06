@@ -398,7 +398,7 @@ import "dart:_internal" as _in;
       }
 [2420]    #L23:
     default:
-[2420]      [2420] [2420] throw [2420] [2420] new _in::ReachabilityError::• [2420]([2420] "`null` encountered as case in a switch statement with a non-nullable type.");
+[2420]      [2420] [2420] throw{for-error-handling} [2420] [2420] new _in::ReachabilityError::• [2420]([2420] "`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 [2536]static method switchStatementEnumWithGuard([2567] self::E o) → dynamic {
@@ -426,7 +426,7 @@ import "dart:_internal" as _in;
       }
 [2665]      break #L24;
     }
-[2574]    [2574] [2574] throw [2574] [2574] new _in::ReachabilityError::• [2574]([2574] "`null` encountered as case in a switch statement with a non-nullable type.");
+[2574]    [2574] [2574] throw{for-error-handling} [2574] [2574] new _in::ReachabilityError::• [2574]([2574] "`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 [2680]static method switchStatementEnumWithLabel([2711] self::E o) → dynamic {
@@ -452,7 +452,7 @@ import "dart:_internal" as _in;
       }
 [2718]    #L29:
     default:
-[2718]      [2718] [2718] throw [2718] [2718] new _in::ReachabilityError::• [2718]([2718] "`null` encountered as case in a switch statement with a non-nullable type.");
+[2718]      [2718] [2718] throw{for-error-handling} [2718] [2718] new _in::ReachabilityError::• [2718]([2718] "`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 [2845]static method switchStatementEnumWithContinue([2879] self::E o) → dynamic {
@@ -478,7 +478,7 @@ import "dart:_internal" as _in;
       }
 [2886]    #L34:
     default:
-[2886]      [2886] [2886] throw [2886] [2886] new _in::ReachabilityError::• [2886]([2886] "`null` encountered as case in a switch statement with a non-nullable type.");
+[2886]      [2886] [2886] throw{for-error-handling} [2886] [2886] new _in::ReachabilityError::• [2886]([2886] "`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 [3072]static method switchStatementPrimitiveEquals([3103] dynamic o) → dynamic {
@@ -546,7 +546,7 @@ import "dart:_internal" as _in;
 [3498]          break #L39;
         }
       }
-[3440]      [3440] [3440] throw [3440] [3440] new _in::ReachabilityError::• [3440]([3440] "`null` encountered as case in a switch expression with a non-nullable type.");
+[3440]      [3440] [3440] throw{for-error-handling} [3440] [3440] new _in::ReachabilityError::• [3440]([3440] "`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>[-1] [-1] #t47;
 }
@@ -575,7 +575,7 @@ import "dart:_internal" as _in;
         }
 [3552]      #L44:
       default:
-[3552]        [3552] [3552] throw [3552] [3552] new _in::ReachabilityError::• [3552]([3552] "`null` encountered as case in a switch expression with a non-nullable type.");
+[3552]        [3552] [3552] throw{for-error-handling} [3552] [3552] new _in::ReachabilityError::• [3552]([3552] "`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>[-1] [-1] #t48;
 }
@@ -603,7 +603,7 @@ import "dart:_internal" as _in;
 [3718]          break #L45;
         }
       }
-[3661]      [3661] [3661] throw [3661] [3661] new _in::ReachabilityError::• [3661]([3661] "`null` encountered as case in a switch expression with a non-nullable type.");
+[3661]      [3661] [3661] throw{for-error-handling} [3661] [3661] new _in::ReachabilityError::• [3661]([3661] "`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>[-1] [-1] #t49;
 }
@@ -631,7 +631,7 @@ import "dart:_internal" as _in;
 [3867]          break #L46;
         }
       }
-[3778]      [3778] [3778] throw [3778] [3778] new _in::ReachabilityError::• [3778]([3778] "`null` encountered as case in a switch expression with a non-nullable type.");
+[3778]      [3778] [3778] throw{for-error-handling} [3778] [3778] new _in::ReachabilityError::• [3778]([3778] "`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>[-1] [-1] #t50;
 }
@@ -659,7 +659,7 @@ import "dart:_internal" as _in;
 [4025]          break #L47;
         }
       }
-[3930]      [3930] [3930] throw [3930] [3930] new _in::ReachabilityError::• [3930]([3930] "`null` encountered as case in a switch expression with a non-nullable type.");
+[3930]      [3930] [3930] throw{for-error-handling} [3930] [3930] new _in::ReachabilityError::• [3930]([3930] "`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>[-1] [-1] #t51;
 }
@@ -714,7 +714,7 @@ import "dart:_internal" as _in;
 [4301]          break #L49;
         }
       }
-[4241]      [4241] [4241] throw [4241] [4241] new _in::ReachabilityError::• [4241]([4241] "`null` encountered as case in a switch expression with a non-nullable type.");
+[4241]      [4241] [4241] throw{for-error-handling} [4241] [4241] new _in::ReachabilityError::• [4241]([4241] "`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>[-1] [-1] #t52;
 }

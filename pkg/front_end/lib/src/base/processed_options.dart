@@ -5,13 +5,6 @@
 import 'dart:io' show exitCode;
 import 'dart:typed_data' show Uint8List;
 
-import 'package:_fe_analyzer_shared/src/macros/executor/isolated_executor.dart'
-    as isolated_executor;
-import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor/process_executor.dart'
-    as process_executor;
-import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart'
-    show SerializationMode;
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
     show
@@ -28,18 +21,26 @@ import 'package:kernel/kernel.dart'
         Version;
 import 'package:kernel/target/targets.dart'
     show NoneTarget, Target, TargetFlags;
+import 'package:macros/src/executor/isolated_executor.dart'
+    as isolated_executor;
+import 'package:macros/src/executor/multi_executor.dart';
+import 'package:macros/src/executor/process_executor.dart' as process_executor;
+import 'package:macros/src/executor/serialization.dart' show SerializationMode;
 import 'package:package_config/package_config.dart';
 
 import '../api_prototype/compiler_options.dart'
-    show CompilerOptions, InvocationMode, Verbosity, DiagnosticMessage;
+    show
+        CompilerOptions,
+        InvocationMode,
+        HooksForTesting,
+        Verbosity,
+        DiagnosticMessage;
 import '../api_prototype/experimental_flags.dart' as flags;
 import '../api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
 import '../api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage;
-import '../fasta/command_line_reporting.dart' as command_line_reporting;
-import '../fasta/compiler_context.dart' show CompilerContext;
-import '../fasta/fasta_codes.dart'
+import '../fasta/codes/fasta_codes.dart'
     show
         FormattedMessage,
         LocatedMessage,
@@ -61,10 +62,13 @@ import '../fasta/fasta_codes.dart'
         templateSdkRootNotFound,
         templateSdkSpecificationNotFound,
         templateSdkSummaryNotFound;
+import '../fasta/command_line_reporting.dart' as command_line_reporting;
+import '../fasta/compiler_context.dart' show CompilerContext;
 import '../fasta/messages.dart' show getLocation;
 import '../fasta/problems.dart' show DebugAbort, unimplemented;
 import '../fasta/ticker.dart' show Ticker;
 import '../fasta/uri_translator.dart' show UriTranslator;
+import '../macros/macro_serializer.dart' show MacroSerializer;
 import 'nnbd_mode.dart';
 
 /// All options needed for the front end implementation.
@@ -84,15 +88,23 @@ class ProcessedOptions {
   /// The raw [CompilerOptions] which this class wraps.
   final CompilerOptions _raw;
 
+  _PackageConfigAndUri? _packageConfigAndUri;
+
   /// The package map derived from the options, or `null` if the package map has
   /// not been computed yet.
-  PackageConfig? _packages;
+  PackageConfig? get _packages => _packageConfigAndUri?.packageConfig;
 
-  /// The uri for package_config.json derived from the options, or `null` if the
-  /// package map has not been computed yet or there is no package_config.json
-  /// in effect.
-  Uri? _packagesUri;
-  Uri? get packagesUri => _packagesUri;
+  /// Resolve and return [packagesUri].
+  Future<Uri> resolvePackagesFileUri() async {
+    await _getPackages();
+    return packagesUri!;
+  }
+
+  /// The uri for package_config.json derived from the options, or `new Uri()`
+  /// if there is none, or `null` if the package map has not been computed yet.
+  Uri? get packagesUri => _packageConfigAndUri?.uri;
+
+  Uri? get packagesUriRaw => _raw.packagesFileUri;
 
   /// The object that knows how to resolve "package:" and "dart:" URIs,
   /// or `null` if it has not been computed yet.
@@ -150,8 +162,6 @@ class ProcessedOptions {
 
   Ticker ticker;
 
-  Uri? get packagesUriRaw => _raw.packagesFileUri;
-
   bool get verbose => _raw.verbose;
 
   bool get verify => _raw.verify;
@@ -180,6 +190,8 @@ class ProcessedOptions {
 
   bool get enableUnscheduledExperiments => _raw.enableUnscheduledExperiments;
 
+  bool get hasAdditionalDills => _raw.additionalDills.isNotEmpty;
+
   /// The entry-points provided to the compiler.
   final List<Uri> inputs;
 
@@ -192,6 +204,10 @@ class ProcessedOptions {
 
   /// The number of fatal diagnostics encountered so far.
   int fatalDiagnosticCount = 0;
+
+  MacroSerializer? _macroSerializer;
+  MacroSerializer get macroSerializer =>
+      _macroSerializer ??= _raw.macroSerializer ?? new MacroSerializer();
 
   /// Initializes a [ProcessedOptions] object wrapping the given [rawOptions].
   ProcessedOptions({CompilerOptions? options, List<Uri>? inputs, this.output})
@@ -471,7 +487,7 @@ class ProcessedOptions {
   Future<UriTranslator> getUriTranslator({bool bypassCache = false}) async {
     if (bypassCache) {
       _uriTranslator = null;
-      _packages = null;
+      _packageConfigAndUri = null;
     }
     if (_uriTranslator == null) {
       ticker.logMs("Started building UriTranslator");
@@ -521,18 +537,22 @@ class ProcessedOptions {
   /// required to locate/read the packages file.
   Future<PackageConfig> _getPackages() async {
     if (_packages != null) return _packages!;
-    _packagesUri = null;
+    _packageConfigAndUri = null;
     if (_raw.packagesFileUri != null) {
-      return _packages = await createPackagesFromFile(_raw.packagesFileUri!);
+      _packageConfigAndUri =
+          await _createPackagesFromFile(_raw.packagesFileUri!);
+      return _packages!;
     }
 
     if (inputs.isEmpty) {
-      return _packages = PackageConfig.empty;
+      _packageConfigAndUri = _PackageConfigAndUri.empty;
+      return _packages!;
     }
 
     // When compiling the SDK the input files are normally `dart:` URIs.
     if (inputs.every((uri) => uri.isScheme('dart'))) {
-      return _packages = PackageConfig.empty;
+      _packageConfigAndUri = _PackageConfigAndUri.empty;
+      return _packages!;
     }
 
     if (inputs.length > 1) {
@@ -540,7 +560,8 @@ class ProcessedOptions {
       // the same `package_config.json` file from all of the inputs.
       reportWithoutLocation(
           messageCantInferPackagesFromManyInputs, Severity.error);
-      return _packages = PackageConfig.empty;
+      _packageConfigAndUri = _PackageConfigAndUri.empty;
+      return _packages!;
     }
 
     Uri input = inputs.first;
@@ -550,10 +571,12 @@ class ProcessedOptions {
           messageCantInferPackagesFromPackageUri.withLocation(
               input, -1, noLength),
           Severity.error);
-      return _packages = PackageConfig.empty;
+      _packageConfigAndUri = _PackageConfigAndUri.empty;
+      return _packages!;
     }
 
-    return _packages = await _findPackages(input);
+    _packageConfigAndUri = await _findPackages(input);
+    return _packages!;
   }
 
   Future<Uint8List?> _readFile(Uri uri) async {
@@ -583,17 +606,19 @@ class ProcessedOptions {
 
   /// Create a [PackageConfig] given the Uri to a `package_config.json` file.
   ///
+  /// An empty URI, `new Uri()`, succeeds and returns an empty config.
+  ///
   /// If the file doesn't exist, it returns null (and an error is reported).
+  ///
   /// If the file does exist but is invalid (e.g. if it's an old `.packages`
   /// file) an error is always reported and an empty package config is returned.
-  Future<PackageConfig?> _createPackagesFromFile(Uri requestedUri) async {
-    Uint8List? contents = await _readFile(requestedUri);
+  Future<_PackageConfigAndUri> _createPackagesFromFile(Uri requestedUri) async {
+    Uint8List? contents =
+        requestedUri == new Uri() ? null : await _readFile(requestedUri);
     if (contents == null) {
-      _packagesUri = null;
-      return PackageConfig.empty;
+      return _PackageConfigAndUri.empty;
     }
 
-    _packagesUri = requestedUri;
     try {
       void Function(Object error) onError = (Object error) {
         if (error is FormatException) {
@@ -609,7 +634,9 @@ class ProcessedOptions {
               Severity.error);
         }
       };
-      return PackageConfig.parseBytes(contents, requestedUri, onError: onError);
+      return new _PackageConfigAndUri(
+          PackageConfig.parseBytes(contents, requestedUri, onError: onError),
+          requestedUri);
     } on FormatException catch (e) {
       report(
           templatePackagesFileFormat
@@ -621,16 +648,16 @@ class ProcessedOptions {
           templateCantReadFile.withArguments(requestedUri, "$e"),
           Severity.error);
     }
-    _packagesUri = null;
-    return PackageConfig.empty;
+    return _PackageConfigAndUri.empty;
   }
 
-  /// Create a [PackageConfig] given the Uri to a `package_config.json` file.
+  /// Create a [PackageConfig] given the Uri to a `package_config.json` file,
+  /// and use it in these options.
   ///
   /// Note that if an old `.packages` file is provided an error will be issued.
   Future<PackageConfig> createPackagesFromFile(Uri file) async {
-    PackageConfig? result = await _createPackagesFromFile(file);
-    return result ?? PackageConfig.empty;
+    _packageConfigAndUri = await _createPackagesFromFile(file);
+    return _packageConfigAndUri!.packageConfig;
   }
 
   /// Finds a package resolution strategy using a [FileSystem].
@@ -640,19 +667,20 @@ class ProcessedOptions {
   ///
   /// This function tries to locate a `.dart_tool/package_config.json` file in
   /// the `scriptUri` directory.
+  ///
   /// If that is not found, it starts checking parent directories, and stops if
   /// it finds it. Otherwise it gives up and returns [PackageConfig.empty].
   ///
   /// Note: this is a fork from `package:package_config`s discovery to make sure
   /// we use the expected error reporting etc.
-  Future<PackageConfig> _findPackages(Uri scriptUri) async {
+  Future<_PackageConfigAndUri?> _findPackages(Uri scriptUri) async {
     Uri dir = scriptUri.resolve('.');
     if (!dir.isAbsolute) {
       reportWithoutLocation(
           templateInternalProblemUnsupported
               .withArguments("Expected input Uri to be absolute: $scriptUri."),
           Severity.internalProblem);
-      return PackageConfig.empty;
+      return _PackageConfigAndUri.empty;
     }
 
     Future<Uri?> checkInDir(Uri dir) async {
@@ -674,7 +702,9 @@ class ProcessedOptions {
 
     // Check for $cwd/.dart_tool/package_config.json
     Uri? candidate = await checkInDir(dir);
-    if (candidate != null) return await createPackagesFromFile(candidate);
+    if (candidate != null) {
+      return await _createPackagesFromFile(candidate);
+    }
 
     // Check for cwd(/..)+/.dart_tool/package_config.json
     Uri parentDir = dir.resolve('..');
@@ -685,8 +715,10 @@ class ProcessedOptions {
       parentDir = dir.resolve('..');
     }
 
-    if (candidate != null) return await createPackagesFromFile(candidate);
-    return PackageConfig.empty;
+    if (candidate != null) {
+      return await _createPackagesFromFile(candidate);
+    }
+    return _PackageConfigAndUri.empty;
   }
 
   bool _computedSdkDefaults = false;
@@ -836,11 +868,20 @@ class ProcessedOptions {
   SerializationMode get macroSerializationMode =>
       _raw.macroSerializationMode ??= SerializationMode.byteData;
 
+  /// The currently running precompilations.
+  Set<Uri> get runningPrecompilations => _raw.runningPrecompilations;
+
   CompilerOptions get rawOptionsForTesting => _raw;
 
-  /// Disposes macro executor if one is configured.
+  HooksForTesting? get hooksForTesting => _raw.hooksForTesting;
+
+  bool get showGeneratedMacroSourcesForTesting =>
+      _raw.showGeneratedMacroSourcesForTesting;
+
+  /// Disposes macro executor and serializer if configured.
   Future<void> dispose() async {
     await _raw.macroExecutor?.closeAndReset();
+    await macroSerializer.close();
   }
 }
 
@@ -869,4 +910,14 @@ class HermeticAccessException extends FileSystemException {
 
   @override
   String toString() => message;
+}
+
+/// A package config and the `URI` it was loaded from.
+class _PackageConfigAndUri {
+  static final _PackageConfigAndUri empty =
+      new _PackageConfigAndUri(PackageConfig.empty, new Uri());
+
+  final PackageConfig packageConfig;
+  final Uri uri;
+  _PackageConfigAndUri(this.packageConfig, this.uri);
 }

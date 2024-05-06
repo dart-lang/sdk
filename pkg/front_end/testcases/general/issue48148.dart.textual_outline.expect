@@ -7,11 +7,16 @@ const HInvalid invalidExample = HInvalidComposite(
     HInvalidError("error message"),
   ],
 );
+
 typedef HInvalid = HBase<HKindInvalid>;
+
 typedef HInvalidComposite<CHILD extends HInvalid>
     = HBaseComposite<HKindInvalid, CHILD>;
+
 typedef HInvalidChild<CHILD extends HInvalid> = HBaseChild<HKindInvalid, CHILD>;
+
 typedef HInvalidLeaf = HBaseLeaf<HKindInvalid>;
+
 typedef HInvalidError = HBaseError<HKindInvalid>;
 
 abstract class HBase<HKT extends HKind> implements Kind<HKT> {}

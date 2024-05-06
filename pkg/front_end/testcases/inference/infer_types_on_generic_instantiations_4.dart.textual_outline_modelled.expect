@@ -10,4 +10,5 @@ class B<E> extends A<E> {
 }
 
 foo() {}
+
 main() {}

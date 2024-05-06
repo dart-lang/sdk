@@ -5,10 +5,9 @@
 library fasta.ignored_parser_errors;
 
 import 'package:_fe_analyzer_shared/src/parser/parser.dart' show optional;
-
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 
-import 'fasta_codes.dart' show Code, codeNonPartOfDirectiveInPart;
+import 'codes/fasta_codes.dart' show Code, codeNonPartOfDirectiveInPart;
 
 bool isIgnoredParserError(Code<dynamic> code, Token token) {
   if (code == codeNonPartOfDirectiveInPart) {

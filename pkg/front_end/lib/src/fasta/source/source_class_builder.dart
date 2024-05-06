@@ -8,6 +8,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyBase, ClassHierarchyMembers;
 import 'package:kernel/core_types.dart';
+import 'package:kernel/names.dart' show equalsName;
 import 'package:kernel/reference_from_index.dart' show IndexedContainer;
 import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/src/legacy_erasure.dart';
@@ -22,8 +23,8 @@ import 'package:kernel/type_algebra.dart'
 import 'package:kernel/type_environment.dart';
 
 import '../builder/builder.dart';
-import '../builder/declaration_builders.dart';
 import '../builder/constructor_reference_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
@@ -33,14 +34,13 @@ import '../builder/never_type_declaration_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
-import '../fasta_codes.dart';
+import '../codes/fasta_codes.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/hierarchy/hierarchy_node.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart' show computeTypeVariableBuilderVariance;
 import '../kernel/utils.dart' show compareProcedures;
-import '../names.dart' show equalsName;
 import '../problems.dart' show unexpected, unhandled, unimplemented;
 import '../scope.dart';
 import '../util/helpers.dart';
@@ -125,7 +125,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   @override
   final bool isFinal;
 
-  @override
+  /// Set to `true` if this class is declared using the `augment` modifier.
   final bool isAugmentation;
 
   @override
@@ -148,7 +148,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     _isConflictingAugmentationMember = value;
   }
 
-  List<SourceClassBuilder>? _patches;
+  List<SourceClassBuilder>? _augmentations;
 
   MergedClassMemberScope? _mergedScope;
 
@@ -176,20 +176,21 @@ class SourceClassBuilder extends ClassBuilderImpl
       this.isBase = false,
       this.isInterface = false,
       this.isFinal = false,
-      this.isAugmentation = false,
+      bool isAugmentation = false,
       this.isMixinClass = false})
       : actualCls = initializeClass(cls, typeVariables, name, parent,
             startCharOffset, nameOffset, charEndOffset, indexedContainer,
             isAugmentation: isAugmentation),
+        isAugmentation = isAugmentation,
         super(metadata, modifiers, name, scope, constructors, parent,
             nameOffset) {
     actualCls.hasConstConstructor = declaresConstConstructor;
   }
 
   MergedClassMemberScope get mergedScope => _mergedScope ??=
-      isPatch ? origin.mergedScope : new MergedClassMemberScope(this);
+      isAugmenting ? origin.mergedScope : new MergedClassMemberScope(this);
 
-  List<SourceClassBuilder>? get patchesForTesting => _patches;
+  List<SourceClassBuilder>? get augmentationsForTesting => _augmentations;
 
   SourceClassBuilder? actualOrigin;
 
@@ -334,9 +335,9 @@ class SourceClassBuilder extends ClassBuilderImpl
           classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
     }
 
-    MetadataBuilder.buildAnnotations(isPatch ? origin.cls : cls, metadata,
+    MetadataBuilder.buildAnnotations(isAugmenting ? origin.cls : cls, metadata,
         bodyBuilderContext, libraryBuilder, fileUri, libraryBuilder.scope,
-        createFileUriExpression: isPatch);
+        createFileUriExpression: isAugmenting);
     if (typeVariables != null) {
       for (int i = 0; i < typeVariables!.length; i++) {
         typeVariables![i].buildOutlineExpressions(
@@ -358,9 +359,67 @@ class SourceClassBuilder extends ClassBuilderImpl
         .forEach(build);
   }
 
+  /// [Iterator] for all members declared directly in this class, including
+  /// augmenting members.
+  ///
+  /// Duplicates are _not_ included.
+  ///
+  /// For instance:
+  ///
+  ///     class Class {
+  ///       // Declared, so it is included for this class but not for the
+  ///       // augmentation class below.
+  ///       method() {}
+  ///       // Declared, so it is included for this class but not for the
+  ///       // augmentation class below.
+  ///       method2() {}
+  ///       method2() {} // Duplicate, so it is *not* included.
+  ///     }
+  ///
+  ///     augment class Class {
+  ///       // Augmenting, so it is included for this augmentation class but
+  ///       // not for the origin class above.
+  ///       augment method() {}
+  ///       // Declared, so it is included for this augmentation class but not
+  ///       // for the origin class above.
+  ///       extra() {}
+  ///     }
+  ///
+  Iterator<T> localMemberIterator<T extends Builder>() =>
+      new ClassDeclarationMemberIterator<SourceClassBuilder, T>.local(this,
+          includeDuplicates: false);
+
+  /// [Iterator] for all constructors declared directly in this class, including
+  /// augmenting constructors.
+  ///
+  /// For instance:
+  ///
+  ///     class Class {
+  ///       // Declared, so it is included for this class but not for the
+  ///       // augmentation class below.
+  ///       Class();
+  ///       // Declared, so it is included for this class but not for the
+  ///       // augmentation class below.
+  ///       Class.named();
+  ///       Class.named(); // Duplicate, so it is *not* included.
+  ///     }
+  ///
+  ///     augment class Class {
+  ///       // Augmenting, so it is included for this augmentation class but
+  ///       // not for the origin class above.
+  ///       augment Class();
+  ///       // Declared, so it is included for this augmentation class but not
+  ///       // for the origin class above.
+  ///       Class.extra();
+  ///     }
+  ///
+  Iterator<T> localConstructorIterator<T extends MemberBuilder>() =>
+      new ClassDeclarationConstructorIterator<SourceClassBuilder, T>.local(this,
+          includeDuplicates: false);
+
   @override
   Iterator<T> fullMemberIterator<T extends Builder>() =>
-      new ClassDeclarationMemberIterator<SourceClassBuilder, T>(
+      new ClassDeclarationMemberIterator<SourceClassBuilder, T>.full(
           const _SourceClassBuilderAugmentationAccess(), this,
           includeDuplicates: false);
 
@@ -372,7 +431,7 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   @override
   Iterator<T> fullConstructorIterator<T extends MemberBuilder>() =>
-      new ClassDeclarationConstructorIterator<SourceClassBuilder, T>(
+      new ClassDeclarationConstructorIterator<SourceClassBuilder, T>.full(
           const _SourceClassBuilderAugmentationAccess(), this,
           includeDuplicates: false);
 
@@ -512,29 +571,29 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   @override
-  void applyPatch(Builder patch) {
-    if (patch is SourceClassBuilder) {
-      patch.actualOrigin = this;
-      (_patches ??= []).add(patch);
+  void applyAugmentation(Builder augmentation) {
+    if (augmentation is SourceClassBuilder) {
+      augmentation.actualOrigin = this;
+      (_augmentations ??= []).add(augmentation);
 
-      mergedScope.addAugmentationScope(patch);
+      mergedScope.addAugmentationScope(augmentation);
 
       int originLength = typeVariables?.length ?? 0;
-      int patchLength = patch.typeVariables?.length ?? 0;
-      if (originLength != patchLength) {
-        patch.addProblem(messagePatchClassTypeVariablesMismatch,
-            patch.charOffset, noLength, context: [
+      int augmentationLength = augmentation.typeVariables?.length ?? 0;
+      if (originLength != augmentationLength) {
+        augmentation.addProblem(messagePatchClassTypeVariablesMismatch,
+            augmentation.charOffset, noLength, context: [
           messagePatchClassOrigin.withLocation(fileUri, charOffset, noLength)
         ]);
       } else if (typeVariables != null) {
         int count = 0;
-        for (NominalVariableBuilder t in patch.typeVariables!) {
-          typeVariables![count++].applyPatch(t);
+        for (NominalVariableBuilder t in augmentation.typeVariables!) {
+          typeVariables![count++].applyAugmentation(t);
         }
       }
     } else {
       libraryBuilder.addProblem(messagePatchDeclarationMismatch,
-          patch.charOffset, noLength, patch.fileUri, context: [
+          augmentation.charOffset, noLength, augmentation.fileUri, context: [
         messagePatchDeclarationOrigin.withLocation(
             fileUri, charOffset, noLength)
       ]);
@@ -1116,14 +1175,15 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   void _addMemberToClass(SourceMemberBuilder memberBuilder, Member member) {
     member.parent = cls;
-    if (!memberBuilder.isPatch &&
+    if (!memberBuilder.isAugmenting &&
         !memberBuilder.isDuplicate &&
         !memberBuilder.isConflictingSetter) {
       if (memberBuilder.isConflictingAugmentationMember) {
         if (member is Field && member.isStatic ||
             member is Procedure && member.isStatic) {
           member.name = new Name(
-              '${member.name}#${memberBuilder.libraryBuilder.patchIndex}',
+              '${member.name}'
+              '#${memberBuilder.libraryBuilder.augmentationIndex}',
               member.name.library);
         } else {
           return;
@@ -2003,5 +2063,5 @@ class _SourceClassBuilderAugmentationAccess
   @override
   Iterable<SourceClassBuilder>? getAugmentations(
           SourceClassBuilder classDeclaration) =>
-      classDeclaration._patches;
+      classDeclaration._augmentations;
 }

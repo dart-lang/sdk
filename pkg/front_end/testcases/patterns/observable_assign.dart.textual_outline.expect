@@ -7,10 +7,17 @@ class B extends A {
 }
 
 method1((A, A) r) {}
+
 method2((A, A) r) {}
+
 method3((A, A) r) {}
+
 method4((A, A) r) {}
+
 main() {}
+
 expect(expected, actual) {}
+
 throws(void Function() f) {}
+
 allowThrow(void Function() f) {}

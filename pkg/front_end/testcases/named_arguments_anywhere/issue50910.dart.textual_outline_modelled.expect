@@ -7,7 +7,11 @@ extension SuetaExtension on Sueta {
 }
 
 void main(List<String> arguments) {}
+
 void test(int positional, {int named1 = 0, int named2 = 0}) {}
+
 void test1() {}
+
 void test2() {}
+
 void test3() {}

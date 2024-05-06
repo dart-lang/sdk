@@ -5,8 +5,10 @@
 import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 
@@ -20,7 +22,47 @@ class ThrowStatement {
   });
 }
 
-extension AnnotatedNodeExtensions on AnnotatedNode {
+class _ReferencedUnprefixedNamesCollector extends RecursiveAstVisitor<void> {
+  final Set<String> names = <String>{};
+
+  @override
+  void visitNamedType(NamedType node) {
+    if (node.importPrefix == null) {
+      names.add(node.name2.lexeme);
+    }
+
+    super.visitNamedType(node);
+  }
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (!_isPrefixed(node) && !_isLabelName(node)) {
+      names.add(node.name);
+    }
+  }
+
+  @override
+  visitVariableDeclaration(VariableDeclaration node) {
+    names.add(node.name.lexeme);
+    return super.visitVariableDeclaration(node);
+  }
+
+  static bool _isLabelName(SimpleIdentifier node) {
+    return node.parent is Label;
+  }
+
+  static bool _isPrefixed(SimpleIdentifier node) {
+    var parent = node.parent;
+    return parent is ConstructorName && parent.name == node ||
+        parent is MethodInvocation &&
+            parent.methodName == node &&
+            parent.realTarget != null ||
+        parent is PrefixedIdentifier && parent.identifier == node ||
+        parent is PropertyAccess && parent.target == node;
+  }
+}
+
+extension AnnotatedNodeExtension on AnnotatedNode {
   /// Return the first token in this node that is not a comment.
   Token get firstNonCommentToken {
     final metadata = this.metadata;
@@ -31,7 +73,7 @@ extension AnnotatedNodeExtensions on AnnotatedNode {
   }
 }
 
-extension AstNodeExtensions on AstNode {
+extension AstNodeExtension on AstNode {
   /// Returns [ExtensionElement] declared by an enclosing node.
   ExtensionElement? get enclosingExtensionElement {
     for (final node in withParents) {
@@ -132,9 +174,26 @@ extension AstNodeExtensions on AstNode {
       current = parent;
     }
   }
+
+  /// Returns the [ExpressionStatement] associated with `this` if `this` points
+  /// to the identifier for a simple `print`, and `null` otherwise.
+  ExpressionStatement? findSimplePrintInvocation() {
+    var parent = this.parent;
+    var grandparent = parent?.parent;
+    if (this case SimpleIdentifier(:var staticElement)) {
+      if (staticElement is FunctionElement &&
+          staticElement.name == 'print' &&
+          staticElement.library.isDartCore &&
+          parent is MethodInvocation &&
+          grandparent is ExpressionStatement) {
+        return grandparent;
+      }
+    }
+    return null;
+  }
 }
 
-extension BinaryExpressionExtensions on BinaryExpression {
+extension BinaryExpressionExtension on BinaryExpression {
   bool get isNotEqNull {
     return operator.type == TokenType.BANG_EQ && rightOperand is NullLiteral;
   }
@@ -186,11 +245,19 @@ extension CompilationUnitExtension on CompilationUnit {
     return header;
   }
 
-  /// Return `true` if library being analyzed is non-nullable by default.
-  ///
-  /// Will return `false` if the AST structure has not been resolved.
-  bool get isNonNullableByDefault =>
-      declaredElement?.library.isNonNullableByDefault ?? false;
+  /// Returns names of elements that might conflict with a new local variable
+  /// declared at [offset].
+  Set<String> findPossibleLocalVariableConflicts(int offset) {
+    var conflicts = <String>{};
+    var enclosingNode = NodeLocator(offset).searchWithin(this)!;
+    var enclosingBlock = enclosingNode.thisOrAncestorOfType<Block>();
+    if (enclosingBlock != null) {
+      var visitor = _ReferencedUnprefixedNamesCollector();
+      enclosingBlock.accept(visitor);
+      return visitor.names;
+    }
+    return conflicts;
+  }
 }
 
 extension DeclaredVariablePatternExtension on DeclaredVariablePattern {
@@ -203,7 +270,7 @@ extension DeclaredVariablePatternExtension on DeclaredVariablePattern {
   }
 }
 
-extension DirectiveExtensions on Directive {
+extension DirectiveExtension on Directive {
   /// If the target imports or exports a [LibraryElement], returns it.
   LibraryElement? get referencedLibrary {
     final element = this.element;
@@ -241,7 +308,7 @@ extension DirectiveExtensions on Directive {
   }
 }
 
-extension ExpressionExtensions on Expression {
+extension ExpressionExtension on Expression {
   /// Return `true` if this expression is an invocation of the method `cast`
   /// from either Iterable`, `List`, `Map`, or `Set`.
   bool get isCastMethodInvocation {
@@ -273,7 +340,7 @@ extension ExpressionExtensions on Expression {
   }
 }
 
-extension FunctionBodyExtensions on FunctionBody {
+extension FunctionBodyExtension on FunctionBody {
   bool get isEmpty =>
       this is EmptyFunctionBody ||
       (this is BlockFunctionBody && beginToken.isSynthetic);

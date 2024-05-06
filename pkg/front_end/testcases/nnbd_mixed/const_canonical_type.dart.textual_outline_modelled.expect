@@ -9,9 +9,15 @@ class Check {
 }
 
 main() {}
+
 test1() {}
+
 typedef F1 = oo.A<FutureOr<dynamic>> Function();
+
 typedef F2 = oo.A<dynamic> Function();
+
 typedef F3 = oo.A<FutureOr<FutureOr<dynamic>?>> Function();
+
 typedef F4 = oo.A Function();
+
 void expectEqual(x, y) {}

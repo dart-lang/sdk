@@ -8,11 +8,16 @@ extension type B(int i) {
   B.named(this.i);
   static B method(int i) => B(i);
 }
+
 extension type D<Y>(Y i) {
   D.named(this.i);
   static D<Y> method<Y>(Y i) => D<Y>(i);
 }
+
 method() {}
+
 typedef A = B;
+
 typedef C<X extends num> = D<X>;
+
 typedef E<X extends num> = F<X>;

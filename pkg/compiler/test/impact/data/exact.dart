@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*member: A.:static=[Object.(0)]*/
 class A {
   method1() {}
@@ -33,17 +31,26 @@ main() {
   callOnEffectivelyFinalB();
 }
 
-/*member: callOnNewB:dynamic=[exact:B.method1(0)],static=[B.(0)]*/
+/*member: callOnNewB:
+ dynamic=[B.method1(0)],
+ static=[B.(0)]
+*/
 callOnNewB() {
   B().method1();
 }
 
-/*member: callOnNewC:dynamic=[exact:C.method2(0)],static=[C.(0)]*/
+/*member: callOnNewC:
+ dynamic=[C.method2(0)],
+ static=[C.(0)]
+*/
 callOnNewC() {
   C().method2();
 }
 
-/*member: callOnEffectivelyFinalB:dynamic=[exact:B.method3(0)],static=[B.(0)]*/
+/*member: callOnEffectivelyFinalB:
+ dynamic=[A.method3(0)],
+ static=[B.(0)]
+*/
 callOnEffectivelyFinalB() {
   A a = B();
   a.method3();

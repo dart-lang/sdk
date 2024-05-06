@@ -22,6 +22,7 @@ class Response<T> {
 }
 
 main() {}
+
 mixin TestMixin<R, T> {
   Future<T> test(Future<R> fetch) async {}
 }

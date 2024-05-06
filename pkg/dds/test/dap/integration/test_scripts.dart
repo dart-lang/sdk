@@ -111,10 +111,15 @@ const infiniteRunningProgram = '''
 ///
 /// A top-level String variable `myGlobal` is available with the value
 /// `"Hello, world!"`.
+///
+/// Requires the 'foo' package.
 const globalEvaluationProgram = '''
+  import 'package:foo/foo.dart';
+
   var myGlobal = 'Hello, world!';
   void main(List<String> args) async {
     while (true) {
+      foo();
       print('.');
       await Future.delayed(const Duration(seconds: 1));
     }
@@ -155,6 +160,43 @@ const simpleBreakpointProgram = '''
   void main(List<String> args) async {
     print('Hello!'); $breakpointMarker
   }
+''';
+
+/// A simple script that provides a @withHello macro that adds a
+/// `hello()` method to a class that prints "Hello".
+const withHelloMacroImplementation = '''
+// There is no public API exposed yet, the in-progress API lives here.
+import 'package:macros/macros.dart';
+
+macro class WithHello implements ClassDeclarationsMacro {
+  const WithHello();
+
+  @override
+  Future<void> buildDeclarationsForClass(
+    ClassDeclaration clazz,
+    MemberDeclarationBuilder builder,
+  ) async {
+    builder.declareInType(DeclarationCode.fromString(\'''
+  void hello() {
+    print('Hello');
+  }
+\'''));
+  }
+}
+''';
+
+/// A simple script that uses [withHelloMacroImplementation] and calls the
+/// `hello()` method.
+const withHelloMacroProgram = '''
+import 'with_hello.dart';
+
+void main() {
+  final a = A();
+  a.hello(); $breakpointMarker
+}
+
+@WithHello()
+class A {}
 ''';
 
 /// A simple Dart script that prints "Hello" and then "World" with a breakpoint

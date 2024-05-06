@@ -3,4 +3,5 @@ var a = () {
     return;
   }
 };
+
 main() {}

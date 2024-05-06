@@ -9,6 +9,9 @@ class B<T> {
 class C extends B<int> {}
 
 void g1(B<num> b) {}
+
 void g2(C c) {}
+
 void test() {}
+
 void main() {}

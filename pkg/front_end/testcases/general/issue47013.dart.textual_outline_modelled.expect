@@ -9,4 +9,5 @@ class A {
 class C extends A implements I {}
 
 throws(void Function() f) {}
+
 void main() {}

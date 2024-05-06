@@ -1,22 +1,21 @@
 // Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart'
-    show ExtensionIndex;
-import 'package:dart2wasm/js/method_collector.dart';
-import 'package:dart2wasm/js/util.dart';
+
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart';
+
+import 'method_collector.dart';
+import 'util.dart';
 
 /// Specializes Dart callbacks so they can be called from JS.
 class CallbackSpecializer {
   final StatefulStaticTypeContext _staticTypeContext;
   final MethodCollector _methodCollector;
   final CoreTypesUtil _util;
-  final ExtensionIndex _extensionIndex;
 
-  CallbackSpecializer(this._staticTypeContext, this._util,
-      this._methodCollector, this._extensionIndex) {}
+  CallbackSpecializer(
+      this._staticTypeContext, this._util, this._methodCollector);
 
   bool _needsArgumentsLength(FunctionType type) =>
       type.requiredParameterCount < type.positionalParameters.length;
@@ -32,8 +31,7 @@ class CallbackSpecializer {
       DartType callbackParameterType = function.positionalParameters[i];
       Expression expression;
       VariableGet v = VariableGet(positionalParameters[i]);
-      if (_extensionIndex.isStaticInteropType(callbackParameterType) &&
-          boxExternRef) {
+      if (_util.isJSValueType(callbackParameterType) && boxExternRef) {
         expression = _createJSValue(v);
         if (!callbackParameterType.isPotentiallyNullable) {
           expression = NullCheck(expression);

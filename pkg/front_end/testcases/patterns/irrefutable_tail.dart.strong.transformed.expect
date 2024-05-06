@@ -24,84 +24,100 @@ abstract class C extends core::Object {
 }
 static method ifCase(dynamic o) → dynamic {
   {
-    hoisted self::A a;
     final synthesized dynamic #0#0 = o;
-    if(#0#0 is self::A) {
-      a = #0#0{self::A};
-      {
-        core::print(a);
+    {
+      hoisted self::A a;
+      if(#0#0 is self::A) {
+        a = #0#0{self::A};
+        {
+          core::print(a);
+        }
       }
     }
   }
   {
-    hoisted self::B b;
     final synthesized dynamic #1#0 = o;
-    if(#1#0 is self::A) {
-      b = #1#0{self::A}.{self::A::b}{self::B};
-      {
-        core::print(b);
+    {
+      hoisted self::B b;
+      if(#1#0 is self::A) {
+        b = #1#0{self::A}.{self::A::b}{self::B};
+        {
+          core::print(b);
+        }
       }
     }
   }
   {
-    hoisted self::C c;
     final synthesized dynamic #2#0 = o;
-    if(#2#0 is self::A) {
-      c = #2#0{self::A}.{self::A::b}{self::B}.{self::B::c}{self::C};
-      {
-        core::print(c);
+    {
+      hoisted self::C c;
+      if(#2#0 is self::A) {
+        c = #2#0{self::A}.{self::A::b}{self::B}.{self::B::c}{self::C};
+        {
+          core::print(c);
+        }
       }
     }
   }
   {
-    hoisted core::int i;
     final synthesized dynamic #3#0 = o;
-    if(#3#0 is self::A) {
-      i = #3#0{self::A}.{self::A::b}{self::B}.{self::B::c}{self::C}.{self::C::i}{core::int};
-      {
-        core::print(i);
+    {
+      hoisted core::int i;
+      if(#3#0 is self::A) {
+        i = #3#0{self::A}.{self::A::b}{self::B}.{self::B::c}{self::C}.{self::C::i}{core::int};
+        {
+          core::print(i);
+        }
       }
     }
   }
   {
-    hoisted self::B b;
-    hoisted core::int i;
     final synthesized dynamic #4#0 = o;
-    if(#4#0 is self::A) {
-      b = #4#0{self::A}.{self::A::b}{self::B};
-      i = #4#0{self::A}.{self::A::i}{core::int};
-      {
-        core::print(b);
-        core::print(i);
+    {
+      hoisted self::B b;
+      hoisted core::int i;
+      if(#4#0 is self::A) {
+        b = #4#0{self::A}.{self::A::b}{self::B};
+        i = #4#0{self::A}.{self::A::i}{core::int};
+        {
+          core::print(b);
+          core::print(i);
+        }
       }
     }
   }
   {
-    hoisted self::B b;
     final synthesized dynamic #5#0 = o;
-    if(#5#0 is self::A && #C1 =={core::num::==}{(core::Object) → core::bool} #5#0{self::A}.{self::A::i}{core::int}) {
-      b = #5#0{self::A}.{self::A::b}{self::B};
-      {
+    {
+      hoisted self::B b;
+      if(#5#0 is self::A && #C1 =={core::num::==}{(core::Object) → core::bool} #5#0{self::A}.{self::A::i}{core::int}) {
+        b = #5#0{self::A}.{self::A::b}{self::B};
+        {
+          core::print(b);
+        }
+      }
+    }
+  }
+  {
+    final synthesized dynamic #6#0 = o;
+    {
+      hoisted self::B b;
+      if(#6#0 is self::A && (let final self::B #t1 = b = #6#0{self::A}.{self::A::b}{self::B} in true) && #C1 =={core::num::==}{(core::Object) → core::bool} #6#0{self::A}.{self::A::i}{core::int}) {
         core::print(b);
       }
     }
   }
   {
-    hoisted self::B b;
-    final synthesized dynamic #6#0 = o;
-    if(#6#0 is self::A && (let final self::B #t1 = b = #6#0{self::A}.{self::A::b}{self::B} in true) && #C1 =={core::num::==}{(core::Object) → core::bool} #6#0{self::A}.{self::A::i}{core::int}) {
-      core::print(b);
-    }
-  }
-  {
-    hoisted self::B b;
-    hoisted self::C c;
     final synthesized dynamic #7#0 = o;
     synthesized self::B #7#2;
     synthesized core::bool #7#2#isSet = false;
-    if(#7#0 is self::A && (let final self::B #t2 = b = #7#2#isSet ?{self::B} #7#2{self::B} : let final core::bool* #t3 = #7#2#isSet = true in #7#2 = #7#0{self::A}.{self::A::b}{self::B} in true) && #C1 =={core::num::==}{(core::Object) → core::bool} #7#0{self::A}.{self::A::i}{core::int} && ((let final self::C #t4 = c = (#7#2#isSet ?{self::B} #7#2{self::B} : let final core::bool* #t5 = #7#2#isSet = true in #7#2 = #7#0{self::A}.{self::A::b}{self::B}).{self::B::c}{self::C} in true) && #C2 =={core::num::==}{(core::Object) → core::bool} (#7#2#isSet ?{self::B} #7#2{self::B} : let final core::bool* #t6 = #7#2#isSet = true in #7#2 = #7#0{self::A}.{self::A::b}{self::B}).{self::B::i}{core::int})) {
-      core::print(b);
-      core::print(c);
+    {
+      hoisted self::B b;
+      hoisted self::C c;
+      if(#7#0 is self::A && (let final self::B #t2 = b = #7#2#isSet ?{self::B} #7#2{self::B} : let final core::bool* #t3 = #7#2#isSet = true in #7#2 = #7#0{self::A}.{self::A::b}{self::B} in true) && #C1 =={core::num::==}{(core::Object) → core::bool} #7#0{self::A}.{self::A::i}{core::int} && ((let final self::C #t4 = c = (#7#2#isSet ?{self::B} #7#2{self::B} : let final core::bool* #t5 = #7#2#isSet = true in #7#2 = #7#0{self::A}.{self::A::b}{self::B}).{self::B::c}{self::C} in true) && #C2 =={core::num::==}{(core::Object) → core::bool} (#7#2#isSet ?{self::B} #7#2{self::B} : let final core::bool* #t6 = #7#2#isSet = true in #7#2 = #7#0{self::A}.{self::A::b}{self::B}).{self::B::i}{core::int})) {
+        core::print(b);
+        core::print(c);
+      }
     }
   }
 }

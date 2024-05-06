@@ -6,4 +6,4 @@ part of "internal_patch.dart";
 
 @patch
 void printToConsole(String line) =>
-    JS<void>('s => console.log(stringFromDartString(s))');
+    JS<void>('s => printToConsole(stringFromDartString(s))');

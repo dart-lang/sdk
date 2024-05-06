@@ -13,7 +13,7 @@ import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import 'package:compiler/src/util/memory_compiler.dart';
 
 const String CODE = """
-class A {}
+mixin class A {}
 class B extends A {}
 class C extends A {}
 
@@ -24,7 +24,7 @@ class F extends E {}
 class G implements E {}
 
 class H {}
-class I implements H {}
+mixin class I implements H {}
 class J extends D implements I {}
 
 class K {}
@@ -43,7 +43,7 @@ main() {
     CompilationResult result =
         await runCompiler(memorySourceFiles: {'main.dart': CODE});
     Expect.isTrue(result.isSuccess);
-    Compiler compiler = result.compiler;
+    Compiler compiler = result.compiler!;
     JClosedWorld world = compiler.backendClosedWorldForTesting!;
     ElementEnvironment elementEnvironment = world.elementEnvironment;
     final commonMasks = world.abstractValueDomain as CommonMasks;

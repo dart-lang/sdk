@@ -21,14 +21,25 @@ class Bar {
 }
 
 const Foo foo1 = const Foo(1);
+
 const Foo foo2 = const Foo(0);
+
 const Foo foo3 = const Foo.withMessage(42);
+
 const Foo foo4 = const Foo.withInvalidMessage(42);
+
 const Foo foo5 = const Foo.withInvalidCondition(42);
+
 const Bar bar1 = const Bar.withMessage(1);
+
 const Bar bar2 = const Bar.withMessage(0);
+
 const Bar bar3 = const Bar.withoutMessage(1);
+
 const Bar bar4 = const Bar.withoutMessage(0);
+
 const Bar bar5 = const Bar.withEmptyMessage(1);
+
 const Bar bar6 = const Bar.withEmptyMessage(0);
+
 main() {}

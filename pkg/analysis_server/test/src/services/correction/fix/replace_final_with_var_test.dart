@@ -13,6 +13,7 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReplaceFinalWithVarBulkTest);
     defineReflectiveTests(ReplaceFinalWithVarTest);
+    defineReflectiveTests(ReplaceFinalWithVarTypedRemoveTest);
   });
 }
 
@@ -32,7 +33,7 @@ void f() {
 ''');
     await assertHasFix('''
 void f() {
-  final int a = 1;
+  int a = 1;
   var b = 1;
   var c = 1;
   print(a + b + c);
@@ -48,6 +49,16 @@ class ReplaceFinalWithVarTest extends FixProcessorLintTest {
 
   @override
   String get lintCode => LintNames.unnecessary_final;
+
+  Future<void> test_function_variableTyped() async {
+    await resolveTestCode('''
+void f() {
+  final int a = 1;
+  print(a);
+}
+''');
+    await assertNoFix();
+  }
 
   /// https://github.com/dart-lang/sdk/issues/51864
   Future<void> test_listPattern_assignment() async {
@@ -113,5 +124,39 @@ f() {
   print('$a$b');
 }
 ''');
+  }
+}
+
+@reflectiveTest
+class ReplaceFinalWithVarTypedRemoveTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.REMOVE_UNNECESSARY_FINAL;
+
+  @override
+  String get lintCode => LintNames.unnecessary_final;
+
+  Future<void> test_function_variableTyped() async {
+    await resolveTestCode('''
+void f() {
+  final int a = 1;
+  print(a);
+}
+''');
+    await assertHasFix('''
+void f() {
+  int a = 1;
+  print(a);
+}
+''');
+  }
+
+  Future<void> test_function_variableUntyped() async {
+    await resolveTestCode('''
+void f() {
+  final a = 1;
+  print(a);
+}
+''');
+    await assertNoFix();
   }
 }

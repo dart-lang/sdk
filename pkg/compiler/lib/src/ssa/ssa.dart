@@ -69,7 +69,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
         globalInferenceResults.closedWorld,
         _globalInferenceResults.globalLocalsMap);
     _codegen = codegen;
-    _builder.onCodegenStart();
+    _builder.onCodegenStart(globalInferenceResults.closedWorld);
   }
 
   /// Generates JavaScript code for [member].
@@ -96,8 +96,8 @@ class SsaFunctionCompiler implements FunctionCompiler {
       return registry.close(null);
     }
 
-    final graph = _builder.build(member, closedWorld, inferenceResults,
-        _codegen, registry, namer, emitter);
+    final graph = _builder.build(
+        member, inferenceResults, _codegen, registry, namer, emitter);
     if (graph == null) {
       return registry.close(null);
     }
@@ -322,7 +322,6 @@ abstract class SsaBuilder {
   /// for [member].
   HGraph? build(
       MemberEntity member,
-      JClosedWorld closedWorld,
       GlobalTypeInferenceResults globalInferenceResults,
       CodegenInputs codegen,
       CodegenRegistry registry,
@@ -346,9 +345,9 @@ class SsaBuilderTask extends CompilerTask {
   @override
   String get name => 'SSA builder';
 
-  void onCodegenStart() {
-    _builder =
-        _backendStrategy.createSsaBuilder(this, _sourceInformationFactory);
+  void onCodegenStart(JClosedWorld _closedWorld) {
+    _builder = _backendStrategy.createSsaBuilder(
+        this, _closedWorld, _sourceInformationFactory);
     metrics = _ssaMetrics;
   }
 
@@ -356,13 +355,12 @@ class SsaBuilderTask extends CompilerTask {
   /// for [member].
   HGraph? build(
       MemberEntity member,
-      JClosedWorld closedWorld,
       GlobalTypeInferenceResults globalInferenceResults,
       CodegenInputs codegen,
       CodegenRegistry registry,
       ModularNamer namer,
       ModularEmitter emitter) {
-    return _builder.build(member, closedWorld, globalInferenceResults, codegen,
-        registry, namer, emitter);
+    return _builder.build(
+        member, globalInferenceResults, codegen, registry, namer, emitter);
   }
 }

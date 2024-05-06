@@ -7,4 +7,5 @@ class C {
 class D<T> {}
 
 main() {}
+
 var f = C.f<int>();

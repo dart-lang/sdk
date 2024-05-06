@@ -60,6 +60,9 @@ class ClientDynamicRegistrations {
   bool get codeActions =>
       _capabilities.textDocument?.codeAction?.dynamicRegistration ?? false;
 
+  bool get codeLens =>
+      _capabilities.textDocument?.codeLens?.dynamicRegistration ?? false;
+
   bool get colorProvider =>
       _capabilities.textDocument?.colorProvider?.dynamicRegistration ?? false;
 
@@ -138,6 +141,7 @@ class ServerCapabilitiesComputer {
 
   /// List of current registrations.
   Set<Registration> currentRegistrations = {};
+
   var _lastRegistrationId = 0;
 
   ServerCapabilitiesComputer(this._server);
@@ -159,12 +163,8 @@ class ServerCapabilitiesComputer {
   ServerCapabilities computeServerCapabilities(
     LspClientCapabilities clientCapabilities,
   ) {
-    final context = RegistrationContext(
-      clientCapabilities: clientCapabilities,
-      clientConfiguration: _server.lspClientConfiguration,
-      pluginTypes: pluginTypes,
-    );
-    final features = LspFeatures(context);
+    var context = _createRegistrationContext();
+    var features = LspFeatures(context);
 
     return ServerCapabilities(
       textDocumentSync: features.textDocumentSync.staticRegistration,
@@ -179,6 +179,7 @@ class ServerCapabilitiesComputer {
       documentHighlightProvider: features.documentHighlight.staticRegistration,
       documentSymbolProvider: features.documentSymbol.staticRegistration,
       codeActionProvider: features.codeActions.staticRegistration,
+      codeLensProvider: features.codeLens.staticRegistration,
       colorProvider: features.colors.staticRegistration,
       documentFormattingProvider: features.format.staticRegistration,
       documentOnTypeFormattingProvider:
@@ -204,6 +205,21 @@ class ServerCapabilitiesComputer {
               )
             : null,
       ),
+      experimental: {
+        if (clientCapabilities
+            .supportsDartExperimentalTextDocumentContentProvider)
+          'dartTextDocumentContentProvider':
+              features.dartTextDocumentContentProvider.staticRegistration,
+        'textDocument': {
+          // These properties can be used by the client to know that we support
+          // custom methods like `dart/textDocument/augmented`.
+          //
+          // These fields are objects to allow for future expansion.
+          'super': {},
+          'augmented': {},
+          'augmentation': {},
+        },
+      },
     );
   }
 
@@ -215,12 +231,7 @@ class ServerCapabilitiesComputer {
   /// support and it will be up to them to decide which file types they will
   /// send requests for.
   Future<void> performDynamicRegistration() async {
-    final context = RegistrationContext(
-      clientCapabilities: _server.lspClientCapabilities!,
-      clientConfiguration: _server.lspClientConfiguration,
-      pluginTypes: pluginTypes,
-    );
-    final features = LspFeatures(context);
+    final features = LspFeatures(_createRegistrationContext());
     final registrations = <Registration>[];
 
     // Collect dynamic registrations for all features.
@@ -310,5 +321,21 @@ class ServerCapabilitiesComputer {
     // method between them.
     await unregistrationRequest;
     await registrationRequest;
+  }
+
+  RegistrationContext _createRegistrationContext() {
+    return RegistrationContext(
+      clientCapabilities: _server.lspClientCapabilities!,
+      clientConfiguration: _server.lspClientConfiguration,
+      customDartSchemes: _server.uriConverter.supportedNonFileSchemes,
+      dartFilters: [
+        for (var scheme in {
+          'file',
+          ..._server.uriConverter.supportedNonFileSchemes
+        })
+          TextDocumentFilterWithScheme(language: 'dart', scheme: scheme)
+      ],
+      pluginTypes: pluginTypes,
+    );
   }
 }

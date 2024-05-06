@@ -61,8 +61,6 @@ class Import {
       : prefixBuilder = createPrefixBuilder(prefix, importer, imported,
             combinators, deferred, charOffset, prefixCharOffset, importIndex);
 
-  Uri get fileUri => importer.fileUri;
-
   void finalizeImports(SourceLibraryBuilder importer) {
     if (nativeImportPath != null) return;
     void Function(String, Builder) add;

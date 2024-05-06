@@ -1,6 +1,7 @@
 library test;
 
 var x = null;
+
 var y = 3;
 
 class A {

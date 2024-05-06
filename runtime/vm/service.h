@@ -18,7 +18,7 @@
 namespace dart {
 
 #define SERVICE_PROTOCOL_MAJOR_VERSION 4
-#define SERVICE_PROTOCOL_MINOR_VERSION 13
+#define SERVICE_PROTOCOL_MINOR_VERSION 15
 
 class Array;
 class EmbedderServiceHandler;
@@ -199,7 +199,7 @@ class Service : public AllStatic {
     return stream_cancel_callback_;
   }
 
-  static void PrintJSONForEmbedderInformation(JSONObject *jsobj);
+  static void PrintJSONForEmbedderInformation(JSONObject* jsobj);
   static void PrintJSONForVM(JSONStream* js, bool ref);
 
   static void CheckForPause(Isolate* isolate, JSONStream* stream);

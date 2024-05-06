@@ -57,28 +57,6 @@ extension on WasmArray<String> {
   bool get isNotEmpty => length != 0;
 }
 
-// TODO: Remove any occurence of `List`s in this file.
-extension on List<_Type> {
-  @pragma("wasm:prefer-inline")
-  WasmArray<_Type> toWasmArray() {
-    if (isEmpty) return const WasmArray<_Type>.literal(<_Type>[]);
-    final result = WasmArray<_Type>.filled(length, this[0]);
-    for (int i = 1; i < length; ++i) {
-      result[i] = this[i];
-    }
-    return result;
-  }
-}
-
-// Direct getter to bypass the covariance check and the bounds check when
-// indexing into a Dart list. This makes the indexing more efficient and avoids
-// performing type checks while performing type checks.
-extension _BypassListIndexingChecks<T> on List<T> {
-  @pragma("wasm:prefer-inline")
-  T _getUnchecked(int index) =>
-      unsafeCast(unsafeCast<_ListBase<T>>(this)._data[index]);
-}
-
 // TODO(joshualitt): We can cache the result of [_FutureOrType.asFuture].
 abstract class _Type implements Type {
   final bool isDeclaredNullable;
@@ -325,7 +303,7 @@ class _InterfaceType extends _Type {
   @override
   String toString() {
     StringBuffer s = StringBuffer();
-    s.write(_getTypeNames()[classId]);
+    s.write(_getTypeNames()?[classId] ?? 'minified:Class${classId}');
     if (typeArguments.isNotEmpty) {
       s.write("<");
       for (int i = 0; i < typeArguments.length; i++) {
@@ -402,6 +380,7 @@ class _FunctionType extends _Type {
   // representations that don't have this overhead in the common case.
   final int typeParameterOffset;
   final WasmArray<_Type> typeParameterBounds;
+  @pragma("wasm:entry-point")
   final WasmArray<_Type> typeParameterDefaults;
   final _Type returnType;
   final WasmArray<_Type> positionalParameters;
@@ -434,7 +413,7 @@ class _FunctionType extends _Type {
   bool _checkInstance(Object o) {
     if (ClassID.getID(o) != ClassID.cid_Closure) return false;
     return _typeUniverse.isFunctionSubtype(
-        _getFunctionRuntimeType(unsafeCast(o)), null, this, null);
+        _Closure._getClosureRuntimeType(unsafeCast(o)), null, this, null);
   }
 
   bool operator ==(Object o) {
@@ -536,7 +515,7 @@ class _AbstractRecordType extends _Type {
 
   @override
   bool _checkInstance(Object o) {
-    return _isRecordInstance(o);
+    return _isRecordClassId(ClassID.getID(o));
   }
 
   @override
@@ -558,7 +537,8 @@ class _RecordType extends _Type {
 
   @override
   bool _checkInstance(Object o) {
-    return _typeUniverse.isSubtype(_getActualRuntimeType(o), null, this, null);
+    if (!_isRecordClassId(ClassID.getID(o))) return false;
+    return unsafeCast<Record>(o)._checkRecordType(fieldTypes, names);
   }
 
   @override
@@ -623,7 +603,7 @@ class _RecordType extends _Type {
 
 external WasmArray<WasmArray<WasmI32>> _getTypeRulesSupers();
 external WasmArray<WasmArray<WasmArray<_Type>>> _getTypeRulesSubstitutions();
-external WasmArray<String> _getTypeNames();
+external WasmArray<String>? _getTypeNames();
 
 /// Type parameter environment used while comparing function types.
 ///
@@ -750,6 +730,16 @@ class _TypeUniverse {
       assert(rootFunction == null);
       return substituteInterfaceTypeParameter(
           type.as<_InterfaceTypeParameterType>(), substitutions);
+    } else if (type.isRecord) {
+      final recordType = type.as<_RecordType>();
+      final fieldTypes = WasmArray<_Type>.filled(
+          recordType.fieldTypes.length, _literal<dynamic>());
+      for (int i = 0; i < recordType.fieldTypes.length; i++) {
+        fieldTypes[i] = substituteTypeArgument(
+            recordType.fieldTypes[i], substitutions, rootFunction);
+      }
+      return _RecordType(
+          recordType.names, fieldTypes, recordType.isDeclaredNullable);
     } else if (type.isFunction) {
       _FunctionType functionType = type.as<_FunctionType>();
       bool isRoot = identical(type, rootFunction);
@@ -1174,16 +1164,12 @@ class _TypeCheckVerificationError extends Error {
 ///
 /// [namedArguments] is a list of `Symbol` and `Object?` pairs.
 @pragma("wasm:entry-point")
-bool _checkClosureShape(_FunctionType functionType, List<_Type> typeArguments,
-    List<Object?> positionalArguments, List<dynamic> namedArguments) {
-  // Check type args, add default types to the type list if its empty
-  if (typeArguments.isEmpty) {
-    final defaults = functionType.typeParameterDefaults;
-    for (int i = 0; i < defaults.length; ++i) {
-      typeArguments.add(defaults[i]);
-    }
-  } else if (typeArguments.length !=
-      functionType.typeParameterDefaults.length) {
+bool _checkClosureShape(
+    _FunctionType functionType,
+    WasmArray<_Type> typeArguments,
+    WasmArray<Object?> positionalArguments,
+    WasmArray<dynamic> namedArguments) {
+  if (typeArguments.length != functionType.typeParameterDefaults.length) {
     return false;
   }
 
@@ -1208,8 +1194,7 @@ bool _checkClosureShape(_FunctionType functionType, List<_Type> typeArguments,
       continue;
     }
 
-    String argName = _symbolToString(
-        namedArguments._getUnchecked(namedArgIdx * 2) as Symbol);
+    String argName = _symbolToString(namedArguments[namedArgIdx * 2] as Symbol);
 
     final cmp = argName.compareTo(param.name);
 
@@ -1246,16 +1231,18 @@ bool _checkClosureShape(_FunctionType functionType, List<_Type> typeArguments,
 ///
 /// [namedArguments] is a list of `Symbol` and `Object?` pairs.
 @pragma("wasm:entry-point")
-void _checkClosureType(_FunctionType functionType, List<_Type> typeArguments,
-    List<Object?> positionalArguments, List<dynamic> namedArguments) {
+void _checkClosureType(
+    _FunctionType functionType,
+    WasmArray<_Type> typeArguments,
+    WasmArray<Object?> positionalArguments,
+    WasmArray<dynamic> namedArguments) {
   assert(functionType.typeParameterBounds.length == typeArguments.length);
 
   if (!typeArguments.isEmpty) {
-    final typesAsArray = typeArguments.toWasmArray();
-    for (int i = 0; i < typesAsArray.length; i += 1) {
-      final typeArgument = typesAsArray[i];
+    for (int i = 0; i < typeArguments.length; i += 1) {
+      final typeArgument = typeArguments[i];
       final paramBound = _TypeUniverse.substituteTypeArgument(
-          functionType.typeParameterBounds[i], typesAsArray, functionType);
+          functionType.typeParameterBounds[i], typeArguments, functionType);
       if (!_typeUniverse.isSubtype(typeArgument, null, paramBound, null)) {
         final stackTrace = StackTrace.current;
         final typeError = _TypeError.fromMessageAndStackTrace(
@@ -1267,12 +1254,12 @@ void _checkClosureType(_FunctionType functionType, List<_Type> typeArguments,
     }
 
     functionType = _TypeUniverse.substituteFunctionTypeArgument(
-        functionType, typesAsArray);
+        functionType, typeArguments);
   }
 
   // Check positional arguments
   for (int i = 0; i < positionalArguments.length; i += 1) {
-    final Object? arg = positionalArguments._getUnchecked(i);
+    final Object? arg = positionalArguments[i];
     final _Type paramTy = functionType.positionalParameters[i];
     if (!_isSubtype(arg, paramTy)) {
       // TODO(50991): Positional parameter names not available in runtime
@@ -1286,10 +1273,10 @@ void _checkClosureType(_FunctionType functionType, List<_Type> typeArguments,
   int namedParamIdx = 0;
   int namedArgIdx = 0;
   while (namedArgIdx * 2 < namedArguments.length) {
-    final String argName = _symbolToString(
-        namedArguments._getUnchecked(namedArgIdx * 2) as Symbol);
+    final String argName =
+        _symbolToString(namedArguments[namedArgIdx * 2] as Symbol);
     if (argName == functionType.namedParameters[namedParamIdx].name) {
-      final arg = namedArguments._getUnchecked(namedArgIdx * 2 + 1);
+      final arg = namedArguments[namedArgIdx * 2 + 1];
       final paramTy = functionType.namedParameters[namedParamIdx].type;
       if (!_isSubtype(arg, paramTy)) {
         _TypeError._throwArgumentTypeCheckError(
@@ -1303,20 +1290,131 @@ void _checkClosureType(_FunctionType functionType, List<_Type> typeArguments,
   }
 }
 
-@pragma("wasm:entry-point")
-external _Type _getActualRuntimeType(Object object);
+_Type _getActualRuntimeType(Object object) {
+  final classId = ClassID.getID(object);
+
+  if (_isObjectClassId(classId)) return _literal<Object>();
+  if (_isRecordClassId(classId)) {
+    return Record._getMasqueradedRecordRuntimeType(unsafeCast<Record>(object));
+  }
+  if (_isClosureClassId(classId)) {
+    return _Closure._getClosureRuntimeType(unsafeCast<_Closure>(object));
+  }
+  return _InterfaceType(classId, false, Object._getTypeArguments(object));
+}
 
 @pragma("wasm:prefer-inline")
 _Type _getActualRuntimeTypeNullable(Object? object) =>
     object == null ? _literal<Null>() : _getActualRuntimeType(object);
 
 @pragma("wasm:entry-point")
-external _Type _getMasqueradedRuntimeType(Object object);
+_Type _getMasqueradedRuntimeType(Object object) {
+  final classId = ClassID.getID(object);
+
+  // Fast path: Most usages of `.runtimeType` may be on user-defined classes
+  // (e.g. `Widget.runtimeType`, ...)
+  if (ClassID.firstNonMasqueradedInterfaceClassCid <= classId) {
+    // Non-masqueraded interface type.
+    return _InterfaceType(classId, false, Object._getTypeArguments(object));
+  }
+
+  if (_isObjectClassId(classId)) return _literal<Object>();
+  if (_isRecordClassId(classId)) {
+    return Record._getMasqueradedRecordRuntimeType(unsafeCast<Record>(object));
+  }
+  if (_isClosureClassId(classId)) {
+    return _Closure._getClosureRuntimeType(unsafeCast<_Closure>(object));
+  }
+
+  // The object is a normal instance of a class (not function or record).
+
+  const bool isJsCompatibility =
+      bool.fromEnvironment('dart.wasm.js_compatibility');
+
+  // This method is not used in the RTT implementation, it's purely used for
+  // producing `Type` objects for `<obj>.runtimeType`.
+  //
+  // => We can use normal `is` checks in here that will be desugared to class-id
+  //    range checks.
+
+  if (object is bool) return _literal<bool>();
+  if (object is int) return _literal<int>();
+  if (object is double) return _literal<double>();
+  if (object is _Type) return _literal<Type>();
+  if (object is _ListBase) {
+    return _InterfaceType(
+        ClassID.cidList, false, Object._getTypeArguments(object));
+  }
+
+  if (isJsCompatibility) {
+    if (object is String) return _literal<String>();
+    if (object is TypedData) {
+      if (object is ByteData) return _literal<ByteData>();
+      if (object is Int8List) return _literal<Int8List>();
+      if (object is Uint8List) return _literal<Uint8List>();
+      if (object is Uint8ClampedList) return _literal<Uint8ClampedList>();
+      if (object is Int16List) return _literal<Int16List>();
+      if (object is Uint16List) return _literal<Uint16List>();
+      if (object is Int32List) return _literal<Int32List>();
+      if (object is Uint32List) return _literal<Uint32List>();
+      if (object is Int64List) return _literal<Int64List>();
+      if (object is Uint64List) return _literal<Uint64List>();
+      if (object is Float32List) return _literal<Float32List>();
+      if (object is Float64List) return _literal<Float64List>();
+      if (object is Int32x4List) return _literal<Int32x4List>();
+      if (object is Float32x4List) return _literal<Float32x4List>();
+      if (object is Float64x2List) return _literal<Float64x2List>();
+    }
+    if (object is ByteBuffer) return _literal<ByteBuffer>();
+    if (object is Float32x4) return _literal<Float32x4>();
+    if (object is Float64x2) return _literal<Float64x2>();
+    if (object is Int32x4) return _literal<Int32x4>();
+  } else {
+    if (object is WasmStringBase) return _literal<String>();
+    if (object is WasmTypedDataBase) {
+      if (object is ByteData) return _literal<ByteData>();
+      if (object is Int8List) return _literal<Int8List>();
+      if (object is Uint8List) return _literal<Uint8List>();
+      if (object is Uint8ClampedList) return _literal<Uint8ClampedList>();
+      if (object is Int16List) return _literal<Int16List>();
+      if (object is Uint16List) return _literal<Uint16List>();
+      if (object is Int32List) return _literal<Int32List>();
+      if (object is Uint32List) return _literal<Uint32List>();
+      if (object is Int64List) return _literal<Int64List>();
+      if (object is Uint64List) return _literal<Uint64List>();
+      if (object is Float32List) return _literal<Float32List>();
+      if (object is Float64List) return _literal<Float64List>();
+      if (object is Int32x4List) return _literal<Int32x4List>();
+      if (object is Float32x4List) return _literal<Float32x4List>();
+      if (object is Float64x2List) return _literal<Float64x2List>();
+      if (object is ByteBuffer) return _literal<ByteBuffer>();
+      if (object is Float32x4) return _literal<Float32x4>();
+      if (object is Float64x2) return _literal<Float64x2>();
+      if (object is Int32x4) return _literal<Int32x4>();
+    }
+  }
+
+  // Non-masqueraded interface type.
+  return _InterfaceType(classId, false, Object._getTypeArguments(object));
+}
 
 @pragma("wasm:prefer-inline")
 _Type _getMasqueradedRuntimeTypeNullable(Object? object) =>
     object == null ? _literal<Null>() : _getMasqueradedRuntimeType(object);
 
-external _FunctionType _getFunctionRuntimeType(Function f);
+external bool _isObjectClassId(int classId);
+external bool _isClosureClassId(int classId);
+external bool _isRecordClassId(int classId);
 
-external bool _isRecordInstance(Object o);
+// Used by the generated code to compare types captured by instantiation
+// closures. Because we don't have a way of forcing adding a member the
+// dispatch table (like the entry-point pragma) we can't generate a virtual
+// call to `_Type.==` directly in the generated code.
+@pragma("wasm:entry-point")
+@pragma("wasm:prefer-inline")
+bool _runtimeTypeEquals(_Type t1, _Type t2) => t1 == t2;
+
+// Same as [_RuntimeTypeEquals], but for `Object.hashCode`.
+@pragma("wasm:entry-point")
+@pragma("wasm:prefer-inline")
+int _runtimeTypeHashCode(_Type t) => t.hashCode;

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -33,27 +32,6 @@ class WrongNumberOfParametersForOperatorTest extends PubPackageResolutionTest {
     await _checkTooFewAndTooMany('>>');
     await _checkTooFewAndTooMany('>>>');
     await _checkTooFewAndTooMany('[]');
-  }
-
-  test_compound_assignment_ok_in_legacy_code() async {
-    // Prior to the fix for https://github.com/dart-lang/sdk/issues/46569,
-    // attempting to use a binary operator with no args as part of a compound
-    // assignment would crash the analyzer.  Check that the crash no longer
-    // occurs.
-    noSoundNullSafety = false;
-    await assertErrorsInCode('''
-// @dart=2.9
-class C {
-  C operator+() => C();
-}
-
-void f(C c) {
-  c += 1;
-}
-''', [
-      error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR, 35, 1),
-    ]);
   }
 
   test_correct_number_of_parameters_binary() async {

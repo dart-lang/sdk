@@ -1,5 +1,7 @@
 int? method() => null;
+
 late var nonNullableTopLevelField = 0;
+
 late var nullableTopLevelField = method();
 
 class A {

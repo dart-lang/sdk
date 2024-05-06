@@ -17,4 +17,5 @@ class Foo<T> {
 }
 
 main() {}
+
 typedef V F<U, V>(U u);

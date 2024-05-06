@@ -6,6 +6,7 @@ import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
+import 'package:analysis_server/src/services/correction/fix_processor.dart';
 import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
@@ -26,6 +27,10 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
 
   late SourceChange _change;
   late String _resultCode;
+
+  /// A mapping of [ProducerGenerator]s to the set of lint names with which they
+  /// are associated (can fix).
+  late Map<ProducerGenerator, Set<String>> _producerGeneratorsForLintRules;
 
   /// Return the kind of assist expected by this class.
   AssistKind get kind;
@@ -177,6 +182,7 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
   void setUp() {
     super.setUp();
     useLineEndingsForPlatform = true;
+    _producerGeneratorsForLintRules = AssistProcessor.computeLintRuleMap();
   }
 
   /// Computes assists and verifies that there is an assist of the given kind.
@@ -195,6 +201,7 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
       TestInstrumentationService(),
       await workspace,
       testAnalysisResult,
+      _producerGeneratorsForLintRules,
       _offset,
       _length,
     );

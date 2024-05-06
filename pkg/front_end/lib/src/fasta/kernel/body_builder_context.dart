@@ -49,6 +49,12 @@ abstract class BodyBuilderContext {
       : _declarationContext = new BodyBuilderDeclarationContext(
             libraryBuilder, declarationBuilder);
 
+  bool get hasImmediateOutlineExpressionsBuilt;
+
+  bool get needsImmediateValuesBuiltAsOutlineExpressions;
+
+  bool get hasFormalParameters;
+
   String get memberName {
     throw new UnsupportedError('${runtimeType}.memberName');
   }
@@ -82,7 +88,7 @@ abstract class BodyBuilderContext {
     return _declarationContext.lookupLocalMember(name, required: required);
   }
 
-  bool get isPatchClass => _declarationContext.isPatchClass;
+  bool get isAugmentationClass => _declarationContext.isAugmentationClass;
 
   Builder? lookupStaticOriginMember(String name, int charOffset, Uri uri) {
     return _declarationContext.lookupStaticOriginMember(name, charOffset, uri);
@@ -267,7 +273,7 @@ abstract class BodyBuilderDeclarationContext {
 
   Builder? lookupLocalMember(String name, {bool required = false});
 
-  bool get isPatchClass => false;
+  bool get isAugmentationClass => false;
 
   Builder? lookupStaticOriginMember(String name, int charOffset, Uri uri) {
     throw new UnsupportedError('${runtimeType}.lookupStaticOriginMember');
@@ -363,11 +369,11 @@ class _SourceClassBodyBuilderDeclarationContext
   }
 
   @override
-  bool get isPatchClass => _sourceClassBuilder.isPatch;
+  bool get isAugmentationClass => _sourceClassBuilder.isAugmenting;
 
   @override
   Builder? lookupStaticOriginMember(String name, int charOffset, Uri uri) {
-    // The scope of a patched method includes the origin class.
+    // The scope of an augmented method includes the origin class.
     return _sourceClassBuilder.origin
         .findStaticBuilder(name, charOffset, uri, _libraryBuilder);
   }
@@ -486,6 +492,22 @@ class _TopLevelBodyBuilderDeclarationContext
 class LibraryBodyBuilderContext extends BodyBuilderContext {
   LibraryBodyBuilderContext(SourceLibraryBuilder libraryBuilder)
       : super(libraryBuilder, null, isDeclarationInstanceMember: false);
+
+  @override
+  bool get needsImmediateValuesBuiltAsOutlineExpressions {
+    // Libraries don't have immediate values.
+    return false;
+  }
+
+  @override
+  bool get hasImmediateOutlineExpressionsBuilt {
+    // Libraries don't have immediate values relevant in outlines, so all of
+    // them from the empty set can be assumed to have been processed.
+    return true;
+  }
+
+  @override
+  bool get hasFormalParameters => false;
 }
 
 mixin _DeclarationBodyBuilderContext<T extends DeclarationBuilder>
@@ -501,6 +523,22 @@ class ClassBodyBuilderContext extends BodyBuilderContext
   ClassBodyBuilderContext(SourceClassBuilder sourceClassBuilder)
       : super(sourceClassBuilder.libraryBuilder, sourceClassBuilder,
             isDeclarationInstanceMember: false);
+
+  @override
+  bool get needsImmediateValuesBuiltAsOutlineExpressions {
+    // Classes don't have immediate values.
+    return false;
+  }
+
+  @override
+  bool get hasImmediateOutlineExpressionsBuilt {
+    // Classes don't have immediate values relevant in outlines, so all of
+    // them from the empty set can be assumed to have been processed.
+    return true;
+  }
+
+  @override
+  bool get hasFormalParameters => false;
 }
 
 class EnumBodyBuilderContext extends BodyBuilderContext
@@ -508,6 +546,22 @@ class EnumBodyBuilderContext extends BodyBuilderContext
   EnumBodyBuilderContext(SourceEnumBuilder sourceEnumBuilder)
       : super(sourceEnumBuilder.libraryBuilder, sourceEnumBuilder,
             isDeclarationInstanceMember: false);
+
+  @override
+  bool get needsImmediateValuesBuiltAsOutlineExpressions {
+    // Enums don't have immediate values relevant in outlines.
+    return false;
+  }
+
+  @override
+  bool get hasImmediateOutlineExpressionsBuilt {
+    // Enums don't have immediate values relevant in outlines, so all of
+    // them from the empty set can be assumed to have been processed.
+    return true;
+  }
+
+  @override
+  bool get hasFormalParameters => false;
 }
 
 class ExtensionBodyBuilderContext extends BodyBuilderContext
@@ -515,6 +569,22 @@ class ExtensionBodyBuilderContext extends BodyBuilderContext
   ExtensionBodyBuilderContext(SourceExtensionBuilder sourceExtensionBuilder)
       : super(sourceExtensionBuilder.libraryBuilder, sourceExtensionBuilder,
             isDeclarationInstanceMember: false);
+
+  @override
+  bool get needsImmediateValuesBuiltAsOutlineExpressions {
+    // Extensions don't have immediate values.
+    return false;
+  }
+
+  @override
+  bool get hasImmediateOutlineExpressionsBuilt {
+    // Extensions don't have immediate values relevant in outlines, so all of
+    // them from the empty set can be assumed to have been processed.
+    return true;
+  }
+
+  @override
+  bool get hasFormalParameters => false;
 }
 
 class ExtensionTypeBodyBuilderContext extends BodyBuilderContext
@@ -525,12 +595,45 @@ class ExtensionTypeBodyBuilderContext extends BodyBuilderContext
       : super(sourceExtensionTypeDeclarationBuilder.libraryBuilder,
             sourceExtensionTypeDeclarationBuilder,
             isDeclarationInstanceMember: false);
+
+  @override
+  bool get needsImmediateValuesBuiltAsOutlineExpressions {
+    // Extension type declarations don't have immediate values.
+    return false;
+  }
+
+  @override
+  bool get hasImmediateOutlineExpressionsBuilt {
+    // Extension type declarations don't have immediate values relevant in
+    // outlines, so all of them from the empty set can be assumed to have been
+    // processed.
+    return true;
+  }
+
+  @override
+  bool get hasFormalParameters => false;
 }
 
 class TypedefBodyBuilderContext extends BodyBuilderContext {
   TypedefBodyBuilderContext(SourceTypeAliasBuilder sourceTypeAliasBuilder)
       : super(sourceTypeAliasBuilder.libraryBuilder, null,
             isDeclarationInstanceMember: false);
+
+  @override
+  bool get needsImmediateValuesBuiltAsOutlineExpressions {
+    // Typedefs don't have immediate values.
+    return false;
+  }
+
+  @override
+  bool get hasImmediateOutlineExpressionsBuilt {
+    // Typedefs don't have immediate values relevant in outlines, so all of
+    // them from the empty set can be assumed to have been processed.
+    return true;
+  }
+
+  @override
+  bool get hasFormalParameters => false;
 }
 
 mixin _MemberBodyBuilderContext<T extends SourceMemberBuilder>
@@ -589,6 +692,20 @@ class FieldBodyBuilderContext extends BodyBuilderContext
             ? ConstantContext.required
             : ConstantContext.none;
   }
+
+  @override
+  bool get needsImmediateValuesBuiltAsOutlineExpressions {
+    // Const field initializers are a part of outline.
+    return _member.isConst;
+  }
+
+  @override
+  bool get hasImmediateOutlineExpressionsBuilt {
+    return _member.hasOutlineExpressionsBuilt;
+  }
+
+  @override
+  bool get hasFormalParameters => false;
 }
 
 mixin _FunctionBodyBuilderContextMixin<T extends SourceFunctionBuilder>
@@ -687,6 +804,19 @@ class ProcedureBodyBuilderContext extends BodyBuilderContext
   ProcedureBodyBuilderContext(this._member)
       : super(_member.libraryBuilder, _member.declarationBuilder,
             isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
+
+  @override
+  bool get needsImmediateValuesBuiltAsOutlineExpressions {
+    return _member.needsDefaultValuesBuiltAsOutlineExpressions;
+  }
+
+  @override
+  bool get hasImmediateOutlineExpressionsBuilt {
+    return _member.hasBuiltOutlineExpressions;
+  }
+
+  @override
+  bool get hasFormalParameters => true;
 }
 
 mixin _ConstructorBodyBuilderContextMixin<T extends ConstructorDeclaration>
@@ -767,6 +897,22 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext
     return !_declarationContext.isObjectClass(coreTypes) &&
         !isExternalConstructor;
   }
+
+  @override
+  bool get needsImmediateValuesBuiltAsOutlineExpressions {
+    // For modular compilation we need to include default values for optional
+    // and named parameters generative constructors to support forwarding
+    // constructors in mixin applications.
+    return true;
+  }
+
+  @override
+  bool get hasImmediateOutlineExpressionsBuilt {
+    return _member.hasBuiltOutlineExpressions;
+  }
+
+  @override
+  bool get hasFormalParameters => true;
 }
 
 class ExtensionTypeConstructorBodyBuilderContext extends BodyBuilderContext
@@ -786,6 +932,22 @@ class ExtensionTypeConstructorBodyBuilderContext extends BodyBuilderContext
   bool isConstructorCyclic(String name) {
     return _declarationContext.isConstructorCyclic(_member.name, name);
   }
+
+  @override
+  bool get needsImmediateValuesBuiltAsOutlineExpressions {
+    // For modular compilation we need to include default values for optional
+    // and named parameters generative constructors to support forwarding
+    // constructors in mixin applications.
+    return true;
+  }
+
+  @override
+  bool get hasImmediateOutlineExpressionsBuilt {
+    return _member.hasBuiltOutlineExpressions;
+  }
+
+  @override
+  bool get hasFormalParameters => true;
 }
 
 class FactoryBodyBuilderContext extends BodyBuilderContext
@@ -808,6 +970,22 @@ class FactoryBodyBuilderContext extends BodyBuilderContext
   DartType get returnTypeContext {
     return _member.function.returnType;
   }
+
+  @override
+  bool get needsImmediateValuesBuiltAsOutlineExpressions {
+    // For modular compilation we need to include default values for optional
+    // and named parameters in several cases for const constructors to enable
+    // constant evaluation,
+    return _member.parent!.isFactory && _member.parent!.isConst;
+  }
+
+  @override
+  bool get hasImmediateOutlineExpressionsBuilt {
+    return _member.hasBuiltOutlineExpressions;
+  }
+
+  @override
+  bool get hasFormalParameters => true;
 }
 
 class RedirectingFactoryBodyBuilderContext extends BodyBuilderContext
@@ -828,6 +1006,22 @@ class RedirectingFactoryBodyBuilderContext extends BodyBuilderContext
   String get redirectingFactoryTargetName {
     return _member.redirectionTarget.fullNameForErrors;
   }
+
+  @override
+  bool get needsImmediateValuesBuiltAsOutlineExpressions {
+    // For modular compilation we need to include default values for optional
+    // and named parameters in several cases for const constructors to enable
+    // constant evaluation,
+    return _member.parent!.isFactory && _member.parent!.isConst;
+  }
+
+  @override
+  bool get hasImmediateOutlineExpressionsBuilt {
+    return _member.hasBuiltOutlineExpressions;
+  }
+
+  @override
+  bool get hasFormalParameters => true;
 }
 
 class ParameterBodyBuilderContext extends BodyBuilderContext {
@@ -846,6 +1040,21 @@ class ParameterBodyBuilderContext extends BodyBuilderContext {
       : super(libraryBuilder, declarationBuilder,
             isDeclarationInstanceMember:
                 formalParameterBuilder.isDeclarationInstanceMember);
+
+  @override
+  bool get needsImmediateValuesBuiltAsOutlineExpressions {
+    // Parameters are covered by their parents rather than individually.
+    return false;
+  }
+
+  @override
+  bool get hasImmediateOutlineExpressionsBuilt {
+    // Parameters are covered by their parents rather than individually.
+    return true;
+  }
+
+  @override
+  bool get hasFormalParameters => false;
 }
 
 class ExpressionCompilerProcedureBodyBuildContext extends BodyBuilderContext
@@ -858,4 +1067,20 @@ class ExpressionCompilerProcedureBodyBuildContext extends BodyBuilderContext
       {required bool isDeclarationInstanceMember})
       : super(listener.libraryBuilder, listener.currentDeclaration,
             isDeclarationInstanceMember: isDeclarationInstanceMember);
+
+  @override
+  bool get needsImmediateValuesBuiltAsOutlineExpressions {
+    // Expressions don't have immediate values relevant in outlines.
+    return false;
+  }
+
+  @override
+  bool get hasImmediateOutlineExpressionsBuilt {
+    // Expressions don't have immediate values relevant in outlines, so all of
+    // them from the empty set can be assumed to have been processed.
+    return true;
+  }
+
+  @override
+  bool get hasFormalParameters => false;
 }

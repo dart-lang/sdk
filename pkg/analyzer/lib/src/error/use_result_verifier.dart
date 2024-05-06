@@ -99,11 +99,17 @@ class UseResultVerifier {
 
     var message = _getUseResultMessage(annotation);
     if (message == null || message.isEmpty) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.UNUSED_RESULT, toAnnotate, [displayName]);
+      _errorReporter.atNode(
+        toAnnotate,
+        WarningCode.UNUSED_RESULT,
+        arguments: [displayName],
+      );
     } else {
-      _errorReporter.reportErrorForNode(WarningCode.UNUSED_RESULT_WITH_MESSAGE,
-          toAnnotate, [displayName, message]);
+      _errorReporter.atNode(
+        toAnnotate,
+        WarningCode.UNUSED_RESULT_WITH_MESSAGE,
+        arguments: [displayName, message],
+      );
     }
   }
 
@@ -162,7 +168,11 @@ class UseResultVerifier {
   static ElementAnnotation? _getUseResultMetadata(Element element) {
     // Implicit getters/setters.
     if (element.isSynthetic && element is PropertyAccessorElement) {
-      element = element.variable;
+      var variable = element.variable2;
+      if (variable == null) {
+        return null;
+      }
+      element = variable;
     }
     return element.metadata.firstWhereOrNull((e) => e.isUseResult);
   }

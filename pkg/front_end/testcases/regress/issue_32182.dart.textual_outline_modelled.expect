@@ -5,6 +5,7 @@ class A<T> {}
 class C extends A<self.A> with M {}
 
 main() {}
+
 mixin M {
   m() => 42;
 }

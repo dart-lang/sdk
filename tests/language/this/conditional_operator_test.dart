@@ -15,37 +15,27 @@ class B {
     : this?.namedConstructor()
     //^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_REFERENCE_TO_THIS
-    // [cfe] Expected an assignment after the field name.
-    //^^^^
     // [analyzer] SYNTACTIC_ERROR.MISSING_ASSIGNMENT_IN_INITIALIZER
     //^^^^^^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INITIALIZER_FOR_NON_EXISTENT_FIELD
-    // [error line 15, column 11, length 0]
-    // [cfe] Expected '.' before this.
+    // [cfe] Expected an assignment after the field name.
     //    ^^
     // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
+    // [cfe] Expected '.' before this.
     // [cfe] Expected an identifier, but got ''.
   ;
 
   test() {
     this?.field = 1;
-//  ^
-// [cfe] The receiver 'this' cannot be null.
 //      ^^
 // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     this?.field += 1;
-//  ^
-// [cfe] The receiver 'this' cannot be null.
 //      ^^
 // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     this?.field;
-//  ^
-// [cfe] The receiver 'this' cannot be null.
 //      ^^
 // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     this?.method();
-//  ^
-// [cfe] The receiver 'this' cannot be null.
 //      ^^
 // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   }

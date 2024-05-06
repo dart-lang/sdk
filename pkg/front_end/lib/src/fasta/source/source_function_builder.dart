@@ -121,9 +121,9 @@ abstract class SourceFunctionBuilder
 
   void becomeNative(SourceLoader loader);
 
-  bool checkPatch(SourceFunctionBuilder patch);
+  bool checkAugmentation(SourceFunctionBuilder augmentation);
 
-  void reportPatchMismatch(Builder patch);
+  void reportAugmentationMismatch(Builder augmentation);
 }
 
 /// Common base class for constructor and procedure builders.
@@ -468,14 +468,25 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
     function.returnType = type;
   }
 
-  bool _hasBuiltOutlineExpressions = false;
+  bool hasBuiltOutlineExpressions = false;
+
+  bool get needsDefaultValuesBuiltAsOutlineExpressions {
+    if (formals != null) {
+      for (FormalParameterBuilder formal in formals!) {
+        if (formal.needsDefaultValuesBuiltAsOutlineExpressions) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 
   @override
   void buildOutlineExpressions(
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
-    if (!_hasBuiltOutlineExpressions) {
+    if (!hasBuiltOutlineExpressions) {
       DeclarationBuilder? classOrExtensionBuilder =
           isClassMember || isExtensionMember || isExtensionTypeMember
               ? parent as DeclarationBuilder
@@ -508,7 +519,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
               libraryBuilder, delayedActionPerformers);
         }
       }
-      _hasBuiltOutlineExpressions = true;
+      hasBuiltOutlineExpressions = true;
     }
   }
 
@@ -531,23 +542,22 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   }
 
   @override
-  bool checkPatch(SourceFunctionBuilder patch) {
-    if (!isExternal && !patch.libraryBuilder.isAugmentation) {
-      patch.libraryBuilder.addProblem(
-          messagePatchNonExternal, patch.charOffset, noLength, patch.fileUri!,
-          context: [
-            messagePatchDeclarationOrigin.withLocation(
-                fileUri, charOffset, noLength)
-          ]);
+  bool checkAugmentation(SourceFunctionBuilder augmentation) {
+    if (!isExternal && !augmentation.libraryBuilder.isAugmentationLibrary) {
+      augmentation.libraryBuilder.addProblem(messagePatchNonExternal,
+          augmentation.charOffset, noLength, augmentation.fileUri!, context: [
+        messagePatchDeclarationOrigin.withLocation(
+            fileUri, charOffset, noLength)
+      ]);
       return false;
     }
     return true;
   }
 
   @override
-  void reportPatchMismatch(Builder patch) {
-    libraryBuilder.addProblem(messagePatchDeclarationMismatch, patch.charOffset,
-        noLength, patch.fileUri!, context: [
+  void reportAugmentationMismatch(Builder augmentation) {
+    libraryBuilder.addProblem(messagePatchDeclarationMismatch,
+        augmentation.charOffset, noLength, augmentation.fileUri!, context: [
       messagePatchDeclarationOrigin.withLocation(fileUri, charOffset, noLength)
     ]);
   }

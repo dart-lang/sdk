@@ -58,7 +58,7 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
     required List<MissingPatternPart> patternParts,
   }) async {
     final lineIndent = utils.getLinePrefix(node.offset);
-    final singleIndent = utils.getIndent(1);
+    final singleIndent = utils.oneIndent;
     final location = utils.newCaseClauseAtEndLocation(
       switchKeyword: node.switchKeyword,
       leftBracket: node.leftBracket,
@@ -86,7 +86,7 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
     required List<MissingPatternPart> patternParts,
   }) async {
     final lineIndent = utils.getLinePrefix(node.offset);
-    final singleIndent = utils.getIndent(1);
+    final singleIndent = utils.oneIndent;
     final location = utils.newCaseClauseAtEndLocation(
       switchKeyword: node.switchKeyword,
       leftBracket: node.leftBracket,

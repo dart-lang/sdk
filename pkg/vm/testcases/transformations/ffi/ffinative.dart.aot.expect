@@ -9,7 +9,9 @@ import "dart:ffi";
 import "dart:nativewrappers";
 
 abstract class Classy extends core::Object {
-[@vm.unboxing-info.metadata=(i)->i]  @#C6
+
+  [@vm.unboxing-info.metadata=(i)->i]
+  @#C6
   @#C8
   external static method returnIntPtrStatic([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 222)] core::int x) → core::int;
 }
@@ -17,7 +19,9 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
   synthetic constructor •() → self::NativeClassy
     : super nat::NativeFieldWrapperClass1::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  @#C11
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
+  @#C11
   @#C14
   method goodHasReceiverPointer() → void
     return block {
@@ -32,11 +36,15 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
       } =>#pointerAddress), #t2);
       _in::reachabilityFence(#t1);
     } =>#t3;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  @#C19
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]
+  @#C19
   @#C14
   method goodHasReceiverHandle() → void
     return self::NativeClassy::_goodHasReceiverHandle$Method$FfiNative(this, #C15);
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  @#C21
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]
+  @#C21
   @#C14
   method goodHasReceiverHandleAndPtr([@vm.inferred-arg-type.metadata=#lib::NativeClassy] self::NativeClassy v) → void
     return block {
@@ -45,11 +53,15 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
       final void #t6 = self::NativeClassy::_goodHasReceiverHandleAndPtr$Method$FfiNative(#t4, [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<ffi::Void>([@vm.inferred-type.metadata=int] nat::_getNativeField(#t5)));
       _in::reachabilityFence(#t5);
     } =>#t6;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]  @#C23
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]
+  @#C23
   @#C14
   method goodHasReceiverHandleAndHandle([@vm.inferred-arg-type.metadata=#lib::NativeClassy] self::NativeClassy v) → void
     return self::NativeClassy::_goodHasReceiverHandleAndHandle$Method$FfiNative(this, v);
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:9,getterSelectorId:10]  @#C25
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:9,getterSelectorId:10]
+  @#C25
   @#C14
   method goodHasReceiverPtrAndHandle([@vm.inferred-arg-type.metadata=#lib::NativeClassy] self::NativeClassy v) → void
     return block {
@@ -64,7 +76,9 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
       } =>#pointerAddress), #t8);
       _in::reachabilityFence(#t7);
     } =>#t9;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:11,getterSelectorId:12]  @#C27
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:11,getterSelectorId:12]
+  @#C27
   @#C14
   method meh() → core::String?
     return block {
@@ -79,7 +93,9 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
       } =>#pointerAddress), #t11));
       _in::reachabilityFence(#t10);
     } =>#t12;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:13,getterSelectorId:14]  @#C30
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:13,getterSelectorId:14]
+  @#C30
   @#C14
   method blah() → core::bool
     return block {
@@ -93,7 +109,9 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
       } =>#pointerAddress));
       _in::reachabilityFence(#t13);
     } =>#t14;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:15,getterSelectorId:16]  @#C32
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:15,getterSelectorId:16]
+  @#C32
   @#C14
   get myField() → core::bool
     return block {
@@ -107,7 +125,9 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
       } =>#pointerAddress));
       _in::reachabilityFence(#t15);
     } =>#t16;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:15,getterSelectorId:16]  @#C34
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:15,getterSelectorId:16]
+  @#C34
   @#C14
   set myField([@vm.inferred-arg-type.metadata=dart.core::bool] core::bool value) → void
     return block {
@@ -122,9 +142,13 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
       } =>#pointerAddress), #t18);
       _in::reachabilityFence(#t17);
     } =>#t19;
-[@vm.unboxing-info.metadata=(b,i)->b]  @#C35
+
+  [@vm.unboxing-info.metadata=(b,i)->b]
+  @#C35
   external static method _goodHasReceiverPointer$Method$FfiNative([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Void> #t0, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 175)] core::int #t1) → void;
-[@vm.unboxing-info.metadata=(b,i)->b]  @#C36
+
+  [@vm.unboxing-info.metadata=(b,i)->b]
+  @#C36
   external static method _goodHasReceiverHandle$Method$FfiNative([@vm.inferred-arg-type.metadata=#lib::NativeClassy] self::NativeClassy #t0, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 175)] core::int #t1) → void;
   @#C37
   external static method _goodHasReceiverHandleAndPtr$Method$FfiNative([@vm.inferred-arg-type.metadata=#lib::NativeClassy] self::NativeClassy #t0, [@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Void> #t1) → void;
@@ -141,10 +165,14 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
   @#C43
   external static method _myField$Setter$FfiNative([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Void> #t0, [@vm.inferred-arg-type.metadata=dart.core::bool] core::bool #t1) → void;
 }
-[@vm.unboxing-info.metadata=(i)->i]@#C6
+
+[@vm.unboxing-info.metadata=(i)->i]
+@#C6
 @#C8
 external static method returnIntPtr([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 13)] core::int x) → core::int;
-[@vm.unboxing-info.metadata=(i)->i]@#C45
+
+[@vm.unboxing-info.metadata=(i)->i]
+@#C45
 @#C46
 external static method returnIntPtrLeaf([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 37)] core::int x) → core::int;
 static method main() → void {

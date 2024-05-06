@@ -1,4 +1,5 @@
 main() {}
+
 var a = () {
   g f1() {
     return;

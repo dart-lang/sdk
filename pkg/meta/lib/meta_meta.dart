@@ -18,17 +18,26 @@ library meta_meta;
 ///   `const` constructor).
 /// * the annotated annotation is associated with anything other than the kinds
 ///   of declarations listed as valid targets.
+///
+/// This type is not intended to be extended and will be marked as `final`
+/// in a future release of `package:meta`.
 @Target({TargetKind.classType})
 class Target {
   /// The kinds of declarations with which the annotated annotation can be
   /// associated.
   final Set<TargetKind> kinds;
 
+  /// Create a new instance of [Target] to be used as an annotation
+  /// on a class intended to be used as an annotation, with the
+  /// specified target [kinds] that it can be applied to.
   const Target(this.kinds);
 }
 
 /// An enumeration of the kinds of targets to which an annotation can be
 /// applied.
+///
+/// This type is not intended to be extended and will be marked as `final`
+/// in a future release of `package:meta`.
 class TargetKind {
   /// Indicates that an annotation is valid on any class declaration.
   static const classType = TargetKind._('classes', 'classType');
@@ -90,6 +99,8 @@ class TargetKind {
   /// Indicates that an annotation is valid on any typedef declaration.`
   static const typedefType = TargetKind._('typedefs', 'typedefType');
 
+  /// All current [TargetKind] values of targets to
+  /// which an annotation can be applied.
   static const values = [
     classType,
     enumType,
@@ -113,8 +124,9 @@ class TargetKind {
 
   /// The name of the [TargetKind] value.
   ///
-  /// The name is a string containing the source identifier used to declare the [TargetKind] value.
-  /// For example, the result of `TargetKind.classType.name` is the string "classType".
+  /// The name is a string containing the source identifier used
+  /// to declare the [TargetKind] value. For example,
+  /// the result of `TargetKind.classType.name`is the string "classType".
   final String name;
 
   // This class is not meant to be instantiated or extended; this constructor

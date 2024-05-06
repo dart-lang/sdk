@@ -177,8 +177,9 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginExtensionDeclaration(Token extensionKeyword, Token? name) {
-    listener?.beginExtensionDeclaration(extensionKeyword, name);
+  void beginExtensionDeclaration(
+      Token? augmentToken, Token extensionKeyword, Token? name) {
+    listener?.beginExtensionDeclaration(augmentToken, extensionKeyword, name);
   }
 
   @override
@@ -1256,6 +1257,7 @@ class ForwardingListener implements Listener {
 
   @override
   void endTopLevelFields(
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -1264,8 +1266,16 @@ class ForwardingListener implements Listener {
       int count,
       Token beginToken,
       Token endToken) {
-    listener?.endTopLevelFields(externalToken, staticToken, covariantToken,
-        lateToken, varFinalOrConst, count, beginToken, endToken);
+    listener?.endTopLevelFields(
+        augmentToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        lateToken,
+        varFinalOrConst,
+        count,
+        beginToken,
+        endToken);
   }
 
   @override

@@ -69,12 +69,22 @@ void BlockStack<BlockSize>::Reset() {
 }
 
 template <int BlockSize>
-typename BlockStack<BlockSize>::Block* BlockStack<BlockSize>::TakeBlocks() {
+typename BlockStack<BlockSize>::Block* BlockStack<BlockSize>::PopAll() {
   MonitorLocker ml(&monitor_);
   while (!partial_.IsEmpty()) {
     full_.Push(partial_.Pop());
   }
   return full_.PopAll();
+}
+
+template <int BlockSize>
+void BlockStack<BlockSize>::PushAll(Block* block) {
+  while (block != nullptr) {
+    Block* next = block->next();
+    block->set_next(nullptr);
+    PushBlockImpl(block);
+    block = next;
+  }
 }
 
 template <int BlockSize>
@@ -237,7 +247,8 @@ intptr_t StoreBuffer::Size() {
   return full_.length() + partial_.length();
 }
 
-void StoreBuffer::VisitObjectPointers(ObjectPointerVisitor* visitor) {
+template <int BlockSize>
+void BlockStack<BlockSize>::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   for (Block* block = full_.Peek(); block != nullptr; block = block->next()) {
     block->VisitObjectPointers(visitor);
   }

@@ -56,7 +56,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
     node.visitChildren(this);
     var elementAnnotation = node.elementAnnotation;
     if (elementAnnotation == null) {
-      if (_knownExceptions == null || !_knownExceptions!.contains(node)) {
+      if (_knownExceptions == null || !_knownExceptions.contains(node)) {
         _unresolvedNodes.add(node);
       }
     }
@@ -244,7 +244,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
     bool Function(Element)? predicate,
   ) {
     if (element == null) {
-      if (_knownExceptions == null || !_knownExceptions!.contains(node)) {
+      if (_knownExceptions == null || !_knownExceptions.contains(node)) {
         _unresolvedNodes.add(node);
       }
     } else if (predicate != null) {
@@ -299,7 +299,7 @@ class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest {
 
     String typeParametersStr(List<TypeParameterElement> elements) {
       var elementsStr = elements.map((e) {
-        return e.getDisplayString(withNullability: false);
+        return e.getDisplayString();
       }).join(', ');
       return '[$elementsStr]';
     }

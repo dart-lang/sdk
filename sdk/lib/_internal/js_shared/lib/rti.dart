@@ -42,10 +42,13 @@ void _onExtraNullSafetyError(TypeError error, StackTrace trace) {
     // If [onExtraNullSafetyError] itself produces an extra null safety error,
     // this avoids blowing the stack.
     _reportingExtraNullSafetyError = true;
-    if (onExtraNullSafetyError != null) {
-      (onExtraNullSafetyError as OnExtraNullSafetyError)(error, trace);
+    try {
+      if (onExtraNullSafetyError != null) {
+        (onExtraNullSafetyError as OnExtraNullSafetyError)(error, trace);
+      }
+    } finally {
+      _reportingExtraNullSafetyError = false;
     }
-    _reportingExtraNullSafetyError = false;
   }
 }
 

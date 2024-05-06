@@ -21,11 +21,11 @@ import 'package:collection/collection.dart';
 /// Returns a [List] of fixed length with given types.
 List<DartType> fixedTypeList(DartType e1, [DartType? e2]) {
   if (e2 != null) {
-    final result = List<DartType>.filled(2, e1, growable: false);
+    final result = List<DartType>.filled(2, e1);
     result[1] = e2;
     return result;
   } else {
-    return List<DartType>.filled(1, e1, growable: false);
+    return List<DartType>.filled(1, e1);
   }
 }
 
@@ -696,11 +696,13 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return true;
     }
     if (other is InterfaceTypeImpl) {
+      if (!identical(other.element, element)) {
+        return false;
+      }
       if (other.nullabilitySuffix != nullabilitySuffix) {
         return false;
       }
-      return other.element == element &&
-          TypeImpl.equalArrays(other.typeArguments, typeArguments);
+      return TypeImpl.equalArrays(other.typeArguments, typeArguments);
     }
     return false;
   }
@@ -754,12 +756,17 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   ConstructorElement? lookUpConstructor(
       String? constructorName, LibraryElement library) {
+    var augmented = element.augmented;
+    if (augmented == null) {
+      return null;
+    }
+
     // prepare base ConstructorElement
     ConstructorElement? constructorElement;
     if (constructorName == null) {
-      constructorElement = element.unnamedConstructor;
+      constructorElement = augmented.unnamedConstructor;
     } else {
-      constructorElement = element.getNamedConstructor(constructorName);
+      constructorElement = augmented.getNamedConstructor(constructorName);
     }
     // not found or not accessible
     if (constructorElement == null ||
@@ -986,24 +993,8 @@ class InvalidTypeImpl extends TypeImpl implements InvalidType {
 /// The type `Never` represents the uninhabited bottom type.
 class NeverTypeImpl extends TypeImpl implements NeverType {
   /// The unique instance of this class, nullable.
-  ///
-  /// This behaves equivalently to the `Null` type, but we distinguish it for
-  /// two reasons: (1) there are circumstances where we need access to this
-  /// type, but we don't have access to the type provider, so using `Never?` is
-  /// a convenient solution.  (2) we may decide that the distinction is
-  /// convenient in diagnostic messages (this is TBD).
   static final NeverTypeImpl instanceNullable =
       NeverTypeImpl._(NullabilitySuffix.question);
-
-  /// The unique instance of this class, starred.
-  ///
-  /// This behaves like a version of the Null* type that could be conceivably
-  /// migrated to be of type Never. Therefore, it's the bottom of all legacy
-  /// types, and also assignable to the true bottom. Note that Never? and Never*
-  /// are not the same type, as Never* is a subtype of Never, while Never? is
-  /// not.
-  static final NeverTypeImpl instanceLegacy =
-      NeverTypeImpl._(NullabilitySuffix.star);
 
   /// The unique instance of this class, non-nullable.
   static final NeverTypeImpl instance = NeverTypeImpl._(NullabilitySuffix.none);
@@ -1064,7 +1055,8 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
       case NullabilitySuffix.question:
         return instanceNullable;
       case NullabilitySuffix.star:
-        return instanceLegacy;
+        // TODO(scheglov): remove together with `star`
+        return instanceNullable;
       case NullabilitySuffix.none:
         return instance;
     }
@@ -1253,10 +1245,10 @@ class RecordTypePositionalFieldImpl extends RecordTypeFieldImpl
 /// representing the declared type of elements in the element model.
 abstract class TypeImpl implements DartType {
   @override
-  InstantiatedTypeAliasElement? alias;
+  final InstantiatedTypeAliasElement? alias;
 
   /// Initialize a newly created type.
-  TypeImpl({this.alias});
+  const TypeImpl({this.alias});
 
   @override
   DartType get extensionTypeErasure {
@@ -1341,9 +1333,11 @@ abstract class TypeImpl implements DartType {
 
   @override
   String getDisplayString({
-    required bool withNullability,
+    @Deprecated('Only non-nullable by default mode is supported')
+    bool withNullability = true,
   }) {
     var builder = ElementDisplayStringBuilder(
+      // ignore:deprecated_member_use_from_same_package
       withNullability: withNullability,
     );
     appendTo(builder);
@@ -1361,7 +1355,7 @@ abstract class TypeImpl implements DartType {
 
   @override
   String toString() {
-    return getDisplayString(withNullability: true);
+    return getDisplayString();
   }
 
   /// Return the same type, but with the given [nullabilitySuffix].
@@ -1436,6 +1430,9 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     Set<TypeParameterElement> seenTypes = {};
     TypeParameterType type = this;
     while (seenTypes.add(type.element)) {
+      if (type.nullabilitySuffix == NullabilitySuffix.question) {
+        return false;
+      }
       var bound = type.bound;
       if (bound is TypeParameterType) {
         type = bound;
@@ -1519,9 +1516,6 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     if (nullabilitySuffix == NullabilitySuffix.question ||
         bound.nullabilitySuffix == NullabilitySuffix.question) {
       newNullabilitySuffix = NullabilitySuffix.question;
-    } else if (nullabilitySuffix == NullabilitySuffix.star ||
-        bound.nullabilitySuffix == NullabilitySuffix.star) {
-      newNullabilitySuffix = NullabilitySuffix.star;
     } else {
       newNullabilitySuffix = NullabilitySuffix.none;
     }

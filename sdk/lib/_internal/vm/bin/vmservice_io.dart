@@ -11,36 +11,62 @@ import 'dart:_vmservice';
 
 part 'vmservice_server.dart';
 
+// The TCP ip/port that dds listens on.
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
+int _ddsPort = 0;
+
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
+String _ddsIP = '';
+
 // The TCP ip/port that the HTTP server listens on.
-@pragma('vm:entry-point')
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
 int _port = 0;
-@pragma('vm:entry-point')
+
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
 String _ip = '';
+
 // Should the HTTP server auto start?
-@pragma('vm:entry-point')
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
 bool _autoStart = false;
+
 // Should the HTTP server require an auth code?
-@pragma('vm:entry-point')
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
 bool _authCodesDisabled = false;
+
 // Should the HTTP server run in devmode?
-@pragma('vm:entry-point')
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
 bool _originCheckDisabled = false;
+
 // Location of file to output VM service connection info.
-@pragma('vm:entry-point')
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
 String? _serviceInfoFilename;
-@pragma('vm:entry-point')
+
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
 bool _isWindows = false;
-@pragma('vm:entry-point')
+
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
 bool _isFuchsia = false;
-@pragma('vm:entry-point')
+
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
 Stream<ProcessSignal> Function(ProcessSignal signal)? _signalWatch;
+
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
 StreamSubscription<ProcessSignal>? _signalSubscription;
-@pragma("vm:entry-point")
+
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
+bool _serveDevtools = true;
+
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
 bool _enableServicePortFallback = false;
-@pragma("vm:entry-point")
+
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
 bool _waitForDdsToAdvertiseService = false;
-@pragma("vm:entry-point", !const bool.fromEnvironment('dart.vm.product'))
+
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
 bool _serveObservatory = false;
+
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
+bool _printDtd = false;
 
 // HTTP server.
 Server? server;
@@ -70,57 +96,23 @@ class _DebuggingSession {
     bool disableServiceAuthCodes,
     bool enableDevTools,
   ) async {
-    final dartPath = Uri.parse(Platform.resolvedExecutable);
-    final dartDir = [
-      '', // Include leading '/'
-      ...dartPath.pathSegments.sublist(
-        0,
-        dartPath.pathSegments.length - 1,
-      ),
-    ].join('/');
-
+    final dartDir = File(Platform.resolvedExecutable).parent.path;
     final fullSdk = dartDir.endsWith('bin');
-
-    final dartAotPath = [
-      dartDir,
-      fullSdk
-          ? 'dartaotruntime${Platform.isWindows ? '.exe' : ''}'
-          : 'dart_precompiled_runtime_product${Platform.isWindows ? '.exe' : ''}',
-    ].join('/');
-    String snapshotName = [
+    final snapshotName = [
       dartDir,
       fullSdk ? 'snapshots' : 'gen',
-      'dds_aot.dart.snapshot',
-    ].join('/');
-    String execName = dartAotPath;
-    if (!File(snapshotName).existsSync() || !File(dartAotPath).existsSync()) {
-      snapshotName = [
-        dartDir,
-        fullSdk ? 'snapshots' : 'gen',
-        'dds.dart.snapshot',
-      ].join('/');
-      execName = dartPath.toString();
-    }
-
-    final devToolsBinaries = [
-      dartDir,
-      if (fullSdk) 'resources',
-      'devtools',
-    ].join('/');
-
-    const enableLogging = false;
+      'dds.dart.snapshot',
+    ].join(Platform.pathSeparator);
     _process = await Process.start(
-      execName,
+      Platform.resolvedExecutable,
       [
         snapshotName,
-        server!.serverAddress!.toString(),
-        host,
-        port,
-        disableServiceAuthCodes.toString(),
-        enableDevTools.toString(),
-        devToolsBinaries,
-        enableLogging.toString(),
-        _enableServicePortFallback.toString(),
+        '--vm-service-uri=${server!.serverAddress!}',
+        '--bind-address=$host',
+        '--bind-port=$port',
+        if (disableServiceAuthCodes) '--disable-service-auth-codes',
+        if (enableDevTools) '--serve-devtools',
+        if (_enableServicePortFallback) '--enable-service-port-fallback',
       ],
       mode: ProcessStartMode.detachedWithStdio,
     );
@@ -130,22 +122,27 @@ class _DebuggingSession {
       final result = json.decode(event) as Map<String, dynamic>;
       final state = result['state'];
       if (state == 'started') {
-        if (result.containsKey('devToolsUri')) {
+        if (result case {'devToolsUri': String devToolsUri}) {
           // NOTE: update pkg/dartdev/lib/src/commands/run.dart if this message
           // is changed to ensure consistency.
           const devToolsMessagePrefix =
               'The Dart DevTools debugger and profiler is available at:';
-          final devToolsUri = result['devToolsUri'];
           print('$devToolsMessagePrefix $devToolsUri');
+        }
+        if (result
+            case {
+              'dtd': {
+                'uri': String dtdUri,
+              }
+            } when _printDtd) {
+          print('The Dart Tooling Daemon (DTD) is available at: $dtdUri');
         }
         stderrSub.cancel();
         completer.complete();
       } else {
         final error = result['error'] ?? event;
-        final stacktrace = result['stacktrace'] ?? '';
         stderrSub.cancel();
-        completer.completeError(
-            'Could not start Observatory HTTP server:\n$error\n$stacktrace\n');
+        completer.completeError('Could not start the VM service:\n$error\n');
       }
     });
     try {
@@ -317,6 +314,7 @@ Future<Uri?> webServerControlCallback(bool enable, bool? silenceOutput) async {
   if (_server.running != enable) {
     if (enable) {
       await _server.startup();
+      // TODO: if dds is enabled a dds instance needs to be started.
     } else {
       await _server.shutdown(true);
     }
@@ -329,7 +327,7 @@ void webServerAcceptNewWebSocketConnections(bool enable) {
   _server.acceptNewWebSocketConnections = enable;
 }
 
-_onSignal(ProcessSignal signal) {
+_onSignal(ProcessSignal signal) async {
   if (serverFuture != null) {
     // Still waiting.
     return;
@@ -344,13 +342,15 @@ _onSignal(ProcessSignal signal) {
     });
   } else {
     _server.startup().then((_) {
-      ddsInstance = _DebuggingSession()
-        ..start(
-          _server._ip,
-          _server._port.toString(),
-          false,
-          true,
-        );
+      if (_waitForDdsToAdvertiseService) {
+        ddsInstance = _DebuggingSession()
+          ..start(
+            _ddsIP,
+            _ddsPort.toString(),
+            _authCodesDisabled,
+            _serveDevtools,
+          );
+      }
     });
   }
 }
@@ -399,7 +399,17 @@ main() {
   VMService();
   if (_autoStart) {
     final _server = _lazyServerBoot();
-    _server.startup();
+    _server.startup().then((_) {
+      if (_waitForDdsToAdvertiseService) {
+        ddsInstance = _DebuggingSession()
+          ..start(
+            _ddsIP,
+            _ddsPort.toString(),
+            _authCodesDisabled,
+            _serveDevtools,
+          );
+      }
+    });
     // It's just here to push an event on the event loop so that we invoke the
     // scheduled microtasks.
     Timer.run(() {});

@@ -51,10 +51,6 @@ var tests = <IsolateTest>[
       expect(f1 is ServiceFunction, isTrue);
       var f2 = await regex.twoByteFunction!.load();
       expect(f2 is ServiceFunction, isTrue);
-      var f3 = await regex.externalOneByteFunction!.load();
-      expect(f3 is ServiceFunction, isTrue);
-      var f4 = await regex.externalTwoByteFunction!.load();
-      expect(f4 is ServiceFunction, isTrue);
     }
   }
 ];

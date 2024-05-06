@@ -2,7 +2,7 @@ library;
 import self as self;
 
 static const field dynamic a = null;
-static const field dynamic b = self::a{dynamic}.call();
+static const field dynamic b = self::a{dynamic}();
 static method main() → dynamic
   ;
 

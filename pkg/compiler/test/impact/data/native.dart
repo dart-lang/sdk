@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // ignore: IMPORT_INTERNAL_LIBRARY
 import 'dart:_foreign_helper' as foreign show JS;
 // ignore: IMPORT_INTERNAL_LIBRARY
@@ -105,10 +103,10 @@ class NativeClass {
     native:bool,
     native:double,
     native:int,
-    param:Object*]
+    param:Object?]
   */
   @annotation_Creates_SerializedScriptValue
-  final Object field;
+  final Object? field = null;
 
   factory NativeClass._() {
     throw UnsupportedError("Not supported");
@@ -157,6 +155,7 @@ class NativeClass {
  type=[
   inst:Closure,
   inst:JSBool,
-  param:NativeClass*]
+  inst:JSNull,
+  param:NativeClass?]
 */
-testNativeField(NativeClass c) => c.field;
+testNativeField(NativeClass? c) => c?.field;

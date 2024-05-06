@@ -8,4 +8,5 @@ mixin _PlatformViewGestureMixin on RenderBox implements MouseTrackerAnnotation {
   bool hitTestSelf(Offset position) =>
       _hitTestBehavior != PlatformViewHitTestBehavior.transparent;
 }
+
 main() {}

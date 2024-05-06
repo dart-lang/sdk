@@ -15,7 +15,6 @@ import 'dart:async';
 import 'dart:ffi';
 
 import "package:expect/expect.dart";
-import "package:ffi/ffi.dart";
 
 import 'async_callback_tests_utils.dart';
 

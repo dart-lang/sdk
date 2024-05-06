@@ -187,7 +187,7 @@ class _EnumDescription {
     // Compute the declarations of the enum constants and delete the fields
     // being converted.
     var members = classDeclaration.members;
-    var indent = utils.getIndent(1);
+    var indent = utils.oneIndent;
     var eol = utils.endOfLine;
     var constantsBuffer = StringBuffer();
     var fieldsToConvert = fields.fieldsToConvert;

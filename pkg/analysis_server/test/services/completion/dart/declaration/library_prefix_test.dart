@@ -94,14 +94,11 @@ class Z {}
 ''');
     assertResponse(r'''
 suggestions
-  D1
-    kind: functionInvocation
-    deprecated: true
+  g0.G
+    kind: class
   D2
     kind: functionInvocation
   T1
-    kind: topLevelVariable
-  T3
     kind: topLevelVariable
   T5
     kind: topLevelVariable
@@ -114,9 +111,12 @@ suggestions
   g0
     kind: library
   g0.G
-    kind: class
-  g0.G
     kind: constructorInvocation
+  D1
+    kind: functionInvocation
+    deprecated: true
+  T3
+    kind: topLevelVariable
 ''');
   }
 
@@ -134,10 +134,41 @@ A T;
 ''');
     assertResponse(r'''
 suggestions
-  x0
-    kind: library
+  @override
+  // TODO: implement hashCode
+  int get hashCode => super.hashCode;
+    kind: override
+    selection: 62 14
+  @override
+  // TODO: implement runtimeType
+  Type get runtimeType => super.runtimeType;
+    kind: override
+    selection: 69 17
+  @override
+  String toString() {
+    // TODO: implement toString
+    return super.toString();
+  }
+    kind: override
+    selection: 68 24
+  @override
+  bool operator ==(Object other) {
+    // TODO: implement ==
+    return super == other;
+  }
+    kind: override
+    selection: 75 22
+  @override
+  noSuchMethod(Invocation invocation) {
+    // TODO: implement noSuchMethod
+    return super.noSuchMethod(invocation);
+  }
+    kind: override
+    selection: 90 38
   x0.B
     kind: class
+  x0
+    kind: library
 ''');
   }
 
@@ -156,10 +187,10 @@ A T;
 ''');
     assertResponse(r'''
 suggestions
-  x0
-    kind: library
   x0.B
     kind: class
+  x0
+    kind: library
 ''');
   }
 
@@ -181,10 +212,10 @@ A Sew;
 replacement
   left: 1
 suggestions
-  S0
-    kind: library
   S0.B
     kind: class
+  S0
+    kind: library
 ''');
   }
 
@@ -203,10 +234,10 @@ A T;
 ''');
     assertResponse(r'''
 suggestions
-  x0
-    kind: library
   x0.B
     kind: class
+  x0
+    kind: library
 ''');
   }
 
@@ -225,10 +256,10 @@ A T;
 ''');
     assertResponse(r'''
 suggestions
-  x0
-    kind: library
   x0.B
     kind: class
+  x0
+    kind: library
 ''');
   }
 
@@ -246,10 +277,10 @@ A T;
 ''');
     assertResponse(r'''
 suggestions
-  x0
-    kind: library
   x0.B
     kind: class
+  x0
+    kind: library
 ''');
   }
 

@@ -5,7 +5,11 @@ class C {
 }
 
 const c1 = C();
+
 const c2 = C();
+
 test() {}
+
 void test2(Map map) {}
+
 void test3(Map map) {}

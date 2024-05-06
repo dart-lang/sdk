@@ -322,7 +322,7 @@ abstract class _NegativeLengthList&Object&ListMixin<E extends core::Object? = dy
     }
   }
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ fillRange(core::int start, core::int end, [covariant-by-class self::_NegativeLengthList&Object&ListMixin::E? fill = #C2]) → void {
-    self::_NegativeLengthList&Object&ListMixin::E% value = let self::_NegativeLengthList&Object&ListMixin::E? #t6 = fill in #t6 == null ?{self::_NegativeLengthList&Object&ListMixin::E%} #t6 : #t6{self::_NegativeLengthList&Object&ListMixin::E%};
+    self::_NegativeLengthList&Object&ListMixin::E% value = let self::_NegativeLengthList&Object&ListMixin::E? #t6 = fill in #t6 == null ?{self::_NegativeLengthList&Object&ListMixin::E%} #t6 as{Unchecked} self::_NegativeLengthList&Object&ListMixin::E% : #t6{self::_NegativeLengthList&Object&ListMixin::E%};
     core::RangeError::checkValidRange(start, end, this.{core::List::length}{core::int});
     for (core::int i = start; i.{core::num::<}(end){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
       this.{core::List::[]=}(i, value){(core::int, self::_NegativeLengthList&Object&ListMixin::E%) → void};
@@ -554,7 +554,7 @@ static method switchList(core::List<core::int> list) → core::int
           break #L1;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t9;
 static method main() → dynamic {
@@ -588,4 +588,4 @@ Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:471:12 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:480:12 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///negative_length.dart:12:41 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 1123, effectively constant: 5
+Extra constant evaluation: evaluated: 1124, effectively constant: 5

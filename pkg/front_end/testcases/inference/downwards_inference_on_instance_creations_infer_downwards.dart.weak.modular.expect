@@ -159,7 +159,7 @@ class E<S extends core::Object? = dynamic, T extends core::Object? = dynamic> ex
     ;
 }
 class F<S extends core::Object? = dynamic, T extends core::Object? = dynamic> extends self::A<self::F::S%, self::F::T%> {
-  constructor •(self::F::S% x, self::F::T% y, {required core::List<self::F::S%> a = #C1, required core::List<self::F::T%> b = #C1}) → self::F<self::F::S%, self::F::T%>
+  constructor •(self::F::S% x, self::F::T% y, {required core::List<self::F::S%> a, required core::List<self::F::T%> b}) → self::F<self::F::S%, self::F::T%>
     : super self::A::•(x, y)
     ;
   constructor named(self::F::S% x, self::F::T% y, [self::F::S? a = #C1, self::F::T? b = #C1]) → self::F<self::F::S%, self::F::T%>

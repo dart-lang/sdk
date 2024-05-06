@@ -241,7 +241,7 @@ static method method(core::Map<core::int, core::String?> m) → core::int {
   }
   return 2;
 }
-static method test(core::Map<core::int, core::String> map, {required core::int expectedValue = #C1, required core::int expectedContainsKeyCount = #C1, required core::int expectedIndexGetCount = #C1}) → dynamic {
+static method test(core::Map<core::int, core::String> map, {required core::int expectedValue, required core::int expectedContainsKeyCount, required core::int expectedIndexGetCount}) → dynamic {
   self::MyMap<core::int, core::String> myMap = new self::MyMap::•<core::int, core::String>(map);
   self::expect(expectedValue, self::method(myMap), "Unexpected value for ${map}.");
   self::expect(expectedContainsKeyCount, myMap.{self::MyMap::containsKeyCount}{core::int}, "Unexpected containsKey count for ${map}.");

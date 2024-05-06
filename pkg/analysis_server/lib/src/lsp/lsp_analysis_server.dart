@@ -38,7 +38,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart' as analysis;
 import 'package:analyzer/src/dart/analysis/status.dart' as analysis;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -46,6 +45,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
+import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
@@ -178,7 +178,8 @@ class LspAnalysisServer extends AnalysisServer {
         LspServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
 
-    analysisDriverScheduler.status.listen(handleAnalysisStatusChange);
+    analysisDriverSchedulerEventsSubscription =
+        analysisDriverScheduler.events.listen(handleAnalysisEvent);
     analysisDriverScheduler.start();
 
     _channelSubscription =
@@ -243,7 +244,7 @@ class LspAnalysisServer extends AnalysisServer {
         params: params,
         jsonrpc: jsonRpcVersion,
       );
-      sendNotification(message);
+      sendLspNotification(message);
     };
   }
 
@@ -306,7 +307,7 @@ class LspAnalysisServer extends AnalysisServer {
             // Dart settings for each workspace folder.
             for (final folder in folders)
               ConfigurationItem(
-                scopeUri: pathContext.toUri(folder),
+                scopeUri: uriConverter.toClientUri(folder),
                 section: 'dart',
               ),
             // Global Dart settings. This comes last to simplify matching up the
@@ -363,7 +364,7 @@ class LspAnalysisServer extends AnalysisServer {
   OptionalVersionedTextDocumentIdentifier getVersionedDocumentIdentifier(
       String path) {
     return OptionalVersionedTextDocumentIdentifier(
-        uri: pathContext.toUri(path), version: getDocumentVersion(path));
+        uri: uriConverter.toClientUri(path), version: getDocumentVersion(path));
   }
 
   @override
@@ -382,11 +383,19 @@ class LspAnalysisServer extends AnalysisServer {
     _clientInfo = clientInfo;
     _initializationOptions = LspInitializationOptions(initializationOptions);
 
+    /// Enable virtual file support.
+    var supportsVirtualFiles = _clientCapabilities
+            ?.supportsDartExperimentalTextDocumentContentProvider ??
+        false;
+    if (supportsVirtualFiles) {
+      uriConverter = ClientUriConverter.withVirtualFileSupport(pathContext);
+    }
+
     performanceAfterStartup = ServerPerformance();
     performance = performanceAfterStartup!;
 
     _checkAnalytics();
-    _checkSurveys();
+    enableSurveys();
   }
 
   /// Handles a response from the client by invoking the completer that the
@@ -578,7 +587,10 @@ class LspAnalysisServer extends AnalysisServer {
 
     // If the overlay is exactly the same as the previous content we can skip
     // notifying drivers which avoids re-analyzing the same content.
-    final driver = contextManager.getDriverFor(path);
+    // We use getAnalysisDriver() here because it can get content from
+    // dependencies (so the optimization works for them) but below we use
+    // `contextManager.driverFor` so we only add to the specific driver.
+    final driver = getAnalysisDriver(path);
     final contentIsUpdated =
         driver?.fsState.getExistingFromPath(path)?.content != content;
 
@@ -587,11 +599,17 @@ class LspAnalysisServer extends AnalysisServer {
 
       // If the file did not exist, and is "overlay only", it still should be
       // analyzed. Add it to driver to which it should have been added.
-      driver?.addFile(path);
+      contextManager.getDriverFor(path)?.addFile(path);
     } else {
       // If we skip the work above, we still need to ensure plugins are notified
       // of the new overlay (which usually happens in `_afterOverlayChanged`).
       _notifyPluginsOverlayChanged(path, plugin.AddContentOverlay(content));
+
+      // We also need to ensure notifications like Outline can still sent in
+      // this case (which are usually triggered by the re-analysis), so force
+      // sending the resolved unit to the result stream even if we didn't need
+      // to re-analyze it.
+      unawaited(getResolvedUnit(path, sendCachedToStream: true));
     }
   }
 
@@ -622,13 +640,13 @@ class LspAnalysisServer extends AnalysisServer {
 
   void publishClosingLabels(String path, List<ClosingLabel> labels) {
     final params = PublishClosingLabelsParams(
-        uri: pathContext.toUri(path), labels: labels);
+        uri: uriConverter.toClientUri(path), labels: labels);
     final message = NotificationMessage(
       method: CustomMethods.publishClosingLabels,
       params: params,
       jsonrpc: jsonRpcVersion,
     );
-    sendNotification(message);
+    sendLspNotification(message);
   }
 
   void publishDiagnostics(String path, List<Diagnostic> errors) {
@@ -644,35 +662,35 @@ class LspAnalysisServer extends AnalysisServer {
     }
 
     final params = PublishDiagnosticsParams(
-        uri: pathContext.toUri(path), diagnostics: errors);
+        uri: uriConverter.toClientUri(path), diagnostics: errors);
     final message = NotificationMessage(
       method: Method.textDocument_publishDiagnostics,
       params: params,
       jsonrpc: jsonRpcVersion,
     );
-    sendNotification(message);
+    sendLspNotification(message);
   }
 
   void publishFlutterOutline(String path, FlutterOutline outline) {
     final params = PublishFlutterOutlineParams(
-        uri: pathContext.toUri(path), outline: outline);
+        uri: uriConverter.toClientUri(path), outline: outline);
     final message = NotificationMessage(
       method: CustomMethods.publishFlutterOutline,
       params: params,
       jsonrpc: jsonRpcVersion,
     );
-    sendNotification(message);
+    sendLspNotification(message);
   }
 
   void publishOutline(String path, Outline outline) {
-    final params =
-        PublishOutlineParams(uri: pathContext.toUri(path), outline: outline);
+    final params = PublishOutlineParams(
+        uri: uriConverter.toClientUri(path), outline: outline);
     final message = NotificationMessage(
       method: CustomMethods.publishOutline,
       params: params,
       jsonrpc: jsonRpcVersion,
     );
-    sendNotification(message);
+    sendLspNotification(message);
   }
 
   Future<void> removePriorityFile(String path) async {
@@ -713,7 +731,8 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   /// Send the given [notification] to the client.
-  void sendNotification(NotificationMessage notification) {
+  @override
+  void sendLspNotification(NotificationMessage notification) {
     channel.sendNotification(notification);
   }
 
@@ -758,7 +777,7 @@ class LspAnalysisServer extends AnalysisServer {
     // Send old custom notifications to clients that do not support $/progress.
     // TODO(dantup): Remove this custom notification (and related classes) when
     // it's unlikely to be in use by any clients.
-    var isAnalyzing = status.isAnalyzing;
+    var isAnalyzing = status.isWorking;
     if (wasAnalyzing && !isAnalyzing) {
       wasAnalyzing = isAnalyzing;
       // Only send analysis analytics after analysis is complete.
@@ -891,6 +910,7 @@ class LspAnalysisServer extends AnalysisServer {
       channel.close();
     }));
     unawaited(_pluginChangeSubscription?.cancel());
+    _pluginChangeSubscription = null;
   }
 
   /// There was an error related to the socket from which messages are being
@@ -943,13 +963,6 @@ class LspAnalysisServer extends AnalysisServer {
       prompt(MessageType.info, unifiedAnalytics.getConsentMessage, ['Ok']),
     );
     unifiedAnalytics.clientShowedMessage();
-  }
-
-  /// Enables surveys, if options allow.
-  void _checkSurveys() {
-    if (initializationOptions?.previewSurveys ?? false) {
-      enableSurveys();
-    }
   }
 
   /// Computes analysis roots for a set of open files.
@@ -1008,9 +1021,8 @@ class LspAnalysisServer extends AnalysisServer {
 
   /// Checks whether [file] is in a project that can resolve 'package:flutter'
   /// libraries.
-  bool _isInFlutterProject(String file) =>
-      contextManager
-          .getDriverFor(file)
+  bool _isInFlutterProject(String filePath) =>
+      getAnalysisDriver(filePath)
           ?.currentSession
           .uriConverter
           .uriToPath(Uri.parse(Flutter.widgetsUri)) !=
@@ -1106,7 +1118,14 @@ class LspInitializationOptions {
   final bool flutterOutline;
   final int? completionBudgetMilliseconds;
   final bool allowOpenUri;
-  final bool previewSurveys;
+
+  /// A temporary flag passed by Dart-Code to enable using in-editor fixes for
+  /// the "dart fix" prompt.
+  ///
+  /// This allows enabling it once there's been wider testing of the "Fix All in
+  /// Workspace" command without requiring a new SDK release. Once enabled in
+  /// Dart-Code, this flag can also be removed here for future SDKs.
+  final bool useInEditorDartFixPrompt;
 
   factory LspInitializationOptions(Object? options) =>
       LspInitializationOptions._(
@@ -1129,7 +1148,7 @@ class LspInitializationOptions {
         completionBudgetMilliseconds =
             options['completionBudgetMilliseconds'] as int?,
         allowOpenUri = options['allowOpenUri'] == true,
-        previewSurveys = options['previewSurveys'] == true;
+        useInEditorDartFixPrompt = options['useInEditorDartFixPrompt'] == true;
 }
 
 class LspServerContextManagerCallbacks
@@ -1157,6 +1176,7 @@ class LspServerContextManagerCallbacks
     if (analysisServer.suppressAnalysisResults) {
       return;
     }
+
     super.handleFileResult(result);
   }
 
@@ -1186,19 +1206,6 @@ class LspServerContextManagerCallbacks
       final lspOutline = toFlutterOutline(result.lineInfo, outline);
       analysisServer.publishFlutterOutline(path, lspOutline);
     }
-  }
-
-  @override
-  void listenAnalysisDriver(analysis.AnalysisDriver driver) {
-    // TODO(dantup): Is this required, or covered by
-    // addContextsToDeclarationsTracker? The original server does not appear to
-    // have an equivalent call.
-    final analysisContext = driver.analysisContext;
-    if (analysisContext != null) {
-      analysisServer.declarationsTracker?.addContext(analysisContext);
-    }
-
-    super.listenAnalysisDriver(driver);
   }
 
   @override

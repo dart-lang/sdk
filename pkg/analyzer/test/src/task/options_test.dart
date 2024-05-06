@@ -150,7 +150,7 @@ analyzer:
   errors:
     unused_local_variable: ignore
     invalid_assignment: warning
-    missing_return: error
+    assignment_of_do_not_store: error
     dead_code: info
 ''', []);
   }
@@ -280,7 +280,7 @@ analyzer:
 analyzer:
   optional-checks:
     chromeos-manifest
-''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE]);
+''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
   }
 
   test_chromeos_manifest_checks_notAMap() {

@@ -29,7 +29,7 @@ class DocumentColorPresentationTest extends AbstractLspAnalysisServerTest {
   @override
   void setUp() {
     super.setUp();
-    writePackageConfig(projectFolderPath, flutter: true);
+    writeTestPackageConfig(flutter: true);
 
     content = '';
     testFilePath = mainFilePath;
@@ -212,6 +212,8 @@ var white = [!Color(0xFFFFFFFF)!];
   }
 
   Future<void> test_includesImportEdit() async {
+    failTestOnErrorDiagnostic = false; // Tests with missing import.
+
     // Create a file that doesn't already import the required library.
     content = '''
 const white = [!Colors.white!];
@@ -305,7 +307,7 @@ class DocumentColorTest extends AbstractLspAnalysisServerTest {
   @override
   void setUp() {
     super.setUp();
-    writePackageConfig(projectFolderPath, flutter: true);
+    writeTestPackageConfig(flutter: true);
   }
 
   Future<void> test_nonDartFile() async {

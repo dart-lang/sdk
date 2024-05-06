@@ -410,11 +410,7 @@ class ManifestValidator {
     if (!checkManifest) return [];
 
     RecordingErrorListener recorder = RecordingErrorListener();
-    ErrorReporter reporter = ErrorReporter(
-      recorder,
-      source,
-      isNonNullableByDefault: false,
-    );
+    ErrorReporter reporter = ErrorReporter(recorder, source);
 
     var xmlParser = ManifestParser(content, source.uri);
 
@@ -464,8 +460,12 @@ class ManifestValidator {
       [List<Object>? arguments]) {
     var span =
         key == null ? node.sourceSpan! : node.attributes[key]!.sourceSpan;
-    reporter.reportErrorForOffset(
-        errorCode, span.start.offset, span.length, arguments);
+    reporter.atOffset(
+      offset: span.start.offset,
+      length: span.length,
+      errorCode: errorCode,
+      arguments: arguments,
+    );
   }
 
   /// Validate the 'activity' tags.

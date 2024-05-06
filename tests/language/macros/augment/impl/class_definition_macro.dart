@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // ignore_for_file: deprecated_member_use
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:macros/macros.dart';
 
 import 'impl.dart';
 
@@ -18,14 +18,15 @@ macro class ClassDefinitionBuildConstructor implements ClassDefinitionMacro {
   @override
   Future<void> buildDefinitionForClass(
       ClassDeclaration clazz, TypeDefinitionBuilder builder) async {
-    final nameIdentifier =
-        await builder.resolveIdentifier(clazz.library.uri, name);
+    final nameIdentifier = (await builder.constructorsOf(clazz))
+        .singleWhere((c) => c.identifier.name == name)
+        .identifier;
     (await builder.buildConstructor(nameIdentifier)).augment(
-        body: await builder.code(body),
+        body: await builder.maybeCode(body),
         initializers: initializers == null
             ? null
             : initializers!.map((s) => DeclarationCode.fromString(s)).toList(),
-        docComments: await builder.code(comments));
+        docComments: await builder.maybeCode(comments));
   }
 }
 
@@ -46,13 +47,14 @@ macro class ClassDefinitionBuildField implements ClassDefinitionMacro {
   @override
   Future<void> buildDefinitionForClass(
       ClassDeclaration clazz, TypeDefinitionBuilder builder) async {
-    final nameIdentifier =
-        await builder.resolveIdentifier(clazz.library.uri, name);
+    final nameIdentifier = (await builder.fieldsOf(clazz))
+        .singleWhere((c) => c.identifier.name == name)
+        .identifier;
     (await builder.buildField(nameIdentifier)).augment(
-      getter: await builder.code(getter),
-      setter: await builder.code(setter),
-      initializer: await builder.code(initializer),
-      initializerDocComments: await builder.code(initializerComments),
+      getter: await builder.maybeCode(getter),
+      setter: await builder.maybeCode(setter),
+      initializer: await builder.maybeCode(initializer),
+      initializerDocComments: await builder.maybeCode(initializerComments),
     );
   }
 }
@@ -68,11 +70,12 @@ macro class ClassDefinitionBuildMethod implements ClassDefinitionMacro {
   @override
   Future<void> buildDefinitionForClass(
       ClassDeclaration clazz, TypeDefinitionBuilder builder) async {
-    final nameIdentifier =
-        await builder.resolveIdentifier(clazz.library.uri, name);
+    final nameIdentifier = (await builder.methodsOf(clazz))
+        .singleWhere((c) => c.identifier.name == name)
+        .identifier;
     (await builder.buildMethod(nameIdentifier)).augment(
       await builder.code(body),
-      docComments: await builder.code(comments),
+      docComments: await builder.maybeCode(comments),
     );
   }
 }

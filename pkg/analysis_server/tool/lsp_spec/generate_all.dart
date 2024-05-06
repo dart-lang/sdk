@@ -56,7 +56,7 @@ final argParser = ArgParser()
           'Download the latest version of the LSP spec before generating types');
 
 final String languageServerProtocolPackagePath =
-    '$sdkRootPath/third_party/pkg/language_server_protocol';
+    path.join(sdkRootPath, 'third_party', 'pkg', 'language_server_protocol');
 
 final String licenseComment = LineSplitter.split(
         File(localLicensePath).readAsStringSync())
@@ -497,6 +497,47 @@ List<LspEntity> getCustomClasses() {
       ],
       baseType: 'CommandParameter',
       comment: 'Information about a Save URI argument needed by the command.',
+    ),
+    interface(
+      'DartTextDocumentContentProviderRegistrationOptions',
+      [
+        field(
+          'schemes',
+          type: 'string',
+          array: true,
+          comment: 'A set of URI schemes the server can provide content for. '
+              'The server may also return URIs with these schemes in responses '
+              'to other requests.',
+        ),
+      ],
+    ),
+    interface(
+      'DartTextDocumentContentParams',
+      [
+        field(
+          'uri',
+          type: 'DocumentUri',
+        ),
+      ],
+    ),
+    interface(
+      'DartTextDocumentContent',
+      [
+        field(
+          'content',
+          type: 'String',
+          canBeNull: true,
+        ),
+      ],
+    ),
+    interface(
+      'DartTextDocumentContentDidChangeParams',
+      [
+        field(
+          'uri',
+          type: 'DocumentUri',
+        ),
+      ],
     ),
   ];
   return customTypes;

@@ -15,7 +15,7 @@ import "dart:core" as core;
 class A extends core::Object {
   field core::bool v1;
   field core::num v2;
-  constructor •(core::bool v1, {required core::num v2 = #C1}) → self::A
+  constructor •(core::bool v1, {required core::num v2}) → self::A
     : self::A::v1 = v1, self::A::v2 = v2, super core::Object::•()
     ;
 }
@@ -27,7 +27,7 @@ mixin class M1 extends core::Object {
 }
 class C extends self::A implements self::M1 /*isEliminatedMixin*/  {
   field core::num v2 = 1.{core::int::unary-}(){() → core::int};
-  synthetic constructor •(core::bool v1, {required core::num v2 = #C1}) → self::C
+  synthetic constructor •(core::bool v1, {required core::num v2}) → self::C
     : super self::A::•(v1, v2: v2)
     ;
 }
@@ -37,9 +37,6 @@ static method test() → dynamic {
          ^";
 }
 
-constants  {
-  #C1 = null
-}
 
 Extra constant evaluation status:
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///issue52872.dart:12:12 -> IntConstant(-1)

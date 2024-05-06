@@ -9,7 +9,7 @@ static method main() → dynamic {
   lowered core::int? #local;
   lowered core::bool #local#isSet = false;
   function #local#get() → core::int
-    return #local#isSet ?{core::int} #local{core::int} : throw new _in::LateError::localNI("local");
+    return #local#isSet ?{core::int} #local{core::int} : throw{for-error-handling} new _in::LateError::localNI("local");
   function #local#set(core::int local#param) → dynamic {
     #local#isSet = true;
     return #local = local#param;

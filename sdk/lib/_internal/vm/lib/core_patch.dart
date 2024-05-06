@@ -84,6 +84,7 @@ part "uri_patch.dart";
 part "weak_property.dart";
 
 @patch
+@pragma('vm:deeply-immutable')
 class num {
   num _addFromInteger(int other);
   num _subFromInteger(int other);

@@ -280,7 +280,22 @@ Future testRelativeLinks(_) {
   });
 }
 
-Future testBrokenLinkTypeSync(_) async {
+Future testRelativeLinkToDirectoryNotRelativeToCurrentWorkingDirectory(
+    _) async {
+  final tempDirectory = await Directory.systemTemp.createTemp('dart_link');
+  final dir2 = await Directory(join(tempDirectory.path, 'dir1', 'dir2'))
+      .create(recursive: true);
+
+  final link =
+      await Link(join(tempDirectory.path, 'link')).create(join('dir1', 'dir2'));
+
+  String resolvedDir2Path = await link.resolveSymbolicLinks();
+  Expect.isTrue(await FileSystemEntity.identical(dir2.path, resolvedDir2Path));
+
+  await tempDirectory.delete(recursive: true);
+}
+
+Future testBrokenLinkType(_) async {
   String base = (await Directory.systemTemp.createTemp('dart_link')).path;
   String link = join(base, 'link');
   await Link(link).create('does not exist');
@@ -292,12 +307,24 @@ Future testBrokenLinkTypeSync(_) async {
       await FileSystemEntity.type(link, followLinks: true));
 }
 
+Future testTopLevelLink(_) async {
+  if (!Platform.isWindows) return;
+  try {
+    await Link(r"C:\").create('the target does not matter');
+    Expect.fail("expected FileSystemException");
+  } on FileSystemException catch (e) {
+    Expect.equals(5, e.osError!.errorCode); // ERROR_ACCESS_DENIED
+  }
+}
+
 main() {
   asyncStart();
   testCreate()
       .then(testCreateLoopingLink)
       .then(testRename)
       .then(testRelativeLinks)
-      .then(testBrokenLinkTypeSync)
+      .then(testRelativeLinkToDirectoryNotRelativeToCurrentWorkingDirectory)
+      .then(testBrokenLinkType)
+      .then(testTopLevelLink)
       .then((_) => asyncEnd());
 }

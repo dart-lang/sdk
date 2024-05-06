@@ -1,7 +1,9 @@
 // @dart = 2.12
+
 import 'opt_out_lib.dart';
 
 List<String?> l = [];
+
 String? s = null;
 
 class A<T> {
@@ -11,8 +13,13 @@ class A<T> {
 class B extends A<String?> {}
 
 late int field = 42;
+
 main() {}
+
 noErrors() {}
+
 typedef F = void Function()?;
+
 var t = s!;
+
 void method(void f()?, {required int a}) {}

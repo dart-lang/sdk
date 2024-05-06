@@ -17,6 +17,6 @@ static method main() → dynamic {
 Try using an if-case, a 'switch' statement, or a 'switch' expression instead.
   (null) = null;
    ^")
-      throw new core::StateError::•("Pattern matching error");
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
   }
 }

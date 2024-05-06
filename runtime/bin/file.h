@@ -269,6 +269,9 @@ class File : public ReferenceCounted<File> {
   static bool IsAbsolutePath(const char* path);
   static const char* PathSeparator();
   static const char* StringEscapedPathSeparator();
+#if defined(DART_HOST_OS_WINDOWS)
+  static Type GetType(const wchar_t* path, bool follow_links);
+#endif
   static Type GetType(Namespace* namespc, const char* path, bool follow_links);
   static Identical AreIdentical(Namespace* namespc_1,
                                 const char* file_1,

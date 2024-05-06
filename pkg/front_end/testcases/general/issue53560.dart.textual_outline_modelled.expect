@@ -4,4 +4,5 @@ class B<T, Invariance extends Function(T)> {
 }
 
 test() {}
+
 typedef A<X> = B<X, Function(X)>;

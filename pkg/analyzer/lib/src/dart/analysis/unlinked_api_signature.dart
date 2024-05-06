@@ -10,7 +10,6 @@ import 'package:analyzer/src/dart/ast/invokes_super_self.dart';
 import 'package:analyzer/src/dart/ast/mixin_super_invoked_names.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
-import 'package:collection/collection.dart';
 
 /// Return the bytes of the unlinked API signature of the given [unit].
 ///
@@ -117,6 +116,7 @@ class _UnitApiSignatureComputer {
     signature.addInt(_kindFieldDeclaration);
 
     _addToken(node.abstractKeyword);
+    _addToken(node.augmentKeyword);
     _addToken(node.covariantKeyword);
     _addToken(node.externalKeyword);
     _addToken(node.staticKeyword);
@@ -204,6 +204,7 @@ class _UnitApiSignatureComputer {
   }
 
   void _topLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    _addToken(node.augmentKeyword);
     _addToken(node.externalKeyword);
     _addNodeList(node.metadata);
 

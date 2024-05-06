@@ -13,16 +13,10 @@ import 'package:front_end/src/fasta/util/outline_extractor.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/equivalence.dart';
 import 'package:testing/testing.dart'
-    show
-        Chain,
-        ChainContext,
-        ExpectationSet,
-        Result,
-        Step,
-        TestDescription,
-        runMe;
+    show Chain, ChainContext, ExpectationSet, Result, Step, TestDescription;
 
-import 'fasta/testing/suite.dart' show UPDATE_EXPECTATIONS;
+import 'fasta/suite_utils.dart';
+import 'fasta/testing/environment_keys.dart';
 import 'incremental_suite.dart' as helper;
 import 'testing_utils.dart' show checkEnvironment;
 import 'utils/kernel_chain.dart' show MatchContext;
@@ -40,17 +34,20 @@ const String EXPECTATIONS = '''
 ]
 ''';
 
-void main([List<String> arguments = const []]) =>
-    runMe(arguments, createContext, configurationPath: "../testing.json");
+void main([List<String> arguments = const []]) => internalMain(createContext,
+    arguments: arguments,
+    displayName: "outline extractor suite",
+    configurationPath: "../testing.json");
 
 Future<Context> createContext(
     Chain suite, Map<String, String> environment) async {
   const Set<String> knownEnvironmentKeys = {
-    UPDATE_EXPECTATIONS,
+    EnvironmentKeys.updateExpectations,
   };
   checkEnvironment(environment, knownEnvironmentKeys);
 
-  bool updateExpectations = environment[UPDATE_EXPECTATIONS] == "true";
+  bool updateExpectations =
+      environment[EnvironmentKeys.updateExpectations] == "true";
 
   return new Context(suite.name, updateExpectations);
 }
@@ -60,7 +57,8 @@ class Context extends ChainContext with MatchContext {
   final bool updateExpectations;
 
   @override
-  String get updateExpectationsOption => '${UPDATE_EXPECTATIONS}=true';
+  String get updateExpectationsOption =>
+      '${EnvironmentKeys.updateExpectations}=true';
 
   @override
   bool get canBeFixWithUpdateExpectations => true;
@@ -78,13 +76,6 @@ class Context extends ChainContext with MatchContext {
   @override
   final ExpectationSet expectationSet =
       new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
-
-  // Override special handling of negative tests.
-  @override
-  Result processTestResult(
-      TestDescription description, Result result, bool last) {
-    return result;
-  }
 }
 
 class OutlineExtractorStep

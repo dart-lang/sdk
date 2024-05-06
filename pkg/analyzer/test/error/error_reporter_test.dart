@@ -22,57 +22,39 @@ main() {
 class ErrorReporterTest extends PubPackageResolutionTest {
   var listener = GatheringErrorListener();
 
-  test_creation() async {
-    var source = TestSource();
-    var reporter = ErrorReporter(
-      listener,
-      source,
-      isNonNullableByDefault: false,
-    );
-    expect(reporter, isNotNull);
-  }
-
-  test_reportErrorForElement_named() async {
+  test_atElement_named() async {
     await resolveTestCode('class A {}');
     var element = findElement.class_('A');
-    var reporter = ErrorReporter(
-      listener,
-      element.source,
-      isNonNullableByDefault: false,
-    );
-    reporter.reportErrorForElement(
-      CompileTimeErrorCode.CAST_TO_NON_TYPE,
+    var reporter = ErrorReporter(listener, element.source);
+    reporter.atElement(
       element,
-      ['A'],
+      CompileTimeErrorCode.CAST_TO_NON_TYPE,
+      arguments: ['A'],
     );
 
     var error = listener.errors[0];
     expect(error.offset, element.nameOffset);
   }
 
-  test_reportErrorForElement_unnamed() async {
+  test_atElement_unnamed() async {
     await resolveTestCode(r'''
 import 'dart:async';
 import 'dart:math';
 ''');
     var element = findElement.import('dart:math');
 
-    var reporter = ErrorReporter(
-      listener,
-      element.source,
-      isNonNullableByDefault: false,
-    );
-    reporter.reportErrorForElement(
-      CompileTimeErrorCode.CAST_TO_NON_TYPE,
+    var reporter = ErrorReporter(listener, element.source);
+    reporter.atElement(
       element,
-      ['A'],
+      CompileTimeErrorCode.CAST_TO_NON_TYPE,
+      arguments: ['A'],
     );
 
     var error = listener.errors[0];
     expect(error.offset, element.nameOffset);
   }
 
-  test_reportErrorForNode_types_differentNames() async {
+  test_atNode_types_differentNames() async {
     newFile('$testPackageLibPath/a.dart', 'class A {}');
     newFile('$testPackageLibPath/b.dart', 'class B {}');
     await resolveTestCode(r'''
@@ -95,23 +77,19 @@ main() {
       nullabilitySuffix: NullabilitySuffix.none,
     );
 
-    var reporter = ErrorReporter(
-      listener,
-      firstType.element.source,
-      isNonNullableByDefault: false,
-    );
+    var reporter = ErrorReporter(listener, firstType.element.source);
 
-    reporter.reportErrorForNode(
-      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+    reporter.atNode(
       findNode.simple('x'),
-      [firstType, secondType, ''],
+      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+      arguments: [firstType, secondType, ''],
     );
 
     var error = listener.errors[0];
     expect(error.message, isNot(contains('(')));
   }
 
-  test_reportErrorForNode_types_sameName() async {
+  test_atNode_types_sameName() async {
     newFile('$testPackageLibPath/a.dart', 'class A {}');
     newFile('$testPackageLibPath/b.dart', 'class A {}');
     await resolveTestCode(r'''
@@ -134,22 +112,18 @@ main() {
       nullabilitySuffix: NullabilitySuffix.none,
     );
 
-    var reporter = ErrorReporter(
-      listener,
-      firstType.element.source,
-      isNonNullableByDefault: false,
-    );
-    reporter.reportErrorForNode(
-      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+    var reporter = ErrorReporter(listener, firstType.element.source);
+    reporter.atNode(
       findNode.simple('x'),
-      [firstType, secondType, ''],
+      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+      arguments: [firstType, secondType, ''],
     );
 
     var error = listener.errors[0];
     expect(error.message, contains('('));
   }
 
-  test_reportErrorForNode_types_sameName_functionType() async {
+  test_atNode_types_sameName_functionType() async {
     newFile('$testPackageLibPath/a.dart', 'class A{}');
     newFile('$testPackageLibPath/b.dart', 'class A{}');
     await resolveTestCode(r'''
@@ -167,15 +141,11 @@ main() {
     var fb = findNode.topLevelVariableDeclaration('fb');
 
     var source = result.unit.declaredElement!.source;
-    var reporter = ErrorReporter(
-      listener,
-      source,
-      isNonNullableByDefault: false,
-    );
-    reporter.reportErrorForNode(
-      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+    var reporter = ErrorReporter(listener, source);
+    reporter.atNode(
       findNode.simple('x'),
-      [fa.variables.type!.type!, fb.variables.type!.type!, ''],
+      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+      arguments: [fa.variables.type!.type!, fb.variables.type!.type!, ''],
     );
 
     var error = listener.errors[0];
@@ -183,7 +153,7 @@ main() {
     expect(error.message, contains('b.dart'));
   }
 
-  test_reportErrorForNode_types_sameName_nested() async {
+  test_atNode_types_sameName_nested() async {
     newFile('$testPackageLibPath/a.dart', 'class A{}');
     newFile('$testPackageLibPath/b.dart', 'class A{}');
     await resolveTestCode(r'''
@@ -202,15 +172,11 @@ main() {
     var bb = findNode.topLevelVariableDeclaration('bb');
 
     var source = result.unit.declaredElement!.source;
-    var reporter = ErrorReporter(
-      listener,
-      source,
-      isNonNullableByDefault: false,
-    );
-    reporter.reportErrorForNode(
-      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+    var reporter = ErrorReporter(listener, source);
+    reporter.atNode(
       findNode.simple('x'),
-      [ba.variables.type!.type!, bb.variables.type!.type!, ''],
+      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+      arguments: [ba.variables.type!.type!, bb.variables.type!.type!, ''],
     );
 
     var error = listener.errors[0];
@@ -218,13 +184,15 @@ main() {
     expect(error.message, contains('b.dart'));
   }
 
+  test_creation() async {
+    var source = TestSource();
+    var reporter = ErrorReporter(listener, source);
+    expect(reporter, isNotNull);
+  }
+
   test_reportErrorForSpan() async {
     var source = TestSource();
-    var reporter = ErrorReporter(
-      listener,
-      source,
-      isNonNullableByDefault: false,
-    );
+    var reporter = ErrorReporter(listener, source);
 
     var text = '''
 foo: bar

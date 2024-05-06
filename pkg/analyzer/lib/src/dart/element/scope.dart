@@ -17,11 +17,46 @@ class ConstructorInitializerScope extends EnclosedScope {
   }
 }
 
+/// The scope that looks up elements in doc imports.
+///
+/// Attempts to look up elements in its [innerScope] before searching
+/// through the doc imports.
+class DocImportScope with _GettersAndSetters implements Scope {
+  /// The scope that will be prioritized in look ups before searching in doc
+  /// imports.
+  ///
+  /// Will be set for each specific comment scope in the `ScopeResolverVisitor`.
+  Scope innerScope;
+
+  DocImportScope(this.innerScope, List<LibraryElement> docImportLibraries) {
+    for (var importedLibrary in docImportLibraries) {
+      if (importedLibrary is LibraryElementImpl) {
+        // TODO(kallentu): Handle combinators.
+        for (final exportedReference in importedLibrary.exportedReferences) {
+          final reference = exportedReference.reference;
+          final element = importedLibrary.session.elementFactory
+              .elementOfReference(reference)!;
+          if (element is PropertyAccessorElement && element.isSetter) {
+            _addSetter(element);
+          } else {
+            _addGetter(element);
+          }
+        }
+      }
+    }
+  }
+
+  @override
+  ScopeLookupResult lookup(String id) {
+    var result = innerScope.lookup(id);
+    if (result.getter != null || result.setter != null) return result;
+    return ScopeLookupResultImpl(_getters[id], _setters[id]);
+  }
+}
+
 /// A scope that is lexically enclosed in another scope.
-class EnclosedScope implements Scope {
+class EnclosedScope with _GettersAndSetters implements Scope {
   final Scope _parent;
-  final Map<String, Element> _getters = {};
-  final Map<String, Element> _setters = {};
 
   EnclosedScope(Scope parent) : _parent = parent;
 
@@ -36,29 +71,6 @@ class EnclosedScope implements Scope {
     }
 
     return _parent.lookup(id);
-  }
-
-  void _addGetter(Element element) {
-    var id = element.name;
-    if (id != null) {
-      _getters[id] ??= element;
-    }
-  }
-
-  void _addPropertyAccessor(PropertyAccessorElement element) {
-    if (element.isGetter) {
-      _addGetter(element);
-    } else {
-      _addSetter(element);
-    }
-  }
-
-  void _addSetter(Element element) {
-    var name = element.name;
-    if (name != null && name.endsWith('=')) {
-      var id = considerCanonicalizeString(name.substring(0, name.length - 1));
-      _setters[id] ??= element;
-    }
   }
 }
 
@@ -102,19 +114,23 @@ class LibraryOrAugmentationScope extends EnclosedScope {
   final LibraryOrAugmentationElementImpl _container;
   List<ExtensionElement> extensions = [];
 
-  LibraryOrAugmentationScope(LibraryOrAugmentationElementImpl container)
-      : _container = container,
-        super(_LibraryOrAugmentationImportScope(container)) {
-    extensions
-        .addAll((_parent as _LibraryOrAugmentationImportScope).extensions);
+  factory LibraryOrAugmentationScope(
+    LibraryOrAugmentationElementImpl container,
+  ) {
+    var importScope = _LibraryOrAugmentationImportScope(container);
+    return LibraryOrAugmentationScope._(container, importScope);
+  }
+
+  LibraryOrAugmentationScope._(
+    this._container,
+    _LibraryOrAugmentationImportScope importScope,
+  ) : super(importScope) {
+    extensions.addAll(importScope.extensions);
 
     _container.prefixes.forEach(_addGetter);
     _container.library.units.forEach(_addUnitElements);
 
-    // TODO(scheglov): I don't understand why it used to work, but broke now.
-    // Now: when I'm adding `ImportElement2`.
-    // We used to get it from `exportedReference`, but this is wrong.
-    // These elements are declared in dart:core itself.
+    // Add implicit 'dart:core' declarations.
     if ('${_container.source.uri}' == 'dart:core') {
       _addGetter(DynamicElementImpl.instance);
       _addGetter(NeverElementImpl.instance);
@@ -131,11 +147,21 @@ class LibraryOrAugmentationScope extends EnclosedScope {
   }
 
   void _addUnitElements(CompilationUnitElement compilationUnit) {
-    compilationUnit.accessors.forEach(_addPropertyAccessor);
+    for (var element in compilationUnit.accessors) {
+      if (element.augmentation == null) {
+        _addPropertyAccessor(element);
+      }
+    }
+
+    for (var element in compilationUnit.functions) {
+      if (element.augmentation == null) {
+        _addGetter(element);
+      }
+    }
+
     compilationUnit.enums.forEach(_addGetter);
     compilationUnit.extensions.forEach(_addExtension);
     compilationUnit.extensionTypes.forEach(_addGetter);
-    compilationUnit.functions.forEach(_addGetter);
     compilationUnit.typeAliases.forEach(_addGetter);
     compilationUnit.mixins.forEach(_addGetter);
     compilationUnit.classes.forEach(_addGetter);
@@ -355,6 +381,34 @@ class TypeParameterScope extends EnclosedScope {
     List<TypeParameterElement> elements,
   ) {
     elements.forEach(_addGetter);
+  }
+}
+
+mixin _GettersAndSetters {
+  final Map<String, Element> _getters = {};
+  final Map<String, Element> _setters = {};
+
+  void _addGetter(Element element) {
+    var id = element.name;
+    if (id != null) {
+      _getters[id] ??= element;
+    }
+  }
+
+  void _addPropertyAccessor(PropertyAccessorElement element) {
+    if (element.isGetter) {
+      _addGetter(element);
+    } else {
+      _addSetter(element);
+    }
+  }
+
+  void _addSetter(Element element) {
+    var name = element.name;
+    if (name != null && name.endsWith('=')) {
+      var id = considerCanonicalizeString(name.substring(0, name.length - 1));
+      _setters[id] ??= element;
+    }
   }
 }
 

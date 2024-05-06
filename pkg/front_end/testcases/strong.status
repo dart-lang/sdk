@@ -53,6 +53,10 @@ inference_update_2/external_field: semiFuzzFailureOnForceRebuildBodies # privacy
 inference_update_2/field_promotion_and_no_such_method: semiFuzzFailureOnForceRebuildBodies # Private fields.
 inference_update_2/field_promotion_name_conflicts: semiFuzzFailureOnForceRebuildBodies # Private fields.
 inference_update_2/issue52452: semiFuzzFailureOnForceRebuildBodies # privacy.
+inference_update_3/if_null_assignment_explicit_extension_index_expression_test: semiFuzzFailureOnForceRebuildBodies # privacy.
+inference_update_3/if_null_assignment_explicit_extension_null_aware_index_expression_test: semiFuzzFailureOnForceRebuildBodies # privacy.
+inference_update_3/if_null_assignment_implicit_extension_index_expression_test: semiFuzzFailureOnForceRebuildBodies # privacy.
+inference_update_3/if_null_assignment_implicit_extension_null_aware_index_expression_test: semiFuzzFailureOnForceRebuildBodies # privacy.
 macros/macro_class: SemiFuzzFailure # Declares macros.
 patterns/exhaustiveness/extension_types: semiFuzzFailureOnForceRebuildBodies # uses sealed
 patterns/exhaustiveness/issue51957: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
@@ -67,6 +71,7 @@ patterns/private_names_in_object_patterns: semiFuzzFailureOnForceRebuildBodies #
 records/issue51940: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
 regress/issue_39682: semiFuzzFailureOnForceRebuildBodies # has private method
 dart2wasm/inference_update_2/issue52452: semiFuzzFailureOnForceRebuildBodies # private fields in class.
+records/nullable_access_extension: semiFuzzFailureOnForceRebuildBodies # unnamed extension
 
 # FUZZ FRAMEWORK FAILURES
 class_modifiers/invalid_enum_modifiers: SemiFuzzFailure # the invalid modifiers disappear

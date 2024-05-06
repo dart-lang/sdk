@@ -225,8 +225,11 @@ class _Visitor extends SimpleAstVisitor {
 
     for (var line in longLines) {
       if (allowedLines.contains(line.index + 1)) continue;
-      rule.reporter
-          .reportErrorForOffset(rule.lintCode, line.offset, line.length);
+      rule.reporter.atOffset(
+        offset: line.offset,
+        length: line.length,
+        errorCode: rule.lintCode,
+      );
     }
   }
 }

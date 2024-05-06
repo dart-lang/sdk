@@ -33,17 +33,31 @@ class AF16<X extends F6<X>> {}
 class AF17<X extends F7<X>> {}
 
 extension type E1<X>(X it) {}
+
 extension type E2<X>(F1<X> it) {}
+
 extension type E3<X>(F1<E1<X>> it) {}
+
 extension type E4<X>(E1<F1<X>> it) {}
+
 extension type E5<X>(E1<F1<E1<X>>> it) {}
+
 extension type E6<X>(E1<E1<X>> it) {}
+
 extension type E7<X>(F1<F1<X>> it) {}
+
 test() {}
+
 typedef F1<X> = X;
+
 typedef F2<X> = E1<X>;
+
 typedef F3<X> = E1<F1<X>>;
+
 typedef F4<X> = F1<E1<X>>;
+
 typedef F5<X> = F1<E1<F1<X>>>;
+
 typedef F6<X> = F1<F1<X>>;
+
 typedef F7<X> = E1<E1<X>>;

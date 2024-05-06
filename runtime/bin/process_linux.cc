@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(DART_HOST_OS_LINUX)
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
 
 #include "bin/process.h"
 
@@ -452,7 +452,7 @@ class ProcessStarter {
   // be reported to the parent.
   bool FindPathInNamespace(char* realpath, intptr_t realpath_size) {
     // Perform a PATH search if there's no slash in the path.
-    if (strchr(path_, '/') == nullptr) {
+    if (Namespace::IsDefault(namespc_) || strchr(path_, '/') == nullptr) {
       // TODO(zra): If there is a non-default namespace, the entries in PATH
       // should be treated as relative to the namespace.
       strncpy(realpath, path_, realpath_size);
@@ -1162,4 +1162,4 @@ void Process::Cleanup() {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(DART_HOST_OS_LINUX)
+#endif  // defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)

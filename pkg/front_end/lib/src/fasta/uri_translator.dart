@@ -4,12 +4,12 @@
 
 library fasta.uri_translator;
 
-import 'package:package_config/package_config.dart';
-
 import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
     show TargetLibrariesSpecification;
+import 'package:package_config/package_config.dart';
+
+import 'codes/fasta_codes.dart';
 import 'compiler_context.dart' show CompilerContext;
-import 'fasta_codes.dart';
 
 class UriTranslator {
   final TargetLibrariesSpecification dartLibraries;

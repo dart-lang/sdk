@@ -16,7 +16,6 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
-import 'package:collection/collection.dart';
 
 typedef StaticOptions = Either2<bool, ReferenceOptions>;
 
@@ -54,12 +53,12 @@ class ReferencesHandler
 
     return convert(collector.targets, (NavigationTarget target) {
       final targetFilePath = collector.files[target.fileIndex];
-      final targetFileUri = pathContext.toUri(targetFilePath);
+      final targetFileUri = uriConverter.toClientUri(targetFilePath);
       final lineInfo = server.getLineInfo(targetFilePath);
       return lineInfo != null
           ? navigationTargetToLocation(targetFileUri, target, lineInfo)
           : null;
-    }).whereNotNull().toList();
+    }).nonNulls.toList();
   }
 
   Future<ErrorOr<List<Location>?>> _getReferences(
@@ -88,7 +87,7 @@ class ReferencesHandler
         return null;
       }
       return Location(
-        uri: pathContext.toUri(result.file),
+        uri: uriConverter.toClientUri(result.file),
         range: toRange(
           file.lineInfo,
           result.sourceRange.offset,
@@ -98,7 +97,7 @@ class ReferencesHandler
     }
 
     final referenceResults = performance.run(
-        'convert', (_) => convert(results, toLocation).whereNotNull().toList());
+        'convert', (_) => convert(results, toLocation).nonNulls.toList());
 
     if (params.context.includeDeclaration == true) {
       // Also include the definition for the symbol at this location.

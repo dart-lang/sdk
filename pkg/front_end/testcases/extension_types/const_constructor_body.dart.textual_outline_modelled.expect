@@ -1,3 +1,0 @@
-extension type ET(int i) {
-  const ET.named(this.i) {}
-}

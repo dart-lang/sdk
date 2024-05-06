@@ -13,20 +13,19 @@ void m<X>(X x) {}
 // Generic function instantiation to a type parameter is supported implicitly.
 class B<X> {
   final void Function(X) f;
-  const B() : f = m;
+  const B() : f = m; // OK.
 }
 
-// But it is not supported explicitly.
+// And it is also supported explicitly.
 class C<X> {
   final f;
-  const C() : f = m<X>; // Error, but should be accepted.
+  const C() : f = m<X>; // OK.
 }
 
 void main() {
   const A<int>(<int>[1]); // OK.
   const b = B<String>(); // OK.
   print(b.f.runtimeType); // OK: 'String => void'.
-  const c = C<
-      String>(); // Compile-time error in `C`, but should be accepted when it works.
-  print(c.f.runtimeType); // (Never executed, so we don't know).
+  const c = C<String>(); // OK.
+  print(c.f.runtimeType); // OK: 'String => void'.
 }

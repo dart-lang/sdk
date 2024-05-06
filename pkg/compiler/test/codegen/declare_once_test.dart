@@ -15,7 +15,7 @@ main() {
   runTest() async {
     String generated = await compile(
         'final List a = const ["bar", "baz"];'
-        'int foo() {'
+        'void foo() {'
         '  for (int i = 0; i < a.length; i++) {'
         '    print(a[i]);'
         '  }'

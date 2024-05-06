@@ -24,6 +24,7 @@ import 'package:analysis_server/src/server/isolate_analysis_server.dart';
 import 'package:analysis_server/src/server/lsp_stdio_server.dart';
 import 'package:analysis_server/src/server/sdk_configuration.dart';
 import 'package:analysis_server/src/server/stdio_server.dart';
+import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analysis_server/starter.dart';
@@ -66,6 +67,11 @@ class Driver implements ServerStarter {
   /// The name of the option to disable the search feature.
   static const String DISABLE_SERVER_FEATURE_SEARCH =
       'disable-server-feature-search';
+
+  /// The name of the option to disable the debouncing of `server.status`
+  /// notifications.
+  static const String DISABLE_STATUS_NOTIFICATION_DEBOUNCING =
+      'disable-status-notification-debouncing';
 
   /// The name of the multi-option to enable one or more experiments.
   static const String ENABLE_EXPERIMENT = 'enable-experiment';
@@ -328,6 +334,9 @@ class Driver implements ServerStarter {
       }
     }
 
+    // TODO(brianwilkerson): Pass the following value to the server and
+    // implement the debouncing when it hasn't been disabled.
+    // var disableDebouncing = results[DISABLE_STATUS_NOTIFICATION_DEBOUNCING] as bool;
     if (analysisServerOptions.useLanguageServerProtocol) {
       if (sendPort != null) {
         throw UnimplementedError(
@@ -388,10 +397,8 @@ class Driver implements ServerStarter {
         return;
       }
     }
-    //
-    // Register lint rules.
-    //
     linter.registerLintRules();
+    registerBuiltInProducers();
 
     var diagnosticServer = _DiagnosticServerImpl();
 
@@ -500,6 +507,7 @@ class Driver implements ServerStarter {
         : _captureExceptions;
 
     linter.registerLintRules();
+    registerBuiltInProducers();
 
     var diagnosticServer = _DiagnosticServerImpl();
 
@@ -615,6 +623,7 @@ class Driver implements ServerStarter {
       DISABLE_SERVER_EXCEPTION_HANDLING,
       DISABLE_SERVER_FEATURE_COMPLETION,
       DISABLE_SERVER_FEATURE_SEARCH,
+      DISABLE_STATUS_NOTIFICATION_DEBOUNCING,
       'enable-completion-model',
       'enable-experiment',
       'enable-instrumentation',
@@ -678,8 +687,7 @@ class Driver implements ServerStarter {
         print(telemetry.analyticsNotice);
       }
       print('');
-      print(telemetry.createAnalyticsStatusMessage(analytics.enabled,
-          command: ANALYTICS_FLAG));
+      print(telemetry.createAnalyticsStatusMessage(analytics.enabled));
     }
   }
 
@@ -767,7 +775,6 @@ class Driver implements ServerStarter {
     // This option is hidden but still accepted; it's effectively translated to
     // the 'protocol' option above.
     parser.addFlag(USE_LSP,
-        defaultsTo: false,
         negatable: false,
         help: 'Whether to use the Language Server Protocol (LSP).',
         hide: true);
@@ -815,15 +822,17 @@ class Driver implements ServerStarter {
         // exception-nullifying runZoned() calls.
         help: 'disable analyzer exception capture for interactive debugging '
             'of the server',
-        defaultsTo: false,
         hide: true);
     parser.addFlag(DISABLE_SERVER_FEATURE_COMPLETION,
-        help: 'disable all completion features', defaultsTo: false, hide: true);
+        help: 'disable all completion features', hide: true);
     parser.addFlag(DISABLE_SERVER_FEATURE_SEARCH,
-        help: 'disable all search features', defaultsTo: false, hide: true);
+        help: 'disable all search features', hide: true);
+    parser.addFlag(DISABLE_STATUS_NOTIFICATION_DEBOUNCING,
+        negatable: false,
+        help: 'Suppress debouncing of status notifications.',
+        hide: true);
     parser.addFlag(INTERNAL_PRINT_TO_CONSOLE,
         help: 'enable sending `print` output to the console',
-        defaultsTo: false,
         negatable: false,
         hide: true);
     parser.addOption(

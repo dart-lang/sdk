@@ -293,9 +293,11 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void beginExtensionDeclaration(Token extensionKeyword, Token? name) {
+  void beginExtensionDeclaration(
+      Token? augmentToken, Token extensionKeyword, Token? name) {
     ExtensionDeclarationBegin data = new ExtensionDeclarationBegin(
         ParserAstType.BEGIN,
+        augmentToken: augmentToken,
         extensionKeyword: extensionKeyword,
         name: name);
     seen(data);
@@ -1915,6 +1917,7 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endTopLevelFields(
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -1924,6 +1927,7 @@ abstract class AbstractParserAstListener implements Listener {
       Token beginToken,
       Token endToken) {
     TopLevelFieldsEnd data = new TopLevelFieldsEnd(ParserAstType.END,
+        augmentToken: augmentToken,
         externalToken: externalToken,
         staticToken: staticToken,
         covariantToken: covariantToken,
@@ -3567,15 +3571,17 @@ class ExtensionDeclarationPreludeBegin extends ParserAstNode {
 }
 
 class ExtensionDeclarationBegin extends ParserAstNode {
+  final Token? augmentToken;
   final Token extensionKeyword;
   final Token? name;
 
   ExtensionDeclarationBegin(ParserAstType type,
-      {required this.extensionKeyword, this.name})
+      {this.augmentToken, required this.extensionKeyword, this.name})
       : super("ExtensionDeclaration", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
+        "augmentToken": augmentToken,
         "extensionKeyword": extensionKeyword,
         "name": name,
       };
@@ -6491,6 +6497,7 @@ class FieldsBegin extends ParserAstNode {
 }
 
 class TopLevelFieldsEnd extends ParserAstNode {
+  final Token? augmentToken;
   final Token? externalToken;
   final Token? staticToken;
   final Token? covariantToken;
@@ -6501,7 +6508,8 @@ class TopLevelFieldsEnd extends ParserAstNode {
   final Token endToken;
 
   TopLevelFieldsEnd(ParserAstType type,
-      {this.externalToken,
+      {this.augmentToken,
+      this.externalToken,
       this.staticToken,
       this.covariantToken,
       this.lateToken,
@@ -6513,6 +6521,7 @@ class TopLevelFieldsEnd extends ParserAstNode {
 
   @override
   Map<String, Object?> get deprecatedArguments => {
+        "augmentToken": augmentToken,
         "externalToken": externalToken,
         "staticToken": staticToken,
         "covariantToken": covariantToken,

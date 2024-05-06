@@ -5,6 +5,7 @@
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
@@ -28,6 +29,7 @@ class FixesTest extends PubPackageAnalysisServerTest {
   @override
   Future<void> setUp() async {
     super.setUp();
+    registerBuiltInProducers();
     await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
@@ -150,23 +152,18 @@ print(1)
   }
 
   Future<void> test_suggestImportFromDifferentAnalysisRoot() async {
-    newPackageConfigJsonFile(
-      '$workspaceRootPath/aaa',
-      (PackageConfigFileBuilder()
-            ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa')
-            ..add(name: 'bbb', rootPath: '$workspaceRootPath/bbb'))
-          .toContent(toUriStr: toUriStr),
+    writePackageConfig(
+      convertPath('$workspaceRootPath/aaa'),
+      config: (PackageConfigFileBuilder()
+        ..add(name: 'bbb', rootPath: '$workspaceRootPath/bbb')),
     );
     newPubspecYamlFile('$workspaceRootPath/aaa', r'''
 dependencies:
   bbb: any
 ''');
 
-    newPackageConfigJsonFile(
-      '$workspaceRootPath/bbb',
-      (PackageConfigFileBuilder()
-            ..add(name: 'bbb', rootPath: '$workspaceRootPath/bbb'))
-          .toContent(toUriStr: toUriStr),
+    writePackageConfig(
+      convertPath('$workspaceRootPath/bbb'),
     );
     newFile('$workspaceRootPath/bbb/lib/target.dart', 'class Foo() {}');
     newFile(

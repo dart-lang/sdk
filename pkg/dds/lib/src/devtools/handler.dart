@@ -9,12 +9,13 @@ import 'dart:typed_data';
 
 import 'package:devtools_shared/devtools_deeplink_io.dart';
 import 'package:devtools_shared/devtools_extensions_io.dart';
-import 'package:devtools_shared/devtools_server.dart';
+import 'package:devtools_shared/devtools_server.dart' hide Handler;
 import 'package:mime/mime.dart';
 import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart';
 import 'package:shelf_static/shelf_static.dart';
 import 'package:sse/server/sse_handler.dart';
+import 'package:unified_analytics/unified_analytics.dart';
 
 import '../constants.dart';
 import '../dds_impl.dart';
@@ -27,15 +28,24 @@ import 'utils.dart';
 /// [buildDir] is the path to the pre-compiled DevTools instance to be served.
 ///
 /// [notFoundHandler] is a [Handler] to which requests that could not be handled
-/// by the DevTools handler are forwarded (e.g., a proxy to the VM service).
+/// by the DevTools handler are forwarded (e.g., a proxy to the VM
+/// service).
 ///
 /// If [dds] is null, DevTools is not being served by a DDS instance and is
 /// served by a standalone server (see `package:dds/devtools_server.dart`).
+///
+/// If [dtd] or [dtd.uri] is null, the Dart Tooling Daemon is not available for
+/// this DevTools server connection.
+///
+/// If [dtd.uri] is non-null, but [dtd.secret] is null, then DTD was started by a
+/// client that is not the DevTools server (e.g. an IDE).
 FutureOr<Handler> defaultHandler({
   DartDevelopmentServiceImpl? dds,
   required String buildDir,
   ClientManager? clientManager,
+  Analytics? analytics,
   Handler? notFoundHandler,
+  DTDConnectionInfo? dtd,
 }) {
   // When served through DDS, the app root is /devtools.
   // This variable is used in base href and must start and end with `/`
@@ -138,6 +148,8 @@ FutureOr<Handler> defaultHandler({
       request,
       extensionsManager: ExtensionsManager(buildDir: buildDir),
       deeplinkManager: DeeplinkManager(),
+      dtd: dtd,
+      analytics: analytics ?? NoOpAnalytics(),
     );
   }
 
@@ -178,7 +190,9 @@ Future<Response> _serveStaticFile(
       try {
         fileBytes = file.readAsBytesSync();
       } catch (e) {
-        return Response.notFound('could not read file as bytes: ${file.path}');
+        return Response.notFound(
+          'could not read file as bytes: ${file.path}',
+        );
       }
     }
     return Response.ok(fileBytes, headers: headers);
@@ -188,7 +202,9 @@ Future<Response> _serveStaticFile(
   try {
     contents = file.readAsStringSync();
   } catch (e) {
-    return Response.notFound('could not read file as String: ${file.path}');
+    return Response.notFound(
+      'could not read file as String: ${file.path}',
+    );
   }
 
   if (baseHref != null) {

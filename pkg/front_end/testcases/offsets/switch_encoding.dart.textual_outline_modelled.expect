@@ -13,19 +13,35 @@ class PrimitiveEquals {
 enum E { a, b, c }
 
 switchExpression(o) {}
+
 switchExpressionEnum(E o) {}
+
 switchExpressionEnumWithGuard(E o) {}
+
 switchExpressionNonPrimitiveEquals(o) {}
+
 switchExpressionPrimitiveEquals(o) {}
+
 switchExpressionSymbol(Symbol s) {}
+
 switchStatement(o) {}
+
 switchStatementEnum(E o) {}
+
 switchStatementEnumWithContinue(E o) {}
+
 switchStatementEnumWithGuard(E o) {}
+
 switchStatementEnumWithLabel(E o) {}
+
 switchStatementNonPrimitiveEquals(o) {}
+
 switchStatementPrimitiveEquals(o) {}
+
 switchStatementSymbol(Symbol s) {}
+
 switchStatementWithContinue(o) {}
+
 switchStatementWithContinueNested(o1, o2) {}
+
 switchStatementWithLabel(o) {}

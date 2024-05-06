@@ -6,5 +6,7 @@ method(dynamic d) => switch (d) {
       int(:var method) => method(d),
       _ => 0,
     };
+
 main() {}
+
 expect(expected, actual) {}

@@ -6,9 +6,7 @@ library fasta.class_hierarchy_builder;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-import 'package:kernel/src/legacy_erasure.dart';
-import 'package:kernel/src/nnbd_top_merge.dart';
-import 'package:kernel/src/norm.dart';
+import 'package:kernel/names.dart' show noSuchMethodName;
 
 import '../../../base/common.dart';
 import '../../builder/declaration_builders.dart';
@@ -37,7 +35,6 @@ import '../../messages.dart'
         templateInstanceAndSynthesizedStaticConflict,
         templateMissingImplementationCause,
         templateMissingImplementationNotAbstract;
-import '../../names.dart' show noSuchMethodName;
 import '../../source/source_class_builder.dart';
 import '../../source/source_field_builder.dart';
 import '../../source/source_procedure_builder.dart';
@@ -489,44 +486,6 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
       }
 
       parameter.type.registerInferredType(inferredType ?? const DynamicType());
-    }
-  }
-
-  /// Merge the [inheritedType] with the currently [inferredType] using
-  /// nnbd-top-merge or legacy-top-merge depending on whether [classBuilder] is
-  /// defined in an opt-in or opt-out library. If the types could not be merged
-  /// `null` is returned and an error should be reported by the caller.
-  static DartType? mergeTypeInLibrary(
-      ClassHierarchyBuilder hierarchy,
-      ClassBuilder classBuilder,
-      DartType? inferredType,
-      DartType inheritedType) {
-    if (classBuilder.libraryBuilder.isNonNullableByDefault) {
-      if (inferredType == null) {
-        return inheritedType;
-      } else {
-        return nnbdTopMerge(
-            hierarchy.coreTypes,
-            norm(hierarchy.coreTypes, inferredType),
-            norm(hierarchy.coreTypes, inheritedType));
-      }
-    } else {
-      inheritedType = legacyErasure(inheritedType);
-      if (inferredType == null) {
-        return inheritedType;
-      } else {
-        if (inferredType is DynamicType &&
-            inheritedType == hierarchy.coreTypes.objectLegacyRawType) {
-          return inferredType;
-        } else if (inheritedType is DynamicType &&
-            inferredType == hierarchy.coreTypes.objectLegacyRawType) {
-          return inheritedType;
-        }
-        if (inferredType != inheritedType) {
-          return null;
-        }
-        return inferredType;
-      }
     }
   }
 
@@ -1253,30 +1212,6 @@ class ClassMembersNode {
       return null;
     }
     return result;
-  }
-
-  ClassMember? findMember(Name name, List<ClassMember> declarations) {
-    // TODO(ahe): Consider creating a map or scope. The obvious choice would be
-    // to use scopes, but they don't handle private names correctly.
-
-    // This is a copy of `ClassHierarchy.findMemberByName`.
-    int low = 0, high = declarations.length - 1;
-    while (low <= high) {
-      int mid = low + ((high - low) >> 1);
-      ClassMember pivot = declarations[mid];
-      int comparison = ClassHierarchy.compareNames(name, pivot.name);
-      if (comparison < 0) {
-        high = mid - 1;
-      } else if (comparison > 0) {
-        low = mid + 1;
-      } else if (high != mid) {
-        // Ensure we find the first element of the given name.
-        high = mid;
-      } else {
-        return pivot;
-      }
-    }
-    return null;
   }
 
   ClassMember? getDispatchTarget(Name name, bool isSetter) {

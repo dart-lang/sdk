@@ -65,8 +65,10 @@ class Verification {
 
 void verifyComponent(
     Target target, VerificationStage stage, Component component,
-    {bool skipPlatform = false}) {
-  VerifyingVisitor.check(target, stage, component, skipPlatform: skipPlatform);
+    {bool skipPlatform = false,
+    bool Function(Library library)? librarySkipFilter}) {
+  VerifyingVisitor.check(target, stage, component,
+      skipPlatform: skipPlatform, librarySkipFilter: librarySkipFilter);
 }
 
 class VerificationErrorListener {
@@ -125,6 +127,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   final List<TreeNode> treeNodeStack = <TreeNode>[];
   final bool skipPlatform;
+  final bool Function(Library library)? librarySkipFilter;
 
   final Set<Class> classes = new Set<Class>();
   final Set<Typedef> typedefs = new Set<Typedef>();
@@ -172,13 +175,15 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
       currentExtensionTypeDeclaration;
 
   static void check(Target target, VerificationStage stage, Component component,
-      {required bool skipPlatform}) {
-    component.accept(
-        new VerifyingVisitor(target, stage, skipPlatform: skipPlatform));
+      {required bool skipPlatform,
+      bool Function(Library library)? librarySkipFilter}) {
+    component.accept(new VerifyingVisitor(target, stage,
+        skipPlatform: skipPlatform, librarySkipFilter: librarySkipFilter));
   }
 
   VerifyingVisitor(this.target, this.stage,
       {required this.skipPlatform,
+      required this.librarySkipFilter,
       VerificationErrorListener this.listener =
           const VerificationErrorListener()});
 
@@ -278,18 +283,6 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     exitTreeNode(node);
   }
 
-  void declareMember(Member member) {
-    if (member.transformerFlags & TransformerFlag.seenByVerifier != 0) {
-      problem(member.function,
-          "Member '$member' has been declared more than once.");
-    }
-    member.transformerFlags |= TransformerFlag.seenByVerifier;
-  }
-
-  void undeclareMember(Member member) {
-    member.transformerFlags &= ~TransformerFlag.seenByVerifier;
-  }
-
   void declareVariable(VariableDeclaration variable) {
     if (variableDeclarationsInScope.contains(variable)) {
       problem(variable, "Variable '$variable' declared more than once.");
@@ -354,6 +347,18 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   @override
   void visitComponent(Component component) {
+    void declareMember(Member member) {
+      if (member.transformerFlags & TransformerFlag.seenByVerifier != 0) {
+        problem(member.function,
+            "Member '$member' has been declared more than once.");
+      }
+      member.transformerFlags |= TransformerFlag.seenByVerifier;
+    }
+
+    void undeclareMember(Member member) {
+      member.transformerFlags &= ~TransformerFlag.seenByVerifier;
+    }
+
     try {
       for (Library library in component.libraries) {
         for (Class class_ in library.classes) {
@@ -366,9 +371,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
             problem(typedef_, "Typedef '$typedef_' declared more than once.");
           }
         }
-        library.members.forEach(declareMember);
+
+        library.forEachMember(declareMember);
         for (Class class_ in library.classes) {
-          class_.members.forEach(declareMember);
+          class_.forEachMember(declareMember);
         }
         for (ExtensionTypeDeclaration extensionTypeDeclaration
             in library.extensionTypeDeclarations) {
@@ -378,10 +384,11 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
       visitChildren(component);
     } finally {
       for (Library library in component.libraries) {
-        library.members.forEach(undeclareMember);
+        library.forEachMember(undeclareMember);
         for (Class class_ in library.classes) {
-          class_.members.forEach(undeclareMember);
+          class_.forEachMember(undeclareMember);
         }
+
         for (ExtensionTypeDeclaration extensionTypeDeclaration
             in library.extensionTypeDeclarations) {
           extensionTypeDeclaration.procedures.forEach(undeclareMember);
@@ -398,6 +405,9 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
         // 'dart:test' is used in the unit tests and isn't an actual part of the
         // platform so we don't skip its verification.
         node.importUri.path != 'test') {
+      return;
+    }
+    if (librarySkipFilter != null && librarySkipFilter!(node)) {
       return;
     }
 
@@ -1052,9 +1062,9 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   @override
   void visitTypedefTearOff(TypedefTearOff node) {
     _checkTypedefTearOff(node);
-    declareTypeParameters(node.typeParameters);
+    declareStructuralParameters(node.structuralParameters);
     super.visitTypedefTearOff(node);
-    undeclareTypeParameters(node.typeParameters);
+    undeclareStructuralParameters(node.structuralParameters);
   }
 
   void checkTargetedInvocation(Member target, InvocationExpression node) {
@@ -1198,7 +1208,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
           " field values, but the class declares"
           " $fieldCount fields.");
     }
-    constant.fieldValues.forEach((Reference fieldRef, Constant value) {
+    for (Reference fieldRef in constant.fieldValues.keys) {
       Field field = fieldRef.asField;
       if (!superClasses.contains(field.enclosingClass)) {
         problem(
@@ -1206,7 +1216,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
             "Constant $constant refers to field $field,"
             " which does not belong to the right class.");
       }
-    });
+    }
   }
 
   @override
@@ -1342,9 +1352,9 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   @override
   void visitTypedefTearOffConstant(TypedefTearOffConstant node) {
     _checkTypedefTearOff(node);
-    declareTypeParameters(node.parameters);
+    declareStructuralParameters(node.parameters);
     super.visitTypedefTearOffConstant(node);
-    undeclareTypeParameters(node.parameters);
+    undeclareStructuralParameters(node.parameters);
   }
 
   void _checkInterfaceTarget(Expression node, Member interfaceTarget) {
@@ -1520,6 +1530,11 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
       if (node.fileOffset == TreeNode.noOffset &&
           !target.verification.allowNoFileOffset(stage, node)) {
         problem(node, "'$name' has no fileOffset", context: node);
+      }
+      try {
+        node.location;
+      } catch (e) {
+        problem(node, "'$name' crashes when asked for location", context: node);
       }
       return fileUri;
     }
@@ -1754,10 +1769,6 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 }
 
-void verifyGetStaticType(TypeEnvironment env, Component component) {
-  component.accept(new VerifyGetStaticType(env));
-}
-
 class VerifyGetStaticType extends RecursiveVisitor {
   final TypeEnvironment env;
   Member? currentMember;
@@ -1821,32 +1832,6 @@ class VerifyGetStaticType extends RecursiveVisitor {
       rethrow;
     }
     super.defaultExpression(node);
-  }
-}
-
-class CheckParentPointers extends VisitorDefault<void> with VisitorVoidMixin {
-  static void check(TreeNode node) {
-    node.accept(new CheckParentPointers(node.parent));
-  }
-
-  TreeNode? parent;
-
-  CheckParentPointers([this.parent]);
-
-  @override
-  void defaultTreeNode(TreeNode node) {
-    if (node.parent != parent) {
-      throw new VerificationError(
-          parent,
-          node,
-          "Parent pointer on '${node.runtimeType}' "
-          "is '${node.parent.runtimeType}' "
-          "but should be '${parent.runtimeType}'.");
-    }
-    TreeNode? oldParent = parent;
-    parent = node;
-    node.visitChildren(this);
-    parent = oldParent;
   }
 }
 

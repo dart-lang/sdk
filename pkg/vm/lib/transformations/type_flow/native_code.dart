@@ -39,6 +39,9 @@ abstract class EntryPointsListener {
 
   /// Record the fact that given member is torn off.
   void recordTearOff(Member target) {}
+
+  /// Artificial call method corresponding to the given [closure].
+  Procedure getClosureCallMethod(Closure closure);
 }
 
 class PragmaEntryPointsVisitor extends RecursiveVisitor {

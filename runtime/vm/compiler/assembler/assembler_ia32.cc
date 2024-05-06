@@ -2309,6 +2309,16 @@ void Assembler::LoadDImmediate(XmmRegister dst, double value) {
   addl(ESP, Immediate(2 * target::kWordSize));
 }
 
+void Assembler::LoadQImmediate(XmmRegister dst, simd128_value_t value) {
+  // TODO(5410843): Need to have a code constants table.
+  pushl(Immediate(value.int_storage[3]));
+  pushl(Immediate(value.int_storage[2]));
+  pushl(Immediate(value.int_storage[1]));
+  pushl(Immediate(value.int_storage[0]));
+  movups(dst, Address(ESP, 0));
+  addl(ESP, Immediate(4 * target::kWordSize));
+}
+
 void Assembler::FloatNegate(XmmRegister f) {
   static const struct ALIGN16 {
     uint32_t a;
@@ -3127,6 +3137,18 @@ void Assembler::EnsureHasClassIdInDEBUG(intptr_t cid,
   Breakpoint();
   Bind(&matches);
 #endif
+}
+
+bool Assembler::AddressCanHoldConstantIndex(const Object& constant,
+                                            bool is_external,
+                                            intptr_t cid,
+                                            intptr_t index_scale) {
+  if (!IsSafeSmi(constant)) return false;
+  const int64_t index = target::SmiValue(constant);
+  const int64_t offset =
+      is_external ? 0 : (target::Instance::DataOffsetFor(cid) - kHeapObjectTag);
+  const int64_t disp = index * index_scale + offset;
+  return Utils::IsInt(32, disp);
 }
 
 Address Assembler::ElementAddressForIntIndex(bool is_external,

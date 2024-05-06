@@ -360,8 +360,10 @@ uword MakeTagWordForNewSpaceObject(classid_t cid, uword instance_size) {
              TranslateOffsetInWordsToHost(instance_size)) |
          dart::UntaggedObject::ClassIdTag::encode(cid) |
          dart::UntaggedObject::NewBit::encode(true) |
+         dart::UntaggedObject::AlwaysSetBit::encode(true) |
+         dart::UntaggedObject::NotMarkedBit::encode(true) |
          dart::UntaggedObject::ImmutableBit::encode(
-             ShouldHaveImmutabilityBitSet(cid));
+             dart::Object::ShouldHaveImmutabilityBitSet(cid));
 }
 
 word Object::tags_offset() {
@@ -378,8 +380,7 @@ const word UntaggedObject::kNewBit = dart::UntaggedObject::kNewBit;
 const word UntaggedObject::kOldAndNotRememberedBit =
     dart::UntaggedObject::kOldAndNotRememberedBit;
 
-const word UntaggedObject::kOldAndNotMarkedBit =
-    dart::UntaggedObject::kOldAndNotMarkedBit;
+const word UntaggedObject::kNotMarkedBit = dart::UntaggedObject::kNotMarkedBit;
 
 const word UntaggedObject::kImmutableBit = dart::UntaggedObject::kImmutableBit;
 
@@ -549,8 +550,7 @@ word Instance::native_fields_array_offset() {
 }
 
 word Instance::DataOffsetFor(intptr_t cid) {
-  if (dart::IsExternalTypedDataClassId(cid) ||
-      dart::IsExternalStringClassId(cid)) {
+  if (dart::IsExternalTypedDataClassId(cid)) {
     // Elements start at offset 0 of the external data.
     return 0;
   }
@@ -591,10 +591,6 @@ word Instance::ElementSizeFor(intptr_t cid) {
       return dart::OneByteString::kBytesPerElement;
     case kTwoByteStringCid:
       return dart::TwoByteString::kBytesPerElement;
-    case kExternalOneByteStringCid:
-      return dart::ExternalOneByteString::kBytesPerElement;
-    case kExternalTwoByteStringCid:
-      return dart::ExternalTwoByteString::kBytesPerElement;
     default:
       UNIMPLEMENTED();
       return 0;

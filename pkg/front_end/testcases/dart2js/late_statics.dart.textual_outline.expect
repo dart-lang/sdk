@@ -1,4 +1,5 @@
 import 'late_statics_lib.dart' as lib;
+
 export 'late_statics_lib.dart';
 
 void main() {}
@@ -11,10 +12,17 @@ class Statics {
 }
 
 void testUninitializedNonFinalStaticField() {}
+
 void testUninitializedFinalStaticField() {}
+
 void testInitializedNonFinalStaticField() {}
+
 void testInitializedFinalStaticField() {}
+
 void testUninitializedNonFinalTopLevelField() {}
+
 void testUninitializedFinalTopLevelField() {}
+
 void testInitializedNonFinalTopLevelField() {}
+
 void testInitializedFinalTopLevelField() {}

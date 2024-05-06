@@ -4,10 +4,11 @@
 
 import 'dart:io';
 
-import 'package:_fe_analyzer_shared/src/macros/bootstrap.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
 import 'package:bazel_worker/bazel_worker.dart';
+import 'package:dev_compiler/ddc.dart' as ddc;
 import 'package:frontend_server/compute_kernel.dart';
+import 'package:macros/src/bootstrap.dart';
+import 'package:macros/src/executor/serialization.dart';
 import 'package:test/test.dart';
 
 Directory tmp = Directory.systemTemp.createTempSync('ddc_worker_test');
@@ -19,12 +20,13 @@ String _resolvePath(String executableRelativePath) {
 }
 
 void main() {
-  group('DDC: Macros', () {
+  group('DDC: Macros', timeout: Timeout(Duration(minutes: 2)), () {
     late File testMacroDart;
     late File bootstrapDillFileVm;
     late File bootstrapDillFileDdc;
     late Uri testMacroUri;
     late File packageConfig;
+    late List<String> ddcArgs;
     late List<String> executableArgs;
 
     final applyTestMacroDart = file('apply_test_macro.dart');
@@ -37,7 +39,7 @@ void main() {
       testMacroDart = file('lib/test_macro.dart')
         ..createSync(recursive: true)
         ..writeAsStringSync('''
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:macros/macros.dart';
 
 macro class TestMacro implements ClassDeclarationsMacro {
   const TestMacro();
@@ -61,8 +63,13 @@ macro class TestMacro implements ClassDeclarationsMacro {
         "packageUri": "lib/"
       },
       {
-        "name": "_fe_analyzer_shared",
-        "rootUri": "${Platform.script.resolve('../../../_fe_analyzer_shared')}",
+        "name": "_macros",
+        "rootUri": "${Platform.script.resolve('../../../_macros')}",
+        "packageUri": "lib/"
+      },
+      {
+        "name": "macros",
+        "rootUri": "${Platform.script.resolve('../../../macros')}",
         "packageUri": "lib/"
       },
       {
@@ -120,12 +127,7 @@ macro class TestMacro implements ClassDeclarationsMacro {
       expect(bootstrapResultDdc.succeeded, true);
 
       // Write source that applies the macro.
-      // TODO(davidmorgan): the `api` import should not be needed, but without
-      // it the macro application does nothing: `computeMacroDeclarations` in
-      // `source_loader.dart` does nothing because
-      // `lookupLibraryBuilder(macroLibraryUri)` returns null. Fix.
       applyTestMacroDart.writeAsStringSync('''
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
 import 'package:test_macro/test_macro.dart';
 
 @TestMacro()
@@ -137,16 +139,17 @@ void main() {
   print(TestClass().x);
 }
 ''');
-
-      executableArgs = [
-        '--enable-experiment=macros',
-        _resolvePath('../../gen/dartdevc.dart.snapshot'),
+      ddcArgs = [
         '--enable-experiment=macros',
         '--sound-null-safety',
         '--dart-sdk-summary',
         _resolvePath('../../ddc_outline.dill'),
-        '--enable-experiment=macros',
         '--packages=${packageConfig.uri}',
+      ];
+
+      executableArgs = [
+        _resolvePath('../../gen/dartdevc.dart.snapshot'),
+        ...ddcArgs
       ];
     });
 
@@ -154,7 +157,42 @@ void main() {
       if (tmp.existsSync()) tmp.deleteSync(recursive: true);
     });
 
-    test('compile in basic mode', () {
+    test('compile using dartdevc source code', () async {
+      await ddc.internalMain([
+        ...ddcArgs,
+        '--no-source-map',
+        '-o',
+        testMacroJS.path,
+        testMacroDart.path,
+      ]);
+      // TODO(johnniwinther): Is there a way to verify that no errors/warnings
+      // were reported?
+      expect(exitCode, EXIT_CODE_OK);
+
+      expect(testMacroJS.existsSync(), isTrue);
+      expect(testMacroSummary.existsSync(), isTrue);
+
+      await ddc.internalMain([
+        ...ddcArgs,
+        '--precompiled-macro',
+        '${bootstrapDillFileVm.path};$testMacroUri',
+        '--no-source-map',
+        '--no-summarize',
+        '-s',
+        testMacroSummary.path,
+        '-s',
+        bootstrapDillFileDdc.path,
+        '-o',
+        applyTestMacroJS.path,
+        applyTestMacroDart.path,
+      ]);
+      // TODO(johnniwinther): Is there a way to verify that no errors/warnings
+      // were reported?
+      expect(exitCode, EXIT_CODE_OK);
+      expect(applyTestMacroJS.existsSync(), isTrue);
+    });
+
+    test('compile using dartdevc snapshot', () {
       var result = Process.runSync(Platform.executable, [
         ...executableArgs,
         '--no-source-map',
@@ -165,6 +203,7 @@ void main() {
       expect(result.stdout, isEmpty);
       expect(result.stderr, isEmpty);
       expect(result.exitCode, EXIT_CODE_OK);
+
       expect(testMacroJS.existsSync(), isTrue);
       expect(testMacroSummary.existsSync(), isTrue);
 

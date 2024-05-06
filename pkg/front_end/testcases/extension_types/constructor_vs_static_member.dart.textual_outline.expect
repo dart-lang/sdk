@@ -27,14 +27,17 @@ extension type ET1(int id) {
   static int get n => 1;
   ET1.n(this.id);
 }
+
 extension type ET2(int id) {
   static int n() => 2;
   const ET2.n(this.id);
 }
+
 extension type ET3(int id) {
   static int n() => 3;
   factory ET3.n(int id) = ET3.new;
 }
+
 extension type ET4(int id) {
   static int n = 1;
   ET4.n(this.id);

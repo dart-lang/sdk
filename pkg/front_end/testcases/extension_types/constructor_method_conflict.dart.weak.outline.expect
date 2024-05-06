@@ -9,11 +9,11 @@ extension type E1(core::int it) {
   constructor name = self::E1|constructor#name;
   constructor tearoff name = self::E1|constructor#_#name#tearOff;
 }
-static extension-type-member method E1|constructor#name(core::int it) → self::E1 /* = core::int */
+static extension-type-member method E1|constructor#name(core::int it) → self::E1% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method E1|constructor#_#name#tearOff(core::int it) → self::E1 /* = core::int */
+static extension-type-member method E1|constructor#_#name#tearOff(core::int it) → self::E1% /* erasure=core::int, declared=! */
   return self::E1|constructor#name(it);
-static extension-type-member method E1|name(lowered final self::E1 /* = core::int */ #this) → void
+static extension-type-member method E1|name(lowered final self::E1% /* erasure=core::int, declared=! */ #this) → void
   ;
-static extension-type-member method E1|get#name(lowered final self::E1 /* = core::int */ #this) → () → void
+static extension-type-member method E1|get#name(lowered final self::E1% /* erasure=core::int, declared=! */ #this) → () → void
   return () → void => self::E1|name(#this);

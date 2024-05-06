@@ -18,6 +18,7 @@ class Operators1 {
   operator []() => true;
   operator ~(a) => true;
 }
+
 class Operators2 {
   operator ==(a, b) => true;
   operator <(a, b) => true;
@@ -39,6 +40,7 @@ class Operators2 {
   operator [](a, b) => true;
   operator ~(a, b) => true;
 }
+
 class Operators3 {
   operator ==([a = 0]) => true;
   operator <([a]) => true;
@@ -60,6 +62,7 @@ class Operators3 {
   operator []([a]) => true;
   operator ~([a]) => true;
 }
+
 class Operators4 {
   operator ==({a}) => true;
   operator <({a}) => true;
@@ -81,6 +84,7 @@ class Operators4 {
   operator []({a}) => true;
   operator ~({a}) => true;
 }
+
 class Operators5 {
   operator ==(a, [b]) => true;
   operator <(a, [b]) => true;
@@ -102,6 +106,7 @@ class Operators5 {
   operator [](a, [b]) => true;
   operator ~(a, [b]) => true;
 }
+
 class Operators6 {
   operator ==(a, {b}) => true;
   operator <(a, {b}) => true;
@@ -123,6 +128,7 @@ class Operators6 {
   operator [](a, {b}) => true;
   operator ~(a, {b}) => true;
 }
+
 class Operators7 {
   operator ==<T>(a) => true;
   operator ><T>(a) => true;
@@ -144,4 +150,5 @@ class Operators7 {
   operator []<T>(a) => true;
   operator ~<T>() => true;
 }
+
 main() {}

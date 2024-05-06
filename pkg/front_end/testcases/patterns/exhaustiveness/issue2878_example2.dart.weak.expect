@@ -28,7 +28,7 @@ static method f<A extends core::Object? = dynamic>(core::List<self::f::A%> list)
           break #L1;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t1;
 static method subs<A extends core::Object? = dynamic>(core::List<self::subs::A%> list) → core::List<core::List<self::subs::A%>>
@@ -60,7 +60,7 @@ static method subs<A extends core::Object? = dynamic>(core::List<self::subs::A%>
           break #L2;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t2;
 static method perms<A extends core::Object? = dynamic>(core::List<self::perms::A%> list) → core::List<core::List<self::perms::A%>>
@@ -96,7 +96,7 @@ static method perms<A extends core::Object? = dynamic>(core::List<self::perms::A
           break #L3;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t6;
 static method equals<A extends core::Object? = dynamic>(core::List<self::equals::A%> a, core::List<self::equals::A%> b) → core::bool
@@ -151,7 +151,7 @@ static method equals<A extends core::Object? = dynamic>(core::List<self::equals:
           break #L4;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t12;
 

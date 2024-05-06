@@ -7,7 +7,7 @@ class B<T extends core::Object? = dynamic> extends core::Object {
     : super core::Object::•()
     ;
   method f(covariant-by-class self::B::T% x) → void {}
-  method g({required covariant-by-class self::B::T% x = #C1}) → void {}
+  method g({required covariant-by-class self::B::T% x}) → void {}
   method h<covariant-by-class U extends self::B::T%>() → void {}
 }
 class C extends self::B<core::int> {
@@ -25,7 +25,3 @@ static method test() → void {
   self::g1(new self::C::•());
 }
 static method main() → void {}
-
-constants  {
-  #C1 = null
-}

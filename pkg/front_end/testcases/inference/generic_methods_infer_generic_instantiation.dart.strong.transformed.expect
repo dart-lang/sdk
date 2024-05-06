@@ -58,31 +58,31 @@ library test /*isLegacy*/;
 //   takeOOO(/*error:COULD_NOT_INFER,error:INVALID_CAST_FUNCTION*/ min);
 //                                                                 ^
 //
-// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:75:25: Error: Inferred type argument 'Object' doesn't conform to the bound 'num' of the type variable 'T' on 'T Function<T extends num>(T, T)'.
+// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:75:37: Error: Inferred type argument 'Object' doesn't conform to the bound 'num' of the type variable 'T' on 'T Function<T extends num>(T, T)'.
 //  - 'Object' is from 'dart:core'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
-//       . /*@target=C.m*/ m);
-//                         ^
+//   takeOON(new C() . /*@target=C.m*/ m);
+//                                     ^
 //
-// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:77:25: Error: Inferred type argument 'Object' doesn't conform to the bound 'num' of the type variable 'T' on 'T Function<T extends num>(T, T)'.
+// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:77:37: Error: Inferred type argument 'Object' doesn't conform to the bound 'num' of the type variable 'T' on 'T Function<T extends num>(T, T)'.
 //  - 'Object' is from 'dart:core'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
-//       . /*@target=C.m*/ m);
-//                         ^
+//   takeOOO(new C() . /*@target=C.m*/ m);
+//                                     ^
 //
-// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:84:25: Error: Inferred type argument 'Object' doesn't conform to the bound 'num' of the type variable 'T' on 'T Function<T extends num>(T, T)'.
+// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:84:37: Error: Inferred type argument 'Object' doesn't conform to the bound 'num' of the type variable 'T' on 'T Function<T extends num>(T, T)'.
 //  - 'Object' is from 'dart:core'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
-//       . /*@target=C.m*/ m);
-//                         ^
+//   takeOOI(new C() . /*@target=C.m*/ m);
+//                                     ^
 //
-// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:88:29: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'int Function(double, int)'.
-//           . /*@target=C.m*/ m);
-//                             ^
+// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:87:37: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'int Function(double, int)'.
+//   takeIDI(new C() . /*@target=C.m*/ m);
+//                                     ^
 //
-// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:91:29: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'double Function(int, double)'.
-//           . /*@target=C.m*/ m);
-//                             ^
+// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:89:36: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'double Function(int, double)'.
+//   takeDID(new C(). /*@target=C.m*/ m);
+//                                    ^
 //
 import self as self;
 import "dart:core" as core;
@@ -156,12 +156,12 @@ static method test() → dynamic {
   self::takeOON((new self::C::•().{self::C::m}{<T extends core::num*>(T*, T*) →* T*}<core::Object*>) as{TypeError,ForLegacy} (core::Object*, core::Object*) →* core::num*);
   self::takeOOO((new self::C::•().{self::C::m}{<T extends core::num*>(T*, T*) →* T*}<core::Object*>) as{TypeError,ForLegacy} (core::Object*, core::Object*) →* core::num*);
   self::takeOOI((new self::C::•().{self::C::m}{<T extends core::num*>(T*, T*) →* T*}<core::Object*>) as{TypeError,ForLegacy} (core::Object*, core::Object*) →* core::int*);
-  self::takeIDI(invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:88:29: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'int Function(double, int)'.
-          . /*@target=C.m*/ m);
-                            ^" in (new self::C::•().{self::C::m}{<T extends core::num*>(T*, T*) →* T*}<core::num*>) as{TypeError,ForLegacy} (core::double*, core::int*) →* core::int*);
-  self::takeDID(invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:91:29: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'double Function(int, double)'.
-          . /*@target=C.m*/ m);
-                            ^" in (new self::C::•().{self::C::m}{<T extends core::num*>(T*, T*) →* T*}<core::num*>) as{TypeError,ForLegacy} (core::int*, core::double*) →* core::double*);
+  self::takeIDI(invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:87:37: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'int Function(double, int)'.
+  takeIDI(new C() . /*@target=C.m*/ m);
+                                    ^" in (new self::C::•().{self::C::m}{<T extends core::num*>(T*, T*) →* T*}<core::num*>) as{TypeError,ForLegacy} (core::double*, core::int*) →* core::int*);
+  self::takeDID(invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:89:36: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'double Function(int, double)'.
+  takeDID(new C(). /*@target=C.m*/ m);
+                                   ^" in (new self::C::•().{self::C::m}{<T extends core::num*>(T*, T*) →* T*}<core::num*>) as{TypeError,ForLegacy} (core::int*, core::double*) →* core::double*);
 }
 static method takeIII((core::int*, core::int*) →* core::int* fn) → void {}
 static method takeDDD((core::double*, core::double*) →* core::double* fn) → void {}

@@ -214,6 +214,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const CompileTimeErrorCode AUGMENTATION_WITHOUT_DECLARATION =
+      CompileTimeErrorCode(
+    'AUGMENTATION_WITHOUT_DECLARATION',
+    "The declaration being augmented doesn't exist.",
+    correctionMessage:
+        "Try changing the augmentation to match an existing declaration.",
+  );
+
   static const CompileTimeErrorCode AUGMENTATION_WITHOUT_IMPORT =
       CompileTimeErrorCode(
     'AUGMENTATION_WITHOUT_IMPORT',
@@ -380,16 +388,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage: "Try choosing a different name for the type parameter.",
     hasPublishedDocs: true,
     uniqueName: 'BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME',
-  );
-
-  ///  No parameters.
-  static const CompileTimeErrorCode CASE_BLOCK_NOT_TERMINATED =
-      CompileTimeErrorCode(
-    'CASE_BLOCK_NOT_TERMINATED',
-    "The last statement of the 'case' should be 'break', 'continue', "
-        "'rethrow', 'return', or 'throw'.",
-    correctionMessage: "Try adding one of the required statements.",
-    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -656,6 +654,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   ///  Parameters:
   ///  0: the name of the type variable
+  static const CompileTimeErrorCode
+      CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE = CompileTimeErrorCode(
+    'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
+    "'{0}' can't be used to name both a type variable and the extension type "
+        "in which the type variable is defined.",
+    correctionMessage:
+        "Try renaming either the type variable or the extension.",
+    hasPublishedDocs: true,
+    uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the type variable
   static const CompileTimeErrorCode CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS =
       CompileTimeErrorCode(
     'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
@@ -688,6 +699,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage: "Try renaming either the type variable or the member.",
     hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the type variable
+  static const CompileTimeErrorCode
+      CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE =
+      CompileTimeErrorCode(
+    'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
+    "'{0}' can't be used to name both a type variable and a member in this "
+        "extension type.",
+    correctionMessage: "Try renaming either the type variable or the member.",
+    hasPublishedDocs: true,
+    uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE',
   );
 
   ///  Parameters:
@@ -876,6 +900,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode(
     'CONST_EVAL_EXTENSION_METHOD',
     "Extension methods can't be used in constant expressions.",
+  );
+
+  static const CompileTimeErrorCode CONST_EVAL_EXTENSION_TYPE_METHOD =
+      CompileTimeErrorCode(
+    'CONST_EVAL_EXTENSION_TYPE_METHOD',
+    "Extension type methods can't be used in constant expressions.",
   );
 
   static const CompileTimeErrorCode CONST_EVAL_FOR_ELEMENT =
@@ -1508,17 +1538,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode(
     'EXPORT_INTERNAL_LIBRARY',
     "The library '{0}' is internal and can't be exported.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the name of a symbol defined in a legacy library
-  static const CompileTimeErrorCode EXPORT_LEGACY_SYMBOL = CompileTimeErrorCode(
-    'EXPORT_LEGACY_SYMBOL',
-    "The symbol '{0}' is defined in a legacy library, and can't be re-exported "
-        "from a library with null safety enabled.",
-    correctionMessage:
-        "Try removing the export or migrating the legacy library.",
     hasPublishedDocs: true,
   );
 
@@ -2797,6 +2816,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the list of target kind names
+  static const CompileTimeErrorCode INVALID_MACRO_APPLICATION_TARGET =
+      CompileTimeErrorCode(
+    'INVALID_MACRO_APPLICATION_TARGET',
+    "The macro can be applied only to a {0}.",
+  );
+
+  ///  Parameters:
   ///  0: the invalid modifier
   static const CompileTimeErrorCode INVALID_MODIFIER_ON_CONSTRUCTOR =
       CompileTimeErrorCode(
@@ -3015,11 +3042,56 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Reported when there is an issue converting a macro application argument
+  ///  into a value. So, we cannot instantiate the macro, and run it.
+  ///  Parameters:
+  ///  0: the message
+  static const CompileTimeErrorCode MACRO_APPLICATION_ARGUMENT_ERROR =
+      CompileTimeErrorCode(
+    'MACRO_APPLICATION_ARGUMENT_ERROR',
+    "{0}",
+  );
+
+  ///  Parameters:
+  ///  0: the name of the introspected declaration
+  static const CompileTimeErrorCode
+      MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE = CompileTimeErrorCode(
+    'MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE',
+    "The declaration '{0}' can't be introspected because there is a cycle of "
+        "macro applications.",
+    correctionMessage:
+        "Try removing one or more macro applications to break the cycle.",
+  );
+
+  ///  Parameters:
+  ///  0: the name of the macro class
+  static const CompileTimeErrorCode
+      MACRO_DEFINITION_APPLICATION_SAME_LIBRARY_CYCLE = CompileTimeErrorCode(
+    'MACRO_DEFINITION_APPLICATION_SAME_LIBRARY_CYCLE',
+    "The macro '{0}' can't be applied in the same library cycle where it is "
+        "defined.",
+    correctionMessage:
+        "Try moving it to a different library that does not import the one "
+        "where it is applied.",
+  );
+
+  ///  Reported when the macro uses `Builder.report()` with `Severity.error`.
   ///  Parameters:
   ///  0: the message
   static const CompileTimeErrorCode MACRO_ERROR = CompileTimeErrorCode(
     'MACRO_ERROR',
     "{0}",
+  );
+
+  ///  Reported when there is an exception inside the analyzer when running
+  ///  macros. Should not happen, but just in case.
+  ///  Parameters:
+  ///  0: the message
+  ///  1: the stack trace
+  static const CompileTimeErrorCode MACRO_INTERNAL_EXCEPTION =
+      CompileTimeErrorCode(
+    'MACRO_INTERNAL_EXCEPTION',
+    "{0} {1}",
   );
 
   ///  No parameters.
@@ -4091,7 +4163,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE =
       CompileTimeErrorCode(
     'NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE',
-    "A class or mixin can't implement a nullable type.",
+    "A class, mixin, or extension type can't implement a nullable type.",
     correctionMessage: "Try removing the question mark.",
     hasPublishedDocs: true,
   );
@@ -4369,6 +4441,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "unassigned at this point.",
     correctionMessage:
         "Ensure that it is assigned on necessary execution paths.",
+    hasPublishedDocs: true,
+  );
+
+  static const CompileTimeErrorCode
+      RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA = CompileTimeErrorCode(
+    'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA',
+    "A record literal with exactly one positional field requires a trailing "
+        "comma.",
+    correctionMessage: "Try adding a trailing comma.",
     hasPublishedDocs: true,
   );
 
@@ -4925,17 +5006,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'SWITCH_CASE_COMPLETES_NORMALLY',
     "The 'case' shouldn't complete normally.",
     correctionMessage: "Try adding 'break', 'return', or 'throw'.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the static type of the switch expression
-  ///  1: the static type of the case expressions
-  static const CompileTimeErrorCode SWITCH_EXPRESSION_NOT_ASSIGNABLE =
-      CompileTimeErrorCode(
-    'SWITCH_EXPRESSION_NOT_ASSIGNABLE',
-    "Type '{0}' of the switch expression isn't assignable to the type '{1}' of "
-        "case expressions.",
     hasPublishedDocs: true,
   );
 
@@ -6750,6 +6820,7 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Reported when the macro uses `Builder.report()` with `Severity.warning`.
   ///  Parameters:
   ///  0: the message
   static const WarningCode MACRO_WARNING = WarningCode(
@@ -6815,17 +6886,6 @@ class WarningCode extends AnalyzerErrorCode {
     "The parameter '{0}' is required. {1}.",
     hasPublishedDocs: true,
     uniqueName: 'MISSING_REQUIRED_PARAM_WITH_DETAILS',
-  );
-
-  ///  Parameters:
-  ///  0: the name of the declared return type
-  static const WarningCode MISSING_RETURN = WarningCode(
-    'MISSING_RETURN',
-    "This function has a return type of '{0}', but doesn't end with a return "
-        "statement.",
-    correctionMessage:
-        "Try adding a return statement, or changing the return type to 'void'.",
-    hasPublishedDocs: true,
   );
 
   ///  This warning is generated anywhere where a `@sealed` class is used as a
@@ -7009,15 +7069,6 @@ class WarningCode extends AnalyzerErrorCode {
         "Try checking for throw expressions or type errors in the receiver",
   );
 
-  static const WarningCode RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA =
-      WarningCode(
-    'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA',
-    "A record literal with exactly one positional field requires a trailing "
-        "comma.",
-    correctionMessage: "Try adding a trailing comma.",
-    hasPublishedDocs: true,
-  );
-
   ///  An error code indicating the use of a redeclare annotation on a member that does not redeclare.
   ///
   ///  Parameters:
@@ -7109,15 +7160,6 @@ class WarningCode extends AnalyzerErrorCode {
     'SDK_VERSION_GT_GT_GT_OPERATOR',
     "The operator '>>>' wasn't supported until version 2.14.0, but this code "
         "is required to be able to run on earlier versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const WarningCode SDK_VERSION_NEVER = WarningCode(
-    'SDK_VERSION_NEVER',
-    "The type 'Never' wasn't supported until version 2.12.0, but this code is "
-        "required to be able to run on earlier versions.",
     correctionMessage: "Try updating the SDK constraints.",
     hasPublishedDocs: true,
   );

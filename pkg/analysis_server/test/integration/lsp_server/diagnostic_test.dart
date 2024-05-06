@@ -17,6 +17,14 @@ void main() {
 
 @reflectiveTest
 class DiagnosticTest extends AbstractLspAnalysisServerIntegrationTest {
+  @override
+  Future<void> setUp() async {
+    await super.setUp();
+
+    // These tests deliberately generate diagnostics.
+    failTestOnErrorDiagnostic = false;
+  }
+
   Future<void> test_contextMessage() async {
     final code = TestCode.parse('''
 void f() {

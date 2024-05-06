@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
-import 'package:kernel/type_environment.dart' as ir;
 
 import 'entity_data.dart';
 
@@ -115,7 +114,7 @@ class EntityDataInfoBuilder {
     if (!closedWorld.isMemberUsed(element)) {
       return;
     }
-    _addDependenciesFromImpact(element);
+    _addDependenciesFromEntityImpact(element);
     ConstantCollector.collect(elementMap, element, this);
   }
 
@@ -236,16 +235,31 @@ class EntityDataInfoBuilder {
     }
   }
 
-  /// Extract any dependencies that are known from the impact of [element].
-  void _addDependenciesFromImpact(MemberEntity element) {
-    WorldImpact worldImpact = impactCache[element]!;
+  void _addFromConditionalUse(ConditionalUse conditionalUse) {
+    if (conditionalUse.originalConditions.any(closedWorld.isMemberUsed)) {
+      _addDependenciesFromImpact(conditionalUse.impact);
+    } else {
+      final replacementImpact = conditionalUse.replacementImpact;
+      if (replacementImpact != null) {
+        _addDependenciesFromImpact(replacementImpact);
+      }
+    }
+  }
+
+  void _addDependenciesFromImpact(WorldImpact worldImpact) {
     worldImpact.forEachStaticUse(_addFromStaticUse);
     worldImpact.forEachTypeUse(_addFromTypeUse);
+    worldImpact.forEachConditionalUse((_, use) => _addFromConditionalUse(use));
 
     // TODO(johnniwinther): Use rti need data to skip unneeded type
     // arguments.
     worldImpact.forEachDynamicUse(
         (_, use) => addTypeListDependencies(use.typeArguments));
+  }
+
+  /// Extract any dependencies that are known from the impact of [element].
+  void _addDependenciesFromEntityImpact(MemberEntity element) {
+    _addDependenciesFromImpact(impactCache[element]!);
   }
 }
 
@@ -446,9 +460,8 @@ class TypeEntityDataVisitor implements DartTypeVisitor<void, Null> {
 class ConstantCollector extends ir.RecursiveVisitor {
   final KernelToElementMap elementMap;
   final EntityDataInfoBuilder infoBuilder;
-  final ir.StaticTypeContext staticTypeContext;
 
-  ConstantCollector(this.elementMap, this.staticTypeContext, this.infoBuilder);
+  ConstantCollector(this.elementMap, this.infoBuilder);
 
   CommonElements get commonElements => elementMap.commonElements;
 
@@ -460,8 +473,7 @@ class ConstantCollector extends ir.RecursiveVisitor {
     // Fetch the internal node in order to skip annotations on the member.
     // TODO(sigmund): replace this pattern when the kernel-ast provides a better
     // way to skip annotations (issue 31565).
-    var visitor = ConstantCollector(
-        elementMap, elementMap.getStaticTypeContext(member), infoBuilder);
+    var visitor = ConstantCollector(elementMap, infoBuilder);
     if (node is ir.Field) {
       node.initializer?.accept(visitor);
       return;
@@ -474,9 +486,8 @@ class ConstantCollector extends ir.RecursiveVisitor {
   }
 
   void add(ir.Expression node, {bool requireConstant = true}) {
-    ConstantValue? constant = elementMap.getConstantValue(
-        staticTypeContext, node,
-        requireConstant: requireConstant);
+    ConstantValue? constant =
+        elementMap.getConstantValue(node, requireConstant: requireConstant);
     if (constant != null) {
       infoBuilder.addConstant(constant,
           import: elementMap.getImport(getDeferredImport(node)));

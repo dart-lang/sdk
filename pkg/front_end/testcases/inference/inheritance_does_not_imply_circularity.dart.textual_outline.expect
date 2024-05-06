@@ -13,4 +13,5 @@ class C extends Object implements I1, I2 {
 }
 
 var y = new C().x;
+
 main() {}

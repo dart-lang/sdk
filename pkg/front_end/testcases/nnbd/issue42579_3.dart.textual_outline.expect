@@ -7,5 +7,7 @@ class B<Y1, Y2 extends List<Y3>, Y3> extends A<Y1> {
 }
 
 foo<Z>(A<List<Z>> Function() f) {}
+
 bar() {}
+
 main() {}

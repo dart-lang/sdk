@@ -27,42 +27,44 @@ class PairLocation;
 class Value;
 
 // All unboxed integer representations.
-// Format: (representation name, is unsigned, value type)
+// Format: (representation name, name for printing, is unsigned, value type)
 #define FOR_EACH_INTEGER_REPRESENTATION_KIND(M)                                \
-  M(UnboxedUint8, true, uint8_t)                                               \
-  M(UnboxedUint16, true, uint16_t)                                             \
-  M(UnboxedInt32, false, int32_t)                                              \
-  M(UnboxedUint32, true, uint32_t)                                             \
-  M(UnboxedInt64, false, int64_t)
+  M(UnboxedInt8, int8, false, int8_t)                                          \
+  M(UnboxedUint8, uint8, true, uint8_t)                                        \
+  M(UnboxedInt16, int16, false, int16_t)                                       \
+  M(UnboxedUint16, uint16, true, uint16_t)                                     \
+  M(UnboxedInt32, int32, false, int32_t)                                       \
+  M(UnboxedUint32, uint32, true, uint32_t)                                     \
+  M(UnboxedInt64, int64, false, int64_t)
 
 // All unboxed representations.
-// Format: (representation name, is unsigned, value type)
+// Format: (representation name, name for printing, _, value type)
 #define FOR_EACH_UNBOXED_REPRESENTATION_KIND(M)                                \
-  M(UnboxedDouble, false, double_t)                                            \
-  M(UnboxedFloat, false, float_t)                                              \
+  M(UnboxedDouble, double, _, double_t)                                        \
+  M(UnboxedFloat, float, _, float_t)                                           \
   FOR_EACH_INTEGER_REPRESENTATION_KIND(M)                                      \
-  M(UnboxedFloat32x4, false, simd128_value_t)                                  \
-  M(UnboxedInt32x4, false, simd128_value_t)                                    \
-  M(UnboxedFloat64x2, false, simd128_value_t)
+  M(UnboxedFloat32x4, float32x4, _, simd128_value_t)                           \
+  M(UnboxedInt32x4, int32x4, _, simd128_value_t)                               \
+  M(UnboxedFloat64x2, float64x2, _, simd128_value_t)
 
 // All representations that represent a single boxed or unboxed value.
 // (Note that packed SIMD values are considered a single value here.)
-// Format: (representation name, is unsigned, value type)
+// Format: (representation name, name for printing, _, value type)
 #define FOR_EACH_SIMPLE_REPRESENTATION_KIND(M)                                 \
-  M(Tagged, false, compiler::target::word)                                     \
-  M(Untagged, false, compiler::target::word)                                   \
+  M(Tagged, tagged, _, compiler::target::word)                                 \
+  M(Untagged, untagged, _, compiler::target::word)                             \
   FOR_EACH_UNBOXED_REPRESENTATION_KIND(M)
 
 // All representations, including sentinel and multi-value representations.
-// Format: (representation name, _, _)  (only the name is guaranteed to exist)
+// Format: (representation name, name for printing, _, _)
 // Ordered so that NoRepresentation is first (and thus 0 in the enum).
 #define FOR_EACH_REPRESENTATION_KIND(M)                                        \
-  M(NoRepresentation, _, _)                                                    \
+  M(NoRepresentation, none, _, _)                                              \
   FOR_EACH_SIMPLE_REPRESENTATION_KIND(M)                                       \
-  M(PairOfTagged, _, _)
+  M(PairOfTagged, tagged_pair, _, _)
 
 enum Representation {
-#define DECLARE_REPRESENTATION(name, __, ___) k##name,
+#define DECLARE_REPRESENTATION(name, __, ___, ____) k##name,
   FOR_EACH_REPRESENTATION_KIND(DECLARE_REPRESENTATION)
 #undef DECLARE_REPRESENTATION
       kNumRepresentations
@@ -82,18 +84,59 @@ inline intptr_t LocationCount(Representation rep) {
 }
 
 struct RepresentationUtils : AllStatic {
+#define REP_IN_SET_CLAUSE(name, __, ___, ____)                                 \
+  case k##name:                                                                \
+    return true;
+
   // Whether the representation is for a type of unboxed integer.
-  static bool IsUnboxedInteger(Representation rep);
+  static constexpr bool IsUnboxedInteger(Representation rep) {
+    switch (rep) {
+      FOR_EACH_INTEGER_REPRESENTATION_KIND(REP_IN_SET_CLAUSE)
+      default:
+        return false;
+    }
+  }
 
   // Whether the representation is for a type of unboxed value.
-  static bool IsUnboxed(Representation rep);
+  static constexpr bool IsUnboxed(Representation rep) {
+    switch (rep) {
+      FOR_EACH_UNBOXED_REPRESENTATION_KIND(REP_IN_SET_CLAUSE)
+      default:
+        return false;
+    }
+  }
+
+#undef REP_IN_SET_CLAUSE
 
   // The size of values described by this representation.
-  static size_t ValueSize(Representation rep);
+  static constexpr size_t ValueSize(Representation rep) {
+    switch (rep) {
+#define REP_SIZEOF_CLAUSE(name, __, ___, type)                                 \
+  case k##name:                                                                \
+    return sizeof(type);
+      FOR_EACH_SIMPLE_REPRESENTATION_KIND(REP_SIZEOF_CLAUSE)
+#undef REP_SIZEOF_CLAUSE
+      default:
+        UNREACHABLE();
+        return compiler::target::kWordSize;
+    }
+  }
 
   // Whether the values described by this representation are unsigned integers.
-  static bool IsUnsigned(Representation rep);
+  static bool IsUnsignedInteger(Representation rep) {
+    switch (rep) {
+#define REP_IS_UNSIGNED_CLAUSE(name, __, unsigned, ___)                        \
+  case k##name:                                                                \
+    return unsigned;
+      FOR_EACH_INTEGER_REPRESENTATION_KIND(REP_IS_UNSIGNED_CLAUSE)
+#undef REP_IS_UNSIGNED_CLAUSE
+      default:
+        return false;
+    }
+  }
 
+  // The OperandSize that should be used in the assembler for operations on
+  // values with the given representation.
   static compiler::OperandSize OperandSize(Representation rep);
 
   // The minimum integral value that can be represented.
@@ -107,6 +150,14 @@ struct RepresentationUtils : AllStatic {
   // Whether the given value is representable in the given representation.
   // Assumes that [rep] is an unboxed integer.
   static bool IsRepresentable(Representation rep, int64_t value);
+
+  // Returns the representation of the elements stored in an array with the
+  // given cid.
+  static Representation RepresentationOfArrayElement(classid_t cid);
+
+  // Returns a descriptive name as a C string for the given representation
+  // suitable for use in debugging or error information.
+  static const char* ToCString(Representation rep);
 };
 
 // The representation for word-sized unboxed fields.
@@ -114,23 +165,21 @@ static constexpr Representation kUnboxedWord =
     compiler::target::kWordSize == 4 ? kUnboxedInt32 : kUnboxedInt64;
 // The representation for unsigned word-sized unboxed fields.
 //
-// Note: kUnboxedUword is identical to kUnboxedWord until range analysis can
-// handle unsigned 64-bit ranges. This means that range analysis will give
+// Note: 64-bit kUnboxedUword is identical to kUnboxedWord until range analysis
+// can handle unsigned 64-bit ranges. This means that range analysis will give
 // signed results for unboxed uword field values.
-static constexpr Representation kUnboxedUword = kUnboxedWord;
-
-// 'UnboxedFfiIntPtr' should be able to hold a pointer of the target word-size.
-// On a 32-bit platform, it's an unsigned 32-bit int because it should be
-// zero-extended to 64-bits, not sign-extended (pointers are inherently
-// unsigned).
-//
-// Issue(36370): Use [kUnboxedIntPtr] instead.
-static constexpr Representation kUnboxedFfiIntPtr =
+static constexpr Representation kUnboxedUword =
     compiler::target::kWordSize == 4 ? kUnboxedUint32 : kUnboxedInt64;
 
 // The representation which can be used for native pointers. We use signed 32/64
 // bit representation to be able to do arithmetic on pointers.
 static constexpr Representation kUnboxedIntPtr = kUnboxedWord;
+
+// The representation used for pointers being exposed to users as Dart integers,
+// or stored in a way that could be eventually exposed to users. In particular,
+// this ensures that a 32-bit address, when extended to a 64-bit Dart integer,
+// is zero-extended, not sign extended.
+static constexpr Representation kUnboxedAddress = kUnboxedUword;
 
 // Location objects are used to connect register allocator and code generator.
 // Instruction templates used by code generator have a corresponding
@@ -161,9 +210,6 @@ class Location : public ValueObject {
   static constexpr uword kLocationTagMask = 0x3;
 
  public:
-  static bool ParseRepresentation(const char* str, Representation* out);
-  static const char* RepresentationToCString(Representation repr);
-
   // Constant payload can overlap with kind field so Kind values
   // have to be chosen in a way that their last 2 bits are never
   // the same as kConstantTag or kPairLocationTag.
@@ -448,6 +494,21 @@ class Location : public ValueObject {
 
   // Returns the offset from the frame pointer for stack slot locations.
   intptr_t ToStackSlotOffset() const;
+
+  // If the given location is FP relative stack location this returns
+  // corresponding SP relative location assuming that FP-SP is equal to
+  // |fp_to_sp_delta|.
+  Location ToSpRelative(intptr_t fp_to_sp_delta) const;
+
+  // If the given location is FP relative stack location this returns
+  // corresponding SP relative location assuming that SP is equal to SP
+  // at the entry (i.e. no additional frame was setup on the stack).
+  Location ToEntrySpRelative() const;
+
+  // If the given location is FP relative stack location this returns
+  // corresponding SP relative location assuming that SP is equal to SP
+  // of caller before the call.
+  Location ToCallerSpRelative() const;
 
   const char* Name() const;
   void PrintTo(BaseTextBuffer* f) const;

@@ -17,7 +17,7 @@ import '../native/enqueue.dart';
 import '../options.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/codegen_world_builder.dart';
-import '../universe/use.dart' show StaticUse, TypeUse;
+import '../universe/use.dart' show ConditionalUse, StaticUse, TypeUse;
 import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilder, WorldImpactBuilderImpl;
 import 'backend_impact.dart';
@@ -354,5 +354,11 @@ class CodegenEnqueuerListener extends EnqueuerListener {
   @override
   void logSummary(void log(String message)) {
     _nativeEnqueuer.logSummary(log);
+  }
+
+  @override
+  void registerPendingConditionalUse(ConditionalUse use) {
+    throw UnsupportedError(
+        'Codegen enqueuer does not support conditional impacts.');
   }
 }

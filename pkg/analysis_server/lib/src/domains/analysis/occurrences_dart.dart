@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/plugin/analysis/occurrences/occurrences_core.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
-import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -16,8 +15,7 @@ void addDartOccurrences(OccurrencesCollector collector, CompilationUnit unit) {
   unit.accept(visitor);
   visitor.elementsOffsets.forEach((engineElement, offsets) {
     var length = engineElement.nameLength;
-    var serverElement = protocol.convertElement(engineElement,
-        withNullability: unit.isNonNullableByDefault);
+    var serverElement = protocol.convertElement(engineElement);
     var occurrences = protocol.Occurrences(serverElement, offsets, length);
     collector.addOccurrences(occurrences);
   });
@@ -201,7 +199,7 @@ class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
     if (canonicalElement is FieldFormalParameterElement) {
       canonicalElement = canonicalElement.field;
     } else if (canonicalElement is PropertyAccessorElement) {
-      canonicalElement = canonicalElement.variable;
+      canonicalElement = canonicalElement.variable2;
     }
     return canonicalElement?.declaration;
   }

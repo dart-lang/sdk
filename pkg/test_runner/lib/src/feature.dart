@@ -10,6 +10,32 @@
 /// requires. If a test requires a feature not supported by the current
 /// configution, the test runner automatically skips it.
 class Feature {
+  /// Enforces that explicit casts from `as` expressions are type checked at
+  /// runtime.
+  static const checkedExplicitCasts = Feature._("checked-explicit-casts");
+
+  /// Enforces that implicit downcasts from `dynamic` are typed checked at
+  /// runtime.
+  static const checkedImplicitDowncasts =
+      Feature._("checked-implicit-downcasts");
+
+  /// Enforces runtime parameter type checks.
+  ///
+  /// These checks include both covariant parameter checks, either from generics
+  /// or declared as `covariant`, and parameter checks of dynamic function
+  /// invocations through `dynamic` or `Function`.
+  static const checkedParameters = Feature._("checked-parameters");
+
+  /// Supports JavaScript number semantics.
+  ///
+  /// In code compiled to JavaScript, Dart integers are represented by
+  /// JavaScript numbers, which have different ranges and behavior than native
+  /// integers.
+  static const jsNumbers = Feature._("js-numbers");
+
+  /// Supports native number semantics.
+  static const nativeNumbers = Feature._("native-numbers");
+
   /// Opted out of NNBD and still using the legacy semantics.
   static const nnbdLegacy = Feature._("nnbd-legacy");
 
@@ -25,11 +51,25 @@ class Feature {
   /// Full strong checking of NNBD features.
   static const nnbdStrong = Feature._("nnbd-strong");
 
-  static const all = [nnbdLegacy, nnbd, nnbdWeak, nnbdStrong];
+  /// Expects [Type.toString] to show the original type name and original
+  /// names in function type named parameters.
+  static const readableTypeStrings = Feature._("readable-type-strings");
 
-  /// All modes that should be tested on a platform that doesn't support legacy
-  /// code.
-  static const noLegacy = [nnbd, nnbdStrong];
+  static const all = [
+    checkedExplicitCasts,
+    checkedImplicitDowncasts,
+    checkedParameters,
+    jsNumbers,
+    nativeNumbers,
+    nnbdLegacy,
+    nnbd,
+    nnbdWeak,
+    nnbdStrong,
+    readableTypeStrings,
+  ];
+
+  /// All modes that should be tested on a platform that support legacy code.
+  static const legacy = [nnbdLegacy, nnbdWeak];
 
   final String name;
 

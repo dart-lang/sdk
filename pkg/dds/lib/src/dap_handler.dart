@@ -83,7 +83,7 @@ class DapHandler {
         command: Command.initialize,
         seq: seq,
       ),
-      InitializeRequestArguments(
+      DartInitializeRequestArguments(
         adapterID: 'dds-dap-handler',
       ),
       (capabilities) {},

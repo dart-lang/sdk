@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/field_promotability.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
+import 'package:_fe_analyzer_shared/src/macros/code_optimizer.dart' as macro;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart' as file_state;
 import 'package:analyzer/src/dart/analysis/file_state.dart' hide DirectiveUri;
 import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
@@ -16,6 +17,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart'
     as element_model;
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/summary2/combinator.dart';
 import 'package:analyzer/src/summary2/constructor_initializer_resolver.dart';
 import 'package:analyzer/src/summary2/default_value_resolver.dart';
@@ -23,6 +25,7 @@ import 'package:analyzer/src/summary2/element_builder.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/link.dart';
+import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/macro_application.dart';
 import 'package:analyzer/src/summary2/macro_merge.dart';
 import 'package:analyzer/src/summary2/metadata_resolver.dart';
@@ -31,6 +34,8 @@ import 'package:analyzer/src/summary2/reference_resolver.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
+import 'package:macros/src/executor.dart' as macro;
 
 class AugmentedClassDeclarationBuilder
     extends AugmentedInstanceDeclarationBuilder {
@@ -67,7 +72,7 @@ abstract class AugmentedInstanceDeclarationBuilder {
         if (existing != null) {
           existing.augmentation = element;
           element.augmentationTarget = existing;
-          element.variable = existing.variable;
+          element.variable2 = existing.variable2;
         }
       }
       accessors[name] = element;
@@ -136,6 +141,43 @@ class AugmentedMixinDeclarationBuilder
   }
 }
 
+class AugmentedTopVariablesBuilder {
+  final Map<String, TopLevelVariableElementImpl> variables = {};
+  final Map<String, PropertyAccessorElementImpl> accessors = {};
+
+  void addAccessor(PropertyAccessorElementImpl element) {
+    final name = element.name;
+    if (element.isAugmentation) {
+      final existing = accessors[name];
+      if (existing != null) {
+        existing.augmentation = element;
+        element.augmentationTarget = existing;
+        element.variable2 = existing.variable2;
+      }
+    }
+    accessors[name] = element;
+  }
+
+  void addVariable(TopLevelVariableElementImpl element) {
+    final name = element.name;
+    if (element.isAugmentation) {
+      final existing = variables[name];
+      if (existing != null) {
+        existing.augmentation = element;
+        element.augmentationTarget = existing;
+      }
+    }
+    variables[name] = element;
+
+    if (element.getter case var getter?) {
+      addAccessor(getter);
+    }
+    if (element.setter case var setter?) {
+      addAccessor(setter);
+    }
+  }
+}
+
 class DefiningLinkingUnit extends LinkingUnit {
   DefiningLinkingUnit({
     required super.reference,
@@ -158,6 +200,8 @@ class ImplicitEnumNodes {
 }
 
 class LibraryBuilder {
+  static const _enableMacroCodeOptimizer = false;
+
   final Linker linker;
   final LibraryFileKind kind;
   final Uri uri;
@@ -171,6 +215,10 @@ class LibraryBuilder {
   final Map<String, AugmentedInstanceDeclarationBuilder> _augmentedBuilders =
       {};
 
+  /// The top-level variables and accessors that can be augmented.
+  final AugmentedTopVariablesBuilder topVariables =
+      AugmentedTopVariablesBuilder();
+
   /// The top-level elements that can be augmented.
   final Map<String, ElementImpl> _augmentationTargets = {};
 
@@ -182,6 +230,13 @@ class LibraryBuilder {
 
   /// The `export` directives that export this library.
   final List<Export> exports = [];
+
+  /// The fields that were speculatively created as [ConstFieldElementImpl],
+  /// but we want to clear [ConstVariableElement.constantInitializer] for it
+  /// if the class will not end up with a `const` constructor. We don't know
+  /// at the time when we create them, because of future augmentations, user
+  /// written or macro generated.
+  final Set<ConstFieldElementImpl> finalInstanceFields = Set.identity();
 
   final List<List<macro.MacroExecutionResult>> _macroResults = [];
 
@@ -363,7 +418,7 @@ class LibraryBuilder {
   /// of interfaces declared in other libraries that, and we have not run yet
   /// declarations phase macro applications for them.
   Future<MacroDeclarationsPhaseStepResult> executeMacroDeclarationsPhase({
-    required Element? targetElement,
+    required ElementImpl? targetElement,
   }) async {
     final macroApplier = linker.macroApplier;
     if (macroApplier == null) {
@@ -459,14 +514,20 @@ class LibraryBuilder {
       return;
     }
 
-    final augmentationCode = macroApplier.buildAugmentationLibraryCode(
-      _macroResults.expand((e) => e).toList(),
+    var augmentationCode = macroApplier.buildAugmentationLibraryCode(
+      uri,
+      _macroResults.flattenedToList2,
     );
     if (augmentationCode == null) {
       return;
     }
 
-    kind.disposeMacroAugmentations();
+    var mergedUnit = kind.file.parseCode(
+      code: augmentationCode,
+      errorListener: AnalysisErrorListener.NULL_LISTENER,
+    );
+
+    kind.disposeMacroAugmentations(disposeFiles: true);
 
     // Remove import for partial macro augmentations.
     element.augmentationImports = element.augmentationImports
@@ -477,9 +538,30 @@ class LibraryBuilder {
     final partialUnits = units.sublist(units.length - _macroResults.length);
     units.length -= _macroResults.length;
 
+    List<macro.Edit> optimizedCodeEdits;
+    String optimizedCode;
+    if (_enableMacroCodeOptimizer) {
+      optimizedCodeEdits = _CodeOptimizer(
+        elementFactory: linker.elementFactory,
+      ).optimize(
+        augmentationCode,
+        libraryDeclarationNames: element.definingCompilationUnit.children
+            .map((e) => e.name)
+            .nonNulls
+            .toSet(),
+        scannerConfiguration: Scanner.buildConfig(kind.file.featureSet),
+      );
+      optimizedCode = macro.Edit.applyList(
+        optimizedCodeEdits,
+        augmentationCode,
+      );
+    } else {
+      optimizedCodeEdits = [];
+      optimizedCode = augmentationCode;
+    }
+
     final importState = kind.addMacroAugmentation(
-      augmentationCode,
-      addLibraryAugmentDirective: true,
+      optimizedCode,
       partialIndex: null,
     );
     final importedAugmentation = importState.importedAugmentation!;
@@ -521,7 +603,14 @@ class LibraryBuilder {
       unitNode: unitNode,
       unitElement: unitElement,
       augmentation: augmentation,
-    ).perform();
+    ).perform(updateConstants: () {
+      MacroUpdateConstantsForOptimizedCode(
+        libraryElement: element,
+        unitNode: mergedUnit,
+        codeEdits: optimizedCodeEdits,
+        unitElement: unitElement,
+      ).perform();
+    });
 
     // Set offsets the same way as when reading from summary.
     InformativeDataApplier(
@@ -554,6 +643,30 @@ class LibraryBuilder {
     AugmentedInstanceDeclarationBuilder element,
   ) {
     _augmentedBuilders[name] = element;
+  }
+
+  void replaceConstFieldsIfNoConstConstructor() {
+    var withConstConstructors = Set<ClassElementImpl>.identity();
+    for (var classElement in element.topLevelElements) {
+      if (classElement is! ClassElementImpl) continue;
+      if (classElement.isMixinApplication) continue;
+      if (classElement.isAugmentation) continue;
+      if (classElement.augmented case var augmented?) {
+        var hasConst = augmented.constructors.any((e) => e.isConst);
+        if (hasConst) {
+          withConstConstructors.add(classElement);
+        }
+      }
+    }
+
+    for (var fieldElement in finalInstanceFields) {
+      var enclosing = fieldElement.enclosingElement;
+      var augmented = enclosing.ifTypeOrNull<ClassElementImpl>()?.augmented;
+      if (augmented == null) continue;
+      if (!withConstConstructors.contains(augmented.declaration)) {
+        fieldElement.constantInitializer = null;
+      }
+    }
   }
 
   void resolveConstructorFieldFormals() {
@@ -695,6 +808,7 @@ class LibraryBuilder {
     _macroResults.add(results);
 
     final augmentationCode = macroApplier.buildAugmentationLibraryCode(
+      uri,
       results,
     );
     if (augmentationCode == null) {
@@ -703,7 +817,6 @@ class LibraryBuilder {
 
     final importState = kind.addMacroAugmentation(
       augmentationCode,
-      addLibraryAugmentDirective: true,
       partialIndex: _macroResults.length,
     );
 
@@ -823,8 +936,10 @@ class LibraryBuilder {
           ..end = unlinked.endOffset
           ..shownNames = unlinked.names;
       } else {
-        // TODO(scheglov): Why no offsets?
-        return HideElementCombinatorImpl()..hiddenNames = unlinked.names;
+        return HideElementCombinatorImpl()
+          ..offset = unlinked.keywordOffset
+          ..end = unlinked.endOffset
+          ..hiddenNames = unlinked.names;
       }
     }).toFixedList();
   }
@@ -1214,6 +1329,27 @@ enum MacroDeclarationsPhaseStepResult {
   topDeclaration,
 }
 
+class _CodeOptimizer extends macro.CodeOptimizer {
+  final LinkedElementFactory elementFactory;
+  final Map<Uri, Set<String>> exportedNames = {};
+
+  _CodeOptimizer({
+    required this.elementFactory,
+  });
+
+  @override
+  Set<String> getImportedNames(String uriStr) {
+    var uri = Uri.parse(uriStr);
+    var libraryElement = elementFactory.libraryOfUri(uri);
+    if (libraryElement != null) {
+      return exportedNames[uri] ??= libraryElement.exportedReferences
+          .map((exported) => exported.reference.name)
+          .toSet();
+    }
+    return const <String>{};
+  }
+}
+
 /// This class examines all the [InterfaceElement]s in a library and determines
 /// which fields are promotable within that library.
 class _FieldPromotability extends FieldPromotability<InterfaceElement,
@@ -1322,7 +1458,8 @@ class _FieldPromotability extends FieldPromotability<InterfaceElement,
       var nonPromotabilityReason = addGetter(classInfo, accessor, accessor.name,
           isAbstract: accessor.isAbstract);
       if (enabled && nonPromotabilityReason == null) {
-        _potentiallyPromotableFields.add(accessor.variable as FieldElementImpl);
+        _potentiallyPromotableFields
+            .add(accessor.variable2 as FieldElementImpl);
       }
     }
   }

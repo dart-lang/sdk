@@ -8,7 +8,7 @@ import 'package:front_end/src/fasta/type_inference/inference_visitor.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
-import '../fasta_codes.dart';
+import '../codes/fasta_codes.dart';
 import 'inference_helper.dart';
 
 /// Implementation of [TypeAnalyzerErrors] that reports errors using the
@@ -127,18 +127,12 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  InvalidExpression matchedTypeIsStrictlyNonNullable({
+  InvalidExpression? matchedTypeIsStrictlyNonNullable({
     required Pattern pattern,
     required DartType matchedType,
   }) {
-    // These are only warnings, so we don't update `pattern.error`.
-    if (pattern is NullAssertPattern) {
-      return helper.buildProblem(
-          messageUnnecessaryNullAssertPattern, pattern.fileOffset, noLength);
-    } else {
-      return helper.buildProblem(
-          messageUnnecessaryNullCheckPattern, pattern.fileOffset, noLength);
-    }
+    // These are only warnings, so we don't report anything.
+    return null;
   }
 
   @override

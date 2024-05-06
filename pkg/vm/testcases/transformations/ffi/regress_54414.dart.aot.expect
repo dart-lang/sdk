@@ -24,5 +24,7 @@ static method main() → void {
   core::print(a);
   _in::reachabilityFence(:a:finalizableValue);
 }
-[@vm.unboxing-info.metadata=()->r<2>]static method b() → (self::A, core::bool)
+
+[@vm.unboxing-info.metadata=()->r<2>]
+static method b() → (self::A, core::bool)
   return (new self::A::•(), true);

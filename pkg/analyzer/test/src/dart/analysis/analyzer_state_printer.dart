@@ -15,10 +15,8 @@ import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 
 class AnalyzerStatePrinter {
-  static const String _macroApiUriStr =
-      'package:_fe_analyzer_shared/src/macros/api.dart';
-
-  static const String _macroApiUriRewrite = 'package:macro/api.dart';
+  static const String _macroUriStr = 'package:macros/macros.dart';
+  static const String _macroImplApiUriStr = 'package:_macros/src/api.dart';
 
   final MemoryByteStore byteStore;
   final UnlinkedUnitStoreImpl unlinkedUnitStore;
@@ -67,13 +65,16 @@ class AnalyzerStatePrinter {
       if (isSdkLibrary) {
         if (cycle.libraries.any((e) => e.file.uriStr == 'dart:core')) {
           return 'dart:core';
+        } else if (cycle.libraries
+            .any((e) => e.file.uriStr == 'dart:collection')) {
+          return 'dart:collection';
         } else {
           throw UnimplementedError('$cycle');
         }
       }
     }
-    if (cycle.libraries.any((e) => e.file.uriStr == _macroApiUriStr)) {
-      return _macroApiUriRewrite;
+    if (cycle.libraries.any((e) => e.file.uriStr == _macroUriStr)) {
+      return _macroUriStr;
     }
     return idProvider.libraryCycle(cycle);
   }
@@ -150,6 +151,16 @@ class AnalyzerStatePrinter {
     });
   }
 
+  void _writeDocImports(LibraryOrAugmentationFileKind container) {
+    _writeElements<LibraryImportState>(
+      'docImports',
+      container.docImports,
+      (import) {
+        _writeLibraryImport(container, import);
+      },
+    );
+  }
+
   void _writeElementFactory() {
     _writelnWithIndent('elementFactory');
     _withIndent(() {
@@ -217,6 +228,7 @@ class AnalyzerStatePrinter {
         _writeLibraryImports(kind);
         _writeLibraryExports(kind);
         _writeAugmentationImports(kind);
+        _writeDocImports(kind);
       });
     } else if (kind is AugmentationUnknownFileKind) {
       _withIndent(() {
@@ -248,6 +260,7 @@ class AnalyzerStatePrinter {
         _writeLibraryImports(kind);
         _writeLibraryExports(kind);
         _writeAugmentationImports(kind);
+        _writeDocImports(kind);
         _writeLibraryParts(kind);
         _writeLibraryCycle(kind);
       });
@@ -541,68 +554,75 @@ class AnalyzerStatePrinter {
     );
   }
 
+  void _writeLibraryImport(
+    LibraryOrAugmentationFileKind container,
+    LibraryImportState<DirectiveUri> import,
+  ) {
+    if (import is LibraryImportWithFile) {
+      expect(import.container, same(container));
+      final file = import.importedFile;
+      sink.write(_indent);
+
+      final importedLibrary = import.importedLibrary;
+      if (importedLibrary != null) {
+        expect(importedLibrary.file, file);
+        sink.write(idProvider.fileKind(importedLibrary));
+      } else {
+        sink.write('notLibrary ${idProvider.fileState(file)}');
+      }
+
+      if (configuration.omitSdkFiles && file.uri.isScheme('dart')) {
+        sink.write(' ${file.uri}');
+      }
+      if (file.uriStr == _macroUriStr) {
+        sink.write(' $_macroUriStr');
+      }
+
+      if (import.isSyntheticDartCore) {
+        sink.write(' synthetic');
+      }
+      sink.writeln();
+    } else if (import is LibraryImportWithInSummarySource) {
+      sink.write(_indent);
+      sink.write('inSummary ${import.importedSource.uri}');
+
+      final librarySource = import.importedLibrarySource;
+      if (librarySource != null) {
+        expect(librarySource, same(import.importedSource));
+      } else {
+        sink.write(' notLibrary');
+      }
+
+      if (import.isSyntheticDartCore) {
+        sink.write(' synthetic');
+      }
+      sink.writeln();
+    } else if (import is LibraryImportWithUri) {
+      sink.write(_indent);
+      sink.write('uri: ${import.selectedUri.relativeUri}');
+      if (import.isSyntheticDartCore) {
+        sink.write(' synthetic');
+      }
+      sink.writeln();
+    } else if (import is LibraryImportWithUriStr) {
+      final uriStr = _stringOfUriStr(import.selectedUri.relativeUriStr);
+      sink.write(_indent);
+      sink.write('uriStr: $uriStr');
+      if (import.isSyntheticDartCore) {
+        sink.write(' synthetic');
+      }
+      sink.writeln();
+    } else {
+      _writelnWithIndent('noUriStr');
+    }
+  }
+
   void _writeLibraryImports(LibraryOrAugmentationFileKind container) {
     _writeElements<LibraryImportState>(
       'libraryImports',
       container.libraryImports,
       (import) {
-        if (import is LibraryImportWithFile) {
-          expect(import.container, same(container));
-          final file = import.importedFile;
-          sink.write(_indent);
-
-          final importedLibrary = import.importedLibrary;
-          if (importedLibrary != null) {
-            expect(importedLibrary.file, file);
-            sink.write(idProvider.fileKind(importedLibrary));
-          } else {
-            sink.write('notLibrary ${idProvider.fileState(file)}');
-          }
-
-          if (configuration.omitSdkFiles && file.uri.isScheme('dart')) {
-            sink.write(' ${file.uri}');
-          }
-          if (file.uriStr == _macroApiUriStr) {
-            sink.write(' $_macroApiUriRewrite');
-          }
-
-          if (import.isSyntheticDartCore) {
-            sink.write(' synthetic');
-          }
-          sink.writeln();
-        } else if (import is LibraryImportWithInSummarySource) {
-          sink.write(_indent);
-          sink.write('inSummary ${import.importedSource.uri}');
-
-          final librarySource = import.importedLibrarySource;
-          if (librarySource != null) {
-            expect(librarySource, same(import.importedSource));
-          } else {
-            sink.write(' notLibrary');
-          }
-
-          if (import.isSyntheticDartCore) {
-            sink.write(' synthetic');
-          }
-          sink.writeln();
-        } else if (import is LibraryImportWithUri) {
-          sink.write(_indent);
-          sink.write('uri: ${import.selectedUri.relativeUri}');
-          if (import.isSyntheticDartCore) {
-            sink.write(' synthetic');
-          }
-          sink.writeln();
-        } else if (import is LibraryImportWithUriStr) {
-          final uriStr = _stringOfUriStr(import.selectedUri.relativeUriStr);
-          sink.write(_indent);
-          sink.write('uriStr: $uriStr');
-          if (import.isSyntheticDartCore) {
-            sink.write(' synthetic');
-          }
-          sink.writeln();
-        } else {
-          _writelnWithIndent('noUriStr');
-        }
+        _writeLibraryImport(container, import);
       },
     );
   }
@@ -668,7 +688,7 @@ class AnalyzerStatePrinter {
       if (configuration.omitSdkFiles && uri.isScheme('dart')) {
         continue;
       }
-      if ('$uri' == _macroApiUriStr) {
+      if (const {_macroUriStr, _macroImplApiUriStr}.contains('$uri')) {
         continue;
       }
       uriStrList.add('$uri');
@@ -686,7 +706,9 @@ class AnalyzerStatePrinter {
   }
 
   static bool _isMacroApiUri(Uri uri) {
-    return '$uri'.startsWith('package:_fe_analyzer_shared');
+    final uriStr = '$uri';
+    return uriStr.startsWith('package:macros/') ||
+        uriStr.startsWith('package:_macros/');
   }
 }
 

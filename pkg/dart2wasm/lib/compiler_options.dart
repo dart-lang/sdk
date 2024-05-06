@@ -4,8 +4,9 @@
 
 import 'dart:io';
 
-import 'package:dart2wasm/translator.dart';
 import 'package:front_end/src/api_unstable/vm.dart' as fe;
+
+import 'translator.dart';
 
 class WasmCompilerOptions {
   final TranslatorOptions translatorOptions = TranslatorOptions();
@@ -18,10 +19,11 @@ class WasmCompilerOptions {
   String outputFile;
   String? depFile;
   String? outputJSRuntimeFile;
-  Map<String, String> environment = const {};
+  Map<String, String> environment = {};
   Map<fe.ExperimentalFlag, bool> feExperimentalFlags = const {};
   String? multiRootScheme;
   List<Uri> multiRoots = const [];
+  List<String> deleteToStringPackageUri = const [];
   String? dumpKernelAfterCfe;
   String? dumpKernelBeforeTfa;
   String? dumpKernelAfterTfa;

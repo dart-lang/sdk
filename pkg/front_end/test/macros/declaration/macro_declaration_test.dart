@@ -4,10 +4,11 @@
 
 import 'dart:io' show Directory, Platform;
 
-import 'package:_fe_analyzer_shared/src/macros/api.dart' hide Library;
-import 'package:_fe_analyzer_shared/src/macros/executor.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
+import 'package:macros/macros.dart' hide Library;
+import 'package:macros/src/executor.dart';
+import 'package:macros/src/executor/multi_executor.dart';
+import 'package:macros/src/executor/serialization.dart';
+import 'package:macros/src/executor/span.dart';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
@@ -43,6 +44,7 @@ class MacroTestConfig extends CfeTestConfig {
       CompilerOptions options, TestData testData) {
     TestMacroExecutor testExecutor =
         options.macroExecutor = new TestMacroExecutor();
+    options.requirePrebuiltMacros = true;
     testExecutor.registerExecutorFactory(() => testExecutor,
         {Uri.parse('package:precompiled_macro/precompiled_macro.dart')});
     return testExecutor;
@@ -284,11 +286,13 @@ class TestMacroExecutor extends MultiMacroExecutor {
 
   @override
   String buildAugmentationLibrary(
+      Uri augmentedLibraryUri,
       Iterable<MacroExecutionResult> macroResults,
       TypeDeclaration Function(Identifier) resolveDeclaration,
       ResolvedIdentifier Function(Identifier) resolveIdentifier,
       TypeAnnotation? Function(OmittedTypeAnnotation) inferOmittedType,
-      {Map<OmittedTypeAnnotation, String>? omittedTypes}) {
+      {Map<OmittedTypeAnnotation, String>? omittedTypes,
+      List<Span>? spans}) {
     return '';
   }
 
@@ -345,15 +349,18 @@ class _MacroInstanceIdentifier implements MacroInstanceIdentifier {
   void serialize(Serializer serializer) => throw UnimplementedError();
 
   @override
-  bool shouldExecute(DeclarationKind declarationKind, Phase phase) => false;
+  bool shouldExecute(DeclarationKind declarationKind, Phase phase) => true;
 
   @override
-  bool supportsDeclarationKind(DeclarationKind declarationKind) => false;
+  bool supportsDeclarationKind(DeclarationKind declarationKind) => true;
 }
 
 class _MacroExecutionResult implements MacroExecutionResult {
   @override
   List<Diagnostic> diagnostics = [];
+
+  @override
+  MacroException? exception;
 
   @override
   Map<Identifier, Iterable<DeclarationCode>> enumValueAugmentations = const {};

@@ -12,60 +12,19 @@ main() {
     defineReflectiveTests(
         ArgumentTypeNotAssignableToErrorHandler_FutureCatchErrorTest);
     defineReflectiveTests(
-        ArgumentTypeNotAssignableToErrorHandler_FutureCatchErrorWithoutNullSafetyTest);
-    defineReflectiveTests(
         ArgumentTypeNotAssignableToErrorHandler_FutureThenTest);
-    defineReflectiveTests(
-        ArgumentTypeNotAssignableToErrorHandler_FutureThenWithoutNullSafetyTest);
     defineReflectiveTests(
         ArgumentTypeNotAssignableToErrorHandler_StreamHandleErrorTest);
     defineReflectiveTests(
-        ArgumentTypeNotAssignableToErrorHandler_StreamHandleErrorWithoutNullSafetyTest);
-    defineReflectiveTests(
         ArgumentTypeNotAssignableToErrorHandler_StreamListenTest);
     defineReflectiveTests(
-        ArgumentTypeNotAssignableToErrorHandler_StreamListenWithoutNullSafetyTest);
-    defineReflectiveTests(
         ArgumentTypeNotAssignableToErrorHandler_StreamSubscriptionOnErrorTest);
-    defineReflectiveTests(
-        ArgumentTypeNotAssignableToErrorHandler_StreamSubscriptionOnErrorWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class ArgumentTypeNotAssignableToErrorHandler_FutureCatchErrorTest
-    extends PubPackageResolutionTest
-    with ArgumentTypeNotAssignableToErrorHandler_FutureCatchErrorTestCases {
-  void test_functionExpression_firstParameterIsNullableObject() async {
-    await assertNoErrorsInCode('''
-void f(Future<void> future) {
-  future.catchError((Object? a) {});
-}
-''');
-  }
-
-  @override
-  void test_functionExpression_secondParameterIsNamed() async {
-    await assertErrorsInCode('''
-void f(Future<void> future) {
-  future.catchError((Object a, {required StackTrace b}) {});
-}
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 50, 38),
-    ]);
-  }
-
-  void test_functionExpression_secondParameterIsNullableStackTrace() async {
-    await assertNoErrorsInCode('''
-void f(Future<void> future) {
-  future.catchError((Object a, StackTrace? b) {});
-}
-''');
-  }
-}
-
-mixin ArgumentTypeNotAssignableToErrorHandler_FutureCatchErrorTestCases
-    on PubPackageResolutionTest {
+    extends PubPackageResolutionTest {
   void test_firstParameterIsDynamic() async {
     await assertNoErrorsInCode('''
 void f(Future<int> future, Future<int> Function(dynamic a) callback) {
@@ -118,6 +77,14 @@ void f(Future<void> future) {
     ]);
   }
 
+  void test_functionExpression_firstParameterIsNullableObject() async {
+    await assertNoErrorsInCode('''
+void f(Future<void> future) {
+  future.catchError((Object? a) {});
+}
+''');
+  }
+
   void test_functionExpression_firstParameterIsOptional() async {
     await assertNoErrorsInCode('''
 void f(Future<void> future) {
@@ -163,11 +130,19 @@ void f(Future<void> future) {
   void test_functionExpression_secondParameterIsNamed() async {
     await assertErrorsInCode('''
 void f(Future<void> future) {
-  future.catchError((Object a, {StackTrace b}) {});
+  future.catchError((Object a, {required StackTrace b}) {});
 }
 ''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 50, 29),
+      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 50, 38),
     ]);
+  }
+
+  void test_functionExpression_secondParameterIsNullableStackTrace() async {
+    await assertNoErrorsInCode('''
+void f(Future<void> future) {
+  future.catchError((Object a, StackTrace? b) {});
+}
+''');
   }
 
   void test_functionExpression_secondParameterIsVar() async {
@@ -276,46 +251,8 @@ void f(Future<int> future, Future<int> Function(Object, String) callback) {
 }
 
 @reflectiveTest
-class ArgumentTypeNotAssignableToErrorHandler_FutureCatchErrorWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with
-        ArgumentTypeNotAssignableToErrorHandler_FutureCatchErrorTestCases,
-        WithoutNullSafetyMixin {}
-
-@reflectiveTest
 class ArgumentTypeNotAssignableToErrorHandler_FutureThenTest
-    extends PubPackageResolutionTest
-    with ArgumentTypeNotAssignableToErrorHandler_FutureThenTestCases {
-  void test_functionExpression_firstParameterIsNullableObject() async {
-    await assertNoErrorsInCode('''
-void f(Future<void> future) {
-  future.then((_) {}, onError: (Object? a) {});
-}
-''');
-  }
-
-  @override
-  void test_functionExpression_secondParameterIsNamed() async {
-    await assertErrorsInCode('''
-void f(Future<void> future) {
-  future.then((_) {}, onError: (Object a, {StackTrace? b}) {});
-}
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 52, 39),
-    ]);
-  }
-
-  void test_functionExpression_secondParameterIsNullableStackTrace() async {
-    await assertNoErrorsInCode('''
-void f(Future<void> future) {
-  future.then((_) {}, onError: (Object a, StackTrace? b) {});
-}
-''');
-  }
-}
-
-mixin ArgumentTypeNotAssignableToErrorHandler_FutureThenTestCases
-    on PubPackageResolutionTest {
+    extends PubPackageResolutionTest {
   void test_firstParameterIsDynamic() async {
     await assertNoErrorsInCode('''
 void f(Future<void> future, void Function(dynamic a) callback) {
@@ -344,6 +281,14 @@ void f(Future<void> future) {
     ]);
   }
 
+  void test_functionExpression_firstParameterIsNullableObject() async {
+    await assertNoErrorsInCode('''
+void f(Future<void> future) {
+  future.then((_) {}, onError: (Object? a) {});
+}
+''');
+  }
+
   void test_functionExpression_noParameters() async {
     await assertErrorsInCode('''
 void f(Future<void> future) {
@@ -357,11 +302,19 @@ void f(Future<void> future) {
   void test_functionExpression_secondParameterIsNamed() async {
     await assertErrorsInCode('''
 void f(Future<void> future) {
-  future.then((_) {}, onError: (Object a, {StackTrace b}) {});
+  future.then((_) {}, onError: (Object a, {StackTrace? b}) {});
 }
 ''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 52, 38),
+      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 52, 39),
     ]);
+  }
+
+  void test_functionExpression_secondParameterIsNullableStackTrace() async {
+    await assertNoErrorsInCode('''
+void f(Future<void> future) {
+  future.then((_) {}, onError: (Object a, StackTrace? b) {});
+}
+''');
   }
 
   void test_functionExpression_wrongFirstParameterType() async {
@@ -384,46 +337,8 @@ void f(Future<void> future, Function callback) {
 }
 
 @reflectiveTest
-class ArgumentTypeNotAssignableToErrorHandler_FutureThenWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with
-        ArgumentTypeNotAssignableToErrorHandler_FutureThenTestCases,
-        WithoutNullSafetyMixin {}
-
-@reflectiveTest
 class ArgumentTypeNotAssignableToErrorHandler_StreamHandleErrorTest
-    extends PubPackageResolutionTest
-    with ArgumentTypeNotAssignableToErrorHandler_StreamHandleErrorTestCases {
-  void test_functionExpression_firstParameterIsNullableObject() async {
-    await assertNoErrorsInCode('''
-void f(Stream<void> stream) {
-  stream.handleError((Object? a) {});
-}
-''');
-  }
-
-  @override
-  void test_functionExpression_secondParameterIsNamed() async {
-    await assertErrorsInCode('''
-void f(Stream<void> stream) {
-  stream.handleError((Object a, {StackTrace? b}) {});
-}
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 51, 30),
-    ]);
-  }
-
-  void test_functionExpression_secondParameterIsNullableStackTrace() async {
-    await assertNoErrorsInCode('''
-void f(Stream<void> stream) {
-  stream.handleError((Object a, StackTrace? b) {});
-}
-''');
-  }
-}
-
-mixin ArgumentTypeNotAssignableToErrorHandler_StreamHandleErrorTestCases
-    on PubPackageResolutionTest {
+    extends PubPackageResolutionTest {
   void test_firstParameterIsDynamic() async {
     await assertNoErrorsInCode('''
 void f(Stream<void> stream, void Function(dynamic a) callback) {
@@ -452,6 +367,14 @@ void f(Stream<void> stream) {
     ]);
   }
 
+  void test_functionExpression_firstParameterIsNullableObject() async {
+    await assertNoErrorsInCode('''
+void f(Stream<void> stream) {
+  stream.handleError((Object? a) {});
+}
+''');
+  }
+
   void test_functionExpression_noParameters() async {
     await assertErrorsInCode('''
 void f(Stream<void> stream) {
@@ -465,11 +388,19 @@ void f(Stream<void> stream) {
   void test_functionExpression_secondParameterIsNamed() async {
     await assertErrorsInCode('''
 void f(Stream<void> stream) {
-  stream.handleError((Object a, {StackTrace b}) {});
+  stream.handleError((Object a, {StackTrace? b}) {});
 }
 ''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 51, 29),
+      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 51, 30),
     ]);
+  }
+
+  void test_functionExpression_secondParameterIsNullableStackTrace() async {
+    await assertNoErrorsInCode('''
+void f(Stream<void> stream) {
+  stream.handleError((Object a, StackTrace? b) {});
+}
+''');
   }
 
   void test_functionExpression_wrongFirstParameterType() async {
@@ -484,46 +415,8 @@ void f(Stream<void> stream) {
 }
 
 @reflectiveTest
-class ArgumentTypeNotAssignableToErrorHandler_StreamHandleErrorWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with
-        ArgumentTypeNotAssignableToErrorHandler_StreamHandleErrorTestCases,
-        WithoutNullSafetyMixin {}
-
-@reflectiveTest
 class ArgumentTypeNotAssignableToErrorHandler_StreamListenTest
-    extends PubPackageResolutionTest
-    with ArgumentTypeNotAssignableToErrorHandler_StreamListenTestCases {
-  void test_functionExpression_firstParameterIsNullableObject() async {
-    await assertNoErrorsInCode('''
-void f(Stream<void> stream) {
-  stream.listen((_) {}, onError: (Object? a) {});
-}
-''');
-  }
-
-  @override
-  void test_functionExpression_secondParameterIsNamed() async {
-    await assertErrorsInCode('''
-void f(Stream<void> stream) {
-  stream.listen((_) {}, onError: (Object a, {StackTrace? b}) {});
-}
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 54, 39),
-    ]);
-  }
-
-  void test_functionExpression_secondParameterIsNullableStackTrace() async {
-    await assertNoErrorsInCode('''
-void f(Stream<void> stream) {
-  stream.listen((_) {}, onError: (Object a, StackTrace? b) {});
-}
-''');
-  }
-}
-
-mixin ArgumentTypeNotAssignableToErrorHandler_StreamListenTestCases
-    on PubPackageResolutionTest {
+    extends PubPackageResolutionTest {
   void test_firstParameterIsDynamic() async {
     await assertNoErrorsInCode('''
 void f(Stream<void> stream, void Function(dynamic a) callback) {
@@ -552,6 +445,14 @@ void f(Stream<void> stream) {
     ]);
   }
 
+  void test_functionExpression_firstParameterIsNullableObject() async {
+    await assertNoErrorsInCode('''
+void f(Stream<void> stream) {
+  stream.listen((_) {}, onError: (Object? a) {});
+}
+''');
+  }
+
   void test_functionExpression_noParameters() async {
     await assertErrorsInCode('''
 void f(Stream<void> stream) {
@@ -565,11 +466,19 @@ void f(Stream<void> stream) {
   void test_functionExpression_secondParameterIsNamed() async {
     await assertErrorsInCode('''
 void f(Stream<void> stream) {
-  stream.listen((_) {}, onError: (Object a, {StackTrace b}) {});
+  stream.listen((_) {}, onError: (Object a, {StackTrace? b}) {});
 }
 ''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 54, 38),
+      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 54, 39),
     ]);
+  }
+
+  void test_functionExpression_secondParameterIsNullableStackTrace() async {
+    await assertNoErrorsInCode('''
+void f(Stream<void> stream) {
+  stream.listen((_) {}, onError: (Object a, StackTrace? b) {});
+}
+''');
   }
 
   void test_functionExpression_wrongFirstParameterType() async {
@@ -584,50 +493,8 @@ void f(Stream<void> stream) {
 }
 
 @reflectiveTest
-class ArgumentTypeNotAssignableToErrorHandler_StreamListenWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with
-        ArgumentTypeNotAssignableToErrorHandler_StreamListenTestCases,
-        WithoutNullSafetyMixin {}
-
-@reflectiveTest
 class ArgumentTypeNotAssignableToErrorHandler_StreamSubscriptionOnErrorTest
-    extends PubPackageResolutionTest
-    with
-        ArgumentTypeNotAssignableToErrorHandler_StreamSubscriptionOnErrorTestCases {
-  void test_functionExpression_firstParameterIsNullableObject() async {
-    await assertNoErrorsInCode('''
-import 'dart:async';
-void f(StreamSubscription<void> subscription) {
-  subscription.onError((Object? a) {});
-}
-''');
-  }
-
-  @override
-  void test_functionExpression_secondParameterIsNamed() async {
-    await assertErrorsInCode('''
-import 'dart:async';
-void f(StreamSubscription<void> subscription) {
-  subscription.onError((Object a, {StackTrace? b}) {});
-}
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 92, 30),
-    ]);
-  }
-
-  void test_functionExpression_secondParameterIsNullableStackTrace() async {
-    await assertNoErrorsInCode('''
-import 'dart:async';
-void f(StreamSubscription<void> subscription) {
-  subscription.onError((Object a, StackTrace? b) {});
-}
-''');
-  }
-}
-
-mixin ArgumentTypeNotAssignableToErrorHandler_StreamSubscriptionOnErrorTestCases
-    on PubPackageResolutionTest {
+    extends PubPackageResolutionTest {
   void test_firstParameterIsDynamic() async {
     await assertNoErrorsInCode('''
 import 'dart:async';
@@ -662,6 +529,15 @@ void f(StreamSubscription<void> subscription) {
     ]);
   }
 
+  void test_functionExpression_firstParameterIsNullableObject() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+void f(StreamSubscription<void> subscription) {
+  subscription.onError((Object? a) {});
+}
+''');
+  }
+
   void test_functionExpression_noParameters() async {
     await assertErrorsInCode('''
 import 'dart:async';
@@ -677,11 +553,20 @@ void f(StreamSubscription<void> subscription) {
     await assertErrorsInCode('''
 import 'dart:async';
 void f(StreamSubscription<void> subscription) {
-  subscription.onError((Object a, {StackTrace b}) {});
+  subscription.onError((Object a, {StackTrace? b}) {});
 }
 ''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 92, 29),
+      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 92, 30),
     ]);
+  }
+
+  void test_functionExpression_secondParameterIsNullableStackTrace() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+void f(StreamSubscription<void> subscription) {
+  subscription.onError((Object a, StackTrace? b) {});
+}
+''');
   }
 
   void test_functionExpression_wrongFirstParameterType() async {
@@ -695,10 +580,3 @@ void f(StreamSubscription<void> subscription) {
     ]);
   }
 }
-
-@reflectiveTest
-class ArgumentTypeNotAssignableToErrorHandler_StreamSubscriptionOnErrorWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with
-        ArgumentTypeNotAssignableToErrorHandler_StreamSubscriptionOnErrorTestCases,
-        WithoutNullSafetyMixin {}

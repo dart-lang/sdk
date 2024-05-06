@@ -74,6 +74,8 @@ void f() {
   }
 
   Future<void> test_complex() async {
+    failTestOnErrorDiagnostic = false;
+
     const contents = '''
 ErrorOr<Pair<A, List<B>>> c(
   String d,
@@ -322,15 +324,15 @@ main3  ()
     // Check we complete when a formatted block ends with a newline.
     // https://github.com/dart-lang/sdk/issues/47702
     const contents = '''
-int a;
+int? a;
 [!
-    int b;
+    int? b;
 !]
 ''';
     final expected = '''
-int a;
+int? a;
 
-int b;
+int? b;
 
 ''';
     final code = TestCode.parse(contents);
@@ -340,6 +342,8 @@ int b;
   }
 
   Future<void> test_invalidSyntax() async {
+    failTestOnErrorDiagnostic = false;
+
     const contents = '''
 void f(((( {
   print('test');
@@ -672,7 +676,7 @@ void f() {
         Uri.parse(mainFileUri.toString() + r'###***\\\///:::.dart'),
       ),
       throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
-          message: 'File URI did not contain a valid file path')),
+          message: 'URI does not contain a valid file path')),
     );
   }
 
@@ -682,7 +686,8 @@ void f() {
     await expectLater(
       formatDocument(Uri.parse('a:/a.dart')),
       throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
-          message: 'URI was not a valid file:// URI')),
+          message:
+              "URI scheme 'a' is not supported. Allowed schemes are 'file'.")),
     );
   }
 
@@ -723,16 +728,18 @@ void f() {
   }
 
   Future<void> test_validSyntax_withErrors() async {
+    failTestOnErrorDiagnostic = false;
+
     // We should still be able to format syntactically valid code even if it has
     // analysis errors.
     const contents = '''
 void f() {
-       print(a);
+       print(unresolved);
 }
 ''';
     const expected = '''
 void f() {
-  print(a);
+  print(unresolved);
 }
 ''';
     await initialize();

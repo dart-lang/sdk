@@ -5,12 +5,9 @@
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
-import '../serialization/serialization.dart';
 import 'constants.dart';
-import 'impact_data.dart' show ImpactData;
+import 'impact_data.dart' show ConditionalImpactData, ImpactData;
 import 'runtime_type_analysis.dart';
-import 'static_type.dart';
-import 'static_type_cache.dart';
 
 /// Interface for collecting world impact data.
 ///
@@ -76,11 +73,9 @@ abstract class ImpactRegistry {
 
   void registerThrow();
 
-  void registerSyncForIn(ir.DartType iterableType, ir.DartType iteratorType,
-      ClassRelation iteratorClassRelation);
+  void registerSyncForIn(ir.DartType iterableType, ir.DartType iteratorType);
 
-  void registerAsyncForIn(ir.DartType iterableType, ir.DartType iteratorType,
-      ClassRelation iteratorClassRelation);
+  void registerAsyncForIn(ir.DartType iterableType, ir.DartType iteratorType);
 
   void registerCatch();
 
@@ -134,7 +129,6 @@ abstract class ImpactRegistry {
 
   void registerDynamicInvocation(
       ir.DartType receiverType,
-      ClassRelation relation,
       ir.Name name,
       int positionalArguments,
       List<String> namedArguments,
@@ -142,7 +136,6 @@ abstract class ImpactRegistry {
 
   void registerInstanceInvocation(
       ir.DartType receiverType,
-      ClassRelation relation,
       ir.Member target,
       int positionalArguments,
       List<String> namedArguments,
@@ -154,24 +147,20 @@ abstract class ImpactRegistry {
       List<String> namedArguments,
       List<ir.DartType> typeArguments);
 
-  void registerDynamicGet(
-      ir.DartType receiverType, ClassRelation relation, ir.Name name);
+  void registerDynamicGet(ir.DartType receiverType, ir.Name name);
 
-  void registerInstanceGet(
-      ir.DartType receiverType, ClassRelation relation, ir.Member target);
+  void registerInstanceGet(ir.DartType receiverType, ir.Member target);
 
-  void registerDynamicSet(
-      ir.DartType receiverType, ClassRelation relation, ir.Name name);
+  void registerDynamicSet(ir.DartType receiverType, ir.Name name);
 
-  void registerInstanceSet(
-      ir.DartType receiverType, ClassRelation relation, ir.Member target);
+  void registerInstanceSet(ir.DartType receiverType, ir.Member target);
 
-  void registerSuperInvocation(ir.Member? target, int positionalArguments,
+  void registerSuperInvocation(ir.Member target, int positionalArguments,
       List<String> namedArguments, List<ir.DartType> typeArguments);
 
-  void registerSuperGet(ir.Member? target);
+  void registerSuperGet(ir.Member target);
 
-  void registerSuperSet(ir.Member? target);
+  void registerSuperSet(ir.Member target);
 
   void registerSuperInitializer(
       ir.Constructor source,
@@ -187,8 +176,8 @@ abstract class ImpactRegistry {
   void registerFieldNode(ir.Field node);
   void registerExternalProcedureNode(ir.Procedure node);
   void registerForeignStaticInvocationNode(ir.StaticInvocation node);
-  void registerSwitchStatementNode(ir.SwitchStatement node);
   void registerConstSymbolConstructorInvocationNode();
+  void registerConditionalImpact(ConditionalImpactData impact);
 }
 
 class ImpactBuilderData {
@@ -196,28 +185,8 @@ class ImpactBuilderData {
 
   final ir.Member node;
   final ImpactData impactData;
-  final Map<ir.Expression, TypeMap>? typeMapsForTesting;
-  final StaticTypeCache cachedStaticTypes;
 
-  ImpactBuilderData(this.node, this.impactData, this.typeMapsForTesting,
-      this.cachedStaticTypes);
-
-  factory ImpactBuilderData.fromDataSource(DataSourceReader source) {
-    source.begin(tag);
-    var node = source.readMemberNode();
-    var data = ImpactData.fromDataSource(source);
-    var cache = StaticTypeCache.readFromDataSource(source, node);
-    source.end(tag);
-    return ImpactBuilderData(node, data, const {}, cache);
-  }
-
-  void toDataSink(DataSinkWriter sink) {
-    sink.begin(tag);
-    sink.writeMemberNode(node);
-    impactData.toDataSink(sink);
-    cachedStaticTypes.writeToDataSink(sink, node);
-    sink.end(tag);
-  }
+  ImpactBuilderData(this.node, this.impactData);
 }
 
 class ConstantImpactVisitor extends ir.VisitOnceConstantVisitor {

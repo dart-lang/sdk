@@ -95,6 +95,32 @@ extension DdsExtension on VmService {
     );
   }
 
+  /// The [getLogHistorySize] RPC is used to retrieve the current size of the
+  /// log history buffer.
+  ///
+  /// If the returned [Size] is zero, then log history is disabled.
+  Future<Size> getLogHistorySize(String isolateId) async {
+    // No version check needed, present since v1.0 of the protocol.
+    return _callHelper<Size>('getLogHistorySize', args: {
+      'isolateId': isolateId,
+    });
+  }
+
+  /// The [setLogHistorySize] RPC is used to set the size of the ring buffer
+  /// used for caching a limited set of historical log messages.
+  ///
+  /// If [size] is 0, logging history will be disabled.
+  ///
+  /// The maximum history size is 100,000 messages, with the default set to
+  /// 10,000 messages.
+  Future<Success> setLogHistorySize(String isolateId, int size) async {
+    // No version check needed, present since v1.0 of the protocol.
+    return _callHelper<Success>('setLogHistorySize', args: {
+      'isolateId': isolateId,
+      'size': size,
+    });
+  }
+
   /// Retrieve the event history for `stream`.
   ///
   /// If `stream` does not have event history collected, a parameter error is
@@ -176,6 +202,136 @@ extension DdsExtension on VmService {
   Stream<Event> get onExtensionEventWithHistory =>
       onEventWithHistory('Extension');
 
+  /// The [getClientName] RPC is used to retrieve the name associated with the
+  /// currently connected VM service client.
+  ///
+  /// If no name was previously set through the [setClientName] RPC, a default
+  /// name will be returned.
+  Future<ClientName> getClientName() async {
+    // No version check needed, present since v1.0 of the protocol.
+    return _callHelper<ClientName>(
+      'getClientName',
+    );
+  }
+
+  /// The [setClientName] RPC is used to set a name to be associated with the
+  /// currently connected VM service client.
+  ///
+  /// If the [name] parameter is a non-empty string, [name] will become the new
+  /// name associated with the client. If [name] is an empty string, the
+  /// client's name will be reset to its default name.
+  Future<Success> setClientName([String name = '']) async {
+    // No version check needed, present since v1.0 of the protocol.
+    return _callHelper<Success>(
+      'setClientName',
+      args: {
+        'name': name,
+      },
+    );
+  }
+
+  /// The [requirePermissionToResume] RPC is used to change the pause/resume
+  /// behavior of isolates.
+  ///
+  /// This provides a way for the VM service to wait for approval to resume
+  /// from some set of clients. This is useful for clients which want to
+  /// perform some operation on an isolate after a pause without it being
+  /// resumed by another client. These clients should invoke [readyToResume]
+  /// instead of [VmService.resume] to indicate to DDS that they have finished
+  /// their work and the isolate can be resumed.
+  ///
+  /// If the [onPauseStart] parameter is `true`, isolates will not resume after
+  /// pausing on start until the client sends a `resume` request and all other
+  /// clients which need to provide resume approval for this pause type have
+  /// done so.
+  ///
+  /// If the [onPauseReload] parameter is `true`, isolates will not resume
+  /// after pausing after a reload until the client sends a `resume` request
+  /// and all other clients which need to provide resume approval for this
+  /// pause type have done so.
+  ///
+  /// If the [onPauseExit] parameter is `true`, isolates will not resume after
+  /// pausing on exit until the client sends a `resume` request and all other
+  /// clients which need to provide resume approval for this pause type have
+  /// done so.
+  ///
+  /// **Important Notes:**
+  ///
+  /// - All clients with the same client name share resume permissions. Only a
+  ///   single client of a given name is required to provide resume approval.
+  /// - When a client requiring approval disconnects from the service, a paused
+  ///   isolate may resume if all other clients requiring resume approval have
+  ///   already given approval. In the case that no other client requires
+  ///   resume approval for the current pause event, the isolate will be
+  ///   resumed if at least one other client has attempted to resume the
+  ///   isolate.
+  /// - Resume permission behavior can be bypassed using the [VmService.resume]
+  ///   RPC, which is treated as a user-initiated resume that force resumes
+  ///   the isolate. Tooling relying on resume permissions should use
+  ///   [readyToResume] instead of [VmService.resume] to avoid force resuming
+  ///   the isolate.
+  Future<Success> requirePermissionToResume({
+    bool onPauseStart = false,
+    bool onPauseReload = false,
+    bool onPauseExit = false,
+  }) async {
+    // No version check needed, present since v1.0 of the protocol.
+    return _callHelper<Success>(
+      'requirePermissionToResume',
+      args: {
+        'onPauseStart': onPauseStart,
+        'onPauseReload': onPauseReload,
+        'onPauseExit': onPauseExit,
+      },
+    );
+  }
+
+  /// The [readyToResume] RPC indicates to DDS that the current client is ready
+  /// to resume the isolate.
+  ///
+  /// If the current client requires that approval be given before resuming an
+  /// isolate, this method will:
+  ///
+  ///   - Update the approval state for the isolate.
+  ///   - Resume the isolate if approval has been given by all clients which
+  ///     require approval.
+  ///
+  /// Throws a [SentinelException] if the isolate no longer exists.
+  Future<Success> readyToResume(String isolateId) async {
+    if (!(await _versionCheck(2, 0))) {
+      throw UnimplementedError('readyToResume requires DDS version 2.0');
+    }
+    return _callHelper<Success>(
+      'readyToResume',
+      isolateId: isolateId,
+    );
+  }
+
+  /// The [requireUserPermissionToResume] RPC notifies DDS if it should wait
+  /// for a [VmService.resume] request to resume isolates paused on start or
+  /// exit.
+  ///
+  /// This RPC should only be invoked by tooling which launched the target Dart
+  /// process and knows if the user indicated they wanted isolates paused on
+  /// start or exit.
+  Future<Success> requireUserPermissionToResume({
+    bool onPauseStart = false,
+    bool onPauseExit = false,
+  }) async {
+    if (!(await _versionCheck(2, 0))) {
+      throw UnimplementedError(
+        'requireUserPermissionToResume requires DDS version 2.0',
+      );
+    }
+    return _callHelper<Success>(
+      'requireUserPermissionToResume',
+      args: {
+        'onPauseStart': onPauseStart,
+        'onPauseExit': onPauseExit,
+      },
+    );
+  }
+
   Future<bool> _versionCheck(int major, int minor) async {
     _ddsVersion ??= await getDartDevelopmentServiceVersion();
     return ((_ddsVersion!.major == major && _ddsVersion!.minor! >= minor) ||
@@ -203,8 +359,40 @@ extension DdsExtension on VmService {
       AvailableCachedCpuSamples.parse,
     );
     addTypeFactory('CachedCpuSamples', CachedCpuSamples.parse);
+    addTypeFactory('Size', Size.parse);
+    addTypeFactory('ClientName', ClientName.parse);
+    addTypeFactory(
+      'ResumePermissionsRequired',
+      ResumePermissionsRequired.parse,
+    );
     _factoriesRegistered = true;
   }
+}
+
+/// A simple object representing the name of a DDS client.
+///
+/// See [DdsExtension.getClientName] and [DdsExtension.setClientName].
+class ClientName extends Response {
+  static ClientName? parse(Map<String, dynamic>? json) =>
+      json == null ? null : ClientName._fromJson(json);
+
+  ClientName({required this.name});
+
+  ClientName._fromJson(Map<String, dynamic> json) : name = json['name'];
+
+  final String name;
+}
+
+/// A simple object representing a size response.
+class Size extends Response {
+  static Size? parse(Map<String, dynamic>? json) =>
+      json == null ? null : Size._fromJson(json);
+
+  Size({required this.size});
+
+  Size._fromJson(Map<String, dynamic> json) : size = json['size'];
+
+  final int size;
 }
 
 /// A collection of historical [Event]s from some stream.
@@ -310,4 +498,21 @@ class AvailableCachedCpuSamples extends Response {
 
   /// A [List] of [UserTag] names associated with CPU sample caches.
   final List<String> cacheNames;
+}
+
+class ResumePermissionsRequired extends Response {
+  static ResumePermissionsRequired? parse(Map<String, dynamic>? json) =>
+      json == null ? null : ResumePermissionsRequired._fromJson(json);
+
+  ResumePermissionsRequired({
+    required this.onPauseStart,
+    required this.onPauseExit,
+  });
+
+  ResumePermissionsRequired._fromJson(Map<String, dynamic> json)
+      : onPauseStart = json['onPauseStart'],
+        onPauseExit = json['onPauseExit'];
+
+  final bool onPauseStart;
+  final bool onPauseExit;
 }

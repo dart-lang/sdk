@@ -31,4 +31,5 @@ class C extends B {
 }
 
 main() {}
+
 use(x) {}

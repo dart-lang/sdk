@@ -69,6 +69,10 @@ abstract class AbstractCompletionTest extends AbstractLspAnalysisServerTest
   @override
   void setUp() {
     super.setUp();
+
+    // Completion tests have incomplete code.
+    failTestOnErrorDiagnostic = false;
+
     setApplyEditSupport();
   }
 }
@@ -234,6 +238,7 @@ class CompletionLabelDetailsTest extends AbstractCompletionTest {
 
   Future<void> expectLabels(
     String content, {
+    Uri? completionFileUri,
     // Main label of the completion (eg 'myFunc')
     required String? label,
     // The detail part of the label (shown after label, usually truncated signature)
@@ -247,12 +252,14 @@ class CompletionLabelDetailsTest extends AbstractCompletionTest {
     // Sometimes resolved detail has a prefix added (eg. "Auto-import from").
     String? resolvedDetailPrefix,
   }) async {
+    completionFileUri ??= mainFileUri;
+
     final code = TestCode.parse(content);
     await initialize();
-    await openFile(mainFileUri, code.code);
+    await openFile(completionFileUri, code.code);
 
     final completions =
-        await getCompletion(mainFileUri, code.position.position);
+        await getCompletion(completionFileUri, code.position.position);
     final completion = completions.singleWhereOrNull((c) => c.label == label);
     if (completion == null) {
       fail('Did not find completion "$label" in completion results:'
@@ -456,21 +463,39 @@ void f() {
 
   Future<void> test_local_getterAndSetter() async {
     final content = '''
-String a => '';
 set a(String value) {}
+String get a => '';
 void f() {
   a^
 }
 ''';
     await expectLabels(content,
         label: 'a',
-        labelDetail: '() → String',
+        labelDetail: ' String',
         labelDescription: null,
         filterText: null,
-        detail: '() → String');
+        detail: 'String');
   }
 
-  Future<void> test_local_override() async {
+  Future<void> test_local_override_annotation() async {
+    final content = '''
+class Base {
+  String aa(String a) => '';
+}
+
+class Derived extends Base {
+  @over^
+}
+''';
+    await expectLabels(content,
+        label: 'override aa',
+        labelDetail: '(…) → String',
+        labelDescription: null,
+        filterText: null,
+        detail: '(String a) → String');
+  }
+
+  Future<void> test_local_override_name() async {
     final content = '''
 class Base {
   String aa(String a) => '';
@@ -577,6 +602,29 @@ void f() {
         filterText: null,
         detail: '() → void',
         resolvedDetailPrefix: "Auto import from 'package:test/a.dart'\n\n");
+  }
+
+  Future<void> test_notImported_outsideLib_relativePath() async {
+    final testMainFilePath = join(projectFolderPath, 'test', 'main.dart');
+    final testFileAPath = join(projectFolderPath, 'test', 'a.dart');
+
+    newFile(testFileAPath, '''
+void a(String a, {String b}) {}
+''');
+    final content = '''
+void f() {
+  a^
+}
+''';
+
+    await expectLabels(content,
+        completionFileUri: toUri(testMainFilePath),
+        label: 'a',
+        labelDetail: '(…) → void',
+        labelDescription: 'a.dart',
+        filterText: null,
+        detail: '(String a, {String b}) → void',
+        resolvedDetailPrefix: "Auto import from 'a.dart'\n\n");
   }
 
   Future<void> test_nullNotEmpty() async {
@@ -769,8 +817,7 @@ void f() {
   @override
   void setUp() {
     super.setUp();
-    writePackageConfig(
-      projectFolderPath,
+    writeTestPackageConfig(
       flutter: true,
     );
   }
@@ -1526,17 +1573,30 @@ import 'package:^';
     await initialize();
     await openFile(mainFileUri, code.code);
     final position = code.position.position;
-    final responseFutures = [
-      getCompletion(mainFileUri, position),
-      getCompletion(mainFileUri, position),
-      getCompletion(mainFileUri, position),
-    ];
-    expect(responseFutures[0],
-        throwsA(isResponseError(ErrorCodes.RequestCancelled)));
-    expect(responseFutures[1],
-        throwsA(isResponseError(ErrorCodes.RequestCancelled)));
-    final results = await responseFutures[2];
-    expect(results, isNotEmpty);
+
+    // Use a completer to force the requests to overlap without races.
+    final completer = Completer<void>();
+    CompletionHandler.delayAfterResolveForTests = completer.future;
+    try {
+      final responseFutures = [
+        getCompletion(mainFileUri, position),
+        getCompletion(mainFileUri, position),
+        getCompletion(mainFileUri, position),
+      ];
+
+      // Ensure all requests started, then let them continue.
+      await pumpEventQueue(times: 5000);
+      completer.complete();
+
+      expect(responseFutures[0],
+          throwsA(isResponseError(ErrorCodes.RequestCancelled)));
+      expect(responseFutures[1],
+          throwsA(isResponseError(ErrorCodes.RequestCancelled)));
+      final results = await responseFutures[2];
+      expect(results, isNotEmpty);
+    } finally {
+      CompletionHandler.delayAfterResolveForTests = null;
+    }
   }
 
   Future<void> test_dartDocPreference_full() =>
@@ -2664,7 +2724,7 @@ void f() { }
   @FailingTest(reason: 'https://github.com/Dart-Code/Dart-Code/issues/4794')
   Future<void> test_prefixed_enumMember() async {
     // If the first character of the enum member is typed (`self.MyEnum.o^`)
-    // this test passes. Without any charactres typed (`self.MyEnum.^`) the
+    // this test passes. Without any characters typed (`self.MyEnum.^`) the
     // dotTarget on the completion is `null`. The containingNode is a
     // ConstructorName.
     final content = '''
@@ -4366,8 +4426,7 @@ import 'package:flutter/widgets.dart';''';
   @override
   void setUp() {
     super.setUp();
-    writePackageConfig(
-      projectFolderPath,
+    writeTestPackageConfig(
       flutter: true,
     );
   }
@@ -4721,6 +4780,10 @@ abstract class SnippetCompletionTest extends AbstractLspAnalysisServerTest
   @override
   void setUp() {
     super.setUp();
+
+    // Snippet completion tests have incomplete code.
+    failTestOnErrorDiagnostic = false;
+
     setCompletionItemSnippetSupport();
   }
 }

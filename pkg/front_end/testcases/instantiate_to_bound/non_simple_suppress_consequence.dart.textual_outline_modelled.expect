@@ -9,5 +9,7 @@ extension D<TypeY extends A> on int {}
 extension E<TypeZ extends B> on int {}
 
 main() {}
+
 typedef F<TypeY extends A> = int;
+
 typedef G<TypeZ extends B> = int;

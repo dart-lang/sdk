@@ -10,12 +10,52 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidUseOfNeverTest);
-    defineReflectiveTests(InvalidUseOfNeverTest_Legacy);
   });
 }
 
 @reflectiveTest
 class InvalidUseOfNeverTest extends PubPackageResolutionTest {
+  test_binaryExpression_eqEq() async {
+    await assertErrorsInCode(r'''
+void f() {
+  (throw '') == 1 + 2;
+}
+''', [
+      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 13, 10),
+      error(WarningCode.DEAD_CODE, 27, 6),
+    ]);
+
+    assertResolvedNodeText(findNode.binary('=='), r'''
+BinaryExpression
+  leftOperand: ParenthesizedExpression
+    leftParenthesis: (
+    expression: ThrowExpression
+      throwKeyword: throw
+      expression: SimpleStringLiteral
+        literal: ''
+      staticType: Never
+    rightParenthesis: )
+    staticType: Never
+  operator: ==
+  rightOperand: BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+      staticType: int
+    operator: +
+    rightOperand: IntegerLiteral
+      literal: 2
+      parameter: dart:core::@class::num::@method::+::@parameter::other
+      staticType: int
+    parameter: <null>
+    staticElement: dart:core::@class::num::@method::+
+    staticInvokeType: num Function(num)
+    staticType: int
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: Never
+''');
+  }
+
   test_binaryExpression_never_eqEq() async {
     await assertErrorsInCode(r'''
 void f(Never x) {
@@ -165,6 +205,53 @@ BinaryExpression
   staticInvokeType: null
   staticType: InvalidType
 ''');
+  }
+
+  test_binaryExpression_plus() async {
+    await assertErrorsInCode(r'''
+void f() {
+  (throw '') + (1 + 2);
+}
+''', [
+      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 13, 10),
+      error(WarningCode.DEAD_CODE, 26, 8),
+    ]);
+
+    assertResolvedNodeText(findNode.binary('+ ('), r'''
+BinaryExpression
+  leftOperand: ParenthesizedExpression
+    leftParenthesis: (
+    expression: ThrowExpression
+      throwKeyword: throw
+      expression: SimpleStringLiteral
+        literal: ''
+      staticType: Never
+    rightParenthesis: )
+    staticType: Never
+  operator: +
+  rightOperand: ParenthesizedExpression
+    leftParenthesis: (
+    expression: BinaryExpression
+      leftOperand: IntegerLiteral
+        literal: 1
+        staticType: int
+      operator: +
+      rightOperand: IntegerLiteral
+        literal: 2
+        parameter: dart:core::@class::num::@method::+::@parameter::other
+        staticType: int
+      staticElement: dart:core::@class::num::@method::+
+      staticInvokeType: num Function(num)
+      staticType: int
+    rightParenthesis: )
+    parameter: <null>
+    staticType: int
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: Never
+''');
+
+    assertType(findNode.binary('1 + 2'), 'int');
   }
 
   test_conditionalExpression_falseBranch() async {
@@ -591,6 +678,41 @@ MethodInvocation
 ''');
   }
 
+  test_methodInvocation_toString() async {
+    await assertErrorsInCode(r'''
+void f() {
+  (throw '').toString();
+}
+''', [
+      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 13, 10),
+      error(WarningCode.DEAD_CODE, 32, 3),
+    ]);
+
+    var node = findNode.methodInvocation('toString()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: ThrowExpression
+      throwKeyword: throw
+      expression: SimpleStringLiteral
+        literal: ''
+      staticType: Never
+    rightParenthesis: )
+    staticType: Never
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: Never
+''');
+  }
+
   test_postfixExpression_never_plusPlus() async {
     await assertErrorsInCode(r'''
 void f(Never x) {
@@ -916,130 +1038,6 @@ PrefixedIdentifier
   staticType: String Function()
 ''');
   }
-}
-
-@reflectiveTest
-class InvalidUseOfNeverTest_Legacy extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
-  test_binaryExpression_eqEq() async {
-    await assertNoErrorsInCode(r'''
-void f() {
-  (throw '') == 1 + 2;
-}
-''');
-
-    assertResolvedNodeText(findNode.binary('=='), r'''
-BinaryExpression
-  leftOperand: ParenthesizedExpression
-    leftParenthesis: (
-    expression: ThrowExpression
-      throwKeyword: throw
-      expression: SimpleStringLiteral
-        literal: ''
-      staticType: Never*
-    rightParenthesis: )
-    staticType: Never*
-  operator: ==
-  rightOperand: BinaryExpression
-    leftOperand: IntegerLiteral
-      literal: 1
-      staticType: int*
-    operator: +
-    rightOperand: IntegerLiteral
-      literal: 2
-      parameter: root::@parameter::other
-      staticType: int*
-    parameter: root::@parameter::other
-    staticElement: MethodMember
-      base: dart:core::@class::num::@method::+
-      isLegacy: true
-    staticInvokeType: num* Function(num*)*
-    staticType: int*
-  staticElement: MethodMember
-    base: dart:core::@class::Object::@method::==
-    isLegacy: true
-  staticInvokeType: bool* Function(Object*)*
-  staticType: bool*
-''');
-  }
-
-  test_binaryExpression_plus() async {
-    await assertNoErrorsInCode(r'''
-void f() {
-  (throw '') + (1 + 2);
-}
-''');
-
-    assertResolvedNodeText(findNode.binary('+ ('), r'''
-BinaryExpression
-  leftOperand: ParenthesizedExpression
-    leftParenthesis: (
-    expression: ThrowExpression
-      throwKeyword: throw
-      expression: SimpleStringLiteral
-        literal: ''
-      staticType: Never*
-    rightParenthesis: )
-    staticType: Never*
-  operator: +
-  rightOperand: ParenthesizedExpression
-    leftParenthesis: (
-    expression: BinaryExpression
-      leftOperand: IntegerLiteral
-        literal: 1
-        staticType: int*
-      operator: +
-      rightOperand: IntegerLiteral
-        literal: 2
-        parameter: root::@parameter::other
-        staticType: int*
-      staticElement: MethodMember
-        base: dart:core::@class::num::@method::+
-        isLegacy: true
-      staticInvokeType: num* Function(num*)*
-      staticType: int*
-    rightParenthesis: )
-    parameter: <null>
-    staticType: int*
-  staticElement: <null>
-  staticInvokeType: null
-  staticType: InvalidType
-''');
-
-    assertType(findNode.binary('1 + 2'), 'int');
-  }
-
-  test_methodInvocation_toString() async {
-    await assertNoErrorsInCode(r'''
-void f() {
-  (throw '').toString();
-}
-''');
-
-    var node = findNode.methodInvocation('toString()');
-    assertResolvedNodeText(node, r'''
-MethodInvocation
-  target: ParenthesizedExpression
-    leftParenthesis: (
-    expression: ThrowExpression
-      throwKeyword: throw
-      expression: SimpleStringLiteral
-        literal: ''
-      staticType: Never*
-    rightParenthesis: )
-    staticType: Never*
-  operator: .
-  methodName: SimpleIdentifier
-    token: toString
-    staticElement: <null>
-    staticType: dynamic
-  argumentList: ArgumentList
-    leftParenthesis: (
-    rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
-''');
-  }
 
   test_propertyAccess_toString() async {
     await assertNoErrorsInCode(r'''
@@ -1057,17 +1055,15 @@ PropertyAccess
       throwKeyword: throw
       expression: SimpleStringLiteral
         literal: ''
-      staticType: Never*
+      staticType: Never
     rightParenthesis: )
-    staticType: Never*
+    staticType: Never
   operator: .
   propertyName: SimpleIdentifier
     token: toString
-    staticElement: MethodMember
-      base: dart:core::@class::Object::@method::toString
-      isLegacy: true
-    staticType: String* Function()*
-  staticType: String* Function()*
+    staticElement: dart:core::@class::Object::@method::toString
+    staticType: String Function()
+  staticType: String Function()
 ''');
   }
 
@@ -1087,17 +1083,15 @@ PropertyAccess
       throwKeyword: throw
       expression: SimpleStringLiteral
         literal: ''
-      staticType: Never*
+      staticType: Never
     rightParenthesis: )
-    staticType: Never*
+    staticType: Never
   operator: .
   propertyName: SimpleIdentifier
     token: hashCode
-    staticElement: PropertyAccessorMember
-      base: dart:core::@class::Object::@getter::hashCode
-      isLegacy: true
-    staticType: int*
-  staticType: int*
+    staticElement: dart:core::@class::Object::@getter::hashCode
+    staticType: int
+  staticType: int
 ''');
   }
 }

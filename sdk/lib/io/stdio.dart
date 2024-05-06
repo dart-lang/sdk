@@ -212,6 +212,10 @@ class Stdin extends _StdStream implements Stream<List<int>> {
 /// The [addError] API is inherited from [StreamSink] and calling it will result
 /// in an unhandled asynchronous error unless there is an error handler on
 /// [done].
+///
+/// The [lineTerminator] field is used by the [write], [writeln], [writeAll]
+/// and [writeCharCode] methods to translate `"\n"`. By default, `"\n"` is
+/// output literally.
 class Stdout extends _StdSink implements IOSink {
   final int _fd;
   IOSink? _nonBlocking;
@@ -261,6 +265,9 @@ class Stdout extends _StdSink implements IOSink {
   external static bool _supportsAnsiEscapes(int fd);
 
   /// A non-blocking `IOSink` for the same output.
+  ///
+  /// The returned `IOSink` will be initialized with an [encoding] of UTF-8 and
+  /// will not do line ending conversion.
   IOSink get nonBlocking {
     return _nonBlocking ??= new IOSink(new _FileStreamConsumer.fromStdio(_fd));
   }
@@ -324,29 +331,114 @@ class _StdConsumer implements StreamConsumer<List<int>> {
   }
 }
 
+/// Pattern matching a "\n" character not following a "\r".
+///
+/// Used to replace such with "\r\n" in the [_StdSink] write methods.
+final _newLineDetector = RegExp(r'(?<!\r)\n');
+
+/// Pattern matching "\n" characters not following a "\r", or at the start of
+/// input.
+///
+/// Used to replace those with "\r\n" in the [_StdSink] write methods,
+/// when the previously written string ended in a \r character.
+final _newLineDetectorAfterCr = RegExp(r'(?<!\r|^)\n');
+
 class _StdSink implements IOSink {
   final IOSink _sink;
+  bool _windowsLineTerminator = false;
+  bool _lastWrittenCharIsCR = false;
 
   _StdSink(this._sink);
+
+  /// Line ending appended by [writeln], and replacing `"\n"` in some methods.
+  ///
+  /// Must be one of the values `"\n"` (the default) or `"\r\n"`.
+  ///
+  /// When set to `"\r\n"`, the methods [write], [writeln], [writeAll] and
+  /// [writeCharCode] will convert embedded newlines, `"\n"`, in their
+  /// arguments to `"\r\n"`. If their arguments already contain `"\r\n"`
+  /// sequences, then these sequences will be not be converted. This is true
+  /// even if the sequence is generated across different method calls.
+  ///
+  /// If `lineTerminator` is `"\n"` then the written strings are not modified.
+  //
+  /// Setting `lineTerminator` to [Platform.lineTerminator] will result in
+  /// "write" methods outputting the line endings for the platform:
+  ///
+  /// ```dart
+  /// stdout.lineTerminator = Platform.lineTerminator;
+  /// stderr.lineTerminator = Platform.lineTerminator;
+  /// ```
+  ///
+  /// The value of `lineTerminator` has no effect on byte-oriented methods
+  /// such as [add].
+  ///
+  /// The value of `lineTerminator` does not effect the output of the [print]
+  /// function.
+  ///
+  /// Throws [ArgumentError] if set to a value other than `"\n"` or `"\r\n"`.
+  String get lineTerminator => _windowsLineTerminator ? "\r\n" : "\n";
+  set lineTerminator(String lineTerminator) {
+    if (lineTerminator == "\r\n") {
+      assert(!_lastWrittenCharIsCR || _windowsLineTerminator);
+      _windowsLineTerminator = true;
+    } else if (lineTerminator == "\n") {
+      _windowsLineTerminator = false;
+      _lastWrittenCharIsCR = false;
+    } else {
+      throw ArgumentError.value(lineTerminator, "lineTerminator",
+          r'invalid line terminator, must be one of "\r" or "\r\n"');
+    }
+  }
 
   Encoding get encoding => _sink.encoding;
   void set encoding(Encoding encoding) {
     _sink.encoding = encoding;
   }
 
-  void write(Object? object) {
-    _sink.write(object);
+  void _write(Object? object) {
+    if (!_windowsLineTerminator) {
+      _sink.write(object);
+      return;
+    }
+
+    var string = '$object';
+    if (string.isEmpty) return;
+    if (_lastWrittenCharIsCR) {
+      string = string.replaceAll(_newLineDetectorAfterCr, "\r\n");
+    } else {
+      string = string.replaceAll(_newLineDetector, "\r\n");
+    }
+    _lastWrittenCharIsCR = string.endsWith('\r');
+    _sink.write(string);
   }
 
+  void write(Object? object) => _write(object);
+
   void writeln([Object? object = ""]) {
-    _sink.writeln(object);
+    _write(object);
+    _sink.write(_windowsLineTerminator ? "\r\n" : "\n");
+    _lastWrittenCharIsCR = false;
   }
 
   void writeAll(Iterable objects, [String sep = ""]) {
-    _sink.writeAll(objects, sep);
+    Iterator iterator = objects.iterator;
+    if (!iterator.moveNext()) return;
+    if (sep.isEmpty) {
+      do {
+        _write(iterator.current);
+      } while (iterator.moveNext());
+    } else {
+      _write(iterator.current);
+      while (iterator.moveNext()) {
+        _write(sep);
+        _write(iterator.current);
+      }
+    }
   }
 
   void add(List<int> data) {
+    _lastWrittenCharIsCR = false;
     _sink.add(data);
   }
 
@@ -355,10 +447,19 @@ class _StdSink implements IOSink {
   }
 
   void writeCharCode(int charCode) {
-    _sink.writeCharCode(charCode);
+    if (!_windowsLineTerminator) {
+      _sink.writeCharCode(charCode);
+      return;
+    }
+
+    _write(String.fromCharCode(charCode));
   }
 
-  Future addStream(Stream<List<int>> stream) => _sink.addStream(stream);
+  Future addStream(Stream<List<int>> stream) {
+    _lastWrittenCharIsCR = false;
+    return _sink.addStream(stream);
+  }
+
   Future flush() => _sink.flush();
   Future close() => _sink.close();
   Future get done => _sink.done;

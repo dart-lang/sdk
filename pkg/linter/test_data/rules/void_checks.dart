@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 // ignore_for_file: unused_local_variable
 
 import 'dart:async';
@@ -13,12 +11,12 @@ Never fail() { throw 'nope'; }
 var x;
 
 class A<T> {
-  T value;
+  late T value;
   A();
   A.c(this.value);
   void m1(T arg) {}
   void m4(void arg) {}
-  T m5(e) => null;
+  T m5(e) => throw '';
 }
 
 void use_setter_with_futureOr_void_parameter() {
@@ -70,10 +68,6 @@ async_function() {
 
 inference() {
   f(void Function() f) {}
-  f(() // LINT
-      {
-    return 1; // OK
-  });
 }
 
 generics_with_function() {
@@ -82,18 +76,14 @@ generics_with_function() {
       {
     return 1;
   });
-  f<void>(() // LINT
-      {
-    return 1;
-  });
 }
 
 /// function ref are similar to expression function body with void return type
 function_ref_are_ok() {
   fA(void Function(dynamic) f) {}
-  fB({void Function(dynamic) f}) {}
+  fB({required void Function(dynamic) f}) {}
 
-  void Function(String e) f1 = (e) {};
+  void Function(Object? e) f1 = (e) {};
   fA(f1); // OK
   final f2 = (e) {};
   fA(f2); // OK
@@ -124,7 +114,7 @@ allow_functionWithReturnType_forFunctionWithout_asComplexExpr() {
   takeVoidFn(void Function() f) {}
   void Function() voidFn;
 
-  List<int Function()> listNonVoidFn;
+  List<int Function()> listNonVoidFn = [];
 
   takeVoidFn(listNonVoidFn[0]); // OK
   voidFn = listNonVoidFn[0]; // OK
@@ -154,7 +144,7 @@ allow_Future_void_for_void() {
 
 allow_expression_function_body() {
   forget(void Function() f) {}
-  int i;
+  int i = 0;
   forget(() => i); // OK
   forget(() => i++); // OK
 

@@ -20,8 +20,11 @@ library fasta.constant_evaluator;
 
 import 'dart:io' as io;
 
+import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
+import 'package:front_end/src/base/common.dart';
 import 'package:kernel/ast.dart';
-import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/src/const_canonical_type.dart';
 import 'package:kernel/src/find_type_visitor.dart';
@@ -29,58 +32,23 @@ import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/src/norm.dart';
 import 'package:kernel/src/printer.dart'
     show AstPrinter, AstTextStrategy, defaultAstTextStrategy;
+import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
-import 'package:kernel/target/targets.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 
 import '../../api_prototype/lowering_predicates.dart';
 import '../../base/nnbd_mode.dart';
-import '../fasta_codes.dart';
-
+import '../codes/fasta_codes.dart';
 import '../type_inference/delayed_expressions.dart';
 import '../type_inference/external_ast_helper.dart';
 import '../type_inference/matching_cache.dart';
 import '../type_inference/matching_expressions.dart';
 import 'constant_int_folder.dart';
 import 'exhaustiveness.dart';
-import 'static_weak_references.dart' show StaticWeakReferences;
 import 'resource_identifier.dart' as ResourceIdentifiers;
+import 'static_weak_references.dart' show StaticWeakReferences;
 
 part 'constant_collection_builders.dart';
-
-Component transformComponent(
-    Target target,
-    Component component,
-    Map<String, String> environmentDefines,
-    ErrorReporter errorReporter,
-    EvaluationMode evaluationMode,
-    {required bool evaluateAnnotations,
-    required bool desugarSets,
-    required bool enableTripleShift,
-    required bool enableConstFunctions,
-    required bool enableConstructorTearOff,
-    required bool errorOnUnevaluatedConstant,
-    CoreTypes? coreTypes,
-    ClassHierarchy? hierarchy,
-    ExhaustivenessDataForTesting? exhaustivenessDataForTesting}) {
-  coreTypes ??= new CoreTypes(component);
-  hierarchy ??= new ClassHierarchy(component, coreTypes);
-
-  final TypeEnvironment typeEnvironment =
-      new TypeEnvironment(coreTypes, hierarchy);
-
-  transformLibraries(component, component.libraries, target, environmentDefines,
-      typeEnvironment, errorReporter, evaluationMode,
-      enableTripleShift: enableTripleShift,
-      enableConstFunctions: enableConstFunctions,
-      errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
-      evaluateAnnotations: evaluateAnnotations,
-      enableConstructorTearOff: enableConstructorTearOff);
-  return component;
-}
 
 ConstantEvaluationData transformLibraries(
     Component component,
@@ -763,8 +731,12 @@ class ConstantsTransformer extends RemovingTransformer {
       if (shouldInline(target.initializer!)) {
         return evaluateAndTransformWithContext(node, node);
       }
-    } else if (target is Procedure && target.kind == ProcedureKind.Method) {
-      return evaluateAndTransformWithContext(node, node);
+    } else if (target is Procedure) {
+      if (target.kind == ProcedureKind.Method) {
+        return evaluateAndTransformWithContext(node, node);
+      } else if (target.kind == ProcedureKind.Getter && enableConstFunctions) {
+        return evaluateAndTransformWithContext(node, node);
+      }
     }
     return super.visitStaticGet(node, removalSentinel);
   }
@@ -1182,14 +1154,17 @@ class ConstantsTransformer extends RemovingTransformer {
             [],
             [],
             isDefault: true,
-            createExpressionStatement(createThrow(createConstructorInvocation(
-                typeEnvironment.coreTypes.reachabilityErrorConstructor,
-                createArguments([
-                  createStringLiteral(
-                      messageNeverReachableSwitchStatementError.problemMessage,
-                      fileOffset: node.fileOffset)
-                ], fileOffset: node.fileOffset),
-                fileOffset: node.fileOffset))))
+            createExpressionStatement(createThrow(
+                createConstructorInvocation(
+                    typeEnvironment.coreTypes.reachabilityErrorConstructor,
+                    createArguments([
+                      createStringLiteral(
+                          messageNeverReachableSwitchStatementError
+                              .problemMessage,
+                          fileOffset: node.fileOffset)
+                    ], fileOffset: node.fileOffset),
+                    fileOffset: node.fileOffset),
+                forErrorHandling: true)))
           ..fileOffset = node.fileOffset);
       }
 
@@ -1466,8 +1441,8 @@ class ConstantsTransformer extends RemovingTransformer {
       }
 
       if (needsThrowForNull) {
-        cases.add(
-            createExpressionStatement(createThrow(createConstructorInvocation(
+        cases.add(createExpressionStatement(createThrow(
+            createConstructorInvocation(
                 typeEnvironment.coreTypes.reachabilityErrorConstructor,
                 createArguments([
                   createStringLiteral(
@@ -1477,7 +1452,8 @@ class ConstantsTransformer extends RemovingTransformer {
                               .problemMessage,
                       fileOffset: node.fileOffset)
                 ], fileOffset: node.fileOffset),
-                fileOffset: node.fileOffset))));
+                fileOffset: node.fileOffset),
+            forErrorHandling: true)));
       }
 
       // TODO(johnniwinther): Find a better way to avoid name clashes between
@@ -1565,8 +1541,9 @@ class ConstantsTransformer extends RemovingTransformer {
       cases.add(patternConverter.createRootSpace(type, patternGuard.pattern,
           hasGuard: patternGuard.guard != null));
     }
-    List<ExhaustivenessError> errors =
-        reportErrors(_exhaustivenessCache!, type, cases);
+    List<ExhaustivenessError> errors = reportErrors(
+        _exhaustivenessCache!, type, cases,
+        computeUnreachable: retainDataForTesting);
     List<ExhaustivenessError>? reportedErrors;
     if (_exhaustivenessDataForTesting != null) {
       reportedErrors = [];
@@ -1574,19 +1551,7 @@ class ConstantsTransformer extends RemovingTransformer {
     Library library = currentLibrary;
     for (ExhaustivenessError error in errors) {
       if (error is UnreachableCaseError) {
-        if (library.importUri.isScheme('dart') &&
-            library.importUri.path == 'html') {
-          // TODO(51754): Remove this.
-          continue;
-        }
         reportedErrors?.add(error);
-        // TODO(johnniwinther): Re-enable this, pending resolution on
-        // https://github.com/dart-lang/language/issues/2924
-        /*constantEvaluator.errorReporter.report(
-              constantEvaluator.createLocatedMessageWithOffset(
-                  node,
-                  patternGuards[error.index].fileOffset,
-                  messageUnreachableSwitchCase));*/
       } else if (error is NonExhaustiveError &&
           !hasDefault &&
           mustBeExhaustive) {
@@ -1600,8 +1565,8 @@ class ConstantsTransformer extends RemovingTransformer {
                         : templateNonExhaustiveSwitchStatement)
                     .withArguments(
                         expressionType,
-                        error.witness.asWitness,
-                        error.witness.asCorrection,
+                        error.witnesses.first.asWitness,
+                        error.witnesses.first.asCorrection,
                         library.isNonNullableByDefault)));
       }
     }
@@ -1710,24 +1675,26 @@ class ConstantsTransformer extends RemovingTransformer {
             fileOffset: TreeNode.noOffset);
       }
     }
-    List<Statement> replacementStatements = [
-      ...node.patternGuard.pattern.declaredVariables,
-      ...matchingCache.declarations,
-    ];
-    replacementStatements.add(createIfStatement(condition, then,
-        otherwise: node.otherwise, fileOffset: node.fileOffset));
 
-    Statement result;
-    if (replacementStatements.length > 1) {
+    List<Statement> cacheVariables = [...matchingCache.declarations];
+    Iterable<Statement> declarations =
+        node.patternGuard.pattern.declaredVariables;
+    Statement ifStatement;
+    if (declarations.isNotEmpty) {
       // If we need local declarations, create a new block to avoid naming
       // collision with declarations in the same parent block.
-      result = createBlock(replacementStatements, fileOffset: node.fileOffset);
+      ifStatement = createBlock([
+        ...declarations,
+        createIfStatement(condition, then,
+            otherwise: node.otherwise, fileOffset: node.fileOffset)
+      ], fileOffset: node.fileOffset);
     } else {
-      result = replacementStatements.single;
+      ifStatement = createIfStatement(condition, then,
+          otherwise: node.otherwise, fileOffset: node.fileOffset);
     }
-    // TODO(johnniwinther): Avoid this work-around for [getFileUri].
-    result.parent = node.parent;
-    return transform(result);
+    return transform(createBlock([...cacheVariables, ifStatement],
+        fileOffset: node.fileOffset)
+      ..parent = node.parent);
   }
 
   @override
@@ -1773,14 +1740,16 @@ class ConstantsTransformer extends RemovingTransformer {
         // TODO(cstefantsova): Provide a better diagnostic message.
         createIfStatement(
             createNot(readMatchingExpression),
-            createExpressionStatement(createThrow(createConstructorInvocation(
-                typeEnvironment.coreTypes.stateErrorConstructor,
-                createArguments([
-                  createStringLiteral(
-                      messagePatternMatchingError.problemMessage,
-                      fileOffset: node.fileOffset)
-                ], fileOffset: node.fileOffset),
-                fileOffset: node.fileOffset))),
+            createExpressionStatement(createThrow(
+                createConstructorInvocation(
+                    typeEnvironment.coreTypes.stateErrorConstructor,
+                    createArguments([
+                      createStringLiteral(
+                          messagePatternMatchingError.problemMessage,
+                          fileOffset: node.fileOffset)
+                    ], fileOffset: node.fileOffset),
+                    fileOffset: node.fileOffset),
+                forErrorHandling: true)),
             fileOffset: node.fileOffset),
       ];
     }
@@ -1835,8 +1804,8 @@ class ConstantsTransformer extends RemovingTransformer {
           typeEnvironment, replacementStatements,
           effects: effects);
       replacementStatements = [
-        ...node.pattern.declaredVariables,
         ...matchingCache.declarations,
+        ...node.pattern.declaredVariables,
         ...replacementStatements,
         ...effects,
       ];
@@ -1848,19 +1817,21 @@ class ConstantsTransformer extends RemovingTransformer {
           inCacheInitializer: false);
 
       replacementStatements = [
-        ...node.pattern.declaredVariables,
         ...matchingCache.declarations,
+        ...node.pattern.declaredVariables,
         // TODO(cstefantsova): Provide a better diagnostic message.
         createIfStatement(
             createNot(readMatchingExpression),
-            createExpressionStatement(createThrow(createConstructorInvocation(
-                typeEnvironment.coreTypes.stateErrorConstructor,
-                createArguments([
-                  createStringLiteral(
-                      messagePatternMatchingError.problemMessage,
-                      fileOffset: node.fileOffset)
-                ], fileOffset: node.fileOffset),
-                fileOffset: node.fileOffset))),
+            createExpressionStatement(createThrow(
+                createConstructorInvocation(
+                    typeEnvironment.coreTypes.stateErrorConstructor,
+                    createArguments([
+                      createStringLiteral(
+                          messagePatternMatchingError.problemMessage,
+                          fileOffset: node.fileOffset)
+                    ], fileOffset: node.fileOffset),
+                    fileOffset: node.fileOffset),
+                forErrorHandling: true)),
             fileOffset: node.fileOffset),
         ...effects.map((e) => createExpressionStatement(e)),
       ];
@@ -2021,14 +1992,17 @@ class ConstantsTransformer extends RemovingTransformer {
             [],
             [],
             isDefault: true,
-            createExpressionStatement(createThrow(createConstructorInvocation(
-                typeEnvironment.coreTypes.reachabilityErrorConstructor,
-                createArguments([
-                  createStringLiteral(
-                      messageNeverReachableSwitchExpressionError.problemMessage,
-                      fileOffset: node.fileOffset)
-                ], fileOffset: node.fileOffset),
-                fileOffset: node.fileOffset))))
+            createExpressionStatement(createThrow(
+                createConstructorInvocation(
+                    typeEnvironment.coreTypes.reachabilityErrorConstructor,
+                    createArguments([
+                      createStringLiteral(
+                          messageNeverReachableSwitchExpressionError
+                              .problemMessage,
+                          fileOffset: node.fileOffset)
+                    ], fileOffset: node.fileOffset),
+                    fileOffset: node.fileOffset),
+                forErrorHandling: true)))
           ..fileOffset = node.fileOffset);
       }
 
@@ -2149,8 +2123,8 @@ class ConstantsTransformer extends RemovingTransformer {
         needsThrow = forUnsoundness = true;
       }
       if (needsThrow) {
-        cases.add(
-            createExpressionStatement(createThrow(createConstructorInvocation(
+        cases.add(createExpressionStatement(createThrow(
+            createConstructorInvocation(
                 typeEnvironment.coreTypes.reachabilityErrorConstructor,
                 createArguments([
                   createStringLiteral(
@@ -2160,7 +2134,8 @@ class ConstantsTransformer extends RemovingTransformer {
                               .problemMessage,
                       fileOffset: node.fileOffset)
                 ], fileOffset: node.fileOffset),
-                fileOffset: node.fileOffset))));
+                fileOffset: node.fileOffset),
+            forErrorHandling: true)));
       }
 
       labeledStatement.body = createBlock(cases, fileOffset: node.fileOffset)
@@ -2262,7 +2237,8 @@ class ConstantsTransformer extends RemovingTransformer {
           return makeConstantExpression(new UnevaluatedConstant(node), node);
         } else {
           Constant constant = constantEvaluator.canonicalize(
-              new RecordConstant(positional, named, node.recordType));
+              new RecordConstant.fromTypeContext(
+                  positional, named, staticTypeContext));
           return makeConstantExpression(constant, node);
         }
       }
@@ -2443,6 +2419,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   final EvaluationMode evaluationMode;
 
   final bool enableTripleShift;
+  final bool enableAsserts;
   final bool enableConstFunctions;
   bool inExtensionTypeConstConstructor = false;
 
@@ -2488,6 +2465,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       this._environmentDefines, this.typeEnvironment, this.errorReporter,
       {this.enableTripleShift = false,
       this.enableConstFunctions = false,
+      this.enableAsserts = true,
       this.errorOnUnevaluatedConstant = false,
       this.evaluationMode = EvaluationMode.weak})
       : numberSemantics = backend.numberSemantics,
@@ -2498,7 +2476,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     if (_environmentDefines == null && !backend.supportsUnevaluatedConstants) {
       throw new ArgumentError(
           "No 'environmentDefines' passed to the constant evaluator but the "
-          "ConstantsBackend does not support unevaluated constants.");
+              "ConstantsBackend does not support unevaluated constants.",
+          "_environmentDefines");
     }
     intFolder = new ConstantIntFolder.forSemantics(this, numberSemantics);
     pseudoPrimitiveClasses = <Class>{
@@ -2525,35 +2504,30 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   Map<String, String>? _supportedLibrariesCache;
 
-  Map<String, String> _computeSupportedLibraries() {
-    Map<String, String> map = {};
-    for (Library library in component.libraries) {
-      if (library.importUri.isScheme('dart')) {
-        map[library.importUri.path] =
-            DartLibrarySupport.getDartLibrarySupportValue(
-                library.importUri.path,
-                libraryExists: true,
-                isSynthetic: library.isSynthetic,
-                isUnsupported: library.isUnsupported,
-                dartLibrarySupport: dartLibrarySupport);
-      }
-    }
-    return map;
-  }
+  Map<String, String> _computeSupportedLibraries() => {
+        for (Library library in component.libraries)
+          if (library.importUri.isScheme('dart') &&
+              DartLibrarySupport.isDartLibrarySupported(
+                  library.importUri.path,
+                  libraryExists: true,
+                  isSynthetic: library.isSynthetic,
+                  isUnsupported: library.isUnsupported,
+                  dartLibrarySupport: dartLibrarySupport))
+            (DartLibrarySupport.dartLibraryPrefix + library.importUri.path):
+                "true"
+      };
 
   String? lookupEnvironment(String key) {
     if (DartLibrarySupport.isDartLibraryQualifier(key)) {
-      String libraryName = DartLibrarySupport.getDartLibraryName(key);
-      String? value = (_supportedLibrariesCache ??=
-          _computeSupportedLibraries())[libraryName];
-      return value ?? "";
+      return (_supportedLibrariesCache ??= _computeSupportedLibraries())[key];
     }
     return _environmentDefines![key];
   }
 
   bool hasEnvironmentKey(String key) {
-    if (key.startsWith(DartLibrarySupport.dartLibraryPrefix)) {
-      return true;
+    if (DartLibrarySupport.isDartLibraryQualifier(key)) {
+      return (_supportedLibrariesCache ??= _computeSupportedLibraries())
+          .containsKey(key);
     }
     return _environmentDefines!.containsKey(key);
   }
@@ -3104,8 +3078,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
               new NamedExpression(key, _wrap(named[key]!)),
           ], node.recordType, isConst: true));
     }
-    return canonicalize(new RecordConstant(
-        positional, named, env.substituteType(node.recordType) as RecordType));
+    return canonicalize(new RecordConstant.fromTypeContext(
+        positional, named, staticTypeContext));
   }
 
   @override
@@ -3692,6 +3666,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   /// Returns [null] on success and an error-"constant" on failure, as such the
   /// return value should be checked.
   AbortConstant? checkAssert(AssertStatement statement) {
+    if (!enableAsserts) return null;
     final Constant condition = _evaluateSubexpression(statement.condition);
     if (condition is AbortConstant) return condition;
 
@@ -3788,7 +3763,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
               node.name,
               unevaluatedArguments(
                   positionalArguments, {}, node.arguments.types))
-            ..fileOffset = node.fileOffset);
+            ..fileOffset = node.fileOffset
+            ..flags = node.flags);
     }
 
     return _handleInvocation(node, node.name, receiver, positionalArguments,
@@ -4108,13 +4084,13 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           switch (op) {
             case '|':
               return canonicalize(
-                  new BoolConstant(receiver.value || other.value));
+                  makeBoolConstant(receiver.value || other.value));
             case '&':
               return canonicalize(
-                  new BoolConstant(receiver.value && other.value));
+                  makeBoolConstant(receiver.value && other.value));
             case '^':
               return canonicalize(
-                  new BoolConstant(receiver.value != other.value));
+                  makeBoolConstant(receiver.value != other.value));
           }
         }
       }
@@ -4577,27 +4553,23 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   @override
   Constant visitStaticGet(StaticGet node) {
-    return withNewEnvironment(() {
-      final Member target = node.target;
-      visitedLibraries.add(target.enclosingLibrary);
-      if (target is Field) {
-        if (target.isConst) {
-          return evaluateExpressionInContext(target, target.initializer!);
-        }
-        return createEvaluationErrorConstant(
-            node,
-            templateConstEvalInvalidStaticInvocation
-                .withArguments(target.name.text));
-      } else if (target is Procedure && target.kind == ProcedureKind.Method) {
+    final Member target = node.target;
+    visitedLibraries.add(target.enclosingLibrary);
+    if (target is Field && target.isConst) {
+      return withNewEnvironment(
+          () => evaluateExpressionInContext(target, target.initializer!));
+    } else if (target is Procedure) {
+      if (target.kind == ProcedureKind.Method) {
         // TODO(johnniwinther): Remove this. This should never occur.
         return canonicalize(new StaticTearOffConstant(target));
-      } else {
-        return createEvaluationErrorConstant(
-            node,
-            templateConstEvalInvalidStaticInvocation
-                .withArguments(target.name.text));
+      } else if (target.kind == ProcedureKind.Getter && enableConstFunctions) {
+        return _handleFunctionInvocation(target.function, [], [], {});
       }
-    });
+    }
+    return createEvaluationErrorConstant(
+        node,
+        templateConstEvalInvalidStaticInvocation
+            .withArguments(target.name.text));
   }
 
   @override
@@ -5071,19 +5043,20 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           new Instantiation(_wrap(constant),
               node.typeArguments.map((t) => env.substituteType(t)).toList()));
     }
-    List<TypeParameter>? typeParameters;
+
+    int? typeParameterCount;
     if (constant is TearOffConstant) {
       Member target = constant.target;
       if (target is Procedure) {
-        typeParameters = target.function.typeParameters;
+        typeParameterCount = target.function.typeParameters.length;
       } else if (target is Constructor) {
-        typeParameters = target.enclosingClass.typeParameters;
+        typeParameterCount = target.enclosingClass.typeParameters.length;
       }
     } else if (constant is TypedefTearOffConstant) {
-      typeParameters = constant.parameters;
+      typeParameterCount = constant.parameters.length;
     }
-    if (typeParameters != null) {
-      if (node.typeArguments.length == typeParameters.length) {
+    if (typeParameterCount != null) {
+      if (node.typeArguments.length == typeParameterCount) {
         List<DartType>? types = _evaluateDartTypes(node, node.typeArguments);
         if (types == null) {
           AbortConstant error = _gotError!;
@@ -5127,9 +5100,9 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   Constant visitTypedefTearOff(TypedefTearOff node) {
     final Constant constant = _evaluateSubexpression(node.expression);
     if (constant is TearOffConstant) {
-      FreshTypeParameters freshTypeParameters =
-          getFreshTypeParameters(node.typeParameters);
-      List<TypeParameter> typeParameters =
+      FreshStructuralParameters freshTypeParameters =
+          getFreshStructuralParameters(node.structuralParameters);
+      List<StructuralParameter> typeParameters =
           freshTypeParameters.freshTypeParameters;
       List<DartType> typeArguments = new List<DartType>.generate(
           node.typeArguments.length,
@@ -5617,6 +5590,7 @@ class StatementConstantEvaluator implements StatementVisitor<ExecutionStatus> {
 
   @override
   ExecutionStatus visitAssertBlock(AssertBlock node) {
+    if (!exprEvaluator.enableAsserts) return const ProceedStatus();
     throw new UnsupportedError(
         'Statement constant evaluation does not support ${node.runtimeType}.');
   }

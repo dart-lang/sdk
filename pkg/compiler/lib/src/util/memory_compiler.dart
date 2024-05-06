@@ -95,8 +95,7 @@ Future<api.CompilationResult> runCompiler(
     bool showDiagnostics = true,
     Uri? librariesSpecificationUri,
     Uri? packageConfig,
-    void beforeRun(Compiler compiler)?,
-    bool unsafeToTouchSourceFiles = false}) async {
+    void beforeRun(Compiler compiler)?}) async {
   if (entryPoint == null) {
     entryPoint = Uri.parse('memory:main.dart');
   }
@@ -109,8 +108,7 @@ Future<api.CompilationResult> runCompiler(
       environment: environment,
       showDiagnostics: showDiagnostics,
       librariesSpecificationUri: librariesSpecificationUri,
-      packageConfig: packageConfig,
-      unsafeToTouchSourceFiles: unsafeToTouchSourceFiles);
+      packageConfig: packageConfig);
   if (beforeRun != null) {
     beforeRun(compiler);
   }
@@ -130,8 +128,7 @@ Compiler compilerFor(
     Map<String, String>? environment,
     bool showDiagnostics = true,
     Uri? librariesSpecificationUri,
-    Uri? packageConfig,
-    bool unsafeToTouchSourceFiles = false}) {
+    Uri? packageConfig}) {
   retainDataForTesting = true;
   librariesSpecificationUri ??= sdkLibrariesSpecificationUri;
 
@@ -148,41 +145,6 @@ Compiler compilerFor(
   // Create a local in case we end up cloning memorySourceFiles.
   Map<String, dynamic> sources = memorySourceFiles;
 
-  // If soundNullSafety is not requested, then we prepend the opt out string to
-  // the memory files.
-  // TODO(48820): After migrating all tests we should no longer have to infer
-  // a mode in the memory compiler. The logic to update options and to update
-  // sources to opt-out should be removed.
-  if (!options.contains(Flags.soundNullSafety)) {
-    bool addUnsoundFlag = false;
-    if (!unsafeToTouchSourceFiles) {
-      // Map may be immutable so copy.
-      sources = {};
-      memorySourceFiles.forEach((k, v) => sources[k] = v);
-      addUnsoundFlag = true;
-    }
-
-    for (var key in sources.keys) {
-      if (sources[key] is String && key.endsWith('.dart')) {
-        RegExp optOutStr = RegExp(r"\/\/\s*@dart\s*=\s*2\.(\d+)");
-        final match = optOutStr.firstMatch(sources[key]);
-        if (match == null) {
-          if (!unsafeToTouchSourceFiles) {
-            sources[key] = '// @dart=2.7\n' + sources[key];
-          }
-        } else {
-          // If the file version is prior to 2.12, we treat it as unsound
-          if (int.parse(match.group(1)!) < 12) {
-            addUnsoundFlag = true;
-          }
-        }
-      }
-    }
-    if (addUnsoundFlag && !options.contains(Flags.noSoundNullSafety)) {
-      options = [Flags.noSoundNullSafety, ...options];
-    }
-  }
-
   MemorySourceFileProvider provider;
   provider = MemorySourceFileProvider(sources);
   diagnosticHandler = createCompilerDiagnostics(diagnosticHandler, provider,
@@ -193,15 +155,10 @@ Compiler compilerFor(
     outputProvider = const NullCompilerOutput();
   }
 
-  options.add('${Flags.entryUri}=$entryPoint');
+  options = [...options, '${Flags.entryUri}=$entryPoint'];
 
   CompilerOptions compilerOptions = CompilerOptions.parse(options,
-      librariesSpecificationUri: librariesSpecificationUri,
-      // Unsound platform dill files are no longer packaged in the SDK and must
-      // be read from the build directory during tests.
-      platformBinaries: options.contains(Flags.noSoundNullSafety)
-          ? buildPlatformBinariesUri
-          : null)
+      librariesSpecificationUri: librariesSpecificationUri)
     ..environment = environment ?? {}
     ..packageConfig = packageConfig;
 
@@ -214,6 +171,6 @@ Compiler compilerFor(
   return compiler;
 }
 
-main() {
+void main() {
   runCompiler(memorySourceFiles: {'main.dart': 'main() {}'});
 }

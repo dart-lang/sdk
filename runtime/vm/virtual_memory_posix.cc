@@ -287,6 +287,18 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   }
   void* address =
       GenericMapAligned(hint, prot, size, alignment, allocated_size, map_flags);
+#if defined(DART_HOST_OS_LINUX)
+  // On WSL 1 trying to allocate memory close to the binary by supplying a hint
+  // fails with ENOMEM for unclear reason. Some reports suggest that this might
+  // be related to the alignment of the hint but aligning it by 64Kb does not
+  // make the issue go away in our experiments. Instead just retry without any
+  // hint.
+  if (address == nullptr && hint != nullptr &&
+      Utils::IsWindowsSubsystemForLinux()) {
+    address = GenericMapAligned(nullptr, prot, size, alignment, allocated_size,
+                                map_flags);
+  }
+#endif
   if (address == nullptr) {
     return nullptr;
   }
@@ -353,7 +365,8 @@ void VirtualMemory::Decommit(void* address, intptr_t size) {
 
 VirtualMemory::~VirtualMemory() {
 #if defined(DART_COMPRESSED_POINTERS)
-  if (VirtualMemoryCompressedHeap::Contains(reserved_.pointer())) {
+  if (VirtualMemoryCompressedHeap::Contains(reserved_.pointer()) &&
+      (this != compressed_heap_)) {
     Decommit(reserved_.pointer(), reserved_.size());
     VirtualMemoryCompressedHeap::Free(reserved_.pointer(), reserved_.size());
     return;

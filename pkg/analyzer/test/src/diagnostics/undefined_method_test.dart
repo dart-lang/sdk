@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -153,16 +152,6 @@ class C {
     ]);
   }
 
-  test_leastUpperBoundWithNull() async {
-    noSoundNullSafety = false;
-    await assertErrorsInCode('''
-// @dart = 2.9
-f(bool b, int i) => (b ? null : i).foo();
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 50, 3),
-    ]);
-  }
-
   test_method_undefined() async {
     await assertErrorsInCode(r'''
 class C {
@@ -214,19 +203,6 @@ f(M m) {
 }
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_METHOD, 25, 3),
-    ]);
-  }
-
-  test_method_undefined_onNull() async {
-    noSoundNullSafety = false;
-    await assertErrorsInCode(r'''
-// @dart = 2.9
-Null f(int x) => null;
-main() {
-  f(42).abs();
-}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 55, 3),
     ]);
   }
 

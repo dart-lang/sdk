@@ -1,4 +1,7 @@
 method1(var a) {}
+
 method2() {}
+
 method3() async {}
+
 method4() async {}

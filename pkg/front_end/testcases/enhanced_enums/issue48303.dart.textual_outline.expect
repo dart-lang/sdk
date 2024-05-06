@@ -9,4 +9,5 @@ enum E with M1 {
 }
 
 expectEquals(x, y) {}
+
 main() {}

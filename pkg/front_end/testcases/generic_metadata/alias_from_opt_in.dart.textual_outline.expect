@@ -1,4 +1,5 @@
 // @dart = 2.12
+
 import 'alias_from_opt_in_lib.dart';
 
 test(
@@ -51,4 +52,5 @@ test(
   void Function(T12) t12c,
   void Function(List<T12>) t12d,
 ) {}
+
 main() {}

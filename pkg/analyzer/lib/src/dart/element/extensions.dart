@@ -7,7 +7,6 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:collection/collection.dart';
 import 'package:meta/meta_meta.dart';
 
 extension DartTypeExtension on DartType {
@@ -57,7 +56,7 @@ extension ElementAnnotationExtensions on ElementAnnotation {
               return field?.toStringValue();
             })
             .map((name) => _targetKindsByName[name])
-            .whereNotNull()
+            .nonNulls
             .toSet();
       }
     }
@@ -112,10 +111,6 @@ extension ElementExtension on Element {
 }
 
 extension ExecutableElementExtension on ExecutableElement {
-  bool get isEnumConstructor {
-    return this is ConstructorElement && enclosingElement is EnumElementImpl;
-  }
-
   /// Whether the enclosing element is the class `Object`.
   bool get isObjectMember {
     final enclosing = enclosingElement;
@@ -152,10 +147,6 @@ extension InterfaceElementExtension on InterfaceElement {
 extension InterfaceTypeExtension on InterfaceType {
   bool get isDartCoreObjectNone {
     return isDartCoreObject && nullabilitySuffix == NullabilitySuffix.none;
-  }
-
-  bool get isDartCoreObjectQuestion {
-    return isDartCoreObject && nullabilitySuffix == NullabilitySuffix.question;
   }
 }
 

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -16,6 +15,8 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:meta/meta.dart';
+import 'package:server_plugin/edit/fix/dart_fix_context.dart';
+import 'package:server_plugin/edit/fix/fix.dart';
 import 'package:test/test.dart';
 
 import '../../../../abstract_context.dart';
@@ -87,7 +88,7 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   late BulkFixProcessor processor;
 
   @override
-  List<String> get experiments => const ['inline-class'];
+  List<String> get experiments => const [];
 
   /// Return the lint code being tested.
   String? get lintCode => null;
@@ -244,11 +245,11 @@ abstract class FixInFileProcessorTest extends BaseFixProcessorTest {
 
   /// Computes fixes for the given [error] in [testUnit].
   Future<List<Fix>> _computeFixes(AnalysisError error) async {
-    var context = DartFixContextImpl(
-      TestInstrumentationService(),
-      await workspace,
-      testAnalysisResult,
-      error,
+    var context = DartFixContext(
+      instrumentationService: TestInstrumentationService(),
+      workspace: await workspace,
+      resolvedResult: testAnalysisResult,
+      error: error,
     );
 
     var fixes = await FixInFileProcessor(context).compute();
@@ -544,13 +545,13 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
 
   /// Computes fixes for the given [error] in [testUnit].
   Future<List<Fix>> _computeFixes(AnalysisError error) async {
-    var context = DartFixContextImpl(
-      TestInstrumentationService(),
-      await workspace,
-      testAnalysisResult,
-      error,
+    var context = DartFixContext(
+      instrumentationService: TestInstrumentationService(),
+      workspace: await workspace,
+      resolvedResult: testAnalysisResult,
+      error: error,
     );
-    return await DartFixContributor().computeFixes(context);
+    return await computeFixes(context);
   }
 
   List<Position> _findResultPositions(List<String> searchStrings) {

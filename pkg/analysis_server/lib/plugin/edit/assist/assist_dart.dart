@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/services/correction/fix_processor.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
@@ -13,6 +14,10 @@ abstract class DartAssistContext {
   /// Return the instrumentation service used to report errors that prevent a
   /// fix from being composed.
   InstrumentationService get instrumentationService;
+
+  /// A mapping of [ProducerGenerator]s to the set of lint names with which they
+  /// are associated (can fix).
+  Map<ProducerGenerator, Set<String>> get producerGeneratorsForLintRules;
 
   /// The resolution result in which assist operates.
   ResolvedUnitResult get resolveResult;

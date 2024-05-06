@@ -358,7 +358,6 @@ import 'dart:ffi';
 class C with Double {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 32, 6),
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 32, 6),
     ]);
   }
 
@@ -369,7 +368,6 @@ import 'dart:ffi';
 class C with Double {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 46, 6),
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 46, 6),
     ]);
   }
 
@@ -379,7 +377,6 @@ import 'dart:ffi' as ffi;
 class C with ffi.Double {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 39, 10),
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 39, 10),
     ]);
   }
 
@@ -389,7 +386,6 @@ import 'dart:ffi';
 class C with Float {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 32, 5),
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 32, 5),
     ]);
   }
 
@@ -399,7 +395,6 @@ import 'dart:ffi';
 class C with Int16 {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 32, 5),
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 32, 5),
     ]);
   }
 
@@ -409,7 +404,6 @@ import 'dart:ffi';
 class C with Int32 {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 32, 5),
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 32, 5),
     ]);
   }
 
@@ -419,7 +413,6 @@ import 'dart:ffi';
 class C with Int64 {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 32, 5),
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 32, 5),
     ]);
   }
 
@@ -429,7 +422,6 @@ import 'dart:ffi';
 class C with Int8 {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 32, 4),
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 32, 4),
     ]);
   }
 
@@ -438,7 +430,7 @@ class C with Int8 {}
 import 'dart:ffi';
 class C with Pointer {}
 ''', [
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 32, 7),
+      error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 32, 7),
     ]);
   }
 
@@ -457,7 +449,6 @@ import 'dart:ffi';
 class C with Uint16 {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 32, 6),
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 32, 6),
     ]);
   }
 
@@ -467,7 +458,6 @@ import 'dart:ffi';
 class C with Uint32 {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 32, 6),
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 32, 6),
     ]);
   }
 
@@ -477,7 +467,6 @@ import 'dart:ffi';
 class C with Uint64 {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 32, 6),
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 32, 6),
     ]);
   }
 
@@ -487,7 +476,6 @@ import 'dart:ffi';
 class C with Uint8 {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 32, 5),
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 32, 5),
     ]);
   }
 
@@ -505,7 +493,7 @@ final class C with Union {}
 import 'dart:ffi';
 class C with Void {}
 ''', [
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 32, 4),
+      error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 32, 4),
     ]);
   }
 }

@@ -17,4 +17,5 @@ class E extends C<num> {
 }
 
 test() {}
+
 main() {}

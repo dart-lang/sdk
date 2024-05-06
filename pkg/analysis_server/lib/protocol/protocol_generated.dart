@@ -10,6 +10,8 @@ import 'dart:convert' hide JsonDecoder;
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
+import 'package:analyzer_plugin/src/protocol/protocol_internal.dart'
+    show clientUriConverter;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /// analysis.analyzedFiles params
@@ -31,8 +33,11 @@ class AnalysisAnalyzedFilesParams implements HasToJson {
     if (json is Map) {
       List<String> directories;
       if (json.containsKey('directories')) {
-        directories = jsonDecoder.decodeList('$jsonPath.directories',
-            json['directories'], jsonDecoder.decodeString);
+        directories = jsonDecoder.decodeList(
+            '$jsonPath.directories',
+            json['directories'],
+            (String jsonPath, Object? json) => clientUriConverter
+                .fromClientFilePath(jsonDecoder.decodeString(jsonPath, json)));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'directories');
       }
@@ -52,7 +57,9 @@ class AnalysisAnalyzedFilesParams implements HasToJson {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['directories'] = directories;
+    result['directories'] = directories
+        .map((String value) => clientUriConverter.toClientFilePath(value))
+        .toList();
     return result;
   }
 
@@ -105,7 +112,8 @@ class AnalysisClosingLabelsParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -135,7 +143,7 @@ class AnalysisClosingLabelsParams implements HasToJson {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     result['labels'] =
         labels.map((ClosingLabel value) => value.toJson()).toList();
     return result;
@@ -262,7 +270,8 @@ class AnalysisErrorsParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -290,7 +299,7 @@ class AnalysisErrorsParams implements HasToJson {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     result['errors'] =
         errors.map((AnalysisError value) => value.toJson()).toList();
     return result;
@@ -340,7 +349,10 @@ class AnalysisFlushResultsParams implements HasToJson {
       List<String> files;
       if (json.containsKey('files')) {
         files = jsonDecoder.decodeList(
-            '$jsonPath.files', json['files'], jsonDecoder.decodeString);
+            '$jsonPath.files',
+            json['files'],
+            (String jsonPath, Object? json) => clientUriConverter
+                .fromClientFilePath(jsonDecoder.decodeString(jsonPath, json)));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'files');
       }
@@ -360,7 +372,9 @@ class AnalysisFlushResultsParams implements HasToJson {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['files'] = files;
+    result['files'] = files
+        .map((String value) => clientUriConverter.toClientFilePath(value))
+        .toList();
     return result;
   }
 
@@ -406,7 +420,8 @@ class AnalysisFoldingParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -434,7 +449,7 @@ class AnalysisFoldingParams implements HasToJson {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     result['regions'] =
         regions.map((FoldingRegion value) => value.toJson()).toList();
     return result;
@@ -483,7 +498,8 @@ class AnalysisGetErrorsParams implements RequestParams {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -501,7 +517,7 @@ class AnalysisGetErrorsParams implements RequestParams {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     return result;
   }
 
@@ -617,7 +633,8 @@ class AnalysisGetHoverParams implements RequestParams {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -641,7 +658,7 @@ class AnalysisGetHoverParams implements RequestParams {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     result['offset'] = offset;
     return result;
   }
@@ -769,7 +786,8 @@ class AnalysisGetImportedElementsParams implements RequestParams {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -800,7 +818,7 @@ class AnalysisGetImportedElementsParams implements RequestParams {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     result['offset'] = offset;
     result['length'] = length;
     return result;
@@ -912,7 +930,7 @@ class AnalysisGetLibraryDependenciesParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return Request(id, 'analysis.getLibraryDependencies', null);
+    return Request(id, 'analysis.getLibraryDependencies');
   }
 
   @override
@@ -949,7 +967,10 @@ class AnalysisGetLibraryDependenciesResult implements ResponseResult {
       List<String> libraries;
       if (json.containsKey('libraries')) {
         libraries = jsonDecoder.decodeList(
-            '$jsonPath.libraries', json['libraries'], jsonDecoder.decodeString);
+            '$jsonPath.libraries',
+            json['libraries'],
+            (String jsonPath, Object? json) => clientUriConverter
+                .fromClientFilePath(jsonDecoder.decodeString(jsonPath, json)));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'libraries');
       }
@@ -959,8 +980,14 @@ class AnalysisGetLibraryDependenciesResult implements ResponseResult {
             '$jsonPath.packageMap', json['packageMap'],
             valueDecoder: (String jsonPath, Object? json) =>
                 jsonDecoder.decodeMap(jsonPath, json,
-                    valueDecoder: (String jsonPath, Object? json) => jsonDecoder
-                        .decodeList(jsonPath, json, jsonDecoder.decodeString)));
+                    valueDecoder: (String jsonPath, Object? json) =>
+                        jsonDecoder.decodeList(
+                            jsonPath,
+                            json,
+                            (String jsonPath, Object? json) =>
+                                clientUriConverter.fromClientFilePath(
+                                    jsonDecoder.decodeString(
+                                        jsonPath, json)))));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'packageMap');
       }
@@ -981,8 +1008,15 @@ class AnalysisGetLibraryDependenciesResult implements ResponseResult {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['libraries'] = libraries;
-    result['packageMap'] = packageMap;
+    result['libraries'] = libraries
+        .map((String value) => clientUriConverter.toClientFilePath(value))
+        .toList();
+    result['packageMap'] = mapMap(packageMap,
+        valueCallback: (Map<String, List<String>> value) => mapMap(value,
+            valueCallback: (List<String> value) => value
+                .map((String value) =>
+                    clientUriConverter.toClientFilePath(value))
+                .toList()));
     return result;
   }
 
@@ -1048,7 +1082,8 @@ class AnalysisGetNavigationParams implements RequestParams {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -1079,7 +1114,7 @@ class AnalysisGetNavigationParams implements RequestParams {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     result['offset'] = offset;
     result['length'] = length;
     return result;
@@ -1141,7 +1176,10 @@ class AnalysisGetNavigationResult implements ResponseResult {
       List<String> files;
       if (json.containsKey('files')) {
         files = jsonDecoder.decodeList(
-            '$jsonPath.files', json['files'], jsonDecoder.decodeString);
+            '$jsonPath.files',
+            json['files'],
+            (String jsonPath, Object? json) => clientUriConverter
+                .fromClientFilePath(jsonDecoder.decodeString(jsonPath, json)));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'files');
       }
@@ -1182,7 +1220,9 @@ class AnalysisGetNavigationResult implements ResponseResult {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['files'] = files;
+    result['files'] = files
+        .map((String value) => clientUriConverter.toClientFilePath(value))
+        .toList();
     result['targets'] =
         targets.map((NavigationTarget value) => value.toJson()).toList();
     result['regions'] =
@@ -1237,7 +1277,8 @@ class AnalysisGetReachableSourcesParams implements RequestParams {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -1256,7 +1297,7 @@ class AnalysisGetReachableSourcesParams implements RequestParams {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     return result;
   }
 
@@ -1379,7 +1420,8 @@ class AnalysisGetSignatureParams implements RequestParams {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -1404,7 +1446,7 @@ class AnalysisGetSignatureParams implements RequestParams {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     result['offset'] = offset;
     return result;
   }
@@ -1564,7 +1606,8 @@ class AnalysisHighlightsParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -1592,7 +1635,7 @@ class AnalysisHighlightsParams implements HasToJson {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     result['regions'] =
         regions.map((HighlightRegion value) => value.toJson()).toList();
     return result;
@@ -1649,7 +1692,8 @@ class AnalysisImplementedParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -1688,7 +1732,7 @@ class AnalysisImplementedParams implements HasToJson {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     result['classes'] =
         classes.map((ImplementedClass value) => value.toJson()).toList();
     result['members'] =
@@ -1756,7 +1800,8 @@ class AnalysisInvalidateParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -1792,7 +1837,7 @@ class AnalysisInvalidateParams implements HasToJson {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     result['offset'] = offset;
     result['length'] = length;
     result['delta'] = delta;
@@ -1865,7 +1910,8 @@ class AnalysisNavigationParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -1892,7 +1938,10 @@ class AnalysisNavigationParams implements HasToJson {
       List<String> files;
       if (json.containsKey('files')) {
         files = jsonDecoder.decodeList(
-            '$jsonPath.files', json['files'], jsonDecoder.decodeString);
+            '$jsonPath.files',
+            json['files'],
+            (String jsonPath, Object? json) => clientUriConverter
+                .fromClientFilePath(jsonDecoder.decodeString(jsonPath, json)));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'files');
       }
@@ -1910,12 +1959,14 @@ class AnalysisNavigationParams implements HasToJson {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     result['regions'] =
         regions.map((NavigationRegion value) => value.toJson()).toList();
     result['targets'] =
         targets.map((NavigationTarget value) => value.toJson()).toList();
-    result['files'] = files;
+    result['files'] = files
+        .map((String value) => clientUriConverter.toClientFilePath(value))
+        .toList();
     return result;
   }
 
@@ -1971,7 +2022,8 @@ class AnalysisOccurrencesParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -2000,7 +2052,7 @@ class AnalysisOccurrencesParams implements HasToJson {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     result['occurrences'] =
         occurrences.map((Occurrences value) => value.toJson()).toList();
     return result;
@@ -2239,7 +2291,8 @@ class AnalysisOutlineParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -2276,7 +2329,7 @@ class AnalysisOutlineParams implements HasToJson {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     result['kind'] = kind.toJson();
     var libraryName = this.libraryName;
     if (libraryName != null) {
@@ -2336,7 +2389,8 @@ class AnalysisOverridesParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -2364,7 +2418,7 @@ class AnalysisOverridesParams implements HasToJson {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     result['overrides'] =
         overrides.map((Override value) => value.toJson()).toList();
     return result;
@@ -2403,7 +2457,7 @@ class AnalysisReanalyzeParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return Request(id, 'analysis.reanalyze', null);
+    return Request(id, 'analysis.reanalyze');
   }
 
   @override
@@ -2422,7 +2476,7 @@ class AnalysisReanalyzeResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override
@@ -2570,14 +2624,20 @@ class AnalysisSetAnalysisRootsParams implements RequestParams {
       List<String> included;
       if (json.containsKey('included')) {
         included = jsonDecoder.decodeList(
-            '$jsonPath.included', json['included'], jsonDecoder.decodeString);
+            '$jsonPath.included',
+            json['included'],
+            (String jsonPath, Object? json) => clientUriConverter
+                .fromClientFilePath(jsonDecoder.decodeString(jsonPath, json)));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'included');
       }
       List<String> excluded;
       if (json.containsKey('excluded')) {
         excluded = jsonDecoder.decodeList(
-            '$jsonPath.excluded', json['excluded'], jsonDecoder.decodeString);
+            '$jsonPath.excluded',
+            json['excluded'],
+            (String jsonPath, Object? json) => clientUriConverter
+                .fromClientFilePath(jsonDecoder.decodeString(jsonPath, json)));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'excluded');
       }
@@ -2585,7 +2645,10 @@ class AnalysisSetAnalysisRootsParams implements RequestParams {
       if (json.containsKey('packageRoots')) {
         packageRoots = jsonDecoder.decodeMap(
             '$jsonPath.packageRoots', json['packageRoots'],
-            valueDecoder: jsonDecoder.decodeString);
+            keyDecoder: (String jsonPath, Object? json) => clientUriConverter
+                .fromClientFilePath(jsonDecoder.decodeString(jsonPath, json)),
+            valueDecoder: (String jsonPath, Object? json) => clientUriConverter
+                .fromClientFilePath(jsonDecoder.decodeString(jsonPath, json)));
       }
       return AnalysisSetAnalysisRootsParams(included, excluded,
           packageRoots: packageRoots);
@@ -2603,11 +2666,19 @@ class AnalysisSetAnalysisRootsParams implements RequestParams {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['included'] = included;
-    result['excluded'] = excluded;
+    result['included'] = included
+        .map((String value) => clientUriConverter.toClientFilePath(value))
+        .toList();
+    result['excluded'] = excluded
+        .map((String value) => clientUriConverter.toClientFilePath(value))
+        .toList();
     var packageRoots = this.packageRoots;
     if (packageRoots != null) {
-      result['packageRoots'] = packageRoots;
+      result['packageRoots'] = mapMap(packageRoots,
+          keyCallback: (String value) =>
+              clientUriConverter.toClientFilePath(value),
+          valueCallback: (String value) =>
+              clientUriConverter.toClientFilePath(value));
     }
     return result;
   }
@@ -2649,7 +2720,7 @@ class AnalysisSetAnalysisRootsResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override
@@ -2737,7 +2808,7 @@ class AnalysisSetGeneralSubscriptionsResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override
@@ -2767,7 +2838,10 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
       List<String> files;
       if (json.containsKey('files')) {
         files = jsonDecoder.decodeList(
-            '$jsonPath.files', json['files'], jsonDecoder.decodeString);
+            '$jsonPath.files',
+            json['files'],
+            (String jsonPath, Object? json) => clientUriConverter
+                .fromClientFilePath(jsonDecoder.decodeString(jsonPath, json)));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'files');
       }
@@ -2786,7 +2860,9 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['files'] = files;
+    result['files'] = files
+        .map((String value) => clientUriConverter.toClientFilePath(value))
+        .toList();
     return result;
   }
 
@@ -2819,7 +2895,7 @@ class AnalysisSetPriorityFilesResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override
@@ -2853,8 +2929,13 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
             '$jsonPath.subscriptions', json['subscriptions'],
             keyDecoder: (String jsonPath, Object? json) =>
                 AnalysisService.fromJson(jsonDecoder, jsonPath, json),
-            valueDecoder: (String jsonPath, Object? json) => jsonDecoder
-                .decodeList(jsonPath, json, jsonDecoder.decodeString));
+            valueDecoder: (String jsonPath, Object? json) =>
+                jsonDecoder.decodeList(
+                    jsonPath,
+                    json,
+                    (String jsonPath, Object? json) =>
+                        clientUriConverter.fromClientFilePath(
+                            jsonDecoder.decodeString(jsonPath, json))));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'subscriptions');
       }
@@ -2874,7 +2955,10 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
   Map<String, Object> toJson() {
     var result = <String, Object>{};
     result['subscriptions'] = mapMap(subscriptions,
-        keyCallback: (AnalysisService value) => value.toJson());
+        keyCallback: (AnalysisService value) => value.toJson(),
+        valueCallback: (List<String> value) => value
+            .map((String value) => clientUriConverter.toClientFilePath(value))
+            .toList());
     return result;
   }
 
@@ -2912,7 +2996,7 @@ class AnalysisSetSubscriptionsResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override
@@ -3013,6 +3097,8 @@ class AnalysisUpdateContentParams implements RequestParams {
       Map<String, Object> files;
       if (json.containsKey('files')) {
         files = jsonDecoder.decodeMap('$jsonPath.files', json['files'],
+            keyDecoder: (String jsonPath, Object? json) => clientUriConverter
+                .fromClientFilePath(jsonDecoder.decodeString(jsonPath, json)),
             valueDecoder: (String jsonPath, Object? json) =>
                 jsonDecoder.decodeUnion(jsonPath, json, 'type', {
                   'add': (String jsonPath, Object? json) =>
@@ -3042,6 +3128,8 @@ class AnalysisUpdateContentParams implements RequestParams {
   Map<String, Object> toJson() {
     var result = <String, Object>{};
     result['files'] = mapMap(files,
+        keyCallback: (String value) =>
+            clientUriConverter.toClientFilePath(value),
         valueCallback: (Object value) => (value as dynamic).toJson());
     return result;
   }
@@ -3191,7 +3279,7 @@ class AnalysisUpdateOptionsResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override
@@ -3271,7 +3359,7 @@ class AnalyticsEnableResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override
@@ -3290,7 +3378,7 @@ class AnalyticsIsEnabledParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return Request(id, 'analytics.isEnabled', null);
+    return Request(id, 'analytics.isEnabled');
   }
 
   @override
@@ -3433,7 +3521,7 @@ class AnalyticsSendEventResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override
@@ -3527,7 +3615,7 @@ class AnalyticsSendTimingResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override
@@ -3560,7 +3648,8 @@ class BulkFix implements HasToJson {
     if (json is Map) {
       String path;
       if (json.containsKey('path')) {
-        path = jsonDecoder.decodeString('$jsonPath.path', json['path']);
+        path = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.path', json['path']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'path');
       }
@@ -3583,7 +3672,7 @@ class BulkFix implements HasToJson {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['path'] = path;
+    result['path'] = clientUriConverter.toClientFilePath(path);
     result['fixes'] =
         fixes.map((BulkFixDetail value) => value.toJson()).toList();
     return result;
@@ -3841,7 +3930,8 @@ class CompletionExistingImportsParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -3868,7 +3958,7 @@ class CompletionExistingImportsParams implements HasToJson {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     result['imports'] = imports.toJson();
     return result;
   }
@@ -3931,7 +4021,8 @@ class CompletionGetSuggestionDetails2Params implements RequestParams {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -3971,7 +4062,7 @@ class CompletionGetSuggestionDetails2Params implements RequestParams {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     result['offset'] = offset;
     result['completion'] = completion;
     result['libraryUri'] = libraryUri;
@@ -4144,7 +4235,8 @@ class CompletionGetSuggestions2Params implements RequestParams {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -4201,7 +4293,7 @@ class CompletionGetSuggestions2Params implements RequestParams {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     result['offset'] = offset;
     result['maxResults'] = maxResults;
     var completionCaseMatchingMode = this.completionCaseMatchingMode;
@@ -4523,7 +4615,7 @@ class CompletionRegisterLibraryPathsResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override
@@ -4704,7 +4796,7 @@ class DiagnosticGetDiagnosticsParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return Request(id, 'diagnostic.getDiagnostics', null);
+    return Request(id, 'diagnostic.getDiagnostics');
   }
 
   @override
@@ -4793,7 +4885,7 @@ class DiagnosticGetServerPortParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return Request(id, 'diagnostic.getServerPort', null);
+    return Request(id, 'diagnostic.getServerPort');
   }
 
   @override
@@ -4918,7 +5010,10 @@ class EditBulkFixesParams implements RequestParams {
       List<String> included;
       if (json.containsKey('included')) {
         included = jsonDecoder.decodeList(
-            '$jsonPath.included', json['included'], jsonDecoder.decodeString);
+            '$jsonPath.included',
+            json['included'],
+            (String jsonPath, Object? json) => clientUriConverter
+                .fromClientFilePath(jsonDecoder.decodeString(jsonPath, json)));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'included');
       }
@@ -4952,7 +5047,9 @@ class EditBulkFixesParams implements RequestParams {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['included'] = included;
+    result['included'] = included
+        .map((String value) => clientUriConverter.toClientFilePath(value))
+        .toList();
     var inTestMode = this.inTestMode;
     if (inTestMode != null) {
       result['inTestMode'] = inTestMode;
@@ -5118,8 +5215,11 @@ class EditFormatIfEnabledParams implements RequestParams {
     if (json is Map) {
       List<String> directories;
       if (json.containsKey('directories')) {
-        directories = jsonDecoder.decodeList('$jsonPath.directories',
-            json['directories'], jsonDecoder.decodeString);
+        directories = jsonDecoder.decodeList(
+            '$jsonPath.directories',
+            json['directories'],
+            (String jsonPath, Object? json) => clientUriConverter
+                .fromClientFilePath(jsonDecoder.decodeString(jsonPath, json)));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'directories');
       }
@@ -5137,7 +5237,9 @@ class EditFormatIfEnabledParams implements RequestParams {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['directories'] = directories;
+    result['directories'] = directories
+        .map((String value) => clientUriConverter.toClientFilePath(value))
+        .toList();
     return result;
   }
 
@@ -5265,7 +5367,8 @@ class EditFormatParams implements RequestParams {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -5303,7 +5406,7 @@ class EditFormatParams implements RequestParams {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     result['selectionOffset'] = selectionOffset;
     result['selectionLength'] = selectionLength;
     var lineLength = this.lineLength;
@@ -5467,7 +5570,8 @@ class EditGetAssistsParams implements RequestParams {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -5497,7 +5601,7 @@ class EditGetAssistsParams implements RequestParams {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     result['offset'] = offset;
     result['length'] = length;
     return result;
@@ -5625,7 +5729,8 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -5656,7 +5761,7 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     result['offset'] = offset;
     result['length'] = length;
     return result;
@@ -5781,7 +5886,8 @@ class EditGetFixesParams implements RequestParams {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -5805,7 +5911,7 @@ class EditGetFixesParams implements RequestParams {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     result['offset'] = offset;
     return result;
   }
@@ -5930,7 +6036,8 @@ class EditGetPostfixCompletionParams implements RequestParams {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -5961,7 +6068,7 @@ class EditGetPostfixCompletionParams implements RequestParams {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     result['key'] = key;
     result['offset'] = offset;
     return result;
@@ -6109,7 +6216,8 @@ class EditGetRefactoringParams implements RequestParams {
       }
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -6155,7 +6263,7 @@ class EditGetRefactoringParams implements RequestParams {
   Map<String, Object> toJson() {
     var result = <String, Object>{};
     result['kind'] = kind.toJson();
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     result['offset'] = offset;
     result['length'] = length;
     result['validateOnly'] = validateOnly;
@@ -6401,7 +6509,8 @@ class EditGetStatementCompletionParams implements RequestParams {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -6426,7 +6535,7 @@ class EditGetStatementCompletionParams implements RequestParams {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     result['offset'] = offset;
     return result;
   }
@@ -6565,7 +6674,8 @@ class EditImportElementsParams implements RequestParams {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -6597,7 +6707,7 @@ class EditImportElementsParams implements RequestParams {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     result['elements'] =
         elements.map((ImportedElements value) => value.toJson()).toList();
     var offset = this.offset;
@@ -6732,7 +6842,8 @@ class EditIsPostfixCompletionApplicableParams implements RequestParams {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -6763,7 +6874,7 @@ class EditIsPostfixCompletionApplicableParams implements RequestParams {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     result['key'] = key;
     result['offset'] = offset;
     return result;
@@ -6867,7 +6978,7 @@ class EditListPostfixCompletionTemplatesParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return Request(id, 'edit.listPostfixCompletionTemplates', null);
+    return Request(id, 'edit.listPostfixCompletionTemplates');
   }
 
   @override
@@ -6969,7 +7080,8 @@ class EditOrganizeDirectivesParams implements RequestParams {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -6988,7 +7100,7 @@ class EditOrganizeDirectivesParams implements RequestParams {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     return result;
   }
 
@@ -7097,7 +7209,8 @@ class EditSortMembersParams implements RequestParams {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -7115,7 +7228,7 @@ class EditSortMembersParams implements RequestParams {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     return result;
   }
 
@@ -7431,7 +7544,8 @@ class ExecutableFile implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -7451,7 +7565,7 @@ class ExecutableFile implements HasToJson {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     result['kind'] = kind.toJson();
     return result;
   }
@@ -7559,8 +7673,8 @@ class ExecutionCreateContextParams implements RequestParams {
     if (json is Map) {
       String contextRoot;
       if (json.containsKey('contextRoot')) {
-        contextRoot = jsonDecoder.decodeString(
-            '$jsonPath.contextRoot', json['contextRoot']);
+        contextRoot = clientUriConverter.fromClientFilePath(jsonDecoder
+            .decodeString('$jsonPath.contextRoot', json['contextRoot']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'contextRoot');
       }
@@ -7579,7 +7693,7 @@ class ExecutionCreateContextParams implements RequestParams {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['contextRoot'] = contextRoot;
+    result['contextRoot'] = clientUriConverter.toClientFilePath(contextRoot);
     return result;
   }
 
@@ -7738,7 +7852,7 @@ class ExecutionDeleteContextResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override
@@ -7814,8 +7928,8 @@ class ExecutionGetSuggestionsParams implements RequestParams {
       }
       String contextFile;
       if (json.containsKey('contextFile')) {
-        contextFile = jsonDecoder.decodeString(
-            '$jsonPath.contextFile', json['contextFile']);
+        contextFile = clientUriConverter.fromClientFilePath(jsonDecoder
+            .decodeString('$jsonPath.contextFile', json['contextFile']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'contextFile');
       }
@@ -7865,7 +7979,7 @@ class ExecutionGetSuggestionsParams implements RequestParams {
     var result = <String, Object>{};
     result['code'] = code;
     result['offset'] = offset;
-    result['contextFile'] = contextFile;
+    result['contextFile'] = clientUriConverter.toClientFilePath(contextFile);
     result['contextOffset'] = contextOffset;
     result['variables'] = variables
         .map((RuntimeCompletionVariable value) => value.toJson())
@@ -8059,7 +8173,8 @@ class ExecutionLaunchDataParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -8070,8 +8185,11 @@ class ExecutionLaunchDataParams implements HasToJson {
       }
       List<String>? referencedFiles;
       if (json.containsKey('referencedFiles')) {
-        referencedFiles = jsonDecoder.decodeList('$jsonPath.referencedFiles',
-            json['referencedFiles'], jsonDecoder.decodeString);
+        referencedFiles = jsonDecoder.decodeList(
+            '$jsonPath.referencedFiles',
+            json['referencedFiles'],
+            (String jsonPath, Object? json) => clientUriConverter
+                .fromClientFilePath(jsonDecoder.decodeString(jsonPath, json)));
       }
       return ExecutionLaunchDataParams(file,
           kind: kind, referencedFiles: referencedFiles);
@@ -8089,14 +8207,16 @@ class ExecutionLaunchDataParams implements HasToJson {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     var kind = this.kind;
     if (kind != null) {
       result['kind'] = kind.toJson();
     }
     var referencedFiles = this.referencedFiles;
     if (referencedFiles != null) {
-      result['referencedFiles'] = referencedFiles;
+      result['referencedFiles'] = referencedFiles
+          .map((String value) => clientUriConverter.toClientFilePath(value))
+          .toList();
     }
     return result;
   }
@@ -8160,7 +8280,8 @@ class ExecutionMapUriParams implements RequestParams {
       }
       String? file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       }
       String? uri;
       if (json.containsKey('uri')) {
@@ -8183,7 +8304,7 @@ class ExecutionMapUriParams implements RequestParams {
     result['id'] = id;
     var file = this.file;
     if (file != null) {
-      result['file'] = file;
+      result['file'] = clientUriConverter.toClientFilePath(file);
     }
     var uri = this.uri;
     if (uri != null) {
@@ -8241,7 +8362,8 @@ class ExecutionMapUriResult implements ResponseResult {
     if (json is Map) {
       String? file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       }
       String? uri;
       if (json.containsKey('uri')) {
@@ -8265,7 +8387,7 @@ class ExecutionMapUriResult implements ResponseResult {
     var result = <String, Object>{};
     var file = this.file;
     if (file != null) {
-      result['file'] = file;
+      result['file'] = clientUriConverter.toClientFilePath(file);
     }
     var uri = this.uri;
     if (uri != null) {
@@ -8418,7 +8540,7 @@ class ExecutionSetSubscriptionsResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override
@@ -9250,7 +9372,8 @@ class FlutterGetWidgetDescriptionParams implements RequestParams {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -9275,7 +9398,7 @@ class FlutterGetWidgetDescriptionParams implements RequestParams {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     result['offset'] = offset;
     return result;
   }
@@ -9899,7 +10022,8 @@ class FlutterOutlineParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -9924,7 +10048,7 @@ class FlutterOutlineParams implements HasToJson {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     result['outline'] = outline.toJson();
     return result;
   }
@@ -10019,8 +10143,13 @@ class FlutterSetSubscriptionsParams implements RequestParams {
             '$jsonPath.subscriptions', json['subscriptions'],
             keyDecoder: (String jsonPath, Object? json) =>
                 FlutterService.fromJson(jsonDecoder, jsonPath, json),
-            valueDecoder: (String jsonPath, Object? json) => jsonDecoder
-                .decodeList(jsonPath, json, jsonDecoder.decodeString));
+            valueDecoder: (String jsonPath, Object? json) =>
+                jsonDecoder.decodeList(
+                    jsonPath,
+                    json,
+                    (String jsonPath, Object? json) =>
+                        clientUriConverter.fromClientFilePath(
+                            jsonDecoder.decodeString(jsonPath, json))));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'subscriptions');
       }
@@ -10040,7 +10169,10 @@ class FlutterSetSubscriptionsParams implements RequestParams {
   Map<String, Object> toJson() {
     var result = <String, Object>{};
     result['subscriptions'] = mapMap(subscriptions,
-        keyCallback: (FlutterService value) => value.toJson());
+        keyCallback: (FlutterService value) => value.toJson(),
+        valueCallback: (List<String> value) => value
+            .map((String value) => clientUriConverter.toClientFilePath(value))
+            .toList());
     return result;
   }
 
@@ -10078,7 +10210,7 @@ class FlutterSetSubscriptionsResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override
@@ -11401,7 +11533,8 @@ class ImportedElements implements HasToJson {
     if (json is Map) {
       String path;
       if (json.containsKey('path')) {
-        path = jsonDecoder.decodeString('$jsonPath.path', json['path']);
+        path = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.path', json['path']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'path');
       }
@@ -11427,7 +11560,7 @@ class ImportedElements implements HasToJson {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['path'] = path;
+    result['path'] = clientUriConverter.toClientFilePath(path);
     result['prefix'] = prefix;
     result['elements'] = elements;
     return result;
@@ -11720,14 +11853,18 @@ class LibraryPathSet implements HasToJson {
     if (json is Map) {
       String scope;
       if (json.containsKey('scope')) {
-        scope = jsonDecoder.decodeString('$jsonPath.scope', json['scope']);
+        scope = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.scope', json['scope']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'scope');
       }
       List<String> libraryPaths;
       if (json.containsKey('libraryPaths')) {
-        libraryPaths = jsonDecoder.decodeList('$jsonPath.libraryPaths',
-            json['libraryPaths'], jsonDecoder.decodeString);
+        libraryPaths = jsonDecoder.decodeList(
+            '$jsonPath.libraryPaths',
+            json['libraryPaths'],
+            (String jsonPath, Object? json) => clientUriConverter
+                .fromClientFilePath(jsonDecoder.decodeString(jsonPath, json)));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'libraryPaths');
       }
@@ -11740,8 +11877,10 @@ class LibraryPathSet implements HasToJson {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['scope'] = scope;
-    result['libraryPaths'] = libraryPaths;
+    result['scope'] = clientUriConverter.toClientFilePath(scope);
+    result['libraryPaths'] = libraryPaths
+        .map((String value) => clientUriConverter.toClientFilePath(value))
+        .toList();
     return result;
   }
 
@@ -11887,6 +12026,66 @@ class LspHandleResult implements ResponseResult {
 
   @override
   int get hashCode => lspResponse.hashCode;
+}
+
+/// lsp.notification params
+///
+/// {
+///   "lspNotification": object
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class LspNotificationParams implements HasToJson {
+  /// The LSP NotificationMessage sent by the server.
+  Object lspNotification;
+
+  LspNotificationParams(this.lspNotification);
+
+  factory LspNotificationParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+    json ??= {};
+    if (json is Map) {
+      Object lspNotification;
+      if (json.containsKey('lspNotification')) {
+        lspNotification = json['lspNotification'] as Object;
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'lspNotification');
+      }
+      return LspNotificationParams(lspNotification);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, 'lsp.notification params', json);
+    }
+  }
+
+  factory LspNotificationParams.fromNotification(Notification notification) {
+    return LspNotificationParams.fromJson(
+        ResponseDecoder(null), 'params', notification.params);
+  }
+
+  @override
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    result['lspNotification'] = lspNotification;
+    return result;
+  }
+
+  Notification toNotification() {
+    return Notification('lsp.notification', toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is LspNotificationParams) {
+      return lspNotification == other.lspNotification;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => lspNotification.hashCode;
 }
 
 /// MessageAction
@@ -12039,8 +12238,8 @@ class MoveFileOptions extends RefactoringOptions {
     if (json is Map) {
       String newFile;
       if (json.containsKey('newFile')) {
-        newFile =
-            jsonDecoder.decodeString('$jsonPath.newFile', json['newFile']);
+        newFile = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.newFile', json['newFile']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'newFile');
       }
@@ -12059,7 +12258,7 @@ class MoveFileOptions extends RefactoringOptions {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['newFile'] = newFile;
+    result['newFile'] = clientUriConverter.toClientFilePath(newFile);
     return result;
   }
 
@@ -13176,8 +13375,8 @@ class RuntimeCompletionExpressionType implements HasToJson {
     if (json is Map) {
       String? libraryPath;
       if (json.containsKey('libraryPath')) {
-        libraryPath = jsonDecoder.decodeString(
-            '$jsonPath.libraryPath', json['libraryPath']);
+        libraryPath = clientUriConverter.fromClientFilePath(jsonDecoder
+            .decodeString('$jsonPath.libraryPath', json['libraryPath']));
       }
       RuntimeCompletionExpressionTypeKind kind;
       if (json.containsKey('kind')) {
@@ -13236,7 +13435,7 @@ class RuntimeCompletionExpressionType implements HasToJson {
     var result = <String, Object>{};
     var libraryPath = this.libraryPath;
     if (libraryPath != null) {
-      result['libraryPath'] = libraryPath;
+      result['libraryPath'] = clientUriConverter.toClientFilePath(libraryPath);
     }
     result['kind'] = kind.toJson();
     var name = this.name;
@@ -13463,7 +13662,8 @@ class SearchFindElementReferencesParams implements RequestParams {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -13495,7 +13695,7 @@ class SearchFindElementReferencesParams implements RequestParams {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     result['offset'] = offset;
     result['includePotential'] = includePotential;
     return result;
@@ -14025,7 +14225,8 @@ class SearchGetElementDeclarationsParams implements RequestParams {
     if (json is Map) {
       String? file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       }
       String? pattern;
       if (json.containsKey('pattern')) {
@@ -14055,7 +14256,7 @@ class SearchGetElementDeclarationsParams implements RequestParams {
     var result = <String, Object>{};
     var file = this.file;
     if (file != null) {
-      result['file'] = file;
+      result['file'] = clientUriConverter.toClientFilePath(file);
     }
     var pattern = this.pattern;
     if (pattern != null) {
@@ -14128,7 +14329,10 @@ class SearchGetElementDeclarationsResult implements ResponseResult {
       List<String> files;
       if (json.containsKey('files')) {
         files = jsonDecoder.decodeList(
-            '$jsonPath.files', json['files'], jsonDecoder.decodeString);
+            '$jsonPath.files',
+            json['files'],
+            (String jsonPath, Object? json) => clientUriConverter
+                .fromClientFilePath(jsonDecoder.decodeString(jsonPath, json)));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'files');
       }
@@ -14151,7 +14355,9 @@ class SearchGetElementDeclarationsResult implements ResponseResult {
     var result = <String, Object>{};
     result['declarations'] =
         declarations.map((ElementDeclaration value) => value.toJson()).toList();
-    result['files'] = files;
+    result['files'] = files
+        .map((String value) => clientUriConverter.toClientFilePath(value))
+        .toList();
     return result;
   }
 
@@ -14209,7 +14415,8 @@ class SearchGetTypeHierarchyParams implements RequestParams {
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
+        file = clientUriConverter.fromClientFilePath(
+            jsonDecoder.decodeString('$jsonPath.file', json['file']));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -14239,7 +14446,7 @@ class SearchGetTypeHierarchyParams implements RequestParams {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['file'] = file;
+    result['file'] = clientUriConverter.toClientFilePath(file);
     result['offset'] = offset;
     var superOnly = this.superOnly;
     if (superOnly != null) {
@@ -14713,7 +14920,7 @@ class ServerCancelRequestResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override
@@ -14899,7 +15106,7 @@ class ServerGetVersionParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return Request(id, 'server.getVersion', null);
+    return Request(id, 'server.getVersion');
   }
 
   @override
@@ -15272,7 +15479,7 @@ class ServerOpenUrlRequestResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override
@@ -15335,6 +15542,7 @@ class ServerService implements Enum {
 ///
 /// {
 ///   "requests": List<String>
+///   "supportsUris": optional bool
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -15354,7 +15562,20 @@ class ServerSetClientCapabilitiesParams implements RequestParams {
   /// - showMessageRequest
   List<String> requests;
 
-  ServerSetClientCapabilitiesParams(this.requests);
+  /// True if the client supports the server sending URIs in place of file
+  /// paths.
+  ///
+  /// In this mode, the server will use URIs in all protocol fields with the
+  /// type FilePath. Returned URIs may be `file://` URIs or custom schemes. The
+  /// client can fetch the file contents for URIs with custom schemes (and
+  /// receive modification events) through the LSP protocol (see the "lsp"
+  /// domain).
+  ///
+  /// LSP notifications are automatically enabled when the client sets this
+  /// capability.
+  bool? supportsUris;
+
+  ServerSetClientCapabilitiesParams(this.requests, {this.supportsUris});
 
   factory ServerSetClientCapabilitiesParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -15367,7 +15588,13 @@ class ServerSetClientCapabilitiesParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'requests');
       }
-      return ServerSetClientCapabilitiesParams(requests);
+      bool? supportsUris;
+      if (json.containsKey('supportsUris')) {
+        supportsUris = jsonDecoder.decodeBool(
+            '$jsonPath.supportsUris', json['supportsUris']);
+      }
+      return ServerSetClientCapabilitiesParams(requests,
+          supportsUris: supportsUris);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, 'server.setClientCapabilities params', json);
@@ -15383,6 +15610,10 @@ class ServerSetClientCapabilitiesParams implements RequestParams {
   Map<String, Object> toJson() {
     var result = <String, Object>{};
     result['requests'] = requests;
+    var supportsUris = this.supportsUris;
+    if (supportsUris != null) {
+      result['supportsUris'] = supportsUris;
+    }
     return result;
   }
 
@@ -15398,13 +15629,17 @@ class ServerSetClientCapabilitiesParams implements RequestParams {
   bool operator ==(other) {
     if (other is ServerSetClientCapabilitiesParams) {
       return listEqual(
-          requests, other.requests, (String a, String b) => a == b);
+              requests, other.requests, (String a, String b) => a == b) &&
+          supportsUris == other.supportsUris;
     }
     return false;
   }
 
   @override
-  int get hashCode => Object.hashAll(requests);
+  int get hashCode => Object.hash(
+        Object.hashAll(requests),
+        supportsUris,
+      );
 }
 
 /// server.setClientCapabilities result
@@ -15416,7 +15651,7 @@ class ServerSetClientCapabilitiesResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override
@@ -15503,7 +15738,7 @@ class ServerSetSubscriptionsResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override
@@ -15687,7 +15922,7 @@ class ServerShutdownParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return Request(id, 'server.shutdown', null);
+    return Request(id, 'server.shutdown');
   }
 
   @override
@@ -15706,7 +15941,7 @@ class ServerShutdownResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return Response(id, result: null);
+    return Response(id);
   }
 
   @override

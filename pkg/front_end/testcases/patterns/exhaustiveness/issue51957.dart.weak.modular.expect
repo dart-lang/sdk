@@ -28,7 +28,7 @@ static method main() → void {
       }
       break #L1;
     }
-    throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+    throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
   core::print(s);
   core::print( block {
@@ -48,7 +48,7 @@ static method main() → void {
           break #L2;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t1);
 }

@@ -5,4 +5,5 @@ class Class2<T, M extends Mixin<T>> extends SuperClass with M {}
 class SuperClass {}
 
 main() {}
+
 mixin Mixin<T> {}

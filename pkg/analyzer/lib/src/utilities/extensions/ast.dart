@@ -3,8 +3,41 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 
 extension AstNodeExtension on AstNode {
+  /// Returns all tokens, from [beginToken] to [endToken] including.
+  List<Token> get allTokens {
+    var result = <Token>[];
+    var token = beginToken;
+    while (true) {
+      result.add(token);
+      if (token == endToken) {
+        break;
+      }
+      if (token.next case var next?) {
+        token = next;
+      } else {
+        break;
+      }
+    }
+    return result;
+  }
+
+  /// Returns the comment token that covers the [offset].
+  Token? commentTokenCovering(int offset) {
+    for (var token in allTokens) {
+      for (Token? comment = token.precedingComments;
+          comment is Token;
+          comment = comment.next) {
+        if (comment.offset <= offset && offset <= comment.end) {
+          return comment;
+        }
+      }
+    }
+    return null;
+  }
+
   /// Return the minimal cover node for the range of characters beginning at the
   /// [offset] with the given [length], or `null` if the range is outside the
   /// range covered by the receiver.
@@ -40,7 +73,7 @@ extension AstNodeExtension on AstNode {
       return node.offset <= offset && node.end >= end;
     }
 
-    /// Return the child of the [node] that completely contains the [range], or
+    /// Return the child of the [node] that completely contains the range, or
     /// `null` if none of the children contain the range (which means that the
     /// [node] is the covering node).
     AstNode? childContainingRange(AstNode node) {
@@ -66,5 +99,19 @@ extension AstNodeExtension on AstNode {
       currentNode = childContainingRange(previousNode);
     }
     return previousNode;
+  }
+}
+
+extension AstNodeNullableExtension on AstNode? {
+  List<ClassMember> get classMembers {
+    final self = this;
+    return switch (self) {
+      ClassDeclaration() => self.members,
+      EnumDeclaration() => self.members,
+      ExtensionDeclaration() => self.members,
+      ExtensionTypeDeclaration() => self.members,
+      MixinDeclaration() => self.members,
+      _ => throw UnimplementedError('(${self.runtimeType}) $self'),
+    };
   }
 }

@@ -18,5 +18,7 @@ extension D on int Function()? {
 }
 
 main() {}
+
 testA(A? a) {}
+
 testFunction(int Function()? f) {}

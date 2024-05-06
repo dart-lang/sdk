@@ -1,4 +1,5 @@
 // @dart = 2.9
+
 library test;
 
 typedef void F<T>(T x);
@@ -13,4 +14,5 @@ class C<T> {
 }
 
 void test(C<num> c) {}
+
 main() {}

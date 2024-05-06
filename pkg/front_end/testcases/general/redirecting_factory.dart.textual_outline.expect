@@ -29,5 +29,7 @@ class SimpleCaseImpl2<Ai2, Bi2> implements SimpleCaseImpl<Ai2, Bi2> {}
 class Base<M> {}
 
 mixin Mixin<M> {}
+
 class Mix<M> = Base<M> with Mixin<M>;
+
 main() {}

@@ -10,13 +10,18 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MainHasRequiredNamedParametersTest);
-    defineReflectiveTests(MainHasRequiredNamedParametersWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class MainHasRequiredNamedParametersTest extends PubPackageResolutionTest
-    with MainHasRequiredNamedParametersTestCases {
+class MainHasRequiredNamedParametersTest extends PubPackageResolutionTest {
+  test_namedOptional() async {
+    await resolveTestCode('''
+void main({int a = 0}) {}
+''');
+    assertNoErrorsInResult();
+  }
+
   test_namedRequired() async {
     await assertErrorsInCode('''
 void main({required List<String> a}) {}
@@ -25,17 +30,3 @@ void main({required List<String> a}) {}
     ]);
   }
 }
-
-mixin MainHasRequiredNamedParametersTestCases on PubPackageResolutionTest {
-  test_namedOptional() async {
-    await resolveTestCode('''
-void main({int a = 0}) {}
-''');
-    assertNoErrorsInResult();
-  }
-}
-
-@reflectiveTest
-class MainHasRequiredNamedParametersWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, MainHasRequiredNamedParametersTestCases {}

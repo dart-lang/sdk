@@ -13,21 +13,28 @@ typedef Renamer = String Function(String);
 
 /// Flow graph parsed from --print-flow-graph-as-json output.
 class FlowGraph {
-  final List<dynamic> blocks;
+  final List<dynamic> _blocks;
   final Map<String, InstructionDescriptor> descriptors;
   final Map<String, dynamic> flags;
   final Renamer rename;
+  final List<dynamic>? codegenBlockOrder;
 
-  FlowGraph(this.blocks, Map<String, dynamic> desc, this.flags,
-      {required this.rename})
+  FlowGraph(this._blocks, Map<String, dynamic> desc, this.flags,
+      {required this.rename, List<dynamic>? codegenBlockOrder})
       : descriptors = {
           for (var e in desc.entries)
             e.key: InstructionDescriptor.fromJson(e.value)
-        };
+        },
+        codegenBlockOrder =
+            codegenBlockOrder?.map((idx) => _blocks[idx as int]).toList();
 
   bool get soundNullSafety => flags['nnbd'];
 
   PrettyPrinter get printer => PrettyPrinter(descriptors);
+
+  List<dynamic> blocks({bool inCodegenBlockOrder = false}) {
+    return inCodegenBlockOrder ? codegenBlockOrder! : _blocks;
+  }
 
   /// Match the sequence of blocks in this flow graph against the given
   /// sequence of matchers: `expected[i]` is expected to match `blocks[i]`,
@@ -38,14 +45,19 @@ class FlowGraph {
   /// a fresh instance of [Env] will be created and used.
   ///
   /// This function returns the populated matching environment.
-  Env match(List<Matcher> expected, {Env? env}) {
+  Env match(
+    List<Matcher> expected, {
+    Env? env,
+    bool inCodegenBlockOrder = false,
+  }) {
     env ??= Env(rename: rename, descriptors: descriptors);
 
+    final got = blocks(inCodegenBlockOrder: inCodegenBlockOrder);
     for (var i = 0; i < expected.length; i++) {
-      final result = expected[i].match(env, blocks[i]);
+      final result = expected[i].match(env, got[i]);
       if (result.isFail) {
         print('Failed to match: ${result.message}');
-        dump();
+        dump(inCodegenBlockOrder: inCodegenBlockOrder);
         throw 'Failed to match';
       }
     }
@@ -63,11 +75,11 @@ class FlowGraph {
     return {for (final e in attrs.entries) e.key: instr['d'][e.value]};
   }
 
-  void dump() {
+  void dump({bool inCodegenBlockOrder = false}) {
     final printer = PrettyPrinter(descriptors);
 
     final buffer = StringBuffer();
-    for (var block in blocks) {
+    for (var block in blocks(inCodegenBlockOrder: inCodegenBlockOrder)) {
       printer._formatBlock(buffer, block);
     }
     print(buffer);
@@ -676,7 +688,7 @@ class Matchers {
       );
 
   // ignore: non_constant_identifier_names
-  InstructionMatcher Branch(InstructionMatcher compare,
+  InstructionMatcher Branch(Matcher compare,
           {String? ifTrue, String? ifFalse, bool skipUntilMatched = true}) =>
       InstructionMatcher._(
         op: 'Branch',

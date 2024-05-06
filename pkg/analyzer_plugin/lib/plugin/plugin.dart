@@ -82,7 +82,7 @@ abstract class ServerPlugin {
     required AnalysisContextCollection contextCollection,
   }) async {
     await _forAnalysisContexts(contextCollection, (analysisContext) async {
-      final paths = analysisContext.contextRoot.analyzedFiles().toList();
+      var paths = analysisContext.contextRoot.analyzedFiles().toList();
       await analyzeFiles(
         analysisContext: analysisContext,
         paths: paths,
@@ -103,10 +103,10 @@ abstract class ServerPlugin {
     required AnalysisContext analysisContext,
     required List<String> paths,
   }) async {
-    final pathSet = paths.toSet();
+    var pathSet = paths.toSet();
 
     // First analyze priority files.
-    for (final path in priorityPaths) {
+    for (var path in priorityPaths) {
       pathSet.remove(path);
       await analyzeFile(
         analysisContext: analysisContext,
@@ -115,7 +115,7 @@ abstract class ServerPlugin {
     }
 
     // Then analyze the remaining files.
-    for (final path in pathSet) {
+    for (var path in pathSet) {
       await analyzeFile(
         analysisContext: analysisContext,
         path: path,
@@ -131,13 +131,13 @@ abstract class ServerPlugin {
 
   /// Handle the fact that files with [paths] were changed.
   Future<void> contentChanged(List<String> paths) async {
-    final contextCollection = _contextCollection;
+    var contextCollection = _contextCollection;
     if (contextCollection != null) {
       await _forAnalysisContexts(contextCollection, (analysisContext) async {
-        for (final path in paths) {
+        for (var path in paths) {
           analysisContext.changeFile(path);
         }
-        final affected = await analysisContext.applyPendingFileChanges();
+        var affected = await analysisContext.applyPendingFileChanges();
         await handleAffectedFiles(
           analysisContext: analysisContext,
           paths: affected,
@@ -165,9 +165,9 @@ abstract class ServerPlugin {
   Future<void> flushAnalysisState({
     bool elementModels = true,
   }) async {
-    final contextCollection = _contextCollection;
+    var contextCollection = _contextCollection;
     if (contextCollection != null) {
-      for (final analysisContext in contextCollection.contexts) {
+      for (var analysisContext in contextCollection.contexts) {
         if (elementModels) {
           analysisContext.driver.clearLibraryContext();
         }
@@ -179,11 +179,11 @@ abstract class ServerPlugin {
   ///
   /// Throw a [RequestFailure] is the file cannot be analyzed.
   Future<ResolvedUnitResult> getResolvedUnitResult(String path) async {
-    final contextCollection = _contextCollection;
+    var contextCollection = _contextCollection;
     if (contextCollection != null) {
-      final analysisContext = contextCollection.contextFor(path);
-      final analysisSession = analysisContext.currentSession;
-      final unitResult = await analysisSession.getResolvedUnit(path);
+      var analysisContext = contextCollection.contextFor(path);
+      var analysisSession = analysisContext.currentSession;
+      var unitResult = await analysisSession.getResolvedUnit(path);
       if (unitResult is ResolvedUnitResult) {
         return unitResult;
       }
@@ -204,7 +204,7 @@ abstract class ServerPlugin {
     required AnalysisContext analysisContext,
     required List<String> paths,
   }) async {
-    final analyzedPaths = paths
+    var analyzedPaths = paths
         .where(analysisContext.contextRoot.isAnalyzed)
         .toList(growable: false);
 
@@ -252,7 +252,7 @@ abstract class ServerPlugin {
   /// Throw a [RequestFailure] if the request could not be handled.
   Future<AnalysisSetContextRootsResult> handleAnalysisSetContextRoots(
       AnalysisSetContextRootsParams parameters) async {
-    final currentContextCollection = _contextCollection;
+    var currentContextCollection = _contextCollection;
     if (currentContextCollection != null) {
       _contextCollection = null;
       await beforeContextCollectionDispose(
@@ -261,8 +261,8 @@ abstract class ServerPlugin {
       await currentContextCollection.dispose();
     }
 
-    final includedPaths = parameters.roots.map((e) => e.root).toList();
-    final contextCollection = AnalysisContextCollectionImpl(
+    var includedPaths = parameters.roots.map((e) => e.root).toList();
+    var contextCollection = AnalysisContextCollectionImpl(
       resourceProvider: resourceProvider,
       includedPaths: includedPaths,
       byteStore: _byteStore,
@@ -305,7 +305,7 @@ abstract class ServerPlugin {
   /// Throw a [RequestFailure] if the request could not be handled.
   Future<AnalysisUpdateContentResult> handleAnalysisUpdateContent(
       AnalysisUpdateContentParams parameters) async {
-    final changedPaths = <String>{};
+    var changedPaths = <String>{};
     var paths = parameters.files;
     paths.forEach((String path, Object? overlay) {
       // Prepare the old overlay contents.
@@ -504,8 +504,8 @@ abstract class ServerPlugin {
     AnalysisContextCollection contextCollection,
     Future<void> Function(AnalysisContext analysisContext) f,
   ) async {
-    final nonPriorityAnalysisContexts = <AnalysisContext>[];
-    for (final analysisContext in contextCollection.contexts) {
+    var nonPriorityAnalysisContexts = <AnalysisContext>[];
+    for (var analysisContext in contextCollection.contexts) {
       if (_isPriorityAnalysisContext(analysisContext)) {
         await f(analysisContext);
       } else {
@@ -513,7 +513,7 @@ abstract class ServerPlugin {
       }
     }
 
-    for (final analysisContext in nonPriorityAnalysisContexts) {
+    for (var analysisContext in nonPriorityAnalysisContexts) {
       await f(analysisContext);
     }
   }

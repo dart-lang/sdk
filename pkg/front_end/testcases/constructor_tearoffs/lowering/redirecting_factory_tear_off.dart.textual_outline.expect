@@ -1,4 +1,5 @@
 final bool inSoundMode = <int?>[] is! List<int>;
+
 main() {}
 
 class Class1 {
@@ -60,5 +61,7 @@ class Class8b<T> {
 }
 
 testArgs() {}
+
 expect(expected, actual) {}
+
 throws(Function() f, {bool inSoundModeOnly = false}) {}

@@ -4,6 +4,7 @@
 
 import 'package:collection/collection.dart';
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/type_environment.dart' as ir;
 
 import '../../compiler_api.dart' as api;
 import '../closure.dart';
@@ -113,8 +114,6 @@ class InferrerEngine {
       closedWorld.abstractValueDomain;
   CommonElements get commonElements => closedWorld.commonElements;
 
-  // TODO(johnniwinther): This should be part of [ClosedWorld] or
-  // [ClosureWorldRefiner].
   NoSuchMethodData get noSuchMethodData => closedWorld.noSuchMethodData;
 
   final MemberHierarchyBuilder memberHierarchyBuilder;
@@ -693,6 +692,8 @@ class InferrerEngine {
   /// Visits [body] to compute the [TypeInformation] node for [member].
   TypeInformation _computeMemberTypeInformation(
       MemberEntity member, ir.Node? body) {
+    final node = closedWorld.elementMap.getMemberContextNode(member);
+
     KernelTypeGraphBuilder visitor = KernelTypeGraphBuilder(
         _options,
         closedWorld,
@@ -700,7 +701,10 @@ class InferrerEngine {
         member,
         body,
         globalLocalsMap.getLocalsMap(member),
-        closedWorld.elementMap.getStaticTypeProvider(member),
+        node != null
+            ? ir.StaticTypeContext(node, closedWorld.elementMap.typeEnvironment,
+                cache: ir.StaticTypeCacheImpl())
+            : null,
         memberHierarchyBuilder);
     return visitor.run();
   }
@@ -1301,7 +1305,7 @@ class InferrerEngine {
   TypeInformation registerAwait(
       ir.AwaitExpression node, TypeInformation argument) {
     AwaitTypeInformation info =
-        AwaitTypeInformation(abstractValueDomain, types.currentMember, node);
+        AwaitTypeInformation(abstractValueDomain, types.currentMember!, node);
     info.addInput(argument);
     types.allocatedTypes.add(info);
     return info;

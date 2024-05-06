@@ -4,8 +4,9 @@
 
 // Test that it is an error to mix in a non-mixin class post 3.0.
 
+// Error
 class A with Comparable<int> {
   int compareTo(int x) => 0;
-} /* Error */
+}
 
 class B with Error {} /* Error */

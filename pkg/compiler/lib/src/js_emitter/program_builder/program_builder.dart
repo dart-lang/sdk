@@ -364,8 +364,7 @@ class ProgramBuilder {
     return StaticField(element, name, null, code,
         isFinal: false,
         isLazy: false,
-        isInitializedByConstant: initialValue != null,
-        usesNonNullableInitialization: element.library.isNonNullableByDefault);
+        isInitializedByConstant: initialValue != null);
   }
 
   List<StaticField> _buildStaticLazilyInitializedFields(
@@ -393,9 +392,7 @@ class ProgramBuilder {
     // already registered earlier, and that we just call the register to get
     // the holder-instance.
     return StaticField(element, name, getterName, code,
-        isFinal: !element.isAssignable,
-        isLazy: true,
-        usesNonNullableInitialization: element.library.isNonNullableByDefault);
+        isFinal: !element.isAssignable, isLazy: true);
   }
 
   List<Library> _buildLibraries(LibrariesMap librariesMap) {
@@ -808,30 +805,30 @@ class ProgramBuilder {
         _inferredData.getMightBePassedToApply(method);
   }
 
-  /* Map | List */ _computeParameterDefaultValues(FunctionEntity method) {
-    var /* Map | List */ optionalParameterDefaultValues;
+  Object? /* Map | List */ _computeParameterDefaultValues(
+      FunctionEntity method) {
+    Object? /* Map | List */ optionalParameterDefaultValues;
     ParameterStructure parameterStructure = method.parameterStructure;
     if (parameterStructure.namedParameters.isNotEmpty) {
-      optionalParameterDefaultValues = Map<String, ConstantValue>();
+      final defaults = Map<String, ConstantValue>();
       _elementEnvironment.forEachParameter(method,
           (DartType type, String? name, ConstantValue? defaultValue) {
         if (parameterStructure.namedParameters.contains(name)) {
-          assert(defaultValue != null);
-          // ignore: avoid_dynamic_calls
-          optionalParameterDefaultValues[name] = defaultValue;
+          defaults[name!] = defaultValue!;
         }
       });
+      optionalParameterDefaultValues = defaults;
     } else {
-      optionalParameterDefaultValues = <ConstantValue>[];
+      final defaults = <ConstantValue>[];
       int index = 0;
       _elementEnvironment.forEachParameter(method,
           (DartType type, String? name, ConstantValue? defaultValue) {
         if (index >= parameterStructure.requiredPositionalParameters) {
-          // ignore: avoid_dynamic_calls
-          optionalParameterDefaultValues.add(defaultValue);
+          defaults.add(defaultValue!);
         }
         index++;
       });
+      optionalParameterDefaultValues = defaults;
     }
     return optionalParameterDefaultValues;
   }
@@ -910,7 +907,7 @@ class ProgramBuilder {
     ParameterStructure parameterStructure = method.parameterStructure;
     int requiredParameterCount =
         parameterStructure.requiredPositionalParameters;
-    var /* List | Map */ optionalParameterDefaultValues;
+    Object? /* List | Map */ optionalParameterDefaultValues;
     int applyIndex = 0;
     if (canBeApplied) {
       optionalParameterDefaultValues = _computeParameterDefaultValues(method);
@@ -1154,7 +1151,7 @@ class ProgramBuilder {
     ParameterStructure parameterStructure = method.parameterStructure;
     int requiredParameterCount =
         parameterStructure.requiredPositionalParameters;
-    var /* List | Map */ optionalParameterDefaultValues;
+    Object? /* List | Map */ optionalParameterDefaultValues;
     int applyIndex = 0;
     if (canBeApplied) {
       optionalParameterDefaultValues = _computeParameterDefaultValues(method);

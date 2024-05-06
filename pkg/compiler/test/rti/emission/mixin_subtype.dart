@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
-// Derived from language_2/mixin_declaration/mixin_declaration_subtype_test.
+// Derived from language/mixin_declaration/mixin_declaration_subtype_test.
 
 import "package:compiler/src/util/testing.dart";
 
@@ -28,16 +26,16 @@ class J {}
 mixin M1 on A, B implements I, J {}
 
 /*class: M2:checkedInstance,checks=[$isA,$isB,$isI,$isJ],typeArgument*/
-class M2 implements A, B, I, J {}
+mixin M2 implements A, B, I, J {}
 
 /*class: M3:checkedInstance,checks=[$isA,$isB,$isI,$isJ],instance,typeArgument*/
-class M3 implements A, B, I, J {}
+mixin class M3 implements A, B, I, J {}
 
 /*class: M4:checkedInstance,checks=[$isA,$isB,$isI,$isJ],typeArgument*/
-class M4 implements A, B, I, J {}
+mixin M4 implements A, B, I, J {}
 
 /*class: M5:checkedInstance,checks=[$isA,$isB,$isI,$isJ],typeArgument*/
-class M5 implements A, B, I, J {}
+mixin M5 implements A, B, I, J {}
 
 /*class: C:checkedInstance,checks=[$isA,$isB],indirectInstance,typeArgument*/
 class C implements A, B {}

@@ -292,10 +292,8 @@ StringPtr Symbols::FromConcatAll(
       intptr_t str_len = lengths[i];
       if (str_len > 0) {
         const String& str = strs[i];
-        ASSERT(str.IsOneByteString() || str.IsExternalOneByteString());
-        const uint8_t* src_p = str.IsOneByteString()
-                                   ? OneByteString::DataStart(str)
-                                   : ExternalOneByteString::DataStart(str);
+        ASSERT(str.IsOneByteString());
+        const uint8_t* src_p = OneByteString::DataStart(str);
         memmove(buffer, src_p, str_len);
         buffer += str_len;
       }
@@ -312,14 +310,10 @@ StringPtr Symbols::FromConcatAll(
         const String& str = strs[i];
         if (str.IsTwoByteString()) {
           memmove(buffer, TwoByteString::DataStart(str), str_len * 2);
-        } else if (str.IsExternalTwoByteString()) {
-          memmove(buffer, ExternalTwoByteString::DataStart(str), str_len * 2);
         } else {
           // One-byte to two-byte string copy.
-          ASSERT(str.IsOneByteString() || str.IsExternalOneByteString());
-          const uint8_t* src_p = str.IsOneByteString()
-                                     ? OneByteString::DataStart(str)
-                                     : ExternalOneByteString::DataStart(str);
+          ASSERT(str.IsOneByteString());
+          const uint8_t* src_p = OneByteString::DataStart(str);
           for (int n = 0; n < str_len; n++) {
             buffer[n] = src_p[n];
           }

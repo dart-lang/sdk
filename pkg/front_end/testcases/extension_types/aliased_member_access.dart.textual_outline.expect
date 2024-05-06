@@ -1,13 +1,17 @@
 typedef A = B;
+
 extension type B(int i) {
   B.named(this.i);
   static B method(int i) => B(i);
 }
+
 typedef C<X extends num> = D<X>;
+
 extension type D<Y>(Y i) {
   D.named(this.i);
   static D<Y> method<Y>(Y i) => D<Y>(i);
 }
+
 typedef E<X extends num> = F<X>;
 
 class F<Z> {

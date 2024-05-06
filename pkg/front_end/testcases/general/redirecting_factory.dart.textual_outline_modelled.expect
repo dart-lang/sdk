@@ -31,4 +31,5 @@ class SimpleCaseImpl<Ai, Bi> implements SimpleCase<Ai, Bi> {
 class SimpleCaseImpl2<Ai2, Bi2> implements SimpleCaseImpl<Ai2, Bi2> {}
 
 main() {}
+
 mixin Mixin<M> {}

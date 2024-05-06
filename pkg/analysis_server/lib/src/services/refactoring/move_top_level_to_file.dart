@@ -15,7 +15,6 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
-import 'package:collection/collection.dart';
 import 'package:language_server_protocol/protocol_custom_generated.dart'
     show CommandParameter, SaveUriCommandParameter;
 import 'package:language_server_protocol/protocol_generated.dart';
@@ -61,11 +60,11 @@ class MoveTopLevelToFile extends RefactoringProducer {
       ];
 
   @override
-  Future<void> compute(
+  Future<ComputeStatus> compute(
       List<Object?> commandArguments, ChangeBuilder builder) async {
     var members = _membersToMove();
     if (members == null) {
-      return;
+      return ComputeStatusFailure();
     }
     _initializeFromMembers(members);
     var pathContext = refactoringContext.server.resourceProvider.pathContext;
@@ -78,7 +77,7 @@ class MoveTopLevelToFile extends RefactoringProducer {
     var destinationImportUri =
         unitResult.session.uriConverter.pathToUri(destinationFilePath);
     if (destinationImportUri == null) {
-      return;
+      return ComputeStatusFailure();
     }
     var destinationFile =
         unitResult.session.resourceProvider.getFile(destinationFilePath);
@@ -166,6 +165,8 @@ class MoveTopLevelToFile extends RefactoringProducer {
         }
       });
     }
+
+    return ComputeStatusSuccess();
   }
 
   @override
@@ -198,7 +199,8 @@ class MoveTopLevelToFile extends RefactoringProducer {
         builder.importLibrary(
           library.source.uri,
           prefix: import.prefix?.element.name,
-          showName: hasShowCombinator ? element.name : null,
+          showName: element.name,
+          useShow: hasShowCombinator,
         );
       }
     }
@@ -238,7 +240,7 @@ class MoveTopLevelToFile extends RefactoringProducer {
       } else if (node is EnumDeclaration && validSelection(node.name)) {
         name = node.name.lexeme;
       } else if (node is ExtensionDeclaration && validSelection(node.name)) {
-        name = node.name!.lexeme;
+        name = node.name?.lexeme;
       } else if (node is FunctionDeclaration &&
           node.parent is CompilationUnit &&
           validSelection(node.name)) {
@@ -262,7 +264,7 @@ class MoveTopLevelToFile extends RefactoringProducer {
       unitResult.unit,
       candidateElements: candidateMembers.keys
           .map((member) => member.declaredElement)
-          .whereNotNull()
+          .nonNulls
           .toSet(),
     );
 

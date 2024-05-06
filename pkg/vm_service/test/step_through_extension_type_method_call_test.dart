@@ -2,18 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--enable-experiment=inline-class
-// @dart=3.3
-// ignore_for_file: experiment_not_enabled,undefined_class,undefined_function
-
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
-const int testMainStartLine = 23;
-const int inlineClassDefinitionStartLine = 19;
+const int testMainStartLine = 19;
+const int inlineClassDefinitionStartLine = 15;
 const String fileName = 'step_through_extension_type_method_call_test.dart';
 
 extension type IdNumber(int i) {

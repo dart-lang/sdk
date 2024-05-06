@@ -70,9 +70,24 @@ class BinaryDataSink implements DataSink {
     _deferredOffsetToSize[indexOffset] = _length - dataStartOffset;
   }
 
+  final List<(int, int)> _deferredOffsets = [];
+
   @override
-  void writeEnum(dynamic value) {
-    // ignore: avoid_dynamic_calls
+  void startDeferred() {
+    final indexOffset = _length;
+    writeInt(0); // Padding so the offset won't collide with a nested write.
+    final dataStartOffset = _length;
+    _deferredOffsets.add((indexOffset, dataStartOffset));
+  }
+
+  @override
+  void endDeferred() {
+    final (indexOffset, dataStartOffset) = _deferredOffsets.removeLast();
+    _deferredOffsetToSize[indexOffset] = _length - dataStartOffset;
+  }
+
+  @override
+  void writeEnum<E extends Enum>(E value) {
     writeInt(value.index);
   }
 

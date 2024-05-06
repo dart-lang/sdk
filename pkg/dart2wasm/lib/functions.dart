@@ -2,15 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dart2wasm/class_info.dart';
-import 'package:dart2wasm/closures.dart';
-import 'package:dart2wasm/dispatch_table.dart';
-import 'package:dart2wasm/reference_extensions.dart';
-import 'package:dart2wasm/translator.dart';
-
 import 'package:kernel/ast.dart';
-
 import 'package:wasm_builder/wasm_builder.dart' as w;
+
+import 'class_info.dart';
+import 'closures.dart';
+import 'dispatch_table.dart';
+import 'reference_extensions.dart';
+import 'translator.dart';
 
 /// This class is responsible for collecting import and export annotations.
 /// It also creates Wasm functions for Dart members and manages the worklist
@@ -24,6 +23,8 @@ class FunctionCollector {
   final Map<Reference, String> _exports = {};
   // Functions for which code has not yet been generated
   final List<Reference> _worklist = [];
+  // Selector IDs that are invoked via GDT.
+  final Set<int> _calledSelectors = {};
   // Class IDs for classes that are allocated somewhere in the program
   final Set<int> _allocatedClasses = {};
   // For each class ID, which functions should be added to the worklist if an
@@ -120,9 +121,12 @@ class FunctionCollector {
     }
 
     // Value classes are always implicitly allocated.
-    allocateClass(translator.classInfo[translator.boxedBoolClass]!.classId);
-    allocateClass(translator.classInfo[translator.boxedIntClass]!.classId);
-    allocateClass(translator.classInfo[translator.boxedDoubleClass]!.classId);
+    recordClassAllocation(
+        translator.classInfo[translator.boxedBoolClass]!.classId);
+    recordClassAllocation(
+        translator.classInfo[translator.boxedIntClass]!.classId);
+    recordClassAllocation(
+        translator.classInfo[translator.boxedDoubleClass]!.classId);
   }
 
   w.BaseFunction? getExistingFunction(Reference target) {
@@ -182,21 +186,23 @@ class FunctionCollector {
     }
   }
 
-  void activateSelector(SelectorInfo selector) {
-    selector.targets.forEach((classId, target) {
-      if (!target.asMember.isAbstract) {
-        if (_allocatedClasses.contains(classId)) {
-          // Class declaring or inheriting member is allocated somewhere.
-          getFunction(target);
-        } else {
-          // Remember the member in case an allocation is encountered later.
-          _pendingAllocation.putIfAbsent(classId, () => []).add(target);
+  void recordSelectorUse(SelectorInfo selector) {
+    if (_calledSelectors.add(selector.id)) {
+      selector.targets.forEach((classId, target) {
+        if (!target.asMember.isAbstract) {
+          if (_allocatedClasses.contains(classId)) {
+            // Class declaring or inheriting member is allocated somewhere.
+            getFunction(target);
+          } else {
+            // Remember the member in case an allocation is encountered later.
+            _pendingAllocation.putIfAbsent(classId, () => []).add(target);
+          }
         }
-      }
-    });
+      });
+    }
   }
 
-  void allocateClass(int classId) {
+  void recordClassAllocation(int classId) {
     if (_allocatedClasses.add(classId)) {
       // Schedule all members that were pending allocation of this class.
       for (Reference target in _pendingAllocation[classId] ?? const []) {
@@ -325,7 +331,7 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
     // Add nullable context reference for when the constructor has a non-empty
     // context
     Context? context = closures.contexts[node];
-    w.ValueType? contextRef = null;
+    w.ValueType? contextRef;
 
     if (context != null) {
       assert(!context.isEmpty);

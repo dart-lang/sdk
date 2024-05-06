@@ -30,7 +30,6 @@ import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
-import 'package:path/path.dart' as path;
 import 'package:watcher/watcher.dart' as watcher;
 import 'package:yaml/yaml.dart';
 
@@ -196,7 +195,9 @@ abstract class PluginInfo {
   }
 
   void reportException(CaughtException exception) {
-    _exception = exception;
+    // If a previous exception has been reported, do not replace it here; the
+    //first should have more "root cause" information.
+    _exception ??= exception;
     instrumentationService.logPluginException(
         data, exception.exception, exception.stackTrace);
   }
@@ -228,7 +229,7 @@ abstract class PluginInfo {
     if (currentSession == null) {
       if (_exception != null) {
         // Plugin crashed, nothing to do.
-        return Future<void>.value(null);
+        return Future<void>.value();
       }
       throw StateError('Cannot stop a plugin that is not running.');
     }
@@ -478,22 +479,6 @@ class PluginManager {
       }
     }
     return plugins;
-  }
-
-  /// Record a failure to run the plugin associated with the host package with
-  /// the given [hostPackageName]. The failure is described by the [message],
-  /// and is expected to have occurred before a path could be computed, and
-  /// hence before [addPluginToContextRoot] could be invoked.
-  void recordPluginFailure(String hostPackageName, String message) {
-    try {
-      throw PluginException(message);
-    } catch (exception, stackTrace) {
-      var pluginPath = path.join(hostPackageName, 'tools', 'analyzer_plugin');
-      var plugin = DiscoveredPluginInfo(
-          pluginPath, '', '', notificationManager, instrumentationService);
-      plugin.reportException(CaughtException(exception, stackTrace));
-      _pluginMap[pluginPath] = plugin;
-    }
   }
 
   /// The given [contextRoot] is no longer being analyzed.
@@ -972,7 +957,7 @@ class PluginSession {
         onDone: handleOnDone, onError: handleOnError) as dynamic);
     if (channel == null) {
       // If there is an error when starting the isolate, the channel will invoke
-      // handleOnDone, which will cause `channel` to be set to `null`.
+      // `handleOnDone`, which will cause `channel` to be set to `null`.
       info.reportException(CaughtException(
           PluginException('Unrecorded error while starting the plugin.'),
           StackTrace.current));

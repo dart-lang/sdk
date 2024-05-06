@@ -262,31 +262,6 @@ DeclaredVariablePattern
 ''');
   }
 
-  test_var_fromLegacy() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 2.10
-final x = <int>[];
-''');
-    await assertErrorsInCode(r'''
-// ignore:import_of_legacy_library_into_null_safe
-import 'a.dart';
-void f() {
-  if (x case var y) {}
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 95, 1),
-    ]);
-    final node = findNode.singleGuardedPattern.pattern;
-    assertResolvedNodeText(node, r'''
-DeclaredVariablePattern
-  keyword: var
-  name: y
-  declaredElement: hasImplicitType y@95
-    type: List<int>
-  matchedValueType: List<int*>*
-''');
-  }
-
   test_var_ifCase() async {
     await assertErrorsInCode(r'''
 void f(int x) {
@@ -341,31 +316,6 @@ DeclaredVariablePattern
   declaredElement: hasImplicitType y@34
     type: dynamic
   matchedValueType: Null
-''');
-  }
-
-  test_var_nullOrEquivalent_nullStar() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 2.10
-Null x = null;
-''');
-    await assertErrorsInCode(r'''
-// ignore:import_of_legacy_library_into_null_safe
-import 'a.dart';
-void f() {
-  if (x case var y) {}
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 95, 1),
-    ]);
-    final node = findNode.singleGuardedPattern.pattern;
-    assertResolvedNodeText(node, r'''
-DeclaredVariablePattern
-  keyword: var
-  name: y
-  declaredElement: hasImplicitType y@95
-    type: dynamic
-  matchedValueType: Null*
 ''');
   }
 

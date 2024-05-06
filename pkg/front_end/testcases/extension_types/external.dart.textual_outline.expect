@@ -14,4 +14,5 @@ extension type B._(A a) {
   external static B get staticGetter;
   external static void set staticSetter(B b);
 }
+
 void method(A a) {}

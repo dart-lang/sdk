@@ -26,6 +26,22 @@ DEFINE_FLAG(bool, use_far_branches, false, "Always use far branches");
 
 namespace compiler {
 
+OperandSize Address::OperandSizeFor(intptr_t cid) {
+  auto const rep = RepresentationUtils::RepresentationOfArrayElement(cid);
+  switch (rep) {
+    case kUnboxedFloat:
+      return kSWord;
+    case kUnboxedDouble:
+      return kDWord;
+    case kUnboxedInt32x4:
+    case kUnboxedFloat32x4:
+    case kUnboxedFloat64x2:
+      return kQWord;
+    default:
+      return RepresentationUtils::OperandSize(rep);
+  }
+}
+
 Assembler::Assembler(ObjectPoolBuilder* object_pool_builder,
                      intptr_t far_branch_level)
     : AssemblerBase(object_pool_builder),
@@ -427,9 +443,7 @@ void Assembler::LoadWordFromPoolIndex(Register dst,
     const uint16_t offset_low = Utils::Low16Bits(offset);
     const uint16_t offset_high = Utils::High16Bits(offset);
     movz(dst, Immediate(offset_low), 0);
-    if (offset_high != 0) {
-      movk(dst, Immediate(offset_high), 1);
-    }
+    movk(dst, Immediate(offset_high), 1);
     ldr(dst, Address(pp, dst));
   }
 }
@@ -455,9 +469,7 @@ void Assembler::StoreWordToPoolIndex(Register src,
     const uint16_t offset_low = Utils::Low16Bits(offset);
     const uint16_t offset_high = Utils::High16Bits(offset);
     movz(TMP, Immediate(offset_low), 0);
-    if (offset_high != 0) {
-      movk(TMP, Immediate(offset_high), 1);
-    }
+    movk(TMP, Immediate(offset_high), 1);
     str(src, Address(pp, TMP));
   }
 }
@@ -933,25 +945,29 @@ Address Assembler::PrepareLargeOffset(Register base,
 void Assembler::LoadFromOffset(Register dest,
                                const Address& addr,
                                OperandSize sz) {
-  ldr(dest, PrepareLargeOffset(addr.base(), addr.offset(), sz), sz);
+  ldr(dest, PrepareLargeOffset(addr.base(), addr.offset(), sz, addr.type()),
+      sz);
 }
 
 void Assembler::LoadSFromOffset(VRegister dest, Register base, int32_t offset) {
-  fldrs(dest, PrepareLargeOffset(base, offset, kSWord));
+  auto const type = Address::AddressType::Offset;
+  fldrs(dest, PrepareLargeOffset(base, offset, kSWord, type));
 }
 
 void Assembler::LoadDFromOffset(VRegister dest, Register base, int32_t offset) {
-  fldrd(dest, PrepareLargeOffset(base, offset, kDWord));
+  auto const type = Address::AddressType::Offset;
+  fldrd(dest, PrepareLargeOffset(base, offset, kDWord, type));
 }
 
 void Assembler::LoadQFromOffset(VRegister dest, Register base, int32_t offset) {
-  fldrq(dest, PrepareLargeOffset(base, offset, kQWord));
+  auto const type = Address::AddressType::Offset;
+  fldrq(dest, PrepareLargeOffset(base, offset, kQWord, type));
 }
 
 void Assembler::StoreToOffset(Register src,
                               const Address& addr,
                               OperandSize sz) {
-  str(src, PrepareLargeOffset(addr.base(), addr.offset(), sz), sz);
+  str(src, PrepareLargeOffset(addr.base(), addr.offset(), sz, addr.type()), sz);
 }
 
 void Assembler::StorePairToOffset(Register low,
@@ -959,21 +975,23 @@ void Assembler::StorePairToOffset(Register low,
                                   Register base,
                                   int32_t offset,
                                   OperandSize sz) {
-  stp(low, high,
-      PrepareLargeOffset(base, offset, sz, Address::AddressType::PairOffset),
-      sz);
+  auto const type = Address::AddressType::PairOffset;
+  stp(low, high, PrepareLargeOffset(base, offset, sz, type), sz);
 }
 
 void Assembler::StoreSToOffset(VRegister src, Register base, int32_t offset) {
-  fstrs(src, PrepareLargeOffset(base, offset, kSWord));
+  auto const type = Address::AddressType::Offset;
+  fstrs(src, PrepareLargeOffset(base, offset, kSWord, type));
 }
 
 void Assembler::StoreDToOffset(VRegister src, Register base, int32_t offset) {
-  fstrd(src, PrepareLargeOffset(base, offset, kDWord));
+  auto const type = Address::AddressType::Offset;
+  fstrd(src, PrepareLargeOffset(base, offset, kDWord, type));
 }
 
 void Assembler::StoreQToOffset(VRegister src, Register base, int32_t offset) {
-  fstrq(src, PrepareLargeOffset(base, offset, kQWord));
+  auto const type = Address::AddressType::Offset;
+  fstrq(src, PrepareLargeOffset(base, offset, kQWord, type));
 }
 
 void Assembler::VRecps(VRegister vd, VRegister vn) {
@@ -2050,6 +2068,23 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
                  kUnsignedByte);
   cbnz(trace, temp_reg);
 }
+
+void Assembler::MaybeTraceAllocation(Register cid,
+                                     Label* trace,
+                                     Register temp_reg,
+                                     JumpDistance distance) {
+  ASSERT(temp_reg != cid);
+  LoadIsolateGroup(temp_reg);
+  ldr(temp_reg, Address(temp_reg, target::IsolateGroup::class_table_offset()));
+  ldr(temp_reg,
+      Address(temp_reg,
+              target::ClassTable::allocation_tracing_state_table_offset()));
+  AddRegisters(temp_reg, cid);
+  LoadFromOffset(temp_reg, temp_reg,
+                 target::ClassTable::AllocationTracingStateSlotOffsetFor(0),
+                 kUnsignedByte);
+  cbnz(trace, temp_reg);
+}
 #endif  // !PRODUCT
 
 void Assembler::TryAllocateObject(intptr_t cid,
@@ -2172,6 +2207,20 @@ void Assembler::GenerateUnRelocatedPcRelativeTailCall(
   PcRelativeTailCallPattern pattern(buffer_.contents() + buffer_.Size() -
                                     PcRelativeTailCallPattern::kLengthInBytes);
   pattern.set_distance(offset_into_target);
+}
+
+bool Assembler::AddressCanHoldConstantIndex(const Object& constant,
+                                            bool is_external,
+                                            intptr_t cid,
+                                            intptr_t index_scale) {
+  if (!IsSafeSmi(constant)) return false;
+  const int64_t index = target::SmiValue(constant);
+  const int64_t offset = index * index_scale + HeapDataOffset(is_external, cid);
+  if (!Utils::IsInt(32, offset)) {
+    return false;
+  }
+  return Address::CanHoldOffset(static_cast<int32_t>(offset), Address::Offset,
+                                Address::OperandSizeFor(cid));
 }
 
 Address Assembler::ElementAddressForIntIndex(bool is_external,

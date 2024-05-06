@@ -239,7 +239,11 @@ abstract class BaseDeprecatedMemberUseVerifier {
       {required bool strictCasts}) {
     // Implicit getters/setters.
     if (element.isSynthetic && element is PropertyAccessorElement) {
-      element = element.variable;
+      var variable = element.variable2;
+      if (variable == null) {
+        return null;
+      }
+      element = variable;
     }
     var annotation = element.metadata.firstWhereOrNull((e) => e.isDeprecated);
     if (annotation == null || annotation.element is PropertyAccessorElement) {
@@ -266,8 +270,8 @@ abstract class BaseDeprecatedMemberUseVerifier {
 
     if (element is PropertyAccessorElement && element.isSynthetic) {
       // TODO(brianwilkerson): Why isn't this the implementation for PropertyAccessorElement?
-      Element variable = element.variable;
-      return variable.hasDeprecated;
+      var variable = element.variable2;
+      return variable != null && variable.hasDeprecated;
     }
     return element.hasDeprecated;
   }
@@ -345,13 +349,13 @@ class DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
 
     message = message?.trim();
     if (message == null || message.isEmpty || message == '.') {
-      _errorReporter.reportErrorForOffset(
-        _isLibraryInWorkspacePackage(library)
+      _errorReporter.atOffset(
+        offset: errorEntity.offset,
+        length: errorEntity.length,
+        errorCode: _isLibraryInWorkspacePackage(library)
             ? HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
             : HintCode.DEPRECATED_MEMBER_USE,
-        errorEntity.offset,
-        errorEntity.length,
-        [displayName],
+        arguments: [displayName],
       );
     } else {
       if (!message.endsWith('.') &&
@@ -359,13 +363,13 @@ class DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
           !message.endsWith('!')) {
         message = '$message.';
       }
-      _errorReporter.reportErrorForOffset(
-        _isLibraryInWorkspacePackage(library)
+      _errorReporter.atOffset(
+        offset: errorEntity.offset,
+        length: errorEntity.length,
+        errorCode: _isLibraryInWorkspacePackage(library)
             ? HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE
             : HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE,
-        errorEntity.offset,
-        errorEntity.length,
-        [displayName, message],
+        arguments: [displayName, message],
       );
     }
   }
@@ -376,6 +380,6 @@ class DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
     if (_workspacePackage == null || library == null) {
       return false;
     }
-    return _workspacePackage!.contains(library.source);
+    return _workspacePackage.contains(library.source);
   }
 }

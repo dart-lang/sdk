@@ -17,6 +17,7 @@ main() {
     defineReflectiveSuite(() {
       defineReflectiveTests(PhysicalFileTest);
       defineReflectiveTests(PhysicalFolderTest);
+      defineReflectiveTests(PhysicalLinkTest);
       defineReflectiveTests(PhysicalResourceProviderTest);
     });
   }
@@ -56,11 +57,6 @@ abstract class BaseTest extends FileSystemTestSupport {
   @override
   PhysicalResourceProvider get provider => _provider ??= createProvider();
 
-  @override
-  void createLink({required String path, required String target}) {
-    io.Link(path).createSync(target, recursive: true);
-  }
-
   /// Create the resource provider to be used by the tests. Subclasses can
   /// override this method to change the class of resource provider that is
   /// used.
@@ -83,6 +79,15 @@ abstract class BaseTest extends FileSystemTestSupport {
       folder.create();
     }
     return folder;
+  }
+
+  @override
+  Link getLink({required String linkPath, String? target}) {
+    Link link = provider.getLink(linkPath);
+    if (target != null) {
+      link.create(target);
+    }
+    return link;
   }
 
   setUp() {
@@ -149,6 +154,9 @@ class PhysicalFileTest extends BaseTest with FileTestMixin {
 
 @reflectiveTest
 class PhysicalFolderTest extends BaseTest with FolderTestMixin {}
+
+@reflectiveTest
+class PhysicalLinkTest extends BaseTest with LinkTestMixin {}
 
 @reflectiveTest
 class PhysicalResourceProviderTest extends BaseTest

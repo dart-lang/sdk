@@ -40,7 +40,7 @@ class Class6 extends core::Object {
   final field core::int field1;
   final field core::int? field2;
   final field core::int field3;
-  constructor •(core::int field1, {core::int? field2 = null, required core::int field3 = null}) → self::Class6
+  constructor •(core::int field1, {core::int? field2 = null, required core::int field3}) → self::Class6
     ;
   static method _#new#tearOff(core::int field1, {core::int? field2, required core::int field3}) → self::Class6
     return new self::Class6::•(field1, field2: field2, field3: field3);

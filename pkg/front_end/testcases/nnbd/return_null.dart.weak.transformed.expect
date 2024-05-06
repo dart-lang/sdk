@@ -79,14 +79,14 @@ static method returnExplicit() → core::String {
   core::print("foo");
   return invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:13:10: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
   return null; // error
-         ^" in null;
+         ^" in null as{TypeError,Unchecked} core::String;
 }
 static method returnMixed(core::bool b) → core::String {
   if(b) {
     core::print("foo");
     return invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:19:12: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
     return null; // error
-           ^" in null;
+           ^" in null as{TypeError,Unchecked} core::String;
   }
   return invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:16:8: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
 String returnMixed(bool b) /*error*/ {
@@ -122,7 +122,7 @@ static method caseReturn1(self::Enum e) → self::Enum {
       }
     #L4:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method caseReturn2(self::Enum e) → self::Enum {
@@ -153,14 +153,14 @@ static method localFunctions() → dynamic {
     core::print("foo");
     return invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:69:12: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
     return null; // error
-           ^" in null;
+           ^" in null as{TypeError,Unchecked} core::String;
   }
   function returnMixed(core::bool b) → core::String {
     if(b) {
       core::print("foo");
       return invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:75:14: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
       return null; // error
-             ^" in null;
+             ^" in null as{TypeError,Unchecked} core::String;
     }
     return invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:72:3: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   String returnMixed(bool b) /* error */ {
@@ -196,7 +196,7 @@ static method localFunctions() → dynamic {
         }
       #L11:
       default:
-        throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+        throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
     }
   }
   function caseReturn2(self::Enum e) → self::Enum {

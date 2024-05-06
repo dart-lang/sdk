@@ -7,8 +7,8 @@ import 'dart:collection';
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show Message, LocatedMessage;
 import 'package:_js_interop_checks/js_interop_checks.dart';
-import 'package:_js_interop_checks/src/transformations/export_creator.dart';
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart';
+import 'package:_js_interop_checks/src/transformations/shared_interop_transformer.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart' hide Pattern;
@@ -56,11 +56,11 @@ class DevCompilerTarget extends Target {
 
   @override
   List<String> get extraRequiredLibraries => const [
+        'dart:_ddc_only',
         'dart:_runtime',
         'dart:_js_shared_embedded_names',
         'dart:_recipe_syntax',
         'dart:_rti',
-        'dart:_dart2js_runtime_metrics',
         'dart:_debugger',
         'dart:_foreign_helper',
         'dart:_interceptors',
@@ -159,9 +159,6 @@ class DevCompilerTarget extends Target {
               importer.path == 'js/js.dart'));
 
   @override
-  bool get nativeExtensionExpectsString => false;
-
-  @override
   bool get errorOnUnexactWebIntLiterals => true;
 
   @override
@@ -206,13 +203,17 @@ class DevCompilerTarget extends Target {
       // Process and validate first before doing anything with exports.
       node.accept(jsInteropChecks);
     }
-    final exportCreator = ExportCreator(TypeEnvironment(coreTypes, hierarchy),
-        jsInteropReporter, jsInteropChecks.exportChecker);
-    final jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
+    final sharedInteropTransformer = SharedInteropTransformer(
+        TypeEnvironment(coreTypes, hierarchy),
+        jsInteropReporter,
+        jsInteropChecks.exportChecker,
+        jsInteropChecks.extensionIndex);
+    final jsUtilOptimizer =
+        JsUtilOptimizer(coreTypes, hierarchy, jsInteropChecks.extensionIndex);
     for (var node in nodes) {
       _CovarianceTransformer(node).transform();
-      // Export creator has static checks, so we still visit.
-      node.accept(exportCreator);
+      // Shared interop transformer has static checks, so we still visit.
+      node.accept(sharedInteropTransformer);
       if (!jsInteropReporter.hasJsInteropErrors) {
         // We can't guarantee calls are well-formed, so don't transform.
         node.accept(jsUtilOptimizer);
@@ -297,6 +298,17 @@ class DevCompilerTarget extends Target {
 
   @override
   ConstantsBackend get constantsBackend => const DevCompilerConstantsBackend();
+
+  @override
+  DartLibrarySupport get dartLibrarySupport =>
+      const DevCompilerDartLibrarySupport();
+}
+
+class DevCompilerDartLibrarySupport extends CustomizedDartLibrarySupport {
+  // This is required so that `dart.library._ddc_only` can be used as an import
+  // condition. Libraries with leading underscores are otherwise considered
+  // unsupported regardless of the library specification.
+  const DevCompilerDartLibrarySupport() : super(supported: const {'_ddc_only'});
 }
 
 /// Analyzes a component to determine if any covariance checks in private

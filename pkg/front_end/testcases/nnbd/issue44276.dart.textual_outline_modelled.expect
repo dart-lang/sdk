@@ -4,4 +4,5 @@ class Base {
 }
 
 int? fun() {}
+
 void main() {}

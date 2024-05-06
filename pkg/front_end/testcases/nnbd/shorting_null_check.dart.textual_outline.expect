@@ -5,8 +5,11 @@ class A {
 }
 
 int? test1(A? a) => a?.zero!;
+
 int? test2(A? a) => a?.zeroOrNull!;
+
 bool? test3(A? a) => a?.zero!.isEven;
+
 bool? test4(A? a) => a?.zeroOrNull!.isEven;
 
 class Foo {
@@ -23,11 +26,19 @@ class Bar {
 }
 
 Bar? test5(Foo? foo) => foo?.bar!;
+
 int? test6(Foo? foo) => foo?.bar!.baz;
+
 int? test7(Foo? foo, int baz) => foo?.bar![baz];
+
 Bar? test8(Foo? foo, int? bar) => foo?[bar]!;
+
 int? test9(Foo? foo, int? bar) => foo?[bar]!.baz;
+
 test10(Foo? foo, int? bar, int baz) => foo?[bar]![baz];
+
 main() {}
+
 expect(expected, actual) {}
+
 throws(void Function() f) {}

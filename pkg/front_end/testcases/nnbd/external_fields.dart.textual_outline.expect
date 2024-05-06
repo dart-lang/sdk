@@ -4,9 +4,12 @@ class Annotation {
 
 @Annotation()
 external int topLevelField;
+
 @Annotation()
 external final int finalTopLevelField;
+
 external var untypedTopLevelField;
+
 external final untypedFinalTopLevelField;
 
 class A {

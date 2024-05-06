@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/error/error.dart';
@@ -23,9 +22,7 @@ import '../resolution/node_text_expectations.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstantVisitorTest);
-    defineReflectiveTests(ConstantVisitorWithoutNullSafetyTest);
     defineReflectiveTests(InstanceCreationEvaluatorTest);
-    defineReflectiveTests(InstanceCreationEvaluatorWithoutNullSafetyTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
@@ -948,6 +945,17 @@ void f(Object? x) {
 ''');
   }
 
+  test_recordTypeAnnotation() async {
+    await assertNoErrorsInCode(r'''
+const a = ('',) is (int,);
+''');
+    final result = _topLevelVar('a');
+    assertDartObjectText(result, r'''
+bool false
+  variable: self::@variable::a
+''');
+  }
+
   test_typeParameter() async {
     await assertErrorsInCode('''
 class A<X> {
@@ -977,6 +985,35 @@ const v2 = v1 + v1;
     ]);
     final result = _topLevelVar('v2');
     _assertNull(result);
+  }
+
+  test_visitBinaryExpression_extensionType() async {
+    await assertErrorsInCode('''
+extension type const A(int it) {
+  int operator +(Object other) => 0;
+}
+
+const v1 = A(1);
+const v2 = v1 + 2;
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD, 101, 6),
+    ]);
+    final result = _topLevelVar('v2');
+    _assertNull(result);
+  }
+
+  test_visitBinaryExpression_extensionType_implementsInt() async {
+    await assertNoErrorsInCode('''
+extension type const A(int it) implements int {}
+
+const v1 = A(1);
+const v2 = v1 + 2;
+''');
+    final result = _topLevelVar('v2');
+    assertDartObjectText(result, r'''
+int 3
+  variable: self::@variable::v2
+''');
   }
 
   test_visitBinaryExpression_gt_int_int() async {
@@ -2490,7 +2527,7 @@ class RequiresNonEmptyList {
         16,
         31,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 138, 14,
+          ExpectedContextMessage(testFile, 138, 14,
               text:
                   "The error is in the assert initializer of 'RequiresNonEmptyList', and occurs here."),
         ],
@@ -2522,6 +2559,35 @@ const v2 = -v1;
     ]);
     final result = _topLevelVar('v2');
     _assertNull(result);
+  }
+
+  test_visitPrefixExpression_extensionType() async {
+    await assertErrorsInCode('''
+extension type const A(int it) {
+  int operator -() => 0;
+}
+
+const v1 = A(1);
+const v2 = -v1;
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD, 89, 3),
+    ]);
+    final result = _topLevelVar('v2');
+    _assertNull(result);
+  }
+
+  test_visitPrefixExpression_extensionType_implementsInt() async {
+    await assertNoErrorsInCode('''
+extension type const A(int it) implements int {}
+
+const v1 = A(1);
+const v2 = -v1;
+''');
+    final result = _topLevelVar('v2');
+    assertDartObjectText(result, r'''
+int -1
+  variable: self::@variable::v2
+''');
   }
 
   test_visitPrefixExpression_logicalNot() async {
@@ -4229,12 +4295,41 @@ const b = B('');
         128,
         5,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 105, 8,
+          ExpectedContextMessage(testFile, 105, 8,
               text:
                   "The error is in the field initializer of 'B', and occurs here."),
         ],
       ),
     ]);
+  }
+
+  test_visitPropertyAccess_length_extensionType() async {
+    await assertErrorsInCode('''
+extension type const A(String it) {
+  int get length => 0;
+}
+
+const v1 = A('');
+const v2 = v1.length;
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD, 91, 9),
+    ]);
+    final result = _topLevelVar('v2');
+    _assertNull(result);
+  }
+
+  test_visitPropertyAccess_length_extensionType_implementsString() async {
+    await assertNoErrorsInCode('''
+extension type const A(String it) implements String {}
+
+const v1 = A('abc');
+const v2 = v1.length;
+''');
+    final result = _topLevelVar('v2');
+    assertDartObjectText(result, r'''
+int 3
+  variable: self::@variable::v2
+''');
   }
 
   test_visitPropertyAccess_length_unresolvedType() async {
@@ -4251,7 +4346,7 @@ const y = B(x);
         70,
         4,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 47, 8,
+          ExpectedContextMessage(testFile, 47, 8,
               text:
                   "The error is in the field initializer of 'B', and occurs here."),
         ],
@@ -4382,15 +4477,10 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
     var unit = this.result.unit;
     var source = unit.declaredElement!.source;
     var errorListener = GatheringErrorListener();
-    var errorReporter = ErrorReporter(
-      errorListener,
-      source,
-      isNonNullableByDefault: false,
-    );
+    var errorReporter = ErrorReporter(errorListener, source);
     var constantVisitor = ConstantVisitor(
       ConstantEvaluationEngine(
         declaredVariables: DeclaredVariables.fromMap(declaredVariables),
-        isNonNullableByDefault: unit.featureSet.isEnabled(Feature.non_nullable),
         configuration: ConstantEvaluationConfiguration(),
       ),
       this.result.libraryElement as LibraryElementImpl,
@@ -4439,170 +4529,7 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
 }
 
 @reflectiveTest
-class ConstantVisitorWithoutNullSafetyTest extends ConstantVisitorTestSupport
-    with ConstantVisitorTestCases, WithoutNullSafetyMixin {
-  test_visitAsExpression_null() async {
-    await resolveTestCode('''
-const a = null;
-const b = a as A;
-class A {}
-''');
-    DartObjectImpl result = _evaluateConstant('b');
-    expect(result.type, typeProvider.nullType);
-  }
-
-  test_visitBinaryExpression_questionQuestion_invalid_notNull() async {
-    await assertErrorsInCode('''
-final x = 0;
-const c = x ?? 1;
-''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 23,
-          1),
-    ]);
-  }
-
-  test_visitBinaryExpression_questionQuestion_notNull_invalid() async {
-    await assertErrorsInCode('''
-final x = 1;
-const c = 0 ?? x;
-''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 28,
-          1),
-    ]);
-  }
-
-  test_visitConditionalExpression_eager_invalid_int_int() async {
-    await assertErrorsInCode('''
-const c = null ? 1 : 0;
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL, 10, 4),
-    ]);
-  }
-
-  test_visitIsExpression_is_functionType_correctTypes() async {
-    await assertNoErrorsInCode('''
-void foo(int a) {}
-const c = foo is void Function(int);
-''');
-    final result = _topLevelVar('c');
-    assertDartObjectText(result, r'''
-bool true
-  variable: self::@variable::c
-''');
-  }
-
-  test_visitIsExpression_is_instanceOfSameClass() async {
-    await assertNoErrorsInCode(
-      '''
-const a = const A();
-const b = a is A;
-class A {
-  const A();
-}
-''',
-    );
-    final result = _topLevelVar('b');
-    assertDartObjectText(result, r'''
-bool true
-  variable: self::@variable::b
-''');
-  }
-
-  test_visitIsExpression_is_instanceOfSubclass() async {
-    await assertNoErrorsInCode('''
-const a = const B();
-const b = a is A;
-class A {
-  const A();
-}
-class B extends A {
-  const B();
-}
-''');
-    final result = _topLevelVar('b');
-    assertDartObjectText(result, r'''
-bool true
-  variable: self::@variable::b
-''');
-  }
-
-  test_visitIsExpression_is_null() async {
-    await assertNoErrorsInCode('''
-const a = null;
-const b = a is A;
-class A {}
-''');
-    final result = _topLevelVar('b');
-    assertDartObjectText(result, r'''
-bool true
-  variable: self::@variable::b
-''');
-  }
-
-  test_visitIsExpression_is_null_object() async {
-    await assertErrorsInCode('''
-const a = null;
-const b = a is Object;
-''', [
-      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 26, 11),
-    ]);
-    final result = _topLevelVar('b');
-    assertDartObjectText(result, r'''
-bool true
-  variable: self::@variable::b
-''');
-  }
-
-  test_visitIsExpression_isNot_instanceOfSameClass() async {
-    await assertNoErrorsInCode('''
-const a = const A();
-const b = a is! A;
-class A {
-  const A();
-}
-''');
-    final result = _topLevelVar('b');
-    assertDartObjectText(result, r'''
-bool false
-  variable: self::@variable::b
-''');
-  }
-
-  test_visitIsExpression_isNot_instanceOfSubclass() async {
-    await assertNoErrorsInCode('''
-const a = const B();
-const b = a is! A;
-class A {
-  const A();
-}
-class B extends A {
-  const B();
-}
-''');
-    final result = _topLevelVar('b');
-    assertDartObjectText(result, r'''
-bool false
-  variable: self::@variable::b
-''');
-  }
-
-  test_visitIsExpression_isNot_null() async {
-    await assertNoErrorsInCode('''
-const a = null;
-const b = a is! A;
-class A {}
-''');
-    final result = _topLevelVar('b');
-    assertDartObjectText(result, r'''
-bool false
-  variable: self::@variable::b
-''');
-  }
-}
-
-@reflectiveTest
-class InstanceCreationEvaluatorTest extends ConstantVisitorTestSupport
-    with InstanceCreationEvaluatorTestCases {
+class InstanceCreationEvaluatorTest extends ConstantVisitorTestSupport {
   test_assertInitializer_assertIsNot_false() async {
     await assertErrorsInCode('''
 class A {
@@ -4617,7 +4544,7 @@ const a = const A(null);
         56,
         13,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 24, 17,
+          ExpectedContextMessage(testFile, 24, 17,
               text:
                   "The exception is 'The assertion in this constant expression failed.' and occurs here."),
         ],
@@ -4639,7 +4566,7 @@ const a = const A<int?>();
         60,
         15,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 27, 18,
+          ExpectedContextMessage(testFile, 27, 18,
               text:
                   "The exception is 'The assertion in this constant expression failed.' and occurs here."),
         ],
@@ -4677,7 +4604,7 @@ const c = const A(E.a);
         73,
         12,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 43, 16,
+          ExpectedContextMessage(testFile, 43, 16,
               text:
                   "The exception is 'The assertion in this constant expression failed.' and occurs here."),
         ],
@@ -4700,6 +4627,35 @@ A
 ''');
   }
 
+  test_assertInitializer_indirect() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A(int i)
+  : assert(i == 1); // (2)
+}
+class B extends A {
+  const B(int i) : super(i);
+}
+main() {
+  print(const B(2)); // (1)
+}
+''', [
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        124,
+        10,
+        contextMessages: [
+          ExpectedContextMessage(testFile, 84, 1,
+              text:
+                  "The evaluated constructor 'A' is called by 'B' and 'B' is defined here."),
+          ExpectedContextMessage(testFile, 31, 14,
+              text:
+                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
+        ],
+      ),
+    ]);
+  }
+
   test_assertInitializer_intInDoubleContext_assertIsDouble_true() async {
     await assertErrorsInCode('''
 class A {
@@ -4716,6 +4672,26 @@ A
 ''');
   }
 
+  test_assertInitializer_intInDoubleContext_false() async {
+    await assertErrorsInCode('''
+class A {
+  const A(double x): assert((x + 3) / 2 == 1.5);
+}
+const a = const A(1);
+''', [
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        71,
+        10,
+        contextMessages: [
+          ExpectedContextMessage(testFile, 31, 26,
+              text:
+                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
+        ],
+      ),
+    ]);
+  }
+
   test_assertInitializer_intInDoubleContext_true() async {
     await assertNoErrorsInCode('''
 class A {
@@ -4728,6 +4704,26 @@ const v = const A(0);
 A
   variable: self::@variable::v
 ''');
+  }
+
+  test_assertInitializer_simple_false() async {
+    await assertErrorsInCode('''
+class A {
+  const A(): assert(1 is String);
+}
+const a = const A();
+''', [
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        56,
+        9,
+        contextMessages: [
+          ExpectedContextMessage(testFile, 23, 19,
+              text:
+                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
+        ],
+      ),
+    ]);
   }
 
   test_assertInitializer_simple_true() async {
@@ -4744,6 +4740,32 @@ const a = const A();
 A
   variable: self::@variable::a
 ''');
+  }
+
+  test_assertInitializer_simpleInSuperInitializer_false() async {
+    await assertErrorsInCode('''
+class A {
+  const A(): assert(1 is String);
+}
+class B extends A {
+  const B() : super();
+}
+const b = const B();
+''', [
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        101,
+        9,
+        contextMessages: [
+          ExpectedContextMessage(testFile, 74, 1,
+              text:
+                  "The evaluated constructor 'A' is called by 'B' and 'B' is defined here."),
+          ExpectedContextMessage(testFile, 23, 19,
+              text:
+                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
+        ],
+      ),
+    ]);
   }
 
   test_assertInitializer_simpleInSuperInitializer_true() async {
@@ -4766,6 +4788,26 @@ B
 ''');
   }
 
+  test_assertInitializer_usingArgument_false() async {
+    await assertErrorsInCode('''
+class A {
+  const A(int x): assert(x > 0);
+}
+const a = const A(0);
+''', [
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        55,
+        10,
+        contextMessages: [
+          ExpectedContextMessage(testFile, 28, 13,
+              text:
+                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
+        ],
+      ),
+    ]);
+  }
+
   test_assertInitializer_usingArgument_true() async {
     await assertNoErrorsInCode('''
 class A {
@@ -4777,6 +4819,33 @@ const a = const A(1);
     assertDartObjectText(result, '''
 A
   variable: self::@variable::a
+''');
+  }
+
+  test_bool_fromEnvironment() async {
+    await assertNoErrorsInCode('''
+const a = bool.fromEnvironment('a');
+const b = bool.fromEnvironment('b', defaultValue: true);
+''');
+    assertDartObjectText(_topLevelVar('a'), '''
+bool false
+  variable: self::@variable::a
+''');
+    assertDartObjectText(
+        _evaluateConstant('a', declaredVariables: {'a': 'true'}), '''
+bool true
+''');
+
+    final bResult = _evaluateConstant(
+      'b',
+      declaredVariables: {'b': 'bbb'},
+      lexicalEnvironment: {
+        'defaultValue':
+            DartObjectImpl(typeSystem, typeProvider.boolType, BoolState(true)),
+      },
+    );
+    assertDartObjectText(bResult, '''
+bool true
 ''');
   }
 
@@ -4942,6 +5011,65 @@ const right = b == {3, if (a) ...[1] else ...[1, 2], 4};
 ''');
   }
 
+  test_bool_hasEnvironment() async {
+    await assertNoErrorsInCode('''
+const a = bool.hasEnvironment('a');
+''');
+    assertDartObjectText(_topLevelVar('a'), '''
+bool false
+  variable: self::@variable::a
+''');
+    assertDartObjectText(
+        _evaluateConstant('a', declaredVariables: {'a': '42'}), '''
+bool true
+''');
+  }
+
+  test_field_deferred_issue48991() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A {
+  const A();
+}
+
+const aa = A();
+''');
+
+    await assertErrorsInCode('''
+import 'a.dart' deferred as a;
+
+class B {
+  const B(Object a);
+}
+
+main() {
+  print(const B(a.aa));
+}
+''', [
+      error(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY,
+          93,
+          2),
+    ]);
+  }
+
+  test_field_imported_staticConst() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A {
+  static const A instance = const A();
+  const A();
+}
+''');
+
+    await assertNoErrorsInCode('''
+import 'a.dart';
+class B {
+  final A v;
+  const B(this.v);
+}
+B f1() => const B(A.instance);
+''');
+  }
+
   test_fieldInitializer_functionReference_withTypeParameter() async {
     await assertNoErrorsInCode('''
 void g<U>(U a) {}
@@ -5027,7 +5155,7 @@ const a = const A<int>();
         77,
         14,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 62, 1,
+          ExpectedContextMessage(testFile, 62, 1,
               text:
                   "The error is in the field initializer of 'A', and occurs here."),
         ],
@@ -5052,6 +5180,65 @@ void main() {
   const C<int>().w;
 }
 ''');
+  }
+
+  test_int_fromEnvironment() async {
+    await assertNoErrorsInCode('''
+const a = int.fromEnvironment('a');
+const b = int.fromEnvironment('b', defaultValue: 42);
+''');
+
+    assertDartObjectText(_topLevelVar('a'), '''
+int 0
+  variable: self::@variable::a
+''');
+    assertDartObjectText(
+        _evaluateConstant('a', declaredVariables: {'a': '5'}), '''
+int 5
+''');
+
+    final bResult = _evaluateConstant(
+      'b',
+      declaredVariables: {'b': 'bbb'},
+      lexicalEnvironment: {
+        'defaultValue':
+            DartObjectImpl(typeSystem, typeProvider.intType, IntState(42)),
+      },
+    );
+    assertDartObjectText(bResult, '''
+int 42
+''');
+  }
+
+  test_issue47351() async {
+    await assertErrorsInCode('''
+class Foo {
+  final int bar;
+  const Foo(this.bar);
+}
+
+int bar = 2;
+const a = const Foo(bar);
+''', [
+      error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 88, 3),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 88,
+          3),
+    ]);
+  }
+
+  test_issue47603() async {
+    await assertErrorsInCode('''
+class C {
+  final void Function() c;
+  const C(this.c);
+}
+
+void main() {
+  const C(() {});
+}
+''', [
+      error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 83, 5),
+    ]);
   }
 
   test_issue49389() async {
@@ -5086,6 +5273,20 @@ const a = const A<int>();
 A<int>
   f: Type int
   variable: self::@variable::a
+''');
+  }
+
+  test_string_fromEnvironment() async {
+    await assertNoErrorsInCode('''
+const a = String.fromEnvironment('a');
+''');
+    assertDartObjectText(_topLevelVar('a'), '''
+String <empty>
+  variable: self::@variable::a
+''');
+    assertDartObjectText(
+        _evaluateConstant('a', declaredVariables: {'a': 'test'}), '''
+String test
 ''');
   }
 
@@ -5362,13 +5563,13 @@ const f = const E('0.0');
         153,
         14,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 77, 1,
+          ExpectedContextMessage(testFile, 77, 1,
               text:
                   "The evaluated constructor 'C' is called by 'D' and 'D' is defined here."),
-          ExpectedContextMessage(testFile.path, 124, 1,
+          ExpectedContextMessage(testFile, 124, 1,
               text:
                   "The evaluated constructor 'D' is called by 'E' and 'E' is defined here."),
-          ExpectedContextMessage(testFile.path, 90, 1,
+          ExpectedContextMessage(testFile, 90, 1,
               text:
                   "The exception is 'A value of type 'String' can't be assigned to a parameter of type 'double' in a const constructor.' and occurs here."),
         ],
@@ -5416,285 +5617,3 @@ B<int>
 ''');
   }
 }
-
-@reflectiveTest
-mixin InstanceCreationEvaluatorTestCases on ConstantVisitorTestSupport {
-  test_assertInitializer_indirect() async {
-    await assertErrorsInCode(r'''
-class A {
-  const A(int i)
-  : assert(i == 1); // (2)
-}
-class B extends A {
-  const B(int i) : super(i);
-}
-main() {
-  print(const B(2)); // (1)
-}
-''', [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        124,
-        10,
-        contextMessages: [
-          ExpectedContextMessage(testFile.path, 84, 1,
-              text:
-                  "The evaluated constructor 'A' is called by 'B' and 'B' is defined here."),
-          ExpectedContextMessage(testFile.path, 31, 14,
-              text:
-                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
-        ],
-      ),
-    ]);
-  }
-
-  test_assertInitializer_intInDoubleContext_false() async {
-    await assertErrorsInCode('''
-class A {
-  const A(double x): assert((x + 3) / 2 == 1.5);
-}
-const a = const A(1);
-''', [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        71,
-        10,
-        contextMessages: [
-          ExpectedContextMessage(testFile.path, 31, 26,
-              text:
-                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
-        ],
-      ),
-    ]);
-  }
-
-  test_assertInitializer_simple_false() async {
-    await assertErrorsInCode('''
-class A {
-  const A(): assert(1 is String);
-}
-const a = const A();
-''', [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        56,
-        9,
-        contextMessages: [
-          ExpectedContextMessage(testFile.path, 23, 19,
-              text:
-                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
-        ],
-      ),
-    ]);
-  }
-
-  test_assertInitializer_simpleInSuperInitializer_false() async {
-    await assertErrorsInCode('''
-class A {
-  const A(): assert(1 is String);
-}
-class B extends A {
-  const B() : super();
-}
-const b = const B();
-''', [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        101,
-        9,
-        contextMessages: [
-          ExpectedContextMessage(testFile.path, 74, 1,
-              text:
-                  "The evaluated constructor 'A' is called by 'B' and 'B' is defined here."),
-          ExpectedContextMessage(testFile.path, 23, 19,
-              text:
-                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
-        ],
-      ),
-    ]);
-  }
-
-  test_assertInitializer_usingArgument_false() async {
-    await assertErrorsInCode('''
-class A {
-  const A(int x): assert(x > 0);
-}
-const a = const A(0);
-''', [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        55,
-        10,
-        contextMessages: [
-          ExpectedContextMessage(testFile.path, 28, 13,
-              text:
-                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
-        ],
-      ),
-    ]);
-  }
-
-  test_bool_fromEnvironment() async {
-    await assertNoErrorsInCode('''
-const a = bool.fromEnvironment('a');
-const b = bool.fromEnvironment('b', defaultValue: true);
-''');
-    assertDartObjectText(_topLevelVar('a'), '''
-bool false
-  variable: self::@variable::a
-''');
-    assertDartObjectText(
-        _evaluateConstant('a', declaredVariables: {'a': 'true'}), '''
-bool true
-''');
-
-    final bResult = _evaluateConstant(
-      'b',
-      declaredVariables: {'b': 'bbb'},
-      lexicalEnvironment: {
-        'defaultValue':
-            DartObjectImpl(typeSystem, typeProvider.boolType, BoolState(true)),
-      },
-    );
-    assertDartObjectText(bResult, '''
-bool true
-''');
-  }
-
-  test_bool_hasEnvironment() async {
-    await assertNoErrorsInCode('''
-const a = bool.hasEnvironment('a');
-''');
-    assertDartObjectText(_topLevelVar('a'), '''
-bool false
-  variable: self::@variable::a
-''');
-    assertDartObjectText(
-        _evaluateConstant('a', declaredVariables: {'a': '42'}), '''
-bool true
-''');
-  }
-
-  test_field_deferred_issue48991() async {
-    newFile('$testPackageLibPath/a.dart', '''
-class A {
-  const A();
-}
-
-const aa = A();
-''');
-
-    await assertErrorsInCode('''
-import 'a.dart' deferred as a;
-
-class B {
-  const B(Object a);
-}
-
-main() {
-  print(const B(a.aa));
-}
-''', [
-      error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY,
-          93,
-          2),
-    ]);
-  }
-
-  test_field_imported_staticConst() async {
-    newFile('$testPackageLibPath/a.dart', '''
-class A {
-  static const A instance = const A();
-  const A();
-}
-''');
-
-    await assertNoErrorsInCode('''
-import 'a.dart';
-class B {
-  final A v;
-  const B(this.v);
-}
-B f1() => const B(A.instance);
-''');
-  }
-
-  test_int_fromEnvironment() async {
-    await assertNoErrorsInCode('''
-const a = int.fromEnvironment('a');
-const b = int.fromEnvironment('b', defaultValue: 42);
-''');
-
-    assertDartObjectText(_topLevelVar('a'), '''
-int 0
-  variable: self::@variable::a
-''');
-    assertDartObjectText(
-        _evaluateConstant('a', declaredVariables: {'a': '5'}), '''
-int 5
-''');
-
-    final bResult = _evaluateConstant(
-      'b',
-      declaredVariables: {'b': 'bbb'},
-      lexicalEnvironment: {
-        'defaultValue':
-            DartObjectImpl(typeSystem, typeProvider.intType, IntState(42)),
-      },
-    );
-    assertDartObjectText(bResult, '''
-int 42
-''');
-  }
-
-  test_issue47351() async {
-    await assertErrorsInCode('''
-class Foo {
-  final int bar;
-  const Foo(this.bar);
-}
-
-int bar = 2;
-const a = const Foo(bar);
-''', [
-      error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 88, 3),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 88,
-          3),
-    ]);
-  }
-
-  test_issue47603() async {
-    await assertErrorsInCode('''
-class C {
-  final void Function() c;
-  const C(this.c);
-}
-
-void main() {
-  const C(() {});
-}
-''', [
-      error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 83, 5),
-    ]);
-  }
-
-  test_string_fromEnvironment() async {
-    await assertNoErrorsInCode('''
-const a = String.fromEnvironment('a');
-''');
-    assertDartObjectText(_topLevelVar('a'), '''
-String <empty>
-  variable: self::@variable::a
-''');
-    assertDartObjectText(
-        _evaluateConstant('a', declaredVariables: {'a': 'test'}), '''
-String test
-''');
-  }
-}
-
-@reflectiveTest
-class InstanceCreationEvaluatorWithoutNullSafetyTest
-    extends ConstantVisitorTestSupport
-    with InstanceCreationEvaluatorTestCases, WithoutNullSafetyMixin {}

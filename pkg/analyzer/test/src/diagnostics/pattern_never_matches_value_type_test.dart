@@ -107,6 +107,16 @@ void f(double x) {
 ''');
   }
 
+  test_interfaceType2_matchedExtensionType_requiredExtensionType() async {
+    await assertNoErrorsInCode('''
+void f(A x) {
+  if (x case A _) {}
+}
+
+extension type A(int _) {}
+''');
+  }
+
   test_interfaceType2_matchedExtensionType_requiredRepresentation() async {
     await assertNoErrorsInCode('''
 void f(A x) {
@@ -400,6 +410,16 @@ class A {}
 void f(Object? x) {
   if (x case int _) {}
 }
+''');
+  }
+
+  test_interfaceType2_matchedRepresentation_requiredExtensionType() async {
+    await assertNoErrorsInCode('''
+void f(int x) {
+  if (x case A _) {}
+}
+
+extension type A(int _) {}
 ''');
   }
 
@@ -838,6 +858,72 @@ enum E<T> { v1<int>(), v2<double>() }
     ]);
   }
 
+  test_matchedFutureOrRecord_requiredFutureRecord_match() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+
+void f(FutureOr<(int,)> x) {
+  if (x case Future<(int,)> _) {}
+}
+''');
+  }
+
+  test_matchedFutureOrRecord_requiredFutureRecord_notMatch() async {
+    await assertErrorsInCode('''
+import 'dart:async';
+
+void f(FutureOr<(int,)> x) {
+  if (x case Future<(String,)> _) {}
+}
+''', [
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 64, 17),
+    ]);
+  }
+
+  test_matchedFutureOrRecord_requiredRecord_match() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+
+void f(FutureOr<(int,)> x) {
+  if (x case (int,) _) {}
+}
+''');
+  }
+
+  test_matchedFutureOrRecord_requiredRecord_notMatch() async {
+    await assertErrorsInCode('''
+import 'dart:async';
+
+void f(FutureOr<(int,)> x) {
+  if (x case (String,) _) {}
+}
+''', [
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 64, 9),
+    ]);
+  }
+
+  test_matchedFutureRecord_requiredFutureOrRecord_match() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+
+void f(Future<(int,)> x) {
+  if (x case FutureOr<(int,)> _) {}
+}
+''');
+  }
+
+  test_matchedFutureRecord_requiredFutureOrRecord_notMatch() async {
+    await assertErrorsInCode('''
+import 'dart:async';
+
+void f(Future<(int,)> x) {
+  if (x case FutureOr<(String,)> _) {}
+}
+''', [
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 62, 19),
+    ]);
+  }
+
   test_matchedNull_requiredNotNullable() async {
     await assertErrorsInCode('''
 void f(Null x) {
@@ -865,6 +951,28 @@ void f(Null x) {
 }
 ''', [
       error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 30, 6),
+    ]);
+  }
+
+  test_matchedRecord_requiredFutureOrRecord_match() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+
+void f((int,) x) {
+  if (x case FutureOr<(int,)> _) {}
+}
+''');
+  }
+
+  test_matchedRecord_requiredFutureOrRecord_notMatch() async {
+    await assertErrorsInCode('''
+import 'dart:async';
+
+void f((int,) x) {
+  if (x case FutureOr<(String,)> _) {}
+}
+''', [
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 54, 19),
     ]);
   }
 

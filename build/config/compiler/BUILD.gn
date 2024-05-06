@@ -113,9 +113,6 @@ config("compiler") {
 
     # Common options for AddressSanitizer, LeakSanitizer, ThreadSanitizer and
     # MemorySanitizer
-    if (using_sanitizer) {
-      cflags += [ "-gline-tables-only" ]
-    }
     if (is_asan) {
       cflags += [ "-fsanitize=address" ]
       ldflags += [ "-fsanitize=address" ]
@@ -449,8 +446,10 @@ config("compiler") {
 
 config("cxx_version_default") {
   if (is_win) {
+    cflags_c = [ "/std:c17" ]
     cc_std = [ "/std:c++17" ]
   } else {
+    cflags_c = [ "-std=c17" ]
     cc_std = [ "-std=c++17" ]
   }
   cflags_cc = cc_std
@@ -459,8 +458,10 @@ config("cxx_version_default") {
 
 config("cxx_version_11") {
   if (is_win) {
+    cflags_c = [ "/std:c11" ]
     cc_std = [ "/std:c++11" ]
   } else {
+    cflags_c = [ "-std=c11" ]
     cc_std = [ "-std=c++11" ]
   }
   cflags_cc = cc_std
@@ -469,8 +470,10 @@ config("cxx_version_11") {
 
 config("cxx_version_14") {
   if (is_win) {
+    cflags_c = [ "/std:c14" ]
     cc_std = [ "/std:c++14" ]
   } else {
+    cflags_c = [ "-std=c14" ]
     cc_std = [ "-std=c++14" ]
   }
   cflags_cc = cc_std
@@ -479,8 +482,10 @@ config("cxx_version_14") {
 
 config("cxx_version_17") {
   if (is_win) {
+    cflags_c = [ "/std:c17" ]
     cc_std = [ "/std:c++17" ]
   } else {
+    cflags_c = [ "-std=c17" ]
     cc_std = [ "-std=c++17" ]
   }
   cflags_cc = cc_std
@@ -489,8 +494,10 @@ config("cxx_version_17") {
 
 config("cxx_version_20") {
   if (is_win) {
+    cflags_c = [ "/std:c20" ]
     cc_std = [ "/std:c++20" ]
   } else {
+    cflags_c = [ "-std=c20" ]
     cc_std = [ "-std=c++20" ]
   }
   cflags_cc = cc_std

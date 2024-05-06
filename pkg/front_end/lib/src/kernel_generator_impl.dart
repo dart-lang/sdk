@@ -5,16 +5,15 @@
 /// Defines the front-end API for converting source code to Dart Kernel objects.
 library front_end.kernel_generator_impl;
 
-import 'package:_fe_analyzer_shared/src/macros/bootstrap.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor/isolated_executor.dart'
-    as isolatedExecutor;
-import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/verifier.dart' show VerificationStage;
+import 'package:macros/src/bootstrap.dart';
+import 'package:macros/src/executor/kernel_executor.dart' as kernelExecutor;
+import 'package:macros/src/executor/multi_executor.dart';
+import 'package:macros/src/executor/serialization.dart';
 
 import 'api_prototype/file_system.dart' show FileSystem;
 import 'api_prototype/front_end.dart' show CompilerOptions, CompilerResult;
@@ -22,12 +21,12 @@ import 'api_prototype/kernel_generator.dart';
 import 'api_prototype/memory_file_system.dart';
 import 'base/nnbd_mode.dart';
 import 'base/processed_options.dart' show ProcessedOptions;
+import 'fasta/codes/fasta_codes.dart' show LocatedMessage;
 import 'fasta/compiler_context.dart' show CompilerContext;
 import 'fasta/crash.dart' show withCrashReporting;
 import 'fasta/dill/dill_target.dart' show DillTarget;
-import 'fasta/fasta_codes.dart' show LocatedMessage;
 import 'fasta/hybrid_file_system.dart';
-import 'fasta/kernel/benchmarker.dart' show BenchmarkPhases;
+import 'fasta/kernel/benchmarker.dart' show BenchmarkPhases, Benchmarker;
 import 'fasta/kernel/kernel_target.dart' show BuildResult, KernelTarget;
 import 'fasta/kernel/macro/macro.dart';
 import 'fasta/kernel/utils.dart' show printComponentText, serializeComponent;
@@ -35,6 +34,8 @@ import 'fasta/kernel/verifier.dart' show verifyComponent;
 import 'fasta/source/source_loader.dart' show SourceLoader;
 import 'fasta/uri_offset.dart';
 import 'fasta/uri_translator.dart' show UriTranslator;
+import 'macros/macro_target.dart'
+    show MacroConfiguration, computeMacroConfiguration;
 
 /// Implementation for the
 /// `package:front_end/src/api_prototype/kernel_generator.dart` and
@@ -61,7 +62,8 @@ Future<CompilerResult> generateKernelInternal(
     bool truncateSummary = false,
     bool includeOffsets = true,
     bool retainDataForTesting = false,
-    bool includeHierarchyAndCoreTypes = false}) async {
+    bool includeHierarchyAndCoreTypes = false,
+    Benchmarker? benchmarker}) async {
   ProcessedOptions options = CompilerContext.current.options;
   options.reportNullSafetyCompilationModeInfo();
   FileSystem fs = options.fileSystem;
@@ -72,23 +74,27 @@ Future<CompilerResult> generateKernelInternal(
       // TODO(johnniwinther): How much can we reuse between iterations?
       UriTranslator uriTranslator = await options.getUriTranslator();
 
-      DillTarget dillTarget =
-          new DillTarget(options.ticker, uriTranslator, options.target);
+      DillTarget dillTarget = new DillTarget(
+          options.ticker, uriTranslator, options.target,
+          benchmarker: benchmarker);
 
       List<Component> loadedComponents = <Component>[];
 
       Component? sdkSummary = await options.loadSdkSummary(null);
-      // By using the nameRoot of the summary, we enable sharing the
-      // sdkSummary between multiple invocations.
-      CanonicalName nameRoot = sdkSummary?.root ?? new CanonicalName.root();
       if (sdkSummary != null) {
         dillTarget.loader.appendLibraries(sdkSummary);
       }
 
-      for (Component additionalDill
-          in await options.loadAdditionalDills(nameRoot)) {
-        loadedComponents.add(additionalDill);
-        dillTarget.loader.appendLibraries(additionalDill);
+      // By using the nameRoot of the summary, we enable sharing the
+      // sdkSummary between multiple invocations.
+      CanonicalName? nameRoot;
+      if (options.hasAdditionalDills) {
+        nameRoot = sdkSummary?.root ?? new CanonicalName.root();
+        for (Component additionalDill
+            in await options.loadAdditionalDills(nameRoot)) {
+          loadedComponents.add(additionalDill);
+          dillTarget.loader.appendLibraries(additionalDill);
+        }
       }
 
       dillTarget.buildOutlines();
@@ -131,7 +137,7 @@ Future<CompilerResult> generateKernelInternal(
 Future<CompilerResult> _buildInternal(
     {required ProcessedOptions options,
     required KernelTarget kernelTarget,
-    required CanonicalName nameRoot,
+    required CanonicalName? nameRoot,
     required Component? sdkSummary,
     required List<Component> loadedComponents,
     required bool buildSummary,
@@ -217,6 +223,8 @@ Future<CompilerResult> _buildInternal(
           showOffsets: options.debugDumpShowOffsets);
     }
     options.ticker.logMs("Generated component");
+  } else {
+    component = summaryComponent;
   }
   // TODO(johnniwinther): Should we reuse the macro executor on subsequent
   // compilations where possible?
@@ -282,7 +290,7 @@ class InternalCompilerResult implements CompilerResult {
 
 /// A fake absolute directory used as the root of a memory-file system in the
 /// compilation below.
-Uri _defaultDir = Uri.parse('org-dartlang-macro:///a/b/c/');
+final Uri _defaultDir = Uri.parse('org-dartlang-macro:///a/b/c/');
 
 /// Compiles the libraries for the macro classes in [neededPrecompilations].
 ///
@@ -299,11 +307,12 @@ Future<Map<Uri, ExecutorFactoryToken>?> precompileMacros(
     if (options.globalFeatures.macros.isEnabled) {
       // TODO(johnniwinther): Avoid using [rawOptionsForTesting] to compute
       // the compiler options for the precompilation.
-      if (options.rawOptionsForTesting.macroTarget != null) {
-        // TODO(johnniwinther): Assert that some works has been done.
-        // TODO(johnniwinther): Stop in case of compile-time errors.
-        return await _compileMacros(
-            neededPrecompilations, options.rawOptionsForTesting);
+      // TODO(johnniwinther): Assert that some works has been done.
+      // TODO(johnniwinther): Stop in case of compile-time errors.
+      // Don't fail here for `requirePrebuiltMacros`: the build will fail later
+      // if the macro missing a prebuild is actually applied.
+      if (!options.rawOptionsForTesting.requirePrebuiltMacros) {
+        return await _compileMacros(neededPrecompilations, options);
       }
     } else {
       throw new UnsupportedError('Macro precompilation is not supported');
@@ -314,23 +323,34 @@ Future<Map<Uri, ExecutorFactoryToken>?> precompileMacros(
 
 Future<Map<Uri, ExecutorFactoryToken>> _compileMacros(
     NeededPrecompilations neededPrecompilations,
-    CompilerOptions options) async {
-  assert(options.macroSerializer != null);
+    ProcessedOptions options) async {
+  CompilerOptions rawOptions = options.rawOptionsForTesting;
   CompilerOptions precompilationOptions = new CompilerOptions();
-  precompilationOptions.target = options.macroTarget;
+  MacroConfiguration macroConfiguration = computeMacroConfiguration(
+    targetSdkSummary: options.sdkSummary,
+  );
+  precompilationOptions.target = macroConfiguration.target;
   precompilationOptions.explicitExperimentalFlags =
-      options.explicitExperimentalFlags;
+      rawOptions.explicitExperimentalFlags;
   // TODO(johnniwinther): What is the right environment when it isn't passed
   // by the caller? Dart2js calls the CFE without an environment, but it's
   // macros likely need them.
   precompilationOptions.environmentDefines = options.environmentDefines ?? {};
-  precompilationOptions.packagesFileUri = options.packagesFileUri;
-  MultiMacroExecutor macroExecutor = precompilationOptions.macroExecutor =
-      options.macroExecutor ??= new MultiMacroExecutor();
+  precompilationOptions.packagesFileUri =
+      await options.resolvePackagesFileUri();
+  MultiMacroExecutor macroExecutor =
+      precompilationOptions.macroExecutor = options.macroExecutor;
   // TODO(johnniwinther): What if sdk root isn't set? How do we then get the
   // right sdk?
   precompilationOptions.sdkRoot = options.sdkRoot;
-  precompilationOptions.sdkSummary = options.sdkSummary;
+  precompilationOptions.sdkSummary = macroConfiguration.sdkSummary;
+  // TODO(johnniwinther): Strong mode should be the default option for the
+  // `CompilerOptions.nnbdMode`.
+  precompilationOptions.nnbdMode = NnbdMode.Strong;
+  precompilationOptions.librariesSpecificationUri =
+      options.librariesSpecificationUri;
+  precompilationOptions.runningPrecompilations =
+      neededPrecompilations.macroDeclarations.keys.toSet();
 
   Map<String, Map<String, List<String>>> macroDeclarations = {};
   neededPrecompilations.macroDeclarations
@@ -347,12 +367,12 @@ Future<Map<Uri, ExecutorFactoryToken>> _compileMacros(
     ..fileSystem = new HybridFileSystem(fs, options.fileSystem);
   CompilerResult? compilerResult =
       await kernelForProgramInternal(uri, precompilationOptions);
-  Uri precompiledUri = await options.macroSerializer!
+  Uri precompiledUri = await options.macroSerializer
       .createUriForComponent(compilerResult!.component!);
   Set<Uri> macroLibraries =
       neededPrecompilations.macroDeclarations.keys.toSet();
   ExecutorFactoryToken executorToken = macroExecutor.registerExecutorFactory(
-      () => isolatedExecutor.start(SerializationMode.byteData, precompiledUri),
+      () => kernelExecutor.start(SerializationMode.byteData, precompiledUri),
       macroLibraries);
   return <Uri, ExecutorFactoryToken>{
     for (Uri library in macroLibraries) library: executorToken,

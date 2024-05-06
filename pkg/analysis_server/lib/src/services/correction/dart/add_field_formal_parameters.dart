@@ -5,7 +5,6 @@
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
@@ -43,11 +42,9 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
     if (Flutter.isExactlyStatelessWidgetType(superType) ||
         Flutter.isExactlyStatefulWidgetType(superType)) {
       if (parameters.isNotEmpty && parameters.last.isNamed) {
-        var isNullSafe =
-            libraryElement.featureSet.isEnabled(Feature.non_nullable);
         String parameterForField(FieldElement field) {
           var prefix = '';
-          if (isNullSafe && typeSystem.isPotentiallyNonNullable(field.type)) {
+          if (typeSystem.isPotentiallyNonNullable(field.type)) {
             prefix = 'required ';
           }
           return '${prefix}this.${field.name}';

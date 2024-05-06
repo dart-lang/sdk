@@ -11,48 +11,11 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UndefinedIdentifierTest);
-    defineReflectiveTests(UndefinedIdentifierWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class UndefinedIdentifierTest extends PubPackageResolutionTest
-    with UndefinedIdentifierTestCases {
-  test_assignedPatternVariable() async {
-    await assertErrorsInCode('''
-void f() {
-  (x) = 0;
-}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 14, 1),
-    ]);
-  }
-
-  test_get_from_external_variable_final_valid() async {
-    await assertNoErrorsInCode('''
-external final int x;
-int f() => x;
-''');
-  }
-
-  test_get_from_external_variable_valid() async {
-    await assertNoErrorsInCode('''
-external int x;
-int f() => x;
-''');
-  }
-
-  test_set_external_variable_valid() async {
-    await assertNoErrorsInCode('''
-external int x;
-void f(int value) {
-  x = value;
-}
-''');
-  }
-}
-
-mixin UndefinedIdentifierTestCases on PubPackageResolutionTest {
+class UndefinedIdentifierTest extends PubPackageResolutionTest {
   test_annotation_references_static_method_in_class() async {
     await assertErrorsInCode('''
 @Annotation(foo)
@@ -207,6 +170,16 @@ class Annotation {
     ]);
   }
 
+  test_assignedPatternVariable() async {
+    await assertErrorsInCode('''
+void f() {
+  (x) = 0;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 14, 1),
+    ]);
+  }
+
   @failingTest
   test_commentReference() async {
     await assertErrorsInCode('''
@@ -309,6 +282,20 @@ int a() => b;
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 11, 1),
     ]);
+  }
+
+  test_get_from_external_variable_final_valid() async {
+    await assertNoErrorsInCode('''
+external final int x;
+int f() => x;
+''');
+  }
+
+  test_get_from_external_variable_valid() async {
+    await assertNoErrorsInCode('''
+external int x;
+int f() => x;
+''');
   }
 
   test_importCore_withShow() async {
@@ -415,6 +402,15 @@ class B extends A {
     ]);
   }
 
+  test_set_external_variable_valid() async {
+    await assertNoErrorsInCode('''
+external int x;
+void f(int value) {
+  x = value;
+}
+''');
+  }
+
   test_synthetic_whenExpression_defined() async {
     await assertErrorsInCode(r'''
 print(x) {}
@@ -433,14 +429,8 @@ void f(int p) {
   p.();
 }
 ''', [
-      if (!isNullSafetyEnabled)
-        error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 32, 1),
       error(ParserErrorCode.MISSING_IDENTIFIER, 32, 1),
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 32, 1),
     ]);
   }
 }
-
-@reflectiveTest
-class UndefinedIdentifierWithoutNullSafetyTest extends PubPackageResolutionTest
-    with UndefinedIdentifierTestCases, WithoutNullSafetyMixin {}

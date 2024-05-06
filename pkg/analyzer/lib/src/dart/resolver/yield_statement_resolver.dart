@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -28,7 +29,7 @@ class YieldStatementResolver {
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
   void resolve(YieldStatement node) {
-    var bodyContext = _resolver.inferenceContext.bodyContext;
+    var bodyContext = _resolver.bodyContext;
     if (bodyContext != null && bodyContext.isGenerator) {
       _resolve_generator(bodyContext, node);
     } else {
@@ -50,14 +51,14 @@ class YieldStatementResolver {
     }
 
     if (expression is MethodInvocation) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.USE_OF_VOID_RESULT,
+      _errorReporter.atNode(
         expression.methodName,
+        CompileTimeErrorCode.USE_OF_VOID_RESULT,
       );
     } else {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.USE_OF_VOID_RESULT,
+      _errorReporter.atNode(
         expression,
+        CompileTimeErrorCode.USE_OF_VOID_RESULT,
       );
     }
 
@@ -90,10 +91,10 @@ class YieldStatementResolver {
       if (isYieldEach) {
         if (!_typeSystem.isAssignableTo(impliedReturnType, imposedReturnType,
             strictCasts: _resolver.analysisOptions.strictCasts)) {
-          _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
+          _errorReporter.atNode(
             expression,
-            [impliedReturnType, imposedReturnType],
+            CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
+            arguments: [impliedReturnType, imposedReturnType],
           );
           return;
         }
@@ -107,10 +108,10 @@ class YieldStatementResolver {
           var imposedValueType = imposedSequenceType.typeArguments[0];
           if (!_typeSystem.isAssignableTo(expressionType, imposedValueType,
               strictCasts: _resolver.analysisOptions.strictCasts)) {
-            _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.YIELD_OF_INVALID_TYPE,
+            _errorReporter.atNode(
               expression,
-              [expressionType, imposedValueType],
+              CompileTimeErrorCode.YIELD_OF_INVALID_TYPE,
+              arguments: [expressionType, imposedValueType],
             );
             return;
           }
@@ -131,16 +132,16 @@ class YieldStatementResolver {
 
       if (!_typeSystem.isAssignableTo(impliedReturnType, requiredReturnType,
           strictCasts: _resolver.analysisOptions.strictCasts)) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
+        _errorReporter.atNode(
           expression,
-          [impliedReturnType, requiredReturnType],
+          CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
+          arguments: [impliedReturnType, requiredReturnType],
         );
       }
     }
   }
 
-  DartType? _computeContextType(
+  DartType _computeContextType(
     BodyInferenceContext bodyContext,
     YieldStatement node,
   ) {
@@ -154,7 +155,7 @@ class YieldStatementResolver {
       }
       return contextType;
     } else {
-      return null;
+      return UnknownInferredType.instance;
     }
   }
 
@@ -183,11 +184,11 @@ class YieldStatementResolver {
   void _resolve_notGenerator(YieldStatement node) {
     node.expression.accept(_resolver);
 
-    _errorReporter.reportErrorForNode(
+    _errorReporter.atNode(
+      node,
       node.star != null
           ? CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR
           : CompileTimeErrorCode.YIELD_IN_NON_GENERATOR,
-      node,
     );
 
     _checkForUseOfVoidResult(node.expression);

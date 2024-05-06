@@ -11,5 +11,7 @@ class Superclass {
 }
 
 main() {}
+
 topLevelNamed(beta, alpha, {gamma, delta}) {}
+
 topLevelOptional(beta, alpha, [gamma, delta]) {}

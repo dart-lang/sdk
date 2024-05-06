@@ -13,6 +13,7 @@ enum A2 {
 extension type const E1(A1 it) {
   const E1.named(A1 it) : this(it);
 }
+
 extension type const E2(A2 it) {
   const E2.named(A2 it) : this(it);
 }

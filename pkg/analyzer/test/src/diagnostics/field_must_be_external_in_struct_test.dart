@@ -10,47 +10,34 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FieldMustBeExternalInStructTest);
-    defineReflectiveTests(FieldMustBeExternalInStructWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class FieldMustBeExternalInStructTest extends PubPackageResolutionTest
-    with FieldMustBeExternalInStructTestCases {}
-
-mixin FieldMustBeExternalInStructTestCases on PubPackageResolutionTest {
+class FieldMustBeExternalInStructTest extends PubPackageResolutionTest {
   test_struct() async {
-    final keyword = isNullSafetyEnabled ? 'final ' : '';
-    var expectedErrors = expectedErrorsByNullability(nullable: [
-      error(FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT, 68, 1),
-    ], legacy: []);
     await assertErrorsInCode('''
 import 'dart:ffi';
 
-${keyword}class A extends Struct {
+final class A extends Struct {
   @Int16()
   int a;
 }
-''', expectedErrors);
+''', [
+      error(FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT, 68, 1),
+    ]);
   }
 
   test_union() async {
-    final keyword = isNullSafetyEnabled ? 'final ' : '';
-    var expectedErrors = expectedErrorsByNullability(nullable: [
-      error(FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT, 67, 1),
-    ], legacy: []);
     await assertErrorsInCode('''
 import 'dart:ffi';
 
-${keyword}class A extends Union {
+final class A extends Union {
   @Int16()
   int a;
 }
-''', expectedErrors);
+''', [
+      error(FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT, 67, 1),
+    ]);
   }
 }
-
-@reflectiveTest
-class FieldMustBeExternalInStructWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, FieldMustBeExternalInStructTestCases {}

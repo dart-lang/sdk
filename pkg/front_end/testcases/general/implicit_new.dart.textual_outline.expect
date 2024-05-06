@@ -10,6 +10,7 @@ class Bar {
 }
 
 testNSM() {}
+
 f(x) => x;
 
 class IndexTester {

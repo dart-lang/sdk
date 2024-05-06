@@ -10,12 +10,22 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AssignmentToFinalLocalTest);
-    defineReflectiveTests(AssignmentToFinalLocalWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class AssignmentToFinalLocalTest extends PubPackageResolutionTest {
+  test_localVariable() async {
+    await assertErrorsInCode('''
+f() {
+  final x = 0;
+  x = 1;
+}''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 14, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 23, 1),
+    ]);
+  }
+
   test_localVariable_final_forEach() async {
     await assertErrorsInCode('''
 f() {
@@ -26,6 +36,18 @@ f() {
 }
 ''', [
       error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 24, 1),
+    ]);
+  }
+
+  test_localVariable_inForEach() async {
+    await assertErrorsInCode('''
+f() {
+  final x = 0;
+  for (x in <int>[1, 2]) {
+    print(x);
+  }
+}''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 28, 1),
     ]);
   }
 
@@ -49,59 +71,6 @@ f() {
 }
 ''', [
       error(CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED, 33, 1),
-    ]);
-  }
-
-  test_parameter_superFormal() async {
-    await assertErrorsInCode('''
-class A {
-  A(int a);
-}
-class B extends A {
-  var x;
-  B(super.a) : x = (() { a = 0; });
-}
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 78, 1),
-    ]);
-  }
-
-  test_patternVariable_final() async {
-    await assertErrorsInCode('''
-void f() {
-  final (a) = 0;
-  a = 1;
-  a;
-}
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 30, 1),
-    ]);
-  }
-}
-
-@reflectiveTest
-class AssignmentToFinalLocalWithoutNullSafetyTest
-    extends PubPackageResolutionTest with WithoutNullSafetyMixin {
-  test_localVariable() async {
-    await assertErrorsInCode('''
-f() {
-  final x = 0;
-  x = 1;
-}''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 14, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 23, 1),
-    ]);
-  }
-
-  test_localVariable_inForEach() async {
-    await assertErrorsInCode('''
-f() {
-  final x = 0;
-  for (x in <int>[1, 2]) {
-    print(x);
-  }
-}''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 28, 1),
     ]);
   }
 
@@ -146,6 +115,32 @@ class A {
 }
 ''', [
       error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 65, 1),
+    ]);
+  }
+
+  test_parameter_superFormal() async {
+    await assertErrorsInCode('''
+class A {
+  A(int a);
+}
+class B extends A {
+  var x;
+  B(super.a) : x = (() { a = 0; });
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 78, 1),
+    ]);
+  }
+
+  test_patternVariable_final() async {
+    await assertErrorsInCode('''
+void f() {
+  final (a) = 0;
+  a = 1;
+  a;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 30, 1),
     ]);
   }
 

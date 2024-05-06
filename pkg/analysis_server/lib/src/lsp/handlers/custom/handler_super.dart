@@ -2,82 +2,60 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart' hide Element;
 import 'package:analysis_server/src/lsp/constants.dart';
-import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/mapping.dart';
-import 'package:analysis_server/src/search/type_hierarchy.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:collection/collection.dart';
+import 'package:analysis_server/src/lsp/handlers/custom/abstract_go_to.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
-class SuperHandler
-    extends LspMessageHandler<TextDocumentPositionParams, Location?> {
+class SuperHandler extends AbstractGoToHandler {
   SuperHandler(super.server);
+
   @override
   Method get handlesMessage => CustomMethods.super_;
 
   @override
-  LspJsonHandler<TextDocumentPositionParams> get jsonHandler =>
-      TextDocumentPositionParams.jsonHandler;
+  Element? findRelatedElement(Element element) {
+    return _SuperComputer().computeSuper(element);
+  }
+}
 
-  @override
-  Future<ErrorOr<Location?>> handle(TextDocumentPositionParams params,
-      MessageInfo message, CancellationToken token) async {
-    if (!isDartDocument(params.textDocument)) {
-      return success(null);
+class _SuperComputer {
+  Element? computeSuper(Element element) {
+    return switch (element) {
+      ConstructorElement element => _findSuperConstructor(element),
+      InterfaceElement element => _findSuperClass(element),
+      _ => _findSuperMember(element),
+    };
+  }
+
+  Element? _findSuperClass(InterfaceElement element) {
+    return element.supertype?.element;
+  }
+
+  Element? _findSuperConstructor(ConstructorElement element) {
+    return element.superConstructor?.withAugmentations.last;
+  }
+
+  Element? _findSuperMember(Element element) {
+    var session = element.session;
+    if (session is! AnalysisSessionImpl) {
+      return null;
     }
 
-    final pos = params.position;
-    final path = pathOfDoc(params.textDocument);
-    final unit = await path.mapResult(requireResolvedUnit);
-    final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
+    var inheritanceManager = session.inheritanceManager;
+    var elementName = element.name;
+    var interfaceElement = element.thisOrAncestorOfType<InterfaceElement>();
 
-    return offset.mapResult((offset) async {
-      var node = NodeLocator(offset).searchWithin(unit.result.unit);
-      if (node == null) {
-        return success(null);
-      }
+    if (elementName == null || interfaceElement == null) {
+      return null;
+    }
 
-      // Walk up the nodes until we find one that has an element so we can support
-      // finding supers even if the cursor location was inside a method or on its
-      // return type.
-      var element = server.getElementOfNode(node);
-      while (element == null && node?.parent != null) {
-        node = node?.parent;
-        element = server.getElementOfNode(node);
-      }
-      if (element == null) {
-        return success(null);
-      }
+    var name = Name(interfaceElement.library.source.uri, elementName);
+    var member = inheritanceManager.getInherited2(interfaceElement, name);
 
-      final computer = TypeHierarchyComputer(server.searchEngine, element);
-      final items = computer.computeSuper();
-
-      // We expect to get at least two items back - the first will be the input
-      // element so we start looking from the second.
-      if (items == null || items.length < 2) {
-        return success(null);
-      }
-
-      // The class will have a memberElement if we were searching for an element
-      // otherwise we're looking for a class.
-      final isMember = items.first.memberElement != null;
-      final superItem = items.skip(1).firstWhereOrNull(
-          (elm) => isMember ? elm.memberElement != null : true);
-
-      final location = superItem?.memberElement?.location ??
-          superItem?.classElement.location;
-
-      if (location == null) {
-        return success(null);
-      }
-
-      final locationLineInfo = server.getLineInfo(location.file);
-      if (locationLineInfo == null) {
-        return success(null);
-      }
-
-      return success(toLocation(pathContext, location, locationLineInfo));
-    });
+    return member;
   }
 }

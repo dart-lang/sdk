@@ -4,21 +4,17 @@
 
 part of dart._interceptors;
 
-/**
- * The interceptor class for [List]. The compiler recognizes this
- * class as an interceptor, and changes references to [:this:] to
- * actually use the receiver of the method, which is generated as an extra
- * argument added to each member.
- */
+/// The interceptor class for [List]. The compiler recognizes this
+/// class as an interceptor, and changes references to [:this:] to
+/// actually use the receiver of the method, which is generated as an extra
+/// argument added to each member.
 @JsPeerInterface(name: 'Array')
 class JSArray<E> extends JavaScriptObject
     implements List<E>, JSIndexable<E>, TrustedGetRuntimeType {
   const JSArray();
 
-  /**
-   * Constructor for adding type parameters to an existing JavaScript
-   * Array. Used for creating literal lists.
-   */
+  /// Constructor for adding type parameters to an existing JavaScript
+  /// Array. Used for creating literal lists.
   factory JSArray.of(@notNull Object list) {
     // TODO(sra): Move this to core.List for better readability.
     //
@@ -48,9 +44,7 @@ class JSArray<E> extends JavaScriptObject
   ///
   /// NOTE: The name of this getter is directly tied to the result of compiling
   /// `JS_EMBEDDED_GLOBAL('', ARRAY_RTI_PROPERTY)`.
-  Object get arrayRti => JS_GET_FLAG('NEW_RUNTIME_TYPES')
-      ? dart.typeRep<JSArray<E>>()
-      : throw dart.throwUnimplementedInCurrentRti();
+  Object get arrayRti => TYPE_REF<JSArray<E>>();
 
   /// Unsupported action, only provided here to help diagnosis of an accidental
   /// attempt to set the value manually.
@@ -149,9 +143,7 @@ class JSArray<E> extends JavaScriptObject
     return false;
   }
 
-  /**
-   * Removes elements matching [test] from [this] List.
-   */
+  /// Removes elements matching [test] from [this] List.
   void removeWhere(bool Function(E) test) {
     checkGrowable('removeWhere');
     _removeWhere(test, true);
@@ -236,7 +228,7 @@ class JSArray<E> extends JavaScriptObject
   }
 
   Iterable<E> take(int n) {
-    return new SubListIterable<E>(this, 0, checkNotNullable(n, "count"));
+    return SubListIterable<E>(this, 0, checkNotNullable(n, "count"));
   }
 
   Iterable<E> takeWhile(bool test(E value)) {
@@ -621,7 +613,7 @@ class JSArray<E> extends JavaScriptObject
   Iterable<E> followedBy(Iterable<E> other) =>
       FollowedByIterable<E>.firstEfficient(this, other);
 
-  Iterable<T> whereType<T>() => new WhereTypeIterable<T>(this);
+  Iterable<T> whereType<T>() => WhereTypeIterable<T>(this);
 
   List<E> operator +(List<E> other) => [...this, ...other];
 
@@ -654,17 +646,15 @@ class JSArray<E> extends JavaScriptObject
   }
 }
 
-/**
- * Dummy subclasses that allow the backend to track more precise
- * information about arrays through their type. The CPA type inference
- * relies on the fact that these classes do not override [] nor []=.
- *
- * These classes are really a fiction, and can have no methods, since
- * getInterceptor always returns JSArray.  We should consider pushing the
- * 'isGrowable' and 'isMutable' checks into the getInterceptor implementation so
- * these classes can have specialized implementations. Doing so will challenge
- * many assumptions in the JS backend.
- */
+/// Dummy subclasses that allow the backend to track more precise
+/// information about arrays through their type. The CPA type inference
+/// relies on the fact that these classes do not override [] nor []=.
+///
+/// These classes are really a fiction, and can have no methods, since
+/// getInterceptor always returns JSArray.  We should consider pushing the
+/// 'isGrowable' and 'isMutable' checks into the getInterceptor implementation
+/// so these classes can have specialized implementations. Doing so will
+/// challenge many assumptions in the JS backend.
 class JSMutableArray<E> extends JSArray<E> implements JSMutableIndexable<E> {}
 
 class JSFixedArray<E> extends JSMutableArray<E> {}

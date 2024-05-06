@@ -66,7 +66,7 @@ class ReplaceReturnType extends ResolvedCorrectionProducer {
           newType = typeProvider.futureType(newType!);
         }
 
-        _newType = newType!.getDisplayString(withNullability: true);
+        _newType = newType!.getDisplayString();
 
         await builder.addDartFileEdit(file, (builder) {
           if (builder.canWriteType(newType)) {

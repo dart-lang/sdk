@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 abstract class AppView<T> {
-  T ctx;
+  T? ctx;
 }
 
 class CardComponent {
-  String title;
+  String? title;
 }
 
 class ViewCardComponent extends AppView<CardComponent> {
@@ -19,7 +17,7 @@ class ViewCardComponent extends AppView<CardComponent> {
   */
   @pragma('dart2js:noInline')
   method1(String value) {
-    ctx.title = value;
+    ctx!.title = value;
   }
 
   /*member: ViewCardComponent.method2:
@@ -27,12 +25,12 @@ class ViewCardComponent extends AppView<CardComponent> {
   */
   @pragma('dart2js:noInline')
   method2() {
-    return ctx.title;
+    return ctx!.title;
   }
 }
 
 class CardComponent2 {
-  String title;
+  String? title;
 }
 
 class ViewCardComponent2 extends AppView<CardComponent2> {
@@ -42,7 +40,7 @@ class ViewCardComponent2 extends AppView<CardComponent2> {
   */
   @pragma('dart2js:noInline')
   method1(String value) {
-    ctx.title = value;
+    ctx!.title = value;
   }
 
   /*member: ViewCardComponent2.method2:
@@ -50,7 +48,7 @@ class ViewCardComponent2 extends AppView<CardComponent2> {
   */
   @pragma('dart2js:noInline')
   method2() {
-    return ctx.title;
+    return ctx!.title;
   }
 }
 

@@ -2,12 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*member: main:[null]*/
 main() {
   generativeConstructorCall();
-  factoryConstructorCall1();
   factoryConstructorCall2();
   factoryConstructorCall3();
   classWithFinalFieldInitializer();
@@ -29,18 +26,6 @@ class Class1 {}
 
 /*member: generativeConstructorCall:[exact=Class1]*/
 generativeConstructorCall() => Class1();
-
-////////////////////////////////////////////////////////////////////////////////
-/// Call factory constructor that returns `null`.
-////////////////////////////////////////////////////////////////////////////////
-
-class Class2 {
-  /*member: Class2.:[null]*/
-  factory Class2() => null;
-}
-
-/*member: factoryConstructorCall1:[null]*/
-factoryConstructorCall1() => Class2();
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Call factory constructor that returns an instance of the same class.

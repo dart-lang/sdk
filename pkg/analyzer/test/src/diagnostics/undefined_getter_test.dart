@@ -11,183 +11,11 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UndefinedGetterTest);
-    defineReflectiveTests(UndefinedGetterWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class UndefinedGetterTest extends PubPackageResolutionTest
-    with UndefinedGetterTestCases {
-  test_functionAlias_typeInstantiated_getter() async {
-    await assertErrorsInCode('''
-typedef Fn<T> = void Function(T);
-
-void bar() {
-  Fn<int>.foo;
-}
-
-extension E on Type {
-  int get foo => 1;
-}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER_ON_FUNCTION_TYPE, 58, 3),
-    ]);
-  }
-
-  test_functionAlias_typeInstantiated_getter_parenthesized() async {
-    await assertNoErrorsInCode('''
-typedef Fn<T> = void Function(T);
-
-void bar() {
-  (Fn<int>).foo;
-}
-
-extension E on Type {
-  int get foo => 1;
-}
-''');
-  }
-
-  test_get_from_abstract_field_final_valid() async {
-    await assertNoErrorsInCode('''
-abstract class A {
-  abstract final int x;
-}
-int f(A a) => a.x;
-''');
-  }
-
-  test_get_from_abstract_field_valid() async {
-    await assertNoErrorsInCode('''
-abstract class A {
-  abstract int x;
-}
-int f(A a) => a.x;
-''');
-  }
-
-  test_get_from_external_field_final_valid() async {
-    await assertNoErrorsInCode('''
-class A {
-  external final int x;
-}
-int f(A a) => a.x;
-''');
-  }
-
-  test_get_from_external_field_valid() async {
-    await assertNoErrorsInCode('''
-class A {
-  external int x;
-}
-int f(A a) => a.x;
-''');
-  }
-
-  test_get_from_external_static_field_final_valid() async {
-    await assertNoErrorsInCode('''
-class A {
-  external static final int x;
-}
-int f() => A.x;
-''');
-  }
-
-  test_get_from_external_static_field_valid() async {
-    await assertNoErrorsInCode('''
-class A {
-  external static int x;
-}
-int f() => A.x;
-''');
-  }
-
-  test_new_cascade() async {
-    await assertErrorsInCode('''
-class C {}
-
-f(C? c) {
-  c..new;
-}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 27, 3),
-    ]);
-  }
-
-  test_new_dynamic() async {
-    await assertErrorsInCode('''
-f(dynamic d) {
-  d.new;
-}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 19, 3),
-    ]);
-  }
-
-  test_new_expression() async {
-    await assertErrorsInCode('''
-class C {}
-
-f(C? c1, C c2) {
-  (c1 ?? c2).new;
-}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 42, 3),
-    ]);
-  }
-
-  test_new_nullAware() async {
-    await assertErrorsInCode('''
-class C {}
-
-f(C? c) {
-  c?.new;
-}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 27, 3),
-    ]);
-  }
-
-  test_new_prefixedIdentifier() async {
-    await assertErrorsInCode('''
-class C {}
-
-abstract class D {
-  C get c;
-}
-
-f(D d) {
-  d.c.new;
-}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 60, 3),
-    ]);
-  }
-
-  test_new_simpleIdentifier() async {
-    await assertErrorsInCode('''
-class C {}
-
-f(C c) {
-  c.new;
-}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 25, 3),
-    ]);
-  }
-
-  test_new_typeVariable() async {
-    await assertErrorsInCode('''
-f<T>(T t) {
-  t.new;
-}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 16, 3),
-    ]);
-  }
-}
-
-mixin UndefinedGetterTestCases on PubPackageResolutionTest {
+class UndefinedGetterTest extends PubPackageResolutionTest {
   test_compoundAssignment_hasSetter_instance() async {
     await assertErrorsInCode('''
 class C {
@@ -300,6 +128,36 @@ f(C c) {
     ]);
   }
 
+  test_functionAlias_typeInstantiated_getter() async {
+    await assertErrorsInCode('''
+typedef Fn<T> = void Function(T);
+
+void bar() {
+  Fn<int>.foo;
+}
+
+extension E on Type {
+  int get foo => 1;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER_ON_FUNCTION_TYPE, 58, 3),
+    ]);
+  }
+
+  test_functionAlias_typeInstantiated_getter_parenthesized() async {
+    await assertNoErrorsInCode('''
+typedef Fn<T> = void Function(T);
+
+void bar() {
+  (Fn<int>).foo;
+}
+
+extension E on Type {
+  int get foo => 1;
+}
+''');
+  }
+
   test_generic_function_call() async {
     // Referencing `.call` on a `Function` type works similarly to referencing
     // it on `dynamic`--the reference is accepted at compile time, and all type
@@ -308,6 +166,60 @@ f(C c) {
 f(Function f) {
   return f.call;
 }
+''');
+  }
+
+  test_get_from_abstract_field_final_valid() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  abstract final int x;
+}
+int f(A a) => a.x;
+''');
+  }
+
+  test_get_from_abstract_field_valid() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  abstract int x;
+}
+int f(A a) => a.x;
+''');
+  }
+
+  test_get_from_external_field_final_valid() async {
+    await assertNoErrorsInCode('''
+class A {
+  external final int x;
+}
+int f(A a) => a.x;
+''');
+  }
+
+  test_get_from_external_field_valid() async {
+    await assertNoErrorsInCode('''
+class A {
+  external int x;
+}
+int f(A a) => a.x;
+''');
+  }
+
+  test_get_from_external_static_field_final_valid() async {
+    await assertNoErrorsInCode('''
+class A {
+  external static final int x;
+}
+int f() => A.x;
+''');
+  }
+
+  test_get_from_external_static_field_valid() async {
+    await assertNoErrorsInCode('''
+class A {
+  external static int x;
+}
+int f() => A.x;
 ''');
   }
 
@@ -406,19 +318,99 @@ mixin M {
     ]);
   }
 
+  test_new_cascade() async {
+    await assertErrorsInCode('''
+class C {}
+
+f(C? c) {
+  c..new;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 27, 3),
+    ]);
+  }
+
+  test_new_dynamic() async {
+    await assertErrorsInCode('''
+f(dynamic d) {
+  d.new;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 19, 3),
+    ]);
+  }
+
+  test_new_expression() async {
+    await assertErrorsInCode('''
+class C {}
+
+f(C? c1, C c2) {
+  (c1 ?? c2).new;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 42, 3),
+    ]);
+  }
+
+  test_new_nullAware() async {
+    await assertErrorsInCode('''
+class C {}
+
+f(C? c) {
+  c?.new;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 27, 3),
+    ]);
+  }
+
+  test_new_prefixedIdentifier() async {
+    await assertErrorsInCode('''
+class C {}
+
+abstract class D {
+  C get c;
+}
+
+f(D d) {
+  d.c.new;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 60, 3),
+    ]);
+  }
+
+  test_new_simpleIdentifier() async {
+    await assertErrorsInCode('''
+class C {}
+
+f(C c) {
+  c.new;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 25, 3),
+    ]);
+  }
+
+  test_new_typeVariable() async {
+    await assertErrorsInCode('''
+f<T>(T t) {
+  t.new;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 16, 3),
+    ]);
+  }
+
   test_nullMember_undefined() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 m() {
   Null _null;
   _null.foo;
 }
-''',
-        expectedErrorsByNullability(nullable: [
-          error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 28, 3),
-        ], legacy: [
-          error(CompileTimeErrorCode.UNDEFINED_GETTER, 28, 3),
-        ]));
+''', [
+      error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 28, 3),
+    ]);
   }
 
   test_object_call() async {
@@ -444,11 +436,13 @@ void f<X extends num, Y extends X>(Y y) {
   }
 
   test_propertyAccess_functionClass_call() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 void f(Function a) {
   return (a).call;
 }
-''');
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 30, 8),
+    ]);
   }
 
   test_propertyAccess_functionType_call() async {
@@ -464,17 +458,14 @@ void f(A a) {
   }
 
   test_static_conditionalAccess_defined() async {
-    await assertErrorsInCode(
-      '''
+    await assertErrorsInCode('''
 class A {
   static var x;
 }
 var a = A?.x;
-''',
-      expectedErrorsByNullability(nullable: [
-        error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 37, 2),
-      ], legacy: []),
-    );
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 37, 2),
+    ]);
   }
 
   test_static_definedInSuperclass() async {
@@ -514,18 +505,13 @@ main() {
   }
 
   test_typeLiteral_conditionalAccess() async {
-    await assertErrorsInCode(
-      '''
+    await assertErrorsInCode('''
 class A {}
 f() => A?.hashCode;
-''',
-      expectedErrorsByNullability(nullable: [
-        error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 19, 2),
-        error(CompileTimeErrorCode.UNDEFINED_GETTER, 21, 8),
-      ], legacy: [
-        error(CompileTimeErrorCode.UNDEFINED_GETTER, 21, 8),
-      ]),
-    );
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 19, 2),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 21, 8),
+    ]);
   }
 
   test_typeSubstitution_defined() async {
@@ -543,7 +529,3 @@ class B extends A<List> {
 ''');
   }
 }
-
-@reflectiveTest
-class UndefinedGetterWithoutNullSafetyTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, UndefinedGetterTestCases {}

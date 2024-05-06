@@ -18,8 +18,8 @@ class B<X extends core::Object? = dynamic> extends core::Object {
     ;
 }
 class C<Y extends core::Object? = dynamic> extends core::Object {
-  final field (self::D<self::C::Y%>) → FutureOr<self::C::Y%>% bar;
-  constructor •((self::D<self::C::Y%>) → FutureOr<self::C::Y%>% bar) → self::C<self::C::Y%>
+  final field (self::D<self::C::Y%>) → FutureOr<self::C::Y%>bar;
+  constructor •((self::D<self::C::Y%>) → FutureOr<self::C::Y%>bar) → self::C<self::C::Y%>
     : self::C::bar = bar, super core::Object::•()
     ;
 }

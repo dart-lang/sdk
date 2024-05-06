@@ -48,7 +48,7 @@ f() {
 ''', [
       error(WarningCode.UNUSED_IMPORT, 7, 12),
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 34, 1,
-          contextMessages: [message('$testPackageLibPath/test.dart', 60, 1)]),
+          contextMessages: [message(testFile, 60, 1)]),
       error(CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION, 34, 1),
     ]);
   }

@@ -4,29 +4,32 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/plugin/result_converter.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/request_handler_mixin.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
-import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/dart/analysis/results.dart' as engine;
 import 'package:analyzer/src/exception/exception.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/util/file_paths.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
+import 'package:server_plugin/edit/fix/dart_fix_context.dart';
+import 'package:server_plugin/edit/fix/fix.dart';
 import 'package:yaml/yaml.dart';
 
 /// The handler for the `edit.getFixes` request.
@@ -49,6 +52,10 @@ class EditGetFixesHandler extends LegacyHandler
 
     if (!server.isAnalyzed(file)) {
       server.sendResponse(Response.getFixesInvalidFile(request));
+      return;
+    }
+    if (isMacroGenerated(file)) {
+      sendResult(EditGetFixesResult([]));
       return;
     }
 
@@ -109,7 +116,7 @@ class EditGetFixesHandler extends LegacyHandler
     var package =
         analysisContext.contextRoot.workspace.findPackageFor(optionsFile.path);
     var sdkVersionConstraint =
-        (package is PubWorkspacePackage) ? package.sdkVersionConstraint : null;
+        (package is PubPackage) ? package.sdkVersionConstraint : null;
     var errors = analyzeAnalysisOptions(
       optionsFile.createSource(),
       content,
@@ -128,9 +135,13 @@ class EditGetFixesHandler extends LegacyHandler
       if (fixes.isNotEmpty) {
         fixes.sort(Fix.compareFixes);
         var lineInfo = LineInfo.fromContent(content);
+        // Options are not used in the analysis *of options* so associating
+        // an empty set is accurate if not ideal.
+        var analysisOptions = AnalysisOptionsImpl();
         var result = engine.ErrorsResultImpl(
           session: session,
           file: optionsFile,
+          content: content,
           uri: optionsFile.toUri(),
           lineInfo: lineInfo,
           isAugmentation: false,
@@ -138,6 +149,7 @@ class EditGetFixesHandler extends LegacyHandler
           isMacroAugmentation: false,
           isPart: false,
           errors: errors,
+          analysisOptions: analysisOptions,
         );
         var serverError = newAnalysisError_fromEngine(result, error);
         var errorFixes = AnalysisErrorFixes(serverError);
@@ -166,12 +178,16 @@ class EditGetFixesHandler extends LegacyHandler
           var workspace = DartChangeWorkspace(
             await server.currentSessions,
           );
-          var context = DartFixContextImpl(
-              server.instrumentationService, workspace, result, error);
+          var context = DartFixContext(
+            instrumentationService: server.instrumentationService,
+            workspace: workspace,
+            resolvedResult: result,
+            error: error,
+          );
 
           List<Fix> fixes;
           try {
-            fixes = await DartFixContributor().computeFixes(context);
+            fixes = await computeFixes(context);
           } on InconsistentAnalysisException {
             fixes = [];
           } catch (exception, stackTrace) {
@@ -227,8 +243,13 @@ error.errorCode: ${error.errorCode}
     if (node is! YamlMap) {
       return errorFixesList;
     }
-    final analysisOptions =
-        session.analysisContext.getAnalysisOptionsForFile(pubspecFile);
+
+    var fileResult = session.getFile(pubspecFile.path);
+    if (fileResult is! FileResult) {
+      return errorFixesList;
+    }
+
+    final analysisOptions = fileResult.analysisOptions;
     final errors = validatePubspec(
       contents: node,
       source: pubspecFile.createSource(),
@@ -248,6 +269,7 @@ error.errorCode: ${error.errorCode}
         var result = engine.ErrorsResultImpl(
           session: session,
           file: pubspecFile,
+          content: content,
           uri: pubspecFile.toUri(),
           lineInfo: lineInfo,
           isAugmentation: false,
@@ -255,6 +277,7 @@ error.errorCode: ${error.errorCode}
           isMacroAugmentation: false,
           isPart: false,
           errors: errors,
+          analysisOptions: analysisOptions,
         );
         var serverError = newAnalysisError_fromEngine(result, error);
         var errorFixes = AnalysisErrorFixes(serverError);

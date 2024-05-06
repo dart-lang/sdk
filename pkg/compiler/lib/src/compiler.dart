@@ -7,7 +7,6 @@ library dart2js.compiler_base;
 import 'dart:async' show Future;
 import 'dart:convert' show jsonEncode;
 
-import 'package:compiler/src/serialization/indexed_sink_source.dart';
 import 'package:compiler/src/universe/use.dart' show StaticUse;
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:kernel/ast.dart' as ir;
@@ -69,6 +68,12 @@ import 'universe/codegen_world_builder.dart';
 import 'universe/resolution_world_builder.dart';
 import 'universe/world_impact.dart' show WorldImpact, WorldImpactBuilderImpl;
 
+enum _ResolutionStatus {
+  resolving,
+  doneResolving,
+  compiling,
+}
+
 /// Implementation of the compiler using a [api.CompilerInput] for supplying
 /// the sources.
 class Compiler {
@@ -129,11 +134,7 @@ class Compiler {
 
   Progress progress = const Progress();
 
-  static const int RESOLUTION_STATUS_SCANNING = 0;
-  static const int RESOLUTION_STATUS_RESOLVING = 1;
-  static const int RESOLUTION_STATUS_DONE_RESOLVING = 2;
-  static const int RESOLUTION_STATUS_COMPILING = 3;
-  int? resolutionStatus;
+  _ResolutionStatus? _resolutionStatus;
 
   Dart2JSStage get stage => options.stage;
 
@@ -297,7 +298,7 @@ class Compiler {
     return trimmedComponent;
   }
 
-  Future runInternal() async {
+  Future<void> runInternal() async {
     clearState();
     var compilationTarget = options.compilationTarget;
     reporter.log('Compiling $compilationTarget (${options.buildId})');
@@ -362,7 +363,7 @@ class Compiler {
     // this until after the resolution queue is processed.
     deferredLoadTask.beforeResolution(rootLibraryUri, libraries);
 
-    resolutionStatus = RESOLUTION_STATUS_RESOLVING;
+    _resolutionStatus = _ResolutionStatus.resolving;
     resolutionEnqueuer.applyImpact(mainImpact);
     if (options.showInternalProgress) reporter.log('Computing closed world');
 
@@ -532,6 +533,10 @@ class Compiler {
       closedWorld = computeClosedWorld(component, rootLibraryUri, libraries);
       if (stage == Dart2JSStage.closedWorld && closedWorld != null) {
         serializationTask.serializeClosedWorld(closedWorld, indices);
+        if (options.producesModifiedDill) {
+          serializationTask.serializeComponent(component,
+              includeSourceBytes: false);
+        }
       } else if (options.testMode && closedWorld != null) {
         closedWorld = closedWorldTestMode(closedWorld);
         backendStrategy.registerJClosedWorld(closedWorld);
@@ -587,7 +592,7 @@ class Compiler {
       GlobalTypeInferenceResults globalTypeInferenceResults) {
     backendStrategy
         .registerJClosedWorld(globalTypeInferenceResults.closedWorld);
-    resolutionStatus = RESOLUTION_STATUS_COMPILING;
+    _resolutionStatus = _ResolutionStatus.compiling;
     return backendStrategy.onCodegenStart(globalTypeInferenceResults);
   }
 
@@ -650,13 +655,17 @@ class Compiler {
     GlobalTypeInferenceResults? globalTypeInferenceResultsForDumpInfo;
     AbstractValueDomain? abstractValueDomainForDumpInfo;
     OutputUnitData? outputUnitDataForDumpInfo;
-    if (options.dumpInfoWriteUri != null ||
-        options.dumpInfoReadUri != null ||
-        options.dumpInfo) {
+    DataSinkWriter? sinkForDumpInfo;
+    if (options.dumpInfoReadUri != null || options.dumpInfo) {
       globalTypeInferenceResultsForDumpInfo = globalTypeInferenceResults;
       abstractValueDomainForDumpInfo = closedWorld.abstractValueDomain;
       outputUnitDataForDumpInfo = closedWorld.outputUnitData;
       indicesForDumpInfo = indices;
+    }
+    if (options.dumpInfoWriteUri != null) {
+      sinkForDumpInfo = serializationTask.dataSinkWriterForDumpInfo(
+          closedWorld.abstractValueDomain, indices);
+      dumpInfoRegistry.registerDataSinkWriter(sinkForDumpInfo);
     }
 
     // Run codegen.
@@ -681,14 +690,14 @@ class Compiler {
           codegenResults, inferredData, sourceLookup, closedWorld);
       if (options.dumpInfo || options.dumpInfoWriteUri != null) {
         final dumpInfoData = DumpInfoProgramData.fromEmitterResults(
-            backendStrategy, dumpInfoRegistry, programSize);
-        dumpInfoRegistry.clear();
+            backendStrategy.emitterTask,
+            dumpInfoRegistry,
+            codegenResults,
+            programSize);
+        dumpInfoRegistry.close();
         if (options.dumpInfoWriteUri != null) {
-          serializationTask.serializeDumpInfoProgramData(
-              backendStrategy,
-              dumpInfoData,
-              abstractValueDomainForDumpInfo!,
-              indicesForDumpInfo!);
+          serializationTask.serializeDumpInfoProgramData(sinkForDumpInfo!,
+              backendStrategy, dumpInfoData, dumpInfoRegistry);
         } else {
           await runDumpInfo(codegenResults,
               globalTypeInferenceResultsForDumpInfo!, dumpInfoData);
@@ -710,10 +719,12 @@ class Compiler {
       dumpInfoState = await dumpInfoTask.dumpInfoNew(
           untrimmedComponentForDumpInfo!,
           closedWorld,
-          globalTypeInferenceResults);
+          globalTypeInferenceResults,
+          codegenResults,
+          backendStrategy);
     } else {
-      dumpInfoState =
-          await dumpInfoTask.dumpInfo(closedWorld, globalTypeInferenceResults);
+      dumpInfoState = await dumpInfoTask.dumpInfo(closedWorld,
+          globalTypeInferenceResults, codegenResults, backendStrategy);
     }
     if (retainDataForTesting) {
       dumpInfoStateForTesting = dumpInfoState;
@@ -723,7 +734,7 @@ class Compiler {
   /// Perform the steps needed to fully end the resolution phase.
   JClosedWorld? closeResolution(FunctionEntity mainFunction,
       ResolutionWorldBuilder resolutionWorldBuilder) {
-    resolutionStatus = RESOLUTION_STATUS_DONE_RESOLVING;
+    _resolutionStatus = _ResolutionStatus.doneResolving;
 
     KClosedWorld kClosedWorld = resolutionWorldBuilder.closeWorld(reporter);
     OutputUnitData result = deferredLoadTask.run(mainFunction, kClosedWorld);
@@ -775,13 +786,13 @@ class Compiler {
   /// Perform various checks of the queue. This includes checking that the
   /// queues are empty (nothing was added after we stopped processing the
   /// queues).
-  checkQueue(Enqueuer enqueuer) {
+  void checkQueue(Enqueuer enqueuer) {
     enqueuer.checkQueueIsEmpty();
   }
 
   void showResolutionProgress(Enqueuer enqueuer) {
-    assert(resolutionStatus == RESOLUTION_STATUS_RESOLVING,
-        'Unexpected phase: $resolutionStatus');
+    assert(_resolutionStatus == _ResolutionStatus.resolving,
+        'Unexpected phase: $_resolutionStatus');
     progress.showProgress(
         'Resolved ', enqueuer.processedEntities.length, ' elements.');
   }
@@ -795,7 +806,7 @@ class Compiler {
       List<DiagnosticMessage> infos, api.Diagnostic kind) {
     _reportDiagnosticMessage(message, kind);
     for (DiagnosticMessage info in infos) {
-      _reportDiagnosticMessage(info, api.Diagnostic.CONTEXT);
+      _reportDiagnosticMessage(info, api.Diagnostic.context);
     }
   }
 
@@ -829,7 +840,8 @@ class Compiler {
     }
   }
 
-  Future<api.Input> callUserProvider(Uri uri, api.InputKind inputKind) {
+  Future<api.Input<List<int>>> callUserProvider(
+      Uri uri, api.InputKind inputKind) {
     try {
       return userProviderTask
           .measureIo(() => provider.readFromUri(uri, inputKind: inputKind));
@@ -839,7 +851,8 @@ class Compiler {
     }
   }
 
-  void reportCrashInUserCode(String message, exception, stackTrace) {
+  void reportCrashInUserCode(
+      String message, Object exception, StackTrace stackTrace) {
     reporter.onCrashInUserCode(message, exception, stackTrace);
   }
 
@@ -872,7 +885,7 @@ class Compiler {
   /// context.
   SourceSpan spanFromSpannable(Spannable spannable, Entity? currentElement) {
     SourceSpan span;
-    if (resolutionStatus == Compiler.RESOLUTION_STATUS_COMPILING) {
+    if (_resolutionStatus == _ResolutionStatus.compiling) {
       span = backendStrategy.spanFromSpannable(spannable, currentElement);
     } else {
       span = frontendStrategy.spanFromSpannable(spannable, currentElement);
@@ -915,12 +928,12 @@ class Compiler {
   }
 
   void logInfo(String message) {
-    callUserHandler(null, null, null, null, message, api.Diagnostic.INFO);
+    callUserHandler(null, null, null, null, message, api.Diagnostic.info);
   }
 
   void logVerbose(String message) {
     callUserHandler(
-        null, null, null, null, message, api.Diagnostic.VERBOSE_INFO);
+        null, null, null, null, message, api.Diagnostic.verboseInfo);
   }
 
   String _formatMs(int ms) {

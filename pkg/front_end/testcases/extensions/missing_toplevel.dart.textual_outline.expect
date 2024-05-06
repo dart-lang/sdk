@@ -5,5 +5,7 @@ extension Extension on Class {
 }
 
 var c = new Class();
+
 var missingGetter = c.setter += 42;
+
 main() {}

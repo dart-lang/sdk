@@ -61,9 +61,12 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
-    if (node.operator.type == TokenType.QUESTION_QUESTION &&
-        (node.rightOperand.isNullLiteral || node.leftOperand.isNullLiteral)) {
-      rule.reportLint(node);
+    if (node.operator.type == TokenType.QUESTION_QUESTION) {
+      if (node.rightOperand.isNullLiteral) {
+        rule.reportLint(node.rightOperand);
+      } else if (node.leftOperand.isNullLiteral) {
+        rule.reportLint(node.leftOperand);
+      }
     }
   }
 }

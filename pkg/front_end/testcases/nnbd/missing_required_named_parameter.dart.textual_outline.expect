@@ -1,4 +1,5 @@
 void foo({required String s}) {}
+
 void Function({required String s}) g = ({required String s}) {};
 
 class A {
@@ -8,4 +9,5 @@ class A {
 }
 
 bar() {}
+
 main() {}

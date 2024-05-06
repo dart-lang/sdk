@@ -8,6 +8,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
+import 'package:analyzer/src/dart/analysis/context_locator.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -28,6 +29,7 @@ void main() {
     defineReflectiveTests(LinterTest);
     defineReflectiveTests(NonDartFilesTest);
     defineReflectiveTests(OptionsTest);
+    defineReflectiveTests(OptionsTest_SingleOptionsPerContext);
   }, name: 'Driver');
 }
 
@@ -262,7 +264,7 @@ linter:
   Future<void> test_pubspec_lintsInOptions_generatedLints() async {
     await drive('data/linter_project/pubspec.yaml',
         options: 'data/linter_project/$analysisOptionsYaml');
-    expect(bulletToDash(outSink), contains('lint - Unsorted dependencies.'));
+    expect(bulletToDash(outSink), contains('lint - Dependencies not sorted alphabetically.'));
   }
 
   YamlMap _parseOptions(String src) =>
@@ -338,12 +340,29 @@ flutter:
 
 @reflectiveTest
 class OptionsTest extends BaseTest {
+  /// Cached state to restore on test tearDown.
+  final _singleOptionsContextsDefault = ContextLocatorImpl.singleOptionContexts;
+
   String get analysisOptionsYaml => file_paths.analysisOptionsYaml;
+
+  bool get enableSingleOptionContexts => false;
 
   List<ErrorProcessor> get processors => analysisOptions.errorProcessors;
 
   ErrorProcessor processorFor(AnalysisError error) =>
       processors.firstWhere((p) => p.appliesTo(error));
+
+  @override
+  void setUp() {
+    super.setUp();
+    ContextLocatorImpl.singleOptionContexts = enableSingleOptionContexts;
+  }
+
+  @override
+  void tearDown() {
+    ContextLocatorImpl.singleOptionContexts = _singleOptionsContextsDefault;
+    super.tearDown();
+  }
 
   /// If a file is specified explicitly, it should be analyzed, even if
   /// it is excluded. Excludes work when an including directory is specified.
@@ -415,17 +434,18 @@ class OptionsTest extends BaseTest {
     );
     expect(processorFor(unused_local_variable).severity, isNull);
 
-    // missing_return: error
-    var missing_return = AnalysisError.tmp(
+    // assignment_of_do_not_store: error
+    var assignment_of_do_not_store = AnalysisError.tmp(
       source: TestSource(),
       offset: 0,
       length: 1,
-      errorCode: WarningCode.MISSING_RETURN,
+      errorCode: WarningCode.ASSIGNMENT_OF_DO_NOT_STORE,
       arguments: [
         ['x'],
       ],
     );
-    expect(processorFor(missing_return).severity, ErrorSeverity.ERROR);
+    expect(
+        processorFor(assignment_of_do_not_store).severity, ErrorSeverity.ERROR);
     expect(bulletToDash(outSink),
         contains('error - The body might complete normally'));
     expect(outSink.toString(), contains('1 error and 1 warning found.'));
@@ -464,6 +484,14 @@ class OptionsTest extends BaseTest {
         isNot(contains("error - Undefined class 'ExcludedUndefinedClass'")));
     expect(outSink.toString(), contains('1 error found.'));
   }
+}
+
+/// To be removed when `singleOptionContexts` defaults to false.
+@reflectiveTest
+// ignore: camel_case_types
+class OptionsTest_SingleOptionsPerContext extends OptionsTest {
+  @override
+  bool get enableSingleOptionContexts => true;
 }
 
 class TestSource implements Source {

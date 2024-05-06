@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*member: main:[null]*/
 main() {
   trustLocals();
@@ -16,9 +14,9 @@ main() {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*member: _trustLocals:[exact=JSBool]*/ _trustLocals(
-    int Function(int) /*[null|subclass=Closure]*/ f) {
-  int c = f(0);
-  return c /*invoke: [null|subclass=JSInt]*/ == 0;
+    int Function(int)? /*[null|subclass=Closure]*/ f) {
+  int c = f!(0);
+  return c /*invoke: [subclass=JSInt]*/ == 0;
 }
 
 /*member: trustLocals:[null]*/
@@ -32,10 +30,10 @@ trustLocals() {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*member: _trustFunctions:[exact=JSBool]*/
-_trustFunctions(int Function(int) /*[null|subclass=Closure]*/ f) {
-  dynamic c = f(0);
+_trustFunctions(int Function(int)? /*[null|subclass=Closure]*/ f) {
+  dynamic c = f!(0);
   c = f(0);
-  return c /*invoke: [null|subclass=JSInt]*/ == 0;
+  return c /*invoke: [subclass=JSInt]*/ == 0;
 }
 
 /*member: trustFunctions:[null]*/
@@ -49,9 +47,9 @@ trustFunctions() {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*member: _inferFromFunctions:[exact=JSBool]*/
-_inferFromFunctions(int Function(int) /*[null|subclass=Closure]*/ f) {
-  var c = f(0);
-  return c /*invoke: [null|subclass=JSInt]*/ == 0;
+_inferFromFunctions(int Function(int)? /*[null|subclass=Closure]*/ f) {
+  var c = f!(0);
+  return c /*invoke: [subclass=JSInt]*/ == 0;
 }
 
 /*member: inferFromFunctions:[null]*/

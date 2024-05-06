@@ -21,8 +21,13 @@ class E {}
 class F {}
 
 A get target => throw '';
+
 void set target(B value) {}
+
 void test1() {}
+
 void test2() {}
+
 void test3() {}
+
 main() {}

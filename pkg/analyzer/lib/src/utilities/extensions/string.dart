@@ -82,6 +82,10 @@ extension IterableOfStringExtension on Iterable<String> {
   }
 }
 
+extension Pluralized on String {
+  String pluralized(int count) => count == 1 ? toString() : '${toString()}s';
+}
+
 extension StringExtension on String {
   /// If this is equal to [value], return [then], otherwise return `this`.
   String ifEqualThen(String value, String then) {
@@ -90,5 +94,13 @@ extension StringExtension on String {
 
   String ifNotEmptyOrElse(String orElse) {
     return isNotEmpty ? this : orElse;
+  }
+
+  String? removeSuffix(String suffix) {
+    if (endsWith(suffix)) {
+      return substring(0, length - suffix.length);
+    } else {
+      return null;
+    }
   }
 }

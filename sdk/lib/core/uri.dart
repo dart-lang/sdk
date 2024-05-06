@@ -1507,7 +1507,10 @@ abstract interface class Uri {
   }
 }
 
-class _Uri implements Uri {
+// Superclass of the two implementation types.
+sealed class _PlatformUri implements Uri {}
+
+final class _Uri implements _PlatformUri {
   // We represent the missing scheme as an empty string.
   // A valid scheme cannot be empty.
   final String scheme;
@@ -2705,12 +2708,12 @@ class _Uri implements Uri {
     return resolveUri(Uri.parse(reference));
   }
 
-  // Returns the index of the `/` after the package name of a package URI.
+  // The index of the `/` after the package name of a package URI.
   //
-  // Returns negative if the URI is not a valid package URI:
+  // Value is negative if the URI is not a valid package URI:
   // * Scheme must be "package".
   // * No authority.
-  // * Path starts with "something"/
+  // * Path starts with "something/".
   // * where "something" is not all "." characters,
   // * and contains no escapes or colons.
   //
@@ -2730,7 +2733,21 @@ class _Uri implements Uri {
     int? targetPort;
     String targetPath;
     String? targetQuery;
+    // Position up to which values are known to already be normalized,
+    // because the value is taken from this `_Uri`
+    // If any part of the path is taken from a `reference` which is not
+    // a platform URI, and therefore not known to be canonicalized to the
+    // standard of platform URIs, the combined path counts as potentially
+    // non-normalized.
+    const int atStart = 0, // Nothing taken from this URI.
+        afterScheme = 1, // Scheme comes from this URI.
+        afterAuthority = 2, // Scheme and authority comes from this URI.
+        afterPath = 3, // The path, and everything before, is from this URI.
+        afterQuery = 4; // Everything except fragment is from this URI.
+    int split = atStart;
+
     if (reference.scheme.isNotEmpty) {
+      if (reference is _PlatformUri) return reference;
       targetScheme = reference.scheme;
       if (reference.hasAuthority) {
         targetUserInfo = reference.userInfo;
@@ -2744,26 +2761,33 @@ class _Uri implements Uri {
     } else {
       targetScheme = this.scheme;
       if (reference.hasAuthority) {
+        if (reference is _PlatformUri) {
+          return reference.replace(scheme: targetScheme);
+        }
         targetUserInfo = reference.userInfo;
         targetHost = reference.host;
         targetPort =
             _makePort(reference.hasPort ? reference.port : null, targetScheme);
         targetPath = _removeDotSegments(reference.path);
         if (reference.hasQuery) targetQuery = reference.query;
+        split = afterScheme;
       } else {
         targetUserInfo = this._userInfo;
         targetHost = this._host;
         targetPort = this._port;
-        if (reference.path == "") {
+        if (reference.hasEmptyPath) {
           targetPath = this.path;
           if (reference.hasQuery) {
+            split = afterPath;
             targetQuery = reference.query;
           } else {
             targetQuery = this._query;
+            split = afterQuery;
           }
         } else {
           String basePath = this.path;
           int packageNameEnd = _packageNameEnd(this, basePath);
+          split = afterAuthority;
           if (packageNameEnd > 0) {
             assert(targetScheme == "package");
             assert(!this.hasAuthority);
@@ -2809,11 +2833,41 @@ class _Uri implements Uri {
               }
             }
           }
-          if (reference.hasQuery) targetQuery = reference.query;
+          if (reference.hasQuery) {
+            targetQuery = reference.query;
+          }
         }
       }
     }
     String? fragment = reference.hasFragment ? reference.fragment : null;
+    if (reference is! _PlatformUri) {
+      // Don't trust values coming from `reference` to be normalized.
+      if (split == atStart) {
+        targetScheme = _makeScheme(targetScheme, 0, targetScheme.length);
+      }
+      if (split <= afterScheme) {
+        if (targetUserInfo != null) {
+          targetUserInfo =
+              _makeUserInfo(targetUserInfo, 0, targetUserInfo.length);
+        }
+        if (targetPort != null) {
+          targetPort = _makePort(targetPort, targetScheme);
+        }
+        if (targetHost != null && targetHost.isNotEmpty) {
+          targetHost = _makeHost(targetHost, 0, targetHost.length, false);
+        }
+      }
+      if (split <= afterPath) {
+        targetPath = _makePath(targetPath, 0, targetPath.length, null,
+            targetScheme, targetHost != null);
+      }
+      if (split <= afterPath && targetQuery != null) {
+        targetQuery = _makeQuery(targetQuery, 0, targetQuery.length, null);
+      }
+      if (fragment != null) {
+        fragment = _makeFragment(fragment, 0, fragment.length);
+      }
+    }
     return _Uri._internal(targetScheme, targetUserInfo, targetHost, targetPort,
         targetPath, targetQuery, fragment);
   }
@@ -4406,7 +4460,7 @@ int _scan(String uri, int start, int end, int state, List<int> indices) {
   return state;
 }
 
-class _SimpleUri implements Uri {
+final class _SimpleUri implements _PlatformUri {
   final String _uri;
   final int _schemeEnd;
   final int _hostStart;

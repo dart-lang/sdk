@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/fasta/source/source_library_builder.dart';
 import 'package:front_end/src/fasta/type_inference/type_constraint_gatherer.dart';
+import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart';
@@ -247,7 +249,8 @@ class TypeConstraintGathererTest {
         bound,
         clientLibrary,
         expectedConstraints,
-        (gatherer, type, bound) => gatherer.tryConstrainLower(type, bound),
+        (gatherer, type, bound) =>
+            gatherer.tryConstrainLower(type, bound, treeNodeForTesting: null),
         typeParameterNodesToConstrain);
   }
 
@@ -285,7 +288,8 @@ class TypeConstraintGathererTest {
         bound,
         clientLibrary,
         expectedConstraints,
-        (gatherer, type, bound) => gatherer.tryConstrainUpper(type, bound),
+        (gatherer, type, bound) =>
+            gatherer.tryConstrainUpper(type, bound, treeNodeForTesting: null),
         typeParameterNodesToConstrain);
   }
 
@@ -300,7 +304,15 @@ class TypeConstraintGathererTest {
         coreTypes, new ClassHierarchy(component, coreTypes));
     var typeConstraintGatherer = new TypeConstraintGatherer(
         typeSchemaEnvironment, typeParameterNodesToConstrain,
-        isNonNullableByDefault: testLibrary.isNonNullableByDefault);
+        isNonNullableByDefault: testLibrary.isNonNullableByDefault,
+        typeOperations: new OperationsCfe(typeSchemaEnvironment,
+            nullability: Nullability.nonNullable,
+            fieldNonPromotabilityInfo: new FieldNonPromotabilityInfo(
+                fieldNameInfo: {}, individualPropertyReasons: {}),
+            typeCacheNonNullable: {},
+            typeCacheNullable: {},
+            typeCacheLegacy: {}),
+        inferenceResultForTesting: null);
     var constraints = tryConstrain(typeConstraintGatherer, a, b)
         ? typeConstraintGatherer.computeConstraints(
             isNonNullableByDefault: clientLibrary.isNonNullableByDefault)

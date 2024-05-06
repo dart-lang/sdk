@@ -14,9 +14,9 @@ import '../builder/formal_parameter_builder.dart';
 import '../builder/function_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/type_builder.dart';
-import '../dill/dill_member_builder.dart';
+import '../codes/fasta_codes.dart';
 import '../dill/dill_extension_type_member_builder.dart';
-import '../fasta_codes.dart';
+import '../dill/dill_member_builder.dart';
 import '../identifiers.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
@@ -60,7 +60,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
 
   SourceFactoryBuilder? actualOrigin;
 
-  List<SourceFactoryBuilder>? _patches;
+  List<SourceFactoryBuilder>? _augmentations;
 
   final MemberName _memberName;
 
@@ -117,7 +117,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   @override
   DeclarationBuilder get declarationBuilder => super.declarationBuilder!;
 
-  List<SourceFactoryBuilder>? get patchesForTesting => _patches;
+  List<SourceFactoryBuilder>? get augmentationsForTesting => _augmentations;
 
   @override
   AsyncMarker get asyncModifier => actualAsyncModifier;
@@ -145,7 +145,8 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   @override
   ProcedureKind get kind => ProcedureKind.Factory;
 
-  Procedure get _procedure => isPatch ? origin._procedure : _procedureInternal;
+  Procedure get _procedure =>
+      isAugmenting ? origin._procedure : _procedureInternal;
 
   @override
   FunctionNode get function => _procedureInternal.function;
@@ -244,35 +245,35 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
     _procedureInternal.function.redirectingFactoryTarget =
         new RedirectingFactoryTarget(target, typeArguments);
     bodyInternal?.parent = function;
-    if (isPatch) {
+    if (isAugmenting) {
       actualOrigin!.setRedirectingFactoryBody(target, typeArguments);
     }
   }
 
   @override
-  void applyPatch(Builder patch) {
-    if (patch is SourceFactoryBuilder) {
-      if (checkPatch(patch)) {
-        patch.actualOrigin = this;
-        (_patches ??= []).add(patch);
+  void applyAugmentation(Builder augmentation) {
+    if (augmentation is SourceFactoryBuilder) {
+      if (checkAugmentation(augmentation)) {
+        augmentation.actualOrigin = this;
+        (_augmentations ??= []).add(augmentation);
       }
     } else {
-      reportPatchMismatch(patch);
+      reportAugmentationMismatch(augmentation);
     }
   }
 
-  void _finishPatch() {
-    finishProcedurePatch(origin._procedure, _procedureInternal);
+  void _finishAugmentation() {
+    finishProcedureAugmentation(origin._procedure, _procedureInternal);
 
     if (_factoryTearOff != null) {
-      finishProcedurePatch(origin._factoryTearOff!, _factoryTearOff);
+      finishProcedureAugmentation(origin._factoryTearOff!, _factoryTearOff);
     }
   }
 
   @override
   int buildBodyNodes(BuildNodesCallback f) {
-    if (!isPatch) return 0;
-    _finishPatch();
+    if (!isAugmenting) return 0;
+    _finishAugmentation();
     return 1;
   }
 
@@ -284,10 +285,10 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   void checkTypes(
       SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {
     library.checkTypesInFunctionBuilder(this, typeEnvironment);
-    List<SourceFactoryBuilder>? patches = _patches;
-    if (patches != null) {
-      for (SourceFactoryBuilder patch in patches) {
-        patch.checkTypes(library, typeEnvironment);
+    List<SourceFactoryBuilder>? augmentations = _augmentations;
+    if (augmentations != null) {
+      for (SourceFactoryBuilder augmentation in augmentations) {
+        augmentation.checkTypes(library, typeEnvironment);
       }
     }
   }
@@ -296,10 +297,10 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   /// augmentations.
   void checkRedirectingFactories(TypeEnvironment typeEnvironment) {
     _checkRedirectingFactory(typeEnvironment);
-    List<SourceFactoryBuilder>? patches = _patches;
-    if (patches != null) {
-      for (SourceFactoryBuilder patch in patches) {
-        patch._checkRedirectingFactory(typeEnvironment);
+    List<SourceFactoryBuilder>? augmentations = _augmentations;
+    if (augmentations != null) {
+      for (SourceFactoryBuilder augmentation in augmentations) {
+        augmentation._checkRedirectingFactory(typeEnvironment);
       }
     }
   }
@@ -323,10 +324,10 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
 
   @override
   bool get isAugmented {
-    if (isPatch) {
-      return origin._patches!.last != this;
+    if (isAugmenting) {
+      return origin._augmentations!.last != this;
     } else {
-      return _patches != null;
+      return _augmentations != null;
     }
   }
 }
@@ -395,7 +396,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     _procedureInternal.function.redirectingFactoryTarget =
         new RedirectingFactoryTarget(target, typeArguments);
     bodyInternal?.parent = function;
-    if (isPatch) {
+    if (isAugmenting) {
       if (function.typeParameters.isNotEmpty) {
         Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
         for (int i = 0; i < function.typeParameters.length; i++) {
@@ -468,7 +469,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (_hasBuiltOutlines) return;
-    if (isConst && isPatch) {
+    if (isConst && isAugmenting) {
       origin.buildOutlineExpressions(
           classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
     }
@@ -560,15 +561,15 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
           target!, _procedure,
           libraryBuilder: libraryBuilder, identicalSignatures: false));
     }
-    if (isConst && isPatch) {
-      _finishPatch();
+    if (isConst && isAugmenting) {
+      _finishAugmentation();
     }
     _hasBuiltOutlines = true;
   }
 
   @override
-  void _finishPatch() {
-    super._finishPatch();
+  void _finishAugmentation() {
+    super._finishAugmentation();
 
     SourceFactoryBuilder redirectingOrigin = origin;
     if (redirectingOrigin is RedirectingFactoryBuilder) {
@@ -752,9 +753,9 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     // of their own.
     FunctionType factoryType =
         function.computeThisFunctionType(libraryBuilder.nonNullable);
-    if (isPatch) {
+    if (isAugmenting) {
       // The redirection target type uses the origin type parameters so we must
-      // substitute patch type parameters before checking subtyping.
+      // substitute augmentation type parameters before checking subtyping.
       if (function.typeParameters.isNotEmpty) {
         Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
         for (int i = 0; i < function.typeParameters.length; i++) {

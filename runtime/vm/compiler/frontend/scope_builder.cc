@@ -5,6 +5,7 @@
 #include "vm/compiler/frontend/scope_builder.h"
 
 #include "vm/compiler/backend/il.h"  // For CompileType.
+#include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 
 namespace dart {
@@ -166,6 +167,11 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
           FinalizeCatchVariables();
           --depth_.catch_;
         }
+      }
+      if (FlowGraphBuilder::IsRecognizedMethodForFlowGraph(function) &&
+          FlowGraphBuilder::IsExpressionTempVarUsedInRecognizedMethodFlowGraph(
+              function)) {
+        needs_expr_temp_ = true;
       }
       intptr_t pos = 0;
       if (function.IsClosureFunction()) {
@@ -397,9 +403,8 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       break;
     }
     case UntaggedFunction::kMethodExtractor: {
-      // Add a receiver parameter.  Though it is captured, we emit code to
-      // explicitly copy it to a fixed offset in a freshly-allocated context
-      // instead of using the generic code for regular functions.
+      // Add a receiver parameter. Though it is captured, we emit code to
+      // explicitly copy it to a freshly-allocated closure.
       // Therefore, it isn't necessary to mark it as captured here.
       Class& klass = Class::Handle(Z, function.Owner());
       Type& klass_type = H.GetDeclarationType(klass);
@@ -761,6 +766,7 @@ void ScopeBuilder::VisitExpression() {
       return;
     case kDynamicInvocation:
       helper_.ReadByte();      // read kind.
+      helper_.ReadByte();      // read flags.
       helper_.ReadPosition();  // read position.
       VisitExpression();       // read receiver.
       helper_.SkipName();      // read name.
@@ -873,6 +879,7 @@ void ScopeBuilder::VisitExpression() {
       return;
     case kThrow:
       helper_.ReadPosition();  // read position.
+      helper_.ReadFlags();     // read flags.
       VisitExpression();       // read expression.
       return;
     case kListLiteral: {

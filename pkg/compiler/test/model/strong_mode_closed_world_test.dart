@@ -73,7 +73,7 @@ class F extends B {
   set setter(_) {}
 }
 
-class G {
+mixin G {
   method1() {}
   method2() {}
   method4() {}
@@ -93,14 +93,14 @@ class I {
 
 class J extends I implements A {}
 
-class K {
+mixin K {
   method1() {}
   method2() {}
   get getter => 42;
   set setter(_) {}
 }
 
-class L = Object with K;
+mixin class L = Object with K;
 class L2 = Object with L;
 class M extends L {}
 class M2 extends L2 {}
@@ -134,7 +134,7 @@ class Class1b {
 }
 
 class Class2 {
-  Class1a c;
+  Class1a? c;
 }
 
 main() {
@@ -161,12 +161,12 @@ method1() {
   o.method1();
   o.getter;
   o.setter = 42;
-  R r;
-  r.method3();
+  R? r;
+  r!.method3();
   r = R(); // Create R after call.
   Class1a();
   Class1b();
-  Class2().c(0, 1, 2);
+  Class2().c!(0, 1, 2);
 }
 
 method2() {
@@ -178,15 +178,15 @@ method2() {
 '''
   });
   Expect.isTrue(result.isSuccess);
-  Compiler compiler = result.compiler;
+  Compiler compiler = result.compiler!;
 
   Map<String, List<String>> expectedLiveMembersMap = <String, List<String>>{
     'A': ['method1', 'getter', 'method4'],
     'B': ['method2', 'setter', 'method5'],
-    'C': ['method1', 'getter'],
-    'D': ['method2', 'setter'],
-    'G': ['method1', 'getter'],
-    'I': ['method1', 'getter'],
+    'C': ['method1', 'getter', 'method4'],
+    'D': ['method2', 'setter', 'method5'],
+    'G': ['method1', 'getter', 'method4'],
+    'I': ['method1', 'getter', 'method4'],
     'K': ['method1', 'getter'],
     'N': [],
     'P': ['method1', 'getter', 'setter'],

@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
-import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
-import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor/protocol.dart' as macro;
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -21,6 +17,11 @@ import 'package:analyzer/src/summary2/macro_declarations.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
+import 'package:macros/macros.dart' as macro;
+import 'package:macros/src/executor.dart' as macro;
+import 'package:macros/src/executor/exception_impls.dart' as macro;
+import 'package:macros/src/executor/multi_executor.dart';
+import 'package:meta/meta.dart';
 
 /// The full list of [macro.ArgumentKind]s for this dart type, with type
 /// arguments for [InterfaceType]s, if [includeTop] is `true` also including
@@ -57,6 +58,18 @@ List<macro.ArgumentKind> _argumentKindsOfType(
 }
 
 class LibraryMacroApplier {
+  @visibleForTesting
+  static bool testThrowExceptionTypes = false;
+
+  @visibleForTesting
+  static bool testThrowExceptionDeclarations = false;
+
+  @visibleForTesting
+  static bool testThrowExceptionDefinitions = false;
+
+  @visibleForTesting
+  static bool testThrowExceptionIntrospection = false;
+
   final LinkedElementFactory elementFactory;
   final MultiMacroExecutor macroExecutor;
   final bool Function(Uri) isLibraryBeingLinked;
@@ -64,7 +77,7 @@ class LibraryMacroApplier {
 
   /// The callback to run declarations phase if the type.
   /// We do it out-of-order when the type is introspected.
-  final Future<void> Function({required Element? targetElement})
+  final Future<void> Function({required ElementImpl? targetElement})
       runDeclarationsPhase;
 
   /// The reversed queue of macro applications to apply.
@@ -82,14 +95,10 @@ class LibraryMacroApplier {
   /// The applications that currently run the declarations phase.
   final List<_MacroApplication> _declarationsPhaseRunning = [];
 
-  /// The identifier of the next cycle error.
-  int _declarationsPhaseCycleIndex = 0;
-
-  /// Information about a found declarations phase introspection cycle.
-  /// We use it when receive diagnostics from the macro executor to report
-  /// a more specific diagnostic than the exception.
-  final Map<String, List<_MacroApplication>>
-      _declarationsPhaseCycleApplications = {};
+  /// The map from a declaration that has declarations phase introspection
+  /// cycle, to the cycle exception.
+  final Map<MacroTargetElement, _MacroIntrospectionCycleException>
+      _elementToIntrospectionCycleException = {};
 
   late final macro.TypePhaseIntrospector _typesPhaseIntrospector =
       _TypePhaseIntrospector(elementFactory, declarationBuilder);
@@ -107,6 +116,22 @@ class LibraryMacroApplier {
     required LibraryOrAugmentationElementImpl container,
     required ast.CompilationUnitImpl unit,
   }) async {
+    for (final directive in unit.directives.reversed) {
+      switch (directive) {
+        case ast.LibraryDirectiveImpl():
+          await _addAnnotations(
+            libraryElement: libraryElement,
+            container: container,
+            targetNode: directive,
+            targetNodeElement: libraryElement,
+            targetDeclarationKind: macro.DeclarationKind.library,
+            annotations: directive.metadata,
+          );
+        default:
+          break;
+      }
+    }
+
     for (final declaration in unit.declarations.reversed) {
       switch (declaration) {
         case ast.ClassDeclarationImpl():
@@ -192,8 +217,14 @@ class LibraryMacroApplier {
           // TODO(scheglov): implement it
           break;
         case ast.GenericTypeAliasImpl():
-          // TODO(scheglov): implement it
-          break;
+          await _addAnnotations(
+            libraryElement: libraryElement,
+            container: container,
+            targetNode: declaration,
+            targetNodeElement: declaration.declaredElement,
+            targetDeclarationKind: macro.DeclarationKind.typeAlias,
+            annotations: declaration.metadata,
+          );
         case ast.MixinDeclarationImpl():
           final element = declaration.declaredElement!;
           final declarationElement = element.augmented?.declaration ?? element;
@@ -220,53 +251,48 @@ class LibraryMacroApplier {
           }
       }
     }
-
-    for (final directive in unit.directives.reversed) {
-      switch (directive) {
-        case ast.LibraryDirectiveImpl():
-          await _addAnnotations(
-            libraryElement: libraryElement,
-            container: container,
-            targetNode: directive,
-            targetNodeElement: libraryElement,
-            targetDeclarationKind: macro.DeclarationKind.library,
-            annotations: directive.metadata,
-          );
-        default:
-          break;
-      }
-    }
   }
 
   /// Builds the augmentation library code for [results].
   String? buildAugmentationLibraryCode(
+    Uri augmentedLibraryUri,
     List<macro.MacroExecutionResult> results,
   ) {
     if (results.isEmpty) {
       return null;
     }
 
-    return macroExecutor
-        .buildAugmentationLibrary(
-          results,
-          declarationBuilder.typeDeclarationOf,
-          declarationBuilder.resolveIdentifier,
-          declarationBuilder.inferOmittedType,
-        )
-        .trim();
+    return macroExecutor.buildAugmentationLibrary(
+      augmentedLibraryUri,
+      results,
+      declarationBuilder.typeDeclarationOf,
+      declarationBuilder.resolveIdentifier,
+      declarationBuilder.inferOmittedType,
+    );
   }
 
   Future<List<macro.MacroExecutionResult>?> executeDeclarationsPhase({
     required LibraryElementImpl library,
-    required Element? targetElement,
+    required ElementImpl? targetElement,
   }) async {
     if (targetElement != null) {
-      for (final running in _declarationsPhaseRunning.indexed) {
-        if (running.$2.target.element == targetElement) {
-          final id = 'DPI${_declarationsPhaseCycleIndex++}';
-          _declarationsPhaseCycleApplications[id] =
-              _declarationsPhaseRunning.skip(running.$1).toList();
-          throw StateError('[$id] Declarations phase introspection cycle.');
+      for (var i = 0; i < _declarationsPhaseRunning.length; i++) {
+        var running = _declarationsPhaseRunning[i];
+        if (running.target.element == targetElement) {
+          var applications = _declarationsPhaseRunning.sublist(i);
+          var exception = _MacroIntrospectionCycleException(
+            'Declarations phase introspection cycle.',
+            applications: applications,
+          );
+
+          // Mark all applications as having introspection cycle.
+          // So, every introspection of these elements will throw.
+          for (var application in applications) {
+            var element = application.target.element;
+            _elementToIntrospectionCycleException[element] = exception;
+          }
+
+          throw exception;
         }
       }
     }
@@ -303,6 +329,10 @@ class LibraryMacroApplier {
         _addDiagnostics(application, result);
         if (result.isNotEmpty) {
           results.add(result);
+        }
+
+        if (testThrowExceptionDeclarations) {
+          throw 'Intentional exception';
         }
       },
       targetElement: application.target.element,
@@ -342,6 +372,10 @@ class LibraryMacroApplier {
         if (result.isNotEmpty) {
           results.add(result);
         }
+
+        if (testThrowExceptionDefinitions) {
+          throw 'Intentional exception';
+        }
       },
       targetElement: application.target.element,
       annotationIndex: application.annotationIndex,
@@ -371,6 +405,10 @@ class LibraryMacroApplier {
         _addDiagnostics(application, result);
         if (result.isNotEmpty) {
           results.add(result);
+        }
+
+        if (testThrowExceptionTypes) {
+          throw 'Intentional exception';
         }
       },
       targetElement: application.target.element,
@@ -427,31 +465,44 @@ class LibraryMacroApplier {
         continue;
       }
 
-      final arguments = await _runWithCatchingExceptions(
+      final instance = await _runWithCatchingExceptions(
         () async {
-          return _buildArguments(
+          final arguments = _buildArguments(
             annotationIndex: annotationIndex,
             constructor: constructorElement,
             node: importedMacro.arguments,
+          );
+
+          return await importedMacro.bundleExecutor.instantiate(
+            libraryUri: importedMacro.macroLibrary.source.uri,
+            className: importedMacro.macroClass.name,
+            constructorName: importedMacro.constructorName ?? '',
+            arguments: arguments,
           );
         },
         targetElement: targetElement,
         annotationIndex: annotationIndex,
       );
-      if (arguments == null) {
+      if (instance == null) {
         continue;
       }
-
-      final instance = await importedMacro.bundleExecutor.instantiate(
-        libraryUri: importedMacro.macroLibrary.source.uri,
-        className: importedMacro.macroClass.name,
-        constructorName: importedMacro.constructorName ?? '',
-        arguments: arguments,
-      );
 
       final phasesToExecute = macro.Phase.values.where((phase) {
         return instance.shouldExecute(targetDeclarationKind, phase);
       }).toSet();
+
+      if (!instance.supportsDeclarationKind(targetDeclarationKind)) {
+        macroTarget.element.addMacroDiagnostic(
+          InvalidMacroTargetDiagnostic(
+            annotationIndex: annotationIndex,
+            supportedKinds: macro.DeclarationKind.values
+                .where(instance.supportsDeclarationKind)
+                .map((e) => e.name)
+                .toList(),
+          ),
+        );
+        return;
+      }
 
       final application = _MacroApplication(
         target: macroTarget,
@@ -512,7 +563,16 @@ class LibraryMacroApplier {
         case macro.DeclarationDiagnosticTarget macroTarget:
           final element = (macroTarget.declaration as HasElement).element;
           target = ElementMacroDiagnosticTarget(element: element);
-        default:
+        case macro.TypeAnnotationDiagnosticTarget macroTarget:
+          target = _typeAnnotationTarget(application, macroTarget);
+        case macro.MetadataAnnotationDiagnosticTarget macroTarget:
+          var annotation =
+              macroTarget.metadataAnnotation as MetadataAnnotationImpl;
+          target = ElementAnnotationMacroDiagnosticTarget(
+            element: annotation.element,
+            annotationIndex: annotation.annotationIndex,
+          );
+        case null:
           target = ApplicationMacroDiagnosticTarget(
             annotationIndex: application.annotationIndex,
           );
@@ -524,51 +584,61 @@ class LibraryMacroApplier {
       );
     }
 
-    bool addAsDeclarationsPhaseIntrospectionCycle(
-      macro.Diagnostic diagnostic,
-    ) {
-      final pattern = RegExp(r'\[(DPI\d+)\] ');
-      final match = pattern.firstMatch(diagnostic.message.message);
-      if (match == null) {
-        return false;
-      }
-
-      final id = match.group(1);
-      final applications = _declarationsPhaseCycleApplications[id];
-      if (applications == null) {
-        return false;
-      }
-
-      final components = applications.map((application) {
-        return DeclarationsIntrospectionCycleComponent(
-          element: application.target.element,
-          annotationIndex: application.annotationIndex,
-        );
-      }).toList();
-
-      // Report the cycle at the first element.
-      final firstElement = applications.first.target.element;
-      firstElement.addMacroDiagnostic(
-        DeclarationsIntrospectionCycleDiagnostic(
-          components: components,
-        ),
-      );
-      return true;
-    }
-
     for (final diagnostic in result.diagnostics) {
-      if (addAsDeclarationsPhaseIntrospectionCycle(diagnostic)) {
-        continue;
-      }
-
       application.target.element.addMacroDiagnostic(
         MacroDiagnostic(
           severity: diagnostic.severity,
           message: convertMessage(diagnostic.message),
           contextMessages:
               diagnostic.contextMessages.map(convertMessage).toList(),
+          correctionMessage: diagnostic.correctionMessage,
         ),
       );
+    }
+
+    bool addIntrospectionCycle(macro.MacroException? exception) {
+      if (exception is! _MacroIntrospectionCycleException) {
+        return false;
+      }
+
+      var introspectedElement = application.lastIntrospectedElement;
+      if (introspectedElement == null) {
+        return false;
+      }
+
+      var applications = exception.applications;
+      final components = applications.map((application) {
+        return DeclarationsIntrospectionCycleComponent(
+          element: application.target.element,
+          annotationIndex: application.annotationIndex,
+          introspectedElement: application.lastIntrospectedElement!,
+        );
+      }).toList();
+
+      // Report only for this application.
+      // Introspections of every cycle component will report it too.
+      // Macro implementations can catch and ignore introspection exceptions.
+      application.target.element.addMacroDiagnostic(
+        DeclarationsIntrospectionCycleDiagnostic(
+          annotationIndex: application.annotationIndex,
+          introspectedElement: introspectedElement,
+          components: components,
+        ),
+      );
+      return true;
+    }
+
+    if (result.exception case var exception?) {
+      var reported = addIntrospectionCycle(exception);
+      if (!reported) {
+        application.target.element.addMacroDiagnostic(
+          ExceptionMacroDiagnostic(
+            annotationIndex: application.annotationIndex,
+            message: exception.message,
+            stackTrace: exception.stackTrace ?? '<null>',
+          ),
+        );
+      }
     }
   }
 
@@ -688,6 +758,23 @@ class LibraryMacroApplier {
     return null;
   }
 
+  MacroDiagnosticTarget _typeAnnotationTarget(
+    _MacroApplication application,
+    macro.TypeAnnotationDiagnosticTarget macroTarget,
+  ) {
+    switch (macroTarget.typeAnnotation) {
+      case TypeAnnotationWithLocation typeAnnotation:
+        return TypeAnnotationMacroDiagnosticTarget(
+          location: typeAnnotation.location,
+        );
+    }
+
+    // We don't know anything better.
+    return ApplicationMacroDiagnosticTarget(
+      annotationIndex: application.annotationIndex,
+    );
+  }
+
   static macro.Arguments _buildArguments({
     required int annotationIndex,
     required ConstructorElement constructor,
@@ -746,11 +833,11 @@ class LibraryMacroApplier {
       return await body();
     } on AnalyzerMacroDiagnostic catch (e) {
       targetElement.addMacroDiagnostic(e);
-    } on macro.RemoteException catch (e) {
+    } on macro.MacroException catch (e) {
       targetElement.addMacroDiagnostic(
         ExceptionMacroDiagnostic(
           annotationIndex: annotationIndex,
-          message: e.error,
+          message: e.message,
           stackTrace: e.stackTrace ?? '<null>',
         ),
       );
@@ -803,7 +890,7 @@ class _ArgumentEvaluation {
       return macro.StringArgument(node.strings
           .map((e) => evaluate(contextType, e))
           .map((arg) => arg.value)
-          .join(''));
+          .join());
     } else if (node is ast.BooleanLiteral) {
       return macro.BoolArgument(node.value);
     } else if (node is ast.DoubleLiteral) {
@@ -937,6 +1024,10 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
   Future<List<macro.FieldDeclaration>> fieldsOf(
     macro.TypeDeclaration type,
   ) async {
+    if (LibraryMacroApplier.testThrowExceptionIntrospection) {
+      throw 'Intentional exception';
+    }
+
     final element = (type as HasElement).element;
     await _runDeclarationsPhase(element);
 
@@ -1018,9 +1109,17 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
       return;
     }
 
+    current?.lastIntrospectedElement = element;
     await applier.runDeclarationsPhase(
       targetElement: element,
     );
+
+    // We might have detected a cycle for this target element.
+    // Either just now, or before.
+    var exception = applier._elementToIntrospectionCycleException[element];
+    if (exception != null) {
+      throw exception;
+    }
   }
 }
 
@@ -1065,6 +1164,7 @@ class _MacroApplication {
   final ast.Annotation annotationNode;
   final macro.MacroInstanceIdentifier instance;
   final Set<macro.Phase> phasesToExecute;
+  ElementImpl? lastIntrospectedElement;
 
   _MacroApplication({
     required this.target,
@@ -1081,6 +1181,16 @@ class _MacroApplication {
   void removeDeclarationsPhase() {
     phasesToExecute.remove(macro.Phase.declarations);
   }
+}
+
+final class _MacroIntrospectionCycleException
+    extends macro.MacroIntrospectionCycleExceptionImpl {
+  final List<_MacroApplication> applications;
+
+  _MacroIntrospectionCycleException(
+    super.message, {
+    required this.applications,
+  });
 }
 
 class _MacroTarget {
@@ -1129,14 +1239,17 @@ class _TypePhaseIntrospector implements macro.TypePhaseIntrospector {
     final lookup = libraryElement.scope.lookup(name);
     var element = lookup.getter ?? lookup.setter;
     if (element is PropertyAccessorElement && element.isSynthetic) {
-      element = element.variable;
+      element = element.variable2;
     }
     if (element == null) {
-      throw ArgumentError([
-        'Unresolved identifier.',
-        'library: $library',
-        'name: $name',
-      ].join('\n'));
+      throw macro.MacroImplementationExceptionImpl(
+        [
+          'Unresolved identifier.',
+          'library: $library',
+          'name: $name',
+        ].join('\n'),
+        stackTrace: StackTrace.current.toString(),
+      );
     }
     return declarationBuilder.fromElement.identifier(element);
   }

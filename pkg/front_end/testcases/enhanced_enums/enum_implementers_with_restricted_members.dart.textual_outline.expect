@@ -49,4 +49,5 @@ abstract class A5 implements Enum {
 mixin M5 implements Enum {
   int foo = 0, bar = 1, index = 2, hashCode = 3;
 }
+
 main() {}

@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -49,15 +50,16 @@ class AbstractNavigationTest extends PubPackageAnalysisServerTest {
 
   void assertHasOperatorRegion(String regionSearch, int regionLength,
       String targetSearch, int targetLength) {
-    assertHasRegion(regionSearch, regionLength);
-    assertHasTarget(targetSearch, targetLength);
+    assertHasRegion(regionSearch, length: regionLength);
+    assertHasTarget(targetSearch, length: targetLength);
   }
 
   /// Validates that there is a region at the offset of [search] in [testFile].
   /// If [length] is not specified explicitly, then length of an identifier
   /// from [search] is used.
-  void assertHasRegion(String search, [int length = -1]) {
-    var offset = findOffset(search);
+  void assertHasRegion(String search, {int length = -1, File? targetFile}) {
+    var file = targetFile ?? testFile;
+    var offset = offsetInFile(file, search);
     if (length == -1) {
       length = findIdentifierLength(search);
     }
@@ -78,19 +80,20 @@ class AbstractNavigationTest extends PubPackageAnalysisServerTest {
   /// at [targetSearch].
   void assertHasRegionTarget(String regionSearch, String targetSearch,
       {int regionLength = -1, int targetLength = -1}) {
-    assertHasRegion(regionSearch, regionLength);
-    assertHasTarget(targetSearch, targetLength);
+    assertHasRegion(regionSearch, length: regionLength);
+    assertHasTarget(targetSearch, length: targetLength);
   }
 
   /// Validates that there is a target in [testTargets]  with [testFile], at the
   /// offset of [search] in [testFile], and with the given [length] or the
   /// length of an leading identifier in [search].
-  void assertHasTarget(String search, [int length = -1]) {
-    var offset = findOffset(search);
+  void assertHasTarget(String search, {int length = -1, File? targetFile}) {
+    var file = targetFile ?? testFile;
+    var offset = offsetInFile(file, search);
     if (length == -1) {
       length = findIdentifierLength(search);
     }
-    assertHasFileTarget(testFile.path, offset, length);
+    assertHasFileTarget(file.path, offset, length);
   }
 
   // TODO(scheglov): Improve target matching.
@@ -112,7 +115,7 @@ class AbstractNavigationTest extends PubPackageAnalysisServerTest {
   /// Validates that there is a target in [testTargets]  with [testFile], at the
   /// offset of [str] in [testFile], and with the length of  [str].
   void assertHasTargetString(String str) {
-    assertHasTarget(str, str.length);
+    assertHasTarget(str, length: str.length);
   }
 
   /// Validates that there is not a region at [search] and with the given
@@ -179,13 +182,14 @@ class AbstractNavigationTest extends PubPackageAnalysisServerTest {
 class AnalysisNotificationNavigationTest extends AbstractNavigationTest {
   final Completer<void> _resultsAvailable = Completer();
 
+  String get augmentFilePath => '$testPackageLibPath/a.dart';
+
   Future<void> prepareNavigation() async {
     await handleSuccessfulRequest(
       AnalysisSetSubscriptionsParams({
         AnalysisService.NAVIGATION: [testFile.path],
       }).toRequest('0'),
     );
-
     await _resultsAvailable.future;
     assertRegionsSorted();
   }
@@ -194,7 +198,7 @@ class AnalysisNotificationNavigationTest extends AbstractNavigationTest {
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_NAVIGATION) {
       var params = AnalysisNavigationParams.fromNotification(notification);
-      if (params.file == testFile.path) {
+      if (params.file == testFile.path || params.file == augmentFilePath) {
         regions = params.regions;
         targets = params.targets;
         targetFiles = params.files;
@@ -369,6 +373,96 @@ void f() {
     assertHasRegion('myan // ref');
   }
 
+  Future<void> test_augmentation_class_method() async {
+    addTestFile(r'''
+library augment 'a.dart';
+augment class A {
+   foo(){
+     bar();
+   }
+}
+''');
+    var aFile = newFile(augmentFilePath, '''
+import augment 'test.dart';
+
+class A {
+  void bar(){}
+}
+''');
+
+    await prepareNavigation();
+    assertHasRegion('bar');
+    assertHasTarget('bar', targetFile: aFile);
+  }
+
+  Future<void> test_augmentation_within_augment() async {
+    addTestFile(r'''
+library augment 'a.dart';
+augment class A {
+   A.named(){
+     bar();
+   }
+
+  void bar(){}
+}
+''');
+    newFile(augmentFilePath, '''
+import augment 'test.dart';
+
+class A {}
+
+void f() {
+  A.named();
+}
+''');
+
+    await prepareNavigation();
+    assertHasRegion('bar');
+    assertHasFileTarget(convertPath(testFilePath), 83, 3);
+  }
+
+  Future<void> test_class_augmentation_constructor() async {
+    var aFile = newFile(augmentFilePath, r'''
+library augment 'test.dart';
+augment class A {
+   A.named(){}
+}
+''');
+    addTestFile('''
+import augment 'a.dart';
+
+class A {}
+
+void f() {
+  A.named();
+}
+''');
+    await prepareNavigation();
+    assertHasRegion('named');
+    assertHasTarget('named', targetFile: aFile);
+  }
+
+  Future<void> test_class_augmentation_method() async {
+    var aFile = newFile(augmentFilePath, r'''
+library augment 'test.dart';
+augment class A {
+  void foo() {}
+}
+''');
+    addTestFile('''
+import augment 'a.dart';
+
+class A {}
+
+void f() {
+  A().foo();
+}
+''');
+    await prepareNavigation();
+    assertHasRegion('foo');
+    assertHasTarget('foo', targetFile: aFile);
+  }
+
   Future<void> test_class_constructor_named() async {
     addTestFile('''
 class A {
@@ -380,9 +474,9 @@ class BBB {}
     // has no region for complete "A.named"
     assertNoRegion('A.named', 'A.named'.length);
     // has separate regions for "A" and "named"
-    assertHasRegion('A.named(', 'A'.length);
+    assertHasRegion('A.named(', length: 'A'.length);
     assertHasTarget('A {');
-    assertHasRegion('named(', 'named'.length);
+    assertHasRegion('named(', length: 'named'.length);
     assertHasTarget('named(BBB');
     // validate that we don't forget to resolve parameters
     assertHasRegionTarget('BBB p', 'BBB {}');
@@ -533,7 +627,7 @@ class C<T> {
       assertHasTarget('A {');
     }
     {
-      assertHasRegion('named;', 'named'.length);
+      assertHasRegion('named;', length: 'named'.length);
       assertHasTarget('named() {}');
     }
   }
@@ -1173,11 +1267,11 @@ void f() {
 ''');
     await prepareNavigation();
     {
-      assertHasRegion('B<A>', 'B'.length);
+      assertHasRegion('B<A>', length: 'B'.length);
       assertHasTarget('B<T> {');
     }
     {
-      assertHasRegion('A>();', 'A'.length);
+      assertHasRegion('A>();', length: 'A'.length);
       assertHasTarget('A {');
     }
   }
@@ -1222,7 +1316,7 @@ void f() {
       assertHasTarget('A {');
     }
     {
-      assertHasRegion('named();', 'named'.length);
+      assertHasRegion('named();', length: 'named'.length);
       assertHasTarget('named() {}');
     }
   }
@@ -1329,7 +1423,7 @@ void g() {
 const int foo = 0;
 ''');
     await prepareNavigation();
-    assertHasRegion(exampleLinkPath, 31);
+    assertHasRegion(exampleLinkPath, length: 31);
     assertHasFileTarget(exampleApiFile, 0, 0);
   }
 
@@ -1358,9 +1452,9 @@ const int foo = 0;
 const int foo = 0;
 ''');
     await prepareNavigation();
-    assertHasRegion(exampleLinkPath0, 33);
+    assertHasRegion(exampleLinkPath0, length: 33);
     assertHasFileTarget(exampleApiFile0, 0, 0);
-    assertHasRegion(exampleLinkPath1, 33);
+    assertHasRegion(exampleLinkPath1, length: 33);
     assertHasFileTarget(exampleApiFile1, 0, 0);
   }
 

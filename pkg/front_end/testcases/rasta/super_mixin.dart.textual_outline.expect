@@ -10,5 +10,7 @@ class C<V> extends Super<V> with Mixin<V> {}
 class D extends Super with Mixin {}
 
 class C2<V> = Super<V> with Mixin<V>;
+
 class D2 = Super with Mixin;
+
 main() {}

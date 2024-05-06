@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:expect/variations.dart" as v;
 
 class A {}
 
@@ -37,30 +38,27 @@ class C extends B<A> {
 }
 
 main() {
-  // Covariance checks are omitted in dart2js production mode.
-  if (dart2jsProductionMode) return;
-
   // Dynamic method calls should always have their arguments type checked.
   dynamic d = new C();
-  Expect.throwsTypeError(() => d.f1(new Object()));
+  Expect.throwsTypeErrorWhen(v.checkedParameters, () => d.f1(new Object()));
 
   // Closure calls should have any arguments marked "genericCovariantImpl" type
   // checked.
   B<Object> b = new C();
   void Function(Object) f = b.f2;
-  Expect.throwsTypeError(() => f(new Object()));
+  Expect.throwsTypeErrorWhen(v.checkedParameters, () => f(new Object()));
 
   // Interface calls should have any arguments marked "genericCovariantImpl"
   // type checked provided that the corresponding argument on the interface
   // target is marked "genericCovariantInterface".
-  Expect.throwsTypeError(() => b.f2(new Object()));
+  Expect.throwsTypeErrorWhen(v.checkedParameters, () => b.f2(new Object()));
 
   // Interface calls should have any arguments marked "covariant" type checked,
   // regardless of whether the corresponding argument on the interface target is
   // marked "genericCovariantInterface".
-  Expect.throwsTypeError(() => b.f3(new Object()));
-  Expect.throwsTypeError(() => b.f4(new Object()));
+  Expect.throwsTypeErrorWhen(v.checkedParameters, () => b.f3(new Object()));
+  Expect.throwsTypeErrorWhen(v.checkedParameters, () => b.f4(new Object()));
 
   // This calls should have any arguments marked "covariant" type checked.
-  Expect.throwsTypeError(() => b.f5(new Object()));
+  Expect.throwsTypeErrorWhen(v.checkedParameters, () => b.f5(new Object()));
 }

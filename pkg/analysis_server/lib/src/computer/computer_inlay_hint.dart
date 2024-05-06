@@ -5,7 +5,6 @@
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide Element;
 import 'package:analysis_server/src/lsp/mapping.dart';
-import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
@@ -25,13 +24,11 @@ class DartInlayHintComputer {
   final path.Context pathContext;
   final LineInfo _lineInfo;
   final CompilationUnit _unit;
-  final bool _isNonNullableByDefault;
   final List<InlayHint> _hints = [];
 
   DartInlayHintComputer(this.pathContext, ResolvedUnitResult result)
       : _unit = result.unit,
-        _lineInfo = result.lineInfo,
-        _isNonNullableByDefault = result.unit.isNonNullableByDefault;
+        _lineInfo = result.lineInfo;
 
   List<InlayHint> compute() {
     _unit.accept(_DartInlayHintComputerVisitor(this));
@@ -177,8 +174,7 @@ class DartInlayHintComputer {
       parts.add(InlayHintLabelPart(
         // Write type without type args or nullability suffix. Type args need
         // adding as their own parts, and the nullability suffix does after them.
-        value:
-            type.element?.name ?? type.getDisplayString(withNullability: false),
+        value: type.element?.name ?? type.getDisplayString(),
         location: _locationForElement(type.element),
       ));
       // Call recursively for any nested type arguments.
@@ -187,14 +183,10 @@ class DartInlayHintComputer {
       }
     }
     // Finally add any nullability suffix.
-    if (_isNonNullableByDefault) {
-      switch (type.nullabilitySuffix) {
-        case NullabilitySuffix.question:
-          parts.add(InlayHintLabelPart(value: '?'));
-        case NullabilitySuffix.star:
-          parts.add(InlayHintLabelPart(value: '*'));
-        default:
-      }
+    switch (type.nullabilitySuffix) {
+      case NullabilitySuffix.question:
+        parts.add(InlayHintLabelPart(value: '?'));
+      default:
     }
   }
 

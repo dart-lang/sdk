@@ -228,20 +228,20 @@ class SsaInstructionSelection extends HBaseVisitor<HInstruction?>
       .isPotentiallyTrue;
 
   @override
-  visitBinaryBitOp(HBinaryBitOp node) {
+  HBinaryBitOp visitBinaryBitOp(HBinaryBitOp node) {
     node.requiresUintConversion = _requiresUintConversion(node);
     return node;
   }
 
   @override
-  visitShiftRight(HShiftRight node) {
+  HShiftRight visitShiftRight(HShiftRight node) {
     // HShiftRight is JavaScript's `>>>` operation so result is always unsigned.
     node.requiresUintConversion = false;
     return node;
   }
 
   @override
-  visitBitNot(HBitNot node) {
+  HBitNot visitBitNot(HBitNot node) {
     node.requiresUintConversion = _requiresUintConversion(node);
     return node;
   }
@@ -450,7 +450,7 @@ class SsaInstructionSelection extends HBaseVisitor<HInstruction?>
   }
 
   @override
-  visitIf(HIf node) {
+  HIf visitIf(HIf node) {
     if (!_options.experimentToBoolean) return node;
     HInstruction condition = node.inputs.single;
     // if (x != null) --> if (x)
@@ -983,6 +983,64 @@ class SsaInstructionMerger extends HBaseVisitor<void> implements CodegenPhase {
     assert(false);
   }
 
+  @override
+  void visitReadModifyWrite(HReadModifyWrite instruction) {
+    if (instruction.isPreOp || instruction.isPostOp) {
+      analyzeInputs(instruction, 0);
+      return;
+    }
+    assert(instruction.isAssignOp);
+    // Generate-at-use is valid for the value operand (t1) if the expression
+    // tree for t1 does not change the order of effects or exceptions with
+    // respect to reading the field of the receiver (t2).
+    //
+    //     t1 = foo();
+    //     t2 = ...
+    //     t2.field += t1;
+    //
+    // 1. If the read of `t2.field` can throw, we can't move `t1` into the
+    //    use-site if some part of the expression tree for `t1` can throw.
+    //
+    // 2. If the expression for `t1` potentially modifies `t2.field`, we can't
+    //    move `t1` past the load `t2.field`.
+    //
+    // TODO(48243): If instruction merging was smarter about effects and was
+    // able to change the order of instructions that read non-aliased fields
+    // this analysis could probably be folded into the normal algorithm by
+    // having HReadModifyWrite have two SideEffects to model the read
+    // indepentently of the write.
+
+    bool throwCheck = instruction.canThrow(_abstractValueDomain);
+
+    bool isSafeSubexpression(HInstruction expression) {
+      // If an expression value is used in more than one place it will be
+      // assigned to a JavaScript variable.
+      if (expression.usedBy.length > 1) return true;
+
+      // Expressions that are generated as JavaScript statements have their
+      // value stored in a variable.
+      if (expression.isJsStatement()) return true;
+
+      // Condition 1.
+      if (throwCheck && expression.canThrow(_abstractValueDomain)) return false;
+
+      // Condition 2.
+      if (expression.sideEffects.changesInstanceProperty()) return false;
+
+      // Many phis end up as JavaScript variables, which would be just fine as
+      // part of the value expression. Since SsaConditionMerger is a separate
+      // pass we can't tell if this phi will become a generate-at-use expression
+      // that is invalid as a subexpression of the value expression.
+      if (expression is HPhi) return false;
+
+      return expression.inputs.every(isSafeSubexpression);
+    }
+
+    if (isSafeSubexpression(instruction.value)) {
+      analyzeInputs(instruction, 0);
+    }
+  }
+
   void tryGenerateAtUseSite(HInstruction instruction) {
     if (instruction.isControlFlow()) return;
     markAsGenerateAtUseSite(instruction);
@@ -1185,6 +1243,12 @@ class SsaConditionMerger extends HGraphVisitor implements CodegenPhase {
     // A [HCheck] instruction with control flow uses its input
     // multiple times, so we avoid generating it at use site.
     if (user is HCheck && user.isControlFlow()) return false;
+
+    // A read-modify-write like `o.field += value` reads the field before
+    // evaluating the value, so if we generate [input] at the value, the order
+    // of field reads may be changed.
+    if (user is HReadModifyWrite && input == user.inputs.last) return false;
+
     // Avoid code motion into a loop.
     return user.hasSameLoopHeaderAs(input);
   }
@@ -1229,7 +1293,7 @@ class SsaConditionMerger extends HGraphVisitor implements CodegenPhase {
     HBasicBlock elseBlock = startIf.elseBlock;
 
     if (!identical(end.predecessors[1], elseBlock)) return;
-    HPhi phi = end.phis.first as HPhi;
+    final phi = end.phis.first!;
     // This useless phi should have been removed.  Do not generate-at-use if
     // there is no use. See #48383.
     if (phi.usedBy.isEmpty) return;
@@ -1260,7 +1324,7 @@ class SsaConditionMerger extends HGraphVisitor implements CodegenPhase {
         if (otherJoin.successors[0] != end) return;
         if (otherJoin.phis.isEmpty) return;
         if (!identical(otherJoin.phis.first, otherJoin.phis.last)) return;
-        HPhi otherPhi = otherJoin.phis.first as HPhi;
+        final otherPhi = otherJoin.phis.first!;
         if (thenInput != otherPhi) return;
         if (elseInput != otherPhi.inputs[1]) return;
       }
@@ -1343,7 +1407,7 @@ class SsaShareRegionConstants extends HBaseVisitor<void>
   }
 
   // Replace cacheable uses with a reference to a HLateValue node.
-  _cache(
+  void _cache(
       HInstruction node, bool Function(HInstruction) cacheable, String name) {
     var users = node.usedBy.toList();
     var reference = HLateValue(node);

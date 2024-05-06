@@ -24,10 +24,10 @@ library;
 //   ^^
 //
 // pkg/front_end/testcases/constructor_tearoffs/explicit_new_as_unnamed.dart:32:3: Error: 'E2' is already declared in this scope.
-//   E2();
+//   E2(); // Error.
 //   ^^
 // pkg/front_end/testcases/constructor_tearoffs/explicit_new_as_unnamed.dart:31:11: Context: Previous declaration of 'E2'.
-//   factory E2.new() => E2._(); // Error.
+//   factory E2.new() => E2._();
 //           ^^
 //
 // pkg/front_end/testcases/constructor_tearoffs/explicit_new_as_unnamed.dart:38:11: Error: 'E3' is already declared in this scope.

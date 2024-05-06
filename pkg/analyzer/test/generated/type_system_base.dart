@@ -5,6 +5,7 @@
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 
 import 'elements_types_mixin.dart';
 import 'test_analysis_context.dart';
@@ -20,10 +21,14 @@ abstract class AbstractTypeSystemTest with ElementsTypesMixin {
 
   late TypeSystemImpl typeSystem;
 
+  late TypeSystemOperations typeSystemOperations;
+
   void setUp() {
     analysisContext = TestAnalysisContext();
-    typeProvider = analysisContext.typeProviderNonNullableByDefault;
-    typeSystem = analysisContext.typeSystemNonNullableByDefault;
+    typeProvider = analysisContext.typeProvider;
+    typeSystem = analysisContext.typeSystem;
+    typeSystemOperations = TypeSystemOperations(typeSystem,
+        strictCasts: analysisContext.analysisOptions.strictCasts);
 
     testLibrary = library_(
       uriStr: 'package:test/test.dart',

@@ -1,0 +1,19 @@
+# Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+[ $compiler == dart2wasm ]
+Language/Expressions/Constants/Constant_Contexts/constant_context_A02_t01: SkipByDesign # dart:mirrors is not supported.
+Language/Expressions/Spawning_an_Isolate/new_isolate_t01: SkipByDesign # dart:isolate is not supported.
+Language/Libraries_and_Scripts/Scripts/top_level_main_t01: SkipByDesign # dart:io is not supported.
+Language/Libraries_and_Scripts/Scripts/top_level_main_t06: SkipByDesign # dart:io is not supported.
+Language/Types/Interface_Types/subtype_t27: Skip # https://github.com/dart-lang/sdk/issues/42641
+LanguageFeatures/FinalizationRegistry/ffi/*: SkipByDesign # dart:ffi is not supported.
+LibTest/ffi/*: SkipByDesign # dart:ffi is not supported.
+LibTest/html/*: SkipByDesign # dart:html is not supported.
+LibTest/io/*: SkipByDesign # dart:io is not supported.
+LibTest/isolate/*: SkipByDesign # dart:isolate is not supported.
+LibTest/mirrors/*: SkipByDesign # dart:mirrors is not supported.
+
+[ $compiler == dart2wasm && $runtime == chrome ]
+Language/Expressions/Function_Invocation/async_generator_invokation_t10: SkipSlow # Issue(http://dartbug.com/55025)

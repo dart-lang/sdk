@@ -7,11 +7,13 @@ static method test1(dynamic x) → dynamic
     final core::Map<core::int, core::int> #t1 = <core::int, core::int>{};
     #t1.{core::Map::[]=}{Invariant}(1, 1){(core::int, core::int) → void};
     {
-      hoisted core::int y;
       final synthesized dynamic #0#0 = x;
-      if(#0#0 is core::int) {
-        y = #0#0{core::int};
-        #t1.{core::Map::[]=}{Invariant}(2, y){(core::int, core::int) → void};
+      {
+        hoisted core::int y;
+        if(#0#0 is core::int) {
+          y = #0#0{core::int};
+          #t1.{core::Map::[]=}{Invariant}(2, y){(core::int, core::int) → void};
+        }
       }
     }
     #t1.{core::Map::[]=}{Invariant}(3, 3){(core::int, core::int) → void};
@@ -21,14 +23,16 @@ static method test2(dynamic x) → dynamic
     final core::Map<core::int, core::Object?> #t2 = <core::int, core::Object?>{};
     #t2.{core::Map::[]=}{Invariant}(1, 1){(core::int, core::Object?) → void};
     {
-      hoisted core::String y;
       final synthesized dynamic #0#0 = x;
-      if(#0#0 is core::String) {
-        y = #0#0{core::String};
-        #t2.{core::Map::[]=}{Invariant}(2, y){(core::int, core::Object?) → void};
+      {
+        hoisted core::String y;
+        if(#0#0 is core::String) {
+          y = #0#0{core::String};
+          #t2.{core::Map::[]=}{Invariant}(2, y){(core::int, core::Object?) → void};
+        }
+        else
+          #t2.{core::Map::[]=}{Invariant}(2, null){(core::int, core::Object?) → void};
       }
-      else
-        #t2.{core::Map::[]=}{Invariant}(2, null){(core::int, core::Object?) → void};
     }
     #t2.{core::Map::[]=}{Invariant}(3, 3){(core::int, core::Object?) → void};
   } =>#t2;
@@ -37,10 +41,12 @@ static method test3(dynamic x) → dynamic
     final core::Map<core::int, core::Object> #t3 = <core::int, core::Object>{};
     #t3.{core::Map::[]=}{Invariant}(1, 1){(core::int, core::Object) → void};
     {
-      hoisted core::bool b;
       final synthesized dynamic #0#0 = x;
-      if(#0#0 is core::bool && (let final core::bool #t4 = b = #0#0{core::bool} in true) && b)
-        #t3.{core::Map::[]=}{Invariant}(2, b){(core::int, core::Object) → void};
+      {
+        hoisted core::bool b;
+        if(#0#0 is core::bool && (let final core::bool #t4 = b = #0#0{core::bool} in true) && b)
+          #t3.{core::Map::[]=}{Invariant}(2, b){(core::int, core::Object) → void};
+      }
     }
     #t3.{core::Map::[]=}{Invariant}(3, 3){(core::int, core::Object) → void};
   } =>#t3;

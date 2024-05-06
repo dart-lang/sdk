@@ -22,7 +22,7 @@ class AddSwitchCaseBreakMultiTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.ADD_SWITCH_CASE_BREAK_MULTI;
 
   @override
-  String? get testPackageLanguageVersion => '2.19';
+  String get testPackageLanguageVersion => '2.19';
 
   Future<void> test_singleFile() async {
     await resolveTestCode('''
@@ -61,7 +61,7 @@ class AddSwitchCaseBreakTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.ADD_SWITCH_CASE_BREAK;
 
   @override
-  String? get testPackageLanguageVersion => '2.19';
+  String get testPackageLanguageVersion => '2.19';
 
   Future<void> test_sharedCaseBody() async {
     await resolveTestCode('''

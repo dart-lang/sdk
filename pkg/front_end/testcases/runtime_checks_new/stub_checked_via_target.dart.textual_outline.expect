@@ -1,6 +1,7 @@
 library test;
 
 void expectTypeError(void callback()) {}
+
 void expect(Object value, Object expected) {}
 
 class B {
@@ -14,5 +15,7 @@ abstract class I {
 class C extends B implements I {}
 
 void g(C c) {}
+
 void test(C c, I i) {}
+
 main() {}

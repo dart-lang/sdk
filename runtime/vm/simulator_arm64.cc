@@ -2307,21 +2307,21 @@ void Simulator::DecodeLoadStoreExclusive(Instr* instr) {
       const int64_t addr = get_register(rn, R31IsSP);
       const intptr_t value =
           (size == 3) ? ReadAcquire(addr, instr) : ReadAcquireW(addr, instr);
-      set_register(instr, rt, value, R31IsSP);
+      set_register(instr, rt, value, R31IsZR);
     } else {
       ASSERT(rs == R31);  // Should-Be-One
       // Format(instr, "ldxr 'rt, 'rn");
       const int64_t addr = get_register(rn, R31IsSP);
       const intptr_t value = (size == 3) ? ReadExclusiveX(addr, instr)
                                          : ReadExclusiveW(addr, instr);
-      set_register(instr, rt, value, R31IsSP);
+      set_register(instr, rt, value, R31IsZR);
     }
   } else {
     const bool is_store_release = !is_exclusive && is_ordered;
     if (is_store_release) {
       ASSERT(rs == R31);  // Should-Be-One
       // Format(instr, "stlr 'rt, 'rn");
-      const uword value = get_register(rt, R31IsSP);
+      const uword value = get_register(rt, R31IsZR);
       const uword addr = get_register(rn, R31IsSP);
       if (size == 3) {
         WriteRelease(addr, value, instr);
@@ -2330,7 +2330,7 @@ void Simulator::DecodeLoadStoreExclusive(Instr* instr) {
       }
     } else {
       // Format(instr, "stxr 'rs, 'rt, 'rn");
-      const uword value = get_register(rt, R31IsSP);
+      const uword value = get_register(rt, R31IsZR);
       const uword addr = get_register(rn, R31IsSP);
       const intptr_t status =
           (size == 3)

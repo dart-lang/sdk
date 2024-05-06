@@ -3,6 +3,9 @@ library test;
 import 'dart:async';
 
 add2(int y) {}
+
 main() {}
+
 test(Future<int> f) {}
+
 void add(int x) {}

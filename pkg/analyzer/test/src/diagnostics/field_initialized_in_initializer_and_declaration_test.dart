@@ -16,6 +16,36 @@ main() {
 @reflectiveTest
 class FieldInitializedInInitializerAndDeclarationTest
     extends PubPackageResolutionTest {
+  test_class_augmentation() async {
+    newFile(testFile.path, r'''
+import augment 'a.dart';
+
+class A {
+  final int f = 0;
+  A();
+}
+''');
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+augment class A {
+  augment A() : f = 1;
+}
+''');
+
+    await resolveFile2(testFile);
+    assertNoErrorsInResult();
+
+    await resolveFile2(a);
+    assertErrorsInResult([
+      error(
+          CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
+          64,
+          1),
+    ]);
+  }
+
   test_class_both() async {
     await assertErrorsInCode('''
 class A {

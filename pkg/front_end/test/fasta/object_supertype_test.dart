@@ -28,12 +28,9 @@ import "package:front_end/src/fasta/messages.dart"
 import "package:front_end/src/fasta/source/source_loader.dart"
     show defaultDartCoreSource;
 
-import "package:front_end/src/fasta/ticker.dart" show Ticker;
-
-import "../../tool/_fasta/entry_points.dart" show CompileTask;
+import "package:front_end/src/kernel_generator_impl.dart";
 
 Future<List<DiagnosticMessage>> outline(String objectHeader) async {
-  final Ticker ticker = new Ticker(isVerbose: false);
   final Uri base = Uri.parse("org-dartlang-test:///");
 
   final MemoryFileSystem fs = new MemoryFileSystem(base);
@@ -67,8 +64,7 @@ Future<List<DiagnosticMessage>> outline(String objectHeader) async {
       inputs: [Uri.parse("dart:core"), Uri.parse("dart:collection")]));
 
   await context.runInContext<void>((_) async {
-    CompileTask task = new CompileTask(context, ticker);
-    await task.buildOutline();
+    await generateKernelInternal(buildSummary: true);
   });
   return messages;
 }

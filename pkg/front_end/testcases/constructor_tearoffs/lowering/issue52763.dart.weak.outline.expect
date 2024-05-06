@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 abstract class B extends core::Object /*hasConstConstructor*/  {
   final field core::bool autofocus;
-  const constructor •({required core::bool autofocus = null}) → self::B
+  const constructor •({required core::bool autofocus}) → self::B
     : self::B::autofocus = autofocus, super core::Object::•()
     ;
 }

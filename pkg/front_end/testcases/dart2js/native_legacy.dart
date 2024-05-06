@@ -15,14 +15,14 @@ set topLevelSetter(_) {}
 
 topLevelFunction() {}
 
-// NON_NATIVE_EXTERNAL               //# 01: compile-time error
-external get externalTopLevelGetter; //# 01: continued
+// NON_NATIVE_EXTERNAL
+external get externalTopLevelGetter;
 
-// NON_NATIVE_EXTERNAL                  //# 02: compile-time error
-external set externalTopLevelSetter(_); //# 02: continued
+// NON_NATIVE_EXTERNAL
+external set externalTopLevelSetter(_);
 
-// NON_NATIVE_EXTERNAL               //# 03: compile-time error
-external externalTopLevelFunction(); //# 03: continued
+// NON_NATIVE_EXTERNAL
+external externalTopLevelFunction();
 
 get nativeTopLevelGetter native;
 
@@ -34,17 +34,17 @@ class Class {
   Class.generative();
   factory Class.fact() => null as dynamic;
 
-  // NON_NATIVE_EXTERNAL               //# 08: compile-time error
-  external Class.externalGenerative(); //# 08: continued
+  // NON_NATIVE_EXTERNAL
+  external Class.externalGenerative();
 
-  // NON_NATIVE_EXTERNAL                 //# 09: compile-time error
-  external factory Class.externalFact(); //# 09: continued
+  // NON_NATIVE_EXTERNAL
+  external factory Class.externalFact();
 
-  // NATIVE_NON_INSTANCE_IN_NON_NATIVE_CLASS //# 10: compile-time error
-  Class.nativeGenerative() native; //# 10: continued
+  // NATIVE_NON_INSTANCE_IN_NON_NATIVE_CLASS
+  Class.nativeGenerative() native;
 
-  // NATIVE_NON_INSTANCE_IN_NON_NATIVE_CLASS //# 11: compile-time error
-  factory Class.nativeFact() native; //# 11: continued
+  // NATIVE_NON_INSTANCE_IN_NON_NATIVE_CLASS
+  factory Class.nativeFact() native;
 
   var instanceField;
   get instanceGetter => null;
@@ -56,36 +56,36 @@ class Class {
   static set staticSetter(_) {}
   static staticMethod() {}
 
-  // NON_NATIVE_EXTERNAL               //# 22: compile-time error
-  external get externalInstanceGetter; //# 22: continued
+  // NON_NATIVE_EXTERNAL
+  external get externalInstanceGetter;
 
-  // NON_NATIVE_EXTERNAL                  //# 23: compile-time error
-  external set externalInstanceSetter(_); //# 23: continued
+  // NON_NATIVE_EXTERNAL
+  external set externalInstanceSetter(_);
 
-  // NON_NATIVE_EXTERNAL             //# 24: compile-time error
-  external externalInstanceMethod(); //# 24: continued
+  // NON_NATIVE_EXTERNAL
+  external externalInstanceMethod();
 
-  // NON_NATIVE_EXTERNAL                    //# 25: compile-time error
-  external static get externalStaticGetter; //# 25: continued
+  // NON_NATIVE_EXTERNAL
+  external static get externalStaticGetter;
 
-  // NON_NATIVE_EXTERNAL                       //# 26: compile-time error
-  external static set externalStaticSetter(_); //# 26: continued
+  // NON_NATIVE_EXTERNAL
+  external static set externalStaticSetter(_);
 
-  // NON_NATIVE_EXTERNAL                  //# 27: compile-time error
-  external static externalStaticMethod(); //# 27: continued
+  // NON_NATIVE_EXTERNAL
+  external static externalStaticMethod();
 
   get nativeInstanceGetter native;
   set nativeInstanceSetter(_) native;
   nativeInstanceMethod() native;
 
-  // NATIVE_NON_INSTANCE_IN_NON_NATIVE_CLASS //# 28: compile-time error
-  static get nativeStaticGetter native; //# 28: continued
+  // NATIVE_NON_INSTANCE_IN_NON_NATIVE_CLASS
+  static get nativeStaticGetter native;
 
-  // NATIVE_NON_INSTANCE_IN_NON_NATIVE_CLASS //# 29: compile-time error
-  static set nativeStaticSetter(_) native; //# 29: continued
+  // NATIVE_NON_INSTANCE_IN_NON_NATIVE_CLASS
+  static set nativeStaticSetter(_) native;
 
-  // NATIVE_NON_INSTANCE_IN_NON_NATIVE_CLASS //# 30: compile-time error
-  static nativeStaticMethod() native; //# 30: continued
+  // NATIVE_NON_INSTANCE_IN_NON_NATIVE_CLASS
+  static nativeStaticMethod() native;
 }
 
 @Native('d')
@@ -94,10 +94,10 @@ class NativeClass {
 
   factory NativeClass.fact() => null as dynamic;
 
-  // NON_NATIVE_EXTERNAL                     //# 31: compile-time error
-  external NativeClass.externalGenerative(); //# 31: continued
-  // NON_NATIVE_EXTERNAL                       //# 32: compile-time error
-  external factory NativeClass.externalFact(); //# 32: continued
+  // NON_NATIVE_EXTERNAL
+  external NativeClass.externalGenerative();
+  // NON_NATIVE_EXTERNAL
+  external factory NativeClass.externalFact();
 
   NativeClass.nativeGenerative() native;
   factory NativeClass.nativeFact() native;
@@ -114,23 +114,23 @@ class NativeClass {
 
   var instanceNamedField;
 
-  // NON_NATIVE_EXTERNAL               //# 36: compile-time error
-  external get externalInstanceGetter; //# 36: continued
+  // NON_NATIVE_EXTERNAL
+  external get externalInstanceGetter;
 
-  // NON_NATIVE_EXTERNAL                  //# 37: compile-time error
-  external set externalInstanceSetter(_); //# 37: continued
+  // NON_NATIVE_EXTERNAL
+  external set externalInstanceSetter(_);
 
-  // NON_NATIVE_EXTERNAL             //# 38: compile-time error
-  external externalInstanceMethod(); //# 38: continued
+  // NON_NATIVE_EXTERNAL
+  external externalInstanceMethod();
 
-  // NON_NATIVE_EXTERNAL                    //# 39: compile-time error
-  external static get externalStaticGetter; //# 39: continued
+  // NON_NATIVE_EXTERNAL
+  external static get externalStaticGetter;
 
-  // NON_NATIVE_EXTERNAL                       //# 40: compile-time error
-  external static set externalStaticSetter(_); //# 40: continued
+  // NON_NATIVE_EXTERNAL
+  external static set externalStaticSetter(_);
 
-  // NON_NATIVE_EXTERNAL                  //# 41: compile-time error
-  external static externalStaticMethod(); //# 41: continued
+  // NON_NATIVE_EXTERNAL
+  external static externalStaticMethod();
 
   get nativeInstanceGetter native;
   set nativeInstanceSetter(_) native;
@@ -148,19 +148,19 @@ main() {
   topLevelGetter;
   topLevelSetter = null;
   topLevelFunction();
-  externalTopLevelGetter; //# 01: continued
-  externalTopLevelSetter = null; //# 02: continued
-  externalTopLevelFunction(); //# 03: continued
+  externalTopLevelGetter;
+  externalTopLevelSetter = null;
+  externalTopLevelFunction();
   nativeTopLevelGetter;
   nativeTopLevelSetter = null;
   nativeTopLevelFunction();
 
   var c1 = new Class.generative();
   new Class.fact();
-  new Class.externalGenerative(); //# 08: continued
-  new Class.externalFact(); //# 09: continued
-  new Class.nativeGenerative(); //# 10: continued
-  new Class.nativeFact(); //# 11: continued
+  new Class.externalGenerative();
+  new Class.externalFact();
+  new Class.nativeGenerative();
+  new Class.nativeFact();
   c1.instanceField;
   c1.instanceGetter;
   c1.instanceSetter = null;
@@ -169,23 +169,23 @@ main() {
   Class.staticGetter;
   Class.staticSetter = null;
   Class.staticMethod();
-  c1.externalInstanceGetter; //# 22: continued
-  c1.externalInstanceSetter = null; //# 23: continued
-  c1.externalInstanceMethod(); //# 24: continued
-  Class.externalStaticGetter; //# 25: continued
-  Class.externalStaticSetter = null; //# 26: continued
-  Class.externalStaticMethod(); //# 27: continued
+  c1.externalInstanceGetter;
+  c1.externalInstanceSetter = null;
+  c1.externalInstanceMethod();
+  Class.externalStaticGetter;
+  Class.externalStaticSetter = null;
+  Class.externalStaticMethod();
   c1.nativeInstanceGetter;
   c1.nativeInstanceSetter = null;
   c1.nativeInstanceMethod();
-  Class.nativeStaticGetter; //# 28: continued
-  Class.nativeStaticSetter = null; //# 29: continued
-  Class.nativeStaticMethod(); //# 30: continued
+  Class.nativeStaticGetter;
+  Class.nativeStaticSetter = null;
+  Class.nativeStaticMethod();
 
   var c2 = new NativeClass.generative();
   new NativeClass.fact();
-  new NativeClass.externalGenerative(); //# 31: continued
-  new NativeClass.externalFact(); //# 32: continued
+  new NativeClass.externalGenerative();
+  new NativeClass.externalFact();
   new NativeClass.nativeGenerative();
   new NativeClass.nativeFact();
   c2.instanceField;
@@ -196,12 +196,12 @@ main() {
   NativeClass.staticGetter;
   NativeClass.staticSetter = null;
   NativeClass.staticMethod();
-  c2.externalInstanceGetter; //# 36: continued
-  c2.externalInstanceSetter = null; //# 37: continued
-  c2.externalInstanceMethod(); //# 38: continued
-  NativeClass.externalStaticGetter; //# 39: continued
-  NativeClass.externalStaticSetter = null; //# 40: continued
-  NativeClass.externalStaticMethod(); //# 41: continued
+  c2.externalInstanceGetter;
+  c2.externalInstanceSetter = null;
+  c2.externalInstanceMethod();
+  NativeClass.externalStaticGetter;
+  NativeClass.externalStaticSetter = null;
+  NativeClass.externalStaticMethod();
   c2.nativeInstanceGetter;
   c2.nativeInstanceSetter = null;
   c2.nativeInstanceMethod();

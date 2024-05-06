@@ -213,6 +213,7 @@ import 'foo4.dart';
 
   test_sortDirectiveSectionsAlphabetically_dotInRelativePath_import_ok() async {
     await assertNoDiagnostics(r'''
+import '/foo5.dart';
 import '../../foo4.dart';
 import '../foo3.dart';
 import './foo2.dart';

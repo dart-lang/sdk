@@ -11,15 +11,19 @@ class A {
 class C {}
 
 const Object a = const Object();
+
 @a
 @A(3)
 int? f1, f2;
+
 @a
 @A(3)
 typedef F2 = void Function();
+
 @a
 @A(2)
 typedef void F1();
+
 @a
 @A(4)
 void main() {}

@@ -6,8 +6,10 @@ import 'dart:core' hide Type;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/target/targets.dart' show Target, TargetFlags;
 import 'package:kernel/testing/mock_sdk_component.dart';
 import 'package:test/test.dart';
+import 'package:vm/modular/target/vm.dart';
 import 'package:vm/transformations/type_flow/types.dart';
 
 class TestTypeHierarchy extends TypeHierarchy {
@@ -15,13 +17,18 @@ class TestTypeHierarchy extends TypeHierarchy {
   final Map<Class, Type> specializations;
   int classIdCounter = 0;
 
-  TestTypeHierarchy(CoreTypes coreTypes, this.classes, this.specializations)
-      : super(coreTypes, /*soundNullSafety=*/ true);
+  TestTypeHierarchy(
+      CoreTypes coreTypes, Target target, this.classes, this.specializations)
+      : super(coreTypes, target, /*soundNullSafety=*/ true);
 
   @override
   Type specializeTypeCone(TFClass base, {bool allowWideCone = false}) {
     return specializations[base.classNode]!;
   }
+
+  @override
+  bool hasAllocatedSubtypes(TFClass cls) =>
+      specializeTypeCone(cls) is! EmptyType;
 
   @override
   TFClass getTFClass(Class c) =>
@@ -40,9 +47,18 @@ class TestTypeHierarchy extends TypeHierarchy {
       throw "flattenedTypeArgumentsFor is not supported in the types test.";
 }
 
+class TestingTarget extends VmTarget {
+  TestingTarget() : super(TargetFlags());
+
+  // Mock SDK doesn't have _Closure class, use Function.
+  @override
+  Class concreteClosureClass(CoreTypes coreTypes) => coreTypes.functionClass;
+}
+
 main() {
   final Component component = createMockSdkComponent();
-  final CoreTypes coreTypes = new CoreTypes(component);
+  final CoreTypes coreTypes = CoreTypes(component);
+  final Target target = TestingTarget();
 
   test('types-builder', () {
     final Class c1 = new Class(name: 'C1', fileUri: dummyUri);
@@ -51,7 +67,7 @@ main() {
         typeParameters: [new TypeParameter('E')],
         fileUri: dummyUri);
 
-    final TypesBuilder tb = new TestTypeHierarchy(coreTypes, {}, {});
+    final TypesBuilder tb = new TestTypeHierarchy(coreTypes, target, {}, {});
     final tfc1 = tb.getTFClass(c1);
     final tfc2 = tb.getTFClass(c2);
     final tfFunction = tb.getTFClass(coreTypes.functionClass);
@@ -247,6 +263,7 @@ main() {
 
     final hierarchy = new TestTypeHierarchy(
         coreTypes,
+        target,
         // classes
         {
           c1: tfc1,

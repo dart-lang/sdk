@@ -15,23 +15,6 @@ main() {
 
 @reflectiveTest
 class UnnecessaryNonNullAssertionTest extends PubPackageResolutionTest {
-  test_legacy() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 2.5
-var x = 0;
-''');
-
-    await assertErrorsInCode('''
-import 'a.dart';
-
-f() {
-  x!;
-}
-''', [
-      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-    ]);
-  }
-
   test_nonNull_function() async {
     await assertErrorsInCode('''
 void g() {}

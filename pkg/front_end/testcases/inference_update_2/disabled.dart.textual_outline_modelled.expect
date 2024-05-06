@@ -1,4 +1,5 @@
 // @dart = 2.18
+
 abstract class C {
   C(int? i) : _privateFinalField = i;
   final int? _privateFinalField;

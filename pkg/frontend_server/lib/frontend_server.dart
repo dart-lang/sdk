@@ -334,8 +334,14 @@ abstract class CompilerInterface {
       String? scriptUri,
       bool isStatic);
 
-  /// Compiles [expression] in [libraryUri] at [line]:[column] to JavaScript
-  /// in [moduleName].
+  /// Compiles [expression] in library [libraryUri] and file [scriptUri]
+  /// at [line]:[column] to JavaScript in [moduleName].
+  ///
+  /// [libraryUri] and [scriptUri] can be the same, but if for instance
+  /// evaluating expressions in a part file the [libraryUri] will be the uri of
+  /// the "part of" file whereas [scriptUri] will be the uri of the part.
+  ///
+  /// [line] and [column] are 1-based.
   ///
   /// Values listed in [jsFrameValues] are substituted for their names in the
   /// [expression].
@@ -354,6 +360,7 @@ abstract class CompilerInterface {
   /// { 'dart':'dart_sdk', 'main': '/packages/hello_world_main.dart' }
   Future<void> compileExpressionToJs(
       String libraryUri,
+      String? scriptUri,
       int line,
       int column,
       Map<String, String> jsModules,
@@ -1022,6 +1029,7 @@ class FrontendCompiler implements CompilerInterface {
   @override
   Future<void> compileExpressionToJs(
       String libraryUri,
+      String? scriptUri,
       int line,
       int column,
       Map<String, String> jsModules,
@@ -1064,7 +1072,7 @@ class FrontendCompiler implements CompilerInterface {
     );
 
     final String? procedure = await expressionCompiler.compileExpressionToJs(
-        libraryUri, line, column, jsFrameValues, expression);
+        libraryUri, scriptUri, line, column, jsFrameValues, expression);
 
     final String result = errors.isNotEmpty ? errors[0] : procedure!;
 
@@ -1497,6 +1505,7 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
         compileExpressionToJsRequest.expression = string;
         await compiler.compileExpressionToJs(
             compileExpressionToJsRequest.libraryUri,
+            null /* not supported here - use json! */,
             compileExpressionToJsRequest.line,
             compileExpressionToJsRequest.column,
             compileExpressionToJsRequest.jsModules,
@@ -1634,6 +1643,7 @@ Future<void> processJsonInput(
   } else if (type == "COMPILE_EXPRESSION_JS") {
     String expression = getValue<String>("expression") ?? "";
     String libraryUri = getValue<String>("libraryUri") ?? "";
+    String? scriptUri = getValue<String?>("scriptUri");
     int line = getValue<int>("line") ?? -1;
     int column = getValue<int>("column") ?? -1;
     Map<String, String> jsModules = getMap("jsModules") ?? {};
@@ -1650,6 +1660,7 @@ Future<void> processJsonInput(
 
     await compiler.compileExpressionToJs(
       libraryUri,
+      scriptUri,
       line,
       column,
       jsModules,

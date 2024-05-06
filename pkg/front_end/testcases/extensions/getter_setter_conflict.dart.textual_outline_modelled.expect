@@ -4,6 +4,7 @@ class Class {
 }
 
 errors() {}
+
 expect(expected, actual) {}
 
 extension Extension0 on Class {

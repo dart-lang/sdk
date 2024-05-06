@@ -65,6 +65,13 @@ TEST_CASE(ReciprocalOps) {
 
 #define __ assembler->
 
+#if defined(PRODUCT)
+#define EXPECT_DISASSEMBLY(expected)
+#else
+#define EXPECT_DISASSEMBLY(expected)                                           \
+  EXPECT_STREQ(expected, test->RelativeDisassembly())
+#endif
+
 ASSEMBLER_TEST_GENERATE(Simple, assembler) {
   __ mov(R0, Operand(42));
   __ Ret();
@@ -1746,6 +1753,12 @@ ASSEMBLER_TEST_RUN(Udiv, test) {
   if (TargetCPUFeatures::integer_division_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(3, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+    EXPECT_DISASSEMBLY(
+        "e3a0001b mov r0, #27\n"
+        "e3a01009 mov r1, #9\n"
+        "e732f110 udiv r2, r0, r1\n"
+        "e1a00002 mov r0, r2\n"
+        "e12fff1e bx lr\n");
   }
 }
 
@@ -1764,6 +1777,12 @@ ASSEMBLER_TEST_RUN(Sdiv, test) {
   if (TargetCPUFeatures::integer_division_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(-3, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+    EXPECT_DISASSEMBLY(
+        "e3a0001b mov r0, #27\n"
+        "e3e01008 mvn r1, #8\n"
+        "e712f110 sdiv r2, r0, r1\n"
+        "e1a00002 mov r0, r2\n"
+        "e12fff1e bx lr\n");
   }
 }
 
@@ -3423,7 +3442,7 @@ ASSEMBLER_TEST_GENERATE(Vminqs_zero, assembler) {
 ASSEMBLER_TEST_RUN(Vminqs_zero, test) {
   EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
-    typedef int (*Tst)() DART_UNUSED;
+    typedef float (*Tst)() DART_UNUSED;
     float res = EXECUTE_TEST_CODE_FLOAT(Tst, test->entry());
     EXPECT_EQ(true, signbit(res) && (res == 0.0));
   }
@@ -3474,7 +3493,7 @@ ASSEMBLER_TEST_GENERATE(Vmaxqs_zero, assembler) {
 ASSEMBLER_TEST_RUN(Vmaxqs_zero, test) {
   EXPECT(test != nullptr);
   if (TargetCPUFeatures::neon_supported()) {
-    typedef int (*Tst)() DART_UNUSED;
+    typedef float (*Tst)() DART_UNUSED;
     float res = EXECUTE_TEST_CODE_FLOAT(Tst, test->entry());
     EXPECT_EQ(true, !signbit(res) && (res == 0.0));
   }

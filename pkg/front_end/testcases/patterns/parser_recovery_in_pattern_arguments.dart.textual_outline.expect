@@ -4,4 +4,5 @@ class C<T> {
 }
 
 Map<C<String>, int> foo() => throw 0;
+
 test() {}

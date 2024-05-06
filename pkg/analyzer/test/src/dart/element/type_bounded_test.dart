@@ -75,13 +75,11 @@ class DynamicBoundedTest extends AbstractTypeSystemTest {
   test_interfaceType() {
     _assertNotDynamicBounded(intNone);
     _assertNotDynamicBounded(intQuestion);
-    _assertNotDynamicBounded(intStar);
   }
 
   test_never() {
     _assertNotDynamicBounded(neverNone);
     _assertNotDynamicBounded(neverQuestion);
-    _assertNotDynamicBounded(neverStar);
   }
 
   test_void() {
@@ -125,17 +123,6 @@ class FunctionBoundedTest extends AbstractTypeSystemTest {
     );
   }
 
-  test_dynamic_typeParameter_hasBound_functionType_star() {
-    var T = typeParameter(
-      'T',
-      bound: functionTypeStar(returnType: voidNone),
-    );
-
-    _assertFunctionBounded(
-      typeParameterTypeStar(T),
-    );
-  }
-
   test_dynamic_typeParameter_hasBound_notFunction() {
     var T = typeParameter('T', bound: intNone);
 
@@ -161,22 +148,9 @@ class FunctionBoundedTest extends AbstractTypeSystemTest {
     var T = typeParameter('T');
 
     _assertNotFunctionBounded(
-      typeParameterTypeStar(
+      typeParameterTypeNone(
         T,
         promotedBound: functionTypeQuestion(
-          returnType: voidNone,
-        ),
-      ),
-    );
-  }
-
-  test_dynamic_typeParameter_hasPromotedBound_functionType_star() {
-    var T = typeParameter('T');
-
-    _assertFunctionBounded(
-      typeParameterTypeStar(
-        T,
-        promotedBound: functionTypeStar(
           returnType: voidNone,
         ),
       ),
@@ -206,9 +180,6 @@ class FunctionBoundedTest extends AbstractTypeSystemTest {
     _assertNotFunctionBounded(
       functionTypeQuestion(returnType: voidNone),
     );
-    _assertFunctionBounded(
-      functionTypeStar(returnType: voidNone),
-    );
 
     _assertFunctionBounded(
       functionTypeNone(returnType: dynamicType),
@@ -218,13 +189,11 @@ class FunctionBoundedTest extends AbstractTypeSystemTest {
   test_interfaceType() {
     _assertNotFunctionBounded(intNone);
     _assertNotFunctionBounded(intQuestion);
-    _assertNotFunctionBounded(intStar);
   }
 
   test_never() {
     _assertNotFunctionBounded(neverNone);
     _assertNotFunctionBounded(neverQuestion);
-    _assertNotFunctionBounded(neverStar);
   }
 
   test_void() {
@@ -263,7 +232,6 @@ class InvalidBoundedTest extends AbstractTypeSystemTest {
   test_interfaceType() {
     _assertNotInvalidBounded(intNone);
     _assertNotInvalidBounded(intQuestion);
-    _assertNotInvalidBounded(intStar);
   }
 
   test_invalid() {
@@ -273,7 +241,6 @@ class InvalidBoundedTest extends AbstractTypeSystemTest {
   test_never() {
     _assertNotInvalidBounded(neverNone);
     _assertNotInvalidBounded(neverQuestion);
-    _assertNotInvalidBounded(neverStar);
   }
 
   test_typeParameter_hasBound_invalid() {

@@ -1,9 +1,13 @@
 library test.mixin_library;
 
 V() => 87;
+
 _private() => 117;
+
 f() => 2;
+
 foo(m) => m._privateMethod();
+
 mixin Mixin<T> {
   T? g(T a) => null;
   T? t;

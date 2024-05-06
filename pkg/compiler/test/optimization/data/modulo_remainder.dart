@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*member: mod1:Specializer=[Modulo]*/
 @pragma('dart2js:noInline')
 mod1(param) {
@@ -53,11 +51,11 @@ rem2(param) {
   // absent: 'remainder'
 }
 
-/*member: rem3:Specializer=[!Remainder]*/
+/*member: rem3:Specializer=[Remainder]*/
 @pragma('dart2js:noInline')
 rem3(param) {
   var a = param ? 123 : null;
-  return 100.remainder(a);
+  return 100.remainder(a!);
   // No specialization for possibly null inputs.
   // present: 'remainder'
   // absent: '%'

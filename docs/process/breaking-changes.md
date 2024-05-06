@@ -3,6 +3,9 @@
 The present document describes the Dart SDK philosophy for compatibility, and
 process for breaking changes.
 
+For a list of past breaking changes, see the
+[dart.dev breaking changes](https://dart.dev/resources/breaking-changes) page.
+
 ## Dart compatibility and philosophy
 
 Generally the Dart team strives to not make breaking changes, and to preserve
@@ -102,9 +105,28 @@ impact changes.
 
 ### Step 3: Execution
 
-If approved, the change may be made.
+If approved, the breaking change is allowed to be made after ensuring the
+`google3` and `flutter` repositories ("downstream") are not broken.
 
-After the breaking change had been made, the person who made the change must:
+The person making the change is expected to:
+
+* Use code search to find obvious downstream breakages.
+
+* Run presubmits provided by downstream teams to detect breakage.
+  * `google3`: Follow the instructions at go/dart-breaking-change.
+  * `flutter`: Add `flutter-` presubmits to your change to detect breakages.
+
+* Fix the broken downstream code or attach a hotfix to the change.
+
+After breakages are fixed, the approved change may be landed.
+
+To land the change despite remaining breakages, request explicit approval for
+these breakages in the breaking change issue. After these approvals are granted,
+the change may be landed.
+
+### Step 4: Finalization
+
+After the breaking change has been made, the person who made the change must:
 
 * Resolve the breaking change issue and make a note that the change has landed
 

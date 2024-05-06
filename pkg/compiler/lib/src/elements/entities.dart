@@ -36,9 +36,6 @@ abstract class Entity implements Spannable {
 abstract class LibraryEntity extends Entity {
   /// Return the canonical uri that identifies this library.
   Uri get canonicalUri;
-
-  /// Returns whether or not this library has opted into null safety.
-  bool get isNonNullableByDefault;
 }
 
 /// Stripped down super interface for import entities.
@@ -177,21 +174,19 @@ abstract class FunctionEntity extends MemberEntity {
 }
 
 /// Enum for the synchronous/asynchronous function body modifiers.
-class AsyncMarker {
+enum AsyncMarker {
   /// The default function body marker.
-  static const AsyncMarker SYNC = AsyncMarker._(AsyncModifier.Sync);
+  SYNC._(AsyncModifier.Sync),
 
   /// The `sync*` function body marker.
-  static const AsyncMarker SYNC_STAR =
-      AsyncMarker._(AsyncModifier.SyncStar, isYielding: true);
+  SYNC_STAR._(AsyncModifier.SyncStar, isYielding: true),
 
   /// The `async` function body marker.
-  static const AsyncMarker ASYNC =
-      AsyncMarker._(AsyncModifier.Async, isAsync: true);
+  ASYNC._(AsyncModifier.Async, isAsync: true),
 
   /// The `async*` function body marker.
-  static const AsyncMarker ASYNC_STAR =
-      AsyncMarker._(AsyncModifier.AsyncStar, isAsync: true, isYielding: true);
+  ASYNC_STAR._(AsyncModifier.AsyncStar, isAsync: true, isYielding: true),
+  ;
 
   /// Is `true` if this marker defines the function body to have an
   /// asynchronous result, that is, either a [Future] or a [Stream].
@@ -210,21 +205,6 @@ class AsyncMarker {
   String toString() {
     return '${isAsync ? 'async' : 'sync'}${isYielding ? '*' : ''}';
   }
-
-  /// Canonical list of marker values.
-  ///
-  /// Added to make [AsyncMarker] enum-like.
-  static const List<AsyncMarker> values = <AsyncMarker>[
-    SYNC,
-    SYNC_STAR,
-    ASYNC,
-    ASYNC_STAR
-  ];
-
-  /// Index to this marker within [values].
-  ///
-  /// Added to make [AsyncMarker] enum-like.
-  int get index => values.indexOf(this);
 }
 
 /// Stripped down super interface for constructor like entities.
@@ -351,7 +331,7 @@ class ParameterStructure {
   }
 
   /// Deserializes a [ParameterStructure] object from [source].
-  static readFromDataSource(DataSourceReader source) {
+  factory ParameterStructure.readFromDataSource(DataSourceReader source) {
     final tag = ParameterStructure.tag;
     source.begin(tag);
     int requiredPositionalParameters = source.readInt();

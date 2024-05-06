@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
@@ -242,11 +241,9 @@ void main() {
 doTest(String allocation,
     {String? keyElementName, String? valueElementName}) async {
   String source = generateTest(allocation);
-  var result = await runCompiler(
-      memorySourceFiles: {'main.dart': source},
-      options: [Flags.soundNullSafety]);
+  var result = await runCompiler(memorySourceFiles: {'main.dart': source});
   Expect.isTrue(result.isSuccess);
-  Compiler compiler = result.compiler;
+  Compiler compiler = result.compiler!;
   TypeMask? keyType, valueType;
   GlobalTypeInferenceResults results =
       compiler.globalInference.resultsForTesting!;

@@ -12,8 +12,7 @@ library;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart'
-    show SerializationMode;
+import 'package:macros/src/executor/serialization.dart' show SerializationMode;
 import 'package:args/args.dart';
 import 'package:build_integration/file_system/multi_root.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart';
@@ -27,10 +26,10 @@ import 'package:kernel/ast.dart'
     show Component, Library, NonNullableByDefaultCompiledMode;
 import 'package:kernel/target/targets.dart';
 import 'package:vm/kernel_front_end.dart';
+import 'package:vm/modular/target/flutter.dart';
+import 'package:vm/modular/target/flutter_runner.dart';
+import 'package:vm/modular/target/vm.dart';
 import 'package:vm/native_assets/synthesizer.dart';
-import 'package:vm/target/flutter.dart';
-import 'package:vm/target/flutter_runner.dart';
-import 'package:vm/target/vm.dart';
 
 /// If the last arg starts with `@`, this reads the file it points to and treats
 /// each line as an additional arg.
@@ -108,6 +107,10 @@ final ArgParser summaryArgsParser = new ArgParser()
           'compilation.',
       allowed: fe.Verbosity.allowedValues,
       allowedHelp: fe.Verbosity.allowedValuesHelp)
+  ..addFlag('require-prebuilt-macros',
+      defaultsTo: false,
+      help: 'Require that prebuilt macros for all macro applications be '
+          'passed via --precompiled-macro. If not, fail the build.')
   ..addMultiOption('precompiled-macro',
       help: 'Configuration for precompiled macro binaries or kernel files.\n'
           'The expected format of this option is as follows: '
@@ -355,6 +358,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         trackNeededDillLibraries: recordUsedInputs,
         verbose: verbose,
         nnbdMode: nnbdMode,
+        requirePrebuiltMacros: parsedArgs['require-prebuilt-macros'],
         precompiledMacros: parsedArgs['precompiled-macro'],
         macroSerializationMode: macroSerializationMode);
   } else {
@@ -371,6 +375,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         nullableEnvironmentDefines,
         verbose: verbose,
         nnbdMode: nnbdMode,
+        requirePrebuiltMacros: parsedArgs['require-prebuilt-macros'],
         precompiledMacros: parsedArgs['precompiled-macro'],
         macroSerializationMode: macroSerializationMode);
   }

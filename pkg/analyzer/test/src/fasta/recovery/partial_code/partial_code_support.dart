@@ -166,8 +166,7 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
       // Determine the existing errors in the code without either valid or
       // invalid code.
       //
-      GatheringErrorListener listener =
-          GatheringErrorListener(checkRanges: true);
+      GatheringErrorListener listener = GatheringErrorListener();
       parseCompilationUnit2(base.toString(), listener, featureSet: featureSet);
       var baseErrorCodes = <ErrorCode>[];
       for (var error in listener.errors) {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /*member: main:static=[explicitAs(1),implicitAs(1),promoted(1)],type=[inst:JSNull]*/
 main() {
   explicitAs(null);
@@ -52,16 +50,18 @@ main() {
  type=[
   inst:Closure,
   inst:JSBool,
-  param:String*]
+  param:String?]
 */
-explicitAs(String i) {
-  i.length;
+explicitAs(String? i) {
+  i!.length;
   // ignore: unnecessary_cast
   return i as String;
 }
 
 /*member: implicitAs:
- dynamic=[String.length],
+ dynamic=[
+  String.length,
+  length],
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -99,13 +99,14 @@ explicitAs(String i) {
   findType(1),
   instanceType(1)],
  type=[
+  impl:String,
   inst:Closure,
   inst:JSBool,
-  param:String*]
+  param:String?]
 */
-String implicitAs(String i) {
+String implicitAs(String? i) {
   dynamic j = i;
-  i.length;
+  i!.length;
   j.length;
   return j;
 }
@@ -152,9 +153,9 @@ String implicitAs(String i) {
   inst:Closure,
   inst:JSBool,
   inst:JSNull,
-  is:String*]
+  is:String]
 */
-String promoted(dynamic i) {
+String? promoted(dynamic i) {
   if (i is! String) return null;
   i.length;
   return i;

@@ -101,7 +101,7 @@ class AnalyzeCommand extends DartdevCommand {
     final args = argResults!;
     final globalArgs = globalResults!;
     final suppressAnalytics =
-        !globalArgs['analytics'] || globalArgs['suppress-analytics'];
+        !globalArgs.flag('analytics') || globalArgs.flag('suppress-analytics');
 
     // Find targets from the 'rest' params.
     final List<io.FileSystemEntity> targets = [];
@@ -121,13 +121,13 @@ class AnalyzeCommand extends DartdevCommand {
 
     final List<AnalysisError> errors = <AnalysisError>[];
 
-    final machineFormat = args['format'] == 'machine';
-    final jsonFormat = args['format'] == 'json';
-    final printMemory = args['memory'] && jsonFormat;
+    final machineFormat = args.option('format') == 'machine';
+    final jsonFormat = args.option('format') == 'json';
+    final printMemory = args.flag('memory') && jsonFormat;
 
     io.Directory sdkPath;
     if (args.wasParsed('sdk-path')) {
-      sdkPath = io.Directory(args['sdk-path'] as String);
+      sdkPath = io.Directory(args.option('sdk-path')!);
       if (!sdkPath.existsSync()) {
         usageException('Invalid Dart SDK path: ${sdkPath.path}');
       }
@@ -163,16 +163,18 @@ class AnalyzeCommand extends DartdevCommand {
 
     final targetsNames =
         targets.map((entity) => path.basename(entity.path)).join(', ');
-    final progress =
-        machineFormat ? null : log.progress('Analyzing $targetsNames');
+    final progress = machineFormat || jsonFormat
+        ? null
+        : log.progress('Analyzing $targetsNames');
 
     final AnalysisServer server = AnalysisServer(
       _packagesFile(),
       sdkPath,
       targets,
-      cacheDirectoryPath: args['cache'],
+      cacheDirectoryPath: args.option('cache'),
       commandName: 'analyze',
       argResults: args,
+      disableStatusNotificationDebouncing: true,
       enabledExperiments: args.enabledExperiments,
       suppressAnalytics: suppressAnalytics,
     );
@@ -214,7 +216,7 @@ class AnalyzeCommand extends DartdevCommand {
     progress?.finish(showTiming: true);
 
     if (errors.isEmpty) {
-      if (printMemory && usageInfo != null) {
+      if (jsonFormat) {
         emitJsonFormat(log, errors, usageInfo);
       } else if (!machineFormat) {
         log.stdout('No issues found!');
@@ -257,8 +259,8 @@ class AnalyzeCommand extends DartdevCommand {
       return 3;
     }
 
-    bool fatalWarnings = args['fatal-warnings'];
-    bool fatalInfos = args['fatal-infos'];
+    bool fatalWarnings = args.flag('fatal-warnings');
+    bool fatalInfos = args.flag('fatal-infos');
 
     if (fatalWarnings && hasWarnings) {
       return 2;
@@ -270,8 +272,8 @@ class AnalyzeCommand extends DartdevCommand {
   }
 
   io.File? _packagesFile() {
-    var path = argResults!['packages'];
-    if (path is String) {
+    var path = argResults!.option('packages');
+    if (path != null) {
       var file = io.File(path);
       if (!file.existsSync()) {
         usageException("The file doesn't exist: $path");

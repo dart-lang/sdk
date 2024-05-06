@@ -13,4 +13,5 @@ class C {
 }
 
 const int foo = const int.fromEnvironment("fisk");
+
 main() {}

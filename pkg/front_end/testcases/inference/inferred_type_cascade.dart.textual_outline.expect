@@ -10,4 +10,5 @@ var v = new A()
   ..a = 1
   ..b.add(2)
   ..m();
+
 main() {}

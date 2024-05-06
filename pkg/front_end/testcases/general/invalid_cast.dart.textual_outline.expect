@@ -1,4 +1,5 @@
 // @dart = 2.9
+
 class C {
   C();
   factory C.fact() => null;
@@ -11,6 +12,9 @@ class C {
 class D extends C {}
 
 void topLevelFunction(int i) {}
+
 bad() {}
+
 ok() {}
+
 main() {}

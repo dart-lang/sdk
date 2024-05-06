@@ -40,6 +40,7 @@ mixin Mixin on Class {
   void operator []=(covariant int a, covariant int b) {}
   void set setter(int a) {}
 }
+
 mixin Mixin1 on Class1 {
   void operator []=(covariant int a, covariant int b) {}
 }

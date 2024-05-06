@@ -6,7 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/src/future_value_type.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../fasta_codes.dart';
+import '../codes/fasta_codes.dart';
 import '../kernel/invalid_type.dart';
 import 'inference_results.dart';
 import 'inference_visitor_base.dart';
@@ -242,21 +242,7 @@ class _SyncClosureContext implements ClosureContext {
     } else {
       // The rules for valid returns for functions with [returnType] `T` and
       // a return expression with static [expressionType] `S`.
-      if (statement.expression == null) {
-        // `return;` is a valid return if T is void, dynamic, or Null.
-        if (returnType is VoidType ||
-            returnType is DynamicType ||
-            returnType is NullType) {
-          // Valid return;
-        } else {
-          statement.expression = inferrer.helper.wrapInProblem(
-              new NullLiteral()..fileOffset = statement.fileOffset,
-              messageReturnWithoutExpression,
-              statement.fileOffset,
-              noLength)
-            ..parent = statement;
-        }
-      } else {
+      if (statement.expression != null) {
         void ensureAssignability() {
           Expression expression = inferrer.ensureAssignable(
               _returnContext, expressionType, statement.expression!,
@@ -616,21 +602,7 @@ class _AsyncClosureContext implements ClosureContext {
       // and a return expression with static [expressionType] `S`.
       DartType flattenedReturnType =
           inferrer.typeSchemaEnvironment.flatten(returnType);
-      if (statement.expression == null) {
-        // `return;` is a valid return if flatten(T) is void, dynamic, or Null.
-        if (flattenedReturnType is VoidType ||
-            flattenedReturnType is DynamicType ||
-            flattenedReturnType is NullType) {
-          // Valid return;
-        } else {
-          statement.expression = inferrer.helper.wrapInProblem(
-              new NullLiteral()..fileOffset = statement.fileOffset,
-              messageReturnWithoutExpression,
-              statement.fileOffset,
-              noLength)
-            ..parent = statement;
-        }
-      } else {
+      if (statement.expression != null) {
         DartType flattenedExpressionType =
             inferrer.typeSchemaEnvironment.flatten(expressionType);
 

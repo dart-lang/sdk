@@ -64,7 +64,7 @@ static method b1(self::B b) → core::int {
       }
     #L6:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
   }
 }
 static method b2(self::B? b) → core::int? {
@@ -118,7 +118,7 @@ static method d1(mai::D d) → core::int {
       }
     #L14:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
   }
 }
 static method d2(mai::D? d) → core::int? {

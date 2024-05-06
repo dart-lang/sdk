@@ -16,7 +16,9 @@ double calculateArea(Shape shape) => switch (shape) {
       Square(length: var l) => l * l,
       Circle(radius: var r) => math.pi * r * r
     };
+
 expect(expected, actual) {}
+
 main() {}
 
 sealed class Shape {

@@ -10,13 +10,11 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UndefinedSetterTest);
-    defineReflectiveTests(UndefinedSetterWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class UndefinedSetterTest extends PubPackageResolutionTest
-    with UndefinedSetterTestCases {
+class UndefinedSetterTest extends PubPackageResolutionTest {
   test_functionAlias_typeInstantiated() async {
     await assertErrorsInCode('''
 typedef Fn<T> = void Function(T);
@@ -45,6 +43,67 @@ extension E on Type {
   set foo(int value) {}
 }
 ''');
+  }
+
+  test_importWithPrefix_defined() async {
+    newFile('$testPackageLibPath/lib.dart', r'''
+library lib;
+set y(int value) {}''');
+    await assertNoErrorsInCode(r'''
+import 'lib.dart' as x;
+main() {
+  x.y = 0;
+}
+''');
+  }
+
+  test_instance_undefined() async {
+    await assertErrorsInCode(r'''
+class T {}
+f(T e1) { e1.m = 0; }
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 24, 1,
+          messageContains: ["the type 'T'"]),
+    ]);
+  }
+
+  test_instance_undefined_mixin() async {
+    await assertErrorsInCode(r'''
+mixin M {
+  f() { this.m = 0; }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 23, 1),
+    ]);
+  }
+
+  test_inSubtype() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B extends A {
+  set b(x) {}
+}
+f(var a) {
+  if (a is A) {
+    a.b = 0;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 80, 1),
+    ]);
+  }
+
+  test_inType() async {
+    await assertErrorsInCode(r'''
+class A {}
+f(var a) {
+  if(a is A) {
+    a.m = 0;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 43, 1),
+    ]);
   }
 
   test_new_cascade() async {
@@ -147,82 +206,16 @@ void f(int x) {
 }
 ''');
   }
-}
-
-mixin UndefinedSetterTestCases on PubPackageResolutionTest {
-  test_importWithPrefix_defined() async {
-    newFile('$testPackageLibPath/lib.dart', r'''
-library lib;
-set y(int value) {}''');
-    await assertNoErrorsInCode(r'''
-import 'lib.dart' as x;
-main() {
-  x.y = 0;
-}
-''');
-  }
-
-  test_instance_undefined() async {
-    await assertErrorsInCode(r'''
-class T {}
-f(T e1) { e1.m = 0; }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 24, 1,
-          messageContains: ["the type 'T'"]),
-    ]);
-  }
-
-  test_instance_undefined_mixin() async {
-    await assertErrorsInCode(r'''
-mixin M {
-  f() { this.m = 0; }
-}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 23, 1),
-    ]);
-  }
-
-  test_inSubtype() async {
-    await assertErrorsInCode(r'''
-class A {}
-class B extends A {
-  set b(x) {}
-}
-f(var a) {
-  if (a is A) {
-    a.b = 0;
-  }
-}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 80, 1),
-    ]);
-  }
-
-  test_inType() async {
-    await assertErrorsInCode(r'''
-class A {}
-f(var a) {
-  if(a is A) {
-    a.m = 0;
-  }
-}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 43, 1),
-    ]);
-  }
 
   test_static_conditionalAccess_defined() async {
-    await assertErrorsInCode(
-      '''
+    await assertErrorsInCode('''
 class A {
   static var x;
 }
 f() { A?.x = 1; }
-''',
-      expectedErrorsByNullability(nullable: [
-        error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 35, 2),
-      ], legacy: []),
-    );
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 35, 2),
+    ]);
   }
 
   test_static_definedInSuperclass() async {
@@ -275,7 +268,3 @@ f(C c) {
     ]);
   }
 }
-
-@reflectiveTest
-class UndefinedSetterWithoutNullSafetyTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, UndefinedSetterTestCases {}

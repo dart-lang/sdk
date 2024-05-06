@@ -11,4 +11,5 @@ class SuperClass {
 }
 
 main() {}
+
 test() {}

@@ -193,25 +193,6 @@ class FfiCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
-  static const FfiCode FIELD_INITIALIZER_IN_STRUCT = FfiCode(
-    'FIELD_INITIALIZER_IN_STRUCT',
-    "Constructors in subclasses of 'Struct' and 'Union' can't have field "
-        "initializers.",
-    correctionMessage:
-        "Try removing the field initializer and marking the field as external.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const FfiCode FIELD_IN_STRUCT_WITH_INITIALIZER = FfiCode(
-    'FIELD_IN_STRUCT_WITH_INITIALIZER',
-    "Fields in subclasses of 'Struct' and 'Union' can't have initializers.",
-    correctionMessage:
-        "Try removing the initializer and marking the field as external.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
   static const FfiCode FIELD_MUST_BE_EXTERNAL_IN_STRUCT = FfiCode(
     'FIELD_MUST_BE_EXTERNAL_IN_STRUCT',
     "Fields of 'Struct' and 'Union' subclasses must be marked external.",

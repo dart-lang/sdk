@@ -324,11 +324,6 @@ static void ContentsFinalizer(void* isolate_callback_data, void* peer) {
   delete[] data;
 }
 
-static void FilenameFinalizer(void* isolate_callback_data, void* peer) {
-  char* filename = reinterpret_cast<char*>(peer);
-  delete[] filename;
-}
-
 #endif
 
 DEFINE_NATIVE_ENTRY(VMService_DecodeAssets, 0, 1) {
@@ -365,9 +360,8 @@ DEFINE_NATIVE_ENTRY(VMService_DecodeAssets, 0, 1) {
       uint8_t* contents = archive.NextContent();
       intptr_t contents_length = archive.NextContentLength();
 
-      Dart_Handle dart_filename = Dart_NewExternalLatin1String(
-          reinterpret_cast<uint8_t*>(filename), filename_length, filename,
-          filename_length, FilenameFinalizer);
+      Dart_Handle dart_filename = Dart_NewStringFromUTF8(
+          reinterpret_cast<uint8_t*>(filename), filename_length);
       ASSERT(!Dart_IsError(dart_filename));
 
       Dart_Handle dart_contents = Dart_NewExternalTypedDataWithFinalizer(

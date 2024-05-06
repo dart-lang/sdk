@@ -6,6 +6,7 @@
 // Check function subtyping for bound closures.
 
 import 'package:expect/expect.dart';
+import "package:expect/variations.dart" as v;
 
 typedef Foo<T>(T t);
 
@@ -23,18 +24,14 @@ void main() {
   Expect.isTrue(f is Foo<Foo<int>>);
   Expect.isFalse(f is Foo<int>);
   Expect.isFalse(f is Foo<Object>);
-  if (!dart2jsProductionMode) {
-    Expect.throwsTypeError(() => f(f));
-    Expect.throwsTypeError(() => f(42));
-  }
+  Expect.throwsTypeErrorWhen(v.checkedParameters, () => f(f));
+  Expect.throwsTypeErrorWhen(v.checkedParameters, () => f(42));
 
   Foo<Foo<int>> bazInt = baz; // implicit instantiation baz<int>
   f = bazInt;
   Expect.isTrue(f(bar));
   Expect.isFalse(f is Foo<int>);
 
-  if (!dart2jsProductionMode) {
-    Expect.throwsTypeError(() => f(f));
-    Expect.throwsTypeError(() => f(42));
-  }
+  Expect.throwsTypeErrorWhen(v.checkedParameters, () => f(f));
+  Expect.throwsTypeErrorWhen(v.checkedParameters, () => f(42));
 }

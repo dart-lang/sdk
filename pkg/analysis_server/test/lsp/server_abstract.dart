@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
+import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
@@ -14,15 +15,14 @@ import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
+import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:collection/collection.dart';
 import 'package:language_server_protocol/json_parsing.dart';
 import 'package:path/path.dart' as path;
@@ -32,6 +32,8 @@ import 'package:unified_analytics/unified_analytics.dart';
 import '../mocks.dart';
 import '../mocks_lsp.dart';
 import '../src/utilities/mock_packages.dart';
+import '../support/configuration_files.dart';
+import '../test_macros.dart';
 import 'change_verifier.dart';
 import 'request_helpers_mixin.dart';
 
@@ -49,7 +51,9 @@ abstract class AbstractLspAnalysisServerTest
         LspEditHelpersMixin,
         LspVerifyEditHelpersMixin,
         LspAnalysisServerTestMixin,
-        ConfigurationFilesMixin {
+        MockPackagesMixin,
+        ConfigurationFilesMixin,
+        TestMacros {
   late MockLspServerChannel channel;
   late TestPluginManager pluginManager;
   late LspAnalysisServer server;
@@ -62,13 +66,17 @@ abstract class AbstractLspAnalysisServerTest
 
   DartFixPromptManager? get dartFixPromptManager => null;
 
+  /// The path that is not in [projectFolderPath], contains external packages.
   @override
-  path.Context get pathContext => server.resourceProvider.pathContext;
+  String get packagesRootPath => resourceProvider.convertPath('/packages');
 
   AnalysisServerOptions get serverOptions => AnalysisServerOptions();
 
   @override
   Stream<Message> get serverToClient => channel.serverToClient;
+
+  @override
+  ClientUriConverter get uriConverter => server.uriConverter;
 
   DiscoveredPluginInfo configureTestPlugin({
     plugin.ResponseResult? respondWith,
@@ -294,11 +302,11 @@ abstract class AbstractLspAnalysisServerTest
     newFile(analysisOptionsPath, '''
 analyzer:
   enable-experiment:
-    - inline-class
+    - macros
 ''');
 
     analysisOptionsUri = pathContext.toUri(analysisOptionsPath);
-    writePackageConfig(projectFolderPath);
+    writeTestPackageConfig();
   }
 
   Future<void> tearDown() async {
@@ -466,6 +474,23 @@ mixin ClientCapabilitiesHelperMixin {
         workspaceCapabilities, {'applyEdit': supported});
   }
 
+  void setChangeAnnotationSupport([bool supported = true]) {
+    workspaceCapabilities = extendWorkspaceCapabilities(workspaceCapabilities, {
+      'workspaceEdit': {
+        'changeAnnotationSupport': supported
+            ? <String, Object?>{
+                // This is set to an empty object to indicate support. We don't
+                // currently use any of the child properties.
+              }
+            : null
+      }
+    });
+  }
+
+  void setClientSupportedCommands(List<String>? supportedCommands) {
+    experimentalCapabilities['commands'] = supportedCommands;
+  }
+
   void setCompletionItemDeprecatedFlagSupport() {
     textDocumentCapabilities =
         extendTextDocumentCapabilities(textDocumentCapabilities, {
@@ -553,6 +578,18 @@ mixin ClientCapabilitiesHelperMixin {
   void setConfigurationSupport() {
     workspaceCapabilities = extendWorkspaceCapabilities(
         workspaceCapabilities, {'configuration': true});
+  }
+
+  void setDartTextDocumentContentProviderSupport([bool supported = true]) {
+    // These are temporarily versioned with a suffix during dev so if we ship
+    // as an experiment (not LSP standard) without the suffix it will only be
+    // active for matching server/clients.
+    const key = dartExperimentalTextDocumentContentProviderKey;
+    if (supported) {
+      experimentalCapabilities[key] = true;
+    } else {
+      experimentalCapabilities.remove(key);
+    }
   }
 
   void setDiagnosticCodeDescriptionSupport() {
@@ -747,66 +784,6 @@ mixin ClientCapabilitiesHelperMixin {
   }
 }
 
-mixin ConfigurationFilesMixin on ResourceProviderMixin {
-  String get latestLanguageVersion =>
-      '${ExperimentStatus.currentVersion.major}.'
-      '${ExperimentStatus.currentVersion.minor}';
-
-  String get testPackageLanguageVersion => latestLanguageVersion;
-
-  void writePackageConfig(
-    String projectFolderPath, {
-    PackageConfigFileBuilder? config,
-    String? languageVersion,
-    bool flutter = false,
-    bool meta = false,
-    bool pedantic = false,
-    bool vector_math = false,
-  }) {
-    if (config == null) {
-      config = PackageConfigFileBuilder();
-    } else {
-      config = config.copy();
-    }
-
-    config.add(
-      name: 'test',
-      rootPath: projectFolderPath,
-      languageVersion: languageVersion ?? testPackageLanguageVersion,
-    );
-
-    if (meta || flutter) {
-      var libFolder = MockPackages.instance.addMeta(resourceProvider);
-      config.add(name: 'meta', rootPath: libFolder.parent.path);
-    }
-
-    if (flutter) {
-      {
-        var libFolder = MockPackages.instance.addUI(resourceProvider);
-        config.add(name: 'ui', rootPath: libFolder.parent.path);
-      }
-      {
-        var libFolder = MockPackages.instance.addFlutter(resourceProvider);
-        config.add(name: 'flutter', rootPath: libFolder.parent.path);
-      }
-    }
-
-    if (pedantic) {
-      var libFolder = MockPackages.instance.addPedantic(resourceProvider);
-      config.add(name: 'pedantic', rootPath: libFolder.parent.path);
-    }
-
-    if (vector_math) {
-      var libFolder = MockPackages.instance.addVectorMath(resourceProvider);
-      config.add(name: 'vector_math', rootPath: libFolder.parent.path);
-    }
-
-    var path = '$projectFolderPath/.dart_tool/package_config.json';
-    var content = config.toContent(toUriStr: toUriStr);
-    newFile(path, content);
-  }
-}
-
 mixin LspAnalysisServerTestMixin
     on LspRequestHelpersMixin, LspEditHelpersMixin
     implements ClientCapabilitiesHelperMixin {
@@ -843,12 +820,26 @@ mixin LspAnalysisServerTestMixin
   /// A file that has never had diagnostics will not be in the map. A file that
   /// has ever had diagnostics will be in the map, even if the entry is an empty
   /// list.
-  final diagnostics = <String, List<Diagnostic>>{};
+  final diagnostics = <Uri, List<Diagnostic>>{};
+
+  /// Whether to fail tests if any error notifications are received from the
+  /// server.
+  ///
+  /// This does not need to be set when using [expectErrorNotification].
+  bool failTestOnAnyErrorNotification = true;
+
+  /// Whether to fail tests if any error diagnostics are received from the
+  /// server.
+  bool failTestOnErrorDiagnostic = true;
 
   /// A stream of [NotificationMessage]s from the server that may be errors.
   Stream<NotificationMessage> get errorNotificationsFromServer {
     return notificationsFromServer.where(_isErrorNotification);
   }
+
+  /// The experimental capabilities returned from the server during initialization.
+  Map<String, Object?> get experimentalServerCapabilities =>
+      serverCapabilities.experimental as Map<String, Object?>? ?? {};
 
   /// A [Future] that completes with the first analysis after initialization.
   Future<void> get initialAnalysis =>
@@ -856,7 +847,15 @@ mixin LspAnalysisServerTestMixin
 
   bool get initialized => _clientCapabilities != null;
 
+  /// The URI for an augmentation for [mainFileUri].
+  Uri get mainFileAugmentationUri => mainFileUri.replace(
+      path: mainFileUri.path.replaceFirst('.dart', '_augmentation.dart'));
+
+  /// The URI for the macro-generated contents for [mainFileUri].
+  Uri get mainFileMacroUri => mainFileUri.replace(scheme: macroClientUriScheme);
+
   /// A stream of [NotificationMessage]s from the server.
+  @override
   Stream<NotificationMessage> get notificationsFromServer {
     return serverToClient
         .where((m) => m is NotificationMessage)
@@ -887,7 +886,12 @@ mixin LspAnalysisServerTestMixin
         .cast<RequestMessage>();
   }
 
+  /// The capabilities returned from the server during initialization.
+  ServerCapabilities get serverCapabilities => _serverCapabilities!;
+
   Stream<Message> get serverToClient;
+
+  String get testPackageRootPath => projectFolderPath;
 
   Future<void> changeFile(
     int newVersion,
@@ -965,9 +969,13 @@ mixin LspAnalysisServerTestMixin
     Duration timeout = const Duration(seconds: 5),
   }) async {
     final firstError = errorNotificationsFromServer.first;
-    await f();
 
+    failTestOnAnyErrorNotification = false;
+
+    await f();
     final notificationFromServer = await firstError.timeout(timeout);
+
+    failTestOnAnyErrorNotification = true;
 
     expect(notificationFromServer, isNotNull);
     return ShowMessageParams.fromJson(
@@ -1079,16 +1087,26 @@ mixin LspAnalysisServerTestMixin
     Map<String, Object?>? initializationOptions,
     bool throwOnFailure = true,
     bool allowEmptyRootUri = false,
-    bool failTestOnAnyErrorNotification = true,
     bool includeClientRequestTime = false,
+    void Function()? immediatelyAfterInitialized,
   }) async {
     this.includeClientRequestTime = includeClientRequestTime;
 
-    if (failTestOnAnyErrorNotification) {
-      errorNotificationsFromServer.listen((NotificationMessage error) {
+    errorNotificationsFromServer.listen((NotificationMessage error) {
+      // Always subscribe to this and check the flag here so it can be toggled
+      // during tests (for example automatically by expectErrorNotification).
+      if (failTestOnAnyErrorNotification) {
         fail('${error.toJson()}');
-      });
-    }
+      }
+    });
+
+    publishedDiagnostics.listen((diagnostics) {
+      if (failTestOnErrorDiagnostic &&
+          diagnostics.diagnostics.any((diagnostic) =>
+              diagnostic.severity == DiagnosticSeverity.Error)) {
+        fail('Unexpected diagnostics: ${diagnostics.toJson()}');
+      }
+    });
 
     final clientCapabilities = ClientCapabilities(
       workspace: workspaceCapabilities,
@@ -1145,7 +1163,10 @@ mixin LspAnalysisServerTestMixin
 
       final notification =
           makeNotification(Method.initialized, InitializedParams());
-      await sendNotificationToServer(notification);
+
+      final initializedNotification = sendNotificationToServer(notification);
+      immediatelyAfterInitialized?.call();
+      await initializedNotification;
       await pumpEventQueue();
     } else if (throwOnFailure) {
       throw 'Error during initialize request: '
@@ -1300,6 +1321,15 @@ mixin LspAnalysisServerTestMixin
   Range rangeOfString(TestCode code, String searchText) =>
       rangeOfPattern(code, searchText);
 
+  /// Returns the range of [searchText] in [content].
+  Range rangeOfStringInString(String content, String searchText) {
+    final match = searchText.allMatches(content).first;
+    return Range(
+      start: positionFromOffset(match.start, content),
+      end: positionFromOffset(match.end, content),
+    );
+  }
+
   /// Returns a [Range] that covers the entire of [content].
   Range rangeOfWholeContent(String content) {
     return Range(
@@ -1412,13 +1442,11 @@ mixin LspAnalysisServerTestMixin
 
   /// Records the latest diagnostics for each file in [latestDiagnostics].
   ///
-  /// [latestDiagnostics] maps from a file path to the set of current
-  /// diagnostics.
+  /// [latestDiagnostics] maps from a URI to the set of current diagnostics.
   StreamSubscription<PublishDiagnosticsParams> trackDiagnostics(
-      Map<String, List<Diagnostic>> latestDiagnostics) {
+      Map<Uri, List<Diagnostic>> latestDiagnostics) {
     return publishedDiagnostics.listen((diagnostics) {
-      latestDiagnostics[pathContext.fromUri(diagnostics.uri)] =
-          diagnostics.diagnostics;
+      latestDiagnostics[diagnostics.uri] = diagnostics.diagnostics;
     });
   }
 

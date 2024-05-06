@@ -13,7 +13,9 @@ class MapLike2<K, V> {
 }
 
 expect(expected, actual) {}
+
 explicitInferredTypeArguments() {}
+
 explicitWithTypeArguments() {}
 
 extension Extension<K, V> on MapLike<K, V> {
@@ -27,4 +29,5 @@ extension Extension2<K, V> on MapLike2<K, V> {
 }
 
 implicit() {}
+
 main() {}

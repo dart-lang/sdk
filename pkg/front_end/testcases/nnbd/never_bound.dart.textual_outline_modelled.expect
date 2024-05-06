@@ -3,4 +3,5 @@ class GenericNever<T extends Never> {
 }
 
 errors() {}
+
 main() {}

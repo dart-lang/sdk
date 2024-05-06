@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 114;
+  UInt32 formatVersion = 116;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -807,6 +807,7 @@ type InstanceGetterInvocation extends Expression {
 type DynamicInvocation extends Expression {
   Byte tag = 124;
   Byte kind; // Index into DynamicAccessKind above.
+  Byte flags (isImplicitCall);
   FileOffset fileOffset;
   Expression receiver;
   Name name;
@@ -1080,6 +1081,7 @@ type Rethrow extends Expression {
 type Throw extends Expression {
   Byte tag = 48;
   FileOffset fileOffset;
+  Byte flags (forErrorHandling);
   Expression value;
 }
 

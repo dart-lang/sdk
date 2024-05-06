@@ -6,6 +6,7 @@
 
 import 'dart:io';
 
+import 'package:expect/config.dart';
 import 'package:native_stack_traces/native_stack_traces.dart';
 import 'package:path/path.dart' as path;
 
@@ -31,8 +32,7 @@ Future<void> main() async {
     rawStack = st.toString();
   }
 
-  if (path.basenameWithoutExtension(Platform.executable) !=
-      "dart_precompiled_runtime") {
+  if (!isVmAotConfiguration) {
     return; // Not running from an AOT compiled snapshot.
   }
 
@@ -53,13 +53,13 @@ final expectedCallsInfo = <List<DartCallInfo>>[
     DartCallInfo(
         function: "bar",
         filename: "dwarf_stack_trace_obfuscate_test.dart",
-        line: 17,
+        line: 18,
         column: 3,
         inlined: true),
     DartCallInfo(
         function: "foo",
         filename: "dwarf_stack_trace_obfuscate_test.dart",
-        line: 23,
+        line: 24,
         column: 3,
         inlined: false)
   ],
@@ -68,7 +68,7 @@ final expectedCallsInfo = <List<DartCallInfo>>[
     DartCallInfo(
         function: "main",
         filename: "dwarf_stack_trace_obfuscate_test.dart",
-        line: 29,
+        line: 30,
         column: 5,
         inlined: false)
   ],

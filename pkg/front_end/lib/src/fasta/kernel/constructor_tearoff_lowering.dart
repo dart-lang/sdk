@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/constructor_tearoff_lowering.dart';
 import 'package:kernel/type_algebra.dart';
 
 import '../builder/library_builder.dart';
@@ -10,86 +11,8 @@ import '../source/name_scheme.dart';
 import '../source/source_library_builder.dart';
 import 'kernel_helper.dart';
 
-const String _tearOffNamePrefix = '_#';
-const String _tearOffNameSuffix = '#tearOff';
-
-/// Creates the synthesized name to use for the lowering of the tear off of a
-/// constructor or factory by the given [name].
-String constructorTearOffName(String name) {
-  return '$_tearOffNamePrefix'
-      '${name.isEmpty ? 'new' : name}'
-      '$_tearOffNameSuffix';
-}
-
-/// Creates the synthesized name to use for the lowering of the tear off of a
-/// constructor or factory by the given [constructorName] through a typedef by
-/// the given [typedefName].
-String typedefTearOffName(String typedefName, String constructorName) {
-  return '$_tearOffNamePrefix'
-      '$typedefName#'
-      '${constructorName.isEmpty ? 'new' : constructorName}'
-      '$_tearOffNameSuffix';
-}
-
-/// Returns the name of the corresponding constructor or factory if [name] is
-/// the synthesized name of a lowering of the tear off of a constructor or
-/// factory. Returns `null` otherwise.
-String? extractConstructorNameFromTearOff(Name name) {
-  if (name.text.startsWith(_tearOffNamePrefix) &&
-      name.text.endsWith(_tearOffNameSuffix) &&
-      name.text.length >
-          _tearOffNamePrefix.length + _tearOffNameSuffix.length) {
-    String text =
-        name.text.substring(0, name.text.length - _tearOffNameSuffix.length);
-    text = text.substring(_tearOffNamePrefix.length);
-    if (text.contains('#')) {
-      return null;
-    }
-    return text == 'new' ? '' : text;
-  }
-  return null;
-}
-
-/// If [name] is the synthesized name of a lowering of a typedef tear off, a
-/// list containing the [String] name of the typedef and the [Name] name of the
-/// corresponding constructor or factory is returned. Returns `null` otherwise.
-List<Object>? extractTypedefNameFromTearOff(Name name) {
-  if (name.text.startsWith(_tearOffNamePrefix) &&
-      name.text.endsWith(_tearOffNameSuffix) &&
-      name.text.length >
-          _tearOffNamePrefix.length + _tearOffNameSuffix.length) {
-    String text =
-        name.text.substring(0, name.text.length - _tearOffNameSuffix.length);
-    text = text.substring(_tearOffNamePrefix.length);
-    int hashIndex = text.indexOf('#');
-    if (hashIndex == -1) {
-      return null;
-    }
-    String typedefName = text.substring(0, hashIndex);
-    String constructorName = text.substring(hashIndex + 1);
-    constructorName = constructorName == 'new' ? '' : constructorName;
-    return [typedefName, new Name(constructorName, name.library)];
-  }
-  return null;
-}
-
-/// Returns `true` if [member] is a lowered constructor, factory or typedef tear
-/// off.
-bool isTearOffLowering(Member member) {
-  return member is Procedure &&
-      (isConstructorTearOffLowering(member) ||
-          isTypedefTearOffLowering(member));
-}
-
-/// Returns `true` if [procedure] is a lowered constructor or factory tear off.
-bool isConstructorTearOffLowering(Procedure procedure) {
-  return extractConstructorNameFromTearOff(procedure.name) != null;
-}
-
-/// Returns `true` if [procedure] is a lowered typedef tear off.
-bool isTypedefTearOffLowering(Procedure procedure) {
-  return extractTypedefNameFromTearOff(procedure.name) != null;
-}
+// TODO(johnniwinther): move all lowering predicates to `package:kernel`.
+export 'package:kernel/constructor_tearoff_lowering.dart';
 
 /// Creates the [Procedure] for the lowering of a generative constructor of
 /// the given [name] in [compilationUnit].
@@ -154,8 +77,8 @@ Procedure createTypedefTearOffProcedure(
 /// [enclosingDeclarationTypeParameters].
 ///
 /// The [declarationConstructor] is the origin constructor and
-/// [implementationConstructor] is the patch constructor, if patched, otherwise
-/// it is the [declarationConstructor].
+/// [implementationConstructor] is the augmentation constructor, if augmented,
+/// otherwise it is the [declarationConstructor].
 void buildConstructorTearOffProcedure(
     {required Procedure tearOff,
     required Member declarationConstructor,
@@ -209,8 +132,8 @@ void buildConstructorTearOffProcedure(
 /// [enclosingTypeDeclaration].
 ///
 /// The [declarationConstructor] is the origin constructor and
-/// [implementationConstructor] is the patch constructor, if patched, otherwise
-/// it is the [declarationConstructor].
+/// [implementationConstructor] is the augmentation constructor, if augmented,
+/// otherwise it is the [declarationConstructor].
 void buildTypedefTearOffProcedure(
     {required Procedure tearOff,
     required Member declarationConstructor,
@@ -279,7 +202,7 @@ void buildTypedefTearOffProcedure(
 ///
 /// The [declarationConstructor] is the [Procedure] for the origin constructor
 /// and [implementationConstructorFunctionNode] is the [FunctionNode] for the
-/// implementation constructor. If the constructor is patched, these are not
+/// implementation constructor. If the constructor is augmented, these are not
 /// connected until [Builder.buildBodyNodes].
 FreshTypeParameters buildRedirectingFactoryTearOffProcedureParameters(
     {required Procedure tearOff,

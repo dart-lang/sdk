@@ -5,4 +5,5 @@ class C {
 }
 
 main() {}
+
 var x = 'x';

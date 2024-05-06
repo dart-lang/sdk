@@ -1,6 +1,9 @@
 Function<Z extends A>() bar3() => throw 42;
+
 Function<Z extends A>() bar6 = (() => throw 42)();
+
 Function<Z extends A>() get bar4 => throw 42;
+
 bar2(Function<Z extends A>() a) {}
 
 class A<X extends A<X>> {}
@@ -24,5 +27,7 @@ extension E on int {
 }
 
 main() {}
+
 typedef F = Function<Y extends A>();
+
 void set bar5(Function<Z extends A>() a) {}

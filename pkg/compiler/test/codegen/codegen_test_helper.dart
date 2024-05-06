@@ -6,7 +6,6 @@ import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/closure.dart';
 import 'package:compiler/src/common.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_model/element_map.dart';
@@ -17,11 +16,9 @@ import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
 
 const List<String> skip = [];
-const List<String> skip2 = [];
 
 main(List<String> args) {
   runTests(args);
-  runTests2(args);
 }
 
 runTests(List<String> args, [int? shardIndex]) {
@@ -30,16 +27,7 @@ runTests(List<String> args, [int? shardIndex]) {
       shards: 2,
       directory: 'data',
       skip: skip,
-      options: [Flags.soundNullSafety]);
-}
-
-runTests2(List<String> args, [int? shardIndex]) {
-  runTestsCommon(args,
-      shardIndex: shardIndex,
-      shards: 2,
-      directory: 'data_2',
-      skip: skip2,
-      options: []);
+      options: const []);
 }
 
 runTestsCommon(List<String> args,

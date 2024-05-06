@@ -13,6 +13,8 @@ Definition Order:
  topLevelFunction7:FunctionDefinitionMacro1.new()
  topLevelFunction8:FunctionDefinitionMacro1.new()
 Definitions:
+library augment 'org-dartlang-test:///a/b/c/main.dart';
+
 import 'dart:core' as prefix0;
 import 'dart:math' as prefix1;
 
@@ -39,7 +41,8 @@ augment prefix0.Map<prefix1.Random, prefix0.List<prefix0.int>> topLevelFunction7
 }
 augment prefix0.Map<prefix0.int?, prefix0.String>? topLevelFunction8() {
   throw 42;
-}*/
+}
+*/
 
 import 'dart:math' as math;
 

@@ -65,6 +65,7 @@
 #endif
 
 #include <intrin.h>
+#define RPC_USE_NATIVE_WCHAR
 #include <rpc.h>
 #include <shellapi.h>
 #include <versionhelpers.h>

@@ -12,5 +12,6 @@ abstract class CustomType implements Type {
 }
 
 main() {}
+
 void test(Class c1, Class? c2, Invocation invocation,
     CustomInvocation customInvocation) {}

@@ -5,11 +5,12 @@
 [ $compiler == dart2js ]
 Language/Classes/Instance_Methods/Method_noSuchMethod/definition_A01_t03: SkipByDesign # Non-JS-interop external members are not supported
 Language/Classes/Instance_Methods/Method_noSuchMethod/definition_A02_t02: SkipByDesign # Non-JS-interop external members are not supported
+Language/Expressions/Constants/Constant_Contexts/constant_context_A02_t01: SkipByDesign # dart:mirrors is not supported
 Language/Expressions/Constants/integer_size_t03: SkipByDesign # uses integer literal not representable as JavaScript number
 Language/Expressions/Constants/integer_size_t04: SkipByDesign # uses integer literal not representable as JavaScript number
 Language/Expressions/Constants/literal_number_t01: SkipByDesign # uses integer literal not representable as JavaScript number
-Language/Expressions/Constants/math_operators_t01: SkipByDesign # uses integer literal not representable as JavaScript number
-Language/Expressions/Constants/math_operators_t06: SkipByDesign # uses integer literal not representable as JavaScript number
+Language/Expressions/Constants/math_operators_A01_t01: SkipByDesign # uses integer literal not representable as JavaScript number
+Language/Expressions/Constants/math_operators_A02_t01: SkipByDesign # uses integer literal not representable as JavaScript number
 Language/Expressions/Method_Invocation/Super_Invocation/accessible_instance_member_t04: SkipByDesign # uses external functions
 Language/Expressions/Numbers/integer_size_t03: SkipByDesign # uses integer literal not representable as JavaScript number
 Language/Expressions/Numbers/static_type_of_int_t01: SkipByDesign # uses integer literal not representable as JavaScript number
@@ -104,7 +105,7 @@ LibTest/html/Window/animationFrame_A01_t01: SkipByDesign # Issue #53985: request
 [ $compiler == dart2js && $runtime == d8 ]
 LibTest/html/*: SkipByDesign # d8 is not a browser
 
-[ $compiler == dart2js && $runtime == d8 && $host_checked ]
+[ $compiler == dart2js && $runtime == d8 && $host_asserts ]
 LibTest/collection/ListBase/ListBase_class_A01_t04: Slow, Pass
 LibTest/collection/ListBase/ListBase_class_A01_t05: Slow, Pass
 LibTest/collection/ListBase/ListBase_class_A01_t06: Slow, Pass

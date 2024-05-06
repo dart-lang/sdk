@@ -10,7 +10,7 @@ import self as self;
 import "dart:core" as core;
 
 static method test(dynamic x) → dynamic
-  return x{dynamic}.call();
+  return x{dynamic}();
 static method test2() → void {
   self::test( block {
     function bar() → Null {

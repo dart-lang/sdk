@@ -5,4 +5,5 @@ class ExtendsFinalClass extends A {}
 class ImplementsFinalClass implements A {}
 
 mixin MixinOnA on A {}
+
 mixin MixinOnAB on A, B {}

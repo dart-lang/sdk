@@ -1,8 +1,11 @@
 import 'dart:async';
 
 FutureOr<T> future<T>(T value) async => value;
+
 FutureOr<T> id<T>(T value) => value;
+
 Stream<int> intStream() async* {}
+
 asserts() async {}
 
 class C {
@@ -17,10 +20,15 @@ class C {
 }
 
 conditionals() async {}
+
 controlFlow() async {}
+
 dummy() => 1;
+
 expect(expected, actual) {}
+
 expectList(List expected, List actual) {}
+
 final bool assertStatementsEnabled = () {
   try {
     assert(false);
@@ -29,12 +37,21 @@ final bool assertStatementsEnabled = () {
     return true;
   }
 }();
+
 instanceMembers() async {}
+
 int get topLevelGetter => globalVariable;
+
 int globalVariable = 1;
+
 int topLevelFoo(int param) => 1;
+
 main() async {}
+
 others() async {}
+
 staticMembers() async {}
+
 topLevelMembers() async {}
+
 void set topLevelSetter(val) {}

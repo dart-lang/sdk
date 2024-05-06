@@ -16,6 +16,7 @@ package/scenarios/invalid/non_existent_packages_file_test: CompileTimeError
 
 [ $builder_tag == dwarf ]
 io/socket_connect_stacktrace_test: SkipByDesign # Assumes stacktrace can be inspected directly, without decoding
+regress_53519_test.dart: SkipByDesign # Relies on symbolic stack traces.
 stack_trace/full1_test: SkipByDesign # Relies on symbolic stack traces.
 stack_trace/full2_test: SkipByDesign # Relies on symbolic stack traces.
 stack_trace/full3_test: SkipByDesign # Relies on symbolic stack traces.
@@ -38,6 +39,7 @@ io/socket_source_address_test: SkipByDesign
 
 [ $builder_tag == obfuscated ]
 no_such_method_error_with_invocation_test: SkipByDesign # Checks the member names in the NSM error message.
+regress_53519_test.dart: SkipByDesign # Relies on symbolic stack traces.
 
 [ $compiler == app_jitk ]
 io/socket_sigpipe_test: SkipByDesign # Spawns server process using Platform.executable
@@ -106,7 +108,7 @@ io/raw_secure_server_socket_test: Crash
 io/raw_server_socket_cancel_test: Skip # Issue 28182 # This test sometimes hangs on Mac.
 io/socket_many_connections_test: Skip # This test fails with "Too many open files" on the Mac OS buildbot. This is expected as MacOS by default runs with a very low number of allowed open files ('ulimit -n' says something like 256).
 
-[ $compiler == dart2js || $compiler == ddc ]
+[ $compiler == dart2js || $compiler == dart2wasm || $compiler == ddc ]
 *: SkipByDesign
 
 [ $runtime == dart_precompiled || $runtime == vm ]

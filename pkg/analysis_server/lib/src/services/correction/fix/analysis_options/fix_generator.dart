@@ -4,7 +4,6 @@
 
 import 'dart:math' as math;
 
-import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analysis_server/src/utilities/yaml_node_locator.dart';
@@ -20,6 +19,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_yaml.dar
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:collection/collection.dart';
+import 'package:server_plugin/edit/fix/fix.dart';
 import 'package:yaml/yaml.dart';
 import 'package:yaml_edit/yaml_edit.dart';
 
@@ -69,7 +69,7 @@ class AnalysisOptionsFixGenerator {
 
     var errorCode = error.errorCode;
     // Check whether [errorCode] is within [codeWithFixes], which is (currently)
-    // the canonical list of analyis option error codes with fixes.
+    // the canonical list of analysis option error codes with fixes.
     // If we move analysis option fixes to the style of correction producers,
     // and a map from error codes to the correction producers that can fix
     // violations, we won't need this check.
@@ -182,7 +182,7 @@ class AnalysisOptionsFixGenerator {
     }
     change.id = kind.id;
     change.message = formatList(kind.message, args);
-    fixes.add(Fix(kind, change));
+    fixes.add(Fix(kind: kind, change: change));
   }
 
   Future<ChangeBuilder?> _createScalarDeletionBuilder(
@@ -242,7 +242,7 @@ class AnalysisOptionsFixGenerator {
     );
 
     final deletionRange_final = deletionRange;
-    await builder.addGenericFileEdit(file, (builder) {
+    await builder.addYamlFileEdit(file, (builder) {
       builder.addDeletion(deletionRange_final);
     });
     return builder;

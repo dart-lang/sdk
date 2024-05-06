@@ -10,8 +10,13 @@ class C<X, Y> {
 }
 
 expectEquals(x, y) {}
+
 main() {}
+
 test1(dynamic x) {}
+
 test2(dynamic x) {}
+
 typedef B = A;
+
 typedef D<X> = C<X, X>;

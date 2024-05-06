@@ -12,22 +12,38 @@ class B<T extends core::Object? = dynamic> extends self::A<self::B::T%> {
   synthetic constructor •() → self::B<self::B::T%>
     : super self::A::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2] [@vm.unboxing-info.metadata=()->i]  method testT1() → dynamic
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
+  [@vm.unboxing-info.metadata=()->i]
+  method testT1() → dynamic
     return _in::unsafeCast<self::B::T%>(#C1);
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method testT2negative() → dynamic
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]
+  method testT2negative() → dynamic
     return #C2 as self::B::T%;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  method testT3() → dynamic
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]
+  method testT3() → dynamic
     return _in::unsafeCast<self::B::T%>(#C2);
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8] [@vm.unboxing-info.metadata=()->i]  method testNullableT1() → dynamic
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]
+  [@vm.unboxing-info.metadata=()->i]
+  method testNullableT1() → dynamic
     return _in::unsafeCast<self::B::T?>(#C1);
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:9,getterSelectorId:10]  method testNullableT2() → dynamic
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:9,getterSelectorId:10]
+  method testNullableT2() → dynamic
     return _in::unsafeCast<self::B::T?>(#C2);
 }
-[@vm.unboxing-info.metadata=()->i]static method testInt1() → dynamic
+
+[@vm.unboxing-info.metadata=()->i]
+static method testInt1() → dynamic
   return _in::unsafeCast<core::int>(#C1);
 static method testInt2negative() → dynamic
   return #C2 as core::int;
-[@vm.unboxing-info.metadata=()->i]static method testNullableInt1() → dynamic
+
+[@vm.unboxing-info.metadata=()->i]
+static method testNullableInt1() → dynamic
   return _in::unsafeCast<core::int?>(#C1);
 static method testNullableInt2() → dynamic
   return _in::unsafeCast<core::int?>(#C2);
@@ -36,7 +52,7 @@ static method testDynamic() → dynamic
 static method testObjectNegative() → dynamic
   return let dynamic #t1 = #C2 in #t1 as core::Object;
 static method testNullableObject() → dynamic
-  return #C2;
+  return _in::unsafeCast<core::Object?>(#C2);
 static method testAOfNum1([@vm.inferred-arg-type.metadata=#lib::B<dart.core::int>] dynamic x) → dynamic
   return _in::unsafeCast<self::A<core::num>>(x);
 static method testAOfNum2negative([@vm.inferred-arg-type.metadata=#lib::B<dart.core::int?>] dynamic x) → dynamic

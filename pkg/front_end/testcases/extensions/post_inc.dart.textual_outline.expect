@@ -1,5 +1,7 @@
 void main() {}
+
 String setValue = "";
+
 void expect(String expect, Object value, String expectSet) {}
 
 extension Ops on Object {

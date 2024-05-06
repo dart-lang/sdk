@@ -23,7 +23,6 @@ import 'package:analyzer/dart/element/element.dart'
         ExtensionElement,
         InterfaceElement,
         LibraryElement,
-        LocalVariableElement,
         ParameterElement,
         PropertyAccessorElement;
 import 'package:analyzer/dart/element/type.dart';
@@ -1692,16 +1691,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       var definingElement = element.enclosingElement!;
       var depth = _parameterReferenceDepth(node, definingElement);
       _recordDistance('function depth of referenced parameter', depth);
-    } else if (element is LocalVariableElement) {
-      // TODO(brianwilkerson): This ignores the fact that nested functions can
-      //  reference variables declared in enclosing functions. Consider
-      //  additionally measuring the number of function boundaries that are
-      //  crossed and then reporting the distance with a label such as
-      //  'local variable ($boundaryCount)'.
-      var distance = node == null
-          ? -1
-          : featureComputer.localVariableDistance(node, element);
-      _recordDistance('distance to local variable', distance);
     } else if (element != null) {
       // TODO(brianwilkerson): We might want to cross reference the depth of
       //  the declaration with the depth of the reference to see whether there

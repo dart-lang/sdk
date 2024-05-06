@@ -6,6 +6,7 @@ class A1 {
 }
 
 mixin B1 {}
+
 class C1 = A1 with B1;
 
 class D1 extends C1 {
@@ -18,6 +19,7 @@ class A2 {
 }
 
 mixin B2 {}
+
 class C2 = A2 with B2;
 
 class D2 extends C2 {
@@ -30,6 +32,7 @@ class A3 {
 }
 
 mixin B3 {}
+
 class C3 = A3 with B3;
 
 class D3 extends C3 {
@@ -41,6 +44,7 @@ class D4 extends C4 {
 }
 
 class C4 = A4 with B4;
+
 mixin B4 {}
 
 class A4 extends AA4 {
@@ -57,8 +61,11 @@ class D5 extends C5c {
 }
 
 class C5c = C5b with B5;
+
 class C5b = C5a with B5;
+
 class C5a = A5 with B5;
+
 mixin B5 {}
 
 class A5 extends AA5 {
@@ -75,6 +82,7 @@ class D6 extends C6 {
 }
 
 mixin B7 {}
+
 class C7 = A7 with B7;
 
 class D7 extends C7 {
@@ -86,6 +94,7 @@ class D8 extends C8 {
 }
 
 mixin B9 {}
+
 class C9 = A9 with B9;
 
 class D9 extends C9 {

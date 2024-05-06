@@ -4,26 +4,30 @@
 
 import "dart:_internal"
     show
-        CodeUnits,
         ClassID,
+        CodeUnits,
         doubleToIntBits,
         EfficientLengthIterable,
         FixedLengthListMixin,
+        indexCheckWithName,
         intBitsToDouble,
         IterableElementError,
         jsonEncode,
         ListIterator,
         Lists,
-        mix64,
-        POWERS_OF_TEN,
-        SubListIterable,
-        UnmodifiableListMixin,
         makeFixedListUnmodifiable,
         makeListFixedLength,
+        mix64,
         patch,
-        unsafeCast;
+        POWERS_OF_TEN,
+        SubListIterable,
+        Symbol,
+        UnmodifiableListMixin,
+        unsafeCast,
+        WasmStringBase,
+        WasmTypedDataBase;
 
-import "dart:_internal" as _internal show Symbol;
+import "dart:_internal" as _internal;
 
 import 'dart:_js_helper' show JS, JSSyntaxRegExp, quoteStringForRegExp;
 
@@ -45,7 +49,7 @@ import 'dart:convert' show Encoding, utf8;
 
 import 'dart:math' show Random;
 
-import "dart:typed_data" show Uint8List, Uint16List;
+import "dart:typed_data";
 
 import 'dart:_object_helper';
 import 'dart:_string_helper';

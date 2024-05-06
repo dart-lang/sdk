@@ -683,7 +683,7 @@ ISOLATE_UNIT_TEST_CASE(RangeAnalysis_ShiftUint32Op) {
       kMoveGlob,
       kMatchAndMoveBinaryUint32Op,
       kMoveGlob,
-      kMatchReturn,
+      kMatchDartReturn,
   }));
 
   EXPECT(shift->shift_range() != nullptr);
@@ -724,7 +724,7 @@ ISOLATE_UNIT_TEST_CASE(RangeAnalysis_LoadClassId) {
       kMoveGlob,
       kMatchAndMoveTestRange,
       kMoveGlob,
-      kMatchReturn,
+      kMatchDartReturn,
   }));
 
   EXPECT(load_cid->range() != nullptr);

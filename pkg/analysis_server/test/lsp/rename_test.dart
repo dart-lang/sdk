@@ -30,6 +30,23 @@ final a = new [!My^Class!]();
     return _test_prepare(content, 'MyClass');
   }
 
+  Future<void> test_prepare_class_newKeyword() async {
+    const content = '''
+class MyClass {}
+final a = n^ew [!MyClass!]();
+''';
+
+    return _test_prepare(content, 'MyClass');
+  }
+
+  Future<void> test_prepare_class_startOfParameterList() {
+    const content = '''
+class [!MyClass^!]<T> {}
+''';
+
+    return _test_prepare(content, 'MyClass');
+  }
+
   Future<void> test_prepare_class_typeParameter_atDeclaration() async {
     const content = '''
 class A<[!T^!]> {
@@ -48,15 +65,6 @@ class A<T> {
 ''';
 
     return _test_prepare(content, 'T');
-  }
-
-  Future<void> test_prepare_classNewKeyword() async {
-    const content = '''
-class MyClass {}
-final a = n^ew [!MyClass!]();
-''';
-
-    return _test_prepare(content, 'MyClass');
   }
 
   Future<void> test_prepare_enum() {
@@ -404,7 +412,7 @@ final a = n^ew MyClass();
       expectedMessage:
           'Library already declares class with name \'MyOtherClass\'.',
       action: UserPromptActions.renameAnyway,
-      beforeResponding: () => replaceFile(999, mainFileUri, 'Updated content'),
+      beforeResponding: () => replaceFile(999, mainFileUri, '/*Updated*/'),
     );
     expect(result.result, isNull);
     expect(result.error, isNotNull);
@@ -660,8 +668,14 @@ class MyNewClass {}
     final mainCode = TestCode.parse(mainContent);
     final referencedCode = TestCode.parse(referencedContent);
 
+    // Create initial files (to avoid diagnostics).
+    newFile(mainFilePath, mainCode.code);
+    newFile(referencedFilePath, referencedCode.code);
+
     setDocumentChangesSupport();
     await initialize();
+
+    // Open files to assign versions.
     await openFile(mainFileUri, mainCode.code, version: mainVersion);
     await openFile(referencedFileUri, referencedCode.code,
         version: referencedVersion);

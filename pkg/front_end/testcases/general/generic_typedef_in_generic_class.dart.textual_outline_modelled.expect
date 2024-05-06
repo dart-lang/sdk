@@ -3,4 +3,5 @@ class Class<A> {
 }
 
 main() {}
+
 typedef F = T Function<T, S>(T, S);

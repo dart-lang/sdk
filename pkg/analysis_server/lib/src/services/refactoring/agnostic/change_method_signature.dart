@@ -71,6 +71,8 @@ sealed class Available extends Availability {
     required this.refactoringContext,
   });
 
+  bool get hasPositionalParameters;
+
   bool get hasSelectedFormalParametersToConvertToNamed => false;
 
   bool get hasSelectedFormalParametersToMoveLeft => false;
@@ -113,6 +115,9 @@ final class FormalParameterState {
   /// [FormalParameterUpdate] to specify the same parameter.
   final int id;
 
+  /// The element, used internally for `super` conversion.
+  final ParameterElement element;
+
   /// The current kind of the formal parameter.
   final FormalParameterKind kind;
 
@@ -139,6 +144,7 @@ final class FormalParameterState {
 
   FormalParameterState({
     required this.id,
+    required this.element,
     required this.kind,
     required this.positionalIndex,
     required this.name,
@@ -159,9 +165,13 @@ class FormalParameterUpdate {
   // TODO(scheglov): We might need `defaultValueText` added.
   final FormalParameterKind kind;
 
+  /// Whether the formal parameter should be made `super`.
+  final bool withSuper;
+
   FormalParameterUpdate({
     required this.id,
     required this.kind,
+    this.withSuper = false,
   });
 }
 
@@ -411,6 +421,11 @@ final class _AvailableWithDeclaration extends Available {
   });
 
   @override
+  bool get hasPositionalParameters {
+    return declaration.element.parameters.any((e) => e.isPositional);
+  }
+
+  @override
   bool get hasSelectedFormalParametersToConvertToNamed {
     final selected = declaration.selected;
     if (selected.isEmpty) {
@@ -478,6 +493,11 @@ final class _AvailableWithExecutableElement extends Available {
     required super.refactoringContext,
     required this.element,
   });
+
+  @override
+  bool get hasPositionalParameters {
+    return element.parameters.any((e) => e.isPositional);
+  }
 }
 
 /// The target method declaration.
@@ -555,13 +575,12 @@ class _SelectionAnalyzer {
         return const UnexpectedSelectionState();
       }
 
-      final typeStr = parameterElement.type.getDisplayString(
-        withNullability: true,
-      );
+      final typeStr = parameterElement.type.getDisplayString();
 
       formalParameterStateList.add(
         FormalParameterState(
           id: formalParameterId++,
+          element: parameterElement,
           kind: kind,
           positionalIndex: kind.isPositional ? positionalIndex++ : null,
           name: nameToken.lexeme,
@@ -696,12 +715,17 @@ class _SignatureUpdater {
   /// Replaces [argumentList] with new code that has arguments as requested
   /// by the formal parameter updates, reordering, changing kind, etc.
   Future<ChangeStatus> updateArguments({
+    required Set<FormalParameterUpdate> excludedFormalParameters,
     required ResolvedUnitResult resolvedUnit,
     required ArgumentList argumentList,
     required ChangeBuilder builder,
   }) async {
+    final formalParameters = signatureUpdate.formalParameters
+        .whereNot(excludedFormalParameters.contains)
+        .toList();
+
     final frameworkStatus = await framework.writeArguments(
-      formalParameterUpdates: signatureUpdate.formalParameters.map((update) {
+      formalParameterUpdates: formalParameters.map((update) {
         // TODO(scheglov): Maybe support adding formal parameters.
         final existing = selectionState.formalParameters[update.id];
         final reference = _asFrameworkFormalParameterReference(existing);
@@ -751,7 +775,10 @@ class _SignatureUpdater {
     final utils = CorrectionUtils(unitResult);
 
     /// Returns the code without the `required` modifier.
-    String withoutRequired(FormalParameter existing) {
+    String withoutRequired(
+      FormalParameter existing, {
+      required bool withSuper,
+    }) {
       final notDefault = existing.notDefault;
       final requiredToken = notDefault.requiredKeyword;
       if (requiredToken != null) {
@@ -763,19 +790,49 @@ class _SignatureUpdater {
         );
         return '$before $after';
       } else {
-        return utils.getNodeText(existing);
+        if (withSuper) {
+          var nameToken = notDefault.name!;
+          var before = utils.getRangeText(
+            range.startStart(existing, nameToken),
+          );
+          var after = utils.getRangeText(
+            range.startEnd(nameToken, existing),
+          );
+          return '${before}super.$after';
+        } else {
+          return utils.getNodeText(existing);
+        }
       }
     }
 
     /// Returns the code with the `required` modifier.
-    String withRequired(FormalParameter existing) {
+    String withRequired(
+      FormalParameter existing, {
+      required bool withSuper,
+    }) {
       final notDefault = existing.notDefault;
       final requiredToken = notDefault.requiredKeyword;
       if (requiredToken != null) {
-        return utils.getNodeText(existing);
+        if (withSuper) {
+          var nameToken = notDefault.name!;
+          var before = utils.getRangeText(
+            range.startStart(requiredToken.next!, nameToken),
+          );
+          return 'required ${before}super.${nameToken.lexeme}';
+        } else {
+          return utils.getNodeText(existing);
+        }
       } else {
-        final after = utils.getNodeText(notDefault);
-        return 'required $after';
+        if (withSuper) {
+          var nameToken = notDefault.name!;
+          var before = utils.getRangeText(
+            range.startStart(notDefault, nameToken),
+          );
+          return 'required ${before}super.${nameToken.lexeme}';
+        } else {
+          final after = utils.getNodeText(notDefault);
+          return 'required $after';
+        }
       }
     }
 
@@ -827,16 +884,28 @@ class _SignatureUpdater {
         case NormalFormalParameter():
           switch (update.kind) {
             case FormalParameterKind.requiredPositional:
-              final text = withoutRequired(notDefault);
+              final text = withoutRequired(
+                notDefault,
+                withSuper: update.withSuper,
+              );
               requiredPositionalWrites.add(text);
             case FormalParameterKind.optionalPositional:
-              final text = withoutRequired(existing);
+              final text = withoutRequired(
+                existing,
+                withSuper: update.withSuper,
+              );
               optionalPositionalWrites.add(text);
             case FormalParameterKind.requiredNamed:
-              final text = withRequired(existing);
+              final text = withRequired(
+                existing,
+                withSuper: update.withSuper,
+              );
               namedWrites.add(text);
             case FormalParameterKind.optionalNamed:
-              final text = withoutRequired(existing);
+              final text = withoutRequired(
+                existing,
+                withSuper: update.withSuper,
+              );
               namedWrites.add(text);
           }
         default:
@@ -964,7 +1033,21 @@ class _SignatureUpdater {
           return ChangeStatusFailure();
       }
 
+      final excludedParameters = <FormalParameterUpdate>{};
+      if (invocation is SuperConstructorInvocation) {
+        var result = await _rewriteToNamedSuper(
+          builder: builder,
+          unitResult: unitResult,
+          invocation: invocation,
+          excludedParameters: excludedParameters,
+        );
+        if (result is! ChangeStatusSuccess) {
+          return result;
+        }
+      }
+
       final result = await updateArguments(
+        excludedFormalParameters: excludedParameters,
         resolvedUnit: unitResult,
         argumentList: argumentList,
         builder: builder,
@@ -1078,9 +1161,126 @@ class _SignatureUpdater {
       named: named,
     );
   }
+
+  /// Attempts to rewrite explicit arguments to `super()` invocation into
+  /// implicit arguments using `{super.name}` formal parameters.
+  Future<ChangeStatus> _rewriteToNamedSuper({
+    required ChangeBuilder builder,
+    required ResolvedUnitResult unitResult,
+    required SuperConstructorInvocation invocation,
+    required Set<FormalParameterUpdate> excludedParameters,
+  }) async {
+    var argumentList = invocation.argumentList;
+
+    final constructorDeclaration = invocation.parent;
+    if (constructorDeclaration is! ConstructorDeclaration) {
+      return ChangeStatusSuccess();
+    }
+
+    final parameterElementsToSuper = <ParameterElement>{};
+    for (final update in signatureUpdate.formalParameters) {
+      if (update.kind.isNamed) {
+        final existing = selectionState.formalParameters[update.id];
+        final reference = _asFrameworkFormalParameterReference(existing);
+        final argument = reference.argumentFrom(argumentList);
+        if (argument is! SimpleIdentifier) {
+          continue;
+        }
+
+        final parameterElement = argument.staticElement;
+        if (parameterElement is! ParameterElement) {
+          continue;
+        }
+
+        // We need the names to be the same to use `super.named`.
+        // If not, we still can use explicit argument to `super()`.
+        // TODO(scheglov): can we have a lint for this?
+        if (argument.name != existing.name) {
+          continue;
+        }
+
+        excludedParameters.add(update);
+        parameterElementsToSuper.add(parameterElement);
+      }
+    }
+
+    // Prepare for recursive update of the constructor.
+    final availability = analyzeAvailability(
+      refactoringContext: AbstractRefactoringContext(
+        searchEngine: searchEngine,
+        startSessions: refactoringContext.startSessions,
+        resolvedLibraryResult: refactoringContext.resolvedLibraryResult,
+        resolvedUnitResult: unitResult,
+        selectionOffset: constructorDeclaration.offset,
+        selectionLength: 0,
+        includeExperimental: true,
+      ),
+    );
+    if (availability is! Available) {
+      return ChangeStatusFailure();
+    }
+
+    final selection = await analyzeSelection(
+      available: availability,
+    );
+    if (selection is! ValidSelectionState) {
+      return ChangeStatusFailure();
+    }
+
+    var formalParameterUpdatesNotNamed = <FormalParameterUpdate>[];
+    var formalParameterUpdatesNamed = <FormalParameterUpdate>[];
+    for (var formalParameter in selection.formalParameters) {
+      final element = formalParameter.element;
+      if (element.isNamed) {
+        formalParameterUpdatesNamed.add(
+          FormalParameterUpdate(
+            id: formalParameter.id,
+            kind: FormalParameterKind.fromElement(element),
+            withSuper: true,
+          ),
+        );
+      } else if (parameterElementsToSuper.contains(element)) {
+        formalParameterUpdatesNamed.add(
+          FormalParameterUpdate(
+            id: formalParameter.id,
+            kind: FormalParameterKind.requiredNamed,
+            withSuper: true,
+          ),
+        );
+      } else {
+        formalParameterUpdatesNotNamed.add(
+          FormalParameterUpdate(
+            id: formalParameter.id,
+            kind: formalParameter.kind,
+          ),
+        );
+      }
+    }
+
+    var status = await computeSourceChange(
+      selectionState: selection,
+      signatureUpdate: MethodSignatureUpdate(
+        formalParameters: [
+          ...formalParameterUpdatesNotNamed,
+          ...formalParameterUpdatesNamed,
+        ],
+        formalParametersTrailingComma:
+            signatureUpdate.formalParametersTrailingComma,
+        argumentsTrailingComma: signatureUpdate.argumentsTrailingComma,
+      ),
+      builder: builder,
+    );
+    if (status is! ChangeStatusSuccess) {
+      return status;
+    }
+
+    // TODO(scheglov): Remove empty `super()`.
+
+    return ChangeStatusSuccess();
+  }
 }
 
-extension _AstNodeExtension on AstNode {
+extension on AstNode {
   AstNode? get declaration {
     final self = this;
     if (self is FunctionExpression) {

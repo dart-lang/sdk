@@ -12,4 +12,5 @@ class E extends D {}
 class F extends C<int> with M {}
 
 main() {}
+
 mixin M {}

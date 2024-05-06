@@ -6,8 +6,6 @@
 // field promotion fails due to a conflict with declarations elsewhere in the
 // file.
 
-// SharedOptions=--enable-experiment=inference-update-2
-
 class C {
   final int? _i;
   C(this._i);

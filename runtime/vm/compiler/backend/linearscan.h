@@ -281,14 +281,11 @@ class FlowGraphAllocator : public ValueObject {
     return Location::MachineRegisterLocation(register_kind_, reg);
   }
 
-  void SplitInitialDefinitionAt(LiveRange* range, intptr_t pos);
+  void SplitInitialDefinitionAt(LiveRange* range,
+                                intptr_t pos,
+                                Location::Kind kind);
 
   void PrintLiveRanges();
-
-  Location ComputeParameterLocation(BlockEntryInstr* block,
-                                    ParameterInstr* param,
-                                    Register base_reg,
-                                    intptr_t pair_index);
 
   // Assign locations for each outgoing argument. Outgoing argumenst are
   // currently stored at the top of the stack in direct order (last argument

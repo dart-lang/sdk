@@ -239,7 +239,7 @@ class MemberHierarchyBuilder {
       ClassEntity baseCls, Selector selector,
       {required bool isSubtype}) {
     final results = Setlet<DynamicCallTarget>();
-    IterationStep handleEntity(entity) {
+    IterationStep handleEntity(ClassEntity entity) {
       final match = findSuperclassTarget(entity, selector);
       if (match.isNotEmpty) {
         results.addAll(match);

@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -27,7 +27,6 @@ class ConstantInitializersResolver {
   late LibraryBuilder _libraryBuilder;
   late CompilationUnitElementImpl _unitElement;
   late LibraryElement _library;
-  bool _enclosingClassHasConstConstructor = false;
   late Scope _scope;
 
   ConstantInitializersResolver(this.linker);
@@ -57,40 +56,34 @@ class ConstantInitializersResolver {
   }
 
   void _resolveInterfaceFields(InterfaceElement class_) {
-    _enclosingClassHasConstConstructor =
-        class_.constructors.any((c) => c.isConst);
-
     var node = linker.getLinkingNode(class_)!;
     _scope = LinkingNodeContext.get(node).scope;
     class_.fields.forEach(_resolveVariable);
-    _enclosingClassHasConstConstructor = false;
   }
 
   void _resolveVariable(PropertyInducingElement element) {
     element as PropertyInducingElementImpl;
 
+    if (element is FieldElementImpl && element.isEnumConstant) {
+      return;
+    }
+
+    var constElement = element.ifTypeOrNull<ConstVariableElement>();
+    if (constElement == null) return;
+    if (constElement.constantInitializer == null) return;
+
     var variable = linker.getLinkingNode(element);
-    if (variable is! VariableDeclaration) return;
+    if (variable is! VariableDeclarationImpl) return;
     if (variable.initializer == null) return;
 
-    var declarationList = variable.parent as VariableDeclarationList;
+    var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
+    var astResolver =
+        AstResolver(linker, _unitElement, _scope, analysisOptions);
+    astResolver.resolveExpression(() => variable.initializer!,
+        contextType: element.type);
 
-    if (declarationList.isConst ||
-        declarationList.isFinal && _enclosingClassHasConstConstructor) {
-      var file = _libraryBuilder.kind.file.resource;
-      // TODO(pq): precache options in file state and fetch them from there
-      var analysisOptions =
-          linker.analysisContext.getAnalysisOptionsForFile(file);
-      var astResolver =
-          AstResolver(linker, _unitElement, _scope, analysisOptions);
-      astResolver.resolveExpression(() => variable.initializer!,
-          contextType: element.type);
-    }
-
-    if (element is ConstVariableElement) {
-      var constElement = element as ConstVariableElement;
-      constElement.constantInitializer = variable.initializer;
-    }
+    // We could have rewritten the initializer.
+    constElement.constantInitializer = variable.initializer;
   }
 }
 
@@ -258,11 +251,7 @@ class _PropertyInducingElementTypeInference
         ?.augmented
         ?.declaration;
 
-    var file = _libraryBuilder.kind.file.resource;
-    // TODO(pq): precache options in file state and fetch them from there
-    var analysisOptions =
-        _linker.analysisContext.getAnalysisOptionsForFile(file);
-
+    var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
     var astResolver = AstResolver(
         _linker, _unitElement, _scope, analysisOptions,
         enclosingClassElement: enclosingInterfaceElement);
@@ -289,14 +278,6 @@ class _PropertyInducingElementTypeInference
       return DynamicTypeImpl.instance;
     }
 
-    var typeSystem = _unitElement.library.typeSystem;
-    if (typeSystem.isNonNullableByDefault) {
-      return typeSystem.nonNullifyLegacy(type);
-    } else {
-      if (type.isBottom) {
-        return DynamicTypeImpl.instance;
-      }
-      return type;
-    }
+    return type;
   }
 }

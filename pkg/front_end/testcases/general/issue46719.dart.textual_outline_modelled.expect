@@ -1,4 +1,5 @@
 // @dart = 2.14
+
 import 'issue46719.dart' as self;
 
 List<X> m<X>(X x) => [x];
@@ -16,4 +17,5 @@ extension FunctionApplier on Function {
 }
 
 test() {}
+
 void main() {}

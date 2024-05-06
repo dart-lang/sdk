@@ -1,10 +1,15 @@
 import 'dart:async';
 
 typedef T<X> = X;
+
 T<int>? v1;
+
 List<T<void>> v2 = [];
+
 final T<String> v3 = throw "Anything";
+
 const List<T<C>> v4 = [];
+
 const v5 = <Type, Type>{T: T};
 
 abstract class C {

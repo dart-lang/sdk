@@ -3,11 +3,13 @@ import self as self;
 
 static method test(dynamic x) → dynamic {
   {
-    final hoisted dynamic y;
     final synthesized dynamic #0#0 = x;
-    if(true) {
-      y = #0#0;
-      {}
+    {
+      final hoisted dynamic y;
+      if(true) {
+        y = #0#0;
+        {}
+      }
     }
   }
 }

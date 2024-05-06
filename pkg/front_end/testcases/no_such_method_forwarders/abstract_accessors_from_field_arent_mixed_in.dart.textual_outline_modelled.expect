@@ -8,6 +8,7 @@ class C extends Object with B {
 }
 
 int count = 0;
+
 main() {}
 
 mixin class B implements A {

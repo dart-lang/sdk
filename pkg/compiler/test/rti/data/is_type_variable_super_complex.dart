@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 class A<T> {}
 
-/*class: B:explicit=[B.T*],needsArgs,test*/
+/*class: B:explicit=[B.T],needsArgs,test*/
 class B<T> extends A<List<T>> {
   m(T t) => t is T;
 }

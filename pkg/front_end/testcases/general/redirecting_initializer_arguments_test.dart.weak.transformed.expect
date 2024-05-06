@@ -16,12 +16,8 @@ class Foo<T extends core::Object? = dynamic> extends core::Object {
   Foo.from(String _init) : this._internal(x: _init);
                                              ^" in _init as{TypeError} Never)
     ;
-  constructor _internal({required self::Foo::T% x = #C1}) → self::Foo<self::Foo::T%>
+  constructor _internal({required self::Foo::T% x}) → self::Foo<self::Foo::T%>
     : self::Foo::x = x, super core::Object::•()
     ;
 }
 static method main() → void {}
-
-constants  {
-  #C1 = null
-}

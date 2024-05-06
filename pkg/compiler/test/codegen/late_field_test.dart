@@ -46,8 +46,7 @@ Future check(String test, {String entry = 'test'}) {
       methodName: 'test',
       check: checkerForAbsentPresent(test),
       disableTypeInference: false,
-      disableInlining: false,
-      soundNullSafety: true);
+      disableInlining: false);
 }
 
 void main() {

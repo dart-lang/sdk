@@ -9,90 +9,106 @@ typedef FunctionType = () → void;
 typedef GenericFunctionType<invariant T extends core::Object? = dynamic> = (T%) → T%;
 static method test<T extends core::Object? = dynamic>(dynamic o) → dynamic {
   {
-    hoisted core::int hashCode;
     final synthesized dynamic #0#0 = o;
-    if(#0#0 is () → void) {
-      hashCode = #0#0{() → void}.{core::Object::hashCode}{core::int};
-      {
-        core::print(hashCode);
-        return 1;
+    {
+      hoisted core::int hashCode;
+      if(#0#0 is () → void) {
+        hashCode = #0#0{() → void}.{core::Object::hashCode}{core::int};
+        {
+          core::print(hashCode);
+          return 1;
+        }
       }
     }
   }
   {
-    hoisted core::int hashCode;
     final synthesized dynamic #1#0 = o;
-    if(#1#0 is (core::int) → core::int) {
-      hashCode = #1#0{(core::int) → core::int}.{core::Object::hashCode}{core::int};
-      {
-        core::print(hashCode);
-        return 2;
+    {
+      hoisted core::int hashCode;
+      if(#1#0 is (core::int) → core::int) {
+        hashCode = #1#0{(core::int) → core::int}.{core::Object::hashCode}{core::int};
+        {
+          core::print(hashCode);
+          return 2;
+        }
       }
     }
   }
   {
-    hoisted core::int hashCode;
     final synthesized dynamic #2#0 = o;
-    if(#2#0 is (core::String) → core::String) {
-      hashCode = #2#0{(core::String) → core::String}.{core::Object::hashCode}{core::int};
-      {
-        core::print(hashCode);
-        return 3;
+    {
+      hoisted core::int hashCode;
+      if(#2#0 is (core::String) → core::String) {
+        hashCode = #2#0{(core::String) → core::String}.{core::Object::hashCode}{core::int};
+        {
+          core::print(hashCode);
+          return 3;
+        }
       }
     }
   }
   {
-    hoisted core::int hashCode;
     final synthesized dynamic #3#0 = o;
-    if(#3#0 is (self::test::T%) → self::test::T%) {
-      hashCode = #3#0{(self::test::T%) → self::test::T%}.{core::Object::hashCode}{core::int};
-      {
-        core::print(hashCode);
-        return 4;
+    {
+      hoisted core::int hashCode;
+      if(#3#0 is (self::test::T%) → self::test::T%) {
+        hashCode = #3#0{(self::test::T%) → self::test::T%}.{core::Object::hashCode}{core::int};
+        {
+          core::print(hashCode);
+          return 4;
+        }
       }
     }
   }
   {
-    hoisted core::int hashCode;
     final synthesized dynamic #4#0 = o;
-    if(#4#0 is (dynamic) → dynamic) {
-      hashCode = #4#0{(dynamic) → dynamic}.{core::Object::hashCode}{core::int};
-      {
-        core::print(hashCode);
-        return 5;
+    {
+      hoisted core::int hashCode;
+      if(#4#0 is (dynamic) → dynamic) {
+        hashCode = #4#0{(dynamic) → dynamic}.{core::Object::hashCode}{core::int};
+        {
+          core::print(hashCode);
+          return 5;
+        }
       }
     }
   }
   {
-    hoisted core::int hashCode;
     final synthesized dynamic #5#0 = o;
-    if(#5#0 is Null) {
-      hashCode = #5#0{Null}.{core::Object::hashCode}{<object>}.{core::int};
-      {
-        core::print(hashCode);
-        return 6;
+    {
+      hoisted core::int hashCode;
+      if(#5#0 is Null) {
+        hashCode = #5#0{Null}.{core::Object::hashCode}{<object>}.{core::int};
+        {
+          core::print(hashCode);
+          return 6;
+        }
       }
     }
   }
   {
-    hoisted core::int hashCode;
     final synthesized dynamic #6#0 = o;
-    if(#6#0 is FutureOr<core::int>) {
-      hashCode = #6#0{FutureOr<core::int>}.{core::Object::hashCode}{<object>}.{core::int};
-      {
-        core::print(hashCode);
-        return 7;
+    {
+      hoisted core::int hashCode;
+      if(#6#0 is FutureOr<core::int>) {
+        hashCode = #6#0{FutureOr<core::int>}.{core::Object::hashCode}{<object>}.{core::int};
+        {
+          core::print(hashCode);
+          return 7;
+        }
       }
     }
   }
   {
-    hoisted dynamic hashCode;
     final synthesized dynamic #7#0 = o;
-    if(#7#0 is dynamic) {
-      hashCode = #7#0.{core::Object::hashCode}{<object>}.{core::int};
-      {
-        core::print(hashCode);
-        return 0;
+    {
+      hoisted dynamic hashCode;
+      if(#7#0 is dynamic) {
+        hashCode = #7#0.{core::Object::hashCode}{<object>}.{core::int};
+        {
+          core::print(hashCode);
+          return 0;
+        }
       }
     }
   }

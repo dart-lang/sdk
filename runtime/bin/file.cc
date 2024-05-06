@@ -10,7 +10,6 @@
 #include "bin/dartutils.h"
 #include "bin/io_buffer.h"
 #include "bin/namespace.h"
-#include "bin/typed_data_utils.h"
 #include "bin/utils.h"
 #include "include/bin/dart_io_api.h"
 #include "include/dart_api.h"
@@ -89,45 +88,27 @@ void FUNCTION_NAME(File_SetPointer)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_Open)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  Dart_Handle path_handle = Dart_GetNativeArgument(args, 1);
-  File* file = nullptr;
-  OSError os_error;
-  {
-    TypedDataScope data(path_handle);
-    ASSERT(data.type() == Dart_TypedData_kUint8);
-    const char* filename = data.GetCString();
-
-    int64_t mode = DartUtils::GetNativeIntegerArgument(args, 2);
-    File::DartFileOpenMode dart_file_mode =
-        static_cast<File::DartFileOpenMode>(mode);
-    File::FileOpenMode file_mode = File::DartModeToFileMode(dart_file_mode);
-    // Check that the file exists before opening it only for
-    // reading. This is to prevent the opening of directories as
-    // files. Directories can be opened for reading using the posix
-    // 'open' call.
-    file = File::Open(namespc, filename, file_mode);
-    if (file == nullptr) {
-      // Errors must be caught before TypedDataScope data is destroyed.
-      os_error.Reload();
-    }
-  }
+  const char* filename = DartUtils::GetNativeTypedDataArgument(args, 1);
+  int64_t mode = DartUtils::GetNativeIntegerArgument(args, 2);
+  File::DartFileOpenMode dart_file_mode =
+      static_cast<File::DartFileOpenMode>(mode);
+  File::FileOpenMode file_mode = File::DartModeToFileMode(dart_file_mode);
+  // Check that the file exists before opening it only for
+  // reading. This is to prevent the opening of directories as
+  // files. Directories can be opened for reading using the posix
+  // 'open' call.
+  File* file = File::Open(namespc, filename, file_mode);
   if (file != nullptr) {
     Dart_SetIntegerReturnValue(args, reinterpret_cast<intptr_t>(file));
   } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
 void FUNCTION_NAME(File_Exists)(Dart_NativeArguments args) {
-  bool exists;
-  {
-    Namespace* namespc = Namespace::GetNamespace(args, 0);
-    Dart_Handle path_handle = Dart_GetNativeArgument(args, 1);
-    TypedDataScope data(path_handle);
-    ASSERT(data.type() == Dart_TypedData_kUint8);
-    const char* filename = data.GetCString();
-    exists = File::Exists(namespc, filename);
-  }
+  Namespace* namespc = Namespace::GetNamespace(args, 0);
+  const char* filename = DartUtils::GetNativeTypedDataArgument(args, 1);
+  bool exists = File::Exists(namespc, filename);
   Dart_SetBooleanReturnValue(args, exists);
 }
 
@@ -382,117 +363,62 @@ void FUNCTION_NAME(File_Length)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_LengthFromPath)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  Dart_Handle path_handle = Dart_GetNativeArgument(args, 1);
-  int64_t return_value;
-  OSError os_error;
-  {
-    TypedDataScope data(path_handle);
-    ASSERT(data.type() == Dart_TypedData_kUint8);
-    const char* path = data.GetCString();
-    return_value = File::LengthFromPath(namespc, path);
-    if (return_value < 0) {
-      // Errors must be caught before TypedDataScope data is destroyed.
-      os_error.Reload();
-    }
-  }
+  const char* path = DartUtils::GetNativeTypedDataArgument(args, 1);
+  int64_t return_value = File::LengthFromPath(namespc, path);
   if (return_value >= 0) {
     Dart_SetIntegerReturnValue(args, return_value);
   } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
 void FUNCTION_NAME(File_LastModified)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  Dart_Handle path_handle = Dart_GetNativeArgument(args, 1);
-  int64_t return_value;
-  OSError os_error;
-  {
-    TypedDataScope data(path_handle);
-    ASSERT(data.type() == Dart_TypedData_kUint8);
-    const char* raw_name = data.GetCString();
-    return_value = File::LastModified(namespc, raw_name);
-    if (return_value < 0) {
-      // Errors must be caught before TypedDataScope data is destroyed.
-      os_error.Reload();
-    }
-  }
+  const char* raw_name = DartUtils::GetNativeTypedDataArgument(args, 1);
+  int64_t return_value = File::LastModified(namespc, raw_name);
   if (return_value >= 0) {
     Dart_SetIntegerReturnValue(args, return_value * kMillisecondsPerSecond);
   } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
 void FUNCTION_NAME(File_SetLastModified)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  Dart_Handle path_handle = Dart_GetNativeArgument(args, 1);
   int64_t millis;
   if (!DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 2), &millis)) {
     Dart_ThrowException(DartUtils::NewDartArgumentError(
         "The second argument must be a 64-bit int."));
   }
-  bool result;
-  OSError os_error;
-  {
-    TypedDataScope data(path_handle);
-    ASSERT(data.type() == Dart_TypedData_kUint8);
-    const char* name = data.GetCString();
-    result = File::SetLastModified(namespc, name, millis);
-    if (!result) {
-      // Errors must be caught before TypedDataScope data is destroyed.
-      os_error.Reload();
-    }
-  }
+  const char* name = DartUtils::GetNativeTypedDataArgument(args, 1);
+  bool result = File::SetLastModified(namespc, name, millis);
   if (!result) {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
 void FUNCTION_NAME(File_LastAccessed)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  Dart_Handle path_handle = Dart_GetNativeArgument(args, 1);
-  int64_t return_value;
-  OSError os_error;
-  {
-    TypedDataScope data(path_handle);
-    ASSERT(data.type() == Dart_TypedData_kUint8);
-    const char* name = data.GetCString();
-    return_value = File::LastAccessed(namespc, name);
-    if (return_value < 0) {
-      // Errors must be caught before TypedDataScope data is destroyed.
-      os_error.Reload();
-    }
-  }
+  const char* name = DartUtils::GetNativeTypedDataArgument(args, 1);
+  int64_t return_value = File::LastAccessed(namespc, name);
   if (return_value >= 0) {
     Dart_SetIntegerReturnValue(args, return_value * kMillisecondsPerSecond);
   } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
 void FUNCTION_NAME(File_SetLastAccessed)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  Dart_Handle path_handle = Dart_GetNativeArgument(args, 1);
   int64_t millis;
   if (!DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 2), &millis)) {
     Dart_ThrowException(DartUtils::NewDartArgumentError(
         "The second argument must be a 64-bit int."));
   }
-  bool result;
-  OSError os_error;
-  {
-    TypedDataScope data(path_handle);
-    ASSERT(data.type() == Dart_TypedData_kUint8);
-    const char* name = data.GetCString();
-    result = File::SetLastAccessed(namespc, name, millis);
-    if (!result) {
-      // Errors must be caught before TypedDataScope data is destroyed.
-      os_error.Reload();
-    }
-  }
+  const char* name = DartUtils::GetNativeTypedDataArgument(args, 1);
+  bool result = File::SetLastAccessed(namespc, name, millis);
   if (!result) {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
@@ -531,46 +457,24 @@ void FUNCTION_NAME(File_Lock)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_Create)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  Dart_Handle path_handle = Dart_GetNativeArgument(args, 1);
   Dart_Handle exclusive_handle = Dart_GetNativeArgument(args, 2);
-  bool result;
-  OSError os_error;
-  {
-    TypedDataScope data(path_handle);
-    ASSERT(data.type() == Dart_TypedData_kUint8);
-    const char* path = data.GetCString();
-    bool exclusive = DartUtils::GetBooleanValue(exclusive_handle);
-    result = File::Create(namespc, path, exclusive);
-    if (!result) {
-      // Errors must be caught before TypedDataScope data is destroyed.
-      os_error.Reload();
-    }
-  }
+  const char* path = DartUtils::GetNativeTypedDataArgument(args, 1);
+  bool exclusive = DartUtils::GetBooleanValue(exclusive_handle);
+  bool result = File::Create(namespc, path, exclusive);
   if (result) {
     Dart_SetBooleanReturnValue(args, result);
   } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
 void FUNCTION_NAME(File_CreateLink)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  bool result;
-  Dart_Handle path_handle = Dart_GetNativeArgument(args, 1);
-  OSError os_error;
-  {
-    TypedDataScope data(path_handle);
-    ASSERT(data.type() == Dart_TypedData_kUint8);
-    const char* name = data.GetCString();
-    const char* target = DartUtils::GetNativeStringArgument(args, 2);
-    result = File::CreateLink(namespc, name, target);
-    if (!result) {
-      // Errors must be caught before TypedDataScope data is destroyed.
-      os_error.Reload();
-    }
-  }
+  const char* name = DartUtils::GetNativeTypedDataArgument(args, 1);
+  const char* target = DartUtils::GetNativeStringArgument(args, 2);
+  bool result = File::CreateLink(namespc, name, target);
   if (!result) {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
@@ -595,21 +499,10 @@ void FUNCTION_NAME(File_CreatePipe)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_LinkTarget)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  Dart_Handle path_handle = Dart_GetNativeArgument(args, 1);
-  const char* target = nullptr;
-  OSError os_error;
-  {
-    TypedDataScope data(path_handle);
-    ASSERT(data.type() == Dart_TypedData_kUint8);
-    const char* name = data.GetCString();
-    target = File::LinkTarget(namespc, name);
-    if (target == nullptr) {
-      // Errors must be caught before TypedDataScope data is destroyed.
-      os_error.Reload();
-    }
-  }
+  const char* name = DartUtils::GetNativeTypedDataArgument(args, 1);
+  const char* target = File::LinkTarget(namespc, name);
   if (target == nullptr) {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   } else {
     Dart_Handle str = ThrowIfError(DartUtils::NewString(target));
     Dart_SetReturnValue(args, str);
@@ -618,137 +511,72 @@ void FUNCTION_NAME(File_LinkTarget)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_Delete)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  bool result;
-  Dart_Handle path_handle = Dart_GetNativeArgument(args, 1);
-  OSError os_error;
-  {
-    TypedDataScope data(path_handle);
-    ASSERT(data.type() == Dart_TypedData_kUint8);
-    const char* path = data.GetCString();
-    result = File::Delete(namespc, path);
-    if (!result) {
-      // Errors must be caught before TypedDataScope data is destroyed.
-      os_error.Reload();
-    }
-  }
+  const char* path = DartUtils::GetNativeTypedDataArgument(args, 1);
+  bool result = File::Delete(namespc, path);
   if (result) {
     Dart_SetBooleanReturnValue(args, result);
   } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
 void FUNCTION_NAME(File_DeleteLink)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  Dart_Handle path_handle = Dart_GetNativeArgument(args, 1);
-  bool result;
-  OSError os_error;
-  {
-    TypedDataScope data(path_handle);
-    ASSERT(data.type() == Dart_TypedData_kUint8);
-    const char* path = data.GetCString();
-    result = File::DeleteLink(namespc, path);
-    if (!result) {
-      // Errors must be caught before TypedDataScope data is destroyed.
-      os_error.Reload();
-    }
-  }
+  const char* path = DartUtils::GetNativeTypedDataArgument(args, 1);
+  bool result = File::DeleteLink(namespc, path);
   if (result) {
     Dart_SetBooleanReturnValue(args, result);
   } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
 void FUNCTION_NAME(File_Rename)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  Dart_Handle old_path_handle = Dart_GetNativeArgument(args, 1);
-  bool result;
-  OSError os_error;
-  {
-    TypedDataScope old_path_data(old_path_handle);
-    ASSERT(old_path_data.type() == Dart_TypedData_kUint8);
-    const char* old_path = old_path_data.GetCString();
-    const char* new_path = DartUtils::GetNativeStringArgument(args, 2);
-    result = File::Rename(namespc, old_path, new_path);
-    if (!result) {
-      // Errors must be caught before TypedDataScope data is destroyed.
-      os_error.Reload();
-    }
-  }
+  const char* old_path = DartUtils::GetNativeTypedDataArgument(args, 1);
+  const char* new_path = DartUtils::GetNativeStringArgument(args, 2);
+  bool result = File::Rename(namespc, old_path, new_path);
   if (result) {
     Dart_SetBooleanReturnValue(args, result);
   } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
 void FUNCTION_NAME(File_RenameLink)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  Dart_Handle old_path_handle = Dart_GetNativeArgument(args, 1);
-  bool result;
-  OSError os_error;
-  {
-    TypedDataScope old_path_data(old_path_handle);
-    ASSERT(old_path_data.type() == Dart_TypedData_kUint8);
-    const char* old_path = old_path_data.GetCString();
-    const char* new_path = DartUtils::GetNativeStringArgument(args, 2);
-    result = File::RenameLink(namespc, old_path, new_path);
-    if (!result) {
-      // Errors must be caught before TypedDataScope data is destroyed.
-      os_error.Reload();
-    }
-  }
+  const char* old_path = DartUtils::GetNativeTypedDataArgument(args, 1);
+  const char* new_path = DartUtils::GetNativeStringArgument(args, 2);
+  bool result = File::RenameLink(namespc, old_path, new_path);
   if (result) {
     Dart_SetBooleanReturnValue(args, result);
   } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
 void FUNCTION_NAME(File_Copy)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  Dart_Handle old_path_handle = Dart_GetNativeArgument(args, 1);
-  bool result;
-  OSError os_error;
-  {
-    TypedDataScope old_path_data(old_path_handle);
-    ASSERT(old_path_data.type() == Dart_TypedData_kUint8);
-    const char* old_path = old_path_data.GetCString();
-    const char* new_path = DartUtils::GetNativeStringArgument(args, 2);
-    result = File::Copy(namespc, old_path, new_path);
-    if (!result) {
-      // Errors must be caught before TypedDataScope data is destroyed.
-      os_error.Reload();
-    }
-  }
+  const char* old_path = DartUtils::GetNativeTypedDataArgument(args, 1);
+  const char* new_path = DartUtils::GetNativeStringArgument(args, 2);
+  bool result = File::Copy(namespc, old_path, new_path);
   if (result) {
     Dart_SetBooleanReturnValue(args, result);
   } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
 void FUNCTION_NAME(File_ResolveSymbolicLinks)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  Dart_Handle path_handle = Dart_GetNativeArgument(args, 1);
   const char* path = nullptr;
-  OSError os_error;
-  {
-    TypedDataScope data(path_handle);
-    ASSERT(data.type() == Dart_TypedData_kUint8);
-    const char* str = data.GetCString();
-    path = File::GetCanonicalPath(namespc, str);
-    if (path == nullptr) {
-      // Errors must be caught before TypedDataScope data is destroyed.
-      os_error.Reload();
-    }
-  }
+  const char* str = DartUtils::GetNativeTypedDataArgument(args, 1);
+  path = File::GetCanonicalPath(namespc, str);
   if (path != nullptr) {
     Dart_Handle str = ThrowIfError(DartUtils::NewString(path));
     Dart_SetReturnValue(args, str);
   } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
@@ -771,16 +599,10 @@ void FUNCTION_NAME(File_GetStdioHandleType)(Dart_NativeArguments args) {
 }
 
 void FUNCTION_NAME(File_GetType)(Dart_NativeArguments args) {
-  File::Type type;
-  {
-    Namespace* namespc = Namespace::GetNamespace(args, 0);
-    Dart_Handle path_handle = Dart_GetNativeArgument(args, 1);
-    TypedDataScope data(path_handle);
-    ASSERT(data.type() == Dart_TypedData_kUint8);
-    const char* path = data.GetCString();
-    bool follow_links = DartUtils::GetNativeBooleanArgument(args, 2);
-    type = File::GetType(namespc, path, follow_links);
-  }
+  Namespace* namespc = Namespace::GetNamespace(args, 0);
+  const char* path = DartUtils::GetNativeTypedDataArgument(args, 1);
+  bool follow_links = DartUtils::GetNativeBooleanArgument(args, 2);
+  File::Type type = File::GetType(namespc, path, follow_links);
   Dart_SetIntegerReturnValue(args, static_cast<int>(type));
 }
 

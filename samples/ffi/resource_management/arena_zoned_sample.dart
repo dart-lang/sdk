@@ -24,7 +24,7 @@ main() async {
   withZoneArena(() {
     final p = zoneArena<Int64>(2);
     p[0] = 24;
-    MemMove(p.elementAt(1).cast<Void>(), p.cast<Void>(), sizeOf<Int64>());
+    MemMove((p + 1).cast<Void>(), p.cast<Void>(), sizeOf<Int64>());
     print(p[1]);
     Expect.equals(24, p[1]);
   });
@@ -34,7 +34,7 @@ main() async {
     withZoneArena(() {
       final p = zoneArena<Int64>(2);
       p[0] = 25;
-      MemMove(p.elementAt(1).cast<Void>(), p.cast<Void>(), 8);
+      MemMove((p + 1).cast<Void>(), p.cast<Void>(), 8);
       print(p[1]);
       Expect.equals(25, p[1]);
       throw Exception("Some random exception");

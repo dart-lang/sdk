@@ -9,8 +9,6 @@
 // in another library. Note that this situation can only arise in libraries that
 // are part of a library cycle.
 
-// SharedOptions=--enable-experiment=inference-update-2
-
 // The class hierarchy implemented in this test looks like this:
 //
 // C {_f1}   F {_f2}      H {_f1, _f2}

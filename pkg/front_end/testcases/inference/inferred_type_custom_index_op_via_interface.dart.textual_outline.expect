@@ -7,4 +7,5 @@ class I {
 abstract class C implements I {}
 
 f(C c) {}
+
 main() {}

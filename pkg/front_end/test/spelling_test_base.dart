@@ -37,13 +37,6 @@ abstract class SpellContext extends ChainContext {
 
   SpellContext({required this.interactive, required this.onlyInGit});
 
-  // Override special handling of negative tests.
-  @override
-  Result processTestResult(
-      TestDescription description, Result result, bool last) {
-    return result;
-  }
-
   List<spell.Dictionaries> get dictionaries;
 
   bool get onlyDenylisted;
@@ -54,8 +47,8 @@ abstract class SpellContext extends ChainContext {
   Set<String> reportedWordsDenylisted = {};
 
   @override
-  Stream<TestDescription> list(Chain suite) {
-    return filterList(suite, onlyInGit, super.list(suite));
+  Future<List<TestDescription>> list(Chain suite) async {
+    return filterList(suite, onlyInGit, await super.list(suite));
   }
 
   @override

@@ -1,4 +1,5 @@
 // @dart = 2.19
+
 import "dart:core" as core;
 
 class A implements core.Function {

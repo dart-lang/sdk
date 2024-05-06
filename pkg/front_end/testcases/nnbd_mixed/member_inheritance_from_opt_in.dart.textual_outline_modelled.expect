@@ -1,4 +1,5 @@
 // @dart = 2.5
+
 import 'member_inheritance_from_opt_in_lib.dart';
 
 class LegacyClass extends Class implements Interface {

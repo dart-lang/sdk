@@ -22,9 +22,18 @@ class NodeTextExpectationsCollector {
   static const updatingIsEnabled = false;
 
   static final assertMethods = [
+    _AssertMethod.forFunction(
+      methodName: 'assertEdits',
+      argument: _ArgumentNamed('expected'),
+    ),
     _AssertMethod(
       className: 'AnalysisContextCollectionTest',
       methodName: '_assertWorkspaceCollectionText',
+      argument: _ArgumentIndex(1),
+    ),
+    _AssertMethod(
+      className: 'AnalysisDriver_PubPackageTest',
+      methodName: 'assertEventsText',
       argument: _ArgumentIndex(1),
     ),
     _AssertMethod(
@@ -84,12 +93,12 @@ class NodeTextExpectationsCollector {
     ),
     _AssertMethod(
       className: 'ResolutionTest',
-      methodName: 'assertParsedNodeText',
+      methodName: 'assertDartObjectText',
       argument: _ArgumentIndex(1),
     ),
     _AssertMethod(
       className: 'ResolutionTest',
-      methodName: 'assertDartObjectText',
+      methodName: 'assertParsedNodeText',
       argument: _ArgumentIndex(1),
     ),
     _AssertMethod(
@@ -182,7 +191,7 @@ class NodeTextExpectationsCollector {
     }
   }
 
-  static void _apply() {
+  static void apply() {
     for (final file in _files.values) {
       file.applyReplacements();
     }
@@ -197,7 +206,7 @@ class NodeTextExpectationsCollector {
 @reflectiveTest
 class UpdateNodeTextExpectations {
   test_applyReplacements() {
-    NodeTextExpectationsCollector._apply();
+    NodeTextExpectationsCollector.apply();
   }
 }
 
@@ -234,17 +243,20 @@ final class _ArgumentNamed extends _Argument {
 }
 
 class _AssertMethod {
-  final String className;
   final String methodName;
+  final String stackTracePattern;
   final _Argument argument;
 
   const _AssertMethod({
-    required this.className,
+    required String className,
     required this.methodName,
     required this.argument,
-  });
+  }) : stackTracePattern = '$className.$methodName';
 
-  String get stackTracePattern => '$className.$methodName';
+  const _AssertMethod.forFunction({
+    required this.methodName,
+    required this.argument,
+  }) : stackTracePattern = ' $methodName';
 }
 
 class _File {

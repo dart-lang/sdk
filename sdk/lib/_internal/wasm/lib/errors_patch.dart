@@ -14,6 +14,10 @@ class Error {
     return jsonEncode(string);
   }
 
+  @pragma('wasm:entry-point')
+  static Never _throwWithCurrentStackTrace(Object object) =>
+      Error._throw(object, StackTrace.current);
+
   @patch
   StackTrace? get stackTrace => _stackTrace;
 

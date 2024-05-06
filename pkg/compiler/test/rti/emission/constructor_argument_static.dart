@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:compiler/src/util/testing.dart';
 
 /*spec.class: A1:checkedInstance,checks=[],instance*/
@@ -18,7 +16,7 @@ class B1 implements A1 {}
 
 /*class: Test1:checks=[],instance*/
 class Test1 {
-  A1 x;
+  A1? x;
   @pragma('dart2js:noInline')
   Test1(this.x);
 }

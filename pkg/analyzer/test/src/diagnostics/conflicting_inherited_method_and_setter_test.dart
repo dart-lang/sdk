@@ -47,8 +47,8 @@ abstract class C implements A, B {}
 ''', [
       error(CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER, 77, 1,
           contextMessages: [
-            message('/home/test/lib/test.dart', 17, 3),
-            message('/home/test/lib/test.dart', 45, 3)
+            message(testFile, 17, 3),
+            message(testFile, 45, 3)
           ]),
     ]);
   }
@@ -67,8 +67,8 @@ abstract class C with A implements B {}
 ''', [
       error(CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER, 77, 1,
           contextMessages: [
-            message('/home/test/lib/test.dart', 17, 3),
-            message('/home/test/lib/test.dart', 45, 3)
+            message(testFile, 17, 3),
+            message(testFile, 45, 3)
           ]),
     ]);
   }
@@ -87,8 +87,8 @@ abstract class C extends A implements B {}
 ''', [
       error(CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER, 77, 1,
           contextMessages: [
-            message('/home/test/lib/test.dart', 17, 3),
-            message('/home/test/lib/test.dart', 45, 3)
+            message(testFile, 17, 3),
+            message(testFile, 45, 3)
           ]),
     ]);
   }
@@ -107,8 +107,8 @@ abstract class C extends A with B {}
 ''', [
       error(CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER, 77, 1,
           contextMessages: [
-            message('/home/test/lib/test.dart', 17, 3),
-            message('/home/test/lib/test.dart', 45, 3)
+            message(testFile, 17, 3),
+            message(testFile, 45, 3)
           ]),
     ]);
   }
@@ -128,8 +128,8 @@ extension type C(Object? it) implements A, B {}
       error(
           CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER, 119, 1,
           contextMessages: [
-            message('/home/test/lib/test.dart', 38, 3),
-            message('/home/test/lib/test.dart', 87, 3)
+            message(testFile, 38, 3),
+            message(testFile, 87, 3)
           ]),
     ]);
   }

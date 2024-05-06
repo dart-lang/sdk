@@ -32,8 +32,13 @@ class Class3 {
 }
 
 main() {}
+
 void ifNull(Class1? n1) {}
+
 void indexAccess(Class1? n1, Class2? n2, Class3? n3) {}
+
 void operatorAccess(Class1? n1, Class2? n2) {}
+
 void propertyAccess(Class1? n1) {}
+
 void throws(void Function() f) {}

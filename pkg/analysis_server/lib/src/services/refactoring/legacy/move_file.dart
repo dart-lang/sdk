@@ -18,7 +18,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
-import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path show posix, Context;
 
 typedef _FileReference = ({
@@ -226,7 +225,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
           var partOfs = result.unit.directives
               .whereType<PartOfDirective>()
               .map(_getDirectiveUri)
-              .whereNotNull()
+              .nonNulls
               .where((uri) => _isRelativeUri(uri.stringValue));
           if (partOfs.isNotEmpty) {
             for (var uriString in partOfs) {
@@ -247,7 +246,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
     if (newDir != oldDir) {
       var partOfs = resolvedUnit.unit.directives
           .map(_getDirectiveUri)
-          .whereNotNull()
+          .nonNulls
           .where((uri) => _isRelativeUri(uri.stringValue));
 
       if (partOfs.isNotEmpty) {

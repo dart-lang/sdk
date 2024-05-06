@@ -83,7 +83,6 @@ class _ConstantWalker extends graph.DependencyWalker<_ConstantNode> {
   ConstantEvaluationEngine _getEvaluationEngine(_ConstantNode node) {
     return ConstantEvaluationEngine(
       declaredVariables: declaredVariables,
-      isNonNullableByDefault: featureSet.isEnabled(Feature.non_nullable),
       configuration: configuration,
     );
   }

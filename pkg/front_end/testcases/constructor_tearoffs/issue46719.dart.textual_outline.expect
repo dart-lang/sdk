@@ -15,4 +15,5 @@ extension FunctionApplier on Function {
 }
 
 test() {}
+
 void main() {}

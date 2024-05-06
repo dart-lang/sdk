@@ -18,7 +18,8 @@ import 'utils/io_utils.dart' show computeRepoDirUri;
 
 final Uri repoDir = computeRepoDirUri();
 
-Future<void> main() async {
+/// Returns true on no errors and false if errors was found.
+Future<bool> main() async {
   messages();
   experimentalFlags();
   directParserAstHelper();
@@ -27,6 +28,7 @@ Future<void> main() async {
   AstModel astModel = await deriveAstModel(repoDir);
   await astEquivalence(astModel);
   await astCoverage(astModel);
+  return _checkFoundErrors == false;
 }
 
 void parserTestParser() {
@@ -105,6 +107,8 @@ void messages() {
       "dart pkg/front_end/tool/fasta.dart generate-messages");
 }
 
+bool _checkFoundErrors = false;
+
 void check(String generated, Uri generatedFile, String run) {
   String actual = new File.fromUri(generatedFile)
       .readAsStringSync()
@@ -122,5 +126,6 @@ is out of date. To regenerate the file, run
 ------------------------
 """);
     exitCode = 1;
+    _checkFoundErrors = true;
   }
 }

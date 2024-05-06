@@ -16,7 +16,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:meta/meta.dart';
@@ -25,6 +24,8 @@ import 'package:unified_analytics/unified_analytics.dart';
 
 import 'mocks.dart';
 import 'src/utilities/mock_packages.dart';
+import 'support/configuration_files.dart';
+import 'test_macros.dart';
 
 // TODO(scheglov): this is duplicate
 class AnalysisOptionsFileConfig {
@@ -82,7 +83,7 @@ class BlazeWorkspaceAnalysisServerTest extends ContextResolutionTest {
   }
 }
 
-class ContextResolutionTest with ResourceProviderMixin {
+abstract class ContextResolutionTest with ResourceProviderMixin {
   final TestPluginManager pluginManager = TestPluginManager();
   late final MockServerChannel serverChannel;
   late final LegacyAnalysisServer server;
@@ -186,7 +187,7 @@ class ContextResolutionTest with ResourceProviderMixin {
   }
 
   Future<void> tearDown() async {
-    await server.dispose();
+    await server.shutdown();
   }
 
   /// Returns a [Future] that completes when the server's analysis is complete.
@@ -204,17 +205,21 @@ class ContextResolutionTest with ResourceProviderMixin {
   }
 }
 
-class PubPackageAnalysisServerTest extends ContextResolutionTest {
+class PubPackageAnalysisServerTest extends ContextResolutionTest
+    with MockPackagesMixin, ConfigurationFilesMixin, TestMacros {
+  // TODO(scheglov): Consider turning it back into a getter.
+  late String testFilePath = '$testPackageLibPath/test.dart';
+
   // If experiments are needed,
   // add `import 'package:analyzer/dart/analysis/features.dart';`
   // and list the necessary experiments here.
   List<String> get experiments => [
-        Feature.inline_class.enableString,
         Feature.macros.enableString,
       ];
 
   /// The path that is not in [workspaceRootPath], contains external packages.
-  String get packagesRootPath => '/packages';
+  @override
+  String get packagesRootPath => resourceProvider.convertPath('/packages');
 
   File get testFile => getFile(testFilePath);
 
@@ -225,12 +230,11 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest {
 
   String get testFileContent => testFile.readAsStringSync();
 
-  String get testFilePath => '$testPackageLibPath/test.dart';
-
   String get testPackageLibPath => '$testPackageRootPath/lib';
 
   Folder get testPackageRoot => getFolder(testPackageRootPath);
 
+  @override
   String get testPackageRootPath => '$workspaceRootPath/test';
 
   String get testPackageTestPath => '$testPackageRootPath/test';
@@ -259,6 +263,7 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest {
   @override
   void createDefaultFiles() {
     writeTestPackageConfig();
+    writeTestPackagePubspecYamlFile('name: test');
 
     writeTestPackageAnalysisOptionsFile(
       AnalysisOptionsFileConfig(
@@ -295,55 +300,11 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest {
     return offset;
   }
 
-  void writePackageConfig(Folder root, PackageConfigFileBuilder config) {
-    newPackageConfigJsonFile(
-      root.path,
-      config.toContent(toUriStr: toUriStr),
-    );
-  }
-
   void writeTestPackageAnalysisOptionsFile(AnalysisOptionsFileConfig config) {
     newAnalysisOptionsYamlFile(
       testPackageRootPath,
       config.toContent(),
     );
-  }
-
-  void writeTestPackageConfig({
-    PackageConfigFileBuilder? config,
-    String? languageVersion,
-    bool flutter = false,
-    bool meta = false,
-  }) {
-    if (config == null) {
-      config = PackageConfigFileBuilder();
-    } else {
-      config = config.copy();
-    }
-
-    config.add(
-      name: 'test',
-      rootPath: testPackageRootPath,
-      languageVersion: languageVersion,
-    );
-
-    if (meta || flutter) {
-      var libFolder = MockPackages.instance.addMeta(resourceProvider);
-      config.add(name: 'meta', rootPath: libFolder.parent.path);
-    }
-
-    if (flutter) {
-      {
-        var libFolder = MockPackages.instance.addUI(resourceProvider);
-        config.add(name: 'ui', rootPath: libFolder.parent.path);
-      }
-      {
-        var libFolder = MockPackages.instance.addFlutter(resourceProvider);
-        config.add(name: 'flutter', rootPath: libFolder.parent.path);
-      }
-    }
-
-    writePackageConfig(testPackageRoot, config);
   }
 
   void writeTestPackagePubspecYamlFile(String content) {

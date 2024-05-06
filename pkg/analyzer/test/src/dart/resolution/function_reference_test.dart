@@ -1191,6 +1191,32 @@ ImplicitCallReference
 ''');
   }
 
+  test_implicitCallTearoff_extensionType() async {
+    await assertNoErrorsInCode('''
+extension type A(int it) {
+  void call() {}
+}
+
+void g(Function f) {}
+
+void f(A a) {
+  g(a);
+}
+''');
+
+    final node = findNode.implicitCallReference('a);');
+    assertResolvedNodeText(node, r'''
+ImplicitCallReference
+  expression: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: A
+  parameter: self::@function::g::@parameter::f
+  staticElement: self::@extensionType::A::@method::call
+  staticType: void Function()
+''');
+  }
+
   test_implicitCallTearoff_prefix_class_staticGetter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class C {

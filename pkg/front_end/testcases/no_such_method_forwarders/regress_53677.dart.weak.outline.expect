@@ -11,7 +11,7 @@ mixin class A extends core::Object {
 abstract class M extends self::A /*isMixinDeclaration*/  {
   abstract method m1(core::int v, [core::String s = "s1"]) → core::String;
   abstract method m2(core::int v, {core::String s = null}) → core::String;
-  abstract method m3(core::int v, {required core::String s = null}) → core::String;
+  abstract method m3(core::int v, {required core::String s}) → core::String;
   abstract method m4(core::int v, [covariant-by-declaration core::String s = null]) → core::String;
 }
 class MA = self::A with self::M {

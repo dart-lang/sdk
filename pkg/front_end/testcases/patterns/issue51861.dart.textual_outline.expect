@@ -5,4 +5,5 @@ class A {
 }
 
 void main() {}
+
 expect(expected, actual) {}

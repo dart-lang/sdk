@@ -6,12 +6,14 @@ import 'dart:io';
 
 import 'package:front_end/src/api_prototype/compiler_options.dart' as api;
 import 'package:front_end/src/api_prototype/file_system.dart' as api;
+import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:front_end/src/fasta/constant_context.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart';
+import 'package:front_end/src/fasta/incremental_compiler.dart';
 import 'package:front_end/src/fasta/kernel/body_builder.dart';
 import 'package:front_end/src/fasta/kernel/body_builder_context.dart';
 import 'package:front_end/src/fasta/kernel/kernel_target.dart';
@@ -28,7 +30,7 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:testing/testing.dart';
-import "package:vm/target/vm.dart" show VmTarget;
+import "package:vm/modular/target/vm.dart" show VmTarget;
 
 api.CompilerOptions getOptions(
     {void Function(api.DiagnosticMessage message)? onDiagnostic,
@@ -54,6 +56,10 @@ api.CompilerOptions getOptions(
   return options;
 }
 
+/// [splitCompileAndCompileLess] Will use the incremental compiler to compile
+/// an outline of everything, then compile the bodies of the [input]. This also
+/// makes the compile pipeline skip transformations as for instance the VMs
+/// mixin transformation isn't compatible (and will actively crash).
 Future<BuildResult> compile(
     {required List<Uri> inputs,
     void Function(api.DiagnosticMessage message)? onDiagnostic,
@@ -62,7 +68,8 @@ Future<BuildResult> compile(
     bool compileSdk = false,
     KernelTargetCreator kernelTargetCreator = KernelTargetTest.new,
     BodyBuilderCreator bodyBuilderCreator = defaultBodyBuilderCreator,
-    api.FileSystem? fileSystem}) async {
+    api.FileSystem? fileSystem,
+    bool splitCompileAndCompileLess = false}) async {
   Ticker ticker = new Ticker(isVerbose: false);
   api.CompilerOptions compilerOptions = getOptions(
       repoDir: repoDir,
@@ -76,28 +83,95 @@ Future<BuildResult> compile(
 
   return await CompilerContext.runWithOptions(processedOptions,
       (CompilerContext c) async {
-    UriTranslator uriTranslator = await c.options.getUriTranslator();
-    DillTarget dillTarget =
-        new DillTarget(ticker, uriTranslator, c.options.target);
-    KernelTarget kernelTarget = kernelTargetCreator(
-        c.fileSystem, false, dillTarget, uriTranslator, bodyBuilderCreator);
+    if (splitCompileAndCompileLess) {
+      TestIncrementalCompiler outlineIncrementalCompiler =
+          new TestIncrementalCompiler(bodyBuilderCreator, c, outlineOnly: true);
+      // Outline
+      IncrementalCompilerResult outlineResult = await outlineIncrementalCompiler
+          .computeDelta(entryPoints: c.options.inputs);
+      print("Build outline of "
+          "${outlineResult.component.libraries.length} libraries");
 
-    Uri? platform = c.options.sdkSummary;
-    if (platform != null) {
-      var bytes = new File.fromUri(platform).readAsBytesSync();
-      var platformComponent = loadComponentFromBytes(bytes);
-      dillTarget.loader
-          .appendLibraries(platformComponent, byteCount: bytes.length);
+      // Full of the asked inputs.
+      TestIncrementalCompiler incrementalCompiler =
+          new TestIncrementalCompiler.fromComponent(
+              bodyBuilderCreator, c, outlineResult.component);
+      for (Uri uri in c.options.inputs) {
+        incrementalCompiler.invalidate(uri);
+      }
+      IncrementalCompilerResult result = await incrementalCompiler.computeDelta(
+          entryPoints: c.options.inputs, fullComponent: true);
+      print("Build bodies of "
+          "${incrementalCompiler.recorderForTesting.rebuildBodiesCount} "
+          "libraries.");
+
+      return new BuildResult(component: result.component);
+    } else {
+      UriTranslator uriTranslator = await c.options.getUriTranslator();
+      DillTarget dillTarget =
+          new DillTarget(ticker, uriTranslator, c.options.target);
+      KernelTarget kernelTarget = kernelTargetCreator(
+          c.fileSystem, false, dillTarget, uriTranslator, bodyBuilderCreator);
+
+      Uri? platform = c.options.sdkSummary;
+      if (platform != null) {
+        var bytes = new File.fromUri(platform).readAsBytesSync();
+        var platformComponent = loadComponentFromBytes(bytes);
+        dillTarget.loader
+            .appendLibraries(platformComponent, byteCount: bytes.length);
+      }
+
+      kernelTarget.setEntryPoints(c.options.inputs);
+      dillTarget.buildOutlines();
+      BuildResult buildResult = await kernelTarget.buildOutlines();
+      buildResult = await kernelTarget.buildComponent(
+          macroApplications: buildResult.macroApplications);
+      buildResult.macroApplications?.close();
+      return buildResult;
     }
-
-    kernelTarget.setEntryPoints(c.options.inputs);
-    dillTarget.buildOutlines();
-    BuildResult buildResult = await kernelTarget.buildOutlines();
-    buildResult = await kernelTarget.buildComponent(
-        macroApplications: buildResult.macroApplications);
-    buildResult.macroApplications?.close();
-    return buildResult;
   });
+}
+
+class TestIncrementalCompiler extends IncrementalCompiler {
+  final BodyBuilderCreator bodyBuilderCreator;
+
+  @override
+  final TestRecorderForTesting recorderForTesting =
+      new TestRecorderForTesting();
+
+  TestIncrementalCompiler(
+    this.bodyBuilderCreator,
+    CompilerContext context, {
+    Uri? initializeFromDillUri,
+    required bool outlineOnly,
+  }) : super(context, initializeFromDillUri, outlineOnly);
+
+  TestIncrementalCompiler.fromComponent(
+      this.bodyBuilderCreator, super.context, super._componentToInitializeFrom)
+      : super.fromComponent();
+
+  @override
+  bool get skipExperimentalInvalidationChecksForTesting => true;
+
+  @override
+  IncrementalKernelTarget createIncrementalKernelTarget(
+      api.FileSystem fileSystem,
+      bool includeComments,
+      DillTarget dillTarget,
+      UriTranslator uriTranslator) {
+    return new KernelTargetTest(fileSystem, includeComments, dillTarget,
+        uriTranslator, bodyBuilderCreator)
+      ..skipTransformations = true;
+  }
+}
+
+class TestRecorderForTesting extends RecorderForTesting {
+  int rebuildBodiesCount = 0;
+
+  @override
+  void recordRebuildBodiesCount(int count) {
+    rebuildBodiesCount = count;
+  }
 }
 
 typedef KernelTargetCreator = KernelTargetTest Function(
@@ -107,21 +181,28 @@ typedef KernelTargetCreator = KernelTargetTest Function(
     UriTranslator uriTranslator,
     BodyBuilderCreator bodyBuilderCreator);
 
-class KernelTargetTest extends KernelTarget {
+class KernelTargetTest extends IncrementalKernelTarget {
   final BodyBuilderCreator bodyBuilderCreator;
+  bool skipTransformations = false;
 
   KernelTargetTest(
-      api.FileSystem fileSystem,
-      bool includeComments,
-      DillTarget dillTarget,
-      UriTranslator uriTranslator,
-      this.bodyBuilderCreator)
-      : super(fileSystem, includeComments, dillTarget, uriTranslator);
+    api.FileSystem fileSystem,
+    bool includeComments,
+    DillTarget dillTarget,
+    UriTranslator uriTranslator,
+    this.bodyBuilderCreator,
+  ) : super(fileSystem, includeComments, dillTarget, uriTranslator);
 
   @override
   SourceLoader createLoader() {
     return new SourceLoaderTest(
         fileSystem, includeComments, this, bodyBuilderCreator);
+  }
+
+  @override
+  void runBuildTransformations() {
+    if (skipTransformations) return;
+    super.runBuildTransformations();
   }
 }
 

@@ -3,5 +3,7 @@ class A {
 }
 
 expect(expected, actual) {}
+
 int count = 0;
+
 main() {}

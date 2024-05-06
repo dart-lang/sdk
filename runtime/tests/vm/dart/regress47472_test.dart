@@ -6,6 +6,6 @@ main() {
   for (int i = 0; i < 1000000; ++i) {
     try {
       throw 'a';
-    } catch (e, s) {}
+    } catch (e) {}
   }
 }

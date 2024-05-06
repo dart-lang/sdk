@@ -16,8 +16,8 @@ import '../builder/formal_parameter_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../builder/type_builder.dart';
+import '../codes/fasta_codes.dart' show LocatedMessage;
 import '../constant_context.dart' show ConstantContext;
-import '../fasta_codes.dart' show LocatedMessage;
 import '../messages.dart' show Message;
 import '../scope.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
@@ -148,8 +148,6 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   Message warnUnresolvedMethod(Name name, int charOffset,
       {bool isSuper = false});
 
-  void warnTypeArgumentsMismatch(String name, int expected, int charOffset);
-
   Expression wrapInLocatedProblem(Expression expression, LocatedMessage message,
       {List<LocatedMessage>? context});
 
@@ -263,6 +261,4 @@ enum UnresolvedKind {
 
 abstract class EnsureLoaded {
   void ensureLoaded(Member? member);
-
-  bool isLoaded(Member? member);
 }

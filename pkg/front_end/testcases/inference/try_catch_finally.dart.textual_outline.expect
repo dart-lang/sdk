@@ -7,4 +7,5 @@ class D {}
 class E {}
 
 void test(void f()) {}
+
 main() {}

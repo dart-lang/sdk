@@ -1,6 +1,7 @@
 library test;
 
 var topLevel;
+
 void set topLevelSetter(x) {}
 
 class C {

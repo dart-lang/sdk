@@ -9,7 +9,9 @@
 
 // Allow the use of ASan (AddressSanitizer). This is needed as ASan needs to be
 // told about areas where the VM does the equivalent of a long-jump.
-#if defined(__has_feature)
+#if __SANITIZE_ADDRESS__
+#define USING_ADDRESS_SANITIZER
+#elif defined(__has_feature)
 #if __has_feature(address_sanitizer)
 #define USING_ADDRESS_SANITIZER
 #endif

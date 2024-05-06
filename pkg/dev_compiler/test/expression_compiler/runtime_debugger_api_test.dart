@@ -10,30 +10,22 @@ import '../shared_test_options.dart';
 import 'expression_compiler_e2e_suite.dart';
 
 void main(List<String> args) async {
-  var driver = await ExpressionEvaluationTestDriver.init();
+  await runAllTests(true, args);
+}
 
+Future<void> runAllTests(bool soundNullSafety, List<String> args) async {
+  var driver = await ExpressionEvaluationTestDriver.init();
   tearDownAll(() async {
     await driver.finish();
   });
-  group('(Sound null safety)', () {
+  final mode = soundNullSafety ? 'Sound' : 'Weak';
+  group('($mode null safety)', () {
     group('(AMD module system)', () {
       var setup = SetupCompilerOptions(
-        soundNullSafety: true,
+        soundNullSafety: soundNullSafety,
         moduleFormat: ModuleFormat.amd,
         args: args,
-        enableExperiments: ['inline-class'],
-      );
-      runSharedTests(setup, driver);
-    });
-  });
-
-  group('(Weak null safety)', () {
-    group('(AMD module system)', () {
-      var setup = SetupCompilerOptions(
-        soundNullSafety: false,
-        moduleFormat: ModuleFormat.amd,
-        args: args,
-        enableExperiments: ['inline-class'],
+        enableExperiments: [],
       );
       runSharedTests(setup, driver);
     });
@@ -169,8 +161,6 @@ void runSharedTests(
               'noSuchMethod': {},
               'hashCode': {'isGetter': true},
               'runtimeType': {'isGetter': true},
-              'is': {'isStatic': true},
-              'as': {'isStatic': true},
               'hash': {'isStatic': true},
               'hashAll': {'isStatic': true},
               'hashAllUnordered': {'isStatic': true},
@@ -290,8 +280,6 @@ void runSharedTests(
               'noSuchMethod': {},
               'hashCode': {'isGetter': true},
               'runtimeType': {'isGetter': true},
-              'is': {'isStatic': true},
-              'as': {'isStatic': true},
               'hash': {'isStatic': true},
               'hashAll': {'isStatic': true},
               'hashAllUnordered': {'isStatic': true},
@@ -340,7 +328,7 @@ void runSharedTests(
           });
     });
 
-    test('getObjectMetadata (List) (new types)', () async {
+    test('getObjectMetadata (List)', () async {
       await driver.checkRuntimeInFrame(
           breakpointId: 'BP',
           expression: 'dart.getObjectMetadata(list)',
@@ -553,6 +541,62 @@ void runSharedTests(
       );
     });
 
+    test('getObjectMetadata (DartType)', () async {
+      final innerType = 'dart.dloadRepl(object.runtimeType, "_type")';
+      final typeName = await driver.evaluateJsExpression(
+        breakpointId: 'BP',
+        expression: '$innerType.toString()',
+      );
+      expect(typeName, startsWith('class Object'));
+
+      await driver.checkRuntimeInFrame(
+          breakpointId: 'BP',
+          expression: 'dart.getObjectMetadata($innerType)',
+          expectedResult: {
+            'className': 'Type',
+            'libraryId': null,
+            'runtimeKind': 'function',
+            'length': 0,
+          });
+    }, skip: 'Only applies to old type system');
+
+    test('getObjectMetadata (RecordType)', () async {
+      final innerType = 'dart.dloadRepl(record.runtimeType, "_type")';
+      final typeName = await driver.evaluateJsExpression(
+        breakpointId: 'BP',
+        expression: '$innerType.toString()',
+      );
+      expect(typeName, '(int, int, {String name})');
+
+      await driver.checkRuntimeInFrame(
+          breakpointId: 'BP',
+          expression: 'dart.getObjectMetadata($innerType)',
+          expectedResult: {
+            'className': 'Type',
+            'libraryId': 'dart:core',
+            'runtimeKind': 'type',
+            'typeName': '(int, int, {String name})'
+          });
+    }, skip: 'Only applies to old type system');
+
+    test('getObjectMetadata (Rti)', () async {
+      final rti = 'dart.dloadRepl(object.runtimeType, "_rti")';
+      final typeName = await driver.evaluateJsExpression(
+        breakpointId: 'BP',
+        expression: '$rti.runtimeType.toString()',
+      );
+      expect(typeName, 'Rti');
+
+      await driver.checkRuntimeInFrame(
+          breakpointId: 'BP',
+          expression: 'dart.getObjectMetadata($rti)',
+          expectedResult: {
+            'className': typeName,
+            'libraryId': 'dart:_rti',
+            'runtimeKind': 'object',
+          });
+    });
+
     test('getObjectFieldNames (object)', () async {
       await driver.checkRuntimeInFrame(
           breakpointId: 'BP',
@@ -741,6 +785,249 @@ void runSharedTests(
         expectedResult:
             isA<List>().having((p) => p.length, 'length', equals(1)),
       );
+    });
+  });
+
+  group('extension type expression compilations |', () {
+    var source = r'''
+//@dart=3.3
+void main() {
+  Foo f = new Foo(42);
+  Baz b = new Baz(new Bar(42));
+  print(f);
+  print(b);
+  // Breakpoint: BP1
+  print(f.value);
+  print(b.value);
+  f.printValue();
+  f.printThis();
+  b.printThis();
+}
+class Bar {
+  final int i;
+  Bar(this.i);
+  String toString() => "Bar[$i]";
+}
+extension type Foo(int value) {
+  void printValue() {
+    // Breakpoint: BP2
+    print("This foos value is '$value'");
+  }
+  String printThis() {
+    var foo = value;
+    // Breakpoint: BP3
+    print("This foos this value is '$this'");
+    return "I printed '$value'!";
+  }
+}
+extension type Baz(Bar value) {
+  String printThis() {
+    var foo = value;
+    // Breakpoint: BP4
+    print("This Baz' this value is '$this'");
+    return "I printed '$value'!";
+  }
+}
+''';
+
+    setUpAll(() async {
+      await driver.initSource(setup, source);
+    });
+
+    tearDownAll(() async {
+      await driver.cleanupTest();
+    });
+
+    test('value on extension type (int)', () async {
+      var result = await driver.evaluateDartExpressionInFrame(
+        breakpointId: 'BP1',
+        expression: 'f.value',
+      );
+      expect(result, '42');
+    });
+
+    test('value on extension type (custom class)', () async {
+      var result = await driver.evaluateDartExpressionInFrame(
+        breakpointId: 'BP1',
+        expression: 'b.value.toString()',
+      );
+      expect(result, 'Bar[42]');
+    });
+
+    test('method on extension type (int)', () async {
+      var result = await driver.evaluateDartExpressionInFrame(
+        breakpointId: 'BP1',
+        expression: 'f.printThis()',
+      );
+      expect(result, "I printed '42'!");
+    });
+
+    test('method on extension type (custom class)', () async {
+      var result = await driver.evaluateDartExpressionInFrame(
+        breakpointId: 'BP1',
+        expression: 'b.printThis()',
+      );
+      expect(result, "I printed 'Bar[42]'!");
+    });
+
+    test('inside extension type method (int) (1)', () async {
+      var result = await driver.evaluateDartExpressionInFrame(
+        breakpointId: 'BP2',
+        expression: 'printThis()',
+      );
+      expect(result, "I printed '42'!");
+    });
+
+    test('inside extension type method (int) (2)', () async {
+      var result = await driver.evaluateDartExpressionInFrame(
+        breakpointId: 'BP3',
+        expression: 'foo + value',
+      );
+      expect(result, '84');
+    });
+
+    test('inside extension type method (custom class) (1)', () async {
+      var result = await driver.evaluateDartExpressionInFrame(
+        breakpointId: 'BP4',
+        expression: 'printThis()',
+      );
+      expect(result, "I printed 'Bar[42]'!");
+    });
+
+    test('inside extension type method (custom class) (2)', () async {
+      var result = await driver.evaluateDartExpressionInFrame(
+        breakpointId: 'BP4',
+        expression: 'foo.i + value.i',
+      );
+      expect(result, '84');
+    });
+  });
+
+  group('extensions expression compilations |', () {
+    var source = r'''
+void main() {
+  int i = 42;
+  Bar b = new Bar(42);
+  print(i);
+  print(b);
+  // Breakpoint: BP1
+  i.printThis();
+  b.printThis();
+}
+class Bar {
+  final int i;
+  Bar(this.i);
+  String toString() => "Bar[$i]";
+}
+extension Foo on int {
+  String printThis() {
+    var value = this;
+    // Breakpoint: BP2
+    print("This foos this value is '$this'");
+    return "I printed '$value'!";
+  }
+}
+extension Baz on Bar {
+  String printThis() {
+    var value = this;
+    // Breakpoint: BP3
+    print("This Bars this value is '$this'");
+    return "I printed '$value'!";
+  }
+}''';
+
+    setUpAll(() async {
+      await driver.initSource(setup, source);
+    });
+
+    tearDownAll(() async {
+      await driver.cleanupTest();
+    });
+
+    test('call function on extension (int)', () async {
+      var result = await driver.evaluateDartExpressionInFrame(
+        breakpointId: 'BP1',
+        expression: 'i.printThis()',
+      );
+      expect(result, "I printed '42'!");
+    });
+
+    test('call function on extension (custom class)', () async {
+      var result = await driver.evaluateDartExpressionInFrame(
+        breakpointId: 'BP1',
+        expression: 'b.printThis()',
+      );
+      expect(result, "I printed 'Bar[42]'!");
+    });
+
+    test('inside extension method (int) (1)', () async {
+      var result = await driver.evaluateDartExpressionInFrame(
+        breakpointId: 'BP2',
+        expression: 'printThis()',
+      );
+      expect(result, "I printed '42'!");
+    });
+
+    test('inside extension type method (int) (2)', () async {
+      var result = await driver.evaluateDartExpressionInFrame(
+        breakpointId: 'BP2',
+        expression: 'this + value',
+      );
+      expect(result, '84');
+    });
+
+    test('inside extension method (custom class) (1)', () async {
+      var result = await driver.evaluateDartExpressionInFrame(
+        breakpointId: 'BP3',
+        expression: 'printThis()',
+      );
+      expect(result, "I printed 'Bar[42]'!");
+    });
+
+    test('inside extension type method (custom class) (2)', () async {
+      var result = await driver.evaluateDartExpressionInFrame(
+        breakpointId: 'BP3',
+        expression: 'this.i + value.i',
+      );
+      expect(result, '84');
+    });
+  });
+
+  group('part files expression compilations |', () {
+    // WARNING: The (main) source and the part source have been constructred
+    // so that the same offset (71) is valid on both, and both have an 'x'
+    // variable, where one is a String and the other is an int. The 4 dots after
+    // 'padding' for instance is not a mistake.
+    var source = r'''
+part 'part.dart';
+void main() {
+  String x = "foo";
+  // padding....
+  foo();
+  print(x);
+}''';
+    var partSource = r'''
+part of 'test.dart';
+void foo() {
+  int x = 42;
+  // Breakpoint: BP1
+  print(x);
+}''';
+
+    setUpAll(() async {
+      await driver.initSource(setup, source, partSource: partSource);
+    });
+
+    tearDownAll(() async {
+      await driver.cleanupTest();
+    });
+
+    test('can evaluate in part file', () async {
+      var result = await driver.evaluateDartExpressionInFrame(
+        breakpointId: 'BP1',
+        expression: 'x + 1',
+      );
+      expect(result, '43');
     });
   });
 }

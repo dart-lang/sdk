@@ -1,0 +1,3 @@
+--debug=no
+--enable-asserts=no
+--target-os=linux

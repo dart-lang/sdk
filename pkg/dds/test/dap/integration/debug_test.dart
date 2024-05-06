@@ -99,7 +99,7 @@ main() {
     });
 
     test('runs a simple script with commas in the filename', () async {
-      final packageUri = await dap.createFooPackage('foo,foo.dart');
+      final (packageUri, _) = await dap.createFooPackage('foo,foo.dart');
       final testFile = dap.createTestFile(
         '''
           import '$packageUri';
@@ -167,7 +167,7 @@ main() {
       // - stack frames with package URIs (that need asynchronously resolving)
       // - stack frames with dart URIs (that need asynchronously resolving)
       final fileUri = Uri.file(dap.createTestFile('').path);
-      final packageUri = await dap.createFooPackage();
+      final (packageUri, _) = await dap.createFooPackage();
       final dartUri = Uri.parse('dart:isolate-patch/isolate_patch.dart');
       final testFile = dap.createTestFile(
         stderrPrintingProgram(fileUri, packageUri, dartUri),
@@ -212,7 +212,7 @@ main() {
       // - stack frames with package URIs (that need asynchronously resolving)
       // - stack frames with dart URIs (that need asynchronously resolving)
       final fileUri = Uri.file(dap.createTestFile('').path);
-      final packageUri = await dap.createFooPackage();
+      final (packageUri, _) = await dap.createFooPackage();
       final dartUri = Uri.parse('dart:isolate-patch/isolate_patch.dart');
       final testFile = dap.createTestFile(
         stderrPrintingProgram(fileUri, packageUri, dartUri),
@@ -240,6 +240,36 @@ main() {
         '\u001B[2m#2      main3 ($dartUri:5:6)\u001B[0m',
         'End',
       ]);
+    });
+
+    test('includes correct Source.name for SDK and package sources', () async {
+      // Use a sample program that prints output to stderr that includes:
+      // - non stack frame lines
+      // - stack frames with file:// URIs
+      // - stack frames with package URIs (that need asynchronously resolving)
+      // - stack frames with dart URIs (that need asynchronously resolving)
+      final fileUri = Uri.file(dap.createTestFile('').path);
+      final (packageUri, _) = await dap.createFooPackage();
+      final dartUri = Uri.parse('dart:isolate-patch/isolate_patch.dart');
+      final testFile = dap.createTestFile(
+        stderrPrintingProgram(fileUri, packageUri, dartUri),
+      );
+
+      final outputEvents = await dap.client.collectOutput(file: testFile);
+      final outputSourceNames = outputEvents
+          .where((e) => e.category == 'stderr')
+          .map((output) => output.source?.name)
+          .where((sourceName) => (sourceName?.isNotEmpty ?? false))
+          .toList();
+
+      expect(
+        outputSourceNames,
+        [
+          fileUri.toFilePath(),
+          packageUri.toString(),
+          dartUri.toString(),
+        ],
+      );
     });
 
     group('progress notifications', () {
@@ -367,46 +397,125 @@ main() {
       expect(vmServiceUri.path, matches(vmServiceAuthCodePathPattern));
     });
 
-    test('can download source code from the VM', () async {
-      final client = dap.client;
-      final testFile = dap.createTestFile(simpleBreakpointProgram);
-      final breakpointLine = lineWith(testFile, breakpointMarker);
+    for (final folderName in ['bin', 'lib']) {
+      /// Gets the expected name and URI for a macro-generated source.
+      ({String name, Uri fileLikeUri}) getExpectedMacroSource(File testFile) {
+        // Drive letters are always normalized to uppercase so expect
+        // uppercase in the path part of the macro URI.
+        final fileLikeUri =
+            Uri.file(dap.client.uppercaseDriveLetter(testFile.path))
+                .replace(scheme: 'dart-macro+file');
+        // The expected source name will differ for inside/outside the lib
+        // folder.
+        final name = folderName == 'lib'
+            ? 'dart-macro+package:my_test_project/main.dart'
+            : fileLikeUri.toString();
 
-      // Hit the initial breakpoint.
-      final stop = await dap.client.hitBreakpoint(
-        testFile,
-        breakpointLine,
-        launch: () => client.launch(
-          testFile.path,
-          debugSdkLibraries: true,
-        ),
-      );
+        return (name: name, fileLikeUri: fileLikeUri);
+      }
 
-      // Step in to go into print.
-      final responses = await Future.wait([
-        client.expectStop('step', sourceName: 'dart:core/print.dart'),
-        client.stepIn(stop.threadId!),
-      ], eagerError: true);
-      final stopResponse = responses.first as StoppedEventBody;
+      test(
+          'can download source code from the VM for macro-generated files '
+          'in "$folderName" when the client does not support Dart URIs',
+          () async {
+        final client = dap.client;
 
-      // Fetch the top stack frame (which should be inside print).
-      final stack = await client.getValidStack(
-        stopResponse.threadId!,
-        startFrame: 0,
-        numFrames: 1,
-      );
-      final topFrame = stack.stackFrames.first;
+        // Create the macro impl, the script that uses it and set up macro
+        // support.
+        dap.createTestFile(
+          filename: '$folderName/with_hello.dart',
+          withHelloMacroImplementation,
+        );
+        final testFile = dap.createTestFile(
+          filename: '$folderName/main.dart',
+          withHelloMacroProgram,
+        );
+        dap.createPubspec(dap.testAppDir, 'my_test_project');
+        await dap.enableMacroSupport();
+        final macroSource = getExpectedMacroSource(testFile);
 
-      // SDK sources should have a sourceReference and no path.
-      expect(topFrame.source!.path, isNull);
-      expect(topFrame.source!.sourceReference, isPositive);
+        // Hit the initial breakpoint.
+        final breakpointLine = lineWith(testFile, breakpointMarker);
+        final stop = await dap.client.hitBreakpoint(
+          testFile,
+          breakpointLine,
+          toolArgs: ['--enable-experiment=macros'],
+        );
 
-      // Source code should contain the implementation/signature of print().
-      final source = await client.getValidSource(topFrame.source!);
-      expect(source.content, contains('void print(Object? object) {'));
-      // Skipped because this test is not currently valid as source for print
-      // is mapped to local sources.
-    }, skip: true);
+        // Step in to the hello() method provided by the macro.
+        final responses = await Future.wait([
+          client.expectStop('step', sourceName: macroSource.name),
+          client.stepIn(stop.threadId!),
+        ], eagerError: true);
+        final stopResponse = responses.first as StoppedEventBody;
+
+        // Fetch the top stack frame (which should be inside print).
+        final stack = await client.getValidStack(
+          stopResponse.threadId!,
+          startFrame: 0,
+          numFrames: 1,
+        );
+        final topFrame = stack.stackFrames.first;
+
+        // Downloaded macro sources should have a sourceReference and no path.
+        expect(topFrame.source!.path, isNull);
+        expect(topFrame.source!.sourceReference, isPositive);
+
+        // Source code should contain the augmentation for class A.
+        final source = await client.getValidSource(topFrame.source!);
+        expect(source.content, contains('augment class A'));
+      });
+
+      test(
+          'can use local source code for macro-generated files '
+          'in "$folderName" when the client supports Dart URIs', () async {
+        final client = dap.client;
+
+        // Create the macro impl, the script that uses it and set up macro
+        // support.
+        dap.createTestFile(
+          filename: '$folderName/with_hello.dart',
+          withHelloMacroImplementation,
+        );
+        final testFile = dap.createTestFile(
+          filename: '$folderName/main.dart',
+          withHelloMacroProgram,
+        );
+        dap.createPubspec(dap.testAppDir, 'my_test_project');
+        await dap.enableMacroSupport();
+        final macroSource = getExpectedMacroSource(testFile);
+        // Tell the DA we can handle the special URIs.
+        client.supportUris = true;
+
+        // Hit the initial breakpoint.
+        final breakpointLine = lineWith(testFile, breakpointMarker);
+        final stop = await dap.client.hitBreakpoint(
+          testFile,
+          breakpointLine,
+          toolArgs: ['--enable-experiment=macros'],
+        );
+
+        // Step in to the hello() method provided by the macro.
+        final responses = await Future.wait([
+          client.expectStop('step', sourceName: macroSource.name),
+          client.stepIn(stop.threadId!),
+        ], eagerError: true);
+        final stopResponse = responses.first as StoppedEventBody;
+
+        // Fetch the top stack frame (which should be inside print).
+        final stack = await client.getValidStack(
+          stopResponse.threadId!,
+          startFrame: 0,
+          numFrames: 1,
+        );
+        final topFrame = stack.stackFrames.first;
+
+        // When we use local editor-provided sources, there should be a URI in
+        // pathand no sourceReference.
+        expect(topFrame.source!.sourceReference, isNull);
+        expect(topFrame.source!.path, macroSource.fileLikeUri.toString());
+      });
+    }
 
     test('can map SDK source code to a local path', () async {
       final client = dap.client;

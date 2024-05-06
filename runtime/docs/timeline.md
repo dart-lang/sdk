@@ -30,7 +30,7 @@ Streams, also called categories, are sets of events whose recordering can be ena
 | `CompilerVerbose` | Events for detailed compiler phases. |
 | `Dart` | Events created by `dart:developer`'s `Timeline` etc. |
 | `Debugger` | |
-| `Embedder` | Events created by `Dart_TimelineEvent`. |
+| `Embedder` | Events created by `Dart_RecordTimelineEvent`. |
 | `GC` | Events related to garbage collection or heap iteration. |
 | `Isolate` | Isolate or isolate group lifecycle events such as startup or shutdown. |
 | `VM` | VM lifecycle events such a startup or shutdown. |

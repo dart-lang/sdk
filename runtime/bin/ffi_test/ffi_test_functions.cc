@@ -1307,10 +1307,28 @@ DART_EXPORT void CallFunctionOnNewThreadNonBlocking(int64_t response_id,
 ////////////////////////////////////////////////////////////////////////////////
 // Tests for isolate local callbacks.
 
-DART_EXPORT void CallTwoIntFunction(int32_t (*fn)(int32_t, int32_t),
-                                    int32_t a,
-                                    int32_t b) {
+DART_EXPORT int32_t CallTwoIntFunction(int32_t (*fn)(int32_t, int32_t),
+                                       int32_t a,
+                                       int32_t b) {
+  return fn(a, b);
+}
+
+DART_EXPORT void CallTwoIntVoidFunction(void (*fn)(int32_t, int32_t),
+                                        int32_t a,
+                                        int32_t b) {
   fn(a, b);
+}
+
+DART_EXPORT void* CallTwoIntPointerFunction(void* (*fn)(int32_t, int32_t),
+                                            int32_t a,
+                                            int32_t b) {
+  return fn(a, b);
+}
+
+DART_EXPORT int32_t CallTwoPointerIntFunction(int32_t (*fn)(void*, void*),
+                                              void* a,
+                                              void* b) {
+  return fn(a, b);
 }
 
 }  // namespace dart

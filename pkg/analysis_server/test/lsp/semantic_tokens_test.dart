@@ -7,7 +7,7 @@ import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/semantic_tokens/legend.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -28,7 +28,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
   @override
   AnalysisServerOptions get serverOptions => AnalysisServerOptions()
     ..enabledExperiments = [
-      EnableString.inline_class,
+      Feature.macros.enableString,
     ];
 
   Future<void> test_annotation() async {
@@ -125,11 +125,10 @@ class C {
     ];
 
     final otherFilePath = join(projectFolderPath, 'lib', 'other_file.dart');
-    final otherFileUri = pathContext.toUri(otherFilePath);
 
+    newFile(mainFilePath, code.code);
+    newFile(otherFilePath, otherCode.code);
     await initialize();
-    await openFile(mainFileUri, code.code);
-    await openFile(otherFileUri, otherCode.code);
 
     final tokens = await getSemanticTokens(mainFileUri);
     final decoded = _decodeSemanticTokens(content, tokens);
@@ -307,11 +306,11 @@ class MyClass {
   /// getter docs
   String get myGetter => 'GetterVal';
   /// setter docs
-  set mySetter(String v) {};
+  set mySetter(String v) {}
   /// static getter docs
   static String get myStaticGetter => 'StaticGetterVal';
   /// static setter docs
-  static set myStaticSetter(String staticV) {};
+  static set myStaticSetter(String staticV) {}
 }
 
 void f() {
@@ -459,11 +458,110 @@ void f() {
     await _verifyTokens(content, expected);
   }
 
+  Future<void> test_class_super() async {
+    final content = '''
+class A {
+  A(int i) {}
+  void f() {}
+}
+
+class B extends A {
+[!
+  B.b() : super(1);
+  B(super.i);
+  void f() {
+    super.f();
+  }
+!]
+}
+''';
+
+    final expected = [
+      _Token('B', SemanticTokenTypes.class_, [
+        CustomSemanticTokenModifiers.constructor,
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('b', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.constructor,
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('super', SemanticTokenTypes.keyword),
+      _Token('1', SemanticTokenTypes.number),
+      _Token('B', SemanticTokenTypes.class_, [
+        CustomSemanticTokenModifiers.constructor,
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('super', SemanticTokenTypes.keyword),
+      _Token('i', SemanticTokenTypes.parameter,
+          [SemanticTokenModifiers.declaration]),
+      _Token('void', SemanticTokenTypes.keyword,
+          [CustomSemanticTokenModifiers.void_]),
+      _Token('f', SemanticTokenTypes.method, [
+        SemanticTokenModifiers.declaration,
+        CustomSemanticTokenModifiers.instance,
+      ]),
+      _Token('super', SemanticTokenTypes.keyword),
+      _Token('f', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.instance,
+      ])
+    ];
+
+    await _verifyTokensInRange(content, expected);
+  }
+
+  Future<void> test_class_this() async {
+    final content = '''
+class A {
+  int a;
+  [!
+  A(this.a);
+  A.b() : this(1);
+  void f() {
+    this.f();
+  }
+  !]
+}
+''';
+
+    final expected = [
+      _Token('A', SemanticTokenTypes.class_, [
+        CustomSemanticTokenModifiers.constructor,
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('this', SemanticTokenTypes.keyword),
+      _Token('a', SemanticTokenTypes.property, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
+      _Token('A', SemanticTokenTypes.class_, [
+        CustomSemanticTokenModifiers.constructor,
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('b', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.constructor,
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('1', SemanticTokenTypes.number),
+      _Token('void', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.void_,
+      ]),
+      _Token('f', SemanticTokenTypes.method, [
+        SemanticTokenModifiers.declaration,
+        CustomSemanticTokenModifiers.instance,
+      ]),
+      _Token('this', SemanticTokenTypes.keyword),
+      _Token('f', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.instance,
+      ])
+    ];
+
+    await _verifyTokensInRange(content, expected);
+  }
+
   Future<void> test_dartdoc() async {
     final content = '''
 /// before [aaa] after
 class MyClass {
-  String aaa;
+  String? aaa;
 }
 
 /// before [bbb] after
@@ -504,17 +602,21 @@ int double(int bbb) => bbb * 2;
   }
 
   Future<void> test_directives() async {
+    failTestOnErrorDiagnostic = false; // Test has invalid imports.
+
     final content = '''
+library foo;
+
 import 'package:flutter/material.dart';
 export 'package:flutter/widgets.dart';
 import '../file.dart'
   if (dart.library.io) 'file_io.dart'
   if (dart.library.html) 'file_html.dart';
-
-library foo;
 ''';
 
     final expected = [
+      _Token('library', SemanticTokenTypes.keyword),
+      _Token('foo', SemanticTokenTypes.namespace),
       _Token('import', SemanticTokenTypes.keyword),
       _Token("'package:flutter/material.dart'", SemanticTokenTypes.string),
       _Token('export', SemanticTokenTypes.keyword),
@@ -533,8 +635,6 @@ library foo;
       _Token('library', CustomSemanticTokenTypes.source),
       _Token('html', CustomSemanticTokenTypes.source),
       _Token("'file_html.dart'", SemanticTokenTypes.string),
-      _Token('library', SemanticTokenTypes.keyword),
-      _Token('foo', SemanticTokenTypes.namespace),
     ];
 
     await _verifyTokens(content, expected);
@@ -606,6 +706,8 @@ extension type E(int i) {}
   }
 
   Future<void> test_invalidSyntax() async {
+    failTestOnErrorDiagnostic = false;
+
     final content = '''
 /// class docs
 class MyClass {
@@ -716,7 +818,7 @@ void f() async {
   }
 
   Future<void> test_lastLine_code() async {
-    final content = 'String bar;';
+    final content = 'String? bar;';
 
     final expected = [
       _Token('String', SemanticTokenTypes.class_),
@@ -923,7 +1025,7 @@ class MyClass {}
 
   Future<void> test_namedArguments() async {
     final content = '''
-f({String a}) {
+f({String? a}) {
   f(a: a);
 }
 ''';
@@ -1167,6 +1269,42 @@ class!] MyClass {}
     await _verifyTokensInRange(content, expected);
   }
 
+  Future<void> test_record_fields() async {
+    failTestOnErrorDiagnostic = false; // Unresolved symbols.
+
+    final content = r'''
+void f((int, {int field1}) record) {
+  [!
+  record.$1;
+  record.field1;
+  (1,).$1;
+  (field1: 1).field1;
+  (1,).unresolved;
+  !]
+}
+''';
+
+    final expected = [
+      _Token('record', SemanticTokenTypes.parameter),
+      _Token(r'$1', SemanticTokenTypes.property,
+          [CustomSemanticTokenModifiers.instance]),
+      _Token('record', SemanticTokenTypes.parameter),
+      _Token('field1', SemanticTokenTypes.property,
+          [CustomSemanticTokenModifiers.instance]),
+      _Token('1', SemanticTokenTypes.number),
+      _Token(r'$1', SemanticTokenTypes.property,
+          [CustomSemanticTokenModifiers.instance]),
+      _Token('field1', SemanticTokenTypes.parameter),
+      _Token('1', SemanticTokenTypes.number),
+      _Token('field1', SemanticTokenTypes.property,
+          [CustomSemanticTokenModifiers.instance]),
+      _Token('1', SemanticTokenTypes.number),
+      _Token('unresolved', CustomSemanticTokenTypes.source),
+    ];
+
+    await _verifyTokensInRange(content, expected);
+  }
+
   Future<void> test_sort_sameOffsets() async {
 // This code initially (before merging) produces a String token starting at
 // offset 11 (as it drops out of one interpolated variable) and then a new
@@ -1174,31 +1312,29 @@ class!] MyClass {}
 // This test is to ensure the assertion in `offsetLengthPrioritySort` does
 // not trigger (as it does if length is ignored, which was a bug).
     final content = r'''
-var a = '$s$s';
+var s = '';
+var a = [!'$s$s'!];
 ''';
 
     final expected = [
-      _Token('var', SemanticTokenTypes.keyword),
-      _Token('a', SemanticTokenTypes.property,
-          [SemanticTokenModifiers.declaration]),
       _Token("'", SemanticTokenTypes.string),
       _Token(r'$', CustomSemanticTokenTypes.source,
           [CustomSemanticTokenModifiers.interpolation]),
-      _Token('s', CustomSemanticTokenTypes.source),
+      _Token('s', SemanticTokenTypes.property),
       _Token(r'$', CustomSemanticTokenTypes.source,
           [CustomSemanticTokenModifiers.interpolation]),
-      _Token('s', CustomSemanticTokenTypes.source),
+      _Token('s', SemanticTokenTypes.property),
       _Token("'", SemanticTokenTypes.string)
     ];
 
-    await _verifyTokens(content, expected);
+    await _verifyTokensInRange(content, expected);
   }
 
   Future<void> test_strings() async {
     final content = '''
 String foo(String c) => c;
 const string1 = 'test';
-const string2 = 'test1 \$string1 test2 \${foo('a' + 'b')}';
+var string2 = 'test1 \$string1 test2 \${foo('a' + 'b')}';
 const string3 = r'\$string1 \${string1.length}';
 const string4 = \'\'\'
 multi
@@ -1221,7 +1357,7 @@ multi
           [SemanticTokenModifiers.declaration]),
       _Token("'test'", SemanticTokenTypes.string),
 
-      _Token('const', SemanticTokenTypes.keyword),
+      _Token('var', SemanticTokenTypes.keyword),
       _Token('string2', SemanticTokenTypes.property,
           [SemanticTokenModifiers.declaration]),
       _Token(r"'test1 ", SemanticTokenTypes.string),
@@ -1262,6 +1398,8 @@ multi
   }
 
   Future<void> test_strings_escape() async {
+    failTestOnErrorDiagnostic = false; // Last unicode escape is invalid.
+
     // The 9's in these strings are not part of the escapes (they make the
     // strings too long).
     final content = r'''
@@ -1378,6 +1516,8 @@ void f() {
   }
 
   Future<void> test_unresolvedOrInvalid() async {
+    failTestOnErrorDiagnostic = false;
+
     // Unresolved/invalid names should be marked as "source", which is used to
     // mark up code the server thinks should be uncolored (without this, a
     // clients other grammars would show through, losing the benefit from having

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart' as graph
@@ -9,7 +10,6 @@ import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart' as graph
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
-import 'package:collection/collection.dart';
 
 /// Ensure that the [FileState.libraryCycle] for the [file] and anything it
 /// depends on is computed.
@@ -26,6 +26,9 @@ class LibraryCycle {
   /// The libraries that belong to this cycle.
   final List<LibraryFileKind> libraries;
 
+  /// The URIs of [libraries].
+  final Set<Uri> libraryUris;
+
   /// The library cycles that this cycle references directly.
   final Set<LibraryCycle> directDependencies;
 
@@ -38,7 +41,7 @@ class LibraryCycle {
   /// API signatures of the cycles that the [libraries] reference directly.
   /// So, indirectly it is based on API signatures of the transitive closure
   /// of all files that [libraries] reference.
-  String apiSignature;
+  final String apiSignature;
 
   /// The transitive implementation signature of this cycle.
   ///
@@ -54,9 +57,9 @@ class LibraryCycle {
   /// the libraries imported by the macro defining library. So, the resulting
   /// library (that imports a macro defining library) API signature must
   /// include [implSignature] of the macro defining library.
-  String implSignature;
+  final String implSignature;
 
-  late final bool hasMacroClass = () {
+  late final bool declaresMacroClass = () {
     for (final library in libraries) {
       for (final file in library.files) {
         if (file.unlinked2.macroClasses.isNotEmpty) {
@@ -72,8 +75,24 @@ class LibraryCycle {
   /// imported into a cycle that declares one.
   bool mightBeExecutedByMacroClass = false;
 
+  /// If a cycle imports a library that declares a macro, then it can have
+  /// macro applications, and so macro-generated files.
+  late final bool importsMacroClass = () {
+    for (final dependency in directDependencies) {
+      if (dependency.declaresMacroClass) {
+        return true;
+      }
+    }
+    return false;
+  }();
+
+  /// Set to `true` if this library cycle [importsMacroClass], and we have
+  /// already created macro generated [FileState]s.
+  bool hasMacroFilesCreated = false;
+
   LibraryCycle({
     required this.libraries,
+    required this.libraryUris,
     required this.directDependencies,
     required this.apiSignature,
     required this.implSignature,
@@ -149,8 +168,8 @@ class _LibraryNode extends graph.Node<_LibraryNode> {
                   .whereType<LibraryExportWithFile>()
                   .map((export) => export.exportedLibrary),
             ])
-        .expand((libraries) => libraries)
-        .whereNotNull()
+        .flattenedToList2
+        .nonNulls
         .toSet();
 
     return referencedLibraries.map(walker.getNode).toList();
@@ -197,15 +216,18 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
 
     // Fill the cycle with libraries.
     var libraries = <LibraryFileKind>[];
+    var libraryUris = <Uri>{};
     for (var node in scc) {
       final file = node.kind.file;
       libraries.add(node.kind);
+      libraryUris.add(file.uri);
 
       apiSignature.addLanguageVersion(file.packageLanguageVersion);
       apiSignature.addString(file.uriStr);
 
       implSignature.addLanguageVersion(file.packageLanguageVersion);
       implSignature.addString(file.uriStr);
+      implSignature.addString(Platform.version);
 
       final libraryFiles = node.kind.files;
 
@@ -225,12 +247,13 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
     // Create the LibraryCycle instance for the cycle.
     var cycle = LibraryCycle(
       libraries: libraries.toFixedList(),
+      libraryUris: libraryUris,
       directDependencies: directDependencies,
       apiSignature: apiSignature.toHex(),
       implSignature: implSignature.toHex(),
     );
 
-    if (cycle.hasMacroClass) {
+    if (cycle.declaresMacroClass) {
       cycle.markMightBeExecutedByMacroClass();
     }
 
@@ -260,7 +283,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
 
       if (directDependencies.add(referencedCycle)) {
         apiSignature.addString(
-          referencedCycle.hasMacroClass
+          referencedCycle.declaresMacroClass
               ? referencedCycle.implSignature
               : referencedCycle.apiSignature,
         );

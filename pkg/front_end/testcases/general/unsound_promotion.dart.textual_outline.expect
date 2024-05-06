@@ -1,4 +1,5 @@
 // @dart = 2.9
+
 class A {}
 
 class B {}
@@ -6,7 +7,11 @@ class B {}
 class C extends B implements A {}
 
 List<A> list;
+
 List<T> g<T extends A>(T t) {}
+
 List<S> f<S>(S s) {}
+
 main() {}
+
 expectThrows(f()) {}

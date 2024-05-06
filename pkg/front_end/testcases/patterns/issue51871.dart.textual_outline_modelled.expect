@@ -10,6 +10,9 @@ class Compare extends CompareBase {
 }
 
 main() {}
+
 test1(CompareBase x) {}
+
 typedef IntFn = int Function(int);
+
 typedef TFn = T Function<T>(T);

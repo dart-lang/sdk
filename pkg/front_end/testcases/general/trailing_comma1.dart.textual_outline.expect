@@ -1,5 +1,7 @@
 // @dart = 2.16
+
 var c = new C();
+
 var z = 42;
 
 class C {

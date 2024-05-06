@@ -6,7 +6,7 @@ import "dart:_internal" as _in;
 static method main() → dynamic {
   lowered core::int? #lateLocal;
   function #lateLocal#get() → core::int
-    return let final core::int? #t1 = #lateLocal in #t1 == null ?{core::int} throw new _in::LateError::localNI("lateLocal") : #t1{core::int};
+    return let final core::int? #t1 = #lateLocal in #t1 == null ?{core::int} throw{for-error-handling} new _in::LateError::localNI("lateLocal") : #t1{core::int};
   function #lateLocal#set(core::int lateLocal#param) → dynamic
     return #lateLocal = lateLocal#param;
   self::throws(() → core::int => #lateLocal#get(){() → core::int}, "Read value from uninitialized lateLocal");
@@ -16,7 +16,7 @@ static method main() → dynamic {
     lowered T? #lateGenericLocal;
     lowered core::bool #lateGenericLocal#isSet = false;
     function #lateGenericLocal#get() → T%
-      return #lateGenericLocal#isSet ?{T%} #lateGenericLocal{T%} : throw new _in::LateError::localNI("lateGenericLocal");
+      return #lateGenericLocal#isSet ?{T%} #lateGenericLocal{T%} : throw{for-error-handling} new _in::LateError::localNI("lateGenericLocal");
     function #lateGenericLocal#set(T% lateGenericLocal#param) → dynamic {
       #lateGenericLocal#isSet = true;
       return #lateGenericLocal = lateGenericLocal#param;

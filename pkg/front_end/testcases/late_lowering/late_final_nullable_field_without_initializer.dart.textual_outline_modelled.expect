@@ -16,5 +16,7 @@ extension Extension<T> on Class<T> {
 }
 
 late final int? lateTopLevelField;
+
 main() {}
+
 throws(f(), String message) {}

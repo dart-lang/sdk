@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:async';
 
-/*spec.class: global#Future:deps=[A],implicit=[Future<A.T*>],needsArgs,test*/
+/*spec.class: global#Future:deps=[A],implicit=[Future<A.T>],needsArgs,test*/
 
-/*class: A:explicit=[FutureOr<A.T*>*],implicit=[A.T,Future<A.T*>],needsArgs,test*/
+/*class: A:explicit=[FutureOr<A.T>],implicit=[A.T,Future<A.T>],needsArgs,test*/
 class A<T> {
   m(o) => o is FutureOr<T>;
 }

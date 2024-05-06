@@ -7,10 +7,10 @@ static method main() → dynamic {
   lowered final core::int? #i;
   lowered core::bool #i#isSet = false;
   function #i#get() → core::int
-    return #i#isSet ?{core::int} #i{core::int} : throw new _in::LateError::localNI("i");
+    return #i#isSet ?{core::int} #i{core::int} : throw{for-error-handling} new _in::LateError::localNI("i");
   function #i#set(core::int i#param) → dynamic
     if(#i#isSet)
-      throw new _in::LateError::localAI("i");
+      throw{for-error-handling} new _in::LateError::localAI("i");
     else {
       #i#isSet = true;
       return #i = i#param;
@@ -20,10 +20,10 @@ static method main() → dynamic {
   lowered final core::int? #j;
   lowered core::bool #j#isSet = false;
   function #j#get() → core::int
-    return #j#isSet ?{core::int} #j{core::int} : throw new _in::LateError::localNI("j");
+    return #j#isSet ?{core::int} #j{core::int} : throw{for-error-handling} new _in::LateError::localNI("j");
   function #j#set(core::int j#param) → dynamic
     if(#j#isSet)
-      throw new _in::LateError::localAI("j");
+      throw{for-error-handling} new _in::LateError::localAI("j");
     else {
       #j#isSet = true;
       return #j = j#param;

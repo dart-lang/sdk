@@ -1,5 +1,7 @@
 int? lateTopLevelField1Init;
+
 int? initLateTopLevelField1(int value) {}
+
 late final int? lateTopLevelField1 = initLateTopLevelField1(123);
 
 class Class<T> {
@@ -32,4 +34,5 @@ extension Extension<T> on Class<T> {
 }
 
 main() {}
+
 expect(expected, actual) {}

@@ -7,15 +7,16 @@ import 'dart:io';
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:expect/config.dart';
 import 'package:path/path.dart' as path;
+
 import '../../../../../pkg/front_end/test/tool/reload.dart';
 
 export '../snapshot_test_helper.dart' show withTempDir;
 
 bool get currentVmSupportsReload {
   final executable = Platform.executable;
-  return !executable.contains('Product') &&
-      !executable.contains('dart_precompiled_runtime');
+  return !executable.contains('Product') && !isVmAotConfiguration;
 }
 
 bool get runningInSimulator {

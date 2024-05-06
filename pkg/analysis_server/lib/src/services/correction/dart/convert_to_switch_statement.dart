@@ -8,6 +8,7 @@ import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -40,7 +41,7 @@ class ConvertIfStatementToSwitchStatement extends ResolvedCorrectionProducer {
     }
 
     final indent = utils.getLinePrefix(ifStatement.offset);
-    final singleIndent = utils.getIndent(1);
+    final singleIndent = utils.oneIndent;
     final caseIndent = '$indent$singleIndent';
 
     await builder.addDartFileEdit(file, (builder) {
@@ -125,7 +126,7 @@ class ConvertIfStatementToSwitchStatement extends ResolvedCorrectionProducer {
     }
 
     // The expression is the bool condition.
-    final result = utils.patternOfBoolCondition(expression);
+    final result = _patternOfBoolCondition(expression);
     if (result == null) {
       return null;
     }
@@ -135,6 +136,39 @@ class ConvertIfStatementToSwitchStatement extends ResolvedCorrectionProducer {
       patternCode: result.patternCode,
       statement: ifStatement.thenStatement,
     );
+  }
+
+  ({String expressionCode, String patternCode})? _patternOfBoolCondition(
+      Expression node) {
+    if (node is BinaryExpression) {
+      if (node.isNotEqNull) {
+        return (
+          expressionCode: utils.getNodeText(node.leftOperand),
+          patternCode: '_?',
+        );
+      } else if (node.operator.type.isRelationalOperator) {
+        if (node.rightOperand is Literal) {
+          return (
+            expressionCode: utils.getNodeText(node.leftOperand),
+            patternCode: utils.getRangeText(
+              range.startEnd(node.operator, node.rightOperand),
+            ),
+          );
+        }
+      }
+    } else if (node is IsExpression) {
+      final expressionCode = utils.getNodeText(node.expression);
+      final typeCode = utils.getNodeText(node.type);
+      final patternCode = switch (node.type.typeOrThrow) {
+        InterfaceType() => '$typeCode()',
+        _ => '$typeCode _',
+      };
+      return (
+        expressionCode: expressionCode,
+        patternCode: patternCode,
+      );
+    }
+    return null;
   }
 
   /// Writes [statement], if it is a [Block], inlines it.
@@ -151,7 +185,7 @@ class ConvertIfStatementToSwitchStatement extends ResolvedCorrectionProducer {
     // switch
     //   case
     //     statement
-    final singleIndent = utils.getIndent(1);
+    final singleIndent = utils.oneIndent;
     final newIndent = '$ifStatementIndent$singleIndent';
 
     final code = utils.replaceSourceRangeIndent(

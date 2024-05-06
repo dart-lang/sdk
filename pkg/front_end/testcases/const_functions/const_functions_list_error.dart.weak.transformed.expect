@@ -98,7 +98,7 @@ static method invalidPropertyFn() → core::int {
  - 'List' is from 'dart:core'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'invalidProperty'.
   return x.invalidProperty;
-           ^^^^^^^^^^^^^^^" in #C4{<unresolved>}.invalidProperty;
+           ^^^^^^^^^^^^^^^" in #C4{<unresolved>}.invalidProperty as{TypeError,ForDynamic,Unchecked} core::int;
 }
 static method getWithIndexExceptionFn() → core::int {
   return #C5.{core::List::[]}(1){(core::int) → core::int};
@@ -127,4 +127,4 @@ constants  {
 
 Extra constant evaluation status:
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///const_functions_list_error.dart:48:12 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 9, effectively constant: 1
+Extra constant evaluation: evaluated: 10, effectively constant: 1

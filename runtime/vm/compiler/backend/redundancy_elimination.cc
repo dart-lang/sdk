@@ -192,21 +192,21 @@ class Place : public ValueObject {
     kNoSize,
 
     // 1 byte (Int8List, Uint8List, Uint8ClampedList).
-    kInt8,
+    k1Byte,
 
     // 2 bytes (Int16List, Uint16List).
-    kInt16,
+    k2Bytes,
 
     // 4 bytes (Int32List, Uint32List, Float32List).
-    kInt32,
+    k4Bytes,
 
     // 8 bytes (Int64List, Uint64List, Float64List).
-    kInt64,
+    k8Bytes,
 
     // 16 bytes (Int32x4List, Float32x4List, Float64x2List).
-    kInt128,
+    k16Bytes,
 
-    kLargestElementSize = kInt128,
+    kLargestElementSize = k16Bytes,
   };
 
   Place(const Place& other)
@@ -260,7 +260,16 @@ class Place : public ValueObject {
 
       case Instruction::kLoadIndexed: {
         LoadIndexedInstr* load_indexed = instr->AsLoadIndexed();
-        set_representation(load_indexed->representation());
+        // Since the same returned representation is used for arrays with small
+        // elements, use the array element representation instead.
+        //
+        // For example, loads from signed and unsigned byte views of the same
+        // array share the same place if the returned representation is used,
+        // which means a load which sign extends the byte to the native word
+        // size might be replaced with an load that zero extends the byte
+        // instead and vice versa.
+        set_representation(RepresentationUtils::RepresentationOfArrayElement(
+            load_indexed->class_id()));
         instance_ = load_indexed->array()->definition()->OriginalDefinition();
         SetIndex(load_indexed->index()->definition()->OriginalDefinition(),
                  load_indexed->index_scale(), load_indexed->class_id());
@@ -270,8 +279,10 @@ class Place : public ValueObject {
 
       case Instruction::kStoreIndexed: {
         StoreIndexedInstr* store_indexed = instr->AsStoreIndexed();
-        set_representation(store_indexed->RequiredInputRepresentation(
-            StoreIndexedInstr::kValuePos));
+        // Use the array element representation instead of the value
+        // representation for the same reasons as for LoadIndexed above.
+        set_representation(RepresentationUtils::RepresentationOfArrayElement(
+            store_indexed->class_id()));
         instance_ = store_indexed->array()->definition()->OriginalDefinition();
         SetIndex(store_indexed->index()->definition()->OriginalDefinition(),
                  store_indexed->index_scale(), store_indexed->class_id());
@@ -362,8 +373,8 @@ class Place : public ValueObject {
   // typed array element that contains this typed array element.
   // In other words this method computes the only possible place with the given
   // size that can alias this place (due to alignment restrictions).
-  // For example for X[9|kInt8] and target size kInt32 we would return
-  // X[8|kInt32].
+  // For example for X[9|k1Byte] and target size k4Bytes we would return
+  // X[8|k4Bytes].
   Place ToLargerElement(ElementSize to) const {
     ASSERT(kind() == kConstantIndexed);
     ASSERT(element_size() != kNoSize);
@@ -376,8 +387,8 @@ class Place : public ValueObject {
   // S/S' - 1 return alias X[ByteOffs + S'*index|S'] - this is the byte offset
   // of a smaller typed array element which is contained within this typed
   // array element.
-  // For example X[8|kInt32] contains inside X[8|kInt16] (index is 0) and
-  // X[10|kInt16] (index is 1).
+  // For example X[8|k4Bytes] contains inside X[8|k2Bytes] (index is 0) and
+  // X[10|k2Bytes] (index is 1).
   Place ToSmallerElement(ElementSize to, intptr_t index) const {
     ASSERT(kind() == kConstantIndexed);
     ASSERT(element_size() != kNoSize);
@@ -525,40 +536,42 @@ class Place : public ValueObject {
     flags_ = ElementSizeBits::update(scale, flags_);
   }
 
-  void SetIndex(Definition* index, intptr_t scale, intptr_t class_id) {
+  void SetIndex(Definition* index, intptr_t scale, classid_t class_id) {
     ConstantInstr* index_constant = index->AsConstant();
     if ((index_constant != nullptr) && index_constant->value().IsSmi()) {
       const intptr_t index_value = Smi::Cast(index_constant->value()).Value();
-      const ElementSize size = ElementSizeFor(class_id);
-      const bool is_typed_access = (size != kNoSize);
-      // Indexing into [UntaggedTypedDataView]/[UntaggedExternalTypedData
-      // happens via a untagged load of the `_data` field (which points to C
-      // memory).
-      //
-      // Indexing into dart:ffi's [UntaggedPointer] happens via loading of the
-      // `c_memory_address_`, converting it to an integer, doing some arithmetic
-      // and finally using IntConverterInstr to convert to a untagged
-      // representation.
-      //
-      // In both cases the array used for load/store has untagged
-      // representation.
-      const bool can_be_view = instance_->representation() == kUntagged;
 
-      // If we are writing into the typed data scale the index to
-      // get byte offset. Otherwise ignore the scale.
-      if (!is_typed_access) {
-        scale = 1;
+      // Places only need to scale the index for typed data objects, as other
+      // types of arrays (for which ElementSizeFor returns kNoSize) cannot be
+      // accessed at different scales.
+      const ElementSize size = ElementSizeFor(class_id);
+      if (size == kNoSize) {
+        set_kind(kConstantIndexed);
+        set_element_size(size);
+        index_constant_ = index_value;
+        return;
       }
 
       // Guard against potential multiplication overflow and negative indices.
       if ((0 <= index_value) && (index_value < (kMaxInt32 / scale))) {
         const intptr_t scaled_index = index_value * scale;
 
+        // If the indexed array is a subclass of PointerBase, then it must be
+        // treated as a view unless the class id of the array is known at
+        // compile time to be an internal typed data object.
+        //
+        // Indexes into untagged pointers only happen for external typed data
+        // objects or dart:ffi's Pointer, but those should also be treated like
+        // views, since anyone who has access to the underlying pointer can
+        // modify the corresponding memory.
+        auto const cid = instance_->Type()->ToCid();
+        const bool can_be_view = instance_->representation() == kUntagged ||
+                                 !IsTypedDataClassId(cid);
+
         // Guard against unaligned byte offsets and access through raw
         // memory pointer (which can be pointing into another typed data).
-        if (!is_typed_access ||
-            (!can_be_view &&
-             Utils::IsAligned(scaled_index, ElementSizeMultiplier(size)))) {
+        if (!can_be_view &&
+            Utils::IsAligned(scaled_index, ElementSizeMultiplier(size))) {
           set_kind(kConstantIndexed);
           set_element_size(size);
           index_constant_ = scaled_index;
@@ -579,52 +592,34 @@ class Place : public ValueObject {
            ElementSizeBits::encode(scale);
   }
 
-  static ElementSize ElementSizeFor(intptr_t class_id) {
-    switch (class_id) {
-      case kArrayCid:
-      case kImmutableArrayCid:
-      case kOneByteStringCid:
-      case kTwoByteStringCid:
-      case kExternalOneByteStringCid:
-      case kExternalTwoByteStringCid:
-        // Object arrays and strings do not allow accessing them through
-        // different types. No need to attach scale.
-        return kNoSize;
+  static ElementSize ElementSizeFor(classid_t class_id) {
+    // Object arrays and strings do not allow accessing them through
+    // different types. No need to attach scale.
+    if (!IsTypedDataBaseClassId(class_id)) return kNoSize;
 
-      case kTypedDataInt8ArrayCid:
-      case kTypedDataUint8ArrayCid:
-      case kTypedDataUint8ClampedArrayCid:
-      case kExternalTypedDataUint8ArrayCid:
-      case kExternalTypedDataUint8ClampedArrayCid:
-        return kInt8;
-
-      case kTypedDataInt16ArrayCid:
-      case kTypedDataUint16ArrayCid:
-        return kInt16;
-
-      case kTypedDataInt32ArrayCid:
-      case kTypedDataUint32ArrayCid:
-      case kTypedDataFloat32ArrayCid:
-        return kInt32;
-
-      case kTypedDataInt64ArrayCid:
-      case kTypedDataUint64ArrayCid:
-      case kTypedDataFloat64ArrayCid:
-        return kInt64;
-
-      case kTypedDataInt32x4ArrayCid:
-      case kTypedDataFloat32x4ArrayCid:
-      case kTypedDataFloat64x2ArrayCid:
-        return kInt128;
-
+    const auto rep =
+        RepresentationUtils::RepresentationOfArrayElement(class_id);
+    if (!RepresentationUtils::IsUnboxed(rep)) return kNoSize;
+    switch (RepresentationUtils::ValueSize(rep)) {
+      case 1:
+        return k1Byte;
+      case 2:
+        return k2Bytes;
+      case 4:
+        return k4Bytes;
+      case 8:
+        return k8Bytes;
+      case 16:
+        return k16Bytes;
       default:
-        UNREACHABLE();
+        FATAL("Unhandled value size for representation %s",
+              RepresentationUtils::ToCString(rep));
         return kNoSize;
     }
   }
 
-  static intptr_t ElementSizeMultiplier(ElementSize size) {
-    return 1 << (static_cast<intptr_t>(size) - static_cast<intptr_t>(kInt8));
+  static constexpr intptr_t ElementSizeMultiplier(ElementSize size) {
+    return 1 << (static_cast<intptr_t>(size) - static_cast<intptr_t>(k1Byte));
   }
 
   static intptr_t RoundByteOffset(ElementSize size, intptr_t offset) {
@@ -640,8 +635,13 @@ class Place : public ValueObject {
   class KindBits : public BitField<uword, Kind, 0, 3> {};
   class RepresentationBits
       : public BitField<uword, Representation, KindBits::kNextBit, 11> {};
-  class ElementSizeBits
-      : public BitField<uword, ElementSize, RepresentationBits::kNextBit, 3> {};
+
+  static constexpr int kNumElementSizeBits = Utils::ShiftForPowerOfTwo(
+      Utils::RoundUpToPowerOfTwo(kLargestElementSize));
+  class ElementSizeBits : public BitField<uword,
+                                          ElementSize,
+                                          RepresentationBits::kNextBit,
+                                          kNumElementSizeBits> {};
 
   uword flags_;
   Definition* instance_;
@@ -992,7 +992,7 @@ class AliasedSet : public ZoneAllocated {
             // *[C'|S']) and thus we need to handle both element sizes smaller
             // and larger than S.
             const Place no_instance_alias = alias->CopyWithoutInstance();
-            for (intptr_t i = Place::kInt8; i <= Place::kLargestElementSize;
+            for (intptr_t i = Place::k1Byte; i <= Place::kLargestElementSize;
                  i++) {
               // Skip element sizes that a guaranteed to have no
               // representatives.
@@ -1100,7 +1100,7 @@ class AliasedSet : public ZoneAllocated {
     for (Value* use = defn->input_use_list(); use != nullptr;
          use = use->next_use()) {
       Instruction* instr = use->instruction();
-      if (instr->HasUnknownSideEffects() || instr->IsLoadUntagged() ||
+      if (instr->HasUnknownSideEffects() ||
           (instr->IsLoadField() &&
            instr->AsLoadField()->MayCreateUntaggedAlias()) ||
           (instr->IsStoreIndexed() &&
@@ -1398,9 +1398,12 @@ static AliasedSet* NumberPlaces(FlowGraph* graph,
 
 // Load instructions handled by load elimination.
 static bool IsLoadEliminationCandidate(Instruction* instr) {
-  return (instr->IsLoadField() && instr->AsLoadField()->loads_inner_pointer() !=
-                                      InnerPointerAccess::kMayBeInnerPointer) ||
-         instr->IsLoadIndexed() || instr->IsLoadStaticField();
+  if (instr->IsDefinition() &&
+      instr->AsDefinition()->MayCreateUnsafeUntaggedPointer()) {
+    return false;
+  }
+  return instr->IsLoadField() || instr->IsLoadIndexed() ||
+         instr->IsLoadStaticField();
 }
 
 static bool IsLoopInvariantLoad(ZoneGrowableArray<BitVector*>* sets,
@@ -1575,7 +1578,7 @@ void LICM::Optimize() {
         bool is_loop_invariant = false;
         if ((current->AllowsCSE() ||
              IsLoopInvariantLoad(loop_invariant_loads, i, current)) &&
-            (!seen_visible_effect || !current->MayThrow())) {
+            (!seen_visible_effect || !current->MayHaveVisibleEffect())) {
           is_loop_invariant = true;
           for (intptr_t i = 0; i < current->InputCount(); ++i) {
             Definition* input_def = current->InputAt(i)->definition();
@@ -1953,11 +1956,10 @@ class LoadOptimizer : public ValueObject {
   // to loads because other array stores (intXX/uintXX/float32)
   // may implicitly convert the value stored.
   bool CanForwardStore(StoreIndexedInstr* array_store) {
-    return ((array_store == nullptr) ||
-            (array_store->class_id() == kArrayCid) ||
-            (array_store->class_id() == kTypedDataFloat64ArrayCid) ||
-            (array_store->class_id() == kTypedDataFloat32ArrayCid) ||
-            (array_store->class_id() == kTypedDataFloat32x4ArrayCid));
+    if (array_store == nullptr) return true;
+    auto const rep = RepresentationUtils::RepresentationOfArrayElement(
+        array_store->class_id());
+    return !RepresentationUtils::IsUnboxedInteger(rep) && rep != kUnboxedFloat;
   }
 
   static bool AlreadyPinnedByRedefinition(Definition* replacement,
@@ -2582,6 +2584,10 @@ class LoadOptimizer : public ValueObject {
       Value* input = new (Z) Value(replacement);
       phi->SetInputAt(i, input);
       replacement->AddInputUse(input);
+      // If any input is untagged, then the Phi should be marked as untagged.
+      if (replacement->representation() == kUntagged) {
+        phi->set_representation(kUntagged);
+      }
     }
 
     graph_->AllocateSSAIndex(phi);
@@ -3118,7 +3124,7 @@ class StoreOptimizer : public LivenessAnalysis {
           continue;
         }
 
-        if (instr->IsThrow() || instr->IsReThrow() || instr->IsReturn()) {
+        if (instr->IsThrow() || instr->IsReThrow() || instr->IsReturnBase()) {
           // Initialize live-out for exit blocks since it won't be computed
           // otherwise during the fixed point iteration.
           live_out->CopyFrom(all_places);
@@ -3126,24 +3132,20 @@ class StoreOptimizer : public LivenessAnalysis {
 
         // Handle side effects, deoptimization and function return.
         if (CompilerState::Current().is_aot()) {
-          // Instructions that return from the function, instructions with
-          // side effects are considered as loads from all places.
-          if (instr->HasUnknownSideEffects() || instr->IsReturn() ||
-              instr->MayThrow()) {
-            if (instr->HasUnknownSideEffects() || instr->IsReturn()) {
-              // Instructions that may throw and has unknown side effects
-              // still load from all places.
-              live_in->CopyFrom(all_places);
+          if (instr->HasUnknownSideEffects() || instr->IsReturnBase()) {
+            // An instruction that returns or has unknown side effects
+            // is treated as if it loads from all places.
+            live_in->CopyFrom(all_places);
+            continue;
+          } else if (instr->MayThrow()) {
+            if (block->try_index() == kInvalidTryIndex) {
+              // Outside of a try-catch block, an instruction that may throw
+              // is only treated as if it loads from escaping places.
+              live_in->AddAll(all_aliased_places);
             } else {
-              // If we are outside of try-catch block, instructions that "may
-              // throw" only "load from escaping places".
-              // If we are inside of try-catch block, instructions that "may
-              // throw" also "load from all places".
-              if (block->try_index() == kInvalidTryIndex) {
-                live_in->AddAll(all_aliased_places);
-              } else {
-                live_in->CopyFrom(all_places);
-              }
+              // Inside of a try-catch block, an instruction that may throw
+              // is treated as if it loads from all places.
+              live_in->CopyFrom(all_places);
             }
             continue;
           }
@@ -3157,7 +3159,7 @@ class StoreOptimizer : public LivenessAnalysis {
           // variables include also non-escaping(not aliased) ones, so
           // how to deal with that needs to be figured out.
           if (instr->HasUnknownSideEffects() || instr->CanDeoptimize() ||
-              instr->MayThrow() || instr->IsReturn()) {
+              instr->MayThrow() || instr->IsReturnBase()) {
             // Instructions that return from the function, instructions with
             // side effects and instructions that can deoptimize are considered
             // as loads from all places.
@@ -3766,6 +3768,25 @@ MaterializeObjectInstr* AllocationSinking::MaterializationFor(
   return nullptr;
 }
 
+static InnerPointerAccess AccessForSlotInAllocatedObject(Definition* alloc,
+                                                         const Slot& slot) {
+  if (slot.representation() != kUntagged) {
+    return InnerPointerAccess::kNotUntagged;
+  }
+  if (!slot.may_contain_inner_pointer()) {
+    return InnerPointerAccess::kCannotBeInnerPointer;
+  }
+  if (slot.IsIdentical(Slot::PointerBase_data())) {
+    // The data field of external arrays is not unsafe, as it never contains
+    // a GC-movable address.
+    if (alloc->IsAllocateObject() &&
+        IsExternalPayloadClassId(alloc->AsAllocateObject()->cls().id())) {
+      return InnerPointerAccess::kCannotBeInnerPointer;
+    }
+  }
+  return InnerPointerAccess::kMayBeInnerPointer;
+}
+
 // Insert MaterializeObject instruction for the given allocation before
 // the given instruction that can deoptimize.
 void AllocationSinking::CreateMaterializationAt(
@@ -3803,23 +3824,10 @@ void AllocationSinking::CreateMaterializationAt(
           /*index_scale=*/compiler::target::Instance::ElementSizeFor(array_cid),
           array_cid, kAlignedAccess, DeoptId::kNone, alloc->source());
     } else {
-      auto loads_inner_pointer =
-          slot->representation() != kUntagged ? InnerPointerAccess::kNotUntagged
-          : slot->may_contain_inner_pointer()
-              ? InnerPointerAccess::kMayBeInnerPointer
-              : InnerPointerAccess::kCannotBeInnerPointer;
-      // PointerBase.data loads for external typed data and pointers never
-      // access an inner pointer.
-      if (slot->IsIdentical(Slot::PointerBase_data())) {
-        if (auto* const alloc_obj = alloc->AsAllocateObject()) {
-          const classid_t cid = alloc_obj->cls().id();
-          if (cid == kPointerCid || IsExternalTypedDataClassId(cid)) {
-            loads_inner_pointer = InnerPointerAccess::kCannotBeInnerPointer;
-          }
-        }
-      }
-      load = new (Z) LoadFieldInstr(new (Z) Value(alloc), *slot,
-                                    loads_inner_pointer, alloc->source());
+      InnerPointerAccess access = AccessForSlotInAllocatedObject(alloc, *slot);
+      ASSERT(access != InnerPointerAccess::kMayBeInnerPointer);
+      load = new (Z)
+          LoadFieldInstr(new (Z) Value(alloc), *slot, access, alloc->source());
     }
     flow_graph_->InsertBefore(load_point, load, nullptr, FlowGraph::kValue);
     values.Add(new (Z) Value(load));
@@ -3937,6 +3945,14 @@ void AllocationSinking::ExitsCollector::CollectTransitively(Definition* alloc) {
   }
 }
 
+static bool IsDataFieldOfTypedDataView(Definition* alloc, const Slot& slot) {
+  if (!slot.IsIdentical(Slot::PointerBase_data())) return false;
+  // Internal typed data objects use AllocateTypedData.
+  if (!alloc->IsAllocateObject()) return false;
+  auto const cid = alloc->AsAllocateObject()->cls().id();
+  return IsTypedDataViewClassId(cid) || IsUnmodifiableTypedDataViewClassId(cid);
+}
+
 void AllocationSinking::InsertMaterializations(Definition* alloc) {
   // Collect all fields and array elements that are written for this instance.
   auto slots = new (Z) ZoneGrowableArray<const Slot*>(5);
@@ -3947,7 +3963,11 @@ void AllocationSinking::InsertMaterializations(Definition* alloc) {
       // Allocation instructions cannot be used in as inputs to themselves.
       ASSERT(!use->instruction()->AsAllocation());
       if (auto store = use->instruction()->AsStoreField()) {
-        AddSlot(slots, store->slot());
+        // Only add the data field slot for external arrays. For views, it is
+        // recomputed using the other fields in DeferredObject::Fill().
+        if (!IsDataFieldOfTypedDataView(alloc, store->slot())) {
+          AddSlot(slots, store->slot());
+        }
       } else if (auto store = use->instruction()->AsStoreIndexed()) {
         const intptr_t index = store->index()->BoundSmiConstant();
         intptr_t offset = -1;

@@ -10,29 +10,12 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetElementTypeNotAssignableTest);
-    defineReflectiveTests(SetElementTypeNotAssignableWithoutNullSafetyTest);
     defineReflectiveTests(SetElementTypeNotAssignableWithStrictCastsTest);
   });
 }
 
 @reflectiveTest
-class SetElementTypeNotAssignableTest extends PubPackageResolutionTest
-    with SetElementTypeNotAssignableTestCases {
-  test_const_stringQuestion_null_dynamic() async {
-    await assertNoErrorsInCode('''
-const a = null;
-var v = const <String?>{a};
-''');
-  }
-
-  test_const_stringQuestion_null_value() async {
-    await assertNoErrorsInCode('''
-var v = const <String?>{null};
-''');
-  }
-}
-
-mixin SetElementTypeNotAssignableTestCases on PubPackageResolutionTest {
+class SetElementTypeNotAssignableTest extends PubPackageResolutionTest {
   test_const_ifElement_thenElseFalse_intInt() async {
     await assertNoErrorsInCode('''
 const dynamic a = 0;
@@ -96,22 +79,20 @@ var v = const <int>{42};
   }
 
   test_const_intNull_dynamic() async {
-    var errors = expectedErrorsByNullability(nullable: [
-      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 36, 1),
-    ], legacy: []);
     await assertErrorsInCode('''
 const a = null;
 var v = const <int>{a};
-''', errors);
+''', [
+      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 36, 1),
+    ]);
   }
 
   test_const_intNull_value() async {
-    var errors = expectedErrorsByNullability(nullable: [
-      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 20, 4),
-    ], legacy: []);
     await assertErrorsInCode('''
 var v = const <int>{null};
-''', errors);
+''', [
+      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 20, 4),
+    ]);
   }
 
   test_const_intString_dynamic() async {
@@ -134,6 +115,19 @@ var v = const <int>{'abc'};
   test_const_spread_intInt() async {
     await assertNoErrorsInCode('''
 var v = const <int>{...[0, 1]};
+''');
+  }
+
+  test_const_stringQuestion_null_dynamic() async {
+    await assertNoErrorsInCode('''
+const a = null;
+var v = const <String?>{a};
+''');
+  }
+
+  test_const_stringQuestion_null_value() async {
+    await assertNoErrorsInCode('''
+var v = const <String?>{null};
 ''');
   }
 
@@ -196,11 +190,6 @@ var v = <int>{'abc'};
     ]);
   }
 }
-
-@reflectiveTest
-class SetElementTypeNotAssignableWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, SetElementTypeNotAssignableTestCases {}
 
 @reflectiveTest
 class SetElementTypeNotAssignableWithStrictCastsTest

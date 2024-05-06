@@ -1444,10 +1444,14 @@ void f() {
     _assertSource(code, findNode.forEachPartsWithIdentifier(code));
   }
 
-  @failingTest
   void test_visitForEachPartsWithPattern() {
-    // TODO(brianwilkerson): Test this when the parser allows.
-    fail('Unable to parse patterns');
+    final code = 'final (a, b) in c';
+    final findNode = _parseStringToFindNode('''
+void f () {
+  for ($code) {}
+}
+''');
+    _assertSource(code, findNode.forEachPartsWithPattern(code));
   }
 
   void test_visitForEachStatement_declared() {
@@ -3820,7 +3824,9 @@ class A<$code> {}
     final findNode = _parseStringToFindNode('''
 class A$code {}
 ''');
-    _assertSource(code, findNode.typeParameterList(code));
+    // Find from the offset after the `<` because NodeLocator usually picks
+    // the name for the offset between the name and `<`.
+    _assertSource(code, findNode.typeParameterList('T, U>'));
   }
 
   void test_visitTypeParameterList_single() {
@@ -3828,7 +3834,9 @@ class A$code {}
     final findNode = _parseStringToFindNode('''
 class A$code {}
 ''');
-    _assertSource(code, findNode.typeParameterList(code));
+    // Find from the offset after the `<` because NodeLocator usually picks
+    // the name for the offset between the name and `<`.
+    _assertSource(code, findNode.typeParameterList('T>'));
   }
 
   void test_visitVariableDeclaration_initialized() {

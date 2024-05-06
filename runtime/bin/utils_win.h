@@ -5,6 +5,7 @@
 #ifndef RUNTIME_BIN_UTILS_WIN_H_
 #define RUNTIME_BIN_UTILS_WIN_H_
 
+#include <memory>
 #include <utility>
 
 #include "platform/utils.h"
@@ -75,30 +76,7 @@ class WideToUtf8Scope {
   DISALLOW_IMPLICIT_CONSTRUCTORS(WideToUtf8Scope);
 };
 
-class Utf8ToWideScope {
- public:
-  explicit Utf8ToWideScope(const char* utf8, intptr_t length = -1) {
-    int wide_len = MultiByteToWideChar(CP_UTF8, 0, utf8, length, nullptr, 0);
-    wchar_t* wide =
-        reinterpret_cast<wchar_t*>(malloc(sizeof(wchar_t) * wide_len));
-    MultiByteToWideChar(CP_UTF8, 0, utf8, length, wide, wide_len);
-    length_ = wide_len;
-    wide_ = wide;
-  }
-
-  ~Utf8ToWideScope() { free(wide_); }
-
-  wchar_t* wide() const { return wide_; }
-  intptr_t length() const { return length_; }
-  intptr_t size_in_bytes() const { return length_ * sizeof(*wide_); }
-
- private:
-  intptr_t length_;
-  wchar_t* wide_;
-
-  DISALLOW_ALLOCATION();
-  DISALLOW_IMPLICIT_CONSTRUCTORS(Utf8ToWideScope);
-};
+std::unique_ptr<wchar_t[]> Utf8ToWideChar(const char* path);
 
 }  // namespace bin
 }  // namespace dart

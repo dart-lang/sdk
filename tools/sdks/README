@@ -1,10 +1,7 @@
-This directory contains a stable Dart SDK, which is used to build the
-observatory and to run the test scripts.
+This directory contains a stable Dart SDK, which is used to bootstrap the Dart
+SDK build and to run the test scripts.
 
 The DEPS use CIPD's ${platform} syntax find the right SDK for the platform.
-
-We use the x64 build as the default on Linux, Mac and Windows. Builds for Linux
-on ARM and ARM64 are also provided.
 
 The SDK can be updated to a release commit from dev/beta/stable using:
 

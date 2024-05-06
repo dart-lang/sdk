@@ -27,6 +27,26 @@ class C {
     ]);
   }
 
+  test_class_empty_augmentation_empty() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+
+class A {}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+
+augment class A {}
+''');
+
+    result = await resolveFile(a.path);
+    await assertNoDiagnosticsIn(errors);
+
+    result = await resolveFile(b.path);
+    await assertNoDiagnosticsIn(errors);
+  }
+
   test_finalClass() async {
     await assertDiagnostics(r'''
 final class C {

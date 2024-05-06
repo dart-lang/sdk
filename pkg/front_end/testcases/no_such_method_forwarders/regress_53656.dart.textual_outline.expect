@@ -11,6 +11,9 @@ mixin M {
   int m2(int v, {String s = "s2"});
   dynamic noSuchMethod(Invocation inv) {}
 }
+
 class MA = Object with M;
+
 expect(expected, actual) {}
+
 main() {}

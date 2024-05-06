@@ -197,19 +197,11 @@ abstract class CombinedMemberSignatureBase {
   /// type define the combined member signature are in [mutualSubtypeIndices].
   int? get canonicalMemberIndex => _canonicalMemberIndex;
 
-  /// For the nnbd computation, the indices of the [members] with most specific
-  /// member type.
-  ///
-  /// If there is only one most specific member type, this is `null`.
-  Set<int>? get mutualSubtypeIndices => _mutualSubtypes?.values.toSet();
-
   ClassHierarchyBuilder get hierarchy => membersBuilder.hierarchyBuilder;
 
   CoreTypes get _coreTypes => hierarchy.coreTypes;
 
   Types get _types => hierarchy.types;
-
-  Name get name => members.first.name;
 
   Member _getMember(int index) {
     ClassMember candidate = members[index];
@@ -794,17 +786,6 @@ class CombinedExtensionTypeMemberSignature extends CombinedMemberSignatureBase {
 
   /// Cache for the this type of [extensionTypeDeclarationBuilder].
   ExtensionType? _thisType;
-
-  /// Creates a [CombinedClassMemberSignature] whose canonical member is already
-  /// defined.
-  CombinedExtensionTypeMemberSignature.internal(
-      ClassMembersBuilder membersBuilder,
-      this.extensionTypeDeclarationBuilder,
-      int? canonicalMemberIndex,
-      List<ClassMember> members,
-      {required bool forSetter})
-      : super.internal(membersBuilder, canonicalMemberIndex, members,
-            forSetter: forSetter);
 
   /// Creates a [CombinedClassMemberSignature] for [members] inherited into
   /// [extensionTypeDeclarationBuilder].

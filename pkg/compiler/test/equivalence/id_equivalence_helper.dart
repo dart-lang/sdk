@@ -153,8 +153,7 @@ Future<CompiledData<T>?> computeData<T>(String name, Uri entryPoint,
         compiler.stopAfterGlobalTypeInferenceForTesting =
             options.contains(stopAfterTypeInference);
       },
-      packageConfig: packageConfig,
-      unsafeToTouchSourceFiles: true);
+      packageConfig: packageConfig);
   if (!result.isSuccess) {
     if (skipFailedCompilations) return null;
     Expect.isTrue(
@@ -167,7 +166,7 @@ Future<CompiledData<T>?> computeData<T>(String name, Uri entryPoint,
     print(outputCollector.getOutput('', api.OutputType.js));
     print('------------------------------------------------------------------');
   }
-  Compiler compiler = result.compiler;
+  Compiler compiler = result.compiler!;
   if (verifyCompiler != null) {
     await verifyCompiler(name, compiler);
   }

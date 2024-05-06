@@ -43,17 +43,14 @@ class ReplaceTopBottomTest extends AbstractTypeSystemTest {
 
   test_notContravariant_covariant_top() {
     _check(objectQuestion, 'Never');
-    _check(objectStar, 'Never');
     _check(dynamicType, 'Never');
     _check(voidNone, 'Never');
 
     _check(listNone(objectQuestion), 'List<Never>');
-    _check(listNone(objectStar), 'List<Never>');
     _check(listNone(dynamicType), 'List<Never>');
     _check(listNone(voidNone), 'List<Never>');
 
     _check(futureOrNone(objectQuestion), 'Never');
-    _check(futureOrNone(objectStar), 'Never');
     _check(futureOrNone(dynamicType), 'Never');
     _check(futureOrNone(voidNone), 'Never');
     _check(futureOrNone(futureOrNone(voidNone)), 'Never');
@@ -110,6 +107,6 @@ class ReplaceTopBottomTest extends AbstractTypeSystemTest {
   }
 
   String _typeString(DartType type) {
-    return type.getDisplayString(withNullability: true);
+    return type.getDisplayString();
   }
 }

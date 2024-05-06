@@ -20,35 +20,19 @@ class TestAnalysisContext implements AnalysisContext {
   final _MockAnalysisSession _analysisSession = _MockAnalysisSession();
   final AnalysisOptionsImpl _analysisOptions = AnalysisOptionsImpl();
 
-  late TypeProviderImpl _typeProviderLegacy;
-  late TypeProviderImpl _typeProviderNonNullableByDefault;
-
-  late TypeSystemImpl _typeSystemLegacy;
-  late TypeSystemImpl _typeSystemNonNullableByDefault;
+  late TypeProviderImpl _typeProvider;
+  late TypeSystemImpl _typeSystem;
 
   TestAnalysisContext() {
     var sdkElements = MockSdkElements(this, _analysisSession);
 
-    _typeProviderLegacy = TypeProviderImpl(
+    _typeProvider = TypeProviderImpl(
       coreLibrary: sdkElements.coreLibrary,
       asyncLibrary: sdkElements.asyncLibrary,
-      isNonNullableByDefault: false,
     );
 
-    _typeProviderNonNullableByDefault = TypeProviderImpl(
-      coreLibrary: sdkElements.coreLibrary,
-      asyncLibrary: sdkElements.asyncLibrary,
-      isNonNullableByDefault: true,
-    );
-
-    _typeSystemLegacy = TypeSystemImpl(
-      isNonNullableByDefault: false,
-      typeProvider: _typeProviderLegacy,
-    );
-
-    _typeSystemNonNullableByDefault = TypeSystemImpl(
-      isNonNullableByDefault: true,
-      typeProvider: _typeProviderNonNullableByDefault,
+    _typeSystem = TypeSystemImpl(
+      typeProvider: _typeProvider,
     );
 
     _setLibraryTypeSystem(sdkElements.coreLibrary);
@@ -60,28 +44,20 @@ class TestAnalysisContext implements AnalysisContext {
 
   AnalysisSessionImpl get analysisSession => _analysisSession;
 
-  TypeProviderImpl get typeProviderLegacy {
-    return _typeProviderLegacy;
+  TypeProviderImpl get typeProvider {
+    return _typeProvider;
   }
 
-  TypeProviderImpl get typeProviderNonNullableByDefault {
-    return _typeProviderNonNullableByDefault;
-  }
-
-  TypeSystemImpl get typeSystemLegacy {
-    return _typeSystemLegacy;
-  }
-
-  TypeSystemImpl get typeSystemNonNullableByDefault {
-    return _typeSystemNonNullableByDefault;
+  TypeSystemImpl get typeSystem {
+    return _typeSystem;
   }
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   void _setLibraryTypeSystem(LibraryElementImpl libraryElement) {
-    libraryElement.typeProvider = _typeProviderNonNullableByDefault;
-    libraryElement.typeSystem = _typeSystemNonNullableByDefault;
+    libraryElement.typeProvider = _typeProvider;
+    libraryElement.typeSystem = _typeSystem;
   }
 }
 

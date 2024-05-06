@@ -53,4 +53,5 @@ class Foo {
 }
 
 int bar(String o) => int.parse(o);
+
 void main() {}

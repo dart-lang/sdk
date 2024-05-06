@@ -30,7 +30,7 @@ part 'union.dart';
 /// Includes padding and alignment of structs.
 ///
 /// This function must be invoked with a compile-time constant [T].
-external int sizeOf<T extends NativeType>();
+external int sizeOf<T extends SizedNativeType>();
 
 /// Represents a pointer into the native C memory corresponding to 'NULL', e.g.
 /// a pointer with address 0.
@@ -39,7 +39,7 @@ final Pointer<Never> nullptr = Pointer.fromAddress(0);
 /// Represents a pointer into the native C memory. Cannot be extended.
 @pragma('vm:entry-point')
 @pragma("wasm:entry-point")
-final class Pointer<T extends NativeType> extends NativeType {
+final class Pointer<T extends NativeType> implements SizedNativeType {
   /// Construction from raw integer.
   external factory Pointer.fromAddress(int ptr);
 
@@ -87,7 +87,7 @@ final class Pointer<T extends NativeType> extends NativeType {
 
 /// A fixed-sized array of [T]s.
 @Since('2.13')
-final class Array<T extends NativeType> extends NativeType {
+final class Array<T extends NativeType> extends _Compound {
   /// Const constructor to specify [Array] dimensions in [Struct]s.
   ///
   /// ```dart
@@ -335,6 +335,7 @@ extension Int8Pointer on Pointer<Int8> {
   /// Also `(this + offset).value` is equivalent to `this[offset]`,
   /// and similarly for setting.
   @Since('3.3')
+  @pragma("vm:prefer-inline")
   Pointer<Int8> operator +(int offset) =>
       Pointer.fromAddress(address + sizeOf<Int8>() * offset);
 
@@ -349,6 +350,7 @@ extension Int8Pointer on Pointer<Int8> {
   /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
   /// and similarly for setting,
   @Since('3.3')
+  @pragma("vm:prefer-inline")
   Pointer<Int8> operator -(int offset) =>
       Pointer.fromAddress(address - sizeOf<Int8>() * offset);
 
@@ -412,6 +414,7 @@ extension Int16Pointer on Pointer<Int16> {
   /// Also `(this + offset).value` is equivalent to `this[offset]`,
   /// and similarly for setting.
   @Since('3.3')
+  @pragma("vm:prefer-inline")
   Pointer<Int16> operator +(int offset) =>
       Pointer.fromAddress(address + sizeOf<Int16>() * offset);
 
@@ -426,6 +429,7 @@ extension Int16Pointer on Pointer<Int16> {
   /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
   /// and similarly for setting,
   @Since('3.3')
+  @pragma("vm:prefer-inline")
   Pointer<Int16> operator -(int offset) =>
       Pointer.fromAddress(address - sizeOf<Int16>() * offset);
 
@@ -491,6 +495,7 @@ extension Int32Pointer on Pointer<Int32> {
   /// Also `(this + offset).value` is equivalent to `this[offset]`,
   /// and similarly for setting.
   @Since('3.3')
+  @pragma("vm:prefer-inline")
   Pointer<Int32> operator +(int offset) =>
       Pointer.fromAddress(address + sizeOf<Int32>() * offset);
 
@@ -505,6 +510,7 @@ extension Int32Pointer on Pointer<Int32> {
   /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
   /// and similarly for setting,
   @Since('3.3')
+  @pragma("vm:prefer-inline")
   Pointer<Int32> operator -(int offset) =>
       Pointer.fromAddress(address - sizeOf<Int32>() * offset);
 
@@ -561,6 +567,7 @@ extension Int64Pointer on Pointer<Int64> {
   /// Also `(this + offset).value` is equivalent to `this[offset]`,
   /// and similarly for setting.
   @Since('3.3')
+  @pragma("vm:prefer-inline")
   Pointer<Int64> operator +(int offset) =>
       Pointer.fromAddress(address + sizeOf<Int64>() * offset);
 
@@ -575,6 +582,7 @@ extension Int64Pointer on Pointer<Int64> {
   /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
   /// and similarly for setting,
   @Since('3.3')
+  @pragma("vm:prefer-inline")
   Pointer<Int64> operator -(int offset) =>
       Pointer.fromAddress(address - sizeOf<Int64>() * offset);
 
@@ -634,6 +642,7 @@ extension Uint8Pointer on Pointer<Uint8> {
   /// Also `(this + offset).value` is equivalent to `this[offset]`,
   /// and similarly for setting.
   @Since('3.3')
+  @pragma("vm:prefer-inline")
   Pointer<Uint8> operator +(int offset) =>
       Pointer.fromAddress(address + sizeOf<Uint8>() * offset);
 
@@ -648,6 +657,7 @@ extension Uint8Pointer on Pointer<Uint8> {
   /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
   /// and similarly for setting,
   @Since('3.3')
+  @pragma("vm:prefer-inline")
   Pointer<Uint8> operator -(int offset) =>
       Pointer.fromAddress(address - sizeOf<Uint8>() * offset);
 
@@ -711,6 +721,7 @@ extension Uint16Pointer on Pointer<Uint16> {
   /// Also `(this + offset).value` is equivalent to `this[offset]`,
   /// and similarly for setting.
   @Since('3.3')
+  @pragma("vm:prefer-inline")
   Pointer<Uint16> operator +(int offset) =>
       Pointer.fromAddress(address + sizeOf<Uint16>() * offset);
 
@@ -725,6 +736,7 @@ extension Uint16Pointer on Pointer<Uint16> {
   /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
   /// and similarly for setting,
   @Since('3.3')
+  @pragma("vm:prefer-inline")
   Pointer<Uint16> operator -(int offset) =>
       Pointer.fromAddress(address - sizeOf<Uint16>() * offset);
 
@@ -790,6 +802,7 @@ extension Uint32Pointer on Pointer<Uint32> {
   /// Also `(this + offset).value` is equivalent to `this[offset]`,
   /// and similarly for setting.
   @Since('3.3')
+  @pragma("vm:prefer-inline")
   Pointer<Uint32> operator +(int offset) =>
       Pointer.fromAddress(address + sizeOf<Uint32>() * offset);
 
@@ -804,6 +817,7 @@ extension Uint32Pointer on Pointer<Uint32> {
   /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
   /// and similarly for setting,
   @Since('3.3')
+  @pragma("vm:prefer-inline")
   Pointer<Uint32> operator -(int offset) =>
       Pointer.fromAddress(address - sizeOf<Uint32>() * offset);
 
@@ -860,6 +874,7 @@ extension Uint64Pointer on Pointer<Uint64> {
   /// Also `(this + offset).value` is equivalent to `this[offset]`,
   /// and similarly for setting.
   @Since('3.3')
+  @pragma("vm:prefer-inline")
   Pointer<Uint64> operator +(int offset) =>
       Pointer.fromAddress(address + sizeOf<Uint64>() * offset);
 
@@ -874,6 +889,7 @@ extension Uint64Pointer on Pointer<Uint64> {
   /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
   /// and similarly for setting,
   @Since('3.3')
+  @pragma("vm:prefer-inline")
   Pointer<Uint64> operator -(int offset) =>
       Pointer.fromAddress(address - sizeOf<Uint64>() * offset);
 
@@ -939,6 +955,7 @@ extension FloatPointer on Pointer<Float> {
   /// Also `(this + offset).value` is equivalent to `this[offset]`,
   /// and similarly for setting.
   @Since('3.3')
+  @pragma("vm:prefer-inline")
   Pointer<Float> operator +(int offset) =>
       Pointer.fromAddress(address + sizeOf<Float>() * offset);
 
@@ -953,6 +970,7 @@ extension FloatPointer on Pointer<Float> {
   /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
   /// and similarly for setting,
   @Since('3.3')
+  @pragma("vm:prefer-inline")
   Pointer<Float> operator -(int offset) =>
       Pointer.fromAddress(address - sizeOf<Float>() * offset);
 
@@ -1009,6 +1027,7 @@ extension DoublePointer on Pointer<Double> {
   /// Also `(this + offset).value` is equivalent to `this[offset]`,
   /// and similarly for setting.
   @Since('3.3')
+  @pragma("vm:prefer-inline")
   Pointer<Double> operator +(int offset) =>
       Pointer.fromAddress(address + sizeOf<Double>() * offset);
 
@@ -1023,6 +1042,7 @@ extension DoublePointer on Pointer<Double> {
   /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
   /// and similarly for setting,
   @Since('3.3')
+  @pragma("vm:prefer-inline")
   Pointer<Double> operator -(int offset) =>
       Pointer.fromAddress(address - sizeOf<Double>() * offset);
 
@@ -1074,6 +1094,7 @@ extension BoolPointer on Pointer<Bool> {
   /// Also `(this + offset).value` is equivalent to `this[offset]`,
   /// and similarly for setting.
   @Since('3.3')
+  @pragma("vm:prefer-inline")
   Pointer<Bool> operator +(int offset) =>
       Pointer.fromAddress(address + sizeOf<Bool>() * offset);
 
@@ -1088,6 +1109,7 @@ extension BoolPointer on Pointer<Bool> {
   /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
   /// and similarly for setting,
   @Since('3.3')
+  @pragma("vm:prefer-inline")
   Pointer<Bool> operator -(int offset) =>
       Pointer.fromAddress(address - sizeOf<Bool>() * offset);
 }

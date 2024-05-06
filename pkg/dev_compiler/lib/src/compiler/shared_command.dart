@@ -5,6 +5,8 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:front_end/src/api_prototype/macros.dart' as macros
+    show isMacroLibraryUri;
 import 'package:front_end/src/api_unstable/ddc.dart'
     show InitializedCompilerState, parseExperimentalArguments;
 import 'package:path/path.dart' as p;
@@ -93,11 +95,6 @@ class SharedCompilerOptions {
 
   /// Whether or not the `--canary` flag was specified during compilation.
   final bool canaryFeatures;
-
-  // TODO(nshahan): Remove once it is safe to cleanup code for old type system.
-  // Likely after 3.3 stable cut when we know there is no need to easily revert
-  // to the old type system.
-  final bool newRuntimeTypes = true;
 
   /// When `true` stars "*" will appear to represent legacy types when printing
   /// runtime types in the compiled application.
@@ -304,7 +301,7 @@ Map<String, String> _parseCustomSummaryModules(List<String> summaryPaths,
       modulePath = summaryPath.substring(equalSign + 1);
       summaryPath = summaryPath.substring(0, equalSign);
     } else if (moduleRoot != null && p.isWithin(moduleRoot, summaryPath)) {
-      // TODO(jmesserly): remove this, it's legacy --module-root support.
+      // TODO: Determine if this logic is still needed.
       modulePath = p.url.joinAll(
           p.split(p.relative(summaryPathWithoutExt, from: moduleRoot)));
     } else {
@@ -438,7 +435,7 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath, String? multiRootScheme,
       return sourcePath;
     }
 
-    if (scheme == 'org-dartlang-augmentation') {
+    if (macros.isMacroLibraryUri(uri)) {
       // TODO: https://github.com/dart-lang/sdk/issues/53913
       return sourcePath;
     }

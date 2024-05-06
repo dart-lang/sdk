@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/protocol_server.dart' show SourceEdit;
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analysis_server/src/services/correction/fix_processor.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -15,6 +15,8 @@ import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:collection/collection.dart';
+import 'package:server_plugin/edit/fix/dart_fix_context.dart';
+import 'package:server_plugin/edit/fix/fix.dart';
 
 /// The root of a set of classes that support testing for lint fixes.
 ///
@@ -91,11 +93,11 @@ class LintFixTester {
     }
 
     var workspace = DartChangeWorkspace([analysisSession]);
-    var context = DartFixContextImpl(
-      InstrumentationService.NULL_SERVICE,
-      workspace,
-      unitResult,
-      error,
+    var context = DartFixContext(
+      instrumentationService: InstrumentationService.NULL_SERVICE,
+      workspace: workspace,
+      resolvedResult: unitResult,
+      error: error,
     );
 
     List<Fix> fixes;
@@ -107,7 +109,8 @@ class LintFixTester {
       fixes.removeWhere(
         (fix) =>
             fix.kind == DartFixKind.IGNORE_ERROR_LINE ||
-            fix.kind == DartFixKind.IGNORE_ERROR_FILE,
+            fix.kind == DartFixKind.IGNORE_ERROR_FILE ||
+            fix.kind == DartFixKind.IGNORE_ERROR_ANALYSIS_FILE,
       );
     }
 
