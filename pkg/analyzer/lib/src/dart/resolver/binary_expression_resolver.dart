@@ -332,10 +332,20 @@ class BinaryExpressionResolver {
       var augmentation = _resolver.enclosingAugmentation;
       var augmentationTarget = augmentation?.augmentationTarget;
       if (augmentationTarget case MethodElement augmentationTarget) {
-        leftOperand.element = augmentationTarget;
-        node.staticElement = augmentationTarget;
-        node.staticInvokeType = augmentationTarget.type;
+        if (augmentationTarget.name == methodName) {
+          leftOperand.element = augmentationTarget;
+          node.staticElement = augmentationTarget;
+          node.staticInvokeType = augmentationTarget.type;
+          return;
+        }
       }
+      _errorReporter.atToken(
+        leftOperand.augmentedKeyword,
+        CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR,
+        arguments: [
+          methodName,
+        ],
+      );
       return;
     }
 

@@ -345,6 +345,41 @@ PrefixExpression
 ''');
   }
 
+  test_minus_augmentedExpression_augments_minus() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class A {
+  int operator-() => 0;
+}
+''');
+
+    await assertNoErrorsInCode('''
+augment library 'a.dart';
+
+augment class A {
+  augment int operator-() {
+    return -augmented;
+  }
+}
+''');
+
+    var node = findNode.singleReturnStatement;
+    assertResolvedNodeText(node, r'''
+ReturnStatement
+  returnKeyword: return
+  expression: PrefixExpression
+    operator: -
+    operand: AugmentedExpression
+      augmentedKeyword: augmented
+      element: self::@class::A::@method::unary-
+      staticType: A
+    staticElement: self::@class::A::@method::unary-
+    staticType: int
+  semicolon: ;
+''');
+  }
+
   test_minus_dynamicIdentifier() async {
     await assertNoErrorsInCode(r'''
 void f(dynamic a) {
@@ -1090,6 +1125,43 @@ PrefixExpression
   writeType: int
   staticElement: dart:core::@class::num::@method::+
   staticType: int
+''');
+  }
+
+  test_tilde_augmentedExpression_augments_minus() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class A {
+  int operator-() => 0;
+}
+''');
+
+    await assertErrorsInCode('''
+augment library 'a.dart';
+
+augment class A {
+  augment int operator-() {
+    return ~augmented;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR, 85, 9),
+    ]);
+
+    var node = findNode.singleReturnStatement;
+    assertResolvedNodeText(node, r'''
+ReturnStatement
+  returnKeyword: return
+  expression: PrefixExpression
+    operator: ~
+    operand: AugmentedExpression
+      augmentedKeyword: augmented
+      element: <null>
+      staticType: InvalidType
+    staticElement: <null>
+    staticType: InvalidType
+  semicolon: ;
 ''');
   }
 

@@ -270,6 +270,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "Try updating the URI to reference the augmented library.",
   );
 
+  ///  Parameters:
+  ///  0: the lexeme of the operator.
+  static const CompileTimeErrorCode AUGMENTED_EXPRESSION_NOT_OPERATOR =
+      CompileTimeErrorCode(
+    'AUGMENTED_EXPRESSION_NOT_OPERATOR',
+    "The enclosing augmentation doesn't augment the operator '{0}'.",
+    correctionMessage: "Try augmenting or invoking the correct operator.",
+  );
+
   ///  No parameters.
   static const CompileTimeErrorCode AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER =
       CompileTimeErrorCode(
