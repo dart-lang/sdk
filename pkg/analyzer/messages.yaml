@@ -37,6 +37,7 @@
 AnalysisOptionsErrorCode:
   INCLUDED_FILE_PARSE_ERROR:
     problemMessage: "{3} in {0}({1}..{2})"
+    hasPublishedDocs: false
     comment: |-
       An error code indicating that there is a syntactic error in the included
       file.
@@ -48,6 +49,7 @@ AnalysisOptionsErrorCode:
       3: the error message
   PARSE_ERROR:
     problemMessage: "{0}"
+    hasPublishedDocs: false
     comment: |-
       An error code indicating that there is a syntactic error in the file.
 
@@ -57,6 +59,7 @@ AnalysisOptionsHintCode:
   DEPRECATED_LINT:
     problemMessage: "'{0}' is a deprecated lint rule and should not be used."
     correctionMessage: Try removing '{0}'.
+    hasPublishedDocs: false
     comment: |-
       A hint code indicating reference to a deprecated lint.
 
@@ -65,6 +68,7 @@ AnalysisOptionsHintCode:
   DEPRECATED_LINT_WITH_REPLACEMENT:
     problemMessage: "'{0}' is deprecated and should be replaced by '{1}'."
     correctionMessage: "Try replacing '{0}' with '{1}'."
+    hasPublishedDocs: false
     comment: |-
       A hint code indicating reference to a deprecated lint.
 
@@ -74,6 +78,7 @@ AnalysisOptionsHintCode:
   DUPLICATE_RULE:
     problemMessage: "The rule {0} is already specified and doesn't need to be specified again."
     correctionMessage: "Try removing all but one specification of the rule."
+    hasPublishedDocs: false
     comment: |-
       Duplicate rules.
 
@@ -82,6 +87,7 @@ AnalysisOptionsHintCode:
 AnalysisOptionsWarningCode:
   ANALYSIS_OPTION_DEPRECATED:
     problemMessage: "The option '{0}' is no longer supported."
+    hasPublishedDocs: false
     comment: |
       An error code indicating that the given option is deprecated.
 
@@ -91,6 +97,7 @@ AnalysisOptionsWarningCode:
     sharedName: ANALYSIS_OPTION_DEPRECATED
     problemMessage: "The option '{0}' is no longer supported."
     correctionMessage: "Try using the new '{1}' option."
+    hasPublishedDocs: false
     comment: |-
       An error code indicating that the given option is deprecated.
 
@@ -99,6 +106,7 @@ AnalysisOptionsWarningCode:
       1: the replacement option name
   INCLUDED_FILE_WARNING:
     problemMessage: "Warning in the included options file {0}({1}..{2}): {3}"
+    hasPublishedDocs: false
     comment: |-
       An error code indicating a specified include file has a warning.
 
@@ -109,6 +117,7 @@ AnalysisOptionsWarningCode:
       3: the warning message
   INCLUDE_FILE_NOT_FOUND:
     problemMessage: "The include file '{0}' in '{1}' can't be found when analyzing '{2}'."
+    hasPublishedDocs: false
     comment: |-
       An error code indicating a specified include file could not be found.
 
@@ -119,6 +128,7 @@ AnalysisOptionsWarningCode:
   INCOMPATIBLE_LINT:
     problemMessage: "The rule '{0}' is incompatible with the rule '{1}'."
     correctionMessage: "Try removing one of the incompatible rules."
+    hasPublishedDocs: false
     comment: |-
       An error code indicating an incompatible rule.
 
@@ -127,6 +137,7 @@ AnalysisOptionsWarningCode:
       1: the incompatible rule
   INVALID_OPTION:
     problemMessage: "Invalid option specified for '{0}': {1}"
+    hasPublishedDocs: false
     comment: |-
       An error code indicating that a plugin is being configured with an invalid
       value for an option and a detail message is provided.
@@ -136,6 +147,7 @@ AnalysisOptionsWarningCode:
       1: the detail message
   INVALID_SECTION_FORMAT:
     problemMessage: "Invalid format for the '{0}' section."
+    hasPublishedDocs: false
     comment: |-
       An error code indicating an invalid format for an options file section.
 
@@ -144,6 +156,7 @@ AnalysisOptionsWarningCode:
   MULTIPLE_PLUGINS:
     problemMessage: "Multiple plugins can't be enabled."
     correctionMessage: "Remove all plugins following the first, '{0}'."
+    hasPublishedDocs: false
     comment: |-
       An error code indicating multiple plugins have been specified as enabled.
 
@@ -152,6 +165,7 @@ AnalysisOptionsWarningCode:
   RECURSIVE_INCLUDE_FILE:
     problemMessage: "The include file '{0}' in '{1}' includes itself recursively."
     correctionMessage: "Try changing the chain of 'include's to not re-include this file."
+    hasPublishedDocs: false
     comment: |-
       An error code indicating a specified include file includes itself recursively.
 
@@ -161,6 +175,7 @@ AnalysisOptionsWarningCode:
   REMOVED_LINT:
     problemMessage: "'{0}' was removed in Dart '{1}'"
     correctionMessage: "Remove the reference to '{0}'."
+    hasPublishedDocs: false
     comment: |-
       An error code indicating a removed lint rule.
 
@@ -170,6 +185,7 @@ AnalysisOptionsWarningCode:
   REPLACED_LINT:
     problemMessage: "'{0}' was replaced by '{2}' in Dart '{1}'."
     correctionMessage: "Replace '{0}' with '{1}'."
+    hasPublishedDocs: false
     comment: |-
       An error code indicating a removed lint rule.
 
@@ -180,6 +196,7 @@ AnalysisOptionsWarningCode:
   UNDEFINED_LINT:
     problemMessage: "'{0}' is not a recognized lint rule."
     correctionMessage: "Try using the name of a recognized lint rule."
+    hasPublishedDocs: false
     comment: |-
       An error code indicating an undefined lint rule.
 
@@ -187,6 +204,7 @@ AnalysisOptionsWarningCode:
       0: the rule name
   UNRECOGNIZED_ERROR_CODE:
     problemMessage: "'{0}' isn't a recognized error code."
+    hasPublishedDocs: false
     comment: |-
       An error code indicating that an unrecognized error code is being used to
       specify an error filter.
@@ -195,6 +213,7 @@ AnalysisOptionsWarningCode:
       0: the unrecognized error code
   UNSUPPORTED_OPTION_WITHOUT_VALUES:
     problemMessage: "The option '{1}' isn't supported by '{0}'."
+    hasPublishedDocs: false
     comment: |-
       An error code indicating that a plugin is being configured with an
       unsupported option and legal options are provided.
@@ -204,6 +223,7 @@ AnalysisOptionsWarningCode:
       1: the unsupported option key
   UNSUPPORTED_OPTION_WITH_LEGAL_VALUE:
     problemMessage: "The option '{1}' isn't supported by '{0}'. Try using the only supported option: '{2}'."
+    hasPublishedDocs: false
     comment: |-
       An error code indicating that a plugin is being configured with an
       unsupported option where there is just one legal value.
@@ -215,6 +235,7 @@ AnalysisOptionsWarningCode:
   UNSUPPORTED_OPTION_WITH_LEGAL_VALUES:
     problemMessage: "The option '{1}' isn't supported by '{0}'."
     correctionMessage: "Try using one of the supported options: {2}."
+    hasPublishedDocs: false
     comment: |-
       An error code indicating that a plugin is being configured with an
       unsupported option and legal options are provided.
@@ -226,6 +247,7 @@ AnalysisOptionsWarningCode:
   UNSUPPORTED_VALUE:
     problemMessage: "The value '{1}' isn't supported by '{0}'."
     correctionMessage: "Try using one of the supported options: {2}."
+    hasPublishedDocs: false
     comment: |-
       An error code indicating that an option entry is being configured with an
       unsupported value.
@@ -1124,6 +1146,7 @@ CompileTimeErrorCode:
   AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND:
     problemMessage: Can't augment a {0} with a {1}.
     correctionMessage: Try changing the augmentation to match the declaration kind.
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the name of the declaration kind.
@@ -1131,12 +1154,15 @@ CompileTimeErrorCode:
   AUGMENTATION_WITHOUT_DECLARATION:
     problemMessage: The declaration being augmented doesn't exist.
     correctionMessage: Try changing the augmentation to match an existing declaration.
+    hasPublishedDocs: false
   AUGMENTATION_WITHOUT_IMPORT:
     problemMessage: The library does not import this augmentation.
     correctionMessage: Try updating the augmented library to import this augmentation.
+    hasPublishedDocs: false
   AUGMENTATION_WITHOUT_LIBRARY:
     problemMessage: The URI does not resolve to a library.
-    correctionMessage: Try updating the URI to reference the augmented library
+    correctionMessage: Try updating the URI to reference the augmented library.
+    hasPublishedDocs: false
   AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER:
     problemMessage: "The 'await' expression can't be used in a 'late' local variable's initializer."
     correctionMessage: "Try removing the 'late' modifier, or rewriting the initializer without using the 'await' expression."
@@ -1182,6 +1208,7 @@ CompileTimeErrorCode:
   AWAIT_IN_WRONG_CONTEXT:
     problemMessage: The await expression can only be used in an async function.
     correctionMessage: Try marking the function body with either 'async' or 'async*'.
+    hasPublishedDocs: false
     comment: |-
       16.30 Await Expressions: It is a compile-time error if the function
       immediately enclosing _a_ is not declared asynchronous. (Where _a_ is the
@@ -1802,6 +1829,7 @@ CompileTimeErrorCode:
     sharedName: CLASS_INSTANTIATION_ACCESS_TO_MEMBER
     problemMessage: "The instance member '{0}' can't be accessed on a class instantiation."
     correctionMessage: Try changing the member name to the name of a constructor.
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the name of the member
@@ -1809,6 +1837,7 @@ CompileTimeErrorCode:
     sharedName: CLASS_INSTANTIATION_ACCESS_TO_MEMBER
     problemMessage: "The class '{0}' doesn't have a constructor named '{1}'."
     correctionMessage: "Try invoking a different constructor, or defining a constructor named '{1}'."
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the name of the class
@@ -1817,6 +1846,7 @@ CompileTimeErrorCode:
     sharedName: CLASS_INSTANTIATION_ACCESS_TO_MEMBER
     problemMessage: "The static member '{0}' can't be accessed on a class instantiation."
     correctionMessage: Try removing the type arguments from the class name, or changing the member name to the name of a constructor.
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the name of the member
@@ -2191,6 +2221,7 @@ CompileTimeErrorCode:
   CONFLICTING_FIELD_AND_METHOD:
     problemMessage: "Class '{0}' can't define field '{1}' and have method '{2}.{1}' with the same name."
     correctionMessage: "Try converting the getter to a method, or renaming the field to a name that doesn't conflict."
+    hasPublishedDocs: false
     comment: |-
       10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
       error if `C` declares a getter or a setter with basename `n`, and has a
@@ -2243,6 +2274,7 @@ CompileTimeErrorCode:
       ```
   CONFLICTING_INHERITED_METHOD_AND_SETTER:
     problemMessage: "The {0} '{1}' can't inherit both a method and a setter named '{2}'."
+    hasPublishedDocs: false
     comment: |-
       10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
       error if the interface of `C` has an instance method named `n` and an
@@ -2255,6 +2287,7 @@ CompileTimeErrorCode:
   CONFLICTING_METHOD_AND_FIELD:
     problemMessage: "Class '{0}' can't define method '{1}' and have field '{2}.{1}' with the same name."
     correctionMessage: "Try converting the method to a getter, or renaming the method to a name that doesn't conflict."
+    hasPublishedDocs: false
     comment: |-
       10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
       error if `C` declares a method named `n`, and has a getter or a setter
@@ -2267,6 +2300,7 @@ CompileTimeErrorCode:
   CONFLICTING_STATIC_AND_INSTANCE:
     problemMessage: "Class '{0}' can't define static member '{1}' and have instance member '{2}.{1}' with the same name."
     correctionMessage: "Try renaming the member to a name that doesn't conflict."
+    hasPublishedDocs: false
     comment: |-
       10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
       error if `C` declares a static member with basename `n`, and has an
@@ -2409,6 +2443,7 @@ CompileTimeErrorCode:
   CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH:
     problemMessage: "In a const constructor, a value of type '{0}' can't be assigned to the field '{1}', which has type '{2}'."
     correctionMessage: "Try using a subtype, or removing the keyword 'const'."
+    hasPublishedDocs: false
     comment: |-
       16.12.2 Const: It is a compile-time error if evaluation of a constant
       object results in an uncaught exception being thrown.
@@ -2477,6 +2512,7 @@ CompileTimeErrorCode:
   CONST_CONSTRUCTOR_THROWS_EXCEPTION:
     problemMessage: "Const constructors can't throw exceptions."
     correctionMessage: "Try removing the throw statement, or removing the keyword 'const'."
+    hasPublishedDocs: false
     comment: |-
       16.12.2 Const: It is a compile-time error if evaluation of a constant
       object results in an uncaught exception being thrown.
@@ -2531,6 +2567,7 @@ CompileTimeErrorCode:
   CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD:
     problemMessage: "This constructor can't be declared 'const' because a mixin adds the instance field: {0}."
     correctionMessage: "Try removing the 'const' keyword or removing the 'with' clause from the class declaration, or removing the field from the mixin class."
+    hasPublishedDocs: false
     comment: |-
       7.6.3 Constant Constructors: The superinitializer that appears, explicitly
       or implicitly, in the initializer list of a constant constructor must
@@ -2548,6 +2585,7 @@ CompileTimeErrorCode:
     sharedName: CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD
     problemMessage: "This constructor can't be declared 'const' because the mixins add the instance fields: {0}."
     correctionMessage: "Try removing the 'const' keyword or removing the 'with' clause from the class declaration, or removing the fields from the mixin classes."
+    hasPublishedDocs: false
     comment: |-
       7.6.3 Constant Constructors: The superinitializer that appears, explicitly
       or implicitly, in the initializer list of a constant constructor must
@@ -2731,73 +2769,90 @@ CompileTimeErrorCode:
       ```
   CONST_EVAL_ASSERTION_FAILURE:
     problemMessage: "The assertion in this constant expression failed."
+    hasPublishedDocs: false
   CONST_EVAL_ASSERTION_FAILURE_WITH_MESSAGE:
     problemMessage: "An assertion failed with message '{0}'."
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the message of the assertion
   CONST_EVAL_EXTENSION_METHOD:
     problemMessage: "Extension methods can't be used in constant expressions."
+    hasPublishedDocs: false
   CONST_EVAL_EXTENSION_TYPE_METHOD:
     problemMessage: "Extension type methods can't be used in constant expressions."
+    hasPublishedDocs: false
   CONST_EVAL_FOR_ELEMENT:
     problemMessage: "Constant expressions don't support 'for' elements."
     correctionMessage: "Try replacing the 'for' element with a spread, or removing 'const'."
+    hasPublishedDocs: false
   CONST_EVAL_PROPERTY_ACCESS:
     problemMessage: "The property '{0}' can't be accessed on the type '{1}' in a constant expression."
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the name of the property being accessed
       1: the type with the property being accessed
   CONST_EVAL_METHOD_INVOCATION:
     problemMessage: "Methods can't be invoked in constant expressions."
+    hasPublishedDocs: false
   CONST_EVAL_THROWS_EXCEPTION:
     problemMessage: Evaluation of this constant expression throws an exception.
+    hasPublishedDocs: false
     comment: |-
       16.12.2 Const: It is a compile-time error if evaluation of a constant
       object results in an uncaught exception being thrown.
   CONST_EVAL_THROWS_IDBZE:
     problemMessage: Evaluation of this constant expression throws an IntegerDivisionByZeroException.
+    hasPublishedDocs: false
     comment: |-
       16.12.2 Const: It is a compile-time error if evaluation of a constant
       object results in an uncaught exception being thrown.
   CONST_EVAL_TYPE_BOOL:
     problemMessage: "In constant expressions, operands of this operator must be of type 'bool'."
+    hasPublishedDocs: false
     comment: |-
       See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
       for text about "An expression of the form !e1", "An expression of the form
       e1 && e2", and "An expression of the form e1 || e2".
   CONST_EVAL_TYPE_BOOL_INT:
     problemMessage: "In constant expressions, operands of this operator must be of type 'bool' or 'int'."
+    hasPublishedDocs: false
     comment: |-
       See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
       for text about "An expression of the form e1 & e2".
   CONST_EVAL_TYPE_BOOL_NUM_STRING:
     problemMessage: "In constant expressions, operands of this operator must be of type 'bool', 'num', 'String' or 'null'."
+    hasPublishedDocs: false
     comment: |-
       See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
       for text about "A literal string".
   CONST_EVAL_TYPE_INT:
     problemMessage: "In constant expressions, operands of this operator must be of type 'int'."
+    hasPublishedDocs: false
     comment: |-
       See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
       for text about "An expression of the form ~e1", "An expression of one of
       the forms e1 >> e2".
   CONST_EVAL_TYPE_NUM:
     problemMessage: "In constant expressions, operands of this operator must be of type 'num'."
+    hasPublishedDocs: false
     comment: |-
       See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
       for text about "An expression of the form e1 - e2".
   CONST_EVAL_TYPE_NUM_STRING:
     problemMessage: "In constant expressions, operands of this operator must be of type 'num' or 'String'."
+    hasPublishedDocs: false
     comment: |-
       See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
       for text about "An expression of the form e1 + e2".
   CONST_EVAL_TYPE_STRING:
     problemMessage: "In constant expressions, operands of this operator must be of type 'String'."
+    hasPublishedDocs: false
     comment: No parameters.
   CONST_EVAL_TYPE_TYPE:
     problemMessage: "In constant expressions, operands of this operator must be of type 'Type'."
+    hasPublishedDocs: false
   CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE:
     problemMessage: Const variables must be initialized with a constant value.
     correctionMessage: Try changing the initializer to be a constant expression.
@@ -3156,6 +3211,7 @@ CompileTimeErrorCode:
   CONST_TYPE_PARAMETER:
     problemMessage: "Type parameters can't be used in a constant expression."
     correctionMessage: Try replacing the type parameter with a different type.
+    hasPublishedDocs: false
     comment: No parameters.
   CONST_WITH_NON_CONST:
     problemMessage: "The constructor being called isn't a const constructor."
@@ -3303,6 +3359,7 @@ CompileTimeErrorCode:
   CONST_WITH_UNDEFINED_CONSTRUCTOR:
     problemMessage: "The class '{0}' doesn't have a constant constructor '{1}'."
     correctionMessage: Try calling a different constructor.
+    hasPublishedDocs: false
     comment: |-
       16.12.2 Const: It is a compile-time error if <i>T.id</i> is not the name of
       a constant constructor declared by the type <i>T</i>.
@@ -3313,6 +3370,7 @@ CompileTimeErrorCode:
   CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT:
     problemMessage: "The class '{0}' doesn't have an unnamed constant constructor."
     correctionMessage: Try calling a different constructor.
+    hasPublishedDocs: false
     comment: |-
       16.12.2 Const: It is a compile-time error if <i>T.id</i> is not the name of
       a constant constructor declared by the type <i>T</i>.
@@ -3322,8 +3380,8 @@ CompileTimeErrorCode:
   CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION:
     problemMessage: The expression of a constant pattern must be a valid constant.
     correctionMessage: Try making the expression a valid constant.
-    comment: No parameters.
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -3397,6 +3455,7 @@ CompileTimeErrorCode:
       introducing a loop that re-executes the `switch` statement.
   COULD_NOT_INFER:
     problemMessage: "Couldn't infer type parameter '{0}'.{1}"
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the name of the type parameter
@@ -3752,6 +3811,7 @@ CompileTimeErrorCode:
   DUPLICATE_AUGMENTATION_IMPORT:
     problemMessage: "The library already contains an augmentation with the URI '{0}'."
     correctionMessage: Try removing all except one of the duplicated augmentation directives.
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the URI of the duplicate augmentation
@@ -4286,6 +4346,7 @@ CompileTimeErrorCode:
   ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR:
     problemMessage: "An enum value can't invoke a factory constructor."
     correctionMessage: Try using a generative constructor.
+    hasPublishedDocs: false
   ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING:
     problemMessage: "The name of the enum value can't be the same as the enum's name."
     correctionMessage: Try renaming the constant.
@@ -4365,6 +4426,7 @@ CompileTimeErrorCode:
   ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED:
     problemMessage: The result of instantiating the enum to bounds is not well-bounded.
     correctionMessage: Try using different bounds for type parameters.
+    hasPublishedDocs: false
   ENUM_MIXIN_WITH_INSTANCE_VARIABLE:
     problemMessage: Mixins applied to enums can't have instance variables.
     correctionMessage: Try replacing the instance variables with getters.
@@ -4481,6 +4543,7 @@ CompileTimeErrorCode:
   ENUM_WITHOUT_CONSTANTS:
     problemMessage: The enum must have at least one constant.
     correctionMessage: Try declaring a constant.
+    hasPublishedDocs: false
   EQUAL_ELEMENTS_IN_CONST_SET:
     problemMessage: "Two elements in a constant set literal can't be equal."
     correctionMessage: Change or remove the duplicate element.
@@ -6110,9 +6173,9 @@ CompileTimeErrorCode:
   FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR:
     problemMessage: Initializing formal parameters can only be used in constructors.
     correctionMessage: Try using a normal parameter.
+    hasPublishedDocs: true
     comment: |-
       No parameters.
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -6642,14 +6705,16 @@ CompileTimeErrorCode:
       }
       ```
   GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND:
-    problemMessage: "Generic function types can't be used as type parameter bounds"
-    correctionMessage: Try making the free variable in the function type part of the larger declaration signature
+    problemMessage: "Generic function types can't be used as type parameter bounds."
+    correctionMessage: Try making the free variable in the function type part of the larger declaration signature.
+    hasPublishedDocs: false
     comment: |-
       It is a compile-time error if a generic function type is used as a bound
       for a formal type parameter of a class or a function.
   GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT:
     problemMessage: "A generic function type can't be a type argument."
     correctionMessage: "Try removing type parameters from the generic function type, or using 'dynamic' as the type argument here."
+    hasPublishedDocs: false
     comment: |-
       It is a compile-time error if a generic function type is used as an actual
       type argument.
@@ -6700,6 +6765,7 @@ CompileTimeErrorCode:
   GETTER_NOT_ASSIGNABLE_SETTER_TYPES:
     problemMessage: "The return type of getter '{0}' is '{1}' which isn't assignable to the type '{2}' of its setter '{3}'."
     correctionMessage: Try changing the types so that they are compatible.
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the name of the getter
@@ -6764,6 +6830,7 @@ CompileTimeErrorCode:
   IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY:
     problemMessage: "Constant values from a deferred library can't be used as values in an if condition inside a const collection literal."
     correctionMessage: Try making the deferred import non-deferred.
+    hasPublishedDocs: false
   ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE:
     problemMessage: "Functions marked 'async*' must have a return type that is a supertype of 'Stream<T>' for some type 'T'."
     correctionMessage: "Try fixing the return type of the function, or removing the modifier 'async*' from the function body."
@@ -6894,6 +6961,7 @@ CompileTimeErrorCode:
   ILLEGAL_LANGUAGE_VERSION_OVERRIDE:
     problemMessage: The language version must be {0}.
     correctionMessage: Try removing the language version override and migrating the code.
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the required language version
@@ -7301,10 +7369,10 @@ CompileTimeErrorCode:
   IMPORT_OF_NON_LIBRARY:
     problemMessage: "The imported library '{0}' can't have a part-of directive."
     correctionMessage: Try importing the library that the part is a part of.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the URI pointing to a non-library declaration
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -7336,11 +7404,13 @@ CompileTimeErrorCode:
   IMPORT_OF_NOT_AUGMENTATION:
     problemMessage: "The imported file '{0}' isn't an augmentation of this library."
     correctionMessage: Try adding a 'library augment' directive referencing this library to the imported file.
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the URI of the imported file
   INCONSISTENT_CASE_EXPRESSION_TYPES:
     problemMessage: "Case expressions must have the same types, '{0}' isn't a '{1}'."
+    hasPublishedDocs: false
     comment: |-
       13.9 Switch: It is a compile-time error if values of the expressions
       <i>e<sub>k</sub></i> are not instances of the same class <i>C</i>, for all
@@ -7417,9 +7487,9 @@ CompileTimeErrorCode:
       2: the name of the superinterface that declares the name as a method.
   INCONSISTENT_LANGUAGE_VERSION_OVERRIDE:
     problemMessage: Parts must have exactly the same language version override as the library.
+    hasPublishedDocs: true
     comment: |-
       No parameters.
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -8279,6 +8349,7 @@ CompileTimeErrorCode:
       ```
   INVALID_CAST_FUNCTION:
     problemMessage: "The function '{0}' has type '{1}' that isn't of expected type '{2}'. This means its parameter or return type doesn't match what is expected."
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the name of the function
@@ -8288,6 +8359,7 @@ CompileTimeErrorCode:
       This error is only reported in libraries which are not null safe.
   INVALID_CAST_FUNCTION_EXPR:
     problemMessage: The function expression type '{0}' isn't of type '{1}'. This means its parameter or return type doesn't match what is expected. Consider changing parameter type(s) or the returned type(s).
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the type of the torn-off function expression
@@ -8296,6 +8368,7 @@ CompileTimeErrorCode:
       This error is only reported in libraries which are not null safe.
   INVALID_CAST_LITERAL:
     problemMessage: "The literal '{0}' with type '{1}' isn't of expected type '{2}'."
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the lexeme of the literal
@@ -8305,6 +8378,7 @@ CompileTimeErrorCode:
       This error is only reported in libraries which are not null safe.
   INVALID_CAST_LITERAL_LIST:
     problemMessage: "The list literal type '{0}' isn't of expected type '{1}'. The list's type can be changed with an explicit generic type argument or by changing the element types."
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the type of the list literal
@@ -8313,6 +8387,7 @@ CompileTimeErrorCode:
       This error is only reported in libraries which are not null safe.
   INVALID_CAST_LITERAL_MAP:
     problemMessage: "The map literal type '{0}' isn't of expected type '{1}'. The map's type can be changed with an explicit generic type arguments or by changing the key and value types."
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the type of the map literal
@@ -8321,6 +8396,7 @@ CompileTimeErrorCode:
       This error is only reported in libraries which are not null safe.
   INVALID_CAST_LITERAL_SET:
     problemMessage: "The set literal type '{0}' isn't of expected type '{1}'. The set's type can be changed with an explicit generic type argument or by changing the element types."
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the type of the set literal
@@ -8329,6 +8405,7 @@ CompileTimeErrorCode:
       This error is only reported in libraries which are not null safe.
   INVALID_CAST_METHOD:
     problemMessage: "The method tear-off '{0}' has type '{1}' that isn't of expected type '{2}'. This means its parameter or return type doesn't match what is expected."
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the name of the torn-off method
@@ -8338,6 +8415,7 @@ CompileTimeErrorCode:
       This error is only reported in libraries which are not null safe.
   INVALID_CAST_NEW_EXPR:
     problemMessage: "The constructor returns type '{0}' that isn't of expected type '{1}'."
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the type of the instantiated object
@@ -8346,6 +8424,7 @@ CompileTimeErrorCode:
       This error is only reported in libraries which are not null safe.
   INVALID_CONSTANT:
     problemMessage: Invalid constant value.
+    hasPublishedDocs: false
     comment: |-
       TODO(brianwilkerson): Remove this when we have decided on how to report
       errors in compile-time constants. Until then, this acts as a placeholder
@@ -8697,6 +8776,7 @@ CompileTimeErrorCode:
       ```
   INVALID_MACRO_APPLICATION_TARGET:
     problemMessage: "The macro can be applied only to a {0}."
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the list of target kind names
@@ -9136,6 +9216,7 @@ CompileTimeErrorCode:
   INVALID_USE_OF_COVARIANT:
     problemMessage: "The 'covariant' keyword can only be used for parameters in instance methods or before non-final instance fields."
     correctionMessage: "Try removing the 'covariant' keyword."
+    hasPublishedDocs: false
     comment: "The 'covariant' keyword was found in an inappropriate location."
   INVALID_USE_OF_NULL_VALUE:
     problemMessage: "An expression whose value is always 'null' can't be dereferenced."
@@ -9561,6 +9642,7 @@ CompileTimeErrorCode:
       ```
   MACRO_APPLICATION_ARGUMENT_ERROR:
     problemMessage: "{0}"
+    hasPublishedDocs: false
     comment: |-
       Reported when there is an issue converting a macro application argument
       into a value. So, we cannot instantiate the macro, and run it.
@@ -9568,12 +9650,14 @@ CompileTimeErrorCode:
       0: the message
   MACRO_ERROR:
     problemMessage: "{0}"
+    hasPublishedDocs: false
     comment: |-
       Reported when the macro uses `Builder.report()` with `Severity.error`.
       Parameters:
       0: the message
   MACRO_INTERNAL_EXCEPTION:
     problemMessage: "{0} {1}"
+    hasPublishedDocs: false
     comment: |-
       Reported when there is an exception inside the analyzer when running
       macros. Should not happen, but just in case.
@@ -9583,12 +9667,14 @@ CompileTimeErrorCode:
   MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE:
     problemMessage: "The declaration '{0}' can't be introspected because there is a cycle of macro applications."
     correctionMessage: Try removing one or more macro applications to break the cycle.
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the name of the introspected declaration
   MACRO_DEFINITION_APPLICATION_SAME_LIBRARY_CYCLE:
     problemMessage: "The macro '{0}' can't be applied in the same library cycle where it is defined."
     correctionMessage: Try moving it to a different library that does not import the one where it is applied.
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the name of the macro class
@@ -9843,6 +9929,7 @@ CompileTimeErrorCode:
       ```
   MISSING_CONST_IN_LIST_LITERAL:
     problemMessage: Seeing this message constitutes a bug. Please report it.
+    hasPublishedDocs: false
     comment: |-
       12.1 Constants: A constant expression is ... a constant list literal.
 
@@ -9850,6 +9937,7 @@ CompileTimeErrorCode:
       to be documented.
   MISSING_CONST_IN_MAP_LITERAL:
     problemMessage: Seeing this message constitutes a bug. Please report it.
+    hasPublishedDocs: false
     comment: |-
       12.1 Constants: A constant expression is ... a constant map literal.
 
@@ -9857,6 +9945,7 @@ CompileTimeErrorCode:
       to be documented.
   MISSING_CONST_IN_SET_LITERAL:
     problemMessage: Seeing this message constitutes a bug. Please report it.
+    hasPublishedDocs: false
     comment: |-
       12.1 Constants: A constant expression is ... a constant set literal.
 
@@ -10673,15 +10762,16 @@ CompileTimeErrorCode:
       Otherwise, remove the type from the `on` clause.
   MIXIN_WITH_NON_CLASS_SUPERCLASS:
     problemMessage: Mixin can only be applied to class.
+    hasPublishedDocs: false
     comment: |-
       9.1 Mixin Application: It is a compile-time error if <i>S</i> does not
       denote a class available in the immediately enclosing scope.
   MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS:
     problemMessage: Constructors can have only one 'this' redirection, at most.
     correctionMessage: Try removing all but one of the redirections.
+    hasPublishedDocs: true
     comment: |-
       No parameters.
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -10802,6 +10892,7 @@ CompileTimeErrorCode:
   NEW_WITH_UNDEFINED_CONSTRUCTOR:
     problemMessage: "The class '{0}' doesn't have a constructor named '{1}'."
     correctionMessage: "Try invoking a different constructor, or define a constructor named '{1}'."
+    hasPublishedDocs: false
     comment: |-
       12.11.1 New: If <i>T</i> is a class or parameterized type accessible in the
       current scope then:
@@ -11642,6 +11733,7 @@ CompileTimeErrorCode:
       ```
   NON_CONST_MAP_AS_EXPRESSION_STATEMENT:
     problemMessage: "A non-constant map or set literal without type arguments can't be used as an expression statement."
+    hasPublishedDocs: false
     comment: |-
       13.2 Expression Statements: It is a compile-time error if a non-constant
       map literal that has no explicit type arguments appears in a place where a
@@ -11901,12 +11993,12 @@ CompileTimeErrorCode:
   NON_GENERATIVE_IMPLICIT_CONSTRUCTOR:
     problemMessage: "The unnamed constructor of superclass '{0}' (called by the default constructor of '{1}') must be a generative constructor, but factory found."
     correctionMessage: "Try adding an explicit constructor that has a different superinitializer or changing the superclass constructor '{2}' to not be a factory constructor."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the superclass
       1: the name of the current class
       2: the implicitly called factory constructor of the superclass
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -12536,6 +12628,7 @@ CompileTimeErrorCode:
   NOT_INSTANTIATED_BOUND:
     problemMessage: Type parameter bound types must be instantiated.
     correctionMessage: Try adding type arguments to the type parameter bound.
+    hasPublishedDocs: false
     comment: No parameters.
   NOT_ITERABLE_SPREAD:
     problemMessage: "Spread elements in list or set literals must implement 'Iterable'."
@@ -12597,6 +12690,7 @@ CompileTimeErrorCode:
       ```
   NOT_NULL_AWARE_NULL_SPREAD:
     problemMessage: "The Null typed expression can't be used with a non-null-aware spread."
+    hasPublishedDocs: false
     comment: No parameters.
   NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS:
     problemMessage: Annotation creation must have arguments.
@@ -12702,6 +12796,7 @@ CompileTimeErrorCode:
     sharedName: NO_DEFAULT_SUPER_CONSTRUCTOR
     problemMessage: "The superclass '{0}' doesn't have a zero argument constructor."
     correctionMessage: "Try declaring a zero argument constructor in '{0}', or explicitly invoking a different constructor in '{0}'."
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the name of the superclass that does not define an implicitly invoked
@@ -12710,6 +12805,7 @@ CompileTimeErrorCode:
     sharedName: NO_DEFAULT_SUPER_CONSTRUCTOR
     problemMessage: "The superclass '{0}' doesn't have a zero argument constructor."
     correctionMessage: "Try declaring a zero argument constructor in '{0}', or declaring a constructor in {1} that explicitly invokes a constructor in '{0}'."
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the name of the superclass that does not define an implicitly invoked
@@ -12718,11 +12814,11 @@ CompileTimeErrorCode:
   NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS:
     problemMessage: "The class '{0}' can't extend '{1}' because '{1}' only has factory constructors (no generative constructors), and '{0}' has at least one generative constructor."
     correctionMessage: "Try implementing the class instead, adding a generative (not factory) constructor to the superclass '{1}', or a factory constructor to the subclass."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the subclass
       1: the name of the superclass
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -12934,6 +13030,7 @@ CompileTimeErrorCode:
       ```
   OBJECT_CANNOT_EXTEND_ANOTHER_CLASS:
     problemMessage: "The class 'Object' can't extend any other class."
+    hasPublishedDocs: false
     comment: |-
       7.9 Superclasses: It is a compile-time error to specify an extends clause
       for class Object.
@@ -13672,10 +13769,10 @@ CompileTimeErrorCode:
   PREFIX_SHADOWED_BY_LOCAL_DECLARATION:
     problemMessage: "The prefix '{0}' can't be used here because it's shadowed by a local declaration."
     correctionMessage: Try renaming either the prefix or the local declaration.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the prefix being shadowed
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -13927,6 +14024,7 @@ CompileTimeErrorCode:
       ```
   RECURSIVE_CONSTANT_CONSTRUCTOR:
     problemMessage: "The constant constructor depends on itself."
+    hasPublishedDocs: false
     comment: No parameters.
   RECURSIVE_CONSTRUCTOR_REDIRECT:
     problemMessage: "Constructors can't redirect to themselves either directly or indirectly."
@@ -14203,11 +14301,11 @@ CompileTimeErrorCode:
   REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR:
     problemMessage: "The redirecting constructor '{0}' can't redirect to a constructor of the abstract class '{1}'."
     correctionMessage: Try redirecting to a constructor of a different class.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the redirecting constructor
       1: the name of the abstract class defining the constructor being redirected to
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -14380,11 +14478,11 @@ CompileTimeErrorCode:
   REDIRECT_TO_MISSING_CONSTRUCTOR:
     problemMessage: "The constructor '{0}' couldn't be found in '{1}'."
     correctionMessage: "Try redirecting to a different constructor, or define the constructor named '{0}'."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the constructor
       1: the name of the class containing the constructor
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -15203,6 +15301,7 @@ CompileTimeErrorCode:
   SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY:
     problemMessage: "Constant values from a deferred library can't be spread into a const literal."
     correctionMessage: Try making the deferred import non-deferred.
+    hasPublishedDocs: false
   STATIC_ACCESS_TO_INSTANCE_MEMBER:
     problemMessage: "Instance member '{0}' can't be accessed using static access."
     hasPublishedDocs: true
@@ -15714,6 +15813,7 @@ CompileTimeErrorCode:
     comment: No parameters.
   SUPER_INITIALIZER_IN_OBJECT:
     problemMessage: "The class 'Object' can't invoke a constructor from a superclass."
+    hasPublishedDocs: false
     comment: |-
       7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It
       is a compile-time error if a generative constructor of class Object
@@ -15922,9 +16022,9 @@ CompileTimeErrorCode:
   SWITCH_CASE_COMPLETES_NORMALLY:
     problemMessage: "The 'case' shouldn't complete normally."
     correctionMessage: "Try adding 'break', 'return', or 'throw'."
+    hasPublishedDocs: true
     comment: |-
       No parameters.
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -17990,6 +18090,7 @@ CompileTimeErrorCode:
   WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE:
     problemMessage: "'{0}' is an '{1}' type parameter and can't be used in an '{2}' position in '{3}'."
     correctionMessage: "Try using 'in' type parameters in 'in' positions and 'out' type parameters in 'out' positions in the superinterface."
+    hasPublishedDocs: false
     comment: |-
       Let `C` be a generic class that declares a formal type parameter `X`, and
       assume that `T` is a direct superinterface of `C`.
@@ -18294,6 +18395,7 @@ CompileTimeErrorCode:
     sharedName: WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION
     problemMessage: "This function is declared with {0} type parameters, but {1} type arguments were given."
     correctionMessage: Try adjusting the number of type arguments to match the number of type parameters.
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the number of type parameters that were declared
@@ -18301,6 +18403,7 @@ CompileTimeErrorCode:
   WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION:
     problemMessage: "The function '{0}' is declared with {1} type parameters, but {2} type arguments were given."
     correctionMessage: Try adjusting the number of type arguments to match the number of type parameters.
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the name of the function being referenced
@@ -18362,6 +18465,7 @@ CompileTimeErrorCode:
   WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE:
     problemMessage: "'{0}' can't be used contravariantly or invariantly in '{1}'."
     correctionMessage: Try not using class type parameters in types of formal parameters of function types, nor in explicitly contravariant or invariant superinterfaces.
+    hasPublishedDocs: false
     comment: |-
       Let `C` be a generic class that declares a formal type parameter `X`, and
       assume that `T` is a direct superinterface of `C`. It is a compile-time
@@ -18373,6 +18477,7 @@ CompileTimeErrorCode:
   WRONG_TYPE_PARAMETER_VARIANCE_POSITION:
     problemMessage: "The '{0}' type parameter '{1}' can't be used in an '{2}' position."
     correctionMessage: "Try removing the type parameter or change the explicit variance modifier declaration for the type parameter to another one of 'in', 'out', or 'inout'."
+    hasPublishedDocs: false
     comment: |-
       Let `C` be a generic class that declares a formal type parameter `X`.
 
@@ -18768,10 +18873,10 @@ FfiCode:
   ARGUMENT_MUST_BE_A_CONSTANT:
     problemMessage: "Argument '{0}' must be a constant."
     correctionMessage: Try replacing the value with a literal or const.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the argument
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -18827,14 +18932,15 @@ FfiCode:
   ARGUMENT_MUST_BE_NATIVE:
     problemMessage: "Argument to 'Native.addressOf' must be annotated with @Native"
     correctionMessage: "Try passing a static function or field annotated with '@Native'"
+    hasPublishedDocs: false
     comment: No parameters
   NATIVE_FIELD_INVALID_TYPE:
     problemMessage: "'{0}' is an unsupported type for native fields. Native fields only support pointers, arrays or numeric and compound types."
     correctionMessage: "Try changing the type in the `@Native` annotation to a numeric FFI type, a pointer, array, or a compound class."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: The invalid type.
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -18889,8 +18995,8 @@ FfiCode:
   NATIVE_FIELD_MISSING_TYPE:
     problemMessage: "The native type of this field could not be inferred and must be specified in the annotation."
     correctionMessage: "Try adding a type parameter extending `NativeType` to the `@Native` annotation."
-    comment: "No parameters"
     hasPublishedDocs: true
+    comment: "No parameters"
     documentation: |-
       #### Description
 
@@ -18933,8 +19039,8 @@ FfiCode:
   NATIVE_FIELD_NOT_STATIC:
     problemMessage: "Native fields must be static."
     correctionMessage: "Try adding the modifier 'static' to this field."
-    comment: "No parameters"
     hasPublishedDocs: true
+    comment: "No parameters"
     documentation: |-
       #### Description
 
@@ -19000,10 +19106,10 @@ FfiCode:
   COMPOUND_IMPLEMENTS_FINALIZABLE:
     problemMessage: "The class '{0}' can't implement Finalizable."
     correctionMessage: "Try removing the implements clause from '{0}'."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the struct or union class
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -19039,8 +19145,8 @@ FfiCode:
   CREATION_OF_STRUCT_OR_UNION:
     problemMessage: "Subclasses of 'Struct' and 'Union' are backed by native memory, and can't be instantiated by a generative constructor."
     correctionMessage: "Try allocating it via allocation, or load from a 'Pointer'."
-    comment: No parameters.
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -19091,11 +19197,11 @@ FfiCode:
   EMPTY_STRUCT:
     problemMessage: "The class '{0}' can't be empty because it's a subclass of '{1}'."
     correctionMessage: "Try adding a field to '{0}' or use a different superclass."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the subclass
       1: the name of the superclass
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -19147,8 +19253,8 @@ FfiCode:
   EXTRA_ANNOTATION_ON_STRUCT_FIELD:
     problemMessage: Fields in a struct class must have exactly one annotation indicating the native type.
     correctionMessage: Try removing the extra annotation.
-    comment: No parameters.
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -19187,8 +19293,8 @@ FfiCode:
   EXTRA_SIZE_ANNOTATION_CARRAY:
     problemMessage: "'Array's must have exactly one 'Array' annotation."
     correctionMessage: Try removing the extra annotation.
-    comment: No parameters.
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -19228,14 +19334,17 @@ FfiCode:
   FFI_NATIVE_MUST_BE_EXTERNAL:
     problemMessage: Native functions must be declared external.
     correctionMessage: Add the `external` keyword to the function.
+    hasPublishedDocs: false
     comment: No parameters.
   FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER:
     problemMessage: Only classes extending NativeFieldWrapperClass1 can be passed as Pointer.
+    hasPublishedDocs: false
     correctionMessage: Pass as Handle instead.
     comment: No parameters.
   FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS:
     problemMessage: Unexpected number of Native annotation parameters. Expected {0} but has {1}.
     correctionMessage: Make sure parameters match the function annotated.
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the expected number of parameters
@@ -19243,6 +19352,7 @@ FfiCode:
   FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER:
     problemMessage: Unexpected number of Native annotation parameters. Expected {0} but has {1}. Native instance method annotation must have receiver as first argument.
     correctionMessage: Make sure parameters match the function annotated, including an extra first parameter for the receiver.
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the expected number of parameters
@@ -19250,17 +19360,19 @@ FfiCode:
   FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET:
     problemMessage: "There may be at most one @DefaultAsset annotation on a library."
     correctionMessage: "Try removing the extra annotation."
+    hasPublishedDocs: false
     comment: No parameters
   FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS:
     problemMessage: "Native functions and fields must have exactly one `@Native` annotation."
     correctionMessage: "Try removing the extra annotation."
+    hasPublishedDocs: false
     comment: No parameters
   FIELD_INITIALIZER_IN_STRUCT:
     removedIn: "3.0"
     problemMessage: "Constructors in subclasses of 'Struct' and 'Union' can't have field initializers."
     correctionMessage: Try removing the field initializer and marking the field as external.
-    comment: No parameters.
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -19305,8 +19417,8 @@ FfiCode:
     removedIn: "3.0"
     problemMessage: "Fields in subclasses of 'Struct' and 'Union' can't have initializers."
     correctionMessage: Try removing the initializer and marking the field as external.
-    comment: No parameters.
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -19344,8 +19456,8 @@ FfiCode:
   FIELD_MUST_BE_EXTERNAL_IN_STRUCT:
     problemMessage: "Fields of 'Struct' and 'Union' subclasses must be marked external."
     correctionMessage: "Try adding the 'external' modifier."
-    comment: No parameters.
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -19383,10 +19495,10 @@ FfiCode:
   GENERIC_STRUCT_SUBCLASS:
     problemMessage: "The class '{0}' can't extend 'Struct' or 'Union' because '{0}' is generic."
     correctionMessage: "Try removing the type parameters from '{0}'."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the struct class
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -19422,10 +19534,10 @@ FfiCode:
   INVALID_EXCEPTION_VALUE:
     problemMessage: "The method {0} can't have an exceptional return value (the second argument) when the return type of the function is either 'void', 'Handle' or 'Pointer'."
     correctionMessage: Try removing the exceptional return value.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the method
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -19472,10 +19584,10 @@ FfiCode:
   INVALID_FIELD_TYPE_IN_STRUCT:
     problemMessage: "Fields in struct classes can't have the type '{0}'. They can only be declared as 'int', 'double', 'Array', 'Pointer', or subtype of 'Struct' or 'Union'."
     correctionMessage: "Try using 'int', 'double', 'Array', 'Pointer', or subtype of 'Struct' or 'Union'."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the type of the field
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -19520,8 +19632,8 @@ FfiCode:
   LEAF_CALL_MUST_NOT_RETURN_HANDLE:
     problemMessage: "FFI leaf call can't return a 'Handle'."
     correctionMessage: Try changing the return type to primitive or struct.
-    comment: No parameters.
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -19577,8 +19689,8 @@ FfiCode:
   LEAF_CALL_MUST_NOT_TAKE_HANDLE:
     problemMessage: "FFI leaf call can't take arguments of type 'Handle'."
     correctionMessage: Try changing the argument type to primitive or struct.
-    comment: No parameters.
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -19628,8 +19740,8 @@ FfiCode:
   MISMATCHED_ANNOTATION_ON_STRUCT_FIELD:
     problemMessage: "The annotation doesn't match the declared type of the field."
     correctionMessage: Try using a different annotation or changing the declared type to match.
-    comment: No parameters.
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -19678,11 +19790,11 @@ FfiCode:
   MISSING_ANNOTATION_ON_STRUCT_FIELD:
     problemMessage: "Fields of type '{0}' in a subclass of '{1}' must have an annotation indicating the native type."
     correctionMessage: Try adding an annotation.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the type that is missing a native type annotation
       1: the superclass which is extended by this field's class
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -19722,10 +19834,10 @@ FfiCode:
   MISSING_EXCEPTION_VALUE:
     problemMessage: "The method {0} must have an exceptional return value (the second argument) when the return type of the function is neither 'void', 'Handle', nor 'Pointer'."
     correctionMessage: Try adding an exceptional return value.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the method
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -19769,8 +19881,8 @@ FfiCode:
   MISSING_FIELD_TYPE_IN_STRUCT:
     problemMessage: "Fields in struct classes must have an explicitly declared type of 'int', 'double' or 'Pointer'."
     correctionMessage: "Try using 'int', 'double' or 'Pointer'."
-    comment: No parameters.
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -19815,8 +19927,8 @@ FfiCode:
   MISSING_SIZE_ANNOTATION_CARRAY:
     problemMessage: "Fields of type 'Array' must have exactly one 'Array' annotation."
     correctionMessage: "Try adding an 'Array' annotation, or removing all but one of the annotations."
-    comment: No parameters.
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -19854,11 +19966,11 @@ FfiCode:
   MUST_BE_A_NATIVE_FUNCTION_TYPE:
     problemMessage: "The type '{0}' given to '{1}' must be a valid 'dart:ffi' native function type."
     correctionMessage: "Try changing the type to only use members for 'dart:ffi'."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the type that should be a valid dart:ffi native type.
       1: the name of the function whose invocation depends on this relationship
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -19905,12 +20017,12 @@ FfiCode:
   MUST_BE_A_SUBTYPE:
     problemMessage: "The type '{0}' must be a subtype of '{1}' for '{2}'."
     correctionMessage: Try changing one or both of the type arguments.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the type that should be a subtype
       1: the supertype that the subtype is compared to
       2: the name of the function whose invocation depends on this relationship
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -19974,10 +20086,10 @@ FfiCode:
   MUST_RETURN_VOID:
     problemMessage: "The return type of the function passed to 'NativeCallable.listener' must be 'void' rather than '{0}'."
     correctionMessage: "Try changing the return type to 'void'."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the return type that should be 'void'.
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -20022,10 +20134,10 @@ FfiCode:
   NON_CONSTANT_TYPE_ARGUMENT:
     problemMessage: "The type arguments to '{0}' must be known at compile time, so they can't be type parameters."
     correctionMessage: Try changing the type argument to be a constant type.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the function, method, or constructor having type arguments
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -20070,10 +20182,10 @@ FfiCode:
   NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER:
     problemMessage: "Can't invoke 'asFunction' because the function signature '{0}' for the pointer isn't a valid C function signature."
     correctionMessage: "Try changing the function argument in 'NativeFunction' to only use NativeTypes."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the type that should be a valid dart:ffi native type.
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -20121,8 +20233,8 @@ FfiCode:
   NON_POSITIVE_ARRAY_DIMENSION:
     problemMessage: Array dimensions must be positive numbers.
     correctionMessage: Try changing the input to a positive number.
-    comment: No parameters.
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -20160,11 +20272,11 @@ FfiCode:
   NON_SIZED_TYPE_ARGUMENT:
     problemMessage: "The type '{1}' isn't a valid type argument for '{0}'. The type argument must be a native integer, 'Float', 'Double', 'Pointer', or subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
     correctionMessage: "Try using a native integer, 'Float', 'Double', 'Pointer', or subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the field
       1: the type of the field
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -20204,8 +20316,8 @@ FfiCode:
   PACKED_ANNOTATION:
     problemMessage: "Structs must have at most one 'Packed' annotation."
     correctionMessage: "Try removing extra 'Packed' annotations."
-    comment: No parameters.
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -20244,8 +20356,8 @@ FfiCode:
   PACKED_ANNOTATION_ALIGNMENT:
     problemMessage: Only packing to 1, 2, 4, 8, and 16 bytes is supported.
     correctionMessage: "Try changing the 'Packed' annotation alignment to 1, 2, 4, 8, or 16."
-    comment: No parameters.
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -20283,8 +20395,8 @@ FfiCode:
   SIZE_ANNOTATION_DIMENSIONS:
     problemMessage: "'Array's must have an 'Array' annotation that matches the dimensions."
     correctionMessage: "Try adjusting the arguments in the 'Array' annotation."
-    comment: No parameters.
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -20338,11 +20450,11 @@ FfiCode:
     sharedName: SUBTYPE_OF_FFI_CLASS
     problemMessage: "The class '{0}' can't extend '{1}'."
     correctionMessage: "Try extending 'Struct' or 'Union'."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the subclass
       1: the name of the class being extended, implemented, or mixed in
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -20389,30 +20501,30 @@ FfiCode:
     sharedName: SUBTYPE_OF_FFI_CLASS
     problemMessage: "The class '{0}' can't implement '{1}'."
     correctionMessage: "Try implementing 'Allocator' or 'Finalizable'."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the subclass
       1: the name of the class being extended, implemented, or mixed in
-    hasPublishedDocs: true
   SUBTYPE_OF_FFI_CLASS_IN_WITH:
     removedIn: "3.0"
     sharedName: SUBTYPE_OF_FFI_CLASS
     problemMessage: "The class '{0}' can't mix in '{1}'."
     correctionMessage: "Try extending 'Struct' or 'Union'."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the subclass
       1: the name of the class being extended, implemented, or mixed in
-    hasPublishedDocs: true
   SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS:
     sharedName: SUBTYPE_OF_STRUCT_CLASS
     problemMessage: "The class '{0}' can't extend '{1}' because '{1}' is a subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
     correctionMessage: "Try extending 'Struct', 'Union', or 'AbiSpecificInteger' directly."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the subclass
       1: the name of the class being extended, implemented, or mixed in
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -20462,20 +20574,20 @@ FfiCode:
     sharedName: SUBTYPE_OF_STRUCT_CLASS
     problemMessage: "The class '{0}' can't implement '{1}' because '{1}' is a subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
     correctionMessage: "Try extending 'Struct', 'Union', or 'AbiSpecificInteger' directly."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the subclass
       1: the name of the class being extended, implemented, or mixed in
-    hasPublishedDocs: true
   SUBTYPE_OF_STRUCT_CLASS_IN_WITH:
     sharedName: SUBTYPE_OF_STRUCT_CLASS
     problemMessage: "The class '{0}' can't mix in '{1}' because '{1}' is a subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
     correctionMessage: "Try extending 'Struct', 'Union', or 'AbiSpecificInteger' directly."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the subclass
       1: the name of the class being extended, implemented, or mixed in
-    hasPublishedDocs: true
 HintCode:
   DEPRECATED_COLON_FOR_DEFAULT_VALUE:
     problemMessage: Using a colon as the separator before a default value is deprecated and will not be supported in language version 3.0 and later.
@@ -20695,12 +20807,12 @@ HintCode:
     removedIn: "3.0"
     problemMessage: "The library '{0}' is legacy, and shouldn't be imported into a null safe library."
     correctionMessage: Try migrating the imported library.
+    hasPublishedDocs: true
     comment: |-
       https://github.com/dart-lang/sdk/issues/44063
 
       Parameters:
       0: the name of the library
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -20737,6 +20849,7 @@ HintCode:
       enabled by default.
   MACRO_INFO:
     problemMessage: "{0}"
+    hasPublishedDocs: false
     comment: |-
       Reported when the macro uses `Builder.report()` with `Severity.info`.
       Parameters:
@@ -20948,22 +21061,26 @@ ManifestWarningCode:
   CAMERA_PERMISSIONS_INCOMPATIBLE:
     problemMessage: Camera permissions make app incompatible for Chrome OS, consider adding optional features "android.hardware.camera" and "android.hardware.camera.autofocus".
     correctionMessage: 'Try adding `<uses-feature android:name="android.hardware.camera"  android:required="false">` `<uses-feature android:name="android.hardware.camera.autofocus"  android:required="false">`.'
+    hasPublishedDocs: false
     comment: |-
       A code indicating that the camera permissions is not supported on Chrome
       OS.
   NON_RESIZABLE_ACTIVITY:
     problemMessage: The `<activity>` element should be allowed to be resized to allow users to take advantage of the multi-window environment on Chrome OS
     correctionMessage: Consider declaring the corresponding activity element with `resizableActivity="true"` attribute.
+    hasPublishedDocs: false
     comment: A code indicating that the activity is set to be non resizable.
   NO_TOUCHSCREEN_FEATURE:
     problemMessage: 'The default "android.hardware.touchscreen" needs to be optional for Chrome OS. '
     correctionMessage: 'Consider adding <uses-feature android:name="android.hardware.touchscreen" android:required="false" /> to the manifest.'
+    hasPublishedDocs: false
     comment: |-
       A code indicating that the touchscreen feature is not specified in the
       manifest.
   PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE:
     problemMessage: "Permission makes app incompatible for Chrome OS, consider adding optional {0} feature tag, "
     correctionMessage: ' Try adding `<uses-feature android:name="{0}"  android:required="false">`.'
+    hasPublishedDocs: false
     comment: |-
       A code indicating that a specified permission is not supported on Chrome
       OS.
@@ -20973,10 +21090,12 @@ ManifestWarningCode:
   SETTING_ORIENTATION_ON_ACTIVITY:
     problemMessage: The `<activity>` element should not be locked to any orientation so that users can take advantage of the multi-window environments and larger screens on Chrome OS
     correctionMessage: Consider declaring the corresponding activity element with `screenOrientation="unspecified"` or `"fullSensor"` attribute.
+    hasPublishedDocs: false
     comment: A code indicating that the activity is locked to an orientation.
   UNSUPPORTED_CHROME_OS_FEATURE:
     problemMessage: "The feature {0} isn't supported on Chrome OS, consider making it optional."
     correctionMessage: 'Try changing to `android:required="false"` for this feature.'
+    hasPublishedDocs: false
     comment: |-
       A code indicating that a specified feature is not supported on Chrome OS.
 
@@ -20985,6 +21104,7 @@ ManifestWarningCode:
   UNSUPPORTED_CHROME_OS_HARDWARE:
     problemMessage: "The feature {0} isn't supported on Chrome OS, consider making it optional."
     correctionMessage: 'Try adding `android:required="false"` for this feature.'
+    hasPublishedDocs: false
     comment: |-
       A code indicating that a specified hardware feature is not supported on
       Chrome OS.
@@ -22521,12 +22641,12 @@ WarningCode:
   ASSIGNMENT_OF_DO_NOT_STORE:
     problemMessage: "'{0}' is marked 'doNotStore' and shouldn't be assigned to a field or top-level variable."
     correctionMessage: Try removing the assignment.
+    hasPublishedDocs: true
     comment: |-
       Users should not assign values marked `@doNotStore`.
 
       Parameters:
       0: the name of the field or variable
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -22644,9 +22764,9 @@ WarningCode:
       ```
   CAST_FROM_NULL_ALWAYS_FAILS:
     problemMessage: "This cast always throws an exception because the expression always evaluates to 'null'."
+    hasPublishedDocs: true
     comment: |-
       No parameters.
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -23474,6 +23594,7 @@ WarningCode:
   INFERENCE_FAILURE_ON_COLLECTION_LITERAL:
     problemMessage: "The type argument(s) of '{0}' can't be inferred."
     correctionMessage: "Use explicit type argument(s) for '{0}'."
+    hasPublishedDocs: false
     comment: |-
       When "strict-inference" is enabled, collection literal types must be
       inferred via the context type, or have type arguments.
@@ -23483,6 +23604,7 @@ WarningCode:
   INFERENCE_FAILURE_ON_FUNCTION_INVOCATION:
     problemMessage: "The type argument(s) of the function '{0}' can't be inferred."
     correctionMessage: "Use explicit type argument(s) for '{0}'."
+    hasPublishedDocs: false
     comment: |-
       When "strict-inference" is enabled, types in function invocations must be
       inferred via the context type, or have type arguments.
@@ -23492,6 +23614,7 @@ WarningCode:
   INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE:
     problemMessage: "The return type of '{0}' cannot be inferred."
     correctionMessage: "Declare the return type of '{0}'."
+    hasPublishedDocs: false
     comment: |-
       When "strict-inference" is enabled, recursive local functions, top-level
       functions, methods, and function-typed function parameters must all
@@ -23504,6 +23627,7 @@ WarningCode:
   INFERENCE_FAILURE_ON_GENERIC_INVOCATION:
     problemMessage: "The type argument(s) of the generic function type '{0}' can't be inferred."
     correctionMessage: "Use explicit type argument(s) for '{0}'."
+    hasPublishedDocs: false
     comment: |-
       When "strict-inference" is enabled, types in function invocations must be
       inferred via the context type, or have type arguments.
@@ -23513,6 +23637,7 @@ WarningCode:
   INFERENCE_FAILURE_ON_INSTANCE_CREATION:
     problemMessage: "The type argument(s) of the constructor '{0}' can't be inferred."
     correctionMessage: "Use explicit type argument(s) for '{0}'."
+    hasPublishedDocs: false
     comment: |-
       When "strict-inference" is enabled, types in instance creation
       (constructor calls) must be inferred via the context type, or have type
@@ -23523,6 +23648,7 @@ WarningCode:
   INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE:
     problemMessage: "The type of {0} can't be inferred without either a type or initializer."
     correctionMessage: Try specifying the type of the variable.
+    hasPublishedDocs: false
     comment: |-
       When "strict-inference" in enabled, uninitialized variables must be
       declared with a specific type.
@@ -23532,6 +23658,7 @@ WarningCode:
   INFERENCE_FAILURE_ON_UNTYPED_PARAMETER:
     problemMessage: "The type of {0} can't be inferred; a type must be explicitly provided."
     correctionMessage: Try specifying the type of the parameter.
+    hasPublishedDocs: false
     comment: |-
       When "strict-inference" in enabled, function parameters must be
       declared with a specific type, or inherit a type.
@@ -23540,11 +23667,11 @@ WarningCode:
       0: the name of the parameter
   INVALID_ANNOTATION_TARGET:
     problemMessage: "The annotation '{0}' can only be used on {1}."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the annotation
       1: the list of valid targets
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -23569,10 +23696,10 @@ WarningCode:
   INVALID_EXPORT_OF_INTERNAL_ELEMENT:
     problemMessage: "The member '{0}' can't be exported as a part of a package's public API."
     correctionMessage: "Try using a hide clause to hide '{0}'."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the element
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -23612,11 +23739,11 @@ WarningCode:
   INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY:
     problemMessage: "The member '{0}' can't be exported as a part of a package's public API, but is indirectly exported as part of the signature of '{1}'."
     correctionMessage: "Try using a hide clause to hide '{0}'."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the element
       1: ?
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -23657,15 +23784,16 @@ WarningCode:
       clause, or by removing the export.
   INVALID_FACTORY_ANNOTATION:
     problemMessage: Only methods can be annotated as factories.
+    hasPublishedDocs: false
     comment: |-
       This warning is generated anywhere a @factory annotation is associated
       with anything other than a method.
   INVALID_FACTORY_METHOD_DECL:
     problemMessage: "Factory method '{0}' must have a return type."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: The name of the method
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -23705,10 +23833,10 @@ WarningCode:
       ```
   INVALID_FACTORY_METHOD_IMPL:
     problemMessage: "Factory method '{0}' doesn't return a newly allocated object."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the method
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -23750,14 +23878,15 @@ WarningCode:
       ```
   INVALID_IMMUTABLE_ANNOTATION:
     problemMessage: Only classes can be annotated as being immutable.
+    hasPublishedDocs: false
     comment: |-
       This warning is generated anywhere an @immutable annotation is associated
       with anything other than a class.
   INVALID_INTERNAL_ANNOTATION:
     problemMessage: "Only public elements in a package's private API can be annotated as being internal."
+    hasPublishedDocs: true
     comment: |-
       No parameters.
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -23861,44 +23990,44 @@ WarningCode:
     sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
     problemMessage: "The Dart language version override comment must be specified with the word 'dart' in all lower case."
     correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
+    hasPublishedDocs: true
     comment: |-
       No parameters.
-    hasPublishedDocs: true
   INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER:
     sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
     problemMessage: "The Dart language version override comment must be specified with a version number, like '2.0', after the '=' character."
     correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
+    hasPublishedDocs: true
     comment: |-
       No parameters.
-    hasPublishedDocs: true
   INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX:
     sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
     problemMessage: "The Dart language version override number can't be prefixed with a letter."
     correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
+    hasPublishedDocs: true
     comment: |-
       No parameters.
-    hasPublishedDocs: true
   INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS:
     sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
     problemMessage: "The Dart language version override comment can't be followed by any non-whitespace characters."
     correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
+    hasPublishedDocs: true
     comment: |-
       No parameters.
-    hasPublishedDocs: true
   INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES:
     sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
     problemMessage: The Dart language version override comment must be specified with exactly two slashes.
     correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
+    hasPublishedDocs: true
     comment: |-
       No parameters.
-    hasPublishedDocs: true
   INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS:
     sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
     problemMessage: "The Dart language version override comment must be specified with an '=' character."
     correctionMessage: "Specify a Dart language version override with a comment like '// @dart = 2.0'."
+    hasPublishedDocs: true
     comment: |-
       No parameters.
-    hasPublishedDocs: true
   INVALID_LITERAL_ANNOTATION:
     problemMessage: Only const constructors can have the `@literal` annotation.
     hasPublishedDocs: true
@@ -24106,6 +24235,7 @@ WarningCode:
   INVALID_REQUIRED_NAMED_PARAM:
     problemMessage: "The type parameter '{0}' is annotated with @required but only named parameters without a default value can be annotated with it."
     correctionMessage: Remove @required.
+    hasPublishedDocs: false
     comment: |-
       This warning is generated anywhere where `@required` annotates a named
       parameter with a default value.
@@ -24115,6 +24245,7 @@ WarningCode:
   INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM:
     problemMessage: "Incorrect use of the annotation @required on the optional positional parameter '{0}'. Optional positional parameters cannot be required."
     correctionMessage: Remove @required.
+    hasPublishedDocs: false
     comment: |-
       This warning is generated anywhere where `@required` annotates an optional
       positional parameter.
@@ -24124,6 +24255,7 @@ WarningCode:
   INVALID_REQUIRED_POSITIONAL_PARAM:
     problemMessage: "Redundant use of the annotation @required on the required positional parameter '{0}'."
     correctionMessage: Remove @required.
+    hasPublishedDocs: false
     comment: |-
       This warning is generated anywhere where `@required` annotates a
       non-optional positional parameter.
@@ -24133,10 +24265,10 @@ WarningCode:
   invalid_use_of_do_not_submit_member:
     problemMessage: "Uses of '{0}' should not be submitted to source control."
     correctionMessage: "Try removing the reference to '{0}'."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the member
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -24189,10 +24321,10 @@ WarningCode:
       ```
   INVALID_USE_OF_INTERNAL_MEMBER:
     problemMessage: "The member '{0}' can only be used within its package."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the member
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -24227,6 +24359,7 @@ WarningCode:
       Remove the reference to the internal declaration.
   INVALID_USE_OF_PROTECTED_MEMBER:
     problemMessage: "The member '{0}' can only be used within instance members of subclasses of '{1}'."
+    hasPublishedDocs: false
     comment: |-
       This warning is generated anywhere where a member annotated with
       `@protected` is used outside of an instance member of a subclass.
@@ -24281,6 +24414,7 @@ WarningCode:
       Remove the invalid use of the member.
   INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER:
     problemMessage: "The member '{0}' can only be used within '{1}' or a template library."
+    hasPublishedDocs: false
     comment: |-
       This warning is generated anywhere where a member annotated with
       `@visibleForTemplate` is used outside of a "template" Dart file.
@@ -24565,6 +24699,7 @@ WarningCode:
   INVALID_REOPEN_ANNOTATION:
     problemMessage: "The annotation '@reopen' can only be applied to a class that opens capabilities that the supertype intentionally disallows."
     correctionMessage: Try removing the '@reopen' annotation.
+    hasPublishedDocs: false
     comment: |-
       This warning is generated anywhere where `@reopen` annotates a class which
       did not reopen any type.
@@ -24610,6 +24745,7 @@ WarningCode:
       ```
   MACRO_WARNING:
     problemMessage: "{0}"
+    hasPublishedDocs: false
     comment: |-
       Reported when the macro uses `Builder.report()` with `Severity.warning`.
       Parameters:
@@ -24939,10 +25075,10 @@ WarningCode:
   NON_CONST_ARGUMENT_FOR_CONST_PARAMETER:
     problemMessage: "Argument '{0}' must be a constant."
     correctionMessage: Try replacing the argument with a constant.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the argument
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -25233,6 +25369,7 @@ WarningCode:
   PATTERN_NEVER_MATCHES_VALUE_TYPE:
     problemMessage: "The matched value type '{0}' can never match the required type '{1}'."
     correctionMessage: "Try using a different pattern."
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the matched value type
@@ -25240,6 +25377,7 @@ WarningCode:
   RECEIVER_OF_TYPE_NEVER:
     problemMessage: "The receiver is of type 'Never', and will never complete with a value."
     correctionMessage: Try checking for throw expressions or type errors in the receiver
+    hasPublishedDocs: false
     comment: |-
       It is not an error to call or tear-off a method, setter, or getter, or to
       read or write a field, on a receiver of static type `Never`.
@@ -25321,6 +25459,7 @@ WarningCode:
   REMOVED_LINT_USE:
     problemMessage: "'{0}' was removed in Dart '{1}'"
     correctionMessage: "Remove the reference to '{0}'."
+    hasPublishedDocs: false
     comment: |-
       An error code indicating use of a removed lint rule.
 
@@ -25330,6 +25469,7 @@ WarningCode:
   REPLACED_LINT_USE:
     problemMessage: "'{0}' was replaced by '{2}' in Dart '{1}'."
     correctionMessage: "Replace '{0}' with '{1}'."
+    hasPublishedDocs: false
     comment: |-
       An error code indicating use of a removed lint rule.
 
@@ -25340,11 +25480,11 @@ WarningCode:
   RETURN_OF_DO_NOT_STORE:
     problemMessage: "'{0}' is annotated with 'doNotStore' and shouldn't be returned unless '{1}' is also annotated."
     correctionMessage: "Annotate '{1}' with 'doNotStore'."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the annotated function being invoked
       1: the name of the function containing the return
-    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -25932,6 +26072,7 @@ WarningCode:
   SDK_VERSION_SINCE:
     problemMessage: "This API is available since SDK {0}, but constraints '{1}' don't guarantee it."
     correctionMessage: Try updating the SDK constraints.
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the version specified in the `@Since()` annotation
@@ -26055,6 +26196,7 @@ WarningCode:
   STRICT_RAW_TYPE:
     problemMessage: "The generic type '{0}' should have explicit type arguments but doesn't."
     correctionMessage: "Use explicit type arguments for '{0}'."
+    hasPublishedDocs: false
     comment: |-
       When "strict-raw-types" is enabled, "raw types" must have type arguments.
 
@@ -26365,6 +26507,7 @@ WarningCode:
   UNIGNORABLE_IGNORE:
     problemMessage: "The diagnostic '{0}' can't be ignored."
     correctionMessage: Try removing the name from the list, or removing the whole comment if this is the only name in the list.
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the name of the non-diagnostic being ignored
@@ -26374,6 +26517,7 @@ WarningCode:
   UNNECESSARY_CAST_PATTERN:
     problemMessage: Unnecessary cast pattern.
     correctionMessage: Try removing the cast pattern.
+    hasPublishedDocs: false
     comment: No parameters.
   UNNECESSARY_FINAL:
     problemMessage: The keyword 'final' isn't necessary because the parameter is implicitly 'final'.
@@ -26430,6 +26574,7 @@ WarningCode:
   UNNECESSARY_IGNORE:
     problemMessage: "The diagnostic '{0}' isn't produced at this location so it doesn't need to be ignored."
     correctionMessage: Try removing the name from the list, or removing the whole comment if this is the only name in the list.
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the name of the diagnostic being ignored
@@ -26705,6 +26850,7 @@ WarningCode:
   UNNECESSARY_WILDCARD_PATTERN:
     problemMessage: Unnecessary wildcard pattern.
     correctionMessage: Try removing the wildcard pattern.
+    hasPublishedDocs: false
     comment: No parameters.
   UNREACHABLE_SWITCH_CASE:
     aliasFor: HintCode.UNREACHABLE_SWITCH_CASE

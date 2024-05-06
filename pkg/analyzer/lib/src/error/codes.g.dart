@@ -267,7 +267,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'AUGMENTATION_WITHOUT_LIBRARY',
     "The URI does not resolve to a library.",
     correctionMessage:
-        "Try updating the URI to reference the augmented library",
+        "Try updating the URI to reference the augmented library.",
   );
 
   ///  No parameters.
@@ -2128,10 +2128,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND =
       CompileTimeErrorCode(
     'GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND',
-    "Generic function types can't be used as type parameter bounds",
+    "Generic function types can't be used as type parameter bounds.",
     correctionMessage:
         "Try making the free variable in the function type part of the larger "
-        "declaration signature",
+        "declaration signature.",
   );
 
   ///  It is a compile-time error if a generic function type is used as an actual
