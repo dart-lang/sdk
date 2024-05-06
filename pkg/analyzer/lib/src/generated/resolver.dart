@@ -166,7 +166,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   ExecutableElement? _enclosingFunction;
 
   /// The element that can be referenced by the `augmented` expression.
-  AugmentableElement? _enclosingAugmentation;
+  AugmentableElement? enclosingAugmentation;
 
   /// The manager for the inheritance mappings.
   final InheritanceManager3 inheritance;
@@ -1367,7 +1367,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     required bool hasRead,
   }) {
     if (node is AugmentedExpressionImpl) {
-      var augmentation = _enclosingAugmentation;
+      var augmentation = enclosingAugmentation;
       var augmentationTarget = augmentation?.augmentationTarget;
       if (augmentation is PropertyAccessorElementImpl &&
           augmentation.isSetter &&
@@ -1868,7 +1868,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitAugmentedExpression(covariant AugmentedExpressionImpl node) {
-    if (_enclosingAugmentation case var augmentation?) {
+    if (enclosingAugmentation case var augmentation?) {
       var augmentedElement = augmentation.augmentationTarget;
       if (augmentation is PropertyAccessorElementImpl &&
           augmentation.isGetter &&
@@ -1903,8 +1903,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     checkUnreachableNode(node);
     var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
 
-    var enclosingAugmentation = _enclosingAugmentation;
-    var augmentationTarget = enclosingAugmentation?.augmentationTarget;
+    var augmentation = enclosingAugmentation;
+    var augmentationTarget = augmentation?.augmentationTarget;
 
     // Rewrite invocation of a function-typed getter.
     if (augmentationTarget is PropertyAccessorElementImpl) {
@@ -2177,10 +2177,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var returnType = element.type.returnType;
 
     var outerFunction = _enclosingFunction;
-    var outerAugmentation = _enclosingAugmentation;
+    var outerAugmentation = enclosingAugmentation;
     try {
       _enclosingFunction = element;
-      _enclosingAugmentation = element;
+      enclosingAugmentation = element;
       assert(_thisType == null);
       _setupThisType();
       checkUnreachableNode(node);
@@ -2194,7 +2194,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       elementResolver.visitConstructorDeclaration(node);
     } finally {
       _enclosingFunction = outerFunction;
-      _enclosingAugmentation = outerAugmentation;
+      enclosingAugmentation = outerAugmentation;
       _thisType = null;
     }
 
@@ -2624,12 +2624,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var functionType = node.declaredElement!.type;
 
     var outerFunction = _enclosingFunction;
-    var outerAugmentation = _enclosingAugmentation;
+    var outerAugmentation = enclosingAugmentation;
     try {
       _enclosingFunction = element;
       if (!isLocal) {
-        if (element case AugmentableElement enclosingAugmentation) {
-          _enclosingAugmentation = enclosingAugmentation;
+        if (element case AugmentableElement augmentation) {
+          enclosingAugmentation = augmentation;
         }
       }
       checkUnreachableNode(node);
@@ -2641,7 +2641,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       elementResolver.visitFunctionDeclaration(node);
     } finally {
       _enclosingFunction = outerFunction;
-      _enclosingAugmentation = outerAugmentation;
+      enclosingAugmentation = outerAugmentation;
     }
 
     if (!node.isSetter) {
@@ -2969,11 +2969,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     DartType returnType = element.returnType;
 
     var outerFunction = _enclosingFunction;
-    var outerAugmentation = _enclosingAugmentation;
+    var outerAugmentation = enclosingAugmentation;
     try {
       _enclosingFunction = element;
-      if (element case AugmentableElement enclosingAugmentation) {
-        _enclosingAugmentation = enclosingAugmentation;
+      if (element case AugmentableElement augmentation) {
+        enclosingAugmentation = augmentation;
       }
       assert(_thisType == null);
       _setupThisType();
@@ -2987,7 +2987,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       elementResolver.visitMethodDeclaration(node);
     } finally {
       _enclosingFunction = outerFunction;
-      _enclosingAugmentation = outerAugmentation;
+      enclosingAugmentation = outerAugmentation;
       _thisType = null;
     }
 
@@ -3599,15 +3599,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
     var element = node.declaredElement!;
 
-    var outerAugmentation = _enclosingAugmentation;
+    var outerAugmentation = enclosingAugmentation;
     try {
-      if (element case AugmentableElement enclosingAugmentation) {
-        _enclosingAugmentation = enclosingAugmentation;
+      if (element case AugmentableElement augmentation) {
+        enclosingAugmentation = augmentation;
       }
       libraryResolutionContext._variableNodes[element] = node;
       _variableDeclarationResolver.resolve(node);
     } finally {
-      _enclosingAugmentation = outerAugmentation;
+      enclosingAugmentation = outerAugmentation;
     }
 
     var initializer = node.initializer;

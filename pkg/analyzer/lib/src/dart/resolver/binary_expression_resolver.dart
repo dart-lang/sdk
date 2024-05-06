@@ -276,8 +276,14 @@ class BinaryExpressionResolver {
 
   void _resolveUserDefinable(BinaryExpressionImpl node,
       {required DartType contextType}) {
-    _resolver.analyzeExpression(node.leftOperand, UnknownInferredType.instance);
-    var left = _resolver.popRewrite()!;
+    var left = node.leftOperand;
+    if (left is AugmentedExpressionImpl) {
+      left.staticType = _resolver.thisType ?? InvalidTypeImpl.instance;
+    } else {
+      _resolver.analyzeExpression(
+          node.leftOperand, UnknownInferredType.instance);
+      left = _resolver.popRewrite()!;
+    }
 
     if (left is SuperExpressionImpl) {
       if (SuperContext.of(left) != SuperContext.valid) {
@@ -321,6 +327,17 @@ class BinaryExpressionResolver {
     bool promoteLeftTypeToNonNull = false,
   }) {
     Expression leftOperand = node.leftOperand;
+
+    if (leftOperand is AugmentedExpressionImpl) {
+      var augmentation = _resolver.enclosingAugmentation;
+      var augmentationTarget = augmentation?.augmentationTarget;
+      if (augmentationTarget case MethodElement augmentationTarget) {
+        leftOperand.element = augmentationTarget;
+        node.staticElement = augmentationTarget;
+        node.staticInvokeType = augmentationTarget.type;
+      }
+      return;
+    }
 
     if (leftOperand is ExtensionOverride) {
       var extension = leftOperand.element;
@@ -385,7 +402,9 @@ class BinaryExpressionResolver {
     var leftOperand = node.leftOperand;
 
     DartType leftType;
-    if (leftOperand is ExtensionOverrideImpl) {
+    if (leftOperand is AugmentedExpressionImpl) {
+      leftType = _resolver.thisType ?? InvalidTypeImpl.instance;
+    } else if (leftOperand is ExtensionOverrideImpl) {
       leftType = leftOperand.extendedType!;
     } else {
       leftType = leftOperand.typeOrThrow;

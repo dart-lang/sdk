@@ -21,6 +21,78 @@ main() {
 @reflectiveTest
 class BinaryExpressionResolutionTest extends PubPackageResolutionTest
     with BinaryExpressionResolutionTestCases {
+  test_augmentedExpression_class_method() async {
+    await assertErrorsInCode('''
+class A {
+  int operator+(Object? a) {
+    return augmented + 0;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 50, 9),
+    ]);
+
+    var node = findNode.singleReturnStatement;
+    assertResolvedNodeText(node, r'''
+ReturnStatement
+  returnKeyword: return
+  expression: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: augmented
+      staticElement: <null>
+      staticType: InvalidType
+    operator: +
+    rightOperand: IntegerLiteral
+      literal: 0
+      parameter: <null>
+      staticType: int
+    staticElement: <null>
+    staticInvokeType: null
+    staticType: InvalidType
+  semicolon: ;
+''');
+  }
+
+  test_augmentedExpression_class_method_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class A {
+  int operator+(Object? a) => 0;
+}
+''');
+
+    await assertNoErrorsInCode('''
+augment library 'a.dart';
+
+augment class A {
+  augment int operator+(Object? a) {
+    return augmented + 0;
+  }
+}
+''');
+
+    var node = findNode.singleReturnStatement;
+    assertResolvedNodeText(node, r'''
+ReturnStatement
+  returnKeyword: return
+  expression: BinaryExpression
+    leftOperand: AugmentedExpression
+      augmentedKeyword: augmented
+      element: self::@class::A::@method::+
+      staticType: A
+    operator: +
+    rightOperand: IntegerLiteral
+      literal: 0
+      parameter: self::@class::A::@method::+::@parameter::a
+      staticType: int
+    staticElement: self::@class::A::@method::+
+    staticInvokeType: int Function(Object?)
+    staticType: int
+  semicolon: ;
+''');
+  }
+
   test_eqEq_alwaysBool() async {
     await assertNoErrorsInCode(r'''
 extension type MyBool(bool it) implements bool {}
