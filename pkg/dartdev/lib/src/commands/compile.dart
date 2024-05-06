@@ -537,8 +537,7 @@ Remove debugging information from the output and save it separately to the speci
 
 class CompileWasmCommand extends CompileSubcommandCommand {
   static const String commandName = 'wasm';
-  static const String help =
-      'Compile Dart to a WebAssembly/WasmGC module (EXPERIMENTAL).';
+  static const String help = 'Compile Dart to a WebAssembly/WasmGC module.';
 
   // The unique place where we store various flags for dart2wasm & binaryen.
   //
@@ -690,10 +689,6 @@ class CompileWasmCommand extends CompileSubcommandCommand {
 
   @override
   FutureOr<int> run() async {
-    log.stdout('*NOTE*: Compilation to WasmGC is experimental.');
-    log.stdout(
-        'The support may change, or be removed, with no advance notice.\n');
-
     final args = argResults!;
     final verbose = this.verbose || args.flag('verbose');
 
