@@ -65,8 +65,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitConditionalExpression(ConditionalExpression node) {
     var typeProvider = context.typeProvider;
-    var thenExp = node.thenExpression;
-    var elseExp = node.elseExpression;
+    var thenExp = node.thenExpression.unParenthesized;
+    var elseExp = node.elseExpression.unParenthesized;
 
     if (thenExp.staticType == typeProvider.boolType &&
         elseExp.staticType == typeProvider.boolType) {
