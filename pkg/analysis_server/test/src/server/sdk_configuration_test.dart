@@ -43,8 +43,6 @@ void main() {
       var config = SdkConfiguration.readFromFile(file);
 
       expect(config.hasAnyOverrides, isFalse);
-      expect(config.analyticsId, isNull);
-      expect(config.analyticsForceEnabled, isNull);
       expect(config.crashReportingId, isNull);
       expect(config.crashReportingForceEnabled, isNull);
     });
@@ -65,8 +63,6 @@ void main() {
       var config = SdkConfiguration.readFromFile(file);
 
       expect(config.hasAnyOverrides, isTrue);
-      expect(config.analyticsId, 'aaaa-1234');
-      expect(config.analyticsForceEnabled, isTrue);
       expect(config.crashReportingId, 'Test_crash_id');
       expect(config.crashReportingForceEnabled, isTrue);
     });

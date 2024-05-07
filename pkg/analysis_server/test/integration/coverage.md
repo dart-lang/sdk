@@ -91,10 +91,10 @@ server calls. This file is validated by `coverage_test.dart`.
 - [ ] server.showMessageRequest
 
 ## analytics domain
-- [x] analytics.isEnabled
-- [x] analytics.enable
-- [x] analytics.sendEvent
-- [x] analytics.sendTiming
+- [ ] analytics.isEnabled
+- [ ] analytics.enable
+- [ ] analytics.sendEvent
+- [ ] analytics.sendTiming
 
 ## flutter domain
 - [ ] flutter.getChangeAddForDesignTimeConstructor

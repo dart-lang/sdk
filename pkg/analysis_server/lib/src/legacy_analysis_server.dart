@@ -113,7 +113,6 @@ import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 import 'package:telemetry/crash_reporting.dart';
-import 'package:telemetry/telemetry.dart' as telemetry;
 import 'package:watcher/watcher.dart';
 
 /// A function that can be executed to create a handler for a request.
@@ -135,10 +134,6 @@ class AnalysisServerOptions {
   /// The path to the package config file override.
   /// If `null`, then the default discovery mechanism is used.
   String? packagesFile;
-
-  /// The analytics instance; note, this object can be `null`, and should be
-  /// accessed via a null-aware operator.
-  telemetry.Analytics? analytics;
 
   /// The crash report sender instance; note, this object can be `null`, and
   /// should be accessed via a null-aware operator.
@@ -875,17 +870,6 @@ class LegacyAnalysisServer extends AnalysisServer {
     await super.shutdown();
 
     pubApi.close();
-
-    // TODO(brianwilkerson): Remove the following 6 lines when the
-    //  analyticsManager is being correctly initialized.
-    var analytics = options.analytics;
-    if (analytics != null) {
-      unawaited(analytics
-          .waitForLastPing(timeout: Duration(milliseconds: 200))
-          .then((_) {
-        analytics.close();
-      }));
-    }
 
     detachableFileSystemManager?.dispose();
 

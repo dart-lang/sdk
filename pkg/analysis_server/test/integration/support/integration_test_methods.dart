@@ -2329,6 +2329,8 @@ abstract class IntegrationTest {
     return DiagnosticGetServerPortResult.fromJson(decoder, 'result', result);
   }
 
+  /// Deprecated: this flag is no longer supported.
+  ///
   /// Query whether analytics is enabled.
   ///
   /// This flag controls whether the analysis server sends any analytics data
@@ -2349,12 +2351,17 @@ abstract class IntegrationTest {
   /// enabled: bool
   ///
   ///   Whether sending analytics is enabled or not.
+  // TODO(srawlins): Provide a deprecation message, or remove.
+  // ignore: provide_deprecation_message
+  @deprecated
   Future<AnalyticsIsEnabledResult> sendAnalyticsIsEnabled() async {
     var result = await server.send('analytics.isEnabled', null);
     var decoder = ResponseDecoder(null);
     return AnalyticsIsEnabledResult.fromJson(decoder, 'result', result);
   }
 
+  /// Deprecated: this option is no longer supported.
+  ///
   /// Enable or disable the sending of analytics data. Note that there are
   /// other ways for users to change this setting, so clients cannot assume
   /// that they have complete control over this setting. In particular, there
@@ -2366,6 +2373,9 @@ abstract class IntegrationTest {
   /// value: bool
   ///
   ///   Enable or disable analytics.
+  // TODO(srawlins): Provide a deprecation message, or remove.
+  // ignore: provide_deprecation_message
+  @deprecated
   Future<void> sendAnalyticsEnable(bool value) async {
     var params = AnalyticsEnableParams(value).toJson();
     var result = await server.send('analytics.enable', params);

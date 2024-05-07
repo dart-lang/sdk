@@ -105,9 +105,6 @@ class RefactoringManager {
       return;
     }
 
-    server.options.analytics
-        ?.sendEvent('refactor', params.kind.name.toLowerCase());
-
     runZonedGuarded(() async {
       await _init(
           params.kind, file, params.offset, params.length, cancellationToken);

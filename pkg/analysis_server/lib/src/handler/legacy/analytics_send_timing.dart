@@ -14,19 +14,8 @@ class AnalyticsSendTimingHandler extends LegacyHandler {
   AnalyticsSendTimingHandler(
       super.server, super.request, super.cancellationToken, super.performance);
 
-  String get _clientId => server.options.clientId ?? 'client';
-
   @override
   Future<void> handle() async {
-    var analytics = server.options.analytics;
-    if (analytics == null) {
-      sendResult(AnalyticsSendTimingResult());
-      return;
-    }
-
-    var params = AnalyticsSendTimingParams.fromRequest(request);
-    unawaited(
-        analytics.sendTiming(params.event, params.millis, category: _clientId));
     sendResult(AnalyticsSendTimingResult());
   }
 }
