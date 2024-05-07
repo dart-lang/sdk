@@ -51616,6 +51616,111 @@ library
 ''');
   }
 
+  test_augmented_field_augment_field_functionExpression() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  augment final int Function() foo = () {
+    return augmented() + 1;
+  };
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A {
+  v;
+  final int Function() foo = () {
+    return 0;
+  };
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @30
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @36
+            type: A
+            shouldUseTypeForInitializerInference: false
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: A @-1
+                    element: self::@enum::A
+                    type: A
+                  staticElement: self::@enum::A::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: A
+          synthetic static const values @-1
+            type: List<A>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v @-1
+                    staticElement: self::@enum::A::@getter::v
+                    staticType: A
+                rightBracket: ] @0
+                staticType: List<A>
+          final foo @62
+            type: int Function()
+            shouldUseTypeForInitializerInference: true
+            constantInitializer
+              SimpleIdentifier
+                token: _notSerializableExpression @-1
+                staticElement: <null>
+                staticType: null
+            augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: A
+          synthetic static get values @-1
+            returnType: List<A>
+          synthetic get foo @-1
+            returnType: int Function()
+        augmented
+          fields
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@enum::A::@getter::foo
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@enum::A
+            fields
+              augment final foo @78
+                type: int Function()
+                shouldUseTypeForInitializerInference: true
+                constantInitializer
+                  SimpleIdentifier
+                    token: _notSerializableExpression @-1
+                    staticElement: <null>
+                    staticType: null
+                augmentationTarget: self::@enum::A::@field::foo
+''');
+  }
+
   /// This is not allowed by the specification, but allowed syntactically,
   /// so we need a way to handle it.
   test_augmented_field_augment_getter() async {
