@@ -14,7 +14,7 @@ dependencies:
   crypto: ^3.0.0
   glob: ^2.0.0
   macros: '>=0.1.0-0 <0.1.1'
-  meta: ^1.14.0
+  meta: ^1.15.0
   package_config: ^2.0.0
   path: ^1.9.0
   pub_semver: ^2.1.4

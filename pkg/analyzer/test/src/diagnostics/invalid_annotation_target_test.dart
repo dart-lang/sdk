@@ -1068,6 +1068,215 @@ class C {
 ''');
   }
 
+  void test_optionalParameter_optionalNamed() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.optionalParameter})
+class A {
+  const A();
+}
+
+void f({@A() int? x}) {}
+''');
+  }
+
+  void test_optionalParameter_optionalPositional() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.optionalParameter})
+class A {
+  const A();
+}
+
+void f([@A() int? x]) {}
+''');
+  }
+
+  void test_optionalParameter_requiredNamed() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.optionalParameter})
+class A {
+  const A();
+}
+
+void f({@A() required int x}) {}
+''', [
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 114, 1),
+    ]);
+  }
+
+  void test_optionalParameter_requiredPositional() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.optionalParameter})
+class A {
+  const A();
+}
+
+void f(@A() int x) {}
+''', [
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 113, 1),
+    ]);
+  }
+
+  void test_overridableMember_constructor() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.overridableMember})
+class A {
+  const A();
+}
+
+class C {
+  @A()
+  C();
+}
+''', [
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 118, 1),
+    ]);
+  }
+
+  void test_overridableMember_instanceGetter() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.overridableMember})
+class A {
+  const A();
+}
+
+class C {
+  @A()
+  int get x => 0;
+}
+''');
+  }
+
+  void test_overridableMember_instanceMethod() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.overridableMember})
+class A {
+  const A();
+}
+
+class C {
+  @A()
+  int x() => 0;
+}
+''');
+  }
+
+  void test_overridableMember_instanceMethod_onEnum() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.overridableMember})
+class A {
+  const A();
+}
+
+enum E {
+  one, two;
+  @A()
+  int x() => 0;
+}
+''', [
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 129, 1),
+    ]);
+  }
+
+  void test_overridableMember_instanceMethod_onExtension() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.overridableMember})
+class A {
+  const A();
+}
+
+extension E on int {
+  @A()
+  int x() => 0;
+}
+''', [
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 129, 1),
+    ]);
+  }
+
+  void test_overridableMember_instanceMethod_onMixin() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.overridableMember})
+class A {
+  const A();
+}
+
+mixin M {
+  @A()
+  int x() => 0;
+}
+''');
+  }
+
+  void test_overridableMember_instanceOperator() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.overridableMember})
+class A {
+  const A();
+}
+
+class C {
+  @A()
+  int operator +(int value) => 0;
+}
+''');
+  }
+
+  void test_overridableMember_instanceSetter() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.overridableMember})
+class A {
+  const A();
+}
+
+class C {
+  @A()
+  set x(int value) {}
+}
+''');
+  }
+
+  void test_overridableMember_staticMethod() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.overridableMember})
+class A {
+  const A();
+}
+
+class C {
+  @A()
+  static int x() => 0;
+}
+''', [
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 118, 1),
+    ]);
+  }
+
   void test_parameter_function() async {
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
