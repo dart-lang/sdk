@@ -1,0 +1,102 @@
+library;
+//
+// Problems in library:
+//
+// org-dartlang-test:///a/b/c/main.dart:7:2: Error: Macro application failed due to a bug in the macro.
+// @CrashTypesMacro()
+//  ^
+// org-dartlang-test:///a/b/c/main.dart:7:2: Context: Error in buildTypesForClass
+// #0      CrashTypesMacro.buildTypesForClass (package:macro/crash.dart:13:5)
+// #1      executeTypesMacro (package:_macros/src/executor/execute_macro.dart:37:21)
+// #2      MacroExpansionClient._executeTypesPhase (package:_macros/src/executor/client.dart:219:17)
+// #3      MacroExpansionClient._handleMessage.<anonymous closure> (package:_macros/src/executor/client.dart:145:18)
+// #4      _rootRun (dart:async/zone.dart:1399:13)
+// #5      _CustomZone.run (dart:async/zone.dart:1301:19)
+// #6      withRemoteInstanceZone (package:_macros/src/executor/remote_instance.dart:172:15)
+// #7      MacroExpansionClient._handleMessage (package:_macros/src/executor/client.dart:118:11)
+// #8      new MacroExpansionClient._.<anonymous closure> (package:_macros/src/executor/client.dart:37:39)
+// #9      _rootRunUnary (dart:async/zone.dart:1415:13)
+// #10     _CustomZone.runUnary (dart:async/zone.dart:1308:19)
+// #11     _CustomZone.runUnaryGuarded (dart:async/zone.dart:1217:7)
+// #12     _BufferingStreamSubscription._sendData (dart:async/stream_impl.dart:365:11)
+// #13     _BufferingStreamSubscription._add (dart:async/stream_impl.dart:297:7)
+// #14     _SyncStreamControllerDispatch._sendData (dart:async/stream_controller.dart:784:19)
+// #15     _StreamController._add (dart:async/stream_controller.dart:658:7)
+// #16     _StreamController.add (dart:async/stream_controller.dart:606:5)
+// #17     _RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:184:12)
+//
+// @CrashTypesMacro()
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:8:2: Error: Macro application failed due to a bug in the macro.
+// @CrashDeclarationsMacro()
+//  ^
+// org-dartlang-test:///a/b/c/main.dart:8:2: Context: Error in buildDeclarationsForClass
+// #0      CrashDeclarationsMacro.buildDeclarationsForClass (package:macro/crash.dart:22:5)
+// #1      executeDeclarationsMacro (package:_macros/src/executor/execute_macro.dart:113:21)
+// #2      MacroExpansionClient._executeDeclarationsPhase (package:_macros/src/executor/client.dart:247:43)
+// #3      MacroExpansionClient._handleMessage.<anonymous closure> (package:_macros/src/executor/client.dart:135:18)
+// #4      _rootRun (dart:async/zone.dart:1399:13)
+// #5      _CustomZone.run (dart:async/zone.dart:1301:19)
+// #6      withRemoteInstanceZone (package:_macros/src/executor/remote_instance.dart:172:15)
+// #7      MacroExpansionClient._handleMessage (package:_macros/src/executor/client.dart:118:11)
+// #8      new MacroExpansionClient._.<anonymous closure> (package:_macros/src/executor/client.dart:37:39)
+// #9      _rootRunUnary (dart:async/zone.dart:1415:13)
+// #10     _CustomZone.runUnary (dart:async/zone.dart:1308:19)
+// #11     _CustomZone.runUnaryGuarded (dart:async/zone.dart:1217:7)
+// #12     _BufferingStreamSubscription._sendData (dart:async/stream_impl.dart:365:11)
+// #13     _BufferingStreamSubscription._add (dart:async/stream_impl.dart:297:7)
+// #14     _SyncStreamControllerDispatch._sendData (dart:async/stream_controller.dart:784:19)
+// #15     _StreamController._add (dart:async/stream_controller.dart:658:7)
+// #16     _StreamController.add (dart:async/stream_controller.dart:606:5)
+// #17     _RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:184:12)
+//
+// @CrashDeclarationsMacro()
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:9:2: Error: Macro application failed due to a bug in the macro.
+// @CrashDefinitionMacro()
+//  ^
+// org-dartlang-test:///a/b/c/main.dart:9:2: Context: Error in buildDefinitionForClass
+// #0      CrashDefinitionMacro.buildDefinitionForClass (package:macro/crash.dart:31:5)
+// #1      executeDefinitionMacro (package:_macros/src/executor/execute_macro.dart:181:21)
+// #2      MacroExpansionClient._executeDefinitionsPhase (package:_macros/src/executor/client.dart:276:17)
+// #3      MacroExpansionClient._handleMessage.<anonymous closure> (package:_macros/src/executor/client.dart:140:18)
+// #4      _rootRun (dart:async/zone.dart:1399:13)
+// #5      _CustomZone.run (dart:async/zone.dart:1301:19)
+// #6      withRemoteInstanceZone (package:_macros/src/executor/remote_instance.dart:172:15)
+// #7      MacroExpansionClient._handleMessage (package:_macros/src/executor/client.dart:118:11)
+// #8      new MacroExpansionClient._.<anonymous closure> (package:_macros/src/executor/client.dart:37:39)
+// #9      _rootRunUnary (dart:async/zone.dart:1415:13)
+// #10     _CustomZone.runUnary (dart:async/zone.dart:1308:19)
+// #11     _CustomZone.runUnaryGuarded (dart:async/zone.dart:1217:7)
+// #12     _BufferingStreamSubscription._sendData (dart:async/stream_impl.dart:365:11)
+// #13     _BufferingStreamSubscription._add (dart:async/stream_impl.dart:297:7)
+// #14     _SyncStreamControllerDispatch._sendData (dart:async/stream_controller.dart:784:19)
+// #15     _StreamController._add (dart:async/stream_controller.dart:658:7)
+// #16     _StreamController.add (dart:async/stream_controller.dart:606:5)
+// #17     _RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:184:12)
+//
+// @CrashDefinitionMacro()
+//  ^
+//
+import self as self;
+import "package:macro/crash.dart" as cra;
+import "dart:core" as core;
+
+import "package:macro/crash.dart";
+
+@#C1
+@#C2
+@#C3
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+}
+
+constants  {
+  #C1 = cra::CrashTypesMacro {}
+  #C2 = cra::CrashDeclarationsMacro {}
+  #C3 = cra::CrashDefinitionMacro {}
+}

@@ -1188,38 +1188,57 @@ extension on macro.MacroExecutionResult {
       MacroApplication macroApplication, ApplicationData applicationData) {
     // TODO(johnniwinther): Should the error be reported on the original
     //  annotation in case of nested macros?
-    UriOffset uriOffset = macroApplication.uriOffset;
+    UriOffset applicationUriOffset = macroApplication.uriOffset;
     for (macro.Diagnostic diagnostic in diagnostics) {
-      // TODO(johnniwinther): Improve diagnostic reporting.
-      switch (diagnostic.message.target) {
-        case null:
-          break;
-        case macro.DeclarationDiagnosticTarget(:macro.Declaration declaration):
-          uriOffset = introspection.getLocationFromDeclaration(declaration);
-        case macro.TypeAnnotationDiagnosticTarget(
-            :macro.TypeAnnotation typeAnnotation
-          ):
-          uriOffset = introspection.types
-                  .getLocationFromTypeAnnotation(typeAnnotation) ??
-              uriOffset;
-        case macro.MetadataAnnotationDiagnosticTarget():
-        // TODO(johnniwinther): Support metadata annotations.
-      }
+      UriOffset messageUriOffset = _computeUriOffsetForTarget(
+              introspection, diagnostic.message.target) ??
+          applicationUriOffset;
       applicationData.libraryBuilder.addProblem(
           templateUnspecified.withArguments(diagnostic.message.message),
-          uriOffset.fileOffset,
+          messageUriOffset.fileOffset,
           -1,
-          uriOffset.uri);
+          messageUriOffset.uri,
+          context: diagnostic.contextMessages
+              .map((d) =>
+                  _createLocatedMessage(introspection, messageUriOffset, d))
+              .toList());
     }
     if (exception != null) {
       // TODO(johnniwinther): Improve exception reporting.
       applicationData.libraryBuilder.addProblem(
           templateUnspecified.withArguments('${exception.runtimeType}: '
               '${exception!.message}\n${exception!.stackTrace}'),
-          uriOffset.fileOffset,
+          applicationUriOffset.fileOffset,
           -1,
-          uriOffset.uri);
+          applicationUriOffset.uri);
     }
+  }
+
+  UriOffset? _computeUriOffsetForTarget(
+      MacroIntrospection introspection, macro.DiagnosticTarget? target) {
+    switch (target) {
+      case null:
+        break;
+      case macro.DeclarationDiagnosticTarget(:macro.Declaration declaration):
+        return introspection.getLocationFromDeclaration(declaration);
+      case macro.TypeAnnotationDiagnosticTarget(
+          :macro.TypeAnnotation typeAnnotation
+        ):
+        return introspection.types
+            .getLocationFromTypeAnnotation(typeAnnotation);
+      case macro.MetadataAnnotationDiagnosticTarget():
+      // TODO(johnniwinther): Support metadata annotations.
+    }
+    return null;
+  }
+
+  LocatedMessage _createLocatedMessage(MacroIntrospection introspection,
+      UriOffset uriOffset, macro.DiagnosticMessage diagnosticMessage) {
+    UriOffset messageUriOffset =
+        _computeUriOffsetForTarget(introspection, diagnosticMessage.target) ??
+            uriOffset;
+    return new LocatedMessage(messageUriOffset.uri, messageUriOffset.fileOffset,
+        noLength, templateUnspecified.withArguments(diagnosticMessage.message));
   }
 }
 

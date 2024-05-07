@@ -1,0 +1,18 @@
+// Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+/*library: 
+Types Order:
+ Class:CrashTypesMacro.new()
+Declarations Order:
+ Class:CrashDeclarationsMacro.new()
+Definition Order:
+ Class:CrashDefinitionMacro.new()*/
+
+import 'package:macro/crash.dart';
+
+@CrashTypesMacro()
+@CrashDeclarationsMacro()
+@CrashDefinitionMacro()
+class Class {}
