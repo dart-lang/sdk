@@ -11,14 +11,14 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import '../analyzer.dart';
 import '../extensions.dart';
 
-const _desc = r"Don't check for null in custom == operators.";
+const _desc = r"Don't check for `null` in custom `==` operators.";
 
 const _details = r'''
-**DON'T** check for null in custom == operators.
+**DON'T** check for `null` in custom `==` operators.
 
-As null is a special value, no instance of any class (other than `Null`) can be
-equivalent to it.  Thus, it is redundant to check whether the other instance is
-null.
+As `null` is a special value, no instance of any class (other than `Null`) can
+be equivalent to it.  Thus, it is redundant to check whether the other instance
+is `null`.
 
 **BAD:**
 ```dart

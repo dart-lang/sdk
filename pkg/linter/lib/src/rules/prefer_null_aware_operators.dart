@@ -8,10 +8,10 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 
-const _desc = r'Prefer using null aware operators.';
+const _desc = r'Prefer using `null`-aware operators.';
 
 const _details = r'''
-**PREFER** using null aware operators instead of null checks in conditional
+**PREFER** using `null`-aware operators instead of `null` checks in conditional
 expressions.
 
 **BAD:**

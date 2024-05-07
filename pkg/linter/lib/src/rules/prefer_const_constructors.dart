@@ -11,7 +11,7 @@ import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_import
 import '../analyzer.dart';
 import '../extensions.dart';
 
-const _desc = r'Prefer const with constant constructors.';
+const _desc = r'Prefer `const` with constant constructors.';
 
 const _details = r'''
 **PREFER** using `const` for instantiating constant constructors.

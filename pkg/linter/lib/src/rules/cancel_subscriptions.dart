@@ -8,10 +8,10 @@ import '../analyzer.dart';
 import '../extensions.dart';
 import '../util/leak_detector_visitor.dart';
 
-const _desc = r'Cancel instances of dart.async.StreamSubscription.';
+const _desc = r'Cancel instances of `dart:async` `StreamSubscription`.';
 
 const _details = r'''
-**DO** invoke `cancel` on instances of `dart.async.StreamSubscription`.
+**DO** invoke `cancel` on instances of `dart:async` `StreamSubscription`.
 
 Cancelling instances of StreamSubscription prevents memory leaks and unexpected
 behavior.

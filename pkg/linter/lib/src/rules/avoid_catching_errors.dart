@@ -8,10 +8,10 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import '../analyzer.dart';
 import '../extensions.dart';
 
-const _desc = r"Don't explicitly catch Error or types that implement it.";
+const _desc = r"Don't explicitly catch `Error` or types that implement it.";
 
 const _details = r'''
-**DON'T** explicitly catch Error or types that implement it.
+**DON'T** explicitly catch `Error` or types that implement it.
 
 Errors differ from Exceptions in that Errors can be analyzed and prevented prior
 to runtime.  It should almost never be necessary to catch an error at runtime.
