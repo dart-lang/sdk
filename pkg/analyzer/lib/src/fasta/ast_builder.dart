@@ -4430,12 +4430,19 @@ class AstBuilder extends StackListener {
 
     if (_enclosingDeclarationAugmentToken != null) {
       if (token.lexeme == 'augmented') {
-        push(
-          AugmentedExpressionImpl(
-            augmentedKeyword: token,
-          ),
-        );
-        return;
+        if (context.inDeclaration) {
+          errorReporter.errorReporter?.atToken(
+            token,
+            ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION,
+          );
+        } else {
+          push(
+            AugmentedExpressionImpl(
+              augmentedKeyword: token,
+            ),
+          );
+          return;
+        }
       }
     }
 

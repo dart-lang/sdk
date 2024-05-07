@@ -21159,6 +21159,9 @@ ParserErrorCode:
   COVARIANT_TOP_LEVEL_DECLARATION:
     problemMessage: "Top-level declarations can't be declared to be covariant."
     correctionMessage: "Try removing the keyword 'covariant'."
+  DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION:
+    problemMessage: "The identifier 'augmented' has a special meaning inside augmenting declarations."
+    correctionMessage: "Try using a different name."
   DEFAULT_VALUE_IN_FUNCTION_TYPE:
     problemMessage: "Parameters in a function type can't have default values."
     correctionMessage: Try removing the default value.

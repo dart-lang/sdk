@@ -2676,6 +2676,8 @@ ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION:
   status: needsFix
   notes: |-
     Remove `covariant`.
+ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION:
+  status: noFix
 ParserErrorCode.DEFAULT_IN_SWITCH_EXPRESSION:
   status: hasFix
 ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE:

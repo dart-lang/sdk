@@ -158,6 +158,8 @@ import 'could_not_infer_test.dart' as could_not_infer;
 import 'creation_of_struct_or_union_test.dart' as creation_of_struct_or_union;
 import 'dead_code_test.dart' as dead_code;
 import 'dead_null_aware_expression_test.dart' as dead_null_aware_expression;
+import 'declaration_named_augmented_inside_augmentation_test.dart'
+    as declaration_named_augmented_inside_augmentation;
 import 'default_value_in_function_type_test.dart'
     as default_value_in_function_type;
 import 'default_value_in_redirecting_factory_constructor_test.dart'
@@ -1021,6 +1023,7 @@ main() {
     creation_of_struct_or_union.main();
     dead_code.main();
     dead_null_aware_expression.main();
+    declaration_named_augmented_inside_augmentation.main();
     default_value_in_function_type.main();
     default_value_in_redirecting_factory_constructor.main();
     default_value_on_required_parameter.main();
