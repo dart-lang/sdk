@@ -1440,6 +1440,71 @@ library
 ''');
   }
 
+  test_augmented_field_augment_field_augmentedInvocation() async {
+    // This is invalid code, but it should not crash.
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment class A {;
+  augment static const int foo = augmented();
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {
+  static const int foo = 0;
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        fields
+          static const foo @54
+            type: int
+            shouldUseTypeForInitializerInference: true
+            constantInitializer
+              IntegerLiteral
+                literal: 0 @60
+                staticType: int
+            augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+        constructors
+          synthetic @-1
+        accessors
+          synthetic static get foo @-1
+            returnType: int
+        augmented
+          fields
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+          constructors
+            self::@class::A::@constructor::new
+          accessors
+            self::@class::A::@getter::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@class::A
+            fields
+              augment static const foo @75
+                type: int
+                shouldUseTypeForInitializerInference: true
+                constantInitializer
+                  AugmentedInvocation
+                    augmentedKeyword: augmented @81
+                    arguments: ArgumentList
+                      leftParenthesis: ( @90
+                      rightParenthesis: ) @91
+                    element: <null>
+                    staticType: InvalidType
+                augmentationTarget: self::@class::A::@field::foo
+''');
+  }
+
   test_augmented_field_augment_field_differentTypes() async {
     newFile('$testPackageLibPath/a.dart', r'''
 augment library 'test.dart';

@@ -44,6 +44,8 @@ class AstBinaryReader {
         return _readAssignmentExpression();
       case Tag.AugmentedExpression:
         return _readAugmentedExpression();
+      case Tag.AugmentedInvocation:
+        return _readAugmentedInvocation();
       case Tag.AwaitExpression:
         return _readAwaitExpression();
       case Tag.BinaryExpression:
@@ -280,6 +282,20 @@ class AstBinaryReader {
       augmentedKeyword: Tokens.augmented(),
     );
     node.element = _reader.readElement();
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  AugmentedInvocation _readAugmentedInvocation() {
+    var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
+    var arguments = readNode() as ArgumentListImpl;
+
+    var node = AugmentedInvocationImpl(
+      augmentedKeyword: Tokens.augmented(),
+      typeArguments: typeArguments,
+      arguments: arguments,
+    );
+    node.element = _reader.readElement() as ExecutableElement?;
     _readExpressionResolution(node);
     return node;
   }
@@ -1294,7 +1310,7 @@ class AstBinaryReader {
     return node;
   }
 
-  TypeArgumentList _readTypeArgumentList() {
+  TypeArgumentListImpl _readTypeArgumentList() {
     var arguments = _readNodeList<TypeAnnotationImpl>();
     return TypeArgumentListImpl(
       leftBracket: Tokens.lt(),
