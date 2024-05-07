@@ -1,4 +1,4 @@
-## 1.15.0-dev
+## 1.15.0
 
 - Updated `@mustBeOverridden` to only flag missing overrides in concrete
   classes; in other words, abstract classes (including implicitly abstract, i.e
@@ -33,8 +33,8 @@
   See <https://github.com/dart-lang/sdk/issues/52965> for more information.
 - Introduce `TargetKind.optionalParameter`, to indicate that an annotation is
   valid on any optional parameter declaration.
-- Introduce `TargetKind.instanceMember`, to indicate that an annotation is valid
-  on any instance member declaration.
+- Introduce `TargetKind.overridableMember`, to indicate that an annotation is
+  valid on any instance member declaration.
 
 ## 1.14.0
 

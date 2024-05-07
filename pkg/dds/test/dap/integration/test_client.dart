@@ -135,7 +135,8 @@ class DapTestClient {
   /// Send an attachRequest to the server, asking it to attach to an existing
   /// Dart program.
   Future<Response> attach({
-    required bool autoResume,
+    required bool autoResumeOnEntry,
+    required bool autoResumeOnExit,
     String? vmServiceUri,
     String? vmServiceInfoFile,
     String? cwd,
@@ -154,9 +155,18 @@ class DapTestClient {
     // When attaching, the paused VM will not be automatically unpaused, but
     // instead send a Stopped(reason: 'entry') event. Respond to this by
     // resuming (if requested).
-    final resumeFuture = autoResume
+    final resumeFuture = autoResumeOnEntry
         ? expectStop('entry').then((event) => continue_(event.threadId!))
         : null;
+
+    // Also handle resuming on exit. This should be done if the test has
+    // started the app with a user-provided pause-on-exit but wants to
+    // simulate the user resuming after the exit pause.
+    if (autoResumeOnExit) {
+      stoppedEvents
+          .firstWhere((e) => e.reason == 'exit')
+          .then((event) => continue_(event.threadId!));
+    }
 
     cwd ??= defaultCwd;
     final attachResponse = sendRequest(
@@ -227,13 +237,22 @@ class DapTestClient {
   /// Returns a Future that completes with the next [event] event.
   Future<Event> event(String event) => _logIfSlow(
       'Event "$event"',
-      _eventController.stream.firstWhere((e) => e.event == event,
+      allEvents.firstWhere((e) => e.event == event,
           orElse: () =>
               throw 'Did not receive $event event before stream closed'));
 
   /// Returns a stream for [event] events.
   Stream<Event> events(String event) {
-    return _eventController.stream.where((e) => e.event == event);
+    return allEvents.where((e) => e.event == event);
+  }
+
+  Stream<Event> get allEvents => _eventController.stream;
+
+  /// Returns a stream for 'stopped' events.
+  Stream<StoppedEventBody> get stoppedEvents {
+    return allEvents
+        .where((e) => e.event == 'stopped')
+        .map((e) => StoppedEventBody.fromJson(e.body as Map<String, Object?>));
   }
 
   /// Returns a stream for standard progress events.
@@ -243,8 +262,7 @@ class DapTestClient {
       'progressUpdate',
       'progressEnd'
     };
-    return _eventController.stream
-        .where((e) => standardProgressEvents.contains(e.event));
+    return allEvents.where((e) => standardProgressEvents.contains(e.event));
   }
 
   /// Returns a stream for custom Dart progress events.
@@ -254,8 +272,7 @@ class DapTestClient {
       'dart.progressUpdate',
       'dart.progressEnd'
     };
-    return _eventController.stream
-        .where((e) => customProgressEvents.contains(e.event));
+    return allEvents.where((e) => customProgressEvents.contains(e.event));
   }
 
   /// Records a handler for when the server sends a [request] request.
@@ -902,14 +919,26 @@ extension DapTestClientExtension on DapTestClient {
   ///
   /// If [file] or [line] are provided, they will be checked against the stop
   /// location for the top stack frame.
+  ///
+  /// Stopped-on-entry events will be automatically skipped unless
+  /// [skipFirstStopOnEntry] is `false` or [reason] is `"entry"`.
   Future<StoppedEventBody> expectStop(
     String reason, {
     File? file,
     int? line,
     String? sourceName,
+    bool? skipFirstStopOnEntry,
   }) async {
-    final e = await event('stopped');
-    final stop = StoppedEventBody.fromJson(e.body as Map<String, Object?>);
+    skipFirstStopOnEntry ??= reason != 'entry';
+    assert(skipFirstStopOnEntry != (reason == 'entry'));
+
+    // Unless we're specifically waiting for stop-on-entry, skip over those
+    // events because they can be emitted at during startup because now we use
+    // readyToResume we don't know if the isolate will be immediately unpaused
+    // and the client needs to have a consistent view of threads.
+    final stop = skipFirstStopOnEntry
+        ? await stoppedEvents.skipWhile((e) => e.reason == 'entry').first
+        : await stoppedEvents.first;
     expect(stop.reason, equals(reason));
 
     final result =

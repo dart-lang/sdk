@@ -64,6 +64,8 @@ class FindNode {
 
   ExportDirective get singleExportDirective => _single();
 
+  ExpressionStatement get singleExpressionStatement => _single();
+
   ExtendsClause get singleExtendsClause => _single();
 
   ExtensionDeclaration get singleExtensionDeclaration => _single();

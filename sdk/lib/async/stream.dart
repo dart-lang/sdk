@@ -1630,7 +1630,7 @@ abstract mixin class Stream<T> {
   /// the returned future is completed with that error
   /// and processing stops.
   ///
-  /// If [this] is empty or has more than one element,
+  /// If this [Stream] is empty or has more than one element,
   /// the returned future completes with an error.
   Future<T> get single {
     _Future<T> future = new _Future<T>();

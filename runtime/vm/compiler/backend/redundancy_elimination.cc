@@ -3080,24 +3080,43 @@ class StoreOptimizer : public LivenessAnalysis {
         new (zone) BitVector(zone, aliased_set_->max_place_id());
     all_places->SetAll();
 
-    BitVector* all_aliased_places =
-        new (zone) BitVector(zone, aliased_set_->max_place_id());
+    BitVector* all_aliased_places = nullptr;
     if (CompilerState::Current().is_aot()) {
-      const auto& places = aliased_set_->places();
-      // Go through all places and identify those which are escaping.
-      // We find such places by inspecting definition allocation
-      // [AliasIdentity] field, which is populated above by
-      // [AliasedSet::ComputeAliasing].
-      for (intptr_t i = 0; i < places.length(); i++) {
-        Place* place = places[i];
-        if (place->DependsOnInstance()) {
-          Definition* instance = place->instance();
-          if (Place::IsAllocation(instance) &&
-              !instance->Identity().IsAliased()) {
-            continue;
-          }
+      all_aliased_places =
+          new (zone) BitVector(zone, aliased_set_->max_place_id());
+    }
+    const auto& places = aliased_set_->places();
+    for (intptr_t i = 0; i < places.length(); i++) {
+      Place* place = places[i];
+      if (place->DependsOnInstance()) {
+        Definition* instance = place->instance();
+        // Find escaping places by inspecting definition allocation
+        // [AliasIdentity] field, which is populated above by
+        // [AliasedSet::ComputeAliasing].
+        if ((all_aliased_places != nullptr) &&
+            (!Place::IsAllocation(instance) ||
+             instance->Identity().IsAliased())) {
+          all_aliased_places->Add(i);
         }
-        all_aliased_places->Add(i);
+        if (instance != nullptr) {
+          // Avoid incorrect propagation of "dead" state beyond definition
+          // of the instance. Otherwise it may eventually reach stores into
+          // this place via loop backedge.
+          live_in_[instance->GetBlock()->postorder_number()]->Add(i);
+        }
+      } else {
+        if (all_aliased_places != nullptr) {
+          all_aliased_places->Add(i);
+        }
+      }
+      if (place->kind() == Place::kIndexed) {
+        Definition* index = place->index();
+        if (index != nullptr) {
+          // Avoid incorrect propagation of "dead" state beyond definition
+          // of the index. Otherwise it may eventually reach stores into
+          // this place via loop backedge.
+          live_in_[index->GetBlock()->postorder_number()]->Add(i);
+        }
       }
     }
 

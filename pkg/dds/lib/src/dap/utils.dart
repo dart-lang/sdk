@@ -98,3 +98,11 @@ stack.Frame? _parseStackFrame(String line) {
       tryParseFrame((line) => stack.Frame.parseIE(line)) ??
       tryParseFrame((line) => stack.Frame.parseFriendly(line));
 }
+
+/// Checks whether [flag] is in [args], allowing for both underscore and
+/// dash format.
+bool containsVmFlag(List<String> args, String flag) {
+  final flagUnderscores = flag.replaceAll('-', '_');
+  final flagDashes = flag.replaceAll('_', '-');
+  return args.contains(flagUnderscores) || args.contains(flagDashes);
+}

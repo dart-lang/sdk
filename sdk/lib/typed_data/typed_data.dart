@@ -2551,14 +2551,15 @@ abstract final class Float32x4 {
   /// Relational not-equal.
   Int32x4 notEqual(Float32x4 other);
 
-  /// Returns a copy of [this] each lane being scaled by [s].
+  /// Returns a copy of this [Float32x4] each lane being scaled by [s].
   /// Equivalent to this * new Float32x4.splat(s)
   Float32x4 scale(double s);
 
   /// Returns the lane-wise absolute value of this [Float32x4].
   Float32x4 abs();
 
-  /// Lane-wise clamp [this] to be in the range [lowerLimit]-[upperLimit].
+  /// Lane-wise clamp this [Float32x4] to be in the range
+  /// [lowerLimit]-[upperLimit].
   Float32x4 clamp(Float32x4 lowerLimit, Float32x4 upperLimit);
 
   /// Extracted x value.
@@ -2841,36 +2842,40 @@ abstract final class Float32x4 {
   /// Shuffle the lane values. [mask] must be one of the 256 shuffle constants.
   Float32x4 shuffle(int mask);
 
-  /// Shuffle the lane values in [this] and [other]. The returned
-  /// Float32x4 will have XY lanes from [this] and ZW lanes from [other].
-  /// Uses the same [mask] as [shuffle].
+  /// Shuffle the lane values in this [Float32x4] and [other]. The returned
+  /// Float32x4 will have XY lanes from this [Float32x4] and ZW lanes from
+  /// [other].  Uses the same [mask] as [shuffle].
   Float32x4 shuffleMix(Float32x4 other, int mask);
 
-  /// Returns a new [Float32x4] copied from [this] with a new x value.
+  /// Returns a new [Float32x4] copied from this [Float32x4] with a new x
+  /// value.
   Float32x4 withX(double x);
 
-  /// Returns a new [Float32x4] copied from [this] with a new y value.
+  /// Returns a new [Float32x4] copied from this [Float32x4] with a new y
+  /// value.
   Float32x4 withY(double y);
 
-  /// Returns a new [Float32x4] copied from [this] with a new z value.
+  /// Returns a new [Float32x4] copied from this [Float32x4] with a new z
+  /// value.
   Float32x4 withZ(double z);
 
-  /// Returns a new [Float32x4] copied from [this] with a new w value.
+  /// Returns a new [Float32x4] copied from this [Float32x4] with a new w
+  /// value.
   Float32x4 withW(double w);
 
-  /// Returns the lane-wise minimum value in [this] or [other].
+  /// Returns the lane-wise minimum value in this [Float32x4] or [other].
   Float32x4 min(Float32x4 other);
 
-  /// Returns the lane-wise maximum value in [this] or [other].
+  /// Returns the lane-wise maximum value in this [Float32x4] or [other].
   Float32x4 max(Float32x4 other);
 
-  /// Returns the square root of [this].
+  /// Returns the square root of this [Float32x4].
   Float32x4 sqrt();
 
-  /// Returns the reciprocal of [this].
+  /// Returns the reciprocal of this [Float32x4].
   Float32x4 reciprocal();
 
-  /// Returns the square root of the reciprocal of [this].
+  /// Returns the square root of the reciprocal of this [Float32x4].
   Float32x4 reciprocalSqrt();
 }
 
@@ -3178,21 +3183,21 @@ abstract final class Int32x4 {
   /// Shuffle the lane values. [mask] must be one of the 256 shuffle constants.
   Int32x4 shuffle(int mask);
 
-  /// Shuffle the lane values in [this] and [other]. The returned
-  /// Int32x4 will have XY lanes from [this] and ZW lanes from [other].
+  /// Shuffle the lane values in this [Int32x4] and [other]. The returned
+  /// Int32x4 will have XY lanes from this [Int32x4] and ZW lanes from [other].
   /// Uses the same [mask] as [shuffle].
   Int32x4 shuffleMix(Int32x4 other, int mask);
 
-  /// Returns a new [Int32x4] copied from [this] with a new x value.
+  /// Returns a new [Int32x4] copied from this [Int32x4] with a new x value.
   Int32x4 withX(int x);
 
-  /// Returns a new [Int32x4] copied from [this] with a new y value.
+  /// Returns a new [Int32x4] copied from this [Int32x4] with a new y value.
   Int32x4 withY(int y);
 
-  /// Returns a new [Int32x4] copied from [this] with a new z value.
+  /// Returns a new [Int32x4] copied from this [Int32x4] with a new z value.
   Int32x4 withZ(int z);
 
-  /// Returns a new [Int32x4] copied from [this] with a new w value.
+  /// Returns a new [Int32x4] copied from this [Int32x4] with a new w value.
   Int32x4 withW(int w);
 
   /// Extracted x value. Returns false for 0, true for any other value.
@@ -3207,21 +3212,21 @@ abstract final class Int32x4 {
   /// Extracted w value. Returns false for 0, true for any other value.
   bool get flagW;
 
-  /// Returns a new [Int32x4] copied from [this] with a new x value.
+  /// Returns a new [Int32x4] copied from this [Int32x4] with a new x value.
   Int32x4 withFlagX(bool x);
 
-  /// Returns a new [Int32x4] copied from [this] with a new y value.
+  /// Returns a new [Int32x4] copied from this [Int32x4] with a new y value.
   Int32x4 withFlagY(bool y);
 
-  /// Returns a new [Int32x4] copied from [this] with a new z value.
+  /// Returns a new [Int32x4] copied from this [Int32x4] with a new z value.
   Int32x4 withFlagZ(bool z);
 
-  /// Returns a new [Int32x4] copied from [this] with a new w value.
+  /// Returns a new [Int32x4] copied from this [Int32x4] with a new w value.
   Int32x4 withFlagW(bool w);
 
-  /// Merge [trueValue] and [falseValue] based on [this]' bit mask:
-  /// Select bit from [trueValue] when bit in [this] is on.
-  /// Select bit from [falseValue] when bit in [this] is off.
+  /// Merge [trueValue] and [falseValue] based on this [Int32x4] bit mask:
+  /// Select bit from [trueValue] when bit in this [Int32x4] is on.
+  /// Select bit from [falseValue] when bit in this [Int32x4] is off.
   Float32x4 select(Float32x4 trueValue, Float32x4 falseValue);
 }
 
@@ -3255,14 +3260,15 @@ abstract final class Float64x2 {
   /// Division operator.
   Float64x2 operator /(Float64x2 other);
 
-  /// Returns a copy of [this] each lane being scaled by [s].
+  /// Returns a copy of this [Float64x2] each lane being scaled by [s].
   /// Equivalent to this * new Float64x2.splat(s)
   Float64x2 scale(double s);
 
   /// Returns the lane-wise absolute value of this [Float64x2].
   Float64x2 abs();
 
-  /// Lane-wise clamp [this] to be in the range [lowerLimit]-[upperLimit].
+  /// Lane-wise clamp this [Float64x2] to be in the range
+  /// [lowerLimit]-[upperLimit].
   Float64x2 clamp(Float64x2 lowerLimit, Float64x2 upperLimit);
 
   /// Extracted x value.
@@ -3276,18 +3282,20 @@ abstract final class Float64x2 {
   /// "y" lane is bit 1.
   int get signMask;
 
-  /// Returns a new [Float64x2] copied from [this] with a new x value.
+  /// Returns a new [Float64x2] copied from this [Float64x2] with a new x
+  /// value.
   Float64x2 withX(double x);
 
-  /// Returns a new [Float64x2] copied from [this] with a new y value.
+  /// Returns a new [Float64x2] copied from this [Float64x2] with a new y
+  /// value.
   Float64x2 withY(double y);
 
-  /// Returns the lane-wise minimum value in [this] or [other].
+  /// Returns the lane-wise minimum value in this [Float64x2] or [other].
   Float64x2 min(Float64x2 other);
 
-  /// Returns the lane-wise maximum value in [this] or [other].
+  /// Returns the lane-wise maximum value in this [Float64x2] or [other].
   Float64x2 max(Float64x2 other);
 
-  /// Returns the lane-wise square root of [this].
+  /// Returns the lane-wise square root of this [Float64x2].
   Float64x2 sqrt();
 }

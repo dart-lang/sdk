@@ -7,6 +7,7 @@ import 'dart:convert';
 
 import 'package:collection/collection.dart';
 import 'package:dap/dap.dart';
+import 'package:dds_service_extensions/dds_service_extensions.dart';
 import 'package:vm_service/vm_service.dart' as vm;
 
 import '../rpc_error_codes.dart';
@@ -61,16 +62,6 @@ class IsolateManager {
   /// apply changes. This allows applying both [debugSdkLibraries] and
   /// [debugExternalPackageLibraries] in one step.
   bool debugExternalPackageLibraries = true;
-
-  /// Whether to automatically resume new isolates after configuring them.
-  ///
-  /// This setting is almost always `true` because isolates are paused only so
-  /// we can configure them (send breakpoints, pause-on-exceptions,
-  /// setLibraryDebuggables) without races. It is set to `false` during the
-  /// initial connection of an `attachRequest` to allow paused isolates to
-  /// remain paused. In this case, it will be automatically re-set to `true` the
-  /// first time the user resumes.
-  bool autoResumeStartingIsolates = true;
 
   /// Tracks breakpoints last provided by the client so they can be sent to new
   /// isolates that appear after initial breakpoints were sent.
@@ -277,6 +268,17 @@ class IsolateManager {
     await resumeThread(thread.threadId);
   }
 
+  Future<void> readyToResumeIsolate(vm.IsolateRef isolateRef) async {
+    final isolateId = isolateRef.id!;
+
+    final thread = _threadsByIsolateId[isolateId];
+    if (thread == null) {
+      return;
+    }
+
+    await readyToResumeThread(thread.threadId);
+  }
+
   /// Resumes (or steps) an isolate using its client [threadId].
   ///
   /// If the isolate is not paused, or already has a pending resume request
@@ -287,6 +289,16 @@ class IsolateManager {
   /// sent instead.
   Future<void> resumeThread(int threadId, [String? resumeType]) async {
     await _resume(threadId, resumeType: resumeType);
+  }
+
+  /// Resumes an isolate using its client [threadId].
+  ///
+  /// CAUTION: This should only be used for a tool-initiated resume, not a user-
+  /// initiated resume.
+  ///
+  /// See: https://pub.dev/documentation/dds_service_extensions/latest/dds_service_extensions/DdsExtension/readyToResume.html
+  Future<void> readyToResumeThread(int threadId) async {
+    await _readyToResume(threadId);
   }
 
   /// Rewinds an isolate to an earlier frame using its client [threadId].
@@ -301,7 +313,8 @@ class IsolateManager {
     );
   }
 
-  /// Resumes (or steps) an isolate using its client [threadId].
+  /// Resumes (or steps) an isolate using its client [threadId] on behalf
+  /// of the user.
   ///
   /// If the isolate is not paused, or already has a pending resume request
   /// in-flight, a request will not be sent.
@@ -316,11 +329,6 @@ class IsolateManager {
     String? resumeType,
     int? frameIndex,
   }) async {
-    // The first time a user resumes a thread is our signal that the app is now
-    // "running" and future isolates can be auto-resumed. This only affects
-    // attach, as it's already `true` for launch requests.
-    autoResumeStartingIsolates = true;
-
     final thread = _threadsByThreadId[threadId];
     if (thread == null) {
       if (isInvalidThreadId(threadId)) {
@@ -336,7 +344,7 @@ class IsolateManager {
     // Check this thread hasn't already been resumed by another handler in the
     // meantime (for example if the user performs a hot restart or something
     // while we processing some previous events).
-    if (!thread.paused || thread.hasPendingResume) {
+    if (!thread.paused || thread.hasPendingUserResume) {
       return;
     }
 
@@ -350,7 +358,7 @@ class IsolateManager {
     // we can drop them to save memory.
     thread.clearStoredData();
 
-    thread.hasPendingResume = true;
+    thread.hasPendingUserResume = true;
     try {
       await _adapter.vmService?.resume(
         thread.isolate.id!,
@@ -369,7 +377,57 @@ class IsolateManager {
         rethrow;
       }
     } finally {
-      thread.hasPendingResume = false;
+      thread.hasPendingUserResume = false;
+    }
+  }
+
+  /// Resumes an isolate using its client [threadId].
+  ///
+  /// CAUTION: This should only be used for a tool-initiated resume, not a user-
+  /// initiated resume.
+  ///
+  /// See: https://pub.dev/documentation/dds_service_extensions/latest/dds_service_extensions/DdsExtension/readyToResume.html
+  Future<void> _readyToResume(int threadId) async {
+    final thread = _threadsByThreadId[threadId];
+    if (thread == null) {
+      if (isInvalidThreadId(threadId)) {
+        throw DebugAdapterException('Thread $threadId was not found');
+      } else {
+        // Otherwise, this thread has exited and we don't need to do anything.
+        // It's possible another debugger unpaused or we're shutting down and
+        // the VM has terminated it.
+        return;
+      }
+    }
+
+    // When we're resuming, all stored objects become invalid and we can drop
+    // to save memory.
+    thread.clearStoredData();
+
+    try {
+      thread.hasPendingDapResume = true;
+      await _adapter.vmService?.readyToResume(thread.isolate.id!);
+    } on UnimplementedError {
+      // Fallback to a regular resume if the DDS version doesn't support
+      // `readyToResume`:
+      return _resume(threadId);
+    } on vm.SentinelException {
+      // It's possible during these async requests that the isolate went away
+      // (for example a shutdown/restart) and we no longer care about
+      // resuming it.
+    } on vm.RPCError catch (e) {
+      if (e.code == RpcErrorCodes.kIsolateMustBePaused) {
+        // It's possible something else resumed the thread (such as if another
+        // debugger is attached), we can just continue.
+      } else if (e.code == RpcErrorCodes.kMethodNotFound) {
+        // Fallback to a regular resume if the DDS service extension isn't
+        // available:
+        return _resume(threadId);
+      } else {
+        rethrow;
+      }
+    } finally {
+      thread.hasPendingDapResume = false;
     }
   }
 
@@ -406,8 +464,9 @@ class IsolateManager {
   bool isInvalidThreadId(int threadId) => threadId >= _nextThreadNumber;
 
   /// Sends an event informing the client that a thread is stopped at entry.
-  void sendStoppedOnEntryEvent(int threadId) {
-    _adapter.sendEvent(StoppedEventBody(reason: 'entry', threadId: threadId));
+  void sendStoppedOnEntryEvent(ThreadInfo thread) {
+    _adapter.sendEvent(
+        StoppedEventBody(reason: 'entry', threadId: thread.threadId));
   }
 
   /// Records breakpoints for [uri].
@@ -557,11 +616,9 @@ class IsolateManager {
   ///
   /// For [vm.EventKind.kPausePostRequest] which occurs after a restart, the
   /// isolate will be re-configured (pause-exception behaviour, debuggable
-  /// libraries, breakpoints) and then (if [autoResumeStartingIsolates] is
-  /// `true`) resumed.
+  /// libraries, breakpoints) and we'll declare we are ready to resume.
   ///
-  /// For [vm.EventKind.kPauseStart] and [autoResumeStartingIsolates] is `true`,
-  /// the isolate will be resumed.
+  /// For [vm.EventKind.kPauseStart] we'll declare we are ready to resume.
   ///
   /// For breakpoints with conditions that are not met and for logpoints, the
   /// isolate will be automatically resumed.
@@ -586,21 +643,17 @@ class IsolateManager {
     // after a hot restart.
     if (eventKind == vm.EventKind.kPausePostRequest) {
       await _configureIsolate(thread);
-      if (autoResumeStartingIsolates) {
-        await resumeThread(thread.threadId);
-      }
+      await readyToResumeThread(thread.threadId);
     } else if (eventKind == vm.EventKind.kPauseStart) {
       // Don't resume from a PauseStart if this has already happened (see
       // comments on [thread.hasBeenStarted]).
       if (!thread.startupHandled) {
         thread.startupHandled = true;
-        // If requested, automatically resume. Otherwise send a Stopped event to
-        // inform the client UI the thread is paused.
-        if (autoResumeStartingIsolates) {
-          await resumeThread(thread.threadId);
-        } else {
-          sendStoppedOnEntryEvent(thread.threadId);
-        }
+        // Send a Stopped event to inform the client UI the thread is paused and
+        // declare that we are ready to resume (which might result in an
+        // immediate resume).
+        sendStoppedOnEntryEvent(thread);
+        await readyToResumeThread(thread.threadId);
       }
     } else {
       // PauseExit, PauseBreakpoint, PauseInterrupted, PauseException
@@ -643,6 +696,8 @@ class IsolateManager {
         reason = 'step';
       } else if (eventKind == vm.EventKind.kPauseException) {
         reason = 'exception';
+      } else if (eventKind == vm.EventKind.kPauseExit) {
+        reason = 'exit';
       }
 
       // If we stopped at an exception, capture the exception instance so we
@@ -671,6 +726,11 @@ class IsolateManager {
     final isolate = event.isolate!;
     final thread = _threadsByIsolateId[isolate.id!];
     if (thread != null) {
+      // When a thread is resumed, we must inform the client. This is not
+      // necessary when the user has clicked Continue because it is implied.
+      // However, resume events can now be triggered by other things (eg. other
+      // in other IDEs or DevTools) so we must notify the client.
+      _adapter.sendEvent(ContinuedEventBody(threadId: thread.threadId));
       thread.paused = false;
       thread.pauseEvent = null;
       thread.exceptionReference = null;
@@ -1057,6 +1117,11 @@ class ThreadInfo with FileUtils {
   var runnable = false;
   var atAsyncSuspension = false;
   int? exceptionReference;
+
+  /// Whether this thread is currently known to be paused in the VM.
+  ///
+  /// Because requests are async, this is not guaranteed to be always correct
+  /// but should represent the state based on the latest VM events.
   var paused = false;
 
   /// Tracks whether an isolates startup routine has been handled.
@@ -1096,9 +1161,13 @@ class ThreadInfo with FileUtils {
   /// Values are file-like URIs (file: or similar, such as dart-macro+file:).
   final _resolvedPaths = <String, Future<Uri?>>{};
 
-  /// Whether this isolate has an in-flight resume request that has not yet
-  /// been responded to.
-  var hasPendingResume = false;
+  /// Whether this isolate has an in-flight user-initiated resume request that
+  /// has not yet been responded to.
+  var hasPendingUserResume = false;
+
+  /// Whether this isolate has an in-flight DAP (readyToResume) resume request
+  /// that has not yet been responded to.
+  var hasPendingDapResume = false;
 
   ThreadInfo(this._manager, this.threadId, this.isolate);
 

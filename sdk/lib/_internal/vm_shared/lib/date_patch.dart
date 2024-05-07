@@ -250,7 +250,7 @@ class DateTime {
 
   /**
    * Returns the amount of microseconds in UTC that represent the same values
-   * as [this].
+   * as this [DateTime].
    *
    * Say `t` is the result of this function, then
    * * `this.year == new DateTime.fromMicrosecondsSinceEpoch(t, true).year`,
@@ -260,7 +260,7 @@ class DateTime {
    * * ...
    *
    * Daylight savings is computed as if the date was computed in [1970..2037].
-   * If [this] lies outside this range then it is a year with similar
+   * If this [DateTime] lies outside this range then it is a year with similar
    * properties (leap year, weekdays) is used instead.
    */
   int get _localDateInUtcMicros {

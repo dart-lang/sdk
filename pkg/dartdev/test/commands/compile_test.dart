@@ -887,7 +887,6 @@ void main() {
       ],
     );
 
-    expect(result.stdout, contains('Compilation to WasmGC is experimental'));
     expect(result.stderr, contains('Error: '));
     // The CFE doesn't print to stderr, so all output is piped to stderr, even
     // including info-only output:
