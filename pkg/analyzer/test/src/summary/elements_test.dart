@@ -1507,6 +1507,76 @@ library
 ''');
   }
 
+  test_augmented_field_augment_field_plus() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment class A {
+  augment final int foo = augmented + 1;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {
+  final int foo = 0;
+  const A();
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        fields
+          final foo @47
+            type: int
+            shouldUseTypeForInitializerInference: true
+            constantInitializer
+              IntegerLiteral
+                literal: 0 @53
+                staticType: int
+            augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+        constructors
+          const @64
+        accessors
+          synthetic get foo @-1
+            returnType: int
+        augmented
+          fields
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+          constructors
+            self::@class::A::@constructor::new
+          accessors
+            self::@class::A::@getter::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@class::A
+            fields
+              augment final foo @67
+                type: int
+                shouldUseTypeForInitializerInference: true
+                constantInitializer
+                  BinaryExpression
+                    leftOperand: AugmentedExpression
+                      augmentedKeyword: augmented @73
+                      element: self::@class::A::@field::foo
+                      staticType: int
+                    operator: + @83
+                    rightOperand: IntegerLiteral
+                      literal: 1 @85
+                      staticType: int
+                    staticElement: dart:core::@class::num::@method::+
+                    staticInvokeType: num Function(num)
+                    staticType: int
+                augmentationTarget: self::@class::A::@field::foo
+''');
+  }
+
   /// This is not allowed by the specification, but allowed syntactically,
   /// so we need a way to handle it.
   test_augmented_field_augment_getter() async {
@@ -63273,6 +63343,59 @@ library
   exportNamespace
     foo: self::@augmentation::package:test/a.dart::@getter::foo
     foo=: self::@augmentation::package:test/a.dart::@setter::foo
+''');
+  }
+
+  test_variable_augments_variable_augmented_const_typed() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment const int foo = augmented + 1;
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+const int foo = 0;
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const foo @35
+        type: int
+        shouldUseTypeForInitializerInference: true
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @41
+            staticType: int
+        augmentation: self::@augmentation::package:test/a.dart::@variableAugmentation::foo
+    accessors
+      synthetic static get foo @-1
+        returnType: int
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        topLevelVariables
+          augment static const foo @47
+            type: int
+            shouldUseTypeForInitializerInference: true
+            constantInitializer
+              BinaryExpression
+                leftOperand: AugmentedExpression
+                  augmentedKeyword: augmented @53
+                  element: self::@variable::foo
+                  staticType: int
+                operator: + @63
+                rightOperand: IntegerLiteral
+                  literal: 1 @65
+                  staticType: int
+                staticElement: dart:core::@class::num::@method::+
+                staticInvokeType: num Function(num)
+                staticType: int
+            augmentationTarget: self::@variable::foo
+        accessors
+          synthetic static get foo @-1
+            returnType: int
 ''');
   }
 }

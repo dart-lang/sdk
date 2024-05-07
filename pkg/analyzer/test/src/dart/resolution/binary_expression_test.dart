@@ -384,24 +384,21 @@ class A {
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 50, 9),
     ]);
 
-    var node = findNode.singleReturnStatement;
+    var node = findNode.singleBinaryExpression;
     assertResolvedNodeText(node, r'''
-ReturnStatement
-  returnKeyword: return
-  expression: BinaryExpression
-    leftOperand: SimpleIdentifier
-      token: augmented
-      staticElement: <null>
-      staticType: InvalidType
-    operator: +
-    rightOperand: IntegerLiteral
-      literal: 0
-      parameter: <null>
-      staticType: int
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: augmented
     staticElement: <null>
-    staticInvokeType: null
     staticType: InvalidType
-  semicolon: ;
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 0
+    parameter: <null>
+    staticType: int
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: InvalidType
 ''');
   }
 
@@ -424,24 +421,21 @@ augment class A {
 }
 ''');
 
-    var node = findNode.singleReturnStatement;
+    var node = findNode.singleBinaryExpression;
     assertResolvedNodeText(node, r'''
-ReturnStatement
-  returnKeyword: return
-  expression: BinaryExpression
-    leftOperand: AugmentedExpression
-      augmentedKeyword: augmented
-      element: self::@class::A::@method::+
-      staticType: A
-    operator: +
-    rightOperand: IntegerLiteral
-      literal: 0
-      parameter: self::@class::A::@method::+::@parameter::a
-      staticType: int
-    staticElement: self::@class::A::@method::+
-    staticInvokeType: int Function(Object?)
+BinaryExpression
+  leftOperand: AugmentedExpression
+    augmentedKeyword: augmented
+    element: self::@class::A::@method::+
+    staticType: A
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 0
+    parameter: self::@class::A::@method::+::@parameter::a
     staticType: int
-  semicolon: ;
+  staticElement: self::@class::A::@method::+
+  staticInvokeType: int Function(Object?)
+  staticType: int
 ''');
   }
 
@@ -466,24 +460,132 @@ augment class A {
       error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR, 84, 9),
     ]);
 
-    var node = findNode.singleReturnStatement;
+    var node = findNode.singleBinaryExpression;
     assertResolvedNodeText(node, r'''
-ReturnStatement
-  returnKeyword: return
-  expression: BinaryExpression
-    leftOperand: AugmentedExpression
-      augmentedKeyword: augmented
-      element: <null>
-      staticType: A
-    operator: +
-    rightOperand: IntegerLiteral
-      literal: 0
-      parameter: <null>
-      staticType: int
-    staticElement: <null>
-    staticInvokeType: null
+BinaryExpression
+  leftOperand: AugmentedExpression
+    augmentedKeyword: augmented
+    element: self::@class::A::@method::unary-
+    staticType: A
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 0
+    parameter: <null>
+    staticType: int
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: InvalidType
+''');
+  }
+
+  test_plus_augmentedExpression_class_field() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class A {
+  num foo = 0;
+}
+''');
+
+    await assertNoErrorsInCode('''
+augment library 'a.dart';
+
+augment class A {
+  augment num foo = augmented + 1;
+}
+''');
+
+    var node = findNode.singleBinaryExpression;
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: AugmentedExpression
+    augmentedKeyword: augmented
+    element: self::@class::A::@field::foo
+    staticType: num
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 1
+    parameter: dart:core::@class::num::@method::+::@parameter::other
+    staticType: int
+  staticElement: dart:core::@class::num::@method::+
+  staticInvokeType: num Function(num)
+  staticType: num
+''');
+  }
+
+  test_plus_augmentedExpression_getter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class A {
+  int get foo => 0;
+}
+''');
+
+    await assertNoErrorsInCode('''
+augment library 'a.dart';
+
+augment class A {
+  augment int get foo {
+    return augmented + 1;
+  }
+}
+''');
+
+    var node = findNode.singleBinaryExpression;
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: AugmentedExpression
+    augmentedKeyword: augmented
+    element: self::@class::A::@getter::foo
+    staticType: int
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 1
+    parameter: dart:core::@class::num::@method::+::@parameter::other
+    staticType: int
+  staticElement: dart:core::@class::num::@method::+
+  staticInvokeType: num Function(num)
+  staticType: int
+''');
+  }
+
+  test_plus_augmentedExpression_setter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class A {
+  set foo(int _) {}
+}
+''');
+
+    await assertErrorsInCode('''
+augment library 'a.dart';
+
+augment class A {
+  augment set foo(int _) {
+    augmented + 1;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER, 76, 9),
+    ]);
+
+    var node = findNode.singleBinaryExpression;
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: AugmentedExpression
+    augmentedKeyword: augmented
+    element: self::@class::A::@setter::foo
     staticType: InvalidType
-  semicolon: ;
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 1
+    parameter: <null>
+    staticType: int
+  staticElement: <null>
+  staticInvokeType: null
+  staticType: InvalidType
 ''');
   }
 

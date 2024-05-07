@@ -1163,6 +1163,10 @@ CompileTimeErrorCode:
     problemMessage: The URI does not resolve to a library.
     correctionMessage: Try updating the URI to reference the augmented library.
     hasPublishedDocs: false
+  AUGMENTED_EXPRESSION_IS_SETTER:
+    problemMessage: The augmented declaration is a setter, it can't be used to read a value.
+    correctionMessage: Try assigning a value to the augmented setter.
+    hasPublishedDocs: false
   AUGMENTED_EXPRESSION_NOT_OPERATOR:
     problemMessage: The enclosing augmentation doesn't augment the operator '{0}'.
     correctionMessage: Try augmenting or invoking the correct operator.

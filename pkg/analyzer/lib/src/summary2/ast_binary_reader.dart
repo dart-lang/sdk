@@ -42,6 +42,8 @@ class AstBinaryReader {
         return _readAssertInitializer();
       case Tag.AssignmentExpression:
         return _readAssignmentExpression();
+      case Tag.AugmentedExpression:
+        return _readAugmentedExpression();
       case Tag.AwaitExpression:
         return _readAwaitExpression();
       case Tag.BinaryExpression:
@@ -269,6 +271,15 @@ class AstBinaryReader {
     node.readType = _reader.readType();
     node.writeElement = _reader.readElement();
     node.writeType = _reader.readType();
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  AugmentedExpression _readAugmentedExpression() {
+    var node = AugmentedExpressionImpl(
+      augmentedKeyword: Tokens.augmented(),
+    );
+    node.element = _reader.readElement();
     _readExpressionResolution(node);
     return node;
   }

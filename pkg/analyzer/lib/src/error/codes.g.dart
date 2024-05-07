@@ -270,6 +270,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "Try updating the URI to reference the augmented library.",
   );
 
+  static const CompileTimeErrorCode AUGMENTED_EXPRESSION_IS_SETTER =
+      CompileTimeErrorCode(
+    'AUGMENTED_EXPRESSION_IS_SETTER',
+    "The augmented declaration is a setter, it can't be used to read a value.",
+    correctionMessage: "Try assigning a value to the augmented setter.",
+  );
+
   ///  Parameters:
   ///  0: the lexeme of the operator.
   static const CompileTimeErrorCode AUGMENTED_EXPRESSION_NOT_OPERATOR =
