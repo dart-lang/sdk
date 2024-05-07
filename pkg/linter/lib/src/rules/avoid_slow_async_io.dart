@@ -10,7 +10,7 @@ import 'package:analyzer/dart/element/type.dart';
 import '../analyzer.dart';
 import '../extensions.dart';
 
-const _desc = r'Avoid slow async `dart:io` methods.';
+const _desc = r'Avoid slow asynchronous `dart:io` methods.';
 
 const _details = r'''
 **AVOID** using the following asynchronous file I/O methods because they are

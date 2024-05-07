@@ -8,10 +8,10 @@ import '../analyzer.dart';
 import '../extensions.dart';
 import '../util/leak_detector_visitor.dart';
 
-const _desc = r'Close instances of `dart.core.Sink`.';
+const _desc = r'Close instances of `dart:core` `Sink`.';
 
 const _details = r'''
-**DO** invoke `close` on instances of `dart.core.Sink`.
+**DO** invoke `close` on instances of `dart:core` `Sink`.
 
 Closing instances of Sink prevents memory leaks and unexpected behavior.
 

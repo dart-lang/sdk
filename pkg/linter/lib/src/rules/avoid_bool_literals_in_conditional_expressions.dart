@@ -7,10 +7,10 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 
-const _desc = r'Avoid bool literals in conditional expressions.';
+const _desc = r'Avoid `bool` literals in conditional expressions.';
 
 const _details = r'''
-**AVOID** bool literals in conditional expressions.
+**AVOID** `bool` literals in conditional expressions.
 
 **BAD:**
 ```dart

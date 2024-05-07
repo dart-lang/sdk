@@ -8,10 +8,10 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 
-const _desc = r'Prefer using if null operators.';
+const _desc = r'Prefer using `??` operators.';
 
 const _details = r'''
-**PREFER** using if null operators instead of null checks in conditional
+**PREFER** using `??` operators instead of `null` checks and conditional
 expressions.
 
 **BAD:**
