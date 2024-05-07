@@ -207,7 +207,7 @@ void Page::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
   ASSERT(obj_addr == end_addr);
 }
 
-void Page::VisitRememberedCards(ObjectPointerVisitor* visitor) {
+void Page::VisitRememberedCards(PredicateObjectPointerVisitor* visitor) {
   ASSERT(Thread::Current()->OwnsGCSafepoint() ||
          (Thread::Current()->task_kind() == Thread::kScavengerTask));
   NoSafepointScope no_safepoint;
@@ -258,15 +258,9 @@ void Page::VisitRememberedCards(ObjectPointerVisitor* visitor) {
         card_to = obj_to;
       }
 
-      visitor->VisitCompressedPointers(heap_base, card_from, card_to);
+      bool has_new_target = visitor->PredicateVisitCompressedPointers(
+          heap_base, card_from, card_to);
 
-      bool has_new_target = false;
-      for (CompressedObjectPtr* slot = card_from; slot <= card_to; slot++) {
-        if ((*slot)->IsNewObjectMayBeSmi()) {
-          has_new_target = true;
-          break;
-        }
-      }
       if (!has_new_target) {
         cell ^= bit_mask;
       }

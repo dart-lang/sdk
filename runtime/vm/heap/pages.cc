@@ -676,7 +676,8 @@ void PageSpace::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
   }
 }
 
-void PageSpace::VisitRememberedCards(ObjectPointerVisitor* visitor) const {
+void PageSpace::VisitRememberedCards(
+    PredicateObjectPointerVisitor* visitor) const {
   ASSERT(Thread::Current()->OwnsGCSafepoint() ||
          (Thread::Current()->task_kind() == Thread::kScavengerTask));
 
