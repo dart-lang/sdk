@@ -223,6 +223,8 @@ CompileTimeErrorCode.AUGMENTATION_WITHOUT_IMPORT:
     The fix is to add `import augment`.
 CompileTimeErrorCode.AUGMENTATION_WITHOUT_LIBRARY:
   status: noFix
+CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR:
+  status: noFix
 CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER:
   status: needsFix
   notes: |-

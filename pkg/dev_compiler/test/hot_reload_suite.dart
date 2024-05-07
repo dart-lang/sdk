@@ -39,16 +39,22 @@ final argParser = ArgParser()
       defaultsTo: 'no-configuration',
       help: 'configuration name to use for emitting test result files.')
   ..addOption('output-directory', help: 'directory to emit test results files.')
+  ..addOption(
+    'filter',
+    abbr: 'f',
+    defaultsTo: r'.*',
+    help: 'regexp filter over tests to run.',
+  )
   ..addOption('diff',
       allowed: ['check', 'write', 'ignore'],
       allowedHelp: {
-        'check': 'Validate that reload test diffs are generated and correct.',
-        'write': 'Write diffs for reload tests.',
-        'ignore': 'Ignore reload diffs.',
+        'check': 'validate that reload test diffs are generated and correct.',
+        'write': 'write diffs for reload tests.',
+        'ignore': 'ignore reload diffs.',
       },
       defaultsTo: 'check',
       help:
-          'Selects whether test diffs should be checked, written, or ignored.')
+          'selects whether test diffs should be checked, written, or ignored.')
   ..addFlag('debug',
       abbr: 'd',
       defaultsTo: false,
@@ -67,6 +73,7 @@ Future<void> main(List<String> args) async {
   final argResults = argParser.parse(args);
   final runtimePlatform =
       RuntimePlatforms.values.byName(argResults['runtime'] as String);
+  final testNameFilter = RegExp(argResults['filter'] as String);
   debug = argResults['debug'] as bool;
   verbose = argResults['verbose'] as bool;
 
@@ -174,6 +181,12 @@ Future<void> main(List<String> args) async {
     }
     final testDirParts = testDir.uri.pathSegments;
     final testName = testDirParts[testDirParts.length - 2];
+
+    // Skip tests that don't match the name filter.
+    if (!testNameFilter.hasMatch(testName)) {
+      _print('Skipping test', label: testName);
+      continue;
+    }
 
     var outcome = TestResultOutcome(
       configuration: argResults['named-configuration'] as String,

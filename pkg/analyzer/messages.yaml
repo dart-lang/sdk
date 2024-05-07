@@ -1163,6 +1163,13 @@ CompileTimeErrorCode:
     problemMessage: The URI does not resolve to a library.
     correctionMessage: Try updating the URI to reference the augmented library.
     hasPublishedDocs: false
+  AUGMENTED_EXPRESSION_NOT_OPERATOR:
+    problemMessage: The enclosing augmentation doesn't augment the operator '{0}'.
+    correctionMessage: Try augmenting or invoking the correct operator.
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the lexeme of the operator.
   AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER:
     problemMessage: "The 'await' expression can't be used in a 'late' local variable's initializer."
     correctionMessage: "Try removing the 'late' modifier, or rewriting the initializer without using the 'await' expression."

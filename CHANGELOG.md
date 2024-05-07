@@ -136,6 +136,14 @@ advantage of these improvements, set your package's
 [`@doNotSubmit`]: https://pub.dev/documentation/meta/latest/meta/doNotSubmit-constant.html
 [`@mustBeConst`]: https://pub.dev/documentation/meta/latest/meta/mustBeConst-constant.html
 
+#### Linter
+
+- Added the [`unnecessary_library_name`][] lint.
+- Added the [`missing_code_block_language_in_doc_comment`][] lint.
+
+[`unnecessary_library_name`]: https://dart.dev/lints/unnecessary_library_name
+[`missing_code_block_language_in_doc_comment`]: https://dart.dev/lints/missing_code_block_language_in_doc_comment
+
 #### Compilers
 
 - The compilation environment will no longer pretend to contain entries with

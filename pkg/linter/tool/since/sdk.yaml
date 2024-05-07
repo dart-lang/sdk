@@ -95,7 +95,7 @@ lines_longer_than_80_chars: 2.0.0
 list_remove_unrelated_type: 2.0.0
 literal_only_boolean_expressions: 2.0.0
 matching_super_parameters: 3.0.0
-missing_code_block_language_in_doc_comment: 3.4.0-wip
+missing_code_block_language_in_doc_comment: 3.4.0
 missing_whitespace_between_adjacent_strings: 2.8.1
 no_adjacent_strings_in_list: 2.0.0
 no_default_cases: 2.9.0
@@ -180,7 +180,7 @@ type_annotate_public_apis: 2.0.0
 type_init_formals: 2.0.0
 type_literal_in_constant_pattern: 3.0.0
 unawaited_futures: 2.0.0
-unintended_html_in_doc_comment: 3.4.0-wip
+unintended_html_in_doc_comment: 3.5.0-wip
 unnecessary_await_in_return: 2.1.1
 unnecessary_brace_in_string_interps: 2.0.0
 unnecessary_breaks: 3.0.0
@@ -191,7 +191,7 @@ unnecessary_getters_setters: 2.0.0
 unnecessary_lambdas: 2.0.0
 unnecessary_late: 2.16.0
 unnecessary_library_directive: 2.19.0
-unnecessary_library_name: 3.4.0-wip
+unnecessary_library_name: 3.4.0
 unnecessary_new: 2.0.0
 unnecessary_null_aware_assignments: 2.0.0
 unnecessary_null_aware_operator_on_extension_on_nullable: 2.18.0

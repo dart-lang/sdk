@@ -1941,17 +1941,6 @@
           ],
           "shards": 12,
           "fileset": "js_platform"
-        },
-        {
-          "name": "ddc modular tests unsound",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "testRunner": true,
-          "arguments": [
-            "pkg/dev_compiler/test/modular_suite_unsound.dart",
-            "-nddc-linux-chrome-unsound",
-            "--verbose",
-            "--use-sdk"
-          ]
         }
       ]
     },
@@ -2015,12 +2004,12 @@
           "fileset": "js_platform"
         },
         {
-          "name": "ddc modular tests unsound",
+          "name": "ddc modular tests",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "testRunner": true,
           "arguments": [
-            "pkg/dev_compiler/test/modular_suite_canary_unsound.dart",
-            "-nddc-canary-linux-chrome-unsound",
+            "pkg/dev_compiler/test/modular_suite_canary.dart",
+            "-nddc-canary-linux-chrome",
             "--verbose",
             "--use-sdk"
           ]

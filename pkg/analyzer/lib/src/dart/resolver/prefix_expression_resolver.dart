@@ -49,6 +49,31 @@ class PrefixExpressionResolver {
       return;
     }
 
+    if (node.operand case AugmentedExpressionImpl operand) {
+      var methodName = _getPrefixOperator(node);
+      var augmentation = _resolver.enclosingAugmentation;
+      var augmentationTarget = augmentation?.augmentationTarget;
+      if (augmentationTarget case MethodElement augmentationTarget) {
+        if (augmentationTarget.name == methodName) {
+          operand.element = augmentationTarget;
+          operand.staticType = _resolver.thisType ?? InvalidTypeImpl.instance;
+          node.staticElement = augmentationTarget;
+          node.staticType = augmentationTarget.returnType;
+          return;
+        }
+      }
+      _errorReporter.atToken(
+        operand.augmentedKeyword,
+        CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR,
+        arguments: [
+          methodName,
+        ],
+      );
+      operand.staticType = InvalidTypeImpl.instance;
+      node.staticType = InvalidTypeImpl.instance;
+      return;
+    }
+
     var operand = node.operand;
     if (operator.isIncrementOperator) {
       var operandResolution = _resolver.resolveForWrite(

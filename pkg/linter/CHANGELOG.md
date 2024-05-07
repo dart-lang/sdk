@@ -1,8 +1,6 @@
-# 3.4.0-wip
+# 3.5.0-wip
 
 - new lint: `unintended_html_in_doc_comment`
-- new lint: `unnecessary_library_name`
-- new lint: `missing_code_block_language_in_doc_comment`
 - update `noop_primitive_operations` to allow an empty string literal at the
   beginning or end of adjacent string literals:
 
@@ -22,6 +20,11 @@
       'b';
       '';
   ```
+
+# 3.4.0
+
+- new lint: `unnecessary_library_name`
+- new lint: `missing_code_block_language_in_doc_comment`
 
 # 3.3.0
 

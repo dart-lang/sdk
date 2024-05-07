@@ -20,6 +20,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'analysis_server_base.dart';
 import 'mocks.dart';
+import 'services/completion/dart/text_expectations.dart';
 import 'utils/tree_string_sink.dart';
 
 void main() {
@@ -27,6 +28,7 @@ void main() {
     defineReflectiveTests(AnalysisDomainBlazeTest);
     defineReflectiveTests(AnalysisDomainPubTest);
     defineReflectiveTests(SetSubscriptionsTest);
+    defineReflectiveTests(UpdateTextExpectations);
   });
 }
 
@@ -126,10 +128,10 @@ AnalysisFlush
   /home/test/lib/b.dart
   /home/test/pubspec.yaml
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/pubspec.yaml
+  file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
@@ -170,11 +172,11 @@ AnalysisFlush
   /home/test/lib/a.dart
   /home/test/pubspec.yaml
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
-  errors: notEmpty
-AnalysisErrors
   file: /home/test/pubspec.yaml
   errors: empty
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: notEmpty
 AnalysisErrors
   file: /home/test/lib/a.dart
   errors: notEmpty
@@ -194,10 +196,10 @@ analyzer:
     await server.onAnalysisComplete;
     assertNotificationsText(r'''
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/pubspec.yaml
+  file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
@@ -230,10 +232,10 @@ AnalysisErrors
     // We don't have a.dart yet.
     assertNotificationsText(r'''
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/pubspec.yaml
+  file: /home/test/analysis_options.yaml
   errors: empty
 ''');
 
@@ -266,10 +268,10 @@ void f(A a) {}
     // We don't have a.dart, so the import cannot be resolved.
     assertNotificationsText(r'''
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/pubspec.yaml
+  file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/b.dart
@@ -312,10 +314,10 @@ void f(A a) {}
     // We don't have a.dart, so the import cannot be resolved.
     assertNotificationsText(r'''
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/pubspec.yaml
+  file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/b.dart
@@ -348,10 +350,10 @@ AnalysisErrors
     // No `fix_data.yaml` to analyze yet.
     assertNotificationsText(r'''
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/pubspec.yaml
+  file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
@@ -387,10 +389,10 @@ AnalysisErrors
     // No `fix_data.yaml` to analyze yet.
     assertNotificationsText(r'''
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/pubspec.yaml
+  file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
@@ -434,10 +436,10 @@ void f(A a) {}
     // We cannot resolve `package:aaa/a.dart`
     assertNotificationsText(r'''
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/pubspec.yaml
+  file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/test.dart
@@ -462,10 +464,10 @@ AnalysisFlush
   /home/test/lib/test.dart
   /home/test/pubspec.yaml
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/pubspec.yaml
+  file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/test.dart
@@ -489,10 +491,10 @@ AnalysisErrors
     // a.dart was analyzed
     assertNotificationsText(r'''
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/pubspec.yaml
+  file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
@@ -515,11 +517,11 @@ AnalysisFlush
   /home/test/lib/a.dart
   /home/test/pubspec.yaml
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
-  errors: empty
-AnalysisErrors
   file: /home/test/pubspec.yaml
   errors: notEmpty
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
   errors: notEmpty
@@ -538,10 +540,10 @@ AnalysisErrors
     // a.dart was analyzed
     assertNotificationsText(r'''
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/pubspec.yaml
+  file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
@@ -579,10 +581,10 @@ analyzer:
     // Only 'a.dart' and 'c.dart' are analyzed, because 'b.dart' is excluded.
     assertNotificationsText(r'''
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/pubspec.yaml
+  file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
@@ -611,10 +613,10 @@ AnalysisFlush
   /home/test/lib/c.dart
   /home/test/pubspec.yaml
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/pubspec.yaml
+  file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
@@ -644,14 +646,14 @@ analyzer:
 
     assertNotificationsText(r'''
 AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
+AnalysisErrors
   file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/AndroidManifest.xml
   errors: notEmpty
-AnalysisErrors
-  file: /home/test/pubspec.yaml
-  errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
   errors: empty
@@ -692,10 +694,10 @@ void f(A a) {}
 
     assertNotificationsText(r'''
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/pubspec.yaml
+  file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
@@ -742,10 +744,10 @@ void f(A a) {}
     // We have `B`, not `A`, in a.dart, so has errors.
     assertNotificationsText(r'''
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/pubspec.yaml
+  file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/b.dart
@@ -794,10 +796,10 @@ void f(A a) {}
     // We have `B`, not `A`, in a.dart, so has errors.
     assertNotificationsText(r'''
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/pubspec.yaml
+  file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/b.dart
@@ -832,14 +834,14 @@ AnalysisErrors
     // The file was analyzed.
     assertNotificationsText(r'''
 AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
+AnalysisErrors
   file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/fix_data/foo.yaml
   errors: notEmpty
-AnalysisErrors
-  file: /home/test/pubspec.yaml
-  errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
   errors: empty
@@ -880,14 +882,14 @@ AnalysisErrors
     // The file was analyzed.
     assertNotificationsText(r'''
 AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
+AnalysisErrors
   file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/fix_data.yaml
   errors: notEmpty
-AnalysisErrors
-  file: /home/test/pubspec.yaml
-  errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
   errors: empty
@@ -930,10 +932,10 @@ AnalysisErrors
     await _waitAnalysisComplete();
     assertNotificationsText(r'''
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/pubspec.yaml
+  file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/test.dart
@@ -984,10 +986,10 @@ void f(A a) {}
     // We cannot resolve `package:aaa/a.dart`
     assertNotificationsText(r'''
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/pubspec.yaml
+  file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/test.dart
@@ -1011,10 +1013,10 @@ AnalysisFlush
   /home/test/lib/test.dart
   /home/test/pubspec.yaml
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/pubspec.yaml
+  file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/test.dart
@@ -1042,10 +1044,10 @@ analyzer:
     // Only a.dart is analyzed, because b.dart is excluded.
     assertNotificationsText(r'''
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/pubspec.yaml
+  file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
@@ -1096,14 +1098,14 @@ analyzer:
     // An error was reported.
     assertNotificationsText(r'''
 AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
+AnalysisErrors
   file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/AndroidManifest.xml
   errors: notEmpty
-AnalysisErrors
-  file: /home/test/pubspec.yaml
-  errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
   errors: empty
@@ -1136,10 +1138,10 @@ AnalysisFlush
     // Initial file has errors.
     assertNotificationsText(r'''
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/pubspec.yaml
+  file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
@@ -1210,10 +1212,10 @@ AnalysisFlush
     // a.dart was analyzed
     assertNotificationsText(r'''
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/pubspec.yaml
+  file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
@@ -1258,10 +1260,10 @@ void f(A a) {}
     // We have `A` in a.dart, so no errors.
     assertNotificationsText(r'''
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/pubspec.yaml
+  file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/b.dart
@@ -1295,14 +1297,14 @@ AnalysisErrors
     // The file was analyzed.
     assertNotificationsText(r'''
 AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
+AnalysisErrors
   file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/fix_data.yaml
   errors: notEmpty
-AnalysisErrors
-  file: /home/test/pubspec.yaml
-  errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
   errors: empty
@@ -1319,22 +1321,6 @@ AnalysisFlush
 ''');
   }
 
-  @FailingTest(
-      issue: 'https://github.com/dart-lang/sdk/issues/55580', reason: '''
--------- Actual --------
-
-AnalysisFlush
-  /home/test/analysis_options.yaml
-  /home/test/lib/test.dart
-  /home/test/pubspec.yaml
-AnalysisErrors
-  file: /home/test/analysis_options.yaml
-  errors: empty
-AnalysisErrors
-  file: /home/test/lib/test.dart
-  errors: notEmpty
-------------------------
-''')
   Future<void> test_fileSystem_deleteFile_packageConfigJsonFile() async {
     var aaaRootPath = '/packages/aaa';
     var aPath = '$aaaRootPath/lib/a.dart';
@@ -1360,10 +1346,10 @@ void f(A a) {}
     // We have `A` in 'package:aaa/a.dart', so no errors.
     assertNotificationsText(r'''
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/pubspec.yaml
+  file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/test.dart
@@ -1375,7 +1361,7 @@ AnalysisErrors
       '$testPackageRootPath/.dart_tool/package_config.json',
     );
 
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
 
     // We cannot resolve 'package:aaa/a.dart', so errors.
@@ -1386,10 +1372,10 @@ AnalysisFlush
   /home/test/lib/test.dart
   /home/test/pubspec.yaml
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/pubspec.yaml
+  file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/test.dart
@@ -1412,10 +1398,10 @@ AnalysisErrors
     // Initial file has errors.
     assertNotificationsText(r'''
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/pubspec.yaml
+  file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
@@ -1483,10 +1469,10 @@ AnalysisErrors
     // So, they are analyzed before b.dart and d.dart
     assertNotificationsText(r'''
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/pubspec.yaml
+  file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/foo/lib/a.dart
@@ -1642,10 +1628,10 @@ AnalysisErrors
 AnalysisFlush
   /home/test/lib/a.dart
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/pubspec.yaml
+  file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
@@ -1706,10 +1692,10 @@ analyzer:
     await server.onAnalysisComplete;
     assertNotificationsText(r'''
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/pubspec.yaml
+  file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
@@ -1748,10 +1734,10 @@ AnalysisErrors
     // a.dart is analyzed, but b.dart is in the excluded folder.
     assertNotificationsText(r'''
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/pubspec.yaml
+  file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
@@ -1828,14 +1814,14 @@ analyzer:
     // No touch-screen.
     assertNotificationsText(r'''
 AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
+AnalysisErrors
   file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/AndroidManifest.xml
   errors: notEmpty
-AnalysisErrors
-  file: /home/test/pubspec.yaml
-  errors: empty
 ''');
   }
 
@@ -1849,14 +1835,14 @@ AnalysisErrors
 
     assertNotificationsText(r'''
 AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
+AnalysisErrors
   file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/fix_data.yaml
   errors: notEmpty
-AnalysisErrors
-  file: /home/test/pubspec.yaml
-  errors: empty
 ''');
   }
 
@@ -1868,13 +1854,13 @@ AnalysisErrors
 
     assertNotificationsText(r'''
 AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
+AnalysisErrors
   file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/fix_data.yaml
-  errors: empty
-AnalysisErrors
-  file: /home/test/pubspec.yaml
   errors: empty
 ''');
   }
@@ -1887,13 +1873,13 @@ AnalysisErrors
 
     assertNotificationsText(r'''
 AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
+AnalysisErrors
   file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/fix_data.yaml
-  errors: empty
-AnalysisErrors
-  file: /home/test/pubspec.yaml
   errors: empty
 ''');
   }
@@ -1957,10 +1943,10 @@ void f(A a) {}
     // Errors are not reported for packages.
     assertNotificationsText(r'''
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/pubspec.yaml
+  file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/test.dart
@@ -1977,10 +1963,10 @@ AnalysisErrors
     await server.onAnalysisComplete;
     assertNotificationsText(r'''
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/pubspec.yaml
+  file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/test.dart
@@ -2019,10 +2005,10 @@ AnalysisErrors
     await server.onAnalysisComplete;
     assertNotificationsText(r'''
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/pubspec.yaml
+  file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/test.dart
@@ -2287,6 +2273,7 @@ class _AnalysisDomainTest extends PubPackageAnalysisServerTest {
     if (actual != expected) {
       print('-------- Actual --------');
       print('$actual------------------------');
+      TextExpectationsCollector.add(actual);
     }
     expect(actual, expected);
   }

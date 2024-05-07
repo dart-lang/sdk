@@ -337,7 +337,7 @@
     "sets": [],
     "fixStatus": "needsEvaluation",
     "details": "**DO** specify the language used in the code block of a doc comment.\n\nTo enable proper syntax highlighting of Markdown code blocks,\n[`dart doc`](https://dart.dev/tools/dart-doc) strongly recommends code blocks to\nspecify the language used after the initial code fence.\n\nSee [highlight.js](https://github.com/highlightjs/highlight.js/blob/main/SUPPORTED_LANGUAGES.md)\nfor the list of languages supported by `dart doc`.\n\n**BAD:**\n```dart\n/// ```\n/// void main() {}\n/// ```\nclass A {}\n```\n\n**GOOD:**\n```dart\n/// ```dart\n/// void main() {}\n/// ```\nclass A {}\n```\n\n",
-    "sinceDartSdk": "3.4.0-wip"
+    "sinceDartSdk": "3.4.0"
   },
   {
     "name": "no_adjacent_strings_in_list",
@@ -457,9 +457,9 @@
     "state": "stable",
     "incompatible": [],
     "sets": [],
-    "fixStatus": "needsEvaluation",
-    "details": "**DO** reference only in-scope identifiers in doc comments.\n\nWhen a developer writes a reference with angle brackets within a doc comment,\nthe angle brackets are interpreted as HTML. The text within pairs of opening and\nclosing angle brackets generally get swallowed by the browser, and will not be\ndisplayed.\n\nWrap text with angle brackets within a code block or within a code span, unless\nthey are delimiters for a Markdown autolink. You can also replace `<` with\n`&lt;` and `>` with `&gt;`.\n\n**BAD:**\n```dart\n/// Text List<int>.\n/// Text [List<int>].\n/// <assignment> -> <variable> = <expression>\n```\n\n**GOOD:**\n```dart\n/// Text `List<int>`.\n/// `<assignment> -> <variable> = <expression>`\n/// <http://foo.bar.baz>\n```\n\n",
-    "sinceDartSdk": "3.4.0-wip"
+    "fixStatus": "needsFix",
+    "details": "**DO** reference only in-scope identifiers in doc comments.\n\nWhen a developer writes a reference with angle brackets within a doc comment,\nthe angle brackets are interpreted as HTML. The text within pairs of opening and\nclosing angle brackets generally get swallowed by the browser, and will not be\ndisplayed.\n\nYou can use a code block or code span to wrap the text containing angle\nbrackets. You can also replace `<` with `&lt;` and `>` with `&gt;`.\n\n**BAD:**\n```dart\n/// Text List<int>.\n/// Text [List<int>].\n/// <assignment> -> <variable> = <expression>\n```\n\n**GOOD:**\n```dart\n/// Text `List<int>`.\n/// `<assignment> -> <variable> = <expression>`\n/// <http://foo.bar.baz>\n```\n\n",
+    "sinceDartSdk": "3.5.0-wip"
   },
   {
     "name": "unnecessary_statements",
@@ -1057,7 +1057,7 @@
     "incompatible": [],
     "sets": [],
     "fixStatus": "hasFix",
-    "details": "**DO** mark async functions as returning Future<void>.\n\nWhen declaring an async method or function which does not return a value,\ndeclare that it returns `Future<void>` and not just `void`.\n\n**BAD:**\n```dart\nvoid f() async {}\nvoid f2() async => null;\n```\n\n**GOOD:**\n```dart\nFuture<void> f() async {}\nFuture<void> f2() async => null;\n```\n\n**EXCEPTION:**\n\nAn exception is made for top-level `main` functions, where the `Future`\nannotation *can* (and generally should) be dropped in favor of `void`.\n\n**GOOD:**\n```dart\nFuture<void> f() async {}\n\nvoid main() async {\n  await f();\n}\n```\n",
+    "details": "**DO** mark async functions as returning `Future<void>`.\n\nWhen declaring an async method or function which does not return a value,\ndeclare that it returns `Future<void>` and not just `void`.\n\n**BAD:**\n```dart\nvoid f() async {}\nvoid f2() async => null;\n```\n\n**GOOD:**\n```dart\nFuture<void> f() async {}\nFuture<void> f2() async => null;\n```\n\n**EXCEPTION:**\n\nAn exception is made for top-level `main` functions, where the `Future`\nannotation *can* (and generally should) be dropped in favor of `void`.\n\n**GOOD:**\n```dart\nFuture<void> f() async {}\n\nvoid main() async {\n  await f();\n}\n```\n",
     "sinceDartSdk": "2.1.0"
   },
   {
@@ -1314,7 +1314,7 @@
     "incompatible": [],
     "sets": [],
     "fixStatus": "hasFix",
-    "details": "**DO** use Flutter TODO format.\n\nFrom the [Flutter docs](https://github.com/flutter/flutter/wiki/Style-guide-for-Flutter-repo#comments):\n\n> TODOs should include the string TODO in all caps, followed by the GitHub username of the person with the best context about the problem referenced by the TODO in parenthesis. A TODO is not a commitment that the person referenced will fix the problem, it is intended to be the person with enough context to explain the problem. Thus, when you create a TODO, it is almost always your username that is given.\n\n**GOOD:**\n```dart\n// TODO(username): message.\n// TODO(username): message, https://URL-to-issue.\n```\n\n",
+    "details": "**DO** use Flutter TODO format.\n\nFrom the [Flutter\ndocs](https://github.com/flutter/flutter/wiki/Style-guide-for-Flutter-repo#comments):\n\n> TODOs should include the string TODO in all caps, followed by the GitHub\nusername of the person with the best context about the problem referenced by the\nTODO in parenthesis. A TODO is not a commitment that the person referenced will\nfix the problem, it is intended to be the person with enough context to explain\nthe problem. Thus, when you create a TODO, it is almost always your username\nthat is given.\n\n**GOOD:**\n```dart\n// TODO(username): message.\n// TODO(username): message, https://URL-to-issue.\n```\n\n",
     "sinceDartSdk": "2.1.0"
   },
   {
@@ -1389,10 +1389,7 @@
     "group": "style",
     "state": "stable",
     "incompatible": [],
-    "sets": [
-      "recommended",
-      "flutter"
-    ],
+    "sets": [],
     "fixStatus": "noFix",
     "details": "**DO** name libraries using `lowercase_with_underscores`.\n\nSome file systems are not case-sensitive, so many projects require filenames to\nbe all lowercase. Using a separating character allows names to still be readable\nin that form. Using underscores as the separator ensures that the name is still\na valid Dart identifier, which may be helpful if the language later supports\nsymbolic imports.\n\n**BAD:**\n```dart\nlibrary peg-parser;\n```\n\n**GOOD:**\n```dart\nlibrary peg_parser;\n```\n\nThe lint `file_names` can be used to enforce the same kind of naming on the\nfile.\n\n",
     "sinceDartSdk": "2.0.0"
@@ -1542,7 +1539,7 @@
     "incompatible": [],
     "sets": [],
     "fixStatus": "hasFix",
-    "details": "Some operations on primitive types are idempotent and can be removed.\n\n**BAD:**\n\n```dart\ndoubleValue.toDouble();\n\nintValue.toInt();\nintValue.round();\nintValue.ceil();\nintValue.floor();\nintValue.truncate();\n\nstring.toString();\nstring = 'hello\\n'\n    'world\\n'\n    ''; // useless empty string\n\n'string with ${x.toString()}';\n```\n",
+    "details": "Some operations on primitive types are idempotent and can be removed.\n\n**BAD:**\n\n```dart\ndoubleValue.toDouble();\n\nintValue.toInt();\nintValue.round();\nintValue.ceil();\nintValue.floor();\nintValue.truncate();\n\nstring.toString();\nstring = 'hello\\n'\n    ''\n    'world';\n\n'string with ${x.toString()}';\n```\n\nNote that the empty string literals at the beginning or end of a string are\nallowed, as they are typically used to format the string literal across multiple\nlines:\n\n```dart\n// OK\nstring = ''\n    'hello\\n'\n    'world\\n';\n\n// OK\nstring = 'hello\\n'\n    'world\\n'\n    '';\n",
     "sinceDartSdk": "2.14.0"
   },
   {
@@ -2498,7 +2495,7 @@
     "sets": [],
     "fixStatus": "hasFix",
     "details": "**DON'T** have a library name in a `library` declaration.\n\nLibrary names are not necessary.\n\nA library does not need a library declaration, but one can be added to attach\nlibrary documentation and library metadata to. A declaration of `library;` is\nsufficient for those uses.\n\nThe only *use* of a library name is for a `part` file to refer back to its\nowning library, but part files should prefer to use a string URI to refer back\nto the library file, not a library name.\n\nIf a library name is added to a library declaration, it introduces the risk of\nname *conflicts*. It's a compile-time error if two libraries in the same program\nhave the same library name. To avoid that, library names tend to be long,\nincluding the package name and path, just to avoid accidental name clashes. That\nmakes such library names hard to read, and not even useful as documentation.\n\n**BAD:**\n```dart\n/// This library has a long name.\nlibrary magnificator.src.helper.bananas;\n```\n\n```dart\nlibrary utils; // Not as verbose, but risks conflicts.\n```\n\n**GOOD:**\n```dart\n/// This library is awesome.\nlibrary;\n\npart \"apart.dart\"; // contains: `part of \"good_library.dart\";`\n```\n",
-    "sinceDartSdk": "3.4.0-wip"
+    "sinceDartSdk": "3.4.0"
   },
   {
     "name": "unnecessary_new",
