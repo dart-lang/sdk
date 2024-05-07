@@ -24,6 +24,7 @@ config("binaryen_flags") {
         "-Wno-header-hygiene",
         "-Wno-unused-private-field",
         "-Wno-inconsistent-missing-override",
+        "-Wno-unknown-warning-option",
       ]
     } else {
       # GCC
