@@ -73,21 +73,23 @@ FLAG_LIST(PRODUCT_FLAG_MACRO,
 #undef DEBUG_FLAG_MACRO
 
 #if defined(DART_PRECOMPILER)
+#if defined(TARGET_USES_THREAD_SANITIZER)
+constexpr bool kDefaultTargetThreadSanitizer = true;
+#else
+constexpr bool kDefaultTargetThreadSanitizer = false;
+#endif
 DEFINE_FLAG(bool,
             target_thread_sanitizer,
-#if defined(TARGET_USES_THREAD_SANITIZER)
-            true,
-#else
-            false,
-#endif
+            kDefaultTargetThreadSanitizer,
             "Generate Dart code compatible with Thread Sanitizer");
+#if defined(TARGET_USES_MEMORY_SANITIZER)
+constexpr bool kDefaultTargetMemorySanitizer = true;
+#else
+constexpr bool kDefaultTargetMemorySanitizer = false;
+#endif
 DEFINE_FLAG(bool,
             target_memory_sanitizer,
-#if defined(TARGET_USES_MEMORY_SANITIZER)
-            true,
-#else
-            false,
-#endif
+            kDefaultTargetMemorySanitizer,
             "Generate Dart code compatible with Memory Sanitizer");
 #endif
 
