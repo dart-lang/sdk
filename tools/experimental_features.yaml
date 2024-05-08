@@ -128,6 +128,9 @@ features:
   resource-identifiers:
     help: "Output arguments used by static functions."
 
+  wildcard-variables:
+    help: "Local declarations and parameters named `_` are non-binding."
+
 # Experiment flag only used for testing.
   test-experiment:
     help: >-

@@ -205,6 +205,13 @@ enum ExperimentalFlag {
       isExpired: false,
       experimentEnabledVersion: defaultLanguageVersion,
       experimentReleasedVersion: defaultLanguageVersion),
+
+  wildcardVariables(
+      name: 'wildcard-variables',
+      isEnabledByDefault: false,
+      isExpired: false,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion),
   ;
 
   final String name;
