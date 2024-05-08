@@ -59,9 +59,8 @@ class _CallocAllocator implements Allocator {
     libFolder.getChildAssumingFile('js.dart').writeAsStringSync(r'''
 library js;
 
-class JS {
-  const JS([String js]);
-}
+// ignore: EXPORT_INTERNAL_LIBRARY
+export 'dart:_js_annotations' show JS, staticInterop;
 ''');
   }
 

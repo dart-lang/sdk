@@ -83,6 +83,7 @@ implementation_imports: 2.0.0
 implicit_call_tearoffs: 2.19.0
 implicit_reopen: 3.0.0
 invalid_case_patterns: 3.0.0
+invalid_runtime_check_with_js_interop_types: 3.4.0-wip
 invariant_booleans: 2.0.0
 iterable_contains_unrelated_type: 2.0.0
 join_return_with_assignment: 2.0.0
