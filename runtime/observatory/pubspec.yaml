@@ -1,9 +1,9 @@
 name: observatory
+
 environment:
   sdk: '>=2.19.0 <3.0.0'
 
-dependencies:
-  usage: any
+# dependencies:
 
 dev_dependencies:
   build_runner: '>=1.6.2 <2.0.0'

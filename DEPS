@@ -188,7 +188,6 @@ vars = {
   "test_reflective_loader_rev": "537ab5b24632c03918fb229531cfb41946eeae27",
   "tools_rev": "d35d633e6df04f8a60a305a36437f67f9fefca5d",
   "typed_data_rev": "5b3708eb633593b30868871301e8e15d344d7585",
-  "usage_rev": "bc4907bca87e2ef5e9ee80e1bef7ee57f5cbc6d2",
   "vector_math_rev": "43f2a77bb0be812b027a68a11792d563713b42a1",
   "watcher_rev": "42308ea9e22bc2d1edab497ee58c0df0affbfed0",
   "web_rev": "ff7185c6c0360987116115039a08d9134c8d62aa",
@@ -517,8 +516,6 @@ Var("dart_root") + "/third_party/pkg/tar":
       Var("dart_git") + "tools.git" + "@" + Var("tools_rev"),
   Var("dart_root") + "/third_party/pkg/typed_data":
       Var("dart_git") + "typed_data.git" + "@" + Var("typed_data_rev"),
-  Var("dart_root") + "/third_party/pkg/usage":
-      Var("dart_git") + "usage.git" + "@" + Var("usage_rev"),
   Var("dart_root") + "/third_party/pkg/vector_math":
       Var("dart_git") + "external/github.com/google/vector_math.dart.git" +
       "@" + Var("vector_math_rev"),
