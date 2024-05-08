@@ -49,14 +49,6 @@ dart.ci_sandbox_builder(
     triggered_by = ["ddc-gitiles-trigger-%s"],
 )
 
-dart.ci_sandbox_builder(
-    "ddc-linux-chrome-unsound",
-    category = "ddc|u",
-    channels = ["try"],
-    location_filters = paths.to_location_filters(paths.ddc),
-    properties = [chrome, no_android],
-)
-
 cron.nightly_builder(
     "ddc-canary-linux-chrome",
     category = "ddc|c",
