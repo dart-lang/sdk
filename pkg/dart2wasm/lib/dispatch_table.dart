@@ -101,7 +101,7 @@ class SelectorInfo {
         if (target.isImplicitGetter) {
           positional = const [];
           named = const {};
-          returns = [member.getterType];
+          returns = [translator.typeOfReturnValue(member)];
         } else {
           positional = [member.setterType];
           named = const {};
@@ -124,7 +124,9 @@ class SelectorInfo {
             for (VariableDeclaration param in function.namedParameters)
               param.name!: typeForParam(param, param.isRequired)
           };
-          returns = target.isSetter ? const [] : [function.returnType];
+          returns = target.isSetter
+              ? const []
+              : [translator.typeOfReturnValue(member)];
         }
       }
       assert(returns.length <= outputSets.length);

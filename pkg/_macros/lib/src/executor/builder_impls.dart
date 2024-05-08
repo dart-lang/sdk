@@ -421,7 +421,6 @@ class ConstructorDefinitionBuilderImpl extends DefinitionBuilderBase
       throw UnsupportedError(
           'Augmenting existing constructor bodies is not allowed.');
     }
-    body ??= FunctionBodyCode.fromString(';');
     DeclarationCode augmentation = _buildFunctionAugmentation(body, declaration,
         initializers: initializers, docComments: docComments);
     _typeAugmentations.update(
@@ -568,7 +567,7 @@ List<DeclarationCode> _buildVariableAugmentations(
 /// The [initializers] parameter can only be used if [declaration] is a
 /// constructor.
 DeclarationCode _buildFunctionAugmentation(
-    FunctionBodyCode body, FunctionDeclaration declaration,
+    FunctionBodyCode? body, FunctionDeclaration declaration,
     {List<Code>? initializers, CommentCode? docComments}) {
   assert(initializers == null || declaration is ConstructorDeclaration);
 
@@ -627,15 +626,19 @@ DeclarationCode _buildFunctionAugmentation(
       ],
       ')',
     ],
-    ' ',
     if (initializers != null && initializers.isNotEmpty) ...[
-      ' : ',
+      '\n      : ',
       initializers.first,
       for (Code initializer in initializers.skip(1)) ...[
-        ',\n',
+        ',\n        ',
         initializer,
       ],
     ],
-    body,
+    if (body == null)
+      ';'
+    else ...[
+      ' ',
+      body,
+    ]
   ]);
 }

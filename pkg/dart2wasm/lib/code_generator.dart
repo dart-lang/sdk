@@ -385,7 +385,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
           );
         }
       }
-      if (!isForwarder) {
+      if (!isForwarder && !variable.isFinal) {
         // We now have a precise local that can contain the values passed by
         // callers, but the body may assign less precise types to this variable,
         // so we may introduce another local variable that is less precise.

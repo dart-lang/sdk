@@ -239,17 +239,17 @@ macro class JsonCodable
             ]),
             builder,
             introspectionData),
-        ';\n',
+        ';\n    ',
       ]);
       if (doNullCheck) {
-        parts.add('    }\n');
+        parts.add('}\n    ');
       }
       return RawCode.fromParts(parts);
     }
 
     parts.addAll(await Future.wait(fields.map(addEntryForField)));
 
-    parts.add('    return json;\n  }');
+    parts.add('return json;\n  }');
 
     builder.augment(FunctionBodyCode.fromParts(parts));
   }

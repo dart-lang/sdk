@@ -32,6 +32,7 @@ class _WasmTransformer extends Transformer {
 
   Member? _currentMember;
   StaticTypeContext? _cachedTypeContext;
+  final Set<VariableDeclaration> _implicitFinalVariables = {};
 
   final Library _coreLibrary;
   final InterfaceType _nonNullableTypeType;
@@ -112,9 +113,13 @@ class _WasmTransformer extends Transformer {
   defaultMember(Member node) {
     _currentMember = node;
     _cachedTypeContext = null;
+    _implicitFinalVariables.clear();
 
     final result = super.defaultMember(node);
 
+    for (final node in _implicitFinalVariables) {
+      node.isFinal = true;
+    }
     _currentMember = null;
     _cachedTypeContext = null;
     return result;
@@ -150,6 +155,20 @@ class _WasmTransformer extends Transformer {
       }
     }
     return true;
+  }
+
+  @override
+  visitVariableDeclaration(VariableDeclaration node) {
+    if (!node.isFinal) {
+      _implicitFinalVariables.add(node);
+    }
+    return super.visitVariableDeclaration(node);
+  }
+
+  @override
+  visitVariableSet(VariableSet node) {
+    _implicitFinalVariables.remove(node.variable);
+    return super.visitVariableSet(node);
   }
 
   @override

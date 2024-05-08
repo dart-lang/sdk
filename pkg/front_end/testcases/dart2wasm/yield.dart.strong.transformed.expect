@@ -3,19 +3,19 @@ import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
 
-static method method(core::Iterable<core::int> iterable) → core::Iterable<core::int> sync* /* emittedValueType= core::int */ {
+static method method(final core::Iterable<core::int> iterable) → core::Iterable<core::int> sync* /* emittedValueType= core::int */ {
   yield 1;
   yield 2;
   yield* iterable;
 }
-static method asyncMethod(asy::Stream<core::int> stream) → asy::Stream<core::int> {
-  synthesized asy::StreamController<core::int> #controller = asy::StreamController::•<core::int>(sync: #C1);
-  synthesized () → asy::Future<void> #body = () → asy::Future<void> async /* emittedValueType= void */ {
+static method asyncMethod(final asy::Stream<core::int> stream) → asy::Stream<core::int> {
+  final synthesized asy::StreamController<core::int> #controller = asy::StreamController::•<core::int>(sync: #C1);
+  final synthesized () → asy::Future<void> #body = () → asy::Future<void> async /* emittedValueType= void */ {
     void :async_temporary_0;
     void :async_temporary_1;
     dynamic :async_temporary_2;
     synthesized asy::Completer<void>? #paused;
-    dynamic #onCancelCallback = () → void {
+    final dynamic #onCancelCallback = () → void {
       if(#paused == null) {
       }
       else {
@@ -62,7 +62,7 @@ static method asyncMethod(asy::Stream<core::int> stream) → asy::Stream<core::i
               return;
           }
         }
-        on dynamic catch(dynamic #t4, core::StackTrace #t5) {
+        on dynamic catch(final dynamic #t4, final core::StackTrace #t5) {
           #controller.{asy::StreamController::addError}(#t4, #t5){(core::Object, [core::StackTrace?]) → void};
           #t4;
           #t5;
