@@ -857,9 +857,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   ExpressionInferenceResult visitAwaitExpression(
       AwaitExpression node, DartType typeContext) {
-    if (!typeSchemaEnvironment.isEmptyContext(typeContext)) {
-      typeContext = wrapFutureOrType(typeContext);
+    if (typeContext is DynamicType) {
+      typeContext = const UnknownType();
     }
+    typeContext = wrapFutureOrType(typeContext);
     ExpressionInferenceResult operandResult = inferExpression(
         node.operand, typeContext,
         isVoidAllowed: !isNonNullableByDefault);

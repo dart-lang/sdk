@@ -2229,11 +2229,11 @@ void Assembler::StoreObjectIntoObjectNoBarrier(Register object,
   // We don't run TSAN on 32 bit systems.
   // Don't call StoreRelease here because we would have to load the immediate
   // into a temp register which causes spilling.
-#if defined(TARGET_USES_THREAD_SANITIZER)
-  if (memory_order == kRelease) {
-    UNIMPLEMENTED();
+  if (FLAG_target_thread_sanitizer) {
+    if (memory_order == kRelease) {
+      UNIMPLEMENTED();
+    }
   }
-#endif
   if (target::CanEmbedAsRawPointerInGeneratedCode(value)) {
     Immediate imm_value(target::ToRawPointer(value));
     movl(dest, imm_value);

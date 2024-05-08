@@ -16,7 +16,7 @@ final dartaotruntime = path.join(
   'dartaotruntime$executableSuffix',
 );
 
-/// The kinds of native executables supported by [generateNative].
+/// The kinds of native executables supported by [KernelGenerator].
 enum Kind {
   aot,
   exe;
@@ -29,98 +29,176 @@ enum Kind {
   }
 }
 
+/// First step of generating a snapshot, generating a kernel.
+///
+/// See also the docs for [_Generator].
+extension type KernelGenerator._(_Generator _generator) {
+  KernelGenerator({
+    required String sourceFile,
+    required List<String> defines,
+    Kind kind = Kind.exe,
+    String? outputFile,
+    String? debugFile,
+    String? packages,
+    String? targetOS,
+    String enableExperiment = '',
+    bool enableAsserts = false,
+    bool verbose = false,
+    String verbosity = 'all',
+    required Directory tempDir,
+  }) : _generator = _Generator(
+          sourceFile: sourceFile,
+          defines: defines,
+          tempDir: tempDir,
+          debugFile: debugFile,
+          enableAsserts: enableAsserts,
+          enableExperiment: enableExperiment,
+          kind: kind,
+          outputFile: outputFile,
+          packages: packages,
+          targetOS: targetOS,
+          verbose: verbose,
+          verbosity: verbosity,
+        );
+
+  /// Generate a kernel file,
+  ///
+  /// [resourcesFile] is the path to `resources.json`, where the tree-shaking
+  /// information collected during kernel compilation is stored.
+  Future<SnapshotGenerator> generate({String? resourcesFile}) =>
+      _generator.generateKernel(resourcesFile: resourcesFile);
+}
+
+/// Second step of generating a snapshot is generating the snapshot itself.
+///
+/// See also the docs for [_Generator].
+extension type SnapshotGenerator._(_Generator _generator) {
+  /// Generate a snapshot or executable.
+  ///
+  /// This means concatenating the list of assets to the kernel and then calling
+  /// `genSnapshot`. [nativeAssets] is the path to `native_assets.yaml`, and
+  /// [extraOptions] is a set of extra options to be passed to `genSnapshot`.
+  Future<void> generate({
+    String? nativeAssets,
+    List<String> extraOptions = const [],
+  }) =>
+      _generator.generateSnapshotWithAssets(
+        nativeAssets: nativeAssets,
+        extraOptions: extraOptions,
+      );
+}
+
 /// Generates a self-contained executable or AOT snapshot.
 ///
-/// [sourceFile] can be the path to either a Dart source file containing `main`
-/// or a kernel file generated with `--link-platform`.
+/// This is a two-step process. First, a kernel is generated. Then, if present,
+/// the list of assets is concatenated to the kernel as a library. In a final
+/// step, the snapshot or executable itself is generated.
 ///
-/// [defines] is the list of Dart defines to be set in the compiled program.
-///
-/// [kind] is the type of executable to be generated ([Kind.exe] or [Kind.aot]).
-///
-/// [outputFile] is the location the generated output will be written. If null,
-/// the generated output will be written adjacent to [sourceFile] with the file
-/// extension matching the executable type specified by [kind].
-///
-/// [debugFile] specifies the file debugging information should be written to.
-///
-/// [packages] is the path to the `.dart_tool/package_config.json`.
-///
-/// [targetOS] specifies the operating system the executable is being generated
-/// for. This must be provided when [kind] is [Kind.exe], and it must match the
-/// current operating system.
-///
-/// [nativeAssets] is the path to `native_assets.yaml`.
-///
-/// [resourcesFile] is the path to `resources.json`.
-///
-/// [enableExperiment] is a comma separated list of language experiments to be
-/// enabled.
-///
-/// [verbosity] specifies the logging verbosity of the CFE.
-///
-/// [extraOptions] is a set of extra options to be passed to `genSnapshot`.
-Future<void> generateNative({
-  required String sourceFile,
-  required List<String> defines,
-  Kind kind = Kind.exe,
-  String? outputFile,
-  String? debugFile,
-  String? packages,
-  String? targetOS,
-  String? nativeAssets,
-  String? resourcesFile,
-  String enableExperiment = '',
-  bool enableAsserts = false,
-  bool verbose = false,
-  String verbosity = 'all',
-  List<String> extraOptions = const [],
-}) async {
-  final tempDir = Directory.systemTemp.createTempSync();
-  final programKernelFile = path.join(tempDir.path, 'program.dill');
+/// To reduce possible errors in calling order of the steps, this class is only
+/// exposed through [KernelGenerator] and [SnapshotGenerator], which make it
+/// impossible to call steps out of order.
+class _Generator {
+  /// The list of Dart defines to be set in the compiled program.
+  final List<String> _defines;
 
-  final sourcePath = _normalize(sourceFile)!;
-  final sourceWithoutDartOrDill = sourcePath.replaceFirst(
-    RegExp(r'\.(dart|dill)$'),
-    '',
-  );
-  final outputPath = _normalize(
-    outputFile ?? kind.appendFileExtension(sourceWithoutDartOrDill),
-  )!;
-  final debugPath = _normalize(debugFile);
-  packages = _normalize(packages);
+  /// The type of executable to be generated, either [Kind.exe] or [Kind.aot].
+  final Kind _kind;
 
-  if (kind == Kind.exe) {
-    if (targetOS == null) {
-      throw ArgumentError('targetOS must be specified for executables.');
-    } else if (targetOS != Platform.operatingSystem) {
-      throw UnsupportedError(
-          'Cross compilation not supported for executables.');
+  /// The location the generated output will be written. If null the generated
+  /// output will be written adjacent to [_sourcePath] with the file extension
+  /// matching the executable type specified by [_kind].
+  final String? _outputFile;
+
+  /// Specifies the file debugging information should be written to.
+  final String? _debugFile;
+
+  /// Specifies the operating system the executable is being generated for. This
+  /// must be provided when [_kind] is [Kind.exe], and it must match the current
+  /// operating system.
+  final String? _targetOS;
+
+  /// A comma separated list of language experiments to be enabled.
+  final String _enableExperiment;
+
+  ///
+  final bool _enableAsserts;
+  final bool _verbose;
+
+  /// Specifies the logging verbosity of the CFE.
+  final String _verbosity;
+
+  /// A temporary directory specified by the caller, who also has to clean it
+  /// up.
+  final Directory _tempDir;
+
+  /// The location of the compiled kernel file, which will be written on a call
+  /// to [generateKernel].
+  final String _programKernelFile;
+
+  /// The path to either a Dart source file containing `main` or a kernel file
+  /// generated with `--link-platform`.
+  final String _sourcePath;
+
+  /// The path to the `.dart_tool/package_config.json`.
+  final String? _packages;
+
+  _Generator({
+    required String sourceFile,
+    required List<String> defines,
+    required Kind kind,
+    String? outputFile,
+    String? debugFile,
+    String? packages,
+    String? targetOS,
+    required String enableExperiment,
+    required bool enableAsserts,
+    required bool verbose,
+    required String verbosity,
+    required Directory tempDir,
+  })  : _kind = kind,
+        _verbose = verbose,
+        _tempDir = tempDir,
+        _verbosity = verbosity,
+        _enableAsserts = enableAsserts,
+        _enableExperiment = enableExperiment,
+        _targetOS = targetOS,
+        _debugFile = debugFile,
+        _outputFile = outputFile,
+        _defines = defines,
+        _programKernelFile = path.join(tempDir.path, 'program.dill'),
+        _sourcePath = _normalize(sourceFile)!,
+        _packages = _normalize(packages) {
+    if (_kind == Kind.exe) {
+      if (_targetOS == null) {
+        throw ArgumentError('targetOS must be specified for executables.');
+      } else if (_targetOS != Platform.operatingSystem) {
+        throw UnsupportedError(
+            'Cross compilation not supported for executables.');
+      }
     }
   }
 
-  if (verbose) {
-    if (targetOS != null) {
-      print('Specializing Platform getters for target OS $targetOS.');
+  Future<SnapshotGenerator> generateKernel({String? resourcesFile}) async {
+    if (_verbose) {
+      if (_targetOS != null) {
+        print('Specializing Platform getters for target OS $_targetOS.');
+      }
+      print('Generating AOT kernel dill.');
     }
-    print('Compiling $sourcePath to $outputPath using format $kind:');
-    print('Generating AOT kernel dill.');
-  }
 
-  try {
     final kernelResult = await generateKernelHelper(
       dartaotruntime: dartaotruntime,
-      sourceFile: sourcePath,
-      kernelFile: programKernelFile,
-      packages: packages,
-      defines: defines,
-      fromDill: await isKernelFile(sourcePath),
-      enableAsserts: enableAsserts,
-      enableExperiment: enableExperiment,
-      targetOS: targetOS,
+      sourceFile: _sourcePath,
+      kernelFile: _programKernelFile,
+      packages: _packages,
+      defines: _defines,
+      fromDill: await isKernelFile(_sourcePath),
+      enableAsserts: _enableAsserts,
+      enableExperiment: _enableExperiment,
+      targetOS: _targetOS,
       extraGenKernelOptions: [
         '--invocation-modes=compile',
-        '--verbosity=$verbosity',
+        '--verbosity=$_verbosity',
       ],
       resourcesFile: resourcesFile,
       aot: true,
@@ -129,25 +207,88 @@ Future<void> generateNative({
     if (kernelResult.exitCode != 0) {
       throw StateError('Generating AOT kernel dill failed!');
     }
-    String kernelFile;
+    return SnapshotGenerator._(this);
+  }
+
+  Future<void> generateSnapshotWithAssets({
+    String? nativeAssets,
+    required List<String> extraOptions,
+  }) async {
+    final kernelFile = await _concatenateAssetsToKernel(nativeAssets);
+    await _generateSnapshot(extraOptions, kernelFile);
+  }
+
+  Future<void> _generateSnapshot(
+    List<String> extraOptions,
+    String kernelFile,
+  ) async {
+    final sourceWithoutDartOrDill = _sourcePath.replaceFirst(
+      RegExp(r'\.(dart|dill)$'),
+      '',
+    );
+    final outputPath = _normalize(
+      _outputFile ?? _kind.appendFileExtension(sourceWithoutDartOrDill),
+    )!;
+    final debugPath = _normalize(_debugFile);
+
+    if (_verbose) {
+      print('Compiling $_sourcePath to $outputPath using format $_kind:');
+      print('Generating AOT snapshot. $genSnapshot $extraOptions');
+    }
+    final snapshotFile = _kind == Kind.aot
+        ? outputPath
+        : path.join(_tempDir.path, 'snapshot.aot');
+    final snapshotResult = await generateAotSnapshotHelper(
+      kernelFile,
+      snapshotFile,
+      debugPath,
+      _enableAsserts,
+      extraOptions,
+    );
+
+    if (_verbose || snapshotResult.exitCode != 0) {
+      await _forwardOutput(snapshotResult);
+    }
+    if (snapshotResult.exitCode != 0) {
+      throw StateError('Generating AOT snapshot failed!');
+    }
+
+    if (_kind == Kind.exe) {
+      if (_verbose) {
+        print('Generating executable.');
+      }
+      await writeAppendedExecutable(dartaotruntime, snapshotFile, outputPath);
+
+      if (Platform.isLinux || Platform.isMacOS) {
+        if (_verbose) {
+          print('Marking binary executable.');
+        }
+        await markExecutable(outputPath);
+      }
+    }
+
+    print('Generated: $outputPath');
+  }
+
+  Future<String> _concatenateAssetsToKernel(String? nativeAssets) async {
     if (nativeAssets == null) {
-      kernelFile = programKernelFile;
+      return _programKernelFile;
     } else {
       // TODO(dacoharkes): This method will need to be split in two parts. Then
       // the link hooks can be run in between those two parts.
       final nativeAssetsDillFile =
-          path.join(tempDir.path, 'native_assets.dill');
+          path.join(_tempDir.path, 'native_assets.dill');
       final kernelResult = await generateKernelHelper(
         dartaotruntime: dartaotruntime,
         kernelFile: nativeAssetsDillFile,
-        packages: packages,
-        defines: defines,
-        enableAsserts: enableAsserts,
-        enableExperiment: enableExperiment,
-        targetOS: targetOS,
+        packages: _packages,
+        defines: _defines,
+        enableAsserts: _enableAsserts,
+        enableExperiment: _enableExperiment,
+        targetOS: _targetOS,
         extraGenKernelOptions: [
           '--invocation-modes=compile',
-          '--verbosity=$verbosity',
+          '--verbosity=$_verbosity',
         ],
         nativeAssets: nativeAssets,
         aot: true,
@@ -156,8 +297,8 @@ Future<void> generateNative({
       if (kernelResult.exitCode != 0) {
         throw StateError('Generating AOT kernel dill failed!');
       }
-      kernelFile = path.join(tempDir.path, 'kernel.dill');
-      final programKernelBytes = await File(programKernelFile).readAsBytes();
+      final kernelFile = path.join(_tempDir.path, 'kernel.dill');
+      final programKernelBytes = await File(_programKernelFile).readAsBytes();
       final nativeAssetKernelBytes =
           await File(nativeAssetsDillFile).readAsBytes();
       await File(kernelFile).writeAsBytes(
@@ -167,45 +308,8 @@ Future<void> generateNative({
         ],
         flush: true,
       );
+      return kernelFile;
     }
-
-    if (verbose) {
-      print('Generating AOT snapshot. $genSnapshot $extraOptions');
-    }
-    final snapshotFile =
-        kind == Kind.aot ? outputPath : path.join(tempDir.path, 'snapshot.aot');
-    final snapshotResult = await generateAotSnapshotHelper(
-      kernelFile,
-      snapshotFile,
-      debugPath,
-      enableAsserts,
-      extraOptions,
-    );
-
-    if (verbose || snapshotResult.exitCode != 0) {
-      await _forwardOutput(snapshotResult);
-    }
-    if (snapshotResult.exitCode != 0) {
-      throw StateError('Generating AOT snapshot failed!');
-    }
-
-    if (kind == Kind.exe) {
-      if (verbose) {
-        print('Generating executable.');
-      }
-      await writeAppendedExecutable(dartaotruntime, snapshotFile, outputPath);
-
-      if (Platform.isLinux || Platform.isMacOS) {
-        if (verbose) {
-          print('Marking binary executable.');
-        }
-        await markExecutable(outputPath);
-      }
-    }
-
-    print('Generated: $outputPath');
-  } finally {
-    tempDir.deleteSync(recursive: true);
   }
 }
 

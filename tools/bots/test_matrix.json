@@ -1289,6 +1289,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
+            "--sanitizer=none,${sanitizer}",
             "runtime",
             "runtime_precompiled"
           ]

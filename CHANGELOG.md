@@ -1,5 +1,14 @@
 ## 3.5.0
 
+### Language
+
+- **Breaking Change** [#55418][]: The context used by the compiler to perform
+  type inference on the operand of an `await` expression has been changed to
+  match the behavior of the analyzer. This change is not expected to make any
+  difference in practice.
+
+[#55418]: https://github.com/dart-lang/sdk/issues/55418
+
 ### Dart Runtime
 
 - The Dart VM only executes sound null safe code, running of unsound null

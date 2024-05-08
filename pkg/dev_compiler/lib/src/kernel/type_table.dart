@@ -153,7 +153,7 @@ class TypeTable {
 
   TypeTable(String name, this._runtimeCall)
       : typeContainer = ModuleItemContainer<DartType>.asObject(name,
-            keyToString: (DartType t) => escapeIdentifier(_typeString(t))!);
+            keyToString: (DartType t) => escapeIdentifier(_typeString(t)));
 
   /// Returns true if [type] is already recorded in the table.
   bool _isNamed(DartType type) =>
@@ -267,7 +267,7 @@ class TypeTable {
       // TODO(40273) Remove prepended text when we have a better way to hide
       // these names from debug tools.
       _unboundTypeIds[type] =
-          js_ast.TemporaryId(escapeIdentifier('__t\$${_typeString(type)}')!);
+          js_ast.TemporaryId(escapeIdentifier('__t\$${_typeString(type)}'));
     }
 
     for (var free in freeVariables) {

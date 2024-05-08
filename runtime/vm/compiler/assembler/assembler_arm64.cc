@@ -286,7 +286,6 @@ void Assembler::Align(intptr_t alignment, intptr_t offset) {
   ASSERT(((offset + buffer_.GetPosition()) & (alignment - 1)) == 0);
 }
 
-#if defined(TARGET_USES_THREAD_SANITIZER)
 void Assembler::TsanLoadAcquire(Register addr) {
   LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
   MoveRegister(R0, addr);
@@ -298,7 +297,6 @@ void Assembler::TsanStoreRelease(Register addr) {
   MoveRegister(R0, addr);
   rt.Call(kTsanStoreReleaseRuntimeEntry, /*argument_count=*/1);
 }
-#endif
 
 static int CountLeadingZeros(uint64_t value, int width) {
   if (width == 64) return Utils::CountLeadingZeros64(value);
@@ -1542,7 +1540,7 @@ void Assembler::EnterFullSafepoint(Register state) {
   ASSERT(addr != state);
 
   Label slow_path, done, retry;
-  if (FLAG_use_slow_path || kTargetUsesThreadSanitizer) {
+  if (FLAG_use_slow_path || FLAG_target_thread_sanitizer) {
     b(&slow_path);
   }
 
@@ -1557,7 +1555,7 @@ void Assembler::EnterFullSafepoint(Register state) {
   stxr(TMP, state, addr);
   cbz(&done, TMP);  // 0 means stxr was successful.
 
-  if (!FLAG_use_slow_path && !kTargetUsesThreadSanitizer) {
+  if (!FLAG_use_slow_path && !FLAG_target_thread_sanitizer) {
     b(&retry);
   }
 
@@ -1601,7 +1599,7 @@ void Assembler::ExitFullSafepoint(Register state,
   ASSERT(addr != state);
 
   Label slow_path, done, retry;
-  if (FLAG_use_slow_path || kTargetUsesThreadSanitizer) {
+  if (FLAG_use_slow_path || FLAG_target_thread_sanitizer) {
     b(&slow_path);
   }
 
@@ -1616,7 +1614,7 @@ void Assembler::ExitFullSafepoint(Register state,
   stxr(TMP, state, addr);
   cbz(&done, TMP);  // 0 means stxr was successful.
 
-  if (!FLAG_use_slow_path && !kTargetUsesThreadSanitizer) {
+  if (!FLAG_use_slow_path && !FLAG_target_thread_sanitizer) {
     b(&retry);
   }
 

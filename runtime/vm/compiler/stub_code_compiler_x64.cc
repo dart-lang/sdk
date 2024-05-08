@@ -74,7 +74,7 @@ void StubCodeCompiler::EnsureIsNewOrRemembered() {
 // [Thread::tsan_utils_->setjmp_buffer_]).
 static void WithExceptionCatchingTrampoline(Assembler* assembler,
                                             std::function<void()> fun) {
-#if defined(TARGET_USES_THREAD_SANITIZER) && !defined(USING_SIMULATOR)
+#if !defined(USING_SIMULATOR)
   const Register kTsanUtilsReg = RAX;
 
   // Reserve space for arguments and align frame before entering C++ world.
@@ -89,70 +89,74 @@ static void WithExceptionCatchingTrampoline(Assembler* assembler,
   // We rely on THR being preserved across the setjmp() call.
   COMPILE_ASSERT(IsCalleeSavedRegister(THR));
 
-  Label do_native_call;
+  if (FLAG_target_thread_sanitizer) {
+    Label do_native_call;
 
-  // Save old jmp_buf.
-  __ movq(kTsanUtilsReg, Address(THR, target::Thread::tsan_utils_offset()));
-  __ pushq(Address(kTsanUtilsReg, target::TsanUtils::setjmp_buffer_offset()));
+    // Save old jmp_buf.
+    __ movq(kTsanUtilsReg, Address(THR, target::Thread::tsan_utils_offset()));
+    __ pushq(Address(kTsanUtilsReg, target::TsanUtils::setjmp_buffer_offset()));
 
-  // Allocate jmp_buf struct on stack & remember pointer to it on the
-  // [Thread::tsan_utils_->setjmp_buffer] (which exceptions.cc will longjmp()
-  // to)
-  __ AddImmediate(RSP, Immediate(-kJumpBufferSize));
-  __ movq(Address(kTsanUtilsReg, target::TsanUtils::setjmp_buffer_offset()),
-          RSP);
+    // Allocate jmp_buf struct on stack & remember pointer to it on the
+    // [Thread::tsan_utils_->setjmp_buffer] (which exceptions.cc will longjmp()
+    // to)
+    __ AddImmediate(RSP, Immediate(-kJumpBufferSize));
+    __ movq(Address(kTsanUtilsReg, target::TsanUtils::setjmp_buffer_offset()),
+            RSP);
 
-  // Call setjmp() with a pointer to the allocated jmp_buf struct.
-  __ MoveRegister(CallingConventions::kArg1Reg, RSP);
-  __ PushRegisters(volatile_registers);
-  if (OS::ActivationFrameAlignment() > 1) {
+    // Call setjmp() with a pointer to the allocated jmp_buf struct.
+    __ MoveRegister(CallingConventions::kArg1Reg, RSP);
+    __ PushRegisters(volatile_registers);
+    if (OS::ActivationFrameAlignment() > 1) {
+      __ MoveRegister(kSavedRspReg, RSP);
+      __ andq(RSP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
+    }
+    __ movq(kTsanUtilsReg, Address(THR, target::Thread::tsan_utils_offset()));
+    __ CallCFunction(
+        Address(kTsanUtilsReg, target::TsanUtils::setjmp_function_offset()),
+        /*restore_rsp=*/true);
+    if (OS::ActivationFrameAlignment() > 1) {
+      __ MoveRegister(RSP, kSavedRspReg);
+    }
+    __ PopRegisters(volatile_registers);
+
+    // We are the target of a longjmp() iff setjmp() returns non-0.
+    __ CompareImmediate(RAX, 0);
+    __ BranchIf(EQUAL, &do_native_call);
+
+    // We are the target of a longjmp: Cleanup the stack and tail-call the
+    // JumpToFrame stub which will take care of unwinding the stack and hand
+    // execution to the catch entry.
+    __ AddImmediate(RSP, Immediate(kJumpBufferSize));
+    __ movq(kTsanUtilsReg, Address(THR, target::Thread::tsan_utils_offset()));
+    __ popq(Address(kTsanUtilsReg, target::TsanUtils::setjmp_buffer_offset()));
+
+    __ movq(CallingConventions::kArg1Reg,
+            Address(kTsanUtilsReg, target::TsanUtils::exception_pc_offset()));
+    __ movq(CallingConventions::kArg2Reg,
+            Address(kTsanUtilsReg, target::TsanUtils::exception_sp_offset()));
+    __ movq(CallingConventions::kArg3Reg,
+            Address(kTsanUtilsReg, target::TsanUtils::exception_fp_offset()));
+    __ MoveRegister(CallingConventions::kArg4Reg, THR);
+    __ jmp(Address(THR, target::Thread::jump_to_frame_entry_point_offset()));
+
+    // We leave the created [jump_buf] structure on the stack as well as the
+    // pushed old [Thread::tsan_utils_->setjmp_buffer_].
+    __ Bind(&do_native_call);
     __ MoveRegister(kSavedRspReg, RSP);
-    __ andq(RSP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
   }
-  __ movq(kTsanUtilsReg, Address(THR, target::Thread::tsan_utils_offset()));
-  __ CallCFunction(
-      Address(kTsanUtilsReg, target::TsanUtils::setjmp_function_offset()),
-      /*restore_rsp=*/true);
-  if (OS::ActivationFrameAlignment() > 1) {
-    __ MoveRegister(RSP, kSavedRspReg);
-  }
-  __ PopRegisters(volatile_registers);
-
-  // We are the target of a longjmp() iff setjmp() returns non-0.
-  __ CompareImmediate(RAX, 0);
-  __ BranchIf(EQUAL, &do_native_call);
-
-  // We are the target of a longjmp: Cleanup the stack and tail-call the
-  // JumpToFrame stub which will take care of unwinding the stack and hand
-  // execution to the catch entry.
-  __ AddImmediate(RSP, Immediate(kJumpBufferSize));
-  __ movq(kTsanUtilsReg, Address(THR, target::Thread::tsan_utils_offset()));
-  __ popq(Address(kTsanUtilsReg, target::TsanUtils::setjmp_buffer_offset()));
-
-  __ movq(CallingConventions::kArg1Reg,
-          Address(kTsanUtilsReg, target::TsanUtils::exception_pc_offset()));
-  __ movq(CallingConventions::kArg2Reg,
-          Address(kTsanUtilsReg, target::TsanUtils::exception_sp_offset()));
-  __ movq(CallingConventions::kArg3Reg,
-          Address(kTsanUtilsReg, target::TsanUtils::exception_fp_offset()));
-  __ MoveRegister(CallingConventions::kArg4Reg, THR);
-  __ jmp(Address(THR, target::Thread::jump_to_frame_entry_point_offset()));
-
-  // We leave the created [jump_buf] structure on the stack as well as the
-  // pushed old [Thread::tsan_utils_->setjmp_buffer_].
-  __ Bind(&do_native_call);
-  __ MoveRegister(kSavedRspReg, RSP);
-#endif  // defined(TARGET_USES_THREAD_SANITIZER) && !defined(USING_SIMULATOR)
+#endif  // !defined(USING_SIMULATOR)
 
   fun();
 
-#if defined(TARGET_USES_THREAD_SANITIZER) && !defined(USING_SIMULATOR)
-  __ MoveRegister(RSP, kSavedRspReg);
-  __ AddImmediate(RSP, Immediate(kJumpBufferSize));
-  const Register kTsanUtilsReg2 = kSavedRspReg;
-  __ movq(kTsanUtilsReg2, Address(THR, target::Thread::tsan_utils_offset()));
-  __ popq(Address(kTsanUtilsReg2, target::TsanUtils::setjmp_buffer_offset()));
-#endif  // defined(TARGET_USES_THREAD_SANITIZER) && !defined(USING_SIMULATOR)
+#if !defined(USING_SIMULATOR)
+  if (FLAG_target_thread_sanitizer) {
+    __ MoveRegister(RSP, kSavedRspReg);
+    __ AddImmediate(RSP, Immediate(kJumpBufferSize));
+    const Register kTsanUtilsReg2 = kSavedRspReg;
+    __ movq(kTsanUtilsReg2, Address(THR, target::Thread::tsan_utils_offset()));
+    __ popq(Address(kTsanUtilsReg2, target::TsanUtils::setjmp_buffer_offset()));
+  }
+#endif  // !defined(USING_SIMULATOR)
 }
 
 // Input parameters:

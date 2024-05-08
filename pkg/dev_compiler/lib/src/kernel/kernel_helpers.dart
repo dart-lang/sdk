@@ -30,7 +30,7 @@ Library getLibrary(NamedNode node) {
 
 final Pattern _syntheticTypeCharacters = RegExp('[&^#.|]');
 
-String? escapeIdentifier(String? identifier) {
+String escapeIdentifier(String identifier) {
   // Remove the special characters used to encode mixin application class names
   // and extension method / parameter names which are legal in Kernel, but not
   // in JavaScript.
@@ -38,7 +38,7 @@ String? escapeIdentifier(String? identifier) {
   // Note, there is an implicit assumption here that we won't have
   // collisions since everything is mapped to \$.  That may work out fine given
   // how these are synthesized, but may need to revisit.
-  return identifier?.replaceAll(_syntheticTypeCharacters, r'$');
+  return identifier.replaceAll(_syntheticTypeCharacters, r'$');
 }
 
 /// Returns the escaped name for class [node].
@@ -48,7 +48,7 @@ String? escapeIdentifier(String? identifier) {
 ///
 /// In the current encoding, generic classes are generated in a function scope
 /// which avoids name clashes of the escaped class name.
-String getLocalClassName(Class node) => escapeIdentifier(node.name)!;
+String getLocalClassName(Class node) => escapeIdentifier(node.name);
 
 /// Returns the escaped name for the type parameter [node].
 ///
@@ -58,10 +58,10 @@ String getTypeParameterName(
     /* TypeParameter | StructuralParameter */ Object node) {
   assert(node is TypeParameter || node is StructuralParameter);
   if (node is TypeParameter) {
-    return escapeIdentifier(node.name)!;
+    return escapeIdentifier(node.name!);
   } else {
     node as StructuralParameter;
-    return escapeIdentifier(node.name)!;
+    return escapeIdentifier(node.name!);
   }
 }
 

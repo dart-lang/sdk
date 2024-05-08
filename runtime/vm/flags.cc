@@ -72,6 +72,25 @@ FLAG_LIST(PRODUCT_FLAG_MACRO,
 #undef PRECOMPILE_FLAG_MACRO
 #undef DEBUG_FLAG_MACRO
 
+#if defined(DART_PRECOMPILER)
+DEFINE_FLAG(bool,
+            target_thread_sanitizer,
+#if defined(TARGET_USES_THREAD_SANITIZER)
+            true,
+#else
+            false,
+#endif
+            "Generate Dart code compatible with Thread Sanitizer");
+DEFINE_FLAG(bool,
+            target_memory_sanitizer,
+#if defined(TARGET_USES_MEMORY_SANITIZER)
+            true,
+#else
+            false,
+#endif
+            "Generate Dart code compatible with Memory Sanitizer");
+#endif
+
 bool Flags::initialized_ = false;
 
 // List of registered flags.

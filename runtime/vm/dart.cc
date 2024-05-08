@@ -1028,7 +1028,8 @@ char* Dart::FeaturesString(IsolateGroup* isolate_group,
   if (Snapshot::IncludesCode(kind)) {
     VM_GLOBAL_FLAG_LIST(ADD_P, ADD_R, ADD_C, ADD_D);
 
-    ADD_FLAG(tsan, kTargetUsesThreadSanitizer)
+    ADD_FLAG(tsan, FLAG_target_thread_sanitizer)
+    ADD_FLAG(msan, FLAG_target_memory_sanitizer)
 
     if (kind == Snapshot::kFullJIT) {
       // Enabling assertions affects deopt ids.

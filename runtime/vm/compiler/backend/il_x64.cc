@@ -236,11 +236,9 @@ void MemoryCopyInstr::EmitLoopCopy(FlowGraphCompiler* compiler,
     const ScaleFactor scale = ToScaleFactor(mov_size, /*index_unboxed=*/true);
     __ leaq(TMP, compiler::Address(src_reg, length_reg, scale, -mov_size));
     __ CompareRegisters(dest_reg, TMP);
-#if defined(USING_MEMORY_SANITIZER)
-    const auto jump_distance = compiler::Assembler::kFarJump;
-#else
-    const auto jump_distance = compiler::Assembler::kNearJump;
-#endif
+    const auto jump_distance = FLAG_target_memory_sanitizer
+                                   ? compiler::Assembler::kFarJump
+                                   : compiler::Assembler::kNearJump;
     __ BranchIf(UNSIGNED_GREATER, copy_forwards, jump_distance);
     // The backwards move must be performed, so move TMP -> src_reg and do the
     // same adjustment for dest_reg.
@@ -249,18 +247,18 @@ void MemoryCopyInstr::EmitLoopCopy(FlowGraphCompiler* compiler,
             compiler::Address(dest_reg, length_reg, scale, -mov_size));
     __ std();
   }
-#if defined(USING_MEMORY_SANITIZER)
-  // For reversed, do the `rep` first. It sets `dest_reg` to the start again.
-  // For forward, do the unpoisining first, before `dest_reg` is modified.
-  __ movq(TMP, length_reg);
-  if (mov_size != 1) {
-    // Unpoison takes the length in bytes.
-    __ MulImmediate(TMP, mov_size);
+  if (FLAG_target_memory_sanitizer) {
+    // For reversed, do the `rep` first. It sets `dest_reg` to the start again.
+    // For forward, do the unpoisining first, before `dest_reg` is modified.
+    __ movq(TMP, length_reg);
+    if (mov_size != 1) {
+      // Unpoison takes the length in bytes.
+      __ MulImmediate(TMP, mov_size);
+    }
+    if (!reversed) {
+      __ MsanUnpoison(dest_reg, TMP);
+    }
   }
-  if (!reversed) {
-    __ MsanUnpoison(dest_reg, TMP);
-  }
-#endif
   switch (mov_size) {
     case 1:
       __ rep_movsb();
@@ -281,11 +279,11 @@ void MemoryCopyInstr::EmitLoopCopy(FlowGraphCompiler* compiler,
     __ cld();
   }
 
-#if defined(USING_MEMORY_SANITIZER)
-  if (reversed) {
-    __ MsanUnpoison(dest_reg, TMP);
+  if (FLAG_target_memory_sanitizer) {
+    if (reversed) {
+      __ MsanUnpoison(dest_reg, TMP);
+    }
   }
-#endif
 }
 
 void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
@@ -1430,8 +1428,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Reserve space for the arguments that go on the stack (if any), then align.
   intptr_t stack_space = marshaller_.RequiredStackSpaceInBytes();
   __ ReserveAlignedFrameSpace(stack_space);
-#if defined(USING_MEMORY_SANITIZER)
-  {
+  if (FLAG_target_memory_sanitizer) {
     RegisterSet kVolatileRegisterSet(CallingConventions::kVolatileCpuRegisters,
                                      CallingConventions::kVolatileXmmRegisters);
     __ movq(temp, RSP);
@@ -1457,7 +1454,6 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     __ PopRegisters(kVolatileRegisterSet);
   }
-#endif
 
   if (is_leaf_) {
     EmitParamMoves(compiler, FPREG, saved_fp, TMP);
@@ -2259,12 +2255,12 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     UNREACHABLE();
   }
 
-#if defined(USING_MEMORY_SANITIZER)
-  __ leaq(TMP, element_address);
-  const intptr_t length_in_bytes = RepresentationUtils::ValueSize(
-      RepresentationUtils::RepresentationOfArrayElement(class_id()));
-  __ MsanUnpoison(TMP, length_in_bytes);
-#endif
+  if (FLAG_target_memory_sanitizer) {
+    __ leaq(TMP, element_address);
+    const intptr_t length_in_bytes = RepresentationUtils::ValueSize(
+        RepresentationUtils::RepresentationOfArrayElement(class_id()));
+    __ MsanUnpoison(TMP, length_in_bytes);
+  }
 }
 
 LocationSummary* GuardFieldClassInstr::MakeLocationSummary(Zone* zone,
