@@ -1,3 +1,7 @@
+## 0.1.0-main.4
+
+- Improve formatting of constructor initializer augmentations.
+
 ## 0.1.0-main.3
 
 - Validate parts in `Code.fromParts()`.

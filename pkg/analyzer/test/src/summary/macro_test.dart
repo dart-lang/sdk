@@ -7798,8 +7798,9 @@ augment class A {
   external A.fromJson(prefix1.Map<prefix1.String, prefix1.Object?> json);
   @prefix0.ToJson()
   external prefix1.Map<prefix1.String, prefix1.Object?> toJson();
-  augment A.fromJson(prefix1.Map<prefix1.String, prefix1.Object?> json, )  : this.foo = json['foo'] as prefix1.int,
-this.bar = json['bar'] as prefix1.int;
+  augment A.fromJson(prefix1.Map<prefix1.String, prefix1.Object?> json, )
+      : this.foo = json['foo'] as prefix1.int,
+        this.bar = json['bar'] as prefix1.int;
   augment prefix1.Map<prefix1.String, prefix1.Object?> toJson() {
     var json = <prefix1.String, prefix1.Object?>{};
     json['foo'] = this.foo;
@@ -7839,7 +7840,7 @@ json['bar'] = this.bar;
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::toJson
                 returnType: Map<String, Object?>
                 augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
-              augment toJson @542
+              augment toJson @555
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
                 returnType: Map<String, Object?>
                 augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::toJson
