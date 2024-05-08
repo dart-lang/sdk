@@ -7966,6 +7966,10 @@ class CalculateElementAddressInstr : public TemplateDefinition<3, NoThrow> {
     return kUnboxedIntPtr;
   }
 
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
+    return kNotSpeculative;
+  }
+
   Value* base() const { return inputs_[kBasePos]; }
   Value* index() const { return inputs_[kIndexPos]; }
   Value* offset() const { return inputs_[kOffsetPos]; }
