@@ -16,7 +16,7 @@
 // $> export JSC_useWebAssemblyTypedFunctionReferences=1
 // $> export JSC_useWebAssemblyExtendedConstantExpressions=1
 // $> export JSC_useWebAssemblyGC=1
-// $> jsc run_wasm.js -- <dart_module>.ms <dart_module>.wasm  \
+// $> jsc run_wasm.js -- <dart_module>.mjs <dart_module>.wasm [<ffi_module>.wasm] \
 //       [-- Dart commandline arguments...]
 //
 // Run as follows on JSShell:
@@ -137,7 +137,8 @@ if (argsSplit != -1) {
     ms = Math.max(0, ms);
     var id = timerIdCounter++;
     // A callback can be scheduled at most once.
-    console.assert(f.$timerId === undefined);
+    // (console.assert is only available on D8)
+    if (isD8) console.assert(f.$timerId === undefined);
     f.$timerId = id;
     timerIds[id] = f;
     if (ms == 0 && !isNextTimerDue()) {

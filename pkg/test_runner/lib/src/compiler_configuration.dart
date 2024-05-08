@@ -601,20 +601,17 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
       List<String> vmOptions,
       List<String> originalArguments,
       CommandArtifact? artifact) {
-    final filename = artifact!.filename;
+    final wasmFilename = artifact!.filename;
     final args = testFile.dartOptions;
     final isD8 = runtimeConfiguration is D8RuntimeConfiguration;
-    final isJSC = runtimeConfiguration is JSCRuntimeConfiguration;
     return [
-      if (isD8) '--turboshaft-wasm',
-      if (isD8) '--experimental-wasm-imported-strings',
-      'pkg/dart2wasm/bin/run_wasm.js',
-      if (isD8 || isJSC) '--',
-      '${filename.substring(0, filename.lastIndexOf('.'))}.mjs',
-      filename,
+      if (isD8) ...[
+        '--shell-option=turboshaft-wasm',
+        '--shell-option=experimental-wasm-imported-strings',
+      ],
+      wasmFilename,
       ...testFile.sharedObjects
           .map((obj) => '${_configuration.buildDirectory}/wasm/$obj.wasm'),
-      if (args.isNotEmpty) '--',
       ...args,
     ];
   }

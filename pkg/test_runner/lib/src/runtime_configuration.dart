@@ -209,8 +209,8 @@ class D8RuntimeConfiguration extends CommandLineJavaScriptRuntime {
     checkArtifact(artifact!);
     if (compiler == Compiler.dart2wasm) {
       return [
-        Dart2WasmCommandLineCommand(
-            moniker, d8FileName, arguments, environmentOverrides)
+        Dart2WasmCommandLineCommand(moniker, 'pkg/dart2wasm/tool/run_benchmark',
+            ['--d8', ...arguments], environmentOverrides)
       ];
     } else {
       return [
@@ -246,14 +246,9 @@ class JSCRuntimeConfiguration extends CommandLineJavaScriptRuntime {
     if (compiler != Compiler.dart2wasm) {
       throw 'No test runner setup for jsc + dart2js yet';
     }
-    final environment = {
-      ...environmentOverrides,
-      'JSC_useWebAssemblyTypedFunctionReferences': '1',
-      'JSC_useWebAssemblyExtendedConstantExpression': '1',
-      'JSC_useWebAssemblyGC': '1',
-    };
     return [
-      Dart2WasmCommandLineCommand(moniker, jscFileName, arguments, environment)
+      Dart2WasmCommandLineCommand(moniker, 'pkg/dart2wasm/tool/run_benchmark',
+          ['--jsc', ...arguments], environmentOverrides)
     ];
   }
 }
@@ -274,8 +269,8 @@ class JsshellRuntimeConfiguration extends CommandLineJavaScriptRuntime {
     checkArtifact(artifact!);
     if (compiler == Compiler.dart2wasm) {
       return [
-        Dart2WasmCommandLineCommand(
-            moniker, jsShellFileName, arguments, environmentOverrides)
+        Dart2WasmCommandLineCommand(moniker, 'pkg/dart2wasm/tool/run_benchmark',
+            ['--jsshell', ...arguments], environmentOverrides)
       ];
     } else {
       return [
