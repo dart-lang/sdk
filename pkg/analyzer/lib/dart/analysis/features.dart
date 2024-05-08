@@ -84,6 +84,9 @@ abstract class Feature {
   /// Feature information for variance.
   static final variance = ExperimentalFeatures.variance;
 
+  /// Feature information for wildcard variables.
+  static final wildcard_variables = ExperimentalFeatures.wildcard_variables;
+
   /// If the feature may be enabled or disabled on the command line, the
   /// experimental flag that may be used to enable it.  Otherwise `null`.
   ///
