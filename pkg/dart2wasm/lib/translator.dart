@@ -11,6 +11,7 @@ import 'package:kernel/src/printer.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:vm/metadata/direct_call.dart';
 import 'package:vm/metadata/inferred_type.dart';
+import 'package:vm/metadata/unboxing_info.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'class_info.dart';
@@ -78,6 +79,10 @@ class Translator with KernelNodes {
   late final Map<TreeNode, InferredType> inferredArgTypeMetadata =
       (component.metadata[InferredArgTypeMetadataRepository.repositoryTag]
               as InferredArgTypeMetadataRepository)
+          .mapping;
+  late final Map<TreeNode, UnboxingInfoMetadata> unboxingInfoMetadata =
+      (component.metadata[UnboxingInfoMetadataRepository.repositoryTag]
+              as UnboxingInfoMetadataRepository)
           .mapping;
 
   // Other parts of the global compiler state.
@@ -859,11 +864,10 @@ class Translator with KernelNodes {
         return;
       }
       if (to != voidMarker) {
-        assert(to is w.RefType && to.nullable);
-        // This can happen when a void method has its return type overridden
-        // to return a value, in which case the selector signature will have a
-        // non-void return type to encompass all possible return values.
-        b.ref_null((to as w.RefType).heapType.bottomType);
+        // This can happen e.g. when a `return;` is guaranteed to be never taken
+        // but TFA didn't remove the dead code. In that case we synthesize a
+        // dummy value.
+        globals.instantiateDummyValue(b, to);
         return;
       }
     }
@@ -990,9 +994,28 @@ class Translator with KernelNodes {
     return node.type;
   }
 
+  DartType typeOfReturnValue(Member member) {
+    final unboxingInfo = unboxingInfoMetadata[member];
+    if (unboxingInfo != null) {
+      final returnInfo = unboxingInfo.returnInfo;
+      if (returnInfo.kind == UnboxingKind.int) {
+        return coreTypes.intRawType(Nullability.nonNullable);
+      }
+      if (returnInfo.kind == UnboxingKind.double) {
+        return coreTypes.doubleRawType(Nullability.nonNullable);
+      }
+    }
+    if (member is Field) return member.type;
+    return member.function!.returnType;
+  }
+
   w.ValueType translateTypeOfParameter(
       VariableDeclaration node, bool isRequired) {
     return translateType(typeOfParameterVariable(node, isRequired));
+  }
+
+  w.ValueType translateTypeOfReturnValue(Member node) {
+    return translateType(typeOfReturnValue(node));
   }
 
   w.ValueType translateTypeOfField(Field node) {
@@ -1012,7 +1035,11 @@ class Translator with KernelNodes {
   }
 
   DartType? _inferredTypeOfLocalVariable(VariableDeclaration node) {
-    return _filterInferredType(node.type, inferredTypeMetadata[node]);
+    InferredType? inferredType = inferredTypeMetadata[node];
+    if (node.isFinal) {
+      inferredType ??= inferredTypeMetadata[node.initializer];
+    }
+    return _filterInferredType(node.type, inferredType);
   }
 
   DartType? _filterInferredType(

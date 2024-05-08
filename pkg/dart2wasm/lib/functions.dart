@@ -64,7 +64,7 @@ class FunctionCollector {
           // `WebAssembly.Function`.
           m.types.splitRecursionGroup();
           w.FunctionType ftype = _makeFunctionType(
-              translator, member.reference, [member.function.returnType], null,
+              translator, member.reference, null,
               isImportOrExport: true);
           m.types.splitRecursionGroup();
           _functions[member.reference] =
@@ -82,8 +82,7 @@ class FunctionCollector {
         // publicly exposed types to be defined in separate recursion groups
         // from GC types.
         m.types.splitRecursionGroup();
-        _makeFunctionType(
-            translator, member.reference, [member.function.returnType], null,
+        _makeFunctionType(translator, member.reference, null,
             isImportOrExport: true);
         m.types.splitRecursionGroup();
       }
@@ -106,9 +105,8 @@ class FunctionCollector {
         _worklist.add(target);
         assert(!node.isInstanceMember);
         assert(!node.isGetter);
-        w.FunctionType ftype = _makeFunctionType(
-            translator, target, [node.function.returnType], null,
-            isImportOrExport: true);
+        w.FunctionType ftype =
+            _makeFunctionType(translator, target, null, isImportOrExport: true);
         w.BaseFunction function = m.functions.define(ftype, "$node");
         _functions[target] = function;
         m.exports.export(export.value, function);
@@ -226,7 +224,7 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
     if (!node.isInstanceMember) {
       if (target == node.fieldReference) {
         // Static field initializer function
-        return _makeFunctionType(translator, target, [node.type], null);
+        return _makeFunctionType(translator, target, null);
       }
       String kind = target == node.setterReference ? "setter" : "getter";
       throw "No implicit $kind function for static field: $node";
@@ -239,8 +237,7 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
     assert(!node.isAbstract);
     return node.isInstanceMember
         ? translator.dispatchTable.selectorForTarget(node.reference).signature
-        : _makeFunctionType(
-            translator, target, [node.function.returnType], null);
+        : _makeFunctionType(translator, target, null);
   }
 
   @override
@@ -440,8 +437,8 @@ List<w.ValueType> _getInputTypes(
   return inputs;
 }
 
-w.FunctionType _makeFunctionType(Translator translator, Reference target,
-    List<DartType> returnTypes, w.ValueType? receiverType,
+w.FunctionType _makeFunctionType(
+    Translator translator, Reference target, w.ValueType? receiverType,
     {bool isImportOrExport = false}) {
   Member member = target.asMember;
 
@@ -461,12 +458,13 @@ w.FunctionType _makeFunctionType(Translator translator, Reference target,
       (isImportOrExport && t is VoidType) ||
       (t is InterfaceType && t.classNode == translator.wasmVoidClass);
 
-  final List<w.ValueType> outputs = emptyOutputList
-      ? const []
-      : returnTypes
-          .where((t) => !isVoidType(t))
-          .map((t) => translateType(t))
-          .toList();
+  final List<w.ValueType> outputs;
+  if (emptyOutputList) {
+    outputs = const [];
+  } else {
+    final DartType returnType = translator.typeOfReturnValue(member);
+    outputs = !isVoidType(returnType) ? [translateType(returnType)] : const [];
+  }
 
   return translator.m.types.defineFunction(inputs, outputs);
 }
