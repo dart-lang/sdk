@@ -1,3 +1,8 @@
+## 0.1.5
+
+- Handle ParallelWaitError with DiagnosticException errors nicely.
+- Fix a bug where we weren't reporting diagnostics for nested builders.
+
 ## 0.1.4
 
 - Improve formatting of constructor initializer augmentations.
