@@ -27,6 +27,7 @@ class AstResolver {
   final AnalysisOptionsImpl analysisOptions;
   final InterfaceElement? enclosingClassElement;
   final ExecutableElement? enclosingExecutableElement;
+  final AugmentableElement? enclosingAugmentation;
   late final _resolutionVisitor = ResolutionVisitor(
     unitElement: _unitElement,
     nameScope: _nameScope,
@@ -65,6 +66,7 @@ class AstResolver {
     this.analysisOptions, {
     this.enclosingClassElement,
     this.enclosingExecutableElement,
+    this.enclosingAugmentation,
   }) : _featureSet = _unitElement.library.featureSet;
 
   void resolveAnnotation(AnnotationImpl node) {
@@ -118,6 +120,7 @@ class AstResolver {
     _resolverVisitor.prepareEnclosingDeclarations(
       enclosingClassElement: enclosingClassElement,
       enclosingExecutableElement: enclosingExecutableElement,
+      enclosingAugmentation: enclosingAugmentation,
     );
   }
 }

@@ -77,8 +77,13 @@ class ConstantInitializersResolver {
     if (variable.initializer == null) return;
 
     var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
-    var astResolver =
-        AstResolver(linker, _unitElement, _scope, analysisOptions);
+    var astResolver = AstResolver(
+      linker,
+      _unitElement,
+      _scope,
+      analysisOptions,
+      enclosingAugmentation: element.ifTypeOrNull(),
+    );
     astResolver.resolveExpression(() => variable.initializer!,
         contextType: element.type);
 

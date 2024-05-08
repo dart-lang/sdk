@@ -2231,6 +2231,18 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitAugmentedExpression(AugmentedExpression node) {
+    _tokenOrNull(node.augmentedKeyword);
+    super.visitAugmentedExpression(node);
+  }
+
+  @override
+  void visitAugmentedInvocation(AugmentedInvocation node) {
+    _tokenOrNull(node.augmentedKeyword);
+    super.visitAugmentedInvocation(node);
+  }
+
+  @override
   void visitBinaryExpression(BinaryExpression node) {
     _tokenOrNull(node.operator);
     super.visitBinaryExpression(node);

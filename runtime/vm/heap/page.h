@@ -173,7 +173,7 @@ class Page {
     return IsCardRemembered(reinterpret_cast<uword>(slot));
   }
 #endif
-  void VisitRememberedCards(ObjectPointerVisitor* visitor);
+  void VisitRememberedCards(PredicateObjectPointerVisitor* visitor);
   void ResetProgressBar();
 
   Thread* owner() const { return owner_; }

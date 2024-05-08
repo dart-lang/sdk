@@ -1331,6 +1331,16 @@ class A {
     _assertSource(code, findNode.fieldDeclaration(code));
   }
 
+  void test_visitFieldDeclaration_augment() {
+    var code = 'augment var a = 0;';
+    var findNode = _parseStringToFindNode('''
+augment class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.fieldDeclaration(code));
+  }
+
   void test_visitFieldDeclaration_external() {
     var code = 'external var a;';
     var findNode = _parseStringToFindNode('''
@@ -3697,6 +3707,14 @@ void f() {
 }
 ''');
     _assertSource(code, findNode.throw_(code));
+  }
+
+  void test_visitTopLevelVariableDeclaration_augment() {
+    var code = 'augment var a = 0;';
+    var findNode = _parseStringToFindNode('''
+$code
+''');
+    _assertSource(code, findNode.topLevelVariableDeclaration(code));
   }
 
   void test_visitTopLevelVariableDeclaration_external() {

@@ -223,6 +223,8 @@ CompileTimeErrorCode.AUGMENTATION_WITHOUT_IMPORT:
     The fix is to add `import augment`.
 CompileTimeErrorCode.AUGMENTATION_WITHOUT_LIBRARY:
   status: noFix
+CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER:
+  status: noFix
 CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR:
   status: noFix
 CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER:
@@ -2674,6 +2676,8 @@ ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION:
   status: needsFix
   notes: |-
     Remove `covariant`.
+ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION:
+  status: noFix
 ParserErrorCode.DEFAULT_IN_SWITCH_EXPRESSION:
   status: hasFix
 ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE:

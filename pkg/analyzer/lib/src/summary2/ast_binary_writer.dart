@@ -93,6 +93,22 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitAugmentedExpression(AugmentedExpression node) {
+    _writeByte(Tag.AugmentedExpression);
+    _sink.writeElement(node.element);
+    _storeExpression(node);
+  }
+
+  @override
+  void visitAugmentedInvocation(AugmentedInvocation node) {
+    _writeByte(Tag.AugmentedInvocation);
+    _writeOptionalNode(node.typeArguments);
+    _writeNode(node.arguments);
+    _sink.writeElement(node.element);
+    _storeExpression(node);
+  }
+
+  @override
   void visitAwaitExpression(AwaitExpression node) {
     _writeByte(Tag.AwaitExpression);
 

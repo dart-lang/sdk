@@ -1253,10 +1253,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void prepareEnclosingDeclarations({
     InterfaceElement? enclosingClassElement,
     ExecutableElement? enclosingExecutableElement,
+    AugmentableElement? enclosingAugmentation,
   }) {
     enclosingClass = enclosingClassElement;
     _setupThisType();
     _enclosingFunction = enclosingExecutableElement;
+    this.enclosingAugmentation = enclosingAugmentation;
   }
 
   /// We are going to resolve [node], without visiting its parent.

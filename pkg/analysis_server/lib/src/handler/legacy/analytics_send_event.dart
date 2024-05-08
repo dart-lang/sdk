@@ -14,18 +14,8 @@ class AnalyticsSendEventHandler extends LegacyHandler {
   AnalyticsSendEventHandler(
       super.server, super.request, super.cancellationToken, super.performance);
 
-  String get _clientId => server.options.clientId ?? 'client';
-
   @override
   Future<void> handle() async {
-    var analytics = server.options.analytics;
-    if (analytics == null) {
-      sendResult(AnalyticsSendEventResult());
-      return;
-    }
-
-    var params = AnalyticsSendEventParams.fromRequest(request);
-    unawaited(analytics.sendEvent(_clientId, params.action));
     sendResult(AnalyticsSendEventResult());
   }
 }

@@ -16,11 +16,6 @@ class AnalyticsEnableHandler extends LegacyHandler {
 
   @override
   Future<void> handle() async {
-    var params = AnalyticsEnableParams.fromRequest(request);
-    var analytics = server.options.analytics;
-    if (analytics != null) {
-      analytics.enabled = params.value;
-    }
     sendResult(AnalyticsEnableResult());
   }
 }

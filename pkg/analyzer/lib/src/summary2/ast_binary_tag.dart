@@ -48,6 +48,8 @@ class Tag {
   static const int AsExpression = 84;
   static const int AssertInitializer = 82;
   static const int AssignmentExpression = 96;
+  static const int AugmentedExpression = 111;
+  static const int AugmentedInvocation = 112;
   static const int AwaitExpression = 100;
   static const int BinaryExpression = 52;
   static const int BooleanLiteral = 4;

@@ -127,7 +127,8 @@ static void WriteHeaderRelaxed(ObjectPtr obj, uword header) {
 }
 
 template <bool parallel>
-class ScavengerVisitorBase : public ObjectPointerVisitor {
+class ScavengerVisitorBase : public ObjectPointerVisitor,
+                             public PredicateObjectPointerVisitor {
  public:
   explicit ScavengerVisitorBase(IsolateGroup* isolate_group,
                                 Scavenger* scavenger,
@@ -226,14 +227,35 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     }
   }
 
+  bool PredicateVisitPointers(ObjectPtr* first, ObjectPtr* last) override {
+    bool has_new_target = false;
+    for (ObjectPtr* current = first; current <= last; current++) {
+      has_new_target |= PredicateScavengePointer(current);
+    }
+    return has_new_target;
+  }
+
 #if defined(DART_COMPRESSED_POINTERS)
+  bool PredicateVisitCompressedPointers(uword heap_base,
+                                        CompressedObjectPtr* first,
+                                        CompressedObjectPtr* last) override {
+    bool has_new_target = false;
+    for (CompressedObjectPtr* current = first; current <= last; current++) {
+      has_new_target |= PredicateScavengeCompressedPointer(heap_base, current);
+    }
+    return has_new_target;
+  }
+
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* first,
                                CompressedObjectPtr* last) override {
-    ASSERT(Utils::IsAligned(first, sizeof(*first)));
-    ASSERT(Utils::IsAligned(last, sizeof(*last)));
-    for (CompressedObjectPtr* current = first; current <= last; current++) {
-      ScavengeCompressedPointer(heap_base, current);
+    if (PredicateVisitCompressedPointers(heap_base, first, last)) {
+      // Update the store buffer as needed.
+      ObjectPtr visiting_object = visiting_old_object_;
+      if (visiting_object != nullptr &&
+          visiting_object->untag()->TryAcquireRememberedBit()) {
+        thread_->StoreBufferAddObjectGC(visiting_object);
+      }
     }
   }
 #endif
@@ -353,19 +375,24 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
 
  private:
   DART_FORCE_INLINE
-  void ScavengePointer(ObjectPtr* p) {
+  bool PredicateScavengePointer(ObjectPtr* p) {
     // ScavengePointer cannot be called recursively.
     ObjectPtr obj = *p;
 
     if (obj->IsImmediateOrOldObject()) {
-      return;
+      return false;
     }
 
     ObjectPtr new_obj = ScavengeObject(obj);
 
     // Update the reference.
     *p = new_obj;
-    if (new_obj->IsNewObject()) {
+    return new_obj->IsNewObject();
+  }
+
+  DART_FORCE_INLINE
+  void ScavengePointer(ObjectPtr* p) {
+    if (PredicateScavengePointer(p)) {
       // Update the store buffer as needed.
       ObjectPtr visiting_object = visiting_old_object_;
       if (visiting_object != nullptr &&
@@ -376,20 +403,26 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
   }
 
   DART_FORCE_INLINE
-  void ScavengeCompressedPointer(uword heap_base, CompressedObjectPtr* p) {
+  bool PredicateScavengeCompressedPointer(uword heap_base,
+                                          CompressedObjectPtr* p) {
     // ScavengePointer cannot be called recursively.
     ObjectPtr obj = p->Decompress(heap_base);
 
     // Could be tested without decompression.
     if (obj->IsImmediateOrOldObject()) {
-      return;
+      return false;
     }
 
     ObjectPtr new_obj = ScavengeObject(obj);
 
     // Update the reference.
     *p = new_obj;
-    if (new_obj->IsNewObject()) {
+    return new_obj->IsNewObject();
+  }
+
+  DART_FORCE_INLINE
+  void ScavengeCompressedPointer(uword heap_base, CompressedObjectPtr* p) {
+    if (PredicateScavengeCompressedPointer(heap_base, p)) {
       // Update the store buffer as needed.
       ObjectPtr visiting_object = visiting_old_object_;
       if (visiting_object != nullptr &&

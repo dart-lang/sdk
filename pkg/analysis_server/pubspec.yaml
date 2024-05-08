@@ -148,8 +148,6 @@ dependency_overrides:
     path: ../../third_party/pkg/typed_data
   unified_analytics:
     path: ../../third_party/pkg/tools/pkgs/unified_analytics
-  usage:
-    path: ../../third_party/pkg/usage
   vm_service:
     path: ../vm_service
   watcher:

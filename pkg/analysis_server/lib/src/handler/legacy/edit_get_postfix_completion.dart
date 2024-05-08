@@ -18,11 +18,6 @@ class EditGetPostfixCompletionHandler extends LegacyHandler {
 
   @override
   Future<void> handle() async {
-    unawaited(server.options.analytics?.sendEvent(
-      'edit',
-      'getPostfixCompletion',
-    ));
-
     var params = EditGetPostfixCompletionParams.fromRequest(request);
     var file = params.file;
 

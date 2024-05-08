@@ -230,7 +230,7 @@ class PageSpace {
   void VisitObjectsUnsafe(ObjectVisitor* visitor) const;
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
 
-  void VisitRememberedCards(ObjectPointerVisitor* visitor) const;
+  void VisitRememberedCards(PredicateObjectPointerVisitor* visitor) const;
   void ResetProgressBars() const;
 
   // Collect the garbage in the page space using mark-sweep or mark-compact.

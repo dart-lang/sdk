@@ -586,6 +586,21 @@ class AnnotationVerifier {
   /// when the annotation is marked as being valid for the given [kinds] of
   /// targets.
   bool _isValidTarget(AstNode target, Set<TargetKind> kinds) {
+    // `TargetKind.overridableMember` is complex, so we handle it separately.
+    if (kinds.contains(TargetKind.overridableMember)) {
+      if ((target is FieldDeclaration && !target.isStatic) ||
+          target is MethodDeclaration && !target.isStatic) {
+        var parent = target.parent;
+        if (parent is ClassDeclaration ||
+            parent is ExtensionTypeDeclaration ||
+            parent is MixinDeclaration) {
+          // Members of `EnumDeclaration`s and `ExtensionDeclaration`s are not
+          // overridable.
+          return true;
+        }
+      }
+    }
+
     return switch (target) {
       ClassDeclaration() =>
         kinds.contains(TargetKind.classType) || kinds.contains(TargetKind.type),
@@ -609,7 +624,8 @@ class AnnotationVerifier {
       MethodDeclaration() => kinds.contains(TargetKind.method),
       MixinDeclaration() =>
         kinds.contains(TargetKind.mixinType) || kinds.contains(TargetKind.type),
-      FormalParameter() => kinds.contains(TargetKind.parameter),
+      FormalParameter() => kinds.contains(TargetKind.parameter) ||
+          (target.isOptional && kinds.contains(TargetKind.optionalParameter)),
       FunctionTypeAlias() ||
       GenericTypeAlias() =>
         kinds.contains(TargetKind.typedefType) ||
