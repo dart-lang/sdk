@@ -43,7 +43,7 @@ class Class4 extends core::Object {
     ;
   static method _#_#tearOff([core::int? field]) → self::Class4
     return new self::Class4::_(field);
-  static factory •([core::int? field]) → self::Class4 /* redirection-target: self::Class4::_ */
+  static factory •([core::int? field = null]) → self::Class4 /* redirection-target: self::Class4::_ */
     return new self::Class4::_(field);
   static method _#new#tearOff([core::int? field]) → self::Class4
     return new self::Class4::_(field);
@@ -55,7 +55,7 @@ class Class5 extends core::Object {
     ;
   static method _#_#tearOff(core::int field1, [core::int? field2]) → self::Class5
     return new self::Class5::_(field1, field2);
-  static factory •(core::int field1, [core::int? field2]) → self::Class5 /* redirection-target: self::Class5::_ */
+  static factory •(core::int field1, [core::int? field2 = null]) → self::Class5 /* redirection-target: self::Class5::_ */
     return new self::Class5::_(field1, field2);
   static method _#new#tearOff(core::int field1, [core::int? field2]) → self::Class5
     return new self::Class5::_(field1, field2);
@@ -68,7 +68,7 @@ class Class6 extends core::Object {
     ;
   static method _#_#tearOff(core::int field1, {core::int? field2, required core::int field3}) → self::Class6
     return new self::Class6::_(field1, field2: field2, field3: field3);
-  static factory •(core::int field1, {core::int? field2, required core::int field3}) → self::Class6 /* redirection-target: self::Class6::_ */
+  static factory •(core::int field1, {core::int? field2 = null, required core::int field3}) → self::Class6 /* redirection-target: self::Class6::_ */
     return new self::Class6::_(field1, field2: field2, field3: field3);
   static method _#new#tearOff(core::int field1, {core::int? field2, required core::int field3}) → self::Class6
     return new self::Class6::_(field1, field2: field2, field3: field3);

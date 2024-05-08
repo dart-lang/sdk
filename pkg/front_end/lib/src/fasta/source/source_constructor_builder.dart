@@ -544,12 +544,15 @@ class DeclaredSourceConstructorBuilder
       _constructor.isExternal = isExternal;
 
       if (_constructorTearOff != null) {
-        buildConstructorTearOffProcedure(
-            tearOff: _constructorTearOff,
-            declarationConstructor: constructor,
-            implementationConstructor: _constructor,
-            enclosingDeclarationTypeParameters: classBuilder.cls.typeParameters,
-            libraryBuilder: libraryBuilder);
+        DelayedDefaultValueCloner delayedDefaultValueCloners =
+            buildConstructorTearOffProcedure(
+                tearOff: _constructorTearOff,
+                declarationConstructor: constructor,
+                implementationConstructor: _constructor,
+                enclosingDeclarationTypeParameters:
+                    classBuilder.cls.typeParameters,
+                libraryBuilder: libraryBuilder);
+        _delayedDefaultValueCloners.add(delayedDefaultValueCloners);
       }
 
       _hasBeenBuilt = true;
@@ -616,7 +619,7 @@ class DeclaredSourceConstructorBuilder
 
   final bool _hasSuperInitializingFormals;
 
-  final List<DelayedDefaultValueCloner> _superParameterDefaultValueCloners =
+  final List<DelayedDefaultValueCloner> _delayedDefaultValueCloners =
       <DelayedDefaultValueCloner>[];
 
   @override
@@ -634,7 +637,7 @@ class DeclaredSourceConstructorBuilder
             doFinishConstructor: false);
       }
       finalizeSuperInitializingFormals(
-          hierarchy, _superParameterDefaultValueCloners, initializers);
+          hierarchy, _delayedDefaultValueCloners, initializers);
     }
   }
 
@@ -824,8 +827,8 @@ class DeclaredSourceConstructorBuilder
           .addSuperParameterDefaultValueCloners(delayedDefaultValueCloners);
     }
 
-    delayedDefaultValueCloners.addAll(_superParameterDefaultValueCloners);
-    _superParameterDefaultValueCloners.clear();
+    delayedDefaultValueCloners.addAll(_delayedDefaultValueCloners);
+    _delayedDefaultValueCloners.clear();
   }
 
   @override
@@ -1085,6 +1088,8 @@ class SourceExtensionTypeConstructorBuilder
 
   final MemberName _memberName;
 
+  DelayedDefaultValueCloner? _delayedDefaultValueCloner;
+
   SourceExtensionTypeConstructorBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
@@ -1194,6 +1199,10 @@ class SourceExtensionTypeConstructorBuilder
       _buildBody();
     }
     beginInitializers = null;
+
+    if (_delayedDefaultValueCloner != null) {
+      delayedDefaultValueCloners.add(_delayedDefaultValueCloner!);
+    }
   }
 
   bool _hasBuiltBody = false;
@@ -1268,7 +1277,7 @@ class SourceExtensionTypeConstructorBuilder
       _constructor.isExtensionTypeMember = true;
 
       if (_constructorTearOff != null) {
-        buildConstructorTearOffProcedure(
+        _delayedDefaultValueCloner = buildConstructorTearOffProcedure(
             tearOff: _constructorTearOff,
             declarationConstructor: _constructor,
             implementationConstructor: _constructor,

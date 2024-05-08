@@ -79,7 +79,7 @@ Procedure createTypedefTearOffProcedure(
 /// The [declarationConstructor] is the origin constructor and
 /// [implementationConstructor] is the augmentation constructor, if augmented,
 /// otherwise it is the [declarationConstructor].
-void buildConstructorTearOffProcedure(
+DelayedDefaultValueCloner buildConstructorTearOffProcedure(
     {required Procedure tearOff,
     required Member declarationConstructor,
     required Member implementationConstructor,
@@ -118,12 +118,17 @@ void buildConstructorTearOffProcedure(
 
   List<DartType> typeArguments = freshTypeParameters.freshTypeArguments;
   Substitution substitution = freshTypeParameters.substitution;
-  _createParameters(tearOff, implementationConstructor, function, substitution,
+  DelayedDefaultValueCloner delayedDefaultValueCloner = _createParameters(
+      tearOff,
+      implementationConstructor,
+      function,
+      substitution,
       libraryBuilder);
   Arguments arguments = _createArguments(tearOff, typeArguments, fileOffset);
   _createTearOffBody(tearOff, declarationConstructor, arguments);
   tearOff.function.fileOffset = tearOff.fileOffset;
   tearOff.function.fileEndOffset = tearOff.fileOffset;
+  return delayedDefaultValueCloner;
 }
 
 /// Creates the parameters and body for [tearOff] for a typedef tearoff of
@@ -134,7 +139,7 @@ void buildConstructorTearOffProcedure(
 /// The [declarationConstructor] is the origin constructor and
 /// [implementationConstructor] is the augmentation constructor, if augmented,
 /// otherwise it is the [declarationConstructor].
-void buildTypedefTearOffProcedure(
+DelayedDefaultValueCloner buildTypedefTearOffProcedure(
     {required Procedure tearOff,
     required Member declarationConstructor,
     required Member implementationConstructor,
@@ -185,7 +190,7 @@ void buildTypedefTearOffProcedure(
           (int index) => substitution.substituteType(typeArguments[index]));
     }
   }
-  _createParameters(
+  DelayedDefaultValueCloner delayedDefaultValueCloner = _createParameters(
       tearOff,
       implementationConstructor,
       function,
@@ -195,6 +200,7 @@ void buildTypedefTearOffProcedure(
   _createTearOffBody(tearOff, declarationConstructor, arguments);
   tearOff.function.fileOffset = tearOff.fileOffset;
   tearOff.function.fileEndOffset = tearOff.fileOffset;
+  return delayedDefaultValueCloner;
 }
 
 /// Creates the parameters for the redirecting factory [tearOff] based on the
@@ -207,13 +213,19 @@ void buildTypedefTearOffProcedure(
 FreshTypeParameters buildRedirectingFactoryTearOffProcedureParameters(
     {required Procedure tearOff,
     required Procedure implementationConstructor,
-    required SourceLibraryBuilder libraryBuilder}) {
+    required SourceLibraryBuilder libraryBuilder,
+    List<DelayedDefaultValueCloner>? delayedDefaultValueCloners}) {
   FunctionNode function = implementationConstructor.function;
   FreshTypeParameters freshTypeParameters =
       _createFreshTypeParameters(function.typeParameters, tearOff.function);
   Substitution substitution = freshTypeParameters.substitution;
-  _createParameters(tearOff, implementationConstructor, function, substitution,
+  DelayedDefaultValueCloner delayedDefaultValueCloner = _createParameters(
+      tearOff,
+      implementationConstructor,
+      function,
+      substitution,
       libraryBuilder);
+  delayedDefaultValueCloners?.add(delayedDefaultValueCloner);
   tearOff.function.fileOffset = tearOff.fileOffset;
   tearOff.function.fileEndOffset = tearOff.fileOffset;
   return freshTypeParameters;
@@ -295,7 +307,7 @@ FreshTypeParameters _createFreshTypeParameters(
 /// Creates the parameters for the [tearOff] lowering based of the parameters
 /// in [constructor] and using the [substitution] to compute the parameter and
 /// return types.
-void _createParameters(
+DelayedDefaultValueCloner _createParameters(
     Procedure tearOff,
     Member constructor,
     FunctionNode function,
@@ -326,6 +338,8 @@ void _createParameters(
       tearOff,
       new TypeDependency(tearOff, constructor, substitution,
           copyReturnType: true));
+  return new DelayedDefaultValueCloner(constructor, tearOff,
+      identicalSignatures: true, libraryBuilder: libraryBuilder);
 }
 
 /// Creates the [Arguments] for passing the parameters from [tearOff] to its

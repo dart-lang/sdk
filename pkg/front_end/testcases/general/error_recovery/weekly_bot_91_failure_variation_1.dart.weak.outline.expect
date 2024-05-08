@@ -10,8 +10,8 @@ extension /* unnamed */ _extension#0 on core::int {
 }
 static extension-member method _extension#0|_foo<T extends core::Object? = dynamic>(lowered final core::int #this, (self::_extension#0|_foo::T%) → void x, {required self::_extension#0|_foo::T% a}) → void
   ;
-static extension-member method _extension#0|get#_foo(lowered final core::int #this) → <T extends core::Object? = dynamic>((T%) → void, {a: T%}) → void
-  return <T extends core::Object? = dynamic>((T%) → void x, {T% a}) → void => self::_extension#0|_foo<T%>(#this, x, a: a);
+static extension-member method _extension#0|get#_foo(lowered final core::int #this) → <T extends core::Object? = dynamic>((T%) → void, {required a: T%}) → void
+  return <T extends core::Object? = dynamic>((T%) → void x, {required T% a}) → void => self::_extension#0|_foo<T%>(#this, x, a: a);
 static method main() → dynamic
   ;
 

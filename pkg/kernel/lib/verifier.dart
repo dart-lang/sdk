@@ -814,11 +814,42 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     bool savedInCatchBlock = inCatchBlock;
     AsyncMarker savedAsyncMarker = currentAsyncMarker;
     currentAsyncMarker = node.asyncMarker;
-    if (!isOutline &&
-        node.asyncMarker == AsyncMarker.Async &&
-        node.emittedValueType == null) {
-      problem(node,
-          "No future value type set for async function in opt-in library.");
+    if (!isOutline) {
+      if (node.asyncMarker == AsyncMarker.Async &&
+          node.emittedValueType == null) {
+        problem(node,
+            "No future value type set for async function in opt-in library.");
+      }
+
+      TreeNode? parent = node.parent;
+      if (parent is! Procedure ||
+          !parent.isAbstract &&
+              !parent.isSynthetic &&
+              !parent.isSyntheticForwarder) {
+        for (int positionalIndex = 0;
+            positionalIndex < node.positionalParameters.length;
+            positionalIndex++) {
+          if (positionalIndex >= node.requiredParameterCount) {
+            VariableDeclaration positionalParameter =
+                node.positionalParameters[positionalIndex];
+            if (positionalParameter.initializer == null) {
+              problem(
+                  positionalParameter,
+                  "An optional positional parameter is expected to have a "
+                  "default value initializer, defined or synthesized.");
+            }
+          }
+        }
+        for (VariableDeclaration namedParameter in node.namedParameters) {
+          if (!namedParameter.isRequired &&
+              namedParameter.initializer == null) {
+            problem(
+                namedParameter,
+                "An optional named parameter is expected to have a default "
+                "value initializer, defined or synthesized.");
+          }
+        }
+      }
     }
     inCatchBlock = false;
     visitWithLocalScope(node);
