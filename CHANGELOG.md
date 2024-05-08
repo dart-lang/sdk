@@ -7,7 +7,15 @@
   match the behavior of the analyzer. This change is not expected to make any
   difference in practice.
 
+- **Breaking Change** [#55436][]: The context used by the compiler to perform
+  type inference on the right hand side of an "if-null" expression (`e1 ?? e2`)
+  has been changed to match the behavior of the analyzer. change is expected to
+  have low impact on real-world code. But in principle it could cause
+  compile-time errors or changes in runtime behavior by changing inferred
+  types. The old behavior can be restored by supplying explicit types.
+
 [#55418]: https://github.com/dart-lang/sdk/issues/55418
+[#55436]: https://github.com/dart-lang/sdk/issues/55436
 
 ### Dart Runtime
 
