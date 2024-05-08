@@ -70,6 +70,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.abstractKeyword == null) return;
     if (node.extendsClause != null) return;
 
+    if (node.macroKeyword != null) return;
     if (node.isAugmentation) return;
 
     var element = node.declaredElement;
