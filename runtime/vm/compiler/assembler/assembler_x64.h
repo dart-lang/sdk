@@ -1102,10 +1102,8 @@ class Assembler : public AssemblerBase {
     }
   }
 
-#if defined(TARGET_USES_THREAD_SANITIZER)
   void TsanLoadAcquire(Address addr);
   void TsanStoreRelease(Address addr);
-#endif
 
   void LoadAcquire(Register dst,
                    const Address& address,
@@ -1113,18 +1111,18 @@ class Assembler : public AssemblerBase {
     // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
     // with other loads).
     Load(dst, address, size);
-#if defined(TARGET_USES_THREAD_SANITIZER)
-    TsanLoadAcquire(address);
-#endif
+    if (FLAG_target_thread_sanitizer) {
+      TsanLoadAcquire(address);
+    }
   }
 #if defined(DART_COMPRESSED_POINTERS)
   void LoadAcquireCompressed(Register dst, const Address& address) override {
     // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
     // with other loads).
     LoadCompressed(dst, address);
-#if defined(TARGET_USES_THREAD_SANITIZER)
-    TsanLoadAcquire(address);
-#endif
+    if (FLAG_target_thread_sanitizer) {
+      TsanLoadAcquire(address);
+    }
   }
 #endif
   void StoreRelease(Register src,
@@ -1133,9 +1131,9 @@ class Assembler : public AssemblerBase {
     // On intel stores have store-release behavior (i.e. stores are not
     // re-ordered with other stores).
     Store(src, address, size);
-#if defined(TARGET_USES_THREAD_SANITIZER)
-    TsanStoreRelease(address);
-#endif
+    if (FLAG_target_thread_sanitizer) {
+      TsanStoreRelease(address);
+    }
   }
 
   void CompareWithMemoryValue(Register value,

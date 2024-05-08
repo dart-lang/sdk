@@ -674,9 +674,9 @@ class Assembler : public AssemblerBase {
     // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
     // with other loads).
     Load(dst, address, size);
-#if defined(TARGET_USES_THREAD_SANITIZER)
-#error No support for TSAN on IA32.
-#endif
+    if (FLAG_target_thread_sanitizer) {
+      FATAL("No support for TSAN on IA32.");
+    }
   }
   void StoreRelease(Register src,
                     const Address& address,
@@ -684,9 +684,9 @@ class Assembler : public AssemblerBase {
     // On intel stores have store-release behavior (i.e. stores are not
     // re-ordered with other stores).
     Store(src, address, size);
-#if defined(TARGET_USES_THREAD_SANITIZER)
-#error No support for TSAN on IA32.
-#endif
+    if (FLAG_target_thread_sanitizer) {
+      FATAL("No support for TSAN on IA32.");
+    }
   }
 
   void CompareWithMemoryValue(Register value,

@@ -1788,9 +1788,9 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Reserve space for the arguments that go on the stack (if any), then align.
   __ ReserveAlignedFrameSpace(marshaller_.RequiredStackSpaceInBytes());
-#if defined(USING_MEMORY_SANITIZER)
-  UNIMPLEMENTED();
-#endif
+  if (FLAG_target_memory_sanitizer) {
+    UNIMPLEMENTED();
+  }
 
   EmitParamMoves(compiler, is_leaf_ ? FPREG : saved_fp_or_sp, temp1, TMP);
 

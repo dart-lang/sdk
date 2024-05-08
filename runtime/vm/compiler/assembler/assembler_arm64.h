@@ -522,10 +522,8 @@ class Assembler : public AssemblerBase {
     StoreToOffset(src, base, offset, kEightBytes);
   }
 
-#if defined(TARGET_USES_THREAD_SANITIZER)
   void TsanLoadAcquire(Register addr);
   void TsanStoreRelease(Register addr);
-#endif
 
   void LoadAcquire(Register dst,
                    const Address& address,
@@ -538,9 +536,9 @@ class Assembler : public AssemblerBase {
       src = TMP2;
     }
     ldar(dst, src, size);
-#if defined(TARGET_USES_THREAD_SANITIZER)
-    TsanLoadAcquire(src);
-#endif
+    if (FLAG_target_thread_sanitizer) {
+      TsanLoadAcquire(src);
+    }
   }
 
 #if defined(DART_COMPRESSED_POINTERS)
@@ -561,9 +559,9 @@ class Assembler : public AssemblerBase {
       dst = TMP2;
     }
     stlr(src, dst, size);
-#if defined(TARGET_USES_THREAD_SANITIZER)
-    TsanStoreRelease(dst);
-#endif
+    if (FLAG_target_thread_sanitizer) {
+      TsanStoreRelease(dst);
+    }
   }
 
   void CompareWithMemoryValue(Register value,

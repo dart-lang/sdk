@@ -6227,11 +6227,11 @@ IMMEDIATE_TEST(AddrImmRAXByte,
                __ popq(RAX))
 
 ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire, assembler) {
-#if defined(TARGET_USES_THREAD_SANITIZER)
-  // On TSAN builds StoreRelease/LoadAcquire will do a runtime
-  // call to tell TSAN about our action.
-  __ MoveRegister(THR, CallingConventions::kArg2Reg);
-#endif
+  if (FLAG_target_thread_sanitizer) {
+    // On TSAN builds StoreRelease/LoadAcquire will do a runtime
+    // call to tell TSAN about our action.
+    __ MoveRegister(THR, CallingConventions::kArg2Reg);
+  }
 
   __ pushq(RCX);
   __ xorq(RCX, RCX);
@@ -6306,11 +6306,11 @@ ASSEMBLER_TEST_RUN(StoreReleaseLoadAcquire, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire1024, assembler) {
-#if defined(TARGET_USES_THREAD_SANITIZER)
-  // On TSAN builds StoreRelease/LoadAcquire will do a runtime
-  // call to tell TSAN about our action.
-  __ MoveRegister(THR, CallingConventions::kArg2Reg);
-#endif
+  if (FLAG_target_thread_sanitizer) {
+    // On TSAN builds StoreRelease/LoadAcquire will do a runtime
+    // call to tell TSAN about our action.
+    __ MoveRegister(THR, CallingConventions::kArg2Reg);
+  }
 
   __ pushq(RCX);
   __ xorq(RCX, RCX);
@@ -6327,19 +6327,19 @@ ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire1024, assembler) {
 ASSEMBLER_TEST_RUN(StoreReleaseLoadAcquire1024, test) {
   const intptr_t res = test->InvokeWithCodeAndThread<intptr_t>(123);
   EXPECT_EQ(123, res);
-#if !defined(TARGET_USES_THREAD_SANITIZER)
-  EXPECT_DISASSEMBLY_NOT_WINDOWS(
-      "push rcx\n"
-      "xorq rcx,rcx\n"
-      "push rcx\n"
-      "subq rsp,0x400\n"
-      "movq [rsp+0x400],rdx\n"
-      "movq rax,[rsp+0x400]\n"
-      "addq rsp,0x400\n"
-      "pop rcx\n"
-      "pop rcx\n"
-      "ret\n");
-#endif
+  if (!FLAG_target_thread_sanitizer) {
+    EXPECT_DISASSEMBLY_NOT_WINDOWS(
+        "push rcx\n"
+        "xorq rcx,rcx\n"
+        "push rcx\n"
+        "subq rsp,0x400\n"
+        "movq [rsp+0x400],rdx\n"
+        "movq rax,[rsp+0x400]\n"
+        "addq rsp,0x400\n"
+        "pop rcx\n"
+        "pop rcx\n"
+        "ret\n");
+  }
 }
 
 ASSEMBLER_TEST_GENERATE(MoveByteRunTest, assembler) {

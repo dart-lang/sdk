@@ -359,6 +359,9 @@ dart/finalizer/finalizer_isolate_groups_run_gc_test: SkipByDesign # uses spawnUr
 dart/isolates/send_object_to_spawn_uri_isolate_test: SkipByDesign # uses spawnUri
 dart/issue32950_test: SkipByDesign # uses spawnUri.
 
+[ $runtime != dart_precompiled || $sanitizer != msan && $sanitizer != tsan ]
+dart/sanitizer_compatibility_test: SkipByDesign
+
 [ $system != macos || $simulator ]
 dart/thread_priority_macos_test: SkipByDesign
 
