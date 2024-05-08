@@ -1,5 +1,0 @@
-library test;
-
-main() {}
-
-void test(T Function<T>(T) f) {}

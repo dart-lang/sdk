@@ -46,24 +46,18 @@ library from "org-dartlang-test:///foo.dart" as foo {
   import "package:flutter/src/widgets/widget_inspector.dart";
 
   class Foo extends fra::StatelessWidget /*hasConstConstructor*/  {
-    const constructor •([dart.core::Object* key = #C1]) → foo::Foo*
+    const constructor •([dart.core::Object? key = #C1]) → foo::Foo
       : super fra::StatelessWidget::•(key: key)
       ;
-    static method _#new#tearOff([dart.core::Object* key = #C1]) → foo::Foo*
+    static method _#new#tearOff([dart.core::Object? key = #C1]) → foo::Foo
       return new foo::Foo::•(key);
-    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
-    abstract member-signature get key() → dart.core::Object*; -> fra::Widget::key
-    abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
-    abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
-    abstract member-signature method toString() → dart.core::String*; -> dart.core::Object::toString
-    abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
   }
 }
 library from "org-dartlang-test:///main.dart" as main {
 
   import "org-dartlang-test:///foo.dart";
 
-  static field foo::Foo* foo = #C2;
+  static field foo::Foo foo = #C2;
 }
 constants  {
   #C1 = null
@@ -73,7 +67,7 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-test:///main.dart:
-- Foo. (from org-dartlang-test:///foo.dart:6:9)
+- Foo. (from org-dartlang-test:///foo.dart:5:9)
 - StatelessWidget. (from org-dartlang-test:///flutter/lib/src/widgets/framework.dart:10:9)
 - Widget. (from org-dartlang-test:///flutter/lib/src/widgets/framework.dart:7:9)
 - Bar. (from org-dartlang-test:///flutter/lib/src/widgets/framework.dart:2:9)

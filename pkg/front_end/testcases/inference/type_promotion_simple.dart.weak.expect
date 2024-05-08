@@ -1,10 +1,10 @@
-library test /*isLegacy*/;
+library test;
 import self as self;
 import "dart:core" as core;
 
 static method main() → dynamic {
-  has-declared-initializer core::num* n = null;
-  if(n is{ForLegacy} core::int*) {
-    core::int* i = n{core::int*};
+  core::num n = 0;
+  if(n is core::int) {
+    core::int i = n{core::int};
   }
 }

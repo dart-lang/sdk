@@ -2,21 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
+extension BestCom<T extends num> on Iterable<T>? {
+  T? best() => null;
+}
 
-extension BestCom<T extends num> on Iterable<T> {
-  T best() => null;
-}
 extension BestList<T> on List<T> {
-  T best() => null;
+  T? best() => null;
 }
+
 extension BestSpec on List<num> {
- num best() => null;
+  num? best() => null;
 }
 
 main() {
-  List<int> x;
+  List<int>? x;
   var v = x.best();
-  List<num> y;
+  List<num>? y;
   var w = y.best();
 }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 /*@testedFeatures=inference*/
 library test;
 
@@ -13,7 +11,7 @@ typedef int IntToInt(int i);
 
 main() {
   IntToInt a() {
-    return /*@returnType=int**/ (/*@type=int**/ x) => x;
+    return /*@returnType=int*/ (/*@type=int*/ x) => x;
   }
 
   Future<IntToInt> b() async {
@@ -22,23 +20,23 @@ main() {
   }
 
   Iterable<IntToInt> c() sync* {
-    yield /*@returnType=int**/ (/*@type=int**/ x) => x;
+    yield /*@returnType=int*/ (/*@type=int*/ x) => x;
   }
 
   Iterable<IntToInt> d() sync* {
-    yield* /*@typeArgs=(int*) ->* int**/ [
-      /*@returnType=int**/ (/*@type=int**/ x) => x
+    yield* /*@typeArgs=(int) -> int*/ [
+      /*@returnType=int*/ (/*@type=int*/ x) => x
     ];
   }
 
   Stream<IntToInt> e() async* {
-    yield /*@returnType=int**/ (/*@type=int**/ x) => x;
+    yield /*@returnType=int*/ (/*@type=int*/ x) => x;
   }
 
   Stream<IntToInt> f() async* {
-    yield* new /*@typeArgs=(int*) ->* int**/ Stream.fromIterable(
-        /*@typeArgs=(int*) ->* int**/ [
-          /*@returnType=int**/ (/*@type=int**/ x) => x
-        ]);
+    yield* new /*@typeArgs=(int) -> int*/ Stream
+        .fromIterable(/*@typeArgs=(int) -> int*/ [
+      /*@returnType=int*/ (/*@type=int*/ x) => x
+    ]);
   }
 }

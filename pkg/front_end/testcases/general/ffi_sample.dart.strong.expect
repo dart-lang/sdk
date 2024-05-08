@@ -1,10 +1,17 @@
-library /*isLegacy*/;
+library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/ffi_sample.dart:5:1: Error: Library doesn't support null safety.
-// // @dart=2.6
-// ^^^^^^^^^^^^
+// pkg/front_end/testcases/general/ffi_sample.dart:12:7: Error: The type 'Coordinate' must be 'base', 'final' or 'sealed' because the supertype 'Struct' is 'base'.
+// Try adding 'base', 'final', or 'sealed' to the type.
+// class Coordinate extends Struct {
+//       ^
+//
+// pkg/front_end/testcases/general/ffi_sample.dart:19:23: Error: Field 'next' should be initialized because its type 'Pointer<Coordinate>' doesn't allow null.
+//  - 'Pointer' is from 'dart:ffi'.
+//  - 'Coordinate' is from 'pkg/front_end/testcases/general/ffi_sample.dart'.
+//   Pointer<Coordinate> next;
+//                       ^^^^
 //
 import self as self;
 import "dart:ffi" as ffi;
@@ -14,30 +21,22 @@ import "dart:ffi";
 import "package:ffi/ffi.dart";
 
 class Coordinate extends ffi::Struct {
+  field ffi::Pointer<self::Coordinate> next = null;
   @#C1
-  field core::double* x = null;
+  external get x() → core::double;
   @#C1
-  field core::double* y = null;
-  field ffi::Pointer<self::Coordinate*>* next = null;
-  static factory allocate(ffi::Allocator* allocator, core::double* x, core::double* y, ffi::Pointer<self::Coordinate*>* next) → self::Coordinate* {
-    return let final self::Coordinate* #t1 = ffi::StructPointer|get#ref<self::Coordinate*>(ffi::AllocatorAlloc|call<self::Coordinate*>(allocator)) in block {
+  external set x(synthesized core::double #externalFieldValue) → void;
+  @#C1
+  external get y() → core::double;
+  @#C1
+  external set y(synthesized core::double #externalFieldValue) → void;
+  static factory allocate(ffi::Allocator allocator, core::double x, core::double y, ffi::Pointer<self::Coordinate> next) → self::Coordinate {
+    return let final self::Coordinate #t1 = ffi::StructPointer|get#ref<self::Coordinate>(ffi::AllocatorAlloc|call<self::Coordinate>(allocator)) in block {
       #t1.{self::Coordinate::x} = x;
       #t1.{self::Coordinate::y} = y;
       #t1.{self::Coordinate::next} = next;
     } =>#t1;
   }
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get _typedDataBase() → core::Object*; -> ffi::_Compound::_typedDataBase
-  abstract member-signature get _offsetInBytes() → core::int*; -> ffi::_Compound::_offsetInBytes
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method main() → dynamic {}
 

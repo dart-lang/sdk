@@ -1,5 +1,3 @@
-// @dart = 2.9
-
 main() {}
 
 void expect(List list1, List list2) {}
@@ -8,12 +6,12 @@ void foldInitialElements() {}
 
 void foldInitialSpread1() {}
 
-void foldInitialSpread2() {}
+void foldInitialSpread2([bool c = false]) {}
 
-void foldInitialSpread3() {}
+void foldInitialSpread3([bool c = false]) {}
 
-void foldInitialSpread4() {}
+void foldInitialSpread4([bool c = false]) {}
 
-void foldInitialSpread5() {}
+void foldInitialSpread5([bool c = false]) {}
 
-void foldInitialSpread6() {}
+void foldInitialSpread6([bool c = false]) {}

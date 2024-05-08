@@ -1,10 +1,15 @@
-library /*isLegacy*/;
+library;
 //
 // Problems in library:
 //
 // pkg/front_end/testcases/records/record_type_unsupported.dart:9:1: Error: This requires the experimental 'records' language feature to be enabled.
 // Try passing the '--enable-experiment=records' command line option.
 // (int, String b) topLevelFieldType = throw '';
+// ^
+//
+// pkg/front_end/testcases/records/record_type_unsupported.dart:10:1: Error: This requires the experimental 'records' language feature to be enabled.
+// Try passing the '--enable-experiment=records' command line option.
+// (int a, String b) get topLevelGetterType => throw '';
 // ^
 //
 // pkg/front_end/testcases/records/record_type_unsupported.dart:11:1: Error: This requires the experimental 'records' language feature to be enabled.
@@ -27,6 +32,20 @@ library /*isLegacy*/;
 //   (int, String b) topLevelFieldType = throw '';
 //   ^
 //
+// pkg/front_end/testcases/records/record_type_unsupported.dart:17:3: Error: This requires the experimental 'records' language feature to be enabled.
+// Try passing the '--enable-experiment=records' command line option.
+//   (int a, String b) get topLevelGetterType => throw '';
+//   ^
+//
+// pkg/front_end/testcases/records/record_type_unsupported.dart:17:21: Error: Expected ';' after this.
+//   (int a, String b) get topLevelGetterType => throw '';
+//                     ^^^
+//
+// pkg/front_end/testcases/records/record_type_unsupported.dart:17:44: Error: A function declaration needs an explicit list of parameters.
+// Try adding a parameter list to the function declaration.
+//   (int a, String b) get topLevelGetterType => throw '';
+//                                            ^^
+//
 // pkg/front_end/testcases/records/record_type_unsupported.dart:18:3: Error: This requires the experimental 'records' language feature to be enabled.
 // Try passing the '--enable-experiment=records' command line option.
 //   (int, {String b}) topLevelMethodReturnType() => throw '';
@@ -45,14 +64,19 @@ library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 
-static const field core::int* annotation = #C1;
+static const field core::int annotation = #C1;
 static field invalid-type topLevelFieldType = throw "";
+static get topLevelGetterType() → invalid-type
+  return throw "";
 static method topLevelMethodReturnType() → invalid-type
   return throw "";
 static method topLevelSetterType(invalid-type value) → void {}
 static method topLevelMethodParameterType(invalid-type o) → void {}
 static method method() → void {
   invalid-type topLevelFieldType = throw "";
+  invalid-type get;
+  function topLevelGetterType() → Never
+    return throw "";
   function topLevelMethodReturnType() → invalid-type
     return throw "";
   function topLevelSetterType(invalid-type value) → void {}

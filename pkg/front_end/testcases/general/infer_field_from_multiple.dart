@@ -2,17 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 class A<T> {
   var field1 = 0;
   var field2 = 0;
   var field3 = 0;
   var field4 = 0;
-  int field5;
-  int field6;
-  int field7;
-  int field8;
+  int? field5;
+  int? field6;
+  int? field7;
+  int? field8;
   var field9;
   T field10;
   T field11;
@@ -20,9 +18,11 @@ class A<T> {
   T field13;
   T field14;
   var field15 = 0;
-  int field16;
+  int? field16;
   var field17 = 0;
-  int field18;
+  int? field18;
+
+  A(this.field10, this.field11, this.field12, this.field13, this.field14);
 }
 
 class B<T, S> {
@@ -30,20 +30,22 @@ class B<T, S> {
   var field2 = '';
   var field3 = 1;
   var field4 = '';
-  int field5;
-  String field6;
-  int field7;
-  String field8;
+  int? field5;
+  String? field6;
+  int? field7;
+  String? field8;
   var field9;
   T field10;
   S field11;
   T field12;
   T field13;
   S field14;
-  int field15;
+  int? field15;
   var field16 = 0;
-  String field17;
+  String? field17;
   var field18 = '';
+
+  B(this.field10, this.field11, this.field12, this.field13, this.field14);
 }
 
 class C implements A<int>, B<int, String> {
@@ -58,9 +60,9 @@ class C implements A<int>, B<int, String> {
   var field9;
   var field10;
   var field11; // error
-  int field12;
+  int? field12;
   var field13 = 0;
-  int field14; // error
+  int? field14; // error
   var field15;
   var field16;
   var field17; // error
@@ -100,7 +102,7 @@ class D<T> implements A<T>, B<T, T> {
   var field10;
   var field11;
   T field12;
-  var field13 = null;
+  var field13 = null; // error
   T field14;
   var field15;
   var field16;

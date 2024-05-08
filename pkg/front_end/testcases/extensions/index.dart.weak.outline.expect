@@ -1,33 +1,41 @@
-library /*isLegacy*/;
+library;
 import self as self;
 import "dart:core" as core;
 
-class MapLike<K extends core::Object* = dynamic, V extends core::Object* = dynamic> extends core::Object {
-  final field core::Map<self::MapLike::K*, self::MapLike::V*>* _map;
-  synthetic constructor •() → self::MapLike<self::MapLike::K*, self::MapLike::V*>*
+class MapLike<K extends core::Object? = dynamic, V extends core::Object? = dynamic> extends core::Object {
+  final field core::Map<self::MapLike::K%, self::MapLike::V%> _map;
+  synthetic constructor •() → self::MapLike<self::MapLike::K%, self::MapLike::V%>
     ;
-  method get(core::Object* key) → self::MapLike::V*
+  method get(core::Object key) → self::MapLike::V?
     ;
-  method put(covariant-by-class self::MapLike::K* key, covariant-by-class self::MapLike::V* value) → self::MapLike::V*
+  method put(covariant-by-class self::MapLike::K% key, covariant-by-class self::MapLike::V% value) → self::MapLike::V%
     ;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-extension Extension<K extends core::Object* = dynamic, V extends core::Object* = dynamic> on self::MapLike<K*, V*>* {
+class MapLike2<K extends core::Object? = dynamic, V extends core::Object? = dynamic> extends core::Object {
+  final field core::Map<self::MapLike2::K%, self::MapLike2::V%> _map;
+  final field self::MapLike2::V% defaultValue;
+  constructor •(self::MapLike2::V% defaultValue) → self::MapLike2<self::MapLike2::K%, self::MapLike2::V%>
+    ;
+  method get(core::Object key) → self::MapLike2::V%
+    ;
+  method put(covariant-by-class self::MapLike2::K% key, covariant-by-class self::MapLike2::V% value) → self::MapLike2::V%
+    ;
+}
+extension Extension<K extends core::Object? = dynamic, V extends core::Object? = dynamic> on self::MapLike<K%, V%> {
   operator [] = self::Extension|[];
   operator []= = self::Extension|[]=;
 }
-static extension-member method Extension|[]<K extends core::Object* = dynamic, V extends core::Object* = dynamic>(lowered final self::MapLike<self::Extension|[]::K*, self::Extension|[]::V*>* #this, core::Object* key) → self::Extension|[]::V*
+extension Extension2<K extends core::Object? = dynamic, V extends core::Object? = dynamic> on self::MapLike2<K%, V%> {
+  operator [] = self::Extension2|[];
+  operator []= = self::Extension2|[]=;
+}
+static extension-member method Extension|[]<K extends core::Object? = dynamic, V extends core::Object? = dynamic>(lowered final self::MapLike<self::Extension|[]::K%, self::Extension|[]::V%> #this, core::Object key) → self::Extension|[]::V?
   ;
-static extension-member method Extension|[]=<K extends core::Object* = dynamic, V extends core::Object* = dynamic>(lowered final self::MapLike<self::Extension|[]=::K*, self::Extension|[]=::V*>* #this, self::Extension|[]=::K* key, self::Extension|[]=::V* value) → void
+static extension-member method Extension|[]=<K extends core::Object? = dynamic, V extends core::Object? = dynamic>(lowered final self::MapLike<self::Extension|[]=::K%, self::Extension|[]=::V%> #this, self::Extension|[]=::K% key, self::Extension|[]=::V% value) → void
+  ;
+static extension-member method Extension2|[]<K extends core::Object? = dynamic, V extends core::Object? = dynamic>(lowered final self::MapLike2<self::Extension2|[]::K%, self::Extension2|[]::V%> #this, core::Object key) → self::Extension2|[]::V%
+  ;
+static extension-member method Extension2|[]=<K extends core::Object? = dynamic, V extends core::Object? = dynamic>(lowered final self::MapLike2<self::Extension2|[]=::K%, self::Extension2|[]=::V%> #this, self::Extension2|[]=::K% key, self::Extension2|[]=::V% value) → void
   ;
 static method main() → dynamic
   ;

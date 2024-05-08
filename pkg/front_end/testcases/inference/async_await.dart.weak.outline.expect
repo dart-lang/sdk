@@ -1,34 +1,15 @@
-library test /*isLegacy*/;
+library test;
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
 
 import "dart:async";
 
-abstract class MyFuture extends core::Object implements asy::Future<core::int*> {
-  synthetic constructor •() → self::MyFuture*
+abstract class MyFuture extends core::Object implements asy::Future<core::int> {
+  synthetic constructor •() → self::MyFuture
     ;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  abstract member-signature method then<R extends core::Object* = dynamic>((core::int*) →* FutureOr<self::MyFuture::then::R*>* onValue, {core::Function* onError = #C1}) → asy::Future<self::MyFuture::then::R*>*; -> asy::Future::then
-  abstract member-signature method catchError(core::Function* onError, {(core::Object*) →* core::bool* test = #C1}) → asy::Future<core::int*>*; -> asy::Future::catchError
-  abstract member-signature method whenComplete(() →* FutureOr<void>* action) → asy::Future<core::int*>*; -> asy::Future::whenComplete
-  abstract member-signature method asStream() → asy::Stream<core::int*>*; -> asy::Future::asStream
-  abstract member-signature method timeout(core::Duration* timeLimit, {covariant-by-class () →* FutureOr<core::int*>* onTimeout = #C1}) → asy::Future<core::int*>*; -> asy::Future::timeout
 }
-static method test() → void async 
+static method test(core::int x0, asy::Future<core::int> x1, asy::Future<asy::Future<core::int>> x2, asy::Future<FutureOr<core::int>> x3, asy::Future<self::MyFuture> x4, FutureOr<core::int>x5, FutureOr<asy::Future<core::int>>x6, FutureOr<FutureOr<core::int>>x7, FutureOr<self::MyFuture>x8, self::MyFuture x9) → void async 
   ;
 static method main() → dynamic
   ;
-
-constants  {
-  #C1 = null
-}

@@ -2,6 +2,6 @@
 
 library test;
 
-test() async {}
+test(dynamic o) async {}
 
 main() {}

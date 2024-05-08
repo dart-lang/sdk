@@ -1,8 +1,10 @@
-// @dart = 2.9
+// @dart = 2.12
 
 const annotation = 1;
 
 (int, String b) topLevelFieldType = throw '';
+
+(int a, String b) get topLevelGetterType => throw '';
 
 (int, {String b}) topLevelMethodReturnType() => throw '';
 

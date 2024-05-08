@@ -1,17 +1,10 @@
-library test /*isLegacy*/;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/inference/promote_from_logical_rhs.dart:5:1: Error: Library doesn't support null safety.
-// // @dart=2.9
-// ^^^^^^^^^^^^
-//
+library test;
 import self as self;
 import "dart:core" as core;
 
-static method test(core::Object* a, core::bool* b) → void {
-  if(b && a is{ForLegacy} core::int*) {
-    core::print(a{core::int*});
+static method test(core::Object a, core::bool b) → void {
+  if(b && a is core::int) {
+    core::print(a{core::int});
   }
 }
 static method main() → dynamic {}

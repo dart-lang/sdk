@@ -22,7 +22,7 @@ dart2js/issue51823: SemiFuzzFailure # Inequivalent nodes on recompile - https://
 macros/library_members_import: SemiFuzzFailure # Inequivalent nodes on recompile - https://github.com/dart-lang/sdk/issues/53119.
 
 # EXPECTED FAILURES DUE TO PRIVACY ETC:
-dart2js/native_legacy: semiFuzzFailureOnForceRebuildBodies # errors in the input means it can't force split.
+dart2js/native: semiFuzzFailureOnForceRebuildBodies # errors in the input means it can't force split.
 dart2js/sealed_class: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
 dartdevc/inference_update_2/issue52452: semiFuzzFailureOnForceRebuildBodies # privacy.
 dartdevc/redirecting_factory_from_dill/main.no_link: semiFuzzFailureOnForceRebuildBodies # privacy.
@@ -182,6 +182,14 @@ general/error_recovery/empty_await_for: RuntimeError
 general/error_recovery/empty_for: RuntimeError
 general/expressions: RuntimeError
 general/getter_vs_setter_type: TypeCheckError
+general/hierarchy/conflict: TypeCheckError
+general/hierarchy/duplicates: TypeCheckError
+general/hierarchy/forwarding_semi_stub_field: TypeCheckError
+general/hierarchy/forwarding_semi_stub_method: TypeCheckError
+general/hierarchy/forwarding_semi_stub_setter: TypeCheckError
+general/hierarchy/getter_setter: TypeCheckError
+general/hierarchy/mix_in_override: TypeCheckError
+general/hierarchy/override: TypeCheckError
 general/implement_semi_stub: TypeCheckError
 general/infer_field_from_multiple2: TypeCheckError
 general/infer_field_from_multiple: TypeCheckError
@@ -222,14 +230,11 @@ inference/infer_method_missing_params: TypeCheckError
 inference/infer_type_regardless_of_declaration_order_or_cycles: RuntimeError
 inference/infer_types_on_generic_instantiations_4: RuntimeError
 inference/infer_types_on_generic_instantiations_infer: TypeCheckError
-inference/instantiate_tearoff_of_call2: TypeCheckError
+inference/instantiate_tearoff_of_call: TypeCheckError
 inference/mixin_inference_outwards_3: TypeCheckError
 inference/mixin_inference_outwards_4: TypeCheckError
 inference/mixin_inference_unification_1: TypeCheckError
 inference/mixin_inference_unification_2: TypeCheckError
-inference_new/infer_assign_to_index_super_upwards: TypeCheckError
-inference_new/infer_assign_to_index_this_upwards: TypeCheckError
-inference_new/infer_assign_to_index_upwards: TypeCheckError
 late_lowering/covariant_late_field: TypeCheckError
 nnbd/covariant_late_field: TypeCheckError
 nnbd/getter_vs_setter_type: TypeCheckError
@@ -281,7 +286,7 @@ regress/issue_35260: RuntimeError
 regress/issue_35266: RuntimeError
 regress/issue_37285: RuntimeError
 regress/issue_39091_2: RuntimeError
-set_literals/disambiguation_rule2: RuntimeError
+set_literals/disambiguation_rule: RuntimeError
 value_class/copy_with_call_sites: RuntimeError # Expected
 value_class/simple: RuntimeError # Expected
 value_class/value_extends_non_value: RuntimeError # Expected

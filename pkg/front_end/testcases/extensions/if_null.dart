@@ -2,31 +2,38 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 class Class {
   int field;
+
+  Class(this.field);
 }
 
 extension Extension on Class {
   int get property => field;
-  void set property(int value) {
-    field = value;
+  int? get nullableProperty => field;
+  void set property(int? value) {
+    field = value ?? 0;
   }
+
   int method() => field;
 }
 
 main() {
-  Class c;
+  test(null);
+}
+
+int? get value => 42;
+
+test(Class? c) {
   c?.property ?? 0;
   Extension(c)?.property ?? 0;
-  c?.property = 42 ?? 0;
-  Extension(c)?.property = 42 ?? 0;
+  c?.property = value ?? 0;
+  Extension(c)?.property = value ?? 0;
   (c?.property = 42) ?? 0;
-  (Extension(c)?.property = 42) ?? 0;
+  (Extension(c)?.property = value) ?? 0;
   c?.method() ?? 0;
   Extension(c)?.method() ?? 0;
-  c = new Class();
-  c.property ?? 0;
-  Extension(c).property ?? 0;
+  c = new Class(0);
+  c.nullableProperty ?? 0;
+  Extension(c).nullableProperty ?? 0;
 }

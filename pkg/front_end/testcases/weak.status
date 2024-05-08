@@ -31,7 +31,6 @@ patterns/private_names_in_object_patterns: semiFuzzFailureOnForceRebuildBodies #
 patterns/issue51009: semiFuzzFailureOnForceRebuildBodies # private extension method.
 patterns/exhaustiveness/issue52048: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
 dart2js/native: semiFuzzFailureOnForceRebuildBodies # errors in the input means it can't force split.
-dart2js/native_legacy: semiFuzzFailureOnForceRebuildBodies # errors in the input means it can't force split.
 dart2js/sealed_class: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
 dartdevc/inference_update_2/issue52452: semiFuzzFailureOnForceRebuildBodies # privacy.
 dartdevc/redirecting_factory_from_dill/main: semiFuzzFailureOnForceRebuildBodies # privacy.
@@ -130,7 +129,6 @@ general/closure: semiFuzzFailureOnForceRebuildBodies # private field
 general/constants/rudimentary_test_01: semiFuzzFailureOnForceRebuildBodies # private method
 general/constants/with_unevaluated_agnostic/rudimentary_test_01: semiFuzzFailureOnForceRebuildBodies # private method
 general/constructor_const_inference: semiFuzzFailureOnForceRebuildBodies # private class
-general/issue31767: semiFuzzFailureOnForceRebuildBodies # private class, field
 general/issue45101/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 general/issue47036: semiFuzzFailureOnForceRebuildBodies # private class
 general/issue48548: semiFuzzFailureOnForceRebuildBodies # private field
@@ -194,8 +192,6 @@ general/cascade: RuntimeError
 general/constructor_initializer_invalid: RuntimeError # Fails execution after recovery
 general/continue_label_invalid: RuntimeError
 general/covariant_field: TypeCheckError
-general/covariant_generic2: RuntimeError
-general/covariant_generic: RuntimeError
 general/crashes/crash_02/main: Crash
 general/crashes/crash_06/main: Crash
 general/duplicated_field_initializer: RuntimeError
@@ -206,6 +202,14 @@ general/error_recovery/empty_await_for: RuntimeError
 general/error_recovery/empty_for: RuntimeError
 general/expressions: RuntimeError
 general/getter_vs_setter_type: TypeCheckError
+general/hierarchy/conflict: TypeCheckError
+general/hierarchy/duplicates: TypeCheckError
+general/hierarchy/forwarding_semi_stub_field: TypeCheckError
+general/hierarchy/forwarding_semi_stub_method: TypeCheckError
+general/hierarchy/forwarding_semi_stub_setter: TypeCheckError
+general/hierarchy/getter_setter: TypeCheckError
+general/hierarchy/mix_in_override: TypeCheckError
+general/hierarchy/override: TypeCheckError
 general/implement_semi_stub: TypeCheckError
 general/infer_field_from_multiple2: TypeCheckError
 general/infer_field_from_multiple: TypeCheckError
@@ -247,35 +251,17 @@ inference/infer_method_missing_params: TypeCheckError
 inference/infer_type_regardless_of_declaration_order_or_cycles: RuntimeError
 inference/infer_types_on_generic_instantiations_4: RuntimeError
 inference/infer_types_on_generic_instantiations_infer: TypeCheckError
-inference/instantiate_tearoff_of_call2: TypeCheckError
+inference/instantiate_tearoff_of_call: TypeCheckError
 inference/mixin_inference_outwards_3: TypeCheckError
 inference/mixin_inference_outwards_4: TypeCheckError
 inference/mixin_inference_unification_1: TypeCheckError
 inference/mixin_inference_unification_2: TypeCheckError
 inference/override_equals: RuntimeError
-inference_new/infer_assign_to_index_super_upwards: TypeCheckError
-inference_new/infer_assign_to_index_this_upwards: TypeCheckError
-inference_new/infer_assign_to_index_upwards: TypeCheckError
 late_lowering/covariant_late_field: TypeCheckError
 nnbd/covariant_late_field: TypeCheckError
 nnbd/getter_vs_setter_type: TypeCheckError
 nnbd/issue42603: TypeCheckError
 nnbd/no_support_for_old_null_aware_index_access_syntax: RuntimeError # Expected.
-nnbd_mixed/bad_mixins: TypeCheckError
-nnbd_mixed/covariant_from_opt_in: TypeCheckError
-nnbd_mixed/hierarchy/conflict: TypeCheckError
-nnbd_mixed/hierarchy/duplicates: TypeCheckError
-nnbd_mixed/hierarchy/forwarding_semi_stub_field: TypeCheckError
-nnbd_mixed/hierarchy/forwarding_semi_stub_method: TypeCheckError
-nnbd_mixed/hierarchy/forwarding_semi_stub_setter: TypeCheckError
-nnbd_mixed/hierarchy/getter_setter: TypeCheckError
-nnbd_mixed/hierarchy/mix_in_override: TypeCheckError
-nnbd_mixed/hierarchy/override: TypeCheckError
-nnbd_mixed/inheritance_from_opt_in: TypeCheckError
-nnbd_mixed/issue41567: TypeCheckError
-nnbd_mixed/messages_with_types_opt_in: TypeCheckError
-nnbd_mixed/messages_with_types_opt_out: TypeCheckError
-nnbd_mixed/mixin_from_opt_in/main: RuntimeError
 rasta/abstract_constructor: RuntimeError
 rasta/bad_constructor_redirection: RuntimeError
 rasta/bad_continue: RuntimeError
@@ -323,7 +309,6 @@ regress/issue_37285: RuntimeError
 regress/issue_39091_2: RuntimeError
 runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: RuntimeError
 runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError
-set_literals/disambiguation_rule2: RuntimeError
 set_literals/disambiguation_rule: RuntimeError
 value_class/copy_with_call_sites: RuntimeError # Expected
 value_class/simple: RuntimeError # Expected

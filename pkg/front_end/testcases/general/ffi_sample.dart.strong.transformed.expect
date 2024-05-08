@@ -1,10 +1,17 @@
-library /*isLegacy*/;
+library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/ffi_sample.dart:5:1: Error: Library doesn't support null safety.
-// // @dart=2.6
-// ^^^^^^^^^^^^
+// pkg/front_end/testcases/general/ffi_sample.dart:12:7: Error: The type 'Coordinate' must be 'base', 'final' or 'sealed' because the supertype 'Struct' is 'base'.
+// Try adding 'base', 'final', or 'sealed' to the type.
+// class Coordinate extends Struct {
+//       ^
+//
+// pkg/front_end/testcases/general/ffi_sample.dart:19:23: Error: Field 'next' should be initialized because its type 'Pointer<Coordinate>' doesn't allow null.
+//  - 'Pointer' is from 'dart:ffi'.
+//  - 'Coordinate' is from 'pkg/front_end/testcases/general/ffi_sample.dart'.
+//   Pointer<Coordinate> next;
+//                       ^^^^
 //
 import self as self;
 import "dart:core" as core;
@@ -22,50 +29,40 @@ class Coordinate extends ffi::Struct {
   constructor #fromTypedData(synthesized typ::TypedData #typedData, synthesized core::int #offset, synthesized core::int #sizeInBytes) → self::Coordinate
     : super ffi::Struct::_fromTypedData(#typedData, #offset, #sizeInBytes)
     ;
-  static factory allocate(ffi::Allocator* allocator, core::double* x, core::double* y, ffi::Pointer<self::Coordinate*>* next) → self::Coordinate* {
-    return let final self::Coordinate* #t1 = new self::Coordinate::#fromTypedDataBase(allocator.{ffi::Allocator::allocate}<self::Coordinate*>(self::Coordinate::#sizeOf){(core::int, {alignment: core::int?}) → ffi::Pointer<self::Coordinate*>}!, #C8) in block {
+  @#C8
+  get x() → core::double
+    return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::x#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
+  @#C8
+  set x(synthesized core::double #externalFieldValue) → void
+    return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::x#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
+  @#C8
+  get y() → core::double
+    return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::y#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
+  @#C8
+  set y(synthesized core::double #externalFieldValue) → void
+    return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::y#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
+  static factory allocate(ffi::Allocator allocator, core::double x, core::double y, ffi::Pointer<self::Coordinate> next) → self::Coordinate {
+    return let final self::Coordinate #t1 = new self::Coordinate::#fromTypedDataBase(allocator.{ffi::Allocator::allocate}<self::Coordinate>(self::Coordinate::#sizeOf){(core::int, {alignment: core::int?}) → ffi::Pointer<self::Coordinate>}!, #C9) in block {
       #t1.{self::Coordinate::x} = x;
       #t1.{self::Coordinate::y} = y;
       #t1.{self::Coordinate::next} = next;
     } =>#t1;
   }
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get _typedDataBase() → core::Object*; -> ffi::_Compound::_typedDataBase
-  abstract member-signature get _offsetInBytes() → core::int*; -> ffi::_Compound::_offsetInBytes
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  @#C10
-  static get /*isNonNullableByDefault*/ x#offsetOf() → core::int
-    return #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
-  @#C12
-  get x() → core::double*
-    return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::x#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
-  set x(synthesized core::double* #v) → void
-    return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::x#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #v);
-  @#C10
-  static get /*isNonNullableByDefault*/ y#offsetOf() → core::int
+  @#C11
+  static get x#offsetOf() → core::int
+    return #C12.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+  @#C11
+  static get y#offsetOf() → core::int
     return #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
-  @#C12
-  get y() → core::double*
-    return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::y#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
-  set y(synthesized core::double* #v) → void
-    return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::y#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #v);
-  @#C10
-  static get /*isNonNullableByDefault*/ next#offsetOf() → core::int
+  @#C11
+  static get next#offsetOf() → core::int
     return #C16.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
-  get next() → ffi::Pointer<self::Coordinate*>*
-    return ffi::_loadPointer<self::Coordinate*>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::next#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
-  set next(synthesized ffi::Pointer<self::Coordinate*>* #v) → void
-    return ffi::_storePointer<self::Coordinate*>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::next#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #v);
-  @#C10
-  static get /*isNonNullableByDefault*/ #sizeOf() → core::int
+  get next() → ffi::Pointer<self::Coordinate>
+    return ffi::_loadPointer<self::Coordinate>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::next#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
+  set next(synthesized ffi::Pointer<self::Coordinate> #v) → void
+    return ffi::_storePointer<self::Coordinate>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::next#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #v);
+  @#C11
+  static get #sizeOf() → core::int
     return #C19.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 static method main() → dynamic {}
@@ -78,11 +75,11 @@ constants  {
   #C5 = null
   #C6 = ffi::_FfiStructLayout {fieldTypes:#C4, packing:#C5}
   #C7 = core::pragma {name:#C1, options:#C6}
-  #C8 = 0
-  #C9 = "vm:prefer-inline"
-  #C10 = core::pragma {name:#C9, options:#C5}
-  #C11 = <core::int>[#C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8]
-  #C12 = ffi::Double {}
+  #C8 = ffi::Double {}
+  #C9 = 0
+  #C10 = "vm:prefer-inline"
+  #C11 = core::pragma {name:#C10, options:#C5}
+  #C12 = <core::int>[#C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9]
   #C13 = 8
   #C14 = <core::int>[#C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13]
   #C15 = 16

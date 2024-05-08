@@ -1,5 +1,0 @@
-library test;
-
-f(List<int> o) {}
-
-main() {}

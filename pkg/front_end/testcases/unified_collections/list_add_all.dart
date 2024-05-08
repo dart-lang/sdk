@@ -2,121 +2,52 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 void useAddAll() {
   dynamic dynamicList1 = <int>[0, 1, 2];
   dynamic dynamicList2 = <num>[3, 4, 5];
-  Iterable<int> iterableIntList = <int>[6, 7, 8];
-  Iterable<num> iterableNumList1 = <int>[9, 10, 11];
-  Iterable<num> iterableNumList2 = <num>[12, 13, 14];
-  List<int> intList = <int>[15, 16, 17];
-  List<num> numList1 = <int>[18, 19, 20];
-  List<num> numList2 = <num>[21, 22, 23];
+  dynamic dynamicList3 = <int?>[6, 7, 8];
+  Iterable<int> iterableIntList = <int>[9, 10, 11];
+  List<int> intList = <int>[12, 13, 14];
 
   var list1 = <int>[
     ...dynamicList1,
     ...dynamicList2,
+    ...dynamicList3,
     ...iterableIntList,
-    ...iterableNumList1,
-    ...iterableNumList2,
     ...intList,
-    ...numList1,
-    ...numList2
   ];
 
-  expect(new List<int>.generate(24, (int i) => i), list1);
+  expect(new List<int>.generate(15, (int i) => i), list1);
 
   var list2 = <num>[
     ...dynamicList1,
     ...dynamicList2,
+    ...dynamicList3,
     ...iterableIntList,
-    ...iterableNumList1,
-    ...iterableNumList2,
     ...intList,
-    ...numList1,
-    ...numList2
   ];
 
-  expect(new List<num>.generate(24, (int i) => i), list2);
+  expect(new List<num>.generate(15, (int i) => i), list2);
 
-  var list3 = <int>[
-    ...?dynamicList1,
-    ...?dynamicList2,
-    ...?iterableIntList,
-    ...?iterableNumList1,
-    ...?iterableNumList2,
-    ...?intList,
-    ...?numList1,
-    ...?numList2
-  ];
-
-  expect(new List<int>.generate(24, (int i) => i), list3);
-
-  var list4 = <num>[
-    ...?dynamicList1,
-    ...?dynamicList2,
-    ...?iterableIntList,
-    ...?iterableNumList1,
-    ...?iterableNumList2,
-    ...?intList,
-    ...?numList1,
-    ...?numList2
-  ];
-
-  expect(new List<num>.generate(24, (int i) => i), list4);
-
-  List<int> list5 = [
+  List<int> list3 = [
     ...dynamicList1,
     ...dynamicList2,
+    ...dynamicList3,
     ...iterableIntList,
-    ...iterableNumList1,
-    ...iterableNumList2,
     ...intList,
-    ...numList1,
-    ...numList2
   ];
 
-  expect(new List<int>.generate(24, (int i) => i), list5);
+  expect(new List<int>.generate(15, (int i) => i), list3);
 
-  var list6 = [
+  var list4 = [
     ...dynamicList1,
     ...dynamicList2,
+    ...dynamicList3,
     ...iterableIntList,
-    ...iterableNumList1,
-    ...iterableNumList2,
     ...intList,
-    ...numList1,
-    ...numList2
   ];
 
-  expect(new List<dynamic>.generate(24, (int i) => i), list6);
-
-  List<int> list7 = [
-    ...?dynamicList1,
-    ...?dynamicList2,
-    ...?iterableIntList,
-    ...?iterableNumList1,
-    ...?iterableNumList2,
-    ...?intList,
-    ...?numList1,
-    ...?numList2
-  ];
-
-  expect(new List<int>.generate(24, (int i) => i), list7);
-
-  var list8 = [
-    ...?dynamicList1,
-    ...?dynamicList2,
-    ...?iterableIntList,
-    ...?iterableNumList1,
-    ...?iterableNumList2,
-    ...?intList,
-    ...?numList1,
-    ...?numList2
-  ];
-
-  expect(new List<dynamic>.generate(24, (int i) => i), list8);
+  expect(new List<dynamic>.generate(15, (int i) => i), list4);
 
   {
     List<int> intList1 = [0, 1, 2];
@@ -126,8 +57,57 @@ void useAddAll() {
   }
 }
 
+void useAddAllNullable() {
+  dynamic dynamicList1 = <int>[0, 1, 2];
+  dynamic dynamicList2 = <num>[3, 4, 5];
+  dynamic dynamicList3 = <int?>[6, 7, 8];
+  Iterable<int>? iterableIntList = true ? <int>[9, 10, 11] : null;
+  List<int>? intList = true ? <int>[12, 13, 14] : null;
+
+  var list1 = <int>[
+    ...?dynamicList1,
+    ...?dynamicList2,
+    ...?dynamicList3,
+    ...?iterableIntList,
+    ...?intList,
+  ];
+
+  expect(new List<int>.generate(15, (int i) => i), list1);
+
+  var list2 = <num>[
+    ...?dynamicList1,
+    ...?dynamicList2,
+    ...?dynamicList3,
+    ...?iterableIntList,
+    ...?intList,
+  ];
+
+  expect(new List<num>.generate(15, (int i) => i), list2);
+
+  List<int> list3 = [
+    ...?dynamicList1,
+    ...?dynamicList2,
+    ...?dynamicList3,
+    ...?iterableIntList,
+    ...?intList,
+  ];
+
+  expect(new List<int>.generate(15, (int i) => i), list3);
+
+  var list4 = [
+    ...?dynamicList1,
+    ...?dynamicList2,
+    ...?dynamicList3,
+    ...?iterableIntList,
+    ...?intList,
+  ];
+
+  expect(new List<dynamic>.generate(15, (int i) => i), list4);
+}
+
 main() {
   useAddAll();
+  useAddAllNullable();
 }
 
 void expect(List list1, List list2) {

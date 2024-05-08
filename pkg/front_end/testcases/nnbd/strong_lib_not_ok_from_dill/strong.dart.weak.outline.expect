@@ -6,10 +6,15 @@ import "org-dartlang-testcase:///strong_lib.dart";
 static method main() → dynamic
   ;
 
-library /*isLegacy*/;
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/strong_lib_not_ok_from_dill/strong_lib.dart:1:1: Error: The specified language version is too low. The lowest supported language version is 2.12.
+// // @dart = 2.11
+// ^^^^^^^^^^^^^^^
+//
 import self as self2;
-import "dart:core" as core;
 
-static field core::int* x;
 static method foo() → void
   ;

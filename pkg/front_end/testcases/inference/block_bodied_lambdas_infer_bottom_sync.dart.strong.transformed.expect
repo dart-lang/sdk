@@ -1,26 +1,28 @@
-library test /*isLegacy*/;
+library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/block_bodied_lambdas_infer_bottom_sync.dart:5:1: Error: Library doesn't support null safety.
-// // @dart=2.9
-// ^^^^^^^^^^^^
+// pkg/front_end/testcases/inference/block_bodied_lambdas_infer_bottom_sync.dart:18:54: Error: A value of type 'String' can't be returned from a function with return type 'Null'.
+//   f = /*@ returnType=Null */ (/*@type=Object*/ x) => 'hello';
+//                                                      ^
 //
 import self as self;
 import "dart:core" as core;
 
 static field dynamic h = null;
-static method foo((core::Object*) →* core::int* f) → void {}
+static method foo((core::Object) → core::int? f) → void {}
 static method test() → dynamic {
-  (core::Object*) →* Null f = (core::Object* x) → Null {
+  (core::Object) → Null f = (core::Object x) → Null {
     return null;
   };
-  core::String* y = f(42){(core::Object*) →* Null};
-  f = (core::Object* x) → Null => "hello" as{TypeError,ForLegacy} Null;
-  self::foo((core::Object* x) → Null {
+  core::String? y = f(42){(core::Object) → Null};
+  f = (core::Object x) → Null => invalid-expression "pkg/front_end/testcases/inference/block_bodied_lambdas_infer_bottom_sync.dart:18:54: Error: A value of type 'String' can't be returned from a function with return type 'Null'.
+  f = /*@ returnType=Null */ (/*@type=Object*/ x) => 'hello';
+                                                     ^" in "hello" as{TypeError} Null;
+  self::foo((core::Object x) → Null {
     return null;
   });
-  self::foo((core::Object* x) → Null {
+  self::foo((core::Object x) → Never {
     throw "not implemented";
   });
 }

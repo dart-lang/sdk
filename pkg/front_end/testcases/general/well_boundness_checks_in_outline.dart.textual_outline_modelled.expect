@@ -1,15 +1,13 @@
-// @dart = 2.9
-
 class A<X extends int> {}
 
 class B {
-  A<num> fieldOfA;
-  static A<num> staticFieldOfA;
+  A<num>? fieldOfA;
+  static A<num>? staticFieldOfA;
 }
 
 extension E<X extends A<num>> on A {
-  A<num> fooOfE() => null;
-  static A<num> fieldOfE;
+  A<num>? fooOfE() => null;
+  static A<num>? fieldOfE;
   void barOfE(A<num> a) {}
   void bazOfE<Y extends A<num>>() {}
 }

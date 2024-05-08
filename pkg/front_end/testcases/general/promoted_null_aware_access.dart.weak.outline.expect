@@ -1,8 +1,8 @@
-library /*isLegacy*/;
+library;
 import self as self;
 import "dart:core" as core;
 
-static method method<T extends core::Object* = dynamic>(self::method::T* o) → dynamic
+static method method<T extends core::Object? = dynamic>(self::method::T% o) → dynamic
   ;
 static method main() → dynamic
   ;

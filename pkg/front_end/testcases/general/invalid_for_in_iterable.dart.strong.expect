@@ -1,58 +1,72 @@
-library /*isLegacy*/;
+library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/invalid_for_in_iterable.dart:5:1: Error: Library doesn't support null safety.
-// // @dart=2.9
-// ^^^^^^^^^^^^
+// pkg/front_end/testcases/general/invalid_for_in_iterable.dart:5:26: Error: The value 'null' can't be returned from a function with return type 'Iterable<dynamic>' because 'Iterable<dynamic>' is not nullable.
+//  - 'Iterable' is from 'dart:core'.
+// Iterable takesNoArg() => null;
+//                          ^
 //
-// pkg/front_end/testcases/general/invalid_for_in_iterable.dart:14:27: Error: Too many positional arguments: 0 allowed, but 1 found.
+// pkg/front_end/testcases/general/invalid_for_in_iterable.dart:12:27: Error: Too many positional arguments: 0 allowed, but 1 found.
 // Try removing the extra positional arguments.
 //   for (var v in takesNoArg(0)) {}
 //                           ^
-// pkg/front_end/testcases/general/invalid_for_in_iterable.dart:7:10: Context: Found this candidate, but the arguments don't match.
+// pkg/front_end/testcases/general/invalid_for_in_iterable.dart:5:10: Context: Found this candidate, but the arguments don't match.
 // Iterable takesNoArg() => null;
 //          ^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/invalid_for_in_iterable.dart:15:17: Error: This expression has type 'void' and can't be used.
+// pkg/front_end/testcases/general/invalid_for_in_iterable.dart:13:17: Error: This expression has type 'void' and can't be used.
 //   for (var v in returnVoid()) {}
 //                 ^
 //
-// pkg/front_end/testcases/general/invalid_for_in_iterable.dart:16:17: Error: The type 'int' used in the 'for' loop must implement 'Iterable<dynamic>'.
+// pkg/front_end/testcases/general/invalid_for_in_iterable.dart:14:17: Error: The type 'int' used in the 'for' loop must implement 'Iterable<dynamic>'.
 //  - 'Iterable' is from 'dart:core'.
 //   for (var v in returnInt()) {}
+//                 ^
+//
+// pkg/front_end/testcases/general/invalid_for_in_iterable.dart:16:17: Error: The type 'Object' used in the 'for' loop must implement 'Iterable<dynamic>'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Iterable' is from 'dart:core'.
+//   for (var v in returnObject()) {}
 //                 ^
 //
 import self as self;
 import "dart:core" as core;
 
-static method takesNoArg() → core::Iterable<dynamic>*
-  return null;
+static method takesNoArg() → core::Iterable<dynamic>
+  return invalid-expression "pkg/front_end/testcases/general/invalid_for_in_iterable.dart:5:26: Error: The value 'null' can't be returned from a function with return type 'Iterable<dynamic>' because 'Iterable<dynamic>' is not nullable.
+ - 'Iterable' is from 'dart:core'.
+Iterable takesNoArg() => null;
+                         ^" in null as{TypeError} core::Iterable<dynamic>;
 static method returnVoid() → void {}
-static method returnInt() → core::int*
+static method returnInt() → core::int
   return 42;
 static method returnDynamic() → dynamic
   return <dynamic>[];
-static method returnObject() → core::Object*
+static method returnObject() → core::Object
   return 0;
 static method test() → dynamic {
-  for (dynamic v in invalid-expression "pkg/front_end/testcases/general/invalid_for_in_iterable.dart:14:27: Error: Too many positional arguments: 0 allowed, but 1 found.
+  for (dynamic v in invalid-expression "pkg/front_end/testcases/general/invalid_for_in_iterable.dart:12:27: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
   for (var v in takesNoArg(0)) {}
                           ^") {
   }
-  for (dynamic v in invalid-expression "pkg/front_end/testcases/general/invalid_for_in_iterable.dart:15:17: Error: This expression has type 'void' and can't be used.
+  for (dynamic v in invalid-expression "pkg/front_end/testcases/general/invalid_for_in_iterable.dart:13:17: Error: This expression has type 'void' and can't be used.
   for (var v in returnVoid()) {}
                 ^" in self::returnVoid()) {
   }
-  for (dynamic v in invalid-expression "pkg/front_end/testcases/general/invalid_for_in_iterable.dart:16:17: Error: The type 'int' used in the 'for' loop must implement 'Iterable<dynamic>'.
+  for (dynamic v in invalid-expression "pkg/front_end/testcases/general/invalid_for_in_iterable.dart:14:17: Error: The type 'int' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Iterable' is from 'dart:core'.
   for (var v in returnInt()) {}
-                ^" in self::returnInt() as{TypeError,ForLegacy} core::Iterable<dynamic>*) {
+                ^" in self::returnInt() as{TypeError} core::Iterable<dynamic>) {
   }
-  for (dynamic v in self::returnDynamic() as{TypeError,ForDynamic,ForLegacy} core::Iterable<dynamic>*) {
+  for (dynamic v in self::returnDynamic() as{TypeError,ForDynamic} core::Iterable<dynamic>) {
   }
-  for (dynamic v in self::returnObject() as{TypeError,ForLegacy} core::Iterable<dynamic>*) {
+  for (dynamic v in invalid-expression "pkg/front_end/testcases/general/invalid_for_in_iterable.dart:16:17: Error: The type 'Object' used in the 'for' loop must implement 'Iterable<dynamic>'.
+ - 'Object' is from 'dart:core'.
+ - 'Iterable' is from 'dart:core'.
+  for (var v in returnObject()) {}
+                ^" in self::returnObject() as{TypeError} core::Iterable<dynamic>) {
   }
   for (dynamic v in throw "") {
   }

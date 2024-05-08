@@ -1,8 +1,8 @@
-library test /*isLegacy*/;
+library test;
 import self as self;
 import "dart:core" as core;
 
-static method foo([has-declared-initializer core::List<core::String*>* list1, has-declared-initializer core::List<core::String*>* list2]) → void
+static method foo([has-declared-initializer core::List<core::String> list1, has-declared-initializer core::List<core::String> list2]) → void
   ;
-static method main() → void
+static method test() → void
   ;

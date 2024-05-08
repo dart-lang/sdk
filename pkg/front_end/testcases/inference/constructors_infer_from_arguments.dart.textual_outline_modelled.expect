@@ -1,5 +1,3 @@
-// @dart = 2.9
-
 library test;
 
 class C<T> {
@@ -9,4 +7,4 @@ class C<T> {
 
 main() {}
 
-test() {}
+test(num y) {}

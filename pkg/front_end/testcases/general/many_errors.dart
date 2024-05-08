@@ -1,8 +1,6 @@
-// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-// @dart=2.9
 
 class A {
   final x = null;
@@ -19,7 +17,7 @@ external foo(String x) {
 class B {}
 
 class C {
-  B b;
+  late B b;
 }
 
 abstract class AbstractClass {
@@ -28,7 +26,7 @@ abstract class AbstractClass {
 
 m() {
   const AbstractClass.id();
-  (new C()?.b ??= new B()).b;
+  (new C().b ??= new B()).b;
 }
 
 main() {}

@@ -710,6 +710,8 @@ LanguageVersionMismatchInPart/analyzerCode: Fail
 LanguageVersionMismatchInPart/part_wrapped_script: Fail # Part in (now) part.
 LanguageVersionMismatchInPatch/analyzerCode: Fail
 LanguageVersionMismatchInPatch/example: Fail
+LanguageVersionTooLow/analyzerCode: Fail
+LanguageVersionTooLow/part_wrapped_script: Fail # Content comes after "part of [...]" meaning it's not actually a language version specification.
 LanguageVersionTooHigh/analyzerCode: Fail
 LanguageVersionTooHigh/part_wrapped_script: Fail # Content comes after "part of [...]" meaning it's not actually a language version specification.
 LateDefinitelyAssignedError/analyzerCode: Fail
@@ -1143,3 +1145,17 @@ WebLiteralCannotBeRepresentedExactly/analyzerCode: Fail
 WebLiteralCannotBeRepresentedExactly/example: Fail
 YieldAsIdentifier/example: Fail
 YieldNotGenerator/example: Fail
+
+# Messages only reported for legacy libraries
+# TODO(johnniwinther): Remove these.
+ExportOptOutFromOptIn/example: Fail
+ExternalField/example: Fail
+InvalidGetterSetterTypeBothInheritedFieldLegacy/example: Fail
+InvalidGetterSetterTypeBothInheritedGetterLegacy/example: Fail
+InvalidGetterSetterTypeGetterInheritedLegacy/example: Fail
+InvalidGetterSetterTypeFieldInheritedLegacy/example: Fail
+InvalidGetterSetterTypeLegacy/example: Fail
+InvalidGetterSetterTypeSetterInheritedGetterLegacy/example: Fail
+InvalidGetterSetterTypeSetterInheritedFieldLegacy/example: Fail
+UnexpectedModifierInNonNnbd/example: Fail
+SwitchExpressionNotAssignable/example: Fail

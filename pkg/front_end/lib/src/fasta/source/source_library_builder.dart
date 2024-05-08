@@ -649,6 +649,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       // we want to use the package version.
       _languageVersion = new InvalidLanguageVersion(
           fileUri, offset, length, packageLanguageVersion.version, true);
+    } else if (version < loader.target.leastSupportedVersion) {
+      addPostponedProblem(
+          templateLanguageVersionTooLow.withArguments(
+              loader.target.leastSupportedVersion.major,
+              loader.target.leastSupportedVersion.minor),
+          offset,
+          length,
+          fileUri);
+      _languageVersion = new InvalidLanguageVersion(
+          fileUri, offset, length, loader.target.leastSupportedVersion, true);
     } else {
       _languageVersion = new LanguageVersion(version, fileUri, offset, length);
     }

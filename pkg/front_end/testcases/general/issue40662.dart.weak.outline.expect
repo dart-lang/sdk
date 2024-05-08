@@ -1,10 +1,10 @@
-library /*isLegacy*/;
+library;
 import self as self;
 import "dart:core" as core;
 
-static method bar(core::int* a, core::List<core::int*>* b) → dynamic
+static method bar(core::int a, core::List<core::int?>? b) → dynamic
   ;
-static method foo(core::int* x) → dynamic async 
+static method foo(core::int x) → dynamic async 
   ;
 static method main() → void async 
   ;

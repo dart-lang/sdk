@@ -1,18 +1,17 @@
 //
 // Problems outside component:
 //
-// pkg/front_end/testcases/nnbd/strong_package_not_ok_from_source/opt_in_package/lib/opt_out_lib.dart:5:1: Error: Library doesn't support null safety.
-// // @dart=2.7
-// ^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/strong_package_not_ok_from_source/opt_in_package/lib/opt_out_lib.dart:5:1: Error: The specified language version is too low. The lowest supported language version is 2.12.
+// // @dart=2.11
+// ^^^^^^^^^^^^^
 //
+// pkg/front_end/testcases/nnbd/strong_package_not_ok_from_source/opt_out_package/lib/regular_lib1.dart:1:1: Error: The specified language version is too low. The lowest supported language version is 2.12.
+// // Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+// ^
 //
-// Problems in component:
-//
-// Error: The following dependencies don't support null safety:
-//
-//  - package:opt_out_package
-//
-// For solutions, see https://dart.dev/go/unsound-null-safety
+// pkg/front_end/testcases/nnbd/strong_package_not_ok_from_source/opt_out_package/lib/regular_lib2.dart:1:1: Error: The specified language version is too low. The lowest supported language version is 2.12.
+// // Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+// ^
 //
 library;
 import self as self;

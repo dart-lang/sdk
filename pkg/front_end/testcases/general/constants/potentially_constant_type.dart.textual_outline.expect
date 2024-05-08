@@ -1,13 +1,16 @@
-// @dart = 2.9
-
 import 'potentially_constant_type_lib1.dart';
-
-import 'potentially_constant_type_lib2.dart';
 
 T id<T>(T t) => t;
 
+typedef F<X, Y> = Class<X>;
+
+typedef G<X> = Class<int>;
+
 class Class<T> {
   final field1;
+  final field2;
+  final field3;
+  final field4;
   final field5;
   final field6;
   final field7;
@@ -15,8 +18,28 @@ class Class<T> {
   final field9;
   final field10;
   final field11;
+  final field12;
+  final field13;
+  final field14;
   final field15;
-  const Class(o) : field1 = T, field5 = <T>[], field6 = <T>{}, field7 = <T, T>{}, field8 = o is T, field9 = o is Class<T>, field10 = o as T, field11 = o as Class<T>, field15 = <Class<T>>[];
+  final field16;
+  const Class(o)
+      : field1 = T,
+        field2 = Class<T>,
+        field3 = id<T>,
+        field4 = (id)<T>,
+        field5 = <T>[],
+        field6 = <T>{},
+        field7 = <T, T>{},
+        field8 = o is T,
+        field9 = o is Class<T>,
+        field10 = o as T,
+        field11 = o as Class<T>,
+        field12 = Class<T>.new,
+        field13 = F<T, T>.new,
+        field14 = id<Class<T>>,
+        field15 = <Class<T>>[],
+        field16 = G<T>.new;
   void method() {}
 }
 

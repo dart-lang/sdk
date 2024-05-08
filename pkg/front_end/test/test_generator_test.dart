@@ -7,7 +7,6 @@ import 'dart:io' show File, stdout;
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
-import 'package:front_end/src/base/nnbd_mode.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:front_end/src/fasta/messages.dart';
@@ -136,7 +135,6 @@ class TestCompiler {
     fs.entityForUri(sdkSummary).writeAsBytesSync(sdkSummaryData);
 
     CompilerOptions options = helper.getOptions();
-    options.nnbdMode = NnbdMode.Weak;
     options.fileSystem = fs;
     options.sdkRoot = null;
     options.sdkSummary = sdkSummary;
@@ -194,24 +192,28 @@ Iterable<Generator> generateOuterContext() sync* {
 Iterable<Generator> generateInnerContext(
     List<String> knownTypeParameters) sync* {
   for (String static in ["", "static "]) {
-    yield new Generator([], "${static}int method() {\nreturn ", ";\n}");
     yield new Generator(
-        ["T2"], "${static}int method<T2>() {\n  return ", ";\n}");
+        [], "${static}int method() {\nreturn ", " as Never;\n}");
+    yield new Generator(
+        ["T2"], "${static}int method<T2>() {\n  return ", " as Never;\n}");
     for (String typeParameter in knownTypeParameters) {
       yield new Generator(
-          [], "${static}$typeParameter method() {\nreturn ", ";\n}");
+          [], "${static}$typeParameter method() {\nreturn ", " as Never;\n}");
     }
-    yield new Generator([], "${static}int field = ", ";");
-    yield new Generator([], "${static}int field = () { return ", "; }();");
-    yield new Generator([], "${static}var field = ", ";");
-    yield new Generator([], "${static}var field = () { return ", "; }();");
+    yield new Generator([], "${static}int field = ", " as Never;");
+    yield new Generator(
+        [], "${static}int field = () { return ", " as Never; }();");
+    yield new Generator([], "${static}var field = ", " as Never;");
+    yield new Generator(
+        [], "${static}var field = () { return ", " as Never; }();");
 
     for (String typeParameter in knownTypeParameters) {
       yield new Generator(["T2"], "${static}int field = <T2>() { return ",
-          "; }<$typeParameter>();");
-      yield new Generator([], "${static}${typeParameter} field = ", ";");
+          "; }<$typeParameter>() as Never;");
       yield new Generator(
-          [], "${static}${typeParameter} field = () { return ", "; }();");
+          [], "${static}${typeParameter} field = ", " as Never;");
+      yield new Generator([], "${static}${typeParameter} field = () { return ",
+          "; }() as Never;");
     }
   }
 }
@@ -219,7 +221,8 @@ Iterable<Generator> generateInnerContext(
 Iterable<Generator> generateExpression(List<String> knownTypeParameters) sync* {
   yield new Generator([], "42", "");
   for (String typeParameter in knownTypeParameters) {
-    yield new Generator([], "() { $typeParameter x = null; return x; }()", "");
+    yield new Generator(
+        [], "() { $typeParameter x = throw 0; return x; }()", "");
   }
 }
 
@@ -231,7 +234,7 @@ class Generator {
   Generator(this.typeParameters, this.beforePlug, this.afterPlug);
 
   String generate(String plug) {
-    return "// @dart = 2.9\n${beforePlug}${plug}${afterPlug}";
+    return "${beforePlug}${plug}${afterPlug}";
   }
 }
 

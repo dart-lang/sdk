@@ -26,38 +26,6 @@ main(List<String> args) async {
     onFailure: onFailure,
     runTest:
         runTestFor(const _InheritanceDataComputer(), [analyzerDefaultConfig]),
-    skipList: [
-      // Legacy, not supported by the analyzer anymore.
-      'covariant_opt_out.dart',
-      'from_opt_in',
-      'from_opt_out',
-      'generic_members_from_opt_in',
-      'generic_members_from_opt_out',
-      'in_out_in',
-      'infer_from_opt_in',
-      'infer_opt_in_from_mixed',
-      'infer_opt_out_from_mixed',
-      'infer_parameter_opt_out.dart',
-      'issue40414',
-      'issue40481',
-      'issue40524',
-      'issue40553',
-      'member_from_opt_in',
-      'member_from_opt_out',
-      'members_from_opt_in',
-      'members_from_opt_out',
-      'members_opt_out.dart',
-      'nsm_from_opt_in',
-      'sink.dart',
-      'top_merge_opt_out.dart',
-    ],
-    skipMap: {
-      analyzerMarker: [
-        // These are CFE-centric tests for an opt-in/opt-out sdk.
-        'object_opt_in',
-        'object_opt_out',
-      ]
-    },
   );
 }
 

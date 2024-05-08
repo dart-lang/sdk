@@ -2,120 +2,60 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 void useAddAll() {
   dynamic dynamicMap1 = <int, int>{0: 100, 1: 101, 2: 102};
   dynamic dynamicMap2 = <num, num>{3: 103, 4: 104, 5: 105};
-  Map<int, int> intMap = <int, int>{6: 106, 7: 107, 8: 108};
-  Map<num, num> numMap1 = <int, int>{9: 109, 10: 110, 11: 111};
-  Map<num, num> numMap2 = <num, num>{12: 112, 13: 113, 14: 114};
+  dynamic dynamicMap3 = <int?, int?>{6: 106, 7: 107, 8: 108};
+  Map<int, int> intMap = <int, int>{9: 109, 10: 110, 11: 111};
 
   var map1 = <int, int>{
     ...dynamicMap1,
     ...dynamicMap2,
+    ...dynamicMap3,
     ...intMap,
-    ...numMap1,
-    ...numMap2
   };
 
   expect(
-      new Map<int, int>.fromIterables(new List<int>.generate(15, (int i) => i),
-          new List<int>.generate(15, (int i) => 100 + i)),
+      new Map<int, int>.fromIterables(new List<int>.generate(12, (int i) => i),
+          new List<int>.generate(12, (int i) => 100 + i)),
       map1);
 
   var map2 = <num, num>{
     ...dynamicMap1,
     ...dynamicMap2,
+    ...dynamicMap3,
     ...intMap,
-    ...numMap1,
-    ...numMap2
   };
 
   expect(
-      new Map<num, num>.fromIterables(new List<int>.generate(15, (int i) => i),
-          new List<int>.generate(15, (int i) => 100 + i)),
+      new Map<num, num>.fromIterables(new List<num>.generate(12, (int i) => i),
+          new List<num>.generate(12, (int i) => 100 + i)),
       map2);
 
-  var map3 = <int, int>{
-    ...?dynamicMap1,
-    ...?dynamicMap2,
-    ...?intMap,
-    ...?numMap1,
-    ...?numMap2
+  Map<int, int> map3 = {
+    ...dynamicMap1,
+    ...dynamicMap2,
+    ...dynamicMap3,
+    ...intMap,
   };
 
   expect(
-      new Map<int, int>.fromIterables(new List<int>.generate(15, (int i) => i),
-          new List<int>.generate(15, (int i) => 100 + i)),
+      new Map<int, int>.fromIterables(new List<int>.generate(12, (int i) => i),
+          new List<int>.generate(12, (int i) => 100 + i)),
       map3);
 
-  var map4 = <num, num>{
-    ...?dynamicMap1,
-    ...?dynamicMap2,
-    ...?intMap,
-    ...?numMap1,
-    ...?numMap2
+  var map4 = {
+    ...dynamicMap1,
+    ...dynamicMap2,
+    ...dynamicMap3,
+    ...intMap,
   };
 
   expect(
-      new Map<num, num>.fromIterables(new List<int>.generate(15, (int i) => i),
-          new List<int>.generate(15, (int i) => 100 + i)),
+      new Map<dynamic, dynamic>.fromIterables(
+          new List<int>.generate(12, (int i) => i),
+          new List<int>.generate(12, (int i) => 100 + i)),
       map4);
-
-  Map<int, int> map5 = {
-    ...dynamicMap1,
-    ...dynamicMap2,
-    ...intMap,
-    ...numMap1,
-    ...numMap2
-  };
-
-  expect(
-      new Map<int, int>.fromIterables(new List<int>.generate(15, (int i) => i),
-          new List<int>.generate(15, (int i) => 100 + i)),
-      map5);
-
-  var map6 = {
-    ...dynamicMap1,
-    ...dynamicMap2,
-    ...intMap,
-    ...numMap1,
-    ...numMap2
-  };
-
-  expect(
-      new Map<dynamic, dynamic>.fromIterables(
-          new List<int>.generate(15, (int i) => i),
-          new List<int>.generate(15, (int i) => 100 + i)),
-      map6);
-
-  Map<int, int> map7 = {
-    ...?dynamicMap1,
-    ...?dynamicMap2,
-    ...?intMap,
-    ...?numMap1,
-    ...?numMap2
-  };
-
-  expect(
-      new Map<int, int>.fromIterables(new List<int>.generate(15, (int i) => i),
-          new List<int>.generate(15, (int i) => 100 + i)),
-      map7);
-
-  var map8 = {
-    ...?dynamicMap1,
-    ...?dynamicMap2,
-    ...?intMap,
-    ...?numMap1,
-    ...?numMap2
-  };
-
-  expect(
-      new Map<dynamic, dynamic>.fromIterables(
-          new List<int>.generate(15, (int i) => i),
-          new List<int>.generate(15, (int i) => 100 + i)),
-      map8);
 
   {
     Map<int, int> intMap1 = {0: 100, 1: 101, 2: 102};
@@ -128,8 +68,65 @@ void useAddAll() {
   }
 }
 
+void useAddAllNullable() {
+  dynamic dynamicMap1 = <int, int>{0: 100, 1: 101, 2: 102};
+  dynamic dynamicMap2 = <num, num>{3: 103, 4: 104, 5: 105};
+  dynamic dynamicMap3 = <int?, int?>{6: 106, 7: 107, 8: 108};
+  Map<int, int>? intMap = true ? <int, int>{9: 109, 10: 110, 11: 111} : null;
+
+  var map1 = <int, int>{
+    ...?dynamicMap1,
+    ...?dynamicMap2,
+    ...?dynamicMap3,
+    ...?intMap,
+  };
+
+  expect(
+      new Map<int, int>.fromIterables(new List<int>.generate(12, (int i) => i),
+          new List<int>.generate(12, (int i) => 100 + i)),
+      map1);
+
+  var map2 = <num, num>{
+    ...?dynamicMap1,
+    ...?dynamicMap2,
+    ...?dynamicMap3,
+    ...?intMap,
+  };
+
+  expect(
+      new Map<num, num>.fromIterables(new List<num>.generate(12, (int i) => i),
+          new List<num>.generate(12, (int i) => 100 + i)),
+      map2);
+
+  Map<int, int> map3 = {
+    ...?dynamicMap1,
+    ...?dynamicMap2,
+    ...?dynamicMap3,
+    ...?intMap,
+  };
+
+  expect(
+      new Map<int, int>.fromIterables(new List<int>.generate(12, (int i) => i),
+          new List<int>.generate(12, (int i) => 100 + i)),
+      map3);
+
+  var map4 = {
+    ...?dynamicMap1,
+    ...?dynamicMap2,
+    ...?dynamicMap3,
+    ...?intMap,
+  };
+
+  expect(
+      new Map<dynamic, dynamic>.fromIterables(
+          new List<int>.generate(12, (int i) => i),
+          new List<int>.generate(12, (int i) => 100 + i)),
+      map4);
+}
+
 main() {
   useAddAll();
+  useAddAllNullable();
 }
 
 void expect(Map map1, Map map2) {

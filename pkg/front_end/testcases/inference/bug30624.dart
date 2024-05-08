@@ -2,40 +2,37 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 /*@testedFeatures=inference*/
 library test;
 
 void foo<E>(C<E> c, int cmp(E a, E b)) {}
 
 class C<E> {
-  void barA([int cmp(E a, E b)]) {
-    /*@typeArgs=C::E**/ foo(this, cmp  ?? _default);
+  void barA([int Function(E a, E b)? cmp]) {
+    /*@typeArgs=C::E%*/ foo(this, cmp ?? _default);
   }
 
-  void barB([int cmp(E a, E b)]) {
-    /*@typeArgs=C::E**/ foo(
-        this, cmp  ?? (_default as int Function(E, E)));
+  void barB([int Function(E a, E b)? cmp]) {
+    /*@typeArgs=C::E%*/ foo(this, cmp ?? (_default as int Function(E, E)));
   }
 
-  void barC([int cmp(E a, E b)]) {
+  void barC([int Function(E a, E b)? cmp]) {
     int Function(E, E) v = _default;
-    /*@typeArgs=C::E**/ foo(this, cmp  ?? v);
+    /*@typeArgs=C::E%*/ foo(this, cmp ?? v);
   }
 
-  void barD([int cmp(E a, E b)]) {
-    foo<E>(this, cmp  ?? _default);
+  void barD([int Function(E a, E b)? cmp]) {
+    foo<E>(this, cmp ?? _default);
   }
 
-  void barE([int cmp(E a, E b)]) {
-    /*@typeArgs=C::E**/ foo(
-        this, cmp  == null ? _default : cmp);
+  void barE([int Function(E a, E b)? cmp]) {
+    /*@typeArgs=C::E%*/ foo(this,
+        cmp == null ? _default : /*@promotedType=(C::E%, C::E%) -> int*/ cmp);
   }
 
-  void barF([int cmp(E a, E b)]) {
-    /*@typeArgs=C::E**/ foo(
-        this, cmp  != null ? cmp : _default);
+  void barF([int Function(E a, E b)? cmp]) {
+    /*@typeArgs=C::E%*/ foo(this,
+        cmp != null ? /*@promotedType=(C::E%, C::E%) -> int*/ cmp : _default);
   }
 
   static int _default(a, b) {

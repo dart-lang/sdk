@@ -11272,6 +11272,35 @@ Message _withArgumentsLanguageVersionTooHigh(int count, int count2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(int count, int count2)>
+    templateLanguageVersionTooLow =
+    const Template<Message Function(int count, int count2)>(
+  "LanguageVersionTooLow",
+  problemMessageTemplate:
+      r"""The specified language version is too low. The lowest supported language version is #count.#count2.""",
+  withArguments: _withArgumentsLanguageVersionTooLow,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(int count, int count2)> codeLanguageVersionTooLow =
+    const Code<Message Function(int count, int count2)>(
+  "LanguageVersionTooLow",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsLanguageVersionTooLow(int count, int count2) {
+  return new Message(
+    codeLanguageVersionTooLow,
+    problemMessage:
+        """The specified language version is too low. The lowest supported language version is ${count}.${count2}.""",
+    arguments: {
+      'count': count,
+      'count2': count2,
+    },
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateLateDefinitelyAssignedError =
     const Template<Message Function(String name)>(

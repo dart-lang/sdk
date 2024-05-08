@@ -2,50 +2,63 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 class Struct {}
 
-class StructA extends Struct {}
+final class StructA extends Struct {}
 
-class StructB extends Struct {}
+final class StructB extends Struct {}
 
 class NonStruct {}
 
-extension Extension<T extends Struct> on T {
+extension Extension<T extends Struct?> on T {
   T method() => this;
   T get property => this;
   void set property(T value) {}
 }
 
 main() {
-  Struct struct;
-  StructA structA;
-  StructB structB;
+  Struct? struct;
+  StructA? structA;
+  StructB? structB;
 
   struct.method();
+  struct.property = struct.property;
   struct.property = structA.property;
+  struct.property = structB.property;
   structA.method();
-  structA.property = struct.property;
+  structA.property = structA.property;
   structB.method();
   structB.property = structB.property;
 
   new Struct().method();
   new Struct().property;
-  new Struct().property = null;
+  struct.property = null;
   new StructA().method();
   new StructA().property;
-  new StructA().property = null;
+  structA.property = null;
   new StructB().method();
   new StructB().property;
-  new StructB().property = null;
+  structB.property = null;
+}
+
+errors() {
+  Struct? struct;
+  StructA? structA;
+  StructB? structB;
+
+  structA.property = struct.property; // error
+  structB.property = struct.property; // error
+
+  new Struct().property = null; // error
+  new StructA().property = null; // error
+  new StructB().property = null; // error
 }
 
 testNonStruct() {
   NonStruct nonStruct;
-  nonStruct.method();
-  nonStruct.property = nonStruct.property;
-  new NonStruct().method();
-  new NonStruct().property;
-  new NonStruct().property = null;
+  nonStruct.method(); // error
+  nonStruct.property = nonStruct.property; // error
+  new NonStruct().method(); // error
+  new NonStruct().property; // error
+  new NonStruct().property = null; // error
 }

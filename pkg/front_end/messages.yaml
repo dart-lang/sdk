@@ -982,12 +982,6 @@ AbstractClassMember:
       abstract class C {abstract get m;}
     - |
       abstract class C {abstract set m(int x);}
-    - |
-      // @dart=2.9
-      abstract class C {abstract var f;}
-    - |
-      // @dart=2.9
-      abstract class C {abstract static var f;}
 
 AbstractExternalField:
   index: 110
@@ -1284,10 +1278,6 @@ ExternalField:
   correctionMessage: "Try removing the keyword 'external', or replacing the field by an external getter and/or setter."
   analyzerCode: ParserErrorCode.EXTERNAL_FIELD
   configuration: nnbd-weak
-  script:
-    - |
-      // @dart=2.9
-      class C { external var f; }
 
 ExternalFieldInitializer:
   problemMessage: "External fields cannot have initializers."
@@ -3064,89 +3054,30 @@ InvalidGetterSetterTypeBothInheritedGetter:
 InvalidGetterSetterTypeLegacy:
   problemMessage: "The type '#type' of the getter '#name' is not assignable to the type '#type2' of the setter '#name2'."
   configuration: nnbd-weak
-  script: |
-    // @dart=2.9
-    abstract class A {
-      String get property;
-      void set property(int i);
-    }
 
 InvalidGetterSetterTypeGetterInheritedLegacy:
   problemMessage: "The type '#type' of the inherited getter '#name' is not assignable to the type '#type2' of the setter '#name2'."
   configuration: nnbd-weak
-  script: |
-    // @dart=2.9
-    abstract class A {
-      String get property;
-    }
-    abstract class B implements A {
-      void set property(int i);
-    }
 
 InvalidGetterSetterTypeFieldInheritedLegacy:
   problemMessage: "The type '#type' of the inherited field '#name' is not assignable to the type '#type2' of the setter '#name2'."
   configuration: nnbd-weak
-  script: |
-    // @dart=2.9
-    abstract class A {
-      final String property;
-      A(this.property);
-    }
-    abstract class B implements A {
-      void set property(int i);
-    }
 
 InvalidGetterSetterTypeSetterInheritedGetterLegacy:
   problemMessage: "The type '#type' of the getter '#name' is not assignable to the type '#type2' of the inherited setter '#name2'."
   configuration: nnbd-weak
-  script: |
-    // @dart=2.9
-    abstract class A {
-      void set property(int i);
-    }
-    abstract class B implements A {
-      String get property;
-    }
 
 InvalidGetterSetterTypeSetterInheritedFieldLegacy:
   problemMessage: "The type '#type' of the field '#name' is not assignable to the type '#type2' of the inherited setter '#name2'."
   configuration: nnbd-weak
-  script: |
-    // @dart=2.9
-    abstract class A {
-      void set property(int i);
-    }
-    abstract class B implements A {
-      final String property;
-      B(this.property);
-    }
 
 InvalidGetterSetterTypeBothInheritedFieldLegacy:
   problemMessage: "The type '#type' of the inherited field '#name' is not assignable to the type '#type2' of the inherited setter '#name2'."
   configuration: nnbd-weak
-  script: |
-    // @dart=2.9
-    abstract class A {
-      final String property;
-      A(this.property);
-    }
-    abstract class B {
-      void set property(int i);
-    }
-    abstract class C implements A, B {}
 
 InvalidGetterSetterTypeBothInheritedGetterLegacy:
   problemMessage: "The type '#type' of the inherited getter '#name' is not assignable to the type '#type2' of the inherited setter '#name2'."
   configuration: nnbd-weak
-  script: |
-    // @dart=2.9
-    abstract class A {
-      String get property;
-    }
-    abstract class B {
-      void set property(int i);
-    }
-    abstract class C implements A, B {}
 
 InvalidGetterSetterTypeFieldContext:
   problemMessage: "This is the declaration of the field '#name'."
@@ -3769,14 +3700,6 @@ SwitchExpressionNotAssignable:
   problemMessage: "Type '#type' of the switch expression isn't assignable to the type '#type2' of this case expression."
   analyzerCode: SWITCH_EXPRESSION_NOT_ASSIGNABLE
   configuration: nnbd-weak
-  script:
-    - |
-      // @dart=2.9
-      void f() {
-        switch (42) {
-          case "foo": break;
-        }
-      }
 
 SwitchExpressionNotAssignableCause:
   problemMessage: "The switch expression is here."
@@ -4753,14 +4676,10 @@ InvokeNonFunction:
   analyzerCode: INVOCATION_OF_NON_FUNCTION
   configuration: nnbd-weak
   script: |
-    // @dart=2.9
-    class Foo {
-      int f;
+    abstract class Foo {
+      int get f;
     }
-    main() {
-      Foo foo = new Foo();
-      foo.f();
-    }
+    method(Foo foo) => foo.f();
 
 ConstInstanceField:
   problemMessage: "Only static fields can be declared as const."
@@ -5490,6 +5409,11 @@ LanguageVersionTooHigh:
   script: >
     // @dart = 100.200
 
+LanguageVersionTooLow:
+  problemMessage: "The specified language version is too low. The lowest supported language version is #count.#count2."
+  script: >
+    // @dart = 2.9
+
 LanguageVersionInvalidInDotPackages:
   problemMessage: "The language version is not specified correctly in the packages file."
   exampleAllowMoreCodes: true
@@ -6026,12 +5950,6 @@ NonAgnosticConstant:
 ExportOptOutFromOptIn:
   problemMessage: "Null safe libraries are not allowed to export declarations from of opt-out libraries."
   configuration: nnbd-weak
-  script:
-    main.dart: |
-      export 'lib.dart';
-    lib.dart: |
-      // @dart=2.5
-      class A {}
 
 CannotAssignToFinalVariable:
   problemMessage: "Can't assign to the final variable '#name'."
@@ -6163,16 +6081,12 @@ UnexpectedModifierInNonNnbd:
   problemMessage: "The modifier '#lexeme' is only available in null safe libraries."
   exampleAllowMoreCodes: true
   analyzerCode: UNEXPECTED_TOKEN
-  script: |
-    // @dart=2.9
-    late int x;
 
 CompilingWithoutSoundNullSafety:
   problemMessage: "Compiling without sound null safety!\nDart 3 will only support sound null safety, see https://dart.dev/null-safety"
   configuration: nnbd-weak,compile
   severity: INFO
   script: |
-    // @dart=2.9
     main() {}
 
 UnsupportedDartExt:

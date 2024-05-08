@@ -1,74 +1,103 @@
-library test /*isLegacy*/;
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/bug31436.dart:23:36: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
+//         . /*@target=List.add*/ add("hello"); // runtime error
+//                                    ^
+//
+// pkg/front_end/testcases/inference/bug31436.dart:28:12: Error: A value of type 'Object' can't be returned from a function with return type 'List<int>'.
+//  - 'Object' is from 'dart:core'.
+//  - 'List' is from 'dart:core'.
+//     return o;
+//            ^
+//
+// pkg/front_end/testcases/inference/bug31436.dart:52:36: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
+//         . /*@target=List.add*/ add("hello"); // runtime error
+//                                    ^
+//
+// pkg/front_end/testcases/inference/bug31436.dart:57:7: Error: A value of type 'Object' can't be returned from a function with return type 'List<int>'.
+//  - 'Object' is from 'dart:core'.
+//  - 'List' is from 'dart:core'.
+//       o; // No implicit downcast on the assignment, implicit downcast on the return
+//       ^
+//
 import self as self;
 import "dart:core" as core;
 
-static method block_test() → void {
-  () →* core::List<core::Object*>* g;
-  g = () → core::List<core::Object*>* {
-    return <core::Object*>[3];
+static method block_test(() → core::List<core::Object> g) → void {
+  g = () → core::List<core::Object> {
+    return <core::Object>[3];
   };
-  assert(g is{ForLegacy} () →* core::List<core::Object*>*);
-  assert(!(g is{ForLegacy} () →* core::List<core::int*>*));
-  g(){() →* core::List<core::Object*>*}.{core::List::add}("hello"){(core::Object*) →* void};
-  core::List<core::int*>* l = <core::int*>[3];
-  g = () → core::List<core::int*>* {
+  assert(g is () → core::List<core::Object>);
+  assert(!(g is () → core::List<core::int>));
+  g(){() → core::List<core::Object>}.{core::List::add}("hello"){(core::Object) → void};
+  core::List<core::int> l = <core::int>[3];
+  g = () → core::List<core::int> {
     return l;
   };
-  assert(g is{ForLegacy} () →* core::List<core::Object*>*);
-  assert(g is{ForLegacy} () →* core::List<core::int*>*);
+  assert(g{() → core::List<core::int>} is () → core::List<core::Object>);
+  assert(g{() → core::List<core::int>} is () → core::List<core::int>);
   try {
-    g(){() →* core::List<core::Object*>*}.{core::List::add}("hello"){(core::Object*) →* void};
+    g{() → core::List<core::int>}(){() → core::List<core::int>}.{core::List::add}(invalid-expression "pkg/front_end/testcases/inference/bug31436.dart:23:36: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
+        . /*@target=List.add*/ add(\"hello\"); // runtime error
+                                   ^" in "hello" as{TypeError} core::int){(core::int) → void};
     throw "expected a runtime error";
   }
-  on core::TypeError* catch(no-exception-var) {
+  on core::TypeError catch(no-exception-var) {
   }
-  core::Object* o = l;
-  g = () → core::List<core::Object*>* {
-    return o as{TypeError,ForLegacy} core::List<core::Object*>*;
+  core::Object o = l;
+  g = () → core::List<core::int> {
+    return invalid-expression "pkg/front_end/testcases/inference/bug31436.dart:28:12: Error: A value of type 'Object' can't be returned from a function with return type 'List<int>'.
+ - 'Object' is from 'dart:core'.
+ - 'List' is from 'dart:core'.
+    return o;
+           ^" in o as{TypeError} core::List<core::int>;
   };
-  assert(g is{ForLegacy} () →* core::List<core::Object*>*);
-  assert(!(g is{ForLegacy} () →* core::List<core::int*>*));
-  assert(!(g is{ForLegacy} () →* core::Object*));
-  g(){() →* core::List<core::Object*>*};
+  assert(g{() → core::List<core::int>} is () → core::List<core::Object>);
+  assert(!(g{() → core::List<core::int>} is () → core::List<core::int>));
+  assert(!(g{() → core::List<core::int>} is () → core::Object));
+  g{() → core::List<core::int>}(){() → core::List<core::int>};
   o = 3;
   try {
-    g(){() →* core::List<core::Object*>*};
+    g{() → core::List<core::int>}(){() → core::List<core::int>};
     throw "expected a runtime error";
   }
-  on core::TypeError* catch(no-exception-var) {
+  on core::TypeError catch(no-exception-var) {
   }
 }
-static method arrow_test() → void {
-  () →* core::List<core::Object*>* g;
-  g = () → core::List<core::Object*>* => <core::Object*>[3];
-  assert(g is{ForLegacy} () →* core::List<core::Object*>*);
-  assert(!(g is{ForLegacy} () →* core::List<core::int*>*));
-  g(){() →* core::List<core::Object*>*}.{core::List::add}("hello"){(core::Object*) →* void};
-  core::List<core::int*>* l = <core::int*>[3];
-  g = () → core::List<core::int*>* => l;
-  assert(g is{ForLegacy} () →* core::List<core::Object*>*);
-  assert(g is{ForLegacy} () →* core::List<core::int*>*);
+static method arrow_test(() → core::List<core::Object> g) → void {
+  g = () → core::List<core::Object> => <core::Object>[3];
+  assert(g is () → core::List<core::Object>);
+  assert(!(g is () → core::List<core::int>));
+  g(){() → core::List<core::Object>}.{core::List::add}("hello"){(core::Object) → void};
+  core::List<core::int> l = <core::int>[3];
+  g = () → core::List<core::int> => l;
+  assert(g{() → core::List<core::int>} is () → core::List<core::Object>);
+  assert(g{() → core::List<core::int>} is () → core::List<core::int>);
   try {
-    g(){() →* core::List<core::Object*>*}.{core::List::add}("hello"){(core::Object*) →* void};
+    g{() → core::List<core::int>}(){() → core::List<core::int>}.{core::List::add}(invalid-expression "pkg/front_end/testcases/inference/bug31436.dart:52:36: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
+        . /*@target=List.add*/ add(\"hello\"); // runtime error
+                                   ^" in "hello" as{TypeError} core::int){(core::int) → void};
     throw "expected a runtime error";
   }
-  on core::TypeError* catch(no-exception-var) {
+  on core::TypeError catch(no-exception-var) {
   }
-  core::Object* o = l;
-  g = () → core::List<core::Object*>* => o as{TypeError,ForLegacy} core::List<core::Object*>*;
-  assert(g is{ForLegacy} () →* core::List<core::Object*>*);
-  assert(!(g is{ForLegacy} () →* core::List<core::int*>*));
-  assert(!(g is{ForLegacy} () →* core::Object*));
-  g(){() →* core::List<core::Object*>*};
+  core::Object o = l;
+  g = () → core::List<core::int> => invalid-expression "pkg/front_end/testcases/inference/bug31436.dart:57:7: Error: A value of type 'Object' can't be returned from a function with return type 'List<int>'.
+ - 'Object' is from 'dart:core'.
+ - 'List' is from 'dart:core'.
+      o; // No implicit downcast on the assignment, implicit downcast on the return
+      ^" in o as{TypeError} core::List<core::int>;
+  assert(g{() → core::List<core::int>} is () → core::List<core::Object>);
+  assert(!(g{() → core::List<core::int>} is () → core::List<core::int>));
+  assert(!(g{() → core::List<core::int>} is () → core::Object));
+  g{() → core::List<core::int>}(){() → core::List<core::int>};
   o = 3;
   try {
-    g(){() →* core::List<core::Object*>*};
+    g{() → core::List<core::int>}(){() → core::List<core::int>};
     throw "expected a runtime error";
   }
-  on core::TypeError* catch(no-exception-var) {
+  on core::TypeError catch(no-exception-var) {
   }
-}
-static method main() → dynamic {
-  self::block_test();
-  self::arrow_test();
 }

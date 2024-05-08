@@ -1,5 +1,3 @@
-// @dart = 2.9
-
 main() {}
 
 typedef E1<T> = void Function();
@@ -32,7 +30,8 @@ typedef G2<X extends num> = void Function<T extends X>();
 
 typedef G3<X, Y> = void Function<T extends X, S extends Y>();
 
-typedef G4<X extends num, Y extends num> = void Function<T extends X, S extends Y>();
+typedef G4<X extends num, Y extends num> = void
+    Function<T extends X, S extends Y>();
 
 typedef G5<X extends num> = void Function<T extends S, S extends X>();
 
@@ -50,14 +49,14 @@ typedef H5 = void Function(void Function<T extends S, S extends num>());
 
 typedef H6 = void Function(void Function<T extends num, S extends T>());
 
-void Function<T, S>() f3;
+void Function<T, S>()? f3;
 
-void Function<T>() f1;
+void Function<T>()? f1;
 
-void Function<T extends S, S extends num>() f5;
+void Function<T extends S, S extends num>()? f5;
 
-void Function<T extends num, S extends T>() f6;
+void Function<T extends num, S extends T>()? f6;
 
-void Function<T extends num, S extends num>() f4;
+void Function<T extends num, S extends num>()? f4;
 
-void Function<T extends num>() f2;
+void Function<T extends num>()? f2;

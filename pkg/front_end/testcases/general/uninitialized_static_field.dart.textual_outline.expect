@@ -1,5 +1,3 @@
-// @dart = 2.9
-
 class C {
   static var field;
   static final finalField;
