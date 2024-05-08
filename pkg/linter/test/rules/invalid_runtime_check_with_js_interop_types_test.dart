@@ -351,6 +351,27 @@ class InvalidRuntimeCheckWithJSInteropTypesTest extends LintRuleTest {
     ''', [error(WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, 54, 13)]);
   }
 
+  test_nullabilityAs_user_interop_type_as_user_interop_type() async {
+    await _testCasts([
+      _AsCast('A', 'A?', lint: false),
+      _AsCast('A?', 'A', lint: false),
+      _AsCast('A?', 'A?', lint: false, unnecessary: true),
+      _AsCast('A?', 'B', lint: false),
+      _AsCast('A', 'B?', lint: false),
+      _AsCast('A?', 'B?', lint: false),
+      _AsCast('B?', 'A', lint: false),
+      _AsCast('B', 'A?', lint: false),
+      _AsCast('B?', 'A?', lint: false)
+    ], typeDeclarations: [
+      r'''
+      extension type A(JSObject _) {}
+      ''',
+      r'''
+      extension type B(JSObject _) implements A {}
+      '''
+    ]);
+  }
+
   test_nullabilityIs_js_type_is_js_type() async {
     await _testChecks([
       _IsCheck('JSAny?', 'JSAny', lint: false),
@@ -377,6 +398,27 @@ class InvalidRuntimeCheckWithJSInteropTypesTest extends LintRuleTest {
       null is JSArray?;
     }
     ''', [error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 75, 16)]);
+  }
+
+  test_nullabilityIs_user_interop_type_is_user_interop_type() async {
+    await _testChecks([
+      _IsCheck('A', 'A?', lint: false, unnecessary: true),
+      _IsCheck('A?', 'A', lint: false),
+      _IsCheck('A?', 'A?', lint: false, unnecessary: true),
+      _IsCheck('A?', 'B'),
+      _IsCheck('A', 'B?'),
+      _IsCheck('A?', 'B?'),
+      _IsCheck('B?', 'A', lint: false),
+      _IsCheck('B', 'A?', lint: false, unnecessary: true),
+      _IsCheck('B?', 'A?', lint: false, unnecessary: true)
+    ], typeDeclarations: [
+      r'''
+      extension type A(JSObject _) {}
+      ''',
+      r'''
+      extension type B(JSObject _) implements A {}
+      '''
+    ]);
   }
 
   test_staticInteropAs_js_type_as_static_interop_type() async {
@@ -433,11 +475,13 @@ class InvalidRuntimeCheckWithJSInteropTypesTest extends LintRuleTest {
     ]);
   }
 
+  // Since A is an unrelated type, we warn users so they don't think a runtime
+  // check is done to ensure the value actually is an A.
   test_staticInteropIs_js_type_is_static_interop_type() async {
     await _testChecks([
       _IsCheck('JSAny', 'A'),
-      _IsCheck('JSObject', 'A', lint: false),
-      _IsCheck('JSArray', 'A', lint: false),
+      _IsCheck('JSObject', 'A'),
+      _IsCheck('JSArray', 'A'),
       _IsCheck('JSBoolean', 'A')
     ], typeDeclarations: [
       r'''
@@ -529,6 +573,31 @@ class InvalidRuntimeCheckWithJSInteropTypesTest extends LintRuleTest {
     ]);
   }
 
+  test_typeParametersAs_nested_user_interop_type_parameter_as_user_interop_type() async {
+    await _testCasts([
+      _AsCast('T', 'A?', lint: false),
+      _AsCast('U?', 'A', lint: false),
+      _AsCast('V', 'A?', lint: false),
+      _AsCast('W?', 'A', lint: false),
+      _AsCast('X', 'A', lint: false),
+      _AsCast('Y?', 'A', lint: false)
+    ], typeParameters: [
+      'T extends A',
+      'U extends B?',
+      'V extends T',
+      'W extends U',
+      'X extends T?',
+      'Y extends U?'
+    ], typeDeclarations: [
+      r'''
+      extension type A(JSObject _) {}
+      ''',
+      r'''
+      extension type B(JSObject _) {}
+      '''
+    ]);
+  }
+
   test_typeParametersAs_unrelated_type_as_js_type_parameter() async {
     await _testCasts([_AsCast('String', 'T')],
         typeParameters: ['T extends JSAny']);
@@ -537,6 +606,41 @@ class InvalidRuntimeCheckWithJSInteropTypesTest extends LintRuleTest {
   test_typeParametersAs_unrelated_type_parameter_as_js_type() async {
     await _testCasts([_AsCast('T', 'JSAny'), _AsCast('U', 'JSNumber')],
         typeParameters: ['T', 'U extends int']);
+  }
+
+  test_typeParametersAs_user_interop_type_parameter_as() async {
+    await _testCasts([
+      _AsCast('T', 'JSAny', lint: false),
+      _AsCast('U', 'JSObject', lint: false),
+      _AsCast('T', 'JSUint8List'),
+      _AsCast('U', 'JSArray'),
+      _AsCast('JSAny', 'T', lint: false),
+      _AsCast('JSObject', 'U', lint: false),
+      _AsCast('JSUint8List', 'T'),
+      _AsCast('JSArray', 'U'),
+      _AsCast('T', 'A', lint: false),
+      _AsCast('T', 'B', lint: false),
+      _AsCast('U', 'A'),
+      _AsCast('U', 'B', lint: false),
+      _AsCast('A', 'T', lint: false),
+      _AsCast('A', 'U'),
+      _AsCast('B', 'T', lint: false),
+      _AsCast('B', 'U', lint: false),
+      _AsCast('T', 'U'),
+      _AsCast('U', 'T')
+    ], typeParameters: [
+      'T extends A',
+      'U extends B'
+    ], typeDeclarations: [
+      r'''
+      extension type A(JSTypedArray _) {}
+      ''',
+      r'''
+      @JS()
+      @staticInterop
+      class B {}
+      '''
+    ]);
   }
 
   test_typeParametersIs_js_type_is_js_type_parameter() async {
@@ -581,6 +685,31 @@ class InvalidRuntimeCheckWithJSInteropTypesTest extends LintRuleTest {
     ]);
   }
 
+  test_typeParametersIs_nested_user_interop_type_parameter_is_user_interop_type() async {
+    await _testChecks([
+      _IsCheck('T', 'A?', lint: false, unnecessary: true),
+      _IsCheck('U?', 'A'),
+      _IsCheck('V', 'A?', lint: false, unnecessary: true),
+      _IsCheck('W?', 'A'),
+      _IsCheck('X', 'A', lint: false),
+      _IsCheck('Y?', 'A')
+    ], typeParameters: [
+      'T extends A',
+      'U extends B?',
+      'V extends T',
+      'W extends U',
+      'X extends T?',
+      'Y extends U?'
+    ], typeDeclarations: [
+      r'''
+      extension type A(JSObject _) {}
+      ''',
+      r'''
+      extension type B(JSObject _) {}
+      '''
+    ]);
+  }
+
   test_typeParametersIs_unrelated_type_is_js_type_parameter() async {
     await _testChecks([_IsCheck('String', 'T')],
         typeParameters: ['T extends JSAny']);
@@ -589,6 +718,54 @@ class InvalidRuntimeCheckWithJSInteropTypesTest extends LintRuleTest {
   test_typeParametersIs_unrelated_type_parameter_is_js_type() async {
     await _testChecks([_IsCheck('T', 'JSAny'), _IsCheck('U', 'JSNumber')],
         typeParameters: ['T', 'U extends int']);
+  }
+
+  test_typeParametersIs_user_interop_type_parameter_is() async {
+    await _testChecks([
+      _IsCheck('T', 'JSAny', lint: false),
+      _IsCheck('U', 'JSObject', lint: false),
+      _IsCheck('T', 'JSUint8List'),
+      _IsCheck('U', 'JSArray'),
+      _IsCheck('JSAny', 'T'),
+      _IsCheck('JSObject', 'U'),
+      _IsCheck('JSUint8List', 'T'),
+      _IsCheck('JSArray', 'U'),
+      _IsCheck('T', 'A', lint: false, unnecessary: true),
+      _IsCheck('T', 'B'),
+      _IsCheck('U', 'A'),
+      _IsCheck('U', 'B', lint: false, unnecessary: true),
+      _IsCheck('A', 'T'),
+      _IsCheck('A', 'U'),
+      _IsCheck('B', 'T'),
+      _IsCheck('B', 'U'),
+      _IsCheck('T', 'U'),
+      _IsCheck('U', 'T')
+    ], typeParameters: [
+      'T extends A',
+      'U extends B'
+    ], typeDeclarations: [
+      r'''
+      extension type A(JSTypedArray _) {}
+      ''',
+      r'''
+      @JS()
+      @staticInterop
+      class B {}
+      '''
+    ]);
+  }
+
+  test_userInteropAs_js_type_as_user_interop_type() async {
+    await _testCasts([
+      _AsCast('JSAny', 'A', lint: false),
+      _AsCast('JSObject', 'A', lint: false),
+      _AsCast('JSArray', 'A', lint: false),
+      _AsCast('JSBoolean', 'A')
+    ], typeDeclarations: [
+      r'''
+      extension type A(JSObject _) {}
+      '''
+    ]);
   }
 
   test_userInteropAs_nested_user_interop_type_as_js_type() async {
@@ -620,23 +797,41 @@ class InvalidRuntimeCheckWithJSInteropTypesTest extends LintRuleTest {
     ]);
   }
 
-  test_userInteropAs_user_interop_type_parameter_as() async {
+  test_userInteropAs_user_interop_type_as_user_interop_type() async {
     await _testCasts([
-      _AsCast('T', 'JSAny', lint: false),
-      _AsCast('U', 'JSObject', lint: false),
-      _AsCast('T', 'JSUint8List'),
-      _AsCast('U', 'JSArray')
-    ], typeParameters: [
-      'T extends A',
-      'U extends B'
+      _AsCast('A', 'A', lint: false, unnecessary: true),
+      _AsCast('A', 'B', lint: false),
+      _AsCast('A', 'C'),
+      _AsCast('B', 'A', lint: false),
+      _AsCast('B', 'B', lint: false, unnecessary: true),
+      _AsCast('B', 'C'),
+      _AsCast('C', 'A'),
+      _AsCast('C', 'B'),
+      _AsCast('C', 'C', lint: false, unnecessary: true)
     ], typeDeclarations: [
       r'''
-      extension type A(JSTypedArray _) {}
+      extension type A(JSObject _) {}
       ''',
       r'''
-      @JS()
-      @staticInterop
-      class B {}
+      extension type B(JSObject _) implements A {}
+      ''',
+      r'''
+      extension type C(JSBoolean _) {}
+      '''
+    ]);
+  }
+
+  // Since A is an unrelated type, we warn users so they don't think a runtime
+  // check is done to ensure the value actually is an A.
+  test_userInteropIs_js_type_is_user_interop_type() async {
+    await _testChecks([
+      _IsCheck('JSAny', 'A'),
+      _IsCheck('JSObject', 'A'),
+      _IsCheck('JSArray', 'A'),
+      _IsCheck('JSBoolean', 'A')
+    ], typeDeclarations: [
+      r'''
+      extension type A(JSObject _) {}
       '''
     ]);
   }
@@ -670,23 +865,26 @@ class InvalidRuntimeCheckWithJSInteropTypesTest extends LintRuleTest {
     ]);
   }
 
-  test_userInteropIs_user_interop_type_parameter_is() async {
+  test_userInteropIs_user_interop_type_is_user_interop_type() async {
     await _testChecks([
-      _IsCheck('T', 'JSAny', lint: false),
-      _IsCheck('T', 'JSUint8List'),
-      _IsCheck('U', 'JSObject', lint: false),
-      _IsCheck('U', 'JSArray')
-    ], typeParameters: [
-      'T extends A',
-      'U extends B'
+      _IsCheck('A', 'A', lint: false, unnecessary: true),
+      _IsCheck('A', 'B'),
+      _IsCheck('A', 'C'),
+      _IsCheck('B', 'A', lint: false, unnecessary: true),
+      _IsCheck('B', 'B', lint: false, unnecessary: true),
+      _IsCheck('B', 'C'),
+      _IsCheck('C', 'A'),
+      _IsCheck('C', 'B'),
+      _IsCheck('C', 'C', lint: false, unnecessary: true)
     ], typeDeclarations: [
       r'''
-      extension type A(JSTypedArray _) {}
+      extension type A(JSObject _) {}
       ''',
       r'''
-      @JS()
-      @staticInterop
-      class B {}
+      extension type B(JSObject _) implements A {}
+      ''',
+      r'''
+      extension type C(JSBoolean _) {}
       '''
     ]);
   }

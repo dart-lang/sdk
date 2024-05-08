@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 // ignore: implementation_imports
@@ -38,9 +39,11 @@ interop value is a particular JavaScript type.
 
 **BAD:**
 ```dart
-extension type Window(JSObject o) {}
+extension type HTMLElement(JSObject o) {}
+extension type HTMLDivElement(JSObject o) implements HTMLElement {}
 
-void compute(JSAny a, bool b, List<JSObject> lo, List<String> ls, JSObject o) {
+void compute(JSAny a, bool b, List<JSObject> lo, List<String> ls, JSObject o,
+    HTMLElement e) {
   a is String; // LINT, checking that a JS value is a Dart type
   b is JSBoolean; // LINT, checking that a Dart value is a JS type
   a is JSString; // LINT, checking that a JS value is a different JS interop
@@ -55,23 +58,27 @@ void compute(JSAny a, bool b, List<JSObject> lo, List<String> ls, JSObject o) {
                        // different JS interop type argument
   lo is List<JSNumber>; // LINT, comparing JS interop type argument with
                         // different JS interop type argument
-  // Not a lint, but this doesn't actually check whether `o` is actually a
-  // Window.
-  o is Window;
+  o is HTMLElement; // LINT, true because both are JSObjects but doesn't check
+                    // that it's a JS HTMLElement
+  e is HTMLDivElement; // LINT, true because both are JSObjects but doesn't
+                       // check that it's a JS HTMLDivElement
 }
 ```
 
 Prefer using JS interop helpers like 'isA' from 'dart:js_interop' to check the
-type of JS interop values.
+underlying type of JS interop values.
 
 **GOOD:**
 ```dart
-extension type Window(JSObject o) {}
+extension type HTMLElement(JSObject o) implements JSObject {}
+extension type HTMLDivElement(JSObject o) implements HTMLElement {}
 
-void compute(JSAny a, List<JSAny> l, JSObject o) {
+void compute(JSAny a, List<JSAny> l, JSObject o, HTMLElement e) {
   a.isA<JSString>; // OK, uses JS interop to check it is a JS string
   l[0].isA<JSString>; // OK, uses JS interop to check it is a JS string
-  o.isA<Window>(); // OK, uses JS interop to check `o` is a Window
+  o.isA<HTMLElement>(); // OK, uses JS interop to check `o` is an HTMLElement
+  e.isA<HTMLDivElement>(); // OK, uses JS interop to check `e` is an
+                           // HTMLDivElement
 }
 ```
 
@@ -132,14 +139,15 @@ const Set<String> _sdkWebLibraries = {
   'dart:web_gl',
 };
 
-/// If [type] has a `dart:js_interop` type equivalent, return that equivalent
-/// type.
+/// If [type] is a type declared using `@staticInterop` through
+/// `dart:js_interop`, returns the JS type equivalent for that class, which is
+/// just `JSObject`.
 ///
-/// The only such type that satisfies this is `@staticInterop` types that were
-/// declared using the `@JS` annotation in `dart:js_interop`. These types are
-/// always equal to `JSObject`. `@staticInterop` types that were declared using
-/// `package:js` do not apply as that package is incompatible with dart2wasm.
-DartType? getDartJsInteropEquivalent(InterfaceType type) {
+/// `@staticInterop` types that were declared using `package:js` do not apply as
+/// that package is incompatible with dart2wasm.
+///
+/// Returns null if `type` is not a `dart:js_interop` `@staticInterop` class.
+DartType? getJsTypeForStaticInterop(InterfaceType type) {
   var element = type.element;
   if (element is! ClassElement) return null;
   var metadata = element.metadata;
@@ -185,6 +193,26 @@ bool isFromLibrary(LibraryElement elementLibrary, String uri) =>
     elementLibrary.definingCompilationUnit.source ==
     elementLibrary.context.sourceFactory.forUri(uri);
 
+/// Whether [type] is a user JS interop type using `dart:js_interop` or is bound
+/// to one.
+///
+/// An interop type is a user interop type if it's an extension type on another
+/// interop type or a `dart:js_interop` `@staticInterop` type.
+bool isUserJsInteropType(DartType type) {
+  if (type is TypeParameterType) return isUserJsInteropType(type.bound);
+  if (type is InterfaceType) {
+    var element = type.element;
+    if (element is ExtensionTypeElement) {
+      var representationType = element.representation.type;
+      return isDartJsInteropType(representationType) ||
+          isUserJsInteropType(representationType);
+    } else if (getJsTypeForStaticInterop(type) != null) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /// Whether [type] comes from a JS interop library that is unavailable in
 /// dart2wasm.
 ///
@@ -207,23 +235,32 @@ bool isWasmIncompatibleJsInterop(DartType type) {
       isFromLibrary(element.library, _dartJsUri);
 }
 
-/// Erases extension types except for `dart:js_interop` interop types so that
-/// [_Visitor.getInvalidJsInteropTypeTest] can determine if the type test is safe.
+/// Erases extension types except for JS interop types so that
+/// [_Visitor.getInvalidJsInteropTypeTest] can determine if the type test is
+/// safe.
 class EraseNonJSInteropTypes extends ExtensionTypeErasure {
-  const EraseNonJSInteropTypes();
+  /// Determines whether we erase JS interop types to their `dart:js_interop`
+  /// equivalent, or keep them as is.
+  bool _keepUserInteropTypes = false;
+
+  EraseNonJSInteropTypes();
+
+  @override
+  DartType perform(DartType type, {bool keepUserInteropTypes = false}) {
+    _keepUserInteropTypes = keepUserInteropTypes;
+    return super.perform(type);
+  }
 
   @override
   DartType? visitInterfaceType(covariant InterfaceTypeImpl type) {
-    if (isDartJsInteropType(type)) {
-      // Generics on `dart:js_interop` types are not forwarded to the underlying
-      // representation type as we can't guarantee the container actually
-      // contains that type. Therefore, any subtype check involving a generic
-      // `dart:js_interop` type should ignore the type parameters. Nullability
-      // is also ignored for the purpose of this lint, so it suffices to just
-      // return the `thisType` of the `dart:js_interop` type.
-      return type.typeArguments.isNotEmpty ? type.element.thisType : type;
+    if (_keepUserInteropTypes
+        ? isUserJsInteropType(type)
+        : isDartJsInteropType(type)) {
+      // Nullability and generics on interop types are ignored for this lint. In
+      // order to just compare the interfaces themselves, we use `thisType`.
+      return type.element.thisType;
     } else {
-      return getDartJsInteropEquivalent(type) ?? super.visitInterfaceType(type);
+      return getJsTypeForStaticInterop(type) ?? super.visitInterfaceType(type);
     }
   }
 
@@ -234,7 +271,8 @@ class EraseNonJSInteropTypes extends ExtensionTypeErasure {
     var newBound = type.bound.accept(this);
     return createPromotedTypeParameterType(
       type: type,
-      newNullability: type.nullabilitySuffix,
+      // Remove any nullability for comparison.
+      newNullability: NullabilitySuffix.none,
       newPromotedBound: newBound,
     );
   }
@@ -253,14 +291,23 @@ class InvalidRuntimeCheckWithJSInteropTypes extends LintRule {
       "Runtime check between '{0}' and '{1}' checks whether a JS interop value "
       'is a Dart type, which may not be platform-consistent.');
 
-  static const LintCode jsInteropTypeIsJsInteropTypeCode = LintCode(
+  static const LintCode jsInteropTypeIsInconsistentJsInteropType = LintCode(
       lintName,
       "Runtime check between '{0}' and '{1}' involves a non-trivial runtime "
-      'check between two JS interop types, which may not be '
-      'platform-consistent.',
+      'check between two JS interop types that may not be platform-consistent.',
       correctionMessage:
           "Try using a JS interop member like 'isA' from 'dart:js_interop' to "
-          'check the type of JS interop values.');
+          'check the underlying type of JS interop values.');
+
+  static const LintCode jsInteropTypeIsUnrelatedJsInteropTypeCode = LintCode(
+      lintName,
+      "Runtime check between '{0}' and '{1}' involves a runtime check between "
+      'a JS interop value and an unrelated JS interop type that will always be '
+      "true and won't check the underlying type.",
+      correctionMessage:
+          "Try using a JS interop member like 'isA' from 'dart:js_interop' to "
+          'check the underlying type of JS interop values, or make the JS '
+          "interop type a supertype using 'implements'.");
 
   static const LintCode dartTypeAsJsInteropTypeCode = LintCode(
       lintName,
@@ -322,20 +369,27 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// `dart:js_interop` types are represented by platform-dependent values and
   /// therefore, type tests that aren't statically guaranteed may be
   /// inconsistent. In order to determine if this test is valid, this function
-  /// erases any interop types to its `dart:js_interop` equivalent and then
-  /// compares. If there are nested types involved, it nests as needed.
+  /// erases any interop types to its `dart:js_interop` equivalent and any other
+  /// extension type to its erasure type. If there are nested types involved, it
+  /// nests as needed.
   ///
-  /// An `is` check with a `dart:js_interop` type is valid only if the
-  /// positionally-equivalent type in [leftType] <: the positionally-equivalent
-  /// type in [rightType] or if the type in [rightType] is `dynamic`. An `as`
-  /// cast is the same except it also allows the type in [leftType] to be a
-  /// supertype or `dynamic`.
+  /// Let `l` be the positionally-equivalent type in [leftType] and `r` be the
+  /// positionally-equivalent type in [rightType]. Let `le` be the
+  /// `dart:js_interop` type or the extension type erasure of `l`, and `re` be
+  /// the `dart:js_interop` type or the extension type erasure of `r`. If `l` or
+  /// `r` are JS interop types, an `is` check is valid only if `l` <: `r`, `le`
+  /// <: `re` and `r` is a `dart:js_interop` type, or `r` is `dynamic` or
+  /// `Object`. An `as` cast is valid only if `le` <: `re`, `le` :> `re`, `l`
+  /// is `dynamic`, or `r` is `dynamic`.
   ///
   /// These restrictions come from the difference in the representation of
   /// `dart:js_interop` types. When compiling to Wasm, JS values are not
   /// differentiated at runtime, and therefore there's only one runtime type.
   /// When compiling to JS, JS values are differentiated and each
-  /// `dart:js_interop` has a separate runtime type.
+  /// `dart:js_interop` has a separate runtime type. An additional restriction
+  /// is placed on `is` checks so that type checks between unrelated types that
+  /// would be trivially true e.g. `jsObject is Window` aren't interpreted as
+  /// doing a runtime check that `jsObject` actually is a JS `Window`.
   ///
   /// Types that belong to JS interop libraries that are not available when
   /// compiling to Wasm are ignored. Nullability is also ignored for the purpose
@@ -345,28 +399,30 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (leftType == null || rightType == null) return null;
     LintCode? lintCode;
     (DartType, DartType) eraseTypes(DartType left, DartType right) {
-      DartType left_ =
+      var erasedLeft =
           typeSystem.promoteToNonNull(_eraseNonJsInteropTypes.perform(left));
-      DartType right_ =
+      var erasedRight =
           typeSystem.promoteToNonNull(_eraseNonJsInteropTypes.perform(right));
-      var leftIsInteropType = isDartJsInteropType(left_);
-      var rightIsInteropType = isDartJsInteropType(right_);
+      var leftIsInteropType = isDartJsInteropType(erasedLeft);
+      var rightIsInteropType = isDartJsInteropType(erasedRight);
       // If there's already an invalid check in this `canBeSubtypeOf` check, we
       // are already going to lint, so only continue checking if we haven't
       // found an issue.
       if (lintCode == null) {
         if (leftIsInteropType || rightIsInteropType) {
-          if (!isWasmIncompatibleJsInterop(left_) &&
-              !isWasmIncompatibleJsInterop(right_)) {
-            var leftIsSubtype = typeSystem.isSubtypeOf(left_, right_);
-            var rightIsSubtype = typeSystem.isSubtypeOf(right_, left_);
-            var leftIsDynamic = left_ is DynamicType;
-            var rightIsDynamic = right_ is DynamicType;
+          if (!isWasmIncompatibleJsInterop(erasedLeft) &&
+              !isWasmIncompatibleJsInterop(erasedRight)) {
+            var erasedLeftIsSubtype =
+                typeSystem.isSubtypeOf(erasedLeft, erasedRight);
+            var erasedRightIsSubtype =
+                typeSystem.isSubtypeOf(erasedRight, erasedLeft);
+            var erasedLeftIsDynamic = erasedLeft is DynamicType;
+            var erasedRightIsDynamic = erasedRight is DynamicType;
             if (check) {
-              if (!leftIsSubtype && !rightIsDynamic) {
+              if (!erasedLeftIsSubtype && !erasedRightIsDynamic) {
                 if (leftIsInteropType && rightIsInteropType) {
                   lintCode = InvalidRuntimeCheckWithJSInteropTypes
-                      .jsInteropTypeIsJsInteropTypeCode;
+                      .jsInteropTypeIsInconsistentJsInteropType;
                 } else if (leftIsInteropType) {
                   lintCode = InvalidRuntimeCheckWithJSInteropTypes
                       .jsInteropTypeIsDartTypeCode;
@@ -374,12 +430,27 @@ class _Visitor extends SimpleAstVisitor<void> {
                   lintCode = InvalidRuntimeCheckWithJSInteropTypes
                       .dartTypeIsJsInteropTypeCode;
                 }
+              } else if (erasedLeftIsSubtype &&
+                  leftIsInteropType &&
+                  rightIsInteropType) {
+                // Only report if the right type is a user JS interop type.
+                // Checks like `window is JSAny` are not confusing and not worth
+                // linting.
+                if (isUserJsInteropType(right) &&
+                    !typeSystem.isSubtypeOf(
+                        _eraseNonJsInteropTypes.perform(left,
+                            keepUserInteropTypes: true),
+                        _eraseNonJsInteropTypes.perform(right,
+                            keepUserInteropTypes: true))) {
+                  lintCode = InvalidRuntimeCheckWithJSInteropTypes
+                      .jsInteropTypeIsUnrelatedJsInteropTypeCode;
+                }
               }
             } else {
-              if (!leftIsSubtype &&
-                  !rightIsSubtype &&
-                  !leftIsDynamic &&
-                  !rightIsDynamic) {
+              if (!erasedLeftIsSubtype &&
+                  !erasedRightIsSubtype &&
+                  !erasedLeftIsDynamic &&
+                  !erasedRightIsDynamic) {
                 if (leftIsInteropType && rightIsInteropType) {
                   lintCode = InvalidRuntimeCheckWithJSInteropTypes
                       .jsInteropTypeAsIncompatibleJsInteropTypeCode;
@@ -398,9 +469,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       // The resulting types that are checked in `canBeSubtypeOf` are assumed to
       // not be extension types, so erase the types if we avoided erasing them
       // in `EraseNonJSInteropTypes` before continuing.
-      if (leftIsInteropType) left_ = left.extensionTypeErasure;
-      if (rightIsInteropType) right_ = right.extensionTypeErasure;
-      return (left_, right_);
+      if (leftIsInteropType) erasedLeft = left.extensionTypeErasure;
+      if (rightIsInteropType) erasedRight = right.extensionTypeErasure;
+      return (erasedLeft, erasedRight);
     }
 
     typeSystem.canBeSubtypeOf(leftType, rightType, eraseTypes: eraseTypes);
