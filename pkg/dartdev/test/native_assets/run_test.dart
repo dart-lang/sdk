@@ -91,4 +91,64 @@ void main(List<String> args) async {
       expect(result.stdout, isNot(contains('build.dart')));
     });
   });
+
+  test('dart link assets succeeds', timeout: longTimeout, () async {
+    await nativeAssetsTest('drop_dylib_link', (dartAppUri) async {
+      final result = await runDart(
+        arguments: [
+          '--enable-experiment=native-assets',
+          'run',
+          'bin/drop_dylib_link.dart',
+          'add'
+        ],
+        workingDirectory: dartAppUri,
+        logger: logger,
+        expectExitCodeZero: false,
+      );
+      expect(result.exitCode, 0);
+    });
+  });
+
+  test('dart link assets doesnt have treeshaken asset', timeout: longTimeout,
+      () async {
+    await nativeAssetsTest('drop_dylib_link', (dartAppUri) async {
+      try {
+        await runDart(
+          arguments: [
+            '--enable-experiment=native-assets',
+            'run',
+            'bin/drop_dylib_link.dart',
+            'multiply'
+          ],
+          workingDirectory: dartAppUri,
+          logger: logger,
+          expectExitCodeZero: false,
+        );
+      } catch (e) {
+        expect(e, e is ArgumentError);
+        expect(
+          (e as ArgumentError).message.toString(),
+          contains('''
+Couldn't resolve native function 'multiply' in 'package:drop_dylib_link/dylib_multiply' : No asset with id 'package:drop_dylib_link/dylib_multiply' found. Available native assets: package:drop_dylib_link/dylib_add.
+'''),
+        );
+      }
+    });
+  });
+
+  test('dart add asset in linking', timeout: longTimeout, () async {
+    await nativeAssetsTest('add_asset_link', (dartAppUri) async {
+      final result = await runDart(
+        arguments: [
+          '--enable-experiment=native-assets',
+          'run',
+          'bin/add_asset_link.dart',
+        ],
+        workingDirectory: dartAppUri,
+        logger: logger,
+        expectExitCodeZero: false,
+      );
+      expect(result.exitCode, 0);
+    });
+  });
 }

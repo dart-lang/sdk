@@ -507,9 +507,9 @@ Remove debugging information from the output and save it separately to the speci
       stderr.writeln('Target OS: $targetOS');
       return 128;
     }
-
+    final tempDir = Directory.systemTemp.createTempSync();
     try {
-      await generateNative(
+      final kernelGenerator = KernelGenerator(
         kind: format,
         sourceFile: sourcePath,
         outputFile: args.option('output'),
@@ -520,8 +520,12 @@ Remove debugging information from the output and save it separately to the speci
         debugFile: args.option('save-debugging-info'),
         verbose: verbose,
         verbosity: args.option('verbosity')!,
-        extraOptions: args.multiOption('extra-gen-snapshot-options'),
         targetOS: targetOS,
+        tempDir: tempDir,
+      );
+      final snapshotGenerator = await kernelGenerator.generate();
+      await snapshotGenerator.generate(
+        extraOptions: args.multiOption('extra-gen-snapshot-options'),
       );
       return 0;
     } catch (e, st) {
@@ -531,6 +535,8 @@ Remove debugging information from the output and save it separately to the speci
         log.stderr(st.toString());
       }
       return compileErrorExitCode;
+    } finally {
+      await tempDir.delete(recursive: true);
     }
   }
 }

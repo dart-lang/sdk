@@ -29,11 +29,12 @@ Future<(bool success, List<AssetImpl> assets)> compileNativeAssetsJit({
       .exists()) {
     return (true, <AssetImpl>[]);
   }
-  final buildResult = await NativeAssetsBuildRunner(
+  final nativeAssetsBuildRunner = NativeAssetsBuildRunner(
     // This always runs in JIT mode.
     dartExecutable: Uri.file(sdk.dart),
     logger: logger(verbose),
-  ).build(
+  );
+  final buildResult = await nativeAssetsBuildRunner.build(
     workingDirectory: workingDirectory,
     // When running in JIT mode, only the host OS needs to be build.
     target: Target.current,
@@ -45,9 +46,22 @@ Future<(bool success, List<AssetImpl> assets)> compileNativeAssetsJit({
     runPackageName: runPackageName,
     supportedAssetTypes: [
       NativeCodeAsset.type,
+      DataAsset.type,
     ],
   );
-  return (buildResult.success, buildResult.assets);
+
+  final linkResult = await nativeAssetsBuildRunner.link(
+    workingDirectory: workingDirectory,
+    target: Target.current,
+    buildMode: BuildModeImpl.release,
+    includeParentEnvironment: true,
+    buildResult: buildResult,
+  );
+
+  return (
+    buildResult.success && linkResult.success,
+    [...buildResult.assets, ...linkResult.assets],
+  );
 }
 
 /// Compiles all native assets for host OS in JIT mode, and creates the
@@ -69,8 +83,14 @@ Future<(bool success, Uri? nativeAssetsYaml)> compileNativeAssetsJitYamlFile({
     return (false, null);
   }
   final kernelAssets = KernelAssets([
-    for (final asset in assets.whereType<NativeCodeAssetImpl>())
-      _targetLocation(asset),
+    ...[
+      for (final asset in assets.whereType<NativeCodeAssetImpl>())
+        _targetLocation(asset),
+    ],
+    ...[
+      for (final asset in assets.whereType<DataAssetImpl>())
+        _dataTargetLocation(asset),
+    ]
   ]);
 
   final workingDirectory = Directory.current.uri;
@@ -107,6 +127,14 @@ KernelAsset _targetLocation(NativeCodeAssetImpl asset) {
   );
 }
 
+KernelAsset _dataTargetLocation(DataAssetImpl asset) {
+  return KernelAsset(
+    id: asset.id,
+    target: Target.current,
+    path: KernelAssetAbsolutePath(asset.file),
+  );
+}
+
 Future<bool> warnOnNativeAssets() async {
   final workingDirectory = Directory.current.uri;
   if (!await File.fromUri(
@@ -118,8 +146,10 @@ Future<bool> warnOnNativeAssets() async {
   try {
     final packageLayout =
         await PackageLayout.fromRootPackageRoot(workingDirectory);
-    final packagesWithNativeAssets =
-        await packageLayout.packagesWithNativeAssets;
+    final packagesWithNativeAssets = [
+      ...await packageLayout.packagesWithAssets(Hook.build),
+      ...await packageLayout.packagesWithAssets(Hook.link)
+    ];
     if (packagesWithNativeAssets.isEmpty) {
       return false;
     }
