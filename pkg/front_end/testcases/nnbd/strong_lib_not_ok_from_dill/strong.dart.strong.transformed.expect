@@ -1,7 +1,7 @@
 //
 // Problems in component:
 //
-// pkg/front_end/testcases/nnbd/strong_lib_not_ok_from_dill/strong_lib.dart: Error: Library doesn't support null safety.
+// pkg/front_end/testcases/nnbd/strong_lib_not_ok_from_dill/strong_lib.dart: Error: Loaded library is compiled with unsound null safety and cannot be used in compilation for sound null safety.
 //
 library;
 import self as self;
@@ -13,11 +13,17 @@ static method main() → dynamic {
   str::foo();
 }
 
-library /*isLegacy*/;
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/strong_lib_not_ok_from_dill/strong_lib.dart:1:1: Error: The specified language version is too low. The lowest supported language version is 2.12.
+// // @dart = 2.11
+// ^^^^^^^^^^^^^^^
+//
 import self as str;
 import "dart:core" as core;
 
-static field core::int* x;
 static method foo() → void {
   core::print("hello");
 }

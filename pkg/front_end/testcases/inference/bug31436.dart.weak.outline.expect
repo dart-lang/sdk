@@ -1,9 +1,8 @@
-library test /*isLegacy*/;
+library test;
 import self as self;
+import "dart:core" as core;
 
-static method block_test() → void
+static method block_test(() → core::List<core::Object> g) → void
   ;
-static method arrow_test() → void
-  ;
-static method main() → dynamic
+static method arrow_test(() → core::List<core::Object> g) → void
   ;

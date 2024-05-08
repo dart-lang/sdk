@@ -1,5 +1,0 @@
-// @dart = 2.5
-
-import 'literal_from_opt_in_lib.dart';
-
-main() {}

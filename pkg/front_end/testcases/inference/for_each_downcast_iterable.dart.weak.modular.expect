@@ -1,20 +1,26 @@
-library test /*isLegacy*/;
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/for_each_downcast_iterable.dart:5:1: Error: The specified language version is too low. The lowest supported language version is 2.12.
+// // @dart=2.9
+// ^^^^^^^^^^^^
+//
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
 
-static method test() → dynamic async /* emittedValueType= dynamic */ {
-  core::Object* o;
-  for (dynamic x in o as{TypeError,ForLegacy} core::Iterable<dynamic>*) {
+static method test(dynamic o) → dynamic async /* emittedValueType= dynamic */ {
+  for (dynamic x in o as{TypeError,ForDynamic} core::Iterable<dynamic>) {
   }
-  await for (dynamic x in o as{TypeError,ForLegacy} asy::Stream<dynamic>*) {
+  await for (dynamic x in o as{TypeError,ForDynamic} asy::Stream<dynamic>) {
   }
-  core::int* y;
-  for (final dynamic #t1 in o as{TypeError,ForLegacy} core::Iterable<dynamic>*) {
-    y = #t1 as{TypeError,ForDynamic,ForLegacy} core::int*;
+  core::int y;
+  for (final dynamic #t1 in o as{TypeError,ForDynamic} core::Iterable<dynamic>) {
+    y = #t1 as{TypeError,ForDynamic} core::int;
   }
-  await for (final dynamic #t2 in o as{TypeError,ForLegacy} asy::Stream<dynamic>*) {
-    y = #t2 as{TypeError,ForDynamic,ForLegacy} core::int*;
+  await for (final dynamic #t2 in o as{TypeError,ForDynamic} asy::Stream<dynamic>) {
+    y = #t2 as{TypeError,ForDynamic} core::int;
   }
 }
 static method main() → dynamic {}

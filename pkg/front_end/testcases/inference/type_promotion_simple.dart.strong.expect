@@ -1,17 +1,10 @@
-library test /*isLegacy*/;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/inference/type_promotion_simple.dart:5:1: Error: Library doesn't support null safety.
-// // @dart=2.9
-// ^^^^^^^^^^^^
-//
+library test;
 import self as self;
 import "dart:core" as core;
 
 static method main() → dynamic {
-  has-declared-initializer core::num* n = null;
-  if(n is{ForLegacy} core::int*) {
-    core::int* i = n{core::int*};
+  core::num n = 0;
+  if(n is core::int) {
+    core::int i = n{core::int};
   }
 }

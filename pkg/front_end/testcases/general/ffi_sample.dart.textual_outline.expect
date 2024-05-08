@@ -1,16 +1,15 @@
-// @dart = 2.6
-
 import 'dart:ffi';
 
 import "package:ffi/ffi.dart";
 
 class Coordinate extends Struct {
   @Double()
-  double x;
+  external double x;
   @Double()
-  double y;
+  external double y;
   Pointer<Coordinate> next;
-  factory Coordinate.allocate( Allocator allocator, double x, double y, Pointer<Coordinate> next) {}
+  factory Coordinate.allocate(
+      Allocator allocator, double x, double y, Pointer<Coordinate> next) {}
 }
 
 main() {}

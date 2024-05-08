@@ -2,121 +2,52 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 void useAddAll() {
   dynamic dynamicSet1 = <int>{0, 1, 2};
   dynamic dynamicSet2 = <num>{3, 4, 5};
-  Iterable<int> iterableIntSet = <int>{6, 7, 8};
-  Iterable<num> iterableNumSet1 = <int>{9, 10, 11};
-  Iterable<num> iterableNumSet2 = <num>{12, 13, 14};
-  Set<int> intSet = <int>{15, 16, 17};
-  Set<num> numSet1 = <int>{18, 19, 20};
-  Set<num> numSet2 = <num>{21, 22, 23};
+  dynamic dynamicSet3 = <int?>{6, 7, 8};
+  Iterable<int> iterableIntSet = <int>{9, 10, 11};
+  Set<int> intSet = <int>{12, 13, 14};
 
   var set1 = <int>{
     ...dynamicSet1,
     ...dynamicSet2,
+    ...dynamicSet3,
     ...iterableIntSet,
-    ...iterableNumSet1,
-    ...iterableNumSet2,
     ...intSet,
-    ...numSet1,
-    ...numSet2
   };
 
-  expect(new List<int>.generate(24, (int i) => i).toSet(), set1);
+  expect(new List<int>.generate(15, (int i) => i).toSet(), set1);
 
   var set2 = <num>{
     ...dynamicSet1,
     ...dynamicSet2,
+    ...dynamicSet3,
     ...iterableIntSet,
-    ...iterableNumSet1,
-    ...iterableNumSet2,
     ...intSet,
-    ...numSet1,
-    ...numSet2
   };
 
-  expect(new List<num>.generate(24, (int i) => i).toSet(), set2);
+  expect(new List<num>.generate(15, (int i) => i).toSet(), set2);
 
-  var set3 = <int>{
-    ...?dynamicSet1,
-    ...?dynamicSet2,
-    ...?iterableIntSet,
-    ...?iterableNumSet1,
-    ...?iterableNumSet2,
-    ...?intSet,
-    ...?numSet1,
-    ...?numSet2
-  };
-
-  expect(new List<int>.generate(24, (int i) => i).toSet(), set3);
-
-  var set4 = <num>{
-    ...?dynamicSet1,
-    ...?dynamicSet2,
-    ...?iterableIntSet,
-    ...?iterableNumSet1,
-    ...?iterableNumSet2,
-    ...?intSet,
-    ...?numSet1,
-    ...?numSet2
-  };
-
-  expect(new List<num>.generate(24, (int i) => i).toSet(), set4);
-
-  Set<int> set5 = {
+  Set<int> set3 = {
     ...dynamicSet1,
     ...dynamicSet2,
+    ...dynamicSet3,
     ...iterableIntSet,
-    ...iterableNumSet1,
-    ...iterableNumSet2,
     ...intSet,
-    ...numSet1,
-    ...numSet2
   };
 
-  expect(new List<int>.generate(24, (int i) => i).toSet(), set5);
+  expect(new List<int>.generate(15, (int i) => i).toSet(), set3);
 
-  var set6 = {
+  var set4 = {
     ...dynamicSet1,
     ...dynamicSet2,
+    ...dynamicSet3,
     ...iterableIntSet,
-    ...iterableNumSet1,
-    ...iterableNumSet2,
     ...intSet,
-    ...numSet1,
-    ...numSet2
   };
 
-  expect(new List<dynamic>.generate(24, (int i) => i).toSet(), set6);
-
-  Set<int> set7 = {
-    ...?dynamicSet1,
-    ...?dynamicSet2,
-    ...?iterableIntSet,
-    ...?iterableNumSet1,
-    ...?iterableNumSet2,
-    ...?intSet,
-    ...?numSet1,
-    ...?numSet2
-  };
-
-  expect(new List<int>.generate(24, (int i) => i).toSet(), set7);
-
-  var set8 = {
-    ...?dynamicSet1,
-    ...?dynamicSet2,
-    ...?iterableIntSet,
-    ...?iterableNumSet1,
-    ...?iterableNumSet2,
-    ...?intSet,
-    ...?numSet1,
-    ...?numSet2
-  };
-
-  expect(new List<dynamic>.generate(24, (int i) => i).toSet(), set8);
+  expect(new List<dynamic>.generate(15, (int i) => i).toSet(), set4);
 
   {
     Set<int> intSet1 = {0, 1, 2};
@@ -126,8 +57,57 @@ void useAddAll() {
   }
 }
 
+void useAddAllNullable() {
+  dynamic dynamicSet1 = <int>{0, 1, 2};
+  dynamic dynamicSet2 = <num>{3, 4, 5};
+  dynamic dynamicSet3 = <int?>{6, 7, 8};
+  Iterable<int>? iterableIntSet = true ? <int>{9, 10, 11} : null;
+  Set<int>? intSet = true ? <int>{12, 13, 14} : null;
+
+  var set1 = <int>{
+    ...?dynamicSet1,
+    ...?dynamicSet2,
+    ...?dynamicSet3,
+    ...?iterableIntSet,
+    ...?intSet,
+  };
+
+  expect(new List<int>.generate(15, (int i) => i).toSet(), set1);
+
+  var set2 = <num>{
+    ...?dynamicSet1,
+    ...?dynamicSet2,
+    ...?dynamicSet3,
+    ...?iterableIntSet,
+    ...?intSet,
+  };
+
+  expect(new List<num>.generate(15, (int i) => i).toSet(), set2);
+
+  Set<int> set3 = {
+    ...?dynamicSet1,
+    ...?dynamicSet2,
+    ...?dynamicSet3,
+    ...?iterableIntSet,
+    ...?intSet,
+  };
+
+  expect(new List<int>.generate(15, (int i) => i).toSet(), set3);
+
+  var set4 = {
+    ...?dynamicSet1,
+    ...?dynamicSet2,
+    ...?dynamicSet3,
+    ...?iterableIntSet,
+    ...?intSet,
+  };
+
+  expect(new List<dynamic>.generate(15, (int i) => i).toSet(), set4);
+}
+
 main() {
   useAddAll();
+  useAddAllNullable();
 }
 
 void expect(Set set1, Set set2) {

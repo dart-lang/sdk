@@ -1,74 +1,63 @@
-library /*isLegacy*/;
+library;
 import self as self;
 import "dart:core" as core;
 
 class Class extends core::Object {
-  field core::int* field;
-  synthetic constructor •() → self::Class*
+  field core::int field;
+  field core::int? nullableField;
+  constructor •(core::int field) → self::Class
     ;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class GenericClass<T extends core::Object* = dynamic> extends core::Object {
-  synthetic constructor •() → self::GenericClass<self::GenericClass::T*>*
+class GenericClass<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::GenericClass<self::GenericClass::T%>
     ;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-extension Extension on self::Class* {
+extension Extension on self::Class {
   get simpleSetter = self::Extension|get#simpleSetter;
+  get simpleNullableSetter = self::Extension|get#simpleNullableSetter;
   get mutatingSetter = self::Extension|get#mutatingSetter;
   get setterWithReturn = self::Extension|get#setterWithReturn;
   get setterWithClosure = self::Extension|get#setterWithClosure;
   method testInternal = self::Extension|testInternal;
   method tearoff testInternal = self::Extension|get#testInternal;
   set simpleSetter = self::Extension|set#simpleSetter;
+  set simpleNullableSetter = self::Extension|set#simpleNullableSetter;
   set mutatingSetter = self::Extension|set#mutatingSetter;
   set setterWithReturn = self::Extension|set#setterWithReturn;
   set setterWithClosure = self::Extension|set#setterWithClosure;
 }
-extension GenericExtension<T extends core::Object* = dynamic> on self::GenericClass<T*>* {
+extension GenericExtension<T extends core::Object? = dynamic> on self::GenericClass<T%> {
   set setter = self::GenericExtension|set#setter;
 }
-static extension-member method Extension|get#simpleSetter(lowered final self::Class* #this) → core::int*
+static extension-member method Extension|get#simpleSetter(lowered final self::Class #this) → core::int
   ;
-static extension-member method Extension|set#simpleSetter(lowered final self::Class* #this, core::int* value) → void
+static extension-member method Extension|set#simpleSetter(lowered final self::Class #this, core::int value) → void
   ;
-static extension-member method Extension|get#mutatingSetter(lowered final self::Class* #this) → core::int*
+static extension-member method Extension|get#simpleNullableSetter(lowered final self::Class #this) → core::int?
   ;
-static extension-member method Extension|set#mutatingSetter(lowered final self::Class* #this, core::int* value) → void
+static extension-member method Extension|set#simpleNullableSetter(lowered final self::Class #this, core::int? value) → void
   ;
-static extension-member method Extension|get#setterWithReturn(lowered final self::Class* #this) → core::int*
+static extension-member method Extension|get#mutatingSetter(lowered final self::Class #this) → core::int
   ;
-static extension-member method Extension|set#setterWithReturn(lowered final self::Class* #this, core::int* value) → void
+static extension-member method Extension|set#mutatingSetter(lowered final self::Class #this, core::int value) → void
   ;
-static extension-member method Extension|get#setterWithClosure(lowered final self::Class* #this) → core::int*
+static extension-member method Extension|get#setterWithReturn(lowered final self::Class #this) → core::int
   ;
-static extension-member method Extension|set#setterWithClosure(lowered final self::Class* #this, core::int* value) → void
+static extension-member method Extension|set#setterWithReturn(lowered final self::Class #this, core::int value) → void
   ;
-static extension-member method Extension|testInternal(lowered final self::Class* #this) → dynamic
+static extension-member method Extension|get#setterWithClosure(lowered final self::Class #this) → core::int
   ;
-static extension-member method Extension|get#testInternal(lowered final self::Class* #this) → () →* dynamic
+static extension-member method Extension|set#setterWithClosure(lowered final self::Class #this, core::int value) → void
+  ;
+static extension-member method Extension|testInternal(lowered final self::Class #this) → dynamic
+  ;
+static extension-member method Extension|get#testInternal(lowered final self::Class #this) → () → dynamic
   return () → dynamic => self::Extension|testInternal(#this);
-static extension-member method GenericExtension|set#setter<T extends core::Object* = dynamic>(lowered final self::GenericClass<self::GenericExtension|set#setter::T*>* #this, self::GenericExtension|set#setter::T* value) → void
+static extension-member method GenericExtension|set#setter<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|set#setter::T%> #this, self::GenericExtension|set#setter::T% value) → void
   ;
 static method main() → dynamic
+  ;
+static method test(self::Class c, self::Class? cn) → dynamic
   ;
 static method expect(dynamic expected, dynamic actual) → dynamic
   ;

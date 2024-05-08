@@ -438,6 +438,13 @@ class SourceLoader extends Loader {
                     target.currentSdkVersion.minor);
             packageLanguageVersion = new InvalidLanguageVersion(
                 fileUri, 0, noLength, target.currentSdkVersion, false);
+          } else if (version < target.leastSupportedVersion) {
+            packageLanguageVersionProblem =
+                templateLanguageVersionTooLow.withArguments(
+                    target.leastSupportedVersion.major,
+                    target.leastSupportedVersion.minor);
+            packageLanguageVersion = new InvalidLanguageVersion(
+                fileUri, 0, noLength, target.leastSupportedVersion, false);
           } else {
             packageLanguageVersion = new ImplicitLanguageVersion(version);
           }

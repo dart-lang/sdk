@@ -2,43 +2,31 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 /*@testedFeatures=inference*/
 library test;
 
-class Resource {}
+class Folder {}
 
-class Folder extends Resource {}
+class Resource extends Folder {}
 
-Resource getResource(String str) => null;
+Resource getResource(String str) => throw '';
 
 class Foo<T> {
   Foo(T t);
 }
 
-main() {
+test() {
   // List inside map
-  var /*@ type=Map<String*, List<Folder*>*>* */ map = <String, List<Folder>>{
-    'pkgA': /*@ typeArgs=Folder* */ [
-      /*info:DOWN_CAST_IMPLICIT*/ getResource('/pkgA/lib/')
-    ],
-    'pkgB': /*@ typeArgs=Folder* */ [
-      /*info:DOWN_CAST_IMPLICIT*/ getResource('/pkgB/lib/')
-    ]
+  var /*@type=Map<String, List<Folder>>*/ map = <String, List<Folder>>{
+    'pkgA': /*@typeArgs=Folder*/ [getResource('/pkgA/lib/')],
+    'pkgB': /*@typeArgs=Folder*/ [getResource('/pkgB/lib/')]
   };
   // Also try map inside list
-  var /*@ type=List<Map<String*, Folder*>*>* */ list = <Map<String, Folder>>[
-    /*@ typeArgs=String*, Folder* */ {
-      'pkgA': /*info:DOWN_CAST_IMPLICIT*/ getResource('/pkgA/lib/')
-    },
-    /*@ typeArgs=String*, Folder* */ {
-      'pkgB': /*info:DOWN_CAST_IMPLICIT*/ getResource('/pkgB/lib/')
-    },
+  var /*@type=List<Map<String, Folder>>*/ list = <Map<String, Folder>>[
+    /*@typeArgs=String, Folder*/ {'pkgA': getResource('/pkgA/lib/')},
+    /*@typeArgs=String, Folder*/ {'pkgB': getResource('/pkgB/lib/')},
   ];
   // Instance creation too
-  var /*@ type=Foo<List<Folder*>*>* */ foo =
-      new Foo<List<Folder>>(/*@ typeArgs=Folder* */ [
-    /*info:DOWN_CAST_IMPLICIT*/ getResource('/pkgA/lib/')
-  ]);
+  var /*@type=Foo<List<Folder>>*/ foo =
+      new Foo<List<Folder>>(/*@typeArgs=Folder*/ [getResource('/pkgA/lib/')]);
 }

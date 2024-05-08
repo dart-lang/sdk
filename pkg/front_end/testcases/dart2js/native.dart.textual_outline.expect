@@ -1,5 +1,3 @@
-// @dart = 2.7
-
 import 'dart:_js_helper';
 
 var topLevelField;
@@ -24,7 +22,7 @@ nativeTopLevelFunction() native;
 
 class Class {
   Class.generative();
-  factory Class.fact() => null;
+  factory Class.fact() => null as dynamic;
   external Class.externalGenerative();
   external factory Class.externalFact();
   Class.nativeGenerative() native;
@@ -52,10 +50,9 @@ class Class {
 }
 
 @Native('d')
-
 class NativeClass {
   NativeClass.generative();
-  factory NativeClass.fact() => null;
+  factory NativeClass.fact() => null as dynamic;
   external NativeClass.externalGenerative();
   external factory NativeClass.externalFact();
   NativeClass.nativeGenerative() native;

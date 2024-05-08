@@ -1,10 +1,6 @@
-library /*isLegacy*/;
+library;
 //
 // Problems in library:
-//
-// pkg/front_end/testcases/general/deferred_type_annotation.dart:4:1: Error: Library doesn't support null safety.
-// // @dart=2.9
-// ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/deferred_type_annotation.dart:7:5: Error: The type 'C' is deferred loaded via prefix 'd' and can't be used as a type annotation.
 //  - 'C' is from 'pkg/front_end/testcases/general/deferred_lib.dart'.
@@ -17,7 +13,7 @@ import "deferred_lib.dart" as def;
 
 import "org-dartlang-testcase:///deferred_lib.dart" deferred as d;
 
-static method bad(def::C* x) → dynamic {}
+static method bad(def::C x) → dynamic {}
 static method main() → dynamic {}
 
 library;

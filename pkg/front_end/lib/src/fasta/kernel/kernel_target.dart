@@ -232,6 +232,8 @@ class KernelTarget extends TargetImplementation {
     return CompilerContext.current.options.currentSdkVersion;
   }
 
+  Version get leastSupportedVersion => const Version(2, 12);
+
   Version? _currentSdkVersion;
 
   Version get currentSdkVersion {

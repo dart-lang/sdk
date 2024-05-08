@@ -1,10 +1,12 @@
-library /*isLegacy*/;
+library;
 import self as self;
 import "dart:core" as core;
 
 static method useAddAll() → void
   ;
+static method useAddAllNullable() → void
+  ;
 static method main() → dynamic
   ;
-static method expect(core::Set<dynamic>* set1, core::Set<dynamic>* set2) → void
+static method expect(core::Set<dynamic> set1, core::Set<dynamic> set2) → void
   ;

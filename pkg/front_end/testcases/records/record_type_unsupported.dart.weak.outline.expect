@@ -1,10 +1,15 @@
-library /*isLegacy*/;
+library;
 //
 // Problems in library:
 //
 // pkg/front_end/testcases/records/record_type_unsupported.dart:9:1: Error: This requires the experimental 'records' language feature to be enabled.
 // Try passing the '--enable-experiment=records' command line option.
 // (int, String b) topLevelFieldType = throw '';
+// ^
+//
+// pkg/front_end/testcases/records/record_type_unsupported.dart:10:1: Error: This requires the experimental 'records' language feature to be enabled.
+// Try passing the '--enable-experiment=records' command line option.
+// (int a, String b) get topLevelGetterType => throw '';
 // ^
 //
 // pkg/front_end/testcases/records/record_type_unsupported.dart:11:1: Error: This requires the experimental 'records' language feature to be enabled.
@@ -25,8 +30,10 @@ library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 
-static const field core::int* annotation = 1;
+static const field core::int annotation = 1;
 static field invalid-type topLevelFieldType;
+static get topLevelGetterType() → invalid-type
+  ;
 static method topLevelMethodReturnType() → invalid-type
   ;
 static method topLevelSetterType(invalid-type value) → void

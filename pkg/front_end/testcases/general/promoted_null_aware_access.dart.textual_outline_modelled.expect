@@ -1,5 +1,3 @@
-// @dart = 2.9
-
 main() {}
 
 method<T>(T o) {}

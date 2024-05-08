@@ -1,19 +1,20 @@
-// @dart = 2.9
-
 library test;
 
 class Test1 {
-  int t;
+  int? t2;
+  int t = 0;
   void test() {}
 }
 
 class Test2 {
-  num t;
+  num? t2;
+  num t = 0;
   void test() {}
 }
 
 class Test3 {
-  double t;
+  double? t2;
+  double t = 0;
   void test3() {}
 }
 

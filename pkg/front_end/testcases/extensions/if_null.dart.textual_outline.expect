@@ -1,13 +1,17 @@
-// @dart = 2.9
-
 class Class {
   int field;
+  Class(this.field);
 }
 
 extension Extension on Class {
   int get property => field;
-  void set property(int value) {}
+  int? get nullableProperty => field;
+  void set property(int? value) {}
   int method() => field;
 }
 
 main() {}
+
+int? get value => 42;
+
+test(Class? c) {}

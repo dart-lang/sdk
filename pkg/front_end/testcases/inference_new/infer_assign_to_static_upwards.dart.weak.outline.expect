@@ -1,15 +1,18 @@
-library test /*isLegacy*/;
+library test;
 import self as self;
 import "dart:core" as core;
 
-static field core::int* topLevelInt;
-static field core::num* topLevelNum;
-static field core::double* topLevelDouble;
-static method getInt() → core::int*
+static field core::int topLevelInt;
+static field core::int? topLevelInt2;
+static field core::num topLevelNum;
+static field core::num? topLevelNum2;
+static field core::double topLevelDouble;
+static field core::double? topLevelDouble2;
+static method getInt() → core::int
   ;
-static method getNum() → core::num*
+static method getNum() → core::num
   ;
-static method getDouble() → core::double*
+static method getDouble() → core::double
   ;
 static method test1() → void
   ;

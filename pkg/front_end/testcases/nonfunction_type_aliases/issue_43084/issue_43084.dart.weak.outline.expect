@@ -1,4 +1,4 @@
-library /*isLegacy*/;
+library;
 import self as self;
 
 import "org-dartlang-testcase:///issue_43084_lib.dart";

@@ -1,7 +1,0 @@
-library test /*isLegacy*/;
-import self as self;
-
-static method test(dynamic o) → dynamic async 
-  ;
-static method main() → dynamic
-  ;

@@ -29,25 +29,11 @@ Future<void> main(List<String> args) async {
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(const PatchingDataComputer(), [
-        new TestConfigWithLanguageVersion(
-            cfeMarker, 'cfe with libraries specification',
+        new TestConfigWithLanguageVersion(cfeMarker, 'cfe',
             librariesSpecificationUri: createUriForFileName('libraries.json'),
-            experimentalFlags: {ExperimentalFlag.nonNullable: false},
-            allowedExperimentalFlags: const AllowedExperimentalFlags()),
-        new TestConfigWithLanguageVersion(cfeWithNnbdMarker,
-            'cfe with libraries specification and non-nullable',
-            librariesSpecificationUri: createUriForFileName('libraries.json'),
-            experimentalFlags: {ExperimentalFlag.nonNullable: true},
+            experimentalFlags: {},
             allowedExperimentalFlags: const AllowedExperimentalFlags())
       ]),
-      skipMap: {
-        cfeMarker: [
-          'opt_in',
-          'opt_in_patch',
-          'opt_out',
-          'opt_out_patch',
-        ]
-      },
       preProcessFile: replaceMarkersWithVersions,
       postProcessFile: replaceVersionsWithMarkers);
 }
@@ -65,7 +51,7 @@ class TestConfigWithLanguageVersion extends CfeTestConfig {
   @override
   void customizeCompilerOptions(CompilerOptions options, TestData testData) {
     options.currentSdkVersion =
-        SymbolicLanguageVersion.nnbdVersion.version.toText();
+        SymbolicLanguageVersion.currentVersion.version.toText();
   }
 }
 

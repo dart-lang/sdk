@@ -1,10 +1,10 @@
-library /*isLegacy*/;
+library;
 import self as self;
 import "deferred_lib.dart" as def;
 
 import "org-dartlang-testcase:///deferred_lib.dart" deferred as d;
 
-static method bad(def::C* x) → dynamic
+static method bad(def::C x) → dynamic
   ;
 static method main() → dynamic
   ;

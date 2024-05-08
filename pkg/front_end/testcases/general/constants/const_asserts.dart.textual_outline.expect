@@ -1,13 +1,16 @@
-// @dart = 2.9
-
 class Foo {
   final int x;
-  const Foo(this.x) : assert(x > 0, "x is not positive"), assert(x > 0), assert(x > 0, ""), assert(const bool.fromEnvironment("foo") == false, "foo was ${const bool.fromEnvironment("foo")}"), assert(const bool.fromEnvironment("foo") == false);
-  const Foo.withMessage(this.x) : assert(x < 0, "btw foo was ${const bool.fromEnvironment("foo")}");
+  const Foo(this.x)
+      : assert(x > 0, "x is not positive"),
+        assert(x > 0),
+        assert(x > 0, ""),
+        assert(const bool.fromEnvironment("foo") == false,
+            "foo was ${const bool.fromEnvironment("foo")}"),
+        assert(const bool.fromEnvironment("foo") == false);
+  const Foo.withMessage(this.x)
+      : assert(x < 0, "btw foo was ${const bool.fromEnvironment("foo")}");
   const Foo.withInvalidMessage(this.x) : assert(x < 0, x);
   const Foo.withInvalidCondition(this.x) : assert(x);
-  const Foo.withNullConditionFromEnv1(this.x) : assert(bool.fromEnvironment("foo", defaultValue: null));
-  const Foo.withNullConditionFromEnv2(this.x) : assert(const bool.fromEnvironment("foo", defaultValue: null));
 }
 
 class Bar {
@@ -26,10 +29,6 @@ const Foo foo3 = const Foo.withMessage(42);
 const Foo foo4 = const Foo.withInvalidMessage(42);
 
 const Foo foo5 = const Foo.withInvalidCondition(42);
-
-const Foo foo6 = const Foo.withNullConditionFromEnv1(42);
-
-const Foo foo7 = const Foo.withNullConditionFromEnv2(42);
 
 const Bar bar1 = const Bar.withMessage(1);
 

@@ -1,19 +1,30 @@
-library test /*isLegacy*/;
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/block_bodied_lambdas_returns.dart:35:7: Error: A value must be explicitly returned from a non-void function.
+//       return;
+//       ^
+//
+// pkg/front_end/testcases/inference/block_bodied_lambdas_returns.dart:65:7: Error: A value must be explicitly returned from a non-void function.
+//       return;
+//       ^
+//
 import self as self;
 import "dart:core" as core;
 
 static method main() → dynamic {
-  () →* Null a = () → Null {};
-  () →* Null b = () → Null {
+  () → Null a = () → Null {};
+  () → Null b = () → Null {
     return;
   };
-  () →* Null c = () → Null {
+  () → Null c = () → Null {
     return null;
   };
-  () →* core::int* d = () → core::int* {
+  () → core::int d = () → core::int {
     return 0;
   };
-  (core::bool*) →* Null e = (core::bool* b) → Null {
+  (core::bool) → Null e = (core::bool b) → Null {
     if(b) {
       return;
     }
@@ -21,7 +32,7 @@ static method main() → dynamic {
       return;
     }
   };
-  (core::bool*) →* Null f = (core::bool* b) → Null {
+  (core::bool) → Null f = (core::bool b) → Null {
     if(b) {
       return;
     }
@@ -29,15 +40,17 @@ static method main() → dynamic {
       return null;
     }
   };
-  (core::bool*) →* core::int* g = (core::bool* b) → core::int* {
+  (core::bool) → core::int? g = (core::bool b) → core::int? {
     if(b) {
+      return invalid-expression "pkg/front_end/testcases/inference/block_bodied_lambdas_returns.dart:35:7: Error: A value must be explicitly returned from a non-void function.
       return;
+      ^" in null;
     }
     else {
       return 0;
     }
   };
-  (core::bool*) →* Null h = (core::bool* b) → Null {
+  (core::bool) → Null h = (core::bool b) → Null {
     if(b) {
       return null;
     }
@@ -45,7 +58,7 @@ static method main() → dynamic {
       return;
     }
   };
-  (core::bool*) →* Null i = (core::bool* b) → Null {
+  (core::bool) → Null i = (core::bool b) → Null {
     if(b) {
       return null;
     }
@@ -53,7 +66,7 @@ static method main() → dynamic {
       return null;
     }
   };
-  (core::bool*) →* core::int* j = (core::bool* b) → core::int* {
+  (core::bool) → core::int? j = (core::bool b) → core::int? {
     if(b) {
       return null;
     }
@@ -61,15 +74,17 @@ static method main() → dynamic {
       return 0;
     }
   };
-  (core::bool*) →* core::int* k = (core::bool* b) → core::int* {
+  (core::bool) → core::int? k = (core::bool b) → core::int? {
     if(b) {
       return 0;
     }
     else {
+      return invalid-expression "pkg/front_end/testcases/inference/block_bodied_lambdas_returns.dart:65:7: Error: A value must be explicitly returned from a non-void function.
       return;
+      ^" in null;
     }
   };
-  (core::bool*) →* core::int* l = (core::bool* b) → core::int* {
+  (core::bool) → core::int? l = (core::bool b) → core::int? {
     if(b) {
       return 0;
     }
@@ -77,7 +92,7 @@ static method main() → dynamic {
       return null;
     }
   };
-  (core::bool*) →* core::int* m = (core::bool* b) → core::int* {
+  (core::bool) → core::int m = (core::bool b) → core::int {
     if(b) {
       return 0;
     }

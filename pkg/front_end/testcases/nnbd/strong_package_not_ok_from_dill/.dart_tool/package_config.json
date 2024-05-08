@@ -4,7 +4,7 @@
     {
       "name": "opt_out_package",
       "rootUri": "../opt_out_package/lib/",
-      "languageVersion": "2.7"
+      "languageVersion": "2.11"
     },
     {
       "name": "opt_in_package",

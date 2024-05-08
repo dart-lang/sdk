@@ -1,5 +1,0 @@
-// @dart = 2.8
-
-import 'main_declaration_lib.dart';
-
-main() {}

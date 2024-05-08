@@ -1,15 +1,15 @@
-library test /*isLegacy*/;
+library test;
 import self as self;
 import "dart:core" as core;
 
-static method test(core::List<core::num*>* nums) → void {
+static method test(core::List<core::num> nums) → void {
   {
-    synthesized core::Iterator<core::num*>* :sync-for-iterator = nums.{core::Iterable::iterator}{core::Iterator<core::num*>*};
+    synthesized core::Iterator<core::num> :sync-for-iterator = nums.{core::Iterable::iterator}{core::Iterator<core::num>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      core::num* x = :sync-for-iterator.{core::Iterator::current}{core::num*};
+      core::num x = :sync-for-iterator.{core::Iterator::current}{core::num};
       {
-        if(x is{ForLegacy} core::int*) {
-          core::int* y = x{core::int*};
+        if(x is core::int) {
+          core::int y = x{core::int};
         }
       }
     }

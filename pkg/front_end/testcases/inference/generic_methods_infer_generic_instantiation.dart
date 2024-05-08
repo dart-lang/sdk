@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 /*@testedFeatures=inference*/
 library test;
 
@@ -11,7 +9,7 @@ import 'dart:math' as math;
 import 'dart:math' show min;
 
 class C {
-  T m<T extends num>(T x, T y) => null;
+  T m<T extends num>(T x, T y) => throw '';
 }
 
 test() {
@@ -86,7 +84,7 @@ test() {
   // Error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE
   takeIDI(new C() . /*@target=C.m*/ m);
   // Error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE
-  takeDID(new C(). /*@target=C.m*/ m);
+  takeDID(new C() . /*@target=C.m*/ m);
 }
 
 void takeIII(int fn(int a, int b)) {}

@@ -1,11 +1,4 @@
-library /*isLegacy*/;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/nonfunction_type_aliases/issue_43084/issue_43084.dart:5:1: Error: Library doesn't support null safety.
-// // @dart=2.9
-// ^^^^^^^^^^^^
-//
+library;
 import self as self;
 import "issue_43084_lib.dart" as iss;
 import "dart:core" as core;
@@ -13,7 +6,7 @@ import "dart:core" as core;
 import "org-dartlang-testcase:///issue_43084_lib.dart";
 
 static method main() → dynamic {
-  iss::Foo<core::int*>* x = new iss::Foo::•<core::int*>();
+  iss::Foo<core::int> x = new iss::Foo::•<core::int>();
   core::print(x);
 }
 

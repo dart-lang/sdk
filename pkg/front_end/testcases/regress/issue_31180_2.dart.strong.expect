@@ -1,7 +1,0 @@
-library;
-import self as self;
-
-static method bad() → dynamic {
-  return let final has-declared-initializer Null #t1 = null in #t1 == null ?{Null} null : #t1{Never}{Never}.[](1);
-}
-static method main() → dynamic {}

@@ -1,224 +1,217 @@
-library test /*isLegacy*/;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:108:31: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
-//             /*@target=num.+*/ += getInt();
-//                               ^
-//
-// pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:118:48: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
-//     var /*@type=int**/ v10 = /*@target=num.+*/ ++super
-//                                                ^
-//
-// pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:122:33: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
-//         ['x'] /*@target=num.+*/ ++;
-//                                 ^
-//
-// pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:246:34: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
-//             /*@target=double.+*/ += getInt();
-//                                  ^
-//
-// pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:250:34: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
-//             /*@target=double.+*/ += getNum();
-//                                  ^
-//
-// pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:252:54: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
-//     var /*@type=double**/ v10 = /*@target=double.+*/ ++super
-//                                                      ^
-//
-// pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:256:36: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
-//         ['x'] /*@target=double.+*/ ++;
-//                                    ^
-//
+library test;
 import self as self;
 import "dart:core" as core;
 
-abstract class Base<T extends core::Object* = dynamic, U extends core::Object* = dynamic> extends core::Object {
-  synthetic constructor •() → self::Base<self::Base::T*, self::Base::U*>*
+abstract class Base<T extends core::Object? = dynamic, U extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Base<self::Base::T%, self::Base::U%>
     : super core::Object::•()
     ;
-  operator [](core::String* s) → self::Base::T*
-    return this.{self::Base::getValue}(s){(core::String*) →* self::Base::T*};
-  operator []=(core::String* s, covariant-by-class self::Base::U* v) → void
-    return this.{self::Base::setValue}(s, v){(core::String*, self::Base::U*) →* void};
-  abstract method getValue(core::String* s) → self::Base::T*;
-  abstract method setValue(core::String* s, covariant-by-class self::Base::U* v) → void;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  operator [](core::String s) → self::Base::T%
+    return this.{self::Base::getValue}(s){(core::String) → self::Base::T%};
+  operator []=(core::String s, covariant-by-class self::Base::U% v) → void
+    return this.{self::Base::setValue}(s, v){(core::String, self::Base::U%) → void};
+  abstract method getValue(core::String s) → self::Base::T%;
+  abstract method setValue(core::String s, covariant-by-class self::Base::U% v) → void;
 }
-abstract class Test1 extends self::Base<core::int*, core::int*> {
-  synthetic constructor •() → self::Test1*
+abstract class Base2<T extends core::Object? = dynamic, U extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Base2<self::Base2::T%, self::Base2::U%>
+    : super core::Object::•()
+    ;
+  operator [](core::String s) → self::Base2::T?
+    return this.{self::Base2::getValue}(s){(core::String) → self::Base2::T?};
+  operator []=(core::String s, covariant-by-class self::Base2::U? v) → void
+    return this.{self::Base2::setValue}(s, v){(core::String, self::Base2::U?) → void};
+  abstract method getValue(core::String s) → self::Base2::T?;
+  abstract method setValue(core::String s, covariant-by-class self::Base2::U? v) → void;
+}
+abstract class Test1a extends self::Base<core::int, core::int> {
+  synthetic constructor •() → self::Test1a
     : super self::Base::•()
     ;
   method test() → void {
-    core::int* v1 = let final core::String* #t1 = "x" in let final core::int* #t2 = self::getInt() in let final void #t3 = super.{self::Base::[]=}(#t1, #t2) in #t2;
-    core::num* v2 = let final core::String* #t4 = "x" in let final core::num* #t5 = self::getNum() as{TypeError,ForLegacy} core::int* in let final void #t6 = super.{self::Base::[]=}(#t4, #t5) in #t5;
-    core::int* v4 = let final core::String* #t7 = "x" in let final core::int* #t8 = super.{self::Base::[]}(#t7) in #t8 == null ?{core::int*} let final core::int* #t9 = self::getInt() in let final void #t10 = super.{self::Base::[]=}(#t7, #t9) in #t9 : #t8;
-    core::num* v5 = let final core::String* #t11 = "x" in let final core::int* #t12 = super.{self::Base::[]}(#t11) in #t12 == null ?{core::num*} let final core::num* #t13 = self::getNum() as{TypeError,ForLegacy} core::int* in let final void #t14 = super.{self::Base::[]=}(#t11, #t13) in #t13 : #t12;
-    core::int* v7 = let final core::String* #t15 = "x" in let final core::int* #t16 = super.{self::Base::[]}(#t15).{core::num::+}(self::getInt()){(core::num*) →* core::int*} in let final void #t17 = super.{self::Base::[]=}(#t15, #t16) in #t16;
-    core::num* v8 = let final core::String* #t18 = "x" in let final core::num* #t19 = super.{self::Base::[]}(#t18).{core::num::+}(self::getNum()){(core::num*) →* core::num*} as{TypeError,ForLegacy} core::int* in let final void #t20 = super.{self::Base::[]=}(#t18, #t19) in #t19;
-    core::int* v10 = let final core::String* #t21 = "x" in let final core::int* #t22 = super.{self::Base::[]}(#t21).{core::num::+}(1){(core::num*) →* core::int*} in let final void #t23 = super.{self::Base::[]=}(#t21, #t22) in #t22;
-    core::int* v11 = let final core::String* #t24 = "x" in let final core::int* #t25 = super.{self::Base::[]}(#t24) in let final void #t26 = super.{self::Base::[]=}(#t24, #t25.{core::num::+}(1){(core::num*) →* core::int*}) in #t25;
+    core::int v1 = let final core::String #t1 = "x" in let final core::int #t2 = self::getInt() in let final void #t3 = super.{self::Base::[]=}(#t1, #t2) in #t2;
+    core::int v7 = let final core::String #t4 = "x" in let final core::int #t5 = super.{self::Base::[]}(#t4).{core::num::+}(self::getInt()){(core::num) → core::int} in let final void #t6 = super.{self::Base::[]=}(#t4, #t5) in #t5;
+    core::int v10 = let final core::String #t7 = "x" in let final core::int #t8 = super.{self::Base::[]}(#t7).{core::num::+}(1){(core::num) → core::int} in let final void #t9 = super.{self::Base::[]=}(#t7, #t8) in #t8;
+    core::int v11 = let final core::String #t10 = "x" in let final core::int #t11 = super.{self::Base::[]}(#t10) in let final void #t12 = super.{self::Base::[]=}(#t10, #t11.{core::num::+}(1){(core::num) → core::int}) in #t11;
   }
 }
-abstract class Test2 extends self::Base<core::int*, core::num*> {
-  synthetic constructor •() → self::Test2*
+abstract class Test1b extends self::Base2<core::int, core::int> {
+  synthetic constructor •() → self::Test1b
+    : super self::Base2::•()
+    ;
+  method test() → void {
+    core::int v4 = let final core::String #t13 = "x" in let final core::int? #t14 = super.{self::Base2::[]}(#t13) in #t14 == null ?{core::int} let final core::int #t15 = self::getInt() in let final void #t16 = super.{self::Base2::[]=}(#t13, #t15) in #t15 : #t14{core::int};
+  }
+}
+abstract class Test2a extends self::Base<core::int, core::num> {
+  synthetic constructor •() → self::Test2a
     : super self::Base::•()
     ;
   method test() → void {
-    core::int* v1 = let final core::String* #t27 = "x" in let final core::int* #t28 = self::getInt() in let final void #t29 = super.{self::Base::[]=}(#t27, #t28) in #t28;
-    core::num* v2 = let final core::String* #t30 = "x" in let final core::num* #t31 = self::getNum() in let final void #t32 = super.{self::Base::[]=}(#t30, #t31) in #t31;
-    core::double* v3 = let final core::String* #t33 = "x" in let final core::double* #t34 = self::getDouble() in let final void #t35 = super.{self::Base::[]=}(#t33, #t34) in #t34;
-    core::int* v4 = let final core::String* #t36 = "x" in let final core::int* #t37 = super.{self::Base::[]}(#t36) in #t37 == null ?{core::int*} let final core::int* #t38 = self::getInt() in let final void #t39 = super.{self::Base::[]=}(#t36, #t38) in #t38 : #t37;
-    core::num* v5 = let final core::String* #t40 = "x" in let final core::int* #t41 = super.{self::Base::[]}(#t40) in #t41 == null ?{core::num*} let final core::num* #t42 = self::getNum() in let final void #t43 = super.{self::Base::[]=}(#t40, #t42) in #t42 : #t41;
-    core::num* v6 = let final core::String* #t44 = "x" in let final core::int* #t45 = super.{self::Base::[]}(#t44) in #t45 == null ?{core::num*} let final core::double* #t46 = self::getDouble() in let final void #t47 = super.{self::Base::[]=}(#t44, #t46) in #t46 : #t45;
-    core::int* v7 = let final core::String* #t48 = "x" in let final core::int* #t49 = super.{self::Base::[]}(#t48).{core::num::+}(self::getInt()){(core::num*) →* core::int*} in let final void #t50 = super.{self::Base::[]=}(#t48, #t49) in #t49;
-    core::num* v8 = let final core::String* #t51 = "x" in let final core::num* #t52 = super.{self::Base::[]}(#t51).{core::num::+}(self::getNum()){(core::num*) →* core::num*} in let final void #t53 = super.{self::Base::[]=}(#t51, #t52) in #t52;
-    core::double* v9 = let final core::String* #t54 = "x" in let final core::double* #t55 = super.{self::Base::[]}(#t54).{core::num::+}(self::getDouble()){(core::num*) →* core::double*} in let final void #t56 = super.{self::Base::[]=}(#t54, #t55) in #t55;
-    core::int* v10 = let final core::String* #t57 = "x" in let final core::int* #t58 = super.{self::Base::[]}(#t57).{core::num::+}(1){(core::num*) →* core::int*} in let final void #t59 = super.{self::Base::[]=}(#t57, #t58) in #t58;
-    core::int* v11 = let final core::String* #t60 = "x" in let final core::int* #t61 = super.{self::Base::[]}(#t60) in let final void #t62 = super.{self::Base::[]=}(#t60, #t61.{core::num::+}(1){(core::num*) →* core::int*}) in #t61;
+    core::int v1 = let final core::String #t17 = "x" in let final core::int #t18 = self::getInt() in let final void #t19 = super.{self::Base::[]=}(#t17, #t18) in #t18;
+    core::num v2 = let final core::String #t20 = "x" in let final core::num #t21 = self::getNum() in let final void #t22 = super.{self::Base::[]=}(#t20, #t21) in #t21;
+    core::double v3 = let final core::String #t23 = "x" in let final core::double #t24 = self::getDouble() in let final void #t25 = super.{self::Base::[]=}(#t23, #t24) in #t24;
+    core::int v7 = let final core::String #t26 = "x" in let final core::int #t27 = super.{self::Base::[]}(#t26).{core::num::+}(self::getInt()){(core::num) → core::int} in let final void #t28 = super.{self::Base::[]=}(#t26, #t27) in #t27;
+    core::num v8 = let final core::String #t29 = "x" in let final core::num #t30 = super.{self::Base::[]}(#t29).{core::num::+}(self::getNum()){(core::num) → core::num} in let final void #t31 = super.{self::Base::[]=}(#t29, #t30) in #t30;
+    core::double v9 = let final core::String #t32 = "x" in let final core::double #t33 = super.{self::Base::[]}(#t32).{core::num::+}(self::getDouble()){(core::num) → core::double} in let final void #t34 = super.{self::Base::[]=}(#t32, #t33) in #t33;
+    core::int v10 = let final core::String #t35 = "x" in let final core::int #t36 = super.{self::Base::[]}(#t35).{core::num::+}(1){(core::num) → core::int} in let final void #t37 = super.{self::Base::[]=}(#t35, #t36) in #t36;
+    core::int v11 = let final core::String #t38 = "x" in let final core::int #t39 = super.{self::Base::[]}(#t38) in let final void #t40 = super.{self::Base::[]=}(#t38, #t39.{core::num::+}(1){(core::num) → core::int}) in #t39;
   }
 }
-abstract class Test3 extends self::Base<core::int*, core::double*> {
-  synthetic constructor •() → self::Test3*
+abstract class Test2b extends self::Base2<core::int, core::num> {
+  synthetic constructor •() → self::Test2b
+    : super self::Base2::•()
+    ;
+  method test() → void {
+    core::int v4 = let final core::String #t41 = "x" in let final core::int? #t42 = super.{self::Base2::[]}(#t41) in #t42 == null ?{core::int} let final core::int #t43 = self::getInt() in let final void #t44 = super.{self::Base2::[]=}(#t41, #t43) in #t43 : #t42{core::int};
+    core::num v5 = let final core::String #t45 = "x" in let final core::int? #t46 = super.{self::Base2::[]}(#t45) in #t46 == null ?{core::num} let final core::num #t47 = self::getNum() in let final void #t48 = super.{self::Base2::[]=}(#t45, #t47) in #t47 : #t46{core::int};
+    core::num v6 = let final core::String #t49 = "x" in let final core::int? #t50 = super.{self::Base2::[]}(#t49) in #t50 == null ?{core::num} let final core::double #t51 = self::getDouble() in let final void #t52 = super.{self::Base2::[]=}(#t49, #t51) in #t51 : #t50{core::int};
+  }
+}
+abstract class Test3a extends self::Base<core::int, core::double> {
+  synthetic constructor •() → self::Test3a
     : super self::Base::•()
     ;
   method test() → void {
-    core::num* v2 = let final core::String* #t63 = "x" in let final core::num* #t64 = self::getNum() as{TypeError,ForLegacy} core::double* in let final void #t65 = super.{self::Base::[]=}(#t63, #t64) in #t64;
-    core::double* v3 = let final core::String* #t66 = "x" in let final core::double* #t67 = self::getDouble() in let final void #t68 = super.{self::Base::[]=}(#t66, #t67) in #t67;
-    core::num* v5 = let final core::String* #t69 = "x" in let final core::int* #t70 = super.{self::Base::[]}(#t69) in #t70 == null ?{core::num*} let final core::num* #t71 = self::getNum() as{TypeError,ForLegacy} core::double* in let final void #t72 = super.{self::Base::[]=}(#t69, #t71) in #t71 : #t70;
-    core::num* v6 = let final core::String* #t73 = "x" in let final core::int* #t74 = super.{self::Base::[]}(#t73) in #t74 == null ?{core::num*} let final core::double* #t75 = self::getDouble() in let final void #t76 = super.{self::Base::[]=}(#t73, #t75) in #t75 : #t74;
-    core::int* v7 = let final core::String* #t77 = "x" in let final core::int* #t78 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:108:31: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
-            /*@target=num.+*/ += getInt();
-                              ^" in super.{self::Base::[]}(#t77).{core::num::+}(self::getInt()){(core::num*) →* core::int*} as{TypeError,ForLegacy} core::double* in let final void #t79 = super.{self::Base::[]=}(#t77, #t78) in #t78;
-    core::num* v8 = let final core::String* #t80 = "x" in let final core::num* #t81 = super.{self::Base::[]}(#t80).{core::num::+}(self::getNum()){(core::num*) →* core::num*} as{TypeError,ForLegacy} core::double* in let final void #t82 = super.{self::Base::[]=}(#t80, #t81) in #t81;
-    core::double* v9 = let final core::String* #t83 = "x" in let final core::double* #t84 = super.{self::Base::[]}(#t83).{core::num::+}(self::getDouble()){(core::num*) →* core::double*} in let final void #t85 = super.{self::Base::[]=}(#t83, #t84) in #t84;
-    core::int* v10 = let final core::String* #t86 = "x" in let final core::int* #t87 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:118:48: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
-    var /*@type=int**/ v10 = /*@target=num.+*/ ++super
-                                               ^" in super.{self::Base::[]}(#t86).{core::num::+}(1){(core::num*) →* core::int*} as{TypeError,ForLegacy} core::double* in let final void #t88 = super.{self::Base::[]=}(#t86, #t87) in #t87;
-    core::int* v11 = let final core::String* #t89 = "x" in let final core::int* #t90 = super.{self::Base::[]}(#t89) in let final void #t91 = super.{self::Base::[]=}(#t89, invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:122:33: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
-        ['x'] /*@target=num.+*/ ++;
-                                ^" in #t90.{core::num::+}(1){(core::num*) →* core::int*} as{TypeError,ForLegacy} core::double*) in #t90;
+    core::double v3 = let final core::String #t53 = "x" in let final core::double #t54 = self::getDouble() in let final void #t55 = super.{self::Base::[]=}(#t53, #t54) in #t54;
+    core::double v9 = let final core::String #t56 = "x" in let final core::double #t57 = super.{self::Base::[]}(#t56).{core::num::+}(self::getDouble()){(core::num) → core::double} in let final void #t58 = super.{self::Base::[]=}(#t56, #t57) in #t57;
+    core::double v10 = let final core::String #t59 = "x" in let final core::double #t60 = super.{self::Base::[]}(#t59).{core::num::+}(1.0){(core::num) → core::double} in let final void #t61 = super.{self::Base::[]=}(#t59, #t60) in #t60;
+    core::int v11 = let final core::String #t62 = "x" in let final core::int #t63 = super.{self::Base::[]}(#t62) in let final void #t64 = super.{self::Base::[]=}(#t62, #t63.{core::num::+}(1.0){(core::num) → core::double}) in #t63;
   }
 }
-abstract class Test4 extends self::Base<core::num*, core::int*> {
-  synthetic constructor •() → self::Test4*
+abstract class Test3b extends self::Base2<core::int, core::double> {
+  synthetic constructor •() → self::Test3b
+    : super self::Base2::•()
+    ;
+  method test() → void {
+    core::num v6 = let final core::String #t65 = "x" in let final core::int? #t66 = super.{self::Base2::[]}(#t65) in #t66 == null ?{core::num} let final core::double #t67 = self::getDouble() in let final void #t68 = super.{self::Base2::[]=}(#t65, #t67) in #t67 : #t66{core::int};
+  }
+}
+abstract class Test4a extends self::Base<core::num, core::int> {
+  synthetic constructor •() → self::Test4a
     : super self::Base::•()
     ;
   method test() → void {
-    core::int* v1 = let final core::String* #t92 = "x" in let final core::int* #t93 = self::getInt() in let final void #t94 = super.{self::Base::[]=}(#t92, #t93) in #t93;
-    core::num* v2 = let final core::String* #t95 = "x" in let final core::num* #t96 = self::getNum() as{TypeError,ForLegacy} core::int* in let final void #t97 = super.{self::Base::[]=}(#t95, #t96) in #t96;
-    core::num* v4 = let final core::String* #t98 = "x" in let final core::num* #t99 = super.{self::Base::[]}(#t98) in #t99 == null ?{core::num*} let final core::int* #t100 = self::getInt() in let final void #t101 = super.{self::Base::[]=}(#t98, #t100) in #t100 : #t99;
-    core::num* v5 = let final core::String* #t102 = "x" in let final core::num* #t103 = super.{self::Base::[]}(#t102) in #t103 == null ?{core::num*} let final core::num* #t104 = self::getNum() as{TypeError,ForLegacy} core::int* in let final void #t105 = super.{self::Base::[]=}(#t102, #t104) in #t104 : #t103;
-    core::num* v7 = let final core::String* #t106 = "x" in let final core::num* #t107 = super.{self::Base::[]}(#t106).{core::num::+}(self::getInt()){(core::num*) →* core::num*} as{TypeError,ForLegacy} core::int* in let final void #t108 = super.{self::Base::[]=}(#t106, #t107) in #t107;
-    core::num* v8 = let final core::String* #t109 = "x" in let final core::num* #t110 = super.{self::Base::[]}(#t109).{core::num::+}(self::getNum()){(core::num*) →* core::num*} as{TypeError,ForLegacy} core::int* in let final void #t111 = super.{self::Base::[]=}(#t109, #t110) in #t110;
-    core::num* v10 = let final core::String* #t112 = "x" in let final core::num* #t113 = super.{self::Base::[]}(#t112).{core::num::+}(1){(core::num*) →* core::num*} as{TypeError,ForLegacy} core::int* in let final void #t114 = super.{self::Base::[]=}(#t112, #t113) in #t113;
-    core::num* v11 = let final core::String* #t115 = "x" in let final core::num* #t116 = super.{self::Base::[]}(#t115) in let final void #t117 = super.{self::Base::[]=}(#t115, #t116.{core::num::+}(1){(core::num*) →* core::num*} as{TypeError,ForLegacy} core::int*) in #t116;
+    core::int v1 = let final core::String #t69 = "x" in let final core::int #t70 = self::getInt() in let final void #t71 = super.{self::Base::[]=}(#t69, #t70) in #t70;
   }
 }
-abstract class Test5 extends self::Base<core::num*, core::num*> {
-  synthetic constructor •() → self::Test5*
+abstract class Test4b extends self::Base2<core::num, core::int> {
+  synthetic constructor •() → self::Test4b
+    : super self::Base2::•()
+    ;
+  method test() → void {
+    core::num v4 = let final core::String #t72 = "x" in let final core::num? #t73 = super.{self::Base2::[]}(#t72) in #t73 == null ?{core::num} let final core::int #t74 = self::getInt() in let final void #t75 = super.{self::Base2::[]=}(#t72, #t74) in #t74 : #t73{core::num};
+  }
+}
+abstract class Test5a extends self::Base<core::num, core::num> {
+  synthetic constructor •() → self::Test5a
     : super self::Base::•()
     ;
   method test() → void {
-    core::int* v1 = let final core::String* #t118 = "x" in let final core::int* #t119 = self::getInt() in let final void #t120 = super.{self::Base::[]=}(#t118, #t119) in #t119;
-    core::num* v2 = let final core::String* #t121 = "x" in let final core::num* #t122 = self::getNum() in let final void #t123 = super.{self::Base::[]=}(#t121, #t122) in #t122;
-    core::double* v3 = let final core::String* #t124 = "x" in let final core::double* #t125 = self::getDouble() in let final void #t126 = super.{self::Base::[]=}(#t124, #t125) in #t125;
-    core::num* v4 = let final core::String* #t127 = "x" in let final core::num* #t128 = super.{self::Base::[]}(#t127) in #t128 == null ?{core::num*} let final core::int* #t129 = self::getInt() in let final void #t130 = super.{self::Base::[]=}(#t127, #t129) in #t129 : #t128;
-    core::num* v5 = let final core::String* #t131 = "x" in let final core::num* #t132 = super.{self::Base::[]}(#t131) in #t132 == null ?{core::num*} let final core::num* #t133 = self::getNum() in let final void #t134 = super.{self::Base::[]=}(#t131, #t133) in #t133 : #t132;
-    core::num* v6 = let final core::String* #t135 = "x" in let final core::num* #t136 = super.{self::Base::[]}(#t135) in #t136 == null ?{core::num*} let final core::double* #t137 = self::getDouble() in let final void #t138 = super.{self::Base::[]=}(#t135, #t137) in #t137 : #t136;
-    core::num* v7 = let final core::String* #t139 = "x" in let final core::num* #t140 = super.{self::Base::[]}(#t139).{core::num::+}(self::getInt()){(core::num*) →* core::num*} in let final void #t141 = super.{self::Base::[]=}(#t139, #t140) in #t140;
-    core::num* v8 = let final core::String* #t142 = "x" in let final core::num* #t143 = super.{self::Base::[]}(#t142).{core::num::+}(self::getNum()){(core::num*) →* core::num*} in let final void #t144 = super.{self::Base::[]=}(#t142, #t143) in #t143;
-    core::num* v9 = let final core::String* #t145 = "x" in let final core::num* #t146 = super.{self::Base::[]}(#t145).{core::num::+}(self::getDouble()){(core::num*) →* core::num*} in let final void #t147 = super.{self::Base::[]=}(#t145, #t146) in #t146;
-    core::num* v10 = let final core::String* #t148 = "x" in let final core::num* #t149 = super.{self::Base::[]}(#t148).{core::num::+}(1){(core::num*) →* core::num*} in let final void #t150 = super.{self::Base::[]=}(#t148, #t149) in #t149;
-    core::num* v11 = let final core::String* #t151 = "x" in let final core::num* #t152 = super.{self::Base::[]}(#t151) in let final void #t153 = super.{self::Base::[]=}(#t151, #t152.{core::num::+}(1){(core::num*) →* core::num*}) in #t152;
+    core::int v1 = let final core::String #t76 = "x" in let final core::int #t77 = self::getInt() in let final void #t78 = super.{self::Base::[]=}(#t76, #t77) in #t77;
+    core::num v2 = let final core::String #t79 = "x" in let final core::num #t80 = self::getNum() in let final void #t81 = super.{self::Base::[]=}(#t79, #t80) in #t80;
+    core::double v3 = let final core::String #t82 = "x" in let final core::double #t83 = self::getDouble() in let final void #t84 = super.{self::Base::[]=}(#t82, #t83) in #t83;
+    core::num v7 = let final core::String #t85 = "x" in let final core::num #t86 = super.{self::Base::[]}(#t85).{core::num::+}(self::getInt()){(core::num) → core::num} in let final void #t87 = super.{self::Base::[]=}(#t85, #t86) in #t86;
+    core::num v8 = let final core::String #t88 = "x" in let final core::num #t89 = super.{self::Base::[]}(#t88).{core::num::+}(self::getNum()){(core::num) → core::num} in let final void #t90 = super.{self::Base::[]=}(#t88, #t89) in #t89;
+    core::double v9 = let final core::String #t91 = "x" in let final core::double #t92 = super.{self::Base::[]}(#t91).{core::num::+}(self::getDouble()){(core::num) → core::double} in let final void #t93 = super.{self::Base::[]=}(#t91, #t92) in #t92;
+    core::num v10 = let final core::String #t94 = "x" in let final core::num #t95 = super.{self::Base::[]}(#t94).{core::num::+}(1){(core::num) → core::num} in let final void #t96 = super.{self::Base::[]=}(#t94, #t95) in #t95;
+    core::num v11 = let final core::String #t97 = "x" in let final core::num #t98 = super.{self::Base::[]}(#t97) in let final void #t99 = super.{self::Base::[]=}(#t97, #t98.{core::num::+}(1){(core::num) → core::num}) in #t98;
   }
 }
-abstract class Test6 extends self::Base<core::num*, core::double*> {
-  synthetic constructor •() → self::Test6*
+abstract class Test5b extends self::Base2<core::num, core::num> {
+  synthetic constructor •() → self::Test5b
+    : super self::Base2::•()
+    ;
+  method test() → void {
+    core::num v4 = let final core::String #t100 = "x" in let final core::num? #t101 = super.{self::Base2::[]}(#t100) in #t101 == null ?{core::num} let final core::int #t102 = self::getInt() in let final void #t103 = super.{self::Base2::[]=}(#t100, #t102) in #t102 : #t101{core::num};
+    core::num v5 = let final core::String #t104 = "x" in let final core::num? #t105 = super.{self::Base2::[]}(#t104) in #t105 == null ?{core::num} let final core::num #t106 = self::getNum() in let final void #t107 = super.{self::Base2::[]=}(#t104, #t106) in #t106 : #t105{core::num};
+    core::num v6 = let final core::String #t108 = "x" in let final core::num? #t109 = super.{self::Base2::[]}(#t108) in #t109 == null ?{core::num} let final core::double #t110 = self::getDouble() in let final void #t111 = super.{self::Base2::[]=}(#t108, #t110) in #t110 : #t109{core::num};
+  }
+}
+abstract class Test6a extends self::Base<core::num, core::double> {
+  synthetic constructor •() → self::Test6a
     : super self::Base::•()
     ;
   method test() → void {
-    core::num* v2 = let final core::String* #t154 = "x" in let final core::num* #t155 = self::getNum() as{TypeError,ForLegacy} core::double* in let final void #t156 = super.{self::Base::[]=}(#t154, #t155) in #t155;
-    core::double* v3 = let final core::String* #t157 = "x" in let final core::double* #t158 = self::getDouble() in let final void #t159 = super.{self::Base::[]=}(#t157, #t158) in #t158;
-    core::num* v5 = let final core::String* #t160 = "x" in let final core::num* #t161 = super.{self::Base::[]}(#t160) in #t161 == null ?{core::num*} let final core::num* #t162 = self::getNum() as{TypeError,ForLegacy} core::double* in let final void #t163 = super.{self::Base::[]=}(#t160, #t162) in #t162 : #t161;
-    core::num* v6 = let final core::String* #t164 = "x" in let final core::num* #t165 = super.{self::Base::[]}(#t164) in #t165 == null ?{core::num*} let final core::double* #t166 = self::getDouble() in let final void #t167 = super.{self::Base::[]=}(#t164, #t166) in #t166 : #t165;
-    core::num* v7 = let final core::String* #t168 = "x" in let final core::num* #t169 = super.{self::Base::[]}(#t168).{core::num::+}(self::getInt()){(core::num*) →* core::num*} as{TypeError,ForLegacy} core::double* in let final void #t170 = super.{self::Base::[]=}(#t168, #t169) in #t169;
-    core::num* v8 = let final core::String* #t171 = "x" in let final core::num* #t172 = super.{self::Base::[]}(#t171).{core::num::+}(self::getNum()){(core::num*) →* core::num*} as{TypeError,ForLegacy} core::double* in let final void #t173 = super.{self::Base::[]=}(#t171, #t172) in #t172;
-    core::num* v9 = let final core::String* #t174 = "x" in let final core::num* #t175 = super.{self::Base::[]}(#t174).{core::num::+}(self::getDouble()){(core::num*) →* core::num*} as{TypeError,ForLegacy} core::double* in let final void #t176 = super.{self::Base::[]=}(#t174, #t175) in #t175;
-    core::num* v10 = let final core::String* #t177 = "x" in let final core::num* #t178 = super.{self::Base::[]}(#t177).{core::num::+}(1){(core::num*) →* core::num*} as{TypeError,ForLegacy} core::double* in let final void #t179 = super.{self::Base::[]=}(#t177, #t178) in #t178;
-    core::num* v11 = let final core::String* #t180 = "x" in let final core::num* #t181 = super.{self::Base::[]}(#t180) in let final void #t182 = super.{self::Base::[]=}(#t180, #t181.{core::num::+}(1){(core::num*) →* core::num*} as{TypeError,ForLegacy} core::double*) in #t181;
+    core::double v3 = let final core::String #t112 = "x" in let final core::double #t113 = self::getDouble() in let final void #t114 = super.{self::Base::[]=}(#t112, #t113) in #t113;
+    core::double v9 = let final core::String #t115 = "x" in let final core::double #t116 = super.{self::Base::[]}(#t115).{core::num::+}(self::getDouble()){(core::num) → core::double} in let final void #t117 = super.{self::Base::[]=}(#t115, #t116) in #t116;
+    core::double v10 = let final core::String #t118 = "x" in let final core::double #t119 = super.{self::Base::[]}(#t118).{core::num::+}(1.0){(core::num) → core::double} in let final void #t120 = super.{self::Base::[]=}(#t118, #t119) in #t119;
+    core::num v11 = let final core::String #t121 = "x" in let final core::num #t122 = super.{self::Base::[]}(#t121) in let final void #t123 = super.{self::Base::[]=}(#t121, #t122.{core::num::+}(1.0){(core::num) → core::double}) in #t122;
   }
 }
-abstract class Test7 extends self::Base<core::double*, core::int*> {
-  synthetic constructor •() → self::Test7*
+abstract class Test6b extends self::Base2<core::num, core::double> {
+  synthetic constructor •() → self::Test6b
+    : super self::Base2::•()
+    ;
+  method test() → void {
+    core::num v6 = let final core::String #t124 = "x" in let final core::num? #t125 = super.{self::Base2::[]}(#t124) in #t125 == null ?{core::num} let final core::double #t126 = self::getDouble() in let final void #t127 = super.{self::Base2::[]=}(#t124, #t126) in #t126 : #t125{core::num};
+  }
+}
+abstract class Test7a extends self::Base<core::double, core::int> {
+  synthetic constructor •() → self::Test7a
     : super self::Base::•()
     ;
   method test() → void {
-    core::int* v1 = let final core::String* #t183 = "x" in let final core::int* #t184 = self::getInt() in let final void #t185 = super.{self::Base::[]=}(#t183, #t184) in #t184;
-    core::num* v2 = let final core::String* #t186 = "x" in let final core::num* #t187 = self::getNum() as{TypeError,ForLegacy} core::int* in let final void #t188 = super.{self::Base::[]=}(#t186, #t187) in #t187;
-    core::num* v4 = let final core::String* #t189 = "x" in let final core::double* #t190 = super.{self::Base::[]}(#t189) in #t190 == null ?{core::num*} let final core::int* #t191 = self::getInt() in let final void #t192 = super.{self::Base::[]=}(#t189, #t191) in #t191 : #t190;
-    core::num* v5 = let final core::String* #t193 = "x" in let final core::double* #t194 = super.{self::Base::[]}(#t193) in #t194 == null ?{core::num*} let final core::num* #t195 = self::getNum() as{TypeError,ForLegacy} core::int* in let final void #t196 = super.{self::Base::[]=}(#t193, #t195) in #t195 : #t194;
-    core::double* v7 = let final core::String* #t197 = "x" in let final core::double* #t198 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:246:34: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
-            /*@target=double.+*/ += getInt();
-                                 ^" in super.{self::Base::[]}(#t197).{core::double::+}(self::getInt()){(core::num*) →* core::double*} as{TypeError,ForLegacy} core::int* in let final void #t199 = super.{self::Base::[]=}(#t197, #t198) in #t198;
-    core::double* v8 = let final core::String* #t200 = "x" in let final core::double* #t201 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:250:34: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
-            /*@target=double.+*/ += getNum();
-                                 ^" in super.{self::Base::[]}(#t200).{core::double::+}(self::getNum()){(core::num*) →* core::double*} as{TypeError,ForLegacy} core::int* in let final void #t202 = super.{self::Base::[]=}(#t200, #t201) in #t201;
-    core::double* v10 = let final core::String* #t203 = "x" in let final core::double* #t204 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:252:54: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
-    var /*@type=double**/ v10 = /*@target=double.+*/ ++super
-                                                     ^" in super.{self::Base::[]}(#t203).{core::double::+}(1){(core::num*) →* core::double*} as{TypeError,ForLegacy} core::int* in let final void #t205 = super.{self::Base::[]=}(#t203, #t204) in #t204;
-    core::double* v11 = let final core::String* #t206 = "x" in let final core::double* #t207 = super.{self::Base::[]}(#t206) in let final void #t208 = super.{self::Base::[]=}(#t206, invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_super_upwards.dart:256:36: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
-        ['x'] /*@target=double.+*/ ++;
-                                   ^" in #t207.{core::double::+}(1){(core::num*) →* core::double*} as{TypeError,ForLegacy} core::int*) in #t207;
+    core::int v1 = let final core::String #t128 = "x" in let final core::int #t129 = self::getInt() in let final void #t130 = super.{self::Base::[]=}(#t128, #t129) in #t129;
   }
 }
-abstract class Test8 extends self::Base<core::double*, core::num*> {
-  synthetic constructor •() → self::Test8*
+abstract class Test7b extends self::Base2<core::double, core::int> {
+  synthetic constructor •() → self::Test7b
+    : super self::Base2::•()
+    ;
+  method test() → void {
+    core::num v4 = let final core::String #t131 = "x" in let final core::double? #t132 = super.{self::Base2::[]}(#t131) in #t132 == null ?{core::num} let final core::int #t133 = self::getInt() in let final void #t134 = super.{self::Base2::[]=}(#t131, #t133) in #t133 : #t132{core::double};
+  }
+}
+abstract class Test8a extends self::Base<core::double, core::num> {
+  synthetic constructor •() → self::Test8a
     : super self::Base::•()
     ;
   method test() → void {
-    core::int* v1 = let final core::String* #t209 = "x" in let final core::int* #t210 = self::getInt() in let final void #t211 = super.{self::Base::[]=}(#t209, #t210) in #t210;
-    core::num* v2 = let final core::String* #t212 = "x" in let final core::num* #t213 = self::getNum() in let final void #t214 = super.{self::Base::[]=}(#t212, #t213) in #t213;
-    core::double* v3 = let final core::String* #t215 = "x" in let final core::double* #t216 = self::getDouble() in let final void #t217 = super.{self::Base::[]=}(#t215, #t216) in #t216;
-    core::num* v4 = let final core::String* #t218 = "x" in let final core::double* #t219 = super.{self::Base::[]}(#t218) in #t219 == null ?{core::num*} let final core::int* #t220 = self::getInt() in let final void #t221 = super.{self::Base::[]=}(#t218, #t220) in #t220 : #t219;
-    core::num* v5 = let final core::String* #t222 = "x" in let final core::double* #t223 = super.{self::Base::[]}(#t222) in #t223 == null ?{core::num*} let final core::num* #t224 = self::getNum() in let final void #t225 = super.{self::Base::[]=}(#t222, #t224) in #t224 : #t223;
-    core::double* v6 = let final core::String* #t226 = "x" in let final core::double* #t227 = super.{self::Base::[]}(#t226) in #t227 == null ?{core::double*} let final core::double* #t228 = self::getDouble() in let final void #t229 = super.{self::Base::[]=}(#t226, #t228) in #t228 : #t227;
-    core::double* v7 = let final core::String* #t230 = "x" in let final core::double* #t231 = super.{self::Base::[]}(#t230).{core::double::+}(self::getInt()){(core::num*) →* core::double*} in let final void #t232 = super.{self::Base::[]=}(#t230, #t231) in #t231;
-    core::double* v8 = let final core::String* #t233 = "x" in let final core::double* #t234 = super.{self::Base::[]}(#t233).{core::double::+}(self::getNum()){(core::num*) →* core::double*} in let final void #t235 = super.{self::Base::[]=}(#t233, #t234) in #t234;
-    core::double* v9 = let final core::String* #t236 = "x" in let final core::double* #t237 = super.{self::Base::[]}(#t236).{core::double::+}(self::getDouble()){(core::num*) →* core::double*} in let final void #t238 = super.{self::Base::[]=}(#t236, #t237) in #t237;
-    core::double* v10 = let final core::String* #t239 = "x" in let final core::double* #t240 = super.{self::Base::[]}(#t239).{core::double::+}(1){(core::num*) →* core::double*} in let final void #t241 = super.{self::Base::[]=}(#t239, #t240) in #t240;
-    core::double* v11 = let final core::String* #t242 = "x" in let final core::double* #t243 = super.{self::Base::[]}(#t242) in let final void #t244 = super.{self::Base::[]=}(#t242, #t243.{core::double::+}(1){(core::num*) →* core::double*}) in #t243;
+    core::int v1 = let final core::String #t135 = "x" in let final core::int #t136 = self::getInt() in let final void #t137 = super.{self::Base::[]=}(#t135, #t136) in #t136;
+    core::num v2 = let final core::String #t138 = "x" in let final core::num #t139 = self::getNum() in let final void #t140 = super.{self::Base::[]=}(#t138, #t139) in #t139;
+    core::double v3 = let final core::String #t141 = "x" in let final core::double #t142 = self::getDouble() in let final void #t143 = super.{self::Base::[]=}(#t141, #t142) in #t142;
+    core::double v7 = let final core::String #t144 = "x" in let final core::double #t145 = super.{self::Base::[]}(#t144).{core::double::+}(self::getInt()){(core::num) → core::double} in let final void #t146 = super.{self::Base::[]=}(#t144, #t145) in #t145;
+    core::double v8 = let final core::String #t147 = "x" in let final core::double #t148 = super.{self::Base::[]}(#t147).{core::double::+}(self::getNum()){(core::num) → core::double} in let final void #t149 = super.{self::Base::[]=}(#t147, #t148) in #t148;
+    core::double v9 = let final core::String #t150 = "x" in let final core::double #t151 = super.{self::Base::[]}(#t150).{core::double::+}(self::getDouble()){(core::num) → core::double} in let final void #t152 = super.{self::Base::[]=}(#t150, #t151) in #t151;
+    core::double v10 = let final core::String #t153 = "x" in let final core::double #t154 = super.{self::Base::[]}(#t153).{core::double::+}(1){(core::num) → core::double} in let final void #t155 = super.{self::Base::[]=}(#t153, #t154) in #t154;
+    core::double v11 = let final core::String #t156 = "x" in let final core::double #t157 = super.{self::Base::[]}(#t156) in let final void #t158 = super.{self::Base::[]=}(#t156, #t157.{core::double::+}(1){(core::num) → core::double}) in #t157;
   }
 }
-abstract class Test9 extends self::Base<core::double*, core::double*> {
-  synthetic constructor •() → self::Test9*
+abstract class Test8b extends self::Base2<core::double, core::num> {
+  synthetic constructor •() → self::Test8b
+    : super self::Base2::•()
+    ;
+  method test() → void {
+    core::num v4 = let final core::String #t159 = "x" in let final core::double? #t160 = super.{self::Base2::[]}(#t159) in #t160 == null ?{core::num} let final core::int #t161 = self::getInt() in let final void #t162 = super.{self::Base2::[]=}(#t159, #t161) in #t161 : #t160{core::double};
+    core::num v5 = let final core::String #t163 = "x" in let final core::double? #t164 = super.{self::Base2::[]}(#t163) in #t164 == null ?{core::num} let final core::num #t165 = self::getNum() in let final void #t166 = super.{self::Base2::[]=}(#t163, #t165) in #t165 : #t164{core::double};
+    core::double v6 = let final core::String #t167 = "x" in let final core::double? #t168 = super.{self::Base2::[]}(#t167) in #t168 == null ?{core::double} let final core::double #t169 = self::getDouble() in let final void #t170 = super.{self::Base2::[]=}(#t167, #t169) in #t169 : #t168{core::double};
+  }
+}
+abstract class Test9a extends self::Base<core::double, core::double> {
+  synthetic constructor •() → self::Test9a
     : super self::Base::•()
     ;
   method test() → void {
-    core::num* v2 = let final core::String* #t245 = "x" in let final core::num* #t246 = self::getNum() as{TypeError,ForLegacy} core::double* in let final void #t247 = super.{self::Base::[]=}(#t245, #t246) in #t246;
-    core::double* v3 = let final core::String* #t248 = "x" in let final core::double* #t249 = self::getDouble() in let final void #t250 = super.{self::Base::[]=}(#t248, #t249) in #t249;
-    core::num* v5 = let final core::String* #t251 = "x" in let final core::double* #t252 = super.{self::Base::[]}(#t251) in #t252 == null ?{core::num*} let final core::num* #t253 = self::getNum() as{TypeError,ForLegacy} core::double* in let final void #t254 = super.{self::Base::[]=}(#t251, #t253) in #t253 : #t252;
-    core::double* v6 = let final core::String* #t255 = "x" in let final core::double* #t256 = super.{self::Base::[]}(#t255) in #t256 == null ?{core::double*} let final core::double* #t257 = self::getDouble() in let final void #t258 = super.{self::Base::[]=}(#t255, #t257) in #t257 : #t256;
-    core::double* v7 = let final core::String* #t259 = "x" in let final core::double* #t260 = super.{self::Base::[]}(#t259).{core::double::+}(self::getInt()){(core::num*) →* core::double*} in let final void #t261 = super.{self::Base::[]=}(#t259, #t260) in #t260;
-    core::double* v8 = let final core::String* #t262 = "x" in let final core::double* #t263 = super.{self::Base::[]}(#t262).{core::double::+}(self::getNum()){(core::num*) →* core::double*} in let final void #t264 = super.{self::Base::[]=}(#t262, #t263) in #t263;
-    core::double* v9 = let final core::String* #t265 = "x" in let final core::double* #t266 = super.{self::Base::[]}(#t265).{core::double::+}(self::getDouble()){(core::num*) →* core::double*} in let final void #t267 = super.{self::Base::[]=}(#t265, #t266) in #t266;
-    core::double* v10 = let final core::String* #t268 = "x" in let final core::double* #t269 = super.{self::Base::[]}(#t268).{core::double::+}(1){(core::num*) →* core::double*} in let final void #t270 = super.{self::Base::[]=}(#t268, #t269) in #t269;
-    core::double* v11 = let final core::String* #t271 = "x" in let final core::double* #t272 = super.{self::Base::[]}(#t271) in let final void #t273 = super.{self::Base::[]=}(#t271, #t272.{core::double::+}(1){(core::num*) →* core::double*}) in #t272;
+    core::double v3 = let final core::String #t171 = "x" in let final core::double #t172 = self::getDouble() in let final void #t173 = super.{self::Base::[]=}(#t171, #t172) in #t172;
+    core::double v8 = let final core::String #t174 = "x" in let final core::double #t175 = super.{self::Base::[]}(#t174).{core::double::+}(self::getNum()){(core::num) → core::double} in let final void #t176 = super.{self::Base::[]=}(#t174, #t175) in #t175;
+    core::double v9 = let final core::String #t177 = "x" in let final core::double #t178 = super.{self::Base::[]}(#t177).{core::double::+}(self::getDouble()){(core::num) → core::double} in let final void #t179 = super.{self::Base::[]=}(#t177, #t178) in #t178;
+    core::double v10 = let final core::String #t180 = "x" in let final core::double #t181 = super.{self::Base::[]}(#t180).{core::double::+}(1){(core::num) → core::double} in let final void #t182 = super.{self::Base::[]=}(#t180, #t181) in #t181;
+    core::double v11 = let final core::String #t183 = "x" in let final core::double #t184 = super.{self::Base::[]}(#t183) in let final void #t185 = super.{self::Base::[]=}(#t183, #t184.{core::double::+}(1){(core::num) → core::double}) in #t184;
   }
 }
-static method getInt() → core::int*
+abstract class Test9b extends self::Base2<core::double, core::double> {
+  synthetic constructor •() → self::Test9b
+    : super self::Base2::•()
+    ;
+  method test() → void {
+    core::double v6 = let final core::String #t186 = "x" in let final core::double? #t187 = super.{self::Base2::[]}(#t186) in #t187 == null ?{core::double} let final core::double #t188 = self::getDouble() in let final void #t189 = super.{self::Base2::[]=}(#t186, #t188) in #t188 : #t187{core::double};
+  }
+}
+static method getInt() → core::int
   return 0;
-static method getNum() → core::num*
+static method getNum() → core::num
   return 0;
-static method getDouble() → core::double*
+static method getDouble() → core::double
   return 0.0;
 static method main() → dynamic {}
