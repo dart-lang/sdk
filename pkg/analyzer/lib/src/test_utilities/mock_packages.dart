@@ -350,12 +350,12 @@ class TargetKind {
   static const extensionType = TargetKind._('extension types', 'extensionType');
   static const field = TargetKind._('fields', 'field');
   static const function = TargetKind._('top-level functions', 'function');
-  static const optionalParameter =
-      TargetKind._('optional parameters', 'optionalParameter');
   static const library = TargetKind._('libraries', 'library');
   static const getter = TargetKind._('getters', 'getter');
   static const method = TargetKind._('methods', 'method');
   static const mixinType = TargetKind._('mixins', 'mixinType');
+  static const optionalParameter =
+      TargetKind._('optional parameters', 'optionalParameter');
   static const overridableMember =
       TargetKind._('overridable members', 'overridableMember');
   static const parameter = TargetKind._('parameters', 'parameter');
@@ -377,12 +377,12 @@ class TargetKind {
     extensionType,
     field,
     function,
-    overridableMember,
     library,
     getter,
     method,
     mixinType,
     optionalParameter,
+    overridableMember,
     parameter,
     setter,
     topLevelVariable,

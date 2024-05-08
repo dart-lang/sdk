@@ -67,6 +67,18 @@ class TargetKind {
   /// Indicates that an annotation is valid on any mixin declaration.
   static const mixinType = TargetKind._('mixins', 'mixinType');
 
+  /// Indicates that an annotation is valid on any optional formal parameter
+  /// declaration, whether it's in a constructor, function (named or anonymous),
+  /// function type, function-typed formal parameter, or method.
+  static const optionalParameter =
+      TargetKind._('optional parameters', 'optionalParameter');
+
+  /// Indicates that an annotation is valid on any overridable instance member
+  /// declaration, whether it's in a class, enum, extension type, or mixin. This
+  /// includes instance fields, getters, setters, methods, and operators.
+  static const overridableMember =
+      TargetKind._('overridable members', 'overridableMember');
+
   /// Indicates that an annotation is valid on any formal parameter declaration,
   /// whether it's in a function, method, constructor, or closure.
   static const parameter = TargetKind._('parameters', 'parameter');
@@ -101,6 +113,8 @@ class TargetKind {
     getter,
     method,
     mixinType,
+    optionalParameter,
+    overridableMember,
     parameter,
     setter,
     topLevelVariable,
