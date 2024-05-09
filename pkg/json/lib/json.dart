@@ -310,19 +310,14 @@ macro class JsonCodable
   /// Returns a [Code] object which is an expression that converts a JSON map
   /// (referenced by [jsonReference]) into an instance of type [type].
   Future<Code> _convertTypeFromJson(
-      TypeAnnotation type,
+      TypeAnnotation rawType,
       Code jsonReference,
       DefinitionBuilder builder,
       _SharedIntrospectionData introspectionData) async {
-    if (type is! NamedTypeAnnotation) {
-      builder.report(Diagnostic(
-          DiagnosticMessage(
-              'Only fields with named types are allowed on serializable '
-              'classes',
-              target: type.asDiagnosticTarget),
-          Severity.error));
+    final type = _checkNamedType(rawType, builder);
+    if (type == null) {
       return RawCode.fromString(
-          "throw 'Unable to deserialize type ${type.code.debugString}'");
+          "throw 'Unable to deserialize type ${rawType.code.debugString}'");
     }
 
     // Follow type aliases until we reach an actual named type.
@@ -407,6 +402,28 @@ macro class JsonCodable
     ]);
   }
 
+  /// Returns [type] as a [NamedTypeAnnotation] if it is one, otherwise returns
+  /// `null` and emits relevant error diagnostics.
+  NamedTypeAnnotation? _checkNamedType(TypeAnnotation type, Builder builder) {
+    if (type is NamedTypeAnnotation) return type;
+    if (type is OmittedTypeAnnotation) {
+      builder.report(Diagnostic(
+          DiagnosticMessage(
+              'Only fields with explicit types are allowed on serializable '
+              'classes, please add a type.',
+              target: type.asDiagnosticTarget),
+          Severity.error));
+    } else {
+      builder.report(Diagnostic(
+          DiagnosticMessage(
+              'Only fields with named types are allowed on serializable '
+              'classes.',
+              target: type.asDiagnosticTarget),
+          Severity.error));
+    }
+    return null;
+  }
+
   /// Checks that [method] is a valid `toJson` method, and throws a
   /// [DiagnosticException] if not.
   Future<bool> _checkValidToJson(
@@ -431,19 +448,14 @@ macro class JsonCodable
   /// Returns a [Code] object which is an expression that converts an instance
   /// of type [type] (referenced by [valueReference]) into a JSON map.
   Future<Code> _convertTypeToJson(
-      TypeAnnotation type,
+      TypeAnnotation rawType,
       Code valueReference,
       DefinitionBuilder builder,
       _SharedIntrospectionData introspectionData) async {
-    if (type is! NamedTypeAnnotation) {
-      builder.report(Diagnostic(
-          DiagnosticMessage(
-              'Only fields with named types are allowed on serializable '
-              'classes',
-              target: type.asDiagnosticTarget),
-          Severity.error));
+    final type = _checkNamedType(rawType, builder);
+    if (type == null) {
       return RawCode.fromString(
-          "throw 'Unable to serialize type ${type.code.debugString}'");
+          "throw 'Unable to serialize type ${rawType.code.debugString}'");
     }
 
     // Follow type aliases until we reach an actual named type.
@@ -651,6 +663,8 @@ extension on Code {
           part._writeDebugString(buffer);
         case Identifier():
           buffer.write(part.name);
+        case OmittedTypeAnnotation():
+          buffer.write('<omitted>');
         default:
           buffer.write(part);
       }
