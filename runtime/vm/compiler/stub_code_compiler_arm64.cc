@@ -87,7 +87,7 @@ static void WithExceptionCatchingTrampoline(Assembler* assembler,
   // We rely on THR being preserved across the setjmp() call.
   COMPILE_ASSERT(IsCalleeSavedRegister(THR));
 
-  if (FLAG_target_memory_sanitizer) {
+  if (FLAG_target_thread_sanitizer) {
     Label do_native_call;
 
     // Save old jmp_buf.
@@ -148,7 +148,7 @@ static void WithExceptionCatchingTrampoline(Assembler* assembler,
   fun();
 
 #if !defined(USING_SIMULATOR)
-  if (FLAG_target_memory_sanitizer) {
+  if (FLAG_target_thread_sanitizer) {
     __ MoveRegister(SP, kSavedRspReg);
     __ AddImmediate(SP, kJumpBufferSize);
     const Register kTsanUtilsReg2 = kSavedRspReg;
