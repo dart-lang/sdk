@@ -1931,9 +1931,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.ifNullExpression_rightBegin(node.left, t1);
 
     // - Let `T2` be the type of `e2` inferred with context type `J`, where:
-    //   - If `K` is `_`, `J = T1`.
+    //   - If `K` is `_` or `dynamic`, `J = T1`.
     DartType j;
-    if (typeContext is UnknownType) {
+    if (typeContext is UnknownType || typeContext is DynamicType) {
       j = t1;
     } else
     //   - Otherwise, `J = K`.

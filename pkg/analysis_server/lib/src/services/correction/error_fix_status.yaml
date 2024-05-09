@@ -2128,6 +2128,12 @@ LintCode.implicit_reopen:
   status: hasFix
 LintCode.invalid_case_patterns:
   status: hasFix
+LintCode.invalid_runtime_check_with_js_interop_types:
+  status: needsFix
+  notes: |-
+    The fix is dependent on the specific types that are being used. In some
+    cases, the type test is incorrect and has no fix besides removing the test.
+    In other cases, JS interop helpers may be used to do the type test instead.
 LintCode.invariant_booleans:
   status: noFix
   notes: |-

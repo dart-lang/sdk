@@ -25,6 +25,7 @@
 
 - new lint: `unnecessary_library_name`
 - new lint: `missing_code_block_language_in_doc_comment`
+- new lint: `invalid_runtime_check_with_js_interop_types`
 
 # 3.3.0
 

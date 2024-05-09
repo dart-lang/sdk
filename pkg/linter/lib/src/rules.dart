@@ -88,6 +88,7 @@ import 'rules/implementation_imports.dart';
 import 'rules/implicit_call_tearoffs.dart';
 import 'rules/implicit_reopen.dart';
 import 'rules/invalid_case_patterns.dart';
+import 'rules/invalid_runtime_check_with_js_interop_types.dart';
 import 'rules/invariant_booleans.dart';
 import 'rules/iterable_contains_unrelated_type.dart';
 import 'rules/join_return_with_assignment.dart';
@@ -329,6 +330,7 @@ void registerLintRules() {
     ..register(InvariantBooleans())
     ..register(IterableContainsUnrelatedType())
     ..register(JoinReturnWithAssignment())
+    ..register(InvalidRuntimeCheckWithJSInteropTypes())
     ..register(LeadingNewlinesInMultilineStrings())
     ..register(LibraryAnnotations())
     ..register(LibraryNames())

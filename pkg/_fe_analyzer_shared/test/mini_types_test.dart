@@ -7,6 +7,164 @@ import 'package:test/test.dart';
 import 'mini_types.dart';
 
 main() {
+  group('toString:', () {
+    group('FunctionType:', () {
+      test('basic', () {
+        expect(
+            FunctionType(PrimaryType('T'), [PrimaryType('U'), PrimaryType('V')])
+                .toString(),
+            'T Function(U, V)');
+      });
+
+      test('needs parentheses', () {
+        expect(
+            PromotedTypeVariableType(
+                    PrimaryType('T'), FunctionType(VoidType.instance, []))
+                .toString(),
+            'T&(void Function())');
+      });
+    });
+
+    group('PrimaryType:', () {
+      test('simple', () {
+        expect(PrimaryType('T').toString(), 'T');
+      });
+
+      test('with arguments', () {
+        expect(
+            PrimaryType('Map', args: [PrimaryType('T'), PrimaryType('U')])
+                .toString(),
+            'Map<T, U>');
+      });
+    });
+
+    group('PromotedTypeVariableType:', () {
+      test('basic', () {
+        expect(
+            PromotedTypeVariableType(PrimaryType('T'), PrimaryType('U'))
+                .toString(),
+            'T&U');
+      });
+
+      test('needs parentheses (left)', () {
+        expect(
+            PromotedTypeVariableType(
+                    PromotedTypeVariableType(
+                        PrimaryType('T'), PrimaryType('U')),
+                    PrimaryType('V'))
+                .toString(),
+            '(T&U)&V');
+      });
+
+      test('needs parentheses (right)', () {
+        expect(
+            PromotedTypeVariableType(
+                    PrimaryType('T'),
+                    PromotedTypeVariableType(
+                        PrimaryType('U'), PrimaryType('V')))
+                .toString(),
+            'T&(U&V)');
+      });
+
+      test('needs parentheses (question)', () {
+        expect(
+            QuestionType(PromotedTypeVariableType(
+                    PrimaryType('T'), PrimaryType('U')))
+                .toString(),
+            '(T&U)?');
+      });
+
+      test('needs parentheses (star)', () {
+        expect(
+            StarType(PromotedTypeVariableType(
+                    PrimaryType('T'), PrimaryType('U')))
+                .toString(),
+            '(T&U)*');
+      });
+    });
+
+    group('QuestionType:', () {
+      test('basic', () {
+        expect(QuestionType(PrimaryType('T')).toString(), 'T?');
+      });
+
+      test('needs parentheses', () {
+        expect(
+            PromotedTypeVariableType(
+                    PrimaryType('T'), QuestionType(PrimaryType('U')))
+                .toString(),
+            'T&(U?)');
+      });
+    });
+
+    group('RecordType:', () {
+      test('no arguments', () {
+        expect(
+            RecordType(positionalTypes: [], namedTypes: []).toString(), '()');
+      });
+
+      test('single positional argument', () {
+        expect(
+            RecordType(positionalTypes: [PrimaryType('T')], namedTypes: [])
+                .toString(),
+            '(T,)');
+      });
+
+      test('multiple positional arguments', () {
+        expect(
+            RecordType(
+                positionalTypes: [PrimaryType('T'), PrimaryType('U')],
+                namedTypes: []).toString(),
+            '(T, U)');
+      });
+
+      test('single named argument', () {
+        expect(
+            RecordType(
+                    positionalTypes: [],
+                    namedTypes: [NamedType(name: 't', type: PrimaryType('T'))])
+                .toString(),
+            '({T t})');
+      });
+
+      test('multiple named arguments', () {
+        expect(
+            RecordType(positionalTypes: [], namedTypes: [
+              NamedType(name: 't', type: PrimaryType('T')),
+              NamedType(name: 'u', type: PrimaryType('U'))
+            ]).toString(),
+            '({T t, U u})');
+      });
+
+      test('both positional and named arguments', () {
+        expect(
+            RecordType(
+                    positionalTypes: [PrimaryType('T')],
+                    namedTypes: [NamedType(name: 'u', type: PrimaryType('U'))])
+                .toString(),
+            '(T, {U u})');
+      });
+    });
+
+    group('StarType:', () {
+      test('basic', () {
+        expect(StarType(PrimaryType('T')).toString(), 'T*');
+      });
+
+      test('needs parentheses', () {
+        expect(
+            PromotedTypeVariableType(
+                    PrimaryType('T'), StarType(PrimaryType('U')))
+                .toString(),
+            'T&(U*)');
+      });
+    });
+
+    test('UnknownType', () {
+      expect(UnknownType().toString(), '_');
+    });
+  });
+
   group('parse', () {
     var throwsParseError = throwsA(TypeMatcher<ParseError>());
 

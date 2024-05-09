@@ -14,8 +14,8 @@ const _desc = r'Prefer `const` over `final` for declarations.';
 const _details = r'''
 **PREFER** using `const` for constant-valued declarations.
 
-Constant declarations are more hot-reload friendly and allows
-the value to be used in other constant expressions.
+Constant declarations are more hot-reload friendly and allow
+values to be used in other constant expressions.
 
 **BAD:**
 ```dart

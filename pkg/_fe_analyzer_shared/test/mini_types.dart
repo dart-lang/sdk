@@ -8,6 +8,10 @@
 
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 
+/// Surrounds [s] with parentheses if [condition] is `true`, otherwise returns
+/// [s] unchanged.
+String _parenthesizeIf(bool condition, String s) => condition ? '($s)' : s;
+
 /// Representation of the type `dynamic` suitable for unit testing of code in
 /// the `_fe_analyzer_shared` package.
 class DynamicType extends _SpecialSimpleType implements SharedDynamicType {
@@ -56,13 +60,9 @@ class FunctionType extends Type {
   }
 
   @override
-  String _toString({required bool allowSuffixes}) {
-    var result = '$returnType Function(${positionalParameters.join(', ')})';
-    if (!allowSuffixes) {
-      result = '($result)';
-    }
-    return result;
-  }
+  String _toString({required bool parenthesizeIfComplex}) => _parenthesizeIf(
+      parenthesizeIfComplex,
+      '$returnType Function(${positionalParameters.join(', ')})');
 }
 
 /// Representation of the type `FutureOr<T>` suitable for unit testing of code
@@ -187,13 +187,8 @@ class PrimaryType extends Type {
   }
 
   @override
-  String _toString({required bool allowSuffixes}) {
-    if (args.isEmpty) {
-      return name;
-    } else {
-      return '$name<${args.join(', ')}>';
-    }
-  }
+  String _toString({required bool parenthesizeIfComplex}) =>
+      args.isEmpty ? name : '$name<${args.join(', ')}>';
 }
 
 /// Representation of a promoted type parameter type suitable for unit testing
@@ -221,13 +216,10 @@ class PromotedTypeVariableType extends Type {
       covariant ? innerType : NeverType.instance;
 
   @override
-  String _toString({required bool allowSuffixes}) {
-    var result = '$innerType&${promotion._toString(allowSuffixes: false)}';
-    if (!allowSuffixes) {
-      result = '($result)';
-    }
-    return result;
-  }
+  String _toString({required bool parenthesizeIfComplex}) => _parenthesizeIf(
+      parenthesizeIfComplex,
+      '${innerType.toString(parenthesizeIfComplex: true)}&'
+      '${promotion.toString(parenthesizeIfComplex: true)}');
 }
 
 /// Representation of a nullable type suitable for unit testing of code in the
@@ -258,13 +250,9 @@ class QuestionType extends Type {
   }
 
   @override
-  String _toString({required bool allowSuffixes}) {
-    var result = '$innerType?';
-    if (!allowSuffixes) {
-      result = '($result)';
-    }
-    return result;
-  }
+  String _toString({required bool parenthesizeIfComplex}) => _parenthesizeIf(
+      parenthesizeIfComplex,
+      '${innerType.toString(parenthesizeIfComplex: true)}?');
 }
 
 class RecordType extends Type implements SharedRecordType<Type> {
@@ -354,19 +342,17 @@ class RecordType extends Type implements SharedRecordType<Type> {
   }
 
   @override
-  String _toString({required bool allowSuffixes}) {
-    var positionalStr = positionalTypes.map((e) => '$e').join(', ');
+  String _toString({required bool parenthesizeIfComplex}) {
+    var positionalStr = positionalTypes.join(', ');
     var namedStr = namedTypes.map((e) => '${e.type} ${e.name}').join(', ');
     if (namedStr.isNotEmpty) {
-      if (positionalTypes.isNotEmpty) {
-        return '($positionalStr, {$namedStr})';
-      } else {
-        return '({$namedStr})';
-      }
-    } else if (positionalTypes.length == 1) {
-      return '($positionalStr,)';
+      return positionalTypes.isNotEmpty
+          ? '($positionalStr, {$namedStr})'
+          : '({$namedStr})';
     } else {
-      return '($positionalStr)';
+      return positionalTypes.length == 1
+          ? '($positionalStr,)'
+          : '($positionalStr)';
     }
   }
 }
@@ -396,13 +382,9 @@ class StarType extends Type {
   }
 
   @override
-  String _toString({required bool allowSuffixes}) {
-    var result = '$innerType*';
-    if (!allowSuffixes) {
-      result = '($result)';
-    }
-    return result;
-  }
+  String _toString({required bool parenthesizeIfComplex}) => _parenthesizeIf(
+      parenthesizeIfComplex,
+      '${innerType.toString(parenthesizeIfComplex: true)}*');
 }
 
 /// Representation of a type suitable for unit testing of code in the
@@ -424,7 +406,7 @@ abstract class Type implements SharedType {
   @override
   int get hashCode => type.hashCode;
 
-  String get type => _toString(allowSuffixes: true);
+  String get type => toString();
 
   @override
   bool operator ==(Object other) => other is Type && this.type == other.type;
@@ -450,13 +432,25 @@ abstract class Type implements SharedType {
   /// Returns `null` if this type is already free from type promotion.
   Type? recursivelyDemote({required bool covariant});
 
+  /// Returns a string representation of this type.
+  ///
+  /// If [parenthesizeIfComplex] is `true`, then the result will be surrounded
+  /// by parenthesis if it takes any of the following forms:
+  /// - A type with a trailing `?` or `*`
+  /// - A function type (e.g. `void Function()`)
+  /// - A promoted type variable type (e.g. `T&int`)
   @override
-  String toString() => type;
+  String toString({bool parenthesizeIfComplex = false}) =>
+      _toString(parenthesizeIfComplex: parenthesizeIfComplex);
 
-  /// Returns a string representation of this type.  If `allowSuffixes` is
-  /// `false`, then the result will be surrounded in parenthesis if it would
-  /// otherwise have ended in a suffix.
-  String _toString({required bool allowSuffixes});
+  /// Returns a string representation of this type.
+  ///
+  /// If [parenthesizeIfComplex] is `true`, then the result will be surrounded
+  /// by parenthesis if it takes any of the following forms:
+  /// - A type with a trailing `?` or `*`
+  /// - A function type (e.g. `void Function()`)
+  /// - A promoted type variable type (e.g. `T&int`)
+  String _toString({required bool parenthesizeIfComplex});
 }
 
 class TypeSchema {
@@ -930,7 +924,7 @@ class UnknownType extends Type implements SharedUnknownType {
   Type? recursivelyDemote({required bool covariant}) => null;
 
   @override
-  String _toString({required bool allowSuffixes}) => '?';
+  String _toString({required bool parenthesizeIfComplex}) => '_';
 }
 
 /// Representation of the type `void` suitable for unit testing of code in the

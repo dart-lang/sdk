@@ -81,6 +81,7 @@ linter:
     - implicit_call_tearoffs
     - implicit_reopen
     - invalid_case_patterns
+    - invalid_runtime_check_with_js_interop_types
     - join_return_with_assignment
     - leading_newlines_in_multiline_strings
     - library_annotations

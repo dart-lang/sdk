@@ -12,7 +12,7 @@ import 'response_impls.dart';
 
 abstract class TypeBuilderBase implements TypePhaseIntrospector, Builder {
   /// All the collected diagnostics for this builder.
-  final List<Diagnostic> _diagnostics = [];
+  final List<Diagnostic> _diagnostics;
 
   /// If execution was stopped by an exception, the exception.
   MacroExceptionImpl? _exception;
@@ -60,7 +60,9 @@ abstract class TypeBuilderBase implements TypePhaseIntrospector, Builder {
     List<DeclarationCode>? parentLibraryAugmentations,
     Map<IdentifierImpl, List<TypeAnnotationCode>>? parentMixinAugmentations,
     Map<IdentifierImpl, List<DeclarationCode>>? parentTypeAugmentations,
-  })  : _enumValueAugmentations = parentEnumValueAugmentations ?? {},
+    List<Diagnostic>? parentDiagnostics,
+  })  : _diagnostics = parentDiagnostics ?? [],
+        _enumValueAugmentations = parentEnumValueAugmentations ?? {},
         _interfaceAugmentations = parentInterfaceAugmentations ?? {},
         _libraryAugmentations = parentLibraryAugmentations ?? [],
         _mixinAugmentations = parentMixinAugmentations ?? {},
@@ -152,6 +154,7 @@ abstract class DeclarationBuilderBase extends TypeBuilderBase
   DeclarationPhaseIntrospector get introspector;
 
   DeclarationBuilderBase({
+    super.parentDiagnostics,
     super.parentEnumValueAugmentations,
     super.parentInterfaceAugmentations,
     super.parentLibraryAugmentations,
@@ -241,6 +244,7 @@ class DefinitionBuilderBase extends DeclarationBuilderBase
 
   DefinitionBuilderBase(
     this.introspector, {
+    super.parentDiagnostics,
     super.parentEnumValueAugmentations,
     super.parentInterfaceAugmentations,
     super.parentLibraryAugmentations,
@@ -273,6 +277,7 @@ class TypeDefinitionBuilderImpl extends DefinitionBuilderBase
   TypeDefinitionBuilderImpl(
     this.declaration,
     super.introspector, {
+    super.parentDiagnostics,
     super.parentEnumValueAugmentations,
     super.parentInterfaceAugmentations,
     super.parentLibraryAugmentations,
@@ -288,6 +293,7 @@ class TypeDefinitionBuilderImpl extends DefinitionBuilderBase
             .firstWhere((constructor) => constructor.identifier == identifier)
         as ConstructorDeclarationImpl;
     return ConstructorDefinitionBuilderImpl(constructor, introspector,
+        parentDiagnostics: _diagnostics,
         parentTypeAugmentations: _typeAugmentations,
         parentLibraryAugmentations: _libraryAugmentations);
   }
@@ -297,6 +303,7 @@ class TypeDefinitionBuilderImpl extends DefinitionBuilderBase
     FieldDeclaration field = (await introspector.fieldsOf(declaration))
         .firstWhere((field) => field.identifier == identifier);
     return VariableDefinitionBuilderImpl(field, introspector,
+        parentDiagnostics: _diagnostics,
         parentTypeAugmentations: _typeAugmentations,
         parentLibraryAugmentations: _libraryAugmentations);
   }
@@ -307,6 +314,7 @@ class TypeDefinitionBuilderImpl extends DefinitionBuilderBase
             .firstWhere((method) => method.identifier == identifier)
         as MethodDeclarationImpl;
     return FunctionDefinitionBuilderImpl(method, introspector,
+        parentDiagnostics: _diagnostics,
         parentTypeAugmentations: _typeAugmentations,
         parentLibraryAugmentations: _libraryAugmentations);
   }
@@ -336,6 +344,7 @@ class EnumDefinitionBuilderImpl extends TypeDefinitionBuilderImpl
     return EnumValueDefinitionBuilderImpl(
       entry,
       introspector,
+      parentDiagnostics: _diagnostics,
       parentEnumValueAugmentations: _enumValueAugmentations,
       parentInterfaceAugmentations: _interfaceAugmentations,
       parentLibraryAugmentations: _libraryAugmentations,
@@ -352,6 +361,7 @@ class EnumValueDefinitionBuilderImpl extends DefinitionBuilderBase
   EnumValueDefinitionBuilderImpl(
     this.declaration,
     super.introspector, {
+    super.parentDiagnostics,
     super.parentEnumValueAugmentations,
     super.parentInterfaceAugmentations,
     super.parentLibraryAugmentations,
@@ -375,6 +385,7 @@ class FunctionDefinitionBuilderImpl extends DefinitionBuilderBase
   FunctionDefinitionBuilderImpl(
     this.declaration,
     super.introspector, {
+    super.parentDiagnostics,
     super.parentEnumValueAugmentations,
     super.parentInterfaceAugmentations,
     super.parentLibraryAugmentations,
@@ -404,6 +415,7 @@ class ConstructorDefinitionBuilderImpl extends DefinitionBuilderBase
   ConstructorDefinitionBuilderImpl(
     this.declaration,
     super.introspector, {
+    super.parentDiagnostics,
     super.parentEnumValueAugmentations,
     super.parentInterfaceAugmentations,
     super.parentLibraryAugmentations,
@@ -436,6 +448,7 @@ class VariableDefinitionBuilderImpl extends DefinitionBuilderBase
   VariableDefinitionBuilderImpl(
     this.declaration,
     super.introspector, {
+    super.parentDiagnostics,
     super.parentEnumValueAugmentations,
     super.parentInterfaceAugmentations,
     super.parentLibraryAugmentations,
@@ -473,6 +486,7 @@ class LibraryDefinitionBuilderImpl extends DefinitionBuilderBase
   LibraryDefinitionBuilderImpl(
     this.library,
     super.introspector, {
+    super.parentDiagnostics,
     super.parentEnumValueAugmentations,
     super.parentInterfaceAugmentations,
     super.parentLibraryAugmentations,
@@ -487,6 +501,7 @@ class LibraryDefinitionBuilderImpl extends DefinitionBuilderBase
             .firstWhere((declaration) => declaration.identifier == identifier)
         as FunctionDeclarationImpl;
     return FunctionDefinitionBuilderImpl(function, introspector,
+        parentDiagnostics: _diagnostics,
         parentTypeAugmentations: _typeAugmentations,
         parentLibraryAugmentations: _libraryAugmentations);
   }
@@ -497,6 +512,7 @@ class LibraryDefinitionBuilderImpl extends DefinitionBuilderBase
             .firstWhere((declaration) => declaration.identifier == identifier)
         as TypeDeclaration;
     return TypeDefinitionBuilderImpl(type, introspector,
+        parentDiagnostics: _diagnostics,
         parentTypeAugmentations: _typeAugmentations,
         parentLibraryAugmentations: _libraryAugmentations);
   }
@@ -508,6 +524,7 @@ class LibraryDefinitionBuilderImpl extends DefinitionBuilderBase
             .firstWhere((declaration) => declaration.identifier == identifier)
         as VariableDeclarationImpl;
     return VariableDefinitionBuilderImpl(variable, introspector,
+        parentDiagnostics: _diagnostics,
         parentTypeAugmentations: _typeAugmentations,
         parentLibraryAugmentations: _libraryAugmentations);
   }

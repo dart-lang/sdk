@@ -7,7 +7,7 @@ library;
 //  ^
 // org-dartlang-test:///a/b/c/main.dart:7:2: Context: Error in buildTypesForClass
 // #0      CrashTypesMacro.buildTypesForClass (package:macro/crash.dart:13:5)
-// #1      executeTypesMacro (package:_macros/src/executor/execute_macro.dart:37:21)
+// #1      executeTypesMacro (package:_macros/src/executor/execute_macro.dart:39:21)
 // #2      MacroExpansionClient._executeTypesPhase (package:_macros/src/executor/client.dart:219:17)
 // #3      MacroExpansionClient._handleMessage.<anonymous closure> (package:_macros/src/executor/client.dart:145:18)
 // #4      _rootRun (dart:async/zone.dart:1399:13)
@@ -33,7 +33,7 @@ library;
 //  ^
 // org-dartlang-test:///a/b/c/main.dart:8:2: Context: Error in buildDeclarationsForClass
 // #0      CrashDeclarationsMacro.buildDeclarationsForClass (package:macro/crash.dart:22:5)
-// #1      executeDeclarationsMacro (package:_macros/src/executor/execute_macro.dart:113:21)
+// #1      executeDeclarationsMacro (package:_macros/src/executor/execute_macro.dart:107:21)
 // #2      MacroExpansionClient._executeDeclarationsPhase (package:_macros/src/executor/client.dart:247:43)
 // #3      MacroExpansionClient._handleMessage.<anonymous closure> (package:_macros/src/executor/client.dart:135:18)
 // #4      _rootRun (dart:async/zone.dart:1399:13)
@@ -59,7 +59,7 @@ library;
 //  ^
 // org-dartlang-test:///a/b/c/main.dart:9:2: Context: Error in buildDefinitionForClass
 // #0      CrashDefinitionMacro.buildDefinitionForClass (package:macro/crash.dart:31:5)
-// #1      executeDefinitionMacro (package:_macros/src/executor/execute_macro.dart:181:21)
+// #1      executeDefinitionMacro (package:_macros/src/executor/execute_macro.dart:167:21)
 // #2      MacroExpansionClient._executeDefinitionsPhase (package:_macros/src/executor/client.dart:276:17)
 // #3      MacroExpansionClient._handleMessage.<anonymous closure> (package:_macros/src/executor/client.dart:140:18)
 // #4      _rootRun (dart:async/zone.dart:1399:13)

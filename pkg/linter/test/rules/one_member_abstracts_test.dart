@@ -17,6 +17,16 @@ class OneMemberAbstractsTest extends LintRuleTest {
   @override
   String get lintRule => 'one_member_abstracts';
 
+  test_macroClass() async {
+    await assertDiagnostics(r'''
+abstract macro class M {
+  void m();
+}
+''', [
+      // TODO(pq): add abstract macro compilation error when implemented
+    ]);
+  }
+
   test_oneMember_abstract() async {
     await assertDiagnostics(r'''
 abstract class C {

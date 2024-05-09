@@ -2616,6 +2616,10 @@ suggestions
     kind: import
   dart:isolate
     kind: import
+  dart:js
+    kind: import
+  dart:js_interop
+    kind: import
   dart:math
     kind: import
   dart:typed_data

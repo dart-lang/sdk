@@ -101,6 +101,8 @@ import 'flutter_style_todos_test.dart' as flutter_style_todos;
 import 'hash_and_equals_test.dart' as hash_and_equals;
 import 'implicit_reopen_test.dart' as implicit_reopen;
 import 'invalid_case_patterns_test.dart' as invalid_case_patterns;
+import 'invalid_runtime_check_with_js_interop_types_test.dart'
+    as invalid_runtime_check_with_js_interop_types_test;
 import 'join_return_with_assignment_test.dart' as join_return_with_assignment;
 import 'leading_newlines_in_multiline_strings_test.dart'
     as leading_newlines_in_multiline_strings;
@@ -339,6 +341,7 @@ void main() {
   hash_and_equals.main();
   implicit_reopen.main();
   invalid_case_patterns.main();
+  invalid_runtime_check_with_js_interop_types_test.main();
   join_return_with_assignment.main();
   leading_newlines_in_multiline_strings.main();
   library_annotations.main();

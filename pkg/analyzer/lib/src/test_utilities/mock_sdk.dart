@@ -1387,6 +1387,86 @@ class Isolate {
   )
 ]);
 
+final MockSdkLibrary _LIB_JS = MockSdkLibrary('js', [
+  MockSdkLibraryUnit(
+    'js/js.dart',
+    '''
+library dart.js;
+
+class JsObject {}
+''',
+  )
+]);
+
+final MockSdkLibrary _LIB_JS_ANNOTATIONS = MockSdkLibrary('_js_annotations', [
+  MockSdkLibraryUnit(
+    'js/_js_annotations.dart',
+    '''
+library _js_annotations;
+
+class JS {
+  final String? name;
+  const JS([this.name]);
+}
+
+class _StaticInterop {
+  const _StaticInterop();
+}
+
+const _StaticInterop staticInterop = _StaticInterop();
+''',
+  )
+]);
+
+final MockSdkLibrary _LIB_JS_INTEROP = MockSdkLibrary(
+  'js_interop',
+  [
+    MockSdkLibraryUnit(
+      'js/js_interop.dart',
+      '''
+library;
+
+import 'dart:typed_data';
+
+export 'dart:_js_annotations' show staticInterop;
+
+class JS {
+  final String? name;
+  const JS([this.name]);
+}
+
+extension type JSAny._(Object _) implements Object {}
+
+extension type JSBoolean._(bool _) implements JSAny {}
+
+extension type JSString._(String _) implements JSAny {}
+
+extension type JSNumber._(num _) implements JSAny {}
+
+extension type JSObject._(Object _) implements JSAny {}
+
+extension type JSArray<T extends JSAny?>._(List _) implements JSObject {}
+
+extension type JSTypedArray._(TypedData _) implements JSObject {}
+
+extension type JSUint8List._(Uint8List _) implements JSTypedArray {}
+''',
+    )
+  ],
+);
+
+final MockSdkLibrary _LIB_MACROS = MockSdkLibrary(
+  '_macros',
+  [
+    MockSdkLibraryUnit(
+      '_macros/_macros.dart',
+      '''
+library dart._macros;
+''',
+    )
+  ],
+);
+
 final MockSdkLibrary _LIB_MATH = MockSdkLibrary(
   'math',
   [
@@ -1463,6 +1543,10 @@ final List<MockSdkLibrary> _LIBRARIES = [
   _LIB_INTERNAL,
   _LIB_IO,
   _LIB_ISOLATE,
+  _LIB_JS,
+  _LIB_JS_ANNOTATIONS,
+  _LIB_JS_INTEROP,
+  _LIB_MACROS,
   _LIB_MATH,
   _LIB_TYPED_DATA,
   _LIB_WASM,

@@ -2639,9 +2639,9 @@ class MiniAstOperations
   };
 
   static final Map<String, Type> _coreGlbs = {
-    '?, int': Type('int'),
-    '(int,), ?': Type('(int,)'),
-    '(num,), ?': Type('(num,)'),
+    '_, int': Type('int'),
+    '(int,), _': Type('(int,)'),
+    '(num,), _': Type('(num,)'),
     'Object?, double': Type('double'),
     'Object?, int': Type('int'),
     'double, int': Type('Never'),
@@ -2656,9 +2656,9 @@ class MiniAstOperations
     'int, num': Type('num'),
     'Null, int': Type('int?'),
     'Null, Object': Type('Object?'),
-    '?, int': Type('int'),
-    '?, List<_>': Type('List<_>'),
-    '?, Null': Type('Null'),
+    'int, _': Type('int'),
+    'List<_>, _': Type('List<_>'),
+    'Null, _': Type('Null'),
   };
 
   static final Map<String, Type> _coreDownwardInferenceResults = {
