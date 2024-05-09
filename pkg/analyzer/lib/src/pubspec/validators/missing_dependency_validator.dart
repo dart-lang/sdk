@@ -55,7 +55,7 @@ class MissingDependencyValidator {
   /// Returns the list of names of the packages to be added/removed for these
   /// sections.
   List<AnalysisError> validate(Set<String> usedDeps, Set<String> usedDevDeps) {
-    final contents = this.contents;
+    var contents = this.contents;
     if (contents is! YamlMap) {
       return [];
     }

@@ -120,8 +120,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   @override
   int get hashCode {
     // Reference the arrays of parameters
-    final normalParameterTypes = this.normalParameterTypes;
-    final optionalParameterTypes = this.optionalParameterTypes;
+    var normalParameterTypes = this.normalParameterTypes;
+    var optionalParameterTypes = this.optionalParameterTypes;
     var namedParameterTypes = this.namedParameterTypes.values;
     // Generate the hashCode
     var code = returnType.hashCode;
@@ -564,7 +564,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   bool get isDartCoreEnum {
-    final element = this.element;
+    var element = this.element;
     return element is ClassElement && element.isDartCoreEnum;
   }
 
@@ -680,7 +680,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   List<InterfaceType> get superclassConstraints {
-    final element = this.element;
+    var element = this.element;
     if (element is MixinElement) {
       var constraints = element.superclassConstraints;
       return _instantiateSuperTypes(constraints);
@@ -1512,7 +1512,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   @Deprecated('Use TypeSystem.resolveToBound() instead')
   @override
   DartType resolveToBound(DartType objectType) {
-    final promotedBound = this.promotedBound;
+    var promotedBound = this.promotedBound;
     if (promotedBound != null) {
       return promotedBound.resolveToBound(objectType);
     }

@@ -119,7 +119,7 @@ extension AstNodeNullableExtension on AstNode? {
 extension CompilationUnitExtension on CompilationUnit {
   /// Whether this [CompilationUnit] is found in a "test" directory.
   bool get inTestDir {
-    final declaredElement = this.declaredElement;
+    var declaredElement = this.declaredElement;
     if (declaredElement == null) return false;
     var pathContext = declaredElement.session.resourceProvider.pathContext;
     var path = declaredElement.source.fullName;

@@ -271,7 +271,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
 
 extension NamedTypeExtension on NamedType {
   String get qualifiedName {
-    final importPrefix = this.importPrefix;
+    var importPrefix = this.importPrefix;
     if (importPrefix != null) {
       return '${importPrefix.name.lexeme}.${name2.lexeme}';
     } else {
@@ -315,7 +315,7 @@ extension TypeAnnotationExtension on TypeAnnotation {
   /// be already resolved. Every such expression must have the type set,
   /// at least `dynamic`.
   DartType get typeOrThrow {
-    final type = this.type;
+    var type = this.type;
     if (type == null) {
       throw StateError('No type: $this');
     }

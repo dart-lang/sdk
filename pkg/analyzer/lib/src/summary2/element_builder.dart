@@ -1650,7 +1650,7 @@ class _EnclosingContext {
   }
 
   bool get isDartCoreEnum {
-    final element = this.element;
+    var element = this.element;
     return element is ClassElementImpl && element.isDartCoreEnum;
   }
 

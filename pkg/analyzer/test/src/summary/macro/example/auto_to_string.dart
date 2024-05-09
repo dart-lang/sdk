@@ -69,7 +69,7 @@ final _dartCore = Uri(scheme: 'dart', path: 'core');
 
 extension<T> on Iterable<T> {
   T? get firstOrNull {
-    final iterator = this.iterator;
+    var iterator = this.iterator;
     if (iterator.moveNext()) return iterator.current;
     return null;
   }

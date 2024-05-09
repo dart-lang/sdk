@@ -880,7 +880,7 @@ final class _BlockDocDirectiveBuilder {
       _BlockDocDirectiveBuilder(null);
 
   BlockDocDirective build() {
-    final openingTag = this.openingTag;
+    var openingTag = this.openingTag;
     if (openingTag == null) {
       throw StateError(
           'Attempting to build a block doc directive with no opening tag.');
@@ -890,7 +890,7 @@ final class _BlockDocDirectiveBuilder {
 
   /// Whether this doc directive's opening tag is the opposing tag for [tag].
   bool matches(DocDirectiveTag tag) {
-    final openingTag = this.openingTag;
+    var openingTag = this.openingTag;
     return openingTag == null
         ? false
         : openingTag.type.opposingName == tag.type.name;

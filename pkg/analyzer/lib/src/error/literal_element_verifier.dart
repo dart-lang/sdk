@@ -52,7 +52,7 @@ class LiteralElementVerifier {
   /// Check that the given [type] is assignable to the [elementType], otherwise
   /// report the list or set error on the [errorNode].
   void _checkAssignableToElementType(DartType type, AstNode errorNode) {
-    final elementType = this.elementType;
+    var elementType = this.elementType;
 
     if (!typeSystem.isAssignableTo(type, elementType!,
         strictCasts: _strictCasts)) {
@@ -185,7 +185,7 @@ class LiteralElementVerifier {
     }
 
     var iterableElementType = iterableType.typeArguments[0];
-    final elementType = this.elementType;
+    var elementType = this.elementType;
     if (!typeSystem.isAssignableTo(iterableElementType, elementType!,
         strictCasts: _strictCasts)) {
       var errorCode = forList
@@ -274,7 +274,7 @@ class LiteralElementVerifier {
     }
 
     var keyType = mapType.typeArguments[0];
-    final mapKeyType = this.mapKeyType;
+    var mapKeyType = this.mapKeyType;
     if (!typeSystem.isAssignableTo(keyType, mapKeyType!,
         strictCasts: _strictCasts)) {
       errorReporter.atNode(
@@ -285,7 +285,7 @@ class LiteralElementVerifier {
     }
 
     var valueType = mapType.typeArguments[1];
-    final mapValueType = this.mapValueType;
+    var mapValueType = this.mapValueType;
     if (!typeSystem.isAssignableTo(valueType, mapValueType!,
         strictCasts: _strictCasts)) {
       errorReporter.atNode(

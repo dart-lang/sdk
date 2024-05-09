@@ -232,7 +232,7 @@ class LibraryContext {
       }
 
       // If we can compile to kernel, check if there are macros.
-      final macroSupport = this.macroSupport;
+      var macroSupport = this.macroSupport;
       if (macroSupport is KernelMacroSupport && macroLibraries.isNotEmpty) {
         var kernelBytes = byteStore.get(cycle.macroKey);
         if (kernelBytes == null) {

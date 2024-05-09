@@ -2519,7 +2519,7 @@ class _InstanceCreationEvaluator {
       return error;
     }
 
-    final definingType = this.definingType;
+    var definingType = this.definingType;
     if (definingType.element case ExtensionTypeElement element) {
       var representation = _fieldMap[element.representation.name];
       if (representation != null) {
@@ -3145,7 +3145,7 @@ class _InstanceCreationEvaluator {
 
 extension on NamedType {
   bool get isTypeLiteralInConstantPattern {
-    final parent = this.parent;
+    var parent = this.parent;
     return parent is TypeLiteral && parent.parent?.parent is ConstantPattern;
   }
 }

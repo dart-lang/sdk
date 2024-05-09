@@ -181,7 +181,7 @@ class Linker {
   }
 
   Future<LibraryMacroApplier?> _buildMacroApplier() async {
-    final macroExecutor = this.macroExecutor;
+    var macroExecutor = this.macroExecutor;
     if (macroExecutor == null) {
       return null;
     }

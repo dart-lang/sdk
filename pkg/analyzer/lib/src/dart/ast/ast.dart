@@ -826,7 +826,7 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
 
   @override
   DartType computePatternSchema(ResolverVisitor resolverVisitor) {
-    final element = this.element;
+    var element = this.element;
     if (element is PromotableElement) {
       return resolverVisitor.analyzeAssignedVariablePatternSchema(element);
     }
@@ -1102,8 +1102,8 @@ sealed class AstNodeImpl implements AstNode {
 
   @override
   int get length {
-    final beginToken = this.beginToken;
-    final endToken = this.endToken;
+    var beginToken = this.beginToken;
+    var endToken = this.endToken;
     return endToken.offset + endToken.length - beginToken.offset;
   }
 
@@ -1114,7 +1114,7 @@ sealed class AstNodeImpl implements AstNode {
 
   @override
   int get offset {
-    final beginToken = this.beginToken;
+    var beginToken = this.beginToken;
     return beginToken.offset;
   }
 
@@ -3582,7 +3582,7 @@ final class CompilationUnitImpl extends AstNodeImpl
 
   @override
   int get length {
-    final endToken = this.endToken;
+    var endToken = this.endToken;
     return endToken.offset + endToken.length;
   }
 
@@ -4954,7 +4954,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
 
   /// The `final` keyword, or `null` if the `final` keyword isn't used.
   Token? get finalKeyword {
-    final keyword = this.keyword;
+    var keyword = this.keyword;
     if (keyword != null && keyword.keyword == Keyword.FINAL) {
       return keyword;
     }
@@ -6043,7 +6043,7 @@ sealed class ExpressionImpl extends AstNodeImpl
 
   @override
   ParameterElement? get staticParameterElement {
-    final parent = this.parent;
+    var parent = this.parent;
     if (parent is ArgumentListImpl) {
       return parent._getStaticParameterElementFor(this);
     } else if (parent is IndexExpressionImpl) {
@@ -6910,7 +6910,7 @@ final class FieldFormalParameterImpl extends NormalFormalParameterImpl
 
   @override
   Token get beginToken {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     if (metadata.isNotEmpty) {
       return metadata.beginToken!;
     } else if (requiredKeyword case var requiredKeyword?) {
@@ -8621,7 +8621,7 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
 
   @override
   Token get beginToken {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     if (metadata.isNotEmpty) {
       return metadata.beginToken!;
     } else if (requiredKeyword case var requiredKeyword?) {
@@ -9912,7 +9912,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   ParameterElement? get _staticParameterElementForIndex {
     Element? element = staticElement;
 
-    final parent = this.parent;
+    var parent = this.parent;
     if (parent is CompoundAssignmentExpression) {
       element = parent.writeElement ?? parent.readElement;
     }
@@ -10907,7 +10907,7 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
     if (constKeyword case var constKeyword?) {
       return constKeyword;
     }
-    final typeArguments = this.typeArguments;
+    var typeArguments = this.typeArguments;
     if (typeArguments != null) {
       return typeArguments.beginToken;
     }
@@ -11610,7 +11610,7 @@ final class MethodDeclarationImpl extends ClassMemberImpl
 
   @override
   bool get isAbstract {
-    final body = this.body;
+    var body = this.body;
     return externalKeyword == null &&
         (body is EmptyFunctionBodyImpl && !body.semicolon.isSynthetic);
   }
@@ -12644,7 +12644,7 @@ sealed class NormalFormalParameterImpl extends FormalParameterImpl
 
   @override
   ParameterKind get kind {
-    final parent = this.parent;
+    var parent = this.parent;
     if (parent is DefaultFormalParameterImpl) {
       return parent.kind;
     }
@@ -15180,7 +15180,7 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
     if (constKeyword case var constKeyword?) {
       return constKeyword;
     }
-    final typeArguments = this.typeArguments;
+    var typeArguments = this.typeArguments;
     if (typeArguments != null) {
       return typeArguments.beginToken;
     }
@@ -15325,7 +15325,7 @@ final class SimpleFormalParameterImpl extends NormalFormalParameterImpl
 
   @override
   Token get beginToken {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     if (metadata.isNotEmpty) {
       return metadata.beginToken!;
     } else if (requiredKeyword case var requiredKeyword?) {
@@ -15530,7 +15530,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
 
   @override
   bool inDeclarationContext() {
-    final parent = this.parent;
+    var parent = this.parent;
     switch (parent) {
       case ImportDirective():
         return parent.prefix == this;
@@ -16327,7 +16327,7 @@ final class SuperFormalParameterImpl extends NormalFormalParameterImpl
 
   @override
   Token get beginToken {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     if (metadata.isNotEmpty) {
       return metadata.beginToken!;
     } else if (requiredKeyword case var requiredKeyword?) {
@@ -17892,19 +17892,19 @@ final class VariableDeclarationImpl extends DeclarationImpl
 
   @override
   bool get isConst {
-    final parent = this.parent;
+    var parent = this.parent;
     return parent is VariableDeclarationList && parent.isConst;
   }
 
   @override
   bool get isFinal {
-    final parent = this.parent;
+    var parent = this.parent;
     return parent is VariableDeclarationList && parent.isFinal;
   }
 
   @override
   bool get isLate {
-    final parent = this.parent;
+    var parent = this.parent;
     return parent is VariableDeclarationList && parent.isLate;
   }
 
@@ -18311,7 +18311,7 @@ final class WildcardPatternImpl extends DartPatternImpl
 
   /// If [keyword] is `final`, returns it.
   Token? get finalKeyword {
-    final keyword = this.keyword;
+    var keyword = this.keyword;
     if (keyword != null && keyword.keyword == Keyword.FINAL) {
       return keyword;
     }

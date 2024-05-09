@@ -1931,7 +1931,7 @@ class AnalysisDriver {
   }
 
   void _onNewFile(FileState file) {
-    final ownedFiles = this.ownedFiles;
+    var ownedFiles = this.ownedFiles;
     if (ownedFiles != null) {
       if (addedFiles.contains(file.path)) {
         ownedFiles.addAdded(file.uri, this);

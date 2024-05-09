@@ -43,7 +43,6 @@ class ConstructorElementToInfer {
   /// For example given the type `class C<T> { C(T arg); }`, the generic
   /// function type is `<T>(T) -> C<T>`.
   FunctionType get asType {
-    final typeParameters = this.typeParameters;
     return typeParameters.isEmpty
         ? element.type
         : FunctionTypeImpl(
