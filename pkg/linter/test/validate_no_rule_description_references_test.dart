@@ -9,7 +9,10 @@ import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('check for rule message descriptions in tests:', () {
+  group('check for rule message descriptions in tests:',
+      // We just need to validate rule message descriptions in one CI bot.
+      onPlatform: {'windows': Skip('Windows host may not have "grep" tool')},
+      () {
     registerLintRules();
     for (var rule in Analyzer.facade.registeredRules) {
       test(rule.name, () async {
