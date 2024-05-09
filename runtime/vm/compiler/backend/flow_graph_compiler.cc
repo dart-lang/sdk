@@ -2077,6 +2077,7 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
                       &ok,           // Found cid.
                       deopt_id, source, locs, complete, total_ic_calls,
                       call->entry_kind());
+      assembler()->Jump(&ok);
       assembler()->Bind(&megamorphic);
       // Instead of deoptimizing, do a megamorphic call when no matching
       // cid found.
