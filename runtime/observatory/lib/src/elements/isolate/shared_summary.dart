@@ -169,8 +169,11 @@ class IsolateSharedSummaryElement extends CustomElement implements Renderable {
 
   void _eventListener(e) {
     if (e.isolate.id == _isolate.id) {
-      _isolate = e.isolate;
-      _r.dirty();
+      // This view doesn't display registered service extensions.
+      if (e is! M.ServiceRegisteredEvent && e is! M.ServiceUnregisteredEvent) {
+        _isolate = e.isolate;
+        _r.dirty();
+      }
     }
   }
 }
