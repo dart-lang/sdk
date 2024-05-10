@@ -9675,6 +9675,20 @@ CompileTimeErrorCode:
       Parameters:
       0: the message
       1: the stack trace
+  MACRO_NOT_ALLOWED_DECLARATION:
+    problemMessage: |-
+      The macro attempted to add declaration(s) not allowed during the {0} phase.
+      Locations: {1}
+      ---
+      {2}
+      ---
+    correctionMessage: Try adding these declaration during an earlier phase.
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the macro phase
+      1: the list of ranges in the code
+      2: the generated code
   MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE:
     problemMessage: "The declaration '{0}' can't be introspected because there is a cycle of macro applications."
     correctionMessage: Try removing one or more macro applications to break the cycle.

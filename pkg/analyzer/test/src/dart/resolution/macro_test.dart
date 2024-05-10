@@ -317,6 +317,19 @@ import 'diagnostic.dart';
     ]);
   }
 
+  test_diagnostic_notAllowedDeclaration_declarations_class() async {
+    await assertErrorsInCode('''
+import 'append.dart';
+
+class A {
+  @DeclareInLibrary('class B {}')
+  void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.MACRO_NOT_ALLOWED_DECLARATION, 35, 31),
+    ]);
+  }
+
   test_diagnostic_notSupportedArgument() async {
     await assertErrorsInCode('''
 import 'diagnostic.dart';

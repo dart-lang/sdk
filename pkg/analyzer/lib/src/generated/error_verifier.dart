@@ -6645,8 +6645,17 @@ class _MacroDiagnosticsReporter {
   void _reportNotAllowedDeclaration(
     NotAllowedDeclarationDiagnostic diagnostic,
   ) {
-    // TODO(scheglov): implement
-    throw UnimplementedError();
+    errorReporter.atNode(
+      element.annotationAst(diagnostic.annotationIndex),
+      CompileTimeErrorCode.MACRO_NOT_ALLOWED_DECLARATION,
+      arguments: [
+        diagnostic.phase.name,
+        diagnostic.nodeRanges
+            .map((r) => '(${r.offset}, ${r.length})')
+            .join(' '),
+        diagnostic.code.trimRight(),
+      ],
+    );
   }
 
   static SimpleIdentifier _annotationNameIdentifier(
