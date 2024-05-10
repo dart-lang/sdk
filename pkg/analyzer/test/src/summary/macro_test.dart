@@ -5724,6 +5724,77 @@ abstract class MacroElementsTest extends MacroElementsBaseTest {
   @override
   bool get retainDataForTesting => true;
 
+  test_disable_declarationsPhase() async {
+    var library = await buildLibrary(r'''
+// @dart = 3.2
+import 'append.dart';
+
+@DeclareInType('  void foo() {}')
+class A {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @78
+''');
+  }
+
+  test_disable_definitionsPhase() async {
+    var library = await buildLibrary(r'''
+// @dart = 3.2
+import 'append.dart';
+
+class A {
+  @AugmentDefinition('{ print(0); }')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @44
+        methods
+          foo @93
+            returnType: void
+''');
+  }
+
+  test_disable_typesPhase() async {
+    var library = await buildLibrary(r'''
+// @dart = 3.2
+import 'append.dart';
+
+@DeclareType('B', 'class B {}')
+class A {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @76
+''');
+  }
+
   test_macroApplicationErrors_typesPhase_compileTimeError() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:macros/macros.dart';

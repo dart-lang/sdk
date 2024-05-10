@@ -336,6 +336,10 @@ class LibraryBuilder with MacroApplicationsContainer {
     required ElementImpl? targetElement,
     required OperationPerformanceImpl performance,
   }) async {
+    if (!element.featureSet.isEnabled(Feature.macros)) {
+      return MacroDeclarationsPhaseStepResult.nothing;
+    }
+
     var macroApplier = linker.macroApplier;
     if (macroApplier == null) {
       return MacroDeclarationsPhaseStepResult.nothing;
@@ -373,6 +377,10 @@ class LibraryBuilder with MacroApplicationsContainer {
   Future<void> executeMacroDefinitionsPhase({
     required OperationPerformanceImpl performance,
   }) async {
+    if (!element.featureSet.isEnabled(Feature.macros)) {
+      return;
+    }
+
     var macroApplier = linker.macroApplier;
     if (macroApplier == null) {
       return;
@@ -410,6 +418,10 @@ class LibraryBuilder with MacroApplicationsContainer {
   Future<void> executeMacroTypesPhase({
     required OperationPerformanceImpl performance,
   }) async {
+    if (!element.featureSet.isEnabled(Feature.macros)) {
+      return;
+    }
+
     var macroApplier = linker.macroApplier;
     if (macroApplier == null) {
       return;
