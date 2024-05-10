@@ -4,8 +4,6 @@ analyzer:
   language:
     strict-casts: true
     strict-raw-types: true
-  exclude:
-    - test/mock_packages/**
   errors:
     # Increase the severity of the unused_import hint.
     unused_import: warning
@@ -14,15 +12,15 @@ analyzer:
     # require some work to reach compliance.
     # See: https://github.com/dart-lang/sdk/issues/48785
 
-    # We have some long test class names which include one or more underscores
-    # to improve readability.
-    camel_case_types: ignore
+    # A fair amount of lib/ code (especially protocol-related code) does not
+    # comply.
     constant_identifier_names: ignore
-    file_names: ignore
     # This package imports much of the implementation libraries of the
     # 'analyzer' (and sometimes the '_fe_analyzer_shared' package), because it
     # is tightly integrated. This will not likely change any time soon.
     implementation_imports: ignore
+    # There are just over 100 violations of this, which can likely be ignored
+    # on a case-by-case or file-by-file basis.
     non_constant_identifier_names: ignore
     overridden_fields: ignore
     todo: ignore
