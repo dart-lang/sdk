@@ -13,6 +13,7 @@ import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 import '../util/flutter_utils.dart';
 
 const _desc = r'Do not use `BuildContext` across asynchronous gaps.';
@@ -923,6 +924,32 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
   }
 }
 
+/// Function with callback parameters that should be "protected."
+///
+/// Any callback passed as a [positional] argument or [named] argument to such
+/// a function must have a mounted guard check for any references to
+/// BuildContext.
+class ProtectedFunction {
+  final String library;
+
+  /// The name of the target type of the function (for instance methods) or the
+  /// defining element (for constructors and static methods).
+  final String? type;
+
+  /// The name of the function. Can be `null` to represent an unnamed
+  /// constructor.
+  final String? name;
+
+  /// The list of positional parameters that are protected.
+  final List<int> positional;
+
+  /// The list of named parameters that are protected.
+  final List<String> named;
+
+  const ProtectedFunction(this.library, this.type, this.name,
+      {this.positional = const <int>[], this.named = const <String>[]});
+}
+
 class UseBuildContextSynchronously extends LintRule {
   static const LintCode asyncUseCode = LintCode(
     'use_build_context_synchronously',
@@ -972,6 +999,80 @@ class UseBuildContextSynchronously extends LintRule {
 class _Visitor extends SimpleAstVisitor {
   static const mountedName = 'mounted';
 
+  static const protectedConstructors = [
+    // Future constructors.
+    // Protect the unnamed constructor as both `Future()` and `Future.new()`.
+    ProtectedFunction('dart.async', 'Future', null, positional: [0]),
+    ProtectedFunction('dart.async', 'Future', 'new', positional: [0]),
+    ProtectedFunction('dart.async', 'Future', 'delayed', positional: [1]),
+    ProtectedFunction('dart.async', 'Future', 'microtask', positional: [0]),
+
+    // Stream constructors.
+    ProtectedFunction('dart.async', 'Stream', 'eventTransformed',
+        positional: [1]),
+    ProtectedFunction('dart.async', 'Stream', 'multi', positional: [0]),
+    ProtectedFunction('dart.async', 'Stream', 'periodic', positional: [1]),
+
+    // StreamController constructors.
+    ProtectedFunction('dart.async', 'StreamController', null,
+        named: ['onListen', 'onPause', 'onResume', 'onCancel']),
+    ProtectedFunction('dart.async', 'StreamController', 'new',
+        named: ['onListen', 'onPause', 'onResume', 'onCancel']),
+    ProtectedFunction('dart.async', 'StreamController', 'broadcast',
+        named: ['onListen', 'onCancel']),
+  ];
+
+  static const protectedInstanceMethods = [
+    // Future instance methods.
+    ProtectedFunction('dart.async', 'Future', 'catchError',
+        positional: [0], named: ['test']),
+    ProtectedFunction('dart.async', 'Future', 'onError',
+        positional: [0], named: ['test']),
+    ProtectedFunction('dart.async', 'Future', 'then',
+        positional: [0], named: ['onError']),
+    ProtectedFunction('dart.async', 'Future', 'timeout', named: ['onTimeout']),
+    ProtectedFunction('dart.async', 'Future', 'whenComplete', positional: [0]),
+
+    // Stream instance methods.
+    ProtectedFunction('dart.async', 'Stream', 'any', positional: [0]),
+    ProtectedFunction('dart.async', 'Stream', 'asBroadcastStream',
+        named: ['onListen', 'onCancel']),
+    ProtectedFunction('dart.async', 'Stream', 'asyncExpand', positional: [0]),
+    ProtectedFunction('dart.async', 'Stream', 'asyncMap', positional: [0]),
+    ProtectedFunction('dart.async', 'Stream', 'distinct', positional: [0]),
+    ProtectedFunction('dart.async', 'Stream', 'expand', positional: [0]),
+    ProtectedFunction('dart.async', 'Stream', 'firstWhere',
+        positional: [0], named: ['orElse']),
+    ProtectedFunction('dart.async', 'Stream', 'fold', positional: [1]),
+    ProtectedFunction('dart.async', 'Stream', 'forEach', positional: [0]),
+    ProtectedFunction('dart.async', 'Stream', 'handleError',
+        positional: [0], named: ['test']),
+    ProtectedFunction('dart.async', 'Stream', 'lastWhere',
+        positional: [0], named: ['orElse']),
+    ProtectedFunction('dart.async', 'Stream', 'listen',
+        positional: [0], named: ['onError', 'onDone']),
+    ProtectedFunction('dart.async', 'Stream', 'map', positional: [0]),
+    ProtectedFunction('dart.async', 'Stream', 'reduce', positional: [0]),
+    ProtectedFunction('dart.async', 'Stream', 'singleWhere',
+        positional: [0], named: ['orElse']),
+    ProtectedFunction('dart.async', 'Stream', 'skipWhile', positional: [0]),
+    ProtectedFunction('dart.async', 'Stream', 'takeWhile', positional: [0]),
+    ProtectedFunction('dart.async', 'Stream', 'timeout', named: ['onTimeout']),
+    ProtectedFunction('dart.async', 'Stream', 'where', positional: [0]),
+
+    // StreamSubscription instance methods.
+    ProtectedFunction('dart.async', 'Stream', 'onData', positional: [0]),
+    ProtectedFunction('dart.async', 'Stream', 'onDone', positional: [0]),
+    ProtectedFunction('dart.async', 'Stream', 'onError', positional: [0]),
+  ];
+
+  static const protectedStaticMethods = [
+    // Future static methods.
+    ProtectedFunction('dart.async', 'Future', 'doWhile', positional: [0]),
+    ProtectedFunction('dart.async', 'Future', 'forEach', positional: [1]),
+    ProtectedFunction('dart.async', 'Future', 'wait', named: ['cleanUp']),
+  ];
+
   final LintRule rule;
 
   _Visitor(this.rule);
@@ -989,9 +1090,8 @@ class _Visitor extends SimpleAstVisitor {
       if (parent == null) break;
 
       var asyncState = asyncStateTracker.asyncStateFor(child, mountedElement);
-      if (asyncState.isGuarded) {
-        return;
-      }
+      if (asyncState.isGuarded) return;
+
       if (asyncState == AsyncState.asynchronous) {
         var errorCode = asyncStateTracker.hasUnrelatedMountedCheck
             ? UseBuildContextSynchronously.wrongMountedCode
@@ -1001,6 +1101,136 @@ class _Visitor extends SimpleAstVisitor {
       }
 
       child = parent;
+    }
+
+    if (child is FunctionBody) {
+      var parent = child.parent;
+      var grandparent = parent?.parent;
+      if (parent is! FunctionExpression) {
+        return;
+      }
+
+      if (grandparent is NamedExpression) {
+        // Given a FunctionBody in a named argument, like
+        // `future.catchError(test: (_) {...})`, we step up once more to the
+        // argument list.
+        grandparent = grandparent.parent;
+      }
+      if (grandparent is ArgumentList) {
+        if (grandparent.parent case InstanceCreationExpression invocation) {
+          checkConstructorCallback(invocation, parent, node);
+        }
+
+        if (grandparent.parent case MethodInvocation invocation) {
+          checkMethodCallback(invocation, parent, node);
+        }
+      }
+    }
+  }
+
+  /// Checks whether [invocation] involves a [callback] argument for a protected
+  /// constructor.
+  ///
+  /// The code inside a callback argument for a protected constructor must not
+  /// contain any references to a `BuildContext` without a guarding mounted
+  /// check.
+  void checkConstructorCallback(
+    InstanceCreationExpression invocation,
+    FunctionExpression callback,
+    Expression errorNode,
+  ) {
+    var staticType = invocation.staticType;
+    if (staticType == null) return;
+    var arguments = invocation.argumentList.arguments;
+    var positionalArguments =
+        arguments.where((a) => a is! NamedExpression).toList();
+    var namedArguments = arguments.whereType<NamedExpression>().toList();
+    for (var constructor in protectedConstructors) {
+      if (invocation.constructorName.name?.name == constructor.name &&
+          staticType.isSameAs(constructor.type, constructor.library)) {
+        checkPositionalArguments(
+            constructor.positional, positionalArguments, callback, errorNode);
+        checkNamedArguments(
+            constructor.named, namedArguments, callback, errorNode);
+      }
+    }
+  }
+
+  /// Checks whether [invocation] involves a [callback] argument for a protected
+  /// instance or static method.
+  ///
+  /// The code inside a callback argument for a protected method must not
+  /// contain any references to a `BuildContext` without a guarding mounted
+  /// check.
+  void checkMethodCallback(
+    MethodInvocation invocation,
+    FunctionExpression callback,
+    Expression errorNode,
+  ) {
+    var arguments = invocation.argumentList.arguments;
+    var positionalArguments =
+        arguments.where((a) => a is! NamedExpression).toList();
+    var namedArguments = arguments.whereType<NamedExpression>().toList();
+
+    var target = invocation.realTarget;
+    var targetElement = target is Identifier ? target.staticElement : null;
+    if (targetElement is ClassElement) {
+      // Static function called; `target` is the class.
+      for (var method in protectedStaticMethods) {
+        if (invocation.methodName.name == method.name &&
+            targetElement.name == method.type) {
+          checkPositionalArguments(
+              method.positional, positionalArguments, callback, errorNode);
+          checkNamedArguments(
+              method.named, namedArguments, callback, errorNode);
+        }
+      }
+    } else {
+      var staticType = target?.staticType;
+      if (staticType == null) return;
+      for (var method in protectedInstanceMethods) {
+        if (invocation.methodName.name == method.name &&
+            staticType.element?.name == method.type) {
+          checkPositionalArguments(
+              method.positional, positionalArguments, callback, errorNode);
+          checkNamedArguments(
+              method.named, namedArguments, callback, errorNode);
+        }
+      }
+    }
+  }
+
+  /// Checks whether [callback] is one of the [namedArguments] for one of the
+  /// protected argument [names] for a protected function.
+  void checkNamedArguments(
+      List<String> names,
+      List<NamedExpression> namedArguments,
+      Expression callback,
+      Expression errorNode) {
+    for (var named in names) {
+      var argument =
+          namedArguments.firstWhereOrNull((a) => a.name.label.name == named);
+      if (argument == null) continue;
+      if (callback == argument.expression) {
+        rule.reportLint(errorNode,
+            errorCode: UseBuildContextSynchronously.asyncUseCode);
+      }
+    }
+  }
+
+  /// Checks whether [callback] is one of the [positionalArguments] for one of
+  /// the protected argument [positions] for a protected function.
+  void checkPositionalArguments(
+      List<int> positions,
+      List<Expression> positionalArguments,
+      Expression callback,
+      Expression errorNode) {
+    for (var position in positions) {
+      if (positionalArguments.length > position &&
+          callback == positionalArguments[position]) {
+        rule.reportLint(errorNode,
+            errorCode: UseBuildContextSynchronously.asyncUseCode);
+      }
     }
   }
 

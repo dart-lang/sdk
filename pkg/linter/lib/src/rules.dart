@@ -74,6 +74,7 @@ import 'rules/diagnostic_describe_all_properties.dart';
 import 'rules/directives_ordering.dart';
 import 'rules/discarded_futures.dart';
 import 'rules/do_not_use_environment.dart';
+import 'rules/document_ignores.dart';
 import 'rules/empty_catches.dart';
 import 'rules/empty_constructor_bodies.dart';
 import 'rules/empty_statements.dart';
@@ -312,6 +313,7 @@ void registerLintRules() {
     ..register(DiagnosticDescribeAllProperties())
     ..register(DirectivesOrdering())
     ..register(DiscardedFutures())
+    ..register(DocumentIgnores())
     ..register(DoNotUseEnvironment())
     ..register(EmptyCatches())
     ..register(EmptyConstructorBodies())

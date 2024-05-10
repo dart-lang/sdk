@@ -89,6 +89,7 @@ import 'diagnostic_describe_all_properties_test.dart'
 import 'directives_ordering_test.dart' as directives_ordering;
 import 'discarded_futures_test.dart' as discarded_futures;
 import 'do_not_use_environment_test.dart' as do_not_use_environment;
+import 'document_ignores_test.dart' as document_ignores;
 import 'empty_catches_test.dart' as empty_catches;
 import 'empty_constructor_bodies_test.dart' as empty_constructor_bodies;
 import 'empty_statements_test.dart' as empty_statements;
@@ -330,6 +331,7 @@ void main() {
   directives_ordering.main();
   discarded_futures.main();
   do_not_use_environment.main();
+  document_ignores.main();
   empty_catches.main();
   empty_constructor_bodies.main();
   empty_statements.main();

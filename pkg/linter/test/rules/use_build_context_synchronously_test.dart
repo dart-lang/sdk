@@ -1289,7 +1289,7 @@ void foo(BuildContext context) async {
     await resolveCode(r'''
 import 'package:flutter/widgets.dart';
 void foo(BuildContext context) async {
-  f(await c(), context /* ref */);
+  f(await Future.value(), context /* ref */);
 }
 void f(_, _) {}
 ''');
@@ -2309,6 +2309,155 @@ Future<void> bar({required BuildContext context}) async {}
     ]);
   }
 
+  test_future_catchError_referenceToContextInNamedArgument() async {
+    // `Future.catchError` call, with use of BuildContext inside, is REPORTED.
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context, Future<void> f) async {
+  f.catchError((_) {}, test: (_) {
+    Navigator.of(context);
+    return false;
+  });
+}
+''', [
+      lint(146, 7),
+    ]);
+  }
+
+  test_future_catchError_referenceToContextInPositionalArgument() async {
+    // `Future.catchError` call, with use of BuildContext inside, is REPORTED.
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context, Future<void> f) async {
+  f.catchError((_) {
+    Navigator.of(context);
+  });
+}
+''', [
+      lint(132, 7),
+    ]);
+  }
+
+  test_future_catchError_referenceToContextInPositionalArgument_precedingNamedArgument() async {
+    // `Future.catchError` call, with use of BuildContext inside, is REPORTED.
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context, Future<void> f) async {
+  f.catchError(test: (_) => false, (_) {
+    Navigator.of(context);
+  });
+}
+''', [
+      lint(152, 7),
+    ]);
+  }
+
+  test_future_delayed_referenceToContextInWrongArgument() async {
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  Future.delayed((_) {
+    Navigator.of(context);
+  });
+}
+''', [
+      // Just don't crash when one argument references BuildContext, and not all
+      // positional arguments are given.
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 95, 36),
+    ]);
+  }
+
+  test_future_new_referenceToContextInArgument() async {
+    // `Future.new()` call, with use of BuildContext inside, is REPORTED.
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  Future.new(() {
+    Navigator.of(context);
+  });
+}
+''', [
+      lint(113, 7),
+    ]);
+  }
+
+  test_future_then_noReferenceToContext() async {
+    // `Future.then` call, with no use of BuildContext inside, is OK.
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context, Future<void> f) async {
+  f.then((_) {});
+}
+''');
+  }
+
+  test_future_then_referenceToContextInCallback() async {
+    // `Future.then` call, with use of BuildContext inside, is REPORTED.
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context, Future<void> f) async {
+  f.then((_) {
+    Navigator.of(context);
+  });
+}
+''', [
+      lint(126, 7),
+    ]);
+  }
+
+  test_future_then_referenceToContextInCallback_expressionBody() async {
+    // `Future.then` call, with use of BuildContext inside, is REPORTED.
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context, Future<void> f) async {
+  f.then((_) => Navigator.of(context));
+}
+''', [
+      lint(123, 7),
+    ]);
+  }
+
+  test_future_then_referenceToContextInCallback_mountedGuard() async {
+    // `Future.then` call, with guarded use of BuildContext inside, is OK.
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context, Future<void> f) async {
+  f.then((_) {
+    if (!context.mounted) return;
+    Navigator.of(context);
+  });
+}
+''');
+  }
+
+  test_future_unnamed_referenceToContextInArgument() async {
+    // `Future()` call, with use of BuildContext inside, is REPORTED.
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  Future(() {
+    Navigator.of(context);
+  });
+}
+''', [
+      lint(109, 7),
+    ]);
+  }
+
+  test_future_wait_referenceToContextInArgument() async {
+    // `Future.wait` call, with use of BuildContext inside, is REPORTED.
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  Future.wait([], cleanUp: (_) {
+    Navigator.of(context);
+  });
+}
+''', [
+      lint(128, 7),
+    ]);
+  }
+
   test_ifConditionContainsMountedAndReferenceToContext() async {
     // Binary expression contains mounted check AND use of BuildContext, is
     // OK.
@@ -2489,6 +2638,24 @@ void foo(BuildContext context) async {
 Future<void> f() async {}
 ''', [
       lint(118, 7),
+    ]);
+  }
+
+  test_referenceToContextInFunctionExpression() async {
+    // Inside a function expression, await then use of BuildContext is REPORTED.
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context) async {
+  () async {
+    await f();
+    Navigator.of(context);
+  }();
+}
+
+Future<void> f() async {}
+''', [
+      lint(124, 7),
     ]);
   }
 

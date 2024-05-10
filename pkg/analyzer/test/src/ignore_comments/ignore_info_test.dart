@@ -67,8 +67,9 @@ class IgnoreInfoTest extends PubPackageResolutionTest {
 
   test_trailingCommas() async {
     var ignoredElements = await _parseIgnoredElements('// ignore: foo,,');
-    expect(ignoredElements, hasLength(1));
+    expect(ignoredElements, hasLength(2));
     _expectIgnoredName(ignoredElements[0], name: 'foo', offset: 11);
+    expect(ignoredElements[1], isA<IgnoredDiagnosticComment>());
   }
 
   test_trailingCommaSpace() async {
@@ -85,8 +86,9 @@ class IgnoreInfoTest extends PubPackageResolutionTest {
 
   test_trailingText() async {
     var ignoredElements = await _parseIgnoredElements('// ignore: foo because');
-    expect(ignoredElements, hasLength(1));
+    expect(ignoredElements, hasLength(2));
     _expectIgnoredName(ignoredElements[0], name: 'foo', offset: 11);
+    expect(ignoredElements[1], isA<IgnoredDiagnosticComment>());
   }
 
   test_type() async {
@@ -107,12 +109,12 @@ class IgnoreInfoTest extends PubPackageResolutionTest {
   test_type_nameWithExtraCharacters() async {
     var ignoredElements =
         await _parseIgnoredElements('// ignore: type=http://google.com');
-    expect(ignoredElements, hasLength(0));
+    expect(ignoredElements, isEmpty);
   }
 
   test_type_nonIdentifierName() async {
     var ignoredElements = await _parseIgnoredElements('// ignore: type=!!');
-    expect(ignoredElements, hasLength(0));
+    expect(ignoredElements, isEmpty);
   }
 
   test_type_spaceAfterEqual() async {
