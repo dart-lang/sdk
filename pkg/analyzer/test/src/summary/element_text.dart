@@ -995,6 +995,23 @@ class _ElementWriter {
                   );
                 }
               });
+            case NotAllowedDeclarationDiagnostic():
+              _sink.writelnWithIndent('NotAllowedDeclarationDiagnostic');
+              _sink.withIndent(() {
+                _sink.writelnWithIndent(
+                  'annotationIndex: ${diagnostic.annotationIndex}',
+                );
+                _sink.writelnWithIndent(
+                  'phase: ${diagnostic.phase.name}',
+                );
+                var nodeRangesStr = diagnostic.nodeRanges
+                    .map((r) => '(${r.offset}, ${r.length})')
+                    .join(' ');
+                _sink.writelnWithIndent('nodeRanges: $nodeRangesStr');
+                _sink.writeln('---');
+                _sink.write(diagnostic.code);
+                _sink.writeln('---');
+              });
           }
         },
       );

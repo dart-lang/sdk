@@ -1824,9 +1824,6 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
     }).toFixedList();
   }
 
-  /// [addLibraryAugmentDirective] is set to `false` when we are reading
-  /// a summary bundle, because it already has full macro augmentation code.
-  ///
   /// [partialIndex] is provided while we run phases of macros, and accumulate
   /// results in separate augmentation libraries with names `foo.macroX.dart`.
   /// For the merged augmentation we pass `null` here, so a single
@@ -1955,6 +1952,11 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
   void invalidateLibraryCycle() {
     _libraryCycle?.invalidate();
     _libraryCycle = null;
+  }
+
+  void removeLastMacroAugmentation() {
+    _macroImports = _macroImports.withoutLast.toFixedList();
+    _augmentationImports = augmentationImports.withoutLast.toFixedList();
   }
 
   @override

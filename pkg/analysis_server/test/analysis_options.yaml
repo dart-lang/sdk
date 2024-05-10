@@ -1,0 +1,10 @@
+include: ../analysis_options.yaml
+
+analyzer:
+  exclude:
+    - mock_packages/**
+  errors:
+    # We have some long test class names which include one or more underscores
+    # to improve readability.
+    camel_case_types: ignore
+

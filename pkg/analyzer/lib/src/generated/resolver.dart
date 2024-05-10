@@ -3579,9 +3579,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitTypeLiteral(TypeLiteral node) {
+  void visitTypeLiteral(covariant TypeLiteralImpl node) {
     checkUnreachableNode(node);
     node.visitChildren(this);
+    inferenceHelper.recordStaticType(node, typeProvider.typeType);
   }
 
   @override

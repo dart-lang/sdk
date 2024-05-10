@@ -4,7 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart' as id;
 
-main() async {
+void main() async {
   await id.updateAllTests(idTests);
 }
 

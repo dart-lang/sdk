@@ -6444,6 +6444,8 @@ class _MacroDiagnosticsReporter {
           _reportInvalidTarget(diagnostic);
         case MacroDiagnostic():
           _reportCustom(diagnostic);
+        case NotAllowedDeclarationDiagnostic():
+          _reportNotAllowedDeclaration(diagnostic);
       }
     }
   }
@@ -6638,6 +6640,13 @@ class _MacroDiagnosticsReporter {
         diagnostic.supportedKinds.commaSeparatedWithOr,
       ],
     );
+  }
+
+  void _reportNotAllowedDeclaration(
+    NotAllowedDeclarationDiagnostic diagnostic,
+  ) {
+    // TODO(scheglov): implement
+    throw UnimplementedError();
   }
 
   static SimpleIdentifier _annotationNameIdentifier(

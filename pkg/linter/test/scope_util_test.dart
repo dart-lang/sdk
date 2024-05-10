@@ -1,15 +1,17 @@
-// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// The test method names do not conform to this rule.
+// ignore_for_file: non_constant_identifier_names
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:linter/src/util/scope.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/test_support.dart';
-import 'linter_context_impl_test.dart';
+import 'rule_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -18,18 +20,9 @@ main() {
 }
 
 @reflectiveTest
-class ResolveNameInScopeTest extends AbstractLinterContextTest {
-  @override
-  Future<void> resolve(
-    String content, [
-    List<ExpectedError> expectedErrors = const [],
-  ]) async {
-    await super.resolve(content);
-    assertErrorsInResolvedUnit(result, expectedErrors);
-  }
-
+class ResolveNameInScopeTest extends PubPackageResolutionTest {
   test_class_getter_different_fromExtends_thisClassSetter() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A {
   int get foo => 0;
 }
@@ -49,7 +42,7 @@ class B extends A {
     newFile('$testPackageLibPath/a.dart', r'''
 set foo(int _) {}
 ''');
-    await resolve('''
+    await assertDiagnostics('''
 import 'a.dart';
 
 class A {
@@ -69,7 +62,7 @@ class B extends A {
   }
 
   test_class_getter_fromExtends_blockBody() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A {
   int get foo => 0;
 }
@@ -86,7 +79,7 @@ class B extends A {
   }
 
   test_class_getter_fromExtends_expressionBody() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A {
   int get foo => 0;
 }
@@ -101,7 +94,7 @@ class B extends A {
   }
 
   test_class_getter_none_fromExtends() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A {
   int get foo => 0;
 }
@@ -119,7 +112,7 @@ class B extends A {
     newFile('$testPackageLibPath/a.dart', r'''
 int get foo => 0;
 ''');
-    await resolve('''
+    await assertDiagnostics('''
 import 'a.dart';
 
 class A {
@@ -139,7 +132,7 @@ class B extends A {
   }
 
   test_class_getter_requested_thisClass() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A {
   int get foo => 0;
 
@@ -152,7 +145,7 @@ class A {
   }
 
   test_class_method_different_fromExtends_topSetter() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A {
   void foo() {}
 }
@@ -169,7 +162,7 @@ set foo(int _) {}
   }
 
   test_class_method_none_fromExtends() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A {
   void foo() {}
 }
@@ -184,7 +177,7 @@ class B extends A {
   }
 
   test_class_method_none_fromExtension() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 extension E on A {
   void foo() {}
 }
@@ -199,7 +192,7 @@ class A {
   }
 
   test_class_method_requested_formalParameter_constructor() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A {
   void foo() {}
 
@@ -212,7 +205,7 @@ class A {
   }
 
   test_class_method_requested_formalParameter_method() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A {
   void foo() {}
 
@@ -225,7 +218,7 @@ class A {
   }
 
   test_class_method_requested_fromExtends_topLevelFunction() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A {
   void foo() {}
 }
@@ -242,7 +235,7 @@ void foo() {}
   }
 
   test_class_method_requested_fromExtends_topLevelVariable() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A {
   void foo() {}
 }
@@ -259,7 +252,7 @@ var foo = 0;
   }
 
   test_class_method_requested_fromExtension_topLevelVariable() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 extension E on A {
   void foo() {}
 }
@@ -279,7 +272,7 @@ var foo = 0;
     newFile('$testPackageLibPath/a.dart', r'''
 void foo() {}
 ''');
-    await resolve('''
+    await assertDiagnostics('''
 import 'a.dart';
 
 class A {
@@ -299,7 +292,7 @@ class B extends A {
   }
 
   test_class_method_requested_localVariable_catchClause() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A {
   void foo() {}
 
@@ -316,7 +309,7 @@ class A {
   }
 
   test_class_method_requested_localVariable_enclosingBlock() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A {
   void foo() {}
 
@@ -327,14 +320,12 @@ class A {
     }
   }
 }
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 50, 3),
-    ]);
+''');
     _checkMethodRequestedLocalVariable();
   }
 
   test_class_method_requested_localVariable_forEachElement() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A {
   int foo() => 0;
 
@@ -342,14 +333,12 @@ class A {
     return [ for (var foo in []) this.foo() ];
   }
 }
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 71, 3),
-    ]);
+''');
     _checkMethodRequestedLocalVariable();
   }
 
   test_class_method_requested_localVariable_forEachStatement() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A {
   void foo() {}
 
@@ -359,14 +348,12 @@ class A {
     }
   }
 }
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 55, 3),
-    ]);
+''');
     _checkMethodRequestedLocalVariable();
   }
 
   test_class_method_requested_localVariable_forLoopStatement() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A {
   void foo() {}
 
@@ -376,14 +363,12 @@ class A {
     }
   }
 }
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 55, 3),
-    ]);
+''');
     _checkMethodRequestedLocalVariable();
   }
 
   test_class_method_requested_localVariable_switchStatement() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A {
   void foo() {}
 
@@ -396,14 +381,12 @@ class A {
     }
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 94, 3),
-    ]);
+''');
     _checkMethodRequestedLocalVariable();
   }
 
   test_class_method_requested_localVariable_thisBlock_after() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A {
   void foo() {}
 
@@ -412,14 +395,12 @@ class A {
     var foo = 0;
   }
 }
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 66, 3),
-    ]);
+''');
     _checkMethodRequestedLocalVariable();
   }
 
   test_class_method_requested_localVariable_thisBlock_before() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A {
   void foo() {}
 
@@ -428,14 +409,12 @@ class A {
     this.foo();
   }
 }
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 50, 3),
-    ]);
+''');
     _checkMethodRequestedLocalVariable();
   }
 
   test_class_method_requested_patternVariable_ifCase() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A {
   void foo() {}
 
@@ -445,14 +424,12 @@ class A {
     }
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 73, 3),
-    ]);
+''');
     _checkMethodRequestedLocalVariable();
   }
 
   test_class_method_requested_patternVariable_switchExpression() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A {
   void foo() {}
 
@@ -463,14 +440,12 @@ class A {
     });
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 82, 3),
-    ]);
+''');
     _checkMethodRequestedLocalVariable();
   }
 
   test_class_method_requested_patternVariable_switchStatement() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A {
   void foo() {}
 
@@ -481,14 +456,12 @@ class A {
     }
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 86, 3),
-    ]);
+''');
     _checkMethodRequestedLocalVariable();
   }
 
   test_class_method_requested_thisClass() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A {
   void foo() {}
 
@@ -501,7 +474,7 @@ class A {
   }
 
   test_class_method_requested_typeParameter_method() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A {
   void foo() {}
 
@@ -514,7 +487,7 @@ class A {
   }
 
   test_class_method_typeParameter() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A {
   void foo<T>(int T) {}
 }
@@ -524,7 +497,7 @@ class A {
   }
 
   test_class_setter_different_formalParameter_constructor() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A {
   set foo(int _) {}
 
@@ -537,7 +510,7 @@ class A {
   }
 
   test_class_setter_different_fromExtends_topLevelFunction() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A {
   set foo(int _) {}
 }
@@ -554,7 +527,7 @@ void foo() {}
   }
 
   test_class_setter_different_fromExtends_topLevelGetter() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A {
   set foo(int _) {}
 }
@@ -571,7 +544,7 @@ int get foo => 0;
   }
 
   test_class_setter_none_fromExtends() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A {
   set foo(int _) {}
 }
@@ -586,7 +559,7 @@ class B extends A {
   }
 
   test_class_setter_requested_fromExtends_topLevelVariable() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A {
   set foo(int _) {}
 }
@@ -606,7 +579,7 @@ var foo = 0;
     newFile('$testPackageLibPath/a.dart', r'''
 set foo(int _) {}
 ''');
-    await resolve('''
+    await assertDiagnostics('''
 import 'a.dart';
 
 class A {
@@ -626,7 +599,7 @@ class B extends A {
   }
 
   test_class_setter_requested_thisClass() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A {
   set foo(int _) {}
 
@@ -639,7 +612,7 @@ class A {
   }
 
   test_class_setter_requested_thisClass_topLevelFunction() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A {
   set foo(int _) {}
 
@@ -654,7 +627,7 @@ void foo() {}
   }
 
   test_class_typeParameter_inConstructor() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A<T> {
   A(int T) {}
 }
@@ -664,7 +637,7 @@ class A<T> {
   }
 
   test_class_typeParameter_inField() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A<T> {
   T? a;
 }
@@ -674,7 +647,7 @@ class A<T> {
   }
 
   test_class_typeParameter_inMethod() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A<T> {
   void foo(int T) {}
 }
@@ -684,7 +657,7 @@ class A<T> {
   }
 
   test_class_typeParameter_inSetter() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 class A<T> {
   set foo(int T) {}
 }
@@ -694,7 +667,7 @@ class A<T> {
   }
 
   test_extension_method_none_fromExtended() async {
-    await resolve('''
+    await assertDiagnostics('''
 class A {
   void foo() {}
 }
@@ -711,7 +684,7 @@ extension on A {
   }
 
   test_extension_method_requested_formalParameter_method() async {
-    await resolve('''
+    await assertDiagnostics('''
 class A {}
 
 extension on A {
@@ -728,7 +701,7 @@ extension on A {
   }
 
   test_extension_method_requested_fromExtended_topLevelVariable() async {
-    await resolve('''
+    await assertDiagnostics('''
 class A {
   void foo() {}
 }
@@ -747,7 +720,7 @@ var foo = 0;
   }
 
   test_extension_method_requested_fromThisExtension() async {
-    await resolve('''
+    await assertDiagnostics('''
 class A {}
 
 extension on A {
@@ -764,7 +737,7 @@ extension on A {
   }
 
   test_extension_typeParameter_inMethod() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 extension E<T> on int {
   void foo(int T) {}
 }
@@ -774,7 +747,7 @@ extension E<T> on int {
   }
 
   test_function_typeParameter() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 void foo<T>(int T) {}
 ''');
     var node = findNode.simpleFormalParameter('T)');
@@ -782,7 +755,7 @@ void foo<T>(int T) {}
   }
 
   test_genericFunctionType_typeParameter() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 void foo(void Function<T>(String T) b) {}
 ''');
     var node = findNode.simpleFormalParameter('T)');
@@ -791,7 +764,7 @@ void foo(void Function<T>(String T) b) {}
   }
 
   test_genericTypeAlias_typeParameter() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 typedef A<T> = List<T>;
 ''');
     var node = findNode.namedType('T>;');
@@ -799,7 +772,7 @@ typedef A<T> = List<T>;
   }
 
   test_mixin_method_requested_formalParameter_method() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 mixin M {
   void foo() {}
 
@@ -812,7 +785,7 @@ mixin M {
   }
 
   test_mixin_method_requested_thisClass() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 mixin M {
   void foo() {}
 
@@ -825,7 +798,7 @@ mixin M {
   }
 
   test_mixin_typeParameter_inField() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 mixin A<T> {
   T? a;
 }
@@ -835,7 +808,7 @@ mixin A<T> {
   }
 
   test_mixin_typeParameter_inMethod() async {
-    await resolve('''
+    await assertNoDiagnostics('''
 mixin A<T> {
   void foo(int T) {}
 }
@@ -894,21 +867,21 @@ mixin A<T> {
   }
 
   void _resultDifferent(AstNode node, String id, bool setter, Element element) {
-    var result = context.resolveNameInScope(id, setter, node);
+    var result = resolveNameInScope(id, node, shouldResolveSetter: setter);
     if (!result.isDifferentName || result.element != element) {
       fail('Expected different $element, actual: $result');
     }
   }
 
   void _resultNone(AstNode node, String id, bool setter) {
-    var result = context.resolveNameInScope(id, setter, node);
+    var result = resolveNameInScope(id, node, shouldResolveSetter: setter);
     if (!result.isNone) {
       fail('Expected none, actual: $result');
     }
   }
 
   void _resultRequested(AstNode node, String id, bool setter, Element element) {
-    var result = context.resolveNameInScope(id, setter, node);
+    var result = resolveNameInScope(id, node, shouldResolveSetter: setter);
     if (!result.isRequestedName || result.element != element) {
       fail('Expected requested $element, actual: $result');
     }

@@ -74,6 +74,19 @@ Future<List<Object>> resolveIdentifiers(
   }
 }
 
+/*macro*/ class AugmentDefinition implements MethodDefinitionMacro {
+  final String code;
+
+  const AugmentDefinition(this.code);
+
+  @override
+  buildDefinitionForMethod(method, builder) {
+    builder.augment(
+      FunctionBodyCode.fromString(code),
+    );
+  }
+}
+
 /*macro*/ class DeclareClassAppendInterfaceRawCode implements ClassTypesMacro {
   final String interfaceName;
 
@@ -171,6 +184,32 @@ Future<List<Object>> resolveIdentifiers(
     builder.declareType(
       name,
       DeclarationCode.fromString(code),
+    );
+  }
+}
+
+/*macro*/ class DeclareTypesPhase
+    implements ClassTypesMacro, FunctionTypesMacro {
+  final String typeName;
+  final String code;
+
+  const DeclareTypesPhase(this.typeName, this.code);
+
+  @override
+  buildTypesForClass(clazz, builder) async {
+    await _declare(builder);
+  }
+
+  @override
+  buildTypesForFunction(clazz, builder) async {
+    await _declare(builder);
+  }
+
+  Future<void> _declare(TypeBuilder builder) async {
+    var parts = await resolveIdentifiers(builder, code);
+    builder.declareType(
+      typeName,
+      DeclarationCode.fromParts(parts),
     );
   }
 }

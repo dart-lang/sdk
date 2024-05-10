@@ -11,7 +11,7 @@ import 'generate.dart';
 
 /// Check that all targets have been code generated.  If they haven't tell the
 /// user to run `generate.dart`.
-main() async {
+void main() async {
   String script = Platform.script.toFilePath(windows: Platform.isWindows);
   List<String> components = split(script);
   int index = components.indexOf('analyzer');

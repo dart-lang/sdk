@@ -6,7 +6,7 @@ import 'dart:io';
 
 /// A simple command-line app that reads the content of a file containing the
 /// output from `test.py` and performs some simple analysis of it.
-main(List<String> args) async {
+void main(List<String> args) async {
   if (args.length != 1) {
     print('Usage: dart test_log_parser logFilePath');
     return;

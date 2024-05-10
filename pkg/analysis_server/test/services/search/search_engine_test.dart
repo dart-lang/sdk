@@ -261,12 +261,12 @@ extension type C(int it) implements A {}
   }
 
   Future<void> test_searchAllSubtypes_inMacroGeneratedCode() async {
-    addMacros([declareInLibraryMacro()]);
+    addMacros([declareTypesPhaseMacro()]);
 
     await resolveTestCode('''
 import 'macros.dart';
 
-@DeclareInLibrary('class B extends A {}')
+@DeclareTypesPhase('B', 'class B extends A {}')
 class A {}
 ''');
 

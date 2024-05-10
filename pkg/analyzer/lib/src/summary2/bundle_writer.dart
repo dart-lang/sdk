@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
@@ -1027,6 +1028,12 @@ class ResolutionSink extends _SummaryDataWriter {
           _writeMacroDiagnosticMessage,
         );
         writeOptionalStringUtf8(diagnostic.correctionMessage);
+      case NotAllowedDeclarationDiagnostic():
+        writeEnum(MacroDiagnosticKind.notAllowedDeclaration);
+        writeUInt30(diagnostic.annotationIndex);
+        writeEnum(diagnostic.phase);
+        writeStringUtf8(diagnostic.code);
+        writeList(diagnostic.nodeRanges, _writeSourceRange);
     }
   }
 
@@ -1131,6 +1138,11 @@ class ResolutionSink extends _SummaryDataWriter {
     });
 
     _writeNullabilitySuffix(type.nullabilitySuffix);
+  }
+
+  void _writeSourceRange(SourceRange range) {
+    writeUInt30(range.offset);
+    writeUInt30(range.length);
   }
 
   void _writeTypeAliasElementArguments(DartType type) {

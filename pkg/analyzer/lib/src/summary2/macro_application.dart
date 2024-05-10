@@ -59,6 +59,17 @@ List<macro.ArgumentKind> _argumentKindsOfType(
   ];
 }
 
+class ApplicationResult {
+  final _MacroApplication application;
+  final List<macro.MacroExecutionResult> results;
+
+  ApplicationResult(this.application, this.results);
+
+  MacroTargetElement get targetElement {
+    return application.target.element;
+  }
+}
+
 class LibraryMacroApplier {
   @visibleForTesting
   static bool testThrowExceptionTypes = false;
@@ -275,7 +286,7 @@ class LibraryMacroApplier {
     }
   }
 
-  Future<List<macro.MacroExecutionResult>?> executeDeclarationsPhase({
+  Future<ApplicationResult?> executeDeclarationsPhase({
     required LibraryBuilder libraryBuilder,
     required ElementImpl? targetElement,
     required OperationPerformanceImpl performance,
@@ -346,10 +357,10 @@ class LibraryMacroApplier {
     );
 
     _declarationsPhaseRunning.remove(application);
-    return results;
+    return ApplicationResult(application, results);
   }
 
-  Future<List<macro.MacroExecutionResult>?> executeDefinitionsPhase({
+  Future<ApplicationResult?> executeDefinitionsPhase({
     required LibraryBuilder libraryBuilder,
     required OperationPerformanceImpl performance,
   }) async {
@@ -393,10 +404,10 @@ class LibraryMacroApplier {
       annotationIndex: application.annotationIndex,
     );
 
-    return results;
+    return ApplicationResult(application, results);
   }
 
-  Future<List<macro.MacroExecutionResult>?> executeTypesPhase({
+  Future<ApplicationResult?> executeTypesPhase({
     required LibraryBuilder libraryBuilder,
   }) async {
     var application = _nextForTypesPhase(
@@ -431,7 +442,7 @@ class LibraryMacroApplier {
       annotationIndex: application.annotationIndex,
     );
 
-    return results;
+    return ApplicationResult(application, results);
   }
 
   Future<void> _addAnnotations({

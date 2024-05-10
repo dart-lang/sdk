@@ -952,7 +952,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeStringReference(token.lexeme);
   }
 
-  _writeDouble(double value) {
+  void _writeDouble(double value) {
     _sink.addDouble(value);
   }
 

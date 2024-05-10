@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:args/args.dart';
 
-main(List<String> args) {
+void main(List<String> args) {
   ArgParser argParser = ArgParser()..addFlag('raw');
   ArgResults argResults = argParser.parse(args);
   if (argResults.rest.length != 1) {

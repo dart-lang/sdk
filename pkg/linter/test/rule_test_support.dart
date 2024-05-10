@@ -13,6 +13,8 @@ import 'package:analyzer/src/error/analyzer_error_code.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/lint/util.dart';
+import 'package:analyzer/src/test_utilities/find_element.dart';
+import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/mock_packages.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
@@ -700,6 +702,10 @@ abstract class _ContextResolutionTest with ResourceProviderMixin {
 
   AnalysisContextCollectionImpl? _analysisContextCollection;
 
+  late FindElement findElement;
+
+  late FindNode findNode;
+
   late ResolvedUnitResult result;
 
   List<String> get collectionIncludedPaths;
@@ -736,7 +742,11 @@ abstract class _ContextResolutionTest with ResourceProviderMixin {
   Future<ResolvedUnitResult> resolveFile(String path) async {
     var analysisContext = _contextFor(path);
     var session = analysisContext.currentSession;
-    return await session.getResolvedUnit(path) as ResolvedUnitResult;
+    var result = await session.getResolvedUnit(path) as ResolvedUnitResult;
+
+    findElement = FindElement(result.unit);
+    findNode = FindNode(result.content, result.unit);
+    return result;
   }
 
   Future<void> resolveTestFile() => _resolveFile(testFilePath);

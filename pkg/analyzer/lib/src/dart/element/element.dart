@@ -6113,6 +6113,8 @@ class ParameterElementImpl extends VariableElementImpl
 }
 
 /// The parameter of an implicit setter.
+// Pre-existing name.
+// ignore: camel_case_types
 class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
   final PropertyAccessorElementImpl_ImplicitSetter setter;
 
@@ -6454,6 +6456,8 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
 }
 
 /// Implicit getter for a [PropertyInducingElementImpl].
+// Pre-existing name.
+// ignore: camel_case_types
 class PropertyAccessorElementImpl_ImplicitGetter
     extends PropertyAccessorElementImpl {
   /// Create the implicit getter and bind it to the [property].
@@ -6514,6 +6518,8 @@ class PropertyAccessorElementImpl_ImplicitGetter
 }
 
 /// Implicit setter for a [PropertyInducingElementImpl].
+// Pre-existing name.
+// ignore: camel_case_types
 class PropertyAccessorElementImpl_ImplicitSetter
     extends PropertyAccessorElementImpl {
   /// Create the implicit setter and bind it to the [property].

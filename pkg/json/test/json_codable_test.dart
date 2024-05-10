@@ -251,21 +251,21 @@ class D extends C {
 
 @JsonCodable()
 class E {
-  List<int?> listOfNullableInts;
+  final List<int?> listOfNullableInts;
 
-  List<C?> listOfNullableSerializables;
+  final List<C?> listOfNullableSerializables;
 
-  List<Map<String, int?>?> listOfNullableMapsOfNullableInts;
+  final List<Map<String, int?>?> listOfNullableMapsOfNullableInts;
 
-  Set<int?> setOfNullableInts;
+  final Set<int?> setOfNullableInts;
 
-  Set<C?> setOfNullableSerializables;
+  final Set<C?> setOfNullableSerializables;
 
-  Set<Map<String, int?>?> setOfNullableMapsOfNullableInts;
+  final Set<Map<String, int?>?> setOfNullableMapsOfNullableInts;
 
-  Map<String, int?> mapOfNullableInts;
+  final Map<String, int?> mapOfNullableInts;
 
-  Map<String, C?> mapOfNullableSerializables;
+  final Map<String, C?> mapOfNullableSerializables;
 
-  Map<String, Set<int?>?> mapOfNullableSetsOfNullableInts;
+  final Map<String, Set<int?>?> mapOfNullableSetsOfNullableInts;
 }

@@ -7,6 +7,7 @@ import 'package:_fe_analyzer_shared/src/macros/code_optimizer.dart' as macro;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart' as file_state;
 import 'package:analyzer/src/dart/analysis/file_state.dart' hide DirectiveUri;
 import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
@@ -28,7 +29,9 @@ import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/macro_application.dart';
+import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/macro_merge.dart';
+import 'package:analyzer/src/summary2/macro_not_allowed_declaration.dart';
 import 'package:analyzer/src/summary2/metadata_resolver.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/reference_resolver.dart';
@@ -338,18 +341,22 @@ class LibraryBuilder with MacroApplicationsContainer {
       return MacroDeclarationsPhaseStepResult.nothing;
     }
 
-    var results = await macroApplier.executeDeclarationsPhase(
+    var applicationResult = await macroApplier.executeDeclarationsPhase(
       libraryBuilder: this,
       targetElement: targetElement,
       performance: performance,
     );
 
     // No more applications to execute.
-    if (results == null) {
+    if (applicationResult == null) {
       return MacroDeclarationsPhaseStepResult.nothing;
     }
 
-    await _addMacroResults(macroApplier, results, buildTypes: true);
+    await _addMacroResults(
+      macroApplier,
+      applicationResult,
+      phase: macro.Phase.declarations,
+    );
 
     // Check if a new top-level declaration was added.
     var augmentationUnit = units.last.element;
@@ -372,7 +379,7 @@ class LibraryBuilder with MacroApplicationsContainer {
     }
 
     while (true) {
-      var results = await performance.runAsync(
+      var applicationResult = await performance.runAsync(
         'executeDefinitionsPhase',
         (performance) async {
           return await macroApplier.executeDefinitionsPhase(
@@ -383,7 +390,7 @@ class LibraryBuilder with MacroApplicationsContainer {
       );
 
       // No more applications to execute.
-      if (results == null) {
+      if (applicationResult == null) {
         return;
       }
 
@@ -392,8 +399,8 @@ class LibraryBuilder with MacroApplicationsContainer {
         (performance) async {
           await _addMacroResults(
             macroApplier,
-            results,
-            buildTypes: true,
+            applicationResult,
+            phase: macro.Phase.definitions,
           );
         },
       );
@@ -409,16 +416,20 @@ class LibraryBuilder with MacroApplicationsContainer {
     }
 
     while (true) {
-      var results = await macroApplier.executeTypesPhase(
+      var applicationResult = await macroApplier.executeTypesPhase(
         libraryBuilder: this,
       );
 
       // No more applications to execute.
-      if (results == null) {
+      if (applicationResult == null) {
         break;
       }
 
-      await _addMacroResults(macroApplier, results, buildTypes: false);
+      await _addMacroResults(
+        macroApplier,
+        applicationResult,
+        phase: macro.Phase.types,
+      );
     }
   }
 
@@ -737,15 +748,14 @@ class LibraryBuilder with MacroApplicationsContainer {
   /// Add results from the declarations or definitions phase.
   Future<void> _addMacroResults(
     LibraryMacroApplier macroApplier,
-    List<macro.MacroExecutionResult> results, {
-    required bool buildTypes,
+    ApplicationResult applicationResult, {
+    required macro.Phase phase,
   }) async {
     // No results from the application.
+    var results = applicationResult.results;
     if (results.isEmpty) {
       return;
     }
-
-    _macroResults.add(results);
 
     var augmentationCode = macroApplier.buildAugmentationLibraryCode(
       uri,
@@ -761,8 +771,33 @@ class LibraryBuilder with MacroApplicationsContainer {
     );
 
     var augmentation = _addMacroAugmentation(importState);
-
     var macroLinkingUnit = units.last;
+
+    // If the generated code contains declarations that are not allowed at
+    // this phase, then add a diagnostic, and discard the code.
+    var notAllowed = findDeclarationsNotAllowedAtPhase(
+      unit: macroLinkingUnit.node,
+      phase: phase,
+    );
+    if (notAllowed.isNotEmpty) {
+      var application = applicationResult.application;
+      application.target.element.addMacroDiagnostic(
+        NotAllowedDeclarationDiagnostic(
+          annotationIndex: application.annotationIndex,
+          phase: phase,
+          code: augmentationCode,
+          nodeRanges: notAllowed
+              .map((node) => SourceRange(node.offset, node.length))
+              .toList(),
+        ),
+      );
+      units.removeLast();
+      element.augmentationImports =
+          element.augmentationImports.withoutLast.toFixedList();
+      kind.removeLastMacroAugmentation();
+      return;
+    }
+
     ElementBuilder(
       libraryBuilder: this,
       container: macroLinkingUnit.container,
@@ -770,12 +805,14 @@ class LibraryBuilder with MacroApplicationsContainer {
       unitElement: macroLinkingUnit.element,
     ).buildDeclarationElements(macroLinkingUnit.node);
 
-    if (buildTypes) {
+    if (phase != macro.Phase.types) {
       var nodesToBuildType = NodesToBuildType();
       var resolver = ReferenceResolver(linker, nodesToBuildType, augmentation);
       macroLinkingUnit.node.accept(resolver);
       TypesBuilder(linker).build(nodesToBuildType);
     }
+
+    _macroResults.add(results);
 
     // Append applications from the partial augmentation.
     await macroApplier.add(

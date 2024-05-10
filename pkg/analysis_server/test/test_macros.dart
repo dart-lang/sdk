@@ -121,5 +121,34 @@ macro class DeclareInType
 ''';
   }
 
+  String declareTypesPhaseMacro() {
+    return '''
+macro class DeclareTypesPhase
+    implements ClassTypesMacro, FunctionTypesMacro {
+  final String typeName;
+  final String code;
+
+  const DeclareTypesPhase(this.typeName, this.code);
+
+  @override
+  buildTypesForClass(clazz, builder) async {
+    await _declare(builder);
+  }
+
+  @override
+  buildTypesForFunction(clazz, builder) async {
+    await _declare(builder);
+  }
+
+  Future<void> _declare(TypeBuilder builder) async {
+    builder.declareType(
+      typeName,
+      DeclarationCode.fromString(code),
+    );
+  }
+}
+''';
+  }
+
   File newFile(String path, String content);
 }

@@ -9,8 +9,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -20,6 +18,7 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/name_union.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
@@ -37,6 +36,7 @@ import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:macros/macros.dart' as macro;
+import 'package:macros/src/executor.dart' as macro;
 import 'package:pub_semver/pub_semver.dart';
 
 class BundleReader {
@@ -2105,6 +2105,12 @@ class ResolutionReader {
     return readType()!;
   }
 
+  SourceRange readSourceRange() {
+    var offset = readUInt30();
+    var length = readUInt30();
+    return SourceRange(offset, length);
+  }
+
   String readStringReference() {
     return _reader.readStringReference();
   }
@@ -2408,6 +2414,13 @@ class ResolutionReader {
           message: _readMacroDiagnosticMessage(),
           contextMessages: readTypedList(_readMacroDiagnosticMessage),
           correctionMessage: _reader.readOptionalStringUtf8(),
+        );
+      case MacroDiagnosticKind.notAllowedDeclaration:
+        return NotAllowedDeclarationDiagnostic(
+          annotationIndex: readUInt30(),
+          phase: readEnum(macro.Phase.values),
+          code: _reader.readStringUtf8(),
+          nodeRanges: readTypedList(readSourceRange),
         );
     }
   }

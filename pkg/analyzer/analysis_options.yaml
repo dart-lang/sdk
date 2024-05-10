@@ -9,26 +9,34 @@ analyzer:
     # still reported.  Re-evaluate after
     # https://github.com/dart-lang/language/pull/599 and a functional fix land.
     inference_failure_on_untyped_parameter: ignore
-    # There are about 10k violations in test/ due to missing return types on
-    # test methods. It would be nice to mark this code as
-    # "ignored for test/**/*.dart".
-    inference_failure_on_function_return_type: ignore
 
     # Lints from the recommended set that conflict w/ analyzer style or will
     # require some work to reach compliance.
     # See: https://github.com/dart-lang/sdk/issues/48784
     avoid_renaming_method_parameters: ignore
-    # We sometimes name test classes with an underscore, and have a consistent
-    # practice of doing so. We do not have an problems of naming classes with
-    # snake_case, so we're not missing much by disabling it. Re-enable when we
-    # can ignore a lint rule for a certain path.
-    camel_case_types: ignore
+
+    # More than 500 violations in lib/.
     constant_identifier_names: ignore
+
+    # About 10 violations in lib/.
     hash_and_equals: ignore
+
+    # More than 500 violations in lib/.
     non_constant_identifier_names: ignore
+
+    # This package imports much of the implementation libraries of the
+    # '_fe_analyzer_shared' package, because it is tightly integrated. This
+    # will not likely change any time soon.
     implementation_imports: ignore
+
+    # About 20 violations of this in lib/.
     library_private_types_in_public_api: ignore
+
+    # About 30 violations of this in lib/.
     provide_deprecation_message: ignore
+
+    # Ignoring this for all developers means developers don't need to ignore
+    # TODOs in their IDE settings.
     todo: ignore
 
   language:
