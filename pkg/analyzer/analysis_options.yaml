@@ -46,5 +46,6 @@ linter:
     - library_annotations
     - unawaited_futures
     - unnecessary_breaks
+    - unnecessary_final
     - unnecessary_library_directive
     - unnecessary_parenthesis

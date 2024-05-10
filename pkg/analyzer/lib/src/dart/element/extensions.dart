@@ -22,7 +22,7 @@ extension ElementAnnotationExtensions on ElementAnnotation {
 
   /// Return the target kinds defined for this [ElementAnnotation].
   Set<TargetKind> get targetKinds {
-    final element = this.element;
+    var element = this.element;
     InterfaceElement? interfaceElement;
     if (element is PropertyAccessorElement) {
       if (element.isGetter) {

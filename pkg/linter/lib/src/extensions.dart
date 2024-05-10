@@ -144,6 +144,19 @@ extension ClassElementExtension on ClassElement {
   /// Get all mixins, including merged augmentations.
   List<InterfaceType> get allMixins => augmented.mixins;
 
+  bool get hasImmutableAnnotation {
+    var inheritedAndSelfElements = <InterfaceElement>[
+      ...allSupertypes.map((t) => t.element),
+      this,
+    ];
+
+    return inheritedAndSelfElements.any((e) => e.hasImmutable);
+
+    // TODO(pq): update when implemented or replace w/ a better has{*} call
+    // https://github.com/dart-lang/linter/issues/4939
+    //return inheritedAndSelfElements.any((e) => e.augmented.metadata.any((e) => e.isImmutable));
+  }
+
   bool get hasSubclassInDefiningCompilationUnit {
     var compilationUnit = library.definingCompilationUnit;
     for (var cls in compilationUnit.classes) {

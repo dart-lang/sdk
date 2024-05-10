@@ -192,7 +192,7 @@ class _ClassVerifier {
       return true;
     }
 
-    final classElement = this.classElement;
+    var classElement = this.classElement;
     if (classElement is! EnumElement &&
         classElement is ClassElement &&
         !classElement.isAbstract &&
@@ -433,7 +433,7 @@ class _ClassVerifier {
 
     var typeElement = type.element;
 
-    final classElement = this.classElement;
+    var classElement = this.classElement;
     if (typeElement is ClassElement &&
         typeElement.isDartCoreEnum &&
         library.featureSet.isEnabled(Feature.enhanced_enums)) {
@@ -596,7 +596,7 @@ class _ClassVerifier {
 
   void _checkIllegalConcreteEnumMemberDeclaration(Token name) {
     if (implementsDartCoreEnum) {
-      final classElement = this.classElement;
+      var classElement = this.classElement;
       if (classElement is ClassElementImpl &&
               !classElement.isDartCoreEnumImpl ||
           classElement is EnumElementImpl ||

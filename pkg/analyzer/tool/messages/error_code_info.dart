@@ -495,7 +495,7 @@ class ErrorClassInfo {
 
   /// Generates the code to compute the severity of errors of this class.
   String get severityCode {
-    final severity = this.severity;
+    var severity = this.severity;
     if (severity == null) {
       return '$typeCode.severity';
     } else {
@@ -620,7 +620,7 @@ abstract class ErrorCodeInfo {
     var messageLines = _splitText(messageAsCode,
         maxWidth: maxWidth, firstLineWidth: maxWidth + 4);
     out.writeln('${messageLines.map(json.encode).join('\n')},');
-    final correctionMessage = this.correctionMessage;
+    var correctionMessage = this.correctionMessage;
     if (correctionMessage is String) {
       out.write('correctionMessage: ');
       var code = convertTemplate(placeholderToIndexMap, correctionMessage);
@@ -643,7 +643,7 @@ abstract class ErrorCodeInfo {
   /// Generates doc comments for this error code.
   String toAnalyzerComments({String indent = ''}) {
     var out = StringBuffer();
-    final comment = this.comment;
+    var comment = this.comment;
     if (comment != null) {
       for (var line in comment.split('\n')) {
         out.writeln('$indent/// ${line.isEmpty ? '' : ' '}$line');

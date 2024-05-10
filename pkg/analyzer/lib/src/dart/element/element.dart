@@ -127,7 +127,7 @@ class AugmentationImportElementImpl extends _ExistingElementImpl
 
   @override
   LibraryAugmentationElementImpl? get importedAugmentation {
-    final uri = this.uri;
+    var uri = this.uri;
     if (uri is DirectiveUriWithAugmentationImpl) {
       return uri.augmentation;
     }
@@ -489,7 +489,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl
 
   @override
   bool get isValidMixin {
-    final supertype = this.supertype;
+    var supertype = this.supertype;
     if (supertype != null && !supertype.isDartCoreObject) {
       return false;
     }
@@ -1059,7 +1059,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @override
   String get displayName {
     var className = enclosingElement.name;
-    final name = this.name;
+    var name = this.name;
     if (name.isNotEmpty) {
       return '$className.$name';
     } else {
@@ -1074,7 +1074,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @override
   bool get hasLiteral {
     if (super.hasLiteral) return true;
-    final enclosingElement = this.enclosingElement;
+    var enclosingElement = this.enclosingElement;
     if (enclosingElement is! ExtensionTypeElement) return false;
     return this == enclosingElement.primaryConstructor &&
         enclosingElement.hasLiteral;
@@ -1105,7 +1105,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   int get nameLength {
-    final nameEnd = this.nameEnd;
+    var nameEnd = this.nameEnd;
     if (nameEnd == null) {
       return 0;
     } else {
@@ -1269,7 +1269,7 @@ mixin ConstVariableElement implements ElementImpl, ConstantEvaluationTarget {
   /// of this variable could not be computed because of errors.
   DartObject? computeConstantValue() {
     if (evaluationResult == null) {
-      final library = this.library;
+      var library = this.library;
       // TODO(scheglov): https://github.com/dart-lang/sdk/issues/47915
       if (library == null) {
         throw StateError(
@@ -1343,7 +1343,7 @@ class DefaultSuperFormalParameterElementImpl
       return null;
     }
 
-    final constantInitializer = this.constantInitializer;
+    var constantInitializer = this.constantInitializer;
     if (constantInitializer != null) {
       return constantInitializer.toSource();
     }
@@ -1677,8 +1677,8 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   @override
   List<AnalysisError> get constantEvaluationErrors {
-    final evaluationResult = this.evaluationResult;
-    final additionalErrors = this.additionalErrors;
+    var evaluationResult = this.evaluationResult;
+    var additionalErrors = this.additionalErrors;
     if (evaluationResult is InvalidConstant) {
       // When we have an [InvalidConstant], we don't report the additional
       // errors because this result contains the most relevant error.
@@ -1706,7 +1706,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
   bool get isConstantEvaluated => evaluationResult != null;
 
   bool get isDartInternalSince {
-    final element = this.element;
+    var element = this.element;
     if (element is ConstructorElement) {
       return element.enclosingElement.name == 'Since' &&
           element.library.source.uri.toString() == 'dart:_internal';
@@ -1716,7 +1716,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   @override
   bool get isDeprecated {
-    final element = this.element;
+    var element = this.element;
     if (element is ConstructorElement) {
       return element.library.isDartCore &&
           element.enclosingElement.name == _deprecatedClassName;
@@ -1870,7 +1870,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
     required String libraryName,
     required String className,
   }) {
-    final element = this.element;
+    var element = this.element;
     return element is ConstructorElement &&
         element.enclosingElement.name == className &&
         element.library.name == libraryName;
@@ -1894,7 +1894,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
     required String libraryName,
     required String name,
   }) {
-    final element = this.element;
+    var element = this.element;
     return element is PropertyAccessorElement &&
         element.name == name &&
         element.library.name == libraryName;
@@ -2009,7 +2009,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasAlwaysThrows {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isAlwaysThrows) {
@@ -2026,7 +2026,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasDoNotStore {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isDoNotStore) {
@@ -2038,7 +2038,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasDoNotSubmit {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isDoNotSubmit) {
@@ -2050,7 +2050,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasFactory {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isFactory) {
@@ -2069,7 +2069,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasImmutable {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isImmutable) {
@@ -2081,7 +2081,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasInternal {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isInternal) {
@@ -2093,7 +2093,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasIsTest {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isIsTest) {
@@ -2105,7 +2105,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasIsTestGroup {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isIsTestGroup) {
@@ -2117,7 +2117,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasJS {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isJS) {
@@ -2129,7 +2129,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasLiteral {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isLiteral) {
@@ -2141,7 +2141,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasMustBeConst {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isMustBeConst) {
@@ -2153,7 +2153,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasMustBeOverridden {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isMustBeOverridden) {
@@ -2165,7 +2165,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasMustCallSuper {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isMustCallSuper) {
@@ -2177,7 +2177,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasNonVirtual {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isNonVirtual) {
@@ -2189,7 +2189,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasOptionalTypeArgs {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isOptionalTypeArgs) {
@@ -2207,7 +2207,7 @@ abstract class ElementImpl implements Element {
   /// Return `true` if this element has an annotation of the form
   /// `@pragma("vm:entry-point")`.
   bool get hasPragmaVmEntryPoint {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isPragmaVmEntryPoint) {
@@ -2219,7 +2219,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasProtected {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isProtected) {
@@ -2231,7 +2231,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasRedeclare {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isRedeclare) {
@@ -2243,7 +2243,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasReopen {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isReopen) {
@@ -2255,7 +2255,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasRequired {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isRequired) {
@@ -2267,7 +2267,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasSealed {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isSealed) {
@@ -2279,7 +2279,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasUseResult {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isUseResult) {
@@ -2291,7 +2291,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasVisibleForOverriding {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isVisibleForOverriding) {
@@ -2303,7 +2303,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasVisibleForTemplate {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isVisibleForTemplate) {
@@ -2315,7 +2315,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasVisibleForTesting {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isVisibleForTesting) {
@@ -2327,7 +2327,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasVisibleOutsideTemplate {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isVisibleOutsideTemplate) {
@@ -2355,7 +2355,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get isPrivate {
-    final name = this.name;
+    var name = this.name;
     if (name == null) {
       return true;
     }
@@ -2497,7 +2497,7 @@ abstract class ElementImpl implements Element {
   @override
   String getExtendedDisplayName(String? shortName) {
     shortName ??= displayName;
-    final source = this.source;
+    var source = this.source;
     return "$shortName (${source?.fullName})";
   }
 
@@ -2573,7 +2573,7 @@ abstract class ElementImpl implements Element {
       return result;
     }
 
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isDeprecated) {
@@ -4658,7 +4658,7 @@ class LibraryExportElementImpl extends _ExistingElementImpl
 
   @override
   LibraryElementImpl? get exportedLibrary {
-    final uri = this.uri;
+    var uri = this.uri;
     if (uri is DirectiveUriWithLibraryImpl) {
       return uri.library;
     }
@@ -4721,7 +4721,7 @@ class LibraryImportElementImpl extends _ExistingElementImpl
 
   @override
   LibraryElementImpl? get importedLibrary {
-    final uri = this.uri;
+    var uri = this.uri;
     if (uri is DirectiveUriWithLibraryImpl) {
       return uri.library;
     }
@@ -4733,7 +4733,7 @@ class LibraryImportElementImpl extends _ExistingElementImpl
 
   @override
   Namespace get namespace {
-    final uri = this.uri;
+    var uri = this.uri;
     if (uri is DirectiveUriWithLibrary) {
       return _namespace ??=
           NamespaceBuilder().createImportNamespaceForDirective(
@@ -6680,11 +6680,11 @@ abstract class PropertyInducingElementImpl
     // Reset cached types of synthetic getters and setters.
     // TODO(scheglov): Consider not caching these types.
     if (!isSynthetic) {
-      final getter = this.getter;
+      var getter = this.getter;
       if (getter is PropertyAccessorElementImpl_ImplicitGetter) {
         getter._type = null;
       }
-      final setter = this.setter;
+      var setter = this.setter;
       if (setter is PropertyAccessorElementImpl_ImplicitSetter) {
         setter._type = null;
       }
@@ -6773,7 +6773,7 @@ class SuperFormalParameterElementImpl extends ParameterElementImpl
 
   @override
   ParameterElement? get superConstructorParameter {
-    final enclosingElement = this.enclosingElement;
+    var enclosingElement = this.enclosingElement;
     if (enclosingElement is ConstructorElementImpl) {
       var superConstructor = enclosingElement.superConstructor;
       if (superConstructor != null) {

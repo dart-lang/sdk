@@ -55,7 +55,7 @@ extension IterableOfStringExtension on Iterable<String> {
   ///
   /// Each element is surrounded by a pair of single quotes if [quoted] is true.
   String _commaSeparated(String conjunction, {bool quoted = false}) {
-    final iterator = this.iterator;
+    var iterator = this.iterator;
 
     // If has zero elements.
     if (!iterator.moveNext()) {

@@ -922,7 +922,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     }
 
     // Prepare for recording data for testing.
-    final exhaustivenessDataForTesting = this.exhaustivenessDataForTesting;
+    var exhaustivenessDataForTesting = this.exhaustivenessDataForTesting;
 
     // Compute and report errors.
     var errors = patternConverter.hasInvalidType
@@ -1064,12 +1064,12 @@ class _ConstLiteralVerifier {
       var value = verifier._evaluateAndReportError(element, errorCode);
       if (value is! DartObjectImpl) return false;
 
-      final listElementType = this.listElementType;
+      var listElementType = this.listElementType;
       if (listElementType != null) {
         return _validateListExpression(listElementType, element, value);
       }
 
-      final setConfig = this.setConfig;
+      var setConfig = this.setConfig;
       if (setConfig != null) {
         return _validateSetExpression(setConfig, element, value);
       }
@@ -1133,7 +1133,7 @@ class _ConstLiteralVerifier {
         return _validateListOrSetSpread(element, value);
       }
 
-      final mapConfig = this.mapConfig;
+      var mapConfig = this.mapConfig;
       if (mapConfig != null) {
         return _validateMapSpread(mapConfig, element, value);
       }
@@ -1218,7 +1218,7 @@ class _ConstLiteralVerifier {
       return false;
     }
 
-    final setConfig = this.setConfig;
+    var setConfig = this.setConfig;
     if (setConfig == null) {
       return true;
     }

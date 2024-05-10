@@ -392,7 +392,7 @@ class FileResolver {
 
   /// Return files that have a top-level declaration with the [name].
   List<FileState> getFilesWithTopLevelDeclarations(String name) {
-    final fsState = this.fsState;
+    var fsState = this.fsState;
     if (fsState == null) {
       return const [];
     }

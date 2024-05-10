@@ -1340,7 +1340,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     if (element.isFinal) {
-      final flow = this.flow;
+      var flow = this.flow;
       if (element.isLate) {
         if (flow.isAssigned(element)) {
           errorReporter.atToken(
@@ -3881,12 +3881,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   void _setupThisType() {
-    final enclosingClass = this.enclosingClass;
+    var enclosingClass = this.enclosingClass;
     if (enclosingClass != null) {
       var augmented = enclosingClass.augmented;
       _thisType = augmented.declaration.thisType;
     } else {
-      final enclosingExtension = this.enclosingExtension;
+      var enclosingExtension = this.enclosingExtension;
       if (enclosingExtension != null) {
         _thisType = enclosingExtension.extendedType;
       }
@@ -5100,7 +5100,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     if (labelNode == null) {
       return implicitLabelScope.getTarget(isContinue);
     } else {
-      final labelScope = this.labelScope;
+      var labelScope = this.labelScope;
       if (labelScope == null) {
         // There are no labels in scope, so by definition the label is
         // undefined.

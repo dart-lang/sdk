@@ -232,7 +232,7 @@ class _RequiredAnnotation {
 extension _InstantiatedAnnotation on Annotation {
   SimpleIdentifier? get classIdentifier {
     assert(arguments != null);
-    final name = this.name;
+    var name = this.name;
     if (name is SimpleIdentifier) {
       return _ifClassElement(name);
     } else if (name is PrefixedIdentifier) {
@@ -248,7 +248,7 @@ extension _InstantiatedAnnotation on Annotation {
       return constructorName;
     }
 
-    final name = this.name;
+    var name = this.name;
     if (name is SimpleIdentifier) {
       return _ifConstructorElement(name);
     } else if (name is PrefixedIdentifier) {

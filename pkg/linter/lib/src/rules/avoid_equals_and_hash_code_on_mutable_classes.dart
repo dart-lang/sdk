@@ -108,17 +108,6 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 }
 
-extension on ClassElement {
-  bool get hasImmutableAnnotation {
-    // TODO(pq): consider augmentations? https://github.com/dart-lang/linter/issues/4939
-    var inheritedAndSelfElements = <InterfaceElement>[
-      ...allSupertypes.map((t) => t.element),
-      this,
-    ];
-    return inheritedAndSelfElements.any((e) => e.hasImmutable);
-  }
-}
-
 extension on MethodDeclaration {
   ClassElement? get classElement =>
       // TODO(pq): should this be ClassOrMixinDeclaration ?

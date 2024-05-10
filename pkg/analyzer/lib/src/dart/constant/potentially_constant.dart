@@ -467,7 +467,7 @@ class _ConstantTypeChecker {
 
 extension on NamedType {
   bool get isConstantNamedType {
-    final element = this.element;
+    var element = this.element;
     if (element is InterfaceElement || element is TypeAliasElement) {
       return !isDeferred;
     }

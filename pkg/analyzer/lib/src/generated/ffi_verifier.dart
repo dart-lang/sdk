@@ -1028,8 +1028,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// Check that .address is only used in argument lists passed to native leaf
   /// calls.
   void _validateAddressPosition(Expression node, AstNode errorNode) {
-    final parent = node.parent;
-    final grandParent = parent?.parent;
+    var parent = node.parent;
+    var grandParent = parent?.parent;
     if (parent is! ArgumentList ||
         grandParent is! MethodInvocation ||
         !grandParent.isNativeLeafInvocation) {
@@ -1041,19 +1041,18 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _validateAddressPrefixedIdentifier(PrefixedIdentifier node) {
-    final errorNode = node.identifier;
+    var errorNode = node.identifier;
     _validateAddressPosition(node, errorNode);
-    final extensionName = node.staticElement?.enclosingElement?.name;
-    final receiver = node.prefix;
+    var extensionName = node.staticElement?.enclosingElement?.name;
+    var receiver = node.prefix;
     _validateAddressReceiver(node, extensionName, receiver, errorNode);
   }
 
   void _validateAddressPropertyAccess(PropertyAccess node) {
-    final errorNode = node.propertyName;
+    var errorNode = node.propertyName;
     _validateAddressPosition(node, errorNode);
-    final extensionName =
-        node.propertyName.staticElement?.enclosingElement?.name;
-    final receiver = node.target;
+    var extensionName = node.propertyName.staticElement?.enclosingElement?.name;
+    var receiver = node.target;
     _validateAddressReceiver(node, extensionName, receiver, errorNode);
   }
 
@@ -1073,8 +1072,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     switch (receiver) {
       case IndexExpression _:
         // Array or TypedData element.
-        final arrayOrTypedData = receiver.target;
-        final type = arrayOrTypedData?.staticType;
+        var arrayOrTypedData = receiver.target;
+        var type = arrayOrTypedData?.staticType;
         if (type?.isArray ?? false) {
           return;
         }
@@ -1083,15 +1082,15 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         }
       case PrefixedIdentifier _:
         // Struct or Union field.
-        final compound = receiver.prefix;
-        final type = compound.staticType;
+        var compound = receiver.prefix;
+        var type = compound.staticType;
         if (type?.isCompoundSubtype ?? false) {
           return;
         }
       case PropertyAccess _:
         // Struct or Union field.
-        final compound = receiver.target;
-        final type = compound?.staticType;
+        var compound = receiver.target;
+        var type = compound?.staticType;
         if (type?.isCompoundSubtype ?? false) {
           return;
         }
@@ -2009,7 +2008,7 @@ enum _PrimitiveDartType {
 
 extension on Annotation {
   bool get isAbiSpecificIntegerMapping {
-    final element = this.element;
+    var element = this.element;
     return element is ConstructorElement &&
         element.ffiClass != null &&
         element.enclosingElement.name ==
@@ -2017,14 +2016,14 @@ extension on Annotation {
   }
 
   bool get isArray {
-    final element = this.element;
+    var element = this.element;
     return element is ConstructorElement &&
         element.ffiClass != null &&
         element.enclosingElement.name == 'Array';
   }
 
   bool get isPacked {
-    final element = this.element;
+    var element = this.element;
     return element is ConstructorElement &&
         element.ffiClass != null &&
         element.enclosingElement.name == 'Packed';
@@ -2068,7 +2067,7 @@ extension on ElementAnnotation {
   }
 
   bool get isArray {
-    final element = this.element;
+    var element = this.element;
     return element is ConstructorElement &&
         element.ffiClass != null &&
         element.enclosingElement.name == 'Array';
@@ -2078,8 +2077,8 @@ extension on ElementAnnotation {
 
   /// @Native(isLeaf: true)
   bool get isNativeLeaf {
-    final annotationValue = computeConstantValue();
-    final annotationType = annotationValue?.type; // Native<T>
+    var annotationValue = computeConstantValue();
+    var annotationType = annotationValue?.type; // Native<T>
     if (annotationValue == null || annotationType is! InterfaceType) {
       return false;
     }
@@ -2093,7 +2092,7 @@ extension on ElementAnnotation {
   }
 
   bool get isPacked {
-    final element = this.element;
+    var element = this.element;
     return element is ConstructorElement &&
         element.ffiClass != null &&
         element.enclosingElement.name == 'Packed';
@@ -2109,7 +2108,7 @@ extension on ElementAnnotation {
 extension on FunctionElement {
   /// @Native(isLeaf: true) external function.
   bool get isNativeLeaf {
-    for (final annotation in metadata) {
+    for (var annotation in metadata) {
       if (annotation.isNativeLeaf) {
         return true;
       }
@@ -2121,7 +2120,7 @@ extension on FunctionElement {
 extension on MethodElement {
   /// @Native(isLeaf: true) external function.
   bool get isNativeLeaf {
-    for (final annotation in metadata) {
+    for (var annotation in metadata) {
       if (annotation.isNativeLeaf) {
         return true;
       }
@@ -2133,7 +2132,7 @@ extension on MethodElement {
 extension on MethodInvocation {
   /// Calls @Native(isLeaf: true) external function.
   bool get isNativeLeafInvocation {
-    final element = methodName.staticElement;
+    var element = methodName.staticElement;
     if (element is FunctionElement) {
       return element.isNativeLeaf;
     }
@@ -2189,7 +2188,7 @@ extension on Element? {
   }
 
   bool get isAddressOfExtension {
-    final element = this;
+    var element = this;
     return element is ExtensionElement &&
         element.isFfiExtension &&
         FfiVerifier._addressOfExtensionNames.contains(element.name);
@@ -2533,7 +2532,7 @@ extension on NamedType {
 
   /// Return `true` if this represents a subtype of `Struct` or `Union`.
   bool get isAbiSpecificIntegerSubtype {
-    final element = this.element;
+    var element = this.element;
     if (element is ClassElement) {
       return element.allSupertypes.any((e) => e.isAbiSpecificInteger);
     }
@@ -2542,7 +2541,7 @@ extension on NamedType {
 
   /// Return `true` if this represents a subtype of `Struct` or `Union`.
   bool get isCompoundSubtype {
-    final element = this.element;
+    var element = this.element;
     if (element is ClassElement) {
       return element.allSupertypes.any((e) => e.isCompound);
     }
@@ -2562,7 +2561,7 @@ extension on List<DartType> {
     if (isEmpty) {
       return this;
     }
-    final last = this.last;
+    var last = this.last;
     if (!last.isVarArgs) {
       return this;
     }

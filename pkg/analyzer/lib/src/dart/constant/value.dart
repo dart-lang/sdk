@@ -518,7 +518,7 @@ class DartObjectImpl implements DartObject, Constant {
 
   @override
   DartObject? getField(String name) {
-    final state = this.state;
+    var state = this.state;
     if (state is GenericState) {
       return state.fields[name];
     } else if (state is RecordState) {
@@ -530,7 +530,7 @@ class DartObjectImpl implements DartObject, Constant {
   /// Gets the constructor that was called to create this value, if this is a
   /// const constructor invocation. Otherwise returns null.
   ConstructorInvocation? getInvocation() {
-    final state = this.state;
+    var state = this.state;
     if (state is GenericState) {
       return state.invocation;
     }
@@ -886,7 +886,7 @@ class DartObjectImpl implements DartObject, Constant {
 
   @override
   bool? toBoolValue() {
-    final state = this.state;
+    var state = this.state;
     if (state is BoolState) {
       return state.value;
     }
@@ -895,7 +895,7 @@ class DartObjectImpl implements DartObject, Constant {
 
   @override
   double? toDoubleValue() {
-    final state = this.state;
+    var state = this.state;
     if (state is DoubleState) {
       return state.value;
     }
@@ -904,13 +904,13 @@ class DartObjectImpl implements DartObject, Constant {
 
   @override
   ExecutableElement? toFunctionValue() {
-    final state = this.state;
+    var state = this.state;
     return state is FunctionState ? state.element : null;
   }
 
   @override
   int? toIntValue() {
-    final state = this.state;
+    var state = this.state;
     if (state is IntState) {
       return state.value;
     }
@@ -919,7 +919,7 @@ class DartObjectImpl implements DartObject, Constant {
 
   @override
   List<DartObjectImpl>? toListValue() {
-    final state = this.state;
+    var state = this.state;
     if (state is ListState) {
       return state.elements;
     }
@@ -928,7 +928,7 @@ class DartObjectImpl implements DartObject, Constant {
 
   @override
   Map<DartObjectImpl, DartObjectImpl>? toMapValue() {
-    final state = this.state;
+    var state = this.state;
     if (state is MapState) {
       return state.entries;
     }
@@ -937,7 +937,7 @@ class DartObjectImpl implements DartObject, Constant {
 
   @override
   Set<DartObjectImpl>? toSetValue() {
-    final state = this.state;
+    var state = this.state;
     if (state is SetState) {
       return state.elements;
     }
@@ -951,7 +951,7 @@ class DartObjectImpl implements DartObject, Constant {
 
   @override
   String? toStringValue() {
-    final state = this.state;
+    var state = this.state;
     if (state is StringState) {
       return state.value;
     }
@@ -960,7 +960,7 @@ class DartObjectImpl implements DartObject, Constant {
 
   @override
   String? toSymbolValue() {
-    final state = this.state;
+    var state = this.state;
     if (state is SymbolState) {
       return state.value;
     }
@@ -969,7 +969,7 @@ class DartObjectImpl implements DartObject, Constant {
 
   @override
   DartType? toTypeValue() {
-    final state = this.state;
+    var state = this.state;
     if (state is TypeState) {
       return state._type;
     }
@@ -1174,7 +1174,7 @@ class DoubleState extends NumState {
 
   @override
   BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
-    final value = this.value;
+    var value = this.value;
     if (value == null) {
       return BoolState.UNKNOWN_VALUE;
     } else if (value.isNaN) {
@@ -1371,7 +1371,7 @@ class FunctionState extends InstanceState {
     if (element != other.element) {
       return false;
     }
-    final typeArguments = this.typeArguments;
+    var typeArguments = this.typeArguments;
     var otherTypeArguments = other.typeArguments;
     if (typeArguments == null || otherTypeArguments == null) {
       return typeArguments == null && otherTypeArguments == null;
@@ -1411,7 +1411,7 @@ class FunctionState extends InstanceState {
       if (_viaTypeAlias != rightOperand._viaTypeAlias) {
         return BoolState.FALSE_STATE;
       }
-      final typeArguments = this.typeArguments;
+      var typeArguments = this.typeArguments;
       var otherTypeArguments = rightOperand.typeArguments;
       if (typeArguments == null || otherTypeArguments == null) {
         return BoolState.from(

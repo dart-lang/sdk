@@ -54,7 +54,7 @@ extension IterableMapEntryExtension<K, V> on Iterable<MapEntry<K, V>> {
 
 extension ListExtension<E> on List<E> {
   Iterable<E> get withoutLast {
-    final length = this.length;
+    var length = this.length;
     return length > 0 ? take(length - 1) : Iterable.empty();
   }
 
