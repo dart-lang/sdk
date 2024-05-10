@@ -17501,9 +17501,6 @@ ICDataPtr ICData::Clone(const ICData& from) {
   result.SetDeoptReasons(from.DeoptReasons());
   result.set_is_megamorphic(is_megamorphic);
 
-  RELEASE_ASSERT(!is_megamorphic ||
-                 result.NumberOfChecks() >= FLAG_max_polymorphic_checks);
-
   DEBUG_ONLY(result.AssertInvariantsAreSatisfied());
 
   return result.ptr();
