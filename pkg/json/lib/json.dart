@@ -328,45 +328,54 @@ mixin _FromJson on _Shared {
           ])
         : null;
 
-    // Check if `typeDecl` is one of the supported collection types.
-    if (classDecl.isExactly('List', _dartCore)) {
-      return RawCode.fromParts([
-        if (nullCheck != null) nullCheck,
-        '[ for (final item in ',
-        jsonReference,
-        ' as ',
-        introspectionData.jsonListCode,
-        ') ',
-        await _convertTypeFromJson(type.typeArguments.single,
-            RawCode.fromString('item'), builder, introspectionData),
-        ']',
-      ]);
-    } else if (classDecl.isExactly('Set', _dartCore)) {
-      return RawCode.fromParts([
-        if (nullCheck != null) nullCheck,
-        '{ for (final item in ',
-        jsonReference,
-        ' as ',
-        introspectionData.jsonListCode,
-        ')',
-        await _convertTypeFromJson(type.typeArguments.single,
-            RawCode.fromString('item'), builder, introspectionData),
-        '}',
-      ]);
-    } else if (classDecl.isExactly('Map', _dartCore)) {
-      return RawCode.fromParts([
-        if (nullCheck != null) nullCheck,
-        '{ for (final ',
-        introspectionData.mapEntry,
-        '(:key, :value) in (',
-        jsonReference,
-        ' as ',
-        introspectionData.jsonMapCode,
-        ').entries) key: ',
-        await _convertTypeFromJson(type.typeArguments.last,
-            RawCode.fromString('value'), builder, introspectionData),
-        '}',
-      ]);
+    // Check for the supported core types, and deserialize them accordingly.
+    if (classDecl.library.uri == _dartCore) {
+      switch (classDecl.identifier.name) {
+        case 'List':
+          return RawCode.fromParts([
+            if (nullCheck != null) nullCheck,
+            '[ for (final item in ',
+            jsonReference,
+            ' as ',
+            introspectionData.jsonListCode,
+            ') ',
+            await _convertTypeFromJson(type.typeArguments.single,
+                RawCode.fromString('item'), builder, introspectionData),
+            ']',
+          ]);
+        case 'Set':
+          return RawCode.fromParts([
+            if (nullCheck != null) nullCheck,
+            '{ for (final item in ',
+            jsonReference,
+            ' as ',
+            introspectionData.jsonListCode,
+            ')',
+            await _convertTypeFromJson(type.typeArguments.single,
+                RawCode.fromString('item'), builder, introspectionData),
+            '}',
+          ]);
+        case 'Map':
+          return RawCode.fromParts([
+            if (nullCheck != null) nullCheck,
+            '{ for (final ',
+            introspectionData.mapEntry,
+            '(:key, :value) in (',
+            jsonReference,
+            ' as ',
+            introspectionData.jsonMapCode,
+            ').entries) key: ',
+            await _convertTypeFromJson(type.typeArguments.last,
+                RawCode.fromString('value'), builder, introspectionData),
+            '}',
+          ]);
+        case 'int' || 'double' || 'num' || 'String' || 'bool':
+          return RawCode.fromParts([
+            jsonReference,
+            ' as ',
+            type.code,
+          ]);
+      }
     }
 
     // Otherwise, check if `classDecl` has a `fromJson` constructor.
@@ -386,13 +395,15 @@ mixin _FromJson on _Shared {
       ]);
     }
 
-    // Finally, we just cast directly to the field type.
-    // TODO: Check that it is a valid type we can cast from JSON.
-    return RawCode.fromParts([
-      jsonReference,
-      ' as ',
-      type.code,
-    ]);
+    // Unsupported type, report an error and return valid code that throws.
+    builder.report(Diagnostic(
+        DiagnosticMessage(
+            'Unable to deserialize type, it must be a native JSON type or a '
+            'type with a `fromJson(Map<String, Object?> json)` constructor.',
+            target: type.asDiagnosticTarget),
+        Severity.error));
+    return RawCode.fromString(
+        "throw 'Unable to deserialize type ${type.code.debugString}'");
   }
 
   /// Declares a `fromJson` constructor in [clazz], if one does not exist
@@ -583,30 +594,34 @@ mixin _ToJson on _Shared {
           ])
         : null;
 
-    // Check for the supported collection types, and serialize them accordingly.
-    if (classDecl.isExactly('List', _dartCore) ||
-        classDecl.isExactly('Set', _dartCore)) {
-      return RawCode.fromParts([
-        if (nullCheck != null) nullCheck,
-        '[ for (final item in ',
-        valueReference,
-        ') ',
-        await _convertTypeToJson(type.typeArguments.single,
-            RawCode.fromString('item'), builder, introspectionData),
-        ']',
-      ]);
-    } else if (classDecl.isExactly('Map', _dartCore)) {
-      return RawCode.fromParts([
-        if (nullCheck != null) nullCheck,
-        '{ for (final ',
-        introspectionData.mapEntry,
-        '(:key, :value) in ',
-        valueReference,
-        '.entries) key: ',
-        await _convertTypeToJson(type.typeArguments.last,
-            RawCode.fromString('value'), builder, introspectionData),
-        '}',
-      ]);
+    // Check for the supported core types, and serialize them accordingly.
+    if (classDecl.library.uri == _dartCore) {
+      switch (classDecl.identifier.name) {
+        case 'List' || 'Set':
+          return RawCode.fromParts([
+            if (nullCheck != null) nullCheck,
+            '[ for (final item in ',
+            valueReference,
+            ') ',
+            await _convertTypeToJson(type.typeArguments.single,
+                RawCode.fromString('item'), builder, introspectionData),
+            ']',
+          ]);
+        case 'Map':
+          return RawCode.fromParts([
+            if (nullCheck != null) nullCheck,
+            '{ for (final ',
+            introspectionData.mapEntry,
+            '(:key, :value) in ',
+            valueReference,
+            '.entries) key: ',
+            await _convertTypeToJson(type.typeArguments.last,
+                RawCode.fromString('value'), builder, introspectionData),
+            '}',
+          ]);
+        case 'int' || 'double' || 'num' || 'String' || 'bool':
+          return valueReference;
+      }
     }
 
     // Next, check if it has a `toJson()` method and call that.
@@ -622,9 +637,15 @@ mixin _ToJson on _Shared {
       ]);
     }
 
-    // Finally, we just return the value as is if we can't otherwise handle it.
-    // TODO: Check that it is a valid type we can serialize.
-    return valueReference;
+    // Unsupported type, report an error and return valid code that throws.
+    builder.report(Diagnostic(
+        DiagnosticMessage(
+            'Unable to serialize type, it must be a native JSON type or a '
+            'type with a `Map<String, Object?> toJson()` method.',
+            target: type.asDiagnosticTarget),
+        Severity.error));
+    return RawCode.fromString(
+        "throw 'Unable to serialize type ${type.code.debugString}'");
   }
 
   /// Declares a `toJson` method in [clazz], if one does not exist already.
