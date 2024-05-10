@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -26,9 +25,7 @@ import 'package:analyzer/src/error/codes.dart';
 class AstRewriter {
   final ErrorReporter _errorReporter;
 
-  final TypeProvider _typeProvider;
-
-  AstRewriter(this._errorReporter, this._typeProvider);
+  AstRewriter(this._errorReporter);
 
   /// Possibly rewrites [node] as a [MethodInvocation] with a
   /// [FunctionReference] target.
@@ -648,7 +645,6 @@ class AstRewriter {
     var typeLiteral = TypeLiteralImpl(
       typeName: typeName,
     );
-    typeLiteral.staticType = _typeProvider.typeType;
     var methodInvocation = MethodInvocationImpl(
       target: typeLiteral,
       operator: node.constructorName.period,
@@ -695,7 +691,6 @@ class AstRewriter {
         question: null,
       ),
     );
-    result.staticType = _typeProvider.typeType;
     NodeReplacer.replace(node, result, parent: parent);
     return result;
   }
