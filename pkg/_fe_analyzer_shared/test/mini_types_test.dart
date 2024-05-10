@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart';
 import 'package:test/test.dart';
 
 import 'mini_types.dart';
@@ -68,16 +69,16 @@ main() {
 
       test('needs parentheses (question)', () {
         expect(
-            QuestionType(PromotedTypeVariableType(
-                    PrimaryType('T'), PrimaryType('U')))
+            PromotedTypeVariableType(PrimaryType('T'), PrimaryType('U'),
+                    nullabilitySuffix: NullabilitySuffix.question)
                 .toString(),
             '(T&U)?');
       });
 
       test('needs parentheses (star)', () {
         expect(
-            StarType(PromotedTypeVariableType(
-                    PrimaryType('T'), PrimaryType('U')))
+            PromotedTypeVariableType(PrimaryType('T'), PrimaryType('U'),
+                    nullabilitySuffix: NullabilitySuffix.star)
                 .toString(),
             '(T&U)*');
       });
@@ -85,13 +86,18 @@ main() {
 
     group('QuestionType:', () {
       test('basic', () {
-        expect(QuestionType(PrimaryType('T')).toString(), 'T?');
+        expect(
+            PrimaryType('T', nullabilitySuffix: NullabilitySuffix.question)
+                .toString(),
+            'T?');
       });
 
       test('needs parentheses', () {
         expect(
             PromotedTypeVariableType(
-                    PrimaryType('T'), QuestionType(PrimaryType('U')))
+                    PrimaryType('T'),
+                    PrimaryType('U',
+                        nullabilitySuffix: NullabilitySuffix.question))
                 .toString(),
             'T&(U?)');
       });
@@ -148,13 +154,16 @@ main() {
 
     group('StarType:', () {
       test('basic', () {
-        expect(StarType(PrimaryType('T')).toString(), 'T*');
+        expect(
+            PrimaryType('T', nullabilitySuffix: NullabilitySuffix.star)
+                .toString(),
+            'T*');
       });
 
       test('needs parentheses', () {
         expect(
-            PromotedTypeVariableType(
-                    PrimaryType('T'), StarType(PrimaryType('U')))
+            PromotedTypeVariableType(PrimaryType('T'),
+                    PrimaryType('U', nullabilitySuffix: NullabilitySuffix.star))
                 .toString(),
             'T&(U*)');
       });
@@ -230,13 +239,15 @@ main() {
     });
 
     test('question type', () {
-      var t = Type('int?') as QuestionType;
-      expect(t.innerType.type, 'int');
+      var t = Type('int?');
+      expect(t.nullabilitySuffix, NullabilitySuffix.question);
+      expect(t.withNullability(NullabilitySuffix.none).type, 'int');
     });
 
     test('star type', () {
-      var t = Type('int*') as StarType;
-      expect(t.innerType.type, 'int');
+      var t = Type('int*');
+      expect(t.nullabilitySuffix, NullabilitySuffix.star);
+      expect(t.withNullability(NullabilitySuffix.none).type, 'int');
     });
 
     test('promoted type variable', () {
@@ -682,12 +693,6 @@ main() {
         expect(Type('_?').closureWithRespectToUnknown(covariant: true)!.type,
             'Object?');
       });
-
-      test('contravariant', () {
-        // Note: we don't normalize `Never?` to `Null`.
-        expect(Type('_?').closureWithRespectToUnknown(covariant: false)!.type,
-            'Never?');
-      });
     });
 
     group('RecordType:', () {
@@ -753,11 +758,6 @@ main() {
       test('covariant', () {
         expect(Type('_*').closureWithRespectToUnknown(covariant: true)!.type,
             'Object?');
-      });
-
-      test('contravariant', () {
-        expect(Type('_*').closureWithRespectToUnknown(covariant: false)!.type,
-            'Never*');
       });
     });
   });

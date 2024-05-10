@@ -363,7 +363,8 @@ Pattern objectPattern({
   required List<RecordPatternField> fields,
 }) {
   var parsedType = Type(requiredType);
-  if (parsedType is! PrimaryType) {
+  if (parsedType is! PrimaryType ||
+      parsedType.nullabilitySuffix != NullabilitySuffix.none) {
     fail('Expected a primary type, got $parsedType');
   }
   return ObjectPattern._(
@@ -1816,7 +1817,8 @@ class Harness {
     var member = getMember(matchedValueType, operator);
     if (member == null) return null;
     var memberType = member._type;
-    if (memberType is! FunctionType) {
+    if (memberType is! FunctionType ||
+        memberType.nullabilitySuffix != NullabilitySuffix.none) {
       fail('$matchedValueType.operator$operator has type $memberType; '
           'must be a function type');
     }
@@ -2820,15 +2822,7 @@ class MiniAstOperations
   }
 
   @override
-  NullabilitySuffix getNullabilitySuffix(Type type) {
-    if (type is QuestionType) {
-      return NullabilitySuffix.question;
-    } else if (type is StarType) {
-      return NullabilitySuffix.star;
-    } else {
-      return NullabilitySuffix.none;
-    }
-  }
+  NullabilitySuffix getNullabilitySuffix(Type type) => type.nullabilitySuffix;
 
   @override
   TypeDeclarationKind? getTypeDeclarationKind(Type type) {
@@ -2885,7 +2879,10 @@ class MiniAstOperations
 
   @override
   bool isDartCoreFunction(Type type) {
-    return type is PrimaryType && type.name == 'Function' && type.args.isEmpty;
+    return type is PrimaryType &&
+        type.nullabilitySuffix == NullabilitySuffix.none &&
+        type.name == 'Function' &&
+        type.args.isEmpty;
   }
 
   @override
@@ -2896,20 +2893,15 @@ class MiniAstOperations
   }
 
   @override
-  bool isFunctionType(Type type) {
-    return withNullabilitySuffix(type, NullabilitySuffix.none) is FunctionType;
-  }
+  bool isFunctionType(Type type) => type is FunctionType;
 
   @override
-  bool isInterfaceType(Type type) {
-    Type underlyingType = withNullabilitySuffix(type, NullabilitySuffix.none);
-    return underlyingType is PrimaryType && underlyingType.isInterfaceType;
-  }
+  bool isInterfaceType(Type type) =>
+      type is PrimaryType && type.isInterfaceType;
 
   @override
-  bool isNever(Type type) {
-    return type is NeverType;
-  }
+  bool isNever(Type type) =>
+      type is NeverType && type.nullabilitySuffix == NullabilitySuffix.none;
 
   @override
   bool isNonNullable(TypeSchema typeSchema) {
@@ -2919,9 +2911,10 @@ class MiniAstOperations
         type is VoidType ||
         type is NullType) {
       return false;
-    } else if (type is PromotedTypeVariableType) {
+    } else if (type is PromotedTypeVariableType &&
+        type.nullabilitySuffix == NullabilitySuffix.none) {
       return isNonNullable(typeToSchema(type.promotion));
-    } else if (type is QuestionType) {
+    } else if (type.nullabilitySuffix == NullabilitySuffix.question) {
       return false;
     } else if (matchFutureOr(type) case Type typeArgument?) {
       return isNonNullable(typeToSchema(typeArgument));
@@ -2937,7 +2930,10 @@ class MiniAstOperations
 
   @override
   bool isObject(Type type) {
-    return type is PrimaryType && type.name == 'Object' && type.args.isEmpty;
+    return type is PrimaryType &&
+        type.nullabilitySuffix == NullabilitySuffix.none &&
+        type.name == 'Object' &&
+        type.args.isEmpty;
   }
 
   @override
@@ -2945,9 +2941,7 @@ class MiniAstOperations
       property.isPromotable;
 
   @override
-  bool isRecordType(Type type) {
-    return withNullabilitySuffix(type, NullabilitySuffix.none) is RecordType;
-  }
+  bool isRecordType(Type type) => type is RecordType;
 
   @override
   bool isSubtypeOf(Type leftType, Type rightType) {
@@ -2955,7 +2949,9 @@ class MiniAstOperations
   }
 
   @override
-  bool isTypeParameterType(Type type) => type is PromotedTypeVariableType;
+  bool isTypeParameterType(Type type) =>
+      type is PromotedTypeVariableType &&
+      type.nullabilitySuffix == NullabilitySuffix.none;
 
   @override
   bool isTypeSchemaSatisfied(
@@ -2995,9 +2991,11 @@ class MiniAstOperations
     } else if (type2 is NullType && promoteToNonNull(type1) != type1) {
       // type1 is already nullable
       return type1;
-    } else if (type1 is NeverType) {
+    } else if (type1 is NeverType &&
+        type1.nullabilitySuffix == NullabilitySuffix.none) {
       return type2;
-    } else if (type2 is NeverType) {
+    } else if (type2 is NeverType &&
+        type2.nullabilitySuffix == NullabilitySuffix.none) {
       return type1;
     } else {
       var typeNames = [type1.type, type2.type];
@@ -3032,9 +3030,8 @@ class MiniAstOperations
 
   @override
   Type? matchFutureOr(Type type) {
-    Type underlyingType = withNullabilitySuffix(type, NullabilitySuffix.none);
-    if (underlyingType is FutureOrType) {
-      return underlyingType.typeArgument;
+    if (type is FutureOrType) {
+      return type.typeArgument;
     }
     return null;
   }
@@ -3047,7 +3044,9 @@ class MiniAstOperations
 
   @override
   Type? matchIterableType(Type type) {
-    if (type is PrimaryType && type.args.length == 1) {
+    if (type is PrimaryType &&
+        type.nullabilitySuffix == NullabilitySuffix.none &&
+        type.args.length == 1) {
       if (type.name == 'Iterable' || type.name == 'List') {
         return type.args[0];
       }
@@ -3064,7 +3063,10 @@ class MiniAstOperations
 
   @override
   Type? matchListType(Type type) {
-    if (type is PrimaryType && type.name == 'List' && type.args.length == 1) {
+    if (type is PrimaryType &&
+        type.nullabilitySuffix == NullabilitySuffix.none &&
+        type.name == 'List' &&
+        type.args.length == 1) {
       return type.args[0];
     }
     return null;
@@ -3072,7 +3074,10 @@ class MiniAstOperations
 
   @override
   ({Type keyType, Type valueType})? matchMapType(Type type) {
-    if (type is PrimaryType && type.name == 'Map' && type.args.length == 2) {
+    if (type is PrimaryType &&
+        type.nullabilitySuffix == NullabilitySuffix.none &&
+        type.name == 'Map' &&
+        type.args.length == 2) {
       return (
         keyType: type.args[0],
         valueType: type.args[1],
@@ -3083,7 +3088,9 @@ class MiniAstOperations
 
   @override
   Type? matchStreamType(Type type) {
-    if (type is PrimaryType && type.args.length == 1) {
+    if (type is PrimaryType &&
+        type.nullabilitySuffix == NullabilitySuffix.none &&
+        type.args.length == 1) {
       if (type.name == 'Stream') {
         return type.args[0];
       }
@@ -3093,22 +3100,19 @@ class MiniAstOperations
 
   @override
   TypeDeclarationMatchResult? matchTypeDeclarationType(Type type) {
-    if (isInterfaceType(type)) {
-      PrimaryType underlyingType =
-          withNullabilitySuffix(type, NullabilitySuffix.none) as PrimaryType;
+    if (type is! PrimaryType) return null;
+    if (type.isInterfaceType) {
       return new TypeDeclarationMatchResult(
           typeDeclarationKind: TypeDeclarationKind.interfaceDeclaration,
-          typeDeclaration: underlyingType.type,
+          typeDeclaration: type.type,
           typeDeclarationType: type,
-          typeArguments: underlyingType.args);
+          typeArguments: type.args);
     } else if (isExtensionType(type)) {
-      PrimaryType underlyingType =
-          withNullabilitySuffix(type, NullabilitySuffix.none) as PrimaryType;
       return new TypeDeclarationMatchResult(
           typeDeclarationKind: TypeDeclarationKind.extensionTypeDeclaration,
-          typeDeclaration: underlyingType.type,
+          typeDeclaration: type.type,
           typeDeclarationType: type,
-          typeArguments: underlyingType.args);
+          typeArguments: type.args);
     } else {
       return null;
     }
@@ -3122,8 +3126,8 @@ class MiniAstOperations
 
   @override
   Type promoteToNonNull(Type type) {
-    if (type is QuestionType) {
-      return type.innerType;
+    if (type.nullabilitySuffix == NullabilitySuffix.question) {
+      return type.withNullability(NullabilitySuffix.none);
     } else if (type is NullType) {
       return NeverType.instance;
     } else {
@@ -3215,34 +3219,8 @@ class MiniAstOperations
       property.whyNotPromotable;
 
   @override
-  Type withNullabilitySuffix(Type type, NullabilitySuffix modifier) {
-    switch (modifier) {
-      case NullabilitySuffix.none:
-        if (type is QuestionType) {
-          return type.innerType;
-        } else if (type is StarType) {
-          return type.innerType;
-        } else {
-          return type;
-        }
-      case NullabilitySuffix.question:
-        if (type is QuestionType) {
-          return type;
-        } else if (type is StarType) {
-          return QuestionType(type.innerType);
-        } else {
-          return QuestionType(type);
-        }
-      case NullabilitySuffix.star:
-        if (type is QuestionType) {
-          return StarType(type.innerType);
-        } else if (type is StarType) {
-          return type;
-        } else {
-          return StarType(type);
-        }
-    }
-  }
+  Type withNullabilitySuffix(Type type, NullabilitySuffix modifier) =>
+      type.withNullability(modifier);
 }
 
 /// Representation of an expression or statement in the pseudo-Dart language
@@ -5564,7 +5542,8 @@ class _MiniAstTypeAnalyzer
       inputKinds.add(Kind.expression);
       analyzeExpression(
           arguments[i],
-          methodType is FunctionType
+          methodType is FunctionType &&
+                  methodType.nullabilitySuffix == NullabilitySuffix.none
               ? operations.typeToSchema(methodType.positionalParameters[i])
               : operations.unknownType);
     }
