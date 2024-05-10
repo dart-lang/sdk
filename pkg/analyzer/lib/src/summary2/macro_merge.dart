@@ -37,7 +37,7 @@ class MacroElementsMerger {
   });
 
   void perform({
-    required Function() updateConstants,
+    required void Function() updateConstants,
   }) {
     _mergeClasses();
     _mergeFunctions();

@@ -10,7 +10,7 @@ import 'generate.dart';
 
 /// Check that the target file has been code generated.  If it hasn't tell the
 /// user to run generate.dart.
-main() async {
+void main() async {
   var idlFolderPath = normalize(
       join(package_root.packageRoot, 'analyzer', 'lib', 'src', 'summary'));
   var idlPath = normalize(join(idlFolderPath, 'idl.dart'));

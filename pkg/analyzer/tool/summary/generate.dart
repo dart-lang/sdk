@@ -26,7 +26,7 @@ import 'package:analyzer_utilities/tools.dart';
 import 'idl_model.dart' as idl_model;
 import 'mini_ast.dart';
 
-main(List<String> args) async {
+void main(List<String> args) async {
   if (args.length != 1) {
     print('Error: IDL path is required');
     print('usage: dart generate.dart path/to/idl.dart');

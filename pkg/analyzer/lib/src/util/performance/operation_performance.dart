@@ -54,6 +54,8 @@ abstract class OperationPerformanceDataImpl<T>
   }
 }
 
+// Pre-existing name.
+// ignore: camel_case_types
 class OperationPerformanceDataImpl_int
     extends OperationPerformanceDataImpl<int> {
   @override
