@@ -3941,8 +3941,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   ///
   /// This is the most common kind of marking, and is used for most expressions
   /// and statements.
-  SourceLocation? _nodeStart(TreeNode node) =>
-      _toSourceLocation(node.fileOffset);
+  SourceLocation? _nodeStart(TreeNode node) => node is StringConcatenation
+      // Manually selecting the location of the first element to work around the
+      // location on the StringConcatenation node that points to the end of
+      // String. See https://github.com/dart-lang/sdk/issues/55690.
+      ? _toSourceLocation(node.expressions.first.fileOffset)
+      : _toSourceLocation(node.fileOffset);
 
   /// Gets the end position of [node] for use in source mapping.
   ///
@@ -4852,9 +4856,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   // TODO(jmesserly): resugar operators for kernel, such as ++x, x++, x+=.
   @override
-  js_ast.Expression visitVariableSet(VariableSet node) =>
-      _visitExpression(node.value)
-          .toAssignExpression(_emitVariableRef(node.variable));
+  js_ast.Expression visitVariableSet(VariableSet node) {
+    // Make the source information of the assignment use the start of the right
+    // hand side, to help normalize the inconsistent locations of the CFE
+    // lowerings for ++x, x++, x+=, etc.
+    // See https://github.com/dart-lang/sdk/issues/55691.
+    return _visitExpression(node.value)
+        .toAssignExpression(_emitVariableRef(node.variable))
+      ..sourceInformation = _nodeStart(node.value);
+  }
 
   @override
   js_ast.Expression visitDynamicGet(DynamicGet node) {
@@ -5572,7 +5582,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         /// Emits an inlined binary operation using the JS [code], adding null
         /// checks if needed to ensure we throw the appropriate error.
         js_ast.Expression binary(String code) {
-          return js.call(code, [notNull(left), notNull(right)]);
+          return js.call(code, [notNull(left), notNull(right)])
+            ..sourceInformation = continueSourceMap;
         }
 
         js_ast.Expression bitwise(String code) {
