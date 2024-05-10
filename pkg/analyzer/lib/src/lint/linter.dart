@@ -9,7 +9,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
@@ -33,7 +32,6 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisErrorInfo, AnalysisErrorInfoImpl, AnalysisOptions;
-import 'package:analyzer/src/generated/resolver.dart' show ScopeResolverVisitor;
 import 'package:analyzer/src/lint/analysis.dart';
 import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
@@ -238,22 +236,6 @@ abstract class LinterContext {
 
   /// Returns `true` if the [feature] is enabled in the library being linted.
   bool isEnabled(Feature feature);
-
-  /// Resolves the name `id` or `id=` (if [setter] is `true`) at the location
-  /// of the [node], according to the "16.35 Lexical Lookup" of the language
-  /// specification.
-  @Deprecated('Use resolveNameInScope2')
-  LinterNameInScopeResolutionResult resolveNameInScope(
-      String id, bool setter, AstNode node);
-
-  /// Resolves the name `id` or `id=` (if [setter] is `true`) at the location
-  /// of the [node], according to the "16.35 Lexical Lookup" of the language
-  /// specification.
-  LinterNameInScopeResolutionResult resolveNameInScope2(
-    String id,
-    AstNode node, {
-    required bool setter,
-  });
 }
 
 class LinterContextImpl implements LinterContext {
@@ -318,49 +300,6 @@ class LinterContextImpl implements LinterContext {
     var unitElement = currentUnit.unit.declaredElement!;
     return unitElement.library.featureSet.isEnabled(feature);
   }
-
-  @override
-  LinterNameInScopeResolutionResult resolveNameInScope(
-          String id, bool setter, AstNode node) =>
-      resolveNameInScope2(id, node, setter: setter);
-
-  @override
-  LinterNameInScopeResolutionResult resolveNameInScope2(
-    String id,
-    AstNode node, {
-    required bool setter,
-  }) {
-    Scope? scope;
-    for (AstNode? context = node; context != null; context = context.parent) {
-      scope = ScopeResolverVisitor.getNodeNameScope(context);
-      if (scope != null) {
-        break;
-      }
-    }
-
-    if (scope != null) {
-      var lookupResult = scope.lookup(id);
-      var idElement = lookupResult.getter;
-      var idEqElement = lookupResult.setter;
-
-      var requestedElement = setter ? idEqElement : idElement;
-      var differentElement = setter ? idElement : idEqElement;
-
-      if (requestedElement != null) {
-        return LinterNameInScopeResolutionResult._requestedName(
-          requestedElement,
-        );
-      }
-
-      if (differentElement != null) {
-        return LinterNameInScopeResolutionResult._differentName(
-          differentElement,
-        );
-      }
-    }
-
-    return const LinterNameInScopeResolutionResult._none();
-  }
 }
 
 class LinterContextParsedImpl implements LinterContext {
@@ -417,19 +356,6 @@ class LinterContextParsedImpl implements LinterContext {
   @override
   bool isEnabled(Feature feature) =>
       throw UnsupportedError('LinterContext with parsed results');
-
-  @override
-  LinterNameInScopeResolutionResult resolveNameInScope(
-          String id, bool setter, AstNode node) =>
-      throw UnsupportedError('LinterContext with parsed results');
-
-  @override
-  LinterNameInScopeResolutionResult resolveNameInScope2(
-    String id,
-    AstNode node, {
-    required bool setter,
-  }) =>
-      throw UnsupportedError('LinterContext with parsed results');
 }
 
 class LinterContextUnit {
@@ -466,38 +392,6 @@ class LinterException implements Exception {
   @override
   String toString() =>
       message == null ? "LinterException" : "LinterException: $message";
-}
-
-/// The result of resolving of a basename `id` in a scope.
-class LinterNameInScopeResolutionResult {
-  /// The element with the requested basename, `null` is [isNone].
-  final Element? element;
-
-  /// The state of the result.
-  final _LinterNameInScopeResolutionResultState _state;
-
-  const LinterNameInScopeResolutionResult._differentName(this.element)
-      : _state = _LinterNameInScopeResolutionResultState.differentName;
-
-  const LinterNameInScopeResolutionResult._none()
-      : element = null,
-        _state = _LinterNameInScopeResolutionResultState.none;
-
-  const LinterNameInScopeResolutionResult._requestedName(this.element)
-      : _state = _LinterNameInScopeResolutionResultState.requestedName;
-
-  bool get isDifferentName =>
-      _state == _LinterNameInScopeResolutionResultState.differentName;
-
-  bool get isNone => _state == _LinterNameInScopeResolutionResultState.none;
-
-  bool get isRequestedName =>
-      _state == _LinterNameInScopeResolutionResultState.requestedName;
-
-  @override
-  String toString() {
-    return '(state: $_state, element: $element)';
-  }
 }
 
 class LinterOptions extends DriverOptions {
@@ -758,19 +652,6 @@ class _LintCode extends LintCode {
   }
 
   _LintCode._(super.name, super.message);
-}
-
-/// The state of a [LinterNameInScopeResolutionResult].
-enum _LinterNameInScopeResolutionResultState {
-  /// Indicates that no element was found.
-  none,
-
-  /// Indicates that an element with the requested name was found.
-  requestedName,
-
-  /// Indicates that an element with the same basename, but different name
-  /// was found.
-  differentName
 }
 
 extension on AstNode {
