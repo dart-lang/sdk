@@ -764,6 +764,12 @@ abstract class _ContextResolutionTest with ResourceProviderMixin {
     );
   }
 
+  @mustCallSuper
+  Future<void> tearDown() async {
+    await _analysisContextCollection?.dispose();
+    _analysisContextCollection = null;
+  }
+
   DriverBasedAnalysisContext _contextFor(String path) {
     _createAnalysisContexts();
 

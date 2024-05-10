@@ -9,6 +9,7 @@ import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_import
 import 'package:collection/collection.dart' show IterableExtension;
 
 import '../analyzer.dart';
+import '../extensions.dart';
 
 const _desc = r'Prefer declaring `const` constructors on `@immutable` classes.';
 
@@ -74,8 +75,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (element == null) return;
     if (element.isConst) return;
     if (node.body is! EmptyFunctionBody) return;
-    if (element.enclosingElement.mixins.isNotEmpty) return;
-    if (!_hasImmutableAnnotation(element.enclosingElement)) return;
+    var enclosingElement = element.enclosingElement;
+    if (enclosingElement.isMacro) return;
+    if (enclosingElement.mixins.isNotEmpty) return;
+    if (!_hasImmutableAnnotation(enclosingElement)) return;
     var isRedirected =
         element.isFactory && element.redirectedConstructor != null;
     if (isRedirected && (element.redirectedConstructor?.isConst ?? false)) {
