@@ -7709,6 +7709,188 @@ elementFactory
 ''');
   }
 
+  test_notAllowedDeclaration_declarations_enum() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @DeclareInLibrary('enum B {v}')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @74
+            returnType: void
+            macroDiagnostics
+              NotAllowedDeclarationDiagnostic
+                annotationIndex: 0
+                phase: declarations
+                nodeRanges: (43, 10)
+---
+augment library 'package:test/test.dart';
+
+enum B {v}
+---
+''');
+  }
+
+  test_notAllowedDeclaration_declarations_extension() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @DeclareInLibrary('extension B on int {}')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @85
+            returnType: void
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+augment library 'package:test/test.dart';
+
+extension B on int {}
+---
+      definingUnit
+        extensions
+          B @53
+            extendedType: int
+''');
+  }
+
+  test_notAllowedDeclaration_declarations_extensionType() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @DeclareInLibrary('extension type B(int it) {}')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @91
+            returnType: void
+            macroDiagnostics
+              NotAllowedDeclarationDiagnostic
+                annotationIndex: 0
+                phase: declarations
+                nodeRanges: (43, 27)
+---
+augment library 'package:test/test.dart';
+
+extension type B(int it) {}
+---
+''');
+  }
+
+  test_notAllowedDeclaration_declarations_mixin() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @DeclareInLibrary('mixin B {}')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @74
+            returnType: void
+            macroDiagnostics
+              NotAllowedDeclarationDiagnostic
+                annotationIndex: 0
+                phase: declarations
+                nodeRanges: (43, 10)
+---
+augment library 'package:test/test.dart';
+
+mixin B {}
+---
+''');
+  }
+
+  test_notAllowedDeclaration_declarations_typedef() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @DeclareInLibrary('typedef B = int;')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @80
+            returnType: void
+            macroDiagnostics
+              NotAllowedDeclarationDiagnostic
+                annotationIndex: 0
+                phase: declarations
+                nodeRanges: (43, 16)
+---
+augment library 'package:test/test.dart';
+
+typedef B = int;
+---
+''');
+  }
+
   test_notAllowedDeclaration_definitions_class() async {
     var library = await buildLibrary(r'''
 import 'append.dart';
@@ -7742,6 +7924,44 @@ augment library 'package:test/test.dart';
 
 augment class A {
   augment void foo() ;} class B {}
+}
+---
+''');
+  }
+
+  test_notAllowedDeclaration_definitions_class_constructor() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @AugmentDefinition('; A.named();')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @77
+            returnType: void
+            macroDiagnostics
+              NotAllowedDeclarationDiagnostic
+                annotationIndex: 0
+                phase: definitions
+                nodeRanges: (84, 10)
+---
+augment library 'package:test/test.dart';
+
+augment class A {
+  augment void foo() ; A.named();
 }
 ---
 ''');
@@ -7823,6 +8043,300 @@ augment class A {
 ''');
   }
 
+  test_notAllowedDeclaration_definitions_enum() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @AugmentDefinition(';} enum B {v}')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @78
+            returnType: void
+            macroDiagnostics
+              NotAllowedDeclarationDiagnostic
+                annotationIndex: 0
+                phase: definitions
+                nodeRanges: (85, 10)
+---
+augment library 'package:test/test.dart';
+
+augment class A {
+  augment void foo() ;} enum B {v}
+}
+---
+''');
+  }
+
+  test_notAllowedDeclaration_definitions_enum_constants() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @AugmentDefinition(';} augment enum B {v2}')
+  void foo() {}
+}
+
+enum B {v}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withConstantInitializers = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @87
+            returnType: void
+            macroDiagnostics
+              NotAllowedDeclarationDiagnostic
+                annotationIndex: 0
+                phase: definitions
+                nodeRanges: (101, 2)
+---
+augment library 'package:test/test.dart';
+
+augment class A {
+  augment void foo() ;} augment enum B {v2}
+}
+---
+    enums
+      enum B @104
+        supertype: Enum
+        fields
+          static const enumConstant v @107
+            type: B
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            type: List<B>
+        accessors
+          synthetic static get v @-1
+            returnType: B
+          synthetic static get values @-1
+            returnType: List<B>
+''');
+  }
+
+  test_notAllowedDeclaration_definitions_extension() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @AugmentDefinition(';} extension B on int {}')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @89
+            returnType: void
+            macroDiagnostics
+              NotAllowedDeclarationDiagnostic
+                annotationIndex: 0
+                phase: definitions
+                nodeRanges: (85, 21)
+---
+augment library 'package:test/test.dart';
+
+augment class A {
+  augment void foo() ;} extension B on int {}
+}
+---
+''');
+  }
+
+  test_notAllowedDeclaration_definitions_extensionType() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @AugmentDefinition(';} extension type B(int it) {}')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @95
+            returnType: void
+            macroDiagnostics
+              NotAllowedDeclarationDiagnostic
+                annotationIndex: 0
+                phase: definitions
+                nodeRanges: (85, 27)
+---
+augment library 'package:test/test.dart';
+
+augment class A {
+  augment void foo() ;} extension type B(int it) {}
+}
+---
+''');
+  }
+
+  test_notAllowedDeclaration_definitions_function_local() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @AugmentDefinition('{ void bar() {} }')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        methods
+          foo @82
+            returnType: void
+            augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
+        augmented
+          methods
+            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+augment library 'package:test/test.dart';
+
+augment class A {
+  augment void foo() { void bar() {} }
+}
+---
+      definingUnit
+        classes
+          augment class A @57
+            augmentationTarget: self::@class::A
+            methods
+              augment foo @76
+                returnType: void
+                augmentationTarget: self::@class::A::@method::foo
+''');
+  }
+
+  test_notAllowedDeclaration_definitions_function_topLevel() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @AugmentDefinition(';} void bar() {}')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @81
+            returnType: void
+            macroDiagnostics
+              NotAllowedDeclarationDiagnostic
+                annotationIndex: 0
+                phase: definitions
+                nodeRanges: (85, 13)
+---
+augment library 'package:test/test.dart';
+
+augment class A {
+  augment void foo() ;} void bar() {}
+}
+---
+''');
+  }
+
+  test_notAllowedDeclaration_definitions_mixin() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @AugmentDefinition(';} mixin B {}')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @78
+            returnType: void
+            macroDiagnostics
+              NotAllowedDeclarationDiagnostic
+                annotationIndex: 0
+                phase: definitions
+                nodeRanges: (85, 10)
+---
+augment library 'package:test/test.dart';
+
+augment class A {
+  augment void foo() ;} mixin B {}
+}
+---
+''');
+  }
+
   test_notAllowedDeclaration_definitions_topLevelVariable() async {
     var library = await buildLibrary(r'''
 import 'append.dart';
@@ -7856,6 +8370,44 @@ augment library 'package:test/test.dart';
 
 augment class A {
   augment void foo() ;} int bar = 0;
+}
+---
+''');
+  }
+
+  test_notAllowedDeclaration_definitions_typedef() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @AugmentDefinition(';} typedef B = int;')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @84
+            returnType: void
+            macroDiagnostics
+              NotAllowedDeclarationDiagnostic
+                annotationIndex: 0
+                phase: definitions
+                nodeRanges: (85, 16)
+---
+augment library 'package:test/test.dart';
+
+augment class A {
+  augment void foo() ;} typedef B = int;
 }
 ---
 ''');

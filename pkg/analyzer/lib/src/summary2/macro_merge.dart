@@ -40,6 +40,7 @@ class MacroElementsMerger {
     required void Function() updateConstants,
   }) {
     _mergeClasses();
+    _mergeExtensions();
     _mergeFunctions();
     _mergeUnitPropertyAccessors();
     _mergeUnitVariables();
@@ -69,6 +70,36 @@ class MacroElementsMerger {
       }
       unitElement.classes = [
         ...unitElement.classes,
+        ...elementsToAdd,
+      ].toFixedList();
+    }
+  }
+
+  void _mergeExtensions() {
+    for (var partialUnit in partialUnits) {
+      var elementsToAdd = <ExtensionElementImpl>[];
+      for (var element in partialUnit.element.extensions) {
+        var reference = element.reference!;
+        var containerRef = element.isAugmentation
+            ? unitReference.getChild('@extensionAugmentation')
+            : unitReference.getChild('@extension');
+        var name = element.name;
+        if (name != null) {
+          var existingRef = containerRef[name];
+          if (existingRef == null) {
+            elementsToAdd.add(element);
+            containerRef.addChildReference(name, reference);
+          } else {
+            var existingElement = existingRef.element as ExtensionElementImpl;
+            if (existingElement.augmentation == element) {
+              existingElement.augmentation = null;
+            }
+            _mergeInstanceChildren(existingRef, existingElement, element);
+          }
+        }
+      }
+      unitElement.extensions = [
+        ...unitElement.extensions,
         ...elementsToAdd,
       ].toFixedList();
     }

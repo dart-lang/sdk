@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/ast/visitor.dart' as ast;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -25,15 +24,6 @@ import 'package:macros/src/executor.dart' as macro;
 import 'package:macros/src/executor/exception_impls.dart' as macro;
 import 'package:macros/src/executor/multi_executor.dart';
 import 'package:meta/meta.dart';
-
-List<ast.Declaration> findDeclarationsNotAllowedAtPhase({
-  required ast.CompilationUnit unit,
-  required macro.Phase phase,
-}) {
-  var visitor = _NotAllowedDeclarationsVisitor(phase);
-  unit.accept(visitor);
-  return visitor.notAllowed;
-}
 
 /// The full list of [macro.ArgumentKind]s for this dart type, with type
 /// arguments for [InterfaceType]s, if [includeTop] is `true` also including
@@ -1277,77 +1267,6 @@ class _MacroTarget {
     required this.node,
     required this.element,
   });
-}
-
-class _NotAllowedDeclarationsVisitor extends ast.RecursiveAstVisitor<void> {
-  final macro.Phase phase;
-  final List<ast.Declaration> notAllowed = [];
-
-  _NotAllowedDeclarationsVisitor(this.phase);
-
-  @override
-  void visitClassDeclaration(ast.ClassDeclaration node) {
-    switch (phase) {
-      case macro.Phase.types:
-        break;
-      case macro.Phase.declarations:
-      case macro.Phase.definitions:
-        if (node.augmentKeyword == null) {
-          notAllowed.add(node);
-          return;
-        }
-    }
-
-    super.visitClassDeclaration(node);
-  }
-
-  @override
-  void visitFieldDeclaration(ast.FieldDeclaration node) {
-    switch (phase) {
-      case macro.Phase.types:
-      case macro.Phase.declarations:
-        break;
-      case macro.Phase.definitions:
-        if (node.augmentKeyword == null) {
-          notAllowed.add(node);
-          return;
-        }
-    }
-
-    super.visitFieldDeclaration(node);
-  }
-
-  @override
-  void visitMethodDeclaration(ast.MethodDeclaration node) {
-    switch (phase) {
-      case macro.Phase.types:
-      case macro.Phase.declarations:
-        break;
-      case macro.Phase.definitions:
-        if (node.augmentKeyword == null) {
-          notAllowed.add(node);
-          return;
-        }
-    }
-
-    super.visitMethodDeclaration(node);
-  }
-
-  @override
-  void visitTopLevelVariableDeclaration(ast.TopLevelVariableDeclaration node) {
-    switch (phase) {
-      case macro.Phase.types:
-      case macro.Phase.declarations:
-        break;
-      case macro.Phase.definitions:
-        if (node.augmentKeyword == null) {
-          notAllowed.add(node);
-          return;
-        }
-    }
-
-    super.visitTopLevelVariableDeclaration(node);
-  }
 }
 
 class _StaticTypeImpl implements macro.StaticType {
