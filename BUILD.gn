@@ -86,7 +86,10 @@ group("run_ffi_unit_tests") {
 group("runtime_precompiled") {
   deps = [
     "runtime/bin:dart_precompiled_runtime",
+    "runtime/bin:gen_snapshot",
+    "runtime/bin:gen_snapshot($host_toolchain)",
     "runtime/bin:process_test",
+    "runtime/vm:kernel_platform_files($host_toolchain)",
   ]
   if (is_linux || is_android) {
     deps += [ "runtime/bin:abstract_socket_test" ]
