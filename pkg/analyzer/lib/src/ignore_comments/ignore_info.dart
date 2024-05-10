@@ -9,6 +9,19 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 
+/// The text and location of trailing unstructured comment text in an ignore
+/// comment.
+class IgnoredDiagnosticComment implements IgnoredElement {
+  final String text;
+
+  final int offset;
+
+  IgnoredDiagnosticComment(this.text, this.offset);
+
+  @override
+  bool matches(ErrorCode errorCode) => false;
+}
+
 /// The name and location of a diagnostic name in an ignore comment.
 class IgnoredDiagnosticName implements IgnoredElement {
   /// The name of the diagnostic being ignored.
@@ -16,11 +29,8 @@ class IgnoredDiagnosticName implements IgnoredElement {
 
   final int offset;
 
-  /// Initialize a newly created diagnostic name to have the given [name] and
-  /// [offset].
   IgnoredDiagnosticName(String name, this.offset) : name = name.toLowerCase();
 
-  /// Returns whether this diagnostic name matches the given error code.
   @override
   bool matches(ErrorCode errorCode) {
     if (name == errorCode.name.toLowerCase()) {
@@ -35,6 +45,7 @@ class IgnoredDiagnosticName implements IgnoredElement {
   }
 }
 
+/// The name and location of a diagnostic type in an ignore comment.
 class IgnoredDiagnosticType implements IgnoredElement {
   final String type;
 
@@ -51,6 +62,7 @@ class IgnoredDiagnosticType implements IgnoredElement {
 }
 
 sealed class IgnoredElement {
+  /// Returns whether this matches the given [errorCode].
   bool matches(ErrorCode errorCode);
 }
 
@@ -70,13 +82,13 @@ class IgnoreInfo {
   /// A regular expression for matching 'ignore' comments in a .yaml file.
   ///
   /// Resulting codes may be in a list ('error_code_1,error_code2').
-  static final RegExp yamlIgnoreMatcher =
+  static final RegExp _yamlIgnoreMatcher =
       RegExp(r'^(?<before>.*)#+[ ]*ignore:(?<ignored>.*)', multiLine: true);
 
   /// A regular expression for matching 'ignore_for_file' comments.
   ///
   /// Resulting codes may be in a list ('error_code_1,error_code2').
-  static final RegExp yamlIgnoreForFileMatcher =
+  static final RegExp _yamlIgnoreForFileMatcher =
       RegExp(r'#[ ]*ignore_for_file:(?<ignored>.*)');
 
   static final _trimmedCommaSeparatedMatcher = RegExp(r'[^\s,]([^,]*[^\s,])?');
@@ -89,20 +101,20 @@ class IgnoreInfo {
   /// that are ignored for the whole file.
   final List<IgnoredElement> _ignoredForFile = [];
 
-  final LineInfo lineInfo;
+  final LineInfo _lineInfo;
 
-  IgnoreInfo.empty() : lineInfo = LineInfo([]);
+  IgnoreInfo.empty() : _lineInfo = LineInfo([]);
 
   /// Initializes a newly created instance of this class to represent the ignore
   /// comments in the given compilation [unit].
   IgnoreInfo.forDart(CompilationUnit unit, String content)
-      : lineInfo = unit.lineInfo {
+      : _lineInfo = unit.lineInfo {
     for (var comment in unit.ignoreComments) {
       var lexeme = comment.lexeme;
       if (lexeme.contains('ignore:')) {
-        var location = lineInfo.getLocation(comment.offset);
+        var location = _lineInfo.getLocation(comment.offset);
         var lineNumber = location.lineNumber;
-        var offsetOfLine = lineInfo.getOffsetOfLine(lineNumber - 1);
+        var offsetOfLine = _lineInfo.getOffsetOfLine(lineNumber - 1);
         var beforeMatch = content.substring(
             offsetOfLine, offsetOfLine + location.columnNumber - 1);
         if (beforeMatch.trim().isEmpty) {
@@ -120,7 +132,7 @@ class IgnoreInfo {
 
   /// Initializes a newly created instance of this class to represent the ignore
   /// comments in the given YAML file.
-  IgnoreInfo.forYaml(String content, this.lineInfo) {
+  IgnoreInfo.forYaml(String content, this._lineInfo) {
     Iterable<IgnoredDiagnosticName> diagnosticNamesInMatch(RegExpMatch match) {
       var ignored = match.namedGroup('ignored')!;
       var offset = match.start;
@@ -129,11 +141,11 @@ class IgnoreInfo {
           .map((m) => IgnoredDiagnosticName(m[0]!, offset + m.start));
     }
 
-    for (var match in yamlIgnoreForFileMatcher.allMatches(content)) {
+    for (var match in _yamlIgnoreForFileMatcher.allMatches(content)) {
       _ignoredForFile.addAll(diagnosticNamesInMatch(match));
     }
-    for (var match in yamlIgnoreMatcher.allMatches(content)) {
-      var lineNumber = lineInfo.getLocation(match.start).lineNumber;
+    for (var match in _yamlIgnoreMatcher.allMatches(content)) {
+      var lineNumber = _lineInfo.getLocation(match.start).lineNumber;
       var beforeComment = match.namedGroup('before')!;
       var nextLine = beforeComment.trim().isEmpty;
       _ignoredOnLine
@@ -142,16 +154,16 @@ class IgnoreInfo {
     }
   }
 
-  /// Return `true` if there are any ignore comments in the file.
+  /// Whether there are any ignore comments in the file.
   bool get hasIgnores =>
       _ignoredOnLine.isNotEmpty || _ignoredForFile.isNotEmpty;
 
-  /// Return a list containing all of the diagnostics that are ignored for the
-  /// whole file.
+  /// A list containing all of the diagnostics that are ignored for the whole
+  /// file.
   List<IgnoredElement> get ignoredForFile => _ignoredForFile.toList();
 
-  /// Return a table mapping line numbers to the diagnostics that are ignored on
-  /// that line.
+  /// A table mapping line numbers to the diagnostics that are ignored on that
+  /// line.
   Map<int, List<IgnoredElement>> get ignoredOnLine {
     Map<int, List<IgnoredElement>> ignoredOnLine = {};
     for (var entry in _ignoredOnLine.entries) {
@@ -161,11 +173,11 @@ class IgnoreInfo {
   }
 
   bool ignored(AnalysisError error) {
-    var line = lineInfo.getLocation(error.offset).lineNumber;
+    var line = _lineInfo.getLocation(error.offset).lineNumber;
     return ignoredAt(error.errorCode, line);
   }
 
-  /// Return `true` if the [errorCode] is ignored at the given [line].
+  /// Returns whether the [errorCode] is ignored at the given [line].
   bool ignoredAt(ErrorCode errorCode, int line) {
     var ignoredDiagnostics = _ignoredOnLine[line];
     if (ignoredForFile.isEmpty && ignoredDiagnostics == null) {
@@ -213,6 +225,10 @@ extension CommentTokenExtension on CommentToken {
       }
     }
 
+    // We only want to add an `IgnoredDiagnosticComment` if it is preceded by
+    // one or more `IgnoredDiagnosticName`s or `IgnoredDiagnosticType`s.
+    var hasIgnoredElements = false;
+
     while (true) {
       skipPastWhitespace();
       if (offset == lexeme.length) {
@@ -224,6 +240,12 @@ extension CommentTokenExtension on CommentToken {
       readWord();
       if (wordOffset == offset) {
         // There is a non-word (other characters) at `offset`.
+        if (hasIgnoredElements) {
+          yield IgnoredDiagnosticComment(
+            lexeme.substring(offset),
+            this.offset + wordOffset,
+          );
+        }
         return;
       }
       var word = lexeme.substring(wordOffset, offset);
@@ -240,6 +262,12 @@ extension CommentTokenExtension on CommentToken {
         readWord();
         if (typeOffset == offset) {
           // There is a non-word (other characters) at `offset`.
+          if (hasIgnoredElements) {
+            yield IgnoredDiagnosticComment(
+              lexeme.substring(offset),
+              this.offset + wordOffset,
+            );
+          }
           return;
         }
         if (offset < lexeme.length) {
@@ -247,10 +275,15 @@ extension CommentTokenExtension on CommentToken {
           if (!nextChar.isSpace && !nextChar.isComma) {
             // There are non-identifier characters at the end of this word,
             // like `ignore: http://google.com`. This is not a diagnostic name.
+            if (hasIgnoredElements) {
+              yield IgnoredDiagnosticComment(
+                  lexeme.substring(wordOffset), this.offset + wordOffset);
+            }
             return;
           }
         }
         var type = lexeme.substring(typeOffset, offset);
+        hasIgnoredElements = true;
         yield IgnoredDiagnosticType(
             type, this.offset + wordOffset, offset - wordOffset);
       } else {
@@ -259,9 +292,14 @@ extension CommentTokenExtension on CommentToken {
           if (!nextChar.isSpace && !nextChar.isComma) {
             // There are non-identifier characters at the end of this word,
             // like `ignore: http://google.com`. This is not a diagnostic name.
+            if (hasIgnoredElements) {
+              yield IgnoredDiagnosticComment(
+                  lexeme.substring(wordOffset), this.offset + wordOffset);
+            }
             return;
           }
         }
+        hasIgnoredElements = true;
         yield IgnoredDiagnosticName(word, this.offset + wordOffset);
       }
 
@@ -270,9 +308,15 @@ extension CommentTokenExtension on CommentToken {
       if (offset == lexeme.length) return;
 
       var nextChar = lexeme.codeUnitAt(offset);
-      if (!nextChar.isComma) return;
-      // We've reached the end of the comma-separated codes and types. What
-      // follows is unstructured comment text.
+      if (!nextChar.isComma) {
+        // We've reached the end of the comma-separated codes and types. What
+        // follows is unstructured comment text.
+        if (hasIgnoredElements) {
+          yield IgnoredDiagnosticComment(
+              lexeme.substring(offset), this.offset + wordOffset);
+        }
+        return;
+      }
       offset++;
       if (offset == lexeme.length) return;
     }

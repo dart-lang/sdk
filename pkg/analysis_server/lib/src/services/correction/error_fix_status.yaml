@@ -2092,6 +2092,11 @@ LintCode.discarded_futures:
   status: hasFix
 LintCode.do_not_use_environment:
   status: noFix
+LintCode.document_ignores:
+  status: needsFix
+  notes: |-
+    We of course cannot generate a fix including appropriate text, but we can
+    insert a stub comment in the correct position.
 LintCode.empty_catches:
   status: hasFix
 LintCode.empty_constructor_bodies:
