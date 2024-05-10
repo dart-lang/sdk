@@ -250,7 +250,7 @@ void f() {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 import 'append.dart';
 
-@DeclareInLibrary('class B {}')
+@DeclareTypesPhase('B', 'class B {}')
 class A {}
 ''');
 
@@ -898,7 +898,7 @@ var B = 1.2;
     var a = newFile('$testPackageLibPath/a.dart', r'''
 import 'append.dart';
 
-@DeclareInLibrary('class B {}')
+@DeclareTypesPhase('B', 'class B {}')
 class A {}
 ''');
 
@@ -914,7 +914,7 @@ class A {}
     modifyFile2(a, r'''
 import 'append.dart';
 
-@DeclareInLibrary('class B2 {}')
+@DeclareTypesPhase('B2', 'class B2 {}')
 class A {}
 ''');
     driver.changeFile2(a);
@@ -1877,7 +1877,7 @@ part of 'a.dart';
     newFile('$testPackageLibPath/a.dart', r'''
 import 'append.dart';
 
-@DeclareInLibrary('class B {}')
+@DeclareTypesPhase('B', 'class B {}')
 class A {}
 ''');
 
@@ -2765,7 +2765,7 @@ class A {}
     var a = newFile('$testPackageLibPath/a.dart', r'''
 import 'append.dart';
 
-@DeclareInLibrary('class B {}')
+@DeclareTypesPhase('B', 'class B {}')
 class A {}
 ''');
 
@@ -2973,7 +2973,7 @@ part of 'b.dart';
     newFile('$testPackageLibPath/a.dart', r'''
 import 'append.dart';
 
-@DeclareInLibrary('class B {}')
+@DeclareTypesPhase('B', 'class B {}')
 class A {}
 ''');
 
@@ -3366,7 +3366,7 @@ part of 'a.dart';
     newFile('$testPackageLibPath/a.dart', r'''
 import 'append.dart';
 
-@DeclareInLibrary('class B {}')
+@DeclareTypesPhase('B', 'class B {}')
 class A {}
 ''');
 
@@ -3864,7 +3864,7 @@ import 'package:test/b.dart';
     newFile('$testPackageLibPath/a.dart', r'''
 import 'append.dart';
 
-@DeclareInLibrary('class B {}')
+@DeclareTypesPhase('B', 'class B {}')
 class A {}
 ''');
 

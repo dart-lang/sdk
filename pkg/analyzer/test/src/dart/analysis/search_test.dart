@@ -3002,7 +3002,7 @@ import 'append.dart';
 
 class A {}
 
-@DeclareInLibrary("""
+@DeclareTypesPhase('C', """
 class C extends A {
   void methodC() {}
 }

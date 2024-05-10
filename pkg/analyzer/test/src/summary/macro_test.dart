@@ -1597,7 +1597,7 @@ augment class A {
     var library = await buildLibrary(r'''
 import 'append.dart';
 
-@DeclareInLibrary('class B {}')
+@DeclareTypesPhase('B', 'class B {}')
 class A {}
 ''');
 
@@ -3739,7 +3739,7 @@ class A {
 import 'append.dart';
 import 'a.dart';
 
-@DeclareInLibrary("""
+@DeclareTypesPhase('C', """
 @{{package:test/a.dart@A}}()
 class C {}""")
 class B {}
@@ -3766,7 +3766,7 @@ class C {}
         package:test/a.dart as prefix0 @75
       definingUnit
         classes
-          notSimplyBounded class C @104
+          class C @104
             metadata
               Annotation
                 atSign: @ @85
@@ -4713,7 +4713,7 @@ void foo() {}
 import 'append.dart';
 import 'a.dart';
 
-@DeclareInLibrary("""
+@DeclareTypesPhase('C', """
 @{{package:test/a.dart@A}}({{package:test/a.dart@foo}})
 class C {}""")
 class B {}
@@ -4740,7 +4740,7 @@ class C {}
         package:test/a.dart as prefix0 @75
       definingUnit
         classes
-          notSimplyBounded class C @115
+          class C @115
             metadata
               Annotation
                 atSign: @ @85
@@ -4789,7 +4789,7 @@ class X<T> {}
 import 'append.dart';
 import 'a.dart';
 
-@DeclareInLibrary("""
+@DeclareTypesPhase('C', """
 @{{package:test/a.dart@A}}.named()
 class C {}""")
 class B {}
@@ -4816,7 +4816,7 @@ class C {}
         package:test/a.dart as prefix0 @75
       definingUnit
         classes
-          notSimplyBounded class C @110
+          class C @110
             metadata
               Annotation
                 atSign: @ @85
@@ -4857,7 +4857,7 @@ class X<T> {}
 import 'append.dart';
 import 'a.dart';
 
-@DeclareInLibrary("""
+@DeclareTypesPhase('C', """
 @{{package:test/a.dart@A}}({{package:test/a.dart@X}}<void>)
 class C {}""")
 class B {}
@@ -4884,7 +4884,7 @@ class C {}
         package:test/a.dart as prefix0 @75
       definingUnit
         classes
-          notSimplyBounded class C @119
+          class C @119
             metadata
               Annotation
                 atSign: @ @85
@@ -5721,6 +5721,9 @@ void _starter() {}
 }
 
 abstract class MacroElementsTest extends MacroElementsBaseTest {
+  @override
+  bool get retainDataForTesting => true;
+
   test_macroApplicationErrors_typesPhase_compileTimeError() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:macros/macros.dart';
@@ -7615,6 +7618,246 @@ library
       mixin M @6
         superclassConstraints
           Object
+''');
+  }
+
+  test_notAllowedDeclaration_declarations_class() async {
+    if (!keepLinkingLibraries) {
+      return;
+    }
+    useEmptyByteStore();
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @DeclareInLibrary('class B {}')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @74
+            returnType: void
+            macroDiagnostics
+              NotAllowedDeclarationDiagnostic
+                annotationIndex: 0
+                phase: declarations
+                nodeRanges: (43, 10)
+---
+augment library 'package:test/test.dart';
+
+class B {}
+---
+''');
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/append.dart
+    uri: package:test/append.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_9 package:macros/macros.dart
+          library_10 dart:core synthetic
+        cycle_0
+          dependencies: dart:core package:macros/macros.dart
+          libraries: library_0
+          apiSignature_0
+          users: cycle_1
+      referencingFiles: file_1
+      unlinkedKey: k00
+  /home/test/lib/test.dart
+    uri: package:test/test.dart
+    current
+      id: file_1
+      kind: library_1
+        libraryImports
+          library_0
+          library_10 dart:core synthetic
+        cycle_1
+          dependencies: cycle_0 dart:core
+          libraries: library_1
+          apiSignature_1
+      unlinkedKey: k01
+libraryCycles
+  /home/test/lib/append.dart
+    current: cycle_0
+      key: k02
+    get: []
+    put: [k02]
+  /home/test/lib/test.dart
+    current: cycle_1
+      key: k03
+    get: []
+    put: [k03]
+elementFactory
+  hasElement
+    package:test/append.dart
+    package:test/test.dart
+''');
+  }
+
+  test_notAllowedDeclaration_definitions_class() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @AugmentDefinition(';} class B {}')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @78
+            returnType: void
+            macroDiagnostics
+              NotAllowedDeclarationDiagnostic
+                annotationIndex: 0
+                phase: definitions
+                nodeRanges: (85, 10)
+---
+augment library 'package:test/test.dart';
+
+augment class A {
+  augment void foo() ;} class B {}
+}
+---
+''');
+  }
+
+  test_notAllowedDeclaration_definitions_class_field() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @AugmentDefinition('; int bar = 0;')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @79
+            returnType: void
+            macroDiagnostics
+              NotAllowedDeclarationDiagnostic
+                annotationIndex: 0
+                phase: definitions
+                nodeRanges: (84, 12)
+---
+augment library 'package:test/test.dart';
+
+augment class A {
+  augment void foo() ; int bar = 0;
+}
+---
+''');
+  }
+
+  test_notAllowedDeclaration_definitions_class_method() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @AugmentDefinition('; void bar() {}')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @80
+            returnType: void
+            macroDiagnostics
+              NotAllowedDeclarationDiagnostic
+                annotationIndex: 0
+                phase: definitions
+                nodeRanges: (84, 13)
+---
+augment library 'package:test/test.dart';
+
+augment class A {
+  augment void foo() ; void bar() {}
+}
+---
+''');
+  }
+
+  test_notAllowedDeclaration_definitions_topLevelVariable() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @AugmentDefinition(';} int bar = 0;')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @80
+            returnType: void
+            macroDiagnostics
+              NotAllowedDeclarationDiagnostic
+                annotationIndex: 0
+                phase: definitions
+                nodeRanges: (85, 12)
+---
+augment library 'package:test/test.dart';
+
+augment class A {
+  augment void foo() ;} int bar = 0;
+}
+---
 ''');
   }
 }
@@ -13589,7 +13832,7 @@ class X {}
     var library = await buildLibrary(r'''
 import 'append.dart';
 
-@DeclareInLibrary('class B {}')
+@DeclareTypesPhase('B', 'class B {}')
 class A {}
 ''');
 
@@ -13736,7 +13979,7 @@ elementFactory
     modifyFile2(testFile, r'''
 import 'append.dart';
 
-@DeclareInLibrary('class B {}')
+@DeclareTypesPhase('B', 'class B {}')
 class A {}
 ''');
     driverFor(testFile).changeFile2(testFile);
@@ -13823,7 +14066,7 @@ elementFactory
     var library = await buildLibrary(r'''
 import 'append.dart';
 
-@DeclareInLibrary('class B {}')
+@DeclareTypesPhase('B', 'class B {}')
 class A {}
 ''');
 
@@ -13898,7 +14141,7 @@ elementFactory
     modifyFile2(testFile, r'''
 import 'append.dart';
 
-@DeclareInLibrary('class B2 {}')
+@DeclareTypesPhase('B2', 'class B2 {}')
 class A {}
 ''');
     driverFor(testFile).changeFile2(testFile);
@@ -13992,7 +14235,7 @@ class B2 {}
     var library = await buildLibrary(r'''
 import 'append.dart';
 
-@DeclareInLibrary('class B {}')
+@DeclareTypesPhase('B', 'class B {}')
 class A {}
 ''');
 

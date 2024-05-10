@@ -29,6 +29,7 @@ enum MacroDiagnosticKind {
   introspectionCycle,
   invalidTarget,
   macro,
+  notAllowedDeclaration,
 }
 
 enum MacroDiagnosticTargetKind {
