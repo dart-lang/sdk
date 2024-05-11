@@ -526,7 +526,7 @@ struct InstrAttrs {
   M(GuardFieldType, _)                                                         \
   M(IfThenElse, kNoGC)                                                         \
   M(MaterializeObject, _)                                                      \
-  M(TestSmi, kNoGC)                                                            \
+  M(TestInt, kNoGC)                                                            \
   M(TestCids, kNoGC)                                                           \
   M(TestRange, kNoGC)                                                          \
   M(ExtractNthOutput, kNoGC)                                                   \
@@ -5137,19 +5137,21 @@ class StrictCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
 
 // Comparison instruction that is equivalent to the (left & right) == 0
 // comparison pattern.
-class TestSmiInstr : public TemplateComparison<2, NoThrow, Pure> {
+class TestIntInstr : public TemplateComparison<2, NoThrow, Pure> {
  public:
-  TestSmiInstr(const InstructionSource& source,
+  TestIntInstr(const InstructionSource& source,
                Token::Kind kind,
+               Representation representation,
                Value* left,
                Value* right)
-      : TemplateComparison(source, kind) {
+      : TemplateComparison(source, kind), representation_(representation) {
     ASSERT(kind == Token::kEQ || kind == Token::kNE);
+    ASSERT(IsSupported(representation));
     SetInputAt(0, left);
     SetInputAt(1, right);
   }
 
-  DECLARE_COMPARISON_INSTRUCTION(TestSmi);
+  DECLARE_COMPARISON_INSTRUCTION(TestInt);
 
   virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
 
@@ -5158,13 +5160,42 @@ class TestSmiInstr : public TemplateComparison<2, NoThrow, Pure> {
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    return kTagged;
+    return representation_;
   }
 
-  DECLARE_EMPTY_SERIALIZATION(TestSmiInstr, TemplateComparison)
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
+    return kNotSpeculative;
+  }
+
+  static bool IsSupported(Representation representation) {
+    switch (representation) {
+      case kTagged:
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64) ||                  \
+    defined(TARGET_ARCH_RISCV64)
+      case kUnboxedInt64:
+#endif
+        return true;
+
+      default:
+        return false;
+    }
+  }
+
+#if defined(TARGET_ARCH_ARM64)
+  virtual void EmitBranchCode(FlowGraphCompiler* compiler, BranchInstr* branch);
+#endif
+
+#define FIELD_LIST(F) F(const Representation, representation_)
+
+  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(TestIntInstr,
+                                          TemplateComparison,
+                                          FIELD_LIST)
+#undef FIELD_LIST
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(TestSmiInstr);
+  int64_t ComputeImmediateMask();
+
+  DISALLOW_COPY_AND_ASSIGN(TestIntInstr);
 };
 
 // Checks the input value cid against cids stored in a table and returns either

@@ -1296,7 +1296,7 @@ Condition EqualityCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   }
 }
 
-LocationSummary* TestSmiInstr::MakeLocationSummary(Zone* zone, bool opt) const {
+LocationSummary* TestIntInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
@@ -1305,22 +1305,80 @@ LocationSummary* TestSmiInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   // Only one input can be a constant operand. The case of two constant
   // operands should be handled by constant propagation.
   locs->set_in(1, LocationRegisterOrConstant(right()));
+  locs->set_out(0, Location::RequiresRegister());
   return locs;
 }
 
-Condition TestSmiInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
+Condition TestIntInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
                                            BranchLabels labels) {
   const Register left = locs()->in(0).reg();
   Location right = locs()->in(1);
+  const auto operand_size = representation_ == kTagged ? compiler::kObjectBytes
+                                                       : compiler::kEightBytes;
   if (right.IsConstant()) {
-    ASSERT(right.constant().IsSmi());
-    const int64_t imm = Smi::RawValue(Smi::Cast(right.constant()).Value());
-    __ TestImmediate(left, imm, compiler::kObjectBytes);
+    __ TestImmediate(left, ComputeImmediateMask(), operand_size);
   } else {
-    __ tst(left, compiler::Operand(right.reg()), compiler::kObjectBytes);
+    __ tst(left, compiler::Operand(right.reg()), operand_size);
   }
   Condition true_condition = (kind() == Token::kNE) ? NE : EQ;
   return true_condition;
+}
+
+static bool IsSingleBitMask(Location mask, intptr_t* bit) {
+  if (!mask.IsConstant()) {
+    return false;
+  }
+
+  uint64_t mask_value =
+      static_cast<uint64_t>(Integer::Cast(mask.constant()).AsInt64Value());
+  if (!Utils::IsPowerOfTwo(mask_value)) {
+    return false;
+  }
+
+  *bit = Utils::CountTrailingZeros64(mask_value);
+  return true;
+}
+
+void TestIntInstr::EmitBranchCode(FlowGraphCompiler* compiler,
+                                  BranchInstr* branch) {
+  // Check if this is a single bit test. In this case this branch can be
+  // emitted as TBZ/TBNZ.
+  intptr_t bit_index;
+  if (IsSingleBitMask(locs()->in(1), &bit_index)) {
+    BranchLabels labels = compiler->CreateBranchLabels(branch);
+    const Register value = locs()->in(0).reg();
+
+    bool branch_on_zero_bit;
+    bool can_fallthrough;
+    compiler::Label* target;
+    if (labels.fall_through == labels.true_label) {
+      target = labels.false_label;
+      branch_on_zero_bit = (kind() == Token::kNE);
+      can_fallthrough = true;
+    } else {
+      target = labels.true_label;
+      branch_on_zero_bit = (kind() == Token::kEQ);
+      can_fallthrough = (labels.fall_through == labels.false_label);
+    }
+
+    if (representation_ == kTagged) {
+      bit_index = Utils::Minimum(kSmiBits, bit_index) + kSmiTagShift;
+    }
+
+    if (branch_on_zero_bit) {
+      __ tbz(target, value, bit_index);
+    } else {
+      __ tbnz(target, value, bit_index);
+    }
+    if (!can_fallthrough) {
+      __ b(labels.false_label);
+    }
+
+    return;
+  }
+
+  // Otherwise use shared implementation.
+  ComparisonInstr::EmitBranchCode(compiler, branch);
 }
 
 LocationSummary* TestCidsInstr::MakeLocationSummary(Zone* zone,

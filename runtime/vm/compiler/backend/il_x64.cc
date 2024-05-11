@@ -1215,7 +1215,7 @@ void ComparisonInstr::EmitBranchCode(FlowGraphCompiler* compiler,
   }
 }
 
-LocationSummary* TestSmiInstr::MakeLocationSummary(Zone* zone, bool opt) const {
+LocationSummary* TestIntInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
@@ -1224,20 +1224,26 @@ LocationSummary* TestSmiInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   // Only one input can be a constant operand. The case of two constant
   // operands should be handled by constant propagation.
   locs->set_in(1, LocationRegisterOrConstant(right()));
+  locs->set_out(0, Location::RequiresRegister());
   return locs;
 }
 
-Condition TestSmiInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
+Condition TestIntInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
                                            BranchLabels labels) {
   Register left_reg = locs()->in(0).reg();
   Location right = locs()->in(1);
   if (right.IsConstant()) {
-    ASSERT(right.constant().IsSmi());
-    const int64_t imm = Smi::RawValue(Smi::Cast(right.constant()).Value());
-    __ TestImmediate(left_reg, compiler::Immediate(imm),
-                     compiler::kObjectBytes);
+    const auto operand_size = representation_ == kTagged
+                                  ? compiler::kObjectBytes
+                                  : compiler::kEightBytes;
+    __ TestImmediate(left_reg, compiler::Immediate(ComputeImmediateMask()),
+                     operand_size);
   } else {
-    __ OBJ(test)(left_reg, right.reg());
+    if (representation_ == kTagged) {
+      __ OBJ(test)(left_reg, right.reg());
+    } else {
+      __ testq(left_reg, right.reg());
+    }
   }
   Condition true_condition = (kind() == Token::kNE) ? NOT_ZERO : ZERO;
   return true_condition;
