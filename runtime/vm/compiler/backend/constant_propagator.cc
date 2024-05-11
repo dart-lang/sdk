@@ -670,7 +670,7 @@ static bool CompareIntegers(Token::Kind kind,
 
 // Comparison instruction that is equivalent to the (left & right) == 0
 // comparison pattern.
-void ConstantPropagator::VisitTestSmi(TestSmiInstr* instr) {
+void ConstantPropagator::VisitTestInt(TestIntInstr* instr) {
   const Object& left = instr->left()->definition()->constant_value();
   const Object& right = instr->right()->definition()->constant_value();
   if (IsNonConstant(left) || IsNonConstant(right)) {

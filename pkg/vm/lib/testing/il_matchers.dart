@@ -829,3 +829,17 @@ final bool is32BitConfiguration = (() {
       runtimeConfiguration.endsWith('ARM_X64') ||
       runtimeConfiguration.endsWith('RISCV32');
 })();
+
+final String _config = (() {
+  if (bool.hasEnvironment(testRunnerKey)) {
+    return const String.fromEnvironment(testRunnerKey);
+  } else if (Platform.environment['DART_CONFIGURATION']
+      case final runtimeConfiguration?) {
+    return runtimeConfiguration.toLowerCase();
+  } else {
+    throw 'Expected either $testRunnerKey or DART_CONFIGURATION to be defined';
+  }
+})();
+
+final bool isArm64 = _config.endsWith('arm64');
+final bool isX64 = _config.endsWith('x64') && !_config.endsWith('arm_x64');

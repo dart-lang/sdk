@@ -72,11 +72,10 @@ InstructionsPtr BuildInstructions(
 
 class TestPipeline : public ValueObject {
  public:
-  explicit TestPipeline(const Function& function,
-                        CompilerPass::PipelineMode mode,
-                        bool is_optimizing = true)
-      : function_(function),
-        thread_(Thread::Current()),
+  TestPipeline(const Function& function,
+               CompilerPass::PipelineMode mode,
+               bool is_optimizing = true)
+      : thread_(Thread::Current()),
         compiler_state_(thread_,
                         mode == CompilerPass::PipelineMode::kAOT,
                         is_optimizing,
@@ -84,8 +83,26 @@ class TestPipeline : public ValueObject {
         hierarchy_info_(thread_),
         speculative_policy_(std::unique_ptr<SpeculativeInliningPolicy>(
             new SpeculativeInliningPolicy(/*enable_suppresson=*/false))),
-        mode_(mode) {}
+        mode_(mode),
+        flow_graph_(nullptr),
+        function_(function),
+        parsed_function_(nullptr) {}
   ~TestPipeline() { delete pass_state_; }
+
+  TestPipeline(CompilerPass::PipelineMode mode, std::function<FlowGraph*()> fn)
+      : thread_(Thread::Current()),
+        compiler_state_(thread_,
+                        mode == CompilerPass::PipelineMode::kAOT,
+                        /*is_optimizing=*/true,
+                        CompilerTracing::kOff),
+        hierarchy_info_(thread_),
+        speculative_policy_(std::unique_ptr<SpeculativeInliningPolicy>(
+            new SpeculativeInliningPolicy(/*enable_suppresson=*/false))),
+        mode_(mode),
+        flow_graph_(fn()),
+        function_(flow_graph_->function()),
+        parsed_function_(
+            const_cast<ParsedFunction*>(&flow_graph_->parsed_function())) {}
 
   // As a side-effect this will populate
   //   - [ic_data_array_]
@@ -101,16 +118,16 @@ class TestPipeline : public ValueObject {
   void CompileGraphAndAttachFunction();
 
  private:
-  const Function& function_;
   Thread* thread_;
   CompilerState compiler_state_;
   HierarchyInfo hierarchy_info_;
   std::unique_ptr<SpeculativeInliningPolicy> speculative_policy_;
   CompilerPass::PipelineMode mode_;
   ZoneGrowableArray<const ICData*>* ic_data_array_ = nullptr;
-  ParsedFunction* parsed_function_ = nullptr;
   CompilerPassState* pass_state_ = nullptr;
-  FlowGraph* flow_graph_ = nullptr;
+  FlowGraph* flow_graph_;
+  const Function& function_;
+  ParsedFunction* parsed_function_;
 };
 
 // Match opcodes used for [ILMatcher], see below.
@@ -270,11 +287,15 @@ class ILMatcher : public ValueObject {
 
 class FlowGraphBuilderHelper {
  public:
-  explicit FlowGraphBuilderHelper(intptr_t num_parameters = 0)
+  explicit FlowGraphBuilderHelper(
+      intptr_t num_parameters = 0,
+      const std::function<void(const Function&)>& configure_function =
+          [](const Function&) {})
       : state_(CompilerState::Current()),
         flow_graph_(MakeDummyGraph(Thread::Current(),
                                    num_parameters,
-                                   state_.is_optimizing())) {
+                                   state_.is_optimizing(),
+                                   configure_function)) {
     flow_graph_.CreateCommonConstants();
   }
 
@@ -288,9 +309,12 @@ class FlowGraphBuilderHelper {
                               state_.GetNextDeoptId());
   }
 
-  ConstantInstr* IntConstant(int64_t value) const {
+  ConstantInstr* IntConstant(int64_t value,
+                             Representation representation = kTagged) const {
+    ASSERT(representation == kTagged ||
+           RepresentationUtils::IsUnboxedInteger(representation));
     return flow_graph_.GetConstant(
-        Integer::Handle(Integer::NewCanonical(value)));
+        Integer::Handle(Integer::NewCanonical(value)), representation);
   }
 
   ConstantInstr* DoubleConstant(double value) {
@@ -377,9 +401,11 @@ class FlowGraphBuilderHelper {
   FlowGraph* flow_graph() { return &flow_graph_; }
 
  private:
-  static FlowGraph& MakeDummyGraph(Thread* thread,
-                                   intptr_t num_parameters,
-                                   bool is_optimizing) {
+  static FlowGraph& MakeDummyGraph(
+      Thread* thread,
+      intptr_t num_parameters,
+      bool is_optimizing,
+      const std::function<void(const Function&)>& configure_function) {
     const FunctionType& signature =
         FunctionType::ZoneHandle(FunctionType::New());
     signature.set_num_fixed_parameters(num_parameters);
@@ -393,6 +419,7 @@ class FlowGraphBuilderHelper {
         /*is_native=*/true,
         Class::Handle(thread->isolate_group()->object_store()->object_class()),
         TokenPosition::kNoSource));
+    configure_function(func);
 
     Zone* zone = thread->zone();
     ParsedFunction* parsed_function = new (zone) ParsedFunction(thread, func);

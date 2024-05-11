@@ -3618,7 +3618,7 @@ static bool RecognizeTestPattern(Value* left, Value* right, bool* negate) {
     return false;
   }
 
-  BinarySmiOpInstr* mask_op = left->definition()->AsBinarySmiOp();
+  auto mask_op = left->definition()->AsBinaryIntegerOp();
   if ((mask_op == nullptr) || (mask_op->op_kind() != Token::kBIT_AND) ||
       !mask_op->HasOnlyUse(left)) {
     return false;
@@ -3686,30 +3686,37 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
   }
 
   if (comparison()->IsEqualityCompare() &&
-      comparison()->operation_cid() == kSmiCid) {
-    BinarySmiOpInstr* bit_and = nullptr;
-    bool negate = false;
-    if (RecognizeTestPattern(comparison()->left(), comparison()->right(),
-                             &negate)) {
-      bit_and = comparison()->left()->definition()->AsBinarySmiOp();
-    } else if (RecognizeTestPattern(comparison()->right(), comparison()->left(),
-                                    &negate)) {
-      bit_and = comparison()->right()->definition()->AsBinarySmiOp();
-    }
-    if (bit_and != nullptr) {
-      if (FLAG_trace_optimization && flow_graph->should_print()) {
-        THR_Print("Merging test smi v%" Pd "\n", bit_and->ssa_temp_index());
+      (comparison()->operation_cid() == kSmiCid ||
+       comparison()->operation_cid() == kMintCid)) {
+    const auto representation =
+        comparison()->operation_cid() == kSmiCid ? kTagged : kUnboxedInt64;
+    if (TestIntInstr::IsSupported(representation)) {
+      BinaryIntegerOpInstr* bit_and = nullptr;
+      bool negate = false;
+      if (RecognizeTestPattern(comparison()->left(), comparison()->right(),
+                               &negate)) {
+        bit_and = comparison()->left()->definition()->AsBinaryIntegerOp();
+      } else if (RecognizeTestPattern(comparison()->right(),
+                                      comparison()->left(), &negate)) {
+        bit_and = comparison()->right()->definition()->AsBinaryIntegerOp();
       }
-      TestSmiInstr* test = new TestSmiInstr(
-          comparison()->source(),
-          negate ? Token::NegateComparison(comparison()->kind())
-                 : comparison()->kind(),
-          bit_and->left()->Copy(zone), bit_and->right()->Copy(zone));
-      ASSERT(!CanDeoptimize());
-      RemoveEnvironment();
-      flow_graph->CopyDeoptTarget(this, bit_and);
-      SetComparison(test);
-      bit_and->RemoveFromGraph();
+      if (bit_and != nullptr) {
+        if (FLAG_trace_optimization && flow_graph->should_print()) {
+          THR_Print("Merging test integer v%" Pd "\n",
+                    bit_and->ssa_temp_index());
+        }
+        TestIntInstr* test = new TestIntInstr(
+            comparison()->source(),
+            negate ? Token::NegateComparison(comparison()->kind())
+                   : comparison()->kind(),
+            representation, bit_and->left()->Copy(zone),
+            bit_and->right()->Copy(zone));
+        ASSERT(!CanDeoptimize());
+        RemoveEnvironment();
+        flow_graph->CopyDeoptTarget(this, bit_and);
+        SetComparison(test);
+        bit_and->RemoveFromGraph();
+      }
     }
   }
   return this;
@@ -6569,9 +6576,10 @@ ComparisonInstr* StrictCompareInstr::CopyWithNewOperands(Value* new_left,
                                 needs_number_check(), DeoptId::kNone);
 }
 
-ComparisonInstr* TestSmiInstr::CopyWithNewOperands(Value* new_left,
+ComparisonInstr* TestIntInstr::CopyWithNewOperands(Value* new_left,
                                                    Value* new_right) {
-  return new TestSmiInstr(source(), kind(), new_left, new_right);
+  return new TestIntInstr(source(), kind(), representation_, new_left,
+                          new_right);
 }
 
 ComparisonInstr* TestCidsInstr::CopyWithNewOperands(Value* new_left,
@@ -8566,6 +8574,31 @@ LocationSummary* MakePairInstr::MakeLocationSummary(Zone* zone,
 
 void MakePairInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // No-op.
+}
+
+int64_t TestIntInstr::ComputeImmediateMask() {
+  int64_t mask = Integer::Cast(locs()->in(1).constant()).AsInt64Value();
+
+  switch (representation_) {
+    case kTagged:
+      // If operand is tagged we need to tag the mask.
+      if (!Smi::IsValid(mask)) {
+        // Mask it not a valid Smi. This means top bits are not all equal to
+        // the sign bit and at least some of them are 1. If they were all
+        // 0 than it would be a valid positive Smi.
+        // Adjust the mask to make it a valid Smi: testing any bit above
+        // kSmiBits is equivalent to testing the sign bit.
+        mask = (mask & kSmiMax) | kSmiMin;
+      }
+      return compiler::target::ToRawSmi(mask);
+
+    case kUnboxedInt64:
+      return mask;
+
+    default:
+      UNREACHABLE();
+      return -1;
+  }
 }
 
 #undef __

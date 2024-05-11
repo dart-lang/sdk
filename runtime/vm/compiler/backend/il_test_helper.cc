@@ -120,21 +120,23 @@ FlowGraph* TestPipeline::RunPasses(
   const bool optimized = true;
   const intptr_t osr_id = Compiler::kNoOSRDeoptId;
 
-  auto pipeline = CompilationPipeline::New(zone, function_);
+  if (flow_graph_ == nullptr) {
+    auto pipeline = CompilationPipeline::New(zone, function_);
 
-  parsed_function_ = new (zone)
-      ParsedFunction(thread, Function::ZoneHandle(zone, function_.ptr()));
-  pipeline->ParseFunction(parsed_function_);
+    parsed_function_ = new (zone)
+        ParsedFunction(thread, Function::ZoneHandle(zone, function_.ptr()));
+    pipeline->ParseFunction(parsed_function_);
 
-  // Extract type feedback before the graph is built, as the graph
-  // builder uses it to attach it to nodes.
-  ic_data_array_ = new (zone) ZoneGrowableArray<const ICData*>();
-  if (mode_ == CompilerPass::kJIT) {
-    function_.RestoreICDataMap(ic_data_array_, /*clone_ic_data=*/false);
+    // Extract type feedback before the graph is built, as the graph
+    // builder uses it to attach it to nodes.
+    ic_data_array_ = new (zone) ZoneGrowableArray<const ICData*>();
+    if (mode_ == CompilerPass::kJIT) {
+      function_.RestoreICDataMap(ic_data_array_, /*clone_ic_data=*/false);
+    }
+
+    flow_graph_ = pipeline->BuildFlowGraph(zone, parsed_function_,
+                                           ic_data_array_, osr_id, optimized);
   }
-
-  flow_graph_ = pipeline->BuildFlowGraph(zone, parsed_function_, ic_data_array_,
-                                         osr_id, optimized);
 
   if (mode_ == CompilerPass::kAOT) {
     flow_graph_->PopulateWithICData(function_);
