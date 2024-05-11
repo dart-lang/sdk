@@ -175,7 +175,7 @@ class A {
 ''');
   }
 
-  test_immutable_factoryConsrtuctor_toConstConstructor() async {
+  test_immutable_factoryConstructor_toConstConstructor() async {
     await assertDiagnostics(r'''
 import 'package:meta/meta.dart';
 @immutable
