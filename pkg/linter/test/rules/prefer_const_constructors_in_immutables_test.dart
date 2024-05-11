@@ -392,6 +392,19 @@ class B extends A {
     ]);
   }
 
+  test_macroConstructor() async {
+    await assertDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@immutable
+macro class M {
+  M();
+}
+''', [
+      // TODO(pq): add non-const constructor compilation error when implemented
+    ]);
+  }
+
   test_returnOfInvalidType() async {
     await assertDiagnostics(r'''
 import 'package:meta/meta.dart';

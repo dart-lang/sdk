@@ -16,11 +16,10 @@ extension IterableExtension<E> on Iterable<E> {
 
   /// Returns the fixed-length [List] with elements of `this`.
   List<E> toFixedList() {
-    var result = toList(growable: false);
-    if (result.isEmpty) {
+    if (isEmpty) {
       return const <Never>[];
     }
-    return result;
+    return toList(growable: false);
   }
 
   Iterable<E> whereNotType<U>() {

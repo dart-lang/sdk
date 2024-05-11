@@ -59,7 +59,10 @@ class _AnyFilter implements FileStateFilter {
 class _PubFilter implements FileStateFilter {
   final PubPackage targetPackage;
   final String? targetPackageName;
-  final bool targetPackageIsAnalysisServer;
+
+  /// "Friends of `package:analyzer` see analyzer implementation libraries in
+  /// completions.
+  final bool targetPackageIsFriendOfAnalyzer;
   final bool targetInLibOrEntryPoint;
   final Set<String> dependencies;
 
@@ -84,7 +87,8 @@ class _PubFilter implements FileStateFilter {
     return _PubFilter._(
       targetPackage: package,
       targetPackageName: packageName,
-      targetPackageIsAnalysisServer: packageName == 'analysis_server',
+      targetPackageIsFriendOfAnalyzer:
+          packageName == 'analysis_server' || packageName == 'linter',
       targetInLibOrEntryPoint: inLibOrEntryPoint,
       dependencies: dependencies,
     );
@@ -93,7 +97,7 @@ class _PubFilter implements FileStateFilter {
   _PubFilter._({
     required this.targetPackage,
     required this.targetPackageName,
-    required this.targetPackageIsAnalysisServer,
+    required this.targetPackageIsFriendOfAnalyzer,
     required this.targetInLibOrEntryPoint,
     required this.dependencies,
   });
@@ -125,8 +129,9 @@ class _PubFilter implements FileStateFilter {
 
     // If not the same package, must be public.
     if (uri.isSrc) {
-      // Special case `analysis_server` access to `analyzer`.
-      if (targetPackageIsAnalysisServer && packageName == 'analyzer') {
+      // Special case access to `analyzer` to allow privileged access
+      // from "friends" like `analysis_server` and `linter`.
+      if (targetPackageIsFriendOfAnalyzer && packageName == 'analyzer') {
         return true;
       }
       return false;

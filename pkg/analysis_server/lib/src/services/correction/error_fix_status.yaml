@@ -1060,6 +1060,8 @@ CompileTimeErrorCode.MACRO_ERROR:
   status: noFix
 CompileTimeErrorCode.MACRO_INTERNAL_EXCEPTION:
   status: noFix
+CompileTimeErrorCode.MACRO_NOT_ALLOWED_DECLARATION:
+  status: noFix
 CompileTimeErrorCode.MAIN_FIRST_POSITIONAL_PARAMETER_TYPE:
   status: needsFix
   notes: |-

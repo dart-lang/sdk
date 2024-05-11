@@ -150,6 +150,14 @@ class Options {
   static const char* vm_service_server_ip() { return vm_service_server_ip_; }
   static int vm_service_server_port() { return vm_service_server_port_; }
 
+  // TODO(bkonyi): remove once DartDev moves to AOT and this flag can be
+  // provided directly to the process spawned by `dart run` and `dart test`.
+  //
+  // See https://github.com/dart-lang/sdk/issues/53576
+  static void set_mark_main_isolate_as_system_isolate(bool state) {
+    mark_main_isolate_as_system_isolate_ = state;
+  }
+
   static Dart_KernelCompilationVerbosityLevel verbosity_level() {
     return VerbosityLevelToDartAPI(verbosity_);
   }

@@ -3162,6 +3162,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "{0} {1}",
   );
 
+  ///  Parameters:
+  ///  0: the macro phase
+  ///  1: the list of ranges in the code
+  ///  2: the generated code
+  static const CompileTimeErrorCode MACRO_NOT_ALLOWED_DECLARATION =
+      CompileTimeErrorCode(
+    'MACRO_NOT_ALLOWED_DECLARATION',
+    "The macro attempted to add declaration(s) not allowed during the {0} "
+        "phase.\nLocations: {1}\n---\n{2}\n---",
+    correctionMessage: "Try adding these declaration during an earlier phase.",
+  );
+
   ///  No parameters.
   static const CompileTimeErrorCode MAIN_FIRST_POSITIONAL_PARAMETER_TYPE =
       CompileTimeErrorCode(

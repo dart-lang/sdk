@@ -14,6 +14,7 @@
 #include "bin/exe_utils.h"
 #include "bin/file.h"
 #include "bin/lockers.h"
+#include "bin/main_options.h"
 #include "bin/platform.h"
 #include "bin/process.h"
 #include "include/dart_embedder_api.h"
@@ -160,6 +161,10 @@ void DartDevIsolate::DartDevRunner::DartDevResultCallback(
       auto item3 = GetArrayItem(message, 3);
 
       ASSERT(item3->type == Dart_CObject_kBool);
+      const bool mark_main_isolate_as_system_isolate = item3->value.as_bool;
+      if (mark_main_isolate_as_system_isolate) {
+        Options::set_mark_main_isolate_as_system_isolate(true);
+      }
 
       if (*script_ != nullptr) {
         free(*script_);

@@ -819,7 +819,11 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
     const AllowedExperimentalFlags(
         sdkDefaultExperiments: {},
         sdkLibraryExperiments: {},
-        packageExperiments: {});
+        packageExperiments: {
+      "json": {
+        ExperimentalFlag.macros,
+      },
+    });
 const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
   shared.ExperimentalFlag.classModifiers: ExperimentalFlag.classModifiers,
   shared.ExperimentalFlag.constFunctions: ExperimentalFlag.constFunctions,
