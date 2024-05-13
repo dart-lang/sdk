@@ -24,7 +24,7 @@ Future<void> main(List<String> args) async {
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor<_Data>(
-          const AssignedVariablesDataComputer(), [cfeNonNullableOnlyConfig]));
+          const AssignedVariablesDataComputer(), [defaultCfeConfig]));
 }
 
 class AssignedVariablesDataComputer extends CfeDataComputer<_Data> {

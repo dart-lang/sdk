@@ -16,20 +16,7 @@ Future<void> main(List<String> args) async {
       args: args,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
-      runTest: runTestFor(const StaticTypeDataComputer(),
-          [cfeNoNonNullableConfig, cfeNonNullableConfig]),
-      skipMap: {
-        defaultCfeConfig.marker: [
-          // NNBD-only tests.
-          'constant_from_opt_in',
-          'constant_from_opt_out',
-          'from_opt_in',
-          'from_opt_out',
-          'if_null.dart',
-          'null_check.dart',
-          'never.dart',
-        ]
-      });
+      runTest: runTestFor(const StaticTypeDataComputer(), [defaultCfeConfig]));
 }
 
 class StaticTypeDataComputer extends CfeDataComputer<String> {

@@ -16,8 +16,7 @@ Future<void> main(List<String> args) async {
       args: args,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
-      runTest: runTestFor(
-          const NullabilityDataComputer(), [cfeNonNullableOnlyConfig]));
+      runTest: runTestFor(const NullabilityDataComputer(), [defaultCfeConfig]));
 }
 
 class NullabilityDataComputer extends CfeDataComputer<String> {

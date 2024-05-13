@@ -19,8 +19,8 @@ Future<void> main(List<String> args) async {
       args: args,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
-      runTest: runTestFor(
-          const TypePromotionDataComputer(), [cfeNonNullableOnlyConfig]));
+      runTest:
+          runTestFor(const TypePromotionDataComputer(), [defaultCfeConfig]));
 }
 
 class TypePromotionDataComputer extends CfeDataComputer<DartType> {

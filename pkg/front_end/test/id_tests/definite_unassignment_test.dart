@@ -21,8 +21,8 @@ Future<void> main(List<String> args) async {
       args: args,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
-      runTest: runTestFor(const DefiniteUnassignmentDataComputer(),
-          [cfeNonNullableOnlyConfig]));
+      runTest: runTestFor(
+          const DefiniteUnassignmentDataComputer(), [defaultCfeConfig]));
 }
 
 class DefiniteUnassignmentDataComputer extends CfeDataComputer<String> {

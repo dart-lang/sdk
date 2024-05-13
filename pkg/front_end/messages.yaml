@@ -7409,3 +7409,9 @@ NoMacroApplicationTarget:
 MacroDefinitionApplicationSameLibraryCycle:
   problemMessage: "The macro '#name' can't be applied in the same library cycle where it is defined."
   correctionMessage: Try moving it to a different library that does not import the one where it is applied.
+
+ExperimentExpiredEnabled:
+  problemMessage: "The experiment '#name' has expired and can't be enabled."
+
+ExperimentExpiredDisabled:
+  problemMessage: "The experiment '#name' has expired and can't be disabled."
