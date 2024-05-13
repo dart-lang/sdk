@@ -65,6 +65,16 @@ class FlutterStyleTodosTest extends LintRuleTest {
     );
   }
 
+  test_charactersBeforeTODO() async {
+    await assertNoDiagnostics(
+      r'''
+// comment TODO(user): bla
+/// final todo = Todo(name: 'test todo', description: 'todo description');
+/// Something interesting. TODO(someone): this is an ugly test case.
+''',
+    );
+  }
+
   test_docComment() async {
     await assertDiagnostics(
       r'/// TODO(user): bla',
@@ -106,15 +116,6 @@ class FlutterStyleTodosTest extends LintRuleTest {
       r'//TODO',
       [
         lint(0, 6),
-      ],
-    );
-  }
-
-  test_leadingText() async {
-    await assertDiagnostics(
-      r'// comment TODO(user): bla',
-      [
-        lint(0, 26),
       ],
     );
   }
