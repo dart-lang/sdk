@@ -21,13 +21,13 @@ class CamelCaseTypesTest extends LintRuleTest {
     newFile('$testPackageLibPath/a.dart', r'''
 import augment 'test.dart';
 
-class a { }
+class a {}
 ''');
 
     await assertNoDiagnostics(r'''
 augment library 'a.dart';
 
-augment class a { }
+augment class a {}
 ''');
   }
 
@@ -53,13 +53,13 @@ augment enum e {
     newFile('$testPackageLibPath/a.dart', r'''
 import augment 'test.dart';
 
-extension type et(int i) { }
+extension type et(int i) {}
 ''');
 
     await assertNoDiagnostics(r'''
 augment library 'a.dart';
 
-augment extension type et(int i) { }
+augment extension type et(int i) {}
 ''');
   }
 
@@ -67,13 +67,80 @@ augment extension type et(int i) { }
     newFile('$testPackageLibPath/a.dart', r'''
 import augment 'test.dart';
 
-mixin m { }
+mixin m {}
 ''');
 
     await assertNoDiagnostics(r'''
 augment library 'a.dart';
 
-augment mixin m { }
+augment mixin m {}
+''');
+  }
+
+  test_class_dollar_thenUpperCamel() async {
+    await assertNoDiagnostics(r'''
+class $FooBar
+{}
+''');
+  }
+
+  test_class_lowerCamel() async {
+    await assertDiagnostics(r'''
+class fooBar {}
+''', [
+      lint(6, 6),
+    ]);
+  }
+
+  test_class_upperCamel() async {
+    await assertNoDiagnostics(r'''
+class FooBar {}
+''');
+  }
+
+  test_class_upperCamel_private() async {
+    await assertNoDiagnostics(r'''
+class _Foo {} // ignore: unused_element
+''');
+  }
+
+  test_class_upperCamel_withDollar() async {
+    await assertNoDiagnostics(r'''
+class Foo$Bar {}
+''');
+  }
+
+  test_class_upperCase1() async {
+    await assertNoDiagnostics(r'''
+class A {}
+''');
+  }
+
+  test_class_upperCase2() async {
+    await assertNoDiagnostics(r'''
+class AA {}
+''');
+  }
+
+  test_class_upperSnake() async {
+    await assertDiagnostics(r'''
+class Foo_Bar {}
+''', [
+      lint(6, 7),
+    ]);
+  }
+
+  test_enum_lowerCamel() async {
+    await assertDiagnostics(r'''
+enum foooBar { a }
+''', [
+      lint(5, 7),
+    ]);
+  }
+
+  test_enum_upperCamel() async {
+    await assertNoDiagnostics(r'''
+enum FoooBar { a }
 ''');
   }
 
@@ -95,7 +162,7 @@ extension type FooBar(int i) {}
 
   test_macroClass_lowerCase() async {
     await assertDiagnostics(r'''
-macro class a { }
+macro class a {}
 ''', [
       lint(12, 1),
     ]);
@@ -103,9 +170,56 @@ macro class a { }
 
   test_mixin_lowerCase() async {
     await assertDiagnostics(r'''
-mixin m { }
+mixin m {}
 ''', [
       lint(6, 1),
     ]);
+  }
+
+  test_mixinApplication_lower() async {
+    await assertDiagnostics(r'''
+mixin M {}
+class c = Object with M;
+''', [
+      lint(17, 1),
+    ]);
+  }
+
+  test_typedef_newFormat_lower() async {
+    await assertDiagnostics(r'''
+typedef f = void Function();
+''', [
+      lint(8, 1),
+    ]);
+  }
+
+  test_typedef_newFormat_lowerCamel() async {
+    await assertDiagnostics(r'''
+class Foo {}
+typedef foo = Foo;
+''', [
+      lint(21, 3),
+    ]);
+  }
+
+  test_typedef_newFormat_upperCamel() async {
+    await assertNoDiagnostics(r'''
+class Foo {}
+typedef F = Foo;
+''');
+  }
+
+  test_typedef_oldFormat_lowerCamel() async {
+    await assertDiagnostics(r'''
+typedef bool predicate();
+''', [
+      lint(13, 9),
+    ]);
+  }
+
+  test_typedef_oldFormat_upperCamel() async {
+    await assertNoDiagnostics(r'''
+typedef bool Predicate();
+''');
   }
 }
