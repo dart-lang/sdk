@@ -1380,6 +1380,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           writeElementRequested: augmentationTarget,
         );
       }
+      errorReporter.atNode(
+        node,
+        CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_NOT_SETTER,
+      );
       return PropertyElementResolverResult();
     } else if (node is IndexExpression) {
       var target = node.target;

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -114,6 +115,91 @@ Block
         staticType: int
       semicolon: ;
   rightBracket: }
+''');
+  }
+
+  test_class_setter_inGetter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class A {
+  int foo = 0;
+}
+''');
+
+    await assertErrorsInCode('''
+augment library 'a.dart';
+
+augment class A {
+  augment int get foo {
+    augmented = 0;
+    return 0;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_NOT_SETTER, 73, 9),
+    ]);
+
+    var node = findNode.singleAssignmentExpression;
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: AugmentedExpression
+    augmentedKeyword: augmented
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
+  test_class_setter_inMethod() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class A {
+  void foo() {}
+}
+''');
+
+    await assertErrorsInCode('''
+augment library 'a.dart';
+
+augment class A {
+  augment void foo() {
+    augmented = 0;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_NOT_SETTER, 72, 9),
+    ]);
+
+    var node = findNode.singleAssignmentExpression;
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: AugmentedExpression
+    augmentedKeyword: augmented
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  staticElement: <null>
+  staticType: int
 ''');
   }
 
