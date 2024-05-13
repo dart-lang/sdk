@@ -1912,35 +1912,61 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var augmentation = enclosingAugmentation;
     var augmentationTarget = augmentation?.augmentationTarget;
 
+    void resolveArgumentsOfInvalid() {
+      for (var argument in node.arguments.arguments) {
+        argument.resolveExpression(this, InvalidTypeImpl.instance);
+      }
+    }
+
     // Rewrite invocation of a function-typed getter.
     if (augmentationTarget is PropertyAccessorElementImpl) {
-      if (augmentationTarget.returnType case FunctionType functionType) {
-        var augmentedExpression = AugmentedExpressionImpl(
-          augmentedKeyword: node.augmentedKeyword,
+      if (augmentationTarget.isSetter) {
+        errorReporter.atToken(
+          node.augmentedKeyword,
+          CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER,
         );
-        augmentedExpression.element = augmentationTarget;
-        augmentedExpression.staticType = functionType;
-        var rewrite = FunctionExpressionInvocationImpl(
-          function: augmentedExpression,
-          typeArguments: node.typeArguments,
-          argumentList: node.arguments,
-        );
-        replaceExpression(node, rewrite);
-        flowAnalysis.transferTestData(node, rewrite);
-        _resolveRewrittenFunctionExpressionInvocation(
-            rewrite, whyNotPromotedList,
-            contextType: contextType);
-      } else {
         node.element = augmentationTarget;
         node.staticType = InvalidTypeImpl.instance;
+        resolveArgumentsOfInvalid();
+        return;
+      }
+
+      var result = typePropertyResolver.resolve(
+        receiver: null,
+        receiverType: augmentationTarget.returnType,
+        name: FunctionElement.CALL_METHOD_NAME,
+        propertyErrorEntity: node.augmentedKeyword,
+        nameErrorEntity: node.augmentedKeyword,
+      );
+      var callElement = result.getter;
+      var functionType = callElement?.type ?? result.callFunctionType;
+
+      if (functionType == null) {
         errorReporter.atToken(
           node.augmentedKeyword,
           CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
         );
-        for (var argument in node.arguments.arguments) {
-          argument.resolveExpression(this, InvalidTypeImpl.instance);
-        }
+        node.element = augmentationTarget;
+        node.staticType = InvalidTypeImpl.instance;
+        resolveArgumentsOfInvalid();
+        return;
       }
+
+      var augmentedExpression = AugmentedExpressionImpl(
+        augmentedKeyword: node.augmentedKeyword,
+      );
+      augmentedExpression.element = augmentationTarget;
+      augmentedExpression.staticType = functionType;
+      var rewrite = FunctionExpressionInvocationImpl(
+        function: augmentedExpression,
+        typeArguments: node.typeArguments,
+        argumentList: node.arguments,
+      );
+      replaceExpression(node, rewrite);
+      rewrite.staticElement = callElement;
+      flowAnalysis.transferTestData(node, rewrite);
+      _resolveRewrittenFunctionExpressionInvocation(rewrite, whyNotPromotedList,
+          contextType: contextType);
       return;
     }
 
