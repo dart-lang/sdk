@@ -306,9 +306,16 @@ class ProcessedOptions {
     }
   }
 
+  /// Returns `true` if the options have been validated.
+  bool get haveBeenValidated => _validated;
+
+  bool _validated = false;
+
   /// Runs various validations checks on the input options. For instance,
   /// if an option is a path to a file, it checks that the file exists.
   Future<bool> validateOptions({bool errorOnMissingInput = true}) async {
+    _validated = true;
+
     if (verbose) print(debugString());
 
     if (errorOnMissingInput && inputs.isEmpty) {

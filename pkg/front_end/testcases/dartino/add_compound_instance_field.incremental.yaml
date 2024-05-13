@@ -7,9 +7,9 @@ main.dart.patch: |
 
   class C {
   <<<< ["[instance] is null","v1","[instance.y] threw"]
-    int x;
+    int? x;
   ==== ["v1","v2"]
-    int x, y;
+    int? x, y;
   >>>>
   }
 

@@ -162,6 +162,7 @@ class KernelTarget extends TargetImplementation {
         _options = CompilerContext.current.options,
         ticker = dillTarget.ticker,
         benchmarker = dillTarget.benchmarker {
+    assert(_options.haveBeenValidated, "Options have not been validated");
     loader = createLoader();
   }
 

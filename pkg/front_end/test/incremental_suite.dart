@@ -2570,7 +2570,6 @@ CompilerOptions getOptions({Target? target, String? sdkSummary}) {
   sdkSummary ??= 'vm_platform_strong.dill';
   final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
   CompilerOptions options = new CompilerOptions()
-    ..sdkRoot = sdkRoot
     ..target = target
     ..librariesSpecificationUri = Uri.base.resolve("sdk/lib/libraries.json")
     ..omitPlatform = true

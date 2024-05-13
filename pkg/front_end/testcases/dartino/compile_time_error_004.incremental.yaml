@@ -17,11 +17,11 @@ main.dart.patch: |
   class Class {
   <<<<
   ====
-    A a;
+    A? a;
   >>>>
   }
 
-  void testA(A a) {}
+  void testA(A? a) {}
 
   void main() {
     testA(null);
