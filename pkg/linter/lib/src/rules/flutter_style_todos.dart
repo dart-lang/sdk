@@ -37,7 +37,7 @@ class FlutterStyleTodos extends LintRule {
       'flutter_style_todos', "To-do comment doesn't follow the Flutter style.",
       correctionMessage: 'Try following the Flutter style for to-do comments.');
 
-  static final _todoRegExp = RegExp(r'//+(.* )?TODO\b', caseSensitive: false);
+  static final _todoRegExp = RegExp(r'//+\s*TODO\b', caseSensitive: false);
 
   static final RegExp _todoExpectedRegExp =
       RegExp(r'// TODO\([a-zA-Z0-9][-a-zA-Z0-9\.]*\): ');
