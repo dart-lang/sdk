@@ -1,3 +1,3 @@
-# 0.1.0-wip
+# 0.20.0
 
-- Initial release, adds the JsonCodable macro.
+- Initial preview of JSON encoding and decoding with a JsonCodable macro.
