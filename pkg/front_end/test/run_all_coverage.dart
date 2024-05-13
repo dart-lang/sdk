@@ -111,5 +111,6 @@ Future<void> main() async {
   // force compile everything and that the remaining stuff is (mostly) mixins
   // and const classes etc that shouldn't (necessarily) be compiled but is
   // potentially covered in other ways.
-  coverageMerger.mergeFromDirUri(coverageTmpDir.uri, includeNotCompiled: false);
+  coverageMerger.mergeFromDirUri(
+      repoDirUri.resolve(".dart_tool/package_config.json"), coverageTmpDir.uri);
 }

@@ -44,6 +44,11 @@ abstract class ParserAstNode {
   // TODO(jensj): Compare two ASTs.
 }
 
+abstract class BeginAndEndTokenParserAstNode implements ParserAstNode {
+  Token get beginToken;
+  Token get endToken;
+}
+
 enum ParserAstType { BEGIN, END, HANDLE }
 
 abstract class AbstractParserAstListener implements Listener {
@@ -3141,9 +3146,12 @@ class ArgumentsBegin extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitArgumentsBegin(this);
 }
 
-class ArgumentsEnd extends ParserAstNode {
+class ArgumentsEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
   final int count;
+  @override
   final Token beginToken;
+  @override
   final Token endToken;
 
   ArgumentsEnd(ParserAstType type,
@@ -3161,9 +3169,12 @@ class ArgumentsEnd extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitArgumentsEnd(this);
 }
 
-class ObjectPatternFieldsHandle extends ParserAstNode {
+class ObjectPatternFieldsHandle extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
   final int count;
+  @override
   final Token beginToken;
+  @override
   final Token endToken;
 
   ObjectPatternFieldsHandle(ParserAstType type,
@@ -3213,8 +3224,11 @@ class AwaitExpressionBegin extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitAwaitExpressionBegin(this);
 }
 
-class AwaitExpressionEnd extends ParserAstNode {
+class AwaitExpressionEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
+  @override
   final Token beginToken;
+  @override
   final Token endToken;
 
   AwaitExpressionEnd(ParserAstType type,
@@ -3231,8 +3245,11 @@ class AwaitExpressionEnd extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitAwaitExpressionEnd(this);
 }
 
-class InvalidAwaitExpressionEnd extends ParserAstNode {
+class InvalidAwaitExpressionEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
+  @override
   final Token beginToken;
+  @override
   final Token endToken;
   final MessageCode errorCode;
 
@@ -3270,9 +3287,11 @@ class BlockBegin extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitBlockBegin(this);
 }
 
-class BlockEnd extends ParserAstNode {
+class BlockEnd extends ParserAstNode implements BeginAndEndTokenParserAstNode {
   final int count;
+  @override
   final Token beginToken;
+  @override
   final Token endToken;
   final BlockKind blockKind;
 
@@ -3389,10 +3408,13 @@ class ClassOrMixinOrExtensionBodyBegin extends ParserAstNode {
       v.visitClassOrMixinOrExtensionBodyBegin(this);
 }
 
-class ClassOrMixinOrExtensionBodyEnd extends ParserAstNode {
+class ClassOrMixinOrExtensionBodyEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
   final DeclarationKind kind;
   final int memberCount;
+  @override
   final Token beginToken;
+  @override
   final Token endToken;
 
   ClassOrMixinOrExtensionBodyEnd(ParserAstType type,
@@ -3547,8 +3569,11 @@ class RecoverDeclarationHeaderHandle extends ParserAstNode {
       v.visitRecoverDeclarationHeaderHandle(this);
 }
 
-class ClassDeclarationEnd extends ParserAstNode {
+class ClassDeclarationEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
+  @override
   final Token beginToken;
+  @override
   final Token endToken;
 
   ClassDeclarationEnd(ParserAstType type,
@@ -3636,8 +3661,11 @@ class RecoverMixinHeaderHandle extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitRecoverMixinHeaderHandle(this);
 }
 
-class MixinDeclarationEnd extends ParserAstNode {
+class MixinDeclarationEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
+  @override
   final Token beginToken;
+  @override
   final Token endToken;
 
   MixinDeclarationEnd(ParserAstType type,
@@ -3708,10 +3736,13 @@ class ExtensionDeclarationBegin extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitExtensionDeclarationBegin(this);
 }
 
-class ExtensionDeclarationEnd extends ParserAstNode {
+class ExtensionDeclarationEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
+  @override
   final Token beginToken;
   final Token extensionKeyword;
   final Token? onKeyword;
+  @override
   final Token endToken;
 
   ExtensionDeclarationEnd(ParserAstType type,
@@ -3754,11 +3785,14 @@ class ExtensionTypeDeclarationBegin extends ParserAstNode {
       v.visitExtensionTypeDeclarationBegin(this);
 }
 
-class ExtensionTypeDeclarationEnd extends ParserAstNode {
+class ExtensionTypeDeclarationEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
+  @override
   final Token beginToken;
   final Token? augmentToken;
   final Token extensionKeyword;
   final Token typeKeyword;
+  @override
   final Token endToken;
 
   ExtensionTypeDeclarationEnd(ParserAstType type,
@@ -4093,11 +4127,13 @@ class EnumBegin extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitEnumBegin(this);
 }
 
-class EnumEnd extends ParserAstNode {
+class EnumEnd extends ParserAstNode implements BeginAndEndTokenParserAstNode {
+  @override
   final Token beginToken;
   final Token enumKeyword;
   final Token leftBrace;
   final int memberCount;
+  @override
   final Token endToken;
 
   EnumEnd(ParserAstType type,
@@ -4121,11 +4157,14 @@ class EnumEnd extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitEnumEnd(this);
 }
 
-class EnumConstructorEnd extends ParserAstNode {
+class EnumConstructorEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
   final Token? getOrSet;
+  @override
   final Token beginToken;
   final Token beginParam;
   final Token? beginInitializers;
+  @override
   final Token endToken;
 
   EnumConstructorEnd(ParserAstType type,
@@ -4205,9 +4244,12 @@ class EnumElementHandle extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitEnumElementHandle(this);
 }
 
-class EnumFactoryMethodEnd extends ParserAstNode {
+class EnumFactoryMethodEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
+  @override
   final Token beginToken;
   final Token factoryKeyword;
+  @override
   final Token endToken;
 
   EnumFactoryMethodEnd(ParserAstType type,
@@ -4318,9 +4360,12 @@ class FactoryMethodBegin extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitFactoryMethodBegin(this);
 }
 
-class ClassFactoryMethodEnd extends ParserAstNode {
+class ClassFactoryMethodEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
+  @override
   final Token beginToken;
   final Token factoryKeyword;
+  @override
   final Token endToken;
 
   ClassFactoryMethodEnd(ParserAstType type,
@@ -4340,9 +4385,12 @@ class ClassFactoryMethodEnd extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitClassFactoryMethodEnd(this);
 }
 
-class MixinFactoryMethodEnd extends ParserAstNode {
+class MixinFactoryMethodEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
+  @override
   final Token beginToken;
   final Token factoryKeyword;
+  @override
   final Token endToken;
 
   MixinFactoryMethodEnd(ParserAstType type,
@@ -4362,9 +4410,12 @@ class MixinFactoryMethodEnd extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitMixinFactoryMethodEnd(this);
 }
 
-class ExtensionFactoryMethodEnd extends ParserAstNode {
+class ExtensionFactoryMethodEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
+  @override
   final Token beginToken;
   final Token factoryKeyword;
+  @override
   final Token endToken;
 
   ExtensionFactoryMethodEnd(ParserAstType type,
@@ -4384,9 +4435,12 @@ class ExtensionFactoryMethodEnd extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitExtensionFactoryMethodEnd(this);
 }
 
-class ExtensionTypeFactoryMethodEnd extends ParserAstNode {
+class ExtensionTypeFactoryMethodEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
+  @override
   final Token beginToken;
   final Token factoryKeyword;
+  @override
   final Token endToken;
 
   ExtensionTypeFactoryMethodEnd(ParserAstType type,
@@ -4508,9 +4562,12 @@ class FormalParametersBegin extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitFormalParametersBegin(this);
 }
 
-class FormalParametersEnd extends ParserAstNode {
+class FormalParametersEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
   final int count;
+  @override
   final Token beginToken;
+  @override
   final Token endToken;
   final MemberKind kind;
 
@@ -4533,7 +4590,8 @@ class FormalParametersEnd extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitFormalParametersEnd(this);
 }
 
-class ClassFieldsEnd extends ParserAstNode {
+class ClassFieldsEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
   final Token? abstractToken;
   final Token? augmentToken;
   final Token? externalToken;
@@ -4542,7 +4600,9 @@ class ClassFieldsEnd extends ParserAstNode {
   final Token? lateToken;
   final Token? varFinalOrConst;
   final int count;
+  @override
   final Token beginToken;
+  @override
   final Token endToken;
 
   ClassFieldsEnd(ParserAstType type,
@@ -4576,7 +4636,8 @@ class ClassFieldsEnd extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitClassFieldsEnd(this);
 }
 
-class MixinFieldsEnd extends ParserAstNode {
+class MixinFieldsEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
   final Token? abstractToken;
   final Token? augmentToken;
   final Token? externalToken;
@@ -4585,7 +4646,9 @@ class MixinFieldsEnd extends ParserAstNode {
   final Token? lateToken;
   final Token? varFinalOrConst;
   final int count;
+  @override
   final Token beginToken;
+  @override
   final Token endToken;
 
   MixinFieldsEnd(ParserAstType type,
@@ -4619,7 +4682,8 @@ class MixinFieldsEnd extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitMixinFieldsEnd(this);
 }
 
-class ExtensionFieldsEnd extends ParserAstNode {
+class ExtensionFieldsEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
   final Token? abstractToken;
   final Token? augmentToken;
   final Token? externalToken;
@@ -4628,7 +4692,9 @@ class ExtensionFieldsEnd extends ParserAstNode {
   final Token? lateToken;
   final Token? varFinalOrConst;
   final int count;
+  @override
   final Token beginToken;
+  @override
   final Token endToken;
 
   ExtensionFieldsEnd(ParserAstType type,
@@ -4662,7 +4728,8 @@ class ExtensionFieldsEnd extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitExtensionFieldsEnd(this);
 }
 
-class ExtensionTypeFieldsEnd extends ParserAstNode {
+class ExtensionTypeFieldsEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
   final Token? abstractToken;
   final Token? augmentToken;
   final Token? externalToken;
@@ -4671,7 +4738,9 @@ class ExtensionTypeFieldsEnd extends ParserAstNode {
   final Token? lateToken;
   final Token? varFinalOrConst;
   final int count;
+  @override
   final Token beginToken;
+  @override
   final Token endToken;
 
   ExtensionTypeFieldsEnd(ParserAstType type,
@@ -4705,7 +4774,8 @@ class ExtensionTypeFieldsEnd extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitExtensionTypeFieldsEnd(this);
 }
 
-class EnumFieldsEnd extends ParserAstNode {
+class EnumFieldsEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
   final Token? abstractToken;
   final Token? augmentToken;
   final Token? externalToken;
@@ -4714,7 +4784,9 @@ class EnumFieldsEnd extends ParserAstNode {
   final Token? lateToken;
   final Token? varFinalOrConst;
   final int count;
+  @override
   final Token beginToken;
+  @override
   final Token endToken;
 
   EnumFieldsEnd(ParserAstType type,
@@ -4748,11 +4820,14 @@ class EnumFieldsEnd extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitEnumFieldsEnd(this);
 }
 
-class EnumMethodEnd extends ParserAstNode {
+class EnumMethodEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
   final Token? getOrSet;
+  @override
   final Token beginToken;
   final Token beginParam;
   final Token? beginInitializers;
+  @override
   final Token endToken;
 
   EnumMethodEnd(ParserAstType type,
@@ -5114,9 +5189,12 @@ class BlockFunctionBodyBegin extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitBlockFunctionBodyBegin(this);
 }
 
-class BlockFunctionBodyEnd extends ParserAstNode {
+class BlockFunctionBodyEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
   final int count;
+  @override
   final Token beginToken;
+  @override
   final Token endToken;
 
   BlockFunctionBodyEnd(ParserAstType type,
@@ -5915,9 +5993,12 @@ class InitializersBegin extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitInitializersBegin(this);
 }
 
-class InitializersEnd extends ParserAstNode {
+class InitializersEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
   final int count;
+  @override
   final Token beginToken;
+  @override
   final Token endToken;
 
   InitializersEnd(ParserAstType type,
@@ -6292,11 +6373,14 @@ class MethodBegin extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitMethodBegin(this);
 }
 
-class ClassMethodEnd extends ParserAstNode {
+class ClassMethodEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
   final Token? getOrSet;
+  @override
   final Token beginToken;
   final Token beginParam;
   final Token? beginInitializers;
+  @override
   final Token endToken;
 
   ClassMethodEnd(ParserAstType type,
@@ -6320,11 +6404,14 @@ class ClassMethodEnd extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitClassMethodEnd(this);
 }
 
-class MixinMethodEnd extends ParserAstNode {
+class MixinMethodEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
   final Token? getOrSet;
+  @override
   final Token beginToken;
   final Token beginParam;
   final Token? beginInitializers;
+  @override
   final Token endToken;
 
   MixinMethodEnd(ParserAstType type,
@@ -6348,11 +6435,14 @@ class MixinMethodEnd extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitMixinMethodEnd(this);
 }
 
-class ExtensionMethodEnd extends ParserAstNode {
+class ExtensionMethodEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
   final Token? getOrSet;
+  @override
   final Token beginToken;
   final Token beginParam;
   final Token? beginInitializers;
+  @override
   final Token endToken;
 
   ExtensionMethodEnd(ParserAstType type,
@@ -6376,11 +6466,14 @@ class ExtensionMethodEnd extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitExtensionMethodEnd(this);
 }
 
-class ExtensionTypeMethodEnd extends ParserAstNode {
+class ExtensionTypeMethodEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
   final Token? getOrSet;
+  @override
   final Token beginToken;
   final Token beginParam;
   final Token? beginInitializers;
+  @override
   final Token endToken;
 
   ExtensionTypeMethodEnd(ParserAstType type,
@@ -6404,11 +6497,14 @@ class ExtensionTypeMethodEnd extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitExtensionTypeMethodEnd(this);
 }
 
-class ClassConstructorEnd extends ParserAstNode {
+class ClassConstructorEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
   final Token? getOrSet;
+  @override
   final Token beginToken;
   final Token beginParam;
   final Token? beginInitializers;
+  @override
   final Token endToken;
 
   ClassConstructorEnd(ParserAstType type,
@@ -6432,11 +6528,14 @@ class ClassConstructorEnd extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitClassConstructorEnd(this);
 }
 
-class MixinConstructorEnd extends ParserAstNode {
+class MixinConstructorEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
   final Token? getOrSet;
+  @override
   final Token beginToken;
   final Token beginParam;
   final Token? beginInitializers;
+  @override
   final Token endToken;
 
   MixinConstructorEnd(ParserAstType type,
@@ -6460,11 +6559,14 @@ class MixinConstructorEnd extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitMixinConstructorEnd(this);
 }
 
-class ExtensionConstructorEnd extends ParserAstNode {
+class ExtensionConstructorEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
   final Token? getOrSet;
+  @override
   final Token beginToken;
   final Token beginParam;
   final Token? beginInitializers;
+  @override
   final Token endToken;
 
   ExtensionConstructorEnd(ParserAstType type,
@@ -6488,11 +6590,14 @@ class ExtensionConstructorEnd extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitExtensionConstructorEnd(this);
 }
 
-class ExtensionTypeConstructorEnd extends ParserAstNode {
+class ExtensionTypeConstructorEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
   final Token? getOrSet;
+  @override
   final Token beginToken;
   final Token beginParam;
   final Token? beginInitializers;
+  @override
   final Token endToken;
 
   ExtensionTypeConstructorEnd(ParserAstType type,
@@ -6562,9 +6667,12 @@ class MetadataBegin extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitMetadataBegin(this);
 }
 
-class MetadataEnd extends ParserAstNode {
+class MetadataEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
+  @override
   final Token beginToken;
   final Token? periodBeforeName;
+  @override
   final Token endToken;
 
   MetadataEnd(ParserAstType type,
@@ -6598,9 +6706,12 @@ class OptionalFormalParametersBegin extends ParserAstNode {
       v.visitOptionalFormalParametersBegin(this);
 }
 
-class OptionalFormalParametersEnd extends ParserAstNode {
+class OptionalFormalParametersEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
   final int count;
+  @override
   final Token beginToken;
+  @override
   final Token endToken;
 
   OptionalFormalParametersEnd(ParserAstType type,
@@ -6707,8 +6818,11 @@ class RedirectingFactoryBodyBegin extends ParserAstNode {
       v.visitRedirectingFactoryBodyBegin(this);
 }
 
-class RedirectingFactoryBodyEnd extends ParserAstNode {
+class RedirectingFactoryBodyEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
+  @override
   final Token beginToken;
+  @override
   final Token endToken;
 
   RedirectingFactoryBodyEnd(ParserAstType type,
@@ -6830,9 +6944,12 @@ class ExpressionFunctionBodyHandle extends ParserAstNode {
       v.visitExpressionFunctionBodyHandle(this);
 }
 
-class ReturnStatementEnd extends ParserAstNode {
+class ReturnStatementEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
   final bool hasExpression;
+  @override
   final Token beginToken;
+  @override
   final Token endToken;
 
   ReturnStatementEnd(ParserAstType type,
@@ -6852,8 +6969,11 @@ class ReturnStatementEnd extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitReturnStatementEnd(this);
 }
 
-class SendHandle extends ParserAstNode {
+class SendHandle extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
+  @override
   final Token beginToken;
+  @override
   final Token endToken;
 
   SendHandle(ParserAstType type,
@@ -6981,9 +7101,12 @@ class SwitchBlockBegin extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitSwitchBlockBegin(this);
 }
 
-class SwitchBlockEnd extends ParserAstNode {
+class SwitchBlockEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
   final int caseCount;
+  @override
   final Token beginToken;
+  @override
   final Token endToken;
 
   SwitchBlockEnd(ParserAstType type,
@@ -7018,9 +7141,12 @@ class SwitchExpressionBlockBegin extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitSwitchExpressionBlockBegin(this);
 }
 
-class SwitchExpressionBlockEnd extends ParserAstNode {
+class SwitchExpressionBlockEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
   final int caseCount;
+  @override
   final Token beginToken;
+  @override
   final Token endToken;
 
   SwitchExpressionBlockEnd(ParserAstType type,
@@ -7210,7 +7336,8 @@ class FieldsBegin extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitFieldsBegin(this);
 }
 
-class TopLevelFieldsEnd extends ParserAstNode {
+class TopLevelFieldsEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
   final Token? augmentToken;
   final Token? externalToken;
   final Token? staticToken;
@@ -7218,7 +7345,9 @@ class TopLevelFieldsEnd extends ParserAstNode {
   final Token? lateToken;
   final Token? varFinalOrConst;
   final int count;
+  @override
   final Token beginToken;
+  @override
   final Token endToken;
 
   TopLevelFieldsEnd(ParserAstType type,
@@ -7270,9 +7399,12 @@ class TopLevelMethodBegin extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitTopLevelMethodBegin(this);
 }
 
-class TopLevelMethodEnd extends ParserAstNode {
+class TopLevelMethodEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
+  @override
   final Token beginToken;
   final Token? getOrSet;
+  @override
   final Token endToken;
 
   TopLevelMethodEnd(ParserAstType type,
@@ -7664,9 +7796,12 @@ class TypeArgumentsBegin extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitTypeArgumentsBegin(this);
 }
 
-class TypeArgumentsEnd extends ParserAstNode {
+class TypeArgumentsEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
   final int count;
+  @override
   final Token beginToken;
+  @override
   final Token endToken;
 
   TypeArgumentsEnd(ParserAstType type,
@@ -7787,8 +7922,11 @@ class TypeVariablesBegin extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitTypeVariablesBegin(this);
 }
 
-class TypeVariablesEnd extends ParserAstNode {
+class TypeVariablesEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
+  @override
   final Token beginToken;
+  @override
   final Token endToken;
 
   TypeVariablesEnd(ParserAstType type,
@@ -7820,8 +7958,11 @@ class FunctionExpressionBegin extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitFunctionExpressionBegin(this);
 }
 
-class FunctionExpressionEnd extends ParserAstNode {
+class FunctionExpressionEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
+  @override
   final Token beginToken;
+  @override
   final Token endToken;
 
   FunctionExpressionEnd(ParserAstType type,
@@ -9573,9 +9714,12 @@ class YieldStatementEnd extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitYieldStatementEnd(this);
 }
 
-class InvalidYieldStatementEnd extends ParserAstNode {
+class InvalidYieldStatementEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
+  @override
   final Token beginToken;
   final Token? starToken;
+  @override
   final Token endToken;
   final MessageCode errorCode;
 

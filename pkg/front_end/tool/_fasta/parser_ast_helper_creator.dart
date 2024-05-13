@@ -82,6 +82,11 @@ abstract class ParserAstNode {
   // TODO(jensj): Compare two ASTs.
 }
 
+abstract class BeginAndEndTokenParserAstNode implements ParserAstNode {
+  Token get beginToken;
+  Token get endToken;
+}
+
 enum ParserAstType { BEGIN, END, HANDLE }
 
 abstract class AbstractParserAstListener implements Listener {
@@ -230,12 +235,19 @@ class ParserCreatorListener extends Listener {
         sb.write("$className data = new $className(");
         sb.write("ParserAstType.");
         sb.write(typeString);
+
+        Set<String> nonQuestionParametersSet = {};
+
         for (int i = 0; i < parameters.length; i++) {
           Parameter param = parameters[i];
           sb.write(', ');
           sb.write(param.name);
           sb.write(': ');
           sb.write(param.name);
+
+          if (!param.hasQuestion) {
+            nonQuestionParametersSet.add("${param.type} ${param.name}");
+          }
         }
 
         sb.write(");");
@@ -243,11 +255,26 @@ class ParserCreatorListener extends Listener {
         sb.write("seen(data);");
         sb.write("\n  ");
 
-        newClasses.write("class ${name}${typeStringCamel} "
-            "extends ParserAstNode {\n");
+        bool markBeginAndEndTokens = false;
+        if (nonQuestionParametersSet.contains("Token beginToken") &&
+            nonQuestionParametersSet.contains("Token endToken")) {
+          newClasses.write("class ${name}${typeStringCamel} "
+              "extends ParserAstNode "
+              "implements BeginAndEndTokenParserAstNode {\n");
+          markBeginAndEndTokens = true;
+        } else {
+          newClasses.write("class ${name}${typeStringCamel} "
+              "extends ParserAstNode {\n");
+        }
 
         for (int i = 0; i < parameters.length; i++) {
           Parameter param = parameters[i];
+          if (markBeginAndEndTokens &&
+              !param.hasQuestion &&
+              param.type == "Token" &&
+              (param.name == "beginToken" || param.name == "endToken")) {
+            newClasses.writeln("  @override");
+          }
           newClasses.write("  final ");
           newClasses.write(param.type);
           newClasses.write(param.hasQuestion ? '?' : '');

@@ -175,6 +175,7 @@ bof
 bom
 bones
 bookkeeping
+bools
 bootstrap
 bother
 boundarykey
@@ -804,6 +805,7 @@ idle
 idn
 ids
 idx
+if's
 iff
 il
 illegally
@@ -1168,6 +1170,7 @@ opens
 operate
 operating
 opt
+optimal
 optimizations
 opting
 opts
@@ -1348,6 +1351,7 @@ quad
 qualify
 quantified
 queries
+questions
 quick
 quit
 quiver
