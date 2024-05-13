@@ -194,6 +194,37 @@ void f() {
 ''');
   }
 
+  test_importedStatic_deferred() async {
+    newFile('$testPackageLibPath/b.dart', r'''
+class C {
+static bool isB(Object o) => true;
+}
+''');
+    await assertNoDiagnostics(r'''
+import 'b.dart' deferred as b;
+
+void f() {
+  [].where((o) => b.C.isB(o));
+}
+
+''');
+  }
+
+  test_importedTearoff_deferred() async {
+    newFile('$testPackageLibPath/b.dart', r'''
+bool isB(Object o) => true;
+final isB2 = isB;
+''');
+    await assertNoDiagnostics(r'''
+import 'b.dart' deferred as b;
+
+void f() {
+  [].where((o) => b.isB2(o));
+}
+
+''');
+  }
+
   test_matchingArg_dynamicParameterToOtherArg_named() async {
     await assertNoDiagnostics(r'''
 var x = f(fn: (s) => count(s));

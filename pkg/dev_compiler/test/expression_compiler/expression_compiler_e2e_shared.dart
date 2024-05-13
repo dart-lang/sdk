@@ -284,8 +284,6 @@ main() {
 ''';
 
 /// Shared tests that require a language version >=2.12.0 <2.17.0.
-// TODO(nshahan) Merge with [runAgnosticSharedTests] after we no longer need to
-// test support for evaluation in legacy (pre-null safety) code.
 void runNullSafeSharedTests(
     SetupCompilerOptions setup, ExpressionEvaluationTestDriver driver) {
   group('JS interop', () {

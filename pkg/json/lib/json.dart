@@ -8,8 +8,9 @@ import 'dart:async';
 
 import 'package:macros/macros.dart';
 
-/// A macro which adds a `fromJson(Map<String, Object?> json)` constructor and
-/// a `Map<String, Object?> toJson()` method to a class.
+/// A macro which adds a `fromJson(Map<String, Object?> json)` JSON decoding
+/// constructor, and a `Map<String, Object?> toJson()` JSON encoding method to a
+/// class.
 ///
 /// To use this macro, annotate your class with `@JsonCodable()` and enable the
 /// macros experiment (see README.md for full instructions).
@@ -19,7 +20,8 @@ import 'package:macros/macros.dart';
 /// the maps that they are being decoded from.
 ///
 /// If extending any class other than [Object], then the super class is expected
-/// to also have a corresponding `toJson` method and `fromJson` constructor.
+/// to also have a corresponding `toJson` method and `fromJson` constructor
+/// (possibly via those classes also using the macro).
 ///
 /// Annotated classes are not allowed to have a manually defined `toJson` method
 /// or `fromJson` constructor.
@@ -59,7 +61,8 @@ macro class JsonCodable
   }
 }
 
-/// A macro which adds a `Map<String, Object?> toJson()` method to a class.
+/// A macro which adds a `Map<String, Object?> toJson()` JSON encoding method to
+/// a class.
 ///
 /// To use this macro, annotate your class with `@JsonEncodable()` and enable
 /// the macros experiment (see README.md for full instructions).
@@ -97,8 +100,8 @@ macro class JsonEncodable
   }
 }
 
-/// A macro which adds a `fromJson(Map<String, Object?> json)` constructor to a
-/// class.
+/// A macro which adds a `fromJson(Map<String, Object?> json)` JSON decoding
+/// constructor to a class.
 ///
 /// To use this macro, annotate your class with `@JsonDecodable()` and enable
 /// the macros experiment (see README.md for full instructions).

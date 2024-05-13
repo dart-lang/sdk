@@ -199,6 +199,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var parameters = nodeToLintParams.map((e) => e.declaredElement).toSet();
     if (node is FunctionExpressionInvocation) {
+      if (node.function.mightBeDeferred) return;
+
       // TODO(pq): consider checking for assignability
       // see: https://github.com/dart-lang/linter/issues/1561
       var checker = _FinalExpressionChecker(parameters);
@@ -206,13 +208,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         rule.reportLint(nodeToLint);
       }
     } else if (node is MethodInvocation) {
-      var target = node.target;
-      if (target is SimpleIdentifier) {
-        var element = target.staticElement;
-        if (element is PrefixElement) {
-          if (element.imports.any((e) => e.isDeferred)) return;
-        }
-      }
+      if (node.target.mightBeDeferred) return;
 
       var tearoffType = node.staticInvokeType;
       if (tearoffType == null) return;
@@ -239,8 +235,17 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 }
 
-extension on LibraryImportElement {
-  bool get isDeferred => prefix is DeferredImportElementPrefix;
+extension on Expression? {
+  bool get mightBeDeferred {
+    var self = this;
+    var element = switch (self) {
+      PrefixedIdentifier() => self.prefix.staticElement,
+      SimpleIdentifier() => self.staticElement,
+      _ => null,
+    };
+    return element is PrefixElement &&
+        element.imports.any((e) => e.prefix is DeferredImportElementPrefix);
+  }
 }
 
 extension on Element? {
