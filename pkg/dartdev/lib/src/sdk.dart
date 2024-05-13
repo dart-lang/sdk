@@ -148,17 +148,9 @@ class Sdk {
     if (!Directory(snapshotsDir).existsSync()) {
       // This is the less common case where the user is in
       // the checked out Dart SDK, and is executing `dart` via:
-      // ./out/ReleaseX64/dart ...
-      // We confirm in a similar manner with the gen directory existence
-      // and then return the correct sdk path:
-      final altPath = path.absolute(path.dirname(Platform.resolvedExecutable));
-      final genPath = path.join(altPath, 'gen');
-      if (Directory(genPath).existsSync()) {
-        sdkPath = altPath;
-        runFromBuildRoot = true;
-      }
-      // If that snapshot dir does not exist either,
-      // we use the first guess anyway.
+      // ./out/ReleaseX64/dart ... or in google3.
+      sdkPath = path.absolute(path.dirname(Platform.resolvedExecutable));
+      runFromBuildRoot = true;
     }
 
     // Defer to [Runtime] for the version.
