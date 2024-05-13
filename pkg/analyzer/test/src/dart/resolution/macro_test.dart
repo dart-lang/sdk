@@ -454,6 +454,78 @@ class A {
     ]);
   }
 
+  test_diagnostic_report_atTypeAnnotation_class_constructor_formalParameter_positional_super_typed() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+class A {
+  final int foo;
+  A(int this.foo);
+}
+
+class B extends A {
+  @ReportAtTypeAnnotation([
+    'positionalFormalParameterType 0',
+  ])
+  B(int super.foo);
+}
+''', [
+      error(WarningCode.MACRO_WARNING, 172, 3),
+    ]);
+  }
+
+  test_diagnostic_report_atTypeAnnotation_class_constructor_formalParameter_positional_super_untyped() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+class A {
+  final int foo;
+  A(int this.foo);
+}
+
+class B extends A {
+  @ReportAtTypeAnnotation([
+    'positionalFormalParameterType 0',
+  ])
+  B(super.foo);
+}
+''', [
+      error(WarningCode.MACRO_WARNING, 178, 3),
+    ]);
+  }
+
+  test_diagnostic_report_atTypeAnnotation_class_constructor_formalParameter_positional_this_typed() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+class A {
+  final int foo;
+  @ReportAtTypeAnnotation([
+    'positionalFormalParameterType 0',
+  ])
+  A(int this.foo);
+}
+''', [
+      error(WarningCode.MACRO_WARNING, 130, 3),
+    ]);
+  }
+
+  test_diagnostic_report_atTypeAnnotation_class_constructor_formalParameter_positional_this_untyped() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+class A {
+  final int foo;
+  @ReportAtTypeAnnotation([
+    'positionalFormalParameterType 0',
+  ])
+  A(this.foo);
+}
+''', [
+      error(WarningCode.MACRO_WARNING, 135, 3),
+    ]);
+  }
+
   test_diagnostic_report_atTypeAnnotation_class_extends() async {
     await assertErrorsInCode('''
 import 'diagnostic.dart';

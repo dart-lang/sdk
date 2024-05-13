@@ -1723,6 +1723,8 @@ class DeclarationBuilderFromNode {
         typeAnnotation = _typeAnnotationVariable(node.type, element, location);
       case ast.SimpleFormalParameter():
         typeAnnotation = _typeAnnotationVariable(node.type, element, location);
+      case ast.SuperFormalParameter():
+        typeAnnotation = _typeAnnotationVariable(node.type, element, location);
       default:
         throw UnimplementedError('(${node.runtimeType}) $node');
     }

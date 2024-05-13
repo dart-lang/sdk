@@ -143,6 +143,7 @@ import 'package:macros/macros.dart';
 /*macro*/ class ReportAtTypeAnnotation
     implements
         ClassDeclarationsMacro,
+        ConstructorDeclarationsMacro,
         FunctionDeclarationsMacro,
         FieldDeclarationsMacro,
         MethodDeclarationsMacro,
@@ -154,6 +155,11 @@ import 'package:macros/macros.dart';
 
   @override
   buildDeclarationsForClass(declaration, builder) async {
+    await _report(declaration, builder);
+  }
+
+  @override
+  buildDeclarationsForConstructor(declaration, builder) async {
     await _report(declaration, builder);
   }
 
@@ -201,6 +207,15 @@ import 'package:macros/macros.dart';
     if (current is ClassDeclaration) {
       if (step == 'superclass') {
         return current.superclass!;
+      }
+    }
+
+    if (current is ConstructorDeclaration) {
+      if (_verbIndex(step, 'namedFormalParameterType') case var index?) {
+        return current.namedParameters.elementAt(index).type;
+      }
+      if (_verbIndex(step, 'positionalFormalParameterType') case var index?) {
+        return current.positionalParameters.elementAt(index).type;
       }
     }
 
