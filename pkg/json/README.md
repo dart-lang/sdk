@@ -1,8 +1,12 @@
-This package provides an experimental macro that encodes and decodes
-user-defined Dart classes to JSON maps (maps of type `Map<String, Object?>`).
+This package supports easy encoding and decoding of JSON maps (maps of type
+`Map<String, Object?>`). It relies on a macro, that when applied to a
+user-defined Dart class, auto-generates a `fromJson` decoding constructor
+and a `toJson` encoding method.
 
-This relies on the experimental macros language feature, and as such may be
-unstable or have breaking changes if the feature changes.
+Both the package itself, and the underlying macros language feature, are
+considered experimental. Thus they have incomplete functionality, may be
+unstable, have breaking changes as the feature evolves, and are not suitable for
+production code.
 
 ## Applying the JsonCodable macro
 
@@ -30,9 +34,10 @@ class User {
 }
 ```
 
-Each non-nullable field in the annotated class must have an entry with the same name in the `json` map, but
-nullable fields are allowed to have no key at all. The `toJson` will omit null
-fields entirely from the map, and will not contain explicit null entries.
+Each non-nullable field in the annotated class must have an entry with the same
+name in the `json` map, but nullable fields are allowed to have no key at all.
+The `toJson` will omit null fields entirely from the map, and will not contain
+explicit null entries.
 
 ### Extending other classes
 
@@ -65,7 +70,8 @@ future.
 
 ## Configuration
 
-Macro configuration is a feature we intend to add, but it is not available at this time.
+Macro configuration is a feature we intend to add, but it is not available at
+this time.
 
 Because of this, field names must exactly match the keys in the maps, and
 default values are not supported.
@@ -88,6 +94,6 @@ analyzer:
 
 Note that `dart run` is a little bit special, in that the option must come
 _immediately_ following `dart` and before `run` - this is because it is an
-option to the Dart VM, and not the Dart script itself. For example,
-`dart --enable-experiment=macros run bin/my_script.dart`. This is also how the
-`test` package expects to be invoked, so `dart --enable-experiment=macros test`.
+option to the Dart VM, and not the Dart script itself. For example, `dart
+--enable-experiment=macros run bin/my_script.dart`. This is also how the `test`
+package expects to be invoked, so `dart --enable-experiment=macros test`.
