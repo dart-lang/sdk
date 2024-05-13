@@ -214,6 +214,38 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the lexeme of the modifier.
+  static const CompileTimeErrorCode AUGMENTATION_MODIFIER_EXTRA =
+      CompileTimeErrorCode(
+    'AUGMENTATION_MODIFIER_EXTRA',
+    "The augmentation has the '{0}' modifier that the declaration doesn't "
+        "have.",
+    correctionMessage:
+        "Try removing the '{0}' modifier, or adding it to the declaration.",
+  );
+
+  ///  Parameters:
+  ///  0: the lexeme of the modifier.
+  static const CompileTimeErrorCode AUGMENTATION_MODIFIER_MISSING =
+      CompileTimeErrorCode(
+    'AUGMENTATION_MODIFIER_MISSING',
+    "The augmentation is missing the '{0}' modifier that the declaration has.",
+    correctionMessage:
+        "Try adding the '{0}' modifier, or removing it from the declaration.",
+  );
+
+  ///  Parameters:
+  ///  0: the name of the declaration kind.
+  ///  1: the name of the augmentation kind.
+  static const CompileTimeErrorCode AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND =
+      CompileTimeErrorCode(
+    'AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND',
+    "Can't augment a {0} with a {1}.",
+    correctionMessage:
+        "Try changing the augmentation to match the declaration kind.",
+  );
+
   static const CompileTimeErrorCode AUGMENTATION_WITHOUT_DECLARATION =
       CompileTimeErrorCode(
     'AUGMENTATION_WITHOUT_DECLARATION',
@@ -235,7 +267,23 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'AUGMENTATION_WITHOUT_LIBRARY',
     "The URI does not resolve to a library.",
     correctionMessage:
-        "Try updating the URI to reference the augmented library",
+        "Try updating the URI to reference the augmented library.",
+  );
+
+  static const CompileTimeErrorCode AUGMENTED_EXPRESSION_IS_SETTER =
+      CompileTimeErrorCode(
+    'AUGMENTED_EXPRESSION_IS_SETTER',
+    "The augmented declaration is a setter, it can't be used to read a value.",
+    correctionMessage: "Try assigning a value to the augmented setter.",
+  );
+
+  ///  Parameters:
+  ///  0: the lexeme of the operator.
+  static const CompileTimeErrorCode AUGMENTED_EXPRESSION_NOT_OPERATOR =
+      CompileTimeErrorCode(
+    'AUGMENTED_EXPRESSION_NOT_OPERATOR',
+    "The enclosing augmentation doesn't augment the operator '{0}'.",
+    correctionMessage: "Try augmenting or invoking the correct operator.",
   );
 
   ///  No parameters.
@@ -896,6 +944,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "The assertion in this constant expression failed.",
   );
 
+  ///  Parameters:
+  ///  0: the message of the assertion
+  static const CompileTimeErrorCode CONST_EVAL_ASSERTION_FAILURE_WITH_MESSAGE =
+      CompileTimeErrorCode(
+    'CONST_EVAL_ASSERTION_FAILURE_WITH_MESSAGE',
+    "An assertion failed with message '{0}'.",
+  );
+
   static const CompileTimeErrorCode CONST_EVAL_EXTENSION_METHOD =
       CompileTimeErrorCode(
     'CONST_EVAL_EXTENSION_METHOD',
@@ -949,18 +1005,17 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "IntegerDivisionByZeroException.",
   );
 
-  ///  16.12.2 Const: An expression of one of the forms !e, e1 && e2 or e1 || e2,
-  ///  where e, e1 and e2 are constant expressions that evaluate to a boolean
-  ///  value.
+  ///  See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
+  ///  for text about "An expression of the form !e1", "An expression of the form
+  ///  e1 && e2", and "An expression of the form e1 || e2".
   static const CompileTimeErrorCode CONST_EVAL_TYPE_BOOL = CompileTimeErrorCode(
     'CONST_EVAL_TYPE_BOOL',
     "In constant expressions, operands of this operator must be of type "
         "'bool'.",
   );
 
-  ///  16.12.2 Const: An expression of one of the forms !e, e1 && e2 or e1 || e2,
-  ///  where e, e1 and e2 are constant expressions that evaluate to a boolean
-  ///  value.
+  ///  See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
+  ///  for text about "An expression of the form e1 & e2".
   static const CompileTimeErrorCode CONST_EVAL_TYPE_BOOL_INT =
       CompileTimeErrorCode(
     'CONST_EVAL_TYPE_BOOL_INT',
@@ -968,9 +1023,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "or 'int'.",
   );
 
-  ///  16.12.2 Const: An expression of one of the forms e1 == e2 or e1 != e2 where
-  ///  e1 and e2 are constant expressions that evaluate to a numeric, string or
-  ///  boolean value or to null.
+  ///  See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
+  ///  for text about "A literal string".
   static const CompileTimeErrorCode CONST_EVAL_TYPE_BOOL_NUM_STRING =
       CompileTimeErrorCode(
     'CONST_EVAL_TYPE_BOOL_NUM_STRING',
@@ -978,21 +1032,28 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "'bool', 'num', 'String' or 'null'.",
   );
 
-  ///  16.12.2 Const: An expression of one of the forms ~e, e1 ^ e2, e1 & e2,
-  ///  e1 | e2, e1 >> e2 or e1 << e2, where e, e1 and e2 are constant expressions
-  ///  that evaluate to an integer value or to null.
+  ///  See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
+  ///  for text about "An expression of the form ~e1", "An expression of one of
+  ///  the forms e1 >> e2".
   static const CompileTimeErrorCode CONST_EVAL_TYPE_INT = CompileTimeErrorCode(
     'CONST_EVAL_TYPE_INT',
     "In constant expressions, operands of this operator must be of type 'int'.",
   );
 
-  ///  16.12.2 Const: An expression of one of the forms e, e1 + e2, e1 - e2, e1
-  ///  e2, e1 / e2, e1 ~/ e2, e1 > e2, e1 < e2, e1 >= e2, e1 <= e2 or e1 % e2,
-  ///  where e, e1 and e2 are constant expressions that evaluate to a numeric
-  ///  value or to null.
+  ///  See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
+  ///  for text about "An expression of the form e1 - e2".
   static const CompileTimeErrorCode CONST_EVAL_TYPE_NUM = CompileTimeErrorCode(
     'CONST_EVAL_TYPE_NUM',
     "In constant expressions, operands of this operator must be of type 'num'.",
+  );
+
+  ///  See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
+  ///  for text about "An expression of the form e1 + e2".
+  static const CompileTimeErrorCode CONST_EVAL_TYPE_NUM_STRING =
+      CompileTimeErrorCode(
+    'CONST_EVAL_TYPE_NUM_STRING',
+    "In constant expressions, operands of this operator must be of type 'num' "
+        "or 'String'.",
   );
 
   ///  No parameters.
@@ -1434,6 +1495,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "Mixins applied to enums can't have instance variables.",
     correctionMessage: "Try replacing the instance variables with getters.",
     hasPublishedDocs: true,
+  );
+
+  static const CompileTimeErrorCode ENUM_WITHOUT_CONSTANTS =
+      CompileTimeErrorCode(
+    'ENUM_WITHOUT_CONSTANTS',
+    "The enum must have at least one constant.",
+    correctionMessage: "Try declaring a constant.",
   );
 
   ///  Parameters:
@@ -2076,10 +2144,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND =
       CompileTimeErrorCode(
     'GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND',
-    "Generic function types can't be used as type parameter bounds",
+    "Generic function types can't be used as type parameter bounds.",
     correctionMessage:
         "Try making the free variable in the function type part of the larger "
-        "declaration signature",
+        "declaration signature.",
   );
 
   ///  It is a compile-time error if a generic function type is used as an actual
@@ -3094,6 +3162,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "{0} {1}",
   );
 
+  ///  Parameters:
+  ///  0: the macro phase
+  ///  1: the list of ranges in the code
+  ///  2: the generated code
+  static const CompileTimeErrorCode MACRO_NOT_ALLOWED_DECLARATION =
+      CompileTimeErrorCode(
+    'MACRO_NOT_ALLOWED_DECLARATION',
+    "The macro attempted to add declaration(s) not allowed during the {0} "
+        "phase.\nLocations: {1}\n---\n{2}\n---",
+    correctionMessage: "Try adding these declaration during an earlier phase.",
+  );
+
   ///  No parameters.
   static const CompileTimeErrorCode MAIN_FIRST_POSITIONAL_PARAMETER_TYPE =
       CompileTimeErrorCode(
@@ -3777,6 +3857,26 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "keyword 'deferred' from the import.",
     hasPublishedDocs: true,
     uniqueName: 'NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY',
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode NON_CONSTANT_RECORD_FIELD =
+      CompileTimeErrorCode(
+    'NON_CONSTANT_RECORD_FIELD',
+    "The fields in a const record literal must be constants.",
+    correctionMessage:
+        "Try removing the keyword 'const' from the record literal.",
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode
+      NON_CONSTANT_RECORD_FIELD_FROM_DEFERRED_LIBRARY = CompileTimeErrorCode(
+    'NON_CONSTANT_RECORD_FIELD_FROM_DEFERRED_LIBRARY',
+    "Constant values from a deferred library can't be used as fields in a "
+        "'const' record literal.",
+    correctionMessage:
+        "Try removing the keyword 'const' from the record literal or removing "
+        "the keyword 'deferred' from the import.",
   );
 
   ///  No parameters.
@@ -6736,15 +6836,6 @@ class WarningCode extends AnalyzerErrorCode {
 
   ///  Parameters:
   ///  0: the name of the member
-  static const WarningCode INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER = WarningCode(
-    'INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER',
-    "Uses of '{0}' should not be submitted to source control.",
-    correctionMessage: "Try removing the reference to '{0}'.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the name of the member
   static const WarningCode INVALID_USE_OF_INTERNAL_MEMBER = WarningCode(
     'INVALID_USE_OF_INTERNAL_MEMBER',
     "The member '{0}' can only be used within its package.",
@@ -7519,6 +7610,15 @@ class WarningCode extends AnalyzerErrorCode {
     'UNUSED_SHOWN_NAME',
     "The name {0} is shown, but isn't used.",
     correctionMessage: "Try removing the name from the list of shown members.",
+    hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the member
+  static const WarningCode invalid_use_of_do_not_submit_member = WarningCode(
+    'invalid_use_of_do_not_submit_member',
+    "Uses of '{0}' should not be submitted to source control.",
+    correctionMessage: "Try removing the reference to '{0}'.",
     hasPublishedDocs: true,
   );
 

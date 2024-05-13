@@ -26,7 +26,7 @@ main() {
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 38, 1),
     ]);
 
-    final node = findNode.simple('p; // use');
+    var node = findNode.simple('p; // use');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: p
@@ -47,7 +47,7 @@ main() {
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 52, 1),
     ]);
 
-    final node = findNode.singleForStatement;
+    var node = findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -86,7 +86,7 @@ main() {
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 76, 1),
     ]);
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new

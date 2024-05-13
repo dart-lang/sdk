@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 
 const _desc = r'Prefer typing uninitialized variables and fields.';
 
@@ -88,16 +89,13 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
-    if (node.type != null) {
-      return;
-    }
-
-    var code = node.parent is FieldDeclaration
-        ? PreferTypingUninitializedVariables.forField
-        : PreferTypingUninitializedVariables.forVariable;
+    if (node.type != null) return;
 
     for (var v in node.variables) {
-      if (v.initializer == null) {
+      if (v.initializer == null && !v.isAugmentation) {
+        var code = node.parent is FieldDeclaration
+            ? PreferTypingUninitializedVariables.forField
+            : PreferTypingUninitializedVariables.forVariable;
         rule.reportLint(v, errorCode: code);
       }
     }

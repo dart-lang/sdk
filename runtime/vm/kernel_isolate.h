@@ -69,10 +69,6 @@ class KernelIsolate : public AllStatic {
       Dart_KernelCompilationVerbosityLevel verbosity =
           Dart_KernelCompilationVerbosityLevel_All);
 
-  static bool DetectNullSafety(const char* script_uri,
-                               const char* package_config,
-                               const char* original_working_directory);
-
   static Dart_KernelCompilationResult AcceptCompilation();
   static Dart_KernelCompilationResult RejectCompilation();
   static Dart_KernelCompilationResult UpdateInMemorySources(
@@ -116,12 +112,8 @@ class KernelIsolate : public AllStatic {
 
   static Dart_IsolateGroupCreateCallback create_group_callback_;
   static Monitor* monitor_;
-  enum State {
-    kNotStarted,
-    kStopped,
-    kStarting,
-    kStarted,
-    kStopping,
+  enum State{
+      kNotStarted, kStopped, kStarting, kStarted, kStopping,
   };
   static State state_;
   static Isolate* isolate_;

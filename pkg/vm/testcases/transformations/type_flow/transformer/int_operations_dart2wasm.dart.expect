@@ -12,7 +12,7 @@ static field core::int x = [@vm.inferred-type.metadata=dart.core::_BoxedInt] cor
 static field core::int y = [@vm.inferred-type.metadata=dart.core::_BoxedInt] core::int::parse("3");
 
 [@vm.unboxing-info.metadata=(i,i,i)->b]
-static method use([@vm.inferred-arg-type.metadata=dart.core::_BoxedInt] dynamic a, [@vm.inferred-arg-type.metadata=dart.core::_BoxedInt] dynamic b, [@vm.inferred-arg-type.metadata=dart.core::_BoxedInt] dynamic c) → void {
+static method use([@vm.inferred-arg-type.metadata=dart.core::_BoxedInt] final dynamic a, [@vm.inferred-arg-type.metadata=dart.core::_BoxedInt] final dynamic b, [@vm.inferred-arg-type.metadata=dart.core::_BoxedInt] final dynamic c) → void {
   core::print(a);
   core::print(b);
   core::print(c);

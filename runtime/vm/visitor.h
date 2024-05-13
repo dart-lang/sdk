@@ -87,6 +87,24 @@ class ObjectPointerVisitor {
   DISALLOW_IMPLICIT_CONSTRUCTORS(ObjectPointerVisitor);
 };
 
+class PredicateObjectPointerVisitor {
+ public:
+  PredicateObjectPointerVisitor() {}
+  virtual ~PredicateObjectPointerVisitor() {}
+  virtual bool PredicateVisitPointers(ObjectPtr* first, ObjectPtr* last) = 0;
+#if defined(DART_COMPRESSED_POINTERS)
+  virtual bool PredicateVisitCompressedPointers(uword heap_base,
+                                                CompressedObjectPtr* first,
+                                                CompressedObjectPtr* last) = 0;
+#else
+  bool PredicateVisitCompressedPointers(uword heap_base,
+                                        CompressedObjectPtr* first,
+                                        CompressedObjectPtr* last) {
+    return PredicateVisitPointers(first, last);
+  }
+#endif
+};
+
 // An object visitor interface.
 class ObjectVisitor {
  public:

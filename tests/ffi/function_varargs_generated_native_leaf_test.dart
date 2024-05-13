@@ -13,8 +13,9 @@
 
 import 'dart:ffi';
 
-import "package:expect/expect.dart";
-import "package:ffi/ffi.dart";
+import 'package:expect/expect.dart';
+// ignore: unused_import
+import 'package:ffi/ffi.dart';
 
 import 'dylib_utils.dart';
 
@@ -45,6 +46,7 @@ void main() {
     testVariadicAt1DoubleInt64Int32Struct20BytesHomogeneouNativeLeaf();
     testVariadicAt5Doublex5NativeLeaf();
     testVariadicAt1Int64x7Struct12BytesHomogeneousInt32NativeLeaf();
+    testVariadicAt1Struct12BytesHomogeneousInt32Int32x4NativeLeaf();
   }
 }
 
@@ -797,4 +799,38 @@ void testVariadicAt1Int64x7Struct12BytesHomogeneousInt32NativeLeaf() {
   Expect.equals(5, result);
 
   calloc.free(a7Pointer);
+}
+
+@Native<
+        Int32 Function(Struct12BytesHomogeneousInt32,
+            VarArgs<(Int32, Int32, Int32, Int32)>)>(
+    symbol: 'VariadicAt1Struct12BytesHomogeneousInt32Int32x4', isLeaf: true)
+external int variadicAt1Struct12BytesHomogeneousInt32Int32x4NativeLeaf(
+    Struct12BytesHomogeneousInt32 a0, int a1, int a2, int a3, int a4);
+
+/// Variadic arguments test on macos_arm64.
+void testVariadicAt1Struct12BytesHomogeneousInt32Int32x4NativeLeaf() {
+  final a0Pointer = calloc<Struct12BytesHomogeneousInt32>();
+  final Struct12BytesHomogeneousInt32 a0 = a0Pointer.ref;
+  int a1;
+  int a2;
+  int a3;
+  int a4;
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a0.a2 = -3;
+  a1 = 4;
+  a2 = -5;
+  a3 = 6;
+  a4 = -7;
+
+  final result = variadicAt1Struct12BytesHomogeneousInt32Int32x4NativeLeaf(
+      a0, a1, a2, a3, a4);
+
+  print("result = $result");
+
+  Expect.equals(-4, result);
+
+  calloc.free(a0Pointer);
 }

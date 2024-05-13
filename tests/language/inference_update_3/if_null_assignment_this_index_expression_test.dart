@@ -7,8 +7,6 @@
 // using if-null assignments whose target is an index expression whose target is
 // `this`.
 
-// SharedOptions=--enable-experiment=inference-update-3
-
 import '../static_type_helper.dart';
 
 /// Ensures a context type of `Iterable<T>` for the operand, or `Iterable<_>` if

@@ -1,6 +1,4 @@
-// @dart = 2.9
-
-bar(int a, List<int> b) {}
+bar(int a, List<int?>? b) {}
 
 foo(int x) async => bar(x - 1, x != null ? [x + 1, x + 2, await null] : null);
 

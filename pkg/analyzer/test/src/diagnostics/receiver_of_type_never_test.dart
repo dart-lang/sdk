@@ -823,7 +823,7 @@ void f(Never x) {
 }
 ''');
 
-    final node = findNode.singlePrefixedIdentifier;
+    var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -847,7 +847,7 @@ void f(Never x) {
 }
 ''');
 
-    final node = findNode.singlePrefixedIdentifier;
+    var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -909,7 +909,7 @@ void f(Never x) {
 }
 ''');
 
-    final node = findNode.singlePrefixedIdentifier;
+    var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -974,7 +974,7 @@ void f(Never? x) {
           23, 3),
     ]);
 
-    final node = findNode.singlePrefixedIdentifier;
+    var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -998,7 +998,7 @@ void f(Never? x) {
 }
 ''');
 
-    final node = findNode.singlePrefixedIdentifier;
+    var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -1022,7 +1022,7 @@ void f(Never? x) {
 }
 ''');
 
-    final node = findNode.singlePrefixedIdentifier;
+    var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -1046,7 +1046,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -1074,7 +1074,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression

@@ -273,10 +273,10 @@ Future<void> checkTypeDeclarationResolver(
     }
   }
 
-  test.forEach((Identifier identifier, String? expectedName) {
-    check(identifier, expectedName ?? identifier.name,
+  for (var MapEntry(key: identifier, value: expectedName) in test.entries) {
+    await check(identifier, expectedName ?? identifier.name,
         expectThrows: expectedName == null);
-  });
+  }
 }
 
 class ClassData {

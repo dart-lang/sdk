@@ -27,7 +27,7 @@ class A {}
 f(A a) {}
 ''');
 
-    final node = findNode.namedType('A a');
+    var node = findNode.namedType('A a');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
@@ -43,7 +43,7 @@ class A<T extends num> {}
 f(A a) {}
 ''');
 
-    final node = findNode.namedType('A a');
+    var node = findNode.namedType('A a');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
@@ -59,7 +59,7 @@ class A<T> {}
 f(A a) {}
 ''');
 
-    final node = findNode.namedType('A a');
+    var node = findNode.namedType('A a');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
@@ -75,7 +75,7 @@ class A<T> {}
 f(A<int> a) {}
 ''');
 
-    final node = findNode.namedType('A<int> a');
+    var node = findNode.namedType('A<int> a');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
@@ -99,7 +99,7 @@ import 'dart:core';
 dynamic a;
 ''');
 
-    final node = findNode.namedType('dynamic a;');
+    var node = findNode.namedType('dynamic a;');
     assertResolvedNodeText(node, r'''
 NamedType
   name: dynamic
@@ -115,7 +115,7 @@ import 'dart:core' as myCore;
 myCore.dynamic a;
 ''');
 
-    final node = findNode.namedType('myCore.dynamic a;');
+    var node = findNode.namedType('myCore.dynamic a;');
     assertResolvedNodeText(node, r'''
 NamedType
   importPrefix: ImportPrefixReference
@@ -137,7 +137,7 @@ dynamic a;
       error(CompileTimeErrorCode.UNDEFINED_CLASS, 31, 7),
     ]);
 
-    final node = findNode.namedType('dynamic a;');
+    var node = findNode.namedType('dynamic a;');
     assertResolvedNodeText(node, r'''
 NamedType
   name: dynamic
@@ -151,7 +151,7 @@ NamedType
 dynamic a;
 ''');
 
-    final node = findNode.namedType('dynamic a;');
+    var node = findNode.namedType('dynamic a;');
     assertResolvedNodeText(node, r'''
 NamedType
   name: dynamic
@@ -167,7 +167,7 @@ class A<T> {}
 class B extends A<int> {}
 ''');
 
-    final node = findNode.namedType('A<int>');
+    var node = findNode.namedType('A<int>');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
@@ -193,7 +193,7 @@ class B extends A<int> {}
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 34, 6),
     ]);
 
-    final node = findNode.namedType('A<int>');
+    var node = findNode.namedType('A<int>');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
@@ -219,7 +219,7 @@ class B extends A<int, String> {}
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 31, 14),
     ]);
 
-    final node = findNode.namedType('A<int, String>');
+    var node = findNode.namedType('A<int, String>');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
@@ -248,7 +248,7 @@ class A<T> extends T<int> {}
       error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 19, 1),
     ]);
 
-    final node = findNode.namedType('T<int>');
+    var node = findNode.namedType('T<int>');
     assertResolvedNodeText(node, r'''
 NamedType
   name: T
@@ -271,7 +271,7 @@ extension type A<T extends num>(List<T> it) {}
 void f(A a) {}
 ''');
 
-    final node = findNode.namedType('A a');
+    var node = findNode.namedType('A a');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
@@ -286,7 +286,7 @@ extension type A<T>(List<T> it) {}
 void f(A a) {}
 ''');
 
-    final node = findNode.namedType('A a');
+    var node = findNode.namedType('A a');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
@@ -301,7 +301,7 @@ extension type A<T>(List<T> it) {}
 void f(A<int> a) {}
 ''');
 
-    final node = findNode.namedType('A<int>');
+    var node = findNode.namedType('A<int>');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
@@ -325,7 +325,7 @@ typedef F = int Function();
 f(F a) {}
 ''');
 
-    final node = findNode.namedType('F a');
+    var node = findNode.namedType('F a');
     assertResolvedNodeText(node, r'''
 NamedType
   name: F
@@ -342,7 +342,7 @@ typedef F<T extends num> = T Function();
 f(F a) {}
 ''');
 
-    final node = findNode.namedType('F a');
+    var node = findNode.namedType('F a');
     assertResolvedNodeText(node, r'''
 NamedType
   name: F
@@ -361,7 +361,7 @@ typedef F<T> = T Function();
 f(F a) {}
 ''');
 
-    final node = findNode.namedType('F a');
+    var node = findNode.namedType('F a');
     assertResolvedNodeText(node, r'''
 NamedType
   name: F
@@ -380,7 +380,7 @@ typedef F<T> = T Function();
 f(F<int> a) {}
 ''');
 
-    final node = findNode.namedType('F<int> a');
+    var node = findNode.namedType('F<int> a');
     assertResolvedNodeText(node, r'''
 NamedType
   name: F
@@ -407,7 +407,7 @@ import 'dart:async' as async;
 void f(async.Future<int> a) {}
 ''');
 
-    final node = findNode.namedType('async.Future');
+    var node = findNode.namedType('async.Future');
     assertResolvedNodeText(node, r'''
 NamedType
   importPrefix: ImportPrefixReference
@@ -437,7 +437,7 @@ void f(math.Unresolved<int> a) {}
       error(CompileTimeErrorCode.UNDEFINED_CLASS, 36, 15),
     ]);
 
-    final node = findNode.namedType('math.Unresolved');
+    var node = findNode.namedType('math.Unresolved');
     assertResolvedNodeText(node, r'''
 NamedType
   importPrefix: ImportPrefixReference
@@ -469,7 +469,7 @@ main() {
       error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 49, 1),
     ]);
 
-    final node = findNode.namedType('A();');
+    var node = findNode.namedType('A();');
     assertResolvedNodeText(node, r'''
 NamedType
   importPrefix: ImportPrefixReference
@@ -491,7 +491,7 @@ main() {
 }
 ''');
 
-    final node = findNode.namedType('A();');
+    var node = findNode.namedType('A();');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
@@ -509,7 +509,7 @@ main() {
       error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 15, 1),
     ]);
 
-    final node = findNode.namedType('A();');
+    var node = findNode.namedType('A();');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
@@ -530,7 +530,7 @@ void f() {
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 71, 1),
     ]);
 
-    final node = findNode.namedType('async.Future');
+    var node = findNode.namedType('async.Future');
     assertResolvedNodeText(node, r'''
 NamedType
   importPrefix: ImportPrefixReference
@@ -560,7 +560,7 @@ void f(prefix a) {}
       error(CompileTimeErrorCode.NOT_A_TYPE, 38, 6),
     ]);
 
-    final node = findNode.namedType('prefix a');
+    var node = findNode.namedType('prefix a');
     assertResolvedNodeText(node, r'''
 NamedType
   name: prefix
@@ -578,7 +578,7 @@ void f(prefix<int> a) {}
       error(CompileTimeErrorCode.NOT_A_TYPE, 38, 6),
     ]);
 
-    final node = findNode.namedType('prefix<int>');
+    var node = findNode.namedType('prefix<int>');
     assertResolvedNodeText(node, r'''
 NamedType
   name: prefix
@@ -604,7 +604,7 @@ void f() {
       error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 10),
     ]);
 
-    final node = findNode.namedType('int.double');
+    var node = findNode.namedType('int.double');
     assertResolvedNodeText(node, r'''
 NamedType
   importPrefix: ImportPrefixReference
@@ -626,7 +626,7 @@ void f() {
       error(CompileTimeErrorCode.NOT_A_TYPE, 18, 10),
     ]);
 
-    final node = findNode.namedType('int.double');
+    var node = findNode.namedType('int.double');
     assertResolvedNodeText(node, r'''
 NamedType
   importPrefix: ImportPrefixReference
@@ -648,7 +648,7 @@ void T() {}
       error(CompileTimeErrorCode.NOT_A_TYPE, 7, 1),
     ]);
 
-    final node = findNode.namedType('T a');
+    var node = findNode.namedType('T a');
     assertResolvedNodeText(node, r'''
 NamedType
   name: T
@@ -666,7 +666,7 @@ void T() {}
       error(CompileTimeErrorCode.NOT_A_TYPE, 7, 1),
     ]);
 
-    final node = findNode.namedType('T<int>');
+    var node = findNode.namedType('T<int>');
     assertResolvedNodeText(node, r'''
 NamedType
   name: T
@@ -690,7 +690,7 @@ void f<T>(T.name<int> a) {}
       error(CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION, 10, 1),
     ]);
 
-    final node = findNode.namedType('T.name<int>');
+    var node = findNode.namedType('T.name<int>');
     assertResolvedNodeText(node, r'''
 NamedType
   importPrefix: ImportPrefixReference
@@ -729,7 +729,7 @@ void f(A a) {}
       error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 42, 1),
     ]);
 
-    final node = findNode.namedType('A a');
+    var node = findNode.namedType('A a');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
@@ -743,7 +743,7 @@ NamedType
 f(Never a) {}
 ''');
 
-    final node = findNode.namedType('Never a');
+    var node = findNode.namedType('Never a');
     assertResolvedNodeText(node, r'''
 NamedType
   name: Never
@@ -763,7 +763,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.namedType('X<int>()');
+    var node = findNode.namedType('X<int>()');
     assertResolvedNodeText(node, r'''
 NamedType
   name: X
@@ -791,7 +791,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.namedType('X()');
+    var node = findNode.namedType('X()');
     assertResolvedNodeText(node, r'''
 NamedType
   name: X
@@ -811,7 +811,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.namedType('X<int>()');
+    var node = findNode.namedType('X<int>()');
     assertResolvedNodeText(node, r'''
 NamedType
   name: X
@@ -834,7 +834,7 @@ typedef X<T> = Map<int, T>;
 void f(X<String> a, X<String?> b) {}
 ''');
 
-    final node1 = findNode.namedType('X<String>');
+    var node1 = findNode.namedType('X<String>');
     assertResolvedNodeText(node1, r'''
 NamedType
   name: X
@@ -853,7 +853,7 @@ NamedType
         String
 ''');
 
-    final node2 = findNode.namedType('X<String?>');
+    var node2 = findNode.namedType('X<String?>');
     assertResolvedNodeText(node2, r'''
 NamedType
   name: X
@@ -880,7 +880,7 @@ typedef X<T> = List<T?>;
 void f(X<int> a, X<int?> b) {}
 ''');
 
-    final node1 = findNode.namedType('X<int>');
+    var node1 = findNode.namedType('X<int>');
     assertResolvedNodeText(node1, r'''
 NamedType
   name: X
@@ -899,7 +899,7 @@ NamedType
         int
 ''');
 
-    final node2 = findNode.namedType('X<int?>');
+    var node2 = findNode.namedType('X<int?>');
     assertResolvedNodeText(node2, r'''
 NamedType
   name: X
@@ -926,7 +926,7 @@ typedef X = Never;
 void f(X a, X? b) {}
 ''');
 
-    final node1 = findNode.namedType('X a');
+    var node1 = findNode.namedType('X a');
     assertResolvedNodeText(node1, r'''
 NamedType
   name: X
@@ -934,7 +934,7 @@ NamedType
   type: Never
 ''');
 
-    final node2 = findNode.namedType('X? b');
+    var node2 = findNode.namedType('X? b');
     assertResolvedNodeText(node2, r'''
 NamedType
   name: X
@@ -950,7 +950,7 @@ typedef X = Never?;
 void f(X a, X? b) {}
 ''');
 
-    final node1 = findNode.namedType('X a');
+    var node1 = findNode.namedType('X a');
     assertResolvedNodeText(node1, r'''
 NamedType
   name: X
@@ -958,7 +958,7 @@ NamedType
   type: Never?
 ''');
 
-    final node2 = findNode.namedType('X? b');
+    var node2 = findNode.namedType('X? b');
     assertResolvedNodeText(node2, r'''
 NamedType
   name: X
@@ -974,7 +974,7 @@ typedef X<T> = T?;
 void f(X<int> a) {}
 ''');
 
-    final node = findNode.namedType('X<int>');
+    var node = findNode.namedType('X<int>');
     assertResolvedNodeText(node, r'''
 NamedType
   name: X
@@ -1000,7 +1000,7 @@ typedef X<T> = Map<int, T>;
 X<String> f() => {};
 ''');
 
-    final node = findNode.namedType('X<String>');
+    var node = findNode.namedType('X<String>');
     assertResolvedNodeText(node, r'''
 NamedType
   name: X
@@ -1026,7 +1026,7 @@ typedef Nothing = void;
 Nothing f() {}
 ''');
 
-    final node = findNode.namedType('Nothing f()');
+    var node = findNode.namedType('Nothing f()');
     assertResolvedNodeText(node, r'''
 NamedType
   name: Nothing
@@ -1042,7 +1042,7 @@ void f(Unresolved<int> a) {}
       error(CompileTimeErrorCode.UNDEFINED_CLASS, 7, 10),
     ]);
 
-    final node = findNode.namedType('Unresolved');
+    var node = findNode.namedType('Unresolved');
     assertResolvedNodeText(node, r'''
 NamedType
   name: Unresolved
@@ -1066,7 +1066,7 @@ void f(unresolved.List<int> a) {}
       error(CompileTimeErrorCode.UNDEFINED_CLASS, 7, 15),
     ]);
 
-    final node = findNode.namedType('unresolved.List');
+    var node = findNode.namedType('unresolved.List');
     assertResolvedNodeText(node, r'''
 NamedType
   importPrefix: ImportPrefixReference

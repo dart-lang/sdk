@@ -288,7 +288,7 @@ ISOLATE_UNIT_TEST_CASE(EvalExpressionExhaustCIDs) {
 }
 
 // Too slow in debug mode.
-#if !defined(DEBUG) && !defined(TARGET_USES_THREAD_SANITIZER)
+#if !defined(DEBUG) && !defined(USING_THREAD_SANITIZER)
 TEST_CASE(ManyClasses) {
   // Limit is 20 bits. Check only more than 16 bits so test completes in
   // reasonable time.
@@ -312,6 +312,6 @@ TEST_CASE(ManyClasses) {
 
   EXPECT(IsolateGroup::Current()->class_table()->NumCids() >= kNumClasses);
 }
-#endif  // !defined(DEBUG) && !defined(TARGET_USES_THREAD_SANITIZER)
+#endif  // !defined(DEBUG) && !defined(USING_THREAD_SANITIZER)
 
 }  // namespace dart

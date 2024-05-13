@@ -15,7 +15,7 @@ class CreateMixin extends ResolvedCorrectionProducer {
   String _mixinName = '';
 
   @override
-  List<Object> get fixArguments => [_mixinName];
+  List<String> get fixArguments => [_mixinName];
 
   @override
   FixKind get fixKind => DartFixKind.CREATE_MIXIN;
@@ -25,7 +25,7 @@ class CreateMixin extends ResolvedCorrectionProducer {
     Element? prefixElement;
     final node = this.node;
     if (node is NamedType) {
-      final importPrefix = node.importPrefix;
+      var importPrefix = node.importPrefix;
       if (importPrefix != null) {
         prefixElement = importPrefix.element;
         if (prefixElement == null) {

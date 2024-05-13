@@ -21,7 +21,7 @@ int f<A>() => switch (unknownName) {
     #L1:
     {
       {
-        if(#0#0 is core::List<self::f::A%> && (#0#2#isSet ?{core::int} #0#2{core::int} : let final core::bool* #t2 = #0#2#isSet = true in #0#2 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
+        if(#0#0 is core::List<self::f::A%> && (#0#2#isSet ?{core::int} #0#2{core::int} : let final core::bool #t2 = #0#2#isSet = true in #0#2 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
           #t1 = 1;
           break #L1;
         }
@@ -29,7 +29,7 @@ int f<A>() => switch (unknownName) {
       {
         hoisted self::f::A% x;
         hoisted core::List<self::f::A%> xs;
-        if((#0#2#isSet ?{core::int} #0#2{core::int} : let final core::bool* #t3 = #0#2#isSet = true in #0#2 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool}) {
+        if((#0#2#isSet ?{core::int} #0#2{core::int} : let final core::bool #t3 = #0#2#isSet = true in #0#2 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool}) {
           x = #0#0.{core::List::[]}(0){(core::int) → self::f::A%};
           xs = #0#0.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<self::f::A%>};
           #t1 = 2;

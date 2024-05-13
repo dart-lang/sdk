@@ -10,6 +10,8 @@ import 'package:_fe_analyzer_shared/src/exhaustiveness/shared.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/types.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
+    show Variance;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -22,7 +24,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/replacement_visitor.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /// The buffer that accumulates types and elements as is, so that they
@@ -56,7 +57,7 @@ class AnalyzerDartTemplateBuffer
 
   @override
   void writeEnumValue(FieldElement value, String name) {
-    final enumElement = value.enclosingElement;
+    var enumElement = value.enclosingElement;
     if (enumElement is! EnumElement) {
       isComplete = false;
       return;
@@ -170,7 +171,7 @@ class AnalyzerSealedClassOperations
           }
         }
         if (declaration is MixinElement) {
-          for (final type in declaration.superclassConstraints) {
+          for (var type in declaration.superclassConstraints) {
             if (checkType(type)) {
               continue outer;
             }
@@ -537,10 +538,10 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
           path, contextType, pattern.declaredElement!.type,
           nonNull: nonNull);
     } else if (pattern is ObjectPattern) {
-      final properties = <String, DartPattern>{};
-      final extensionPropertyTypes = <String, DartType>{};
-      for (final field in pattern.fields) {
-        final name = field.effectiveName;
+      var properties = <String, DartPattern>{};
+      var extensionPropertyTypes = <String, DartType>{};
+      for (var field in pattern.fields) {
+        var name = field.effectiveName;
         if (name == null) {
           // Error case, skip field.
           continue;
@@ -568,12 +569,12 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
       return createWildcardSpace(path, contextType, pattern.type?.typeOrThrow,
           nonNull: nonNull);
     } else if (pattern is RecordPatternImpl) {
-      final positionalTypes = <DartType>[];
-      final positionalPatterns = <DartPattern>[];
-      final namedTypes = <String, DartType>{};
-      final namedPatterns = <String, DartPattern>{};
-      for (final field in pattern.fields) {
-        final nameNode = field.name;
+      var positionalTypes = <DartType>[];
+      var positionalPatterns = <DartPattern>[];
+      var namedTypes = <String, DartType>{};
+      var namedPatterns = <String, DartPattern>{};
+      for (var field in pattern.fields) {
+        var nameNode = field.name;
         if (nameNode == null) {
           positionalTypes.add(cache.typeSystem.typeProvider.dynamicType);
           positionalPatterns.add(field.pattern);
@@ -588,7 +589,7 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
           }
         }
       }
-      final recordType = RecordType(
+      var recordType = RecordType(
         positional: positionalTypes,
         named: namedTypes,
         nullabilitySuffix: NullabilitySuffix.none,
@@ -672,7 +673,7 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
           entries: entries,
           hasExplicitTypeArguments: pattern.typeArguments != null);
     } else if (pattern is ConstantPattern) {
-      final value = constantPatternValues[pattern];
+      var value = constantPatternValues[pattern];
       if (value != null) {
         return _convertConstantValue(value, path);
       }
@@ -689,31 +690,31 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
   }
 
   Space _convertConstantValue(DartObjectImpl value, Path path) {
-    final state = value.state;
+    var state = value.state;
     if (value.isNull) {
       return Space(path, StaticType.nullType);
     } else if (state is BoolState) {
-      final value = state.value;
+      var value = state.value;
       if (value != null) {
         return Space(path, cache.getBoolValueStaticType(state.value!));
       }
     } else if (state is RecordState) {
-      final properties = <Key, Space>{};
+      var properties = <Key, Space>{};
       for (var index = 0; index < state.positionalFields.length; index++) {
-        final key = RecordIndexKey(index);
-        final value = state.positionalFields[index];
+        var key = RecordIndexKey(index);
+        var value = state.positionalFields[index];
         properties[key] = _convertConstantValue(value, path.add(key));
       }
-      for (final entry in state.namedFields.entries) {
-        final key = RecordNameKey(entry.key);
+      for (var entry in state.namedFields.entries) {
+        var key = RecordNameKey(entry.key);
         properties[key] = _convertConstantValue(entry.value, path.add(key));
       }
       return Space(path, cache.getStaticType(value.type),
           properties: properties);
     }
-    final type = value.type;
+    var type = value.type;
     if (type is InterfaceType) {
-      final element = type.element;
+      var element = type.element;
       if (element is EnumElement) {
         return Space(path, cache.getEnumElementStaticType(element, value));
       }
@@ -762,8 +763,8 @@ class TypeParameterReplacer extends ReplacementVisitor {
     if (_variance == Variance.contravariant) {
       return _replaceTypeParameterTypes(_typeSystem.typeProvider.neverType);
     } else {
-      final element = node.element as TypeParameterElementImpl;
-      final defaultType = element.defaultType!;
+      var element = node.element as TypeParameterElementImpl;
+      var defaultType = element.defaultType!;
       return _replaceTypeParameterTypes(defaultType);
     }
   }

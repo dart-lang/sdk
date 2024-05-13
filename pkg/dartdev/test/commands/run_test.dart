@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:dartdev/src/resident_frontend_constants.dart';
 import 'package:dartdev/src/resident_frontend_utils.dart';
+import 'package:kernel/binary/tag.dart' show sdkHashNull;
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
@@ -518,6 +519,34 @@ void main(List<String> args) => print("$b $args");
     expect(result.exitCode, 0);
   });
 
+  test('Handles invalid package_config.json', () async {
+    // Regression test for https://github.com/dart-lang/sdk/issues/55490
+    p = project(mainSrc: "void main() { print('Hello World'); }");
+    final packageConfig = File(p.packageConfigPath);
+    final contents = jsonDecode(packageConfig.readAsStringSync());
+    // Fail fast if the config version changes to make sure this test is kept
+    // up to date with package config format changes.
+    expect(contents['configVersion'], 2);
+
+    // Duplicate an entry from the package config's package list and overwrite
+    // the existing config.
+    final packages = contents['packages'] as List;
+    expect(packages, isNotEmpty);
+    final duplicatePackage = packages.first;
+    packages.add(duplicatePackage);
+    packageConfig.writeAsStringSync(jsonEncode(contents));
+
+    final result = await p.run(['run', p.relativeFilePath]);
+    expect(result.stdout, isEmpty);
+    expect(
+      result.stderr,
+      contains(
+        'Error encountered while parsing package_config.json: Duplicate package name',
+      ),
+    );
+    expect(result.exitCode, 255);
+  });
+
   group('DDS', () {
     group('disable', () {
       test('dart run simple', () async {
@@ -853,7 +882,7 @@ void residentRun() {
   late TestProject serverInfoDirectory, p;
   late String serverInfoFile;
 
-  setUpAll(() async {
+  setUp(() async {
     serverInfoDirectory = project(mainSrc: 'void main() {}');
     serverInfoFile = path.join(serverInfoDirectory.dirPath, 'info');
     final result = await serverInfoDirectory.run([
@@ -871,15 +900,20 @@ void residentRun() {
           dartdevKernelCache,
         )).listSync(),
         isNotEmpty);
-  });
 
-  tearDownAll(() async {
-    try {
-      await sendAndReceiveResponse(
-        residentServerShutdownCommand,
-        File(path.join(serverInfoDirectory.dirPath, 'info')),
-      );
-    } catch (_) {}
+    // [TestProject] uses [addTearDown] to register cleanup code that will
+    // delete the project, and due to ordering guarantees of callbacks
+    // registered using [addTearDown] (refer to [addTearDown]'s doc comment), we
+    // need to use [addTearDown] here to ensure that the resident frontend
+    // compiler we started above will be shut down before the project is
+    // deleted.
+    addTearDown(() async {
+      await serverInfoDirectory.run([
+        'compilation-server',
+        'shutdown',
+        '--$residentCompilerInfoFileOption=$serverInfoFile',
+      ]);
+    });
   });
 
   test(
@@ -968,6 +1002,96 @@ void residentRun() {
     );
     expect(result.stderr, isEmpty);
     expect(kernelCache, isNotNull);
+  });
+
+  test(
+      'a running resident compiler is restarted if the Dart SDK was '
+      'upgraded or downgraded since it was started', () async {
+    p = project(mainSrc: 'void main() {}');
+
+    final residentCompilerInfo = ResidentCompilerInfo.fromFile(
+      File(serverInfoFile),
+    );
+    if (residentCompilerInfo.sdkHash != null &&
+        residentCompilerInfo.sdkHash == sdkHashNull) {
+      // dartdev does not consider the SDK hash changing from [sdkHashNull] to a
+      // different SDK hash to be an SDK upgrade or downgrade. So, if an SDK
+      // of [sdkHashNull] was recorded into [serverInfoFile], the test logic
+      // below will not work as intended. For local developement, we make the
+      // test fail in this situation, alerting the developer that the test is
+      // only meaningful when run from an SDK built with --verify-sdk-hash. The
+      // SDK can only be built with --no-verify-sdk-hash on CI, so we just skip
+      // this test on CI.
+      if (Platform.environment.containsKey('BUILDBOT_BUILDERNAME') ||
+          Platform.environment.containsKey('SWARMING_TASK_ID')) {
+        return;
+      } else {
+        fail(
+          'This test is guaranteed to pass, and thus is not meaningful, when '
+          'run from an SDK built with --no-verify-sdk-hash',
+        );
+      }
+    }
+
+    // Replace the SDK hash in [serverInfoFile] to make dartdev think the Dart
+    // SDK version has changed since the resident compiler was started.
+    File(serverInfoFile).writeAsStringSync(
+      'address:${residentCompilerInfo.address.address} '
+      'sdkHash:${'1' * residentCompilerInfo.sdkHash!.length} '
+      'port:${residentCompilerInfo.port} ',
+    );
+    final result = await p.run([
+      'run',
+      '--resident',
+      '--$residentCompilerInfoFileOption=$serverInfoFile',
+      p.relativeFilePath,
+    ]);
+
+    expect(result.exitCode, 0);
+    expect(result.stdout, contains(residentFrontendCompilerPrefix));
+    expect(
+      result.stderr,
+      'The Dart SDK has been upgraded or downgraded since the Resident '
+      'Frontend Compiler was started, so the Resident Frontend Compiler will '
+      'now be restarted for compatibility reasons.\n',
+    );
+    expect(File(serverInfoFile).existsSync(), true);
+  });
+
+  test('when a connection to a running resident compiler cannot be established',
+      () async {
+    // When this occurs, the user should be informed that the resident frontend
+    // compiler will be restarted, and compilation will be retried.
+    p = project(mainSrc: 'void main() {}');
+    // Create a [testServerInfoFile] that contains an invalid port to guarantee
+    // that a connection will not be established.
+    final testServerInfoFile = File(path.join(p.dirPath, 'info'));
+    testServerInfoFile.createSync();
+    testServerInfoFile.writeAsStringSync(
+      'address:127.0.0.1 sdkHash:$sdkHashNull port:-12 ',
+    );
+    final result = await p.run([
+      'run',
+      '--resident',
+      '--$residentCompilerInfoFileOption=${testServerInfoFile.path}',
+      p.relativeFilePath,
+    ]);
+
+    expect(result.exitCode, 0);
+    expect(result.stdout, contains(residentFrontendCompilerPrefix));
+    expect(
+      result.stderr,
+      'Error: A connection to the Resident Frontend Compiler could not be '
+      'established. Restarting the Resident Frontend Compiler and retrying '
+      'compilation.\n',
+    );
+    expect(testServerInfoFile.existsSync(), true);
+
+    await p.run([
+      'compilation-server',
+      'shutdown',
+      '--$residentCompilerInfoFileOption=${testServerInfoFile.path}',
+    ]);
   });
 
   test('Handles experiments', () async {

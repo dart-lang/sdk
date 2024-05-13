@@ -1,8 +1,8 @@
-library test /*isLegacy*/;
+library test;
 import self as self;
 import "dart:core" as core;
 
-static method test(<T extends core::Object* = dynamic>(T*) →* T* f) → void
+static method test(<T extends core::Object? = dynamic>(T%) → T% f) → void
   ;
 static method main() → dynamic
   ;

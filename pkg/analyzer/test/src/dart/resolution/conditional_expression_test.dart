@@ -31,7 +31,7 @@ class A {
       error(CompileTimeErrorCode.NON_BOOL_CONDITION, 27, 5),
     ]);
 
-    final node = findNode.singleConditionalExpression;
+    var node = findNode.singleConditionalExpression;
     assertResolvedNodeText(node, r'''
 ConditionalExpression
   condition: SuperExpression
@@ -58,7 +58,7 @@ void f(int b, int c) {
 T a<T>() => throw '';
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -86,7 +86,7 @@ class A {
       error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 41, 5),
     ]);
 
-    final node = findNode.singleConditionalExpression;
+    var node = findNode.singleConditionalExpression;
     assertResolvedNodeText(node, r'''
 ConditionalExpression
   condition: SimpleIdentifier
@@ -155,7 +155,7 @@ T f<T>(T t, bool b) {
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 79, 1),
     ]);
 
-    final node = findNode.conditionalExpression('b ?');
+    var node = findNode.conditionalExpression('b ?');
     assertResolvedNodeText(node, r'''
 ConditionalExpression
   condition: SimpleIdentifier
@@ -182,7 +182,7 @@ void f(bool b, (int, String) r1, ({int a}) r2) {
 }
 ''');
 
-    final node = findNode.conditionalExpression('b ?');
+    var node = findNode.conditionalExpression('b ?');
     assertResolvedNodeText(node, r'''
 ConditionalExpression
   condition: SimpleIdentifier
@@ -210,7 +210,7 @@ void f(bool b, ({int a}) r1, ({double a}) r2) {
 }
 ''');
 
-    final node = findNode.conditionalExpression('b ?');
+    var node = findNode.conditionalExpression('b ?');
     assertResolvedNodeText(node, r'''
 ConditionalExpression
   condition: SimpleIdentifier
@@ -242,7 +242,7 @@ class A {
       error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 37, 5),
     ]);
 
-    final node = findNode.singleConditionalExpression;
+    var node = findNode.singleConditionalExpression;
     assertResolvedNodeText(node, r'''
 ConditionalExpression
   condition: SimpleIdentifier
@@ -268,7 +268,7 @@ void f(bool b) {
 }
 ''');
 
-    final node = findNode.singleConditionalExpression;
+    var node = findNode.singleConditionalExpression;
     assertResolvedNodeText(node, r'''
 ConditionalExpression
   condition: SimpleIdentifier
@@ -294,7 +294,7 @@ void f(bool b) {
 }
 ''');
 
-    final node = findNode.singleConditionalExpression;
+    var node = findNode.singleConditionalExpression;
     assertResolvedNodeText(node, r'''
 ConditionalExpression
   condition: SimpleIdentifier

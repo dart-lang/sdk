@@ -449,8 +449,7 @@ class Call extends Statement {
     if (!receiverMayBeInt) {
       final receiverIntIntersect =
           receiver.intersection(typeHierarchy.intType, typeHierarchy);
-      if (receiverIntIntersect != emptyType &&
-          receiverIntIntersect != nullableEmptyType) {
+      if (receiverIntIntersect != emptyType) {
         _flags |= kReceiverMayBeInt;
       }
     }

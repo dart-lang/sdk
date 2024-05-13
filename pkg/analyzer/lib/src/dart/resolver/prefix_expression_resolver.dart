@@ -49,6 +49,11 @@ class PrefixExpressionResolver {
       return;
     }
 
+    if (node.operand case AugmentedExpressionImpl operand) {
+      _resolveAugmented(node, operand);
+      return;
+    }
+
     var operand = node.operand;
     if (operator.isIncrementOperator) {
       var operandResolution = _resolver.resolveForWrite(
@@ -206,7 +211,7 @@ class PrefixExpressionResolver {
 
   void _resolve2(PrefixExpressionImpl node) {
     TokenType operator = node.operator.type;
-    final readType = node.readType ?? node.operand.staticType;
+    var readType = node.readType ?? node.operand.staticType;
     if (identical(readType, NeverTypeImpl.instance)) {
       _inferenceHelper.recordStaticType(node, NeverTypeImpl.instance);
     } else {
@@ -239,6 +244,54 @@ class PrefixExpressionResolver {
       _inferenceHelper.recordStaticType(node, staticType);
     }
     _resolver.nullShortingTermination(node);
+  }
+
+  void _resolveAugmented(
+    PrefixExpressionImpl node,
+    AugmentedExpressionImpl operand,
+  ) {
+    var methodName = _getPrefixOperator(node);
+    var augmentation = _resolver.enclosingAugmentation!;
+    var augmentationTarget = augmentation.augmentationTarget;
+
+    // Unresolved by default.
+    operand.staticType = InvalidTypeImpl.instance;
+    node.staticType = InvalidTypeImpl.instance;
+
+    switch (augmentationTarget) {
+      case MethodElement operatorElement:
+        operand.element = operatorElement;
+        operand.staticType = _resolver.thisType ?? InvalidTypeImpl.instance;
+        if (operatorElement.name == methodName) {
+          node.staticElement = operatorElement;
+          node.staticType = operatorElement.returnType;
+        } else {
+          _errorReporter.atToken(
+            operand.augmentedKeyword,
+            CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR,
+            arguments: [
+              methodName,
+            ],
+          );
+        }
+      case PropertyAccessorElement accessor:
+        operand.element = accessor;
+        if (accessor.isGetter) {
+          operand.staticType = accessor.returnType;
+          _resolve1(node);
+          _resolve2(node);
+        } else {
+          _errorReporter.atToken(
+            operand.augmentedKeyword,
+            CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER,
+          );
+        }
+      case PropertyInducingElement property:
+        operand.element = property;
+        operand.staticType = property.type;
+        _resolve1(node);
+        _resolve2(node);
+    }
   }
 
   void _resolveNegation(PrefixExpressionImpl node) {

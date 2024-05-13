@@ -15,7 +15,7 @@ class B extends core::Object implements self::A {
   method noSuchMethod(core::Invocation _) → dynamic
     return null;
   no-such-method-forwarder method /* signature-type: ([core::int]) → void */ method([core::int? a = #C1]) → void
-    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 0, #C3, core::List::unmodifiable<dynamic>(<dynamic>[a]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation) → dynamic};
+    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 0, #C3, core::List::unmodifiable<dynamic>(<dynamic>[a]), core::Map::unmodifiable<core::Symbol, dynamic>(#C4))){(core::Invocation) → dynamic};
 }
 class C extends core::Object implements self::B {
   synthetic constructor •() → self::C

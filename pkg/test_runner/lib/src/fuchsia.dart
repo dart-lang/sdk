@@ -11,7 +11,6 @@ import 'command.dart';
 // Runs tests on a fuchsia emulator with chromium maintained test-scripts and
 // CFv2 targets.
 class FuchsiaEmulator {
-  static const String ffx = "./third_party/fuchsia/sdk/linux/tools/x64/ffx";
   static const String testScriptRoot =
       "./third_party/fuchsia/test_scripts/test/";
   static const String withEnv = "./build/fuchsia/with_envs.py";
@@ -42,6 +41,8 @@ class FuchsiaEmulator {
     emuProc = await _run("start_emulator.py", [
       "--disable-graphics",
       "--target-id-only",
+      "--product",
+      arch == "arm64" ? "terminal.qemu-arm64" : "terminal.x64",
       "--device-spec",
       "virtual_device_large"
     ]);

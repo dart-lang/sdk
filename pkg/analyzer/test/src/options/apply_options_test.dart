@@ -307,7 +307,7 @@ analyzer:
     - plugin_ccc
 ''');
 
-    final options = _getOptionsObject('/');
+    var options = _getOptionsObject('/');
     expect(options.enabledPluginNames, unorderedEquals(['plugin_ddd']));
   }
 
@@ -343,11 +343,11 @@ linter:
 ''';
     newFile(optionsFilePath, code);
 
-    final lowlevellint = TestRule.withName('lowlevellint');
-    final toplevellint = TestRule.withName('toplevellint');
+    var lowlevellint = TestRule.withName('lowlevellint');
+    var toplevellint = TestRule.withName('toplevellint');
     Registry.ruleRegistry.register(lowlevellint);
     Registry.ruleRegistry.register(toplevellint);
-    final options = _getOptionsObject('/');
+    var options = _getOptionsObject('/');
 
     expect(options.lintRules, unorderedEquals([toplevellint, lowlevellint]));
     expect(options.enabledPluginNames, unorderedEquals(['toplevelplugin']));
@@ -364,7 +364,7 @@ linter:
   }
 
   AnalysisOptions _getOptionsObject(String posixPath) {
-    final map = provider.getOptions(getFolder(posixPath));
+    var map = provider.getOptions(getFolder(posixPath));
     return AnalysisOptionsImpl()..applyOptions(map);
   }
 }

@@ -1,11 +1,12 @@
-// @dart = 2.9
-
 library test;
 
 class Base {
-  double doubleProp;
-  int intProp;
-  num numProp;
+  double? doubleProp2;
+  double doubleProp = 0;
+  int? intProp2;
+  int intProp = 0;
+  num? numProp2;
+  num numProp = 0;
 }
 
 class Test1 extends Base {

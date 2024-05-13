@@ -360,7 +360,7 @@ suggestions
       validator: (context) {
         _printKeywordsOrClass();
 
-        final keywords = {
+        var keywords = {
           Keyword.CONST,
           if (context.isClass || context.isMixin) Keyword.COVARIANT,
           Keyword.DYNAMIC,
@@ -391,7 +391,7 @@ ${keywords.asKeywordSuggestions}
       validator: (context) {
         _printKeywordsOrClass();
 
-        final keywords = {
+        var keywords = {
           Keyword.DYNAMIC,
           Keyword.VOID,
         };
@@ -428,7 +428,7 @@ suggestions
       validator: (context) {
         _printKeywordsOrClass();
 
-        final keywords = {
+        var keywords = {
           Keyword.DYNAMIC,
           Keyword.VOID,
         };
@@ -451,7 +451,7 @@ ${keywords.asKeywordSuggestions}
     await _checkContainers(
       line: 'static f^',
       validator: (context) {
-        final keywords = {
+        var keywords = {
           Keyword.FINAL,
         };
 
@@ -473,7 +473,7 @@ ${keywords.asKeywordSuggestions}
       validator: (context) {
         _printKeywordsOrClass();
 
-        final keywords = {
+        var keywords = {
           Keyword.CONST,
           Keyword.DYNAMIC,
           Keyword.EXTERNAL,
@@ -498,7 +498,7 @@ ${keywords.asKeywordSuggestions}
       validator: (context) {
         _printKeywordsOrClass();
 
-        final keywords = {
+        var keywords = {
           Keyword.CONST,
           Keyword.DYNAMIC,
           Keyword.EXTERNAL,
@@ -523,7 +523,7 @@ ${keywords.asKeywordSuggestions}
       validator: (context) {
         _printKeywordsOrClass();
 
-        final keywords = {
+        var keywords = {
           Keyword.CONST,
           Keyword.DYNAMIC,
           // TODO(scheglov): This does not look right.
@@ -551,7 +551,7 @@ ${keywords.asKeywordSuggestions}
     await _checkContainers(
       line: 's^',
       validator: (context) {
-        final keywords = {
+        var keywords = {
           Keyword.SET,
           Keyword.STATIC,
         };
@@ -625,7 +625,7 @@ mixin M {
   }) {
     printerConfiguration.sorting = printer.Sorting.completionThenKind;
     printerConfiguration.filter = (suggestion) {
-      final completion = suggestion.completion;
+      var completion = suggestion.completion;
       if (suggestion.kind == CompletionSuggestionKind.KEYWORD) {
         return true;
       } else if (completion == sampleClassName) {

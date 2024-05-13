@@ -220,7 +220,7 @@ class AnalyticsManager {
   }
 
   Future<void> sendMemoryUsage(MemoryUsageEvent event) async {
-    final delta = event.delta;
+    var delta = event.delta;
     var seconds = event.period?.inSeconds;
 
     assert((event.delta == null) == (event.period == null));
@@ -259,7 +259,7 @@ class AnalyticsManager {
 
   /// The server is shutting down. Report any accumulated analytics data.
   Future<void> shutdown() async {
-    final sessionData = _sessionData;
+    var sessionData = _sessionData;
     if (sessionData == null) {
       return;
     }

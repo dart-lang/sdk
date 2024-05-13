@@ -33,8 +33,7 @@ class PubApiTest {
   late MockHttpClient httpClient;
 
   Future<void> check_pubHostedUrl(String? envValue, String expectedBase) async {
-    final api =
-        PubApi(InstrumentationService.NULL_SERVICE, httpClient, envValue);
+    var api = PubApi(InstrumentationService.NULL_SERVICE, httpClient, envValue);
     await api.allPackages();
     expect(lastCalledUrl.toString(),
         equals('$expectedBase/api/package-name-completion-data'));
@@ -70,14 +69,14 @@ class PubApiTest {
       check_pubHostedUrl('https://pub.example.org/', 'https://pub.example.org');
 
   Future<void> test_httpClient_closesOwn() async {
-    final api = PubApi(InstrumentationService.NULL_SERVICE, null, null);
+    var api = PubApi(InstrumentationService.NULL_SERVICE, null, null);
     api.close();
     expect(() => api.httpClient.get(Uri.parse('https://www.google.co.uk/')),
         throwsA(anything));
   }
 
   Future<void> test_httpClient_doesNotCloseProvided() async {
-    final api = PubApi(InstrumentationService.NULL_SERVICE, httpClient, null);
+    var api = PubApi(InstrumentationService.NULL_SERVICE, httpClient, null);
     api.close();
     expect(httpClient.wasClosed, isFalse);
   }
@@ -116,11 +115,11 @@ class PubCommandTest with ResourceProviderMixin {
   Future<void> test_killsCommandOnShutdown() async {
     // Create a process that won't complete (unless it's killed, where
     // the MockProcess will complete it with a non-zero exit code).
-    final process = MockProcess(0, Completer<int>().future, '', '');
+    var process = MockProcess(0, Completer<int>().future, '', '');
     processRunner.startHandler = (executable, args, {dir, env}) => process;
 
     // Start running the (endless) command.
-    final commandFuture = pubCommand.outdatedVersions(pubspecPath);
+    var commandFuture = pubCommand.outdatedVersions(pubspecPath);
     await pumpEventQueue(times: 500);
 
     // Trigger shutdown, which should kill any in-process commands.
@@ -156,12 +155,12 @@ class PubCommandTest with ResourceProviderMixin {
     processRunner.startHandler = (String executable, List<String> args,
             {dir, env}) =>
         MockProcess(1, 0, 'NOT VALID JSON', '');
-    final result = await pubCommand.outdatedVersions(pubspecPath);
+    var result = await pubCommand.outdatedVersions(pubspecPath);
     expect(result, isEmpty);
   }
 
   Future<void> test_outdated_missingFields() async {
-    final validJson = r'''
+    var validJson = r'''
     {
       "packages": [
         {
@@ -175,9 +174,9 @@ class PubCommandTest with ResourceProviderMixin {
     ''';
     processRunner.startHandler =
         (executable, args, {dir, env}) => MockProcess(1, 0, validJson, '');
-    final result = await pubCommand.outdatedVersions(pubspecPath);
+    var result = await pubCommand.outdatedVersions(pubspecPath);
     expect(result, hasLength(1));
-    final package = result.first;
+    var package = result.first;
     expect(package.packageName, equals('foo'));
     expect(package.currentVersion, equals('1.0.0'));
     expect(package.upgradableVersion, equals('2.0.0'));
@@ -186,7 +185,7 @@ class PubCommandTest with ResourceProviderMixin {
   }
 
   Future<void> test_outdated_multiplePubspecs() async {
-    final pubspecJson1 = r'''
+    var pubspecJson1 = r'''
     {
       "packages": [
         {
@@ -196,7 +195,7 @@ class PubCommandTest with ResourceProviderMixin {
       ]
     }
     ''';
-    final pubspecJson2 = r'''
+    var pubspecJson2 = r'''
     {
       "packages": [
         {
@@ -209,13 +208,13 @@ class PubCommandTest with ResourceProviderMixin {
 
     processRunner.startHandler = (executable, args, {dir, env}) {
       // Return different json based on the directory we were invoked in.
-      final json = dir == resourceProvider.pathContext.dirname(pubspecPath)
+      var json = dir == resourceProvider.pathContext.dirname(pubspecPath)
           ? pubspecJson1
           : pubspecJson2;
       return MockProcess(1, 0, json, '');
     };
-    final result1 = await pubCommand.outdatedVersions(pubspecPath);
-    final result2 = await pubCommand.outdatedVersions(pubspec2Path);
+    var result1 = await pubCommand.outdatedVersions(pubspecPath);
+    var result2 = await pubCommand.outdatedVersions(pubspec2Path);
     expect(result1.first.resolvableVersion, equals('1.1.1'));
     expect(result2.first.resolvableVersion, equals('2.2.2'));
   }
@@ -223,12 +222,12 @@ class PubCommandTest with ResourceProviderMixin {
   Future<void> test_outdated_nonZeroExitCode() async {
     processRunner.startHandler =
         (executable, args, {dir, env}) => MockProcess(1, 123, '{}', '');
-    final result = await pubCommand.outdatedVersions(pubspecPath);
+    var result = await pubCommand.outdatedVersions(pubspecPath);
     expect(result, isEmpty);
   }
 
   Future<void> test_validJson() async {
-    final validJson = r'''
+    var validJson = r'''
     {
       "packages": [
         {
@@ -250,9 +249,9 @@ class PubCommandTest with ResourceProviderMixin {
     ''';
     processRunner.startHandler =
         (executable, args, {dir, env}) => MockProcess(1, 0, validJson, '');
-    final result = await pubCommand.outdatedVersions(pubspecPath);
+    var result = await pubCommand.outdatedVersions(pubspecPath);
     expect(result, hasLength(2));
-    for (final (index, package) in result.indexed) {
+    for (var (index, package) in result.indexed) {
       expect(package.packageName, equals(index == 0 ? 'foo' : 'bar'));
       expect(package.currentVersion, equals('1.0.0'));
       expect(package.upgradableVersion, equals('2.0.0'));
@@ -449,15 +448,15 @@ class PubPackageServiceTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_packageCache_timeRemaining() async {
     void expectHoursRemaining(DateTime cacheTime, int expectedHoursRemaining) {
-      final cache = PackageDetailsCache.empty();
+      var cache = PackageDetailsCache.empty();
       cache.lastUpdatedUtc = cacheTime.toUtc();
 
-      final remainingHours = cache.cacheTimeRemaining.inHours;
+      var remainingHours = cache.cacheTimeRemaining.inHours;
       expect(remainingHours, isNonNegative);
       expect(remainingHours, closeTo(expectedHoursRemaining, 1));
     }
 
-    final maxHours = PackageDetailsCache.maxCacheAge.inHours;
+    var maxHours = PackageDetailsCache.maxCacheAge.inHours;
 
     // Very old cache should have no time remaining.
     expectHoursRemaining(DateTime(2020, 12), 0);
@@ -484,8 +483,8 @@ class PubPackageServiceTest extends AbstractLspAnalysisServerTest {
     await openFile(pubspecFileUri, '');
     await pumpEventQueue();
 
-    final cache = server.pubPackageService.readDiskCache()!;
-    final packages = cache.packages.values.toList();
+    var cache = server.pubPackageService.readDiskCache()!;
+    var packages = cache.packages.values.toList();
 
     expect(packages.map((p) => p.packageName), equals(['one', 'two', 'three']));
   }

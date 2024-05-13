@@ -128,6 +128,9 @@ features:
   resource-identifiers:
     help: "Output arguments used by static functions."
 
+  wildcard-variables:
+    help: "Local declarations and parameters named `_` are non-binding."
+
 # Experiment flag only used for testing.
   test-experiment:
     help: >-
@@ -154,6 +157,7 @@ features:
         print('feature enabled');
       }
     help: "Better handling of conditional expressions, and switch expressions."
+    expired: true
 
   inline-class:
     enabledIn: '3.3.0'

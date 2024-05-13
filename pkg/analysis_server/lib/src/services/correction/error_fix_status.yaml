@@ -44,10 +44,10 @@
 #   issue created for it.
 #
 # Stats:
-# -  18 "needsEvaluation"
-# - 362 "needsFix"
-# - 366 "hasFix"
-# - 490 "noFix"
+# -  40 "needsEvaluation"
+# - 387 "needsFix"
+# - 370 "hasFix"
+# - 509 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
   status: noFix
@@ -209,6 +209,12 @@ CompileTimeErrorCode.ASSIGNMENT_TO_TYPE:
   status: noFix
 CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT:
   status: hasFix
+CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA:
+  status: needsFix
+CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING:
+  status: needsFix
+CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND:
+  status: noFix
 CompileTimeErrorCode.AUGMENTATION_WITHOUT_DECLARATION:
   status: noFix
 CompileTimeErrorCode.AUGMENTATION_WITHOUT_IMPORT:
@@ -216,6 +222,10 @@ CompileTimeErrorCode.AUGMENTATION_WITHOUT_IMPORT:
   notes: |-
     The fix is to add `import augment`.
 CompileTimeErrorCode.AUGMENTATION_WITHOUT_LIBRARY:
+  status: noFix
+CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER:
+  status: noFix
+CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR:
   status: noFix
 CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER:
   status: needsFix
@@ -410,6 +420,8 @@ CompileTimeErrorCode.CONST_DEFERRED_CLASS:
     Remove the `deferred` keyword from the import.
 CompileTimeErrorCode.CONST_EVAL_ASSERTION_FAILURE:
   status: needsEvaluation
+CompileTimeErrorCode.CONST_EVAL_ASSERTION_FAILURE_WITH_MESSAGE:
+  status: needsEvaluation
 CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD:
   status: needsEvaluation
 CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD:
@@ -433,6 +445,8 @@ CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING:
 CompileTimeErrorCode.CONST_EVAL_TYPE_INT:
   status: noFix
 CompileTimeErrorCode.CONST_EVAL_TYPE_NUM:
+  status: noFix
+CompileTimeErrorCode.CONST_EVAL_TYPE_NUM_STRING:
   status: noFix
 CompileTimeErrorCode.CONST_EVAL_TYPE_STRING:
   status: noFix
@@ -586,6 +600,8 @@ CompileTimeErrorCode.ENUM_WITH_NAME_VALUES:
   since: 2.17
   notes: |-
     Requires a rename.
+CompileTimeErrorCode.ENUM_WITHOUT_CONSTANTS:
+  status: noFix
 CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET:
   status: needsFix
   notes: |-
@@ -1044,6 +1060,8 @@ CompileTimeErrorCode.MACRO_ERROR:
   status: noFix
 CompileTimeErrorCode.MACRO_INTERNAL_EXCEPTION:
   status: noFix
+CompileTimeErrorCode.MACRO_NOT_ALLOWED_DECLARATION:
+  status: noFix
 CompileTimeErrorCode.MAIN_FIRST_POSITIONAL_PARAMETER_TYPE:
   status: needsFix
   notes: |-
@@ -1238,6 +1256,12 @@ CompileTimeErrorCode.NON_CONSTANT_MAP_PATTERN_KEY:
 CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE:
   status: noFix
 CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY:
+  status: needsFix
+  notes: |-
+    Remove the `deferred` keyword from the import.
+CompileTimeErrorCode.NON_CONSTANT_RECORD_FIELD:
+  status: noFix
+CompileTimeErrorCode.NON_CONSTANT_RECORD_FIELD_FROM_DEFERRED_LIBRARY:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
@@ -1731,6 +1755,12 @@ FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_MISSING:
 FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED:
   status: noFix
   since: ~2.16
+FfiCode.ADDRESS_POSITION:
+  status: needsEvaluation
+  since: ~3.5
+FfiCode.ADDRESS_RECEIVER:
+  status: needsEvaluation
+  since: ~3.5
 FfiCode.ANNOTATION_ON_POINTER_FIELD:
   status: needsFix
 FfiCode.ARGUMENT_MUST_BE_A_CONSTANT:
@@ -2064,6 +2094,11 @@ LintCode.discarded_futures:
   status: hasFix
 LintCode.do_not_use_environment:
   status: noFix
+LintCode.document_ignores:
+  status: needsFix
+  notes: |-
+    We of course cannot generate a fix including appropriate text, but we can
+    insert a stub comment in the correct position.
 LintCode.empty_catches:
   status: hasFix
 LintCode.empty_constructor_bodies:
@@ -2100,6 +2135,12 @@ LintCode.implicit_reopen:
   status: hasFix
 LintCode.invalid_case_patterns:
   status: hasFix
+LintCode.invalid_runtime_check_with_js_interop_types:
+  status: needsFix
+  notes: |-
+    The fix is dependent on the specific types that are being used. In some
+    cases, the type test is incorrect and has no fix besides removing the test.
+    In other cases, JS interop helpers may be used to do the type test instead.
 LintCode.invariant_booleans:
   status: noFix
   notes: |-
@@ -2648,6 +2689,8 @@ ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION:
   status: needsFix
   notes: |-
     Remove `covariant`.
+ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION:
+  status: noFix
 ParserErrorCode.DEFAULT_IN_SWITCH_EXPRESSION:
   status: hasFix
 ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE:
@@ -3681,7 +3724,7 @@ WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM:
   status: hasFix
 WarningCode.INVALID_SEALED_ANNOTATION:
   status: hasFix
-WarningCode.INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER:
+WarningCode.invalid_use_of_do_not_submit_member:
   status: needsEvaluation
 WarningCode.INVALID_USE_OF_INTERNAL_MEMBER:
   status: noFix

@@ -13,6 +13,7 @@ cc/IsolateReload_PendingUnqualifiedCall_InstanceToStatic: Fail # Issue 32981
 cc/IsolateReload_PendingUnqualifiedCall_StaticToInstance: Fail # Issue 32981
 cc/TTS_STC_ManyAsserts: Pass, Slow # Generates 10k classes that are put into an STC via assert checks.
 dart/analyze_snapshot_binary_test: Pass, Slow # Runs various subprocesses for testing AOT.
+dart/async_igoto_threshold_flag_test: Pass, Slow
 dart/boxmint_test: Pass, Slow # Uses slow path
 dart/byte_array_optimized_test: Pass, Slow
 dart/byte_array_test: Pass, Slow # Uses --opt-counter-threshold=10
@@ -30,6 +31,7 @@ dart/print_object_layout_test: Pass, Slow # Spawns several subprocesses
 dart/regress32619_test: Pass, Slow
 dart/slow_path_shared_stub_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
 dart/snapshot_version_test: Skip # This test is a Dart1 test (script snapshot)
+dart/spawn_uri_aot_test: Pass, Slow # Runs various subprocesses for testing AOT.
 dart/stack_overflow_shared_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
 
 [ $arch == ia32 ]
@@ -203,9 +205,11 @@ dart/reachability_test: SkipByDesign # Test takes too long on the simulator
 dart/regress_41971_test: SkipByDesign # https://dartbug.com/37299 dart:ffi is not supported on simulator
 dart/regress_b_216834909_test: SkipByDesign # No FFI on simulators
 dart/sdk_hash_test: SkipSlow # gen_kernel is slow to run on simarm
+dart/sendport_api_test: SkipByDesign # No FFI on simulators
 dart/unboxed_param_args_descriptor_test: SkipByDesign # https://dartbug.com/37299 FFI helper not supported on simulator
 dart/unboxed_param_tear_off_test: SkipByDesign # https://dartbug.com/37299 FFI helper not supported on simulator
 dart/unboxed_param_test: SkipByDesign # https://dartbug.com/37299 FFI helper not supported on simulator
+dart/use_code_comments_flag: Pass, Slow # Slow on simulator https://dartbug.com/55658
 
 [ $arch == ia32 && $mode == debug ]
 dart/*: Pass, Slow # The CFE is not run from AppJit snapshot, JIT warmup in debug mode very slow
@@ -354,6 +358,9 @@ dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
 dart/finalizer/finalizer_isolate_groups_run_gc_test: SkipByDesign # uses spawnUri.
 dart/isolates/send_object_to_spawn_uri_isolate_test: SkipByDesign # uses spawnUri
 dart/issue32950_test: SkipByDesign # uses spawnUri.
+
+[ $runtime != dart_precompiled || $sanitizer != msan && $sanitizer != tsan ]
+dart/sanitizer_compatibility_test: SkipByDesign
 
 [ $system != macos || $simulator ]
 dart/thread_priority_macos_test: SkipByDesign

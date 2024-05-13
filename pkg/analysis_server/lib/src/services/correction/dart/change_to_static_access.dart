@@ -14,7 +14,7 @@ class ChangeToStaticAccess extends ResolvedCorrectionProducer {
   String _className = '';
 
   @override
-  List<Object> get fixArguments => [_className];
+  List<String> get fixArguments => [_className];
 
   @override
   FixKind get fixKind => DartFixKind.CHANGE_TO_STATIC_ACCESS;
@@ -42,7 +42,7 @@ class ChangeToStaticAccess extends ResolvedCorrectionProducer {
       return;
     }
 
-    final target_final = target;
+    var target_final = target;
     var declaringElement = invokedElement.enclosingElement;
 
     if (declaringElement is InterfaceElement) {

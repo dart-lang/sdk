@@ -1,5 +1,3 @@
-// @dart = 2.9
-
 Iterable takesNoArg() => null;
 
 void returnVoid() {}

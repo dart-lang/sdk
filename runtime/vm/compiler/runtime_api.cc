@@ -92,7 +92,9 @@ bool IsNotTemporaryScopedHandle(const Object& obj) {
 #endif
 
 #define DO(clazz)                                                              \
-  bool Is##clazz##Handle(const Object& obj) { return obj.Is##clazz(); }
+  bool Is##clazz##Handle(const Object& obj) {                                  \
+    return obj.Is##clazz();                                                    \
+  }
 CLASS_LIST_FOR_HANDLES(DO)
 #undef DO
 
@@ -634,13 +636,17 @@ const word MegamorphicCache::kSpreadFactor =
 #define DEFINE_CONSTANT(Class, Name) const word Class::Name = Class##_##Name;
 
 #define DEFINE_ARRAY_SIZEOF(clazz, name, ElementOffset)                        \
-  word clazz::name() { return 0; }                                             \
+  word clazz::name() {                                                         \
+    return 0;                                                                  \
+  }                                                                            \
   word clazz::name(intptr_t length) {                                          \
     return RoundedAllocationSize(clazz::ElementOffset(length));                \
   }
 
 #define DEFINE_PAYLOAD_SIZEOF(clazz, name, header)                             \
-  word clazz::name() { return 0; }                                             \
+  word clazz::name() {                                                         \
+    return 0;                                                                  \
+  }                                                                            \
   word clazz::name(word payload_size) {                                        \
     return RoundedAllocationSize(clazz::header() + payload_size);              \
   }
@@ -648,7 +654,9 @@ const word MegamorphicCache::kSpreadFactor =
 #if defined(TARGET_ARCH_IA32)
 
 #define DEFINE_FIELD(clazz, name)                                              \
-  word clazz::name() { return clazz##_##name; }
+  word clazz::name() {                                                         \
+    return clazz##_##name;                                                     \
+  }
 
 #define DEFINE_ARRAY(clazz, name)                                              \
   word clazz::name(intptr_t index) {                                           \
@@ -656,7 +664,9 @@ const word MegamorphicCache::kSpreadFactor =
   }
 
 #define DEFINE_SIZEOF(clazz, name, what)                                       \
-  word clazz::name() { return clazz##_##name; }
+  word clazz::name() {                                                         \
+    return clazz##_##name;                                                     \
+  }
 
 #define DEFINE_RANGE(Class, Getter, Type, First, Last, Filter)                 \
   word Class::Getter(Type index) {                                             \
@@ -739,7 +749,9 @@ JIT_OFFSETS_LIST(DEFINE_JIT_FIELD,
 // definitions using DART_PRECOMPILER.
 
 #define DEFINE_AOT_FIELD(clazz, name)                                          \
-  word clazz::name() { return AOT_##clazz##_##name; }
+  word clazz::name() {                                                         \
+    return AOT_##clazz##_##name;                                               \
+  }
 
 #define DEFINE_AOT_ARRAY(clazz, name)                                          \
   word clazz::name(intptr_t index) {                                           \
@@ -748,7 +760,9 @@ JIT_OFFSETS_LIST(DEFINE_JIT_FIELD,
   }
 
 #define DEFINE_AOT_SIZEOF(clazz, name, what)                                   \
-  word clazz::name() { return AOT_##clazz##_##name; }
+  word clazz::name() {                                                         \
+    return AOT_##clazz##_##name;                                               \
+  }
 
 #define DEFINE_AOT_RANGE(Class, Getter, Type, First, Last, Filter)             \
   word Class::Getter(Type index) {                                             \
@@ -853,13 +867,6 @@ const word MarkingStackBlock::kSize = dart::MarkingStackBlock::kSize;
 // serialize Instructions objects in bare instructions mode, just payloads.
 DART_FORCE_INLINE static bool BareInstructionsPayloads() {
   return FLAG_precompiled_mode;
-}
-
-word InstructionsSection::HeaderSize() {
-  // We only create InstructionsSections in precompiled mode.
-  ASSERT(FLAG_precompiled_mode);
-  return Utils::RoundUp(InstructionsSection::UnalignedHeaderSize(),
-                        Instructions::kBarePayloadAlignment);
 }
 
 word Instructions::HeaderSize() {
@@ -1013,8 +1020,6 @@ const uint8_t Nullability::kNullable =
     static_cast<uint8_t>(dart::Nullability::kNullable);
 const uint8_t Nullability::kNonNullable =
     static_cast<uint8_t>(dart::Nullability::kNonNullable);
-const uint8_t Nullability::kLegacy =
-    static_cast<uint8_t>(dart::Nullability::kLegacy);
 
 bool Heap::IsAllocatableInNewSpace(intptr_t instance_size) {
   return dart::IsAllocatableInNewSpace(instance_size);
@@ -1078,14 +1083,6 @@ void UnboxFieldIfSupported(const dart::Field& field,
   }
 
   if (type.IsNullable()) {
-    return;
-  }
-
-  // In JIT mode we can unbox fields which are guaranteed to be non-nullable
-  // based on their static type. We can only rely on this information
-  // when running in sound null safety. AOT instead uses TFA results, see
-  // |KernelLoader::ReadInferredType|.
-  if (!dart::Thread::Current()->isolate_group()->null_safety()) {
     return;
   }
 

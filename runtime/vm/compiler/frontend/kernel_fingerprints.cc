@@ -82,8 +82,8 @@ void KernelFingerprintHelper::CalculateConstructorFingerprint() {
 void KernelFingerprintHelper::CalculateArgumentsFingerprint() {
   BuildHash(ReadUInt());  // read argument count.
 
-  CalculateListOfDartTypesFingerprint();    // read list of types.
-  CalculateListOfExpressionsFingerprint();  // read positional.
+  CalculateListOfDartTypesFingerprint();         // read list of types.
+  CalculateListOfExpressionsFingerprint();       // read positional.
   CalculateListOfNamedExpressionsFingerprint();  // read named.
 }
 
@@ -250,7 +250,7 @@ void KernelFingerprintHelper::CalculateDartTypeFingerprint() {
     case kTypeParameterType: {
       Nullability nullability = ReadNullability();
       BuildHash(static_cast<uint32_t>(nullability));
-      ReadUInt();                              // read index for parameter.
+      ReadUInt();  // read index for parameter.
       break;
     }
     case kIntersectionType:
@@ -518,9 +518,9 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       UNREACHABLE();
       break;
     case kSuperMethodInvocation:
-      ReadPosition();                            // read position.
-      BuildHash(ReadNameAsMethodName().Hash());  // read name.
-      CalculateArgumentsFingerprint();           // read arguments.
+      ReadPosition();                             // read position.
+      BuildHash(ReadNameAsMethodName().Hash());   // read name.
+      CalculateArgumentsFingerprint();            // read arguments.
       CalculateInterfaceMemberNameFingerprint();  // read target_reference.
       return;
     case kStaticInvocation:

@@ -26,4 +26,3 @@ void UnwindingRecords::UnregisterExecutablePage(Page* page) {}
 #endif
 
 }  // namespace dart
-

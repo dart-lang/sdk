@@ -1,25 +1,18 @@
-library test /*isLegacy*/;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/inference/lambda_return_type.dart:5:1: Error: Library doesn't support null safety.
-// // @dart=2.9
-// ^^^^^^^^^^^^
-//
+library test;
 import self as self;
 import "dart:core" as core;
 
-typedef FunctionReturningNum = () →* core::num*;
+typedef FunctionReturningNum = () → core::num;
 static method test() → dynamic {
-  core::int* i = 1;
-  core::Object* o = 1;
-  () →* core::num* a = () → core::int* => i;
-  () →* core::num* b = () → core::num* => o as{TypeError,ForLegacy} core::num*;
-  () →* core::num* c = () → core::int* {
+  core::int i = 1;
+  dynamic o = 1;
+  () → core::num a = () → core::int => i;
+  () → core::num b = () → core::num => o as{TypeError,ForDynamic} core::num;
+  () → core::num c = () → core::int {
     return i;
   };
-  () →* core::num* d = () → core::num* {
-    return o as{TypeError,ForLegacy} core::num*;
+  () → core::num d = () → core::num {
+    return o as{TypeError,ForDynamic} core::num;
   };
 }
 static method main() → dynamic {}

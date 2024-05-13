@@ -20,7 +20,7 @@ class LspNotificationManager extends AbstractNotificationManager {
   @override
   void sendAnalysisErrors(
       String filePath, List<protocol.AnalysisError> errors) {
-    final diagnostics = errors
+    var diagnostics = errors
         .map((error) => pluginToDiagnostic(
               server.uriConverter,
               (path) => server.getLineInfo(path),

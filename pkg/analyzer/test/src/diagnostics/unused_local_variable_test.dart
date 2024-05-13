@@ -140,6 +140,42 @@ main() {
 ''');
   }
 
+  test_patternVariableDeclarationStatement_noneUsed() async {
+    await assertErrorsInCode(r'''
+void f() {
+  var (a, b) = (0, 1);
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 21, 1),
+    ]);
+  }
+
+  test_patternVariableDeclarationStatement_noneUsed_nested() async {
+    await assertErrorsInCode(r'''
+void f() {
+  var (a, [b, _]) = (0, []);
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1),
+    ]);
+  }
+
+  test_patternVariableDeclarationStatement_noneUsed_withChildStatements() async {
+    await assertErrorsInCode(r'''
+void f() {
+  var (a, b) = () {
+    var (c, d) = (0, 1);
+    return (c, d);
+  }();
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 21, 1),
+    ]);
+  }
+
   test_patternVariableDeclarationStatement_notUsed() async {
     await assertErrorsInCode(r'''
 void f() {
@@ -148,6 +184,24 @@ void f() {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
     ]);
+  }
+
+  test_patternVariableDeclarationStatement_someUsed() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  var (a, b) = (0, 1);
+  a;
+}
+''');
+  }
+
+  test_patternVariableDeclarationStatement_someUsed_nested() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  var (a, [b, c]) = (0, []);
+  c;
+}
+''');
   }
 
   test_patternVariableDeclarationStatement_used() async {

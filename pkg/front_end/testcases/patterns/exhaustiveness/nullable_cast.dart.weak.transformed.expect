@@ -29,7 +29,7 @@ static method exhaustiveNonNullableType(core::int? o) → dynamic
     #L2:
     {
       {
-        if(let final core::int #t4 = #0#0 as{Unchecked} core::int in true) {
+        if(let final core::int #t4 = let core::int? #t5 = #0#0 in #t5 == null ?{core::int} #t5 as core::int : #t5{core::int} in true) {
           #t3 = 0;
           break #L2;
         }
@@ -39,79 +39,79 @@ static method exhaustiveNonNullableType(core::int? o) → dynamic
   } =>#t3;
 static method exhaustiveNonNullableSuperType(core::int? o) → dynamic
   return block {
-    core::int #t5;
+    core::int #t6;
     final synthesized core::int? #0#0 = o;
     #L3:
     {
       {
-        if(let final core::num #t6 = #0#0 as{Unchecked} core::num in (#0#0 as{Unchecked} core::num) is core::int) {
-          #t5 = 0;
+        if(let final core::num #t7 = let core::int? #t8 = #0#0 in #t8 == null ?{core::num} #t8 as core::num : #t8{core::num} in (let core::int? #t9 = #0#0 in #t9 == null ?{core::num} #t9 as core::num : #t9{core::num}) is core::int) {
+          #t6 = 0;
           break #L3;
         }
       }
       throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t5;
+  } =>#t6;
 static method exhaustiveNonNullableFutureOr1(FutureOr<core::int>? o) → dynamic
   return block {
-    core::int #t7;
+    core::int #t10;
     final synthesized FutureOr<core::int>? #0#0 = o;
     #L4:
     {
       {
-        if(let final FutureOr<core::int>#t8 = #0#0 as{Unchecked} FutureOr<core::int> in true) {
-          #t7 = 0;
+        if(let final FutureOr<core::int>#t11 = let FutureOr<core::int>? #t12 = #0#0 in #t12 == null ?{FutureOr<core::int>} #t12 as FutureOr<core::int> : #t12{FutureOr<core::int>} in true) {
+          #t10 = 0;
           break #L4;
         }
       }
       throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t7;
+  } =>#t10;
 static method exhaustiveNonNullableFutureOr2(FutureOr<core::int?>o) → dynamic
   return block {
-    core::int #t9;
+    core::int #t13;
     final synthesized FutureOr<core::int?>#0#0 = o;
     #L5:
     {
       {
-        if(let final FutureOr<core::int>#t10 = #0#0 as{Unchecked} FutureOr<core::int> in true) {
-          #t9 = 0;
+        if(let final FutureOr<core::int>#t14 = #0#0 as FutureOr<core::int> in true) {
+          #t13 = 0;
           break #L5;
         }
       }
       throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t9;
+  } =>#t13;
 static method exhaustiveNonNullableFutureOrTypeVariable1<T extends core::Object>(FutureOr<self::exhaustiveNonNullableFutureOrTypeVariable1::T>? o) → dynamic
   return block {
-    core::int #t11;
+    core::int #t15;
     final synthesized FutureOr<self::exhaustiveNonNullableFutureOrTypeVariable1::T>? #0#0 = o;
     #L6:
     {
       {
-        if(let final FutureOr<self::exhaustiveNonNullableFutureOrTypeVariable1::T>#t12 = #0#0 as{Unchecked} FutureOr<self::exhaustiveNonNullableFutureOrTypeVariable1::T> in true) {
-          #t11 = 0;
+        if(let final FutureOr<self::exhaustiveNonNullableFutureOrTypeVariable1::T>#t16 = let FutureOr<self::exhaustiveNonNullableFutureOrTypeVariable1::T>? #t17 = #0#0 in #t17 == null ?{FutureOr<self::exhaustiveNonNullableFutureOrTypeVariable1::T>} #t17 as FutureOr<self::exhaustiveNonNullableFutureOrTypeVariable1::T> : #t17{FutureOr<self::exhaustiveNonNullableFutureOrTypeVariable1::T>} in true) {
+          #t15 = 0;
           break #L6;
         }
       }
       throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t11;
+  } =>#t15;
 static method exhaustiveNonNullableFutureOrTypeVariable2<T extends core::Object>(FutureOr<self::exhaustiveNonNullableFutureOrTypeVariable2::T?>o) → dynamic
   return block {
-    core::int #t13;
+    core::int #t18;
     final synthesized FutureOr<self::exhaustiveNonNullableFutureOrTypeVariable2::T?>#0#0 = o;
     #L7:
     {
       {
-        if(let final FutureOr<self::exhaustiveNonNullableFutureOrTypeVariable2::T>#t14 = #0#0 as{Unchecked} FutureOr<self::exhaustiveNonNullableFutureOrTypeVariable2::T> in true) {
-          #t13 = 0;
+        if(let final FutureOr<self::exhaustiveNonNullableFutureOrTypeVariable2::T>#t19 = #0#0 as FutureOr<self::exhaustiveNonNullableFutureOrTypeVariable2::T> in true) {
+          #t18 = 0;
           break #L7;
         }
       }
       throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t13;
+  } =>#t18;
 static method main() → dynamic {
   self::expect(0, self::exhaustiveNonNullableTypeVariable<core::Object>(42));
   self::expect(0, self::exhaustiveNonNullableTypeVariable<core::int>(42));
@@ -165,4 +165,4 @@ constants  {
 
 Extra constant evaluation status:
 Evaluated: IsExpression @ org-dartlang-testcase:///nullable_cast.dart:78:40 -> BoolConstant(true)
-Extra constant evaluation: evaluated: 147, effectively constant: 1
+Extra constant evaluation: evaluated: 177, effectively constant: 1

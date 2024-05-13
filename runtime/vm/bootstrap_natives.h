@@ -146,7 +146,7 @@ namespace dart {
   V(DateTime_timeZoneName, 1)                                                  \
   V(DateTime_timeZoneOffsetInSeconds, 1)                                       \
   V(AssertionError_throwNew, 3)                                                \
-  V(AssertionError_throwNewSource, 4)                                          \
+  V(AssertionError_throwNewSource, 5)                                          \
   V(Error_throwWithStackTrace, 2)                                              \
   V(StackTrace_current, 0)                                                     \
   V(TypeError_throwNew, 4)                                                     \
@@ -281,7 +281,8 @@ namespace dart {
   V(Internal_writeIntoOneByteString, 3)                                        \
   V(Internal_writeIntoTwoByteString, 3)                                        \
   V(Internal_deoptimizeFunctionsOnStack, 0)                                    \
-  V(Internal_randomInstructionsOffsetInsideAllocateObjectStub, 0)              \
+  V(Internal_allocateObjectInstructionsStart, 0)                               \
+  V(Internal_allocateObjectInstructionsEnd, 0)                                 \
   V(InvocationMirror_unpackTypeArguments, 2)                                   \
   V(NoSuchMethodError_existingMethodSignature, 3)                              \
   V(Uri_isWindowsPlatform, 0)                                                  \

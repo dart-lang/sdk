@@ -143,6 +143,39 @@ void f(A a) {
     ]);
   }
 
+  test_constructor_result_assigned() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  A();
+}
+
+void f() {
+  var bar = A();
+  print(bar);
+}
+''');
+  }
+
+  test_constructor_result_notUsed() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  A();
+}
+
+void f() {
+  A();
+}
+''', [
+      error(WarningCode.UNUSED_RESULT, 80, 3),
+    ]);
+  }
+
   test_field_result_assigned() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';

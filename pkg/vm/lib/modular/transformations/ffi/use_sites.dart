@@ -5,11 +5,13 @@
 import 'package:front_end/src/fasta/codes/fasta_codes.dart'
     show
         messageFfiAddressOfMustBeNative,
+        messageFfiAddressPosition,
+        messageFfiAddressReceiver,
         messageFfiCreateOfStructOrUnion,
         messageFfiExceptionalReturnNull,
         messageFfiExpectedConstant,
-        templateFfiNativeCallableListenerReturnVoid,
         templateFfiDartTypeMismatch,
+        templateFfiNativeCallableListenerReturnVoid,
         templateFfiExpectedConstantArg,
         templateFfiExpectedExceptionalReturn,
         templateFfiExpectedNoExceptionalReturn,
@@ -17,6 +19,7 @@ import 'package:front_end/src/fasta/codes/fasta_codes.dart'
         templateFfiNotStatic;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+import 'package:kernel/clone.dart';
 import 'package:kernel/constructor_tearoff_lowering.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
@@ -138,6 +141,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final target = node.target;
     if (hierarchy.isSubclassOf(target.enclosingClass, compoundClass) &&
         target.enclosingClass != arrayClass &&
+        target.enclosingClass != compoundClass &&
         target.name != Name("#fromTypedDataBase") &&
         target.name != Name("#fromTypedData")) {
       diagnosticReporter.report(messageFfiCreateOfStructOrUnion,
@@ -171,9 +175,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       return ConstructorInvocation(
         constructors.firstWhere((c) => c.name == Name("#fromTypedData")),
         Arguments([
-          (defaultExpression(node.arguments.positional.first) as Expression),
+          node.arguments.positional.first,
           (positionalArguments.length >= 2
-              ? defaultExpression(positionalArguments[1]) as Expression
+              ? positionalArguments[1]
               : ConstantExpression(IntConstant(0))),
           // Length in bytes to check the typedData against.
           sizeOfExpression,
@@ -525,6 +529,18 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         return _transformCompoundCreate(node);
       } else if (target == nativeAddressOf) {
         return _replaceNativeAddressOf(node);
+      } else if (addressOfMethods.contains(target)) {
+        // The AST is visited recursively down. Handling of native invocations
+        // will inspect arguments for `<expr>.address` invocations. Any
+        // remaining invocations occur are places where `<expr>.address` is
+        // disallowed, so issue an error.
+        diagnosticReporter.report(
+            messageFfiAddressPosition, node.fileOffset, 1, node.location?.file);
+      } else {
+        final nativeAnnotation = memberGetNativeAnnotation(target);
+        if (nativeAnnotation != null && _isLeaf(nativeAnnotation)) {
+          return _replaceNativeCall(node, nativeAnnotation);
+        }
       }
     } on FfiStaticTypeError {
       // It's OK to swallow the exception because the diagnostics issued will
@@ -533,6 +549,12 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     }
 
     return node;
+  }
+
+  bool _isLeaf(InstanceConstant native) {
+    return (native.fieldValues[nativeIsLeafField.fieldReference]
+            as BoolConstant)
+        .value;
   }
 
   /// Create Dart function which calls native code.
@@ -1340,24 +1362,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       StaticGet(:var targetReference) => targetReference.asMember,
       _ => null,
     };
-    Constant? nativeAnnotation;
-
-    if (potentiallyNativeTarget != null) {
-      for (final annotation in potentiallyNativeTarget.annotations) {
-        if (annotation
-            case ConstantExpression(constant: final InstanceConstant c)) {
-          if (c.classNode == coreTypes.pragmaClass) {
-            final name = c.fieldValues[coreTypes.pragmaName.fieldReference];
-            if (name is StringConstant &&
-                name.value == native.FfiNativeTransformer.nativeMarker) {
-              nativeAnnotation =
-                  c.fieldValues[coreTypes.pragmaOptions.fieldReference]!;
-              break;
-            }
-          }
-        }
-      }
-    }
+    Constant? nativeAnnotation =
+        memberGetNativeAnnotation(potentiallyNativeTarget);
 
     if (nativeAnnotation == null) {
       diagnosticReporter.report(messageFfiAddressOfMustBeNative, arg.fileOffset,
@@ -1375,6 +1381,347 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       nativePrivateAddressOf,
       Arguments([ConstantExpression(nativeAnnotation)], types: [nativeType]),
     )..fileOffset = arg.fileOffset;
+  }
+
+  InstanceConstant? memberGetNativeAnnotation(Member? member) {
+    if (member == null) {
+      return null;
+    }
+    for (final annotation in member.annotations) {
+      if (annotation
+          case ConstantExpression(constant: final InstanceConstant c)) {
+        if (c.classNode == coreTypes.pragmaClass) {
+          final name = c.fieldValues[coreTypes.pragmaName.fieldReference];
+          if (name is StringConstant &&
+              name.value == native.FfiNativeTransformer.nativeMarker) {
+            return c.fieldValues[coreTypes.pragmaOptions.fieldReference]
+                as InstanceConstant;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  StaticInvocation _replaceNativeCall(
+    StaticInvocation node,
+    InstanceConstant targetNativeAnnotation,
+  ) {
+    final target = node.target;
+    if (targetNativeAnnotation.typeArguments.length != 1) {
+      return node;
+    }
+    final annotationType = targetNativeAnnotation.typeArguments.single;
+    if (annotationType is! FunctionType) {
+      return node;
+    }
+    final parameterTypes = [
+      for (final varDecl in target.function.positionalParameters) varDecl.type,
+    ];
+    final numParams = parameterTypes.length;
+    String methodPostfix = '';
+    final newArguments = <Expression>[];
+    final newParameters = <VariableDeclaration>[];
+    bool isTransformed = false;
+    for (int i = 0; i < numParams; i++) {
+      final parameter = target.function.positionalParameters[i];
+      final parameterType = parameterTypes[i];
+      final argument = node.arguments.positional[i];
+      final (
+        postFix,
+        newType,
+        newArgument,
+      ) = _replaceNativeCallParameterAndArgument(
+        parameter,
+        parameterType,
+        argument,
+        node.fileOffset,
+      );
+      methodPostfix += postFix;
+      if (postFix == 'C' || postFix == 'E' || postFix == 'T') {
+        isTransformed = true;
+      }
+      newParameters.add(VariableDeclaration(
+        parameter.name,
+        type: newType,
+      ));
+      newArguments.add(newArgument);
+    }
+
+    if (!isTransformed) {
+      return node;
+    }
+
+    final newName = '${target.name.text}#$methodPostfix';
+    final Procedure newTarget;
+    final parent = target.parent;
+    final members = switch (parent) {
+      Library _ => parent.members,
+      Class _ => parent.members,
+      _ => throw UnimplementedError('Unexpected parent: ${parent}'),
+    };
+
+    final existingNewTarget = members
+        .whereType<Procedure>()
+        .where((element) => element.name.text == newName)
+        .firstOrNull;
+    if (existingNewTarget != null) {
+      newTarget = existingNewTarget;
+    } else {
+      final cloner = CloneProcedureWithoutBody();
+      newTarget = cloner.cloneProcedure(target, null);
+      newTarget.name = Name(newName);
+      newTarget.function.positionalParameters = newParameters;
+      setParents(newParameters, newTarget.function);
+      switch (parent) {
+        case Library _:
+          parent.addProcedure(newTarget);
+        case Class _:
+          parent.addProcedure(newTarget);
+      }
+    }
+
+    return StaticInvocation(
+      newTarget,
+      Arguments(newArguments),
+    );
+  }
+
+  /// Converts a single parameter with argument for [_replaceNativeCall].
+  (
+    /// '' for non-Pointer.
+    /// 'P' for Pointer.
+    /// 'T' for TypedData.
+    /// 'C' for _Compound (TypedData/Pointer and offset in bytes).
+    /// 'E' for errors.
+    String methodPostFix,
+    DartType parameterType,
+    Expression argument,
+  ) _replaceNativeCallParameterAndArgument(
+    VariableDeclaration parameter,
+    DartType parameterType,
+    Expression argument,
+    int fileOffset,
+  ) {
+    if (parameterType is! InterfaceType ||
+        parameterType.classNode != pointerClass) {
+      // Parameter is non-pointer. Keep unchanged.
+      return ('', parameterType, argument);
+    }
+
+    if (argument is! StaticInvocation ||
+        !addressOfMethods.contains(argument.target)) {
+      // The argument has type Pointer, but it's not produced by any of the
+      // `.address` getters.
+      // Argument must be a Pointer object. Keep unchanged.
+      return ('P', parameterType, argument);
+    }
+
+    if (addressOfMethodsTypedData.contains(argument.target)) {
+      final subExpression = argument.arguments.positional.single;
+      // Argument is `typedData.address`.
+      final typedDataType = InterfaceType(
+        typedDataClass,
+        Nullability.nonNullable,
+        const <DartType>[],
+      );
+      return ('T', typedDataType, subExpression);
+    }
+
+    final subExpression = argument.arguments.positional.single;
+
+    if (addressOfMethodsCompound.contains(argument.target)) {
+      // Argument is `structOrUnionOrArray.address`.
+      return ('C', compoundType, subExpression);
+    }
+
+    assert(addressOfMethodsPrimitive.contains(argument.target));
+    // Argument is an `expr.address` where `expr` is typed `bool`, `int`, or
+    // `double`. Analyze `expr` further.
+    switch (subExpression) {
+      case InstanceGet _:
+        // Look for `structOrUnion.member.address`.
+        final interfaceTarget = subExpression.interfaceTarget;
+        final enclosingClass = interfaceTarget.enclosingClass!;
+        final targetSuperClass = enclosingClass.superclass;
+        if (targetSuperClass == unionClass) {
+          // `expr` is a union member access.
+          // Union members have no additional offset. Pass in unchanged.
+          return ('C', compoundType, subExpression.receiver);
+        }
+        if (targetSuperClass == structClass) {
+          final getterName = interfaceTarget.name.text;
+          final offsetOfName = '$getterName#offsetOf';
+          final offsetGetter = enclosingClass.procedures
+              .firstWhere((e) => e.name.text == offsetOfName);
+          // `expr` is a struct member access. Struct members have an offset.
+          // Pass in a newly constructed `_Compound`, with adjusted offset.
+          return (
+            'C',
+            compoundType,
+            _generateCompoundOffsetBy(
+              subExpression.receiver,
+              StaticGet(offsetGetter),
+              fileOffset,
+              variableName: "${parameter.name}#value",
+            ),
+          );
+        }
+      // Error, unrecognized getter.
+
+      case StaticInvocation _:
+        // Look for `array[index].address`.
+        // Extensions have already been desugared, so no enclosing extension.
+        final target = subExpression.target;
+        if (!target.isExtensionMember) break;
+        final positionalParameters = target.function.positionalParameters;
+        if (positionalParameters.length != 2) break;
+        final firstParamType = positionalParameters.first.type;
+        if (firstParamType is! InterfaceType) break;
+        if (firstParamType.classNode != arrayClass) break;
+        // Extensions have already been desugared, so original name is lost.
+        if (!target.name.text.endsWith('|[]')) break;
+        final DartType arrayElementType;
+        if (subExpression.arguments.types.isNotEmpty) {
+          // AbiSpecificInteger.
+          arrayElementType = subExpression.arguments.types.single;
+        } else {
+          arrayElementType = firstParamType.typeArguments.single;
+        }
+        final arrayElementSize =
+            inlineSizeOf(arrayElementType as InterfaceType)!;
+        // Array element. Pass in a newly constructed `_Compound`, with
+        // adjusted offset.
+        return (
+          'C',
+          compoundType,
+          _generateCompoundOffsetBy(
+            subExpression.arguments.positional[0],
+            multiply(
+              arrayElementSize,
+              subExpression.arguments.positional[1], // index.
+            ),
+            fileOffset,
+            variableName: "${parameter.name}#value",
+          ),
+        );
+
+      case InstanceInvocation _:
+        // Look for `typedData[index].address`
+        final receiverType =
+            staticTypeContext!.getExpressionType(subExpression.receiver);
+        final implementsTypedData = TypeEnvironment(coreTypes, hierarchy)
+            .isSubtypeOf(
+                receiverType,
+                InterfaceType(typedDataClass, Nullability.nonNullable),
+                SubtypeCheckMode.withNullabilities);
+        if (!implementsTypedData) break;
+        if (receiverType is! InterfaceType) break;
+        final classNode = receiverType.classNode;
+        final elementSizeInBytes = _typedDataElementSizeInBytes(classNode);
+        if (elementSizeInBytes == null) break;
+
+        // Typed Data element off. Pass in new _Compound with extra
+        // offset.
+        return (
+          'C',
+          compoundType,
+          ConstructorInvocation(
+            compoundFromTypedDataBase,
+            Arguments([
+              subExpression.receiver,
+              multiply(
+                ConstantExpression(IntConstant(elementSizeInBytes)),
+                subExpression.arguments.positional.first, // index.
+              ),
+            ]),
+          ),
+        );
+      default:
+    }
+
+    diagnosticReporter.report(
+      messageFfiAddressReceiver,
+      argument.fileOffset,
+      1,
+      argument.location?.file,
+    );
+    // Pass nullptr to prevent cascading error messages.
+    return (
+      'E', // Error.
+      pointerVoidType,
+      StaticInvocation(
+        fromAddressInternal,
+        Arguments(
+          <Expression>[ConstantExpression(IntConstant(0))],
+          types: <DartType>[voidType],
+        ),
+      ),
+    );
+  }
+
+  int? _typedDataElementSizeInBytes(Class classNode) {
+    final name = classNode.name;
+    if (name.contains('8')) {
+      return 1;
+    } else if (name.contains('16')) {
+      return 2;
+    } else if (name.contains('32')) {
+      return 4;
+    } else if (name.contains('64')) {
+      return 8;
+    }
+    return null;
+  }
+
+  /// Returns:
+  ///
+  /// ```
+  /// _Compound._fromTypedDataBase(
+  ///   compound._typedDataBase,
+  ///   compound._offsetInBytes + offsetInBytes,
+  /// )
+  /// ```
+  Expression _generateCompoundOffsetBy(
+    Expression compound,
+    Expression offsetInBytes,
+    int fileOffset, {
+    String variableName = "#compoundOffset",
+  }) {
+    final compoundType = InterfaceType(
+      compoundClass,
+      Nullability.nonNullable,
+      const <DartType>[],
+    );
+
+    final valueVar = VariableDeclaration(
+      variableName,
+      initializer: compound,
+      type: compoundType,
+      isSynthesized: true,
+    )..fileOffset = fileOffset;
+    final newArgument = BlockExpression(
+      Block([
+        valueVar,
+      ]),
+      ConstructorInvocation(
+        compoundFromTypedDataBase,
+        Arguments([
+          getCompoundTypedDataBaseField(
+            VariableGet(valueVar),
+            fileOffset,
+          ),
+          add(
+            getCompoundOffsetInBytesField(
+              VariableGet(valueVar),
+              fileOffset,
+            ),
+            offsetInBytes,
+          ),
+        ]),
+      ),
+    );
+    return newArgument;
   }
 }
 

@@ -50,9 +50,7 @@ struct RelocatorTestHelper {
     FLAG_lower_pc_relative_call_distance = -128;
     FLAG_upper_pc_relative_call_distance = 128;
   }
-  ~RelocatorTestHelper() {
-    FLAG_precompiled_mode = false;
-  }
+  ~RelocatorTestHelper() { FLAG_precompiled_mode = false; }
 
   void CreateInstructions(std::initializer_list<intptr_t> sizes) {
     for (auto size : sizes) {
@@ -61,8 +59,8 @@ struct RelocatorTestHelper {
   }
 
   CodePtr AllocationInstruction(uintptr_t size) {
-    const auto& instructions = Instructions::Handle(
-        Instructions::New(size, /*has_monomorphic=*/false));
+    const auto& instructions = Instructions::Handle(Instructions::New(
+        size, /*has_monomorphic=*/false, /*should_be_aligned=*/false));
 
     uword addr = instructions.PayloadStart();
     for (uintptr_t i = 0; i < (size / 4); ++i) {
@@ -214,6 +212,9 @@ struct RelocatorTestHelper {
         case ImageWriterCommand::InsertBytesOfTrampoline:
           size += (*commands)[i].insert_trampoline_bytes.buffer_length;
           break;
+        case ImageWriterCommand::InsertPadding:
+          size += (*commands)[i].insert_padding.padding_length;
+          break;
         case ImageWriterCommand::InsertInstructionOfCode:
           size += ImageWriter::SizeInSnapshot(Code::InstructionsOf(
               (*commands)[i].insert_instruction_of_code.code));
@@ -221,8 +222,8 @@ struct RelocatorTestHelper {
       }
     }
 
-    auto& instructions = Instructions::Handle(
-        Instructions::New(size, /*has_monomorphic=*/false));
+    auto& instructions = Instructions::Handle(Instructions::New(
+        size, /*has_monomorphic=*/false, /*should_be_aligned=*/false));
     {
       uword addr = instructions.PayloadStart();
       for (intptr_t i = 0; i < commands->length(); ++i) {
@@ -232,6 +233,14 @@ struct RelocatorTestHelper {
             const auto current_size = entry.buffer_length;
             ASSERT(addr + current_size <= instructions.PayloadStart() + size);
             memmove(reinterpret_cast<void*>(addr), entry.buffer, current_size);
+            addr += current_size;
+            break;
+          }
+          case ImageWriterCommand::InsertPadding: {
+            const auto entry = (*commands)[i].insert_padding;
+            const auto current_size = entry.padding_length;
+            ASSERT(addr + current_size <= instructions.PayloadStart() + size);
+            memset(reinterpret_cast<void*>(addr), 0, current_size);
             addr += current_size;
             break;
           }

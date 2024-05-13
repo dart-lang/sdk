@@ -20,13 +20,13 @@ class DiagnosticServerHandler
   @override
   Future<ErrorOr<DartDiagnosticServer>> handle(
       void params, MessageInfo message, CancellationToken token) async {
-    final diagnosticServer = server.diagnosticServer;
+    var diagnosticServer = server.diagnosticServer;
     if (diagnosticServer == null) {
       return error(ServerErrorCodes.FeatureDisabled,
           'The diagnostic server is not available');
     }
 
-    final port = await diagnosticServer.getServerPort();
+    var port = await diagnosticServer.getServerPort();
     return success(DartDiagnosticServer(port: port));
   }
 }

@@ -10,28 +10,28 @@ import 'package:test/test.dart';
 
 void main() {
   group('toJson', () {
-    final start = Position(line: 1, character: 1);
-    final end = Position(line: 2, character: 2);
-    final range = Range(start: start, end: end);
+    var start = Position(line: 1, character: 1);
+    var end = Position(line: 2, character: 2);
+    var range = Range(start: start, end: end);
 
     test('returns correct JSON for a union', () {
-      final num = Either2.t1(1);
-      final string = Either2.t2('Test');
+      var num = Either2.t1(1);
+      var string = Either2.t2('Test');
       expect(json.encode(num.toJson()), equals('1'));
       expect(json.encode(string.toJson()), equals('"Test"'));
     });
 
     test('returns correct output for union types', () {
-      final message = RequestMessage(
+      var message = RequestMessage(
           id: Either2<int, String>.t1(1),
           method: Method.shutdown,
           jsonrpc: 'test');
-      final output = json.encode(message.toJson());
+      var output = json.encode(message.toJson());
       expect(output, equals('{"id":1,"jsonrpc":"test","method":"shutdown"}'));
     });
 
     test('returns correct output for nested union types', () {
-      final message = ResponseMessage(
+      var message = ResponseMessage(
         id: Either2<int, String>.t1(1),
         result:
             Either2<Either2<List<Location>, Location>, List<LocationLink>>.t1(
@@ -43,7 +43,7 @@ void main() {
         ])),
         jsonrpc: jsonRpcVersion,
       );
-      final output = json.encode(message.toJson());
+      var output = json.encode(message.toJson());
       expect(
           output,
           equals(
@@ -55,12 +55,12 @@ void main() {
 
     test('returns correct output for union types containing interface types',
         () {
-      final params = Either2<String, TextDocumentItem>.t2(TextDocumentItem(
+      var params = Either2<String, TextDocumentItem>.t2(TextDocumentItem(
           uri: Uri.parse('http://example.org/'),
           languageId: '!language',
           version: 1,
           text: '!text'));
-      final output = json.encode(params);
+      var output = json.encode(params);
       expect(
           output,
           equals(
@@ -68,9 +68,9 @@ void main() {
     });
 
     test('returns correct output for types with lists', () {
-      final location =
+      var location =
           Location(uri: Uri.parse('http://example.org/'), range: range);
-      final codeAction = Diagnostic(
+      var codeAction = Diagnostic(
         range: range,
         severity: DiagnosticSeverity.Error,
         code: 'test_err',
@@ -80,8 +80,8 @@ void main() {
           DiagnosticRelatedInformation(location: location, message: 'message')
         ],
       );
-      final output = json.encode(codeAction.toJson());
-      final expected = '''{
+      var output = json.encode(codeAction.toJson());
+      var expected = '''{
         "code":"test_err",
         "message":"err!!",
         "range":{
@@ -108,10 +108,10 @@ void main() {
     });
 
     test('toJson() converts lists of enums to their underlying values', () {
-      final kind = CompletionClientCapabilitiesCompletionItemKind(
+      var kind = CompletionClientCapabilitiesCompletionItemKind(
         valueSet: [CompletionItemKind.Color],
       );
-      final json = kind.toJson();
+      var json = kind.toJson();
       expect(
         json['valueSet'],
         // The list should contain the toJson (string/int) representation of
@@ -121,14 +121,14 @@ void main() {
     });
 
     test('serializes enums to their underlying values', () {
-      final foldingRange = FoldingRange(
+      var foldingRange = FoldingRange(
           startLine: 1,
           startCharacter: 2,
           endLine: 3,
           endCharacter: 4,
           kind: FoldingRangeKind.Comment);
-      final output = json.encode(foldingRange.toJson());
-      final expected = '''{
+      var output = json.encode(foldingRange.toJson());
+      var expected = '''{
         "endCharacter":4,
         "endLine":3,
         "kind":"comment",
@@ -140,11 +140,11 @@ void main() {
     });
 
     test('ResponseMessage does not include an error with a result', () {
-      final id = Either2<int, String>.t1(1);
-      final result = 'my result';
-      final resp =
+      var id = Either2<int, String>.t1(1);
+      var result = 'my result';
+      var resp =
           ResponseMessage(id: id, result: result, jsonrpc: jsonRpcVersion);
-      final jsonMap = resp.toJson();
+      var jsonMap = resp.toJson();
       expect(jsonMap, contains('result'));
       expect(jsonMap, isNot(contains('error')));
     });
@@ -174,7 +174,7 @@ void main() {
     test('canParse allows nulls in nullable and undefinable fields', () {
       // The only required field in InitializeParams is capabilities, and all
       // of the fields on that are optional.
-      final canParse = InitializeParams.canParse({
+      var canParse = InitializeParams.canParse({
         'processId': null,
         'rootUri': null,
         'capabilities': <String, Object>{}
@@ -185,7 +185,7 @@ void main() {
     test('canParse allows matching literal strings', () {
       // The CreateFile type is defined with `{ kind: 'create' }` so the only
       // allowed value for `kind` is "create".
-      final canParse = CreateFile.canParse({
+      var canParse = CreateFile.canParse({
         'kind': 'create',
         'uri': 'file:///temp/foo',
       }, throwingLspJsonReporter);
@@ -195,7 +195,7 @@ void main() {
     test('canParse disallows non-matching literal strings', () {
       // The CreateFile type is defined with `{ kind: 'create' }` so the only
       // allowed value for `kind` is "create".
-      final canParse = CreateFile.canParse({
+      var canParse = CreateFile.canParse({
         'kind': 'not-create',
         'uri': 'file:///temp/foo',
       }, nullLspJsonReporter);
@@ -213,12 +213,11 @@ void main() {
         null: true,
         'invalid': false,
       };
-      for (final entry in testTraceValues.entries) {
-        final testValue = entry.key;
-        final expected = entry.value;
-        final reporter =
-            expected ? throwingLspJsonReporter : nullLspJsonReporter;
-        final canParse = InitializeParams.canParse({
+      for (var entry in testTraceValues.entries) {
+        var testValue = entry.key;
+        var expected = entry.value;
+        var reporter = expected ? throwingLspJsonReporter : nullLspJsonReporter;
+        var canParse = InitializeParams.canParse({
           'processId': null,
           'rootUri': null,
           'capabilities': <String, Object>{},
@@ -260,7 +259,7 @@ void main() {
     });
 
     test('canParse records undefined fields', () {
-      final reporter = LspJsonReporter('params');
+      var reporter = LspJsonReporter('params');
       expect(CreateFile.canParse(<String, dynamic>{}, reporter), isFalse);
       expect(reporter.errors, hasLength(1));
       expect(
@@ -268,14 +267,14 @@ void main() {
     });
 
     test('canParse records null fields', () {
-      final reporter = LspJsonReporter('params');
+      var reporter = LspJsonReporter('params');
       expect(CreateFile.canParse({'kind': null}, reporter), isFalse);
       expect(reporter.errors, hasLength(1));
       expect(reporter.errors.first, equals('params.kind must not be null'));
     });
 
     test('canParse records fields of the wrong type', () {
-      final reporter = LspJsonReporter('params');
+      var reporter = LspJsonReporter('params');
       expect(RenameFileOptions.canParse({'overwrite': 1}, reporter), isFalse);
       expect(reporter.errors, hasLength(1));
       expect(reporter.errors.first,
@@ -283,7 +282,7 @@ void main() {
     });
 
     test('canParse records nested undefined fields', () {
-      final reporter = LspJsonReporter('params');
+      var reporter = LspJsonReporter('params');
       expect(
         CompletionParams.canParse({
           'position': {'line': 1, 'character': 1},
@@ -297,7 +296,7 @@ void main() {
     });
 
     test('canParse records nested null fields', () {
-      final reporter = LspJsonReporter('params');
+      var reporter = LspJsonReporter('params');
       expect(
         CompletionParams.canParse({
           'position': {'line': 1, 'character': 1},
@@ -311,7 +310,7 @@ void main() {
     });
 
     test('canParse records nested fields of the wrong type', () {
-      final reporter = LspJsonReporter('params');
+      var reporter = LspJsonReporter('params');
       expect(
         CompletionParams.canParse({
           'position': {'line': 1, 'character': 1},
@@ -327,7 +326,7 @@ void main() {
     test(
         'canParse records errors when the type is not in the set of allowed types',
         () {
-      final reporter = LspJsonReporter('params');
+      var reporter = LspJsonReporter('params');
       expect(
         WorkspaceEdit.canParse({
           'documentChanges': {'uri': 1}
@@ -342,30 +341,27 @@ void main() {
     });
 
     test('ResponseMessage can include a null result', () {
-      final id = Either2<int, String>.t1(1);
-      final resp = ResponseMessage(id: id, jsonrpc: jsonRpcVersion);
-      final jsonMap = resp.toJson();
+      var id = Either2<int, String>.t1(1);
+      var resp = ResponseMessage(id: id, jsonrpc: jsonRpcVersion);
+      var jsonMap = resp.toJson();
       expect(jsonMap, contains('result'));
       expect(jsonMap, isNot(contains('error')));
     });
 
     test('ResponseMessage does not include a result for an error', () {
-      final id = Either2<int, String>.t1(1);
-      final error =
-          ResponseError(code: ErrorCodes.ParseError, message: 'Error');
-      final resp =
-          ResponseMessage(id: id, error: error, jsonrpc: jsonRpcVersion);
-      final jsonMap = resp.toJson();
+      var id = Either2<int, String>.t1(1);
+      var error = ResponseError(code: ErrorCodes.ParseError, message: 'Error');
+      var resp = ResponseMessage(id: id, error: error, jsonrpc: jsonRpcVersion);
+      var jsonMap = resp.toJson();
       expect(jsonMap, contains('error'));
       expect(jsonMap, isNot(contains('result')));
     });
 
     test('ResponseMessage throws if both result and error are non-null', () {
-      final id = Either2<int, String>.t1(1);
-      final result = 'my result';
-      final error =
-          ResponseError(code: ErrorCodes.ParseError, message: 'Error');
-      final resp = ResponseMessage(
+      var id = Either2<int, String>.t1(1);
+      var result = 'my result';
+      var error = ResponseError(code: ErrorCodes.ParseError, message: 'Error');
+      var resp = ResponseMessage(
           id: id, result: result, error: error, jsonrpc: jsonRpcVersion);
       expect(resp.toJson, throwsA(TypeMatcher<String>()));
     });
@@ -373,8 +369,8 @@ void main() {
 
   group('fromJson', () {
     test('parses JSON for types with unions (left side)', () {
-      final input = '{"id":1,"method":"shutdown","jsonrpc":"test"}';
-      final message =
+      var input = '{"id":1,"method":"shutdown","jsonrpc":"test"}';
+      var message =
           RequestMessage.fromJson(jsonDecode(input) as Map<String, Object?>);
       expect(message.id, equals(Either2<num, String>.t1(1)));
       expect(message.id.valueEquals(1), isTrue);
@@ -383,8 +379,8 @@ void main() {
     });
 
     test('parses JSON for types with unions (right side)', () {
-      final input = '{"id":"one","method":"shutdown","jsonrpc":"test"}';
-      final message =
+      var input = '{"id":"one","method":"shutdown","jsonrpc":"test"}';
+      var message =
           RequestMessage.fromJson(jsonDecode(input) as Map<String, Object?>);
       expect(message.id, equals(Either2<num, String>.t2('one')));
       expect(message.id.valueEquals('one'), isTrue);
@@ -393,15 +389,15 @@ void main() {
     });
 
     test('parses JSON with nulls for unions that allow null', () {
-      final input = '{"id":null,"jsonrpc":"test"}';
-      final message =
+      var input = '{"id":null,"jsonrpc":"test"}';
+      var message =
           ResponseMessage.fromJson(jsonDecode(input) as Map<String, Object?>);
       expect(message.id, isNull);
     });
 
     test('parses JSON with nulls for unions that allow null', () {
-      final input = '{"method":"test","jsonrpc":"test"}';
-      final message = NotificationMessage.fromJson(
+      var input = '{"method":"test","jsonrpc":"test"}';
+      var message = NotificationMessage.fromJson(
           jsonDecode(input) as Map<String, Object?>);
       expect(message.params, isNull);
     });
@@ -409,21 +405,21 @@ void main() {
     test('deserializes subtypes into the correct class', () {
       // Create some JSON that includes a VersionedTextDocumentIdentifier but
       // where the class definition only references a TextDocumentIdentifier.
-      final input = jsonEncode(TextDocumentPositionParams(
+      var input = jsonEncode(TextDocumentPositionParams(
         textDocument: VersionedTextDocumentIdentifier(
             version: 111, uri: Uri.file('/foo/bar.dart')),
         position: Position(line: 1, character: 1),
       ).toJson());
-      final params = TextDocumentPositionParams.fromJson(
+      var params = TextDocumentPositionParams.fromJson(
           jsonDecode(input) as Map<String, Object?>);
       expect(params.textDocument,
           const TypeMatcher<VersionedTextDocumentIdentifier>());
     });
 
     test('parses JSON with unknown fields', () {
-      final input =
+      var input =
           '{"id":1,"invalidField":true,"method":"foo","jsonrpc":"test"}';
-      final message =
+      var message =
           RequestMessage.fromJson(jsonDecode(input) as Map<String, Object?>);
       expect(message.id.valueEquals(1), isTrue);
       expect(message.method, equals(Method('foo')));
@@ -432,8 +428,8 @@ void main() {
     });
 
     test('parses JSON with integers in double fields', () {
-      final input = '{"alpha":1.0,"blue":0,"green":1,"red":1.5}';
-      final message = Color.fromJson(jsonDecode(input) as Map<String, Object?>);
+      var input = '{"alpha":1.0,"blue":0,"green":1,"red":1.5}';
+      var message = Color.fromJson(jsonDecode(input) as Map<String, Object?>);
       expect(message.alpha, 1.0);
       expect(message.blue, 0.0);
       expect(message.green, 1.0);
@@ -442,11 +438,11 @@ void main() {
   });
 
   test('objects with lists can round-trip through to json and back', () {
-    final workspaceFolders = [
+    var workspaceFolders = [
       WorkspaceFolder(uri: Uri.parse('http://example.org/1'), name: '!name1'),
       WorkspaceFolder(uri: Uri.parse('http://example.org/2'), name: '!name2'),
     ];
-    final obj = InitializeParams(
+    var obj = InitializeParams(
       processId: 1,
       clientInfo:
           InitializeParamsClientInfo(name: 'server name', version: '1.2.3'),
@@ -455,10 +451,10 @@ void main() {
       trace: TraceValues.Off,
       workspaceFolders: workspaceFolders,
     );
-    final json = jsonEncode(obj);
-    final restoredObj =
+    var json = jsonEncode(obj);
+    var restoredObj =
         InitializeParams.fromJson(jsonDecode(json) as Map<String, Object?>);
-    final restoredWorkspaceFolders = restoredObj.workspaceFolders!;
+    var restoredWorkspaceFolders = restoredObj.workspaceFolders!;
 
     expect(restoredWorkspaceFolders, hasLength(workspaceFolders.length));
     for (var i = 0; i < workspaceFolders.length; i++) {
@@ -469,14 +465,14 @@ void main() {
   });
 
   test('objects with enums can round-trip through to json and back', () {
-    final obj = FoldingRange(
+    var obj = FoldingRange(
         startLine: 1,
         startCharacter: 2,
         endLine: 3,
         endCharacter: 4,
         kind: FoldingRangeKind.Comment);
-    final json = jsonEncode(obj);
-    final restoredObj =
+    var json = jsonEncode(obj);
+    var restoredObj =
         FoldingRange.fromJson(jsonDecode(json) as Map<String, Object?>);
 
     expect(restoredObj.startLine, equals(obj.startLine));
@@ -487,15 +483,15 @@ void main() {
   });
 
   test('objects with maps can round-trip through to json and back', () {
-    final start = Position(line: 1, character: 1);
-    final end = Position(line: 2, character: 2);
-    final range = Range(start: start, end: end);
-    final obj = WorkspaceEdit(changes: <Uri, List<TextEdit>>{
+    var start = Position(line: 1, character: 1);
+    var end = Position(line: 2, character: 2);
+    var range = Range(start: start, end: end);
+    var obj = WorkspaceEdit(changes: <Uri, List<TextEdit>>{
       Uri.file('/fileA'): [TextEdit(range: range, newText: 'text A')],
       Uri.file('/fileB'): [TextEdit(range: range, newText: 'text B')]
     });
-    final json = jsonEncode(obj);
-    final restoredObj =
+    var json = jsonEncode(obj);
+    var restoredObj =
         WorkspaceEdit.fromJson(jsonDecode(json) as Map<String, Object?>);
 
     expect(restoredObj.documentChanges, equals(obj.documentChanges));

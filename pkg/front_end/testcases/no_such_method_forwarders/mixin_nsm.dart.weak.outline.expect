@@ -35,11 +35,11 @@ mixin class Mixin extends core::Object {
   method noSuchMethod(core::Invocation _) → dynamic
     ;
   no-such-method-forwarder method method1(core::int i) → void
-    return this.{self::Mixin::noSuchMethod}(new core::_InvocationMirror::_withType(#method1, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[i]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic};
+    return this.{self::Mixin::noSuchMethod}(new core::_InvocationMirror::_withType(#method1, 0, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[i]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic};
   no-such-method-forwarder method method2(covariant-by-declaration core::int i) → void
-    return this.{self::Mixin::noSuchMethod}(new core::_InvocationMirror::_withType(#method2, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[i]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic};
+    return this.{self::Mixin::noSuchMethod}(new core::_InvocationMirror::_withType(#method2, 0, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[i]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic};
   no-such-method-forwarder method method3(core::num n) → void
-    return this.{self::Mixin::noSuchMethod}(new core::_InvocationMirror::_withType(#method3, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[n]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic};
+    return this.{self::Mixin::noSuchMethod}(new core::_InvocationMirror::_withType(#method3, 0, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[n]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic};
 }
 class Class = self::Super with self::Mixin implements self::Interface {
   synthetic constructor •() → self::Class
@@ -51,7 +51,7 @@ class Class = self::Super with self::Mixin implements self::Interface {
     return super.{self::Super::method2}(i);
   abstract mixin-stub method method3(core::num n) → void; -> self::Mixin::method3
   no-such-method-forwarder method method1(core::int i) → void
-    return this.{self::Class::noSuchMethod}(new core::_InvocationMirror::_withType(#method1, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[i]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic};
+    return this.{self::Class::noSuchMethod}(new core::_InvocationMirror::_withType(#method1, 0, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[i]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic};
 }
 
 

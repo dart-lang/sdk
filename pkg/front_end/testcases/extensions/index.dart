@@ -2,24 +2,37 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 class MapLike<K, V> {
   final Map<K, V> _map = {};
 
-  V get(Object key) => _map[key];
+  V? get(Object key) => _map[key];
   V put(K key, V value) => _map[key] = value;
 }
 
 extension Extension<K, V> on MapLike<K, V> {
+  V? operator [](Object key) => get(key);
+  void operator []=(K key, V value) => put(key, value);
+}
+
+class MapLike2<K, V> {
+  final Map<K, V> _map = {};
+  final V defaultValue;
+
+  MapLike2(this.defaultValue);
+
+  V get(Object key) => _map[key] ?? defaultValue;
+  V put(K key, V value) => _map[key] = value;
+}
+
+extension Extension2<K, V> on MapLike2<K, V> {
   V operator [](Object key) => get(key);
   void operator []=(K key, V value) => put(key, value);
 }
 
 main() {
- implicit();
- explicitWithTypeArguments();
- explicitInferredTypeArguments();
+  implicit();
+  explicitWithTypeArguments();
+  explicitInferredTypeArguments();
 }
 
 implicit() {
@@ -41,7 +54,7 @@ implicit() {
   expect('3', map1[3] ??= '3');
   expect('3', map1[3]);
 
-  MapLike<int, int> map2 = new MapLike();
+  MapLike2<int, int> map2 = new MapLike2(0);
   expect(1, map2[0] = 1);
   expect(3, map2[0] += 2);
   expect(5, map2[0] += 2);
@@ -70,14 +83,14 @@ explicitWithTypeArguments() {
   expect('3', Extension<int, String>(map1)[3] ??= '3');
   expect('3', Extension<int, String>(map1)[3]);
 
-  MapLike<int, int> map2 = new MapLike();
-  expect(1, Extension<int, int>(map2)[0] = 1);
-  expect(3, Extension<int, int>(map2)[0] += 2);
-  expect(5, Extension<int, int>(map2)[0] += 2);
-  expect(5, Extension<int, int>(map2)[0]++);
-  expect(6, Extension<int, int>(map2)[0]);
-  expect(5, --Extension<int, int>(map2)[0]);
-  expect(5, Extension<int, int>(map2)[0]);
+  MapLike2<int, int> map2 = new MapLike2(0);
+  expect(1, Extension2<int, int>(map2)[0] = 1);
+  expect(3, Extension2<int, int>(map2)[0] += 2);
+  expect(5, Extension2<int, int>(map2)[0] += 2);
+  expect(5, Extension2<int, int>(map2)[0]++);
+  expect(6, Extension2<int, int>(map2)[0]);
+  expect(5, --Extension2<int, int>(map2)[0]);
+  expect(5, Extension2<int, int>(map2)[0]);
 }
 
 explicitInferredTypeArguments() {
@@ -99,14 +112,14 @@ explicitInferredTypeArguments() {
   expect('3', Extension(map1)[3] ??= '3');
   expect('3', Extension(map1)[3]);
 
-  MapLike<int, int> map2 = new MapLike();
-  expect(1, Extension(map2)[0] = 1);
-  expect(3, Extension(map2)[0] += 2);
-  expect(5, Extension(map2)[0] += 2);
-  expect(5, Extension(map2)[0]++);
-  expect(6, Extension(map2)[0]);
-  expect(5, --Extension(map2)[0]);
-  expect(5, Extension(map2)[0]);
+  MapLike2<int, int> map2 = new MapLike2(0);
+  expect(1, Extension2(map2)[0] = 1);
+  expect(3, Extension2(map2)[0] += 2);
+  expect(5, Extension2(map2)[0] += 2);
+  expect(5, Extension2(map2)[0]++);
+  expect(6, Extension2(map2)[0]);
+  expect(5, --Extension2(map2)[0]);
+  expect(5, Extension2(map2)[0]);
 }
 
 expect(expected, actual) {

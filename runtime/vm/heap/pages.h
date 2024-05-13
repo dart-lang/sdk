@@ -230,7 +230,7 @@ class PageSpace {
   void VisitObjectsUnsafe(ObjectVisitor* visitor) const;
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
 
-  void VisitRememberedCards(ObjectPointerVisitor* visitor) const;
+  void VisitRememberedCards(PredicateObjectPointerVisitor* visitor) const;
   void ResetProgressBars() const;
 
   // Collect the garbage in the page space using mark-sweep or mark-compact.
@@ -497,7 +497,7 @@ class PageSpace {
   friend class ConcurrentSweeperTask;
   friend class GCCompactor;
   friend class CompactorTask;
-  friend void DumpStackFrame(intptr_t frame_index, uword pc, uword fp);
+  friend class Code;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(PageSpace);
 };

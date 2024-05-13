@@ -32,7 +32,7 @@ class RemoveEmptyConstructorBody extends ResolvedCorrectionProducer {
       return;
     }
 
-    final blockBody = node.parent;
+    var blockBody = node.parent;
     if (blockBody is! BlockFunctionBody) {
       return;
     }

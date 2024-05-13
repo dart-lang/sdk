@@ -149,8 +149,8 @@ class LspAnalysisServerBenchmarkTest extends AbstractBenchmarkTest
 
   @override
   Future<void> complete(String filePath, int offset, {required bool isWarmUp}) {
-    final contents = _fileContents[filePath]!;
-    final position = _test.positionFromOffset(offset, contents);
+    var contents = _fileContents[filePath]!;
+    var position = _test.positionFromOffset(offset, contents);
     return _test.getCompletion(Uri.file(filePath), position);
   }
 
@@ -245,7 +245,7 @@ mixin ServerMemoryUsageMixin {
     var isolateGroupsRefs = vm['isolateGroups'] as List<Object?>;
     for (var isolateGroupRef
         in isolateGroupsRefs.cast<Map<Object?, Object?>>()) {
-      final isolateGroupMemoryUsage = await service.call(
+      var isolateGroupMemoryUsage = await service.call(
           'getIsolateGroupMemoryUsage',
           {'isolateGroupId': isolateGroupRef['id']});
       var heapUsage = isolateGroupMemoryUsage['heapUsage'] as int;

@@ -33,7 +33,7 @@ class ReplaceWithNullAware extends ResolvedCorrectionProducer {
   bool get canBeAppliedToFile => false;
 
   @override
-  List<Object> get fixArguments => [_operator, '?$_operator'];
+  List<String> get fixArguments => [_operator, '?$_operator'];
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_WITH_NULL_AWARE;
@@ -50,7 +50,7 @@ class ReplaceWithNullAware extends ResolvedCorrectionProducer {
   Future<void> _computeInChain(ChangeBuilder builder) async {
     var node = coveredNode;
     if (node is Expression) {
-      final node_final = node;
+      var node_final = node;
       await builder.addDartFileEdit(file, (builder) {
         var parent = node_final.parent;
         while (parent != null) {
@@ -76,7 +76,7 @@ class ReplaceWithNullAware extends ResolvedCorrectionProducer {
     if (node is CascadeExpression) {
       node = node.cascadeSections.first;
     } else {
-      var coveredNode = this.coveredNode;
+      final coveredNode = this.coveredNode;
       if (coveredNode is IndexExpression) {
         await _insert(builder, coveredNode.leftBracket);
         return;

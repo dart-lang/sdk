@@ -1,5 +1,0 @@
-library test;
-
-void test() {}
-
-main() {}

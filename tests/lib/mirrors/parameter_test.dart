@@ -2,12 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This tests uses the multi-test "ok" feature:
-// none: Desired behaviour, passing on the VM.
-// 01: Trimmed version for dart2js.
-//
-// TODO(rmacnak,ahe): Remove multi-test when VM and dart2js are on par.
-
 /** Test of [ParameterMirror]. */
 library test.parameter_test;
 
@@ -87,9 +81,6 @@ main() {
       barConstructor.parameters);
   expect('Class(s(B) in s(test.parameter_test), top-level)',
       barConstructor.returnType);
-
-  // dart2js stops testing here.
-  return; // //# 01: ok
 
   MethodMirror bazConstructor = constructors[#B.baz] as MethodMirror;
   expect('Method(s(B.baz) in s(B), constructor)', bazConstructor);

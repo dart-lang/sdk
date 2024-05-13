@@ -48,10 +48,9 @@ int _y = 0; //INVALID_ASSIGNMENT
 // ignore: unnecessary_cast
 int x = (0 as int);
 // ... but no ignore here ...
-const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+var y = x + ''; //ARGUMENT_TYPE_NOT_ASSIGNABLE
 ''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 88,
-          1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 90, 2),
     ]);
   }
 
@@ -59,21 +58,19 @@ const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
     await assertErrorsInCode('''
 int x = (0 as int); // ignore: unnecessary_cast
 // ... but no ignore here ...
-const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+var y = x + ''; //ARGUMENT_TYPE_NOT_ASSIGNABLE
 ''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 88,
-          1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 90, 2),
     ]);
   }
 
   test_ignore_for_file() async {
     await assertErrorsInCode('''
 int x = (0 as int); //UNNECESSARY_CAST
-const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+var y = x + ''; //ARGUMENT_TYPE_NOT_ASSIGNABLE
 // ignore_for_file: unnecessary_cast
 ''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 49,
-          1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 51, 2),
     ]);
   }
 
@@ -134,23 +131,21 @@ int x = (0 as int); // ignore: UNNECESSARY_CAST
     await assertErrorsInCode('''
 // ignore: right_format_wrong_code
 int x = '';
-const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+var y = x + ''; //ARGUMENT_TYPE_NOT_ASSIGNABLE
 ''', [
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 43, 2),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 57,
-          1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 59, 2),
     ]);
   }
 
   test_missing_error_codes() async {
     await assertErrorsInCode('''
-    int x = 3;
+int x = 3;
 // ignore:
-const String y = x; //INVALID_ASSIGNMENT, CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+String y = x + ''; //INVALID_ASSIGNMENT, ARGUMENT_TYPE_NOT_ASSIGNABLE
 ''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 43,
-          1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 43, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 33, 6),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 37, 2),
     ]);
   }
 
@@ -196,38 +191,13 @@ int _y = x as int; // ignore: unnecessary_cast, $ignoredCode
 ''');
   }
 
-  test_multiple_ignores_whitespace_variant_1() async {
-    await assertNoErrorsInCode('''
-int x = 3;
-//ignore:unnecessary_cast,$ignoredCode
-int _y = x as int; //UNNECESSARY_CAST, UNUSED_ELEMENT
-''');
-  }
-
-  test_multiple_ignores_whitespace_variant_2() async {
-    await assertNoErrorsInCode('''
-int x = 3;
-//ignore: unnecessary_cast,$ignoredCode
-int _y = x as int; //UNNECESSARY_CAST, UNUSED_ELEMENT
-''');
-  }
-
-  test_multiple_ignores_whitespace_variant_3() async {
-    await assertNoErrorsInCode('''
-int x = 3;
-// ignore: unnecessary_cast,$ignoredCode
-int _y = x as int; //UNNECESSARY_CAST, UNUSED_ELEMENT
-''');
-  }
-
   test_no_ignores() async {
     await assertErrorsInCode('''
 int x = ''; //INVALID_ASSIGNMENT
-const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+var y = x + ''; //ARGUMENT_TYPE_NOT_ASSIGNABLE
 ''', [
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 8, 2),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 43,
-          1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 45, 2),
     ]);
   }
 
@@ -275,13 +245,6 @@ void f(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
   test_type_ignoreForFile_match_upperCase() async {
     await assertNoErrorsInCode('''
 // ignore_for_file: TYPE=LINT
-void f(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
-''');
-  }
-
-  test_type_ignoreForFile_match_withWhitespace() async {
-    await assertNoErrorsInCode('''
-// ignore_for_file: type = lint
 void f(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
 ''');
   }

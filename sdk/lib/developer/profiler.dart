@@ -12,11 +12,11 @@ abstract final class UserTag {
 
   external factory UserTag(String label);
 
-  /// Label of [this].
+  /// Label of this [UserTag].
   String get label;
 
-  /// Make [this] the current tag for the isolate. Returns the current tag
-  /// before setting.
+  /// Make this [UserTag] the current tag for the isolate. Returns the current
+  /// tag before setting.
   UserTag makeCurrent();
 
   /// The default [UserTag] with label 'Default'.

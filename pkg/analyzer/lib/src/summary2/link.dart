@@ -35,7 +35,7 @@ Future<LinkResult> link({
   required List<LibraryFileKind> inputLibraries,
   macro.MultiMacroExecutor? macroExecutor,
 }) async {
-  final linker = Linker(elementFactory, macroExecutor);
+  var linker = Linker(elementFactory, macroExecutor);
   await linker.link(
     performance: performance,
     inputLibraries: inputLibraries,
@@ -106,14 +106,14 @@ class Linker {
   }
 
   void _buildClassSyntheticConstructors() {
-    for (final library in builders.values) {
+    for (var library in builders.values) {
       library.buildClassSyntheticConstructors();
     }
   }
 
   void _buildElementNameUnions() {
-    for (final builder in builders.values) {
-      final element = builder.element;
+    for (var builder in builders.values) {
+      var element = builder.element;
       element.nameUnion = ElementNameUnion.forLibrary(element);
     }
   }
@@ -121,6 +121,12 @@ class Linker {
   void _buildEnumChildren() {
     for (var library in builders.values) {
       library.buildEnumChildren();
+    }
+  }
+
+  void _buildEnumSyntheticConstructors() {
+    for (var library in builders.values) {
+      library.buildEnumSyntheticConstructors();
     }
   }
 
@@ -175,12 +181,12 @@ class Linker {
   }
 
   Future<LibraryMacroApplier?> _buildMacroApplier() async {
-    final macroExecutor = this.macroExecutor;
+    var macroExecutor = this.macroExecutor;
     if (macroExecutor == null) {
       return null;
     }
 
-    final macroApplier = LibraryMacroApplier(
+    var macroApplier = LibraryMacroApplier(
       elementFactory: elementFactory,
       macroExecutor: macroExecutor,
       isLibraryBeingLinked: (uri) => builders.containsKey(uri),
@@ -188,7 +194,7 @@ class Linker {
       runDeclarationsPhase: _executeMacroDeclarationsPhase,
     );
 
-    for (final library in builders.values) {
+    for (var library in builders.values) {
       await library.fillMacroApplier(macroApplier);
     }
 
@@ -218,11 +224,13 @@ class Linker {
       (performance) async {
         await _executeMacroDeclarationsPhase(
           targetElement: null,
+          performance: performance,
         );
       },
     );
 
     _buildClassSyntheticConstructors();
+    _buildEnumSyntheticConstructors();
     _replaceConstFieldsIfNoConstConstructor();
     _resolveConstructorFieldFormals();
     _buildEnumChildren();
@@ -256,6 +264,8 @@ class Linker {
         );
       },
     );
+
+    _disposeMacroApplications();
   }
 
   void _collectMixinSuperInvokedNames() {
@@ -322,14 +332,22 @@ class Linker {
     }
   }
 
+  void _disposeMacroApplications() {
+    for (var library in builders.values) {
+      library.disposeMacroApplications();
+    }
+  }
+
   Future<void> _executeMacroDeclarationsPhase({
     required ElementImpl? targetElement,
+    required OperationPerformanceImpl performance,
   }) async {
     while (true) {
       var hasProgress = false;
-      for (final library in builders.values) {
-        final stepResult = await library.executeMacroDeclarationsPhase(
+      for (var library in builders.values) {
+        var stepResult = await library.executeMacroDeclarationsPhase(
           targetElement: targetElement,
+          performance: performance,
         );
         switch (stepResult) {
           case MacroDeclarationsPhaseStepResult.nothing:
@@ -350,7 +368,7 @@ class Linker {
   Future<void> _executeMacroDefinitionsPhase({
     required OperationPerformanceImpl performance,
   }) async {
-    for (final library in builders.values) {
+    for (var library in builders.values) {
       await library.executeMacroDefinitionsPhase(
         performance: performance,
       );
@@ -360,7 +378,7 @@ class Linker {
   Future<void> _mergeMacroAugmentations({
     required OperationPerformanceImpl performance,
   }) async {
-    for (final library in builders.values) {
+    for (var library in builders.values) {
       await library.mergeMacroAugmentations(
         performance: performance,
       );
@@ -372,7 +390,7 @@ class Linker {
   }
 
   void _replaceConstFieldsIfNoConstConstructor() {
-    for (final library in builders.values) {
+    for (var library in builders.values) {
       library.replaceConstFieldsIfNoConstConstructor();
     }
   }
@@ -382,7 +400,7 @@ class Linker {
   }
 
   void _resolveConstructorFieldFormals() {
-    for (final library in builders.values) {
+    for (var library in builders.values) {
       library.resolveConstructorFieldFormals();
     }
   }
@@ -417,7 +435,7 @@ class Linker {
   }
 
   void _setDefaultSupertypes() {
-    for (final library in builders.values) {
+    for (var library in builders.values) {
       library.setDefaultSupertypes();
     }
   }

@@ -30,11 +30,11 @@ class InfoDeclarationStoreImpl implements InfoDeclarationStore {
 
   @override
   E? get<E>(SummaryDataReader reader, String key, int initialOffset) {
-    final lookup = map[key];
+    var lookup = map[key];
     if (lookup != null) {
       if (identical(lookup.bytes.target, reader.bytes) &&
           lookup.offset == initialOffset) {
-        final result = lookup.result.target;
+        var result = lookup.result.target;
         if (result is E) {
           reader.offset = lookup.endOffset;
           return result;

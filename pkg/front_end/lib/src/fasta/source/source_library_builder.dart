@@ -23,6 +23,7 @@ import 'package:kernel/reference_from_index.dart'
 import 'package:kernel/src/bounds_checks.dart'
     show
         TypeArgumentIssue,
+        VarianceCalculationValue,
         findTypeArgumentIssues,
         findTypeArgumentIssuesForInvocation,
         getGenericTypeName,
@@ -77,8 +78,7 @@ import '../kernel/type_algorithms.dart'
         findUnaliasedGenericFunctionTypes,
         getInboundReferenceIssuesInType,
         getNonSimplicityIssuesForDeclaration,
-        getNonSimplicityIssuesForTypeVariables,
-        pendingVariance;
+        getNonSimplicityIssuesForTypeVariables;
 import '../kernel/utils.dart'
     show
         compareProcedures,
@@ -213,9 +213,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   LibraryBuilder get nameOriginBuilder => _nameOrigin ?? this;
   final LibraryBuilder? _nameOrigin;
 
-  final Library? referencesFrom;
-
+  /// Index of the library we use references for.
   final IndexedLibrary? indexedLibrary;
+
   // TODO(johnniwinther): Use [_indexedContainer] for library members and make
   // it [null] when there is null corresponding [IndexedContainer].
   IndexedContainer? _indexedContainer;
@@ -290,7 +290,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       SourceLibraryBuilder? origin,
       Library library,
       LibraryBuilder? nameOrigin,
-      Library? referencesFrom,
+      IndexedLibrary? referencesFromIndex,
       {bool? referenceIsPartOwner,
       required bool isUnsupported,
       required bool isAugmentation,
@@ -307,7 +307,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             origin,
             library,
             nameOrigin,
-            referencesFrom,
+            referencesFromIndex,
             isUnsupported: isUnsupported,
             isAugmentation: isAugmentation,
             isPatch: isPatch,
@@ -324,15 +324,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       SourceLibraryBuilder? origin,
       this.library,
       this._nameOrigin,
-      this.referencesFrom,
+      this.indexedLibrary,
       {required this.isUnsupported,
       required bool isAugmentation,
       required bool isPatch,
       Map<String, Builder>? omittedTypes})
       : _languageVersion = packageLanguageVersion,
         currentTypeParameterScopeBuilder = _libraryTypeParameterScopeBuilder,
-        indexedLibrary =
-            referencesFrom == null ? null : new IndexedLibrary(referencesFrom),
         _immediateOrigin = origin,
         _omittedTypeDeclarationBuilders = omittedTypes,
         libraryName = new LibraryName(library.reference),
@@ -447,7 +445,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Scope? scope,
       Library? target,
       LibraryBuilder? nameOrigin,
-      Library? referencesFrom,
+      IndexedLibrary? referencesFromIndex,
       bool? referenceIsPartOwner,
       required bool isUnsupported,
       required bool isAugmentation,
@@ -467,10 +465,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                         fileUri: fileUri,
                         reference: referenceIsPartOwner == true
                             ? null
-                            : referencesFrom?.reference)
+                            : referencesFromIndex?.library.reference)
                   ..setLanguageVersion(packageLanguageVersion.version)),
             nameOrigin,
-            referencesFrom,
+            referencesFromIndex,
             referenceIsPartOwner: referenceIsPartOwner,
             isUnsupported: isUnsupported,
             isAugmentation: isAugmentation,
@@ -542,7 +540,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         origin: this,
         isAugmentation: true,
         isPatch: false,
-        referencesFrom: referencesFrom,
+        referencesFromIndex: indexedLibrary,
         omittedTypes: omittedTypeDeclarationBuilders);
     addAugmentationLibrary(augmentationLibrary);
     loader.registerUnparsedLibrarySource(augmentationLibrary, source);
@@ -651,6 +649,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       // we want to use the package version.
       _languageVersion = new InvalidLanguageVersion(
           fileUri, offset, length, packageLanguageVersion.version, true);
+    } else if (version < loader.target.leastSupportedVersion) {
+      addPostponedProblem(
+          templateLanguageVersionTooLow.withArguments(
+              loader.target.leastSupportedVersion.major,
+              loader.target.leastSupportedVersion.minor),
+          offset,
+          length,
+          fileUri);
+      _languageVersion = new InvalidLanguageVersion(
+          fileUri, offset, length, loader.target.leastSupportedVersion, true);
     } else {
       _languageVersion = new LanguageVersion(version, fileUri, offset, length);
     }
@@ -841,7 +849,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           origin: isAugmentationImport ? this : null,
           accessor: this,
           isAugmentation: isAugmentationImport,
-          referencesFrom: isAugmentationImport ? referencesFrom : null);
+          referencesFromIndex: isAugmentationImport ? indexedLibrary : null);
     }
 
     imports.add(new Import(
@@ -3075,8 +3083,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         isInstanceMember: false,
         containerName: containerName,
         containerType: containerType,
-        libraryName: referencesFrom != null
-            ? new LibraryName(referencesFrom!.reference)
+        libraryName: indexedLibrary != null
+            ? new LibraryName(indexedLibrary!.library.reference)
             : libraryName);
 
     Reference? constructorReference;
@@ -3183,8 +3191,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         containerName: containerName,
         containerType: containerType,
         isInstanceMember: isInstanceMember,
-        libraryName: referencesFrom != null
-            ? new LibraryName(referencesFrom!.reference)
+        libraryName: indexedLibrary != null
+            ? new LibraryName(indexedLibrary!.library.reference)
             : libraryName);
 
     if (returnType == null) {
@@ -3300,7 +3308,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         containerName: containerName,
         containerType: containerType,
         isInstanceMember: false,
-        libraryName: referencesFrom != null
+        libraryName: indexedLibrary != null
             ? new LibraryName(
                 (_indexedContainer ?? indexedLibrary)!.library.reference)
             : libraryName);
@@ -3412,7 +3420,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int charOffset,
       int charEndOffset) {
     IndexedClass? referencesFromIndexedClass;
-    if (referencesFrom != null) {
+    if (indexedLibrary != null) {
       referencesFromIndexedClass = indexedLibrary!.lookupIndexedClass(name);
     }
     // Nested declaration began in `OutlineBuilder.beginEnum`.
@@ -3505,7 +3513,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int charOffset) {
     if (typeVariables != null) {
       for (NominalVariableBuilder typeVariable in typeVariables) {
-        typeVariable.variance = pendingVariance;
+        typeVariable.varianceCalculationValue =
+            VarianceCalculationValue.pending;
       }
     }
     Typedef? referenceFrom = indexedLibrary?.lookupTypedef(name);
@@ -4279,7 +4288,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           for (NominalVariableBuilder typeParameter
               in declaration.typeVariables!) {
             typeParameter.variance = computeTypeVariableBuilderVariance(
-                typeParameter, declaration.type, this);
+                    typeParameter, declaration.type, this)
+                .variance!;
             ++count;
           }
         }
@@ -5489,25 +5499,39 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  void installTypedefTearOffs() {
+  List<DelayedDefaultValueCloner>? installTypedefTearOffs() {
+    List<DelayedDefaultValueCloner>? delayedDefaultValueCloners;
+
     Iterable<SourceLibraryBuilder>? augmentationLibraries =
         this.augmentationLibraries;
     if (augmentationLibraries != null) {
       for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
-        augmentationLibrary.installTypedefTearOffs();
+        List<DelayedDefaultValueCloner>?
+            augmentationLibraryDelayedDefaultValueCloners =
+            augmentationLibrary.installTypedefTearOffs();
+        if (augmentationLibraryDelayedDefaultValueCloners != null) {
+          (delayedDefaultValueCloners ??= [])
+              .addAll(augmentationLibraryDelayedDefaultValueCloners);
+        }
       }
     }
 
     Iterator<SourceTypeAliasBuilder> iterator = localMembersIteratorOfType();
     while (iterator.moveNext()) {
       SourceTypeAliasBuilder declaration = iterator.current;
-      declaration.buildTypedefTearOffs(this, (Procedure procedure) {
+      DelayedDefaultValueCloner? delayedDefaultValueCloner =
+          declaration.buildTypedefTearOffs(this, (Procedure procedure) {
         procedure.isStatic = true;
         if (!declaration.isAugmenting && !declaration.isDuplicate) {
           library.addProcedure(procedure);
         }
       });
+      if (delayedDefaultValueCloner != null) {
+        (delayedDefaultValueCloners ??= []).add(delayedDefaultValueCloner);
+      }
     }
+
+    return delayedDefaultValueCloners;
   }
 }
 

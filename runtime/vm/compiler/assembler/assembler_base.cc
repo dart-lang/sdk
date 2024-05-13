@@ -378,6 +378,8 @@ intptr_t AssemblerBase::InsertAlignedRelocation(BSS::Relocation reloc) {
 }
 
 void AssemblerBase::MsanUnpoison(Register base, intptr_t length_in_bytes) {
+  Comment("MsanUnpoison base %s length_in_bytes %" Pd,
+          RegisterNames::RegisterName(base), length_in_bytes);
   LeafRuntimeScope rt(static_cast<Assembler*>(this), /*frame_size=*/0,
                       /*preserve_registers=*/true);
   MoveRegister(CallingConventions::ArgumentRegisters[0], base);
@@ -386,6 +388,9 @@ void AssemblerBase::MsanUnpoison(Register base, intptr_t length_in_bytes) {
 }
 
 void AssemblerBase::MsanUnpoison(Register base, Register length_in_bytes) {
+  Comment("MsanUnpoison base %s length_in_bytes %s",
+          RegisterNames::RegisterName(base),
+          RegisterNames::RegisterName(length_in_bytes));
   LeafRuntimeScope rt(static_cast<Assembler*>(this), /*frame_size=*/0,
                       /*preserve_registers=*/true);
   const Register a0 = CallingConventions::ArgumentRegisters[0];

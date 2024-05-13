@@ -1,231 +1,213 @@
-library /*isLegacy*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
 
 static method useAddAll() → void {
-  dynamic dynamicMap1 = <core::int*, core::int*>{0: 100, 1: 101, 2: 102};
-  dynamic dynamicMap2 = <core::num*, core::num*>{3: 103, 4: 104, 5: 105};
-  core::Map<core::int*, core::int*>* intMap = <core::int*, core::int*>{6: 106, 7: 107, 8: 108};
-  core::Map<core::num*, core::num*>* numMap1 = <core::int*, core::int*>{9: 109, 10: 110, 11: 111};
-  core::Map<core::num*, core::num*>* numMap2 = <core::num*, core::num*>{12: 112, 13: 113, 14: 114};
-  core::Map<core::int*, core::int*>* map1 = block {
-    final core::Map<core::int*, core::int*>* #t1 = <core::int*, core::int*>{};
-    for (final has-declared-initializer core::MapEntry<dynamic, dynamic>* #t2 in (dynamicMap1 as{TypeError,ForDynamic,ForLegacy} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}) {
-      final core::int* #t3 = #t2.{core::MapEntry::key}{dynamic} as{TypeError,ForLegacy} core::int*;
-      final core::int* #t4 = #t2.{core::MapEntry::value}{dynamic} as{TypeError,ForLegacy} core::int*;
-      #t1.{core::Map::[]=}{Invariant}(#t3, #t4){(core::int*, core::int*) →* void};
+  dynamic dynamicMap1 = <core::int, core::int>{0: 100, 1: 101, 2: 102};
+  dynamic dynamicMap2 = <core::num, core::num>{3: 103, 4: 104, 5: 105};
+  dynamic dynamicMap3 = <core::int?, core::int?>{6: 106, 7: 107, 8: 108};
+  core::Map<core::int, core::int> intMap = <core::int, core::int>{9: 109, 10: 110, 11: 111};
+  core::Map<core::int, core::int> map1 = block {
+    final core::Map<core::int, core::int> #t1 = <core::int, core::int>{};
+    for (final has-declared-initializer core::MapEntry<dynamic, dynamic> #t2 in (dynamicMap1 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>).{core::Map::entries}{core::Iterable<core::MapEntry<core::int, core::int>>}) {
+      final core::int #t3 = #t2.{core::MapEntry::key}{dynamic} as{TypeError} core::int;
+      final core::int #t4 = #t2.{core::MapEntry::value}{dynamic} as{TypeError} core::int;
+      #t1.{core::Map::[]=}{Invariant}(#t3, #t4){(core::int, core::int) → void};
     }
-    for (final has-declared-initializer core::MapEntry<dynamic, dynamic>* #t5 in (dynamicMap2 as{TypeError,ForDynamic,ForLegacy} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}) {
-      final core::int* #t6 = #t5.{core::MapEntry::key}{dynamic} as{TypeError,ForLegacy} core::int*;
-      final core::int* #t7 = #t5.{core::MapEntry::value}{dynamic} as{TypeError,ForLegacy} core::int*;
-      #t1.{core::Map::[]=}{Invariant}(#t6, #t7){(core::int*, core::int*) →* void};
+    for (final has-declared-initializer core::MapEntry<dynamic, dynamic> #t5 in (dynamicMap2 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>).{core::Map::entries}{core::Iterable<core::MapEntry<core::int, core::int>>}) {
+      final core::int #t6 = #t5.{core::MapEntry::key}{dynamic} as{TypeError} core::int;
+      final core::int #t7 = #t5.{core::MapEntry::value}{dynamic} as{TypeError} core::int;
+      #t1.{core::Map::[]=}{Invariant}(#t6, #t7){(core::int, core::int) → void};
     }
-    #t1.{core::Map::addAll}{Invariant}(intMap){(core::Map<core::int*, core::int*>*) →* void};
-    for (final has-declared-initializer core::MapEntry<dynamic, dynamic>* #t8 in numMap1.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}) {
-      final core::int* #t9 = #t8.{core::MapEntry::key}{dynamic} as{TypeError,ForLegacy} core::int*;
-      final core::int* #t10 = #t8.{core::MapEntry::value}{dynamic} as{TypeError,ForLegacy} core::int*;
-      #t1.{core::Map::[]=}{Invariant}(#t9, #t10){(core::int*, core::int*) →* void};
+    for (final has-declared-initializer core::MapEntry<dynamic, dynamic> #t8 in (dynamicMap3 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>).{core::Map::entries}{core::Iterable<core::MapEntry<core::int, core::int>>}) {
+      final core::int #t9 = #t8.{core::MapEntry::key}{dynamic} as{TypeError} core::int;
+      final core::int #t10 = #t8.{core::MapEntry::value}{dynamic} as{TypeError} core::int;
+      #t1.{core::Map::[]=}{Invariant}(#t9, #t10){(core::int, core::int) → void};
     }
-    for (final has-declared-initializer core::MapEntry<dynamic, dynamic>* #t11 in numMap2.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}) {
-      final core::int* #t12 = #t11.{core::MapEntry::key}{dynamic} as{TypeError,ForLegacy} core::int*;
-      final core::int* #t13 = #t11.{core::MapEntry::value}{dynamic} as{TypeError,ForLegacy} core::int*;
-      #t1.{core::Map::[]=}{Invariant}(#t12, #t13){(core::int*, core::int*) →* void};
-    }
+    #t1.{core::Map::addAll}{Invariant}(intMap){(core::Map<core::int, core::int>) → void};
   } =>#t1;
-  self::expect(col::LinkedHashMap::fromIterables<core::int*, core::int*>(core::List::generate<core::int*>(15, (core::int* i) → core::int* => i), core::List::generate<core::int*>(15, (core::int* i) → core::int* => 100.{core::num::+}(i){(core::num*) →* core::int*})), map1);
-  core::Map<core::num*, core::num*>* map2 = block {
-    final core::Map<core::num*, core::num*>* #t14 = <core::num*, core::num*>{};
-    for (final has-declared-initializer core::MapEntry<dynamic, dynamic>* #t15 in (dynamicMap1 as{TypeError,ForDynamic,ForLegacy} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<core::num*, core::num*>>}) {
-      final core::num* #t16 = #t15.{core::MapEntry::key}{dynamic} as{TypeError,ForLegacy} core::num*;
-      final core::num* #t17 = #t15.{core::MapEntry::value}{dynamic} as{TypeError,ForLegacy} core::num*;
-      #t14.{core::Map::[]=}{Invariant}(#t16, #t17){(core::num*, core::num*) →* void};
+  self::expect(col::LinkedHashMap::fromIterables<core::int, core::int>(core::List::generate<core::int>(12, (core::int i) → core::int => i), core::List::generate<core::int>(12, (core::int i) → core::int => 100.{core::num::+}(i){(core::num) → core::int})), map1);
+  core::Map<core::num, core::num> map2 = block {
+    final core::Map<core::num, core::num> #t11 = <core::num, core::num>{};
+    for (final has-declared-initializer core::MapEntry<dynamic, dynamic> #t12 in (dynamicMap1 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>).{core::Map::entries}{core::Iterable<core::MapEntry<core::num, core::num>>}) {
+      final core::num #t13 = #t12.{core::MapEntry::key}{dynamic} as{TypeError} core::num;
+      final core::num #t14 = #t12.{core::MapEntry::value}{dynamic} as{TypeError} core::num;
+      #t11.{core::Map::[]=}{Invariant}(#t13, #t14){(core::num, core::num) → void};
     }
-    for (final has-declared-initializer core::MapEntry<dynamic, dynamic>* #t18 in (dynamicMap2 as{TypeError,ForDynamic,ForLegacy} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<core::num*, core::num*>>}) {
-      final core::num* #t19 = #t18.{core::MapEntry::key}{dynamic} as{TypeError,ForLegacy} core::num*;
-      final core::num* #t20 = #t18.{core::MapEntry::value}{dynamic} as{TypeError,ForLegacy} core::num*;
-      #t14.{core::Map::[]=}{Invariant}(#t19, #t20){(core::num*, core::num*) →* void};
+    for (final has-declared-initializer core::MapEntry<dynamic, dynamic> #t15 in (dynamicMap2 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>).{core::Map::entries}{core::Iterable<core::MapEntry<core::num, core::num>>}) {
+      final core::num #t16 = #t15.{core::MapEntry::key}{dynamic} as{TypeError} core::num;
+      final core::num #t17 = #t15.{core::MapEntry::value}{dynamic} as{TypeError} core::num;
+      #t11.{core::Map::[]=}{Invariant}(#t16, #t17){(core::num, core::num) → void};
     }
-    #t14.{core::Map::addAll}{Invariant}(intMap){(core::Map<core::num*, core::num*>*) →* void};
-    #t14.{core::Map::addAll}{Invariant}(numMap1){(core::Map<core::num*, core::num*>*) →* void};
-    #t14.{core::Map::addAll}{Invariant}(numMap2){(core::Map<core::num*, core::num*>*) →* void};
-  } =>#t14;
-  self::expect(col::LinkedHashMap::fromIterables<core::num*, core::num*>(core::List::generate<core::int*>(15, (core::int* i) → core::int* => i), core::List::generate<core::int*>(15, (core::int* i) → core::int* => 100.{core::num::+}(i){(core::num*) →* core::int*})), map2);
-  core::Map<core::int*, core::int*>* map3 = block {
-    final core::Map<core::int*, core::int*>* #t21 = <core::int*, core::int*>{};
-    final core::Map<dynamic, dynamic>* #t22 = dynamicMap1 as{TypeError,ForDynamic,ForLegacy} core::Map<dynamic, dynamic>*;
-    if(!(#t22 == null))
-      for (final has-declared-initializer core::MapEntry<dynamic, dynamic>* #t23 in #t22.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}) {
-        final core::int* #t24 = #t23.{core::MapEntry::key}{dynamic} as{TypeError,ForLegacy} core::int*;
-        final core::int* #t25 = #t23.{core::MapEntry::value}{dynamic} as{TypeError,ForLegacy} core::int*;
-        #t21.{core::Map::[]=}{Invariant}(#t24, #t25){(core::int*, core::int*) →* void};
-      }
-    final core::Map<dynamic, dynamic>* #t26 = dynamicMap2 as{TypeError,ForDynamic,ForLegacy} core::Map<dynamic, dynamic>*;
-    if(!(#t26 == null))
-      for (final has-declared-initializer core::MapEntry<dynamic, dynamic>* #t27 in #t26.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}) {
-        final core::int* #t28 = #t27.{core::MapEntry::key}{dynamic} as{TypeError,ForLegacy} core::int*;
-        final core::int* #t29 = #t27.{core::MapEntry::value}{dynamic} as{TypeError,ForLegacy} core::int*;
-        #t21.{core::Map::[]=}{Invariant}(#t28, #t29){(core::int*, core::int*) →* void};
-      }
-    final core::Map<core::int*, core::int*>* #t30 = intMap;
-    if(!(#t30 == null))
-      #t21.{core::Map::addAll}{Invariant}(#t30){(core::Map<core::int*, core::int*>*) →* void};
-    final core::Map<dynamic, dynamic>* #t31 = numMap1;
-    if(!(#t31 == null))
-      for (final has-declared-initializer core::MapEntry<dynamic, dynamic>* #t32 in #t31.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}) {
-        final core::int* #t33 = #t32.{core::MapEntry::key}{dynamic} as{TypeError,ForLegacy} core::int*;
-        final core::int* #t34 = #t32.{core::MapEntry::value}{dynamic} as{TypeError,ForLegacy} core::int*;
-        #t21.{core::Map::[]=}{Invariant}(#t33, #t34){(core::int*, core::int*) →* void};
-      }
-    final core::Map<dynamic, dynamic>* #t35 = numMap2;
-    if(!(#t35 == null))
-      for (final has-declared-initializer core::MapEntry<dynamic, dynamic>* #t36 in #t35.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}) {
-        final core::int* #t37 = #t36.{core::MapEntry::key}{dynamic} as{TypeError,ForLegacy} core::int*;
-        final core::int* #t38 = #t36.{core::MapEntry::value}{dynamic} as{TypeError,ForLegacy} core::int*;
-        #t21.{core::Map::[]=}{Invariant}(#t37, #t38){(core::int*, core::int*) →* void};
-      }
+    for (final has-declared-initializer core::MapEntry<dynamic, dynamic> #t18 in (dynamicMap3 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>).{core::Map::entries}{core::Iterable<core::MapEntry<core::num, core::num>>}) {
+      final core::num #t19 = #t18.{core::MapEntry::key}{dynamic} as{TypeError} core::num;
+      final core::num #t20 = #t18.{core::MapEntry::value}{dynamic} as{TypeError} core::num;
+      #t11.{core::Map::[]=}{Invariant}(#t19, #t20){(core::num, core::num) → void};
+    }
+    #t11.{core::Map::addAll}{Invariant}(intMap){(core::Map<core::num, core::num>) → void};
+  } =>#t11;
+  self::expect(col::LinkedHashMap::fromIterables<core::num, core::num>(core::List::generate<core::num>(12, (core::int i) → core::int => i), core::List::generate<core::num>(12, (core::int i) → core::int => 100.{core::num::+}(i){(core::num) → core::int})), map2);
+  core::Map<core::int, core::int> map3 = block {
+    final core::Map<core::int, core::int> #t21 = <core::int, core::int>{};
+    for (final has-declared-initializer core::MapEntry<dynamic, dynamic> #t22 in (dynamicMap1 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>).{core::Map::entries}{core::Iterable<core::MapEntry<core::int, core::int>>}) {
+      final core::int #t23 = #t22.{core::MapEntry::key}{dynamic} as{TypeError} core::int;
+      final core::int #t24 = #t22.{core::MapEntry::value}{dynamic} as{TypeError} core::int;
+      #t21.{core::Map::[]=}{Invariant}(#t23, #t24){(core::int, core::int) → void};
+    }
+    for (final has-declared-initializer core::MapEntry<dynamic, dynamic> #t25 in (dynamicMap2 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>).{core::Map::entries}{core::Iterable<core::MapEntry<core::int, core::int>>}) {
+      final core::int #t26 = #t25.{core::MapEntry::key}{dynamic} as{TypeError} core::int;
+      final core::int #t27 = #t25.{core::MapEntry::value}{dynamic} as{TypeError} core::int;
+      #t21.{core::Map::[]=}{Invariant}(#t26, #t27){(core::int, core::int) → void};
+    }
+    for (final has-declared-initializer core::MapEntry<dynamic, dynamic> #t28 in (dynamicMap3 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>).{core::Map::entries}{core::Iterable<core::MapEntry<core::int, core::int>>}) {
+      final core::int #t29 = #t28.{core::MapEntry::key}{dynamic} as{TypeError} core::int;
+      final core::int #t30 = #t28.{core::MapEntry::value}{dynamic} as{TypeError} core::int;
+      #t21.{core::Map::[]=}{Invariant}(#t29, #t30){(core::int, core::int) → void};
+    }
+    #t21.{core::Map::addAll}{Invariant}(intMap){(core::Map<core::int, core::int>) → void};
   } =>#t21;
-  self::expect(col::LinkedHashMap::fromIterables<core::int*, core::int*>(core::List::generate<core::int*>(15, (core::int* i) → core::int* => i), core::List::generate<core::int*>(15, (core::int* i) → core::int* => 100.{core::num::+}(i){(core::num*) →* core::int*})), map3);
-  core::Map<core::num*, core::num*>* map4 = block {
-    final core::Map<core::num*, core::num*>* #t39 = <core::num*, core::num*>{};
-    final core::Map<dynamic, dynamic>* #t40 = dynamicMap1 as{TypeError,ForDynamic,ForLegacy} core::Map<dynamic, dynamic>*;
-    if(!(#t40 == null))
-      for (final has-declared-initializer core::MapEntry<dynamic, dynamic>* #t41 in #t40.{core::Map::entries}{core::Iterable<core::MapEntry<core::num*, core::num*>>}) {
-        final core::num* #t42 = #t41.{core::MapEntry::key}{dynamic} as{TypeError,ForLegacy} core::num*;
-        final core::num* #t43 = #t41.{core::MapEntry::value}{dynamic} as{TypeError,ForLegacy} core::num*;
-        #t39.{core::Map::[]=}{Invariant}(#t42, #t43){(core::num*, core::num*) →* void};
-      }
-    final core::Map<dynamic, dynamic>* #t44 = dynamicMap2 as{TypeError,ForDynamic,ForLegacy} core::Map<dynamic, dynamic>*;
-    if(!(#t44 == null))
-      for (final has-declared-initializer core::MapEntry<dynamic, dynamic>* #t45 in #t44.{core::Map::entries}{core::Iterable<core::MapEntry<core::num*, core::num*>>}) {
-        final core::num* #t46 = #t45.{core::MapEntry::key}{dynamic} as{TypeError,ForLegacy} core::num*;
-        final core::num* #t47 = #t45.{core::MapEntry::value}{dynamic} as{TypeError,ForLegacy} core::num*;
-        #t39.{core::Map::[]=}{Invariant}(#t46, #t47){(core::num*, core::num*) →* void};
-      }
-    final core::Map<core::num*, core::num*>* #t48 = intMap;
-    if(!(#t48 == null))
-      #t39.{core::Map::addAll}{Invariant}(#t48){(core::Map<core::num*, core::num*>*) →* void};
-    final core::Map<core::num*, core::num*>* #t49 = numMap1;
-    if(!(#t49 == null))
-      #t39.{core::Map::addAll}{Invariant}(#t49){(core::Map<core::num*, core::num*>*) →* void};
-    final core::Map<core::num*, core::num*>* #t50 = numMap2;
-    if(!(#t50 == null))
-      #t39.{core::Map::addAll}{Invariant}(#t50){(core::Map<core::num*, core::num*>*) →* void};
-  } =>#t39;
-  self::expect(col::LinkedHashMap::fromIterables<core::num*, core::num*>(core::List::generate<core::int*>(15, (core::int* i) → core::int* => i), core::List::generate<core::int*>(15, (core::int* i) → core::int* => 100.{core::num::+}(i){(core::num*) →* core::int*})), map4);
-  core::Map<core::int*, core::int*>* map5 = block {
-    final core::Map<core::int*, core::int*>* #t51 = <core::int*, core::int*>{};
-    for (final has-declared-initializer core::MapEntry<dynamic, dynamic>* #t52 in (dynamicMap1 as{TypeError,ForDynamic,ForLegacy} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}) {
-      final core::int* #t53 = #t52.{core::MapEntry::key}{dynamic} as{TypeError,ForLegacy} core::int*;
-      final core::int* #t54 = #t52.{core::MapEntry::value}{dynamic} as{TypeError,ForLegacy} core::int*;
-      #t51.{core::Map::[]=}{Invariant}(#t53, #t54){(core::int*, core::int*) →* void};
-    }
-    for (final has-declared-initializer core::MapEntry<dynamic, dynamic>* #t55 in (dynamicMap2 as{TypeError,ForDynamic,ForLegacy} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}) {
-      final core::int* #t56 = #t55.{core::MapEntry::key}{dynamic} as{TypeError,ForLegacy} core::int*;
-      final core::int* #t57 = #t55.{core::MapEntry::value}{dynamic} as{TypeError,ForLegacy} core::int*;
-      #t51.{core::Map::[]=}{Invariant}(#t56, #t57){(core::int*, core::int*) →* void};
-    }
-    #t51.{core::Map::addAll}{Invariant}(intMap){(core::Map<core::int*, core::int*>*) →* void};
-    for (final has-declared-initializer core::MapEntry<dynamic, dynamic>* #t58 in numMap1.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}) {
-      final core::int* #t59 = #t58.{core::MapEntry::key}{dynamic} as{TypeError,ForLegacy} core::int*;
-      final core::int* #t60 = #t58.{core::MapEntry::value}{dynamic} as{TypeError,ForLegacy} core::int*;
-      #t51.{core::Map::[]=}{Invariant}(#t59, #t60){(core::int*, core::int*) →* void};
-    }
-    for (final has-declared-initializer core::MapEntry<dynamic, dynamic>* #t61 in numMap2.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}) {
-      final core::int* #t62 = #t61.{core::MapEntry::key}{dynamic} as{TypeError,ForLegacy} core::int*;
-      final core::int* #t63 = #t61.{core::MapEntry::value}{dynamic} as{TypeError,ForLegacy} core::int*;
-      #t51.{core::Map::[]=}{Invariant}(#t62, #t63){(core::int*, core::int*) →* void};
-    }
-  } =>#t51;
-  self::expect(col::LinkedHashMap::fromIterables<core::int*, core::int*>(core::List::generate<core::int*>(15, (core::int* i) → core::int* => i), core::List::generate<core::int*>(15, (core::int* i) → core::int* => 100.{core::num::+}(i){(core::num*) →* core::int*})), map5);
-  core::Map<dynamic, dynamic>* map6 = block {
-    final core::Map<dynamic, dynamic>* #t64 = col::LinkedHashMap::of<dynamic, dynamic>(dynamicMap1 as{TypeError,ForDynamic,ForLegacy} core::Map<dynamic, dynamic>*);
-    #t64.{core::Map::addAll}{Invariant}(dynamicMap2 as{TypeError,ForDynamic,ForLegacy} core::Map<dynamic, dynamic>*){(core::Map<dynamic, dynamic>*) →* void};
-    #t64.{core::Map::addAll}{Invariant}(intMap){(core::Map<dynamic, dynamic>*) →* void};
-    #t64.{core::Map::addAll}{Invariant}(numMap1){(core::Map<dynamic, dynamic>*) →* void};
-    #t64.{core::Map::addAll}{Invariant}(numMap2){(core::Map<dynamic, dynamic>*) →* void};
-  } =>#t64;
-  self::expect(col::LinkedHashMap::fromIterables<dynamic, dynamic>(core::List::generate<core::int*>(15, (core::int* i) → core::int* => i), core::List::generate<core::int*>(15, (core::int* i) → core::int* => 100.{core::num::+}(i){(core::num*) →* core::int*})), map6);
-  core::Map<core::int*, core::int*>* map7 = block {
-    final core::Map<core::int*, core::int*>* #t65 = <core::int*, core::int*>{};
-    final core::Map<dynamic, dynamic>* #t66 = dynamicMap1 as{TypeError,ForDynamic,ForLegacy} core::Map<dynamic, dynamic>*;
-    if(!(#t66 == null))
-      for (final has-declared-initializer core::MapEntry<dynamic, dynamic>* #t67 in #t66.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}) {
-        final core::int* #t68 = #t67.{core::MapEntry::key}{dynamic} as{TypeError,ForLegacy} core::int*;
-        final core::int* #t69 = #t67.{core::MapEntry::value}{dynamic} as{TypeError,ForLegacy} core::int*;
-        #t65.{core::Map::[]=}{Invariant}(#t68, #t69){(core::int*, core::int*) →* void};
-      }
-    final core::Map<dynamic, dynamic>* #t70 = dynamicMap2 as{TypeError,ForDynamic,ForLegacy} core::Map<dynamic, dynamic>*;
-    if(!(#t70 == null))
-      for (final has-declared-initializer core::MapEntry<dynamic, dynamic>* #t71 in #t70.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}) {
-        final core::int* #t72 = #t71.{core::MapEntry::key}{dynamic} as{TypeError,ForLegacy} core::int*;
-        final core::int* #t73 = #t71.{core::MapEntry::value}{dynamic} as{TypeError,ForLegacy} core::int*;
-        #t65.{core::Map::[]=}{Invariant}(#t72, #t73){(core::int*, core::int*) →* void};
-      }
-    final core::Map<core::int*, core::int*>* #t74 = intMap;
-    if(!(#t74 == null))
-      #t65.{core::Map::addAll}{Invariant}(#t74){(core::Map<core::int*, core::int*>*) →* void};
-    final core::Map<dynamic, dynamic>* #t75 = numMap1;
-    if(!(#t75 == null))
-      for (final has-declared-initializer core::MapEntry<dynamic, dynamic>* #t76 in #t75.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}) {
-        final core::int* #t77 = #t76.{core::MapEntry::key}{dynamic} as{TypeError,ForLegacy} core::int*;
-        final core::int* #t78 = #t76.{core::MapEntry::value}{dynamic} as{TypeError,ForLegacy} core::int*;
-        #t65.{core::Map::[]=}{Invariant}(#t77, #t78){(core::int*, core::int*) →* void};
-      }
-    final core::Map<dynamic, dynamic>* #t79 = numMap2;
-    if(!(#t79 == null))
-      for (final has-declared-initializer core::MapEntry<dynamic, dynamic>* #t80 in #t79.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>}) {
-        final core::int* #t81 = #t80.{core::MapEntry::key}{dynamic} as{TypeError,ForLegacy} core::int*;
-        final core::int* #t82 = #t80.{core::MapEntry::value}{dynamic} as{TypeError,ForLegacy} core::int*;
-        #t65.{core::Map::[]=}{Invariant}(#t81, #t82){(core::int*, core::int*) →* void};
-      }
-  } =>#t65;
-  self::expect(col::LinkedHashMap::fromIterables<core::int*, core::int*>(core::List::generate<core::int*>(15, (core::int* i) → core::int* => i), core::List::generate<core::int*>(15, (core::int* i) → core::int* => 100.{core::num::+}(i){(core::num*) →* core::int*})), map7);
-  core::Map<dynamic, dynamic>* map8 = block {
-    final core::Map<dynamic, dynamic>* #t83 = <dynamic, dynamic>{};
-    final core::Map<dynamic, dynamic>* #t84 = dynamicMap1 as{TypeError,ForDynamic,ForLegacy} core::Map<dynamic, dynamic>*;
-    if(!(#t84 == null))
-      #t83.{core::Map::addAll}{Invariant}(#t84){(core::Map<dynamic, dynamic>*) →* void};
-    final core::Map<dynamic, dynamic>* #t85 = dynamicMap2 as{TypeError,ForDynamic,ForLegacy} core::Map<dynamic, dynamic>*;
-    if(!(#t85 == null))
-      #t83.{core::Map::addAll}{Invariant}(#t85){(core::Map<dynamic, dynamic>*) →* void};
-    final core::Map<dynamic, dynamic>* #t86 = intMap;
-    if(!(#t86 == null))
-      #t83.{core::Map::addAll}{Invariant}(#t86){(core::Map<dynamic, dynamic>*) →* void};
-    final core::Map<dynamic, dynamic>* #t87 = numMap1;
-    if(!(#t87 == null))
-      #t83.{core::Map::addAll}{Invariant}(#t87){(core::Map<dynamic, dynamic>*) →* void};
-    final core::Map<dynamic, dynamic>* #t88 = numMap2;
-    if(!(#t88 == null))
-      #t83.{core::Map::addAll}{Invariant}(#t88){(core::Map<dynamic, dynamic>*) →* void};
-  } =>#t83;
-  self::expect(col::LinkedHashMap::fromIterables<dynamic, dynamic>(core::List::generate<core::int*>(15, (core::int* i) → core::int* => i), core::List::generate<core::int*>(15, (core::int* i) → core::int* => 100.{core::num::+}(i){(core::num*) →* core::int*})), map8);
+  self::expect(col::LinkedHashMap::fromIterables<core::int, core::int>(core::List::generate<core::int>(12, (core::int i) → core::int => i), core::List::generate<core::int>(12, (core::int i) → core::int => 100.{core::num::+}(i){(core::num) → core::int})), map3);
+  core::Map<dynamic, dynamic> map4 = block {
+    final core::Map<dynamic, dynamic> #t31 = col::LinkedHashMap::of<dynamic, dynamic>(dynamicMap1 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>);
+    #t31.{core::Map::addAll}{Invariant}(dynamicMap2 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>){(core::Map<dynamic, dynamic>) → void};
+    #t31.{core::Map::addAll}{Invariant}(dynamicMap3 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>){(core::Map<dynamic, dynamic>) → void};
+    #t31.{core::Map::addAll}{Invariant}(intMap){(core::Map<dynamic, dynamic>) → void};
+  } =>#t31;
+  self::expect(col::LinkedHashMap::fromIterables<dynamic, dynamic>(core::List::generate<core::int>(12, (core::int i) → core::int => i), core::List::generate<core::int>(12, (core::int i) → core::int => 100.{core::num::+}(i){(core::num) → core::int})), map4);
   {
-    core::Map<core::int*, core::int*>* intMap1 = <core::int*, core::int*>{0: 100, 1: 101, 2: 102};
-    core::Map<core::int*, core::int*>* intMap2 = <core::int*, core::int*>{3: 103, 4: 104, 5: 105};
-    core::Map<core::int*, core::int*>* map = block {
-      final core::Map<core::int*, core::int*>* #t89 = col::LinkedHashMap::of<core::int*, core::int*>(intMap1);
-      #t89.{core::Map::addAll}{Invariant}(intMap2){(core::Map<core::int*, core::int*>*) →* void};
-    } =>#t89;
-    self::expect(col::LinkedHashMap::fromIterables<core::int*, core::int*>(core::List::generate<core::int*>(6, (core::int* i) → core::int* => i), core::List::generate<core::int*>(6, (core::int* i) → core::int* => 100.{core::num::+}(i){(core::num*) →* core::int*})), map);
+    core::Map<core::int, core::int> intMap1 = <core::int, core::int>{0: 100, 1: 101, 2: 102};
+    core::Map<core::int, core::int> intMap2 = <core::int, core::int>{3: 103, 4: 104, 5: 105};
+    core::Map<core::int, core::int> map = block {
+      final core::Map<core::int, core::int> #t32 = col::LinkedHashMap::of<core::int, core::int>(intMap1);
+      #t32.{core::Map::addAll}{Invariant}(intMap2){(core::Map<core::int, core::int>) → void};
+    } =>#t32;
+    self::expect(col::LinkedHashMap::fromIterables<core::int, core::int>(core::List::generate<core::int>(6, (core::int i) → core::int => i), core::List::generate<core::int>(6, (core::int i) → core::int => 100.{core::num::+}(i){(core::num) → core::int})), map);
   }
+}
+static method useAddAllNullable() → void {
+  dynamic dynamicMap1 = <core::int, core::int>{0: 100, 1: 101, 2: 102};
+  dynamic dynamicMap2 = <core::num, core::num>{3: 103, 4: 104, 5: 105};
+  dynamic dynamicMap3 = <core::int?, core::int?>{6: 106, 7: 107, 8: 108};
+  core::Map<core::int, core::int>? intMap = true ?{core::Map<core::int, core::int>?} <core::int, core::int>{9: 109, 10: 110, 11: 111} : null;
+  core::Map<core::int, core::int> map1 = block {
+    final core::Map<core::int, core::int> #t33 = <core::int, core::int>{};
+    final core::Map<dynamic, dynamic>? #t34 = dynamicMap1 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>?;
+    if(!(#t34 == null))
+      for (final has-declared-initializer core::MapEntry<dynamic, dynamic> #t35 in #t34{core::Map<dynamic, dynamic>}.{core::Map::entries}{core::Iterable<core::MapEntry<core::int, core::int>>}) {
+        final core::int #t36 = #t35.{core::MapEntry::key}{dynamic} as{TypeError} core::int;
+        final core::int #t37 = #t35.{core::MapEntry::value}{dynamic} as{TypeError} core::int;
+        #t33.{core::Map::[]=}{Invariant}(#t36, #t37){(core::int, core::int) → void};
+      }
+    final core::Map<dynamic, dynamic>? #t38 = dynamicMap2 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>?;
+    if(!(#t38 == null))
+      for (final has-declared-initializer core::MapEntry<dynamic, dynamic> #t39 in #t38{core::Map<dynamic, dynamic>}.{core::Map::entries}{core::Iterable<core::MapEntry<core::int, core::int>>}) {
+        final core::int #t40 = #t39.{core::MapEntry::key}{dynamic} as{TypeError} core::int;
+        final core::int #t41 = #t39.{core::MapEntry::value}{dynamic} as{TypeError} core::int;
+        #t33.{core::Map::[]=}{Invariant}(#t40, #t41){(core::int, core::int) → void};
+      }
+    final core::Map<dynamic, dynamic>? #t42 = dynamicMap3 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>?;
+    if(!(#t42 == null))
+      for (final has-declared-initializer core::MapEntry<dynamic, dynamic> #t43 in #t42{core::Map<dynamic, dynamic>}.{core::Map::entries}{core::Iterable<core::MapEntry<core::int, core::int>>}) {
+        final core::int #t44 = #t43.{core::MapEntry::key}{dynamic} as{TypeError} core::int;
+        final core::int #t45 = #t43.{core::MapEntry::value}{dynamic} as{TypeError} core::int;
+        #t33.{core::Map::[]=}{Invariant}(#t44, #t45){(core::int, core::int) → void};
+      }
+    final core::Map<core::int, core::int>? #t46 = intMap;
+    if(!(#t46 == null))
+      #t33.{core::Map::addAll}{Invariant}(#t46{core::Map<core::int, core::int>}){(core::Map<core::int, core::int>) → void};
+  } =>#t33;
+  self::expect(col::LinkedHashMap::fromIterables<core::int, core::int>(core::List::generate<core::int>(12, (core::int i) → core::int => i), core::List::generate<core::int>(12, (core::int i) → core::int => 100.{core::num::+}(i){(core::num) → core::int})), map1);
+  core::Map<core::num, core::num> map2 = block {
+    final core::Map<core::num, core::num> #t47 = <core::num, core::num>{};
+    final core::Map<dynamic, dynamic>? #t48 = dynamicMap1 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>?;
+    if(!(#t48 == null))
+      for (final has-declared-initializer core::MapEntry<dynamic, dynamic> #t49 in #t48{core::Map<dynamic, dynamic>}.{core::Map::entries}{core::Iterable<core::MapEntry<core::num, core::num>>}) {
+        final core::num #t50 = #t49.{core::MapEntry::key}{dynamic} as{TypeError} core::num;
+        final core::num #t51 = #t49.{core::MapEntry::value}{dynamic} as{TypeError} core::num;
+        #t47.{core::Map::[]=}{Invariant}(#t50, #t51){(core::num, core::num) → void};
+      }
+    final core::Map<dynamic, dynamic>? #t52 = dynamicMap2 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>?;
+    if(!(#t52 == null))
+      for (final has-declared-initializer core::MapEntry<dynamic, dynamic> #t53 in #t52{core::Map<dynamic, dynamic>}.{core::Map::entries}{core::Iterable<core::MapEntry<core::num, core::num>>}) {
+        final core::num #t54 = #t53.{core::MapEntry::key}{dynamic} as{TypeError} core::num;
+        final core::num #t55 = #t53.{core::MapEntry::value}{dynamic} as{TypeError} core::num;
+        #t47.{core::Map::[]=}{Invariant}(#t54, #t55){(core::num, core::num) → void};
+      }
+    final core::Map<dynamic, dynamic>? #t56 = dynamicMap3 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>?;
+    if(!(#t56 == null))
+      for (final has-declared-initializer core::MapEntry<dynamic, dynamic> #t57 in #t56{core::Map<dynamic, dynamic>}.{core::Map::entries}{core::Iterable<core::MapEntry<core::num, core::num>>}) {
+        final core::num #t58 = #t57.{core::MapEntry::key}{dynamic} as{TypeError} core::num;
+        final core::num #t59 = #t57.{core::MapEntry::value}{dynamic} as{TypeError} core::num;
+        #t47.{core::Map::[]=}{Invariant}(#t58, #t59){(core::num, core::num) → void};
+      }
+    final core::Map<core::num, core::num>? #t60 = intMap;
+    if(!(#t60 == null))
+      #t47.{core::Map::addAll}{Invariant}(#t60{core::Map<core::num, core::num>}){(core::Map<core::num, core::num>) → void};
+  } =>#t47;
+  self::expect(col::LinkedHashMap::fromIterables<core::num, core::num>(core::List::generate<core::num>(12, (core::int i) → core::int => i), core::List::generate<core::num>(12, (core::int i) → core::int => 100.{core::num::+}(i){(core::num) → core::int})), map2);
+  core::Map<core::int, core::int> map3 = block {
+    final core::Map<core::int, core::int> #t61 = <core::int, core::int>{};
+    final core::Map<dynamic, dynamic>? #t62 = dynamicMap1 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>?;
+    if(!(#t62 == null))
+      for (final has-declared-initializer core::MapEntry<dynamic, dynamic> #t63 in #t62{core::Map<dynamic, dynamic>}.{core::Map::entries}{core::Iterable<core::MapEntry<core::int, core::int>>}) {
+        final core::int #t64 = #t63.{core::MapEntry::key}{dynamic} as{TypeError} core::int;
+        final core::int #t65 = #t63.{core::MapEntry::value}{dynamic} as{TypeError} core::int;
+        #t61.{core::Map::[]=}{Invariant}(#t64, #t65){(core::int, core::int) → void};
+      }
+    final core::Map<dynamic, dynamic>? #t66 = dynamicMap2 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>?;
+    if(!(#t66 == null))
+      for (final has-declared-initializer core::MapEntry<dynamic, dynamic> #t67 in #t66{core::Map<dynamic, dynamic>}.{core::Map::entries}{core::Iterable<core::MapEntry<core::int, core::int>>}) {
+        final core::int #t68 = #t67.{core::MapEntry::key}{dynamic} as{TypeError} core::int;
+        final core::int #t69 = #t67.{core::MapEntry::value}{dynamic} as{TypeError} core::int;
+        #t61.{core::Map::[]=}{Invariant}(#t68, #t69){(core::int, core::int) → void};
+      }
+    final core::Map<dynamic, dynamic>? #t70 = dynamicMap3 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>?;
+    if(!(#t70 == null))
+      for (final has-declared-initializer core::MapEntry<dynamic, dynamic> #t71 in #t70{core::Map<dynamic, dynamic>}.{core::Map::entries}{core::Iterable<core::MapEntry<core::int, core::int>>}) {
+        final core::int #t72 = #t71.{core::MapEntry::key}{dynamic} as{TypeError} core::int;
+        final core::int #t73 = #t71.{core::MapEntry::value}{dynamic} as{TypeError} core::int;
+        #t61.{core::Map::[]=}{Invariant}(#t72, #t73){(core::int, core::int) → void};
+      }
+    final core::Map<core::int, core::int>? #t74 = intMap;
+    if(!(#t74 == null))
+      #t61.{core::Map::addAll}{Invariant}(#t74{core::Map<core::int, core::int>}){(core::Map<core::int, core::int>) → void};
+  } =>#t61;
+  self::expect(col::LinkedHashMap::fromIterables<core::int, core::int>(core::List::generate<core::int>(12, (core::int i) → core::int => i), core::List::generate<core::int>(12, (core::int i) → core::int => 100.{core::num::+}(i){(core::num) → core::int})), map3);
+  core::Map<dynamic, dynamic> map4 = block {
+    final core::Map<dynamic, dynamic> #t75 = <dynamic, dynamic>{};
+    final core::Map<dynamic, dynamic>? #t76 = dynamicMap1 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>?;
+    if(!(#t76 == null))
+      #t75.{core::Map::addAll}{Invariant}(#t76{core::Map<dynamic, dynamic>}){(core::Map<dynamic, dynamic>) → void};
+    final core::Map<dynamic, dynamic>? #t77 = dynamicMap2 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>?;
+    if(!(#t77 == null))
+      #t75.{core::Map::addAll}{Invariant}(#t77{core::Map<dynamic, dynamic>}){(core::Map<dynamic, dynamic>) → void};
+    final core::Map<dynamic, dynamic>? #t78 = dynamicMap3 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>?;
+    if(!(#t78 == null))
+      #t75.{core::Map::addAll}{Invariant}(#t78{core::Map<dynamic, dynamic>}){(core::Map<dynamic, dynamic>) → void};
+    final core::Map<dynamic, dynamic>? #t79 = intMap;
+    if(!(#t79 == null))
+      #t75.{core::Map::addAll}{Invariant}(#t79{core::Map<dynamic, dynamic>}){(core::Map<dynamic, dynamic>) → void};
+  } =>#t75;
+  self::expect(col::LinkedHashMap::fromIterables<dynamic, dynamic>(core::List::generate<core::int>(12, (core::int i) → core::int => i), core::List::generate<core::int>(12, (core::int i) → core::int => 100.{core::num::+}(i){(core::num) → core::int})), map4);
 }
 static method main() → dynamic {
   self::useAddAll();
+  self::useAddAllNullable();
 }
-static method expect(core::Map<dynamic, dynamic>* map1, core::Map<dynamic, dynamic>* map2) → void {
-  if(!(map1.{core::Map::length}{core::int*} =={core::num::==}{(core::Object*) →* core::bool*} map2.{core::Map::length}{core::int*})) {
-    throw "Unexpected length. Expected ${map1.{core::Map::length}{core::int*}}, actual ${map2.{core::Map::length}{core::int*}}.";
+static method expect(core::Map<dynamic, dynamic> map1, core::Map<dynamic, dynamic> map2) → void {
+  if(!(map1.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} map2.{core::Map::length}{core::int})) {
+    throw "Unexpected length. Expected ${map1.{core::Map::length}{core::int}}, actual ${map2.{core::Map::length}{core::int}}.";
   }
-  for (core::MapEntry<dynamic, dynamic>* entry in map1.{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>*>*}) {
-    if(!map2.{core::Map::containsKey}(entry.{core::MapEntry::key}{dynamic}){(core::Object*) →* core::bool*}) {
+  for (core::MapEntry<dynamic, dynamic> entry in map1.{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>>}) {
+    if(!map2.{core::Map::containsKey}(entry.{core::MapEntry::key}{dynamic}){(core::Object?) → core::bool}) {
       throw "Key ${entry.{core::MapEntry::key}{dynamic}} not found. Expected ${map1}, actual ${map2}.";
     }
-    if(!(map2.{core::Map::[]}(entry.{core::MapEntry::key}{dynamic}){(core::Object*) →* dynamic} =={core::Object::==}{(core::Object*) →* core::bool*} entry.{core::MapEntry::value}{dynamic})) {
-      throw "Found value ${map2.{core::Map::[]}(entry.{core::MapEntry::key}{dynamic}){(core::Object*) →* dynamic}} expected ${entry.{core::MapEntry::value}{dynamic}} for key ${entry.{core::MapEntry::key}{dynamic}}.";
+    if(!(map2.{core::Map::[]}(entry.{core::MapEntry::key}{dynamic}){(core::Object?) → dynamic} =={core::Object::==}{(core::Object) → core::bool} entry.{core::MapEntry::value}{dynamic})) {
+      throw "Found value ${map2.{core::Map::[]}(entry.{core::MapEntry::key}{dynamic}){(core::Object?) → dynamic}} expected ${entry.{core::MapEntry::value}{dynamic}} for key ${entry.{core::MapEntry::key}{dynamic}}.";
     }
   }
-  if(!(map1.{core::Object::runtimeType}{core::Type*}.{core::Type::toString}(){() →* core::String*} =={core::String::==}{(core::Object*) →* core::bool*} map2.{core::Object::runtimeType}{core::Type*}.{core::Type::toString}(){() →* core::String*})) {
-    throw "Runtime time difference: ${map1.{core::Object::runtimeType}{core::Type*}.{core::Type::toString}(){() →* core::String*}} vs ${map2.{core::Object::runtimeType}{core::Type*}.{core::Type::toString}(){() →* core::String*}}";
+  if(!(map1.{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String} =={core::String::==}{(core::Object) → core::bool} map2.{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String})) {
+    throw "Runtime time difference: ${map1.{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String}} vs ${map2.{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String}}";
   }
 }

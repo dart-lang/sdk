@@ -38,7 +38,6 @@ import 'package:analyzer/src/util/sdk.dart';
 import 'package:args/args.dart';
 import 'package:linter/src/rules.dart' as linter;
 import 'package:telemetry/crash_reporting.dart';
-import 'package:telemetry/telemetry.dart' as telemetry;
 import 'package:unified_analytics/unified_analytics.dart';
 
 import '../utilities/usage_tracking/usage_tracking.dart';
@@ -197,25 +196,8 @@ class Driver implements ServerStarter {
       disableAnalyticsForSession = true;
     }
 
-    // Use sdkConfig to optionally override legacy analytics settings.
-    final analyticsId = sdkConfig.analyticsId ?? 'UA-26406144-29';
-    final forceAnalyticsEnabled = sdkConfig.analyticsForceEnabled == true;
-    var analytics = telemetry.createAnalyticsInstance(
-      analyticsId,
-      'analysis-server',
-      disableForSession: disableAnalyticsForSession,
-      forceEnabled: forceAnalyticsEnabled,
-    );
-    analysisServerOptions.analytics = analytics;
-
-    // Record the client name as the application installer ID.
-    analytics.setSessionValue('aiid', analysisServerOptions.clientId);
-    if (analysisServerOptions.clientVersion != null) {
-      analytics.setSessionValue('cd1', analysisServerOptions.clientVersion);
-    }
-
-    final defaultSdkPath = _getSdkPath(results);
-    final dartSdkManager = DartSdkManager(defaultSdkPath);
+    var defaultSdkPath = _getSdkPath(results);
+    var dartSdkManager = DartSdkManager(defaultSdkPath);
 
     // TODO(brianwilkerson): It would be nice to avoid creating an SDK that
     // can't be re-used, but the SDK is needed to create a package map provider
@@ -251,17 +233,9 @@ class Driver implements ServerStarter {
     // Crash reporting
 
     // Use sdkConfig to optionally override analytics settings.
-    final crashProductId = sdkConfig.crashReportingId ?? 'Dart_analysis_server';
-    final crashReportSender =
+    var crashProductId = sdkConfig.crashReportingId ?? 'Dart_analysis_server';
+    var crashReportSender =
         CrashReportSender.prod(crashProductId, shouldSendCallback);
-
-    if (telemetry.showAnalyticsUI) {
-      if (results.wasParsed(ANALYTICS_FLAG)) {
-        analytics.enabled = results[ANALYTICS_FLAG] as bool;
-        print(telemetry.createAnalyticsStatusMessage(analytics.enabled));
-        return;
-      }
-    }
 
     {
       var disableCompletion =
@@ -276,7 +250,7 @@ class Driver implements ServerStarter {
     }
 
     if (results[HELP_OPTION] as bool) {
-      _printUsage(parser, analytics, fromHelp: true);
+      _printUsage(parser, fromHelp: true);
       return;
     }
 
@@ -304,7 +278,7 @@ class Driver implements ServerStarter {
     var errorNotifier = ErrorNotifier();
     allInstrumentationServices
         .add(CrashReportingInstrumentation(crashReportSender));
-    final instrumentationService =
+    var instrumentationService =
         MulticastInstrumentationService(allInstrumentationServices);
     this.instrumentationService = instrumentationService;
 
@@ -320,7 +294,7 @@ class Driver implements ServerStarter {
     AnalysisEngine.instance.instrumentationService = instrumentationService;
 
     int? diagnosticServerPort;
-    final portValue =
+    var portValue =
         (results[DIAGNOSTIC_PORT] ?? results[DIAGNOSTIC_PORT_ALIAS]) as String?;
     if (portValue != null) {
       try {
@@ -328,7 +302,7 @@ class Driver implements ServerStarter {
       } on FormatException {
         print('Invalid port number: $portValue');
         print('');
-        _printUsage(parser, analytics);
+        _printUsage(parser);
         exitCode = 1;
         return;
       }
@@ -360,7 +334,6 @@ class Driver implements ServerStarter {
           crashReportingAttachmentsBuilder,
           instrumentationService,
           RequestStatisticsHelper(),
-          analytics,
           diagnosticServerPort,
           errorNotifier,
           sendPort);
@@ -381,7 +354,6 @@ class Driver implements ServerStarter {
     CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder,
     InstrumentationService instrumentationService,
     RequestStatisticsHelper requestStatistics,
-    telemetry.Analytics analytics,
     int? diagnosticServerPort,
     ErrorNotifier errorNotifier,
     SendPort? sendPort,
@@ -402,13 +374,10 @@ class Driver implements ServerStarter {
 
     var diagnosticServer = _DiagnosticServerImpl();
 
-    // Ping analytics with our initial call.
-    analytics.sendScreenView('home');
-
     //
     // Create the sockets and start listening for requests.
     //
-    final socketServer = SocketServer(
+    var socketServer = SocketServer(
         analysisServerOptions,
         dartSdkManager,
         crashReportingAttachmentsBuilder,
@@ -511,7 +480,7 @@ class Driver implements ServerStarter {
 
     var diagnosticServer = _DiagnosticServerImpl();
 
-    final socketServer = LspSocketServer(
+    var socketServer = LspSocketServer(
         analysisServerOptions,
         diagnosticServer,
         analyticsManager,
@@ -671,29 +640,18 @@ class Driver implements ServerStarter {
 
   /// Print information about how to use the server.
   void _printUsage(
-    ArgParser parser,
-    telemetry.Analytics analytics, {
+    ArgParser parser, {
     bool fromHelp = false,
   }) {
     print('Usage: $BINARY_NAME [flags]');
     print('');
     print('Supported flags are:');
     print(parser.usage);
-
-    if (telemetry.showAnalyticsUI) {
-      // Print analytics status and information.
-      if (fromHelp) {
-        print('');
-        print(telemetry.analyticsNotice);
-      }
-      print('');
-      print(telemetry.createAnalyticsStatusMessage(analytics.enabled));
-    }
   }
 
   /// Read the UUID from disk, generating and storing a new one if necessary.
   String _readUuid(InstrumentationService service) {
-    final instrumentationLocation =
+    var instrumentationLocation =
         PhysicalResourceProvider.INSTANCE.getStateLocation('.instrumentation');
     if (instrumentationLocation == null) {
       return _generateUuidString();
@@ -803,7 +761,7 @@ class Driver implements ServerStarter {
     parser.addFlag(ANALYTICS_FLAG,
         help: 'Allow or disallow sending analytics information to '
             'Google for this session.',
-        hide: !telemetry.showAnalyticsUI);
+        hide: true);
     parser.addFlag(SUPPRESS_ANALYTICS_FLAG,
         negatable: false,
         help: 'Suppress analytics for this session.',

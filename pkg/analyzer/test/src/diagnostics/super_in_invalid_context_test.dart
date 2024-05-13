@@ -299,7 +299,7 @@ class B extends A {
       error(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, 69, 5),
     ]);
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SuperExpression

@@ -17,14 +17,14 @@ static method cascadedPropertyAccess(self::C c) → void {
 static method cascadedNullAwarePropertyAccess(self::C? c) → void {
   let final self::C? #t2 = c in #t2 == null ?{self::C?} null : block {
     #t2{self::C}.{self::C::_field}{core::Object?}!.{core::Object::toString}(){() → core::String};
-    (#t2{self::C}.{self::C::_field}{core::Object?} as{Unchecked} core::Object).{core::Object::toString}(){() → core::String};
+    (let core::Object? #t3 = #t2{self::C}.{self::C::_field}{core::Object?} in #t3 == null ?{core::Object} #t3 as{Unchecked} core::Object : #t3{core::Object}).{core::Object::toString}(){() → core::String};
   } =>#t2;
-  let final self::C? #t3 = c in #t3 == null ?{core::Object?} null : #t3{self::C}.{self::C::_field}{core::Object?};
+  let final self::C? #t4 = c in #t4 == null ?{core::Object?} null : #t4{self::C}.{self::C::_field}{core::Object?};
 }
 static method cascadedInvocation(self::C c) → void {
   c.{self::C::_field}{core::Object?} as () → core::int;
-  let final self::C #t4 = c in block {
-    (#t4.{self::C::_field}{core::Object?} as{Unchecked} () → core::int)(){() → core::int}.{core::int::toString}(){() → core::String};
-  } =>#t4;
+  let final self::C #t5 = c in block {
+    (#t5.{self::C::_field}{core::Object?} as{Unchecked} () → core::int)(){() → core::int}.{core::int::toString}(){() → core::String};
+  } =>#t5;
 }
 static method main() → dynamic {}

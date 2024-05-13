@@ -26,10 +26,10 @@ class FlutterStatelessWidget extends FlutterSnippetProducer
 
   @override
   Future<Snippet> compute() async {
-    final builder = ChangeBuilder(session: request.analysisSession);
+    var builder = ChangeBuilder(session: request.analysisSession);
 
     // Checked by isValid().
-    final classStatelessWidget = this.classStatelessWidget!;
+    var classStatelessWidget = this.classStatelessWidget!;
 
     await builder.addDartFileEdit(request.filePath, (builder) async {
       await addImports(builder);

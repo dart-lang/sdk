@@ -19,7 +19,7 @@ class ExtensionTypeResolutionTest extends PubPackageResolutionTest {
 extension type A.named(int it) {}
 ''');
 
-    final node = findNode.singleExtensionTypeDeclaration;
+    var node = findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
@@ -51,7 +51,7 @@ extension type A(int it) {
 }
 ''');
 
-    final node = findNode.singleExtensionTypeDeclaration;
+    var node = findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
@@ -101,7 +101,7 @@ extension type A(num it) {
 }
 ''');
 
-    final node = findNode.singleExtensionTypeDeclaration;
+    var node = findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
@@ -164,7 +164,7 @@ ExtensionTypeDeclaration
 extension type A(int it) {}
 ''');
 
-    final node = findNode.singleExtensionTypeDeclaration;
+    var node = findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
@@ -191,7 +191,7 @@ ExtensionTypeDeclaration
 extension type A(int it) implements num {}
 ''');
 
-    final node = findNode.singleExtensionTypeDeclaration;
+    var node = findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
@@ -230,7 +230,7 @@ extension type A<T>(int it) {
 }
 ''');
 
-    final node = findNode.singleMethodDeclaration;
+    var node = findNode.singleMethodDeclaration;
     assertResolvedNodeText(node, r'''
 MethodDeclaration
   returnType: NamedType
@@ -291,7 +291,7 @@ MethodDeclaration
 extension type A<T, U>(Map<T, U> it) {}
 ''');
 
-    final node = findNode.singleExtensionTypeDeclaration;
+    var node = findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension

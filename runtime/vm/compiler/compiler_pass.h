@@ -52,7 +52,6 @@ namespace dart {
   V(TryOptimizePatterns)                                                       \
   V(TypePropagation)                                                           \
   V(UseTableDispatch)                                                          \
-  V(WidenSmiToInt32)                                                           \
   V(EliminateWriteBarriers)                                                    \
   V(TestILSerialization)                                                       \
   V(LoweringAfterCodeMotionDisabled)                                           \

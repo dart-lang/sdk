@@ -166,7 +166,7 @@ class AstComparator implements AstVisitor<bool> {
 
   @override
   bool visitAugmentationImportDirective(AugmentationImportDirective node) {
-    final other = _other as AugmentationImportDirective;
+    var other = _other as AugmentationImportDirective;
     return isEqualNodes(
             node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
@@ -177,13 +177,13 @@ class AstComparator implements AstVisitor<bool> {
 
   @override
   bool visitAugmentedExpression(AugmentedExpression node) {
-    final other = _other as AugmentedExpression;
+    var other = _other as AugmentedExpression;
     return isEqualTokens(node.augmentedKeyword, other.augmentedKeyword);
   }
 
   @override
   bool visitAugmentedInvocation(AugmentedInvocation node) {
-    final other = _other as AugmentedInvocation;
+    var other = _other as AugmentedInvocation;
     return isEqualTokens(node.augmentedKeyword, other.augmentedKeyword) &&
         isEqualNodes(node.typeArguments, other.typeArguments) &&
         isEqualNodes(node.arguments, other.arguments);
@@ -582,7 +582,7 @@ class AstComparator implements AstVisitor<bool> {
 
   @override
   bool visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    final other = _other as ExtensionTypeDeclaration;
+    var other = _other as ExtensionTypeDeclaration;
     return isEqualNodes(
             node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
@@ -869,7 +869,7 @@ class AstComparator implements AstVisitor<bool> {
 
   @override
   bool? visitImportPrefixReference(ImportPrefixReference node) {
-    final other = _other as ImportPrefixReference;
+    var other = _other as ImportPrefixReference;
     return isEqualTokens(node.name, other.name) &&
         isEqualTokens(node.period, other.period);
   }
@@ -938,7 +938,7 @@ class AstComparator implements AstVisitor<bool> {
 
   @override
   bool? visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
-    final other = _other as LibraryAugmentationDirective;
+    var other = _other as LibraryAugmentationDirective;
     return isEqualNodes(
             node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
@@ -1324,14 +1324,14 @@ class AstComparator implements AstVisitor<bool> {
 
   @override
   bool visitRepresentationConstructorName(RepresentationConstructorName node) {
-    final other = _other as RepresentationConstructorName;
+    var other = _other as RepresentationConstructorName;
     return isEqualTokens(node.period, other.period) &&
         isEqualTokens(node.name, other.name);
   }
 
   @override
   bool visitRepresentationDeclaration(RepresentationDeclaration node) {
-    final other = _other as RepresentationDeclaration;
+    var other = _other as RepresentationDeclaration;
     return isEqualNodes(node.constructorName, other.constructorName) &&
         isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
         _isEqualNodeLists(node.fieldMetadata, other.fieldMetadata) &&

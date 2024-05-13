@@ -417,7 +417,7 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void handleEnumElement(Token beginToken) {
+  void handleEnumElement(Token beginToken, Token? augmentToken) {
     debugEvent("EnumElement");
     pop(); // Arguments.
     pop(); // Type arguments.
@@ -672,7 +672,7 @@ class MiniAstParser extends Parser {
 
   @override
   Token parseArgumentsOpt(Token token) {
-    final listener = this.listener as MiniAstBuilder;
+    var listener = this.listener as MiniAstBuilder;
     if (listener.inMetadata) {
       return super.parseArgumentsOpt(token);
     } else {

@@ -35,36 +35,36 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
 
   @override
   Future<List<CodeActionWithPriority>> getFixActions() async {
-    final session = await server.getAnalysisSession(path);
+    var session = await server.getAnalysisSession(path);
     if (session == null) {
       return [];
     }
 
-    final driver = server.getAnalysisDriver(path);
+    var driver = server.getAnalysisDriver(path);
     if (driver == null) {
       return [];
     }
 
-    final resourceProvider = server.resourceProvider;
-    final sourceFactory = driver.sourceFactory;
-    final optionsFile = resourceProvider.getFile(path);
-    final content = safelyRead(optionsFile);
+    var resourceProvider = server.resourceProvider;
+    var sourceFactory = driver.sourceFactory;
+    var optionsFile = resourceProvider.getFile(path);
+    var content = safelyRead(optionsFile);
     if (content == null) {
       return [];
     }
-    final lineInfo = LineInfo.fromContent(content);
+    var lineInfo = LineInfo.fromContent(content);
 
-    final options = _getOptions(sourceFactory, content);
+    var options = _getOptions(sourceFactory, content);
     if (options == null) {
       return [];
     }
 
-    final contextRoot = session.analysisContext.contextRoot;
-    final package = contextRoot.workspace.findPackageFor(optionsFile.path);
-    final sdkVersionConstraint =
+    var contextRoot = session.analysisContext.contextRoot;
+    var package = contextRoot.workspace.findPackageFor(optionsFile.path);
+    var sdkVersionConstraint =
         (package is PubPackage) ? package.sdkVersionConstraint : null;
 
-    final errors = analyzeAnalysisOptions(
+    var errors = analyzeAnalysisOptions(
       optionsFile.createSource(),
       content,
       sourceFactory,
@@ -72,21 +72,20 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
       sdkVersionConstraint,
     );
 
-    final codeActions = <CodeActionWithPriority>[];
-    for (final error in errors) {
-      final generator = AnalysisOptionsFixGenerator(
+    var codeActions = <CodeActionWithPriority>[];
+    for (var error in errors) {
+      var generator = AnalysisOptionsFixGenerator(
           resourceProvider, error, content, options);
-      final fixes = await generator.computeFixes();
+      var fixes = await generator.computeFixes();
       if (fixes.isEmpty) {
         continue;
       }
 
-      final result = createResult(session, lineInfo, errors);
-      final diagnostic = createDiagnostic(lineInfo, result, error);
+      var result = createResult(session, lineInfo, errors);
+      var diagnostic = createDiagnostic(lineInfo, result, error);
       codeActions.addAll(
         fixes.map((fix) {
-          final action =
-              createFixAction(fix.change, diagnostic, path, lineInfo);
+          var action = createFixAction(fix.change, diagnostic, path, lineInfo);
           return (action: action, priority: fix.kind.priority);
         }),
       );

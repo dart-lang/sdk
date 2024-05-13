@@ -596,6 +596,13 @@ final class ClientTypePhaseIntrospector extends ClientIntrospector
 final class ClientDeclarationPhaseIntrospector
     extends ClientTypePhaseIntrospector
     implements DeclarationPhaseIntrospector {
+  static final _constructorsCache =
+      Expando<Future<List<ConstructorDeclaration>>>();
+  static final _enumValuesCache = Expando<Future<List<EnumValueDeclaration>>>();
+  static final _fieldsCache = Expando<Future<List<FieldDeclaration>>>();
+  static final _methodsCache = Expando<Future<List<MethodDeclaration>>>();
+  static final _typeDeclarationCache = Expando<Future<TypeDeclaration>>();
+
   ClientDeclarationPhaseIntrospector(super._sendRequest,
       {required super.remoteInstance, required super.serializationZoneId});
 
@@ -620,48 +627,55 @@ final class ClientDeclarationPhaseIntrospector
   }
 
   @override
-  Future<List<ConstructorDeclaration>> constructorsOf(
-      TypeDeclaration type) async {
-    TypeIntrospectorRequest request = TypeIntrospectorRequest(
-        type, remoteInstance, MessageType.constructorsOfRequest,
-        serializationZoneId: serializationZoneId);
-    return _handleResponse<DeclarationList>(await _sendRequest(request))
-        .declarations
-        // TODO: Refactor so we can remove this cast
-        .cast();
+  Future<List<ConstructorDeclaration>> constructorsOf(TypeDeclaration type) {
+    return _constructorsCache[type] ??= Future(() async {
+      final request = TypeIntrospectorRequest(
+          type, remoteInstance, MessageType.constructorsOfRequest,
+          serializationZoneId: serializationZoneId);
+      return _handleResponse<DeclarationList>(await _sendRequest(request))
+          .declarations
+          // TODO: Refactor so we can remove this cast
+          .cast();
+    });
   }
 
   @override
-  Future<List<EnumValueDeclaration>> valuesOf(EnumDeclaration enumType) async {
-    TypeIntrospectorRequest request = TypeIntrospectorRequest(
-        enumType, remoteInstance, MessageType.valuesOfRequest,
-        serializationZoneId: serializationZoneId);
-    return _handleResponse<DeclarationList>(await _sendRequest(request))
-        .declarations
-        // TODO: Refactor so we can remove this cast
-        .cast();
+  Future<List<EnumValueDeclaration>> valuesOf(EnumDeclaration type) {
+    return _enumValuesCache[type] ??= Future(() async {
+      final request = TypeIntrospectorRequest(
+          type, remoteInstance, MessageType.valuesOfRequest,
+          serializationZoneId: serializationZoneId);
+      return _handleResponse<DeclarationList>(await _sendRequest(request))
+          .declarations
+          // TODO: Refactor so we can remove this cast
+          .cast();
+    });
   }
 
   @override
-  Future<List<FieldDeclaration>> fieldsOf(TypeDeclaration type) async {
-    TypeIntrospectorRequest request = TypeIntrospectorRequest(
-        type, remoteInstance, MessageType.fieldsOfRequest,
-        serializationZoneId: serializationZoneId);
-    return _handleResponse<DeclarationList>(await _sendRequest(request))
-        .declarations
-        // TODO: Refactor so we can remove this cast
-        .cast();
+  Future<List<FieldDeclaration>> fieldsOf(TypeDeclaration type) {
+    return _fieldsCache[type] ??= Future(() async {
+      final request = TypeIntrospectorRequest(
+          type, remoteInstance, MessageType.fieldsOfRequest,
+          serializationZoneId: serializationZoneId);
+      return _handleResponse<DeclarationList>(await _sendRequest(request))
+          .declarations
+          // TODO: Refactor so we can remove this cast
+          .cast();
+    });
   }
 
   @override
-  Future<List<MethodDeclaration>> methodsOf(TypeDeclaration type) async {
-    TypeIntrospectorRequest request = TypeIntrospectorRequest(
-        type, remoteInstance, MessageType.methodsOfRequest,
-        serializationZoneId: serializationZoneId);
-    return _handleResponse<DeclarationList>(await _sendRequest(request))
-        .declarations
-        // TODO: Refactor so we can remove this cast
-        .cast();
+  Future<List<MethodDeclaration>> methodsOf(TypeDeclaration type) {
+    return _methodsCache[type] ??= Future(() async {
+      final request = TypeIntrospectorRequest(
+          type, remoteInstance, MessageType.methodsOfRequest,
+          serializationZoneId: serializationZoneId);
+      return _handleResponse<DeclarationList>(await _sendRequest(request))
+          .declarations
+          // TODO: Refactor so we can remove this cast
+          .cast();
+    });
   }
 
   @override
@@ -677,10 +691,12 @@ final class ClientDeclarationPhaseIntrospector
 
   @override
   Future<TypeDeclaration> typeDeclarationOf(IdentifierImpl identifier) async {
-    DeclarationOfRequest request = DeclarationOfRequest(
-        identifier, MessageType.typeDeclarationOfRequest, remoteInstance,
-        serializationZoneId: serializationZoneId);
-    return _handleResponse<TypeDeclaration>(await _sendRequest(request));
+    return _typeDeclarationCache[identifier] ??= Future(() async {
+      final request = DeclarationOfRequest(
+          identifier, MessageType.typeDeclarationOfRequest, remoteInstance,
+          serializationZoneId: serializationZoneId);
+      return _handleResponse<TypeDeclaration>(await _sendRequest(request));
+    });
   }
 }
 
@@ -744,14 +760,6 @@ final class ClientDefinitionPhaseIntrospector
         serializationZoneId: serializationZoneId);
     return _handleResponse<DeclarationList>(await _sendRequest(request))
         .declarations;
-  }
-
-  @override
-  Future<TypeDeclaration> typeDeclarationOf(IdentifierImpl identifier) async {
-    DeclarationOfRequest request = DeclarationOfRequest(
-        identifier, MessageType.typeDeclarationOfRequest, remoteInstance,
-        serializationZoneId: serializationZoneId);
-    return _handleResponse<TypeDeclaration>(await _sendRequest(request));
   }
 }
 

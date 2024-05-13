@@ -23,24 +23,24 @@ import 'dart:math' as prefix;
 ''', [
       error(WarningCode.UNUSED_IMPORT, 7, 11),
     ]);
-    final namespace = findElement.import('dart:math').namespace;
+    var namespace = findElement.import('dart:math').namespace;
     return namespace as PrefixedNamespace;
   }
 
   void test_lookup_missing() async {
-    final namespace = await _dartMath;
+    var namespace = await _dartMath;
     expect(namespace.get('prefix.Missing'), isNull);
   }
 
   Future<void> test_lookup_missing_matchesPrefix() async {
-    final namespace = await _dartMath;
+    var namespace = await _dartMath;
     expect(namespace.get('prefix'), isNull);
   }
 
   Future<void> test_lookup_valid() async {
-    final namespace = await _dartMath;
+    var namespace = await _dartMath;
 
-    final random = findElement.importFind('dart:math').class_('Random');
+    var random = findElement.importFind('dart:math').class_('Random');
     expect(namespace.get('prefix.Random'), same(random));
   }
 }

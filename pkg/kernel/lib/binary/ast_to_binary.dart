@@ -2599,7 +2599,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     if (node.isLegacyCovariant) {
       writeByte(TypeParameter.legacyCovariantSerializationMarker);
     } else {
-      writeByte(node.variance);
+      writeByte(node.variance.index);
     }
     writeStringReference(node.name ?? '');
     writeNode(node.bound);
@@ -2615,7 +2615,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     if (node.isLegacyCovariant) {
       writeByte(StructuralParameter.legacyCovariantSerializationMarker);
     } else {
-      writeByte(node.variance);
+      writeByte(node.variance.index);
     }
     writeStringReference(node.name ?? '');
     writeNode(node.bound);

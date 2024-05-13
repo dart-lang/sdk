@@ -170,12 +170,18 @@ template("build_gen_snapshot") {
   if (defined(invoker.extra_deps)) {
     extra_deps += invoker.extra_deps
   }
-  executable(target_name) {
+
+  source_set(target_name + "_set") {
     configs += [
                  "..:dart_config",
                  "..:dart_precompiler_config",
                ] + extra_configs
-    deps = extra_deps
+
+    deps = [ "//third_party/zlib" ]
+
+    if (is_fuchsia) {
+      deps += [ "$fuchsia_sdk/pkg/fdio" ]
+    }
 
     defines = [ "EXCLUDE_CFE_AND_KERNEL_PLATFORM" ]
 
@@ -207,6 +213,15 @@ template("build_gen_snapshot") {
       "..",
       "//third_party",
     ]
+  }
+
+  executable(target_name) {
+    configs += [
+                 "..:dart_config",
+                 "..:dart_precompiler_config",
+               ] + extra_configs
+
+    deps = [ ":${target_name}_set" ] + extra_deps
 
     if (is_mac) {
       frameworks = [
@@ -514,7 +529,6 @@ gen_snapshot_action("generate_snapshot_bin") {
     isolate_snapshot_instructions,
   ]
   args = [
-    "--sound-null-safety",
     "--deterministic",
     "--snapshot_kind=core",
     "--vm_snapshot_data=" + rebase_path(vm_snapshot_data, root_build_dir),
@@ -720,7 +734,8 @@ template("dart_executable") {
   if (defined(invoker.target_type)) {
     target_type = invoker.target_type
   }
-  target(target_type, target_name) {
+
+  source_set(target_name + "_set") {
     configs += [
                  "..:dart_arch_config",
                  "..:dart_config",
@@ -731,29 +746,22 @@ template("dart_executable") {
     } else {
       configs += [ "..:dart_maybe_product_config" ]
     }
-
     deps = [
       ":crashpad",
       "//third_party/boringssl",
       "//third_party/zlib",
     ]
-    if (use_product_mode) {
-      deps += [ ":standalone_dart_io_product" ]
-    } else {
-      deps += [ ":standalone_dart_io" ]
+    if (is_fuchsia) {
+      deps += [ "$fuchsia_sdk/pkg/fdio" ]
     }
-    deps += extra_deps
-
     defines = extra_defines
     if (exclude_kernel_service) {
       defines += [ "EXCLUDE_CFE_AND_KERNEL_PLATFORM" ]
     }
-
     include_dirs = [
       "..",
       "//third_party",
     ]
-
     sources = [
                 "dart_embedder_api_impl.cc",
                 "error_exit.cc",
@@ -767,6 +775,26 @@ template("dart_executable") {
                 "vmservice_impl.cc",
                 "vmservice_impl.h",
               ] + extra_sources
+  }
+
+  target(target_type, target_name) {
+    configs += [
+                 "..:dart_arch_config",
+                 "..:dart_config",
+                 "..:dart_os_config",
+               ] + extra_configs
+    if (use_product_mode) {
+      configs += [ "..:dart_product_config" ]
+    } else {
+      configs += [ "..:dart_maybe_product_config" ]
+    }
+
+    deps = [ ":${target_name}_set" ] + extra_deps
+    if (use_product_mode) {
+      deps += [ ":standalone_dart_io_product" ]
+    } else {
+      deps += [ ":standalone_dart_io" ]
+    }
 
     configs += [ ":export_api_symbols" ]
 
@@ -921,7 +949,7 @@ executable("abstract_socket_test") {
   include_dirs = [ ".." ]
 }
 
-executable("run_vm_tests") {
+source_set("run_vm_tests_set") {
   if (target_os == "fuchsia") {
     testonly = true
   }
@@ -938,25 +966,23 @@ executable("run_vm_tests") {
   }
 
   deps = [
-    ":crashpad",
-    ":dart_kernel_platform_cc",
-    ":dart_snapshot_cc",
-    ":standalone_dart_io",
-    "..:libdart_precompiler_testing",
     "../vm:libprotozero",  # for timeline_test
     "//third_party/boringssl",  # for secure_socket_utils_test
-    "//third_party/zlib",
   ]
+
+  if (is_fuchsia) {
+    deps += [
+      "$fuchsia_sdk/pkg/fdio",
+      "$fuchsia_sdk/pkg/trace-engine",
+    ]
+  }
+
   include_dirs = [
     "..",
     "$target_gen_dir",
     "//third_party",
   ]
   defines = [ "TESTING" ]
-
-  if (is_fuchsia) {
-    deps += [ "$fuchsia_sdk/pkg/trace-engine" ]
-  }
 
   # The VM sources are already included in libdart, so we just want to add in
   # the tests here.
@@ -981,8 +1007,36 @@ executable("run_vm_tests") {
               "vmservice_impl.h",
             ] + builtin_impl_tests + vm_tests + compiler_tests + heap_tests +
             io_impl_tests
+}
 
-  configs += [ ":export_api_symbols" ]
+executable("run_vm_tests") {
+  if (target_os == "fuchsia") {
+    testonly = true
+  }
+
+  configs += [
+    "..:dart_arch_config",
+    "..:dart_config",
+    "..:dart_os_config",
+    "..:dart_maybe_product_config",
+    ":export_api_symbols",
+  ]
+
+  if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
+    configs += [ "..:dart_precompiler_config" ]
+  }
+
+  deps = [
+    ":crashpad",
+    ":dart_kernel_platform_cc",
+    ":dart_snapshot_cc",
+    ":run_vm_tests_set",
+    ":standalone_dart_io",
+    "..:libdart_precompiler_testing",
+    "../vm:libprotozero",  # for timeline_test
+    "//third_party/boringssl",  # for secure_socket_utils_test
+    "//third_party/zlib",
+  ]
 
   if (is_win) {
     libs = [
@@ -1033,6 +1087,7 @@ shared_library("ffi_test_functions") {
     "ffi_test/ffi_test_fields.c",
     "ffi_test/ffi_test_functions.cc",
     "ffi_test/ffi_test_functions_generated.cc",
+    "ffi_test/ffi_test_functions_generated_2.cc",
     "ffi_test/ffi_test_functions_vmspecific.cc",
   ]
   if (is_win && current_cpu == "x64") {

@@ -440,7 +440,7 @@ class ICDataTestTask : public ThreadPool::Task {
   const Array& ic_datas_;
   const intptr_t len_;
   Monitor* monitor_;
-  intptr_t* exited_;  // # tasks that are no longer running.
+  intptr_t* exited_;         // # tasks that are no longer running.
   std::atomic<bool>* done_;  // Signal that helper threads can stop working.
 };
 

@@ -19,16 +19,12 @@ import 'package:_fe_analyzer_shared/src/parser/quote.dart' show unescapeString;
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show FixedNullableList, NullValues, ParserRecovery;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
+    show Variance;
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
 import 'package:kernel/ast.dart'
-    show
-        AsyncMarker,
-        InvalidType,
-        Nullability,
-        ProcedureKind,
-        TreeNode,
-        Variance;
+    show AsyncMarker, InvalidType, Nullability, ProcedureKind, TreeNode;
 
 import '../../api_prototype/experimental_flags.dart';
 import '../../api_prototype/lowering_predicates.dart';
@@ -966,7 +962,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void endLibraryAugmentation(
-      Token libraryKeyword, Token augmentKeyword, Token semicolon) {
+      Token augmentKeyword, Token libraryKeyword, Token semicolon) {
     debugEvent("endLibraryAugmentation");
     assert(checkState(libraryKeyword, [
       /* uri offset */ ValueKinds.Integer,
@@ -2907,7 +2903,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
-      Token? commaToken, Token semicolonToken) {
+      Token? commaToken, Token endToken) {
     debugEvent("Assert");
     // Do nothing
   }
@@ -2933,7 +2929,7 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void handleEnumElement(Token beginToken) {
+  void handleEnumElement(Token beginToken, Token? augmentToken) {
     debugEvent("handleEnumElement");
     assert(checkState(beginToken, [
       /* argumentsBeginToken */ ValueKinds.ArgumentsTokenOrNull,
@@ -3061,6 +3057,12 @@ class OutlineBuilder extends StackListenerImpl {
     checkEmpty(startCharOffset);
 
     if (identifier is Identifier) {
+      if (enumConstantInfos == null) {
+        if (!leftBrace.isSynthetic) {
+          addProblem(messageEnumDeclarationEmpty, identifier.token.offset,
+              identifier.token.length);
+        }
+      }
       if (interfaces != null) {
         for (TypeBuilder interface in interfaces) {
           if (interface.nullabilityBuilder.build(libraryBuilder) ==
@@ -3248,7 +3250,8 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void endTypedef(Token typedefKeyword, Token? equals, Token endToken) {
+  void endTypedef(Token? augmentToken, Token typedefKeyword, Token? equals,
+      Token endToken) {
     debugEvent("endTypedef");
     assert(checkState(
         typedefKeyword,
@@ -3669,7 +3672,8 @@ class OutlineBuilder extends StackListenerImpl {
         if (!libraryFeatures.variance.isEnabled) {
           reportVarianceModifierNotEnabled(variance);
         }
-        typeParameters[index].variance = Variance.fromString(variance.lexeme);
+        typeParameters[index].variance =
+            new Variance.fromKeywordString(variance.lexeme);
       }
     }
   }
@@ -3974,25 +3978,12 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void endFieldInitializer(Token assignmentOperator, Token token) {
+  void endFieldInitializer(Token assignmentOperator, Token endToken) {
     debugEvent("FieldInitializer");
-    Token beforeLast = assignmentOperator.next!;
-    Token next = beforeLast.next!;
-    while (next != token && !next.isEof) {
-      // To avoid storing the rest of the token stream, we need to identify the
-      // token before [token]. That token will be the last token of the
-      // initializer expression and by setting its tail to EOF we only store
-      // the tokens for the expression.
-      // TODO(ahe): Might be clearer if this search was moved to
-      // `library.addFields`.
-      // TODO(ahe): I don't even think this is necessary. [token] points to ;
-      // or , and we don't otherwise store tokens.
-      beforeLast = next;
-      next = next.next!;
-    }
     push(assignmentOperator.next);
-    push(beforeLast);
-    push(token.charOffset);
+    push(endToken);
+    // TODO(jensj): Do we actually want the position of the "," or ";" here?
+    push(endToken.next!.charOffset);
   }
 
   @override

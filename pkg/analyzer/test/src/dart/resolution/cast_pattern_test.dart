@@ -23,7 +23,7 @@ void f(x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 CastPattern
   pattern: DeclaredVariablePattern
@@ -51,7 +51,7 @@ void f(x) {
   }
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 CastPattern
   pattern: ConstantPattern
@@ -77,7 +77,7 @@ void f(x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 19, 1),
     ]);
-    final node = findNode.singlePatternVariableDeclaration;
+    var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
   keyword: var

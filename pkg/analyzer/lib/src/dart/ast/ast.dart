@@ -6,6 +6,7 @@ import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/doc_comment.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
@@ -345,7 +346,7 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
 
   @override
   Element? get element {
-    if (_element case final element?) {
+    if (_element case var element?) {
       return element;
     } else if (_constructorName == null) {
       return _name.staticElement;
@@ -359,9 +360,9 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
 
   @override
   Token get endToken {
-    if (arguments case final arguments?) {
+    if (arguments case var arguments?) {
       return arguments.endToken;
-    } else if (constructorName case final constructorName?) {
+    } else if (constructorName case var constructorName?) {
       return constructorName.endToken;
     }
     return _name.endToken;
@@ -825,7 +826,7 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
 
   @override
   DartType computePatternSchema(ResolverVisitor resolverVisitor) {
-    final element = this.element;
+    var element = this.element;
     if (element is PromotableElement) {
       return resolverVisitor.analyzeAssignedVariablePatternSchema(element);
     }
@@ -833,11 +834,11 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
   }
 
   @override
-  void resolvePattern(
+  PatternResult<DartType> resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    resolverVisitor.resolveAssignedVariablePattern(
+    return resolverVisitor.resolveAssignedVariablePattern(
       node: this,
       context: context,
     );
@@ -1036,11 +1037,13 @@ abstract final class AstNode implements SyntacticEntity {
 
   /// Returns the value of the property with the given [name], or `null` if this
   /// node doesn't have a property with the given name.
+  @Deprecated('Use Expando instead')
   E? getProperty<E>(String name);
 
   /// Set the value of the property with the given [name] to the given [value].
   ///
   /// If the value is `null`, the property is removed.
+  @Deprecated('Use Expando instead')
   void setProperty(String name, Object? value);
 
   /// Returns either this node or the most immediate ancestor of this node for
@@ -1099,8 +1102,8 @@ sealed class AstNodeImpl implements AstNode {
 
   @override
   int get length {
-    final beginToken = this.beginToken;
-    final endToken = this.endToken;
+    var beginToken = this.beginToken;
+    var endToken = this.endToken;
     return endToken.offset + endToken.length - beginToken.offset;
   }
 
@@ -1111,7 +1114,7 @@ sealed class AstNodeImpl implements AstNode {
 
   @override
   int get offset {
-    final beginToken = this.beginToken;
+    var beginToken = this.beginToken;
     return beginToken.offset;
   }
 
@@ -1139,15 +1142,17 @@ sealed class AstNodeImpl implements AstNode {
   Token? findPrevious(Token target) =>
       util.findPrevious(beginToken, target) ?? parent?.findPrevious(target);
 
+  @Deprecated('Use Expando instead')
   @override
   E? getProperty<E>(String name) {
     return _propertyMap?[name] as E?;
   }
 
+  @Deprecated('Use Expando instead')
   @override
   void setProperty(String name, Object? value) {
     if (value == null) {
-      final propertyMap = _propertyMap;
+      var propertyMap = _propertyMap;
       if (propertyMap != null) {
         propertyMap.remove(name);
         if (propertyMap.isEmpty) {
@@ -1195,6 +1200,13 @@ sealed class AstNodeImpl implements AstNode {
     child?._parent = this;
     return child;
   }
+}
+
+/// Mixin for any [AstNodeImpl] that can potentially introduce a new scope.
+base mixin AstNodeWithNameScopeMixin on AstNodeImpl {
+  /// The [Scope] that was used while resolving `this`, or `null` if resolution
+  /// has not been performed yet.
+  Scope? nameScope;
 }
 
 /// An object that can be used to visit an AST structure.
@@ -1776,8 +1788,7 @@ final class AugmentedInvocationImpl extends ExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    // TODO(scheglov): implement
-    throw UnimplementedError();
+    resolver.visitAugmentedInvocation(this, contextType: contextType);
   }
 
   @override
@@ -1992,7 +2003,7 @@ final class BlockFunctionBodyImpl extends FunctionBodyImpl
 
   @override
   Token get beginToken {
-    if (keyword case final keyword?) {
+    if (keyword case var keyword?) {
       return keyword;
     }
     return _block.beginToken;
@@ -2036,7 +2047,9 @@ final class BlockFunctionBodyImpl extends FunctionBodyImpl
   }
 }
 
-final class BlockImpl extends StatementImpl implements Block {
+final class BlockImpl extends StatementImpl
+    with AstNodeWithNameScopeMixin
+    implements Block {
   @override
   final Token leftBracket;
 
@@ -2415,14 +2428,14 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
   }
 
   @override
-  void resolvePattern(
+  PatternResult<DartType> resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
     type.accept(resolverVisitor);
-    final requiredType = type.typeOrThrow;
+    var requiredType = type.typeOrThrow;
 
-    resolverVisitor.analyzeCastPattern(
+    var analysisResult = resolverVisitor.analyzeCastPattern(
       context: context,
       pattern: this,
       innerPattern: pattern,
@@ -2433,7 +2446,10 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
       context: context,
       pattern: this,
       requiredType: requiredType,
+      matchedValueType: analysisResult.matchedValueType,
     );
+
+    return analysisResult;
   }
 
   @override
@@ -2540,7 +2556,7 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
 
   @override
   Token get beginToken {
-    if (onKeyword case final onKeyword?) {
+    if (onKeyword case var onKeyword?) {
       return onKeyword;
     }
     return catchKeyword!;
@@ -2799,6 +2815,7 @@ abstract final class ClassDeclaration implements NamedCompilationUnitMember {
 }
 
 final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
+    with AstNodeWithNameScopeMixin
     implements ClassDeclaration {
   @override
   final Token? augmentKeyword;
@@ -3030,12 +3047,6 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   @override
   final Token? finalKeyword;
 
-  /// The token for the `augment` keyword, or `null` if this isn't defining an
-  /// augmentation class.
-// TODO(brianwilkerson): Move this comment to the getter when it's added to
-  //  the public API.
-  final Token? augmentKeyword;
-
   @override
   final Token? mixinKeyword;
 
@@ -3073,7 +3084,7 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     required this.baseKeyword,
     required this.interfaceKeyword,
     required this.finalKeyword,
-    required this.augmentKeyword,
+    required super.augmentKeyword,
     required this.mixinKeyword,
     required NamedTypeImpl superclass,
     required WithClauseImpl withClause,
@@ -3247,7 +3258,9 @@ abstract final class Comment implements AstNode {
   List<Token> get tokens;
 }
 
-final class CommentImpl extends AstNodeImpl implements Comment {
+final class CommentImpl extends AstNodeImpl
+    with AstNodeWithNameScopeMixin
+    implements Comment {
   @override
   final List<Token> tokens;
 
@@ -3483,7 +3496,9 @@ abstract final class CompilationUnit implements AstNode {
   List<AstNode> get sortedDirectivesAndDeclarations;
 }
 
-final class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
+final class CompilationUnitImpl extends AstNodeImpl
+    with AstNodeWithNameScopeMixin
+    implements CompilationUnit {
   @override
   Token beginToken;
 
@@ -3567,7 +3582,7 @@ final class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
 
   @override
   int get length {
-    final endToken = this.endToken;
+    var endToken = this.endToken;
     return endToken.offset + endToken.length;
   }
 
@@ -4035,12 +4050,14 @@ final class ConstantPatternImpl extends DartPatternImpl
   }
 
   @override
-  void resolvePattern(
+  PatternResult<DartType> resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    resolverVisitor.analyzeConstantPattern(context, this, expression);
+    var analysisResult =
+        resolverVisitor.analyzeConstantPattern(context, this, expression);
     expression = resolverVisitor.popRewrite()!;
+    return analysisResult;
   }
 
   @override
@@ -4354,7 +4371,7 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
 
   @override
   Token get beginToken {
-    if (thisKeyword case final thisKeyword?) {
+    if (thisKeyword case var thisKeyword?) {
       return thisKeyword;
     }
     return _fieldName.beginToken;
@@ -4455,7 +4472,7 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
 
   @override
   Token get endToken {
-    if (name case final name?) {
+    if (name case var name?) {
       return name.endToken;
     }
     return _type.endToken;
@@ -4769,7 +4786,7 @@ sealed class DartPatternImpl extends AstNodeImpl
   /// Note: most code shouldn't call this method directly, but should instead
   /// call [ResolverVisitor.dispatchPattern], which has some special logic for
   /// handling dynamic contexts.
-  void resolvePattern(
+  PatternResult<DartType> resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   );
@@ -4937,7 +4954,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
 
   /// The `final` keyword, or `null` if the `final` keyword isn't used.
   Token? get finalKeyword {
-    final keyword = this.keyword;
+    var keyword = this.keyword;
     if (keyword != null && keyword.keyword == Keyword.FINAL) {
       return keyword;
     }
@@ -4964,11 +4981,11 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
   }
 
   @override
-  void resolvePattern(
+  PatternResult<DartType> resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    final result = resolverVisitor.analyzeDeclaredVariablePattern(context, this,
+    var result = resolverVisitor.analyzeDeclaredVariablePattern(context, this,
         declaredElement!, declaredElement!.name, type?.typeOrThrow);
     declaredElement!.type = result.staticType;
 
@@ -4976,7 +4993,10 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
       context: context,
       pattern: this,
       requiredType: result.staticType,
+      matchedValueType: result.matchedValueType,
     );
+
+    return result;
   }
 
   @override
@@ -5053,7 +5073,7 @@ final class DefaultFormalParameterImpl extends FormalParameterImpl
 
   @override
   Token get endToken {
-    if (defaultValue case final defaultValue?) {
+    if (defaultValue case var defaultValue?) {
       return defaultValue.endToken;
     }
     return _parameter.endToken;
@@ -5491,6 +5511,10 @@ abstract final class EnumConstantDeclaration implements Declaration {
   /// doesn't provide any explicit arguments.
   EnumConstantArguments? get arguments;
 
+  /// The `augment` keyword, or `null` if the keyword was absent.
+  @experimental
+  Token? get augmentKeyword;
+
   /// The constructor that is invoked by this enum constant, or `null` if the
   /// AST structure hasn't been resolved, or if the constructor couldn't be
   /// resolved.
@@ -5505,6 +5529,9 @@ abstract final class EnumConstantDeclaration implements Declaration {
 
 final class EnumConstantDeclarationImpl extends DeclarationImpl
     implements EnumConstantDeclaration {
+  @override
+  final Token? augmentKeyword;
+
   @override
   final Token name;
 
@@ -5524,6 +5551,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   EnumConstantDeclarationImpl({
     required super.comment,
     required super.metadata,
+    required this.augmentKeyword,
     required this.name,
     required this.arguments,
   }) {
@@ -5534,10 +5562,11 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   Token get endToken => arguments?.endToken ?? name;
 
   @override
-  Token get firstTokenAfterCommentAndMetadata => name;
+  Token get firstTokenAfterCommentAndMetadata => augmentKeyword ?? name;
 
   @override
   ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('name', name)
     ..addNode('arguments', arguments);
 
@@ -5598,6 +5627,7 @@ abstract final class EnumDeclaration implements NamedCompilationUnitMember {
 }
 
 final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
+    with AstNodeWithNameScopeMixin
     implements EnumDeclaration {
   @override
   final Token? augmentKeyword;
@@ -5874,6 +5904,7 @@ abstract final class ExpressionFunctionBody implements FunctionBody {
 }
 
 final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
+    with AstNodeWithNameScopeMixin
     implements ExpressionFunctionBody {
   @override
   final Token? keyword;
@@ -5906,7 +5937,7 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
 
   @override
   Token get beginToken {
-    if (keyword case final keyword?) {
+    if (keyword case var keyword?) {
       return keyword;
     }
     return functionDefinition;
@@ -5914,7 +5945,7 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
 
   @override
   Token get endToken {
-    if (semicolon case final semicolon?) {
+    if (semicolon case var semicolon?) {
       return semicolon;
     }
     return _expression.endToken;
@@ -6012,7 +6043,7 @@ sealed class ExpressionImpl extends AstNodeImpl
 
   @override
   ParameterElement? get staticParameterElement {
-    final parent = this.parent;
+    var parent = this.parent;
     if (parent is ArgumentListImpl) {
       return parent._getStaticParameterElementFor(this);
     } else if (parent is IndexExpressionImpl) {
@@ -6096,7 +6127,7 @@ final class ExpressionStatementImpl extends StatementImpl
 
   @override
   Token get endToken {
-    if (semicolon case final semicolon?) {
+    if (semicolon case var semicolon?) {
       return semicolon;
     }
     return _expression.endToken;
@@ -6229,6 +6260,7 @@ abstract final class ExtensionDeclaration implements CompilationUnitMember {
 }
 
 final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
+    with AstNodeWithNameScopeMixin
     implements ExtensionDeclaration {
   @override
   final Token? augmentKeyword;
@@ -6552,6 +6584,7 @@ abstract final class ExtensionTypeDeclaration
 }
 
 final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
+    with AstNodeWithNameScopeMixin
     implements ExtensionTypeDeclaration {
   @override
   final Token? augmentKeyword;
@@ -6877,16 +6910,16 @@ final class FieldFormalParameterImpl extends NormalFormalParameterImpl
 
   @override
   Token get beginToken {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     if (metadata.isNotEmpty) {
       return metadata.beginToken!;
-    } else if (requiredKeyword case final requiredKeyword?) {
+    } else if (requiredKeyword case var requiredKeyword?) {
       return requiredKeyword;
-    } else if (covariantKeyword case final covariantKeyword?) {
+    } else if (covariantKeyword case var covariantKeyword?) {
       return covariantKeyword;
-    } else if (keyword case final keyword?) {
+    } else if (keyword case var keyword?) {
       return keyword;
-    } else if (type case final type?) {
+    } else if (type case var type?) {
       return type.beginToken;
     }
     return thisKeyword;
@@ -7203,7 +7236,9 @@ abstract final class ForElement implements CollectionElement {
   Token get rightParenthesis;
 }
 
-final class ForElementImpl extends CollectionElementImpl implements ForElement {
+final class ForElementImpl extends CollectionElementImpl
+    with AstNodeWithNameScopeMixin
+    implements ForElement {
   @override
   final Token? awaitKeyword;
 
@@ -7800,7 +7835,9 @@ abstract final class ForStatement implements Statement {
   Token get rightParenthesis;
 }
 
-final class ForStatementImpl extends StatementImpl implements ForStatement {
+final class ForStatementImpl extends StatementImpl
+    with AstNodeWithNameScopeMixin
+    implements ForStatement {
   @override
   final Token? awaitKeyword;
 
@@ -7988,6 +8025,7 @@ abstract final class FunctionDeclaration implements NamedCompilationUnitMember {
 }
 
 final class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
+    with AstNodeWithNameScopeMixin
     implements FunctionDeclaration {
   @override
   final Token? augmentKeyword;
@@ -8181,9 +8219,9 @@ final class FunctionExpressionImpl extends ExpressionImpl
 
   @override
   Token get beginToken {
-    if (typeParameters case final typeParameters?) {
+    if (typeParameters case var typeParameters?) {
       return typeParameters.beginToken;
-    } else if (parameters case final parameters?) {
+    } else if (parameters case var parameters?) {
       return parameters.beginToken;
     }
     return _body.beginToken;
@@ -8460,6 +8498,7 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
   FunctionTypeAliasImpl({
     required super.comment,
     required super.metadata,
+    required super.augmentKeyword,
     required super.typedefKeyword,
     required TypeAnnotationImpl? returnType,
     required super.name,
@@ -8497,6 +8536,7 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
 
   @override
   ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('typedefKeyword', typedefKeyword)
     ..addNode('returnType', returnType)
     ..addToken('name', name)
@@ -8581,14 +8621,14 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
 
   @override
   Token get beginToken {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     if (metadata.isNotEmpty) {
       return metadata.beginToken!;
-    } else if (requiredKeyword case final requiredKeyword?) {
+    } else if (requiredKeyword case var requiredKeyword?) {
       return requiredKeyword;
-    } else if (covariantKeyword case final covariantKeyword?) {
+    } else if (covariantKeyword case var covariantKeyword?) {
       return covariantKeyword;
-    } else if (returnType case final returnType?) {
+    } else if (returnType case var returnType?) {
       return returnType.beginToken;
     }
     return name;
@@ -8694,6 +8734,7 @@ abstract final class GenericFunctionType implements TypeAnnotation {
 }
 
 final class GenericFunctionTypeImpl extends TypeAnnotationImpl
+    with AstNodeWithNameScopeMixin
     implements GenericFunctionType {
   TypeAnnotationImpl? _returnType;
 
@@ -8800,6 +8841,7 @@ abstract final class GenericTypeAlias implements TypeAlias {
 }
 
 final class GenericTypeAliasImpl extends TypeAliasImpl
+    with AstNodeWithNameScopeMixin
     implements GenericTypeAlias {
   TypeAnnotationImpl _type;
 
@@ -8820,6 +8862,7 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   GenericTypeAliasImpl({
     required super.comment,
     required super.metadata,
+    required super.augmentKeyword,
     required super.typedefKeyword,
     required super.name,
     required TypeParameterListImpl? typeParameters,
@@ -8859,6 +8902,7 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNodeList('metadata', metadata)
+    ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('typedefKeyword', typedefKeyword)
     ..addToken('name', name)
     ..addNode('typeParameters', typeParameters)
@@ -9264,7 +9308,7 @@ final class IfStatementImpl extends StatementImpl
 
   @override
   Token get endToken {
-    if (elseStatement case final elseStatement?) {
+    if (elseStatement case var elseStatement?) {
       return elseStatement.endToken;
     }
     return _thenStatement.endToken;
@@ -9590,14 +9634,14 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
       return true;
     }
 
-    final combinators1 = node1.combinators;
-    final combinators2 = node2.combinators;
+    var combinators1 = node1.combinators;
+    var combinators2 = node2.combinators;
     if (combinators1.length != combinators2.length) {
       return false;
     }
     for (var i = 0; i < combinators1.length; i++) {
-      final combinator1 = combinators1[i];
-      final combinator2 = combinators2[i];
+      var combinator1 = combinators1[i];
+      var combinator2 = combinators2[i];
       if (combinator1 is HideCombinator && combinator2 is HideCombinator) {
         if (!areSameNames(combinator1.hiddenNames, combinator2.hiddenNames)) {
           return false;
@@ -9787,7 +9831,7 @@ final class IndexExpressionImpl extends ExpressionImpl
 
   @override
   Token get beginToken {
-    if (target case final target?) {
+    if (target case var target?) {
       return target.beginToken;
     }
     return period!;
@@ -9868,7 +9912,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   ParameterElement? get _staticParameterElementForIndex {
     Element? element = staticElement;
 
-    final parent = this.parent;
+    var parent = this.parent;
     if (parent is CompoundAssignmentExpression) {
       element = parent.writeElement ?? parent.readElement;
     }
@@ -9889,7 +9933,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   @override
   bool inGetterContext() {
     // TODO(brianwilkerson): Convert this to a getter.
-    final parent = this.parent!;
+    var parent = this.parent!;
     if (parent is AssignmentExpression) {
       AssignmentExpression assignment = parent;
       if (identical(assignment.leftHandSide, this) &&
@@ -9903,7 +9947,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   @override
   bool inSetterContext() {
     // TODO(brianwilkerson): Convert this to a getter.
-    final parent = this.parent!;
+    var parent = this.parent!;
     if (parent is PrefixExpression) {
       return parent.operator.type.isIncrementOperator;
     } else if (parent is PostfixExpression) {
@@ -10104,7 +10148,7 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
   /// the literal is the child of a negation operation. The literal value itself
   /// is always positive.
   bool get immediatelyNegated {
-    final parent = this.parent!;
+    var parent = this.parent!;
     return parent is PrefixExpression &&
         parent.operator.type == TokenType.MINUS;
   }
@@ -10631,10 +10675,10 @@ abstract final class LibraryAugmentationDirective implements UriBasedDirective {
 final class LibraryAugmentationDirectiveImpl extends UriBasedDirectiveImpl
     implements LibraryAugmentationDirective {
   @override
-  final Token libraryKeyword;
+  final Token augmentKeyword;
 
   @override
-  final Token augmentKeyword;
+  final Token libraryKeyword;
 
   @override
   final Token semicolon;
@@ -10642,8 +10686,8 @@ final class LibraryAugmentationDirectiveImpl extends UriBasedDirectiveImpl
   LibraryAugmentationDirectiveImpl({
     required super.comment,
     required super.metadata,
-    required this.libraryKeyword,
     required this.augmentKeyword,
+    required this.libraryKeyword,
     required super.uri,
     required this.semicolon,
   });
@@ -10652,12 +10696,12 @@ final class LibraryAugmentationDirectiveImpl extends UriBasedDirectiveImpl
   Token get endToken => semicolon;
 
   @override
-  Token get firstTokenAfterCommentAndMetadata => libraryKeyword;
+  Token get firstTokenAfterCommentAndMetadata => augmentKeyword;
 
   @override
   ChildEntities get _childEntities => super._childEntities
-    ..addToken('libraryKeyword', libraryKeyword)
     ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('libraryKeyword', libraryKeyword)
     ..addNode('uri', uri)
     ..addToken('semicolon', semicolon);
 
@@ -10672,6 +10716,9 @@ final class LibraryAugmentationDirectiveImpl extends UriBasedDirectiveImpl
 ///    libraryDirective ::=
 ///        [Annotation] 'library' [LibraryIdentifier]? ';'
 abstract final class LibraryDirective implements Directive {
+  @override
+  LibraryElement? get element;
+
   /// The token representing the `library` keyword.
   Token get libraryKeyword;
 
@@ -10704,6 +10751,11 @@ final class LibraryDirectiveImpl extends DirectiveImpl
     required this.semicolon,
   }) : _name = name {
     _becomeParentOf(_name);
+  }
+
+  @override
+  LibraryElementImpl? get element {
+    return super.element as LibraryElementImpl?;
   }
 
   @override
@@ -10852,10 +10904,10 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
 
   @override
   Token get beginToken {
-    if (constKeyword case final constKeyword?) {
+    if (constKeyword case var constKeyword?) {
       return constKeyword;
     }
-    final typeArguments = this.typeArguments;
+    var typeArguments = this.typeArguments;
     if (typeArguments != null) {
       return typeArguments.beginToken;
     }
@@ -10976,11 +11028,12 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
   }
 
   @override
-  void resolvePattern(
+  PatternResult<DartType> resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    resolverVisitor.listPatternResolver.resolve(node: this, context: context);
+    return resolverVisitor.listPatternResolver
+        .resolve(node: this, context: context);
   }
 
   @override
@@ -11075,11 +11128,11 @@ final class LogicalAndPatternImpl extends DartPatternImpl
   }
 
   @override
-  void resolvePattern(
+  PatternResult<DartType> resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    resolverVisitor.analyzeLogicalAndPattern(
+    return resolverVisitor.analyzeLogicalAndPattern(
         context, this, leftOperand, rightOperand);
   }
 
@@ -11150,13 +11203,14 @@ final class LogicalOrPatternImpl extends DartPatternImpl
   }
 
   @override
-  void resolvePattern(
+  PatternResult<DartType> resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    resolverVisitor.analyzeLogicalOrPattern(
+    var analysisResult = resolverVisitor.analyzeLogicalOrPattern(
         context, this, leftOperand, rightOperand);
     resolverVisitor.nullSafetyDeadCodeVerifier.flowEnd(rightOperand);
+    return analysisResult;
   }
 
   @override
@@ -11385,7 +11439,7 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
   @override
   DartType computePatternSchema(ResolverVisitor resolverVisitor) {
     ({DartType keyType, DartType valueType})? typeArguments;
-    final typeArgumentNodes = this.typeArguments?.arguments;
+    var typeArgumentNodes = this.typeArguments?.arguments;
     if (typeArgumentNodes != null && typeArgumentNodes.length == 2) {
       typeArguments = (
         keyType: typeArgumentNodes[0].typeOrThrow,
@@ -11399,11 +11453,11 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
   }
 
   @override
-  void resolvePattern(
+  PatternResult<DartType> resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    resolverVisitor.resolveMapPattern(node: this, context: context);
+    return resolverVisitor.resolveMapPattern(node: this, context: context);
   }
 
   @override
@@ -11487,6 +11541,7 @@ abstract final class MethodDeclaration implements ClassMember {
 }
 
 final class MethodDeclarationImpl extends ClassMemberImpl
+    with AstNodeWithNameScopeMixin
     implements MethodDeclaration {
   @override
   final Token? augmentKeyword;
@@ -11555,7 +11610,7 @@ final class MethodDeclarationImpl extends ClassMemberImpl
 
   @override
   bool get isAbstract {
-    final body = this.body;
+    var body = this.body;
     return externalKeyword == null &&
         (body is EmptyFunctionBodyImpl && !body.semicolon.isSynthetic);
   }
@@ -11677,9 +11732,9 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
 
   @override
   Token get beginToken {
-    if (target case final target?) {
+    if (target case var target?) {
       return target.beginToken;
-    } else if (operator case final operator?) {
+    } else if (operator case var operator?) {
       return operator;
     }
     return _methodName.beginToken;
@@ -11842,6 +11897,7 @@ abstract final class MixinDeclaration implements NamedCompilationUnitMember {
 }
 
 final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
+    with AstNodeWithNameScopeMixin
     implements MixinDeclaration {
   @override
   final Token? augmentKeyword;
@@ -12170,9 +12226,9 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
 
   @override
   bool get isDeferred {
-    final importPrefixElement = importPrefix?.element;
+    var importPrefixElement = importPrefix?.element;
     if (importPrefixElement is PrefixElement) {
-      final imports = importPrefixElement.imports;
+      var imports = importPrefixElement.imports;
       if (imports.length != 1) {
         return false;
       }
@@ -12588,7 +12644,7 @@ sealed class NormalFormalParameterImpl extends FormalParameterImpl
 
   @override
   ParameterKind get kind {
-    final parent = this.parent;
+    var parent = this.parent;
     if (parent is DefaultFormalParameterImpl) {
       return parent.kind;
     }
@@ -12700,11 +12756,12 @@ final class NullAssertPatternImpl extends DartPatternImpl
   }
 
   @override
-  void resolvePattern(
+  PatternResult<DartType> resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    resolverVisitor.analyzeNullCheckOrAssertPattern(context, this, pattern,
+    return resolverVisitor.analyzeNullCheckOrAssertPattern(
+        context, this, pattern,
         isAssert: true);
   }
 
@@ -12770,11 +12827,12 @@ final class NullCheckPatternImpl extends DartPatternImpl
   }
 
   @override
-  void resolvePattern(
+  PatternResult<DartType> resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    resolverVisitor.analyzeNullCheckOrAssertPattern(context, this, pattern,
+    return resolverVisitor.analyzeNullCheckOrAssertPattern(
+        context, this, pattern,
         isAssert: false);
   }
 
@@ -12941,11 +12999,11 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
   }
 
   @override
-  void resolvePattern(
+  PatternResult<DartType> resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    final result = resolverVisitor.analyzeObjectPattern(
+    var result = resolverVisitor.analyzeObjectPattern(
       context,
       this,
       fields: resolverVisitor.buildSharedPatternFields(
@@ -12958,7 +13016,10 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
       context: context,
       pattern: this,
       requiredType: result.requiredType,
+      matchedValueType: result.matchedValueType,
     );
+
+    return result;
   }
 
   @override
@@ -13121,11 +13182,11 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
   }
 
   @override
-  void resolvePattern(
+  PatternResult<DartType> resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    resolverVisitor.dispatchPattern(context, pattern);
+    return resolverVisitor.dispatchPattern(context, pattern);
   }
 
   @override
@@ -13352,7 +13413,7 @@ final class PatternAssignmentImpl extends ExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPatternAssignment(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitPatternAssignment(this);
   }
 
@@ -13407,9 +13468,9 @@ final class PatternFieldImpl extends AstNodeImpl implements PatternField {
 
   @override
   String? get effectiveName {
-    final nameNode = name;
+    var nameNode = name;
     if (nameNode != null) {
-      final nameToken = nameNode.name ?? pattern.variablePattern?.name;
+      var nameToken = nameNode.name ?? pattern.variablePattern?.name;
       return nameToken?.lexeme;
     }
     return null;
@@ -13772,7 +13833,7 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
   bool get isDeferred {
     Element? element = _prefix.staticElement;
     if (element is PrefixElement) {
-      final imports = element.imports;
+      var imports = element.imports;
       if (imports.length != 1) {
         return false;
       }
@@ -13981,7 +14042,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
 
   @override
   Token get beginToken {
-    if (target case final target?) {
+    if (target case var target?) {
       return target.beginToken;
     }
     return operator;
@@ -14221,11 +14282,11 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   }
 
   @override
-  void resolvePattern(
+  PatternResult<DartType> resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    final result = resolverVisitor.analyzeRecordPattern(
+    var result = resolverVisitor.analyzeRecordPattern(
       context,
       this,
       fields: resolverVisitor.buildSharedPatternFields(
@@ -14239,8 +14300,11 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
         context: context,
         pattern: this,
         requiredType: result.requiredType,
+        matchedValueType: result.matchedValueType,
       );
     }
+
+    return result;
   }
 
   @override
@@ -14646,12 +14710,14 @@ final class RelationalPatternImpl extends DartPatternImpl
   }
 
   @override
-  void resolvePattern(
+  PatternResult<DartType> resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    resolverVisitor.analyzeRelationalPattern(context, this, operand);
+    var analysisResult =
+        resolverVisitor.analyzeRelationalPattern(context, this, operand);
     resolverVisitor.popRewrite();
+    return analysisResult;
   }
 
   @override
@@ -15111,10 +15177,10 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
 
   @override
   Token get beginToken {
-    if (constKeyword case final constKeyword?) {
+    if (constKeyword case var constKeyword?) {
       return constKeyword;
     }
-    final typeArguments = this.typeArguments;
+    var typeArguments = this.typeArguments;
     if (typeArguments != null) {
       return typeArguments.beginToken;
     }
@@ -15259,16 +15325,16 @@ final class SimpleFormalParameterImpl extends NormalFormalParameterImpl
 
   @override
   Token get beginToken {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     if (metadata.isNotEmpty) {
       return metadata.beginToken!;
-    } else if (requiredKeyword case final requiredKeyword?) {
+    } else if (requiredKeyword case var requiredKeyword?) {
       return requiredKeyword;
-    } else if (covariantKeyword case final covariantKeyword?) {
+    } else if (covariantKeyword case var covariantKeyword?) {
       return covariantKeyword;
-    } else if (keyword case final keyword?) {
+    } else if (keyword case var keyword?) {
       return keyword;
-    } else if (type case final type?) {
+    } else if (type case var type?) {
       return type.beginToken;
     }
     return name!;
@@ -15398,7 +15464,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
 
   @override
   bool get isQualified {
-    final parent = this.parent!;
+    var parent = this.parent!;
     if (parent is PrefixedIdentifier) {
       return identical(parent.identifier, this);
     } else if (parent is PropertyAccess) {
@@ -15464,12 +15530,12 @@ final class SimpleIdentifierImpl extends IdentifierImpl
 
   @override
   bool inDeclarationContext() {
-    final parent = this.parent;
+    var parent = this.parent;
     switch (parent) {
       case ImportDirective():
         return parent.prefix == this;
       case Label():
-        final parent2 = parent.parent;
+        var parent2 = parent.parent;
         return parent2 is Statement || parent2 is SwitchMember;
     }
     return false;
@@ -16261,16 +16327,16 @@ final class SuperFormalParameterImpl extends NormalFormalParameterImpl
 
   @override
   Token get beginToken {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     if (metadata.isNotEmpty) {
       return metadata.beginToken!;
-    } else if (requiredKeyword case final requiredKeyword?) {
+    } else if (requiredKeyword case var requiredKeyword?) {
       return requiredKeyword;
-    } else if (covariantKeyword case final covariantKeyword?) {
+    } else if (covariantKeyword case var covariantKeyword?) {
       return covariantKeyword;
-    } else if (keyword case final keyword?) {
+    } else if (keyword case var keyword?) {
       return keyword;
-    } else if (type case final type?) {
+    } else if (type case var type?) {
       return type.beginToken;
     }
     return superKeyword;
@@ -16468,6 +16534,7 @@ abstract final class SwitchExpressionCase implements AstNode {
 }
 
 final class SwitchExpressionCaseImpl extends AstNodeImpl
+    with AstNodeWithNameScopeMixin
     implements SwitchExpressionCase {
   @override
   final GuardedPatternImpl guardedPattern;
@@ -16627,7 +16694,9 @@ sealed class SwitchMember implements AstNode {
   NodeList<Statement> get statements;
 }
 
-sealed class SwitchMemberImpl extends AstNodeImpl implements SwitchMember {
+sealed class SwitchMemberImpl extends AstNodeImpl
+    with AstNodeWithNameScopeMixin
+    implements SwitchMember {
   final NodeListImpl<LabelImpl> _labels = NodeListImpl._();
 
   @override
@@ -17196,11 +17265,11 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
 
   @override
   Token get endToken {
-    if (finallyBlock case final finallyBlock?) {
+    if (finallyBlock case var finallyBlock?) {
       return finallyBlock.endToken;
-    } else if (finallyKeyword case final finallyKeyword?) {
+    } else if (finallyKeyword case var finallyKeyword?) {
       return finallyKeyword;
-    } else if (_catchClauses case [..., final last]) {
+    } else if (_catchClauses case [..., var last]) {
       return last.endToken;
     }
     return _body.endToken;
@@ -17239,6 +17308,10 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
 ///      | [FunctionTypeAlias]
 ///      | [GenericTypeAlias]
 abstract final class TypeAlias implements NamedCompilationUnitMember {
+  /// The `augment` keyword, or `null` if the keyword was absent.
+  @experimental
+  Token? get augmentKeyword;
+
   /// The semicolon terminating the declaration.
   Token get semicolon;
 
@@ -17248,6 +17321,9 @@ abstract final class TypeAlias implements NamedCompilationUnitMember {
 
 sealed class TypeAliasImpl extends NamedCompilationUnitMemberImpl
     implements TypeAlias {
+  @override
+  final Token? augmentKeyword;
+
   @override
   final Token typedefKeyword;
 
@@ -17261,6 +17337,7 @@ sealed class TypeAliasImpl extends NamedCompilationUnitMemberImpl
   TypeAliasImpl({
     required super.comment,
     required super.metadata,
+    required this.augmentKeyword,
     required this.typedefKeyword,
     required super.name,
     required this.semicolon,
@@ -17270,7 +17347,9 @@ sealed class TypeAliasImpl extends NamedCompilationUnitMemberImpl
   Token get endToken => semicolon;
 
   @override
-  Token get firstTokenAfterCommentAndMetadata => typedefKeyword;
+  Token get firstTokenAfterCommentAndMetadata {
+    return augmentKeyword ?? typedefKeyword;
+  }
 }
 
 /// A type annotation.
@@ -17795,7 +17874,7 @@ final class VariableDeclarationImpl extends DeclarationImpl
 
   @override
   Token get endToken {
-    if (initializer case final initializer?) {
+    if (initializer case var initializer?) {
       return initializer.endToken;
     }
     return name;
@@ -17813,19 +17892,19 @@ final class VariableDeclarationImpl extends DeclarationImpl
 
   @override
   bool get isConst {
-    final parent = this.parent;
+    var parent = this.parent;
     return parent is VariableDeclarationList && parent.isConst;
   }
 
   @override
   bool get isFinal {
-    final parent = this.parent;
+    var parent = this.parent;
     return parent is VariableDeclarationList && parent.isFinal;
   }
 
   @override
   bool get isLate {
-    final parent = this.parent;
+    var parent = this.parent;
     return parent is VariableDeclarationList && parent.isLate;
   }
 
@@ -18232,7 +18311,7 @@ final class WildcardPatternImpl extends DartPatternImpl
 
   /// If [keyword] is `final`, returns it.
   Token? get finalKeyword {
-    final keyword = this.keyword;
+    var keyword = this.keyword;
     if (keyword != null && keyword.keyword == Keyword.FINAL) {
       return keyword;
     }
@@ -18258,12 +18337,12 @@ final class WildcardPatternImpl extends DartPatternImpl
   }
 
   @override
-  void resolvePattern(
+  PatternResult<DartType> resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    final declaredType = type?.typeOrThrow;
-    resolverVisitor.analyzeWildcardPattern(
+    var declaredType = type?.typeOrThrow;
+    var analysisResult = resolverVisitor.analyzeWildcardPattern(
       context: context,
       node: this,
       declaredType: declaredType,
@@ -18274,8 +18353,11 @@ final class WildcardPatternImpl extends DartPatternImpl
         context: context,
         pattern: this,
         requiredType: declaredType,
+        matchedValueType: analysisResult.matchedValueType,
       );
     }
+
+    return analysisResult;
   }
 
   @override

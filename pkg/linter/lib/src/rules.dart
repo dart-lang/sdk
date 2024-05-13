@@ -74,6 +74,7 @@ import 'rules/diagnostic_describe_all_properties.dart';
 import 'rules/directives_ordering.dart';
 import 'rules/discarded_futures.dart';
 import 'rules/do_not_use_environment.dart';
+import 'rules/document_ignores.dart';
 import 'rules/empty_catches.dart';
 import 'rules/empty_constructor_bodies.dart';
 import 'rules/empty_statements.dart';
@@ -88,6 +89,7 @@ import 'rules/implementation_imports.dart';
 import 'rules/implicit_call_tearoffs.dart';
 import 'rules/implicit_reopen.dart';
 import 'rules/invalid_case_patterns.dart';
+import 'rules/invalid_runtime_check_with_js_interop_types.dart';
 import 'rules/invariant_booleans.dart';
 import 'rules/iterable_contains_unrelated_type.dart';
 import 'rules/join_return_with_assignment.dart';
@@ -311,6 +313,7 @@ void registerLintRules() {
     ..register(DiagnosticDescribeAllProperties())
     ..register(DirectivesOrdering())
     ..register(DiscardedFutures())
+    ..register(DocumentIgnores())
     ..register(DoNotUseEnvironment())
     ..register(EmptyCatches())
     ..register(EmptyConstructorBodies())
@@ -329,6 +332,7 @@ void registerLintRules() {
     ..register(InvariantBooleans())
     ..register(IterableContainsUnrelatedType())
     ..register(JoinReturnWithAssignment())
+    ..register(InvalidRuntimeCheckWithJSInteropTypes())
     ..register(LeadingNewlinesInMultilineStrings())
     ..register(LibraryAnnotations())
     ..register(LibraryNames())

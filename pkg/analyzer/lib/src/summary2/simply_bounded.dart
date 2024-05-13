@@ -328,7 +328,7 @@ class SimplyBoundedNode extends graph.Node<SimplyBoundedNode> {
     }
 
     if (type is RecordTypeAnnotation) {
-      for (final field in type.fields) {
+      for (var field in type.fields) {
         if (!_visitType(dependencies, field.type, allowTypeParameters)) {
           return false;
         }

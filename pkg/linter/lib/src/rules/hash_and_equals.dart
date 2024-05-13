@@ -4,9 +4,12 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
+import '../extensions.dart';
 
 const _desc = r'Always override `hashCode` if overriding `==`.';
 
@@ -79,30 +82,43 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    _check(node.members);
-  }
-
-  void _check(NodeList<ClassMember> members) {
     MethodDeclaration? eq;
     ClassMember? hash;
-    for (var member in members) {
+    for (var member in node.members) {
       if (isEquals(member)) {
         eq = member as MethodDeclaration;
       } else if (isHashCode(member)) {
         hash = member;
       }
     }
+    if (eq == null && hash == null) return;
 
-    if (eq != null && hash == null) {
-      rule.reportLintForToken(eq.name, arguments: ['hashCode', '==']);
+    if (eq == null) {
+      if (!node.hasMethod('==')) {
+        if (hash is MethodDeclaration) {
+          rule.reportLintForToken(hash.name, arguments: ['==', 'hashCode']);
+        } else if (hash is FieldDeclaration) {
+          rule.reportLintForToken(getFieldName(hash, 'hashCode'),
+              arguments: ['==', 'hashCode']);
+        }
+      }
     }
-    if (hash != null && eq == null) {
-      if (hash is MethodDeclaration) {
-        rule.reportLintForToken(hash.name, arguments: ['==', 'hashCode']);
-      } else if (hash is FieldDeclaration) {
-        rule.reportLintForToken(getFieldName(hash, 'hashCode'),
-            arguments: ['==', 'hashCode']);
+
+    if (hash == null) {
+      if (!node.hasField('hashCode') && !node.hasMethod('hashCode')) {
+        rule.reportLintForToken(eq!.name, arguments: ['hashCode', '==']);
       }
     }
   }
+}
+
+extension on ClassDeclaration {
+  bool hasField(String name) =>
+      declaredElement?.allFields.namedOrNull(name) != null;
+  bool hasMethod(String name) =>
+      declaredElement?.allMethods.namedOrNull(name) != null;
+}
+
+extension<E extends ClassMemberElement> on List<E> {
+  E? namedOrNull(String name) => firstWhereOrNull((e) => e.name == name);
 }

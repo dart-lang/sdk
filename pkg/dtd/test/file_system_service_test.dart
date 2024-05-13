@@ -231,8 +231,11 @@ void main() {
           ]);
           final roots = await client.getIDEWorkspaceRoots();
           expect(
-            roots.ideWorkspaceRoots,
-            containsAll([fooDirectory.uri, barDirectory.uri]),
+            roots.ideWorkspaceRoots.map((e) => p.normalize(e.path)),
+            containsAll(
+              [fooDirectory.uri, barDirectory.uri]
+                  .map((e) => p.normalize(e.path)),
+            ),
           );
         });
       });
@@ -423,6 +426,186 @@ void main() {
         });
       });
     });
+
+    group('relative paths', () {
+      test('normalizes paths when setting pub root', () async {
+        final relativePath = p.join(fooDirectory.path, '..', 'bar', 'a.txt');
+        final simplifiedPath = p.join(barDirectory.path, 'a.txt');
+
+        await client.call(
+          'FileSystem',
+          'setIDEWorkspaceRoots',
+          params: {
+            'secret': dtdSecret,
+            'roots': [
+              'file://$relativePath',
+            ],
+          },
+        );
+        final roots = await client.getIDEWorkspaceRoots();
+        expect(
+          roots.ideWorkspaceRoots.map((e) => e.path),
+          [simplifiedPath],
+        );
+      });
+
+      test('prevents access outide of workspace roots for relative paths',
+          () async {
+        await client.setIDEWorkspaceRoots(dtdSecret, [fooDirectory.uri]);
+        expect(
+          () => client.call(
+            'FileSystem',
+            'readFileAsString',
+            params: {'uri': p.join('${fooDirectory.uri}', '..', 'a.txt')},
+          ),
+          throwsAnRpcError(RpcErrorCodes.kPermissionDenied),
+        );
+        expect(
+          () => client.call(
+            'FileSystem',
+            'writeFileAsString',
+            params: {
+              'uri': p.join('${fooDirectory.uri}', '..', 'a.txt'),
+              'contents': 'abc',
+              'encoding': 'utf-8',
+            },
+          ),
+          throwsAnRpcError(RpcErrorCodes.kPermissionDenied),
+        );
+        expect(
+          () => client.call(
+            'FileSystem',
+            'listDirectoryContents',
+            params: {
+              'uri': p.join('${fooDirectory.uri}', '..'),
+            },
+          ),
+          throwsAnRpcError(RpcErrorCodes.kPermissionDenied),
+        );
+      });
+
+      test('allows access to relative paths with ide workspace roots',
+          () async {
+        await client.setIDEWorkspaceRoots(dtdSecret, [fooDirectory.uri]);
+
+        final writeResult = await client.call(
+          'FileSystem',
+          'writeFileAsString',
+          params: {
+            'uri': p.join(
+              fooDirectory.uri.toString(),
+              'C',
+              'D',
+              '..',
+              '..',
+              'C',
+              'd.txt',
+            ),
+            'contents': 'abc',
+            'encoding': 'utf-8',
+          },
+        );
+
+        expect(writeResult.result, {'type': 'Success'});
+        final readResult = await client.call(
+          'FileSystem',
+          'readFileAsString',
+          params: {
+            'uri': p.join(
+              fooDirectory.uri.toString(),
+              'C',
+              'D',
+              '..',
+              '..',
+              'C',
+              'd.txt',
+            ),
+          },
+        );
+        expect(readResult.result, {'type': 'FileContent', 'content': 'abc'});
+
+        final listResult = await client.call(
+          'FileSystem',
+          'listDirectoryContents',
+          params: {
+            'uri': p.join(
+              fooDirectory.uri.toString(),
+              'C',
+              'D',
+              '..',
+              '..',
+              'C',
+            ),
+          },
+        );
+
+        expect(listResult.result, {
+          'type': 'UriList',
+          'uris': containsAll([
+            'file://${fooDirectory.uri.toFilePath()}C/pubspec.yaml',
+            'file://${fooDirectory.uri.toFilePath()}C/d.txt',
+          ]),
+        });
+      });
+
+      final invalidDirectories = [
+        {
+          'dir': './',
+          'error':
+              throwsAnRpcError(RpcErrorCodes.kExpectsUriParamWithFileScheme),
+        },
+        {
+          'dir': '/',
+          'error':
+              throwsAnRpcError(RpcErrorCodes.kExpectsUriParamWithFileScheme),
+        },
+        {
+          'dir': '../',
+          'error':
+              throwsAnRpcError(RpcErrorCodes.kExpectsUriParamWithFileScheme),
+        },
+        {
+          'dir': 'file:///~/',
+          'error': throwsAnRpcError(RpcErrorCodes.kPermissionDenied),
+        },
+      ];
+      for (final invalidDirectory in invalidDirectories) {
+        test('prevents use of invalid uri: ${invalidDirectory['dir']}', () {
+          final dir = invalidDirectory['dir'] as String;
+          final error = invalidDirectory['error'] as Matcher;
+          expect(
+            () => client.call(
+              'FileSystem',
+              'readFileAsString',
+              params: {'uri': '${dir}a.txt'},
+            ),
+            error,
+          );
+          expect(
+            () => client.call(
+              'FileSystem',
+              'writeFileAsString',
+              params: {
+                'uri': '${dir}a.txt',
+                'contents': 'abc',
+                'encoding': 'utf-8',
+              },
+            ),
+            error,
+          );
+          expect(
+            () => client.call(
+              'FileSystem',
+              'listDirectoryContents',
+              params: {
+                'uri': dir,
+              },
+            ),
+            error,
+          );
+        });
+      }
+    });
   });
 
   group('unrestricted', () {
@@ -463,9 +646,13 @@ void main() {
 
         final readResult = await client.readFileAsString(aFile.uri);
         expect(readResult.content, fileContents);
-        expect((await client.getIDEWorkspaceRoots()).ideWorkspaceRoots, [
-          barDirectory.uri,
-        ]);
+        expect(
+            (await client.getIDEWorkspaceRoots())
+                .ideWorkspaceRoots
+                .map((e) => p.normalize(e.path)),
+            [
+              p.normalize(barDirectory.uri.path),
+            ]);
       },
     );
   });

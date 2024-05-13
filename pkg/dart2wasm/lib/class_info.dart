@@ -149,8 +149,9 @@ class ClassInfo {
 
   /// The class whose struct is used as the type for variables of this type.
   /// This is a type which is a superclass of all subtypes of this type.
-  late final ClassInfo repr = upperBound(
-      implementedBy.map((c) => identical(c, this) ? this : c.repr).toSet());
+  ClassInfo get repr => _repr!;
+
+  ClassInfo? _repr;
 
   /// All classes which implement this class. This is used to compute `repr`.
   final List<ClassInfo> implementedBy = [];
@@ -185,25 +186,22 @@ class ClassInfo {
       ];
 }
 
-ClassInfo upperBound(Set<ClassInfo> classes) {
-  while (classes.length > 1) {
-    Set<ClassInfo> newClasses = {};
-    int minDepth = 999999999;
-    int maxDepth = 0;
-    for (ClassInfo info in classes) {
-      minDepth = min(minDepth, info.depth);
-      maxDepth = max(maxDepth, info.depth);
+ClassInfo upperBound(ClassInfo a, ClassInfo b) {
+  if (a.depth < b.depth) {
+    while (b.depth > a.depth) {
+      b = b.superInfo!;
     }
-    int targetDepth = minDepth == maxDepth ? minDepth - 1 : minDepth;
-    for (ClassInfo info in classes) {
-      while (info.depth > targetDepth) {
-        info = info.superInfo!;
-      }
-      newClasses.add(info);
+  } else {
+    while (a.depth > b.depth) {
+      a = a.superInfo!;
     }
-    classes = newClasses;
   }
-  return classes.single;
+  assert(a.depth == b.depth);
+  while (a != b) {
+    a = a.superInfo!;
+    b = b.superInfo!;
+  }
+  return a;
 }
 
 /// Constructs the Wasm type hierarchy.
@@ -402,7 +400,7 @@ class ClassInfoCollector {
       // Add fields for Dart instance fields
       for (Field field in info.cls!.fields) {
         if (field.isInstanceMember) {
-          w.ValueType wasmType = translator.translateType(field.type);
+          final w.ValueType wasmType = translator.translateTypeOfField(field);
           translator.fieldIndex[field] = info.struct.fields.length;
           info._addField(w.FieldType(wasmType, mutable: !field.isFinal));
         }
@@ -439,7 +437,7 @@ class ClassInfoCollector {
     // `0` is occupied by artificial non-Dart top class.
     const int firstClassId = 1;
 
-    translator.classIdNumbering =
+    final classIdNumbering = translator.classIdNumbering =
         ClassIdNumbering._number(translator, masqueraded, firstClassId);
     final classIds = translator.classIdNumbering.classIds;
     final dfsOrder = translator.classIdNumbering.dfsOrder;
@@ -474,6 +472,25 @@ class ClassInfoCollector {
       } else {
         _createStructForClass(classIds, cls);
       }
+    }
+
+    // Create representations of the classes (i.e. wasm representation used to
+    // represent objects of that dart type).
+    for (final cls in dfsOrder) {
+      ClassInfo? representation;
+      for (final range in classIdNumbering.getConcreteClassIdRanges(cls)) {
+        for (int classId = range.start; classId <= range.end; ++classId) {
+          final current = translator.classes[classId];
+          if (representation == null) {
+            representation = current;
+            continue;
+          }
+          representation = upperBound(representation, current);
+        }
+      }
+      final classId = classIdNumbering.classIds[cls]!;
+      final info = translator.classes[classId];
+      info._repr = representation ?? translator.classes[classId];
     }
 
     // Now that the representation types for all classes have been computed,

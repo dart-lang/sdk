@@ -21,14 +21,14 @@ class AddEnumConstant extends ResolvedCorrectionProducer {
   bool get canBeAppliedToFile => false;
 
   @override
-  List<Object> get fixArguments => [_constantName];
+  List<String> get fixArguments => [_constantName];
 
   @override
   FixKind get fixKind => DartFixKind.ADD_ENUM_CONSTANT;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
+    final node = this.node;
     if (node is! SimpleIdentifier) return;
     var parent = node.parent;
     if (parent is! PrefixedIdentifier) return;

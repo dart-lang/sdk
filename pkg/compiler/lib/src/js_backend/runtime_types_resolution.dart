@@ -557,6 +557,17 @@ class TypeVariableTests {
     return sb.toString();
   }
 
+  void _addImpliedChecks(DartType type) {
+    if (type is FutureOrType) {
+      _addImplicitCheck(_commonElements.futureType(type.typeArgument));
+      _addImplicitCheck(type.typeArgument);
+    } else if (type is TypeVariableType) {
+      _addImplicitChecksViaInstantiation(type);
+    } else if (type is RecordType) {
+      _addImplicitChecks(type.fields);
+    }
+  }
+
   /// Register the implicit is-test of [type].
   ///
   /// If [type] is of the form `FutureOr<X>`, also register the implicit
@@ -564,20 +575,21 @@ class TypeVariableTests {
   void _addImplicitCheck(DartType type) {
     var typeWithoutNullability = type.withoutNullability;
     if (implicitIsChecks.add(typeWithoutNullability)) {
-      if (typeWithoutNullability is FutureOrType) {
-        _addImplicitCheck(
-            _commonElements.futureType(typeWithoutNullability.typeArgument));
-        _addImplicitCheck(typeWithoutNullability.typeArgument);
-      } else if (typeWithoutNullability is TypeVariableType) {
-        _addImplicitChecksViaInstantiation(typeWithoutNullability);
-      } else if (typeWithoutNullability is RecordType) {
-        _addImplicitChecks(typeWithoutNullability.fields);
-      }
+      _addImpliedChecks(typeWithoutNullability);
     }
   }
 
   void _addImplicitChecks(Iterable<DartType> types) {
-    types.forEach(_addImplicitCheck);
+    List<DartType> newChecks = [];
+    // Add any new types to [implicitIsChecks] before recursing to avoid each
+    // one growing the call stack.
+    types.forEach((type) {
+      var typeWithoutNullability = type.withoutNullability;
+      if (implicitIsChecks.add(typeWithoutNullability)) {
+        newChecks.add(typeWithoutNullability);
+      }
+    });
+    newChecks.forEach(_addImpliedChecks);
   }
 
   void _addImplicitChecksViaInstantiation(TypeVariableType variable) {
@@ -609,16 +621,7 @@ class TypeVariableTests {
 
   void _collectResults() {
     _world.isChecks.forEach((DartType type) {
-      var typeWithoutNullability = type.withoutNullability;
-      if (typeWithoutNullability is FutureOrType) {
-        _addImplicitCheck(
-            _commonElements.futureType(typeWithoutNullability.typeArgument));
-        _addImplicitCheck(typeWithoutNullability.typeArgument);
-      } else if (typeWithoutNullability is TypeVariableType) {
-        _addImplicitChecksViaInstantiation(typeWithoutNullability);
-      } else if (typeWithoutNullability is RecordType) {
-        _addImplicitChecks(typeWithoutNullability.fields);
-      }
+      _addImpliedChecks(type.withoutNullability);
     });
 
     // Compute type arguments of classes that use one of their type variables in

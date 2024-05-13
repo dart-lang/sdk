@@ -1,5 +1,30 @@
 ## 3.5.0
 
+### Language
+
+- **Breaking Change** [#55418][]: The context used by the compiler to perform
+  type inference on the operand of an `await` expression has been changed to
+  match the behavior of the analyzer. This change is not expected to make any
+  difference in practice.
+
+- **Breaking Change** [#55436][]: The context used by the compiler to perform
+  type inference on the right hand side of an "if-null" expression (`e1 ?? e2`)
+  has been changed to match the behavior of the analyzer. change is expected to
+  have low impact on real-world code. But in principle it could cause
+  compile-time errors or changes in runtime behavior by changing inferred
+  types. The old behavior can be restored by supplying explicit types.
+
+[#55418]: https://github.com/dart-lang/sdk/issues/55418
+[#55436]: https://github.com/dart-lang/sdk/issues/55436
+
+### Dart Runtime
+
+- The Dart VM only executes sound null safe code, running of unsound null
+  safe code using the option `--no-sound-null-safety` has been removed.
+
+- `Dart_NewListOf` and `Dart_IsLegacyType` functions are
+  removed from Dart C API.
+
 ## 3.4.0
 
 ### Language
@@ -30,9 +55,21 @@ advantage of these improvements, set your package's
 
 ### Libraries
 
+#### `dart:async`
+
+- Added option for `ParallelWaitError` to get some meta-information that
+  it can expose in its `toString`, and the `Iterable<Future>.wait` and
+  `(Future,...,Future).wait` extension methods now provide that information.
+  Should make a `ParallelWaitError` easier to log.
+
 #### `dart:cli`
 
 - **Breaking change** [#52121][]: `waitFor` is removed in 3.4.
+
+#### `dart:ffi`
+
+- Added `Struct.create` and `Union.create` to create struct and union views
+  of the sequence of bytes stored in a subtype of `TypedData`.
 
 #### `dart:io`
 
@@ -53,76 +90,23 @@ advantage of these improvements, set your package's
   to runtime errors when trying to use the return values. The implementation now
   returns a `JSBoolean` to align with the interface. See issue [#55024] for
   more details.
+
 - Added `ExternalDartReference` and related conversion functions
   `toExternalReference` and `toDartObject`. This is a faster alternative to
   `JSBoxedDartObject`, but with fewer safety guarantees and fewer
   interoperability capabilities. See [#55187] for more details.
 
-[#55024]: https://github.com/dart-lang/sdk/issues/55024
-[#55187]: https://github.com/dart-lang/sdk/issues/55187
-
-### Tools
-
-#### Analyzer
-
-- Improved code completion. Fixed over 50% of completion correctness bugs,
-  tagged `analyzer-completion-correctness` in the [issue tracker][analyzer-completion-correction-issues].
-
-[analyzer-completion-correction-issues]: https://github.com/dart-lang/sdk/labels/analyzer-completion-correctness
-
-#### Compilers
-
-- The compilation environment will no longer pretend to contain
-  entries with value `""` for all `dart.library.foo` strings,
-  where `dart:foo` is not an available library.
-  Instead there will only be entries for the available libraries,
-  like `dart.library.core`, where the value was, and still is, `"true"`.
-  This should have no effect on `const bool.fromEnvironment(...)` or
-  `const String.fromEnvironment(...)` without a `defaultValue`
-  argument, an argument which was always ignored previously.
-  It changes the behavior of `const bool.hasEnvironment(...)` on such
-  an input, away from always being `true` and therefore useless.
-
-#### Pub
-
-- Dependency resolution and `dart pub outdated` will now surface if a dependency
-  is affected by a security advisory, unless the advisory is listed under a
-  `ignored_advisories` section in the `pubspec.yaml` file. To learn more about
-  pub's support for security advisories, visit
-  [dart.dev/go/pub-security-advisories][pub-security-advisories].
-- `path`-dependencies inside `git`-dependencies are now resolved relative to the git
-  repo.
-- New command `dart pub unpack` that downloads a package from pub.dev and
-  extracts it to a subfolder of the current directory.
-
-  This can be useful for inspecting the code, or playing with examples.
-
-[pub-security-advisories]: https://dart.dev/go/pub-security-advisories
-
-### Libraries
-
-#### `dart:async`
-
-- Added option for `ParallelWaitError` to get some meta-information that
-  it can expose in its `toString`, and the `Iterable<Future>.wait` and
-  `(Future,...,Future).wait` extension methods now provide that information.
-  Should make a `ParallelWaitError` easier to log.
-
-#### `dart:ffi`
-
-- Added `Struct.create` and `Union.create` to create struct and union views
-  of the sequence of bytes stored in a subtype of `TypedData`.
-
-#### `dart:js_interop`
-
 - On dart2wasm, `JSBoxedDartObject` now is an actual JS object that wraps the
   opaque Dart value instead of only externalizing the value. Like the JS
   backends, you'll now get a more useful error when trying to use it in another
   Dart runtime.
+
 - Added `isA` helper to make type checks easier with interop types. See
   [#54138][] for more details.
 
 [#54138]: https://github.com/dart-lang/sdk/issues/54138
+[#55024]: https://github.com/dart-lang/sdk/issues/55024
+[#55187]: https://github.com/dart-lang/sdk/issues/55187
 
 #### `dart:typed_data`
 
@@ -147,14 +131,87 @@ advantage of these improvements, set your package's
 [#53218]: https://github.com/dart-lang/sdk/issues/53218
 [#53785]: https://github.com/dart-lang/sdk/issues/53785
 
+### Tools
+
+#### Analyzer
+
+- Improved code completion. Fixed over 50% of completion correctness bugs,
+  tagged `analyzer-completion-correctness` in the [issue
+  tracker][analyzer-completion-correction-issues].
+
+- Support for new annotations introduced in version 1.14.0 of the [meta]
+  package.
+
+  - Support for the [`@doNotSubmit`] annotation, noting that any usage of an
+    annotated member should not be submitted to source control.
+
+  - Support for the [`@mustBeConst`] annotation, which indicates that an
+    annotated parameter only accepts constant arguments.
+
+[analyzer-completion-correction-issues]: https://github.com/dart-lang/sdk/labels/analyzer-completion-correctness
+[meta]: https://pub.dev/packages/meta
+[`@doNotSubmit`]: https://pub.dev/documentation/meta/latest/meta/doNotSubmit-constant.html
+[`@mustBeConst`]: https://pub.dev/documentation/meta/latest/meta/mustBeConst-constant.html
+
+#### Linter
+
+- Added the [`unnecessary_library_name`][] lint.
+- Added the [`missing_code_block_language_in_doc_comment`][] lint.
+
+[`unnecessary_library_name`]: https://dart.dev/lints/unnecessary_library_name
+[`missing_code_block_language_in_doc_comment`]: https://dart.dev/lints/missing_code_block_language_in_doc_comment
+
+#### Compilers
+
+- The compilation environment will no longer pretend to contain entries with
+  value `""` for all `dart.library.foo` strings, where `dart:foo` is not an
+  available library. Instead there will only be entries for the available
+  libraries, like `dart.library.core`, where the value was, and still is,
+  `"true"`. This should have no effect on `const bool.fromEnvironment(...)` or
+  `const String.fromEnvironment(...)` without a `defaultValue` argument, an
+  argument which was always ignored previously. It changes the behavior of
+  `const bool.hasEnvironment(...)` on such an input, away from always being
+  `true` and therefore useless.
+
+#### DevTools
+
+- Updated DevTools to version 2.33.0 from 2.31.1.
+  To learn more, check out the release notes for versions
+  [2.32.0][devtools-2-32-0] and [2.33.0][devtools-2-33-0].
+
+[devtools-2-32-0]: https://docs.flutter.dev/tools/devtools/release-notes/release-notes-2.32.0
+[devtools-2-33-0]: https://docs.flutter.dev/tools/devtools/release-notes/release-notes-2.33.0
+
+#### Pub
+
+- Dependency resolution and `dart pub outdated` will now surface if a dependency
+  is affected by a security advisory, unless the advisory is listed under a
+  `ignored_advisories` section in the `pubspec.yaml` file. To learn more about
+  pub's support for security advisories, visit
+  [dart.dev/go/pub-security-advisories][pub-security-advisories].
+
+- `path`-dependencies inside `git`-dependencies are now resolved relative to the
+  git repo.
+
+- All `dart pub` commands can now be run from any subdirectory of a project. Pub
+  will find the first parent directory with a `pubspec.yaml` and operate
+  relative it.
+
+- New command `dart pub unpack` that downloads a package from pub.dev and
+  extracts it to a subfolder of the current directory.
+
+  This can be useful for inspecting the code, or playing with examples.
+
+[pub-security-advisories]: https://dart.dev/go/pub-security-advisories
+
 ### Dart Runtime
 
-- Dart VM flags and options can now be provided to any executable
-  generated using `dart compile exe` via the `DART_VM_OPTIONS` environment
-  variable. `DART_VM_OPTIONS` should be set to a list of comma-separated flags
-  and options with no whitespace. Options that allow for multiple values to be
-  provided as comma-separated values are not supported
-  (e.g., `--timeline-streams=Dart,GC,Compiler`).
+- Dart VM flags and options can now be provided to any executable generated
+  using `dart compile exe` via the `DART_VM_OPTIONS` environment variable.
+  `DART_VM_OPTIONS` should be set to a list of comma-separated flags and options
+  with no whitespace. Options that allow for multiple values to be provided as
+  comma-separated values are not supported (e.g.,
+  `--timeline-streams=Dart,GC,Compiler`).
 
   Example of a valid `DART_VM_OPTIONS` environment variable:
 
@@ -166,16 +223,57 @@ advantage of these improvements, set your package's
   `Dart_NewExternalLatin1String` and `Dart_NewExternalUTF16String` functions are
   removed from Dart C API.
 
-### Tools
+## 3.3.4 - 2024-04-17
 
-#### DevTools
+This is a patch release that:
 
-- Updated DevTools to version 2.33.0 from 2.31.1.
-  To learn more, check out the release notes for versions
-  [2.32.0][devtools-2-32-0] and [2.33.0][devtools-2-33-0].
+- Fixes an issue with JS interop in dart2wasm where JS interop methods that used
+  the enclosing library's `@JS` annotation were actually using the invocation's
+  enclosing library's `@JS` annotation. (issue [#55430]).
 
-[devtools-2-32-0]: https://docs.flutter.dev/tools/devtools/release-notes/release-notes-2.32.0
-[devtools-2-33-0]: https://docs.flutter.dev/tools/devtools/release-notes/release-notes-2.33.0
+[#55430]: https://github.com/dart-lang/sdk/issues/55430
+
+## 3.3.3 - 2024-03-27
+
+This is a patch release that:
+
+- Fixes an issue where dart vm crashed when running on pre-SSE41 older CPUs on Windows (issue [#55211][]).
+
+[#55211]: https://github.com/dart-lang/sdk/issues/55211
+
+## 3.3.2 - 2024-03-20
+
+This is a patch release that:
+
+- Fixes an issue in the CFE that placed some structural parameter references out
+  of their context in the code restored from dill files, causing crashes in the
+  incremental compiler whenever it restored a typedef from dill such that the
+  typedef contained a generic function type on its right-hand side (issue
+  [#55158][]).
+- Fixes an issue in the CFE that prevented redirecting factories from being
+  resolved in initializers of extension types (issue [#55194][]).
+- Fixes an issues with VM's implementation of `DateTime.timeZoneName`
+  on Windows, which was checking whether current date is in the summer or
+  standard time rather than checking if the given moment is in the summer or
+  standard time (issue [#55240][]).
+
+[#55158]: https://github.com/dart-lang/sdk/issues/55158
+[#55194]: https://github.com/dart-lang/sdk/issues/55194
+[#55240]: https://github.com/dart-lang/sdk/issues/55240
+
+## 3.3.1 - 2024-03-06
+
+This is a patch release that:
+
+- Fixes an issue in dart2js where object literal constructors in interop
+  extension types would fail to compile without an `@JS` annotation on the
+  library (issue [#55057][]).
+- Disallows certain types involving extension types from being used as the
+  operand of an `await` expression, unless the extension type itself implements
+  `Future` (issue [#55095][]).
+
+[#55057]: https://github.com/dart-lang/sdk/issues/55057
+[#55095]: https://github.com/dart-lang/sdk/issues/55095
 
 ## 3.3.0
 

@@ -35,7 +35,7 @@ class HoverTest extends AbstractLspAnalysisServerTest {
     required bool includesSummary,
     required bool includesFull,
   }) async {
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
     /// Summary.
     ///
     /// Full.
@@ -50,8 +50,8 @@ class HoverTest extends AbstractLspAnalysisServerTest {
     );
     await openFile(mainFileUri, code.code);
     await initialAnalysis;
-    final hover = await getHover(mainFileUri, code.position.position);
-    final hoverContents = _getStringContents(hover!);
+    var hover = await getHover(mainFileUri, code.position.position);
+    var hoverContents = _getStringContents(hover!);
 
     if (includesSummary) {
       expect(hoverContents, contains('Summary.'));
@@ -69,32 +69,32 @@ class HoverTest extends AbstractLspAnalysisServerTest {
   Future<void> assertMarkdownContents(String content, Matcher matcher) async {
     setHoverContentFormat([MarkupKind.Markdown]);
 
-    final code = TestCode.parse(content);
+    var code = TestCode.parse(content);
 
     await initialize();
     await openFile(mainFileUri, code.code);
     await initialAnalysis;
-    final hover = await getHover(mainFileUri, code.position.position);
+    var hover = await getHover(mainFileUri, code.position.position);
     expect(hover, isNotNull);
     expect(hover!.range, equals(code.range.range));
     expect(hover.contents, isNotNull);
-    final markup = _getMarkupContents(hover);
+    var markup = _getMarkupContents(hover);
     expect(markup.kind, equals(MarkupKind.Markdown));
     expect(markup.value, matcher);
   }
 
   Future<void> assertPlainTextContents(String content, Matcher matcher) async {
     setHoverContentFormat([MarkupKind.PlainText]);
-    final code = TestCode.parse(content);
+    var code = TestCode.parse(content);
 
     await initialize();
     await openFile(mainFileUri, code.code);
     await initialAnalysis;
-    final hover = await getHover(mainFileUri, code.position.position);
+    var hover = await getHover(mainFileUri, code.position.position);
     expect(hover, isNotNull);
     expect(hover!.range, equals(code.range.range));
     expect(hover.contents, isNotNull);
-    final markup = _getMarkupContents(hover);
+    var markup = _getMarkupContents(hover);
     expect(markup.kind, equals(MarkupKind.PlainText));
     expect(markup.value, matcher);
   }
@@ -105,9 +105,9 @@ class HoverTest extends AbstractLspAnalysisServerTest {
     bool waitForAnalysis = false,
     bool withOpenFile = true,
   }) async {
-    final code = TestCode.parse(content);
+    var code = TestCode.parse(content);
 
-    final initialAnalysis = waitForAnalysis ? waitForAnalysisComplete() : null;
+    var initialAnalysis = waitForAnalysis ? waitForAnalysisComplete() : null;
     await initialize();
     if (withOpenFile) {
       await openFile(mainFileUri, code.code);
@@ -115,11 +115,11 @@ class HoverTest extends AbstractLspAnalysisServerTest {
       newFile(mainFilePath, code.code);
     }
     await initialAnalysis;
-    final hover = await getHover(mainFileUri, code.position.position);
+    var hover = await getHover(mainFileUri, code.position.position);
     expect(hover, isNotNull);
     expect(hover!.range, equals(code.range.range));
     expect(hover.contents, isNotNull);
-    final contents = _getStringContents(hover);
+    var contents = _getStringContents(hover);
     expect(contents, matcher);
   }
 
@@ -152,14 +152,14 @@ class HoverTest extends AbstractLspAnalysisServerTest {
       assertDocumentation(null, includesSummary: true, includesFull: true);
 
   Future<void> test_enum_member() async {
-    final content = '''
+    var content = '''
 enum MyEnum { one }
 
 void f() {
   MyEnum.[!o^ne!];
 }
 ''';
-    final expected = '''
+    var expected = '''
 ```dart
 MyEnum one
 ```
@@ -170,14 +170,14 @@ Type: `MyEnum`
   }
 
   Future<void> test_enum_values() async {
-    final content = '''
+    var content = '''
 enum MyEnum { one }
 
 void f() {
   MyEnum.[!va^lues!];
 }
 ''';
-    final expected = '''
+    var expected = '''
 ```dart
 List<MyEnum> get values
 ```
@@ -188,12 +188,12 @@ Type: `List<MyEnum>`
   }
 
   Future<void> test_forLoop_declaredVariable() async {
-    final content = '''
+    var content = '''
 void f() {
   for (var [!ii^i!] in <String>[]) {}
 }
 ''';
-    final expected = '''
+    var expected = '''
 ```dart
 String iii
 ```
@@ -202,14 +202,14 @@ Type: `String`''';
   }
 
   Future<void> test_forLoop_variableReference() async {
-    final content = '''
+    var content = '''
 void f() {
   for (var iii in <String>[]) {
     print([!ii^i!]);
   }
 }
 ''';
-    final expected = '''
+    var expected = '''
 ```dart
 String iii
 ```
@@ -243,7 +243,7 @@ Type: `String`''';
   }
 
   Future<void> test_markdown_isFormattedForDisplay() async {
-    final content = '''
+    var content = '''
     /// This is a string.
     ///
     /// {@template foo}
@@ -257,7 +257,7 @@ Type: `String`''';
     String? [!a^bc!];
     ''';
 
-    final expectedHoverContent = '''
+    var expectedHoverContent = '''
 ```dart
 String? abc
 ```
@@ -309,7 +309,7 @@ print();
       );
 
   Future<void> test_noElement() async {
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
     String? abc;
 
     ^
@@ -319,23 +319,23 @@ print();
 
     await initialize();
     await openFile(mainFileUri, code.code);
-    final hover = await getHover(mainFileUri, code.position.position);
+    var hover = await getHover(mainFileUri, code.position.position);
     expect(hover, isNull);
   }
 
   Future<void> test_nonDartFile() async {
     await initialize();
     await openFile(pubspecFileUri, simplePubspecContent);
-    final hover = await getHover(pubspecFileUri, startOfDocPos);
+    var hover = await getHover(pubspecFileUri, startOfDocPos);
     expect(hover, isNull);
   }
 
   Future<void> test_nullableTypes() async {
-    final content = '''
+    var content = '''
     String? [!a^bc!];
     ''';
 
-    final expectedHoverContent = '''
+    var expectedHoverContent = '''
 ```dart
 String? abc
 ```
@@ -533,7 +533,7 @@ void f() {
       );
 
   Future<void> test_promotedTypes() async {
-    final content = '''
+    var content = '''
 void f(aaa) {
   if (aaa is String) {
     print([!aa^a!]);
@@ -541,7 +541,7 @@ void f(aaa) {
 }
     ''';
 
-    final expectedHoverContent = '''
+    var expectedHoverContent = '''
 ```dart
 dynamic aaa
 ```
@@ -635,7 +635,7 @@ Object f(([!dou^ble!], double) param) {
       );
 
   Future<void> test_staticType_field() async {
-    final content = '''
+    var content = '''
 class A<T> {
   late final T? myField;
 }
@@ -643,7 +643,7 @@ class A<T> {
 final data = A<String?>().[!myF^ield!];
     ''';
 
-    final expectedHoverContent = '''
+    var expectedHoverContent = '''
 ```dart
 T? myField
 ```
@@ -657,7 +657,7 @@ Type: `String?`
   }
 
   Future<void> test_staticType_getter() async {
-    final content = '''
+    var content = '''
 class A {
   String get myGetter => '';
 }
@@ -665,7 +665,7 @@ class A {
 final data = A().[!myG^etter!];
     ''';
 
-    final expectedHoverContent = '''
+    var expectedHoverContent = '''
 ```dart
 String get myGetter
 ```
@@ -679,7 +679,7 @@ Type: `String`
   }
 
   Future<void> test_staticType_getter_generic() async {
-    final content = '''
+    var content = '''
 class A<T> {
   late final T? myField;
   T? get myGetter => myField;
@@ -688,7 +688,7 @@ class A<T> {
 final data = A<String?>().[!myG^etter!];
     ''';
 
-    final expectedHoverContent = '''
+    var expectedHoverContent = '''
 ```dart
 T? get myGetter
 ```
@@ -702,7 +702,7 @@ Type: `String?`
   }
 
   Future<void> test_staticType_setter() async {
-    final content = '''
+    var content = '''
 class A {
   set mySetter(String value) {}
 }
@@ -712,7 +712,7 @@ void f() {
 }
     ''';
 
-    final expectedHoverContent = '''
+    var expectedHoverContent = '''
 ```dart
 set mySetter(String value)
 ```
@@ -726,7 +726,7 @@ Type: `String`
   }
 
   Future<void> test_staticType_setter_generic() async {
-    final content = '''
+    var content = '''
 class A<T> {
   set mySetter(T value) {}
 }
@@ -736,7 +736,7 @@ void f() {
 }
     ''';
 
-    final expectedHoverContent = '''
+    var expectedHoverContent = '''
 ```dart
 set mySetter(T value)
 ```
@@ -750,11 +750,11 @@ Type: `String`
   }
 
   Future<void> test_string_noDocComment() async {
-    final content = '''
+    var content = '''
     String? [!a^bc!];
     ''';
 
-    final expectedHoverContent = '''
+    var expectedHoverContent = '''
 ```dart
 String? abc
 ```
@@ -768,11 +768,11 @@ Type: `String?`
   }
 
   Future<void> test_string_reflectsLatestEdits() async {
-    final original = TestCode.parse('''
+    var original = TestCode.parse('''
     /// Original string.
     String? [!a^bc!];
     ''');
-    final updated = TestCode.parse('''
+    var updated = TestCode.parse('''
     /// Updated string.
     String? [!a^bc!];
     ''');
@@ -792,11 +792,11 @@ Type: `String?`
   }
 
   Future<void> test_string_simple() async {
-    final content = '''
+    var content = '''
 /// This is a string.
 String? [!a^bc!];
 ''';
-    final expected = '''
+    var expected = '''
 ```dart
 String? abc
 ```
@@ -810,11 +810,11 @@ This is a string.''';
   }
 
   Future<void> test_unopenFile() async {
-    final content = '''
+    var content = '''
 /// This is a string.
 String? [!a^bc!];
 ''';
-    final expected = '''
+    var expected = '''
 ```dart
 String? abc
 ```

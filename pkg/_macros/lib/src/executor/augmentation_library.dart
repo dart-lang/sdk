@@ -302,7 +302,7 @@ class _Builder {
     }
 
     addText(const LibraryAugmentKey(),
-        'library augment \'$_augmentedLibraryUri\';\n\n');
+        'augment library \'$_augmentedLibraryUri\';\n\n');
     for (_AppliedPart<_Part> appliedPart in _importParts) {
       addText(appliedPart.key, appliedPart.part.text);
     }

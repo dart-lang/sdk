@@ -435,7 +435,7 @@ struct InstrAttrs {
   M(AssertBoolean, _)                                                          \
   M(ClosureCall, _)                                                            \
   M(FfiCall, _)                                                                \
-  M(CCall, kNoGC)                                                              \
+  M(LeafRuntimeCall, kNoGC)                                                    \
   M(InstanceCall, _)                                                           \
   M(PolymorphicInstanceCall, _)                                                \
   M(DispatchTableCall, _)                                                      \
@@ -526,7 +526,7 @@ struct InstrAttrs {
   M(GuardFieldType, _)                                                         \
   M(IfThenElse, kNoGC)                                                         \
   M(MaterializeObject, _)                                                      \
-  M(TestSmi, kNoGC)                                                            \
+  M(TestInt, kNoGC)                                                            \
   M(TestCids, kNoGC)                                                           \
   M(TestRange, kNoGC)                                                          \
   M(ExtractNthOutput, kNoGC)                                                   \
@@ -570,13 +570,21 @@ FOR_EACH_ABSTRACT_INSTRUCTION(FORWARD_DECLARATION)
 #undef FORWARD_DECLARATION
 
 #define DEFINE_INSTRUCTION_TYPE_CHECK(type)                                    \
-  virtual type##Instr* As##type() { return this; }                             \
-  virtual const type##Instr* As##type() const { return this; }                 \
-  virtual const char* DebugName() const { return #type; }
+  virtual type##Instr* As##type() {                                            \
+    return this;                                                               \
+  }                                                                            \
+  virtual const type##Instr* As##type() const {                                \
+    return this;                                                               \
+  }                                                                            \
+  virtual const char* DebugName() const {                                      \
+    return #type;                                                              \
+  }
 
 // Functions required in all concrete instruction classes.
 #define DECLARE_INSTRUCTION_NO_BACKEND(type)                                   \
-  virtual Tag tag() const { return k##type; }                                  \
+  virtual Tag tag() const {                                                    \
+    return k##type;                                                            \
+  }                                                                            \
   virtual void Accept(InstructionVisitor* visitor);                            \
   DEFINE_INSTRUCTION_TYPE_CHECK(type)
 
@@ -5129,19 +5137,21 @@ class StrictCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
 
 // Comparison instruction that is equivalent to the (left & right) == 0
 // comparison pattern.
-class TestSmiInstr : public TemplateComparison<2, NoThrow, Pure> {
+class TestIntInstr : public TemplateComparison<2, NoThrow, Pure> {
  public:
-  TestSmiInstr(const InstructionSource& source,
+  TestIntInstr(const InstructionSource& source,
                Token::Kind kind,
+               Representation representation,
                Value* left,
                Value* right)
-      : TemplateComparison(source, kind) {
+      : TemplateComparison(source, kind), representation_(representation) {
     ASSERT(kind == Token::kEQ || kind == Token::kNE);
+    ASSERT(IsSupported(representation));
     SetInputAt(0, left);
     SetInputAt(1, right);
   }
 
-  DECLARE_COMPARISON_INSTRUCTION(TestSmi);
+  DECLARE_COMPARISON_INSTRUCTION(TestInt);
 
   virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
 
@@ -5150,13 +5160,42 @@ class TestSmiInstr : public TemplateComparison<2, NoThrow, Pure> {
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    return kTagged;
+    return representation_;
   }
 
-  DECLARE_EMPTY_SERIALIZATION(TestSmiInstr, TemplateComparison)
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
+    return kNotSpeculative;
+  }
+
+  static bool IsSupported(Representation representation) {
+    switch (representation) {
+      case kTagged:
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64) ||                  \
+    defined(TARGET_ARCH_RISCV64)
+      case kUnboxedInt64:
+#endif
+        return true;
+
+      default:
+        return false;
+    }
+  }
+
+#if defined(TARGET_ARCH_ARM64)
+  virtual void EmitBranchCode(FlowGraphCompiler* compiler, BranchInstr* branch);
+#endif
+
+#define FIELD_LIST(F) F(const Representation, representation_)
+
+  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(TestIntInstr,
+                                          TemplateComparison,
+                                          FIELD_LIST)
+#undef FIELD_LIST
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(TestSmiInstr);
+  int64_t ComputeImmediateMask();
+
+  DISALLOW_COPY_AND_ASSIGN(TestIntInstr);
 };
 
 // Checks the input value cid against cids stored in a table and returns either
@@ -5853,7 +5892,7 @@ class DropTempsInstr : public Definition {
 class MakeTempInstr : public TemplateDefinition<0, NoThrow, Pure> {
  public:
   explicit MakeTempInstr(Zone* zone)
-      : null_(new (zone) ConstantInstr(Object::ZoneHandle())) {
+      : null_(new(zone) ConstantInstr(Object::ZoneHandle())) {
     // Note: We put ConstantInstr inside MakeTemp to simplify code generation:
     // having ConstantInstr allows us to use Location::Constant(null_) as an
     // output location for this instruction.
@@ -6124,15 +6163,15 @@ class FfiCallInstr : public VariadicDefinition {
 };
 
 // Has the target address in a register passed as the last input in IL.
-class CCallInstr : public VariadicDefinition {
+class LeafRuntimeCallInstr : public VariadicDefinition {
  public:
-  static CCallInstr* Make(
+  static LeafRuntimeCallInstr* Make(
       Zone* zone,
       Representation return_representation,
       const ZoneGrowableArray<Representation>& argument_representations,
       InputsArray&& inputs);
 
-  DECLARE_INSTRUCTION(CCall)
+  DECLARE_INSTRUCTION(LeafRuntimeCall)
 
   LocationSummary* MakeLocationSummaryInternal(Zone* zone,
                                                const RegList temps) const;
@@ -6189,10 +6228,10 @@ class CCallInstr : public VariadicDefinition {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-  DECLARE_CUSTOM_SERIALIZATION(CCallInstr)
+  DECLARE_CUSTOM_SERIALIZATION(LeafRuntimeCallInstr)
 
  private:
-  CCallInstr(
+  LeafRuntimeCallInstr(
       Representation return_representation,
       const ZoneGrowableArray<Representation>& argument_representations,
       const compiler::ffi::NativeCallingConvention& native_calling_convention,
@@ -6203,7 +6242,7 @@ class CCallInstr : public VariadicDefinition {
   const ZoneGrowableArray<Representation>& argument_representations_;
   // Not serialized.
   const compiler::ffi::NativeCallingConvention& native_calling_convention_;
-  DISALLOW_COPY_AND_ASSIGN(CCallInstr);
+  DISALLOW_COPY_AND_ASSIGN(LeafRuntimeCallInstr);
 };
 
 class DebugStepCheckInstr : public TemplateInstruction<0, NoThrow> {
@@ -7956,6 +7995,10 @@ class CalculateElementAddressInstr : public TemplateDefinition<3, NoThrow> {
     if (idx == kBasePos) return kUntagged;
     ASSERT(idx == kIndexPos || idx == kOffsetPos);
     return kUnboxedIntPtr;
+  }
+
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
+    return kNotSpeculative;
   }
 
   Value* base() const { return inputs_[kBasePos]; }

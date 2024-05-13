@@ -16,7 +16,7 @@ class CreateSetter extends ResolvedCorrectionProducer {
   String _setterName = '';
 
   @override
-  List<Object> get fixArguments => [_setterName];
+  List<String> get fixArguments => [_setterName];
 
   @override
   FixKind get fixKind => DartFixKind.CREATE_SETTER;
@@ -98,7 +98,7 @@ class CreateSetter extends ResolvedCorrectionProducer {
     var targetFile = targetSource.fullName;
     _setterName = nameNode.name;
     await builder.addDartFileEdit(targetFile, (builder) {
-      builder.addGetterInsertion(
+      builder.insertGetter(
         targetNode,
         (builder) {
           var parameterTypeNode = climbPropertyAccess(nameNode);

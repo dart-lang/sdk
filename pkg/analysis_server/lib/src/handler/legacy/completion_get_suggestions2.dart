@@ -125,7 +125,7 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
     var pathContext = provider.pathContext;
 
     if (file.endsWith('.yaml')) {
-      final suggestions = computeYamlSuggestions(file, offset);
+      var suggestions = computeYamlSuggestions(file, offset);
       server.sendResponse(
         CompletionGetSuggestions2Result(
           suggestions.replacementOffset,
@@ -172,7 +172,7 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
           return;
         }
 
-        final completionPerformance = CompletionPerformance(
+        var completionPerformance = CompletionPerformance(
           performance: performance,
           path: file,
           requestLatency: requestLatency,

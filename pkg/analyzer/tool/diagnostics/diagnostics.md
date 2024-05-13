@@ -29,9 +29,11 @@ doesn't conform to the language specification or
 that might work in unexpected ways.
 
 [bottom type]: https://dart.dev/null-safety/understanding-null-safety#top-and-bottom
+[debugPrint]: https://api.flutter.dev/flutter/foundation/debugPrint.html
 [ffi]: https://dart.dev/guides/libraries/c-interop
 [IEEE 754]: https://en.wikipedia.org/wiki/IEEE_754
 [irrefutable pattern]: https://dart.dev/resources/glossary#irrefutable-pattern
+[kDebugMode]: https://api.flutter.dev/flutter/foundation/kDebugMode-constant.html
 [meta-doNotStore]: https://pub.dev/documentation/meta/latest/meta/doNotStore-constant.html
 [meta-doNotSubmit]: https://pub.dev/documentation/meta/latest/meta/doNotSubmit-constant.html
 [meta-factory]: https://pub.dev/documentation/meta/latest/meta/factory-constant.html
@@ -46,6 +48,7 @@ that might work in unexpected ways.
 [meta-UseResult]: https://pub.dev/documentation/meta/latest/meta/UseResult-class.html
 [meta-visibleForOverriding]: https://pub.dev/documentation/meta/latest/meta/visibleForOverriding-constant.html
 [meta-visibleForTesting]: https://pub.dev/documentation/meta/latest/meta/visibleForTesting-constant.html
+[package-logging]: https://pub.dev/packages/logging
 [refutable pattern]: https://dart.dev/resources/glossary#refutable-pattern
 
 ### abi_specific_integer_invalid
@@ -11221,59 +11224,6 @@ Remove the `covariant` keyword:
 ```dart
 extension E on String {
   void a(int i) {}
-}
-```
-
-### invalid_use_of_do_not_submit_member
-
-_Uses of '{0}' should not be submitted to source control._
-
-#### Description
-
-The analyzer produces this diagnostic when a member that is annotated with
-[`@doNotSubmit`][meta-doNotSubmit] is referenced outside of a member
-declaration that is also annotated with `@doNotSubmit`.
-
-#### Example
-
-Given a file `a.dart` containing the following declaration:
-
-```dart
-import 'package:meta/meta.dart';
-
-@doNotSubmit
-void emulateCrash() { /* ... */ }
-```
-
-The following code produces this diagnostic because the declaration is
-being referenced outside of a member that is also annotated with
-`@doNotSubmit`:
-
-```dart
-import 'a.dart';
-
-void f() {
-  [!emulateCrash!]();
-}
-```
-
-#### Common fixes
-
-Most commonly, when complete with local testing, the reference to the
-member should be removed.
-
-If building additional functionality on top of the member, annotate the
-newly added member with `@doNotSubmit` as well:
-
-```dart
-import 'package:meta/meta.dart';
-
-import 'a.dart';
-
-@doNotSubmit
-void emulateCrashWithOtherFunctionality() {
-  emulateCrash();
-  // do other things.
 }
 ```
 
@@ -23902,5 +23852,58 @@ type of the function to allow it:
 ```dart
 Iterable<String> get zero sync* {
   yield '0';
+}
+```
+
+### invalid_use_of_do_not_submit_member
+
+_Uses of '{0}' should not be submitted to source control._
+
+#### Description
+
+The analyzer produces this diagnostic when a member that is annotated with
+[`@doNotSubmit`][meta-doNotSubmit] is referenced outside of a member
+declaration that is also annotated with `@doNotSubmit`.
+
+#### Example
+
+Given a file `a.dart` containing the following declaration:
+
+```dart
+import 'package:meta/meta.dart';
+
+@doNotSubmit
+void emulateCrash() { /* ... */ }
+```
+
+The following code produces this diagnostic because the declaration is
+being referenced outside of a member that is also annotated with
+`@doNotSubmit`:
+
+```dart
+import 'a.dart';
+
+void f() {
+  [!emulateCrash!]();
+}
+```
+
+#### Common fixes
+
+Most commonly, when complete with local testing, the reference to the
+member should be removed.
+
+If building additional functionality on top of the member, annotate the
+newly added member with `@doNotSubmit` as well:
+
+```dart
+import 'package:meta/meta.dart';
+
+import 'a.dart';
+
+@doNotSubmit
+void emulateCrashWithOtherFunctionality() {
+  emulateCrash();
+  // do other things.
 }
 ```

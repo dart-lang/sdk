@@ -76,7 +76,7 @@ import '$uriContent';
   }
 
   void _configurePackagesFooBar() {
-    final fooPackageRoot = getFolder('$packagesRootPath/foo');
+    var fooPackageRoot = getFolder('$packagesRootPath/foo');
     newFile('$packagesRootPath/foo/lib/foo01.dart', '');
     newFile('$packagesRootPath/foo/lib/foo02.dart', '');
     // Files that are not `*.dart` should not be suggested.
@@ -85,7 +85,7 @@ import '$uriContent';
     // So, we don't have one-off and don't use just `foo`.
     newFile('$packagesRootPath/foo/lib/foo11.dart', '');
 
-    final barPackageRoot = getFolder('$packagesRootPath/bar');
+    var barPackageRoot = getFolder('$packagesRootPath/bar');
     newFile('$packagesRootPath/bar/lib/bar01.dart', '');
 
     writeTestPackageConfig(

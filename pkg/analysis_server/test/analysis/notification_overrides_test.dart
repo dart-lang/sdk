@@ -533,7 +533,7 @@ class C extends B {
 
   Future<void> test_class_super_method_overriddenFromAugmentation() async {
     var augmentation = newFile('$testPackageLibPath/a.dart', '''
-library augment 'test.dart';
+augment library 'test.dart';
 
 augment class A {
   m() {} // in A
@@ -563,7 +563,7 @@ class A {
 class B extends A {}
 ''');
     addTestFile('''
-library augment 'b.dart';
+augment library 'b.dart';
 
 augment class B {
   m() {} // in B

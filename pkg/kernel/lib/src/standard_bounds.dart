@@ -937,7 +937,7 @@ mixin StandardBounds {
       int n = typeParameters.length;
       List<DartType> typeArguments = new List<DartType>.of(leftArguments);
       for (int i = 0; i < n; ++i) {
-        int variance = typeParameters[i].variance;
+        Variance variance = typeParameters[i].variance;
         if (variance == Variance.contravariant) {
           typeArguments[i] = _getNullabilityAwareStandardLowerBound(
               leftArguments[i], rightArguments[i],

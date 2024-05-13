@@ -16,7 +16,7 @@ class SearchFindTopLevelDeclarationsHandler extends LegacyHandler {
 
   @override
   Future<void> handle() async {
-    final searchEngine = server.searchEngine;
+    var searchEngine = server.searchEngine;
     var params =
         protocol.SearchFindTopLevelDeclarationsParams.fromRequest(request);
     try {

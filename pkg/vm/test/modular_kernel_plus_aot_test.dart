@@ -92,7 +92,10 @@ Future compileToKernel(
       packagesFile,
       additionalDills,
       target,
-      StandardFileSystem.instance, const <String>[], const <String, String>{});
+      StandardFileSystem.instance,
+      const <String>[],
+      const <String, String>{},
+      nnbdMode: fe.NnbdMode.Strong);
 
   void onDiagnostic(fe.DiagnosticMessage message) {
     message.plainTextFormatted.forEach(print);
@@ -124,10 +127,6 @@ Uint8List concat(List<int> a, List<int> b) {
 Uri sdkRootFile(name) => Directory.current.uri.resolveUri(Uri.file(name));
 
 const String mainFile = r'''
-// @dart=2.9
-// This library is opt-out to provoke the creation of member signatures in
-// R that point to members of A2.
-
 import 'mixin.dart';
 
 class R extends A2 {

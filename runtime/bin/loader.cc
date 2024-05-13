@@ -166,8 +166,7 @@ Dart_Handle Loader::DeferredLoadHandler(intptr_t loading_unit_id) {
   return result;
 }
 
-void Loader::InitOnce() {
-}
+void Loader::InitOnce() {}
 
 }  // namespace bin
 }  // namespace dart

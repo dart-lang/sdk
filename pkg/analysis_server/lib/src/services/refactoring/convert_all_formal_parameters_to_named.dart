@@ -33,7 +33,7 @@ class ConvertAllFormalParametersToNamed extends RefactoringProducer {
     List<Object?> commandArguments,
     ChangeBuilder builder,
   ) async {
-    final availability = analyzeAvailability(
+    var availability = analyzeAvailability(
       refactoringContext: refactoringContext,
     );
 
@@ -42,7 +42,7 @@ class ConvertAllFormalParametersToNamed extends RefactoringProducer {
       return ComputeStatusFailure();
     }
 
-    final selection = await analyzeSelection(
+    var selection = await analyzeSelection(
       available: availability,
     );
 
@@ -51,7 +51,7 @@ class ConvertAllFormalParametersToNamed extends RefactoringProducer {
       return ComputeStatusFailure();
     }
 
-    final formalParameterUpdates = selection.formalParameters.map(
+    var formalParameterUpdates = selection.formalParameters.map(
       (formalParameter) {
         var newKind = formalParameter.kind;
         if (formalParameter.kind.isPositional) {
@@ -64,13 +64,13 @@ class ConvertAllFormalParametersToNamed extends RefactoringProducer {
       },
     ).toList();
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: formalParameterUpdates,
       formalParametersTrailingComma: TrailingComma.ifPresent,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
     );
 
-    final status = await computeSourceChange(
+    var status = await computeSourceChange(
       selectionState: selection,
       signatureUpdate: signatureUpdate,
       builder: builder,
@@ -88,7 +88,7 @@ class ConvertAllFormalParametersToNamed extends RefactoringProducer {
 
   @override
   bool isAvailable() {
-    final availability = analyzeAvailability(
+    var availability = analyzeAvailability(
       refactoringContext: refactoringContext,
     );
     if (availability is! Available) {

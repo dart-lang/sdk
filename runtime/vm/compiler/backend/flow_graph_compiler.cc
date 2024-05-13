@@ -72,6 +72,11 @@ DECLARE_FLAG(charp, stacktrace_filter);
 DECLARE_FLAG(int, gc_every);
 DECLARE_FLAG(bool, trace_compiler);
 
+DEFINE_FLAG(bool,
+            align_all_loops,
+            false,
+            "Align all loop headers to 32 byte boundary");
+
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
 compiler::LRState ComputeInnerLRState(const FlowGraph& flow_graph) {
   auto entry = flow_graph.graph_entry();
@@ -651,6 +656,17 @@ void FlowGraphCompiler::CompileGraph() {
   }
 }
 
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
+// Returns true if function is marked with vm:align-loops pragma.
+static bool IsMarkedWithAlignLoops(const Function& function) {
+  Object& options = Object::Handle();
+  return Library::FindPragma(dart::Thread::Current(),
+                             /*only_core=*/false, function,
+                             Symbols::vm_align_loops(),
+                             /*multiple=*/false, &options);
+}
+#endif  // defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
+
 void FlowGraphCompiler::VisitBlocks() {
   CompactBlocks();
   if (compiler::Assembler::EmittingComments()) {
@@ -668,6 +684,11 @@ void FlowGraphCompiler::VisitBlocks() {
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
   const auto inner_lr_state = ComputeInnerLRState(flow_graph());
 #endif  // defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
+  const bool should_align_loops =
+      FLAG_align_all_loops || IsMarkedWithAlignLoops(function());
+#endif  // defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
 
   for (intptr_t i = 0; i < block_order().length(); ++i) {
     // Compile the block entry.
@@ -699,7 +720,20 @@ void FlowGraphCompiler::VisitBlocks() {
       for (LoopInfo* l = entry->loop_info(); l != nullptr; l = l->outer()) {
         assembler()->Comment("  Loop %" Pd "", l->id());
       }
+      if (entry->IsLoopHeader()) {
+        assembler()->Comment("  Loop Header");
+      }
     }
+
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
+    if (should_align_loops && entry->IsLoopHeader() &&
+        kPreferredLoopAlignment > 1) {
+      assembler()->mark_should_be_aligned();
+      assembler()->Align(kPreferredLoopAlignment, 0);
+    }
+#else
+    static_assert(kPreferredLoopAlignment == 1);
+#endif  // defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
 
     BeginCodeSourceRange(entry->source());
     ASSERT(pending_deoptimization_env_ == nullptr);
@@ -1830,7 +1864,6 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
   }
 }
 
-
 const ICData* FlowGraphCompiler::GetOrAddInstanceCallICData(
     intptr_t deopt_id,
     const String& target_name,
@@ -2026,16 +2059,31 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
     intptr_t total_ic_calls,
     bool receiver_can_be_smi) {
   ASSERT(call != nullptr);
-  if (FLAG_polymorphic_with_deopt) {
-    compiler::Label* deopt =
-        AddDeoptStub(deopt_id, ICData::kDeoptPolymorphicInstanceCallTestFail);
-    compiler::Label ok;
-    EmitTestAndCall(targets, call->function_name(), args_info,
-                    deopt,  // No cid match.
-                    &ok,    // Found cid.
-                    deopt_id, source, locs, complete, total_ic_calls,
-                    call->entry_kind());
-    assembler()->Bind(&ok);
+  if (!FLAG_precompiled_mode) {
+    if (FLAG_polymorphic_with_deopt) {
+      compiler::Label* deopt =
+          AddDeoptStub(deopt_id, ICData::kDeoptPolymorphicInstanceCallTestFail);
+      compiler::Label ok;
+      EmitTestAndCall(targets, call->function_name(), args_info,
+                      deopt,  // No cid match.
+                      &ok,    // Found cid.
+                      deopt_id, source, locs, complete, total_ic_calls,
+                      call->entry_kind());
+      assembler()->Bind(&ok);
+    } else {
+      compiler::Label megamorphic, ok;
+      EmitTestAndCall(targets, call->function_name(), args_info,
+                      &megamorphic,  // No cid match.
+                      &ok,           // Found cid.
+                      deopt_id, source, locs, complete, total_ic_calls,
+                      call->entry_kind());
+      assembler()->Jump(&ok);
+      assembler()->Bind(&megamorphic);
+      // Instead of deoptimizing, do a megamorphic call when no matching
+      // cid found.
+      EmitMegamorphicInstanceCall(*call->ic_data(), deopt_id, source, locs);
+      assembler()->Bind(&ok);
+    }
   } else {
     if (complete) {
       compiler::Label ok;
@@ -2690,10 +2738,7 @@ void FlowGraphCompiler::GenerateInstanceOf(const InstructionSource& source,
     // See NullIsInstanceOf().
     __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
     __ BranchIf(EQUAL,
-                (unwrapped_type.IsNullable() ||
-                 (unwrapped_type.IsLegacy() && unwrapped_type.IsNeverType()))
-                    ? &is_instance
-                    : &is_not_instance);
+                unwrapped_type.IsNullable() ? &is_instance : &is_not_instance);
   }
 
   // Generate inline instanceof test.
@@ -2901,8 +2946,7 @@ void FlowGraphCompiler::GenerateCallerChecksForAssertAssignable(
 
   if (dst_type.IsObjectType()) {
     // Special case: non-nullable Object.
-    ASSERT(dst_type.IsNonNullable() &&
-           isolate_group()->use_strict_null_safety_checks());
+    ASSERT(dst_type.IsNonNullable());
     __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
     __ BranchIf(NOT_EQUAL, done);
     // Fall back to type testing stub in caller to throw the exception.
@@ -2924,8 +2968,7 @@ void FlowGraphCompiler::GenerateCallerChecksForAssertAssignable(
     // Special case: Instantiate the type parameter on the caller side, invoking
     // the TTS of the corresponding type parameter in the caller.
     const TypeParameter& type_param = TypeParameter::Cast(dst_type);
-    if (isolate_group()->use_strict_null_safety_checks() &&
-        !type_param.IsNonNullable()) {
+    if (!type_param.IsNonNullable()) {
       // If the type parameter is nullable when running in strong mode, we need
       // to handle null before calling the TTS because the type parameter may be
       // instantiated with a non-nullable type, where the TTS rejects null.

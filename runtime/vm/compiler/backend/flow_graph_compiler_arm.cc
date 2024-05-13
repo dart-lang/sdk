@@ -549,23 +549,11 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
   __ LoadFromOffset(
       R0, SP,
       (ic_data.SizeWithoutTypeArgs() - 1) * compiler::target::kWordSize);
-  if (FLAG_precompiled_mode) {
-    // The AOT runtime will replace the slot in the object pool with the
-    // entrypoint address - see app_snapshot.cc.
-    const auto snapshot_behavior =
-        compiler::ObjectPoolBuilderEntry::kResetToSwitchableCallMissEntryPoint;
-    CLOBBERS_LR(__ LoadUniqueObject(LR, initial_stub, AL, snapshot_behavior));
-  } else {
-    __ LoadUniqueObject(CODE_REG, initial_stub);
-    const intptr_t entry_point_offset =
-        entry_kind == Code::EntryKind::kNormal
-            ? compiler::target::Code::entry_point_offset(
-                  Code::EntryKind::kMonomorphic)
-            : compiler::target::Code::entry_point_offset(
-                  Code::EntryKind::kMonomorphicUnchecked);
-    CLOBBERS_LR(
-        __ ldr(LR, compiler::FieldAddress(CODE_REG, entry_point_offset)));
-  }
+  // The AOT runtime will replace the slot in the object pool with the
+  // entrypoint address - see app_snapshot.cc.
+  const auto snapshot_behavior =
+      compiler::ObjectPoolBuilderEntry::kResetToSwitchableCallMissEntryPoint;
+  CLOBBERS_LR(__ LoadUniqueObject(LR, initial_stub, AL, snapshot_behavior));
   __ LoadUniqueObject(R9, data);
   CLOBBERS_LR(__ blx(LR));
 

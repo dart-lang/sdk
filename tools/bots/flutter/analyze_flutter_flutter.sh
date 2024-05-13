@@ -20,17 +20,18 @@ cd flutter
 
 bin/flutter config --no-analytics
 
-pinned_dart_sdk=$(cat bin/cache/dart-sdk/revision)
-patch=$checkout/tools/patches/flutter-engine/${pinned_dart_sdk}.flutter.patch
-if [ -e "$patch" ]; then
-  git apply $patch
-fi
-
 bin/flutter update-packages
 
-# Analyze the flutter/flutter source code.
-$dart --enable-asserts dev/bots/analyze.dart --suppress-analytics --dart-sdk \
-  $sdk
+# Run a subset of the tests run by [flutter]/dev/bots/analyze.dart.
+# Run only the tests that use the built dart analyzer.
+bin/flutter analyze --flutter-repo --dart-sdk $sdk
+bin/flutter analyze --flutter-repo --watch --benchmark --dart-sdk $sdk
+
+mkdir gallery
+$dart dev/tools/mega_gallery.dart --out gallery
+pushd gallery
+../bin/flutter analyze --watch --benchmark --dart-sdk $sdk
+popd
 
 # Test flutter's use of data-driven fixes.
 $dart fix --suppress-analytics packages/flutter/test_fixes --compare-to-golden

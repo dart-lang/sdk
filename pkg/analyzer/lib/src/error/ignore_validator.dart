@@ -46,17 +46,17 @@ class IgnoreValidator {
     //
     var namesIgnoredForFile = <String>{};
     var typesIgnoredForFile = <String>{};
-    var unignorable = <DiagnosticName>[];
+    var unignorable = <IgnoredDiagnosticName>[];
     var duplicated = <IgnoredElement>[];
     for (var ignoredElement in ignoredForFile) {
-      if (ignoredElement is DiagnosticName) {
+      if (ignoredElement is IgnoredDiagnosticName) {
         var name = ignoredElement.name;
         if (_unignorableNames.contains(name)) {
           unignorable.add(ignoredElement);
         } else if (!namesIgnoredForFile.add(name)) {
           duplicated.add(ignoredElement);
         }
-      } else if (ignoredElement is DiagnosticType) {
+      } else if (ignoredElement is IgnoredDiagnosticType) {
         if (!typesIgnoredForFile.add(ignoredElement.type)) {
           duplicated.add(ignoredElement);
         }
@@ -70,7 +70,7 @@ class IgnoreValidator {
       var unignorable = <IgnoredElement>[];
       var duplicated = <IgnoredElement>[];
       for (var ignoredElement in ignoredOnLine) {
-        if (ignoredElement is DiagnosticName) {
+        if (ignoredElement is IgnoredDiagnosticName) {
           var name = ignoredElement.name;
           if (_unignorableNames.contains(name)) {
             unignorable.add(ignoredElement);
@@ -78,7 +78,7 @@ class IgnoreValidator {
               !namedIgnoredOnLine.add(name)) {
             duplicated.add(ignoredElement);
           }
-        } else if (ignoredElement is DiagnosticType) {
+        } else if (ignoredElement is IgnoredDiagnosticType) {
           var type = ignoredElement.type;
           if (typesIgnoredForFile.contains(type) ||
               !typesIgnoredOnLine.add(type)) {
@@ -124,7 +124,7 @@ class IgnoreValidator {
     //   list.remove(unignorableName);
     // }
     for (var ignoredElement in duplicated) {
-      if (ignoredElement is DiagnosticName) {
+      if (ignoredElement is IgnoredDiagnosticName) {
         var name = ignoredElement.name;
         _errorReporter.atOffset(
           offset: ignoredElement.offset,
@@ -133,7 +133,7 @@ class IgnoreValidator {
           arguments: [name],
         );
         list.remove(ignoredElement);
-      } else if (ignoredElement is DiagnosticType) {
+      } else if (ignoredElement is IgnoredDiagnosticType) {
         _errorReporter.atOffset(
           offset: ignoredElement.offset,
           length: ignoredElement.length,
@@ -199,6 +199,6 @@ extension on AnalysisError {
 extension on List<IgnoredElement> {
   void removeByName(String name) {
     removeWhere((ignoredElement) =>
-        ignoredElement is DiagnosticName && ignoredElement.name == name);
+        ignoredElement is IgnoredDiagnosticName && ignoredElement.name == name);
   }
 }

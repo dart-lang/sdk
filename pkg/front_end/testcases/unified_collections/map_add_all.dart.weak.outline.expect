@@ -1,10 +1,12 @@
-library /*isLegacy*/;
+library;
 import self as self;
 import "dart:core" as core;
 
 static method useAddAll() → void
   ;
+static method useAddAllNullable() → void
+  ;
 static method main() → dynamic
   ;
-static method expect(core::Map<dynamic, dynamic>* map1, core::Map<dynamic, dynamic>* map2) → void
+static method expect(core::Map<dynamic, dynamic> map1, core::Map<dynamic, dynamic> map2) → void
   ;

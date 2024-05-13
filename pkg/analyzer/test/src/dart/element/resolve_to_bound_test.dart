@@ -63,8 +63,8 @@ class ResolveToBoundTest extends AbstractTypeSystemTest {
   }
 
   test_typeParameter_bound_nested_noBound() {
-    final T = typeParameter('T');
-    final U = typeParameter(
+    var T = typeParameter('T');
+    var U = typeParameter(
       'U',
       bound: typeParameterTypeNone(T),
     );
@@ -72,8 +72,8 @@ class ResolveToBoundTest extends AbstractTypeSystemTest {
   }
 
   test_typeParameter_bound_nested_none() {
-    final T = typeParameter('T', bound: intNone);
-    final U = typeParameter(
+    var T = typeParameter('T', bound: intNone);
+    var U = typeParameter(
       'U',
       bound: typeParameterTypeNone(T),
     );
@@ -81,8 +81,8 @@ class ResolveToBoundTest extends AbstractTypeSystemTest {
   }
 
   test_typeParameter_bound_nested_none_outerNullable() {
-    final T = typeParameter('T', bound: intNone);
-    final U = typeParameter(
+    var T = typeParameter('T', bound: intNone);
+    var U = typeParameter(
       'U',
       bound: typeParameterTypeQuestion(T),
     );
@@ -90,8 +90,8 @@ class ResolveToBoundTest extends AbstractTypeSystemTest {
   }
 
   test_typeParameter_bound_nested_question() {
-    final T = typeParameter('T', bound: intQuestion);
-    final U = typeParameter(
+    var T = typeParameter('T', bound: intQuestion);
+    var U = typeParameter(
       'U',
       bound: typeParameterTypeNone(T),
     );

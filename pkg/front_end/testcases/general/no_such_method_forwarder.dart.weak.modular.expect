@@ -21,9 +21,9 @@ class Y extends core::Object implements self::X {
     core::print("Hello from noSuchMethod");
   }
   no-such-method-forwarder method _foo() → void
-    return this.{self::Y::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation) → void};
+    return this.{self::Y::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4))){(core::Invocation) → void};
   no-such-method-forwarder method foo() → void
-    return this.{self::Y::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation) → void};
+    return this.{self::Y::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4))){(core::Invocation) → void};
 }
 static method main() → dynamic {
   self::Y y = new self::Y::•();

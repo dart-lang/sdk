@@ -24,6 +24,14 @@ general/covariant_field: TypeCheckError
 general/crashes/crash_02/main: Crash
 general/crashes/crash_06/main: Crash
 general/getter_vs_setter_type: TypeCheckError
+general/hierarchy/conflict: TypeCheckError
+general/hierarchy/duplicates: TypeCheckError
+general/hierarchy/forwarding_semi_stub_field: TypeCheckError
+general/hierarchy/forwarding_semi_stub_method: TypeCheckError
+general/hierarchy/forwarding_semi_stub_setter: TypeCheckError
+general/hierarchy/getter_setter: TypeCheckError
+general/hierarchy/mix_in_override: TypeCheckError
+general/hierarchy/override: TypeCheckError
 general/implement_semi_stub: TypeCheckError
 general/infer_field_from_multiple2: TypeCheckError
 general/infer_field_from_multiple: TypeCheckError
@@ -59,17 +67,5 @@ nnbd/getter_vs_setter_type: TypeCheckError
 nnbd/issue42603: TypeCheckError
 nnbd_mixed/bad_mixins: TypeCheckError
 nnbd_mixed/covariant_from_opt_in: TypeCheckError
-nnbd_mixed/hierarchy/conflict: TypeCheckError
-nnbd_mixed/hierarchy/duplicates: TypeCheckError
-nnbd_mixed/hierarchy/forwarding_semi_stub_field: TypeCheckError
-nnbd_mixed/hierarchy/forwarding_semi_stub_method: TypeCheckError
-nnbd_mixed/hierarchy/forwarding_semi_stub_setter: TypeCheckError
-nnbd_mixed/hierarchy/getter_setter: TypeCheckError
-nnbd_mixed/hierarchy/mix_in_override: TypeCheckError
-nnbd_mixed/hierarchy/override: TypeCheckError
-nnbd_mixed/inheritance_from_opt_in: TypeCheckError
-nnbd_mixed/issue41567: TypeCheckError
-nnbd_mixed/messages_with_types_opt_in: TypeCheckError
-nnbd_mixed/messages_with_types_opt_out: TypeCheckError
 no_such_method_forwarders/mixin_nsm: TypeCheckError
 rasta/native_is_illegal: Pass # Issue 29763

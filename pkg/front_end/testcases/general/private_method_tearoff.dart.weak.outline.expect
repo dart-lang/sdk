@@ -9,7 +9,7 @@ class Foo extends core::Object implements pri::Bar {
   synthetic constructor •() → self::Foo
     ;
   no-such-method-forwarder method _f() → void
-    return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_f, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
+    return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_f, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
 }
 class Baz extends self::Foo {
   synthetic constructor •() → self::Baz

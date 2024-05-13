@@ -13,9 +13,12 @@ import 'enum_test.dart' as enum_;
 import 'extension_test.dart' as extension_;
 import 'extension_type_test.dart' as extension_type;
 import 'import_directive_test.dart' as import_directive;
+import 'library_augmentation_directive_test.dart'
+    as library_augmentation_directive;
 import 'mixin_test.dart' as mixin_;
 import 'top_level_function_test.dart' as top_level_function;
 import 'top_level_variable_test.dart' as top_level_variable;
+import 'type_alias_test.dart' as type_alias;
 import 'variable_declaration_statement_test.dart'
     as variable_declaration_statement;
 
@@ -30,9 +33,11 @@ main() {
     extension_.main();
     extension_type.main();
     import_directive.main();
+    library_augmentation_directive.main();
     mixin_.main();
     top_level_function.main();
     top_level_variable.main();
+    type_alias.main();
     variable_declaration_statement.main();
   }, name: 'parser');
 }

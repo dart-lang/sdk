@@ -1,0 +1,36 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field self::Class::T% field;
+  const constructor •(self::Class::T% field) → self::Class<self::Class::T%>
+    : self::Class::field = field, super core::Object::•()
+    ;
+  static method _#new#tearOff<T extends core::Object? = dynamic>(self::Class::_#new#tearOff::T% field) → self::Class<self::Class::_#new#tearOff::T%>
+    return new self::Class::•<self::Class::_#new#tearOff::T%>(field);
+}
+static const field (core::int) → core::int partialInstantiation = self::id<core::int>;
+static const field self::Class<core::int> instance = const self::Class::•<core::int>(0);
+static const field core::List<core::int> listLiteral = const <core::int>[0];
+static const field core::Set<core::int> setLiteral = const <core::int>{0};
+static const field core::Map<core::int, core::String> mapLiteral = const <core::int, core::String>{0: "foo"};
+static const field core::List<core::int> listConcatenation = self::listLiteral;
+static const field core::Set<core::int> setConcatenation = self::setLiteral;
+static const field core::Map<core::int, core::String> mapConcatenation = self::mapLiteral;
+static method id<T extends core::Object? = dynamic>(self::id::T% t) → self::id::T%
+  ;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: Instantiation @ org-dartlang-testcase:///constants.dart:13:48 -> InstantiationConstant(id<int*>)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constants.dart:14:24 -> InstanceConstant(const Class<int*>{Class.field: 0.0})
+Evaluated: ListLiteral @ org-dartlang-testcase:///constants.dart:15:26 -> ListConstant(const <int*>[0.0])
+Evaluated: SetLiteral @ org-dartlang-testcase:///constants.dart:16:25 -> SetConstant(const <int*>{0.0})
+Evaluated: MapLiteral @ org-dartlang-testcase:///constants.dart:17:33 -> MapConstant(const <int*, String*>{0.0: "foo"})
+Evaluated: ListConcatenation @ org-dartlang-testcase:///constants.dart:18:32 -> ListConstant(const <int*>[0.0])
+Evaluated: SetConcatenation @ org-dartlang-testcase:///constants.dart:19:31 -> SetConstant(const <int*>{0.0})
+Evaluated: MapConcatenation @ org-dartlang-testcase:///constants.dart:20:7 -> MapConstant(const <int*, String*>{0.0: "foo"})
+Extra constant evaluation: evaluated: 11, effectively constant: 8

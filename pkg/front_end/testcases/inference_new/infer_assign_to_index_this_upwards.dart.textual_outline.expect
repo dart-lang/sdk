@@ -1,5 +1,3 @@
-// @dart = 2.9
-
 library test;
 
 int getInt() => 0;
@@ -8,57 +6,111 @@ num getNum() => 0;
 
 double getDouble() => 0.0;
 
-abstract class Test1 {
+abstract class Test1a {
   int operator [](String s);
   void operator []=(String s, int v);
   void test() {}
 }
 
-abstract class Test2 {
+abstract class Test1b {
+  int? operator [](String s);
+  void operator []=(String s, int? v);
+  void test() {}
+}
+
+abstract class Test2a {
   int operator [](String s);
   void operator []=(String s, num v);
   void test() {}
 }
 
-abstract class Test3 {
+abstract class Test2b {
+  int? operator [](String s);
+  void operator []=(String s, num? v);
+  void test() {}
+}
+
+abstract class Test3a {
   int operator [](String s);
   void operator []=(String s, double v);
   void test() {}
 }
 
-abstract class Test4 {
+abstract class Test3b {
+  int? operator [](String s);
+  void operator []=(String s, double? v);
+  void test() {}
+}
+
+abstract class Test4a {
   num operator [](String s);
   void operator []=(String s, int v);
   void test() {}
 }
 
-abstract class Test5 {
+abstract class Test4b {
+  num? operator [](String s);
+  void operator []=(String s, int? v);
+  void test() {}
+}
+
+abstract class Test5a {
   num operator [](String s);
   void operator []=(String s, num v);
   void test() {}
 }
 
-abstract class Test6 {
+abstract class Test5b {
+  num? operator [](String s);
+  void operator []=(String s, num? v);
+  void test() {}
+}
+
+abstract class Test6a {
   num operator [](String s);
   void operator []=(String s, double v);
   void test() {}
 }
 
-abstract class Test7 {
+abstract class Test6b {
+  num? operator [](String s);
+  void operator []=(String s, double? v);
+  void test() {}
+}
+
+abstract class Test7a {
   double operator [](String s);
   void operator []=(String s, int v);
   void test() {}
 }
 
-abstract class Test8 {
+abstract class Test7b {
+  double? operator [](String s);
+  void operator []=(String s, int? v);
+  void test() {}
+}
+
+abstract class Test8a {
   double operator [](String s);
   void operator []=(String s, num v);
   void test() {}
 }
 
-abstract class Test9 {
+abstract class Test8b {
+  double? operator [](String s);
+  void operator []=(String s, num? v);
+  void test() {}
+}
+
+abstract class Test9a {
   double operator [](String s);
   void operator []=(String s, double v);
+  void test() {}
+}
+
+abstract class Test9b {
+  double? operator [](String s);
+  void operator []=(String s, double? v);
   void test() {}
 }
 

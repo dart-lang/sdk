@@ -56,7 +56,6 @@ import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/dart/resolver/lexical_lookup.dart';
 import 'package:analyzer/src/dart/resolver/list_pattern_resolver.dart';
-import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/postfix_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/prefix_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/prefixed_identifier_resolver.dart';
@@ -96,19 +95,39 @@ typedef SharedPatternField
 /// promoted.
 typedef WhyNotPromotedGetter = Map<DartType, NonPromotionReason> Function();
 
+/// The context shared between different units of the same library.
+final class LibraryResolutionContext {
+  /// The declarations for [VariableElement]s.
+  final Map<VariableElement, VariableDeclaration> _variableNodes =
+      Map.identity();
+}
+
 /// Instances of the class `ResolverVisitor` are used to resolve the nodes
 /// within a single compilation unit.
 class ResolverVisitor extends ThrowingAstVisitor<void>
     with
         ErrorDetectionHelpers,
-        TypeAnalyzer<AstNode, Statement, Expression, PromotableElement,
-            DartType, DartPattern, void, DartType, TypeParameterElement> {
+        TypeAnalyzer<
+            AstNode,
+            Statement,
+            Expression,
+            PromotableElement,
+            DartType,
+            DartPattern,
+            void,
+            DartType,
+            TypeParameterElement,
+            InterfaceType,
+            InterfaceElement> {
   /// Debug-only: if `true`, manipulations of [_rewriteStack] performed by
   /// [popRewrite], [pushRewrite], and [replaceExpression] will be printed.
   static const bool _debugRewriteStack = false;
 
   /// The element for the library containing the compilation unit being visited.
   final LibraryElementImpl definingLibrary;
+
+  /// The context shared between different units of the same library.
+  final LibraryResolutionContext libraryResolutionContext;
 
   /// If the resolver visitor is visiting a switch statement and patterns
   /// support is disabled, the tracker that determines whether the switch is
@@ -145,6 +164,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// The element representing the function containing the current node, or
   /// `null` if the current node is not contained in a function.
   ExecutableElement? _enclosingFunction;
+
+  /// The element that can be referenced by the `augmented` expression.
+  AugmentableElement? enclosingAugmentation;
 
   /// The manager for the inheritance mappings.
   final InheritanceManager3 inheritance;
@@ -276,6 +298,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   ResolverVisitor(
       InheritanceManager3 inheritanceManager,
       LibraryElementImpl definingLibrary,
+      LibraryResolutionContext libraryResolutionContext,
       Source source,
       TypeProvider typeProvider,
       AnalysisErrorListener errorListener,
@@ -285,6 +308,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       : this._(
             inheritanceManager,
             definingLibrary,
+            libraryResolutionContext,
             source,
             definingLibrary.typeSystem,
             typeProvider as TypeProviderImpl,
@@ -296,6 +320,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   ResolverVisitor._(
       this.inheritance,
       this.definingLibrary,
+      this.libraryResolutionContext,
       this.source,
       this.typeSystem,
       this.typeProvider,
@@ -401,8 +426,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  shared.TypeAnalyzerOperations<PromotableElement, DartType, DartType,
-      TypeParameterElement> get operations => flowAnalysis.typeOperations;
+  shared.TypeAnalyzerOperations<
+      PromotableElement,
+      DartType,
+      DartType,
+      TypeParameterElement,
+      InterfaceType,
+      InterfaceElement> get operations => flowAnalysis.typeOperations;
 
   /// Gets the current depth of the [_rewriteStack].  This may be used in
   /// assertions to verify that pushes and pops are properly balanced.
@@ -431,7 +461,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       if (fieldName != null) {
         nameToken = fieldName.name;
         if (nameToken == null) {
-          final variablePattern = field.pattern.variablePattern;
+          var variablePattern = field.pattern.variablePattern;
           if (variablePattern != null) {
             variablePattern.fieldNameWithImplicitName = fieldName;
             nameToken = variablePattern.name;
@@ -566,10 +596,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     required SharedMatchContext context,
     required DartPatternImpl pattern,
     required DartType requiredType,
+    required DartType matchedValueType,
   }) {
     if (context.irrefutableContext == null) {
-      final matchedType = pattern.matchedValueType!;
-      if (!typeSystem.canBeSubtypeOf(matchedType, requiredType)) {
+      if (!typeSystem.canBeSubtypeOf(matchedValueType, requiredType)) {
         AstNodeImpl? errorNode;
         if (pattern is CastPatternImpl) {
           errorNode = pattern.type;
@@ -584,7 +614,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         errorReporter.atNode(
           errorNode,
           WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE,
-          arguments: [matchedType, requiredType],
+          arguments: [matchedValueType, requiredType],
         );
       }
     }
@@ -736,20 +766,24 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void dispatchPattern(SharedMatchContext context, AstNode node) {
+  PatternResult<DartType> dispatchPattern(
+      SharedMatchContext context, AstNode node) {
+    shared.PatternResult<DartType> analysisResult;
     if (node is DartPatternImpl) {
-      node.matchedValueType = flow.getMatchedValueType();
-      node.resolvePattern(this, context);
+      analysisResult = node.resolvePattern(this, context);
+      node.matchedValueType = analysisResult.matchedValueType;
     } else {
       // This can occur inside conventional switch statements, since
       // [SwitchCase] points directly to an [Expression] rather than to a
       // [ConstantPattern].  So we mimic what
       // [ConstantPatternImpl.resolvePattern] would do.
-      analyzeConstantPattern(context, node, node as Expression);
+      analysisResult =
+          analyzeConstantPattern(context, node, node as Expression);
       // Stack: (Expression)
       popRewrite();
       // Stack: ()
     }
+    return analysisResult;
   }
 
   @override
@@ -810,7 +844,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     covariant SwitchExpressionImpl node,
     int caseIndex,
   ) {
-    final case_ = node.cases[caseIndex];
+    var case_ = node.cases[caseIndex];
     case_.expression = popRewrite()!;
     nullSafetyDeadCodeVerifier.flowEnd(case_);
   }
@@ -1019,7 +1053,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     popRewrite(); // "when" expression
     // Stack: ()
     if (node is SwitchStatementImpl) {
-      final group = node.memberGroups[caseIndex];
+      var group = node.memberGroups[caseIndex];
       legacySwitchExhaustiveness?.visitSwitchMember(group);
       nullSafetyDeadCodeVerifier.flowEnd(group.members[subIndex]);
     } else if (node is SwitchExpressionImpl) {
@@ -1034,7 +1068,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     required int caseIndex,
     required int subIndex,
   }) {
-    final group = node.memberGroups[caseIndex];
+    var group = node.memberGroups[caseIndex];
     legacySwitchExhaustiveness?.visitSwitchMember(group);
     nullSafetyDeadCodeVerifier.flowEnd(group.members[subIndex]);
   }
@@ -1089,10 +1123,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     required int subIndex,
   }) {
     if (node is SwitchExpressionImpl) {
-      final case_ = node.cases[caseIndex];
+      var case_ = node.cases[caseIndex];
       checkUnreachableNode(case_);
     } else if (node is SwitchStatementImpl) {
-      final member = node.memberGroups[caseIndex].members[subIndex];
+      var member = node.memberGroups[caseIndex].members[subIndex];
       checkUnreachableNode(member);
     }
   }
@@ -1219,10 +1253,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void prepareEnclosingDeclarations({
     InterfaceElement? enclosingClassElement,
     ExecutableElement? enclosingExecutableElement,
+    AugmentableElement? enclosingAugmentation,
   }) {
     enclosingClass = enclosingClassElement;
     _setupThisType();
     _enclosingFunction = enclosingExecutableElement;
+    this.enclosingAugmentation = enclosingAugmentation;
   }
 
   /// We are going to resolve [node], without visiting its parent.
@@ -1294,17 +1330,17 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     NodeReplacer.replace(oldNode, newNode, parent: parent);
   }
 
-  void resolveAssignedVariablePattern({
+  PatternResult<DartType> resolveAssignedVariablePattern({
     required AssignedVariablePatternImpl node,
     required SharedMatchContext context,
   }) {
-    final element = node.element;
+    var element = node.element;
     if (element is! PromotableElement) {
-      return;
+      return PatternResult(matchedValueType: InvalidTypeImpl.instance);
     }
 
     if (element.isFinal) {
-      final flow = this.flow;
+      var flow = this.flow;
       if (element.isLate) {
         if (flow.isAssigned(element)) {
           errorReporter.atToken(
@@ -1323,7 +1359,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       }
     }
 
-    analyzeAssignedVariablePattern(context, node, element);
+    return analyzeAssignedVariablePattern(context, node, element);
   }
 
   /// Resolve LHS [node] of an assignment, an explicit [AssignmentExpression],
@@ -1332,7 +1368,20 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     required Expression node,
     required bool hasRead,
   }) {
-    if (node is IndexExpression) {
+    if (node is AugmentedExpressionImpl) {
+      var augmentation = enclosingAugmentation;
+      var augmentationTarget = augmentation?.augmentationTarget;
+      if (augmentation is PropertyAccessorElementImpl &&
+          augmentation.isSetter &&
+          augmentationTarget is PropertyAccessorElementImpl &&
+          augmentationTarget.isSetter) {
+        node.element = augmentationTarget;
+        return PropertyElementResolverResult(
+          writeElementRequested: augmentationTarget,
+        );
+      }
+      return PropertyElementResolverResult();
+    } else if (node is IndexExpression) {
       var target = node.target;
       if (target != null) {
         analyzeExpression(target, UnknownInferredType.instance);
@@ -1359,12 +1408,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
       return result;
     } else if (node is PrefixedIdentifierImpl) {
-      final prefix = node.prefix;
+      var prefix = node.prefix;
       prefix.accept(this);
 
       // TODO(scheglov): It would be nice to rewrite all such cases.
       if (prefix.staticType is RecordType) {
-        final propertyAccess = PropertyAccessImpl(
+        var propertyAccess = PropertyAccessImpl(
           target: prefix,
           operator: node.period,
           propertyName: node.identifier,
@@ -1413,7 +1462,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
   }
 
-  void resolveMapPattern({
+  PatternResult<DartType> resolveMapPattern({
     required MapPatternImpl node,
     required SharedMatchContext context,
   }) {
@@ -1437,7 +1486,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       }
     }
 
-    final result = analyzeMapPattern(
+    var result = analyzeMapPattern(
       context,
       node,
       typeArguments: typeArguments,
@@ -1449,7 +1498,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       context: context,
       pattern: node,
       requiredType: result.requiredType,
+      matchedValueType: result.matchedValueType,
     );
+
+    return result;
   }
 
   @override
@@ -1606,7 +1658,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }) {
     DartType writeType =
         atDynamicTarget ? DynamicTypeImpl.instance : InvalidTypeImpl.instance;
-    if (node is IndexExpression) {
+    if (node is AugmentedExpression) {
+      if (element is PropertyAccessorElement && element.isSetter) {
+        if (element.parameters case [var valueParameter]) {
+          writeType = valueParameter.type;
+        }
+      }
+    } else if (node is IndexExpression) {
       if (element is MethodElement) {
         var parameters = element.parameters;
         if (parameters.length == 2) {
@@ -1808,6 +1866,99 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   ) {
     node.visitChildren(this);
     elementResolver.visitAugmentationImportDirective(node);
+  }
+
+  @override
+  void visitAugmentedExpression(covariant AugmentedExpressionImpl node) {
+    if (enclosingAugmentation case var augmentation?) {
+      var augmentedElement = augmentation.augmentationTarget;
+      if (augmentation is PropertyAccessorElementImpl &&
+          augmentation.isGetter &&
+          augmentedElement is PropertyAccessorElementImpl &&
+          augmentedElement.isGetter) {
+        node.element = augmentedElement;
+        node.staticType = augmentedElement.returnType;
+        return;
+      }
+      if (augmentation is PropertyInducingElementImpl &&
+          augmentedElement is PropertyInducingElementImpl) {
+        node.element = augmentedElement;
+        var augmentedNode =
+            libraryResolutionContext._variableNodes[augmentedElement];
+        if (augmentedNode != null) {
+          if (augmentedNode.initializer case var augmentedInitializer?) {
+            node.staticType = augmentedInitializer.staticType;
+            return;
+          }
+        }
+      }
+    }
+
+    node.staticType = InvalidTypeImpl.instance;
+  }
+
+  @override
+  void visitAugmentedInvocation(
+    covariant AugmentedInvocationImpl node, {
+    DartType contextType = UnknownInferredType.instance,
+  }) {
+    checkUnreachableNode(node);
+    var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
+
+    var augmentation = enclosingAugmentation;
+    var augmentationTarget = augmentation?.augmentationTarget;
+
+    // Rewrite invocation of a function-typed getter.
+    if (augmentationTarget is PropertyAccessorElementImpl) {
+      if (augmentationTarget.returnType case FunctionType functionType) {
+        var augmentedExpression = AugmentedExpressionImpl(
+          augmentedKeyword: node.augmentedKeyword,
+        );
+        augmentedExpression.element = augmentationTarget;
+        augmentedExpression.staticType = functionType;
+        var rewrite = FunctionExpressionInvocationImpl(
+          function: augmentedExpression,
+          typeArguments: node.typeArguments,
+          argumentList: node.arguments,
+        );
+        replaceExpression(node, rewrite);
+        flowAnalysis.transferTestData(node, rewrite);
+        _resolveRewrittenFunctionExpressionInvocation(
+            rewrite, whyNotPromotedList,
+            contextType: contextType);
+      } else {
+        node.element = augmentationTarget;
+        node.staticType = InvalidTypeImpl.instance;
+        errorReporter.atToken(
+          node.augmentedKeyword,
+          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
+        );
+        for (var argument in node.arguments.arguments) {
+          argument.resolveExpression(this, InvalidTypeImpl.instance);
+        }
+      }
+      return;
+    }
+
+    FunctionType? rawType;
+    if (augmentationTarget is ExecutableElementImpl) {
+      node.element = augmentationTarget;
+      rawType = augmentationTarget.type;
+    }
+
+    var returnType = AugmentedInvocationInferrer(
+      resolver: this,
+      node: node,
+      argumentList: node.arguments,
+      contextType: contextType,
+      whyNotPromotedList: whyNotPromotedList,
+    ).resolveInvocation(rawType: rawType);
+
+    if (augmentationTarget is ExecutableElementImpl) {
+      node.staticType = returnType;
+    } else {
+      node.staticType = InvalidTypeImpl.instance;
+    }
   }
 
   @override
@@ -2019,15 +2170,19 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
+    var element = node.declaredElement!;
+
     flowAnalysis.topLevelDeclaration_enter(node, node.parameters);
     flowAnalysis.executableDeclaration_enter(node, node.parameters,
         isClosure: false);
 
-    var returnType = node.declaredElement!.type.returnType;
+    var returnType = element.type.returnType;
 
     var outerFunction = _enclosingFunction;
+    var outerAugmentation = enclosingAugmentation;
     try {
-      _enclosingFunction = node.declaredElement;
+      _enclosingFunction = element;
+      enclosingAugmentation = element;
       assert(_thisType == null);
       _setupThisType();
       checkUnreachableNode(node);
@@ -2041,6 +2196,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       elementResolver.visitConstructorDeclaration(node);
     } finally {
       _enclosingFunction = outerFunction;
+      enclosingAugmentation = outerAugmentation;
       _thisType = null;
     }
 
@@ -2059,14 +2215,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitConstructorFieldInitializer(
     covariant ConstructorFieldInitializerImpl node,
   ) {
-    final augmented = enclosingClass!.augmented;
-    if (augmented == null) return;
+    var augmented = enclosingClass!.augmented;
 
     //
     // We visit the expression, but do not visit the field name because it needs
     // to be visited in the context of the constructor field initializer node.
     //
-    final fieldName = node.fieldName;
+    var fieldName = node.fieldName;
     var fieldElement = augmented.getField(fieldName.name);
     fieldName.staticElement = fieldElement;
     var fieldType = fieldElement?.type ?? UnknownInferredType.instance;
@@ -2201,8 +2356,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       if (constructorElement != null) {
         node.constructorElement = constructorElement;
         if (constructorElement.isFactory) {
-          final constructorName = node.arguments?.constructorSelector?.name;
-          final errorTarget = constructorName ?? node.name;
+          var constructorName = node.arguments?.constructorSelector?.name;
+          var errorTarget = constructorName ?? node.name;
           errorReporter.atOffset(
             offset: errorTarget.offset,
             length: errorTarget.length,
@@ -2389,7 +2544,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitExtensionTypeDeclaration(
     covariant ExtensionTypeDeclarationImpl node,
   ) {
-    final outerType = enclosingClass;
+    var outerType = enclosingClass;
     try {
       enclosingClass = node.declaredElement;
       checkUnreachableNode(node);
@@ -2454,6 +2609,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
     bool isLocal = node.parent is FunctionDeclarationStatement;
+    var element = node.declaredElement!;
 
     if (isLocal) {
       flowAnalysis.flow!.functionExpression_begin(node);
@@ -2470,8 +2626,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var functionType = node.declaredElement!.type;
 
     var outerFunction = _enclosingFunction;
+    var outerAugmentation = enclosingAugmentation;
     try {
-      _enclosingFunction = node.declaredElement;
+      _enclosingFunction = element;
+      if (!isLocal) {
+        if (element case AugmentableElement augmentation) {
+          enclosingAugmentation = augmentation;
+        }
+      }
       checkUnreachableNode(node);
       node.documentationComment?.accept(this);
       node.metadata.accept(this);
@@ -2481,6 +2643,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       elementResolver.visitFunctionDeclaration(node);
     } finally {
       _enclosingFunction = outerFunction;
+      enclosingAugmentation = outerAugmentation;
     }
 
     if (!node.isSetter) {
@@ -2578,7 +2741,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     covariant IfElementImpl node, {
     CollectionLiteralContext? context,
   }) {
-    final caseClause = node.caseClause;
+    var caseClause = node.caseClause;
     if (caseClause != null) {
       var guardedPattern = caseClause.guardedPattern;
       analyzeIfCaseElement(
@@ -2609,7 +2772,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitIfStatement(covariant IfStatementImpl node) {
     checkUnreachableNode(node);
 
-    final caseClause = node.caseClause;
+    var caseClause = node.caseClause;
     if (caseClause != null) {
       var guardedPattern = caseClause.guardedPattern;
       analyzeIfCaseStatement(
@@ -2799,15 +2962,21 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
+    var element = node.declaredElement!;
+
     flowAnalysis.topLevelDeclaration_enter(node, node.parameters);
     flowAnalysis.executableDeclaration_enter(node, node.parameters,
         isClosure: false);
 
-    DartType returnType = node.declaredElement!.returnType;
+    DartType returnType = element.returnType;
 
     var outerFunction = _enclosingFunction;
+    var outerAugmentation = enclosingAugmentation;
     try {
-      _enclosingFunction = node.declaredElement;
+      _enclosingFunction = element;
+      if (element case AugmentableElement augmentation) {
+        enclosingAugmentation = augmentation;
+      }
       assert(_thisType == null);
       _setupThisType();
       checkUnreachableNode(node);
@@ -2820,6 +2989,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       elementResolver.visitMethodDeclaration(node);
     } finally {
       _enclosingFunction = outerFunction;
+      enclosingAugmentation = outerAugmentation;
       _thisType = null;
     }
 
@@ -2858,10 +3028,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     node.typeArguments?.accept(this);
-    elementResolver.visitMethodInvocation(node,
+    var functionRewrite = elementResolver.visitMethodInvocation(node,
         whyNotPromotedList: whyNotPromotedList, contextType: contextType);
 
-    var functionRewrite = MethodInvocationResolver.getRewriteResult(node);
     if (functionRewrite != null) {
       _resolveRewrittenFunctionExpressionInvocation(
           functionRewrite, whyNotPromotedList,
@@ -2976,7 +3145,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitPatternAssignment(covariant PatternAssignmentImpl node) {
     checkUnreachableNode(node);
-    final analysisResult =
+    var analysisResult =
         analyzePatternAssignment(node, node.pattern, node.expression);
     node.patternTypeSchema = analysisResult.patternSchema;
     node.staticType = analysisResult.resolveShorting();
@@ -2987,7 +3156,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitPatternVariableDeclaration(
     covariant PatternVariableDeclarationImpl node,
   ) {
-    final patternSchema = analyzePatternVariableDeclaration(
+    var patternSchema = analyzePatternVariableDeclaration(
             node, node.pattern, node.expression,
             isFinal: node.keyword.keyword == Keyword.FINAL)
         .patternSchema;
@@ -3017,7 +3186,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitPrefixedIdentifier(covariant PrefixedIdentifierImpl node,
       {DartType contextType = UnknownInferredType.instance}) {
     checkUnreachableNode(node);
-    final rewrittenPropertyAccess =
+    var rewrittenPropertyAccess =
         _prefixedIdentifierResolver.resolve(node, contextType: contextType);
     if (rewrittenPropertyAccess != null) {
       visitPropertyAccess(rewrittenPropertyAccess, contextType: contextType);
@@ -3025,7 +3194,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       // But if `rewrittenPropertyAccess` was itself rewritten, replace the
       // rewrite result of `node`.
       assert(() {
-        final rewrite = _replacements[rewrittenPropertyAccess];
+        var rewrite = _replacements[rewrittenPropertyAccess];
         if (rewrite != null) {
           _replacements[node] = rewrite;
         }
@@ -3410,9 +3579,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitTypeLiteral(TypeLiteral node) {
+  void visitTypeLiteral(covariant TypeLiteralImpl node) {
     checkUnreachableNode(node);
     node.visitChildren(this);
+    inferenceHelper.recordStaticType(node, typeProvider.typeType);
   }
 
   @override
@@ -3429,22 +3599,32 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    _variableDeclarationResolver.resolve(node as VariableDeclarationImpl);
+  void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
+    var element = node.declaredElement!;
 
-    var declaredElement = node.declaredElement!;
+    var outerAugmentation = enclosingAugmentation;
+    try {
+      if (element case AugmentableElement augmentation) {
+        enclosingAugmentation = augmentation;
+      }
+      libraryResolutionContext._variableNodes[element] = node;
+      _variableDeclarationResolver.resolve(node);
+    } finally {
+      enclosingAugmentation = outerAugmentation;
+    }
 
     var initializer = node.initializer;
-    var parent = node.parent as VariableDeclarationList;
-    var declaredType = parent.type;
     if (initializer != null) {
+      var parent = node.parent as VariableDeclarationList;
+      var declaredType = parent.type;
       var initializerStaticType = initializer.typeOrThrow;
-      flowAnalysis.flow?.initialize(declaredElement as PromotableElement,
-          initializerStaticType, initializer,
+      flowAnalysis.flow?.initialize(
+          element as PromotableElement, initializerStaticType, initializer,
           isFinal: parent.isFinal,
           isLate: parent.isLate,
           isImplicitlyTyped: declaredType == null);
     }
+
     _checkTopLevelCycle(node);
   }
 
@@ -3501,23 +3681,23 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void _checkForFutureCatchErrorOnError(BlockFunctionBody errorNode) {
     // Check for "body  might complete normally" in a `Future.catchError`'s
     //`onError` callback.
-    final parent = errorNode.parent?.parent;
+    var parent = errorNode.parent?.parent;
     if (parent is! ArgumentList) {
       return;
     }
-    final invocation = parent.parent;
+    var invocation = parent.parent;
     if (invocation is! MethodInvocation) {
       return;
     }
-    final targetType = invocation.realTarget?.staticType;
+    var targetType = invocation.realTarget?.staticType;
     if (invocation.methodName.name == 'catchError' &&
         targetType is InterfaceType) {
-      final instanceOfFuture =
+      var instanceOfFuture =
           targetType.asInstanceOf(typeProvider.futureElement);
       if (instanceOfFuture != null) {
-        final targetFutureType = instanceOfFuture.typeArguments.first;
-        final expectedReturnType = typeProvider.futureOrType(targetFutureType);
-        final returnTypeBase = typeSystem.futureOrBase(expectedReturnType);
+        var targetFutureType = instanceOfFuture.typeArguments.first;
+        var expectedReturnType = typeProvider.futureOrType(targetFutureType);
+        var returnTypeBase = typeSystem.futureOrBase(expectedReturnType);
         if (returnTypeBase is DynamicType ||
             returnTypeBase is UnknownInferredType ||
             returnTypeBase is VoidType ||
@@ -3704,12 +3884,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void _setupThisType() {
     var enclosingClass = this.enclosingClass;
     if (enclosingClass != null) {
-      final augmented = enclosingClass.augmented;
-      if (augmented != null) {
-        _thisType = augmented.declaration.thisType;
-      } else {
-        _thisType = InvalidTypeImpl.instance;
-      }
+      var augmented = enclosingClass.augmented;
+      _thisType = augmented.declaration.thisType;
     } else {
       var enclosingExtension = this.enclosingExtension;
       if (enclosingExtension != null) {
@@ -3977,8 +4153,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 // TODO(paulberry): migrate the responsibility for all scope resolution into
 // this visitor.
 class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
-  static const _nameScopeProperty = 'nameScope';
-
   /// The element for the library containing the compilation unit being visited.
   final LibraryElementImpl definingLibrary;
 
@@ -4043,14 +4217,14 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitAssignedVariablePattern(AssignedVariablePattern node) {
-    final element = node.element;
+    var element = node.element;
     if (element is PromotableElement) {
       _localVariableInfo.potentiallyMutatedInScope.add(element);
     }
   }
 
   @override
-  void visitBlock(Block node) {
+  void visitBlock(covariant BlockImpl node) {
     _withDeclaredLocals(node, node.statements, () {
       super.visitBlock(node);
     });
@@ -4094,7 +4268,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
-  void visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     Scope outerScope = nameScope;
     try {
       ClassElement element = node.declaredElement!;
@@ -4104,7 +4278,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         nameScope,
         element.typeParameters,
       );
-      _setNodeNameScope(node, nameScope);
+      node.nameScope = nameScope;
       visitClassDeclarationInScope(node);
 
       nameScope = InterfaceScope(nameScope, element);
@@ -4122,13 +4296,13 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     node.nativeClause?.accept(this);
   }
 
-  void visitClassMembersInScope(ClassDeclaration node) {
+  void visitClassMembersInScope(ClassDeclarationImpl node) {
     visitDocumentationComment(node.documentationComment);
     node.members.accept(this);
   }
 
   @override
-  void visitClassTypeAlias(ClassTypeAlias node) {
+  void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
     node.metadata.accept(this);
     Scope outerScope = nameScope;
     try {
@@ -4143,7 +4317,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     }
   }
 
-  void visitClassTypeAliasInScope(ClassTypeAlias node) {
+  void visitClassTypeAliasInScope(ClassTypeAliasImpl node) {
     // Note: we don't visit metadata because it's not inside the class type
     // alias's type parameter scope.  It was already visited in
     // [visitClassTypeAlias].
@@ -4155,14 +4329,14 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
-  void visitCompilationUnit(CompilationUnit node) {
-    _setNodeNameScope(node, nameScope);
+  void visitCompilationUnit(covariant CompilationUnitImpl node) {
+    node.nameScope = nameScope;
     super.visitCompilationUnit(node);
   }
 
   @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
-    (node.body as FunctionBodyImpl).localVariableInfo = _localVariableInfo;
+  void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
+    node.body.localVariableInfo = _localVariableInfo;
     Scope outerScope = nameScope;
     try {
       ConstructorElement element = node.declaredElement!;
@@ -4207,7 +4381,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   /// Visits a documentation comment with a [DocImportScope] that encloses the
   /// current [nameScope].
-  void visitDocumentationComment(Comment? node) {
+  void visitDocumentationComment(CommentImpl? node) {
     if (node == null) return;
 
     Scope outerScope = nameScope;
@@ -4216,7 +4390,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       _docImportScope.innerScope = nameScope;
       nameScope = _docImportScope;
 
-      _setNodeNameScope(node, nameScope);
+      node.nameScope = nameScope;
       node.accept(this);
     } finally {
       nameScope = outerScope;
@@ -4241,17 +4415,17 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
-  void visitEnumDeclaration(EnumDeclaration node) {
+  void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
     Scope outerScope = nameScope;
     try {
-      final element = node.declaredElement!;
+      var element = node.declaredElement!;
       node.metadata.accept(this);
 
       nameScope = TypeParameterScope(
         nameScope,
         element.typeParameters,
       );
-      _setNodeNameScope(node, nameScope);
+      node.nameScope = nameScope;
       visitEnumDeclarationInScope(node);
 
       nameScope = InterfaceScope(nameScope, element);
@@ -4267,20 +4441,20 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     node.implementsClause?.accept(this);
   }
 
-  void visitEnumMembersInScope(EnumDeclaration node) {
+  void visitEnumMembersInScope(covariant EnumDeclarationImpl node) {
     visitDocumentationComment(node.documentationComment);
     node.constants.accept(this);
     node.members.accept(this);
   }
 
   @override
-  void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    _setNodeNameScope(node, nameScope);
+  void visitExpressionFunctionBody(covariant ExpressionFunctionBodyImpl node) {
+    node.nameScope = nameScope;
     super.visitExpressionFunctionBody(node);
   }
 
   @override
-  void visitExtensionDeclaration(ExtensionDeclaration node) {
+  void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
     Scope outerScope = nameScope;
     try {
       ExtensionElement element = node.declaredElement!;
@@ -4290,7 +4464,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         nameScope,
         element.typeParameters,
       );
-      _setNodeNameScope(node, nameScope);
+      node.nameScope = nameScope;
       visitExtensionDeclarationInScope(node);
 
       nameScope = ExtensionScope(nameScope, element);
@@ -4305,7 +4479,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     node.onClause?.accept(this);
   }
 
-  void visitExtensionMembersInScope(ExtensionDeclaration node) {
+  void visitExtensionMembersInScope(ExtensionDeclarationImpl node) {
     visitDocumentationComment(node.documentationComment);
     node.members.accept(this);
   }
@@ -4316,14 +4490,14 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   ) {
     Scope outerScope = nameScope;
     try {
-      final element = node.declaredElement!;
+      var element = node.declaredElement!;
       node.metadata.accept(this);
 
       nameScope = TypeParameterScope(
         nameScope,
         element.typeParameters,
       );
-      _setNodeNameScope(node, nameScope);
+      node.nameScope = nameScope;
       node.typeParameters?.accept(this);
       node.representation.accept(this);
       node.implementsClause?.accept(this);
@@ -4364,11 +4538,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
-  void visitForElement(ForElement node) {
+  void visitForElement(covariant ForElementImpl node) {
     Scope outerNameScope = nameScope;
     try {
       nameScope = LocalScope(nameScope);
-      _setNodeNameScope(node, nameScope);
+      node.nameScope = nameScope;
       visitForElementInScope(node);
     } finally {
       nameScope = outerNameScope;
@@ -4414,13 +4588,13 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
-  void visitForStatement(ForStatement node) {
+  void visitForStatement(covariant ForStatementImpl node) {
     Scope outerNameScope = nameScope;
     ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
     try {
       nameScope = LocalScope(nameScope);
       _implicitLabelScope = _implicitLabelScope.nest(node);
-      _setNodeNameScope(node, nameScope);
+      node.nameScope = nameScope;
       visitForStatementInScope(node);
     } finally {
       nameScope = outerNameScope;
@@ -4439,9 +4613,8 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    (node.functionExpression.body as FunctionBodyImpl).localVariableInfo =
-        _localVariableInfo;
+  void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
+    node.functionExpression.body.localVariableInfo = _localVariableInfo;
     var outerClosure = _enclosingClosure;
     Scope outerScope = nameScope;
     try {
@@ -4454,7 +4627,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         nameScope,
         element.typeParameters,
       );
-      _setNodeNameScope(node, nameScope);
+      node.nameScope = nameScope;
       visitFunctionDeclarationInScope(node);
     } finally {
       nameScope = outerScope;
@@ -4479,7 +4652,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         _enclosingClosure = node.declaredElement;
       }
       var parent = node.parent;
-      if (parent is FunctionDeclaration) {
+      if (parent is FunctionDeclarationImpl) {
         // We have already created a function scope and don't need to do so again.
         super.visitFunctionExpression(node);
         visitDocumentationComment(parent.documentationComment);
@@ -4499,7 +4672,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
-  void visitFunctionTypeAlias(FunctionTypeAlias node) {
+  void visitFunctionTypeAlias(covariant FunctionTypeAliasImpl node) {
     node.metadata.accept(this);
     Scope outerScope = nameScope;
     try {
@@ -4511,7 +4684,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     }
   }
 
-  void visitFunctionTypeAliasInScope(FunctionTypeAlias node) {
+  void visitFunctionTypeAliasInScope(covariant FunctionTypeAliasImpl node) {
     // Note: we don't visit metadata because it's not inside the function type
     // alias's type parameter scope.  It was already visited in
     // [visitFunctionTypeAlias].
@@ -4524,7 +4697,8 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
-  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+  void visitFunctionTypedFormalParameter(
+      covariant FunctionTypedFormalParameterImpl node) {
     node.metadata.accept(this);
     Scope outerScope = nameScope;
     try {
@@ -4540,7 +4714,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   void visitFunctionTypedFormalParameterInScope(
-      FunctionTypedFormalParameter node) {
+      FunctionTypedFormalParameterImpl node) {
     // Note: we don't visit metadata because it's not inside the function typed
     // formal parameter's type parameter scope.  It was already visited in
     // [visitFunctionTypedFormalParameter].
@@ -4551,7 +4725,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
-  void visitGenericFunctionType(GenericFunctionType node) {
+  void visitGenericFunctionType(covariant GenericFunctionTypeImpl node) {
     var type = node.type;
     if (type == null) {
       // The function type hasn't been resolved yet, so we can't create a scope
@@ -4562,10 +4736,9 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
     Scope outerScope = nameScope;
     try {
-      GenericFunctionTypeElement element =
-          (node as GenericFunctionTypeImpl).declaredElement!;
+      GenericFunctionTypeElement element = node.declaredElement!;
       nameScope = TypeParameterScope(nameScope, element.typeParameters);
-      _setNodeNameScope(node, nameScope);
+      node.nameScope = nameScope;
       super.visitGenericFunctionType(node);
     } finally {
       nameScope = outerScope;
@@ -4573,13 +4746,13 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
-  void visitGenericTypeAlias(GenericTypeAlias node) {
+  void visitGenericTypeAlias(covariant GenericTypeAliasImpl node) {
     node.metadata.accept(this);
     Scope outerScope = nameScope;
     try {
       var element = node.declaredElement as TypeAliasElement;
       nameScope = TypeParameterScope(nameScope, element.typeParameters);
-      _setNodeNameScope(node, nameScope);
+      node.nameScope = nameScope;
       visitGenericTypeAliasInScope(node);
 
       var aliasedElement = element.aliasedElement;
@@ -4643,8 +4816,8 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
-  void visitMethodDeclaration(MethodDeclaration node) {
-    (node.body as FunctionBodyImpl).localVariableInfo = _localVariableInfo;
+  void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
+    node.body.localVariableInfo = _localVariableInfo;
     node.metadata.accept(this);
     Scope outerScope = nameScope;
     try {
@@ -4653,14 +4826,14 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         nameScope,
         element.typeParameters,
       );
-      _setNodeNameScope(node, nameScope);
+      node.nameScope = nameScope;
       visitMethodDeclarationInScope(node);
     } finally {
       nameScope = outerScope;
     }
   }
 
-  void visitMethodDeclarationInScope(MethodDeclaration node) {
+  void visitMethodDeclarationInScope(MethodDeclarationImpl node) {
     // Note: we don't visit metadata because it's not inside the method's type
     // parameter scope.  It was already visited in [visitMethodDeclaration].
     node.returnType?.accept(this);
@@ -4687,14 +4860,14 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
-  void visitMixinDeclaration(MixinDeclaration node) {
+  void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
     Scope outerScope = nameScope;
     try {
-      final element = node.declaredElement!;
+      var element = node.declaredElement!;
       node.metadata.accept(this);
 
       nameScope = TypeParameterScope(nameScope, element.typeParameters);
-      _setNodeNameScope(node, nameScope);
+      node.nameScope = nameScope;
       visitMixinDeclarationInScope(node);
 
       nameScope = InterfaceScope(nameScope, element);
@@ -4710,7 +4883,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     node.implementsClause?.accept(this);
   }
 
-  void visitMixinMembersInScope(MixinDeclaration node) {
+  void visitMixinMembersInScope(MixinDeclarationImpl node) {
     visitDocumentationComment(node.documentationComment);
     node.members.accept(this);
   }
@@ -4804,7 +4977,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   ///
   /// @param node the statement to be visited
   void visitStatementInScope(Statement? node) {
-    if (node is Block) {
+    if (node is BlockImpl) {
       // Don't create a scope around a block because the block will create it's
       // own scope.
       visitBlock(node);
@@ -4825,7 +4998,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
     for (var case_ in node.cases) {
       _withNameScope(() {
-        _setNodeNameScope(case_, nameScope);
+        case_.nameScope = nameScope;
         var guardedPattern = case_.guardedPattern;
         var variables = guardedPattern.variables;
         for (var variable in variables.values) {
@@ -4995,7 +5168,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   void _withDeclaredLocals(
-    AstNode node,
+    AstNodeWithNameScopeMixin node,
     List<Statement> statements,
     void Function() f,
   ) {
@@ -5005,7 +5178,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       BlockScope.elementsInStatements(statements).forEach(enclosedScope.add);
 
       nameScope = enclosedScope;
-      _setNodeNameScope(node, nameScope);
+      node.nameScope = nameScope;
 
       f();
     } finally {
@@ -5029,14 +5202,8 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   /// Not every node has the scope set, for example we set the scopes for
   /// blocks, but statements don't have separate scopes. The compilation unit
   /// has the library scope.
-  static Scope? getNodeNameScope(AstNode node) {
-    return node.getProperty(_nameScopeProperty);
-  }
-
-  /// Set the [Scope] to use while resolving inside the [node].
-  static void _setNodeNameScope(AstNode node, Scope scope) {
-    node.setProperty(_nameScopeProperty, scope);
-  }
+  static Scope? getNodeNameScope(AstNode node) =>
+      node is AstNodeWithNameScopeMixin ? node.nameScope : null;
 }
 
 /// Tracker for whether a `switch` statement has `default` or is on an

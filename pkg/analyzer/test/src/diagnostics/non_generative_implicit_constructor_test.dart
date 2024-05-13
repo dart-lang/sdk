@@ -17,7 +17,7 @@ main() {
 class NonGenerativeImplicitConstructorTest extends PubPackageResolutionTest {
   test_explicit_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 
 augment class B {
   B.named();

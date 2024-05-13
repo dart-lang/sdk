@@ -1,5 +1,5 @@
 name: Request a cherry-pick.
-description: You would like to request that a feature be cherry-picked into a release.
+description: Request a patch to be cherry-picked into a release (for contributors use only).
 title: '[CP] <title>'
 labels: ['cherry-pick-review']
 assignees:

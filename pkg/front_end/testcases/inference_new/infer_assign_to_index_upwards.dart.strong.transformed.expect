@@ -1,0 +1,223 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_upwards.dart:153:2: Error: Expected ';' after this.
+//  st  var /*@type=num*/ v4 =
+//  ^^
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_upwards.dart:153:2: Error: Undefined name 'st'.
+//  st  var /*@type=num*/ v4 =
+//  ^^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class Test<T extends core::Object? = dynamic, U extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Test<self::Test::T%, self::Test::U%>
+    : super core::Object::•()
+    ;
+  abstract operator [](core::String s) → self::Test::T%;
+  abstract operator []=(core::String s, covariant-by-class self::Test::U% v) → void;
+}
+abstract class Test2<T extends core::Object? = dynamic, U extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Test2<self::Test2::T%, self::Test2::U%>
+    : super core::Object::•()
+    ;
+  abstract operator [](core::String s) → self::Test2::T?;
+  abstract operator []=(core::String s, covariant-by-class self::Test2::U? v) → void;
+}
+static method getInt() → core::int
+  return 0;
+static method getNum() → core::num
+  return 0;
+static method getDouble() → core::double
+  return 0.0;
+static method test1(self::Test<core::int, core::int> t, self::Test2<core::int, core::int> t2) → void {
+  core::int v1 = let final self::Test<core::int, core::int> #t1 = t in let final core::String #t2 = "x" in let final core::int #t3 = self::getInt() in let final void #t4 = #t1.{self::Test::[]=}(#t2, #t3){(core::String, core::int) → void} in #t3;
+  core::int v4 = let final self::Test2<core::int, core::int> #t5 = t2 in let final core::String #t6 = "x" in let final core::int? #t7 = #t5.{self::Test2::[]}(#t6){(core::String) → core::int?} in #t7 == null ?{core::int} let final core::int #t8 = self::getInt() in let final void #t9 = #t5.{self::Test2::[]=}(#t6, #t8){(core::String, core::int?) → void} in #t8 : #t7{core::int};
+  core::int v7 = let final self::Test<core::int, core::int> #t10 = t in let final core::String #t11 = "x" in let final core::int #t12 = #t10.{self::Test::[]}(#t11){(core::String) → core::int}.{core::num::+}(self::getInt()){(core::num) → core::int} in let final void #t13 = #t10.{self::Test::[]=}(#t11, #t12){(core::String, core::int) → void} in #t12;
+  core::int v10 = let final self::Test<core::int, core::int> #t14 = t in let final core::String #t15 = "x" in let final core::int #t16 = #t14.{self::Test::[]}(#t15){(core::String) → core::int}.{core::num::+}(1){(core::num) → core::int} in let final void #t17 = #t14.{self::Test::[]=}(#t15, #t16){(core::String, core::int) → void} in #t16;
+  core::int v11 = let final self::Test<core::int, core::int> #t18 = t in let final core::String #t19 = "x" in let final core::int #t20 = #t18.{self::Test::[]}(#t19){(core::String) → core::int} in let final void #t21 = #t18.{self::Test::[]=}(#t19, #t20.{core::num::+}(1){(core::num) → core::int}){(core::String, core::int) → void} in #t20;
+}
+static method test2(self::Test<core::int, core::num> t, self::Test2<core::int, core::num> t2) → void {
+  core::int v1 = let final self::Test<core::int, core::num> #t22 = t in let final core::String #t23 = "x" in let final core::int #t24 = self::getInt() in let final void #t25 = #t22.{self::Test::[]=}(#t23, #t24){(core::String, core::num) → void} in #t24;
+  core::num v2 = let final self::Test<core::int, core::num> #t26 = t in let final core::String #t27 = "x" in let final core::num #t28 = self::getNum() in let final void #t29 = #t26.{self::Test::[]=}(#t27, #t28){(core::String, core::num) → void} in #t28;
+  core::double v3 = let final self::Test<core::int, core::num> #t30 = t in let final core::String #t31 = "x" in let final core::double #t32 = self::getDouble() in let final void #t33 = #t30.{self::Test::[]=}(#t31, #t32){(core::String, core::num) → void} in #t32;
+  core::int v4 = let final self::Test2<core::int, core::num> #t34 = t2 in let final core::String #t35 = "x" in let final core::int? #t36 = #t34.{self::Test2::[]}(#t35){(core::String) → core::int?} in #t36 == null ?{core::int} let final core::int #t37 = self::getInt() in let final void #t38 = #t34.{self::Test2::[]=}(#t35, #t37){(core::String, core::num?) → void} in #t37 : #t36{core::int};
+  core::num v5 = let final self::Test2<core::int, core::num> #t39 = t2 in let final core::String #t40 = "x" in let final core::int? #t41 = #t39.{self::Test2::[]}(#t40){(core::String) → core::int?} in #t41 == null ?{core::num} let final core::num #t42 = self::getNum() in let final void #t43 = #t39.{self::Test2::[]=}(#t40, #t42){(core::String, core::num?) → void} in #t42 : #t41{core::int};
+  core::num v6 = let final self::Test2<core::int, core::num> #t44 = t2 in let final core::String #t45 = "x" in let final core::int? #t46 = #t44.{self::Test2::[]}(#t45){(core::String) → core::int?} in #t46 == null ?{core::num} let final core::double #t47 = self::getDouble() in let final void #t48 = #t44.{self::Test2::[]=}(#t45, #t47){(core::String, core::num?) → void} in #t47 : #t46{core::int};
+  core::int v7 = let final self::Test<core::int, core::num> #t49 = t in let final core::String #t50 = "x" in let final core::int #t51 = #t49.{self::Test::[]}(#t50){(core::String) → core::int}.{core::num::+}(self::getInt()){(core::num) → core::int} in let final void #t52 = #t49.{self::Test::[]=}(#t50, #t51){(core::String, core::num) → void} in #t51;
+  core::num v8 = let final self::Test<core::int, core::num> #t53 = t in let final core::String #t54 = "x" in let final core::num #t55 = #t53.{self::Test::[]}(#t54){(core::String) → core::int}.{core::num::+}(self::getNum()){(core::num) → core::num} in let final void #t56 = #t53.{self::Test::[]=}(#t54, #t55){(core::String, core::num) → void} in #t55;
+  core::double v9 = let final self::Test<core::int, core::num> #t57 = t in let final core::String #t58 = "x" in let final core::double #t59 = #t57.{self::Test::[]}(#t58){(core::String) → core::int}.{core::num::+}(self::getDouble()){(core::num) → core::double} in let final void #t60 = #t57.{self::Test::[]=}(#t58, #t59){(core::String, core::num) → void} in #t59;
+  core::int v10 = let final self::Test<core::int, core::num> #t61 = t in let final core::String #t62 = "x" in let final core::int #t63 = #t61.{self::Test::[]}(#t62){(core::String) → core::int}.{core::num::+}(1){(core::num) → core::int} in let final void #t64 = #t61.{self::Test::[]=}(#t62, #t63){(core::String, core::num) → void} in #t63;
+  core::int v11 = let final self::Test<core::int, core::num> #t65 = t in let final core::String #t66 = "x" in let final core::int #t67 = #t65.{self::Test::[]}(#t66){(core::String) → core::int} in let final void #t68 = #t65.{self::Test::[]=}(#t66, #t67.{core::num::+}(1){(core::num) → core::int}){(core::String, core::num) → void} in #t67;
+}
+static method test3(self::Test<core::int, core::double> t, self::Test2<core::int, core::double> t2) → void {
+  core::double v3 = let final self::Test<core::int, core::double> #t69 = t in let final core::String #t70 = "x" in let final core::double #t71 = self::getDouble() in let final void #t72 = #t69.{self::Test::[]=}(#t70, #t71){(core::String, core::double) → void} in #t71;
+  core::num v6 = let final self::Test2<core::int, core::double> #t73 = t2 in let final core::String #t74 = "x" in let final core::int? #t75 = #t73.{self::Test2::[]}(#t74){(core::String) → core::int?} in #t75 == null ?{core::num} let final core::double #t76 = self::getDouble() in let final void #t77 = #t73.{self::Test2::[]=}(#t74, #t76){(core::String, core::double?) → void} in #t76 : #t75{core::int};
+  core::double v9 = let final self::Test<core::int, core::double> #t78 = t in let final core::String #t79 = "x" in let final core::double #t80 = #t78.{self::Test::[]}(#t79){(core::String) → core::int}.{core::num::+}(self::getDouble()){(core::num) → core::double} in let final void #t81 = #t78.{self::Test::[]=}(#t79, #t80){(core::String, core::double) → void} in #t80;
+  core::double v10 = let final self::Test<core::int, core::double> #t82 = t in let final core::String #t83 = "x" in let final core::double #t84 = #t82.{self::Test::[]}(#t83){(core::String) → core::int}.{core::num::+}(1.0){(core::num) → core::double} in let final void #t85 = #t82.{self::Test::[]=}(#t83, #t84){(core::String, core::double) → void} in #t84;
+  core::int v11 = let final self::Test<core::int, core::double> #t86 = t in let final core::String #t87 = "x" in let final core::int #t88 = #t86.{self::Test::[]}(#t87){(core::String) → core::int} in let final void #t89 = #t86.{self::Test::[]=}(#t87, #t88.{core::num::+}(1.0){(core::num) → core::double}){(core::String, core::double) → void} in #t88;
+}
+static method test4(self::Test<core::num, core::int> t, self::Test2<core::num, core::int> t2) → void {
+  core::int v1 = let final self::Test<core::num, core::int> #t90 = t in let final core::String #t91 = "x" in let final core::int #t92 = self::getInt() in let final void #t93 = #t90.{self::Test::[]=}(#t91, #t92){(core::String, core::int) → void} in #t92;
+  core::num v4 = let final self::Test2<core::num, core::int> #t94 = t2 in let final core::String #t95 = "x" in let final core::num? #t96 = #t94.{self::Test2::[]}(#t95){(core::String) → core::num?} in #t96 == null ?{core::num} let final core::int #t97 = self::getInt() in let final void #t98 = #t94.{self::Test2::[]=}(#t95, #t97){(core::String, core::int?) → void} in #t97 : #t96{core::num};
+}
+static method test5(self::Test<core::num, core::num> t, self::Test2<core::num, core::num> t2) → void {
+  core::int v1 = let final self::Test<core::num, core::num> #t99 = t in let final core::String #t100 = "x" in let final core::int #t101 = self::getInt() in let final void #t102 = #t99.{self::Test::[]=}(#t100, #t101){(core::String, core::num) → void} in #t101;
+  core::num v2 = let final self::Test<core::num, core::num> #t103 = t in let final core::String #t104 = "x" in let final core::num #t105 = self::getNum() in let final void #t106 = #t103.{self::Test::[]=}(#t104, #t105){(core::String, core::num) → void} in #t105;
+  core::double v3 = let final self::Test<core::num, core::num> #t107 = t in let final core::String #t108 = "x" in let final core::double #t109 = self::getDouble() in let final void #t110 = #t107.{self::Test::[]=}(#t108, #t109){(core::String, core::num) → void} in #t109;
+  core::num v4 = let final self::Test2<core::num, core::num> #t111 = t2 in let final core::String #t112 = "x" in let final core::num? #t113 = #t111.{self::Test2::[]}(#t112){(core::String) → core::num?} in #t113 == null ?{core::num} let final core::int #t114 = self::getInt() in let final void #t115 = #t111.{self::Test2::[]=}(#t112, #t114){(core::String, core::num?) → void} in #t114 : #t113{core::num};
+  core::num v5 = let final self::Test2<core::num, core::num> #t116 = t2 in let final core::String #t117 = "x" in let final core::num? #t118 = #t116.{self::Test2::[]}(#t117){(core::String) → core::num?} in #t118 == null ?{core::num} let final core::num #t119 = self::getNum() in let final void #t120 = #t116.{self::Test2::[]=}(#t117, #t119){(core::String, core::num?) → void} in #t119 : #t118{core::num};
+  core::num v6 = let final self::Test2<core::num, core::num> #t121 = t2 in let final core::String #t122 = "x" in let final core::num? #t123 = #t121.{self::Test2::[]}(#t122){(core::String) → core::num?} in #t123 == null ?{core::num} let final core::double #t124 = self::getDouble() in let final void #t125 = #t121.{self::Test2::[]=}(#t122, #t124){(core::String, core::num?) → void} in #t124 : #t123{core::num};
+  core::num v7 = let final self::Test<core::num, core::num> #t126 = t in let final core::String #t127 = "x" in let final core::num #t128 = #t126.{self::Test::[]}(#t127){(core::String) → core::num}.{core::num::+}(self::getInt()){(core::num) → core::num} in let final void #t129 = #t126.{self::Test::[]=}(#t127, #t128){(core::String, core::num) → void} in #t128;
+  core::num v8 = let final self::Test<core::num, core::num> #t130 = t in let final core::String #t131 = "x" in let final core::num #t132 = #t130.{self::Test::[]}(#t131){(core::String) → core::num}.{core::num::+}(self::getNum()){(core::num) → core::num} in let final void #t133 = #t130.{self::Test::[]=}(#t131, #t132){(core::String, core::num) → void} in #t132;
+  core::double v9 = let final self::Test<core::num, core::num> #t134 = t in let final core::String #t135 = "x" in let final core::double #t136 = #t134.{self::Test::[]}(#t135){(core::String) → core::num}.{core::num::+}(self::getDouble()){(core::num) → core::double} in let final void #t137 = #t134.{self::Test::[]=}(#t135, #t136){(core::String, core::num) → void} in #t136;
+  core::num v10 = let final self::Test<core::num, core::num> #t138 = t in let final core::String #t139 = "x" in let final core::num #t140 = #t138.{self::Test::[]}(#t139){(core::String) → core::num}.{core::num::+}(1){(core::num) → core::num} in let final void #t141 = #t138.{self::Test::[]=}(#t139, #t140){(core::String, core::num) → void} in #t140;
+  core::num v11 = let final self::Test<core::num, core::num> #t142 = t in let final core::String #t143 = "x" in let final core::num #t144 = #t142.{self::Test::[]}(#t143){(core::String) → core::num} in let final void #t145 = #t142.{self::Test::[]=}(#t143, #t144.{core::num::+}(1){(core::num) → core::num}){(core::String, core::num) → void} in #t144;
+}
+static method test6(self::Test<core::num, core::double> t, self::Test2<core::num, core::double> t2) → void {
+  core::double v3 = let final self::Test<core::num, core::double> #t146 = t in let final core::String #t147 = "x" in let final core::double #t148 = self::getDouble() in let final void #t149 = #t146.{self::Test::[]=}(#t147, #t148){(core::String, core::double) → void} in #t148;
+  core::num v6 = let final self::Test2<core::num, core::double> #t150 = t2 in let final core::String #t151 = "x" in let final core::num? #t152 = #t150.{self::Test2::[]}(#t151){(core::String) → core::num?} in #t152 == null ?{core::num} let final core::double #t153 = self::getDouble() in let final void #t154 = #t150.{self::Test2::[]=}(#t151, #t153){(core::String, core::double?) → void} in #t153 : #t152{core::num};
+  core::double v9 = let final self::Test<core::num, core::double> #t155 = t in let final core::String #t156 = "x" in let final core::double #t157 = #t155.{self::Test::[]}(#t156){(core::String) → core::num}.{core::num::+}(self::getDouble()){(core::num) → core::double} in let final void #t158 = #t155.{self::Test::[]=}(#t156, #t157){(core::String, core::double) → void} in #t157;
+  core::double v10 = let final self::Test<core::num, core::double> #t159 = t in let final core::String #t160 = "x" in let final core::double #t161 = #t159.{self::Test::[]}(#t160){(core::String) → core::num}.{core::num::+}(1.0){(core::num) → core::double} in let final void #t162 = #t159.{self::Test::[]=}(#t160, #t161){(core::String, core::double) → void} in #t161;
+  core::num v11 = let final self::Test<core::num, core::double> #t163 = t in let final core::String #t164 = "x" in let final core::num #t165 = #t163.{self::Test::[]}(#t164){(core::String) → core::num} in let final void #t166 = #t163.{self::Test::[]=}(#t164, #t165.{core::num::+}(1.0){(core::num) → core::double}){(core::String, core::double) → void} in #t165;
+}
+static method test7(self::Test<core::double, core::int> t, self::Test2<core::double, core::int> t2) → void {
+  core::int v1 = let final self::Test<core::double, core::int> #t167 = t in let final core::String #t168 = "x" in let final core::int #t169 = self::getInt() in let final void #t170 = #t167.{self::Test::[]=}(#t168, #t169){(core::String, core::int) → void} in #t169;
+  invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_upwards.dart:153:2: Error: Undefined name 'st'.
+ st  var /*@type=num*/ v4 =
+ ^^";
+  core::num v4 = let final self::Test2<core::double, core::int> #t171 = t2 in let final core::String #t172 = "x" in let final core::double? #t173 = #t171.{self::Test2::[]}(#t172){(core::String) → core::double?} in #t173 == null ?{core::num} let final core::int #t174 = self::getInt() in let final void #t175 = #t171.{self::Test2::[]=}(#t172, #t174){(core::String, core::int?) → void} in #t174 : #t173{core::double};
+}
+static method test8(self::Test<core::double, core::num> t, self::Test2<core::double, core::num> t2) → void {
+  core::int v1 = let final self::Test<core::double, core::num> #t176 = t in let final core::String #t177 = "x" in let final core::int #t178 = self::getInt() in let final void #t179 = #t176.{self::Test::[]=}(#t177, #t178){(core::String, core::num) → void} in #t178;
+  core::num v2 = let final self::Test<core::double, core::num> #t180 = t in let final core::String #t181 = "x" in let final core::num #t182 = self::getNum() in let final void #t183 = #t180.{self::Test::[]=}(#t181, #t182){(core::String, core::num) → void} in #t182;
+  core::double v3 = let final self::Test<core::double, core::num> #t184 = t in let final core::String #t185 = "x" in let final core::double #t186 = self::getDouble() in let final void #t187 = #t184.{self::Test::[]=}(#t185, #t186){(core::String, core::num) → void} in #t186;
+  core::num v4 = let final self::Test2<core::double, core::num> #t188 = t2 in let final core::String #t189 = "x" in let final core::double? #t190 = #t188.{self::Test2::[]}(#t189){(core::String) → core::double?} in #t190 == null ?{core::num} let final core::int #t191 = self::getInt() in let final void #t192 = #t188.{self::Test2::[]=}(#t189, #t191){(core::String, core::num?) → void} in #t191 : #t190{core::double};
+  core::num v5 = let final self::Test2<core::double, core::num> #t193 = t2 in let final core::String #t194 = "x" in let final core::double? #t195 = #t193.{self::Test2::[]}(#t194){(core::String) → core::double?} in #t195 == null ?{core::num} let final core::num #t196 = self::getNum() in let final void #t197 = #t193.{self::Test2::[]=}(#t194, #t196){(core::String, core::num?) → void} in #t196 : #t195{core::double};
+  core::double v6 = let final self::Test2<core::double, core::num> #t198 = t2 in let final core::String #t199 = "x" in let final core::double? #t200 = #t198.{self::Test2::[]}(#t199){(core::String) → core::double?} in #t200 == null ?{core::double} let final core::double #t201 = self::getDouble() in let final void #t202 = #t198.{self::Test2::[]=}(#t199, #t201){(core::String, core::num?) → void} in #t201 : #t200{core::double};
+  core::double v7 = let final self::Test<core::double, core::num> #t203 = t in let final core::String #t204 = "x" in let final core::double #t205 = #t203.{self::Test::[]}(#t204){(core::String) → core::double}.{core::double::+}(self::getInt()){(core::num) → core::double} in let final void #t206 = #t203.{self::Test::[]=}(#t204, #t205){(core::String, core::num) → void} in #t205;
+  core::double v8 = let final self::Test<core::double, core::num> #t207 = t in let final core::String #t208 = "x" in let final core::double #t209 = #t207.{self::Test::[]}(#t208){(core::String) → core::double}.{core::double::+}(self::getNum()){(core::num) → core::double} in let final void #t210 = #t207.{self::Test::[]=}(#t208, #t209){(core::String, core::num) → void} in #t209;
+  core::double v9 = let final self::Test<core::double, core::num> #t211 = t in let final core::String #t212 = "x" in let final core::double #t213 = #t211.{self::Test::[]}(#t212){(core::String) → core::double}.{core::double::+}(self::getDouble()){(core::num) → core::double} in let final void #t214 = #t211.{self::Test::[]=}(#t212, #t213){(core::String, core::num) → void} in #t213;
+  core::double v10 = let final self::Test<core::double, core::num> #t215 = t in let final core::String #t216 = "x" in let final core::double #t217 = #t215.{self::Test::[]}(#t216){(core::String) → core::double}.{core::double::+}(1){(core::num) → core::double} in let final void #t218 = #t215.{self::Test::[]=}(#t216, #t217){(core::String, core::num) → void} in #t217;
+  core::double v11 = let final self::Test<core::double, core::num> #t219 = t in let final core::String #t220 = "x" in let final core::double #t221 = #t219.{self::Test::[]}(#t220){(core::String) → core::double} in let final void #t222 = #t219.{self::Test::[]=}(#t220, #t221.{core::double::+}(1){(core::num) → core::double}){(core::String, core::num) → void} in #t221;
+}
+static method test9(self::Test<core::double, core::double> t, self::Test2<core::double, core::double> t2) → void {
+  core::double v3 = let final self::Test<core::double, core::double> #t223 = t in let final core::String #t224 = "x" in let final core::double #t225 = self::getDouble() in let final void #t226 = #t223.{self::Test::[]=}(#t224, #t225){(core::String, core::double) → void} in #t225;
+  core::double v6 = let final self::Test2<core::double, core::double> #t227 = t2 in let final core::String #t228 = "x" in let final core::double? #t229 = #t227.{self::Test2::[]}(#t228){(core::String) → core::double?} in #t229 == null ?{core::double} let final core::double #t230 = self::getDouble() in let final void #t231 = #t227.{self::Test2::[]=}(#t228, #t230){(core::String, core::double?) → void} in #t230 : #t229{core::double};
+  core::double v7 = let final self::Test<core::double, core::double> #t232 = t in let final core::String #t233 = "x" in let final core::double #t234 = #t232.{self::Test::[]}(#t233){(core::String) → core::double}.{core::double::+}(self::getInt()){(core::num) → core::double} in let final void #t235 = #t232.{self::Test::[]=}(#t233, #t234){(core::String, core::double) → void} in #t234;
+  core::double v8 = let final self::Test<core::double, core::double> #t236 = t in let final core::String #t237 = "x" in let final core::double #t238 = #t236.{self::Test::[]}(#t237){(core::String) → core::double}.{core::double::+}(self::getNum()){(core::num) → core::double} in let final void #t239 = #t236.{self::Test::[]=}(#t237, #t238){(core::String, core::double) → void} in #t238;
+  core::double v9 = let final self::Test<core::double, core::double> #t240 = t in let final core::String #t241 = "x" in let final core::double #t242 = #t240.{self::Test::[]}(#t241){(core::String) → core::double}.{core::double::+}(self::getDouble()){(core::num) → core::double} in let final void #t243 = #t240.{self::Test::[]=}(#t241, #t242){(core::String, core::double) → void} in #t242;
+  core::double v10 = let final self::Test<core::double, core::double> #t244 = t in let final core::String #t245 = "x" in let final core::double #t246 = #t244.{self::Test::[]}(#t245){(core::String) → core::double}.{core::double::+}(1){(core::num) → core::double} in let final void #t247 = #t244.{self::Test::[]=}(#t245, #t246){(core::String, core::double) → void} in #t246;
+  core::double v11 = let final self::Test<core::double, core::double> #t248 = t in let final core::String #t249 = "x" in let final core::double #t250 = #t248.{self::Test::[]}(#t249){(core::String) → core::double} in let final void #t251 = #t248.{self::Test::[]=}(#t249, #t250.{core::double::+}(1){(core::num) → core::double}){(core::String, core::double) → void} in #t250;
+}
+static method main() → dynamic {}
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:23:50 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:26:54 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:26:54 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:29:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:29:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:33:71 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:33:71 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:36:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:36:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:40:50 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:42:50 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:44:53 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:47:54 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:47:54 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:50:54 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:50:54 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:53:54 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:53:54 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:56:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:56:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:60:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:60:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:64:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:64:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:68:71 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:68:71 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:71:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:71:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:75:53 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:78:54 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:78:54 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:81:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:81:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:85:71 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:85:71 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:88:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:88:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:92:50 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:95:54 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:95:54 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:99:50 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:101:50 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:103:53 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:106:54 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:106:54 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:109:54 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:109:54 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:112:54 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:112:54 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:115:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:115:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:119:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:119:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:123:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:123:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:127:71 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:127:71 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:130:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:130:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:134:53 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:137:54 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:137:54 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:140:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:140:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:144:71 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:144:71 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:147:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:147:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:151:50 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:154:54 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:154:54 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:158:50 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:160:50 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:162:53 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:165:54 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:165:54 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:168:54 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:168:54 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:171:54 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:171:54 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:174:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:174:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:178:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:178:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:182:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:182:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:186:74 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:186:74 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:189:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:189:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:193:53 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:196:54 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:196:54 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:199:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:199:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:203:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:203:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:207:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:207:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:211:74 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:211:74 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:214:51 -> StringConstant("x")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_upwards.dart:214:51 -> StringConstant("x")
+Extra constant evaluation: evaluated: 871, effectively constant: 103

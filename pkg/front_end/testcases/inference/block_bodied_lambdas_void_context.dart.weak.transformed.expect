@@ -1,11 +1,19 @@
-library test /*isLegacy*/;
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/block_bodied_lambdas_void_context.dart:11:32: Error: Can't return a value from a void function.
+//     return i /*@target=num.+*/ + 1;
+//                                ^
+//
 import self as self;
 import "dart:core" as core;
 
-static method f() → dynamic {
-  core::List<core::int*>* o;
-  o.{core::Iterable::forEach}((core::int* i) → core::int* {
-    return i.{core::num::+}(1){(core::num*) →* core::int*};
-  }){((core::int*) →* void) →* void};
+static method f(core::List<core::int> o) → dynamic {
+  o.{core::Iterable::forEach}((core::int i) → void {
+    return invalid-expression "pkg/front_end/testcases/inference/block_bodied_lambdas_void_context.dart:11:32: Error: Can't return a value from a void function.
+    return i /*@target=num.+*/ + 1;
+                               ^" in i.{core::num::+}(1){(core::num) → core::int};
+  }){((core::int) → void) → void};
 }
 static method main() → dynamic {}

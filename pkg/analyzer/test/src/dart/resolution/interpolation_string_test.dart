@@ -23,11 +23,11 @@ var bar;
 var f = "foo$bar";
 ''';
     await assertNoErrorsInCode(code);
-    final string = findNode.stringInterpolation(r'"foo$bar"');
+    var string = findNode.stringInterpolation(r'"foo$bar"');
 
     expect(string.elements, hasLength(3));
 
-    final foo = string.elements[0] as InterpolationString;
+    var foo = string.elements[0] as InterpolationString;
     var quoteOffset = code.indexOf('"');
     expect(foo.contents.lexeme, '"foo');
     expect(foo.contents.offset, quoteOffset);
@@ -40,15 +40,15 @@ var bar;
 var f = "foo${bar}baz";
 ''';
     await assertNoErrorsInCode(code);
-    final string = findNode.stringInterpolation(r'"foo${bar}baz"');
+    var string = findNode.stringInterpolation(r'"foo${bar}baz"');
     expect(string.elements, hasLength(3));
     var quoteOffset = code.indexOf('"');
 
-    final foo = string.elements[0] as InterpolationString;
+    var foo = string.elements[0] as InterpolationString;
     expect(foo.contentsOffset, quoteOffset + '"'.length);
     expect(foo.contentsEnd, quoteOffset + '"foo'.length);
 
-    final bar = string.elements[2] as InterpolationString;
+    var bar = string.elements[2] as InterpolationString;
     expect(bar.contentsOffset, quoteOffset + r'"foo${bar}'.length);
     expect(bar.contentsEnd, quoteOffset + r'"foo${bar}baz'.length);
   }
@@ -59,11 +59,11 @@ var bar;
 var f = "foo${bar}";
 ''';
     await assertNoErrorsInCode(code);
-    final string = findNode.stringInterpolation(r'"foo${bar}"');
+    var string = findNode.stringInterpolation(r'"foo${bar}"');
     expect(string.elements, hasLength(3));
 
-    final end = string.elements[2] as InterpolationString;
-    final endStringOffset = code.indexOf('";');
+    var end = string.elements[2] as InterpolationString;
+    var endStringOffset = code.indexOf('";');
     expect(end.contentsOffset, endStringOffset);
     expect(end.contentsEnd, endStringOffset);
   }
@@ -78,11 +78,11 @@ var f = "foo${bar}
     await assertErrorsInCode(code, [
       error(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, code.indexOf('}'), 1)
     ]);
-    final string = findNode.stringInterpolation(r'"foo${bar}');
+    var string = findNode.stringInterpolation(r'"foo${bar}');
     expect(string.elements, hasLength(3));
 
-    final end = string.elements[2] as InterpolationString;
-    final endStringOffset = code.indexOf('}') + 1;
+    var end = string.elements[2] as InterpolationString;
+    var endStringOffset = code.indexOf('}') + 1;
     expect(end.contentsOffset, endStringOffset);
     expect(end.contentsEnd, endStringOffset);
   }
@@ -98,12 +98,12 @@ var f = "foo${bar}'
     await assertErrorsInCode(code, [
       error(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, code.indexOf("'"), 1),
     ]);
-    final string = findNode.stringInterpolation('"foo\${bar}\'');
+    var string = findNode.stringInterpolation('"foo\${bar}\'');
     expect(string.elements, hasLength(3));
 
-    final end = string.elements[2] as InterpolationString;
+    var end = string.elements[2] as InterpolationString;
     expect(end.value, "'");
-    final endStringOffset = code.indexOf("'") + 1;
+    var endStringOffset = code.indexOf("'") + 1;
     expect(end.contentsOffset, endStringOffset);
     expect(end.contentsEnd, endStringOffset);
   }
@@ -114,10 +114,10 @@ var bar;
 var f = "foo\n$bar";
 ''';
     await assertNoErrorsInCode(code);
-    final string = findNode.stringInterpolation(r'"foo\n$bar"');
+    var string = findNode.stringInterpolation(r'"foo\n$bar"');
     expect(string.elements, hasLength(3));
 
-    final foo = string.elements[0] as InterpolationString;
+    var foo = string.elements[0] as InterpolationString;
     expect(foo.value, "foo\n");
   }
 }

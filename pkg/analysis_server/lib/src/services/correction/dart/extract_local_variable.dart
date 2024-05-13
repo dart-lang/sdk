@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -139,7 +139,7 @@ class _ExpressionEncoder {
   final Map<Element, int> _elementIds = {};
 
   String encode(Expression node) {
-    var tokens = TokenUtils.getNodeTokens(node);
+    var tokens = node.tokens;
 
     var tokenToElementMap = Map<Token, Element>.identity();
     node.accept(

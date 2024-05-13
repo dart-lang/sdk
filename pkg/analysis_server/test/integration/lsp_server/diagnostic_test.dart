@@ -26,7 +26,7 @@ class DiagnosticTest extends AbstractLspAnalysisServerIntegrationTest {
   }
 
   Future<void> test_contextMessage() async {
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 void f() {
   x = 0;
   int [!x!] = 1;
@@ -35,20 +35,20 @@ void f() {
 ''');
     newFile(mainFilePath, code.code);
 
-    final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    var diagnosticsUpdate = waitForDiagnostics(mainFileUri);
     await initialize();
-    final diagnostics = (await diagnosticsUpdate)!;
+    var diagnostics = (await diagnosticsUpdate)!;
 
     expect(diagnostics, hasLength(1));
-    final diagnostic = diagnostics.first;
+    var diagnostic = diagnostics.first;
     expect(
         diagnostic.message,
         startsWith(
             "Local variable 'x' can't be referenced before it is declared"));
 
-    final relatedInformation = diagnostic.relatedInformation!;
+    var relatedInformation = diagnostic.relatedInformation!;
     expect(relatedInformation, hasLength(1));
-    final relatedInfo = relatedInformation.first;
+    var relatedInfo = relatedInformation.first;
     expect(relatedInfo.message, equals("The declaration of 'x' is here."));
     expect(relatedInfo.location.uri, equals(mainFileUri));
     expect(relatedInfo.location.range, equals(code.range.range));
@@ -57,11 +57,11 @@ void f() {
   Future<void> test_initialAnalysis() async {
     newFile(mainFilePath, 'String a = 1;');
 
-    final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    var diagnosticsUpdate = waitForDiagnostics(mainFileUri);
     await initialize();
-    final diagnostics = (await diagnosticsUpdate)!;
+    var diagnostics = (await diagnosticsUpdate)!;
     expect(diagnostics, hasLength(1));
-    final diagnostic = diagnostics.first;
+    var diagnostic = diagnostics.first;
     expect(diagnostic.code, equals('invalid_assignment'));
     expect(diagnostic.range.start.line, equals(0));
     expect(diagnostic.range.start.character, equals(11));
@@ -77,11 +77,11 @@ linter:
     - await_only_futures
     ''');
 
-    final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    var diagnosticsUpdate = waitForDiagnostics(mainFileUri);
     await initialize();
-    final diagnostics = (await diagnosticsUpdate)!;
+    var diagnostics = (await diagnosticsUpdate)!;
     expect(diagnostics, hasLength(1));
-    final diagnostic = diagnostics.first;
+    var diagnostic = diagnostics.first;
     expect(diagnostic.code, equals('await_only_futures'));
     expect(diagnostic.range.start.line, equals(0));
     expect(diagnostic.range.start.character, equals(18));
@@ -92,22 +92,22 @@ linter:
   /// Ensure we get diagnostics for a project even if the workspace contains
   /// another folder that does not exist.
   Future<void> test_workspaceFolders_existsAndDoesNotExist() async {
-    final rootPath = projectFolderUri.toFilePath();
-    final existingFolderUri = Uri.file(pathContext.join(rootPath, 'exists'));
-    final existingFileUri =
+    var rootPath = projectFolderUri.toFilePath();
+    var existingFolderUri = Uri.file(pathContext.join(rootPath, 'exists'));
+    var existingFileUri =
         Uri.file(pathContext.join(rootPath, 'exists', 'main.dart'));
-    final nonExistingFolderUri =
+    var nonExistingFolderUri =
         Uri.file(pathContext.join(rootPath, 'does_not_exist'));
 
     newFolder(existingFolderUri.toFilePath());
     newFile(existingFileUri.toFilePath(), 'NotAClass a;');
 
-    final diagnosticsFuture = waitForDiagnostics(existingFileUri);
+    var diagnosticsFuture = waitForDiagnostics(existingFileUri);
 
     await initialize(
         workspaceFolders: [existingFolderUri, nonExistingFolderUri]);
 
-    final diagnostics = await diagnosticsFuture;
+    var diagnostics = await diagnosticsFuture;
     expect(diagnostics, hasLength(1));
     expect(diagnostics!.single.code, 'undefined_class');
   }

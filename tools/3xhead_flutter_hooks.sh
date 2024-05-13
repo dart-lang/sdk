@@ -8,7 +8,7 @@
 # latest dart sdk, run this script to apply workarounds to the source code. It
 # may patch up the source code so the three HEADs work together correctly.
 #
-# Usage: src/third_party/dart/tools/3xhead_flutter_hooks.sh
+# Usage: src/flutter/third_party/dart/tools/3xhead_flutter_hooks.sh
 # (run inside the root of a flutter engine checkout)
 
 set -e
@@ -20,4 +20,4 @@ ensure_in_checkout_root
 
 # Copy changed dependencies from Dart DEPS to engine DEPS and update them in
 # checkout.
-src/third_party/dart/tools/patches/flutter-engine/apply.sh
+src/flutter/third_party/dart/tools/patches/flutter-engine/apply.sh

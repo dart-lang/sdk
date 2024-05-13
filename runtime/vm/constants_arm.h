@@ -718,6 +718,8 @@ class CallingConventions {
   // How stack arguments are aligned.
   static constexpr AlignmentStrategy kArgumentStackAlignment =
       kAlignedToWordSizeAndValueSize;
+  static constexpr AlignmentStrategy kArgumentStackAlignmentVarArgs =
+      kArgumentStackAlignment;
 
   // How fields in compounds are aligned.
 #if defined(DART_TARGET_OS_MACOS_IOS)
@@ -1334,6 +1336,9 @@ inline Register ConcreteRegister(LinkRegister) {
 #undef LR
 
 #define LINK_REGISTER (LinkRegister())
+
+// Prioritize code size over performance.
+const intptr_t kPreferredLoopAlignment = 1;
 
 }  // namespace dart
 

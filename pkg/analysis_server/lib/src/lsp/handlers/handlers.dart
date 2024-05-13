@@ -185,7 +185,7 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
     String path, {
     bool waitForInProgressContextRebuilds = true,
   }) async {
-    final result = await server.getResolvedLibrary(path);
+    var result = await server.getResolvedLibrary(path);
     if (result == null) {
       // Handle retry if allowed.
       if (waitForInProgressContextRebuilds) {
@@ -213,7 +213,7 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
     String path, {
     bool waitForInProgressContextRebuilds = true,
   }) async {
-    final result = await server.getResolvedUnit(path);
+    var result = await server.getResolvedUnit(path);
     if (result == null) {
       // Handle retry if allowed.
       if (waitForInProgressContextRebuilds) {
@@ -239,7 +239,7 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
     String path, {
     bool waitForInProgressContextRebuilds = true,
   }) async {
-    final result = await server.getParsedUnit(path);
+    var result = await server.getParsedUnit(path);
     if (result == null) {
       // Handle retry if allowed.
       if (waitForInProgressContextRebuilds) {
@@ -265,12 +265,12 @@ mixin LspHandlerHelperMixin {
   LspAnalysisServer get server;
 
   bool fileHasBeenModified(String path, int? clientVersion) {
-    final serverDocumentVersion = server.getDocumentVersion(path);
+    var serverDocumentVersion = server.getDocumentVersion(path);
     return clientVersion != null && clientVersion != serverDocumentVersion;
   }
 
   ErrorOr<LineInfo> getLineInfo(String path) {
-    final lineInfo = server.getLineInfo(path);
+    var lineInfo = server.getLineInfo(path);
 
     if (lineInfo == null) {
       return error(ServerErrorCodes.InvalidFilePath,
@@ -288,8 +288,8 @@ mixin LspPluginRequestHandlerMixin<T extends AnalysisServer>
     RequestParams params, {
     Duration timeout = const Duration(milliseconds: 500),
   }) {
-    final driver = server.getAnalysisDriver(path);
-    final pluginFutures = server.broadcastRequestToPlugins(params, driver);
+    var driver = server.getAnalysisDriver(path);
+    var pluginFutures = server.broadcastRequestToPlugins(params, driver);
     return waitForResponses(pluginFutures,
         requestParameters: params, timeout: timeout);
   }
@@ -319,8 +319,8 @@ abstract class MessageHandler<P, R, S extends AnalysisServer>
   /// [NotificationMessage]s are not expected to return results.
   FutureOr<ErrorOr<R>> handleMessage(IncomingMessage message,
       MessageInfo messageInfo, CancellationToken token) {
-    final reporter = LspJsonReporter('params');
-    final paramsJson = message.params as Map<String, Object?>?;
+    var reporter = LspJsonReporter('params');
+    var paramsJson = message.params as Map<String, Object?>?;
     if (!jsonHandler.validateParams(paramsJson, reporter)) {
       return error(
         ErrorCodes.InvalidParams,
@@ -330,7 +330,7 @@ abstract class MessageHandler<P, R, S extends AnalysisServer>
       );
     }
 
-    final params =
+    var params =
         paramsJson != null ? jsonHandler.convertParams(paramsJson) : null as P;
     return handle(params, messageInfo, token);
   }
@@ -378,7 +378,7 @@ abstract class ServerStateMessageHandler {
     MessageInfo messageInfo, {
     CancellationToken? cancellationToken,
   }) async {
-    final handler = _messageHandlers[message.method];
+    var handler = _messageHandlers[message.method];
     if (handler == null) {
       return handleUnknownMessage(message);
     }
@@ -393,7 +393,7 @@ abstract class ServerStateMessageHandler {
     // will need to specifically check the token after `await`s.
     cancellationToken ??= _cancelHandler.createToken(message);
     try {
-      final result =
+      var result =
           await handler.handleMessage(message, messageInfo, cancellationToken);
       // Do a final check before returning the result, because if the request was
       // cancelled we can save the overhead of serializing everything to JSON
@@ -432,7 +432,7 @@ abstract class ServerStateMessageHandler {
     }
 
     // Messages that start with $/ are optional.
-    final stringValue = message.method.toJson();
+    var stringValue = message.method.toJson();
     return stringValue is String && stringValue.startsWith(r'$/');
   }
 }

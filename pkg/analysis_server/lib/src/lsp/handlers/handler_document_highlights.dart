@@ -31,13 +31,13 @@ class DocumentHighlightsHandler extends SharedMessageHandler<
       return success(const []);
     }
 
-    final pos = params.position;
-    final path = pathOfDoc(params.textDocument);
-    final unit = await path.mapResult(requireResolvedUnit);
-    final offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
+    var pos = params.position;
+    var path = pathOfDoc(params.textDocument);
+    var unit = await path.mapResult(requireResolvedUnit);
+    var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
 
     return (unit, offset).mapResults((unit, requestedOffset) async {
-      final collector = OccurrencesCollectorImpl();
+      var collector = OccurrencesCollectorImpl();
       addDartOccurrences(collector, unit.unit);
 
       /// Checks whether an Occurrence offset/length spans the requested
@@ -51,7 +51,7 @@ class DocumentHighlightsHandler extends SharedMessageHandler<
       }
 
       // Find an occurrence that has an instance that spans the position.
-      final occurrences = collector.allOccurrences
+      var occurrences = collector.allOccurrences
           .where((occurrence) => occurrence.offsets.any(
               (offset) => spansRequestedPosition(offset, occurrence.length)))
           .toList();

@@ -1265,19 +1265,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     _classEmittingExtends = c;
 
     // Unroll mixins.
-    if (shouldDefer(supertype)) {
-      var originalSupertype = supertype;
-      deferredSupertypes.add(() => runtimeStatement('setBaseClass(#, #)', [
-            getBaseClass(mixinApplications.length),
-            emitDeferredClassRef(originalSupertype),
-          ]));
-      // Refers to 'supertype' without type parameters. We remove these from
-      // the 'extends' clause for generics for cyclic dependencies and append
-      // them later with 'setBaseClass'.
-      supertype =
-          _coreTypes.rawType(supertype.classNode, _currentLibrary!.nonNullable);
-    }
-    var baseClass = emitClassRef(supertype);
+    var baseClass = shouldDefer(supertype)
+        ? emitDeferredClassRef(supertype)
+        : emitClassRef(supertype);
 
     // TODO(jmesserly): we need to unroll kernel mixins because the synthetic
     // classes lack required synthetic members, such as constructors.
@@ -2197,7 +2187,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
                   superMemberFunction!.positionalParameters[0])) {
         return const [];
       }
-      var setterType = substituteType(superMember.superSetterType);
+      var setterType =
+          substituteType(superMember.superSetterType).extensionTypeErasure;
       if (_types.isTop(setterType)) return const [];
       return [
         js_ast.Method(
@@ -3826,12 +3817,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       DartType typeParameterType;
       if (t is TypeParameter) {
         isCovariantByClass = t.isCovariantByClass;
-        bound = t.bound;
+        bound = t.bound.extensionTypeErasure;
         name = t.name!;
         typeParameterType = TypeParameterType(t, Nullability.undetermined);
       } else {
         t as StructuralParameter;
-        bound = t.bound;
+        bound = t.bound.extensionTypeErasure;
         name = t.name!;
         typeParameterType =
             StructuralParameterType(t, Nullability.undetermined);
@@ -3950,8 +3941,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   ///
   /// This is the most common kind of marking, and is used for most expressions
   /// and statements.
-  SourceLocation? _nodeStart(TreeNode node) =>
-      _toSourceLocation(node.fileOffset);
+  SourceLocation? _nodeStart(TreeNode node) => node is StringConcatenation
+      // Manually selecting the location of the first element to work around the
+      // location on the StringConcatenation node that points to the end of
+      // String. See https://github.com/dart-lang/sdk/issues/55690.
+      ? _toSourceLocation(node.expressions.first.fileOffset)
+      : _toSourceLocation(node.fileOffset);
 
   /// Gets the end position of [node] for use in source mapping.
   ///
@@ -4701,12 +4696,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     body.add(_visitStatement(node.body).toScopedBlock(vars));
     var then = js_ast.Block(body);
-
+    var guardType = node.guard.extensionTypeErasure;
     // Discard following clauses, if any, as they are unreachable.
-    if (_types.isTop(node.guard)) return then;
+    if (_types.isTop(guardType)) return then;
 
     var condition =
-        _emitIsExpression(VariableGet(exceptionParameter), node.guard);
+        _emitIsExpression(VariableGet(exceptionParameter), guardType);
     return js_ast.If(condition, then, otherwise)
       ..sourceInformation = _nodeStart(node);
   }
@@ -4861,9 +4856,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   // TODO(jmesserly): resugar operators for kernel, such as ++x, x++, x+=.
   @override
-  js_ast.Expression visitVariableSet(VariableSet node) =>
-      _visitExpression(node.value)
-          .toAssignExpression(_emitVariableRef(node.variable));
+  js_ast.Expression visitVariableSet(VariableSet node) {
+    // Make the source information of the assignment use the start of the right
+    // hand side, to help normalize the inconsistent locations of the CFE
+    // lowerings for ++x, x++, x+=, etc.
+    // See https://github.com/dart-lang/sdk/issues/55691.
+    return _visitExpression(node.value)
+        .toAssignExpression(_emitVariableRef(node.variable))
+      ..sourceInformation = _nodeStart(node.value);
+  }
 
   @override
   js_ast.Expression visitDynamicGet(DynamicGet node) {
@@ -5581,7 +5582,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         /// Emits an inlined binary operation using the JS [code], adding null
         /// checks if needed to ensure we throw the appropriate error.
         js_ast.Expression binary(String code) {
-          return js.call(code, [notNull(left), notNull(right)]);
+          return js.call(code, [notNull(left), notNull(right)])
+            ..sourceInformation = continueSourceMap;
         }
 
         js_ast.Expression bitwise(String code) {
@@ -6851,9 +6853,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   js_ast.Expression _emitCast(js_ast.Expression expr, DartType type) {
-    if (_types.isTop(type)) return expr;
+    var normalizedType = type.extensionTypeErasure;
+    if (_types.isTop(normalizedType)) return expr;
     return js.call('#.#(#)', [
-      _emitType(type),
+      _emitType(normalizedType),
       _emitMemberName(js_ast.FixedNames.rtiAsField, memberClass: rtiClass),
       expr
     ]);

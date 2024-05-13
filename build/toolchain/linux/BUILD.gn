@@ -163,7 +163,7 @@ gcc_toolchain("clang_x86") {
 }
 
 gcc_toolchain("x86") {
-  prefix = ""
+  prefix = "i686-linux-gnu-"
   if (ia32_toolchain_prefix != "") {
     prefix = ia32_toolchain_prefix
   }
@@ -205,7 +205,7 @@ gcc_toolchain("clang_x64") {
 }
 
 gcc_toolchain("x64") {
-  prefix = ""
+  prefix = "x86_64-linux-gnu-"
   if (x64_toolchain_prefix != "") {
     prefix = x64_toolchain_prefix
   }

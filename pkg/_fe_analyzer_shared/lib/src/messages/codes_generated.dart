@@ -5901,6 +5901,28 @@ const MessageCode messageFfiAddressOfMustBeNative = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiAddressPosition = messageFfiAddressPosition;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiAddressPosition = const MessageCode(
+  "FfiAddressPosition",
+  problemMessage:
+      r"""The '.address' expression can only be used as argument to a leaf native external call.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiAddressReceiver = messageFfiAddressReceiver;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiAddressReceiver = const MessageCode(
+  "FfiAddressReceiver",
+  problemMessage:
+      r"""The receiver of '.address' must be a concrete 'TypedData', a concrete 'TypedData' '[]', an 'Array', an 'Array' '[]', a Struct field, or a Union field.""",
+  correctionMessage:
+      r"""Change the receiver of '.address' to one of the allowed kinds.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string, String name)>
     templateFfiCompoundImplementsFinalizable =
     const Template<Message Function(String string, String name)>(
@@ -11242,6 +11264,35 @@ Message _withArgumentsLanguageVersionTooHigh(int count, int count2) {
     codeLanguageVersionTooHigh,
     problemMessage:
         """The specified language version is too high. The highest supported language version is ${count}.${count2}.""",
+    arguments: {
+      'count': count,
+      'count2': count2,
+    },
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(int count, int count2)>
+    templateLanguageVersionTooLow =
+    const Template<Message Function(int count, int count2)>(
+  "LanguageVersionTooLow",
+  problemMessageTemplate:
+      r"""The specified language version is too low. The lowest supported language version is #count.#count2.""",
+  withArguments: _withArgumentsLanguageVersionTooLow,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(int count, int count2)> codeLanguageVersionTooLow =
+    const Code<Message Function(int count, int count2)>(
+  "LanguageVersionTooLow",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsLanguageVersionTooLow(int count, int count2) {
+  return new Message(
+    codeLanguageVersionTooLow,
+    problemMessage:
+        """The specified language version is too low. The lowest supported language version is ${count}.${count2}.""",
     arguments: {
       'count': count,
       'count2': count2,

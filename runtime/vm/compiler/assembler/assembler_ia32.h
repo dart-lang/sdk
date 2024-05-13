@@ -469,7 +469,7 @@ class Assembler : public AssemblerBase {
   void testb(const Address& address, const Immediate& imm);
   void testb(const Address& address, ByteRegister reg);
 
-// clang-format off
+  // clang-format off
 // Macro for handling common ALU instructions. Arguments to F:
 //   name, opcode, reversed opcode, opcode for the reg field of the modrm byte.
 #define ALU_OPS(F)                                                             \
@@ -585,9 +585,7 @@ class Assembler : public AssemblerBase {
 
   // Sets the return address to [value] as if there was a call.
   // On IA32 pushes [value].
-  void SetReturnAddress(Register value) {
-    PushRegister(value);
-  }
+  void SetReturnAddress(Register value) { PushRegister(value); }
 
   void PushValueAtOffset(Register base, int32_t offset) {
     pushl(Address(base, offset));
@@ -676,9 +674,9 @@ class Assembler : public AssemblerBase {
     // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
     // with other loads).
     Load(dst, address, size);
-#if defined(TARGET_USES_THREAD_SANITIZER)
-#error No support for TSAN on IA32.
-#endif
+    if (FLAG_target_thread_sanitizer) {
+      FATAL("No support for TSAN on IA32.");
+    }
   }
   void StoreRelease(Register src,
                     const Address& address,
@@ -686,9 +684,9 @@ class Assembler : public AssemblerBase {
     // On intel stores have store-release behavior (i.e. stores are not
     // re-ordered with other stores).
     Store(src, address, size);
-#if defined(TARGET_USES_THREAD_SANITIZER)
-#error No support for TSAN on IA32.
-#endif
+    if (FLAG_target_thread_sanitizer) {
+      FATAL("No support for TSAN on IA32.");
+    }
   }
 
   void CompareWithMemoryValue(Register value,
@@ -718,9 +716,7 @@ class Assembler : public AssemblerBase {
     AddImmediate(reg, Immediate(value));
   }
   void AddImmediate(Register dest, Register src, int32_t value);
-  void AddRegisters(Register dest, Register src) {
-    addl(dest, src);
-  }
+  void AddRegisters(Register dest, Register src) { addl(dest, src); }
   // [dest] = [src] << [scale] + [value].
   void AddScaled(Register dest,
                  Register src,
@@ -752,9 +748,7 @@ class Assembler : public AssemblerBase {
   void AndRegisters(Register dst,
                     Register src1,
                     Register src2 = kNoRegister) override;
-  void OrImmediate(Register dst, int32_t value) {
-    orl(dst, Immediate(value));
-  }
+  void OrImmediate(Register dst, int32_t value) { orl(dst, Immediate(value)); }
   void LslImmediate(Register dst, int32_t shift) {
     shll(dst, Immediate(shift));
   }
@@ -899,9 +893,7 @@ class Assembler : public AssemblerBase {
 
   void CallCFunction(Address target) { Call(target); }
 
-  void CallCFunction(Register target) {
-    call(target);
-  }
+  void CallCFunction(Register target) { call(target); }
 
   void Jmp(const Code& code);
   void J(Condition condition, const Code& code);
@@ -1036,9 +1028,7 @@ class Assembler : public AssemblerBase {
     jmp(label, distance);
   }
   // Unconditional jump to a given address in register.
-  void Jump(Register target) {
-    jmp(target);
-  }
+  void Jump(Register target) { jmp(target); }
 
   // Moves one word from the memory at [from] to the memory at [to].
   // Needs a temporary register.

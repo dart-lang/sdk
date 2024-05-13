@@ -46,7 +46,7 @@ class TypeDefinitionHandler extends SharedMessageHandler<TypeDefinitionParams,
       return success(_emptyResult);
     }
 
-    final clientCapabilities = server.lspClientCapabilities;
+    var clientCapabilities = server.lspClientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return serverNotInitializedError;
@@ -57,28 +57,28 @@ class TypeDefinitionHandler extends SharedMessageHandler<TypeDefinitionParams,
     /// to distinguish between codeRange and nameRange (selectionRange), and
     /// also an `originSelectionRange` that tells the client which range the
     /// result is valid for.
-    final supportsLocationLink = clientCapabilities.typeDefinitionLocationLink;
-    final pos = params.position;
-    final path = pathOfDoc(params.textDocument);
+    var supportsLocationLink = clientCapabilities.typeDefinitionLocationLink;
+    var pos = params.position;
+    var path = pathOfDoc(params.textDocument);
 
     return path.mapResult((path) async {
-      final result = await server.getResolvedUnit(path);
+      var result = await server.getResolvedUnit(path);
       if (result == null) {
         return success(_emptyResult);
       }
 
-      final offset = toOffset(result.lineInfo, pos);
+      var offset = toOffset(result.lineInfo, pos);
       return offset.mapResult((offset) async {
-        final node = NodeLocator(offset).searchWithin(result.unit);
+        var node = NodeLocator(offset).searchWithin(result.unit);
         if (node == null) {
           return success(_emptyResult);
         }
 
-        final SyntacticEntity originEntity;
+        SyntacticEntity originEntity;
         DartType? type;
         if (node is NamedType) {
           originEntity = node.name2;
-          final element = node.element;
+          var element = node.element;
           if (element is InterfaceElement) {
             type = element.thisType;
           }
@@ -103,15 +103,15 @@ class TypeDefinitionHandler extends SharedMessageHandler<TypeDefinitionParams,
         }
 
         // Obtain a `LineInfo` for the targets file to map offsets.
-        final targetUnitElement =
+        var targetUnitElement =
             element.thisOrAncestorOfType<CompilationUnitElement>();
-        final targetLineInfo = targetUnitElement?.lineInfo;
+        var targetLineInfo = targetUnitElement?.lineInfo;
         if (targetLineInfo == null) {
           return success(_emptyResult);
         }
 
-        final converter = AnalyzerConverter();
-        final location = converter.locationFromElement(element);
+        var converter = AnalyzerConverter();
+        var location = converter.locationFromElement(element);
         if (location == null) {
           return success(_emptyResult);
         }
@@ -149,12 +149,12 @@ class TypeDefinitionHandler extends SharedMessageHandler<TypeDefinitionParams,
     analyzer.ElementImpl targetElement,
     plugin.Location targetLocation,
   ) {
-    final nameRange =
+    var nameRange =
         toRange(targetLineInfo, targetLocation.offset, targetLocation.length);
 
-    final codeOffset = targetElement.codeOffset;
-    final codeLength = targetElement.codeLength;
-    final codeRange = codeOffset != null && codeLength != null
+    var codeOffset = targetElement.codeOffset;
+    var codeLength = targetElement.codeLength;
+    var codeRange = codeOffset != null && codeLength != null
         ? toRange(targetLineInfo, codeOffset, codeLength)
         : nameRange;
 
@@ -171,19 +171,19 @@ class TypeDefinitionHandler extends SharedMessageHandler<TypeDefinitionParams,
   /// invoking Go to Type Definition.
   static DartType? _getType(Expression node) {
     if (node is SimpleIdentifier) {
-      final element = node.staticElement;
+      var element = node.staticElement;
       if (element is InterfaceElement) {
         return element.thisType;
       } else if (element is VariableElement) {
         if (node.inDeclarationContext()) {
           return element.type;
         }
-        final parent = node.parent?.parent;
+        var parent = node.parent?.parent;
         if (parent is NamedExpression && parent.name.label == node) {
           return element.type;
         }
       } else if (node.inSetterContext()) {
-        final writeElement = node.writeElement;
+        var writeElement = node.writeElement;
         if (writeElement is PropertyAccessorElement) {
           return writeElement.variable2?.type;
         }

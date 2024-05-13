@@ -969,6 +969,28 @@ UNIT_TEST_CASE_WITH_ZONE(
   RunSignatureTest(Z, "variadic_stradle_last_register", native_signature);
 }
 
+// Struct parameter that potentially is partially allocated to a register and
+// partially to the stack. Mainly interesting on ARM64 and RISC-V.
+//
+// See the *.expect in ./unit_tests for this behavior.
+UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_variadic_less_than_word) {
+#if defined(TARGET_ARCH_IS_32_BIT)
+  const auto& halfptr_type = *new (Z) NativePrimitiveType(kInt16);
+#elif defined(TARGET_ARCH_IS_64_BIT)
+  const auto& halfptr_type = *new (Z) NativePrimitiveType(kInt32);
+#endif
+
+  auto& arguments = *new (Z) NativeTypes(Z, 12);
+  for (intptr_t i = 0; i < 12; i++) {
+    arguments.Add(&halfptr_type);
+  }
+
+  const auto& native_signature = *new (Z) NativeFunctionType(
+      arguments, halfptr_type, /*variadic_arguments_index=*/1);
+
+  RunSignatureTest(Z, "variadic_less_than_word", native_signature);
+}
+
 }  // namespace ffi
 }  // namespace compiler
 }  // namespace dart

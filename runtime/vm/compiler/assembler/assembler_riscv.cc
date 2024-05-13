@@ -2567,7 +2567,6 @@ void Assembler::Jump(const Address& address) {
   jr(TMP2);
 }
 
-#if defined(TARGET_USES_THREAD_SANITIZER)
 void Assembler::TsanLoadAcquire(Register addr) {
   LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
   MoveRegister(A0, addr);
@@ -2578,7 +2577,6 @@ void Assembler::TsanStoreRelease(Register addr) {
   MoveRegister(A0, addr);
   rt.Call(kTsanStoreReleaseRuntimeEntry, /*argument_count=*/1);
 }
-#endif
 
 void Assembler::LoadAcquire(Register dst,
                             const Address& address,
@@ -2587,14 +2585,14 @@ void Assembler::LoadAcquire(Register dst,
   Load(dst, address, size);
   fence(HartEffects::kRead, HartEffects::kMemory);
 
-#if defined(TARGET_USES_THREAD_SANITIZER)
-  if (address.offset() == 0) {
-    TsanLoadAcquire(address.base());
-  } else {
-    AddImmediate(TMP2, address.base(), address.offset());
-    TsanLoadAcquire(TMP2);
+  if (FLAG_target_thread_sanitizer) {
+    if (address.offset() == 0) {
+      TsanLoadAcquire(address.base());
+    } else {
+      AddImmediate(TMP2, address.base(), address.offset());
+      TsanLoadAcquire(TMP2);
+    }
   }
-#endif
 }
 
 void Assembler::StoreRelease(Register src,
@@ -3773,7 +3771,7 @@ void Assembler::EnterFullSafepoint(Register state) {
   ASSERT(addr != state);
 
   Label slow_path, done, retry;
-  if (FLAG_use_slow_path || kTargetUsesThreadSanitizer) {
+  if (FLAG_use_slow_path || FLAG_target_thread_sanitizer) {
     j(&slow_path, Assembler::kNearJump);
   }
 
@@ -3787,7 +3785,7 @@ void Assembler::EnterFullSafepoint(Register state) {
   sc(state, state, Address(addr, 0));
   beqz(state, &done, Assembler::kNearJump);  // 0 means sc was successful.
 
-  if (!FLAG_use_slow_path && !kTargetUsesThreadSanitizer) {
+  if (!FLAG_use_slow_path && !FLAG_target_thread_sanitizer) {
     j(&retry, Assembler::kNearJump);
   }
 
@@ -3809,7 +3807,7 @@ void Assembler::ExitFullSafepoint(Register state,
   ASSERT(addr != state);
 
   Label slow_path, done, retry;
-  if (FLAG_use_slow_path || kTargetUsesThreadSanitizer) {
+  if (FLAG_use_slow_path || FLAG_target_thread_sanitizer) {
     j(&slow_path, Assembler::kNearJump);
   }
 
@@ -3823,7 +3821,7 @@ void Assembler::ExitFullSafepoint(Register state,
   sc(state, state, Address(addr, 0));
   beqz(state, &done, Assembler::kNearJump);  // 0 means sc was successful.
 
-  if (!FLAG_use_slow_path && !kTargetUsesThreadSanitizer) {
+  if (!FLAG_use_slow_path && !FLAG_target_thread_sanitizer) {
     j(&retry, Assembler::kNearJump);
   }
 

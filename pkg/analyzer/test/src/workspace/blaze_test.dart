@@ -608,10 +608,10 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
 
   void test_contains_samePackage() {
     _setUpPackage();
-    final targetFile = newFile('/ws/some/code/lib/code2.dart', '');
-    final targetFile2 = newFile('/ws/some/code/lib/src/code3.dart', '');
-    final targetBinFile = newFile('/ws/some/code/bin/code.dart', '');
-    final targetTestFile = newFile('/ws/some/code/test/code_test.dart', '');
+    var targetFile = newFile('/ws/some/code/lib/code2.dart', '');
+    var targetFile2 = newFile('/ws/some/code/lib/src/code3.dart', '');
+    var targetBinFile = newFile('/ws/some/code/bin/code.dart', '');
+    var targetTestFile = newFile('/ws/some/code/test/code_test.dart', '');
 
     expect(package!.contains(_testSource(targetFile.path)), isTrue);
     expect(package!.contains(_testSource(targetFile2.path)), isTrue);
@@ -623,8 +623,8 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
     _setUpPackage();
     newFile('/ws/some/code/lib/code2.dart', '');
     newFile('/ws/some/code/lib/src/code3.dart', '');
-    final file2Source = _inSummarySource('package:some.code/code2.dart');
-    final file3Source = _inSummarySource('package:some.code/src/code2.dart');
+    var file2Source = _inSummarySource('package:some.code/code2.dart');
+    var file3Source = _inSummarySource('package:some.code/src/code2.dart');
 
     expect(package!.contains(file2Source), isTrue);
     expect(package!.contains(file3Source), isTrue);
@@ -691,7 +691,7 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
       resourceProvider,
       convertPath('/ws/some/code'),
     )!;
-    final targetFile = newFile('/ws/some/code/lib/code.dart', '');
+    var targetFile = newFile('/ws/some/code/lib/code.dart', '');
 
     package = workspace.findPackageFor(targetFile.path);
     expect(package, isNull);

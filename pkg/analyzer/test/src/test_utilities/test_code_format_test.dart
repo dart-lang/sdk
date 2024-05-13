@@ -16,10 +16,10 @@ void main() {
 @reflectiveTest
 class TestCodeFormatTest {
   void test_noMarkers() {
-    final markedCode = '''
+    var markedCode = '''
 int a = 1;
 ''';
-    final code = TestCode.parse(markedCode);
+    var code = TestCode.parse(markedCode);
     expect(code.markedCode, markedCode);
     expect(code.code, markedCode); // no difference
     expect(code.positions, isEmpty);
@@ -27,15 +27,15 @@ int a = 1;
   }
 
   void test_positions() {
-    final markedCode = '''
+    var markedCode = '''
 int /*0*/a = 1;/*1*/
 int b/*2*/ = 2;
 ''';
-    final expectedCode = '''
+    var expectedCode = '''
 int a = 1;
 int b = 2;
 ''';
-    final code = TestCode.parse(markedCode);
+    var code = TestCode.parse(markedCode);
     expect(code.markedCode, markedCode);
     expect(code.code, expectedCode);
     expect(code.ranges, isEmpty);
@@ -46,13 +46,13 @@ int b = 2;
   }
 
   void test_positions_nonShorthandCaret() {
-    final markedCode = '''
+    var markedCode = '''
 String /*0*/a = '^^^';
     ''';
-    final expectedCode = '''
+    var expectedCode = '''
 String a = '^^^';
     ''';
-    final code = TestCode.parse(markedCode, positionShorthand: false);
+    var code = TestCode.parse(markedCode, positionShorthand: false);
     expect(code.markedCode, markedCode);
     expect(code.code, expectedCode);
 
@@ -64,20 +64,20 @@ String a = '^^^';
   }
 
   void test_positions_numberReused() {
-    final markedCode = '''
+    var markedCode = '''
 /*0*/ /*1*/ /*0*/
 ''';
     expect(() => TestCode.parse(markedCode), throwsArgumentError);
   }
 
   void test_positions_shorthand() {
-    final markedCode = '''
+    var markedCode = '''
 int ^a = 1
     ''';
-    final expectedCode = '''
+    var expectedCode = '''
 int a = 1
     ''';
-    final code = TestCode.parse(markedCode);
+    var code = TestCode.parse(markedCode);
     expect(code.markedCode, markedCode);
     expect(code.code, expectedCode);
 
@@ -89,29 +89,29 @@ int a = 1
   }
 
   void test_positions_shorthandReused() {
-    final markedCode = '''
+    var markedCode = '''
 ^ ^
 ''';
     expect(() => TestCode.parse(markedCode), throwsArgumentError);
   }
 
   void test_positions_shorthandReusedNumber() {
-    final markedCode = '''
+    var markedCode = '''
 /*0*/ ^
 ''';
     expect(() => TestCode.parse(markedCode), throwsArgumentError);
   }
 
   void test_ranges() {
-    final markedCode = '''
+    var markedCode = '''
 int /*[0*/a = 1;/*0]*/
 /*[1*/int b = 2;/*1]*/
 ''';
-    final expectedCode = '''
+    var expectedCode = '''
 int a = 1;
 int b = 2;
 ''';
-    final code = TestCode.parse(markedCode);
+    var code = TestCode.parse(markedCode);
     expect(code.markedCode, markedCode);
     expect(code.code, expectedCode);
     expect(code.positions, isEmpty);
@@ -125,7 +125,7 @@ int b = 2;
   }
 
   void test_ranges_endReused() {
-    final markedCode = '''
+    var markedCode = '''
 /*[0*/ /*0]*/
 /*[1*/ /*0]*/
 ''';
@@ -133,17 +133,17 @@ int b = 2;
   }
 
   void test_ranges_endWithoutStart() {
-    final markedCode = '''
+    var markedCode = '''
 /*0]*/
 ''';
     expect(() => TestCode.parse(markedCode), throwsArgumentError);
   }
 
   void test_ranges_nonShorthandMarkers() {
-    final markedCode = '''
+    var markedCode = '''
 String a = '[!not markers!]';
     ''';
-    final code = TestCode.parse(markedCode, rangeShorthand: false);
+    var code = TestCode.parse(markedCode, rangeShorthand: false);
     expect(code.markedCode, markedCode);
     expect(code.code, markedCode); // No change.
 
@@ -152,15 +152,15 @@ String a = '[!not markers!]';
   }
 
   void test_ranges_shorthand() {
-    final markedCode = '''
+    var markedCode = '''
 int [!a = 1;!]
 int b = 2;
 ''';
-    final expectedCode = '''
+    var expectedCode = '''
 int a = 1;
 int b = 2;
 ''';
-    final code = TestCode.parse(markedCode);
+    var code = TestCode.parse(markedCode);
     expect(code.markedCode, markedCode);
     expect(code.code, expectedCode);
     expect(code.positions, isEmpty);
@@ -172,7 +172,7 @@ int b = 2;
   }
 
   void test_ranges_shorthandReused() {
-    final markedCode = '''
+    var markedCode = '''
 int [!a = 1;!]
 int [!b = 2!];
 ''';
@@ -180,7 +180,7 @@ int [!b = 2!];
   }
 
   void test_ranges_shorthandReusedNumber() {
-    final markedCode = '''
+    var markedCode = '''
 int [!a = 1;!]
 int /*[0*/b = 2/*0]*/;
 ''';
@@ -188,7 +188,7 @@ int /*[0*/b = 2/*0]*/;
   }
 
   void test_ranges_startReused() {
-    final markedCode = '''
+    var markedCode = '''
 /*[0*/ /*0]*/
 /*[0*/ /*1]*/
 ''';
@@ -196,7 +196,7 @@ int /*[0*/b = 2/*0]*/;
   }
 
   void test_ranges_startWithoutEnd() {
-    final markedCode = '''
+    var markedCode = '''
 /*[0*/
 ''';
     expect(() => TestCode.parse(markedCode), throwsArgumentError);

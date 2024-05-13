@@ -69,7 +69,7 @@ class SearchEngineImpl implements SearchEngine {
       }
     }
 
-    await addMembers(type.augmented?.declaration ?? type, null);
+    await addMembers(type.augmented.declaration, null);
 
     if (!hasSubtypes) {
       return null;

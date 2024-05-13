@@ -13,7 +13,7 @@ class AddMissingParameterNamed extends ResolvedCorrectionProducer {
   String _parameterName = '';
 
   @override
-  List<Object> get fixArguments => [_parameterName];
+  List<String> get fixArguments => [_parameterName];
 
   @override
   FixKind get fixKind => DartFixKind.ADD_MISSING_PARAMETER_NAMED;

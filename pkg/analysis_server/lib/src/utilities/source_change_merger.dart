@@ -28,11 +28,11 @@ class SourceChangeMerger {
 
   /// Merges a set of edits in-place.
   List<SourceFileEdit> merge(List<SourceFileEdit> edits) {
-    final results = <SourceFileEdit>[];
+    var results = <SourceFileEdit>[];
 
-    for (final entry in edits.groupListsBy((edit) => edit.file).entries) {
-      final file = entry.key;
-      final editLists = entry.value;
+    for (var entry in edits.groupListsBy((edit) => edit.file).entries) {
+      var file = entry.key;
+      var editLists = entry.value;
 
       // If this file only had a single set of edits, we don't need to do
       // anything.
@@ -71,7 +71,7 @@ class SourceChangeMerger {
     }
 
     debugBuffer.writeln('$editKind edits:');
-    for (final edit in edits) {
+    for (var edit in edits) {
       debugBuffer.writeln('   $edit');
     }
     debugBuffer.writeln();
@@ -87,8 +87,8 @@ class SourceChangeMerger {
       // "first" refers to position in the list (and order they were intended to
       // be sequentially applied) and not necessarily offset/source order. Most
       // edits will be in reverse order in the list.
-      final first = edits[i];
-      final second = edits[i + 1];
+      var first = edits[i];
+      var second = edits[i + 1];
 
       if (second.end < first.offset) {
         // Since we know non-intersecting/touching edits are ordered correctly,
@@ -112,19 +112,19 @@ class SourceChangeMerger {
     // be sequentially applied) and not necessarily offset/source order. Most
     // edits will be in reverse order in the list.
 
-    final actualStart = math.min(first.offset, second.offset);
-    final actualEnd = math.max(first.end, second.end - first.delta);
-    final length = actualEnd - actualStart;
+    var actualStart = math.min(first.offset, second.offset);
+    var actualEnd = math.max(first.end, second.end - first.delta);
+    var length = actualEnd - actualStart;
 
     // The new replacement text is made up of three possible parts:
     // 1. The start of first that is not replaced by second (prefix)
     // 2. The text from second (middle)
     // 3. The end of first that is not replaced by second (suffix)
-    final prefix = second.offset > first.offset
+    var prefix = second.offset > first.offset
         ? first.replacement.substring(0, second.offset - first.offset)
         : '';
-    final middle = second.replacement;
-    final suffix = second.end < first.offset + first.replacement.length
+    var middle = second.replacement;
+    var suffix = second.end < first.offset + first.replacement.length
         ? first.replacement.substring(second.end - first.offset)
         : '';
 

@@ -66,10 +66,10 @@ class Chain extends Suite {
     List<String> includeEndsWith =
         List<String>.from(json['includeEndsWith'] ?? const []);
     List<RegExp> pattern = [
-      for (final p in json['pattern'] ?? const []) new RegExp(p)
+      for (final p in json['pattern'] ?? const []) RegExp(p)
     ];
     List<RegExp> exclude = [
-      for (final e in json['exclude'] ?? const []) new RegExp(e)
+      for (final e in json['exclude'] ?? const []) RegExp(e)
     ];
     return Chain(name, kind, source, rootUri, subRoots, statusFile,
         includeEndsWith, pattern, exclude);
@@ -289,7 +289,7 @@ abstract class ChainContext {
             include = true;
           }
           if (include) {
-            result.add(new FileBasedTestDescription(suite.root, entity));
+            result.add(FileBasedTestDescription(suite.root, entity));
           }
         }
       } else {
@@ -419,7 +419,7 @@ Future<void> runChain(CreateContext f, Map<String, String> environment,
 }
 
 RegExp _createRegExpForAsterisk(String s) {
-  StringBuffer sb = new StringBuffer("^");
+  StringBuffer sb = StringBuffer("^");
   String between = "";
   for (String split in s.split("*")) {
     sb.write(between);
@@ -427,5 +427,5 @@ RegExp _createRegExpForAsterisk(String s) {
     sb.write(RegExp.escape(split));
   }
   sb.write("\$");
-  return new RegExp(sb.toString());
+  return RegExp(sb.toString());
 }

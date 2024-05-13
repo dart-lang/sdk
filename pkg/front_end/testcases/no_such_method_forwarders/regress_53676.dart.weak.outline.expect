@@ -8,7 +8,7 @@ class C extends core::Object {
   method noSuchMethod(core::Invocation i) → dynamic
     ;
   no-such-method-forwarder method foo() → core::String
-    return this.{self::C::noSuchMethod}(new core::_InvocationMirror::_withType(#foo, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::String;
+    return this.{self::C::noSuchMethod}(new core::_InvocationMirror::_withType(#foo, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::String;
 }
 abstract class M extends core::Object /*isMixinDeclaration*/  {
   method noSuchMethod(core::Invocation i) → dynamic
@@ -22,7 +22,7 @@ class MA = core::Object with self::M /*hasConstConstructor*/  {
   mixin-super-stub method noSuchMethod(core::Invocation i) → dynamic
     return super.{self::M::noSuchMethod}(i);
   no-such-method-forwarder method foo() → core::String
-    return this.{self::MA::noSuchMethod}(new core::_InvocationMirror::_withType(#foo, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::String;
+    return this.{self::MA::noSuchMethod}(new core::_InvocationMirror::_withType(#foo, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::String;
 }
 static method main() → void
   ;

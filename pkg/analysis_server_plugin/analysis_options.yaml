@@ -1,0 +1,29 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+  errors:
+    # This package imports much of the implementation libraries of the
+    # 'analyzer' package, because it is tightly integrated. This will not
+    # likely change any time soon.
+    implementation_imports: ignore
+    non_constant_identifier_names: ignore
+
+linter:
+  rules:
+    - always_use_package_imports
+    - avoid_dynamic_calls
+    - avoid_redundant_argument_values
+    - avoid_unused_constructor_parameters
+    - flutter_style_todos
+    - library_annotations
+    - prefer_single_quotes
+    - unawaited_futures
+    - unnecessary_breaks
+    - unnecessary_library_directive
+    - unnecessary_parenthesis
+    - unreachable_from_main
+

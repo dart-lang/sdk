@@ -41,18 +41,18 @@ class FixAllCommandHandler extends SimpleEditCommandHandler
     // Get the version of the doc before we calculate edits so we can send it
     // back to the client so that they can discard this edit if the document has
     // been modified since.
-    final path = parameters['path'] as String;
-    final docIdentifier = server.getVersionedDocumentIdentifier(path);
-    final autoTriggered = parameters['autoTriggered'] == true;
+    var path = parameters['path'] as String;
+    var docIdentifier = server.getVersionedDocumentIdentifier(path);
+    var autoTriggered = parameters['autoTriggered'] == true;
 
-    final operation = _FixAllOperation(
+    var operation = _FixAllOperation(
       server: server,
       message: message,
       path: path,
       cancellationToken: cancellationToken,
       autoTriggered: autoTriggered,
     );
-    final edit = await operation.computeEdits();
+    var edit = await operation.computeEdits();
 
     return edit.mapResult((edit) async {
       if (edit == null) {
@@ -102,7 +102,7 @@ class _FixAllOperation extends TemporaryOverlayOperation
 
   Future<ErrorOr<WorkspaceEdit?>> computeEdits() async {
     return await lockRequestsWithTemporaryOverlays(() async {
-      final result = await requireResolvedUnit(path);
+      var result = await requireResolvedUnit(path);
       return result.mapResult(_computeEditsImpl);
     });
   }
@@ -113,12 +113,12 @@ class _FixAllOperation extends TemporaryOverlayOperation
       return error(ErrorCodes.RequestCancelled, 'Request was cancelled');
     }
 
-    final context = server.contextManager.getContextFor(path);
+    var context = server.contextManager.getContextFor(path);
     if (context == null) {
       return success(null);
     }
 
-    final processor = IterativeBulkFixProcessor(
+    var processor = IterativeBulkFixProcessor(
       instrumentationService: server.instrumentationService,
       context: context,
       applyTemporaryOverlayEdits: applyTemporaryOverlayEdits,
@@ -144,7 +144,7 @@ class _FixAllOperation extends TemporaryOverlayOperation
     // LineInfos to reflect the original state while mapping to LSP.
     await revertOverlays();
 
-    final edit = createPlainWorkspaceEdit(server, changes);
+    var edit = createPlainWorkspaceEdit(server, changes);
 
     return success(edit);
   }

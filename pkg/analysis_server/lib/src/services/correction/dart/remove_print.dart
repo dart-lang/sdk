@@ -19,19 +19,19 @@ class RemovePrint extends ResolvedCorrectionProducer {
   FixKind get fixKind => DartFixKind.REMOVE_PRINT;
 
   @override
-  List<Object> get multiFixArguments => [];
+  List<String> get multiFixArguments => [];
 
   @override
   FixKind get multiFixKind => DartFixKind.REMOVE_PRINT_MULTI;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final printInvocation = node.findSimplePrintInvocation();
+    var printInvocation = node.findSimplePrintInvocation();
     if (printInvocation != null) {
       await builder.addDartFileEdit(file, (builder) {
         var start = utils.getLineContentStart(printInvocation.offset);
         var end = utils.getLineContentEnd(printInvocation.end);
-        final nextLine = utils.getLineNext(printInvocation.end);
+        var nextLine = utils.getLineNext(printInvocation.end);
         if (nextLine != end) {
           // Preserve indent if there is more on the line after the print.
           start = printInvocation.offset;

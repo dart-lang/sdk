@@ -1,0 +1,7 @@
+{
+  "exclude": [
+    "d8",
+    "chrome"
+  ],
+  "expectedError": "Error: Expected ';' after this"
+}

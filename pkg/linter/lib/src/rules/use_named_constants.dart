@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 
@@ -46,7 +47,7 @@ class UseNamedConstants extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this, context);
+    var visitor = _Visitor(this);
     registry.addInstanceCreationExpression(this, visitor);
   }
 }
@@ -54,9 +55,7 @@ class UseNamedConstants extends LintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  final LinterContext context;
-
-  _Visitor(this.rule, this.context);
+  _Visitor(this.rule);
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
@@ -78,7 +77,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
         var library = (node.root as CompilationUnit).declaredElement?.library;
         if (library == null) return;
-        var value = context.evaluateConstant(node).value;
+        var value = node.computeConstantValue().value;
         for (var field
             in element.fields.where((e) => e.isStatic && e.isConst)) {
           if (field.isAccessibleIn(library) &&

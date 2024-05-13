@@ -32,7 +32,7 @@ class FakeTypesBuilder extends TypesBuilder {
   int _classIdCounter = 0;
 
   FakeTypesBuilder(CoreTypes coreTypes, Target target)
-      : super(coreTypes, target, /*soundNullSafety=*/ true);
+      : super(coreTypes, target);
 
   @override
   TFClass getTFClass(Class c) =>

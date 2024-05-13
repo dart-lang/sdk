@@ -23,7 +23,7 @@ void f(Object x) {
 }
 ''');
 
-    final node = findNode.ifElement('if');
+    var node = findNode.ifElement('if');
     assertResolvedNodeText(node, r'''
 IfElement
   ifKeyword: if
@@ -57,7 +57,7 @@ final x = 0;
 final y = [ if (x case var a) a ];
 ''');
 
-    final node = findNode.singleIfElement;
+    var node = findNode.singleIfElement;
     assertResolvedNodeText(node, r'''
 IfElement
   ifKeyword: if
@@ -107,7 +107,7 @@ void f(Object x) {
           contextMessages: [message(testFile, 56, 1)]),
     ]);
 
-    final node = findNode.ifElement('if');
+    var node = findNode.ifElement('if');
     assertResolvedNodeText(node, r'''
 IfElement
   ifKeyword: if
@@ -184,7 +184,7 @@ void f(Object x) {
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 79, 1),
     ]);
 
-    final node = findNode.ifElement('if');
+    var node = findNode.ifElement('if');
     assertResolvedNodeText(node, r'''
 IfElement
   ifKeyword: if
@@ -245,7 +245,7 @@ class A {
       error(CompileTimeErrorCode.NON_BOOL_CONDITION, 32, 5),
     ]);
 
-    final node = findNode.singleIfElement;
+    var node = findNode.singleIfElement;
     assertResolvedNodeText(node, r'''
 IfElement
   ifKeyword: if
@@ -275,7 +275,7 @@ class A {
 }
 ''');
 
-    final node = findNode.ifElement('if');
+    var node = findNode.ifElement('if');
     assertResolvedNodeText(node, r'''
 IfElement
   ifKeyword: if
@@ -315,7 +315,7 @@ void f(bool Function() a) {
 }
 ''');
 
-    final node = findNode.ifElement('if');
+    var node = findNode.ifElement('if');
     assertResolvedNodeText(node, r'''
 IfElement
   ifKeyword: if
@@ -345,7 +345,7 @@ void f(int Function() a) {
 }
 ''');
 
-    final node = findNode.ifElement('if');
+    var node = findNode.ifElement('if');
     assertResolvedNodeText(node, r'''
 IfElement
   ifKeyword: if
@@ -383,7 +383,7 @@ void f(Object x, bool Function() a) {
 }
 ''');
 
-    final node = findNode.ifElement('if');
+    var node = findNode.ifElement('if');
     assertResolvedNodeText(node, r'''
 IfElement
   ifKeyword: if
@@ -427,7 +427,7 @@ void f(Object x) {
 }
 ''');
 
-    final node = findNode.ifElement('if');
+    var node = findNode.ifElement('if');
     assertResolvedNodeText(node, r'''
 IfElement
   ifKeyword: if

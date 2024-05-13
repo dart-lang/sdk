@@ -23,7 +23,7 @@ class MakeReturnTypeNullable extends ResolvedCorrectionProducer {
       return;
     }
 
-    final type = node.staticType;
+    var type = node.staticType;
     if (type == null) {
       return;
     }
@@ -60,7 +60,7 @@ class MakeReturnTypeNullable extends ResolvedCorrectionProducer {
       return;
     }
 
-    final returnType_final = returnType;
+    var returnType_final = returnType;
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleInsertion(returnType_final.end, '?');
     });

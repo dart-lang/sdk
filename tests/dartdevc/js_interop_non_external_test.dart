@@ -7,7 +7,7 @@
 @JS()
 library js_interop_non_external_test;
 
-import 'package:expect/minitest.dart';
+import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 import 'package:js/js.dart';
 
 import 'js_interop_non_external_lib.dart';

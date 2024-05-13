@@ -24,7 +24,6 @@ import 'package:front_end/src/api_unstable/vm.dart'
         DiagnosticMessageHandler,
         FileSystem,
         FileSystemEntity,
-        NnbdMode,
         ProcessedOptions,
         Severity,
         StandardFileSystem,
@@ -133,7 +132,9 @@ void declareCompilerOptions(ArgParser args) {
   args.addFlag('enable-asserts',
       help: 'Whether asserts will be enabled.', defaultsTo: false);
   args.addFlag('sound-null-safety',
-      help: 'Respect the nullability of types at runtime.', defaultsTo: true);
+      help: 'Respect the nullability of types at runtime.',
+      defaultsTo: true,
+      hide: true);
   args.addFlag('split-output-by-packages',
       help:
           'Split resulting kernel file into multiple files (one per package).',
@@ -195,12 +196,14 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 
   final String? nativeAssetsPath = options['native-assets'];
   final String? resourcesFilePath = options['resources-file'];
-  if ((options.rest.length != 1) || (platformKernel == null)) {
+  final bool splitOutputByPackages = options['split-output-by-packages'];
+  final String? input = options.rest.singleOrNull;
+  if ((input == null && (nativeAssetsPath == null || splitOutputByPackages)) ||
+      (platformKernel == null)) {
     print(usage);
     return badUsageExitCode;
   }
 
-  final String input = options.rest.single;
   final String outputFileName = options['output'] ?? "$input.dill";
   final String? packages = options['packages'];
   final String targetName = options['target'];
@@ -215,9 +218,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool linkPlatform = options['link-platform'];
   final bool embedSources = options['embed-sources'];
   final bool enableAsserts = options['enable-asserts'];
-  final bool soundNullSafety = options['sound-null-safety'];
   final bool useProtobufTreeShakerV2 = options['protobuf-tree-shaker-v2'];
-  final bool splitOutputByPackages = options['split-output-by-packages'];
   final String? manifestFilename = options['manifest'];
   final String? dataDir = options['component-name'] ?? options['data-dir'];
   final bool? supportMirrors = options['support-mirrors'];
@@ -229,6 +230,12 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final List<String> sources = options['source'];
 
   if (!parseCommandLineDefines(options['define'], environmentDefines, usage)) {
+    return badUsageExitCode;
+  }
+
+  final bool soundNullSafety = options['sound-null-safety'];
+  if (!soundNullSafety) {
+    print('Error: --no-sound-null-safety is not supported.');
     return badUsageExitCode;
   }
 
@@ -278,9 +285,12 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final Uri? resourcesFileUri =
       resourcesFilePath == null ? null : resolveInputUri(resourcesFilePath);
 
-  Uri mainUri = resolveInputUri(input);
-  if (packagesUri != null) {
-    mainUri = await convertToPackageUri(fileSystem, mainUri, packagesUri);
+  Uri? mainUri;
+  if (input != null) {
+    mainUri = resolveInputUri(input);
+    if (packagesUri != null) {
+      mainUri = await convertToPackageUri(fileSystem, mainUri, packagesUri);
+    }
   }
 
   final List<Uri> additionalSources = sources.map(resolveInputUri).toList();
@@ -293,7 +303,6 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     ..explicitExperimentalFlags = parseExperimentalFlags(
         parseExperimentalArguments(experimentalFlags),
         onError: print)
-    ..nnbdMode = soundNullSafety ? NnbdMode.Strong : NnbdMode.Weak
     ..onDiagnostic = (DiagnosticMessage m) {
       errorDetector(m);
     }
@@ -304,7 +313,6 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 
   compilerOptions.target = createFrontEndTarget(targetName,
       trackWidgetCreation: options['track-widget-creation'],
-      soundNullSafety: compilerOptions.nnbdMode == NnbdMode.Strong,
       supportMirrors: supportMirrors ?? !(aot || minimalKernel));
   if (compilerOptions.target == null) {
     print('Failed to create front-end target $targetName.');
@@ -358,7 +366,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     final BinaryPrinter printer = new BinaryPrinter(sink);
     printer.writeComponentFile(Component(
       libraries: [nativeAssetsLibrary],
-      mode: nativeAssetsLibrary.nonNullableByDefaultCompiledMode,
+      mode: NonNullableByDefaultCompiledMode.Strong,
     ));
   }
   await sink.close();
@@ -370,7 +378,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 
   if (splitOutputByPackages) {
     await writeOutputSplitByPackages(
-      mainUri,
+      mainUri!,
       compilerOptions,
       results,
       outputFileName,
@@ -445,12 +453,7 @@ Future<KernelCompilationResults> compileToKernel(
 
   final nativeAssetsLibrary =
       await NativeAssetsSynthesizer.synthesizeLibraryFromYamlFile(
-    nativeAssets,
-    errorDetector,
-    nonNullableByDefaultCompiledMode: options.nnbdMode == NnbdMode.Strong
-        ? NonNullableByDefaultCompiledMode.Strong
-        : NonNullableByDefaultCompiledMode.Weak,
-  );
+          nativeAssets, errorDetector);
   if (source == null) {
     return KernelCompilationResults.named(
       nativeAssetsLibrary: nativeAssetsLibrary,
@@ -489,7 +492,6 @@ Future<KernelCompilationResults> compileToKernel(
     await runGlobalTransformations(target, component, useGlobalTypeFlowAnalysis,
         enableAsserts, useProtobufTreeShakerV2, errorDetector,
         environmentDefines: options.environmentDefines,
-        nnbdMode: options.nnbdMode,
         targetOS: targetOS,
         minimalKernel: minimalKernel,
         treeShakeWriteOnlyFields: treeShakeWriteOnlyFields,
@@ -556,7 +558,6 @@ Future runGlobalTransformations(
     {bool minimalKernel = false,
     bool treeShakeWriteOnlyFields = false,
     bool useRapidTypeAnalysis = true,
-    NnbdMode nnbdMode = NnbdMode.Weak,
     Map<String, String>? environmentDefines,
     List<String>? keepClassNamesImplementing,
     String? targetOS,
@@ -578,7 +579,7 @@ Future runGlobalTransformations(
   // type flow analysis so TFA won't take unreachable code into account.
   final os = targetOS != null ? TargetOS.fromString(targetOS)! : null;
   final evaluator = vm_constant_evaluator.VMConstantEvaluator.create(
-      target, component, os, nnbdMode,
+      target, component, os,
       enableAsserts: enableAsserts,
       environmentDefines: environmentDefines,
       coreTypes: coreTypes);
@@ -710,16 +711,12 @@ bool parseCommandLineDefines(
 
 /// Create front-end target with given name.
 Target? createFrontEndTarget(String targetName,
-    {bool trackWidgetCreation = false,
-    bool soundNullSafety = true,
-    bool supportMirrors = true}) {
+    {bool trackWidgetCreation = false, bool supportMirrors = true}) {
   // Make sure VM-specific targets are available.
   installAdditionalTargets();
 
   final TargetFlags targetFlags = new TargetFlags(
-      trackWidgetCreation: trackWidgetCreation,
-      soundNullSafety: soundNullSafety,
-      supportMirrors: supportMirrors);
+      trackWidgetCreation: trackWidgetCreation, supportMirrors: supportMirrors);
   return getTarget(targetName, targetFlags);
 }
 

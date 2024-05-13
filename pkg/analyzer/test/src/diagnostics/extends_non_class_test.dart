@@ -22,7 +22,7 @@ class A extends dynamic {}
       error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 16, 7),
     ]);
 
-    final node = findNode.singleExtendsClause;
+    var node = findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
 ExtendsClause
   extendsKeyword: extends
@@ -41,7 +41,7 @@ class A extends E {}
       error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 31, 1),
     ]);
 
-    final node = findNode.singleExtendsClause;
+    var node = findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
 ExtendsClause
   extendsKeyword: extends
@@ -60,7 +60,7 @@ class B extends A {}
       error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 44, 1),
     ]);
 
-    final node = findNode.singleExtendsClause;
+    var node = findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
 ExtendsClause
   extendsKeyword: extends
@@ -79,7 +79,7 @@ class A extends M {}
       error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 27, 1),
     ]);
 
-    final node = findNode.singleExtendsClause;
+    var node = findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
 ExtendsClause
   extendsKeyword: extends
@@ -98,7 +98,7 @@ class A extends v {}
       error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 27, 1),
     ]);
 
-    final node = findNode.singleExtendsClause;
+    var node = findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
 ExtendsClause
   extendsKeyword: extends
@@ -117,7 +117,7 @@ class A extends v<int> {}
       error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 27, 1),
     ]);
 
-    final node = findNode.singleExtendsClause;
+    var node = findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
 ExtendsClause
   extendsKeyword: extends
@@ -143,7 +143,7 @@ class A extends Never {}
       error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 16, 5),
     ]);
 
-    final node = findNode.singleExtendsClause;
+    var node = findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
 ExtendsClause
   extendsKeyword: extends
@@ -161,7 +161,7 @@ class C extends A {}
       error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 16, 1),
     ]);
 
-    final node = findNode.singleExtendsClause;
+    var node = findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
 ExtendsClause
   extendsKeyword: extends
@@ -181,7 +181,7 @@ class C extends p.A {}
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 8),
     ]);
 
-    final node = findNode.singleExtendsClause;
+    var node = findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
 ExtendsClause
   extendsKeyword: extends
@@ -283,7 +283,7 @@ class C extends p.A {}
       error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 42, 3),
     ]);
 
-    final node = findNode.singleExtendsClause;
+    var node = findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
 ExtendsClause
   extendsKeyword: extends

@@ -7,6 +7,7 @@ import 'package:_fe_analyzer_shared/src/macros/code_optimizer.dart' as macro;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart' as file_state;
 import 'package:analyzer/src/dart/analysis/file_state.dart' hide DirectiveUri;
 import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
@@ -18,6 +19,7 @@ import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart
     as element_model;
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/summary2/augmentation.dart';
 import 'package:analyzer/src/summary2/combinator.dart';
 import 'package:analyzer/src/summary2/constructor_initializer_resolver.dart';
 import 'package:analyzer/src/summary2/default_value_resolver.dart';
@@ -27,7 +29,9 @@ import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/macro_application.dart';
+import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/macro_merge.dart';
+import 'package:analyzer/src/summary2/macro_not_allowed_declaration.dart';
 import 'package:analyzer/src/summary2/metadata_resolver.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/reference_resolver.dart';
@@ -36,147 +40,6 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:macros/src/executor.dart' as macro;
-
-class AugmentedClassDeclarationBuilder
-    extends AugmentedInstanceDeclarationBuilder {
-  final ClassElementImpl declaration;
-
-  AugmentedClassDeclarationBuilder({
-    required this.declaration,
-  }) {
-    addFields(declaration.fields);
-    addConstructors(declaration.constructors);
-    addAccessors(declaration.accessors);
-    addMethods(declaration.methods);
-  }
-
-  void augment(ClassElementImpl element) {
-    addFields(element.fields);
-    addConstructors(element.constructors);
-    addAccessors(element.accessors);
-    addMethods(element.methods);
-  }
-}
-
-abstract class AugmentedInstanceDeclarationBuilder {
-  final Map<String, FieldElementImpl> fields = {};
-  final Map<String, ConstructorElementImpl> constructors = {};
-  final Map<String, PropertyAccessorElementImpl> accessors = {};
-  final Map<String, MethodElementImpl> methods = {};
-
-  void addAccessors(List<PropertyAccessorElementImpl> elements) {
-    for (final element in elements) {
-      final name = element.name;
-      if (element.isAugmentation) {
-        final existing = accessors[name];
-        if (existing != null) {
-          existing.augmentation = element;
-          element.augmentationTarget = existing;
-          element.variable2 = existing.variable2;
-        }
-      }
-      accessors[name] = element;
-    }
-  }
-
-  void addConstructors(List<ConstructorElementImpl> elements) {
-    for (final element in elements) {
-      final name = element.name;
-      if (element.isAugmentation) {
-        final existing = constructors[name];
-        if (existing != null) {
-          existing.augmentation = element;
-          element.augmentationTarget = existing;
-        }
-      }
-      constructors[name] = element;
-    }
-  }
-
-  void addFields(List<FieldElementImpl> elements) {
-    for (final element in elements) {
-      final name = element.name;
-      if (element.isAugmentation) {
-        final existing = fields[name];
-        if (existing != null) {
-          existing.augmentation = element;
-          element.augmentationTarget = existing;
-        }
-      }
-      fields[name] = element;
-    }
-  }
-
-  void addMethods(List<MethodElementImpl> elements) {
-    for (final element in elements) {
-      final name = element.name;
-      if (element.isAugmentation) {
-        final existing = methods[name];
-        if (existing != null) {
-          existing.augmentation = element;
-          element.augmentationTarget = existing;
-        }
-      }
-      methods[name] = element;
-    }
-  }
-}
-
-class AugmentedMixinDeclarationBuilder
-    extends AugmentedInstanceDeclarationBuilder {
-  final MixinElementImpl declaration;
-
-  AugmentedMixinDeclarationBuilder({
-    required this.declaration,
-  }) {
-    addFields(declaration.fields);
-    addAccessors(declaration.accessors);
-    addMethods(declaration.methods);
-  }
-
-  void augment(MixinElementImpl element) {
-    addFields(element.fields);
-    addAccessors(element.accessors);
-    addMethods(element.methods);
-  }
-}
-
-class AugmentedTopVariablesBuilder {
-  final Map<String, TopLevelVariableElementImpl> variables = {};
-  final Map<String, PropertyAccessorElementImpl> accessors = {};
-
-  void addAccessor(PropertyAccessorElementImpl element) {
-    final name = element.name;
-    if (element.isAugmentation) {
-      final existing = accessors[name];
-      if (existing != null) {
-        existing.augmentation = element;
-        element.augmentationTarget = existing;
-        element.variable2 = existing.variable2;
-      }
-    }
-    accessors[name] = element;
-  }
-
-  void addVariable(TopLevelVariableElementImpl element) {
-    final name = element.name;
-    if (element.isAugmentation) {
-      final existing = variables[name];
-      if (existing != null) {
-        existing.augmentation = element;
-        element.augmentationTarget = existing;
-      }
-    }
-    variables[name] = element;
-
-    if (element.getter case var getter?) {
-      addAccessor(getter);
-    }
-    if (element.setter case var setter?) {
-      addAccessor(setter);
-    }
-  }
-}
 
 class DefiningLinkingUnit extends LinkingUnit {
   DefiningLinkingUnit({
@@ -190,16 +53,22 @@ class DefiningLinkingUnit extends LinkingUnit {
 class ImplicitEnumNodes {
   final EnumElementImpl element;
   final ast.NamedTypeImpl valuesTypeNode;
-  final ConstFieldElementImpl valuesField;
+  final ast.VariableDeclarationImpl valuesNode;
+  final ConstFieldElementImpl valuesElement;
+  final Set<String> valuesNames;
+  ast.ListLiteralImpl valuesInitializer;
 
   ImplicitEnumNodes({
     required this.element,
     required this.valuesTypeNode,
-    required this.valuesField,
+    required this.valuesNode,
+    required this.valuesElement,
+    required this.valuesNames,
+    required this.valuesInitializer,
   });
 }
 
-class LibraryBuilder {
+class LibraryBuilder with MacroApplicationsContainer {
   static const _enableMacroCodeOptimizer = false;
 
   final Linker linker;
@@ -209,15 +78,16 @@ class LibraryBuilder {
   final LibraryElementImpl element;
   final List<LinkingUnit> units;
 
-  final List<ImplicitEnumNodes> implicitEnumNodes = [];
+  final Map<EnumElementImpl, ImplicitEnumNodes> implicitEnumNodes =
+      Map.identity();
 
   /// The top-level elements that can be augmented.
   final Map<String, AugmentedInstanceDeclarationBuilder> _augmentedBuilders =
       {};
 
   /// The top-level variables and accessors that can be augmented.
-  final AugmentedTopVariablesBuilder topVariables =
-      AugmentedTopVariablesBuilder();
+  late final AugmentedTopVariablesBuilder topVariables =
+      AugmentedTopVariablesBuilder(_augmentationTargets);
 
   /// The top-level elements that can be augmented.
   final Map<String, ElementImpl> _augmentationTargets = {};
@@ -250,23 +120,23 @@ class LibraryBuilder {
   });
 
   void addExporters() {
-    final containers = [element, ...element.augmentations];
+    var containers = [element, ...element.augmentations];
     for (var containerIndex = 0;
         containerIndex < containers.length;
         containerIndex++) {
-      final container = containers[containerIndex];
-      final exportElements = container.libraryExports;
+      var container = containers[containerIndex];
+      var exportElements = container.libraryExports;
       for (var exportIndex = 0;
           exportIndex < exportElements.length;
           exportIndex++) {
-        final exportElement = exportElements[exportIndex];
+        var exportElement = exportElements[exportIndex];
 
-        final exportedLibrary = exportElement.exportedLibrary;
+        var exportedLibrary = exportElement.exportedLibrary;
         if (exportedLibrary is! LibraryElementImpl) {
           continue;
         }
 
-        final combinators = exportElement.combinators.map((combinator) {
+        var combinators = exportElement.combinators.map((combinator) {
           if (combinator is ShowElementCombinator) {
             return Combinator.show(combinator.shownNames);
           } else if (combinator is HideElementCombinator) {
@@ -276,10 +146,10 @@ class LibraryBuilder {
           }
         }).toList();
 
-        final exportedUri = exportedLibrary.source.uri;
-        final exportedBuilder = linker.builders[exportedUri];
+        var exportedUri = exportedLibrary.source.uri;
+        var exportedBuilder = linker.builders[exportedUri];
 
-        final export = Export(
+        var export = Export(
           exporter: this,
           location: ExportLocation(
             containerIndex: containerIndex,
@@ -290,10 +160,10 @@ class LibraryBuilder {
         if (exportedBuilder != null) {
           exportedBuilder.exports.add(export);
         } else {
-          final exportedReferences = exportedLibrary.exportedReferences;
-          for (final exported in exportedReferences) {
-            final reference = exported.reference;
-            final name = reference.name;
+          var exportedReferences = exportedLibrary.exportedReferences;
+          for (var exported in exportedReferences) {
+            var reference = exported.reference;
+            var name = reference.name;
             if (reference.isSetter) {
               export.addToExportScope('$name=', exported);
             } else {
@@ -308,21 +178,21 @@ class LibraryBuilder {
   void buildClassSyntheticConstructors() {
     bool hasConstructor(ClassElementImpl element) {
       if (element.constructors.isNotEmpty) return true;
-      if (element.augmentation case final augmentation?) {
+      if (element.augmentation case var augmentation?) {
         return hasConstructor(augmentation);
       }
       return false;
     }
 
-    for (final classElement in element.topLevelElements) {
+    for (var classElement in element.topLevelElements) {
       if (classElement is! ClassElementImpl) continue;
       if (classElement.isMixinApplication) continue;
-      if (classElement.isAugmentation) continue;
+      if (classElement.augmentationTarget != null) continue;
       if (hasConstructor(classElement)) continue;
 
-      final constructor = ConstructorElementImpl('', -1)..isSynthetic = true;
-      final containerRef = classElement.reference!.getChild('@constructor');
-      final reference = containerRef.getChild('new');
+      var constructor = ConstructorElementImpl('', -1)..isSynthetic = true;
+      var containerRef = classElement.reference!.getChild('@constructor');
+      var reference = containerRef.getChild('new');
       reference.element = constructor;
       constructor.reference = reference;
 
@@ -359,7 +229,7 @@ class LibraryBuilder {
 
   void buildEnumChildren() {
     var typeProvider = element.typeProvider;
-    for (var enum_ in implicitEnumNodes) {
+    for (var enum_ in implicitEnumNodes.values) {
       enum_.element.supertype =
           typeProvider.enumType ?? typeProvider.objectType;
       var valuesType = typeProvider.listType(
@@ -369,7 +239,41 @@ class LibraryBuilder {
         ),
       );
       enum_.valuesTypeNode.type = valuesType;
-      enum_.valuesField.type = valuesType;
+      enum_.valuesElement.type = valuesType;
+    }
+  }
+
+  void buildEnumSyntheticConstructors() {
+    bool hasConstructor(EnumElementImpl element) {
+      for (var constructor in element.augmented.constructors) {
+        if (constructor.isGenerative || constructor.name == '') {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    for (var enumElement in element.topLevelElements) {
+      if (enumElement is! EnumElementImpl) continue;
+      if (enumElement.augmentationTarget != null) continue;
+      if (hasConstructor(enumElement)) continue;
+
+      var constructor = ConstructorElementImpl('', -1)
+        ..isConst = true
+        ..isSynthetic = true;
+      var containerRef = enumElement.reference!.getChild('@constructor');
+      var reference = containerRef.getChild('new');
+      reference.element = constructor;
+      constructor.reference = reference;
+
+      enumElement.constructors = [
+        ...enumElement.constructors,
+        constructor,
+      ].toFixedList();
+
+      if (enumElement.augmented case AugmentedEnumElementImpl augmented) {
+        augmented.constructors = enumElement.constructors;
+      }
     }
   }
 
@@ -411,6 +315,17 @@ class LibraryBuilder {
     _declaredReferences[name] = reference;
   }
 
+  void disposeMacroApplications() {
+    var macroApplier = linker.macroApplier;
+    if (macroApplier == null) {
+      return;
+    }
+
+    macroApplier.disposeMacroApplications(
+      libraryBuilder: this,
+    );
+  }
+
   /// Completes with `true` if a macro application was run in this library.
   ///
   /// Completes with `false` if there are no macro applications to run, either
@@ -419,26 +334,36 @@ class LibraryBuilder {
   /// declarations phase macro applications for them.
   Future<MacroDeclarationsPhaseStepResult> executeMacroDeclarationsPhase({
     required ElementImpl? targetElement,
+    required OperationPerformanceImpl performance,
   }) async {
-    final macroApplier = linker.macroApplier;
+    if (!element.featureSet.isEnabled(Feature.macros)) {
+      return MacroDeclarationsPhaseStepResult.nothing;
+    }
+
+    var macroApplier = linker.macroApplier;
     if (macroApplier == null) {
       return MacroDeclarationsPhaseStepResult.nothing;
     }
 
-    final results = await macroApplier.executeDeclarationsPhase(
-      library: element,
+    var applicationResult = await macroApplier.executeDeclarationsPhase(
+      libraryBuilder: this,
       targetElement: targetElement,
+      performance: performance,
     );
 
     // No more applications to execute.
-    if (results == null) {
+    if (applicationResult == null) {
       return MacroDeclarationsPhaseStepResult.nothing;
     }
 
-    await _addMacroResults(macroApplier, results, buildTypes: true);
+    await _addMacroResults(
+      macroApplier,
+      applicationResult,
+      phase: macro.Phase.declarations,
+    );
 
     // Check if a new top-level declaration was added.
-    final augmentationUnit = units.last.element;
+    var augmentationUnit = units.last.element;
     if (augmentationUnit.functions.isNotEmpty ||
         augmentationUnit.topLevelVariables.isNotEmpty) {
       element.resetScope();
@@ -452,52 +377,79 @@ class LibraryBuilder {
   Future<void> executeMacroDefinitionsPhase({
     required OperationPerformanceImpl performance,
   }) async {
-    final macroApplier = linker.macroApplier;
+    if (!element.featureSet.isEnabled(Feature.macros)) {
+      return;
+    }
+
+    var macroApplier = linker.macroApplier;
     if (macroApplier == null) {
       return;
     }
 
     while (true) {
-      final results = await macroApplier.executeDefinitionsPhase(
-        library: element,
+      var applicationResult = await performance.runAsync(
+        'executeDefinitionsPhase',
+        (performance) async {
+          return await macroApplier.executeDefinitionsPhase(
+            libraryBuilder: this,
+            performance: performance,
+          );
+        },
       );
 
       // No more applications to execute.
-      if (results == null) {
+      if (applicationResult == null) {
         return;
       }
 
-      await _addMacroResults(macroApplier, results, buildTypes: true);
+      await performance.runAsync(
+        'addMacroResults',
+        (performance) async {
+          await _addMacroResults(
+            macroApplier,
+            applicationResult,
+            phase: macro.Phase.definitions,
+          );
+        },
+      );
     }
   }
 
   Future<void> executeMacroTypesPhase({
     required OperationPerformanceImpl performance,
   }) async {
-    final macroApplier = linker.macroApplier;
+    if (!element.featureSet.isEnabled(Feature.macros)) {
+      return;
+    }
+
+    var macroApplier = linker.macroApplier;
     if (macroApplier == null) {
       return;
     }
 
     while (true) {
-      final results = await macroApplier.executeTypesPhase(
-        library: element,
+      var applicationResult = await macroApplier.executeTypesPhase(
+        libraryBuilder: this,
       );
 
       // No more applications to execute.
-      if (results == null) {
+      if (applicationResult == null) {
         break;
       }
 
-      await _addMacroResults(macroApplier, results, buildTypes: false);
+      await _addMacroResults(
+        macroApplier,
+        applicationResult,
+        phase: macro.Phase.types,
+      );
     }
   }
 
   /// Fills with macro applications in user code.
   Future<void> fillMacroApplier(LibraryMacroApplier macroApplier) async {
-    for (final linkingUnit in units) {
+    for (var linkingUnit in units) {
       await macroApplier.add(
-        libraryElement: element,
+        libraryBuilder: this,
         container: element,
         unit: linkingUnit.node,
       );
@@ -513,7 +465,7 @@ class LibraryBuilder {
   Future<void> mergeMacroAugmentations({
     required OperationPerformanceImpl performance,
   }) async {
-    final macroApplier = linker.macroApplier;
+    var macroApplier = linker.macroApplier;
     if (macroApplier == null) {
       return;
     }
@@ -539,7 +491,7 @@ class LibraryBuilder {
         .toFixedList();
 
     // Remove units with partial macro augmentations.
-    final partialUnits = units.sublist(units.length - _macroResults.length);
+    var partialUnits = units.sublist(units.length - _macroResults.length);
     units.length -= _macroResults.length;
 
     List<macro.Edit> optimizedCodeEdits;
@@ -564,33 +516,33 @@ class LibraryBuilder {
       optimizedCode = augmentationCode;
     }
 
-    final importState = kind.addMacroAugmentation(
+    var importState = kind.addMacroAugmentation(
       optimizedCode,
       partialIndex: null,
     );
-    final importedAugmentation = importState.importedAugmentation!;
-    final importedFile = importedAugmentation.file;
+    var importedAugmentation = importState.importedAugmentation!;
+    var importedFile = importedAugmentation.file;
 
-    final unitNode = importedFile.parse();
-    final unitElement = CompilationUnitElementImpl(
+    var unitNode = importedFile.parse();
+    var unitElement = CompilationUnitElementImpl(
       source: importedFile.source,
       librarySource: importedFile.source,
       lineInfo: unitNode.lineInfo,
     );
     unitElement.setCodeRange(0, unitNode.length);
 
-    final unitReference =
+    var unitReference =
         reference.getChild('@augmentation').getChild(importedFile.uriStr);
     _bindReference(unitReference, unitElement);
 
-    final augmentation = LibraryAugmentationElementImpl(
+    var augmentation = LibraryAugmentationElementImpl(
       augmentationTarget: element,
       nameOffset: importedAugmentation.unlinked.libraryKeywordOffset,
     );
     augmentation.definingCompilationUnit = unitElement;
     augmentation.reference = unitReference;
 
-    final informativeBytes = importedFile.unlinked2.informativeBytes;
+    var informativeBytes = importedFile.unlinked2.informativeBytes;
     augmentation.macroGenerated = MacroGeneratedAugmentationLibrary(
       code: importedFile.content,
       informativeBytes: informativeBytes,
@@ -623,14 +575,14 @@ class LibraryBuilder {
       NoOpInfoDeclarationStore(),
     ).applyToUnit(unitElement, informativeBytes);
 
-    final importUri = DirectiveUriWithAugmentationImpl(
+    var importUri = DirectiveUriWithAugmentationImpl(
       relativeUriString: importState.uri.relativeUriStr,
       relativeUri: importState.uri.relativeUri,
       source: importedFile.source,
       augmentation: augmentation,
     );
 
-    final import = AugmentationImportElementImpl(
+    var import = AugmentationImportElementImpl(
       importKeywordOffset: importState.unlinked.importKeywordOffset,
       uri: importUri,
     );
@@ -655,11 +607,9 @@ class LibraryBuilder {
       if (classElement is! ClassElementImpl) continue;
       if (classElement.isMixinApplication) continue;
       if (classElement.isAugmentation) continue;
-      if (classElement.augmented case var augmented?) {
-        var hasConst = augmented.constructors.any((e) => e.isConst);
-        if (hasConst) {
-          withConstConstructors.add(classElement);
-        }
+      var hasConst = classElement.augmented.constructors.any((e) => e.isConst);
+      if (hasConst) {
+        withConstConstructors.add(classElement);
       }
     }
 
@@ -674,15 +624,18 @@ class LibraryBuilder {
   }
 
   void resolveConstructorFieldFormals() {
-    for (final class_ in element.topLevelElements) {
-      if (class_ is! ClassElementImpl) continue;
-      if (class_.isMixinApplication) continue;
+    for (var interface in element.topLevelElements) {
+      if (interface is! InterfaceElementImpl) {
+        continue;
+      }
 
-      final augmented = class_.augmented;
-      if (augmented == null) continue;
+      if (interface is ClassElementImpl && interface.isMixinApplication) {
+        continue;
+      }
 
-      for (final constructor in class_.constructors) {
-        for (final parameter in constructor.parameters) {
+      var augmented = interface.augmented;
+      for (var constructor in interface.constructors) {
+        for (var parameter in constructor.parameters) {
           if (parameter is FieldFormalParameterElementImpl) {
             parameter.field = augmented.getField(parameter.name);
           }
@@ -719,19 +672,19 @@ class LibraryBuilder {
 
   void setDefaultSupertypes() {
     var shouldResetClassHierarchies = false;
-    final objectType = element.typeProvider.objectType;
-    for (final interface in element.topLevelElements) {
+    var objectType = element.typeProvider.objectType;
+    for (var interface in element.topLevelElements) {
       switch (interface) {
         case ClassElementImpl():
-          if (interface.isAugmentation) continue;
+          if (interface.augmentationTarget != null) continue;
           if (interface.isDartCoreObject) continue;
           if (interface.supertype == null) {
             shouldResetClassHierarchies = true;
             interface.supertype = objectType;
           }
         case MixinElementImpl():
-          if (interface.isAugmentation) continue;
-          final augmented = interface.augmented!;
+          if (interface.augmentationTarget != null) continue;
+          var augmented = interface.augmented;
           if (augmented.superclassConstraints.isEmpty) {
             shouldResetClassHierarchies = true;
             interface.superclassConstraints = [objectType];
@@ -769,12 +722,18 @@ class LibraryBuilder {
 
   void updateAugmentationTarget<T extends ElementImpl>(
     String name,
-    T augmentation,
-    void Function(T target) update,
+    AugmentableElement<T> augmentation,
   ) {
-    final target = _augmentationTargets[name];
-    if (target is T) {
-      update(target);
+    if (augmentation.isAugmentation) {
+      var target = _augmentationTargets[name];
+      target ??= topVariables.accessors[name];
+      target ??= topVariables.accessors['$name='];
+
+      augmentation.augmentationTargetAny = target;
+      if (target case AugmentableElement<T> target) {
+        augmentation.isAugmentationChainStart = false;
+        target.augmentation = augmentation as T;
+      }
     }
     _augmentationTargets[name] = augmentation;
   }
@@ -782,14 +741,14 @@ class LibraryBuilder {
   LibraryAugmentationElementImpl _addMacroAugmentation(
     AugmentationImportWithFile state,
   ) {
-    final import = _buildAugmentationImport(element, state);
+    var import = _buildAugmentationImport(element, state);
     import.isSynthetic = true;
     element.augmentationImports = [
       ...element.augmentationImports,
       import,
     ].toFixedList();
 
-    final augmentation = import.importedAugmentation!;
+    var augmentation = import.importedAugmentation!;
     augmentation.macroGenerated = MacroGeneratedAugmentationLibrary(
       code: state.importedFile.content,
       informativeBytes: state.importedFile.unlinked2.informativeBytes,
@@ -801,17 +760,16 @@ class LibraryBuilder {
   /// Add results from the declarations or definitions phase.
   Future<void> _addMacroResults(
     LibraryMacroApplier macroApplier,
-    List<macro.MacroExecutionResult> results, {
-    required bool buildTypes,
+    ApplicationResult applicationResult, {
+    required macro.Phase phase,
   }) async {
     // No results from the application.
+    var results = applicationResult.results;
     if (results.isEmpty) {
       return;
     }
 
-    _macroResults.add(results);
-
-    final augmentationCode = macroApplier.buildAugmentationLibraryCode(
+    var augmentationCode = macroApplier.buildAugmentationLibraryCode(
       uri,
       results,
     );
@@ -819,14 +777,39 @@ class LibraryBuilder {
       return;
     }
 
-    final importState = kind.addMacroAugmentation(
+    var importState = kind.addMacroAugmentation(
       augmentationCode,
       partialIndex: _macroResults.length,
     );
 
-    final augmentation = _addMacroAugmentation(importState);
+    var augmentation = _addMacroAugmentation(importState);
+    var macroLinkingUnit = units.last;
 
-    final macroLinkingUnit = units.last;
+    // If the generated code contains declarations that are not allowed at
+    // this phase, then add a diagnostic, and discard the code.
+    var notAllowed = findDeclarationsNotAllowedAtPhase(
+      unit: macroLinkingUnit.node,
+      phase: phase,
+    );
+    if (notAllowed.isNotEmpty) {
+      var application = applicationResult.application;
+      application.target.element.addMacroDiagnostic(
+        NotAllowedDeclarationDiagnostic(
+          annotationIndex: application.annotationIndex,
+          phase: phase,
+          code: augmentationCode,
+          nodeRanges: notAllowed
+              .map((node) => SourceRange(node.offset, node.length))
+              .toList(),
+        ),
+      );
+      units.removeLast();
+      element.augmentationImports =
+          element.augmentationImports.withoutLast.toFixedList();
+      kind.removeLastMacroAugmentation();
+      return;
+    }
+
     ElementBuilder(
       libraryBuilder: this,
       container: macroLinkingUnit.container,
@@ -834,17 +817,18 @@ class LibraryBuilder {
       unitElement: macroLinkingUnit.element,
     ).buildDeclarationElements(macroLinkingUnit.node);
 
-    if (buildTypes) {
-      final nodesToBuildType = NodesToBuildType();
-      final resolver =
-          ReferenceResolver(linker, nodesToBuildType, augmentation);
+    if (phase != macro.Phase.types) {
+      var nodesToBuildType = NodesToBuildType();
+      var resolver = ReferenceResolver(linker, nodesToBuildType, augmentation);
       macroLinkingUnit.node.accept(resolver);
       TypesBuilder(linker).build(nodesToBuildType);
     }
 
+    _macroResults.add(results);
+
     // Append applications from the partial augmentation.
     await macroApplier.add(
-      libraryElement: element,
+      libraryBuilder: this,
       container: augmentation,
       unit: macroLinkingUnit.node,
     );
@@ -854,14 +838,14 @@ class LibraryBuilder {
     LibraryOrAugmentationElementImpl augmentationTarget,
     AugmentationImportState state,
   ) {
-    final DirectiveUri uri;
+    DirectiveUri uri;
     if (state is AugmentationImportWithFile) {
-      final importedAugmentation = state.importedAugmentation;
+      var importedAugmentation = state.importedAugmentation;
       if (importedAugmentation != null) {
-        final importedFile = importedAugmentation.file;
+        var importedFile = importedAugmentation.file;
 
-        final unitNode = importedFile.parse();
-        final unitElement = CompilationUnitElementImpl(
+        var unitNode = importedFile.parse();
+        var unitElement = CompilationUnitElementImpl(
           source: importedFile.source,
           // TODO(scheglov): Remove this parameter.
           librarySource: importedFile.source,
@@ -870,13 +854,13 @@ class LibraryBuilder {
         unitNode.declaredElement = unitElement;
         unitElement.setCodeRange(0, unitNode.length);
 
-        final unitReference =
+        var unitReference =
             reference.getChild('@augmentation').getChild(importedFile.uriStr);
         _bindReference(unitReference, unitElement);
 
-        final augmentation = LibraryAugmentationElementImpl(
+        var augmentation = LibraryAugmentationElementImpl(
           augmentationTarget: augmentationTarget,
-          nameOffset: importedAugmentation.unlinked.libraryKeywordOffset,
+          nameOffset: importedAugmentation.unlinked.augmentKeywordOffset,
         );
         augmentation.definingCompilationUnit = unitElement;
         augmentation.reference = unitElement.reference!;
@@ -909,7 +893,7 @@ class LibraryBuilder {
         );
       }
     } else {
-      final selectedUri = state.uri;
+      var selectedUri = state.uri;
       if (selectedUri is file_state.DirectiveUriWithUri) {
         uri = DirectiveUriWithRelativeUriImpl(
           relativeUriString: selectedUri.relativeUriStr,
@@ -971,18 +955,18 @@ class LibraryBuilder {
   }
 
   LibraryExportElementImpl _buildExport(LibraryExportState state) {
-    final combinators = _buildCombinators(
+    var combinators = _buildCombinators(
       state.unlinked.combinators,
     );
 
-    final DirectiveUri uri;
+    DirectiveUri uri;
     if (state is LibraryExportWithFile) {
-      final exportedLibraryKind = state.exportedLibrary;
+      var exportedLibraryKind = state.exportedLibrary;
       if (exportedLibraryKind != null) {
-        final exportedFile = exportedLibraryKind.file;
-        final exportedUri = exportedFile.uri;
-        final elementFactory = linker.elementFactory;
-        final exportedLibrary = elementFactory.libraryOfUri2(exportedUri);
+        var exportedFile = exportedLibraryKind.file;
+        var exportedUri = exportedFile.uri;
+        var elementFactory = linker.elementFactory;
+        var exportedLibrary = elementFactory.libraryOfUri2(exportedUri);
         uri = DirectiveUriWithLibraryImpl(
           relativeUriString: state.selectedUri.relativeUriStr,
           relativeUri: state.selectedUri.relativeUri,
@@ -997,11 +981,11 @@ class LibraryBuilder {
         );
       }
     } else if (state is LibraryExportWithInSummarySource) {
-      final exportedLibrarySource = state.exportedLibrarySource;
+      var exportedLibrarySource = state.exportedLibrarySource;
       if (exportedLibrarySource != null) {
-        final exportedUri = exportedLibrarySource.uri;
-        final elementFactory = linker.elementFactory;
-        final exportedLibrary = elementFactory.libraryOfUri2(exportedUri);
+        var exportedUri = exportedLibrarySource.uri;
+        var elementFactory = linker.elementFactory;
+        var exportedLibrary = elementFactory.libraryOfUri2(exportedUri);
         uri = DirectiveUriWithLibraryImpl(
           relativeUriString: state.selectedUri.relativeUriStr,
           relativeUri: state.selectedUri.relativeUri,
@@ -1016,7 +1000,7 @@ class LibraryBuilder {
         );
       }
     } else {
-      final selectedUri = state.selectedUri;
+      var selectedUri = state.selectedUri;
       if (selectedUri is file_state.DirectiveUriWithUri) {
         uri = DirectiveUriWithRelativeUriImpl(
           relativeUriString: selectedUri.relativeUriStr,
@@ -1042,8 +1026,8 @@ class LibraryBuilder {
     required LibraryOrAugmentationElementImpl container,
     required LibraryImportState state,
   }) {
-    final importPrefix = state.unlinked.prefix.mapOrNull((unlinked) {
-      final prefix = _buildPrefix(
+    var importPrefix = state.unlinked.prefix.mapOrNull((unlinked) {
+      var prefix = _buildPrefix(
         name: unlinked.name,
         nameOffset: unlinked.nameOffset,
         container: container,
@@ -1059,18 +1043,18 @@ class LibraryBuilder {
       }
     });
 
-    final combinators = _buildCombinators(
+    var combinators = _buildCombinators(
       state.unlinked.combinators,
     );
 
-    final DirectiveUri uri;
+    DirectiveUri uri;
     if (state is LibraryImportWithFile) {
-      final importedLibraryKind = state.importedLibrary;
+      var importedLibraryKind = state.importedLibrary;
       if (importedLibraryKind != null) {
-        final importedFile = importedLibraryKind.file;
-        final importedUri = importedFile.uri;
-        final elementFactory = linker.elementFactory;
-        final importedLibrary = elementFactory.libraryOfUri2(importedUri);
+        var importedFile = importedLibraryKind.file;
+        var importedUri = importedFile.uri;
+        var elementFactory = linker.elementFactory;
+        var importedLibrary = elementFactory.libraryOfUri2(importedUri);
         uri = DirectiveUriWithLibraryImpl(
           relativeUriString: state.selectedUri.relativeUriStr,
           relativeUri: state.selectedUri.relativeUri,
@@ -1085,11 +1069,11 @@ class LibraryBuilder {
         );
       }
     } else if (state is LibraryImportWithInSummarySource) {
-      final importedLibrarySource = state.importedLibrarySource;
+      var importedLibrarySource = state.importedLibrarySource;
       if (importedLibrarySource != null) {
-        final importedUri = importedLibrarySource.uri;
-        final elementFactory = linker.elementFactory;
-        final importedLibrary = elementFactory.libraryOfUri2(importedUri);
+        var importedUri = importedLibrarySource.uri;
+        var elementFactory = linker.elementFactory;
+        var importedLibrary = elementFactory.libraryOfUri2(importedUri);
         uri = DirectiveUriWithLibraryImpl(
           relativeUriString: state.selectedUri.relativeUriStr,
           relativeUri: state.selectedUri.relativeUri,
@@ -1104,7 +1088,7 @@ class LibraryBuilder {
         );
       }
     } else {
-      final selectedUri = state.selectedUri;
+      var selectedUri = state.selectedUri;
       if (selectedUri is file_state.DirectiveUriWithUri) {
         uri = DirectiveUriWithRelativeUriImpl(
           relativeUriString: selectedUri.relativeUriStr,
@@ -1133,13 +1117,13 @@ class LibraryBuilder {
     required LibraryOrAugmentationElementImpl container,
   }) {
     // TODO(scheglov): Make reference required.
-    final containerRef = container.reference!;
-    final reference = containerRef.getChild('@prefix').getChild(name);
-    final existing = reference.element;
+    var containerRef = container.reference!;
+    var reference = containerRef.getChild('@prefix').getChild(name);
+    var existing = reference.element;
     if (existing is PrefixElementImpl) {
       return existing;
     } else {
-      final result = PrefixElementImpl(
+      var result = PrefixElementImpl(
         name,
         nameOffset,
         reference: reference,
@@ -1163,21 +1147,21 @@ class LibraryBuilder {
   }
 
   static void build(Linker linker, LibraryFileKind inputLibrary) {
-    final elementFactory = linker.elementFactory;
-    final rootReference = linker.rootReference;
+    var elementFactory = linker.elementFactory;
+    var rootReference = linker.rootReference;
 
-    final libraryFile = inputLibrary.file;
-    final libraryUriStr = libraryFile.uriStr;
-    final libraryReference = rootReference.getChild(libraryUriStr);
+    var libraryFile = inputLibrary.file;
+    var libraryUriStr = libraryFile.uriStr;
+    var libraryReference = rootReference.getChild(libraryUriStr);
 
-    final libraryUnitNode = libraryFile.parse();
+    var libraryUnitNode = libraryFile.parse();
 
     var name = '';
     var nameOffset = -1;
     var nameLength = 0;
-    for (final directive in libraryUnitNode.directives) {
+    for (var directive in libraryUnitNode.directives) {
       if (directive is ast.LibraryDirectiveImpl) {
-        final nameIdentifier = directive.name2;
+        var nameIdentifier = directive.name2;
         if (nameIdentifier != null) {
           name = nameIdentifier.components.map((e) => e.name).join('.');
           nameOffset = nameIdentifier.offset;
@@ -1187,7 +1171,7 @@ class LibraryBuilder {
       }
     }
 
-    final libraryElement = LibraryElementImpl(
+    var libraryElement = LibraryElementImpl(
       elementFactory.analysisContext,
       elementFactory.analysisSession,
       name,
@@ -1200,11 +1184,11 @@ class LibraryBuilder {
     _bindReference(libraryReference, libraryElement);
     elementFactory.setLibraryTypeSystem(libraryElement);
 
-    final unitContainerRef = libraryReference.getChild('@unit');
+    var unitContainerRef = libraryReference.getChild('@unit');
 
-    final linkingUnits = <LinkingUnit>[];
+    var linkingUnits = <LinkingUnit>[];
     {
-      final unitElement = CompilationUnitElementImpl(
+      var unitElement = CompilationUnitElementImpl(
         source: libraryFile.source,
         librarySource: libraryFile.source,
         lineInfo: libraryUnitNode.lineInfo,
@@ -1213,7 +1197,7 @@ class LibraryBuilder {
       unitElement.isSynthetic = !libraryFile.exists;
       unitElement.setCodeRange(0, libraryUnitNode.length);
 
-      final unitReference = unitContainerRef.getChild(libraryFile.uriStr);
+      var unitReference = unitContainerRef.getChild(libraryFile.uriStr);
       _bindReference(unitReference, unitElement);
 
       linkingUnits.add(
@@ -1229,14 +1213,14 @@ class LibraryBuilder {
     }
 
     libraryElement.parts = inputLibrary.parts.map((partState) {
-      final uriState = partState.uri;
-      final DirectiveUri directiveUri;
+      var uriState = partState.uri;
+      DirectiveUri directiveUri;
       if (partState is PartWithFile) {
-        final includedPart = partState.includedPart;
+        var includedPart = partState.includedPart;
         if (includedPart != null) {
-          final partFile = includedPart.file;
-          final partUnitNode = partFile.parse();
-          final unitElement = CompilationUnitElementImpl(
+          var partFile = includedPart.file;
+          var partUnitNode = partFile.parse();
+          var unitElement = CompilationUnitElementImpl(
             source: partFile.source,
             librarySource: libraryFile.source,
             lineInfo: partUnitNode.lineInfo,
@@ -1246,7 +1230,7 @@ class LibraryBuilder {
           unitElement.uri = partFile.uriStr;
           unitElement.setCodeRange(0, partUnitNode.length);
 
-          final unitReference = unitContainerRef.getChild(partFile.uriStr);
+          var unitReference = unitContainerRef.getChild(partFile.uriStr);
           _bindReference(unitReference, unitElement);
 
           linkingUnits.add(
@@ -1295,7 +1279,7 @@ class LibraryBuilder {
       );
     }).toFixedList();
 
-    final builder = LibraryBuilder._(
+    var builder = LibraryBuilder._(
       linker: linker,
       kind: inputLibrary,
       uri: libraryFile.uri,
@@ -1409,10 +1393,12 @@ class _FieldPromotability extends FieldPromotability<InterfaceElement,
       }
       // Private representation fields of extension types are always promotable.
       // They also don't affect promotability of any other fields.
-      for (final extensionType in unitElement.extensionTypes) {
-        final representation = extensionType.representation;
-        if (representation.name.startsWith('_')) {
-          representation.isPromotable = true;
+      for (var extensionType in unitElement.extensionTypes) {
+        if (extensionType.augmentationTarget == null) {
+          var representation = extensionType.representation;
+          if (representation.name.startsWith('_')) {
+            representation.isPromotable = true;
+          }
         }
       }
     }
@@ -1471,7 +1457,7 @@ class _FieldPromotability extends FieldPromotability<InterfaceElement,
 
 extension<T> on T? {
   R? mapOrNull<R>(R Function(T) mapper) {
-    final self = this;
+    var self = this;
     return self != null ? mapper(self) : null;
   }
 }

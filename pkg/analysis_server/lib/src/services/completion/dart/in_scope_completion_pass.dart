@@ -8,14 +8,15 @@ import 'package:analysis_server/src/services/completion/dart/declaration_helper.
 import 'package:analysis_server/src/services/completion/dart/identifier_helper.dart';
 import 'package:analysis_server/src/services/completion/dart/keyword_helper.dart';
 import 'package:analysis_server/src/services/completion/dart/label_helper.dart';
+import 'package:analysis_server/src/services/completion/dart/not_imported_completion_pass.dart';
 import 'package:analysis_server/src/services/completion/dart/override_helper.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
 import 'package:analysis_server/src/services/completion/dart/uri_helper.dart';
 import 'package:analysis_server/src/services/completion/dart/visibility_tracker.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/completion_request.dart';
+import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analysis_server/src/utilities/extensions/object.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
@@ -60,10 +61,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   /// The helper used to suggest keywords.
   late final KeywordHelper keywordHelper = KeywordHelper(
-      collector: collector, featureSet: featureSet, offset: offset);
+      state: state,
+      collector: collector,
+      featureSet: featureSet,
+      offset: offset);
 
   /// The helper used to suggest labels.
-  late final LabelHelper labelHelper = LabelHelper(collector: collector);
+  late final LabelHelper labelHelper =
+      LabelHelper(state: state, collector: collector);
 
   /// The helper used to suggest declarations that are in scope.
   DeclarationHelper? _declarationHelper;
@@ -85,18 +90,24 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     required this.suggestUris,
   });
 
-  /// Return the feature set that applies to the library for which completions
-  /// are being computed.
+  /// The feature set that applies to the library for which completions are
+  /// being computed.
   FeatureSet get featureSet => state.libraryElement.featureSet;
 
-  /// Return the offset at which completion was requested.
+  /// The operation that should be executed in the [NotImportedCompletionPass].
+  ///
+  /// The list will be empty if the pass does not need to be run.
+  List<NotImportedOperation> get notImportedOperations =>
+      _declarationHelper?.notImportedOperations ?? [];
+
+  /// The offset at which completion was requested.
   int get offset => state.selection.offset;
 
-  /// Returns the visibility tracker used by this pass.
+  /// The visibility tracker used by this pass.
   VisibilityTracker? get visibilityTracker =>
       _declarationHelper?.visibilityTracker;
 
-  /// Return the node that should be used as the context in which completion is
+  /// The node that should be used as the context in which completion is
   /// occurring.
   ///
   /// This is normally the covering node, but if the covering node begins with
@@ -140,7 +151,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     return child;
   }
 
-  /// Compute the candidate suggestions associated with this pass.
+  /// Computes the candidate suggestions associated with this pass.
   void computeSuggestions() {
     // TODO(brianwilkerson): The cursor could be inside a non-documentation
     //  comment inside the completion node. We need to check for this case and
@@ -149,7 +160,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     completionNode.accept(this);
   }
 
-  /// Return the helper used to suggest declarations that are in scope.
+  /// Returns the helper used to suggest declarations that are in scope.
   DeclarationHelper declarationHelper({
     bool mustBeAssignable = false,
     bool mustBeConstant = false,
@@ -193,6 +204,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       request: state.request,
       collector: collector,
       offset: offset,
+      state: state,
       mustBeAssignable: mustBeAssignable,
       mustBeConstant: mustBeConstant,
       mustBeExtendable: mustBeExtensible,
@@ -314,9 +326,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             }
             var includeTrailingComma =
                 argument == null || !argument.isFollowedByComma;
-            collector.addSuggestion(ClosureSuggestion(
-                functionType: parameterType,
-                includeTrailingComma: includeTrailingComma));
+            _addClosureSuggestion(parameterType, includeTrailingComma);
           }
         }
         // Suggest the names of all named parameters that are not already in the
@@ -345,7 +355,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             appendComma = true;
           }
         } else if (parent is InstanceCreationExpression &&
-            Flutter.isWidgetCreation(parent)) {
+            parent.isWidgetCreation) {
           appendComma = true;
         }
         int? replacementLength;
@@ -354,11 +364,16 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           appendComma = false;
         }
         for (var parameter in availableNamedParameters) {
-          collector.addSuggestion(NamedArgumentSuggestion(
+          var matcherScore = state.matcher.score(parameter.displayName);
+          if (matcherScore != -1) {
+            collector.addSuggestion(NamedArgumentSuggestion(
               parameter: parameter,
               appendColon: true,
               appendComma: appendComma,
-              replacementLength: replacementLength));
+              replacementLength: replacementLength,
+              matcherScore: matcherScore,
+            ));
+          }
         }
       } else if (parent is Expression) {
         _forExpression(parent, mustBeNonVoid: true);
@@ -978,8 +993,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       expression.accept(this);
     } else if (expression is AssignmentExpression) {
       var leftHandSide = expression.leftHandSide;
-      if (leftHandSide is SimpleIdentifier && offset <= leftHandSide.end) {
-        _forStatement(node);
+      if (offset <= leftHandSide.end) {
+        switch (leftHandSide) {
+          case PrefixedIdentifier():
+            leftHandSide.accept(this);
+          case SimpleIdentifier():
+            _forStatement(node);
+        }
       }
     } else if (expression is CascadeExpression) {
       if (offset <= expression.target.end) {
@@ -988,6 +1008,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           mustBeStatic: node.inStaticContext,
         ).addLexicalDeclarations(node);
       }
+    } else if (expression is IndexExpression) {
+      expression.accept(this);
     } else if (expression is InstanceCreationExpression) {
       if (offset <= expression.beginToken.end) {
         _forStatement(node);
@@ -1565,7 +1587,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitIndexExpression(IndexExpression node) {
     collector.completionLocation = 'IndexExpression_index';
-    _forExpression(node);
+    _forExpression(node, mustBeNonVoid: true);
   }
 
   @override
@@ -1815,10 +1837,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
               var parameter = parameters[i];
               if (parameter.isNamed) {
                 if (!usedNames.contains(parameter.name)) {
-                  collector.addSuggestion(NamedArgumentSuggestion(
-                      parameter: parameter,
-                      appendColon: appendColon,
-                      appendComma: false));
+                  var matcherScore = state.matcher.score(parameter.displayName);
+                  if (matcherScore != -1) {
+                    collector.addSuggestion(NamedArgumentSuggestion(
+                        parameter: parameter,
+                        matcherScore: matcherScore,
+                        appendColon: appendColon,
+                        appendComma: false));
+                  }
                 }
               }
             }
@@ -1837,10 +1863,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       var parameterType = node.staticParameterElement?.type;
       if (parameterType is FunctionType) {
         var includeTrailingComma = !node.isFollowedByComma;
-        collector.addSuggestion(ClosureSuggestion(
-          functionType: parameterType,
-          includeTrailingComma: includeTrailingComma,
-        ));
+        _addClosureSuggestion(parameterType, includeTrailingComma);
       }
     }
   }
@@ -2108,11 +2131,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       collector.completionLocation = 'PatternField_pattern';
       keywordHelper.addKeyword(Keyword.DYNAMIC);
       _forExpression(node);
-      final targetField = node.fields.skipWhile((field) {
+      var targetField = node.fields.skipWhile((field) {
         return field.end < offset;
       }).firstOrNull;
       if (targetField != null) {
-        final nameNode = targetField.name;
+        var nameNode = targetField.name;
         if (nameNode != null && offset <= nameNode.colon.offset) {
           declarationHelper(mustBeNonVoid: true).addGetters(
             type: node.matchedValueTypeOrThrow,
@@ -2250,7 +2273,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
-    var offset = this.offset;
+    final offset = this.offset;
     if (offset >= node.leftBracket.end && offset <= node.rightBracket.offset) {
       collector.completionLocation = 'SetOrMapLiteral_element';
       _forCollectionElement(node, node.elements);
@@ -2316,7 +2339,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         case Configuration():
         case PartOfDirective():
         case UriBasedDirective():
-          UriHelper(state.request, collector).addSuggestions(node);
+          UriHelper(request: state.request, collector: collector, state: state)
+              .addSuggestions(node);
           return;
       }
     }
@@ -2452,6 +2476,19 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         }
       }
 
+      // `case ^ _:`
+      // The user want a type for incomplete WildcardPattern.
+      if (pattern is WildcardPattern) {
+        if (offset < pattern.name.offset) {
+          state.request.opType.includeConstructorSuggestions = false;
+          state.request.opType.mustBeConst = true;
+          declarationHelper(
+            mustBeType: true,
+          ).addLexicalDeclarations(node);
+          return;
+        }
+      }
+
       // `case Name ^:`
       // The user wants the pattern variable name.
       if (pattern is ConstantPattern) {
@@ -2477,6 +2514,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             return;
           case ObjectPattern():
             collector.completionLocation = 'ObjectPattern_type';
+            state.request.opType.includeConstructorSuggestions = false;
+            type.accept(this);
+            return;
+          case WildcardPattern():
+            collector.completionLocation = 'WildcardPattern_type';
             state.request.opType.includeConstructorSuggestions = false;
             type.accept(this);
             return;
@@ -2787,10 +2829,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       _forExpression(node, mustBeNonVoid: true);
       var variableType = node.declaredElement?.type;
       if (variableType is FunctionType) {
-        collector.addSuggestion(ClosureSuggestion(
-          functionType: variableType,
-          includeTrailingComma: false,
-        ));
+        _addClosureSuggestion(variableType, false);
       }
     }
   }
@@ -2855,6 +2894,18 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitWildcardPattern(WildcardPattern node) {
+    var type = node.type;
+    if (type != null) {
+      if (type.coversOffset(offset)) {
+        declarationHelper(
+          mustBeType: true,
+        ).addLexicalDeclarations(node);
+      }
+    }
+  }
+
+  @override
   void visitWithClause(WithClause node) {
     var parent = node.parent;
     var whenKeyword = node.withKeyword;
@@ -2878,6 +2929,20 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     }
   }
 
+  /// Adds a suggestion for a closure.
+  void _addClosureSuggestion(
+      FunctionType parameterType, bool includeTrailingComma) {
+    // TODO(keertip): compute the completion string to find the score.
+    var matcherScore = 0.0;
+    if (matcherScore != -1) {
+      collector.addSuggestion(ClosureSuggestion(
+        functionType: parameterType,
+        includeTrailingComma: includeTrailingComma,
+        matcherScore: matcherScore,
+      ));
+    }
+  }
+
   /// Returns the context type in which [node] is analyzed.
   DartType? _computeContextType(Expression node) {
     return state.request.featureComputer
@@ -2895,12 +2960,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     return null;
   }
 
-  /// Add the suggestions that are appropriate at the beginning of an annotation.
+  /// Adds the suggestions that are appropriate at the beginning of an
+  /// annotation.
   void _forAnnotation(AstNode node) {
     declarationHelper(mustBeConstant: true).addLexicalDeclarations(node);
   }
 
-  /// Add the suggestions that are appropriate when the selection is at the
+  /// Adds the suggestions that are appropriate when the selection is at the
   /// beginning of a member of a class, enum, extension, extension type, or
   /// mixin.
   void _forClassLikeMember(AstNode node) {
@@ -2918,7 +2984,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     }
   }
 
-  /// Add the suggestions that are appropriate when the selection is at the
+  /// Adds the suggestions that are appropriate when the selection is at the
   /// beginning of a class member.
   void _forClassMember(ClassDeclaration node) {
     keywordHelper.addClassMemberKeywords();
@@ -2928,7 +2994,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     );
   }
 
-  /// Add the suggestions that are appropriate when the selection is at the
+  /// Adds the suggestions that are appropriate when the selection is at the
   /// beginning of an element in a collection [literal], with the given
   /// [elements].
   void _forCollectionElement(
@@ -2942,7 +3008,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         .addLexicalDeclarations(precedingElement ?? literal);
   }
 
-  /// Add the suggestions that are appropriate when completing in the given
+  /// Adds the suggestions that are appropriate when completing in the given
   /// [combinator] and the [existingNames] are in the list.
   void _forCombinator(
       Combinator combinator, NodeList<SimpleIdentifier> existingNames) {
@@ -2967,14 +3033,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         .addFromLibrary(library, excludedNames);
   }
 
-  /// Add the suggestions that are appropriate when the selection is at the
+  /// Adds the suggestions that are appropriate when the selection is at the
   /// beginning of a top-level declaration.
   void _forCompilationUnitDeclaration(CompilationUnit unit) {
     keywordHelper.addCompilationUnitDeclarationKeywords();
     declarationHelper(mustBeType: true).addLexicalDeclarations(unit);
   }
 
-  /// Add the suggestions that are appropriate when the selection is at the
+  /// Adds the suggestions that are appropriate when the selection is at the
   /// beginning of a member at the top-level of a compilation unit.
   void _forCompilationUnitMember(CompilationUnit unit,
       ({AstNode? before, AstNode? after}) surroundingMembers) {
@@ -2989,7 +3055,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     }
   }
 
-  /// Add the suggestions that are appropriate when the user is completing
+  /// Adds the suggestions that are appropriate when the user is completing
   /// immediately before the given [member].
   void _forCompilationUnitMemberBefore(AstNode member) {
     if (member.parent case CompilationUnit unit) {
@@ -2997,7 +3063,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     }
   }
 
-  /// Add the suggestions that are appropriate when the selection is at the
+  /// Adds the suggestions that are appropriate when the selection is at the
   /// beginning of a constant expression. The [node] provides context to
   /// determine which keywords to include.
   void _forConstantExpression(AstNode node) {
@@ -3008,7 +3074,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         .addLexicalDeclarations(node);
   }
 
-  /// Add the suggestions that are appropriate when the selection is at the
+  /// Adds the suggestions that are appropriate when the selection is at the
   /// beginning of a constructor's initializer.
   void _forConstructorInitializer(ConstructorDeclaration constructor,
       ConstructorFieldInitializer? initializer) {
@@ -3021,21 +3087,21 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     declarationHelper().addFieldsForInitializers(constructor, field);
   }
 
-  /// Add the suggestions that are appropriate when the selection is at the
+  /// Adds the suggestions that are appropriate when the selection is at the
   /// beginning of a directive. The [before] directive is the directive before
   /// the one being added.
   void _forDirective(CompilationUnit unit, Directive? before) {
     keywordHelper.addDirectiveKeywords(unit, before);
   }
 
-  /// Add the suggestions that are appropriate when the selection is at the
+  /// Adds the suggestions that are appropriate when the selection is at the
   /// beginning of an enum member.
   void _forEnumMember(EnumDeclaration node) {
     keywordHelper.addEnumMemberKeywords();
     declarationHelper(mustBeType: true).addLexicalDeclarations(node);
   }
 
-  /// Add the suggestions that are appropriate when the selection is at the
+  /// Adds the suggestions that are appropriate when the selection is at the
   /// beginning of an expression. The [node] provides context to determine which
   /// keywords to include.
   void _forExpression(AstNode node,
@@ -3053,21 +3119,21 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         .addLexicalDeclarations(node);
   }
 
-  /// Add the suggestions that are appropriate when the selection is at the
+  /// Adds the suggestions that are appropriate when the selection is at the
   /// beginning of an extension member.
   void _forExtensionMember(ExtensionDeclaration node) {
     keywordHelper.addExtensionMemberKeywords(isStatic: false);
     declarationHelper(mustBeType: true).addLexicalDeclarations(node);
   }
 
-  /// Add the suggestions that are appropriate when the selection is at the
+  /// Adds the suggestions that are appropriate when the selection is at the
   /// beginning of an extension type member.
   void _forExtensionTypeMember(ExtensionTypeDeclaration node) {
     keywordHelper.addExtensionTypeMemberKeywords(isStatic: false);
     declarationHelper(mustBeType: true).addLexicalDeclarations(node);
   }
 
-  /// Return `true` if the preceding member is incomplete and no other
+  /// Returns `true` if the preceding member is incomplete and no other
   /// suggestions should be offered.
   ///
   /// If the completion offset is within the first token of the given [member],
@@ -3097,7 +3163,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     return false;
   }
 
-  /// Return `true` if the preceding statement is incomplete and no other
+  /// Returns `true` if the preceding statement is incomplete and no other
   /// suggestions should be offered.
   ///
   /// If the completion offset is within the first token of the given
@@ -3183,10 +3249,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void _forPattern(AstNode node, {bool mustBeConst = true}) {
     var coveringNode = state.selection.coveringNode;
 
-    // `if (x case ^ y)`
-    // The user want a type for incomplete DeclaredVariablePattern.
     if (node case CaseClause caseClause) {
       var pattern = caseClause.guardedPattern.pattern;
+      // `if (x case ^ y)`
+      // The user wants a type for incomplete DeclaredVariablePattern.
       if (pattern is ConstantPattern) {
         if (pattern.expression case SimpleIdentifier identifier) {
           if (!identifier.isSynthetic && offset < identifier.offset) {
@@ -3197,6 +3263,18 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             ).addLexicalDeclarations(node);
             return;
           }
+        }
+      }
+      // `if (x case ^ _)`
+      // The user wants a type for incomplete WildcardPattern.
+      if (pattern is WildcardPattern) {
+        if (offset < pattern.name.offset) {
+          state.request.opType.includeConstructorSuggestions = false;
+          state.request.opType.mustBeConst = true;
+          declarationHelper(
+            mustBeType: true,
+          ).addLexicalDeclarations(node);
+          return;
         }
       }
     }
@@ -3232,6 +3310,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           return;
         case ObjectPattern():
           collector.completionLocation = 'ObjectPattern_type';
+          state.request.opType.includeConstructorSuggestions = false;
+          type.accept(this);
+          return;
+        case WildcardPattern():
+          collector.completionLocation = 'WildcardPattern_type';
           state.request.opType.includeConstructorSuggestions = false;
           type.accept(this);
           return;
@@ -3347,7 +3430,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     // _addTypesInScope();
   }
 
-  /// Return `true` if the [precedingMember] is incomplete.
+  /// Returns `true` if the [precedingMember] is incomplete.
   ///
   /// If it's incomplete, assume that the user is attempting to complete it and
   /// offer appropriate suggestions.
@@ -3398,7 +3481,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     return false;
   }
 
-  /// Return `true` if the given [expression] is the result of recovery and
+  /// Returns `true` if the given [expression] is the result of recovery and
   /// suggestions have already been produced.
   ///
   /// The parser recovers from a parenthesized list in an argument list by
@@ -3426,7 +3509,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     return false;
   }
 
-  /// Return `true` if the given [declaration] is the result of recovery and
+  /// Returns `true` if the given [declaration] is the result of recovery and
   /// suggestions have already been produced.
   ///
   /// The parser recovers from a simple identifier by assuming that it's a
@@ -3456,7 +3539,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     return false;
   }
 
-  /// If allowed, suggest overrides in the context of the given [element].
+  /// Suggests overrides in the context of the given [element].
+  ///
+  /// If the budget has been exceeded, then the results are marked as incomplete
+  /// and no suggestions are added.
   void _suggestOverridesFor({
     required InterfaceElement? element,
     bool skipAt = false,
@@ -3498,29 +3584,35 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           .toSet();
     }
 
-    for (final field in contextType.namedFields) {
+    for (var field in contextType.namedFields) {
       if (!includedNames.contains(field.name)) {
-        if (isNewField) {
-          collector.addSuggestion(
-            RecordLiteralNamedFieldSuggestion.newField(
-              field: field,
-              appendComma: displaced.type != TokenType.COMMA &&
-                  displaced.type != TokenType.CLOSE_PAREN,
-            ),
-          );
-        } else {
-          collector.addSuggestion(
-            RecordLiteralNamedFieldSuggestion.onlyName(
-              field: field,
-            ),
-          );
+        var matcherScore = state.matcher.score(field.name);
+        if (matcherScore != -1) {
+          if (isNewField) {
+            collector.addSuggestion(
+              RecordLiteralNamedFieldSuggestion.newField(
+                field: field,
+                matcherScore: matcherScore,
+                appendComma: displaced.type != TokenType.COMMA &&
+                    displaced.type != TokenType.CLOSE_PAREN,
+              ),
+            );
+          } else {
+            collector.addSuggestion(
+              RecordLiteralNamedFieldSuggestion.onlyName(
+                field: field,
+                matcherScore: matcherScore,
+              ),
+            );
+          }
         }
       }
     }
   }
 
-  /// Check for typing `@override` inside a class body, before `}`.
-  /// There is no node, recover using tokens.
+  /// Checks for typing `@override` inside a class body, before `}`.
+  ///
+  /// There is no node, so this recover using tokens.
   bool _tryAnnotationAtEndOfClassBody(Declaration node) {
     var displaced = state.request.target.entity;
     if (displaced is Token && displaced.type == TokenType.CLOSE_CURLY_BRACKET) {
@@ -3536,7 +3628,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     return false;
   }
 
-  /// If [identifier] at `@` is a start of `@override`, suggest overrides.
+  /// Suggests an override if the [identifier] at `@` is a start of `@override`.
   void _tryOverrideAnnotation(Token identifier, Declaration node) {
     var lexeme = identifier.lexeme;
     if (lexeme.isNotEmpty && 'override'.startsWith(lexeme)) {
@@ -3571,8 +3663,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     }
   }
 
-  /// If the completion offset is at or before the offset of the [node], then
-  /// visit the parent of the node.
+  /// Visits the parent of the node if the completion offset is at or before the
+  /// offset of the [node].
   void _visitParentIfAtOrBeforeNode(AstNode node) {
     if (offset <= node.offset) {
       node.parent?.accept(this);
@@ -3610,7 +3702,7 @@ extension on AstNode {
     return true;
   }
 
-  /// Return `true` if the [child] is an element in a list of children of this
+  /// Returns `true` if the [child] is an element in a list of children of this
   /// node.
   bool isChildInList(AstNode child) {
     return switch (this) {
@@ -3709,7 +3801,7 @@ extension on ClassDeclaration {
 }
 
 extension on ClassMember {
-  /// Return the member before `this`, or `null` if this is the first member in
+  /// Returns the member before `this`, or `null` if this is the first member in
   /// the body.
   ClassMember? get precedingMember {
     final parent = this.parent;
@@ -3821,7 +3913,7 @@ extension on ArgumentList {
 }
 
 extension on CompilationUnit {
-  /// Return a record whose fields are the members in this compilation unit
+  /// Returns a record whose fields are the members in this compilation unit
   /// that are lexically immediately before and after the given [member].
   ({AstNode? before, AstNode? after}) membersBeforeAndAfterMember(
       AstNode? member) {
@@ -3839,7 +3931,7 @@ extension on CompilationUnit {
     return (before: before, after: after);
   }
 
-  /// Return a record whose fields are the members in this compilation unit
+  /// Returns a record whose fields are the members in this compilation unit
   /// that are lexically immediately before and after the given [offset].
   ({AstNode? before, AstNode? after}) membersBeforeAndAfterOffset(int offset) {
     var members = sortedDirectivesAndDeclarations;
@@ -3869,7 +3961,7 @@ extension on Element? {
     } else if (self is ExecutableElement) {
       return self.parameters;
     } else if (self is VariableElement) {
-      final type = self.type;
+      var type = self.type;
       if (type is FunctionType) {
         return type.parameters;
       }
@@ -3924,7 +4016,7 @@ extension on FormalParameter {
       return true;
     }
     if (name.isSynthetic) {
-      final next = name.next;
+      var next = name.next;
       if (next != null && next.isKeyword) {
         return true;
       }
@@ -3955,10 +4047,10 @@ extension on GuardedPattern {
     if (whenClause != null) {
       return true;
     }
-    var pattern = this.pattern;
+    final pattern = this.pattern;
     if (pattern is DeclaredVariablePattern) {
       if (pattern.name.lexeme == 'when') {
-        final type = pattern.type;
+        var type = pattern.type;
         if (type is NamedType && type.typeArguments == null) {
           return true;
         }
@@ -3976,8 +4068,8 @@ extension on NodeList<PatternField> {
 }
 
 extension on Statement {
-  /// Return the statement before `this`, or `null` if this is the first statement in
-  /// the block.
+  /// Returns the statement before `this`, or `null` if this is the first
+  /// statement in the block.
   Statement? get precedingStatement {
     final parent = this.parent;
     if (parent is! Block) {
@@ -3993,9 +4085,9 @@ extension on Statement {
 }
 
 extension on SyntacticEntity? {
-  /// Return `true` if the receiver covers the [offset].
+  /// Returns `true` if the receiver covers the [offset].
   bool coversOffset(int offset) {
-    final self = this;
+    var self = this;
     return self != null && self.offset <= offset && self.end >= offset;
   }
 }

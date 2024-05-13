@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io' show File;
+import 'dart:io' show Directory, File, FileSystemEntity;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/scanner/io.dart'
+    show readBytesFromFileSync;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show KeywordToken, SimpleToken, Token;
 import 'package:front_end/src/api_prototype/compiler_options.dart' as api
@@ -19,12 +21,15 @@ import 'package:front_end/src/fasta/kernel/constness.dart' show Constness;
 import 'package:front_end/src/fasta/kernel/expression_generator_helper.dart'
     show UnresolvedKind;
 import 'package:front_end/src/fasta/kernel/kernel_target.dart' show BuildResult;
+import 'package:front_end/src/fasta/util/import_export_etc_helper.dart';
 import 'package:kernel/kernel.dart' show Arguments, Expression;
+import 'package:package_config/package_config.dart';
 
 import 'compiler_test_helper.dart' show BodyBuilderTest, compile;
 
-Set<Uri> _includedDirectoryUris = {};
 Set<Uri> _ignoredDirectoryUris = {};
+
+Set<Uri> _includedDirectoryUris = {};
 
 /// Run the explicit creation test (i.e. reporting missing 'new' tokens).
 ///
@@ -66,15 +71,18 @@ Future<int> runExplicitCreationTest(
 
   Stopwatch stopwatch = new Stopwatch()..start();
 
-  // TODO(jensj): While we need to compile the outline as normal, it should be
-  // sufficient to compile the body of the paths mentioned in [includedFiles].
-
   // TODO(jensj): The target has to be VM or we can't compile the sdk,
   // but probably we don't actually need to run any vm-specific transformations
   // for instance.
 
+  Set<Uri> partsReplaced =
+      _replaceParts(packageConfigUri, includedFilesFiltered);
+  if (!identical(partsReplaced, includedFilesFiltered)) {
+    print("Replaced part of uris in ${stopwatch.elapsedMilliseconds} ms");
+  }
+
   BuildResult result = await compile(
-      inputs: includedFilesFiltered.toList(),
+      inputs: partsReplaced.toList(),
       // Compile sdk because when this is run from a lint it uses the checked-in
       // sdk and we might not have a suitable compiled platform.dill file.
       compileSdk: true,
@@ -99,6 +107,91 @@ Future<int> runExplicitCreationTest(
   print("Compiled ${result.component?.libraries.length} libraries.");
 
   return errorCount;
+}
+
+/// Try to replace any uri that's a "part of identifier;" with the uri of the
+/// file with that library name. If one cannot be found it's removed.
+/// Does nothing to "part of <uri>;" as the compiler should find out by itself.
+Set<Uri> _replaceParts(Uri packageConfigUri, Set<Uri> files) {
+  Map<Uri, FileInfoHelper> helpers = {};
+  Map<String, Uri> knownLibraryNames = {};
+  FileInfoHelper indexUriHelper(Uri uri) {
+    FileInfoHelper fileInfo =
+        helpers[uri] = getFileInfoHelper(readBytesFromFileSync(uri));
+    if (fileInfo.libraryNames.isNotEmpty) {
+      for (String name in fileInfo.libraryNames) {
+        knownLibraryNames[name] = uri;
+      }
+    }
+    return fileInfo;
+  }
+
+  Set<Uri> partOfLibraryNameUris = {};
+  for (Uri uri in files) {
+    FileInfoHelper fileInfo = indexUriHelper(uri);
+    if (fileInfo.partOfIdentifiers.isNotEmpty) {
+      partOfLibraryNameUris.add(uri);
+    }
+  }
+
+  // If none of the input files are parts using identifiers do nothing.
+  if (partOfLibraryNameUris.isEmpty) return files;
+
+  // At least one of the inputs is a part of another library identified by
+  // name.
+  PackageConfig packageConfig = PackageConfig.parseBytes(
+      new File.fromUri(packageConfigUri).readAsBytesSync(), packageConfigUri);
+
+  Map<Package, Set<String>> packageToNeededLibraryNames = {};
+  for (Uri uri in partOfLibraryNameUris) {
+    Package? package = packageConfig.packageOf(uri);
+    if (package != null) {
+      Set<String> neededLibraryNames =
+          packageToNeededLibraryNames[package] ??= {};
+      for (String neededName in helpers[uri]!.partOfIdentifiers) {
+        if (!knownLibraryNames.containsKey(neededName)) {
+          neededLibraryNames.add(neededName);
+        }
+      }
+    }
+  }
+
+  for (MapEntry<Package, Set<String>> packageEntry
+      in packageToNeededLibraryNames.entries) {
+    if (packageEntry.value.isEmpty) continue;
+    Set<String> neededNames = packageEntry.value;
+    for (FileSystemEntity f
+        in Directory.fromUri(packageEntry.key.packageUriRoot)
+            .listSync(recursive: true)) {
+      if (f is! File) continue;
+      if (helpers[f.uri] == null) {
+        FileInfoHelper fileInfo = indexUriHelper(f.uri);
+        for (String name in fileInfo.libraryNames) {
+          neededNames.remove(name);
+        }
+        if (neededNames.isEmpty) break;
+      }
+    }
+  }
+
+  Set<Uri> result = {};
+  for (Uri uri in files) {
+    FileInfoHelper fileInfo = helpers[uri]!;
+    if (fileInfo.partOfIdentifiers.isNotEmpty) {
+      bool replaced = false;
+      for (String identifier in fileInfo.partOfIdentifiers) {
+        Uri? uriOf = knownLibraryNames[identifier];
+        if (uriOf != null) {
+          result.add(uriOf);
+          replaced = true;
+        }
+      }
+      if (!replaced) print("Warning: Couldn't find part-of for $uri");
+    } else {
+      result.add(uri);
+    }
+  }
+  return result;
 }
 
 class BodyBuilderTester = BodyBuilderTest with BodyBuilderTestMixin;

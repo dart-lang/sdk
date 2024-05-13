@@ -332,7 +332,8 @@ Future<CompilerResult> _compile(List<String> args,
         environmentDefines: declaredVariables,
         trackNeededDillLibraries: recordUsedInputs,
         nnbdMode:
-            options.soundNullSafety ? fe.NnbdMode.Strong : fe.NnbdMode.Weak);
+            options.soundNullSafety ? fe.NnbdMode.Strong : fe.NnbdMode.Weak,
+        precompiledMacros: options.precompiledMacros);
     var incrementalCompiler = compilerState.incrementalCompiler!;
     var cachedSdkInput = compileSdk
         ? null

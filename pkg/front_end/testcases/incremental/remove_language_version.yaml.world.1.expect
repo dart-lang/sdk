@@ -3,16 +3,12 @@ library from "org-dartlang-test:///main.dart" as main {
 //
 // Problems in library:
 //
-// org-dartlang-test:///main.dart:3:6: Error: Null safety is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.12 or higher.
-//   int? i;
-//      ^
-// org-dartlang-test:///main.dart:1:1: Context: This is the annotation that opts out this library from null safety features.
+// org-dartlang-test:///main.dart:1:1: Error: The specified language version is too low. The lowest supported language version is 2.12.
 // // @dart=2.9
 // ^^^^^^^^^^^^
 //
 
   static method main() → dynamic {
-    dart.core::int* i;
+    dart.core::int? i;
   }
 }

@@ -1,3 +1,41 @@
+## 1.15.0
+
+- Updated `@mustBeOverridden` to only flag missing overrides in concrete
+  classes; in other words, abstract classes (including implicitly abstract, i.e
+  `sealed`) and mixin declarations are _no longer required_ to provide an
+  implementation:
+
+  ```dart
+  import 'package:meta/meta.dart';
+
+  abstract class Base {
+    @mustBeOverridden
+    void foo() {}
+  }
+
+  class Derived extends Base {
+    // ERROR: Missing implementation of `foo`.
+  }
+
+  abstract class Abstract extends Base {
+    // No error.
+  }
+
+  sealed class Sealed extends Base {
+    // No error.
+  }
+
+  mixin Mixin on Base {
+    // No error.
+  }
+  ```
+
+  See <https://github.com/dart-lang/sdk/issues/52965> for more information.
+- Introduce `TargetKind.optionalParameter`, to indicate that an annotation is
+  valid on any optional parameter declaration.
+- Introduce `TargetKind.overridableMember`, to indicate that an annotation is
+  valid on any instance member declaration.
+
 ## 1.14.0
 
 - Introduce `TargetKind.constructor`, to indicate that an annotation is valid on
@@ -8,8 +46,8 @@
   any enum value declaration.
 - Introduce `TargetKind.typeParameter`, to indicate that an annotation is valid
   on any type parameter declaration.
-- Introduce `@doNotSubmit` to annotate members that should not be submitted to
-  source control, typically because they are intended to be used ephemerally
+- Introduce `@doNotSubmit` to annotate members that should not be accessed in
+  checked-in code, typically because they are intended to be used ephemerally
   during development.
 
   One example is `package:test`'s `solo: ...` parameter, which skips all other
@@ -41,6 +79,7 @@
     );
   }
   ```
+
 - Introduce `@mustBeConst` to annotate parameters which only accept constant
   arguments.
 

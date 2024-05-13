@@ -150,7 +150,7 @@ abstract base class _Invocation extends _DependencyTracker
           (this.args == other.args);
 
   @override
-  int get hashCode => combineHashes(selector.hashCode, args.hashCode);
+  late final int hashCode = combineHashes(selector.hashCode, args.hashCode);
 
   @override
   String toString() => "_Invocation $selector $args";
@@ -158,7 +158,9 @@ abstract base class _Invocation extends _DependencyTracker
   /// Processes noSuchMethod() invocation and returns its result.
   /// Used if target is not found or number of arguments is incorrect.
   Type _processNoSuchMethod(Type receiver, TypeFlowAnalysis typeFlowAnalysis) {
-    tracePrint("Processing noSuchMethod for receiver $receiver");
+    if (kPrintTrace) {
+      tracePrint("Processing noSuchMethod for receiver $receiver");
+    }
 
     final nsmSelector = new InterfaceSelector(
         typeFlowAnalysis.hierarchyCache.objectNoSuchMethod,
@@ -167,7 +169,7 @@ abstract base class _Invocation extends _DependencyTracker
     final nsmArgs = new Args<Type>([
       receiver,
       typeFlowAnalysis.hierarchyCache.fromStaticType(
-          typeFlowAnalysis.coreTypes.invocationLegacyRawType, false)
+          typeFlowAnalysis.coreTypes.invocationNonNullableRawType, false)
     ]);
 
     final nsmInvocation =
@@ -247,9 +249,8 @@ abstract base class _Invocation extends _DependencyTracker
 final class _DirectInvocation extends _Invocation {
   _DirectInvocation(DirectSelector selector, Args<Type> args)
       : super(selector, args) {
-    if (!areArgumentsValidFor(selector.member)) {
-      throw 'Creating _DirectInvocation($selector, $args) with invalid args';
-    }
+    assert(areArgumentsValidFor(selector.member),
+        'Creating _DirectInvocation($selector, $args) with invalid args');
   }
 
   @override
@@ -1357,7 +1358,7 @@ class _ClassHierarchyCache extends TypeHierarchy {
       getTFClass(coreTypes.deprecatedNullClass);
 
   _ClassHierarchyCache(this._typeFlowAnalysis, this.genericInterfacesInfo,
-      super.coreTypes, super.target, super.soundNullSafety)
+      super.coreTypes, super.target)
       : objectNoSuchMethod =
             coreTypes.index.getProcedure('dart:core', 'Object', 'noSuchMethod');
 
@@ -1752,8 +1753,8 @@ class TypeFlowAnalysis
       : annotationMatcher =
             matcher ?? new ConstantPragmaAnnotationParser(coreTypes, target) {
     nativeCodeOracle = new NativeCodeOracle(libraryIndex, annotationMatcher);
-    hierarchyCache = new _ClassHierarchyCache(this, _genericInterfacesInfo,
-        coreTypes, target, target.flags.soundNullSafety);
+    hierarchyCache = new _ClassHierarchyCache(
+        this, _genericInterfacesInfo, coreTypes, target);
     summaryCollector = new SummaryCollector(
         target,
         environment,

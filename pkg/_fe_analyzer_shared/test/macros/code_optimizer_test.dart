@@ -669,7 +669,7 @@ prefix0.String foo(int String) {
         },
         withEdits: false,
         code: r'''
-library augment 'test.dart';
+augment library 'test.dart';
 
 import 'package:json_serializable/json_serializable.dart' as prefix0;
 import 'dart:core' as prefix1;
@@ -689,7 +689,7 @@ augment class User {
 }
 ''',
         expected: r'''
-library augment 'test.dart';
+augment library 'test.dart';
 
 import 'package:json_serializable/json_serializable.dart';
 import 'dart:core';

@@ -87,17 +87,7 @@ main(List<String> args) {
           e.toString().startsWith(
               'NoSuchMethodError: The method \'+\' was called on null.'));
 
-  Expect.throws(
-      () => 9.81 - doubleNull,
-      (e) => hasUnsoundNullSafety
-          ? (e is NoSuchMethodError &&
-              // If '-' is specialized.
-              (e.toString().startsWith(
-                      'NoSuchMethodError: The method \'-\' was called on null.') ||
-                  // If '-' is not specialized, it calls toDouble() internally.
-                  e.toString().startsWith(
-                      'NoSuchMethodError: The method \'toDouble\' was called on null.')))
-          : (e is TypeError));
+  Expect.throws(() => 9.81 - doubleNull, (e) => e is TypeError);
 
   Expect.throws(
       () => intNull * 7,

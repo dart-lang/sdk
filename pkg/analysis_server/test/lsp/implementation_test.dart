@@ -46,11 +46,11 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
     ''');
 
   Future<void> test_emptyResults() async {
-    final content = '';
+    var content = '';
 
     await initialize();
     await openFile(mainFileUri, content);
-    final res = await getImplementations(
+    var res = await getImplementations(
       mainFileUri,
       startOfDocPos,
     );
@@ -185,14 +185,14 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
   /// Check that implementations that come from mixins in other files return the
   /// correct location for the implementation.
   Future<void> test_mixins() async {
-    final mixinsContent = r'''
+    var mixinsContent = r'''
 import 'main.dart';
 
 mixin MyMixin implements MyInterface {
   String get [!interfaceField!] => '';
 }
 ''';
-    final content = r'''
+    var content = r'''
 import 'other.dart';
 
 class A with MyMixin {}
@@ -213,7 +213,7 @@ abstract class MyInterface {
     newFile(pubspecFilePath, simplePubspecContent);
     await initialize();
 
-    final res = await getImplementations(pubspecFileUri, startOfDocPos);
+    var res = await getImplementations(pubspecFileUri, startOfDocPos);
     expect(res, isEmpty);
   }
 
@@ -231,11 +231,10 @@ abstract class MyInterface {
     String? otherContent,
     bool expectResults = true,
   }) async {
-    final otherFilePath = join(projectFolderPath, 'lib', 'other.dart');
-    final otherFileUri = pathContext.toUri(otherFilePath);
-    final code = TestCode.parse(content);
-    final otherCode =
-        otherContent != null ? TestCode.parse(otherContent) : null;
+    var otherFilePath = join(projectFolderPath, 'lib', 'other.dart');
+    var otherFileUri = pathContext.toUri(otherFilePath);
+    var code = TestCode.parse(content);
+    var otherCode = otherContent != null ? TestCode.parse(otherContent) : null;
     if (otherCode != null) {
       newFile(otherFilePath, otherCode.code);
     }
@@ -243,12 +242,12 @@ abstract class MyInterface {
 
     await initialize();
 
-    final res = await getImplementations(
+    var res = await getImplementations(
       mainFileUri,
       code.position.position,
     );
 
-    final expectedLocations = [
+    var expectedLocations = [
       for (final range in code.ranges)
         Location(uri: mainFileUri, range: range.range),
       if (otherCode != null)
@@ -260,7 +259,7 @@ abstract class MyInterface {
       expect(expectedLocations, isNotEmpty);
       expect(res, unorderedEquals(expectedLocations));
     } else {
-      for (final location in expectedLocations) {
+      for (var location in expectedLocations) {
         expect(res, isNot(contains(location)));
       }
     }

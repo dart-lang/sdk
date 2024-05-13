@@ -7,6 +7,7 @@ library;
 
 import 'dart:core' hide Type;
 
+import 'package:collection/collection.dart';
 import 'package:kernel/ast.dart' hide Variance;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart' show getFreshTypeParameters;
@@ -192,9 +193,8 @@ abstract class GenericInterfacesInfo {
 abstract class TypesBuilder {
   final CoreTypes coreTypes;
   final Target target;
-  final bool soundNullSafety;
 
-  TypesBuilder(this.coreTypes, this.target, this.soundNullSafety);
+  TypesBuilder(this.coreTypes, this.target);
 
   /// Return [TFClass] corresponding to the given [classNode].
   TFClass getTFClass(Class classNode);
@@ -258,7 +258,7 @@ abstract class TypesBuilder {
     } else {
       throw 'Unexpected type ${type.runtimeType} $type';
     }
-    if (soundNullSafety && type.nullability == Nullability.nonNullable) {
+    if (type.nullability == Nullability.nonNullable) {
       canBeNull = false;
     }
     if (canBeNull) {
@@ -275,8 +275,7 @@ abstract class RuntimeTypeTranslator {
 /// Abstract interface to type hierarchy information used by types.
 abstract class TypeHierarchy extends TypesBuilder
     implements GenericInterfacesInfo {
-  TypeHierarchy(CoreTypes coreTypes, Target target, bool soundNullSafety)
-      : super(coreTypes, target, soundNullSafety);
+  TypeHierarchy(CoreTypes coreTypes, Target target) : super(coreTypes, target);
 
   /// Test if [sub] is a subtype of [sup].
   bool isSubtype(Class sub, Class sup) {
@@ -296,7 +295,8 @@ abstract class TypeHierarchy extends TypesBuilder
   /// Returns true if [cls] has allocated subtypes.
   bool hasAllocatedSubtypes(TFClass cls);
 
-  late final Type intType = fromStaticType(coreTypes.intLegacyRawType, true);
+  late final Type intType =
+      fromStaticType(coreTypes.intNonNullableRawType, false);
 }
 
 /// Base class for type expressions.
@@ -463,8 +463,7 @@ class NullableType extends Type {
       TypeHierarchy typeHierarchy, RuntimeType other, SubtypeTestKind kind) {
     switch (kind) {
       case SubtypeTestKind.Subtype:
-        if (typeHierarchy.soundNullSafety &&
-            other.nullability == Nullability.nonNullable) {
+        if (other.nullability == Nullability.nonNullable) {
           return false;
         }
         break;
@@ -590,8 +589,8 @@ class SetType extends Type {
   int _computeHashCode() {
     const int seed = 1237;
     int hash = seed;
-    for (var t in types) {
-      hash = combineHashes(hash, t.hashCode);
+    for (int i = 0; i < types.length; i++) {
+      hash = combineHashes(hash, types[i].hashCode);
     }
     return hash;
   }
@@ -641,16 +640,25 @@ class SetType extends Type {
   @override
   int get order => TypeOrder.Set.index;
 
+  static final ConcreteType _placeholderType = ConcreteType._(
+      TFClass(-1, Class(name: '', fileUri: Uri()), {}, null), null, null);
+
   static List<ConcreteType> _unionLists(
       List<ConcreteType> types1, List<ConcreteType> types2) {
     int i1 = 0;
     int i2 = 0;
-    List<ConcreteType> types = <ConcreteType>[];
+    int newLength = 0;
+    // Pre-allocate a List that is the maximum possible length of the result to
+    // avoid multiple expensive grow operations. Shrink the List to the correct
+    // size at the end.
+    List<ConcreteType> types = List.filled(
+        types1.length + types2.length, _placeholderType,
+        growable: true);
     while ((i1 < types1.length) && (i2 < types2.length)) {
       final t1 = types1[i1];
       final t2 = types2[i2];
       if (identical(t1, t2)) {
-        types.add(t1);
+        types[newLength++] = t1;
         ++i1;
         ++i2;
         continue;
@@ -658,23 +666,27 @@ class SetType extends Type {
       final id1 = t1.cls.id;
       final id2 = t2.cls.id;
       if (id1 < id2) {
-        types.add(t1);
+        types[newLength++] = t1;
         ++i1;
       } else if (id1 > id2) {
-        types.add(t2);
+        types[newLength++] = t2;
         ++i2;
       } else {
-        types.add(t1.raw);
+        types[newLength++] = t1.raw;
         ++i1;
         ++i2;
       }
     }
     if (i1 < types1.length) {
-      types.addAll(types1.getRange(i1, types1.length));
+      for (int i = i1; i < types1.length; i++) {
+        types[newLength++] = types1[i];
+      }
     } else if (i2 < types2.length) {
-      types.addAll(types2.getRange(i2, types2.length));
+      for (int i = i2; i < types2.length; i++) {
+        types[newLength++] = types2[i];
+      }
     }
-    return types;
+    return types..length = newLength;
   }
 
   static List<ConcreteType> _intersectLists(List<ConcreteType> types1,
@@ -745,9 +757,19 @@ class SetType extends Type {
       }
       return SetType(_unionLists(types, other.types));
     } else if (other is ConcreteType) {
-      return types.contains(other)
-          ? this
-          : SetType(_unionLists(types, <ConcreteType>[other]));
+      // Use binary search since types is sorted by class id.
+      // [ConcreteType.compareTo] doesn't take into account type arguments for a
+      // given class so we still have to check equality for any types with a
+      // matching class.
+      int index = binarySearch(types, other);
+      if (index == -1) {
+        return SetType(_unionLists(types, <ConcreteType>[other]));
+      }
+      while (index < types.length && types[index].cls.id == other.cls.id) {
+        if (types[index] == other) return this;
+        ++index;
+      }
+      return SetType(_unionLists(types, <ConcreteType>[other]));
     } else if (other is ConeType) {
       return typeHierarchy
           .specializeTypeCone(other.cls, allowWideCone: true)
@@ -1566,8 +1588,7 @@ class RuntimeType extends Type {
       throw 'RuntimeType could be only tested for subtyping.';
     }
     final rhs = runtimeType._type;
-    if (typeHierarchy.soundNullSafety &&
-        _type.nullability == Nullability.nullable &&
+    if (_type.nullability == Nullability.nullable &&
         rhs.nullability == Nullability.nonNullable) {
       return false;
     }

@@ -22,7 +22,7 @@ class RemoveAnnotation extends ResolvedCorrectionProducer {
   bool get canBeAppliedToFile => false;
 
   @override
-  List<Object> get fixArguments => [_annotationName];
+  List<String> get fixArguments => [_annotationName];
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_ANNOTATION;

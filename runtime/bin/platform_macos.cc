@@ -12,7 +12,7 @@
 
 #if !DART_HOST_OS_IOS
 #include <crt_externs.h>
-#endif                    // !DART_HOST_OS_IOS
+#endif  // !DART_HOST_OS_IOS
 #include <dlfcn.h>
 #include <errno.h>
 #include <mach-o/dyld.h>

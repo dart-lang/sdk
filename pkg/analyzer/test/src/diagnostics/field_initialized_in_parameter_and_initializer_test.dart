@@ -27,7 +27,7 @@ class A {
 ''');
 
     var a = newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 
 augment class A {
   augment A(this.f) : f = 0;

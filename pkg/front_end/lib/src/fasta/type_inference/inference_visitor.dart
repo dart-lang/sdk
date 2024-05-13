@@ -103,13 +103,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             Pattern,
             InvalidExpression,
             DartType,
-            StructuralParameter>,
+            StructuralParameter,
+            TypeDeclarationType,
+            TypeDeclaration>,
         StackChecker
     implements
         ExpressionVisitor1<ExpressionInferenceResult, DartType>,
         StatementVisitor<StatementInferenceResult>,
         InitializerVisitor<InitializerInferenceResult>,
-        PatternVisitor1<void, SharedMatchContext>,
+        PatternVisitor1<PatternResult<DartType>, SharedMatchContext>,
         InferenceVisitor {
   /// Debug-only: if `true`, manipulations of [_rewriteStack] performed by
   /// [popRewrite] and [pushRewrite] will be printed.
@@ -855,9 +857,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   ExpressionInferenceResult visitAwaitExpression(
       AwaitExpression node, DartType typeContext) {
-    if (!typeSchemaEnvironment.isEmptyContext(typeContext)) {
-      typeContext = wrapFutureOrType(typeContext);
+    if (typeContext is DynamicType) {
+      typeContext = const UnknownType();
     }
+    typeContext = wrapFutureOrType(typeContext);
     ExpressionInferenceResult operandResult = inferExpression(
         node.operand, typeContext,
         isVoidAllowed: !isNonNullableByDefault);
@@ -1928,9 +1931,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.ifNullExpression_rightBegin(node.left, t1);
 
     // - Let `T2` be the type of `e2` inferred with context type `J`, where:
-    //   - If `K` is `_`, `J = T1`.
+    //   - If `K` is `_` or `dynamic`, `J = T1`.
     DartType j;
-    if (typeContext is UnknownType) {
+    if (typeContext is UnknownType || typeContext is DynamicType) {
       j = t1;
     } else
     //   - Otherwise, `J = K`.
@@ -5236,8 +5239,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       //
       Expression equalsNull =
           createEqualsNull(read, fileOffset: node.fileOffset);
-      ConditionalExpression conditional = new ConditionalExpression(equalsNull,
-          write, new NullLiteral()..fileOffset = node.fileOffset, inferredType)
+      ConditionalExpression conditional = new ConditionalExpression(
+          equalsNull,
+          write,
+          new NullLiteral()..fileOffset = node.fileOffset,
+          computeNullable(inferredType))
         ..fileOffset = node.fileOffset;
       replacement =
           new Let(receiverVariable, conditional..fileOffset = node.fileOffset)
@@ -5739,9 +5745,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           equalsNull,
           write,
           new NullLiteral()..fileOffset = node.testOffset,
-          isNonNullableByDefault
-              ? inferredType.withDeclaredNullability(Nullability.nullable)
-              : inferredType)
+          computeNullable(inferredType))
         ..fileOffset = node.testOffset;
       inner = conditional;
     } else {
@@ -5901,8 +5905,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       assert(valueVariable == null);
       Expression equalsNull =
           createEqualsNull(read, fileOffset: node.testOffset);
-      replacement = new ConditionalExpression(equalsNull, write,
-          new NullLiteral()..fileOffset = node.testOffset, inferredType)
+      replacement = new ConditionalExpression(
+          equalsNull,
+          write,
+          new NullLiteral()..fileOffset = node.testOffset,
+          computeNullable(inferredType))
         ..fileOffset = node.testOffset;
     } else {
       // Encode `o[a] ??= b` as:
@@ -6061,8 +6068,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       assert(valueVariable == null);
       Expression equalsNull =
           createEqualsNull(read, fileOffset: node.testOffset);
-      replacement = new ConditionalExpression(equalsNull, write,
-          new NullLiteral()..fileOffset = node.testOffset, inferredType)
+      replacement = new ConditionalExpression(
+          equalsNull,
+          write,
+          new NullLiteral()..fileOffset = node.testOffset,
+          computeNullable(inferredType))
         ..fileOffset = node.testOffset;
     } else {
       // Encode `Extension(o)[a] ??= b` as:
@@ -7733,8 +7743,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       Expression readEqualsNull =
           createEqualsNull(read, fileOffset: node.readOffset);
-      replacement = new ConditionalExpression(readEqualsNull, write,
-          new NullLiteral()..fileOffset = node.writeOffset, inferredType)
+      replacement = new ConditionalExpression(
+          readEqualsNull,
+          write,
+          new NullLiteral()..fileOffset = node.writeOffset,
+          computeNullable(inferredType))
         ..fileOffset = node.writeOffset;
     } else {
       // Encode `receiver?.name ??= value` as:
@@ -9530,11 +9543,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  void dispatchPattern(SharedMatchContext context, TreeNode node) {
+  PatternResult<DartType> dispatchPattern(
+      SharedMatchContext context, TreeNode node) {
     if (node is Pattern) {
-      node.accept1(this, context);
+      return node.accept1(this, context);
     } else {
-      analyzeConstantPattern(context, node, node as Expression);
+      return analyzeConstantPattern(context, node, node as Expression);
     }
   }
 
@@ -9955,15 +9969,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  void visitVariablePattern(VariablePattern node, SharedMatchContext context) {
+  PatternResult<DartType> visitVariablePattern(
+      VariablePattern node, SharedMatchContext context) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
-
-    node.matchedValueType = flow.getMatchedValueType();
 
     DeclaredVariablePatternResult<DartType, InvalidExpression> analysisResult =
         analyzeDeclaredVariablePattern(
             context, node, node.variable, node.variable.name!, node.type);
+
+    node.matchedValueType = analysisResult.matchedValueType;
 
     Pattern? replacement;
 
@@ -9987,14 +10002,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(checkStack(node, stackBase, [
       /* pattern = */ ValueKinds.Pattern,
     ]));
+    return analysisResult;
   }
 
   @override
-  void visitWildcardPattern(WildcardPattern node, SharedMatchContext context) {
+  PatternResult<DartType> visitWildcardPattern(
+      WildcardPattern node, SharedMatchContext context) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    WildcardPatternResult<InvalidExpression> analysisResult =
+    WildcardPatternResult<DartType, InvalidExpression> analysisResult =
         analyzeWildcardPattern(
             context: context, node: node, declaredType: node.type);
 
@@ -10013,10 +10030,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(checkStack(node, stackBase, [
       /* pattern = */ ValueKinds.Pattern,
     ]));
+    return analysisResult;
   }
 
   @override
-  void visitConstantPattern(ConstantPattern node, SharedMatchContext context) {
+  PatternResult<DartType> visitConstantPattern(
+      ConstantPattern node, SharedMatchContext context) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
@@ -10060,14 +10079,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(checkStack(node, stackBase, [
       /* pattern = */ ValueKinds.Pattern,
     ]));
+    return analysisResult;
   }
 
   @override
-  void visitAndPattern(AndPattern node, SharedMatchContext context) {
+  PatternResult<DartType> visitAndPattern(
+      AndPattern node, SharedMatchContext context) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    analyzeLogicalAndPattern(context, node, node.left, node.right);
+    PatternResult<DartType> analysisResult =
+        analyzeLogicalAndPattern(context, node, node.left, node.right);
 
     assert(checkStack(node, stackBase, [
       /* right = */ ValueKinds.Pattern,
@@ -10089,14 +10111,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(checkStack(node, stackBase, [
       /* pattern = */ ValueKinds.Pattern,
     ]));
+    return analysisResult;
   }
 
   @override
-  void visitOrPattern(OrPattern node, SharedMatchContext context) {
+  PatternResult<DartType> visitOrPattern(
+      OrPattern node, SharedMatchContext context) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    LogicalOrPatternResult<InvalidExpression> analysisResult =
+    LogicalOrPatternResult<DartType, InvalidExpression> analysisResult =
         analyzeLogicalOrPattern(context, node, node.left, node.right);
 
     assert(checkStack(node, stackBase, [
@@ -10158,14 +10182,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(checkStack(node, stackBase, [
       /* pattern = */ ValueKinds.Pattern,
     ]));
+    return analysisResult;
   }
 
   @override
-  void visitCastPattern(CastPattern node, SharedMatchContext context) {
+  PatternResult<DartType> visitCastPattern(
+      CastPattern node, SharedMatchContext context) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    analyzeCastPattern(
+    PatternResult<DartType> analysisResult = analyzeCastPattern(
       context: context,
       pattern: node,
       innerPattern: node.pattern,
@@ -10186,15 +10212,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(checkStack(node, stackBase, [
       /* pattern = */ ValueKinds.Pattern,
     ]));
+    return analysisResult;
   }
 
   @override
-  void visitNullAssertPattern(
+  PatternResult<DartType> visitNullAssertPattern(
       NullAssertPattern node, SharedMatchContext context) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    NullCheckOrAssertPatternResult<InvalidExpression> analysisResult =
+    NullCheckOrAssertPatternResult<DartType, InvalidExpression> analysisResult =
         analyzeNullCheckOrAssertPattern(context, node, node.pattern,
             isAssert: true);
 
@@ -10222,16 +10249,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(checkStack(node, stackBase, [
       /* pattern = */ ValueKinds.Pattern,
     ]));
+    return analysisResult;
   }
 
   @override
-  void visitNullCheckPattern(
+  PatternResult<DartType> visitNullCheckPattern(
       NullCheckPattern node, SharedMatchContext context) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    analyzeNullCheckOrAssertPattern(context, node, node.pattern,
-        isAssert: false);
+    NullCheckOrAssertPatternResult<DartType, InvalidExpression> analysisResult =
+        analyzeNullCheckOrAssertPattern(context, node, node.pattern,
+            isAssert: false);
 
     assert(checkStack(node, stackBase, [
       /* subpattern = */ ValueKinds.Pattern,
@@ -10247,19 +10276,21 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(checkStack(node, stackBase, [
       /* pattern = */ ValueKinds.Pattern,
     ]));
+    return analysisResult;
   }
 
   @override
-  void visitListPattern(ListPattern node, SharedMatchContext context) {
+  PatternResult<DartType> visitListPattern(
+      ListPattern node, SharedMatchContext context) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
-
-    DartType matchedValueType =
-        node.matchedValueType = flow.getMatchedValueType();
 
     ListPatternResult<DartType, InvalidExpression> analysisResult =
         analyzeListPattern(context, node,
             elements: node.patterns, elementType: node.typeArgument);
+
+    DartType matchedValueType =
+        node.matchedValueType = analysisResult.matchedValueType;
 
     assert(checkStack(node, stackBase, [
       /* subpatterns = */ ...repeatedKind(
@@ -10383,6 +10414,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(checkStack(node, stackBase, [
       /* pattern = */ ValueKinds.Pattern,
     ]));
+    return analysisResult;
   }
 
   bool _needsCast(
@@ -10400,12 +10432,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  void visitObjectPattern(ObjectPattern node, SharedMatchContext context) {
+  PatternResult<DartType> visitObjectPattern(
+      ObjectPattern node, SharedMatchContext context) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
-
-    DartType matchedValueType =
-        node.matchedValueType = flow.getMatchedValueType();
 
     ObjectPatternResult<DartType, InvalidExpression> analysisResult =
         analyzeObjectPattern(context, node,
@@ -10414,6 +10444,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             new RecordPatternField(
                 node: field, name: field.name, pattern: field.pattern)
         ]);
+
+    DartType matchedValueType =
+        node.matchedValueType = analysisResult.matchedValueType;
 
     assert(checkStack(node, stackBase, [
       /* subpatterns = */ ...repeatedKind(
@@ -10560,10 +10593,19 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(checkStack(node, stackBase, [
       /* pattern = */ ValueKinds.Pattern,
     ]));
+    return analysisResult;
   }
 
   @override
-  void visitRestPattern(RestPattern node, SharedMatchContext context) {
+  PatternResult<DartType> visitRestPattern(
+      RestPattern node, SharedMatchContext context) {
+    // A rest pattern isn't a real pattern; this code should never be reached.
+    throw new StateError('visitRestPattern should never be reached');
+  }
+
+  @override
+  PatternResult<DartType> visitInvalidPattern(
+      InvalidPattern node, SharedMatchContext context) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
@@ -10572,31 +10614,21 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(checkStack(node, stackBase, [
       /* pattern = */ ValueKinds.Pattern,
     ]));
+
+    return new PatternResult(matchedValueType: const InvalidType());
   }
 
   @override
-  void visitInvalidPattern(InvalidPattern node, SharedMatchContext context) {
-    int? stackBase;
-    assert(checkStackBase(node, stackBase = stackHeight));
-
-    pushRewrite(node);
-
-    assert(checkStack(node, stackBase, [
-      /* pattern = */ ValueKinds.Pattern,
-    ]));
-  }
-
-  @override
-  void visitRelationalPattern(
+  PatternResult<DartType> visitRelationalPattern(
       RelationalPattern node, SharedMatchContext context) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    DartType matchedValueType =
-        node.matchedValueType = flow.getMatchedValueType();
-
     RelationalPatternResult<DartType, InvalidExpression> analysisResult =
         analyzeRelationalPattern(context, node, node.expression);
+
+    DartType matchedValueType =
+        node.matchedValueType = analysisResult.matchedValueType;
 
     assert(checkStack(node, stackBase, [
       /* expression = */ ValueKinds.Expression,
@@ -10714,15 +10746,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(checkStack(node, stackBase, [
       /* pattern = */ ValueKinds.Pattern,
     ]));
+    return analysisResult;
   }
 
   @override
-  void visitMapPattern(MapPattern node, SharedMatchContext context) {
+  PatternResult<DartType> visitMapPattern(
+      MapPattern node, SharedMatchContext context) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
-
-    DartType matchedValueType =
-        node.matchedValueType = flow.getMatchedValueType();
 
     ({DartType keyType, DartType valueType})? typeArguments =
         node.keyType == null && node.valueType == null
@@ -10734,6 +10765,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     MapPatternResult<DartType, InvalidExpression> analysisResult =
         analyzeMapPattern(context, node,
             typeArguments: typeArguments, elements: node.entries);
+
+    DartType matchedValueType =
+        node.matchedValueType = analysisResult.matchedValueType;
 
     Pattern? replacement;
 
@@ -10821,28 +10855,21 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(checkStack(node, stackBase, [
       /* pattern = */ ValueKinds.Pattern,
     ]));
+    return analysisResult;
   }
 
   @override
-  void visitNamedPattern(NamedPattern node, SharedMatchContext context) {
-    int? stackBase;
-    assert(checkStackBase(node, stackBase = stackHeight));
-
-    // TODO(cstefantsova): Implement visitNamedPattern.
-    pushRewrite(node);
-
-    assert(checkStack(node, stackBase, [
-      /* pattern = */ ValueKinds.Pattern,
-    ]));
+  PatternResult<DartType> visitNamedPattern(
+      NamedPattern node, SharedMatchContext context) {
+    // NamedPattern isn't a real pattern; this code should never be reached.
+    throw new StateError('visitNamedPattern should never be reached');
   }
 
   @override
-  void visitRecordPattern(RecordPattern node, SharedMatchContext context) {
+  PatternResult<DartType> visitRecordPattern(
+      RecordPattern node, SharedMatchContext context) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
-
-    DartType matchedValueType =
-        node.matchedValueType = flow.getMatchedValueType();
 
     List<RecordPatternField<TreeNode, Pattern>> fields = [
       for (Pattern fieldPattern in node.patterns)
@@ -10855,6 +10882,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ];
     RecordPatternResult<DartType, InvalidExpression> analysisResult =
         analyzeRecordPattern(context, node, fields: fields);
+
+    DartType matchedValueType =
+        node.matchedValueType = analysisResult.matchedValueType;
 
     assert(checkStack(node, stackBase, [
       /* fields = */ ...repeatedKind(ValueKinds.Pattern, node.patterns.length)
@@ -10909,6 +10939,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(checkStack(node, stackBase, [
       /* pattern = */ ValueKinds.Pattern,
     ]));
+    return analysisResult;
   }
 
   @override
@@ -10947,16 +10978,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  void visitAssignedVariablePattern(
+  PatternResult<DartType> visitAssignedVariablePattern(
       AssignedVariablePattern node, SharedMatchContext context) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
-
-    DartType matchedValueType =
-        node.matchedValueType = flow.getMatchedValueType();
-    node.needsCast = _needsCast(
-        matchedType: matchedValueType, requiredType: node.variable.type);
-    node.hasObservableEffect = _inTryOrLocalFunction;
 
     // TODO(johnniwinther): Share this through the type analyzer.
     Pattern? replacement;
@@ -10999,8 +11024,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
     }
 
-    AssignedVariablePatternResult<InvalidExpression> analysisResult =
+    AssignedVariablePatternResult<DartType, InvalidExpression> analysisResult =
         analyzeAssignedVariablePattern(context, node, node.variable);
+
+    DartType matchedValueType =
+        node.matchedValueType = analysisResult.matchedValueType;
+    node.needsCast = _needsCast(
+        matchedType: matchedValueType, requiredType: node.variable.type);
+    node.hasObservableEffect = _inTryOrLocalFunction;
 
     InvalidExpression? error =
         analysisResult.duplicateAssignmentPatternVariableError ??
@@ -11016,6 +11047,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(checkStack(node, stackBase, [
       /* pattern = */ ValueKinds.Pattern,
     ]));
+    return analysisResult;
   }
 
   /// Infers type arguments corresponding to [typeParameters] so that, when

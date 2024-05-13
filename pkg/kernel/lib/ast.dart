@@ -67,6 +67,17 @@ library kernel.ast;
 import 'dart:collection' show ListBase;
 import 'dart:convert' show utf8;
 
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
+    show Variance;
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart'
+    show
+        SharedDynamicType,
+        SharedInvalidType,
+        SharedNamedType,
+        SharedRecordType,
+        SharedType,
+        SharedVoidType;
+
 import 'src/extension_type_erasure.dart';
 import 'visitor.dart';
 export 'visitor.dart';
@@ -86,6 +97,9 @@ import 'src/assumptions.dart';
 import 'src/non_null.dart';
 import 'src/printer.dart';
 import 'src/text_util.dart';
+
+export 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
+    show Variance;
 
 part 'src/ast/patterns.dart';
 
@@ -11054,7 +11068,7 @@ enum Nullability {
 ///
 /// The `==` operator on [DartType]s compare based on type equality, not
 /// object identity.
-sealed class DartType extends Node {
+sealed class DartType extends Node implements SharedType {
   const DartType();
 
   @override
@@ -11157,6 +11171,15 @@ sealed class DartType extends Node {
   /// of type parameters on function types coinductively.
   bool equals(Object other, Assumptions? assumptions);
 
+  @override
+  String getDisplayString() => toText(const AstTextStrategy());
+
+  @override
+  bool isStructurallyEqualTo(SharedType other) {
+    // TODO(cstefantsova): Use the actual algorithm for structural equality.
+    return this == other;
+  }
+
   /// Returns a textual representation of the this type.
   ///
   /// If [verbose] is `true`, qualified names will include the library name/uri.
@@ -11200,7 +11223,7 @@ abstract class AuxiliaryType extends DartType {
 ///
 /// Can usually be treated as 'dynamic', but should occasionally be handled
 /// differently, e.g. `x is ERROR` should evaluate to false.
-class InvalidType extends DartType {
+class InvalidType extends DartType implements SharedInvalidType {
   @override
   final int hashCode = 12345;
 
@@ -11253,7 +11276,7 @@ class InvalidType extends DartType {
   }
 }
 
-class DynamicType extends DartType {
+class DynamicType extends DartType implements SharedDynamicType {
   @override
   final int hashCode = 54321;
 
@@ -11298,7 +11321,7 @@ class DynamicType extends DartType {
   }
 }
 
-class VoidType extends DartType {
+class VoidType extends DartType implements SharedVoidType {
   @override
   final int hashCode = 123121;
 
@@ -12166,11 +12189,14 @@ class ExtensionType extends TypeDeclarationType {
 }
 
 /// A named parameter in [FunctionType].
-class NamedType extends Node implements Comparable<NamedType> {
+class NamedType extends Node
+    implements Comparable<NamedType>, SharedNamedType<DartType> {
   // Flag used for serialization if [isRequired].
   static const int FlagRequiredNamedType = 1 << 0;
 
+  @override
   final String name;
+  @override
   final DartType type;
   final bool isRequired;
 
@@ -12892,7 +12918,7 @@ class StructuralParameterType extends DartType {
   }
 }
 
-class RecordType extends DartType {
+class RecordType extends DartType implements SharedRecordType<DartType> {
   final List<DartType> positional;
   final List<NamedType> named;
 
@@ -12917,6 +12943,9 @@ class RecordType extends DartType {
             "in a RecordType: ${named}");
 
   @override
+  Iterable<SharedNamedType<DartType>> get namedTypes => named;
+
+  @override
   Nullability get nullability => declaredNullability;
 
   @override
@@ -12929,6 +12958,9 @@ class RecordType extends DartType {
         Nullability.nonNullable => true,
         Nullability.legacy => true,
       };
+
+  @override
+  Iterable<DartType> get positionalTypes => positional;
 
   @override
   R accept<R>(DartTypeVisitor<R> v) {
@@ -13018,112 +13050,6 @@ class RecordType extends DartType {
   }
 }
 
-/// Value set for variance of a type parameter X in a type term T.
-class Variance {
-  /// Used when X does not occur free in T.
-  static const int unrelated = 0;
-
-  /// Used when X occurs free in T, and U <: V implies [U/X]T <: [V/X]T.
-  static const int covariant = 1;
-
-  /// Used when X occurs free in T, and U <: V implies [V/X]T <: [U/X]T.
-  static const int contravariant = 2;
-
-  /// Used when there exists a pair U and V such that U <: V, but [U/X]T and
-  /// [V/X]T are incomparable.
-  static const int invariant = 3;
-
-  /// Variance values form a lattice where [unrelated] is the top, [invariant]
-  /// is the bottom, and [covariant] and [contravariant] are incomparable.
-  /// [meet] calculates the meet of two elements of such lattice.  It can be
-  /// used, for example, to calculate the variance of a typedef type parameter
-  /// if it's encountered on the r.h.s. of the typedef multiple times.
-  static int meet(int a, int b) => a | b;
-
-  /// Combines variances of X in T and Y in S into variance of X in [Y/T]S.
-  ///
-  /// Consider the following examples:
-  ///
-  /// * variance of X in Function(X) is [contravariant], variance of Y in
-  /// List<Y> is [covariant], so variance of X in List<Function(X)> is
-  /// [contravariant];
-  ///
-  /// * variance of X in List<X> is [covariant], variance of Y in Function(Y) is
-  /// [contravariant], so variance of X in Function(List<X>) is [contravariant];
-  ///
-  /// * variance of X in Function(X) is [contravariant], variance of Y in
-  /// Function(Y) is [contravariant], so variance of X in Function(Function(X))
-  /// is [covariant];
-  ///
-  /// * let the following be declared:
-  ///
-  ///     typedef F<Z> = Function();
-  ///
-  /// then variance of X in F<X> is [unrelated], variance of Y in List<Y> is
-  /// [covariant], so variance of X in List<F<X>> is [unrelated];
-  ///
-  /// * let the following be declared:
-  ///
-  ///     typedef G<Z> = Z Function(Z);
-  ///
-  /// then variance of X in List<X> is [covariant], variance of Y in G<Y> is
-  /// [invariant], so variance of `X` in `G<List<X>>` is [invariant].
-  static int combine(int a, int b) {
-    if (a == unrelated || b == unrelated) return unrelated;
-    if (a == invariant || b == invariant) return invariant;
-    return a == b ? covariant : contravariant;
-  }
-
-  /// Returns true if [a] is greater than (above) [b] in the partial order
-  /// induced by the variance lattice.
-  static bool greaterThan(int a, int b) {
-    return greaterThanOrEqual(a, b) && a != b;
-  }
-
-  /// Returns true if [a] is greater than (above) or equal to [b] in the
-  /// partial order induced by the variance lattice.
-  static bool greaterThanOrEqual(int a, int b) {
-    return meet(a, b) == b;
-  }
-
-  /// Returns true if [a] is less than (below) [b] in the partial order
-  /// induced by the variance lattice.
-  static bool lessThan(int a, int b) {
-    return lessThanOrEqual(a, b) && a != b;
-  }
-
-  /// Returns true if [a] is less than (below) or equal to [b] in the
-  /// partial order induced by the variance lattice.
-  static bool lessThanOrEqual(int a, int b) {
-    return meet(a, b) == a;
-  }
-
-  static int fromString(String variance) {
-    if (variance == "in") {
-      return contravariant;
-    } else if (variance == "inout") {
-      return invariant;
-    } else if (variance == "out") {
-      return covariant;
-    } else {
-      return unrelated;
-    }
-  }
-
-  // Returns the keyword lexeme associated with the variance given.
-  static String keywordString(int variance) {
-    switch (variance) {
-      case Variance.contravariant:
-        return 'in';
-      case Variance.invariant:
-        return 'inout';
-      case Variance.covariant:
-      default:
-        return 'out';
-    }
-  }
-}
-
 /// Declaration of a type variable.
 ///
 /// Type parameters declared in a [Class] or [FunctionNode] are part of the AST,
@@ -13176,11 +13102,11 @@ class TypeParameter extends TreeNode implements Annotatable {
   /// on the lattice is equivalent to [Variance.covariant]. For typedefs, it's
   /// the variance of the type parameters in the type term on the r.h.s. of the
   /// typedef.
-  int? _variance;
+  Variance? _variance;
 
-  int get variance => _variance ?? Variance.covariant;
+  Variance get variance => _variance ?? Variance.covariant;
 
-  void set variance(int? newVariance) => _variance = newVariance;
+  void set variance(Variance? newVariance) => _variance = newVariance;
 
   bool get isLegacyCovariant => _variance == null;
 
@@ -13346,11 +13272,11 @@ class StructuralParameter extends Node {
   DartType defaultType;
 
   /// Variance of type parameter w.r.t. declaration on which it is defined.
-  int? _variance;
+  Variance? _variance;
 
-  int get variance => _variance ?? Variance.covariant;
+  Variance get variance => _variance ?? Variance.covariant;
 
-  void set variance(int? newVariance) => _variance = newVariance;
+  void set variance(Variance? newVariance) => _variance = newVariance;
 
   bool get isLegacyCovariant => _variance == null;
 

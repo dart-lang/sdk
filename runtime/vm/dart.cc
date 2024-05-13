@@ -1028,11 +1028,17 @@ char* Dart::FeaturesString(IsolateGroup* isolate_group,
   if (Snapshot::IncludesCode(kind)) {
     VM_GLOBAL_FLAG_LIST(ADD_P, ADD_R, ADD_C, ADD_D);
 
-    ADD_FLAG(tsan, kTargetUsesThreadSanitizer)
+    ADD_FLAG(tsan, FLAG_target_thread_sanitizer)
+    ADD_FLAG(msan, FLAG_target_memory_sanitizer)
 
-    // Enabling assertions affects deopt ids.
-    ADD_ISOLATE_GROUP_FLAG(asserts, enable_asserts, FLAG_enable_asserts);
     if (kind == Snapshot::kFullJIT) {
+      // Enabling assertions affects deopt ids.
+      //
+      // This flag is only used at compile time for AOT, so it's only relevant
+      // when running JIT snapshots. We can omit this flag for AOT snapshots so
+      // feature verification won't fail if --enable-snapshots isn't provided
+      // at runtime.
+      ADD_ISOLATE_GROUP_FLAG(asserts, enable_asserts, FLAG_enable_asserts);
       ADD_ISOLATE_GROUP_FLAG(use_field_guards, use_field_guards,
                              FLAG_use_field_guards);
       ADD_ISOLATE_GROUP_FLAG(use_osr, use_osr, FLAG_use_osr);
@@ -1082,22 +1088,6 @@ char* Dart::FeaturesString(IsolateGroup* isolate_group,
 #else
     buffer.AddString(" no-compressed-pointers");
 #endif
-  }
-
-  if (!Snapshot::IsAgnosticToNullSafety(kind)) {
-    if (isolate_group != nullptr) {
-      if (isolate_group->null_safety()) {
-        buffer.AddString(" null-safety");
-      } else {
-        buffer.AddString(" no-null-safety");
-      }
-    } else {
-      if (FLAG_sound_null_safety) {
-        buffer.AddString(" null-safety");
-      } else {
-        buffer.AddString(" no-null-safety");
-      }
-    }
   }
 
 #undef ADD_ISOLATE_FLAG

@@ -1,22 +1,22 @@
-library test /*isLegacy*/;
+library test;
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
 
 import "dart:async";
 
-typedef IntToInt = (core::int*) →* core::int*;
-static method a() → (core::int*) →* core::int*
+typedef IntToInt = (core::int) → core::int;
+static method a() → (core::int) → core::int
   ;
-static method b() → asy::Future<(core::int*) →* core::int*>* async 
+static method b() → asy::Future<(core::int) → core::int> async 
   ;
-static method c() → core::Iterable<(core::int*) →* core::int*>* sync* 
+static method c() → core::Iterable<(core::int) → core::int> sync* 
   ;
-static method d() → core::Iterable<(core::int*) →* core::int*>* sync* 
+static method d() → core::Iterable<(core::int) → core::int> sync* 
   ;
-static method e() → asy::Stream<(core::int*) →* core::int*>* async* 
+static method e() → asy::Stream<(core::int) → core::int> async* 
   ;
-static method f() → asy::Stream<(core::int*) →* core::int*>* async* 
+static method f() → asy::Stream<(core::int) → core::int> async* 
   ;
 static method main() → dynamic
   ;

@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/scanner/errors.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
@@ -15,6 +16,8 @@ import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generato
 import 'package:analysis_server/src/services/correction/fix_processor.dart';
 import 'package:analysis_server/src/services/correction/organize_imports.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
+import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
+import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -41,15 +44,12 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
-import 'package:analyzer/src/workspace/blaze.dart';
-import 'package:analyzer/src/workspace/gn.dart';
+import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show SourceFileEdit;
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
-import 'package:server_plugin/edit/fix/dart_fix_context.dart';
-import 'package:server_plugin/edit/fix/fix.dart';
 import 'package:yaml/yaml.dart';
 
 /// A fix producer that produces changes that will fix multiple diagnostics in
@@ -262,7 +262,7 @@ class BulkFixProcessor {
         'getResolvedLibrary',
         (_) => context.currentSession.getResolvedContainingLibrary(path),
       );
-      final unit = library?.unitWithPath(path);
+      var unit = library?.unitWithPath(path);
       if (!isCancelled && library != null && unit != null) {
         await _fixErrorsInLibraryUnit(unit, library,
             autoTriggered: autoTriggered);
@@ -354,28 +354,12 @@ class BulkFixProcessor {
     var details = <BulkFix>[];
     for (var context in contexts) {
       var workspace = context.contextRoot.workspace;
-      if (workspace is GnWorkspace || workspace is BlazeWorkspace) {
+      if (workspace is! PackageConfigWorkspace) {
         continue;
       }
-      // Find the pubspec file
-      var rootFolder = context.contextRoot.root;
-      var pubspecFile = rootFolder.getChild('pubspec.yaml') as File;
-      if (!pubspecFile.exists) {
-        continue;
-      }
-      var packages = <String>{};
-      var devPackages = <String>{};
-
       var pathContext = context.contextRoot.resourceProvider.pathContext;
-      final libPath = rootFolder.getChild('lib').path;
-      final binPath = rootFolder.getChild('bin').path;
-
-      bool isPublic(String path) {
-        if (path.startsWith(libPath) || path.startsWith(binPath)) {
-          return true;
-        }
-        return false;
-      }
+      var resourceProvider = workspace.provider;
+      var packageToDeps = <PubPackage, _PubspecDeps>{};
 
       for (var path in context.contextRoot.analyzedFiles()) {
         if (!file_paths.isDart(pathContext, path) ||
@@ -383,8 +367,27 @@ class BulkFixProcessor {
             file_paths.isMacroGenerated(path)) {
           continue;
         }
-        // Get the list of imports used in the files.
+        var package = workspace.findPackageFor(path);
+        if (package is! PubPackage) {
+          continue;
+        }
 
+        var libPath =
+            resourceProvider.getFolder(package.root).getChild('lib').path;
+        var binPath =
+            resourceProvider.getFolder(package.root).getChild('bin').path;
+
+        bool isPublic(String path, PubPackage package) {
+          if (path.startsWith(libPath) || path.startsWith(binPath)) {
+            return true;
+          }
+          return false;
+        }
+
+        var pubspecDeps =
+            packageToDeps.putIfAbsent(package, () => _PubspecDeps());
+
+        // Get the list of imports used in the files.
         var result = context.currentSession.getParsedLibrary(path);
         if (result is! ParsedLibraryResult) {
           return PubspecFixRequestResult(fixes, details);
@@ -396,29 +399,33 @@ class BulkFixProcessor {
             var uri =
                 (directive is ImportDirective) ? directive.uri.stringValue : '';
             if (uri!.startsWith('package:')) {
-              final name = Uri.parse(uri).pathSegments.first;
-              if (isPublic(path)) {
-                packages.add(name);
+              var name = Uri.parse(uri).pathSegments.first;
+              if (isPublic(path, package)) {
+                pubspecDeps.packages.add(name);
               } else {
-                devPackages.add(name);
+                pubspecDeps.devPackages.add(name);
               }
             }
           }
         }
       }
 
-      // Compute changes to pubspec.
-      var result = await _runPubspecValidatorAndFixGenerator(
-          FileSource(pubspecFile),
-          packages,
-          devPackages,
-          context.contextRoot.resourceProvider);
-      if (result.isNotEmpty) {
-        for (var fix in result) {
-          fixes.addAll(fix.change.edits);
+      // Iterate over packages in the workspace, compute changes to pubspec.
+      for (var package in packageToDeps.keys) {
+        var pubspecDeps = packageToDeps[package]!;
+        var pubspecFile = package.pubspecFile;
+        var result = await _runPubspecValidatorAndFixGenerator(
+            FileSource(pubspecFile),
+            pubspecDeps.packages,
+            pubspecDeps.devPackages,
+            context.contextRoot.resourceProvider);
+        if (result.isNotEmpty) {
+          for (var fix in result) {
+            fixes.addAll(fix.change.edits);
+          }
+          details.add(BulkFix(pubspecFile.path,
+              [BulkFixDetail(PubspecWarningCode.MISSING_DEPENDENCY.name, 1)]));
         }
-        details.add(BulkFix(pubspecFile.path,
-            [BulkFixDetail(PubspecWarningCode.MISSING_DEPENDENCY.name, 1)]));
       }
     }
     return PubspecFixRequestResult(fixes, details);
@@ -506,12 +513,12 @@ class BulkFixProcessor {
           break;
         }
         if (result is ParsedLibraryResult) {
-          final allUnits = result.units
+          var allUnits = result.units
               .map((parsedUnit) =>
                   LinterContextUnit(parsedUnit.content, parsedUnit.unit))
               .toList();
           var errorListener = RecordingErrorListener();
-          for (final linterUnit in allUnits) {
+          for (var linterUnit in allUnits) {
             var errorReporter = ErrorReporter(
               errorListener,
               StringSource(linterUnit.content, null),
@@ -620,7 +627,6 @@ class BulkFixProcessor {
         resolvedResult: unit,
         selectionOffset: diagnostic.offset,
         selectionLength: diagnostic.length,
-        workspace: workspace,
       );
     }
 
@@ -714,7 +720,6 @@ class BulkFixProcessor {
       resolvedResult: result,
       selectionOffset: diagnostic.offset,
       selectionLength: diagnostic.length,
-      workspace: workspace,
     );
     if (context == null) {
       return;
@@ -777,7 +782,6 @@ class BulkFixProcessor {
       resolvedResult: result,
       selectionOffset: diagnostic.offset,
       selectionLength: diagnostic.length,
-      workspace: workspace,
     );
 
     var errorCode = diagnostic.errorCode;
@@ -813,25 +817,27 @@ class BulkFixProcessor {
         }
 
         var formatResult = generateEditsForFormatting(result, null);
-        if (formatResult.isError) {
-          continue;
-        }
-        var edits = formatResult.result ?? [];
-        if (edits.isNotEmpty) {
-          await builder.addDartFileEdit(path, (builder) {
-            for (var edit in edits) {
-              var lineInfo = result.lineInfo;
-              var startOffset =
-                  lineInfo.getOffsetOfLine(edit.range.start.line) +
-                      edit.range.start.character;
-              var endOffset = lineInfo.getOffsetOfLine(edit.range.end.line) +
-                  edit.range.end.character;
-              builder.addSimpleReplacement(
-                  SourceRange(startOffset, endOffset - startOffset),
-                  edit.newText);
-            }
-          });
-        }
+        await formatResult.mapResult((formatResult) async {
+          var edits = formatResult ?? [];
+          if (edits.isNotEmpty) {
+            await builder.addDartFileEdit(path, (builder) {
+              for (var edit in edits) {
+                var lineInfo = result.lineInfo;
+                var startOffset =
+                    lineInfo.getOffsetOfLine(edit.range.start.line) +
+                        edit.range.start.character;
+                var endOffset = lineInfo.getOffsetOfLine(edit.range.end.line) +
+                    edit.range.end.character;
+                builder.addSimpleReplacement(
+                    SourceRange(startOffset, endOffset - startOffset),
+                    edit.newText);
+              }
+            });
+          }
+          // TODO(dantup): Consider an async ifResult to avoid needing to return
+          //  an ErrorOr?
+          return success(null);
+        });
       }
     }
     return BulkFixRequestResult(builder);
@@ -845,26 +851,26 @@ class BulkFixProcessor {
     await _applyProducer(context, producer);
     var newHash = computeChangeHash();
     if (newHash != oldHash) {
-      changeMap.add(context.unitResult.path, code.toLowerCase());
+      changeMap.add(context.path, code.toLowerCase());
     }
   }
 
   /// Returns whether [path] has any errors that might be fixable.
   Future<bool> _hasFixableErrors(AnalysisContext context, String path) async {
-    final errorsResult = await context.currentSession.getErrors(path);
+    var errorsResult = await context.currentSession.getErrors(path);
     if (errorsResult is! ErrorsResult) {
       return false;
     }
 
-    final analysisOptions = errorsResult.session.analysisContext
+    var analysisOptions = errorsResult.session.analysisContext
         .getAnalysisOptionsForFile(errorsResult.file);
-    final filteredErrors = _filterErrors(analysisOptions, errorsResult.errors);
+    var filteredErrors = _filterErrors(analysisOptions, errorsResult.errors);
     return filteredErrors.any(_isFixableError);
   }
 
   /// Returns whether [error] is something that might be fixable.
   bool _isFixableError(AnalysisError error) {
-    final errorCode = error.errorCode;
+    var errorCode = error.errorCode;
 
     // Special cases that can be bulk fixed by this class but not by
     // FixProcessor.
@@ -1006,7 +1012,7 @@ class IterativeBulkFixProcessor {
   }) async {
     return performance.runAsync('IterativeBulkFixProcessor.fixErrorsForFile',
         (performance) async {
-      final changes = <SourceFileEdit>[];
+      var changes = <SourceFileEdit>[];
       _passesWithEdits = 0;
 
       for (var i = 0; i < maxPasses; i++) {
@@ -1038,7 +1044,7 @@ class IterativeBulkFixProcessor {
         // Also apply them to the overlay provider so the next iteration can
         // use them.
         await performance.runAsync('Apply edits from pass $i', (_) async {
-          for (final fileEdit in change.edits) {
+          for (var fileEdit in change.edits) {
             applyTemporaryOverlayEdits(fileEdit);
           }
           await applyOverlays();
@@ -1059,6 +1065,11 @@ class PubspecFixRequestResult {
   final List<BulkFix> details;
 
   PubspecFixRequestResult(this.edits, this.details);
+}
+
+class _PubspecDeps {
+  final Set<String> packages = <String>{};
+  final Set<String> devPackages = <String>{};
 }
 
 extension on int {

@@ -1,14 +1,13 @@
 //
 // Problems in component:
 //
-// Error: The following dependencies don't support null safety:
-//
-//  - package:opt_in_package/opt_out_lib.dart
-//  - package:opt_out_package
-//
-// For solutions, see https://dart.dev/go/unsound-null-safety
-//
 // pkg/front_end/testcases/nnbd/strong_package_not_ok_from_dill/opt_in_package/lib/opt_in_lib.dart: Error: Loaded library is compiled with unsound null safety and cannot be used in compilation for sound null safety.
+//
+// pkg/front_end/testcases/nnbd/strong_package_not_ok_from_dill/opt_in_package/lib/opt_out_lib.dart: Error: Loaded library is compiled with unsound null safety and cannot be used in compilation for sound null safety.
+//
+// pkg/front_end/testcases/nnbd/strong_package_not_ok_from_dill/opt_out_package/lib/regular_lib1.dart: Error: Loaded library is compiled with unsound null safety and cannot be used in compilation for sound null safety.
+//
+// pkg/front_end/testcases/nnbd/strong_package_not_ok_from_dill/opt_out_package/lib/regular_lib2.dart: Error: Loaded library is compiled with unsound null safety and cannot be used in compilation for sound null safety.
 //
 library;
 import self as self;

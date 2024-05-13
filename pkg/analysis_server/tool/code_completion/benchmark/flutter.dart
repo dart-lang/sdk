@@ -45,18 +45,18 @@ Future<void> _runForever({
   required String path,
   required String markedCode,
 }) async {
-  final offset = markedCode.indexOf('^');
+  var offset = markedCode.indexOf('^');
   if (offset == -1) {
     throw ArgumentError('No ^ marker');
   }
 
-  final rawCode =
+  var rawCode =
       markedCode.substring(0, offset) + markedCode.substring(offset + 1);
   if (rawCode.contains('^')) {
     throw ArgumentError('Duplicate ^ marker');
   }
 
-  final resourceProvider = OverlayResourceProvider(
+  var resourceProvider = OverlayResourceProvider(
     PhysicalResourceProvider.INSTANCE,
   );
 
@@ -81,7 +81,7 @@ Future<void> _runForever({
     offset: offset,
   );
 
-  final statistics = SlidingStatistics(100);
+  var statistics = SlidingStatistics(100);
   while (true) {
     var timer = Stopwatch()..start();
     var budget = CompletionBudget(Duration(seconds: 30));
@@ -97,7 +97,7 @@ Future<void> _runForever({
       );
     }
 
-    final responseTime = timer.elapsedMilliseconds;
+    var responseTime = timer.elapsedMilliseconds;
     statistics.add(responseTime);
     if (statistics.isReady) {
       print(

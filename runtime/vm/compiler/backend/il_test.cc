@@ -4,12 +4,15 @@
 
 #include "vm/compiler/backend/il.h"
 
+#include <optional>
 #include <vector>
 
 #include "platform/text_buffer.h"
 #include "platform/utils.h"
 #include "vm/class_id.h"
+#include "vm/compiler/assembler/disassembler.h"
 #include "vm/compiler/backend/block_builder.h"
+#include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/il_test_helper.h"
 #include "vm/compiler/backend/range_analysis.h"
@@ -47,15 +50,14 @@ ISOLATE_UNIT_TEST_CASE(OptimizationTests) {
 }
 
 ISOLATE_UNIT_TEST_CASE(IRTest_EliminateWriteBarrier) {
-  const char* nullable_tag = TestCase::NullableTag();
   // clang-format off
-  auto kScript = Utils::CStringUniquePtr(OS::SCreate(nullptr, R"(
+  const char* kScript = R"(
       class Container<T> {
         operator []=(var index, var value) {
           return data[index] = value;
         }
 
-        List<T%s> data = List<T%s>.filled(10, null);
+        List<T?> data = List<T?>.filled(10, null);
       }
 
       Container<int> x = Container<int>();
@@ -65,10 +67,10 @@ ISOLATE_UNIT_TEST_CASE(IRTest_EliminateWriteBarrier) {
           x[i] = i;
         }
       }
-    )", nullable_tag, nullable_tag), std::free);
+    )";
   // clang-format on
 
-  const auto& root_library = Library::Handle(LoadTestScript(kScript.get()));
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
   const auto& function = Function::Handle(GetFunction(root_library, "foo"));
 
   Invoke(root_library, "foo");
@@ -133,7 +135,7 @@ static void RunInitializingStoresTest(
 
 ISOLATE_UNIT_TEST_CASE(IRTest_InitializingStores) {
   // clang-format off
-  auto kScript = Utils::CStringUniquePtr(OS::SCreate(nullptr, R"(
+  const char* kScript = R"(
     class Bar {
       var f;
       var g;
@@ -145,7 +147,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_InitializingStores) {
     f3() {
       return () { };
     }
-    f4<T>({T%s value}) {
+    f4<T>({T? value}) {
       return () { return value; };
     }
     main() {
@@ -154,11 +156,10 @@ ISOLATE_UNIT_TEST_CASE(IRTest_InitializingStores) {
       f3();
       f4();
     }
-  )",
-  TestCase::NullableTag()), std::free);
+  )";
   // clang-format on
 
-  const auto& root_library = Library::Handle(LoadTestScript(kScript.get()));
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
   Invoke(root_library, "main");
 
   RunInitializingStoresTest(root_library, "f1", CompilerPass::kJIT,
@@ -914,7 +915,6 @@ FlowGraph* SetupFfiFlowgraph(TestPipeline* pipeline,
       CompilerPass::kSetOuterInliningId,
       CompilerPass::kTypePropagation,
       // Skipping passes that don't seem to do anything for this test.
-      CompilerPass::kWidenSmiToInt32,
       CompilerPass::kSelectRepresentations,
       // Skipping passes that don't seem to do anything for this test.
       CompilerPass::kTypePropagation,
@@ -934,8 +934,6 @@ FlowGraph* SetupFfiFlowgraph(TestPipeline* pipeline,
 // Additionally test that register allocation is done correctly by clobbering
 // all volatile registers in the native function being called.
 ISOLATE_UNIT_TEST_CASE(IRTest_FfiCallInstrLeafDoesntSpill) {
-  SetFlagScope<bool> sfs(&FLAG_sound_null_safety, true);
-
   const char* kScript = R"(
     import 'dart:ffi';
 
@@ -1532,6 +1530,202 @@ ISOLATE_UNIT_TEST_CASE(IL_Canonicalize_FinalFieldForwarding) {
                             /*expected_to_forward=*/false);
   TestStaticFieldForwarding(thread, test_cls, normal_field, /*num_stores=*/2,
                             /*expected_to_forward=*/false);
+}
+
+template <typename... Args>
+static ObjectPtr InvokeFunction(const Function& function, Args&... args) {
+  const Array& args_array = Array::Handle(Array::New(sizeof...(Args)));
+  intptr_t i = 0;
+  (args_array.SetAt(i++, args), ...);
+  return DartEntry::InvokeFunction(function, args_array);
+}
+
+static const Function& BuildTestFunction(
+    intptr_t num_parameters,
+    std::function<void(FlowGraphBuilderHelper&)> build_graph) {
+  using compiler::BlockBuilder;
+
+  TestPipeline pipeline(CompilerPass::kAOT, [&]() {
+    FlowGraphBuilderHelper H(num_parameters);
+    build_graph(H);
+    H.FinishGraph();
+    return H.flow_graph();
+  });
+  auto flow_graph = pipeline.RunPasses({
+      CompilerPass::kFinalizeGraph,
+      CompilerPass::kReorderBlocks,
+      CompilerPass::kAllocateRegisters,
+  });
+  pipeline.CompileGraphAndAttachFunction();
+  return flow_graph->function();
+}
+
+enum class TestIntVariant {
+  kTestBranch,
+  kTestValue,
+};
+
+static const Function& BuildTestIntFunction(
+    Zone* zone,
+    TestIntVariant test_variant,
+    bool eq_zero,
+    Representation rep,
+    std::optional<int64_t> immediate_mask) {
+  using compiler::BlockBuilder;
+  return BuildTestFunction(
+      /*num_parameters=*/1 + (!immediate_mask.has_value() ? 1 : 0),
+      [&](auto& H) {
+        H.AddVariable("lhs", AbstractType::ZoneHandle(Type::IntType()),
+                      new CompileType(CompileType::Int()));
+        if (!immediate_mask.has_value()) {
+          H.AddVariable("rhs", AbstractType::ZoneHandle(Type::IntType()),
+                        new CompileType(CompileType::Int()));
+        }
+
+        auto normal_entry = H.flow_graph()->graph_entry()->normal_entry();
+        auto true_successor = H.TargetEntry();
+        auto false_successor = H.TargetEntry();
+
+        {
+          BlockBuilder builder(H.flow_graph(), normal_entry);
+          Definition* lhs = builder.AddParameter(0);
+          Definition* rhs = immediate_mask.has_value()
+                                ? H.IntConstant(immediate_mask.value(), rep)
+                                : builder.AddParameter(1);
+          if (rep != lhs->representation()) {
+            lhs =
+                builder.AddUnboxInstr(kUnboxedInt64, lhs, /*is_checked=*/false);
+          }
+          if (rep != rhs->representation()) {
+            rhs =
+                builder.AddUnboxInstr(kUnboxedInt64, rhs, /*is_checked=*/false);
+          }
+
+          auto comparison = new TestIntInstr(
+              InstructionSource(), eq_zero ? Token::kEQ : Token::kNE, rep,
+              new Value(lhs), new Value(rhs));
+
+          if (test_variant == TestIntVariant::kTestValue) {
+            auto v2 = builder.AddDefinition(comparison);
+            builder.AddReturn(new Value(v2));
+          } else {
+            builder.AddBranch(comparison, true_successor, false_successor);
+          }
+        }
+
+        if (test_variant == TestIntVariant::kTestBranch) {
+          {
+            BlockBuilder builder(H.flow_graph(), true_successor);
+            builder.AddReturn(
+                new Value(H.flow_graph()->GetConstant(Bool::True())));
+          }
+
+          {
+            BlockBuilder builder(H.flow_graph(), false_successor);
+            builder.AddReturn(
+                new Value(H.flow_graph()->GetConstant(Bool::False())));
+          }
+        }
+      });
+}
+
+static void TestIntTestWithImmediate(Zone* zone,
+                                     TestIntVariant test_variant,
+                                     bool eq_zero,
+                                     Representation rep,
+                                     const std::vector<int64_t>& inputs,
+                                     int64_t mask) {
+  const auto& func =
+      BuildTestIntFunction(zone, test_variant, eq_zero, rep, mask);
+  auto invoke = [&](int64_t v) -> bool {
+    const auto& input = Integer::Handle(Integer::New(v));
+    EXPECT(rep == kUnboxedInt64 || input.IsSmi());
+    const auto& result = Bool::CheckedHandle(zone, InvokeFunction(func, input));
+    return result.value();
+  };
+
+  for (auto& input : inputs) {
+    const auto expected = ((input & mask) == 0) == eq_zero;
+    const auto got = invoke(input);
+    if (expected != got) {
+      FAIL("testing [%s] [%s] %" Px64 " & %" Px64
+           " %s 0: expected %s but got %s\n",
+           test_variant == TestIntVariant::kTestBranch ? "branch" : "value",
+           RepresentationUtils::ToCString(rep), input, mask,
+           eq_zero ? "==" : "!=", expected ? "true" : "false",
+           got ? "true" : "false");
+    }
+  }
+}
+
+static void TestIntTest(Zone* zone,
+                        TestIntVariant test_variant,
+                        bool eq_zero,
+                        Representation rep,
+                        const std::vector<int64_t>& inputs,
+                        const std::vector<int64_t>& masks) {
+  if (!TestIntInstr::IsSupported(rep)) {
+    return;
+  }
+
+  const auto& func = BuildTestIntFunction(zone, test_variant, eq_zero, rep, {});
+  auto invoke = [&](int64_t lhs, int64_t mask) -> bool {
+    const auto& arg0 = Integer::Handle(Integer::New(lhs));
+    const auto& arg1 = Integer::Handle(Integer::New(mask));
+    EXPECT(rep == kUnboxedInt64 || arg0.IsSmi());
+    EXPECT(rep == kUnboxedInt64 || arg1.IsSmi());
+    const auto& result =
+        Bool::CheckedHandle(zone, InvokeFunction(func, arg0, arg1));
+    return result.value();
+  };
+
+  for (auto& mask : masks) {
+    TestIntTestWithImmediate(zone, test_variant, eq_zero, rep, inputs, mask);
+
+    // We allow non-Smi masks as immediates but not as non-constant operands.
+    if (rep == kTagged && !Smi::IsValid(mask)) {
+      continue;
+    }
+
+    for (auto& input : inputs) {
+      const auto expected = ((input & mask) == 0) == eq_zero;
+      const auto got = invoke(input, mask);
+      if (expected != got) {
+        FAIL("testing [%s] [%s] %" Px64 " & %" Px64
+             " %s 0: expected %s but got %s\n",
+             test_variant == TestIntVariant::kTestBranch ? "branch" : "value",
+             RepresentationUtils::ToCString(rep), input, mask,
+             eq_zero ? "==" : "!=", expected ? "true" : "false",
+             got ? "true" : "false");
+      }
+    }
+  }
+}
+
+ISOLATE_UNIT_TEST_CASE(IL_TestIntInstr) {
+  const int64_t msb = static_cast<int64_t>(0x8000000000000000L);
+  const int64_t kSmiSignBit = kSmiMax + 1;
+
+  const std::initializer_list<int64_t> kMasks = {
+      1, 2, kSmiSignBit, kSmiSignBit | 1, msb, msb | 1};
+
+  const std::vector<std::pair<Representation, std::vector<int64_t>>> kValues = {
+      {kTagged,
+       {-2, -1, 0, 1, 2, 3, kSmiMax & ~1, kSmiMin & ~1, kSmiMax | 1,
+        kSmiMin | 1}},
+      {kUnboxedInt64,
+       {-2, -1, 0, 1, 2, 3, kSmiMax & ~1, kSmiMin & ~1, kSmiMax | 1,
+        kSmiMin | 1, msb, msb | 1, msb | 2}},
+  };
+
+  for (auto test_variant :
+       {TestIntVariant::kTestBranch, TestIntVariant::kTestValue}) {
+    for (auto eq_zero : {true, false}) {
+      for (auto& [rep, values] : kValues) {
+        TestIntTest(thread->zone(), test_variant, eq_zero, rep, values, kMasks);
+      }
+    }
+  }
 }
 
 }  // namespace dart

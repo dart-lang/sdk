@@ -127,13 +127,13 @@ DART_EXPORT void Dart_RegisterRootServiceRequestCallback(
  * The pointers in this structure are not going to be cached or freed by the VM.
  */
 
- #define DART_EMBEDDER_INFORMATION_CURRENT_VERSION (0x00000001)
+#define DART_EMBEDDER_INFORMATION_CURRENT_VERSION (0x00000001)
 
 typedef struct {
   int32_t version;
-  const char* name;  // [optional] The name of the embedder
+  const char* name;     // [optional] The name of the embedder
   int64_t current_rss;  // [optional] the current RSS of the embedder
-  int64_t max_rss;  // [optional] the maximum RSS of the embedder
+  int64_t max_rss;      // [optional] the maximum RSS of the embedder
 } Dart_EmbedderInformation;
 
 /**

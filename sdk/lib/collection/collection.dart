@@ -23,7 +23,7 @@
 /// ## Set
 /// A collection of objects in which each object can occur only once.
 /// The [Set] interface has a number of implementations, including the following:
-/// * [HashSet] the order of the objects in the iterations is not guaranteed.
+/// * [HashSet] does not guarantee the order of the objects in the iterations.
 /// * [LinkedHashSet] iterates the objects in insertion order.
 /// * [SplayTreeSet] iterates the objects in sorted order.
 /// * [UnmodifiableSetView] is a wrapper, an unmodifiable [Set] view of another
@@ -41,7 +41,7 @@
 /// list.
 ///
 /// ## List
-/// An indexable Sequence of objects. Objects can be accessed using their
+/// An indexable sequence of objects. Objects can be accessed using their
 /// position, index, in the sequence. [List] is also called an "array" in other
 /// programming languages.
 /// * [UnmodifiableListView] is a wrapper, an unmodifiable [List] view of

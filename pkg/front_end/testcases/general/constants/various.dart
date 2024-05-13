@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 // Environment does not contain "bar".
 const bool barFromEnv = const bool.fromEnvironment("bar");
 const bool hasBarEnv = const bool.hasEnvironment("bar");
 const bool barFromEnvOrNull =
-    const bool.fromEnvironment("bar", defaultValue: null);
+const bool.fromEnvironment("bar", defaultValue: null);
 const bool notBarFromEnvOrNull = !barFromEnvOrNull;
 const bool conditionalOnNull = barFromEnvOrNull ? true : false;
 const bool nullAwareOnNullTrue = barFromEnvOrNull ?? true;
@@ -24,24 +22,24 @@ const bool orOnNull4 = false || barFromEnvOrNull;
 
 const String barFromEnvString = const String.fromEnvironment("bar");
 const String barFromEnvOrNullString =
-    const String.fromEnvironment("bar", defaultValue: null);
+const String.fromEnvironment("bar", defaultValue: null);
 const String barFromEnvOrActualString =
-    const String.fromEnvironment("bar", defaultValue: "hello");
+const String.fromEnvironment("bar", defaultValue: "hello");
 const String nullFromEnvString =
-    const String.fromEnvironment(barFromEnvOrNullString);
+const String.fromEnvironment(barFromEnvOrNullString);
 
 const bool barFromEnvBool = const bool.fromEnvironment("bar");
 const bool barFromEnvOrNullBool =
-    const bool.fromEnvironment("bar", defaultValue: null);
+const bool.fromEnvironment("bar", defaultValue: null);
 const bool barFromEnvOrActualBool =
-    const bool.fromEnvironment("bar", defaultValue: true);
+const bool.fromEnvironment("bar", defaultValue: true);
 const bool nullFromEnvBool = const bool.fromEnvironment(barFromEnvOrNullString);
 
 const int barFromEnvInt = const int.fromEnvironment("bar");
 const int barFromEnvOrNullInt =
-    const int.fromEnvironment("bar", defaultValue: null);
+const int.fromEnvironment("bar", defaultValue: null);
 const int barFromEnvOrActualInt =
-    const int.fromEnvironment("bar", defaultValue: 42);
+const int.fromEnvironment("bar", defaultValue: 42);
 const int nullFromEnvInt = const int.fromEnvironment(barFromEnvOrNullString);
 
 // Environment does contain "baz" (value '42', i.e. neither true nor false).
@@ -69,7 +67,7 @@ const binaryOnIntWithDoubleBad = willBeInt << willBeDouble;
 const binaryOnIntWithDoubleOK = willBeInt + willBeDouble;
 const binaryOnIntWithString = willBeInt << "hello";
 const dynamic willBeString =
-    const bool.fromEnvironment("foo") ? 42.42 : "hello";
+const bool.fromEnvironment("foo") ? 42.42 : "hello";
 const binaryOnStringWithStringOK = willBeString + " world";
 const binaryOnStringWithInt = willBeString + willBeInt;
 const binaryOnStringWithStringBad = willBeString - " world";
@@ -95,7 +93,7 @@ abstract class AbstractClassWithConstructor {
 }
 
 AbstractClassWithConstructor abstractClassWithConstructor =
-    const AbstractClassWithConstructor();
+const AbstractClassWithConstructor();
 
 class NotAbstractClass {
   @AbstractClass()
@@ -147,18 +145,18 @@ class ConstClassWithFailingAssertWithEmptyMessage {
 }
 
 ConstClassWithFailingAssertWithEmptyMessage failedAssertEmptyMessage =
-    const ConstClassWithFailingAssertWithEmptyMessage();
+const ConstClassWithFailingAssertWithEmptyMessage();
 
 class ClassWithTypeArguments<E, F, G> {
   const ClassWithTypeArguments(E e, F f, G g);
 }
 
 const ClassWithTypeArguments classWithTypeArguments1 =
-    const ClassWithTypeArguments<int, int, int>(42, 42, 42);
+const ClassWithTypeArguments<int, int, int>(42, 42, 42);
 const ClassWithTypeArguments classWithTypeArguments2 =
-    const ClassWithTypeArguments(42, 42, 42);
+const ClassWithTypeArguments(42, 42, 42);
 const bool classWithTypeArgumentsIdentical =
-    identical(classWithTypeArguments1, classWithTypeArguments2);
+identical(classWithTypeArguments1, classWithTypeArguments2);
 
 class ClassWithNonEmptyConstConstructor {
   const ClassWithNonEmptyConstConstructor() {
@@ -167,7 +165,7 @@ class ClassWithNonEmptyConstConstructor {
 }
 
 ClassWithNonEmptyConstConstructor classWithNonEmptyConstConstructor =
-    const ClassWithNonEmptyConstConstructor();
+const ClassWithNonEmptyConstConstructor();
 
 class ConstClassWithFinalFields1 {
   const ConstClassWithFinalFields1();
@@ -184,7 +182,7 @@ class ConstClassWithFinalFields2 {
 }
 
 ConstClassWithFinalFields2 constClassWithFinalFields =
-    const ConstClassWithFinalFields2();
+const ConstClassWithFinalFields2();
 
 const zeroPointZeroIdentical = identical(0.0, 0.0);
 const zeroPointZeroIdenticalToZero = identical(0.0, 0);
@@ -202,9 +200,9 @@ T id2<T>(T t) => t;
 const dynamic willBecomeNull = const bool.fromEnvironment("foo") ? id1 : null;
 
 const int Function(int) willBecomeNullToo =
-    const bool.fromEnvironment("foo") ? id1 : willBecomeNull;
+const bool.fromEnvironment("foo") ? id1 : willBecomeNull;
 const int Function(int) partialInstantiation =
-    const bool.fromEnvironment("foo") ? willBecomeNull : id1;
+const bool.fromEnvironment("foo") ? willBecomeNull : id1;
 
 const bool yBool = true;
 const bool zBool = !yBool;

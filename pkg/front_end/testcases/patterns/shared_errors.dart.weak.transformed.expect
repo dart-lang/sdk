@@ -164,7 +164,7 @@ static method duplicateRecordPatternField(dynamic o) → dynamic {
       if(invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:36:28: Error: The field 'field' is already matched in this pattern.
 Try removing the duplicate field.
     case (field: 1, field: 2): // Error
-                           ^" || #0#0 is self::Class && #C2 =={core::num::==}{(core::Object) → core::bool} (#0#2#isSet ?{core::int} #0#2{core::int} : let final core::bool* #t2 = #0#2#isSet = true in #0#2 = #0#0{self::Class}.{self::Class::field}{core::int}) && (let final core::int #t3 = #0#2#isSet ?{core::int} #0#2{core::int} : let final core::bool* #t4 = #0#2#isSet = true in #0#2 = #0#0{self::Class}.{self::Class::field}{core::int} in invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:37:33: Error: The field 'field' is already matched in this pattern.
+                           ^" || #0#0 is self::Class && #C2 =={core::num::==}{(core::Object) → core::bool} (#0#2#isSet ?{core::int} #0#2{core::int} : let final core::bool #t2 = #0#2#isSet = true in #0#2 = #0#0{self::Class}.{self::Class::field}{core::int}) && (let final core::int #t3 = #0#2#isSet ?{core::int} #0#2{core::int} : let final core::bool #t4 = #0#2#isSet = true in #0#2 = #0#0{self::Class}.{self::Class::field}{core::int} in invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:37:33: Error: The field 'field' is already matched in this pattern.
 Try removing the duplicate field.
     case Class(field: 1, field: 2): // Error
                                 ^")) {
@@ -225,8 +225,8 @@ static method matchedTypeIsStrictlyNonNullable(core::List<core::int> list) → d
     {
       hoisted core::int a;
       hoisted core::int b;
-      if(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final core::int #t5 = (#0#4#isSet ?{core::int} #0#4{core::int} : let final core::bool* #t6 = #0#4#isSet = true in #0#4 = #0#0.{core::List::[]}(0){(core::int) → core::int})! in let final core::int #t7 = a = (#0#4#isSet ?{core::int} #0#4{core::int} : let final core::bool* #t8 = #0#4#isSet = true in #0#4 = #0#0.{core::List::[]}(0){(core::int) → core::int})! in true) && !((#0#6#isSet ?{core::int} #0#6{core::int} : let final core::bool* #t9 = #0#6#isSet = true in #0#6 = #0#0.{core::List::[]}(1){(core::int) → core::int}) == null)) {
-        b = #0#6#isSet ?{core::int} #0#6{core::int} : let final core::bool* #t10 = #0#6#isSet = true in #0#6 = #0#0.{core::List::[]}(1){(core::int) → core::int};
+      if(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final core::int #t5 = (#0#4#isSet ?{core::int} #0#4{core::int} : let final core::bool #t6 = #0#4#isSet = true in #0#4 = #0#0.{core::List::[]}(0){(core::int) → core::int})! in let final core::int #t7 = a = (#0#4#isSet ?{core::int} #0#4{core::int} : let final core::bool #t8 = #0#4#isSet = true in #0#4 = #0#0.{core::List::[]}(0){(core::int) → core::int})! in true) && !((#0#6#isSet ?{core::int} #0#6{core::int} : let final core::bool #t9 = #0#6#isSet = true in #0#6 = #0#0.{core::List::[]}(1){(core::int) → core::int}) == null)) {
+        b = #0#6#isSet ?{core::int} #0#6{core::int} : let final core::bool #t10 = #0#6#isSet = true in #0#6 = #0#0.{core::List::[]}(1){(core::int) → core::int};
         {
           core::print(0);
         }

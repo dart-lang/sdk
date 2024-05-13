@@ -17,6 +17,16 @@ class OneMemberAbstractsTest extends LintRuleTest {
   @override
   String get lintRule => 'one_member_abstracts';
 
+  test_macroClass() async {
+    await assertDiagnostics(r'''
+abstract macro class M {
+  void m();
+}
+''', [
+      // TODO(pq): add abstract macro compilation error when implemented
+    ]);
+  }
+
   test_oneMember_abstract() async {
     await assertDiagnostics(r'''
 abstract class C {
@@ -45,6 +55,40 @@ mixin M {
   void m1();
 }
 ''');
+  }
+
+  test_oneMember_augmentedAbstractClass_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+abstract class A { }
+''');
+
+    await assertNoDiagnostics(r'''
+augment library 'a.dart';
+
+augment abstract class A {
+  void m();
+}
+''');
+  }
+
+  test_oneMember_augmentedAbstractClass_declaration() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+
+augment abstract class A {
+  void m();
+}
+''');
+
+    await assertDiagnostics(r'''
+import augment 'a.dart';
+
+abstract class A { }
+''', [
+      lint(41, 1),
+    ]);
   }
 
   test_oneMember_extendedType() async {
@@ -96,10 +140,44 @@ sealed class C {
 ''');
   }
 
-  test_twoMembers() async {
+  test_twoMembers_augmentedAbstractClass_declaration() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+
+augment abstract class A {
+  void m();
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+augment library 'test.dart';
+
+augment abstract class A {
+  void n();
+}
+''');
+
+    await assertNoDiagnostics(r'''
+import augment 'a.dart';
+import augment 'b.dart';
+
+abstract class A { }
+''');
+  }
+
+  test_twoMembers_oneField() async {
     await assertNoDiagnostics(r'''
 abstract class C {
   int x = 0;
+  int f();
+}
+''');
+  }
+
+  test_twoMembers_oneGetter() async {
+    await assertNoDiagnostics(r'''
+abstract class C {
+  int get x => 0;
   int f();
 }
 ''');

@@ -22,14 +22,14 @@ class AddCallSuper extends ResolvedCorrectionProducer {
   bool get canBeAppliedToFile => false;
 
   @override
-  List<Object> get fixArguments => [_addition];
+  List<String> get fixArguments => [_addition];
 
   @override
   FixKind get fixKind => DartFixKind.ADD_CALL_SUPER;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final methodDeclaration = node;
+    var methodDeclaration = node;
     if (methodDeclaration is! MethodDeclaration) return;
     var classElement = methodDeclaration
         .thisOrAncestorOfType<ClassDeclaration>()

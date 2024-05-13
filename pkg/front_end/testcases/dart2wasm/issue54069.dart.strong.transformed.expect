@@ -8,7 +8,7 @@ import "dart:typed_data";
 
 static method getBinaryTestProto() → asy::Future<typ::Uint8List>
   return self::readFileWeb("test.binary.pb");
-static method readFileWeb(core::String path) → asy::Future<typ::Uint8List> async /* emittedValueType= typ::Uint8List */ {
+static method readFileWeb(final core::String path) → asy::Future<typ::Uint8List> async /* emittedValueType= typ::Uint8List */ {
   throw "";
 }
 static method runBench([typ::Uint8List? data = #C1]) → void async /* emittedValueType= void */ {
@@ -27,7 +27,7 @@ static method runBench([typ::Uint8List? data = #C1]) → void async /* emittedVa
 static method main() → void async /* emittedValueType= void */ {
   typ::Uint8List :async_temporary_0;
   :async_temporary_0 = await self::getBinaryTestProto();
-  typ::Uint8List data = :async_temporary_0 as dynamic;
+  final typ::Uint8List data = :async_temporary_0 as dynamic;
   core::print("File successfully read, contents: ${data}");
   self::runBench(data);
 }

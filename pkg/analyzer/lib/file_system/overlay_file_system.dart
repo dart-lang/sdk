@@ -298,7 +298,7 @@ class _OverlayFolder extends _OverlayResource implements Folder {
   List<Resource> getChildren() {
     Map<String, Resource> children = {};
     try {
-      for (final child in _folder.getChildren()) {
+      for (var child in _folder.getChildren()) {
         children[child.path] = _OverlayResource._from(provider, child);
       }
     } on FileSystemException {

@@ -25,7 +25,7 @@ class RemoveNonNullAssertion extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final expression = node;
+    var expression = node;
 
     if (expression is PostfixExpression &&
         expression.operator.type == TokenType.BANG) {

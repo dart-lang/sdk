@@ -250,13 +250,15 @@ class FormalParameterBuilder extends ModifierBuilderImpl
     // and named parameters in several cases:
     // * for const constructors to enable constant evaluation,
     // * for instance methods because these might be needed to generated
-    //   noSuchMethod forwarders, and
+    //   noSuchMethod forwarders,
     // * for generative constructors to support forwarding constructors
-    //   in mixin applications.
+    //   in mixin applications, and
+    // * for factories, to uphold the invariant that optional parameters always
+    //   have default values, even during modular compilation.
     if (parent is ConstructorBuilder) {
       return true;
     } else if (parent is SourceFactoryBuilder) {
-      return parent!.isFactory && parent!.isConst;
+      return parent!.isFactory;
     } else {
       return parent!.isClassInstanceMember;
     }

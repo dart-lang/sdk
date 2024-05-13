@@ -485,6 +485,10 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   /// The URI of the library being verified.
   final Uri _libraryUri;
 
+  /// The current set of pattern variable elements, used to track whether _all_
+  /// within a [PatternVariableDeclaration] are used.
+  List<BindPatternVariableElement>? _patternVariableElements;
+
   /// Create a new instance of the [UnusedLocalElementsVerifier].
   UnusedLocalElementsVerifier(this._errorListener, this._usedElements,
       this._inheritanceManager, LibraryElement library)
@@ -498,7 +502,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    final declaredElement = node.declaredElement!;
+    var declaredElement = node.declaredElement!;
     _visitClassElement(declaredElement);
 
     super.visitClassDeclaration(node);
@@ -507,7 +511,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     if (node.name != null) {
-      final declaredElement = node.declaredElement!;
+      var declaredElement = node.declaredElement!;
       _visitConstructorElement(declaredElement);
     }
 
@@ -524,9 +528,14 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   void visitDeclaredVariablePattern(
     covariant DeclaredVariablePatternImpl node,
   ) {
-    final declaredElement = node.declaredElement!;
+    var declaredElement = node.declaredElement!;
     if (!declaredElement.isDuplicate) {
-      _visitLocalVariableElement(declaredElement);
+      var patternVariableElements = _patternVariableElements;
+      if (patternVariableElements != null) {
+        patternVariableElements.add(declaredElement);
+      } else {
+        _visitLocalVariableElement(declaredElement);
+      }
     }
 
     super.visitDeclaredVariablePattern(node);
@@ -534,7 +543,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    final declaredElement = node.declaredElement as FieldElement;
+    var declaredElement = node.declaredElement as FieldElement;
     _visitFieldElement(declaredElement);
 
     super.visitEnumConstantDeclaration(node);
@@ -542,7 +551,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    final declaredElement = node.declaredElement!;
+    var declaredElement = node.declaredElement!;
     _visitClassElement(declaredElement);
 
     super.visitEnumDeclaration(node);
@@ -550,7 +559,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    final declaredElement = node.declaredElement!;
+    var declaredElement = node.declaredElement!;
     _visitClassElement(declaredElement);
 
     super.visitExtensionTypeDeclaration(node);
@@ -558,7 +567,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    for (final field in node.fields.variables) {
+    for (var field in node.fields.variables) {
       _visitFieldElement(
         field.declaredElement as FieldElement,
       );
@@ -580,7 +589,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
-    for (final variable in node.variables.variables) {
+    for (var variable in node.variables.variables) {
       _visitLocalVariableElement(
         variable.declaredElement as LocalVariableElement,
       );
@@ -591,7 +600,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    final declaredElement = node.declaredElement;
+    var declaredElement = node.declaredElement;
     if (declaredElement is FunctionElement) {
       _visitFunctionElement(declaredElement);
     } else if (declaredElement is PropertyAccessorElement) {
@@ -603,7 +612,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
-    final declaredElement = node.declaredElement!;
+    var declaredElement = node.declaredElement!;
     _visitTypeAliasElement(declaredElement);
 
     super.visitFunctionTypeAlias(node);
@@ -611,7 +620,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
-    final declaredElement = node.declaredElement as TypeAliasElement;
+    var declaredElement = node.declaredElement as TypeAliasElement;
     _visitTypeAliasElement(declaredElement);
 
     super.visitGenericTypeAlias(node);
@@ -619,7 +628,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    final declaredElement = node.declaredElement;
+    var declaredElement = node.declaredElement;
     if (declaredElement is MethodElement) {
       _visitMethodElement(declaredElement);
     } else if (declaredElement is PropertyAccessorElement) {
@@ -631,10 +640,39 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    final declaredElement = node.declaredElement!;
+    var declaredElement = node.declaredElement!;
     _visitClassElement(declaredElement);
 
     super.visitMixinDeclaration(node);
+  }
+
+  @override
+  void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
+    var outerPatternVariableElements = _patternVariableElements;
+    var patternVariableElements = _patternVariableElements = [];
+    try {
+      super.visitPatternVariableDeclaration(node);
+      var elementsToReport = <BindPatternVariableElement>[];
+      for (var element in patternVariableElements) {
+        var isUsed = _usedElements.elements.contains(element);
+        // Don't report any of the declared variables as unused, if any of them
+        // are used. This allows for a consistent set of patterns to be used,
+        // in a case where some declared variables are used, and some are just
+        // present to help match, for example, a record shape, or a list, etc.
+        if (isUsed) {
+          return;
+        }
+        if (!_isNamedUnderscore(element)) {
+          elementsToReport.add(element);
+        }
+      }
+      for (var element in elementsToReport) {
+        _reportErrorForElement(
+            WarningCode.UNUSED_LOCAL_VARIABLE, element, [element.displayName]);
+      }
+    } finally {
+      _patternVariableElements = outerPatternVariableElements;
+    }
   }
 
   @override
@@ -665,7 +703,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    for (final variable in node.variables.variables) {
+    for (var variable in node.variables.variables) {
       _visitTopLevelVariableElement(
         variable.declaredElement as TopLevelVariableElement,
       );
@@ -676,13 +714,39 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    for (final variable in node.variables.variables) {
+    for (var variable in node.variables.variables) {
       _visitLocalVariableElement(
         variable.declaredElement as LocalVariableElement,
       );
     }
 
     super.visitVariableDeclarationStatement(node);
+  }
+
+  /// Returns the parameter element, if any, that corresponds to the given
+  /// parameter in the overridden element.
+  ParameterElement? _getCorrespondingParameter(ParameterElement parameter,
+      ExecutableElement overridden, ExecutableElement enclosingElement) {
+    ParameterElement? correspondingParameter;
+    if (parameter.isNamed) {
+      correspondingParameter = overridden.parameters
+          .firstWhereOrNull((p) => p.name == parameter.name);
+    } else {
+      var parameterIndex = 0;
+      var parameterCount = enclosingElement.parameters.length;
+      while (parameterIndex < parameterCount) {
+        if (enclosingElement.parameters[parameterIndex] == parameter) {
+          break;
+        }
+        parameterIndex++;
+      }
+      if (overridden.parameters.length <= parameterIndex) {
+        // Something is wrong with the overridden element. Ignore it.
+        return null;
+      }
+      correspondingParameter = overridden.parameters[parameterIndex];
+    }
+    return correspondingParameter;
   }
 
   /// Returns whether the name of [element] consists only of underscore
@@ -792,6 +856,19 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
         // "used". See https://github.com/dart-lang/sdk/issues/47839.
         return true;
       }
+      if (enclosingElement is ConstructorElement) {
+        var superConstructor = enclosingElement.superConstructor;
+        if (superConstructor != null) {
+          var correspondingParameter = _getCorrespondingParameter(
+              element, superConstructor, enclosingElement);
+          if (correspondingParameter != null) {
+            if (correspondingParameter.isRequiredNamed ||
+                correspondingParameter.isRequiredPositional) {
+              return true;
+            }
+          }
+        }
+      }
       if (enclosingElement is ExecutableElement) {
         if (enclosingElement.typeParameters.isNotEmpty) {
           // There is an issue matching arguments of generic function
@@ -866,25 +943,8 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
       ParameterElement element, ExecutableElement enclosingElement) {
     var overriddenElements = _overriddenElements(enclosingElement);
     for (var overridden in overriddenElements) {
-      ParameterElement? correspondingParameter;
-      if (element.isNamed) {
-        correspondingParameter = overridden.parameters
-            .firstWhereOrNull((p) => p.name == element.name);
-      } else {
-        var parameterIndex = 0;
-        var parameterCount = enclosingElement.parameters.length;
-        while (parameterIndex < parameterCount) {
-          if (enclosingElement.parameters[parameterIndex] == element) {
-            break;
-          }
-          parameterIndex++;
-        }
-        if (overridden.parameters.length <= parameterIndex) {
-          // Something is wrong with the overridden element. Ignore it.
-          continue;
-        }
-        correspondingParameter = overridden.parameters[parameterIndex];
-      }
+      ParameterElement? correspondingParameter =
+          _getCorrespondingParameter(element, overridden, enclosingElement);
       // The parameter was added in the override.
       if (correspondingParameter == null) {
         continue;

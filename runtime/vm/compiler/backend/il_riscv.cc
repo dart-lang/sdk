@@ -1412,7 +1412,7 @@ Condition EqualityCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   }
 }
 
-LocationSummary* TestSmiInstr::MakeLocationSummary(Zone* zone, bool opt) const {
+LocationSummary* TestIntInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
@@ -1421,17 +1421,16 @@ LocationSummary* TestSmiInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   // Only one input can be a constant operand. The case of two constant
   // operands should be handled by constant propagation.
   locs->set_in(1, LocationRegisterOrConstant(right()));
+  locs->set_out(0, Location::RequiresRegister());
   return locs;
 }
 
-Condition TestSmiInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
+Condition TestIntInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
                                            BranchLabels labels) {
   const Register left = locs()->in(0).reg();
   Location right = locs()->in(1);
   if (right.IsConstant()) {
-    ASSERT(right.constant().IsSmi());
-    const intx_t imm = static_cast<intx_t>(right.constant().ptr());
-    __ TestImmediate(left, imm);
+    __ TestImmediate(left, ComputeImmediateMask());
   } else {
     __ TestRegisters(left, right.reg());
   }
@@ -1653,8 +1652,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Reserve space for the arguments that go on the stack (if any), then align.
   intptr_t stack_space = marshaller_.RequiredStackSpaceInBytes();
   __ ReserveAlignedFrameSpace(stack_space);
-#if defined(USING_MEMORY_SANITIZER)
-  {
+  if (FLAG_target_memory_sanitizer) {
     RegisterSet kVolatileRegisterSet(kAbiVolatileCpuRegs, kAbiVolatileFpuRegs);
     __ mv(temp1, SP);
     __ PushRegisters(kVolatileRegisterSet);
@@ -1679,7 +1677,6 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     __ PopRegisters(kVolatileRegisterSet);
   }
-#endif
 
   EmitParamMoves(compiler, is_leaf_ ? FPREG : saved_fp_or_sp, temp1, temp2);
 
@@ -1749,7 +1746,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ jalr(temp1);
     }
 
-    if (marshaller_.IsHandle(compiler::ffi::kResultIndex)) {
+    if (marshaller_.IsHandleCType(compiler::ffi::kResultIndex)) {
       __ Comment("Check Dart_Handle for Error.");
       ASSERT(temp1 != CallingConventions::kReturnReg);
       ASSERT(temp2 != CallingConventions::kReturnReg);
@@ -1948,8 +1945,9 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 #define R(r) (1 << r)
 
-LocationSummary* CCallInstr::MakeLocationSummary(Zone* zone,
-                                                 bool is_optimizing) const {
+LocationSummary* LeafRuntimeCallInstr::MakeLocationSummary(
+    Zone* zone,
+    bool is_optimizing) const {
   constexpr Register saved_fp = CallingConventions::kSecondNonArgumentRegister;
   constexpr Register temp0 = CallingConventions::kFfiAnyNonAbiRegister;
   static_assert(saved_fp < temp0, "Unexpected ordering of registers in set.");
@@ -1960,7 +1958,7 @@ LocationSummary* CCallInstr::MakeLocationSummary(Zone* zone,
 
 #undef R
 
-void CCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void LeafRuntimeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register saved_fp = locs()->temp(0).reg();
   const Register temp0 = locs()->temp(1).reg();
 
@@ -1974,7 +1972,12 @@ void CCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register target_address = locs()->in(TargetAddressIndex()).reg();
   // I.e., no use of A3/A4/A5.
   RELEASE_ASSERT(native_calling_convention_.argument_locations().length() < 4);
+  __ sx(target_address,
+        compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
   __ CallCFunction(target_address);
+  __ li(temp0, VMTag::kDartTagId);
+  __ sx(temp0,
+        compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
 
   __ LeaveCFrame();  // Also restores PP=A5.
 }
@@ -2538,9 +2541,9 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     UNREACHABLE();
   }
 
-#if defined(USING_MEMORY_SANITIZER)
-  UNIMPLEMENTED();
-#endif
+  if (FLAG_target_memory_sanitizer) {
+    UNIMPLEMENTED();
+  }
 }
 
 static void LoadValueCid(FlowGraphCompiler* compiler,
@@ -3100,17 +3103,6 @@ LocationSummary* CatchBlockEntryInstr::MakeLocationSummary(Zone* zone,
 void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
   compiler->AddExceptionHandler(this);
-  if (!FLAG_precompiled_mode) {
-    // On lazy deoptimization we patch the optimized code here to enter the
-    // deoptimization stub.
-    const intptr_t deopt_id = DeoptId::ToDeoptAfter(GetDeoptId());
-    if (compiler->is_optimizing()) {
-      compiler->AddDeoptIndexAtCall(deopt_id, env());
-    } else {
-      compiler->AddCurrentDescriptor(UntaggedPcDescriptors::kDeopt, deopt_id,
-                                     InstructionSource());
-    }
-  }
   if (HasParallelMove()) {
     parallel_move()->EmitNativeCode(compiler);
   }
@@ -4204,6 +4196,12 @@ void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
                    compiler->intrinsic_slow_path_label(),
                    compiler::Assembler::kNearJump, out, TMP);
   } else if (locs()->call_on_shared_slow_path()) {
+    const bool has_frame = compiler->flow_graph().graph_entry()->NeedsFrame();
+    if (!has_frame) {
+      ASSERT(__ constant_pool_allowed());
+      __ set_constant_pool_allowed(false);
+      __ EnterDartFrame(0);
+    }
     auto object_store = compiler->isolate_group()->object_store();
     const bool live_fpu_regs = locs()->live_registers()->FpuRegisterCount() > 0;
     const auto& stub = Code::ZoneHandle(
@@ -4216,6 +4214,10 @@ void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     auto extended_env = compiler->SlowPathEnvironmentFor(this, 0);
     compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
                                locs(), DeoptId::kNone, extended_env);
+    if (!has_frame) {
+      __ LeaveDartFrame();
+      __ set_constant_pool_allowed(true);
+    }
   } else {
     BoxAllocationSlowPath::Allocate(compiler, this, compiler->mint_class(), out,
                                     TMP);

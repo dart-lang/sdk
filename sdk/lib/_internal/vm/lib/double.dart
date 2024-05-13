@@ -83,6 +83,9 @@ final class _Double implements double {
     return _remainder(other.toDouble());
   }
 
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:exact-result-type", _Double)
   @pragma("vm:external-name", "Double_remainder")
   external double _remainder(double other);
 

@@ -105,7 +105,7 @@ class AbstractContextTest
   }
 
   void assertSourceChange(SourceChange sourceChange, String expected) {
-    final buffer = StringBuffer();
+    var buffer = StringBuffer();
     _writeSourceChangeToBuffer(
       buffer: buffer,
       sourceChange: sourceChange,
@@ -114,7 +114,7 @@ class AbstractContextTest
   }
 
   void changeFile(File file) {
-    final path = file.path;
+    var path = file.path;
     driverFor(file).changeFile(path);
   }
 
@@ -180,16 +180,16 @@ class AbstractContextTest
   }
 
   Future<ParsedUnitResult> getParsedUnit(File file) async {
-    final path = file.path;
-    final session = await sessionFor(fileForContextSelection ?? file);
-    final result = session.getParsedUnit(path);
+    var path = file.path;
+    var session = await sessionFor(fileForContextSelection ?? file);
+    var result = session.getParsedUnit(path);
     return result as ParsedUnitResult;
   }
 
   Future<ResolvedUnitResult> getResolvedUnit(File file) async {
-    final path = file.path;
-    final session = await sessionFor(fileForContextSelection ?? file);
-    final result = await session.getResolvedUnit(path);
+    var path = file.path;
+    var session = await sessionFor(fileForContextSelection ?? file);
+    var result = await session.getResolvedUnit(path);
     return result as ResolvedUnitResult;
   }
 
@@ -199,7 +199,7 @@ class AbstractContextTest
       throw StateError('Only dart files can be changed after analysis.');
     }
 
-    final file = super.newFile(path, normalizeSource(content));
+    var file = super.newFile(path, normalizeSource(content));
     _addAnalyzedFileToDrivers(file);
     return file;
   }
@@ -268,7 +268,7 @@ class AbstractContextTest
   }
 
   void _addAnalyzedFileToDrivers(File file) {
-    final path = file.path;
+    var path = file.path;
     var collection = _analysisContextCollection;
     if (collection != null) {
       for (var analysisContext in collection.contexts) {
@@ -316,11 +316,11 @@ class AbstractContextTest
     required StringBuffer buffer,
     required SourceChange sourceChange,
   }) {
-    for (final fileEdit in sourceChange.edits) {
-      final file = getFile(fileEdit.file);
+    for (var fileEdit in sourceChange.edits) {
+      var file = getFile(fileEdit.file);
       buffer.writeln('>>>>>>>>>> ${file.posixPath}');
-      final current = file.readAsStringSync();
-      final updated = SourceEdit.applySequence(current, fileEdit.edits);
+      var current = file.readAsStringSync();
+      var updated = SourceEdit.applySequence(current, fileEdit.edits);
       buffer.write(updated);
     }
   }

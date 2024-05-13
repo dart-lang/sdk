@@ -15,7 +15,7 @@ class Bar extends self::Foo {
   method noSuchMethod(core::Invocation invocation) → dynamic
     return null;
   no-such-method-forwarder method _foo() → void
-    return this.{self::Bar::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation) → dynamic};
+    return this.{self::Bar::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4))){(core::Invocation) → dynamic};
 }
 static method main() → dynamic {}
 

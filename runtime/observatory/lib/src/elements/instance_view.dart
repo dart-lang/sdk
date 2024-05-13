@@ -245,6 +245,9 @@ class InstanceViewElement extends CustomElement implements Renderable {
     if (_instance.closureContext != null) {
       members.add(member('closure context', _instance.closureContext));
     }
+    if (_instance.closureReceiver != null) {
+      members.add(member('closure receiver', _instance.closureReceiver));
+    }
     if (_instance.kind == M.InstanceKind.closure) {
       late ButtonElement btn;
       members.add(new DivElement()
@@ -461,6 +464,21 @@ class InstanceViewElement extends CustomElement implements Renderable {
     if (_instance.kind == M.InstanceKind.weakProperty) {
       members.add(member('key', _instance.key));
       members.add(member('value', _instance.value));
+    }
+
+    if (_instance.kind == M.InstanceKind.finalizer) {
+      members.add(member('callback', _instance.callback));
+      members.add(member('allEntries', _instance.allEntries));
+    }
+
+    if (_instance.kind == M.InstanceKind.nativeFinalizer) {
+      members.add(member('callback', _instance.allEntries));
+    }
+
+    if (_instance.kind == M.InstanceKind.finalizerEntry) {
+      members.add(member('value', _instance.value));
+      members.add(member('detach', _instance.detach));
+      members.add(member('token', _instance.token));
     }
 
     return members;

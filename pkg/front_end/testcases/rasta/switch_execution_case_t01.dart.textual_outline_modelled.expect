@@ -1,7 +1,0 @@
-// @dart = 2.9
-
-main() {}
-
-test(value) {}
-
-testEmptyCases(value) {}

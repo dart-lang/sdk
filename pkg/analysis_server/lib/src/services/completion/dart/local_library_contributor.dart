@@ -194,11 +194,11 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
       }
     }
     if (opType.includeReturnValueSuggestions) {
-      final typeSystem = request.libraryElement.typeSystem;
-      final contextType = request.contextType;
+      var typeSystem = request.libraryElement.typeSystem;
+      var contextType = request.contextType;
       if (contextType is InterfaceType) {
         // TODO(scheglov): This looks not ideal - we should suggest getters.
-        for (final field in element.fields) {
+        for (var field in element.fields) {
           if (field.isStatic &&
               field.isAccessibleIn(request.libraryElement) &&
               typeSystem.isSubtypeOf(field.type, contextType)) {

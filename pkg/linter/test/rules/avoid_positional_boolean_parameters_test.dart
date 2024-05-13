@@ -35,7 +35,7 @@ class A {
 ''');
 
     await assertNoDiagnostics(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment class A {
   augment A(bool b);
@@ -51,7 +51,7 @@ void f(bool b) { }
 ''');
 
     await assertNoDiagnostics(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment void f(bool b) { }
 ''');
@@ -67,7 +67,7 @@ class A {
 ''');
 
     await assertNoDiagnostics(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment class A {
   augment void f(bool b) { }

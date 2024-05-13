@@ -1,11 +1,4 @@
-library /*isLegacy*/;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/dart2js/native.dart:5:1: Error: Library doesn't support null safety.
-// // @dart = 2.7
-// ^^^^^^^^^^^^^^
-//
+library;
 import self as self;
 import "dart:core" as core;
 import "dart:_internal" as _in;
@@ -16,28 +9,28 @@ import "dart:_js_helper";
 class Class extends core::Object {
   field dynamic instanceField;
   static field dynamic staticField = null;
-  constructor generative() → self::Class*
+  constructor generative() → self::Class
     : self::Class::instanceField = null, super core::Object::•()
     ;
-  external constructor externalGenerative() → self::Class*;
+  external constructor externalGenerative() → self::Class;
   @#C2
-  external constructor nativeGenerative() → self::Class*;
-  static method _#generative#tearOff() → self::Class*
+  external constructor nativeGenerative() → self::Class;
+  static method _#generative#tearOff() → self::Class
     return new self::Class::generative();
-  static factory fact() → self::Class*
-    return null;
-  static method _#fact#tearOff() → self::Class*
+  static factory fact() → self::Class
+    return (null as dynamic) as{TypeError,ForDynamic} self::Class;
+  static method _#fact#tearOff() → self::Class
     return self::Class::fact();
-  static method _#externalGenerative#tearOff() → self::Class*
+  static method _#externalGenerative#tearOff() → self::Class
     return new self::Class::externalGenerative();
-  external static factory externalFact() → self::Class*;
-  static method _#externalFact#tearOff() → self::Class*
+  external static factory externalFact() → self::Class;
+  static method _#externalFact#tearOff() → self::Class
     return self::Class::externalFact();
-  static method _#nativeGenerative#tearOff() → self::Class*
+  static method _#nativeGenerative#tearOff() → self::Class
     return new self::Class::nativeGenerative();
   @#C2
-  external static factory nativeFact() → self::Class*;
-  static method _#nativeFact#tearOff() → self::Class*
+  external static factory nativeFact() → self::Class;
+  static method _#nativeFact#tearOff() → self::Class
     return self::Class::nativeFact();
   get instanceGetter() → dynamic
     return null;
@@ -65,39 +58,34 @@ class Class extends core::Object {
   external static set nativeStaticSetter(dynamic _) → void;
   @#C2
   external static method nativeStaticMethod() → dynamic;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 @#C4
 class NativeClass extends core::Object {
   field dynamic instanceField;
   static field dynamic staticField = null;
   field dynamic instanceNamedField;
-  constructor generative() → self::NativeClass*
+  constructor generative() → self::NativeClass
     : self::NativeClass::instanceNamedField = null, self::NativeClass::instanceField = null, super core::Object::•()
     ;
-  external constructor externalGenerative() → self::NativeClass*;
+  external constructor externalGenerative() → self::NativeClass;
   @#C2
-  external constructor nativeGenerative() → self::NativeClass*;
-  static method _#generative#tearOff() → self::NativeClass*
+  external constructor nativeGenerative() → self::NativeClass;
+  static method _#generative#tearOff() → self::NativeClass
     return new self::NativeClass::generative();
-  static factory fact() → self::NativeClass*
-    return null;
-  static method _#fact#tearOff() → self::NativeClass*
+  static factory fact() → self::NativeClass
+    return (null as dynamic) as{TypeError,ForDynamic} self::NativeClass;
+  static method _#fact#tearOff() → self::NativeClass
     return self::NativeClass::fact();
-  static method _#externalGenerative#tearOff() → self::NativeClass*
+  static method _#externalGenerative#tearOff() → self::NativeClass
     return new self::NativeClass::externalGenerative();
-  external static factory externalFact() → self::NativeClass*;
-  static method _#externalFact#tearOff() → self::NativeClass*
+  external static factory externalFact() → self::NativeClass;
+  static method _#externalFact#tearOff() → self::NativeClass
     return self::NativeClass::externalFact();
-  static method _#nativeGenerative#tearOff() → self::NativeClass*
+  static method _#nativeGenerative#tearOff() → self::NativeClass
     return new self::NativeClass::nativeGenerative();
   @#C2
-  external static factory nativeFact() → self::NativeClass*;
-  static method _#nativeFact#tearOff() → self::NativeClass*
+  external static factory nativeFact() → self::NativeClass;
+  static method _#nativeFact#tearOff() → self::NativeClass
     return self::NativeClass::nativeFact();
   get instanceGetter() → dynamic
     return null;
@@ -125,11 +113,6 @@ class NativeClass extends core::Object {
   external static set nativeStaticSetter(dynamic _) → void;
   @#C2
   external static method nativeStaticMethod() → dynamic;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static field dynamic topLevelField;
 static get topLevelGetter() → dynamic
@@ -158,7 +141,7 @@ static method main() → dynamic {
   self::nativeTopLevelGetter;
   self::nativeTopLevelSetter = null;
   self::nativeTopLevelFunction();
-  self::Class* c1 = new self::Class::generative();
+  self::Class c1 = new self::Class::generative();
   self::Class::fact();
   new self::Class::externalGenerative();
   self::Class::externalFact();
@@ -167,24 +150,24 @@ static method main() → dynamic {
   c1.{self::Class::instanceField}{dynamic};
   c1.{self::Class::instanceGetter}{dynamic};
   c1.{self::Class::instanceSetter} = null;
-  c1.{self::Class::instanceMethod}(){() →* dynamic};
+  c1.{self::Class::instanceMethod}(){() → dynamic};
   self::Class::staticField;
   self::Class::staticGetter;
   self::Class::staticSetter = null;
   self::Class::staticMethod();
   c1.{self::Class::externalInstanceGetter}{dynamic};
   c1.{self::Class::externalInstanceSetter} = null;
-  c1.{self::Class::externalInstanceMethod}(){() →* dynamic};
+  c1.{self::Class::externalInstanceMethod}(){() → dynamic};
   self::Class::externalStaticGetter;
   self::Class::externalStaticSetter = null;
   self::Class::externalStaticMethod();
   c1.{self::Class::nativeInstanceGetter}{dynamic};
   c1.{self::Class::nativeInstanceSetter} = null;
-  c1.{self::Class::nativeInstanceMethod}(){() →* dynamic};
+  c1.{self::Class::nativeInstanceMethod}(){() → dynamic};
   self::Class::nativeStaticGetter;
   self::Class::nativeStaticSetter = null;
   self::Class::nativeStaticMethod();
-  self::NativeClass* c2 = new self::NativeClass::generative();
+  self::NativeClass c2 = new self::NativeClass::generative();
   self::NativeClass::fact();
   new self::NativeClass::externalGenerative();
   self::NativeClass::externalFact();
@@ -193,20 +176,20 @@ static method main() → dynamic {
   c2.{self::NativeClass::instanceField}{dynamic};
   c2.{self::NativeClass::instanceGetter}{dynamic};
   c2.{self::NativeClass::instanceSetter} = null;
-  c2.{self::NativeClass::instanceMethod}(){() →* dynamic};
+  c2.{self::NativeClass::instanceMethod}(){() → dynamic};
   self::NativeClass::staticField;
   self::NativeClass::staticGetter;
   self::NativeClass::staticSetter = null;
   self::NativeClass::staticMethod();
   c2.{self::NativeClass::externalInstanceGetter}{dynamic};
   c2.{self::NativeClass::externalInstanceSetter} = null;
-  c2.{self::NativeClass::externalInstanceMethod}(){() →* dynamic};
+  c2.{self::NativeClass::externalInstanceMethod}(){() → dynamic};
   self::NativeClass::externalStaticGetter;
   self::NativeClass::externalStaticSetter = null;
   self::NativeClass::externalStaticMethod();
   c2.{self::NativeClass::nativeInstanceGetter}{dynamic};
   c2.{self::NativeClass::nativeInstanceSetter} = null;
-  c2.{self::NativeClass::nativeInstanceMethod}(){() →* dynamic};
+  c2.{self::NativeClass::nativeInstanceMethod}(){() → dynamic};
   self::NativeClass::nativeStaticGetter;
   self::NativeClass::nativeStaticSetter = null;
   self::NativeClass::nativeStaticMethod();

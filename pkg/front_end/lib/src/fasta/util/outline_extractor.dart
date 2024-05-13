@@ -157,7 +157,7 @@ class _Processor {
     TopLevel topLevel = visitor.currentContainer as TopLevel;
     if (parsed[importUri] != null) throw "$importUri already set?!?";
     parsed[importUri] = topLevel;
-    visitor.accept(ast);
+    ast.accept(visitor);
     topLevel.buildScope();
 
     _IdentifierExtractor identifierExtractor = new _IdentifierExtractor();
@@ -576,7 +576,7 @@ class _IdentifierExtractor {
   }
 }
 
-class _ParserAstVisitor extends ParserAstVisitor {
+class _ParserAstVisitor extends IgnoreSomeForCompatibilityAstVisitor {
   final Uri uri;
   final Uri? partOfUri;
   late Container currentContainer;
@@ -610,36 +610,37 @@ class _ParserAstVisitor extends ParserAstVisitor {
   }
 
   @override
-  void visitClass(
-      ClassDeclarationEnd node, Token startInclusive, Token endInclusive) {
+  void visitClassDeclarationEnd(ClassDeclarationEnd node) {
     TopLevelDeclarationEnd parent = node.parent! as TopLevelDeclarationEnd;
     IdentifierHandle identifier = parent.getIdentifier();
 
     log("Hello from class ${identifier.token}");
 
     Class cls = new Class(
-        parent, identifier.token.lexeme, startInclusive, endInclusive);
+        parent, identifier.token.lexeme, node.beginToken, node.endToken);
     currentContainer.addChild(cls, map);
 
     Container previousContainer = currentContainer;
     currentContainer = cls;
-    super.visitClass(node, startInclusive, endInclusive);
+    super.visitClassDeclarationEnd(node);
     currentContainer = previousContainer;
   }
 
   @override
-  void visitClassConstructor(
-      ClassConstructorEnd node, Token startInclusive, Token endInclusive) {
+  void visitClassConstructorEnd(ClassConstructorEnd node) {
     assert(currentContainer is Class);
     List<IdentifierHandle> ids = node.getIdentifiers();
     if (ids.length == 1) {
       ClassConstructor classConstructor = new ClassConstructor(
-          node, ids.single.token.lexeme, startInclusive, endInclusive);
+          node, ids.single.token.lexeme, node.beginToken, node.endToken);
       currentContainer.addChild(classConstructor, map);
       log("Hello from constructor ${ids.single.token}");
     } else if (ids.length == 2) {
-      ClassConstructor classConstructor = new ClassConstructor(node,
-          "${ids.first.token}.${ids.last.token}", startInclusive, endInclusive);
+      ClassConstructor classConstructor = new ClassConstructor(
+          node,
+          "${ids.first.token}.${ids.last.token}",
+          node.beginToken,
+          node.endToken);
       map[node] = classConstructor;
       currentContainer.addChild(classConstructor, map);
       log("Hello from constructor ${ids.first.token}.${ids.last.token}");
@@ -647,80 +648,86 @@ class _ParserAstVisitor extends ParserAstVisitor {
       throw "Unexpected identifiers in class constructor";
     }
 
-    super.visitClassConstructor(node, startInclusive, endInclusive);
+    super.visitClassConstructorEnd(node);
   }
 
   @override
-  void visitClassFactoryMethod(
-      ClassFactoryMethodEnd node, Token startInclusive, Token endInclusive) {
+  void visitClassFactoryMethodEnd(ClassFactoryMethodEnd node) {
     assert(currentContainer is Class);
     List<IdentifierHandle> ids = node.getIdentifiers();
     if (ids.length == 1) {
       ClassFactoryMethod classFactoryMethod = new ClassFactoryMethod(
-          node, ids.single.token.lexeme, startInclusive, endInclusive);
+          node, ids.single.token.lexeme, node.beginToken, node.endToken);
       currentContainer.addChild(classFactoryMethod, map);
       log("Hello from factory method ${ids.single.token}");
     } else if (ids.length == 2) {
-      ClassFactoryMethod classFactoryMethod = new ClassFactoryMethod(node,
-          "${ids.first.token}.${ids.last.token}", startInclusive, endInclusive);
+      ClassFactoryMethod classFactoryMethod = new ClassFactoryMethod(
+          node,
+          "${ids.first.token}.${ids.last.token}",
+          node.beginToken,
+          node.endToken);
       map[node] = classFactoryMethod;
       currentContainer.addChild(classFactoryMethod, map);
       log("Hello from factory method ${ids.first.token}.${ids.last.token}");
     } else {
       debugDumpSource(
-          startInclusive,
-          endInclusive,
+          node.beginToken,
+          node.endToken,
           node,
           "Unexpected identifiers in class factory method: $ids "
           "(${ids.map((e) => e.token.lexeme).toList()}).");
     }
 
-    super.visitClassFactoryMethod(node, startInclusive, endInclusive);
+    super.visitClassFactoryMethodEnd(node);
   }
 
   @override
-  void visitClassFields(
-      ClassFieldsEnd node, Token startInclusive, Token endInclusive) {
+  void visitClassFieldsEnd(ClassFieldsEnd node) {
     assert(currentContainer is Class);
     List<String> fields =
         node.getFieldIdentifiers().map((e) => e.token.lexeme).toList();
     ClassFields classFields =
-        new ClassFields(node, fields, startInclusive, endInclusive);
+        new ClassFields(node, fields, node.beginToken, node.endToken);
     currentContainer.addChild(classFields, map);
     log("Hello from class fields ${fields.join(", ")}");
-    super.visitClassFields(node, startInclusive, endInclusive);
+    super.visitClassFieldsEnd(node);
   }
 
   @override
-  void visitClassMethod(
-      ClassMethodEnd node, Token startInclusive, Token endInclusive) {
+  void visitClassMethodEnd(ClassMethodEnd node) {
     assert(currentContainer is Class);
 
     String identifier = node.getNameIdentifier();
     ClassMethod classMethod =
-        new ClassMethod(node, identifier, startInclusive, endInclusive);
+        new ClassMethod(node, identifier, node.beginToken, node.endToken);
     currentContainer.addChild(classMethod, map);
     log("Hello from class method $identifier");
-    super.visitClassMethod(node, startInclusive, endInclusive);
+    super.visitClassMethodEnd(node);
   }
 
   @override
-  void visitEnum(EnumEnd node, Token startInclusive, Token endInclusive) {
+  void visitEnumEnd(EnumEnd node) {
     TopLevelDeclarationEnd parent = node.parent! as TopLevelDeclarationEnd;
     IdentifierHandle identifier = parent.getIdentifier();
     List<IdentifierHandle> ids = node.getIdentifiers();
 
-    Enum e = new Enum(node, identifier.token.lexeme,
-        ids.map((e) => e.token.lexeme).toList(), startInclusive, endInclusive);
+    assert(node.leftBrace.endGroup == node.endToken);
+
+    Enum e = new Enum(
+        node,
+        identifier.token.lexeme,
+        ids.map((e) => e.token.lexeme).toList(),
+        node.enumKeyword,
+        node.endToken);
     currentContainer.addChild(e, map);
 
     log("Hello from enum ${identifier.token} with content "
         "${ids.map((e) => e.token).join(", ")}");
-    super.visitEnum(node, startInclusive, endInclusive);
+    super.visitEnumEnd(node);
   }
 
   @override
-  void visitExport(ExportEnd node, Token startInclusive, Token endInclusive) {
+  void visitExportEnd(ExportEnd node) {
     String uriString = node.getExportUriString();
     Uri exportUri = uri.resolve(uriString);
     List<String>? conditionalUriStrings = node.getConditionalExportUriStrings();
@@ -733,64 +740,59 @@ class _ParserAstVisitor extends ParserAstVisitor {
     }
     // TODO: Use 'show' and 'hide' stuff.
     Export e = new Export(
-        node, exportUri, conditionalUris, startInclusive, endInclusive);
+        node, exportUri, conditionalUris, node.exportKeyword, node.semicolon);
     currentContainer.addChild(e, map);
     log("Hello export");
   }
 
   @override
-  void visitExtension(
-      ExtensionDeclarationEnd node, Token startInclusive, Token endInclusive) {
+  void visitExtensionDeclarationEnd(ExtensionDeclarationEnd node) {
     ExtensionDeclarationBegin begin =
         node.children!.first as ExtensionDeclarationBegin;
     TopLevelDeclarationEnd parent = node.parent! as TopLevelDeclarationEnd;
     log("Hello from extension ${begin.name}");
-    Extension extension =
-        new Extension(parent, begin.name?.lexeme, startInclusive, endInclusive);
+    Extension extension = new Extension(
+        parent, begin.name?.lexeme, node.beginToken, node.endToken);
     currentContainer.addChild(extension, map);
 
     Container previousContainer = currentContainer;
     currentContainer = extension;
-    super.visitExtension(node, startInclusive, endInclusive);
+    super.visitExtensionDeclarationEnd(node);
     currentContainer = previousContainer;
   }
 
   @override
-  void visitExtensionConstructor(
-      ExtensionConstructorEnd node, Token startInclusive, Token endInclusive) {
-    // TODO: implement visitExtensionConstructor
+  void visitExtensionConstructorEnd(ExtensionConstructorEnd node) {
+    // TODO: implement visitExtensionConstructorEnd
     throw node;
   }
 
   @override
-  void visitExtensionFactoryMethod(ExtensionFactoryMethodEnd node,
-      Token startInclusive, Token endInclusive) {
-    // TODO: implement visitExtensionFactoryMethod
+  void visitExtensionFactoryMethodEnd(ExtensionFactoryMethodEnd node) {
+    // TODO: implement visitExtensionFactoryMethodEnd
     throw node;
   }
 
   @override
-  void visitExtensionFields(
-      ExtensionFieldsEnd node, Token startInclusive, Token endInclusive) {
+  void visitExtensionFieldsEnd(ExtensionFieldsEnd node) {
     assert(currentContainer is Extension);
     List<String> fields =
         node.getFieldIdentifiers().map((e) => e.token.lexeme).toList();
     ExtensionFields classFields =
-        new ExtensionFields(node, fields, startInclusive, endInclusive);
+        new ExtensionFields(node, fields, node.beginToken, node.endToken);
     currentContainer.addChild(classFields, map);
     log("Hello from extension fields ${fields.join(", ")}");
-    super.visitExtensionFields(node, startInclusive, endInclusive);
+    super.visitExtensionFieldsEnd(node);
   }
 
   @override
-  void visitExtensionMethod(
-      ExtensionMethodEnd node, Token startInclusive, Token endInclusive) {
+  void visitExtensionMethodEnd(ExtensionMethodEnd node) {
     assert(currentContainer is Extension);
     ExtensionMethod extensionMethod = new ExtensionMethod(
-        node, node.getNameIdentifier(), startInclusive, endInclusive);
+        node, node.getNameIdentifier(), node.beginToken, node.endToken);
     currentContainer.addChild(extensionMethod, map);
     log("Hello from extension method ${node.getNameIdentifier()}");
-    super.visitExtensionMethod(node, startInclusive, endInclusive);
+    super.visitExtensionMethodEnd(node);
   }
 
   void debugDumpSource(Token startInclusive, Token endInclusive,
@@ -807,7 +809,7 @@ class _ParserAstVisitor extends ParserAstVisitor {
   }
 
   @override
-  void visitImport(ImportEnd node, Token startInclusive, Token? endInclusive) {
+  void visitImportEnd(ImportEnd node) {
     IdentifierHandle? prefix = node.getImportPrefix();
     String uriString = node.getImportUriString();
     Uri importUri = uri.resolve(uriString);
@@ -821,10 +823,10 @@ class _ParserAstVisitor extends ParserAstVisitor {
     }
     // TODO: Use 'show' and 'hide' stuff.
 
-    // endInclusive can be null on syntax errors and there's recovery of the
-    // import. For now we'll ignore this.
+    // The ending semicolon can be null on syntax errors and there's recovery of
+    // the import. For now we'll ignore this.
     Import i = new Import(node, importUri, conditionalUris,
-        prefix?.token.lexeme, startInclusive, endInclusive!);
+        prefix?.token.lexeme, node.importKeyword, node.semicolon!);
     currentContainer.addChild(i, map);
     if (prefix == null) {
       log("Hello import");
@@ -834,126 +836,120 @@ class _ParserAstVisitor extends ParserAstVisitor {
   }
 
   @override
-  void visitLibraryName(
-      LibraryNameEnd node, Token startInclusive, Token endInclusive) {
-    LibraryName name = new LibraryName(node, startInclusive, endInclusive);
+  void visitLibraryNameEnd(LibraryNameEnd node) {
+    LibraryName name =
+        new LibraryName(node, node.libraryKeyword, node.semicolon);
     name.marked = Coloring.Marked;
     currentContainer.addChild(name, map);
   }
 
   @override
-  void visitMetadata(
-      MetadataEnd node, Token startInclusive, Token endInclusive) {
-    Metadata m = new Metadata(node, startInclusive, endInclusive);
+  void visitMetadataEnd(MetadataEnd node) {
+    Metadata m = new Metadata(node, node.beginToken, node.endToken);
     currentContainer.addChild(m, map);
   }
 
   @override
-  void visitMixin(
-      MixinDeclarationEnd node, Token startInclusive, Token endInclusive) {
+  void visitMixinDeclarationEnd(MixinDeclarationEnd node) {
     TopLevelDeclarationEnd parent = node.parent! as TopLevelDeclarationEnd;
     IdentifierHandle identifier = parent.getIdentifier();
     log("Hello from mixin ${identifier.token}");
 
     Mixin mixin = new Mixin(
-        parent, identifier.token.lexeme, startInclusive, endInclusive);
+        parent, identifier.token.lexeme, node.beginToken, node.endToken);
     currentContainer.addChild(mixin, map);
 
     Container previousContainer = currentContainer;
     currentContainer = mixin;
-    super.visitMixin(node, startInclusive, endInclusive);
+    super.visitMixinDeclarationEnd(node);
     currentContainer = previousContainer;
   }
 
   @override
-  void visitMixinFields(
-      MixinFieldsEnd node, Token startInclusive, Token endInclusive) {
+  void visitMixinFieldsEnd(MixinFieldsEnd node) {
     assert(currentContainer is Mixin);
     List<String> fields =
         node.getFieldIdentifiers().map((e) => e.token.lexeme).toList();
     MixinFields mixinFields =
-        new MixinFields(node, fields, startInclusive, endInclusive);
+        new MixinFields(node, fields, node.beginToken, node.endToken);
     currentContainer.addChild(mixinFields, map);
     log("Hello from mixin fields ${fields.join(", ")}");
-    super.visitMixinFields(node, startInclusive, endInclusive);
+    super.visitMixinFieldsEnd(node);
   }
 
   @override
-  void visitMixinMethod(
-      MixinMethodEnd node, Token startInclusive, Token endInclusive) {
+  void visitMixinMethodEnd(MixinMethodEnd node) {
     assert(currentContainer is Mixin);
     MixinMethod classMethod = new MixinMethod(
-        node, node.getNameIdentifier(), startInclusive, endInclusive);
+        node, node.getNameIdentifier(), node.beginParam, node.endToken);
     currentContainer.addChild(classMethod, map);
     log("Hello from mixin method ${node.getNameIdentifier()}");
-    super.visitMixinMethod(node, startInclusive, endInclusive);
+    super.visitMixinMethodEnd(node);
   }
 
   @override
-  void visitNamedMixin(
-      NamedMixinApplicationEnd node, Token startInclusive, Token endInclusive) {
+  void visitNamedMixinApplicationEnd(NamedMixinApplicationEnd node) {
     TopLevelDeclarationEnd parent = node.parent! as TopLevelDeclarationEnd;
     IdentifierHandle identifier = parent.getIdentifier();
     log("Hello from named mixin ${identifier.token}");
 
-    Mixin mixin = new Mixin(
-        parent, identifier.token.lexeme, startInclusive, endInclusive);
+    Mixin mixin =
+        new Mixin(parent, identifier.token.lexeme, node.begin, node.endToken);
     currentContainer.addChild(mixin, map);
 
     Container previousContainer = currentContainer;
     currentContainer = mixin;
-    super.visitNamedMixin(node, startInclusive, endInclusive);
+    super.visitNamedMixinApplicationEnd(node);
     currentContainer = previousContainer;
   }
 
   @override
-  void visitPart(PartEnd node, Token startInclusive, Token endInclusive) {
+  void visitPartEnd(PartEnd node) {
     String uriString = node.getPartUriString();
     Uri partUri = uri.resolve(uriString);
 
-    Part i = new Part(node, partUri, startInclusive, endInclusive);
+    Part i = new Part(node, partUri, node.partKeyword, node.semicolon);
     currentContainer.addChild(i, map);
     log("Hello part");
   }
 
   @override
-  void visitPartOf(PartOfEnd node, Token startInclusive, Token endInclusive) {
+  void visitPartOfEnd(PartOfEnd node) {
     // We'll assume we've gotten here via a "part" so we'll ignore that for now.
     // TODO: partOfUri could - in an error case - be null.
     if (partOfUri == null) throw "partOfUri is null -- uri $uri";
-    PartOf partof = new PartOf(node, partOfUri!, startInclusive, endInclusive);
+    PartOf partof =
+        new PartOf(node, partOfUri!, node.partKeyword, node.semicolon);
     partof.marked = Coloring.Marked;
     currentContainer.addChild(partof, map);
   }
 
   @override
-  void visitTopLevelFields(
-      TopLevelFieldsEnd node, Token startInclusive, Token endInclusive) {
+  void visitTopLevelFieldsEnd(TopLevelFieldsEnd node) {
     List<String> fields =
         node.getFieldIdentifiers().map((e) => e.token.lexeme).toList();
     TopLevelFields f =
-        new TopLevelFields(node, fields, startInclusive, endInclusive);
+        new TopLevelFields(node, fields, node.beginToken, node.endToken);
     currentContainer.addChild(f, map);
     log("Hello from top level fields ${fields.join(", ")}");
-    super.visitTopLevelFields(node, startInclusive, endInclusive);
+    super.visitTopLevelFieldsEnd(node);
   }
 
   @override
-  void visitTopLevelMethod(
-      TopLevelMethodEnd node, Token startInclusive, Token endInclusive) {
+  void visitTopLevelMethodEnd(TopLevelMethodEnd node) {
     TopLevelMethod m = new TopLevelMethod(node,
-        node.getNameIdentifier().token.lexeme, startInclusive, endInclusive);
+        node.getNameIdentifier().token.lexeme, node.beginToken, node.endToken);
     currentContainer.addChild(m, map);
     log("Hello from top level method ${node.getNameIdentifier().token}");
-    super.visitTopLevelMethod(node, startInclusive, endInclusive);
+    super.visitTopLevelMethodEnd(node);
   }
 
   @override
-  void visitTypedef(TypedefEnd node, Token startInclusive, Token endInclusive) {
+  void visitTypedefEnd(TypedefEnd node) {
     Typedef t = new Typedef(node, node.getNameIdentifier().token.lexeme,
-        startInclusive, endInclusive);
+        node.typedefKeyword, node.endToken);
     currentContainer.addChild(t, map);
     log("Hello from typedef ${node.getNameIdentifier().token}");
-    super.visitTypedef(node, startInclusive, endInclusive);
+    super.visitTypedefEnd(node);
   }
 }

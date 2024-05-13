@@ -32,25 +32,25 @@ class C<V> extends B<V> {
 }
 ''');
 
-    final C = findElement.unnamedConstructor('C');
-    final C_key = C.superFormalParameter('key');
+    var C = findElement.unnamedConstructor('C');
+    var C_key = C.superFormalParameter('key');
 
-    final B_key_member = C_key.superConstructorParameter;
+    var B_key_member = C_key.superConstructorParameter;
     B_key_member as SuperFormalParameterMember;
 
-    final B = findElement.unnamedConstructor('B');
-    final B_key = B.superFormalParameter('key');
+    var B = findElement.unnamedConstructor('B');
+    var B_key = B.superFormalParameter('key');
     assertElement2(
       B_key_member,
       declaration: B_key,
       substitution: {'U': 'V'},
     );
 
-    final A_key_member = B_key_member.superConstructorParameter;
+    var A_key_member = B_key_member.superConstructorParameter;
     A_key_member as ParameterMember;
 
-    final A = findElement.unnamedConstructor('A');
-    final A_key = A.parameter('key');
+    var A = findElement.unnamedConstructor('A');
+    var A_key = A.parameter('key');
     assertElement2(
       A_key_member,
       declaration: A_key,
@@ -72,7 +72,7 @@ class B extends A {
 }
 ''');
 
-    final node = findNode.superFormalParameter('super.');
+    var node = findNode.superFormalParameter('super.');
     assertResolvedNodeText(node, r'''
 SuperFormalParameter
   type: NamedType
@@ -112,7 +112,7 @@ void f(super.a) {}
       error(CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION, 7, 5),
     ]);
 
-    final node = findNode.superFormalParameter('super.');
+    var node = findNode.superFormalParameter('super.');
     assertResolvedNodeText(node, r'''
 SuperFormalParameter
   superKeyword: super
@@ -134,7 +134,7 @@ class B extends A {
 }
 ''');
 
-    final node = findNode.superFormalParameter('super.');
+    var node = findNode.superFormalParameter('super.');
     assertResolvedNodeText(node, r'''
 SuperFormalParameter
   superKeyword: super
@@ -156,7 +156,7 @@ class B extends A {
 }
 ''');
 
-    final node = findNode.superFormalParameter('super.');
+    var node = findNode.superFormalParameter('super.');
     assertResolvedNodeText(node, r'''
 SuperFormalParameter
   superKeyword: super
@@ -178,7 +178,7 @@ class B extends A {
 }
 ''');
 
-    final node = findNode.superFormalParameter('super.');
+    var node = findNode.superFormalParameter('super.');
     assertResolvedNodeText(node, r'''
 SuperFormalParameter
   requiredKeyword: required
@@ -201,7 +201,7 @@ class B extends A {
 }
 ''');
 
-    final node = findNode.superFormalParameter('super.');
+    var node = findNode.superFormalParameter('super.');
     assertResolvedNodeText(node, r'''
 SuperFormalParameter
   superKeyword: super
@@ -226,7 +226,7 @@ class B extends A {
 }
 ''');
 
-    final node = findNode.simple('a; // ref');
+    var node = findNode.simple('a; // ref');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
@@ -247,7 +247,7 @@ class B extends A {
 }
 ''');
 
-    final node = findNode.simple('a; }');
+    var node = findNode.simple('a; }');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a

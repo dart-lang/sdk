@@ -21,7 +21,7 @@ class TypeHierarchyComputer {
   final Map<Element, TypeHierarchyItem> _elementItemMap =
       HashMap<Element, TypeHierarchyItem>();
 
-  TypeHierarchyComputer(this._searchEngine, final Element pivotElement)
+  TypeHierarchyComputer(this._searchEngine, Element pivotElement)
       : helper = TypeHierarchyComputerHelper.fromElement(pivotElement);
 
   /// Returns the computed type hierarchy, maybe `null`.
@@ -153,7 +153,7 @@ class TypeHierarchyComputerHelper {
   TypeHierarchyComputerHelper(this.pivotElement, this.pivotLibrary,
       this.pivotKind, this.pivotName, this.pivotFieldFinal, this.pivotClass);
 
-  factory TypeHierarchyComputerHelper.fromElement(final Element pivotElement) {
+  factory TypeHierarchyComputerHelper.fromElement(Element pivotElement) {
     // try to find enclosing ClassElement
     Element? element = pivotElement;
     bool pivotFieldFinal = false;
@@ -180,7 +180,7 @@ class TypeHierarchyComputerHelper {
       return null;
     }
 
-    var pivotName = this.pivotName;
+    final pivotName = this.pivotName;
     if (pivotName == null) {
       return null;
     }
@@ -206,19 +206,19 @@ class TypeHierarchyComputerHelper {
       var mixinElement = mixin.element;
       if (pivotKind == ElementKind.METHOD) {
         result = mixinElement.augmented
-            ?.lookUpMethod(name: pivotName, library: pivotLibrary);
+            .lookUpMethod(name: pivotName, library: pivotLibrary);
       } else if (pivotKind == ElementKind.GETTER) {
         result = mixinElement.augmented
-            ?.lookUpGetter(name: pivotName, library: pivotLibrary);
+            .lookUpGetter(name: pivotName, library: pivotLibrary);
       } else if (pivotKind == ElementKind.SETTER) {
         result = mixinElement.augmented
-            ?.lookUpSetter(name: pivotName, library: pivotLibrary);
+            .lookUpSetter(name: pivotName, library: pivotLibrary);
       } else if (pivotKind == ElementKind.FIELD) {
         result = mixinElement.augmented
-            ?.lookUpGetter(name: pivotName, library: pivotLibrary);
+            .lookUpGetter(name: pivotName, library: pivotLibrary);
         if (result == null && !pivotFieldFinal) {
           result = mixinElement.augmented
-              ?.lookUpSetter(name: pivotName, library: pivotLibrary);
+              .lookUpSetter(name: pivotName, library: pivotLibrary);
         }
       }
       if (result == pivotElement) {

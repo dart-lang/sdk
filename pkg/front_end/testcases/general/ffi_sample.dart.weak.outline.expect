@@ -1,4 +1,12 @@
-library /*isLegacy*/;
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/ffi_sample.dart:12:7: Error: The type 'Coordinate' must be 'base', 'final' or 'sealed' because the supertype 'Struct' is 'base'.
+// Try adding 'base', 'final', or 'sealed' to the type.
+// class Coordinate extends Struct {
+//       ^
+//
 import self as self;
 import "dart:ffi" as ffi;
 import "dart:core" as core;
@@ -7,31 +15,25 @@ import "dart:ffi";
 import "package:ffi/ffi.dart";
 
 class Coordinate extends ffi::Struct {
+  field ffi::Pointer<self::Coordinate> next;
   @ffi::Double::•()
-  field core::double* x;
+  external get x() → core::double;
   @ffi::Double::•()
-  field core::double* y;
-  field ffi::Pointer<self::Coordinate*>* next;
-  static factory allocate(ffi::Allocator* allocator, core::double* x, core::double* y, ffi::Pointer<self::Coordinate*>* next) → self::Coordinate*
+  external set x(synthesized core::double #externalFieldValue) → void;
+  @ffi::Double::•()
+  external get y() → core::double;
+  @ffi::Double::•()
+  external set y(synthesized core::double #externalFieldValue) → void;
+  static factory allocate(ffi::Allocator allocator, core::double x, core::double y, ffi::Pointer<self::Coordinate> next) → self::Coordinate
     ;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get _typedDataBase() → core::Object*; -> ffi::_Compound::_typedDataBase
-  abstract member-signature get _offsetInBytes() → core::int*; -> ffi::_Compound::_offsetInBytes
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method main() → dynamic
   ;
 
 
 Extra constant evaluation status:
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///ffi_sample.dart:15:4 -> InstanceConstant(const Double{})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///ffi_sample.dart:18:4 -> InstanceConstant(const Double{})
-Extra constant evaluation: evaluated: 2, effectively constant: 2
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///ffi_sample.dart:13:4 -> InstanceConstant(const Double{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///ffi_sample.dart:13:4 -> InstanceConstant(const Double{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///ffi_sample.dart:16:4 -> InstanceConstant(const Double{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///ffi_sample.dart:16:4 -> InstanceConstant(const Double{})
+Extra constant evaluation: evaluated: 4, effectively constant: 4

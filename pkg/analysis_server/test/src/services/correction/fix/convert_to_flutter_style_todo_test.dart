@@ -50,17 +50,6 @@ class ConvertToFlutterStyleTodoTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.flutter_style_todos;
 
-  Future<void> test_commentContent() async {
-    await resolveTestCode('''
-// Here's a TODO and a todo and a   TODO.
-void f() { }
-''');
-    await assertHasFix('''
-// Here's a `TODO` and a `todo` and a   `TODO`.
-void f() { }
-''', errorFilter: (e) => e.errorCode != TodoCode.TODO);
-  }
-
   Future<void> test_docComment() async {
     await resolveTestCode('''
 /// Docs.

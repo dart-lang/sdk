@@ -101,7 +101,7 @@ class SelectorInfo {
         if (target.isImplicitGetter) {
           positional = const [];
           named = const {};
-          returns = [member.getterType];
+          returns = [translator.typeOfReturnValue(member)];
         } else {
           positional = [member.setterType];
           named = const {};
@@ -114,39 +114,19 @@ class SelectorInfo {
           named = const {};
           returns = [function.computeFunctionType(Nullability.nonNullable)];
         } else {
-          DartType typeForParam(VariableDeclaration param, int index) {
-            if (param.isCovariantByClass) {
-              // The type argument of a static type is not required to conform
-              // to the bounds of the type variable. Thus, any object can be
-              // passed to a parameter that is covariant by class.
-              return translator.coreTypes.objectNullableRawType;
-            }
-            if (param.isCovariantByDeclaration) {
-              if (hasTearOffUses) {
-                // The type of a covariant parameter in the runtime function
-                // type of a tear-off is always `Object?`. Thus, if the method
-                // has any tear-off uses, any object could be passed into the
-                // parameter.
-                return translator.coreTypes.objectNullableRawType;
-              }
-              if (!translator.options.omitImplicitTypeChecks) {
-                // A runtime type check of the parameter will be generated.
-                // The value must therefore be boxed.
-                ensureBoxed[index] = true;
-              }
-            }
-            return param.type;
-          }
-
+          final typeForParam = translator.typeOfParameterVariable;
           positional = [
             for (int i = 0; i < function.positionalParameters.length; i++)
-              typeForParam(function.positionalParameters[i], 1 + i)
+              typeForParam(function.positionalParameters[i],
+                  i < function.requiredParameterCount)
           ];
           named = {
             for (VariableDeclaration param in function.namedParameters)
-              param.name!: typeForParam(param, 1 + nameIndex[param.name!]!)
+              param.name!: typeForParam(param, param.isRequired)
           };
-          returns = target.isSetter ? const [] : [function.returnType];
+          returns = target.isSetter
+              ? const []
+              : [translator.typeOfReturnValue(member)];
         }
       }
       assert(returns.length <= outputSets.length);

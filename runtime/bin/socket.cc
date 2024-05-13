@@ -429,8 +429,8 @@ void FUNCTION_NAME(Socket_CreateUnixDomainBindConnect)(
   RawAddr addr;
   Dart_Handle address = Dart_GetNativeArgument(args, 1);
   if (Dart_IsNull(address)) {
-    Dart_SetReturnValue(args,
-        DartUtils::NewDartArgumentError("expect address to be of type String"));
+    Dart_SetReturnValue(args, DartUtils::NewDartArgumentError(
+                                  "expect address to be of type String"));
   }
   Dart_Handle result = SocketAddress::GetUnixDomainSockAddr(
       DartUtils::GetStringValue(address), Namespace::GetNamespace(args, 3),
@@ -1025,8 +1025,8 @@ void FUNCTION_NAME(ServerSocket_CreateUnixDomainBindListen)(
 #else
   Dart_Handle address = Dart_GetNativeArgument(args, 1);
   if (Dart_IsNull(address)) {
-    Dart_SetReturnValue(args,
-        DartUtils::NewDartArgumentError("expect address to be of type String"));
+    Dart_SetReturnValue(args, DartUtils::NewDartArgumentError(
+                                  "expect address to be of type String"));
   }
   const char* path = DartUtils::GetStringValue(address);
   int64_t backlog = DartUtils::GetInt64ValueCheckRange(

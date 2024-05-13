@@ -232,6 +232,8 @@ class KernelTarget extends TargetImplementation {
     return CompilerContext.current.options.currentSdkVersion;
   }
 
+  Version get leastSupportedVersion => const Version(2, 12);
+
   Version? _currentSdkVersion;
 
   Version get currentSdkVersion {
@@ -271,6 +273,15 @@ class KernelTarget extends TargetImplementation {
           ? new Source(source.lineStarts, const <int>[], source.importUri,
               source.fileUri)
           : source;
+    }
+  }
+
+  void removeSourceInformation(Uri fileUri) {
+    uriToSource.remove(fileUri);
+    if (_hasAddedSources) {
+      // The sources have already been added to the component in [link] so we
+      // have to remove source directly here to create a consistent component.
+      component?.uriToSource.remove(fileUri);
     }
   }
 
@@ -521,7 +532,11 @@ class KernelTarget extends TargetImplementation {
       loader.computeShowHideElements();
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_installTypedefTearOffs);
-      loader.installTypedefTearOffs();
+      List<DelayedDefaultValueCloner>?
+          typedefTearOffsDelayedDefaultValueCloners =
+          loader.installTypedefTearOffs();
+      typedefTearOffsDelayedDefaultValueCloners
+          ?.forEach(registerDelayedDefaultValueCloner);
 
       benchmarker
           ?.enterPhase(BenchmarkPhases.outline_computeFieldPromotability);
@@ -695,6 +710,9 @@ class KernelTarget extends TargetImplementation {
   /// `dillTarget.loader.component`.
   Component link(List<Library> libraries, {CanonicalName? nameRoot}) {
     libraries.addAll(dillTarget.loader.libraries);
+
+    // Copy source data from the map in [CompilerContext] into a new map that is
+    // put on the component.
 
     Map<Uri, Source> uriToSource = new Map<Uri, Source>();
     void copySource(Uri uri, Source source) {
@@ -1111,12 +1129,15 @@ class KernelTarget extends TargetImplementation {
         forAbstractClassOrEnumOrMixin: classBuilder.isAbstract);
 
     if (constructorTearOff != null) {
-      buildConstructorTearOffProcedure(
-          tearOff: constructorTearOff,
-          declarationConstructor: constructor,
-          implementationConstructor: constructor,
-          enclosingDeclarationTypeParameters: classBuilder.cls.typeParameters,
-          libraryBuilder: libraryBuilder);
+      DelayedDefaultValueCloner delayedDefaultValueCloner =
+          buildConstructorTearOffProcedure(
+              tearOff: constructorTearOff,
+              declarationConstructor: constructor,
+              implementationConstructor: constructor,
+              enclosingDeclarationTypeParameters:
+                  classBuilder.cls.typeParameters,
+              libraryBuilder: libraryBuilder);
+      registerDelayedDefaultValueCloner(delayedDefaultValueCloner);
     }
     SyntheticSourceConstructorBuilder constructorBuilder =
         new SyntheticSourceConstructorBuilder(
@@ -1135,9 +1156,10 @@ class KernelTarget extends TargetImplementation {
   }
 
   void registerDelayedDefaultValueCloner(DelayedDefaultValueCloner cloner) {
-    assert(!_delayedDefaultValueCloners.containsKey(cloner.synthesized),
-        "Default cloner already registered for ${cloner.synthesized}.");
-    _delayedDefaultValueCloners[cloner.synthesized] = cloner;
+    // TODO(cstefantsova): Investigate the reason for the assumption breakage
+    // and uncomment the following line.
+    // assert(!_delayedDefaultValueCloners.containsKey(cloner.synthesized));
+    _delayedDefaultValueCloners[cloner.synthesized] ??= cloner;
   }
 
   void finishSynthesizedParameters({bool forOutline = false}) {
@@ -1190,12 +1212,15 @@ class KernelTarget extends TargetImplementation {
         forAbstractClassOrEnumOrMixin:
             enclosingClass.isAbstract || enclosingClass.isEnum);
     if (constructorTearOff != null) {
-      buildConstructorTearOffProcedure(
-          tearOff: constructorTearOff,
-          declarationConstructor: constructor,
-          implementationConstructor: constructor,
-          enclosingDeclarationTypeParameters: classBuilder.cls.typeParameters,
-          libraryBuilder: libraryBuilder);
+      DelayedDefaultValueCloner delayedDefaultValueCloner =
+          buildConstructorTearOffProcedure(
+              tearOff: constructorTearOff,
+              declarationConstructor: constructor,
+              implementationConstructor: constructor,
+              enclosingDeclarationTypeParameters:
+                  classBuilder.cls.typeParameters,
+              libraryBuilder: libraryBuilder);
+      registerDelayedDefaultValueCloner(delayedDefaultValueCloner);
     }
     return new SyntheticSourceConstructorBuilder(
         classBuilder, constructor, constructorTearOff);

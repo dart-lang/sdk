@@ -5,7 +5,7 @@ import "dart:core" as core;
 static final field core::bool inSoundMode = !(core::_GrowableList::•<core::int?>(0) is core::List<core::int>);
 static method main() → dynamic {
   try {
-    throw (null as dynamic) as{TypeError,Unchecked} core::Object;
+    throw let dynamic #t1 = null as dynamic in #t1 == null ?{core::Object} #t1 as{TypeError} core::Object : #t1{core::Object};
   }
   on core::TypeError catch(final core::TypeError e) {
     core::print("${e.{core::Object::runtimeType}{core::Type}}:${e}");
@@ -14,5 +14,5 @@ static method main() → dynamic {
 
 
 Extra constant evaluation status:
-Evaluated: AsExpression @ org-dartlang-testcase:///issue49198.dart:9:16 -> NullConstant(null)
+Evaluated: Let @ org-dartlang-testcase:///issue49198.dart:9:5 -> NullConstant(null)
 Extra constant evaluation: evaluated: 10, effectively constant: 1

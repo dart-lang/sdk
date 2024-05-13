@@ -23,10 +23,10 @@ class RemoveBreak extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final breakStatement = node;
+    var breakStatement = node;
     if (breakStatement is BreakStatement) {
       await builder.addDartFileEdit(file, (builder) {
-        final breakRange = utils.getLinesRangeStatements([breakStatement]);
+        var breakRange = utils.getLinesRangeStatements([breakStatement]);
         builder.addDeletion(breakRange);
       });
     }

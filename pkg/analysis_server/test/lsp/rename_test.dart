@@ -92,6 +92,30 @@ final a = MyEnum.[!o^ne!];
     return _test_prepare(content, 'one');
   }
 
+  Future<void> test_prepare_extensionType_onName_begin() async {
+    const content = '''
+extension type [!^MyType!](int it) {}
+''';
+
+    return _test_prepare(content, 'MyType');
+  }
+
+  Future<void> test_prepare_extensionType_onName_end() async {
+    const content = '''
+extension type [!MyType^!](int it) {}
+''';
+
+    return _test_prepare(content, 'MyType');
+  }
+
+  Future<void> test_prepare_extensionType_onName_inside() async {
+    const content = '''
+extension type [!My^Type!](int it) {}
+''';
+
+    return _test_prepare(content, 'MyType');
+  }
+
   Future<void> test_prepare_function_startOfParameterList() {
     const content = '''
 void [!aaaa!]^() {}
@@ -166,18 +190,18 @@ class A {
     const content = '''
 final a = new [!Ob^ject!]();
 ''';
-    final code = TestCode.parse(content);
+    var code = TestCode.parse(content);
     await initialize();
     await openFile(mainFileUri, code.code);
 
-    final request = makeRequest(
+    var request = makeRequest(
       Method.textDocument_prepareRename,
       TextDocumentPositionParams(
         textDocument: TextDocumentIdentifier(uri: mainFileUri),
         position: code.position.position,
       ),
     );
-    final response = await channel.sendRequestToServer(request);
+    var response = await channel.sendRequestToServer(request);
 
     expect(response.id, equals(request.id));
     expect(response.result, isNull);
@@ -271,7 +295,7 @@ final a = new [!Ma^in!]();
 class MyNewMain {}
 final a = new MyNewMain();
 ''';
-    final newMainFilePath = join(projectFolderPath, 'lib', 'my_new_main.dart');
+    var newMainFilePath = join(projectFolderPath, 'lib', 'my_new_main.dart');
 
     /// Helper that will respond to the window/showMessageRequest request from
     /// the server when prompted about renaming the file.
@@ -319,7 +343,7 @@ final a = new [!Ma^in!]();
 class MyNewMain {}
 final a = new MyNewMain();
 ''';
-    final newMainFilePath = join(projectFolderPath, 'lib', 'my_new_main.dart');
+    var newMainFilePath = join(projectFolderPath, 'lib', 'my_new_main.dart');
     await provideConfig(
       () => _test_rename_withDocumentChanges(
         content,
@@ -354,8 +378,8 @@ import 'main.dart';
 final a = MyNewMain();
 ''';
 
-    final otherFilePath = join(projectFolderPath, 'lib', 'other.dart');
-    final code = TestCode.parse(mainContent);
+    var otherFilePath = join(projectFolderPath, 'lib', 'other.dart');
+    var code = TestCode.parse(mainContent);
     newFile(mainFilePath, code.code);
     await pumpEventQueue(times: 5000);
     await provideConfig(
@@ -406,7 +430,7 @@ class MyOtherClass {}
 class MyClass {}
 final a = n^ew MyClass();
 ''';
-    final result = await _test_rename_prompt(
+    var result = await _test_rename_prompt(
       content,
       'MyOtherClass',
       expectedMessage:
@@ -431,7 +455,7 @@ class MyOtherClass {}
 class MyOtherClass {}
 final a = new MyOtherClass();
 ''';
-    final response = await _test_rename_prompt(
+    var response = await _test_rename_prompt(
       content,
       'MyOtherClass',
       expectedMessage:
@@ -439,12 +463,12 @@ final a = new MyOtherClass();
       action: UserPromptActions.renameAnyway,
     );
 
-    final error = response.error;
+    var error = response.error;
     if (error != null) {
       throw error;
     }
 
-    final result =
+    var result =
         WorkspaceEdit.fromJson(response.result as Map<String, Object?>);
 
     verifyEdit(result, expectedContent);
@@ -456,7 +480,7 @@ class MyOtherClass {}
 class MyClass {}
 final a = n^ew MyClass();
 ''';
-    final response = await _test_rename_prompt(
+    var response = await _test_rename_prompt(
       content,
       'MyOtherClass',
       expectedMessage:
@@ -478,7 +502,7 @@ class MyOtherClass {}
 class MyClass {}
 final a = n^ew MyClass();
 ''';
-    final error = await _test_rename_failure(
+    var error = await _test_rename_failure(
       content,
       'MyOtherClass',
       supportsWindowShowMessageRequest: false,
@@ -511,6 +535,45 @@ enum MyEnum { newOne }
 final a = MyEnum.newOne;
 ''';
     return _test_rename_withDocumentChanges(content, 'newOne', expectedContent);
+  }
+
+  Future<void> test_rename_extensionType_onName_begin() {
+    const content = '''
+extension type ^MyType(int it) {}
+void f(MyType x) {}
+''';
+    const expectedContent = '''
+extension type MyNewType(int it) {}
+void f(MyNewType x) {}
+''';
+    return _test_rename_withDocumentChanges(
+        content, 'MyNewType', expectedContent);
+  }
+
+  Future<void> test_rename_extensionType_onName_end() {
+    const content = '''
+extension type MyType^(int it) {}
+void f(MyType x) {}
+''';
+    const expectedContent = '''
+extension type MyNewType(int it) {}
+void f(MyNewType x) {}
+''';
+    return _test_rename_withDocumentChanges(
+        content, 'MyNewType', expectedContent);
+  }
+
+  Future<void> test_rename_extensionType_onName_inside() {
+    const content = '''
+extension type My^Type(int it) {}
+void f(MyType x) {}
+''';
+    const expectedContent = '''
+extension type MyNewType(int it) {}
+void f(MyNewType x) {}
+''';
+    return _test_rename_withDocumentChanges(
+        content, 'MyNewType', expectedContent);
   }
 
   Future<void> test_rename_forEachElement_blockBody() {
@@ -645,9 +708,8 @@ class MyClass {
   }
 
   Future<void> test_rename_multipleFiles() async {
-    final referencedFilePath =
-        join(projectFolderPath, 'lib', 'referenced.dart');
-    final referencedFileUri = pathContext.toUri(referencedFilePath);
+    var referencedFilePath = join(projectFolderPath, 'lib', 'referenced.dart');
+    var referencedFileUri = pathContext.toUri(referencedFilePath);
     const mainContent = '''
 import 'referenced.dart';
 final a = new My^Class();
@@ -665,8 +727,8 @@ class MyNewClass {}
     const mainVersion = 111;
     const referencedVersion = 222;
 
-    final mainCode = TestCode.parse(mainContent);
-    final referencedCode = TestCode.parse(referencedContent);
+    var mainCode = TestCode.parse(mainContent);
+    var referencedCode = TestCode.parse(referencedContent);
 
     // Create initial files (to avoid diagnostics).
     newFile(mainFilePath, mainCode.code);
@@ -680,14 +742,14 @@ class MyNewClass {}
     await openFile(referencedFileUri, referencedCode.code,
         version: referencedVersion);
 
-    final result = (await rename(
+    var result = (await rename(
       mainFileUri,
       mainVersion,
       mainCode.position.position,
       'MyNewClass',
     ))!;
 
-    final expectedVersions = {
+    var expectedVersions = {
       mainFileUri: mainVersion,
       referencedFileUri: referencedVersion,
     };
@@ -716,7 +778,7 @@ final MyNewMain = 'test';
 class MyClass {}
 final a = n^ew MyClass();
 ''';
-    final error = await _test_rename_failure(content, 'not a valid class name');
+    var error = await _test_rename_failure(content, 'not a valid class name');
     expect(error.code, equals(ServerErrorCodes.RenameNotValid));
     expect(error.message, contains('name must not contain'));
   }
@@ -725,7 +787,7 @@ final a = n^ew MyClass();
     const content = '''
 class My^Class {}
 ''';
-    final error = await _test_rename_failure(content, 'MyClass');
+    var error = await _test_rename_failure(content, 'MyClass');
     expect(error.code, equals(ServerErrorCodes.RenameNotValid));
     expect(error.message,
         contains('new name must be different than the current name'));
@@ -736,7 +798,7 @@ class My^Class {}
 class MyClass {}
 final a = n^ew MyClass();
 ''';
-    final error =
+    var error =
         await _test_rename_failure(content, 'MyNewClass', openFileVersion: 111);
     expect(error.code, equals(ErrorCodes.ContentModified));
     expect(error.message, contains('Document was modified'));
@@ -750,12 +812,12 @@ final a = n^ew MyClass();
 /// Test Class
 class My^Class {}
 ''';
-    final code = TestCode.parse(content);
-    final error = await _test_rename_failure(content, 'MyClass');
+    var code = TestCode.parse(content);
+    var error = await _test_rename_failure(content, 'MyClass');
     expect(error.code, isNotNull);
 
     // Send any other request to ensure the server is still responsive.
-    final hover = await getHover(mainFileUri, code.position.position);
+    var hover = await getHover(mainFileUri, code.position.position);
     expect(hover?.contents, isNotNull);
   }
 
@@ -763,12 +825,12 @@ class My^Class {}
     const content = '''
 final a = new [!Ob^ject!]();
 ''';
-    final code = TestCode.parse(content);
+    var code = TestCode.parse(content);
 
     newFile(mainFilePath, code.code);
     await initialize();
 
-    final request = makeRequest(
+    var request = makeRequest(
       Method.textDocument_rename,
       RenameParams(
         newName: 'Object2',
@@ -776,7 +838,7 @@ final a = new [!Ob^ject!]();
         position: code.position.position,
       ),
     );
-    final response = await channel.sendRequestToServer(request);
+    var response = await channel.sendRequestToServer(request);
 
     expect(response.id, equals(request.id));
     expect(response.result, isNull);
@@ -833,12 +895,12 @@ final a = new My^Class();
 class MyNewClass {}
 final a = new MyNewClass();
 ''';
-    final code = TestCode.parse(content);
+    var code = TestCode.parse(content);
 
     await initialize();
     await openFile(mainFileUri, code.code, version: 222);
 
-    final result = (await rename(
+    var result = (await rename(
       mainFileUri,
       222,
       code.position.position,
@@ -902,11 +964,11 @@ final a = new MyNewClass();
 
   Future<void> _test_prepare(
       String content, String? expectedPlaceholder) async {
-    final code = TestCode.parse(content);
+    var code = TestCode.parse(content);
     await initialize();
     await openFile(mainFileUri, code.code);
 
-    final result = await prepareRename(mainFileUri, code.position.position);
+    var result = await prepareRename(mainFileUri, code.position.position);
 
     if (expectedPlaceholder == null) {
       expect(result, isNull);
@@ -925,7 +987,7 @@ final a = new MyNewClass();
   }) async {
     setDocumentChangesSupport();
 
-    final code = TestCode.parse(content);
+    var code = TestCode.parse(content);
     await initialize(
       experimentalCapabilities: supportsWindowShowMessageRequest
           ? const {
@@ -935,7 +997,7 @@ final a = new MyNewClass();
     );
     await openFile(mainFileUri, code.code, version: openFileVersion);
 
-    final result = await renameRaw(
+    var result = await renameRaw(
       mainFileUri,
       renameRequestFileVersion,
       code.position.position,
@@ -962,7 +1024,7 @@ final a = new MyNewClass();
   }) async {
     setDocumentChangesSupport();
 
-    final code = TestCode.parse(content);
+    var code = TestCode.parse(content);
     await initialize(
       experimentalCapabilities: supportsWindowShowMessageRequest
           ? const {
@@ -1013,19 +1075,19 @@ final a = new MyNewClass();
   }) async {
     filePath ??= mainFilePath;
     expectedFilePath ??= filePath;
-    final fileUri = pathContext.toUri(filePath);
+    var fileUri = pathContext.toUri(filePath);
 
     // The specific number doesn't matter here, it's just a placeholder to confirm
     // the values match.
-    final documentVersion = 222;
-    final expectedVersions = {
+    var documentVersion = 222;
+    var expectedVersions = {
       fileUri: documentVersion,
     };
 
     setDocumentChangesSupport();
     setFileRenameSupport();
 
-    final code = TestCode.parse(content);
+    var code = TestCode.parse(content);
     await initialize(
       experimentalCapabilities: supportsWindowShowMessageRequest
           ? const {
@@ -1036,7 +1098,7 @@ final a = new MyNewClass();
     await openFile(fileUri, code.code, version: documentVersion);
     await initialAnalysis;
 
-    final result = await rename(
+    var result = await rename(
       fileUri,
       sendRenameVersion ? documentVersion : null,
       code.position.position,

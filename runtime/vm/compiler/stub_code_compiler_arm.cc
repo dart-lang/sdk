@@ -695,8 +695,8 @@ void StubCodeCompiler::GenerateFixCallersTargetStub() {
   __ Push(R0);  // Preserve receiver.
   __ Push(R9);  // Old cache value (also 2nd return value).
   __ CallRuntime(kFixCallersTargetMonomorphicRuntimeEntry, 2);
-  __ Pop(R9);  // Get target cache object.
-  __ Pop(R0);  // Restore receiver.
+  __ Pop(R9);        // Get target cache object.
+  __ Pop(R0);        // Restore receiver.
   __ Pop(CODE_REG);  // Get target Code object.
   // Remove the stub frame.
   __ LeaveStubFrame();
@@ -846,25 +846,25 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     }
   }
 
-    ASSERT(kFpuRegisterSize == 4 * target::kWordSize);
-    if (kNumberOfDRegisters > 16) {
-      __ vstmd(DB_W, SP, D16, kNumberOfDRegisters - 16);
-      __ vstmd(DB_W, SP, D0, 16);
-    } else {
-      __ vstmd(DB_W, SP, D0, kNumberOfDRegisters);
-    }
+  ASSERT(kFpuRegisterSize == 4 * target::kWordSize);
+  if (kNumberOfDRegisters > 16) {
+    __ vstmd(DB_W, SP, D16, kNumberOfDRegisters - 16);
+    __ vstmd(DB_W, SP, D0, 16);
+  } else {
+    __ vstmd(DB_W, SP, D0, kNumberOfDRegisters);
+  }
 
-    {
-      __ mov(R0, Operand(SP));  // Pass address of saved registers block.
-      LeafRuntimeScope rt(assembler,
-                          /*frame_size=*/0,
-                          /*preserve_registers=*/false);
-      bool is_lazy =
-          (kind == kLazyDeoptFromReturn) || (kind == kLazyDeoptFromThrow);
-      __ mov(R1, Operand(is_lazy ? 1 : 0));
-      rt.Call(kDeoptimizeCopyFrameRuntimeEntry, 2);
-      // Result (R0) is stack-size (FP - SP) in bytes.
-    }
+  {
+    __ mov(R0, Operand(SP));  // Pass address of saved registers block.
+    LeafRuntimeScope rt(assembler,
+                        /*frame_size=*/0,
+                        /*preserve_registers=*/false);
+    bool is_lazy =
+        (kind == kLazyDeoptFromReturn) || (kind == kLazyDeoptFromThrow);
+    __ mov(R1, Operand(is_lazy ? 1 : 0));
+    rt.Call(kDeoptimizeCopyFrameRuntimeEntry, 2);
+    // Result (R0) is stack-size (FP - SP) in bytes.
+  }
 
   if (kind == kLazyDeoptFromReturn) {
     // Restore result into R1 temporarily.
@@ -918,6 +918,8 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   if (kind == kLazyDeoptFromReturn) {
     __ Push(R1);  // Preserve result, it will be GC-d here.
   } else if (kind == kLazyDeoptFromThrow) {
+    // Preserve CODE_REG for one more runtime call.
+    __ Push(CODE_REG);
     __ Push(R1);  // Preserve exception, it will be GC-d here.
     __ Push(R2);  // Preserve stacktrace, it will be GC-d here.
   }
@@ -931,11 +933,26 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   } else if (kind == kLazyDeoptFromThrow) {
     __ Pop(R1);  // Restore stacktrace.
     __ Pop(R0);  // Restore exception.
+    __ Pop(CODE_REG);
   }
   __ LeaveStubFrame();
   // Remove materialization arguments.
   __ add(SP, SP, Operand(R2, ASR, kSmiTagSize));
   // The caller is responsible for emitting the return instruction.
+
+  if (kind == kLazyDeoptFromThrow) {
+    // Unoptimized frame is now ready to accept the exception. Rethrow it to
+    // find the right handler. Ask rethrow machinery to bypass debugger it
+    // was already notified about this exception.
+    __ EnterStubFrame();
+    __ PushImmediate(
+        target::ToRawSmi(0));  // Space for the return value (unused).
+    __ Push(R0);               // Exception
+    __ Push(R1);               // Stacktrace
+    __ PushImmediate(target::ToRawSmi(1));  // Bypass debugger
+    __ CallRuntime(kReThrowRuntimeEntry, 3);
+    __ LeaveStubFrame();
+  }
 }
 
 // R0: result, must be preserved
@@ -987,8 +1004,8 @@ static void GenerateNoSuchMethodDispatcherBody(Assembler* assembler) {
   __ ldr(R8, Address(IP, target::frame_layout.param_end_from_fp *
                              target::kWordSize));
   __ LoadImmediate(IP, 0);
-  __ Push(IP);  // Result slot.
-  __ Push(R8);  // Receiver.
+  __ Push(IP);             // Result slot.
+  __ Push(R8);             // Receiver.
   __ Push(IC_DATA_REG);    // ICData/MegamorphicCache.
   __ Push(ARGS_DESC_REG);  // Arguments descriptor.
 
@@ -1070,8 +1087,8 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     __ ldr(AllocateArrayABI::kResultReg,
            Address(THR, target::Thread::top_offset()));
     __ adds(R3, AllocateArrayABI::kResultReg,
-            Operand(R9));          // Potential next object start.
-    __ b(&slow_case, CS);          // Branch if unsigned overflow.
+            Operand(R9));  // Potential next object start.
+    __ b(&slow_case, CS);  // Branch if unsigned overflow.
 
     // Check if the allocation fits into the remaining space.
     // AllocateArrayABI::kResultReg: potential new object start.
@@ -1575,8 +1592,7 @@ void StubCodeCompiler::GenerateWriteBarrierWrappersStub() {
 COMPILE_ASSERT(kWriteBarrierObjectReg == R1);
 COMPILE_ASSERT(kWriteBarrierValueReg == R0);
 COMPILE_ASSERT(kWriteBarrierSlotReg == R9);
-static void GenerateWriteBarrierStubHelper(Assembler* assembler,
-                                           bool cards) {
+static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
   Label skip_marking;
   __ Push(R2);
   __ ldr(TMP, FieldAddress(R0, target::Object::tags_offset()));
@@ -1706,15 +1722,15 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
     // Dirty the card. Not atomic: we assume mutable arrays are not shared
     // between threads
     __ PushList((1 << R0) | (1 << R1));
-    __ AndImmediate(TMP, R1, target::kPageMask);     // Page.
-    __ sub(R9, R9, Operand(TMP));                    // Offset in page.
+    __ AndImmediate(TMP, R1, target::kPageMask);  // Page.
+    __ sub(R9, R9, Operand(TMP));                 // Offset in page.
     __ Lsr(R9, R9, Operand(target::Page::kBytesPerCardLog2));  // Card index.
     __ AndImmediate(R1, R9, target::kBitsPerWord - 1);  // Lsl is not mod 32.
     __ LoadImmediate(R0, 1);                            // Bit offset.
     __ Lsl(R0, R0, R1);                                 // Bit mask.
     __ ldr(TMP,
-           Address(TMP, target::Page::card_table_offset()));  // Card table.
-    __ Lsr(R9, R9, Operand(target::kBitsPerWordLog2));        // Word index.
+           Address(TMP, target::Page::card_table_offset()));    // Card table.
+    __ Lsr(R9, R9, Operand(target::kBitsPerWordLog2));          // Word index.
     __ add(TMP, TMP, Operand(R9, LSL, target::kWordSizeLog2));  // Word address.
     __ ldr(R1, Address(TMP, 0));
     __ orr(R1, R1, Operand(R0));
@@ -2823,7 +2839,7 @@ void StubCodeCompiler::GenerateJumpToFrameStub() {
   COMPILE_ASSERT(kStackTraceObjectReg == R1);
   COMPILE_ASSERT(IsAbiPreservedRegister(R4));
   COMPILE_ASSERT(IsAbiPreservedRegister(THR));
-  __ mov(IP, Operand(R1));   // Copy Stack pointer into IP.
+  __ mov(IP, Operand(R1));  // Copy Stack pointer into IP.
   // TransitionGeneratedToNative might clobber LR if it takes the slow path.
   __ mov(R4, Operand(R0));   // Program counter.
   __ mov(THR, Operand(R3));  // Thread.
@@ -2924,7 +2940,7 @@ void StubCodeCompiler::GenerateOptimizeFunctionStub() {
   __ Push(IP);  // Setup space on stack for return value.
   __ Push(R8);
   __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry, 1);
-  __ Pop(R0);  // Discard argument.
+  __ Pop(R0);             // Discard argument.
   __ Pop(FUNCTION_REG);   // Get Function object
   __ Pop(ARGS_DESC_REG);  // Restore argument descriptor.
   __ LeaveStubFrame();

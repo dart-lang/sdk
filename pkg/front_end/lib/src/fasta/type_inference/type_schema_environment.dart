@@ -4,6 +4,8 @@
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_constraint.dart'
     as shared;
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
+    as shared;
 
 import 'package:kernel/ast.dart';
 
@@ -35,11 +37,21 @@ import 'type_schema_elimination.dart' show greatestClosure, leastClosure;
 typedef GeneratedTypeConstraint = shared.GeneratedTypeConstraint<DartType,
     DartType, StructuralParameter, VariableDeclaration>;
 
-typedef MergedTypeConstraint = shared.MergedTypeConstraint<DartType, DartType,
-    StructuralParameter, VariableDeclaration>;
+typedef MergedTypeConstraint = shared.MergedTypeConstraint<
+    DartType,
+    DartType,
+    StructuralParameter,
+    VariableDeclaration,
+    TypeDeclarationType,
+    TypeDeclaration>;
 
 typedef UnknownTypeConstraintOrigin = shared.UnknownTypeConstraintOrigin<
-    DartType, DartType, VariableDeclaration, StructuralParameter>;
+    DartType,
+    DartType,
+    VariableDeclaration,
+    StructuralParameter,
+    TypeDeclarationType,
+    TypeDeclaration>;
 
 /// Given a [FunctionType], gets the type of the named parameter with the given
 /// [name], or `dynamic` if there is no parameter with the given name.
@@ -238,7 +250,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
         inferredTypes[i] = _inferTypeParameterFromAll(
             previouslyInferredTypes?[i], constraint, extendsConstraint,
             isNonNullableByDefault: isNonNullableByDefault,
-            isContravariant: typeParam.variance == Variance.contravariant,
+            isContravariant:
+                typeParam.variance == shared.Variance.contravariant,
             isLegacyCovariant: typeParam.isLegacyCovariant,
             operations: operations);
       }

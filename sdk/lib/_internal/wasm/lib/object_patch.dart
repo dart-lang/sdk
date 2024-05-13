@@ -13,14 +13,14 @@ class Object {
   static final _hashCodeRnd = new Random();
 
   static int _objectHashCode(Object obj) {
-    var result = getHash(obj);
+    var result = getIdentityHashField(obj);
     if (result == 0) {
       // We want the hash to be a Smi value greater than 0.
       do {
         result = _hashCodeRnd.nextInt(0x40000000);
       } while (result == 0);
 
-      setHash(obj, result);
+      setIdentityHashField(obj, result);
       return result;
     }
     return result;

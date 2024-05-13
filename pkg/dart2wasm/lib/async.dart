@@ -187,13 +187,14 @@ class _ExceptionHandlerStack {
   /// Current exception handler stack. A CFG block generated when this is not
   /// empty should have a Wasm `try` instruction wrapping the block.
   ///
-  /// A `catch` block will jump to the last handler, which then jumps to the
-  /// next if the exception type test fails.
+  /// A `catch` block will jump to the next handler on the stack (the last
+  /// handler in the list), which then jumps to the next if the exception type
+  /// test fails.
   ///
-  /// Because the CFG blocks for [Catch] blocks and finalizers will have Wasm
-  /// `try` blocks for the parent handlers, we can use a Wasm `throw`
-  /// instruction (instead of jumping to the parent handler) in [Catch] blocks
-  /// and finalizers for rethrowing.
+  /// Because CFG blocks for [Catch] blocks and finalizers will have Wasm `try`
+  /// blocks for the parent handlers, we can use a Wasm `throw` instruction
+  /// (instead of jumping to the parent handler) in [Catch] blocks and
+  /// finalizers for rethrowing.
   final List<_ExceptionHandler> _handlers = [];
 
   /// Maps Wasm `try` blocks to number of handlers in [_handlers] that they
@@ -273,44 +274,73 @@ class _ExceptionHandlerStack {
   ///
   /// Call this right before terminating a CFG block.
   void terminateTryBlocks() {
-    int handlerIdx = _handlers.length - 1;
-    while (_tryBlockNumHandlers.isNotEmpty) {
-      int nCoveredHandlers = _tryBlockNumHandlers.removeLast();
-
-      codeGen.b.catch_(codeGen.translator.exceptionTag);
-
+    int nextHandlerIdx = _handlers.length - 1;
+    for (final int nCoveredHandlers in _tryBlockNumHandlers.reversed) {
       final stackTraceLocal = codeGen
           .addLocal(codeGen.translator.stackTraceInfo.repr.nonNullableType);
-      codeGen.b.local_set(stackTraceLocal);
 
       final exceptionLocal =
           codeGen.addLocal(codeGen.translator.topInfo.nonNullableType);
-      codeGen.b.local_set(exceptionLocal);
 
-      final nextHandler = _handlers[handlerIdx];
-
-      while (nCoveredHandlers != 0) {
-        final handler = _handlers[handlerIdx];
-        handlerIdx -= 1;
-        if (handler is Finalizer) {
-          handler.setContinuationRethrow(
-              () => codeGen.b.local_get(exceptionLocal),
-              () => codeGen.b.local_get(stackTraceLocal));
+      void generateCatchBody() {
+        // Set continuations of finalizers that can be reached by this `catch`
+        // (or `catch_all`) as "rethrow".
+        for (int i = 0; i < nCoveredHandlers; i += 1) {
+          final handler = _handlers[nextHandlerIdx - i];
+          if (handler is Finalizer) {
+            handler.setContinuationRethrow(
+                () => codeGen.b.local_get(exceptionLocal),
+                () => codeGen.b.local_get(stackTraceLocal));
+          }
         }
-        nCoveredHandlers -= 1;
+
+        // Set the untyped "current exception" variable. Catch blocks will do the
+        // type tests as necessary using this variable and set their exception
+        // and stack trace locals.
+        codeGen._setCurrentException(() => codeGen.b.local_get(exceptionLocal));
+        codeGen._setCurrentExceptionStackTrace(
+            () => codeGen.b.local_get(stackTraceLocal));
+
+        codeGen.jumpToTarget(_handlers[nextHandlerIdx].target);
       }
 
-      // Set the untyped "current exception" variable. Catch blocks will do the
-      // type tests as necessary using this variable and set their exception
-      // and stack trace locals.
-      codeGen._setCurrentException(() => codeGen.b.local_get(exceptionLocal));
-      codeGen._setCurrentExceptionStackTrace(
-          () => codeGen.b.local_get(stackTraceLocal));
+      codeGen.b.catch_(codeGen.translator.exceptionTag);
+      codeGen.b.local_set(stackTraceLocal);
+      codeGen.b.local_set(exceptionLocal);
 
-      codeGen.jumpToTarget(nextHandler.target);
+      generateCatchBody();
+
+      // Generate a `catch_all` to catch JS exceptions if any of the covered
+      // handlers can catch JS exceptions.
+      bool canHandleJSExceptions = false;
+      for (int handlerIdx = nextHandlerIdx;
+          handlerIdx > nextHandlerIdx - nCoveredHandlers;
+          handlerIdx -= 1) {
+        final handler = _handlers[handlerIdx];
+        canHandleJSExceptions |= handler.canHandleJSExceptions;
+      }
+
+      if (canHandleJSExceptions) {
+        codeGen.b.catch_all();
+
+        // We can't inspect the thrown object in a `catch_all` and get a stack
+        // trace, so we just attach the current stack trace.
+        codeGen.call(codeGen.translator.stackTraceCurrent.reference);
+        codeGen.b.local_set(stackTraceLocal);
+
+        // We create a generic JavaScript error.
+        codeGen.call(codeGen.translator.javaScriptErrorFactory.reference);
+        codeGen.b.local_set(exceptionLocal);
+
+        generateCatchBody();
+      }
 
       codeGen.b.end(); // end catch
+
+      nextHandlerIdx -= nCoveredHandlers;
     }
+
+    _tryBlockNumHandlers.clear();
   }
 }
 
@@ -324,19 +354,27 @@ abstract class _ExceptionHandler {
   final StateTarget target;
 
   _ExceptionHandler(this.target);
+
+  bool get canHandleJSExceptions;
 }
 
 class Catcher extends _ExceptionHandler {
   final List<VariableDeclaration> _exceptionVars = [];
   final List<VariableDeclaration> _stackTraceVars = [];
   final AsyncCodeGenerator codeGen;
+  bool _canHandleJSExceptions = false;
 
   Catcher.fromTryCatch(this.codeGen, TryCatch node, super.target) {
     for (Catch catch_ in node.catches) {
       _exceptionVars.add(catch_.exception!);
       _stackTraceVars.add(catch_.stackTrace!);
+      _canHandleJSExceptions |=
+          guardCanMatchJSException(codeGen.translator, catch_.guard);
     }
   }
+
+  @override
+  bool get canHandleJSExceptions => _canHandleJSExceptions;
 
   void setException(void Function() pushException) {
     for (final exceptionVar in _exceptionVars) {
@@ -373,6 +411,9 @@ class Finalizer extends _ExceptionHandler {
             (node.parent as Block).statements[1] as VariableDeclaration,
         _stackTraceVar =
             (node.parent as Block).statements[2] as VariableDeclaration;
+
+  @override
+  bool get canHandleJSExceptions => true;
 
   void setContinuationFallthrough() {
     codeGen._setVariable(_continuationVar, () {
@@ -539,8 +580,6 @@ class AsyncCodeGenerator extends CodeGenerator {
   void generate() {
     closures = Closures(translator, member);
     setupParametersAndContexts(member.reference);
-    generateTypeChecks(member.function!.typeParameters, member.function!,
-        translator.paramInfoFor(reference));
     _generateBodies(member.function!);
   }
 
@@ -655,49 +694,6 @@ class AsyncCodeGenerator extends CodeGenerator {
     b.end();
   }
 
-  /// Clones the context pointed to by the [srcContext] local. Returns a local
-  /// pointing to the cloned context.
-  ///
-  /// It is assumed that the context is the function-level context for the
-  /// `async` function.
-  w.Local _cloneContext(
-      FunctionNode functionNode, Context context, w.Local srcContext) {
-    assert(context.owner == functionNode);
-
-    final w.Local destContext = addLocal(context.currentLocal.type);
-    b.struct_new_default(context.struct);
-    b.local_set(destContext);
-
-    void copyCapture(TreeNode node) {
-      Capture? capture = closures.captures[node];
-      if (capture != null) {
-        assert(capture.context == context);
-        b.local_get(destContext);
-        b.local_get(srcContext);
-        b.struct_get(context.struct, capture.fieldIndex);
-        b.struct_set(context.struct, capture.fieldIndex);
-      }
-    }
-
-    if (context.containsThis) {
-      b.local_get(destContext);
-      b.local_get(srcContext);
-      b.struct_get(context.struct, context.thisFieldIndex);
-      b.struct_set(context.struct, context.thisFieldIndex);
-    }
-    if (context.parent != null) {
-      b.local_get(destContext);
-      b.local_get(srcContext);
-      b.struct_get(context.struct, context.parentFieldIndex);
-      b.struct_set(context.struct, context.parentFieldIndex);
-    }
-    functionNode.positionalParameters.forEach(copyCapture);
-    functionNode.namedParameters.forEach(copyCapture);
-    functionNode.typeParameters.forEach(copyCapture);
-
-    return destContext;
-  }
-
   void _generateInner(FunctionNode functionNode, Context? context,
       w.FunctionBuilder resumeFun) {
     // void Function(_AsyncSuspendState, Object?)
@@ -754,7 +750,14 @@ class AsyncCodeGenerator extends CodeGenerator {
     _emitTargetLabel(initialTarget);
 
     // Clone context on first execution.
-    _restoreContextsAndThis(context, cloneContextFor: functionNode);
+    b.restoreSuspendStateContext(
+        suspendStateLocal,
+        asyncSuspendStateInfo.struct,
+        FieldIndex.asyncSuspendStateContext,
+        closures,
+        context,
+        thisLocal,
+        cloneContextFor: functionNode);
 
     visitStatement(functionNode.body!);
 
@@ -839,38 +842,6 @@ class AsyncCodeGenerator extends CodeGenerator {
       b.local_set(targetIndexLocal);
       b.br(masterLoop);
       b.end(); // block
-    }
-  }
-
-  void _restoreContextsAndThis(Context? context,
-      {FunctionNode? cloneContextFor}) {
-    if (context != null) {
-      assert(!context.isEmpty);
-      b.local_get(suspendStateLocal);
-      b.struct_get(
-          asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateContext);
-      b.ref_cast(context.currentLocal.type as w.RefType);
-      b.local_set(context.currentLocal);
-
-      if (context.owner == cloneContextFor) {
-        context.currentLocal =
-            _cloneContext(cloneContextFor!, context, context.currentLocal);
-      }
-
-      while (context!.parent != null) {
-        assert(!context.parent!.isEmpty);
-        b.local_get(context.currentLocal);
-        b.struct_get(context.struct, context.parentFieldIndex);
-        b.ref_as_non_null();
-        context = context.parent!;
-        b.local_set(context.currentLocal);
-      }
-      if (context.containsThis) {
-        b.local_get(context.currentLocal);
-        b.struct_get(context.struct, context.thisFieldIndex);
-        b.ref_as_non_null();
-        b.local_set(thisLocal!);
-      }
     }
   }
 
@@ -1123,8 +1094,11 @@ class AsyncCodeGenerator extends CodeGenerator {
 
     for (int catchIdx = 0; catchIdx < node.catches.length; catchIdx += 1) {
       final Catch catch_ = node.catches[catchIdx];
-      final Catch? nextCatch =
-          node.catches.length < catchIdx ? node.catches[catchIdx + 1] : null;
+
+      final nextCatchIdx = catchIdx + 1;
+      final Catch? nextCatch = nextCatchIdx < node.catches.length
+          ? node.catches[nextCatchIdx]
+          : null;
 
       _emitTargetLabel(innerTargets[catch_]!);
 
@@ -1400,7 +1374,13 @@ class AsyncCodeGenerator extends CodeGenerator {
     // Generate resume label
     _emitTargetLabel(after);
 
-    _restoreContextsAndThis(context);
+    b.restoreSuspendStateContext(
+        suspendStateLocal,
+        asyncSuspendStateInfo.struct,
+        FieldIndex.asyncSuspendStateContext,
+        closures,
+        context,
+        thisLocal);
 
     // Handle exceptions
     final exceptionBlock = b.block();

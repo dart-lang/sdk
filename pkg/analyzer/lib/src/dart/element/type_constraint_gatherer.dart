@@ -3,8 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    show TypeDeclarationKind;
+    as shared show TypeDeclarationKind, TypeDeclarationMatchResult, Variance;
 import 'package:_fe_analyzer_shared/src/type_inference/type_constraint.dart';
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -41,14 +42,24 @@ class TypeConstraintGatherer {
   /// Returns the set of type constraints that was gathered.
   Map<
       TypeParameterElement,
-      MergedTypeConstraint<DartType, DartType, TypeParameterElement,
-          PromotableElement>> computeConstraints() {
+      MergedTypeConstraint<
+          DartType,
+          DartType,
+          TypeParameterElement,
+          PromotableElement,
+          InterfaceType,
+          InterfaceElement>> computeConstraints() {
     var result = <TypeParameterElement,
         MergedTypeConstraint<DartType, DartType, TypeParameterElement,
-            PromotableElement>>{};
+            PromotableElement, InterfaceType, InterfaceElement>>{};
     for (var parameter in _typeParameters) {
-      result[parameter] = MergedTypeConstraint<DartType, DartType,
-          TypeParameterElement, PromotableElement>(
+      result[parameter] = MergedTypeConstraint<
+          DartType,
+          DartType,
+          TypeParameterElement,
+          PromotableElement,
+          InterfaceType,
+          InterfaceElement>(
         lower: UnknownInferredType.instance,
         upper: UnknownInferredType.instance,
         origin: const UnknownTypeConstraintOrigin(),
@@ -73,12 +84,12 @@ class TypeConstraintGatherer {
   bool trySubtypeMatch(DartType P, DartType Q, bool leftSchema,
       {required AstNode? nodeForTesting}) {
     // If `P` is `_` then the match holds with no constraints.
-    if (_typeSystemOperations.isUnknownType(P)) {
+    if (P is SharedUnknownType) {
       return true;
     }
 
     // If `Q` is `_` then the match holds with no constraints.
-    if (_typeSystemOperations.isUnknownType(Q)) {
+    if (Q is SharedUnknownType) {
       return true;
     }
 
@@ -167,8 +178,7 @@ class TypeConstraintGatherer {
 
       // Or if `P` is `dynamic` or `void` and `Object` is a subtype match
       // for `Q0` under constraint set `C`.
-      if (_typeSystemOperations.isDynamic(P) ||
-          _typeSystemOperations.isVoid(P)) {
+      if (P is SharedDynamicType || P is SharedVoidType) {
         if (trySubtypeMatch(_typeSystem.objectNone, Q0, leftSchema,
             nodeForTesting: nodeForTesting)) {
           return true;
@@ -235,8 +245,8 @@ class TypeConstraintGatherer {
 
     // If `Q` is `dynamic`, `Object?`, or `void` then the match holds under
     // no constraints.
-    if (_typeSystemOperations.isDynamic(Q) ||
-        _typeSystemOperations.isVoid(Q) ||
+    if (Q is SharedDynamicType ||
+        Q is SharedVoidType ||
         Q == _typeSystemOperations.objectQuestionType) {
       return true;
     }
@@ -273,53 +283,57 @@ class TypeConstraintGatherer {
       _constraints.length = rewind;
     }
 
-    TypeDeclarationKind? P_typeDeclarationKind =
-        _typeSystemOperations.getTypeDeclarationKind(P);
-    TypeDeclarationKind? Q_typeDeclarationKind =
-        _typeSystemOperations.getTypeDeclarationKind(Q);
-    if (P_typeDeclarationKind == TypeDeclarationKind.interfaceDeclaration &&
-        Q_typeDeclarationKind == TypeDeclarationKind.interfaceDeclaration) {
+    switch ((
+      _typeSystemOperations.matchTypeDeclarationType(P),
+      _typeSystemOperations.matchTypeDeclarationType(Q)
+    )) {
       // If `P` is `C<M0, ..., Mk> and `Q` is `C<N0, ..., Nk>`, then the match
       // holds under constraints `C0 + ... + Ck`:
       //   If `Mi` is a subtype match for `Ni` with respect to L under
       //   constraints `Ci`.
-      if (P.element == Q.element) {
-        if (!_interfaceType_arguments(
-            P as InterfaceType, Q as InterfaceType, leftSchema,
-            nodeForTesting: nodeForTesting)) {
-          return false;
-        }
-        return true;
-      }
-      return _interfaceType(P as InterfaceType, Q as InterfaceType, leftSchema,
-          nodeForTesting: nodeForTesting);
-    } else if (P_typeDeclarationKind ==
-            TypeDeclarationKind.extensionTypeDeclaration &&
-        Q_typeDeclarationKind == TypeDeclarationKind.extensionTypeDeclaration) {
-      // If `P` is `C<M0, ..., Mk> and `Q` is `C<N0, ..., Nk>`, then the match
-      // holds under constraints `C0 + ... + Ck`:
-      //   If `Mi` is a subtype match for `Ni` with respect to L under
-      //   constraints `Ci`.
-      if (P.element == Q.element) {
-        if (!_interfaceType_arguments(
-            P as InterfaceType, Q as InterfaceType, leftSchema,
-            nodeForTesting: nodeForTesting)) {
-          return false;
-        }
-        return true;
-      }
-      return _interfaceType(P as InterfaceType, Q as InterfaceType, leftSchema,
-          nodeForTesting: nodeForTesting);
-    }
+      case (
+            shared.TypeDeclarationMatchResult(
+              typeDeclarationKind: shared.TypeDeclarationKind
+                  P_typeDeclarationKind,
+              typeDeclaration: InterfaceElement P_declarationObject,
+              typeDeclarationType: InterfaceType _,
+              typeArguments: List<DartType> P_typeArguments
+            ),
+            shared.TypeDeclarationMatchResult(
+              typeDeclarationKind: shared.TypeDeclarationKind
+                  Q_typeDeclarationKind,
+              typeDeclaration: InterfaceElement Q_declarationObject,
+              typeDeclarationType: InterfaceType _,
+              typeArguments: List<DartType> Q_typeArguments
+            )
+          )
+          when P_typeDeclarationKind == Q_typeDeclarationKind &&
+              P_declarationObject == Q_declarationObject:
+        return _interfaceType_arguments(P_declarationObject, P_typeArguments,
+            Q_declarationObject, Q_typeArguments, leftSchema,
+            nodeForTesting: nodeForTesting);
 
-    if (P_typeDeclarationKind != null && Q_typeDeclarationKind != null) {
-      return _interfaceType(P as InterfaceType, Q as InterfaceType, leftSchema,
-          nodeForTesting: nodeForTesting);
+      case (
+          shared.TypeDeclarationMatchResult(
+            typeDeclarationKind: shared.TypeDeclarationKind _,
+            typeDeclaration: InterfaceElement _,
+            typeDeclarationType: InterfaceType P_interfaceType,
+            typeArguments: List<DartType> _
+          ),
+          shared.TypeDeclarationMatchResult(
+            typeDeclarationKind: shared.TypeDeclarationKind _,
+            typeDeclaration: InterfaceElement _,
+            typeDeclarationType: InterfaceType Q_interfaceType,
+            typeArguments: List<DartType> _
+          )
+        ):
+        return _interfaceType(P_interfaceType, Q_interfaceType, leftSchema,
+            nodeForTesting: nodeForTesting);
     }
 
     // If `Q` is `Function` then the match holds under no constraints:
     //   If `P` is a function type.
-    if (Q_nullability == NullabilitySuffix.none && Q.isDartCoreFunction) {
+    if (_typeSystemOperations.isDartCoreFunction(Q)) {
       if (_typeSystemOperations.isFunctionType(P)) {
         return true;
       }
@@ -580,9 +594,13 @@ class TypeConstraintGatherer {
     for (var interface in C0.allSupertypes) {
       if (interface.element == C1) {
         var substitution = Substitution.fromInterfaceType(P);
+        var substitutedInterface =
+            substitution.substituteType(interface) as InterfaceType;
         return _interfaceType_arguments(
-            substitution.substituteType(interface) as InterfaceType,
-            Q,
+            substitutedInterface.element,
+            substitutedInterface.typeArguments,
+            Q.element,
+            Q.typeArguments,
             leftSchema,
             nodeForTesting: nodeForTesting);
       }
@@ -591,26 +609,33 @@ class TypeConstraintGatherer {
     return false;
   }
 
-  /// Match arguments of [P] against arguments of [Q].
-  /// If returns `false`, the constraints are unchanged.
+  /// Match arguments [P_typeArguments] of P against arguments [Q_typeArguments]
+  /// of Q, taking into account the variance of type variables in [P_element]
+  /// and [Q_element]. If returns `false`, the constraints are unchanged.
   bool _interfaceType_arguments(
-      InterfaceType P, InterfaceType Q, bool leftSchema,
+      InterfaceElement P_element,
+      List<DartType> P_typeArguments,
+      InterfaceElement Q_element,
+      List<DartType> Q_typeArguments,
+      bool leftSchema,
       {required AstNode? nodeForTesting}) {
-    assert(P.element == Q.element);
+    assert(P_typeArguments.length == Q_typeArguments.length);
 
     var rewind = _constraints.length;
 
-    for (var i = 0; i < P.typeArguments.length; i++) {
+    for (var i = 0; i < P_typeArguments.length; i++) {
       var variance =
-          (P.element.typeParameters[i] as TypeParameterElementImpl).variance;
-      var M = P.typeArguments[i];
-      var N = Q.typeArguments[i];
-      if ((variance.isCovariant || variance.isInvariant) &&
+          _typeSystemOperations.getTypeParameterVariance(P_element, i);
+      var M = P_typeArguments[i];
+      var N = Q_typeArguments[i];
+      if ((variance == shared.Variance.covariant ||
+              variance == shared.Variance.invariant) &&
           !trySubtypeMatch(M, N, leftSchema, nodeForTesting: nodeForTesting)) {
         _constraints.length = rewind;
         return false;
       }
-      if ((variance.isContravariant || variance.isInvariant) &&
+      if ((variance == shared.Variance.contravariant ||
+              variance == shared.Variance.invariant) &&
           !trySubtypeMatch(N, M, leftSchema, nodeForTesting: nodeForTesting)) {
         _constraints.length = rewind;
         return false;
@@ -634,23 +659,23 @@ class TypeConstraintGatherer {
       return false;
     }
 
-    final positionalP = P.positionalFields;
-    final positionalQ = Q.positionalFields;
+    var positionalP = P.positionalFields;
+    var positionalQ = Q.positionalFields;
     if (positionalP.length != positionalQ.length) {
       return false;
     }
 
-    final namedP = P.namedFields;
-    final namedQ = Q.namedFields;
+    var namedP = P.namedFields;
+    var namedQ = Q.namedFields;
     if (namedP.length != namedQ.length) {
       return false;
     }
 
-    final rewind = _constraints.length;
+    var rewind = _constraints.length;
 
     for (var i = 0; i < positionalP.length; i++) {
-      final fieldP = positionalP[i];
-      final fieldQ = positionalQ[i];
+      var fieldP = positionalP[i];
+      var fieldQ = positionalQ[i];
       if (!trySubtypeMatch(fieldP.type, fieldQ.type, leftSchema,
           nodeForTesting: nodeForTesting)) {
         _constraints.length = rewind;
@@ -659,8 +684,8 @@ class TypeConstraintGatherer {
     }
 
     for (var i = 0; i < namedP.length; i++) {
-      final fieldP = namedP[i];
-      final fieldQ = namedQ[i];
+      var fieldP = namedP[i];
+      var fieldQ = namedQ[i];
       if (fieldP.name != fieldQ.name) {
         _constraints.length = rewind;
         return false;

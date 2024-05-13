@@ -36,7 +36,7 @@ class A {
 ''');
 
     var a = newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 
 augment class A {
   augment A.named();
@@ -60,7 +60,7 @@ class A {
 ''');
 
     var a = newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 
 augment class A {
   augment A.named();
@@ -85,7 +85,7 @@ class A {
 ''');
 
     var a = newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 
 augment class A {
   A.named();

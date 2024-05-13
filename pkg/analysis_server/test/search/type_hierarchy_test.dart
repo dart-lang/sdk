@@ -90,7 +90,7 @@ class C {}
 ''');
 
     newFile('$testPackageLibPath/a.dart', '''
-library augment 'test.dart';
+augment library 'test.dart';
 
 augment class C extends MyClass1 {}
  ''');

@@ -65,7 +65,7 @@ class RecordTypeBuilder extends TypeBuilder {
 
   @override
   RecordTypeImpl build() {
-    final type = _type;
+    var type = _type;
     if (type != null) {
       return type;
     }
@@ -98,18 +98,18 @@ class RecordTypeBuilder extends TypeBuilder {
       if (recursionFound) {
         return typeSystem.typeProvider.dynamicType;
       } else {
-        final type = fieldTypes[fieldTypeIndex++];
+        var type = fieldTypes[fieldTypeIndex++];
         return _buildType(type);
       }
     }
 
-    final positionalFields = node.positionalFields.map((field) {
+    var positionalFields = node.positionalFields.map((field) {
       return RecordTypePositionalFieldImpl(
         type: nextFieldType(),
       );
     }).toList();
 
-    final namedFields = node.namedFields?.fields.map((field) {
+    var namedFields = node.namedFields?.fields.map((field) {
       return RecordTypeNamedFieldImpl(
         name: field.name.lexeme,
         type: nextFieldType(),

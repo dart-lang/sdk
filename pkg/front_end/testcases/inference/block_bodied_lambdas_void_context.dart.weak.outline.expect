@@ -1,7 +1,8 @@
-library test /*isLegacy*/;
+library test;
 import self as self;
+import "dart:core" as core;
 
-static method f() → dynamic
+static method f(core::List<core::int> o) → dynamic
   ;
 static method main() → dynamic
   ;

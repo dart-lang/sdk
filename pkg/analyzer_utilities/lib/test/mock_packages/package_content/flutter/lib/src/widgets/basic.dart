@@ -63,7 +63,8 @@ class AspectRatio extends SingleChildRenderObjectWidget {
 }
 
 class Center extends StatelessWidget {
-  const Center({Key? key, double? heightFactor, Widget? child});
+  const Center(
+      {Key? key, double? widthFactor, double? heightFactor, Widget? child});
 }
 
 class SizedBox extends SingleChildRenderObjectWidget {

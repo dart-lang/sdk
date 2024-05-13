@@ -227,7 +227,7 @@ the node at the cursor.
 ```dart
 @override
 Future<void> compute(ChangeBuilder builder) async {
-  var node = this.node;
+  final node = this.node;
 }
 ```
 
@@ -236,7 +236,7 @@ Then we need to verify that this node is an integer literal:
 ```dart
 @override
 Future<void> compute(ChangeBuilder builder) async {
-  var node = this.node;
+  final node = this.node;
   if (node is! IntegerLiteral) {
     return;
   }
@@ -252,7 +252,7 @@ We'll also check that the integer has the right form and is valid:
 ```dart
 @override
 Future<void> compute(ChangeBuilder builder) async {
-  var node = this.node;
+  final node = this.node;
   if (node is! IntegerLiteral) {
     return;
   }
@@ -279,7 +279,7 @@ you can read [Creating `SourceChange`s](https://github.com/dart-lang/sdk/blob/ma
 ```dart
 @override
 Future<void> compute(ChangeBuilder builder) async {
-  var node = this.node;
+  final node = this.node;
   if (node is! IntegerLiteral) {
     return;
   }

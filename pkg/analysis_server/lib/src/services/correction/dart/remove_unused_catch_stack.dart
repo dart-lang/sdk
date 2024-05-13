@@ -28,17 +28,17 @@ class RemoveUnusedCatchStack extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final stackTraceParameter = node;
+    var stackTraceParameter = node;
     if (stackTraceParameter is! CatchClauseParameter) {
       return;
     }
 
-    final catchClause = stackTraceParameter.parent;
+    var catchClause = stackTraceParameter.parent;
     if (catchClause is! CatchClause) {
       return;
     }
 
-    final exceptionParameter = catchClause.exceptionParameter;
+    var exceptionParameter = catchClause.exceptionParameter;
     if (exceptionParameter == null) {
       return;
     }

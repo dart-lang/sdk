@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
-import 'package:expect/minitest.dart';
+import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 /// This test is currently written as a white box test to ensure we don't
 /// regress on any of the existing code paths that lead to NoSuchMethod errors

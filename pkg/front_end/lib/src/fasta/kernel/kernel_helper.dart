@@ -131,7 +131,9 @@ class DelayedDefaultValueCloner {
             VariableDeclaration synthesizedParameter =
                 _synthesized.positionalParameters[superParameterIndex];
             _cloneDefaultValueForSuperParameters(
-                originalParameter, synthesizedParameter, typeEnvironment);
+                originalParameter, synthesizedParameter, typeEnvironment,
+                isOptional:
+                    superParameterIndex >= _synthesized.requiredParameterCount);
           }
         }
       }
@@ -162,7 +164,8 @@ class DelayedDefaultValueCloner {
             VariableDeclaration synthesizedParameter =
                 _synthesized.namedParameters[i];
             _cloneDefaultValueForSuperParameters(
-                originalParameter, synthesizedParameter, typeEnvironment);
+                originalParameter, synthesizedParameter, typeEnvironment,
+                isOptional: !synthesizedParameter.isRequired);
           } else {
             // TODO(cstefantsova): Handle the erroneous case of missing names.
           }
@@ -218,7 +221,8 @@ class DelayedDefaultValueCloner {
   void _cloneDefaultValueForSuperParameters(
       VariableDeclaration originalParameter,
       VariableDeclaration synthesizedParameter,
-      TypeEnvironment typeEnvironment) {
+      TypeEnvironment typeEnvironment,
+      {required bool isOptional}) {
     Expression? originalParameterInitializer = originalParameter.initializer;
     DartType? originalParameterInitializerType = originalParameterInitializer
         ?.getStaticType(new StaticTypeContext(synthesized, typeEnvironment));
@@ -227,6 +231,9 @@ class DelayedDefaultValueCloner {
         typeEnvironment.isSubtypeOf(originalParameterInitializerType,
             synthesizedParameterType, SubtypeCheckMode.withNullabilities)) {
       _cloneInitializer(originalParameter, synthesizedParameter);
+    } else if (originalParameterInitializer == null && isOptional) {
+      synthesizedParameter.initializer = new NullLiteral()
+        ..parent = synthesizedParameter;
     } else {
       synthesizedParameter.hasDeclaredInitializer = false;
       if (synthesizedParameterType.isPotentiallyNonNullable) {

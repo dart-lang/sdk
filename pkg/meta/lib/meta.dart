@@ -7,16 +7,16 @@
 /// Annotations that developers can use to express the intentions that otherwise
 /// can't be deduced by statically analyzing the source code.
 ///
-/// See also `@deprecated` and `@override` in the `dart:core` library.
+/// See also @[deprecated] and @[override] in the `dart:core` library.
 ///
 /// Annotations provide semantic information that tools can use to provide a
 /// better user experience. For example, an IDE might not autocomplete the name
 /// of a function that's been marked `@deprecated`, or it might display the
 /// function's name differently.
 ///
-/// For information on installing and importing this library,
-/// see the [meta package on pub.dev](https://pub.dev/packages/meta).
-/// To learn more about using annotations, check out the
+/// For information on installing and importing this library, see the
+/// [meta package on pub.dev](https://pub.dev/packages/meta). To learn more
+/// about using annotations, check out the
 /// [Metadata](https://dart.dev/language/metadata) documentation.
 library meta;
 
@@ -267,8 +267,39 @@ const _Literal literal = _Literal();
 const _MustBeConst mustBeConst = _MustBeConst();
 
 /// Used to annotate an instance member `m` declared on a class or mixin `C`.
-/// Indicates that every subclass of `C`, concrete or abstract, must directly
-/// override `m`.
+/// Indicates that every concrete subclass of `C` must directly override `m`.
+///
+/// The intention of this annotation is to "re-abtract" a member that was
+/// previously concrete, and to ensure that subclasses provide their own
+/// implementation of the member. For example:
+///
+/// ```dart
+/// base class Entity {
+///   @mustBeOverridden
+///   String toString();
+/// }
+///
+/// abstract class AbstractEntity extends Entity {
+///   // OK: AbstractEntity is abstract.
+/// }
+///
+/// sealed class SealedEntity extends Entity {
+///   // OK: SealedEntity is sealed, which implies abstract.
+/// }
+///
+/// mixin MixinEntity on Entity {
+///  // OK: MixinEntity is abstract.
+/// }
+///
+/// class Person extends Entity {
+///   // ERROR: Missing new implementation of 'toString'.
+/// }
+///
+/// class Animal extends Entity {
+///   // OK: Animal provides its own implementation of 'toString'.
+///   String toString() => 'Animal';
+/// }
+/// ```
 ///
 /// This annotation places no restrictions on the overriding members. In
 /// particular, it does not require that the overriding members invoke the
@@ -281,7 +312,7 @@ const _MustBeConst mustBeConst = _MustBeConst();
 ///   (a method, operator, field, getter, or setter) of a class or of a mixin,
 ///   or
 /// * the annotation is associated with a member `m` in class or mixin `C`, and
-///   there is a class or mixin `D` which is a subclass of `C` (directly or
+///   there is a concrete class `D` which is a subclass of `C` (directly or
 ///   indirectly), and `D` does not directly declare a concrete override of `m`
 ///   and does not directly declare a concrete override of `noSuchMethod`.
 const _MustBeOverridden mustBeOverridden = _MustBeOverridden();
@@ -495,6 +526,7 @@ const _VisibleForTesting visibleForTesting = _VisibleForTesting();
 /// Used to annotate a class.
 ///
 /// See [immutable] for more details.
+// TODO(srawlins): Enforce with `TargetKind.classtype`.
 class Immutable {
   /// A human-readable explanation of the reason why the class is immutable.
   final String reason;
@@ -538,6 +570,7 @@ class Required {
 /// During compilation, all statically resolved calls to an annotated function
 /// are registered, and information about the annotated functions, the calls,
 /// and their arguments, is then made available to post-compile steps.
+// TODO(srawlins): Enforce with `TargetKind.method`.
 @experimental
 class ResourceIdentifier {
   /// Information which is stored together with the function call.
@@ -564,6 +597,7 @@ class ResourceIdentifier {
 
 /// See [useResult] for more details.
 @Target({
+  TargetKind.constructor,
   TargetKind.field,
   TargetKind.function,
   TargetKind.getter,
@@ -607,6 +641,8 @@ class _Checked {
 
 @Target({
   TargetKind.classType,
+  // TODO(srawlins): Add `TargetKind.constructor` when this annotation has
+  // functional tests. See https://github.com/dart-lang/sdk/issues/48476.
   TargetKind.function,
   TargetKind.getter,
   TargetKind.library,
@@ -633,6 +669,7 @@ class _Experimental {
   const _Experimental();
 }
 
+// TODO(srawlins): Enforce with `TargetKind.method`.
 class _Factory {
   const _Factory();
 }
@@ -641,14 +678,19 @@ class _Internal {
   const _Internal();
 }
 
+// TODO(srawlins): Enforce with `TargetKind.function` (and
+// `TargetKind.method`?).
 class _IsTest {
   const _IsTest();
 }
 
+// TODO(srawlins): Enforce with `TargetKind.function` (and
+// `TargetKind.method`?).
 class _IsTestGroup {
   const _IsTestGroup();
 }
 
+// TODO(srawlins): Enforce with `TargetKind.constructor`.
 class _Literal {
   const _Literal();
 }
@@ -681,6 +723,8 @@ class _MustCallSuper {
   const _MustCallSuper();
 }
 
+// TODO(srawlins): Enforce with `TargetKind.method`, `TargetKind.getter`,
+// `TargetKind.setter`, `TargetKind.field`.
 class _NonVirtual {
   const _NonVirtual();
 }
@@ -698,6 +742,8 @@ class _OptionalTypeArgs {
   const _OptionalTypeArgs();
 }
 
+// TODO(srawlins): Enforce with `TargetKind.method`, `TargetKind.getter`,
+// `TargetKind.setter`, `TargetKind.field`.
 class _Protected {
   const _Protected();
 }
@@ -729,10 +775,16 @@ class _Virtual {
   const _Virtual();
 }
 
+// TODO(srawlins): Enforce with `TargetKind.method`, `TargetKind.getter`,
+// `TargetKind.setter`, `TargetKind.field`.
 class _VisibleForOverriding {
   const _VisibleForOverriding();
 }
 
+// TODO(srawlins): Enforce with `TargetKind.constructor`, `TargetKind.function`,
+// `TargetKind.method`, `TargetKind.getter`, `TargetKind.setter`,
+// `TargetKind.field`, `TargetKind.parameter`, `TargetKind.typedef`,
+// `TargetKind.type`.
 class _VisibleForTesting {
   const _VisibleForTesting();
 }

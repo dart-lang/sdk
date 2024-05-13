@@ -455,7 +455,7 @@ class AnnotationVerifier {
           }
         }
       } else if (parent.declaredElement != null) {
-        final declaredElement = parent.declaredElement!;
+        var declaredElement = parent.declaredElement!;
         if (element.isVisibleForOverriding &&
             (!declaredElement.isInstanceMember ||
                 declaredElement.enclosingElement is ExtensionTypeElement)) {
@@ -485,7 +485,7 @@ class AnnotationVerifier {
       );
     }
 
-    final AstNode? containedDeclaration;
+    AstNode? containedDeclaration;
     switch (node.parent) {
       case ConstructorDeclaration constructorDeclaration:
         containedDeclaration = constructorDeclaration;
@@ -500,7 +500,7 @@ class AnnotationVerifier {
         return;
     }
 
-    final InterfaceElement? declaredElement;
+    InterfaceElement? declaredElement;
     switch (containedDeclaration.parent) {
       case ClassDeclaration classDeclaration:
         declaredElement = classDeclaration.declaredElement;
@@ -518,7 +518,7 @@ class AnnotationVerifier {
       return;
     }
 
-    for (final annotation in declaredElement.metadata) {
+    for (var annotation in declaredElement.metadata) {
       if (annotation.isVisibleForTemplate) {
         return;
       }
@@ -586,51 +586,54 @@ class AnnotationVerifier {
   /// when the annotation is marked as being valid for the given [kinds] of
   /// targets.
   bool _isValidTarget(AstNode target, Set<TargetKind> kinds) {
-    if (target is ClassDeclaration) {
-      return kinds.contains(TargetKind.classType) ||
-          kinds.contains(TargetKind.type);
-    } else if (target is ClassTypeAlias) {
-      return kinds.contains(TargetKind.classType) ||
-          kinds.contains(TargetKind.type);
-    } else if (target is Directive) {
-      return (target.parent as CompilationUnit).directives.first == target &&
-          kinds.contains(TargetKind.library);
-    } else if (target is EnumDeclaration) {
-      return kinds.contains(TargetKind.enumType) ||
-          kinds.contains(TargetKind.type);
-    } else if (target is ExtensionTypeDeclaration) {
-      return kinds.contains(TargetKind.extensionType);
-    } else if (target is ExtensionDeclaration) {
-      return kinds.contains(TargetKind.extension);
-    } else if (target is FieldDeclaration) {
-      return kinds.contains(TargetKind.field);
-    } else if (target is FunctionDeclaration) {
-      if (target.isGetter) {
-        return kinds.contains(TargetKind.getter);
+    // `TargetKind.overridableMember` is complex, so we handle it separately.
+    if (kinds.contains(TargetKind.overridableMember)) {
+      if ((target is FieldDeclaration && !target.isStatic) ||
+          target is MethodDeclaration && !target.isStatic) {
+        var parent = target.parent;
+        if (parent is ClassDeclaration ||
+            parent is ExtensionTypeDeclaration ||
+            parent is MixinDeclaration) {
+          // Members of `EnumDeclaration`s and `ExtensionDeclaration`s are not
+          // overridable.
+          return true;
+        }
       }
-      if (target.isSetter) {
-        return kinds.contains(TargetKind.setter);
-      }
-      return kinds.contains(TargetKind.function);
-    } else if (target is MethodDeclaration) {
-      if (target.isGetter) {
-        return kinds.contains(TargetKind.getter);
-      }
-      if (target.isSetter) {
-        return kinds.contains(TargetKind.setter);
-      }
-      return kinds.contains(TargetKind.method);
-    } else if (target is MixinDeclaration) {
-      return kinds.contains(TargetKind.mixinType) ||
-          kinds.contains(TargetKind.type);
-    } else if (target is FormalParameter) {
-      return kinds.contains(TargetKind.parameter);
-    } else if (target is FunctionTypeAlias || target is GenericTypeAlias) {
-      return kinds.contains(TargetKind.typedefType) ||
-          kinds.contains(TargetKind.type);
-    } else if (target is TopLevelVariableDeclaration) {
-      return kinds.contains(TargetKind.topLevelVariable);
     }
-    return false;
+
+    return switch (target) {
+      ClassDeclaration() =>
+        kinds.contains(TargetKind.classType) || kinds.contains(TargetKind.type),
+      ClassTypeAlias() =>
+        kinds.contains(TargetKind.classType) || kinds.contains(TargetKind.type),
+      ConstructorDeclaration() => kinds.contains(TargetKind.constructor),
+      Directive() => kinds.contains(TargetKind.directive) ||
+          (target.parent as CompilationUnit).directives.first == target &&
+              kinds.contains(TargetKind.library),
+      EnumConstantDeclaration() => kinds.contains(TargetKind.enumValue),
+      EnumDeclaration() =>
+        kinds.contains(TargetKind.enumType) || kinds.contains(TargetKind.type),
+      ExtensionTypeDeclaration() => kinds.contains(TargetKind.extensionType),
+      ExtensionDeclaration() => kinds.contains(TargetKind.extension),
+      FieldDeclaration() => kinds.contains(TargetKind.field),
+      FunctionDeclaration(isGetter: true) => kinds.contains(TargetKind.getter),
+      FunctionDeclaration(isSetter: true) => kinds.contains(TargetKind.setter),
+      FunctionDeclaration() => kinds.contains(TargetKind.function),
+      MethodDeclaration(isGetter: true) => kinds.contains(TargetKind.getter),
+      MethodDeclaration(isSetter: true) => kinds.contains(TargetKind.setter),
+      MethodDeclaration() => kinds.contains(TargetKind.method),
+      MixinDeclaration() =>
+        kinds.contains(TargetKind.mixinType) || kinds.contains(TargetKind.type),
+      FormalParameter() => kinds.contains(TargetKind.parameter) ||
+          (target.isOptional && kinds.contains(TargetKind.optionalParameter)),
+      FunctionTypeAlias() ||
+      GenericTypeAlias() =>
+        kinds.contains(TargetKind.typedefType) ||
+            kinds.contains(TargetKind.type),
+      TopLevelVariableDeclaration() =>
+        kinds.contains(TargetKind.topLevelVariable),
+      TypeParameter() => kinds.contains(TargetKind.typeParameter),
+      _ => false,
+    };
   }
 }

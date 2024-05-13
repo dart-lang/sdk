@@ -5,8 +5,8 @@
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/utilities/extensions/range_factory.dart';
+import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -51,7 +51,7 @@ class ConvertClassToEnum extends ResolvedCorrectionProducer {
       // the class.
       return;
     }
-    final declaration = node;
+    var declaration = node;
     if (declaration is ClassDeclaration && declaration.name == token) {
       var description = _EnumDescription.fromClass(declaration,
           strictCasts: analysisOptions.strictCasts);
@@ -178,7 +178,7 @@ class _EnumDescription {
         range.token(classDeclaration.classKeyword), 'enum');
 
     // Remove the extends clause if there is one.
-    final extendsClause = classDeclaration.extendsClause;
+    var extendsClause = classDeclaration.extendsClause;
     if (extendsClause != null) {
       var followingToken = extendsClause.endToken.next!;
       builder.addDeletion(range.startStart(extendsClause, followingToken));
@@ -644,7 +644,7 @@ class _EnumDescription {
   static bool _validateMethods(ClassDeclaration classDeclaration) {
     for (var member in classDeclaration.members) {
       if (member is MethodDeclaration) {
-        final name = member.name.lexeme;
+        var name = member.name.lexeme;
         if (name == '==' || name == 'hashCode') {
           return false;
         }

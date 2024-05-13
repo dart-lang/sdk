@@ -1,86 +1,65 @@
-library test /*isLegacy*/;
+library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart:5:1: Error: Library doesn't support null safety.
-// // @dart=2.9
-// ^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart:22:52: Error: A value of type 'B<num>' can't be assigned to a variable of type 'B<void Function(num)>'.
+// pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart:22:49: Error: A value of type 'B<num>' can't be assigned to a variable of type 'B<void Function(num)>'.
 //  - 'B' is from 'pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart'.
-//   c. /*@checkReturn=B<(num*) ->* void>**/ x += new B<num>();
+//   c. /*@checkReturn=B<(num) -> void>*/ x += new B<num>();
+//                                                 ^
+//
+// pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart:23:57: Error: A value of type 'B<num>' can't be assigned to a variable of type 'B<void Function(num)>'.
+//  - 'B' is from 'pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart'.
+//   var y = c. /*@checkReturn=B<(num) -> void>*/ x += new B<num>();
+//                                                         ^
+//
+// pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart:24:52: Error: A value of type 'B<num>' can't be assigned to a variable of type 'B<void Function(num)>?'.
+//  - 'B' is from 'pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart'.
+//   c. /*@checkReturn=B<(num) -> void>?*/ x2 ??= new B<num>();
 //                                                    ^
 //
-// pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart:23:60: Error: A value of type 'B<num>' can't be assigned to a variable of type 'B<void Function(num)>'.
+// pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart:25:60: Error: A value of type 'B<num>' can't be assigned to a variable of type 'B<void Function(num)>?'.
 //  - 'B' is from 'pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart'.
-//   var y = c. /*@checkReturn=B<(num*) ->* void>**/ x += new B<num>();
+//   var z = c. /*@checkReturn=B<(num) -> void>?*/ x2 ??= new B<num>();
 //                                                            ^
-//
-// pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart:24:53: Error: A value of type 'B<num>' can't be assigned to a variable of type 'B<void Function(num)>'.
-//  - 'B' is from 'pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart'.
-//   c. /*@checkReturn=B<(num*) ->* void>**/ x ??= new B<num>();
-//                                                     ^
-//
-// pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart:25:61: Error: A value of type 'B<num>' can't be assigned to a variable of type 'B<void Function(num)>'.
-//  - 'B' is from 'pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart'.
-//   var z = c. /*@checkReturn=B<(num*) ->* void>**/ x ??= new B<num>();
-//                                                             ^
 //
 import self as self;
 import "dart:core" as core;
 
-typedef F<contravariant T extends core::Object* = dynamic> = (T*) →* void;
-class B<T extends core::Object* = dynamic> extends core::Object {
-  synthetic constructor •() → self::B<self::B::T*>*
+typedef F<contravariant T extends core::Object? = dynamic> = (T%) → void;
+class B<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::B<self::B::T%>
     : super core::Object::•()
     ;
-  operator +(covariant-by-class self::B<self::B::T*>* other) → self::B<self::B::T*>*
-    return null;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-}
-class C<T extends core::Object* = dynamic> extends core::Object {
-  synthetic constructor •() → self::C<self::C::T*>*
-    : super core::Object::•()
-    ;
-  get x() → self::B<(self::C::T*) →* void>*
+  operator +(covariant-by-class self::B<self::B::T%> other) → self::B<self::B::T%>
     return throw "";
-  set x(self::B<(self::C::T*) →* void>* value) → void {}
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-static method test(self::C<core::num*>* c) → void {
-  let final self::C<core::num*>* #t1 = c in #t1.{self::C::x} = (#t1.{self::C::x}{self::B<(core::num*) →* void>*} as{TypeError,CovarianceCheck,ForLegacy} self::B<(core::num*) →* void>*).{self::B::+}(invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart:22:52: Error: A value of type 'B<num>' can't be assigned to a variable of type 'B<void Function(num)>'.
+class C<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T%>
+    : super core::Object::•()
+    ;
+  get x() → self::B<(self::C::T%) → void>
+    return throw "";
+  set x(self::B<(self::C::T%) → void> value) → void {}
+  get x2() → self::B<(self::C::T%) → void>?
+    return null;
+  set x2(self::B<(self::C::T%) → void>? value) → void {}
+}
+static method test(self::C<core::num> c) → void {
+  let final self::C<core::num> #t1 = c in #t1.{self::C::x} = (#t1.{self::C::x}{self::B<(core::num) → void>} as{TypeError,CovarianceCheck} self::B<(core::num) → void>).{self::B::+}(invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart:22:49: Error: A value of type 'B<num>' can't be assigned to a variable of type 'B<void Function(num)>'.
  - 'B' is from 'pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart'.
-  c. /*@checkReturn=B<(num*) ->* void>**/ x += new B<num>();
-                                                   ^" in new self::B::•<core::num*>() as{TypeError,ForLegacy} self::B<(core::num*) →* void>*){(self::B<(core::num*) →* void>*) →* self::B<(core::num*) →* void>*};
-  self::B<(core::num*) →* void>* y = let final self::C<core::num*>* #t2 = c in #t2.{self::C::x} = (#t2.{self::C::x}{self::B<(core::num*) →* void>*} as{TypeError,CovarianceCheck,ForLegacy} self::B<(core::num*) →* void>*).{self::B::+}(invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart:23:60: Error: A value of type 'B<num>' can't be assigned to a variable of type 'B<void Function(num)>'.
+  c. /*@checkReturn=B<(num) -> void>*/ x += new B<num>();
+                                                ^" in new self::B::•<core::num>() as{TypeError} self::B<(core::num) → void>){(self::B<(core::num) → void>) → self::B<(core::num) → void>};
+  self::B<(core::num) → void> y = let final self::C<core::num> #t2 = c in #t2.{self::C::x} = (#t2.{self::C::x}{self::B<(core::num) → void>} as{TypeError,CovarianceCheck} self::B<(core::num) → void>).{self::B::+}(invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart:23:57: Error: A value of type 'B<num>' can't be assigned to a variable of type 'B<void Function(num)>'.
  - 'B' is from 'pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart'.
-  var y = c. /*@checkReturn=B<(num*) ->* void>**/ x += new B<num>();
-                                                           ^" in new self::B::•<core::num*>() as{TypeError,ForLegacy} self::B<(core::num*) →* void>*){(self::B<(core::num*) →* void>*) →* self::B<(core::num*) →* void>*};
-  let final self::C<core::num*>* #t3 = c in #t3.{self::C::x}{self::B<(core::num*) →* void>*} as{TypeError,CovarianceCheck,ForLegacy} self::B<(core::num*) →* void>* == null ?{self::B<core::Object*>*} #t3.{self::C::x} = invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart:24:53: Error: A value of type 'B<num>' can't be assigned to a variable of type 'B<void Function(num)>'.
+  var y = c. /*@checkReturn=B<(num) -> void>*/ x += new B<num>();
+                                                        ^" in new self::B::•<core::num>() as{TypeError} self::B<(core::num) → void>){(self::B<(core::num) → void>) → self::B<(core::num) → void>};
+  let final self::C<core::num> #t3 = c in #t3.{self::C::x2}{self::B<(core::num) → void>?} as{TypeError,CovarianceCheck} self::B<(core::num) → void>? == null ?{self::B<core::Object>?} #t3.{self::C::x2} = invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart:24:52: Error: A value of type 'B<num>' can't be assigned to a variable of type 'B<void Function(num)>?'.
  - 'B' is from 'pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart'.
-  c. /*@checkReturn=B<(num*) ->* void>**/ x ??= new B<num>();
-                                                    ^" in new self::B::•<core::num*>() as{TypeError,ForLegacy} self::B<(core::num*) →* void>* : null;
-  self::B<core::Object*>* z = let final self::C<core::num*>* #t4 = c in let final self::B<(core::num*) →* void>* #t5 = #t4.{self::C::x}{self::B<(core::num*) →* void>*} as{TypeError,CovarianceCheck,ForLegacy} self::B<(core::num*) →* void>* in #t5 == null ?{self::B<core::Object*>*} #t4.{self::C::x} = invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart:25:61: Error: A value of type 'B<num>' can't be assigned to a variable of type 'B<void Function(num)>'.
+  c. /*@checkReturn=B<(num) -> void>?*/ x2 ??= new B<num>();
+                                                   ^" in new self::B::•<core::num>() as{TypeError} self::B<(core::num) → void>? : null;
+  self::B<core::Object> z = let final self::C<core::num> #t4 = c in let final self::B<(core::num) → void>? #t5 = #t4.{self::C::x2}{self::B<(core::num) → void>?} as{TypeError,CovarianceCheck} self::B<(core::num) → void>? in #t5 == null ?{self::B<core::Object>} #t4.{self::C::x2} = invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart:25:60: Error: A value of type 'B<num>' can't be assigned to a variable of type 'B<void Function(num)>?'.
  - 'B' is from 'pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart'.
-  var z = c. /*@checkReturn=B<(num*) ->* void>**/ x ??= new B<num>();
-                                                            ^" in new self::B::•<core::num*>() as{TypeError,ForLegacy} self::B<(core::num*) →* void>* : #t5;
+  var z = c. /*@checkReturn=B<(num) -> void>?*/ x2 ??= new B<num>();
+                                                           ^" in new self::B::•<core::num>() as{TypeError} self::B<(core::num) → void>? : #t5{self::B<(core::num) → void>};
 }
 static method main() → dynamic {}

@@ -30,7 +30,9 @@
    public:                                                                     \
     CompilerPass_##Name() : CompilerPass(k##Name, #Name) {}                    \
                                                                                \
-    static bool Register() { return true; }                                    \
+    static bool Register() {                                                   \
+      return true;                                                             \
+    }                                                                          \
                                                                                \
    protected:                                                                  \
     virtual bool DoBody(CompilerPassState* state) const {                      \
@@ -325,7 +327,6 @@ FlowGraph* CompilerPass::RunPipeline(PipelineMode mode,
   // unreachable code.
   INVOKE_PASS_AOT(ApplyICData);
   INVOKE_PASS_AOT(OptimizeTypedDataAccesses);
-  INVOKE_PASS(WidenSmiToInt32);
   INVOKE_PASS(SelectRepresentations);
   INVOKE_PASS(CSE);
   INVOKE_PASS(Canonicalize);
@@ -430,12 +431,6 @@ COMPILER_PASS(OptimisticallySpecializeSmiPhis, {
   licm.OptimisticallySpecializeSmiPhis();
 });
 
-COMPILER_PASS(WidenSmiToInt32, {
-  // Where beneficial convert Smi operations into Int32 operations.
-  // Only meaningful for 32bit platforms right now.
-  flow_graph->WidenSmiToInt32();
-});
-
 COMPILER_PASS(SelectRepresentations, {
   // Unbox doubles. Performed after constant propagation to minimize
   // interference from phis merging double values and tagged
@@ -534,9 +529,7 @@ COMPILER_PASS(AllocateRegistersForGraphIntrinsic, {
   allocator.AllocateRegisters();
 });
 
-COMPILER_PASS(ReorderBlocks, {
-  BlockScheduler::ReorderBlocks(flow_graph);
-});
+COMPILER_PASS(ReorderBlocks, { BlockScheduler::ReorderBlocks(flow_graph); });
 
 COMPILER_PASS(EliminateWriteBarriers, { EliminateWriteBarriers(flow_graph); });
 

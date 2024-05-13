@@ -19,7 +19,9 @@ You don't need to build the Dart SDK to run dart2wasm, as long as you have a Dar
 
 To compile a Dart file to Wasm, in a checkout of the Dart SDK repository, run:
 
-`dart --enable-asserts pkg/dart2wasm/bin/dart2wasm.dart` *options* *infile*`.dart` *outfile*`.wasm`
+```
+dart --enable-asserts pkg/dart2wasm/bin/dart2wasm.dart <options> <input file>.dart <output file>.wasm
+```
 
 where *options* include:
 
@@ -45,7 +47,9 @@ where *options* include:
 
 Dart2Wasm will output a `wasm` file, containing Dart compiled to Wasm, as well as an `mjs` file containing the runtime. The result can be run with:
 
-`d8 pkg/dart2wasm/bin/run_wasm.js -- `*outfile*`.wasm` /abs/path/to/`*outfile*`.mjs
+```
+d8 pkg/dart2wasm/bin/run_wasm.js -- /abs/path/to/<output file>.mjs <output file>.wasm
+```
 
 Where `d8` is the [V8 developer shell](https://v8.dev/docs/d8).
 

@@ -10,6 +10,7 @@ export 'package:flutter/foundation.dart' show Key, LocalKey, ValueKey;
 typedef void VoidCallback();
 
 abstract class BuildContext {
+  bool get mounted;
   Widget get widget;
 }
 
@@ -53,6 +54,8 @@ class Widget extends DiagnosticableTree {
   final Key? key;
 
   const Widget({this.key});
+
+  bool get mounted => true;
 
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {}
 }

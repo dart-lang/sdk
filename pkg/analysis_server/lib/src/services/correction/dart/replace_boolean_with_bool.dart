@@ -24,7 +24,7 @@ class ReplaceBooleanWithBool extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final analysisError = diagnostic;
+    var analysisError = diagnostic;
     if (analysisError is! AnalysisError) {
       return;
     }

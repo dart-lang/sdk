@@ -27,8 +27,12 @@ FOR_EACH_REG_EXP_TREE_TYPE(MAKE_TYPE_CASE)
 #undef MAKE_TYPE_CASE
 
 #define MAKE_TYPE_CASE(Name)                                                   \
-  RegExp##Name* RegExp##Name::As##Name() { return this; }                      \
-  bool RegExp##Name::Is##Name() const { return true; }
+  RegExp##Name* RegExp##Name::As##Name() {                                     \
+    return this;                                                               \
+  }                                                                            \
+  bool RegExp##Name::Is##Name() const {                                        \
+    return true;                                                               \
+  }
 FOR_EACH_REG_EXP_TREE_TYPE(MAKE_TYPE_CASE)
 #undef MAKE_TYPE_CASE
 

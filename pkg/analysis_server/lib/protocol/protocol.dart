@@ -103,7 +103,7 @@ class Request extends RequestOrResponse {
   /// Returns the amount of time (in milliseconds) since the client sent this
   /// request or `null` if the client did not provide [clientRequestTime].
   int? get timeSinceRequest {
-    var clientRequestTime = this.clientRequestTime;
+    final clientRequestTime = this.clientRequestTime;
     return clientRequestTime != null
         ? DateTime.now().millisecondsSinceEpoch - clientRequestTime
         : null;

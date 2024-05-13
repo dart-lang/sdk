@@ -115,7 +115,7 @@ void main() {
           (OmittedTypeAnnotation i) =>
               (i as TestOmittedTypeAnnotation).inferredType);
       expect(library, equalsIgnoringWhitespace('''
-        library augment 'package:foo/bar.dart';
+        augment library 'package:foo/bar.dart';
 
         import 'dart:core' as prefix0;
 
@@ -226,7 +226,7 @@ void main() {
           (OmittedTypeAnnotation i) =>
               (i as TestOmittedTypeAnnotation).inferredType);
       expect(library, equalsIgnoringWhitespace('''
-        library augment 'package:foo/bar.dart';
+        augment library 'package:foo/bar.dart';
 
         import 'package:foo/foo.dart' as prefix0;
         import 'package:builder/builder.dart' as prefix1;
@@ -271,7 +271,7 @@ void main() {
           (OmittedTypeAnnotation i) =>
               (i as TestOmittedTypeAnnotation).inferredType);
       expect(library, equalsIgnoringWhitespace('''
-        library augment 'package:foo/bar.dart';
+        augment library 'package:foo/bar.dart';
 
         import 'dart:core' as prefix0;
 
@@ -360,7 +360,7 @@ void main() {
               (i as TestOmittedTypeAnnotation).inferredType,
           omittedTypes: omittedTypes);
       expect(library, equalsIgnoringWhitespace('''
-        library augment 'package:foo/bar.dart';
+        augment library 'package:foo/bar.dart';
 
         import 'dart:core' as prefix2_0;
         import 'package:foo/foo.dart' as prefix2_1;
@@ -447,7 +447,7 @@ void main() {
           (OmittedTypeAnnotation i) =>
               (i as TestOmittedTypeAnnotation).inferredType);
       expect(library, equalsIgnoringWhitespace('''
-        library augment 'package:foo/bar.dart';
+        augment library 'package:foo/bar.dart';
 
         import 'a.dart' as prefix0;
         import 'dart:core' as prefix1;
@@ -530,7 +530,7 @@ void main() {
           (OmittedTypeAnnotation i) =>
               (i as TestOmittedTypeAnnotation).inferredType);
       expect(library, equalsIgnoringWhitespace('''
-        library augment 'package:foo/bar.dart';
+        augment library 'package:foo/bar.dart';
 
         import 'dart:core' as prefix0;
 
@@ -596,7 +596,7 @@ void main() {
         // Add extra space after, if we have keywords
         if (expectedKeywords.isNotEmpty) expectedKeywords.add('');
         expect(library, equalsIgnoringWhitespace('''
-            library augment 'package:foo/bar.dart';
+            augment library 'package:foo/bar.dart';
 
             augment ${expectedKeywords.join(' ')}class MyClass {
             }

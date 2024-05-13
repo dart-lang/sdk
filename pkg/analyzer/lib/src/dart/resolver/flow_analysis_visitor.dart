@@ -5,10 +5,7 @@
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    as shared;
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    hide RecordType;
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -18,6 +15,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart' show TypeSystemImpl;
@@ -272,7 +270,7 @@ class FlowAnalysisHelper {
     // Set this.flow to null before doing any clean-up so that if an exception
     // is raised, the state is already updated correctly, and we don't have
     // cascading failures.
-    final flow = this.flow;
+    var flow = this.flow;
     this.flow = null;
     assignedVariables = null;
 
@@ -283,7 +281,7 @@ class FlowAnalysisHelper {
   /// associated with [newNode].  We need to do this when doing AST rewriting,
   /// so that test data can be found using the rewritten tree.
   void transferTestData(AstNode oldNode, AstNode newNode) {
-    final dataForTesting = this.dataForTesting;
+    var dataForTesting = this.dataForTesting;
     if (dataForTesting != null) {
       var oldNonPromotionReasons = dataForTesting.nonPromotionReasons[oldNode];
       if (oldNonPromotionReasons != null) {
@@ -381,7 +379,7 @@ class FlowAnalysisHelper {
 class TypeSystemOperations
     implements
         TypeAnalyzerOperations<PromotableElement, DartType, DartType,
-            TypeParameterElement> {
+            TypeParameterElement, InterfaceType, InterfaceElement> {
   final bool strictCasts;
   final TypeSystemImpl typeSystem;
 
@@ -418,23 +416,6 @@ class TypeSystemOperations
   DartType get unknownType => UnknownInferredType.instance;
 
   @override
-  bool areStructurallyEqual(DartType type1, DartType type2) {
-    return type1 == type2;
-  }
-
-  @override
-  shared.RecordType<DartType>? asRecordType(DartType type) {
-    if (type is RecordType) {
-      return shared.RecordType(
-        positional: type.positionalFields.map((e) => e.type).toList(),
-        named:
-            type.namedFields.map((e) => (name: e.name, type: e.type)).toList(),
-      );
-    }
-    return null;
-  }
-
-  @override
   TypeClassification classifyType(DartType type) {
     if (isSubtypeOf(type, typeSystem.typeProvider.objectType)) {
       return TypeClassification.nonNullable;
@@ -461,9 +442,6 @@ class TypeSystemOperations
   }
 
   @override
-  String getDisplayString(DartType type) => type.getDisplayString();
-
-  @override
   NullabilitySuffix getNullabilitySuffix(DartType type) {
     return type.nullabilitySuffix;
   }
@@ -477,6 +455,14 @@ class TypeSystemOperations
     } else {
       return null;
     }
+  }
+
+  @override
+  Variance getTypeParameterVariance(
+      InterfaceElement typeDeclaration, int parameterIndex) {
+    return (typeDeclaration.typeParameters[parameterIndex]
+            as TypeParameterElementImpl)
+        .variance;
   }
 
   @override
@@ -505,10 +491,10 @@ class TypeSystemOperations
   }
 
   @override
-  bool isDynamic(DartType type) => type is DynamicType;
-
-  @override
-  bool isError(DartType type) => type is InvalidType;
+  bool isDartCoreFunction(DartType type) {
+    return getNullabilitySuffix(type) == NullabilitySuffix.none &&
+        type.isDartCoreFunction;
+  }
 
   @override
   bool isExtensionType(DartType type) {
@@ -530,7 +516,7 @@ class TypeSystemOperations
 
   @override
   bool isNever(DartType type) {
-    return typeSystem.isBottom(type);
+    return type.isBottom;
   }
 
   @override
@@ -561,11 +547,6 @@ class TypeSystemOperations
   bool isRecordType(DartType type) => type is RecordType;
 
   @override
-  bool isSameType(covariant TypeImpl type1, covariant TypeImpl type2) {
-    return type1 == type2;
-  }
-
-  @override
   bool isSubtypeOf(DartType leftType, DartType rightType) {
     return typeSystem.isSubtypeOf(leftType, rightType);
   }
@@ -579,18 +560,8 @@ class TypeSystemOperations
       isSubtypeOf(type, typeSchema);
 
   @override
-  bool isUnknownType(DartType typeSchema) {
-    return identical(typeSchema, UnknownInferredType.instance);
-  }
-
-  @override
   bool isVariableFinal(PromotableElement element) {
     return element.isFinal;
-  }
-
-  @override
-  bool isVoid(DartType type) {
-    return identical(type, VoidTypeImpl.instance);
   }
 
   @override
@@ -696,6 +667,27 @@ class TypeSystemOperations
     var streamElement = typeSystem.typeProvider.streamElement;
     var listType = type.asInstanceOf(streamElement);
     return listType?.typeArguments[0];
+  }
+
+  @override
+  TypeDeclarationMatchResult? matchTypeDeclarationType(DartType type) {
+    if (isInterfaceType(type)) {
+      InterfaceType interfaceType = type as InterfaceType;
+      return TypeDeclarationMatchResult(
+          typeDeclarationKind: TypeDeclarationKind.interfaceDeclaration,
+          typeDeclarationType: interfaceType,
+          typeDeclaration: interfaceType.element,
+          typeArguments: interfaceType.typeArguments);
+    } else if (isExtensionType(type)) {
+      InterfaceType interfaceType = type as InterfaceType;
+      return TypeDeclarationMatchResult(
+          typeDeclarationKind: TypeDeclarationKind.extensionTypeDeclaration,
+          typeDeclarationType: interfaceType,
+          typeDeclaration: interfaceType.element,
+          typeArguments: interfaceType.typeArguments);
+    } else {
+      return null;
+    }
   }
 
   @override

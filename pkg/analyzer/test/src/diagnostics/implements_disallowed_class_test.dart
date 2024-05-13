@@ -282,7 +282,7 @@ mixin M implements int {}
       error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 19, 3),
     ]);
 
-    final node = findNode.singleImplementsClause;
+    var node = findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements

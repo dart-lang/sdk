@@ -95,7 +95,7 @@ void f() {
       error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 57, 5),
     ]);
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: const
@@ -130,7 +130,7 @@ void f() {
       error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 38, 5),
     ]);
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: const

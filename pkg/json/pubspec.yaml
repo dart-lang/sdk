@@ -1,0 +1,13 @@
+name: json
+description: >
+  A package which provides an experimental macro that encodes and decodes
+  user-defined Dart classes to JSON maps (maps of type `Map<String, Object?>`).
+repository: https://github.com/dart-lang/sdk/tree/main/pkg/json
+version: 0.1.0-wip
+environment:
+  sdk: ^3.4.0-0
+dependencies:
+  macros: ^0.1.0-0
+dev_dependencies:
+  lints: any
+  test: any

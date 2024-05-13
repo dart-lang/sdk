@@ -6,8 +6,6 @@
 // https://github.com/dart-lang/language/issues/1618#issuecomment-1507241494,
 // using if-null expressions.
 
-// SharedOptions=--enable-experiment=inference-update-3
-
 import '../static_type_helper.dart';
 
 /// Ensures a context type of `_` for the operand, if no type argument is

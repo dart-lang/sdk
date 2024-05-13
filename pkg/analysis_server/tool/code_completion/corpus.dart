@@ -17,9 +17,9 @@ Future<void> main(List<String> args) async {
     exit(1);
   }
 
-  final repos = <String>[];
+  var repos = <String>[];
   if (args.length == 1 && !Directory(args[0]).existsSync()) {
-    final contents = File(args[0]).readAsStringSync();
+    var contents = File(args[0]).readAsStringSync();
     repos.addAll(LineSplitter().convert(contents));
   } else {
     repos.addAll(args);
@@ -35,11 +35,11 @@ Future<void> main(List<String> args) async {
     print('(Skipping git updates.)');
   }
   for (var repo in repos) {
-    final clone = await _clone(_trimName(repo));
+    var clone = await _clone(_trimName(repo));
     if (clone.exitCode != 0) {
       print('Error cloning $repo: ${clone.msg}');
     } else {
-      final cloneDir = Directory(clone.directory);
+      var cloneDir = Directory(clone.directory);
       await _runPubGet(cloneDir);
       if (recurseForDependencies) {
         for (var dir in cloneDir.listSync(recursive: true)) {
@@ -69,9 +69,9 @@ final _homeDir = Platform.isWindows
 final _package_config = path.join('.dart_tool', 'package_config.json');
 
 Future<CloneResult> _clone(String repo) async {
-  final name =
+  var name =
       _trimName(repo.split('https://github.com/').last.replaceAll('/', '_'));
-  final cloneDir = path.join(_appDir, name);
+  var cloneDir = path.join(_appDir, name);
   ProcessResult result;
   if (Directory(cloneDir).existsSync()) {
     if (!updateExistingClones) {
@@ -96,11 +96,11 @@ Future<ProcessResult> _runPub(String dir) async =>
 
 Future<void> _runPubGet(FileSystemEntity dir) async {
   if (_hasPubspec(dir)) {
-    final packageFile = path.join(dir.path, _package_config);
+    var packageFile = path.join(dir.path, _package_config);
     if (!File(packageFile).existsSync() || forcePubUpdate) {
-      final relativeDirPath = path.relative(dir.path, from: _appDir);
+      var relativeDirPath = path.relative(dir.path, from: _appDir);
       print('Getting pub dependencies for "$relativeDirPath"...');
-      final pubRun = await _runPub(dir.path);
+      var pubRun = await _runPub(dir.path);
       if (pubRun.exitCode != 0) {
         print('Error: ${pubRun.stderr}');
       }

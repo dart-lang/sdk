@@ -13,7 +13,6 @@ import 'package:front_end/src/api_unstable/vm.dart'
         computePlatformBinariesLocation,
         kernelForModule,
         kernelForProgram,
-        NnbdMode,
         parseExperimentalArguments,
         parseExperimentalFlags;
 import 'package:kernel/ast.dart';
@@ -47,7 +46,6 @@ Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
       ..additionalDills = <Uri>[platformKernel]
       ..environmentDefines = environmentDefines
       ..packagesFileUri = packagesFileUri
-      ..nnbdMode = NnbdMode.Strong
       ..explicitExperimentalFlags =
           parseExperimentalFlags(parseExperimentalArguments(experimentalFlags),
               onError: (String message) {

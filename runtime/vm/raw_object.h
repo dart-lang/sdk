@@ -939,8 +939,12 @@ inline intptr_t ObjectPtr::GetClassId() const {
   }                                                                            \
                                                                                \
  protected:                                                                    \
-  type* array_name() { OPEN_ARRAY_START(type, type); }                         \
-  type const* array_name() const { OPEN_ARRAY_START(type, type); }             \
+  type* array_name() {                                                         \
+    OPEN_ARRAY_START(type, type);                                              \
+  }                                                                            \
+  type const* array_name() const {                                             \
+    OPEN_ARRAY_START(type, type);                                              \
+  }                                                                            \
   VISIT_TO_PAYLOAD_END(type)
 
 #define COMPRESSED_VARIABLE_POINTER_FIELDS(type, accessor_name, array_name)    \
@@ -1579,9 +1583,9 @@ class UntaggedField : public UntaggedObject {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   friend class CidRewriteVisitor;
-  friend class GuardFieldClassInstr;     // For sizeof(guarded_cid_/...)
-  friend class LoadFieldInstr;           // For sizeof(guarded_cid_/...)
-  friend class StoreFieldInstr;          // For sizeof(guarded_cid_/...)
+  friend class GuardFieldClassInstr;  // For sizeof(guarded_cid_/...)
+  friend class LoadFieldInstr;        // For sizeof(guarded_cid_/...)
+  friend class StoreFieldInstr;       // For sizeof(guarded_cid_/...)
 };
 
 class alignas(8) UntaggedScript : public UntaggedObject {
@@ -1655,23 +1659,15 @@ class UntaggedLibrary : public UntaggedObject {
 
   enum LibraryFlags {
     kDartSchemeBit = 0,
-    kDebuggableBit,        // True if debugger can stop in library.
-    kInFullSnapshotBit,    // True if library is in a full snapshot.
-    kNnbdBit,              // True if library is non nullable by default.
-    kNnbdCompiledModePos,  // Encodes nnbd compiled mode of constants in lib.
-    kNnbdCompiledModeSize = 2,
-    kNumFlagBits = kNnbdCompiledModePos + kNnbdCompiledModeSize,
+    kDebuggableBit,      // True if debugger can stop in library.
+    kInFullSnapshotBit,  // True if library is in a full snapshot.
+    kNumFlagBits,
   };
   COMPILE_ASSERT(kNumFlagBits <= (sizeof(uint8_t) * kBitsPerByte));
   class DartSchemeBit : public BitField<uint8_t, bool, kDartSchemeBit, 1> {};
   class DebuggableBit : public BitField<uint8_t, bool, kDebuggableBit, 1> {};
   class InFullSnapshotBit
       : public BitField<uint8_t, bool, kInFullSnapshotBit, 1> {};
-  class NnbdBit : public BitField<uint8_t, bool, kNnbdBit, 1> {};
-  class NnbdCompiledModeBits : public BitField<uint8_t,
-                                               uint8_t,
-                                               kNnbdCompiledModePos,
-                                               kNnbdCompiledModeSize> {};
 
   RAW_HEAP_OBJECT_IMPLEMENTATION(Library);
 
@@ -1977,7 +1973,6 @@ class UntaggedInstructions : public UntaggedObject {
   VISIT_NOTHING();
 
   // Instructions size in bytes and flags.
-  // Currently, only flag indicates 1 or 2 entry points.
   uint32_t size_and_flags_;
 
   // Variable length data follows here.
@@ -2603,9 +2598,18 @@ class UntaggedLoadingUnit : public UntaggedObject {
   VISIT_FROM(parent)
   COMPRESSED_POINTER_FIELD(ArrayPtr, base_objects)
   VISIT_TO(base_objects)
-  int32_t id_;
-  bool load_outstanding_;
-  bool loaded_;
+  const uint8_t* instructions_image_;
+  AtomicBitFieldContainer<intptr_t> packed_fields_;
+
+  enum LoadState : int8_t {
+    kNotLoaded = 0,  // Ensure this is the default state when zero-initialized.
+    kLoadOutstanding,
+    kLoaded,
+  };
+
+  using LoadStateBits = BitField<decltype(packed_fields_), LoadState, 0, 2>;
+  using IdBits =
+      BitField<decltype(packed_fields_), intptr_t, LoadStateBits::kNextBit>;
 };
 
 class UntaggedError : public UntaggedObject {
@@ -2758,10 +2762,10 @@ class UntaggedAbstractType : public UntaggedInstance {
     kFinalizedUninstantiated,  // Uninstantiated type ready for use.
   };
 
-  using NullabilityBits = BitField<uint32_t, uint8_t, 0, 2>;
-  static constexpr intptr_t kNullabilityMask = NullabilityBits::mask();
+  using NullabilityBit = BitField<uint32_t, uint8_t, 0, 1>;
+  static constexpr intptr_t kNullabilityMask = NullabilityBit::mask();
 
-  static constexpr intptr_t kTypeStateShift = NullabilityBits::kNextBit;
+  static constexpr intptr_t kTypeStateShift = NullabilityBit::kNextBit;
   static constexpr intptr_t kTypeStateBits = 2;
   using TypeStateBits =
       BitField<uint32_t, uint8_t, kTypeStateShift, kTypeStateBits>;

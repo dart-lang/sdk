@@ -63,7 +63,6 @@ StringPtr ConcatString::ToSymbol() const {
   return result.ptr();
 }
 
-
 const char* Symbols::Name(SymbolId symbol) {
   ASSERT((symbol > kIllegal) && (symbol < kNullCharId));
   return names[symbol];

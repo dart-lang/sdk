@@ -14,7 +14,7 @@ class CreateFile extends ResolvedCorrectionProducer {
   String _fileName = '';
 
   @override
-  List<Object> get fixArguments => [_fileName];
+  List<String> get fixArguments => [_fileName];
 
   @override
   FixKind get fixKind => DartFixKind.CREATE_FILE;

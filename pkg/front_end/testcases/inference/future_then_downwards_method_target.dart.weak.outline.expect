@@ -1,9 +1,11 @@
-library test /*isLegacy*/;
+library test;
 import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
 
 import "dart:async";
 
-static method test() → dynamic
+static method test(asy::Future<core::int> f) → dynamic
   ;
 static method main() → dynamic
   ;

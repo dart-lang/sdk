@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service_io.dart';
 
 import '../experiment_util.dart';
 import '../utils.dart';
@@ -155,6 +158,53 @@ void main() {
     expect(result.exitCode, 0);
     expect(result.stdout, contains('All tests passed!'));
     expect(result.stderr, isEmpty);
+  });
+
+  test('implicitly passes --mark-main-isolate-as-system-isolate', () async {
+    // --mark-main-isolate-as-system-isolate is necessary for DevTools to be
+    // able to identify the correct root library.
+    //
+    // See https://github.com/flutter/flutter/issues/143170 for details.
+    final p = project(
+      mainSrc: 'int get foo => 1;\n',
+      pubspecExtras: {
+        'dev_dependencies': {'test': 'any'}
+      },
+    );
+    p.file('test/foo_test.dart', '''
+import 'package:test/test.dart';
+
+void main() {
+  test('', () {
+    print('hello world');
+  });
+}
+''');
+
+    final vmServiceUriRegExp =
+        RegExp(r'(http:\/\/127.0.0.1:\d*\/[\da-zA-Z-_]*=\/)');
+    final process = await p.start(['test', '--pause-after-load']);
+    final completer = Completer<Uri>();
+    late StreamSubscription sub;
+    sub = process.stdout
+        .transform(utf8.decoder)
+        .transform(const LineSplitter())
+        .listen((line) async {
+      if (line.contains(vmServiceUriRegExp)) {
+        await sub.cancel();
+        final httpUri = Uri.parse(
+          vmServiceUriRegExp.firstMatch(line)!.group(0)!,
+        );
+        completer.complete(
+          httpUri.replace(scheme: 'ws', path: '${httpUri.path}ws'),
+        );
+      }
+    });
+
+    final vmServiceUri = await completer.future;
+    final vmService = await vmServiceConnectUri(vmServiceUri.toString());
+    final vm = await vmService.getVM();
+    expect(vm.systemIsolates!.where((e) => e.name == 'main'), isNotEmpty);
   });
 
   group('--enable-experiment', () {

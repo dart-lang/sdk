@@ -207,7 +207,7 @@ class TypePropertyResolver {
       }
 
       if (receiverTypeResolved is RecordType) {
-        final field = receiverTypeResolved.fieldByName(name);
+        var field = receiverTypeResolved.fieldByName(name);
         if (field != null) {
           return ResolutionResult(
             recordField: field,

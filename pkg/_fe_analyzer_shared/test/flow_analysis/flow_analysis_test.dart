@@ -8299,15 +8299,34 @@ main() {
 
     group('List pattern:', () {
       group('Not guaranteed to match:', () {
-        test('Empty list', () {
-          h.run([
-            switch_(expr('List<Object>'), [
-              listPattern([]).then([break_()]),
-              default_.then([
-                checkReachable(true),
+        group('Empty list:', () {
+          test('matched value type is non-nullable list', () {
+            h.run([
+              switch_(expr('List<Object>'), [
+                listPattern([]).then([break_()]),
+                default_.then([
+                  checkReachable(true),
+                ]),
               ]),
-            ]),
-          ]);
+            ]);
+          });
+
+          test('matched value type is nullable list', () {
+            var x = Var('x');
+            h.run([
+              declare(x, initializer: expr('List<Object?>?')),
+              switch_(x, [
+                listPattern([]).then([
+                  checkReachable(true),
+                  checkPromoted(x, 'List<Object?>'),
+                ]),
+                default_.then([
+                  checkReachable(true),
+                  checkNotPromoted(x),
+                ]),
+              ]),
+            ]);
+          });
         });
 
         test('Single non-rest element', () {

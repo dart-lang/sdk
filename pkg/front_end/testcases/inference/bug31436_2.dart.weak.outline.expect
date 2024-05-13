@@ -1,8 +1,0 @@
-library test;
-import self as self;
-import "dart:core" as core;
-
-static method block_test(() → core::List<core::Object> g) → void
-  ;
-static method arrow_test(() → core::List<core::Object> g) → void
-  ;

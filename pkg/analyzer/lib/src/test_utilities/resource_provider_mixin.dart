@@ -151,7 +151,7 @@ mixin ResourceProviderMixin {
     String directoryPath,
     PackageConfigFileBuilder builder,
   ) {
-    final content = builder.toContent(toUriStr: toUriStr);
+    var content = builder.toContent(toUriStr: toUriStr);
     return newPackageConfigJsonFile(directoryPath, content);
   }
 
@@ -164,7 +164,7 @@ mixin ResourceProviderMixin {
     required String packagePath,
     required String name,
   }) {
-    final builder = PackageConfigFileBuilder()
+    var builder = PackageConfigFileBuilder()
       ..add(name: name, rootPath: packagePath);
     newPackageConfigJsonFileFromBuilder(packagePath, builder);
   }

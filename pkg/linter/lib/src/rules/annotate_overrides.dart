@@ -89,6 +89,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
+    if (node.isAugmentation) return;
     if (node.isStatic) return;
     if (node.parent is ExtensionTypeDeclaration) return;
 
@@ -99,6 +100,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
+    if (node.isAugmentation) return;
     if (node.isStatic) return;
     if (node.parent is ExtensionTypeDeclaration) return;
 

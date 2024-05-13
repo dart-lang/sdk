@@ -51,7 +51,7 @@ abstract class RefactoringTest extends AbstractCodeActionsTest {
   /// Expects to find a refactor [CodeAction] in [mainFileUri] at the offset of
   /// the marker with the title [title].
   Future<CodeAction> expectCodeAction(String title) async {
-    final action = await getCodeAction(title);
+    var action = await getCodeAction(title);
     expect(action, isNotNull, reason: "Action '$title' should be included");
     return action!;
   }
@@ -65,15 +65,14 @@ abstract class RefactoringTest extends AbstractCodeActionsTest {
   /// Attempts to find a refactor [CodeAction] in [mainFileUri] at the offset of
   /// the marker with the title [title].
   Future<CodeAction?> getCodeAction(String? title) async {
-    final codeActions = await getCodeActions(
+    var codeActions = await getCodeActions(
       mainFileUri,
       position: _position,
       range: _range,
       kinds: const [CodeActionKind.Refactor],
     );
-    final commandOrCodeAction =
-        findCommand(codeActions, refactoringName, title);
-    final codeAction = commandOrCodeAction?.map(
+    var commandOrCodeAction = findCommand(codeActions, refactoringName, title);
+    var codeAction = commandOrCodeAction?.map(
       (command) => throw 'Expected CodeAction, got Command',
       (codeAction) => codeAction,
     );
@@ -83,16 +82,16 @@ abstract class RefactoringTest extends AbstractCodeActionsTest {
   /// Unwraps the 'arguments' field from the arguments object (which is the
   /// single argument for the command).
   List<Object?> getRefactorCommandArguments(CodeAction action) {
-    final commandArguments = action.command!.arguments as List<Object?>;
+    var commandArguments = action.command!.arguments as List<Object?>;
 
     // Our refactor command uses a single object in its arguments so we can have
     // named fields instead of having the client have to know which index
     // corresponds to the parameters.
-    final argsObject = commandArguments.single as Map<String, Object?>;
+    var argsObject = commandArguments.single as Map<String, Object?>;
 
     // Within that object, the 'arguments' field is the List<Object?> that
     // contains the values for the parameters.
-    final arguments = argsObject['arguments'] as List<Object?>;
+    var arguments = argsObject['arguments'] as List<Object?>;
 
     return arguments;
   }
@@ -104,7 +103,7 @@ abstract class RefactoringTest extends AbstractCodeActionsTest {
   Future<void> initializeServer({
     bool experimentalOptInFlag = true,
   }) async {
-    final config = {
+    var config = {
       if (experimentalOptInFlag) 'experimentalRefactors': true,
     };
 

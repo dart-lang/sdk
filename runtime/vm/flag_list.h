@@ -106,13 +106,8 @@ constexpr bool FLAG_support_il_printer = false;
   R(dump_megamorphic_stats, false, bool, false,                                \
     "Dump megamorphic cache statistics")                                       \
   R(dump_symbol_stats, false, bool, false, "Dump symbol table statistics")     \
-  R(enable_asserts, false, bool, false, "Enable assert statements.")           \
+  P(enable_asserts, bool, false, "Enable assert statements.")                  \
   P(inline_alloc, bool, true, "Whether to use inline allocation fast paths.")  \
-  R(null_assertions, false, bool, false,                                       \
-    "Enable null assertions for parameters.")                                  \
-  R(strict_null_safety_checks, false, bool, false,                             \
-    "Enable strict type checks for non-nullable types and required "           \
-    "parameters.")                                                             \
   P(enable_mirrors, bool, true,                                                \
     "Disable to make importing dart:mirrors an error.")                        \
   P(enable_ffi, bool, true, "Disable to make importing dart:ffi an error.")    \
@@ -128,7 +123,6 @@ constexpr bool FLAG_support_il_printer = false;
   P(idle_duration_micros, int, kMaxInt32,                                      \
     "Allow idle tasks to run for this long.")                                  \
   P(interpret_irregexp, bool, false, "Use irregexp bytecode interpreter")      \
-  P(lazy_async_stacks, bool, true, "Obsolete, ignored.")                       \
   P(link_natives_lazily, bool, false, "Link native calls lazily")              \
   R(log_marker_tasks, false, bool, false,                                      \
     "Log debugging information for old gen GC marking tasks.")                 \
@@ -250,8 +244,6 @@ constexpr bool FLAG_support_il_printer = false;
   P(verify_entry_points, bool, false,                                          \
     "Throw API error on invalid member access through native API. See "        \
     "entry_point_pragma.md")                                                   \
-  P(sound_null_safety, bool, true,                                             \
-    "Respect the nullability of types at runtime.")                            \
   C(branch_coverage, false, false, bool, false, "Enable branch coverage")
 
 #endif  // RUNTIME_VM_FLAG_LIST_H_

@@ -54,7 +54,7 @@ class EncapsulateField extends ResolvedCorrectionProducer {
 
     // Should be in a class or mixin.
     List<ClassMember> classMembers;
-    final parent = fieldDeclaration.parent;
+    var parent = fieldDeclaration.parent;
     if (parent is ClassDeclaration) {
       classMembers = parent.members;
     } else if (parent is MixinDeclaration) {

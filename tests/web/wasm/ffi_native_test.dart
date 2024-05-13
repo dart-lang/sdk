@@ -143,12 +143,19 @@ void main() {
   toggleBool();
   Expect.equals(boolReturn(789), false);
 
-  final struct_ = getStruct();
-  Expect.equals(struct_.ref.x, 1.0);
-  Expect.equals(struct_.ref.y, 2);
-  clearStruct(struct_);
-  Expect.equals(struct_.ref.x, 0.0);
-  Expect.equals(struct_.ref.y, 0);
+  final Pointer<MyStruct> structPointer = getStruct();
+  final MyStruct struct = structPointer.ref;
+  Expect.equals(struct.x, 1.0);
+  Expect.equals(struct.y, 2);
+  // Structs are Dart objects that are views on top of actual memory (which may
+  // be backed by C memory or typed data). The view objects can be accessed
+  // dynamically.
+  final l = <dynamic>[struct, 1];
+  Expect.equals(l[int.parse('0')].x, 1.0);
+
+  clearStruct(structPointer);
+  Expect.equals(struct.x, 0.0);
+  Expect.equals(struct.y, 0);
 
   Expect.equals(incrementChar(1), 2);
   Expect.equals(incrementUnsignedChar(3), 4);

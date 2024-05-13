@@ -17,9 +17,18 @@ sealed class Code {
 
   Code.fromString(String code) : parts = [code];
 
-  Code.fromParts(this.parts)
-      : assert(parts.every((element) =>
-            element is String || element is Code || element is Identifier));
+  Code.fromParts(this.parts) {
+    for (final part in parts) {
+      switch (part) {
+        case Code():
+        case Identifier():
+        case String():
+          break; // OK
+        default:
+          throw StateError('Unrecognized code part ${part.runtimeType}');
+      }
+    }
+  }
 }
 
 /// An arbitrary chunk of code, which does not have to be syntactically valid

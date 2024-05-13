@@ -436,6 +436,7 @@
   SIZEOF(Instructions, UnalignedHeaderSize, UntaggedInstructions)              \
   SIZEOF(InstructionsSection, UnalignedHeaderSize,                             \
          UntaggedInstructionsSection)                                          \
+  FIELD(InstructionsSection, HeaderSize)                                       \
   SIZEOF(InstructionsTable, InstanceSize, UntaggedInstructionsTable)           \
   SIZEOF(Int32x4, InstanceSize, UntaggedInt32x4)                               \
   SIZEOF(Integer, InstanceSize, UntaggedInteger)                               \

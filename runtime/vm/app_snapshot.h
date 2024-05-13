@@ -72,7 +72,6 @@ class LoadingUnitSerializationData : public ZoneAllocated {
 class SnapshotHeaderReader {
  public:
   static char* InitializeGlobalVMFlagsFromSnapshot(const Snapshot* snapshot);
-  static bool NullSafetyFromSnapshot(const Snapshot* snapshot);
 
   explicit SnapshotHeaderReader(const Snapshot* snapshot)
       : SnapshotHeaderReader(snapshot->kind(),

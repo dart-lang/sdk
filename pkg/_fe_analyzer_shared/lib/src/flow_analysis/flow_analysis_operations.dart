@@ -63,9 +63,6 @@ abstract interface class FlowAnalysisTypeOperations<Type extends Object> {
   /// consideration by an instance check.
   Type factor(Type from, Type what);
 
-  /// Returns `true` if [type] is the error type.
-  bool isError(Type type);
-
   /// Determines whether the given [type] is equivalent to the `Never` type.
   ///
   /// A type is equivalent to `Never` if it:
@@ -73,9 +70,6 @@ abstract interface class FlowAnalysisTypeOperations<Type extends Object> {
   /// (b) is a type variable that extends `Never`, OR
   /// (c) is a type variable that has been promoted to `Never`
   bool isNever(Type type);
-
-  /// Returns `true` if [type1] and [type2] are the same type.
-  bool isSameType(Type type1, Type type2);
 
   /// Return `true` if the [leftType] is a subtype of the [rightType].
   bool isSubtypeOf(Type leftType, Type rightType);

@@ -502,7 +502,7 @@ class CollectionElementTest {
         'handleNoTypeArguments {',
         'handleLiteralInt 5',
         'handleLiteralSetOrMap 1, {, const, }',
-        'endConstLiteral ]',
+        'endConstLiteral }',
         'handleSpreadExpression ...',
         'endIfElseControlFlow }',
         'handleLiteralList 1, [, null, ]',
@@ -817,7 +817,7 @@ class MapElementTest {
       'handleLiteralInt 2',
       'handleLiteralMapEntry :, }',
       'handleLiteralSetOrMap 1, {, const, }',
-      'endConstLiteral ',
+      'endConstLiteral }',
       'handleSpreadExpression ...',
     ]);
   }
@@ -830,7 +830,7 @@ class MapElementTest {
       'handleLiteralInt 3',
       'handleLiteralMapEntry :, }',
       'handleLiteralSetOrMap 1, {, const, }',
-      'endConstLiteral ',
+      'endConstLiteral }',
       'handleSpreadExpression ...?',
     ]);
   }
@@ -921,8 +921,8 @@ class TestInfoListener implements Listener {
   }
 
   @override
-  void endConstLiteral(Token token) {
-    calls.add('endConstLiteral $token');
+  void endConstLiteral(Token endToken) {
+    calls.add('endConstLiteral $endToken');
   }
 
   @override

@@ -203,7 +203,7 @@ String? nameForType(SimpleIdentifier identifier, TypeAnnotation? declaredType) {
     }
     type = element.returnType;
   } else if (element is TypeAliasElement) {
-    final aliasedType = element.aliasedType;
+    var aliasedType = element.aliasedType;
     if (aliasedType is FunctionType) {
       type = aliasedType.returnType;
     } else {

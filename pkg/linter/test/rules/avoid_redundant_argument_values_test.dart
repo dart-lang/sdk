@@ -275,4 +275,15 @@ void main() {
 }
 ''');
   }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/4967')
+  test_toListOptionalGrowable() async {
+    await assertDiagnostics(r'''
+void main() {
+  [].toList(growable: true);
+}
+''', [
+      lint(26, 8),
+    ]);
+  }
 }

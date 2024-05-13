@@ -1,0 +1,57 @@
+# Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# If changing the the entry and marking the previous entry as changed but where
+# the previous entry is no longer used (and reference another library only that
+# one uses) we have come into a situation where we'll keep something we
+# shouldn't, which (on top of being bad in itself) can lead to problems if we
+# reintroduce the library because we think we have it but doesn't necessarily
+# have all the dependencies.
+
+type: newworld
+worlds:
+  - entry: main1.dart
+    sources:
+      main1.dart: |
+        import 'lib1.dart';
+        main() {
+          new Lib1Class();
+        }
+      lib1.dart: |
+        class Lib1Class {}
+    expectedLibraryCount: 2
+  - entry: main2.dart
+    worldType: updated
+    # Compiling this world twice will fix the issue, so disable that here.
+    noFullComponent: true
+    expectInitializeFromDill: false
+    invalidate:
+      - main1.dart
+    sources:
+      main1.dart: |
+        import 'lib1.dart';
+        main() {
+          print("Updated!");
+          new Lib1Class();
+        }
+      main2.dart: |
+        main() {
+          print("I'm main2!");
+        }
+    expectedLibraryCount: 1
+    advancedInvalidation: bodiesOnly
+  - entry: main1.dart
+    worldType: updated
+    # Compiling this world twice will fix the issue, so disable that here.
+    noFullComponent: true
+    expectInitializeFromDill: false
+    invalidate:
+      - main2.dart
+    sources:
+      main2.dart: |
+        main() {
+          print("I'm the updated main2!");
+        }
+    expectedLibraryCount: 2
+    advancedInvalidation: bodiesOnly

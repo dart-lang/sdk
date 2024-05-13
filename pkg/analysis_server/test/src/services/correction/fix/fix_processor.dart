@@ -6,7 +6,10 @@ import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart'
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
+import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
@@ -15,8 +18,6 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:meta/meta.dart';
-import 'package:server_plugin/edit/fix/dart_fix_context.dart';
-import 'package:server_plugin/edit/fix/fix.dart';
 import 'package:test/test.dart';
 
 import '../../../../abstract_context.dart';
@@ -99,9 +100,10 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   }
 
   /// Computes fixes for the pubspecs in the given contexts.
-  Future<void> assertFixPubspec(String original, String expected) async {
+  Future<void> assertFixPubspec(String original, String expected,
+      {File? file}) async {
     var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
-    var analysisContext = contextFor(testFile);
+    var analysisContext = contextFor(file ?? testFile);
     tracker.addContext(analysisContext);
     var processor =
         BulkFixProcessor(TestInstrumentationService(), await workspace);
@@ -295,10 +297,11 @@ abstract class FixProcessorLintTest extends FixProcessorTest {
 
 /// A base class defining support for writing fix processor tests.
 abstract class FixProcessorTest extends BaseFixProcessorTest {
-  /// Return the kind of fixes being tested by this test class.
+  /// The kind of fixes being tested by this test class.
   FixKind get kind;
 
-  /// Asserts that the resolved compilation unit has a fix which produces [expected] output.
+  /// Asserts that the resolved compilation unit has a fix which produces
+  /// [expected] output.
   Future<void> assertHasFix(String expected,
       {bool Function(AnalysisError)? errorFilter,
       int? length,
@@ -317,7 +320,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
         allowFixAllFixes: allowFixAllFixes);
     change = fix.change;
 
-    // apply to "file"
+    // Apply to file.
     var fileEdits = change.edits;
     expect(fileEdits, hasLength(1));
 

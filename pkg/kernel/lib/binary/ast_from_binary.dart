@@ -4056,7 +4056,7 @@ class BinaryBuilder {
     if (variance == TypeParameter.legacyCovariantSerializationMarker) {
       node.variance = null;
     } else {
-      node.variance = variance;
+      node.variance = new Variance.fromEncoding(variance);
     }
     node.name = readStringOrNullIfEmpty();
     node.bound = readDartType();
@@ -4075,7 +4075,7 @@ class BinaryBuilder {
     if (variance == TypeParameter.legacyCovariantSerializationMarker) {
       node.variance = null;
     } else {
-      node.variance = variance;
+      node.variance = new Variance.fromEncoding(variance);
     }
     node.name = readStringOrNullIfEmpty();
     node.bound = readDartType();

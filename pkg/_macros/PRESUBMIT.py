@@ -17,7 +17,7 @@ USE_PYTHON3 = True
 # Returns a list of errors if not.
 #
 # TODO(jakemac): Ensure the version was bumped as well.
-def EnsurePubspecAltered(input_api, package_name):
+def EnsurePubspecAndChangelogAltered(input_api, package_name):
     errors = []
     package_path = 'pkg/%s' % package_name
     pubspec_path = '%s/pubspec.yaml' % package_path
@@ -27,8 +27,15 @@ def EnsurePubspecAltered(input_api, package_name):
         errors.append(
             ('The pkg/_macros/lib dir was altered but the version of %s was '
              'not bumped. See pkg/_macros/CONTRIBUTING.md' % package_path))
-    return errors
 
+    changelog_path = '%s/CHANGELOG.md' % package_path
+    changelog_changed = any(file.LocalPath() == changelog_path
+                            for file in input_api.change.AffectedFiles())
+    if not changelog_changed:
+        errors.append(
+            ('The pkg/_macros/lib dir was altered but the CHANGELOG.md of %s '
+             'was not edited. See pkg/_macros/CONTRIBUTING.md' % package_path))
+    return errors
 
 # Invoked on upload and commit.
 def CheckChange(input_api, output_api):
@@ -39,8 +46,8 @@ def CheckChange(input_api, output_api):
     lib_changed = any(file.LocalPath().startswith('pkg/_macros/lib')
                       for file in input_api.AffectedFiles())
     if lib_changed:
-        errors += EnsurePubspecAltered(input_api, '_macros')
-        errors += EnsurePubspecAltered(input_api, 'macros')
+        errors += EnsurePubspecAndChangelogAltered(input_api, '_macros')
+        errors += EnsurePubspecAndChangelogAltered(input_api, 'macros')
 
     if errors:
         return [

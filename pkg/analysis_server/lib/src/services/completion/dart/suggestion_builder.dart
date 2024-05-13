@@ -16,7 +16,7 @@ import 'package:analysis_server/src/services/completion/dart/feature_computer.da
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/element.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -421,10 +421,7 @@ class SuggestionBuilder {
     // prepending a prefix.
     assert(!hasClassName || prefix == null);
 
-    var enclosingClass = constructor.enclosingElement.augmented?.declaration;
-    if (enclosingClass == null) {
-      return;
-    }
+    var enclosingClass = constructor.enclosingElement.augmented.declaration;
 
     var className = enclosingClass.name;
     if (className.isEmpty) {
@@ -617,7 +614,7 @@ class SuggestionBuilder {
 
   /// Add a suggestion for the `call` method defined on functions.
   void suggestFunctionCall() {
-    final element = protocol.Element(protocol.ElementKind.METHOD,
+    var element = protocol.Element(protocol.ElementKind.METHOD,
         FunctionElement.CALL_METHOD_NAME, protocol.Element.makeFlags(),
         parameters: '()', returnType: 'void');
     _addSuggestion(
@@ -779,7 +776,7 @@ class SuggestionBuilder {
     var enclosingElement = method.enclosingElement;
     if (method.name == 'setState' &&
         enclosingElement is ClassElement &&
-        Flutter.isExactState(enclosingElement)) {
+        enclosingElement.isExactState) {
       // TODO(brianwilkerson): Make this more efficient by creating the correct
       //  suggestion in the first place.
       // Find the line indentation.
@@ -847,11 +844,11 @@ class SuggestionBuilder {
     var selectionOffset = completion.length;
 
     // Optionally add Flutter child widget details.
-    // TODO(pq): revisit this special casing; likely it can be generalized away
+    // TODO(pq): revisit this special casing; likely it can be generalized away.
     var element = parameter.enclosingElement;
-    // If appendColon is false, default values should never be appended.
+    // If `appendColon` is false, default values should never be appended.
     if (element is ConstructorElement && appendColon) {
-      if (Flutter.isWidget(element.enclosingElement.augmented?.declaration)) {
+      if (element.enclosingElement.augmented.declaration.isWidget) {
         var analysisOptions = request.analysisSession.analysisContext
             .getAnalysisOptionsForFile(
                 request.resourceProvider.getFile(request.path));
@@ -894,10 +891,11 @@ class SuggestionBuilder {
         parameterName: name,
         parameterType: type,
         replacementLength: replacementLength,
+        element: convertElement(parameter),
         elementLocation: parameter.location);
+
     if (parameter is FieldFormalParameterElement) {
       _setDocumentation(suggestion, parameter);
-      suggestion.element = convertElement(parameter);
     }
 
     _addSuggestion(suggestion);
@@ -911,14 +909,14 @@ class SuggestionBuilder {
       {required bool appendColon,
       required bool appendComma,
       int? replacementLength}) {
-    final name = field.name;
-    final type = field.type.getDisplayString();
+    var name = field.name;
+    var type = field.type.getDisplayString();
 
     var completion = name;
     if (appendColon) {
       completion += ': ';
     }
-    final selectionOffset = completion.length;
+    var selectionOffset = completion.length;
 
     if (appendComma) {
       completion += ',';
@@ -1045,15 +1043,15 @@ class SuggestionBuilder {
     required RecordTypeField field,
     required String name,
   }) {
-    final type = field.type;
-    final featureComputer = request.featureComputer;
-    final contextType =
+    var type = field.type;
+    var featureComputer = request.featureComputer;
+    var contextType =
         featureComputer.contextTypeFeature(request.contextType, type);
-    final relevance = _computeRelevance(
+    var relevance = _computeRelevance(
       contextType: contextType,
     );
 
-    final returnType = field.type.getDisplayString();
+    var returnType = field.type.getDisplayString();
 
     _addSuggestion(
       CompletionSuggestion(
@@ -1741,7 +1739,7 @@ class _CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
 
   @override
   CompletionSuggestion build() {
-    final element = suggestionBuilder._createElementCompletionData(orgElement);
+    var element = suggestionBuilder._createElementCompletionData(orgElement);
     return DartCompletionSuggestion(
       kind,
       relevance,

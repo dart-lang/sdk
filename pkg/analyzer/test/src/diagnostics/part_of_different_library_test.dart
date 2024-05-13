@@ -42,7 +42,7 @@ part 'part.g.dart';
 part of 'foo.dart';
 ''');
 
-    final foo = newFile('$testPackageRootPath/example/foo.dart', '''
+    var foo = newFile('$testPackageRootPath/example/foo.dart', '''
 part 'foo.g.dart';
 ''');
 

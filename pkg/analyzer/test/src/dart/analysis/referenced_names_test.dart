@@ -429,11 +429,11 @@ main() {
     String code, {
     FeatureSet? featureSet,
   }) {
-    final parseResult = parseString(
+    var parseResult = parseString(
       content: code,
       featureSet: featureSet ?? FeatureSets.latestWithExperiments,
     );
-    final unit = parseResult.unit;
+    var unit = parseResult.unit;
     return computeReferencedNames(unit);
   }
 }
@@ -491,11 +491,11 @@ class X extends A<B> {}
   }
 
   Set<String> _computeSubtypedNames(String code) {
-    final parseResult = parseString(
+    var parseResult = parseString(
       content: code,
       featureSet: FeatureSets.latestWithExperiments,
     );
-    final unit = parseResult.unit;
+    var unit = parseResult.unit;
     return computeSubtypedNames(unit);
   }
 }

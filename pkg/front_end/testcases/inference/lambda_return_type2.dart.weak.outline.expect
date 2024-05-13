@@ -1,9 +1,0 @@
-library test;
-import self as self;
-import "dart:core" as core;
-
-typedef FunctionReturningNum = () → core::num;
-static method test() → dynamic
-  ;
-static method main() → dynamic
-  ;

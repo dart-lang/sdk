@@ -1,4 +1,4 @@
-library /*isLegacy*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -6,17 +6,17 @@ static method foldInitialElements() → void
   ;
 static method foldInitialSpread1() → void
   ;
-static method foldInitialSpread2() → void
+static method foldInitialSpread2([has-declared-initializer core::bool c]) → void
   ;
-static method foldInitialSpread3() → void
+static method foldInitialSpread3([has-declared-initializer core::bool c]) → void
   ;
-static method foldInitialSpread4() → void
+static method foldInitialSpread4([has-declared-initializer core::bool c]) → void
   ;
-static method foldInitialSpread5() → void
+static method foldInitialSpread5([has-declared-initializer core::bool c]) → void
   ;
-static method foldInitialSpread6() → void
+static method foldInitialSpread6([has-declared-initializer core::bool c]) → void
   ;
 static method main() → dynamic
   ;
-static method expect(core::List<dynamic>* list1, core::List<dynamic>* list2) → void
+static method expect(core::List<dynamic> list1, core::List<dynamic> list2) → void
   ;

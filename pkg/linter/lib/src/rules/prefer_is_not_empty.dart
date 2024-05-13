@@ -10,7 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import '../analyzer.dart';
 import '../ast.dart';
 
-const _desc = r'Use `isNotEmpty` for Iterables and Maps.';
+const _desc = r'Use `isNotEmpty` for `Iterable`s and `Map`s.';
 
 const _details = r'''
 **PREFER** `x.isNotEmpty` to `!x.isEmpty` for `Iterable` and `Map` instances.

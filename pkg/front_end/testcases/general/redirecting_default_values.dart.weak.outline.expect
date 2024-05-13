@@ -11,25 +11,25 @@ class Class extends core::Object {
     return new self::Class::positional();
   static factory redirect2a(core::int a) → self::Class /* redirection-target: self::Class::positional */
     return new self::Class::positional(a);
-  static factory redirect3a([core::int a]) → self::Class /* redirection-target: self::Class::positional */
+  static factory redirect3a([core::int a = null]) → self::Class /* redirection-target: self::Class::positional */
     return new self::Class::positional(a);
-  static factory redirect4a(core::int a, [core::int b]) → self::Class /* redirection-target: self::Class::positional */
+  static factory redirect4a(core::int a, [core::int b = null]) → self::Class /* redirection-target: self::Class::positional */
     return new self::Class::positional(a, b);
-  static factory redirect5a([core::int a, core::int b]) → self::Class /* redirection-target: self::Class::positional */
+  static factory redirect5a([core::int a = null, core::int b = null]) → self::Class /* redirection-target: self::Class::positional */
     return new self::Class::positional(a, b);
-  static factory redirect6a([core::int a, has-declared-initializer core::int b]) → self::Class /* redirection-target: self::Class::positional */
+  static factory redirect6a([core::int a = null, core::int b = 2]) → self::Class /* redirection-target: self::Class::positional */
     return new self::Class::positional(a, b);
   static factory redirect1b() → self::Class /* redirection-target: self::Class::named */
     return new self::Class::named();
-  static factory redirect2b({core::int a}) → self::Class /* redirection-target: self::Class::named */
+  static factory redirect2b({core::int a = null}) → self::Class /* redirection-target: self::Class::named */
     return new self::Class::named(a: a);
-  static factory redirect3b({core::int b}) → self::Class /* redirection-target: self::Class::named */
+  static factory redirect3b({core::int b = null}) → self::Class /* redirection-target: self::Class::named */
     return new self::Class::named(b: b);
-  static factory redirect4b({core::int a, core::int b}) → self::Class /* redirection-target: self::Class::named */
+  static factory redirect4b({core::int a = null, core::int b = null}) → self::Class /* redirection-target: self::Class::named */
     return new self::Class::named(a: a, b: b);
-  static factory redirect5b({core::int b, core::int a}) → self::Class /* redirection-target: self::Class::named */
+  static factory redirect5b({core::int b = null, core::int a = null}) → self::Class /* redirection-target: self::Class::named */
     return new self::Class::named(b: b, a: a);
-  static factory redirect6b({has-declared-initializer core::int a, core::int b}) → self::Class /* redirection-target: self::Class::named */
+  static factory redirect6b({core::int a = 1, core::int b = null}) → self::Class /* redirection-target: self::Class::named */
     return new self::Class::named(a: a, b: b);
 }
 static method main() → dynamic

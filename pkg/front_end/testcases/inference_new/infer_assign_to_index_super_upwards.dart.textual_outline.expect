@@ -1,5 +1,3 @@
-// @dart = 2.9
-
 library test;
 
 int getInt() => 0;
@@ -15,39 +13,82 @@ abstract class Base<T, U> {
   void setValue(String s, U v);
 }
 
-abstract class Test1 extends Base<int, int> {
+abstract class Base2<T, U> {
+  T? operator [](String s) => getValue(s);
+  void operator []=(String s, U? v) => setValue(s, v);
+  T? getValue(String s);
+  void setValue(String s, U? v);
+}
+
+abstract class Test1a extends Base<int, int> {
   void test() {}
 }
 
-abstract class Test2 extends Base<int, num> {
+abstract class Test1b extends Base2<int, int> {
   void test() {}
 }
 
-abstract class Test3 extends Base<int, double> {
+abstract class Test2a extends Base<int, num> {
   void test() {}
 }
 
-abstract class Test4 extends Base<num, int> {
+abstract class Test2b extends Base2<int, num> {
   void test() {}
 }
 
-abstract class Test5 extends Base<num, num> {
+abstract class Test3a extends Base<int, double> {
   void test() {}
 }
 
-abstract class Test6 extends Base<num, double> {
+abstract class Test3b extends Base2<int, double> {
   void test() {}
 }
 
-abstract class Test7 extends Base<double, int> {
+abstract class Test4a extends Base<num, int> {
   void test() {}
 }
 
-abstract class Test8 extends Base<double, num> {
+abstract class Test4b extends Base2<num, int> {
   void test() {}
 }
 
-abstract class Test9 extends Base<double, double> {
+abstract class Test5a extends Base<num, num> {
+  void test() {}
+}
+
+abstract class Test5b extends Base2<num, num> {
+  void test() {}
+}
+
+abstract class Test6a extends Base<num, double> {
+  void test() {}
+}
+
+abstract class Test6b extends Base2<num, double> {
+  void test() {}
+}
+
+abstract class Test7a extends Base<double, int> {
+  void test() {}
+}
+
+abstract class Test7b extends Base2<double, int> {
+  void test() {}
+}
+
+abstract class Test8a extends Base<double, num> {
+  void test() {}
+}
+
+abstract class Test8b extends Base2<double, num> {
+  void test() {}
+}
+
+abstract class Test9a extends Base<double, double> {
+  void test() {}
+}
+
+abstract class Test9b extends Base2<double, double> {
   void test() {}
 }
 

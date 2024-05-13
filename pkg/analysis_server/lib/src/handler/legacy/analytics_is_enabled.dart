@@ -16,7 +16,6 @@ class AnalyticsIsEnabledHandler extends LegacyHandler {
 
   @override
   Future<void> handle() async {
-    sendResult(
-        AnalyticsIsEnabledResult(server.options.analytics?.enabled ?? false));
+    sendResult(AnalyticsIsEnabledResult(false));
   }
 }

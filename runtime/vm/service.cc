@@ -4923,7 +4923,7 @@ class PersistentHandleVisitor : public HandleVisitor {
         "callbackAddress", "0x%" Px "",
         reinterpret_cast<uintptr_t>(weak_persistent_handle->callback()));
     // Attempt to include a native symbol name.
-    char* name = NativeSymbolResolver::LookupSymbolName(
+    const char* name = NativeSymbolResolver::LookupSymbolName(
         reinterpret_cast<uword>(weak_persistent_handle->callback()), nullptr);
     obj.AddProperty("callbackSymbolName", (name == nullptr) ? "" : name);
     if (name != nullptr) {
@@ -5825,19 +5825,17 @@ static void GetDefaultClassesAliases(Thread* thread, JSONStream* js) {
     CLASS_LIST_SETS(DEFINE_ADD_VALUE_F_CID)
   }
 #define DEFINE_ADD_MAP_KEY(clazz)                                              \
-  {                                                                            \
-    JSONArray internals(&map, #clazz);                                         \
-    DEFINE_ADD_VALUE_F_CID(TypedData##clazz)                                   \
-    DEFINE_ADD_VALUE_F_CID(TypedData##clazz##View)                             \
-    DEFINE_ADD_VALUE_F_CID(ExternalTypedData##clazz)                           \
-    DEFINE_ADD_VALUE_F_CID(UnmodifiableTypedData##clazz##View)                 \
+  {JSONArray internals(&map, #clazz);                                          \
+  DEFINE_ADD_VALUE_F_CID(TypedData##clazz)                                     \
+  DEFINE_ADD_VALUE_F_CID(TypedData##clazz##View)                               \
+  DEFINE_ADD_VALUE_F_CID(ExternalTypedData##clazz)                             \
+  DEFINE_ADD_VALUE_F_CID(UnmodifiableTypedData##clazz##View)                   \
   }
   CLASS_LIST_TYPED_DATA(DEFINE_ADD_MAP_KEY)
 #undef DEFINE_ADD_MAP_KEY
 #define DEFINE_ADD_MAP_KEY(clazz)                                              \
-  {                                                                            \
-    JSONArray internals(&map, #clazz);                                         \
-    DEFINE_ADD_VALUE_F_CID(Ffi##clazz)                                         \
+  {JSONArray internals(&map, #clazz);                                          \
+  DEFINE_ADD_VALUE_F_CID(Ffi##clazz)                                           \
   }
   CLASS_LIST_FFI(DEFINE_ADD_MAP_KEY)
 #undef DEFINE_ADD_MAP_KEY

@@ -8,10 +8,10 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 
-const _desc = r'Avoid const keyword.';
+const _desc = r'Avoid `const` keyword.';
 
 const _details = r'''
-**AVOID** repeating const keyword in a const context.
+**AVOID** repeating `const` keyword in a `const` context.
 
 **BAD:**
 ```dart

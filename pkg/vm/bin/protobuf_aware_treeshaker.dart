@@ -105,14 +105,14 @@ Future main(List<String> args) async {
     bytes = concatenate(File(platformFile).readAsBytesSync(), bytes);
   }
   final component = loadComponentFromBytes(bytes);
+  if (component.mode != NonNullableByDefaultCompiledMode.Strong) {
+    print('Input kernel file should be compiled with sound null safety.');
+    exit(-1);
+  }
 
   installAdditionalTargets();
 
-  final target = getTarget(
-      argResults['target'],
-      TargetFlags(
-          soundNullSafety:
-              component.mode == NonNullableByDefaultCompiledMode.Strong))!;
+  final target = getTarget(argResults['target'], TargetFlags())!;
 
   // The [component] is treeshaken and has TFA annotations. Write output.
   if (argResults['aot']) {

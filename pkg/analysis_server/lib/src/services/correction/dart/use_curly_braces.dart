@@ -109,7 +109,7 @@ class UseCurlyBraces extends ParsedCorrectionProducer {
 
   Future<void> _ifStatement(
       ChangeBuilder builder, IfStatement node, Statement? thenOrElse) async {
-    final parent = node.parent;
+    var parent = node.parent;
     if (parent is IfStatement && parent.elseStatement == node) {
       return;
     }

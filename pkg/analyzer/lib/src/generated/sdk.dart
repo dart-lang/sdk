@@ -166,6 +166,8 @@ class SdkDescription {
   }
 }
 
+// Pre-existing name.
+// ignore: camel_case_types
 class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<void> {
   /// The prefix added to the name of a library to form the URI used in code to
   /// reference the library.

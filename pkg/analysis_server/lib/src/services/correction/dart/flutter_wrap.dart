@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/selection_analyzer.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
@@ -18,20 +18,20 @@ class FlutterWrap extends MultiCorrectionProducer {
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
     var producers = <ResolvedCorrectionProducer>[];
-    var widgetExpr = Flutter.identifyWidgetExpression(node);
+    var widgetExpr = node.findWidgetExpression;
     if (widgetExpr != null) {
       var widgetType = widgetExpr.typeOrThrow;
       producers.add(_FlutterWrapGeneric(widgetExpr));
-      if (!Flutter.isExactWidgetTypeCenter(widgetType)) {
+      if (!widgetType.isExactWidgetTypeCenter) {
         producers.add(_FlutterWrapCenter(widgetExpr));
       }
-      if (!Flutter.isExactWidgetTypeContainer(widgetType)) {
+      if (!widgetType.isExactWidgetTypeContainer) {
         producers.add(_FlutterWrapContainer(widgetExpr));
       }
-      if (!Flutter.isExactWidgetTypePadding(widgetType)) {
+      if (!widgetType.isExactWidgetTypePadding) {
         producers.add(_FlutterWrapPadding(widgetExpr));
       }
-      if (!Flutter.isExactWidgetTypeSizedBox(widgetType)) {
+      if (!widgetType.isExactWidgetTypeSizedBox) {
         producers.add(_FlutterWrapSizedBox(widgetExpr));
       }
     }
@@ -58,8 +58,7 @@ class FlutterWrap extends MultiCorrectionProducer {
             parent is InstanceCreationExpression) {
           selectedNode = parent;
         }
-        if (selectedNode is! Expression ||
-            !Flutter.isWidgetExpression(selectedNode)) {
+        if (selectedNode is! Expression || !selectedNode.isWidgetExpression) {
           return;
         }
         widgetExpressions.add(selectedNode);
@@ -77,7 +76,7 @@ class FlutterWrap extends MultiCorrectionProducer {
         coveringNode = coveringNode.parent;
       }
 
-      var widget = Flutter.identifyWidgetExpression(coveringNode);
+      var widget = coveringNode.findWidgetExpression;
       if (widget != null) {
         widgetExpressions.add(widget);
       }
@@ -105,7 +104,7 @@ class _FlutterWrapCenter extends _WrapSingleWidget {
   String get _parentClassName => 'Center';
 
   @override
-  String get _parentLibraryUri => Flutter.widgetsUri;
+  String get _parentLibraryUri => widgetsUri;
 }
 
 /// A correction processor that can make one of the possible changes computed by
@@ -132,7 +131,7 @@ class _FlutterWrapContainer extends _WrapSingleWidget {
   String get _parentClassName => 'Container';
 
   @override
-  String get _parentLibraryUri => Flutter.widgetsUri;
+  String get _parentLibraryUri => widgetsUri;
 }
 
 /// A correction processor that can make one of the possible changes computed by
@@ -162,7 +161,7 @@ class _FlutterWrapPadding extends _WrapSingleWidget {
   String get _parentClassName => 'Padding';
 
   @override
-  String get _parentLibraryUri => Flutter.widgetsUri;
+  String get _parentLibraryUri => widgetsUri;
 }
 
 /// A correction processor that can make one of the possible changes computed by
@@ -189,7 +188,7 @@ class _FlutterWrapSizedBox extends _WrapSingleWidget {
   String get _parentClassName => 'SizedBox';
 
   @override
-  String get _parentLibraryUri => Flutter.widgetsUri;
+  String get _parentLibraryUri => widgetsUri;
 }
 
 /// A correction processor that can make one of the possible changes computed by
@@ -203,7 +202,7 @@ abstract class _WrapMultipleWidgets extends ResolvedCorrectionProducer {
 
   String get _parentClassName;
 
-  String get _parentLibraryUri => Flutter.widgetsUri;
+  String get _parentLibraryUri => widgetsUri;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -211,8 +210,7 @@ abstract class _WrapMultipleWidgets extends ResolvedCorrectionProducer {
     var src = utils.getRangeText(selectedRange);
     var parentClassElement =
         await sessionHelper.getClass(_parentLibraryUri, _parentClassName);
-    var widgetClassElement =
-        await sessionHelper.getClass(Flutter.widgetsUri, 'Widget');
+    var widgetClassElement = await sessionHelper.getFlutterClass('Widget');
     if (parentClassElement == null || widgetClassElement == null) {
       return;
     }

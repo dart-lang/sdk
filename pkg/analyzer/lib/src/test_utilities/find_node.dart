@@ -64,6 +64,8 @@ class FindNode {
 
   ExportDirective get singleExportDirective => _single();
 
+  ExpressionStatement get singleExpressionStatement => _single();
+
   ExtendsClause get singleExtendsClause => _single();
 
   ExtensionDeclaration get singleExtensionDeclaration => _single();
@@ -92,8 +94,12 @@ class FindNode {
 
   FunctionReference get singleFunctionReference => _single();
 
+  FunctionTypeAlias get singleFunctionTypeAlias => _single();
+
   FunctionTypedFormalParameter get singleFunctionTypedFormalParameter =>
       _single();
+
+  GenericTypeAlias get singleGenericTypeAlias => _single();
 
   GuardedPattern get singleGuardedPattern => _single();
 
@@ -160,6 +166,8 @@ class FindNode {
   RepresentationDeclaration get singleRepresentationDeclaration => _single();
 
   RethrowExpression get singleRethrowExpression => _single();
+
+  ReturnStatement get singleReturnStatement => _single();
 
   SetOrMapLiteral get singleSetOrMapLiteral => _single();
 
@@ -238,7 +246,7 @@ class FindNode {
   }
 
   BindPatternVariableElement bindPatternVariableElement(String search) {
-    final node = declaredVariablePattern(search);
+    var node = declaredVariablePattern(search);
     return node.declaredElement!;
   }
 
@@ -433,7 +441,7 @@ class FindNode {
   FormalParameterList formalParameterList(String search) {
     // If the search starts with `(` then NodeLocator will locate the definition
     // before it, so offset the search to within the parameter list.
-    final locateOffset = search.startsWith('(') ? 1 : 0;
+    var locateOffset = search.startsWith('(') ? 1 : 0;
     return _node(search, (n) => n is FormalParameterList,
         locateOffset: locateOffset);
   }
@@ -924,7 +932,7 @@ class FindNode {
   /// If [unit] has exactly one node of type [T], returns it.
   /// Otherwise, throws.
   T _single<T extends AstNode>() {
-    final visitor = _TypedNodeVisitor<T>();
+    var visitor = _TypedNodeVisitor<T>();
     unit.accept(visitor);
     return visitor.nodes.single;
   }

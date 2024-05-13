@@ -11,7 +11,7 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart
 import 'package:analysis_server/src/services/refactoring/legacy/rename.dart';
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart' show Identifier;
 import 'package:analyzer/dart/element/element.dart';
@@ -72,8 +72,8 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   @override
   Future<RefactoringStatus> checkFinalConditions() async {
     var status = await validateRenameTopLevel(searchEngine, element, newName);
-    final flutterWidgetState = _flutterWidgetState;
-    final flutterWidgetStateNewName = _flutterWidgetStateNewName;
+    var flutterWidgetState = _flutterWidgetState;
+    var flutterWidgetStateNewName = _flutterWidgetStateNewName;
     if (flutterWidgetState != null && flutterWidgetStateNewName != null) {
       _updateFlutterWidgetStateName();
       status.addStatus(
@@ -139,7 +139,7 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
     }
 
     // If a StatefulWidget is being renamed, rename also its State.
-    final flutterWidgetState = _flutterWidgetState;
+    var flutterWidgetState = _flutterWidgetState;
     if (flutterWidgetState != null) {
       _updateFlutterWidgetStateName();
       await RenameProcessor(
@@ -152,16 +152,17 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 
   void _findFlutterStateClass() {
-    if (Flutter.isStatefulWidgetDeclaration(element)) {
+    final element = this.element;
+    if (element is ClassElement && element.isStatefulWidgetDeclaration) {
       var oldStateName = '${oldName}State';
-      var library = element.library!;
+      var library = element.library;
       _flutterWidgetState =
           library.getClass(oldStateName) ?? library.getClass('_$oldStateName');
     }
   }
 
   void _updateFlutterWidgetStateName() {
-    final flutterWidgetState = _flutterWidgetState;
+    var flutterWidgetState = _flutterWidgetState;
     if (flutterWidgetState != null) {
       var flutterWidgetStateNewName = '${newName}State';
       // If the State was private, ensure that it stays private.

@@ -104,6 +104,7 @@ InitializedCompilerState initializeCompiler(
     Map<ExperimentalFlag, bool>? explicitExperimentalFlags,
     Map<String, String>? environmentDefines,
     required NnbdMode nnbdMode,
+    bool requirePrebuiltMacros = false,
     List<String>? precompiledMacros,
     String? macroSerializationMode}) {
   additionalDills.sort((a, b) => a.toString().compareTo(b.toString()));
@@ -117,7 +118,9 @@ InitializedCompilerState initializeCompiler(
       equalLists(oldState.options.additionalDills, additionalDills) &&
       equalMaps(oldState.options.explicitExperimentalFlags,
           explicitExperimentalFlags) &&
-      equalMaps(oldState.options.environmentDefines, environmentDefines)) {
+      equalMaps(oldState.options.environmentDefines, environmentDefines) &&
+      equalLists(oldState.options.precompiledMacros, precompiledMacros) &&
+      oldState.options.requirePrebuiltMacros == requirePrebuiltMacros) {
     // Reuse old state.
     return oldState;
   }
@@ -166,6 +169,8 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     required Map<ExperimentalFlag, bool> explicitExperimentalFlags,
     required Map<String, String> environmentDefines,
     bool trackNeededDillLibraries = false,
+    bool requirePrebuiltMacros = false,
+    List<String> precompiledMacros = const [],
     required NnbdMode nnbdMode}) {
   return modular.initializeIncrementalCompiler(
       oldState,
@@ -184,6 +189,8 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       environmentDefines: environmentDefines,
       outlineOnly: false,
       omitPlatform: false,
+      requirePrebuiltMacros: requirePrebuiltMacros,
+      precompiledMacros: precompiledMacros,
       trackNeededDillLibraries: trackNeededDillLibraries,
       nnbdMode: nnbdMode);
 }

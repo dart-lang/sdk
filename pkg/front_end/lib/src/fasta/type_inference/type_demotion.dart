@@ -88,13 +88,13 @@ class _DemotionNullabilityNormalization extends ReplacementVisitor {
   }
 
   @override
-  DartType? visitTypeParameterType(TypeParameterType node, int variance) {
+  DartType? visitTypeParameterType(TypeParameterType node, Variance variance) {
     Nullability? newNullability = visitNullability(node);
     return createTypeParameterType(node, newNullability);
   }
 
   @override
-  DartType? visitIntersectionType(IntersectionType node, int variance) {
+  DartType? visitIntersectionType(IntersectionType node, Variance variance) {
     Nullability? newNullability = visitNullability(node);
     if (demoteTypeVariables) {
       return new TypeParameterType(

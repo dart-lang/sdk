@@ -282,7 +282,7 @@ void f() {
   Future<void> verifyRefactoring(String expected) async {
     await initializeServer();
 
-    final codeAction = await expectCodeAction(
+    var codeAction = await expectCodeAction(
       ConvertSelectedFormalParametersToNamed.constTitle,
     );
 

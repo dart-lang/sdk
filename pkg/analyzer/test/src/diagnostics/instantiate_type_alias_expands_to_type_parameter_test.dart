@@ -111,7 +111,7 @@ void f() {
       error(_errorCode, 57, 1),
     ]);
 
-    final node = findNode.instanceCreation('new B()');
+    var node = findNode.instanceCreation('new B()');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new

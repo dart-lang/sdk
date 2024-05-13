@@ -7,11 +7,11 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 
-const _desc = r'Provide a deprecation message, via @Deprecated("message").';
+const _desc = r'Provide a deprecation message, via `@Deprecated("message")`.';
 
 const _details = r'''
 **DO** specify a deprecation message (with migration instructions and/or a
-removal schedule) in the Deprecation constructor.
+removal schedule) in the `Deprecated` constructor.
 
 **BAD:**
 ```dart

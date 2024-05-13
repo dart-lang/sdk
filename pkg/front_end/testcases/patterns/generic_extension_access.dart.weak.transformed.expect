@@ -45,7 +45,7 @@ static method method1(self::I<core::num> i) → core::num
     {
       {
         hoisted core::num member;
-        if((let final core::num #t2 = member = #0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool* #t3 = #0#1#isSet = true in #0#1 = self::_extension#0|get#member<core::num>(#0#0) in true) && member.{core::num::<}(0){(core::num) → core::bool}) {
+        if((let final core::num #t2 = member = #0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool #t3 = #0#1#isSet = true in #0#1 = self::_extension#0|get#member<core::num>(#0#0) in true) && member.{core::num::<}(0){(core::num) → core::bool}) {
           #t1 = member;
           break #L1;
         }
@@ -60,7 +60,7 @@ static method method1(self::I<core::num> i) → core::num
       {
         hoisted core::num member;
         if(true) {
-          member = #0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool* #t5 = #0#1#isSet = true in #0#1 = self::_extension#0|get#member<core::num>(#0#0);
+          member = #0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool #t5 = #0#1#isSet = true in #0#1 = self::_extension#0|get#member<core::num>(#0#0);
           #t1 = member.{core::num::unary-}(){() → core::num};
           break #L1;
         }
@@ -78,16 +78,16 @@ static method method2(self::A<core::num> i) → core::num
     {
       {
         hoisted core::int member;
-        if((#0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool* #t7 = #0#1#isSet = true in #0#1 = self::_extension#0|get#member<core::num>(#0#0)) is core::int) {
-          member = (#0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool* #t8 = #0#1#isSet = true in #0#1 = self::_extension#0|get#member<core::num>(#0#0)) as{Unchecked} core::int;
+        if((#0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool #t7 = #0#1#isSet = true in #0#1 = self::_extension#0|get#member<core::num>(#0#0)) is core::int) {
+          member = (#0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool #t8 = #0#1#isSet = true in #0#1 = self::_extension#0|get#member<core::num>(#0#0)) as{Unchecked} core::int;
           #t6 = member;
           break #L2;
         }
       }
       {
         hoisted core::double member;
-        if((#0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool* #t9 = #0#1#isSet = true in #0#1 = self::_extension#0|get#member<core::num>(#0#0)) is core::double) {
-          member = (#0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool* #t10 = #0#1#isSet = true in #0#1 = self::_extension#0|get#member<core::num>(#0#0)) as{Unchecked} core::double;
+        if((#0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool #t9 = #0#1#isSet = true in #0#1 = self::_extension#0|get#member<core::num>(#0#0)) is core::double) {
+          member = (#0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool #t10 = #0#1#isSet = true in #0#1 = self::_extension#0|get#member<core::num>(#0#0)) as{Unchecked} core::double;
           #t6 = member;
           break #L2;
         }

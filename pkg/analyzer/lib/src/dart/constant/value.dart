@@ -235,7 +235,7 @@ class DartObjectImpl implements DartObject, Constant {
 
   /// Initialize a newly created object to have the given [type] and [state].
   DartObjectImpl._(this._typeSystem, this.type, this.state, {this.variable}) {
-    if (state case final GenericState state) {
+    if (state case GenericState state) {
       state._object = this;
     }
   }
@@ -518,7 +518,7 @@ class DartObjectImpl implements DartObject, Constant {
 
   @override
   DartObject? getField(String name) {
-    final state = this.state;
+    var state = this.state;
     if (state is GenericState) {
       return state.fields[name];
     } else if (state is RecordState) {
@@ -530,7 +530,7 @@ class DartObjectImpl implements DartObject, Constant {
   /// Gets the constructor that was called to create this value, if this is a
   /// const constructor invocation. Otherwise returns null.
   ConstructorInvocation? getInvocation() {
-    final state = this.state;
+    var state = this.state;
     if (state is GenericState) {
       return state.invocation;
     }
@@ -886,7 +886,7 @@ class DartObjectImpl implements DartObject, Constant {
 
   @override
   bool? toBoolValue() {
-    final state = this.state;
+    var state = this.state;
     if (state is BoolState) {
       return state.value;
     }
@@ -895,7 +895,7 @@ class DartObjectImpl implements DartObject, Constant {
 
   @override
   double? toDoubleValue() {
-    final state = this.state;
+    var state = this.state;
     if (state is DoubleState) {
       return state.value;
     }
@@ -904,13 +904,13 @@ class DartObjectImpl implements DartObject, Constant {
 
   @override
   ExecutableElement? toFunctionValue() {
-    final state = this.state;
+    var state = this.state;
     return state is FunctionState ? state.element : null;
   }
 
   @override
   int? toIntValue() {
-    final state = this.state;
+    var state = this.state;
     if (state is IntState) {
       return state.value;
     }
@@ -919,7 +919,7 @@ class DartObjectImpl implements DartObject, Constant {
 
   @override
   List<DartObjectImpl>? toListValue() {
-    final state = this.state;
+    var state = this.state;
     if (state is ListState) {
       return state.elements;
     }
@@ -928,7 +928,7 @@ class DartObjectImpl implements DartObject, Constant {
 
   @override
   Map<DartObjectImpl, DartObjectImpl>? toMapValue() {
-    final state = this.state;
+    var state = this.state;
     if (state is MapState) {
       return state.entries;
     }
@@ -937,7 +937,7 @@ class DartObjectImpl implements DartObject, Constant {
 
   @override
   Set<DartObjectImpl>? toSetValue() {
-    final state = this.state;
+    var state = this.state;
     if (state is SetState) {
       return state.elements;
     }
@@ -951,7 +951,7 @@ class DartObjectImpl implements DartObject, Constant {
 
   @override
   String? toStringValue() {
-    final state = this.state;
+    var state = this.state;
     if (state is StringState) {
       return state.value;
     }
@@ -960,7 +960,7 @@ class DartObjectImpl implements DartObject, Constant {
 
   @override
   String? toSymbolValue() {
-    final state = this.state;
+    var state = this.state;
     if (state is SymbolState) {
       return state.value;
     }
@@ -969,7 +969,7 @@ class DartObjectImpl implements DartObject, Constant {
 
   @override
   DartType? toTypeValue() {
-    final state = this.state;
+    var state = this.state;
     if (state is TypeState) {
       return state._type;
     }
@@ -1174,7 +1174,7 @@ class DoubleState extends NumState {
 
   @override
   BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
-    final value = this.value;
+    var value = this.value;
     if (value == null) {
       return BoolState.UNKNOWN_VALUE;
     } else if (value.isNaN) {
@@ -1507,23 +1507,23 @@ class GenericState extends InstanceState {
 
   @override
   bool hasPrimitiveEquality(FeatureSet featureSet) {
-    final type = _object.type;
+    var type = _object.type;
     if (type is InterfaceType) {
       bool isFromDartCoreObject(ExecutableElement? element) {
-        final enclosing = element?.enclosingElement;
+        var enclosing = element?.enclosingElement;
         return enclosing is ClassElement && enclosing.isDartCoreObject;
       }
 
-      final element = type.element;
-      final library = element.library;
+      var element = type.element;
+      var library = element.library;
 
-      final eqEq = type.lookUpMethod2('==', library, concrete: true);
+      var eqEq = type.lookUpMethod2('==', library, concrete: true);
       if (!isFromDartCoreObject(eqEq)) {
         return false;
       }
 
       if (featureSet.isEnabled(Feature.patterns)) {
-        final hash = type.lookUpGetter2('hashCode', library, concrete: true);
+        var hash = type.lookUpGetter2('hashCode', library, concrete: true);
         if (!isFromDartCoreObject(hash)) {
           return false;
         }
@@ -1589,7 +1589,7 @@ abstract class InstanceState {
   /// Return the name of the type of this value.
   String get typeName;
 
-  /// Return the result of invoking the '+' operator on this object with the
+  /// Returns the result of invoking the '+' operator on this object with the
   /// [rightOperand].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
@@ -1598,35 +1598,46 @@ abstract class InstanceState {
     if (this is StringState && rightOperand is StringState) {
       return concatenate(rightOperand);
     }
-    assertNumOrNull(this);
-    assertNumOrNull(rightOperand);
+    assertNumStringOrNull(this);
+    assertNumStringOrNull(rightOperand);
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
-  /// Throw an exception if the given [state] does not represent a boolean value.
+  /// Throws an exception if the given [state] does not represent a `bool`
+  /// value.
   void assertBool(InstanceState? state) {
     if (state is! BoolState) {
       throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
     }
   }
 
-  /// Throw an exception if the given [state] does not represent an integer or
-  /// null value.
+  /// Throws an exception if the given [state] does not represent an `int` or
+  /// `null` value.
   void assertIntOrNull(InstanceState state) {
     if (!(state is IntState || state is NullState)) {
       throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_INT);
     }
   }
 
-  /// Throw an exception if the given [state] does not represent a boolean,
-  /// numeric, string or null value.
+  /// Throws an exception if the given [state] does not represent a `num` or
+  /// `null` value.
   void assertNumOrNull(InstanceState state) {
     if (!(state is NumState || state is NullState)) {
       throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
     }
   }
 
-  /// Throw an exception if the given [state] does not represent a String value.
+  /// Throws an exception if the given [state] does not represent a `num`,
+  /// `String`, or `null` value.
+  void assertNumStringOrNull(InstanceState state) {
+    if (!(state is NumState || state is StringState || state is NullState)) {
+      throw EvaluationException(
+          CompileTimeErrorCode.CONST_EVAL_TYPE_NUM_STRING);
+    }
+  }
+
+  /// Throws an exception if the given [state] does not represent a `String`
+  /// value.
   void assertString(InstanceState state) {
     if (state is! StringState) {
       throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_STRING);
@@ -2473,8 +2484,8 @@ class InvalidConstant implements Constant {
   /// Creates a generic error depending on the [node] provided.
   factory InvalidConstant.genericError(AstNode node,
       {bool isUnresolved = false}) {
-    final parent = node.parent;
-    final parent2 = parent?.parent;
+    var parent = node.parent;
+    var parent2 = parent?.parent;
     if (parent is ArgumentList &&
         parent2 is InstanceCreationExpression &&
         parent2.isConst) {
@@ -2821,7 +2832,7 @@ class RecordState extends InstanceState {
 
   /// Returns the value of the field with the given [name].
   DartObject? getField(String name) {
-    final index = RecordTypeExtension.positionalFieldIndex(name);
+    var index = RecordTypeExtension.positionalFieldIndex(name);
     if (index != null && index < positionalFields.length) {
       return positionalFields[index];
     } else {

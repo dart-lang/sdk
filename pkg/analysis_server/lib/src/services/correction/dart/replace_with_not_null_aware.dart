@@ -21,7 +21,7 @@ class ReplaceWithNotNullAware extends ResolvedCorrectionProducer {
   bool get canBeAppliedToFile => true;
 
   @override
-  List<Object> get fixArguments => [_newOperator];
+  List<String> get fixArguments => [_newOperator];
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_WITH_NOT_NULL_AWARE;

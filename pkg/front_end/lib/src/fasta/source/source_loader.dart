@@ -26,7 +26,8 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
-import 'package:kernel/reference_from_index.dart' show ReferenceFromIndex;
+import 'package:kernel/reference_from_index.dart'
+    show IndexedLibrary, ReferenceFromIndex;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:kernel/util/graph.dart';
@@ -319,7 +320,7 @@ class SourceLoader extends Loader {
       Uri? packageUri,
       required LanguageVersion packageLanguageVersion,
       SourceLibraryBuilder? origin,
-      Library? referencesFrom,
+      IndexedLibrary? referencesFromIndex,
       bool? referenceIsPartOwner,
       bool isAugmentation = false,
       bool isPatch = false}) {
@@ -330,7 +331,7 @@ class SourceLoader extends Loader {
         packageLanguageVersion: packageLanguageVersion,
         loader: this,
         origin: origin,
-        referencesFrom: referencesFrom,
+        referencesFromIndex: referencesFromIndex,
         referenceIsPartOwner: referenceIsPartOwner,
         isUnsupported: origin?.library.isUnsupported ??
             importUri.isScheme('dart') &&
@@ -372,7 +373,7 @@ class SourceLoader extends Loader {
       Uri uri,
       Uri? fileUri,
       SourceLibraryBuilder? origin,
-      Library? referencesFrom,
+      IndexedLibrary? referencesFromIndex,
       bool? referenceIsPartOwner,
       bool isAugmentation,
       bool isPatch,
@@ -437,6 +438,13 @@ class SourceLoader extends Loader {
                     target.currentSdkVersion.minor);
             packageLanguageVersion = new InvalidLanguageVersion(
                 fileUri, 0, noLength, target.currentSdkVersion, false);
+          } else if (version < target.leastSupportedVersion) {
+            packageLanguageVersionProblem =
+                templateLanguageVersionTooLow.withArguments(
+                    target.leastSupportedVersion.major,
+                    target.leastSupportedVersion.minor);
+            packageLanguageVersion = new InvalidLanguageVersion(
+                fileUri, 0, noLength, target.leastSupportedVersion, false);
           } else {
             packageLanguageVersion = new ImplicitLanguageVersion(version);
           }
@@ -452,7 +460,7 @@ class SourceLoader extends Loader {
         packageUri: packageUri,
         packageLanguageVersion: packageLanguageVersion,
         origin: origin,
-        referencesFrom: referencesFrom,
+        referencesFromIndex: referencesFromIndex,
         referenceIsPartOwner: referenceIsPartOwner,
         isAugmentation: isAugmentation,
         isPatch: isPatch);
@@ -569,14 +577,14 @@ class SourceLoader extends Loader {
       {Uri? fileUri,
       required LibraryBuilder accessor,
       LibraryBuilder? origin,
-      Library? referencesFrom,
+      IndexedLibrary? referencesFromIndex,
       bool? referenceIsPartOwner,
       bool isAugmentation = false,
       bool isPatch = false}) {
     LibraryBuilder libraryBuilder = _read(uri,
         fileUri: fileUri,
         origin: origin,
-        referencesFrom: referencesFrom,
+        referencesFromIndex: referencesFromIndex,
         referenceIsPartOwner: referenceIsPartOwner,
         isAugmentation: isAugmentation,
         isPatch: isPatch,
@@ -597,11 +605,14 @@ class SourceLoader extends Loader {
   ///
   /// This differs from [read] in that there is no accessor library, meaning
   /// that access to platform private libraries cannot be granted.
-  LibraryBuilder readAsEntryPoint(Uri uri,
-      {Uri? fileUri, Library? referencesFrom}) {
+  LibraryBuilder readAsEntryPoint(
+    Uri uri, {
+    Uri? fileUri,
+    IndexedLibrary? referencesFromIndex,
+  }) {
     LibraryBuilder libraryBuilder = _read(uri,
         fileUri: fileUri,
-        referencesFrom: referencesFrom,
+        referencesFromIndex: referencesFromIndex,
         addAsRoot: true,
         isAugmentation: false,
         isPatch: false);
@@ -641,7 +652,7 @@ class SourceLoader extends Loader {
   LibraryBuilder _read(Uri uri,
       {Uri? fileUri,
       LibraryBuilder? origin,
-      Library? referencesFrom,
+      IndexedLibrary? referencesFromIndex,
       bool? referenceIsPartOwner,
       required bool isAugmentation,
       required bool isPatch,
@@ -656,7 +667,7 @@ class SourceLoader extends Loader {
             uri,
             fileUri,
             origin as SourceLibraryBuilder?,
-            referencesFrom,
+            referencesFromIndex,
             referenceIsPartOwner,
             isAugmentation,
             isPatch,
@@ -1550,7 +1561,7 @@ severity: $severity
     /// [ClassBuilder]s for the macro classes.
     Map<Uri, List<ClassBuilder>> macroLibraries = {};
 
-    for (LibraryBuilder libraryBuilder in libraryBuilders) {
+    for (SourceLibraryBuilder libraryBuilder in sourceLibraryBuilders) {
       Iterator<ClassBuilder> iterator =
           libraryBuilder.localMembersIteratorOfType();
       while (iterator.moveNext()) {
@@ -1775,12 +1786,19 @@ severity: $severity
     ticker.logMs("Resolved $count constructors");
   }
 
-  void installTypedefTearOffs() {
+  List<DelayedDefaultValueCloner>? installTypedefTearOffs() {
+    List<DelayedDefaultValueCloner>? delayedDefaultValueCloners;
     if (target.backendTarget.isTypedefTearOffLoweringEnabled) {
       for (SourceLibraryBuilder library in sourceLibraryBuilders) {
-        library.installTypedefTearOffs();
+        List<DelayedDefaultValueCloner>? libraryDelayedDefaultValueCloners =
+            library.installTypedefTearOffs();
+        if (libraryDelayedDefaultValueCloners != null) {
+          (delayedDefaultValueCloners ??= [])
+              .addAll(libraryDelayedDefaultValueCloners);
+        }
       }
     }
+    return delayedDefaultValueCloners;
   }
 
   void finishTypeVariables(Iterable<SourceLibraryBuilder> libraryBuilders,
@@ -2515,7 +2533,7 @@ severity: $severity
   void buildOutlineNodes() {
     for (SourceLibraryBuilder library in sourceLibraryBuilders) {
       Library target = library.buildOutlineNodes(coreLibrary);
-      if (library.referencesFrom != null) {
+      if (library.indexedLibrary != null) {
         referenceFromIndex ??= new ReferenceFromIndex();
         referenceFromIndex!.addIndexedLibrary(target, library.indexedLibrary!);
       }

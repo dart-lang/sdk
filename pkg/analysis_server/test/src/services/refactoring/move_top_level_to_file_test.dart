@@ -30,7 +30,7 @@ class ^A {}
 
   /// Replaces the "Save URI" argument in [action].
   void replaceSaveUriArgument(CodeAction action, Uri newFileUri) {
-    final arguments = getRefactorCommandArguments(action);
+    var arguments = getRefactorCommandArguments(action);
     // The filename is the first item we prompt for so is first in the
     // arguments.
     arguments[0] = newFileUri.toString();
@@ -117,7 +117,7 @@ class B {}
     addTestSource(simpleClassContent);
 
     /// Existing new file contents where 'ClassToMove' will be moved to.
-    final newFilePath = join(projectFolderPath, 'lib', 'a.dart');
+    var newFilePath = join(projectFolderPath, 'lib', 'a.dart');
     newFile(newFilePath, '''
 int? a;
 ''');
@@ -132,7 +132,7 @@ class A {}
 ''';
 
     await initializeServer();
-    final action = await expectCodeAction(simpleClassRefactorTitle);
+    var action = await expectCodeAction(simpleClassRefactorTitle);
     await verifyCommandEdits(action.command!, expected);
   }
 
@@ -140,7 +140,7 @@ class A {}
     addTestSource(simpleClassContent);
 
     /// Existing new file contents where 'ClassToMove' will be moved to.
-    final newFilePath = join(projectFolderPath, 'lib', 'a.dart');
+    var newFilePath = join(projectFolderPath, 'lib', 'a.dart');
     newFile(newFilePath, '''
 // This is a file header
 
@@ -159,7 +159,7 @@ class A {}
 ''';
 
     await initializeServer();
-    final action = await expectCodeAction(simpleClassRefactorTitle);
+    var action = await expectCodeAction(simpleClassRefactorTitle);
     await verifyCommandEdits(action.command!, expected);
   }
 
@@ -167,7 +167,7 @@ class A {}
     addTestSource(simpleClassContent);
 
     /// Existing new file contents where 'ClassToMove' will be moved to.
-    final newFilePath = join(projectFolderPath, 'lib', 'a.dart');
+    var newFilePath = join(projectFolderPath, 'lib', 'a.dart');
     newFile(newFilePath, '''
 import 'dart:async';
 
@@ -186,7 +186,7 @@ class A {}
 ''';
 
     await initializeServer();
-    final action = await expectCodeAction(simpleClassRefactorTitle);
+    var action = await expectCodeAction(simpleClassRefactorTitle);
     await verifyCommandEdits(action.command!, expected);
   }
 
@@ -1121,7 +1121,7 @@ class B {}
   Future<void> test_logsAction() async {
     addTestSource(simpleClassContent);
     await initializeServer();
-    final action = await expectCodeAction(simpleClassRefactorTitle);
+    var action = await expectCodeAction(simpleClassRefactorTitle);
     await executeRefactor(action);
 
     expectCommandLogged('dart.refactor.move_top_level_to_file');
@@ -1270,8 +1270,8 @@ import 'package:test/setter.dart';
     addTestSource(simpleClassContent);
 
     /// Filename to inject to replace default.
-    final newFilePath = join(projectFolderPath, 'lib', 'my_new_class.dart');
-    final newFileUri = Uri.file(newFilePath);
+    var newFilePath = join(projectFolderPath, 'lib', 'my_new_class.dart');
+    var newFileUri = Uri.file(newFilePath);
 
     /// Expected new file content.
     const expected = '''
@@ -1281,7 +1281,7 @@ class A {}
 ''';
 
     await initializeServer();
-    final action = await expectCodeAction(simpleClassRefactorTitle);
+    var action = await expectCodeAction(simpleClassRefactorTitle);
     // Replace the file URI argument with our custom path.
     replaceSaveUriArgument(action, newFileUri);
     await verifyCommandEdits(action.command!, expected);
@@ -1831,7 +1831,7 @@ class B {}
     }
 
     await initializeServer();
-    final action = await expectCodeAction(actionTitle);
+    var action = await expectCodeAction(actionTitle);
     await verifyCommandEdits(action.command!, expected);
   }
 

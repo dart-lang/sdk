@@ -187,8 +187,8 @@ void main() {
               expect(await dillFile.exists(), equals(true));
               expect(result.filename, dillFile.path);
               expect(result.errorsCount, 0);
+              count += 1;
               frontendServer.accept();
-              frontendServer.quit();
 
               final Component component =
                   loadComponentFromBinary(dillFile.path);
@@ -196,7 +196,21 @@ void main() {
                   _findNativeAssetsLibrary(component);
               expect(nativeAssetsLibrary, isNotNull);
 
+              frontendServer.compileNativeAssetsOnly();
               break;
+            case 2:
+              expect(await dillFile.exists(), equals(true));
+              expect(result.filename, dillFile.path);
+              expect(result.errorsCount, 0);
+              count += 1;
+
+              final Component component =
+                  loadComponentFromBinary(dillFile.path);
+              final Library? nativeAssetsLibrary =
+                  _findNativeAssetsLibrary(component);
+              expect(nativeAssetsLibrary, isNotNull);
+
+              frontendServer.quit();
           }
         });
         expect(await result, 0);
@@ -309,6 +323,28 @@ void main() {
           '--output-dill=${dillFile.path}',
           '--native-assets=${nativeAssetsYamlFile.path}',
           mainFile.path
+        ]);
+
+        expect(await frontendServerResult, 0);
+        frontendServer.close();
+
+        expect(await dillFile.exists(), equals(true));
+        final Component component = loadComponentFromBinary(dillFile.path);
+        final Library? nativeAssetsLibrary =
+            _findNativeAssetsLibrary(component);
+        expect(nativeAssetsLibrary, isNotNull);
+      });
+
+      test('pass in native assets only at startup', () async {
+        final FrontendServer frontendServer = new FrontendServer();
+        Future<int> frontendServerResult = frontendServer.open(<String>[
+          '--sdk-root=${sdkRoot.toFilePath()}',
+          '--platform=${platformKernel.path}',
+          '--aot',
+          '--tfa',
+          '--output-dill=${dillFile.path}',
+          '--native-assets=${nativeAssetsYamlFile.path}',
+          '--native-assets-only',
         ]);
 
         expect(await frontendServerResult, 0);

@@ -10,6 +10,8 @@ import 'package:kernel/library_index.dart';
 import 'package:kernel/src/printer.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:vm/metadata/direct_call.dart';
+import 'package:vm/metadata/inferred_type.dart';
+import 'package:vm/metadata/unboxing_info.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'class_info.dart';
@@ -64,6 +66,24 @@ class Translator with KernelNodes {
   late final TypeEnvironment typeEnvironment;
   final ClosedWorldClassHierarchy hierarchy;
   late final ClassHierarchySubtypes subtypes;
+
+  // TFA-inferred metadata.
+  late final Map<TreeNode, DirectCallMetadata> directCallMetadata =
+      (component.metadata[DirectCallMetadataRepository.repositoryTag]
+              as DirectCallMetadataRepository)
+          .mapping;
+  late final Map<TreeNode, InferredType> inferredTypeMetadata =
+      (component.metadata[InferredTypeMetadataRepository.repositoryTag]
+              as InferredTypeMetadataRepository)
+          .mapping;
+  late final Map<TreeNode, InferredType> inferredArgTypeMetadata =
+      (component.metadata[InferredArgTypeMetadataRepository.repositoryTag]
+              as InferredArgTypeMetadataRepository)
+          .mapping;
+  late final Map<TreeNode, UnboxingInfoMetadata> unboxingInfoMetadata =
+      (component.metadata[UnboxingInfoMetadataRepository.repositoryTag]
+              as UnboxingInfoMetadataRepository)
+          .mapping;
 
   // Other parts of the global compiler state.
   @override
@@ -523,8 +543,6 @@ class Translator with KernelNodes {
   bool isWasmType(Class cls) =>
       cls == wasmTypesBaseClass || _hasSuperclass(cls, wasmTypesBaseClass);
 
-  bool isFfiCompound(Class cls) => _hasSuperclass(cls, ffiCompoundClass);
-
   w.StorageType translateStorageType(DartType type) {
     bool nullable = type.isPotentiallyNullable;
     if (type is InterfaceType) {
@@ -569,12 +587,6 @@ class Translator with KernelNodes {
         return w.RefType.def(wasmType, nullable: nullable);
       }
 
-      // FFI compound?
-      if (isFfiCompound(cls)) {
-        if (nullable) throw "FFI types can't be nullable";
-        return w.NumType.i32;
-      }
-
       // Other built-in type?
       w.StorageType? builtin = builtinTypes[cls];
       if (builtin != null) {
@@ -585,8 +597,10 @@ class Translator with KernelNodes {
           if (builtin.isPrimitive) throw "Wasm numeric types can't be nullable";
           return (builtin as w.RefType).withNullability(nullable);
         }
-        if (cls == ffiPointerClass) throw "FFI types can't be nullable";
-        return classInfo[boxedClasses[builtin]!]!.nullableType;
+        final boxedBuiltin = classInfo[boxedClasses[builtin]!]!;
+        return nullable
+            ? boxedBuiltin.nullableType
+            : boxedBuiltin.nonNullableType;
       }
 
       // Regular class.
@@ -667,9 +681,6 @@ class Translator with KernelNodes {
         w.StorageType? builtin = builtinTypes[cls];
         if (builtin != null && builtin.isPrimitive) {
           return builtin as w.ValueType;
-        }
-        if (isFfiCompound(cls)) {
-          return w.NumType.i32;
         }
       }
     }
@@ -853,11 +864,10 @@ class Translator with KernelNodes {
         return;
       }
       if (to != voidMarker) {
-        assert(to is w.RefType && to.nullable);
-        // This can happen when a void method has its return type overridden
-        // to return a value, in which case the selector signature will have a
-        // non-void return type to encompass all possible return values.
-        b.ref_null((to as w.RefType).heapType.bottomType);
+        // This can happen e.g. when a `return;` is guaranteed to be never taken
+        // but TFA didn't remove the dead code. In that case we synthesize a
+        // dummy value.
+        globals.instantiateDummyValue(b, to);
         return;
       }
     }
@@ -913,6 +923,24 @@ class Translator with KernelNodes {
     }
   }
 
+  w.ValueType preciseThisFor(Member member, {bool nullable = false}) {
+    assert(member.isInstanceMember || member is Constructor);
+
+    Class cls = member.enclosingClass!;
+    final w.StorageType? builtin = builtinTypes[cls];
+    final boxClass = boxedClasses[builtin];
+    if (boxClass != null) {
+      // We represent `this` as an unboxed type.
+      if (!nullable) return builtin as w.ValueType;
+      // Otherwise we use [boxClass] to represent `this`.
+      cls = boxClass;
+    }
+    final representationClassInfo = classInfo[cls]!.repr;
+    return nullable
+        ? representationClassInfo.nullableType
+        : representationClassInfo.nonNullableType;
+  }
+
   /// Get the Wasm table declared by [field], or `null` if [field] is not a
   /// declaration of a Wasm table.
   ///
@@ -942,10 +970,114 @@ class Translator with KernelNodes {
   }
 
   Member? singleTarget(TreeNode node) {
-    DirectCallMetadataRepository metadata =
-        component.metadata[DirectCallMetadataRepository.repositoryTag]
-            as DirectCallMetadataRepository;
-    return metadata.mapping[node]?.targetMember;
+    return directCallMetadata[node]?.targetMember;
+  }
+
+  DartType typeOfParameterVariable(VariableDeclaration node, bool isRequired) {
+    // We have a guarantee that inferred types are correct.
+    final inferredType = _inferredTypeOfParameterVariable(node);
+    if (inferredType != null) {
+      return isRequired
+          ? inferredType
+          : inferredType.withDeclaredNullability(Nullability.nullable);
+    }
+
+    final isCovariant =
+        node.isCovariantByDeclaration || node.isCovariantByClass;
+    if (isCovariant) {
+      // The type argument of a static type is not required to conform
+      // to the bounds of the type variable. Thus, any object can be
+      // passed to a parameter that is covariant by class.
+      return coreTypes.objectNullableRawType;
+    }
+
+    return node.type;
+  }
+
+  DartType typeOfReturnValue(Member member) {
+    final unboxingInfo = unboxingInfoMetadata[member];
+    if (unboxingInfo != null) {
+      final returnInfo = unboxingInfo.returnInfo;
+      if (returnInfo.kind == UnboxingKind.int) {
+        return coreTypes.intRawType(Nullability.nonNullable);
+      }
+      if (returnInfo.kind == UnboxingKind.double) {
+        return coreTypes.doubleRawType(Nullability.nonNullable);
+      }
+    }
+    if (member is Field) return member.type;
+    return member.function!.returnType;
+  }
+
+  w.ValueType translateTypeOfParameter(
+      VariableDeclaration node, bool isRequired) {
+    return translateType(typeOfParameterVariable(node, isRequired));
+  }
+
+  w.ValueType translateTypeOfReturnValue(Member node) {
+    return translateType(typeOfReturnValue(node));
+  }
+
+  w.ValueType translateTypeOfField(Field node) {
+    return translateType(_inferredTypeOfField(node) ?? node.type);
+  }
+
+  w.ValueType translateTypeOfLocalVariable(VariableDeclaration node) {
+    return translateType(_inferredTypeOfLocalVariable(node) ?? node.type);
+  }
+
+  DartType? _inferredTypeOfParameterVariable(VariableDeclaration node) {
+    return _filterInferredType(node.type, inferredArgTypeMetadata[node]);
+  }
+
+  DartType? _inferredTypeOfField(Field node) {
+    return _filterInferredType(node.type, inferredTypeMetadata[node]);
+  }
+
+  DartType? _inferredTypeOfLocalVariable(VariableDeclaration node) {
+    InferredType? inferredType = inferredTypeMetadata[node];
+    if (node.isFinal) {
+      inferredType ??= inferredTypeMetadata[node.initializer];
+    }
+    return _filterInferredType(node.type, inferredType);
+  }
+
+  DartType? _filterInferredType(
+      DartType defaultType, InferredType? inferredType) {
+    if (inferredType == null) return null;
+
+    // To check whether [inferredType] is more precise than [defaultType] we
+    // require it (for now) to be an interface type.
+    if (defaultType is! InterfaceType) return null;
+
+    final concreteClass = inferredType.concreteClass;
+    if (concreteClass == null) return null;
+    // TFA doesn't know how dart2wasm represents closures
+    if (concreteClass == closureClass) return null;
+    // The WasmFunction<>/WasmArray<>/WasmTable<> types need concrete type
+    // arguments.
+    if (concreteClass == wasmFunctionClass) return null;
+    if (concreteClass == wasmArrayClass) return null;
+    if (concreteClass == wasmTableClass) return null;
+
+    // If the TFA inferred class is the same as the [defaultType] we prefer the
+    // latter as it has the correct type arguments.
+    if (concreteClass == defaultType.classNode) return null;
+
+    // Sometimes we get inferred types that violate soundness (and would result
+    // in a runtime error, e.g. in a dynamic invocation forwarder passing an
+    // object of incorrect type to a target).
+    if (!hierarchy.isSubInterfaceOf(concreteClass, defaultType.classNode)) {
+      return null;
+    }
+
+    final typeParameters = concreteClass.typeParameters;
+    final typeArguments = typeParameters.isEmpty
+        ? const <DartType>[]
+        : List<DartType>.filled(typeParameters.length, const DynamicType());
+    final nullability =
+        inferredType.nullable ? Nullability.nullable : Nullability.nonNullable;
+    return InterfaceType(concreteClass, nullability, typeArguments);
   }
 
   bool shouldInline(Reference target) {

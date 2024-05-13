@@ -1,5 +1,3 @@
-// @dart = 2.9
-
 class A {
   String call(String s) => '$s$s';
 }

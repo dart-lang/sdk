@@ -1,0 +1,12 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  static factory redirect() → self::Class /* redirection-target: self::Class::• */
+    return new self::Class::•();
+}
+static method main() → dynamic {}

@@ -59,8 +59,8 @@ class MainFunctionTest extends DartSnippetProducerTest {
     required bool expectArgsParameter,
   }) async {
     testFilePath = file;
-    final code = TestCode.parse(content);
-    final snippet = await expectValidSnippet(code);
+    var code = TestCode.parse(content);
+    var snippet = await expectValidSnippet(code);
     expect(snippet.prefix, prefix);
     expect(snippet.label, label);
     expect(snippet.change.edits, hasLength(1));
@@ -68,7 +68,7 @@ class MainFunctionTest extends DartSnippetProducerTest {
     for (var edit in snippet.change.edits) {
       result = SourceEdit.applySequence(result, edit.edits);
     }
-    final expectedParams = expectArgsParameter ? 'List<String> args' : '';
+    var expectedParams = expectArgsParameter ? 'List<String> args' : '';
     expect(result, '''
 void main($expectedParams) {
   

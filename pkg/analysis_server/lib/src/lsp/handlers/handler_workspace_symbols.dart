@@ -24,7 +24,7 @@ class WorkspaceSymbolHandler extends SharedMessageHandler<WorkspaceSymbolParams,
   @override
   Future<ErrorOr<List<SymbolInformation>>> handle(WorkspaceSymbolParams params,
       MessageInfo message, CancellationToken token) async {
-    final clientCapabilities = server.lspClientCapabilities;
+    var clientCapabilities = server.lspClientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return serverNotInitializedError;
@@ -36,13 +36,13 @@ class WorkspaceSymbolHandler extends SharedMessageHandler<WorkspaceSymbolParams,
     // TODO(dantup): The spec has been updated to allow empty queries. Clients
     // may expect a full list in this case, though we may choose not to send
     // it on performance grounds until they type a filter.
-    final query = params.query;
+    var query = params.query;
     if (query == '') {
       return success([]);
     }
 
-    final supportedSymbolKinds = clientCapabilities.workspaceSymbolKinds;
-    final searchOnlyAnalyzed = !server
+    var supportedSymbolKinds = clientCapabilities.workspaceSymbolKinds;
+    var searchOnlyAnalyzed = !server
         .lspClientConfiguration.global.includeDependenciesInWorkspaceSymbols;
 
     // Cap the number of results we'll return because short queries may match
@@ -71,8 +71,8 @@ class WorkspaceSymbolHandler extends SharedMessageHandler<WorkspaceSymbolParams,
     }
 
     // Map the results to SymbolInformations and flatten the list of lists.
-    final symbols = message.performance.run('convert', (performance) {
-      final declarations = workspaceSymbols.declarations;
+    var symbols = message.performance.run('convert', (performance) {
+      var declarations = workspaceSymbols.declarations;
       performance.getDataInt('declarations').value = declarations.length;
       return declarations.map((declaration) {
         return _asSymbolInformation(
@@ -91,25 +91,25 @@ class WorkspaceSymbolHandler extends SharedMessageHandler<WorkspaceSymbolParams,
     Set<SymbolKind> supportedKinds,
     List<String> filePaths,
   ) {
-    final filePath = filePaths[declaration.fileIndex];
+    var filePath = filePaths[declaration.fileIndex];
 
-    final kind = declarationKindToSymbolKind(
+    var kind = declarationKindToSymbolKind(
       supportedKinds,
       declaration.kind,
     );
-    final range = toRange(
+    var range = toRange(
       declaration.lineInfo,
       declaration.codeOffset,
       declaration.codeLength,
     );
-    final location = Location(
+    var location = Location(
       uri: uriConverter.toClientUri(filePath),
       range: range,
     );
 
-    final parameters = declaration.parameters;
-    final hasParameters = parameters != null && parameters.isNotEmpty;
-    final nameSuffix = hasParameters ? (parameters == '()' ? '()' : '(…)') : '';
+    var parameters = declaration.parameters;
+    var hasParameters = parameters != null && parameters.isNotEmpty;
+    var nameSuffix = hasParameters ? (parameters == '()' ? '()' : '(…)') : '';
 
     return SymbolInformation(
       name: '${declaration.name}$nameSuffix',

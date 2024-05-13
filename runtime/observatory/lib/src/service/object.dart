@@ -2816,6 +2816,10 @@ M.InstanceKind stringToInstanceKind(String s) {
       return M.InstanceKind.record;
     case 'Finalizer':
       return M.InstanceKind.finalizer;
+    case 'NativeFinalizer':
+      return M.InstanceKind.nativeFinalizer;
+    case 'FinalizerEntry':
+      return M.InstanceKind.finalizerEntry;
     case 'WeakReference':
       return M.InstanceKind.weakReference;
     case 'UserTag':
@@ -2872,6 +2876,7 @@ class Instance extends HeapObject implements M.Instance {
   bool? valueAsStringIsTruncated;
   ServiceFunction? closureFunction; // If a closure.
   Context? closureContext; // If a closure.
+  Instance? closureReceiver; // If a closure.
   int? length; // If a List, Map or TypedData.
   int? count;
   int? offset;
@@ -2900,6 +2905,10 @@ class Instance extends HeapObject implements M.Instance {
   Instance? twoByteBytecode; // If a RegExp.
   bool? isCaseSensitive; // If a RegExp.
   bool? isMultiLine; // If a RegExp.
+  Instance? callback; // If a Finalizer.
+  Instance? allEntries; // If a Finalizer or NativeFinalizer.
+  Instance? detach; // If a FinalizerEntry.
+  Instance? token; // If a FinalizerEntry.
 
   bool get isAbstractType => M.isAbstractType(kind);
   bool get isNull => kind == M.InstanceKind.vNull;
@@ -2956,6 +2965,7 @@ class Instance extends HeapObject implements M.Instance {
     // Coerce absence to false.
     valueAsStringIsTruncated = map['valueAsStringIsTruncated'] == true;
     closureFunction = map['closureFunction'];
+    closureReceiver = map['closureReceiver'];
     name = map['name']?.toString();
     if (map['label'] != null) {
       name = map['label'];
@@ -2984,6 +2994,10 @@ class Instance extends HeapObject implements M.Instance {
     twoByteFunction = isCompiled ? map['_twoByteFunction'] : null;
     oneByteBytecode = map['_oneByteBytecode'];
     twoByteBytecode = map['_twoByteBytecode'];
+    callback = map['callback'];
+    allEntries = map['allEntries'];
+    detach = map['detach'];
+    token = map['token'];
 
     if (map['fields'] != null) {
       var fields = <BoundField>[];
@@ -3080,7 +3094,12 @@ class Instance extends HeapObject implements M.Instance {
     referent = map['mirrorReferent'];
     target = map['target'];
     key = map['propertyKey'];
-    value = map['propertyValue'];
+    if (map['propertyValue'] != null) {
+      value = map['propertyValue']; // Ephemeron.
+    }
+    if (map['value'] != null) {
+      value = map['value']; // Finalizer entry.
+    }
     activationBreakpoint = map['_activationBreakpoint'];
 
     // We are fully loaded.

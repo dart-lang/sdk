@@ -5,7 +5,7 @@
       "name": "pack",
       "rootUri": "../",
       "packageUri": "lib/",
-      "languageVersion": "2.7"
+      "languageVersion": "%VERSION_MARKER2%"
     }
   ]
 }

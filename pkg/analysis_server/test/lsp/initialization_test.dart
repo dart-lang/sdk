@@ -44,15 +44,15 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
     // Check that when the server calls client/registerCapability it only includes
     // the items we advertised dynamic registration support for.
-    final registrations = <Registration>[];
+    var registrations = <Registration>[];
     await monitorDynamicRegistrations(
       registrations,
       initialize,
     );
 
-    final registeredMethods =
+    var registeredMethods =
         registrations.map((registration) => registration.method).toSet();
-    final result = expectedResult.map((method) => method.toJson()).toSet();
+    var result = expectedResult.map((method) => method.toJson()).toSet();
 
     expect(registeredMethods, equals(result));
   }
@@ -61,7 +61,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     List<Registration> registrations,
     Method method,
   ) {
-    final options = registrationFor(registrations, method)?.registerOptions;
+    var options = registrationFor(registrations, method)?.registerOptions;
     if (options == null) {
       throw 'Registration options for $method were not found. '
           'Perhaps dynamicRegistration is missing from '
@@ -81,7 +81,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // Make it a Blaze project.
     newFile(convertPath('$packagePath/BUILD'), '');
 
-    final file1 = convertPath('$packagePath/lib/file1.dart');
+    var file1 = convertPath('$packagePath/lib/file1.dart');
     newFile(file1, '');
 
     await initialize(allowEmptyRootUri: true);
@@ -97,32 +97,32 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     setAllSupportedTextDocumentDynamicRegistrations();
     setAllSupportedWorkspaceDynamicRegistrations();
 
-    final registrations = <Registration>[];
-    final initResponse = await monitorDynamicRegistrations(
+    var registrations = <Registration>[];
+    var initResponse = await monitorDynamicRegistrations(
       registrations,
       () => initialize(),
     );
 
-    final initResult =
+    var initResult =
         InitializeResult.fromJson(initResponse.result as Map<String, Object?>);
     expect(initResult.capabilities, isNotNull);
 
     // Check Dart-only registration.
-    final dartRegistration =
+    var dartRegistration =
         registrationForDart(registrations, Method.textDocument_completion);
-    final dartOptions = CompletionRegistrationOptions.fromJson(
+    var dartOptions = CompletionRegistrationOptions.fromJson(
         dartRegistration.registerOptions as Map<String, Object?>);
     expect(dartOptions.documentSelector, hasLength(1));
     expect(dartOptions.documentSelector![0].language, dartLanguageId);
     expect(dartOptions.triggerCharacters, isNotEmpty);
 
     // Check non-Dart registration.
-    final nonDartRegistration = registrations.singleWhere((r) =>
+    var nonDartRegistration = registrations.singleWhere((r) =>
         r.method == Method.textDocument_completion.toJson() &&
         r != dartRegistration);
-    final nonDartOptions = CompletionRegistrationOptions.fromJson(
+    var nonDartOptions = CompletionRegistrationOptions.fromJson(
         nonDartRegistration.registerOptions as Map<String, Object?>);
-    final otherLanguages = nonDartOptions.documentSelector!
+    var otherLanguages = nonDartOptions.documentSelector!
         .map((selector) => selector.language)
         .toList();
     expect(otherLanguages, isNot(contains('dart')));
@@ -145,7 +145,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     setAllSupportedTextDocumentDynamicRegistrations();
 
     // Track all current registrations.
-    final registrations = <Registration>[];
+    var registrations = <Registration>[];
 
     // Perform normal registration (without plugins) to get the initial set.
     await monitorDynamicRegistrations(registrations, initialize);
@@ -158,7 +158,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
     // Monitor the unregistration/new registrations during the plugin activation.
     await monitorDynamicReregistration(registrations, () async {
-      final plugin = configureTestPlugin();
+      var plugin = configureTestPlugin();
       plugin.currentSession = PluginSession(plugin)
         ..interestingFiles = ['*.dart'];
       pluginManager.pluginsChangedController.add(null);
@@ -197,26 +197,26 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
     setAllSupportedTextDocumentDynamicRegistrations();
 
-    final registrations = <Registration>[];
+    var registrations = <Registration>[];
     await monitorDynamicRegistrations(registrations, initialize);
 
-    final knownRegistrationsIds =
+    var knownRegistrationsIds =
         registrations.map((registration) => registration.id).toSet();
 
-    final numberOfReregistrations = 10;
+    var numberOfReregistrations = 10;
 
     // Listen to incoming registrations, ensure they're not in the set, and add
     // them.
-    final registrationsDone = requestsFromServer
+    var registrationsDone = requestsFromServer
         .where((n) => n.method == Method.client_registerCapability)
         .take(numberOfReregistrations)
         .listen((request) {
       respondTo(request, null);
-      final registrations =
+      var registrations =
           RegistrationParams.fromJson(request.params as Map<String, Object?>)
               .registrations;
-      for (final registration in registrations) {
-        final id = registration.id;
+      for (var registration in registrations) {
+        var id = registration.id;
         if (!knownRegistrationsIds.add(id)) {
           throw 'Registration $id was already in the existing set!';
         }
@@ -225,16 +225,16 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
     // Listen to incoming unregistrations, verify they're in the set, and remove
     // them.
-    final unregistrationsDone = requestsFromServer
+    var unregistrationsDone = requestsFromServer
         .where((n) => n.method == Method.client_unregisterCapability)
         .take(numberOfReregistrations)
         .listen((request) {
       respondTo(request, null);
-      final unregistrations =
+      var unregistrations =
           UnregistrationParams.fromJson(request.params as Map<String, Object?>)
               .unregisterations;
-      for (final unregistration in unregistrations) {
-        final id = unregistration.id;
+      for (var unregistration in unregistrations) {
+        var id = unregistration.id;
         if (!knownRegistrationsIds.remove(id)) {
           throw 'Registration $id was not in the existing set!';
         }
@@ -243,7 +243,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
     // Trigger multiple plugin events that will rebuild the registrations.
     for (var i = 0; i < numberOfReregistrations; i++) {
-      final plugin = configureTestPlugin();
+      var plugin = configureTestPlugin();
       plugin.currentSession = PluginSession(plugin);
       // Ensure they have different file types so the registrations change,
       // otherwise they will be optimised out as not changing.
@@ -365,8 +365,8 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // Basic check that the server responds with the capabilities we'd expect,
     // for ex including analysis_options.yaml in text synchronization but not
     // for hovers.
-    final registrations = <Registration>[];
-    final initResponse = await monitorDynamicRegistrations(
+    var registrations = <Registration>[];
+    var initResponse = await monitorDynamicRegistrations(
       registrations,
       initialize,
     );
@@ -374,7 +374,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // Because we support dynamic registration for synchronization, we won't send
     // static registrations for them.
     // https://github.com/dart-lang/sdk/issues/38490
-    final initResult =
+    var initResult =
         InitializeResult.fromJson(initResponse.result as Map<String, Object?>);
     expect(initResult.serverInfo!.name, 'Dart SDK LSP Analysis Server');
     expect(initResult.serverInfo!.version, isNotNull);
@@ -383,11 +383,11 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
     // Should contain Hover, DidOpen, DidClose, DidChange, WillRenameFiles.
     expect(registrations, hasLength(5));
-    final hover =
+    var hover =
         registrationOptionsFor(registrations, Method.textDocument_hover);
-    final change =
+    var change =
         registrationOptionsFor(registrations, Method.textDocument_didChange);
-    final rename = FileOperationRegistrationOptions.fromJson(
+    var rename = FileOperationRegistrationOptions.fromJson(
         registrationFor(registrations, Method.workspace_willRenameFiles)
             ?.registerOptions as Map<String, Object?>);
     expect(registrationOptionsFor(registrations, Method.textDocument_didOpen),
@@ -426,10 +426,10 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
         .listen((_) => didGetRegisterCapabilityRequest = true);
 
     // Initialize with no dynamic registrations advertised.
-    final initResponse = await initialize();
+    var initResponse = await initialize();
     await pumpEventQueue();
 
-    final initResult =
+    var initResult =
         InitializeResult.fromJson(initResponse.result as Map<String, Object?>);
     expect(initResult.capabilities, isNotNull);
     // When dynamic registration is not supported, we will always statically
@@ -472,13 +472,13 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
     // If the client sends dynamicRegistration settings then there
     // should not be static registrations for the same capabilities.
-    final registrations = <Registration>[];
-    final initResponse = await monitorDynamicRegistrations(
+    var registrations = <Registration>[];
+    var initResponse = await monitorDynamicRegistrations(
       registrations,
       initialize,
     );
 
-    final initResult =
+    var initResult =
         InitializeResult.fromJson(initResponse.result as Map<String, Object?>);
     expect(initResult.capabilities, isNotNull);
 
@@ -505,21 +505,21 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(initResult.capabilities.semanticTokensProvider, isNull);
 
     // Ensure all expected dynamic registrations.
-    for (final expectedRegistration in ClientDynamicRegistrations.supported) {
+    for (var expectedRegistration in ClientDynamicRegistrations.supported) {
       // We have two completion registrations (to handle different trigger
       // characters), so exclude that here and check it manually below.
       if (expectedRegistration == Method.textDocument_completion) {
         continue;
       }
 
-      final registration =
+      var registration =
           registrationOptionsFor(registrations, expectedRegistration);
       expect(registration, isNotNull,
           reason: 'Missing dynamic registration for $expectedRegistration');
     }
 
     // Check the were two completion registrations.
-    final completionRegistrations = registrations
+    var completionRegistrations = registrations
         .where((reg) => reg.method == Method.textDocument_completion.toJson());
     expect(completionRegistrations, hasLength(2));
   }
@@ -530,26 +530,26 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // Initialize by supporting dynamic registrations everywhere
     setAllSupportedTextDocumentDynamicRegistrations();
 
-    final registrations = <Registration>[];
+    var registrations = <Registration>[];
     await monitorDynamicRegistrations(
       registrations,
       initialize,
     );
 
-    final unregisterRequest =
+    var unregisterRequest =
         await expectRequest(Method.client_unregisterCapability, () {
-      final plugin = configureTestPlugin();
+      var plugin = configureTestPlugin();
       plugin.currentSession = PluginSession(plugin)
         ..interestingFiles = ['*.foo'];
       pluginManager.pluginsChangedController.add(null);
     });
-    final unregistrations = UnregistrationParams.fromJson(
+    var unregistrations = UnregistrationParams.fromJson(
             unregisterRequest.params as Map<String, Object?>)
         .unregisterations;
 
     // folding method should have been unregistered as the server now supports
     // *.foo files for it as well.
-    final registrationIdForFolding = registrations
+    var registrationIdForFolding = registrations
         .singleWhere((r) => r.method == 'textDocument/foldingRange')
         .id;
     expect(
@@ -575,20 +575,20 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
       respondTo(request, null);
     }));
 
-    final request = await expectRequest(Method.client_registerCapability, () {
-      final plugin = configureTestPlugin();
+    var request = await expectRequest(Method.client_registerCapability, () {
+      var plugin = configureTestPlugin();
       plugin.currentSession = PluginSession(plugin)
         ..interestingFiles = ['*.sql'];
       pluginManager.pluginsChangedController.add(null);
     });
 
-    final registrations =
+    var registrations =
         RegistrationParams.fromJson(request.params as Map<String, Object?>)
             .registrations;
 
-    final documentFilterSql =
+    var documentFilterSql =
         TextDocumentFilterWithScheme(scheme: 'file', pattern: '**/*.sql');
-    final documentFilterDart =
+    var documentFilterDart =
         TextDocumentFilterWithScheme(language: 'dart', scheme: 'file');
 
     expect(
@@ -615,16 +615,16 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   Future<void>
       test_emptyAnalysisRoots_handlesFileRequestsImmediately_resolved() async {
     const content = 'void f() {}';
-    final file1 = join(projectFolderPath, 'file1.dart');
-    final file1Uri = pathContext.toUri(file1);
+    var file1 = join(projectFolderPath, 'file1.dart');
+    var file1Uri = pathContext.toUri(file1);
     newFile(file1, content);
     newPubspecYamlFile(projectFolderPath, '');
 
     await initialize(allowEmptyRootUri: true);
 
     unawaited(openFile(file1Uri, content)); // Don't wait
-    final result = await getDocumentSymbols(file1Uri);
-    final symbols = result.map(
+    var result = await getDocumentSymbols(file1Uri);
+    var symbols = result.map(
       (docSymbols) => docSymbols,
       (symbolInfos) => symbolInfos,
     );
@@ -641,24 +641,24 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   Future<void>
       test_emptyAnalysisRoots_handlesFileRequestsImmediately_unresolved() async {
     const content = 'void f() {}';
-    final file1 = join(projectFolderPath, 'file1.dart');
-    final file1Uri = pathContext.toUri(file1);
+    var file1 = join(projectFolderPath, 'file1.dart');
+    var file1Uri = pathContext.toUri(file1);
     newFile(file1, content);
     newPubspecYamlFile(projectFolderPath, '');
 
     await initialize(allowEmptyRootUri: true);
 
     unawaited(openFile(file1Uri, content)); // Don't wait
-    final result = await getSelectionRanges(file1Uri, [startOfDocPos]);
+    var result = await getSelectionRanges(file1Uri, [startOfDocPos]);
     expect(result, hasLength(1));
   }
 
   Future<void> test_emptyAnalysisRoots_multipleOpenFiles() async {
-    final file1 = join(projectFolderPath, 'file1.dart');
-    final file1Uri = pathContext.toUri(file1);
+    var file1 = join(projectFolderPath, 'file1.dart');
+    var file1Uri = pathContext.toUri(file1);
     newFile(file1, '');
-    final file2 = join(projectFolderPath, 'file2.dart');
-    final file2Uri = pathContext.toUri(file2);
+    var file2 = join(projectFolderPath, 'file2.dart');
+    var file2Uri = pathContext.toUri(file2);
     newFile(file2, '');
     newPubspecYamlFile(projectFolderPath, '');
 
@@ -690,9 +690,9 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_emptyAnalysisRoots_projectWithoutPubspec() async {
     projectFolderPath = convertPath('/home/empty');
-    final nestedFilePath = join(
+    var nestedFilePath = join(
         projectFolderPath, 'nested', 'deeply', 'in', 'folders', 'test.dart');
-    final nestedFileUri = pathContext.toUri(nestedFilePath);
+    var nestedFileUri = pathContext.toUri(nestedFilePath);
     newFile(nestedFilePath, '');
 
     // The project folder shouldn't be added to start with.
@@ -705,9 +705,9 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_emptyAnalysisRoots_projectWithPubspec() async {
-    final nestedFilePath = join(
+    var nestedFilePath = join(
         projectFolderPath, 'nested', 'deeply', 'in', 'folders', 'test.dart');
-    final nestedFileUri = pathContext.toUri(nestedFilePath);
+    var nestedFileUri = pathContext.toUri(nestedFilePath);
     newFile(nestedFilePath, '');
     newPubspecYamlFile(projectFolderPath, '');
 
@@ -734,7 +734,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_excludedFolders_absolute() async {
-    final excludedFolderPath = join(projectFolderPath, 'excluded');
+    var excludedFolderPath = join(projectFolderPath, 'excluded');
 
     await provideConfig(
       initialize,
@@ -748,7 +748,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_excludedFolders_nonList() async {
-    final excludedFolderPath = join(projectFolderPath, 'excluded');
+    var excludedFolderPath = join(projectFolderPath, 'excluded');
 
     await provideConfig(
       initialize,
@@ -761,7 +761,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_excludedFolders_relative() async {
-    final excludedFolderPath = join(projectFolderPath, 'aaa', 'bbb');
+    var excludedFolderPath = join(projectFolderPath, 'aaa', 'bbb');
 
     await provideConfig(
       initialize,
@@ -778,7 +778,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   /// on Windows. It's common for shared configs in VS Code to always use
   /// forward slashes in paths.
   Future<void> test_excludedFolders_relative_posix() async {
-    final excludedFolderPath = join(projectFolderPath, 'aaa', 'bbb');
+    var excludedFolderPath = join(projectFolderPath, 'aaa', 'bbb');
 
     await provideConfig(
       initialize,
@@ -792,7 +792,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_excludedFolders_trailingSlash() async {
-    final excludedFolderPath = join(projectFolderPath, 'aaa', 'bbb');
+    var excludedFolderPath = join(projectFolderPath, 'aaa', 'bbb');
 
     await provideConfig(
       initialize,
@@ -810,7 +810,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   /// on Windows. It's common for shared configs in VS Code to always use
   /// forward slashes in paths.
   Future<void> test_excludedFolders_trailingSlash_posix() async {
-    final excludedFolderPath = join(projectFolderPath, 'aaa', 'bbb');
+    var excludedFolderPath = join(projectFolderPath, 'aaa', 'bbb');
 
     await provideConfig(
       initialize,
@@ -838,7 +838,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
       {},
     );
 
-    final symbols = (await result).map(
+    var symbols = (await result).map(
       (docSymbols) => docSymbols,
       (symbolInfos) => symbolInfos,
     );
@@ -846,13 +846,13 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_initialize() async {
-    final response = await initialize();
+    var response = await initialize();
     expect(response, isNotNull);
     expect(response.error, isNull);
     expect(response.result, isNotNull);
     expect(InitializeResult.canParse(response.result, nullLspJsonReporter),
         isTrue);
-    final result =
+    var result =
         InitializeResult.fromJson(response.result as Map<String, Object?>);
     expect(result.capabilities, isNotNull);
     // Check some basic capabilities that are unlikely to change.
@@ -869,14 +869,14 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_initialize_invalidParams() async {
-    final params = {'processId': 'invalid'};
-    final request = RequestMessage(
+    var params = {'processId': 'invalid'};
+    var request = RequestMessage(
       id: Either2<int, String>.t1(1),
       method: Method.initialize,
       params: params,
       jsonrpc: jsonRpcVersion,
     );
-    final response = await sendRequestToServer(request);
+    var response = await sendRequestToServer(request);
     expect(response.id, equals(request.id));
     expect(response.error, isNotNull);
     expect(response.error!.code, equals(ErrorCodes.InvalidParams));
@@ -885,7 +885,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_initialize_onlyAllowedOnce() async {
     await initialize();
-    final response = await initialize(throwOnFailure: false);
+    var response = await initialize(throwOnFailure: false);
     expect(response, isNotNull);
     expect(response.result, isNull);
     expect(response.error, isNotNull);
@@ -940,8 +940,8 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // We expect an error notification about the invalid file we try to open.
     failTestOnAnyErrorNotification = false;
 
-    final rootUri = Uri.parse('vsls://');
-    final fileUri = rootUri.replace(path: '/file1.dart');
+    var rootUri = Uri.parse('vsls://');
+    var fileUri = rootUri.replace(path: '/file1.dart');
 
     await initialize(rootUri: rootUri);
     expect(server.contextManager.includedPaths, equals([]));
@@ -960,8 +960,8 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     failTestOnAnyErrorNotification = false;
     newPubspecYamlFile(projectFolderPath, '');
 
-    final rootUri = Uri.parse('vsls://');
-    final fileUri = rootUri.replace(path: '/file1.dart');
+    var rootUri = Uri.parse('vsls://');
+    var fileUri = rootUri.replace(path: '/file1.dart');
 
     await initialize(
       workspaceFolders: [
@@ -977,7 +977,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_nonProjectFiles_basicWorkspace() async {
-    final file1 = convertPath('/home/nonProject/file1.dart');
+    var file1 = convertPath('/home/nonProject/file1.dart');
     newFile(file1, '');
 
     await initialize(allowEmptyRootUri: true);
@@ -988,7 +988,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_nonProjectFiles_blazeWorkspace() async {
-    final file1 = convertPath('/home/nonProject/file1.dart');
+    var file1 = convertPath('/home/nonProject/file1.dart');
     newFile(file1, '');
 
     // Make /home a Blaze workspace.
@@ -1020,11 +1020,11 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_onlyAnalyzeProjectsWithOpenFiles_multipleFiles() async {
-    final file1 = join(projectFolderPath, 'file1.dart');
-    final file1Uri = pathContext.toUri(file1);
+    var file1 = join(projectFolderPath, 'file1.dart');
+    var file1Uri = pathContext.toUri(file1);
     newFile(file1, '');
-    final file2 = join(projectFolderPath, 'file2.dart');
-    final file2Uri = pathContext.toUri(file2);
+    var file2 = join(projectFolderPath, 'file2.dart');
+    var file2Uri = pathContext.toUri(file2);
     newFile(file2, '');
     newPubspecYamlFile(projectFolderPath, '');
 
@@ -1060,9 +1060,9 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_onlyAnalyzeProjectsWithOpenFiles_withoutPubpsec() async {
     projectFolderPath = convertPath('/home/empty');
-    final nestedFilePath = join(
+    var nestedFilePath = join(
         projectFolderPath, 'nested', 'deeply', 'in', 'folders', 'test.dart');
-    final nestedFileUri = pathContext.toUri(nestedFilePath);
+    var nestedFileUri = pathContext.toUri(nestedFilePath);
     newFile(nestedFilePath, '');
 
     // The project folder shouldn't be added to start with.
@@ -1078,9 +1078,9 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_onlyAnalyzeProjectsWithOpenFiles_withPubpsec() async {
-    final nestedFilePath = join(
+    var nestedFilePath = join(
         projectFolderPath, 'nested', 'deeply', 'in', 'folders', 'test.dart');
-    final nestedFileUri = pathContext.toUri(nestedFilePath);
+    var nestedFileUri = pathContext.toUri(nestedFilePath);
     newFile(nestedFilePath, '');
     newPubspecYamlFile(projectFolderPath, '');
 
@@ -1116,14 +1116,14 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_uninitialized_dropsNotifications() async {
-    final notification =
+    var notification =
         makeNotification(Method.fromJson('randomNotification'), null);
-    final nextNotification = errorNotificationsFromServer.first;
+    var nextNotification = errorNotificationsFromServer.first;
     channel.sendNotificationToServer(notification);
 
     // Wait up to 1sec to ensure no error/log notifications were sent back.
     var didTimeout = false;
-    final notificationFromServer = await nextNotification
+    var notificationFromServer = await nextNotification
         .then<NotificationMessage?>((notification) => notification)
         .timeout(
       const Duration(seconds: 1),
@@ -1138,8 +1138,8 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_uninitialized_rejectsRequests() async {
-    final request = makeRequest(Method.fromJson('randomRequest'), null);
-    final response = await channel.sendRequestToServer(request);
+    var request = makeRequest(Method.fromJson('randomRequest'), null);
+    var response = await channel.sendRequestToServer(request);
     expect(response.id, equals(request.id));
     expect(response.result, isNull);
     expect(response.error, isNotNull);

@@ -1,4 +1,4 @@
-library /*isLegacy*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "dart:_js_helper" as _js;
@@ -8,25 +8,25 @@ import "dart:_js_helper";
 class Class extends core::Object {
   field dynamic instanceField;
   static field dynamic staticField;
-  constructor generative() → self::Class*
+  constructor generative() → self::Class
     ;
-  external constructor externalGenerative() → self::Class*;
-  external constructor nativeGenerative() → self::Class*;
-  static method _#generative#tearOff() → self::Class*
+  external constructor externalGenerative() → self::Class;
+  external constructor nativeGenerative() → self::Class;
+  static method _#generative#tearOff() → self::Class
     return new self::Class::generative();
-  static factory fact() → self::Class*
+  static factory fact() → self::Class
     ;
-  static method _#fact#tearOff() → self::Class*
+  static method _#fact#tearOff() → self::Class
     return self::Class::fact();
-  static method _#externalGenerative#tearOff() → self::Class*
+  static method _#externalGenerative#tearOff() → self::Class
     return new self::Class::externalGenerative();
-  external static factory externalFact() → self::Class*;
-  static method _#externalFact#tearOff() → self::Class*
+  external static factory externalFact() → self::Class;
+  static method _#externalFact#tearOff() → self::Class
     return self::Class::externalFact();
-  static method _#nativeGenerative#tearOff() → self::Class*
+  static method _#nativeGenerative#tearOff() → self::Class
     return new self::Class::nativeGenerative();
-  external static factory nativeFact() → self::Class*;
-  static method _#nativeFact#tearOff() → self::Class*
+  external static factory nativeFact() → self::Class;
+  static method _#nativeFact#tearOff() → self::Class
     return self::Class::nativeFact();
   get instanceGetter() → dynamic
     ;
@@ -52,36 +52,31 @@ class Class extends core::Object {
   external static get nativeStaticGetter() → dynamic;
   external static set nativeStaticSetter(dynamic _) → void;
   external static method nativeStaticMethod() → dynamic;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 @_js::Native::•("d")
 class NativeClass extends core::Object {
   field dynamic instanceField;
   static field dynamic staticField;
   field dynamic instanceNamedField;
-  constructor generative() → self::NativeClass*
+  constructor generative() → self::NativeClass
     ;
-  external constructor externalGenerative() → self::NativeClass*;
-  external constructor nativeGenerative() → self::NativeClass*;
-  static method _#generative#tearOff() → self::NativeClass*
+  external constructor externalGenerative() → self::NativeClass;
+  external constructor nativeGenerative() → self::NativeClass;
+  static method _#generative#tearOff() → self::NativeClass
     return new self::NativeClass::generative();
-  static factory fact() → self::NativeClass*
+  static factory fact() → self::NativeClass
     ;
-  static method _#fact#tearOff() → self::NativeClass*
+  static method _#fact#tearOff() → self::NativeClass
     return self::NativeClass::fact();
-  static method _#externalGenerative#tearOff() → self::NativeClass*
+  static method _#externalGenerative#tearOff() → self::NativeClass
     return new self::NativeClass::externalGenerative();
-  external static factory externalFact() → self::NativeClass*;
-  static method _#externalFact#tearOff() → self::NativeClass*
+  external static factory externalFact() → self::NativeClass;
+  static method _#externalFact#tearOff() → self::NativeClass
     return self::NativeClass::externalFact();
-  static method _#nativeGenerative#tearOff() → self::NativeClass*
+  static method _#nativeGenerative#tearOff() → self::NativeClass
     return new self::NativeClass::nativeGenerative();
-  external static factory nativeFact() → self::NativeClass*;
-  static method _#nativeFact#tearOff() → self::NativeClass*
+  external static factory nativeFact() → self::NativeClass;
+  static method _#nativeFact#tearOff() → self::NativeClass
     return self::NativeClass::nativeFact();
   get instanceGetter() → dynamic
     ;
@@ -107,11 +102,6 @@ class NativeClass extends core::Object {
   external static get nativeStaticGetter() → dynamic;
   external static set nativeStaticSetter(dynamic _) → void;
   external static method nativeStaticMethod() → dynamic;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static field dynamic topLevelField;
 static get topLevelGetter() → dynamic
@@ -131,5 +121,5 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///native.dart:93:2 -> InstanceConstant(const Native{Native.name: "d"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///native.dart:91:2 -> InstanceConstant(const Native{Native.name: "d"})
 Extra constant evaluation: evaluated: 13, effectively constant: 1

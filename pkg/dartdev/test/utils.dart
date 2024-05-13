@@ -64,6 +64,12 @@ class TestProject {
 
   String get mainPath => path.join(dirPath, relativeFilePath);
 
+  String get packageConfigPath => path.join(
+        dirPath,
+        '.dart_tool',
+        'package_config.json',
+      );
+
   final String name;
 
   String get relativeFilePath => 'lib/main.dart';

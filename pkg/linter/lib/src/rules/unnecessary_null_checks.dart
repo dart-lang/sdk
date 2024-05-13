@@ -9,10 +9,10 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 
-const _desc = r'Unnecessary null checks.';
+const _desc = r'Unnecessary `null` checks.';
 
 const _details = r'''
-**DON'T** apply a null check when a nullable value is accepted.
+**DON'T** apply a `null` check where a nullable value is accepted.
 
 **BAD:**
 ```dart

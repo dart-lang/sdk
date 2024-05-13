@@ -244,8 +244,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
       });
     });
     var edit = getEdit(builder);
-    expect(edit.replacement,
-        equalsIgnoringWhitespace('class C extends Object with A { }'));
+    expect(edit.replacement, equalsIgnoringWhitespace('class C with A { }'));
   }
 
   Future<void> test_writeClassDeclaration_mixins_superclass() async {

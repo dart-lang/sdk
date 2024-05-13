@@ -115,7 +115,7 @@ class PackagesTest with ResourceProviderMixin {
   }
 
   test_parsePackagesFile_packageConfig() {
-    final file = newFile('/test/.dart_tool/package_config.json', '''
+    var file = newFile('/test/.dart_tool/package_config.json', '''
 {
   "configVersion": 2,
   "packages": [

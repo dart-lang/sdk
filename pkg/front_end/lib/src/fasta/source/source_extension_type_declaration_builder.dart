@@ -145,9 +145,10 @@ class SourceExtensionTypeDeclarationBuilder
 
         if (typeParameters?.isNotEmpty ?? false) {
           for (NominalVariableBuilder variable in typeParameters!) {
-            int variance = computeTypeVariableBuilderVariance(
-                variable, typeBuilder, libraryBuilder);
-            if (!Variance.greaterThanOrEqual(variance, variable.variance)) {
+            Variance variance = computeTypeVariableBuilderVariance(
+                    variable, typeBuilder, libraryBuilder)
+                .variance!;
+            if (!variance.greaterThanOrEqual(variable.variance)) {
               if (variable.parameter.isLegacyCovariant) {
                 errorMessage =
                     templateWrongTypeParameterVarianceInSuperinterface
@@ -156,11 +157,8 @@ class SourceExtensionTypeDeclarationBuilder
               } else {
                 errorMessage =
                     templateInvalidTypeVariableInSupertypeWithVariance
-                        .withArguments(
-                            Variance.keywordString(variable.variance),
-                            variable.name,
-                            Variance.keywordString(variance),
-                            typeBuilder.typeName!.name);
+                        .withArguments(variable.variance.keyword, variable.name,
+                            variance.keyword, typeBuilder.typeName!.name);
               }
             }
           }

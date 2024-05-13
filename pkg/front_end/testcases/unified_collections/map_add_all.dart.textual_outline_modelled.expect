@@ -1,7 +1,7 @@
-// @dart = 2.9
-
 main() {}
 
 void expect(Map map1, Map map2) {}
 
 void useAddAll() {}
+
+void useAddAllNullable() {}

@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -16,19 +16,17 @@ class FlutterWrapStreamBuilder extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var widgetExpr = Flutter.identifyWidgetExpression(node);
+    var widgetExpr = node.findWidgetExpression;
     if (widgetExpr == null) {
       return;
     }
-    if (Flutter.isExactWidgetTypeStreamBuilder(widgetExpr.typeOrThrow)) {
+    if (widgetExpr.typeOrThrow.isExactWidgetTypeStreamBuilder) {
       return;
     }
     var widgetSrc = utils.getNodeText(widgetExpr);
 
-    var streamBuilderElement = await sessionHelper.getClass(
-      Flutter.widgetsUri,
-      'StreamBuilder',
-    );
+    var streamBuilderElement =
+        await sessionHelper.getFlutterClass('StreamBuilder');
     if (streamBuilderElement == null) {
       return;
     }

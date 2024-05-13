@@ -1028,7 +1028,8 @@ Instruction* StoreFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   // Context objects can be allocated uninitialized as a performance
   // optimization in JIT mode - however in AOT mode we always allocate them
   // null initialized.
-  if (is_initialization_ && slot().representation() == kTagged &&
+  if (is_initialization_ && !slot().has_untagged_instance() &&
+      slot().representation() == kTagged &&
       (!slot().IsContextSlot() ||
        !instance()->definition()->IsAllocateUninitializedContext()) &&
       value()->BindsToConstantNull()) {
@@ -2549,7 +2550,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
       break;
 
     case Token::kMOD:
-      if (std::abs(rhs) == 1) {
+      if ((rhs == -1) || (rhs == 1)) {
         return flow_graph->TryCreateConstantReplacementFor(this,
                                                            Object::smi_zero());
       }
@@ -3617,7 +3618,7 @@ static bool RecognizeTestPattern(Value* left, Value* right, bool* negate) {
     return false;
   }
 
-  BinarySmiOpInstr* mask_op = left->definition()->AsBinarySmiOp();
+  auto mask_op = left->definition()->AsBinaryIntegerOp();
   if ((mask_op == nullptr) || (mask_op->op_kind() != Token::kBIT_AND) ||
       !mask_op->HasOnlyUse(left)) {
     return false;
@@ -3685,30 +3686,37 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
   }
 
   if (comparison()->IsEqualityCompare() &&
-      comparison()->operation_cid() == kSmiCid) {
-    BinarySmiOpInstr* bit_and = nullptr;
-    bool negate = false;
-    if (RecognizeTestPattern(comparison()->left(), comparison()->right(),
-                             &negate)) {
-      bit_and = comparison()->left()->definition()->AsBinarySmiOp();
-    } else if (RecognizeTestPattern(comparison()->right(), comparison()->left(),
-                                    &negate)) {
-      bit_and = comparison()->right()->definition()->AsBinarySmiOp();
-    }
-    if (bit_and != nullptr) {
-      if (FLAG_trace_optimization && flow_graph->should_print()) {
-        THR_Print("Merging test smi v%" Pd "\n", bit_and->ssa_temp_index());
+      (comparison()->operation_cid() == kSmiCid ||
+       comparison()->operation_cid() == kMintCid)) {
+    const auto representation =
+        comparison()->operation_cid() == kSmiCid ? kTagged : kUnboxedInt64;
+    if (TestIntInstr::IsSupported(representation)) {
+      BinaryIntegerOpInstr* bit_and = nullptr;
+      bool negate = false;
+      if (RecognizeTestPattern(comparison()->left(), comparison()->right(),
+                               &negate)) {
+        bit_and = comparison()->left()->definition()->AsBinaryIntegerOp();
+      } else if (RecognizeTestPattern(comparison()->right(),
+                                      comparison()->left(), &negate)) {
+        bit_and = comparison()->right()->definition()->AsBinaryIntegerOp();
       }
-      TestSmiInstr* test = new TestSmiInstr(
-          comparison()->source(),
-          negate ? Token::NegateComparison(comparison()->kind())
-                 : comparison()->kind(),
-          bit_and->left()->Copy(zone), bit_and->right()->Copy(zone));
-      ASSERT(!CanDeoptimize());
-      RemoveEnvironment();
-      flow_graph->CopyDeoptTarget(this, bit_and);
-      SetComparison(test);
-      bit_and->RemoveFromGraph();
+      if (bit_and != nullptr) {
+        if (FLAG_trace_optimization && flow_graph->should_print()) {
+          THR_Print("Merging test integer v%" Pd "\n",
+                    bit_and->ssa_temp_index());
+        }
+        TestIntInstr* test = new TestIntInstr(
+            comparison()->source(),
+            negate ? Token::NegateComparison(comparison()->kind())
+                   : comparison()->kind(),
+            representation, bit_and->left()->Copy(zone),
+            bit_and->right()->Copy(zone));
+        ASSERT(!CanDeoptimize());
+        RemoveEnvironment();
+        flow_graph->CopyDeoptTarget(this, bit_and);
+        SetComparison(test);
+        bit_and->RemoveFromGraph();
+      }
     }
   }
   return this;
@@ -6101,12 +6109,6 @@ void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                 ? StubCode::InstantiateTypeNullableFunctionTypeParameter().ptr()
                 : StubCode::InstantiateTypeNullableClassTypeParameter().ptr();
         break;
-      case Nullability::kLegacy:
-        stub =
-            is_function_parameter
-                ? StubCode::InstantiateTypeLegacyFunctionTypeParameter().ptr()
-                : StubCode::InstantiateTypeLegacyClassTypeParameter().ptr();
-        break;
     }
   }
   __ LoadObject(InstantiateTypeABI::kTypeReg, type());
@@ -6574,9 +6576,10 @@ ComparisonInstr* StrictCompareInstr::CopyWithNewOperands(Value* new_left,
                                 needs_number_check(), DeoptId::kNone);
 }
 
-ComparisonInstr* TestSmiInstr::CopyWithNewOperands(Value* new_left,
+ComparisonInstr* TestIntInstr::CopyWithNewOperands(Value* new_left,
                                                    Value* new_right) {
-  return new TestSmiInstr(source(), kind(), new_left, new_right);
+  return new TestIntInstr(source(), kind(), representation_, new_left,
+                          new_right);
 }
 
 ComparisonInstr* TestCidsInstr::CopyWithNewOperands(Value* new_left,
@@ -6770,7 +6773,9 @@ bool CheckArrayBoundInstr::IsFixedLengthArrayType(intptr_t cid) {
 }
 
 Definition* CheckBoundBaseInstr::Canonicalize(FlowGraph* flow_graph) {
-  return IsRedundant() ? index()->definition() : this;
+  return (flow_graph->should_remove_all_bounds_checks() || IsRedundant())
+             ? index()->definition()
+             : this;
 }
 
 intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
@@ -7068,11 +7073,9 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // additionally verify here that there is an actual overlap. Instead, only
     // do that when we need to calculate the end address of the regions in
     // the loop case.
-#if defined(USING_MEMORY_SANITIZER)
-    const auto jump_distance = compiler::Assembler::kFarJump;
-#else
-    const auto jump_distance = compiler::Assembler::kNearJump;
-#endif
+    const auto jump_distance = FLAG_target_memory_sanitizer
+                                   ? compiler::Assembler::kFarJump
+                                   : compiler::Assembler::kNearJump;
     __ BranchIf(UNSIGNED_LESS_EQUAL, &copy_forwards, jump_distance);
     __ Comment("Copying backwards");
     if (constant_length) {
@@ -7172,13 +7175,15 @@ void MemoryCopyInstr::EmitUnrolledCopy(FlowGraphCompiler* compiler,
     }
   }
 
-#if defined(USING_MEMORY_SANITIZER) && defined(TARGET_ARCH_X64)
-  RegisterSet kVolatileRegisterSet(CallingConventions::kVolatileCpuRegisters,
-                                   CallingConventions::kVolatileXmmRegisters);
-  __ PushRegisters(kVolatileRegisterSet);
-  __ MsanUnpoison(dest_reg, num_bytes);
-  __ PopRegisters(kVolatileRegisterSet);
+  if (FLAG_target_memory_sanitizer) {
+#if defined(TARGET_ARCH_X64)
+    RegisterSet kVolatileRegisterSet(CallingConventions::kVolatileCpuRegisters,
+                                     CallingConventions::kVolatileXmmRegisters);
+    __ PushRegisters(kVolatileRegisterSet);
+    __ MsanUnpoison(dest_reg, num_bytes);
+    __ PopRegisters(kVolatileRegisterSet);
 #endif
+  }
 }
 #endif
 
@@ -7214,6 +7219,7 @@ intptr_t InvokeMathCFunctionInstr::ArgumentCountFor(
     case MethodRecognizer::kMathLog:
       return 1;
     case MethodRecognizer::kDoubleMod:
+    case MethodRecognizer::kDoubleRem:
     case MethodRecognizer::kMathDoublePow:
     case MethodRecognizer::kMathAtan2:
       return 2;
@@ -7237,6 +7243,8 @@ const RuntimeEntry& InvokeMathCFunctionInstr::TargetFunction() const {
       return kLibcPowRuntimeEntry;
     case MethodRecognizer::kDoubleMod:
       return kDartModuloRuntimeEntry;
+    case MethodRecognizer::kDoubleRem:
+      return kLibcFmodRuntimeEntry;
     case MethodRecognizer::kMathTan:
       return kLibcTanRuntimeEntry;
     case MethodRecognizer::kMathAsin:
@@ -7350,7 +7358,7 @@ Representation FfiCallInstr::RequiredInputRepresentation(intptr_t idx) const {
     // All input handles are passed as tagged values to FfiCallInstr and
     // are given stack locations. FfiCallInstr then passes an untagged pointer
     // to the handle on the stack (Dart_Handle) to the C function.
-    if (marshaller_.IsHandle(marshaller_.ArgumentIndex(idx))) {
+    if (marshaller_.IsHandleCType(marshaller_.ArgumentIndex(idx))) {
       return kTagged;
     }
     return marshaller_.RepInFfiCall(idx);
@@ -7395,13 +7403,14 @@ LocationSummary* FfiCallInstr::MakeLocationSummaryInternal(
       marshaller_.contains_varargs()
           ? R13
           : CallingConventions::kFirstNonArgumentRegister;  // RAX
+#else
+  const Register target_address = CallingConventions::kFirstNonArgumentRegister;
+#endif
+#define R(r) (1 << r)
+  ASSERT_EQUAL(temps & R(target_address), 0x0);
+#undef R
   summary->set_in(TargetAddressIndex(),
                   Location::RegisterLocation(target_address));
-#else
-  summary->set_in(TargetAddressIndex(),
-                  Location::RegisterLocation(
-                      CallingConventions::kFirstNonArgumentRegister));
-#endif
   for (intptr_t i = 0, n = marshaller_.NumArgumentDefinitions(); i < n; ++i) {
     summary->set_in(i, marshaller_.LocInFfiCall(i));
   }
@@ -7457,7 +7466,9 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
     // First deal with moving all individual definitions passed in to the
     // FfiCall to the right native location based on calling convention.
     for (intptr_t i = 0; i < num_defs; i++) {
-      if (arg_target.IsPointerToMemory() && i == 1) {
+      if ((arg_target.IsPointerToMemory() ||
+           marshaller_.IsCompoundPointer(arg_index)) &&
+          i == 1) {
         // The offset_in_bytes is not an argument for C, so don't move it.
         // It is used as offset_in_bytes_loc below and moved there if
         // necessary.
@@ -7465,7 +7476,7 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
         continue;
       }
       __ Comment("  def_index %" Pd, def_index);
-      const Location origin = rebase.Rebase(locs()->in(def_index));
+      Location origin = rebase.Rebase(locs()->in(def_index));
       const Representation origin_rep = RequiredInputRepresentation(def_index);
 
       // Find the native location where this individual definition should be
@@ -7481,17 +7492,21 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
       ConstantTemporaryAllocator temp_alloc(temp0);
       if (origin.IsConstant()) {
         __ Comment("origin.IsConstant()");
-        ASSERT(!marshaller_.IsHandle(arg_index));
+        ASSERT(!marshaller_.IsHandleCType(arg_index));
+        ASSERT(!marshaller_.IsTypedDataPointer(arg_index));
+        ASSERT(!marshaller_.IsCompoundPointer(arg_index));
         compiler->EmitMoveConst(def_target, origin, origin_rep, &temp_alloc);
       } else if (origin.IsPairLocation() &&
                  (origin.AsPairLocation()->At(0).IsConstant() ||
                   origin.AsPairLocation()->At(1).IsConstant())) {
         // Note: half of the pair can be constant.
         __ Comment("origin.IsPairLocation() and constant");
-        ASSERT(!marshaller_.IsHandle(arg_index));
+        ASSERT(!marshaller_.IsHandleCType(arg_index));
+        ASSERT(!marshaller_.IsTypedDataPointer(arg_index));
+        ASSERT(!marshaller_.IsCompoundPointer(arg_index));
         compiler->EmitMoveConst(def_target, origin, origin_rep, &temp_alloc);
-      } else if (marshaller_.IsHandle(arg_index)) {
-        __ Comment("marshaller_.IsHandle(arg_index)");
+      } else if (marshaller_.IsHandleCType(arg_index)) {
+        __ Comment("marshaller_.IsHandleCType(arg_index)");
         // Handles are passed into FfiCalls as Tagged values on the stack, and
         // then we pass pointers to these handles to the native function here.
         ASSERT(origin_rep == kTagged);
@@ -7528,6 +7543,35 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
                  marshaller_.RequiredStackSpaceInBytes());
         }
 #endif
+        if (marshaller_.IsTypedDataPointer(arg_index) ||
+            marshaller_.IsCompoundPointer(arg_index)) {
+          // Unwrap typed data before move to native location.
+          __ Comment("Load typed data base address");
+          if (origin.IsStackSlot()) {
+            compiler->EmitMove(Location::RegisterLocation(temp0), origin,
+                               &temp_alloc);
+            origin = Location::RegisterLocation(temp0);
+          }
+          ASSERT(origin.IsRegister());
+          __ LoadFromSlot(origin.reg(), origin.reg(), Slot::PointerBase_data());
+          if (marshaller_.IsCompoundPointer(arg_index)) {
+            __ Comment("Load offset in bytes");
+            const intptr_t offset_in_bytes_def_index = def_index + 1;
+            const Location offset_in_bytes_loc =
+                rebase.Rebase(locs()->in(offset_in_bytes_def_index));
+            Register offset_in_bytes_reg = kNoRegister;
+            if (offset_in_bytes_loc.IsRegister()) {
+              offset_in_bytes_reg = offset_in_bytes_loc.reg();
+            } else {
+              offset_in_bytes_reg = temp1;
+              NoTemporaryAllocator no_temp;
+              compiler->EmitMove(
+                  Location::RegisterLocation(offset_in_bytes_reg),
+                  offset_in_bytes_loc, &no_temp);
+            }
+            __ AddRegisters(origin.reg(), offset_in_bytes_reg);
+          }
+        }
         compiler->EmitMoveToNative(def_target, origin, origin_rep, &temp_alloc);
       }
       def_index++;
@@ -7909,7 +7953,7 @@ Representation FfiCallInstr::representation() const {
     // Don't care, we're discarding the value.
     return kTagged;
   }
-  if (marshaller_.IsHandle(compiler::ffi::kResultIndex)) {
+  if (marshaller_.IsHandleCType(compiler::ffi::kResultIndex)) {
     // The call returns a Dart_Handle, from which we need to extract the
     // tagged pointer using LoadField with an appropriate slot.
     return kUntagged;
@@ -7922,7 +7966,7 @@ DEFINE_BACKEND(LoadThread, (Register out)) {
   __ MoveRegister(out, THR);
 }
 
-LocationSummary* CCallInstr::MakeLocationSummaryInternal(
+LocationSummary* LeafRuntimeCallInstr::MakeLocationSummaryInternal(
     Zone* zone,
     const RegList temps) const {
   LocationSummary* summary =
@@ -7965,7 +8009,7 @@ LocationSummary* CCallInstr::MakeLocationSummaryInternal(
   return summary;
 }
 
-CCallInstr::CCallInstr(
+LeafRuntimeCallInstr::LeafRuntimeCallInstr(
     Representation return_representation,
     const ZoneGrowableArray<Representation>& argument_representations,
     const compiler::ffi::NativeCallingConvention& native_calling_convention,
@@ -7984,7 +8028,7 @@ CCallInstr::CCallInstr(
 #endif
 }
 
-CCallInstr* CCallInstr::Make(
+LeafRuntimeCallInstr* LeafRuntimeCallInstr::Make(
     Zone* zone,
     Representation return_representation,
     const ZoneGrowableArray<Representation>& argument_representations,
@@ -7995,13 +8039,14 @@ CCallInstr* CCallInstr::Make(
   const auto& native_calling_convention =
       compiler::ffi::NativeCallingConvention::FromSignature(
           zone, native_function_type);
-  return new (zone) CCallInstr(return_representation, argument_representations,
-                               native_calling_convention, std::move(inputs));
+  return new (zone)
+      LeafRuntimeCallInstr(return_representation, argument_representations,
+                           native_calling_convention, std::move(inputs));
 }
 
-void CCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
-                                Register saved_fp,
-                                Register temp0) {
+void LeafRuntimeCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
+                                          Register saved_fp,
+                                          Register temp0) {
   if (native_calling_convention_.StackTopInBytes() == 0) {
     return;
   }
@@ -8529,6 +8574,31 @@ LocationSummary* MakePairInstr::MakeLocationSummary(Zone* zone,
 
 void MakePairInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // No-op.
+}
+
+int64_t TestIntInstr::ComputeImmediateMask() {
+  int64_t mask = Integer::Cast(locs()->in(1).constant()).AsInt64Value();
+
+  switch (representation_) {
+    case kTagged:
+      // If operand is tagged we need to tag the mask.
+      if (!Smi::IsValid(mask)) {
+        // Mask it not a valid Smi. This means top bits are not all equal to
+        // the sign bit and at least some of them are 1. If they were all
+        // 0 than it would be a valid positive Smi.
+        // Adjust the mask to make it a valid Smi: testing any bit above
+        // kSmiBits is equivalent to testing the sign bit.
+        mask = (mask & kSmiMax) | kSmiMin;
+      }
+      return compiler::target::ToRawSmi(mask);
+
+    case kUnboxedInt64:
+      return mask;
+
+    default:
+      UNREACHABLE();
+      return -1;
+  }
 }
 
 #undef __

@@ -1,0 +1,9 @@
+import 'dart:async';
+
+extension type E(Future<String> it) implements Future<String> {}
+
+foo(FutureOr<String> x) {}
+
+E bar() => throw 0;
+
+test() => foo(bar());

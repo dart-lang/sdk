@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/assumptions.dart';
 import 'package:kernel/src/find_type_visitor.dart';
@@ -48,7 +49,7 @@ class TypeSchemaPrinter extends Printer {
 ///
 /// The unknown type cannot appear in programs or in final inferred types: it is
 /// purely part of the local inference process.
-class UnknownType extends AuxiliaryType {
+class UnknownType extends AuxiliaryType implements SharedUnknownType {
   const UnknownType();
 
   @override

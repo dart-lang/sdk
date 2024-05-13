@@ -49,7 +49,7 @@ import 'package:macros/macros.dart';
   }
 
   void _add(TypeBuilder builder) {
-    final code = 'class $name {}';
+    var code = 'class $name {}';
     builder.declareType(name, DeclarationCode.fromString(code));
   }
 }
@@ -79,8 +79,8 @@ import 'package:macros/macros.dart';
   }
 
   void _add(DeclarationBuilder builder) {
-    final code = 'void $name() {}';
-    final declaration = DeclarationCode.fromString(code);
+    var code = 'void $name() {}';
+    var declaration = DeclarationCode.fromString(code);
     builder.declareInLibrary(declaration);
   }
 }
@@ -94,7 +94,7 @@ import 'package:macros/macros.dart';
     DeclarationPhaseIntrospector introspector,
     TypeDeclaration type,
   ) async {
-    final constructors = await introspector.constructorsOf(type);
+    var constructors = await introspector.constructorsOf(type);
     return constructors.map((constructor) => constructor.identifier.name);
   }
 }
@@ -107,7 +107,7 @@ import 'package:macros/macros.dart';
     DeclarationPhaseIntrospector introspector,
     TypeDeclaration type,
   ) async {
-    final fields = await introspector.fieldsOf(type);
+    var fields = await introspector.fieldsOf(type);
     return fields.map((field) => field.identifier.name);
   }
 }
@@ -120,7 +120,7 @@ import 'package:macros/macros.dart';
     DeclarationPhaseIntrospector introspector,
     TypeDeclaration type,
   ) async {
-    final methods = await introspector.methodsOf(type);
+    var methods = await introspector.methodsOf(type);
     return methods.map((method) => method.identifier.name);
   }
 }
@@ -133,13 +133,13 @@ abstract class _DeclarationsIntrospect implements ClassDeclarationsMacro {
   @override
   Future<void> buildDeclarationsForClass(declaration, builder) async {
     // ignore: deprecated_member_use
-    final identifier = await builder.resolveIdentifier(
+    var identifier = await builder.resolveIdentifier(
       declaration.library.uri,
       targetName,
     );
-    final type = await builder.typeDeclarationOf(identifier);
-    final memberNames = await getMemberNames(builder, type);
-    for (final memberName in memberNames) {
+    var type = await builder.typeDeclarationOf(identifier);
+    var memberNames = await getMemberNames(builder, type);
+    for (var memberName in memberNames) {
       builder.declareInType(
         DeclarationCode.fromString(
           '  void introspected_'

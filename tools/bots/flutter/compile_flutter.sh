@@ -58,12 +58,6 @@ git clone --single-branch -vv \
 
 pushd flutter
 bin/flutter config --no-analytics
-pinned_dart_sdk=$(cat bin/cache/dart-sdk/revision)
-patch=$checkout/tools/patches/flutter-engine/${pinned_dart_sdk}.flutter.patch
-if [ -e "$patch" ]; then
-  git apply $patch
-fi
-
 bin/flutter update-packages
 popd  # flutter
 
@@ -73,13 +67,15 @@ git clone --single-branch --depth=1 -vv \
 pushd src
 git clone --single-branch --branch main --depth=1 -vv \
     https://dart.googlesource.com/external/github.com/flutter/engine flutter
+pushd flutter
 mkdir -p third_party
 pushd third_party
 ln -s $checkout dart
 popd  # third_party
+popd  # flutter
 popd  # src
 
-./src/third_party/dart/tools/patches/flutter-engine/apply.sh || true
+./src/flutter/third_party/dart/tools/patches/flutter-engine/apply.sh || true
 
 mkdir flutter_patched_sdk
 

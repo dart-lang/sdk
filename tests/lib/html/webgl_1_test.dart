@@ -7,7 +7,7 @@ import 'dart:typed_data';
 import 'dart:web_gl';
 import 'dart:web_gl' as gl;
 
-import 'package:expect/minitest.dart';
+import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 // Test that WebGL is present in dart:web_gl API
 

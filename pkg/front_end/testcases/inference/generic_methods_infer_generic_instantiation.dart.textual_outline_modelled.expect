@@ -1,12 +1,10 @@
-// @dart = 2.9
-
 library test;
 
 import 'dart:math' as math;
 import 'dart:math' show min;
 
 class C {
-  T m<T extends num>(T x, T y) => null;
+  T m<T extends num>(T x, T y) => throw '';
 }
 
 main() {}

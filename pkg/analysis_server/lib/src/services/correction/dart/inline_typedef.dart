@@ -21,7 +21,7 @@ class InlineTypedef extends ResolvedCorrectionProducer {
   bool get canBeAppliedToFile => true;
 
   @override
-  List<Object> get fixArguments => [_name];
+  List<String> get fixArguments => [_name];
 
   @override
   FixKind get fixKind => DartFixKind.INLINE_TYPEDEF;

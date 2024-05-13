@@ -2913,14 +2913,14 @@ import 'b.dart';
 main() {}
 ''');
     expect(result.unit.declarations, hasLength(1));
-    final mainDecl = result.unit.declarations[0];
+    var mainDecl = result.unit.declarations[0];
     expect(mainDecl.metadata, hasLength(8));
     for (var metadata in mainDecl.metadata) {
-      final value = metadata.elementAnnotation!.computeConstantValue()!;
+      var value = metadata.elementAnnotation!.computeConstantValue()!;
       expect(value, isNotNull);
       assertType(value.type, 'B');
-      final unbounded = value.getField('unbounded')!;
-      final bounded = value.getField('bounded')!;
+      var unbounded = value.getField('unbounded')!;
+      var bounded = value.getField('bounded')!;
       if (!unbounded.isNull) {
         expect(bounded.isNull, true);
         assertType(unbounded.type, 'Unbounded<dynamic>');

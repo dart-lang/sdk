@@ -9,6 +9,7 @@ import 'package:analysis_server/src/services/completion/dart/candidate_suggestio
 import 'package:analysis_server/src/services/completion/dart/completion_state.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/in_scope_completion_pass.dart';
+import 'package:analysis_server/src/services/completion/dart/not_imported_completion_pass.dart';
 import 'package:analysis_server/src/services/completion/dart/not_imported_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
@@ -32,6 +33,8 @@ import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/completion_matcher.dart';
+import 'package:analyzer/src/utilities/fuzzy_matcher.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
@@ -117,11 +120,19 @@ class DartCompletionManager {
 
     var collector = SuggestionCollector();
     try {
-      performance.run(
+      var selection = request.unit.select(offset: request.offset, length: 0);
+      if (selection == null) {
+        throw AbortCompletion();
+      }
+      var matcher = request.targetPrefix.isEmpty
+          ? NoPrefixMatcher()
+          : FuzzyMatcher(request.targetPrefix);
+      var state = CompletionState(request, selection, budget, matcher);
+      /*var operations =*/ performance.run(
         'InScopeCompletionPass',
         (performance) {
-          _runFirstPass(
-            request: request,
+          return _runFirstPass(
+            state: state,
             collector: collector,
             builder: builder,
             suggestOverrides: enableOverrideContributor,
@@ -129,6 +140,12 @@ class DartCompletionManager {
           );
         },
       );
+      // if (operations.isNotEmpty && notImportedSuggestions != null) {
+      //   performance.run('NotImportedCompletionPass', (performance) {
+      //     NotImportedCompletionPass(state, collector, operations)
+      //         .computeSuggestions(performance: performance);
+      //   });
+      // }
       for (var contributor in contributors) {
         await performance.runAsync(
           '${contributor.runtimeType}',
@@ -153,19 +170,16 @@ class DartCompletionManager {
     return builder.suggestions.toList();
   }
 
-  // Run the first pass of the code completion algorithm.
-  void _runFirstPass({
-    required DartCompletionRequest request,
+  /// Run the first pass of the code completion algorithm.
+  ///
+  /// Returns the operations that need to be performed in the second pass.
+  List<NotImportedOperation> _runFirstPass({
+    required CompletionState state,
     required SuggestionCollector collector,
     required SuggestionBuilder builder,
     required bool suggestOverrides,
     required bool suggestUris,
   }) {
-    var selection = request.unit.select(offset: request.offset, length: 0);
-    if (selection == null) {
-      throw AbortCompletion();
-    }
-    var state = CompletionState(request, selection, budget);
     var pass = InScopeCompletionPass(
       state: state,
       collector: collector,
@@ -174,8 +188,9 @@ class DartCompletionManager {
       suggestUris: suggestUris,
     );
     pass.computeSuggestions();
-    request.collectorLocationName = collector.completionLocation;
+    state.request.collectorLocationName = collector.completionLocation;
     builder.suggestFromCandidates(collector.suggestions);
+    return pass.notImportedOperations;
   }
 }
 
@@ -392,9 +407,9 @@ class DartCompletionRequest {
         entity.type == TokenType.STRING &&
         entity.offset < offset &&
         offset < entity.end) {
-      final uriNode = target.containingNode;
+      var uriNode = target.containingNode;
       if (uriNode is SimpleStringLiteral && uriNode.literal == entity) {
-        final directive = uriNode.parent;
+        var directive = uriNode.parent;
         if (directive is UriBasedDirective &&
             directive.uri == uriNode &&
             offset >= uriNode.contentsOffset) {
@@ -405,7 +420,7 @@ class DartCompletionRequest {
 
     // TODO(scheglov): Can we make it better?
     String fromToken(Token token) {
-      final lexeme = token.lexeme;
+      var lexeme = token.lexeme;
       if (offset >= token.offset && offset < token.end) {
         return lexeme.substring(0, offset - token.offset);
       } else if (offset == token.end) {

@@ -1,23 +1,13 @@
-library /*isLegacy*/;
+library;
 import self as self;
 import "dart:core" as core;
 
 class Class extends core::Object {
-  field core::int* field;
-  synthetic constructor •() → self::Class*
+  field core::int? field;
+  synthetic constructor •() → self::Class
     ;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-extension Extension on self::Class* {
+extension Extension on self::Class {
   get property = self::Extension|get#property;
   method method = self::Extension|method;
   method tearoff method = self::Extension|get#method;
@@ -25,19 +15,23 @@ extension Extension on self::Class* {
   method tearoff testImplicitThis = self::Extension|get#testImplicitThis;
   set property = self::Extension|set#property;
 }
-static extension-member method Extension|get#property(lowered final self::Class* #this) → core::int*
+static extension-member method Extension|get#property(lowered final self::Class #this) → core::int?
   ;
-static extension-member method Extension|set#property(lowered final self::Class* #this, core::int* value) → void
+static extension-member method Extension|set#property(lowered final self::Class #this, core::int? value) → void
   ;
-static extension-member method Extension|method(lowered final self::Class* #this) → core::int*
+static extension-member method Extension|method(lowered final self::Class #this) → core::int?
   ;
-static extension-member method Extension|get#method(lowered final self::Class* #this) → () →* core::int*
-  return () → core::int* => self::Extension|method(#this);
-static extension-member method Extension|testImplicitThis(lowered final self::Class* #this) → dynamic
+static extension-member method Extension|get#method(lowered final self::Class #this) → () → core::int?
+  return () → core::int? => self::Extension|method(#this);
+static extension-member method Extension|testImplicitThis(lowered final self::Class #this) → dynamic
   ;
-static extension-member method Extension|get#testImplicitThis(lowered final self::Class* #this) → () →* dynamic
+static extension-member method Extension|get#testImplicitThis(lowered final self::Class #this) → () → dynamic
   return () → dynamic => self::Extension|testImplicitThis(#this);
 static method main() → dynamic
+  ;
+static method test1(self::Class? c) → dynamic
+  ;
+static method test2(self::Class? c) → dynamic
   ;
 static method expect(dynamic expected, dynamic actual) → dynamic
   ;

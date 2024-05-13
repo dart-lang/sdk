@@ -117,7 +117,7 @@ abstract class IncrementalKernelGenerator {
   /// [libraryUri] must refer to either a previously compiled library.
   /// [className] may optionally refer to a class within such library to use for
   /// the scope of the expression. In that case, [isStatic] indicates whether
-  /// the scope can access [this].
+  /// the scope can access this [IncrementalKernelGenerator].
   ///
   /// It is illegal to use "await" in [expression] and the compiled function
   /// will always be synchronous.

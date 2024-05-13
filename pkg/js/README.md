@@ -283,7 +283,7 @@ example:
 ```dart
 import 'dart:js_util';
 
-import 'package:expect/minitest.dart';
+import 'package:expect/expect.dart';
 import 'package:js/js.dart';
 
 // The Dart class must have `@JSExport` on it or one of its instance members.
@@ -308,12 +308,12 @@ extension on JSCounter {
 void main() {
   var dartCounter = Counter();
   var counter = createDartExport<Counter>(dartCounter) as JSCounter;
-  expect(counter.value, 0);
+  Expect.equals(0, counter.value);
   counter.increment();
-  expect(counter.value, 1);
-  expect(dartCounter.value, 1); // Dart object gets modified
+  Expect.equals(1, counter.value);
+  Expect.equals(1, dartCounter.value); // Dart object gets modified
   dartCounter.value = 0;
-  expect(counter.value, 0); // Changes in Dart object affect the exported object
+  Expect.equals(0, counter.value); // Changes in Dart object affect the exported object
 }
 ```
 

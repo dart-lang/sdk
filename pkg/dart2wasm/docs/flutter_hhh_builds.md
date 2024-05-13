@@ -1,10 +1,11 @@
 # Building Flutter apps with newest Engine & newest Dart
 
-## Modify the flutter tools
+## Modify the Flutter tools
 
-Flutter apps are built with the `flutter` command line tool. For building web
-apps it's using the `dart compile wasm` command from the Dart SDK. We ensure it
-uses the Dart SDK we built by patching the usages of the `dart` binary:
+Clone https://github.com/flutter/flutter. This repo contains the `flutter`
+command line tool used to build Flutter apps. For building web apps it's using
+the `dart compile wasm` command from the Dart SDK. We ensure it uses the Dart
+SDK we built by patching the usages of the `dart` binary:
 
 ```
 <flutter> % git diff
@@ -59,20 +60,45 @@ library).
 
 ### Build it
 
-Have a normal Flutter engine checkout. Ensure you've synced all dependencies to
-their correct version using
+Create an engine checkout with:
+
+```
+% mkdir engine
+% cd engine
+<engine> % fetch flutter
+```
+
+Edit `.gclient` to add the `download_emsdk` custom variable:
+
+```
+solutions = [
+  {
+    "custom_deps": {},
+    "deps_file": "DEPS",
+    "managed": False,
+    "name": "src/flutter",
+    "safesync_url": "",
+    "url": "https://github.com/flutter/engine.git",
+    "custom_vars" : {
+      "download_emsdk": True,
+    },
+  },
+]
+```
+
+Sync dependencies and download emsdk:
 
 ```
 <src> % gclient sync -D
 ```
 
 Then checkout the Dart version we want. If the commit is available in the Dart
-checkout from `<src>/third_party/dart` then one may
+checkout from `<src>/flutter/third_party/dart` then one may
 
 ```
 <src> % vim flutter/DEPS
 
-<..update dart revision hash...>
+<...update Dart revision hash...>
 
 <src> % gclient sync -D
 ```
@@ -80,13 +106,13 @@ checkout from `<src>/third_party/dart` then one may
 but for local development one may just
 
 ```
-<src> % cd third_party/dart
-<src>/third_party/dart % git checkout ...
+<src> % cd flutter/third_party/dart
+<src>/flutter/third_party/dart % git checkout ...
 ```
 
 Now we have to make some modification to ensure that the build of the platform
 file doesn't use the downloaded prebuilt SDK but the one in
-`<src>/third_party/dart`, we do that by applying the following patch:
+`<src>/flutter/third_party/dart`, we do that by applying the following patch:
 
 ```
 <src>/flutter % git diff
@@ -133,15 +159,15 @@ Build the normal Dart SDK in the same version as used in Flutter engine via
 `tools/build.py -mrelease create_sdk`
 
 NOTE: You can (after syncing dependencies with `gclient sync -D`) make
-`<src>/third_party/dart` a symlink to the normal Dart SDK you work on. That
+`<src>/flutter/third_party/dart` a symlink to the normal Dart SDK you work on. That
 avoids the need to keep the two in sync.
 
 ## Building a Flutter app (e.g. Wonderous)
 
 ```
-<path-to-flutter-app> % flutter                             \
-        --local-engine-src=<path-to-flutter-engine-src>     \
-        --local-web-sdk=wasm_release                        \
+<path-to-flutter-app> % flutter                                  \
+        --local-engine-src-path=<path-to-flutter-engine-src>     \
+        --local-web-sdk=wasm_release                             \
         build web --wasm
 ```
 

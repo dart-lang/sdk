@@ -128,7 +128,7 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
       return;
     }
     // Ensure that the parameter is named.
-    final name = parameter.name;
+    var name = parameter.name;
     if (name == null) {
       return;
     }
@@ -152,14 +152,14 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
     if (declarationList.type != null) {
       return;
     }
-    final variables = declarationList.variables;
-    final variable = variables[0];
+    var variables = declarationList.variables;
+    var variable = variables[0];
     // Ensure that the selection is not after the name of the variable.
     if (selectionOffset > variable.name.end) {
       return;
     }
     // Ensure that there is an initializer to get the type from.
-    final type = _typeForVariable(variable);
+    var type = _typeForVariable(variable);
     if (type == null) {
       return;
     }
@@ -178,12 +178,12 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
   }
 
   Future<void> _typedLiteral(ChangeBuilder builder, TypedLiteral node) async {
-    final type = node.staticType;
+    var type = node.staticType;
     if (type is! InterfaceType) {
       return;
     }
 
-    final int offset;
+    int offset;
     switch (node) {
       case ListLiteral():
         offset = node.leftBracket.offset;

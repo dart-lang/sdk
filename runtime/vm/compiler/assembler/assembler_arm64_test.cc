@@ -7559,7 +7559,7 @@ ASSEMBLER_TEST_RUN(CompareImmediate32Negative, test) {
 }
 
 // can't call (tsan) runtime methods
-#if !defined(TARGET_USES_THREAD_SANITIZER)
+#if !defined(USING_THREAD_SANITIZER)
 
 ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire, assembler) {
   __ SetupDartSP();
@@ -7636,7 +7636,7 @@ ASSEMBLER_TEST_RUN(StoreReleaseLoadAcquire1024, test) {
       "mov csp, sp\n"
       "ret\n");
 }
-#endif  // !defined(TARGET_USES_THREAD_SANITIZER)
+#endif  // !defined(USING_THREAD_SANITIZER)
 
 static void RangeCheck(Assembler* assembler, Register value, Register temp) {
   const Register return_reg = CallingConventions::kReturnReg;

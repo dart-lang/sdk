@@ -1,13 +1,12 @@
-library test /*isLegacy*/;
+library test;
 import self as self;
 import "dart:core" as core;
 
 static method test() → dynamic {
-  () →* core::Iterable<core::num*>* f = () → core::Iterable<core::num*>* sync* /* emittedValueType= core::num* */ {
+  () → core::Iterable<core::num> f = () → core::Iterable<core::num> sync* /* emittedValueType= core::num */ {
     yield 1;
-    yield*<core::num*>[3, 4.0];
+    yield*<core::num>[3, 4.0];
   };
-  core::Iterable<core::num*>* g = f(){() →* core::Iterable<core::num*>*};
-  core::Iterable<core::int*>* h = f(){() →* core::Iterable<core::num*>*} as{TypeError,ForLegacy} core::Iterable<core::int*>*;
+  core::Iterable<core::num> g = f(){() → core::Iterable<core::num>};
 }
 static method main() → dynamic {}

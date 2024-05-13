@@ -19,9 +19,9 @@ const _knownPlatforms = <String>{
 
 /// Validate platforms.
 void platformsValidator(PubspecValidationContext ctx) {
-  final contents = ctx.contents;
+  var contents = ctx.contents;
   if (contents is! YamlMap) return;
-  final platforms = contents.nodes[PubspecField.PLATFORMS_FIELD];
+  var platforms = contents.nodes[PubspecField.PLATFORMS_FIELD];
   if (platforms == null) {
     return;
   }
@@ -34,7 +34,7 @@ void platformsValidator(PubspecValidationContext ctx) {
     return;
   }
   // Each key under 'platforms' must be a supported platform.
-  for (final platform in platforms.nodeMap.keys) {
+  for (var platform in platforms.nodeMap.keys) {
     if (platform is! YamlScalar || !_knownPlatforms.contains(platform.value)) {
       ctx.reportErrorForNode(
         platform,
@@ -50,7 +50,7 @@ void platformsValidator(PubspecValidationContext ctx) {
     }
   }
   // Values under the platforms keys are not allowed.
-  for (final v in platforms.nodeMap.values) {
+  for (var v in platforms.nodeMap.values) {
     if (v is! YamlScalar || v.value != null) {
       ctx.reportErrorForNode(
         v,

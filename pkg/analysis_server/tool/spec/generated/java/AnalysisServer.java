@@ -322,17 +322,23 @@ public interface AnalysisServer {
   /**
    * {@code analytics.enable}
    *
+   * Deprecated: this option is no longer supported.
+   *
    * Enable or disable the sending of analytics data. Note that there are other ways for users to
    * change this setting, so clients cannot assume that they have complete control over this setting.
    * In particular, there is no guarantee that the result returned by the isEnabled request will
    * match the last value set via this request.
    *
    * @param value Enable or disable analytics.
+   *
+   * @deprecated
    */
   public void analytics_enable(boolean value);
 
   /**
    * {@code analytics.isEnabled}
+   *
+   * Deprecated: this flag is no longer supported.
    *
    * Query whether analytics is enabled.
    *
@@ -345,6 +351,8 @@ public interface AnalysisServer {
    * the value returned to decide whether or not to send the sendEvent and sendTiming requests. Those
    * requests should be used unconditionally and server will determine whether or not it is
    * appropriate to forward the information to the cloud at the time each request is received.
+   *
+   * @deprecated
    */
   public void analytics_isEnabled(IsEnabledConsumer consumer);
 

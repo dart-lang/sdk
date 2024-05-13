@@ -315,7 +315,7 @@ class MoveTopLevelToFile extends RefactoringProducer {
   /// Return a list containing the top-level declarations that are selected, or
   /// `null` if there are no such nodes.
   List<CompilationUnitMember>? _selectedNodes() {
-    var selection = this.selection;
+    final selection = this.selection;
     if (selection == null) {
       return null;
     }
@@ -480,7 +480,7 @@ class _SealedSubclassIndex {
     this.unit, {
     required this.candidateElements,
   }) {
-    final isCandidate = candidateElements.contains;
+    var isCandidate = candidateElements.contains;
 
     // Index the declaration against each of its direct superclasses.
     for (var declaration in unit.declarations) {
@@ -527,12 +527,12 @@ extension on CompilationUnitMember {
 
   /// Gets all [NamedType]s that are superclasses of this member.
   List<NamedType?> get superclasses {
-    final declaration = this;
+    var declaration = this;
 
     if (declaration is ClassDeclaration) {
-      final extendsType = declaration.extendsClause?.superclass;
-      final implementsTypes = declaration.implementsClause?.interfaces;
-      final mixesInTypes = declaration.withClause?.mixinTypes;
+      var extendsType = declaration.extendsClause?.superclass;
+      var implementsTypes = declaration.implementsClause?.interfaces;
+      var mixesInTypes = declaration.withClause?.mixinTypes;
 
       return [
         if (extendsType != null) extendsType,
@@ -540,8 +540,8 @@ extension on CompilationUnitMember {
         ...?mixesInTypes,
       ];
     } else if (declaration is MixinDeclaration) {
-      final interfaceTypes = declaration.implementsClause?.interfaces;
-      final constraintTypes = declaration.onClause?.superclassConstraints;
+      var interfaceTypes = declaration.implementsClause?.interfaces;
+      var constraintTypes = declaration.onClause?.superclassConstraints;
 
       return [
         ...?interfaceTypes,

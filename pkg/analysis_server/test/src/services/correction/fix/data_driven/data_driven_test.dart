@@ -504,13 +504,13 @@ class NoProducerOverlapsTest {
     // non-data-driven fixes, as this could result in an LSP "Apply-all" code
     // action accidentally executing data-driven fixes.
 
-    final dataDrivenCodes = <String>{};
-    final bulkFixCodes = FixProcessor.lintProducerMap.entries
+    var dataDrivenCodes = <String>{};
+    var bulkFixCodes = FixProcessor.lintProducerMap.entries
         .where((e) => e.value
             .where((generator) => generator().canBeAppliedInBulk)
             .isNotEmpty)
         .map((e) => e.key);
-    final nonDataDrivenCodes = <String>{
+    var nonDataDrivenCodes = <String>{
       ...bulkFixCodes,
       ...FixProcessor.nonLintProducerMap.entries
           .where((e) => e.value
@@ -519,10 +519,10 @@ class NoProducerOverlapsTest {
           .map((e) => e.key.uniqueName),
     };
 
-    for (final entry in BulkFixProcessor.nonLintMultiProducerMap.entries) {
+    for (var entry in BulkFixProcessor.nonLintMultiProducerMap.entries) {
       var code = entry.key;
-      for (final producerFunc in entry.value) {
-        final producer = producerFunc();
+      for (var producerFunc in entry.value) {
+        var producer = producerFunc();
         if (producer is DataDriven) {
           dataDrivenCodes.add(code.uniqueName);
         } else {
@@ -531,7 +531,7 @@ class NoProducerOverlapsTest {
       }
     }
 
-    final intersection = dataDrivenCodes.intersection(nonDataDrivenCodes);
+    var intersection = dataDrivenCodes.intersection(nonDataDrivenCodes);
     if (intersection.isNotEmpty) {
       fail(
           'Error codes $intersection have both data-driven and non-data-driven fixes');

@@ -1,9 +1,9 @@
-library test /*isLegacy*/;
+library test;
 import self as self;
 import "dart:core" as core;
 
 static field dynamic h;
-static method foo((core::Object*) →* core::int* f) → void
+static method foo((core::Object) → core::int? f) → void
   ;
 static method test() → dynamic
   ;

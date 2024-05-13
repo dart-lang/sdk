@@ -8,6 +8,8 @@ import 'dart:typed_data';
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
+    as shared;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -40,7 +42,6 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart'
     show Namespace, NamespaceBuilder;
-import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source.dart' show DartUriResolver;
@@ -55,6 +56,7 @@ import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -62,7 +64,7 @@ import 'package:pub_semver/pub_semver.dart';
 /// Shared implementation of `augmentation` and `augmentationTarget`.
 mixin AugmentableElement<T extends ElementImpl> on ElementImpl {
   T? _augmentation;
-  T? _augmentationTarget;
+  ElementImpl? _augmentationTargetAny;
 
   T? get augmentation {
     linkedData?.read(this);
@@ -74,12 +76,16 @@ mixin AugmentableElement<T extends ElementImpl> on ElementImpl {
   }
 
   T? get augmentationTarget {
-    linkedData?.read(this);
-    return _augmentationTarget;
+    return augmentationTargetAny.ifTypeOrNull();
   }
 
-  set augmentationTarget(T? value) {
-    _augmentationTarget = value;
+  ElementImpl? get augmentationTargetAny {
+    linkedData?.read(this);
+    return _augmentationTargetAny;
+  }
+
+  set augmentationTargetAny(ElementImpl? value) {
+    _augmentationTargetAny = value;
   }
 
   bool get isAugmentation {
@@ -88,6 +94,14 @@ mixin AugmentableElement<T extends ElementImpl> on ElementImpl {
 
   set isAugmentation(bool value) {
     setModifier(Modifier.AUGMENTATION, value);
+  }
+
+  bool get isAugmentationChainStart {
+    return hasModifier(Modifier.AUGMENTATION_CHAIN_START);
+  }
+
+  set isAugmentationChainStart(bool value) {
+    setModifier(Modifier.AUGMENTATION_CHAIN_START, value);
   }
 
   ElementLinkedData? get linkedData;
@@ -113,7 +127,7 @@ class AugmentationImportElementImpl extends _ExistingElementImpl
 
   @override
   LibraryAugmentationElementImpl? get importedAugmentation {
-    final uri = this.uri;
+    var uri = this.uri;
     if (uri is DirectiveUriWithAugmentationImpl) {
       return uri.augmentation;
     }
@@ -236,10 +250,10 @@ class ClassElementImpl extends ClassOrMixinElementImpl
   /// then these subtypes are all subtypes that are possible.
   List<InterfaceType>? get allSubtypes {
     if (isFinal) {
-      final result = <InterfaceType>[];
-      for (final element in library.topLevelElements) {
+      var result = <InterfaceType>[];
+      for (var element in library.topLevelElements) {
         if (element is InterfaceElement && element != this) {
-          final elementThis = element.thisType;
+          var elementThis = element.thisType;
           if (elementThis.asInstanceOf(this) != null) {
             result.add(elementThis);
           }
@@ -249,13 +263,13 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     }
 
     if (isSealed) {
-      final result = <InterfaceType>[];
-      for (final element in library.topLevelElements) {
+      var result = <InterfaceType>[];
+      for (var element in library.topLevelElements) {
         if (element is! InterfaceElement || identical(element, this)) {
           continue;
         }
 
-        final elementThis = element.thisType;
+        var elementThis = element.thisType;
         if (elementThis.asInstanceOf(this) == null) {
           continue;
         }
@@ -280,13 +294,15 @@ class ClassElementImpl extends ClassOrMixinElementImpl
   }
 
   @override
-  MaybeAugmentedClassElementMixin? get augmented {
+  MaybeAugmentedClassElementMixin get augmented {
     if (isAugmentation) {
-      return augmentationTarget?.augmented;
-    } else {
-      linkedData?.read(this);
-      return augmentedInternal;
+      if (augmentationTarget case var augmentationTarget?) {
+        return augmentationTarget.augmented;
+      }
     }
+
+    linkedData?.read(this);
+    return augmentedInternal;
   }
 
   @override
@@ -307,11 +323,11 @@ class ClassElementImpl extends ClassOrMixinElementImpl
 
   @override
   bool get hasNonFinalField {
-    final classesToVisit = <InterfaceElement>[];
-    final visitedClasses = <InterfaceElement>{};
+    var classesToVisit = <InterfaceElement>[];
+    var visitedClasses = <InterfaceElement>{};
     classesToVisit.add(this);
     while (classesToVisit.isNotEmpty) {
-      final currentElement = classesToVisit.removeAt(0);
+      var currentElement = classesToVisit.removeAt(0);
       if (visitedClasses.add(currentElement)) {
         // check fields
         for (FieldElement field in currentElement.fields) {
@@ -327,7 +343,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl
           classesToVisit.add(mixinType.element);
         }
         // check super
-        final supertype = currentElement.supertype;
+        var supertype = currentElement.supertype;
         if (supertype != null) {
           classesToVisit.add(supertype.element);
         }
@@ -473,7 +489,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl
 
   @override
   bool get isValidMixin {
-    final supertype = this.supertype;
+    var supertype = this.supertype;
     if (supertype != null && !supertype.isDartCoreObject) {
       return false;
     }
@@ -540,7 +556,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     // Assign to break a possible infinite recursion during computing.
     _constructors = const <ConstructorElementImpl>[];
 
-    final superType = supertype;
+    var superType = supertype;
     if (superType == null) {
       // Shouldn't ever happen, since the only classes with no supertype are
       // Object and mixins, and they aren't a mixin application. But for
@@ -550,9 +566,9 @@ class ClassElementImpl extends ClassOrMixinElementImpl
       return;
     }
 
-    final superElement = superType.element as ClassElementImpl;
+    var superElement = superType.element as ClassElementImpl;
 
-    final constructorsToForward = superElement.constructors
+    var constructorsToForward = superElement.constructors
         .where((constructor) => constructor.isAccessibleIn(library))
         .where((constructor) => !constructor.isFactory);
 
@@ -610,7 +626,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl
               parameterKind: superParameter.parameterKind,
             )..constantInitializer = constVariable.constantInitializer;
             if (superParameter.isNamed) {
-              final reference = implicitReference
+              var reference = implicitReference
                   .getChild('@parameter')
                   .getChild(implicitParameter.name);
               implicitParameter.reference = reference;
@@ -795,7 +811,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   /// Set the enums contained in this compilation unit to the given [enums].
   set enums(List<EnumElementImpl> enums) {
-    for (final element in enums) {
+    for (var element in enums) {
       element.enclosingElement = this;
     }
     _enums = enums;
@@ -821,7 +837,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   set extensionTypes(List<ExtensionTypeElementImpl> elements) {
-    for (final element in elements) {
+    for (var element in elements) {
       element.enclosingElement = this;
     }
     _extensionTypes = elements;
@@ -914,7 +930,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   ClassElement? getClass(String className) {
-    for (final class_ in classes) {
+    for (var class_ in classes) {
       if (class_.name == className) {
         return class_;
       }
@@ -924,7 +940,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   EnumElement? getEnum(String name) {
-    for (final element in enums) {
+    for (var element in enums) {
       if (element.name == name) {
         return element;
       }
@@ -936,7 +952,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /// [name], or `null` if this compilation unit does not define a mixin with
   /// the given name.
   MixinElement? getMixin(String name) {
-    for (final mixin in mixins) {
+    for (var mixin in mixins) {
       if (mixin.name == name) {
         return mixin;
       }
@@ -1089,7 +1105,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   int get nameLength {
-    final nameEnd = this.nameEnd;
+    var nameEnd = this.nameEnd;
     if (nameEnd == null) {
       return 0;
     } else {
@@ -1119,9 +1135,8 @@ class ConstructorElementImpl extends ExecutableElementImpl
       return result as InterfaceType;
     }
 
-    final augmentedDeclaration = enclosingElement.augmented?.declaration;
-    result = augmentedDeclaration?.thisType;
-    result ??= InvalidTypeImpl.instance;
+    var augmentedDeclaration = enclosingElement.augmented.declaration;
+    result = augmentedDeclaration.thisType;
     return _returnType = result as InterfaceType;
   }
 
@@ -1254,7 +1269,7 @@ mixin ConstVariableElement implements ElementImpl, ConstantEvaluationTarget {
   /// of this variable could not be computed because of errors.
   DartObject? computeConstantValue() {
     if (evaluationResult == null) {
-      final library = this.library;
+      var library = this.library;
       // TODO(scheglov): https://github.com/dart-lang/sdk/issues/47915
       if (library == null) {
         throw StateError(
@@ -1324,7 +1339,11 @@ class DefaultSuperFormalParameterElementImpl
 
   @override
   String? get defaultValueCode {
-    final constantInitializer = this.constantInitializer;
+    if (isRequired) {
+      return null;
+    }
+
+    var constantInitializer = this.constantInitializer;
     if (constantInitializer != null) {
       return constantInitializer.toSource();
     }
@@ -1658,8 +1677,8 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   @override
   List<AnalysisError> get constantEvaluationErrors {
-    final evaluationResult = this.evaluationResult;
-    final additionalErrors = this.additionalErrors;
+    var evaluationResult = this.evaluationResult;
+    var additionalErrors = this.additionalErrors;
     if (evaluationResult is InvalidConstant) {
       // When we have an [InvalidConstant], we don't report the additional
       // errors because this result contains the most relevant error.
@@ -1687,7 +1706,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
   bool get isConstantEvaluated => evaluationResult != null;
 
   bool get isDartInternalSince {
-    final element = this.element;
+    var element = this.element;
     if (element is ConstructorElement) {
       return element.enclosingElement.name == 'Since' &&
           element.library.source.uri.toString() == 'dart:_internal';
@@ -1697,7 +1716,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   @override
   bool get isDeprecated {
-    final element = this.element;
+    var element = this.element;
     if (element is ConstructorElement) {
       return element.library.isDartCore &&
           element.enclosingElement.name == _deprecatedClassName;
@@ -1851,7 +1870,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
     required String libraryName,
     required String className,
   }) {
-    final element = this.element;
+    var element = this.element;
     return element is ConstructorElement &&
         element.enclosingElement.name == className &&
         element.library.name == libraryName;
@@ -1875,7 +1894,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
     required String libraryName,
     required String name,
   }) {
-    final element = this.element;
+    var element = this.element;
     return element is PropertyAccessorElement &&
         element.name == name &&
         element.library.name == libraryName;
@@ -1990,7 +2009,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasAlwaysThrows {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isAlwaysThrows) {
@@ -2007,7 +2026,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasDoNotStore {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isDoNotStore) {
@@ -2019,7 +2038,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasDoNotSubmit {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isDoNotSubmit) {
@@ -2031,7 +2050,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasFactory {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isFactory) {
@@ -2050,7 +2069,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasImmutable {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isImmutable) {
@@ -2062,7 +2081,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasInternal {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isInternal) {
@@ -2074,7 +2093,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasIsTest {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isIsTest) {
@@ -2086,7 +2105,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasIsTestGroup {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isIsTestGroup) {
@@ -2098,7 +2117,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasJS {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isJS) {
@@ -2110,7 +2129,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasLiteral {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isLiteral) {
@@ -2122,7 +2141,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasMustBeConst {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isMustBeConst) {
@@ -2134,7 +2153,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasMustBeOverridden {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isMustBeOverridden) {
@@ -2146,7 +2165,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasMustCallSuper {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isMustCallSuper) {
@@ -2158,7 +2177,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasNonVirtual {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isNonVirtual) {
@@ -2170,7 +2189,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasOptionalTypeArgs {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isOptionalTypeArgs) {
@@ -2188,7 +2207,7 @@ abstract class ElementImpl implements Element {
   /// Return `true` if this element has an annotation of the form
   /// `@pragma("vm:entry-point")`.
   bool get hasPragmaVmEntryPoint {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isPragmaVmEntryPoint) {
@@ -2200,7 +2219,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasProtected {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isProtected) {
@@ -2212,7 +2231,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasRedeclare {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isRedeclare) {
@@ -2224,7 +2243,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasReopen {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isReopen) {
@@ -2236,7 +2255,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasRequired {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isRequired) {
@@ -2248,7 +2267,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasSealed {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isSealed) {
@@ -2260,7 +2279,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasUseResult {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isUseResult) {
@@ -2272,7 +2291,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasVisibleForOverriding {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isVisibleForOverriding) {
@@ -2284,7 +2303,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasVisibleForTemplate {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isVisibleForTemplate) {
@@ -2296,7 +2315,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasVisibleForTesting {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isVisibleForTesting) {
@@ -2308,7 +2327,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasVisibleOutsideTemplate {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isVisibleOutsideTemplate) {
@@ -2320,7 +2339,15 @@ abstract class ElementImpl implements Element {
 
   /// Return an identifier that uniquely identifies this element among the
   /// children of this element's parent.
-  String get identifier => name!;
+  String get identifier {
+    var identifier = name!;
+
+    if (_includeNameOffsetInIdentifier) {
+      identifier += "@$nameOffset";
+    }
+
+    return considerCanonicalizeString(identifier);
+  }
 
   bool get isNonFunctionTypeAliasesEnabled {
     return library!.featureSet.isEnabled(Feature.nonfunction_type_aliases);
@@ -2328,7 +2355,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get isPrivate {
-    final name = this.name;
+    var name = this.name;
     if (name == null) {
       return true;
     }
@@ -2400,7 +2427,7 @@ abstract class ElementImpl implements Element {
   Version? get sinceSdkVersion {
     if (!hasModifier(Modifier.HAS_SINCE_SDK_VERSION_COMPUTED)) {
       setModifier(Modifier.HAS_SINCE_SDK_VERSION_COMPUTED, true);
-      final result = SinceSdkVersionComputer().compute(this);
+      var result = SinceSdkVersionComputer().compute(this);
       if (result != null) {
         _sinceSdkVersion[this] = result;
         setModifier(Modifier.HAS_SINCE_SDK_VERSION_VALUE, true);
@@ -2415,6 +2442,16 @@ abstract class ElementImpl implements Element {
   @override
   Source? get source {
     return enclosingElement?.source;
+  }
+
+  /// Whether to include the [nameOffset] in [identifier] to disambiguiate
+  /// elements that might otherwise have the same identifier.
+  bool get _includeNameOffsetInIdentifier {
+    var element = this;
+    if (element is AugmentableElement) {
+      return element.isAugmentation;
+    }
+    return false;
   }
 
   @override
@@ -2460,7 +2497,7 @@ abstract class ElementImpl implements Element {
   @override
   String getExtendedDisplayName(String? shortName) {
     shortName ??= displayName;
-    final source = this.source;
+    var source = this.source;
     return "$shortName (${source?.fullName})";
   }
 
@@ -2536,7 +2573,7 @@ abstract class ElementImpl implements Element {
       return result;
     }
 
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isDeprecated) {
@@ -2676,13 +2713,15 @@ class EnumElementImpl extends InterfaceElementImpl
   EnumElementImpl(super.name, super.offset);
 
   @override
-  MaybeAugmentedEnumElementMixin? get augmented {
+  MaybeAugmentedEnumElementMixin get augmented {
     if (isAugmentation) {
-      return augmentationTarget?.augmented;
-    } else {
-      linkedData?.read(this);
-      return augmentedInternal;
+      if (augmentationTarget case var augmentationTarget?) {
+        return augmentationTarget.augmented;
+      }
     }
+
+    linkedData?.read(this);
+    return augmentedInternal;
   }
 
   List<FieldElementImpl> get constants {
@@ -2906,22 +2945,21 @@ class ExtensionElementImpl extends InstanceElementImpl
   late MaybeAugmentedExtensionElementMixin augmentedInternal =
       NotAugmentedExtensionElementImpl(this);
 
-  /// The type being extended.
-  DartType? _extendedType;
-
   /// Initialize a newly created extension element to have the given [name] at
   /// the given [offset] in the file that contains the declaration of this
   /// element.
   ExtensionElementImpl(super.name, super.nameOffset);
 
   @override
-  MaybeAugmentedExtensionElementMixin? get augmented {
+  MaybeAugmentedExtensionElementMixin get augmented {
     if (isAugmentation) {
-      return augmentationTarget?.augmented;
-    } else {
-      linkedData?.read(this);
-      return augmentedInternal;
+      if (augmentationTarget case var augmentationTarget?) {
+        return augmentationTarget.augmented;
+      }
     }
+
+    linkedData?.read(this);
+    return augmentedInternal;
   }
 
   @override
@@ -2938,12 +2976,7 @@ class ExtensionElementImpl extends InstanceElementImpl
 
   @override
   DartType get extendedType {
-    linkedData?.read(this);
-    return _extendedType!;
-  }
-
-  set extendedType(DartType extendedType) {
-    _extendedType = extendedType;
+    return augmented.extendedType;
   }
 
   @override
@@ -3025,9 +3058,6 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   late MaybeAugmentedExtensionTypeElementMixin augmentedInternal =
       NotAugmentedExtensionTypeElementImpl(this);
 
-  @override
-  late final DartType typeErasure;
-
   /// Whether the element has direct or indirect reference to itself,
   /// in representation.
   bool hasRepresentationSelfReference = false;
@@ -3039,13 +3069,15 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   ExtensionTypeElementImpl(super.name, super.nameOffset);
 
   @override
-  MaybeAugmentedExtensionTypeElementMixin? get augmented {
+  MaybeAugmentedExtensionTypeElementMixin get augmented {
     if (isAugmentation) {
-      return augmentationTarget?.augmented;
-    } else {
-      linkedData?.read(this);
-      return augmentedInternal;
+      if (augmentationTarget case var augmentationTarget?) {
+        return augmentationTarget.augmented;
+      }
     }
+
+    linkedData?.read(this);
+    return augmentedInternal;
   }
 
   @override
@@ -3054,10 +3086,19 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   }
 
   @override
-  ConstructorElement get primaryConstructor => constructors.first;
+  ConstructorElementImpl get primaryConstructor {
+    return augmented.primaryConstructor;
+  }
 
   @override
-  FieldElementImpl get representation => fields.first;
+  FieldElementImpl get representation {
+    return augmented.representation;
+  }
+
+  @override
+  DartType get typeErasure {
+    return augmented.typeErasure;
+  }
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) {
@@ -3198,16 +3239,6 @@ class FunctionElementImpl extends ExecutableElementImpl
   ExecutableElement get declaration => this;
 
   @override
-  String get identifier {
-    String identifier = super.identifier;
-    Element? enclosing = enclosingElement;
-    if (enclosing is ExecutableElement || enclosing is VariableElement) {
-      identifier += "@$nameOffset";
-    }
-    return considerCanonicalizeString(identifier);
-  }
-
-  @override
   bool get isDartCoreIdentical {
     return isStatic && name == 'identical' && library.isDartCore;
   }
@@ -3219,6 +3250,13 @@ class FunctionElementImpl extends ExecutableElementImpl
 
   @override
   ElementKind get kind => ElementKind.FUNCTION;
+
+  @override
+  bool get _includeNameOffsetInIdentifier {
+    return super._includeNameOffsetInIdentifier ||
+        enclosingElement is ExecutableElement ||
+        enclosingElement is VariableElement;
+  }
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitFunctionElement(this);
@@ -3469,9 +3507,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   /// The cached result of [allSupertypes].
   List<InterfaceType>? _allSupertypes;
 
-  /// The type defined by the class.
-  InterfaceType? _thisType;
-
   /// A flag indicating whether the types associated with the instance members
   /// of this class have been inferred.
   bool hasBeenInferred = false;
@@ -3503,7 +3538,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   InterfaceElementImpl? get augmentationTarget;
 
   @override
-  AugmentedInterfaceElement? get augmented;
+  AugmentedInterfaceElement get augmented;
 
   @override
   List<Element> get children => [
@@ -3601,21 +3636,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   @override
   InterfaceType get thisType {
-    if (_thisType == null) {
-      List<DartType> typeArguments;
-      if (typeParameters.isNotEmpty) {
-        typeArguments = typeParameters.map<DartType>((t) {
-          return t.instantiate(nullabilitySuffix: NullabilitySuffix.none);
-        }).toFixedList();
-      } else {
-        typeArguments = const <DartType>[];
-      }
-      return _thisType = instantiate(
-        typeArguments: typeArguments,
-        nullabilitySuffix: NullabilitySuffix.none,
-      );
-    }
-    return _thisType!;
+    return augmented.thisType;
   }
 
   @override
@@ -3672,11 +3693,11 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     if (typeArguments.isEmpty) {
       switch (nullabilitySuffix) {
         case NullabilitySuffix.none:
-          if (_nonNullableInstance case final instance?) {
+          if (_nonNullableInstance case var instance?) {
             return instance;
           }
         case NullabilitySuffix.question:
-          if (_nullableInstance case final instance?) {
+          if (_nullableInstance case var instance?) {
             return instance;
           }
         case NullabilitySuffix.star:
@@ -3685,7 +3706,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
       }
     }
 
-    final result = InterfaceTypeImpl(
+    var result = InterfaceTypeImpl(
       element: this,
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
@@ -3837,7 +3858,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   /// Object contains a definition of the getter it will occur last.
   Iterable<PropertyAccessorElement> _implementationsOfGetter(
       String getterName) sync* {
-    final visitedClasses = <InterfaceElement>{};
+    var visitedClasses = <InterfaceElement>{};
     InterfaceElement? classElement = this;
     while (classElement != null && visitedClasses.add(classElement)) {
       var getter = classElement.getGetter(getterName);
@@ -3866,7 +3887,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   /// this class contains a definition of the method it will occur first, if
   /// Object contains a definition of the method it will occur last.
   Iterable<MethodElement> _implementationsOfMethod(String methodName) sync* {
-    final visitedClasses = <InterfaceElement>{};
+    var visitedClasses = <InterfaceElement>{};
     InterfaceElement? classElement = this;
     while (classElement != null && visitedClasses.add(classElement)) {
       var method = classElement.getMethod(methodName);
@@ -3896,7 +3917,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   /// Object contains a definition of the setter it will occur last.
   Iterable<PropertyAccessorElement> _implementationsOfSetter(
       String setterName) sync* {
-    final visitedClasses = <InterfaceElement>{};
+    var visitedClasses = <InterfaceElement>{};
     InterfaceElement? classElement = this;
     while (classElement != null && visitedClasses.add(classElement)) {
       var setter = classElement.getSetter(setterName);
@@ -4367,9 +4388,9 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   List<PartElementImpl> get parts => _parts;
 
   set parts(List<PartElementImpl> parts) {
-    for (final part in parts) {
+    for (var part in parts) {
       part.enclosingElement = this;
-      final uri = part.uri;
+      var uri = part.uri;
       if (uri is DirectiveUriWithUnitImpl) {
         uri.unit.enclosingElement = this;
       }
@@ -4448,8 +4469,8 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
 
   @override
   ClassElement? getClass(String name) {
-    for (final unitElement in units) {
-      final element = unitElement.getClass(name);
+    for (var unitElement in units) {
+      var element = unitElement.getClass(name);
       if (element != null) {
         return element;
       }
@@ -4458,8 +4479,8 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   }
 
   EnumElement? getEnum(String name) {
-    for (final unitElement in units) {
-      final element = unitElement.getEnum(name);
+    for (var unitElement in units) {
+      var element = unitElement.getEnum(name);
       if (element != null) {
         return element;
       }
@@ -4468,8 +4489,8 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   }
 
   MixinElement? getMixin(String name) {
-    for (final unitElement in units) {
-      final element = unitElement.getMixin(name);
+    for (var unitElement in units) {
+      var element = unitElement.getMixin(name);
       if (element != null) {
         return element;
       }
@@ -4480,8 +4501,8 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   /// Return `true` if [reference] comes only from deprecated exports.
   bool isFromDeprecatedExport(ExportedReference reference) {
     if (reference is ExportedReferenceExported) {
-      for (final location in reference.locations) {
-        final export = location.exportOf(this);
+      for (var location in reference.locations) {
+        var export = location.exportOf(this);
         if (!export.hasDeprecated) {
           return false;
         }
@@ -4523,8 +4544,8 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     }
 
     if (prefix == null && name.startsWith(r'_$')) {
-      for (final augmentation in augmentationImports) {
-        final uri = augmentation.uri;
+      for (var augmentation in augmentationImports) {
+        var uri = augmentation.uri;
         if (uri is DirectiveUriWithSource &&
             uri is! DirectiveUriWithAugmentation &&
             file_paths.isGenerated(uri.relativeUriString)) {
@@ -4532,7 +4553,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
         }
       }
       for (var partElement in parts) {
-        final uri = partElement.uri;
+        var uri = partElement.uri;
         if (uri is DirectiveUriWithSource &&
             uri is! DirectiveUriWithUnit &&
             file_paths.isGenerated(uri.relativeUriString)) {
@@ -4582,14 +4603,14 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   }
 
   List<LibraryAugmentationElementImpl> _computeAugmentations() {
-    final result = <LibraryAugmentationElementImpl>[];
+    var result = <LibraryAugmentationElementImpl>[];
 
     void visitAugmentations(LibraryOrAugmentationElementImpl container) {
       if (container is LibraryAugmentationElementImpl) {
         result.add(container);
       }
-      for (final import in container.augmentationImports) {
-        final augmentation = import.importedAugmentation;
+      for (var import in container.augmentationImports) {
+        var augmentation = import.importedAugmentation;
         if (augmentation != null) {
           visitAugmentations(augmentation);
         }
@@ -4637,7 +4658,7 @@ class LibraryExportElementImpl extends _ExistingElementImpl
 
   @override
   LibraryElementImpl? get exportedLibrary {
-    final uri = this.uri;
+    var uri = this.uri;
     if (uri is DirectiveUriWithLibraryImpl) {
       return uri.library;
     }
@@ -4700,7 +4721,7 @@ class LibraryImportElementImpl extends _ExistingElementImpl
 
   @override
   LibraryElementImpl? get importedLibrary {
-    final uri = this.uri;
+    var uri = this.uri;
     if (uri is DirectiveUriWithLibraryImpl) {
       return uri.library;
     }
@@ -4712,7 +4733,7 @@ class LibraryImportElementImpl extends _ExistingElementImpl
 
   @override
   Namespace get namespace {
-    final uri = this.uri;
+    var uri = this.uri;
     if (uri is DirectiveUriWithLibrary) {
       return _namespace ??=
           NamespaceBuilder().createImportNamespaceForDirective(
@@ -4776,7 +4797,7 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
   }
 
   set augmentationImports(List<AugmentationImportElementImpl> imports) {
-    for (final importElement in imports) {
+    for (var importElement in imports) {
       importElement.enclosingElement = this;
       importElement.importedAugmentation?.enclosingElement = this;
     }
@@ -4832,7 +4853,7 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
   /// Set the specifications of all of the exports defined in this library to
   /// the given list of [exports].
   set libraryExports(List<LibraryExportElementImpl> exports) {
-    for (final exportElement in exports) {
+    for (var exportElement in exports) {
       exportElement.enclosingElement = this;
     }
     _libraryExports = exports;
@@ -4844,7 +4865,7 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
   /// Set the specifications of all of the imports defined in this library to
   /// the given list of [imports].
   set libraryImports(List<LibraryImportElementImpl> imports) {
-    for (final importElement in imports) {
+    for (var importElement in imports) {
       importElement.enclosingElement = this;
     }
     _libraryImports = imports;
@@ -4877,7 +4898,7 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
   static List<PrefixElementImpl> buildPrefixesFromImports(
       List<LibraryImportElementImpl> imports) {
     var prefixes = HashSet<PrefixElementImpl>();
-    for (final import in imports) {
+    for (var import in imports) {
       var prefix = import.prefix;
       if (prefix != null) {
         prefixes.add(prefix.element);
@@ -4956,18 +4977,38 @@ mixin MaybeAugmentedClassElementMixin on MaybeAugmentedInterfaceElementMixin
 mixin MaybeAugmentedEnumElementMixin on MaybeAugmentedInterfaceElementMixin
     implements AugmentedEnumElement {
   @override
+  List<FieldElement> get constants {
+    return fields.where((field) => field.isEnumConstant).toList();
+  }
+
+  @override
   EnumElementImpl get declaration;
 }
 
 mixin MaybeAugmentedExtensionElementMixin on MaybeAugmentedInstanceElementMixin
     implements AugmentedExtensionElement {
   @override
+  DartType extendedType = InvalidTypeImpl.instance;
+
+  @override
   ExtensionElementImpl get declaration;
+
+  @override
+  DartType get thisType => extendedType;
 }
 
 mixin MaybeAugmentedExtensionTypeElementMixin
     on MaybeAugmentedInterfaceElementMixin
     implements AugmentedExtensionTypeElement {
+  @override
+  late ConstructorElementImpl primaryConstructor;
+
+  @override
+  late FieldElementImpl representation;
+
+  @override
+  late DartType typeErasure;
+
   @override
   ExtensionTypeElementImpl get declaration;
 }
@@ -4987,9 +5028,9 @@ mixin MaybeAugmentedInstanceElementMixin implements AugmentedInstanceElement {
 
   @override
   FieldElement? getField(String name) {
-    final length = fields.length;
+    var length = fields.length;
     for (var i = 0; i < length; i++) {
-      final field = fields[i];
+      var field = fields[i];
       if (field.name == name) {
         return field;
       }
@@ -4999,9 +5040,9 @@ mixin MaybeAugmentedInstanceElementMixin implements AugmentedInstanceElement {
 
   @override
   PropertyAccessorElement? getGetter(String name) {
-    final length = accessors.length;
+    var length = accessors.length;
     for (var i = 0; i < length; i++) {
-      final accessor = accessors[i];
+      var accessor = accessors[i];
       if (accessor.isGetter && accessor.name == name) {
         return accessor;
       }
@@ -5011,9 +5052,9 @@ mixin MaybeAugmentedInstanceElementMixin implements AugmentedInstanceElement {
 
   @override
   MethodElement? getMethod(String name) {
-    final length = methods.length;
+    var length = methods.length;
     for (var i = 0; i < length; i++) {
-      final method = methods[i];
+      var method = methods[i];
       if (method.name == name) {
         return method;
       }
@@ -5070,7 +5111,7 @@ mixin MaybeAugmentedInstanceElementMixin implements AugmentedInstanceElement {
   /// Object contains a definition of the getter it will occur last.
   Iterable<PropertyAccessorElement> _implementationsOfGetter(
       String name) sync* {
-    final visitedClasses = <AugmentedInstanceElement>{};
+    var visitedClasses = <AugmentedInstanceElement>{};
     AugmentedInstanceElement? augmented = this;
     while (augmented != null && visitedClasses.add(augmented)) {
       var getter = augmented.getGetter(name);
@@ -5081,7 +5122,7 @@ mixin MaybeAugmentedInstanceElementMixin implements AugmentedInstanceElement {
         return;
       }
       for (InterfaceType mixin in augmented.mixins.reversed) {
-        getter = mixin.element.augmented?.getGetter(name);
+        getter = mixin.element.augmented.getGetter(name);
         if (getter != null) {
           yield getter;
         }
@@ -5102,7 +5143,7 @@ mixin MaybeAugmentedInstanceElementMixin implements AugmentedInstanceElement {
   /// this class contains a definition of the method it will occur first, if
   /// Object contains a definition of the method it will occur last.
   Iterable<MethodElement> _implementationsOfMethod(String name) sync* {
-    final visitedClasses = <AugmentedInstanceElement>{};
+    var visitedClasses = <AugmentedInstanceElement>{};
     AugmentedInstanceElement? augmented = this;
     while (augmented != null && visitedClasses.add(augmented)) {
       var method = augmented.getMethod(name);
@@ -5113,7 +5154,7 @@ mixin MaybeAugmentedInstanceElementMixin implements AugmentedInstanceElement {
         return;
       }
       for (InterfaceType mixin in augmented.mixins.reversed) {
-        method = mixin.element.augmented?.getMethod(name);
+        method = mixin.element.augmented.getMethod(name);
         if (method != null) {
           yield method;
         }
@@ -5135,7 +5176,7 @@ mixin MaybeAugmentedInstanceElementMixin implements AugmentedInstanceElement {
   /// Object contains a definition of the setter it will occur last.
   Iterable<PropertyAccessorElement> _implementationsOfSetter(
       String name) sync* {
-    final visitedClasses = <AugmentedInstanceElement>{};
+    var visitedClasses = <AugmentedInstanceElement>{};
     AugmentedInstanceElement? augmented = this;
     while (augmented != null && visitedClasses.add(augmented)) {
       var setter = augmented.getSetter(name);
@@ -5146,7 +5187,7 @@ mixin MaybeAugmentedInstanceElementMixin implements AugmentedInstanceElement {
         return;
       }
       for (InterfaceType mixin in augmented.mixins.reversed) {
-        setter = mixin.element.augmented?.getSetter(name);
+        setter = mixin.element.augmented.getSetter(name);
         if (setter != null) {
           yield setter;
         }
@@ -5158,8 +5199,30 @@ mixin MaybeAugmentedInstanceElementMixin implements AugmentedInstanceElement {
 
 mixin MaybeAugmentedInterfaceElementMixin on MaybeAugmentedInstanceElementMixin
     implements AugmentedInterfaceElement {
+  InterfaceType? _thisType;
+
   @override
   InterfaceElementImpl get declaration;
+
+  @override
+  InterfaceType get thisType {
+    if (_thisType == null) {
+      List<DartType> typeArguments;
+      var typeParameters = declaration.typeParameters;
+      if (typeParameters.isNotEmpty) {
+        typeArguments = typeParameters.map<DartType>((t) {
+          return t.instantiate(nullabilitySuffix: NullabilitySuffix.none);
+        }).toFixedList();
+      } else {
+        typeArguments = const <DartType>[];
+      }
+      return _thisType = declaration.instantiate(
+        typeArguments: typeArguments,
+        nullabilitySuffix: NullabilitySuffix.none,
+      );
+    }
+    return _thisType!;
+  }
 
   @override
   ConstructorElement? get unnamedConstructor {
@@ -5274,13 +5337,15 @@ class MixinElementImpl extends ClassOrMixinElementImpl
   MixinElementImpl(super.name, super.offset);
 
   @override
-  MaybeAugmentedMixinElementMixin? get augmented {
+  MaybeAugmentedMixinElementMixin get augmented {
     if (isAugmentation) {
-      return augmentationTarget?.augmented;
-    } else {
-      linkedData?.read(this);
-      return augmentedInternal;
+      if (augmentationTarget case var augmentationTarget?) {
+        return augmentationTarget.augmented;
+      }
     }
+
+    linkedData?.read(this);
+    return augmentedInternal;
   }
 
   @override
@@ -5350,6 +5415,11 @@ enum Modifier {
 
   /// Indicates that the modifier 'augment' was applied to the element.
   AUGMENTATION,
+
+  /// Indicates that the element is the start of the augmentation chain,
+  /// in the simplest case - the declaration. But could be an augmentation
+  /// that has no augmented declaration (which is a compile-time error).
+  AUGMENTATION_CHAIN_START,
 
   /// Indicates that the modifier 'base' was applied to the element.
   BASE,
@@ -5763,6 +5833,13 @@ class NotAugmentedClassElementImpl extends NotAugmentedInterfaceElementImpl
 
   @override
   ClassElementImpl get declaration => element;
+
+  @override
+  AugmentedClassElementImpl toAugmented() {
+    var augmented = AugmentedClassElementImpl(declaration);
+    declaration.augmentedInternal = augmented;
+    return augmented;
+  }
 }
 
 class NotAugmentedEnumElementImpl extends NotAugmentedInterfaceElementImpl
@@ -5774,6 +5851,13 @@ class NotAugmentedEnumElementImpl extends NotAugmentedInterfaceElementImpl
 
   @override
   EnumElementImpl get declaration => element;
+
+  @override
+  AugmentedEnumElementImpl toAugmented() {
+    var augmented = AugmentedEnumElementImpl(declaration);
+    declaration.augmentedInternal = augmented;
+    return augmented;
+  }
 }
 
 class NotAugmentedExtensionElementImpl extends NotAugmentedInstanceElementImpl
@@ -5785,6 +5869,14 @@ class NotAugmentedExtensionElementImpl extends NotAugmentedInstanceElementImpl
 
   @override
   ExtensionElementImpl get declaration => element;
+
+  @override
+  AugmentedExtensionElementImpl toAugmented() {
+    var augmented = AugmentedExtensionElementImpl(declaration);
+    augmented.extendedType = extendedType;
+    declaration.augmentedInternal = augmented;
+    return augmented;
+  }
 }
 
 class NotAugmentedExtensionTypeElementImpl
@@ -5797,6 +5889,15 @@ class NotAugmentedExtensionTypeElementImpl
 
   @override
   ExtensionTypeElementImpl get declaration => element;
+
+  @override
+  AugmentedExtensionTypeElementImpl toAugmented() {
+    var augmented = AugmentedExtensionTypeElementImpl(declaration);
+    augmented.primaryConstructor = primaryConstructor;
+    augmented.representation = representation;
+    declaration.augmentedInternal = augmented;
+    return augmented;
+  }
 }
 
 abstract class NotAugmentedInstanceElementImpl
@@ -5822,6 +5923,9 @@ abstract class NotAugmentedInstanceElementImpl
   List<MethodElement> get methods {
     return element.methods;
   }
+
+  /// Returns the empty augmented version, without members.
+  AugmentedInstanceElementImpl toAugmented();
 }
 
 abstract class NotAugmentedInterfaceElementImpl
@@ -5872,6 +5976,13 @@ class NotAugmentedMixinElementImpl extends NotAugmentedInterfaceElementImpl
   @override
   List<InterfaceType> get superclassConstraints {
     return element.superclassConstraints;
+  }
+
+  @override
+  AugmentedMixinElementImpl toAugmented() {
+    var augmented = AugmentedMixinElementImpl(declaration);
+    declaration.augmentedInternal = augmented;
+    return augmented;
   }
 }
 
@@ -6002,6 +6113,8 @@ class ParameterElementImpl extends VariableElementImpl
 }
 
 /// The parameter of an implicit setter.
+// Pre-existing name.
+// ignore: camel_case_types
 class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
   final PropertyAccessorElementImpl_ImplicitSetter setter;
 
@@ -6231,6 +6344,16 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   }
 
   @override
+  PropertyAccessorElementImpl? get augmentationTarget {
+    if (super.augmentationTarget case var target?) {
+      if (target.kind == kind) {
+        return target;
+      }
+    }
+    return null;
+  }
+
+  @override
   PropertyAccessorElement? get correspondingGetter {
     if (isGetter) {
       return null;
@@ -6333,6 +6456,8 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
 }
 
 /// Implicit getter for a [PropertyInducingElementImpl].
+// Pre-existing name.
+// ignore: camel_case_types
 class PropertyAccessorElementImpl_ImplicitGetter
     extends PropertyAccessorElementImpl {
   /// Create the implicit getter and bind it to the [property].
@@ -6393,6 +6518,8 @@ class PropertyAccessorElementImpl_ImplicitGetter
 }
 
 /// Implicit setter for a [PropertyInducingElementImpl].
+// Pre-existing name.
+// ignore: camel_case_types
 class PropertyAccessorElementImpl_ImplicitSetter
     extends PropertyAccessorElementImpl {
   /// Create the implicit setter and bind it to the [property].
@@ -6652,7 +6779,7 @@ class SuperFormalParameterElementImpl extends ParameterElementImpl
 
   @override
   ParameterElement? get superConstructorParameter {
-    final enclosingElement = this.enclosingElement;
+    var enclosingElement = this.enclosingElement;
     if (enclosingElement is ConstructorElementImpl) {
       var superConstructor = enclosingElement.superConstructor;
       if (superConstructor != null) {
@@ -6723,7 +6850,10 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
 ///
 /// Clients may not extend, implement or mix-in this class.
 class TypeAliasElementImpl extends _ExistingElementImpl
-    with TypeParameterizedElementMixin, MacroTargetElement
+    with
+        TypeParameterizedElementMixin,
+        AugmentableElement<TypeAliasElementImpl>,
+        MacroTargetElement
     implements TypeAliasElement {
   /// Is `true` if the element has direct or indirect reference to itself
   /// from anywhere except a class element or type parameter bounds.
@@ -6760,6 +6890,9 @@ class TypeAliasElementImpl extends _ExistingElementImpl
     _aliasedType = rawType;
   }
 
+  /// The aliased type, might be `null` if not yet linked.
+  DartType? get aliasedTypeRaw => _aliasedType;
+
   @override
   String get displayName => name;
 
@@ -6788,7 +6921,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
           !library.typeSystem.isSubtypeOf(aliasedBound, bound)) {
         return false;
       }
-      final typeArgument = typeArguments[i];
+      var typeArgument = typeArguments[i];
       if (typeArgument is TypeParameterType &&
           typeParameters[i] != typeArgument.element) {
         return false;
@@ -6828,7 +6961,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
 
   /// Instantiates this type alias with its type parameters as arguments.
   DartType get rawType {
-    final List<DartType> typeArguments;
+    List<DartType> typeArguments;
     if (typeParameters.isNotEmpty) {
       typeArguments = typeParameters.map<DartType>((t) {
         return t.instantiate(
@@ -6950,7 +7083,7 @@ class TypeParameterElementImpl extends ElementImpl
 
   /// The value representing the variance modifier keyword, or `null` if
   /// there is no explicit variance modifier, meaning legacy covariance.
-  Variance? _variance;
+  shared.Variance? _variance;
 
   /// Initialize a newly created method element to have the given [name] and
   /// [offset].
@@ -6989,11 +7122,11 @@ class TypeParameterElementImpl extends ElementImpl
     return super.name!;
   }
 
-  Variance get variance {
-    return _variance ?? Variance.covariant;
+  shared.Variance get variance {
+    return _variance ?? shared.Variance.covariant;
   }
 
-  set variance(Variance? newVariance) => _variance = newVariance;
+  set variance(shared.Variance? newVariance) => _variance = newVariance;
 
   @override
   bool operator ==(Object other) {
@@ -7016,6 +7149,54 @@ class TypeParameterElementImpl extends ElementImpl
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeTypeParameter(this);
+  }
+
+  /// Computes the variance of the [typeParameter] in the [type].
+  shared.Variance computeVarianceInType(DartType type) {
+    if (type is TypeParameterType) {
+      if (type.element == this) {
+        return shared.Variance.covariant;
+      } else {
+        return shared.Variance.unrelated;
+      }
+    } else if (type is InterfaceType) {
+      var result = shared.Variance.unrelated;
+      for (int i = 0; i < type.typeArguments.length; ++i) {
+        var argument = type.typeArguments[i];
+        var parameter = type.element.typeParameters[i];
+
+        // TODO(kallentu): : Clean up TypeParameterElementImpl casting once
+        // variance is added to the interface.
+        var parameterVariance =
+            (parameter as TypeParameterElementImpl).variance;
+        result = result
+            .meet(parameterVariance.combine(computeVarianceInType(argument)));
+      }
+      return result;
+    } else if (type is FunctionType) {
+      var result = computeVarianceInType(type.returnType);
+
+      for (var parameter in type.typeFormals) {
+        // If [parameter] is referenced in the bound at all, it makes the
+        // variance of [parameter] in the entire type invariant.  The invocation
+        // of [computeVariance] below is made to simply figure out if [variable]
+        // occurs in the bound.
+        var bound = parameter.bound;
+        if (bound != null && !computeVarianceInType(bound).isUnrelated) {
+          result = shared.Variance.invariant;
+        }
+      }
+
+      for (var parameter in type.parameters) {
+        result = result.meet(
+          shared.Variance.contravariant.combine(
+            computeVarianceInType(parameter.type),
+          ),
+        );
+      }
+      return result;
+    }
+    return shared.Variance.unrelated;
   }
 
   @override
@@ -7046,7 +7227,7 @@ mixin TypeParameterizedElementMixin on ElementImpl
   }
 
   set typeParameters(List<TypeParameterElement> typeParameters) {
-    for (final typeParameter in typeParameters) {
+    for (var typeParameter in typeParameters) {
       (typeParameter as TypeParameterElementImpl).enclosingElement = this;
     }
     _typeParameters = typeParameters;

@@ -62,6 +62,11 @@ The easiest way to contribute to Dart is to [file issues][dartbug].
 
 You can also contribute patches, as described in [Contributing][contrib].
 
+## Roadmap
+
+Future plans for Dart are included in the combined Dart and Flutter
+[roadmap][roadmap] on the Flutter wiki.
+
 [website]: https://dart.dev
 [license]: https://github.com/dart-lang/sdk/blob/main/LICENSE
 [repo]: https://github.com/dart-lang/sdk
@@ -72,3 +77,4 @@ You can also contribute patches, as described in [Contributing][contrib].
 [contrib]: https://github.com/dart-lang/sdk/blob/main/CONTRIBUTING.md
 [pubsite]: https://pub.dev
 [patent_grant]: https://github.com/dart-lang/sdk/blob/main/PATENT_GRANT
+[roadmap]: https://github.com/flutter/flutter/wiki/Roadmap

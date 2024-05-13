@@ -36,15 +36,15 @@ import 'package:macros/macros.dart';
     ClassDeclaration clazz,
     TypeDefinitionBuilder builder,
   ) async {
-    final methods = await builder.methodsOf(clazz);
-    final toString = methods.firstWhereOrNull(
+    var methods = await builder.methodsOf(clazz);
+    var toString = methods.firstWhereOrNull(
       (e) => e.identifier.name == 'toString',
     );
     if (toString == null) {
       throw StateError('No toString() declaration');
     }
 
-    final toStringBuilder = await builder.buildMethod(
+    var toStringBuilder = await builder.buildMethod(
       toString.identifier,
     );
 
@@ -123,13 +123,13 @@ import 'package:macros/macros.dart';
     ClassDeclaration declaration,
     MemberDeclarationBuilder builder,
   ) async {
-    final uri = Uri.parse(uriStr);
+    var uri = Uri.parse(uriStr);
 
     // ignore: deprecated_member_use
     var identifier = await builder.resolveIdentifier(uri, topName);
 
-    if (memberName case final memberName?) {
-      final type = await builder.typeDeclarationOf(identifier);
+    if (memberName case var memberName?) {
+      var type = await builder.typeDeclarationOf(identifier);
       identifier = [
         ...await builder.constructorsOf(type),
         ...await builder.fieldsOf(type),
@@ -150,7 +150,7 @@ import 'package:macros/macros.dart';
 
 extension<T> on Iterable<T> {
   T? firstWhereOrNull(bool Function(T element) test) {
-    for (final element in this) {
+    for (var element in this) {
       if (test(element)) return element;
     }
     return null;

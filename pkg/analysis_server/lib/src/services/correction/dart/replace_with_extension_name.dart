@@ -13,7 +13,7 @@ class ReplaceWithExtensionName extends ResolvedCorrectionProducer {
   String _extensionName = '';
 
   @override
-  List<Object> get fixArguments => [_extensionName];
+  List<String> get fixArguments => [_extensionName];
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_WITH_EXTENSION_NAME;
@@ -25,8 +25,8 @@ class ReplaceWithExtensionName extends ResolvedCorrectionProducer {
     }
     var target = _getTarget(node.parent);
     if (target is ExtensionOverride) {
-      final importPrefix = target.importPrefix;
-      final prefixedName = importPrefix != null
+      var importPrefix = target.importPrefix;
+      var prefixedName = importPrefix != null
           ? '${importPrefix.name.lexeme}.${target.name.lexeme}'
           : target.name.lexeme;
       await builder.addDartFileEdit(file, (builder) {

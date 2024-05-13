@@ -20,7 +20,7 @@ class ReferenceTest {
   final _IdMap idMap = _IdMap();
 
   void assertReferenceText(Reference reference, String expected) {
-    final buffer = StringBuffer();
+    var buffer = StringBuffer();
     _ReferenceWriter(
       sink: TreeStringSink(
         sink: buffer,
@@ -28,7 +28,7 @@ class ReferenceTest {
       ),
       idMap: idMap,
     ).write(reference);
-    final actual = buffer.toString();
+    var actual = buffer.toString();
 
     if (actual != expected) {
       print('-------- Actual --------');
@@ -39,13 +39,13 @@ class ReferenceTest {
   }
 
   void test_addChild() {
-    final root = Reference.root();
+    var root = Reference.root();
     assertReferenceText(root, r'''
 <root>
   id: r0
 ''');
 
-    final foo1 = root.addChild('foo');
+    var foo1 = root.addChild('foo');
     expect(foo1.elementName, 'foo');
     expect(idMap[foo1], 'r1');
     assertReferenceText(root, r'''
@@ -57,7 +57,7 @@ class ReferenceTest {
       id: r1
 ''');
 
-    final foo2 = root.addChild('foo');
+    var foo2 = root.addChild('foo');
     expect(foo2.elementName, 'foo');
     expect(idMap[foo1], 'r1');
     expect(idMap[foo2], 'r2');
@@ -80,7 +80,7 @@ class ReferenceTest {
               id: r2
 ''');
 
-    final foo3 = root.addChild('foo');
+    var foo3 = root.addChild('foo');
     expect(foo3.elementName, 'foo');
     expect(idMap[foo1], 'r1');
     expect(idMap[foo2], 'r2');
@@ -108,7 +108,7 @@ class ReferenceTest {
   }
 
   void test_getChild() {
-    final root = Reference.root();
+    var root = Reference.root();
     assertReferenceText(root, r'''
 <root>
   id: r0
@@ -116,9 +116,9 @@ class ReferenceTest {
 
     // 0 -> 1
     {
-      final first = root.getChild('foo');
-      final second = root.getChild('foo');
-      final third = root['foo'];
+      var first = root.getChild('foo');
+      var second = root.getChild('foo');
+      var third = root['foo'];
       expect(second, same(first));
       expect(third, same(first));
       expect(idMap[first], 'r1');
@@ -134,9 +134,9 @@ class ReferenceTest {
 
     // 1 -> 2
     {
-      final first = root.getChild('bar');
-      final second = root.getChild('bar');
-      final third = root['bar'];
+      var first = root.getChild('bar');
+      var second = root.getChild('bar');
+      var third = root['bar'];
       expect(second, same(first));
       expect(third, same(first));
       expect(idMap[first], 'r2');
@@ -154,7 +154,7 @@ class ReferenceTest {
   }
 
   void test_indexRead() {
-    final root = Reference.root();
+    var root = Reference.root();
     expect(root['foo'], isNull);
     assertReferenceText(root, r'''
 <root>
@@ -163,15 +163,15 @@ class ReferenceTest {
   }
 
   void test_remove() {
-    final root = Reference.root();
+    var root = Reference.root();
     assertReferenceText(root, r'''
 <root>
   id: r0
 ''');
 
-    final foo = root.getChild('foo');
-    final bar = root.getChild('bar');
-    final baz = root.getChild('baz');
+    var foo = root.getChild('foo');
+    var bar = root.getChild('bar');
+    var baz = root.getChild('baz');
     assertReferenceText(root, r'''
 <root>
   id: r0
@@ -186,7 +186,7 @@ class ReferenceTest {
 ''');
 
     // 3 -> 2
-    final bar2 = root.removeChild('bar');
+    var bar2 = root.removeChild('bar');
     expect(bar2, same(bar));
     assertReferenceText(root, r'''
 <root>
@@ -200,7 +200,7 @@ class ReferenceTest {
 ''');
 
     // 2 -> 1
-    final baz2 = root.removeChild('baz');
+    var baz2 = root.removeChild('baz');
     expect(baz2, same(baz));
     assertReferenceText(root, r'''
 <root>
@@ -212,14 +212,14 @@ class ReferenceTest {
 ''');
 
     // 1 -> 0
-    final foo2 = root.removeChild('foo');
+    var foo2 = root.removeChild('foo');
     expect(foo2, same(foo));
     assertReferenceText(root, r'''
 <root>
   id: r0
 ''');
 
-    final foo3 = root.removeChild('foo');
+    var foo3 = root.removeChild('foo');
     expect(foo3, isNull);
   }
 }
@@ -251,7 +251,7 @@ class _ReferenceWriter {
     sink.withIndent(() {
       sink.writelnWithIndent('id: ${idMap[reference]}');
 
-      final union = reference.childrenUnionForTesting;
+      var union = reference.childrenUnionForTesting;
       if (union != null) {
         sink.writeIndentedLine(() {
           sink.write('childrenUnion: ');
@@ -261,7 +261,7 @@ class _ReferenceWriter {
               sink.write(idMap[child]);
             case Map<String, Reference> map:
               expect(reference.children, hasLength(greaterThanOrEqualTo(2)));
-              final entriesStr = map.entries.map((e) {
+              var entriesStr = map.entries.map((e) {
                 return '${e.key}: ${idMap[e.value]}';
               }).join(', ');
               sink.write('{$entriesStr}');
@@ -272,7 +272,7 @@ class _ReferenceWriter {
       }
 
       // Sanity check.
-      for (final child in reference.children) {
+      for (var child in reference.children) {
         expect(child.parent, same(reference));
       }
 

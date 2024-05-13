@@ -325,17 +325,21 @@ class Place : public ValueObject {
   //    - for places that depend on an instance X.f, X.@offs, X[i], X[C]
   //      we drop X if X is not an allocation because in this case X does not
   //      possess an identity obtaining aliases *.f, *.@offs, *[i] and *[C]
-  //      respectively;
+  //      respectively; also drop instance of X[i] for typed data view
+  //      allocations as they may alias other indexed accesses.
   //    - for non-constant indexed places X[i] we drop information about the
   //      index obtaining alias X[*].
   //    - we drop information about representation, but keep element size
   //      if any.
   //
   Place ToAlias() const {
+    Definition* alias_instance = nullptr;
+    if (DependsOnInstance() && IsAllocation(instance()) &&
+        ((kind() != kIndexed) || !IsTypedDataViewAllocation(instance()))) {
+      alias_instance = instance();
+    }
     return Place(RepresentationBits::update(kNoRepresentation, flags_),
-                 (DependsOnInstance() && IsAllocation(instance())) ? instance()
-                                                                   : nullptr,
-                 (kind() == kIndexed) ? 0 : raw_selector_);
+                 alias_instance, (kind() == kIndexed) ? 0 : raw_selector_);
   }
 
   bool DependsOnInstance() const {
@@ -514,6 +518,17 @@ class Place : public ValueObject {
     return (defn != nullptr) && (defn->IsAllocation() ||
                                  (defn->IsStaticCall() &&
                                   defn->AsStaticCall()->IsRecognizedFactory()));
+  }
+
+  static bool IsTypedDataViewAllocation(Definition* defn) {
+    if (defn != nullptr) {
+      if (auto* alloc = defn->AsAllocateObject()) {
+        auto const cid = alloc->cls().id();
+        return IsTypedDataViewClassId(cid) ||
+               IsUnmodifiableTypedDataViewClassId(cid);
+      }
+    }
+    return false;
   }
 
  private:
@@ -1110,31 +1125,41 @@ class AliasedSet : public ZoneAllocated {
       } else if (UseIsARedefinition(use) &&
                  AnyUseCreatesAlias(instr->Cast<Definition>())) {
         return true;
-      } else if ((instr->IsStoreField() &&
-                  (use->use_index() != StoreFieldInstr::kInstancePos))) {
-        ASSERT(use->use_index() == StoreFieldInstr::kValuePos);
-        // If we store this value into an object that is not aliased itself
-        // and we never load again then the store does not create an alias.
+      } else if (instr->IsStoreField()) {
         StoreFieldInstr* store = instr->AsStoreField();
-        Definition* instance =
-            store->instance()->definition()->OriginalDefinition();
-        if (Place::IsAllocation(instance) &&
-            !instance->Identity().IsAliased()) {
-          bool is_load, is_store;
-          Place store_place(instr, &is_load, &is_store);
 
-          if (!HasLoadsFromPlace(instance, &store_place)) {
-            // No loads found that match this store. If it is yet unknown if
-            // the object is not aliased then optimistically assume this but
-            // add it to the worklist to check its uses transitively.
-            if (instance->Identity().IsUnknown()) {
-              instance->SetIdentity(AliasIdentity::NotAliased());
-              aliasing_worklist_.Add(instance);
-            }
-            continue;
-          }
+        if (store->slot().kind() == Slot::Kind::kTypedDataView_typed_data) {
+          // Initialization of TypedDataView.typed_data field creates
+          // aliasing between the view and original typed data,
+          // as the same data can now be accessed via both typed data
+          // view and the original typed data.
+          return true;
         }
-        return true;
+
+        if (use->use_index() != StoreFieldInstr::kInstancePos) {
+          ASSERT(use->use_index() == StoreFieldInstr::kValuePos);
+          // If we store this value into an object that is not aliased itself
+          // and we never load again then the store does not create an alias.
+          Definition* instance =
+              store->instance()->definition()->OriginalDefinition();
+          if (Place::IsAllocation(instance) &&
+              !instance->Identity().IsAliased()) {
+            bool is_load, is_store;
+            Place store_place(instr, &is_load, &is_store);
+
+            if (!HasLoadsFromPlace(instance, &store_place)) {
+              // No loads found that match this store. If it is yet unknown if
+              // the object is not aliased then optimistically assume this but
+              // add it to the worklist to check its uses transitively.
+              if (instance->Identity().IsUnknown()) {
+                instance->SetIdentity(AliasIdentity::NotAliased());
+                aliasing_worklist_.Add(instance);
+              }
+              continue;
+            }
+          }
+          return true;
+        }
       } else if (auto* const alloc = instr->AsAllocation()) {
         // Treat inputs to an allocation instruction exactly as if they were
         // manually stored using a StoreField instruction.
@@ -1401,6 +1426,11 @@ static bool IsLoadEliminationCandidate(Instruction* instr) {
   if (instr->IsDefinition() &&
       instr->AsDefinition()->MayCreateUnsafeUntaggedPointer()) {
     return false;
+  }
+  if (auto* load = instr->AsLoadField()) {
+    if (load->slot().is_weak()) {
+      return false;
+    }
   }
   return instr->IsLoadField() || instr->IsLoadIndexed() ||
          instr->IsLoadStaticField();
@@ -3050,24 +3080,43 @@ class StoreOptimizer : public LivenessAnalysis {
         new (zone) BitVector(zone, aliased_set_->max_place_id());
     all_places->SetAll();
 
-    BitVector* all_aliased_places =
-        new (zone) BitVector(zone, aliased_set_->max_place_id());
+    BitVector* all_aliased_places = nullptr;
     if (CompilerState::Current().is_aot()) {
-      const auto& places = aliased_set_->places();
-      // Go through all places and identify those which are escaping.
-      // We find such places by inspecting definition allocation
-      // [AliasIdentity] field, which is populated above by
-      // [AliasedSet::ComputeAliasing].
-      for (intptr_t i = 0; i < places.length(); i++) {
-        Place* place = places[i];
-        if (place->DependsOnInstance()) {
-          Definition* instance = place->instance();
-          if (Place::IsAllocation(instance) &&
-              !instance->Identity().IsAliased()) {
-            continue;
-          }
+      all_aliased_places =
+          new (zone) BitVector(zone, aliased_set_->max_place_id());
+    }
+    const auto& places = aliased_set_->places();
+    for (intptr_t i = 0; i < places.length(); i++) {
+      Place* place = places[i];
+      if (place->DependsOnInstance()) {
+        Definition* instance = place->instance();
+        // Find escaping places by inspecting definition allocation
+        // [AliasIdentity] field, which is populated above by
+        // [AliasedSet::ComputeAliasing].
+        if ((all_aliased_places != nullptr) &&
+            (!Place::IsAllocation(instance) ||
+             instance->Identity().IsAliased())) {
+          all_aliased_places->Add(i);
         }
-        all_aliased_places->Add(i);
+        if (instance != nullptr) {
+          // Avoid incorrect propagation of "dead" state beyond definition
+          // of the instance. Otherwise it may eventually reach stores into
+          // this place via loop backedge.
+          live_in_[instance->GetBlock()->postorder_number()]->Add(i);
+        }
+      } else {
+        if (all_aliased_places != nullptr) {
+          all_aliased_places->Add(i);
+        }
+      }
+      if (place->kind() == Place::kIndexed) {
+        Definition* index = place->index();
+        if (index != nullptr) {
+          // Avoid incorrect propagation of "dead" state beyond definition
+          // of the index. Otherwise it may eventually reach stores into
+          // this place via loop backedge.
+          live_in_[index->GetBlock()->postorder_number()]->Add(i);
+        }
       }
     }
 
@@ -4524,21 +4573,23 @@ static bool IsMarkedWithNoInterrupts(const Function& function) {
 
 void CheckStackOverflowElimination::EliminateStackOverflow(FlowGraph* graph) {
   const bool should_remove_all = IsMarkedWithNoInterrupts(graph->function());
+  if (should_remove_all) {
+    for (auto entry : graph->reverse_postorder()) {
+      for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
+        if (it.Current()->IsCheckStackOverflow()) {
+          it.RemoveCurrentFromGraph();
+        }
+      }
+    }
+    return;
+  }
 
   CheckStackOverflowInstr* first_stack_overflow_instr = nullptr;
-  for (BlockIterator block_it = graph->reverse_postorder_iterator();
-       !block_it.Done(); block_it.Advance()) {
-    BlockEntryInstr* entry = block_it.Current();
-
+  for (auto entry : graph->reverse_postorder()) {
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
 
       if (CheckStackOverflowInstr* instr = current->AsCheckStackOverflow()) {
-        if (should_remove_all) {
-          it.RemoveCurrentFromGraph();
-          continue;
-        }
-
         if (first_stack_overflow_instr == nullptr) {
           first_stack_overflow_instr = instr;
           ASSERT(!first_stack_overflow_instr->in_loop());

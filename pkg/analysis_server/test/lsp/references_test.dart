@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class ReferencesTest extends AbstractLspAnalysisServerTest {
   Future<void> test_acrossFiles_includeDeclaration() async {
-    final otherContent = '''
+    var otherContent = '''
 import 'main.dart';
 
 void f() {
@@ -27,7 +27,7 @@ void f() {
 }
 ''';
 
-    final mainContent = '''
+    var mainContent = '''
 /// Ensure the function is on a line that
 /// does not exist in the mainContents file
 /// to ensure we're translating offsets to line/col
@@ -48,7 +48,7 @@ void f() {
   }
 
   Future<void> test_acrossFiles_withoutDeclaration() async {
-    final otherContent = '''
+    var otherContent = '''
 import 'main.dart';
 
 void f() {
@@ -56,7 +56,7 @@ void f() {
 }
 ''';
 
-    final mainContent = '''
+    var mainContent = '''
 /// Ensure the function is on a line that
 /// does not exist in the mainContents file
 /// to ensure we're translating offsets to line/col
@@ -75,10 +75,30 @@ void f() {
     );
   }
 
-  Future<void> test_field() async {
+  Future<void> test_field_decalaration_getterSetter() async {
+    var content = '''
+class MyClass {
+  String field^ = '';
+}
+
+void f() {
+  MyClass()./*[0*/field/*0]*/ = '';
+  print(MyClass()./*[1*/field/*1]*/);
+  
+  var myInstance = MyClass();
+  myInstance./*[2*/field/*2]*/ = '';
+  print(myInstance./*[3*/field/*3]*/);
+  myInstance./*[4*/field/*4]*/ += myInstance./*[5*/field/*5]*/;
+}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_field_decalaration_initializingFormal() async {
     // References on the field should find both the initializing formal and the
     // reference to the getter.
-    final content = '''
+    var content = '''
 class AAA {
   final String? aa^a;
   const AAA({this./*[0*/aaa/*0]*/});
@@ -91,7 +111,7 @@ final a = AAA(aaa: '')./*[1*/aaa/*1]*/;
   }
 
   Future<void> test_forEachElement_blockBody() async {
-    final content = '''
+    var content = '''
 void f(List<int> values) {
   [for (final val^ue in values) [!value!] * 2];
 }
@@ -101,7 +121,7 @@ void f(List<int> values) {
   }
 
   Future<void> test_forEachElement_expressionBody() async {
-    final content = '''
+    var content = '''
 Object f() => [for (final val^ue in []) [!value!] * 2];
 ''';
 
@@ -109,7 +129,7 @@ Object f() => [for (final val^ue in []) [!value!] * 2];
   }
 
   Future<void> test_forEachElement_topLevel() async {
-    final content = '''
+    var content = '''
 final a = [for (final val^ue in []) [!value!] * 2];
 ''';
 
@@ -117,7 +137,7 @@ final a = [for (final val^ue in []) [!value!] * 2];
   }
 
   Future<void> test_function_startOfParameterList() async {
-    final content = '''
+    var content = '''
 foo^() {
   [!foo!]();
 }
@@ -127,7 +147,7 @@ foo^() {
   }
 
   Future<void> test_function_startOfTypeParameterList() async {
-    final content = '''
+    var content = '''
 foo^<T>() {
   [!foo!]();
 }
@@ -136,8 +156,50 @@ foo^<T>() {
     await _checkRanges(content);
   }
 
+  Future<void> test_getter_decalaration_getterSetter() async {
+    var content = '''
+class MyClass {
+  String get field^ => '';
+  set field(String _) {}
+}
+
+void f() {
+  MyClass()./*[0*/field/*0]*/ = '';
+  print(MyClass()./*[1*/field/*1]*/);
+  
+  var myInstance = MyClass();
+  myInstance./*[2*/field/*2]*/ = '';
+  print(myInstance./*[3*/field/*3]*/);
+  myInstance./*[4*/field/*4]*/ += myInstance./*[5*/field/*5]*/;
+}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_getter_invocation_getterSetter() async {
+    var content = '''
+class MyClass {
+  String get field => '';
+  set field(String _) {}
+}
+
+void f() {
+  MyClass()./*[0*/field/*0]*/ = '';
+  print(MyClass()./*[1*/fi^eld/*1]*/);
+  
+  var myInstance = MyClass();
+  myInstance./*[2*/field/*2]*/ = '';
+  print(myInstance./*[3*/field/*3]*/);
+  myInstance./*[4*/field/*4]*/ += myInstance./*[5*/field/*5]*/;
+}
+''';
+
+    await _checkRanges(content);
+  }
+
   Future<void> test_import_prefix() async {
-    final content = '''
+    var content = '''
 imp^ort 'dart:async' as async;
 
 /*[0*/async./*0]*/Future<String>? f() {}
@@ -149,7 +211,7 @@ imp^ort 'dart:async' as async;
 
   Future<void> test_initializingFormals() async {
     // References on "this.aaa" should only find the matching named argument.
-    final content = '''
+    var content = '''
 class AAA {
   final String? aaa;
   const AAA({this.aa^a});
@@ -162,7 +224,7 @@ final a = AAA([!aaa!]: '').aaa;
   }
 
   Future<void> test_method_startOfParameterList() async {
-    final content = '''
+    var content = '''
 class A {
   foo^() {
     [!foo!]();
@@ -174,7 +236,7 @@ class A {
   }
 
   Future<void> test_method_startOfTypeParameterList() async {
-    final content = '''
+    var content = '''
 class A {
   foo^<T>() {
     [!foo!]();
@@ -189,12 +251,12 @@ class A {
     newFile(pubspecFilePath, simplePubspecContent);
     await initialize();
 
-    final res = await getReferences(pubspecFileUri, startOfDocPos);
+    var res = await getReferences(pubspecFileUri, startOfDocPos);
     expect(res, isEmpty);
   }
 
   Future<void> test_pattern_object_withDeclaration() async {
-    final content = '''
+    var content = '''
 class A {
   int get i => 0;
 }
@@ -212,7 +274,7 @@ int f(Object o) {
   }
 
   Future<void> test_pattern_object_withoutDeclaration() async {
-    final content = '''
+    var content = '''
 class A {
   int get i => 0;
 }
@@ -229,8 +291,50 @@ int f(Object o) {
     await _checkRanges(content);
   }
 
+  Future<void> test_setter_decalaration_getterSetter() async {
+    var content = '''
+class MyClass {
+  String get field => '';
+  set fie^ld(String _) {}
+}
+
+void f() {
+  MyClass()./*[0*/field/*0]*/ = '';
+  print(MyClass()./*[1*/field/*1]*/);
+  
+  var myInstance = MyClass();
+  myInstance./*[2*/field/*2]*/ = '';
+  print(myInstance./*[3*/field/*3]*/);
+  myInstance./*[4*/field/*4]*/ += myInstance./*[5*/field/*5]*/;
+}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_setter_invocation_getterSetter() async {
+    var content = '''
+class MyClass {
+  String get field => '';
+  set field(String _) {}
+}
+
+void f() {
+  MyClass()./*[0*/fie^ld/*0]*/ = '';
+  print(MyClass()./*[1*/field/*1]*/);
+  
+  var myInstance = MyClass();
+  myInstance./*[2*/field/*2]*/ = '';
+  print(myInstance./*[3*/field/*3]*/);
+  myInstance./*[4*/field/*4]*/ += myInstance./*[5*/field/*5]*/;
+}
+''';
+
+    await _checkRanges(content);
+  }
+
   Future<void> test_singleFile_withoutDeclaration() async {
-    final content = '''
+    var content = '''
 f^oo() {
   [!foo!]();
 }
@@ -240,7 +344,7 @@ f^oo() {
   }
 
   Future<void> test_type() async {
-    final content = '''
+    var content = '''
 class A^aa<T> {}
 
 [!Aaa!]<String>? a;
@@ -250,7 +354,7 @@ class A^aa<T> {}
   }
 
   Future<void> test_type_generic_end() async {
-    final content = '''
+    var content = '''
 class Aaa^<T> {}
 
 [!Aaa!]<String>? a;
@@ -260,7 +364,7 @@ class Aaa^<T> {}
   }
 
   Future<void> test_unopenFile() async {
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
     f^oo() {
       [!foo!]();
     }
@@ -268,9 +372,9 @@ class Aaa^<T> {}
 
     newFile(mainFilePath, code.code);
     await initialize();
-    final res = await getReferences(mainFileUri, code.position.position);
+    var res = await getReferences(mainFileUri, code.position.position);
 
-    final expected = [
+    var expected = [
       for (final range in code.ranges)
         Location(uri: mainFileUri, range: range.range),
     ];
@@ -283,23 +387,22 @@ class Aaa^<T> {}
     String? otherContent,
     bool includeDeclarations = false,
   }) async {
-    final mainCode = TestCode.parse(mainContent);
-    final otherCode =
-        otherContent != null ? TestCode.parse(otherContent) : null;
-    final otherFileUri = toUri(join(projectFolderPath, 'lib', 'other.dart'));
+    var mainCode = TestCode.parse(mainContent);
+    var otherCode = otherContent != null ? TestCode.parse(otherContent) : null;
+    var otherFileUri = toUri(join(projectFolderPath, 'lib', 'other.dart'));
 
     await initialize();
     await openFile(mainFileUri, mainCode.code);
     if (otherCode != null) {
       await openFile(otherFileUri, otherCode.code);
     }
-    final res = await getReferences(
+    var res = await getReferences(
       mainFileUri,
       mainCode.position.position,
       includeDeclarations: includeDeclarations,
     );
 
-    final expected = [
+    var expected = [
       for (final range in mainCode.ranges)
         Location(uri: mainFileUri, range: range.range),
       if (otherCode != null)

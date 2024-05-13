@@ -4,7 +4,7 @@
 
 import 'dart:html';
 
-import 'package:expect/minitest.dart';
+import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 // TODO(vsm): Rename this to wrapper_caching_test or similar.  It's
 // basically a port of dom/dart_object_local_storage_test.dart.  For

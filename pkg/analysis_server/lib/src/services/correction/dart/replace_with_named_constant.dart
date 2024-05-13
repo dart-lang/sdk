@@ -35,7 +35,7 @@ class ReplaceWithNamedConstant extends ResolvedCorrectionProducer {
 
 
   static String? _getCorrection(String message) {
-    final match = RegExp(r"'(.*)'").firstMatch(message);
+    var match = RegExp(r"'(.*)'").firstMatch(message);
     if (match == null) {
         return null;
     }

@@ -23,28 +23,28 @@ class ConvertToIfCaseStatement extends ResolvedCorrectionProducer {
       return;
     }
 
-    final ifStatement = node;
+    var ifStatement = node;
     if (ifStatement is! IfStatement) {
       return;
     }
 
-    final location = ifStatement.locationInBlock;
+    var location = ifStatement.locationInBlock;
     if (location == null) {
       return;
     }
 
     // The statement before `if` declares exactly one variable.
-    final previousStatement = location.previous;
-    final declaredVariable = previousStatement?.asSingleVariableDeclaration;
+    var previousStatement = location.previous;
+    var declaredVariable = previousStatement?.asSingleVariableDeclaration;
     if (declaredVariable == null) {
       return;
     }
 
     // Check that the declared variable is not used after `if`.
     bool hasReferencesAfterThen() {
-      final visitor = _ReferenceVisitor(declaredVariable.element);
+      var visitor = _ReferenceVisitor(declaredVariable.element);
       ifStatement.elseStatement?.accept(visitor);
-      for (final statement in location.following) {
+      for (var statement in location.following) {
         statement.accept(visitor);
       }
       return visitor.hasReference;
@@ -73,17 +73,17 @@ class ConvertToIfCaseStatement extends ResolvedCorrectionProducer {
     required IfStatement ifStatement,
     required bool Function() hasReferencesAfterThen,
   }) async {
-    final isExpression = ifStatement.expression;
+    var isExpression = ifStatement.expression;
     if (isExpression is! IsExpression) {
       return;
     }
 
-    final leftIdentifier = isExpression.expression;
+    var leftIdentifier = isExpression.expression;
     if (leftIdentifier is! SimpleIdentifier) {
       return;
     }
 
-    final name = declaredVariable.name;
+    var name = declaredVariable.name;
     if (name != leftIdentifier.token.lexeme) {
       return;
     }
@@ -93,9 +93,9 @@ class ConvertToIfCaseStatement extends ResolvedCorrectionProducer {
       return;
     }
 
-    final keyword = declaredVariable.isFinal ? 'final ' : '';
-    final typeCode = utils.getNodeText(isExpression.type);
-    final patternCode = '$keyword$typeCode $name';
+    var keyword = declaredVariable.isFinal ? 'final ' : '';
+    var typeCode = utils.getNodeText(isExpression.type);
+    var patternCode = '$keyword$typeCode $name';
 
     await _rewriteIfStatement(
       builder: builder,
@@ -111,7 +111,7 @@ class ConvertToIfCaseStatement extends ResolvedCorrectionProducer {
     required IfStatement ifStatement,
     required bool Function() hasReferencesAfterThen,
   }) async {
-    final notEqNull = ifStatement.expression;
+    var notEqNull = ifStatement.expression;
     if (notEqNull is! BinaryExpression) {
       return;
     }
@@ -122,12 +122,12 @@ class ConvertToIfCaseStatement extends ResolvedCorrectionProducer {
       return;
     }
 
-    final leftIdentifier = notEqNull.leftOperand;
+    var leftIdentifier = notEqNull.leftOperand;
     if (leftIdentifier is! SimpleIdentifier) {
       return;
     }
 
-    final name = declaredVariable.declaration.name.lexeme;
+    var name = declaredVariable.declaration.name.lexeme;
     if (name != leftIdentifier.token.lexeme) {
       return;
     }
@@ -137,8 +137,8 @@ class ConvertToIfCaseStatement extends ResolvedCorrectionProducer {
       return;
     }
 
-    final keyword = declaredVariable.isFinal ? 'final' : 'var';
-    final patternCode = '$keyword $name?';
+    var keyword = declaredVariable.isFinal ? 'final' : 'var';
+    var patternCode = '$keyword $name?';
 
     await _rewriteIfStatement(
       builder: builder,
@@ -159,8 +159,8 @@ class ConvertToIfCaseStatement extends ResolvedCorrectionProducer {
         range.startStart(declaredVariable.statement, ifStatement),
       );
 
-      final initializer = declaredVariable.initializer;
-      final initializerCode = utils.getNodeText(initializer);
+      var initializer = declaredVariable.initializer;
+      var initializerCode = utils.getNodeText(initializer);
 
       builder.addSimpleReplacement(
         range.node(ifStatement.expression),
@@ -224,23 +224,23 @@ class _StatementInBlock {
 
 extension on Statement {
   _DeclaredVariable? get asSingleVariableDeclaration {
-    final self = this;
+    var self = this;
     if (self is! VariableDeclarationStatement) {
       return null;
     }
 
-    final declarations = self.variables.variables;
-    final declaration = declarations.singleOrNull;
+    var declarations = self.variables.variables;
+    var declaration = declarations.singleOrNull;
     if (declaration == null) {
       return null;
     }
 
-    final declaredElement = declaration.declaredElement;
+    var declaredElement = declaration.declaredElement;
     if (declaredElement is! LocalVariableElement) {
       return null;
     }
 
-    final initializer = declaration.initializer;
+    var initializer = declaration.initializer;
     if (initializer == null) {
       return null;
     }
@@ -254,12 +254,12 @@ extension on Statement {
   }
 
   _StatementInBlock? get locationInBlock {
-    final block = parent;
+    var block = parent;
     if (block is! Block) {
       return null;
     }
 
-    final parentStatements = block.statements;
+    var parentStatements = block.statements;
     return _StatementInBlock(
       block: block,
       index: parentStatements.indexOf(this),

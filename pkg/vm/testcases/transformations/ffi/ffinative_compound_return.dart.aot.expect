@@ -26,7 +26,7 @@ final class Struct1ByteInt extends ffi::Struct {
   [@vm.unboxing-info.metadata=()->i]
   @#C8
   static get a0#offsetOf() → core::int
-    return #C10.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+    return #C10.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 static method main() → void {
   final self::Struct1ByteInt result = self::returnStruct1ByteIntNative([@vm.direct-call.metadata=dart.core::_IntegerImplementation.unary-] [@vm.inferred-type.metadata=int (skip check)] 1.{core::int::unary-}(){() → core::int});
@@ -55,7 +55,7 @@ constants  {
   #C7 = "vm:prefer-inline"
   #C8 = core::pragma {name:#C7, options:#C4}
   #C9 = 0
-  #C10 = <core::int*>[#C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9]
+  #C10 = <core::int>[#C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9]
   #C11 = "ReturnStruct1ByteInt"
   #C12 = "#lib"
   #C13 = false

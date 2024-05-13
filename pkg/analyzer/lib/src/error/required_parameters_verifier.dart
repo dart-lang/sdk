@@ -20,10 +20,10 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
 
   @override
   void visitAnnotation(Annotation node) {
-    final element = node.element;
-    final argumentList = node.arguments;
+    var element = node.element;
+    var argumentList = node.arguments;
     if (element is ConstructorElement && argumentList != null) {
-      final errorNode = node.constructorIdentifier ?? node.classIdentifier;
+      var errorNode = node.constructorIdentifier ?? node.classIdentifier;
       if (errorNode != null) {
         _check(
           parameters: element.parameters,
@@ -232,7 +232,7 @@ class _RequiredAnnotation {
 extension _InstantiatedAnnotation on Annotation {
   SimpleIdentifier? get classIdentifier {
     assert(arguments != null);
-    final name = this.name;
+    var name = this.name;
     if (name is SimpleIdentifier) {
       return _ifClassElement(name);
     } else if (name is PrefixedIdentifier) {
@@ -243,12 +243,12 @@ extension _InstantiatedAnnotation on Annotation {
 
   SimpleIdentifier? get constructorIdentifier {
     assert(arguments != null);
-    final constructorName = _ifConstructorElement(this.constructorName);
+    var constructorName = _ifConstructorElement(this.constructorName);
     if (constructorName != null) {
       return constructorName;
     }
 
-    final name = this.name;
+    var name = this.name;
     if (name is SimpleIdentifier) {
       return _ifConstructorElement(name);
     } else if (name is PrefixedIdentifier) {

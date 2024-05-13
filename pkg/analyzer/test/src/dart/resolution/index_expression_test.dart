@@ -306,7 +306,7 @@ class A {
       error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 32, 5),
     ]);
 
-    final node = findNode.singleIndexExpression;
+    var node = findNode.singleIndexExpression;
     assertResolvedNodeText(node, r'''
 IndexExpression
   target: ThisExpression
@@ -331,7 +331,7 @@ void f(List<int> a) {
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 26, 1),
     ]);
 
-    final node = findNode.singleIndexExpression;
+    var node = findNode.singleIndexExpression;
     assertResolvedNodeText(node, r'''
 IndexExpression
   target: SimpleIdentifier
@@ -446,7 +446,7 @@ void f(dynamic a) {
 }
 ''');
 
-    final node = findNode.singleIndexExpression;
+    var node = findNode.singleIndexExpression;
     assertResolvedNodeText(node, r'''
 IndexExpression
   target: SimpleIdentifier
@@ -473,7 +473,7 @@ void f() {
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1),
     ]);
 
-    final node = findNode.singleIndexExpression;
+    var node = findNode.singleIndexExpression;
     assertResolvedNodeText(node, r'''
 IndexExpression
   target: SimpleIdentifier

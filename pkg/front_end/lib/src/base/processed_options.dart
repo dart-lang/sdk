@@ -243,9 +243,6 @@ class ProcessedOptions {
   void report(LocatedMessage message, Severity severity,
       {List<LocatedMessage>? context, List<Uri>? involvedFiles}) {
     if (command_line_reporting.isHidden(severity)) return;
-    if (command_line_reporting.isCompileTimeError(severity)) {
-      CompilerContext.current.logError(message, severity);
-    }
     if (CompilerContext.current.options.setExitCodeOnProblem) {
       exitCode = 1;
     }
@@ -268,7 +265,7 @@ class ProcessedOptions {
   }
 
   void reportDiagnosticMessage(DiagnosticMessage message) {
-    (_raw.onDiagnostic ?? _defaultDiagnosticMessageHandler)(message);
+    (_raw.onDiagnostic ?? defaultDiagnosticMessageHandler)(message);
   }
 
   /// Returns [error] as a message from the OS.
@@ -280,7 +277,7 @@ class ProcessedOptions {
     return '$error';
   }
 
-  void _defaultDiagnosticMessageHandler(DiagnosticMessage message) {
+  void defaultDiagnosticMessageHandler(DiagnosticMessage message) {
     if (Verbosity.shouldPrint(_raw.verbosity, message)) {
       printDiagnosticMessage(message, print);
     }
@@ -882,6 +879,14 @@ class ProcessedOptions {
   Future<void> dispose() async {
     await _raw.macroExecutor?.closeAndReset();
     await macroSerializer.close();
+  }
+
+  bool equivalent(ProcessedOptions other,
+      {bool ignoreOnDiagnostic = true,
+      bool ignoreVerbose = true,
+      bool ignoreVerify = true,
+      bool ignoreDebugDump = true}) {
+    return _raw.equivalent(other._raw);
   }
 }
 

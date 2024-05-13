@@ -723,7 +723,7 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
     // If an overlay option is being used, compute the overlay file, and
     // have the context reanalyze the file.
     if (options.overlay != OverlayMode.none) {
-      final overlayContents = CompletionMetricsComputer.getOverlayContent(
+      var overlayContents = CompletionMetricsComputer.getOverlayContent(
         resolvedUnitResult.content,
         expectedCompletion,
         options.overlay,

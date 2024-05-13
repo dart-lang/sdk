@@ -23,6 +23,15 @@ class UseResultVerifier {
     _check(node, element);
   }
 
+  void checkInstanceCreationExpression(InstanceCreationExpression node) {
+    var element = node.constructorName.staticElement;
+    if (element == null) {
+      return;
+    }
+
+    _check(node, element);
+  }
+
   void checkMethodInvocation(MethodInvocation node) {
     var element = node.methodName.staticElement;
     if (element == null) {

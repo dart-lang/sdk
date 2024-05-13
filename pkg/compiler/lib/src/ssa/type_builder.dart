@@ -346,7 +346,11 @@ abstract class TypeBuilder {
   /// See [LocalsHandler.substInContext].
   HInstruction buildAsCheck(HInstruction original, DartType type,
       {required bool isTypeError, SourceInformation? sourceInformation}) {
-    if (_closedWorld.dartTypes.isTopType(type)) return original;
+    if (builder.options.experimentNullSafetyChecks) {
+      if (_closedWorld.dartTypes.isStrongTopType(type)) return original;
+    } else {
+      if (_closedWorld.dartTypes.isTopType(type)) return original;
+    }
 
     HInstruction reifiedType = analyzeTypeArgumentNewRti(
         type, builder.sourceElement,

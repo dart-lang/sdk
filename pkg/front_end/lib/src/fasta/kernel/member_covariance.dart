@@ -204,7 +204,7 @@ class Covariance {
   }
 
   /// Returns the merge of this covariance with [other] in which parameters are
-  /// covariant if they are covariant in either [this] or [other].
+  /// covariant if they are covariant in either this [Covariance] or [other].
   Covariance merge(Covariance other) {
     if (identical(this, other)) return this;
     List<int>? positionalParameters;
@@ -260,7 +260,7 @@ class Covariance {
   }
 
   /// Update [member] to have the covariant flags set with the covariance in
-  /// [this].
+  /// this [Covariance].
   ///
   /// No covariance bits are removed from [member] during this process.
   void applyCovariance(Member member) {

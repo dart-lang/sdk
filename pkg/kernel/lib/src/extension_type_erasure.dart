@@ -26,7 +26,7 @@ class _ExtensionTypeErasure extends ReplacementVisitor {
   const _ExtensionTypeErasure();
 
   @override
-  DartType? visitExtensionType(ExtensionType node, int variance) {
+  DartType? visitExtensionType(ExtensionType node, Variance variance) {
     return node.extensionTypeErasure;
   }
 }

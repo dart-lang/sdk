@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 
 const _desc = r'Avoid defining a class that contains only static members.';
 
@@ -42,18 +43,6 @@ const _favoriteMammal = 'weasel';
 ```
 
 ''';
-
-bool _isNonConst(FieldElement element) => !element.isConst;
-
-bool _isStaticMember(ClassMember classMember) {
-  if (classMember is MethodDeclaration) {
-    return classMember.isStatic;
-  }
-  if (classMember is FieldDeclaration) {
-    return classMember.isStatic;
-  }
-  return false;
-}
 
 class AvoidClassesWithOnlyStaticMembers extends LintRule {
   static const LintCode code = LintCode(
@@ -103,9 +92,20 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
 
-    if (node.members.isNotEmpty &&
-        node.members.every(_isStaticMember) &&
-        (element.methods.isNotEmpty || element.fields.any(_isNonConst))) {
+    var declaredElement = node.declaredElement;
+    if (declaredElement == null) return;
+
+    var constructors = declaredElement.allConstructors;
+    if (constructors.isNotEmpty &&
+        constructors.any((c) => !c.isDefaultConstructor)) {
+      return;
+    }
+
+    var methods = declaredElement.allMethods;
+    if (methods.isNotEmpty && !methods.every((m) => m.isStatic)) return;
+
+    if (methods.isNotEmpty ||
+        declaredElement.allFields.any((f) => !f.isConst)) {
       rule.reportLint(node);
     }
   }

@@ -722,7 +722,7 @@ void f(A a) {
   }
 }
 ''');
-    final node = findNode.prefixed('a._it;');
+    var node = findNode.prefixed('a._it;');
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier

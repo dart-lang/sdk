@@ -33,7 +33,7 @@ class C {}
 class X = A with B implements C;
 ''');
 
-    final node = findNode.classTypeAlias('X =');
+    var node = findNode.classTypeAlias('X =');
     assertResolvedNodeText(node, r'''
 ClassTypeAlias
   typedefKeyword: class

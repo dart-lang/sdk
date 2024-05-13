@@ -47,7 +47,8 @@ import 'package:front_end/src/fasta/source/source_library_builder.dart';
 import 'package:front_end/src/fasta/source/source_loader.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:kernel/kernel.dart' as kernel
-    show Combinator, Component, LibraryDependency, Library, Location, Source;
+    show Combinator, Component, LibraryDependency, Location, Source;
+import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/targets.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:vm/modular/target/vm.dart';
@@ -909,7 +910,7 @@ class DocTestSourceLoader extends SourceLoader {
       Uri? packageUri,
       required LanguageVersion packageLanguageVersion,
       SourceLibraryBuilder? origin,
-      kernel.Library? referencesFrom,
+      IndexedLibrary? referencesFromIndex,
       bool? referenceIsPartOwner,
       bool isAugmentation = false,
       bool isPatch = false}) {
@@ -928,7 +929,7 @@ class DocTestSourceLoader extends SourceLoader {
         packageUri: packageUri,
         packageLanguageVersion: packageLanguageVersion,
         origin: origin,
-        referencesFrom: referencesFrom,
+        referencesFromIndex: referencesFromIndex,
         referenceIsPartOwner: referenceIsPartOwner,
         isAugmentation: isAugmentation,
         isPatch: isPatch);

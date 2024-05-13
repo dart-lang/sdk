@@ -72,7 +72,7 @@ void StubCodeCompiler::EnsureIsNewOrRemembered() {
 // [Thread::tsan_utils_->setjmp_buffer_]).
 static void WithExceptionCatchingTrampoline(Assembler* assembler,
                                             std::function<void()> fun) {
-#if defined(TARGET_USES_THREAD_SANITIZER) && !defined(USING_SIMULATOR)
+#if !defined(USING_SIMULATOR)
   const Register kTsanUtilsReg = R3;
 
   // Reserve space for arguments and align frame before entering C++ world.
@@ -87,69 +87,77 @@ static void WithExceptionCatchingTrampoline(Assembler* assembler,
   // We rely on THR being preserved across the setjmp() call.
   COMPILE_ASSERT(IsCalleeSavedRegister(THR));
 
-  Label do_native_call;
+  if (FLAG_target_thread_sanitizer) {
+    Label do_native_call;
 
-  // Save old jmp_buf.
-  __ ldr(kTsanUtilsReg, Address(THR, target::Thread::tsan_utils_offset()));
-  __ ldr(TMP,
-         Address(kTsanUtilsReg, target::TsanUtils::setjmp_buffer_offset()));
-  __ Push(TMP);
+    // Save old jmp_buf.
+    __ ldr(kTsanUtilsReg, Address(THR, target::Thread::tsan_utils_offset()));
+    __ ldr(TMP,
+           Address(kTsanUtilsReg, target::TsanUtils::setjmp_buffer_offset()));
+    __ Push(TMP);
 
-  // Allocate jmp_buf struct on stack & remember pointer to it on the
-  // [Thread::tsan_utils_->setjmp_buffer] (which exceptions.cc will longjmp()
-  // to)
-  __ AddImmediate(SP, -kJumpBufferSize);
-  __ str(SP, Address(kTsanUtilsReg, target::TsanUtils::setjmp_buffer_offset()));
+    // Allocate jmp_buf struct on stack & remember pointer to it on the
+    // [Thread::tsan_utils_->setjmp_buffer] (which exceptions.cc will longjmp()
+    // to)
+    __ AddImmediate(SP, -kJumpBufferSize);
+    __ str(SP,
+           Address(kTsanUtilsReg, target::TsanUtils::setjmp_buffer_offset()));
 
-  // Call setjmp() with a pointer to the allocated jmp_buf struct.
-  __ MoveRegister(R0, SP);
-  __ PushRegisters(volatile_registers);
-  __ EnterCFrame(0);
-  __ mov(R25, CSP);
-  __ mov(CSP, SP);
-  __ ldr(kTsanUtilsReg, Address(THR, target::Thread::tsan_utils_offset()));
-  __ CallCFunction(
-      Address(kTsanUtilsReg, target::TsanUtils::setjmp_function_offset()));
-  __ mov(SP, CSP);
-  __ mov(CSP, R25);
-  __ LeaveCFrame();
-  __ PopRegisters(volatile_registers);
+    // Call setjmp() with a pointer to the allocated jmp_buf struct.
+    __ MoveRegister(R0, SP);
+    __ PushRegisters(volatile_registers);
+    __ EnterCFrame(0);
+    __ mov(R25, CSP);
+    __ mov(CSP, SP);
+    __ ldr(kTsanUtilsReg, Address(THR, target::Thread::tsan_utils_offset()));
+    __ CallCFunction(
+        Address(kTsanUtilsReg, target::TsanUtils::setjmp_function_offset()));
+    __ mov(SP, CSP);
+    __ mov(CSP, R25);
+    __ LeaveCFrame();
+    __ PopRegisters(volatile_registers);
 
-  // We are the target of a longjmp() iff setjmp() returns non-0.
-  __ cbz(&do_native_call, R0);
+    // We are the target of a longjmp() iff setjmp() returns non-0.
+    __ cbz(&do_native_call, R0);
 
-  // We are the target of a longjmp: Cleanup the stack and tail-call the
-  // JumpToFrame stub which will take care of unwinding the stack and hand
-  // execution to the catch entry.
-  __ AddImmediate(SP, kJumpBufferSize);
-  __ ldr(kTsanUtilsReg, Address(THR, target::Thread::tsan_utils_offset()));
-  __ Pop(TMP);
-  __ str(TMP,
-         Address(kTsanUtilsReg, target::TsanUtils::setjmp_buffer_offset()));
+    // We are the target of a longjmp: Cleanup the stack and tail-call the
+    // JumpToFrame stub which will take care of unwinding the stack and hand
+    // execution to the catch entry.
+    __ AddImmediate(SP, kJumpBufferSize);
+    __ ldr(kTsanUtilsReg, Address(THR, target::Thread::tsan_utils_offset()));
+    __ Pop(TMP);
+    __ str(TMP,
+           Address(kTsanUtilsReg, target::TsanUtils::setjmp_buffer_offset()));
 
-  __ ldr(R0, Address(kTsanUtilsReg, target::TsanUtils::exception_pc_offset()));
-  __ ldr(R1, Address(kTsanUtilsReg, target::TsanUtils::exception_sp_offset()));
-  __ ldr(R2, Address(kTsanUtilsReg, target::TsanUtils::exception_fp_offset()));
-  __ MoveRegister(R3, THR);
-  __ Jump(Address(THR, target::Thread::jump_to_frame_entry_point_offset()));
+    __ ldr(R0,
+           Address(kTsanUtilsReg, target::TsanUtils::exception_pc_offset()));
+    __ ldr(R1,
+           Address(kTsanUtilsReg, target::TsanUtils::exception_sp_offset()));
+    __ ldr(R2,
+           Address(kTsanUtilsReg, target::TsanUtils::exception_fp_offset()));
+    __ MoveRegister(R3, THR);
+    __ Jump(Address(THR, target::Thread::jump_to_frame_entry_point_offset()));
 
-  // We leave the created [jump_buf] structure on the stack as well as the
-  // pushed old [Thread::tsan_utils_->setjmp_buffer_].
-  __ Bind(&do_native_call);
-  __ MoveRegister(kSavedRspReg, SP);
-#endif  // defined(TARGET_USES_THREAD_SANITIZER) && !defined(USING_SIMULATOR)
+    // We leave the created [jump_buf] structure on the stack as well as the
+    // pushed old [Thread::tsan_utils_->setjmp_buffer_].
+    __ Bind(&do_native_call);
+    __ MoveRegister(kSavedRspReg, SP);
+  }
+#endif  // !defined(USING_SIMULATOR)
 
   fun();
 
-#if defined(TARGET_USES_THREAD_SANITIZER) && !defined(USING_SIMULATOR)
-  __ MoveRegister(SP, kSavedRspReg);
-  __ AddImmediate(SP, kJumpBufferSize);
-  const Register kTsanUtilsReg2 = kSavedRspReg;
-  __ ldr(kTsanUtilsReg2, Address(THR, target::Thread::tsan_utils_offset()));
-  __ Pop(TMP);
-  __ str(TMP,
-         Address(kTsanUtilsReg2, target::TsanUtils::setjmp_buffer_offset()));
-#endif  // defined(TARGET_USES_THREAD_SANITIZER) && !defined(USING_SIMULATOR)
+#if !defined(USING_SIMULATOR)
+  if (FLAG_target_thread_sanitizer) {
+    __ MoveRegister(SP, kSavedRspReg);
+    __ AddImmediate(SP, kJumpBufferSize);
+    const Register kTsanUtilsReg2 = kSavedRspReg;
+    __ ldr(kTsanUtilsReg2, Address(THR, target::Thread::tsan_utils_offset()));
+    __ Pop(TMP);
+    __ str(TMP,
+           Address(kTsanUtilsReg2, target::TsanUtils::setjmp_buffer_offset()));
+  }
+#endif  // !defined(USING_SIMULATOR)
 }
 
 // Input parameters:
@@ -1168,6 +1176,8 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   if (kind == kLazyDeoptFromReturn) {
     __ Push(R1);  // Preserve result, it will be GC-d here.
   } else if (kind == kLazyDeoptFromThrow) {
+    // Preserve CODE_REG for one more runtime call.
+    __ Push(CODE_REG);
     __ Push(R1);  // Preserve exception, it will be GC-d here.
     __ Push(R2);  // Preserve stacktrace, it will be GC-d here.
   }
@@ -1183,11 +1193,25 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   } else if (kind == kLazyDeoptFromThrow) {
     __ Pop(R1);  // Restore stacktrace.
     __ Pop(R0);  // Restore exception.
+    __ Pop(CODE_REG);
   }
   __ LeaveStubFrame();
   // Remove materialization arguments.
   __ add(SP, SP, Operand(R2));
   // The caller is responsible for emitting the return instruction.
+
+  if (kind == kLazyDeoptFromThrow) {
+    // Unoptimized frame is now ready to accept the exception. Rethrow it to
+    // find the right handler. Ask rethrow machinery to bypass debugger it
+    // was already notified about this exception.
+    __ EnterStubFrame();
+    __ Push(ZR);  // Space for the return value (unused).
+    __ Push(R0);  // Exception
+    __ Push(R1);  // Stacktrace
+    __ PushImmediate(target::ToRawSmi(1));  // Bypass debugger
+    __ CallRuntime(kReThrowRuntimeEntry, 3);
+    __ LeaveStubFrame();
+  }
 }
 
 // R0: result, must be preserved
@@ -1238,8 +1262,8 @@ static void GenerateNoSuchMethodDispatcherBody(Assembler* assembler) {
   __ add(TMP, FP, Operand(R2, LSL, target::kWordSizeLog2 - 1));  // R2 is Smi.
   __ LoadFromOffset(R6, TMP,
                     target::frame_layout.param_end_from_fp * target::kWordSize);
-  __ Push(ZR);  // Result slot.
-  __ Push(R6);  // Receiver.
+  __ Push(ZR);             // Result slot.
+  __ Push(R6);             // Receiver.
   __ Push(IC_DATA_REG);    // ICData/MegamorphicCache.
   __ Push(ARGS_DESC_REG);  // Arguments descriptor.
 
@@ -1881,8 +1905,7 @@ void StubCodeCompiler::GenerateWriteBarrierWrappersStub() {
 COMPILE_ASSERT(kWriteBarrierObjectReg == R1);
 COMPILE_ASSERT(kWriteBarrierValueReg == R0);
 COMPILE_ASSERT(kWriteBarrierSlotReg == R25);
-static void GenerateWriteBarrierStubHelper(Assembler* assembler,
-                                           bool cards) {
+static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
   RegisterSet spill_set((1 << R2) | (1 << R3) | (1 << R4), 0);
 
   Label skip_marking;
@@ -2386,7 +2409,7 @@ static void EmitFastSmiOp(Assembler* assembler,
   switch (kind) {
     case Token::kADD: {
       __ adds(R0, R1, Operand(R0), kObjectBytes);  // Add.
-      __ b(not_smi_or_overflow, VS);  // Branch if overflow.
+      __ b(not_smi_or_overflow, VS);               // Branch if overflow.
       break;
     }
     case Token::kLT: {
@@ -2620,7 +2643,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   // Preserve IC data object and arguments descriptor array and
   // setup space on stack for result (target code object).
   __ Push(ARGS_DESC_REG);  // Preserve arguments descriptor array.
-  __ Push(R5);  // Preserve IC Data.
+  __ Push(R5);             // Preserve IC Data.
   if (save_entry_point) {
     __ SmiTag(R8);
     __ Push(R8);
@@ -2644,7 +2667,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     __ Pop(R8);
     __ SmiUntag(R8);
   }
-  __ Pop(R5);  // Restore IC Data.
+  __ Pop(R5);             // Restore IC Data.
   __ Pop(ARGS_DESC_REG);  // Restore arguments descriptor array.
   __ RestoreCodePointer();
   __ LeaveStubFrame();
@@ -3222,7 +3245,7 @@ void StubCodeCompiler::GenerateOptimizeFunctionStub() {
   __ Push(ZR);
   __ Push(R6);
   __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry, 1);
-  __ Pop(R0);  // Discard argument.
+  __ Pop(R0);             // Discard argument.
   __ Pop(FUNCTION_REG);   // Get Function object
   __ Pop(ARGS_DESC_REG);  // Restore argument descriptor.
   __ LoadCompressedFieldFromOffset(CODE_REG, FUNCTION_REG,

@@ -18,7 +18,7 @@ class SearchGetTypeHierarchyHandler extends LegacyHandler {
 
   @override
   Future<void> handle() async {
-    final searchEngine = server.searchEngine;
+    var searchEngine = server.searchEngine;
     var params = protocol.SearchGetTypeHierarchyParams.fromRequest(request);
     var file = params.file;
     // prepare element

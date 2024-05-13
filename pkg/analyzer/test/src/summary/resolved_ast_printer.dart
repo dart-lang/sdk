@@ -438,7 +438,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        final element = node.declaredElement;
+        var element = node.declaredElement;
         if (element != null) {
           _sink.writeWithIndent('declaredElement: ');
           _sink.writeIf(element.hasImplicitType, 'hasImplicitType ');
@@ -1067,8 +1067,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       _writeParameterElement(node);
       // Types of the node and its expression must be the same.
       if (node.expression.staticType != node.staticType) {
-        final nodeType = node.staticType;
-        final expressionType = node.expression.staticType;
+        var nodeType = node.staticType;
+        var expressionType = node.expression.staticType;
         fail(
           'Must be the same:\n'
           'nodeType: $nodeType\n'
@@ -1685,8 +1685,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   void _assertFormalParameterDeclaredElement(FormalParameter node) {
     if (_withResolution) {
-      final declaredElement = node.declaredElement;
-      final expected = _expectedFormalParameterElements(node);
+      var declaredElement = node.declaredElement;
+      var expected = _expectedFormalParameterElements(node);
       _assertHasIdenticalElement(expected, declaredElement);
     }
   }
@@ -1706,7 +1706,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   /// Check that the actual parent of [child] is [parent].
   void _checkParentOfChild(AstNode parent, AstNode child) {
-    final actualParent = child.parent;
+    var actualParent = child.parent;
     if (actualParent == null) {
       fail('''
 No parent.
@@ -1878,7 +1878,7 @@ Expected parent: (${parent.runtimeType}) $parent
   /// writes the corresponding parameter element.
   void _writeParameterElement(Expression node) {
     if (configuration.withParameterElements) {
-      final parent = node.parent;
+      var parent = node.parent;
       if (parent is ArgumentList ||
           parent is AssignmentExpression && parent.rightHandSide == node ||
           parent is BinaryExpression && parent.rightOperand == node ||
@@ -1918,7 +1918,7 @@ Expected parent: (${parent.runtimeType}) $parent
 
   void _writePatternMatchedValueType(DartPattern node) {
     if (_withResolution) {
-      final matchedValueType = node.matchedValueType;
+      var matchedValueType = node.matchedValueType;
       if (matchedValueType != null) {
         _writeType('matchedValueType', matchedValueType);
       } else {
@@ -1974,7 +1974,7 @@ Expected parent: (${parent.runtimeType}) $parent
   }
 
   static void _assertHasIdenticalElement<T>(List<T> elements, T expected) {
-    for (final element in elements) {
+    for (var element in elements) {
       if (identical(element, expected)) {
         return;
       }
@@ -2009,21 +2009,21 @@ Expected parent: (${parent.runtimeType}) $parent
   static List<ParameterElement> _expectedFormalParameterElements(
     FormalParameter node,
   ) {
-    final parametersParent = node.parentFormalParameterList.parent;
+    var parametersParent = node.parentFormalParameterList.parent;
     if (parametersParent is ConstructorDeclaration) {
-      final declaredElement = parametersParent.declaredElement!;
+      var declaredElement = parametersParent.declaredElement!;
       return declaredElement.parameters;
     } else if (parametersParent is FormalParameter) {
-      final declaredElement = parametersParent.declaredElement!;
+      var declaredElement = parametersParent.declaredElement!;
       return declaredElement.parameters;
     } else if (parametersParent is FunctionExpression) {
-      final declaredElement = parametersParent.declaredElement!;
+      var declaredElement = parametersParent.declaredElement!;
       return declaredElement.parameters;
     } else if (parametersParent is GenericFunctionTypeImpl) {
-      final declaredElement = parametersParent.declaredElement!;
+      var declaredElement = parametersParent.declaredElement!;
       return declaredElement.parameters;
     } else if (parametersParent is MethodDeclaration) {
-      final declaredElement = parametersParent.declaredElement!;
+      var declaredElement = parametersParent.declaredElement!;
       return declaredElement.parameters;
     }
     throw UnimplementedError(

@@ -5,7 +5,7 @@
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -38,7 +38,7 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
     // Must be a StatelessWidget subclass.
     var widgetClassElement = widgetClass.declaredElement!;
     var superType = widgetClassElement.supertype;
-    if (superType == null || !Flutter.isExactlyStatelessWidgetType(superType)) {
+    if (superType == null || !superType.isExactlyStatelessWidgetType) {
       return;
     }
 
@@ -104,14 +104,9 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
       return SourceEdit.applySequence(text, visitor.edits.reversed);
     }
 
-    var statefulWidgetClass = await sessionHelper.getClass(
-      Flutter.widgetsUri,
-      'StatefulWidget',
-    );
-    var stateClass = await sessionHelper.getClass(
-      Flutter.widgetsUri,
-      'State',
-    );
+    var statefulWidgetClass =
+        await sessionHelper.getFlutterClass('StatefulWidget');
+    var stateClass = await sessionHelper.getFlutterClass('State');
     if (statefulWidgetClass == null || stateClass == null) {
       return;
     }
@@ -264,7 +259,7 @@ class _FieldFinder extends RecursiveAstVisitor<void> {
 
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
-    final element = node.declaredElement;
+    var element = node.declaredElement;
     if (element is FieldFormalParameterElement) {
       var field = element.field;
       if (field != null) {

@@ -24,9 +24,9 @@ class RemoveAwait extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final awaitExpression = node;
+    var awaitExpression = node;
     if (awaitExpression is AwaitExpression) {
-      final awaitToken = awaitExpression.awaitKeyword;
+      var awaitToken = awaitExpression.awaitKeyword;
       await builder.addDartFileEdit(file, (builder) {
         builder.addDeletion(range.startStart(awaitToken, awaitToken.next!));
       });

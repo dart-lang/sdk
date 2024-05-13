@@ -29,7 +29,7 @@ class ReplaceWithArrow extends ResolvedCorrectionProducer {
       return;
     }
 
-    final arrow = node.arrow;
+    var arrow = node.arrow;
     if (arrow.lexeme != '=>') {
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleReplacement(

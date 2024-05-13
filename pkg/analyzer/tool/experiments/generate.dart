@@ -11,7 +11,7 @@ import 'package:analyzer_utilities/tools.dart';
 import 'package:path/path.dart';
 import 'package:yaml/yaml.dart' show YamlMap, loadYaml;
 
-main() async {
+void main() async {
   await GeneratedContent.generateAll(
       normalize(join(pkg_root.packageRoot, 'analyzer')), allTargets);
 }

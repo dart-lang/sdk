@@ -163,7 +163,7 @@ class CodeRelocator : public StackResource {
 
   void FindLargestInstruction();
 
-  bool AddInstructionsToText(CodePtr code);
+  bool AddInstructionsToText(CodePtr code, intptr_t* code_text_offset);
   void ScanCallTargets(const Code& code,
                        const Array& call_targets,
                        intptr_t code_text_offset);

@@ -914,7 +914,7 @@ class ParameterMember extends VariableMember
 
   @override
   List<ParameterElement> get parameters {
-    final type = this.type;
+    var type = this.type;
     if (type is FunctionType) {
       return type.parameters;
     }

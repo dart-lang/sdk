@@ -29,7 +29,7 @@ class ReplaceNewWithConst extends ResolvedCorrectionProducer {
       targetNode = targetNode.parent;
     }
     if (targetNode is InstanceCreationExpression) {
-      final keyword = targetNode.keyword;
+      var keyword = targetNode.keyword;
       if (keyword != null) {
         await builder.addDartFileEdit(file, (builder) {
           builder.addSimpleReplacement(range.token(keyword), 'const');

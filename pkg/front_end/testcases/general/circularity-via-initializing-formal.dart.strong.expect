@@ -1,34 +1,36 @@
-library /*isLegacy*/;
+library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/circularity-via-initializing-formal.dart:5:1: Error: Library doesn't support null safety.
-// // @dart=2.9
-// ^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/circularity-via-initializing-formal.dart:17:3: Error: Can't infer the type of 'C._circular': circularity found during type inference.
+// pkg/front_end/testcases/general/circularity-via-initializing-formal.dart:15:3: Error: Can't infer the type of 'C._circular': circularity found during type inference.
 // Specify the type explicitly.
 //   C._circular(this.f);
 //   ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/circularity-via-initializing-formal.dart:11:25: Error: The value 'null' can't be assigned to the parameter type 'C' because 'C' is not nullable.
+//  - 'C' is from 'pkg/front_end/testcases/general/circularity-via-initializing-formal.dart'.
+// var x = new C._circular(null);
+//                         ^
+//
+// pkg/front_end/testcases/general/circularity-via-initializing-formal.dart:14:27: Error: The value 'null' can't be assigned to the parameter type 'C' because 'C' is not nullable.
+//  - 'C' is from 'pkg/front_end/testcases/general/circularity-via-initializing-formal.dart'.
+//   var f = new C._circular(null);
+//                           ^
 //
 import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  field self::C* f = new self::C::_circular(null);
-  constructor _circular(self::C* f) → self::C*
+  field self::C f = new self::C::_circular(invalid-expression "pkg/front_end/testcases/general/circularity-via-initializing-formal.dart:14:27: Error: The value 'null' can't be assigned to the parameter type 'C' because 'C' is not nullable.
+ - 'C' is from 'pkg/front_end/testcases/general/circularity-via-initializing-formal.dart'.
+  var f = new C._circular(null);
+                          ^" in null as{TypeError} self::C);
+  constructor _circular(self::C f) → self::C
     : self::C::f = f, super core::Object::•()
     ;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-static field self::C* x = new self::C::_circular(null);
+static field self::C x = new self::C::_circular(invalid-expression "pkg/front_end/testcases/general/circularity-via-initializing-formal.dart:11:25: Error: The value 'null' can't be assigned to the parameter type 'C' because 'C' is not nullable.
+ - 'C' is from 'pkg/front_end/testcases/general/circularity-via-initializing-formal.dart'.
+var x = new C._circular(null);
+                        ^" in null as{TypeError} self::C);
 static method main() → dynamic {}

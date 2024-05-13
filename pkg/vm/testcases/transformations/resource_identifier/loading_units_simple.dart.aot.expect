@@ -1,0 +1,24 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "package:meta/meta.dart" as meta;
+import "loading_units_simple_helper.dart" as loa;
+
+import "package:meta/meta.dart" show ResourceIdentifier;
+import "org-dartlang-test:///testcases/transformations/resource_identifier/loading_units_simple_helper.dart" deferred as helper;
+
+abstract class SomeClass extends core::Object {
+
+  [@vm.unboxing-info.metadata=(i)->b]
+  @#C2
+  static method someStaticMethod([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 42)] core::int i) → void {}
+}
+static method main() → void async /* emittedValueType= void */ {
+  self::SomeClass::someStaticMethod(42);
+  await LoadLibrary(helper);
+  let final dynamic #t1 = CheckLibraryIsLoaded(helper) in loa::invokeDeferred();
+}
+constants  {
+  #C1 = "id"
+  #C2 = meta::ResourceIdentifier {metadata:#C1}
+}

@@ -35,7 +35,7 @@ class AddReturnType extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     Token? insertBeforeEntity;
     FunctionBody? body;
-    final executable = node;
+    var executable = node;
     if (executable is MethodDeclaration && executable.name == token) {
       if (executable.returnType != null) {
         return;
@@ -65,7 +65,7 @@ class AddReturnType extends ResolvedCorrectionProducer {
       return;
     }
 
-    final insertBeforeEntity_final = insertBeforeEntity;
+    var insertBeforeEntity_final = insertBeforeEntity;
     await builder.addDartFileEdit(file, (builder) {
       if (returnType is DynamicType || builder.canWriteType(returnType)) {
         builder.addInsertion(insertBeforeEntity_final.offset, (builder) {

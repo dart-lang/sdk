@@ -18,56 +18,56 @@ void main() {
 @reflectiveTest
 class TypeHierarchyTest extends LspOverLegacyTest {
   Future<void> test_incoming() async {
-    final content = '''
+    var content = '''
 class Ba^se {}
 class [!Sub!] extends Base {}
 ''';
-    final code = TestCode.parse(content);
+    var code = TestCode.parse(content);
     newFile(testFilePath, code.code);
-    final prepareResults = await prepareTypeHierarchy(
+    var prepareResults = await prepareTypeHierarchy(
       testFileUri,
       code.position.position,
     );
-    final prepareResult = prepareResults!.single;
+    var prepareResult = prepareResults!.single;
 
-    final incomingResults = await typeHierarchySubtypes(prepareResult);
-    final incomingResult = incomingResults!.single;
+    var incomingResults = await typeHierarchySubtypes(prepareResult);
+    var incomingResult = incomingResults!.single;
 
     expect(incomingResult.name, 'Sub');
     expect(incomingResult.selectionRange, code.range.range);
   }
 
   Future<void> test_outgoing() async {
-    final content = '''
+    var content = '''
 class [!Base!] {}
 class Su^b extends Base {}
 ''';
-    final code = TestCode.parse(content);
+    var code = TestCode.parse(content);
     newFile(testFilePath, code.code);
-    final prepareResults = await prepareTypeHierarchy(
+    var prepareResults = await prepareTypeHierarchy(
       testFileUri,
       code.position.position,
     );
-    final prepareResult = prepareResults!.single;
+    var prepareResult = prepareResults!.single;
 
-    final outgoingResults = await typeHierarchySupertypes(prepareResult);
-    final outgoingResult = outgoingResults!.single;
+    var outgoingResults = await typeHierarchySupertypes(prepareResult);
+    var outgoingResult = outgoingResults!.single;
 
     expect(outgoingResult.name, 'Base');
     expect(outgoingResult.selectionRange, code.range.range);
   }
 
   Future<void> test_prepare() async {
-    final content = '''
+    var content = '''
 class A^ {}
 ''';
-    final code = TestCode.parse(content);
+    var code = TestCode.parse(content);
     newFile(testFilePath, code.code);
-    final results = await prepareTypeHierarchy(
+    var results = await prepareTypeHierarchy(
       testFileUri,
       code.position.position,
     );
-    final result = results!.single;
+    var result = results!.single;
 
     expect(result.name, 'A');
   }

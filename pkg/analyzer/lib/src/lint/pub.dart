@@ -506,7 +506,7 @@ class _PSNode implements PSNode {
 
   @override
   Source get source {
-    final provider = resourceProvider ?? PhysicalResourceProvider.INSTANCE;
+    var provider = resourceProvider ?? PhysicalResourceProvider.INSTANCE;
     return provider
         .getFile(provider.pathContext.fromUri(span.sourceUrl!))
         .createSource(span.sourceUrl);

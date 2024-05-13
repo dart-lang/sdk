@@ -200,13 +200,6 @@ class RapidTypeAnalysis {
     run();
   }
 
-  List<Class> get allocatedClasses {
-    return <Class>[
-      for (var entry in hierarchyCache.classes.entries)
-        if (entry.value.isAllocated) entry.key
-    ];
-  }
-
   bool isAllocatedClass(Class cl) =>
       hierarchyCache.classes[cl]?.isAllocated ?? false;
 
@@ -234,13 +227,18 @@ class RapidTypeAnalysis {
     }
   }
 
-  void run() {
+  List<Class> run() {
     final memberVisitor = _MemberVisitor(this);
     while (workList.isNotEmpty || invalidateProtobufFields()) {
       final member = workList.removeLast();
       protobufHandler?.beforeSummaryCreation(member);
       member.accept(memberVisitor);
     }
+
+    return <Class>[
+      for (var entry in hierarchyCache.classes.entries)
+        if (entry.value.isAllocated) entry.key
+    ];
   }
 
   bool invalidateProtobufFields() {

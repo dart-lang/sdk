@@ -9,6 +9,7 @@
 
 library manual_inspector_test;
 
+import 'dart:ffi';
 import 'dart:isolate';
 import 'dart:mirrors';
 import 'dart:developer';
@@ -47,11 +48,13 @@ class Node {
   var blockCopying;
   var blockFull;
   var blockFullWithChain;
+  var blockTearOff;
   var blockType;
   var boundedType;
   var capability;
   var expando;
   var finalizer;
+  var finalizerNative;
   var finalizerEntry;
   var float32x4;
   var float64;
@@ -161,13 +164,16 @@ class Node {
     blockCopying = genCopyingBlock();
     blockFull = genFullBlock();
     blockFullWithChain = genFullBlockWithChain();
+    blockTearOff = main;
     blockType = blockClean.runtimeType;
     boundedType = extractPrivateField(
         reflect(new B<int>()).type.typeVariables.single, '_reflectee');
+    capability = new Capability();
     expando = new Expando("expando-name");
     expando[array] = 'The weakly associated value';
     finalizer = Finalizer<dynamic>((_){});
     finalizer.attach(this, this);
+    finalizerNative = NativeFinalizer(Pointer<NativeFinalizerFunction>.fromAddress(0));
     float32x4 = new Float32x4(0.0, -1.0, 3.14, 2e28);
     float64 = 3.14;
     float64x2 = new Float64x2(0.0, 3.14);

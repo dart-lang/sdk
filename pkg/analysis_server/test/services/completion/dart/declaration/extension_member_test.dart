@@ -222,10 +222,10 @@ extension E on B {
 ''');
     assertResponse(r'''
 suggestions
-  b0
-    kind: setter
   a0
     kind: getter
+  b0
+    kind: setter
 ''');
   }
 

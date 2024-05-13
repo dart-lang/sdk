@@ -92,23 +92,6 @@ const Function& CompilerState::StringBaseInterpolate() {
   }
   return *interpolate_;
 }
-
-const Class& CompilerState::TypedListClass() {
-  if (typed_list_class_ == nullptr) {
-    Thread* thread = Thread::Current();
-    Zone* zone = thread->zone();
-
-    const Library& lib = Library::Handle(zone, Library::TypedDataLibrary());
-    const Class& cls = Class::ZoneHandle(
-        zone, lib.LookupClassAllowPrivate(Symbols::_TypedList()));
-    ASSERT(!cls.IsNull());
-    const Error& error = Error::Handle(zone, cls.EnsureIsFinalized(thread));
-    ASSERT(error.IsNull());
-    typed_list_class_ = &cls;
-  }
-  return *typed_list_class_;
-}
-
 #define DEFINE_TYPED_LIST_NATIVE_FUNCTION_GETTER(Upper, Lower)                 \
   const Function& CompilerState::TypedListGet##Upper() {                       \
     if (typed_list_get_##Lower##_ == nullptr) {                                \
@@ -141,21 +124,30 @@ DEFINE_TYPED_LIST_NATIVE_FUNCTION_GETTER(Float64x2, float64x2)
 
 #undef DEFINE_TYPED_LIST_NATIVE_FUNCTION_GETTER
 
-const Class& CompilerState::CompoundClass() {
-  if (compound_class_ == nullptr) {
-    Thread* thread = Thread::Current();
-    Zone* zone = thread->zone();
-
-    const auto& lib_ffi = Library::Handle(zone, Library::FfiLibrary());
-    const auto& cls = Class::Handle(
-        zone, lib_ffi.LookupClassAllowPrivate(Symbols::Compound()));
-    ASSERT(!cls.IsNull());
-    const Error& error = Error::Handle(zone, cls.EnsureIsFinalized(thread));
-    ASSERT(error.IsNull());
-    compound_class_ = &cls;
+#define DEFINE_CLASS_GETTER(Lib, Upper, Lower, Symbol)                         \
+  const Class& CompilerState::Upper##Class() {                                 \
+    if (Lower##_class_ == nullptr) {                                           \
+      Thread* thread = Thread::Current();                                      \
+      Zone* zone = thread->zone();                                             \
+      const auto& lib = Library::Handle(zone, Library::Lib##Library());        \
+      const auto& cls =                                                        \
+          Class::Handle(zone, lib.LookupClassAllowPrivate(Symbols::Symbol())); \
+      ASSERT(!cls.IsNull());                                                   \
+      const Error& error = Error::Handle(zone, cls.EnsureIsFinalized(thread)); \
+      ASSERT(error.IsNull());                                                  \
+      Lower##_class_ = &cls;                                                   \
+    }                                                                          \
+    return *Lower##_class_;                                                    \
   }
-  return *compound_class_;
-}
+
+DEFINE_CLASS_GETTER(Ffi, Array, array, Array)
+DEFINE_CLASS_GETTER(Ffi, Compound, compound, Compound)
+DEFINE_CLASS_GETTER(Ffi, Struct, struct, Struct)
+DEFINE_CLASS_GETTER(Ffi, Union, union, Union)
+DEFINE_CLASS_GETTER(TypedData, TypedData, typed_data, TypedData)
+DEFINE_CLASS_GETTER(TypedData, TypedList, typed_list, _TypedList)
+
+#undef DEFINE_CLASS_GETTER
 
 const Field& CompilerState::CompoundOffsetInBytesField() {
   if (compound_offset_in_bytes_field_ == nullptr) {

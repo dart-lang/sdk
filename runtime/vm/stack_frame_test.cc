@@ -159,11 +159,8 @@ static Dart_NativeFunction native_lookup(Dart_Handle name,
 
 // Unit test case to verify stack frame iteration.
 TEST_CASE(ValidateStackFrameIteration) {
-  const char* nullable_tag = TestCase::NullableTag();
   // clang-format off
-  auto kScriptChars = Utils::CStringUniquePtr(
-      OS::SCreate(
-          nullptr,
+  const char* kScriptChars =
           "class StackFrame {"
           "  @pragma('vm:external-name', 'StackFrame_equals')\n"
           "  external static equals(var obj1, var obj2);\n"
@@ -176,21 +173,21 @@ TEST_CASE(ValidateStackFrameIteration) {
           "} "
           "class First {"
           "  First() { }"
-          "  int%s method1(int%s param) {"
+          "  int? method1(int? param) {"
           "    if (param == 1) {"
           "      param = method2(200);"
           "    } else {"
           "      param = method2(100);"
           "    }"
           "  }"
-          "  int%s method2(int param) {"
+          "  int? method2(int param) {"
           "    if (param == 200) {"
           "      First.staticmethod(this, param);"
           "    } else {"
           "      First.staticmethod(this, 10);"
           "    }"
           "  }"
-          "  static int%s staticmethod(First obj, int param) {"
+          "  static int? staticmethod(First obj, int param) {"
           "    if (param == 10) {"
           "      obj.method3(10);"
           "    } else {"
@@ -211,7 +208,7 @@ TEST_CASE(ValidateStackFrameIteration) {
           "}"
           "class Second {"
           "  Second() { }"
-          "  int%s method1(int%s param) {"
+          "  int? method1(int? param) {"
           "    if (param == 1) {"
           "      param = method2(200);"
           "    } else {"
@@ -220,10 +217,10 @@ TEST_CASE(ValidateStackFrameIteration) {
           "      param = obj.method1(2);"
           "    }"
           "  }"
-          "  int%s method2(int param) {"
+          "  int? method2(int param) {"
           "    Second.staticmethod(this, param);"
           "  }"
-          "  static int%s staticmethod(Second obj, int param) {"
+          "  static int? staticmethod(Second obj, int param) {"
           "    obj.method3(10);"
           "  }"
           "  method3(int param) {"
@@ -243,14 +240,10 @@ TEST_CASE(ValidateStackFrameIteration) {
           "    obj.method1(1);"
           "    obj.method1(2);"
           "  }"
-          "}",
-          nullable_tag, nullable_tag, nullable_tag, nullable_tag, nullable_tag,
-          nullable_tag, nullable_tag, nullable_tag),
-      std::free);
+          "}";
   // clang-format on
   Dart_Handle lib = TestCase::LoadTestScript(
-      kScriptChars.get(),
-      reinterpret_cast<Dart_NativeEntryResolver>(native_lookup));
+      kScriptChars, reinterpret_cast<Dart_NativeEntryResolver>(native_lookup));
   Dart_Handle cls = Dart_GetClass(lib, NewString("StackFrameTest"));
   EXPECT_VALID(Dart_Invoke(cls, NewString("testMain"), 0, nullptr));
 }

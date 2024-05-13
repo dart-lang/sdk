@@ -21,11 +21,9 @@ class EditFormatHandler extends LegacyHandler {
 
   @override
   Future<void> handle() async {
-    unawaited(server.options.analytics?.sendEvent('edit', 'format'));
-
     var params = EditFormatParams.fromRequest(request);
     var file = params.file;
-//
+
     String unformattedCode;
     try {
       var resource = server.resourceProvider.getFile(file);

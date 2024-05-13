@@ -81,7 +81,7 @@ class MustCallSuperVerifier {
 
     // Walk up the type hierarchy from [classElement], ignoring direct
     // interfaces.
-    final superclasses = Queue<InterfaceElement?>();
+    var superclasses = Queue<InterfaceElement?>();
 
     void addToQueue(InterfaceElement element) {
       superclasses.addAll(element.mixins.map((i) => i.element));
@@ -92,7 +92,7 @@ class MustCallSuperVerifier {
       }
     }
 
-    final visitedClasses = <InterfaceElement>{};
+    var visitedClasses = <InterfaceElement>{};
     addToQueue(classElement);
     while (superclasses.isNotEmpty) {
       var ancestor = superclasses.removeFirst();

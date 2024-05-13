@@ -311,11 +311,10 @@ class KernelIRNode {
   KernelIRNode(uint8_t* kernel_ir, intptr_t kernel_size)
       : kernel_ir_(kernel_ir), kernel_size_(kernel_size) {}
 
-  ~KernelIRNode() {
-    free(kernel_ir_);
-  }
+  ~KernelIRNode() { free(kernel_ir_); }
 
-  static void Add(KernelIRNode** p_head, KernelIRNode** p_tail,
+  static void Add(KernelIRNode** p_head,
+                  KernelIRNode** p_tail,
                   KernelIRNode* node) {
     if (*p_head == nullptr) {
       *p_head = node;
@@ -325,8 +324,7 @@ class KernelIRNode {
     *p_tail = node;
   }
 
-  static void Merge(KernelIRNode* head, uint8_t** p_bytes,
-                             intptr_t* p_size) {
+  static void Merge(KernelIRNode* head, uint8_t** p_bytes, intptr_t* p_size) {
     intptr_t size = 0;
     for (KernelIRNode* node = head; node != nullptr; node = node->next_) {
       size = size + node->kernel_size_;

@@ -1,12 +1,3 @@
-//
-// Problems in component:
-//
-// Error: The following dependencies don't support null safety:
-//
-//  - package:opt_out_package
-//
-// For solutions, see https://dart.dev/go/unsound-null-safety
-//
 library;
 import self as self;
 

@@ -444,16 +444,10 @@ class ClassTable : public MallocAllocated {
   }
 #endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
 
-  intptr_t NumCids() const {
-    return classes_.num_cids();
-  }
-  intptr_t Capacity() const {
-    return classes_.capacity();
-  }
+  intptr_t NumCids() const { return classes_.num_cids(); }
+  intptr_t Capacity() const { return classes_.capacity(); }
 
-  intptr_t NumTopLevelCids() const {
-    return top_level_classes_.num_cids();
-  }
+  intptr_t NumTopLevelCids() const { return top_level_classes_.num_cids(); }
 
   void Register(const Class& cls);
   void AllocateIndex(intptr_t index);
@@ -546,9 +540,7 @@ class ClassTable : public MallocAllocated {
 
   void AllocateTopLevelIndex(intptr_t index);
 
-  ClassPtr* table() {
-    return classes_.GetColumn<kClassIndex>();
-  }
+  ClassPtr* table() { return classes_.GetColumn<kClassIndex>(); }
 
   // Used to drop recently added classes.
   void SetNumCids(intptr_t num_cids, intptr_t num_tlc_cids) {

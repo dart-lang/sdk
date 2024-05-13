@@ -25,7 +25,7 @@ class C {}
 ''');
 
     await assertNoDiagnostics(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment class C {
   static const a = C._(1);

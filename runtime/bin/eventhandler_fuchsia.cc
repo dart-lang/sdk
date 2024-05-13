@@ -589,7 +589,7 @@ void EventHandlerImplementation::HandlePacket(zx_port_packet_t* pkt) {
 
   // Handle pkt->type == ZX_PKT_TYPE_SIGNAL_ONE
   LOG_INFO("HandlePacket: Got event packet: observed = %x\n",
-          pkt->signal.observed);
+           pkt->signal.observed);
   LOG_INFO("HandlePacket: Got event packet: count = %ld\n", pkt->signal.count);
   DescriptorInfo* di = reinterpret_cast<DescriptorInfo*>(pkt->key);
   zx_signals_t observed = pkt->signal.observed;

@@ -14,21 +14,27 @@ import 'package:expect/expect.dart';
 const resultFilename = 'deferred.data';
 const cfeFilename = 'cfe.dill';
 
-void mainHelper(String testGroup, List<String> flags, List<String> args) {
+const shardCount = 3;
+
+void mainHelper(
+    String testGroup, int shard, List<String> flags, List<String> args) {
+  if (shard < 0 || shard > shardCount) throw 'Invalid shard $shard.';
   final generateGoldens = args.contains('-g');
   asyncTest(() async {
-    await runTest(testGroup, flags, generateGoldens: generateGoldens);
+    await runTest(testGroup, shard, flags, generateGoldens: generateGoldens);
   });
 }
 
-Future<void> runTest(String testGroup, List<String> options,
+Future<void> runTest(String testGroup, int shard, List<String> options,
     {required bool generateGoldens}) async {
   Directory dataDir = Directory.fromUri(Platform.script.resolve('data'));
   Directory goldensDir = Directory.fromUri(
       Platform.script.resolve('load_id_map_goldens/').resolve(testGroup));
   final goldenFiles = goldensDir.listSync();
+  int counter = 0;
   for (final testDir in dataDir.listSync()) {
     if (testDir is! Directory) continue;
+    if (counter++ % shardCount != shard) continue;
     final testName = testDir.uri.pathSegments.lastWhere((s) => s.isNotEmpty);
     print('-- Testing deferred load id map for: $testName ($testGroup) --');
     late Compiler compiler;
@@ -42,7 +48,7 @@ Future<void> runTest(String testGroup, List<String> options,
     await runCompiler(
         memorySourceFiles: sourceFiles,
         options: [
-          '--stage=cfe',
+          '${Flags.stage}=cfe',
           '--out=$cfeFilename',
           ...options,
         ],
@@ -55,7 +61,9 @@ Future<void> runTest(String testGroup, List<String> options,
         memorySourceFiles: dillInputFiles,
         outputProvider: resultCollector,
         options: [
+          '${Flags.stage}=deferred-load-ids',
           '${Flags.deferredLoadIdMapUri}=$resultFilename',
+          '${Flags.stage}=deferred-load-ids',
           '--input-dill=memory:$cfeFilename',
           ...options,
         ],

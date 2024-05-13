@@ -36,8 +36,8 @@ class C {
   }
 
   test_instance_field_field_augment() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
 
 augment class A {
   augment int foo = 42;
@@ -75,8 +75,8 @@ class C {
   }
 
   test_instance_field_field_inAugmentation() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
 
 augment class A {
   int foo = 42;
@@ -204,8 +204,8 @@ class C {
   }
 
   test_instance_method_method_augment() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
 
 augment class A {
   augment void foo() {}
@@ -228,8 +228,8 @@ class A {
   }
 
   test_instance_method_method_inAugmentation() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
 
 augment class A {
   void foo() {}
@@ -1623,8 +1623,8 @@ mixin M {
   }
 
   test_instance_method_method_augment() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
 
 augment mixin A {
   augment void foo() {}
@@ -1647,8 +1647,8 @@ mixin A {
   }
 
   test_instance_method_method_inAugmentation() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
 
 augment mixin A {
   void foo() {}
@@ -2186,8 +2186,8 @@ class A {}
   }
 
   test_class_augmentation() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
 
 augment class A {}
 ''');
@@ -2206,8 +2206,8 @@ class A {}
   }
 
   test_mixin_augmentation() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
 
 augment mixin A {}
 ''');
@@ -2294,8 +2294,8 @@ typedef A = List<int>;
   }
 
   test_variable_variable_augment() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
 
 augment int foo = 42;
 ''');
@@ -2314,8 +2314,8 @@ int foo = 0;
   }
 
   test_variable_variable_inAugmentation() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
 
 int foo = 42;
 ''');

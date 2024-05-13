@@ -898,6 +898,25 @@ void IsolateGroup::RehashConstants(Become* become) {
   Instance& old_value = Instance::Handle(zone);
   Instance& new_value = Instance::Handle(zone);
   Instance& deleted = Instance::Handle(zone);
+
+  if (become != nullptr) {
+    for (intptr_t cid = kInstanceCid; cid < num_cids; cid++) {
+      Array* old_constants = old_constant_tables[cid];
+      if (old_constants == nullptr) continue;
+
+      cls = class_table()->At(cid);
+      CanonicalInstancesSet set(zone, old_constants->ptr());
+      CanonicalInstancesSet::Iterator it(&set);
+      while (it.MoveNext()) {
+        constant ^= set.GetKey(it.Current());
+        ASSERT(!constant.IsNull());
+        ASSERT(!constant.InVMIsolateHeap());
+        constant.ClearCanonical();
+      }
+      set.Release();
+    }
+  }
+
   for (intptr_t cid = kInstanceCid; cid < num_cids; cid++) {
     Array* old_constants = old_constant_tables[cid];
     if (old_constants == nullptr) continue;
@@ -954,12 +973,18 @@ void IsolateGroup::RehashConstants(Become* become) {
       }
     } else {
       while (it.MoveNext()) {
-        constant ^= set.GetKey(it.Current());
-        ASSERT(!constant.IsNull());
-        // Shape changes lose the canonical bit because they may result/ in
-        // merging constants. E.g., [x1, y1], [x1, y2] -> [x1].
-        DEBUG_ASSERT(constant.IsCanonical() || HasAttemptedReload());
-        cls.InsertCanonicalConstant(zone, constant);
+        old_value ^= set.GetKey(it.Current());
+        ASSERT(!old_value.IsNull());
+
+        if (become == nullptr) {
+          ASSERT(old_value.IsCanonical());
+          cls.InsertCanonicalConstant(zone, old_value);
+        } else {
+          new_value = old_value.Canonicalize(thread);
+          if (old_value.ptr() != new_value.ptr()) {
+            become->Add(old_value, new_value);
+          }
+        }
       }
     }
     set.Release();
@@ -1544,6 +1569,7 @@ void IsolateGroup::FlagsInitialize(Dart_IsolateFlags* api_flags) {
 #undef INIT_FROM_FLAG
   api_flags->is_service_isolate = false;
   api_flags->is_kernel_isolate = false;
+  api_flags->null_safety = true;
 }
 
 void IsolateGroup::FlagsCopyTo(Dart_IsolateFlags* api_flags) {
@@ -1554,6 +1580,7 @@ void IsolateGroup::FlagsCopyTo(Dart_IsolateFlags* api_flags) {
 #undef INIT_FROM_FIELD
   api_flags->is_service_isolate = false;
   api_flags->is_kernel_isolate = false;
+  api_flags->null_safety = true;
 }
 
 void IsolateGroup::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
@@ -1576,9 +1603,6 @@ void IsolateGroup::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
                       api_flags.isolate_flag, isolate_group_flags_));
 
   BOOL_ISOLATE_GROUP_FLAG_LIST(SET_FROM_FLAG)
-  // Needs to be called manually, otherwise we don't set the null_safety_set
-  // bit.
-  set_null_safety(api_flags.null_safety);
 #undef FLAG_FOR_NONPRODUCT
 #undef FLAG_FOR_PRECOMPILER
 #undef FLAG_FOR_PRODUCT
@@ -1595,6 +1619,7 @@ void Isolate::FlagsInitialize(Dart_IsolateFlags* api_flags) {
 #undef INIT_FROM_FLAG
   api_flags->is_service_isolate = false;
   api_flags->is_kernel_isolate = false;
+  api_flags->null_safety = true;
 }
 
 void Isolate::FlagsCopyTo(Dart_IsolateFlags* api_flags) const {
@@ -1607,6 +1632,7 @@ void Isolate::FlagsCopyTo(Dart_IsolateFlags* api_flags) const {
 #undef INIT_FROM_FIELD
   api_flags->is_service_isolate = false;
   api_flags->is_kernel_isolate = false;
+  api_flags->null_safety = true;
 }
 
 void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {

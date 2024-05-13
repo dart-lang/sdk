@@ -50,7 +50,7 @@ class FlutterCompletionBenchmark extends Benchmark implements FlutterBenchmark {
       test.debugStdio();
     }
 
-    final flutterPkgPath =
+    var flutterPkgPath =
         path.join(flutterRepositoryPath, 'packages', 'flutter');
 
     // Open a small directory, but with the package config that allows us
@@ -201,9 +201,9 @@ class FlutterCompletionBenchmark extends Benchmark implements FlutterBenchmark {
     required String Function()? insertStringGenerator,
     String? name,
   }) async {
-    final fileContent = File(filePath).readAsStringSync();
+    var fileContent = File(filePath).readAsStringSync();
 
-    final prefixOffset = fileContent.indexOf(uniquePrefix);
+    var prefixOffset = fileContent.indexOf(uniquePrefix);
     if (prefixOffset == -1) {
       throw StateError('Cannot find: $uniquePrefix');
     }
@@ -211,7 +211,7 @@ class FlutterCompletionBenchmark extends Benchmark implements FlutterBenchmark {
       throw StateError('Not unique: $uniquePrefix');
     }
 
-    final prefixEnd = prefixOffset + uniquePrefix.length;
+    var prefixEnd = prefixOffset + uniquePrefix.length;
 
     await test.openFile(filePath, fileContent);
 
@@ -219,7 +219,7 @@ class FlutterCompletionBenchmark extends Benchmark implements FlutterBenchmark {
       var completionOffset = prefixEnd;
 
       if (insertStringGenerator != null) {
-        final insertString = insertStringGenerator();
+        var insertString = insertStringGenerator();
         completionOffset += insertString.length;
         var newCode = fileContent.substring(0, prefixEnd) +
             insertString +
@@ -246,7 +246,7 @@ class FlutterCompletionBenchmark extends Benchmark implements FlutterBenchmark {
     }
 
     const repeatCount = 5;
-    final timer = Stopwatch()..start();
+    var timer = Stopwatch()..start();
     for (var i = 0; i < repeatCount; i++) {
       await perform(isWarmUp: false);
     }

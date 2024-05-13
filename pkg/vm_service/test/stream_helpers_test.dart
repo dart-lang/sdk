@@ -3,9 +3,25 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:math';
+import 'dart:typed_data' show ByteData, Uint16List;
 
 import 'package:test/test.dart';
 import 'package:vm_service/src/_stream_helpers.dart';
+
+/// Writes the UTF-16 representation of [value] to [writeStream].
+void _writeUtf16(
+  WriteStream writeStream,
+  String value,
+) {
+  final codeUnits = value.codeUnits;
+  final bytesOfUtf16String =
+      Uint16List.fromList(codeUnits).buffer.asUint8List();
+
+  writeStream.writeInteger(codeUnits.length);
+  for (final byte in bytesOfUtf16String) {
+    writeStream.writeByte(byte);
+  }
+}
 
 void main() {
   test('byte', () {
@@ -44,6 +60,41 @@ void main() {
     expect(read.readUtf8(), 'hello!');
     expect(read.readUtf8(), 'привет!');
     expect(read.readUtf8(), '8026221482988239');
+  });
+
+  test('utf16', () {
+    // We previously had an alignment error involving the mishandling of
+    // [ByteData.offsetInBytes], so we want this test to act as a regression
+    // test against that. To accomplish this, we write two padding integers at
+    // the start of each [WriteStream]. We later trim the first padding integer
+    // away using [ByteData.sublistView] whenever we create a [ReadStream], and
+    // we read the second padding integer using the created [ReadStream].
+    // Performing these operations puts the created [ReadStream] into a state
+    // in which the regression we want to avoid used to manifest.
+    final padding = 123;
+    WriteStream write = WriteStream(chunkSizeBytes: 32);
+    write.writeInteger(padding);
+    write.writeInteger(padding);
+    _writeUtf16(write, 'hello!');
+    ReadStream read = ReadStream([ByteData.sublistView(write.chunks.first, 1)]);
+    expect(read.readInteger(), padding);
+    expect(read.readUtf16(), 'hello!');
+
+    write = WriteStream(chunkSizeBytes: 32);
+    write.writeInteger(padding);
+    write.writeInteger(padding);
+    _writeUtf16(write, 'привет!');
+    read = ReadStream([ByteData.sublistView(write.chunks.first, 1)]);
+    expect(read.readInteger(), padding);
+    expect(read.readUtf16(), 'привет!');
+
+    write = WriteStream(chunkSizeBytes: 64);
+    write.writeInteger(padding);
+    write.writeInteger(padding);
+    _writeUtf16(write, '8026221482988239');
+    read = ReadStream([ByteData.sublistView(write.chunks.first, 1)]);
+    expect(read.readInteger(), padding);
+    expect(read.readUtf16(), '8026221482988239');
   });
 
   test('integer', () {

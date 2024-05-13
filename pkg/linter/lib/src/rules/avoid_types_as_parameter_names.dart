@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
+import '../util/scope.dart';
 
 const _desc = r'Avoid types as parameter names.';
 
@@ -82,7 +83,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool _isTypeName(AstNode scope, Token name) {
-    var result = context.resolveNameInScope2(name.lexeme, scope, setter: false);
+    var result =
+        resolveNameInScope(name.lexeme, scope, shouldResolveSetter: false);
     if (result.isRequestedName) {
       var element = result.element;
       return element is ClassElement ||

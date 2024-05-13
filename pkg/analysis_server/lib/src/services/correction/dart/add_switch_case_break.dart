@@ -21,20 +21,20 @@ class AddSwitchCaseBreak extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final switchCase = node;
+    var switchCase = node;
     if (switchCase is! SwitchCaseImpl) {
       return;
     }
 
-    final switchStatement = switchCase.parent;
+    var switchStatement = switchCase.parent;
     if (switchStatement is! SwitchStatementImpl) {
       return;
     }
 
-    final group = switchStatement.memberGroups.firstWhereOrNull(
+    var group = switchStatement.memberGroups.firstWhereOrNull(
       (group) => group.members.contains(switchCase),
     );
-    final lastStatement = group?.statements.lastOrNull;
+    var lastStatement = group?.statements.lastOrNull;
     if (lastStatement == null) {
       return;
     }

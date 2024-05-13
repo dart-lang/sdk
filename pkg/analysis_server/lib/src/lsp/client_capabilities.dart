@@ -119,85 +119,83 @@ class LspClientCapabilities {
   final Set<String> supportedCommands;
 
   factory LspClientCapabilities(ClientCapabilities raw) {
-    final workspace = raw.workspace;
-    final workspaceEdit = workspace?.workspaceEdit;
-    final resourceOperations = workspaceEdit?.resourceOperations;
-    final textDocument = raw.textDocument;
-    final completion = textDocument?.completion;
-    final completionItem = completion?.completionItem;
-    final completionList = completion?.completionList;
-    final completionDefaults = _listToSet(completionList?.itemDefaults);
-    final codeAction = textDocument?.codeAction;
-    final codeActionLiteral = codeAction?.codeActionLiteralSupport;
-    final documentSymbol = textDocument?.documentSymbol;
-    final publishDiagnostics = textDocument?.publishDiagnostics;
-    final signatureHelp = textDocument?.signatureHelp;
-    final signatureInformation = signatureHelp?.signatureInformation;
-    final hover = textDocument?.hover;
-    final definition = textDocument?.definition;
-    final typeDefinition = textDocument?.typeDefinition;
-    final workspaceSymbol = workspace?.symbol;
-    final experimental = _mapOrEmpty(raw.experimental);
-    final experimentalActions = _mapOrEmpty(experimental['dartCodeAction']);
+    var workspace = raw.workspace;
+    var workspaceEdit = workspace?.workspaceEdit;
+    var resourceOperations = workspaceEdit?.resourceOperations;
+    var textDocument = raw.textDocument;
+    var completion = textDocument?.completion;
+    var completionItem = completion?.completionItem;
+    var completionList = completion?.completionList;
+    var completionDefaults = _listToSet(completionList?.itemDefaults);
+    var codeAction = textDocument?.codeAction;
+    var codeActionLiteral = codeAction?.codeActionLiteralSupport;
+    var documentSymbol = textDocument?.documentSymbol;
+    var publishDiagnostics = textDocument?.publishDiagnostics;
+    var signatureHelp = textDocument?.signatureHelp;
+    var signatureInformation = signatureHelp?.signatureInformation;
+    var hover = textDocument?.hover;
+    var definition = textDocument?.definition;
+    var typeDefinition = textDocument?.typeDefinition;
+    var workspaceSymbol = workspace?.symbol;
+    var experimental = _mapOrEmpty(raw.experimental);
+    var experimentalActions = _mapOrEmpty(experimental['dartCodeAction']);
 
-    final applyEdit = workspace?.applyEdit ?? false;
-    final codeActionKinds =
+    var applyEdit = workspace?.applyEdit ?? false;
+    var codeActionKinds =
         _listToSet(codeActionLiteral?.codeActionKind.valueSet);
-    final completionDeprecatedFlag = completionItem?.deprecatedSupport ?? false;
-    final completionDocumentationFormats =
+    var completionDeprecatedFlag = completionItem?.deprecatedSupport ?? false;
+    var completionDocumentationFormats =
         _listToNullableSet(completionItem?.documentationFormat);
-    final completionInsertTextModes =
+    var completionInsertTextModes =
         _listToSet(completionItem?.insertTextModeSupport?.valueSet);
-    final completionItemKinds = _listToSet(
+    var completionItemKinds = _listToSet(
         completion?.completionItemKind?.valueSet,
         defaults: defaultSupportedCompletionKinds);
-    final completionLabelDetails = completionItem?.labelDetailsSupport ?? false;
-    final completionSnippets = completionItem?.snippetSupport ?? false;
-    final completionDefaultEditRange = completionDefaults.contains('editRange');
-    final completionDefaultTextMode =
+    var completionLabelDetails = completionItem?.labelDetailsSupport ?? false;
+    var completionSnippets = completionItem?.snippetSupport ?? false;
+    var completionDefaultEditRange = completionDefaults.contains('editRange');
+    var completionDefaultTextMode =
         completionDefaults.contains('insertTextMode');
-    final configuration = workspace?.configuration ?? false;
-    final createResourceOperations =
+    var configuration = workspace?.configuration ?? false;
+    var createResourceOperations =
         resourceOperations?.contains(ResourceOperationKind.Create) ?? false;
-    final renameResourceOperations =
+    var renameResourceOperations =
         resourceOperations?.contains(ResourceOperationKind.Rename) ?? false;
-    final definitionLocationLink = definition?.linkSupport ?? false;
-    final typeDefinitionLocationLink = typeDefinition?.linkSupport ?? false;
-    final completionItemTags = _listToSet(completionItem?.tagSupport?.valueSet);
-    final diagnosticTags = _listToSet(publishDiagnostics?.tagSupport?.valueSet);
-    final documentChanges = workspaceEdit?.documentChanges ?? false;
-    final changeAnnotations = workspaceEdit?.changeAnnotationSupport != null;
-    final documentSymbolKinds = _listToSet(documentSymbol?.symbolKind?.valueSet,
+    var definitionLocationLink = definition?.linkSupport ?? false;
+    var typeDefinitionLocationLink = typeDefinition?.linkSupport ?? false;
+    var completionItemTags = _listToSet(completionItem?.tagSupport?.valueSet);
+    var diagnosticTags = _listToSet(publishDiagnostics?.tagSupport?.valueSet);
+    var documentChanges = workspaceEdit?.documentChanges ?? false;
+    var changeAnnotations = workspaceEdit?.changeAnnotationSupport != null;
+    var documentSymbolKinds = _listToSet(documentSymbol?.symbolKind?.valueSet,
         defaults: defaultSupportedSymbolKinds);
-    final hierarchicalSymbols =
+    var hierarchicalSymbols =
         documentSymbol?.hierarchicalDocumentSymbolSupport ?? false;
-    final diagnosticCodeDescription =
+    var diagnosticCodeDescription =
         publishDiagnostics?.codeDescriptionSupport ?? false;
-    final hoverContentFormats = _listToNullableSet(hover?.contentFormat);
-    final insertReplaceCompletionRanges =
+    var hoverContentFormats = _listToNullableSet(hover?.contentFormat);
+    var insertReplaceCompletionRanges =
         completionItem?.insertReplaceSupport ?? false;
-    final lineFoldingOnly =
-        textDocument?.foldingRange?.lineFoldingOnly ?? false;
-    final literalCodeActions = codeActionLiteral != null;
-    final renameValidation = textDocument?.rename?.prepareSupport ?? false;
-    final signatureHelpDocumentationFormats =
+    var lineFoldingOnly = textDocument?.foldingRange?.lineFoldingOnly ?? false;
+    var literalCodeActions = codeActionLiteral != null;
+    var renameValidation = textDocument?.rename?.prepareSupport ?? false;
+    var signatureHelpDocumentationFormats =
         _listToNullableSet(signatureInformation?.documentationFormat);
-    final workDoneProgress = raw.window?.workDoneProgress ?? false;
-    final workspaceSymbolKinds = _listToSet(
-        workspaceSymbol?.symbolKind?.valueSet,
+    var workDoneProgress = raw.window?.workDoneProgress ?? false;
+    var workspaceSymbolKinds = _listToSet(workspaceSymbol?.symbolKind?.valueSet,
         defaults: defaultSupportedSymbolKinds);
-    final experimentalSnippetTextEdit = experimental['snippetTextEdit'] == true;
-    final commandParameterSupport =
+    var experimentalSnippetTextEdit = experimental['snippetTextEdit'] == true;
+    var commandParameterSupport =
         _mapOrEmpty(experimentalActions['commandParameterSupport']);
-    final commandParameterSupportedKinds =
+    var commandParameterSupportedKinds =
         _listToSet(commandParameterSupport['supportedKinds'] as List?)
             .cast<String>();
-    final supportsDartExperimentalTextDocumentContentProvider =
+    var supportsDartExperimentalTextDocumentContentProvider =
         (experimental[dartExperimentalTextDocumentContentProviderKey] ??
                 experimental[
                     dartExperimentalTextDocumentContentProviderLegacyKey]) !=
             null;
-    final supportedCommands =
+    var supportedCommands =
         _listToSet(experimental['commands'] as List?).cast<String>();
 
     /// At the time of writing (2023-02-01) there is no official capability for
@@ -208,7 +206,7 @@ class LspClientCapabilities {
     /// might not be seen, we will only use this functionality if we _know_ the
     /// client supports it via a custom flag in 'experimental' that is passed by
     /// the Dart-Code VS Code extension since version v3.58.0 (2023-01-25).
-    final supportsShowMessageRequest =
+    var supportsShowMessageRequest =
         experimental['supportsWindowShowMessageRequest'] == true;
 
     return LspClientCapabilities._(

@@ -25,7 +25,7 @@ extension e on Object { }
 ''');
 
     await assertNoDiagnostics(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment extension e { }
 ''');

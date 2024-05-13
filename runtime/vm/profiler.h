@@ -251,7 +251,7 @@ class Sample {
     for (intptr_t i = 0; i < kPCArraySizeInWords; ++i) {
       uintptr_t start = 0;
       uword pc = At(i);
-      char* native_symbol_name =
+      const char* native_symbol_name =
           NativeSymbolResolver::LookupSymbolName(pc, &start);
       if (native_symbol_name == nullptr) {
         OS::PrintErr("  [0x%" Pp "] Unknown symbol\n", pc);

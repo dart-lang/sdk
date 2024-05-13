@@ -83,7 +83,7 @@ enum ExperimentalFlag {
   inferenceUpdate3(
       name: 'inference-update-3',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       experimentEnabledVersion: const Version(3, 4),
       experimentReleasedVersion: const Version(3, 4)),
 
@@ -201,6 +201,13 @@ enum ExperimentalFlag {
 
   variance(
       name: 'variance',
+      isEnabledByDefault: false,
+      isExpired: false,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion),
+
+  wildcardVariables(
+      name: 'wildcard-variables',
       isEnabledByDefault: false,
       isExpired: false,
       experimentEnabledVersion: defaultLanguageVersion,

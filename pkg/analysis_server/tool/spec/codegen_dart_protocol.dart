@@ -681,7 +681,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       if (type == null) {
         writeln(' ${className.hashCode}');
       } else {
-        final fields = type.fields;
+        var fields = type.fields;
         if (fields.isEmpty) {
           writeln('0');
         } else if (fields.length == 1) {

@@ -493,6 +493,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   void visitFieldDeclaration(FieldDeclaration node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.abstractKeyword, suffix: ' ');
+    _visitToken(node.augmentKeyword, suffix: ' ');
     _visitToken(node.externalKeyword, suffix: ' ');
     _visitToken(node.staticKeyword, suffix: ' ');
     _visitNode(node.fields);
@@ -684,6 +685,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(node.augmentKeyword, suffix: ' ');
     sink.write('typedef ');
     _visitToken(node.name);
     _visitNode(node.typeParameters);
@@ -824,8 +826,8 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
-    sink.write('library ');
     sink.write('augment ');
+    sink.write('library ');
     _visitNode(node.uri);
     sink.write(';');
   }
@@ -1377,6 +1379,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(node.augmentKeyword, suffix: ' ');
     _visitToken(node.externalKeyword, suffix: ' ');
     _visitNode(node.variables, suffix: ';');
   }

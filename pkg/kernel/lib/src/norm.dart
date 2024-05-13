@@ -41,14 +41,14 @@ class _Norm extends ReplacementVisitor {
   _Norm(this.coreTypes);
 
   @override
-  DartType? visitInterfaceType(InterfaceType node, int variance) {
+  DartType? visitInterfaceType(InterfaceType node, Variance variance) {
     return super
         .visitInterfaceType(node, variance)
         ?.withDeclaredNullability(node.nullability);
   }
 
   @override
-  DartType visitFutureOrType(FutureOrType node, int variance) {
+  DartType visitFutureOrType(FutureOrType node, Variance variance) {
     DartType typeArgument = node.typeArgument;
     typeArgument = typeArgument.accept1(this, variance) ?? typeArgument;
     if (coreTypes.isTop(typeArgument)) {
@@ -91,7 +91,7 @@ class _Norm extends ReplacementVisitor {
   }
 
   @override
-  DartType? visitTypeParameterType(TypeParameterType node, int variance) {
+  DartType? visitTypeParameterType(TypeParameterType node, Variance variance) {
     DartType bound = node.parameter.bound;
     if (normalizesToNever(bound)) {
       DartType result = NeverType.fromNullability(node.nullability);
@@ -104,7 +104,7 @@ class _Norm extends ReplacementVisitor {
 
   @override
   DartType? visitStructuralParameterType(
-      StructuralParameterType node, int variance) {
+      StructuralParameterType node, Variance variance) {
     DartType bound = node.parameter.bound;
     if (normalizesToNever(bound)) {
       DartType result = NeverType.fromNullability(node.nullability);
@@ -116,7 +116,7 @@ class _Norm extends ReplacementVisitor {
   }
 
   @override
-  DartType? visitIntersectionType(IntersectionType node, int variance) {
+  DartType? visitIntersectionType(IntersectionType node, Variance variance) {
     DartType right = node.right;
     right = right.accept1(this, variance) ?? right;
     if (right is NeverType && right.nullability == Nullability.nonNullable) {
@@ -145,7 +145,7 @@ class _Norm extends ReplacementVisitor {
   }
 
   @override
-  DartType? visitNeverType(NeverType node, int variance) {
+  DartType? visitNeverType(NeverType node, Variance variance) {
     if (node.nullability == Nullability.nullable) return const NullType();
     return null;
   }

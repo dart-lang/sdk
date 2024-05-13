@@ -46,11 +46,6 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
   }
 
   @override
-  int varianceAt(int index) {
-    return typedef.typeParameters[index].variance;
-  }
-
-  @override
   bool get fromDill => true;
 
   @override

@@ -8,13 +8,13 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import '../analyzer.dart';
 import '../rules/control_flow_in_finally.dart';
 
-const _desc = r'Avoid `throw` in finally block.';
+const _desc = r'Avoid `throw` in `finally` block.';
 
 const _details = r'''
-**AVOID** throwing exceptions in finally blocks.
+**AVOID** throwing exceptions in `finally` blocks.
 
-Throwing exceptions in finally blocks will inevitably cause unexpected behavior
-that is hard to debug.
+Throwing exceptions in `finally` blocks will inevitably cause unexpected
+behavior that is hard to debug.
 
 **BAD:**
 ```dart

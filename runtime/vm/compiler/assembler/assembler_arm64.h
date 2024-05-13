@@ -500,6 +500,10 @@ class Assembler : public AssemblerBase {
     }
   }
 
+  void nop() { Emit(Instr::kNopInstruction); }
+
+  void Align(intptr_t alignment, intptr_t offset);
+
   void Bind(Label* label) override;
   // Unconditional jump to a given label. [distance] is ignored on ARM.
   void Jump(Label* label, JumpDistance distance = kFarJump) { b(label); }
@@ -518,10 +522,8 @@ class Assembler : public AssemblerBase {
     StoreToOffset(src, base, offset, kEightBytes);
   }
 
-#if defined(TARGET_USES_THREAD_SANITIZER)
   void TsanLoadAcquire(Register addr);
   void TsanStoreRelease(Register addr);
-#endif
 
   void LoadAcquire(Register dst,
                    const Address& address,
@@ -534,9 +536,9 @@ class Assembler : public AssemblerBase {
       src = TMP2;
     }
     ldar(dst, src, size);
-#if defined(TARGET_USES_THREAD_SANITIZER)
-    TsanLoadAcquire(src);
-#endif
+    if (FLAG_target_thread_sanitizer) {
+      TsanLoadAcquire(src);
+    }
   }
 
 #if defined(DART_COMPRESSED_POINTERS)
@@ -557,9 +559,9 @@ class Assembler : public AssemblerBase {
       dst = TMP2;
     }
     stlr(src, dst, size);
-#if defined(TARGET_USES_THREAD_SANITIZER)
-    TsanStoreRelease(dst);
-#endif
+    if (FLAG_target_thread_sanitizer) {
+      TsanStoreRelease(dst);
+    }
   }
 
   void CompareWithMemoryValue(Register value,
@@ -1528,9 +1530,7 @@ class Assembler : public AssemblerBase {
     }
   }
   void vmov(VRegister vd, VRegister vn) { vorr(vd, vn, vn); }
-  void mvn_(Register rd, Register rm) {
-    orn(rd, ZR, Operand(rm));
-  }
+  void mvn_(Register rd, Register rm) { orn(rd, ZR, Operand(rm)); }
   void mvnw(Register rd, Register rm) { ornw(rd, ZR, Operand(rm)); }
   void neg(Register rd, Register rm) { sub(rd, ZR, Operand(rm)); }
   void negs(Register rd, Register rm, OperandSize sz = kEightBytes) {
@@ -1755,9 +1755,7 @@ class Assembler : public AssemblerBase {
   void Call(const Code& code) { BranchLink(code); }
 
   // Clobbers LR.
-  void CallCFunction(Address target) {
-    Call(target);
-  }
+  void CallCFunction(Address target) { Call(target); }
   void CallCFunction(Register target) {
 #define __ this->
     CLOBBERS_LR({ blr(target); });
@@ -1838,9 +1836,7 @@ class Assembler : public AssemblerBase {
                    Register rn,
                    int64_t imm,
                    OperandSize sz = kEightBytes);
-  void OrImmediate(Register rd, int64_t imm) {
-    OrImmediate(rd, rd, imm);
-  }
+  void OrImmediate(Register rd, int64_t imm) { OrImmediate(rd, rd, imm); }
   void XorImmediate(Register rd,
                     Register rn,
                     int64_t imm,
@@ -2023,9 +2019,7 @@ class Assembler : public AssemblerBase {
     LoadImmediate(TMP, immediate);
     Push(TMP);
   }
-  void PushImmediate(Immediate immediate) {
-    PushImmediate(immediate.value());
-  }
+  void PushImmediate(Immediate immediate) { PushImmediate(immediate.value()); }
   void CompareObject(Register reg, const Object& object);
 
   void ExtractClassIdFromTags(Register result, Register tags);

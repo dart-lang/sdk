@@ -8,7 +8,7 @@ import 'dart:typed_data' show Int32List;
 import 'dart:js';
 
 import 'package:js/js_util.dart' as js_util;
-import 'package:expect/minitest.dart';
+import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 import 'js_test_util.dart';
 

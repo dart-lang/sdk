@@ -281,6 +281,20 @@ class _ReferenceVisitor extends RecursiveAstVisitor {
   }
 
   @override
+  void visitMethodDeclaration(MethodDeclaration node) {
+    if (node.name.lexeme == 'toJson' && !node.isStatic) {
+      // The 'dart:convert' library uses dynamic invocation to call `toJson` on
+      // arbitrary objects. Any declaration of `toJson` is automatically
+      // reachable.
+      var element = node.declaredElement;
+      if (element != null) {
+        _addDeclaration(element);
+      }
+    }
+    super.visitMethodDeclaration(node);
+  }
+
+  @override
   void visitNamedType(NamedType node) {
     var element = node.element;
     if (element == null) {

@@ -17,9 +17,16 @@ import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ChangeBuilder {
-  /// Initialize a newly created change builder. If the builder will be used to
-  /// create changes for Dart files, then either a [session] or a [workspace]
-  /// must be provided (but not both).
+  /// Initializes a newly created change builder.
+  ///
+  /// If the builder is used to create changes for Dart files, then either a
+  /// [session] or a [workspace] must be provided (but not both).
+  ///
+  /// Note that omitting [eol], the EOL sequence to use, can result in
+  /// inconsistent EOL sequences being added to files.
+  // TODO(srawlins): Should `eol` be required? Each `DartFileEditBuilderImpl`
+  // has a `ResolvedUnitResult` that can be relied on to detect the existing EOL
+  // sequences, so could `eol` be removed?
   factory ChangeBuilder(
       {AnalysisSession session,
       ChangeWorkspace workspace,

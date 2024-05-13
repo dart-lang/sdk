@@ -100,9 +100,9 @@ class _LocalNameScope {
 
   factory _LocalNameScope.forExtensionType(
       _LocalNameScope enclosing, ExtensionTypeDeclaration node) {
-    final scope = _LocalNameScope(enclosing);
+    var scope = _LocalNameScope(enclosing);
     scope.addTypeParameters(node.typeParameters);
-    for (final member in node.members) {
+    for (var member in node.members) {
       if (member is FieldDeclaration) {
         scope.addVariableNames(member.fields);
       } else if (member is MethodDeclaration) {
@@ -249,7 +249,7 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    final outerScope = localScope;
+    var outerScope = localScope;
     try {
       localScope = _LocalNameScope.forExtensionType(localScope, node);
       super.visitExtensionTypeDeclaration(node);
@@ -342,7 +342,7 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
     Token token, {
     required bool hasImportPrefix,
   }) {
-    final name = token.lexeme;
+    var name = token.lexeme;
 
     if (localScope.contains(name) && !hasImportPrefix) {
       return;

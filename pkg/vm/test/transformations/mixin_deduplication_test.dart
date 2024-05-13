@@ -16,7 +16,7 @@ import '../common_test_utils.dart';
 final String pkgVmDir = Platform.script.resolve('../..').toFilePath();
 
 runTestCase(Uri source) async {
-  final target = VmTarget(new TargetFlags(soundNullSafety: true));
+  final target = VmTarget(new TargetFlags());
   final component =
       await compileTestCaseToKernelProgram(source, target: target);
   transformComponent(component);

@@ -32,7 +32,7 @@ abstract class AbstractLspOverLegacyTest
     Either2<MarkupContent, String> contents,
     String expected,
   ) {
-    final markup = contents.map(
+    var markup = contents.map(
       (t1) => t1,
       (t2) => throw 'Hover contents were String, not MarkupContent',
     );
@@ -46,12 +46,12 @@ abstract class AbstractLspOverLegacyTest
     RequestMessage message,
     T Function(R) fromJson,
   ) async {
-    final legacyResult = await sendLspHandle(message.toJson());
-    final lspResponseJson = legacyResult.lspResponse as Map<String, Object?>;
+    var legacyResult = await sendLspHandle(message.toJson());
+    var lspResponseJson = legacyResult.lspResponse as Map<String, Object?>;
 
     // Unwrap the LSP response.
-    final lspResponse = ResponseMessage.fromJson(lspResponseJson);
-    final error = lspResponse.error;
+    var lspResponse = ResponseMessage.fromJson(lspResponseJson);
+    var error = lspResponse.error;
     if (error != null) {
       throw error;
     } else if (T == Null) {

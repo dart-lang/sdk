@@ -19,7 +19,7 @@ class ReplaceReturnTypeFuture extends ResolvedCorrectionProducer {
   bool get canBeAppliedToFile => true;
 
   @override
-  List<Object>? get fixArguments => [_typeArgument];
+  List<String> get fixArguments => [_typeArgument];
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_RETURN_TYPE_FUTURE;

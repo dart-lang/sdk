@@ -39,7 +39,7 @@ class EventsCollector {
             AnalysisFlushResultsParams.fromNotification(notification),
           );
         case LSP_NOTIFICATION_NOTIFICATION:
-          final params = LspNotificationParams.fromNotification(notification);
+          var params = LspNotificationParams.fromNotification(notification);
           events.add(params.lspNotification);
         default:
           throw StateError(notification.event);
@@ -48,7 +48,7 @@ class EventsCollector {
   }
 
   List<Object> take() {
-    final result = events;
+    var result = events;
     events = [];
     return result;
   }
@@ -66,7 +66,7 @@ class EventsPrinter {
   });
 
   void write(List<Object> events) {
-    for (final event in events) {
+    for (var event in events) {
       switch (event) {
         case AnalysisErrorsParams():
           sink.writelnWithIndent('AnalysisErrors');
@@ -107,7 +107,7 @@ class EventsPrinter {
       if (name != null) {
         sink.write('$name: ');
       }
-      final file = resourceProvider.getFile(path);
+      var file = resourceProvider.getFile(path);
       sink.write(file.posixPath);
     });
   }
@@ -119,9 +119,9 @@ class EventsPrinter {
       }
 
       if (uri.isScheme('file') || uri.isScheme('dart-macro+file')) {
-        final fileUri = uri.replace(scheme: 'file');
-        final path = resourceProvider.pathContext.fromUri(fileUri);
-        final file = resourceProvider.getFile(path);
+        var fileUri = uri.replace(scheme: 'file');
+        var path = resourceProvider.pathContext.fromUri(fileUri);
+        var file = resourceProvider.getFile(path);
         uri = uri.replace(path: file.posixPath);
       }
 
@@ -182,17 +182,17 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
   ) async {
     await pumpEventQueue(times: 5000);
 
-    final buffer = StringBuffer();
-    final sink = TreeStringSink(sink: buffer, indent: '');
+    var buffer = StringBuffer();
+    var sink = TreeStringSink(sink: buffer, indent: '');
 
-    final events = collector.take();
+    var events = collector.take();
     EventsPrinter(
       configuration: EventsPrinterConfiguration(),
       resourceProvider: resourceProvider,
       sink: sink,
     ).write(events);
 
-    final actual = buffer.toString();
+    var actual = buffer.toString();
     if (actual != expected) {
       print('-------- Actual --------');
       print('$actual------------------------');
@@ -214,22 +214,22 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
     // Round-trip request via JSON because this doesn't happen automatically
     // when we're bypassing the streams (running in-process) and we want to
     // validate everything.
-    final messageJson =
+    var messageJson =
         jsonDecode(jsonEncode(message.toJson())) as Map<String, Object?>;
 
-    final legacyRequest = createLegacyRequest(LspHandleParams(messageJson));
-    final legacyResponse = await handleSuccessfulRequest(legacyRequest);
-    final legacyResult = LspHandleResult.fromResponse(legacyResponse);
+    var legacyRequest = createLegacyRequest(LspHandleParams(messageJson));
+    var legacyResponse = await handleSuccessfulRequest(legacyRequest);
+    var legacyResult = LspHandleResult.fromResponse(legacyResponse);
 
     // Round-trip response via JSON because this doesn't happen automatically
     // when we're bypassing the streams (running in-process) and we want to
     // validate everything.
-    final lspResponseJson = jsonDecode(jsonEncode(legacyResult.lspResponse))
+    var lspResponseJson = jsonDecode(jsonEncode(legacyResult.lspResponse))
         as Map<String, Object?>;
 
     // Unwrap the LSP response.
-    final lspResponse = ResponseMessage.fromJson(lspResponseJson);
-    final error = lspResponse.error;
+    var lspResponse = ResponseMessage.fromJson(lspResponseJson);
+    var error = lspResponse.error;
     if (error != null) {
       throw error;
     } else if (T == Null) {
@@ -272,7 +272,7 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
       // Round-trip response via JSON because this doesn't happen automatically
       // when we're bypassing the streams (running in-process) and we want to
       // validate everything.
-      final lspNotificationJson = jsonDecode(jsonEncode(params.lspNotification))
+      var lspNotificationJson = jsonDecode(jsonEncode(params.lspNotification))
           as Map<String, Object?>;
       var lspNotificationMessage =
           NotificationMessage.fromJson(lspNotificationJson);
@@ -295,7 +295,7 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
   }
 
   void verifyEdit(WorkspaceEdit edit, String expected) {
-    final verifier = LspChangeVerifier(this, edit);
+    var verifier = LspChangeVerifier(this, edit);
     // For LSP-over-Legacy we set documentChanges in the standard client
     // capabilities and assume all new users of this will support it.
     expect(edit.documentChanges, isNotNull);

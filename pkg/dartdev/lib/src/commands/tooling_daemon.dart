@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:isolate';
 
 import 'package:args/args.dart';
 import 'package:dtd_impl/dart_tooling_daemon.dart' as dtd
@@ -39,33 +38,10 @@ class ToolingDaemonCommand extends DartdevCommand {
     // UnmodifiableListView object which cannot be passed as
     // the args for spawnUri.
     final args = [...argResults!.arguments];
-
-    if (!Sdk.checkArtifactExists(sdk.dtdSnapshot)) return 255;
-
-    var retval = 0;
-    final result = Completer<int>();
-    final exitPort = ReceivePort()
-      ..listen((msg) {
-        result.complete(0);
-      });
-    final errorPort = ReceivePort()
-      ..listen((error) {
-        log.stderr(error.toString());
-        result.complete(255);
-      });
-    try {
-      await Isolate.spawnUri(Uri.file(sdk.dtdSnapshot), args, null,
-          onExit: exitPort.sendPort, onError: errorPort.sendPort);
-      retval = await result.future;
-    } catch (e, st) {
-      log.stderr(e.toString());
-      if (verbose) {
-        log.stderr(st.toString());
-      }
-      retval = 255;
-    }
-    errorPort.close();
-    exitPort.close();
-    return retval;
+    return await runFromSnapshot(
+      snapshot: sdk.dtdSnapshot,
+      args: args,
+      verbose: verbose,
+    );
   }
 }

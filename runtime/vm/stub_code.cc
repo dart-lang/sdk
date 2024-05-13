@@ -90,9 +90,10 @@ void StubCode::Init() {
 #undef STUB_CODE_GENERATE
 #undef STUB_CODE_SET_OBJECT_POOL
 
-CodePtr StubCode::Generate(const char* name,
-                           compiler::ObjectPoolBuilder* object_pool_builder,
-                           void (compiler::StubCodeCompiler::*GenerateStub)()) {
+CodePtr StubCode::Generate(
+    const char* name,
+    compiler::ObjectPoolBuilder* object_pool_builder,
+    void (compiler::StubCodeCompiler::* GenerateStub)()) {
   auto thread = Thread::Current();
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
 

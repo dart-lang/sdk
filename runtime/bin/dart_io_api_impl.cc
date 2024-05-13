@@ -11,7 +11,7 @@
 #include "bin/platform.h"
 #include "bin/process.h"
 #if !defined(DART_IO_SECURE_SOCKET_DISABLED)
-  #include "bin/secure_socket_filter.h"
+#include "bin/secure_socket_filter.h"
 #endif
 #include "bin/thread.h"
 #include "bin/utils.h"

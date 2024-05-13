@@ -8,9 +8,9 @@ class C extends core::Object {
     : super core::Object::•()
     ;
   no-such-method-forwarder method m1(core::int v, [core::String s = #C1]) → core::int
-    return this.{self::C::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 0, #C3, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal2<dynamic>(v, s)), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
+    return this.{self::C::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 0, #C3, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal2<dynamic>(v, s)), core::Map::unmodifiable<core::Symbol, dynamic>(#C4))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
   no-such-method-forwarder method m2(core::int v, {core::String s = #C5}) → core::int
-    return this.{self::C::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 0, #C3, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(v)), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C7: s}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
+    return this.{self::C::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 0, #C3, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(v)), core::Map::unmodifiable<core::Symbol, dynamic>(<core::Symbol, dynamic>{#C7: s}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
   method noSuchMethod(core::Invocation inv) → dynamic {
     for (core::int i = 0; i.{core::num::<}(inv.{core::Invocation::positionalArguments}{core::List<dynamic>}.{core::List::length}{core::int}){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
       self::log = self::log.{core::String::+}("${inv.{core::Invocation::positionalArguments}{core::List<dynamic>}.{core::List::[]}(i){(core::int) → dynamic}};"){(core::String) → core::String};
@@ -48,9 +48,9 @@ class MA extends core::Object implements self::M /*isEliminatedMixin,hasConstCon
     return 42;
   }
   no-such-method-forwarder method m1(core::int v, [core::String s = #C1]) → core::int
-    return this.{self::MA::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 0, #C3, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal2<dynamic>(v, s)), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
+    return this.{self::MA::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 0, #C3, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal2<dynamic>(v, s)), core::Map::unmodifiable<core::Symbol, dynamic>(#C4))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
   no-such-method-forwarder method m2(core::int v, {core::String s = #C5}) → core::int
-    return this.{self::MA::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 0, #C3, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(v)), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C7: s}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
+    return this.{self::MA::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 0, #C3, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(v)), core::Map::unmodifiable<core::Symbol, dynamic>(<core::Symbol, dynamic>{#C7: s}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
 }
 static field core::String log = "";
 static method expect(dynamic expected, dynamic actual) → dynamic {
@@ -74,8 +74,8 @@ static method main() → dynamic {
 constants  {
   #C1 = "s1"
   #C2 = #m1
-  #C3 = <core::Type*>[]
-  #C4 = <core::Symbol*, dynamic>{}
+  #C3 = <core::Type>[]
+  #C4 = <core::Symbol, dynamic>{}
   #C5 = "s2"
   #C6 = #m2
   #C7 = #s

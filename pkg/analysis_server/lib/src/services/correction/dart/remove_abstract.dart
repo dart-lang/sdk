@@ -39,8 +39,8 @@ class RemoveAbstract extends CorrectionProducerWithDiagnostic {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     final node = this.node;
-    final parent = node.parent;
-    final classDeclaration = node.thisOrAncestorOfType<ClassDeclaration>();
+    var parent = node.parent;
+    var classDeclaration = node.thisOrAncestorOfType<ClassDeclaration>();
     if (node is VariableDeclaration) {
       await _compute(classDeclaration, node.declaredElement, builder);
     } else if (node is SimpleIdentifier &&

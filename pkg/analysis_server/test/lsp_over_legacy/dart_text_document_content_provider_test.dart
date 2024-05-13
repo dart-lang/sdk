@@ -65,7 +65,7 @@ class A {}
     await waitForTasksFinished();
     await enableCustomUriSupport();
 
-    final collector = EventsCollector(this);
+    var collector = EventsCollector(this);
 
     // Verify initial contents of the macro.
     var macroGeneratedContent =

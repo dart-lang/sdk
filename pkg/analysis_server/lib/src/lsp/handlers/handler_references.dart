@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart' hide Element;
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
@@ -13,6 +13,7 @@ import 'package:analysis_server/src/services/search/search_engine.dart'
     show SearchMatch;
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
@@ -37,25 +38,25 @@ class ReferencesHandler
       return success(const []);
     }
 
-    final pos = params.position;
-    final path = pathOfDoc(params.textDocument);
-    final unit = await path.mapResult(requireResolvedUnit);
-    final offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
+    var pos = params.position;
+    var path = pathOfDoc(params.textDocument);
+    var unit = await path.mapResult(requireResolvedUnit);
+    var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
     return await message.performance.runAsync(
         '_getReferences',
-        (performance) async => offset.mapResult((offset) => _getReferences(
-            unit.result, offset, params, unit.result, performance)));
+        (performance) async => (unit, offset).mapResults((unit, offset) =>
+            _getReferences(unit, offset, params, performance)));
   }
 
   List<Location> _getDeclarations(ParsedUnitResult result, int offset) {
-    final collector = NavigationCollectorImpl();
+    var collector = NavigationCollectorImpl();
     computeDartNavigation(
         server.resourceProvider, collector, result, offset, 0);
 
     return convert(collector.targets, (NavigationTarget target) {
-      final targetFilePath = collector.files[target.fileIndex];
-      final targetFileUri = uriConverter.toClientUri(targetFilePath);
-      final lineInfo = server.getLineInfo(targetFilePath);
+      var targetFilePath = collector.files[target.fileIndex];
+      var targetFileUri = uriConverter.toClientUri(targetFilePath);
+      var lineInfo = server.getLineInfo(targetFilePath);
       return lineInfo != null
           ? navigationTargetToLocation(targetFileUri, target, lineInfo)
           : null;
@@ -66,24 +67,28 @@ class ReferencesHandler
       ResolvedUnitResult result,
       int offset,
       ReferenceParams params,
-      ResolvedUnitResult unit,
       OperationPerformanceImpl performance) async {
     var node = NodeLocator(offset).searchWithin(result.unit);
     node = _getReferenceTargetNode(node);
-    var element = server.getElementOfNode(node);
+
+    var element = switch (server.getElementOfNode(node)) {
+      PropertyAccessorElement(:var variable2?) => variable2,
+      (var element) => element,
+    };
+
     if (element == null) {
       return success(null);
     }
 
-    final computer = ElementReferencesComputer(server.searchEngine);
-    final session = element.session ?? unit.session;
-    final results = await performance.runAsync(
+    var computer = ElementReferencesComputer(server.searchEngine);
+    var session = element.session ?? result.session;
+    var results = await performance.runAsync(
         'computer.compute',
         (childPerformance) =>
             computer.compute(element, false, performance: childPerformance));
 
     Location? toLocation(SearchMatch result) {
-      final file = session.getFile(result.file);
+      var file = session.getFile(result.file);
       if (file is! FileResult) {
         return null;
       }
@@ -97,13 +102,13 @@ class ReferencesHandler
       );
     }
 
-    final referenceResults = performance.run(
+    var referenceResults = performance.run(
         'convert', (_) => convert(results, toLocation).nonNulls.toList());
 
     if (params.context.includeDeclaration == true) {
       // Also include the definition for the symbol at this location.
       referenceResults.addAll(performance.run(
-          '_getDeclarations', (_) => _getDeclarations(unit, offset)));
+          '_getDeclarations', (_) => _getDeclarations(result, offset)));
     }
 
     return success(referenceResults);

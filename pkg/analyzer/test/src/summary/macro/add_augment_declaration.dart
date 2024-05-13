@@ -128,9 +128,9 @@ class _AddMacro {
     MemberDeclarationBuilder builder,
     String withIdentifiers,
   ) async {
-    final withoutEOL = withIdentifiers.trimRight();
-    final parts = await resolveIdentifiers(builder, withoutEOL);
-    final code = DeclarationCode.fromParts(parts);
+    var withoutEOL = withIdentifiers.trimRight();
+    var parts = await resolveIdentifiers(builder, withoutEOL);
+    var code = DeclarationCode.fromParts(parts);
     builder.declareInType(code);
   }
 }

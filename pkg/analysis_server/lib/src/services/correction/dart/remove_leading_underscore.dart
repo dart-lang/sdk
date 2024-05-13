@@ -28,8 +28,8 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     final node = this.node;
-    final Token? nameToken;
-    final Element? element;
+    Token? nameToken;
+    Element? element;
     if (node is SimpleIdentifier) {
       nameToken = node.token;
       element = node.staticElement;
@@ -53,7 +53,7 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
       return;
     }
 
-    final oldName = nameToken.lexeme;
+    var oldName = nameToken.lexeme;
     if (oldName.length < 2) {
       return;
     }
@@ -103,7 +103,7 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
     }
 
     // Compute the change.
-    final sourceRanges = {
+    var sourceRanges = {
       range.token(nameToken),
       ...references.map(range.node),
     };

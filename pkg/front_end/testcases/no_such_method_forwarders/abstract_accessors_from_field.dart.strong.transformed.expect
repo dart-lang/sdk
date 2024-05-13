@@ -15,9 +15,9 @@ class A extends core::Object implements self::I {
   method noSuchMethod(core::Invocation i) → dynamic
     return "bar";
   no-such-method-forwarder get foo() → core::int?
-    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int?;
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int?;
   no-such-method-forwarder set foo(core::int? value) → void
-    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(value)), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation) → dynamic};
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(value)), core::Map::unmodifiable<core::Symbol, dynamic>(#C4))){(core::Invocation) → dynamic};
 }
 class B extends self::A {
   synthetic constructor •() → self::B
@@ -40,8 +40,8 @@ static method main() → dynamic {
 
 constants  {
   #C1 = #foo
-  #C2 = <core::Type*>[]
+  #C2 = <core::Type>[]
   #C3 = <dynamic>[]
-  #C4 = <core::Symbol*, dynamic>{}
+  #C4 = <core::Symbol, dynamic>{}
   #C5 = #foo=
 }

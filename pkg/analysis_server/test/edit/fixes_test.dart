@@ -34,7 +34,7 @@ class FixesTest extends PubPackageAnalysisServerTest {
   }
 
   Future<void> test_fileOutsideRoot() async {
-    final outsideFile = '/foo/test.dart';
+    var outsideFile = '/foo/test.dart';
     newFile(outsideFile, 'bad code to create error');
 
     // Set up the original project, as the code fix code won't run at all
@@ -172,7 +172,7 @@ dependencies:
         '$workspaceRootPath/bbb/lib/target.template.dart', 'class Foo() {}');
 
     // Configure the test file.
-    final file =
+    var file =
         newFile('$workspaceRootPath/aaa/main.dart', 'void f() { Foo(); }');
 
     await waitForTasksFinished();

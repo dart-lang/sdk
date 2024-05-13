@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 abstract class A extends core::Object {
   abstract get value() → core::int;
-  static factory •({core::int value}) → self::A /* redirection-target: self::_AImpl::• */
+  static factory •({core::int value = null}) → self::A /* redirection-target: self::_AImpl::• */
     return new self::_AImpl::•(value: value);
 }
 class _AImpl extends core::Object implements self::A {

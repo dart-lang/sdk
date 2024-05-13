@@ -174,10 +174,9 @@ enum E {ONE}
 void f() {
   E.ONE;
 }
-''',
-        errorFilter: (e) =>
-            e.errorCode == CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT,
-        matchFixMessage: "Add enum constant 'ONE'");
+''', errorFilter: (e) {
+      return e.errorCode == CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT;
+    });
   }
 
   Future<void> test_unnamed() async {

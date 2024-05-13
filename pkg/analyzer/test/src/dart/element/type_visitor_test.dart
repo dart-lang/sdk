@@ -34,13 +34,13 @@ class RecursiveTypeVisitorTest extends AbstractTypeSystemTest with StringTypes {
   }
 
   void test_functionType_complex() {
-    final T = typeParameter('T', bound: intNone);
-    final K = typeParameter('K', bound: stringNone);
-    final a = positionalParameter(type: numNone);
-    final b = positionalParameter(type: doubleNone);
-    final c = namedParameter(name: 'c', type: voidNone);
-    final d = namedParameter(name: 'd', type: objectNone);
-    final type = functionType(
+    var T = typeParameter('T', bound: intNone);
+    var K = typeParameter('K', bound: stringNone);
+    var a = positionalParameter(type: numNone);
+    var b = positionalParameter(type: doubleNone);
+    var c = namedParameter(name: 'c', type: voidNone);
+    var d = namedParameter(name: 'd', type: objectNone);
+    var type = functionType(
         returnType: dynamicType,
         typeFormals: [T, K],
         parameters: [a, b, c, d],
@@ -58,8 +58,8 @@ class RecursiveTypeVisitorTest extends AbstractTypeSystemTest with StringTypes {
   }
 
   void test_functionType_positionalParameter() {
-    final a = positionalParameter(type: intNone);
-    final type = functionType(
+    var a = positionalParameter(type: intNone);
+    var type = functionType(
         returnType: dynamicType,
         typeFormals: [],
         parameters: [a],
@@ -69,7 +69,7 @@ class RecursiveTypeVisitorTest extends AbstractTypeSystemTest with StringTypes {
   }
 
   void test_functionType_returnType() {
-    final type = functionType(
+    var type = functionType(
         returnType: intNone,
         typeFormals: [],
         parameters: [],
@@ -79,8 +79,8 @@ class RecursiveTypeVisitorTest extends AbstractTypeSystemTest with StringTypes {
   }
 
   void test_functionType_typeFormal_bound() {
-    final T = typeParameter('T', bound: intNone);
-    final type = functionType(
+    var T = typeParameter('T', bound: intNone);
+    var type = functionType(
         returnType: dynamicType,
         typeFormals: [T],
         parameters: [],
@@ -90,8 +90,8 @@ class RecursiveTypeVisitorTest extends AbstractTypeSystemTest with StringTypes {
   }
 
   void test_functionType_typeFormal_noBound() {
-    final T = typeParameter('T');
-    final type = functionType(
+    var T = typeParameter('T');
+    var type = functionType(
         returnType: dynamicType,
         typeFormals: [T],
         parameters: [],
@@ -101,46 +101,46 @@ class RecursiveTypeVisitorTest extends AbstractTypeSystemTest with StringTypes {
   }
 
   void test_interfaceType_typeParameter() {
-    final type = typeProvider.listType(intNone);
+    var type = typeProvider.listType(intNone);
     expect(type.accept(visitor), true);
     visitor.assertVisitedType(intNone);
   }
 
   void test_interfaceType_typeParameters() {
-    final type = typeProvider.mapType(intNone, stringNone);
+    var type = typeProvider.mapType(intNone, stringNone);
     expect(type.accept(visitor), true);
     visitor.assertVisitedTypes([intNone, stringNone]);
   }
 
   void test_interfaceType_typeParameters_nested() {
-    final innerList = typeProvider.listType(intNone);
-    final outerList = typeProvider.listType(innerList);
+    var innerList = typeProvider.listType(intNone);
+    var outerList = typeProvider.listType(innerList);
     expect(outerList.accept(visitor), true);
     visitor.assertVisitedType(intNone);
   }
 
   void test_recordType_named() {
-    final type = typeOfString('({int f1, double f2})');
+    var type = typeOfString('({int f1, double f2})');
     expect(type.accept(visitor), true);
     visitor.assertVisitedType(intNone);
     visitor.assertVisitedType(doubleNone);
   }
 
   void test_recordType_positional() {
-    final type = typeOfString('(int, double)');
+    var type = typeOfString('(int, double)');
     expect(type.accept(visitor), true);
     visitor.assertVisitedType(intNone);
     visitor.assertVisitedType(doubleNone);
   }
 
   void test_stopVisiting_first() {
-    final T = typeParameter('T', bound: intNone);
-    final K = typeParameter('K', bound: stringNone);
-    final a = positionalParameter(type: numNone);
-    final b = positionalParameter(type: doubleNone);
-    final c = namedParameter(name: 'c', type: voidNone);
-    final d = namedParameter(name: 'd', type: objectNone);
-    final type = functionType(
+    var T = typeParameter('T', bound: intNone);
+    var K = typeParameter('K', bound: stringNone);
+    var a = positionalParameter(type: numNone);
+    var b = positionalParameter(type: doubleNone);
+    var c = namedParameter(name: 'c', type: voidNone);
+    var d = namedParameter(name: 'd', type: objectNone);
+    var type = functionType(
         returnType: dynamicType,
         typeFormals: [T, K],
         parameters: [a, b, c, d],
@@ -152,13 +152,13 @@ class RecursiveTypeVisitorTest extends AbstractTypeSystemTest with StringTypes {
   }
 
   void test_stopVisiting_halfway() {
-    final T = typeParameter('T', bound: intNone);
-    final K = typeParameter('K', bound: stringNone);
-    final a = positionalParameter(type: numNone);
-    final b = positionalParameter(type: doubleNone);
-    final c = namedParameter(name: 'c', type: voidNone);
-    final d = namedParameter(name: 'd', type: objectNone);
-    final type = functionType(
+    var T = typeParameter('T', bound: intNone);
+    var K = typeParameter('K', bound: stringNone);
+    var a = positionalParameter(type: numNone);
+    var b = positionalParameter(type: doubleNone);
+    var c = namedParameter(name: 'c', type: voidNone);
+    var d = namedParameter(name: 'd', type: objectNone);
+    var type = functionType(
         returnType: dynamicType,
         typeFormals: [T, K],
         parameters: [a, b, c, d],
@@ -169,24 +169,24 @@ class RecursiveTypeVisitorTest extends AbstractTypeSystemTest with StringTypes {
   }
 
   void test_stopVisiting_nested() {
-    final innerType = typeProvider.mapType(intNone, stringNone);
-    final outerList = typeProvider.listType(innerType);
+    var innerType = typeProvider.mapType(intNone, stringNone);
+    var outerList = typeProvider.listType(innerType);
     visitor.stopOnType = intNone;
     expect(outerList.accept(visitor), false);
     visitor.assertNotVisitedType(stringNone);
   }
 
   void test_stopVisiting_nested_parent() {
-    final innerTypeStop = typeProvider.listType(intNone);
-    final innerTypeSkipped = typeProvider.listType(stringNone);
-    final outerType = typeProvider.mapType(innerTypeStop, innerTypeSkipped);
+    var innerTypeStop = typeProvider.listType(intNone);
+    var innerTypeSkipped = typeProvider.listType(stringNone);
+    var outerType = typeProvider.mapType(innerTypeStop, innerTypeSkipped);
     visitor.stopOnType = intNone;
     expect(outerType.accept(visitor), false);
     visitor.assertNotVisitedType(stringNone);
   }
 
   void test_stopVisiting_typeParameters() {
-    final type = typeProvider.mapType(intNone, stringNone);
+    var type = typeProvider.mapType(intNone, stringNone);
     visitor.stopOnType = intNone;
     expect(type.accept(visitor), false);
     visitor.assertVisitedType(intNone);

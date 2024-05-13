@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/workspace/workspace.dart'; // ignore: implementation_imports
 import 'package:path/path.dart' as path;
 
@@ -126,18 +127,8 @@ Element? getWriteOrReadElement(SimpleIdentifier node) {
   return node.staticElement;
 }
 
-bool hasConstantError(LinterContext context, Expression node) {
-  var result = context.evaluateConstant(node);
-  return result.errors.isNotEmpty;
-}
-
-/// Returns `true` if this [element] has a `@literal` annotation.
-@Deprecated('prefer: element.hasLiteral')
-bool hasLiteralAnnotation(Element element) => element.hasLiteral;
-
-/// Returns `true` if this [element] has an `@override` annotation.
-@Deprecated('prefer: element.hasOverride')
-bool hasOverrideAnnotation(Element element) => element.hasOverride;
+bool hasConstantError(Expression node) =>
+    node.computeConstantValue().errors.isNotEmpty;
 
 /// Returns `true` if this [node] is the child of a private compilation unit
 /// member.
@@ -396,7 +387,7 @@ int? _getIntValue(Expression expression, LinterContext? context,
   if (expression is IntegerLiteral) {
     value = expression.value;
   } else if (expression is SimpleIdentifier && context != null) {
-    value = context.evaluateConstant(expression).value?.toIntValue();
+    value = expression.computeConstantValue().value?.toIntValue();
   }
   if (value is! int) return null;
 

@@ -20,12 +20,12 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
   @_in::patch
   external constructor •({core::bool defaultValue = true, required self2::Class::T% value}) → self2::Class<self2::Class::T%>;
   @_in::patch
-  external static factory fact<T extends core::Object? = dynamic>({has-declared-initializer core::bool defaultValue, required self2::Class::fact::T% value}) → self2::Class<self2::Class::fact::T%>;
+  external static factory fact<T extends core::Object? = dynamic>({core::bool defaultValue = true, required self2::Class::fact::T% value}) → self2::Class<self2::Class::fact::T%>;
   @_in::patch
-  external static factory redirect<T extends core::Object? = dynamic>({core::bool defaultValue, required self2::Class::redirect::T% value}) → self2::Class<self2::Class::redirect::T%> /* redirection-target: self2::ClassImpl::•<self2::Class::redirect::T%>*/
+  external static factory redirect<T extends core::Object? = dynamic>({core::bool defaultValue = null, required self2::Class::redirect::T% value}) → self2::Class<self2::Class::redirect::T%> /* redirection-target: self2::ClassImpl::•<self2::Class::redirect::T%>*/
     return new self2::ClassImpl::•<self2::Class::redirect::T%>(defaultValue: defaultValue, value: value);
   @_in::patch
-  external static factory redirect2<T extends core::Object? = dynamic>({core::bool defaultValue, required self2::Class::redirect2::T% value}) → self2::Class<self2::Class::redirect2::T%> /* redirection-target: self2::ClassImpl::patched<self2::Class::redirect2::T%>*/
+  external static factory redirect2<T extends core::Object? = dynamic>({core::bool defaultValue = null, required self2::Class::redirect2::T% value}) → self2::Class<self2::Class::redirect2::T%> /* redirection-target: self2::ClassImpl::patched<self2::Class::redirect2::T%>*/
     return new self2::ClassImpl::patched<self2::Class::redirect2::T%>(defaultValue: defaultValue, value: value);
 }
 @_in::patch

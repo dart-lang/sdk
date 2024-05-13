@@ -16,15 +16,13 @@ namespace dart {
 
 ISOLATE_UNIT_TEST_CASE(ReachabilityFence_Simple) {
   // clang-format off
-  auto kScript =
-      Utils::CStringUniquePtr(OS::SCreate(nullptr,
-                                          R"(
+  const char* kScript = R"(
       import 'dart:_internal' show reachabilityFence;
 
       int someGlobal = 0;
 
       class A {
-        int%s a;
+        int? a;
       }
 
       void someFunction(int arg) {
@@ -33,14 +31,13 @@ ISOLATE_UNIT_TEST_CASE(ReachabilityFence_Simple) {
 
       main() {
         final object = A()..a = 10;
-        someFunction(object.a%s);
+        someFunction(object.a!);
         reachabilityFence(object);
       }
-      )",
-      TestCase::NullableTag(), TestCase::NullAssertTag()), std::free);
+      )";
   // clang-format on
 
-  const auto& root_library = Library::Handle(LoadTestScript(kScript.get()));
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
 
   Invoke(root_library, "main");
 
@@ -76,14 +73,13 @@ ISOLATE_UNIT_TEST_CASE(ReachabilityFence_Simple) {
 
 ISOLATE_UNIT_TEST_CASE(ReachabilityFence_Loop) {
   // clang-format off
-  auto kScript =
-      Utils::CStringUniquePtr(OS::SCreate(nullptr, R"(
+  const char* kScript = R"(
       import 'dart:_internal' show reachabilityFence;
 
       int someGlobal = 0;
 
       class A {
-        int%s a;
+        int? a;
       }
 
       @pragma('vm:never-inline')
@@ -98,14 +94,14 @@ ISOLATE_UNIT_TEST_CASE(ReachabilityFence_Loop) {
       main() {
         final object = makeSomeA();
         for(int i = 0; i < 100000; i++) {
-          someFunction(object.a%s);
+          someFunction(object.a!);
           reachabilityFence(object);
         }
       }
-      )", TestCase::NullableTag(), TestCase::NullAssertTag()), std::free);
+      )";
   // clang-format on
 
-  const auto& root_library = Library::Handle(LoadTestScript(kScript.get()));
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
 
   Invoke(root_library, "main");
 
@@ -141,14 +137,13 @@ ISOLATE_UNIT_TEST_CASE(ReachabilityFence_Loop) {
 
 ISOLATE_UNIT_TEST_CASE(ReachabilityFence_NoCanonicalize) {
   // clang-format off
-  auto kScript =
-      Utils::CStringUniquePtr(OS::SCreate(nullptr, R"(
+  const char* kScript = R"(
       import 'dart:_internal' show reachabilityFence;
 
       int someGlobal = 0;
 
       class A {
-        int%s a;
+        int? a;
       }
 
       @pragma('vm:never-inline')
@@ -164,16 +159,16 @@ ISOLATE_UNIT_TEST_CASE(ReachabilityFence_NoCanonicalize) {
         final object = makeSomeA();
         reachabilityFence(object);
         for(int i = 0; i < 100000; i++) {
-          someFunction(object.a%s);
+          someFunction(object.a!);
           reachabilityFence(object);
         }
         reachabilityFence(object);
         reachabilityFence(object);
       }
-      )", TestCase::NullableTag(), TestCase::NullAssertTag()), std::free);
+      )";
   // clang-format on
 
-  const auto& root_library = Library::Handle(LoadTestScript(kScript.get()));
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
 
   Invoke(root_library, "main");
 

@@ -1472,6 +1472,7 @@ replicated
 repo
 repositories
 reproduces
+repurpose
 repurposed
 repurposing
 requesting

@@ -64,6 +64,8 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
 
   final MemberName _memberName;
 
+  DelayedDefaultValueCloner? _delayedDefaultValueCloner;
+
   SourceFactoryBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
@@ -185,7 +187,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
     _procedureInternal.isStatic = isStatic;
 
     if (_factoryTearOff != null) {
-      buildConstructorTearOffProcedure(
+      _delayedDefaultValueCloner = buildConstructorTearOffProcedure(
           tearOff: _factoryTearOff,
           declarationConstructor: _procedure,
           implementationConstructor: _procedureInternal,
@@ -201,6 +203,9 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
       List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (_hasBuiltOutlines) return;
+    if (_delayedDefaultValueCloner != null) {
+      delayedDefaultValueCloners.add(_delayedDefaultValueCloner!);
+    }
     super.buildOutlineExpressions(
         classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
     _hasBuiltOutlines = true;

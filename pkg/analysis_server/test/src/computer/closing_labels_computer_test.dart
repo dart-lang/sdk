@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/computer/computer_closingLabels.dart';
+import 'package:analysis_server/src/computer/computer_closing_labels.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -395,7 +395,7 @@ void myMethod() {
   }
 
   Future<List<ClosingLabel>> _computeElements(String sourceContent) async {
-    final file = newFile(sourcePath, sourceContent);
+    var file = newFile(sourcePath, sourceContent);
     var result = await getResolvedUnit(file);
     var computer = DartUnitClosingLabelsComputer(result.lineInfo, result.unit);
     return computer.compute();

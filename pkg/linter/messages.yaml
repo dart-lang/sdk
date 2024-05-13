@@ -179,6 +179,42 @@ LintCode:
         }
       }
       ```
+  avoid_print:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the function `print` is invoked
+      in production code.
+
+      #### Example
+
+      The following code produces this diagnostic because the function `print`
+      can't be invoked in production:
+
+      ```dart
+      void f(int x) {
+        [!print!]('x = $x');
+      }
+      ```
+
+      #### Common fixes
+
+      If you're writing code that uses Flutter, then use the function
+      `[debugPrint][]`, guarded by a test using `[kDebugMode][]`:
+
+      ```dart
+      import 'package:flutter/foundation.dart';
+
+      void f(int x) {
+        if (kDebugMode) {
+          debugPrint('x = $x');
+        }
+      }
+      ```
+
+      If you're writing code that doesn't use Flutter, then use a logging
+      service, such as `[package:logging][package-logging]`, to write the
+      information.
   avoid_relative_lib_imports:
     documentation: |-
       #### Description
@@ -397,6 +433,57 @@ LintCode:
       ```dart
       void f(int_) {}
       ```
+  avoid_web_libraries_in_flutter:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a library in a package that
+      isn't a web plugin contains an import of a web-only library:
+      - `dart:html`
+      - `dart:js`
+      - `dart:js_util`
+      - `dart:js_interop`
+      - `dart:js_interop_unsafe`
+      - `package:js`
+      - `package:web`
+
+      #### Example
+
+      When found in a package that isn't a web plugin, the following code
+      produces this diagnostic because it imports `dart:html`:
+
+      ```dart
+      import [!'dart:html'!];
+
+      import 'package:flutter/material.dart';
+
+      class C {}
+      ```
+
+      #### Common fixes
+
+      If the package isn't intended to be a web plugin, then remove the import:
+
+      ```dart
+      import 'package:flutter/material.dart';
+
+      class C {}
+      ```
+
+      If the package is intended to be a web plugin, then add the following
+      lines to the `pubspec.yaml` file of the package:
+
+      ```yaml
+      flutter:
+        plugin:
+          platforms:
+            web:
+              pluginClass: HelloPlugin
+              fileName: hello_web.dart
+      ```
+
+      See [Developing packages & plugins](https://docs.flutter.dev/packages-and-plugins/developing-packages)
+      for more information.
   await_only_futures:
     documentation: |-
       #### Description
@@ -1245,6 +1332,52 @@ LintCode:
       ```dart
       int f(String s) => s.length;
       ```
+  no_logic_in_create_state:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an implementation of
+      `createState` in a subclass of `StatefulWidget` contains any logic other
+      than the return of the result of invoking a zero argument constructor.
+
+      #### Examples
+
+      The following code produces this diagnostic because the constructor
+      invocation has arguments:
+
+      ```dart
+      import 'package:flutter/material.dart';
+
+      class MyWidget extends StatefulWidget {
+        @override
+        MyState createState() => [!MyState(0)!];
+      }
+
+      class MyState extends State {
+        int x;
+
+        MyState(this.x);
+      }
+      ```
+
+      #### Common fixes
+
+      Rewrite the code so that `createState` doesn't contain any logic:
+
+      ```dart
+      import 'package:flutter/material.dart';
+
+      class MyWidget extends StatefulWidget {
+        @override
+        MyState createState() => MyState();
+      }
+
+      class MyState extends State {
+        int x = 0;
+
+        MyState();
+      }
+      ```
   no_wildcard_variable_uses:
     documentation: |-
       #### Description
@@ -1561,6 +1694,220 @@ LintCode:
         s ??= '';
         return s.length;
       }
+      ```
+  prefer_const_constructors:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an invocation of a const
+      constructor isn't either preceded by `const` or in a [constant context][].
+
+      #### Example
+
+      The following code produces this diagnostic because the invocation of the
+      `const` constructor is neither prefixed by `const` nor in a
+      [constant context][]:
+
+      ```dart
+      class C {
+        const C();
+      }
+
+      C c = [!C()!];
+      ```
+
+      #### Common fixes
+
+      If the context can be made a [constant context][], then do so:
+
+      ```dart
+      class C {
+        const C();
+      }
+
+      const C c = C();
+      ```
+
+      If the context can't be made a [constant context][], then add `const`
+      before the constructor invocation:
+
+      ```dart
+      class C {
+        const C();
+      }
+
+      C c = const C();
+      ```
+  prefer_const_constructors_in_immutables:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a non-`const` constructor is
+      found in a class that has the `@immutable` annotation.
+
+      #### Example
+
+      The following code produces this diagnostic because the constructor in `C`
+      isn't declared as `const` even though `C` has the `@immutable` annotation:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @immutable
+      class C {
+        final f;
+
+        [!C!](this.f);
+      }
+      ```
+
+      #### Common fixes
+
+      If the class really is intended to be immutable, then add the `const`
+      modifier to the constructor:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @immutable
+      class C {
+        final f;
+
+        const C(this.f);
+      }
+      ```
+
+      If the class is mutable, then remove the `@immutable` annotation:
+
+      ```dart
+      class C {
+        final f;
+
+        C(this.f);
+      }
+      ```
+  prefer_const_declarations:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a top-level variable, static
+      field, or local variable is marked as `final` and is initialized to a
+      constant value.
+
+      #### Examples
+
+      The following code produces this diagnostic because the top-level variable
+      `v` is both `final` and initialized to a constant value:
+
+      ```dart
+      [!final v = const <int>[]!];
+      ```
+
+      The following code produces this diagnostic because the static field `f`
+      is both `final` and initialized to a constant value:
+
+      ```dart
+      class C {
+        static [!final f = const <int>[]!];
+      }
+      ```
+
+      The following code produces this diagnostic because the local variable `v`
+      is both `final` and initialized to a constant value:
+
+      ```dart
+      void f() {
+        [!final v = const <int>[]!];
+        print(v);
+      }
+      ```
+
+      #### Common fixes
+
+      Replace the keyword `final` with `const` and remove `const` from the
+      initializer:
+
+      ```dart
+      class C {
+        static const f = <int>[];
+      }
+      ```
+  prefer_const_literals_to_create_immutables:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a non-const list, map, or set
+      literal is passed as an argument to a constructor declared in a class
+      annotated with `@immutable`.
+
+      #### Example
+
+      The following code produces this diagnostic because the list literal
+      (`[1]`) is being passed to a constructor in an immutable class but isn't
+      a constant list:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @immutable
+      class C {
+        final f;
+
+        const C(this.f);
+      }
+
+      C c = C([![1]!]);
+      ```
+
+      #### Common fixes
+
+      If the context can be made a [constant context][], then do so:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @immutable
+      class C {
+        final f;
+
+        const C(this.f);
+      }
+
+      const C c = C([1]);
+      ```
+
+      If the context can't be made a [constant context][] but the constructor
+      can be invoked using `const`, then add `const` before the constructor
+      invocation:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @immutable
+      class C {
+        final f;
+
+        const C(this.f);
+      }
+
+      C c = const C([1]);
+      ```
+
+      If the context can't be made a [constant context][] and the constructor
+      can't be invoked using `const`, then add the keyword `const` before the
+      collection literal:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @immutable
+      class C {
+        final f;
+
+        const C(this.f);
+      }
+
+      C c = C(const [1]);
       ```
   prefer_contains:
     documentation: |-
@@ -2110,6 +2457,59 @@ LintCode:
         example: any
           repository: https://github.com/dart-lang/example
       ```
+  sized_box_for_whitespace:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `Container` is created using
+      only the `height` and/or `width` arguments.
+
+      #### Example
+
+      The following code produces this diagnostic because the `Container` has
+      only the `width` argument:
+
+      ```dart
+      import 'package:flutter/material.dart';
+
+      Widget buildRow() {
+        return Row(
+          children: <Widget>[
+            const Text('...'),
+            [!Container!](
+              width: 4,
+              child: Text('...'),
+            ),
+            const Expanded(
+              child: Text('...'),
+            ),
+          ],
+        );
+      }
+      ```
+
+      #### Common fixes
+
+      Replace the `Container` with a `SizedBox` of the same dimensions:
+
+      ```dart
+      import 'package:flutter/material.dart';
+
+      Widget buildRow() {
+        return Row(
+          children: <Widget>[
+            Text('...'),
+            SizedBox(
+              width: 4,
+              child: Text('...'),
+            ),
+            Expanded(
+              child: Text('...'),
+            ),
+          ],
+        );
+      }
+      ```
   slash_for_doc_comments:
     documentation: |-
       #### Description
@@ -2136,6 +2536,45 @@ LintCode:
       ```dart
       /// Example.
       void f() {}
+      ```
+  sort_child_properties_last:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the `child` or `children`
+      argument isn't the last argument in an invocation of a widget class'
+      constructor. An exception is made if all of the arguments after the
+      `child` or `children` argument are function expressions.
+
+      #### Example
+
+      The following code produces this diagnostic because the `child` argument
+      isn't the last argument in the invocation of the `Center` constructor:
+
+      ```dart
+      import 'package:flutter/material.dart';
+
+      Widget createWidget() {
+        return Center(
+          [!child: Text('...')!],
+          widthFactor: 0.5,
+        );
+      }
+      ```
+
+      #### Common fixes
+
+      Move the `child` or `children` argument to be last:
+
+      ```dart
+      import 'package:flutter/material.dart';
+
+      Widget createWidget() {
+        return Center(
+          widthFactor: 0.5,
+          child: Text('...'),
+        );
+      }
       ```
   type_init_formals:
     documentation: |-
@@ -2717,6 +3156,91 @@ LintCode:
         return s.length == 1;
       }
       ```
+  use_build_context_synchronously:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `BuildContext` is referenced
+      by a `StatefulWidget` after an asynchronous gap without first checking the
+      `mounted` property.
+
+      Storing a `BuildContext` for later use can lead to difficult to diagnose
+      crashes. Asynchronous gaps implicitly store a `BuildContext`, making them
+      easy to overlook for diagnosis.
+
+      #### Example
+
+      The following code produces this diagnostic because the `context` is
+      passed to a constructor after the `await`:
+
+      ```dart
+      import 'package:flutter/material.dart';
+
+      class MyWidget extends Widget {
+        void onButtonTapped(BuildContext context) async {
+          await Future.delayed(const Duration(seconds: 1));
+          Navigator.of([!context!]).pop();
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      If you can remove the asynchronous gap, do so:
+
+      ```dart
+      import 'package:flutter/material.dart';
+
+      class MyWidget extends Widget {
+        void onButtonTapped(BuildContext context) {
+          Navigator.of(context).pop();
+        }
+      }
+      ```
+
+      If you can't remove the asynchronous gap, then use `mounted` to guard the
+      use of the `context`:
+
+      ```dart
+      import 'package:flutter/material.dart';
+
+      class MyWidget extends Widget {
+        void onButtonTapped(BuildContext context) async {
+          await Future.delayed(const Duration(seconds: 1));
+          if (context.mounted) {
+            Navigator.of(context).pop();
+          }
+        }
+      }
+      ```
+  use_full_hex_values_for_flutter_colors:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the argument to the constructor
+      of the `Color` class is a literal integer that isn't represented as an
+      8-digit hexadecimal integer.
+
+      #### Example
+
+      The following code produces this diagnostic because the argument (`1`)
+      isn't represented as an 8-digit hexadecimal integer:
+
+      ```dart
+      import 'package:flutter/material.dart';
+
+      Color c = Color([!1!]);
+      ```
+
+      #### Common fixes
+
+      Convert the representation to be an 8-digit hexadecimal integer:
+
+      ```dart
+      import 'package:flutter/material.dart';
+
+      Color c = Color(0x00000001);
+      ```
   use_function_type_syntax_for_parameters:
     documentation: |-
       #### Description
@@ -2739,6 +3263,48 @@ LintCode:
 
       ```dart
       void g(bool Function(String) f) {}
+      ```
+  use_key_in_widget_constructors:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a constructor in a subclass of
+      `Widget` that isn't private to its library doesn't have a parameter named
+      `key`.
+
+      #### Example
+
+      The following code produces this diagnostic because the constructor for
+      the class `MyWidget` doesn't have a parameter named `key`:
+
+      ```dart
+      import 'package:flutter/material.dart';
+
+      class MyWidget extends StatelessWidget {
+        [!MyWidget!]({required int height});
+      }
+      ```
+
+      The following code produces this diagnostic because the default
+      constructor for the class `MyWidget` doesn't have a parameter named `key`:
+
+      ```dart
+      import 'package:flutter/material.dart';
+
+      class [!MyWidget!] extends StatelessWidget {}
+      ```
+
+      #### Common fixes
+
+      Add a parameter named `key` to the constructor, explicitly declaring the
+      constructor if necessary:
+
+      ```dart
+      import 'package:flutter/material.dart';
+
+      class MyWidget extends StatelessWidget {
+        MyWidget({super.key, required int height});
+      }
       ```
   use_rethrow_when_possible:
     documentation: |-

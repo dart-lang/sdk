@@ -21,7 +21,7 @@ void foo() {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'c.dart';
+augment library 'c.dart';
 
 @deprecated
 export 'a.dart';

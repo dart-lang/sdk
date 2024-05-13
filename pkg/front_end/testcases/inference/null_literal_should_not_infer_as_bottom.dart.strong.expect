@@ -1,26 +1,28 @@
-library test /*isLegacy*/;
+library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/null_literal_should_not_infer_as_bottom.dart:5:1: Error: Library doesn't support null safety.
-// // @dart=2.9
-// ^^^^^^^^^^^^
+// pkg/front_end/testcases/inference/null_literal_should_not_infer_as_bottom.dart:15:54: Error: A value of type 'String' can't be returned from a function with return type 'Null'.
+//   f = /*@ returnType=Null */ (/*@type=Object*/ x) => 'hello';
+//                                                      ^
 //
 import self as self;
 import "dart:core" as core;
 
 static field dynamic h = null;
-static method foo((core::Object*) →* core::int* f) → void {}
+static method foo((core::Object) → core::int f) → void {}
 static method test() → dynamic {
-  (core::Object*) →* Null f = (core::Object* x) → Null => null;
-  core::String* y = f(42){(core::Object*) →* Null};
-  f = (core::Object* x) → Null => "hello" as{TypeError,ForLegacy} Null;
+  (core::Object) → Null f = (core::Object x) → Null => null;
+  core::String? y = f(42){(core::Object) → Null};
+  f = (core::Object x) → Null => invalid-expression "pkg/front_end/testcases/inference/null_literal_should_not_infer_as_bottom.dart:15:54: Error: A value of type 'String' can't be returned from a function with return type 'Null'.
+  f = /*@ returnType=Null */ (/*@type=Object*/ x) => 'hello';
+                                                     ^" in "hello" as{TypeError} Null;
   has-declared-initializer dynamic g = null;
   g = "hello";
   g{dynamic}.foo();
   self::h = "hello";
   self::h{dynamic}.foo();
-  self::foo((core::Object* x) → Null => null);
-  self::foo((core::Object* x) → Null => throw "not implemented");
+  self::foo((core::Object x) → core::int => 0);
+  self::foo((core::Object x) → Never => throw "not implemented");
 }
 static method main() → dynamic {}

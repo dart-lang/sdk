@@ -119,7 +119,7 @@
   "wasm": {
     "include": [
       {
-        "target": "wasm_base"
+        "target": "wasm_common"
       }
     ],
     "libraries": {
@@ -144,6 +144,25 @@
           "_internal/wasm/lib/sync_star_patch.dart",
           "_internal/wasm/lib/weak_patch.dart"
         ]
+      },
+      "convert": {
+        "uri": "convert/convert.dart",
+        "patches": [
+          "_internal/wasm/lib/convert_patch.dart"
+        ]
+      },
+      "typed_data": {
+        "uri": "typed_data/typed_data.dart",
+        "patches": [
+          "_internal/wasm/lib/simd_patch.dart",
+          "_internal/wasm/lib/typed_data_patch.dart"
+        ]
+      },
+      "_string": {
+        "uri": "_internal/wasm/lib/string.dart"
+      },
+      "_typed_data": {
+        "uri": "_internal/wasm/lib/typed_data.dart"
       }
     }
   },
@@ -189,40 +208,6 @@
           "_internal/wasm_js_compatibility/lib/typed_data.dart",
           "_internal/wasm_js_compatibility/lib/typed_data_patch.dart"
         ]
-      },
-      "_simd": {
-        "uri": "_internal/wasm/lib/simd.dart"
-      }
-    }
-  },
-  "wasm_base": {
-    "include": [
-      {
-        "target": "wasm_common"
-      }
-    ],
-    "libraries": {
-      "convert": {
-        "uri": "convert/convert.dart",
-        "patches": [
-          "_internal/wasm/lib/convert_patch.dart"
-        ]
-      },
-      "typed_data": {
-        "uri": "typed_data/typed_data.dart",
-        "patches": [
-          "_internal/wasm/lib/simd_patch.dart",
-          "_internal/wasm/lib/typed_data_patch.dart"
-        ]
-      },
-      "_simd": {
-        "uri": "_internal/wasm/lib/simd.dart"
-      },
-      "_string": {
-        "uri": "_internal/wasm/lib/string.dart"
-      },
-      "_typed_data": {
-        "uri": "_internal/wasm/lib/typed_data.dart"
       }
     }
   },
@@ -262,6 +247,9 @@
       },
       "_object_helper": {
         "uri": "_internal/wasm/lib/object_helper.dart"
+      },
+      "_simd": {
+        "uri": "_internal/wasm/lib/simd.dart"
       },
       "_string_helper": {
         "uri": "_internal/wasm/lib/string_helper.dart"

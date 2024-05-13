@@ -76,7 +76,7 @@ extension AnnotatedNodeExtension on AnnotatedNode {
 extension AstNodeExtension on AstNode {
   /// Returns [ExtensionElement] declared by an enclosing node.
   ExtensionElement? get enclosingExtensionElement {
-    for (final node in withParents) {
+    for (var node in withParents) {
       if (node is ExtensionDeclaration) {
         return node.declaredElement;
       }
@@ -98,7 +98,7 @@ extension AstNodeExtension on AstNode {
 
   /// Returns [InterfaceElement] declared by an enclosing node.
   InterfaceElement? get enclosingInterfaceElement {
-    for (final node in withParents) {
+    for (var node in withParents) {
       if (node is ClassDeclaration) {
         return node.declaredElement;
       } else if (node is MixinDeclaration) {
@@ -162,6 +162,18 @@ extension AstNodeExtension on AstNode {
 
   bool get inWhileLoop => thisOrAncestorOfType<WhileStatement>() != null;
 
+  /// The [Token]s contained within `this`.
+  List<Token> get tokens {
+    var result = <Token>[];
+    for (var token = beginToken;; token = token.next!) {
+      result.add(token);
+      if (token == endToken) {
+        break;
+      }
+    }
+    return result;
+  }
+
   /// Return this node and all its parents.
   Iterable<AstNode> get withParents sync* {
     var current = this;
@@ -178,7 +190,7 @@ extension AstNodeExtension on AstNode {
   /// Returns the [ExpressionStatement] associated with `this` if `this` points
   /// to the identifier for a simple `print`, and `null` otherwise.
   ExpressionStatement? findSimplePrintInvocation() {
-    var parent = this.parent;
+    final parent = this.parent;
     var grandparent = parent?.parent;
     if (this case SimpleIdentifier(:var staticElement)) {
       if (staticElement is FunctionElement &&
@@ -285,7 +297,7 @@ extension DirectiveExtension on Directive {
   /// If [referencedUri] is a [DirectiveUriWithSource], returns the [Source]
   /// from it.
   Source? get referencedSource {
-    final uri = referencedUri;
+    var uri = referencedUri;
     if (uri is DirectiveUriWithSource) {
       return uri.source;
     }
@@ -294,7 +306,7 @@ extension DirectiveExtension on Directive {
 
   /// Returns the [DirectiveUri] from the element.
   DirectiveUri? get referencedUri {
-    final self = this;
+    var self = this;
     if (self is AugmentationImportDirective) {
       return self.element?.uri;
     } else if (self is ExportDirective) {
@@ -383,11 +395,11 @@ extension NodeListExtension<E extends AstNode> on NodeList<E> {
 
 extension StatementExtension on Statement {
   ThrowStatement? get followingThrow {
-    final block = parent;
+    var block = parent;
     if (block is Block) {
-      final next = block.statements.nextOrNull(this);
+      var next = block.statements.nextOrNull(this);
       if (next is ExpressionStatement) {
-        final throwExpression = next.expression;
+        var throwExpression = next.expression;
         if (throwExpression is ThrowExpression) {
           return ThrowStatement(
             statement: next,
@@ -400,19 +412,19 @@ extension StatementExtension on Statement {
   }
 
   List<Statement> get selfOrBlockStatements {
-    final self = this;
+    var self = this;
     return self is Block ? self.statements : [self];
   }
 }
 
 extension TokenQuestionExtension on Token? {
   Token? get asFinalKeyword {
-    final self = this;
+    var self = this;
     return self != null && self.keyword == Keyword.FINAL ? self : null;
   }
 
   Token? get asVarKeyword {
-    final self = this;
+    var self = this;
     return self != null && self.keyword == Keyword.VAR ? self : null;
   }
 }

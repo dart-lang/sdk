@@ -14,17 +14,17 @@ class ConvertToConstantPattern extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final namedType = node;
+    var namedType = node;
     if (namedType is! NamedType) {
       return;
     }
 
-    final typeLiteral = namedType.parent;
+    var typeLiteral = namedType.parent;
     if (typeLiteral is! TypeLiteral) {
       return;
     }
 
-    final constantPattern = typeLiteral.parent;
+    var constantPattern = typeLiteral.parent;
     if (constantPattern is! ConstantPattern) {
       return;
     }

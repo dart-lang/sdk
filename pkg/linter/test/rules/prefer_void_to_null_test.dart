@@ -17,9 +17,6 @@ class PreferVoidToNullTest extends LintRuleTest {
   @override
   String get lintRule => 'prefer_void_to_null';
 
-  @FailingTest(
-      issue: 'https://github.com/dart-lang/linter/issues/4890',
-      reason: 'Null check operator used on a null value')
   test_augmentedField() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import augment 'test.dart';
@@ -30,7 +27,7 @@ class A {
 ''');
 
     await assertNoDiagnostics(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment class A {
   augment Future<Null>? f;
@@ -46,7 +43,7 @@ Future<Null>? f() => null;
 ''');
 
     await assertNoDiagnostics(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment Future<Null>? f() => null;
 ''');
@@ -62,7 +59,7 @@ class A {
 ''');
 
     await assertNoDiagnostics(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment class A {
   augment Future<Null>? get v => null;
@@ -80,7 +77,7 @@ class A {
 ''');
 
     await assertNoDiagnostics(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment class A {
   augment Future<Null>? f() => null;
@@ -96,16 +93,12 @@ Future<Null>? get v => null;
 ''');
 
     await assertNoDiagnostics(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment Future<Null>? get v => null;
 ''');
   }
 
-  @FailingTest(
-      issue: 'https://github.com/dart-lang/linter/issues/4890',
-      reason:
-          "CompileTimeErrorCode.DUPLICATE_DEFINITION [49, 1, The name 'v' is already defined.]")
   test_augmentedTopLevelVariable() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import augment 'test.dart';
@@ -114,7 +107,7 @@ Future<Null>? v;
 ''');
 
     await assertNoDiagnostics(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment Future<Null>? v;
 ''');
