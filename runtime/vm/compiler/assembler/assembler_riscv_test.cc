@@ -6767,7 +6767,7 @@ ASSEMBLER_TEST_RUN(ByteReverse, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CarrylessMultiply, assembler) {
-  __ SetExtensions(RV_GCB);
+  __ SetExtensions(RV_GC | RV_Zbc);
   __ clmul(A0, A0, A1);
   __ ret();
 }
@@ -6797,7 +6797,7 @@ ASSEMBLER_TEST_RUN(CarrylessMultiply, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CarrylessMultiplyHigh, assembler) {
-  __ SetExtensions(RV_GCB);
+  __ SetExtensions(RV_GC | RV_Zbc);
   __ clmulh(A0, A0, A1);
   __ ret();
 }
@@ -6827,7 +6827,7 @@ ASSEMBLER_TEST_RUN(CarrylessMultiplyHigh, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CarrylessMultiplyReversed, assembler) {
-  __ SetExtensions(RV_GCB);
+  __ SetExtensions(RV_GC | RV_Zbc);
   __ clmulr(A0, A0, A1);
   __ ret();
 }
