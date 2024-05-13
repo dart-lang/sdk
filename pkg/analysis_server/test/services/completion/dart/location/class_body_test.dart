@@ -897,54 +897,6 @@ suggestions
 ''');
   }
 
-  Future<void> test_class_method_without_namedParameters() async {
-    await computeSuggestions('''
-class A {
-  void foo(int a, int b) {}
-}
-
-class B extends A {
-  fo^
-}
-''');
-    assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  override
-  void foo(int a, int b) {
-    // TODO: implement foo
-    super.foo(a, b);
-  }
-    kind: override
-    displayText: override foo(int a, int b) { … }
-''');
-  }
-
-  Future<void> test_class_method_with_namedParameters() async {
-    await computeSuggestions('''
-class A {
-  void foo(int a, int b, { int? c, int? d }) {}
-}
-
-class B extends A {
-  fo^
-}
-''');
-    assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  override
-  void foo(int a, int b, {int? c, int? d}) {
-    // TODO: implement foo
-    super.foo(a, b, c: c, d: d);
-  }
-    kind: override
-    displayText: override foo(int a, int b, {int? c, int? d}) { … }
-''');
-  }
-
   Future<void> test_class_inComment() async {
     await computeSuggestions('''
 class A {
@@ -1352,6 +1304,58 @@ suggestions
     kind: override
     displayText: foo01() { … }
     selection: 60 14
+''');
+  }
+
+  Future<void> test_class_method_with_namedParameters() async {
+    await computeSuggestions('''
+class A {
+  void foo01(int a, int b, { int? c, int? d }) {}
+}
+
+class B extends A {
+  foo^
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 3
+suggestions
+  @override
+  void foo01(int a, int b, {int? c, int? d}) {
+    // TODO: implement foo01
+    super.foo01(a, b, c: c, d: d);
+  }
+    kind: override
+    displayText: foo01(int a, int b, {int? c, int? d}) { … }
+    selection: 90 30
+''');
+  }
+
+  Future<void> test_class_method_without_namedParameters() async {
+    await computeSuggestions('''
+class A {
+  void foo01(int a, int b) {}
+}
+
+class B extends A {
+  foo^
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 3
+suggestions
+  @override
+  void foo01(int a, int b) {
+    // TODO: implement foo01
+    super.foo01(a, b);
+  }
+    kind: override
+    displayText: foo01(int a, int b) { … }
+    selection: 72 18
 ''');
   }
 
