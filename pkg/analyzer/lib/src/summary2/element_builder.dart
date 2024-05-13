@@ -170,7 +170,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addClass(name, element);
-    _libraryBuilder.declare(name, reference);
+    if (!element.isAugmentation) {
+      _libraryBuilder.declare(name, reference);
+    }
 
     var holder = _EnclosingContext(reference, element);
     _withEnclosing(holder, () {
@@ -245,7 +247,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addEnum(name, element);
-    _libraryBuilder.declare(name, reference);
+    if (!element.isAugmentation) {
+      _libraryBuilder.declare(name, reference);
+    }
 
     _libraryBuilder.updateAugmentationTarget(name, element);
 
@@ -472,7 +476,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var reference = _enclosingContext.addExtension(refName, element);
 
     if (name != null) {
-      _libraryBuilder.declare(name, reference);
+      if (!element.isAugmentation) {
+        _libraryBuilder.declare(name, reference);
+      }
     }
 
     var holder = _EnclosingContext(reference, element);

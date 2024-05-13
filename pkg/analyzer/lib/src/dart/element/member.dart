@@ -992,8 +992,7 @@ class PropertyAccessorMember extends ExecutableMember
 
   @override
   PropertyAccessorElement? get augmentation {
-    // TODO(scheglov): implement
-    throw UnimplementedError();
+    return declaration.augmentation;
   }
 
   @override
