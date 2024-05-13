@@ -21,8 +21,8 @@ Future<void> main(List<String> args) async {
       args: args,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
-      runTest: runTestFor(const InferredVariableTypesDataComputer(),
-          [cfeNonNullableOnlyConfig]));
+      runTest: runTestFor(
+          const InferredVariableTypesDataComputer(), [defaultCfeConfig]));
 }
 
 class InferredVariableTypesDataComputer extends CfeDataComputer<DartType> {

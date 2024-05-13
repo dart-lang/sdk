@@ -22,7 +22,7 @@ Future<void> main(List<String> args) async {
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(
-          const DefiniteAssignmentDataComputer(), [cfeNonNullableOnlyConfig]));
+          const DefiniteAssignmentDataComputer(), [defaultCfeConfig]));
 }
 
 class DefiniteAssignmentDataComputer extends CfeDataComputer<String> {

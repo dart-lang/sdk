@@ -4779,6 +4779,65 @@ Message _withArgumentsExperimentDisabledInvalidLanguageVersion(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateExperimentExpiredDisabled =
+    const Template<Message Function(String name)>(
+  "ExperimentExpiredDisabled",
+  problemMessageTemplate:
+      r"""The experiment '#name' has expired and can't be disabled.""",
+  withArguments: _withArgumentsExperimentExpiredDisabled,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeExperimentExpiredDisabled =
+    const Code<Message Function(String name)>(
+  "ExperimentExpiredDisabled",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExperimentExpiredDisabled(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(
+    codeExperimentExpiredDisabled,
+    problemMessage:
+        """The experiment '${name}' has expired and can't be disabled.""",
+    arguments: {
+      'name': name,
+    },
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateExperimentExpiredEnabled =
+    const Template<Message Function(String name)>(
+  "ExperimentExpiredEnabled",
+  problemMessageTemplate:
+      r"""The experiment '#name' has expired and can't be enabled.""",
+  withArguments: _withArgumentsExperimentExpiredEnabled,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeExperimentExpiredEnabled =
+    const Code<Message Function(String name)>(
+  "ExperimentExpiredEnabled",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExperimentExpiredEnabled(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(
+    codeExperimentExpiredEnabled,
+    problemMessage:
+        """The experiment '${name}' has expired and can't be enabled.""",
+    arguments: {
+      'name': name,
+    },
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string, String string2)>
     templateExperimentNotEnabled =
     const Template<Message Function(String string, String string2)>(

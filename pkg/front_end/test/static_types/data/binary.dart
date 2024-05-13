@@ -2,75 +2,73 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*cfe.library: nnbd=false*/
+/*library: nnbd=true*/
 
-/*cfe:nnbd.library: nnbd=true*/
-
-num numTopLevel = /*cfe.int*/ /*cfe:nnbd.int!*/ 0;
-int intTopLevel = /*cfe.int*/ /*cfe:nnbd.int!*/ 0;
-double doubleTopLevel = /*cfe.double*/ /*cfe:nnbd.double!*/ 0.0;
-dynamic dynamicTopLevel = /*cfe.int*/ /*cfe:nnbd.int!*/ 0;
+num numTopLevel = /*int!*/ 0;
+int intTopLevel = /*int!*/ 0;
+double doubleTopLevel = /*double!*/ 0.0;
+dynamic dynamicTopLevel = /*int!*/ 0;
 
 main() {
-  /*cfe.num*/ /*cfe:nnbd.num!*/ numTopLevel
-      /*cfe.invoke: num*/ /*cfe:nnbd.invoke: num!*/ +
-      /*cfe.num*/ /*cfe:nnbd.num!*/ numTopLevel;
+  /*num!*/ numTopLevel
+      /*invoke: num!*/ +
+      /*num!*/ numTopLevel;
 
-  /*cfe.num*/ /*cfe:nnbd.num!*/ numTopLevel
-      /*cfe.invoke: num*/ /*cfe:nnbd.invoke: num!*/ +
-      /*cfe.int*/ /*cfe:nnbd.int!*/ intTopLevel;
+  /*num!*/ numTopLevel
+      /*invoke: num!*/ +
+      /*int!*/ intTopLevel;
 
-  /*cfe.num*/ /*cfe:nnbd.num!*/ numTopLevel
-      /*cfe.invoke: num*/ /*cfe:nnbd.invoke: double!*/ +
-      /*cfe.double*/ /*cfe:nnbd.double!*/ doubleTopLevel;
+  /*num!*/ numTopLevel
+      /*invoke: double!*/ +
+      /*double!*/ doubleTopLevel;
 
-  /*cfe.num*/ /*cfe:nnbd.num!*/ numTopLevel
-      /*cfe.invoke: num*/ /*cfe:nnbd.invoke: num!*/ +
-      /*cfe.as: num*/ /*cfe:nnbd.as: num!*/ /*dynamic*/ dynamicTopLevel;
+  /*num!*/ numTopLevel
+      /*invoke: num!*/ +
+      /*as: num!*/ /*dynamic*/ dynamicTopLevel;
 
-  /*cfe.int*/ /*cfe:nnbd.int!*/ intTopLevel
-      /*cfe.invoke: num*/ /*cfe:nnbd.invoke: num!*/ +
-      /*cfe.num*/ /*cfe:nnbd.num!*/ numTopLevel;
+  /*int!*/ intTopLevel
+      /*invoke: num!*/ +
+      /*num!*/ numTopLevel;
 
-  /*cfe.int*/ /*cfe:nnbd.int!*/ intTopLevel
-      /*cfe.invoke: int*/ /*cfe:nnbd.invoke: int!*/ +
-      /*cfe.int*/ /*cfe:nnbd.int!*/ intTopLevel;
+  /*int!*/ intTopLevel
+      /*invoke: int!*/ +
+      /*int!*/ intTopLevel;
 
-  /*cfe.int*/ /*cfe:nnbd.int!*/ intTopLevel
-      /*cfe.invoke: double*/ /*cfe:nnbd.invoke: double!*/ +
-      /*cfe.double*/ /*cfe:nnbd.double!*/ doubleTopLevel;
+  /*int!*/ intTopLevel
+      /*invoke: double!*/ +
+      /*double!*/ doubleTopLevel;
 
-  /*cfe.int*/ /*cfe:nnbd.int!*/ intTopLevel
-      /*cfe.invoke: num*/ /*cfe:nnbd.invoke: num!*/ +
-      /*cfe.as: num*/ /*cfe:nnbd.as: num!*/ /*dynamic*/ dynamicTopLevel;
+  /*int!*/ intTopLevel
+      /*invoke: num!*/ +
+      /*as: num!*/ /*dynamic*/ dynamicTopLevel;
 
-  /*cfe.double*/ /*cfe:nnbd.double!*/ doubleTopLevel
-      /*cfe.invoke: double*/ /*cfe:nnbd.invoke: double!*/ +
-      /*cfe.num*/ /*cfe:nnbd.num!*/ numTopLevel;
+  /*double!*/ doubleTopLevel
+      /*invoke: double!*/ +
+      /*num!*/ numTopLevel;
 
-  /*cfe.double*/ /*cfe:nnbd.double!*/ doubleTopLevel
-      /*cfe.invoke: double*/ /*cfe:nnbd.invoke: double!*/ +
-      /*cfe.int*/ /*cfe:nnbd.int!*/ intTopLevel;
+  /*double!*/ doubleTopLevel
+      /*invoke: double!*/ +
+      /*int!*/ intTopLevel;
 
-  /*cfe.double*/ /*cfe:nnbd.double!*/ doubleTopLevel
-      /*cfe.invoke: double*/ /*cfe:nnbd.invoke: double!*/ +
-      /*cfe.double*/ /*cfe:nnbd.double!*/ doubleTopLevel;
+  /*double!*/ doubleTopLevel
+      /*invoke: double!*/ +
+      /*double!*/ doubleTopLevel;
 
-  /*cfe.double*/ /*cfe:nnbd.double!*/ doubleTopLevel
-      /*cfe.invoke: double*/ /*cfe:nnbd.invoke: double!*/ +
-      /*cfe.as: num*/ /*cfe:nnbd.as: num!*/ /*dynamic*/ dynamicTopLevel;
-
-  /*dynamic*/ dynamicTopLevel
-      /*invoke: dynamic*/ +
-      /*cfe.num*/ /*cfe:nnbd.num!*/ numTopLevel;
+  /*double!*/ doubleTopLevel
+      /*invoke: double!*/ +
+      /*as: num!*/ /*dynamic*/ dynamicTopLevel;
 
   /*dynamic*/ dynamicTopLevel
       /*invoke: dynamic*/ +
-      /*cfe.int*/ /*cfe:nnbd.int!*/ intTopLevel;
+      /*num!*/ numTopLevel;
 
   /*dynamic*/ dynamicTopLevel
       /*invoke: dynamic*/ +
-      /*cfe.double*/ /*cfe:nnbd.double!*/ doubleTopLevel;
+      /*int!*/ intTopLevel;
+
+  /*dynamic*/ dynamicTopLevel
+      /*invoke: dynamic*/ +
+      /*double!*/ doubleTopLevel;
 
   /*dynamic*/ dynamicTopLevel
       /*invoke: dynamic*/ +

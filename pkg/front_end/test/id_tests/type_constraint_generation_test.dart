@@ -22,8 +22,8 @@ Future<void> main(List<String> args) async {
       args: args,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
-      runTest: runTestFor(const InferredTypeArgumentDataComputer(),
-          [cfeNonNullableOnlyConfig]));
+      runTest: runTestFor(
+          const InferredTypeArgumentDataComputer(), [defaultCfeConfig]));
 }
 
 class InferredTypeArgumentDataComputer

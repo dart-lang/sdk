@@ -21,8 +21,8 @@ Future<void> main(List<String> args) async {
       args: args,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
-      runTest: runTestFor(
-          const ReachabilityDataComputer(), [cfeNonNullableOnlyConfig]));
+      runTest:
+          runTestFor(const ReachabilityDataComputer(), [defaultCfeConfig]));
 }
 
 class ReachabilityDataComputer

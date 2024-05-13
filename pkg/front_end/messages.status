@@ -284,6 +284,10 @@ ExpectedUri/analyzerCode: Fail
 ExpectedUri/example: Fail
 ExperimentDisabled/example: Fail
 ExperimentDisabledInvalidLanguageVersion/example: Fail
+ExperimentExpiredDisabled/analyzerCode: Fail
+ExperimentExpiredDisabled/example: Fail
+ExperimentExpiredEnabled/analyzerCode: Fail
+ExperimentExpiredEnabled/example: Fail
 ExperimentNotEnabled/example: Fail
 ExperimentNotEnabledNoFlag/example: Fail
 ExperimentNotEnabledNoFlagInvalidLanguageVersion/example: Fail
@@ -319,10 +323,10 @@ ExtendsNever/analyzerCode: Fail # Feature not yet in analyzer.
 ExtendsNever/example: Fail # Feature not yet enabled by default.
 ExtendsVoid/analyzerCode: Fail # Feature not yet in analyzer.
 ExtendsVoid/example: Fail # Feature not yet enabled by default.
-ExtensionInNullAwareReceiver/analyzerCode: Fail
-ExtensionMemberConflictsWithObjectMember/analyzerCode: Fail
 ExtensionAugmentationHasOnClause/part_wrapped_script: Fail
 ExtensionAugmentationHasOnClause/script: Fail
+ExtensionInNullAwareReceiver/analyzerCode: Fail
+ExtensionMemberConflictsWithObjectMember/analyzerCode: Fail
 ExtensionTypeImplementsDeferred/part_wrapped_script: Fail # Uses imports
 ExtensionTypeImplementsDeferred/script: Fail # Uses imports
 ExtensionTypePrimaryConstructorFunctionFormalParameterSyntax/analyzerCode: Fail
@@ -677,8 +681,6 @@ JsInteropStaticInteropExternalAccessorTypeViolation/analyzerCode: Fail # Web com
 JsInteropStaticInteropExternalAccessorTypeViolation/example: Fail # Web compiler specific
 JsInteropStaticInteropExternalFunctionTypeViolation/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropExternalFunctionTypeViolation/example: Fail # Web compiler specific
-JsInteropStaticInteropToJSFunctionTypeViolation/analyzerCode: Fail # Web compiler specific
-JsInteropStaticInteropToJSFunctionTypeViolation/example: Fail # Web compiler specific
 JsInteropStaticInteropGenerativeConstructor/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropGenerativeConstructor/example: Fail # Web compiler specific
 JsInteropStaticInteropMockMissingGetterOrSetter/analyzerCode: Fail # Web compiler specific
@@ -697,6 +699,8 @@ JsInteropStaticInteropSyntheticConstructor/analyzerCode: Fail # Web compiler spe
 JsInteropStaticInteropSyntheticConstructor/example: Fail # Web compiler specific
 JsInteropStaticInteropTearOffsDisallowed/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropTearOffsDisallowed/example: Fail # Web compiler specific
+JsInteropStaticInteropToJSFunctionTypeViolation/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropToJSFunctionTypeViolation/example: Fail # Web compiler specific
 JsInteropStaticInteropTrustTypesUsageNotAllowed/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropTrustTypesUsageNotAllowed/example: Fail # Web compiler specific
 JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop/analyzerCode: Fail # Web compiler specific
@@ -710,10 +714,10 @@ LanguageVersionMismatchInPart/analyzerCode: Fail
 LanguageVersionMismatchInPart/part_wrapped_script: Fail # Part in (now) part.
 LanguageVersionMismatchInPatch/analyzerCode: Fail
 LanguageVersionMismatchInPatch/example: Fail
-LanguageVersionTooLow/analyzerCode: Fail
-LanguageVersionTooLow/part_wrapped_script: Fail # Content comes after "part of [...]" meaning it's not actually a language version specification.
 LanguageVersionTooHigh/analyzerCode: Fail
 LanguageVersionTooHigh/part_wrapped_script: Fail # Content comes after "part of [...]" meaning it's not actually a language version specification.
+LanguageVersionTooLow/analyzerCode: Fail
+LanguageVersionTooLow/part_wrapped_script: Fail # Content comes after "part of [...]" meaning it's not actually a language version specification.
 LateDefinitelyAssignedError/analyzerCode: Fail
 LateDefinitelyUnassignedError/analyzerCode: Fail
 LibraryDirectiveNotFirst/part_wrapped_script1: Fail # Defining library name in the (now) part.

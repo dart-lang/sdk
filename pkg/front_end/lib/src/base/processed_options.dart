@@ -56,6 +56,8 @@ import '../fasta/codes/fasta_codes.dart'
         templateCantReadFile,
         templateDebugTrace,
         templateExceptionReadingFile,
+        templateExperimentExpiredDisabled,
+        templateExperimentExpiredEnabled,
         templateInputFileNotFound,
         templateInternalProblemUnsupported,
         templatePackagesFileFormat,
@@ -341,6 +343,27 @@ class ProcessedOptions {
       if (!await fileSystem.entityForUri(source).exists()) {
         reportWithoutLocation(
             templateInputFileNotFound.withArguments(source), Severity.error);
+        return false;
+      }
+    }
+
+    for (MapEntry<flags.ExperimentalFlag, bool> entry
+        in _raw.explicitExperimentalFlags.entries) {
+      flags.ExperimentalFlag experimentalFlag = entry.key;
+      bool value = entry.value;
+      if (experimentalFlag.isExpired &&
+          value != experimentalFlag.isEnabledByDefault) {
+        if (value) {
+          reportWithoutLocation(
+              templateExperimentExpiredEnabled
+                  .withArguments(experimentalFlag.name),
+              Severity.error);
+        } else {
+          reportWithoutLocation(
+              templateExperimentExpiredDisabled
+                  .withArguments(experimentalFlag.name),
+              Severity.error);
+        }
         return false;
       }
     }

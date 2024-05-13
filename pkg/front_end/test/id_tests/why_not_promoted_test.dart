@@ -21,8 +21,8 @@ Future<void> main(List<String> args) async {
       args: args,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
-      runTest: runTestFor(
-          const WhyNotPromotedDataComputer(), [cfeNonNullableOnlyConfig]));
+      runTest:
+          runTestFor(const WhyNotPromotedDataComputer(), [defaultCfeConfig]));
 }
 
 class WhyNotPromotedDataComputer extends CfeDataComputer<String> {
