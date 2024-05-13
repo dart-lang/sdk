@@ -1075,6 +1075,16 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Remove empty statements everywhere in file',
   );
+  static const REMOVE_EXTRA_MODIFIER = FixKind(
+    'dart.fix.remove.extra.modifier',
+    DartFixKindPriority.DEFAULT,
+    'Remove extra {0} modifier',
+  );
+  static const REMOVE_EXTRA_MODIFIER_MULTI = FixKind(
+    'dart.fix.remove.extra.modifier.multi',
+    DartFixKindPriority.IN_FILE,
+    'Remove extra modifiers everywhere in file',
+  );
   static const REMOVE_IF_NULL_OPERATOR = FixKind(
     'dart.fix.remove.ifNullOperator',
     DartFixKindPriority.DEFAULT,
