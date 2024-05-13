@@ -1,8 +1,8 @@
 # Compiling Dart to WebAssembly (internal SDK developer notes)
 
-** This page contains notes for how to compile to WebAssembly for SDK contributors.
+**This page contains notes for how to compile to WebAssembly for SDK contributors.
 If you are a Dart developer, using a prebuilt Dart SDK, please refer to the
-[regular documentation](https://dart.dev/web/wasm). **
+[regular documentation](https://dart.dev/web/wasm).**
 
 **Note:** This feature is under active development,
 and is currently considered experimental.
