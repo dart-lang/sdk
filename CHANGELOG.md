@@ -17,6 +17,13 @@
 [#55418]: https://github.com/dart-lang/sdk/issues/55418
 [#55436]: https://github.com/dart-lang/sdk/issues/55436
 
+### Tools
+
+#### Pub
+
+- New flag `dart pub downgrade --tighten` to restrict lower bounds of
+  dependencies' constraints to the minimum that can be resolved.
+
 ### Dart Runtime
 
 - The Dart VM only executes sound null safe code, running of unsound null

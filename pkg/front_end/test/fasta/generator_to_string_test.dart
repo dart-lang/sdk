@@ -55,6 +55,8 @@ void check(String expected, Object generator) {
 
 Future<void> main() async {
   await CompilerContext.runWithDefaultOptions((CompilerContext c) async {
+    await c.options.validateOptions(errorOnMissingInput: false);
+
     Token token = scanString("    myToken").tokens;
     Uri uri = Uri.parse("org-dartlang-test:my_library.dart");
 

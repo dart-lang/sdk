@@ -10,7 +10,6 @@ import "dart:io" show File;
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import "package:front_end/src/api_prototype/compiler_options.dart"
     show CompilerOptions, DiagnosticMessage;
-import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import "package:front_end/src/api_prototype/incremental_kernel_generator.dart"
     show IncrementalKernelGenerator;
 import "package:front_end/src/api_prototype/memory_file_system.dart"
@@ -217,7 +216,6 @@ Future<Context> createContext(
     ..verbose = true
     ..fileSystem = fs
     ..sdkSummary = sdkSummary
-    ..explicitExperimentalFlags = {ExperimentalFlag.nonNullable: false}
     ..nnbdMode = NnbdMode.Weak
     ..onDiagnostic = (DiagnosticMessage message) {
       printDiagnosticMessage(message, print);

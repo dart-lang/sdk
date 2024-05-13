@@ -5,14 +5,31 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:_fe_analyzer_shared/src/scanner/characters.dart'
+    show $SPACE, $CARET;
+import 'package:_fe_analyzer_shared/src/scanner/token.dart';
+import 'package:front_end/src/fasta/util/parser_ast.dart';
+import 'package:front_end/src/fasta/util/parser_ast_helper.dart';
+import 'package:kernel/ast.dart';
+import 'package:package_config/package_config.dart';
+
 import '../test/coverage_helper.dart';
+import 'interval_list.dart';
+import 'parser_ast_indexer.dart';
 
 void main(List<String> arguments) {
   Uri? coverageUri;
+  Uri? packagesUri;
+
   for (String argument in arguments) {
-    if (argument.startsWith("--coverage=")) {
-      coverageUri = Uri.base
-          .resolveUri(Uri.file(argument.substring("--coverage=".length)));
+    const String coverage = "--coverage=";
+    const String packages = "--packages=";
+    if (argument.startsWith(coverage)) {
+      coverageUri =
+          Uri.base.resolveUri(Uri.file(argument.substring(coverage.length)));
+    } else if (argument.startsWith(packages)) {
+      packagesUri =
+          Uri.base.resolveUri(Uri.file(argument.substring(packages.length)));
     } else {
       throw "Unsupported argument: $argument";
     }
@@ -20,20 +37,30 @@ void main(List<String> arguments) {
   if (coverageUri == null) {
     throw "Need --coverage=<dir>/ argument";
   }
+  if (packagesUri == null) {
+    throw "Need --packages=<path/to/package_config.json> argument";
+  }
 
-  mergeFromDirUri(coverageUri, includeNotCompiled: true);
+  Stopwatch stopwatch = new Stopwatch()..start();
+  mergeFromDirUri(packagesUri, coverageUri);
+  print("Done in ${stopwatch.elapsed}");
 }
 
-void mergeFromDirUri(Uri coverageUri, {required bool includeNotCompiled}) {
-  // TODO(jensj): We should filter stuff out that "doesn't matter", e.g.
-  // it's probably okay that toString() isn't covered.
+void mergeFromDirUri(Uri packagesUri, Uri coverageUri) {
+  PackageConfig packageConfig;
+  try {
+    packageConfig = PackageConfig.parseBytes(
+        File.fromUri(packagesUri).readAsBytesSync(), packagesUri);
+  } catch (e) {
+    // When will we want to catch this?
+    print("Error trying to read package config: $e");
+    return;
+  }
 
   // TODO(jensj): We should allow for comments to "excuse" something from not
   // being covered. E.g. sometimes we throw after a number of if's saying
   // something like "this can probably never happen", and thus we can't expect
   // to test that.
-
-  // TODO(jensj): Would converting offsets to lines be helpful?
 
   // TODO(jensj): We should be able to extract the "coverable" offsets from
   // source/dill, thus avoiding asking the VM to do it and basically we would
@@ -48,13 +75,9 @@ void mergeFromDirUri(Uri coverageUri, {required bool includeNotCompiled}) {
   // Merge the data:
   //  * combine hits, and keep track of where they come from (display name)
   //  * combine misses, but remove misses that are hits
-  //  * take the "intersection" of all not compiled entries.
-  //    Note that we merge two coverages at a time and we'll keep the
-  //    "intersection interval", e.g. if one has 1-100 and another has 25-34,
-  //    65-70 and 200-300 the intersection is 25-34 and 65-70.
+  //  * ignore not compiled regions.
   Map<Uri, Hit> hits = {};
   Map<Uri, Set<int>> misses = {};
-  Map<Uri, Uint32List> notCompiled = {};
 
   for (FileSystemEntity entry
       in Directory.fromUri(coverageUri).listSync(recursive: true)) {
@@ -62,7 +85,7 @@ void mergeFromDirUri(Uri coverageUri, {required bool includeNotCompiled}) {
     try {
       Coverage coverage = Coverage.loadFromFile(entry);
       print("Loaded $entry as coverage file.");
-      _mergeCoverageInto(coverage, misses, hits, notCompiled);
+      _mergeCoverageInto(coverage, misses, hits);
     } catch (e) {
       print("Couldn't load $entry as coverage file.");
     }
@@ -72,55 +95,274 @@ void mergeFromDirUri(Uri coverageUri, {required bool includeNotCompiled}) {
   Set<Uri> knownUris = {};
   knownUris.addAll(hits.keys);
   knownUris.addAll(misses.keys);
-  if (includeNotCompiled) {
-    knownUris.addAll(notCompiled.keys);
-  }
+
+  int filesCount = 0;
+  int allCoveredCount = 0;
+  int hitsTotal = 0;
+  int missesTotal = 0;
+  int errorsCount = 0;
 
   for (Uri uri in knownUris.toList()
     ..sort(((a, b) => a.toString().compareTo(b.toString())))) {
+    // Don't care about coverage for testing stuff.
+    if (uri.toString().startsWith("package:front_end/src/testing/")) continue;
+
     Hit? hit = hits[uri];
-    int hitCount = hit?._data.length ?? 0;
+    Set<int>? miss = misses[uri];
+    List<int> hitsSorted =
+        hit == null ? const [] : (hit._data.keys.toList()..sort());
 
-    Uint32List? uncompiled;
-    if (includeNotCompiled) {
-      uncompiled = notCompiled[uri];
-    }
-
-    Set<int>? mis = misses[uri];
-    int misCount = mis?.length ?? 0;
-    if (hitCount + misCount == 0) {
-      if (uncompiled == null || uncompiled.isEmpty) {
-        // We're not going to print anything. Don't print the uri either.
-      } else {
-        print("$uri");
-      }
+    ProcessInfo processInfo = process(
+        packageConfig, uri, miss ?? const {}, hitsSorted,
+        visualize: true);
+    filesCount++;
+    if (processInfo.error) {
+      errorsCount++;
     } else {
-      if (misCount > 0) {
-        print("$uri: ${(hitCount / (hitCount + misCount) * 100).round()}% "
-            "($misCount misses)");
+      if (processInfo.allCovered) {
+        allCoveredCount++;
+      }
+      hitsTotal += processInfo.hitCount;
+      missesTotal += processInfo.missCount;
+    }
+
+    print("");
+  }
+
+  print("Processed $filesCount files with $errorsCount error(s) and "
+      "$allCoveredCount files being covered 100%.");
+  int percentHit = (hitsTotal * 100) ~/ (hitsTotal + missesTotal);
+  print("All-in-all $hitsTotal hits and $missesTotal misses ($percentHit%).");
+}
+
+class ProcessInfo {
+  final bool error;
+  final bool allCovered;
+  final int missCount;
+  final int hitCount;
+
+  ProcessInfo.error()
+      : error = true,
+        allCovered = false,
+        missCount = 0,
+        hitCount = 0;
+
+  ProcessInfo(
+      {required this.allCovered,
+      required this.missCount,
+      required this.hitCount})
+      : error = false;
+}
+
+ProcessInfo process(PackageConfig packageConfig, Uri uri,
+    Set<int> untrimmedMisses, List<int> hitsSorted,
+    {required bool visualize}) {
+  Uri? fileUri = packageConfig.resolve(uri);
+  if (fileUri == null) {
+    print("Couldn't find file uri for $uri");
+    return new ProcessInfo.error();
+  }
+  File f = new File.fromUri(fileUri);
+  Uint8List rawBytes;
+  try {
+    rawBytes = f.readAsBytesSync();
+  } catch (e) {
+    print("Error reading file $f");
+    return new ProcessInfo.error();
+  }
+
+  List<int> lineStarts = [];
+  // TODO(jensj): "allowPatterns" for instance should use data from the package
+  // config to be set correctly.
+  CompilationUnitEnd ast = getAST(
+    rawBytes,
+    includeComments: true,
+    enableExtensionMethods: true,
+    enableNonNullable: true,
+    enableTripleShift: true,
+    lineStarts: lineStarts,
+  );
+
+  AstIndexerAndIgnoreCollector astIndexer =
+      AstIndexerAndIgnoreCollector.collect(ast);
+
+  // TODO(jensj): Extract all comments and use those as well here.
+  // TODO(jensj): Should some comment throw/report and error if covered?
+  // E.g. "we expect this to be dead code, if it isn't we want to know."
+
+  IntervalList ignoredIntervals =
+      astIndexer.ignoredStartEnd.buildIntervalList();
+  var (:bool allCovered, :Set<int> trimmedMisses) =
+      _trimIgnoredAndPrintPercentages(
+          ignoredIntervals, untrimmedMisses, hitsSorted, uri);
+
+  if (!visualize || allCovered) {
+    return new ProcessInfo(
+        allCovered: allCovered,
+        missCount: trimmedMisses.length,
+        hitCount: hitsSorted.length);
+  }
+
+  CompilationUnitBegin unitBegin = ast.children!.first as CompilationUnitBegin;
+  Token firstToken = unitBegin.token;
+  Source source = new Source(lineStarts, rawBytes, uri, fileUri);
+
+  List<int> sortedMisses = trimmedMisses.toList()..sort();
+
+  int lastLine = -1;
+  int lastOffset = -1;
+  Uint8List? indentation;
+  String? line;
+  Token token = firstToken;
+  int? latestNodeIndex;
+  int nextHitIndexToCheck = 0;
+
+  void printFinishedLine() {
+    if (indentation != null) {
+      String? name = astIndexer.nameOfEntitySpanning(lastOffset);
+      String pointer = new String.fromCharCodes(indentation!);
+      if (name != null) {
+        print("$uri:$lastLine:\nIn '$name':\n$line\n$pointer");
       } else {
-        print("$uri: 100% (OK)");
+        print("$uri:$lastLine:\n$line\n$pointer");
+      }
+      line = null;
+      indentation = null;
+    }
+  }
+
+  int nextOffsetIndex = 0;
+  while (nextOffsetIndex < sortedMisses.length) {
+    int offset = sortedMisses[nextOffsetIndex];
+    nextOffsetIndex++;
+    while (offset > token.charOffset) {
+      token = token.next!;
+      if (token.isEof) break;
+    }
+
+    int? thisNodeIndex = astIndexer.findNodeIndexSpanningPosition(offset);
+    if (thisNodeIndex != null && thisNodeIndex != latestNodeIndex) {
+      // First miss in this entity: Does it have any hits?
+      latestNodeIndex = thisNodeIndex;
+      printFinishedLine();
+      bool foundHit = false;
+      int first = astIndexer.moveNodeIndexToFirstMetadataIfAny(thisNodeIndex)!;
+      int last = astIndexer.moveNodeIndexPastMetadata(
+              astIndexer.findNodeIndexSpanningPosition(offset)) ??
+          thisNodeIndex;
+      int beginOffset = astIndexer.positionStartEndIndex[first * 2 + 0];
+      int endOffset = astIndexer.positionStartEndIndex[last * 2 + 1];
+      for (; nextHitIndexToCheck < hitsSorted.length; nextHitIndexToCheck++) {
+        int hit = hitsSorted[nextHitIndexToCheck];
+        if (hit >= beginOffset && hit <= endOffset) {
+          foundHit = true;
+          break;
+        } else if (hit > endOffset) {
+          break;
+        }
+      }
+      if (!foundHit) {
+        // Don't show a line with only metadata.
+        offset = astIndexer.positionStartEndIndex[last * 2];
+        Location location = source.getLocation(uri, offset);
+        String line = source.getTextLine(location.line)!;
+        String? name = astIndexer.nameOfEntitySpanning(offset);
+
+        if (name != null) {
+          print("$uri:${location.line}: No coverage for '$name'.\n$line\n");
+          // TODO(jensj): Squiggly line under the identifier of the entity?
+        } else {
+          print("$uri:${location.line}: No coverage for entity.\n$line\n");
+        }
+
+        // Skip the rest of the miss points inside the entity.
+        while (nextOffsetIndex < sortedMisses.length) {
+          offset = sortedMisses[nextOffsetIndex];
+          if (offset > endOffset) break;
+          nextOffsetIndex++;
+        }
+
+        continue;
       }
     }
 
-    if (mis?.isNotEmpty == true || uncompiled?.isNotEmpty == true) {
-      if (mis != null && mis.isNotEmpty) {
-        print("Misses: ${mis.toList()..sort()}");
+    Location location = source.getLocation(uri, offset);
+    if (location.line != lastLine) {
+      printFinishedLine();
+      lastLine = location.line;
+      line = source.getTextLine(location.line)!;
+      indentation = new Uint8List(line!.length)
+        ..fillRange(0, line!.length, $SPACE);
+    }
+
+    try {
+      if (offset == token.charOffset) {
+        for (int i = 0; i < token.length; i++) {
+          indentation![location.column - 1 + i] = $CARET;
+        }
+      } else {
+        indentation![location.column - 1] = $CARET;
       }
-      if (uncompiled != null && uncompiled.isNotEmpty) {
-        print("Uncompiled: $uncompiled");
+      lastOffset = offset;
+    } catch (e) {
+      print("Error on offset $offset --- $location: $e");
+      print("Maybe the coverage data is not up to date with the source?");
+      rethrow;
+    }
+  }
+  printFinishedLine();
+
+  return new ProcessInfo(
+      allCovered: allCovered,
+      missCount: trimmedMisses.length,
+      hitCount: hitsSorted.length);
+}
+
+({bool allCovered, Set<int> trimmedMisses}) _trimIgnoredAndPrintPercentages(
+    IntervalList ignoredIntervals,
+    Set<int> untrimmedMisses,
+    List<int> hitsSorted,
+    Uri uri) {
+  int missCount = untrimmedMisses.length;
+  int hitCount = hitsSorted.length;
+  Set<int> trimmedMisses;
+  if (hitCount + missCount == 0) {
+    print("$uri");
+    return (allCovered: true, trimmedMisses: untrimmedMisses);
+  } else {
+    if (!ignoredIntervals.isEmpty) {
+      trimmedMisses = {};
+      for (int position in untrimmedMisses) {
+        if (ignoredIntervals.contains(position)) {
+          // Ignored position!
+        } else {
+          trimmedMisses.add(position);
+        }
       }
-      print("");
+      missCount = trimmedMisses.length;
+    } else {
+      trimmedMisses = untrimmedMisses;
+    }
+
+    if (missCount > 0) {
+      print("$uri: ${(hitCount / (hitCount + missCount) * 100).round()}% "
+          "($missCount misses)");
+      return (allCovered: false, trimmedMisses: trimmedMisses);
+    } else {
+      print("$uri: 100% (OK)");
+      return (allCovered: true, trimmedMisses: trimmedMisses);
     }
   }
 }
 
-void _mergeCoverageInto(Coverage coverage, Map<Uri, Set<int>> misses,
-    Map<Uri, Hit> hits, Map<Uri, Uint32List> notCompiled) {
+void _mergeCoverageInto(
+    Coverage coverage, Map<Uri, Set<int>> misses, Map<Uri, Hit> hits) {
   for (FileCoverage fileCoverage in coverage.getAllFileCoverages()) {
+    if (fileCoverage.uri.isScheme("package") &&
+        fileCoverage.uri.pathSegments.first != "front_end") continue;
     if (fileCoverage.misses.isNotEmpty) {
-      Set<int> mis = misses[fileCoverage.uri] ??= {};
-      mis.addAll(fileCoverage.misses);
+      Set<int> miss = misses[fileCoverage.uri] ??= {};
+      miss.addAll(fileCoverage.misses);
     }
 
     if (fileCoverage.hits.isNotEmpty) {
@@ -128,32 +370,6 @@ void _mergeCoverageInto(Coverage coverage, Map<Uri, Set<int>> misses,
       for (int fileHit in fileCoverage.hits) {
         hit.addHit(fileHit, coverage.displayName);
       }
-    }
-
-    // Do the intersection for not compiled stuff.
-    Uint32List? uncompiled = notCompiled[fileCoverage.uri];
-    if (uncompiled == null) {
-      // No merge --- just take the data as is. The easy way to get the interval
-      // list is to just add the data twice, logically taking the intersection
-      // with itself.
-      _IntervalListIntersectionBuilder builder =
-          new _IntervalListIntersectionBuilder();
-      for (StartEndPair startEndPair in fileCoverage.notCompiled) {
-        builder.addInterval(startEndPair.startPos, startEndPair.endPos);
-        builder.addInterval(startEndPair.startPos, startEndPair.endPos);
-      }
-      notCompiled[fileCoverage.uri] = builder.buildIntervalList();
-    } else if (uncompiled.isEmpty) {
-      // Intersection will be empty too, so there's nothing to do.
-    } else {
-      // Create an intersection of two non-empty chunks.
-      _IntervalListIntersectionBuilder builder =
-          new _IntervalListIntersectionBuilder();
-      builder.addIntervalList(uncompiled);
-      for (StartEndPair startEndPair in fileCoverage.notCompiled) {
-        builder.addInterval(startEndPair.startPos, startEndPair.endPos);
-      }
-      notCompiled[fileCoverage.uri] = builder.buildIntervalList();
     }
   }
 
@@ -173,72 +389,113 @@ class Hit {
   }
 }
 
-// Based on (as in mostly a copy from) the _IntervalListBuilder in
-// package:kernel/class_hierarchy.dart.
-// This only works when adding two interval containers (i.e. getting the
-// intersection of two) and each should individually be non-overlapping.
-class _IntervalListIntersectionBuilder {
-  final List<int> events = <int>[];
+class AstIndexerAndIgnoreCollector extends AstIndexer {
+  final Set<String> topLevelMethodNamesToIgnore = {
+    "debug",
+    "debugString",
+  };
+  final Set<String> classMethodNamesToIgnore = {
+    "debug",
+    "debugString",
+    "toString",
+    "debugName",
+    "writeNullabilityOn",
+  };
 
-  void addInterval(int start, int end) {
-    // Add an event point for each interval end point, using the low bit to
-    // distinguish opening from closing end points. Closing end points should
-    // have the high bit to ensure they occur after an opening end point.
-    events.add(start << 1);
-    events.add((end << 1) + 1);
+  final IntervalListBuilder ignoredStartEnd = new IntervalListBuilder();
+
+  late final _AstIndexerAndIgnoreCollectorBody _collectorBody =
+      new _AstIndexerAndIgnoreCollectorBody(this);
+
+  static AstIndexerAndIgnoreCollector collect(ParserAstNode ast) {
+    AstIndexerAndIgnoreCollector collector =
+        new AstIndexerAndIgnoreCollector._();
+    ast.accept(collector);
+
+    assert(collector.positionNodeIndex.length ==
+        collector.positionNodeName.length);
+    assert(collector.positionNodeIndex.length * 2 ==
+        collector.positionStartEndIndex.length);
+
+    return collector;
   }
 
-  void addIntervalList(Uint32List intervals) {
-    for (int i = 0; i < intervals.length; i += 2) {
-      addInterval(intervals[i], intervals[i + 1]);
+  AstIndexerAndIgnoreCollector._() {}
+
+  @override
+  void visitTopLevelMethodEnd(TopLevelMethodEnd node) {
+    super.visitTopLevelMethodEnd(node);
+    String name = node.getNameIdentifier().token.lexeme;
+    if (topLevelMethodNamesToIgnore.contains(name)) {
+      // Ignore this method including metadata.
+      assert(positionNodeIndex.last == node);
+      assert(positionStartEndIndex.last == node.endToken.charEnd);
+      int index = positionNodeIndex.length - 1;
+      int firstIndex = moveNodeIndexToFirstMetadataIfAny(index)!;
+      ignoredStartEnd.addIntervalIncludingEnd(
+          positionStartEndIndex[firstIndex * 2 + 0], node.endToken.charEnd);
+    } else {
+      node.accept(_collectorBody);
     }
   }
 
-  Uint32List buildIntervalList() {
-    // Sort the event points and sweep left to right while tracking how many
-    // intervals we are currently inside.
-    // Here we want the intersection between two so only include an interval if
-    // there are two overlapping.
-    events.sort();
-    int insideCount = 0; // The number of intervals we are currently inside.
-    int storeIndex = 0;
-    for (int i = 0; i < events.length; ++i) {
-      int event = events[i];
-      if (event & 1 == 0) {
-        // Start point
-        ++insideCount;
-        if (insideCount == 2) {
-          // Store the results temporarily back in the event array.
-          events[storeIndex++] = event >> 1;
-        }
-      } else {
-        // End point
-        --insideCount;
-        if (insideCount == 1) {
-          // Say we had [0, 1] and [1, 2]. That would become 0{0} 1{1} 1{0} 2{1}
-          // (with the syntax of actualNumber{beginEndMarkingBit}) which would
-          // sort as 0{0} 1{0} 1{1} 2{1} which would mean that after 1{0} we'd
-          // have two open and we'd thus have added a store above.
-          // Now processing 1{1} though we go back down to 1 and we'd here say
-          // store again to mark the end of this interval. But the start and the
-          // end is the same and the interval is thus empty. This is not really
-          // wrong, but not useful either, so we check if it's the case and
-          // undo if it is.
-          if (events[storeIndex - 1] == (event >> 1)) {
-            // Empty interval --- we skip it and undo the previous store index.
-            storeIndex--;
-          } else {
-            // Non-empty index.
-            events[storeIndex++] = event >> 1;
-          }
-        }
+  @override
+  void containerMethod(BeginAndEndTokenParserAstNode node, String name) {
+    super.containerMethod(node, name);
+    if (classMethodNamesToIgnore.contains(name)) {
+      // Ignore this class method including metadata.
+      assert(positionNodeIndex.last == node);
+      assert(positionStartEndIndex.last == node.endToken.charEnd);
+      int index = positionNodeIndex.length - 1;
+      int firstIndex = moveNodeIndexToFirstMetadataIfAny(index)!;
+      ignoredStartEnd.addIntervalIncludingEnd(
+          positionStartEndIndex[firstIndex * 2 + 0], node.endToken.charEnd);
+    } else {
+      node.accept(_collectorBody);
+    }
+  }
+}
+
+class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
+  final AstIndexerAndIgnoreCollector _collector;
+
+  _AstIndexerAndIgnoreCollectorBody(this._collector);
+
+  bool _recordIfIsCallToNotExpectedCoverage(
+      BeginAndEndTokenParserAstNode node) {
+    List<ParserAstNode>? children = node.children;
+    if (children != null &&
+        children.length >= 5 &&
+        children[1] is IdentifierHandle) {
+      IdentifierHandle identifier = children[1] as IdentifierHandle;
+      if ((identifier.token.lexeme == "internalProblem" ||
+              identifier.token.lexeme == "unimplemented" ||
+              identifier.token.lexeme == "unhandled" ||
+              identifier.token.lexeme == "unexpected" ||
+              identifier.token.lexeme == "unsupported") &&
+          children[2] is NoTypeArgumentsHandle &&
+          children[3] is ArgumentsEnd &&
+          children[4] is SendHandle) {
+        // This is (probably) a call to `internalProblem`/`unimplemented`/etc
+        // inside an if block --- we don't expect these to happen
+        // so we'll ignore them.
+        _collector.ignoredStartEnd.addIntervalIncludingEnd(
+            node.beginToken.charOffset, node.endToken.charEnd);
+        return true;
       }
     }
-    // Copy the results over to a typed array of the correct length.
-    Uint32List result = new Uint32List(storeIndex);
-    for (int i = 0; i < storeIndex; ++i) {
-      result[i] = events[i];
-    }
-    return result;
+    return false;
+  }
+
+  @override
+  void visitReturnStatementEnd(ReturnStatementEnd node) {
+    if (_recordIfIsCallToNotExpectedCoverage(node)) return;
+    super.visitReturnStatementEnd(node);
+  }
+
+  @override
+  void visitBlockEnd(BlockEnd node) {
+    if (_recordIfIsCallToNotExpectedCoverage(node)) return;
+    super.visitBlockEnd(node);
   }
 }

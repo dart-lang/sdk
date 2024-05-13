@@ -254,6 +254,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     List<Uri>? entryPointsSavedForLaterOverwrite = entryPoints;
     return context
         .runInContext<IncrementalCompilerResult>((CompilerContext c) async {
+      if (!context.options.haveBeenValidated) {
+        await context.options.validateOptions(errorOnMissingInput: false);
+      }
+
       List<Uri> entryPoints =
           entryPointsSavedForLaterOverwrite ?? context.options.inputs;
       if (_computeDeltaRunOnce && _initializedForExpressionCompilationOnly) {

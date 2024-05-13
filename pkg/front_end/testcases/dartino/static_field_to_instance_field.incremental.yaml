@@ -7,9 +7,9 @@ main.dart.patch: |
 
   class C {
   <<<< ["[instance] is null","v1","[instance.x] threw"]
-    static String x;
+    static String? x;
   ==== {"messages":[],"hasCompileTimeError":1}
-    String x;
+    String? x;
   >>>>
   }
 

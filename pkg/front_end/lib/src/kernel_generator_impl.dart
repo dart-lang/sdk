@@ -65,6 +65,8 @@ Future<CompilerResult> generateKernelInternal(
     bool includeHierarchyAndCoreTypes = false,
     Benchmarker? benchmarker}) async {
   ProcessedOptions options = CompilerContext.current.options;
+  assert(options.haveBeenValidated, "Options have not been validated");
+
   options.reportNullSafetyCompilationModeInfo();
   FileSystem fs = options.fileSystem;
 

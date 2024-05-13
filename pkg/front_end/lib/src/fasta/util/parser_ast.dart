@@ -29,14 +29,20 @@ import '../source/diet_parser.dart';
 
 import 'parser_ast_helper.dart';
 
-CompilationUnitEnd getAST(List<int> rawBytes,
-    {bool includeBody = true,
-    bool includeComments = false,
-    bool enableExtensionMethods = false,
-    bool enableNonNullable = false,
-    bool enableTripleShift = false,
-    bool allowPatterns = false,
-    List<Token>? languageVersionsSeen}) {
+// TODO(jensj): Possibly all the enableX bools should be replaced by an
+// "assumed version" (from package config probably) which is then updated if
+// a language version is seen which will then implicitly answer these questions.
+CompilationUnitEnd getAST(
+  List<int> rawBytes, {
+  bool includeBody = true,
+  bool includeComments = false,
+  bool enableExtensionMethods = false,
+  bool enableNonNullable = false,
+  bool enableTripleShift = false,
+  bool allowPatterns = false,
+  List<Token>? languageVersionsSeen,
+  List<int>? lineStarts,
+}) {
   Uint8List bytes = new Uint8List(rawBytes.length + 1);
   bytes.setRange(0, rawBytes.length, rawBytes);
 
@@ -53,9 +59,14 @@ CompilationUnitEnd getAST(List<int> rawBytes,
       // For now don't do anything, but having it (making it non-null) means the
       // configuration won't be reset.
       languageVersionsSeen?.add(languageVersion);
+      // TODO(jensj): Should we perhaps update "allowPatterns" here? E.g. if
+      // on or after ExperimentalFlag.patterns.enabledVersion or something
     },
   );
   Token firstToken = scanner.tokenize();
+  if (lineStarts != null) {
+    lineStarts.addAll(scanner.lineStarts);
+  }
   ParserASTListener listener = new ParserASTListener();
   Parser parser;
   if (includeBody) {
@@ -498,6 +509,9 @@ enum GeneralAstContentType {
 }
 
 extension GeneralASTContentExtension on ParserAstNode {
+  // TODO(jensj): This might not actually be useful - we're doing a lot of if's
+  // here, but will then have to do more if's or a switch at the call site to
+  // do anything useful with it, which might not be optimal.
   GeneralAstContentType getType() {
     if (isClass()) return GeneralAstContentType.Class;
     if (isImport()) return GeneralAstContentType.Import;
@@ -1117,6 +1131,9 @@ extension ClassOrMixinBodyExtension on ClassOrMixinOrExtensionBodyEnd {
 }
 
 extension MemberExtension on MemberEnd {
+  // TODO(jensj): This might not actually be useful - we're doing a lot of if's
+  // here, but will then have to do more if's or a switch at the call site to
+  // do anything useful with it, which might not be optimal.
   MemberContentType getMemberType() {
     if (isClassConstructor()) return MemberContentType.ClassConstructor;
     if (isClassFactoryMethod()) return MemberContentType.ClassFactoryMethod;
