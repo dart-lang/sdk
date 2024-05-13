@@ -1890,18 +1890,10 @@ class A0 {
   a0(blat: ^) {}
 }
 ''');
-    // TODO(brianwilkerson): We shouldn't be suggesting either the non-const
-    //  constructor nor the function invocation.
     assertResponse(r'''
 suggestions
   A0.new
     kind: constructor
-  A0
-    kind: class
-  A0
-    kind: constructorInvocation
-  f0
-    kind: functionInvocation
 ''');
   }
 

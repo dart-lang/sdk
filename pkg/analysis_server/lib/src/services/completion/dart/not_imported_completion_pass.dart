@@ -10,8 +10,26 @@ import 'package:analysis_server/src/services/completion/dart/suggestion_collecto
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/file_state_filter.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+
+/// An operation run by the [NotImportedCompletionPass] to add the constructors
+/// from a not imported library.
+class ConstructorsOperation extends NotImportedOperation {
+  /// The declaration helper to be used to create the candidate suggestions.
+  final DeclarationHelper _declarationHelper;
+
+  /// Initialize a newly created operation to use the [declarationHelper] to add
+  /// the static members from a library.
+  ConstructorsOperation({required DeclarationHelper declarationHelper})
+      : _declarationHelper = declarationHelper;
+
+  /// Compute any candidate suggestions for elements in the [library].
+  void computeSuggestionsIn(LibraryElement library) {
+    _declarationHelper.addNotImportedConstructors(library);
+  }
+}
 
 /// An operation run by the [NotImportedCompletionPass] to add the members of
 /// the extensions in a given library that match a known type.
@@ -99,6 +117,7 @@ class NotImportedCompletionPass {
       return;
     }
 
+    _ImportSummary? importSummary;
     var knownFiles = fsState.knownFiles.toList();
     for (var file in knownFiles) {
       if (budget.isEmpty) {
@@ -106,7 +125,7 @@ class NotImportedCompletionPass {
         return;
       }
 
-      if (!filter.shouldInclude(file)) {
+      if (file.kind is PartFileKind || !filter.shouldInclude(file)) {
         continue;
       }
 
@@ -120,30 +139,31 @@ class NotImportedCompletionPass {
         continue;
       }
 
+      var library = request.libraryElement;
+      var element = elementResult.element;
+      if (element == library) {
+        // Don't suggest elements from the library in which completion is being
+        // requested. They've already been sugpested.
+        continue;
+      }
+
       for (var operation in _operations) {
         switch (operation) {
+          case ConstructorsOperation():
+            importSummary ??= _ImportSummary(library);
+            if (importSummary.importedLibraries.contains(element)) {
+              continue;
+            }
+            performance.run('constructors', (_) {
+              operation.computeSuggestionsIn(element);
+            });
           case InstanceExtensionMembersOperation():
             performance.run('instanceMembers', (_) {
-              operation.computeSuggestionsIn(elementResult.element);
+              operation.computeSuggestionsIn(element);
             });
           case StaticMembersOperation():
-            var importedElements = Set<Element>.identity();
-            var importedLibraries = Set<LibraryElement>.identity();
-            for (var import in request.libraryElement.libraryImports) {
-              var importedLibrary = import.importedLibrary;
-              if (importedLibrary != null) {
-                if (import.combinators.isEmpty) {
-                  importedLibraries.add(importedLibrary);
-                } else {
-                  importedElements.addAll(
-                    import.namespace.definedNames.values,
-                  );
-                }
-              }
-            }
-
-            var element = elementResult.element;
-            if (importedLibraries.contains(element)) {
+            importSummary ??= _ImportSummary(library);
+            if (importSummary.importedLibraries.contains(element)) {
               continue;
             }
 
@@ -151,8 +171,8 @@ class NotImportedCompletionPass {
             var exportElements = exportNamespace.definedNames.values.toList();
 
             performance.run('staticMembers', (_) {
-              operation.computeSuggestionsIn(
-                  elementResult.element, exportElements, importedElements);
+              operation.computeSuggestionsIn(element, exportElements,
+                  importSummary?.importedElements ?? {});
             });
         }
       }
@@ -180,5 +200,30 @@ class StaticMembersOperation extends NotImportedOperation {
       List<Element> exportElements, Set<Element> importedElements) {
     // TODO(brianwilkerson): Determine whether we need the element parameters.
     _declarationHelper.addNotImportedTopLevelDeclarations(library);
+  }
+}
+
+/// A summary of the elements imported by a library.
+class _ImportSummary {
+  /// The elements that are imported from libraries that are only partially
+  /// imported.
+  Set<Element> importedElements = Set<Element>.identity();
+
+  /// The libraries that are imported in their entirety.
+  Set<LibraryElement> importedLibraries = Set<LibraryElement>.identity();
+
+  _ImportSummary(LibraryElement library) {
+    for (var import in library.libraryImports) {
+      var importedLibrary = import.importedLibrary;
+      if (importedLibrary != null) {
+        if (import.combinators.isEmpty) {
+          importedLibraries.add(importedLibrary);
+        } else {
+          importedElements.addAll(
+            import.namespace.definedNames.values,
+          );
+        }
+      }
+    }
   }
 }

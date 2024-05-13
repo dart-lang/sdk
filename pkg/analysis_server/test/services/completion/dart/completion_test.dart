@@ -4360,7 +4360,16 @@ suggestions
   Future<void> test_commentSnippets007_3() async {
     allowedIdentifiers = {'int'};
     await computeSuggestions('''
-class C {mth(Map x, ) {}mtf(, Map x) {}m() {for (in^t i=0; i<5; i++); A x;}}class int{}class Arrays{}
+class C {
+  mth(Map x, ) {}
+  mtf(, Map x) {}
+  m() {
+    for (in^t i=0; i<5; i++);
+    A x;
+  }
+}
+class int{}
+class Arrays{}
 ''');
     assertResponse(r'''
 replacement
@@ -7212,6 +7221,8 @@ suggestions
     kind: keyword
   void
     kind: keyword
+  HashMap
+    kind: class
 ''');
   }
 
@@ -8588,7 +8599,12 @@ suggestions
   Future<void> test_completion_forStmt_vars_1() async {
     allowedIdentifiers = {'int'};
     await computeSuggestions('''
-class int{}class Foo { mth() { for (in^t i = 0; i < 5; i++); }}
+class int{}
+class Foo {
+  mth() {
+    for (in^t i = 0; i < 5; i++);
+  }
+}
 ''');
     assertResponse(r'''
 replacement
@@ -10161,7 +10177,14 @@ suggestions
   Future<void> test_completion_staticField1_3() async {
     allowedIdentifiers = {'num'};
     await computeSuggestions('''
-class num{}class Sunflower {static final num MAX_D = 300;nu^m xc, yc;Sunflower() {xc = yc = MA }}
+class num{}
+class Sunflower {
+  static final num MAX_D = 300;
+  nu^m xc, yc;
+  Sunflower() {
+    xc = yc = MA
+  }
+}
 ''');
     assertResponse(r'''
 replacement
@@ -10176,15 +10199,20 @@ suggestions
   Future<void> test_completion_staticField1_4() async {
     allowedIdentifiers = {'Sunflower'};
     await computeSuggestions('''
-class num{}class Sunflower {static final num MAX_D = 300;num xc, yc;Sun^flower() {xc = yc = MA }}
+class num{}
+class Sunflower {
+  static final num MAX_D = 300;
+  num xc, yc;
+  Sun^flower() {
+    xc = yc = MA
+  }
+}
 ''');
     assertResponse(r'''
 replacement
   left: 3
   right: 6
 suggestions
-  Sunflower
-    kind: class
 ''');
   }
 
@@ -10499,8 +10527,6 @@ suggestions
     kind: keyword
   while
     kind: keyword
-  cos
-    kind: functionInvocation
   cos
     kind: functionInvocation
 ''');

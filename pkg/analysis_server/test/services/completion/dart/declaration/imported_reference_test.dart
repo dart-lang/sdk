@@ -2313,12 +2313,6 @@ suggestions
     kind: constructor
   String.fromEnvironment
     kind: constructorInvocation
-  A0
-    kind: class
-  A0
-    kind: constructorInvocation
-  f0
-    kind: functionInvocation
 ''');
   }
 

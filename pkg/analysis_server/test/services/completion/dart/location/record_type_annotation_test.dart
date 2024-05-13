@@ -159,7 +159,6 @@ class B01 {}
 void f(int a, ^(int, ) b) {}
 ''');
 
-    // TODO(scheglov): this is wrong
     assertResponse(r'''
 suggestions
   A01
@@ -168,6 +167,10 @@ suggestions
     kind: class
   B01
     kind: class
+  void
+    kind: keyword
+  dynamic
+    kind: keyword
 ''');
   }
 

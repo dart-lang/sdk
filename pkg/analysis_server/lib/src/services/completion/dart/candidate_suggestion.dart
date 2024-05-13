@@ -156,7 +156,7 @@ final class EnumSuggestion extends ImportableSuggestion {
 
 /// The information about a candidate suggestion based on an executable element,
 /// either a method or function.
-sealed class ExecutableSuggestion extends CandidateSuggestion {
+sealed class ExecutableSuggestion extends ImportableSuggestion {
   /// The kind of suggestion to be made, either
   /// [CompletionSuggestionKind.IDENTIFIER] or
   /// [CompletionSuggestionKind.INVOCATION].
@@ -164,7 +164,10 @@ sealed class ExecutableSuggestion extends CandidateSuggestion {
 
   /// Initialize a newly created suggestion to use the given [kind] of
   /// suggestion.
-  ExecutableSuggestion({required this.kind, required super.matcherScore})
+  ExecutableSuggestion(
+      {required super.importData,
+      required this.kind,
+      required super.matcherScore})
       : assert(kind == CompletionSuggestionKind.IDENTIFIER ||
             kind == CompletionSuggestionKind.INVOCATION);
 }
@@ -278,17 +281,22 @@ sealed class ImportableSuggestion extends CandidateSuggestion {
     return prefixName == null ? '' : '$prefixName.';
   }
 
-  /// The URI of the library from which the suggested element would be imported.
-  String? get libraryUriStr => importData?.libraryUriStr;
-
   /// The prefix to be used in order to access the element.
   String? get prefix => importData?.prefix;
 }
 
 /// Data representing an import of a library.
 final class ImportData {
+  /// Whether the library needs to be imported in order for the suggestion to be
+  /// accessible.
+  ///
+  /// This will return `false` when the library is already imported but the
+  /// import needs to be updated, such as by adding the element to a `show`
+  /// clause.
+  final bool isNotImported;
+
   /// The URI of the library from which the suggested element would be imported.
-  final String libraryUriStr;
+  final Uri libraryUri;
 
   /// The prefix to be used in order to access the element, or `null` if no
   /// prefix is required.
@@ -296,7 +304,10 @@ final class ImportData {
 
   /// Initialize data representing an import of a library, using the
   /// [libraryUriStr], with the [prefix].
-  ImportData({required this.libraryUriStr, required this.prefix});
+  ImportData(
+      {required this.libraryUri,
+      required this.prefix,
+      required this.isNotImported});
 }
 
 /// A suggestion based on an import prefix.
@@ -398,7 +409,7 @@ final class LoadLibraryFunctionSuggestion extends ExecutableSuggestion {
     required super.kind,
     required this.element,
     required super.matcherScore,
-  });
+  }) : super(importData: null);
 
   @override
   String get completion => element.name;
@@ -411,9 +422,8 @@ final class LocalFunctionSuggestion extends ExecutableSuggestion {
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
   LocalFunctionSuggestion(
-      {required super.kind,
-      required this.element,
-      required super.matcherScore});
+      {required super.kind, required this.element, required super.matcherScore})
+      : super(importData: null);
 
   @override
   String get completion => element.name;
@@ -451,6 +461,7 @@ final class MethodSuggestion extends ExecutableSuggestion {
   MethodSuggestion(
       {required super.kind,
       required this.element,
+      required super.importData,
       required this.referencingInterface,
       required super.matcherScore});
 
@@ -545,7 +556,7 @@ final class OverrideSuggestion extends CandidateSuggestion {
 }
 
 /// The information about a candidate suggestion based on a getter or setter.
-final class PropertyAccessSuggestion extends CandidateSuggestion {
+final class PropertyAccessSuggestion extends ImportableSuggestion {
   /// The element on which the suggestion is based.
   final PropertyAccessorElement element;
 
@@ -556,6 +567,7 @@ final class PropertyAccessSuggestion extends CandidateSuggestion {
   /// Initialize a newly created candidate suggestion to suggest the [element].
   PropertyAccessSuggestion(
       {required this.element,
+      required super.importData,
       required this.referencingInterface,
       required super.matcherScore});
 
@@ -750,17 +762,25 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
   //  of splitting it into a legacy builder and an LSP builder.
 
   /// Add a suggestion based on the candidate [suggestion].
-  void suggestFromCandidate(CandidateSuggestion suggestion) {
+  Future<void> suggestFromCandidate(CandidateSuggestion suggestion) async {
+    if (suggestion is ImportableSuggestion) {
+      var importData = suggestion.importData;
+      if (importData != null) {
+        var uri = importData.libraryUri;
+        if (importData.isNotImported) {
+          isNotImportedLibrary = true;
+          requiredImports = [uri];
+        }
+        libraryUriStr = uri.toString();
+      }
+    }
     switch (suggestion) {
       case ClassSuggestion():
-        libraryUriStr = suggestion.libraryUriStr;
         suggestInterface(suggestion.element, prefix: suggestion.prefix);
-        libraryUriStr = null;
       case ClosureSuggestion():
         suggestClosure(suggestion.functionType,
             includeTrailingComma: suggestion.includeTrailingComma);
       case ConstructorSuggestion():
-        libraryUriStr = suggestion.libraryUriStr;
         suggestConstructor(
           suggestion.element,
           hasClassName: suggestion.hasClassName,
@@ -770,27 +790,18 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
           prefix: suggestion.prefix,
           suggestUnnamedAsNew: suggestion.suggestUnnamedAsNew,
         );
-        libraryUriStr = null;
       case EnumSuggestion():
-        libraryUriStr = suggestion.libraryUriStr;
         suggestInterface(suggestion.element, prefix: suggestion.prefix);
-        libraryUriStr = null;
       case EnumConstantSuggestion():
         if (suggestion.includeEnumName) {
-          libraryUriStr = suggestion.libraryUriStr;
           suggestEnumConstant(suggestion.element, prefix: suggestion.prefix);
-          libraryUriStr = null;
         } else {
           suggestField(suggestion.element, inheritanceDistance: 0.0);
         }
       case ExtensionSuggestion():
-        libraryUriStr = suggestion.libraryUriStr;
         suggestExtension(suggestion.element, prefix: suggestion.prefix);
-        libraryUriStr = null;
       case ExtensionTypeSuggestion():
-        libraryUriStr = suggestion.libraryUriStr;
         suggestInterface(suggestion.element, prefix: suggestion.prefix);
-        libraryUriStr = null;
       case FieldSuggestion():
         var fieldElement = suggestion.element;
         if (fieldElement.isEnumConstant) {
@@ -846,9 +857,7 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
               suggestion.element.enclosingElement),
         );
       case MixinSuggestion():
-        libraryUriStr = suggestion.libraryUriStr;
         suggestInterface(suggestion.element, prefix: suggestion.prefix);
-        libraryUriStr = null;
       case NamedArgumentSuggestion():
         suggestNamedArgument(suggestion.parameter,
             appendColon: suggestion.appendColon,
@@ -857,7 +866,7 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
       case NameSuggestion():
         suggestName(suggestion.name);
       case OverrideSuggestion():
-        suggestOverride(
+        await suggestOverride(
           element: suggestion.element,
           invokeSuper: suggestion.shouldInvokeSuper,
           replacementRange: suggestion.replacementRange,
@@ -884,40 +893,34 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
           appendComma: suggestion.appendComma,
         );
       case StaticFieldSuggestion():
-        libraryUriStr = suggestion.libraryUriStr;
         suggestStaticField(suggestion.element, prefix: suggestion.prefix);
-        libraryUriStr = null;
       case SuperParameterSuggestion():
         suggestSuperFormalParameter(suggestion.element);
       case TopLevelFunctionSuggestion():
-        libraryUriStr = suggestion.libraryUriStr;
         suggestTopLevelFunction(suggestion.element,
             kind: suggestion.kind, prefix: suggestion.prefix);
-        libraryUriStr = null;
       case TopLevelPropertyAccessSuggestion():
-        libraryUriStr = suggestion.libraryUriStr;
         suggestTopLevelPropertyAccessor(suggestion.element,
             prefix: suggestion.prefix);
-        libraryUriStr = null;
       case TopLevelVariableSuggestion():
-        libraryUriStr = suggestion.libraryUriStr;
         suggestTopLevelVariable(suggestion.element, prefix: suggestion.prefix);
-        libraryUriStr = null;
       case TypeAliasSuggestion():
-        libraryUriStr = suggestion.libraryUriStr;
         suggestTypeAlias(suggestion.element, prefix: suggestion.prefix);
-        libraryUriStr = null;
       case TypeParameterSuggestion():
         suggestTypeParameter(suggestion.element);
       case UriSuggestion():
         suggestUri(suggestion.uriStr);
     }
+    isNotImportedLibrary = false;
+    libraryUriStr = null;
+    requiredImports = [];
   }
 
   /// Add a suggestion for each of the candidate [suggestions].
-  void suggestFromCandidates(List<CandidateSuggestion> suggestions) {
+  Future<void> suggestFromCandidates(
+      List<CandidateSuggestion> suggestions) async {
     for (var suggestion in suggestions) {
-      suggestFromCandidate(suggestion);
+      await suggestFromCandidate(suggestion);
     }
   }
 

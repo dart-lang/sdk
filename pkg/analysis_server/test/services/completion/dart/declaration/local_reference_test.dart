@@ -2739,12 +2739,6 @@ class A0 {
 suggestions
   A0.new
     kind: constructor
-  A0
-    kind: class
-  A0
-    kind: constructorInvocation
-  f0
-    kind: functionInvocation
 ''');
   }
 
@@ -3160,14 +3154,10 @@ class A0 {}
 mixin M0 {}
 class B extends ^
 ''');
-    // TODO(brianwilkerson): We should not be suggesting `M0` because you can't
-    //  extend a mixin.
     assertResponse(r'''
 suggestions
   A0
     kind: class
-  M0
-    kind: mixin
 ''');
   }
 
