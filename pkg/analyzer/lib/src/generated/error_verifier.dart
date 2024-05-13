@@ -652,13 +652,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     try {
       var element = node.declaredElement as EnumElementImpl;
 
-      var augmented = element.augmented;
       _checkAugmentations(
         augmentKeyword: node.augmentKeyword,
         element: element,
       );
 
-      _enclosingClass = element;
+      var augmented = element.augmented;
+      var declarationElement = augmented.declaration;
+      _enclosingClass = declarationElement;
+
       _duplicateDefinitionVerifier.checkEnum(node);
 
       _checkForBuiltInIdentifierAsName(
