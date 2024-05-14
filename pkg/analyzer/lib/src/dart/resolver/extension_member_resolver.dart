@@ -344,7 +344,7 @@ class ExtensionMemberResolver {
         _typeSystem,
         typeParameters,
         errorReporter: _errorReporter,
-        errorNode: SimpleIdentifierImpl(node.name),
+        errorEntity: node.name,
         genericMetadataIsEnabled: _genericMetadataIsEnabled,
         strictInference: _resolver.analysisOptions.strictInference,
         typeSystemOperations: _resolver.flowAnalysis.typeOperations,

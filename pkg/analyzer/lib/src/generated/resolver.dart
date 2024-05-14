@@ -3805,7 +3805,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var inferrer = GenericInferrer(
       typeSystem,
       typeParameters,
-      errorNode: errorNode,
+      errorEntity: errorNode,
       genericMetadataIsEnabled: genericMetadataIsEnabled,
       strictInference: analysisOptions.strictInference,
       typeSystemOperations: flowAnalysis.typeOperations,

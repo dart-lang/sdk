@@ -621,7 +621,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
       declaredReturnType: ft.returnType,
       contextReturnType: returnType,
       errorReporter: reporter,
-      errorNode: NullLiteralImpl(
+      errorEntity: NullLiteralImpl(
         literal: KeywordToken(Keyword.NULL, 0),
       ),
       genericMetadataIsEnabled: true,
