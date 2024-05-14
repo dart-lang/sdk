@@ -161,13 +161,16 @@ abstract class TreeNode extends Node {
 
   TreeNode? parent;
 
-  /// Offset in the source file it comes from.
+  /// Offset in the source file the node comes from.
   ///
   /// Valid values are from 0 and up, or -1 ([noOffset]) if the file offset is
   /// not available (this is the default if none is specifically set).
+  ///
+  /// This is an index into [Source.text].
   int fileOffset = noOffset;
 
-  /// Returns List<int> if this node has more offsets than [fileOffset].
+  /// When the node has more offsets that just [fileOffset], the list of all
+  /// offsets.
   List<int>? get fileOffsetsIfMultiple => null;
 
   @override
@@ -9360,12 +9363,14 @@ class AssertStatement extends Statement {
   Expression condition;
   Expression? message; // May be null.
 
-  /// Character offset in the source ([Source.text]) where the assertion
-  /// condition begins.
+  /// Character offset in the source where the assertion condition begins.
+  ///
+  /// This is an index into [Source.text].
   int conditionStartOffset;
 
-  /// Character offset in the source ([Source.text]) where the assertion
-  /// condition ends.
+  /// Character offset in the source where the assertion condition ends.
+  ///
+  /// This is an index into [Source.text].
   int conditionEndOffset;
 
   @override
