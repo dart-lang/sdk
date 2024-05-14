@@ -1162,6 +1162,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       if (i > 0) {
         write(', ');
       }
+      if (parameters[i].isNamed) {
+        write(parameters[i].name);
+        write(': ');
+      }
       write(parameters[i].name);
     }
     write(isOperator ? ';' : ');');
