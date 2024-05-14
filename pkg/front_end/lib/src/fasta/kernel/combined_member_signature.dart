@@ -3,25 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
-
 import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
-
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/reference_from_index.dart';
-
-import 'package:kernel/type_algebra.dart';
-import 'package:kernel/type_environment.dart';
-
-import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/src/nnbd_top_merge.dart';
 import 'package:kernel/src/norm.dart';
 import 'package:kernel/src/types.dart' show Types;
+import 'package:kernel/type_algebra.dart';
+import 'package:kernel/type_environment.dart';
 
 import '../builder/declaration_builders.dart';
 import '../problems.dart' show unhandled;
-
 import '../source/source_class_builder.dart';
-
 import 'hierarchy/class_member.dart';
 import 'hierarchy/hierarchy_builder.dart';
 import 'hierarchy/members_builder.dart';
@@ -117,9 +110,6 @@ abstract class CombinedMemberSignatureBase {
     if (members.length == 1) {
       bestSoFarIndex = 0;
     } else {
-      bool isNonNullableByDefault =
-          declarationBuilder.libraryBuilder.isNonNullableByDefault;
-
       DartType? bestTypeSoFar;
       for (int candidateIndex = members.length - 1;
           candidateIndex >= 0;
@@ -130,8 +120,7 @@ abstract class CombinedMemberSignatureBase {
           bestSoFarIndex = candidateIndex;
         } else {
           if (_isMoreSpecific(candidateType, bestTypeSoFar!, forSetter)) {
-            if (isNonNullableByDefault &&
-                _isMoreSpecific(bestTypeSoFar, candidateType, forSetter)) {
+            if (_isMoreSpecific(bestTypeSoFar, candidateType, forSetter)) {
               if (_mutualSubtypes == null) {
                 _mutualSubtypes = {
                   bestTypeSoFar: bestSoFarIndex,
@@ -283,44 +272,13 @@ abstract class CombinedMemberSignatureBase {
     if (candidateType == null) {
       Member target = _getMember(index);
       candidateType = _computeMemberType(target);
-      if (!declarationBuilder.libraryBuilder.isNonNullableByDefault) {
-        DartType? legacyErasure;
-        if (target == hierarchy.coreTypes.objectEquals) {
-          // In legacy code we special case `Object.==` to infer `dynamic`
-          // instead `Object!`.
-          legacyErasure = new FunctionType([const DynamicType()],
-              hierarchy.coreTypes.boolLegacyRawType, Nullability.legacy);
-        } else {
-          legacyErasure = rawLegacyErasure(candidateType);
-        }
-        if (legacyErasure != null) {
-          _neededLegacyErasureIndices ??= {};
-          _neededLegacyErasureIndices!.add(index);
-          candidateType = legacyErasure;
-        }
-      }
       _memberTypes![index] = candidateType;
     }
     return candidateType;
   }
 
   DartType getMemberTypeForTarget(Member target) {
-    DartType candidateType = _computeMemberType(target);
-    if (!declarationBuilder.libraryBuilder.isNonNullableByDefault) {
-      DartType? legacyErasure;
-      if (target == hierarchy.coreTypes.objectEquals) {
-        // In legacy code we special case `Object.==` to infer `dynamic`
-        // instead `Object!`.
-        legacyErasure = new FunctionType([const DynamicType()],
-            hierarchy.coreTypes.boolLegacyRawType, Nullability.legacy);
-      } else {
-        legacyErasure = rawLegacyErasure(candidateType);
-      }
-      if (legacyErasure != null) {
-        candidateType = legacyErasure;
-      }
-    }
-    return candidateType;
+    return _computeMemberType(target);
   }
 
   void _ensureCombinedMemberSignatureType() {
@@ -329,33 +287,29 @@ abstract class CombinedMemberSignatureBase {
       if (_canonicalMemberIndex == null) {
         return null;
       }
-      if (declarationBuilder.libraryBuilder.isNonNullableByDefault) {
-        DartType canonicalMemberType = _combinedMemberSignatureType =
-            getMemberType(_canonicalMemberIndex!);
-        _containsNnbdTypes =
-            _getMember(_canonicalMemberIndex!).isNonNullableByDefault;
-        if (_mutualSubtypes != null) {
-          _combinedMemberSignatureType =
-              norm(_coreTypes, _combinedMemberSignatureType!);
-          for (int index in _mutualSubtypes!.values) {
-            if (_canonicalMemberIndex != index) {
-              _combinedMemberSignatureType = nnbdTopMerge(
-                  _coreTypes,
-                  _combinedMemberSignatureType!,
-                  norm(_coreTypes, getMemberType(index)));
-              assert(
-                  _combinedMemberSignatureType != null,
-                  "No combined member signature found for "
-                  "${_mutualSubtypes!.values.map((int i) => getMemberType(i))} "
-                  "for members ${members}");
-            }
+      DartType canonicalMemberType =
+          _combinedMemberSignatureType = getMemberType(_canonicalMemberIndex!);
+      _containsNnbdTypes =
+          _getMember(_canonicalMemberIndex!).isNonNullableByDefault;
+      if (_mutualSubtypes != null) {
+        _combinedMemberSignatureType =
+            norm(_coreTypes, _combinedMemberSignatureType!);
+        for (int index in _mutualSubtypes!.values) {
+          if (_canonicalMemberIndex != index) {
+            _combinedMemberSignatureType = nnbdTopMerge(
+                _coreTypes,
+                _combinedMemberSignatureType!,
+                norm(_coreTypes, getMemberType(index)));
+            assert(
+                _combinedMemberSignatureType != null,
+                "No combined member signature found for "
+                "${_mutualSubtypes!.values.map((int i) => getMemberType(i))} "
+                "for members ${members}");
           }
-          _neededNnbdTopMerge =
-              canonicalMemberType != _combinedMemberSignatureType;
-          _containsNnbdTypes = _neededNnbdTopMerge;
         }
-      } else {
-        _combinedMemberSignatureType = getMemberType(_canonicalMemberIndex!);
+        _neededNnbdTopMerge =
+            canonicalMemberType != _combinedMemberSignatureType;
+        _containsNnbdTypes = _neededNnbdTopMerge;
       }
     }
   }
@@ -723,8 +677,7 @@ abstract class CombinedMemberSignatureBase {
     }
     TypeDeclarationType instance = hierarchy.getTypeAsInstanceOf(
         thisType, member.enclosingTypeDeclaration!,
-        isNonNullableByDefault:
-            declarationBuilder.libraryBuilder.isNonNullableByDefault)!;
+        isNonNullableByDefault: true)!;
     return Substitution.fromTypeDeclarationType(instance).substituteType(type);
   }
 

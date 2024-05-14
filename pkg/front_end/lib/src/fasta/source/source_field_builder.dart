@@ -8,7 +8,6 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
@@ -136,7 +135,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
           isExternal: isExternal,
           isFinal: isFinal,
           isCovariantByDeclaration: isCovariantByDeclaration,
-          isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+          isNonNullableByDefault: true);
     } else if (fieldNameScheme.isExtensionTypeMember &&
         fieldNameScheme.isInstanceMember) {
       assert(fieldReference == null);
@@ -233,8 +232,8 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
               isSetStrategy);
         }
       }
-    } else if (libraryBuilder.isNonNullableByDefault &&
-        libraryBuilder.loader.target.backendTarget.useStaticFieldLowering &&
+    } else if (libraryBuilder
+            .loader.target.backendTarget.useStaticFieldLowering &&
         !isInstanceMember &&
         !isConst &&
         hasInitializer) {
@@ -286,7 +285,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
           isConst: isConst,
           isLate: isLate,
           hasInitializer: hasInitializer,
-          isNonNullableByDefault: libraryBuilder.isNonNullableByDefault,
+          isNonNullableByDefault: true,
           fieldReference: fieldReference,
           getterReference: fieldGetterReference,
           setterReference: fieldSetterReference,
@@ -525,9 +524,6 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       if (fieldType is InferredType) {
         // `fieldType` may have changed if a circularity was detected when
         // [inferredType] was computed.
-        if (!libraryBuilder.isNonNullableByDefault) {
-          inferredType = legacyErasure(inferredType);
-        }
         type.registerInferredType(inferredType);
 
         IncludesTypeParametersNonCovariantly? needsCheckVisitor;

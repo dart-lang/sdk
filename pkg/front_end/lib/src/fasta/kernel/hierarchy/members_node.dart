@@ -580,27 +580,6 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
     }
   }
 
-  /// Returns `true` if the current class is from an opt-out library and
-  /// [classMember] is from an opt-in library.
-  ///
-  /// In this case a member signature needs to be inserted to show the
-  /// legacy erased type of the interface member. For instance:
-  ///
-  ///    // Opt-in library:
-  ///    class Super {
-  ///      int? method(int i) {}
-  ///    }
-  ///    // Opt-out library:
-  ///    class Class extends Super {
-  ///      // A member signature is inserted:
-  ///      // int* method(int* i);
-  ///    }
-  ///
-  bool needsMemberSignatureFor(ClassMember classMember) {
-    return !classBuilder.libraryBuilder.isNonNullableByDefault &&
-        classMember.declarationBuilder.libraryBuilder.isNonNullableByDefault;
-  }
-
   /// Registers that the current class has an interface member without a
   /// corresponding class member.
   ///
@@ -2363,9 +2342,7 @@ class _SanitizedMember {
         ///      int* method();
         ///    }
         ///
-        if (interfaceMembers.length == 1 &&
-            !builder.needsMemberSignatureFor(extendedInterfaceMember) &&
-            noSuchMethodTarget == null) {
+        if (interfaceMembers.length == 1 && noSuchMethodTarget == null) {
           ///    class Super {
           ///      method() {}
           ///    }
@@ -2443,29 +2420,6 @@ class _SanitizedMember {
                 aliasForTesting: classMember);
           }
         }
-      } else if (builder.needsMemberSignatureFor(_extendedMember)) {
-        ///    // Opt-in library:
-        ///    class Super {
-        ///      method() {}
-        ///    }
-        ///    // opt-out library:
-        ///    class Class extends Super {}
-        interfaceMember = new SynthesizedInterfaceMember(
-            classBuilder, name, [_extendedMember],
-            superClassMember: _extendedMember,
-            memberKind: _definingMember.memberKind,
-            shouldModifyKernel: builder.shouldModifyKernel);
-        builder._membersBuilder.registerMemberComputation(interfaceMember);
-
-        /// The concrete extended member is the class member and should
-        /// be able to be overwritten by a synthesized concrete member here,
-        /// but we handle the case for consistency.
-        classMember = new InheritedClassMemberImplementsInterface(
-            classBuilder, name,
-            inheritedClassMember: _extendedMember,
-            implementedInterfaceMember: interfaceMember,
-            memberKind: _definingMember.memberKind);
-        builder._membersBuilder.registerMemberComputation(classMember);
       }
     } else if (_implementedMembers != null) {
       ///    class Interface {
@@ -2502,9 +2456,7 @@ class _SanitizedMember {
         ///      int* method();
         ///    }
         ///
-        if (interfaceMembers.length == 1 &&
-            !builder.needsMemberSignatureFor(interfaceMembers.first) &&
-            noSuchMethodTarget == null) {
+        if (interfaceMembers.length == 1 && noSuchMethodTarget == null) {
           ///    class Interface {
           ///      method() {}
           ///    }

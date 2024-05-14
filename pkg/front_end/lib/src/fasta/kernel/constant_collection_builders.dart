@@ -163,21 +163,17 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
       if (evaluator.staticTypeContext.enablePrimitiveEquality) {
         return evaluator.createEvaluationErrorConstant(
             context,
-            templateConstEvalElementNotPrimitiveEquality.withArguments(
-                constant, evaluator.isNonNullableByDefault));
+            templateConstEvalElementNotPrimitiveEquality
+                .withArguments(constant));
       } else {
-        return evaluator.createEvaluationErrorConstant(
-            context,
-            templateConstEvalElementImplementsEqual.withArguments(
-                constant, evaluator.isNonNullableByDefault));
+        return evaluator.createEvaluationErrorConstant(context,
+            templateConstEvalElementImplementsEqual.withArguments(constant));
       }
     }
     bool unseen = seen.add(constant);
     if (!unseen) {
       return evaluator.createEvaluationErrorConstant(
-          context,
-          templateConstEvalDuplicateElement.withArguments(
-              constant, evaluator.isNonNullableByDefault));
+          context, templateConstEvalDuplicateElement.withArguments(constant));
     }
     if (evaluator.evaluationMode == EvaluationMode.agnostic) {
       Constant weakConstant =
@@ -314,23 +310,17 @@ class MapConstantBuilder {
     if (!evaluator.hasPrimitiveEqual(key,
         staticTypeContext: evaluator.staticTypeContext)) {
       if (evaluator.staticTypeContext.enablePrimitiveEquality) {
-        return evaluator.createEvaluationErrorConstant(
-            keyContext,
-            templateConstEvalKeyNotPrimitiveEquality.withArguments(
-                key, evaluator.isNonNullableByDefault));
+        return evaluator.createEvaluationErrorConstant(keyContext,
+            templateConstEvalKeyNotPrimitiveEquality.withArguments(key));
       } else {
         return evaluator.createEvaluationErrorConstant(
-            keyContext,
-            templateConstEvalKeyImplementsEqual.withArguments(
-                key, evaluator.isNonNullableByDefault));
+            keyContext, templateConstEvalKeyImplementsEqual.withArguments(key));
       }
     }
     bool unseenKey = seenKeys.add(key);
     if (!unseenKey) {
       return evaluator.createEvaluationErrorConstant(
-          keyContext,
-          templateConstEvalDuplicateKey.withArguments(
-              key, evaluator.isNonNullableByDefault));
+          keyContext, templateConstEvalDuplicateKey.withArguments(key));
     }
     if (evaluator.evaluationMode == EvaluationMode.agnostic) {
       Constant weakKey = evaluator._weakener.visitConstant(key) ?? key;

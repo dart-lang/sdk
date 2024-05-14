@@ -1391,8 +1391,8 @@ class FfiTransformer extends Transformer {
         }
     }
     diagnosticReporter.report(
-        templateFfiTypeMismatch.withArguments(dartType, correspondingDartType,
-            nativeType, currentLibrary.isNonNullableByDefault),
+        templateFfiTypeMismatch.withArguments(
+            dartType, correspondingDartType, nativeType),
         reportErrorOn.fileOffset,
         1,
         reportErrorOn.location?.file);
@@ -1413,8 +1413,7 @@ class FfiTransformer extends Transformer {
         allowInlineArray: allowInlineArray,
         allowVoid: allowVoid)) {
       diagnosticReporter.report(
-          templateFfiTypeInvalid.withArguments(
-              nativeType, currentLibrary.isNonNullableByDefault),
+          templateFfiTypeInvalid.withArguments(nativeType),
           reportErrorOn.fileOffset,
           1,
           reportErrorOn.location?.file);

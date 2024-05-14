@@ -431,7 +431,7 @@ class DeclaredSourceConstructorBuilder
       ..startFileOffset = startCharOffset
       ..fileOffset = charOffset
       ..fileEndOffset = charEndOffset
-      ..isNonNullableByDefault = compilationUnit.isNonNullableByDefault;
+      ..isNonNullableByDefault = true;
     nameScheme
         .getConstructorMemberName(name, isTearOff: false)
         .attachMember(_constructor);
@@ -1124,7 +1124,7 @@ class SourceExtensionTypeConstructorBuilder
         fileUri: compilationUnit.fileUri, reference: constructorReference)
       ..fileOffset = charOffset
       ..fileEndOffset = charEndOffset
-      ..isNonNullableByDefault = compilationUnit.isNonNullableByDefault;
+      ..isNonNullableByDefault = true;
     nameScheme
         .getConstructorMemberName(name, isTearOff: false)
         .attachMember(_constructor);

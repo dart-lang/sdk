@@ -1232,8 +1232,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
         ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
             enableExtensionMethods: true /* can't be disabled */,
-            enableNonNullable: builder
-                .isNonNullableByDefault /* depends on language version etc */,
+            enableNonNullable: true /* can't be disabled */,
             enableTripleShift:
                 /* should this be on the library? */
                 /* this is effectively what the constant evaluator does */
@@ -2083,7 +2082,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       Procedure procedure = new Procedure(
           new Name(syntheticProcedureName), ProcedureKind.Method, parameters,
           isStatic: isStatic, fileUri: debugLibrary.fileUri)
-        ..isNonNullableByDefault = debugLibrary.isNonNullableByDefault;
+        ..isNonNullableByDefault = true;
 
       parameters.body = new ReturnStatement(compiledExpression)
         ..parent = parameters;

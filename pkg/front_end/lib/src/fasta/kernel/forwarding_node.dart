@@ -331,9 +331,7 @@ class ForwardingNode {
             if (!_combinedMemberSignature.hierarchy.types.isSubtypeOf(
                 parameter.type,
                 superParameterType,
-                libraryBuilder.isNonNullableByDefault
-                    ? SubtypeCheckMode.withNullabilities
-                    : SubtypeCheckMode.ignoringNullabilities)) {
+                SubtypeCheckMode.withNullabilities)) {
               expression = new AsExpression(expression, superParameterType)
                 ..fileOffset = fileOffset;
             }
@@ -359,9 +357,7 @@ class ForwardingNode {
             if (!_combinedMemberSignature.hierarchy.types.isSubtypeOf(
                 parameter.type,
                 superParameterType,
-                libraryBuilder.isNonNullableByDefault
-                    ? SubtypeCheckMode.withNullabilities
-                    : SubtypeCheckMode.ignoringNullabilities)) {
+                SubtypeCheckMode.withNullabilities)) {
               expression = new AsExpression(expression, superParameterType)
                 ..fileOffset = fileOffset;
             }
@@ -397,9 +393,7 @@ class ForwardingNode {
           if (!_combinedMemberSignature.hierarchy.types.isSubtypeOf(
               parameter.type,
               superParameterType,
-              libraryBuilder.isNonNullableByDefault
-                  ? SubtypeCheckMode.withNullabilities
-                  : SubtypeCheckMode.ignoringNullabilities)) {
+              SubtypeCheckMode.withNullabilities)) {
             expression = new AsExpression(expression, superParameterType)
               ..fileOffset = fileOffset;
           }
@@ -473,7 +467,7 @@ class ForwardingNode {
         result = new AsExpression(result, procedure.function.returnType)
           ..isTypeError = true
           ..isForDynamic = true
-          ..isForNonNullableByDefault = libraryBuilder.isNonNullableByDefault
+          ..isForNonNullableByDefault = true
           ..fileOffset = procedure.fileOffset;
       }
     }
@@ -496,7 +490,6 @@ class ForwardingNode {
               parameter.hasDeclaredInitializer ||
               parameter.isCovariantByDeclaration ||
               parameter.isCovariantByClass) &&
-          libraryBuilder.isNonNullableByDefault &&
           parameter.type.nullability != Nullability.nullable;
     }
 

@@ -17,11 +17,8 @@ import 'fasta_codes.dart'
 class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   final List<LabeledNode> names = <LabeledNode>[];
   final Map<String, List<LabeledNode>> nameMap = <String, List<LabeledNode>>{};
-  final bool printNullability;
 
   List<Object> result = const [];
-
-  TypeLabeler(this.printNullability);
 
   /// Pretty-print a type.
   /// When all types and constants appearing in the same message have been
@@ -89,10 +86,8 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   }
 
   void addNullability(Nullability nullability) {
-    if (printNullability) {
-      if (nullability == Nullability.nullable) {
-        result.add("?");
-      }
+    if (nullability == Nullability.nullable) {
+      result.add("?");
     }
   }
 

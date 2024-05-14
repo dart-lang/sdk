@@ -216,7 +216,7 @@ class JsInteropChecks extends RecursiveVisitor {
         !extensionIndex.isInteropExtensionType(node)) {
       _reporter.report(
           templateJsInteropExtensionTypeNotInterop.withArguments(
-              node.name, node.declaredRepresentationType, true),
+              node.name, node.declaredRepresentationType),
           node.fileOffset,
           node.name.length,
           node.fileUri);
@@ -742,8 +742,8 @@ class JsInteropChecks extends RecursiveVisitor {
     final argument = node.arguments.positional.single;
     final functionType = argument.getStaticType(_staticTypeContext);
     if (functionType is! FunctionType) {
-      report(templateJsInteropFunctionToJSRequiresStaticType.withArguments(
-          functionType, true));
+      report(templateJsInteropFunctionToJSRequiresStaticType
+          .withArguments(functionType));
     } else {
       if (functionType.typeParameters.isNotEmpty) {
         report(messageJsInteropFunctionToJSTypeParameters);
@@ -1008,7 +1008,7 @@ class JsInteropChecks extends RecursiveVisitor {
       if (!_isAllowedExternalType(accessorType)) {
         _reporter.report(
             templateJsInteropStaticInteropExternalAccessorTypeViolation
-                .withArguments(accessorType, true),
+                .withArguments(accessorType),
             node.fileOffset,
             node.name.text.length,
             node.location?.file);

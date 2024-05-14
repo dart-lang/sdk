@@ -281,7 +281,7 @@ Procedure _createTearOffProcedure(SourceLibraryBuilder libraryBuilder,
     ..fileStartOffset = fileOffset
     ..fileOffset = fileOffset
     ..fileEndOffset = fileOffset
-    ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault;
+    ..isNonNullableByDefault = true;
   tearOffName.attachMember(tearOff);
   return tearOff;
 }

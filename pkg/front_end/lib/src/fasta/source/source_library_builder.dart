@@ -418,7 +418,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void _updateLibraryNNBDSettings() {
-    library.isNonNullableByDefault = isNonNullableByDefault;
+    library.isNonNullableByDefault = true;
     switch (loader.nnbdMode) {
       case NnbdMode.Weak:
         library.nonNullableByDefaultCompiledMode =
@@ -563,32 +563,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       languageVersion.version >=
           libraryFeatures.inferenceUpdate1.enabledVersion;
 
-  bool? _isNonNullableByDefault;
-
-  @override
-  @pragma("vm:prefer-inline")
-  bool get isNonNullableByDefault {
-    assert(
-        _isNonNullableByDefault == null ||
-            _isNonNullableByDefault == _computeIsNonNullableByDefault(),
-        "Unstable isNonNullableByDefault property, changed "
-        "from ${_isNonNullableByDefault} to "
-        "${_computeIsNonNullableByDefault()}");
-    return _isNonNullableByDefault ?? _ensureIsNonNullableByDefault();
-  }
-
-  bool _ensureIsNonNullableByDefault() {
-    if (_isNonNullableByDefault == null) {
-      _isNonNullableByDefault = _computeIsNonNullableByDefault();
-      _updateLibraryNNBDSettings();
-    }
-    return _isNonNullableByDefault!;
-  }
-
-  bool _computeIsNonNullableByDefault() =>
-      libraryFeatures.nonNullable.isSupported &&
-      languageVersion.version >= libraryFeatures.nonNullable.enabledVersion;
-
   LanguageVersion get languageVersion {
     assert(
         _languageVersion.isFinal,
@@ -599,22 +573,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   void markLanguageVersionFinal() {
     _languageVersion.isFinal = true;
-    _ensureIsNonNullableByDefault();
-    if (!isNonNullableByDefault &&
-        (loader.nnbdMode == NnbdMode.Strong ||
-            loader.nnbdMode == NnbdMode.Agnostic)) {
-      // In strong and agnostic mode, the language version is not allowed to
-      // opt a library out of nnbd.
-      if (_languageVersion.isExplicit) {
-        addPostponedProblem(messageStrongModeNNBDButOptOut,
-            _languageVersion.charOffset, _languageVersion.charCount, fileUri);
-      } else {
-        loader.registerStrongOptOutLibrary(this);
-      }
-      library.nonNullableByDefaultCompiledMode =
-          NonNullableByDefaultCompiledMode.Invalid;
-      loader.hasInvalidNnbdModeLibrary = true;
-    }
+    _updateLibraryNNBDSettings();
   }
 
   /// Set the language version to an explicit major and minor version.
@@ -2313,13 +2272,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (!isValid) {
         String getterMemberName = getterBuilder.fullNameForErrors;
         String setterMemberName = setterBuilder.fullNameForErrors;
-        Template<Message Function(DartType, String, DartType, String, bool)>
+        Template<Message Function(DartType, String, DartType, String)>
             template = library.isNonNullableByDefault
                 ? templateInvalidGetterSetterType
                 : templateInvalidGetterSetterTypeLegacy;
         addProblem(
-            template.withArguments(getterType, getterMemberName, setterType,
-                setterMemberName, library.isNonNullableByDefault),
+            template.withArguments(
+                getterType, getterMemberName, setterType, setterMemberName),
             getterBuilder.charOffset,
             getterBuilder.name.length,
             getterBuilder.fileUri,
@@ -4426,8 +4385,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         if (!haveErroneousBounds) {
           List<NamedTypeBuilder> unboundTypes = [];
           List<StructuralVariableBuilder> unboundTypeVariables = [];
-          List<TypeBuilder> calculatedBounds = calculateBounds(variables,
-              dynamicType, isNonNullableByDefault ? bottomType : nullType,
+          List<TypeBuilder> calculatedBounds = calculateBounds(
+              variables, dynamicType, bottomType,
               unboundTypes: unboundTypes,
               unboundTypeVariables: unboundTypeVariables);
           for (NamedTypeBuilder unboundType in unboundTypes) {
@@ -4725,7 +4684,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (issue.isGenericTypeAsArgumentIssue) {
         if (issueInferred) {
           message = templateGenericFunctionTypeInferredAsActualTypeArgument
-              .withArguments(argument, isNonNullableByDefault);
+              .withArguments(argument);
         } else {
           message = messageGenericFunctionTypeUsedAsActualTypeArgument;
         }
@@ -4740,34 +4699,27 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                       typeParameter.bound,
                       typeParameter.name!,
                       targetReceiver,
-                      targetName,
-                      isNonNullableByDefault);
+                      targetName);
             } else {
               message = templateIncorrectTypeArgumentQualified.withArguments(
                   argument,
                   typeParameter.bound,
                   typeParameter.name!,
                   targetReceiver,
-                  targetName,
-                  isNonNullableByDefault);
+                  targetName);
             }
           } else {
             if (issueInferred) {
               message = templateIncorrectTypeArgumentInstantiationInferred
-                  .withArguments(
-                      argument,
-                      typeParameter.bound,
-                      typeParameter.name!,
-                      targetReceiver,
-                      isNonNullableByDefault);
+                  .withArguments(argument, typeParameter.bound,
+                      typeParameter.name!, targetReceiver);
             } else {
               message =
                   templateIncorrectTypeArgumentInstantiation.withArguments(
                       argument,
                       typeParameter.bound,
                       typeParameter.name!,
-                      targetReceiver,
-                      isNonNullableByDefault);
+                      targetReceiver);
             }
           }
         } else {
@@ -4779,15 +4731,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                 argument,
                 typeParameter.bound,
                 typeParameter.name!,
-                enclosingName,
-                isNonNullableByDefault);
+                enclosingName);
           } else {
-            message = templateIncorrectTypeArgument.withArguments(
-                argument,
-                typeParameter.bound,
-                typeParameter.name!,
-                enclosingName,
-                isNonNullableByDefault);
+            message = templateIncorrectTypeArgument.withArguments(argument,
+                typeParameter.bound, typeParameter.name!, enclosingName);
           }
         }
       }
@@ -4823,8 +4770,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
     if (superBoundedAttemptInverted != null && superBoundedAttempt != null) {
       (context ??= <LocatedMessage>[]).add(templateSuperBoundedHint
-          .withArguments(superBoundedAttempt, superBoundedAttemptInverted,
-              isNonNullableByDefault)
+          .withArguments(superBoundedAttempt, superBoundedAttemptInverted)
           .withLocation(fileUri, fileOffset, noLength));
     }
     addProblem(message, fileOffset, noLength, fileUri, context: context);
@@ -4849,8 +4795,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
     if (superBoundedAttemptInverted != null && superBoundedAttempt != null) {
       (context ??= <LocatedMessage>[]).add(templateSuperBoundedHint
-          .withArguments(superBoundedAttempt, superBoundedAttemptInverted,
-              isNonNullableByDefault)
+          .withArguments(superBoundedAttempt, superBoundedAttemptInverted)
           .withLocation(fileUri, fileOffset, noLength));
     }
     addProblem(message, fileOffset, noLength, fileUri, context: context);
@@ -4860,32 +4805,27 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       SourceFieldBuilder fieldBuilder, TypeEnvironment typeEnvironment) {
     // Check that the field has an initializer if its type is potentially
     // non-nullable.
-    if (isNonNullableByDefault) {
-      // Only static and top-level fields are checked here.  Instance fields are
-      // checked elsewhere.
-      DartType fieldType = fieldBuilder.fieldType;
-      if (!fieldBuilder.isDeclarationInstanceMember &&
-          !fieldBuilder.isLate &&
-          !fieldBuilder.isExternal &&
-          fieldType is! InvalidType &&
-          fieldType.isPotentiallyNonNullable &&
-          !fieldBuilder.hasInitializer) {
-        addProblem(
-            templateFieldNonNullableWithoutInitializerError.withArguments(
-                fieldBuilder.name,
-                fieldBuilder.fieldType,
-                isNonNullableByDefault),
-            fieldBuilder.charOffset,
-            fieldBuilder.name.length,
-            fieldBuilder.fileUri);
-      }
+
+    // Only static and top-level fields are checked here.  Instance fields are
+    // checked elsewhere.
+    DartType fieldType = fieldBuilder.fieldType;
+    if (!fieldBuilder.isDeclarationInstanceMember &&
+        !fieldBuilder.isLate &&
+        !fieldBuilder.isExternal &&
+        fieldType is! InvalidType &&
+        fieldType.isPotentiallyNonNullable &&
+        !fieldBuilder.hasInitializer) {
+      addProblem(
+          templateFieldNonNullableWithoutInitializerError.withArguments(
+              fieldBuilder.name, fieldBuilder.fieldType),
+          fieldBuilder.charOffset,
+          fieldBuilder.name.length,
+          fieldBuilder.fileUri);
     }
   }
 
   void checkInitializersInFormals(
       List<FormalParameterBuilder> formals, TypeEnvironment typeEnvironment) {
-    if (!isNonNullableByDefault) return;
-
     for (FormalParameterBuilder formal in formals) {
       bool isOptionalPositional =
           formal.isOptionalPositional && formal.isPositional;
@@ -4896,7 +4836,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           !formal.hasDeclaredInitializer) {
         addProblem(
             templateOptionalNonNullableWithoutInitializerError.withArguments(
-                formal.name, formal.variable!.type, isNonNullableByDefault),
+                formal.name, formal.variable!.type),
             formal.charOffset,
             formal.name.length,
             formal.fileUri);
@@ -4932,11 +4872,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       DartType type, TypeEnvironment typeEnvironment, Uri fileUri, int offset,
       {bool? inferred, bool allowSuperBounded = true}) {
     List<TypeArgumentIssue> issues = findTypeArgumentIssues(
-        type,
-        typeEnvironment,
-        isNonNullableByDefault
-            ? SubtypeCheckMode.withNullabilities
-            : SubtypeCheckMode.ignoringNullabilities,
+        type, typeEnvironment, SubtypeCheckMode.withNullabilities,
         allowSuperBounded: allowSuperBounded,
         isNonNullableByDefault: library.isNonNullableByDefault,
         areGenericArgumentsAllowed: libraryFeatures.genericMetadata.isEnabled);
@@ -4985,16 +4921,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     // The following error is to be reported elsewhere.
     if (parameters.length != arguments.length) return;
 
-    final DartType bottomType = isNonNullableByDefault
-        ? const NeverType.nonNullable()
-        : const NullType();
+    final DartType bottomType = const NeverType.nonNullable();
     List<TypeArgumentIssue> issues = findTypeArgumentIssuesForInvocation(
         parameters,
         arguments,
         typeEnvironment,
-        isNonNullableByDefault
-            ? SubtypeCheckMode.withNullabilities
-            : SubtypeCheckMode.ignoringNullabilities,
+        SubtypeCheckMode.withNullabilities,
         bottomType,
         isNonNullableByDefault: library.isNonNullableByDefault,
         areGenericArgumentsAllowed: libraryFeatures.genericMetadata.isEnabled);
@@ -5064,16 +4996,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           substitute(typeParameter.defaultType, substitutionMap);
     }
 
-    final DartType bottomType = isNonNullableByDefault
-        ? const NeverType.nonNullable()
-        : const NullType();
+    final DartType bottomType = const NeverType.nonNullable();
     List<TypeArgumentIssue> issues = findTypeArgumentIssuesForInvocation(
         methodTypeParametersOfInstantiated,
         arguments.types,
         typeEnvironment,
-        isNonNullableByDefault
-            ? SubtypeCheckMode.withNullabilities
-            : SubtypeCheckMode.ignoringNullabilities,
+        SubtypeCheckMode.withNullabilities,
         bottomType,
         isNonNullableByDefault: library.isNonNullableByDefault,
         areGenericArgumentsAllowed: libraryFeatures.genericMetadata.isEnabled);
@@ -5094,18 +5022,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     // The error is to be reported elsewhere.
     if (functionType.typeParameters.length != arguments.types.length) return;
-    final DartType bottomType = isNonNullableByDefault
-        ? const NeverType.nonNullable()
-        : const NullType();
+    final DartType bottomType = const NeverType.nonNullable();
     List<TypeArgumentIssue> issues = findTypeArgumentIssuesForInvocation(
         getFreshTypeParametersFromStructuralParameters(
                 functionType.typeParameters)
             .freshTypeParameters,
         arguments.types,
         typeEnvironment,
-        isNonNullableByDefault
-            ? SubtypeCheckMode.withNullabilities
-            : SubtypeCheckMode.ignoringNullabilities,
+        SubtypeCheckMode.withNullabilities,
         bottomType,
         isNonNullableByDefault: library.isNonNullableByDefault,
         areGenericArgumentsAllowed: libraryFeatures.genericMetadata.isEnabled);
@@ -5130,18 +5054,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (functionType.typeParameters.length != typeArguments.length) {
       return;
     }
-    final DartType bottomType = isNonNullableByDefault
-        ? const NeverType.nonNullable()
-        : const NullType();
+    final DartType bottomType = const NeverType.nonNullable();
     List<TypeArgumentIssue> issues = findTypeArgumentIssuesForInvocation(
         getFreshTypeParametersFromStructuralParameters(
                 functionType.typeParameters)
             .freshTypeParameters,
         typeArguments,
         typeEnvironment,
-        isNonNullableByDefault
-            ? SubtypeCheckMode.withNullabilities
-            : SubtypeCheckMode.ignoringNullabilities,
+        SubtypeCheckMode.withNullabilities,
         bottomType,
         isNonNullableByDefault: library.isNonNullableByDefault,
         areGenericArgumentsAllowed: libraryFeatures.genericMetadata.isEnabled);
@@ -5491,7 +5411,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (hasGenericFunctionTypeAsTypeArgument(unaliased)) {
         addProblem(
             templateGenericFunctionTypeAsTypeArgumentThroughTypedef
-                .withArguments(unaliased, type, isNonNullableByDefault),
+                .withArguments(unaliased, type),
             fileOffset,
             noLength,
             fileUri);

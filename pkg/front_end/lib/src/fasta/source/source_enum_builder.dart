@@ -831,7 +831,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
             typeArgument: instantiateToBounds(
                 rawType(libraryBuilder.nonNullable),
                 classHierarchy.coreTypes.objectClass,
-                isNonNullableByDefault: libraryBuilder.isNonNullableByDefault),
+                isNonNullableByDefault: true),
             isConst: true));
 
     for (SourceFieldBuilder elementBuilder in elementBuilders) {

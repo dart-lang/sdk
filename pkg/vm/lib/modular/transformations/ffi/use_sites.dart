@@ -481,9 +481,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         // Check return type.
         if (ffiFuncType.returnType != VoidType()) {
           diagnosticReporter.report(
-              templateFfiNativeCallableListenerReturnVoid.withArguments(
-                  ffiFuncType.returnType,
-                  currentLibrary.isNonNullableByDefault),
+              templateFfiNativeCallableListenerReturnVoid
+                  .withArguments(ffiFuncType.returnType),
               func.fileOffset,
               1,
               func.location?.file);
@@ -911,8 +910,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         expectedReturnClass.superclass == unionClass) {
       if (hasExceptionalReturn) {
         diagnosticReporter.report(
-            templateFfiExpectedNoExceptionalReturn.withArguments(
-                ffiFuncType.returnType, currentLibrary.isNonNullableByDefault),
+            templateFfiExpectedNoExceptionalReturn
+                .withArguments(ffiFuncType.returnType),
             node.fileOffset,
             1,
             node.location?.file);
@@ -922,8 +921,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       // The exceptional return value is not optional for other return types.
       if (!hasExceptionalReturn) {
         diagnosticReporter.report(
-            templateFfiExpectedExceptionalReturn.withArguments(
-                ffiFuncType.returnType, currentLibrary.isNonNullableByDefault),
+            templateFfiExpectedExceptionalReturn
+                .withArguments(ffiFuncType.returnType),
             node.fileOffset,
             1,
             node.location?.file);
@@ -955,8 +954,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       if (!env.isSubtypeOf(returnType, funcType.returnType,
           SubtypeCheckMode.ignoringNullabilities)) {
         diagnosticReporter.report(
-            templateFfiDartTypeMismatch.withArguments(returnType,
-                funcType.returnType, currentLibrary.isNonNullableByDefault),
+            templateFfiDartTypeMismatch.withArguments(
+                returnType, funcType.returnType),
             exceptionalReturn.fileOffset,
             1,
             exceptionalReturn.location?.file);

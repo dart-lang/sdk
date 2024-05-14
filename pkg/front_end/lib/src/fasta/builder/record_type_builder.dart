@@ -125,8 +125,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
   DartType _buildInternal(
       LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
     DartType aliasedType = buildAliased(library, typeUse, hierarchy);
-    return unalias(aliasedType,
-        legacyEraseAliases: !library.isNonNullableByDefault);
+    return unalias(aliasedType, legacyEraseAliases: false);
   }
 
   @override

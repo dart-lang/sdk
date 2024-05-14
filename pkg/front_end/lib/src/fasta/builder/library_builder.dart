@@ -161,8 +161,6 @@ abstract class LibraryBuilder implements ModifierBuilder {
   void recordAccess(
       LibraryBuilder accessor, int charOffset, int length, Uri fileUri);
 
-  bool get isNonNullableByDefault;
-
   Nullability get nullable;
 
   Nullability get nonNullable;
@@ -381,29 +379,22 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
 
   @override
   Nullability get nullable {
-    return isNonNullableByDefault ? Nullability.nullable : Nullability.legacy;
+    return Nullability.nullable;
   }
 
   @override
   Nullability get nonNullable {
-    return isNonNullableByDefault
-        ? Nullability.nonNullable
-        : Nullability.legacy;
+    return Nullability.nonNullable;
   }
 
   @override
   Nullability nullableIfTrue(bool isNullable) {
-    if (isNonNullableByDefault) {
-      return isNullable ? Nullability.nullable : Nullability.nonNullable;
-    }
-    return Nullability.legacy;
+    return isNullable ? Nullability.nullable : Nullability.nonNullable;
   }
 
   @override
   NullabilityBuilder get nullableBuilder {
-    return isNonNullableByDefault
-        ? const NullabilityBuilder.nullable()
-        : const NullabilityBuilder.omitted();
+    return const NullabilityBuilder.nullable();
   }
 
   @override

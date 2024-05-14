@@ -48,9 +48,9 @@ class SharedTypeAnalyzerErrors
     return helper.buildProblem(
         nullSafetyEnabled
             ? templateSwitchExpressionNotSubtype.withArguments(
-                caseExpressionType, scrutineeType, nullSafetyEnabled)
+                caseExpressionType, scrutineeType)
             : templateSwitchExpressionNotAssignable.withArguments(
-                scrutineeType, caseExpressionType, nullSafetyEnabled),
+                scrutineeType, caseExpressionType),
         caseExpression.fileOffset,
         noLength,
         context: [
@@ -157,8 +157,8 @@ class SharedTypeAnalyzerErrors
     required DartType expressionType,
   }) {
     return helper.buildProblem(
-        templateForInLoopTypeNotIterable.withArguments(expressionType,
-            coreTypes.iterableNonNullableRawType, isNonNullableByDefault),
+        templateForInLoopTypeNotIterable.withArguments(
+            expressionType, coreTypes.iterableNonNullableRawType),
         expression.fileOffset,
         noLength);
   }
@@ -171,7 +171,7 @@ class SharedTypeAnalyzerErrors
       required DartType requiredType}) {
     return helper.buildProblem(
         templatePatternTypeMismatchInIrrefutableContext.withArguments(
-            matchedType, requiredType, isNonNullableByDefault),
+            matchedType, requiredType),
         pattern.fileOffset,
         noLength);
   }
@@ -191,7 +191,7 @@ class SharedTypeAnalyzerErrors
   }) {
     return helper.buildProblem(
         templateArgumentTypeNotAssignable.withArguments(
-            operandType, parameterType, isNonNullableByDefault),
+            operandType, parameterType),
         pattern.expression.fileOffset,
         noLength);
   }
@@ -202,8 +202,8 @@ class SharedTypeAnalyzerErrors
     required DartType returnType,
   }) {
     return helper.buildProblem(
-        templateInvalidAssignmentError.withArguments(returnType,
-            coreTypes.boolNonNullableRawType, isNonNullableByDefault),
+        templateInvalidAssignmentError.withArguments(
+            returnType, coreTypes.boolNonNullableRawType),
         pattern.fileOffset,
         noLength);
   }

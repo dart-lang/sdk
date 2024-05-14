@@ -786,8 +786,7 @@ mixin _ProcedureBodyBuilderContextMixin<T extends SourceProcedureBuilder>
     final bool isReturnTypeUndeclared =
         _member.returnType is OmittedTypeBuilder &&
             _member.function.returnType is DynamicType;
-    return isReturnTypeUndeclared &&
-            _member.libraryBuilder.isNonNullableByDefault
+    return isReturnTypeUndeclared
         ? const UnknownType()
         : _member.function.returnType;
   }
