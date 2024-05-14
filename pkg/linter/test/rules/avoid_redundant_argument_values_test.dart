@@ -83,6 +83,22 @@ void f() {
 ''');
   }
 
+  test_redirectingFactoryConstructor_cyclic() async {
+    await assertDiagnostics(r'''
+class A {
+  factory A.foo() = A.bar;
+  factory A.bar() = A.foo;
+}
+void f() {
+  A.foo();
+}
+''', [
+      // No lint.
+      error(CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT, 30, 5),
+      error(CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT, 57, 5),
+    ]);
+  }
+
   test_redirectingFactoryConstructor_multipleOptional() async {
     await assertNoDiagnostics(r'''
 class A {

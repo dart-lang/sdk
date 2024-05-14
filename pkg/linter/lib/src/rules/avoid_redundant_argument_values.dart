@@ -135,15 +135,23 @@ class _Visitor extends SimpleAstVisitor {
     }
 
     var redirectedConstructor = constructor?.redirectedConstructor;
-    while (redirectedConstructor?.redirectedConstructor != null) {
-      redirectedConstructor = redirectedConstructor?.redirectedConstructor;
-    }
-    if (redirectedConstructor == null) {
+    if (constructor == null || redirectedConstructor == null) {
       check(node.argumentList);
       return;
     }
 
-    var parameters = redirectedConstructor.parameters;
+    var visitedConstructors = {constructor};
+    while (redirectedConstructor != null) {
+      if (visitedConstructors.contains(redirectedConstructor)) {
+        // Cycle. Compile-time error.
+        return;
+      }
+      visitedConstructors.add(redirectedConstructor);
+      constructor = redirectedConstructor;
+      redirectedConstructor = redirectedConstructor.redirectedConstructor;
+    }
+
+    var parameters = constructor!.parameters;
 
     // If the constructor being called is a redirecting factory constructor, an
     // argument is redundant if it is equal to the default value of the
