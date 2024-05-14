@@ -402,7 +402,7 @@ class _Future<T> implements Future<T> {
   Stream<T> asStream() => new Stream<T>.fromFuture(this);
 
   void _setPendingComplete() {
-    assert(_mayComplete); // Aka _statIncomplete
+    assert(_mayComplete); // Aka. _stateIncomplete
     _state ^= _stateIncomplete ^ _statePendingComplete;
   }
 
@@ -577,6 +577,13 @@ class _Future<T> implements Future<T> {
     while (source._isChained) {
       source = source._chainSource;
     }
+    if (identical(source, target)) {
+      target._asyncCompleteError(
+          ArgumentError.value(
+              source, null, "Cannot complete a future with itself"),
+          StackTrace.current);
+      return;
+    }
     source._state |= target._state & _stateIgnoreError;
     if (source._isComplete) {
       _FutureListener? listeners = target._removeListeners();
@@ -599,6 +606,13 @@ class _Future<T> implements Future<T> {
     assert(target._mayAddListener); // Not completed, not already chained.
     while (source._isChained) {
       source = source._chainSource;
+    }
+    if (identical(source, target)) {
+      target._asyncCompleteError(
+          ArgumentError.value(
+              source, null, "Cannot complete a future with itself"),
+          StackTrace.current);
+      return;
     }
     if (!source._isComplete) {
       // Chain immediately if the source is not complete.
