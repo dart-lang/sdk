@@ -207,7 +207,7 @@ class _SyncClosureContext implements ClosureContext {
         statement.expression = inferrer.helper.wrapInProblem(
             statement.expression!,
             templateInvalidReturn.withArguments(
-                expressionType, _declaredReturnType, true),
+                expressionType, _declaredReturnType),
             statement.expression!.fileOffset,
             noLength)
           ..parent = statement;
@@ -342,7 +342,7 @@ class _SyncClosureContext implements ClosureContext {
       Statement returnStatement = new ReturnStatement(inferrer.helper
           .wrapInProblem(
               new NullLiteral()..fileOffset = fileOffset,
-              templateImplicitReturnNull.withArguments(returnType, true),
+              templateImplicitReturnNull.withArguments(returnType),
               fileOffset,
               noLength))
         ..fileOffset = fileOffset;
@@ -455,7 +455,7 @@ class _AsyncClosureContext implements ClosureContext {
         statement.expression = inferrer.helper.wrapInProblem(
             new NullLiteral()..fileOffset = statement.fileOffset,
             templateInvalidReturnAsync.withArguments(
-                expressionType, returnType, true),
+                expressionType, returnType),
             statement.expression!.fileOffset,
             noLength)
           ..parent = statement;
@@ -467,7 +467,7 @@ class _AsyncClosureContext implements ClosureContext {
         statement.expression = inferrer.helper.wrapInProblem(
             new NullLiteral()..fileOffset = statement.fileOffset,
             templateInvalidReturnAsync.withArguments(
-                expressionType, returnType, true),
+                expressionType, returnType),
             statement.expression!.fileOffset,
             noLength)
           ..parent = statement;
@@ -635,7 +635,7 @@ class _AsyncClosureContext implements ClosureContext {
       Statement returnStatement = new ReturnStatement(inferrer.helper
           .wrapInProblem(
               new NullLiteral()..fileOffset = fileOffset,
-              templateImplicitReturnNull.withArguments(returnType, true),
+              templateImplicitReturnNull.withArguments(returnType),
               fileOffset,
               noLength))
         ..fileOffset = fileOffset;

@@ -2968,7 +2968,7 @@ severity: $severity
             if (mainBuilder.parent != libraryBuilder) {
               libraryBuilder.addProblem(
                   templateMainWrongParameterTypeExported.withArguments(
-                      parameterType, listOfString, true),
+                      parameterType, listOfString),
                   libraryBuilder.charOffset,
                   noLength,
                   libraryBuilder.fileUri,
@@ -2979,7 +2979,7 @@ severity: $severity
             } else {
               libraryBuilder.addProblem(
                   templateMainWrongParameterType.withArguments(
-                      parameterType, listOfString, true),
+                      parameterType, listOfString),
                   mainBuilder.charOffset,
                   mainBuilder.name.length,
                   mainBuilder.fileUri);

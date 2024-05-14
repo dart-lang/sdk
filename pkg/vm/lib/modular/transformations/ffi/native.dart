@@ -914,8 +914,7 @@ class FfiNativeTransformer extends FfiTransformer {
       // This function is not annotated with a native function type, which is
       // invalid.
       diagnosticReporter.report(
-          templateFfiTypeInvalid.withArguments(
-              nativeType, currentLibrary.isNonNullableByDefault),
+          templateFfiTypeInvalid.withArguments(nativeType),
           node.fileOffset,
           1,
           node.location?.file);

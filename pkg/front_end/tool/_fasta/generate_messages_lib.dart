@@ -163,8 +163,7 @@ Template compileTemplate(String name, int? index, String? problemMessage,
   bool canBeShared = true;
   void ensureLabeler() {
     if (hasLabeler) return;
-    conversions
-        .add("TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);");
+    conversions.add("TypeLabeler labeler = new TypeLabeler();");
     hasLabeler = true;
     canBeShared = false;
   }
@@ -359,10 +358,6 @@ Template compileTemplate(String name, int? index, String? problemMessage,
       default:
         throw "Unhandled placeholder in template: '$name'";
     }
-  }
-
-  if (hasLabeler) {
-    parameters.add("bool isNonNullableByDefault");
   }
 
   conversions.addAll(conversions2);

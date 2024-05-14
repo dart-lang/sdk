@@ -2899,8 +2899,7 @@ class DeferredAccessGenerator extends Generator {
           .withArguments(
               _helper.buildDartType(type, TypeUse.deferredTypeError,
                   allowPotentiallyConstantType: allowPotentiallyConstantType),
-              prefixGenerator._plainNameForRead,
-              true)
+              prefixGenerator._plainNameForRead)
           .withLocation(
               _uri, charOffset, lengthOfSpan(prefixGenerator.token, token));
     }

@@ -724,8 +724,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             inferred: false);
         if (operandType.isPotentiallyNullable) {
           result = helper.buildProblem(
-              templateInstantiationNullableGenericFunctionType.withArguments(
-                  operandType, true),
+              templateInstantiationNullableGenericFunctionType
+                  .withArguments(operandType),
               node.fileOffset,
               noLength);
         } else {
@@ -735,8 +735,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       } else {
         if (operandType.typeParameters.isEmpty) {
           result = helper.buildProblem(
-              templateInstantiationNonGenericFunctionType.withArguments(
-                  operandType, true),
+              templateInstantiationNonGenericFunctionType
+                  .withArguments(operandType),
               node.fileOffset,
               noLength);
         } else if (operandType.typeParameters.length >
@@ -757,8 +757,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
     } else if (operandType is! InvalidType) {
       result = helper.buildProblem(
-          templateInstantiationNonGenericFunctionType.withArguments(
-              operandType, true),
+          templateInstantiationNonGenericFunctionType
+              .withArguments(operandType),
           node.fileOffset,
           noLength);
     }
@@ -2216,7 +2216,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (spreadElementType == null) {
       if (coreTypes.isNull(spreadTypeBound) && !element.isNullAware) {
         replacement = helper.buildProblem(
-            templateNonNullAwareSpreadIsNull.withArguments(spreadType, true),
+            templateNonNullAwareSpreadIsNull.withArguments(spreadType),
             element.expression.fileOffset,
             1);
       } else {
@@ -2234,7 +2234,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         }
 
         replacement = helper.buildProblem(
-            templateSpreadTypeMismatch.withArguments(spreadType, true),
+            templateSpreadTypeMismatch.withArguments(spreadType),
             element.expression.fileOffset,
             1);
         _copyNonPromotionReasonToReplacement(element, replacement);
@@ -2249,7 +2249,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               inferredTypeArgument == subtypeCheckResult.supertype) {
             replacement = helper.buildProblem(
                 templateSpreadElementTypeMismatchNullability.withArguments(
-                    spreadElementType, inferredTypeArgument, true),
+                    spreadElementType, inferredTypeArgument),
                 element.expression.fileOffset,
                 1);
           } else {
@@ -2258,15 +2258,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                     spreadElementType,
                     inferredTypeArgument,
                     subtypeCheckResult.subtype!,
-                    subtypeCheckResult.supertype!,
-                    true),
+                    subtypeCheckResult.supertype!),
                 element.expression.fileOffset,
                 1);
           }
         } else {
           replacement = helper.buildProblem(
               templateSpreadElementTypeMismatch.withArguments(
-                  spreadElementType, inferredTypeArgument, true),
+                  spreadElementType, inferredTypeArgument),
               element.expression.fileOffset,
               1);
         }
@@ -3919,8 +3918,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (coreTypes.isNull(spreadTypeBound) && !entry.isNullAware) {
         replacement = new MapLiteralEntry(
             helper.buildProblem(
-                templateNonNullAwareSpreadIsNull.withArguments(
-                    spreadType, true),
+                templateNonNullAwareSpreadIsNull.withArguments(spreadType),
                 entry.expression.fileOffset,
                 1),
             new NullLiteral())
@@ -3948,7 +3946,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       } else {
         Expression receiver = entry.expression;
         Expression problem = helper.buildProblem(
-            templateSpreadMapEntryTypeMismatch.withArguments(spreadType, true),
+            templateSpreadMapEntryTypeMismatch.withArguments(spreadType),
             receiver.fileOffset,
             1,
             context: getWhyNotPromotedContext(
@@ -3971,7 +3969,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               inferredKeyType == subtypeCheckResult.supertype) {
             keyError = helper.buildProblem(
                 templateSpreadMapEntryElementKeyTypeMismatchNullability
-                    .withArguments(actualKeyType, inferredKeyType, true),
+                    .withArguments(actualKeyType, inferredKeyType),
                 entry.expression.fileOffset,
                 1);
           } else {
@@ -3982,15 +3980,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                         actualKeyType,
                         inferredKeyType,
                         subtypeCheckResult.subtype!,
-                        subtypeCheckResult.supertype!,
-                        true),
+                        subtypeCheckResult.supertype!),
                 entry.expression.fileOffset,
                 1);
           }
         } else {
           keyError = helper.buildProblem(
               templateSpreadMapEntryElementKeyTypeMismatch.withArguments(
-                  actualKeyType, inferredKeyType, true),
+                  actualKeyType, inferredKeyType),
               entry.expression.fileOffset,
               1);
         }
@@ -4004,7 +4001,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               inferredValueType == subtypeCheckResult.supertype) {
             valueError = helper.buildProblem(
                 templateSpreadMapEntryElementValueTypeMismatchNullability
-                    .withArguments(actualValueType, inferredValueType, true),
+                    .withArguments(actualValueType, inferredValueType),
                 entry.expression.fileOffset,
                 1);
           } else {
@@ -4015,15 +4012,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                         actualValueType,
                         inferredValueType,
                         subtypeCheckResult.subtype!,
-                        subtypeCheckResult.supertype!,
-                        true),
+                        subtypeCheckResult.supertype!),
                 entry.expression.fileOffset,
                 1);
           }
         } else {
           valueError = helper.buildProblem(
               templateSpreadMapEntryElementValueTypeMismatch.withArguments(
-                  actualValueType, inferredValueType, true),
+                  actualValueType, inferredValueType),
               entry.expression.fileOffset,
               1);
         }
@@ -4545,8 +4541,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (offsets.iterableSpreadOffset != null) {
       replacement = new MapLiteralEntry(
           helper.buildProblem(
-              templateSpreadMapEntryTypeMismatch.withArguments(
-                  offsets.iterableSpreadType!, true),
+              templateSpreadMapEntryTypeMismatch
+                  .withArguments(offsets.iterableSpreadType!),
               offsets.iterableSpreadOffset!,
               1),
           new NullLiteral())
@@ -6303,7 +6299,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           helper.wrapInProblem(
               binary,
               templateNullableOperatorCallError.withArguments(
-                  binaryName.text, leftType, true),
+                  binaryName.text, leftType),
               binary.fileOffset,
               binaryName.text.length,
               context: context));
@@ -6422,7 +6418,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           helper.wrapInProblem(
               unary,
               templateNullableOperatorCallError.withArguments(
-                  unaryName.text, expressionType, true),
+                  unaryName.text, expressionType),
               unary.fileOffset,
               unaryName == unaryMinusName ? 1 : unaryName.text.length,
               context: context));
@@ -6561,7 +6557,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           helper.wrapInProblem(
               read,
               templateNullableOperatorCallError.withArguments(
-                  indexGetName.text, receiverType, true),
+                  indexGetName.text, receiverType),
               read.fileOffset,
               noLength));
     }
@@ -6671,7 +6667,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       return helper.wrapInProblem(
           write,
           templateNullableOperatorCallError.withArguments(
-              indexSetName.text, receiverType, true),
+              indexSetName.text, receiverType),
           write.fileOffset,
           noLength);
     }
@@ -6843,7 +6839,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       result = helper.wrapInProblem(
           write,
           templateNullablePropertyAccessError.withArguments(
-              propertyName.text, receiverType, true),
+              propertyName.text, receiverType),
           write.fileOffset,
           propertyName.text.length);
     } else {
@@ -7740,7 +7736,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             createNullAwareExpressionInferenceResult(
                 const InvalidType(), node, nullAwareGuards),
             templateIndexOutOfBoundInRecordIndexGet.withArguments(
-                node.index, receiverType.positional.length, receiverType, true),
+                node.index, receiverType.positional.length, receiverType),
             node.fileOffset,
             noLength);
       }
@@ -7782,7 +7778,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             createNullAwareExpressionInferenceResult(
                 const InvalidType(), node, nullAwareGuards),
             templateNameNotFoundInRecordNameGet.withArguments(
-                node.name, receiverType, true),
+                node.name, receiverType),
             node.fileOffset,
             noLength);
       }
@@ -8503,8 +8499,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       return new ExpressionInferenceResult(
           const DynamicType(),
           helper.buildProblem(
-              templateThrowingNotAssignableToObjectError.withArguments(
-                  expressionResult.inferredType, true),
+              templateThrowingNotAssignableToObjectError
+                  .withArguments(expressionResult.inferredType),
               node.expression.fileOffset,
               noLength));
     }

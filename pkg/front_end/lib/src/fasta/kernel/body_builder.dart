@@ -9017,7 +9017,7 @@ class BodyBuilder extends StackListenerImpl
               formalType, fieldType, SubtypeCheckMode.withNullabilities)) {
             libraryBuilder.addProblem(
                 fasta.templateInitializingFormalTypeMismatch
-                    .withArguments(name, formalType, builder.fieldType, true),
+                    .withArguments(name, formalType, builder.fieldType),
                 assignmentOffset,
                 noLength,
                 uri,

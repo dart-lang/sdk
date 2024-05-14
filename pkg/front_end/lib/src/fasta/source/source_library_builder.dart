@@ -2272,13 +2272,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (!isValid) {
         String getterMemberName = getterBuilder.fullNameForErrors;
         String setterMemberName = setterBuilder.fullNameForErrors;
-        Template<Message Function(DartType, String, DartType, String, bool)>
+        Template<Message Function(DartType, String, DartType, String)>
             template = library.isNonNullableByDefault
                 ? templateInvalidGetterSetterType
                 : templateInvalidGetterSetterTypeLegacy;
         addProblem(
-            template.withArguments(getterType, getterMemberName, setterType,
-                setterMemberName, library.isNonNullableByDefault),
+            template.withArguments(
+                getterType, getterMemberName, setterType, setterMemberName),
             getterBuilder.charOffset,
             getterBuilder.name.length,
             getterBuilder.fileUri,
@@ -4684,7 +4684,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (issue.isGenericTypeAsArgumentIssue) {
         if (issueInferred) {
           message = templateGenericFunctionTypeInferredAsActualTypeArgument
-              .withArguments(argument, true);
+              .withArguments(argument);
         } else {
           message = messageGenericFunctionTypeUsedAsActualTypeArgument;
         }
@@ -4699,30 +4699,27 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                       typeParameter.bound,
                       typeParameter.name!,
                       targetReceiver,
-                      targetName,
-                      true);
+                      targetName);
             } else {
               message = templateIncorrectTypeArgumentQualified.withArguments(
                   argument,
                   typeParameter.bound,
                   typeParameter.name!,
                   targetReceiver,
-                  targetName,
-                  true);
+                  targetName);
             }
           } else {
             if (issueInferred) {
               message = templateIncorrectTypeArgumentInstantiationInferred
                   .withArguments(argument, typeParameter.bound,
-                      typeParameter.name!, targetReceiver, true);
+                      typeParameter.name!, targetReceiver);
             } else {
               message =
                   templateIncorrectTypeArgumentInstantiation.withArguments(
                       argument,
                       typeParameter.bound,
                       typeParameter.name!,
-                      targetReceiver,
-                      true);
+                      targetReceiver);
             }
           }
         } else {
@@ -4734,11 +4731,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                 argument,
                 typeParameter.bound,
                 typeParameter.name!,
-                enclosingName,
-                true);
+                enclosingName);
           } else {
             message = templateIncorrectTypeArgument.withArguments(argument,
-                typeParameter.bound, typeParameter.name!, enclosingName, true);
+                typeParameter.bound, typeParameter.name!, enclosingName);
           }
         }
       }
@@ -4774,7 +4770,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
     if (superBoundedAttemptInverted != null && superBoundedAttempt != null) {
       (context ??= <LocatedMessage>[]).add(templateSuperBoundedHint
-          .withArguments(superBoundedAttempt, superBoundedAttemptInverted, true)
+          .withArguments(superBoundedAttempt, superBoundedAttemptInverted)
           .withLocation(fileUri, fileOffset, noLength));
     }
     addProblem(message, fileOffset, noLength, fileUri, context: context);
@@ -4799,7 +4795,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
     if (superBoundedAttemptInverted != null && superBoundedAttempt != null) {
       (context ??= <LocatedMessage>[]).add(templateSuperBoundedHint
-          .withArguments(superBoundedAttempt, superBoundedAttemptInverted, true)
+          .withArguments(superBoundedAttempt, superBoundedAttemptInverted)
           .withLocation(fileUri, fileOffset, noLength));
     }
     addProblem(message, fileOffset, noLength, fileUri, context: context);
@@ -4821,7 +4817,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         !fieldBuilder.hasInitializer) {
       addProblem(
           templateFieldNonNullableWithoutInitializerError.withArguments(
-              fieldBuilder.name, fieldBuilder.fieldType, true),
+              fieldBuilder.name, fieldBuilder.fieldType),
           fieldBuilder.charOffset,
           fieldBuilder.name.length,
           fieldBuilder.fileUri);
@@ -4840,7 +4836,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           !formal.hasDeclaredInitializer) {
         addProblem(
             templateOptionalNonNullableWithoutInitializerError.withArguments(
-                formal.name, formal.variable!.type, true),
+                formal.name, formal.variable!.type),
             formal.charOffset,
             formal.name.length,
             formal.fileUri);
@@ -5415,7 +5411,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (hasGenericFunctionTypeAsTypeArgument(unaliased)) {
         addProblem(
             templateGenericFunctionTypeAsTypeArgumentThroughTypedef
-                .withArguments(unaliased, type, true),
+                .withArguments(unaliased, type),
             fileOffset,
             noLength,
             fileUri);

@@ -350,10 +350,10 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
           templateSupertypeIsTypeVariable.withArguments(fullNameForErrors);
     } else if (type.nullability == Nullability.nullable) {
       message = templateSupertypeIsNullableAliased.withArguments(
-          fullNameForErrors, type, true);
+          fullNameForErrors, type);
     } else {
       message = templateSupertypeIsIllegalAliased.withArguments(
-          fullNameForErrors, type, true);
+          fullNameForErrors, type);
     }
     library.addProblem(message, charOffset!, noLength, fileUri, context: [
       messageTypedefCause.withLocation(

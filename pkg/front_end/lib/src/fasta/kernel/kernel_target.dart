@@ -1497,7 +1497,7 @@ class KernelTarget extends TargetImplementation {
               fieldBuilder.fieldType.isPotentiallyNonNullable) {
             libraryBuilder.addProblem(
                 templateFieldNonNullableWithoutInitializerError.withArguments(
-                    fieldBuilder.name, fieldBuilder.fieldType, true),
+                    fieldBuilder.name, fieldBuilder.fieldType),
                 fieldBuilder.charOffset,
                 fieldBuilder.name.length,
                 fieldBuilder.fileUri);
@@ -1536,8 +1536,7 @@ class KernelTarget extends TargetImplementation {
               fieldBuilder.field.type.isPotentiallyNonNullable) {
             libraryBuilder.addProblem(
                 templateFieldNonNullableNotInitializedByConstructorError
-                    .withArguments(
-                        fieldBuilder.name, fieldBuilder.field.type, true),
+                    .withArguments(fieldBuilder.name, fieldBuilder.field.type),
                 constructorBuilder.charOffset,
                 noLength,
                 constructorBuilder.fileUri,

@@ -103,11 +103,8 @@ class BuilderMixinInferrer {
           asInstantiationOf(baseType, mixinSupertype.classNode);
       if (supertype == null) {
         reportProblem(
-            templateMixinInferenceNoMatchingClass.withArguments(
-                mixinClass.name,
-                baseType.classNode.name,
-                mixinSupertype.asInterfaceType,
-                mixinClass.enclosingLibrary.isNonNullableByDefault),
+            templateMixinInferenceNoMatchingClass.withArguments(mixinClass.name,
+                baseType.classNode.name, mixinSupertype.asInterfaceType),
             mixinClass);
         return;
       }
@@ -137,11 +134,8 @@ class BuilderMixinInferrer {
     generateConstraints(mixinClass, baseType, mixinSupertype);
     if (_mixinInferenceSolution.isUnsolvable) {
       reportProblem(
-          templateMixinInferenceNoMatchingClass.withArguments(
-              mixinClass.name,
-              baseType.classNode.name,
-              mixinSupertype.asInterfaceType,
-              mixinClass.enclosingLibrary.isNonNullableByDefault),
+          templateMixinInferenceNoMatchingClass.withArguments(mixinClass.name,
+              baseType.classNode.name, mixinSupertype.asInterfaceType),
           mixinClass);
     }
     // Generate new type parameters with the solution as bounds.

@@ -376,13 +376,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       DartType? runtimeCheckedType,
       bool isVoidAllowed = false,
       bool coerceExpression = true,
-      Template<Message Function(DartType, DartType, bool)>? errorTemplate,
-      Template<Message Function(DartType, DartType, bool)>?
-          nullabilityErrorTemplate,
-      Template<Message Function(DartType, bool)>? nullabilityNullErrorTemplate,
-      Template<Message Function(DartType, DartType, bool)>?
+      Template<Message Function(DartType, DartType)>? errorTemplate,
+      Template<Message Function(DartType, DartType)>? nullabilityErrorTemplate,
+      Template<Message Function(DartType)>? nullabilityNullErrorTemplate,
+      Template<Message Function(DartType, DartType)>?
           nullabilityNullTypeErrorTemplate,
-      Template<Message Function(DartType, DartType, DartType, DartType, bool)>?
+      Template<Message Function(DartType, DartType, DartType, DartType)>?
           nullabilityPartErrorTemplate,
       Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
     return ensureAssignableResult(expectedType,
@@ -419,8 +418,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
     DartType initialContextType = runtimeCheckedType ?? contextType;
 
-    Template<Message Function(DartType, DartType, bool)>?
-        preciseTypeErrorTemplate =
+    Template<Message Function(DartType, DartType)>? preciseTypeErrorTemplate =
         _getPreciseTypeErrorTemplate(inferenceResult.expression);
     AssignabilityResult assignabilityResult = _computeAssignabilityKind(
         contextType, inferenceResult.inferredType,
@@ -497,13 +495,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       DartType? runtimeCheckedType,
       bool isVoidAllowed = false,
       bool isCoercionAllowed = true,
-      Template<Message Function(DartType, DartType, bool)>? errorTemplate,
-      Template<Message Function(DartType, DartType, bool)>?
-          nullabilityErrorTemplate,
-      Template<Message Function(DartType, bool)>? nullabilityNullErrorTemplate,
-      Template<Message Function(DartType, DartType, bool)>?
+      Template<Message Function(DartType, DartType)>? errorTemplate,
+      Template<Message Function(DartType, DartType)>? nullabilityErrorTemplate,
+      Template<Message Function(DartType)>? nullabilityNullErrorTemplate,
+      Template<Message Function(DartType, DartType)>?
           nullabilityNullTypeErrorTemplate,
-      Template<Message Function(DartType, DartType, DartType, DartType, bool)>?
+      Template<Message Function(DartType, DartType, DartType, DartType)>?
           nullabilityPartErrorTemplate,
       Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
     // [errorTemplate], [nullabilityErrorTemplate], and
@@ -531,8 +528,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     fileOffset ??= inferenceResult.expression.fileOffset;
     contextType = computeGreatestClosure(contextType);
 
-    Template<Message Function(DartType, DartType, bool)>?
-        preciseTypeErrorTemplate =
+    Template<Message Function(DartType, DartType)>? preciseTypeErrorTemplate =
         _getPreciseTypeErrorTemplate(inferenceResult.expression);
     AssignabilityResult assignabilityResult = _computeAssignabilityKind(
         contextType, inferenceResult.inferredType,
@@ -572,7 +568,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             expressionType,
             contextType,
             errorTemplate.withArguments(
-                expressionType, declaredContextType ?? contextType, true));
+                expressionType, declaredContextType ?? contextType));
         break;
       case AssignabilityKind.unassignableVoid:
         // Error: not assignable.  Perform error recovery.
@@ -585,7 +581,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         result = helper.wrapInProblem(
             expression,
             preciseTypeErrorTemplate!
-                .withArguments(expressionType, contextType, true),
+                .withArguments(expressionType, contextType),
             expression.fileOffset,
             noLength);
         break;
@@ -602,15 +598,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                 expression,
                 expressionType,
                 contextType,
-                nullabilityNullErrorTemplate.withArguments(
-                    declaredContextType ?? contextType, true));
+                nullabilityNullErrorTemplate
+                    .withArguments(declaredContextType ?? contextType));
           } else if (expressionType is NullType) {
             result = _wrapUnassignableExpression(
                 expression,
                 expressionType,
                 contextType,
                 nullabilityNullTypeErrorTemplate.withArguments(
-                    expressionType, declaredContextType ?? contextType, true));
+                    expressionType, declaredContextType ?? contextType));
           } else {
             whyNotPromoted ??= flowAnalysis.whyNotPromoted(expression);
             result = _wrapUnassignableExpression(
@@ -618,7 +614,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                 expressionType,
                 contextType,
                 nullabilityErrorTemplate.withArguments(
-                    expressionType, declaredContextType ?? contextType, true),
+                    expressionType, declaredContextType ?? contextType),
                 context: getWhyNotPromotedContext(
                     whyNotPromoted.call(),
                     expression,
@@ -634,8 +630,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                   expressionType,
                   declaredContextType ?? contextType,
                   assignabilityResult.subtype!,
-                  assignabilityResult.supertype!,
-                  true));
+                  assignabilityResult.supertype!));
         }
         break;
       default:
@@ -662,13 +657,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       DartType? runtimeCheckedType,
       bool isVoidAllowed = false,
       bool coerceExpression = true,
-      Template<Message Function(DartType, DartType, bool)>? errorTemplate,
-      Template<Message Function(DartType, DartType, bool)>?
-          nullabilityErrorTemplate,
-      Template<Message Function(DartType, bool)>? nullabilityNullErrorTemplate,
-      Template<Message Function(DartType, DartType, bool)>?
+      Template<Message Function(DartType, DartType)>? errorTemplate,
+      Template<Message Function(DartType, DartType)>? nullabilityErrorTemplate,
+      Template<Message Function(DartType)>? nullabilityNullErrorTemplate,
+      Template<Message Function(DartType, DartType)>?
           nullabilityNullTypeErrorTemplate,
-      Template<Message Function(DartType, DartType, DartType, DartType, bool)>?
+      Template<Message Function(DartType, DartType, DartType, DartType)>?
           nullabilityPartErrorTemplate,
       Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
     if (coerceExpression) {
@@ -1288,7 +1282,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       DartType receiverType,
       Name name,
       int fileOffset,
-      Template<Message Function(String, DartType, bool)> errorTemplate) {
+      Template<Message Function(String, DartType)> errorTemplate) {
     assert(isKnown(receiverType));
     if (target.isMissing) {
       int length = name.text.length;
@@ -1298,7 +1292,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
       return helper.buildProblem(
           errorTemplate.withArguments(
-              name.text, receiverType.nonTypeVariableBound, true),
+              name.text, receiverType.nonTypeVariableBound),
           fileOffset,
           length);
     }
@@ -2194,7 +2188,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           !formal.hasDeclaredInitializer) {
         libraryBuilder.addProblem(
             templateOptionalNonNullableWithoutInitializerError.withArguments(
-                formal.name!, formal.type, true),
+                formal.name!, formal.type),
             formal.fileOffset,
             formal.name!.length,
             libraryBuilder.importUri);
@@ -2423,8 +2417,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             (type) => !type.isPotentiallyNullable);
         result = wrapExpressionInferenceResultInProblem(
             result,
-            templateNullableExpressionCallError.withArguments(
-                receiverType, true),
+            templateNullableExpressionCallError.withArguments(receiverType),
             fileOffset,
             noLength,
             context: context);
@@ -2460,8 +2453,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           //   }
           replacement = helper.wrapInProblem(
               replacement,
-              templateNullableExpressionCallError.withArguments(
-                  receiverType, true),
+              templateNullableExpressionCallError.withArguments(receiverType),
               fileOffset,
               noLength,
               context: context);
@@ -2476,7 +2468,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           replacement = helper.wrapInProblem(
               replacement,
               templateNullableMethodCallError.withArguments(
-                  name.text, receiverType, true),
+                  name.text, receiverType),
               fileOffset,
               name.text.length,
               context: context);
@@ -2556,8 +2548,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         //   f();
         replacement = helper.wrapInProblem(
             replacement,
-            templateNullableExpressionCallError.withArguments(
-                receiverType, true),
+            templateNullableExpressionCallError.withArguments(receiverType),
             fileOffset,
             noLength,
             context: context);
@@ -2568,7 +2559,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         replacement = helper.wrapInProblem(
             replacement,
             templateNullableMethodCallError.withArguments(
-                callName.text, receiverType, true),
+                callName.text, receiverType),
             fileOffset,
             callName.text.length,
             context: context);
@@ -2730,8 +2721,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         //   }
         replacement = helper.wrapInProblem(
             replacement,
-            templateNullableExpressionCallError.withArguments(
-                receiverType, true),
+            templateNullableExpressionCallError.withArguments(receiverType),
             fileOffset,
             noLength,
             context: context);
@@ -2742,7 +2732,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         replacement = helper.wrapInProblem(
             replacement,
             templateNullableMethodCallError.withArguments(
-                methodName.text, receiverType, true),
+                methodName.text, receiverType),
             fileOffset,
             methodName.text.length,
             context: context);
@@ -2843,7 +2833,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
     if (isExpressionInvocation) {
       Expression error = helper.buildProblem(
-          templateImplicitCallOfNonMethod.withArguments(receiverType, true),
+          templateImplicitCallOfNonMethod.withArguments(receiverType),
           fileOffset,
           noLength);
       return new ExpressionInferenceResult(const InvalidType(), error);
@@ -2877,7 +2867,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           (type) => !type.isPotentiallyNullable);
       invocationResult = wrapExpressionInferenceResultInProblem(
           invocationResult,
-          templateNullableExpressionCallError.withArguments(receiverType, true),
+          templateNullableExpressionCallError.withArguments(receiverType),
           fileOffset,
           noLength,
           context: context);
@@ -3039,7 +3029,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
     if (isExpressionInvocation) {
       Expression error = helper.buildProblem(
-          templateImplicitCallOfNonMethod.withArguments(receiverType, true),
+          templateImplicitCallOfNonMethod.withArguments(receiverType),
           fileOffset,
           noLength);
       return new ExpressionInferenceResult(const InvalidType(), error);
@@ -3076,7 +3066,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           (type) => !type.isPotentiallyNullable);
       invocationResult = wrapExpressionInferenceResultInProblem(
           invocationResult,
-          templateNullableExpressionCallError.withArguments(receiverType, true),
+          templateNullableExpressionCallError.withArguments(receiverType),
           fileOffset,
           noLength,
           context: context);
@@ -3275,8 +3265,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               (type) => !type.isPotentiallyNullable);
           readResult = wrapExpressionInferenceResultInProblem(
               readResult,
-              templateNullableExpressionCallError.withArguments(
-                  receiverType, true),
+              templateNullableExpressionCallError.withArguments(receiverType),
               fileOffset,
               noLength,
               context: context);
@@ -3315,8 +3304,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               (type) => !type.isPotentiallyNullable);
           readResult = wrapExpressionInferenceResultInProblem(
               readResult,
-              templateNullableExpressionCallError.withArguments(
-                  receiverType, true),
+              templateNullableExpressionCallError.withArguments(receiverType),
               fileOffset,
               noLength,
               context: context);
@@ -3362,8 +3350,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               (type) => !type.isPotentiallyNullable);
           readResult = wrapExpressionInferenceResultInProblem(
               readResult,
-              templateNullableExpressionCallError.withArguments(
-                  receiverType, true),
+              templateNullableExpressionCallError.withArguments(receiverType),
               fileOffset,
               noLength,
               context: context);
@@ -3757,8 +3744,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   ///
   /// If it is, an error message template is returned, which can be used by the
   /// caller to report an invalid cast.  Otherwise, `null` is returned.
-  Template<Message Function(DartType, DartType, bool)>?
-      _getPreciseTypeErrorTemplate(Expression expression) {
+  Template<Message Function(DartType, DartType)>? _getPreciseTypeErrorTemplate(
+      Expression expression) {
     if (expression is ListLiteral) {
       return templateInvalidCastLiteralList;
     }
@@ -3873,11 +3860,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       Name name,
       Expression? wrappedExpression,
       List<ExtensionAccessCandidate>? extensionAccessCandidates,
-      Template<Message Function(String, DartType, bool)> missingTemplate,
-      Template<Message Function(String, DartType, bool)> ambiguousTemplate) {
+      Template<Message Function(String, DartType)> missingTemplate,
+      Template<Message Function(String, DartType)> ambiguousTemplate) {
     List<LocatedMessage>? context;
-    Template<Message Function(String, DartType, bool)> template =
-        missingTemplate;
+    Template<Message Function(String, DartType)> template = missingTemplate;
     if (extensionAccessCandidates != null) {
       context = extensionAccessCandidates
           .map((ExtensionAccessCandidate c) =>
@@ -3891,15 +3877,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (wrappedExpression != null) {
       return helper.wrapInProblem(
           wrappedExpression,
-          template.withArguments(
-              name.text, receiverType.nonTypeVariableBound, true),
+          template.withArguments(name.text, receiverType.nonTypeVariableBound),
           fileOffset,
           length,
           context: context);
     } else {
       return helper.buildProblem(
-          template.withArguments(
-              name.text, receiverType.nonTypeVariableBound, true),
+          template.withArguments(name.text, receiverType.nonTypeVariableBound),
           fileOffset,
           length,
           context: context);
@@ -4125,7 +4109,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       readResult = wrapExpressionInferenceResultInProblem(
           readResult,
           templateNullablePropertyAccessError.withArguments(
-              propertyName.text, receiverType, true),
+              propertyName.text, receiverType),
           read.fileOffset,
           propertyName.text.length,
           context: whyNotPromoted != null
@@ -4140,7 +4124,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       int fileOffset, DartType receiverType, Name propertyName,
       {Expression? receiver,
       List<ExtensionAccessCandidate>? extensionAccessCandidates}) {
-    Template<Message Function(String, DartType, bool)> templateMissing =
+    Template<Message Function(String, DartType)> templateMissing =
         templateUndefinedGetter;
     return _reportMissingOrAmbiguousMember(
         fileOffset,
@@ -4159,7 +4143,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       DartType receiverType, Name propertyName, Expression value,
       {required bool forEffect,
       List<ExtensionAccessCandidate>? extensionAccessCandidates}) {
-    Template<Message Function(String, DartType, bool)> templateMissing =
+    Template<Message Function(String, DartType)> templateMissing =
         templateUndefinedSetter;
     return _reportMissingOrAmbiguousMember(
         fileOffset,
@@ -4175,7 +4159,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   Expression createMissingIndexGet(int fileOffset, Expression receiver,
       DartType receiverType, Expression index,
       {List<ExtensionAccessCandidate>? extensionAccessCandidates}) {
-    Template<Message Function(String, DartType, bool)> templateMissing =
+    Template<Message Function(String, DartType)> templateMissing =
         templateUndefinedOperator;
 
     return _reportMissingOrAmbiguousMember(
@@ -4194,7 +4178,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       DartType receiverType, Expression index, Expression value,
       {required bool forEffect,
       List<ExtensionAccessCandidate>? extensionAccessCandidates}) {
-    Template<Message Function(String, DartType, bool)> templateMissing =
+    Template<Message Function(String, DartType)> templateMissing =
         templateUndefinedOperator;
     return _reportMissingOrAmbiguousMember(
         fileOffset,
@@ -4212,7 +4196,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       DartType leftType, Name binaryName, Expression right,
       {List<ExtensionAccessCandidate>? extensionAccessCandidates}) {
     assert(binaryName != equalsName);
-    Template<Message Function(String, DartType, bool)> templateMissing =
+    Template<Message Function(String, DartType)> templateMissing =
         templateUndefinedOperator;
     return _reportMissingOrAmbiguousMember(
         fileOffset,
@@ -4229,7 +4213,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   Expression createMissingUnary(int fileOffset, Expression expression,
       DartType expressionType, Name unaryName,
       {List<ExtensionAccessCandidate>? extensionAccessCandidates}) {
-    Template<Message Function(String, DartType, bool)> templateMissing =
+    Template<Message Function(String, DartType)> templateMissing =
         templateUndefinedOperator;
     return _reportMissingOrAmbiguousMember(
         fileOffset,
@@ -4257,8 +4241,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     assert(!libraryBuilder.libraryFeatures.genericMetadata.isEnabled);
     if (isGenericFunctionTypeOrAlias(typeArgument)) {
       libraryBuilder.addProblem(
-          templateGenericFunctionTypeInferredAsActualTypeArgument.withArguments(
-              typeArgument, true),
+          templateGenericFunctionTypeInferredAsActualTypeArgument
+              .withArguments(typeArgument),
           fileOffset,
           noLength,
           helper.uri);
@@ -4671,7 +4655,7 @@ class _ObjectAccessDescriptor {
         case Nullability.undetermined:
           return internalProblem(
               templateInternalProblemUnsupportedNullability.withArguments(
-                  "${receiverBound.nullability}", receiverBound, true),
+                  "${receiverBound.nullability}", receiverBound),
               fileOffset,
               visitor.libraryBuilder.fileUri);
       }

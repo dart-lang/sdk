@@ -114,11 +114,9 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
           getterType, setterType, SubtypeCheckMode.withNullabilities);
       if (!isValid) {
         if (getterIsDeclared && setterIsDeclared) {
-          Template<Message Function(DartType, String, DartType, String, bool)>
-              template = templateInvalidGetterSetterType;
           libraryBuilder.addProblem(
-              template.withArguments(
-                  getterType, getterFullName, setterType, setterFullName, true),
+              templateInvalidGetterSetterType.withArguments(
+                  getterType, getterFullName, setterType, setterFullName),
               getterOffset,
               name.text.length,
               getterUri,
@@ -128,14 +126,14 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
                     .withLocation(setterUri, setterOffset, name.text.length)
               ]);
         } else if (getterIsDeclared) {
-          Template<Message Function(DartType, String, DartType, String, bool)>
+          Template<Message Function(DartType, String, DartType, String)>
               template = templateInvalidGetterSetterTypeSetterInheritedGetter;
           if (getterIsField) {
             template = templateInvalidGetterSetterTypeSetterInheritedField;
           }
           libraryBuilder.addProblem(
               template.withArguments(
-                  getterType, getterFullName, setterType, setterFullName, true),
+                  getterType, getterFullName, setterType, setterFullName),
               getterOffset,
               name.text.length,
               getterUri,
@@ -145,7 +143,7 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
                     .withLocation(setterUri, setterOffset, name.text.length)
               ]);
         } else if (setterIsDeclared) {
-          Template<Message Function(DartType, String, DartType, String, bool)>
+          Template<Message Function(DartType, String, DartType, String)>
               template = templateInvalidGetterSetterTypeGetterInherited;
           Template<Message Function(String)> context =
               templateInvalidGetterSetterTypeGetterContext;
@@ -155,7 +153,7 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
           }
           libraryBuilder.addProblem(
               template.withArguments(
-                  getterType, getterFullName, setterType, setterFullName, true),
+                  getterType, getterFullName, setterType, setterFullName),
               setterOffset,
               name.text.length,
               setterUri,
@@ -165,7 +163,7 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
                     .withLocation(getterUri, getterOffset, name.text.length)
               ]);
         } else {
-          Template<Message Function(DartType, String, DartType, String, bool)>
+          Template<Message Function(DartType, String, DartType, String)>
               template = templateInvalidGetterSetterTypeBothInheritedGetter;
           Template<Message Function(String)> context =
               templateInvalidGetterSetterTypeGetterContext;
@@ -175,7 +173,7 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
           }
           libraryBuilder.addProblem(
               template.withArguments(
-                  getterType, getterFullName, setterType, setterFullName, true),
+                  getterType, getterFullName, setterType, setterFullName),
               declarationOffset,
               noLength,
               declarationUri,

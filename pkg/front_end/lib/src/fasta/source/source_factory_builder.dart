@@ -654,7 +654,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
           libraryBuilder.addProblemForRedirectingFactory(
               factory,
               templateRedirectingFactoryIncompatibleTypeArgument.withArguments(
-                  typeArgument, typeParameterBound, true),
+                  typeArgument, typeParameterBound),
               redirectionTarget.charOffset,
               noLength,
               redirectionTarget.fileUri);
@@ -665,7 +665,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
             libraryBuilder.addProblemForRedirectingFactory(
                 factory,
                 templateRedirectingFactoryIncompatibleTypeArgument
-                    .withArguments(typeArgument, typeParameterBound, true),
+                    .withArguments(typeArgument, typeParameterBound),
                 redirectionTarget.charOffset,
                 noLength,
                 redirectionTarget.fileUri);
@@ -815,7 +815,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
         libraryBuilder.addProblemForRedirectingFactory(
             this,
             templateIncompatibleRedirecteeFunctionType.withArguments(
-                redirecteeType, factoryType.withoutTypeParameters, true),
+                redirecteeType, factoryType.withoutTypeParameters),
             redirectionTarget.charOffset,
             noLength,
             redirectionTarget.fileUri);
@@ -827,7 +827,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
           libraryBuilder.addProblemForRedirectingFactory(
               this,
               templateIncompatibleRedirecteeFunctionType.withArguments(
-                  redirecteeType, factoryType.withoutTypeParameters, true),
+                  redirecteeType, factoryType.withoutTypeParameters),
               redirectionTarget.charOffset,
               noLength,
               redirectionTarget.fileUri);
