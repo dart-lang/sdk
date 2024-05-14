@@ -1204,6 +1204,44 @@ class X {}
     ]);
   }
 
+  /// Test that macros are compiled using the packages file of the package
+  /// that uses the macro.
+  test_macroInPackage() async {
+    var myMacroRootPath = '$workspaceRootPath/my_macro';
+    writePackageConfig(
+      myMacroRootPath,
+      PackageConfigFileBuilder()
+        ..add(name: 'my_macro', rootPath: myMacroRootPath),
+    );
+
+    newAnalysisOptionsYamlFile(
+      myMacroRootPath,
+      AnalysisOptionsFileConfig(
+        experiments: experiments,
+      ).toContent(),
+    );
+
+    newFile(
+      '$myMacroRootPath/lib/append.dart',
+      getMacroCode('append.dart'),
+    );
+
+    writeTestPackageConfig(
+      PackageConfigFileBuilder()
+        ..add(name: 'my_macro', rootPath: myMacroRootPath),
+      macrosEnvironment: MacrosEnvironment.instance,
+    );
+
+    await assertNoErrorsInCode(r'''
+import 'package:my_macro/append.dart';
+
+@DeclareType('B', 'class B {}')
+class A {}
+
+void f(B b) {}
+''');
+  }
+
   test_withLints() async {
     writeTestPackageAnalysisOptionsFile(AnalysisOptionsFileConfig(
       lints: ['unnecessary_this'],

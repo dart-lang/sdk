@@ -227,6 +227,7 @@ class MacroKernelBuilder {
 
   Future<Uint8List> build({
     required MacroFileSystem fileSystem,
+    required String packageFilePath,
     required List<MacroLibrary> libraries,
   }) async {
     var macroMainContent = macro.bootstrapMacroIsolate(
@@ -245,6 +246,7 @@ class MacroKernelBuilder {
 
     return KernelCompilationService.compile(
       fileSystem: overlayFileSystem,
+      packageFilePath: packageFilePath,
       path: macroMainPath,
     );
   }

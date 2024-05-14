@@ -15147,11 +15147,16 @@ elementFactory
     }
 
     var otherRootPath = '$workspaceRootPath/other';
+    var otherPackageConfig = PackageConfigFileBuilder()
+      ..add(name: 'test', rootPath: testPackageRootPath)
+      ..add(name: 'other', rootPath: otherRootPath);
+    addMacrosEnvironment(
+      otherPackageConfig,
+      MacrosEnvironment.instance,
+    );
     writePackageConfig(
       otherRootPath,
-      PackageConfigFileBuilder()
-        ..add(name: 'test', rootPath: testPackageRootPath)
-        ..add(name: 'other', rootPath: otherRootPath),
+      otherPackageConfig,
     );
 
     newAnalysisOptionsYamlFile(

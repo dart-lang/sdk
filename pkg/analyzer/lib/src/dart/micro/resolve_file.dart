@@ -784,6 +784,7 @@ class FileResolver {
         sourceFactory: sourceFactory,
         externalSummaries: SummaryDataStore(),
         macroSupport: null,
+        packagesFile: null,
         testData: testData?.libraryContext,
       );
 
