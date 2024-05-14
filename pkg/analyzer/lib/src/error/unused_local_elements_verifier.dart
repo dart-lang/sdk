@@ -5,6 +5,7 @@
 import 'dart:collection';
 import 'dart:math' as math;
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -485,6 +486,9 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   /// The URI of the library being verified.
   final Uri _libraryUri;
 
+  /// Whether the `wildcard_variables` feature is enabled.
+  final bool _wildCardVariablesEnabled;
+
   /// The current set of pattern variable elements, used to track whether _all_
   /// within a [PatternVariableDeclaration] are used.
   List<BindPatternVariableElement>? _patternVariableElements;
@@ -492,7 +496,9 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   /// Create a new instance of the [UnusedLocalElementsVerifier].
   UnusedLocalElementsVerifier(this._errorListener, this._usedElements,
       this._inheritanceManager, LibraryElement library)
-      : _libraryUri = library.source.uri;
+      : _libraryUri = library.source.uri,
+        _wildCardVariablesEnabled =
+            library.featureSet.isEnabled(Feature.wildcard_variables);
 
   @override
   void visitCatchClauseParameter(CatchClauseParameter node) {
@@ -662,7 +668,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
         if (isUsed) {
           return;
         }
-        if (!_isNamedUnderscore(element)) {
+        if (!_isNamedWildcard(element)) {
           elementsToReport.add(element);
         }
       }
@@ -749,16 +755,19 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
     return correspondingParameter;
   }
 
-  /// Returns whether the name of [element] consists only of underscore
-  /// characters.
-  bool _isNamedUnderscore(LocalVariableElement element) {
+  /// Returns whether the name of [element] should be treated as a wildcard.
+  bool _isNamedWildcard(LocalVariableElement element) {
     String name = element.name;
-    for (int index = name.length - 1; index >= 0; --index) {
+    var length = name.length;
+    if (length > 1 && _wildCardVariablesEnabled) return false;
+
+    for (int index = length - 1; index >= 0; --index) {
       if (name.codeUnitAt(index) != 0x5F) {
         // 0x5F => '_'
         return false;
       }
     }
+
     return true;
   }
 
@@ -1010,7 +1019,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _visitLocalVariableElement(LocalVariableElement element) {
-    if (!_isUsedElement(element) && !_isNamedUnderscore(element)) {
+    if (!_isUsedElement(element) && !_isNamedWildcard(element)) {
       ErrorCode errorCode;
       if (_usedElements.isCatchException(element)) {
         errorCode = WarningCode.UNUSED_CATCH_CLAUSE;
