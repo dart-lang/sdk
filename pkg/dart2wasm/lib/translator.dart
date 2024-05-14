@@ -995,18 +995,18 @@ class Translator with KernelNodes {
   }
 
   DartType typeOfReturnValue(Member member) {
-    final unboxingInfo = unboxingInfoMetadata[member];
-    if (unboxingInfo != null) {
-      final returnInfo = unboxingInfo.returnInfo;
-      if (returnInfo.kind == UnboxingKind.int) {
-        return coreTypes.intRawType(Nullability.nonNullable);
-      }
-      if (returnInfo.kind == UnboxingKind.double) {
-        return coreTypes.doubleRawType(Nullability.nonNullable);
-      }
-    }
-    if (member is Field) return member.type;
-    return member.function!.returnType;
+    if (member is Field) return typeOfField(member);
+
+    // TODO(http://dartbug.com/55668): Once TFA annotates members with inferred
+    // return types we should make use of them here.
+    return _inferredUnboxedReturnType(member) ?? member.function!.returnType;
+  }
+
+  DartType typeOfField(Field node) {
+    assert(!node.isLate);
+    return _inferredUnboxedReturnType(node) ??
+        _inferredTypeOfField(node) ??
+        node.type;
   }
 
   w.ValueType translateTypeOfParameter(
@@ -1019,7 +1019,7 @@ class Translator with KernelNodes {
   }
 
   w.ValueType translateTypeOfField(Field node) {
-    return translateType(_inferredTypeOfField(node) ?? node.type);
+    return translateType(typeOfField(node));
   }
 
   w.ValueType translateTypeOfLocalVariable(VariableDeclaration node) {
@@ -1078,6 +1078,20 @@ class Translator with KernelNodes {
     final nullability =
         inferredType.nullable ? Nullability.nullable : Nullability.nonNullable;
     return InterfaceType(concreteClass, nullability, typeArguments);
+  }
+
+  DartType? _inferredUnboxedReturnType(Member node) {
+    final unboxingInfo = unboxingInfoMetadata[node];
+    if (unboxingInfo == null) return null;
+
+    final returnInfo = unboxingInfo.returnInfo;
+    if (returnInfo.kind == UnboxingKind.int) {
+      return coreTypes.intRawType(Nullability.nonNullable);
+    }
+    if (returnInfo.kind == UnboxingKind.double) {
+      return coreTypes.doubleRawType(Nullability.nonNullable);
+    }
+    return null;
   }
 
   bool shouldInline(Reference target) {
