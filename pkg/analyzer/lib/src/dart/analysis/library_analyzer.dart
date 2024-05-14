@@ -328,8 +328,7 @@ class LibraryAnalyzer {
         allUnits.add(linterUnit);
       }
       for (var unitAnalysis in _libraryUnits.values) {
-        _computeLints(unitAnalysis, unitAnalysis.linterUnit, allUnits,
-            analysisOptions: _analysisOptions);
+        _computeLints(unitAnalysis, allUnits);
       }
     }
 
@@ -350,18 +349,17 @@ class LibraryAnalyzer {
 
   void _computeLints(
     UnitAnalysis unitAnalysis,
-    LinterContextUnit currentUnit,
-    List<LinterContextUnit> allUnits, {
-    required AnalysisOptionsImpl analysisOptions,
-  }) {
+    List<LinterContextUnit> allUnits,
+  ) {
     // Skip computing lints on macro generated augmentations.
     // See: https://github.com/dart-lang/sdk/issues/54875
     if (unitAnalysis.file.isMacroAugmentation) return;
 
+    var currentUnit = unitAnalysis.linterUnit;
     var unit = currentUnit.unit;
     var errorReporter = unitAnalysis.errorReporter;
 
-    var enableTiming = analysisOptions.enableTiming;
+    var enableTiming = _analysisOptions.enableTiming;
     var nodeRegistry = NodeLintRegistry(enableTiming);
 
     var context = LinterContextImpl(
@@ -371,10 +369,10 @@ class LibraryAnalyzer {
       _typeProvider,
       _typeSystem,
       _inheritance,
-      analysisOptions,
+      _analysisOptions,
       unitAnalysis.file.workspacePackage,
     );
-    for (var linter in analysisOptions.lintRules) {
+    for (var linter in _analysisOptions.lintRules) {
       linter.reporter = errorReporter;
       var timer = enableTiming ? lintRegistry.getTimer(linter) : null;
       timer?.start();
@@ -387,7 +385,7 @@ class LibraryAnalyzer {
       LinterVisitor(
         nodeRegistry,
         LinterExceptionHandler(
-          propagateExceptions: analysisOptions.propagateLinterExceptions,
+          propagateExceptions: _analysisOptions.propagateLinterExceptions,
         ).logException,
       ),
     );
