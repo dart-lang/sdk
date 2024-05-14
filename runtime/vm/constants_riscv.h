@@ -799,6 +799,8 @@ enum Funct3 {
   REMW = 0b110,
   REMUW = 0b111,
 
+  WIDTH8 = 0b000,
+  WIDTH16 = 0b001,
   WIDTH32 = 0b010,
   WIDTH64 = 0b011,
 
@@ -898,6 +900,8 @@ enum Funct5 {
   AMOMAX = 0b10100,
   AMOMINU = 0b11000,
   AMOMAXU = 0b11100,
+  LOADORDERED = 0b00110,
+  STOREORDERED = 0b00111,
 };
 
 enum Funct2 {
@@ -1597,7 +1601,8 @@ static constexpr Extension RV_Zbb(7);  // Basic bit-manipulation
 static constexpr Extension RV_Zbs(8);  // Single-bit instructions
 static constexpr ExtensionSet RV_B = RV_Zba | RV_Zbb | RV_Zbs;
 static constexpr ExtensionSet RV_GCB = RV_GC | RV_B;
-static constexpr Extension RV_Zbc(9);  // Carry-less multiplication
+static constexpr Extension RV_Zbc(9);      // Carry-less multiplication
+static constexpr Extension RV_Zalasr(10);  // Load-acquire, store-release
 
 #undef R
 

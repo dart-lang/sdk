@@ -1634,6 +1634,72 @@ void MicroAssembler::bseti(Register rd, Register rs1, intx_t shamt) {
   EmitRType(BSET, shamt, rs1, F3_BSET, rd, OPIMM);
 }
 
+void MicroAssembler::lb(Register rd, Address addr, std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT((order == std::memory_order_acquire) ||
+         (order == std::memory_order_acq_rel));
+  ASSERT(Supports(RV_Zalasr));
+  EmitRType(LOADORDERED, order, ZR, addr.base(), WIDTH8, rd, AMO);
+}
+
+void MicroAssembler::lh(Register rd, Address addr, std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT((order == std::memory_order_acquire) ||
+         (order == std::memory_order_acq_rel));
+  ASSERT(Supports(RV_Zalasr));
+  EmitRType(LOADORDERED, order, ZR, addr.base(), WIDTH16, rd, AMO);
+}
+
+void MicroAssembler::lw(Register rd, Address addr, std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT((order == std::memory_order_acquire) ||
+         (order == std::memory_order_acq_rel));
+  ASSERT(Supports(RV_Zalasr));
+  EmitRType(LOADORDERED, order, ZR, addr.base(), WIDTH32, rd, AMO);
+}
+
+void MicroAssembler::sb(Register rs2, Address addr, std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT((order == std::memory_order_release) ||
+         (order == std::memory_order_acq_rel));
+  ASSERT(Supports(RV_Zalasr));
+  EmitRType(STOREORDERED, order, rs2, addr.base(), WIDTH8, ZR, AMO);
+}
+
+void MicroAssembler::sh(Register rs2, Address addr, std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT((order == std::memory_order_release) ||
+         (order == std::memory_order_acq_rel));
+  ASSERT(Supports(RV_Zalasr));
+  EmitRType(STOREORDERED, order, rs2, addr.base(), WIDTH16, ZR, AMO);
+}
+
+void MicroAssembler::sw(Register rs2, Address addr, std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT((order == std::memory_order_release) ||
+         (order == std::memory_order_acq_rel));
+  ASSERT(Supports(RV_Zalasr));
+  EmitRType(STOREORDERED, order, rs2, addr.base(), WIDTH32, ZR, AMO);
+}
+
+#if XLEN >= 64
+void MicroAssembler::ld(Register rd, Address addr, std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT((order == std::memory_order_acquire) ||
+         (order == std::memory_order_acq_rel));
+  ASSERT(Supports(RV_Zalasr));
+  EmitRType(LOADORDERED, order, ZR, addr.base(), WIDTH64, rd, AMO);
+}
+
+void MicroAssembler::sd(Register rs2, Address addr, std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT((order == std::memory_order_release) ||
+         (order == std::memory_order_acq_rel));
+  ASSERT(Supports(RV_Zalasr));
+  EmitRType(STOREORDERED, order, rs2, addr.base(), WIDTH64, ZR, AMO);
+}
+#endif
+
 void MicroAssembler::c_lwsp(Register rd, Address addr) {
   ASSERT(rd != ZR);
   ASSERT(addr.base() == SP);
@@ -2582,8 +2648,31 @@ void Assembler::LoadAcquire(Register dst,
                             const Address& address,
                             OperandSize size) {
   ASSERT(dst != address.base());
-  Load(dst, address, size);
-  fence(HartEffects::kRead, HartEffects::kMemory);
+
+  if (Supports(RV_Zalasr)) {
+    Address addr = PrepareAtomicOffset(address.base(), address.offset());
+    switch (size) {
+#if XLEN == 64
+      case kEightBytes:
+        ld(dst, addr, std::memory_order_acquire);
+        break;
+#endif
+      case kFourBytes:
+        lw(dst, addr, std::memory_order_acquire);
+        break;
+      case kTwoBytes:
+        lh(dst, addr, std::memory_order_acquire);
+        break;
+      case kByte:
+        lb(dst, addr, std::memory_order_acquire);
+        break;
+      default:
+        UNREACHABLE();
+    }
+  } else {
+    Load(dst, address, size);
+    fence(HartEffects::kRead, HartEffects::kMemory);
+  }
 
   if (FLAG_target_thread_sanitizer) {
     if (address.offset() == 0) {
@@ -2598,8 +2687,33 @@ void Assembler::LoadAcquire(Register dst,
 void Assembler::StoreRelease(Register src,
                              const Address& address,
                              OperandSize size) {
-  fence(HartEffects::kMemory, HartEffects::kWrite);
-  Store(src, address, size);
+  if (Supports(RV_Zalasr)) {
+    Address addr = PrepareAtomicOffset(address.base(), address.offset());
+    switch (size) {
+#if XLEN == 64
+      case kEightBytes:
+        sd(src, addr, std::memory_order_release);
+        break;
+#endif
+      case kUnsignedFourBytes:
+      case kFourBytes:
+        sw(src, addr, std::memory_order_release);
+        break;
+      case kUnsignedTwoBytes:
+      case kTwoBytes:
+        sh(src, addr, std::memory_order_release);
+        break;
+      case kUnsignedByte:
+      case kByte:
+        sb(src, addr, std::memory_order_release);
+        break;
+      default:
+        UNREACHABLE();
+    }
+  } else {
+    fence(HartEffects::kMemory, HartEffects::kWrite);
+    Store(src, address, size);
+  }
 }
 
 void Assembler::CompareWithMemoryValue(Register value,
@@ -3163,6 +3277,15 @@ Address Assembler::PrepareLargeOffset(Register base, int32_t offset) {
   lui(TMP2, hi);
   add(TMP2, TMP2, base);
   return Address(TMP2, lo);
+}
+
+Address Assembler::PrepareAtomicOffset(Register base, int32_t offset) {
+  ASSERT(base != TMP2);
+  if (offset == 0) {
+    return Address(base, 0);
+  }
+  AddImmediate(TMP2, base, offset);
+  return Address(TMP2, 0);
 }
 
 void Assembler::Load(Register dest, const Address& address, OperandSize sz) {

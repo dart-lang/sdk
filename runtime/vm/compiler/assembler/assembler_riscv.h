@@ -603,6 +603,19 @@ class MicroAssembler : public AssemblerBase {
   void bset(Register rd, Register rs1, Register rs2);
   void bseti(Register rd, Register rs1, intx_t shamt);
 
+  // ==== Zalasr: Load-acquire, store-release ====
+  void lb(Register rd, Address addr, std::memory_order order);
+  void lh(Register rd, Address addr, std::memory_order order);
+  void lw(Register rd, Address addr, std::memory_order order);
+  void sb(Register rs2, Address addr, std::memory_order order);
+  void sh(Register rs2, Address addr, std::memory_order order);
+  void sw(Register rs2, Address addr, std::memory_order order);
+
+#if XLEN >= 64
+  void ld(Register rd, Address addr, std::memory_order order);
+  void sd(Register rs2, Address addr, std::memory_order order);
+#endif
+
   // ==== Dart Simulator Debugging ====
   void SimulatorPrintObject(Register rs1);
 
@@ -1092,6 +1105,7 @@ class Assembler : public MicroAssembler {
                         OperandSize sz = kWordBytes) override;
 
   Address PrepareLargeOffset(Register base, int32_t offset);
+  Address PrepareAtomicOffset(Register base, int32_t offset);
   void Load(Register dest,
             const Address& address,
             OperandSize sz = kWordBytes) override;
