@@ -97,7 +97,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
       ..fileStartOffset = startCharOffset
       ..fileOffset = charOffset
       ..fileEndOffset = charEndOffset
-      ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault
+      ..isNonNullableByDefault = true
       ..isExtensionTypeMember = nameScheme.isExtensionTypeMember;
     nameScheme
         .getConstructorMemberName(name, isTearOff: false)
@@ -654,21 +654,18 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
           libraryBuilder.addProblemForRedirectingFactory(
               factory,
               templateRedirectingFactoryIncompatibleTypeArgument.withArguments(
-                  typeArgument,
-                  typeParameterBound,
-                  libraryBuilder.isNonNullableByDefault),
+                  typeArgument, typeParameterBound, true),
               redirectionTarget.charOffset,
               noLength,
               redirectionTarget.fileUri);
           hasProblem = true;
-        } else if (libraryBuilder.isNonNullableByDefault) {
+        } else {
           if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound,
               SubtypeCheckMode.withNullabilities)) {
             libraryBuilder.addProblemForRedirectingFactory(
                 factory,
                 templateRedirectingFactoryIncompatibleTypeArgument
-                    .withArguments(typeArgument, typeParameterBound,
-                        libraryBuilder.isNonNullableByDefault),
+                    .withArguments(typeArgument, typeParameterBound, true),
                 redirectionTarget.charOffset,
                 noLength,
                 redirectionTarget.fileUri);
@@ -818,13 +815,11 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
         libraryBuilder.addProblemForRedirectingFactory(
             this,
             templateIncompatibleRedirecteeFunctionType.withArguments(
-                redirecteeType,
-                factoryType.withoutTypeParameters,
-                libraryBuilder.isNonNullableByDefault),
+                redirecteeType, factoryType.withoutTypeParameters, true),
             redirectionTarget.charOffset,
             noLength,
             redirectionTarget.fileUri);
-      } else if (libraryBuilder.isNonNullableByDefault) {
+      } else {
         if (!typeEnvironment.isSubtypeOf(
             redirecteeType,
             factoryType.withoutTypeParameters,
@@ -832,9 +827,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
           libraryBuilder.addProblemForRedirectingFactory(
               this,
               templateIncompatibleRedirecteeFunctionType.withArguments(
-                  redirecteeType,
-                  factoryType.withoutTypeParameters,
-                  libraryBuilder.isNonNullableByDefault),
+                  redirecteeType, factoryType.withoutTypeParameters, true),
               redirectionTarget.charOffset,
               noLength,
               redirectionTarget.fileUri);

@@ -498,43 +498,38 @@ class SourceLoader extends Loader {
   }
 
   void _checkDillLibraryBuilderNnbdMode(DillLibraryBuilder libraryBuilder) {
-    if (!libraryBuilder.isNonNullableByDefault &&
-        (nnbdMode == NnbdMode.Strong || nnbdMode == NnbdMode.Agnostic)) {
-      registerStrongOptOutLibrary(libraryBuilder);
+    NonNullableByDefaultCompiledMode libraryMode =
+        libraryBuilder.library.nonNullableByDefaultCompiledMode;
+    if (libraryMode == NonNullableByDefaultCompiledMode.Invalid) {
+      registerNnbdMismatchLibrary(
+          libraryBuilder, messageInvalidNnbdDillLibrary);
     } else {
-      NonNullableByDefaultCompiledMode libraryMode =
-          libraryBuilder.library.nonNullableByDefaultCompiledMode;
-      if (libraryMode == NonNullableByDefaultCompiledMode.Invalid) {
-        registerNnbdMismatchLibrary(
-            libraryBuilder, messageInvalidNnbdDillLibrary);
-      } else {
-        switch (nnbdMode) {
-          case NnbdMode.Weak:
-            if (libraryMode != NonNullableByDefaultCompiledMode.Agnostic &&
-                libraryMode != NonNullableByDefaultCompiledMode.Weak) {
+      switch (nnbdMode) {
+        case NnbdMode.Weak:
+          if (libraryMode != NonNullableByDefaultCompiledMode.Agnostic &&
+              libraryMode != NonNullableByDefaultCompiledMode.Weak) {
+            registerNnbdMismatchLibrary(
+                libraryBuilder, messageWeakWithStrongDillLibrary);
+          }
+          break;
+        case NnbdMode.Strong:
+          if (libraryMode != NonNullableByDefaultCompiledMode.Agnostic &&
+              libraryMode != NonNullableByDefaultCompiledMode.Strong) {
+            registerNnbdMismatchLibrary(
+                libraryBuilder, messageStrongWithWeakDillLibrary);
+          }
+          break;
+        case NnbdMode.Agnostic:
+          if (libraryMode != NonNullableByDefaultCompiledMode.Agnostic) {
+            if (libraryMode == NonNullableByDefaultCompiledMode.Strong) {
               registerNnbdMismatchLibrary(
-                  libraryBuilder, messageWeakWithStrongDillLibrary);
-            }
-            break;
-          case NnbdMode.Strong:
-            if (libraryMode != NonNullableByDefaultCompiledMode.Agnostic &&
-                libraryMode != NonNullableByDefaultCompiledMode.Strong) {
+                  libraryBuilder, messageAgnosticWithStrongDillLibrary);
+            } else {
               registerNnbdMismatchLibrary(
-                  libraryBuilder, messageStrongWithWeakDillLibrary);
+                  libraryBuilder, messageAgnosticWithWeakDillLibrary);
             }
-            break;
-          case NnbdMode.Agnostic:
-            if (libraryMode != NonNullableByDefaultCompiledMode.Agnostic) {
-              if (libraryMode == NonNullableByDefaultCompiledMode.Strong) {
-                registerNnbdMismatchLibrary(
-                    libraryBuilder, messageAgnosticWithStrongDillLibrary);
-              } else {
-                registerNnbdMismatchLibrary(
-                    libraryBuilder, messageAgnosticWithWeakDillLibrary);
-              }
-            }
-            break;
-        }
+          }
+          break;
       }
     }
   }
@@ -939,7 +934,7 @@ severity: $severity
               libraryBuilder.libraryFeatures.tripleShift.isEnabled,
           enableExtensionMethods:
               libraryBuilder.libraryFeatures.extensionMethods.isEnabled,
-          enableNonNullable: libraryBuilder.isNonNullableByDefault);
+          enableNonNullable: true);
     });
     Token token = result.tokens;
     if (!suppressLexicalErrors) {
@@ -2901,114 +2896,108 @@ severity: $severity
       }
     }
 
-    if (libraryBuilder.isNonNullableByDefault) {
-      Builder? mainBuilder =
-          libraryBuilder.exportScope.lookupLocalMember('main', setter: false);
-      mainBuilder ??=
-          libraryBuilder.exportScope.lookupLocalMember('main', setter: true);
-      if (mainBuilder is MemberBuilder) {
-        if (mainBuilder is InvalidTypeDeclarationBuilder) {
-          // This is an ambiguous export, skip the check.
-          return;
+    Builder? mainBuilder =
+        libraryBuilder.exportScope.lookupLocalMember('main', setter: false);
+    mainBuilder ??=
+        libraryBuilder.exportScope.lookupLocalMember('main', setter: true);
+    if (mainBuilder is MemberBuilder) {
+      if (mainBuilder is InvalidTypeDeclarationBuilder) {
+        // This is an ambiguous export, skip the check.
+        return;
+      }
+      if (mainBuilder.isField || mainBuilder.isGetter || mainBuilder.isSetter) {
+        if (mainBuilder.parent != libraryBuilder) {
+          libraryBuilder.addProblem(messageMainNotFunctionDeclarationExported,
+              libraryBuilder.charOffset, noLength, libraryBuilder.fileUri,
+              context: [
+                messageExportedMain.withLocation(mainBuilder.fileUri!,
+                    mainBuilder.charOffset, mainBuilder.name.length)
+              ]);
+        } else {
+          libraryBuilder.addProblem(
+              messageMainNotFunctionDeclaration,
+              mainBuilder.charOffset,
+              mainBuilder.name.length,
+              mainBuilder.fileUri);
         }
-        if (mainBuilder.isField ||
-            mainBuilder.isGetter ||
-            mainBuilder.isSetter) {
+      } else {
+        Procedure procedure = mainBuilder.member as Procedure;
+        if (procedure.function.requiredParameterCount > 2) {
           if (mainBuilder.parent != libraryBuilder) {
-            libraryBuilder.addProblem(messageMainNotFunctionDeclarationExported,
-                libraryBuilder.charOffset, noLength, libraryBuilder.fileUri,
+            libraryBuilder.addProblem(
+                messageMainTooManyRequiredParametersExported,
+                libraryBuilder.charOffset,
+                noLength,
+                libraryBuilder.fileUri,
                 context: [
                   messageExportedMain.withLocation(mainBuilder.fileUri!,
                       mainBuilder.charOffset, mainBuilder.name.length)
                 ]);
           } else {
             libraryBuilder.addProblem(
-                messageMainNotFunctionDeclaration,
+                messageMainTooManyRequiredParameters,
                 mainBuilder.charOffset,
                 mainBuilder.name.length,
                 mainBuilder.fileUri);
           }
-        } else {
-          Procedure procedure = mainBuilder.member as Procedure;
-          if (procedure.function.requiredParameterCount > 2) {
-            if (mainBuilder.parent != libraryBuilder) {
-              libraryBuilder.addProblem(
-                  messageMainTooManyRequiredParametersExported,
-                  libraryBuilder.charOffset,
-                  noLength,
-                  libraryBuilder.fileUri,
-                  context: [
-                    messageExportedMain.withLocation(mainBuilder.fileUri!,
-                        mainBuilder.charOffset, mainBuilder.name.length)
-                  ]);
-            } else {
-              libraryBuilder.addProblem(
-                  messageMainTooManyRequiredParameters,
-                  mainBuilder.charOffset,
-                  mainBuilder.name.length,
-                  mainBuilder.fileUri);
-            }
-          } else if (procedure.function.namedParameters
-              .any((parameter) => parameter.isRequired)) {
-            if (mainBuilder.parent != libraryBuilder) {
-              libraryBuilder.addProblem(
-                  messageMainRequiredNamedParametersExported,
-                  libraryBuilder.charOffset,
-                  noLength,
-                  libraryBuilder.fileUri,
-                  context: [
-                    messageExportedMain.withLocation(mainBuilder.fileUri!,
-                        mainBuilder.charOffset, mainBuilder.name.length)
-                  ]);
-            } else {
-              libraryBuilder.addProblem(
-                  messageMainRequiredNamedParameters,
-                  mainBuilder.charOffset,
-                  mainBuilder.name.length,
-                  mainBuilder.fileUri);
-            }
-          } else if (procedure.function.positionalParameters.length > 0) {
-            DartType parameterType =
-                procedure.function.positionalParameters.first.type;
+        } else if (procedure.function.namedParameters
+            .any((parameter) => parameter.isRequired)) {
+          if (mainBuilder.parent != libraryBuilder) {
+            libraryBuilder.addProblem(
+                messageMainRequiredNamedParametersExported,
+                libraryBuilder.charOffset,
+                noLength,
+                libraryBuilder.fileUri,
+                context: [
+                  messageExportedMain.withLocation(mainBuilder.fileUri!,
+                      mainBuilder.charOffset, mainBuilder.name.length)
+                ]);
+          } else {
+            libraryBuilder.addProblem(
+                messageMainRequiredNamedParameters,
+                mainBuilder.charOffset,
+                mainBuilder.name.length,
+                mainBuilder.fileUri);
+          }
+        } else if (procedure.function.positionalParameters.length > 0) {
+          DartType parameterType =
+              procedure.function.positionalParameters.first.type;
 
-            if (!typeEnvironment.isSubtypeOf(listOfString, parameterType,
-                SubtypeCheckMode.withNullabilities)) {
-              if (mainBuilder.parent != libraryBuilder) {
-                libraryBuilder.addProblem(
-                    templateMainWrongParameterTypeExported.withArguments(
-                        parameterType,
-                        listOfString,
-                        libraryBuilder.isNonNullableByDefault),
-                    libraryBuilder.charOffset,
-                    noLength,
-                    libraryBuilder.fileUri,
-                    context: [
-                      messageExportedMain.withLocation(mainBuilder.fileUri!,
-                          mainBuilder.charOffset, mainBuilder.name.length)
-                    ]);
-              } else {
-                libraryBuilder.addProblem(
-                    templateMainWrongParameterType.withArguments(parameterType,
-                        listOfString, libraryBuilder.isNonNullableByDefault),
-                    mainBuilder.charOffset,
-                    mainBuilder.name.length,
-                    mainBuilder.fileUri);
-              }
+          if (!typeEnvironment.isSubtypeOf(listOfString, parameterType,
+              SubtypeCheckMode.withNullabilities)) {
+            if (mainBuilder.parent != libraryBuilder) {
+              libraryBuilder.addProblem(
+                  templateMainWrongParameterTypeExported.withArguments(
+                      parameterType, listOfString, true),
+                  libraryBuilder.charOffset,
+                  noLength,
+                  libraryBuilder.fileUri,
+                  context: [
+                    messageExportedMain.withLocation(mainBuilder.fileUri!,
+                        mainBuilder.charOffset, mainBuilder.name.length)
+                  ]);
+            } else {
+              libraryBuilder.addProblem(
+                  templateMainWrongParameterType.withArguments(
+                      parameterType, listOfString, true),
+                  mainBuilder.charOffset,
+                  mainBuilder.name.length,
+                  mainBuilder.fileUri);
             }
           }
         }
-      } else if (mainBuilder != null) {
-        if (mainBuilder.parent != libraryBuilder) {
-          libraryBuilder.addProblem(messageMainNotFunctionDeclarationExported,
-              libraryBuilder.charOffset, noLength, libraryBuilder.fileUri,
-              context: [
-                messageExportedMain.withLocation(
-                    mainBuilder.fileUri!, mainBuilder.charOffset, noLength)
-              ]);
-        } else {
-          libraryBuilder.addProblem(messageMainNotFunctionDeclaration,
-              mainBuilder.charOffset, noLength, mainBuilder.fileUri);
-        }
+      }
+    } else if (mainBuilder != null) {
+      if (mainBuilder.parent != libraryBuilder) {
+        libraryBuilder.addProblem(messageMainNotFunctionDeclarationExported,
+            libraryBuilder.charOffset, noLength, libraryBuilder.fileUri,
+            context: [
+              messageExportedMain.withLocation(
+                  mainBuilder.fileUri!, mainBuilder.charOffset, noLength)
+            ]);
+      } else {
+        libraryBuilder.addProblem(messageMainNotFunctionDeclaration,
+            mainBuilder.charOffset, noLength, mainBuilder.fileUri);
       }
     }
   }

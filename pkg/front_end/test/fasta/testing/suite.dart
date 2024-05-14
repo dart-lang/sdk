@@ -1258,8 +1258,8 @@ class FuzzCompiles
             compilationSetup.options.globalFeatures,
             builder.importUri,
             builder.library.languageVersion);
-        fuzzAstVisitorSorter = new FuzzAstVisitorSorter(orgData,
-            builder.isNonNullableByDefault, libFeatures.patterns.isEnabled);
+        fuzzAstVisitorSorter = new FuzzAstVisitorSorter(
+            orgData, true, libFeatures.patterns.isEnabled);
       } on FormatException catch (e, st) {
         // UTF-16-LE formatted test crashes `utf8.decode(bytes)` --- catch that
         return new Result<ComponentResult>(
@@ -1411,8 +1411,8 @@ class FuzzCompiles
             compilationSetup.options.globalFeatures,
             builder.importUri,
             builder.library.languageVersion);
-        fuzzAstVisitorSorter = new FuzzAstVisitorSorter(orgData,
-            builder.isNonNullableByDefault, libFeatures.patterns.isEnabled);
+        fuzzAstVisitorSorter = new FuzzAstVisitorSorter(
+            orgData, true, libFeatures.patterns.isEnabled);
       } on FormatException catch (e, st) {
         // UTF-16-LE formatted test crashes `utf8.decode(bytes)` --- catch that
         return new Result<ComponentResult>(

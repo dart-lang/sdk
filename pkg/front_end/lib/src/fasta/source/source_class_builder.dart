@@ -945,20 +945,16 @@ class SourceClassBuilder extends ClassBuilderImpl
       InterfaceType? implementedInterface =
           hierarchy.getInterfaceTypeAsInstanceOfClass(
               supertype, requiredInterface.classNode,
-              isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+              isNonNullableByDefault: true);
       if (implementedInterface == null ||
-          !typeEnvironment.areMutualSubtypes(
-              implementedInterface,
-              requiredInterface,
-              libraryBuilder.isNonNullableByDefault
-                  ? SubtypeCheckMode.withNullabilities
-                  : SubtypeCheckMode.ignoringNullabilities)) {
+          !typeEnvironment.areMutualSubtypes(implementedInterface,
+              requiredInterface, SubtypeCheckMode.withNullabilities)) {
         libraryBuilder.addProblem(
             templateMixinApplicationIncompatibleSupertype.withArguments(
                 supertype,
                 requiredInterface,
                 cls.mixedInType!.asInterfaceType,
-                libraryBuilder.isNonNullableByDefault),
+                true),
             cls.fileOffset,
             noLength,
             cls.fileUri);
@@ -1487,9 +1483,6 @@ class SourceClassBuilder extends ClassBuilderImpl
                 interfaceSubstitution.substituteType(interfaceBound);
           }
           DartType computedBound = substitution.substituteType(interfaceBound);
-          if (!libraryBuilder.isNonNullableByDefault) {
-            computedBound = legacyErasure(computedBound);
-          }
           if (declaredNeedsLegacyErasure) {
             declaredBound = legacyErasure(declaredBound);
           }
@@ -1508,7 +1501,7 @@ class SourceClassBuilder extends ClassBuilderImpl
                     computedBound,
                     "${interfaceMemberOrigin.enclosingClass!.name}."
                         "${interfaceMemberOrigin.name.text}",
-                    libraryBuilder.isNonNullableByDefault),
+                    true),
                 declaredMember.fileOffset,
                 noLength,
                 context: [
@@ -1589,56 +1582,49 @@ class SourceClassBuilder extends ClassBuilderImpl
       // been reported.
     } else {
       // Report an error.
-      bool isErrorInNnbdOptedOutMode = !types.isSubtypeOf(
-              subtype, supertype, SubtypeCheckMode.ignoringNullabilities) &&
-          (!isCovariantByDeclaration ||
-              !types.isSubtypeOf(
-                  supertype, subtype, SubtypeCheckMode.ignoringNullabilities));
-      if (isErrorInNnbdOptedOutMode || libraryBuilder.isNonNullableByDefault) {
-        String declaredMemberName = '${declaredMember.enclosingClass!.name}'
-            '.${declaredMember.name.text}';
-        String interfaceMemberName =
-            '${interfaceMemberOrigin.enclosingClass!.name}'
-            '.${interfaceMemberOrigin.name.text}';
-        Message message;
-        int fileOffset;
-        if (declaredParameter == null) {
-          if (asIfDeclaredParameter) {
-            // Setter overridden by field
-            message = templateOverrideTypeMismatchSetter.withArguments(
-                declaredMemberName,
-                declaredType,
-                interfaceType,
-                interfaceMemberName,
-                libraryBuilder.isNonNullableByDefault);
-          } else {
-            message = templateOverrideTypeMismatchReturnType.withArguments(
-                declaredMemberName,
-                declaredType,
-                interfaceType,
-                interfaceMemberName,
-                libraryBuilder.isNonNullableByDefault);
-          }
-          fileOffset = declaredMember.fileOffset;
-        } else {
-          message = templateOverrideTypeMismatchParameter.withArguments(
-              declaredParameter.name!,
+      String declaredMemberName = '${declaredMember.enclosingClass!.name}'
+          '.${declaredMember.name.text}';
+      String interfaceMemberName =
+          '${interfaceMemberOrigin.enclosingClass!.name}'
+          '.${interfaceMemberOrigin.name.text}';
+      Message message;
+      int fileOffset;
+      if (declaredParameter == null) {
+        if (asIfDeclaredParameter) {
+          // Setter overridden by field
+          message = templateOverrideTypeMismatchSetter.withArguments(
               declaredMemberName,
               declaredType,
               interfaceType,
               interfaceMemberName,
-              libraryBuilder.isNonNullableByDefault);
-          fileOffset = declaredParameter.fileOffset;
+              true);
+        } else {
+          message = templateOverrideTypeMismatchReturnType.withArguments(
+              declaredMemberName,
+              declaredType,
+              interfaceType,
+              interfaceMemberName,
+              true);
         }
-        reportInvalidOverride(
-            isInterfaceCheck, declaredMember, message, fileOffset, noLength,
-            context: [
-              templateOverriddenMethodCause
-                  .withArguments(interfaceMemberOrigin.name.text)
-                  .withLocation(_getMemberUri(interfaceMemberOrigin),
-                      interfaceMemberOrigin.fileOffset, noLength)
-            ]);
+        fileOffset = declaredMember.fileOffset;
+      } else {
+        message = templateOverrideTypeMismatchParameter.withArguments(
+            declaredParameter.name!,
+            declaredMemberName,
+            declaredType,
+            interfaceType,
+            interfaceMemberName,
+            true);
+        fileOffset = declaredParameter.fileOffset;
       }
+      reportInvalidOverride(
+          isInterfaceCheck, declaredMember, message, fileOffset, noLength,
+          context: [
+            templateOverriddenMethodCause
+                .withArguments(interfaceMemberOrigin.name.text)
+                .withLocation(_getMemberUri(interfaceMemberOrigin),
+                    interfaceMemberOrigin.fileOffset, noLength)
+          ]);
     }
   }
 

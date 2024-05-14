@@ -152,8 +152,7 @@ class SourceExtensionTypeDeclarationBuilder
               if (variable.parameter.isLegacyCovariant) {
                 errorMessage =
                     templateWrongTypeParameterVarianceInSuperinterface
-                        .withArguments(variable.name, interface,
-                            libraryBuilder.isNonNullableByDefault);
+                        .withArguments(variable.name, interface, true);
               } else {
                 errorMessage =
                     templateInvalidTypeVariableInSupertypeWithVariance
@@ -172,11 +171,8 @@ class SourceExtensionTypeDeclarationBuilder
 
         if (interface is ExtensionType) {
           if (interface.nullability == Nullability.nullable) {
-            errorMessage =
-                templateSuperExtensionTypeIsNullableAliased.withArguments(
-                    typeBuilder.fullNameForErrors,
-                    interface,
-                    libraryBuilder.isNonNullableByDefault);
+            errorMessage = templateSuperExtensionTypeIsNullableAliased
+                .withArguments(typeBuilder.fullNameForErrors, interface, true);
             if (aliasBuilder != null) {
               errorContext = [
                 messageTypedefCause.withLocation(
@@ -194,9 +190,7 @@ class SourceExtensionTypeDeclarationBuilder
             } else {
               errorMessage =
                   templateSuperExtensionTypeIsNullableAliased.withArguments(
-                      typeBuilder.fullNameForErrors,
-                      interface,
-                      libraryBuilder.isNonNullableByDefault);
+                      typeBuilder.fullNameForErrors, interface, true);
               if (aliasBuilder != null) {
                 errorContext = [
                   messageTypedefCause.withLocation(
@@ -211,9 +205,7 @@ class SourceExtensionTypeDeclarationBuilder
               if (aliasBuilder != null) {
                 errorMessage =
                     templateSuperExtensionTypeIsIllegalAliased.withArguments(
-                        typeBuilder.fullNameForErrors,
-                        interface,
-                        libraryBuilder.isNonNullableByDefault);
+                        typeBuilder.fullNameForErrors, interface, true);
                 errorContext = [
                   messageTypedefCause.withLocation(
                       aliasBuilder.fileUri, aliasBuilder.charOffset, noLength),
@@ -237,11 +229,8 @@ class SourceExtensionTypeDeclarationBuilder
           }
         } else {
           if (aliasBuilder != null) {
-            errorMessage =
-                templateSuperExtensionTypeIsIllegalAliased.withArguments(
-                    typeBuilder.fullNameForErrors,
-                    interface,
-                    libraryBuilder.isNonNullableByDefault);
+            errorMessage = templateSuperExtensionTypeIsIllegalAliased
+                .withArguments(typeBuilder.fullNameForErrors, interface, true);
             errorContext = [
               messageTypedefCause.withLocation(
                   aliasBuilder.fileUri, aliasBuilder.charOffset, noLength),

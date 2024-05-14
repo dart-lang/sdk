@@ -100,13 +100,11 @@ class TypeInferrerImpl implements TypeInferrer {
   @override
   late final FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration,
           DartType> flowAnalysis =
-      libraryBuilder.isNonNullableByDefault
-          ? new FlowAnalysis(operations, assignedVariables,
-              respectImplicitlyTypedVarInitializers:
-                  libraryBuilder.libraryFeatures.constructorTearoffs.isEnabled,
-              fieldPromotionEnabled:
-                  libraryBuilder.libraryFeatures.inferenceUpdate2.isEnabled)
-          : new FlowAnalysis.legacy(operations, assignedVariables);
+      new FlowAnalysis(operations, assignedVariables,
+          respectImplicitlyTypedVarInitializers:
+              libraryBuilder.libraryFeatures.constructorTearoffs.isEnabled,
+          fieldPromotionEnabled:
+              libraryBuilder.libraryFeatures.inferenceUpdate2.isEnabled);
 
   @override
   final AssignedVariables<TreeNode, VariableDeclaration> assignedVariables;
@@ -144,9 +142,7 @@ class TypeInferrerImpl implements TypeInferrer {
       this.dataForTesting,
       FunctionType unknownFunctionNonNullable,
       FunctionType unknownFunctionLegacy)
-      : unknownFunction = libraryBuilder.isNonNullableByDefault
-            ? unknownFunctionNonNullable
-            : unknownFunctionLegacy,
+      : unknownFunction = unknownFunctionNonNullable,
         instrumentation = isTopLevel ? null : engine.instrumentation,
         typeSchemaEnvironment = engine.typeSchemaEnvironment,
         operations = new OperationsCfe(engine.typeSchemaEnvironment,

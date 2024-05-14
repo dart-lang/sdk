@@ -126,9 +126,6 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   bool get isSynthetic => library.isSynthetic;
 
   @override
-  bool get isNonNullableByDefault => library.isNonNullableByDefault;
-
-  @override
   Uri get importUri => library.importUri;
 
   @override

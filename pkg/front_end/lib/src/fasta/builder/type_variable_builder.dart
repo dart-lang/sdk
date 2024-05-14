@@ -360,9 +360,7 @@ class NominalVariableBuilder extends TypeVariableBuilderBase {
       if (needsPostUpdate) {
         nullability = Nullability.legacy;
       } else {
-        nullability = library.isNonNullableByDefault
-            ? nullabilityFromParameterBound
-            : Nullability.legacy;
+        nullability = nullabilityFromParameterBound;
       }
     } else {
       nullability = nullabilityBuilder.build(library);
@@ -700,9 +698,8 @@ class StructuralVariableBuilder extends TypeVariableBuilderBase {
       if (needsPostUpdate) {
         nullability = Nullability.legacy;
       } else {
-        nullability = library.isNonNullableByDefault
-            ? StructuralParameterType.computeNullabilityFromBound(parameter)
-            : Nullability.legacy;
+        nullability =
+            StructuralParameterType.computeNullabilityFromBound(parameter);
       }
     } else {
       nullability = nullabilityBuilder.build(library);

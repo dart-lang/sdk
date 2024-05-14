@@ -972,13 +972,6 @@ class BodyBuilder extends StackListenerImpl
       Token beginToken,
       Token endToken) {
     debugEvent("TopLevelFields");
-    if (!libraryBuilder.isNonNullableByDefault) {
-      reportNonNullableModifierError(lateToken);
-      if (externalToken != null) {
-        handleRecoverableError(
-            fasta.messageExternalField, externalToken, externalToken);
-      }
-    }
     push(count);
     assert(checkState(beginToken, [ValueKinds.Integer]));
   }
@@ -996,17 +989,6 @@ class BodyBuilder extends StackListenerImpl
       Token beginToken,
       Token endToken) {
     debugEvent("Fields");
-    if (!libraryBuilder.isNonNullableByDefault) {
-      reportNonNullableModifierError(lateToken);
-      if (abstractToken != null) {
-        handleRecoverableError(
-            fasta.messageAbstractClassMember, abstractToken, abstractToken);
-      }
-      if (externalToken != null) {
-        handleRecoverableError(
-            fasta.messageExternalField, externalToken, externalToken);
-      }
-    }
     push(count);
     assert(checkState(beginToken, [ValueKinds.Integer]));
   }
@@ -2555,9 +2537,6 @@ class BodyBuilder extends StackListenerImpl
           expression.fileOffset, null, ReadOnlyAccessKind.LetVariable));
     } else {
       bool isNullAware = optional('?..', token);
-      if (isNullAware && !libraryBuilder.isNonNullableByDefault) {
-        reportMissingNonNullableSupport(token);
-      }
       VariableDeclaration variable =
           createVariableDeclarationForValue(expression);
       push(new Cascade(variable, isNullAware: isNullAware)
@@ -3827,8 +3806,6 @@ class BodyBuilder extends StackListenerImpl
   void handleNoVariableInitializer(Token token) {
     debugEvent("NoVariableInitializer");
     bool isConst = (currentLocalVariableModifiers & constMask) != 0;
-    bool isFinal = (currentLocalVariableModifiers & finalMask) != 0;
-    bool isLate = (currentLocalVariableModifiers & lateMask) != 0;
     Expression? initializer;
     if (!optional("in", token.next!)) {
       // A for-in loop-variable can't have an initializer. So let's remain
@@ -3839,14 +3816,6 @@ class BodyBuilder extends StackListenerImpl
         if (isConst) {
           initializer = buildProblem(
               fasta.templateConstFieldWithoutInitializer
-                  .withArguments(token.lexeme),
-              token.charOffset,
-              token.length);
-        } else if (!libraryBuilder.isNonNullableByDefault &&
-            isFinal &&
-            !isLate) {
-          initializer = buildProblem(
-              fasta.templateFinalFieldWithoutInitializer
                   .withArguments(token.lexeme),
               token.charOffset,
               token.length);
@@ -3878,9 +3847,7 @@ class BodyBuilder extends StackListenerImpl
         isLate: isLate,
         isRequired: isRequired,
         hasDeclaredInitializer: initializer != null,
-        isStaticLate: libraryBuilder.isNonNullableByDefault &&
-            isFinal &&
-            initializer == null)
+        isStaticLate: isFinal && initializer == null)
       ..fileOffset = identifier.nameOffset
       ..fileEqualsOffset = offsetForToken(equalsToken);
     typeInferrer.assignedVariables.declare(variable);
@@ -3943,9 +3910,6 @@ class BodyBuilder extends StackListenerImpl
   void beginVariablesDeclaration(
       Token token, Token? lateToken, Token? varFinalOrConst) {
     debugEvent("beginVariablesDeclaration");
-    if (!libraryBuilder.isNonNullableByDefault) {
-      reportNonNullableModifierError(lateToken);
-    }
     TypeBuilder? unresolvedType = pop(NullValues.TypeBuilder) as TypeBuilder?;
     DartType? type = unresolvedType != null
         ? buildDartType(unresolvedType, TypeUse.variableType,
@@ -4526,7 +4490,7 @@ class BodyBuilder extends StackListenerImpl
             typeArguments.single, TypeUse.literalTypeArgument,
             allowPotentiallyConstantType: false);
         typeArgument = instantiateToBounds(typeArgument, coreTypes.objectClass,
-            isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+            isNonNullableByDefault: true);
       }
     } else {
       typeArgument = implicitTypeArgument;
@@ -4580,7 +4544,7 @@ class BodyBuilder extends StackListenerImpl
             typeArguments.single, TypeUse.literalTypeArgument,
             allowPotentiallyConstantType: false);
         typeArgument = instantiateToBounds(typeArgument, coreTypes.objectClass,
-            isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+            isNonNullableByDefault: true);
       }
     }
 
@@ -4715,7 +4679,7 @@ class BodyBuilder extends StackListenerImpl
           typeArguments.single, TypeUse.literalTypeArgument,
           allowPotentiallyConstantType: false);
       typeArgument = instantiateToBounds(typeArgument, coreTypes.objectClass,
-          isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+          isNonNullableByDefault: true);
     } else {
       typeArgument = implicitTypeArgument;
     }
@@ -4895,9 +4859,9 @@ class BodyBuilder extends StackListenerImpl
         valueType = buildDartType(typeArguments[1], TypeUse.literalTypeArgument,
             allowPotentiallyConstantType: false);
         keyType = instantiateToBounds(keyType, coreTypes.objectClass,
-            isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+            isNonNullableByDefault: true);
         valueType = instantiateToBounds(valueType, coreTypes.objectClass,
-            isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+            isNonNullableByDefault: true);
       }
     }
 
@@ -4940,9 +4904,9 @@ class BodyBuilder extends StackListenerImpl
         valueType = buildDartType(typeArguments[1], TypeUse.literalTypeArgument,
             allowPotentiallyConstantType: false);
         keyType = instantiateToBounds(keyType, coreTypes.objectClass,
-            isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+            isNonNullableByDefault: true);
         valueType = instantiateToBounds(valueType, coreTypes.objectClass,
-            isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+            isNonNullableByDefault: true);
       }
     } else {
       keyType = implicitTypeArgument;
@@ -5017,9 +4981,6 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.ProblemBuilder
       ])
     ]));
-    if (!libraryBuilder.isNonNullableByDefault) {
-      reportNonNullAssertExpressionNotEnabled(bang);
-    }
     Expression operand = popForValue();
     push(forest.createNullCheck(offsetForToken(bang), operand));
   }
@@ -5037,9 +4998,6 @@ class BodyBuilder extends StackListenerImpl
       ]),
     ]));
 
-    if (!libraryBuilder.isNonNullableByDefault) {
-      reportErrorIfNullableType(questionMark);
-    }
     bool isMarkedAsNullable = questionMark != null;
     List<TypeBuilder>? arguments = pop() as List<TypeBuilder>?;
     Object? name = pop();
@@ -5072,14 +5030,10 @@ class BodyBuilder extends StackListenerImpl
     TypeBuilder result;
     if (name is Generator) {
       bool allowPotentiallyConstantType;
-      if (libraryBuilder.isNonNullableByDefault) {
-        if (libraryFeatures.constructorTearoffs.isEnabled) {
-          allowPotentiallyConstantType = true;
-        } else {
-          allowPotentiallyConstantType = inIsOrAsOperatorType;
-        }
+      if (libraryFeatures.constructorTearoffs.isEnabled) {
+        allowPotentiallyConstantType = true;
       } else {
-        allowPotentiallyConstantType = false;
+        allowPotentiallyConstantType = inIsOrAsOperatorType;
       }
       result = name.buildTypeWithResolvedArguments(
           libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable), arguments,
@@ -5167,10 +5121,6 @@ class BodyBuilder extends StackListenerImpl
           noLength);
     }
 
-    if (!libraryBuilder.isNonNullableByDefault) {
-      reportErrorIfNullableType(questionMark);
-    }
-
     List<RecordTypeFieldBuilder>? namedFields;
     if (hasNamedFields) {
       namedFields =
@@ -5235,9 +5185,6 @@ class BodyBuilder extends StackListenerImpl
   void endFunctionType(Token functionToken, Token? questionMark) {
     debugEvent("FunctionType");
     _structuralParameterDepthLevel--;
-    if (!libraryBuilder.isNonNullableByDefault) {
-      reportErrorIfNullableType(questionMark);
-    }
     FormalParameters formals = pop() as FormalParameters;
     TypeBuilder? returnType = pop() as TypeBuilder?;
     List<StructuralVariableBuilder>? typeVariables =
@@ -5299,11 +5246,11 @@ class BodyBuilder extends StackListenerImpl
       ]),
     ]));
     DartType type = buildDartType(pop() as TypeBuilder, TypeUse.asType,
-        allowPotentiallyConstantType: libraryBuilder.isNonNullableByDefault);
+        allowPotentiallyConstantType: true);
     Expression expression = popForValue();
     Expression asExpression = forest.createAsExpression(
         offsetForToken(operator), expression, type,
-        forNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+        forNonNullableByDefault: true);
     push(asExpression);
   }
 
@@ -5322,7 +5269,7 @@ class BodyBuilder extends StackListenerImpl
     reportIfNotEnabled(
         libraryFeatures.patterns, operator.charOffset, operator.charCount);
     DartType type = buildDartType(pop() as TypeBuilder, TypeUse.asType,
-        allowPotentiallyConstantType: libraryBuilder.isNonNullableByDefault);
+        allowPotentiallyConstantType: true);
     Pattern operand = toPattern(pop());
     push(forest.createCastPattern(operator.charOffset, operand, type));
   }
@@ -5341,11 +5288,11 @@ class BodyBuilder extends StackListenerImpl
   void handleIsOperator(Token isOperator, Token? not) {
     debugEvent("IsOperator");
     DartType type = buildDartType(pop() as TypeBuilder, TypeUse.isType,
-        allowPotentiallyConstantType: libraryBuilder.isNonNullableByDefault);
+        allowPotentiallyConstantType: true);
     Expression operand = popForValue();
     Expression isExpression = forest.createIsExpression(
         offsetForToken(isOperator), operand, type,
-        forNonNullableByDefault: libraryBuilder.isNonNullableByDefault,
+        forNonNullableByDefault: true,
         notFileOffset: not != null ? offsetForToken(not) : null);
     push(isExpression);
   }
@@ -5405,10 +5352,6 @@ class BodyBuilder extends StackListenerImpl
   void beginFormalParameter(Token token, MemberKind kind, Token? requiredToken,
       Token? covariantToken, Token? varFinalOrConst) {
     _insideOfFormalParameterType = true;
-    // TODO(danrubel): handle required token
-    if (!libraryBuilder.isNonNullableByDefault) {
-      reportNonNullableModifierError(requiredToken);
-    }
     push((covariantToken != null ? covariantMask : 0) |
         (requiredToken != null ? requiredMask : 0) |
         Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme));
@@ -5557,9 +5500,6 @@ class BodyBuilder extends StackListenerImpl
     TypeBuilder? returnType = pop() as TypeBuilder?;
     List<StructuralVariableBuilder>? typeVariables =
         pop() as List<StructuralVariableBuilder>?;
-    if (!libraryBuilder.isNonNullableByDefault) {
-      reportErrorIfNullableType(question);
-    }
     TypeBuilder type = formals.toFunctionType(
         returnType ?? const ImplicitTypeBuilder(),
         libraryBuilder.nullableBuilderIfTrue(question != null),
@@ -5699,9 +5639,7 @@ class BodyBuilder extends StackListenerImpl
       exceptionType = buildDartType(unresolvedExceptionType, TypeUse.catchType,
           allowPotentiallyConstantType: false);
     } else {
-      exceptionType = (libraryBuilder.isNonNullableByDefault
-          ? coreTypes.objectNonNullableRawType
-          : const DynamicType());
+      exceptionType = coreTypes.objectNonNullableRawType;
     }
     FormalParameterBuilder? exception;
     FormalParameterBuilder? stackTrace;
@@ -5805,9 +5743,6 @@ class BodyBuilder extends StackListenerImpl
     Expression index = popForValue();
     Object? receiver = pop();
     bool isNullAware = question != null;
-    if (isNullAware && !libraryBuilder.isNonNullableByDefault) {
-      reportMissingNonNullableSupport(openSquareBracket);
-    }
     if (receiver is Generator) {
       push(receiver.buildIndexedAccess(index, openSquareBracket,
           isNullAware: isNullAware));
@@ -6197,14 +6132,12 @@ class BodyBuilder extends StackListenerImpl
       }
     }
     if (function.namedParameters.isNotEmpty) {
-      if (libraryBuilder.isNonNullableByDefault) {
-        Set<String> argumentNames = new Set.of(named.map((a) => a.name));
-        for (VariableDeclaration parameter in function.namedParameters) {
-          if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
-            return fasta.templateValueForRequiredParameterNotProvidedError
-                .withArguments(parameter.name!)
-                .withLocation(uri, arguments.fileOffset, fasta.noLength);
-          }
+      Set<String> argumentNames = new Set.of(named.map((a) => a.name));
+      for (VariableDeclaration parameter in function.namedParameters) {
+        if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
+          return fasta.templateValueForRequiredParameterNotProvidedError
+              .withArguments(parameter.name!)
+              .withLocation(uri, arguments.fileOffset, fasta.noLength);
         }
       }
     }
@@ -6269,14 +6202,12 @@ class BodyBuilder extends StackListenerImpl
       }
     }
     if (function.namedParameters.isNotEmpty) {
-      if (libraryBuilder.isNonNullableByDefault) {
-        Set<String> argumentNames = new Set.of(named.map((a) => a.name));
-        for (NamedType parameter in function.namedParameters) {
-          if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
-            return fasta.templateValueForRequiredParameterNotProvidedError
-                .withArguments(parameter.name)
-                .withLocation(uri, arguments.fileOffset, fasta.noLength);
-          }
+      Set<String> argumentNames = new Set.of(named.map((a) => a.name));
+      for (NamedType parameter in function.namedParameters) {
+        if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
+          return fasta.templateValueForRequiredParameterNotProvidedError
+              .withArguments(parameter.name)
+              .withLocation(uri, arguments.fileOffset, fasta.noLength);
         }
       }
     }
@@ -8642,21 +8573,6 @@ class BodyBuilder extends StackListenerImpl
         ExpressionStatement statement = lastNode;
         lastNode = statement.expression;
       }
-      // The rule that every case block should end with one of the predefined
-      // set of statements is specific to pre-NNBD code and is replaced with
-      // another rule based on flow analysis for NNBD code.  For details, see
-      // the following link:
-      // https://github.com/dart-lang/language/blob/master/accepted/future-releases/nnbd/feature-specification.md#errors-and-warnings
-      if (!libraryBuilder.isNonNullableByDefault) {
-        if (lastNode is! BreakStatement &&
-            lastNode is! ContinueSwitchStatement &&
-            lastNode is! Rethrow &&
-            lastNode is! ReturnStatement &&
-            !forest.isThrow(lastNode)) {
-          block.addStatement(new ExpressionStatement(
-              buildFallThroughError(current.fileOffset)));
-        }
-      }
     }
 
     push(containsPatterns);
@@ -9100,11 +9016,8 @@ class BodyBuilder extends StackListenerImpl
           if (!typeEnvironment.isSubtypeOf(
               formalType, fieldType, SubtypeCheckMode.withNullabilities)) {
             libraryBuilder.addProblem(
-                fasta.templateInitializingFormalTypeMismatch.withArguments(
-                    name,
-                    formalType,
-                    builder.fieldType,
-                    libraryBuilder.isNonNullableByDefault),
+                fasta.templateInitializingFormalTypeMismatch
+                    .withArguments(name, formalType, builder.fieldType, true),
                 assignmentOffset,
                 noLength,
                 uri,

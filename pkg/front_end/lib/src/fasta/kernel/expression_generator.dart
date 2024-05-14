@@ -2900,7 +2900,7 @@ class DeferredAccessGenerator extends Generator {
               _helper.buildDartType(type, TypeUse.deferredTypeError,
                   allowPotentiallyConstantType: allowPotentiallyConstantType),
               prefixGenerator._plainNameForRead,
-              _helper.libraryBuilder.isNonNullableByDefault)
+              true)
           .withLocation(
               _uri, charOffset, lengthOfSpan(prefixGenerator.token, token));
     }
@@ -3019,8 +3019,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
         arguments: arguments,
         fileUri: _uri,
         charOffset: fileOffset,
-        instanceTypeVariableAccess: _helper.instanceTypeVariableAccessState,
-        performTypeCanonicalization: performTypeCanonicalization)
+        instanceTypeVariableAccess: _helper.instanceTypeVariableAccessState)
       ..bind(_helper.libraryBuilder, declaration);
   }
 
@@ -3249,8 +3248,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                           _helper.libraryBuilder,
                           unaliasedTypeArguments,
                           /* hierarchy = */ null),
-                      legacyEraseAliases:
-                          !_helper.libraryBuilder.isNonNullableByDefault)!;
+                      legacyEraseAliases: false)!;
                 }
               } else if (typeArguments != null) {
                 builtTypeArguments = _helper.buildDartTypeArguments(
@@ -3290,8 +3288,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                 }
                 substitutedTypeArguments = unaliasTypes(
                     substitutedTypeArguments,
-                    legacyEraseAliases:
-                        !_helper.libraryBuilder.isNonNullableByDefault);
+                    legacyEraseAliases: false);
 
                 tearOffExpression = _helper.forest.createTypedefTearOff(
                     token.charOffset,
@@ -3302,8 +3299,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                 if (builtTypeArguments != null &&
                     builtTypeArguments.isNotEmpty) {
                   builtTypeArguments = unaliasTypes(builtTypeArguments,
-                      legacyEraseAliases:
-                          !_helper.libraryBuilder.isNonNullableByDefault)!;
+                      legacyEraseAliases: false)!;
 
                   tearOffExpression = _helper.forest.createInstantiation(
                       token.charOffset, tearOffExpression, builtTypeArguments);

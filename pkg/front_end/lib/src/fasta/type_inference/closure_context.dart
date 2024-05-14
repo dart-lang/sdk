@@ -53,35 +53,26 @@ abstract class ClosureContext {
     if (isGenerator) {
       if (isAsync) {
         DartType yieldContext = inferrer.getTypeArgumentOf(
-            inferrer.typeSchemaEnvironment.getUnionFreeType(returnContext,
-                isNonNullableByDefault: inferrer.isNonNullableByDefault),
+            inferrer.typeSchemaEnvironment
+                .getUnionFreeType(returnContext, isNonNullableByDefault: true),
             inferrer.coreTypes.streamClass);
         return new _AsyncStarClosureContext(
             inferrer, yieldContext, declaredReturnType, needToInferReturnType);
       } else {
         DartType yieldContext = inferrer.getTypeArgumentOf(
-            inferrer.typeSchemaEnvironment.getUnionFreeType(returnContext,
-                isNonNullableByDefault: inferrer.isNonNullableByDefault),
+            inferrer.typeSchemaEnvironment
+                .getUnionFreeType(returnContext, isNonNullableByDefault: true),
             inferrer.coreTypes.iterableClass);
         return new _SyncStarClosureContext(
             inferrer, yieldContext, declaredReturnType, needToInferReturnType);
       }
     } else if (isAsync) {
       DartType? futureValueType;
-      if (inferrer.isNonNullableByDefault) {
-        returnContext = inferrer.wrapFutureOrType(
-            inferrer.computeFutureValueTypeSchema(returnContext));
-        if (!needToInferReturnType) {
-          futureValueType =
-              computeFutureValueType(inferrer.coreTypes, declaredReturnType);
-        }
-      } else {
-        DartType flattenedType =
-            inferrer.typeSchemaEnvironment.flatten(returnContext);
-        returnContext = inferrer.wrapFutureOrType(flattenedType);
-        if (!needToInferReturnType) {
-          futureValueType = flattenedType;
-        }
+      returnContext = inferrer.wrapFutureOrType(
+          inferrer.computeFutureValueTypeSchema(returnContext));
+      if (!needToInferReturnType) {
+        futureValueType =
+            computeFutureValueType(inferrer.coreTypes, declaredReturnType);
       }
       return new _AsyncClosureContext(inferrer, returnContext,
           declaredReturnType, needToInferReturnType, futureValueType);
@@ -174,111 +165,66 @@ class _SyncClosureContext implements ClosureContext {
 
   void _checkValidReturn(
       DartType returnType, ReturnStatement statement, DartType expressionType) {
-    if (inferrer.isNonNullableByDefault) {
-      if (statement.expression == null) {
-        // It is a compile-time error if s is `return;`, unless T is void,
-        // dynamic, or Null.
-        if (returnType is VoidType ||
-            returnType is DynamicType ||
-            returnType is NullType) {
-          // Valid return;
-        } else {
-          statement.expression = inferrer.helper.wrapInProblem(
-              new NullLiteral()..fileOffset = statement.fileOffset,
-              messageReturnWithoutExpressionSync,
-              statement.fileOffset,
-              noLength)
-            ..parent = statement;
-        }
+    if (statement.expression == null) {
+      // It is a compile-time error if s is `return;`, unless T is void,
+      // dynamic, or Null.
+      if (returnType is VoidType ||
+          returnType is DynamicType ||
+          returnType is NullType) {
+        // Valid return;
       } else {
-        if (_isArrow! && returnType is VoidType) {
-          // For `=> e` it is a compile-time error if T is not void, and it
-          // would have been a compile-time error to declare the function with
-          // the body `{ return e; }` rather than `=> e`.
-          return;
-        }
-
-        if (returnType is VoidType &&
-            !(expressionType is VoidType ||
-                expressionType is DynamicType ||
-                expressionType is NullType)) {
-          // It is a compile-time error if s is `return e;`, T is void, and S is
-          // neither void, dynamic, nor Null.
-          statement.expression = inferrer.helper.wrapInProblem(
-              statement.expression!,
-              messageReturnFromVoidFunction,
-              statement.expression!.fileOffset,
-              noLength)
-            ..parent = statement;
-        } else if (!(returnType is VoidType || returnType is DynamicType) &&
-            expressionType is VoidType) {
-          // It is a compile-time error if s is `return e;`, T is neither void
-          // nor dynamic, and S is void.
-          statement.expression = inferrer.helper.wrapInProblem(
-              statement.expression!,
-              templateInvalidReturn.withArguments(expressionType,
-                  _declaredReturnType, inferrer.isNonNullableByDefault),
-              statement.expression!.fileOffset,
-              noLength)
-            ..parent = statement;
-        } else if (expressionType is! VoidType) {
-          // It is a compile-time error if s is `return e;`, S is not void, and
-          // S is not assignable to T.
-          Expression expression = inferrer.ensureAssignable(
-              _returnContext, expressionType, statement.expression!,
-              fileOffset: statement.expression!.fileOffset,
-              isVoidAllowed: true,
-              errorTemplate: templateInvalidReturn,
-              nullabilityErrorTemplate: templateInvalidReturnNullability,
-              nullabilityPartErrorTemplate:
-                  templateInvalidReturnPartNullability,
-              nullabilityNullErrorTemplate:
-                  templateInvalidReturnNullabilityNull,
-              nullabilityNullTypeErrorTemplate:
-                  templateInvalidReturnNullabilityNullType);
-          statement.expression = expression..parent = statement;
-        }
+        statement.expression = inferrer.helper.wrapInProblem(
+            new NullLiteral()..fileOffset = statement.fileOffset,
+            messageReturnWithoutExpressionSync,
+            statement.fileOffset,
+            noLength)
+          ..parent = statement;
       }
     } else {
-      // The rules for valid returns for functions with [returnType] `T` and
-      // a return expression with static [expressionType] `S`.
-      if (statement.expression != null) {
-        void ensureAssignability() {
-          Expression expression = inferrer.ensureAssignable(
-              _returnContext, expressionType, statement.expression!,
-              fileOffset: statement.fileOffset, isVoidAllowed: true);
-          statement.expression = expression..parent = statement;
-        }
+      if (_isArrow! && returnType is VoidType) {
+        // For `=> e` it is a compile-time error if T is not void, and it
+        // would have been a compile-time error to declare the function with
+        // the body `{ return e; }` rather than `=> e`.
+        return;
+      }
 
-        if (_isArrow! && returnType is VoidType) {
-          // Arrow functions are valid if: T is void or return exp; is a valid
-          // for a block-bodied function.
-          ensureAssignability();
-        } else if (returnType is VoidType &&
-            expressionType is! VoidType &&
-            expressionType is! DynamicType &&
-            expressionType is! NullType) {
-          // Invalid if T is void and S is not void, dynamic, or Null
-          statement.expression = inferrer.helper.wrapInProblem(
-              statement.expression!,
-              messageReturnFromVoidFunction,
-              statement.expression!.fileOffset,
-              noLength)
-            ..parent = statement;
-        } else if (expressionType is VoidType &&
-            returnType is! VoidType &&
-            returnType is! DynamicType &&
-            returnType is! NullType) {
-          // Invalid if S is void and T is not void, dynamic, or Null.
-          statement.expression = inferrer.helper.wrapInProblem(
-              statement.expression!,
-              messageVoidExpression,
-              statement.expression!.fileOffset,
-              noLength)
-            ..parent = statement;
-        } else {
-          ensureAssignability();
-        }
+      if (returnType is VoidType &&
+          !(expressionType is VoidType ||
+              expressionType is DynamicType ||
+              expressionType is NullType)) {
+        // It is a compile-time error if s is `return e;`, T is void, and S is
+        // neither void, dynamic, nor Null.
+        statement.expression = inferrer.helper.wrapInProblem(
+            statement.expression!,
+            messageReturnFromVoidFunction,
+            statement.expression!.fileOffset,
+            noLength)
+          ..parent = statement;
+      } else if (!(returnType is VoidType || returnType is DynamicType) &&
+          expressionType is VoidType) {
+        // It is a compile-time error if s is `return e;`, T is neither void
+        // nor dynamic, and S is void.
+        statement.expression = inferrer.helper.wrapInProblem(
+            statement.expression!,
+            templateInvalidReturn.withArguments(
+                expressionType, _declaredReturnType, true),
+            statement.expression!.fileOffset,
+            noLength)
+          ..parent = statement;
+      } else if (expressionType is! VoidType) {
+        // It is a compile-time error if s is `return e;`, S is not void, and
+        // S is not assignable to T.
+        Expression expression = inferrer.ensureAssignable(
+            _returnContext, expressionType, statement.expression!,
+            fileOffset: statement.expression!.fileOffset,
+            isVoidAllowed: true,
+            errorTemplate: templateInvalidReturn,
+            nullabilityErrorTemplate: templateInvalidReturnNullability,
+            nullabilityPartErrorTemplate: templateInvalidReturnPartNullability,
+            nullabilityNullErrorTemplate: templateInvalidReturnNullabilityNull,
+            nullabilityNullTypeErrorTemplate:
+                templateInvalidReturnNullabilityNullType);
+        statement.expression = expression..parent = statement;
       }
     }
   }
@@ -316,95 +262,52 @@ class _SyncClosureContext implements ClosureContext {
     assert(_needToInferReturnType);
     DartType? actualReturnedType;
     DartType inferredReturnType;
-    if (inferrer.isNonNullableByDefault) {
-      if (hasImplicitReturn) {
-        // No explicit returns we have an implicit `return null`.
-        actualReturnedType = const NullType();
-      } else {
-        // No explicit return and the function doesn't complete normally; that
-        // is, it throws.
-        actualReturnedType =
-            NeverType.fromNullability(inferrer.libraryBuilder.nonNullable);
-      }
-      // Use the types seen from the explicit return statements.
-      for (int i = 0; i < _returnStatements!.length; i++) {
-        ReturnStatement statement = _returnStatements![i];
-        DartType type = _returnExpressionTypes![i];
-        // The return expression has to be assignable to the return type
-        // expectation from the downwards inference context.
-        if (statement.expression != null) {
-          if (!inferrer.isAssignable(_returnContext, type)) {
-            type = inferrer.computeGreatestClosure(_returnContext);
-          }
-        }
-        if (actualReturnedType == null) {
-          actualReturnedType = type;
-        } else {
-          actualReturnedType = inferrer.typeSchemaEnvironment
-              .getStandardUpperBound(
-                  actualReturnedType, type,
-                  isNonNullableByDefault:
-                      inferrer.libraryBuilder.library.isNonNullableByDefault);
-        }
-      }
-
-      // Let T be the actual returned type of a function literal as computed
-      // above. Let R be the greatest closure of the typing context K as
-      // computed above.
-      DartType returnContext =
-          inferrer.computeGreatestClosure2(_declaredReturnType);
-      if (returnContext is VoidType) {
-        // With null safety: if R is void, or the function literal is marked
-        // async and R is FutureOr<void>, let S be void.
-        inferredReturnType = const VoidType();
-      } else if (inferrer.typeSchemaEnvironment.isSubtypeOf(actualReturnedType!,
-          returnContext, SubtypeCheckMode.withNullabilities)) {
-        // Otherwise, if T <: R then let S be T.
-        inferredReturnType = actualReturnedType;
-      } else {
-        // Otherwise, let S be R.
-        inferredReturnType = returnContext;
-      }
+    if (hasImplicitReturn) {
+      // No explicit returns we have an implicit `return null`.
+      actualReturnedType = const NullType();
     } else {
-      if (_returnStatements!.isNotEmpty) {
-        // Use the types seen from the explicit return statements.
-        for (int i = 0; i < _returnStatements!.length; i++) {
-          ReturnStatement statement = _returnStatements![i];
-          DartType type = _returnExpressionTypes![i];
-          // The return expression has to be assignable to the return type
-          // expectation from the downwards inference context.
-          if (statement.expression != null) {
-            if (!inferrer.isAssignable(_returnContext, type)) {
-              type = inferrer.computeGreatestClosure(_returnContext);
-            }
-          }
-          if (actualReturnedType == null) {
-            actualReturnedType = type;
-          } else {
-            actualReturnedType = inferrer.typeSchemaEnvironment
-                .getStandardUpperBound(actualReturnedType, type,
-                    isNonNullableByDefault:
-                        inferrer.libraryBuilder.library.isNonNullableByDefault);
-          }
+      // No explicit return and the function doesn't complete normally; that
+      // is, it throws.
+      actualReturnedType =
+          NeverType.fromNullability(inferrer.libraryBuilder.nonNullable);
+    }
+    // Use the types seen from the explicit return statements.
+    for (int i = 0; i < _returnStatements!.length; i++) {
+      ReturnStatement statement = _returnStatements![i];
+      DartType type = _returnExpressionTypes![i];
+      // The return expression has to be assignable to the return type
+      // expectation from the downwards inference context.
+      if (statement.expression != null) {
+        if (!inferrer.isAssignable(_returnContext, type)) {
+          type = inferrer.computeGreatestClosure(_returnContext);
         }
-      } else if (hasImplicitReturn) {
-        // No explicit returns we have an implicit `return null`.
-        actualReturnedType = const NullType();
-      } else {
-        // No explicit return and the function doesn't complete normally; that
-        // is, it throws.
-        actualReturnedType = const NullType();
       }
+      if (actualReturnedType == null) {
+        actualReturnedType = type;
+      } else {
+        actualReturnedType = inferrer.typeSchemaEnvironment
+            .getStandardUpperBound(actualReturnedType, type,
+                isNonNullableByDefault:
+                    inferrer.libraryBuilder.library.isNonNullableByDefault);
+      }
+    }
 
-      if (!inferrer.typeSchemaEnvironment.isSubtypeOf(actualReturnedType!,
-          _returnContext, SubtypeCheckMode.withNullabilities)) {
-        // If the inferred return type isn't a subtype of the context, we use
-        // the context.
-        inferredReturnType =
-            inferrer.computeGreatestClosure2(_declaredReturnType);
-      } else {
-        inferredReturnType = actualReturnedType;
-      }
+    // Let T be the actual returned type of a function literal as computed
+    // above. Let R be the greatest closure of the typing context K as
+    // computed above.
+    DartType returnContext =
+        inferrer.computeGreatestClosure2(_declaredReturnType);
+    if (returnContext is VoidType) {
+      // With null safety: if R is void, or the function literal is marked
+      // async and R is FutureOr<void>, let S be void.
+      inferredReturnType = const VoidType();
+    } else if (inferrer.typeSchemaEnvironment.isSubtypeOf(actualReturnedType!,
+        returnContext, SubtypeCheckMode.withNullabilities)) {
+      // Otherwise, if T <: R then let S be T.
+      inferredReturnType = actualReturnedType;
+    } else {
+      // Otherwise, let S be R.
+      inferredReturnType = returnContext;
     }
 
     for (int i = 0; i < _returnStatements!.length; ++i) {
@@ -412,8 +315,8 @@ class _SyncClosureContext implements ClosureContext {
           _returnExpressionTypes![i]);
     }
 
-    return _inferredReturnType = demoteTypeInLibrary(inferredReturnType,
-        isNonNullableByDefault: inferrer.isNonNullableByDefault);
+    return _inferredReturnType =
+        demoteTypeInLibrary(inferredReturnType, isNonNullableByDefault: true);
   }
 
   @override
@@ -430,8 +333,7 @@ class _SyncClosureContext implements ClosureContext {
     } else {
       returnType = _declaredReturnType;
     }
-    if (inferrer.libraryBuilder.isNonNullableByDefault &&
-        !containsInvalidType(returnType) &&
+    if (!containsInvalidType(returnType) &&
         returnType.isPotentiallyNonNullable &&
         inferrer.flowAnalysis.isReachable) {
       Statement resultStatement =
@@ -440,8 +342,7 @@ class _SyncClosureContext implements ClosureContext {
       Statement returnStatement = new ReturnStatement(inferrer.helper
           .wrapInProblem(
               new NullLiteral()..fileOffset = fileOffset,
-              templateImplicitReturnNull.withArguments(
-                  returnType, inferrer.libraryBuilder.isNonNullableByDefault),
+              templateImplicitReturnNull.withArguments(returnType, true),
               fileOffset,
               noLength))
         ..fileOffset = fileOffset;
@@ -515,143 +416,85 @@ class _AsyncClosureContext implements ClosureContext {
 
   void _checkValidReturn(
       DartType returnType, ReturnStatement statement, DartType expressionType) {
-    if (inferrer.isNonNullableByDefault) {
-      assert(
-          emittedValueType != null, "Future value type has not been computed.");
+    assert(
+        emittedValueType != null, "Future value type has not been computed.");
 
-      if (statement.expression == null) {
-        // It is a compile-time error if s is `return;`, unless T_v is void,
-        // dynamic, or Null.
-        if (emittedValueType is VoidType ||
-            emittedValueType is DynamicType ||
-            emittedValueType is NullType) {
-          // Valid return;
-        } else {
-          statement.expression = inferrer.helper.wrapInProblem(
-              new NullLiteral()..fileOffset = statement.fileOffset,
-              messageReturnWithoutExpressionAsync,
-              statement.fileOffset,
-              noLength)
-            ..parent = statement;
-        }
+    if (statement.expression == null) {
+      // It is a compile-time error if s is `return;`, unless T_v is void,
+      // dynamic, or Null.
+      if (emittedValueType is VoidType ||
+          emittedValueType is DynamicType ||
+          emittedValueType is NullType) {
+        // Valid return;
       } else {
-        if (_isArrow! &&
-            inferrer.typeSchemaEnvironment.flatten(returnType) is VoidType) {
-          // For `async => e` it is a compile-time error if flatten(T) is not
-          // void, and it would have been a compile-time error to declare the
-          // function with the body `async { return e; }` rather than
-          // `async => e`.
-          return;
-        }
-
-        DartType flattenedExpressionType =
-            inferrer.typeSchemaEnvironment.flatten(expressionType);
-        if (emittedValueType is VoidType &&
-            !(flattenedExpressionType is VoidType ||
-                flattenedExpressionType is DynamicType ||
-                flattenedExpressionType is NullType)) {
-          // It is a compile-time error if s is `return e;`, T_v is void, and
-          // flatten(S) is neither void, dynamic, Null.
-          statement.expression = inferrer.helper.wrapInProblem(
-              new NullLiteral()..fileOffset = statement.fileOffset,
-              templateInvalidReturnAsync.withArguments(
-                  expressionType, returnType, inferrer.isNonNullableByDefault),
-              statement.expression!.fileOffset,
-              noLength)
-            ..parent = statement;
-        } else if (!(emittedValueType is VoidType ||
-                emittedValueType is DynamicType) &&
-            flattenedExpressionType is VoidType) {
-          // It is a compile-time error if s is `return e;`, T_v is neither void
-          // nor dynamic, and flatten(S) is void.
-          statement.expression = inferrer.helper.wrapInProblem(
-              new NullLiteral()..fileOffset = statement.fileOffset,
-              templateInvalidReturnAsync.withArguments(
-                  expressionType, returnType, inferrer.isNonNullableByDefault),
-              statement.expression!.fileOffset,
-              noLength)
-            ..parent = statement;
-        } else if (flattenedExpressionType is! VoidType &&
-            !inferrer.typeSchemaEnvironment
-                .performNullabilityAwareSubtypeCheck(
-                    flattenedExpressionType, emittedValueType!)
-                .isSubtypeWhenUsingNullabilities()) {
-          // It is a compile-time error if s is `return e;`, flatten(S) is not
-          // void, S is not assignable to T_v, and flatten(S) is not a subtype
-          // of T_v.
-          statement.expression = inferrer.ensureAssignable(
-              emittedValueType!, expressionType, statement.expression!,
-              fileOffset: statement.expression!.fileOffset,
-              runtimeCheckedType:
-                  inferrer.computeGreatestClosure2(_returnContext),
-              declaredContextType: returnType,
-              isVoidAllowed: false,
-              errorTemplate: templateInvalidReturnAsync,
-              nullabilityErrorTemplate: templateInvalidReturnAsyncNullability,
-              nullabilityPartErrorTemplate:
-                  templateInvalidReturnAsyncPartNullability,
-              nullabilityNullErrorTemplate:
-                  templateInvalidReturnAsyncNullabilityNull,
-              nullabilityNullTypeErrorTemplate:
-                  templateInvalidReturnAsyncNullabilityNullType)
-            ..parent = statement;
-        }
+        statement.expression = inferrer.helper.wrapInProblem(
+            new NullLiteral()..fileOffset = statement.fileOffset,
+            messageReturnWithoutExpressionAsync,
+            statement.fileOffset,
+            noLength)
+          ..parent = statement;
       }
     } else {
-      // The rules for valid returns for async functions with [returnType] `T`
-      // and a return expression with static [expressionType] `S`.
-      DartType flattenedReturnType =
-          inferrer.typeSchemaEnvironment.flatten(returnType);
-      if (statement.expression != null) {
-        DartType flattenedExpressionType =
-            inferrer.typeSchemaEnvironment.flatten(expressionType);
+      if (_isArrow! &&
+          inferrer.typeSchemaEnvironment.flatten(returnType) is VoidType) {
+        // For `async => e` it is a compile-time error if flatten(T) is not
+        // void, and it would have been a compile-time error to declare the
+        // function with the body `async { return e; }` rather than
+        // `async => e`.
+        return;
+      }
 
-        void ensureAssignability() {
-          DartType wrappedType = inferrer.typeSchemaEnvironment
-              .futureType(flattenedExpressionType, Nullability.nonNullable);
-          Expression expression = inferrer.ensureAssignable(
-              computeAssignableType(inferrer, _returnContext, wrappedType),
-              wrappedType,
-              statement.expression!,
-              fileOffset: statement.fileOffset,
-              isVoidAllowed: true,
-              runtimeCheckedType:
-                  inferrer.computeGreatestClosure(_returnContext));
-          statement.expression = expression..parent = statement;
-        }
-
-        if (_isArrow! && flattenedReturnType is VoidType) {
-          // Arrow functions are valid if: flatten(T) is void or return exp; is
-          // valid for a block-bodied function.
-          ensureAssignability();
-        } else if (returnType is VoidType &&
-            flattenedExpressionType is! VoidType &&
-            flattenedExpressionType is! DynamicType &&
-            flattenedExpressionType is! NullType) {
-          // Invalid if T is void and flatten(S) is not void, dynamic, or Null.
-          statement.expression = inferrer.helper.wrapInProblem(
-              statement.expression!,
-              messageReturnFromVoidFunction,
-              statement.expression!.fileOffset,
-              noLength)
-            ..parent = statement;
-        } else if (flattenedExpressionType is VoidType &&
-            flattenedReturnType is! VoidType &&
-            flattenedReturnType is! DynamicType &&
-            flattenedReturnType is! NullType) {
-          // Invalid if flatten(S) is void and flatten(T) is not void, dynamic,
-          // or Null.
-          statement.expression = inferrer.helper.wrapInProblem(
-              statement.expression!,
-              messageVoidExpression,
-              statement.expression!.fileOffset,
-              noLength)
-            ..parent = statement;
-        } else {
-          // The caller will check that the return expression is assignable to
-          // the return type.
-          ensureAssignability();
-        }
+      DartType flattenedExpressionType =
+          inferrer.typeSchemaEnvironment.flatten(expressionType);
+      if (emittedValueType is VoidType &&
+          !(flattenedExpressionType is VoidType ||
+              flattenedExpressionType is DynamicType ||
+              flattenedExpressionType is NullType)) {
+        // It is a compile-time error if s is `return e;`, T_v is void, and
+        // flatten(S) is neither void, dynamic, Null.
+        statement.expression = inferrer.helper.wrapInProblem(
+            new NullLiteral()..fileOffset = statement.fileOffset,
+            templateInvalidReturnAsync.withArguments(
+                expressionType, returnType, true),
+            statement.expression!.fileOffset,
+            noLength)
+          ..parent = statement;
+      } else if (!(emittedValueType is VoidType ||
+              emittedValueType is DynamicType) &&
+          flattenedExpressionType is VoidType) {
+        // It is a compile-time error if s is `return e;`, T_v is neither void
+        // nor dynamic, and flatten(S) is void.
+        statement.expression = inferrer.helper.wrapInProblem(
+            new NullLiteral()..fileOffset = statement.fileOffset,
+            templateInvalidReturnAsync.withArguments(
+                expressionType, returnType, true),
+            statement.expression!.fileOffset,
+            noLength)
+          ..parent = statement;
+      } else if (flattenedExpressionType is! VoidType &&
+          !inferrer.typeSchemaEnvironment
+              .performNullabilityAwareSubtypeCheck(
+                  flattenedExpressionType, emittedValueType!)
+              .isSubtypeWhenUsingNullabilities()) {
+        // It is a compile-time error if s is `return e;`, flatten(S) is not
+        // void, S is not assignable to T_v, and flatten(S) is not a subtype
+        // of T_v.
+        statement.expression = inferrer.ensureAssignable(
+            emittedValueType!, expressionType, statement.expression!,
+            fileOffset: statement.expression!.fileOffset,
+            runtimeCheckedType:
+                inferrer.computeGreatestClosure2(_returnContext),
+            declaredContextType: returnType,
+            isVoidAllowed: false,
+            errorTemplate: templateInvalidReturnAsync,
+            nullabilityErrorTemplate: templateInvalidReturnAsyncNullability,
+            nullabilityPartErrorTemplate:
+                templateInvalidReturnAsyncPartNullability,
+            nullabilityNullErrorTemplate:
+                templateInvalidReturnAsyncNullabilityNull,
+            nullabilityNullTypeErrorTemplate:
+                templateInvalidReturnAsyncNullabilityNullType)
+          ..parent = statement;
       }
     }
   }
@@ -711,111 +554,61 @@ class _AsyncClosureContext implements ClosureContext {
     assert(_needToInferReturnType);
     DartType? inferredType;
 
-    if (inferrer.isNonNullableByDefault) {
-      if (hasImplicitReturn) {
-        // No explicit returns we have an implicit `return null`.
-        inferredType = const NullType();
-      } else {
-        // No explicit return and the function doesn't complete normally; that
-        // is, it throws.
-        inferredType =
-            NeverType.fromNullability(inferrer.libraryBuilder.nonNullable);
-      }
-      // Use the types seen from the explicit return statements.
-      for (int i = 0; i < _returnStatements!.length; i++) {
-        DartType type = _returnExpressionTypes![i];
-
-        DartType unwrappedType = inferrer.typeSchemaEnvironment.flatten(type);
-        if (inferredType == null) {
-          inferredType = unwrappedType;
-        } else {
-          inferredType = inferrer.typeSchemaEnvironment.getStandardUpperBound(
-              inferredType, unwrappedType,
-              isNonNullableByDefault:
-                  inferrer.libraryBuilder.library.isNonNullableByDefault);
-        }
-      }
-
-      // Let `T` be the **actual returned type** of a function literal as
-      // computed above.
-
-      // Let `R` be the greatest closure of the typing context `K` as computed
-      // above. If `R` is `void`, or the function literal is marked `async` and
-      // `R` is `FutureOr<void>`, let `S` be `void`. Otherwise, if `T <: R` then
-      // let `S` be `T`.  Otherwise, let `S` be `R`.
-      DartType returnContext = inferrer.computeGreatestClosure2(_returnContext);
-      if (returnContext is VoidType ||
-          returnContext is FutureOrType &&
-              returnContext.typeArgument is VoidType) {
-        inferredType = const VoidType();
-      } else if (!inferrer.typeSchemaEnvironment.isSubtypeOf(
-          inferredType!, returnContext, SubtypeCheckMode.withNullabilities)) {
-        // If the inferred return type isn't a subtype of the context, we use
-        // the context.
-        inferredType = returnContext;
-      }
-      inferredType = inferrer.wrapFutureType(
-          inferrer.typeSchemaEnvironment.flatten(inferredType),
-          inferrer.libraryBuilder.nonNullable);
+    if (hasImplicitReturn) {
+      // No explicit returns we have an implicit `return null`.
+      inferredType = const NullType();
     } else {
-      if (_returnStatements!.isNotEmpty) {
-        // Use the types seen from the explicit return statements.
-        for (int i = 0; i < _returnStatements!.length; i++) {
-          ReturnStatement statement = _returnStatements![i];
-          DartType type = _returnExpressionTypes![i];
+      // No explicit return and the function doesn't complete normally; that
+      // is, it throws.
+      inferredType =
+          NeverType.fromNullability(inferrer.libraryBuilder.nonNullable);
+    }
+    // Use the types seen from the explicit return statements.
+    for (int i = 0; i < _returnStatements!.length; i++) {
+      DartType type = _returnExpressionTypes![i];
 
-          // The return expression has to be assignable to the return type
-          // expectation from the downwards inference context.
-          if (statement.expression != null) {
-            if (!inferrer.isAssignable(
-                computeAssignableType(inferrer, _returnContext, type), type)) {
-              // Not assignable, use the expectation.
-              type = inferrer.computeGreatestClosure(_returnContext);
-            }
-          }
-          DartType unwrappedType = inferrer.typeSchemaEnvironment.flatten(type);
-          if (inferredType == null) {
-            inferredType = unwrappedType;
-          } else {
-            inferredType = inferrer.typeSchemaEnvironment.getStandardUpperBound(
-                inferredType, unwrappedType,
-                isNonNullableByDefault:
-                    inferrer.libraryBuilder.library.isNonNullableByDefault);
-          }
-        }
-      } else if (hasImplicitReturn) {
-        // No explicit returns we have an implicit `return null`.
-        inferredType = const NullType();
+      DartType unwrappedType = inferrer.typeSchemaEnvironment.flatten(type);
+      if (inferredType == null) {
+        inferredType = unwrappedType;
       } else {
-        // No explicit return and the function doesn't complete normally;
-        // that is, it throws.
-        inferredType = const NullType();
-      }
-      inferredType = inferrer.wrapFutureType(
-          inferredType!, inferrer.libraryBuilder.nonNullable);
-
-      if (!inferrer.typeSchemaEnvironment.isSubtypeOf(
-          inferredType, _returnContext, SubtypeCheckMode.withNullabilities)) {
-        // If the inferred return type isn't a subtype of the context, we use
-        // the context.
-        inferredType = inferrer.computeGreatestClosure2(_declaredReturnType);
+        inferredType = inferrer.typeSchemaEnvironment.getStandardUpperBound(
+            inferredType, unwrappedType,
+            isNonNullableByDefault:
+                inferrer.libraryBuilder.library.isNonNullableByDefault);
       }
     }
 
-    if (inferrer.isNonNullableByDefault) {
-      emittedValueType =
-          computeFutureValueType(inferrer.coreTypes, inferredType);
-    } else {
-      emittedValueType = inferrer.typeSchemaEnvironment.flatten(inferredType);
+    // Let `T` be the **actual returned type** of a function literal as
+    // computed above.
+
+    // Let `R` be the greatest closure of the typing context `K` as computed
+    // above. If `R` is `void`, or the function literal is marked `async` and
+    // `R` is `FutureOr<void>`, let `S` be `void`. Otherwise, if `T <: R` then
+    // let `S` be `T`.  Otherwise, let `S` be `R`.
+    DartType returnContext = inferrer.computeGreatestClosure2(_returnContext);
+    if (returnContext is VoidType ||
+        returnContext is FutureOrType &&
+            returnContext.typeArgument is VoidType) {
+      inferredType = const VoidType();
+    } else if (!inferrer.typeSchemaEnvironment.isSubtypeOf(
+        inferredType!, returnContext, SubtypeCheckMode.withNullabilities)) {
+      // If the inferred return type isn't a subtype of the context, we use
+      // the context.
+      inferredType = returnContext;
     }
+    inferredType = inferrer.wrapFutureType(
+        inferrer.typeSchemaEnvironment.flatten(inferredType),
+        inferrer.libraryBuilder.nonNullable);
+
+    emittedValueType = computeFutureValueType(inferrer.coreTypes, inferredType);
 
     for (int i = 0; i < _returnStatements!.length; ++i) {
       _checkValidReturn(
           inferredType, _returnStatements![i], _returnExpressionTypes![i]);
     }
 
-    return _inferredReturnType = demoteTypeInLibrary(inferredType,
-        isNonNullableByDefault: inferrer.isNonNullableByDefault);
+    return _inferredReturnType =
+        demoteTypeInLibrary(inferredType, isNonNullableByDefault: true);
   }
 
   @override
@@ -833,8 +626,7 @@ class _AsyncClosureContext implements ClosureContext {
       returnType = _declaredReturnType;
     }
     returnType = inferrer.typeSchemaEnvironment.flatten(returnType);
-    if (inferrer.libraryBuilder.isNonNullableByDefault &&
-        !containsInvalidType(returnType) &&
+    if (!containsInvalidType(returnType) &&
         returnType.isPotentiallyNonNullable &&
         inferrer.flowAnalysis.isReachable) {
       Statement resultStatement =
@@ -843,8 +635,7 @@ class _AsyncClosureContext implements ClosureContext {
       Statement returnStatement = new ReturnStatement(inferrer.helper
           .wrapInProblem(
               new NullLiteral()..fileOffset = fileOffset,
-              templateImplicitReturnNull.withArguments(
-                  returnType, inferrer.libraryBuilder.isNonNullableByDefault),
+              templateImplicitReturnNull.withArguments(returnType, true),
               fileOffset,
               noLength))
         ..fileOffset = fileOffset;
@@ -967,12 +758,8 @@ class _SyncStarClosureContext implements ClosureContext {
     } else {
       // No explicit return and the function doesn't complete normally; that is,
       // it throws.
-      if (inferrer.isNonNullableByDefault) {
-        inferredElementType =
-            NeverType.fromNullability(inferrer.libraryBuilder.nonNullable);
-      } else {
-        inferredElementType = const NullType();
-      }
+      inferredElementType =
+          NeverType.fromNullability(inferrer.libraryBuilder.nonNullable);
     }
 
     DartType inferredType = inferrer.wrapType(inferredElementType!,
@@ -985,11 +772,11 @@ class _SyncStarClosureContext implements ClosureContext {
       inferredType = inferrer.computeGreatestClosure2(_declaredReturnType);
     }
 
-    DartType demotedType = demoteTypeInLibrary(inferredType,
-        isNonNullableByDefault: inferrer.isNonNullableByDefault);
+    DartType demotedType =
+        demoteTypeInLibrary(inferredType, isNonNullableByDefault: true);
     _emittedValueType = inferrer.getTypeArgumentOf(
-        inferrer.typeSchemaEnvironment.getUnionFreeType(demotedType,
-            isNonNullableByDefault: inferrer.isNonNullableByDefault),
+        inferrer.typeSchemaEnvironment
+            .getUnionFreeType(demotedType, isNonNullableByDefault: true),
         inferrer.coreTypes.iterableClass);
     return demotedType;
   }
@@ -1109,12 +896,8 @@ class _AsyncStarClosureContext implements ClosureContext {
     } else {
       // No explicit return and the function doesn't complete normally; that is,
       // it throws.
-      if (inferrer.isNonNullableByDefault) {
-        inferredElementType =
-            NeverType.fromNullability(inferrer.libraryBuilder.nonNullable);
-      } else {
-        inferredElementType = const NullType();
-      }
+      inferredElementType =
+          NeverType.fromNullability(inferrer.libraryBuilder.nonNullable);
     }
 
     DartType inferredType = inferrer.wrapType(inferredElementType!,
@@ -1127,11 +910,11 @@ class _AsyncStarClosureContext implements ClosureContext {
       inferredType = inferrer.computeGreatestClosure2(_declaredReturnType);
     }
 
-    DartType demotedType = demoteTypeInLibrary(inferredType,
-        isNonNullableByDefault: inferrer.isNonNullableByDefault);
+    DartType demotedType =
+        demoteTypeInLibrary(inferredType, isNonNullableByDefault: true);
     _emittedValueType = inferrer.getTypeArgumentOf(
-        inferrer.typeSchemaEnvironment.getUnionFreeType(demotedType,
-            isNonNullableByDefault: inferrer.isNonNullableByDefault),
+        inferrer.typeSchemaEnvironment
+            .getUnionFreeType(demotedType, isNonNullableByDefault: true),
         inferrer.coreTypes.streamClass);
     return demotedType;
   }

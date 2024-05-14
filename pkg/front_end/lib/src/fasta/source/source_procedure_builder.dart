@@ -115,7 +115,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       ..fileStartOffset = startCharOffset
       ..fileOffset = charOffset
       ..fileEndOffset = charEndOffset
-      ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault;
+      ..isNonNullableByDefault = true;
     nameScheme.getProcedureMemberName(kind, name).attachMember(_procedure);
     this.asyncModifier = asyncModifier;
     if ((isExtensionInstanceMember || isExtensionTypeInstanceMember) &&
@@ -127,7 +127,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
           isExtensionTypeMember: isExtensionTypeInstanceMember,
           reference: _tearOffReference,
           fileUri: fileUri)
-        ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault;
+        ..isNonNullableByDefault = true;
       nameScheme
           .getProcedureMemberName(ProcedureKind.Getter, name)
           .attachMember(_extensionTearOff!);

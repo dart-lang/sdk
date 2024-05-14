@@ -5,7 +5,6 @@
 library fasta.class_hierarchy_builder;
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/src/nnbd_top_merge.dart';
 import 'package:kernel/src/norm.dart';
 import 'package:kernel/type_algebra.dart';
@@ -36,25 +35,18 @@ abstract class HierarchyNodeBuilder {
   Uri get _fileUri;
 
   Supertype _resolveSupertypeConflict(Supertype type, Supertype superclass) {
-    if (_libraryBuilder.isNonNullableByDefault) {
-      Supertype? merge = nnbdTopMergeSupertype(
-          _hierarchy.coreTypes,
-          normSupertype(_hierarchy.coreTypes, superclass),
-          normSupertype(_hierarchy.coreTypes, type));
-      if (merge != null) {
-        return merge;
-      }
-    } else if (type == superclass) {
-      return superclass;
+    Supertype? merge = nnbdTopMergeSupertype(
+        _hierarchy.coreTypes,
+        normSupertype(_hierarchy.coreTypes, superclass),
+        normSupertype(_hierarchy.coreTypes, type));
+    if (merge != null) {
+      return merge;
     }
     LibraryBuilder libraryBuilder = _libraryBuilder;
     if (libraryBuilder is SourceLibraryBuilder) {
       libraryBuilder.addProblem(
           templateAmbiguousSupertypes.withArguments(
-              _name,
-              superclass.asInterfaceType,
-              type.asInterfaceType,
-              libraryBuilder.isNonNullableByDefault),
+              _name, superclass.asInterfaceType, type.asInterfaceType, true),
           _fileOffset,
           noLength,
           _fileUri);
@@ -169,12 +161,6 @@ class ClassHierarchyNodeBuilder extends HierarchyNodeBuilder {
       superclasses.setRange(0, superclasses.length - 1,
           _substSupertypes(supertype.asInterfaceType, supernode.superclasses));
       superclasses[superclasses.length - 1] = supertype;
-      if (!_classBuilder.libraryBuilder.isNonNullableByDefault &&
-          supernode.classBuilder.libraryBuilder.isNonNullableByDefault) {
-        for (int i = 0; i < superclasses.length; i++) {
-          superclasses[i] = legacyErasureSupertype(superclasses[i]);
-        }
-      }
 
       List<TypeBuilder>? directInterfaceBuilders =
           _ignoreFunction(_classBuilder.interfaceBuilders);
@@ -236,14 +222,6 @@ class ClassHierarchyNodeBuilder extends HierarchyNodeBuilder {
           }
         }
         interfacesList = interfaces.values.toList();
-      } else if (superclassInterfaces.isNotEmpty &&
-          !_classBuilder.libraryBuilder.isNonNullableByDefault &&
-          supernode.classBuilder.libraryBuilder.isNonNullableByDefault) {
-        Map<Class, Supertype> interfaces = {};
-        for (int i = 0; i < superclassInterfaces.length; i++) {
-          _addInterface(interfaces, superclasses, superclassInterfaces[i]);
-        }
-        interfacesList = interfaces.values.toList();
       } else {
         interfacesList = superclassInterfaces;
       }
@@ -255,9 +233,6 @@ class ClassHierarchyNodeBuilder extends HierarchyNodeBuilder {
 
   void _addInterface(Map<Class, Supertype> interfaces,
       List<Supertype> superclasses, Supertype type) {
-    if (!_libraryBuilder.isNonNullableByDefault) {
-      type = legacyErasureSupertype(type);
-    }
     ClassHierarchyNode node = _hierarchy.getNodeFromClass(type.classNode);
     int depth = node.depth;
     int myDepth = superclasses.length;
@@ -494,9 +469,6 @@ class ExtensionTypeHierarchyNodeBuilder extends HierarchyNodeBuilder {
   }
 
   void _addSuperClass(Map<Class, Supertype> superClasses, Supertype type) {
-    if (!_libraryBuilder.isNonNullableByDefault) {
-      type = legacyErasureSupertype(type);
-    }
     Supertype? interface = superClasses[type.classNode];
     if (interface != null) {
       // This is a potential conflict.
@@ -508,22 +480,18 @@ class ExtensionTypeHierarchyNodeBuilder extends HierarchyNodeBuilder {
 
   ExtensionType _resolveSuperExtensionTypeConflict(
       ExtensionType type, ExtensionType superclass) {
-    if (_libraryBuilder.isNonNullableByDefault) {
-      DartType? merge = nnbdTopMerge(
-          _hierarchy.coreTypes,
-          norm(_hierarchy.coreTypes, superclass),
-          norm(_hierarchy.coreTypes, type));
-      if (merge != null) {
-        return merge as ExtensionType;
-      }
-    } else if (type == superclass) {
-      return superclass;
+    DartType? merge = nnbdTopMerge(
+        _hierarchy.coreTypes,
+        norm(_hierarchy.coreTypes, superclass),
+        norm(_hierarchy.coreTypes, type));
+    if (merge != null) {
+      return merge as ExtensionType;
     }
     LibraryBuilder libraryBuilder = _libraryBuilder;
     if (libraryBuilder is SourceLibraryBuilder) {
       libraryBuilder.addProblem(
           templateAmbiguousSupertypes.withArguments(
-              _name, superclass, type, libraryBuilder.isNonNullableByDefault),
+              _name, superclass, type, true),
           _fileOffset,
           noLength,
           _fileUri);
@@ -534,9 +502,6 @@ class ExtensionTypeHierarchyNodeBuilder extends HierarchyNodeBuilder {
   void _addSuperExtensionType(
       Map<ExtensionTypeDeclaration, ExtensionType> interfaces,
       ExtensionType type) {
-    if (!_libraryBuilder.isNonNullableByDefault) {
-      type = legacyErasure(type) as ExtensionType;
-    }
     ExtensionType? interface = interfaces[type.extensionTypeDeclaration];
     if (interface != null) {
       // This is a potential conflict.

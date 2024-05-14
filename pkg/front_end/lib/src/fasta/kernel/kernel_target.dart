@@ -1203,7 +1203,7 @@ class KernelTarget extends TargetImplementation {
       // TODO(johnniwinther): Should we add file end offsets to synthesized
       //  constructors?
       //..fileEndOffset = enclosingClass.fileOffset
-      ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault;
+      ..isNonNullableByDefault = true;
     Procedure? constructorTearOff = createConstructorTearOffProcedure(
         new MemberName(libraryBuilder.libraryName, constructorTearOffName('')),
         libraryBuilder,
@@ -1439,20 +1439,18 @@ class KernelTarget extends TargetImplementation {
                 .toList());
         nonFinalFields.clear();
       }
-      if (libraryBuilder.isNonNullableByDefault) {
-        if (constructor.isConst && lateFinalFields.isNotEmpty) {
-          for (FieldBuilder field in lateFinalFields) {
-            classDeclaration.addProblem(
-                messageConstConstructorLateFinalFieldError,
-                field.charOffset,
-                noLength,
-                context: [
-                  messageConstConstructorLateFinalFieldCause.withLocation(
-                      constructor.fileUri!, constructor.charOffset, noLength)
-                ]);
-          }
-          lateFinalFields.clear();
+      if (constructor.isConst && lateFinalFields.isNotEmpty) {
+        for (FieldBuilder field in lateFinalFields) {
+          classDeclaration.addProblem(
+              messageConstConstructorLateFinalFieldError,
+              field.charOffset,
+              noLength,
+              context: [
+                messageConstConstructorLateFinalFieldCause.withLocation(
+                    constructor.fileUri!, constructor.charOffset, noLength)
+              ]);
         }
+        lateFinalFields.clear();
       }
       if (constructor.isEffectivelyExternal) {
         // Assume that an external constructor initializes all uninitialized
@@ -1477,13 +1475,8 @@ class KernelTarget extends TargetImplementation {
     for (SourceFieldBuilder fieldBuilder in uninitializedFields) {
       if (initializedFieldBuilders == null ||
           !initializedFieldBuilders.contains(fieldBuilder)) {
-        bool uninitializedFinalOrNonNullableFieldIsError =
-            libraryBuilder.isNonNullableByDefault ||
-                classDeclaration.hasGenerativeConstructor ||
-                classDeclaration.isMixinDeclaration;
         if (!fieldBuilder.isLate) {
-          if (fieldBuilder.isFinal &&
-              uninitializedFinalOrNonNullableFieldIsError) {
+          if (fieldBuilder.isFinal) {
             String uri = '${libraryBuilder.importUri}';
             String file = fieldBuilder.fileUri.pathSegments.last;
             if (uri == 'dart:html' ||
@@ -1501,18 +1494,13 @@ class KernelTarget extends TargetImplementation {
                   fieldBuilder.fileUri);
             }
           } else if (fieldBuilder.fieldType is! InvalidType &&
-              fieldBuilder.fieldType.isPotentiallyNonNullable &&
-              uninitializedFinalOrNonNullableFieldIsError) {
-            if (libraryBuilder.isNonNullableByDefault) {
-              libraryBuilder.addProblem(
-                  templateFieldNonNullableWithoutInitializerError.withArguments(
-                      fieldBuilder.name,
-                      fieldBuilder.fieldType,
-                      libraryBuilder.isNonNullableByDefault),
-                  fieldBuilder.charOffset,
-                  fieldBuilder.name.length,
-                  fieldBuilder.fileUri);
-            }
+              fieldBuilder.fieldType.isPotentiallyNonNullable) {
+            libraryBuilder.addProblem(
+                templateFieldNonNullableWithoutInitializerError.withArguments(
+                    fieldBuilder.name, fieldBuilder.fieldType, true),
+                fieldBuilder.charOffset,
+                fieldBuilder.name.length,
+                fieldBuilder.fileUri);
           }
           fieldBuilder.buildImplicitDefaultValue();
         }
@@ -1546,21 +1534,19 @@ class KernelTarget extends TargetImplementation {
           } else if (fieldBuilder.field.type is! InvalidType &&
               !fieldBuilder.isLate &&
               fieldBuilder.field.type.isPotentiallyNonNullable) {
-            if (libraryBuilder.isNonNullableByDefault) {
-              libraryBuilder.addProblem(
-                  templateFieldNonNullableNotInitializedByConstructorError
-                      .withArguments(fieldBuilder.name, fieldBuilder.field.type,
-                          libraryBuilder.isNonNullableByDefault),
-                  constructorBuilder.charOffset,
-                  noLength,
-                  constructorBuilder.fileUri,
-                  context: [
-                    templateMissingImplementationCause
-                        .withArguments(fieldBuilder.name)
-                        .withLocation(fieldBuilder.fileUri,
-                            fieldBuilder.charOffset, fieldBuilder.name.length)
-                  ]);
-            }
+            libraryBuilder.addProblem(
+                templateFieldNonNullableNotInitializedByConstructorError
+                    .withArguments(
+                        fieldBuilder.name, fieldBuilder.field.type, true),
+                constructorBuilder.charOffset,
+                noLength,
+                constructorBuilder.fileUri,
+                context: [
+                  templateMissingImplementationCause
+                      .withArguments(fieldBuilder.name)
+                      .withLocation(fieldBuilder.fileUri,
+                          fieldBuilder.charOffset, fieldBuilder.name.length)
+                ]);
           }
         }
       }

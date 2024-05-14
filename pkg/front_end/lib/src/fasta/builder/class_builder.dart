@@ -393,8 +393,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     if (arguments != null) {
       List<DartType> typeArguments =
           buildAliasedTypeArguments(library, arguments, /* hierarchy = */ null);
-      typeArguments = unaliasTypes(typeArguments,
-          legacyEraseAliases: !library.isNonNullableByDefault)!;
+      typeArguments = unaliasTypes(typeArguments, legacyEraseAliases: false)!;
       return new Supertype(cls, typeArguments);
     } else {
       return new Supertype(

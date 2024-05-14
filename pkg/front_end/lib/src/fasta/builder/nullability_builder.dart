@@ -57,16 +57,11 @@ class NullabilityBuilder {
       case SyntacticNullability.legacy:
         return Nullability.legacy;
       case SyntacticNullability.nullable:
-        return libraryBuilder.isNonNullableByDefault
-            ? Nullability.nullable
-            // This is an error case.
-            : Nullability.legacy;
+        return Nullability.nullable;
       case SyntacticNullability.inherent:
         return Nullability.nullable;
       case SyntacticNullability.omitted:
-        return libraryBuilder.isNonNullableByDefault
-            ? Nullability.nonNullable
-            : Nullability.legacy;
+        return Nullability.nonNullable;
     }
   }
 

@@ -363,16 +363,14 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
           function.requiredParameterCount++;
         }
 
-        if (libraryBuilder.isNonNullableByDefault) {
-          // Required named parameters can't have default values.
-          if (formal.isRequiredNamed && formal.initializerToken != null) {
-            libraryBuilder.addProblem(
-                templateRequiredNamedParameterHasDefaultValueError
-                    .withArguments(formal.name),
-                formal.charOffset,
-                formal.name.length,
-                formal.fileUri);
-          }
+        // Required named parameters can't have default values.
+        if (formal.isRequiredNamed && formal.initializerToken != null) {
+          libraryBuilder.addProblem(
+              templateRequiredNamedParameterHasDefaultValueError
+                  .withArguments(formal.name),
+              formal.charOffset,
+              formal.name.length,
+              formal.fileUri);
         }
       }
     }

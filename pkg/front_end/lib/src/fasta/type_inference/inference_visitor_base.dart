@@ -179,14 +179,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   bool get isInferenceUpdate1Enabled =>
       libraryBuilder.isInferenceUpdate1Enabled;
 
-  bool get isNonNullableByDefault => libraryBuilder.isNonNullableByDefault;
-
   NnbdMode get nnbdMode => libraryBuilder.loader.nnbdMode;
 
   LibraryFeatures get libraryFeatures => libraryBuilder.libraryFeatures;
 
-  DartType get bottomType =>
-      isNonNullableByDefault ? const NeverType.nonNullable() : const NullType();
+  DartType get bottomType => const NeverType.nonNullable();
 
   StaticTypeContext get staticTypeContext => _inferrer.staticTypeContext;
 
@@ -195,23 +192,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   }
 
   DartType computeGreatestClosure2(DartType type) {
-    return greatestClosure(
-        type,
-        isNonNullableByDefault
-            ? coreTypes.objectNullableRawType
-            : const DynamicType(),
-        bottomType);
+    return greatestClosure(type, coreTypes.objectNullableRawType, bottomType);
   }
 
   DartType computeNullable(DartType type) {
     if (type is NullType || type is NeverType) {
       return const NullType();
     }
-    if (libraryBuilder.isNonNullableByDefault) {
-      return cfeOperations.getNullableType(type);
-    } else {
-      return cfeOperations.getLegacyType(type);
-    }
+    return cfeOperations.getNullableType(type);
   }
 
   Expression createReachabilityError(int fileOffset, Message errorMessage) {
@@ -289,8 +277,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   /// Returns `true` if exceptions should be thrown in paths reachable only due
   /// to unsoundness in flow analysis in mixed mode.
-  bool get shouldThrowUnsoundnessException =>
-      isNonNullableByDefault && nnbdMode != NnbdMode.Strong;
+  bool get shouldThrowUnsoundnessException => nnbdMode != NnbdMode.Strong;
 
   void registerIfUnreachableForTesting(TreeNode node, {bool? isReachable}) {
     if (dataForTesting == null) return;
@@ -437,7 +424,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         _getPreciseTypeErrorTemplate(inferenceResult.expression);
     AssignabilityResult assignabilityResult = _computeAssignabilityKind(
         contextType, inferenceResult.inferredType,
-        isNonNullableByDefault: isNonNullableByDefault,
+        isNonNullableByDefault: true,
         isVoidAllowed: isVoidAllowed,
         isExpressionTypePrecise: preciseTypeErrorTemplate != null,
         coerceExpression: coerceExpression,
@@ -467,7 +454,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         Expression asExpression =
             new AsExpression(expression, initialContextType)
               ..isTypeError = true
-              ..isForNonNullableByDefault = isNonNullableByDefault
+              ..isForNonNullableByDefault = true
               ..isForDynamic = expressionType is DynamicType
               ..fileOffset = fileOffset;
         flowAnalysis.forwardExpression(asExpression, expression);
@@ -549,7 +536,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         _getPreciseTypeErrorTemplate(inferenceResult.expression);
     AssignabilityResult assignabilityResult = _computeAssignabilityKind(
         contextType, inferenceResult.inferredType,
-        isNonNullableByDefault: isNonNullableByDefault,
+        isNonNullableByDefault: true,
         isVoidAllowed: isVoidAllowed,
         isExpressionTypePrecise: preciseTypeErrorTemplate != null,
         coerceExpression: isCoercionAllowed,
@@ -584,8 +571,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             expression,
             expressionType,
             contextType,
-            errorTemplate.withArguments(expressionType,
-                declaredContextType ?? contextType, isNonNullableByDefault));
+            errorTemplate.withArguments(
+                expressionType, declaredContextType ?? contextType, true));
         break;
       case AssignabilityKind.unassignableVoid:
         // Error: not assignable.  Perform error recovery.
@@ -597,8 +584,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         // downcast is guaranteed to fail.  Insert a compile-time error.
         result = helper.wrapInProblem(
             expression,
-            preciseTypeErrorTemplate!.withArguments(
-                expressionType, contextType, isNonNullableByDefault),
+            preciseTypeErrorTemplate!
+                .withArguments(expressionType, contextType, true),
             expression.fileOffset,
             noLength);
         break;
@@ -616,25 +603,22 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                 expressionType,
                 contextType,
                 nullabilityNullErrorTemplate.withArguments(
-                    declaredContextType ?? contextType,
-                    isNonNullableByDefault));
+                    declaredContextType ?? contextType, true));
           } else if (expressionType is NullType) {
             result = _wrapUnassignableExpression(
                 expression,
                 expressionType,
                 contextType,
                 nullabilityNullTypeErrorTemplate.withArguments(
-                    expressionType,
-                    declaredContextType ?? contextType,
-                    isNonNullableByDefault));
+                    expressionType, declaredContextType ?? contextType, true));
           } else {
             whyNotPromoted ??= flowAnalysis.whyNotPromoted(expression);
             result = _wrapUnassignableExpression(
                 expression,
                 expressionType,
                 contextType,
-                nullabilityErrorTemplate.withArguments(expressionType,
-                    declaredContextType ?? contextType, isNonNullableByDefault),
+                nullabilityErrorTemplate.withArguments(
+                    expressionType, declaredContextType ?? contextType, true),
                 context: getWhyNotPromotedContext(
                     whyNotPromoted.call(),
                     expression,
@@ -651,7 +635,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                   declaredContextType ?? contextType,
                   assignabilityResult.subtype!,
                   assignabilityResult.supertype!,
-                  isNonNullableByDefault));
+                  true));
         }
         break;
       default:
@@ -755,7 +739,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             ? const NeverType.nonNullable()
             : contextType)
       ..isTypeError = true
-      ..isForNonNullableByDefault = isNonNullableByDefault
+      ..isForNonNullableByDefault = true
       ..fileOffset = expression.fileOffset;
     if (contextType is! InvalidType && expressionType is! InvalidType) {
       errorNode = helper.wrapInProblem(
@@ -987,7 +971,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         new List<DartType>.filled(typeParameters.length, const UnknownType());
     TypeConstraintGatherer gatherer = typeSchemaEnvironment
         .setupGenericTypeInference(null, typeParameters, null,
-            isNonNullableByDefault: libraryBuilder.isNonNullableByDefault,
+            isNonNullableByDefault: true,
             typeOperations: cfeOperations,
             inferenceResultForTesting: dataForTesting?.typeInferenceResult,
             treeNodeForTesting: treeNodeForTesting);
@@ -995,7 +979,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         treeNodeForTesting: treeNodeForTesting);
     inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
         gatherer, typeParameters, inferredTypes,
-        isNonNullableByDefault: isNonNullableByDefault);
+        isNonNullableByDefault: true);
     return inferredTypes;
   }
 
@@ -1105,7 +1089,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               .substituteType(extensionBuilder.extension.onType);
           List<DartType> instantiateToBoundTypeArguments = calculateBounds(
               typeParameters, coreTypes.objectClass,
-              isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+              isNonNullableByDefault: true);
           Substitution instantiateToBoundsSubstitution = Substitution.fromPairs(
               typeParameters, instantiateToBoundTypeArguments);
           onTypeInstantiateToBounds = instantiateToBoundsSubstitution
@@ -1221,8 +1205,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
     DartType receiverBound = receiverType.nonTypeVariableBound;
 
-    bool hasNonObjectMemberAccess = !isNonNullableByDefault ||
-        receiverType.hasNonObjectMemberAccess ||
+    bool hasNonObjectMemberAccess = receiverType.hasNonObjectMemberAccess ||
         // Calls to `==` are always on a non-null receiver.
         name == equalsName;
 
@@ -1248,12 +1231,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         return new ObjectAccessTarget.objectMember(receiverType, member);
       }
       if (includeExtensionMethods && receiverBound is! DynamicType) {
-        ObjectAccessTarget? target = _findExtensionMember(
-            isNonNullableByDefault ? receiverType : receiverBound,
-            coreTypes.objectClass,
-            name,
-            objectAccessDescriptor,
-            fileOffset,
+        ObjectAccessTarget? target = _findExtensionMember(receiverType,
+            coreTypes.objectClass, name, objectAccessDescriptor, fileOffset,
             setter: isSetter);
         if (target != null) {
           return target;
@@ -1288,26 +1267,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         // nullable extension member access. This is done to provide the better
         // error message that the extension member exists but that the access is
         // invalid.
-        target = _findExtensionMember(
-            isNonNullableByDefault
-                ? receiverType.toNonNull()
-                : receiverBound.toNonNull(),
-            classNode,
-            name,
-            objectAccessDescriptor,
-            fileOffset,
+        target = _findExtensionMember(receiverType.toNonNull(), classNode, name,
+            objectAccessDescriptor, fileOffset,
             setter: isSetter,
             defaultTarget: target,
             isPotentiallyNullableAccess: true)!;
       } else {
         target = _findExtensionMember(
-            isNonNullableByDefault ? receiverType : receiverBound,
-            classNode,
-            name,
-            objectAccessDescriptor,
-            fileOffset,
-            setter: isSetter,
-            defaultTarget: target)!;
+            receiverType, classNode, name, objectAccessDescriptor, fileOffset,
+            setter: isSetter, defaultTarget: target)!;
       }
     }
     return target;
@@ -1329,8 +1297,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         length = 1;
       }
       return helper.buildProblem(
-          errorTemplate.withArguments(name.text,
-              receiverType.nonTypeVariableBound, isNonNullableByDefault),
+          errorTemplate.withArguments(
+              name.text, receiverType.nonTypeVariableBound, true),
           fileOffset,
           length);
     }
@@ -1431,9 +1399,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             .substituteType(calleeType);
       }
     }
-    if (!isNonNullableByDefault) {
-      calleeType = legacyErasure(calleeType);
-    }
     return calleeType;
   }
 
@@ -1484,8 +1449,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // not spec'ed anywhere.
       return const DynamicType();
     } else {
-      return demoteTypeInLibrary(initializerType,
-          isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+      return demoteTypeInLibrary(initializerType, isNonNullableByDefault: true);
     }
   }
 
@@ -1711,25 +1675,18 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (inferenceNeeded) {
       if (isConst) {
         typeContext = new TypeVariableEliminator(
-                bottomType,
-                isNonNullableByDefault
-                    ? coreTypes.objectNullableRawType
-                    : coreTypes.objectLegacyRawType)
+                bottomType, coreTypes.objectNullableRawType)
             .substituteType(typeContext);
       }
       gatherer = typeSchemaEnvironment.setupGenericTypeInference(
-          isNonNullableByDefault
-              ? calleeType.returnType
-              : legacyErasure(calleeType.returnType),
-          calleeTypeParameters,
-          typeContext,
-          isNonNullableByDefault: isNonNullableByDefault,
+          calleeType.returnType, calleeTypeParameters, typeContext,
+          isNonNullableByDefault: true,
           typeOperations: cfeOperations,
           inferenceResultForTesting: dataForTesting?.typeInferenceResult,
           treeNodeForTesting: arguments);
       inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
           gatherer, calleeTypeParameters, null,
-          isNonNullableByDefault: isNonNullableByDefault);
+          isNonNullableByDefault: true);
       instantiator = new FunctionTypeInstantiator.fromIterables(
           calleeTypeParameters, inferredTypes);
     } else if (explicitTypeArguments != null &&
@@ -1798,19 +1755,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           inferredFormalType =
               typeSchemaEnvironment.getContextTypeOfSpecialCasedBinaryOperator(
                   typeContext, receiverType!, inferredFormalType,
-                  isNonNullableByDefault: isNonNullableByDefault);
+                  isNonNullableByDefault: true);
         } else if (isSpecialCasedTernaryOperator) {
           inferredFormalType =
               typeSchemaEnvironment.getContextTypeOfSpecialCasedTernaryOperator(
                   typeContext, receiverType!, inferredFormalType,
-                  isNonNullableByDefault: isNonNullableByDefault);
+                  isNonNullableByDefault: true);
         }
       }
-      return visitor.inferExpression(
-          argumentExpression,
-          isNonNullableByDefault
-              ? inferredFormalType
-              : legacyErasure(inferredFormalType));
+      return visitor.inferExpression(argumentExpression, inferredFormalType);
     }
 
     List<ExpressionInfo<DartType>?>? identicalInfo =
@@ -1907,7 +1860,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         if (gatherer != null && !isFirstStage) {
           inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
               gatherer, calleeTypeParameters, inferredTypes,
-              isNonNullableByDefault: isNonNullableByDefault);
+              isNonNullableByDefault: true);
           instantiator = new FunctionTypeInstantiator.fromIterables(
               calleeTypeParameters, inferredTypes);
         }
@@ -1969,7 +1922,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             calleeType,
             typeSchemaEnvironment.getTypeOfSpecialCasedBinaryOperator(
                 receiverType!, actualTypes[0],
-                isNonNullableByDefault: isNonNullableByDefault));
+                isNonNullableByDefault: true));
       } else if (isSpecialCasedTernaryOperator) {
         calleeType = replaceReturnType(
             calleeType,
@@ -2014,7 +1967,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (inferenceNeeded) {
       inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
           gatherer!, calleeTypeParameters, inferredTypes!,
-          isNonNullableByDefault: isNonNullableByDefault);
+          isNonNullableByDefault: true);
       assert(inferredTypes.every((type) => isKnown(type)),
           "Unknown type(s) in inferred types: $inferredTypes.");
       assert(inferredTypes.every((type) => !hasPromotedTypeVariable(type)),
@@ -2108,11 +2061,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         "Inferred return type $inferredType contains free variables. "
         "Inferred function type: $calleeType.");
 
-    if (!isNonNullableByDefault) {
-      inferredType = legacyErasure(inferredType);
-      calleeType = legacyErasure(calleeType) as FunctionType;
-    }
-
     return new SuccessfulInferenceResult(inferredType, calleeType,
         hoistedArguments: localHoistedExpressions,
         inferredReceiverType: receiverType);
@@ -2127,8 +2075,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     bool hasImplicitReturnType = false;
     if (returnContext == null) {
       hasImplicitReturnType = true;
-      returnContext =
-          isNonNullableByDefault ? const UnknownType() : const DynamicType();
+      returnContext = const UnknownType();
     }
     List<VariableDeclaration> positionalParameters =
         function.positionalParameters;
@@ -2219,12 +2166,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           inferredType = computeGreatestClosure2(
               instantiator?.substitute(formalTypesFromContext[i]!) ??
                   formalTypesFromContext[i]!);
-          if (typeSchemaEnvironment.isSubtypeOf(
-              inferredType,
-              const NullType(),
-              isNonNullableByDefault
-                  ? SubtypeCheckMode.withNullabilities
-                  : SubtypeCheckMode.ignoringNullabilities)) {
+          if (typeSchemaEnvironment.isSubtypeOf(inferredType, const NullType(),
+              SubtypeCheckMode.withNullabilities)) {
             inferredType = coreTypes.objectRawType(libraryBuilder.nullable);
           }
         } else {
@@ -2232,46 +2175,42 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         }
         instrumentation?.record(uriForInstrumentation, formal.fileOffset,
             'type', new InstrumentationValueForType(inferredType));
-        formal.type = demoteTypeInLibrary(inferredType,
-            isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+        formal.type =
+            demoteTypeInLibrary(inferredType, isNonNullableByDefault: true);
         if (dataForTesting != null) {
           dataForTesting!.typeInferenceResult.inferredVariableTypes[formal] =
               formal.type;
         }
       }
 
-      if (isNonNullableByDefault) {
-        // If a parameter is a positional or named optional parameter and its
-        // type is potentially non-nullable, it should have an initializer.
-        bool isOptionalPositional = function.requiredParameterCount <= i &&
-            i < function.positionalParameters.length;
-        bool isOptionalNamed =
-            i >= function.positionalParameters.length && !formal.isRequired;
-        if ((isOptionalPositional || isOptionalNamed) &&
-            formal.type.isPotentiallyNonNullable &&
-            !formal.hasDeclaredInitializer) {
-          libraryBuilder.addProblem(
-              templateOptionalNonNullableWithoutInitializerError.withArguments(
-                  formal.name!, formal.type, isNonNullableByDefault),
-              formal.fileOffset,
-              formal.name!.length,
-              libraryBuilder.importUri);
-        }
+      // If a parameter is a positional or named optional parameter and its
+      // type is potentially non-nullable, it should have an initializer.
+      bool isOptionalPositional = function.requiredParameterCount <= i &&
+          i < function.positionalParameters.length;
+      bool isOptionalNamed =
+          i >= function.positionalParameters.length && !formal.isRequired;
+      if ((isOptionalPositional || isOptionalNamed) &&
+          formal.type.isPotentiallyNonNullable &&
+          !formal.hasDeclaredInitializer) {
+        libraryBuilder.addProblem(
+            templateOptionalNonNullableWithoutInitializerError.withArguments(
+                formal.name!, formal.type, true),
+            formal.fileOffset,
+            formal.name!.length,
+            libraryBuilder.importUri);
       }
     }
 
-    if (isNonNullableByDefault) {
-      for (VariableDeclaration parameter in function.namedParameters) {
-        VariableDeclarationImpl formal = parameter as VariableDeclarationImpl;
-        // Required named parameters shouldn't have initializers.
-        if (formal.isRequired && formal.hasDeclaredInitializer) {
-          libraryBuilder.addProblem(
-              templateRequiredNamedParameterHasDefaultValueError
-                  .withArguments(formal.name!),
-              formal.fileOffset,
-              formal.name!.length,
-              libraryBuilder.importUri);
-        }
+    for (VariableDeclaration parameter in function.namedParameters) {
+      VariableDeclarationImpl formal = parameter as VariableDeclarationImpl;
+      // Required named parameters shouldn't have initializers.
+      if (formal.isRequired && formal.hasDeclaredInitializer) {
+        libraryBuilder.addProblem(
+            templateRequiredNamedParameterHasDefaultValueError
+                .withArguments(formal.name!),
+            formal.fileOffset,
+            formal.name!.length,
+            libraryBuilder.importUri);
       }
     }
 
@@ -2485,7 +2424,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         result = wrapExpressionInferenceResultInProblem(
             result,
             templateNullableExpressionCallError.withArguments(
-                receiverType, isNonNullableByDefault),
+                receiverType, true),
             fileOffset,
             noLength,
             context: context);
@@ -2522,7 +2461,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           replacement = helper.wrapInProblem(
               replacement,
               templateNullableExpressionCallError.withArguments(
-                  receiverType, isNonNullableByDefault),
+                  receiverType, true),
               fileOffset,
               noLength,
               context: context);
@@ -2537,7 +2476,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           replacement = helper.wrapInProblem(
               replacement,
               templateNullableMethodCallError.withArguments(
-                  name.text, receiverType, isNonNullableByDefault),
+                  name.text, receiverType, true),
               fileOffset,
               name.text.length,
               context: context);
@@ -2618,7 +2557,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         replacement = helper.wrapInProblem(
             replacement,
             templateNullableExpressionCallError.withArguments(
-                receiverType, isNonNullableByDefault),
+                receiverType, true),
             fileOffset,
             noLength,
             context: context);
@@ -2629,7 +2568,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         replacement = helper.wrapInProblem(
             replacement,
             templateNullableMethodCallError.withArguments(
-                callName.text, receiverType, isNonNullableByDefault),
+                callName.text, receiverType, true),
             fileOffset,
             callName.text.length,
             context: context);
@@ -2760,7 +2699,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       replacement = new AsExpression(expression, result.inferredType)
         ..isTypeError = true
         ..isCovarianceCheck = true
-        ..isForNonNullableByDefault = isNonNullableByDefault
+        ..isForNonNullableByDefault = true
         ..fileOffset = fileOffset;
       if (instrumentation != null) {
         int offset =
@@ -2792,7 +2731,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         replacement = helper.wrapInProblem(
             replacement,
             templateNullableExpressionCallError.withArguments(
-                receiverType, isNonNullableByDefault),
+                receiverType, true),
             fileOffset,
             noLength,
             context: context);
@@ -2803,7 +2742,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         replacement = helper.wrapInProblem(
             replacement,
             templateNullableMethodCallError.withArguments(
-                methodName.text, receiverType, isNonNullableByDefault),
+                methodName.text, receiverType, true),
             fileOffset,
             methodName.text.length,
             context: context);
@@ -2892,7 +2831,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       propertyGet = new AsExpression(propertyGet, calleeType)
         ..isTypeError = true
         ..isCovarianceCheck = true
-        ..isForNonNullableByDefault = isNonNullableByDefault
+        ..isForNonNullableByDefault = true
         ..fileOffset = fileOffset;
       if (instrumentation != null) {
         int offset =
@@ -2904,8 +2843,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
     if (isExpressionInvocation) {
       Expression error = helper.buildProblem(
-          templateImplicitCallOfNonMethod.withArguments(
-              receiverType, isNonNullableByDefault),
+          templateImplicitCallOfNonMethod.withArguments(receiverType, true),
           fileOffset,
           noLength);
       return new ExpressionInferenceResult(const InvalidType(), error);
@@ -2939,8 +2877,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           (type) => !type.isPotentiallyNullable);
       invocationResult = wrapExpressionInferenceResultInProblem(
           invocationResult,
-          templateNullableExpressionCallError.withArguments(
-              receiverType, isNonNullableByDefault),
+          templateNullableExpressionCallError.withArguments(receiverType, true),
           fileOffset,
           noLength,
           context: context);
@@ -3083,7 +3020,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       propertyGet = new AsExpression(propertyGet, calleeType)
         ..isTypeError = true
         ..isCovarianceCheck = true
-        ..isForNonNullableByDefault = isNonNullableByDefault
+        ..isForNonNullableByDefault = true
         ..fileOffset = fileOffset;
       if (instrumentation != null) {
         int offset =
@@ -3102,8 +3039,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
     if (isExpressionInvocation) {
       Expression error = helper.buildProblem(
-          templateImplicitCallOfNonMethod.withArguments(
-              receiverType, isNonNullableByDefault),
+          templateImplicitCallOfNonMethod.withArguments(receiverType, true),
           fileOffset,
           noLength);
       return new ExpressionInferenceResult(const InvalidType(), error);
@@ -3140,8 +3076,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           (type) => !type.isPotentiallyNullable);
       invocationResult = wrapExpressionInferenceResultInProblem(
           invocationResult,
-          templateNullableExpressionCallError.withArguments(
-              receiverType, isNonNullableByDefault),
+          templateNullableExpressionCallError.withArguments(receiverType, true),
           fileOffset,
           noLength,
           context: context);
@@ -3341,7 +3276,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           readResult = wrapExpressionInferenceResultInProblem(
               readResult,
               templateNullableExpressionCallError.withArguments(
-                  receiverType, isNonNullableByDefault),
+                  receiverType, true),
               fileOffset,
               noLength,
               context: context);
@@ -3381,7 +3316,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           readResult = wrapExpressionInferenceResultInProblem(
               readResult,
               templateNullableExpressionCallError.withArguments(
-                  receiverType, isNonNullableByDefault),
+                  receiverType, true),
               fileOffset,
               noLength,
               context: context);
@@ -3428,7 +3363,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           readResult = wrapExpressionInferenceResultInProblem(
               readResult,
               templateNullableExpressionCallError.withArguments(
-                  receiverType, isNonNullableByDefault),
+                  receiverType, true),
               fileOffset,
               noLength,
               context: context);
@@ -3527,8 +3462,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     FunctionType functionType = computeTypeFromSuperClass(
             procedure.enclosingClass!, target.getFunctionType(this))
         as FunctionType;
-    if (isNonNullableByDefault &&
-        methodName == equalsName &&
+    if (methodName == equalsName &&
         functionType.positionalParameters.length == 1) {
       // operator == always allows nullable arguments.
       functionType = new FunctionType([
@@ -3593,13 +3527,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         TypeConstraintGatherer gatherer =
             typeSchemaEnvironment.setupGenericTypeInference(
                 instantiatedType, typeParameters, context,
-                isNonNullableByDefault: isNonNullableByDefault,
+                isNonNullableByDefault: true,
                 typeOperations: cfeOperations,
                 inferenceResultForTesting: dataForTesting?.typeInferenceResult,
                 treeNodeForTesting: treeNodeForTesting);
         inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
             gatherer, typeParameters, inferredTypes,
-            isNonNullableByDefault: isNonNullableByDefault);
+            isNonNullableByDefault: true);
         FunctionTypeInstantiator instantiator =
             new FunctionTypeInstantiator.fromIterables(
                 typeParameters, inferredTypes);
@@ -3957,15 +3891,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (wrappedExpression != null) {
       return helper.wrapInProblem(
           wrappedExpression,
-          template.withArguments(name.text, receiverType.nonTypeVariableBound,
-              isNonNullableByDefault),
+          template.withArguments(
+              name.text, receiverType.nonTypeVariableBound, true),
           fileOffset,
           length,
           context: context);
     } else {
       return helper.buildProblem(
-          template.withArguments(name.text, receiverType.nonTypeVariableBound,
-              isNonNullableByDefault),
+          template.withArguments(
+              name.text, receiverType.nonTypeVariableBound, true),
           fileOffset,
           length,
           context: context);
@@ -4129,10 +4063,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             if (enclosingDeclaration.typeParameters.isEmpty) {
               checkReturn = false;
             } else {
-              DartType typeToCheck = isNonNullableByDefault
-                  ? interfaceMember.function
-                      .computeFunctionType(libraryBuilder.nonNullable)
-                  : interfaceMember.function.returnType;
+              DartType typeToCheck = interfaceMember.function
+                  .computeFunctionType(libraryBuilder.nonNullable);
               checkReturn = InferenceVisitorBase
                   .returnedTypeParametersOccurNonCovariantly(
                       interfaceMember.enclosingTypeDeclaration!, typeToCheck);
@@ -4152,7 +4084,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           read = new AsExpression(read, readType)
             ..isTypeError = true
             ..isCovarianceCheck = true
-            ..isForNonNullableByDefault = isNonNullableByDefault
+            ..isForNonNullableByDefault = true
             ..fileOffset = fileOffset;
         }
         if (member is Procedure && member.kind == ProcedureKind.Method) {
@@ -4174,7 +4106,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       case ObjectAccessTargetKind.extensionTypeRepresentation:
       case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
         read = new AsExpression(receiver, readType)
-          ..isForNonNullableByDefault = isNonNullableByDefault
+          ..isForNonNullableByDefault = true
           ..isUnchecked = true
           ..fileOffset = fileOffset;
         break;
@@ -4182,14 +4114,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
     if (promotedReadType != null) {
       read = new AsExpression(read, promotedReadType)
-        ..isForNonNullableByDefault = isNonNullableByDefault
+        ..isForNonNullableByDefault = true
         ..isUnchecked = true
         ..fileOffset = fileOffset;
       readType = promotedReadType;
-    }
-
-    if (!isNonNullableByDefault) {
-      readType = legacyErasure(readType);
     }
 
     readResult ??= new ExpressionInferenceResult(readType, read);
@@ -4197,7 +4125,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       readResult = wrapExpressionInferenceResultInProblem(
           readResult,
           templateNullablePropertyAccessError.withArguments(
-              propertyName.text, receiverType, isNonNullableByDefault),
+              propertyName.text, receiverType, true),
           read.fileOffset,
           propertyName.text.length,
           context: whyNotPromoted != null
@@ -4330,7 +4258,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (isGenericFunctionTypeOrAlias(typeArgument)) {
       libraryBuilder.addProblem(
           templateGenericFunctionTypeInferredAsActualTypeArgument.withArguments(
-              typeArgument, isNonNullableByDefault),
+              typeArgument, true),
           fileOffset,
           noLength,
           helper.uri);
@@ -4338,9 +4266,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   }
 
   DartType _computeInferredType(ExpressionInferenceResult result) =>
-      identical(result.inferredType, noInferredType) || isNonNullableByDefault
-          ? result.inferredType
-          : legacyErasure(result.inferredType);
+      result.inferredType;
 
   Expression? checkWebIntLiteralsErrorIfUnexact(
       int value, String? literal, int charOffset) {
@@ -4745,9 +4671,7 @@ class _ObjectAccessDescriptor {
         case Nullability.undetermined:
           return internalProblem(
               templateInternalProblemUnsupportedNullability.withArguments(
-                  "${receiverBound.nullability}",
-                  receiverBound,
-                  visitor.isNonNullableByDefault),
+                  "${receiverBound.nullability}", receiverBound, true),
               fileOffset,
               visitor.libraryBuilder.fileUri);
       }
