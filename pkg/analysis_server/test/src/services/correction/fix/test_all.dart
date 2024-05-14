@@ -188,6 +188,7 @@ import 'remove_name_from_combinator_test.dart' as remove_name_from_combinator;
 import 'remove_name_from_declaration_clause_test.dart'
     as remove_name_from_declaration_clause;
 import 'remove_non_null_assertion_test.dart' as remove_non_null_assertion_test;
+import 'remove_on_clause_test.dart' as remove_on_clause;
 import 'remove_operator_test.dart' as remove_operator;
 import 'remove_parameters_in_getter_declaration_test.dart'
     as remove_parameters_in_getter_declaration;
@@ -446,6 +447,7 @@ void main() {
     remove_name_from_combinator.main();
     remove_name_from_declaration_clause.main();
     remove_non_null_assertion_test.main();
+    remove_on_clause.main();
     remove_operator.main();
     remove_parameters_in_getter_declaration.main();
     remove_parentheses_in_getter_invocation.main();

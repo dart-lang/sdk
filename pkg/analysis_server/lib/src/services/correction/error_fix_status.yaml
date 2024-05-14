@@ -2828,9 +2828,7 @@ ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE:
   notes: |-
     Move the directive to a valid place.
 ParserErrorCode.EXTENSION_AUGMENTATION_HAS_ON_CLAUSE:
-  status: needsFix
-  notes: |-
-    Remove the 'on' clause.
+  status: hasFix
 ParserErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER:
   status: needsFix
   notes: |-
