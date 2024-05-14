@@ -4,9 +4,10 @@
 
 library future_test;
 
-import 'package:async_helper/async_helper.dart';
-import "package:expect/expect.dart";
 import 'dart:async';
+
+import 'package:async_helper/async_helper.dart';
+import 'package:expect/expect.dart';
 
 const Duration MS = const Duration(milliseconds: 1);
 

@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/element/element.dart'
     show CompilationUnitElement, LibraryElement;
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
@@ -41,6 +42,7 @@ class LibraryContext {
   final InfoDeclarationStore infoDeclarationStore;
   final FileSystemState fileSystemState;
   final MacroSupport? macroSupport;
+  final File? packagesFile;
   final SummaryDataStore store = SummaryDataStore();
 
   late final AnalysisContextImpl analysisContext;
@@ -59,6 +61,7 @@ class LibraryContext {
     required DeclaredVariables declaredVariables,
     required SourceFactory sourceFactory,
     required this.macroSupport,
+    required this.packagesFile,
     required SummaryDataStore? externalSummaries,
   }) {
     analysisContext = AnalysisContextImpl(
@@ -233,7 +236,10 @@ class LibraryContext {
 
       // If we can compile to kernel, check if there are macros.
       var macroSupport = this.macroSupport;
-      if (macroSupport is KernelMacroSupport && macroLibraries.isNotEmpty) {
+      var packagesFile = this.packagesFile;
+      if (macroSupport is KernelMacroSupport &&
+          packagesFile != null &&
+          macroLibraries.isNotEmpty) {
         var kernelBytes = byteStore.get(cycle.macroKey);
         if (kernelBytes == null) {
           kernelBytes = await performance.runAsync<Uint8List>(
@@ -241,6 +247,7 @@ class LibraryContext {
             (performance) async {
               return await macroSupport.builder.build(
                 fileSystem: _MacroFileSystem(fileSystemState),
+                packageFilePath: packagesFile.path,
                 libraries: macroLibraries,
               );
             },

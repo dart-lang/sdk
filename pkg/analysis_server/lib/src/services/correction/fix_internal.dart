@@ -147,6 +147,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_method_decla
 import 'package:analysis_server/src/services/correction/dart/remove_name_from_combinator.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_name_from_declaration_clause.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_non_null_assertion.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_on_clause.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_operator.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_parameters_in_getter_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_parentheses_in_getter_invocation.dart';
@@ -1302,6 +1303,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ParserErrorCode.EXPECTED_TOKEN: [
     InsertSemicolon.new,
     ReplaceWithArrow.new,
+  ],
+  ParserErrorCode.EXTENSION_AUGMENTATION_HAS_ON_CLAUSE: [
+    RemoveOnClause.new,
   ],
   ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR: [
     RemoveConstructor.new,

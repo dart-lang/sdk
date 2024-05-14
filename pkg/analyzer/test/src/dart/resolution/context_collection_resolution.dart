@@ -357,6 +357,24 @@ class PubPackageResolutionTest extends ContextResolutionTest
 
   String get workspaceRootPath => '/home';
 
+  /// Creates `package:macro` and `package:_macro` files, adds to [config].
+  void addMacrosEnvironment(
+    PackageConfigFileBuilder config,
+    MacrosEnvironment macrosEnvironment,
+  ) {
+    var packagesRootFolder = getFolder(packagesRootPath);
+    macrosEnvironment.publicMacrosFolder.copyTo(packagesRootFolder);
+    macrosEnvironment.privateMacrosFolder.copyTo(packagesRootFolder);
+    config.add(
+      name: '_macros',
+      rootPath: getFolder('$packagesRootPath/_macros').path,
+    );
+    config.add(
+      name: 'macros',
+      rootPath: getFolder('$packagesRootPath/macros').path,
+    );
+  }
+
   /// Build summary bundle for a single URI `package:foo/foo.dart`.
   Future<File> buildPackageFooSummary({
     required Map<String, String> files,
@@ -512,17 +530,7 @@ class PubPackageResolutionTest extends ContextResolutionTest
     }
 
     if (macrosEnvironment != null) {
-      var packagesRootFolder = getFolder(packagesRootPath);
-      macrosEnvironment.publicMacrosFolder.copyTo(packagesRootFolder);
-      macrosEnvironment.privateMacrosFolder.copyTo(packagesRootFolder);
-      config.add(
-        name: '_macros',
-        rootPath: getFolder('$packagesRootPath/_macros').path,
-      );
-      config.add(
-        name: 'macros',
-        rootPath: getFolder('$packagesRootPath/macros').path,
-      );
+      addMacrosEnvironment(config, macrosEnvironment);
     }
 
     writePackageConfig(testPackageRootPath, config);

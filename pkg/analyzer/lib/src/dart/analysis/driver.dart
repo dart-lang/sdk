@@ -376,6 +376,7 @@ class AnalysisDriver {
       declaredVariables: declaredVariables,
       sourceFactory: _sourceFactory,
       macroSupport: macroSupport,
+      packagesFile: analysisContext?.contextRoot.packagesFile,
       externalSummaries: _externalSummaries,
       fileSystemState: _fsState,
     );

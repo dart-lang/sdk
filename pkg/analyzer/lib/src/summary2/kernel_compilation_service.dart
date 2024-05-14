@@ -92,6 +92,7 @@ class KernelCompilationService {
   /// be requested again using [dispose] or [disposeDelayed].
   static Future<Uint8List> compile({
     required MacroFileSystem fileSystem,
+    required String packageFilePath,
     required String path,
   }) {
     _disposeDelayTimer?.cancel();
@@ -101,9 +102,10 @@ class KernelCompilationService {
       var instance = await _instance;
       var requestChannel = instance.requestChannel;
 
+      var pathContext = fileSystem.pathContext;
       MacroFileEntry uriStrToFile(Object? uriStr) {
         var uri = uriCache.parse(uriStr as String);
-        var path = fileSystem.pathContext.fromUri(uri);
+        var path = pathContext.fromUri(uri);
         return fileSystem.getFile(path);
       }
 
@@ -122,7 +124,8 @@ class KernelCompilationService {
       // Now we can compile.
       return await requestChannel.sendRequest<Uint8List>('kernelForProgram', {
         'sdkSummary': 'dill:vm',
-        'uri': fileSystem.pathContext.toUri(path).toString(),
+        'packagesFileUri': pathContext.toUri(packageFilePath).toString(),
+        'uri': pathContext.toUri(path).toString(),
       });
     });
   }

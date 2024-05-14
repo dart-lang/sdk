@@ -7112,6 +7112,124 @@ ASSEMBLER_TEST_RUN(BitSetImmediate2, test) {
   EXPECT_EQ(-1, Call(test->entry(), -1));
 }
 
+ASSEMBLER_TEST_GENERATE(LoadByteAcquire, assembler) {
+  __ SetExtensions(RV_GC | RV_Zalasr);
+  __ lb(A0, Address(A1), std::memory_order_acquire);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(LoadByteAcquire, test) {
+  EXPECT_DISASSEMBLY(
+      "3405852f lb.aq a0, (a1)\n"
+      "    8082 ret\n");
+
+  int8_t data = -42;
+  EXPECT_EQ(-42, Call(test->entry(), 0, reinterpret_cast<intx_t>(&data)));
+}
+
+ASSEMBLER_TEST_GENERATE(LoadHalfwordAcquire, assembler) {
+  __ SetExtensions(RV_GC | RV_Zalasr);
+  __ lh(A0, Address(A1), std::memory_order_acquire);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(LoadHalfwordAcquire, test) {
+  EXPECT_DISASSEMBLY(
+      "3405952f lh.aq a0, (a1)\n"
+      "    8082 ret\n");
+
+  int16_t data = -42;
+  EXPECT_EQ(-42, Call(test->entry(), 0, reinterpret_cast<intx_t>(&data)));
+}
+
+ASSEMBLER_TEST_GENERATE(LoadWordAcquire, assembler) {
+  __ SetExtensions(RV_GC | RV_Zalasr);
+  __ lw(A0, Address(A1), std::memory_order_acquire);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(LoadWordAcquire, test) {
+  EXPECT_DISASSEMBLY(
+      "3405a52f lw.aq a0, (a1)\n"
+      "    8082 ret\n");
+
+  int32_t data = -42;
+  EXPECT_EQ(-42, Call(test->entry(), 0, reinterpret_cast<intx_t>(&data)));
+}
+
+ASSEMBLER_TEST_GENERATE(StoreByteRelease, assembler) {
+  __ SetExtensions(RV_GC | RV_Zalasr);
+  __ sb(A0, Address(A1), std::memory_order_release);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(StoreByteRelease, test) {
+  EXPECT_DISASSEMBLY(
+      "3aa5802f sb.rl a0, (a1)\n"
+      "    8082 ret\n");
+
+  int8_t data = 0;
+  EXPECT_EQ(-42, Call(test->entry(), -42, reinterpret_cast<intx_t>(&data)));
+  EXPECT_EQ(-42, data);
+}
+
+ASSEMBLER_TEST_GENERATE(StoreHalfwordRelease, assembler) {
+  __ SetExtensions(RV_GC | RV_Zalasr);
+  __ sh(A0, Address(A1), std::memory_order_release);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(StoreHalfwordRelease, test) {
+  EXPECT_DISASSEMBLY(
+      "3aa5902f sh.rl a0, (a1)\n"
+      "    8082 ret\n");
+
+  int16_t data = 0;
+  EXPECT_EQ(-42, Call(test->entry(), -42, reinterpret_cast<intx_t>(&data)));
+  EXPECT_EQ(-42, data);
+}
+
+ASSEMBLER_TEST_GENERATE(StoreWordRelease, assembler) {
+  __ SetExtensions(RV_GC | RV_Zalasr);
+  __ sw(A0, Address(A1), std::memory_order_release);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(StoreWordRelease, test) {
+  EXPECT_DISASSEMBLY(
+      "3aa5a02f sw.rl a0, (a1)\n"
+      "    8082 ret\n");
+
+  int32_t data = 0;
+  EXPECT_EQ(-42, Call(test->entry(), -42, reinterpret_cast<intx_t>(&data)));
+  EXPECT_EQ(-42, data);
+}
+
+#if XLEN >= 64
+ASSEMBLER_TEST_GENERATE(LoadDoubleWordAcquire, assembler) {
+  __ SetExtensions(RV_GC | RV_Zalasr);
+  __ ld(A0, Address(A1), std::memory_order_acquire);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(LoadDoubleWordAcquire, test) {
+  EXPECT_DISASSEMBLY(
+      "3405b52f ld.aq a0, (a1)\n"
+      "    8082 ret\n");
+
+  int64_t data = -42;
+  EXPECT_EQ(-42, Call(test->entry(), 0, reinterpret_cast<intx_t>(&data)));
+}
+
+ASSEMBLER_TEST_GENERATE(StoreDoubleWordRelease, assembler) {
+  __ SetExtensions(RV_GC | RV_Zalasr);
+  __ sd(A0, Address(A1), std::memory_order_release);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(StoreDoubleWordRelease, test) {
+  EXPECT_DISASSEMBLY(
+      "3aa5b02f sd.rl a0, (a1)\n"
+      "    8082 ret\n");
+
+  int64_t data = 0;
+  EXPECT_EQ(-42, Call(test->entry(), -42, reinterpret_cast<intx_t>(&data)));
+  EXPECT_EQ(-42, data);
+}
+#endif  // XLEN >= 64
+
 ASSEMBLER_TEST_GENERATE(LoadImmediate_MaxInt32, assembler) {
   FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);

@@ -1307,6 +1307,58 @@ suggestions
 ''');
   }
 
+  Future<void> test_class_method_with_namedParameters() async {
+    await computeSuggestions('''
+class A {
+  void foo01(int a, int b, { int? c, int? d }) {}
+}
+
+class B extends A {
+  foo^
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 3
+suggestions
+  @override
+  void foo01(int a, int b, {int? c, int? d}) {
+    // TODO: implement foo01
+    super.foo01(a, b, c: c, d: d);
+  }
+    kind: override
+    displayText: foo01(int a, int b, {int? c, int? d}) { … }
+    selection: 90 30
+''');
+  }
+
+  Future<void> test_class_method_without_namedParameters() async {
+    await computeSuggestions('''
+class A {
+  void foo01(int a, int b) {}
+}
+
+class B extends A {
+  foo^
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 3
+suggestions
+  @override
+  void foo01(int a, int b) {
+    // TODO: implement foo01
+    super.foo01(a, b);
+  }
+    kind: override
+    displayText: foo01(int a, int b) { … }
+    selection: 72 18
+''');
+  }
+
   Future<void> test_class_operator_eqEq() async {
     await computeSuggestions('''
 class A {

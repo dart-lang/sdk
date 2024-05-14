@@ -1187,6 +1187,16 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     "Remove '!'s in file",
   );
+  static const REMOVE_ON_CLAUSE = FixKind(
+    'dart.fix.remove.on.clause',
+    DartFixKindPriority.DEFAULT,
+    "Remove the invalid 'on' clause",
+  );
+  static const REMOVE_ON_CLAUSE_MULTI = FixKind(
+    'dart.fix.remove.on.clause.multi',
+    DartFixKindPriority.IN_FILE,
+    "Remove all invalid 'on' clauses in file",
+  );
   static const REMOVE_OPERATOR = FixKind(
     'dart.fix.remove.operator',
     DartFixKindPriority.DEFAULT,
