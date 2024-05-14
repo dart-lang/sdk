@@ -42,6 +42,7 @@ class KernelCompilationService {
     var serverSocket = await _loopbackServerSocket();
     serverSocket.listen((socket) async {
       socketCompleter.complete(socket);
+      socket.setOption(io.SocketOption.tcpNoDelay, true);
     });
 
     var host = serverSocket.address.address;
