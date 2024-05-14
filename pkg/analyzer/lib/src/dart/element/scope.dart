@@ -138,6 +138,10 @@ class LibraryOrAugmentationScope extends EnclosedScope {
   }
 
   void _addExtension(ExtensionElement element) {
+    if (element.isAugmentation) {
+      return;
+    }
+
     _addGetter(element);
     if (!extensions.contains(element)) {
       extensions.add(element);

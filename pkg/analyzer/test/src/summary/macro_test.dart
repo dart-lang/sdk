@@ -11215,6 +11215,73 @@ class A {
 ''');
   }
 
+  test_class_constructor_positionalParameters_super() async {
+    await _assertIntrospectText(r'''
+import 'package:json/json.dart';
+
+class A {
+  final int f1;
+  Point(this.foo);
+}
+
+class B extends A {
+  @Introspect()
+  B(super.f1);
+}
+''', r'''
+<unnamed>
+  flags: hasStatic
+  positionalParameters
+    f1
+      flags: isRequired
+      type: OmittedType
+  returnType: B
+''');
+  }
+
+  test_class_constructor_positionalParameters_super_typed() async {
+    await _assertIntrospectText(r'''
+import 'package:json/json.dart';
+
+class A {
+  final int f1;
+  Point(this.foo);
+}
+
+class B extends A {
+  @Introspect()
+  B(int super.f1);
+}
+''', r'''
+<unnamed>
+  flags: hasStatic
+  positionalParameters
+    f1
+      flags: isRequired
+      type: int
+  returnType: B
+''');
+  }
+
+  test_class_constructor_positionalParameters_this() async {
+    await _assertIntrospectText(r'''
+import 'package:json/json.dart';
+
+class A {
+  final int f1;
+  @Introspect()
+  Point(this.foo);
+}
+''', r'''
+Point
+  positionalParameters
+    foo
+      flags: isRequired
+      type: OmittedType
+  returnType: OmittedType
+''');
+  }
+
   test_class_constructor_unnamed() async {
     await _assertIntrospectText(r'''
 class A {

@@ -3972,7 +3972,11 @@ void f() {
           triggerCharacter: triggerCharacter);
       var res = await getCompletion(mainFileUri, code.position.position,
           context: context);
-      expect(res, expectedResults);
+      expect(
+        res,
+        expectedResults,
+        reason: 'No completions when using $triggerCharacter',
+      );
     }
   }
 

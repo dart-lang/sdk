@@ -76,6 +76,68 @@ class C {
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/4935')
+  test_unnecessary_augmentationAddedGetterAndSetter() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+
+class A {}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+
+augment class A {
+  String? _x;
+
+  String? get x => _x;
+  set x(String? value) {
+    _x = value;
+  }
+}
+''');
+
+    result = await resolveFile(a.path);
+    await assertDiagnosticsIn(errors, [
+      // TODO(pq): in the absence of accessors in the augmented class, report on the class decl?
+      lint(33, 1),
+    ]);
+
+    result = await resolveFile(b.path);
+    await assertNoDiagnosticsIn(errors);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/4935')
+  test_unnecessary_augmentationAddedSetter() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+
+class A {
+  String? _x;
+
+  String? get x => _x;
+}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+
+augment class A {
+  set x(String? value) {
+    _x = value;
+  }
+}
+''');
+
+    result = await resolveFile(a.path);
+    await assertDiagnosticsIn(errors, [
+      lint(52, 1),
+    ]);
+
+    result = await resolveFile(b.path);
+    await assertNoDiagnosticsIn(errors);
+  }
+
   test_unnecessary_getterAndSetter_extensionType() async {
     await assertDiagnostics(r'''
 extension type E(int i) {

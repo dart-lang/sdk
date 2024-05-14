@@ -131,6 +131,9 @@ extension BlockExtension on Block {
 }
 
 extension ClassElementExtension on ClassElement {
+  /// Get all accessors, including merged augmentations.
+  List<PropertyAccessorElement> get allAccessors => augmented.accessors;
+
   /// Get all constructors, including merged augmentations.
   List<ConstructorElement> get allConstructors => augmented.constructors;
 

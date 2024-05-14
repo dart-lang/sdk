@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
+import '../extensions.dart';
 
 const _desc =
     r'Avoid wrapping fields in getters and setters just to be "safe".';
@@ -79,11 +80,15 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
+    if (node.isAugmentation) return;
+
     _check(node.members);
   }
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    if (node.isAugmentation) return;
+
     _check(node.members);
   }
 

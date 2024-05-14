@@ -41,6 +41,46 @@ augment class A {
     ]);
   }
 
+  test_insideFunctionAugmentation_declaredVariablePattern_assignment() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+void f() {}
+''');
+
+    await assertErrorsInCode('''
+augment library 'a.dart';
+
+augment void f() {
+  var (augmented,) = (0,);
+}
+''', [
+      error(ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION, 53,
+          9),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 53, 9),
+    ]);
+  }
+
+  test_insideFunctionAugmentation_declaredVariablePattern_match() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+void f() {}
+''');
+
+    await assertErrorsInCode('''
+augment library 'a.dart';
+
+augment void f() {
+  if ((0,) case (var augmented,)) {}
+}
+''', [
+      error(ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION, 67,
+          9),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 67, 9),
+    ]);
+  }
+
   test_insideFunctionAugmentation_formalParameter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import augment 'test.dart';

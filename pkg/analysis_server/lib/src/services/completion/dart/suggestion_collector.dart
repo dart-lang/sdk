@@ -25,7 +25,6 @@ class SuggestionCollector {
 
   /// Adds the candidate [suggestion] to the list of suggestions.
   void addSuggestion(CandidateSuggestion suggestion) {
-    // TODO(brianwilkerson): This potentially needs to handle shadowed names.
     suggestions.add(suggestion);
   }
 }

@@ -378,6 +378,7 @@ augment library 'a2.dart';
 augment class A {}
 ''');
 
+    configuration.withExportScope = true;
     var library = await buildLibrary(r'''
 import augment 'a1.dart';
 import augment 'a2.dart';
@@ -433,6 +434,10 @@ library
             classes
               augment class A @41
                 augmentationTarget: self::@augmentation::package:test/a21.dart::@classAugmentation::A
+  exportedReferences
+    declared self::@class::A
+  exportNamespace
+    A: self::@class::A
 ''');
   }
 
@@ -49690,7 +49695,9 @@ enum A {
 }
 ''');
 
-    configuration.withConstantInitializers = false;
+    configuration
+      ..withConstantInitializers = false
+      ..withExportScope = true;
     checkElementText(library, r'''
 library
   definingUnit
@@ -49760,6 +49767,10 @@ library
             enums
               augment enum A @40
                 augmentationTarget: self::@augmentation::package:test/a21.dart::@enumAugmentation::A
+  exportedReferences
+    declared self::@enum::A
+  exportNamespace
+    A: self::@enum::A
 ''');
   }
 
@@ -55100,6 +55111,7 @@ import augment 'a.dart';
 extension A on int {}
 ''');
 
+    configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   definingUnit
@@ -55121,6 +55133,10 @@ library
             extensions
               augment A @44
                 augmentationTarget: self::@augmentation::package:test/a.dart::@extensionAugmentation::A
+  exportedReferences
+    declared self::@extension::A
+  exportNamespace
+    A: self::@extension::A
 ''');
   }
 
@@ -56653,6 +56669,7 @@ import augment 'a.dart';
 extension type A(int it) {}
 ''');
 
+    configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   definingUnit
@@ -56694,6 +56711,10 @@ library
             extensionTypes
               augment A @49
                 augmentationTarget: self::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+  exportedReferences
+    declared self::@extensionType::A
+  exportNamespace
+    A: self::@extensionType::A
 ''');
   }
 
@@ -60849,6 +60870,7 @@ import augment 'a.dart';
 mixin A {}
 ''');
 
+    configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   definingUnit
@@ -60873,6 +60895,10 @@ library
             mixins
               augment mixin A @40
                 augmentationTarget: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+  exportedReferences
+    declared self::@mixin::A
+  exportNamespace
+    A: self::@mixin::A
 ''');
   }
 
@@ -63738,7 +63764,9 @@ import augment 'a.dart';
 typedef A = int;
 ''');
 
-    configuration.withReferences = true;
+    configuration
+      ..withExportScope = true
+      ..withReferences = true;
     checkElementText(library, r'''
 library
   reference: self
@@ -63759,6 +63787,10 @@ library
             reference: self::@augmentation::package:test/a.dart::@typeAliasAugmentation::A
             aliasedType: int
             augmentationTarget: self::@typeAlias::A
+  exportedReferences
+    declared self::@typeAlias::A
+  exportNamespace
+    A: self::@typeAlias::A
 ''');
   }
 }

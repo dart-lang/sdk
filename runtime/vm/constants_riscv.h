@@ -1594,10 +1594,10 @@ static constexpr ExtensionSet RV_G = RV_I | RV_M | RV_A | RV_F | RV_D;
 static constexpr ExtensionSet RV_GC = RV_G | RV_C;
 static constexpr Extension RV_Zba(6);  // Address generation
 static constexpr Extension RV_Zbb(7);  // Basic bit-manipulation
-static constexpr Extension RV_Zbc(8);  // Carry-less multiplication
-static constexpr Extension RV_Zbs(9);  // Single-bit instructions
-static constexpr ExtensionSet RV_B = RV_Zba | RV_Zbb | RV_Zbc | RV_Zbs;
+static constexpr Extension RV_Zbs(8);  // Single-bit instructions
+static constexpr ExtensionSet RV_B = RV_Zba | RV_Zbb | RV_Zbs;
 static constexpr ExtensionSet RV_GCB = RV_GC | RV_B;
+static constexpr Extension RV_Zbc(9);  // Carry-less multiplication
 
 #undef R
 

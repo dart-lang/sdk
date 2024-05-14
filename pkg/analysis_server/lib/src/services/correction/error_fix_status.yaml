@@ -210,7 +210,7 @@ CompileTimeErrorCode.ASSIGNMENT_TO_TYPE:
 CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT:
   status: hasFix
 CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA:
-  status: needsFix
+  status: hasFix
 CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING:
   status: needsFix
 CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND:
@@ -222,6 +222,8 @@ CompileTimeErrorCode.AUGMENTATION_WITHOUT_IMPORT:
   notes: |-
     The fix is to add `import augment`.
 CompileTimeErrorCode.AUGMENTATION_WITHOUT_LIBRARY:
+  status: noFix
+CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_NOT_SETTER:
   status: noFix
 CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER:
   status: noFix

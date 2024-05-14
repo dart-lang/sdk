@@ -135,6 +135,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_empty_catch.
 import 'package:analysis_server/src/services/correction/dart/remove_empty_constructor_body.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_else.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_statement.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_extra_modifier.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_if_null_operator.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_initializer.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_interpolation_braces.dart';
@@ -863,6 +864,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ],
   CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT: [
     AddAsync.new,
+  ],
+  CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA: [
+    RemoveExtraModifier.new,
   ],
   CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT: [
     AddAsync.new,

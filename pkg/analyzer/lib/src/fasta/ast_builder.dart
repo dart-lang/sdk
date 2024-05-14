@@ -4010,6 +4010,16 @@ class AstBuilder extends StackListener {
     assert(_featureSet.isEnabled(Feature.patterns));
     assert(variable.lexeme != '_');
     var type = pop() as TypeAnnotationImpl?;
+
+    if (_enclosingDeclarationAugmentToken != null) {
+      if (variable.lexeme == 'augmented') {
+        errorReporter.errorReporter?.atToken(
+          variable,
+          ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION,
+        );
+      }
+    }
+
     push(
       DeclaredVariablePatternImpl(
         keyword: keyword,

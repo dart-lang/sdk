@@ -4,13 +4,11 @@
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
-import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/candidate_suggestion.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_state.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/in_scope_completion_pass.dart';
 import 'package:analysis_server/src/services/completion/dart/not_imported_completion_pass.dart';
-import 'package:analysis_server/src/services/completion/dart/not_imported_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
 import 'package:analysis_server/src/utilities/selection.dart';
@@ -58,7 +56,7 @@ class CompletionBudget {
 }
 
 /// [DartCompletionManager] determines if a completion request is Dart specific
-/// and forwards those requests to all [DartCompletionContributor]s.
+/// and if so runs the two completion passes.
 class DartCompletionManager {
   /// Time budget to computing suggestions.
   final CompletionBudget budget;
@@ -105,18 +103,10 @@ class DartCompletionManager {
 
     request.checkAborted();
 
-    // Compute the list of contributors that will be run.
     var builder =
         SuggestionBuilder(request, useFilter: useFilter, listener: listener);
-    var contributors = <DartCompletionContributor>[];
 
     final notImportedSuggestions = this.notImportedSuggestions;
-    if (notImportedSuggestions != null) {
-      contributors.add(
-        NotImportedContributor(
-            request, builder, budget, notImportedSuggestions),
-      );
-    }
 
     var collector = SuggestionCollector();
     try {
@@ -128,7 +118,7 @@ class DartCompletionManager {
           ? NoPrefixMatcher()
           : FuzzyMatcher(request.targetPrefix);
       var state = CompletionState(request, selection, budget, matcher);
-      /*var operations =*/ performance.run(
+      var operations = performance.run(
         'InScopeCompletionPass',
         (performance) {
           return _runFirstPass(
@@ -140,23 +130,18 @@ class DartCompletionManager {
           );
         },
       );
-      // if (operations.isNotEmpty && notImportedSuggestions != null) {
-      //   performance.run('NotImportedCompletionPass', (performance) {
-      //     NotImportedCompletionPass(state, collector, operations)
-      //         .computeSuggestions(performance: performance);
-      //   });
-      // }
-      for (var contributor in contributors) {
+      request.checkAborted();
+      if (operations.isNotEmpty && notImportedSuggestions != null) {
         await performance.runAsync(
-          '${contributor.runtimeType}',
+          'NotImportedCompletionPass',
           (performance) async {
-            await contributor.computeSuggestions(
-              performance: performance,
-            );
+            await NotImportedCompletionPass(
+                    state: state, collector: collector, operations: operations)
+                .computeSuggestions(performance: performance);
           },
         );
-        request.checkAborted();
       }
+      await builder.suggestFromCandidates(collector.suggestions);
     } on InconsistentAnalysisException {
       // The state of the code being analyzed has changed, so results are likely
       // to be inconsistent. Just abort the operation.
@@ -189,7 +174,6 @@ class DartCompletionManager {
     );
     pass.computeSuggestions();
     state.request.collectorLocationName = collector.completionLocation;
-    builder.suggestFromCandidates(collector.suggestions);
     return pass.notImportedOperations;
   }
 }

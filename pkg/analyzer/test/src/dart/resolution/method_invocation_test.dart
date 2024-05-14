@@ -4570,6 +4570,74 @@ MethodInvocation
 ''');
   }
 
+  test_hasReceiver_interfaceType_ofExtension() async {
+    await assertNoErrorsInCode(r'''
+extension E on int {
+  void foo() {}
+}
+
+void f() {
+  0.foo();
+}
+''');
+
+    var node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@extension::E::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_hasReceiver_interfaceType_ofExtension_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+
+augment extension E {
+  vois foo() {}
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+import augment 'a.dart';
+
+extension E on int {}
+
+void f() {
+  0.foo();
+}
+''');
+
+    var node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@augmentation::package:test/a.dart::@extensionAugmentation::E::@method::foo
+    staticType: InvalidType Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType Function()
+  staticType: InvalidType
+''');
+  }
+
   test_hasReceiver_interfaceType_switchExpression() async {
     await assertNoErrorsInCode(r'''
 Object f(Object? x) {

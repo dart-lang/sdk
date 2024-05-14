@@ -171,6 +171,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     bool mustBeStatic = false,
     bool mustBeType = false,
     bool excludeTypeNames = false,
+    bool objectPatternAllowed = false,
     bool preferNonInvocation = false,
     bool suggestUnnamedAsNew = false,
     Set<AstNode> excludedNodes = const {},
@@ -198,7 +199,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
               helper.mustBeNonVoid == mustBeNonVoid &&
               helper.mustBeStatic == mustBeStatic &&
               helper.mustBeType == mustBeType &&
-              helper.preferNonInvocation == preferNonInvocation);
+              helper.preferNonInvocation == preferNonInvocation &&
+              helper.objectPatternAllowed == objectPatternAllowed);
     }());
     return _declarationHelper ??= DeclarationHelper(
       request: state.request,
@@ -214,6 +216,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       mustBeStatic: mustBeStatic,
       mustBeType: mustBeType,
       excludeTypeNames: excludeTypeNames,
+      objectPatternAllowed: objectPatternAllowed,
       preferNonInvocation: preferNonInvocation,
       suggestUnnamedAsNew: suggestUnnamedAsNew,
       skipImports: skipImports,
@@ -1184,6 +1187,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           // TODO(brianwilkerson): `var` should only be suggested if neither
           //  `static` nor `final` are present.
           keywordHelper.addKeyword(Keyword.VAR);
+          declarationHelper(mustBeType: true).addLexicalDeclarations(node);
         }
       }
     }
@@ -1334,6 +1338,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
                 keywordHelper.addKeyword(Keyword.IN);
               }
             }
+          }
+          var type = variables.type;
+          if (type != null && type.coversOffset(offset)) {
+            type.accept(this);
           }
         case ForPartsWithExpression():
           if (parts.leftSeparator.isSynthetic &&
@@ -1645,6 +1653,17 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     } else if (offset > isOperator.end) {
       collector.completionLocation = 'IsExpression_type';
       declarationHelper(mustBeType: true).addLexicalDeclarations(node);
+    }
+  }
+
+  @override
+  void visitLabel(Label node) {
+    var label = node.label;
+    if (!label.isSynthetic && offset >= label.end) {
+      var parent = node.parent;
+      if (parent is NamedExpression) {
+        parent.accept(this);
+      }
     }
   }
 
@@ -2148,8 +2167,17 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitRecordTypeAnnotation(RecordTypeAnnotation node) {
-    if (node.leftParenthesis.end <= offset &&
-        offset <= node.rightParenthesis.offset) {
+    if (offset <= node.offset) {
+      var parent = node.parent;
+      if (parent is DefaultFormalParameter) {
+        parent = parent.parent;
+      }
+      if (parent is FormalParameter && offset <= parent.offset) {
+        // The user might be starting a new formal parameter before the one
+        // containing the `node`.
+        _forTypeAnnotation(node);
+      }
+    } else if (offset <= node.rightParenthesis.offset) {
       collector.completionLocation = 'RecordTypeAnnotation_positionalFields';
       _forTypeAnnotation(node);
     }
@@ -3321,10 +3349,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
     }
 
-    // TODO(brianwilkerson): Figure out when `mustBeConst` should ever be false.
     keywordHelper.addPatternKeywords();
     declarationHelper(
-            mustBeConstant: mustBeConst, mustBeStatic: node.inStaticContext)
+            mustBeConstant: mustBeConst,
+            mustBeStatic: node.inStaticContext,
+            objectPatternAllowed: true)
         .addLexicalDeclarations(node);
   }
 

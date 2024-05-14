@@ -6782,6 +6782,10 @@ class _MacroTypeAnnotationLocationConverter {
     }
     var node = nodeLocation.entity;
     switch (node) {
+      case ConstructorDeclaration():
+        var parameterList = node.parameters;
+        var next = parameterList.parameters[location.index];
+        return nodeLocation.next(next);
       case FunctionDeclaration():
         var parameterList = node.functionExpression.parameters;
         var next = parameterList!.parameters[location.index];
@@ -6893,11 +6897,17 @@ class _MacroTypeAnnotationLocationConverter {
     }
     var parent = node.ifTypeOrNull<AstNode>()?.parent;
     switch (node) {
+      case FieldFormalParameter():
+        var next = node.type ?? node.name;
+        return nodeLocation.next(next);
       case SimpleFormalParameter():
         var next = node.type ?? node.name;
         if (next == null) {
           return null;
         }
+        return nodeLocation.next(next);
+      case SuperFormalParameter():
+        var next = node.type ?? node.name;
         return nodeLocation.next(next);
       case VariableDeclaration():
         if (parent is VariableDeclarationList) {

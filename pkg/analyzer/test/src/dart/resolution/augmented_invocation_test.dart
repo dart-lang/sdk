@@ -565,6 +565,84 @@ ExpressionStatement
 ''');
   }
 
+  test_topLevel_getter_notFunctionTyped_implicitCall() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class A {
+  int call() => 0;
+}
+
+A get foo => A();
+''');
+
+    await assertNoErrorsInCode('''
+augment library 'a.dart';
+
+augment A get foo {
+  augmented();
+  return A();
+}
+''');
+
+    var node = findNode.expressionStatement('augmented(');
+    assertResolvedNodeText(node, r'''
+ExpressionStatement
+  expression: FunctionExpressionInvocation
+    function: AugmentedExpression
+      augmentedKeyword: augmented
+      element: self::@getter::foo
+      staticType: int Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticElement: self::@class::A::@method::call
+    staticInvokeType: int Function()
+    staticType: int
+  semicolon: ;
+''');
+  }
+
+  test_topLevel_getter_notFunctionTyped_implicitCall_fromExtension() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class A {}
+
+extension E on A {
+  int call() => 0;
+}
+
+A get foo => A();
+''');
+
+    await assertNoErrorsInCode('''
+augment library 'a.dart';
+
+augment A get foo {
+  augmented();
+  return A();
+}
+''');
+
+    var node = findNode.expressionStatement('augmented(');
+    assertResolvedNodeText(node, r'''
+ExpressionStatement
+  expression: FunctionExpressionInvocation
+    function: AugmentedExpression
+      augmentedKeyword: augmented
+      element: self::@getter::foo
+      staticType: int Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticElement: self::@extension::E::@method::call
+    staticInvokeType: int Function()
+    staticType: int
+  semicolon: ;
+''');
+  }
+
   test_topLevel_getter_notFunctionTyped_variableClosure() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import augment 'test.dart';
@@ -614,7 +692,7 @@ augment set foo(int _) {
   augmented(0, 1);
 }
 ''', [
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 54, 9),
+      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER, 54, 9),
     ]);
 
     var node = findNode.expressionStatement('augmented(');
