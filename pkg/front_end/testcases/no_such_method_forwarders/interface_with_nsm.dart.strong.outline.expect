@@ -1,0 +1,62 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class I extends core::Object {
+  synthetic constructor •() → self::I
+    ;
+  method noSuchMethod(core::Invocation i) → dynamic
+    ;
+  no-such-method-forwarder method foo() → void
+    return this.{self::I::noSuchMethod}(new core::_InvocationMirror::_withType(#foo, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic};
+}
+mixin class M extends core::Object {
+  synthetic constructor •() → self::M
+    ;
+  method noSuchMethod(core::Invocation i) → dynamic
+    ;
+}
+abstract class _A&Object&M = core::Object with self::M /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_A&Object&M
+    : super core::Object::•()
+    ;
+  mixin-super-stub method noSuchMethod(core::Invocation i) → dynamic
+    return super.{self::M::noSuchMethod}(i);
+}
+class A extends self::_A&Object&M implements self::I {
+  synthetic constructor •() → self::A
+    ;
+  no-such-method-forwarder method foo() → void
+    return this.{self::_A&Object&M::noSuchMethod}(new core::_InvocationMirror::_withType(#foo, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic};
+}
+abstract class _B&Object&M = core::Object with self::M /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_B&Object&M
+    : super core::Object::•()
+    ;
+  mixin-super-stub method noSuchMethod(core::Invocation i) → dynamic
+    return super.{self::M::noSuchMethod}(i);
+}
+class B extends self::_B&Object&M implements self::I {
+  synthetic constructor •() → self::B
+    ;
+  no-such-method-forwarder method foo() → void
+    return this.{self::_B&Object&M::noSuchMethod}(new core::_InvocationMirror::_withType(#foo, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic};
+}
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///interface_with_nsm.dart:15:8 -> SymbolConstant(#foo)
+Evaluated: ListLiteral @ org-dartlang-testcase:///interface_with_nsm.dart:15:8 -> ListConstant(const <Type>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///interface_with_nsm.dart:15:8 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///interface_with_nsm.dart:15:8 -> MapConstant(const <Symbol, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///interface_with_nsm.dart:22:7 -> SymbolConstant(#foo)
+Evaluated: ListLiteral @ org-dartlang-testcase:///interface_with_nsm.dart:22:7 -> ListConstant(const <Type>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///interface_with_nsm.dart:22:7 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///interface_with_nsm.dart:22:7 -> MapConstant(const <Symbol, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///interface_with_nsm.dart:24:7 -> SymbolConstant(#foo)
+Evaluated: ListLiteral @ org-dartlang-testcase:///interface_with_nsm.dart:24:7 -> ListConstant(const <Type>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///interface_with_nsm.dart:24:7 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///interface_with_nsm.dart:24:7 -> MapConstant(const <Symbol, dynamic>{})
+Extra constant evaluation: evaluated: 28, effectively constant: 12

@@ -1,0 +1,52 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef F<contravariant U extends core::Object? = dynamic, V extends core::Object? = dynamic> = (U%) → V%;
+class Foo<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Foo<self::Foo::T%>
+    : super core::Object::•()
+    ;
+  get v1() → self::Bar<self::Foo::T%>
+    return #C1;
+  get v2() → self::Bar<core::List<self::Foo::T%>>
+    return #C2;
+  get v3() → self::Bar<(self::Foo::T%) → self::Foo::T%>
+    return #C3;
+  get v4() → self::Bar<((self::Foo::T%) → self::Foo::T%) → self::Foo::T%>
+    return #C4;
+  get v5() → core::List<self::Foo::T%>
+    return #C5;
+  get v6() → core::List<(self::Foo::T%) → self::Foo::T%>
+    return #C6;
+  get v7() → core::Map<self::Foo::T%, self::Foo::T%>
+    return #C7;
+  get v8() → core::Map<(self::Foo::T%) → self::Foo::T%, self::Foo::T%>
+    return #C8;
+  get v9() → core::Map<self::Foo::T%, (self::Foo::T%) → self::Foo::T%>
+    return #C9;
+}
+class Bar<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::Bar<self::Bar::T%>
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = self::Bar<Never> {}
+  #C2 = self::Bar<core::List<Never>> {}
+  #C3 = self::Bar<(core::Object?) → Never> {}
+  #C4 = self::Bar<((Never) → core::Object?) → Never> {}
+  #C5 = <Never>[]
+  #C6 = <(core::Object?) → Never>[]
+  #C7 = <Never, Never>{}
+  #C8 = <(core::Object?) → Never, Never>{}
+  #C9 = <Never, (core::Object?) → Never>{}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///const_invocation.dart:
+- Bar. (from org-dartlang-testcase:///const_invocation.dart:24:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

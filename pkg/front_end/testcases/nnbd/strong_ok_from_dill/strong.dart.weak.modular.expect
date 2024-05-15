@@ -1,9 +1,0 @@
-library;
-import self as self;
-import "strong_lib.dart" as str;
-
-import "org-dartlang-testcase:///strong_lib.dart";
-
-static method main() → dynamic {
-  str::foo();
-}

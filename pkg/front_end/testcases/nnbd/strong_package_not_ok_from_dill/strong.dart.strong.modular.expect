@@ -1,0 +1,20 @@
+//
+// Problems in component:
+//
+// pkg/front_end/testcases/nnbd/strong_package_not_ok_from_dill/opt_in_package/lib/opt_in_lib.dart: Error: Loaded library is compiled with unsound null safety and cannot be used in compilation for sound null safety.
+//
+// pkg/front_end/testcases/nnbd/strong_package_not_ok_from_dill/opt_in_package/lib/opt_out_lib.dart: Error: Loaded library is compiled with unsound null safety and cannot be used in compilation for sound null safety.
+//
+// pkg/front_end/testcases/nnbd/strong_package_not_ok_from_dill/opt_out_package/lib/regular_lib1.dart: Error: Loaded library is compiled with unsound null safety and cannot be used in compilation for sound null safety.
+//
+// pkg/front_end/testcases/nnbd/strong_package_not_ok_from_dill/opt_out_package/lib/regular_lib2.dart: Error: Loaded library is compiled with unsound null safety and cannot be used in compilation for sound null safety.
+//
+library;
+import self as self;
+
+import "package:opt_in_package/opt_in_lib.dart";
+import "package:opt_in_package/opt_out_lib.dart";
+import "package:opt_out_package/regular_lib1.dart";
+import "package:opt_out_package/regular_lib2.dart";
+
+static method main() → dynamic {}

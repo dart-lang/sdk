@@ -1,0 +1,166 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "main_lib.dart" as mai;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+class A extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::A> values = #C7;
+  enum-element static const field self::A a = #C3;
+  enum-element static const field self::A b = #C6;
+  const synthetic constructor •(core::int #index, core::String #name) → self::A
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "A.${this.{core::_Enum::_name}{core::String}}";
+}
+class B extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::B> values = #C10;
+  static const field self::B c = #C8;
+  enum-element static const field self::B a = #C8;
+  enum-element static const field self::B b = #C9;
+  const synthetic constructor •(core::int #index, core::String #name) → self::B
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "B.${this.{core::_Enum::_name}{core::String}}";
+}
+static method a1(self::A? a) → core::int? {
+  switch(a) /* self::A? */ {
+    #L1:
+    case #C3:
+      {
+        return 0;
+      }
+  }
+}
+static method a2(self::A? a) → core::int? {
+  switch(a) /* self::A? */ {
+    #L2:
+    case #C11:
+      {
+        return null;
+      }
+    #L3:
+    case #C3:
+      {
+        return 0;
+      }
+  }
+}
+static method b1(self::B b) → core::int {
+  switch(b) /* isExplicitlyExhaustive, self::B */ {
+    #L4:
+    case #C8:
+      {
+        return 0;
+      }
+    #L5:
+    case #C9:
+      {
+        return 1;
+      }
+  }
+}
+static method b2(self::B? b) → core::int? {
+  switch(b) /* self::B? */ {
+    #L6:
+    case #C11:
+      {
+        return null;
+      }
+    #L7:
+    case #C8:
+      {
+        return 0;
+      }
+  }
+}
+static method c1(mai::C? c) → core::int? {
+  switch(c) /* mai::C? */ {
+    #L8:
+    case #C12:
+      {
+        return 0;
+      }
+  }
+}
+static method c2(mai::C? c) → core::int? {
+  switch(c) /* mai::C? */ {
+    #L9:
+    case #C11:
+      {
+        return null;
+      }
+    #L10:
+    case #C12:
+      {
+        return 0;
+      }
+  }
+}
+static method d1(mai::D d) → core::int {
+  switch(d) /* isExplicitlyExhaustive, mai::D */ {
+    #L11:
+    case #C13:
+      {
+        return 0;
+      }
+    #L12:
+    case #C14:
+      {
+        return 1;
+      }
+  }
+}
+static method d2(mai::D? d) → core::int? {
+  switch(d) /* mai::D? */ {
+    #L13:
+    case #C11:
+      {
+        return null;
+      }
+    #L14:
+    case #C13:
+      {
+        return 0;
+      }
+  }
+}
+static method main() → void {
+  self::a1(#C6);
+  self::a2(#C6);
+  self::b1(#C9);
+  self::b2(#C9);
+  self::c1(#C15);
+  self::c2(#C15);
+  self::d1(#C14);
+  self::d2(#C14);
+}
+
+constants  {
+  #C1 = 0
+  #C2 = "a"
+  #C3 = self::A {index:#C1, _name:#C2}
+  #C4 = 1
+  #C5 = "b"
+  #C6 = self::A {index:#C4, _name:#C5}
+  #C7 = <self::A>[#C3, #C6]
+  #C8 = self::B {index:#C1, _name:#C2}
+  #C9 = self::B {index:#C4, _name:#C5}
+  #C10 = <self::B>[#C8, #C9]
+  #C11 = null
+  #C12 = mai::C {index:#C1, _name:#C2}
+  #C13 = mai::D {index:#C1, _name:#C2}
+  #C14 = mai::D {index:#C4, _name:#C5}
+  #C15 = mai::C {index:#C4, _name:#C5}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///main.dart:
+- A. (from org-dartlang-testcase:///main.dart:9:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+- B. (from org-dartlang-testcase:///main.dart:11:6)

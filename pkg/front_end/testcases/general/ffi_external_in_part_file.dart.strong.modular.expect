@@ -1,0 +1,36 @@
+library;
+import self as self;
+import "dart:ffi" as ffi;
+import "dart:core" as core;
+
+import "dart:ffi";
+
+part ffi_external_in_part_lib.dart;
+final class Struct1ByteInt extends ffi::Struct {
+  synthetic constructor •() → self::Struct1ByteInt
+    : super ffi::Struct::•()
+    ;
+  @#C1
+  external get a0() → core::int;
+  @#C1
+  external set a0(synthesized core::int #externalFieldValue) → void;
+}
+static method notMain() → void {
+  core::print(self::returnStruct1ByteIntNative(1.{core::int::unary-}(){() → core::int}));
+}
+@#C5
+external static method /* from org-dartlang-testcase:///ffi_external_in_part_lib.dart */ returnStruct1ByteIntNative(core::int a0) → self::Struct1ByteInt;
+
+constants  {
+  #C1 = ffi::Int8 {}
+  #C2 = "ReturnStruct1ByteInt"
+  #C3 = null
+  #C4 = false
+  #C5 = ffi::Native<(ffi::Int8) → self::Struct1ByteInt> {symbol:#C2, assetId:#C3, isLeaf:#C4}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///ffi_external_in_part_file.dart:
+- Int8. (from org-dartlang-sdk:///sdk/lib/ffi/native_type.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

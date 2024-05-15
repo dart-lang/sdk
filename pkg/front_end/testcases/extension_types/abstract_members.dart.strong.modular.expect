@@ -1,0 +1,196 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extension_types/abstract_members.dart:6:16: Error: Extension types can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   abstract int m; /* Error */
+//                ^
+//
+// pkg/front_end/testcases/extension_types/abstract_members.dart:10:9: Error: Extension types can't declare abstract members.
+// Try providing an implementation for the member.
+//   T get getter; /* Error */
+//         ^^^^^^
+//
+// pkg/front_end/testcases/extension_types/abstract_members.dart:14:8: Error: Extension types can't declare abstract members.
+// Try providing an implementation for the member.
+//   void setter(int x); /* Error */
+//        ^^^^^^
+//
+// pkg/front_end/testcases/extension_types/abstract_members.dart:18:8: Error: Extension types can't declare abstract members.
+// Try providing an implementation for the member.
+//   void method(); /* Error */
+//        ^^^^^^
+//
+// pkg/front_end/testcases/extension_types/abstract_members.dart:22:16: Error: Extension types can't declare abstract members.
+// Try providing an implementation for the member.
+//   int operator +(int other); /* Error */
+//                ^
+//
+// pkg/front_end/testcases/extension_types/abstract_members.dart:31:7: Error: Extension types can't declare abstract members.
+// Try providing an implementation for the member.
+//   int method(); /* Error */
+//       ^^^^^^
+//
+// pkg/front_end/testcases/extension_types/abstract_members.dart:33:11: Error: Extension types can't declare abstract members.
+// Try providing an implementation for the member.
+//   int get getter; /* Error */
+//           ^^^^^^
+//
+// pkg/front_end/testcases/extension_types/abstract_members.dart:35:12: Error: Extension types can't declare abstract members.
+// Try providing an implementation for the member.
+//   void set setter(int v); /* Error */
+//            ^^^^^^
+//
+// pkg/front_end/testcases/extension_types/abstract_members.dart:39:16: Error: Extension fields can't be declared 'abstract'.
+// Try removing the 'abstract' keyword.
+//   abstract int m; /* Error */
+//                ^
+//
+// pkg/front_end/testcases/extension_types/abstract_members.dart:39:16: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   abstract int m; /* Error */
+//                ^
+//
+// pkg/front_end/testcases/extension_types/abstract_members.dart:41:7: Error: Extensions can't declare abstract members.
+// Try providing an implementation for the member.
+//   int method(); /* Error */
+//       ^^^^^^
+//
+// pkg/front_end/testcases/extension_types/abstract_members.dart:43:11: Error: Extensions can't declare abstract members.
+// Try providing an implementation for the member.
+//   int get getter; /* Error */
+//           ^^^^^^
+//
+// pkg/front_end/testcases/extension_types/abstract_members.dart:45:12: Error: Extensions can't declare abstract members.
+// Try providing an implementation for the member.
+//   void set setter(int v); /* Error */
+//            ^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  no-such-method-forwarder method x() → core::int
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
+  method noSuchMethod(core::Invocation invocation) → dynamic
+    return null;
+}
+extension E on self::A {
+  get m = get self::E|m;
+  set m = set self::E|m;
+  method method = self::E|method;
+  method tearoff method = self::E|get#method;
+  get getter = self::E|get#getter;
+  set setter = self::E|set#setter;
+}
+extension type ET1(core::int id) {
+  abstract extension-type-member representation-field get id() → core::int;
+  get m = get self::ET1|m;
+  set m = set self::ET1|m;
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
+}
+extension type ET2<T extends core::Object? = dynamic>(T% id) {
+  abstract extension-type-member representation-field get id() → T%;
+  get getter = self::ET2|get#getter;
+  constructor • = self::ET2|constructor#;
+  constructor tearoff • = self::ET2|constructor#_#new#tearOff;
+}
+extension type ET3(core::int id) {
+  abstract extension-type-member representation-field get id() → core::int;
+  method setter = self::ET3|setter;
+  method tearoff setter = self::ET3|get#setter;
+  constructor • = self::ET3|constructor#;
+  constructor tearoff • = self::ET3|constructor#_#new#tearOff;
+}
+extension type ET4<T extends core::Object? = dynamic>(T% id) {
+  abstract extension-type-member representation-field get id() → T%;
+  method method = self::ET4|method;
+  method tearoff method = self::ET4|get#method;
+  constructor • = self::ET4|constructor#;
+  constructor tearoff • = self::ET4|constructor#_#new#tearOff;
+}
+extension type ET5(core::int id) {
+  abstract extension-type-member representation-field get id() → core::int;
+  operator + = self::ET5|+;
+  constructor • = self::ET5|constructor#;
+  constructor tearoff • = self::ET5|constructor#_#new#tearOff;
+}
+extension type ET6(self::A id) implements self::A {
+  abstract extension-type-member representation-field get id() → self::A;
+  method method = self::ET6|method;
+  method tearoff method = self::ET6|get#method;
+  get getter = self::ET6|get#getter;
+  set setter = self::ET6|set#setter;
+  constructor • = self::ET6|constructor#;
+  constructor tearoff • = self::ET6|constructor#_#new#tearOff;
+}
+static extension-type-member method ET1|constructor#(core::int id) → self::ET1% /* erasure=core::int, declared=! */ {
+  lowered final self::ET1% /* erasure=core::int, declared=! */ #this = id;
+  return #this;
+}
+static extension-type-member method ET1|constructor#_#new#tearOff(core::int id) → self::ET1% /* erasure=core::int, declared=! */
+  return self::ET1|constructor#(id);
+static abstract extension-type-member get ET1|m() → core::int;
+static abstract extension-type-member set ET1|m(synthesized core::int #externalFieldValue) → void;
+static extension-type-member method ET2|constructor#<T extends core::Object? = dynamic>(self::ET2|constructor#::T% id) → self::ET2<self::ET2|constructor#::T%>% /* erasure=self::ET2|constructor#::T%, declared=! */ {
+  lowered final self::ET2<self::ET2|constructor#::T%>% /* erasure=self::ET2|constructor#::T%, declared=! */ #this = id;
+  return #this;
+}
+static extension-type-member method ET2|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET2|constructor#_#new#tearOff::T% id) → self::ET2<self::ET2|constructor#_#new#tearOff::T%>% /* erasure=self::ET2|constructor#_#new#tearOff::T%, declared=! */
+  return self::ET2|constructor#<self::ET2|constructor#_#new#tearOff::T%>(id);
+static abstract extension-type-member method ET2|get#getter<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|get#getter::T%>% /* erasure=self::ET2|get#getter::T%, declared=! */ #this) → self::ET2|get#getter::T%;
+static extension-type-member method ET3|constructor#(core::int id) → self::ET3% /* erasure=core::int, declared=! */ {
+  lowered final self::ET3% /* erasure=core::int, declared=! */ #this = id;
+  return #this;
+}
+static extension-type-member method ET3|constructor#_#new#tearOff(core::int id) → self::ET3% /* erasure=core::int, declared=! */
+  return self::ET3|constructor#(id);
+static abstract extension-type-member method ET3|setter(lowered final self::ET3% /* erasure=core::int, declared=! */ #this, core::int x) → void;
+static extension-type-member method ET3|get#setter(lowered final self::ET3% /* erasure=core::int, declared=! */ #this) → (core::int) → void
+  return (core::int x) → void => self::ET3|setter(#this, x);
+static extension-type-member method ET4|constructor#<T extends core::Object? = dynamic>(self::ET4|constructor#::T% id) → self::ET4<self::ET4|constructor#::T%>% /* erasure=self::ET4|constructor#::T%, declared=! */ {
+  lowered final self::ET4<self::ET4|constructor#::T%>% /* erasure=self::ET4|constructor#::T%, declared=! */ #this = id;
+  return #this;
+}
+static extension-type-member method ET4|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET4|constructor#_#new#tearOff::T% id) → self::ET4<self::ET4|constructor#_#new#tearOff::T%>% /* erasure=self::ET4|constructor#_#new#tearOff::T%, declared=! */
+  return self::ET4|constructor#<self::ET4|constructor#_#new#tearOff::T%>(id);
+static abstract extension-type-member method ET4|method<T extends core::Object? = dynamic>(lowered final self::ET4<self::ET4|method::T%>% /* erasure=self::ET4|method::T%, declared=! */ #this) → void;
+static extension-type-member method ET4|get#method<T extends core::Object? = dynamic>(lowered final self::ET4<self::ET4|get#method::T%>% /* erasure=self::ET4|get#method::T%, declared=! */ #this) → () → void
+  return () → void => self::ET4|method<self::ET4|get#method::T%>(#this);
+static extension-type-member method ET5|constructor#(core::int id) → self::ET5% /* erasure=core::int, declared=! */ {
+  lowered final self::ET5% /* erasure=core::int, declared=! */ #this = id;
+  return #this;
+}
+static extension-type-member method ET5|constructor#_#new#tearOff(core::int id) → self::ET5% /* erasure=core::int, declared=! */
+  return self::ET5|constructor#(id);
+static abstract extension-type-member method ET5|+(lowered final self::ET5% /* erasure=core::int, declared=! */ #this, core::int other) → core::int;
+static extension-type-member method ET6|constructor#(self::A id) → self::ET6 /* erasure=self::A */ {
+  lowered final self::ET6 /* erasure=self::A */ #this = id;
+  return #this;
+}
+static extension-type-member method ET6|constructor#_#new#tearOff(self::A id) → self::ET6 /* erasure=self::A */
+  return self::ET6|constructor#(id);
+static abstract extension-type-member method ET6|method(lowered final self::ET6 /* erasure=self::A */ #this) → core::int;
+static extension-type-member method ET6|get#method(lowered final self::ET6 /* erasure=self::A */ #this) → () → core::int
+  return () → core::int => self::ET6|method(#this);
+static abstract extension-type-member method ET6|get#getter(lowered final self::ET6 /* erasure=self::A */ #this) → core::int;
+static abstract extension-type-member method ET6|set#setter(lowered final self::ET6 /* erasure=self::A */ #this, core::int v) → void;
+static abstract extension-member get E|m() → core::int;
+static abstract extension-member set E|m(synthesized core::int #externalFieldValue) → void;
+static abstract extension-member method E|method(lowered final self::A #this) → core::int;
+static extension-member method E|get#method(lowered final self::A #this) → () → core::int
+  return () → core::int => self::E|method(#this);
+static abstract extension-member method E|get#getter(lowered final self::A #this) → core::int;
+static abstract extension-member method E|set#setter(lowered final self::A #this, core::int v) → void;
+
+constants  {
+  #C1 = #x
+  #C2 = <core::Type>[]
+  #C3 = <dynamic>[]
+  #C4 = <core::Symbol, dynamic>{}
+}

@@ -1,0 +1,28 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+@self::a
+class E extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E> values = const <self::E>[self::E::E1, self::E::E2, self::E::E3];
+  enum-element static const field self::E E1 = const self::E::•(0, "E1");
+  enum-element static const field self::E E2 = const self::E::•(1, "E2");
+  enum-element static const field self::E E3 = const self::E::•(2, "E3");
+  const synthetic constructor •(core::int #index, core::String #name) → self::E
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "E.${this.{core::_Enum::_name}{core::String}}";
+}
+static const field dynamic a = null;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///metadata_enum.dart:7:2 -> NullConstant(null)
+Evaluated: ListLiteral @ org-dartlang-testcase:///metadata_enum.dart:8:6 -> ListConstant(const <E>[const E{_Enum.index: 0, _Enum._name: "E1"}, const E{_Enum.index: 1, _Enum._name: "E2"}, const E{_Enum.index: 2, _Enum._name: "E3"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///metadata_enum.dart:8:10 -> InstanceConstant(const E{_Enum.index: 0, _Enum._name: "E1"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///metadata_enum.dart:8:14 -> InstanceConstant(const E{_Enum.index: 1, _Enum._name: "E2"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///metadata_enum.dart:8:18 -> InstanceConstant(const E{_Enum.index: 2, _Enum._name: "E3"})
+Extra constant evaluation: evaluated: 10, effectively constant: 5

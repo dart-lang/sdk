@@ -1,0 +1,38 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Foo<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field core::List<core::int> foo;
+  const constructor •(core::List<dynamic> x) → self::Foo<self::Foo::T%>
+    : self::Foo::foo = x is core::List<self::Foo::T%> ?{core::List<core::int>} #C2 : #C4, super core::Object::•()
+    ;
+}
+static method main() → dynamic {
+  const self::Foo<core::int> foo = #C14;
+  core::print(#C14);
+  core::print(#C14);
+}
+
+constants  {
+  #C1 = 1
+  #C2 = <core::int>[#C1]
+  #C3 = 2
+  #C4 = <core::int>[#C3]
+  #C5 = "foo"
+  #C6 = eval const core::bool::fromEnvironment(#C5)
+  #C7 = eval const <dynamic>[#C1]
+  #C8 = eval #C7
+  #C9 = eval const <dynamic>[#C3]
+  #C10 = eval #C9
+  #C11 = eval #C6 ?{core::List<dynamic>} #C8 : #C10
+  #C12 = eval #C11 is core::List<core::int>
+  #C13 = eval #C12 ?{core::List<core::int>} #C2 : #C4
+  #C14 = eval self::Foo<core::int>{foo:#C13}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue_49245_variation_is.dart:
+- Foo. (from org-dartlang-testcase:///issue_49245_variation_is.dart:7:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

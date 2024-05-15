@@ -1,0 +1,149 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/switch_expressions_variable_capture.dart:23:84: Error: Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
+// Try assigning to a different variable.
+//     [int a, int b] when (captured = (x) { return a + b; }) is dynamic => captured!(a = b),
+//                                                                                    ^
+//
+// pkg/front_end/testcases/patterns/switch_expressions_variable_capture.dart:24:90: Error: Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
+// Try assigning to a different variable.
+//     [String a, String b] when (captured = (x) { return a + b; }) is dynamic => captured!(a = b),
+//                                                                                          ^
+//
+import self as self;
+import "dart:core" as core;
+
+import "dart:math" as math;
+
+class Circle extends core::Object {
+  final field core::double radius;
+  constructor •(core::double radius) → self::Circle
+    : self::Circle::radius = radius, super core::Object::•()
+    ;
+}
+static field (dynamic) →? dynamic captured;
+static method test1(dynamic x) → dynamic
+  return block {
+    core::double? #t1;
+    final synthesized dynamic #0#0 = x;
+    #L1:
+    {
+      {
+        hoisted core::double r;
+        if(#0#0 is self::Circle && (let final dynamic #t2 = r = #0#0{self::Circle}.{self::Circle::radius}{core::double} in true) && r.{core::num::>}(0){(core::num) → core::bool}) {
+          #t1 = r.{core::double::*}(r){(core::num) → core::double}.{core::double::*}(#C1){(core::num) → core::double};
+          break #L1;
+        }
+      }
+      {
+        if(true) {
+          #t1 = null;
+          break #L1;
+        }
+      }
+    }
+  } =>#t1;
+static method test2(dynamic x) → dynamic
+  return block {
+    dynamic #t3;
+    final synthesized dynamic #0#0 = x;
+    synthesized core::bool #0#4;
+    synthesized core::bool #0#4#isSet = false;
+    synthesized dynamic #0#6;
+    synthesized core::bool #0#6#isSet = false;
+    synthesized dynamic #0#7;
+    synthesized core::bool #0#7#isSet = false;
+    #L2:
+    {
+      {
+        hoisted core::int a;
+        hoisted core::int b;
+        if(#0#0 is core::List<dynamic> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final dynamic #t4 = #0#4#isSet = true in #0#4 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2) && ((#0#6#isSet ?{dynamic} #0#6{dynamic} : let final dynamic #t5 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) is core::int && (let final dynamic #t6 = a = (#0#6#isSet ?{dynamic} #0#6{dynamic} : let final dynamic #t7 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) as{Unchecked} core::int in true)) && ((#0#7#isSet ?{dynamic} #0#7{dynamic} : let final dynamic #t8 = #0#7#isSet = true in #0#7 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic}) is core::int && (let final dynamic #t9 = b = (#0#7#isSet ?{dynamic} #0#7{dynamic} : let final dynamic #t10 = #0#7#isSet = true in #0#7 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic}) as{Unchecked} core::int in true)) && (self::captured = (dynamic x) → core::int {
+          return a.{core::num::+}(b){(core::num) → core::int};
+        }) is dynamic) {
+          #t3 = self::captured!(a = b){(dynamic) → dynamic};
+          break #L2;
+        }
+      }
+      {
+        hoisted core::String a;
+        hoisted core::String b;
+        if(#0#0 is core::List<dynamic> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final dynamic #t11 = #0#4#isSet = true in #0#4 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2) && ((#0#6#isSet ?{dynamic} #0#6{dynamic} : let final dynamic #t12 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) is core::String && (let final dynamic #t13 = a = (#0#6#isSet ?{dynamic} #0#6{dynamic} : let final dynamic #t14 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) as{Unchecked} core::String in true)) && ((#0#7#isSet ?{dynamic} #0#7{dynamic} : let final dynamic #t15 = #0#7#isSet = true in #0#7 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic}) is core::String && (let final dynamic #t16 = b = (#0#7#isSet ?{dynamic} #0#7{dynamic} : let final dynamic #t17 = #0#7#isSet = true in #0#7 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic}) as{Unchecked} core::String in true)) && (self::captured = (dynamic x) → core::String {
+          return a.{core::String::+}(b){(core::String) → core::String};
+        }) is dynamic) {
+          #t3 = self::captured!(a = b){(dynamic) → dynamic};
+          break #L2;
+        }
+      }
+      {
+        if(true) {
+          #t3 = null;
+          break #L2;
+        }
+      }
+    }
+  } =>#t3;
+static method test3(dynamic x) → dynamic {
+  #L3:
+  {
+    final synthesized dynamic #0#0 = x;
+    synthesized core::bool #0#4;
+    synthesized core::bool #0#4#isSet = false;
+    synthesized dynamic #0#6;
+    synthesized core::bool #0#6#isSet = false;
+    synthesized dynamic #0#7;
+    synthesized core::bool #0#7#isSet = false;
+    {
+      hoisted core::int a;
+      hoisted core::int b;
+      if(#0#0 is core::List<dynamic> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final dynamic #t18 = #0#4#isSet = true in #0#4 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2) && ((#0#6#isSet ?{dynamic} #0#6{dynamic} : let final dynamic #t19 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) is core::int && (let final dynamic #t20 = a = (#0#6#isSet ?{dynamic} #0#6{dynamic} : let final dynamic #t21 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) as{Unchecked} core::int in true)) && ((#0#7#isSet ?{dynamic} #0#7{dynamic} : let final dynamic #t22 = #0#7#isSet = true in #0#7 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic}) is core::int && (let final dynamic #t23 = b = (#0#7#isSet ?{dynamic} #0#7{dynamic} : let final dynamic #t24 = #0#7#isSet = true in #0#7 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic}) as{Unchecked} core::int in true)) && (self::captured = (dynamic x) → core::int {
+        return a.{core::num::+}(b){(core::num) → core::int};
+      }) is dynamic) {
+        {
+          return self::captured!(a = b){(dynamic) → dynamic};
+        }
+      }
+    }
+    {
+      hoisted core::String a;
+      hoisted core::String b;
+      if(#0#0 is core::List<dynamic> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final dynamic #t25 = #0#4#isSet = true in #0#4 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2) && ((#0#6#isSet ?{dynamic} #0#6{dynamic} : let final dynamic #t26 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) is core::String && (let final dynamic #t27 = a = (#0#6#isSet ?{dynamic} #0#6{dynamic} : let final dynamic #t28 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) as{Unchecked} core::String in true)) && ((#0#7#isSet ?{dynamic} #0#7{dynamic} : let final dynamic #t29 = #0#7#isSet = true in #0#7 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic}) is core::String && (let final dynamic #t30 = b = (#0#7#isSet ?{dynamic} #0#7{dynamic} : let final dynamic #t31 = #0#7#isSet = true in #0#7 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic}) as{Unchecked} core::String in true)) && (self::captured = (dynamic x) → core::String {
+        return a.{core::String::+}(b){(core::String) → core::String};
+      }) is dynamic) {
+        {
+          return self::captured!(a = b){(dynamic) → dynamic};
+        }
+      }
+    }
+    {
+      {
+        {
+          return null;
+        }
+      }
+    }
+  }
+}
+static method main() → dynamic {
+  self::expectEquals(#C1, self::test1(new self::Circle::•(1.0)));
+  self::expectEquals(null, self::test1(null));
+  self::expectEquals(4, self::test2(<core::int>[1, 2]));
+  self::expectEquals("twotwo", self::test2(<core::String>["one", "two"]));
+  self::expectEquals(null, self::test2(null));
+  self::expectEquals(4, self::test3(<core::int>[1, 2]));
+  self::expectEquals("twotwo", self::test3(<core::String>["one", "two"]));
+  self::expectEquals(null, self::test3(null));
+  core::print("success");
+}
+static method expectEquals(dynamic x, dynamic y) → dynamic {
+  if(!(x =={core::Object::==}{(core::Object) → core::bool} y)) {
+    throw "Expected ${x} to be equal to ${y}.";
+  }
+}
+
+constants  {
+  #C1 = 3.141592653589793
+  #C2 = 2
+}

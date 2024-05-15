@@ -1,0 +1,28 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef TA<Y extends core::Object? = dynamic> = self::A<Y%>;
+class A<X extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::A<self::A::X%>
+    : super core::Object::•()
+    ;
+  static factory redir<X extends core::Object? = dynamic>() → self::A<self::A::redir::X%> /* redirection-target: self::A::•<self::A::redir::X%>*/
+    return new self::A::•<self::A::redir::X%>();
+}
+class E extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E> values = const <self::E>[self::E::element];
+  final field self::A<core::String> a;
+  enum-element static const field self::E element = const self::E::•(0, "element", const self::A::•<core::String>());
+  const constructor •(core::int #index, core::String #name, self::A<core::String> a) → self::E
+    : self::E::a = a, super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "E.${this.{core::_Enum::_name}{core::String}}";
+}
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue55152.dart:12:6 -> ListConstant(const <E>[const E{E.a: const A<String>{}, _Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue55152.dart:14:3 -> InstanceConstant(const E{E.a: const A<String>{}, _Enum.index: 0, _Enum._name: "element"})
+Extra constant evaluation: evaluated: 9, effectively constant: 2

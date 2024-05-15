@@ -1,0 +1,36 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class ExpansionTile extends core::Object /*hasConstConstructor*/  {
+  final field self::CrossAxisAlignment? expandedCrossAxisAlignment;
+  const constructor •({self::CrossAxisAlignment? expandedCrossAxisAlignment = null}) → self::ExpansionTile
+    : self::ExpansionTile::expandedCrossAxisAlignment = expandedCrossAxisAlignment, assert(!(expandedCrossAxisAlignment =={core::Object::==}{(core::Object) → core::bool} self::CrossAxisAlignment::baseline)), super core::Object::•()
+    ;
+}
+class CrossAxisAlignment extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::CrossAxisAlignment> values = const <self::CrossAxisAlignment>[self::CrossAxisAlignment::start, self::CrossAxisAlignment::end, self::CrossAxisAlignment::center, self::CrossAxisAlignment::stretch, self::CrossAxisAlignment::baseline];
+  enum-element static const field self::CrossAxisAlignment start = const self::CrossAxisAlignment::•(0, "start");
+  enum-element static const field self::CrossAxisAlignment end = const self::CrossAxisAlignment::•(1, "end");
+  enum-element static const field self::CrossAxisAlignment center = const self::CrossAxisAlignment::•(2, "center");
+  enum-element static const field self::CrossAxisAlignment stretch = const self::CrossAxisAlignment::•(3, "stretch");
+  enum-element static const field self::CrossAxisAlignment baseline = const self::CrossAxisAlignment::•(4, "baseline");
+  const synthetic constructor •(core::int #index, core::String #name) → self::CrossAxisAlignment
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "CrossAxisAlignment.${this.{core::_Enum::_name}{core::String}}";
+}
+static method main() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///issue51800.dart:8:64 -> InstanceConstant(const CrossAxisAlignment{_Enum.index: 4, _Enum._name: "baseline"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue51800.dart:13:6 -> ListConstant(const <CrossAxisAlignment>[const CrossAxisAlignment{_Enum.index: 0, _Enum._name: "start"}, const CrossAxisAlignment{_Enum.index: 1, _Enum._name: "end"}, const CrossAxisAlignment{_Enum.index: 2, _Enum._name: "center"}, const CrossAxisAlignment{_Enum.index: 3, _Enum._name: "stretch"}, const CrossAxisAlignment{_Enum.index: 4, _Enum._name: "baseline"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue51800.dart:14:3 -> InstanceConstant(const CrossAxisAlignment{_Enum.index: 0, _Enum._name: "start"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue51800.dart:15:3 -> InstanceConstant(const CrossAxisAlignment{_Enum.index: 1, _Enum._name: "end"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue51800.dart:16:3 -> InstanceConstant(const CrossAxisAlignment{_Enum.index: 2, _Enum._name: "center"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue51800.dart:17:3 -> InstanceConstant(const CrossAxisAlignment{_Enum.index: 3, _Enum._name: "stretch"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue51800.dart:18:3 -> InstanceConstant(const CrossAxisAlignment{_Enum.index: 4, _Enum._name: "baseline"})
+Extra constant evaluation: evaluated: 16, effectively constant: 7

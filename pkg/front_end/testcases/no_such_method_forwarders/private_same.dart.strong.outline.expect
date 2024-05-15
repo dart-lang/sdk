@@ -1,0 +1,27 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class Foo extends core::Object {
+  synthetic constructor •() → self::Foo
+    ;
+  abstract method _foo() → void;
+}
+class Bar extends self::Foo {
+  synthetic constructor •() → self::Bar
+    ;
+  method noSuchMethod(core::Invocation invocation) → dynamic
+    ;
+  no-such-method-forwarder method _foo() → void
+    return this.{self::Bar::noSuchMethod}(new core::_InvocationMirror::_withType(#_foo, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic};
+}
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///private_same.dart:13:7 -> SymbolConstant(#_foo)
+Evaluated: ListLiteral @ org-dartlang-testcase:///private_same.dart:13:7 -> ListConstant(const <Type>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///private_same.dart:13:7 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///private_same.dart:13:7 -> MapConstant(const <Symbol, dynamic>{})
+Extra constant evaluation: evaluated: 8, effectively constant: 4

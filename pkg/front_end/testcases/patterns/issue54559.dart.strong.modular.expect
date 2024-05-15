@@ -1,0 +1,66 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void {
+  core::String? fooValue = "hello world";
+  {
+    final synthesized core::String #0#0 = fooValue{core::String};
+    {
+      final hoisted core::String fooValue;
+      if(#0#0 is core::String) {
+        fooValue = #0#0;
+        {
+          core::print(fooValue);
+        }
+      }
+    }
+  }
+  {
+    final synthesized core::String #1#0 = fooValue{core::String};
+    {
+      final hoisted core::String barValue;
+      hoisted core::String fooValue;
+      if(#1#0 is core::String && (let final dynamic #t1 = barValue = #1#0 in true) && #1#0 is core::String) {
+        fooValue = #1#0;
+        {
+          core::print(barValue);
+          core::print(fooValue);
+        }
+      }
+    }
+  }
+  core::print( block {
+    core::String #t2;
+    final synthesized core::String #2#0 = fooValue{core::String};
+    #L1:
+    {
+      {
+        hoisted core::String fooValue;
+        if(#2#0 is core::String) {
+          fooValue = #2#0;
+          #t2 = fooValue;
+          break #L1;
+        }
+      }
+      {
+        if(true) {
+          #t2 = "";
+          break #L1;
+        }
+      }
+    }
+  } =>#t2);
+  #L2:
+  {
+    final synthesized core::String #3#0 = fooValue{core::String};
+    {
+      hoisted core::String fooValue;
+      if(#3#0 is core::String && (let final dynamic #t3 = fooValue = #3#0 in true)) {
+        {
+          core::print(fooValue);
+        }
+      }
+    }
+  }
+}

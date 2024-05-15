@@ -1,0 +1,32 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  static field () → Never d = () → Never {
+    throw "Baz";
+  };
+  field () → Never e = () → Never {
+    throw "Baz";
+  };
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+}
+static field () → Never c = () → Never {
+  throw "Baz";
+};
+static method test() → void {
+  () → Never a = () → Never {
+    throw "Hello";
+  };
+  function b() → Never {
+    throw "World";
+  }
+  core::int x;
+  x = a(){() → Never};
+  x = b(){() → Never};
+  x = self::c(){() → Never};
+  x = self::C::d(){() → Never};
+  x = new self::C::•().{self::C::e}{() → Never}(){() → Never};
+}

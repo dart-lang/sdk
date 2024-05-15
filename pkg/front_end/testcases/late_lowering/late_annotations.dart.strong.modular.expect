@@ -1,0 +1,178 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+class Annotation extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::Annotation
+    : super core::Object::•()
+    ;
+}
+class A extends core::Object {
+  field core::int? _#A#instanceField = null;
+  field core::int? _#A#finalInstanceField = null;
+  field core::int? _#A#finalInstanceFieldWithInitializer = null;
+  field core::num? _#A#covariantInstanceField = null;
+  static field core::int? _#staticField = null;
+  static field core::int? _#finalStaticField = null;
+  static field core::int? _#finalStaticFieldWithInitializer = null;
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  @#C1
+  get instanceField() → core::int
+    return let final core::int? #t1 = this.{self::A::_#A#instanceField}{core::int?} in #t1 == null ?{core::int} throw{for-error-handling} new _in::LateError::fieldNI("instanceField") : #t1{core::int};
+  @#C1
+  set instanceField(core::int instanceField#param) → void
+    this.{self::A::_#A#instanceField} = instanceField#param;
+  @#C1
+  get finalInstanceField() → core::int
+    return let final core::int? #t2 = this.{self::A::_#A#finalInstanceField}{core::int?} in #t2 == null ?{core::int} throw{for-error-handling} new _in::LateError::fieldNI("finalInstanceField") : #t2{core::int};
+  @#C1
+  set finalInstanceField(core::int finalInstanceField#param) → void
+    if(this.{self::A::_#A#finalInstanceField}{core::int?} == null)
+      this.{self::A::_#A#finalInstanceField} = finalInstanceField#param;
+    else
+      throw{for-error-handling} new _in::LateError::fieldAI("finalInstanceField");
+  @#C1
+  get finalInstanceFieldWithInitializer() → core::int
+    return let final core::int? #t3 = this.{self::A::_#A#finalInstanceFieldWithInitializer}{core::int?} in #t3 == null ?{core::int} let final core::int #t4 = 0 in this.{self::A::_#A#finalInstanceFieldWithInitializer}{core::int?} == null ?{core::int} this.{self::A::_#A#finalInstanceFieldWithInitializer} = #t4 : throw{for-error-handling} new _in::LateError::fieldADI("finalInstanceFieldWithInitializer") : #t3{core::int};
+  @#C1
+  get covariantInstanceField() → core::num
+    return let final core::num? #t5 = this.{self::A::_#A#covariantInstanceField}{core::num?} in #t5 == null ?{core::num} throw{for-error-handling} new _in::LateError::fieldNI("covariantInstanceField") : #t5{core::num};
+  @#C1
+  set covariantInstanceField(covariant-by-declaration core::num covariantInstanceField#param) → void
+    this.{self::A::_#A#covariantInstanceField} = covariantInstanceField#param;
+  @#C1
+  static get staticField() → core::int
+    return let final core::int? #t6 = self::A::_#staticField in #t6 == null ?{core::int} throw{for-error-handling} new _in::LateError::fieldNI("staticField") : #t6{core::int};
+  @#C1
+  static set staticField(core::int staticField#param) → void
+    self::A::_#staticField = staticField#param;
+  @#C1
+  static get finalStaticField() → core::int
+    return let final core::int? #t7 = self::A::_#finalStaticField in #t7 == null ?{core::int} throw{for-error-handling} new _in::LateError::fieldNI("finalStaticField") : #t7{core::int};
+  @#C1
+  static set finalStaticField(core::int finalStaticField#param) → void
+    if(self::A::_#finalStaticField == null)
+      self::A::_#finalStaticField = finalStaticField#param;
+    else
+      throw{for-error-handling} new _in::LateError::fieldAI("finalStaticField");
+  @#C1
+  static get finalStaticFieldWithInitializer() → core::int
+    return let final core::int? #t8 = self::A::_#finalStaticFieldWithInitializer in #t8 == null ?{core::int} let final core::int #t9 = 0 in self::A::_#finalStaticFieldWithInitializer == null ?{core::int} self::A::_#finalStaticFieldWithInitializer = #t9 : throw{for-error-handling} new _in::LateError::fieldADI("finalStaticFieldWithInitializer") : #t8{core::int};
+}
+abstract class B extends core::Object /*isMixinDeclaration*/  {
+  field core::int? _#B#instanceField = null;
+  field core::int? _#B#finalInstanceField = null;
+  field core::int? _#B#finalInstanceFieldWithInitializer = null;
+  field core::num? _#B#covariantInstanceField = null;
+  static field core::int? _#staticField = null;
+  static field core::int? _#finalStaticField = null;
+  static field core::int? _#finalStaticFieldWithInitializer = null;
+  @#C1
+  get instanceField() → core::int
+    return let final core::int? #t10 = this.{self::B::_#B#instanceField}{core::int?} in #t10 == null ?{core::int} throw{for-error-handling} new _in::LateError::fieldNI("instanceField") : #t10{core::int};
+  @#C1
+  set instanceField(core::int instanceField#param) → void
+    this.{self::B::_#B#instanceField} = instanceField#param;
+  @#C1
+  get finalInstanceField() → core::int
+    return let final core::int? #t11 = this.{self::B::_#B#finalInstanceField}{core::int?} in #t11 == null ?{core::int} throw{for-error-handling} new _in::LateError::fieldNI("finalInstanceField") : #t11{core::int};
+  @#C1
+  set finalInstanceField(core::int finalInstanceField#param) → void
+    if(this.{self::B::_#B#finalInstanceField}{core::int?} == null)
+      this.{self::B::_#B#finalInstanceField} = finalInstanceField#param;
+    else
+      throw{for-error-handling} new _in::LateError::fieldAI("finalInstanceField");
+  @#C1
+  get finalInstanceFieldWithInitializer() → core::int
+    return let final core::int? #t12 = this.{self::B::_#B#finalInstanceFieldWithInitializer}{core::int?} in #t12 == null ?{core::int} let final core::int #t13 = 0 in this.{self::B::_#B#finalInstanceFieldWithInitializer}{core::int?} == null ?{core::int} this.{self::B::_#B#finalInstanceFieldWithInitializer} = #t13 : throw{for-error-handling} new _in::LateError::fieldADI("finalInstanceFieldWithInitializer") : #t12{core::int};
+  @#C1
+  get covariantInstanceField() → core::num
+    return let final core::num? #t14 = this.{self::B::_#B#covariantInstanceField}{core::num?} in #t14 == null ?{core::num} throw{for-error-handling} new _in::LateError::fieldNI("covariantInstanceField") : #t14{core::num};
+  @#C1
+  set covariantInstanceField(covariant-by-declaration core::num covariantInstanceField#param) → void
+    this.{self::B::_#B#covariantInstanceField} = covariantInstanceField#param;
+  @#C1
+  static get staticField() → core::int
+    return let final core::int? #t15 = self::B::_#staticField in #t15 == null ?{core::int} throw{for-error-handling} new _in::LateError::fieldNI("staticField") : #t15{core::int};
+  @#C1
+  static set staticField(core::int staticField#param) → void
+    self::B::_#staticField = staticField#param;
+  @#C1
+  static get finalStaticField() → core::int
+    return let final core::int? #t16 = self::B::_#finalStaticField in #t16 == null ?{core::int} throw{for-error-handling} new _in::LateError::fieldNI("finalStaticField") : #t16{core::int};
+  @#C1
+  static set finalStaticField(core::int finalStaticField#param) → void
+    if(self::B::_#finalStaticField == null)
+      self::B::_#finalStaticField = finalStaticField#param;
+    else
+      throw{for-error-handling} new _in::LateError::fieldAI("finalStaticField");
+  @#C1
+  static get finalStaticFieldWithInitializer() → core::int
+    return let final core::int? #t17 = self::B::_#finalStaticFieldWithInitializer in #t17 == null ?{core::int} let final core::int #t18 = 0 in self::B::_#finalStaticFieldWithInitializer == null ?{core::int} self::B::_#finalStaticFieldWithInitializer = #t18 : throw{for-error-handling} new _in::LateError::fieldADI("finalStaticFieldWithInitializer") : #t17{core::int};
+}
+extension Extension on self::A {
+  static field extensionStaticField = self::_#Extension|extensionStaticField;
+  static get extensionStaticField = get self::Extension|extensionStaticField;
+  static set extensionStaticField = set self::Extension|extensionStaticField;
+  static field finalExtensionStaticField = self::_#Extension|finalExtensionStaticField;
+  static get finalExtensionStaticField = get self::Extension|finalExtensionStaticField;
+  static set finalExtensionStaticField = set self::Extension|finalExtensionStaticField;
+  static field finalExtensionStaticFieldWithInitializer = self::_#Extension|finalExtensionStaticFieldWithInitializer;
+  static get finalExtensionStaticFieldWithInitializer = get self::Extension|finalExtensionStaticFieldWithInitializer;
+}
+static field core::int? _#topLevelField = null;
+static field core::int? _#finalTopLevelField = null;
+static field core::int? _#finalTopLevelFieldWithInitializer = null;
+static field core::int? _#Extension|extensionStaticField = null;
+static field core::int? _#Extension|finalExtensionStaticField = null;
+static field core::int? _#Extension|finalExtensionStaticFieldWithInitializer = null;
+@#C1
+static get topLevelField() → core::int
+  return let final core::int? #t19 = self::_#topLevelField in #t19 == null ?{core::int} throw{for-error-handling} new _in::LateError::fieldNI("topLevelField") : #t19{core::int};
+@#C1
+static set topLevelField(core::int topLevelField#param) → void
+  self::_#topLevelField = topLevelField#param;
+@#C1
+static get finalTopLevelField() → core::int
+  return let final core::int? #t20 = self::_#finalTopLevelField in #t20 == null ?{core::int} throw{for-error-handling} new _in::LateError::fieldNI("finalTopLevelField") : #t20{core::int};
+@#C1
+static set finalTopLevelField(core::int finalTopLevelField#param) → void
+  if(self::_#finalTopLevelField == null)
+    self::_#finalTopLevelField = finalTopLevelField#param;
+  else
+    throw{for-error-handling} new _in::LateError::fieldAI("finalTopLevelField");
+@#C1
+static get finalTopLevelFieldWithInitializer() → core::int
+  return let final core::int? #t21 = self::_#finalTopLevelFieldWithInitializer in #t21 == null ?{core::int} let final core::int #t22 = 0 in self::_#finalTopLevelFieldWithInitializer == null ?{core::int} self::_#finalTopLevelFieldWithInitializer = #t22 : throw{for-error-handling} new _in::LateError::fieldADI("finalTopLevelFieldWithInitializer") : #t21{core::int};
+@#C1
+static extension-member get Extension|extensionStaticField() → core::int
+  return let final core::int? #t23 = self::_#Extension|extensionStaticField in #t23 == null ?{core::int} throw{for-error-handling} new _in::LateError::fieldNI("extensionStaticField") : #t23{core::int};
+@#C1
+static extension-member set Extension|extensionStaticField(core::int extensionStaticField#param) → void
+  self::_#Extension|extensionStaticField = extensionStaticField#param;
+@#C1
+static extension-member get Extension|finalExtensionStaticField() → core::int
+  return let final core::int? #t24 = self::_#Extension|finalExtensionStaticField in #t24 == null ?{core::int} throw{for-error-handling} new _in::LateError::fieldNI("finalExtensionStaticField") : #t24{core::int};
+@#C1
+static extension-member set Extension|finalExtensionStaticField(core::int finalExtensionStaticField#param) → void
+  if(self::_#Extension|finalExtensionStaticField == null)
+    self::_#Extension|finalExtensionStaticField = finalExtensionStaticField#param;
+  else
+    throw{for-error-handling} new _in::LateError::fieldAI("finalExtensionStaticField");
+@#C1
+static extension-member get Extension|finalExtensionStaticFieldWithInitializer() → core::int
+  return let final core::int? #t25 = self::_#Extension|finalExtensionStaticFieldWithInitializer in #t25 == null ?{core::int} let final core::int #t26 = 0 in self::_#Extension|finalExtensionStaticFieldWithInitializer == null ?{core::int} self::_#Extension|finalExtensionStaticFieldWithInitializer = #t26 : throw{for-error-handling} new _in::LateError::fieldADI("finalExtensionStaticFieldWithInitializer") : #t25{core::int};
+static method main() → dynamic {}
+
+constants  {
+  #C1 = self::Annotation {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///late_annotations.dart:
+- Annotation. (from org-dartlang-testcase:///late_annotations.dart:6:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

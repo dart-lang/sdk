@@ -1,0 +1,167 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/records/type_record_unsupported.dart:59:16: Error: 'Record' is restricted and can't be extended or implemented.
+// abstract class A1 extends Record {} // Error.
+//                ^
+//
+// pkg/front_end/testcases/records/type_record_unsupported.dart:61:16: Error: 'Record' is restricted and can't be extended or implemented.
+// abstract class A2 implements Record {} // Error.
+//                ^
+//
+// pkg/front_end/testcases/records/type_record_unsupported.dart:63:16: Error: 'Record' is restricted and can't be extended or implemented.
+// abstract class A3 with Record {} // Error.
+//                ^
+//
+// pkg/front_end/testcases/records/type_record_unsupported.dart:71:16: Error: 'Record' is restricted and can't be extended or implemented.
+// abstract class A7 extends FromSupportedR {} // Error.
+//                ^
+// pkg/front_end/testcases/records/type_record_unsupported_lib.dart:7:9: Context: The issue arises via this type alias.
+// typedef FromSupportedR = Record;
+//         ^
+//
+// pkg/front_end/testcases/records/type_record_unsupported.dart:75:16: Error: 'Record' is restricted and can't be extended or implemented.
+// abstract class A9 extends FromSupportedRR {} // Error.
+//                ^
+// pkg/front_end/testcases/records/type_record_unsupported_lib.dart:11:9: Context: The issue arises via this type alias.
+// typedef FromSupportedRR = FromSupportedR;
+//         ^
+//
+// pkg/front_end/testcases/records/type_record_unsupported.dart:23:23: Error: The class 'Record' is abstract and can't be instantiated.
+// dynamic foo2() => new Record(); // Error.
+//                       ^^^^^^
+//
+// pkg/front_end/testcases/records/type_record_unsupported.dart:25:25: Error: The class 'Record' is abstract and can't be instantiated.
+// dynamic foo3() => const Record(); // Error.
+//                         ^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+import "type_record_unsupported_lib.dart" as typ;
+
+import "org-dartlang-testcase:///type_record_unsupported_lib.dart";
+
+typedef R = core::Record;
+typedef AR = typ::A<core::Record>;
+typedef AR2 = typ::A<core::Record>;
+typedef AR3 = typ::A<core::Record>;
+typedef AR4 = typ::A<typ::A<core::Record>>;
+typedef RR = core::Record;
+abstract class A1 extends core::Record {
+  synthetic constructor •() → self::A1
+    : super core::Record::•()
+    ;
+}
+abstract class A2 extends core::Object implements core::Record {
+  synthetic constructor •() → self::A2
+    : super core::Object::•()
+    ;
+}
+abstract final class _A3&Object&Record = core::Object with core::Record /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_A3&Object&Record
+    : super core::Object::•()
+    ;
+  abstract mixin-stub get runtimeType() → core::Type; -> core::Record::runtimeType
+  abstract mixin-stub get hashCode() → core::int; -> core::Record::hashCode
+  abstract mixin-stub operator ==(core::Object other) → core::bool; -> core::Record::==
+  abstract mixin-stub method toString() → core::String; -> core::Record::toString
+}
+abstract class A3 extends self::_A3&Object&Record {
+  synthetic constructor •() → self::A3
+    : super self::_A3&Object&Record::•()
+    ;
+}
+abstract class A4 extends typ::A<core::Record> {
+  synthetic constructor •() → self::A4
+    : super typ::A::•()
+    ;
+}
+abstract class A5 extends core::Object implements typ::A<core::Record> {
+  synthetic constructor •() → self::A5
+    : super core::Object::•()
+    ;
+}
+abstract class _A6&Object&A = core::Object with typ::A<core::Record> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_A6&Object&A
+    : super core::Object::•()
+    ;
+}
+abstract class A6 extends self::_A6&Object&A {
+  synthetic constructor •() → self::A6
+    : super self::_A6&Object&A::•()
+    ;
+}
+abstract class A7 extends core::Record {
+  synthetic constructor •() → self::A7
+    : super core::Record::•()
+    ;
+}
+abstract class A8 extends typ::A<core::Record> {
+  synthetic constructor •() → self::A8
+    : super typ::A::•()
+    ;
+}
+abstract class A9 extends core::Record {
+  synthetic constructor •() → self::A9
+    : super core::Record::•()
+    ;
+}
+static method foo1() → core::Record
+  return throw "";
+static method foo2() → dynamic
+  return invalid-expression "The class 'Record' is abstract and can't be instantiated.";
+static method foo3() → dynamic
+  return invalid-expression "The class 'Record' is abstract and can't be instantiated.";
+static method foo4() → dynamic
+  return <core::Record>[];
+static method foo5() → dynamic
+  return #C1;
+static method foo6() → dynamic
+  return #C2;
+static method foo7(core::Record r) → dynamic
+  return null;
+static method foo8({required core::Record r}) → dynamic
+  return null;
+static method foo9() → core::List<core::Record>
+  return throw "";
+static method foo10(core::List<core::Record> l) → dynamic
+  return null;
+static method foo11() → core::Record
+  return throw "";
+static method foo12() → typ::A<core::Record>
+  return throw "";
+static method foo13() → core::Record
+  return throw "";
+static method foo14(core::Record r) → dynamic
+  return null;
+static method foo15(typ::A<core::Record> l) → dynamic
+  return null;
+static method foo16(core::Record l) → dynamic
+  return null;
+static method foo17() → dynamic
+  return #C1;
+static method foo18() → dynamic
+  return #C3;
+static method foo19() → dynamic
+  return #C1;
+static method main() → dynamic {}
+
+library;
+import self as typ;
+import "dart:core" as core;
+
+typedef FromSupportedR = core::Record;
+typedef FromSupportedAR = typ::A<core::Record>;
+typedef FromSupportedRR = core::Record;
+abstract mixin class A<X extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → typ::A<typ::A::X%>
+    : super core::Object::•()
+    ;
+}
+
+constants  {
+  #C1 = TypeLiteralConstant(core::Record)
+  #C2 = TypeLiteralConstant(core::List<core::Record>)
+  #C3 = TypeLiteralConstant(typ::A<core::Record>)
+}

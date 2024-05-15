@@ -1,0 +1,261 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/constants/const_collections.dart:23:51: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
+// const List<String> barWithIntSpread = [...foo, ...fortyTwo];
+//                                                   ^
+//
+// pkg/front_end/testcases/general/constants/const_collections.dart:25:51: Error: Unexpected type 'Map<String, String>' of a spread.  Expected 'dynamic' or an Iterable.
+//  - 'Map' is from 'dart:core'.
+// const List<String> barWithMapSpread = [...foo, ...quux];
+//                                                   ^
+//
+// pkg/front_end/testcases/general/constants/const_collections.dart:41:50: Error: Unexpected type 'int' of a map spread entry.  Expected 'dynamic' or a Map.
+// const Set<String> quxWithIntSpread = {...baz, ...fortyTwo};
+//                                                  ^
+//
+// pkg/front_end/testcases/general/constants/const_collections.dart:42:38: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+// const Set<String> quxWithMapSpread = {...baz, ...quux};
+//                                      ^
+//
+// pkg/front_end/testcases/general/constants/const_collections.dart:48:59: Error: A value of type 'CustomIterable' can't be assigned to a variable of type 'String'.
+//  - 'CustomIterable' is from 'pkg/front_end/testcases/general/constants/const_collections.dart'.
+// const Set<String> quxWithCustomIterableSpread3 = {...baz, customIterable};
+//                                                           ^
+//
+// pkg/front_end/testcases/general/constants/const_collections.dart:58:60: Error: Unexpected type 'int' of a map spread entry.  Expected 'dynamic' or a Map.
+// const Map<String, String> quuzWithIntSpread = {...quux, ...fortyTwo};
+//                                                            ^
+//
+// pkg/front_end/testcases/general/constants/const_collections.dart:59:47: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+// const Map<String, String> quuzWithSetSpread = {...quux, ...baz};
+//                                               ^
+//
+// pkg/front_end/testcases/general/constants/const_collections.dart:60:46: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+// const Map<String, String> mapWithSetSpread = {...baz};
+//                                              ^
+//
+import self as self;
+import "dart:core" as core;
+
+import "dart:collection";
+
+class ConstIterable extends core::Iterable<core::int> /*hasConstConstructor*/  {
+  const constructor •() → self::ConstIterable
+    : super core::Iterable::•()
+    ;
+  get iterator() → core::Iterator<core::int>
+    ;
+}
+class WithEquals extends core::Object /*hasConstConstructor*/  {
+  final field core::int i;
+  const constructor •(core::int i) → self::WithEquals
+    : self::WithEquals::i = i, super core::Object::•()
+    ;
+  operator ==(core::Object o) → core::bool
+    ;
+}
+class CustomIterable extends core::Iterable<core::String> /*hasConstConstructor*/  {
+  const constructor •() → self::CustomIterable
+    : super core::Iterable::•()
+    ;
+  get iterator() → core::Iterator<core::String>
+    ;
+}
+class CustomMap extends core::Object implements core::Map<core::String, core::String> /*hasConstConstructor*/  {
+  const constructor •() → self::CustomMap
+    : super core::Object::•()
+    ;
+  @core::override
+  get entries() → core::Iterable<core::MapEntry<core::String, core::String>>
+    ;
+  @core::override
+  operator [](core::Object? key) → core::String
+    ;
+  @core::override
+  operator []=(covariant-by-class core::String key, covariant-by-class core::String value) → void
+    ;
+  @core::override
+  method cast<RK extends core::Object? = dynamic, RV extends core::Object? = dynamic>() → core::Map<self::CustomMap::cast::RK%, self::CustomMap::cast::RV%>
+    ;
+  @core::override
+  method clear() → void
+    ;
+  @core::override
+  method containsKey(core::Object? key) → core::bool
+    ;
+  @core::override
+  method containsValue(core::Object? value) → core::bool
+    ;
+  @core::override
+  get isEmpty() → core::bool
+    ;
+  @core::override
+  get isNotEmpty() → core::bool
+    ;
+  @core::override
+  get keys() → core::Iterable<core::String>
+    ;
+  @core::override
+  get length() → core::int
+    ;
+  @core::override
+  method remove(core::Object? key) → core::String
+    ;
+  @core::override
+  get values() → core::Iterable<core::String>
+    ;
+  @core::override
+  method addAll(covariant-by-class core::Map<core::String, core::String> other) → void
+    ;
+  @core::override
+  method addEntries(covariant-by-class core::Iterable<core::MapEntry<core::String, core::String>> newEntries) → void
+    ;
+  @core::override
+  method forEach((core::String, core::String) → void f) → void
+    ;
+  @core::override
+  method putIfAbsent(covariant-by-class core::String key, covariant-by-class () → core::String ifAbsent) → core::String
+    ;
+  @core::override
+  method updateAll(covariant-by-class (core::String, core::String) → core::String update) → void
+    ;
+  @core::override
+  method removeWhere((core::String, core::String) → core::bool predicate) → void
+    ;
+  method update(covariant-by-class core::String key, covariant-by-class (core::String) → core::String update, {covariant-by-class () →? core::String ifAbsent = null}) → core::String
+    ;
+  method map<K2 extends core::Object? = dynamic, V2 extends core::Object? = dynamic>((core::String, core::String) → core::MapEntry<self::CustomMap::map::K2%, self::CustomMap::map::V2%> f) → core::Map<self::CustomMap::map::K2%, self::CustomMap::map::V2%>
+    ;
+}
+static const field core::int fortyTwo = 42;
+static const field dynamic fortyTwoAsDynamic = (self::fortyTwo as dynamic){dynamic}.*(2){dynamic}.~/(2);
+static const field core::List<core::String>? nullList = null;
+static const field core::List<core::String> foo = const <core::String>["hello", "world"];
+static const field core::List<core::String> bar = self::foo + const <core::String>["!"];
+static field core::List<core::String> barAsVar;
+static const field core::List<core::String> barWithNullSpread = self::foo + let final core::Iterable<core::String>? #t1 = self::nullList in #t1 == null ?{core::Iterable<core::String>} const <core::String>[] : #t1{core::Iterable<core::String>};
+static const field core::List<core::String> barWithIntSpread = self::foo + const <core::String>[invalid-expression "pkg/front_end/testcases/general/constants/const_collections.dart:23:51: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
+const List<String> barWithIntSpread = [...foo, ...fortyTwo];
+                                                  ^"];
+static const field core::List<core::String> barWithIntDynamicSpread = self::foo + self::fortyTwoAsDynamic as{TypeError,ForDynamic} core::Iterable<dynamic>;
+static const field core::List<core::String> barWithMapSpread = self::foo + const <core::String>[invalid-expression "pkg/front_end/testcases/general/constants/const_collections.dart:25:51: Error: Unexpected type 'Map<String, String>' of a spread.  Expected 'dynamic' or an Iterable.
+ - 'Map' is from 'dart:core'.
+const List<String> barWithMapSpread = [...foo, ...quux];
+                                                  ^"];
+static const field core::List<core::String> barWithCustomIterableSpread1 = self::bar + const self::CustomIterable::•();
+static const field core::List<core::String> barWithCustomIterableSpread2 = self::bar + const self::CustomIterable::•();
+static const field self::CustomIterable customIterable = const self::CustomIterable::•();
+static const field core::List<core::String> barWithCustomIterableSpread3 = self::bar + self::customIterable;
+static const field core::List<core::String> listConcat = const <core::String>["Hello"].{core::List::+}(const <core::String>["World"]){(core::List<core::String>) → core::List<core::String>};
+static const field core::Set<core::String>? nullSet = null;
+static const field core::Set<core::String> baz = const <core::String>{"hello", "world"};
+static const field core::Set<core::String> qux = self::baz + const <core::String>{"!"};
+static const field core::Set<core::String> quxWithNullSpread = self::baz + let final core::Iterable<core::String>? #t2 = self::nullSet in #t2 == null ?{core::Iterable<core::String>} const <core::String>{} : #t2{core::Iterable<core::String>};
+static const field core::Set<core::String> quxWithIntSpread = self::baz + const <core::String>{invalid-expression "pkg/front_end/testcases/general/constants/const_collections.dart:41:50: Error: Unexpected type 'int' of a map spread entry.  Expected 'dynamic' or a Map.
+const Set<String> quxWithIntSpread = {...baz, ...fortyTwo};
+                                                 ^"};
+static const field core::Set<core::String> quxWithMapSpread = invalid-expression "pkg/front_end/testcases/general/constants/const_collections.dart:42:38: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+const Set<String> quxWithMapSpread = {...baz, ...quux};
+                                     ^";
+static const field core::Set<core::String> quxWithCustomIterableSpread1 = self::baz + const self::CustomIterable::•();
+static const field core::Set<core::String> quxWithCustomIterableSpread2 = self::baz + const self::CustomIterable::•();
+static const field core::Set<core::String> quxWithCustomIterableSpread3 = self::baz + const <core::String>{invalid-expression "pkg/front_end/testcases/general/constants/const_collections.dart:48:59: Error: A value of type 'CustomIterable' can't be assigned to a variable of type 'String'.
+ - 'CustomIterable' is from 'pkg/front_end/testcases/general/constants/const_collections.dart'.
+const Set<String> quxWithCustomIterableSpread3 = {...baz, customIterable};
+                                                          ^" in self::customIterable as{TypeError} core::String};
+static const field core::Set<dynamic> setWithNonPrimitiveEquals = const <dynamic>{const self::WithEquals::•(42)};
+static const field core::Set<dynamic> setWithDuplicates = const <dynamic>{42, 42};
+static const field core::Map<core::String, core::String>? nullMap = null;
+static const field core::Map<core::String, core::String> quux = const <core::String, core::String>{"hello": "world"};
+static const field core::Map<core::String, core::String> quuz = self::quux + const <core::String, core::String>{"!": "bye!"};
+static const field core::Map<core::String, core::String> quuzWithNullSpread = self::quux + let final core::Map<core::String, core::String>? #t3 = self::nullMap in #t3 == null ?{core::Map<core::String, core::String>} const <core::String, core::String>{} : #t3{core::Map<core::String, core::String>};
+static const field core::Map<core::String, core::String> quuzWithIntSpread = self::quux + const <core::String, core::String>{invalid-expression "pkg/front_end/testcases/general/constants/const_collections.dart:58:60: Error: Unexpected type 'int' of a map spread entry.  Expected 'dynamic' or a Map.
+const Map<String, String> quuzWithIntSpread = {...quux, ...fortyTwo};
+                                                           ^": null};
+static const field core::Map<core::String, core::String> quuzWithSetSpread = invalid-expression "pkg/front_end/testcases/general/constants/const_collections.dart:59:47: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+const Map<String, String> quuzWithSetSpread = {...quux, ...baz};
+                                              ^";
+static const field core::Map<core::String, core::String> mapWithSetSpread = invalid-expression "pkg/front_end/testcases/general/constants/const_collections.dart:60:46: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+const Map<String, String> mapWithSetSpread = {...baz};
+                                             ^";
+static const field core::Map<core::String, core::String> mapWithCustomMap1 = const self::CustomMap::•();
+static const field core::Map<core::String, core::String> mapWithCustomMap2 = const self::CustomMap::•();
+static const field core::Map<core::String, core::String> customMap = const self::CustomMap::•();
+static const field core::Map<core::String, core::String> mapWithCustomMap3 = self::customMap;
+static const field core::Map<dynamic, core::int> mapWithNonPrimitiveEqualsKey = const <dynamic, core::int>{const self::WithEquals::•(42): 42};
+static const field core::Map<core::int, core::int> mapWithDuplicates = const <core::int, core::int>{42: 42, 42: 42};
+static get fooAsGetter() → core::List<core::String>
+  ;
+static get barAsGetter() → core::List<core::String>
+  ;
+static get bazAsGetter() → core::Set<core::String>
+  ;
+static get quxAsGetter() → core::Set<core::String>
+  ;
+static get quuxAsGetter() → core::Map<core::String, core::String>
+  ;
+static get quuzAsGetter() → core::Map<core::String, core::String>
+  ;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:86:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:89:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:92:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:95:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:98:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:101:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:104:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:107:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:110:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:113:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:116:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:119:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:122:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:125:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:128:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:132:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:136:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:140:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:144:4 -> InstanceConstant(const _Override{})
+Evaluated: DynamicInvocation @ org-dartlang-testcase:///const_collections.dart:14:63 -> IntConstant(42)
+Evaluated: ListLiteral @ org-dartlang-testcase:///const_collections.dart:17:26 -> ListConstant(const <String>["hello", "world"])
+Evaluated: ListConcatenation @ org-dartlang-testcase:///const_collections.dart:19:26 -> ListConstant(const <String>["hello", "world", "!"])
+Evaluated: ListConcatenation @ org-dartlang-testcase:///const_collections.dart:22:40 -> ListConstant(const <String>["hello", "world"])
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:23:43 -> ListConstant(const <String>["hello", "world"])
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:24:50 -> ListConstant(const <String>["hello", "world"])
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:24:58 -> IntConstant(42)
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:25:43 -> ListConstant(const <String>["hello", "world"])
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:27:6 -> ListConstant(const <String>["hello", "world", "!"])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_collections.dart:28:12 -> InstanceConstant(const CustomIterable{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:30:55 -> ListConstant(const <String>["hello", "world", "!"])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_collections.dart:30:63 -> InstanceConstant(const CustomIterable{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_collections.dart:31:30 -> InstanceConstant(const CustomIterable{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:32:55 -> ListConstant(const <String>["hello", "world", "!"])
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:32:63 -> InstanceConstant(const CustomIterable{})
+Evaluated: ListLiteral @ org-dartlang-testcase:///const_collections.dart:33:33 -> ListConstant(const <String>["Hello"])
+Evaluated: ListLiteral @ org-dartlang-testcase:///const_collections.dart:33:45 -> ListConstant(const <String>["World"])
+Evaluated: SetLiteral @ org-dartlang-testcase:///const_collections.dart:36:25 -> SetConstant(const <String>{"hello", "world"})
+Evaluated: SetConcatenation @ org-dartlang-testcase:///const_collections.dart:38:25 -> SetConstant(const <String>{"hello", "world", "!"})
+Evaluated: SetConcatenation @ org-dartlang-testcase:///const_collections.dart:40:39 -> SetConstant(const <String>{"hello", "world"})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:41:42 -> SetConstant(const <String>{"hello", "world"})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:44:6 -> SetConstant(const <String>{"hello", "world"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_collections.dart:45:12 -> InstanceConstant(const CustomIterable{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:47:54 -> SetConstant(const <String>{"hello", "world"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_collections.dart:47:62 -> InstanceConstant(const CustomIterable{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:48:54 -> SetConstant(const <String>{"hello", "world"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_collections.dart:49:55 -> InstanceConstant(const WithEquals{WithEquals.i: 42})
+Evaluated: MapLiteral @ org-dartlang-testcase:///const_collections.dart:53:34 -> MapConstant(const <String, String>{"hello": "world"})
+Evaluated: MapConcatenation @ org-dartlang-testcase:///const_collections.dart:55:27 -> MapConstant(const <String, String>{"hello": "world", "!": "bye!"})
+Evaluated: MapConcatenation @ org-dartlang-testcase:///const_collections.dart:57:27 -> MapConstant(const <String, String>{"hello": "world"})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:58:51 -> MapConstant(const <String, String>{"hello": "world"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_collections.dart:61:57 -> InstanceConstant(const CustomMap{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_collections.dart:62:51 -> InstanceConstant(const CustomMap{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_collections.dart:63:45 -> InstanceConstant(const CustomMap{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:64:51 -> InstanceConstant(const CustomMap{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_collections.dart:66:9 -> InstanceConstant(const WithEquals{WithEquals.i: 42})
+Extra constant evaluation: evaluated: 81, effectively constant: 55

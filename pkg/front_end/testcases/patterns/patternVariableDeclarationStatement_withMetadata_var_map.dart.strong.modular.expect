@@ -1,0 +1,20 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static const field core::int annotation = #C1;
+static method f(dynamic x) → dynamic {
+  hoisted has-declared-initializer dynamic a;
+  {
+    final synthesized dynamic #0#0 = x as{TypeError,ForDynamic} core::Map<dynamic, dynamic>;
+    synthesized dynamic #0#4;
+    synthesized core::bool #0#4#isSet = false;
+    if(!(#0#0 is core::Map<dynamic, dynamic> && (!((#0#4#isSet ?{dynamic} #0#4{dynamic} : let final dynamic #t1 = #0#4#isSet = true in #0#4 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic}) == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C2){(core::Object?) → core::bool}) && (let final dynamic #t2 = a = #0#4#isSet ?{dynamic} #0#4{dynamic} : let final dynamic #t3 = #0#4#isSet = true in #0#4 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C2){(core::Object?) → dynamic} in true)))
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
+  }
+}
+
+constants  {
+  #C1 = 0
+  #C2 = "a"
+}

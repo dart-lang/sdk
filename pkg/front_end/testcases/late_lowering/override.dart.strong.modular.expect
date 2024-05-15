@@ -1,0 +1,121 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+class Class extends core::Object {
+  field core::int? _#Class#field1 = null;
+  field core::int? _#Class#field2 = null;
+  field core::int? _#Class#field3 = null;
+  field core::int? _#Class#field4 = null;
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  get field1() → core::int
+    return let final core::int? #t1 = this.{self::Class::_#Class#field1}{core::int?} in #t1 == null ?{core::int} throw{for-error-handling} new _in::LateError::fieldNI("field1") : #t1{core::int};
+  set field1(core::int field1#param) → void
+    this.{self::Class::_#Class#field1} = field1#param;
+  get field2() → core::int
+    return let final core::int? #t2 = this.{self::Class::_#Class#field2}{core::int?} in #t2 == null ?{core::int} throw{for-error-handling} new _in::LateError::fieldNI("field2") : #t2{core::int};
+  set field2(core::int field2#param) → void
+    this.{self::Class::_#Class#field2} = field2#param;
+  get field3() → core::int
+    return let final core::int? #t3 = this.{self::Class::_#Class#field3}{core::int?} in #t3 == null ?{core::int} throw{for-error-handling} new _in::LateError::fieldNI("field3") : #t3{core::int};
+  set field3(core::int field3#param) → void
+    if(this.{self::Class::_#Class#field3}{core::int?} == null)
+      this.{self::Class::_#Class#field3} = field3#param;
+    else
+      throw{for-error-handling} new _in::LateError::fieldAI("field3");
+  get field4() → core::int
+    return let final core::int? #t4 = this.{self::Class::_#Class#field4}{core::int?} in #t4 == null ?{core::int} throw{for-error-handling} new _in::LateError::fieldNI("field4") : #t4{core::int};
+  set field4(core::int field4#param) → void
+    if(this.{self::Class::_#Class#field4}{core::int?} == null)
+      this.{self::Class::_#Class#field4} = field4#param;
+    else
+      throw{for-error-handling} new _in::LateError::fieldAI("field4");
+}
+class SubClass extends self::Class {
+  field core::int? _#SubClass#field1 = null;
+  field core::int? _#SubClass#field2 = null;
+  field core::int? _#SubClass#field3 = null;
+  field core::int? _#SubClass#field4 = null;
+  synthetic constructor •() → self::SubClass
+    : super self::Class::•()
+    ;
+  get field1() → core::int
+    return let final core::int? #t5 = this.{self::SubClass::_#SubClass#field1}{core::int?} in #t5 == null ?{core::int} throw{for-error-handling} new _in::LateError::fieldNI("field1") : #t5{core::int};
+  set field1(core::int field1#param) → void
+    this.{self::SubClass::_#SubClass#field1} = field1#param;
+  get field2() → core::int
+    return let final core::int? #t6 = this.{self::SubClass::_#SubClass#field2}{core::int?} in #t6 == null ?{core::int} this.{self::SubClass::_#SubClass#field2} = 0 : #t6{core::int};
+  set field2(core::int field2#param) → void
+    this.{self::SubClass::_#SubClass#field2} = field2#param;
+  get field3() → core::int
+    return let final core::int? #t7 = this.{self::SubClass::_#SubClass#field3}{core::int?} in #t7 == null ?{core::int} throw{for-error-handling} new _in::LateError::fieldNI("field3") : #t7{core::int};
+  set field3(core::int field3#param) → void
+    if(this.{self::SubClass::_#SubClass#field3}{core::int?} == null)
+      this.{self::SubClass::_#SubClass#field3} = field3#param;
+    else
+      throw{for-error-handling} new _in::LateError::fieldAI("field3");
+  get field4() → core::int
+    return let final core::int? #t8 = this.{self::SubClass::_#SubClass#field4}{core::int?} in #t8 == null ?{core::int} let final core::int #t9 = 0 in this.{self::SubClass::_#SubClass#field4}{core::int?} == null ?{core::int} this.{self::SubClass::_#SubClass#field4} = #t9 : throw{for-error-handling} new _in::LateError::fieldADI("field4") : #t8{core::int};
+  get directField1() → core::int
+    return super.{self::Class::field1};
+  set directField1(core::int value) → void {
+    super.{self::Class::field1} = value;
+  }
+  get directField2() → core::int
+    return super.{self::Class::field2};
+  set directField2(core::int value) → void {
+    super.{self::Class::field2} = value;
+  }
+  get directField3() → core::int
+    return super.{self::Class::field3};
+  get directField4() → core::int
+    return super.{self::Class::field4};
+}
+static method main() → dynamic {
+  self::SubClass sc = new self::SubClass::•();
+  self::Class c = sc;
+  self::throws(() → core::int => c.{self::Class::field1}{core::int}, "Read value from uninitialized SubClass.field1");
+  self::throws(() → core::int => sc.{self::SubClass::directField1}{core::int}, "Read value from uninitialized Class.field1");
+  self::expect(42, c.{self::Class::field1} = 42);
+  self::expect(42, c.{self::Class::field1}{core::int});
+  self::throws(() → core::int => sc.{self::SubClass::directField1}{core::int}, "Read value from uninitialized Class.field1");
+  self::expect(87, sc.{self::SubClass::directField1} = 87);
+  self::expect(87, sc.{self::SubClass::directField1}{core::int});
+  self::expect(0, c.{self::Class::field2}{core::int});
+  self::throws(() → core::int => sc.{self::SubClass::directField2}{core::int}, "Read value from uninitialized Class.field2");
+  self::expect(42, c.{self::Class::field2} = 42);
+  self::expect(42, c.{self::Class::field2}{core::int});
+  self::throws(() → core::int => sc.{self::SubClass::directField2}{core::int}, "Read value from uninitialized Class.field2");
+  self::expect(87, sc.{self::SubClass::directField2} = 87);
+  self::expect(87, sc.{self::SubClass::directField2}{core::int});
+  self::throws(() → core::int => c.{self::Class::field3}{core::int}, "Read value from uninitialized SubClass.field3");
+  self::throws(() → core::int => sc.{self::SubClass::directField3}{core::int}, "Read value from uninitialized Class.field3");
+  self::expect(42, c.{self::Class::field3} = 42);
+  self::expect(42, c.{self::Class::field3}{core::int});
+  self::throws(() → core::int => sc.{self::SubClass::directField3}{core::int}, "Read value from uninitialized Class.field3");
+  self::throws(() → core::int => c.{self::Class::field3} = 87, "Write value to initialized SubClass.field3");
+  self::expect(0, c.{self::Class::field4}{core::int});
+  self::throws(() → core::int => sc.{self::SubClass::directField4}{core::int}, "Read value from uninitialized Class.field4");
+  self::expect(42, c.{self::Class::field4} = 42);
+  self::expect(0, c.{self::Class::field4}{core::int});
+  self::expect(42, sc.{self::SubClass::directField4}{core::int});
+  self::throws(() → core::int => c.{self::Class::field4} = 87, "Write value to initialized SubClass.field4");
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}.";
+}
+static method throws(() → dynamic f, core::String message) → dynamic {
+  dynamic value;
+  try {
+    value = f(){() → dynamic};
+  }
+  on core::Error catch(final core::Error e) {
+    core::print(e);
+    return;
+  }
+  throw "${message}: ${value}";
+}

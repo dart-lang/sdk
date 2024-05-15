@@ -1,0 +1,38 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class I extends core::Object {
+  field core::int? foo;
+  synthetic constructor •() → self::I
+    ;
+}
+class A extends core::Object implements self::I {
+  synthetic constructor •() → self::A
+    ;
+  method noSuchMethod(core::Invocation i) → dynamic
+    ;
+  no-such-method-forwarder get foo() → core::int?
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#foo, 1, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int?;
+  no-such-method-forwarder set foo(core::int? value) → void
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#foo=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic};
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    ;
+}
+static method expectTypeError(() → dynamic callback) → void
+  ;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_accessors_from_field.dart:21:7 -> SymbolConstant(#foo)
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_accessors_from_field.dart:21:7 -> ListConstant(const <Type>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_accessors_from_field.dart:21:7 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_accessors_from_field.dart:21:7 -> MapConstant(const <Symbol, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_accessors_from_field.dart:21:7 -> SymbolConstant(#foo=)
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_accessors_from_field.dart:21:7 -> ListConstant(const <Type>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_accessors_from_field.dart:21:7 -> MapConstant(const <Symbol, dynamic>{})
+Extra constant evaluation: evaluated: 19, effectively constant: 7

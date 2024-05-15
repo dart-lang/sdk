@@ -1,0 +1,198 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+import "dart:math" as math;
+
+import "dart:collection";
+
+abstract class _NegativeLengthList&Object&ListMixin<E extends core::Object? = dynamic> = core::Object with col::ListBase<self::_NegativeLengthList&Object&ListMixin::E%> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_NegativeLengthList&Object&ListMixin<self::_NegativeLengthList&Object&ListMixin::E%>
+    : super core::Object::•()
+    ;
+  mixin-super-stub get first() → self::_NegativeLengthList&Object&ListMixin::E%
+    return super.{col::ListBase::first};
+  mixin-super-stub set first(covariant-by-class self::_NegativeLengthList&Object&ListMixin::E% value) → void
+    return super.{col::ListBase::first} = value;
+  mixin-super-stub get last() → self::_NegativeLengthList&Object&ListMixin::E%
+    return super.{col::ListBase::last};
+  mixin-super-stub set last(covariant-by-class self::_NegativeLengthList&Object&ListMixin::E% value) → void
+    return super.{col::ListBase::last} = value;
+  mixin-super-stub get iterator() → core::Iterator<self::_NegativeLengthList&Object&ListMixin::E%>
+    return super.{col::ListBase::iterator};
+  mixin-super-stub method elementAt(core::int index) → self::_NegativeLengthList&Object&ListMixin::E%
+    return super.{col::ListBase::elementAt}(index);
+  mixin-super-stub method followedBy(covariant-by-class core::Iterable<self::_NegativeLengthList&Object&ListMixin::E%> other) → core::Iterable<self::_NegativeLengthList&Object&ListMixin::E%>
+    return super.{col::ListBase::followedBy}(other);
+  mixin-super-stub method forEach((self::_NegativeLengthList&Object&ListMixin::E%) → void action) → void
+    return super.{col::ListBase::forEach}(action);
+  mixin-super-stub get isEmpty() → core::bool
+    return super.{col::ListBase::isEmpty};
+  mixin-super-stub get isNotEmpty() → core::bool
+    return super.{col::ListBase::isNotEmpty};
+  mixin-super-stub get single() → self::_NegativeLengthList&Object&ListMixin::E%
+    return super.{col::ListBase::single};
+  mixin-super-stub method contains(core::Object? element) → core::bool
+    return super.{col::ListBase::contains}(element);
+  mixin-super-stub method every((self::_NegativeLengthList&Object&ListMixin::E%) → core::bool test) → core::bool
+    return super.{col::ListBase::every}(test);
+  mixin-super-stub method any((self::_NegativeLengthList&Object&ListMixin::E%) → core::bool test) → core::bool
+    return super.{col::ListBase::any}(test);
+  mixin-super-stub method firstWhere((self::_NegativeLengthList&Object&ListMixin::E%) → core::bool test, {covariant-by-class () →? self::_NegativeLengthList&Object&ListMixin::E% orElse = #C1}) → self::_NegativeLengthList&Object&ListMixin::E%
+    return super.{col::ListBase::firstWhere}(test, orElse: orElse);
+  mixin-super-stub method lastWhere((self::_NegativeLengthList&Object&ListMixin::E%) → core::bool test, {covariant-by-class () →? self::_NegativeLengthList&Object&ListMixin::E% orElse = #C1}) → self::_NegativeLengthList&Object&ListMixin::E%
+    return super.{col::ListBase::lastWhere}(test, orElse: orElse);
+  mixin-super-stub method singleWhere((self::_NegativeLengthList&Object&ListMixin::E%) → core::bool test, {covariant-by-class () →? self::_NegativeLengthList&Object&ListMixin::E% orElse = #C1}) → self::_NegativeLengthList&Object&ListMixin::E%
+    return super.{col::ListBase::singleWhere}(test, orElse: orElse);
+  mixin-super-stub method join([core::String separator = #C2]) → core::String
+    return super.{col::ListBase::join}(separator);
+  mixin-super-stub method where((self::_NegativeLengthList&Object&ListMixin::E%) → core::bool test) → core::Iterable<self::_NegativeLengthList&Object&ListMixin::E%>
+    return super.{col::ListBase::where}(test);
+  mixin-super-stub method whereType<T extends core::Object? = dynamic>() → core::Iterable<self::_NegativeLengthList&Object&ListMixin::whereType::T%>
+    return super.{col::ListBase::whereType}<self::_NegativeLengthList&Object&ListMixin::whereType::T%>();
+  mixin-super-stub method map<T extends core::Object? = dynamic>((self::_NegativeLengthList&Object&ListMixin::E%) → self::_NegativeLengthList&Object&ListMixin::map::T% f) → core::Iterable<self::_NegativeLengthList&Object&ListMixin::map::T%>
+    return super.{col::ListBase::map}<self::_NegativeLengthList&Object&ListMixin::map::T%>(f);
+  mixin-super-stub method expand<T extends core::Object? = dynamic>((self::_NegativeLengthList&Object&ListMixin::E%) → core::Iterable<self::_NegativeLengthList&Object&ListMixin::expand::T%> f) → core::Iterable<self::_NegativeLengthList&Object&ListMixin::expand::T%>
+    return super.{col::ListBase::expand}<self::_NegativeLengthList&Object&ListMixin::expand::T%>(f);
+  mixin-super-stub method reduce(covariant-by-class (self::_NegativeLengthList&Object&ListMixin::E%, self::_NegativeLengthList&Object&ListMixin::E%) → self::_NegativeLengthList&Object&ListMixin::E% combine) → self::_NegativeLengthList&Object&ListMixin::E%
+    return super.{col::ListBase::reduce}(combine);
+  mixin-super-stub method fold<T extends core::Object? = dynamic>(self::_NegativeLengthList&Object&ListMixin::fold::T% initialValue, (self::_NegativeLengthList&Object&ListMixin::fold::T%, self::_NegativeLengthList&Object&ListMixin::E%) → self::_NegativeLengthList&Object&ListMixin::fold::T% combine) → self::_NegativeLengthList&Object&ListMixin::fold::T%
+    return super.{col::ListBase::fold}<self::_NegativeLengthList&Object&ListMixin::fold::T%>(initialValue, combine);
+  mixin-super-stub method skip(core::int count) → core::Iterable<self::_NegativeLengthList&Object&ListMixin::E%>
+    return super.{col::ListBase::skip}(count);
+  mixin-super-stub method skipWhile((self::_NegativeLengthList&Object&ListMixin::E%) → core::bool test) → core::Iterable<self::_NegativeLengthList&Object&ListMixin::E%>
+    return super.{col::ListBase::skipWhile}(test);
+  mixin-super-stub method take(core::int count) → core::Iterable<self::_NegativeLengthList&Object&ListMixin::E%>
+    return super.{col::ListBase::take}(count);
+  mixin-super-stub method takeWhile((self::_NegativeLengthList&Object&ListMixin::E%) → core::bool test) → core::Iterable<self::_NegativeLengthList&Object&ListMixin::E%>
+    return super.{col::ListBase::takeWhile}(test);
+  mixin-super-stub method toList({core::bool growable = #C3}) → core::List<self::_NegativeLengthList&Object&ListMixin::E%>
+    return super.{col::ListBase::toList}(growable: growable);
+  mixin-super-stub method toSet() → core::Set<self::_NegativeLengthList&Object&ListMixin::E%>
+    return super.{col::ListBase::toSet}();
+  mixin-super-stub method add(covariant-by-class self::_NegativeLengthList&Object&ListMixin::E% element) → void
+    return super.{col::ListBase::add}(element);
+  mixin-super-stub method addAll(covariant-by-class core::Iterable<self::_NegativeLengthList&Object&ListMixin::E%> iterable) → void
+    return super.{col::ListBase::addAll}(iterable);
+  mixin-super-stub method remove(core::Object? element) → core::bool
+    return super.{col::ListBase::remove}(element);
+  mixin-super-stub method _closeGap(core::int start, core::int end) → void
+    return super.{col::ListBase::_closeGap}(start, end);
+  mixin-super-stub method removeWhere((self::_NegativeLengthList&Object&ListMixin::E%) → core::bool test) → void
+    return super.{col::ListBase::removeWhere}(test);
+  mixin-super-stub method retainWhere((self::_NegativeLengthList&Object&ListMixin::E%) → core::bool test) → void
+    return super.{col::ListBase::retainWhere}(test);
+  mixin-super-stub method _filter((self::_NegativeLengthList&Object&ListMixin::E%) → core::bool test, core::bool retainMatching) → void
+    return super.{col::ListBase::_filter}(test, retainMatching);
+  mixin-super-stub method clear() → void
+    return super.{col::ListBase::clear}();
+  mixin-super-stub method cast<R extends core::Object? = dynamic>() → core::List<self::_NegativeLengthList&Object&ListMixin::cast::R%>
+    return super.{col::ListBase::cast}<self::_NegativeLengthList&Object&ListMixin::cast::R%>();
+  mixin-super-stub method removeLast() → self::_NegativeLengthList&Object&ListMixin::E%
+    return super.{col::ListBase::removeLast}();
+  mixin-super-stub method sort([(self::_NegativeLengthList&Object&ListMixin::E%, self::_NegativeLengthList&Object&ListMixin::E%) →? core::int compare = #C1]) → void
+    return super.{col::ListBase::sort}(compare);
+  mixin-super-stub method shuffle([math::Random? random = #C1]) → void
+    return super.{col::ListBase::shuffle}(random);
+  mixin-super-stub method asMap() → core::Map<core::int, self::_NegativeLengthList&Object&ListMixin::E%>
+    return super.{col::ListBase::asMap}();
+  mixin-super-stub operator +(covariant-by-class core::List<self::_NegativeLengthList&Object&ListMixin::E%> other) → core::List<self::_NegativeLengthList&Object&ListMixin::E%>
+    return super.{col::ListBase::+}(other);
+  mixin-super-stub method sublist(core::int start, [core::int? end = #C1]) → core::List<self::_NegativeLengthList&Object&ListMixin::E%>
+    return super.{col::ListBase::sublist}(start, end);
+  mixin-super-stub method getRange(core::int start, core::int end) → core::Iterable<self::_NegativeLengthList&Object&ListMixin::E%>
+    return super.{col::ListBase::getRange}(start, end);
+  mixin-super-stub method removeRange(core::int start, core::int end) → void
+    return super.{col::ListBase::removeRange}(start, end);
+  mixin-super-stub method fillRange(core::int start, core::int end, [covariant-by-class self::_NegativeLengthList&Object&ListMixin::E? fill = #C1]) → void
+    return super.{col::ListBase::fillRange}(start, end, fill);
+  mixin-super-stub method setRange(core::int start, core::int end, covariant-by-class core::Iterable<self::_NegativeLengthList&Object&ListMixin::E%> iterable, [core::int skipCount = #C4]) → void
+    return super.{col::ListBase::setRange}(start, end, iterable, skipCount);
+  mixin-super-stub method replaceRange(core::int start, core::int end, covariant-by-class core::Iterable<self::_NegativeLengthList&Object&ListMixin::E%> newContents) → void
+    return super.{col::ListBase::replaceRange}(start, end, newContents);
+  mixin-super-stub method indexOf(covariant-by-class core::Object? element, [core::int start = #C4]) → core::int
+    return super.{col::ListBase::indexOf}(element, start);
+  mixin-super-stub method indexWhere((self::_NegativeLengthList&Object&ListMixin::E%) → core::bool test, [core::int start = #C4]) → core::int
+    return super.{col::ListBase::indexWhere}(test, start);
+  mixin-super-stub method lastIndexOf(covariant-by-class core::Object? element, [core::int? start = #C1]) → core::int
+    return super.{col::ListBase::lastIndexOf}(element, start);
+  mixin-super-stub method lastIndexWhere((self::_NegativeLengthList&Object&ListMixin::E%) → core::bool test, [core::int? start = #C1]) → core::int
+    return super.{col::ListBase::lastIndexWhere}(test, start);
+  mixin-super-stub method insert(core::int index, covariant-by-class self::_NegativeLengthList&Object&ListMixin::E% element) → void
+    return super.{col::ListBase::insert}(index, element);
+  mixin-super-stub method removeAt(core::int index) → self::_NegativeLengthList&Object&ListMixin::E%
+    return super.{col::ListBase::removeAt}(index);
+  mixin-super-stub method insertAll(core::int index, covariant-by-class core::Iterable<self::_NegativeLengthList&Object&ListMixin::E%> iterable) → void
+    return super.{col::ListBase::insertAll}(index, iterable);
+  mixin-super-stub method setAll(core::int index, covariant-by-class core::Iterable<self::_NegativeLengthList&Object&ListMixin::E%> iterable) → void
+    return super.{col::ListBase::setAll}(index, iterable);
+  mixin-super-stub get reversed() → core::Iterable<self::_NegativeLengthList&Object&ListMixin::E%>
+    return super.{col::ListBase::reversed};
+  mixin-super-stub method toString() → core::String
+    return super.{col::ListBase::toString}();
+}
+class NegativeLengthList<E extends core::Object? = dynamic> extends self::_NegativeLengthList&Object&ListMixin<self::NegativeLengthList::E%> {
+  final field core::List<self::NegativeLengthList::E%> _list;
+  constructor •(core::List<self::NegativeLengthList::E%> _list) → self::NegativeLengthList<self::NegativeLengthList::E%>
+    : self::NegativeLengthList::_list = _list, super self::_NegativeLengthList&Object&ListMixin::•()
+    ;
+  get length() → core::int
+    return this.{self::NegativeLengthList::_list}{core::List<self::NegativeLengthList::E%>}.{core::List::length}{core::int}.{core::num::<=}(0){(core::num) → core::bool} ?{core::int} 1.{core::int::unary-}(){() → core::int} : this.{self::NegativeLengthList::_list}{core::List<self::NegativeLengthList::E%>}.{core::List::length}{core::int};
+  set length(core::int value) → void {
+    this.{self::NegativeLengthList::_list}{core::List<self::NegativeLengthList::E%>}.{core::List::length} = value;
+  }
+  operator [](core::int index) → self::NegativeLengthList::E%
+    return this.{self::NegativeLengthList::_list}{core::List<self::NegativeLengthList::E%>}.{core::List::[]}(index){(core::int) → self::NegativeLengthList::E%};
+  operator []=(core::int index, covariant-by-class self::NegativeLengthList::E% value) → void {
+    this.{self::NegativeLengthList::_list}{core::List<self::NegativeLengthList::E%>}.{core::List::[]=}(index, value){(core::int, self::NegativeLengthList::E%) → void};
+  }
+}
+static method switchList(core::List<core::int> list) → core::int
+  return block {
+    core::int #t1;
+    final synthesized core::List<core::int> #0#0 = list;
+    synthesized core::int #0#1;
+    synthesized core::bool #0#1#isSet = false;
+    #L1:
+    {
+      {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final dynamic #t2 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C5){(core::num) → core::bool}) {
+          #t1 = 2;
+          break #L1;
+        }
+      }
+      {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final dynamic #t3 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C6) {
+          #t1 = 1;
+          break #L1;
+        }
+      }
+      {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final dynamic #t4 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C4){(core::num) → core::bool}) {
+          #t1 = 0;
+          break #L1;
+        }
+      }
+    }
+  } =>#t1;
+static method main() → dynamic {
+  self::expect(0, self::switchList(<core::int>[]));
+  self::expect(1, self::switchList(<core::int>[0]));
+  self::expect(2, self::switchList(<core::int>[0, 1]));
+  self::expect(0, self::switchList(new self::NegativeLengthList::•<core::int>(<core::int>[])));
+  self::expect(1, self::switchList(new self::NegativeLengthList::•<core::int>(<core::int>[0])));
+  self::expect(2, self::switchList(new self::NegativeLengthList::•<core::int>(<core::int>[0, 1])));
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+constants  {
+  #C1 = null
+  #C2 = ""
+  #C3 = true
+  #C4 = 0
+  #C5 = 2
+  #C6 = 1
+}
