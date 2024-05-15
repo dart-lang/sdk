@@ -41,11 +41,12 @@ class ModuleBuilder with Builder<ir.Module> {
         finalGlobals,
         types.build(),
         dataSegments.build(),
-        finalFunctions.imported
-            .followedBy(finalTables.imported)
-            .followedBy(finalMemories.imported)
-            .followedBy(finalGlobals.imported)
-            .toList(),
+        <ir.Import>[
+          ...finalFunctions.imported,
+          ...finalTables.imported,
+          ...finalMemories.imported,
+          ...finalGlobals.imported
+        ],
         watchPoints);
   }
 }

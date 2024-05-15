@@ -8,7 +8,7 @@ import 'util.dart';
 
 class MemoriesBuilder with Builder<ir.Memories> {
   final _definedMemories = <ir.DefinedMemory>[];
-  final _importedMemories = <ir.Import>[];
+  final _importedMemories = <ir.ImportedMemory>[];
 
   /// Add a new memory to the module.
   ir.DefinedMemory define(bool shared, int minSize, [int? maxSize]) {
@@ -19,9 +19,6 @@ class MemoriesBuilder with Builder<ir.Memories> {
   }
 
   /// Imports a memory into this module.
-  ///
-  /// All imported memories must be specified before any memories are declared
-  /// using [defined].
   ir.ImportedMemory import(String module, String name, bool shared, int minSize,
       [int? maxSize]) {
     final memory = ir.ImportedMemory(
