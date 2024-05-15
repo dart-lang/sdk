@@ -410,7 +410,8 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       VariableDeclaration newParameter = new VariableDeclaration(parameter.name,
           type: type,
           isFinal: parameter.isFinal,
-          isLowered: parameter.isLowered)
+          isLowered: parameter.isLowered,
+          isRequired: parameter.isRequired)
         ..fileOffset = parameter.fileOffset;
       _extensionTearOffParameterMap![parameter] = newParameter;
       return newParameter;

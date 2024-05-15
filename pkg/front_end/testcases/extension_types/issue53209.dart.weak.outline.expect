@@ -100,7 +100,7 @@ static extension-type-member method E|constructor#_#redirTooMany2#tearOff(core::
   return invalid-expression "pkg/front_end/testcases/extension_types/issue53209.dart:9:59: Error: The constructor function type 'E Function(int)' isn't a subtype of 'E Function(int, String, num)'.
   factory E.redirTooMany2(int foo, String bar, num baz) = E; // Error.
                                                           ^";
-static extension-type-member method E|constructor#redirTooMany3(core::int foo, [dynamic bar]) → self::E% /* erasure=core::int, declared=! */
+static extension-type-member method E|constructor#redirTooMany3(core::int foo, [dynamic bar = null]) → self::E% /* erasure=core::int, declared=! */
   return invalid-expression "pkg/front_end/testcases/extension_types/issue53209.dart:10:53: Error: The constructor function type 'E Function(int)' isn't a subtype of 'E Function(int, [dynamic])'.
   factory E.redirTooMany3(int foo, [dynamic bar]) = E; // Error.
                                                     ^";

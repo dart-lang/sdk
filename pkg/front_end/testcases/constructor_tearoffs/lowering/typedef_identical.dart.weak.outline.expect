@@ -42,7 +42,7 @@ class A<T extends core::Object? = dynamic> extends core::Object {
     return new typ::A::•<typ::A::_#new#tearOff::T%>();
   static method _#named#tearOff<T extends core::Object? = dynamic>(typ::A::_#named#tearOff::T% a, [core::int? b]) → typ::A<typ::A::_#named#tearOff::T%>
     return new typ::A::named<typ::A::_#named#tearOff::T%>(a, b);
-  static factory fact<T extends core::Object? = dynamic>(typ::A::fact::T% a, {core::int? b, has-declared-initializer core::int c}) → typ::A<typ::A::fact::T%>
+  static factory fact<T extends core::Object? = dynamic>(typ::A::fact::T% a, {core::int? b = null, core::int c = 42}) → typ::A<typ::A::fact::T%>
     ;
   static method _#fact#tearOff<T extends core::Object? = dynamic>(typ::A::_#fact#tearOff::T% a, {core::int? b, has-declared-initializer core::int c}) → typ::A<typ::A::_#fact#tearOff::T%>
     return typ::A::fact<typ::A::_#fact#tearOff::T%>(a, b: b, c: c);

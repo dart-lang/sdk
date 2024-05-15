@@ -94,24 +94,24 @@ static extension-member method _extension#0|get#_laterUnnamedParameter(lowered f
   return <T extends core::Object? = dynamic>(T% x, (T%) → void y) → T% => self::_extension#0|_laterUnnamedParameter<T%>(#this, x, y);
 static extension-member method _extension#0|_laterUnnamedParameterDependsOnNamedParameter<T extends core::Object? = dynamic>(lowered final core::int #this, (self::_extension#0|_laterUnnamedParameterDependsOnNamedParameter::T%) → void x, {required self::_extension#0|_laterUnnamedParameterDependsOnNamedParameter::T% a}) → void
   ;
-static extension-member method _extension#0|get#_laterUnnamedParameterDependsOnNamedParameter(lowered final core::int #this) → <T extends core::Object? = dynamic>((T%) → void, {a: T%}) → void
-  return <T extends core::Object? = dynamic>((T%) → void x, {T% a}) → void => self::_extension#0|_laterUnnamedParameterDependsOnNamedParameter<T%>(#this, x, a: a);
+static extension-member method _extension#0|get#_laterUnnamedParameterDependsOnNamedParameter(lowered final core::int #this) → <T extends core::Object? = dynamic>((T%) → void, {required a: T%}) → void
+  return <T extends core::Object? = dynamic>((T%) → void x, {required T% a}) → void => self::_extension#0|_laterUnnamedParameterDependsOnNamedParameter<T%>(#this, x, a: a);
 static extension-member method _extension#0|_earlierUnnamedParameter<T extends core::Object? = dynamic>(lowered final core::int #this, (self::_extension#0|_earlierUnnamedParameter::T%) → void x, self::_extension#0|_earlierUnnamedParameter::T% y) → void
   ;
 static extension-member method _extension#0|get#_earlierUnnamedParameter(lowered final core::int #this) → <T extends core::Object? = dynamic>((T%) → void, T%) → void
   return <T extends core::Object? = dynamic>((T%) → void x, T% y) → void => self::_extension#0|_earlierUnnamedParameter<T%>(#this, x, y);
-static extension-member method _extension#0|get#_laterNamedParameter(lowered final core::int #this) → <T extends core::Object? = dynamic>({a: T%, b: (T%) → void}) → void
-  return <T extends core::Object? = dynamic>({T% a, (T%) → void b}) → void => self::_extension#0|_laterNamedParameter<T%>(#this, a: a, b: b);
+static extension-member method _extension#0|get#_laterNamedParameter(lowered final core::int #this) → <T extends core::Object? = dynamic>({required a: T%, required b: (T%) → void}) → void
+  return <T extends core::Object? = dynamic>({required T% a, required (T%) → void b}) → void => self::_extension#0|_laterNamedParameter<T%>(#this, a: a, b: b);
 static extension-member method _extension#0|_laterNamedParameter<T extends core::Object? = dynamic>(lowered final core::int #this, {required self::_extension#0|_laterNamedParameter::T% a, required (self::_extension#0|_laterNamedParameter::T%) → void b}) → void
   ;
-static extension-member method _extension#0|get#_earlierNamedParameter(lowered final core::int #this) → <T extends core::Object? = dynamic>({a: (T%) → void, b: T%}) → void
-  return <T extends core::Object? = dynamic>({(T%) → void a, T% b}) → void => self::_extension#0|_earlierNamedParameter<T%>(#this, a: a, b: b);
+static extension-member method _extension#0|get#_earlierNamedParameter(lowered final core::int #this) → <T extends core::Object? = dynamic>({required a: (T%) → void, required b: T%}) → void
+  return <T extends core::Object? = dynamic>({required (T%) → void a, required T% b}) → void => self::_extension#0|_earlierNamedParameter<T%>(#this, a: a, b: b);
 static extension-member method _extension#0|_earlierNamedParameter<T extends core::Object? = dynamic>(lowered final core::int #this, {required (self::_extension#0|_earlierNamedParameter::T%) → void a, required self::_extension#0|_earlierNamedParameter::T% b}) → void
   ;
 static extension-member method _extension#0|_earlierNamedParameterDependsOnUnnamedParameter<T extends core::Object? = dynamic>(lowered final core::int #this, self::_extension#0|_earlierNamedParameterDependsOnUnnamedParameter::T% b, {required (self::_extension#0|_earlierNamedParameterDependsOnUnnamedParameter::T%) → void a}) → void
   ;
-static extension-member method _extension#0|get#_earlierNamedParameterDependsOnUnnamedParameter(lowered final core::int #this) → <T extends core::Object? = dynamic>(T%, {a: (T%) → void}) → void
-  return <T extends core::Object? = dynamic>(T% b, {(T%) → void a}) → void => self::_extension#0|_earlierNamedParameterDependsOnUnnamedParameter<T%>(#this, b, a: a);
+static extension-member method _extension#0|get#_earlierNamedParameterDependsOnUnnamedParameter(lowered final core::int #this) → <T extends core::Object? = dynamic>(T%, {required a: (T%) → void}) → void
+  return <T extends core::Object? = dynamic>(T% b, {required (T%) → void a}) → void => self::_extension#0|_earlierNamedParameterDependsOnUnnamedParameter<T%>(#this, b, a: a);
 static extension-member method _extension#0|_propagateToReturnType<T extends core::Object? = dynamic, U extends core::Object? = dynamic>(lowered final core::int #this, self::_extension#0|_propagateToReturnType::T% x, (self::_extension#0|_propagateToReturnType::T%) → self::_extension#0|_propagateToReturnType::U% y) → self::_extension#0|_propagateToReturnType::U%
   ;
 static extension-member method _extension#0|get#_propagateToReturnType(lowered final core::int #this) → <T extends core::Object? = dynamic, U extends core::Object? = dynamic>(T%, (T%) → U%) → U%
@@ -162,15 +162,15 @@ static extension-member method _extension#0|get#_parenthesized(lowered final cor
   return <T extends core::Object? = dynamic>(T% x, (T%) → void y) → void => self::_extension#0|_parenthesized<T%>(#this, x, y);
 static extension-member method _extension#0|_parenthesizedNamed<T extends core::Object? = dynamic>(lowered final core::int #this, {required self::_extension#0|_parenthesizedNamed::T% a, required (self::_extension#0|_parenthesizedNamed::T%) → void b}) → void
   ;
-static extension-member method _extension#0|get#_parenthesizedNamed(lowered final core::int #this) → <T extends core::Object? = dynamic>({a: T%, b: (T%) → void}) → void
-  return <T extends core::Object? = dynamic>({T% a, (T%) → void b}) → void => self::_extension#0|_parenthesizedNamed<T%>(#this, a: a, b: b);
+static extension-member method _extension#0|get#_parenthesizedNamed(lowered final core::int #this) → <T extends core::Object? = dynamic>({required a: T%, required b: (T%) → void}) → void
+  return <T extends core::Object? = dynamic>({required T% a, required (T%) → void b}) → void => self::_extension#0|_parenthesizedNamed<T%>(#this, a: a, b: b);
 static extension-member method _extension#0|_parenthesizedTwice<T extends core::Object? = dynamic>(lowered final core::int #this, self::_extension#0|_parenthesizedTwice::T% x, (self::_extension#0|_parenthesizedTwice::T%) → void y) → void
   ;
 static extension-member method _extension#0|get#_parenthesizedTwice(lowered final core::int #this) → <T extends core::Object? = dynamic>(T%, (T%) → void) → void
   return <T extends core::Object? = dynamic>(T% x, (T%) → void y) → void => self::_extension#0|_parenthesizedTwice<T%>(#this, x, y);
 static extension-member method _extension#0|_parenthesizedTwiceNamed<T extends core::Object? = dynamic>(lowered final core::int #this, {required self::_extension#0|_parenthesizedTwiceNamed::T% a, required (self::_extension#0|_parenthesizedTwiceNamed::T%) → void b}) → void
   ;
-static extension-member method _extension#0|get#_parenthesizedTwiceNamed(lowered final core::int #this) → <T extends core::Object? = dynamic>({a: T%, b: (T%) → void}) → void
-  return <T extends core::Object? = dynamic>({T% a, (T%) → void b}) → void => self::_extension#0|_parenthesizedTwiceNamed<T%>(#this, a: a, b: b);
+static extension-member method _extension#0|get#_parenthesizedTwiceNamed(lowered final core::int #this) → <T extends core::Object? = dynamic>({required a: T%, required b: (T%) → void}) → void
+  return <T extends core::Object? = dynamic>({required T% a, required (T%) → void b}) → void => self::_extension#0|_parenthesizedTwiceNamed<T%>(#this, a: a, b: b);
 static method main() → dynamic
   ;

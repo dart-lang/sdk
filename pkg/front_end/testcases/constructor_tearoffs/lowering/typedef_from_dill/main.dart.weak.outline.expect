@@ -42,7 +42,7 @@ class A<T extends core::Object? = dynamic> extends core::Object {
     return new mai::A::•<mai::A::_#new#tearOff::T%>();
   static method _#named#tearOff<T extends core::Object? = dynamic>(mai::A::_#named#tearOff::T% a, [core::int? b]) → mai::A<mai::A::_#named#tearOff::T%>
     return new mai::A::named<mai::A::_#named#tearOff::T%>(a, b);
-  static factory fact<T extends core::Object? = dynamic>(mai::A::fact::T% a, {core::int? b, has-declared-initializer core::int c}) → mai::A<mai::A::fact::T%>
+  static factory fact<T extends core::Object? = dynamic>(mai::A::fact::T% a, {core::int? b = #C1, core::int c = #C2}) → mai::A<mai::A::fact::T%>
     ;
   static method _#fact#tearOff<T extends core::Object? = dynamic>(mai::A::_#fact#tearOff::T% a, {core::int? b, has-declared-initializer core::int c}) → mai::A<mai::A::_#fact#tearOff::T%>
     return mai::A::fact<mai::A::_#fact#tearOff::T%>(a, b: b, c: c);
@@ -78,4 +78,5 @@ static method _#G#redirect#tearOff<unrelated X extends core::Object? = dynamic, 
 
 constants  {
   #C1 = null
+  #C2 = 42
 }

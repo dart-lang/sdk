@@ -34,14 +34,14 @@ class P1 extends self::C /*hasConstConstructor*/  {
   const constructor •(core::int c, {core::bool a = true, core::bool b = false}) → self::P1
     : self::P1::c = c, super self::C::•(a: a, b: b)
     ;
-  static method _#new#tearOff(core::int c, {core::bool a = true, core::bool b = false}) → self::P1
+  static method _#new#tearOff(core::int c, {has-declared-initializer core::bool a, has-declared-initializer core::bool b}) → self::P1
     return new self::P1::•(c, a: a, b: b);
 }
 class P2 extends self::C /*hasConstConstructor*/  {
   const constructor •({core::bool b = false, core::bool a = true}) → self::P2
     : super self::C::•(b: b, a: a)
     ;
-  static method _#new#tearOff({core::bool b = false, core::bool a = true}) → self::P2
+  static method _#new#tearOff({has-declared-initializer core::bool b, has-declared-initializer core::bool a}) → self::P2
     return new self::P2::•(b: b, a: a);
 }
 static method main() → dynamic

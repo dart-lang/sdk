@@ -5489,25 +5489,39 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  void installTypedefTearOffs() {
+  List<DelayedDefaultValueCloner>? installTypedefTearOffs() {
+    List<DelayedDefaultValueCloner>? delayedDefaultValueCloners;
+
     Iterable<SourceLibraryBuilder>? augmentationLibraries =
         this.augmentationLibraries;
     if (augmentationLibraries != null) {
       for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
-        augmentationLibrary.installTypedefTearOffs();
+        List<DelayedDefaultValueCloner>?
+            augmentationLibraryDelayedDefaultValueCloners =
+            augmentationLibrary.installTypedefTearOffs();
+        if (augmentationLibraryDelayedDefaultValueCloners != null) {
+          (delayedDefaultValueCloners ??= [])
+              .addAll(augmentationLibraryDelayedDefaultValueCloners);
+        }
       }
     }
 
     Iterator<SourceTypeAliasBuilder> iterator = localMembersIteratorOfType();
     while (iterator.moveNext()) {
       SourceTypeAliasBuilder declaration = iterator.current;
-      declaration.buildTypedefTearOffs(this, (Procedure procedure) {
+      DelayedDefaultValueCloner? delayedDefaultValueCloner =
+          declaration.buildTypedefTearOffs(this, (Procedure procedure) {
         procedure.isStatic = true;
         if (!declaration.isAugmenting && !declaration.isDuplicate) {
           library.addProcedure(procedure);
         }
       });
+      if (delayedDefaultValueCloner != null) {
+        (delayedDefaultValueCloners ??= []).add(delayedDefaultValueCloner);
+      }
     }
+
+    return delayedDefaultValueCloners;
   }
 }
 

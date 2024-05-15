@@ -1,3 +1,10 @@
+## 3.4.1
+
+This is a patch release that
+
+- Fixes a bug in CFE which an manifest in compilation errors of flutter web app
+  when compiled with dart2wasm.
+
 ## 3.4.0
 
 ### Language
