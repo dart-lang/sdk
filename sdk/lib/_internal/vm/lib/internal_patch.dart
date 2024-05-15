@@ -62,6 +62,14 @@ void copyRangeFromUint8ListToOneByteString(
   }
 }
 
+@pragma("vm:prefer-inline")
+String createOneByteStringFromCharacters(Uint8List bytes, int start, int end) {
+  final len = end - start;
+  final s = allocateOneByteString(len);
+  copyRangeFromUint8ListToOneByteString(bytes, s, start, 0, len);
+  return s;
+}
+
 /// The returned string is a [_TwoByteString] with uninitialized content.
 @pragma("vm:recognized", "asm-intrinsic")
 @pragma("vm:external-name", "Internal_allocateTwoByteString")
