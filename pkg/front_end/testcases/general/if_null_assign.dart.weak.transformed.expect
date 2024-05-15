@@ -1,8 +1,0 @@
-library;
-import self as self;
-import "dart:core" as core;
-
-static method method(core::int? a, core::int? b) → dynamic {
-  core::int j = let final core::int? #t1 = a in #t1 == null ?{core::int} a = 0 : #t1{core::int};
-  b == null ?{core::int?} b = 0 : null;
-}

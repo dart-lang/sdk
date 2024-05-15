@@ -1,6 +1,0 @@
-library;
-import self as self;
-import "dart:core" as core;
-
-static method test<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>((self::test::X%) →? core::int? f1, (self::test::Y%) → core::int? f2) → dynamic
-  return let final (self::test::X%) →? core::int? #t1 = f1 in #t1 == null ?{(Never) → core::int?} f2 : #t1{(self::test::X%) → core::int?};

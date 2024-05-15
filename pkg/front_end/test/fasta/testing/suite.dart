@@ -564,11 +564,6 @@ class Run extends Step<ComponentResult, ComponentResult, FastaContext> {
             throw "Executed `Run` step before initializing the context.";
           }
           List<String> args = <String>[];
-          if (context.soundNullSafety) {
-            args.add("--sound-null-safety");
-          } else {
-            args.add("--no-sound-null-safety");
-          }
           args.add(generated.path);
           StdioProcess process =
               await StdioProcess.run(context.vm.toFilePath(), args);
