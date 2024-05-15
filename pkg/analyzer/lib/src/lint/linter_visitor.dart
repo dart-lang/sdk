@@ -701,8 +701,8 @@ class LinterVisitor implements AstVisitor<void> {
     node.visitChildren(this);
   }
 
-  @Deprecated('Use visitMixinOnClause() instead')
   @override
+  // ignore: deprecated_member_use_from_same_package
   void visitOnClause(OnClause node) {
     _runSubscriptions(node, registry._forMixinOnClause);
     node.visitChildren(this);
@@ -1813,11 +1813,6 @@ class NodeLintRegistry {
 
   void addObjectPattern(LintRule linter, AstVisitor visitor) {
     _forObjectPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
-  }
-
-  @Deprecated('Use addMixinOnClause() instead')
-  void addOnClause(LintRule linter, AstVisitor visitor) {
-    addMixinOnClause(linter, visitor);
   }
 
   void addParenthesizedExpression(LintRule linter, AstVisitor visitor) {
