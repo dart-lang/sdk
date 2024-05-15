@@ -2533,11 +2533,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
     _currentUri = savedUri;
 
-    return runtimeStatement('defineLazy(#, { # }, #)', [
-      objExpr,
-      accessors,
-      js.boolean(!_currentLibrary!.isNonNullableByDefault)
-    ]);
+    return runtimeStatement(
+        'defineLazy(#, { # }, #)', [objExpr, accessors, js.boolean(false)]);
   }
 
   js_ast.Fun _emitStaticFieldInitializer(Field field) {
@@ -3543,14 +3540,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     //
     // In the body of an `async`, `await` is generated simply as `yield`.
     var gen = emitGeneratorFn((_) => []);
-    var returnType = _currentLibrary!.isNonNullableByDefault
-        ? function.emittedValueType!
-        // Otherwise flatten the return type because futureValueType(T) is not
-        // defined for legacy libraries.
-        : _types.flatten(function
-            .computeThisFunctionType(_currentLibrary!.nonNullable,
-                reuseTypeParameters: true)
-            .returnType);
+    var returnType = function.emittedValueType!;
     return js.call('#.async(#, #)',
         [emitLibraryName(_coreTypes.asyncLibrary), _emitType(returnType), gen]);
   }

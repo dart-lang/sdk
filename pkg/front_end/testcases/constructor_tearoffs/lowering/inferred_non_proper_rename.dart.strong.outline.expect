@@ -1,0 +1,80 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef F<X extends core::num> = self::A<X>;
+typedef G<unrelated Y extends core::Object? = dynamic> = self::A<core::int>;
+typedef H<X extends core::Object? = dynamic, unrelated Y extends core::Object? = dynamic> = self::A<X%>;
+class A<T extends core::Object? = dynamic> extends core::Object {
+  constructor •() → self::A<self::A::T%>
+    ;
+  static method _#new#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#new#tearOff::T%>
+    return new self::A::•<self::A::_#new#tearOff::T%>();
+  static factory fact<T extends core::Object? = dynamic>() → self::A<self::A::fact::T%>
+    ;
+  static method _#fact#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#fact#tearOff::T%>
+    return self::A::fact<self::A::_#fact#tearOff::T%>();
+  static factory redirect<T extends core::Object? = dynamic>() → self::A<self::A::redirect::T%> /* redirection-target: self::A::•<self::A::redirect::T%>*/
+    return new self::A::•<self::A::redirect::T%>();
+  static method _#redirect#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#redirect#tearOff::T%>
+    return new self::A::•<self::A::_#redirect#tearOff::T%>();
+}
+static final field core::bool inSoundMode;
+static const field () → self::A<core::int> f1a = self::A::_#new#tearOff<core::int>;
+static const field () → self::A<core::int> f1b = self::A::_#new#tearOff<core::int>;
+static const field () → self::A<core::int> f1c = self::A::_#new#tearOff<core::int>;
+static const field () → self::A<core::int> f1d = self::A::_#fact#tearOff<core::int>;
+static const field () → self::A<core::int> f1e = self::A::_#fact#tearOff<core::int>;
+static const field () → self::A<core::int> f1f = self::A::_#fact#tearOff<core::int>;
+static const field () → self::A<core::int> f1g = self::A::_#redirect#tearOff<core::int>;
+static const field () → self::A<core::int> f1h = self::A::_#redirect#tearOff<core::int>;
+static const field () → self::A<core::int> f1i = self::A::_#redirect#tearOff<core::int>;
+static const field () → self::A<core::int> g1a = self::A::_#new#tearOff<core::int>;
+static const field () → self::A<core::int> g1b = self::A::_#new#tearOff<core::int>;
+static const field () → self::A<core::int> g1c = self::A::_#new#tearOff<core::int>;
+static const field () → self::A<core::int> h1a = self::A::_#new#tearOff<core::int>;
+static const field () → self::A<core::int> h1b = self::A::_#new#tearOff<core::int>;
+static const field () → self::A<core::int> h1c = self::A::_#new#tearOff<core::int>;
+static method main() → dynamic
+  ;
+static method test<T extends core::num>() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+static method _#F#new#tearOff<X extends core::num>() → self::A<self::_#F#new#tearOff::X>
+  return new self::A::•<self::_#F#new#tearOff::X>();
+static method _#F#fact#tearOff<X extends core::num>() → self::A<self::_#F#fact#tearOff::X>
+  return self::A::fact<self::_#F#fact#tearOff::X>();
+static method _#F#redirect#tearOff<X extends core::num>() → self::A<self::_#F#redirect#tearOff::X>
+  return self::A::_#redirect#tearOff<self::_#F#redirect#tearOff::X>();
+static method _#G#new#tearOff<unrelated Y extends core::Object? = dynamic>() → self::A<core::int>
+  return new self::A::•<core::int>();
+static method _#G#fact#tearOff<unrelated Y extends core::Object? = dynamic>() → self::A<core::int>
+  return self::A::fact<core::int>();
+static method _#G#redirect#tearOff<unrelated Y extends core::Object? = dynamic>() → self::A<core::int>
+  return self::A::_#redirect#tearOff<core::int>();
+static method _#H#new#tearOff<X extends core::Object? = dynamic, unrelated Y extends core::Object? = dynamic>() → self::A<self::_#H#new#tearOff::X%>
+  return new self::A::•<self::_#H#new#tearOff::X%>();
+static method _#H#fact#tearOff<X extends core::Object? = dynamic, unrelated Y extends core::Object? = dynamic>() → self::A<self::_#H#fact#tearOff::X%>
+  return self::A::fact<self::_#H#fact#tearOff::X%>();
+static method _#H#redirect#tearOff<X extends core::Object? = dynamic, unrelated Y extends core::Object? = dynamic>() → self::A<self::_#H#redirect#tearOff::X%>
+  return self::A::_#redirect#tearOff<self::_#H#redirect#tearOff::X%>();
+
+
+Extra constant evaluation status:
+Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:17:13 -> InstantiationConstant(A._#new#tearOff<int>)
+Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:18:13 -> InstantiationConstant(A._#new#tearOff<int>)
+Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:19:25 -> InstantiationConstant(A._#new#tearOff<int>)
+Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:20:13 -> InstantiationConstant(A._#fact#tearOff<int>)
+Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:21:13 -> InstantiationConstant(A._#fact#tearOff<int>)
+Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:22:25 -> InstantiationConstant(A._#fact#tearOff<int>)
+Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:23:13 -> InstantiationConstant(A._#redirect#tearOff<int>)
+Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:24:13 -> InstantiationConstant(A._#redirect#tearOff<int>)
+Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:25:25 -> InstantiationConstant(A._#redirect#tearOff<int>)
+Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:27:13 -> InstantiationConstant(A._#new#tearOff<int>)
+Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:28:13 -> InstantiationConstant(A._#new#tearOff<int>)
+Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:29:25 -> InstantiationConstant(A._#new#tearOff<int>)
+Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:31:13 -> InstantiationConstant(A._#new#tearOff<int>)
+Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:32:13 -> InstantiationConstant(A._#new#tearOff<int>)
+Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:33:25 -> InstantiationConstant(A._#new#tearOff<int>)
+Extra constant evaluation: evaluated: 28, effectively constant: 15

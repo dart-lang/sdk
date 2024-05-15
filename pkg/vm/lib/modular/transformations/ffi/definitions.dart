@@ -589,8 +589,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         ],
         fileUri: node.fileUri,
         reference: reference)
-      ..fileOffset = node.fileOffset
-      ..isNonNullableByDefault = node.enclosingLibrary.isNonNullableByDefault;
+      ..fileOffset = node.fileOffset;
 
     // Struct objects are manufactured in the VM by being passed by value
     // in return position in FFI calls, and by value in arguments in FFI
@@ -651,8 +650,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           ],
           fileUri: node.fileUri,
           reference: reference)
-        ..fileOffset = node.fileOffset
-        ..isNonNullableByDefault = node.enclosingLibrary.isNonNullableByDefault;
+        ..fileOffset = node.fileOffset;
 
       node.addConstructor(ctor);
     }
@@ -1001,7 +999,6 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       reference: getterReference,
     )
       ..fileOffset = fileOffset
-      ..isNonNullableByDefault = true
       ..isStatic = true
       ..isSynthetic = true
       ..annotations = [];
@@ -1043,7 +1040,6 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       reference: getterReference,
     )
       ..fileOffset = field.fileOffset
-      ..isNonNullableByDefault = field.isNonNullableByDefault
       ..annotations = field.annotations;
     node.addProcedure(getter);
 
@@ -1078,9 +1074,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         ),
         fileUri: field.fileUri,
         reference: setterReference,
-      )
-        ..fileOffset = field.fileOffset
-        ..isNonNullableByDefault = field.isNonNullableByDefault;
+      )..fileOffset = field.fileOffset;
       node.addProcedure(setter);
     }
 
@@ -1110,8 +1104,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         fileUri: compound.fileUri,
         reference: getterReference,
         isStatic: true)
-      ..fileOffset = compound.fileOffset
-      ..isNonNullableByDefault = true;
+      ..fileOffset = compound.fileOffset;
     addPragmaPreferInline(getter);
     compound.addProcedure(getter);
   }

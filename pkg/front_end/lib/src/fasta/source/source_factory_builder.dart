@@ -97,7 +97,6 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
       ..fileStartOffset = startCharOffset
       ..fileOffset = charOffset
       ..fileEndOffset = charEndOffset
-      ..isNonNullableByDefault = true
       ..isExtensionTypeMember = nameScheme.isExtensionTypeMember;
     nameScheme
         .getConstructorMemberName(name, isTearOff: false)

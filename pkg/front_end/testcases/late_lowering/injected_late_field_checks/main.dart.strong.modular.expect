@@ -1,0 +1,32 @@
+library;
+import self as self;
+
+import "dart:test";
+
+static method main() → dynamic {}
+
+library;
+import self as self2;
+import "dart:_internal" as _in;
+import "dart:core" as core;
+
+import "dart:_internal";
+
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
+class Class extends core::Object {
+  field core::int? _#Class#foo = null /* from org-dartlang-testcase:///patch_lib.dart */;
+  constructor bar() → self2::Class
+    : super core::Object::•()
+    ;
+  constructor baz(core::int foo) → self2::Class
+    : self2::Class::_#Class#foo = foo, super core::Object::•()
+    ;
+  get /* from org-dartlang-testcase:///patch_lib.dart */ foo() → core::int
+    return let final core::int? #t1 = this.{self2::Class::_#Class#foo}{core::int?} in #t1 == null ?{core::int} throw{for-error-handling} new _in::LateError::fieldNI("foo") : #t1{core::int};
+  set /* from org-dartlang-testcase:///patch_lib.dart */ foo(core::int foo#param) → void
+    this.{self2::Class::_#Class#foo} = foo#param;
+}
+
+constants  {
+  #C1 = _in::_Patch {}
+}

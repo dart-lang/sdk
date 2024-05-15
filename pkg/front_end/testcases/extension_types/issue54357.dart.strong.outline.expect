@@ -1,0 +1,65 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension type ExInt(core::int _) implements core::int {
+  abstract extension-type-member representation-field get _() → core::int;
+  constructor • = self::ExInt|constructor#;
+  constructor tearoff • = self::ExInt|constructor#_#new#tearOff;
+}
+static const field self::ExInt /* erasure=core::int */ ex3 = const self::ExInt|constructor#(3);
+static const field self::ExInt /* erasure=core::int */ ex4 = const self::ExInt|constructor#(4);
+static const field core::List<self::ExInt /* erasure=core::int */> l3 = const <self::ExInt /* erasure=core::int */>[self::ex3];
+static const field core::List<self::ExInt /* erasure=core::int */> l4 = const <self::ExInt /* erasure=core::int */>[self::ex4];
+static const field core::List<core::int> l34i = const <core::int>[self::ex3 as core::int] + self::l4 as core::List<core::int>;
+static const field core::List<self::ExInt /* erasure=core::int */> l43 = const <self::ExInt /* erasure=core::int */>[self::ex4, self::ex3];
+static const field core::List<self::ExInt /* erasure=core::int */> l3s4 = const <self::ExInt /* erasure=core::int */>[self::ex3] + self::l4;
+static const field core::List<self::ExInt /* erasure=core::int */> ls43 = self::l4 + const <self::ExInt /* erasure=core::int */>[self::ex3];
+static const field core::List<self::ExInt /* erasure=core::int */> ls3s4 = self::l3 + self::l4;
+static const field core::Set<self::ExInt /* erasure=core::int */> s3 = const <self::ExInt /* erasure=core::int */>{self::ex3};
+static const field core::Set<self::ExInt /* erasure=core::int */> s4 = const <self::ExInt /* erasure=core::int */>{self::ex4};
+static const field core::Set<core::int> s34i = const <core::int>{self::ex3 as core::int} + self::s4 as core::Set<core::int>;
+static const field core::Set<self::ExInt /* erasure=core::int */> s43 = const <self::ExInt /* erasure=core::int */>{self::ex4, self::ex3};
+static const field core::Set<self::ExInt /* erasure=core::int */> s3s4 = const <self::ExInt /* erasure=core::int */>{self::ex3} + self::s4;
+static const field core::Set<self::ExInt /* erasure=core::int */> ss43 = self::s4 + const <self::ExInt /* erasure=core::int */>{self::ex3};
+static const field core::Set<self::ExInt /* erasure=core::int */> ss3s4 = self::s3 + self::s4;
+static const field core::Map<self::ExInt /* erasure=core::int */, self::ExInt /* erasure=core::int */> m3 = const <self::ExInt /* erasure=core::int */, self::ExInt /* erasure=core::int */>{self::ex3: self::ex3};
+static const field core::Map<self::ExInt /* erasure=core::int */, self::ExInt /* erasure=core::int */> m4 = const <self::ExInt /* erasure=core::int */, self::ExInt /* erasure=core::int */>{self::ex4: self::ex4};
+static const field core::Map<core::int, core::int> m34i = const <core::int, core::int>{self::ex3 as core::int: self::ex3 as core::int} + self::m4 as core::Map<core::int, core::int>;
+static const field core::Map<self::ExInt /* erasure=core::int */, self::ExInt /* erasure=core::int */> m43 = const <self::ExInt /* erasure=core::int */, self::ExInt /* erasure=core::int */>{self::ex4: self::ex4, self::ex3: self::ex3};
+static const field core::Map<self::ExInt /* erasure=core::int */, self::ExInt /* erasure=core::int */> m3s4 = const <self::ExInt /* erasure=core::int */, self::ExInt /* erasure=core::int */>{self::ex3: self::ex3} + self::m4;
+static const field core::Map<self::ExInt /* erasure=core::int */, self::ExInt /* erasure=core::int */> ms43 = self::m4 + const <self::ExInt /* erasure=core::int */, self::ExInt /* erasure=core::int */>{self::ex3: self::ex3};
+static const field core::Map<self::ExInt /* erasure=core::int */, self::ExInt /* erasure=core::int */> ms3s4 = self::m3 + self::m4;
+static extension-type-member method ExInt|constructor#(core::int _) → self::ExInt /* erasure=core::int */ {
+  lowered final self::ExInt /* erasure=core::int */ #this = _;
+  return #this;
+}
+static extension-type-member method ExInt|constructor#_#new#tearOff(core::int _) → self::ExInt /* erasure=core::int */
+  return self::ExInt|constructor#(_);
+
+
+Extra constant evaluation status:
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///issue54357.dart:5:13 -> IntConstant(3)
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///issue54357.dart:6:13 -> IntConstant(4)
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue54357.dart:8:12 -> ListConstant(const <int>[3])
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue54357.dart:9:12 -> ListConstant(const <int>[4])
+Evaluated: ListConcatenation @ org-dartlang-testcase:///issue54357.dart:10:14 -> ListConstant(const <int>[3, 4])
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue54357.dart:11:13 -> ListConstant(const <int>[4, 3])
+Evaluated: ListConcatenation @ org-dartlang-testcase:///issue54357.dart:12:14 -> ListConstant(const <int>[3, 4])
+Evaluated: ListConcatenation @ org-dartlang-testcase:///issue54357.dart:13:14 -> ListConstant(const <int>[4, 3])
+Evaluated: ListConcatenation @ org-dartlang-testcase:///issue54357.dart:14:15 -> ListConstant(const <int>[3, 4])
+Evaluated: SetLiteral @ org-dartlang-testcase:///issue54357.dart:16:12 -> SetConstant(const <int>{3})
+Evaluated: SetLiteral @ org-dartlang-testcase:///issue54357.dart:17:12 -> SetConstant(const <int>{4})
+Evaluated: SetConcatenation @ org-dartlang-testcase:///issue54357.dart:18:14 -> SetConstant(const <int>{3, 4})
+Evaluated: SetLiteral @ org-dartlang-testcase:///issue54357.dart:19:13 -> SetConstant(const <int>{4, 3})
+Evaluated: SetConcatenation @ org-dartlang-testcase:///issue54357.dart:20:14 -> SetConstant(const <int>{3, 4})
+Evaluated: SetConcatenation @ org-dartlang-testcase:///issue54357.dart:21:14 -> SetConstant(const <int>{4, 3})
+Evaluated: SetConcatenation @ org-dartlang-testcase:///issue54357.dart:22:15 -> SetConstant(const <int>{3, 4})
+Evaluated: MapLiteral @ org-dartlang-testcase:///issue54357.dart:24:12 -> MapConstant(const <int, int>{3: 3})
+Evaluated: MapLiteral @ org-dartlang-testcase:///issue54357.dart:25:12 -> MapConstant(const <int, int>{4: 4})
+Evaluated: MapConcatenation @ org-dartlang-testcase:///issue54357.dart:26:7 -> MapConstant(const <int, int>{3: 3, 4: 4})
+Evaluated: MapLiteral @ org-dartlang-testcase:///issue54357.dart:27:13 -> MapConstant(const <int, int>{4: 4, 3: 3})
+Evaluated: MapConcatenation @ org-dartlang-testcase:///issue54357.dart:28:7 -> MapConstant(const <int, int>{3: 3, 4: 4})
+Evaluated: MapConcatenation @ org-dartlang-testcase:///issue54357.dart:29:7 -> MapConstant(const <int, int>{4: 4, 3: 3})
+Evaluated: MapConcatenation @ org-dartlang-testcase:///issue54357.dart:30:7 -> MapConstant(const <int, int>{3: 3, 4: 4})
+Extra constant evaluation: evaluated: 27, effectively constant: 23

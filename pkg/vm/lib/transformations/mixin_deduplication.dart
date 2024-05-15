@@ -67,9 +67,6 @@ class _DeduplicateMixinKey {
     final otherImplemented = otherClass.implementedTypes;
     if (thisImplemented.length != otherImplemented.length) return false;
 
-    if (thisClass.enclosingLibrary.isNonNullableByDefault !=
-        otherClass.enclosingLibrary.isNonNullableByDefault) return false;
-
     // Non generic classes can use equalty compares of supertypes.
     if (thisParameters.isEmpty) {
       if (thisSupertype != otherSupertype) return false;

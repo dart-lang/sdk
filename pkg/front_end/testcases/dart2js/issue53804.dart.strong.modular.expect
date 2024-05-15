@@ -1,0 +1,66 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::int? f1 = null;
+  field core::double? f2 = null;
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  @#C3
+  method foo() → core::String {
+    return block {
+      core::String #t1;
+      final synthesized(core::int?, core::double?) #0#0 = (this.{self::A::f1}{core::int?}, this.{self::A::f2}{core::double?});
+      synthesized core::int? #0#1;
+      synthesized core::bool #0#1#isSet = false;
+      synthesized core::bool #0#4;
+      synthesized core::bool #0#4#isSet = false;
+      synthesized core::double? #0#2;
+      synthesized core::bool #0#2#isSet = false;
+      #L1:
+      {
+        {
+          final hoisted core::int? f1;
+          if(true) {
+            f1 = #0#1#isSet ?{core::int?} #0#1{core::int?} : let final dynamic #t2 = #0#1#isSet = true in #0#1 = #0#0.$1{core::int?};
+            #t1 = "${f1}";
+            break #L1;
+          }
+        }
+        {
+          final hoisted core::double? f2;
+          if(#0#4#isSet ?{core::bool} #0#4{core::bool} : let final dynamic #t3 = #0#4#isSet = true in #0#4 = (#0#1#isSet ?{core::int?} #0#1{core::int?} : let final dynamic #t4 = #0#1#isSet = true in #0#1 = #0#0.$1{core::int?}) == null) {
+            f2 = #0#2#isSet ?{core::double?} #0#2{core::double?} : let final dynamic #t5 = #0#2#isSet = true in #0#2 = #0#0.$2{core::double?};
+            #t1 = "${f2}";
+            break #L1;
+          }
+        }
+        {
+          if((#0#4#isSet ?{core::bool} #0#4{core::bool} : let final dynamic #t6 = #0#4#isSet = true in #0#4 = (#0#1#isSet ?{core::int?} #0#1{core::int?} : let final dynamic #t7 = #0#1#isSet = true in #0#1 = #0#0.$1{core::int?}) == null) && (#0#2#isSet ?{core::double?} #0#2{core::double?} : let final dynamic #t8 = #0#2#isSet = true in #0#2 = #0#0.$2{core::double?}) == null) {
+            #t1 = "?";
+            break #L1;
+          }
+        }
+      }
+    } =>#t1;
+  }
+  static method _#new#tearOff() → self::A
+    return new self::A::•();
+}
+static method main() → void {
+  core::print(new self::A::•().{self::A::foo}(){() → core::String});
+}
+
+constants  {
+  #C1 = "vm:never-inline"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue53804.dart:
+- pragma._ (from org-dartlang-sdk:///lib/core/annotations.dart)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart)

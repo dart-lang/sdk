@@ -1,0 +1,64 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/no_such_method_forwarders/mixin_nsm.dart:21:7: Error: The mixin application class 'Class' introduces an erroneous override of 'method1'.
+// class Class = Super with Mixin implements Interface;
+//       ^^^^^
+// pkg/front_end/testcases/no_such_method_forwarders/mixin_nsm.dart:16:20: Context: The parameter 'i' of the method 'Mixin.method1' has type 'int', which does not match the corresponding type, 'num', in the overridden method, 'Interface.method1'.
+// Change to a supertype of 'num', or, for a covariant parameter, a subtype.
+//   void method1(int i);
+//                    ^
+// pkg/front_end/testcases/no_such_method_forwarders/mixin_nsm.dart:6:8: Context: This is the overridden method ('method1').
+//   void method1(num n);
+//        ^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class Interface extends core::Object {
+  synthetic constructor •() → self::Interface
+    : super core::Object::•()
+    ;
+  abstract method method1(core::num n) → void;
+}
+class Super extends core::Object {
+  synthetic constructor •() → self::Super
+    : super core::Object::•()
+    ;
+  method method2(core::num n) → void {}
+  method method3(core::num n) → void {}
+}
+mixin class Mixin extends core::Object {
+  synthetic constructor •() → self::Mixin
+    : super core::Object::•()
+    ;
+  method noSuchMethod(core::Invocation _) → dynamic
+    return null;
+  no-such-method-forwarder method method1(core::int i) → void
+    return this.{self::Mixin::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[i]), core::Map::unmodifiable<core::Symbol, dynamic>(#C3))){(core::Invocation) → dynamic};
+  no-such-method-forwarder method method2(covariant-by-declaration core::int i) → void
+    return this.{self::Mixin::noSuchMethod}(new core::_InvocationMirror::_withType(#C4, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[i]), core::Map::unmodifiable<core::Symbol, dynamic>(#C3))){(core::Invocation) → dynamic};
+  no-such-method-forwarder method method3(core::num n) → void
+    return this.{self::Mixin::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[n]), core::Map::unmodifiable<core::Symbol, dynamic>(#C3))){(core::Invocation) → dynamic};
+}
+class Class = self::Super with self::Mixin implements self::Interface {
+  synthetic constructor •() → self::Class
+    : super self::Super::•()
+    ;
+  mixin-super-stub method noSuchMethod(core::Invocation _) → dynamic
+    return super.{self::Mixin::noSuchMethod}(_);
+  forwarding-stub method method2(covariant-by-declaration core::int i) → void
+    return super.{self::Super::method2}(i);
+  abstract mixin-stub method method3(core::num n) → void; -> self::Mixin::method3
+  no-such-method-forwarder method method1(core::int i) → void
+    return this.{self::Class::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[i]), core::Map::unmodifiable<core::Symbol, dynamic>(#C3))){(core::Invocation) → dynamic};
+}
+
+constants  {
+  #C1 = #method1
+  #C2 = <core::Type>[]
+  #C3 = <core::Symbol, dynamic>{}
+  #C4 = #method2
+  #C5 = #method3
+}

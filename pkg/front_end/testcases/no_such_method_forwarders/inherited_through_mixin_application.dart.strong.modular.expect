@@ -1,0 +1,61 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  get g() → core::String?
+    return "g";
+}
+class C extends core::Object implements self::A {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  method noSuchMethod(core::Invocation i) → dynamic {
+    self::console = "C";
+  }
+  no-such-method-forwarder get g() → core::String?
+    return this.{self::C::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::String?;
+}
+abstract class M extends self::A /*isMixinDeclaration*/  {
+  method test() → dynamic {
+    super.{self::A::g};
+  }
+  method noSuchMethod(core::Invocation i) → dynamic {
+    self::console = "M";
+  }
+}
+abstract class _MA&C&M = self::C with self::M /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_MA&C&M
+    : super self::C::•()
+    ;
+  mixin-super-stub method noSuchMethod(core::Invocation i) → dynamic
+    return super.{self::M::noSuchMethod}(i);
+  mixin-super-stub method test() → dynamic
+    return super.{self::M::test}();
+}
+class MA extends self::_MA&C&M {
+  synthetic constructor •() → self::MA
+    : super self::_MA&C&M::•()
+    ;
+}
+static field core::String console = "";
+static method main() → dynamic {
+  new self::MA::•().{self::C::g}{core::String?};
+  self::expect("M", self::console);
+  new self::MA::•().{self::_MA&C&M::test}(){() → dynamic};
+  self::expect("M", self::console);
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+constants  {
+  #C1 = #g
+  #C2 = <core::Type>[]
+  #C3 = <dynamic>[]
+  #C4 = <core::Symbol, dynamic>{}
+}

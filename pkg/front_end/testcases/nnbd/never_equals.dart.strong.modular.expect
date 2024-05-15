@@ -1,0 +1,9 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method test(Never nonNullableNever, Never? nullableNever) → dynamic {
+  Never v1 = nonNullableNever =={core::Object::==}{(dynamic) → Never} nonNullableNever;
+  core::bool v2 = nullableNever =={core::Object::==}{(core::Object) → core::bool} nullableNever;
+}
+static method main() → dynamic {}

@@ -9,7 +9,7 @@ part 'table.dart';
 
 class Tables {
   /// Imported tables.
-  final List<Import> imported;
+  final List<ImportedTable> imported;
 
   /// Defined tables.
   final List<DefinedTable> defined;

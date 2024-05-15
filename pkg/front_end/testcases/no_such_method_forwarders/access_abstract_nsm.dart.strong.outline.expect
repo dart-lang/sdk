@@ -1,0 +1,482 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/no_such_method_forwarders/access_abstract_nsm.dart:11:7: Error: The non-abstract class 'SubClass2' is missing implementations for these members:
+//  - SuperClass.accessibleMethod
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class SubClass2 implements SuperClass {
+//       ^^^^^^^^^
+// pkg/front_end/testcases/no_such_method_forwarders/access_abstract_nsm_lib.dart:9:8: Context: 'SuperClass.accessibleMethod' is defined here.
+//   void accessibleMethod() {}
+//        ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/no_such_method_forwarders/access_abstract_nsm.dart:21:7: Error: The non-abstract class 'SubSubClass2' is missing implementations for these members:
+//  - SuperClass.accessibleMethod
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class SubSubClass2 extends SubClass2 {}
+//       ^^^^^^^^^^^^
+// pkg/front_end/testcases/no_such_method_forwarders/access_abstract_nsm_lib.dart:9:8: Context: 'SuperClass.accessibleMethod' is defined here.
+//   void accessibleMethod() {}
+//        ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/no_such_method_forwarders/access_abstract_nsm.dart:39:7: Error: The non-abstract class 'SubAbstractSubClass2' is missing implementations for these members:
+//  - SuperClass.accessibleMethod
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class SubAbstractSubClass2 extends AbstractSubClass2 {}
+//       ^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/no_such_method_forwarders/access_abstract_nsm_lib.dart:9:8: Context: 'SuperClass.accessibleMethod' is defined here.
+//   void accessibleMethod() {}
+//        ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/no_such_method_forwarders/access_abstract_nsm.dart:45:7: Error: The non-abstract class 'SubClassImplements2' is missing implementations for these members:
+//  - SuperClass.accessibleMethod
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class SubClassImplements2 implements SuperClass, NoSuchMethodClass {}
+//       ^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/no_such_method_forwarders/access_abstract_nsm_lib.dart:9:8: Context: 'SuperClass.accessibleMethod' is defined here.
+//   void accessibleMethod() {}
+//        ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/no_such_method_forwarders/access_abstract_nsm.dart:51:7: Error: The non-abstract class 'SubSubClassImplements2' is missing implementations for these members:
+//  - SuperClass.accessibleMethod
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class SubSubClassImplements2 extends SubClassImplements2 {}
+//       ^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/no_such_method_forwarders/access_abstract_nsm_lib.dart:9:8: Context: 'SuperClass.accessibleMethod' is defined here.
+//   void accessibleMethod() {}
+//        ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/no_such_method_forwarders/access_abstract_nsm.dart:67:7: Error: The non-abstract class 'SubAbstractSubClassImplements2' is missing implementations for these members:
+//  - SuperClass.accessibleMethod
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class SubAbstractSubClassImplements2 extends AbstractSubClassImplements2 {}
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/no_such_method_forwarders/access_abstract_nsm_lib.dart:9:8: Context: 'SuperClass.accessibleMethod' is defined here.
+//   void accessibleMethod() {}
+//        ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/no_such_method_forwarders/access_abstract_nsm.dart:73:7: Error: The non-abstract class 'SubClassWith2' is missing implementations for these members:
+//  - SuperClass.accessibleMethod
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class SubClassWith2 with NoSuchMethodClass implements SuperClass {}
+//       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/no_such_method_forwarders/access_abstract_nsm_lib.dart:9:8: Context: 'SuperClass.accessibleMethod' is defined here.
+//   void accessibleMethod() {}
+//        ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/no_such_method_forwarders/access_abstract_nsm.dart:81:7: Error: The non-abstract class 'SubSubClassWith2' is missing implementations for these members:
+//  - SuperClass.accessibleMethod
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class SubSubClassWith2 extends SubClassWith2 {}
+//       ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/no_such_method_forwarders/access_abstract_nsm_lib.dart:9:8: Context: 'SuperClass.accessibleMethod' is defined here.
+//   void accessibleMethod() {}
+//        ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/no_such_method_forwarders/access_abstract_nsm.dart:100:7: Error: The non-abstract class 'SubAbstractSubClassWith2' is missing implementations for these members:
+//  - SuperClass.accessibleMethod
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class SubAbstractSubClassWith2 extends AbstractSubClassWith2 {}
+//       ^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/no_such_method_forwarders/access_abstract_nsm_lib.dart:9:8: Context: 'SuperClass.accessibleMethod' is defined here.
+//   void accessibleMethod() {}
+//        ^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "access_abstract_nsm_lib.dart" as acc;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///access_abstract_nsm_lib.dart";
+
+class SubClass1 extends acc::SuperClass {
+  synthetic constructor •() → self::SubClass1
+    ;
+  abstract method noSuchMethod(core::Invocation invocation) → dynamic;
+}
+class SubClass2 extends core::Object implements acc::SuperClass {
+  synthetic constructor •() → self::SubClass2
+    ;
+  abstract method noSuchMethod(core::Invocation invocation) → dynamic;
+  no-such-method-forwarder method _inaccessibleMethod1() → void
+    return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_inaccessibleMethod1, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+}
+abstract class _SubClass3&Object&SuperClass = core::Object with acc::SuperClass /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_SubClass3&Object&SuperClass
+    : super core::Object::•()
+    ;
+  mixin-super-stub method _inaccessibleMethod1() → void
+    return super.{acc::SuperClass::_inaccessibleMethod1}();
+  mixin-super-stub method accessibleMethod() → void
+    return super.{acc::SuperClass::accessibleMethod}();
+}
+class SubClass3 extends self::_SubClass3&Object&SuperClass {
+  synthetic constructor •() → self::SubClass3
+    ;
+  abstract method noSuchMethod(core::Invocation invocation) → dynamic;
+}
+class SubSubClass1 extends self::SubClass1 {
+  synthetic constructor •() → self::SubSubClass1
+    ;
+}
+class SubSubClass2 extends self::SubClass2 {
+  synthetic constructor •() → self::SubSubClass2
+    ;
+}
+class SubSubClass3 extends self::SubClass3 {
+  synthetic constructor •() → self::SubSubClass3
+    ;
+}
+abstract class AbstractSubClass1 extends acc::SuperClass {
+  synthetic constructor •() → self::AbstractSubClass1
+    ;
+  abstract method noSuchMethod(core::Invocation invocation) → dynamic;
+}
+abstract class AbstractSubClass2 extends core::Object implements acc::SuperClass {
+  synthetic constructor •() → self::AbstractSubClass2
+    ;
+  abstract method noSuchMethod(core::Invocation invocation) → dynamic;
+}
+abstract class _AbstractSubClass3&Object&SuperClass = core::Object with acc::SuperClass /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_AbstractSubClass3&Object&SuperClass
+    : super core::Object::•()
+    ;
+  mixin-super-stub method _inaccessibleMethod1() → void
+    return super.{acc::SuperClass::_inaccessibleMethod1}();
+  mixin-super-stub method accessibleMethod() → void
+    return super.{acc::SuperClass::accessibleMethod}();
+}
+abstract class AbstractSubClass3 extends self::_AbstractSubClass3&Object&SuperClass {
+  synthetic constructor •() → self::AbstractSubClass3
+    ;
+  abstract method noSuchMethod(core::Invocation invocation) → dynamic;
+}
+class SubAbstractSubClass1 extends self::AbstractSubClass1 {
+  synthetic constructor •() → self::SubAbstractSubClass1
+    ;
+}
+class SubAbstractSubClass2 extends self::AbstractSubClass2 {
+  synthetic constructor •() → self::SubAbstractSubClass2
+    ;
+  no-such-method-forwarder method _inaccessibleMethod1() → void
+    return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_inaccessibleMethod1, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+}
+class SubAbstractSubClass3 extends self::AbstractSubClass3 {
+  synthetic constructor •() → self::SubAbstractSubClass3
+    ;
+}
+class SubClassImplements1 extends acc::SuperClass implements acc::NoSuchMethodClass {
+  synthetic constructor •() → self::SubClassImplements1
+    ;
+}
+class SubClassImplements2 extends core::Object implements acc::SuperClass, acc::NoSuchMethodClass {
+  synthetic constructor •() → self::SubClassImplements2
+    ;
+  no-such-method-forwarder method _inaccessibleMethod1() → void
+    return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_inaccessibleMethod1, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+}
+abstract class _SubClassImplements3&Object&SuperClass = core::Object with acc::SuperClass /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_SubClassImplements3&Object&SuperClass
+    : super core::Object::•()
+    ;
+  mixin-super-stub method _inaccessibleMethod1() → void
+    return super.{acc::SuperClass::_inaccessibleMethod1}();
+  mixin-super-stub method accessibleMethod() → void
+    return super.{acc::SuperClass::accessibleMethod}();
+}
+class SubClassImplements3 extends self::_SubClassImplements3&Object&SuperClass implements acc::NoSuchMethodClass {
+  synthetic constructor •() → self::SubClassImplements3
+    ;
+}
+class SubSubClassImplements1 extends self::SubClassImplements1 {
+  synthetic constructor •() → self::SubSubClassImplements1
+    ;
+}
+class SubSubClassImplements2 extends self::SubClassImplements2 {
+  synthetic constructor •() → self::SubSubClassImplements2
+    ;
+}
+class SubSubClassImplements3 extends self::SubClassImplements3 {
+  synthetic constructor •() → self::SubSubClassImplements3
+    ;
+}
+abstract class AbstractSubClassImplements1 extends acc::SuperClass implements acc::NoSuchMethodClass {
+  synthetic constructor •() → self::AbstractSubClassImplements1
+    ;
+}
+abstract class AbstractSubClassImplements2 extends core::Object implements acc::SuperClass, acc::NoSuchMethodClass {
+  synthetic constructor •() → self::AbstractSubClassImplements2
+    ;
+}
+abstract class _AbstractSubClassImplements3&Object&SuperClass = core::Object with acc::SuperClass /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_AbstractSubClassImplements3&Object&SuperClass
+    : super core::Object::•()
+    ;
+  mixin-super-stub method _inaccessibleMethod1() → void
+    return super.{acc::SuperClass::_inaccessibleMethod1}();
+  mixin-super-stub method accessibleMethod() → void
+    return super.{acc::SuperClass::accessibleMethod}();
+}
+abstract class AbstractSubClassImplements3 extends self::_AbstractSubClassImplements3&Object&SuperClass implements acc::NoSuchMethodClass {
+  synthetic constructor •() → self::AbstractSubClassImplements3
+    ;
+}
+class SubAbstractSubClassImplements1 extends self::AbstractSubClassImplements1 {
+  synthetic constructor •() → self::SubAbstractSubClassImplements1
+    ;
+}
+class SubAbstractSubClassImplements2 extends self::AbstractSubClassImplements2 {
+  synthetic constructor •() → self::SubAbstractSubClassImplements2
+    ;
+  no-such-method-forwarder method _inaccessibleMethod1() → void
+    return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_inaccessibleMethod1, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+}
+class SubAbstractSubClassImplements3 extends self::AbstractSubClassImplements3 {
+  synthetic constructor •() → self::SubAbstractSubClassImplements3
+    ;
+}
+abstract class _SubClassWith1&SuperClass&NoSuchMethodClass = acc::SuperClass with acc::NoSuchMethodClass /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_SubClassWith1&SuperClass&NoSuchMethodClass
+    : super acc::SuperClass::•()
+    ;
+  abstract mixin-stub method noSuchMethod(core::Invocation invocation) → dynamic; -> acc::NoSuchMethodClass::noSuchMethod
+}
+class SubClassWith1 extends self::_SubClassWith1&SuperClass&NoSuchMethodClass {
+  synthetic constructor •() → self::SubClassWith1
+    ;
+}
+abstract class _SubClassWith2&Object&NoSuchMethodClass = core::Object with acc::NoSuchMethodClass /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_SubClassWith2&Object&NoSuchMethodClass
+    : super core::Object::•()
+    ;
+  abstract mixin-stub method noSuchMethod(core::Invocation invocation) → dynamic; -> acc::NoSuchMethodClass::noSuchMethod
+}
+class SubClassWith2 extends self::_SubClassWith2&Object&NoSuchMethodClass implements acc::SuperClass {
+  synthetic constructor •() → self::SubClassWith2
+    ;
+  no-such-method-forwarder method _inaccessibleMethod1() → void
+    return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_inaccessibleMethod1, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+}
+abstract class _SubClassWith3&Object&SuperClass = core::Object with acc::SuperClass /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_SubClassWith3&Object&SuperClass
+    : super core::Object::•()
+    ;
+  mixin-super-stub method _inaccessibleMethod1() → void
+    return super.{acc::SuperClass::_inaccessibleMethod1}();
+  mixin-super-stub method accessibleMethod() → void
+    return super.{acc::SuperClass::accessibleMethod}();
+}
+abstract class _SubClassWith3&Object&SuperClass&NoSuchMethodClass = self::_SubClassWith3&Object&SuperClass with acc::NoSuchMethodClass /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_SubClassWith3&Object&SuperClass&NoSuchMethodClass
+    : super self::_SubClassWith3&Object&SuperClass::•()
+    ;
+  abstract mixin-stub method noSuchMethod(core::Invocation invocation) → dynamic; -> acc::NoSuchMethodClass::noSuchMethod
+}
+class SubClassWith3 extends self::_SubClassWith3&Object&SuperClass&NoSuchMethodClass {
+  synthetic constructor •() → self::SubClassWith3
+    ;
+}
+abstract class _SubClassWith4&Object&NoSuchMethodClass = core::Object with acc::NoSuchMethodClass /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_SubClassWith4&Object&NoSuchMethodClass
+    : super core::Object::•()
+    ;
+  abstract mixin-stub method noSuchMethod(core::Invocation invocation) → dynamic; -> acc::NoSuchMethodClass::noSuchMethod
+}
+abstract class _SubClassWith4&Object&NoSuchMethodClass&SuperClass = self::_SubClassWith4&Object&NoSuchMethodClass with acc::SuperClass /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_SubClassWith4&Object&NoSuchMethodClass&SuperClass
+    : super self::_SubClassWith4&Object&NoSuchMethodClass::•()
+    ;
+  mixin-super-stub method _inaccessibleMethod1() → void
+    return super.{acc::SuperClass::_inaccessibleMethod1}();
+  mixin-super-stub method accessibleMethod() → void
+    return super.{acc::SuperClass::accessibleMethod}();
+}
+class SubClassWith4 extends self::_SubClassWith4&Object&NoSuchMethodClass&SuperClass {
+  synthetic constructor •() → self::SubClassWith4
+    ;
+}
+class SubSubClassWith1 extends self::SubClassWith1 {
+  synthetic constructor •() → self::SubSubClassWith1
+    ;
+}
+class SubSubClassWith2 extends self::SubClassWith2 {
+  synthetic constructor •() → self::SubSubClassWith2
+    ;
+}
+class SubSubClassWith3 extends self::SubClassWith3 {
+  synthetic constructor •() → self::SubSubClassWith3
+    ;
+}
+class SubSubClassWith4 extends self::SubClassWith4 {
+  synthetic constructor •() → self::SubSubClassWith4
+    ;
+}
+abstract class _AbstractSubClassWith1&SuperClass&NoSuchMethodClass = acc::SuperClass with acc::NoSuchMethodClass /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_AbstractSubClassWith1&SuperClass&NoSuchMethodClass
+    : super acc::SuperClass::•()
+    ;
+  abstract mixin-stub method noSuchMethod(core::Invocation invocation) → dynamic; -> acc::NoSuchMethodClass::noSuchMethod
+}
+abstract class AbstractSubClassWith1 extends self::_AbstractSubClassWith1&SuperClass&NoSuchMethodClass {
+  synthetic constructor •() → self::AbstractSubClassWith1
+    ;
+}
+abstract class _AbstractSubClassWith2&Object&NoSuchMethodClass = core::Object with acc::NoSuchMethodClass /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_AbstractSubClassWith2&Object&NoSuchMethodClass
+    : super core::Object::•()
+    ;
+  abstract mixin-stub method noSuchMethod(core::Invocation invocation) → dynamic; -> acc::NoSuchMethodClass::noSuchMethod
+}
+abstract class AbstractSubClassWith2 extends self::_AbstractSubClassWith2&Object&NoSuchMethodClass implements acc::SuperClass {
+  synthetic constructor •() → self::AbstractSubClassWith2
+    ;
+}
+abstract class _AbstractSubClassWith3&Object&SuperClass = core::Object with acc::SuperClass /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_AbstractSubClassWith3&Object&SuperClass
+    : super core::Object::•()
+    ;
+  mixin-super-stub method _inaccessibleMethod1() → void
+    return super.{acc::SuperClass::_inaccessibleMethod1}();
+  mixin-super-stub method accessibleMethod() → void
+    return super.{acc::SuperClass::accessibleMethod}();
+}
+abstract class _AbstractSubClassWith3&Object&SuperClass&NoSuchMethodClass = self::_AbstractSubClassWith3&Object&SuperClass with acc::NoSuchMethodClass /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_AbstractSubClassWith3&Object&SuperClass&NoSuchMethodClass
+    : super self::_AbstractSubClassWith3&Object&SuperClass::•()
+    ;
+  abstract mixin-stub method noSuchMethod(core::Invocation invocation) → dynamic; -> acc::NoSuchMethodClass::noSuchMethod
+}
+abstract class AbstractSubClassWith3 extends self::_AbstractSubClassWith3&Object&SuperClass&NoSuchMethodClass {
+  synthetic constructor •() → self::AbstractSubClassWith3
+    ;
+}
+abstract class _AbstractSubClassWith4&Object&NoSuchMethodClass = core::Object with acc::NoSuchMethodClass /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_AbstractSubClassWith4&Object&NoSuchMethodClass
+    : super core::Object::•()
+    ;
+  abstract mixin-stub method noSuchMethod(core::Invocation invocation) → dynamic; -> acc::NoSuchMethodClass::noSuchMethod
+}
+abstract class _AbstractSubClassWith4&Object&NoSuchMethodClass&SuperClass = self::_AbstractSubClassWith4&Object&NoSuchMethodClass with acc::SuperClass /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_AbstractSubClassWith4&Object&NoSuchMethodClass&SuperClass
+    : super self::_AbstractSubClassWith4&Object&NoSuchMethodClass::•()
+    ;
+  mixin-super-stub method _inaccessibleMethod1() → void
+    return super.{acc::SuperClass::_inaccessibleMethod1}();
+  mixin-super-stub method accessibleMethod() → void
+    return super.{acc::SuperClass::accessibleMethod}();
+}
+abstract class AbstractSubClassWith4 extends self::_AbstractSubClassWith4&Object&NoSuchMethodClass&SuperClass {
+  synthetic constructor •() → self::AbstractSubClassWith4
+    ;
+}
+class SubAbstractSubClassWith1 extends self::AbstractSubClassWith1 {
+  synthetic constructor •() → self::SubAbstractSubClassWith1
+    ;
+}
+class SubAbstractSubClassWith2 extends self::AbstractSubClassWith2 {
+  synthetic constructor •() → self::SubAbstractSubClassWith2
+    ;
+  no-such-method-forwarder method _inaccessibleMethod1() → void
+    return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_inaccessibleMethod1, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+}
+class SubAbstractSubClassWith3 extends self::AbstractSubClassWith3 {
+  synthetic constructor •() → self::SubAbstractSubClassWith3
+    ;
+}
+class SubAbstractSubClassWith4 extends self::AbstractSubClassWith4 {
+  synthetic constructor •() → self::SubAbstractSubClassWith4
+    ;
+}
+
+library;
+import self as acc;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///access_abstract_nsm.dart";
+
+mixin class SuperClass extends core::Object {
+  synthetic constructor •() → acc::SuperClass
+    ;
+  method _inaccessibleMethod1() → void
+    ;
+  method accessibleMethod() → void
+    ;
+}
+mixin class NoSuchMethodClass extends core::Object {
+  synthetic constructor •() → acc::NoSuchMethodClass
+    ;
+  abstract method noSuchMethod(core::Invocation invocation) → dynamic;
+}
+
+
+Extra constant evaluation status:
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///access_abstract_nsm.dart:11:7 -> SymbolConstant(#_inaccessibleMethod1)
+Evaluated: ListLiteral @ org-dartlang-testcase:///access_abstract_nsm.dart:11:7 -> ListConstant(const <Type>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///access_abstract_nsm.dart:11:7 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///access_abstract_nsm.dart:11:7 -> MapConstant(const <Symbol, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///access_abstract_nsm.dart:39:7 -> SymbolConstant(#_inaccessibleMethod1)
+Evaluated: ListLiteral @ org-dartlang-testcase:///access_abstract_nsm.dart:39:7 -> ListConstant(const <Type>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///access_abstract_nsm.dart:39:7 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///access_abstract_nsm.dart:39:7 -> MapConstant(const <Symbol, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///access_abstract_nsm.dart:45:7 -> SymbolConstant(#_inaccessibleMethod1)
+Evaluated: ListLiteral @ org-dartlang-testcase:///access_abstract_nsm.dart:45:7 -> ListConstant(const <Type>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///access_abstract_nsm.dart:45:7 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///access_abstract_nsm.dart:45:7 -> MapConstant(const <Symbol, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///access_abstract_nsm.dart:67:7 -> SymbolConstant(#_inaccessibleMethod1)
+Evaluated: ListLiteral @ org-dartlang-testcase:///access_abstract_nsm.dart:67:7 -> ListConstant(const <Type>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///access_abstract_nsm.dart:67:7 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///access_abstract_nsm.dart:67:7 -> MapConstant(const <Symbol, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///access_abstract_nsm.dart:73:7 -> SymbolConstant(#_inaccessibleMethod1)
+Evaluated: ListLiteral @ org-dartlang-testcase:///access_abstract_nsm.dart:73:7 -> ListConstant(const <Type>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///access_abstract_nsm.dart:73:7 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///access_abstract_nsm.dart:73:7 -> MapConstant(const <Symbol, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///access_abstract_nsm.dart:100:7 -> SymbolConstant(#_inaccessibleMethod1)
+Evaluated: ListLiteral @ org-dartlang-testcase:///access_abstract_nsm.dart:100:7 -> ListConstant(const <Type>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///access_abstract_nsm.dart:100:7 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///access_abstract_nsm.dart:100:7 -> MapConstant(const <Symbol, dynamic>{})
+Extra constant evaluation: evaluated: 70, effectively constant: 24

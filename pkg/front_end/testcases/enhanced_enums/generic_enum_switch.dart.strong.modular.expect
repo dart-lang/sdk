@@ -1,0 +1,171 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/enhanced_enums/generic_enum_switch.dart:24:15: Error: Type 'Enum<String>' of the case expression is not a subtype of type 'Enum<num>' of this switch expression.
+//  - 'Enum' is from 'pkg/front_end/testcases/enhanced_enums/generic_enum_switch.dart'.
+//     case Enum.b:
+//               ^
+// pkg/front_end/testcases/enhanced_enums/generic_enum_switch.dart:22:11: Context: The switch expression is here.
+//   switch (e) {
+//           ^
+//
+// pkg/front_end/testcases/enhanced_enums/generic_enum_switch.dart:25:15: Error: Type 'Enum<bool>' of the case expression is not a subtype of type 'Enum<num>' of this switch expression.
+//  - 'Enum' is from 'pkg/front_end/testcases/enhanced_enums/generic_enum_switch.dart'.
+//     case Enum.c:
+//               ^
+// pkg/front_end/testcases/enhanced_enums/generic_enum_switch.dart:22:11: Context: The switch expression is here.
+//   switch (e) {
+//           ^
+//
+// pkg/front_end/testcases/enhanced_enums/generic_enum_switch.dart:31:15: Error: Type 'Enum<num>' of the case expression is not a subtype of type 'Enum<int>' of this switch expression.
+//  - 'Enum' is from 'pkg/front_end/testcases/enhanced_enums/generic_enum_switch.dart'.
+//     case Enum.a:
+//               ^
+// pkg/front_end/testcases/enhanced_enums/generic_enum_switch.dart:30:11: Context: The switch expression is here.
+//   switch (e) {
+//           ^
+//
+// pkg/front_end/testcases/enhanced_enums/generic_enum_switch.dart:32:15: Error: Type 'Enum<String>' of the case expression is not a subtype of type 'Enum<int>' of this switch expression.
+//  - 'Enum' is from 'pkg/front_end/testcases/enhanced_enums/generic_enum_switch.dart'.
+//     case Enum.b:
+//               ^
+// pkg/front_end/testcases/enhanced_enums/generic_enum_switch.dart:30:11: Context: The switch expression is here.
+//   switch (e) {
+//           ^
+//
+// pkg/front_end/testcases/enhanced_enums/generic_enum_switch.dart:33:15: Error: Type 'Enum<bool>' of the case expression is not a subtype of type 'Enum<int>' of this switch expression.
+//  - 'Enum' is from 'pkg/front_end/testcases/enhanced_enums/generic_enum_switch.dart'.
+//     case Enum.c:
+//               ^
+// pkg/front_end/testcases/enhanced_enums/generic_enum_switch.dart:30:11: Context: The switch expression is here.
+//   switch (e) {
+//           ^
+//
+// pkg/front_end/testcases/enhanced_enums/generic_enum_switch.dart:39:15: Error: Type 'Enum<num>' of the case expression is not a subtype of type 'Enum<T>' of this switch expression.
+//  - 'Enum' is from 'pkg/front_end/testcases/enhanced_enums/generic_enum_switch.dart'.
+//     case Enum.a:
+//               ^
+// pkg/front_end/testcases/enhanced_enums/generic_enum_switch.dart:38:11: Context: The switch expression is here.
+//   switch (e) {
+//           ^
+//
+// pkg/front_end/testcases/enhanced_enums/generic_enum_switch.dart:40:15: Error: Type 'Enum<String>' of the case expression is not a subtype of type 'Enum<T>' of this switch expression.
+//  - 'Enum' is from 'pkg/front_end/testcases/enhanced_enums/generic_enum_switch.dart'.
+//     case Enum.b:
+//               ^
+// pkg/front_end/testcases/enhanced_enums/generic_enum_switch.dart:38:11: Context: The switch expression is here.
+//   switch (e) {
+//           ^
+//
+// pkg/front_end/testcases/enhanced_enums/generic_enum_switch.dart:41:15: Error: Type 'Enum<bool>' of the case expression is not a subtype of type 'Enum<T>' of this switch expression.
+//  - 'Enum' is from 'pkg/front_end/testcases/enhanced_enums/generic_enum_switch.dart'.
+//     case Enum.c:
+//               ^
+// pkg/front_end/testcases/enhanced_enums/generic_enum_switch.dart:38:11: Context: The switch expression is here.
+//   switch (e) {
+//           ^
+//
+// pkg/front_end/testcases/enhanced_enums/generic_enum_switch.dart:47:15: Error: Type 'Enum<num>' of the case expression is not a subtype of type 'Enum<T>' of this switch expression.
+//  - 'Enum' is from 'pkg/front_end/testcases/enhanced_enums/generic_enum_switch.dart'.
+//     case Enum.a:
+//               ^
+// pkg/front_end/testcases/enhanced_enums/generic_enum_switch.dart:46:11: Context: The switch expression is here.
+//   switch (e) {
+//           ^
+//
+// pkg/front_end/testcases/enhanced_enums/generic_enum_switch.dart:48:15: Error: Type 'Enum<String>' of the case expression is not a subtype of type 'Enum<T>' of this switch expression.
+//  - 'Enum' is from 'pkg/front_end/testcases/enhanced_enums/generic_enum_switch.dart'.
+//     case Enum.b:
+//               ^
+// pkg/front_end/testcases/enhanced_enums/generic_enum_switch.dart:46:11: Context: The switch expression is here.
+//   switch (e) {
+//           ^
+//
+// pkg/front_end/testcases/enhanced_enums/generic_enum_switch.dart:49:15: Error: Type 'Enum<bool>' of the case expression is not a subtype of type 'Enum<T>' of this switch expression.
+//  - 'Enum' is from 'pkg/front_end/testcases/enhanced_enums/generic_enum_switch.dart'.
+//     case Enum.c:
+//               ^
+// pkg/front_end/testcases/enhanced_enums/generic_enum_switch.dart:46:11: Context: The switch expression is here.
+//   switch (e) {
+//           ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Enum<T extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::Enum<dynamic>> values = #C10;
+  enum-element static const field self::Enum<core::num> a = #C3;
+  enum-element static const field self::Enum<core::String> b = #C6;
+  enum-element static const field self::Enum<core::bool> c = #C9;
+  const synthetic constructor •(core::int #index, core::String #name) → self::Enum<self::Enum::T%>
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "Enum.${this.{core::_Enum::_name}{core::String}}";
+}
+static method method1(self::Enum<dynamic> e) → dynamic {
+  switch(e) /* isExplicitlyExhaustive, self::Enum<dynamic> */ {
+    #L1:
+    case #C3:
+    case #C6:
+    case #C9:
+      {}
+  }
+}
+static method method2(self::Enum<core::num> e) → dynamic {
+  switch(e) /* isExplicitlyExhaustive, self::Enum<core::num> */ {
+    #L2:
+    case #C3:
+    case #C6:
+    case #C9:
+      {}
+  }
+}
+static method method3(self::Enum<core::int> e) → dynamic {
+  switch(e) /* isExplicitlyExhaustive, self::Enum<core::int> */ {
+    #L3:
+    case #C3:
+    case #C6:
+    case #C9:
+      {}
+  }
+}
+static method method4<T extends core::Object? = dynamic>(self::Enum<self::method4::T%> e) → dynamic {
+  switch(e) /* isExplicitlyExhaustive, self::Enum<self::method4::T%> */ {
+    #L4:
+    case #C3:
+    case #C6:
+    case #C9:
+      {}
+  }
+}
+static method method5<T extends core::num>(self::Enum<self::method5::T> e) → dynamic {
+  switch(e) /* isExplicitlyExhaustive, self::Enum<self::method5::T> */ {
+    #L5:
+    case #C3:
+    case #C6:
+    case #C9:
+      {}
+  }
+}
+
+constants  {
+  #C1 = 0
+  #C2 = "a"
+  #C3 = self::Enum<core::num> {index:#C1, _name:#C2}
+  #C4 = 1
+  #C5 = "b"
+  #C6 = self::Enum<core::String> {index:#C4, _name:#C5}
+  #C7 = 2
+  #C8 = "c"
+  #C9 = self::Enum<core::bool> {index:#C7, _name:#C8}
+  #C10 = <self::Enum<dynamic>>[#C3, #C6, #C9]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///generic_enum_switch.dart:
+- Enum. (from org-dartlang-testcase:///generic_enum_switch.dart:7:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

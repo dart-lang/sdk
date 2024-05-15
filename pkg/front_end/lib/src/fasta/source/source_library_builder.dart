@@ -418,7 +418,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void _updateLibraryNNBDSettings() {
-    library.isNonNullableByDefault = true;
     switch (loader.nnbdMode) {
       case NnbdMode.Weak:
         library.nonNullableByDefaultCompiledMode =
@@ -2259,25 +2258,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       // been reported.
     } else {
       bool isValid = typeEnvironment.isSubtypeOf(
-          getterType,
-          setterType,
-          library.isNonNullableByDefault
-              ? SubtypeCheckMode.withNullabilities
-              : SubtypeCheckMode.ignoringNullabilities);
-      if (!isValid && !library.isNonNullableByDefault) {
-        // Allow assignability in legacy libraries.
-        isValid = typeEnvironment.isSubtypeOf(
-            setterType, getterType, SubtypeCheckMode.ignoringNullabilities);
-      }
+          getterType, setterType, SubtypeCheckMode.withNullabilities);
       if (!isValid) {
         String getterMemberName = getterBuilder.fullNameForErrors;
         String setterMemberName = setterBuilder.fullNameForErrors;
-        Template<Message Function(DartType, String, DartType, String)>
-            template = library.isNonNullableByDefault
-                ? templateInvalidGetterSetterType
-                : templateInvalidGetterSetterTypeLegacy;
         addProblem(
-            template.withArguments(
+            templateInvalidGetterSetterType.withArguments(
                 getterType, getterMemberName, setterType, setterMemberName),
             getterBuilder.charOffset,
             getterBuilder.name.length,
@@ -4874,7 +4860,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     List<TypeArgumentIssue> issues = findTypeArgumentIssues(
         type, typeEnvironment, SubtypeCheckMode.withNullabilities,
         allowSuperBounded: allowSuperBounded,
-        isNonNullableByDefault: library.isNonNullableByDefault,
+        isNonNullableByDefault: true,
         areGenericArgumentsAllowed: libraryFeatures.genericMetadata.isEnabled);
     _reportTypeArgumentIssues(issues, fileUri, offset, inferred: inferred);
   }
@@ -4928,7 +4914,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         typeEnvironment,
         SubtypeCheckMode.withNullabilities,
         bottomType,
-        isNonNullableByDefault: library.isNonNullableByDefault,
+        isNonNullableByDefault: true,
         areGenericArgumentsAllowed: libraryFeatures.genericMetadata.isEnabled);
     if (issues.isNotEmpty) {
       DartType? targetReceiver;
@@ -5003,7 +4989,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         typeEnvironment,
         SubtypeCheckMode.withNullabilities,
         bottomType,
-        isNonNullableByDefault: library.isNonNullableByDefault,
+        isNonNullableByDefault: true,
         areGenericArgumentsAllowed: libraryFeatures.genericMetadata.isEnabled);
     _reportTypeArgumentIssues(issues, fileUri, offset,
         typeArgumentsInfo: getTypeArgumentsInfo(arguments),
@@ -5031,7 +5017,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         typeEnvironment,
         SubtypeCheckMode.withNullabilities,
         bottomType,
-        isNonNullableByDefault: library.isNonNullableByDefault,
+        isNonNullableByDefault: true,
         areGenericArgumentsAllowed: libraryFeatures.genericMetadata.isEnabled);
     _reportTypeArgumentIssues(issues, fileUri, offset,
         typeArgumentsInfo: getTypeArgumentsInfo(arguments),
@@ -5063,7 +5049,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         typeEnvironment,
         SubtypeCheckMode.withNullabilities,
         bottomType,
-        isNonNullableByDefault: library.isNonNullableByDefault,
+        isNonNullableByDefault: true,
         areGenericArgumentsAllowed: libraryFeatures.genericMetadata.isEnabled);
     _reportTypeArgumentIssues(issues, fileUri, offset,
         targetReceiver: functionType,

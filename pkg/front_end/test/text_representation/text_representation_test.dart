@@ -128,7 +128,8 @@ class TextRepresentationDataExtractor extends CfeDataExtractor<String> {
 
   @override
   String computeLibraryValue(Id id, Library node) {
-    return 'nnbd=${node.isNonNullableByDefault}';
+    // TODO(johnniwinther): Remove this.
+    return 'nnbd=true';
   }
 
   @override

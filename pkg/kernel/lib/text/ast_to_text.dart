@@ -406,9 +406,6 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     if (library.isUnsupported) {
       flags.add('isUnsupported');
     }
-    if (!library.isNonNullableByDefault) {
-      flags.add('isLegacy');
-    }
     if (flags.isNotEmpty) {
       writeWord('/*${flags.join(',')}*/');
     }
@@ -1092,14 +1089,6 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       writeExpression(initializer);
     }
     List<String> features = <String>[];
-    if (node.enclosingLibrary.isNonNullableByDefault !=
-        node.isNonNullableByDefault) {
-      if (node.isNonNullableByDefault) {
-        features.add("isNonNullableByDefault");
-      } else {
-        features.add("isLegacy");
-      }
-    }
     Class? enclosingClass = node.enclosingClass;
     if ((enclosingClass == null &&
             node.enclosingLibrary.fileUri != node.fileUri) ||
@@ -1146,14 +1135,6 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     }
     writeWord(procedureKindToString(node.kind));
     List<String> features = <String>[];
-    if (node.enclosingLibrary.isNonNullableByDefault !=
-        node.isNonNullableByDefault) {
-      if (node.isNonNullableByDefault) {
-        features.add("isNonNullableByDefault");
-      } else {
-        features.add("isLegacy");
-      }
-    }
     Class? enclosingClass = node.enclosingClass;
     if ((enclosingClass == null &&
             node.enclosingLibrary.fileUri != node.fileUri) ||
@@ -1200,14 +1181,6 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeModifier(node.isSynthetic, 'synthetic');
     writeWord('constructor');
     List<String> features = <String>[];
-    if (node.enclosingLibrary.isNonNullableByDefault !=
-        node.isNonNullableByDefault) {
-      if (node.isNonNullableByDefault) {
-        features.add("isNonNullableByDefault");
-      } else {
-        features.add("isLegacy");
-      }
-    }
     if (features.isNotEmpty) {
       writeWord("/*${features.join(',')}*/");
     }
@@ -1753,7 +1726,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   @override
   void visitIsExpression(IsExpression node) {
     writeExpression(node.operand, Precedence.BITWISE_OR);
-    writeSpaced(!node.isForNonNullableByDefault ? 'is{ForLegacy}' : 'is');
+    writeSpaced('is');
     writeType(node.type);
   }
 
@@ -1769,9 +1742,6 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     }
     if (node.isForDynamic) {
       flags.add('ForDynamic');
-    }
-    if (!node.isForNonNullableByDefault) {
-      flags.add('ForLegacy');
     }
     if (node.isUnchecked) {
       flags.add('Unchecked');

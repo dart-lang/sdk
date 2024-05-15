@@ -810,12 +810,6 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
 
   if (library.Loaded()) return library.ptr();
 
-  if (!library_helper.IsNonNullableByDefault()) {
-    H.ReportError(
-        "Library '%s' was compiled without sound null safety (in weak mode) "
-        "and it cannot be used at runtime",
-        String::Handle(library.url()).ToCString());
-  }
   const NNBDCompiledMode mode =
       library_helper.GetNonNullableByDefaultCompiledMode();
   if (mode == NNBDCompiledMode::kInvalid) {

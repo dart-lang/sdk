@@ -1,0 +1,305 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/primitive_equality.dart:27:16: Error: Constant evaluation error:
+// const a1 = A() == Const(); // Error
+//                ^
+// pkg/front_end/testcases/patterns/primitive_equality.dart:27:16: Context: Binary operator '==' requires receiver constant 'A {}' of a type with primitive equality or type 'double', but was of type 'A'.
+//  - 'A' is from 'pkg/front_end/testcases/patterns/primitive_equality.dart'.
+// const a1 = A() == Const(); // Error
+//                ^
+// pkg/front_end/testcases/patterns/primitive_equality.dart:27:7: Context: While analyzing:
+// const a1 = A() == Const(); // Error
+//       ^
+//
+// pkg/front_end/testcases/patterns/primitive_equality.dart:29:16: Error: Constant evaluation error:
+// const a3 = A() != Const(); // Error
+//                ^
+// pkg/front_end/testcases/patterns/primitive_equality.dart:29:16: Context: Binary operator '==' requires receiver constant 'A {}' of a type with primitive equality or type 'double', but was of type 'A'.
+//  - 'A' is from 'pkg/front_end/testcases/patterns/primitive_equality.dart'.
+// const a3 = A() != Const(); // Error
+//                ^
+// pkg/front_end/testcases/patterns/primitive_equality.dart:29:7: Context: While analyzing:
+// const a3 = A() != Const(); // Error
+//       ^
+//
+// pkg/front_end/testcases/patterns/primitive_equality.dart:36:16: Error: Constant evaluation error:
+// const b1 = B() == Const(); // Error
+//                ^
+// pkg/front_end/testcases/patterns/primitive_equality.dart:36:16: Context: Binary operator '==' requires receiver constant 'B {}' of a type with primitive equality or type 'double', but was of type 'B'.
+//  - 'B' is from 'pkg/front_end/testcases/patterns/primitive_equality.dart'.
+// const b1 = B() == Const(); // Error
+//                ^
+// pkg/front_end/testcases/patterns/primitive_equality.dart:36:7: Context: While analyzing:
+// const b1 = B() == Const(); // Error
+//       ^
+//
+// pkg/front_end/testcases/patterns/primitive_equality.dart:38:16: Error: Constant evaluation error:
+// const b3 = B() != Const(); // Error
+//                ^
+// pkg/front_end/testcases/patterns/primitive_equality.dart:38:16: Context: Binary operator '==' requires receiver constant 'B {}' of a type with primitive equality or type 'double', but was of type 'B'.
+//  - 'B' is from 'pkg/front_end/testcases/patterns/primitive_equality.dart'.
+// const b3 = B() != Const(); // Error
+//                ^
+// pkg/front_end/testcases/patterns/primitive_equality.dart:38:7: Context: While analyzing:
+// const b3 = B() != Const(); // Error
+//       ^
+//
+// pkg/front_end/testcases/patterns/primitive_equality.dart:45:16: Error: Constant evaluation error:
+// const c1 = C() == Const(); // Error
+//                ^
+// pkg/front_end/testcases/patterns/primitive_equality.dart:45:16: Context: Binary operator '==' requires receiver constant 'C {}' of a type with primitive equality or type 'double', but was of type 'C'.
+//  - 'C' is from 'pkg/front_end/testcases/patterns/primitive_equality.dart'.
+// const c1 = C() == Const(); // Error
+//                ^
+// pkg/front_end/testcases/patterns/primitive_equality.dart:45:7: Context: While analyzing:
+// const c1 = C() == Const(); // Error
+//       ^
+//
+// pkg/front_end/testcases/patterns/primitive_equality.dart:47:16: Error: Constant evaluation error:
+// const c3 = C() != Const(); // Error
+//                ^
+// pkg/front_end/testcases/patterns/primitive_equality.dart:47:16: Context: Binary operator '==' requires receiver constant 'C {}' of a type with primitive equality or type 'double', but was of type 'C'.
+//  - 'C' is from 'pkg/front_end/testcases/patterns/primitive_equality.dart'.
+// const c3 = C() != Const(); // Error
+//                ^
+// pkg/front_end/testcases/patterns/primitive_equality.dart:47:7: Context: While analyzing:
+// const c3 = C() != Const(); // Error
+//       ^
+//
+// pkg/front_end/testcases/patterns/primitive_equality.dart:124:14: Error: Constant evaluation error:
+// const set2 = {
+//              ^
+// pkg/front_end/testcases/patterns/primitive_equality.dart:125:3: Context: The element 'A {}' does not have a primitive equality.
+//  - 'A' is from 'pkg/front_end/testcases/patterns/primitive_equality.dart'.
+//   A(), // Error
+//   ^
+// pkg/front_end/testcases/patterns/primitive_equality.dart:124:7: Context: While analyzing:
+// const set2 = {
+//       ^
+//
+// pkg/front_end/testcases/patterns/primitive_equality.dart:128:14: Error: Constant evaluation error:
+// const set3 = {
+//              ^
+// pkg/front_end/testcases/patterns/primitive_equality.dart:129:3: Context: The element 'B {}' does not have a primitive equality.
+//  - 'B' is from 'pkg/front_end/testcases/patterns/primitive_equality.dart'.
+//   B(), // Error
+//   ^
+// pkg/front_end/testcases/patterns/primitive_equality.dart:128:7: Context: While analyzing:
+// const set3 = {
+//       ^
+//
+// pkg/front_end/testcases/patterns/primitive_equality.dart:132:14: Error: Constant evaluation error:
+// const set4 = {
+//              ^
+// pkg/front_end/testcases/patterns/primitive_equality.dart:133:3: Context: The element 'C {}' does not have a primitive equality.
+//  - 'C' is from 'pkg/front_end/testcases/patterns/primitive_equality.dart'.
+//   C(), // Error
+//   ^
+// pkg/front_end/testcases/patterns/primitive_equality.dart:132:7: Context: While analyzing:
+// const set4 = {
+//       ^
+//
+// pkg/front_end/testcases/patterns/primitive_equality.dart:136:14: Error: Constant evaluation error:
+// const set5 = {
+//              ^
+// pkg/front_end/testcases/patterns/primitive_equality.dart:137:3: Context: The element '0.5' does not have a primitive equality.
+//   0.5, // Error,
+//   ^
+// pkg/front_end/testcases/patterns/primitive_equality.dart:136:7: Context: While analyzing:
+// const set5 = {
+//       ^
+//
+// pkg/front_end/testcases/patterns/primitive_equality.dart:155:14: Error: Constant evaluation error:
+// const map2 = {
+//              ^
+// pkg/front_end/testcases/patterns/primitive_equality.dart:156:3: Context: The key 'A {}' does not have a primitive equality.
+//  - 'A' is from 'pkg/front_end/testcases/patterns/primitive_equality.dart'.
+//   A(): 0, // Error
+//   ^
+// pkg/front_end/testcases/patterns/primitive_equality.dart:155:7: Context: While analyzing:
+// const map2 = {
+//       ^
+//
+// pkg/front_end/testcases/patterns/primitive_equality.dart:159:14: Error: Constant evaluation error:
+// const map3 = {
+//              ^
+// pkg/front_end/testcases/patterns/primitive_equality.dart:160:3: Context: The key 'B {}' does not have a primitive equality.
+//  - 'B' is from 'pkg/front_end/testcases/patterns/primitive_equality.dart'.
+//   B(): 0, // Error
+//   ^
+// pkg/front_end/testcases/patterns/primitive_equality.dart:159:7: Context: While analyzing:
+// const map3 = {
+//       ^
+//
+// pkg/front_end/testcases/patterns/primitive_equality.dart:163:14: Error: Constant evaluation error:
+// const map4 = {
+//              ^
+// pkg/front_end/testcases/patterns/primitive_equality.dart:164:3: Context: The key 'C {}' does not have a primitive equality.
+//  - 'C' is from 'pkg/front_end/testcases/patterns/primitive_equality.dart'.
+//   C(): 0, // Error
+//   ^
+// pkg/front_end/testcases/patterns/primitive_equality.dart:163:7: Context: While analyzing:
+// const map4 = {
+//       ^
+//
+// pkg/front_end/testcases/patterns/primitive_equality.dart:167:14: Error: Constant evaluation error:
+// const map5 = {
+//              ^
+// pkg/front_end/testcases/patterns/primitive_equality.dart:168:3: Context: The key '0.5' does not have a primitive equality.
+//   0.5: 0, // Error,
+//   ^
+// pkg/front_end/testcases/patterns/primitive_equality.dart:167:7: Context: While analyzing:
+// const map5 = {
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Const extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::Const
+    : super core::Object::•()
+    ;
+}
+class A extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::A
+    : super core::Object::•()
+    ;
+  get hashCode() → core::int
+    return super.{core::Object::hashCode}.{core::num::+}(1){(core::num) → core::int};
+}
+class B extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::B
+    : super core::Object::•()
+    ;
+  operator ==(core::Object other) → core::bool
+    return super.{core::Object::==}(other);
+}
+class C extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::C
+    : super core::Object::•()
+    ;
+  get hashCode() → core::int
+    return super.{core::Object::hashCode}.{core::num::+}(1){(core::num) → core::int};
+  operator ==(core::Object other) → core::bool
+    return super.{core::Object::==}(other);
+}
+static const field core::bool a1 = invalid-expression "Binary operator '==' requires receiver constant 'A {}' of a type with primitive equality or type 'double', but was of type 'A'.
+ - 'A' is from 'pkg/front_end/testcases/patterns/primitive_equality.dart'.";
+static const field core::bool a2 = #C1;
+static const field core::bool a3 = invalid-expression "Binary operator '==' requires receiver constant 'A {}' of a type with primitive equality or type 'double', but was of type 'A'.
+ - 'A' is from 'pkg/front_end/testcases/patterns/primitive_equality.dart'.";
+static const field core::bool a4 = #C2;
+static const field core::bool a5 = #C1;
+static const field core::bool a6 = #C1;
+static const field core::bool a7 = #C2;
+static const field core::bool a8 = #C2;
+static const field core::bool b1 = invalid-expression "Binary operator '==' requires receiver constant 'B {}' of a type with primitive equality or type 'double', but was of type 'B'.
+ - 'B' is from 'pkg/front_end/testcases/patterns/primitive_equality.dart'.";
+static const field core::bool b2 = #C1;
+static const field core::bool b3 = invalid-expression "Binary operator '==' requires receiver constant 'B {}' of a type with primitive equality or type 'double', but was of type 'B'.
+ - 'B' is from 'pkg/front_end/testcases/patterns/primitive_equality.dart'.";
+static const field core::bool b4 = #C2;
+static const field core::bool b5 = #C1;
+static const field core::bool b6 = #C1;
+static const field core::bool b7 = #C2;
+static const field core::bool b8 = #C2;
+static const field core::bool c1 = invalid-expression "Binary operator '==' requires receiver constant 'C {}' of a type with primitive equality or type 'double', but was of type 'C'.
+ - 'C' is from 'pkg/front_end/testcases/patterns/primitive_equality.dart'.";
+static const field core::bool c2 = #C1;
+static const field core::bool c3 = invalid-expression "Binary operator '==' requires receiver constant 'C {}' of a type with primitive equality or type 'double', but was of type 'C'.
+ - 'C' is from 'pkg/front_end/testcases/patterns/primitive_equality.dart'.";
+static const field core::bool c4 = #C2;
+static const field core::bool c5 = #C1;
+static const field core::bool c6 = #C1;
+static const field core::bool c7 = #C2;
+static const field core::bool c8 = #C2;
+static const field core::bool d1 = #C1;
+static const field core::bool d2 = #C1;
+static const field core::bool d3 = #C2;
+static const field core::bool d4 = #C2;
+static const field core::bool e1 = #C1;
+static const field core::bool e2 = #C1;
+static const field core::bool e3 = #C2;
+static const field core::bool e4 = #C2;
+static const field core::bool f1 = #C1;
+static const field core::bool f2 = #C1;
+static const field core::bool f3 = #C2;
+static const field core::bool f4 = #C2;
+static const field core::bool g1 = #C1;
+static const field core::bool g2 = #C1;
+static const field core::bool g3 = #C2;
+static const field core::bool g4 = #C2;
+static const field core::bool h1 = #C1;
+static const field core::bool h2 = #C1;
+static const field core::bool h3 = #C2;
+static const field core::bool h4 = #C2;
+static const field core::bool i1 = #C1;
+static const field core::bool i2 = #C1;
+static const field core::bool i3 = #C2;
+static const field core::bool i4 = #C2;
+static const field core::bool j1 = #C1;
+static const field core::bool j2 = #C1;
+static const field core::bool j3 = #C2;
+static const field core::bool j4 = #C2;
+static const field core::bool k1 = #C1;
+static const field core::bool k2 = #C1;
+static const field core::bool k3 = #C2;
+static const field core::bool k4 = #C2;
+static const field core::bool l1 = #C1;
+static const field core::bool l2 = #C1;
+static const field core::bool l3 = #C2;
+static const field core::bool l4 = #C2;
+static const field core::bool n1 = #C1;
+static const field core::bool n2 = #C1;
+static const field core::bool n3 = #C2;
+static const field core::bool n4 = #C2;
+static const field core::bool o1 = #C1;
+static const field core::bool o2 = #C1;
+static const field core::bool o3 = #C2;
+static const field core::bool o4 = #C2;
+static const field core::Set<core::Object?> set1 = #C14;
+static const field core::Set<self::A> set2 = invalid-expression "The element 'A {}' does not have a primitive equality.
+ - 'A' is from 'pkg/front_end/testcases/patterns/primitive_equality.dart'.";
+static const field core::Set<self::B> set3 = invalid-expression "The element 'B {}' does not have a primitive equality.
+ - 'B' is from 'pkg/front_end/testcases/patterns/primitive_equality.dart'.";
+static const field core::Set<self::C> set4 = invalid-expression "The element 'C {}' does not have a primitive equality.
+ - 'C' is from 'pkg/front_end/testcases/patterns/primitive_equality.dart'.";
+static const field core::Set<core::double> set5 = invalid-expression "The element '0.5' does not have a primitive equality.";
+static const field core::Map<core::Object?, core::int> map1 = #C15;
+static const field core::Map<self::A, core::int> map2 = invalid-expression "The key 'A {}' does not have a primitive equality.
+ - 'A' is from 'pkg/front_end/testcases/patterns/primitive_equality.dart'.";
+static const field core::Map<self::B, core::int> map3 = invalid-expression "The key 'B {}' does not have a primitive equality.
+ - 'B' is from 'pkg/front_end/testcases/patterns/primitive_equality.dart'.";
+static const field core::Map<self::C, core::int> map4 = invalid-expression "The key 'C {}' does not have a primitive equality.
+ - 'C' is from 'pkg/front_end/testcases/patterns/primitive_equality.dart'.";
+static const field core::Map<core::double, core::int> map5 = invalid-expression "The key '0.5' does not have a primitive equality.";
+static method topLevel() → void {}
+
+constants  {
+  #C1 = false
+  #C2 = true
+  #C3 = null
+  #C4 = self::Const {}
+  #C5 = 0
+  #C6 = ""
+  #C7 = #a
+  #C8 = #b
+  #C9 = TypeLiteralConstant(core::Object)
+  #C10 = <dynamic>[]
+  #C11 = <dynamic, dynamic>{}
+  #C12 = <core::int>{#C5}
+  #C13 = static-tearoff self::topLevel
+  #C14 = <core::Object?>{#C3, #C4, #C2, #C5, #C6, #C7, #C8, #C9, #C10, #C11, #C12, #C13}
+  #C15 = <core::Object?, core::int>{#C3:#C5, #C4:#C5, #C2:#C5, #C5:#C5, #C6:#C5, #C7:#C5, #C8:#C5, #C9:#C5, #C10:#C5, #C11:#C5, #C12:#C5, #C13:#C5}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///primitive_equality.dart:
+- A. (from org-dartlang-testcase:///primitive_equality.dart:12:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+- Const. (from org-dartlang-testcase:///primitive_equality.dart:8:9)
+- B. (from org-dartlang-testcase:///primitive_equality.dart:17:9)
+- C. (from org-dartlang-testcase:///primitive_equality.dart:22:9)

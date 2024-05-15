@@ -4871,11 +4871,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     final Constant constant = _evaluateSubexpression(node.operand);
     if (constant is AbortConstant) return constant;
     if (shouldBeUnevaluated) {
-      return unevaluated(
-          node,
-          new AsExpression(_wrap(constant), env.substituteType(node.type))
-            ..isForNonNullableByDefault =
-                staticTypeContext.isNonNullableByDefault);
+      return unevaluated(node,
+          new AsExpression(_wrap(constant), env.substituteType(node.type)));
     }
     DartType? type = _evaluateDartType(node, node.type);
     if (type == null) {
@@ -4895,8 +4892,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       return unevaluated(
           node,
           new IsExpression(_wrap(constant), env.substituteType(node.type))
-            ..fileOffset = node.fileOffset
-            ..flags = node.flags);
+            ..fileOffset = node.fileOffset);
     }
 
     DartType? type = _evaluateDartType(node, node.type);

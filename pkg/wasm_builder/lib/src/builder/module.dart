@@ -17,7 +17,6 @@ class ModuleBuilder with Builder<ir.Module> {
   final dataSegments = DataSegmentsBuilder();
   late final globals = GlobalsBuilder(this);
   final exports = ExportsBuilder();
-  bool dataReferencedFromGlobalInitializer = false;
 
   /// Create a new, initially empty, module.
   ///
@@ -42,12 +41,12 @@ class ModuleBuilder with Builder<ir.Module> {
         finalGlobals,
         types.build(),
         dataSegments.build(),
-        finalFunctions.imported
-            .followedBy(finalTables.imported)
-            .followedBy(finalMemories.imported)
-            .followedBy(finalGlobals.imported)
-            .toList(),
-        watchPoints,
-        dataReferencedFromGlobalInitializer);
+        <ir.Import>[
+          ...finalFunctions.imported,
+          ...finalTables.imported,
+          ...finalMemories.imported,
+          ...finalGlobals.imported
+        ],
+        watchPoints);
   }
 }

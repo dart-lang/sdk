@@ -64,8 +64,7 @@ class LoadLibraryBuilder extends BuilderImpl {
         isStatic: true,
         reference: reference)
       ..fileStartOffset = charOffset
-      ..fileOffset = charOffset
-      ..isNonNullableByDefault = true;
+      ..fileOffset = charOffset;
   }
 
   @override

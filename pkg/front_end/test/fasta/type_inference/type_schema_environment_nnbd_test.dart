@@ -2013,7 +2013,7 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
       }
       expect(
           typeSchemaEnvironment.getStandardUpperBound(dartType1, dartType2,
-              isNonNullableByDefault: testLibrary.isNonNullableByDefault),
+              isNonNullableByDefault: true),
           parseType(upperBound));
     });
   }

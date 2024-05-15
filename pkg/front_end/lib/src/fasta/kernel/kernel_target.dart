@@ -1098,17 +1098,17 @@ class KernelTarget extends TargetImplementation {
     SuperInitializer initializer = new SuperInitializer(
         superConstructor, new Arguments(positional, named: named));
     Constructor constructor = new Constructor(function,
-        name: superConstructor.name,
-        initializers: <Initializer>[initializer],
-        isSynthetic: true,
-        isConst: isConst,
-        reference: constructorReference,
-        fileUri: cls.fileUri)
-      ..fileOffset = cls.fileOffset
-      // TODO(johnniwinther): Should we add file end offset to synthesized
-      //  constructors?
-      //..fileEndOffset = cls.fileOffset
-      ..isNonNullableByDefault = cls.enclosingLibrary.isNonNullableByDefault;
+            name: superConstructor.name,
+            initializers: <Initializer>[initializer],
+            isSynthetic: true,
+            isConst: isConst,
+            reference: constructorReference,
+            fileUri: cls.fileUri)
+          ..fileOffset = cls.fileOffset
+        // TODO(johnniwinther): Should we add file end offset to synthesized
+        //  constructors?
+        //..fileEndOffset = cls.fileOffset
+        ;
     DelayedDefaultValueCloner delayedDefaultValueCloner =
         new DelayedDefaultValueCloner(superConstructor, constructor,
             libraryBuilder: libraryBuilder);
@@ -1193,17 +1193,17 @@ class KernelTarget extends TargetImplementation {
     SourceLibraryBuilder libraryBuilder = classBuilder.libraryBuilder;
     Class enclosingClass = classBuilder.cls;
     Constructor constructor = new Constructor(
-        new FunctionNode(new EmptyStatement(),
-            returnType: makeConstructorReturnType(enclosingClass)),
-        name: new Name(""),
-        isSynthetic: true,
-        reference: constructorReference,
-        fileUri: enclosingClass.fileUri)
-      ..fileOffset = enclosingClass.fileOffset
-      // TODO(johnniwinther): Should we add file end offsets to synthesized
-      //  constructors?
-      //..fileEndOffset = enclosingClass.fileOffset
-      ..isNonNullableByDefault = true;
+            new FunctionNode(new EmptyStatement(),
+                returnType: makeConstructorReturnType(enclosingClass)),
+            name: new Name(""),
+            isSynthetic: true,
+            reference: constructorReference,
+            fileUri: enclosingClass.fileUri)
+          ..fileOffset = enclosingClass.fileOffset
+        // TODO(johnniwinther): Should we add file end offsets to synthesized
+        //  constructors?
+        //..fileEndOffset = enclosingClass.fileOffset
+        ;
     Procedure? constructorTearOff = createConstructorTearOffProcedure(
         new MemberName(libraryBuilder.libraryName, constructorTearOffName('')),
         libraryBuilder,

@@ -1,0 +1,77 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension type I(core::int i) {
+  abstract extension-type-member representation-field get i() → core::int;
+  constructor _ = self::I|constructor#_;
+  constructor tearoff _ = self::I|constructor#_#_#tearOff;
+  static factory • = self::I|constructor#;
+  static factory tearoff • = self::I|constructor#_#new#tearOff;
+}
+extension type J(core::int i) {
+  abstract extension-type-member representation-field get i() → core::int;
+  constructor _ = self::J|constructor#_;
+  constructor tearoff _ = self::J|constructor#_#_#tearOff;
+  static factory • = self::J|constructor#;
+  static factory tearoff • = self::J|constructor#_#new#tearOff;
+}
+extension type K<T extends core::Object? = dynamic>(T% i) {
+  abstract extension-type-member representation-field get i() → T%;
+  constructor _ = self::K|constructor#_;
+  constructor tearoff _ = self::K|constructor#_#_#tearOff;
+  static factory • = self::K|constructor#;
+  static factory tearoff • = self::K|constructor#_#new#tearOff;
+}
+static extension-type-member method I|constructor#_(core::int i) → self::I% /* erasure=core::int, declared=! */ {
+  lowered final self::I% /* erasure=core::int, declared=! */ #this = i;
+  return #this;
+}
+static extension-type-member method I|constructor#_#_#tearOff(core::int i) → self::I% /* erasure=core::int, declared=! */
+  return self::I|constructor#_(i);
+static extension-type-member method I|constructor#() → self::I% /* erasure=core::int, declared=! */
+  return 0 as self::I% /* erasure=core::int, declared=! */;
+static extension-type-member method I|constructor#_#new#tearOff() → self::I% /* erasure=core::int, declared=! */
+  return self::I|constructor#();
+static extension-type-member method J|constructor#_(core::int i) → self::J% /* erasure=core::int, declared=! */ {
+  lowered final self::J% /* erasure=core::int, declared=! */ #this = i;
+  return #this;
+}
+static extension-type-member method J|constructor#_#_#tearOff(core::int i) → self::J% /* erasure=core::int, declared=! */
+  return self::J|constructor#_(i);
+static extension-type-member method J|constructor#(core::int i) → self::J% /* erasure=core::int, declared=! */
+  return self::J|constructor#_(i);
+static extension-type-member method J|constructor#_#new#tearOff(core::int i) → self::J% /* erasure=core::int, declared=! */
+  return self::J|constructor#(i);
+static extension-type-member method K|constructor#_<T extends core::Object? = dynamic>(self::K|constructor#_::T% i) → self::K<self::K|constructor#_::T%>% /* erasure=self::K|constructor#_::T%, declared=! */ {
+  lowered final self::K<self::K|constructor#_::T%>% /* erasure=self::K|constructor#_::T%, declared=! */ #this = i;
+  return #this;
+}
+static extension-type-member method K|constructor#_#_#tearOff<T extends core::Object? = dynamic>(self::K|constructor#_#_#tearOff::T% i) → self::K<self::K|constructor#_#_#tearOff::T%>% /* erasure=self::K|constructor#_#_#tearOff::T%, declared=! */
+  return self::K|constructor#_<self::K|constructor#_#_#tearOff::T%>(i);
+static extension-type-member method K|constructor#<T extends core::Object? = dynamic>(self::K|constructor#::T% i) → self::K<self::K|constructor#::T%>% /* erasure=self::K|constructor#::T%, declared=! */
+  return self::K|constructor#_<self::K|constructor#::T%>(i);
+static extension-type-member method K|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::K|constructor#_#new#tearOff::T% i) → self::K<self::K|constructor#_#new#tearOff::T%>% /* erasure=self::K|constructor#_#new#tearOff::T%, declared=! */
+  return self::K|constructor#<self::K|constructor#_#new#tearOff::T%>(i);
+static method main() → dynamic {
+  self::expect(0, self::I|constructor#());
+  self::expect(0, #C1(){() → self::I% /* erasure=core::int, declared=! */});
+  self::expect(42, self::J|constructor#(42));
+  self::expect(87, self::J|constructor#(87));
+  self::expect(123, #C2(123){(core::int) → self::J% /* erasure=core::int, declared=! */});
+  self::expect("foo", self::K|constructor#<core::String>("foo"));
+  self::expect("bar", self::K|constructor#<core::String>("bar"));
+  self::expect("baz", #C3<core::String>("baz"){(core::String) → self::K<core::String>% /* erasure=core::String, declared=! */});
+  self::expect("boz", #C4("boz"){(core::String) → self::K<core::String>% /* erasure=core::String, declared=! */});
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+constants  {
+  #C1 = static-tearoff self::I|constructor#_#new#tearOff
+  #C2 = static-tearoff self::J|constructor#_#new#tearOff
+  #C3 = static-tearoff self::K|constructor#_#new#tearOff
+  #C4 = instantiation #C3 <core::String>
+}

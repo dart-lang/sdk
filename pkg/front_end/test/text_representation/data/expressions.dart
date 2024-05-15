@@ -349,11 +349,11 @@ exprNewGeneric() => new GenericClass<int, bool>();
 exprNewGenericNamed() => new GenericClass<int, bool>.named();
 
 /*normal|limited.member: exprIs:o is List<int>*/
-/*verbose.member: exprIs:o is{ForNonNullableByDefault} dart.core::List<dart.core::int>*/
+/*verbose.member: exprIs:o is dart.core::List<dart.core::int>*/
 exprIs(o) => o is List<int>;
 
 /*normal|limited.member: exprAs:o as List<int>*/
-/*verbose.member: exprAs:o as{ForNonNullableByDefault} dart.core::List<dart.core::int>*/
+/*verbose.member: exprAs:o as dart.core::List<dart.core::int>*/
 exprAs(o) => o as List<int>;
 
 /*member: exprNullCheck:o!*/

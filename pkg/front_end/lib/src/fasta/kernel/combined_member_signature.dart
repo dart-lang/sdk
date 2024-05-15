@@ -289,8 +289,7 @@ abstract class CombinedMemberSignatureBase {
       }
       DartType canonicalMemberType =
           _combinedMemberSignatureType = getMemberType(_canonicalMemberIndex!);
-      _containsNnbdTypes =
-          _getMember(_canonicalMemberIndex!).isNonNullableByDefault;
+      _containsNnbdTypes = true;
       if (_mutualSubtypes != null) {
         _combinedMemberSignatureType =
             norm(_coreTypes, _combinedMemberSignatureType!);
@@ -511,7 +510,6 @@ abstract class CombinedMemberSignatureBase {
     )
       ..fileStartOffset = startFileOffset
       ..fileOffset = fileOffset
-      ..isNonNullableByDefault = containsNnbdTypes
       ..parent = declarationNode;
   }
 
@@ -560,7 +558,6 @@ abstract class CombinedMemberSignatureBase {
     )
       ..fileStartOffset = startFileOffset
       ..fileOffset = fileOffset
-      ..isNonNullableByDefault = containsNnbdTypes
       ..parent = declarationNode;
   }
 
@@ -650,7 +647,6 @@ abstract class CombinedMemberSignatureBase {
     )
       ..fileStartOffset = startFileOffset
       ..fileOffset = fileOffset
-      ..isNonNullableByDefault = containsNnbdTypes
       ..parent = declarationNode;
   }
 

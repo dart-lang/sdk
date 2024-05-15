@@ -56,7 +56,7 @@ abstract class LegacyUpperBoundTest {
   void checkLegacyUp(String type1, String type2, String expectedType) {
     checkLegacyUpTypes(
         env.parseType(type1), env.parseType(type2), env.parseType(expectedType),
-        isNonNullableByDefault: testLibrary.isNonNullableByDefault);
+        isNonNullableByDefault: true);
   }
 
   Future<void> test() {

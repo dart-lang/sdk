@@ -100,9 +100,7 @@ void main() {
 
               final Library firstLib = component.libraries.first;
               expect(firstLib.importUri != _nativeAssetsLibraryUri, true);
-              expect(nativeAssetsLibrary!.isNonNullableByDefault,
-                  firstLib.isNonNullableByDefault);
-              expect(nativeAssetsLibrary.nonNullable, firstLib.nonNullable);
+              expect(nativeAssetsLibrary!.nonNullable, firstLib.nonNullable);
               expect(nativeAssetsLibrary.nonNullableByDefaultCompiledMode,
                   firstLib.nonNullableByDefaultCompiledMode);
 

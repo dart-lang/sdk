@@ -1,0 +1,18 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Foo<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field core::List<core::int> foo;
+  const constructor •(core::List<dynamic> x) → self::Foo<self::Foo::T%>
+    : self::Foo::foo = x is core::List<self::Foo::T%> ?{core::List<core::int>} const <core::int>[1] : const <core::int>[2], super core::Object::•()
+    ;
+}
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue_49245_variation_is.dart:7:44 -> ListConstant(const <int>[1])
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue_49245_variation_is.dart:7:56 -> ListConstant(const <int>[2])
+Extra constant evaluation: evaluated: 5, effectively constant: 2

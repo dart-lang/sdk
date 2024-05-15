@@ -1,0 +1,330 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/exhaustiveness/intersect.dart:28:11: Error: The type 'T' is not exhaustively matched by the switch cases since it doesn't match 'false'.
+// Try adding a default case or cases that match 'false'.
+//   switch (x1) /* Error */ {
+//           ^
+//
+// pkg/front_end/testcases/patterns/exhaustiveness/intersect.dart:32:18: Error: The type 'T' is not exhaustively matched by the switch cases since it doesn't match 'false'.
+// Try adding a wildcard pattern or cases that match 'false'.
+//   return switch (x2) /* Error */ {
+//                  ^
+//
+// pkg/front_end/testcases/patterns/exhaustiveness/intersect.dart:49:11: Error: The type 'T' is not exhaustively matched by the switch cases since it doesn't match 'true'.
+// Try adding a default case or cases that match 'true'.
+//   switch (x1) /* Error */ {
+//           ^
+//
+// pkg/front_end/testcases/patterns/exhaustiveness/intersect.dart:53:18: Error: The type 'T' is not exhaustively matched by the switch cases since it doesn't match 'true'.
+// Try adding a wildcard pattern or cases that match 'true'.
+//   return switch (x2) /* Error */ {
+//                  ^
+//
+// pkg/front_end/testcases/patterns/exhaustiveness/intersect.dart:90:13: Error: The type 'T' is not exhaustively matched by the switch cases since it doesn't match 'false'.
+// Try adding a default case or cases that match 'false'.
+//     switch (x1) /* Error */ {
+//             ^
+//
+// pkg/front_end/testcases/patterns/exhaustiveness/intersect.dart:96:21: Error: The type 'T' is not exhaustively matched by the switch cases since it doesn't match 'false'.
+// Try adding a wildcard pattern or cases that match 'false'.
+//     var a = switch (x2) /* Error */ {
+//                     ^
+//
+// pkg/front_end/testcases/patterns/exhaustiveness/intersect.dart:118:13: Error: The type 'T' is not exhaustively matched by the switch cases since it doesn't match 'true'.
+// Try adding a default case or cases that match 'true'.
+//     switch (x1) /* Error */ {
+//             ^
+//
+// pkg/front_end/testcases/patterns/exhaustiveness/intersect.dart:124:21: Error: The type 'T' is not exhaustively matched by the switch cases since it doesn't match 'true'.
+// Try adding a wildcard pattern or cases that match 'true'.
+//     var a = switch (x2) /* Error */ {
+//                     ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method exhaustiveBoundedTypeVariableByValue<T extends core::bool>(self::exhaustiveBoundedTypeVariableByValue::T x1, self::exhaustiveBoundedTypeVariableByValue::T x2) → dynamic {
+  #L1:
+  switch(x1) /* isExplicitlyExhaustive, self::exhaustiveBoundedTypeVariableByValue::T */ {
+    #L2:
+    case #C1:
+    case #C2:
+      {
+        break #L1;
+      }
+  }
+  return block {
+    core::int #t1;
+    #L3:
+    switch(x2) /* isExplicitlyExhaustive, self::exhaustiveBoundedTypeVariableByValue::T */ {
+      #L4:
+      case #C1:
+        {
+          #t1 = 0;
+          break #L3;
+        }
+      #L5:
+      case #C2:
+        {
+          #t1 = 1;
+          break #L3;
+        }
+    }
+  } =>#t1;
+}
+static method exhaustiveBoundedTypeVariableByType<T extends core::bool>(self::exhaustiveBoundedTypeVariableByType::T x1, self::exhaustiveBoundedTypeVariableByType::T x2) → dynamic {
+  #L6:
+  {
+    final synthesized self::exhaustiveBoundedTypeVariableByType::T #0#0 = x1;
+    {
+      if(true) {
+        {
+          break #L6;
+        }
+      }
+    }
+  }
+  return block {
+    core::int #t2;
+    final synthesized self::exhaustiveBoundedTypeVariableByType::T #1#0 = x2;
+    #L7:
+    {
+      {
+        if(true) {
+          #t2 = 0;
+          break #L7;
+        }
+      }
+    }
+  } =>#t2;
+}
+static method nonExhaustiveBoundedTypeVariable<T extends core::bool>(self::nonExhaustiveBoundedTypeVariable::T x1, self::nonExhaustiveBoundedTypeVariable::T x2) → dynamic {
+  #L8:
+  switch(x1) /* isExplicitlyExhaustive, self::nonExhaustiveBoundedTypeVariable::T */ {
+    #L9:
+    case #C1:
+      {
+        break #L8;
+      }
+  }
+  return block {
+    core::int #t3;
+    #L10:
+    switch(x2) /* isExplicitlyExhaustive, self::nonExhaustiveBoundedTypeVariable::T */ {
+      #L11:
+      case #C1:
+        {
+          #t3 = 0;
+          break #L10;
+        }
+    }
+  } =>#t3;
+}
+static method exhaustiveBoundedTypeVariableByBound<T extends core::bool>(self::exhaustiveBoundedTypeVariableByBound::T x1, self::exhaustiveBoundedTypeVariableByBound::T x2) → dynamic {
+  #L12:
+  {
+    final synthesized self::exhaustiveBoundedTypeVariableByBound::T #0#0 = x1;
+    {
+      if(true) {
+        {
+          break #L12;
+        }
+      }
+    }
+  }
+  return block {
+    core::int #t4;
+    final synthesized self::exhaustiveBoundedTypeVariableByBound::T #1#0 = x2;
+    #L13:
+    {
+      {
+        if(true) {
+          #t4 = 0;
+          break #L13;
+        }
+      }
+    }
+  } =>#t4;
+}
+static method nonExhaustiveBoundedTypeVariableByOtherType<T extends core::bool, S extends core::bool>(self::nonExhaustiveBoundedTypeVariableByOtherType::T x1, self::nonExhaustiveBoundedTypeVariableByOtherType::T x2) → dynamic {
+  #L14:
+  {
+    final synthesized self::nonExhaustiveBoundedTypeVariableByOtherType::T #0#0 = x1;
+    {
+      if(#0#0 is self::nonExhaustiveBoundedTypeVariableByOtherType::S) {
+        {
+          break #L14;
+        }
+      }
+    }
+  }
+  return block {
+    core::int #t5;
+    final synthesized self::nonExhaustiveBoundedTypeVariableByOtherType::T #1#0 = x2;
+    #L15:
+    {
+      {
+        if(#1#0 is self::nonExhaustiveBoundedTypeVariableByOtherType::S) {
+          #t5 = 0;
+          break #L15;
+        }
+      }
+    }
+  } =>#t5;
+}
+static method exhaustivePromotedTypeVariableByValue<T extends core::Object? = dynamic>(self::exhaustivePromotedTypeVariableByValue::T% x1, self::exhaustivePromotedTypeVariableByValue::T% x2) → dynamic {
+  if(x1 is core::bool) {
+    #L16:
+    switch(x1{self::exhaustivePromotedTypeVariableByValue::T% & core::bool /* '%' & '!' = '!' */}) /* isExplicitlyExhaustive, self::exhaustivePromotedTypeVariableByValue::T% & core::bool /* '%' & '!' = '!' */ */ {
+      #L17:
+      case #C1:
+      case #C2:
+        {
+          break #L16;
+        }
+    }
+  }
+  if(x2 is core::bool) {
+    core::int a = block {
+      core::int #t6;
+      #L18:
+      switch(x2{self::exhaustivePromotedTypeVariableByValue::T% & core::bool /* '%' & '!' = '!' */}) /* isExplicitlyExhaustive, self::exhaustivePromotedTypeVariableByValue::T% & core::bool /* '%' & '!' = '!' */ */ {
+        #L19:
+        case #C1:
+          {
+            #t6 = 0;
+            break #L18;
+          }
+        #L20:
+        case #C2:
+          {
+            #t6 = 1;
+            break #L18;
+          }
+      }
+    } =>#t6;
+  }
+}
+static method exhaustivePromotedTypeVariableByType<T extends core::Object? = dynamic>(self::exhaustivePromotedTypeVariableByType::T% x1, self::exhaustivePromotedTypeVariableByType::T% x2) → dynamic {
+  if(x1 is core::bool) {
+    #L21:
+    {
+      final synthesized self::exhaustivePromotedTypeVariableByType::T% & core::bool /* '%' & '!' = '!' */ #0#0 = x1{self::exhaustivePromotedTypeVariableByType::T% & core::bool /* '%' & '!' = '!' */};
+      {
+        if(true) {
+          {
+            break #L21;
+          }
+        }
+      }
+    }
+  }
+  if(x2 is core::bool) {
+    core::int a = block {
+      core::int #t7;
+      final synthesized self::exhaustivePromotedTypeVariableByType::T% & core::bool /* '%' & '!' = '!' */ #1#0 = x2{self::exhaustivePromotedTypeVariableByType::T% & core::bool /* '%' & '!' = '!' */};
+      #L22:
+      {
+        {
+          if(true) {
+            #t7 = 0;
+            break #L22;
+          }
+        }
+      }
+    } =>#t7;
+  }
+}
+static method nonExhaustivePromotedTypeVariable<T extends core::Object? = dynamic>(self::nonExhaustivePromotedTypeVariable::T% x1, self::nonExhaustivePromotedTypeVariable::T% x2) → dynamic {
+  if(x1 is core::bool) {
+    #L23:
+    switch(x1{self::nonExhaustivePromotedTypeVariable::T% & core::bool /* '%' & '!' = '!' */}) /* isExplicitlyExhaustive, self::nonExhaustivePromotedTypeVariable::T% & core::bool /* '%' & '!' = '!' */ */ {
+      #L24:
+      case #C1:
+        {
+          break #L23;
+        }
+    }
+  }
+  if(x2 is core::bool) {
+    core::int a = block {
+      core::int #t8;
+      #L25:
+      switch(x2{self::nonExhaustivePromotedTypeVariable::T% & core::bool /* '%' & '!' = '!' */}) /* isExplicitlyExhaustive, self::nonExhaustivePromotedTypeVariable::T% & core::bool /* '%' & '!' = '!' */ */ {
+        #L26:
+        case #C1:
+          {
+            #t8 = 0;
+            break #L25;
+          }
+      }
+    } =>#t8;
+  }
+}
+static method exhaustivePromotedTypeVariableByBound1<T extends core::Object? = dynamic>(self::exhaustivePromotedTypeVariableByBound1::T% x1, self::exhaustivePromotedTypeVariableByBound1::T% x2) → dynamic {
+  if(x1 is core::bool) {
+    #L27:
+    {
+      final synthesized self::exhaustivePromotedTypeVariableByBound1::T% & core::bool /* '%' & '!' = '!' */ #0#0 = x1{self::exhaustivePromotedTypeVariableByBound1::T% & core::bool /* '%' & '!' = '!' */};
+      {
+        if(true) {
+          {
+            break #L27;
+          }
+        }
+      }
+    }
+  }
+  if(x2 is core::bool) {
+    core::int a = block {
+      core::int #t9;
+      final synthesized self::exhaustivePromotedTypeVariableByBound1::T% & core::bool /* '%' & '!' = '!' */ #1#0 = x2{self::exhaustivePromotedTypeVariableByBound1::T% & core::bool /* '%' & '!' = '!' */};
+      #L28:
+      {
+        {
+          if(true) {
+            #t9 = 0;
+            break #L28;
+          }
+        }
+      }
+    } =>#t9;
+  }
+}
+static method nonExhaustivePromotedTypeVariableByOtherType<T extends core::Object? = dynamic, S extends core::bool>(self::nonExhaustivePromotedTypeVariableByOtherType::T% x1, self::nonExhaustivePromotedTypeVariableByOtherType::T% x2) → dynamic {
+  if(x1 is core::bool) {
+    #L29:
+    {
+      final synthesized self::nonExhaustivePromotedTypeVariableByOtherType::T% & core::bool /* '%' & '!' = '!' */ #0#0 = x1{self::nonExhaustivePromotedTypeVariableByOtherType::T% & core::bool /* '%' & '!' = '!' */};
+      {
+        if(#0#0 is self::nonExhaustivePromotedTypeVariableByOtherType::S) {
+          {
+            break #L29;
+          }
+        }
+      }
+    }
+  }
+  if(x2 is core::bool) {
+    core::int a = block {
+      core::int #t10;
+      final synthesized self::nonExhaustivePromotedTypeVariableByOtherType::T% & core::bool /* '%' & '!' = '!' */ #1#0 = x2{self::nonExhaustivePromotedTypeVariableByOtherType::T% & core::bool /* '%' & '!' = '!' */};
+      #L30:
+      {
+        {
+          if(#1#0 is self::nonExhaustivePromotedTypeVariableByOtherType::S) {
+            #t10 = 0;
+            break #L30;
+          }
+        }
+      }
+    } =>#t10;
+  }
+}
+
+constants  {
+  #C1 = true
+  #C2 = false
+}

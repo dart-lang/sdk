@@ -285,39 +285,36 @@ abstract class TypeEnvironment extends Types {
   }
 
   DartType getTypeOfSpecialCasedTernaryOperator(
-      DartType type1, DartType type2, DartType type3, Library clientLibrary) {
-    if (clientLibrary.isNonNullableByDefault) {
-      // Let e be a normal invocation of the form e1.clamp(e2, e3), where the
-      // static types of e1, e2 and e3 are T1, T2 and T3 respectively, and where
-      // T1, T2, and T3 are all non-Never subtypes of num. Then:
-      if (type1 is! NeverType && type2 is! NeverType && type3 is! NeverType
-          /* We skip the check that all types are subtypes of num because, if
+      DartType type1, DartType type2, DartType type3) {
+    // Let e be a normal invocation of the form e1.clamp(e2, e3), where the
+    // static types of e1, e2 and e3 are T1, T2 and T3 respectively, and where
+    // T1, T2, and T3 are all non-Never subtypes of num. Then:
+    if (type1 is! NeverType && type2 is! NeverType && type3 is! NeverType
+        /* We skip the check that all types are subtypes of num because, if
           not, we'll compute the static type to be num, anyway.*/
-          ) {
-        if (isSubtypeOf(type1, coreTypes.intNonNullableRawType,
-                SubtypeCheckMode.withNullabilities) &&
-            isSubtypeOf(type2, coreTypes.intNonNullableRawType,
-                SubtypeCheckMode.withNullabilities) &&
-            isSubtypeOf(type3, coreTypes.intNonNullableRawType,
-                SubtypeCheckMode.withNullabilities)) {
-          // If T1, T2 and T3 are all subtypes of int, the static type of e is
-          // int.
-          return coreTypes.intNonNullableRawType;
-        } else if (isSubtypeOf(type1, coreTypes.doubleNonNullableRawType,
-                SubtypeCheckMode.withNullabilities) &&
-            isSubtypeOf(type2, coreTypes.doubleNonNullableRawType,
-                SubtypeCheckMode.withNullabilities) &&
-            isSubtypeOf(type3, coreTypes.doubleNonNullableRawType,
-                SubtypeCheckMode.withNullabilities)) {
-          // If T1, T2 and T3 are all subtypes of double, the static type of e
-          // is double.
-          return coreTypes.doubleNonNullableRawType;
-        }
+        ) {
+      if (isSubtypeOf(type1, coreTypes.intNonNullableRawType,
+              SubtypeCheckMode.withNullabilities) &&
+          isSubtypeOf(type2, coreTypes.intNonNullableRawType,
+              SubtypeCheckMode.withNullabilities) &&
+          isSubtypeOf(type3, coreTypes.intNonNullableRawType,
+              SubtypeCheckMode.withNullabilities)) {
+        // If T1, T2 and T3 are all subtypes of int, the static type of e is
+        // int.
+        return coreTypes.intNonNullableRawType;
+      } else if (isSubtypeOf(type1, coreTypes.doubleNonNullableRawType,
+              SubtypeCheckMode.withNullabilities) &&
+          isSubtypeOf(type2, coreTypes.doubleNonNullableRawType,
+              SubtypeCheckMode.withNullabilities) &&
+          isSubtypeOf(type3, coreTypes.doubleNonNullableRawType,
+              SubtypeCheckMode.withNullabilities)) {
+        // If T1, T2 and T3 are all subtypes of double, the static type of e
+        // is double.
+        return coreTypes.doubleNonNullableRawType;
       }
-      // Otherwise the static type of e is num.
-      return coreTypes.numNonNullableRawType;
     }
-    return coreTypes.numRawType(type1.nullability);
+    // Otherwise the static type of e is num.
+    return coreTypes.numNonNullableRawType;
   }
 
   bool _isRawTypeArgumentEquivalent(
@@ -931,10 +928,6 @@ abstract class StaticTypeContext {
   /// For opt out libraries this is [Nullability.legacy].
   Nullability get nullable;
 
-  /// Return `true` if the current library is opted in to non-nullable by
-  /// default.
-  bool get isNonNullableByDefault;
-
   /// Returns the mode under which the current library was compiled.
   NonNullableByDefaultCompiledMode get nonNullableByDefaultCompiledMode;
 
@@ -1003,11 +996,6 @@ class StaticTypeContextImpl implements StaticTypeContext {
   /// For opt out libraries this is [Nullability.legacy].
   @override
   Nullability get nullable => _library.nullable;
-
-  /// Return `true` if the current library is opted in to non-nullable by
-  /// default.
-  @override
-  bool get isNonNullableByDefault => _library.isNonNullableByDefault;
 
   /// Returns the mode under which the current library was compiled.
   @override
@@ -1122,9 +1110,6 @@ class _FlatStatefulStaticTypeContext extends StatefulStaticTypeContext {
   Nullability get nullable => _library.nullable;
 
   @override
-  bool get isNonNullableByDefault => _library.isNonNullableByDefault;
-
-  @override
   NonNullableByDefaultCompiledMode get nonNullableByDefaultCompiledMode =>
       _library.nonNullableByDefaultCompiledMode;
 
@@ -1225,9 +1210,6 @@ class _StackedStatefulStaticTypeContext extends StatefulStaticTypeContext {
 
   @override
   Nullability get nullable => _library.nullable;
-
-  @override
-  bool get isNonNullableByDefault => _library.isNonNullableByDefault;
 
   @override
   NonNullableByDefaultCompiledMode get nonNullableByDefaultCompiledMode =>

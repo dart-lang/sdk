@@ -5,7 +5,6 @@
 library fasta.class_hierarchy_builder;
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/src/types.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
@@ -64,13 +63,12 @@ class DelayedOverrideCheck implements DelayedCheck {
     ///      int? mixedInMethod(int? i, {int? j}) => i;
     ///    }
     ///
-    bool declaredNeedsLegacyErasure =
-        needsLegacyErasure(_classBuilder.cls, declaredMember.enclosingClass!);
+
     void callback(Member interfaceMember, bool isSetter) {
       _classBuilder.checkOverride(membersBuilder.hierarchyBuilder.types,
           membersBuilder, declaredMember, interfaceMember, isSetter, callback,
           isInterfaceCheck: !_classBuilder.isMixinApplication,
-          declaredNeedsLegacyErasure: declaredNeedsLegacyErasure);
+          declaredNeedsLegacyErasure: false);
     }
 
     for (ClassMember overriddenMember in _overriddenMembers) {

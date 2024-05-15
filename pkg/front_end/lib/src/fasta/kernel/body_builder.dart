@@ -5248,9 +5248,8 @@ class BodyBuilder extends StackListenerImpl
     DartType type = buildDartType(pop() as TypeBuilder, TypeUse.asType,
         allowPotentiallyConstantType: true);
     Expression expression = popForValue();
-    Expression asExpression = forest.createAsExpression(
-        offsetForToken(operator), expression, type,
-        forNonNullableByDefault: true);
+    Expression asExpression =
+        forest.createAsExpression(offsetForToken(operator), expression, type);
     push(asExpression);
   }
 
@@ -5292,7 +5291,6 @@ class BodyBuilder extends StackListenerImpl
     Expression operand = popForValue();
     Expression isExpression = forest.createIsExpression(
         offsetForToken(isOperator), operand, type,
-        forNonNullableByDefault: true,
         notFileOffset: not != null ? offsetForToken(not) : null);
     push(isExpression);
   }

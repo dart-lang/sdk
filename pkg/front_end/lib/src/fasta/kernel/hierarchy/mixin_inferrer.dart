@@ -165,8 +165,7 @@ class BuilderMixinInferrer {
     }
     // Use instantiate to bounds.
     List<DartType> bounds = calculateBounds(parameters, coreTypes.objectClass,
-        isNonNullableByDefault:
-            classNode.enclosingLibrary.isNonNullableByDefault);
+        isNonNullableByDefault: true);
     for (int i = 0; i < mixedInType.typeArguments.length; ++i) {
       mixedInType.typeArguments[i] = bounds[i];
     }

@@ -1,0 +1,34 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "from_agnostic_lib.dart" as fro;
+
+import "org-dartlang-testcase:///from_agnostic_lib.dart";
+
+static const field core::bool c1 = core::identical(fro::a, fro::b);
+static const field core::Map<core::List<core::int?>, core::int> c2 = const <core::List<core::int?>, core::int>{fro::a: 0, fro::b: 1};
+static const field core::Set<core::List<core::int?>> c3 = const <core::List<core::int?>>{fro::a, fro::b};
+static const field core::List<core::int> c4 = fro::a;
+static const field core::List<core::int?> c5 = fro::b;
+static method main() → dynamic
+  ;
+
+library;
+import self as fro;
+import "dart:core" as core;
+
+static const field core::List<core::int> a = #C1;
+static const field core::List<core::int?> b = #C2;
+
+constants  {
+  #C1 = <core::int>[]
+  #C2 = <core::int?>[]
+}
+
+Extra constant evaluation status:
+Evaluated: StaticInvocation @ org-dartlang-testcase:///from_agnostic.dart:7:12 -> BoolConstant(false)
+Evaluated: MapLiteral @ org-dartlang-testcase:///from_agnostic.dart:8:12 -> MapConstant(const <List<int?>, int>{const <int>[]: 0, const <int?>[]: 1})
+Evaluated: SetLiteral @ org-dartlang-testcase:///from_agnostic.dart:9:12 -> SetConstant(const <List<int?>>{const <int>[], const <int?>[]})
+Evaluated: StaticGet @ org-dartlang-testcase:///from_agnostic.dart:10:12 -> ListConstant(const <int>[])
+Evaluated: StaticGet @ org-dartlang-testcase:///from_agnostic.dart:11:12 -> ListConstant(const <int?>[])
+Extra constant evaluation: evaluated: 5, effectively constant: 5

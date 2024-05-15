@@ -116,7 +116,8 @@ class PatchingDataExtractor extends CfeDataExtractor<Features> {
   @override
   Features computeLibraryValue(Id id, Library library) {
     Features features = new Features();
-    features[Tags.isNonNullableByDefault] = '${library.isNonNullableByDefault}';
+    // TODO(johnniwinther): Remove this.
+    features[Tags.isNonNullableByDefault] = 'true';
     return features;
   }
 

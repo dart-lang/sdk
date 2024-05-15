@@ -1,0 +1,100 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef Exactly<invariant T extends core::Object? = dynamic> = (T%) → T%;
+extension StaticType<T extends core::Object? = dynamic> on T% {
+  method expectStaticType = self::StaticType|expectStaticType;
+  method tearoff expectStaticType = self::StaticType|get#expectStaticType;
+}
+extension type ET1(core::int id) {
+  abstract extension-type-member representation-field get id() → core::int;
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
+}
+extension type ET2<T extends core::Object? = dynamic>(T% id) {
+  abstract extension-type-member representation-field get id() → T%;
+  constructor • = self::ET2|constructor#;
+  constructor tearoff • = self::ET2|constructor#_#new#tearOff;
+}
+extension type ET3(core::int id) {
+  abstract extension-type-member representation-field get id() → core::int;
+  constructor • = self::ET3|constructor#;
+  constructor tearoff • = self::ET3|constructor#_#new#tearOff;
+}
+extension type ET4<T extends core::Object? = dynamic>(T% id) {
+  abstract extension-type-member representation-field get id() → T%;
+  constructor • = self::ET4|constructor#;
+  constructor tearoff • = self::ET4|constructor#_#new#tearOff;
+}
+extension type ET5(core::int id) {
+  abstract extension-type-member representation-field get id() → core::int;
+  constructor n = self::ET5|constructor#n;
+  constructor tearoff n = self::ET5|constructor#_#n#tearOff;
+}
+extension type ET6<T extends core::Object? = dynamic>(T% id) {
+  abstract extension-type-member representation-field get id() → T%;
+  constructor n = self::ET6|constructor#n;
+  constructor tearoff n = self::ET6|constructor#_#n#tearOff;
+}
+static extension-type-member method ET1|constructor#(core::int id) → self::ET1% /* erasure=core::int, declared=! */ {
+  lowered final self::ET1% /* erasure=core::int, declared=! */ #this = id;
+  return #this;
+}
+static extension-type-member method ET1|constructor#_#new#tearOff(core::int id) → self::ET1% /* erasure=core::int, declared=! */
+  return self::ET1|constructor#(id);
+static extension-type-member method ET2|constructor#<T extends core::Object? = dynamic>(self::ET2|constructor#::T% id) → self::ET2<self::ET2|constructor#::T%>% /* erasure=self::ET2|constructor#::T%, declared=! */ {
+  lowered final self::ET2<self::ET2|constructor#::T%>% /* erasure=self::ET2|constructor#::T%, declared=! */ #this = id;
+  return #this;
+}
+static extension-type-member method ET2|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET2|constructor#_#new#tearOff::T% id) → self::ET2<self::ET2|constructor#_#new#tearOff::T%>% /* erasure=self::ET2|constructor#_#new#tearOff::T%, declared=! */
+  return self::ET2|constructor#<self::ET2|constructor#_#new#tearOff::T%>(id);
+static extension-type-member method ET3|constructor#(core::int id) → self::ET3% /* erasure=core::int, declared=! */ {
+  lowered final self::ET3% /* erasure=core::int, declared=! */ #this = id;
+  return #this;
+}
+static extension-type-member method ET3|constructor#_#new#tearOff(core::int id) → self::ET3% /* erasure=core::int, declared=! */
+  return self::ET3|constructor#(id);
+static extension-type-member method ET4|constructor#<T extends core::Object? = dynamic>(self::ET4|constructor#::T% id) → self::ET4<self::ET4|constructor#::T%>% /* erasure=self::ET4|constructor#::T%, declared=! */ {
+  lowered final self::ET4<self::ET4|constructor#::T%>% /* erasure=self::ET4|constructor#::T%, declared=! */ #this = id;
+  return #this;
+}
+static extension-type-member method ET4|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET4|constructor#_#new#tearOff::T% id) → self::ET4<self::ET4|constructor#_#new#tearOff::T%>% /* erasure=self::ET4|constructor#_#new#tearOff::T%, declared=! */
+  return self::ET4|constructor#<self::ET4|constructor#_#new#tearOff::T%>(id);
+static extension-type-member method ET5|constructor#n(core::int id) → self::ET5% /* erasure=core::int, declared=! */ {
+  lowered final self::ET5% /* erasure=core::int, declared=! */ #this = id;
+  return #this;
+}
+static extension-type-member method ET5|constructor#_#n#tearOff(core::int id) → self::ET5% /* erasure=core::int, declared=! */
+  return self::ET5|constructor#n(id);
+static extension-type-member method ET6|constructor#n<T extends core::Object? = dynamic>(self::ET6|constructor#n::T% id) → self::ET6<self::ET6|constructor#n::T%>% /* erasure=self::ET6|constructor#n::T%, declared=! */ {
+  lowered final self::ET6<self::ET6|constructor#n::T%>% /* erasure=self::ET6|constructor#n::T%, declared=! */ #this = id;
+  return #this;
+}
+static extension-type-member method ET6|constructor#_#n#tearOff<T extends core::Object? = dynamic>(self::ET6|constructor#_#n#tearOff::T% id) → self::ET6<self::ET6|constructor#_#n#tearOff::T%>% /* erasure=self::ET6|constructor#_#n#tearOff::T%, declared=! */
+  return self::ET6|constructor#n<self::ET6|constructor#_#n#tearOff::T%>(id);
+static method main() → dynamic {
+  self::StaticType|expectStaticType<(core::int) → self::ET1% /* erasure=core::int, declared=! */, ((core::int) → self::ET1% /* erasure=core::int, declared=! */) → (core::int) → self::ET1% /* erasure=core::int, declared=! */>(#C1);
+  self::StaticType|expectStaticType<(core::String) → self::ET2<core::String>% /* erasure=core::String, declared=! */, ((core::String) → self::ET2<core::String>% /* erasure=core::String, declared=! */) → (core::String) → self::ET2<core::String>% /* erasure=core::String, declared=! */>(#C3);
+  self::StaticType|expectStaticType<(core::int) → self::ET3% /* erasure=core::int, declared=! */, ((core::int) → self::ET3% /* erasure=core::int, declared=! */) → (core::int) → self::ET3% /* erasure=core::int, declared=! */>(#C4);
+  self::StaticType|expectStaticType<(core::String) → self::ET4<core::String>% /* erasure=core::String, declared=! */, ((core::String) → self::ET4<core::String>% /* erasure=core::String, declared=! */) → (core::String) → self::ET4<core::String>% /* erasure=core::String, declared=! */>(#C6);
+  self::StaticType|expectStaticType<(core::int) → self::ET5% /* erasure=core::int, declared=! */, ((core::int) → self::ET5% /* erasure=core::int, declared=! */) → (core::int) → self::ET5% /* erasure=core::int, declared=! */>(#C7);
+  self::StaticType|expectStaticType<(core::String) → self::ET6<core::String>% /* erasure=core::String, declared=! */, ((core::String) → self::ET6<core::String>% /* erasure=core::String, declared=! */) → (core::String) → self::ET6<core::String>% /* erasure=core::String, declared=! */>(#C9);
+}
+static extension-member method StaticType|expectStaticType<T extends core::Object? = dynamic, R extends (self::StaticType|expectStaticType::T%) → self::StaticType|expectStaticType::T% = (dynamic) → dynamic>(lowered final self::StaticType|expectStaticType::T% #this) → self::StaticType|expectStaticType::T% {
+  return #this;
+}
+static extension-member method StaticType|get#expectStaticType<T extends core::Object? = dynamic>(lowered final self::StaticType|get#expectStaticType::T% #this) → <R extends (self::StaticType|get#expectStaticType::T%) → self::StaticType|get#expectStaticType::T% = (dynamic) → dynamic>() → self::StaticType|get#expectStaticType::T%
+  return <R extends (self::StaticType|get#expectStaticType::T%) → self::StaticType|get#expectStaticType::T% = (dynamic) → dynamic>() → self::StaticType|get#expectStaticType::T% => self::StaticType|expectStaticType<self::StaticType|get#expectStaticType::T%, R>(#this);
+
+constants  {
+  #C1 = static-tearoff self::ET1|constructor#_#new#tearOff
+  #C2 = static-tearoff self::ET2|constructor#_#new#tearOff
+  #C3 = instantiation #C2 <core::String>
+  #C4 = static-tearoff self::ET3|constructor#_#new#tearOff
+  #C5 = static-tearoff self::ET4|constructor#_#new#tearOff
+  #C6 = instantiation #C5 <core::String>
+  #C7 = static-tearoff self::ET5|constructor#_#n#tearOff
+  #C8 = static-tearoff self::ET6|constructor#_#n#tearOff
+  #C9 = instantiation #C8 <core::String>
+}

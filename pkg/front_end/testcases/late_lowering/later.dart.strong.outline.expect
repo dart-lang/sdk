@@ -1,0 +1,60 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/late_lowering/later.dart:14:7: Error: Can't have modifier 'late' here.
+// Try removing 'late'.
+//   foo(late int x) {} // Error.
+//       ^^^^
+//
+// pkg/front_end/testcases/late_lowering/later.dart:17:5: Error: Can't have modifier 'late' here.
+// Try removing 'late'.
+// bar(late int x) {} // Error.
+//     ^^^^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+class A extends core::Object {
+  field core::int a;
+  field core::int? _#A#b;
+  synthetic constructor •() → self::A
+    ;
+  get b() → core::int;
+  set b(core::int b#param) → void;
+  method foo(core::int x) → dynamic
+    ;
+}
+class B extends core::Object /*hasConstConstructor*/  {
+  field core::int? _#B#x = null;
+  const constructor •() → self::B
+    : super core::Object::•()
+    ;
+  get x() → core::int
+    return let final core::int? #t1 = this.{self::B::_#B#x}{core::int?} in #t1 == null ?{core::int} let final core::int #t2 = 42 in this.{self::B::_#B#x}{core::int?} == null ?{core::int} this.{self::B::_#B#x} = #t2 : throw{for-error-handling} new _in::LateError::fieldADI("x") : #t1{core::int};
+}
+class C extends core::Object {
+  field core::int? _#C#x;
+  synthetic constructor •() → self::C
+    ;
+  get x() → core::int;
+  set x(core::int x#param) → void;
+  method initVars() → dynamic
+    ;
+}
+static method bar(core::int x) → dynamic
+  ;
+static method baz() → dynamic
+  ;
+static method hest() → dynamic async 
+  ;
+static method fisk() → dynamic async 
+  ;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///later.dart:46:18 -> IntConstant(42)
+Extra constant evaluation: evaluated: 17, effectively constant: 1

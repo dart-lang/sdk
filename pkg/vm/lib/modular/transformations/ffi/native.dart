@@ -561,9 +561,7 @@ class FfiNativeTransformer extends FfiTransformer {
       isStatic: true,
       isExternal: true,
       reference: reference,
-    )
-      ..isNonNullableByDefault = node.isNonNullableByDefault
-      ..fileOffset = node.fileOffset;
+    )..fileOffset = node.fileOffset;
     nonWrappedFfiNative.addAnnotation(pragmaConstant);
 
     // Add procedure to the parent the FfiNative function belongs to.
