@@ -2985,8 +2985,8 @@ static void EmitMoveOnEdge(BlockEntryInstr* succ,
                            BlockEntryInstr* pred,
                            const MoveOperands& move) {
   Instruction* last = pred->last_instruction();
-  if ((last->SuccessorCount() == 1) && !pred->IsGraphEntry()) {
-    ASSERT(last->IsGoto());
+  if (last->IsGoto() && !pred->IsGraphEntry()) {
+    ASSERT(last->SuccessorCount() == 1);
     last->AsGoto()->GetParallelMove()->AddMove(move.dest(), move.src());
   } else {
     succ->GetParallelMove()->AddMove(move.dest(), move.src());
