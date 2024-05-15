@@ -104,9 +104,6 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   /// Locals declared in this body, including parameters.
   final List<ir.Local> locals = [];
 
-  /// Is this the initializer of a global variable?
-  final bool isGlobalInitializer;
-
   /// Whether a textual trace of the instruction stream should be recorded when
   /// emitting instructions (provided asserts are enabled).
   ///
@@ -143,8 +140,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   final Map<ir.Instruction, StackTrace>? _stackTraces;
 
   /// Create a new instruction sequence.
-  InstructionsBuilder(this.module, List<ir.ValueType> outputs,
-      {this.isGlobalInitializer = false})
+  InstructionsBuilder(this.module, List<ir.ValueType> outputs)
       : _stackTraces = module.watchPoints.isNotEmpty ? {} : null {
     _labelStack.add(Expression(const [], outputs));
   }
@@ -1076,7 +1072,6 @@ class InstructionsBuilder with Builder<ir.Instructions> {
         [ir.RefType.def(arrayType, nullable: false)],
         trace: ['array.new_data', arrayType, data.index]));
     _add(ir.ArrayNewData(arrayType, data));
-    if (isGlobalInitializer) module.dataReferencedFromGlobalInitializer = true;
   }
 
   /// Emit an `array.copy` instruction.

@@ -17,7 +17,6 @@ class Module implements Serializable {
   final DataSegments dataSegments;
   final List<Import> imports;
   final List<int> watchPoints;
-  final bool dataReferencedFromGlobalInitializer;
 
   Module(
       this.functions,
@@ -29,8 +28,7 @@ class Module implements Serializable {
       this.types,
       this.dataSegments,
       this.imports,
-      this.watchPoints,
-      this.dataReferencedFromGlobalInitializer);
+      this.watchPoints);
 
   /// Serialize a module to its binary representation.
   @override
@@ -46,16 +44,11 @@ class Module implements Serializable {
     TableSection(tables.defined, watchPoints).serialize(s);
     MemorySection(memories.defined, watchPoints).serialize(s);
     TagSection(tags.defined, watchPoints).serialize(s);
-    if (dataReferencedFromGlobalInitializer) {
-      DataCountSection(dataSegments.defined, watchPoints).serialize(s);
-    }
     GlobalSection(globals.defined, watchPoints).serialize(s);
     ExportSection(exports.exported, watchPoints).serialize(s);
     StartSection(functions.start, watchPoints).serialize(s);
     ElementSection(tables.defined, watchPoints).serialize(s);
-    if (!dataReferencedFromGlobalInitializer) {
-      DataCountSection(dataSegments.defined, watchPoints).serialize(s);
-    }
+    DataCountSection(dataSegments.defined, watchPoints).serialize(s);
     CodeSection(functions.defined, watchPoints).serialize(s);
     DataSection(dataSegments.defined, watchPoints).serialize(s);
     if (functions.namedCount > 0 || types.namedCount > 0) {
