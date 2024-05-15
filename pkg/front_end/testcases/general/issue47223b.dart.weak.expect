@@ -1,8 +1,0 @@
-library;
-import self as self;
-import "dart:core" as core;
-
-static method test() → void {
-  let final Never #t1 = throw "some value" in #t1{Never}.foo == null ?{core::String?} #t1.{Never}foo = "foo" : null;
-}
-static method main() → dynamic {}

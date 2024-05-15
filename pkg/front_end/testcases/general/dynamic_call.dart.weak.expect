@@ -1,7 +1,0 @@
-library;
-import self as self;
-
-static method method(dynamic d) → dynamic {
-  d{dynamic}();
-  d{dynamic}.call();
-}
