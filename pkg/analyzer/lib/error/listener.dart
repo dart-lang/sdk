@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart'
     show AstNode, ConstructorDeclaration;
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -79,6 +80,25 @@ class ErrorReporter {
       errorCode: errorCode,
       offset: nonSynthetic.nameOffset,
       length: nonSynthetic.nameLength,
+      arguments: arguments,
+      contextMessages: contextMessages,
+      data: data,
+    );
+  }
+
+  /// Report an error with the given [errorCode] and [arguments].
+  /// The [entity] is used to compute the location of the error.
+  void atEntity({
+    required SyntacticEntity entity,
+    required ErrorCode errorCode,
+    List<Object>? arguments,
+    List<DiagnosticMessage>? contextMessages,
+    Object? data,
+  }) {
+    atOffset(
+      errorCode: errorCode,
+      offset: entity.offset,
+      length: entity.length,
       arguments: arguments,
       contextMessages: contextMessages,
       data: data,

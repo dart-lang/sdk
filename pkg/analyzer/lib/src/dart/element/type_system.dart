@@ -5,6 +5,7 @@
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart' show AstNode;
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart' show TokenType;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -652,7 +653,7 @@ class TypeSystemImpl implements TypeSystem {
     // are implied by this.
     var inferrer = GenericInferrer(this, fnType.typeFormals,
         errorReporter: errorReporter,
-        errorNode: errorNode,
+        errorEntity: errorNode,
         genericMetadataIsEnabled: genericMetadataIsEnabled,
         strictInference: strictInference,
         typeSystemOperations: typeSystemOperations,
@@ -1697,7 +1698,7 @@ class TypeSystemImpl implements TypeSystem {
     required DartType declaredReturnType,
     required DartType contextReturnType,
     ErrorReporter? errorReporter,
-    AstNode? errorNode,
+    SyntacticEntity? errorEntity,
     required bool genericMetadataIsEnabled,
     bool isConst = false,
     required bool strictInference,
@@ -1712,7 +1713,7 @@ class TypeSystemImpl implements TypeSystem {
     // are implied by this.
     var inferrer = GenericInferrer(this, typeParameters,
         errorReporter: errorReporter,
-        errorNode: errorNode,
+        errorEntity: errorEntity,
         genericMetadataIsEnabled: genericMetadataIsEnabled,
         strictInference: strictInference,
         typeSystemOperations: typeSystemOperations,

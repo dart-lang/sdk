@@ -14,6 +14,7 @@ import 'package:analyzer/dart/ast/ast.dart'
         Expression,
         InvocationExpression,
         SimpleIdentifier;
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
@@ -74,9 +75,10 @@ class GenericInferrer {
   /// `null` if errors shouldn't be reported.
   final ErrorReporter? errorReporter;
 
-  /// The [AstNode] to which errors should be attached.  May be `null` if errors
-  /// are not being reported (that is, if [errorReporter] is also `null`).
-  final AstNode? errorNode;
+  /// The [SyntacticEntity] to which errors should be attached.  May be `null`
+  /// if errors are not being reported (that is, if [errorReporter] is also
+  /// `null`).
+  final SyntacticEntity? errorEntity;
 
   /// Indicates whether the "generic metadata" feature is enabled.  When it is,
   /// type arguments are allowed to be instantiated with generic function types.
@@ -114,7 +116,7 @@ class GenericInferrer {
 
   GenericInferrer(this._typeSystem, this._typeFormals,
       {this.errorReporter,
-      this.errorNode,
+      this.errorEntity,
       required this.genericMetadataIsEnabled,
       required bool strictInference,
       required TypeSystemOperations typeSystemOperations,
@@ -122,7 +124,7 @@ class GenericInferrer {
       : _strictInference = strictInference,
         _typeSystemOperations = typeSystemOperations {
     if (errorReporter != null) {
-      assert(errorNode != null);
+      assert(errorEntity != null);
     }
     _typeParameters.addAll(_typeFormals);
     for (var formal in _typeFormals) {
@@ -266,9 +268,9 @@ class GenericInferrer {
       if (!success) {
         if (failAtError) return null;
         hasErrorReported = true;
-        errorReporter?.atNode(
-          errorNode!,
-          CompileTimeErrorCode.COULD_NOT_INFER,
+        errorReporter?.atEntity(
+          entity: errorEntity!,
+          errorCode: CompileTimeErrorCode.COULD_NOT_INFER,
           arguments: [
             parameter.name,
             _formatError(parameter, inferred, constraints)
@@ -289,9 +291,9 @@ class GenericInferrer {
         hasErrorReported = true;
         var typeFormals = inferred.typeFormals;
         var typeFormalsStr = typeFormals.map(_elementStr).join(', ');
-        errorReporter!.atNode(
-          errorNode!,
-          CompileTimeErrorCode.COULD_NOT_INFER,
+        errorReporter!.atEntity(
+          entity: errorEntity!,
+          errorCode: CompileTimeErrorCode.COULD_NOT_INFER,
           arguments: [
             parameter.name,
             ' Inferred candidate type ${_typeStr(inferred)} has type parameters'
@@ -310,7 +312,7 @@ class GenericInferrer {
         // mode.
         _reportInferenceFailure(
           errorReporter: errorReporter,
-          errorNode: errorNode,
+          errorEntity: errorEntity,
           genericMetadataIsEnabled: genericMetadataIsEnabled,
         );
       }
@@ -330,9 +332,9 @@ class GenericInferrer {
         var typeParamBound = Substitution.fromPairs(_typeFormals, inferredTypes)
             .substituteType(typeParam.bound ?? typeProvider.objectType);
         // TODO(jmesserly): improve this error message.
-        errorReporter?.atNode(
-          errorNode!,
-          CompileTimeErrorCode.COULD_NOT_INFER,
+        errorReporter?.atEntity(
+          entity: errorEntity!,
+          errorCode: CompileTimeErrorCode.COULD_NOT_INFER,
           arguments: [
             typeParam.name,
             "\nRecursive bound cannot be instantiated: '$typeParamBound'."
@@ -345,7 +347,7 @@ class GenericInferrer {
 
     if (!hasErrorReported) {
       _checkArgumentsNotMatchingBounds(
-        errorNode: errorNode,
+        errorEntity: errorEntity,
         errorReporter: errorReporter,
         typeArguments: result,
       );
@@ -357,7 +359,7 @@ class GenericInferrer {
 
   /// Check that inferred [typeArguments] satisfy the [typeParameters] bounds.
   void _checkArgumentsNotMatchingBounds({
-    required AstNode? errorNode,
+    required SyntacticEntity? errorEntity,
     required ErrorReporter? errorReporter,
     required List<DartType> typeArguments,
   }) {
@@ -373,9 +375,9 @@ class GenericInferrer {
       var substitution = Substitution.fromPairs(_typeFormals, typeArguments);
       var bound = substitution.substituteType(rawBound);
       if (!_typeSystem.isSubtypeOf(argument, bound)) {
-        errorReporter?.atNode(
-          errorNode!,
-          CompileTimeErrorCode.COULD_NOT_INFER,
+        errorReporter?.atEntity(
+          entity: errorEntity!,
+          errorCode: CompileTimeErrorCode.COULD_NOT_INFER,
           arguments: [
             parameter.name,
             "\n'${_typeStr(argument)}' doesn't conform to "
@@ -639,49 +641,50 @@ class GenericInferrer {
     return t;
   }
 
-  /// Reports an inference failure on [errorNode] according to its type.
+  /// Reports an inference failure on [errorEntity] according to its type.
   void _reportInferenceFailure({
     ErrorReporter? errorReporter,
-    AstNode? errorNode,
+    SyntacticEntity? errorEntity,
     required bool genericMetadataIsEnabled,
   }) {
-    if (errorReporter == null || errorNode == null) {
+    if (errorReporter == null || errorEntity == null) {
       return;
     }
-    if (errorNode.parent is InvocationExpression &&
-        errorNode.parent?.parent is AsExpression) {
+    if (errorEntity is AstNode &&
+        errorEntity.parent is InvocationExpression &&
+        errorEntity.parent?.parent is AsExpression) {
       // Casts via `as` do not play a part in downward inference. We allow an
       // exception when inference has "failed" but the return value is
       // immediately cast with `as`.
       return;
     }
-    if (errorNode is ConstructorName &&
-        !(errorNode.type.type as InterfaceType).element.hasOptionalTypeArgs) {
-      String constructorName = errorNode.name == null
-          ? errorNode.type.qualifiedName
-          : '${errorNode.type}.${errorNode.name}';
+    if (errorEntity is ConstructorName &&
+        !(errorEntity.type.type as InterfaceType).element.hasOptionalTypeArgs) {
+      String constructorName = errorEntity.name == null
+          ? errorEntity.type.qualifiedName
+          : '${errorEntity.type}.${errorEntity.name}';
       errorReporter.atNode(
-        errorNode,
+        errorEntity,
         WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION,
         arguments: [constructorName],
       );
-    } else if (errorNode is Annotation) {
+    } else if (errorEntity is Annotation) {
       if (genericMetadataIsEnabled) {
         // Only report an error if generic metadata is valid syntax.
-        var element = errorNode.name.staticElement;
+        var element = errorEntity.name.staticElement;
         if (element != null && !element.hasOptionalTypeArgs) {
-          String constructorName = errorNode.constructorName == null
-              ? errorNode.name.name
-              : '${errorNode.name.name}.${errorNode.constructorName}';
+          String constructorName = errorEntity.constructorName == null
+              ? errorEntity.name.name
+              : '${errorEntity.name.name}.${errorEntity.constructorName}';
           errorReporter.atNode(
-            errorNode,
+            errorEntity,
             WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION,
             arguments: [constructorName],
           );
         }
       }
-    } else if (errorNode is SimpleIdentifier) {
-      var element = errorNode.staticElement;
+    } else if (errorEntity is SimpleIdentifier) {
+      var element = errorEntity.staticElement;
       if (element != null) {
         if (element is VariableElement) {
           // For variable elements, we check their type and possible alias type.
@@ -698,19 +701,19 @@ class GenericInferrer {
         }
         if (!element.hasOptionalTypeArgs) {
           errorReporter.atNode(
-            errorNode,
+            errorEntity,
             WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION,
-            arguments: [errorNode.name],
+            arguments: [errorEntity.name],
           );
           return;
         }
       }
-    } else if (errorNode is Expression) {
-      var type = errorNode.staticType;
+    } else if (errorEntity is Expression) {
+      var type = errorEntity.staticType;
       if (type != null) {
         var typeDisplayString = _typeStr(type);
         errorReporter.atNode(
-          errorNode,
+          errorEntity,
           WarningCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION,
           arguments: [typeDisplayString],
         );

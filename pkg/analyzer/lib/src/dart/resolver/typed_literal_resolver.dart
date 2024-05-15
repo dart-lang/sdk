@@ -420,7 +420,7 @@ class TypedLiteralResolver {
       contextReturnType: contextType,
       isConst: node.isConst,
       errorReporter: _errorReporter,
-      errorNode: node,
+      errorEntity: node,
       genericMetadataIsEnabled: _genericMetadataIsEnabled,
       strictInference: _resolver.analysisOptions.strictInference,
       strictCasts: _resolver.analysisOptions.strictCasts,
