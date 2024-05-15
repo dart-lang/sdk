@@ -8970,10 +8970,7 @@ class TypeArguments : public Instance {
                                  (len * kBytesPerElement));
   }
 
-  virtual uint32_t CanonicalizeHash() const {
-    // Hash() is not stable until finalization is done.
-    return 0;
-  }
+  virtual uint32_t CanonicalizeHash() const { return Hash(); }
   uword Hash() const;
   uword HashForRange(intptr_t from_index, intptr_t len) const;
   static intptr_t hash_offset() {
