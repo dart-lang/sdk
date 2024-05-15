@@ -280,8 +280,7 @@ Procedure _createTearOffProcedure(SourceLibraryBuilder libraryBuilder,
       fileUri: fileUri, isStatic: true, isSynthetic: true, reference: reference)
     ..fileStartOffset = fileOffset
     ..fileOffset = fileOffset
-    ..fileEndOffset = fileOffset
-    ..isNonNullableByDefault = true;
+    ..fileEndOffset = fileOffset;
   tearOffName.attachMember(tearOff);
   return tearOff;
 }

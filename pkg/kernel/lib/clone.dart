@@ -303,8 +303,7 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
 
   @override
   TreeNode visitIsExpression(IsExpression node) {
-    return new IsExpression(clone(node.operand), visitType(node.type))
-      ..flags = node.flags;
+    return new IsExpression(clone(node.operand), visitType(node.type));
   }
 
   @override

@@ -2745,10 +2745,8 @@ class BinaryBuilder {
 
   Expression _readIsExpression() {
     int offset = readOffset();
-    int flags = readByte();
     return new IsExpression(readExpression(), readDartType())
-      ..fileOffset = offset
-      ..flags = flags;
+      ..fileOffset = offset;
   }
 
   Expression _readAsExpression() {

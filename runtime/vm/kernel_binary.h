@@ -18,7 +18,7 @@ namespace kernel {
 // package:kernel/binary.md.
 
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
-static const uint32_t kSupportedKernelFormatVersion = 117;
+static const uint32_t kSupportedKernelFormatVersion = 118;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -233,13 +233,7 @@ enum AsExpressionFlags {
   kAsExpressionFlagTypeError = 1 << 0,
   kAsExpressionFlagCovarianceCheck = 1 << 1,
   kAsExpressionFlagForDynamic = 1 << 2,
-  kAsExpressionFlagForLegacy = 1 << 3,
-  kAsExpressionFlagUnchecked = 1 << 4,
-};
-
-// Keep in sync with package:kernel/lib/ast.dart
-enum IsExpressionFlags {
-  kIsExpressionFlagForLegacy = 1 << 0,
+  kAsExpressionFlagUnchecked = 1 << 3,
 };
 
 // Keep in sync with package:kernel/lib/ast.dart

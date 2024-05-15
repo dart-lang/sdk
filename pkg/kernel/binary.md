@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 117;
+  UInt32 formatVersion = 118;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -242,7 +242,7 @@ type Name {
 }
 
 type Library {
-  Byte flags (isSynthetic, isLegacy, nnbdModeBit1, nnbdModeBit2, isUnsupported);
+  Byte flags (isSynthetic, nnbdModeBit1, nnbdModeBit2, isUnsupported);
   UInt languageVersionMajor;
   UInt languageVersionMinor;
   CanonicalNameReference canonicalName;
@@ -401,8 +401,7 @@ type Field extends Member {
   FileOffset fileEndOffset;
   UInt flags (isFinal, isConst, isStatic, isCovariantByDeclaration,
                 isCovariantByClass, isLate, isExtensionMember,
-                isLegacy, isInternalImplementation,
-                isEnumElement, isExtensionTypeMember);
+                isInternalImplementation, isEnumElement, isExtensionTypeMember);
   Name name;
   List<Expression> annotations;
   DartType type;
@@ -416,7 +415,7 @@ type Constructor extends Member {
   FileOffset startFileOffset; // Offset of the start of the constructor including any annotations.
   FileOffset fileOffset; // Offset of the constructor name.
   FileOffset fileEndOffset;
-  Byte flags (isConst, isExternal, isSynthetic, isLegacy);
+  Byte flags (isConst, isExternal, isSynthetic);
   Name name;
   List<Expression> annotations;
   FunctionNode function;
@@ -456,9 +455,8 @@ type Procedure extends Member {
   Byte kind; // Index into the ProcedureKind enum above.
   Byte stubKind; // Index into the ProcedureStubKind enum above.
   UInt flags (isStatic, isAbstract, isExternal, isConst,
-              isExtensionMember, isLegacy, isSynthetic,
-              isInternalImplementation, isExtensionTypeMember,
-              hasWeakTearoffReferencePragma, IsLoweredLateField);
+              isExtensionMember, isSynthetic, isInternalImplementation, 
+              isExtensionTypeMember, hasWeakTearoffReferencePragma, IsLoweredLateField);
   Name name;
   List<Expression> annotations;
   MemberReference stubTarget; // May be NullReference.
@@ -990,7 +988,6 @@ type FileUriExpression extends Expression {
 type IsExpression extends Expression {
   Byte tag = 37;
   FileOffset fileOffset;
-  Byte flags (isLegacy);
   Expression operand;
   DartType type;
 }
@@ -998,7 +995,7 @@ type IsExpression extends Expression {
 type AsExpression extends Expression {
   Byte tag = 38;
   FileOffset fileOffset;
-  Byte flags (isTypeError,isCovarianceCheck,isForDynamic,isForNonNullableByDefault);
+  Byte flags (isTypeError,isCovarianceCheck,isForDynamic,isUnchecked);
   Expression operand;
   DartType type;
 }

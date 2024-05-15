@@ -1556,11 +1556,6 @@ class SourceClassBuilder extends ClassBuilderImpl
       declaredType = legacyErasure(declaredType);
     }
 
-    if (!declaredMember.isNonNullableByDefault &&
-        interfaceMember.isNonNullableByDefault) {
-      interfaceType = legacyErasure(interfaceType);
-    }
-
     bool inParameter = declaredParameter != null || asIfDeclaredParameter;
     DartType subtype = inParameter ? interfaceType : declaredType;
     DartType supertype = inParameter ? declaredType : interfaceType;
@@ -1830,10 +1825,8 @@ class SourceClassBuilder extends ClassBuilderImpl
           declaredParameter,
           isInterfaceCheck,
           declaredNeedsLegacyErasure);
-      if (declaredMember.isNonNullableByDefault &&
-          !declaredNeedsLegacyErasure &&
+      if (!declaredNeedsLegacyErasure &&
           declaredParameter.isRequired &&
-          interfaceMember.isNonNullableByDefault &&
           !interfaceNamedParameters.current.isRequired) {
         reportInvalidOverride(
             isInterfaceCheck,

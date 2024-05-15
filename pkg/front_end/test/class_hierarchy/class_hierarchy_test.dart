@@ -447,15 +447,8 @@ String procedureType(Procedure procedure) {
     return typeToText(procedure.function.positionalParameters.single.type,
         TypeRepresentation.analyzerNonNullableByDefault);
   } else {
-    Nullability functionTypeNullability;
-    if (procedure.enclosingLibrary.isNonNullableByDefault) {
-      functionTypeNullability = procedure.enclosingLibrary.nonNullable;
-    } else {
-      // We don't create a member signature when the member is just
-      // a substitution. We should still take the nullability to be
-      // legacy, though.
-      functionTypeNullability = procedure.enclosingLibrary.nonNullable;
-    }
+    Nullability functionTypeNullability =
+        procedure.enclosingLibrary.nonNullable;
     return typeToText(
         procedure.function.computeThisFunctionType(functionTypeNullability),
         TypeRepresentation.analyzerNonNullableByDefault);

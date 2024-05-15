@@ -135,7 +135,6 @@ Component createExpressionEvaluationComponent(Procedure procedure) {
   Uri uri = new Uri(scheme: 'evaluate', path: 'source');
   Library fakeLibrary = new Library(uri, fileUri: uri)
     ..setLanguageVersion(realLibrary.languageVersion)
-    ..isNonNullableByDefault = realLibrary.isNonNullableByDefault
     ..nonNullableByDefaultCompiledMode =
         realLibrary.nonNullableByDefaultCompiledMode;
 

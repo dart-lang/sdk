@@ -33,8 +33,7 @@ Library parseLibrary(Uri uri, String text,
   fileUri ??= uri;
   environment ??= new TypeParserEnvironment(uri, fileUri);
   Library library =
-      new Library(uri, fileUri: fileUri, name: uri.path.replaceAll("/", "."))
-        ..isNonNullableByDefault = true;
+      new Library(uri, fileUri: fileUri, name: uri.path.replaceAll("/", "."));
   List<ParsedType> types = type_parser.parse(text);
   for (ParsedType type in types) {
     if (type is ParsedClass) {
@@ -87,13 +86,11 @@ class Env {
     TypeParserEnvironment coreEnvironment =
         new TypeParserEnvironment(coreUri, coreUri);
     Library coreLibrary =
-        parseLibrary(coreUri, mockSdk, environment: coreEnvironment)
-          ..isNonNullableByDefault = isNonNullableByDefault;
+        parseLibrary(coreUri, mockSdk, environment: coreEnvironment);
     _libraryEnvironment = new TypeParserEnvironment(libraryUri, libraryUri)
         ._extend(coreEnvironment._declarations);
     Library library =
-        parseLibrary(libraryUri, source, environment: _libraryEnvironment)
-          ..isNonNullableByDefault = isNonNullableByDefault;
+        parseLibrary(libraryUri, source, environment: _libraryEnvironment);
     library.name = "lib";
     component = new Component(libraries: <Library>[coreLibrary, library]);
     coreTypes = new CoreTypes(component);

@@ -168,7 +168,7 @@ namespace dart {
   V(::, _byteDataByteOffsetCheck, ByteDataByteOffsetCheck, 0xbaf71484)         \
   V(::, copyRangeFromUint8ListToOneByteString,                                 \
     CopyRangeFromUint8ListToOneByteString, 0xcc3444c2)                         \
-  V(_StringBase, _interpolate, StringBaseInterpolate, 0x3f22ce9e)              \
+  V(_StringBase, _interpolate, StringBaseInterpolate, 0xa2c902d2)              \
   V(_StringBase, codeUnitAt, StringBaseCodeUnitAt, 0x17dbf511)                 \
   V(_SuspendState, get:_functionData, SuspendState_getFunctionData,            \
     0x7272eaae)                                                                \
@@ -198,8 +198,8 @@ namespace dart {
   V(_Double, roundToDouble, DoubleRoundToDouble, 0x562cb240)                   \
   V(_Double, toInt, DoubleToInteger, 0x675208e9)                               \
   V(_Double, truncateToDouble, DoubleTruncateToDouble, 0x62b76e99)             \
-  V(::, min, MathMin, 0x21232beb)                                              \
-  V(::, max, MathMax, 0xcf067384)                                              \
+  V(::, min, MathMin, 0x63eb7469)                                              \
+  V(::, max, MathMax, 0xf9320c82)                                              \
   V(::, _doublePow, MathDoublePow, 0xaeabdc94)                                 \
   V(::, _intPow, MathIntPow, 0xab39e81a)                                       \
   V(::, _sin, MathSin, 0x17bdb243)                                             \
@@ -399,7 +399,7 @@ namespace dart {
   V(_Double, >=, Double_greaterEqualThan, 0x4aa007b3)                          \
   V(_Double, <, Double_lessThan, 0xd2fb73b4)                                   \
   V(_Double, <=, Double_lessEqualThan, 0x024aa595)                             \
-  V(_Double, ==, Double_equal, 0x3694bad0)                                     \
+  V(_Double, ==, Double_equal, 0xe9189b0a)                                     \
   V(_Double, +, Double_add, 0xa7c8119f)                                        \
   V(_Double, -, Double_sub, 0x9ab51df0)                                        \
   V(_Double, *, Double_mul, 0xdc3c27ed)                                        \
@@ -431,7 +431,7 @@ namespace dart {
 
 #define CORE_INTEGER_LIB_INTRINSIC_LIST(V)                                     \
   V(_IntegerImplementation, >, Integer_greaterThan, 0xd9c2551b)                \
-  V(_IntegerImplementation, ==, Integer_equal, 0xd4661e09)                     \
+  V(_IntegerImplementation, ==, Integer_equal, 0x025d83d3)                     \
   V(_IntegerImplementation, _equalToInteger, Integer_equalToInteger,           \
     0x70f20102)                                                                \
   V(_IntegerImplementation, <, Integer_lessThan, 0xd2fb73b4)                   \
@@ -485,8 +485,8 @@ namespace dart {
   V(_IntegerImplementation, +, Integer_add, 0x6ef8468c)                        \
   V(_IntegerImplementation, -, Integer_sub, 0x6301557d)                        \
   V(_IntegerImplementation, *, Integer_mul, 0x4670aa1a)                        \
-  V(_IntegerImplementation, %, Integer_mod, 0x66f6edd5)                        \
-  V(_IntegerImplementation, ~/, Integer_truncDivide, 0x70e91441)               \
+  V(_IntegerImplementation, %, Integer_mod, 0x708e28b9)                        \
+  V(_IntegerImplementation, ~/, Integer_truncDivide, 0x29407b25)               \
   V(_IntegerImplementation, unary-, Integer_negate, 0x9140ec93)                \
   V(_IntegerImplementation, &, Integer_bitAnd, 0x42452d89)                     \
   V(_IntegerImplementation, |, Integer_bitOr, 0x45efa741)                      \

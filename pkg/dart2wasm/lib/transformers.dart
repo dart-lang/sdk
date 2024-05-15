@@ -193,8 +193,7 @@ class _WasmTransformer extends Transformer {
           ),
           isExternal: true,
           isSynthetic: true,
-          fileUri: cls.fileUri)
-        ..isNonNullableByDefault = true;
+          fileUri: cls.fileUri);
       cls.addProcedure(getTypeArguments);
     }
     return super.visitClass(cls);

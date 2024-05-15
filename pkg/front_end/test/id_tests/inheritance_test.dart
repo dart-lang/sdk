@@ -97,7 +97,8 @@ class InheritanceDataExtractor extends CfeDataExtractor<String> {
 
   @override
   String computeLibraryValue(Id id, Library node) {
-    return 'nnbd=${node.isNonNullableByDefault}';
+    // TODO(johnniwinther): Remove this.
+    return 'nnbd=true';
   }
 
   @override
@@ -126,8 +127,7 @@ class InheritanceDataExtractor extends CfeDataExtractor<String> {
       InterfaceType supertype = _hierarchy.getInterfaceTypeAsInstanceOfClass(
           _coreTypes.thisInterfaceType(node, node.enclosingLibrary.nonNullable),
           member.enclosingClass!,
-          isNonNullableByDefault:
-              node.enclosingLibrary.isNonNullableByDefault)!;
+          isNonNullableByDefault: true)!;
       Substitution substitution = Substitution.fromInterfaceType(supertype);
       DartType? type;
       if (member is Procedure) {
@@ -137,15 +137,8 @@ class InheritanceDataExtractor extends CfeDataExtractor<String> {
           type = substitution
               .substituteType(member.function.positionalParameters.single.type);
         } else {
-          Nullability functionTypeNullability;
-          if (node.enclosingLibrary.isNonNullableByDefault) {
-            functionTypeNullability = member.enclosingLibrary.nonNullable;
-          } else {
-            // We don't create a member signature when the member is just
-            // a substitution. We should still take the nullability to be
-            // legacy, though.
-            functionTypeNullability = node.enclosingLibrary.nonNullable;
-          }
+          Nullability functionTypeNullability =
+              member.enclosingLibrary.nonNullable;
           type = substitution.substituteType(
               member.function.computeThisFunctionType(functionTypeNullability));
         }

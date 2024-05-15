@@ -3097,9 +3097,6 @@ class EquivalenceStrategy {
     if (other is! IsExpression) return false;
     visitor.pushNodeState(node, other);
     bool result = true;
-    if (!checkIsExpression_flags(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
     if (!checkIsExpression_operand(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -7455,11 +7452,6 @@ class EquivalenceStrategy {
   bool checkFileUriExpression_fileOffset(EquivalenceVisitor visitor,
       FileUriExpression node, FileUriExpression other) {
     return checkExpression_fileOffset(visitor, node, other);
-  }
-
-  bool checkIsExpression_flags(
-      EquivalenceVisitor visitor, IsExpression node, IsExpression other) {
-    return visitor.checkValues(node.flags, other.flags, 'flags');
   }
 
   bool checkIsExpression_operand(

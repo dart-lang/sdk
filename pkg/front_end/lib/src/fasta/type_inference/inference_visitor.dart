@@ -3762,7 +3762,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(fileOffset != TreeNode.noOffset);
     return new AsExpression(expression, type)
       ..isTypeError = true
-      ..isForNonNullableByDefault = true
       ..fileOffset = fileOffset;
   }
 
@@ -6276,7 +6275,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           binary = new AsExpression(binary, binaryType)
             ..isTypeError = true
             ..isCovarianceCheck = true
-            ..isForNonNullableByDefault = true
             ..fileOffset = fileOffset;
         }
         break;
@@ -6395,7 +6393,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           unary = new AsExpression(unary, unaryType)
             ..isTypeError = true
             ..isCovarianceCheck = true
-            ..isForNonNullableByDefault = true
             ..fileOffset = fileOffset;
         }
         break;
@@ -6538,7 +6535,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           read = new AsExpression(read, readType)
             ..isTypeError = true
             ..isCovarianceCheck = true
-            ..isForNonNullableByDefault = true
             ..fileOffset = fileOffset;
         }
         break;
@@ -8194,8 +8190,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         thisType!, node.interfaceTarget,
         hasNonObjectMemberAccess: true);
     DartType writeContext = writeTarget.getSetterType(this);
-    writeContext = computeTypeFromSuperClass(
-        node.interfaceTarget.enclosingClass!, writeContext);
     ExpressionInferenceResult rhsResult =
         inferExpression(node.value, writeContext, isVoidAllowed: true);
     rhsResult = ensureAssignableResult(writeContext, rhsResult,
@@ -8214,8 +8208,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             hasNonObjectMemberAccess: true)
         : new ObjectAccessTarget.superMember(thisType!, node.interfaceTarget);
     DartType writeContext = writeTarget.getSetterType(this);
-    writeContext = computeTypeFromSuperClass(
-        node.interfaceTarget.enclosingClass!, writeContext);
     ExpressionInferenceResult rhsResult =
         inferExpression(node.value, writeContext, isVoidAllowed: true);
     rhsResult = ensureAssignableResult(writeContext, rhsResult,
@@ -8508,7 +8500,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       node.expression =
           new AsExpression(node.expression, coreTypes.objectNonNullableRawType)
             ..isTypeError = true
-            ..isForNonNullableByDefault = true
             ..fileOffset = node.expression.fileOffset
             ..parent = node;
     }

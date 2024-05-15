@@ -16,17 +16,6 @@ void main() {
     }
   }
 
-  void setNonNullableByDefault(Library lib, bool isNonNullableByDefault) {
-    lib.isNonNullableByDefault = isNonNullableByDefault;
-  }
-
-  void verifyNonNullableByDefault(Library lib, bool isNonNullableByDefault) {
-    if (lib.isNonNullableByDefault != isNonNullableByDefault) {
-      throw "Serialized and re-read library had change in "
-          "isNonNullableByDefault flag.";
-    }
-  }
-
   void setNonNullableByDefaultCompiledMode(Library lib,
       NonNullableByDefaultCompiledMode nonNullableByDefaultCompiledMode) {
     lib.nonNullableByDefaultCompiledMode = nonNullableByDefaultCompiledMode;
@@ -59,12 +48,10 @@ void main() {
         Uri uri = Uri.parse("foo://bar.dart");
         Library lib = new Library(uri, fileUri: uri);
         setSynthetic(lib, isSynthetic);
-        setNonNullableByDefault(lib, isNonNullableByDefault);
         setNonNullableByDefaultCompiledMode(
             lib, nonNullableByDefaultCompiledMode);
         Library lib2 = libRoundTrip(lib);
         verifySynthetic(lib2, isSynthetic);
-        verifyNonNullableByDefault(lib2, isNonNullableByDefault);
         verifyNonNullableByDefaultCompiledMode(
             lib2, nonNullableByDefaultCompiledMode);
       }

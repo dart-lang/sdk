@@ -599,7 +599,6 @@ class DelayedIsExpression extends AbstractDelayedExpression {
         _operand.createExpression(typeEnvironment,
             effects: effects, inCacheInitializer: inCacheInitializer),
         _type,
-        forNonNullableByDefault: true,
         fileOffset: fileOffset);
   }
 

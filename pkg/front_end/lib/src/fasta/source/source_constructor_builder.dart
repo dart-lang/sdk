@@ -430,8 +430,7 @@ class DeclaredSourceConstructorBuilder
         isSynthetic: isSynthetic)
       ..startFileOffset = startCharOffset
       ..fileOffset = charOffset
-      ..fileEndOffset = charEndOffset
-      ..isNonNullableByDefault = true;
+      ..fileEndOffset = charEndOffset;
     nameScheme
         .getConstructorMemberName(name, isTearOff: false)
         .attachMember(_constructor);
@@ -1123,8 +1122,7 @@ class SourceExtensionTypeConstructorBuilder
         dummyName, ProcedureKind.Method, new FunctionNode(null),
         fileUri: compilationUnit.fileUri, reference: constructorReference)
       ..fileOffset = charOffset
-      ..fileEndOffset = charEndOffset
-      ..isNonNullableByDefault = true;
+      ..fileEndOffset = charEndOffset;
     nameScheme
         .getConstructorMemberName(name, isTearOff: false)
         .attachMember(_constructor);

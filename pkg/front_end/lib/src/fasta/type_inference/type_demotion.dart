@@ -43,24 +43,6 @@ DartType demoteTypeInLibrary(DartType type,
   }
 }
 
-/// Returns [type] normalized to the known nullabilities of [library].
-///
-/// If [library] is non-nullable by default [type] returned (non-nullable
-/// libraries can handle all kinds of nullability). Otherwise all
-/// non-legacy types have been replaced with legacy types (legacy libraries
-/// can only handle legacy types).
-DartType normalizeNullabilityInLibrary(DartType type, Library library) {
-  if (library.isNonNullableByDefault) {
-    return type;
-  } else {
-    return type.accept1(
-            const _DemotionNullabilityNormalization(
-                demoteTypeVariables: false, forNonNullableByDefault: false),
-            Variance.covariant) ??
-        type;
-  }
-}
-
 /// Visitor that replaces all promoted type variables the type variable itself
 /// and normalizes the type nullabilities.
 ///

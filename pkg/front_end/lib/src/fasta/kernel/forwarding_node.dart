@@ -467,7 +467,6 @@ class ForwardingNode {
         result = new AsExpression(result, procedure.function.returnType)
           ..isTypeError = true
           ..isForDynamic = true
-          ..isForNonNullableByDefault = true
           ..fileOffset = procedure.fileOffset;
       }
     }

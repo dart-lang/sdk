@@ -17,7 +17,6 @@ import 'package:kernel/names.dart';
 import 'package:kernel/src/bounds_checks.dart'
     show calculateBounds, isGenericFunctionTypeOrAlias;
 import 'package:kernel/src/future_value_type.dart';
-import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
@@ -452,7 +451,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         Expression asExpression =
             new AsExpression(expression, initialContextType)
               ..isTypeError = true
-              ..isForNonNullableByDefault = true
               ..isForDynamic = expressionType is DynamicType
               ..fileOffset = fileOffset;
         flowAnalysis.forwardExpression(asExpression, expression);
@@ -733,7 +731,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             ? const NeverType.nonNullable()
             : contextType)
       ..isTypeError = true
-      ..isForNonNullableByDefault = true
       ..fileOffset = expression.fileOffset;
     if (contextType is! InvalidType && expressionType is! InvalidType) {
       errorNode = helper.wrapInProblem(
@@ -1299,39 +1296,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     return null;
   }
 
-  /// Returns [type] as passed from [superClass] to the current class.
-  ///
-  /// If a legacy class occurs between the current class and [superClass] then
-  /// [type] needs to be legacy erased. For instance
-  ///
-  ///    // Opt in:
-  ///    class Super {
-  ///      int extendedMethod(int i, {required int j}) => i;
-  ///    }
-  ///    class Mixin {
-  ///      int mixedInMethod(int i, {required int j}) => i;
-  ///    }
-  ///    // Opt out:
-  ///    class Legacy extends Super with Mixin {}
-  ///    // Opt in:
-  ///    class Class extends Legacy {
-  ///      test() {
-  ///        // Ok to call `Legacy.extendedMethod` since its type is
-  ///        // `int* Function(int*, {int* j})`.
-  ///        super.extendedMethod(null);
-  ///        // Ok to call `Legacy.mixedInMethod` since its type is
-  ///        // `int* Function(int*, {int* j})`.
-  ///        super.mixedInMethod(null);
-  ///      }
-  ///    }
-  ///
-  DartType computeTypeFromSuperClass(Class superClass, DartType type) {
-    if (needsLegacyErasure(thisType!.classNode, superClass)) {
-      type = legacyErasure(type);
-    }
-    return type;
-  }
-
   /// Returns the getter type of [interfaceMember] on a receiver of type
   /// [receiverType].
   ///
@@ -1434,8 +1398,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   DartType inferDeclarationType(DartType initializerType,
       {bool forSyntheticVariable = false}) {
     if (forSyntheticVariable) {
-      return normalizeNullabilityInLibrary(
-          initializerType, libraryBuilder.library);
+      return initializerType;
     } else if (initializerType is NullType) {
       // If the initializer type is Null or bottom, the inferred type is
       // dynamic.
@@ -1921,10 +1884,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         calleeType = replaceReturnType(
             calleeType,
             typeSchemaEnvironment.getTypeOfSpecialCasedTernaryOperator(
-                receiverType!,
-                actualTypes[0],
-                actualTypes[1],
-                libraryBuilder.library));
+                receiverType!, actualTypes[0], actualTypes[1]));
       }
     }
 
@@ -2690,7 +2650,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       replacement = new AsExpression(expression, result.inferredType)
         ..isTypeError = true
         ..isCovarianceCheck = true
-        ..isForNonNullableByDefault = true
         ..fileOffset = fileOffset;
       if (instrumentation != null) {
         int offset =
@@ -2821,7 +2780,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       propertyGet = new AsExpression(propertyGet, calleeType)
         ..isTypeError = true
         ..isCovarianceCheck = true
-        ..isForNonNullableByDefault = true
         ..fileOffset = fileOffset;
       if (instrumentation != null) {
         int offset =
@@ -3010,7 +2968,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       propertyGet = new AsExpression(propertyGet, calleeType)
         ..isTypeError = true
         ..isCovarianceCheck = true
-        ..isForNonNullableByDefault = true
         ..fileOffset = fileOffset;
       if (instrumentation != null) {
         int offset =
@@ -3333,7 +3290,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                 type) ??
             type;
         Expression read = new AsExpression(receiver, type)
-          ..isForNonNullableByDefault = true
           ..isUnchecked = true
           ..fileOffset = fileOffset;
         ExpressionInferenceResult readResult =
@@ -3444,11 +3400,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     DartType receiverType = thisType!;
     bool isSpecialCasedBinaryOperator =
         target.isSpecialCasedBinaryOperator(this);
-    DartType calleeType = computeTypeFromSuperClass(
-        procedure.enclosingClass!, target.getGetterType(this));
-    FunctionType functionType = computeTypeFromSuperClass(
-            procedure.enclosingClass!, target.getFunctionType(this))
-        as FunctionType;
+    DartType calleeType = target.getGetterType(this);
+    FunctionType functionType = target.getFunctionType(this);
     if (methodName == equalsName &&
         functionType.positionalParameters.length == 1) {
       // operator == always allows nullable arguments.
@@ -3480,8 +3433,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         ? new ObjectAccessTarget.interfaceMember(thisType!, member,
             hasNonObjectMemberAccess: true)
         : new ObjectAccessTarget.superMember(thisType!, member);
-    DartType inferredType = computeTypeFromSuperClass(
-        member.enclosingClass!, readTarget.getGetterType(this));
+    DartType inferredType = readTarget.getGetterType(this);
     if (member is Procedure && member.kind == ProcedureKind.Method) {
       return instantiateTearOff(inferredType, typeContext, expression);
     }
@@ -4068,7 +4020,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           read = new AsExpression(read, readType)
             ..isTypeError = true
             ..isCovarianceCheck = true
-            ..isForNonNullableByDefault = true
             ..fileOffset = fileOffset;
         }
         if (member is Procedure && member.kind == ProcedureKind.Method) {
@@ -4090,7 +4041,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       case ObjectAccessTargetKind.extensionTypeRepresentation:
       case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
         read = new AsExpression(receiver, readType)
-          ..isForNonNullableByDefault = true
           ..isUnchecked = true
           ..fileOffset = fileOffset;
         break;
@@ -4098,7 +4048,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
     if (promotedReadType != null) {
       read = new AsExpression(read, promotedReadType)
-        ..isForNonNullableByDefault = true
         ..isUnchecked = true
         ..fileOffset = fileOffset;
       readType = promotedReadType;

@@ -290,10 +290,10 @@ class Library extends NamedNode
   }
 
   static const int SyntheticFlag = 1 << 0;
-  static const int LegacyFlag = 1 << 1;
-  static const int NonNullableByDefaultModeBit1 = 1 << 2;
-  static const int NonNullableByDefaultModeBit2 = 1 << 3;
-  static const int IsUnsupportedFlag = 1 << 4;
+
+  static const int NonNullableByDefaultModeBit1 = 1 << 1;
+  static const int NonNullableByDefaultModeBit2 = 1 << 2;
+  static const int IsUnsupportedFlag = 1 << 3;
 
   int flags = 0;
 
@@ -302,11 +302,6 @@ class Library extends NamedNode
   bool get isSynthetic => flags & SyntheticFlag != 0;
   void set isSynthetic(bool value) {
     flags = value ? (flags | SyntheticFlag) : (flags & ~SyntheticFlag);
-  }
-
-  bool get isNonNullableByDefault => (flags & LegacyFlag) == 0;
-  void set isNonNullableByDefault(bool value) {
-    flags = value ? (flags & ~LegacyFlag) : (flags | LegacyFlag);
   }
 
   NonNullableByDefaultCompiledMode get nonNullableByDefaultCompiledMode {
@@ -465,15 +460,9 @@ class Library extends NamedNode
     _fields = fields;
   }
 
-  Nullability get nullable {
-    return isNonNullableByDefault ? Nullability.nullable : Nullability.legacy;
-  }
+  Nullability get nullable => Nullability.nullable;
 
-  Nullability get nonNullable {
-    return isNonNullableByDefault
-        ? Nullability.nonNullable
-        : Nullability.legacy;
-  }
+  Nullability get nonNullable => Nullability.nonNullable;
 
   /// Returns the top-level fields and procedures defined in this library.
   ///
@@ -2193,10 +2182,6 @@ sealed class Member extends NamedNode implements Annotatable, FileUriNode {
   ///
   bool get isExtensionTypeMember;
 
-  /// If `true` this member is defined in a library for which non-nullable by
-  /// default is enabled.
-  bool get isNonNullableByDefault;
-
   /// If `true` this procedure is not part of the interface but only part of the
   /// class members.
   ///
@@ -2420,10 +2405,9 @@ class Field extends Member {
   static const int FlagCovariantByClass = 1 << 4;
   static const int FlagLate = 1 << 5;
   static const int FlagExtensionMember = 1 << 6;
-  static const int FlagLegacy = 1 << 7;
-  static const int FlagInternalImplementation = 1 << 8;
-  static const int FlagEnumElement = 1 << 9;
-  static const int FlagExtensionTypeMember = 1 << 10;
+  static const int FlagInternalImplementation = 1 << 7;
+  static const int FlagEnumElement = 1 << 8;
+  static const int FlagExtensionTypeMember = 1 << 9;
 
   /// Whether the field is declared with the `covariant` keyword.
   bool get isCovariantByDeclaration => flags & FlagCovariant != 0;
@@ -2528,13 +2512,6 @@ class Field extends Member {
 
   @override
   bool get isExternal => false;
-
-  @override
-  bool get isNonNullableByDefault => flags & FlagLegacy == 0;
-
-  void set isNonNullableByDefault(bool value) {
-    flags = value ? (flags & ~FlagLegacy) : (flags | FlagLegacy);
-  }
 
   @override
   R accept<R>(MemberVisitor<R> v) => v.visitField(this);
@@ -2650,7 +2627,6 @@ class Constructor extends Member {
   static const int FlagConst = 1 << 0; // Must match serialized bit positions.
   static const int FlagExternal = 1 << 1;
   static const int FlagSynthetic = 1 << 2;
-  static const int FlagLegacy = 1 << 3;
 
   @override
   bool get isConst => flags & FlagConst != 0;
@@ -2688,13 +2664,6 @@ class Constructor extends Member {
 
   @override
   bool get isExtensionTypeMember => false;
-
-  @override
-  bool get isNonNullableByDefault => flags & FlagLegacy == 0;
-
-  void set isNonNullableByDefault(bool value) {
-    flags = value ? (flags & ~FlagLegacy) : (flags | FlagLegacy);
-  }
 
   @override
   R accept<R>(MemberVisitor<R> v) => v.visitConstructor(this);
@@ -3098,11 +3067,10 @@ class Procedure extends Member implements GenericFunction {
   static const int FlagExternal = 1 << 2;
   static const int FlagConst = 1 << 3; // Only for external const factories.
   static const int FlagExtensionMember = 1 << 4;
-  static const int FlagLegacy = 1 << 5;
-  static const int FlagSynthetic = 1 << 6;
-  static const int FlagInternalImplementation = 1 << 7;
-  static const int FlagExtensionTypeMember = 1 << 8;
-  static const int FlagHasWeakTearoffReferencePragma = 1 << 9;
+  static const int FlagSynthetic = 1 << 5;
+  static const int FlagInternalImplementation = 1 << 6;
+  static const int FlagExtensionTypeMember = 1 << 7;
+  static const int FlagHasWeakTearoffReferencePragma = 1 << 8;
 
   bool get isStatic => flags & FlagStatic != 0;
 
@@ -3221,13 +3189,6 @@ class Procedure extends Member implements GenericFunction {
   bool get hasSetter => kind == ProcedureKind.Setter;
 
   bool get isFactory => kind == ProcedureKind.Factory;
-
-  @override
-  bool get isNonNullableByDefault => flags & FlagLegacy == 0;
-
-  void set isNonNullableByDefault(bool value) {
-    flags = value ? (flags & ~FlagLegacy) : (flags | FlagLegacy);
-  }
 
   Member? get concreteForwardingStubTarget =>
       stubKind == ProcedureStubKind.ConcreteForwardingStub
@@ -7501,25 +7462,11 @@ class FileUriExpression extends Expression implements FileUriNode {
 
 /// Expression of form `x is T`.
 class IsExpression extends Expression {
-  int flags = 0;
   Expression operand;
   DartType type;
 
   IsExpression(this.operand, this.type) {
     operand.parent = this;
-  }
-
-  // Must match serialized bit positions.
-  static const int FlagForLegacy = 1 << 0;
-
-  /// If `true`, this test take the nullability of [type] into account.
-  ///
-  /// This is the case for is-tests written in libraries that are opted in to
-  /// the non nullable by default feature.
-  bool get isForNonNullableByDefault => flags & FlagForLegacy == 0;
-
-  void set isForNonNullableByDefault(bool value) {
-    flags = value ? (flags & ~FlagForLegacy) : (flags | FlagForLegacy);
   }
 
   @override
@@ -7566,11 +7513,7 @@ class IsExpression extends Expression {
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(operand,
         minimumPrecedence: astToText.Precedence.BITWISE_OR);
-    printer.write(' is');
-    if (printer.includeAuxiliaryProperties && isForNonNullableByDefault) {
-      printer.write('{ForNonNullableByDefault}');
-    }
-    printer.write(' ');
+    printer.write(' is ');
     printer.writeType(type);
   }
 }
@@ -7589,8 +7532,7 @@ class AsExpression extends Expression {
   static const int FlagTypeError = 1 << 0;
   static const int FlagCovarianceCheck = 1 << 1;
   static const int FlagForDynamic = 1 << 2;
-  static const int FlagForLegacy = 1 << 3;
-  static const int FlagUnchecked = 1 << 4;
+  static const int FlagUnchecked = 1 << 3;
 
   /// If `true`, this test is an implicit down cast.
   ///
@@ -7633,16 +7575,6 @@ class AsExpression extends Expression {
 
   void set isForDynamic(bool value) {
     flags = value ? (flags | FlagForDynamic) : (flags & ~FlagForDynamic);
-  }
-
-  /// If `true`, this test take the nullability of [type] into account.
-  ///
-  /// This is the case for is-tests written in libraries that are opted in to
-  /// the non nullable by default feature.
-  bool get isForNonNullableByDefault => flags & FlagForLegacy == 0;
-
-  void set isForNonNullableByDefault(bool value) {
-    flags = value ? (flags & ~FlagForLegacy) : (flags | FlagForLegacy);
   }
 
   /// If `true`, this test is added to show the known static type of the
@@ -7713,9 +7645,6 @@ class AsExpression extends Expression {
       }
       if (isForDynamic) {
         flags.add('ForDynamic');
-      }
-      if (isForNonNullableByDefault) {
-        flags.add('ForNonNullableByDefault');
       }
       if (flags.isNotEmpty) {
         printer.write('{${flags.join(',')}}');
@@ -8089,9 +8018,7 @@ class Rethrow extends Expression {
 
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) =>
-      context.isNonNullableByDefault
-          ? const NeverType.nonNullable()
-          : const NeverType.legacy();
+      const NeverType.nonNullable();
 
   @override
   R accept<R>(ExpressionVisitor<R> v) => v.visitRethrow(this);
@@ -8150,9 +8077,7 @@ class Throw extends Expression {
 
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) =>
-      context.isNonNullableByDefault
-          ? const NeverType.nonNullable()
-          : const NeverType.legacy();
+      const NeverType.nonNullable();
 
   @override
   R accept<R>(ExpressionVisitor<R> v) => v.visitThrow(this);
@@ -12632,9 +12557,7 @@ class TypeParameterType extends DartType {
   /// the bound of [parameter].
   TypeParameterType.withDefaultNullabilityForLibrary(
       this.parameter, Library library)
-      : declaredNullability = library.isNonNullableByDefault
-            ? computeNullabilityFromBound(parameter)
-            : Nullability.legacy;
+      : declaredNullability = computeNullabilityFromBound(parameter);
 
   @override
   DartType get nonTypeVariableBound {

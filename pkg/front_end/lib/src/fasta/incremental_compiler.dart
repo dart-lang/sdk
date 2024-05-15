@@ -2081,8 +2081,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       Procedure procedure = new Procedure(
           new Name(syntheticProcedureName), ProcedureKind.Method, parameters,
-          isStatic: isStatic, fileUri: debugLibrary.fileUri)
-        ..isNonNullableByDefault = true;
+          isStatic: isStatic, fileUri: debugLibrary.fileUri);
 
       parameters.body = new ReturnStatement(compiledExpression)
         ..parent = parameters;
