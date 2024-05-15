@@ -559,15 +559,6 @@ abstract class NodeLintRule {
   void registerNodeProcessors(NodeLintRegistry registry, LinterContext context);
 }
 
-/// [LintRule]s that implement this interface want to process only some types
-/// of AST nodes, and will register their processors in the registry.
-///
-/// This class exists solely to allow a smoother transition from analyzer
-/// version 0.33.*.  It will be removed in a future analyzer release, so please
-/// use [NodeLintRule] instead.
-@deprecated
-abstract class NodeLintRuleWithContext extends NodeLintRule {}
-
 class PrintingReporter implements Reporter {
   final Printer _print;
 
