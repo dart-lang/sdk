@@ -365,11 +365,9 @@ class LibraryAnalyzer {
     var context = LinterContextImpl(
       allUnits,
       currentUnit,
-      _declaredVariables,
       _typeProvider,
       _typeSystem,
       _inheritance,
-      _analysisOptions,
       unitAnalysis.file.workspacePackage,
     );
     for (var linter in _analysisOptions.lintRules) {
