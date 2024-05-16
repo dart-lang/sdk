@@ -38,32 +38,28 @@ main() {
         ),
       );
 
-      // Expect a "console" output event that prints the URI of the VM Service
-      // the debugger connects to.
-      final vmConnection = outputEvents.first;
-      expect(vmConnection.output,
-          startsWith('Connecting to VM Service at ws://127.0.0.1:'));
-      expect(vmConnection.category, anyOf('console', isNull));
-
-      // Expect the normal applications output.
-      final output = outputEvents
-          .skip(2)
-          .map((e) => e.output)
-          // The stdout also contains the VM Service+DevTools banners.
-          .where(
-            (line) =>
-                !line.startsWith('The Dart VM service is listening on') &&
-                !line.startsWith(
-                    'The Dart DevTools debugger and profiler is available at'),
-          )
-          .join();
-      expectLines(output, [
+      expectLines(outputEvents.map((output) => output.output).join(), [
+        startsWith('Connecting to VM Service at ws://127.0.0.1:'),
+        'Connected to the VM Service.',
+        startsWith('The Dart VM service is listening on'),
+        startsWith('The Dart DevTools debugger and profiler is available at'),
         'Hello!',
         'World!',
         'args: [one, two]',
         '',
         'Exited.',
       ]);
+
+      // Ensure the categories were set correctly.
+      for (final output in outputEvents) {
+        if (output.output.contains('VM Service') ||
+            output.output.contains('Exited')) {
+          expect(output.category, anyOf('console', isNull));
+        } else {
+          // User output.
+          expect(output.category, 'stdout');
+        }
+      }
     });
 
     test('can attach to a simple script using vmServiceInfoFile', () async {
@@ -91,34 +87,47 @@ main() {
         ),
       );
 
-      // Expect a "console" output event that prints the URI of the VM Service
-      // the debugger connects to.
-      final vmConnection = outputEvents.first;
-      expect(
-        vmConnection.output,
+      expectLines(outputEvents.map((output) => output.output).join(), [
         startsWith('Connecting to VM Service at ws://127.0.0.1:'),
-      );
-      expect(vmConnection.category, anyOf('console', isNull));
-
-      // Expect the normal applications output.
-      final output = outputEvents
-          .skip(2)
-          .map((e) => e.output)
-          // The stdout also contains the VM Service+DevTools banners.
-          .where(
-            (line) =>
-                !line.startsWith('The Dart VM service is listening on') &&
-                !line.startsWith(
-                    'The Dart DevTools debugger and profiler is available at'),
-          )
-          .join();
-      expectLines(output, [
+        'Connected to the VM Service.',
+        startsWith('The Dart VM service is listening on'),
+        startsWith('The Dart DevTools debugger and profiler is available at'),
         'Hello!',
         'World!',
         'args: [one, two]',
         '',
         'Exited.',
       ]);
+
+      // Ensure the categories were set correctly.
+      for (final output in outputEvents) {
+        if (output.output.contains('VM Service') ||
+            output.output.contains('Exited')) {
+          expect(output.category, anyOf('console', isNull));
+        } else {
+          // User output.
+          expect(output.category, 'stdout');
+        }
+      }
+    });
+
+    test('reports initialization failures if can\t connect to the VM Service',
+        () async {
+      final outputEvents = await dap.client.collectOutput(
+        launch: () => dap.client.attach(
+          vmServiceUri: 'ws://bogus.local/',
+          autoResumeOnEntry: false,
+          autoResumeOnExit: false,
+        ),
+      );
+
+      expect(
+        outputEvents.map((e) => e.output).join(),
+        allOf(
+          contains('Failed to start DDS for ws://bogus.local/'),
+          contains('Failed host lookup'),
+        ),
+      );
     });
 
     test('removes breakpoints/pause and resumes on detach', () async {
