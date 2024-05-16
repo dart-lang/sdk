@@ -98,10 +98,12 @@ class Breakpoint {
 // BreakpointLocation represents a collection of breakpoint conditions at the
 // same token position in Dart source. There may be more than one CodeBreakpoint
 // object per BreakpointLocation.
-// An unresolved breakpoint is one where the underlying code has not
-// been compiled yet. Since the code has not been compiled, we don't know
-// the definitive source location yet. The requested source location may
-// change when the underlying code gets compiled.
+//
+// An unresolved breakpoint, also known as a pending breakpoint, is one where
+// the underlying code has not been compiled yet. Since the code has not been
+// compiled, we can't determine the definitive token position to associate with
+// the breakpoint yet.
+//
 // A latent breakpoint represents a breakpoint location in Dart source
 // that is not loaded in the VM when the breakpoint is requested.
 // When a script with matching url is loaded, a latent breakpoint
