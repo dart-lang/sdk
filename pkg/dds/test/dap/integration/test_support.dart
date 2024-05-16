@@ -71,9 +71,13 @@ expectResponseError<T>(Future<T> response, Matcher messageMatcher) {
   expect(
     response,
     throwsA(
-      const TypeMatcher<Response>()
-          .having((r) => r.success, 'success', isFalse)
-          .having((r) => r.message, 'message', messageMatcher),
+      const TypeMatcher<RequestException>().having(
+        (r) => r.message,
+        'message',
+        TypeMatcher<Response>()
+            .having((r) => r.success, 'success', isFalse)
+            .having((r) => r.message, 'message', messageMatcher),
+      ),
     ),
   );
 }
