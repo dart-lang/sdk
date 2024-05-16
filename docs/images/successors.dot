@@ -1,0 +1,19 @@
+digraph {
+        label="Successors";
+        r -> a;
+        r -> b;
+        a -> c;
+        b -> c;
+        b -> d;
+        c -> d;
+        d -> b;
+        d -> e;
+        d -> f;
+        e -> g;
+        f -> g;
+        { rank=same; r }
+        { rank=same; a; b }
+        { rank=same; c; d }
+        { rank=same; e; f }
+        { rank=same; g }
+}

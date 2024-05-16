@@ -724,7 +724,7 @@ class LibraryMacroApplier {
         continue;
       }
 
-      var macroClass = importedLibrary.scope.lookup(name).getter;
+      var macroClass = importedLibrary.exportNamespace.get(name);
       if (macroClass is! ClassElementImpl) {
         continue;
       }

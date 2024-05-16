@@ -11,7 +11,7 @@ The Dart SDK ships via a number of channels:
 Each of these channels use varying release calendars, and keeping these entirely
 aligned is not practical. Further, a number of developers interested in staying
 current with Dart changes, consume the Dart SDK via our [dev
-channel](https://github.com/dart-lang/sdk/wiki/Branches-and-releases). As a
+channel](../Branches-and-releases.md). As a
 result, we should anticipate that any dev channel build has the potential to end
 up as a shipped SDK though some channel. And as a consequence of that, it is
 critical that we keep the quality of our dev channel high AND that we keep it

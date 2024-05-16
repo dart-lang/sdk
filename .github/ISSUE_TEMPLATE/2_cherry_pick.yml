@@ -26,7 +26,7 @@ body:
     id: changelist
     attributes:
       label: Prepared changelist for beta/stable
-      description: Gerrit changelist(s) against beta and/or stable per https://github.com/dart-lang/sdk/wiki/Cherry-picks-to-a-release-channel
+      description: Gerrit changelist(s) against beta and/or stable per https://github.com/dart-lang/sdk/tree/main/docs/Cherry-picks-to-a-release-channel.md
     validations:
       required: true
   - type: textarea

@@ -602,6 +602,46 @@ ImplicitCallReference
   staticType: void Function()
 ''');
   }
+
+  test_simpleIdentifier_typeVariable2_nullable() async {
+    await assertErrorsInCode('''
+class A {
+  void call() {}
+}
+Function f<X extends A, Y extends X?>(Y y) => y;
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 75, 1),
+    ]);
+
+    // Verify that no ImplicitCallReference was inserted.
+    var node = findNode.expressionFunctionBody('y;').expression;
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: y
+  staticElement: self::@function::f::@parameter::y
+  staticType: Y
+''');
+  }
+
+  test_simpleIdentifier_typeVariable_nullable() async {
+    await assertErrorsInCode('''
+class A {
+  void call() {}
+}
+Function f<X extends A>(X? x) => x;
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 62, 1),
+    ]);
+
+    // Verify that no ImplicitCallReference was inserted.
+    var node = findNode.expressionFunctionBody('x;').expression;
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: x
+  staticElement: self::@function::f::@parameter::x
+  staticType: X?
+''');
+  }
 }
 
 @reflectiveTest
