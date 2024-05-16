@@ -24,14 +24,11 @@ class SharedTypeAnalyzerErrors
 
   final CoreTypes coreTypes;
 
-  final bool isNonNullableByDefault;
-
   SharedTypeAnalyzerErrors(
       {required this.visitor,
       required this.helper,
       required this.uri,
-      required this.coreTypes,
-      required this.isNonNullableByDefault});
+      required this.coreTypes});
 
   @override
   void assertInErrorRecovery() {

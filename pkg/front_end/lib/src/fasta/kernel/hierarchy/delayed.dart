@@ -67,8 +67,7 @@ class DelayedOverrideCheck implements DelayedCheck {
     void callback(Member interfaceMember, bool isSetter) {
       _classBuilder.checkOverride(membersBuilder.hierarchyBuilder.types,
           membersBuilder, declaredMember, interfaceMember, isSetter, callback,
-          isInterfaceCheck: !_classBuilder.isMixinApplication,
-          declaredNeedsLegacyErasure: false);
+          isInterfaceCheck: !_classBuilder.isMixinApplication);
     }
 
     for (ClassMember overriddenMember in _overriddenMembers) {
