@@ -893,7 +893,7 @@ void Deserializer::InitializeHeader(ObjectPtr raw,
   tags = UntaggedObject::AlwaysSetBit::update(true, tags);
   tags = UntaggedObject::NotMarkedBit::update(true, tags);
   tags = UntaggedObject::OldAndNotRememberedBit::update(true, tags);
-  tags = UntaggedObject::NewBit::update(false, tags);
+  tags = UntaggedObject::NewOrEvacuationCandidateBit::update(false, tags);
   tags = UntaggedObject::ImmutableBit::update(is_immutable, tags);
   raw->untag()->tags_ = tags;
 }
