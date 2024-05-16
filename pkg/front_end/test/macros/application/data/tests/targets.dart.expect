@@ -2019,5 +2019,5 @@ constants  {
   #C41 = 0
   #C42 = "a"
   #C43 = self::Enum {index:#C41, _name:#C42}
-  #C44 = <self::Enum*>[#C43]
+  #C44 = <self::Enum>[#C43]
 }

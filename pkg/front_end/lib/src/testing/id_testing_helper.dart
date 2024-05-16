@@ -48,7 +48,7 @@ class CfeTestConfig extends TestConfig {
       this.packageConfigUri,
       this.compileSdk = false,
       this.targetFlags = const TestTargetFlags(),
-      this.nnbdMode = NnbdMode.Weak});
+      this.nnbdMode = NnbdMode.Strong});
 
   /// Called before running test on [testData].
   ///

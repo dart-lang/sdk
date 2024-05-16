@@ -47,7 +47,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     bool omitPlatform = false,
     bool trackNeededDillLibraries = false,
     bool verbose = false,
-    NnbdMode nnbdMode = NnbdMode.Weak,
+    NnbdMode nnbdMode = NnbdMode.Strong,
     bool requirePrebuiltMacros = false,
     List<String> precompiledMacros = const [],
     SerializationMode macroSerializationMode =

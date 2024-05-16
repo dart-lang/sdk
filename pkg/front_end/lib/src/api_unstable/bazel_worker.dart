@@ -56,7 +56,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
   Map<String, String> environmentDefines, {
   bool trackNeededDillLibraries = false,
   bool verbose = false,
-  NnbdMode nnbdMode = NnbdMode.Weak,
+  NnbdMode nnbdMode = NnbdMode.Strong,
   bool requirePrebuiltMacros = false,
   List<String> precompiledMacros = const [],
   SerializationMode macroSerializationMode = SerializationMode.byteData,
@@ -100,7 +100,7 @@ InitializedCompilerState initializeCompiler(
   Iterable<String> experiments,
   Map<String, String>? environmentDefines, {
   bool verbose = false,
-  NnbdMode nnbdMode = NnbdMode.Weak,
+  NnbdMode nnbdMode = NnbdMode.Strong,
   bool requirePrebuiltMacros = false,
   List<String> precompiledMacros = const [],
   SerializationMode macroSerializationMode = SerializationMode.byteData,
