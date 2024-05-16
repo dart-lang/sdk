@@ -5795,6 +5795,42 @@ library
 ''');
   }
 
+  test_exportedMacro() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+export 'append.dart';
+''');
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+
+@DeclareType('B', 'class B {}')
+class A {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/a.dart
+  definingUnit
+    classes
+      class A @56
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+augment library 'package:test/test.dart';
+
+class B {}
+---
+      definingUnit
+        classes
+          class B @49
+''');
+  }
+
   test_macroApplicationErrors_typesPhase_compileTimeError() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:macros/macros.dart';
