@@ -4965,9 +4965,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (redirectedElement != null &&
         element.isConst &&
         !redirectedElement.isConst) {
-      errorReporter.atOffset(
-        offset: errorEntity.offset,
-        length: errorEntity.end - errorEntity.offset,
+      errorReporter.atEntity(
+        entity: errorEntity,
         errorCode: CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR,
       );
     }
@@ -5823,9 +5822,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     TypeParameterElementImpl typeParameterImpl =
         typeParameter as TypeParameterElementImpl;
     if (!variance.greaterThanOrEqual(typeParameterImpl.variance)) {
-      errorReporter.atOffset(
-        offset: errorTarget.offset,
-        length: errorTarget.length,
+      errorReporter.atEntity(
+        entity: errorTarget,
         errorCode: CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_POSITION,
         arguments: [
           typeParameterImpl.variance.keyword,
@@ -6035,9 +6033,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         if (parameter.isRequiredNamed) {
           if (parameter.defaultValue != null) {
             var errorTarget = _parameterName(parameter) ?? parameter;
-            errorReporter.atOffset(
-              offset: errorTarget.offset,
-              length: errorTarget.length,
+            errorReporter.atEntity(
+              entity: errorTarget,
               errorCode:
                   CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER,
             );
@@ -6062,9 +6059,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                     : CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER;
                 arguments = [parameterName?.lexeme ?? '?'];
               }
-              errorReporter.atOffset(
-                offset: errorTarget.offset,
-                length: errorTarget.length,
+              errorReporter.atEntity(
+                entity: errorTarget,
                 errorCode: errorCode,
                 arguments: arguments,
               );
