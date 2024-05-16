@@ -1429,6 +1429,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   WarningCode.INVALID_NON_VIRTUAL_ANNOTATION: [
     RemoveAnnotation.new,
   ],
+  WarningCode.INVALID_REOPEN_ANNOTATION: [
+    RemoveAnnotation.new,
+  ],
   WarningCode.INVALID_REQUIRED_NAMED_PARAM: [
     RemoveAnnotation.new,
   ],

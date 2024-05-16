@@ -3711,9 +3711,7 @@ WarningCode.INVALID_NON_VIRTUAL_ANNOTATION:
 WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER:
   status: noFix
 WarningCode.INVALID_REOPEN_ANNOTATION:
-  status: needsFix
-  notes: |-
-    The fix is to remove the annotation.
+  status: hasFix
 WarningCode.INVALID_REQUIRED_NAMED_PARAM:
   status: hasFix
 WarningCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM:
