@@ -23,7 +23,6 @@ static char* MallocFormatedString(const char* format, ...) {
   va_end(measure_args);
 
   char* buffer = reinterpret_cast<char*>(malloc(len + 1));
-  MSAN_UNPOISON(buffer, (len + 1));
   va_list print_args;
   va_start(print_args, format);
   Utils::VSNPrint(buffer, (len + 1), format, print_args);

@@ -137,7 +137,6 @@ const char* NativeSymbolResolver::LookupSymbolName(uword pc, uword* start) {
   int status = 0;
   size_t len = 0;
   char* demangled = abi::__cxa_demangle(info.dli_sname, nullptr, &len, &status);
-  MSAN_UNPOISON(demangled, len);
   if (status == 0) {
     return demangled;
   }

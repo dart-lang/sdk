@@ -774,7 +774,6 @@ Dart_Handle DartUtils::NewError(const char* format, ...) {
   va_end(measure_args);
 
   char* buffer = reinterpret_cast<char*>(Dart_ScopeAllocate(len + 1));
-  MSAN_UNPOISON(buffer, (len + 1));
   va_list print_args;
   va_start(print_args, format);
   Utils::VSNPrint(buffer, (len + 1), format, print_args);
@@ -805,7 +804,6 @@ char* DartUtils::ScopedCStringVFormatted(const char* format, va_list args) {
   va_end(measure_args);
 
   char* buffer = ScopedCString(len + 1);
-  MSAN_UNPOISON(buffer, (len + 1));
   va_list print_args;
   va_copy(print_args, args);
   len = Utils::VSNPrint(buffer, (len + 1), format, print_args);
