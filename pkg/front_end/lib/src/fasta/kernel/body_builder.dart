@@ -8870,12 +8870,6 @@ class BodyBuilder extends StackListenerImpl
         context: context, expression: expression);
   }
 
-  Expression buildFallThroughError(int charOffset) {
-    addProblem(fasta.messageSwitchCaseFallThrough, charOffset, noLength);
-    return new InvalidExpression(
-        fasta.messageSwitchCaseFallThrough.problemMessage);
-  }
-
   Expression buildAbstractClassInstantiationError(
       Message message, String className,
       [int charOffset = -1]) {

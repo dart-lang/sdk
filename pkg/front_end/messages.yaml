@@ -330,10 +330,6 @@ ExperimentDisabled:
   correctionMessage: "The feature is on by default but is currently disabled, maybe because the '--enable-experiment=no-#string' command line option is passed."
   analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
 
-NullSafetyDisabledInvalidLanguageVersion:
-  problemMessage: "This requires null safety, which requires language version of #string2 or higher."
-  analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
-
 ExperimentDisabledInvalidLanguageVersion:
   problemMessage: "This requires the '#string' language feature, which requires language version of #string2 or higher."
   analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
@@ -1891,17 +1887,6 @@ UnterminatedToken:
 Unspecified:
   problemMessage: "#string"
 
-StrongModeNNBDButOptOut:
-  problemMessage: "Library doesn't support null safety."
-
-StrongModeNNBDPackageOptOut:
-  problemMessage:  |
-    The following dependencies don't support null safety:
-
-    #names
-
-    For solutions, see https://dart.dev/go/unsound-null-safety
-
 WeakWithStrongDillLibrary:
   problemMessage: "Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety."
 
@@ -3050,34 +3035,6 @@ InvalidGetterSetterTypeBothInheritedGetter:
       void set property(int i);
     }
     abstract class C implements A, B {}
-
-InvalidGetterSetterTypeLegacy:
-  problemMessage: "The type '#type' of the getter '#name' is not assignable to the type '#type2' of the setter '#name2'."
-  configuration: nnbd-weak
-
-InvalidGetterSetterTypeGetterInheritedLegacy:
-  problemMessage: "The type '#type' of the inherited getter '#name' is not assignable to the type '#type2' of the setter '#name2'."
-  configuration: nnbd-weak
-
-InvalidGetterSetterTypeFieldInheritedLegacy:
-  problemMessage: "The type '#type' of the inherited field '#name' is not assignable to the type '#type2' of the setter '#name2'."
-  configuration: nnbd-weak
-
-InvalidGetterSetterTypeSetterInheritedGetterLegacy:
-  problemMessage: "The type '#type' of the getter '#name' is not assignable to the type '#type2' of the inherited setter '#name2'."
-  configuration: nnbd-weak
-
-InvalidGetterSetterTypeSetterInheritedFieldLegacy:
-  problemMessage: "The type '#type' of the field '#name' is not assignable to the type '#type2' of the inherited setter '#name2'."
-  configuration: nnbd-weak
-
-InvalidGetterSetterTypeBothInheritedFieldLegacy:
-  problemMessage: "The type '#type' of the inherited field '#name' is not assignable to the type '#type2' of the inherited setter '#name2'."
-  configuration: nnbd-weak
-
-InvalidGetterSetterTypeBothInheritedGetterLegacy:
-  problemMessage: "The type '#type' of the inherited getter '#name' is not assignable to the type '#type2' of the inherited setter '#name2'."
-  configuration: nnbd-weak
 
 InvalidGetterSetterTypeFieldContext:
   problemMessage: "This is the declaration of the field '#name'."
@@ -5657,21 +5614,9 @@ FieldNonNullableWithoutInitializerError:
 FieldNonNullableNotInitializedByConstructorError:
   problemMessage: "This constructor should initialize field '#name' because its type '#type' doesn't allow null."
 
-NullSafetyOptOutExplicit:
-  problemMessage: "Null safety is disabled for this library."
-  correctionMessage: "Try removing the `@dart=` annotation or setting the language version to #string or higher."
-
 ExperimentOptOutExplicit:
   problemMessage: "The '#string' language feature is disabled for this library."
   correctionMessage: "Try removing the `@dart=` annotation or setting the language version to #string2 or higher."
-
-NullSafetyOptOutImplicit:
-  problemMessage: "Null safety is disabled for this library."
-  correctionMessage: "Try removing the package language version or setting the language version to #string or higher."
-
-NullSafetyOptOutComment:
-  problemMessage: "This is the annotation that opts out this library from null safety features."
-  severity: CONTEXT
 
 ExperimentOptOutImplicit:
   problemMessage: "The '#string' language feature is disabled for this library."
@@ -5946,10 +5891,6 @@ FinalPossiblyAssignedError:
 
 NonAgnosticConstant:
   problemMessage: "Constant value is not strong/weak mode agnostic."
-
-ExportOptOutFromOptIn:
-  problemMessage: "Null safe libraries are not allowed to export declarations from of opt-out libraries."
-  configuration: nnbd-weak
 
 CannotAssignToFinalVariable:
   problemMessage: "Can't assign to the final variable '#name'."

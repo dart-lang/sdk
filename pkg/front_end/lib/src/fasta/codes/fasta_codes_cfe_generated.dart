@@ -3070,55 +3070,6 @@ Message _withArgumentsInvalidGetterSetterTypeBothInheritedField(
 const Template<
         Message Function(
             DartType _type, String name, DartType _type2, String name2)>
-    templateInvalidGetterSetterTypeBothInheritedFieldLegacy = const Template<
-        Message Function(
-            DartType _type, String name, DartType _type2, String name2)>(
-  "InvalidGetterSetterTypeBothInheritedFieldLegacy",
-  problemMessageTemplate:
-      r"""The type '#type' of the inherited field '#name' is not assignable to the type '#type2' of the inherited setter '#name2'.""",
-  withArguments: _withArgumentsInvalidGetterSetterTypeBothInheritedFieldLegacy,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<
-        Message Function(
-            DartType _type, String name, DartType _type2, String name2)>
-    codeInvalidGetterSetterTypeBothInheritedFieldLegacy = const Code<
-        Message Function(
-            DartType _type, String name, DartType _type2, String name2)>(
-  "InvalidGetterSetterTypeBothInheritedFieldLegacy",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidGetterSetterTypeBothInheritedFieldLegacy(
-    DartType _type, String name, DartType _type2, String name2) {
-  TypeLabeler labeler = new TypeLabeler();
-  List<Object> typeParts = labeler.labelType(_type);
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  List<Object> type2Parts = labeler.labelType(_type2);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
-  String type = typeParts.join();
-  String type2 = type2Parts.join();
-  return new Message(
-    codeInvalidGetterSetterTypeBothInheritedFieldLegacy,
-    problemMessage:
-        """The type '${type}' of the inherited field '${name}' is not assignable to the type '${type2}' of the inherited setter '${name2}'.""" +
-            labeler.originMessages,
-    arguments: {
-      'type': _type,
-      'name': name,
-      'type2': _type2,
-      'name2': name2,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-        Message Function(
-            DartType _type, String name, DartType _type2, String name2)>
     templateInvalidGetterSetterTypeBothInheritedGetter = const Template<
         Message Function(
             DartType _type, String name, DartType _type2, String name2)>(
@@ -3154,55 +3105,6 @@ Message _withArgumentsInvalidGetterSetterTypeBothInheritedGetter(
     codeInvalidGetterSetterTypeBothInheritedGetter,
     problemMessage:
         """The type '${type}' of the inherited getter '${name}' is not a subtype of the type '${type2}' of the inherited setter '${name2}'.""" +
-            labeler.originMessages,
-    arguments: {
-      'type': _type,
-      'name': name,
-      'type2': _type2,
-      'name2': name2,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-        Message Function(
-            DartType _type, String name, DartType _type2, String name2)>
-    templateInvalidGetterSetterTypeBothInheritedGetterLegacy = const Template<
-        Message Function(
-            DartType _type, String name, DartType _type2, String name2)>(
-  "InvalidGetterSetterTypeBothInheritedGetterLegacy",
-  problemMessageTemplate:
-      r"""The type '#type' of the inherited getter '#name' is not assignable to the type '#type2' of the inherited setter '#name2'.""",
-  withArguments: _withArgumentsInvalidGetterSetterTypeBothInheritedGetterLegacy,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<
-        Message Function(
-            DartType _type, String name, DartType _type2, String name2)>
-    codeInvalidGetterSetterTypeBothInheritedGetterLegacy = const Code<
-        Message Function(
-            DartType _type, String name, DartType _type2, String name2)>(
-  "InvalidGetterSetterTypeBothInheritedGetterLegacy",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidGetterSetterTypeBothInheritedGetterLegacy(
-    DartType _type, String name, DartType _type2, String name2) {
-  TypeLabeler labeler = new TypeLabeler();
-  List<Object> typeParts = labeler.labelType(_type);
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  List<Object> type2Parts = labeler.labelType(_type2);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
-  String type = typeParts.join();
-  String type2 = type2Parts.join();
-  return new Message(
-    codeInvalidGetterSetterTypeBothInheritedGetterLegacy,
-    problemMessage:
-        """The type '${type}' of the inherited getter '${name}' is not assignable to the type '${type2}' of the inherited setter '${name2}'.""" +
             labeler.originMessages,
     arguments: {
       'type': _type,
@@ -3266,55 +3168,6 @@ Message _withArgumentsInvalidGetterSetterTypeFieldInherited(
 const Template<
         Message Function(
             DartType _type, String name, DartType _type2, String name2)>
-    templateInvalidGetterSetterTypeFieldInheritedLegacy = const Template<
-        Message Function(
-            DartType _type, String name, DartType _type2, String name2)>(
-  "InvalidGetterSetterTypeFieldInheritedLegacy",
-  problemMessageTemplate:
-      r"""The type '#type' of the inherited field '#name' is not assignable to the type '#type2' of the setter '#name2'.""",
-  withArguments: _withArgumentsInvalidGetterSetterTypeFieldInheritedLegacy,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<
-        Message Function(
-            DartType _type, String name, DartType _type2, String name2)>
-    codeInvalidGetterSetterTypeFieldInheritedLegacy = const Code<
-        Message Function(
-            DartType _type, String name, DartType _type2, String name2)>(
-  "InvalidGetterSetterTypeFieldInheritedLegacy",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidGetterSetterTypeFieldInheritedLegacy(
-    DartType _type, String name, DartType _type2, String name2) {
-  TypeLabeler labeler = new TypeLabeler();
-  List<Object> typeParts = labeler.labelType(_type);
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  List<Object> type2Parts = labeler.labelType(_type2);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
-  String type = typeParts.join();
-  String type2 = type2Parts.join();
-  return new Message(
-    codeInvalidGetterSetterTypeFieldInheritedLegacy,
-    problemMessage:
-        """The type '${type}' of the inherited field '${name}' is not assignable to the type '${type2}' of the setter '${name2}'.""" +
-            labeler.originMessages,
-    arguments: {
-      'type': _type,
-      'name': name,
-      'type2': _type2,
-      'name2': name2,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-        Message Function(
-            DartType _type, String name, DartType _type2, String name2)>
     templateInvalidGetterSetterTypeGetterInherited = const Template<
         Message Function(
             DartType _type, String name, DartType _type2, String name2)>(
@@ -3350,104 +3203,6 @@ Message _withArgumentsInvalidGetterSetterTypeGetterInherited(
     codeInvalidGetterSetterTypeGetterInherited,
     problemMessage:
         """The type '${type}' of the inherited getter '${name}' is not a subtype of the type '${type2}' of the setter '${name2}'.""" +
-            labeler.originMessages,
-    arguments: {
-      'type': _type,
-      'name': name,
-      'type2': _type2,
-      'name2': name2,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-        Message Function(
-            DartType _type, String name, DartType _type2, String name2)>
-    templateInvalidGetterSetterTypeGetterInheritedLegacy = const Template<
-        Message Function(
-            DartType _type, String name, DartType _type2, String name2)>(
-  "InvalidGetterSetterTypeGetterInheritedLegacy",
-  problemMessageTemplate:
-      r"""The type '#type' of the inherited getter '#name' is not assignable to the type '#type2' of the setter '#name2'.""",
-  withArguments: _withArgumentsInvalidGetterSetterTypeGetterInheritedLegacy,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<
-        Message Function(
-            DartType _type, String name, DartType _type2, String name2)>
-    codeInvalidGetterSetterTypeGetterInheritedLegacy = const Code<
-        Message Function(
-            DartType _type, String name, DartType _type2, String name2)>(
-  "InvalidGetterSetterTypeGetterInheritedLegacy",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidGetterSetterTypeGetterInheritedLegacy(
-    DartType _type, String name, DartType _type2, String name2) {
-  TypeLabeler labeler = new TypeLabeler();
-  List<Object> typeParts = labeler.labelType(_type);
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  List<Object> type2Parts = labeler.labelType(_type2);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
-  String type = typeParts.join();
-  String type2 = type2Parts.join();
-  return new Message(
-    codeInvalidGetterSetterTypeGetterInheritedLegacy,
-    problemMessage:
-        """The type '${type}' of the inherited getter '${name}' is not assignable to the type '${type2}' of the setter '${name2}'.""" +
-            labeler.originMessages,
-    arguments: {
-      'type': _type,
-      'name': name,
-      'type2': _type2,
-      'name2': name2,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-        Message Function(
-            DartType _type, String name, DartType _type2, String name2)>
-    templateInvalidGetterSetterTypeLegacy = const Template<
-        Message Function(
-            DartType _type, String name, DartType _type2, String name2)>(
-  "InvalidGetterSetterTypeLegacy",
-  problemMessageTemplate:
-      r"""The type '#type' of the getter '#name' is not assignable to the type '#type2' of the setter '#name2'.""",
-  withArguments: _withArgumentsInvalidGetterSetterTypeLegacy,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<
-        Message Function(
-            DartType _type, String name, DartType _type2, String name2)>
-    codeInvalidGetterSetterTypeLegacy = const Code<
-        Message Function(
-            DartType _type, String name, DartType _type2, String name2)>(
-  "InvalidGetterSetterTypeLegacy",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidGetterSetterTypeLegacy(
-    DartType _type, String name, DartType _type2, String name2) {
-  TypeLabeler labeler = new TypeLabeler();
-  List<Object> typeParts = labeler.labelType(_type);
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  List<Object> type2Parts = labeler.labelType(_type2);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
-  String type = typeParts.join();
-  String type2 = type2Parts.join();
-  return new Message(
-    codeInvalidGetterSetterTypeLegacy,
-    problemMessage:
-        """The type '${type}' of the getter '${name}' is not assignable to the type '${type2}' of the setter '${name2}'.""" +
             labeler.originMessages,
     arguments: {
       'type': _type,
@@ -3511,56 +3266,6 @@ Message _withArgumentsInvalidGetterSetterTypeSetterInheritedField(
 const Template<
         Message Function(
             DartType _type, String name, DartType _type2, String name2)>
-    templateInvalidGetterSetterTypeSetterInheritedFieldLegacy = const Template<
-        Message Function(
-            DartType _type, String name, DartType _type2, String name2)>(
-  "InvalidGetterSetterTypeSetterInheritedFieldLegacy",
-  problemMessageTemplate:
-      r"""The type '#type' of the field '#name' is not assignable to the type '#type2' of the inherited setter '#name2'.""",
-  withArguments:
-      _withArgumentsInvalidGetterSetterTypeSetterInheritedFieldLegacy,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<
-        Message Function(
-            DartType _type, String name, DartType _type2, String name2)>
-    codeInvalidGetterSetterTypeSetterInheritedFieldLegacy = const Code<
-        Message Function(
-            DartType _type, String name, DartType _type2, String name2)>(
-  "InvalidGetterSetterTypeSetterInheritedFieldLegacy",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidGetterSetterTypeSetterInheritedFieldLegacy(
-    DartType _type, String name, DartType _type2, String name2) {
-  TypeLabeler labeler = new TypeLabeler();
-  List<Object> typeParts = labeler.labelType(_type);
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  List<Object> type2Parts = labeler.labelType(_type2);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
-  String type = typeParts.join();
-  String type2 = type2Parts.join();
-  return new Message(
-    codeInvalidGetterSetterTypeSetterInheritedFieldLegacy,
-    problemMessage:
-        """The type '${type}' of the field '${name}' is not assignable to the type '${type2}' of the inherited setter '${name2}'.""" +
-            labeler.originMessages,
-    arguments: {
-      'type': _type,
-      'name': name,
-      'type2': _type2,
-      'name2': name2,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-        Message Function(
-            DartType _type, String name, DartType _type2, String name2)>
     templateInvalidGetterSetterTypeSetterInheritedGetter = const Template<
         Message Function(
             DartType _type, String name, DartType _type2, String name2)>(
@@ -3596,56 +3301,6 @@ Message _withArgumentsInvalidGetterSetterTypeSetterInheritedGetter(
     codeInvalidGetterSetterTypeSetterInheritedGetter,
     problemMessage:
         """The type '${type}' of the getter '${name}' is not a subtype of the type '${type2}' of the inherited setter '${name2}'.""" +
-            labeler.originMessages,
-    arguments: {
-      'type': _type,
-      'name': name,
-      'type2': _type2,
-      'name2': name2,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-        Message Function(
-            DartType _type, String name, DartType _type2, String name2)>
-    templateInvalidGetterSetterTypeSetterInheritedGetterLegacy = const Template<
-        Message Function(
-            DartType _type, String name, DartType _type2, String name2)>(
-  "InvalidGetterSetterTypeSetterInheritedGetterLegacy",
-  problemMessageTemplate:
-      r"""The type '#type' of the getter '#name' is not assignable to the type '#type2' of the inherited setter '#name2'.""",
-  withArguments:
-      _withArgumentsInvalidGetterSetterTypeSetterInheritedGetterLegacy,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<
-        Message Function(
-            DartType _type, String name, DartType _type2, String name2)>
-    codeInvalidGetterSetterTypeSetterInheritedGetterLegacy = const Code<
-        Message Function(
-            DartType _type, String name, DartType _type2, String name2)>(
-  "InvalidGetterSetterTypeSetterInheritedGetterLegacy",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidGetterSetterTypeSetterInheritedGetterLegacy(
-    DartType _type, String name, DartType _type2, String name2) {
-  TypeLabeler labeler = new TypeLabeler();
-  List<Object> typeParts = labeler.labelType(_type);
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  List<Object> type2Parts = labeler.labelType(_type2);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
-  String type = typeParts.join();
-  String type2 = type2Parts.join();
-  return new Message(
-    codeInvalidGetterSetterTypeSetterInheritedGetterLegacy,
-    problemMessage:
-        """The type '${type}' of the getter '${name}' is not assignable to the type '${type2}' of the inherited setter '${name2}'.""" +
             labeler.originMessages,
     arguments: {
       'type': _type,

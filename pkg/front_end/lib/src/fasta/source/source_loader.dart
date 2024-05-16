@@ -990,14 +990,6 @@ severity: $severity
     });
   }
 
-  Set<LibraryBuilder>? _strongOptOutLibraries;
-
-  void registerStrongOptOutLibrary(LibraryBuilder libraryBuilder) {
-    _strongOptOutLibraries ??= {};
-    _strongOptOutLibraries!.add(libraryBuilder);
-    hasInvalidNnbdModeLibrary = true;
-  }
-
   bool hasInvalidNnbdModeLibrary = false;
 
   Map<LibraryBuilder, Message>? _nnbdMismatchLibraries;
@@ -1041,27 +1033,6 @@ severity: $severity
     }
     currentUriForCrashReporting = null;
     logSummary(outlineSummaryTemplate);
-
-    if (_strongOptOutLibraries != null) {
-      // We have libraries that are opted out in strong mode "non-explicitly",
-      // that is, either implicitly through the package version or loaded from
-      // .dill as opt out.
-      //
-      // To reduce the verbosity of the error messages we try to reduce the
-      // message to only include the package name once for packages that are
-      // opted out.
-      //
-      // We use the current package config to retrieve the package based
-      // language version to determine whether the package as a whole is opted
-      // out. If so, we only include the package name and not the library uri
-      // in the message. For package libraries with no corresponding package
-      // config we include each library uri in the message. For non-package
-      // libraries with no corresponding package config we generate a message
-      // per library.
-      giveCombinedErrorForNonStrongLibraries(_strongOptOutLibraries!,
-          emitNonPackageErrors: true);
-      _strongOptOutLibraries = null;
-    }
     if (_nnbdMismatchLibraries != null) {
       for (MapEntry<LibraryBuilder, Message> entry
           in _nnbdMismatchLibraries!.entries) {
@@ -1138,68 +1109,6 @@ severity: $severity
       }
       _unavailableDartLibraries.clear();
     }
-  }
-
-  FormattedMessage? giveCombinedErrorForNonStrongLibraries(
-      Set<LibraryBuilder> libraries,
-      {required bool emitNonPackageErrors}) {
-    Map<String?, List<LibraryBuilder>> libraryByPackage = {};
-    Map<package_config.Package, Version> enableNonNullableVersionByPackage = {};
-    for (LibraryBuilder libraryBuilder in libraries) {
-      final package_config.Package? package =
-          target.uriTranslator.getPackage(libraryBuilder.importUri);
-
-      if (package != null &&
-          package.languageVersion != null &&
-          package.languageVersion is! InvalidLanguageVersion) {
-        Version enableNonNullableVersion =
-            enableNonNullableVersionByPackage[package] ??=
-                target.getExperimentEnabledVersionInLibrary(
-                    ExperimentalFlag.nonNullable,
-                    new Uri(scheme: 'package', path: package.name));
-        Version version = new Version(
-            package.languageVersion!.major, package.languageVersion!.minor);
-        if (version < enableNonNullableVersion) {
-          (libraryByPackage[package.name] ??= []).add(libraryBuilder);
-          continue;
-        }
-      }
-      if (libraryBuilder.importUri.isScheme('package')) {
-        (libraryByPackage[null] ??= []).add(libraryBuilder);
-      } else {
-        if (emitNonPackageErrors) {
-          // Emit a message that doesn't mention running 'pub'.
-          addProblem(messageStrongModeNNBDButOptOut, -1, noLength,
-              libraryBuilder.fileUri);
-        }
-      }
-    }
-    if (libraryByPackage.isNotEmpty) {
-      List<Uri> involvedFiles = [];
-      List<String> dependencies = [];
-      libraryByPackage.forEach((String? name, List<LibraryBuilder> libraries) {
-        if (name != null) {
-          dependencies.add('package:$name');
-          for (LibraryBuilder libraryBuilder in libraries) {
-            involvedFiles.add(libraryBuilder.fileUri);
-          }
-        } else {
-          for (LibraryBuilder libraryBuilder in libraries) {
-            dependencies.add(libraryBuilder.importUri.toString());
-            involvedFiles.add(libraryBuilder.fileUri);
-          }
-        }
-      });
-      // Emit a message that suggests to run 'pub' to check for opted in
-      // versions of the packages.
-      return addProblem(
-          templateStrongModeNNBDPackageOptOut.withArguments(dependencies),
-          -1,
-          -1,
-          null,
-          involvedFiles: involvedFiles);
-    }
-    return null;
   }
 
   List<int> getSource(List<int> bytes) {
