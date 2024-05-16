@@ -2779,42 +2779,16 @@ class _ComponentProblems {
     if (componentWithDill.problemsAsJson != null) {
       issuedProblems.addAll(componentWithDill.problemsAsJson!);
     }
-
     // Report old problems that wasn't reported again.
-    Set<Uri>? strongModeNNBDPackageOptOutUris;
     for (MapEntry<Uri, List<DiagnosticMessageFromJson>> entry
         in _remainingComponentProblems.entries) {
       List<DiagnosticMessageFromJson> messages = entry.value;
       for (int i = 0; i < messages.length; i++) {
         DiagnosticMessageFromJson message = messages[i];
-        if (message.codeName == "StrongModeNNBDPackageOptOut") {
-          // Special case this: Don't issue them here; instead collect them
-          // to get their uris and re-issue a new error.
-          strongModeNNBDPackageOptOutUris ??= {};
-          strongModeNNBDPackageOptOutUris.add(entry.key);
-          continue;
-        }
         if (issuedProblems.add(message.toJsonString())) {
           context.options.reportDiagnosticMessage(message);
         }
       }
-    }
-    if (strongModeNNBDPackageOptOutUris != null) {
-      // Get the builders for these uris; then call
-      // `SourceLoader.giveCombinedErrorForNonStrongLibraries` on them to issue
-      // a new error.
-      Set<LibraryBuilder> builders = {};
-      SourceLoader loader = currentKernelTarget.loader;
-      for (LibraryBuilder builder in loader.libraryBuilders) {
-        if (strongModeNNBDPackageOptOutUris.contains(builder.fileUri)) {
-          builders.add(builder);
-        }
-      }
-      FormattedMessage message = loader.giveCombinedErrorForNonStrongLibraries(
-          builders,
-          emitNonPackageErrors: false)!;
-      issuedProblems.add(message.toJsonString());
-      // The problem was issued by the call so don't re-issue it here.
     }
 
     // Save any new component-problems.

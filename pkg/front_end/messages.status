@@ -306,8 +306,6 @@ ExplicitExtensionTypeArgumentMismatch/analyzerCode: Fail
 ExplicitExtensionTypeArgumentMismatch/example: Fail
 ExportAfterPart/part_wrapped_script1: Fail
 ExportAfterPart/script1: Fail
-ExportOptOutFromOptIn/analyzerCode: Fail
-ExportOptOutFromOptIn/part_wrapped_script: Fail
 ExpressionNotMetadata/analyzerCode: Fail
 ExpressionNotMetadata/example: Fail
 ExtendingEnum/example: Fail
@@ -564,18 +562,11 @@ InvalidExtensionTypeSuperExtensionType/analyzerCode: Fail
 InvalidExtensionTypeSuperInterface/analyzerCode: Fail
 InvalidGetterSetterType/analyzerCode: Fail
 InvalidGetterSetterTypeBothInheritedField/analyzerCode: Fail
-InvalidGetterSetterTypeBothInheritedFieldLegacy/analyzerCode: Fail
 InvalidGetterSetterTypeBothInheritedGetter/analyzerCode: Fail
-InvalidGetterSetterTypeBothInheritedGetterLegacy/analyzerCode: Fail
 InvalidGetterSetterTypeFieldInherited/analyzerCode: Fail
-InvalidGetterSetterTypeFieldInheritedLegacy/analyzerCode: Fail
 InvalidGetterSetterTypeGetterInherited/analyzerCode: Fail
-InvalidGetterSetterTypeGetterInheritedLegacy/analyzerCode: Fail
-InvalidGetterSetterTypeLegacy/analyzerCode: Fail
 InvalidGetterSetterTypeSetterInheritedField/analyzerCode: Fail
-InvalidGetterSetterTypeSetterInheritedFieldLegacy/analyzerCode: Fail
 InvalidGetterSetterTypeSetterInheritedGetter/analyzerCode: Fail
-InvalidGetterSetterTypeSetterInheritedGetterLegacy/analyzerCode: Fail
 InvalidInitializer/example: Fail
 InvalidMacroApplicationTarget/analyzerCode: Fail
 InvalidMacroApplicationTarget/example: Fail
@@ -853,11 +844,6 @@ NotAnLvalue/example: Fail
 NotBinaryOperator/analyzerCode: Fail
 NotConstantExpression/example: Fail
 NullAwareCascadeOutOfOrder/example: Fail
-NullSafetyDisabledInvalidLanguageVersion/example: Fail
-NullSafetyOptOutExplicit/analyzerCode: Fail
-NullSafetyOptOutExplicit/example: Fail
-NullSafetyOptOutImplicit/analyzerCode: Fail
-NullSafetyOptOutImplicit/example: Fail
 NullableExpressionCallError/analyzerCode: Fail
 NullableExpressionCallError/example: Fail
 NullableExpressionCallWarning/analyzerCode: Fail
@@ -1004,10 +990,6 @@ SpreadMapEntryTypeMismatch/analyzerCode: Fail # There's no analyzer code for tha
 SpreadTypeMismatch/analyzerCode: Fail # There's no analyzer code for that error yet.
 StackOverflow/example: Fail
 StaticTearOffFromInstantiatedClass/analyzerCode: Fail
-StrongModeNNBDButOptOut/analyzerCode: Fail
-StrongModeNNBDButOptOut/example: Fail
-StrongModeNNBDPackageOptOut/analyzerCode: Fail
-StrongModeNNBDPackageOptOut/example: Fail
 StrongWithWeakDillLibrary/analyzerCode: Fail
 StrongWithWeakDillLibrary/example: Fail
 StrongWithWeakDillLibrary/spelling: Fail
@@ -1152,14 +1134,6 @@ YieldNotGenerator/example: Fail
 
 # Messages only reported for legacy libraries
 # TODO(johnniwinther): Remove these.
-ExportOptOutFromOptIn/example: Fail
 ExternalField/example: Fail
-InvalidGetterSetterTypeBothInheritedFieldLegacy/example: Fail
-InvalidGetterSetterTypeBothInheritedGetterLegacy/example: Fail
-InvalidGetterSetterTypeGetterInheritedLegacy/example: Fail
-InvalidGetterSetterTypeFieldInheritedLegacy/example: Fail
-InvalidGetterSetterTypeLegacy/example: Fail
-InvalidGetterSetterTypeSetterInheritedGetterLegacy/example: Fail
-InvalidGetterSetterTypeSetterInheritedFieldLegacy/example: Fail
 UnexpectedModifierInNonNnbd/example: Fail
 SwitchExpressionNotAssignable/example: Fail
