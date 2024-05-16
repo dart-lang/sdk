@@ -420,7 +420,7 @@ class Driver implements ServerStarter {
         exitCode = await devServer.processDirectories([trainDirectory]);
         if (exitCode != 0) exit(exitCode);
 
-        final httpServer = this.httpServer;
+        var httpServer = this.httpServer;
         if (httpServer != null) {
           httpServer.close();
         }
@@ -447,7 +447,7 @@ class Driver implements ServerStarter {
           serveResult = isolateAnalysisServer.serveIsolate(sendPort);
         }
         serveResult.then((_) async {
-          final httpServer = this.httpServer;
+          var httpServer = this.httpServer;
           if (httpServer != null) {
             httpServer.close();
           }

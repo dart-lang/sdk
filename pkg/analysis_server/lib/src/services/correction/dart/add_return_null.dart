@@ -25,7 +25,7 @@ class AddReturnNull extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     Block block;
 
-    final node = this.node;
+    var node = this.node;
     if (node is Block) {
       block = node;
     } else if (node is FunctionDeclaration) {

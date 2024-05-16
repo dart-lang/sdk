@@ -161,7 +161,7 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   Future<void> fillChange() async {
     var processor = RenameProcessor(workspace, sessionHelper, change, newName);
 
-    final element = this.element;
+    var element = this.element;
     if (element is PatternVariableElementImpl) {
       var rootVariable = element.rootVariable;
       var declaredElements = rootVariable is JoinPatternVariableElementImpl

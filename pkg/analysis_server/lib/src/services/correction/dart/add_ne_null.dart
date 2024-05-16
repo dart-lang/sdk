@@ -24,7 +24,7 @@ class AddNeNull extends CorrectionProducerWithDiagnostic {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is Expression &&
         node.staticType?.nullabilitySuffix == NullabilitySuffix.none) {
       return;

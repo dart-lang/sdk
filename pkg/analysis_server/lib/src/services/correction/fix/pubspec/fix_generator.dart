@@ -151,7 +151,7 @@ class PubspecFixGenerator {
   }
 
   Future<void> _addMissingDependency(ErrorCode errorCode) async {
-    final node = this.node;
+    var node = this.node;
     if (node is! YamlMap) {
       return;
     }

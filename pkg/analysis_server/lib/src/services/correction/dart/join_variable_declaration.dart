@@ -16,7 +16,7 @@ class JoinVariableDeclaration extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is SimpleIdentifier) {
       var parent = node.parent;
       if (parent is AssignmentExpression &&

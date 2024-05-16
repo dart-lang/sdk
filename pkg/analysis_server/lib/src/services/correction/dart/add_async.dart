@@ -36,7 +36,7 @@ class AddAsync extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     if (isForMissingReturn) {
-      final node = this.node;
+      var node = this.node;
       FunctionBody? body;
       DartType? returnType;
       if (node is FunctionDeclaration) {
@@ -58,7 +58,7 @@ class AddAsync extends ResolvedCorrectionProducer {
     } else {
       var body = node.thisOrAncestorOfType<FunctionBody>();
       if (body != null && body.keyword == null) {
-        final typeProvider = this.typeProvider;
+        var typeProvider = this.typeProvider;
         await builder.addDartFileEdit(file, (builder) {
           builder.convertFunctionFromSyncToAsync(body, typeProvider);
         });

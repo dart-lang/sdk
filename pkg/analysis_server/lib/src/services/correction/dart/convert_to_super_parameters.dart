@@ -298,7 +298,7 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
   /// Return the constructor to be converted, or `null` if the cursor is not on
   /// the name of a constructor.
   ConstructorDeclaration? _findConstructor() {
-    final node = this.node;
+    var node = this.node;
     if (node is ConstructorDeclaration) {
       return node;
     }

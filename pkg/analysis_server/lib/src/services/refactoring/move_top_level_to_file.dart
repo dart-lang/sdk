@@ -315,7 +315,7 @@ class MoveTopLevelToFile extends RefactoringProducer {
   /// Return a list containing the top-level declarations that are selected, or
   /// `null` if there are no such nodes.
   List<CompilationUnitMember>? _selectedNodes() {
-    final selection = this.selection;
+    var selection = this.selection;
     if (selection == null) {
       return null;
     }

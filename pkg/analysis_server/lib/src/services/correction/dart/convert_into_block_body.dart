@@ -93,7 +93,7 @@ class ConvertIntoBlockBody extends ResolvedCorrectionProducer {
   }
 
   Future<void> _computeSetLiteral(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is! SetOrMapLiteral || !node.isSet) return;
     var parent = node.parent;
     if (parent is! ExpressionFunctionBody) return;

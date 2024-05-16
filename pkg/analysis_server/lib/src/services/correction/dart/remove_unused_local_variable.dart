@@ -238,7 +238,7 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
       return false;
     }
 
-    final node = this.node;
+    var node = this.node;
     var functionBody = node.thisOrAncestorOfType<FunctionBody>();
     if (functionBody == null) {
       return false;
@@ -291,7 +291,7 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
   }
 
   Element? _localVariableElement() {
-    final node = this.node;
+    var node = this.node;
     if (node is DeclaredVariablePattern) {
       return node.declaredElement;
     } else if (node is VariableDeclaration) {

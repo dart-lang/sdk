@@ -2183,7 +2183,7 @@ extension on Element {
     if (library == referencingLibrary) {
       return true;
     }
-    final name = this.name;
+    var name = this.name;
     return name != null && !Identifier.isPrivateName(name);
   }
 }

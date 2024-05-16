@@ -24,7 +24,7 @@ class RemoveConstructorName extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is ConstructorDeclaration) {
       await builder.addDartFileEdit(file, (builder) {
         builder.addDeletion(range.startStart(node.period!, node.name!.next!));

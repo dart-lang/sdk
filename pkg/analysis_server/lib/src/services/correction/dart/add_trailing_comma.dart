@@ -23,7 +23,7 @@ class AddTrailingComma extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is ArgumentList) {
       await _insertComma(builder, node.arguments.last);
     } else if (node is FormalParameterList) {

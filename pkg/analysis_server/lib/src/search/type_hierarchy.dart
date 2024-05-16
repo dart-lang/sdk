@@ -180,7 +180,7 @@ class TypeHierarchyComputerHelper {
       return null;
     }
 
-    final pivotName = this.pivotName;
+    var pivotName = this.pivotName;
     if (pivotName == null) {
       return null;
     }

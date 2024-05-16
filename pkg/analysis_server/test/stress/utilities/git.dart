@@ -289,8 +289,8 @@ class DiffRecord {
 
   /// Return `true` if this diff applies to a file with the given name.
   bool isFor(String fileName) {
-    final srcPath = this.srcPath;
-    final dstPath = this.dstPath;
+    var srcPath = this.srcPath;
+    var dstPath = this.dstPath;
     return (srcPath != null && fileName == path.basename(srcPath)) ||
         (dstPath != null && fileName == path.basename(dstPath));
   }

@@ -1945,11 +1945,11 @@ class _InlineMethodTest extends RefactoringTest {
     var status = await refactoring.checkInitialConditions();
     assertRefactoringStatusOK(status);
     // configure
-    final deleteSource = this.deleteSource;
+    var deleteSource = this.deleteSource;
     if (deleteSource != null) {
       refactoring.deleteSource = deleteSource;
     }
-    final inlineAll = this.inlineAll;
+    var inlineAll = this.inlineAll;
     if (inlineAll != null) {
       refactoring.inlineAll = inlineAll;
     }

@@ -31,7 +31,7 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     var parent = node.parent;
     if (node is ClassDeclaration) {
       await _computeClassDeclaration(builder, node);

@@ -660,7 +660,7 @@ extension on CollectionElement? {
 
 extension on FormalParameterList {
   bool inNamedGroup(int offset) {
-    final leftDelimiter = this.leftDelimiter;
+    var leftDelimiter = this.leftDelimiter;
     if (leftDelimiter == null ||
         leftDelimiter.type != TokenType.OPEN_CURLY_BRACKET) {
       return false;
@@ -673,7 +673,7 @@ extension on FormalParameterList {
 
 extension on NodeList<ConstructorInitializer> {
   ConstructorInitializer get lastNonSynthetic {
-    final last = this.last;
+    var last = this.last;
     if (last.beginToken.isSynthetic && length > 1) {
       return this[length - 2];
     }

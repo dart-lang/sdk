@@ -30,7 +30,7 @@ class ConvertQuotes extends _ConvertQuotes {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is SimpleStringLiteral) {
       _fromDouble = !node.isSingleQuoted;
       await _simpleStringLiteral(builder, node);
@@ -106,7 +106,7 @@ abstract class _ConvertQuotes extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is SimpleStringLiteral) {
       await _simpleStringLiteral(builder, node);
     } else if (node is StringInterpolation) {

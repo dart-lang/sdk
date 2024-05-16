@@ -23,7 +23,7 @@ class ReplaceWithIsNan extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is! BinaryExpression) return;
 
     var needsBang = node.operator.type == TokenType.BANG_EQ;

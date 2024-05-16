@@ -35,7 +35,7 @@ class ConvertIntoIsNot extends ResolvedCorrectionProducer {
     // Find the is expression
     var isExpression = node.thisOrAncestorOfType<IsExpression>();
     if (isExpression == null) {
-      final node = this.node;
+      var node = this.node;
       if (node is PrefixExpression) {
         var operand = node.operand;
         if (operand is ParenthesizedExpression) {

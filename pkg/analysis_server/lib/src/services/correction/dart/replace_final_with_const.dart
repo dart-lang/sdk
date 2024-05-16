@@ -25,7 +25,7 @@ class ReplaceFinalWithConst extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is VariableDeclarationList) {
       var keyword = node.keyword;
       if (keyword != null) {

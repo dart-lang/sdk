@@ -426,7 +426,7 @@ class _IfCaseThen extends _IfCase {
 extension on GuardedPattern {
   bool get isPureUntypedWildcard {
     if (whenClause == null) {
-      final pattern = this.pattern;
+      var pattern = this.pattern;
       return pattern is WildcardPattern && pattern.type == null;
     }
     return false;

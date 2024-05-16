@@ -106,7 +106,7 @@ class DartCompletionManager {
     var builder =
         SuggestionBuilder(request, useFilter: useFilter, listener: listener);
 
-    final notImportedSuggestions = this.notImportedSuggestions;
+    var notImportedSuggestions = this.notImportedSuggestions;
 
     var collector = SuggestionCollector();
     try {

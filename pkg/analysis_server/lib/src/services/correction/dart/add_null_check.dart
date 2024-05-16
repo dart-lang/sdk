@@ -37,7 +37,7 @@ class AddNullCheck extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     Expression? target;
-    final coveredNode = this.coveredNode;
+    var coveredNode = this.coveredNode;
     var coveredNodeParent = coveredNode?.parent;
 
     if (await _isNullAware(builder, coveredNode)) {

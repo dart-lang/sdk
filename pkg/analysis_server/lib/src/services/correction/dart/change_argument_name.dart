@@ -55,7 +55,7 @@ class ChangeArgumentName extends MultiCorrectionProducer {
   }
 
   _NamedExpressionContext? _getNamedParameterNames() {
-    final node = this.node;
+    var node = this.node;
     var namedExpression = node.parent?.parent;
     if (node is SimpleIdentifier &&
         namedExpression is NamedExpression &&

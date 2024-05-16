@@ -25,7 +25,7 @@ class MakeFinal extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     var parent = node.parent;
 
     if (node is DeclaredIdentifier && parent is ForEachPartsWithDeclaration) {
@@ -138,7 +138,7 @@ class MakeFinal extends ResolvedCorrectionProducer {
 
 extension on AstNode {
   AstNode? get forEachPartsParent {
-    final parent = this.parent;
+    var parent = this.parent;
     return parent is ForEachPartsWithPattern ? parent : parent?.parent;
   }
 }

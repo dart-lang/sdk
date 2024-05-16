@@ -19,7 +19,7 @@ class FlutterConvertToChildren extends ResolvedCorrectionProducer {
     // Find "child: widget" under selection.
     NamedExpression namedExp;
     {
-      final node = this.node;
+      var node = this.node;
       var parent = node.parent;
       var parent2 = parent?.parent;
       if (node is SimpleIdentifier &&

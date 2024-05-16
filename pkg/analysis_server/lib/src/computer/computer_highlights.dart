@@ -511,7 +511,7 @@ class DartUnitHighlightsComputer {
     SemanticTokenTypes? semanticTokenType,
     Set<SemanticTokenModifiers>? semanticTokenModifiers,
   }) {
-    final range = this.range;
+    var range = this.range;
     if (range != null) {
       var end = offset + length;
       // Skip token if it ends before the range of starts after the range.

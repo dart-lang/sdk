@@ -463,7 +463,7 @@ class StatementCompletionProcessor {
       }
       if (sb2.length == 0) {
         // true if condition is '()'
-        final exitPosition = this.exitPosition;
+        var exitPosition = this.exitPosition;
         if (exitPosition != null) {
           if (node.semicolon.isSynthetic) {
             _insertBuilder(sb);

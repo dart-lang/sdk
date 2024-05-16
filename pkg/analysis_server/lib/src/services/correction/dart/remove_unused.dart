@@ -31,7 +31,7 @@ class RemoveUnusedElement extends _RemoveUnused {
   Future<void> compute(ChangeBuilder builder) async {
     var sourceRanges = <SourceRange>[];
 
-    final node = this.node;
+    var node = this.node;
 
     if (node is ConstructorDeclaration) {
       await _constructorDeclaration(

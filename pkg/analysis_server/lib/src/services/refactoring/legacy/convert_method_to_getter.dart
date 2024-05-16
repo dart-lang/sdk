@@ -50,7 +50,7 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
   Future<SourceChange> createChange() async {
     change = SourceChange(refactoringName);
     // FunctionElement
-    final element = this.element;
+    var element = this.element;
     if (element is FunctionElement) {
       await _updateElementDeclaration(element);
       await _updateElementReferences(element);

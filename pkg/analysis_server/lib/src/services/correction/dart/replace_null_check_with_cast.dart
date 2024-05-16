@@ -28,7 +28,7 @@ class ReplaceNullCheckWithCast extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     Token? operator;
     DartType? operandType;
     if (node is NullAssertPattern) {

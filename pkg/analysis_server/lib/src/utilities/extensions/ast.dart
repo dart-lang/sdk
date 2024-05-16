@@ -65,7 +65,7 @@ class _ReferencedUnprefixedNamesCollector extends RecursiveAstVisitor<void> {
 extension AnnotatedNodeExtension on AnnotatedNode {
   /// Return the first token in this node that is not a comment.
   Token get firstNonCommentToken {
-    final metadata = this.metadata;
+    var metadata = this.metadata;
     if (metadata.isEmpty) {
       return firstTokenAfterCommentAndMetadata;
     }
@@ -190,7 +190,7 @@ extension AstNodeExtension on AstNode {
   /// Returns the [ExpressionStatement] associated with `this` if `this` points
   /// to the identifier for a simple `print`, and `null` otherwise.
   ExpressionStatement? findSimplePrintInvocation() {
-    final parent = this.parent;
+    var parent = this.parent;
     var grandparent = parent?.parent;
     if (this case SimpleIdentifier(:var staticElement)) {
       if (staticElement is FunctionElement &&
@@ -223,7 +223,7 @@ extension CompilationUnitExtension on CompilationUnit {
   /// blank line, a directive, a declaration, or a multi-line comment). The list
   /// will never include a documentation comment.
   List<Token> get fileHeader {
-    final lineInfo = this.lineInfo;
+    var lineInfo = this.lineInfo;
     var firstToken = beginToken;
     if (firstToken.type == TokenType.SCRIPT_TAG) {
       firstToken = firstToken.next!;
@@ -285,7 +285,7 @@ extension DeclaredVariablePatternExtension on DeclaredVariablePattern {
 extension DirectiveExtension on Directive {
   /// If the target imports or exports a [LibraryElement], returns it.
   LibraryElement? get referencedLibrary {
-    final element = this.element;
+    var element = this.element;
     if (element is LibraryExportElement) {
       return element.exportedLibrary;
     } else if (element is LibraryImportElement) {
@@ -360,7 +360,7 @@ extension FunctionBodyExtension on FunctionBody {
 
 extension MethodDeclarationExtension on MethodDeclaration {
   Token? get propertyKeywordGet {
-    final propertyKeyword = this.propertyKeyword;
+    var propertyKeyword = this.propertyKeyword;
     return propertyKeyword != null && propertyKeyword.keyword == Keyword.GET
         ? propertyKeyword
         : null;
@@ -369,7 +369,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
 
 extension NamedTypeExtension on NamedType {
   String get qualifiedName {
-    final importPrefix = this.importPrefix;
+    var importPrefix = this.importPrefix;
     if (importPrefix != null) {
       return '${importPrefix.name.lexeme}.${name2.lexeme}';
     } else {
