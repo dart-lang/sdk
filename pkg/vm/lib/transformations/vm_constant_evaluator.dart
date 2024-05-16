@@ -57,9 +57,9 @@ class VMConstantEvaluator extends ConstantEvaluator {
     // Only add Platform fields if the Platform class is part of the component
     // being evaluated.
     if (_targetOS != null && _platformClass != null) {
-      _constantFields['operatingSystem'] = StringConstant(_targetOS!.name);
+      _constantFields['operatingSystem'] = StringConstant(_targetOS.name);
       _constantFields['pathSeparator'] =
-          StringConstant(_targetOS!.pathSeparator);
+          StringConstant(_targetOS.pathSeparator);
     }
   }
 

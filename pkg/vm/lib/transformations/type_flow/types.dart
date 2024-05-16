@@ -1452,12 +1452,10 @@ class RuntimeType extends Type {
         super._() {
     if (_type is InterfaceType && numImmediateTypeArgs > 0) {
       assert(typeArgs!.length >= numImmediateTypeArgs);
-      assert((_type as InterfaceType)
-          .typeArguments
-          .every((t) => t == const DynamicType()));
+      assert(_type.typeArguments.every((t) => t == const DynamicType()));
     } else if (_type is FutureOrType) {
       assert(typeArgs!.length >= numImmediateTypeArgs);
-      DartType typeArgument = (_type as FutureOrType).typeArgument;
+      DartType typeArgument = _type.typeArgument;
       assert(typeArgument == const DynamicType());
     } else {
       assert(typeArgs == null);
@@ -1537,7 +1535,7 @@ class RuntimeType extends Type {
   @override
   String toString() {
     final head = _type is InterfaceType
-        ? "${nodeToText((_type as InterfaceType).classNode)}"
+        ? "${nodeToText(_type.classNode)}"
         : "${nodeToText(_type)}";
     final typeArgsStrs = (numImmediateTypeArgs == 0)
         ? ""
@@ -1604,7 +1602,7 @@ class RuntimeType extends Type {
 
     if (rhs is FutureOrType) {
       if (_type is InterfaceType) {
-        Class thisClass = (_type as InterfaceType).classNode;
+        Class thisClass = _type.classNode;
         if (thisClass == typeHierarchy.coreTypes.futureClass) {
           return typeArgs![0].isSubtypeOfRuntimeType(
               typeHierarchy, runtimeType.typeArgs![0], SubtypeTestKind.Subtype);

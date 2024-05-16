@@ -110,7 +110,7 @@ class InferredType {
     }
     if (_constantValue != null) {
       buf.write(
-          ' (value: ${_constantValue!.toText(astTextStrategyForTesting)})');
+          ' (value: ${_constantValue.toText(astTextStrategyForTesting)})');
     }
     if (receiverNotInt) {
       buf.write(' (receiver not int)');
