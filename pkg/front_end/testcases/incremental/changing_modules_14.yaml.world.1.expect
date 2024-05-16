@@ -26,7 +26,7 @@ constants  {
   #C2 = "value_a"
   #C3 = "value_b"
   #C4 = "value_c"
-  #C5 = <dart.core::String*>[#C4]
-  #C6 = <dart.core::Object*>[#C3, #C5]
-  #C7 = <dart.core::Object*>[#C2, #C6]
+  #C5 = <dart.core::String>[#C4]
+  #C6 = <dart.core::Object>[#C3, #C5]
+  #C7 = <dart.core::Object>[#C2, #C6]
 }

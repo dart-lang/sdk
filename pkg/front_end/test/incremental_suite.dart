@@ -138,10 +138,10 @@ class NewWorldTestProperties {
       'incrementalSerialization', BoolValue(),
       defaultValue: false);
 
-  static const String nnbdMode_strong = 'strong';
+  static const String nnbdMode_weak = 'weak';
 
   static const Property<String?> nnbdMode =
-      Property.optional('nnbdMode', StringValue(options: {nnbdMode_strong}));
+      Property.optional('nnbdMode', StringValue(options: {nnbdMode_weak}));
 
   static const String target_none = 'none';
   static const String target_dartdevc = 'dartdevc';
@@ -188,10 +188,10 @@ class WorldProperties {
   static const Property<String?> experiments =
       Property.optional("experiments", StringValue());
 
-  static const String nnbdMode_strong = 'strong';
+  static const String nnbdMode_weak = 'weak';
 
   static const Property<String?> nnbdMode =
-      Property.optional("nnbdMode", StringValue(options: {nnbdMode_strong}));
+      Property.optional("nnbdMode", StringValue(options: {nnbdMode_weak}));
 
   static const Property<List<String>> entry = Property.required(
       'entry', ListValue(StringValue(), supportSingleton: true));
@@ -615,9 +615,9 @@ class RunCompilations extends Step<TestData, TestData, Context> {
           incrementalSerialization:
               NewWorldTestProperties.incrementalSerialization.read(map, keys),
           nnbdMode: NewWorldTestProperties.nnbdMode.read(map, keys) ==
-                  NewWorldTestProperties.nnbdMode_strong
-              ? NnbdMode.Strong
-              : NnbdMode.Weak,
+                  NewWorldTestProperties.nnbdMode_weak
+              ? NnbdMode.Weak
+              : NnbdMode.Strong,
           modules: NewWorldTestProperties.modules.read(map, keys),
           targetName: NewWorldTestProperties.target.read(map, keys),
         ).newWorldTest();
@@ -1279,8 +1279,8 @@ class NewWorldTest {
         if (world.nnbdModeString != null) {
           String nnbdMode = world.nnbdModeString!;
           switch (nnbdMode) {
-            case WorldProperties.nnbdMode_strong:
-              options.nnbdMode = NnbdMode.Strong;
+            case WorldProperties.nnbdMode_weak:
+              options.nnbdMode = NnbdMode.Weak;
               break;
             default:
               throw "Not supported nnbd mode: $nnbdMode";

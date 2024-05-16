@@ -9,6 +9,7 @@
 type: newworld
 worlds:
   - entry: main.dart
+    nnbdMode: weak
     sources:
       main.dart: |
         import 'lib.dart';
@@ -20,7 +21,6 @@ worlds:
     expectedLibraryCount: 2
 
   - entry: main.dart
-    nnbdMode: strong
     expectInitializeFromDill: false # loading the dill should fail because of mismatching NNBD settings
     checkInvalidatedFiles: false
     invalidate:
