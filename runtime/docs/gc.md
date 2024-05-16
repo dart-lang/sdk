@@ -251,7 +251,7 @@ On Isolate shutdown, native finalizers are run, but regular finalizers are not.
 
 ## Become
 
-Become is an operation that atomically forwards the identity of a set of objects. A heap walk is performed where every pointer to a _before_ object is replaced with a pointer to an _after_ object, and each after object gains the identity hash of the corresponding before object. In the Dart VM, it is only used during [reload](https://github.com/dart-lang/sdk/wiki/Hot-reload) to map the old program and instances with the old sizes onto the new program and instances with the new sizes.
+Become is an operation that atomically forwards the identity of a set of objects. A heap walk is performed where every pointer to a _before_ object is replaced with a pointer to an _after_ object, and each after object gains the identity hash of the corresponding before object. In the Dart VM, it is only used during [reload](../../docs/Hot-reload.md) to map the old program and instances with the old sizes onto the new program and instances with the new sizes.
 
 This operation dates back to the early Smalltalk implementations. It was O(1) because pointers were indirect through an object table and was used to resize collections.
 

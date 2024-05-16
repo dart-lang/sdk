@@ -4,7 +4,7 @@
 
 # IMPORTANT:
 # Before adding or updating dependencies, please review the documentation here:
-# https://github.com/dart-lang/sdk/wiki/Adding-and-Updating-Dependencies
+# https://github.com/dart-lang/sdk/tree/main/docs/Adding-and-Updating-Dependencies.md
 #
 # Packages can be rolled to the latest version with `tools/manage_deps.dart`.
 #

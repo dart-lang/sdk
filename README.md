@@ -51,10 +51,9 @@ as well as from the [primary development branch](https://api.dart.dev/be)).
 ## Building Dart
 
 If you want to build Dart yourself, here is a guide to
-[getting the source, preparing your machine to build the SDK, and
-building](https://github.com/dart-lang/sdk/wiki/Building).
+[getting the source, preparing your machine to build the SDK, and building][building].
 
-There are more documents on our [wiki](https://github.com/dart-lang/sdk/wiki).
+There are more documents in our repo at [docs](https://github.com/dart-lang/sdk/tree/main/docs).
 
 ## Contributing to Dart
 
@@ -67,14 +66,15 @@ You can also contribute patches, as described in [Contributing][contrib].
 Future plans for Dart are included in the combined Dart and Flutter
 [roadmap][roadmap] on the Flutter wiki.
 
-[website]: https://dart.dev
-[license]: https://github.com/dart-lang/sdk/blob/main/LICENSE
-[repo]: https://github.com/dart-lang/sdk
-[lang]: https://dart.dev/guides/language/language-tour
-[tools]: https://dart.dev/tools
+[building]: https://github.com/dart-lang/sdk/blob/main/docs/Building.md
 [codelabs]: https://dart.dev/codelabs
-[dartbug]: http://dartbug.com
 [contrib]: https://github.com/dart-lang/sdk/blob/main/CONTRIBUTING.md
-[pubsite]: https://pub.dev
+[dartbug]: http://dartbug.com
+[lang]: https://dart.dev/guides/language/language-tour
+[license]: https://github.com/dart-lang/sdk/blob/main/LICENSE
 [patent_grant]: https://github.com/dart-lang/sdk/blob/main/PATENT_GRANT
+[pubsite]: https://pub.dev
+[repo]: https://github.com/dart-lang/sdk
 [roadmap]: https://github.com/flutter/flutter/wiki/Roadmap
+[tools]: https://dart.dev/tools
+[website]: https://dart.dev
