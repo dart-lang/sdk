@@ -6,7 +6,6 @@
 # to get rid of it if the error is fixed.
 
 type: newworld
-nnbdMode: strong
 worlds:
   - entry: package:baz/main.dart
     errors: true

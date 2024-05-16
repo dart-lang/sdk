@@ -24,8 +24,8 @@ constants  {
   #C5 = ann::AnnotationsMacro {object:#C1, additional:#C4}
   #C6 = <dynamic>[]
   #C7 = ann::AnnotationsMacro {object:#C6, additional:#C2}
-  #C8 = <core::int*>[#C1]
+  #C8 = <core::int>[#C1]
   #C9 = ann::AnnotationsMacro {object:#C8, additional:#C2}
-  #C10 = <core::int*>[#C1, #C4]
+  #C10 = <core::int>[#C1, #C4]
   #C11 = ann::AnnotationsMacro {object:#C10, additional:#C2}
 }

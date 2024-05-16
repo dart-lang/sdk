@@ -421,7 +421,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         _getPreciseTypeErrorTemplate(inferenceResult.expression);
     AssignabilityResult assignabilityResult = _computeAssignabilityKind(
         contextType, inferenceResult.inferredType,
-        isNonNullableByDefault: true,
         isVoidAllowed: isVoidAllowed,
         isExpressionTypePrecise: preciseTypeErrorTemplate != null,
         coerceExpression: coerceExpression,
@@ -530,7 +529,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         _getPreciseTypeErrorTemplate(inferenceResult.expression);
     AssignabilityResult assignabilityResult = _computeAssignabilityKind(
         contextType, inferenceResult.inferredType,
-        isNonNullableByDefault: true,
         isVoidAllowed: isVoidAllowed,
         isExpressionTypePrecise: preciseTypeErrorTemplate != null,
         coerceExpression: isCoercionAllowed,
@@ -806,8 +804,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// The computation is side-effect free.
   AssignabilityResult _computeAssignabilityKind(
       DartType contextType, DartType expressionType,
-      {required bool isNonNullableByDefault,
-      required bool isVoidAllowed,
+      {required bool isVoidAllowed,
       required bool isExpressionTypePrecise,
       required bool coerceExpression,
       required int fileOffset,
@@ -851,7 +848,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
       if (shouldTearOff) {
         needsTearoff = true;
-        if (isNonNullableByDefault && target.isNullable) {
+        if (target.isNullable) {
           return const AssignabilityResult(
               AssignabilityKind.unassignableCantTearoff,
               needsTearOff: false);
@@ -878,23 +875,17 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
     IsSubtypeOf isDirectSubtypeResult = typeSchemaEnvironment
         .performNullabilityAwareSubtypeCheck(expressionType, contextType);
-    bool isDirectlyAssignable = isNonNullableByDefault
-        ? isDirectSubtypeResult.isSubtypeWhenUsingNullabilities()
-        : isDirectSubtypeResult.isSubtypeWhenIgnoringNullabilities();
+    bool isDirectlyAssignable =
+        isDirectSubtypeResult.isSubtypeWhenUsingNullabilities();
     if (isDirectlyAssignable) {
       return new AssignabilityResult(AssignabilityKind.assignable,
           needsTearOff: needsTearoff,
           implicitInstantiation: implicitInstantiation);
     }
 
-    bool isIndirectlyAssignable = isNonNullableByDefault
-        ? expressionType is DynamicType
-        : typeSchemaEnvironment
-            .performNullabilityAwareSubtypeCheck(contextType, expressionType)
-            .isSubtypeWhenIgnoringNullabilities();
+    bool isIndirectlyAssignable = expressionType is DynamicType;
     if (!isIndirectlyAssignable) {
-      if (isNonNullableByDefault &&
-          isDirectSubtypeResult.isSubtypeWhenIgnoringNullabilities()) {
+      if (isDirectSubtypeResult.isSubtypeWhenIgnoringNullabilities()) {
         return new AssignabilityResult.withTypes(
             AssignabilityKind.unassignableNullability,
             isDirectSubtypeResult.subtype,

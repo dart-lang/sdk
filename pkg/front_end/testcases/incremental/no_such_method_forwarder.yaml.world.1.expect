@@ -30,7 +30,7 @@ library from "org-dartlang-test:///main.dart" as main {
 }
 constants  {
   #C1 = #foo
-  #C2 = <dart.core::Type*>[]
+  #C2 = <dart.core::Type>[]
   #C3 = <dynamic>[]
-  #C4 = <dart.core::Symbol*, dynamic>{}
+  #C4 = <dart.core::Symbol, dynamic>{}
 }

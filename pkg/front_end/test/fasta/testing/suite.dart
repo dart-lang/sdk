@@ -1253,8 +1253,8 @@ class FuzzCompiles
             compilationSetup.options.globalFeatures,
             builder.importUri,
             builder.library.languageVersion);
-        fuzzAstVisitorSorter = new FuzzAstVisitorSorter(
-            orgData, true, libFeatures.patterns.isEnabled);
+        fuzzAstVisitorSorter =
+            new FuzzAstVisitorSorter(orgData, libFeatures.patterns.isEnabled);
       } on FormatException catch (e, st) {
         // UTF-16-LE formatted test crashes `utf8.decode(bytes)` --- catch that
         return new Result<ComponentResult>(
@@ -1406,8 +1406,8 @@ class FuzzCompiles
             compilationSetup.options.globalFeatures,
             builder.importUri,
             builder.library.languageVersion);
-        fuzzAstVisitorSorter = new FuzzAstVisitorSorter(
-            orgData, true, libFeatures.patterns.isEnabled);
+        fuzzAstVisitorSorter =
+            new FuzzAstVisitorSorter(orgData, libFeatures.patterns.isEnabled);
       } on FormatException catch (e, st) {
         // UTF-16-LE formatted test crashes `utf8.decode(bytes)` --- catch that
         return new Result<ComponentResult>(
@@ -1647,16 +1647,15 @@ enum FuzzOriginalType {
 class FuzzAstVisitorSorter extends IgnoreSomeForCompatibilityAstVisitor {
   final Uint8List bytes;
   final String asString;
-  final bool nnbd;
   final bool allowPatterns;
 
-  FuzzAstVisitorSorter(this.bytes, this.nnbd, this.allowPatterns)
+  FuzzAstVisitorSorter(this.bytes, this.allowPatterns)
       : asString = utf8.decode(bytes) {
     CompilationUnitEnd ast = getAST(bytes,
         includeBody: false,
         includeComments: true,
         enableExtensionMethods: true,
-        enableNonNullable: nnbd,
+        enableNonNullable: true,
         allowPatterns: allowPatterns);
     ast.accept(this);
 

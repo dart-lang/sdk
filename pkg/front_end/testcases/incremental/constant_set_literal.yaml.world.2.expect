@@ -15,6 +15,6 @@ library from "org-dartlang-test:///main.dart" as main {
 }
 constants  {
   #C1 = 42
-  #C2 = <dart.core::int*>{#C1}
-  #C3 = <dart.core::String*>{}
+  #C2 = <dart.core::int>{#C1}
+  #C3 = <dart.core::String>{}
 }

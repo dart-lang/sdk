@@ -49,6 +49,6 @@ constants  {
   #C1 = "a1"
   #C2 = "a2"
   #C3 = #m
-  #C4 = <dart.core::Type*>[]
-  #C5 = <dart.core::Symbol*, dynamic>{}
+  #C4 = <dart.core::Type>[]
+  #C5 = <dart.core::Symbol, dynamic>{}
 }

@@ -1674,8 +1674,10 @@ static void TrySwitchInstanceCall(Thread* thread,
 
   const intptr_t num_checks = ic_data.NumberOfChecks();
 
-  // Monomorphic call.
-  if (FLAG_unopt_monomorphic_calls && (num_checks == 1)) {
+  ASSERT(!target_function.IsNull() || !FLAG_lazy_dispatchers);
+  // Monomorphic call with a valid target function.
+  if (FLAG_unopt_monomorphic_calls && (num_checks == 1) &&
+      !target_function.IsNull()) {
     // A call site in the monomorphic state does not load the arguments
     // descriptor, so do not allow transition to this state if the callee
     // needs it.

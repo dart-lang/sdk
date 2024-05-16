@@ -140,10 +140,8 @@ class TypeInferrerImpl implements TypeInferrer {
       this.libraryBuilder,
       this.assignedVariables,
       this.dataForTesting,
-      FunctionType unknownFunctionNonNullable,
-      FunctionType unknownFunctionLegacy)
-      : unknownFunction = unknownFunctionNonNullable,
-        instrumentation = isTopLevel ? null : engine.instrumentation,
+      this.unknownFunction)
+      : instrumentation = isTopLevel ? null : engine.instrumentation,
         typeSchemaEnvironment = engine.typeSchemaEnvironment,
         operations = new OperationsCfe(engine.typeSchemaEnvironment,
             omittedNullabilityValue: libraryBuilder.nonNullable,
@@ -310,7 +308,6 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     InferenceDataForTesting? dataForTesting,
     this.benchmarker,
     FunctionType unknownFunctionNonNullable,
-    FunctionType unknownFunctionLegacy,
   ) : impl = new TypeInferrerImpl(
           engine,
           uriForInstrumentation,
@@ -320,7 +317,6 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
           assignedVariables,
           dataForTesting,
           unknownFunctionNonNullable,
-          unknownFunctionLegacy,
         );
 
   @override

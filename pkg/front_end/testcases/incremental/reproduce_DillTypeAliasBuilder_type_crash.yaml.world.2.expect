@@ -13,5 +13,5 @@ library from "org-dartlang-test:///main.dart" as main {
   }
 }
 constants  {
-  #C1 = TypeLiteralConstant(<R extends dart.core::Object? = dynamic>(() →* R*) →* R*)
+  #C1 = TypeLiteralConstant(<R extends dart.core::Object? = dynamic>(() → R%) → R%)
 }

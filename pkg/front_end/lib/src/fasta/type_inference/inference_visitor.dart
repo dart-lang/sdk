@@ -156,8 +156,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       visitor: this,
       helper: helper,
       uri: uriForInstrumentation,
-      coreTypes: coreTypes,
-      isNonNullableByDefault: true);
+      coreTypes: coreTypes);
 
   /// The innermost cascade whose expressions are currently being visited, or
   /// `null` if no cascade's expressions are currently being visited.
