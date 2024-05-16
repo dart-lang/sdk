@@ -26,7 +26,7 @@ class RemoveUnusedImport extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     // prepare ImportDirective
-    var importDirective = node.thisOrAncestorOfType<ImportDirective>();
+    var importDirective = node.thisOrAncestorOfType<UriBasedDirective>();
     if (importDirective == null) {
       return;
     }

@@ -519,9 +519,7 @@ CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION:
   status: needsFix
   since: 2.15
 CompileTimeErrorCode.DUPLICATE_AUGMENTATION_IMPORT:
-  status: needsFix
-  notes: |-
-    Remove the duplicated import.
+  status: hasFix
 CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT:
   status: noFix
   notes: |-
