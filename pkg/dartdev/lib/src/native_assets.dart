@@ -52,7 +52,11 @@ Future<(bool success, List<AssetImpl> assets)> compileNativeAssetsJit({
 
   final linkResult = await nativeAssetsBuildRunner.link(
     workingDirectory: workingDirectory,
+    // When running in JIT mode, only the host OS needs to be build.
     target: Target.current,
+    // When running in JIT mode, only dynamic libraries are supported.
+    linkModePreference: LinkModePreferenceImpl.dynamic,
+    // Dart has no concept of release vs debug, default to release.
     buildMode: BuildModeImpl.release,
     includeParentEnvironment: true,
     buildResult: buildResult,

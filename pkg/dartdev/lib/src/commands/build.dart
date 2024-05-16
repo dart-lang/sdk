@@ -175,6 +175,7 @@ class BuildCommand extends DartdevCommand {
         resourceIdentifiers: Uri.file(resources),
         workingDirectory: workingDirectory,
         target: target,
+        linkModePreference: LinkModePreferenceImpl.dynamic,
         buildMode: BuildModeImpl.release,
         includeParentEnvironment: true,
         buildResult: buildResult,
