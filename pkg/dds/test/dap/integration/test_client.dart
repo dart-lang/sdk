@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
@@ -549,7 +550,7 @@ class DapTestClient {
       if (message.success || pendingRequest.allowFailure) {
         completer.complete(message);
       } else {
-        completer.completeError(message);
+        completer.completeError(RequestException(pendingRequest.name, message));
       }
     } else if (message is Event && !_eventController.isClosed) {
       _eventController.add(message);
@@ -1309,4 +1310,20 @@ extension DapTestClientExtension on DapTestClient {
 
     return body;
   }
+}
+
+/// Represents an error message returned from the debug adapter in response
+/// to a request.
+class RequestException implements Exception {
+  /// The name of the request that was made by the client.
+  final String requestName;
+
+  /// The raw message that came from back from the adapter.
+  final ProtocolMessage message;
+
+  RequestException(this.requestName, this.message);
+
+  @override
+  String toString() => 'Request "$requestName" failed:\n'
+      '${JsonEncoder.withIndent('    ').convert(message.toJson())}';
 }
