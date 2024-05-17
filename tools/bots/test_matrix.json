@@ -354,16 +354,16 @@
         "use-elf": true
       }
     },
-    "vm-asan-(linux|mac)-(debug|product|release)-(ia32|x64|simarm|simarm64|simriscv32|simriscv64)": {},
-    "vm-lsan-(linux|mac)-(debug|product|release)-(ia32|x64|simarm|simarm64|simriscv32|simriscv64)": {},
-    "vm-msan-linux-(debug|product|release)-(x64|simarm64|simriscv64)": {},
-    "vm-tsan-(linux|mac)-(debug|product|release)-(x64|simarm64|simriscv64)": {},
-    "vm-ubsan-(linux|mac)-(debug|product|release)-(ia32|x64|simarm|simarm64|simriscv32|simriscv64)": {},
-    "vm-aot-asan-(linux|mac)-(debug|product|release)-(x64|simarm|simarm64|simriscv32|simriscv64)": {},
-    "vm-aot-lsan-(linux|mac)-(debug|product|release)-(x64|simarm|simarm64|simriscv32|simriscv64)": {},
-    "vm-aot-msan-linux-(debug|product|release)-(x64|simarm64|simriscv64)": {},
-    "vm-aot-tsan-(linux|mac)-(debug|product|release)-(x64|simarm64|simriscv64)": {},
-    "vm-aot-ubsan-(linux|mac)-(debug|product|release)-(x64|simarm|simarm64|simriscv32|simriscv64)": {},
+    "vm-asan-(linux|mac)-(debug|product|release)-(ia32|x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
+    "vm-lsan-(linux|mac)-(debug|product|release)-(ia32|x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
+    "vm-msan-linux-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {},
+    "vm-tsan-(linux|mac)-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {},
+    "vm-ubsan-(linux|mac)-(debug|product|release)-(ia32|x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
+    "vm-aot-asan-(linux|mac)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
+    "vm-aot-lsan-(linux|mac)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
+    "vm-aot-msan-linux-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {},
+    "vm-aot-tsan-(linux|mac)-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {},
+    "vm-aot-ubsan-(linux|mac)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
     "dart2js-(linux|win)-chrome": {
       "options": {
         "use-sdk": true
@@ -1308,6 +1308,41 @@
     },
     {
       "builders": [
+        "vm-asan-linux-release-arm64",
+        "vm-msan-linux-release-arm64",
+        "vm-tsan-linux-release-arm64",
+        "vm-ubsan-linux-release-arm64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the ARM64 sanitizers."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime",
+            "runtime_precompiled"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-${sanitizer}-${system}-${mode}-${arch}",
+            "ffi"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-aot-${sanitizer}-${system}-${mode}-${arch}",
+            "ffi"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
         "vm-gcc-linux"
       ],
       "meta": {
@@ -1570,9 +1605,8 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "dart_precompiled_runtime",
-            "gen_snapshot",
-            "runtime"
+            "runtime",
+            "runtime_precompiled"
           ]
         },
         {

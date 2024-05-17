@@ -36,6 +36,25 @@ void f() {
 ''');
   }
 
+  Future<void> test_lateFinalLocalAlreadyAssigned() async {
+    await resolveTestCode('''
+main() {
+  late final int v;
+  v = 0;
+  v += 1;
+  v;
+}
+''');
+    await assertHasFix('''
+main() {
+  late int v;
+  v = 0;
+  v += 1;
+  v;
+}
+''');
+  }
+
   Future<void> test_noType() async {
     await resolveTestCode('''
 void f() {

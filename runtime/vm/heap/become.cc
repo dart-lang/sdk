@@ -29,7 +29,7 @@ ForwardingCorpse* ForwardingCorpse::AsForwarder(uword addr, intptr_t size) {
   bool is_old = (addr & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset;
   tags = UntaggedObject::NotMarkedBit::update(true, tags);
   tags = UntaggedObject::OldAndNotRememberedBit::update(is_old, tags);
-  tags = UntaggedObject::NewOrEvacuationCandidateBit::update(!is_old, tags);
+  tags = UntaggedObject::NewBit::update(!is_old, tags);
 
   result->tags_ = tags;
   if (size > UntaggedObject::SizeTag::kMaxSizeTag) {

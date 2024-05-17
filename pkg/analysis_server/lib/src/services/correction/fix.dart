@@ -51,6 +51,16 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     "Add 'super.{0}'",
   );
+  static const ADD_EMPTY_ARGUMENT_LIST = FixKind(
+    'dart.fix.add.empty.argument.list',
+    DartFixKindPriority.DEFAULT,
+    'Add empty argument list',
+  );
+  static const ADD_EMPTY_ARGUMENT_LIST_MULTI = FixKind(
+    'dart.fix.add.empty.argument.list.multi',
+    DartFixKindPriority.IN_FILE,
+    'Add empty argument lists everywhere in file',
+  );
   static const ADD_CONST = FixKind(
     'dart.fix.add.const',
     DartFixKindPriority.DEFAULT,

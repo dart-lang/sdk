@@ -28,7 +28,7 @@ FreeListElement* FreeListElement::AsElement(uword addr, intptr_t size) {
   tags = UntaggedObject::AlwaysSetBit::update(true, tags);
   tags = UntaggedObject::NotMarkedBit::update(true, tags);
   tags = UntaggedObject::OldAndNotRememberedBit::update(true, tags);
-  tags = UntaggedObject::NewOrEvacuationCandidateBit::update(false, tags);
+  tags = UntaggedObject::NewBit::update(false, tags);
   result->tags_ = tags;
 
   if (size > UntaggedObject::SizeTag::kMaxSizeTag) {
@@ -53,7 +53,7 @@ FreeListElement* FreeListElement::AsElementNew(uword addr, intptr_t size) {
   tags = UntaggedObject::AlwaysSetBit::update(true, tags);
   tags = UntaggedObject::NotMarkedBit::update(true, tags);
   tags = UntaggedObject::OldAndNotRememberedBit::update(false, tags);
-  tags = UntaggedObject::NewOrEvacuationCandidateBit::update(true, tags);
+  tags = UntaggedObject::NewBit::update(true, tags);
   result->tags_ = tags;
 
   if (size > UntaggedObject::SizeTag::kMaxSizeTag) {

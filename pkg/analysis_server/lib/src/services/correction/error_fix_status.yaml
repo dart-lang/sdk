@@ -230,9 +230,7 @@ CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER:
 CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR:
   status: noFix
 CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER:
-  status: needsFix
-  notes: |-
-    The fix is to remove the `late` modifier.
+  status: hasFix
 CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT:
   status: hasFix
 CompileTimeErrorCode.AWAIT_OF_INCOMPATIBLE_TYPE:
@@ -1045,9 +1043,7 @@ CompileTimeErrorCode.LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR:
     Remove `late`.
     Remove `const`.
 CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED:
-  status: needsFix
-  notes: |-
-    Remove `final`.
+  status: hasFix
 CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE:
   status: noFix
 CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE:
@@ -1179,9 +1175,7 @@ CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR:
 CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT:
   status: hasFix
 CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS:
-  status: needsFix
-  notes: |-
-    Add an empty argument list.
+  status: hasFix
 CompileTimeErrorCode.NO_COMBINED_SUPER_SIGNATURE:
   status: noFix
 CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT:
