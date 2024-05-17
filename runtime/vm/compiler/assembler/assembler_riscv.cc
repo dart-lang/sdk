@@ -3518,7 +3518,7 @@ void Assembler::VerifyStoreNeedsNoWriteBarrier(Register object,
   Label done;
   BranchIfSmi(value, &done, kNearJump);
   lbu(TMP2, FieldAddress(value, target::Object::tags_offset()));
-  andi(TMP2, TMP2, 1 << target::UntaggedObject::kNewOrEvacuationCandidateBit);
+  andi(TMP2, TMP2, 1 << target::UntaggedObject::kNewBit);
   beqz(TMP2, &done, kNearJump);
   lbu(TMP2, FieldAddress(object, target::Object::tags_offset()));
   andi(TMP2, TMP2, 1 << target::UntaggedObject::kOldAndNotRememberedBit);

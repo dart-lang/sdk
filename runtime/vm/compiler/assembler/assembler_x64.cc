@@ -1684,7 +1684,7 @@ void Assembler::VerifyStoreNeedsNoWriteBarrier(Register object,
   Label done;
   BranchIfSmi(value, &done, kNearJump);
   testb(FieldAddress(value, target::Object::tags_offset()),
-        Immediate(1 << target::UntaggedObject::kNewOrEvacuationCandidateBit));
+        Immediate(1 << target::UntaggedObject::kNewBit));
   j(ZERO, &done, Assembler::kNearJump);
   testb(FieldAddress(object, target::Object::tags_offset()),
         Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
