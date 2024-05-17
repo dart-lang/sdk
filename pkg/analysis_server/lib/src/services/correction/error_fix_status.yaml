@@ -1179,9 +1179,7 @@ CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR:
 CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT:
   status: hasFix
 CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS:
-  status: needsFix
-  notes: |-
-    Add an empty argument list.
+  status: hasFix
 CompileTimeErrorCode.NO_COMBINED_SUPER_SIGNATURE:
   status: noFix
 CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT:
