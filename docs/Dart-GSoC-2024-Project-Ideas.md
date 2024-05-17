@@ -1,3 +1,8 @@
+> [!warning]
+> **Google Summer of Code 2024 is no longer accepting applications**.
+
+------
+
 A list of Google Summer of Code project ideas for Dart.
 
 For GSoC related discussions please use the [dart-gsoc group](https://groups.google.com/forum/#!forum/dart-gsoc).
