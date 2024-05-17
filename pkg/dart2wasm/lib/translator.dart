@@ -287,32 +287,10 @@ class Translator with KernelNodes {
     dynamicForwarders = DynamicForwarders(this);
   }
 
-  // Finds the `main` method for a given library which is assumed to contain
-  // `main`, either directly or indirectly.
-  Procedure _findMainMethod(Library entryLibrary) {
-    // First check to see if the library itself contains main.
-    for (final procedure in entryLibrary.procedures) {
-      if (procedure.name.text == 'main') {
-        return procedure;
-      }
-    }
-
-    // In some cases, a main method is defined in another file, and then
-    // exported. In these cases, we search for the main method in
-    // [additionalExports].
-    for (final export in entryLibrary.additionalExports) {
-      if (export.node is Procedure && export.asProcedure.name.text == 'main') {
-        return export.asProcedure;
-      }
-    }
-    throw ArgumentError(
-        'Entry uri ${entryLibrary.fileUri} has no main method.');
-  }
-
   w.Module translate() {
     m = w.ModuleBuilder(watchPoints: options.watchPoints);
     voidMarker = w.RefType.def(w.StructType("void"), nullable: true);
-    mainFunction = _findMainMethod(libraries.first);
+    mainFunction = component.mainMethod!;
 
     // Collect imports and exports as the very first thing so the function types
     // for the imports can be places in singleton recursion groups.
