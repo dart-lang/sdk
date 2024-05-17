@@ -539,12 +539,7 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
   List<String> computeCompilerArguments(
       TestFile testFile, List<String> vmOptions, List<String> args) {
     return [
-      if (_useSdk) ...[
-        'compile',
-        'wasm',
-      ] else ...[
-        if (_enableHostAsserts) '--compiler-asserts',
-      ],
+      if (!_useSdk && _enableHostAsserts) '--compiler-asserts',
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
@@ -557,6 +552,10 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
   Command computeCompilationCommand(String outputFileName,
       List<String> arguments, Map<String, String> environmentOverrides) {
     arguments = [
+      if (_useSdk) ...[
+        'compile',
+        'wasm',
+      ],
       ...arguments,
       if (_useSdk) '-o',
       outputFileName,

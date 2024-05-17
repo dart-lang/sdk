@@ -769,7 +769,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
     })
         .toList();
     handleOverride(optimizationFlags, 'minify',
-        args.wasParsed('minify') ? null : args.flag('minify'));
+        args.wasParsed('minify') ? args.flag('minify') : null);
 
     final enabledExperiments = args.enabledExperiments;
     final dart2wasmCommand = [
