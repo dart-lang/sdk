@@ -686,7 +686,8 @@ class CompileWasmCommand extends CompileSubcommandCommand {
         help: defineOption.help,
         abbr: defineOption.abbr,
         valueHelp: defineOption.valueHelp,
-      );
+      )
+      ..addExperimentalFlags(verbose: verbose);
   }
 
   @override
@@ -771,6 +772,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
     handleOverride(optimizationFlags, 'minify',
         args.wasParsed('minify') ? null : args.flag('minify'));
 
+    final enabledExperiments = args.enabledExperiments;
     final dart2wasmCommand = [
       sdk.dartAotRuntime,
       sdk.dart2wasmSnapshot,
@@ -786,6 +788,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
         '--import-shared-memory',
         '--shared-memory-max-pages=$maxPages',
       ],
+      ...enabledExperiments.map((e) => '--enable-experiment=$e'),
 
       // First we pass flags based on the optimization level.
       ...optimizationFlags,
