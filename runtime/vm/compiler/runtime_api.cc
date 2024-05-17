@@ -361,7 +361,7 @@ uword MakeTagWordForNewSpaceObject(classid_t cid, uword instance_size) {
   return dart::UntaggedObject::SizeTag::encode(
              TranslateOffsetInWordsToHost(instance_size)) |
          dart::UntaggedObject::ClassIdTag::encode(cid) |
-         dart::UntaggedObject::NewBit::encode(true) |
+         dart::UntaggedObject::NewOrEvacuationCandidateBit::encode(true) |
          dart::UntaggedObject::AlwaysSetBit::encode(true) |
          dart::UntaggedObject::NotMarkedBit::encode(true) |
          dart::UntaggedObject::ImmutableBit::encode(
@@ -377,7 +377,8 @@ const word UntaggedObject::kCardRememberedBit =
 
 const word UntaggedObject::kCanonicalBit = dart::UntaggedObject::kCanonicalBit;
 
-const word UntaggedObject::kNewBit = dart::UntaggedObject::kNewBit;
+const word UntaggedObject::kNewOrEvacuationCandidateBit =
+    dart::UntaggedObject::kNewOrEvacuationCandidateBit;
 
 const word UntaggedObject::kOldAndNotRememberedBit =
     dart::UntaggedObject::kOldAndNotRememberedBit;

@@ -2389,9 +2389,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           var constructorName = node.arguments?.constructorSelector?.name;
           var errorTarget = constructorName ?? node.name;
           errorReporter.atEntity(
-            entity: errorTarget,
-            errorCode:
-                CompileTimeErrorCode.ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR,
+            errorTarget,
+            CompileTimeErrorCode.ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR,
           );
         }
       } else {

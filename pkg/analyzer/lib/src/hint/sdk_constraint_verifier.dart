@@ -198,8 +198,8 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
             }
           }
           _errorReporter.atEntity(
-            entity: errorEntity,
-            errorCode: WarningCode.SDK_VERSION_SINCE,
+            errorEntity,
+            WarningCode.SDK_VERSION_SINCE,
             arguments: [
               sinceSdkVersion.toString(),
               _versionConstraint.toString(),

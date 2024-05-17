@@ -1717,8 +1717,8 @@ class _InvalidAccessVerifier {
       var errorEntity = node.errorEntity;
 
       _errorReporter.atEntity(
-        entity: errorEntity,
-        errorCode: WarningCode.INVALID_USE_OF_INTERNAL_MEMBER,
+        errorEntity,
+        WarningCode.INVALID_USE_OF_INTERNAL_MEMBER,
         arguments: [element.displayName],
       );
     }
@@ -1763,8 +1763,8 @@ class _InvalidAccessVerifier {
       }
 
       _errorReporter.atEntity(
-        entity: node,
-        errorCode: WarningCode.INVALID_USE_OF_INTERNAL_MEMBER,
+        node,
+        WarningCode.INVALID_USE_OF_INTERNAL_MEMBER,
         arguments: [name],
       );
     }
@@ -1855,30 +1855,30 @@ class _InvalidAccessVerifier {
     }
     if (hasDoNotSubmit) {
       _errorReporter.atEntity(
-        entity: errorEntity,
-        errorCode: WarningCode.invalid_use_of_do_not_submit_member,
+        errorEntity,
+        WarningCode.invalid_use_of_do_not_submit_member,
         arguments: [name],
       );
     }
     if (hasProtected) {
       _errorReporter.atEntity(
-        entity: errorEntity,
-        errorCode: WarningCode.INVALID_USE_OF_PROTECTED_MEMBER,
+        errorEntity,
+        WarningCode.INVALID_USE_OF_PROTECTED_MEMBER,
         arguments: [name, definingClass.source!.uri],
       );
     }
     if (isVisibleForTemplateApplied) {
       _errorReporter.atEntity(
-        entity: errorEntity,
-        errorCode: WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER,
+        errorEntity,
+        WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER,
         arguments: [name, definingClass.source!.uri],
       );
     }
 
     if (hasVisibleForTesting) {
       _errorReporter.atEntity(
-        entity: errorEntity,
-        errorCode: WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER,
+        errorEntity,
+        WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER,
         arguments: [name, definingClass.source!.uri],
       );
     }
@@ -1896,8 +1896,8 @@ class _InvalidAccessVerifier {
       }
       if (!validOverride) {
         _errorReporter.atEntity(
-          entity: errorEntity,
-          errorCode: WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER,
+          errorEntity,
+          WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER,
           arguments: [name],
         );
       }

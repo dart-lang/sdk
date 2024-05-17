@@ -601,7 +601,7 @@ static constexpr uword kReadOnlyGCBits =
     UntaggedObject::AlwaysSetBit::encode(true) |
     UntaggedObject::NotMarkedBit::encode(false) |
     UntaggedObject::OldAndNotRememberedBit::encode(true) |
-    UntaggedObject::NewBit::encode(false);
+    UntaggedObject::NewOrEvacuationCandidateBit::encode(false);
 
 uword ImageWriter::GetMarkedTags(classid_t cid,
                                  intptr_t size,

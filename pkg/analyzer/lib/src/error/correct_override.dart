@@ -127,8 +127,8 @@ class CovariantParametersVerifier {
           // `_thisMember.enclosingElement3.name` and
           // `superMember.enclosingElement3.name` are non-`null`.
           errorReporter.atEntity(
-            entity: errorEntity,
-            errorCode: CompileTimeErrorCode.INVALID_OVERRIDE,
+            errorEntity,
+            CompileTimeErrorCode.INVALID_OVERRIDE,
             arguments: [
               _thisMember.name,
               _thisMember.enclosingElement.name!,

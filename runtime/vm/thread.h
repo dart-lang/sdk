@@ -351,6 +351,7 @@ class Thread : public ThreadState {
     kCompactorTask = 0x10,
     kScavengerTask = 0x20,
     kSampleBlockTask = 0x40,
+    kIncrementalCompactorTask = 0x80,
   };
   // Converts a TaskKind to its corresponding C-String name.
   static const char* TaskKindToCString(TaskKind kind);
@@ -662,6 +663,8 @@ class Thread : public ThreadState {
   }
 #endif
   void StoreBufferBlockProcess(StoreBuffer::ThresholdPolicy policy);
+  void StoreBufferReleaseGC();
+  void StoreBufferAcquireGC();
   static intptr_t store_buffer_block_offset() {
     return OFFSET_OF(Thread, store_buffer_block_);
   }
