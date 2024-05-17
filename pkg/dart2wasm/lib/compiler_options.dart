@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:front_end/src/api_unstable/vm.dart' as fe;
 
 import 'translator.dart';
@@ -11,7 +9,6 @@ import 'translator.dart';
 class WasmCompilerOptions {
   final TranslatorOptions translatorOptions = TranslatorOptions();
 
-  Uri sdkPath = Platform.script.resolve("../../../sdk");
   Uri? platformPath;
   Uri? librariesSpecPath;
   Uri? packagesPath;

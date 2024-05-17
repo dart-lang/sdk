@@ -732,7 +732,6 @@ class CompileWasmCommand extends CompileSubcommandCommand {
     final outputFileBasename =
         outputFile.substring(0, outputFile.length - '.wasm'.length);
 
-    final sdkPath = path.absolute(sdk.sdkPath);
     final packages = args.option(packagesOption.flag);
     final defines = args.multiOption(defineOption.flag);
     final extraCompilerOptions = args.multiOption('extra-compiler-option');
@@ -777,7 +776,6 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       sdk.dartAotRuntime,
       sdk.dart2wasmSnapshot,
       '--platform=${sdk.wasmPlatformDill}',
-      '--dart-sdk=$sdkPath',
       if (verbose) '--verbose',
       if (packages != null) '--packages=$packages',
       if (args.flag('print-wasm')) '--print-wasm',

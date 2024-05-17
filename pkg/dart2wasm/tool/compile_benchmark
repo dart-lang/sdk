@@ -36,7 +36,7 @@ BIN_DIR="$OUT_DIR/$DART_CONFIGURATION"
 BINARYEN="$BIN_DIR/wasm-opt"
 DART="$BIN_DIR/dart"
 DART_AOT_RUNTIME="$BIN_DIR/dart_precompiled_runtime"
-SDK_ARG="--dart-sdk=$SDK_DIR/sdk"
+LIBRARIES_JSON_ARG="--libraries-spec=$SDK_DIR/sdk/lib/libraries.json"
 
 function find_flags {
   echo -en "$(sed -n "/$1 =/,/end of $1/ p" $SDK_DIR/pkg/dartdev/lib/src/commands/compile.dart  | sed  '1d' | sed '$d' | tr '\n' ' ' | sed 's#\s\+# #g' | sed 's#^\s\+##' | sed 's#\s\+$##')"
@@ -179,9 +179,9 @@ function run_if_binaryen_enabled() {
 }
 
 if [ $RUN_SRC -eq 1 ]; then
-  dart2wasm_command=("$DART" "${VM_ARGS[@]}" "$DART2WASM_SRC" "$SDK_ARG" "${DART2WASM_ARGS[@]}" "$DART_FILE" "$WASM_FILE")
+  dart2wasm_command=("$DART" "${VM_ARGS[@]}" "$DART2WASM_SRC" "$LIBRARIES_JSON_ARG" "${DART2WASM_ARGS[@]}" "$DART_FILE" "$WASM_FILE")
 else
-  dart2wasm_command=("$DART_AOT_RUNTIME" "${VM_ARGS[@]}" "$DART2WASM_AOT_SNAPSHOT" "$SDK_ARG" "$PLATFORM_ARG" "${DART2WASM_ARGS[@]}" "$DART_FILE" "$WASM_FILE")
+  dart2wasm_command=("$DART_AOT_RUNTIME" "${VM_ARGS[@]}" "$DART2WASM_AOT_SNAPSHOT" "$PLATFORM_ARG" "${DART2WASM_ARGS[@]}" "$DART_FILE" "$WASM_FILE")
 fi
 
 binaryen_command=("$BINARYEN" "${BINARYEN_FLAGS[@]}" "$WASM_FILE" -o "$WASM_FILE")

@@ -15,7 +15,6 @@ Future<int> generateWasm(WasmCompilerOptions options,
     print('Running dart compile wasm...');
     print('  - input file name   = ${options.mainUri}');
     print('  - output file name  = ${options.outputFile}');
-    print('  - sdkPath           = ${options.sdkPath}');
     print('  - librariesSpecPath = ${options.librariesSpecPath}');
     print('  - packagesPath file = ${options.packagesPath}');
     print('  - platformPath file = ${options.platformPath}');

@@ -84,7 +84,12 @@ Future<CompilerOutput?> compileToModule(compiler.WasmCompilerOptions options,
       removeAsserts: !options.translatorOptions.enableAsserts, mode: mode);
   CompilerOptions compilerOptions = CompilerOptions()
     ..target = target
-    ..sdkRoot = options.sdkPath
+    // This is a dummy directory that always exists. This option should be
+    // unused as we pass platform.dill or libraries.json, though currently the
+    // CFE mandates this option to be there (but doesn't use it).
+    // => Remove this once CFE no longer mandates this (or remove option in CFE
+    // entirely).
+    ..sdkRoot = Uri.file('.')
     ..librariesSpecificationUri = options.librariesSpecPath
     ..packagesFileUri = options.packagesPath
     ..environmentDefines = options.environment
