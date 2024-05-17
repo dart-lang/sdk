@@ -304,6 +304,8 @@ class DeclarationBuilder {
           uri: null,
           staticScope: null,
         );
+      case null:
+        throw ArgumentError('Unresolved identifier: ${identifier.name}');
       default:
         throw UnimplementedError('${element.runtimeType}');
     }
