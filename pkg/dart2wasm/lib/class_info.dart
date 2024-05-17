@@ -318,8 +318,10 @@ class ClassInfoCollector {
             : cls.implementedTypes.single;
         for (TypeParameter parameter in cls.typeParameters) {
           for (int i = 0; i < supertype.typeArguments.length; i++) {
-            DartType arg = supertype.typeArguments[i];
-            if (arg is TypeParameterType && arg.parameter == parameter) {
+            DartType superTypeArg = supertype.typeArguments[i];
+            if (superTypeArg is TypeParameterType &&
+                superTypeArg.parameter == parameter &&
+                superTypeArg.nullability != Nullability.nullable) {
               typeParameterMatch[parameter] = superInfo.cls!.typeParameters[i];
               break;
             }

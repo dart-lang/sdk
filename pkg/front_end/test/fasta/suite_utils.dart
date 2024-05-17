@@ -18,8 +18,8 @@ import 'testing/suite.dart';
 Future<void> internalMain(
   CreateContext createContext, {
   List<String> arguments = const [],
-  int? shards,
-  int? shard,
+  int shards = 1,
+  int shard = 0,
   required String displayName,
   String? configurationPath,
 }) async {
@@ -36,13 +36,6 @@ Future<void> internalMain(
       coverageUri = Uri.base
           .resolveUri(Uri.file(argument.substring("--coverage=".length)));
       trimmed = true;
-    } else if (argument.startsWith("--shards=")) {
-      shards = int.parse(argument.substring("--shards=".length));
-      trimmed = true;
-    } else if (argument.startsWith("--shard=")) {
-      // Have this 1-indexed when given as an input.
-      shard = int.parse(argument.substring("--shard=".length)) - 1;
-      trimmed = true;
     }
 
     if (trimmed && argumentsTrimmed == null) {
@@ -55,9 +48,6 @@ Future<void> internalMain(
     arguments = argumentsTrimmed;
   }
 
-  shards ??= 1;
-  shard ??= 0;
-
   await runMe(
     arguments,
     createContext,
@@ -67,8 +57,7 @@ Future<void> internalMain(
     logger: logger,
   );
   if (coverageUri != null) {
-    File f = new File.fromUri(
-        coverageUri.resolve("$displayName.$shard.$shards.coverage"));
+    File f = new File.fromUri(coverageUri.resolve("$displayName.coverage"));
     // Suites generally takes a while to run --- so setting force compile to
     // true shouldn't be a big issue. It seems to add something like a second
     // to the collection time.

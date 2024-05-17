@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// dart2wasmOptions=--delete-tostring-package-uri=package:smith
+// dart2wasmOptions=--extra-compiler-option=--delete-tostring-package-uri=package:smith
 
 import 'package:expect/expect.dart';
 

@@ -198,7 +198,7 @@ class AstIndexer extends IgnoreSomeForCompatibilityAstVisitor {
   void containerMethod(
       BeginAndEndTokenParserAstNode node, String nameIdentifier) {
     positionStartEndIndex.add(node.beginToken.charOffset);
-    positionStartEndIndex.add(node.endToken.charEnd);
+    positionStartEndIndex.add(node.beginToken.charEnd);
     // TODO(jensj): Setters.
     String name = "$currentContainerName.$nameIdentifier";
     nameIndex[name] = positionNodeIndex.length;

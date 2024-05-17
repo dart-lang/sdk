@@ -149,8 +149,10 @@ class _WasmTransformer extends Transformer {
     }
     for (int i = 0; i < cls.typeParameters.length; i++) {
       TypeParameter parameter = cls.typeParameters[i];
-      DartType arg = supertype.typeArguments[i];
-      if (arg is! TypeParameterType || arg.parameter != parameter) {
+      DartType superTypeArg = supertype.typeArguments[i];
+      if (superTypeArg is! TypeParameterType ||
+          superTypeArg.parameter != parameter ||
+          superTypeArg.nullability == Nullability.nullable) {
         return false;
       }
     }

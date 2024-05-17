@@ -42,28 +42,19 @@ void main(List<String> arguments) {
   }
 
   Stopwatch stopwatch = new Stopwatch()..start();
-  mergeFromDirUri(packagesUri, coverageUri, silent: false);
+  mergeFromDirUri(packagesUri, coverageUri);
   print("Done in ${stopwatch.elapsed}");
 }
 
-Map<Uri, CoverageInfo>? mergeFromDirUri(
-  Uri packagesUri,
-  Uri coverageUri, {
-  required bool silent,
-}) {
-  void output(Object? object) {
-    if (silent) return;
-    print(object);
-  }
-
+void mergeFromDirUri(Uri packagesUri, Uri coverageUri) {
   PackageConfig packageConfig;
   try {
     packageConfig = PackageConfig.parseBytes(
         File.fromUri(packagesUri).readAsBytesSync(), packagesUri);
   } catch (e) {
     // When will we want to catch this?
-    output("Error trying to read package config: $e");
-    return null;
+    print("Error trying to read package config: $e");
+    return;
   }
 
   // TODO(jensj): We should allow for comments to "excuse" something from not
@@ -93,13 +84,13 @@ Map<Uri, CoverageInfo>? mergeFromDirUri(
     if (entry is! File) continue;
     try {
       Coverage coverage = Coverage.loadFromFile(entry);
-      output("Loaded $entry as coverage file.");
+      print("Loaded $entry as coverage file.");
       _mergeCoverageInto(coverage, misses, hits);
     } catch (e) {
-      output("Couldn't load $entry as coverage file.");
+      print("Couldn't load $entry as coverage file.");
     }
   }
-  output("");
+  print("");
 
   Set<Uri> knownUris = {};
   knownUris.addAll(hits.keys);
@@ -111,8 +102,6 @@ Map<Uri, CoverageInfo>? mergeFromDirUri(
   int missesTotal = 0;
   int errorsCount = 0;
 
-  Map<Uri, CoverageInfo> result = {};
-
   for (Uri uri in knownUris.toList()
     ..sort(((a, b) => a.toString().compareTo(b.toString())))) {
     // Don't care about coverage for testing stuff.
@@ -123,10 +112,9 @@ Map<Uri, CoverageInfo>? mergeFromDirUri(
     List<int> hitsSorted =
         hit == null ? const [] : (hit._data.keys.toList()..sort());
 
-    CoverageInfo processInfo =
-        process(packageConfig, uri, miss ?? const {}, hitsSorted);
-    output(processInfo.visualization);
-    result[uri] = processInfo;
+    ProcessInfo processInfo = process(
+        packageConfig, uri, miss ?? const {}, hitsSorted,
+        visualize: true);
     filesCount++;
     if (processInfo.error) {
       errorsCount++;
@@ -138,50 +126,49 @@ Map<Uri, CoverageInfo>? mergeFromDirUri(
       missesTotal += processInfo.missCount;
     }
 
-    output("");
+    print("");
   }
 
-  output("Processed $filesCount files with $errorsCount error(s) and "
+  print("Processed $filesCount files with $errorsCount error(s) and "
       "$allCoveredCount files being covered 100%.");
   int percentHit = (hitsTotal * 100) ~/ (hitsTotal + missesTotal);
-  output("All-in-all $hitsTotal hits and $missesTotal misses ($percentHit%).");
-
-  return result;
+  print("All-in-all $hitsTotal hits and $missesTotal misses ($percentHit%).");
 }
 
-class CoverageInfo {
+class ProcessInfo {
   final bool error;
   final bool allCovered;
   final int missCount;
   final int hitCount;
-  final String visualization;
 
-  CoverageInfo.error(this.visualization)
+  ProcessInfo.error()
       : error = true,
         allCovered = false,
         missCount = 0,
         hitCount = 0;
 
-  CoverageInfo(
+  ProcessInfo(
       {required this.allCovered,
       required this.missCount,
-      required this.hitCount,
-      required this.visualization})
+      required this.hitCount})
       : error = false;
 }
 
-CoverageInfo process(PackageConfig packageConfig, Uri uri,
-    Set<int> untrimmedMisses, List<int> hitsSorted) {
+ProcessInfo process(PackageConfig packageConfig, Uri uri,
+    Set<int> untrimmedMisses, List<int> hitsSorted,
+    {required bool visualize}) {
   Uri? fileUri = packageConfig.resolve(uri);
   if (fileUri == null) {
-    return new CoverageInfo.error("Couldn't find file uri for $uri");
+    print("Couldn't find file uri for $uri");
+    return new ProcessInfo.error();
   }
   File f = new File.fromUri(fileUri);
   Uint8List rawBytes;
   try {
     rawBytes = f.readAsBytesSync();
   } catch (e) {
-    return new CoverageInfo.error("Error reading file $f");
+    print("Error reading file $f");
+    return new ProcessInfo.error();
   }
 
   List<int> lineStarts = [];
@@ -203,20 +190,17 @@ CoverageInfo process(PackageConfig packageConfig, Uri uri,
   // TODO(jensj): Should some comment throw/report and error if covered?
   // E.g. "we expect this to be dead code, if it isn't we want to know."
 
-  StringBuffer visualization = new StringBuffer();
-
   IntervalList ignoredIntervals =
       astIndexer.ignoredStartEnd.buildIntervalList();
   var (:bool allCovered, :Set<int> trimmedMisses) =
       _trimIgnoredAndPrintPercentages(
-          visualization, ignoredIntervals, untrimmedMisses, hitsSorted, uri);
+          ignoredIntervals, untrimmedMisses, hitsSorted, uri);
 
-  if (allCovered) {
-    return new CoverageInfo(
+  if (!visualize || allCovered) {
+    return new ProcessInfo(
         allCovered: allCovered,
         missCount: trimmedMisses.length,
-        hitCount: hitsSorted.length,
-        visualization: visualization.toString());
+        hitCount: hitsSorted.length);
   }
 
   CompilationUnitBegin unitBegin = ast.children!.first as CompilationUnitBegin;
@@ -238,9 +222,9 @@ CoverageInfo process(PackageConfig packageConfig, Uri uri,
       String? name = astIndexer.nameOfEntitySpanning(lastOffset);
       String pointer = new String.fromCharCodes(indentation!);
       if (name != null) {
-        visualization.writeln("$uri:$lastLine:\nIn '$name':\n$line\n$pointer");
+        print("$uri:$lastLine:\nIn '$name':\n$line\n$pointer");
       } else {
-        visualization.writeln("$uri:$lastLine:\n$line\n$pointer");
+        print("$uri:$lastLine:\n$line\n$pointer");
       }
       line = null;
       indentation = null;
@@ -285,12 +269,10 @@ CoverageInfo process(PackageConfig packageConfig, Uri uri,
         String? name = astIndexer.nameOfEntitySpanning(offset);
 
         if (name != null) {
-          visualization.writeln(
-              "$uri:${location.line}: No coverage for '$name'.\n$line\n");
+          print("$uri:${location.line}: No coverage for '$name'.\n$line\n");
           // TODO(jensj): Squiggly line under the identifier of the entity?
         } else {
-          visualization.writeln(
-              "$uri:${location.line}: No coverage for entity.\n$line\n");
+          print("$uri:${location.line}: No coverage for entity.\n$line\n");
         }
 
         // Skip the rest of the miss points inside the entity.
@@ -323,23 +305,20 @@ CoverageInfo process(PackageConfig packageConfig, Uri uri,
       }
       lastOffset = offset;
     } catch (e) {
-      visualization.writeln("Error on offset $offset --- $location: $e");
-      visualization.writeln(
-          "Maybe the coverage data is not up to date with the source?");
-      return new CoverageInfo.error(visualization.toString());
+      print("Error on offset $offset --- $location: $e");
+      print("Maybe the coverage data is not up to date with the source?");
+      rethrow;
     }
   }
   printFinishedLine();
 
-  return new CoverageInfo(
+  return new ProcessInfo(
       allCovered: allCovered,
       missCount: trimmedMisses.length,
-      hitCount: hitsSorted.length,
-      visualization: visualization.toString());
+      hitCount: hitsSorted.length);
 }
 
 ({bool allCovered, Set<int> trimmedMisses}) _trimIgnoredAndPrintPercentages(
-    StringBuffer visualization,
     IntervalList ignoredIntervals,
     Set<int> untrimmedMisses,
     List<int> hitsSorted,
@@ -348,7 +327,7 @@ CoverageInfo process(PackageConfig packageConfig, Uri uri,
   int hitCount = hitsSorted.length;
   Set<int> trimmedMisses;
   if (hitCount + missCount == 0) {
-    visualization.writeln("$uri");
+    print("$uri");
     return (allCovered: true, trimmedMisses: untrimmedMisses);
   } else {
     if (!ignoredIntervals.isEmpty) {
@@ -366,12 +345,11 @@ CoverageInfo process(PackageConfig packageConfig, Uri uri,
     }
 
     if (missCount > 0) {
-      visualization.writeln(
-          "$uri: ${(hitCount / (hitCount + missCount) * 100).round()}% "
+      print("$uri: ${(hitCount / (hitCount + missCount) * 100).round()}% "
           "($missCount misses)");
       return (allCovered: false, trimmedMisses: trimmedMisses);
     } else {
-      visualization.writeln("$uri: 100% (OK)");
+      print("$uri: 100% (OK)");
       return (allCovered: true, trimmedMisses: trimmedMisses);
     }
   }
