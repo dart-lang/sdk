@@ -1605,8 +1605,8 @@ void Object::set_vm_isolate_snapshot_object_table(const Array& table) {
 
 // Make unused space in an object whose type has been transformed safe
 // for traversing during GC.
-// The unused part of the transformed object is marked as an TypedDataInt8Array
-// object.
+// The unused part of the transformed object is marked as a FreeListElement
+// object that is not inserted into to the freelist.
 void Object::MakeUnusedSpaceTraversable(const Object& obj,
                                         intptr_t original_size,
                                         intptr_t used_size) {
@@ -1615,62 +1615,19 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
   ASSERT(original_size >= used_size);
   if (original_size > used_size) {
     intptr_t leftover_size = original_size - used_size;
-
     uword addr = UntaggedObject::ToAddr(obj.ptr()) + used_size;
-    if (leftover_size >= TypedData::InstanceSize(0)) {
-      // Update the leftover space as a TypedDataInt8Array object.
-      TypedDataPtr raw =
-          static_cast<TypedDataPtr>(UntaggedObject::FromAddr(addr));
-      uword new_tags =
-          UntaggedObject::ClassIdTag::update(kTypedDataInt8ArrayCid, 0);
-      new_tags = UntaggedObject::SizeTag::update(leftover_size, new_tags);
-      const bool is_old = obj.ptr()->IsOldObject();
-      new_tags = UntaggedObject::AlwaysSetBit::update(true, new_tags);
-      new_tags = UntaggedObject::NotMarkedBit::update(true, new_tags);
-      new_tags =
-          UntaggedObject::OldAndNotRememberedBit::update(is_old, new_tags);
-      new_tags = UntaggedObject::NewBit::update(!is_old, new_tags);
-      // On architectures with a relaxed memory model, the concurrent marker may
-      // observe the write of the filler object's header before observing the
-      // new array length, and so treat it as a pointer. Ensure it is a Smi so
-      // the marker won't dereference it.
-      ASSERT((new_tags & kSmiTagMask) == kSmiTag);
-
-      intptr_t leftover_len = (leftover_size - TypedData::InstanceSize(0));
-      ASSERT(TypedData::InstanceSize(leftover_len) == leftover_size);
-      raw->untag()->set_length<std::memory_order_release>(
-          Smi::New(leftover_len));
-      raw->untag()->tags_ = new_tags;
-      raw->untag()->RecomputeDataField();
+    if (obj.ptr()->IsNewObject()) {
+      FreeListElement::AsElementNew(addr, leftover_size);
     } else {
-      // Update the leftover space as a basic object.
-      ASSERT(leftover_size == Object::InstanceSize());
-      ObjectPtr raw = static_cast<ObjectPtr>(UntaggedObject::FromAddr(addr));
-      uword new_tags = UntaggedObject::ClassIdTag::update(kInstanceCid, 0);
-      new_tags = UntaggedObject::SizeTag::update(leftover_size, new_tags);
-      const bool is_old = obj.ptr()->IsOldObject();
-      new_tags = UntaggedObject::AlwaysSetBit::update(true, new_tags);
-      new_tags = UntaggedObject::NotMarkedBit::update(true, new_tags);
-      new_tags =
-          UntaggedObject::OldAndNotRememberedBit::update(is_old, new_tags);
-      new_tags = UntaggedObject::NewBit::update(!is_old, new_tags);
-      // On architectures with a relaxed memory model, the concurrent marker may
-      // observe the write of the filler object's header before observing the
-      // new array length, and so treat it as a pointer. Ensure it is a Smi so
-      // the marker won't dereference it.
-      ASSERT((new_tags & kSmiTagMask) == kSmiTag);
-
-      // The array might have an uninitialized alignment gap since the visitors
-      // for Arrays are precise based on element count, but the visitors for
-      // Instance are based on the size rounded to the allocation unit, so we
-      // need to ensure the alignment gap is initialized.
-      for (intptr_t offset = Instance::UnroundedSize();
-           offset < Instance::InstanceSize(); offset += sizeof(uword)) {
-        reinterpret_cast<std::atomic<uword>*>(addr + offset)
-            ->store(0, std::memory_order_release);
-      }
-      raw->untag()->tags_ = new_tags;
+      FreeListElement::AsElement(addr, leftover_size);
     }
+    // On architectures with a relaxed memory model, the concurrent marker may
+    // observe the write of the filler object's header before observing the
+    // new array length, and so treat it as a pointer. Ensure it is a Smi so
+    // the marker won't dereference it.
+    ASSERT((*reinterpret_cast<uword*>(addr) & kSmiTagMask) == kSmiTag);
+    ASSERT((*reinterpret_cast<uword*>(addr + kWordSize) & kSmiTagMask) ==
+           kSmiTag);
   }
 }
 

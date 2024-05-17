@@ -49,7 +49,7 @@ class ImportLibrary extends MultiCorrectionProducer {
 
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
-    final node = this.node;
+    var node = this.node;
     var producers = <ResolvedCorrectionProducer>[];
     if (_importKind == _ImportKind.dartAsync) {
       _importLibrary(

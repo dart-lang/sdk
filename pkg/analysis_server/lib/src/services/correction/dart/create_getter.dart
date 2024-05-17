@@ -27,7 +27,7 @@ abstract class CreateFieldOrGetter extends ResolvedCorrectionProducer {
 
   @protected
   Future<bool> compute0(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
 
     if (node is DeclaredVariablePatternImpl) {
       var fieldName = node.fieldNameWithImplicitName;

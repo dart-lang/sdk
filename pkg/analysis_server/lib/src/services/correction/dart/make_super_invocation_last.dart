@@ -16,7 +16,7 @@ class MakeSuperInvocationLast extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is! ConstructorInitializer) return;
     var parent = node.parent;
     if (parent is! ConstructorDeclaration) return;

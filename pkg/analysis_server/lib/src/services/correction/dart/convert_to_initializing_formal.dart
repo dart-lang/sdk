@@ -22,7 +22,7 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     var constructor = node.thisOrAncestorOfType<ConstructorDeclaration>();
     if (constructor == null) {
       return;

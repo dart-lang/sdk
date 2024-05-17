@@ -242,7 +242,7 @@ abstract class PluginInfo {
 
   /// Update the context roots that the plugin should be analyzing.
   void _updatePluginRoots() {
-    final currentSession = this.currentSession;
+    var currentSession = this.currentSession;
     if (currentSession != null) {
       var params = AnalysisSetContextRootsParams(contextRoots
           .map((analyzer.ContextRoot contextRoot) => ContextRoot(
@@ -935,7 +935,7 @@ class PluginSession {
   /// Send a request, based on the given [parameters]. Return a future that will
   /// complete when a response is received.
   Future<Response> sendRequest(RequestParams parameters) {
-    final channel = this.channel;
+    var channel = this.channel;
     if (channel == null) {
       throw StateError('Cannot send a request to a plugin that has stopped.');
     }

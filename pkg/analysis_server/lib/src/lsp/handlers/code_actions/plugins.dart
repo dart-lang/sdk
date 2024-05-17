@@ -97,7 +97,7 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
 
   Future<List<plugin.Response>> _sendPluginRequest(
       plugin.RequestParams requestParams) async {
-    final driver = this.driver;
+    var driver = this.driver;
     if (driver == null) {
       return [];
     }

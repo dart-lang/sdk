@@ -224,7 +224,7 @@ function selectEntryGroup(pageStart) {
   /// Write the entries in the instrumentation log to the given [sink].
   void _writeLeftColumn(StringSink sink) {
     var length = entries.length;
-    final pageLength = this.pageLength;
+    var pageLength = this.pageLength;
     var pageEnd =
         pageLength == null ? length : math.min(pageStart + pageLength, length);
     //

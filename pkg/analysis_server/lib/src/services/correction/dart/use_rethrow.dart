@@ -24,7 +24,7 @@ class UseRethrow extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final coveredNode = this.coveredNode;
+    var coveredNode = this.coveredNode;
     if (coveredNode is ThrowExpression) {
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleReplacement(range.node(coveredNode), 'rethrow');

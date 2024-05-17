@@ -53,7 +53,7 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
       }
     }
 
-    final diagnostic = this.diagnostic;
+    var diagnostic = this.diagnostic;
     if (diagnostic == null) {
       return;
     }

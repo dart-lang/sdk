@@ -518,7 +518,7 @@ abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
   AstNode? get coveredNode {
     // TODO(brianwilkerson): Consider renaming this to `coveringNode`.
     if (_coveredNode == null) {
-      final diagnostic = this.diagnostic;
+      var diagnostic = this.diagnostic;
       if (diagnostic == null) {
         return null;
       }

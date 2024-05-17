@@ -651,7 +651,7 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
   /// Return `true` if the given [element] is a member of the [enclosingClass]
   /// or one of its supertypes, interfaces, or mixins.
   bool _isMemberOfEnclosingClass(Element element) {
-    final enclosingClass = this.enclosingClass;
+    var enclosingClass = this.enclosingClass;
     if (enclosingClass != null) {
       var enclosingClasses = this.enclosingClasses ??= <InterfaceElement>[
         enclosingClass,

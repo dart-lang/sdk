@@ -39,11 +39,9 @@ abstract class AbstractLinterContextTest extends PubPackageResolutionTest {
     context = LinterContextImpl(
       [contextUnit],
       contextUnit,
-      result.session.declaredVariables,
       result.typeProvider,
       result.typeSystem as TypeSystemImpl,
       InheritanceManager3(),
-      analysisOptions,
       // TODO(pq): test package or consider passing in null
       workspacePackage,
     );
@@ -55,7 +53,7 @@ class CanBeConstConstructorTest extends AbstractLinterContextTest {
   void assertCanBeConstConstructor(String search, bool expectedResult) {
     var constructor =
         findNode.constructor(search) as ConstructorDeclarationImpl;
-    expect(context.canBeConstConstructor(constructor), expectedResult);
+    expect(constructor.canBeConst, expectedResult);
   }
 
   test_assertInitializer_parameter() async {
@@ -148,7 +146,7 @@ class C {
 class CanBeConstInstanceCreationTest extends AbstractLinterContextTest {
   void assertCanBeConst(String snippet, bool expectedResult) {
     var node = findNode.instanceCreation(snippet);
-    expect(context.canBeConst(node), expectedResult);
+    expect(node.canBeConst, expectedResult);
   }
 
   void test_deferred_argument() async {
@@ -366,7 +364,7 @@ A f() => A();
 class CanBeConstTypedLiteralTest extends AbstractLinterContextTest {
   void assertCanBeConst(String snippet, bool expectedResult) {
     var node = findNode.typedLiteral(snippet);
-    expect(context.canBeConst(node), expectedResult);
+    expect(node.canBeConst, expectedResult);
   }
 
   void test_listLiteral_false_forElement() async {

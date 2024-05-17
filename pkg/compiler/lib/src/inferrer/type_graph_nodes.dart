@@ -1042,7 +1042,8 @@ abstract class CallSiteTypeInformation extends TypeInformation
   @override
   String toString() => 'Call site $debugName $type';
 
-  /// Add [this] to the graph being computed by [engine].
+  /// Add this [CallSiteTypeInformation] to the graph being computed by
+  /// [engine].
   void addToGraph(InferrerEngine engine);
 
   String get debugName => '$callNode';

@@ -21,7 +21,7 @@ class AddMissingParameterNamed extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     // Prepare the name of the missing parameter.
-    final node = this.node;
+    var node = this.node;
     if (node is! SimpleIdentifier) {
       return;
     }

@@ -12,7 +12,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 class AddExtensionOverride extends MultiCorrectionProducer {
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
-    final node = this.node;
+    var node = this.node;
     if (node is! SimpleIdentifier) return const [];
     var parent = node.parent;
     if (parent is! PropertyAccess) return const [];

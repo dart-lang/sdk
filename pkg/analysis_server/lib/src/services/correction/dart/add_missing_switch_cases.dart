@@ -23,9 +23,9 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
 
-    final diagnostic = this.diagnostic;
+    var diagnostic = this.diagnostic;
     if (diagnostic is! AnalysisError) {
       return;
     }

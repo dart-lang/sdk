@@ -41,7 +41,7 @@ class RemoveConstructor extends ResolvedCorrectionProducer {
   }
 
   ConstructorDeclaration? _findConstructor() {
-    final errorOffset = this.errorOffset;
+    var errorOffset = this.errorOffset;
     if (errorOffset == null) {
       return null;
     }

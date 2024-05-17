@@ -2388,9 +2388,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         if (constructorElement.isFactory) {
           var constructorName = node.arguments?.constructorSelector?.name;
           var errorTarget = constructorName ?? node.name;
-          errorReporter.atOffset(
-            offset: errorTarget.offset,
-            length: errorTarget.length,
+          errorReporter.atEntity(
+            entity: errorTarget,
             errorCode:
                 CompileTimeErrorCode.ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR,
           );

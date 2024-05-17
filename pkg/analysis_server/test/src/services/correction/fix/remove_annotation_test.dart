@@ -240,6 +240,24 @@ extension type E(C c) implements C {
 ''');
   }
 
+  Future<void> test_reopen() async {
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+class A {}
+
+@reopen
+base class B extends A {}
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+class A {}
+
+base class B extends A {}
+''');
+  }
+
   Future<void> test_required_namedWithDefault() async {
     await resolveTestCode('''
 import 'package:meta/meta.dart';

@@ -44,7 +44,7 @@ class RemoveDeadCode extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final coveredNode = this.coveredNode;
+    var coveredNode = this.coveredNode;
     var parent = coveredNode?.parent;
 
     if (coveredNode is Expression) {

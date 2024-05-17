@@ -2408,7 +2408,8 @@ bool Debugger::FindBestFit(const Script& script,
 
     const String& script_url = String::Handle(zone, script.url());
     ClosureFunctionsCache::ForAllClosureFunctions([&](const Function& fun) {
-      if (FunctionOverlaps(fun, script_url, token_pos, last_token_pos)) {
+      if (fun.script() == script.ptr() &&
+          FunctionOverlaps(fun, script_url, token_pos, last_token_pos)) {
         // Select the inner most closure.
         UpdateBestFit(best_fit, fun);
       }

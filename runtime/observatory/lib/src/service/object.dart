@@ -320,8 +320,9 @@ abstract class ServiceObject implements M.ObjectRef {
     return obj;
   }
 
-  /// If [this] was created from a reference, load the full object
-  /// from the service by calling [reload]. Else, return [this].
+  /// If this [ServiceObject] was created from a reference, load the full
+  /// object from the service by calling [reload]. Else, return this
+  /// [ServiceObject].
   Future<ServiceObject> load() {
     if (loaded) {
       return new Future.value(this);
@@ -340,8 +341,8 @@ abstract class ServiceObject implements M.ObjectRef {
     return isolate!.invokeRpcNoUpgrade('getObject', params);
   }
 
-  /// Reload [this]. Returns a future which completes to [this] or
-  /// an exception.
+  /// Reload this [ServiceObject]. Returns a future which completes to this
+  /// [ServiceObject] or an exception.
   Future<ServiceObject> reload({int count = kDefaultFieldLimit}) {
     // TODO(turnidge): Checking for a null id should be part of the
     // "immutable" check.
@@ -380,7 +381,8 @@ abstract class ServiceObject implements M.ObjectRef {
     return _inProgressReload!;
   }
 
-  /// Update [this] using [map] as a source. [map] can be a reference.
+  /// Update this [ServiceObject] using [map] as a source. [map] can be a
+  /// reference.
   void updateFromServiceMap(Map map) {
     assert(_isServiceMap(map));
 
@@ -4349,7 +4351,7 @@ class Code extends HeapObject implements M.Code {
     }
   }
 
-  /// Reload [this]. Returns a future which completes to [this] or an
+  /// Reload this [Code]. Returns a future which completes to `this` or an
   /// exception.
   Future<ServiceObject> reload({int count = kDefaultFieldLimit}) {
     assert(kind != null);
@@ -4501,7 +4503,7 @@ class Code extends HeapObject implements M.Code {
     }
   }
 
-  /// Returns true if [address] is contained inside [this].
+  /// Returns true if [address] is contained inside this [Code].
   bool contains(int address) {
     return (address >= startAddress) && (address < endAddress);
   }

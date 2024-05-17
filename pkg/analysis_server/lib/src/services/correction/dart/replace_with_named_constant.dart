@@ -15,7 +15,7 @@ class ReplaceWithNamedConstant extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final diagnostic = this.diagnostic;
+    var diagnostic = this.diagnostic;
     if (diagnostic is AnalysisError) {
       String? correctionMessage = diagnostic.correctionMessage;
       if(correctionMessage == null){

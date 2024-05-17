@@ -314,7 +314,7 @@ class RefactoringManager {
     }
     // create a new Refactoring instance
     await _createRefactoringFromKind(file, offset, length, cancellationToken);
-    final refactoring = this.refactoring;
+    var refactoring = this.refactoring;
     if (refactoring == null) {
       initStatus = RefactoringStatus.fatal('Unable to create a refactoring');
       return;
@@ -380,12 +380,12 @@ class RefactoringManager {
 
   void _sendResultResponse() {
     // ignore if was cancelled
-    final request = this.request;
+    var request = this.request;
     if (request == null) {
       return;
     }
     // set feedback
-    final result = this.result;
+    var result = this.result;
     if (result == null) {
       return;
     }
@@ -402,7 +402,7 @@ class RefactoringManager {
   }
 
   RefactoringStatus _setOptions(EditGetRefactoringParams params) {
-    final refactoring = this.refactoring;
+    var refactoring = this.refactoring;
     if (refactoring is ExtractLocalRefactoring) {
       var extractOptions = params.options as ExtractLocalVariableOptions;
       refactoring.name = extractOptions.name;

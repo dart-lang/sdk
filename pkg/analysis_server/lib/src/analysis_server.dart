@@ -294,7 +294,7 @@ abstract class AnalysisServer {
         sink = FileStringSink(path);
       }
     }
-    final requestStatistics = this.requestStatistics;
+    var requestStatistics = this.requestStatistics;
     if (requestStatistics != null) {
       sink = TeeStringSink(sink, requestStatistics.perfLoggerStringSink);
     }

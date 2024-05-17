@@ -131,9 +131,8 @@ class TypeArgumentsVerifier {
 
       if (!_typeSystem.isSubtypeOf(typeArgument, bound)) {
         var errorTarget = typeArgumentNodes?[i] ?? node.name;
-        _errorReporter.atOffset(
-          offset: errorTarget.offset,
-          length: errorTarget.length,
+        _errorReporter.atEntity(
+          entity: errorTarget,
           errorCode: CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
           arguments: [typeArgument, typeParameter.name, bound],
         );

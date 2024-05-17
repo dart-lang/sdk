@@ -24,7 +24,7 @@ class DestructureLocalVariableAssignment extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is! VariableDeclaration) return;
     var element = node.declaredElement;
     if (element == null) return;

@@ -1683,7 +1683,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitListLiteral(ListLiteral node) {
-    final offset = this.offset;
+    var offset = this.offset;
     if (offset >= node.leftBracket.end && offset <= node.rightBracket.offset) {
       collector.completionLocation = 'ListLiteral_element';
       _forCollectionElement(node, node.elements);
@@ -2301,7 +2301,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
-    final offset = this.offset;
+    var offset = this.offset;
     if (offset >= node.leftBracket.end && offset <= node.rightBracket.offset) {
       collector.completionLocation = 'SetOrMapLiteral_element';
       _forCollectionElement(node, node.elements);
@@ -3833,7 +3833,7 @@ extension on ClassMember {
   /// Returns the member before `this`, or `null` if this is the first member in
   /// the body.
   ClassMember? get precedingMember {
-    final parent = this.parent;
+    var parent = this.parent;
     var members = switch (parent) {
       ClassDeclaration() => parent.members,
       EnumDeclaration() => parent.members,
@@ -4040,7 +4040,7 @@ extension on FieldDeclaration {
 extension on FormalParameter {
   /// Whether this formal parameter declaration is incomplete.
   bool get isIncomplete {
-    final name = this.name;
+    var name = this.name;
     if (name == null || name.isKeyword) {
       return true;
     }
@@ -4065,7 +4065,7 @@ extension on FormalParameter {
 
   /// Whether this formal parameter declaration consists of a single identifier.
   bool get isSingleIdentifier {
-    final beginToken = this.beginToken;
+    var beginToken = this.beginToken;
     return beginToken == endToken && beginToken.isKeywordOrIdentifier;
   }
 }
@@ -4076,7 +4076,7 @@ extension on GuardedPattern {
     if (whenClause != null) {
       return true;
     }
-    final pattern = this.pattern;
+    var pattern = this.pattern;
     if (pattern is DeclaredVariablePattern) {
       if (pattern.name.lexeme == 'when') {
         var type = pattern.type;
@@ -4100,7 +4100,7 @@ extension on Statement {
   /// Returns the statement before `this`, or `null` if this is the first
   /// statement in the block.
   Statement? get precedingStatement {
-    final parent = this.parent;
+    var parent = this.parent;
     if (parent is! Block) {
       return null;
     }

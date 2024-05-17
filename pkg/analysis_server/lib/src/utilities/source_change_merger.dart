@@ -65,7 +65,7 @@ class SourceChangeMerger {
 
   /// Writes [edits] into [debugBuffer] for debugging.
   void _debugEdits(String editKind, List<SourceEdit> edits) {
-    final debugBuffer = this.debugBuffer;
+    var debugBuffer = this.debugBuffer;
     if (debugBuffer == null) {
       return;
     }

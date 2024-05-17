@@ -623,25 +623,86 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// The URI protocol will be changed to ws/wss but otherwise not normalized.
   /// The caller should handle any other normalisation (such as adding /ws to
   /// the end if required).
+  ///
+  /// The implementation for this method is run in try/catch and any
+  /// exceptions during initialization will result in the debug adapter
+  /// reporting an error to the user and shutting down.
   Future<void> connectDebugger(Uri uri) async {
-    // Start up a DDS instance for this VM.
-    if (enableDds) {
-      logger?.call('Starting a DDS instance for $uri');
-      try {
+    try {
+      await _connectDebuggerImpl(uri);
+    } catch (error, stack) {
+      final message = 'Failed to connect/initialize debugger for $uri:\n'
+          '$error\n$stack';
+      logger?.call(message);
+      sendConsoleOutput(message);
+      shutdown();
+    }
+  }
+
+  /// Attempts to start a DDS instance to connect to the VM Service at [uri].
+  ///
+  /// Returns the URI to connect the debugger to (whether it's a newly spawned
+  /// DDS or there was an existing one).
+  ///
+  /// If we failed to start DDS for a reason other than one already existed for
+  /// that VM Service we will return `null` and initiate a shutdown with the
+  /// exception printed to the user.
+  ///
+  /// If a new DDS instance was started, it is assigned to [_dds].
+  Future<Uri?> _startOrReuseDds(Uri uri) {
+    // Use a completer to handle DDS because `startDds` (and therefore
+    // `runZonedGuarded`) may never complete when there's an existing DDS
+    // (see https://github.com/dart-lang/sdk/issues/55731#issuecomment-2114699898)
+    final completer = Completer<Uri?>();
+    runZonedGuarded(
+      () async {
         final dds = await startDds(uri, uriConverter());
         _dds = dds;
-        uri = dds.wsUri!;
-      } on DartDevelopmentServiceException catch (e) {
-        // If there's already a DDS instance, then just continue. This is common
-        // when attaching, as the program may have already been run with a DDS
-        // instance.
-        if (e.errorCode ==
-            DartDevelopmentServiceException.existingDdsInstanceError) {
-          uri = vmServiceUriToWebSocket(uri);
-        } else {
-          rethrow;
+        if (!completer.isCompleted) {
+          completer.complete(dds.wsUri!);
         }
+      },
+      (error, stack) {
+        if (error is DartDevelopmentServiceException &&
+            error.errorCode ==
+                DartDevelopmentServiceException.existingDdsInstanceError) {
+          // If there's an existing DDS instance, we will just continue
+          // but need to map the URI to the ws: version.
+          if (!completer.isCompleted) {
+            completer.complete(vmServiceUriToWebSocket(uri));
+          }
+        } else {
+          // Otherwise, we failed to start DDS for an unknown reason and
+          // consider this a fatal error. Handle terminating here (so we can
+          // print this error/stack)...
+          _handleDebuggerInitializationError(
+              'Failed to start DDS for $uri', error, stack);
+          // ... and complete with no URI as a signal to the caller.
+          if (!completer.isCompleted) {
+            completer.complete(null);
+          }
+        }
+      },
+    );
+    return completer.future;
+  }
+
+  /// Connects to the VM Service at [uri] and initializes debugging.
+  ///
+  /// This is the implementation for [connectDebugger] which is executed in a
+  /// try/catch.
+  Future<void> _connectDebuggerImpl(Uri uri) async {
+    if (enableDds) {
+      // Start up a DDS instance for this VM.
+      logger?.call('Starting a DDS instance for $uri');
+      final targetUri = await _startOrReuseDds(uri);
+      if (targetUri == null) {
+        // If we got no URI, this is a fatal error and we can skip everything
+        // else. The detailed error would have been printed from
+        // [_startOrReuseDds].
+        return;
       }
+      uri = targetUri;
     } else {
       uri = vmServiceUriToWebSocket(uri);
     }
@@ -714,6 +775,33 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     _debuggerInitializedCompleter.complete();
   }
 
+  /// Handlers an error during debugger initialization (such as exceptions
+  /// trying to call `getSupportedProtocols` or `getVM`) by sending it to the
+  /// client and shutting down.
+  ///
+  /// Without this, the exceptions may go unhandled and just terminate the debug
+  /// adapter, which may not be visible to the user. For example VS Code does
+  /// not expose stderr of a debug adapter process. With this change, the
+  /// exception will show up in the Debug Console before the debug session
+  /// terminates.
+  void _handleDebuggerInitializationError(
+      String reason, Object? error, StackTrace stack) {
+    final message = '$reason\n$error\n$stack';
+    logger?.call(message);
+    isTerminating = true;
+    sendConsoleOutput(message);
+    shutdown();
+  }
+
+  Future<DartDevelopmentService> startDds(Uri uri, UriConverter? uriConverter) {
+    return DartDevelopmentService.startDartDevelopmentService(
+      vmServiceUriToHttp(uri),
+      enableAuthCodes: enableAuthCodes,
+      ipv6: ipv6,
+      uriConverter: uriConverter,
+    );
+  }
+
   // This is intended for subclasses to override to provide a URI converter to
   // resolve package URIs to local paths.
   UriConverter? uriConverter() {
@@ -729,15 +817,6 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         'vmServiceUri': uri.toString(),
       }),
       eventType: 'dart.debuggerUris',
-    );
-  }
-
-  Future<DartDevelopmentService> startDds(Uri uri, UriConverter? uriConverter) {
-    return DartDevelopmentService.startDartDevelopmentService(
-      vmServiceUriToHttp(uri),
-      enableAuthCodes: enableAuthCodes,
-      ipv6: ipv6,
-      uriConverter: uriConverter,
     );
   }
 

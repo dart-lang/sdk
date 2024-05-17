@@ -14,7 +14,7 @@ class InsertSemicolon extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final diagnostic = this.diagnostic;
+    var diagnostic = this.diagnostic;
     if (diagnostic == null) {
       return;
     }
@@ -32,7 +32,7 @@ class InsertSemicolon extends ResolvedCorrectionProducer {
   }
 
   bool _isAwaitNode() {
-    final node = this.node;
+    var node = this.node;
     return node is SimpleIdentifier && node.name == 'await';
   }
 }

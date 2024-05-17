@@ -76,7 +76,7 @@ class ReplaceWithNullAware extends ResolvedCorrectionProducer {
     if (node is CascadeExpression) {
       node = node.cascadeSections.first;
     } else {
-      final coveredNode = this.coveredNode;
+      var coveredNode = this.coveredNode;
       if (coveredNode is IndexExpression) {
         await _insert(builder, coveredNode.leftBracket);
         return;

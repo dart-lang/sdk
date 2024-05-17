@@ -24,7 +24,7 @@ class RemoveReturnedValue extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is ReturnStatement) {
       await builder.addDartFileEdit(file, (builder) {
         builder.addDeletion(range.endStart(node.returnKeyword, node.semicolon));

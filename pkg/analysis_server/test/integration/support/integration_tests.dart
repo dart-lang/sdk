@@ -411,8 +411,8 @@ class MatchesJsonObject extends _RecursiveMatcher {
       mismatches.add(simpleDescription('is not a map'));
       return;
     }
-    final requiredFields = this.requiredFields;
-    final optionalFields = this.optionalFields;
+    var requiredFields = this.requiredFields;
+    var optionalFields = this.optionalFields;
     if (requiredFields != null) {
       requiredFields.forEach((String key, Matcher valueMatcher) {
         if (!item.containsKey(key)) {

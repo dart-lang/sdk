@@ -36,7 +36,7 @@ class RenameToCamelCase extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     Token? nameToken;
     Element? element;
-    final node = this.node;
+    var node = this.node;
     if (node is SimpleFormalParameter) {
       nameToken = node.name;
       element = node.declaredElement;

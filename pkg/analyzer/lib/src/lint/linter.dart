@@ -4,7 +4,6 @@
 
 import 'dart:io';
 
-import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
@@ -31,7 +30,7 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisErrorInfo, AnalysisErrorInfoImpl, AnalysisOptions;
+    show AnalysisErrorInfo, AnalysisErrorInfoImpl;
 import 'package:analyzer/src/lint/analysis.dart';
 import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
@@ -39,7 +38,6 @@ import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/lint/state.dart';
 import 'package:analyzer/src/services/lint.dart' show Linter;
-import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
@@ -188,17 +186,7 @@ class LinterConstantEvaluationResult {
 abstract class LinterContext {
   List<LinterContextUnit> get allUnits;
 
-  @Deprecated('This field is being removed; for access to the analysis options '
-      'that apply to `allUnits`, use '
-      '`currentUnit.unit.declaredElement?.session`.')
-  AnalysisOptions get analysisOptions;
-
   LinterContextUnit get currentUnit;
-
-  @Deprecated('This field is being removed; for access to the '
-      'DeclaredVariables that apply to `allUnits`, use '
-      '`currentUnit.unit.declaredElement?.session`.')
-  DeclaredVariables get declaredVariables;
 
   InheritanceManager3 get inheritanceManager;
 
@@ -208,33 +196,7 @@ abstract class LinterContext {
 
   TypeSystem get typeSystem;
 
-  /// Returns whether it would be valid for the given [expression] to have
-  /// a `const` keyword.
-  ///
-  /// The [expression] must be a node within one of the compilation units in
-  /// [allUnits].
-  ///
-  /// Note that this method can cause constant evaluation to occur, which can be
-  /// computationally expensive.
-  @Deprecated('Use `expression.canBeConst`')
-  bool canBeConst(Expression expression);
-
-  /// Returns `true` if it would be valid for the given constructor declaration
-  /// [node] to have a keyword of `const`.
-  ///
-  /// The [node] is expected to be a node within one of the compilation units in
-  /// [allUnits].
-  ///
-  /// Note that this method can cause constant evaluation to occur, which can be
-  /// computationally expensive.
-  @Deprecated('Use `expression.canBeConstConstructor`')
-  bool canBeConstConstructor(ConstructorDeclaration node);
-
-  /// Returns `true` if the given [unit] is in a test directory.
-  @Deprecated('Use `CompilationUnitExtension.inTestDir`.')
-  bool inTestDir(CompilationUnit unit);
-
-  /// Returns `true` if the [feature] is enabled in the library being linted.
+  /// Returns whether the [feature] is enabled in the library being linted.
   bool isEnabled(Feature feature);
 }
 
@@ -242,13 +204,8 @@ class LinterContextImpl implements LinterContext {
   @override
   final List<LinterContextUnit> allUnits;
 
-  // TODO(srawlins): Remove when the public accessor, `analysisOption`, is
-  // removed.
-  final AnalysisOptions _analysisOptions;
   @override
   final LinterContextUnit currentUnit;
-
-  final DeclaredVariables _declaredVariables;
 
   @override
   final WorkspacePackage? package;
@@ -264,36 +221,11 @@ class LinterContextImpl implements LinterContext {
   LinterContextImpl(
     this.allUnits,
     this.currentUnit,
-    DeclaredVariables declaredVariables,
     this.typeProvider,
     this.typeSystem,
     this.inheritanceManager,
-    AnalysisOptions analysisOptions,
     this.package,
-  )   : _declaredVariables = declaredVariables,
-        _analysisOptions = analysisOptions;
-
-  @override
-  @Deprecated('This field is being removed; for access to the analysis options '
-      'that apply to `allUnits`, use '
-      '`currentUnit.unit.declaredElement?.session`.')
-  AnalysisOptions get analysisOptions => _analysisOptions;
-
-  @override
-  @Deprecated('This field is being removed; for access to the '
-      'DeclaredVariables that apply to `allUnits`, use '
-      '`currentUnit.unit.declaredElement?.session`.')
-  DeclaredVariables get declaredVariables => _declaredVariables;
-
-  @override
-  bool canBeConst(Expression expression) => expression.canBeConst;
-
-  @override
-  bool canBeConstConstructor(covariant ConstructorDeclarationImpl node) =>
-      node.canBeConst;
-
-  @override
-  bool inTestDir(CompilationUnit unit) => unit.inTestDir;
+  );
 
   @override
   bool isEnabled(Feature feature) {
@@ -321,36 +253,11 @@ class LinterContextParsedImpl implements LinterContext {
   );
 
   @override
-  @Deprecated('This field is being removed; for access to the analysis options '
-      'that apply to `allUnits`, use '
-      '`currentUnit.unit.declaredElement?.session`.')
-  AnalysisOptions get analysisOptions => throw UnimplementedError();
-
-  @override
-  @Deprecated('This field is being removed; for access to the '
-      'DeclaredVariables that apply to `allUnits`, use '
-      '`currentUnit.unit.declaredElement?.session`.')
-  DeclaredVariables get declaredVariables =>
-      throw UnsupportedError('LinterContext with parsed results');
-
-  @override
   TypeProvider get typeProvider =>
       throw UnsupportedError('LinterContext with parsed results');
 
   @override
   TypeSystem get typeSystem =>
-      throw UnsupportedError('LinterContext with parsed results');
-
-  @override
-  bool canBeConst(Expression expression) =>
-      throw UnsupportedError('LinterContext with parsed results');
-
-  @override
-  bool canBeConstConstructor(ConstructorDeclaration node) =>
-      throw UnsupportedError('LinterContext with parsed results');
-
-  @override
-  bool inTestDir(CompilationUnit unit) =>
       throw UnsupportedError('LinterContext with parsed results');
 
   @override

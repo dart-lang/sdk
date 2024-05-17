@@ -107,9 +107,8 @@ class ExtensionMemberResolver {
         return extension.asResolutionResult;
       },
       (noneMoreSpecific) {
-        _errorReporter.atOffset(
-          offset: nameEntity.offset,
-          length: nameEntity.length,
+        _errorReporter.atEntity(
+          entity: nameEntity,
           errorCode: CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS,
           arguments: [
             name,

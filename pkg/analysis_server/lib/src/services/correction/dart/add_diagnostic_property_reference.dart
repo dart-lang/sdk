@@ -33,7 +33,7 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     String name;
     if (node is MethodDeclaration) {
       name = node.name.lexeme;

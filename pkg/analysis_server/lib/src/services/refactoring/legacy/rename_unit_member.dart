@@ -152,7 +152,7 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 
   void _findFlutterStateClass() {
-    final element = this.element;
+    var element = this.element;
     if (element is ClassElement && element.isStatefulWidgetDeclaration) {
       var oldStateName = '${oldName}State';
       var library = element.library;

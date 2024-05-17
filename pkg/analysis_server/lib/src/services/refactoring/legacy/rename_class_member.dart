@@ -458,7 +458,7 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
 
   /// Fills [elements] with [Element]s to rename.
   Future<void> _prepareElements() async {
-    final element = this.element;
+    var element = this.element;
     if (element is ClassMemberElement) {
       elements = await getHierarchyMembers(searchEngine, element);
     } else {

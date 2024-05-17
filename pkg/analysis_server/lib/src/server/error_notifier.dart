@@ -17,7 +17,7 @@ class ErrorNotifier extends NoopInstrumentationService {
     StackTrace? stackTrace,
     List<InstrumentationServiceAttachment>? attachments,
   ]) {
-    final server = this.server;
+    var server = this.server;
     if (server == null || exception is SilentException) {
       // Silent exceptions should not be reported to the user.
       return;

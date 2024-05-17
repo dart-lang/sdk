@@ -339,7 +339,7 @@ class _EnumDescription {
   /// the index field.
   void _transformConstructors(
       DartFileEditBuilder builder, ConstructorDeclaration? removedConstructor) {
-    final constructorMap = this.constructorMap;
+    var constructorMap = this.constructorMap;
     if (constructorMap == null) {
       return;
     }

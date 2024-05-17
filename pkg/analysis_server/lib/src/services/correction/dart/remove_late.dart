@@ -24,7 +24,7 @@ class RemoveLate extends ResolvedCorrectionProducer {
   FixKind get multiFixKind => DartFixKind.REMOVE_LATE_MULTI;
 
   _LateKeywordLocation? get _lateKeywordLocation {
-    final node = this.node;
+    var node = this.node;
     if (node is Block) {
       // The `late` token does not belong any node, so when we look for a
       // node that covers it, we find the enclosing `Block`. So, we iterate

@@ -25,7 +25,7 @@ class ReplaceWithWildcard extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is WildcardPattern) {
       var defaultKeyword = node.name;
       if (defaultKeyword.keyword == Keyword.DEFAULT) {

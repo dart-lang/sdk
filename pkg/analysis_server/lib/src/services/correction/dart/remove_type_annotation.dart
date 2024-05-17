@@ -169,7 +169,7 @@ class RemoveTypeAnnotation extends ParsedCorrectionProducer {
   }
 
   Future<void> _varAndType(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
 
     Future<void> removeTypeAfterVar({
       required Token? varKeyword,

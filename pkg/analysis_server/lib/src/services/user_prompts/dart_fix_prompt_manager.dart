@@ -98,7 +98,7 @@ class DartFixPromptManager {
   }
 
   bool get hasCheckedRecently {
-    final lastCheck = this.lastCheck;
+    var lastCheck = this.lastCheck;
     return lastCheck != null &&
         DateTime.now().difference(lastCheck) <= _sleepTime;
   }
@@ -108,7 +108,7 @@ class DartFixPromptManager {
   /// This is only allowed if the client supports applyEdit and
   /// changeAnnotations.
   bool get useInEditorFixes {
-    final server = this.server;
+    var server = this.server;
     return (server.lspClientCapabilities?.applyEdit ?? false) &&
         (server.lspClientCapabilities?.changeAnnotations ?? false) &&
         // Temporary flag.

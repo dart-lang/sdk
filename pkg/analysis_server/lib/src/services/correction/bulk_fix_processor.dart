@@ -445,7 +445,7 @@ class BulkFixProcessor {
     bool stopAfterFirst = false,
   }) async {
     // Ensure specified codes are defined.
-    final codes = this.codes;
+    var codes = this.codes;
     if (codes != null) {
       var undefinedCodes = <String>[];
       for (var code in codes) {
@@ -573,7 +573,7 @@ class BulkFixProcessor {
       List<AnalysisError> originalErrors) sync* {
     var errors = originalErrors.toList();
     errors.sort((a, b) => a.offset.compareTo(b.offset));
-    final codes = this.codes;
+    var codes = this.codes;
     for (var error in errors) {
       if (codes != null &&
           !codes.contains(error.errorCode.name.toLowerCase())) {

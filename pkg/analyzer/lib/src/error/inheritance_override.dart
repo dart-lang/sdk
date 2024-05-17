@@ -395,7 +395,7 @@ class _ClassVerifier {
     if (mixinIndex == -1) {
       CovariantParametersVerifier(thisMember: member).verify(
         errorReporter: reporter,
-        errorNode: node,
+        errorEntity: node,
       );
     }
   }
