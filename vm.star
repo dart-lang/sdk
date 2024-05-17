@@ -333,6 +333,30 @@ _nightly_builder(
     category = "vm|misc|sanitizer|u",
 )
 _nightly_builder(
+    "vm-asan-linux-release-arm64",
+    category = "vm|misc|sanitizer|a",
+    dimensions = [jammy, arm64],
+    properties = {"clobber": False},
+)
+_nightly_builder(
+    "vm-msan-linux-release-arm64",
+    category = "vm|misc|sanitizer|m",
+    dimensions = [jammy, arm64],
+    properties = {"clobber": False},
+)
+_nightly_builder(
+    "vm-tsan-linux-release-arm64",
+    category = "vm|misc|sanitizer|t",
+    dimensions = [jammy, arm64],
+    properties = {"clobber": False},
+)
+_nightly_builder(
+    "vm-ubsan-linux-release-arm64",
+    category = "vm|misc|sanitizer|u",
+    dimensions = [jammy, arm64],
+    properties = {"clobber": False},
+)
+_nightly_builder(
     "vm-reload-linux-debug-x64",
     category = "vm|misc|reload|d",
 )
