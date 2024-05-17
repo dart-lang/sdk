@@ -88,17 +88,16 @@ class CompileJSCommand extends CompileSubcommandCommand {
 
   @override
   FutureOr<int> run() async {
-    if (!Sdk.checkArtifactExists(sdk.dart2jsSnapshot)) return 255;
-
-    final librariesPath = path.absolute(sdk.sdkPath, 'lib', 'libraries.json');
-
-    if (!Sdk.checkArtifactExists(librariesPath)) return 255;
+    if (!Sdk.checkArtifactExists(sdk.dart2jsSnapshot) ||
+        !Sdk.checkArtifactExists(sdk.librariesJson)) {
+      return 255;
+    }
 
     final args = argResults!;
 
     // Build arguments.
     final buildArgs = <String>[
-      '--libraries-spec=$librariesPath',
+      '--libraries-spec=${sdk.librariesJson}',
       '--cfe-invocation-modes=compile',
       '--invoker=dart_cli',
       // Add the remaining arguments.
@@ -698,7 +697,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
     final args = argResults!;
     final verbose = this.verbose || args.flag('verbose');
 
-    if (!Sdk.checkArtifactExists(sdk.librariesJson) ||
+    if (!Sdk.checkArtifactExists(sdk.wasmPlatformDill) ||
         !Sdk.checkArtifactExists(sdk.dartAotRuntime) ||
         !Sdk.checkArtifactExists(sdk.dart2wasmSnapshot) ||
         !Sdk.checkArtifactExists(sdk.wasmOpt)) {
@@ -775,7 +774,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
     final dart2wasmCommand = [
       sdk.dartAotRuntime,
       sdk.dart2wasmSnapshot,
-      '--libraries-spec=${sdk.librariesJson}',
+      '--platform=${sdk.wasmPlatformDill}',
       '--dart-sdk=$sdkPath',
       if (verbose) '--verbose',
       if (packages != null) '--packages=$packages',
