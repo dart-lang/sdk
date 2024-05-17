@@ -230,9 +230,7 @@ CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER:
 CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR:
   status: noFix
 CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER:
-  status: needsFix
-  notes: |-
-    The fix is to remove the `late` modifier.
+  status: hasFix
 CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT:
   status: hasFix
 CompileTimeErrorCode.AWAIT_OF_INCOMPATIBLE_TYPE:

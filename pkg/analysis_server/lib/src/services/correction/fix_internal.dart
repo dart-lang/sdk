@@ -870,6 +870,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA: [
     RemoveExtraModifier.new,
   ],
+  CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER: [
+    RemoveLate.new,
+  ],
   CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT: [
     AddAsync.new,
   ],
