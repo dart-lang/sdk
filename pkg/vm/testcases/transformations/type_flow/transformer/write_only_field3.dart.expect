@@ -7,6 +7,7 @@ class A extends core::Object {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
   method use() → dynamic {
     [@vm.direct-call.metadata=#lib::A.x] [@vm.inferred-type.metadata=!? (skip check)] this.{self::A::x} = 3;
@@ -25,6 +26,7 @@ class B extends core::Object {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]
   method use() → dynamic {
     [@vm.direct-call.metadata=#lib::B.x] [@vm.inferred-type.metadata=!? (skip check)] this.{self::B::x} = 3;
@@ -39,6 +41,8 @@ class C extends core::Object {
 [@vm.inferred-type.metadata=dart.core::_Smi (value: 4)]
 [@vm.unboxing-info.metadata=(i)->i]
 late static final [setter] field core::int staticLateB;
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   [@vm.direct-call.metadata=#lib::A.use] [@vm.inferred-type.metadata=!? (skip check)] new self::A::•().{self::A::use}(){() → dynamic};
   [@vm.direct-call.metadata=#lib::B.use] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•().{self::B::use}(){() → dynamic};

@@ -48,6 +48,7 @@ class Impl1 extends core::Object implements self::Interface {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
   [@vm.unboxing-info.metadata=(i,d,b,b,b,b,b,b)->b]
   method takePositional([@vm.inferred-arg-type.metadata=int] dynamic unboxedInt, [@vm.inferred-arg-type.metadata=dart.core::_Double] dynamic unboxedDouble, [@vm.inferred-arg-type.metadata=int?] dynamic boxedNullableInt, [@vm.inferred-arg-type.metadata=dart.core::_Double?] dynamic boxedNullableDouble, [@vm.inferred-arg-type.metadata=!] dynamic boxedNonNullableIntOrDouble, [@vm.inferred-arg-type.metadata=dart.core::_Double?] dynamic boxedNullableIntOrDouble, [@vm.inferred-arg-type.metadata=#lib::X?] dynamic boxedNullableX, [@vm.inferred-arg-type.metadata=#lib::X] dynamic boxedX) → void {
@@ -61,41 +62,50 @@ class Impl1 extends core::Object implements self::Interface {
     self::use(boxedX);
   }
 
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 1)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]
   [@vm.unboxing-info.metadata=()->i]
   method returnUnboxedSmi() → dynamic
     return 1;
 
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 1)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]
   [@vm.unboxing-info.metadata=()->i]
   method returnUnboxedInt() → dynamic
     return 1;
 
+  [@vm.inferred-return-type.metadata=dart.core::_Double (value: 1.1)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]
   [@vm.unboxing-info.metadata=()->d]
   method returnUnboxedDouble() → dynamic
     return 1.1;
 
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:9,getterSelectorId:10]
   method returnBoxedNullableInt() → dynamic
     return null;
 
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:11,getterSelectorId:12]
   method returnBoxedNullableDouble() → dynamic
     return null;
 
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 1)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:13,getterSelectorId:14]
   method returnBoxedIntOrDouble() → dynamic
     return 1;
 
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:15,getterSelectorId:16]
   method returnBoxedNullableIntOrDouble() → dynamic
     return null;
 
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:17,getterSelectorId:18]
   method returnBoxedNullableX() → dynamic
     return null;
 
+  [@vm.inferred-return-type.metadata=#lib::X]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:19,getterSelectorId:20]
   method returnBoxedX() → dynamic
     return new self::X::•();
@@ -105,6 +115,7 @@ class BaseImpl2 extends core::Object {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
   [@vm.unboxing-info.metadata=(i,d,b,b,b,b,b,b)->b]
   method takePositional([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 2)] dynamic unboxedInt, [@vm.inferred-arg-type.metadata=dart.core::_Double (value: 2.2)] dynamic unboxedDouble, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 2)] dynamic boxedNullableInt, [@vm.inferred-arg-type.metadata=dart.core::_Double (value: 2.2)] dynamic boxedNullableDouble, [@vm.inferred-arg-type.metadata=dart.core::_Double (value: 2.2)] dynamic boxedNonNullableIntOrDouble, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 2)] dynamic boxedNullableIntOrDouble, [@vm.inferred-arg-type.metadata=#lib::X] dynamic boxedNullableX, [@vm.inferred-arg-type.metadata=#lib::X] dynamic boxedX) → void {
@@ -118,41 +129,50 @@ class BaseImpl2 extends core::Object {
     self::use(boxedX);
   }
 
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 2)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]
   [@vm.unboxing-info.metadata=()->i]
   method returnUnboxedSmi() → dynamic
     return 2;
 
+  [@vm.inferred-return-type.metadata=int]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]
   [@vm.unboxing-info.metadata=()->i]
   method returnUnboxedInt() → dynamic
     return [@vm.inferred-type.metadata=int] self::mint;
 
+  [@vm.inferred-return-type.metadata=dart.core::_Double (value: 2.2)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]
   [@vm.unboxing-info.metadata=()->d]
   method returnUnboxedDouble() → dynamic
     return 2.2;
 
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 2)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:9,getterSelectorId:10]
   method returnBoxedNullableInt() → dynamic
     return 2;
 
+  [@vm.inferred-return-type.metadata=dart.core::_Double (value: 2.2)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:11,getterSelectorId:12]
   method returnBoxedNullableDouble() → dynamic
     return 2.2;
 
+  [@vm.inferred-return-type.metadata=dart.core::_Double (value: 2.2)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:13,getterSelectorId:14]
   method returnBoxedIntOrDouble() → dynamic
     return 2.2;
 
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 2)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:15,getterSelectorId:16]
   method returnBoxedNullableIntOrDouble() → dynamic
     return 2;
 
+  [@vm.inferred-return-type.metadata=#lib::X]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:17,getterSelectorId:18]
   method returnBoxedNullableX() → dynamic
     return new self::X::•();
 
+  [@vm.inferred-return-type.metadata=#lib::X]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:19,getterSelectorId:20]
   method returnBoxedX() → dynamic
     return new self::X::•();
@@ -162,6 +182,7 @@ class SubImpl3 extends self::BaseImpl2 implements self::Interface {
     : super self::BaseImpl2::•()
     ;
 
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
   [@vm.unboxing-info.metadata=(i,d,b,b,b,b,b,b)->b]
   method takePositional([@vm.inferred-arg-type.metadata=int] dynamic unboxedInt, [@vm.inferred-arg-type.metadata=dart.core::_Double] dynamic unboxedDouble, [@vm.inferred-arg-type.metadata=int] dynamic boxedNullableInt, [@vm.inferred-arg-type.metadata=dart.core::_Double] dynamic boxedNullableDouble, [@vm.inferred-arg-type.metadata=dart.core::_Double] dynamic boxedNonNullableIntOrDouble, [@vm.inferred-arg-type.metadata=!] dynamic boxedNullableIntOrDouble, [@vm.inferred-arg-type.metadata=#lib::X] dynamic boxedNullableX, [@vm.inferred-arg-type.metadata=#lib::X] dynamic boxedX) → void {
@@ -175,53 +196,67 @@ class SubImpl3 extends self::BaseImpl2 implements self::Interface {
     self::use(boxedX);
   }
 
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 3)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]
   [@vm.unboxing-info.metadata=()->i]
   method returnUnboxedSmi() → dynamic
     return 3;
 
+  [@vm.inferred-return-type.metadata=int]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]
   [@vm.unboxing-info.metadata=()->i]
   method returnUnboxedInt() → dynamic
     return [@vm.inferred-type.metadata=int] self::mint;
 
+  [@vm.inferred-return-type.metadata=dart.core::_Double (value: 3.3)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]
   [@vm.unboxing-info.metadata=()->d]
   method returnUnboxedDouble() → dynamic
     return 3.3;
 
+  [@vm.inferred-return-type.metadata=int]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:9,getterSelectorId:10]
   method returnBoxedNullableInt() → dynamic
     return [@vm.inferred-type.metadata=int] self::mint;
 
+  [@vm.inferred-return-type.metadata=dart.core::_Double (value: 3.3)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:11,getterSelectorId:12]
   method returnBoxedNullableDouble() → dynamic
     return 3.3;
 
+  [@vm.inferred-return-type.metadata=dart.core::_Double (value: 3.3)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:13,getterSelectorId:14]
   method returnBoxedIntOrDouble() → dynamic
     return 3.3;
 
+  [@vm.inferred-return-type.metadata=dart.core::_Double (value: 3.3)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:15,getterSelectorId:16]
   method returnBoxedNullableIntOrDouble() → dynamic
     return 3.3;
 
+  [@vm.inferred-return-type.metadata=#lib::X]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:17,getterSelectorId:18]
   method returnBoxedNullableX() → dynamic
     return new self::X::•();
 
+  [@vm.inferred-return-type.metadata=#lib::X]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:19,getterSelectorId:20]
   method returnBoxedX() → dynamic
     return new self::X::•();
 }
 static field dynamic usedObject;
 
+[@vm.inferred-return-type.metadata=int]
 [@vm.unboxing-info.metadata=()->i]
 static get mint() → core::int
   return -6144092014192636707;
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method use(dynamic object) → void {
   self::usedObject == null ?{dynamic} self::usedObject = object : null;
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → dynamic {
   final core::List<core::Object> values = [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::Object>] core::_GrowableList::_literal3<core::Object>(new self::Impl1::•(), new self::BaseImpl2::•(), new self::SubImpl3::•());
   final self::Impl1 a = [@vm.direct-call.metadata=dart.core::_GrowableList.[]] [@vm.inferred-type.metadata=! (skip check)] values.{core::List::[]}([@vm.inferred-type.metadata=int] core::int::parse("0")){(core::int) → core::Object} as self::Impl1;

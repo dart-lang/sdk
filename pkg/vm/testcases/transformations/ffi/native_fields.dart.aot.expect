@@ -12,21 +12,25 @@ final class Vec2d extends ffi::Struct {
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
 
+  [@vm.inferred-return-type.metadata=dart.core::_Double]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
   [@vm.unboxing-info.metadata=()->d]
   get x() → core::double
     return [@vm.inferred-type.metadata=dart.core::_Double] ffi::_loadDouble([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::Vec2d::x#offsetOf.{core::num::+}([@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
 
+  [@vm.inferred-return-type.metadata=dart.core::_Double]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:2]
   [@vm.unboxing-info.metadata=()->d]
   get y() → core::double
     return [@vm.inferred-type.metadata=dart.core::_Double] ffi::_loadDouble([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi (value: 8)] self::Vec2d::y#offsetOf.{core::num::+}([@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
 
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 0)]
   [@vm.unboxing-info.metadata=()->i]
   @#C8
   static get x#offsetOf() → core::int
     return #C10.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 8)]
   [@vm.unboxing-info.metadata=()->i]
   @#C8
   static get y#offsetOf() → core::int
@@ -42,17 +46,21 @@ final class MyUnion extends ffi::Union {
   set indirectVector([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] synthesized ffi::Pointer<self::Vec2d> #externalFieldValue) → void
     return ffi::_storePointer<self::Vec2d>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::MyUnion::indirectVector#offsetOf.{core::num::+}([@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
 
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 0)]
   [@vm.unboxing-info.metadata=()->i]
   @#C8
   static get indirectVector#offsetOf() → core::int
     return #C10.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
+
+[@vm.inferred-return-type.metadata=dart.ffi::Pointer]
 @#C23
 static get aString() → ffi::Pointer<ffi::Char>
   return [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_loadPointer<ffi::Char>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<ffi::Pointer<ffi::Char>>(#C22), #C9);
 static set aString([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] synthesized ffi::Pointer<ffi::Char> #externalFieldValue) → void
   ffi::_storePointer<ffi::Char>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<ffi::Pointer<ffi::Char>>(#C22), #C9, #externalFieldValue);
 
+[@vm.inferred-return-type.metadata=int]
 [@vm.unboxing-info.metadata=()->i]
 @#C26
 static get anInt() → core::int
@@ -61,17 +69,25 @@ static get anInt() → core::int
 [@vm.unboxing-info.metadata=(i)->b]
 static set anInt([@vm.inferred-arg-type.metadata=int] synthesized core::int #externalFieldValue) → void
   ffi::_storeInt32([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<ffi::Int32>(#C25), #C9, #externalFieldValue);
+
+[@vm.inferred-return-type.metadata=#lib::Vec2d]
 @#C29
 static get vector() → self::Vec2d
   return new self::Vec2d::#fromTypedDataBase([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<self::Vec2d>(#C28));
+
+[@vm.inferred-return-type.metadata=#lib::MyUnion]
 @#C32
 static get union() → self::MyUnion
   return new self::MyUnion::#fromTypedDataBase([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<self::MyUnion>(#C31));
+
+[@vm.inferred-return-type.metadata=dart.ffi::Array<dart.ffi::Array<dart.ffi::Array<dart.ffi::Double>>>]
 @#C35
 static get manyNumbers() → ffi::Array<ffi::Array<ffi::Array<ffi::Double>>>
   return new ffi::Array::_<ffi::Array<ffi::Array<ffi::Double>>>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<ffi::Array<ffi::Array<ffi::Array<ffi::Double>>>>(#C34), #C9, #C36, #C39);
 static set manyNumbers([@vm.inferred-arg-type.metadata=dart.ffi::Array<dart.ffi::Array<dart.ffi::Array<dart.ffi::Double>>>] synthesized ffi::Array<ffi::Array<ffi::Array<ffi::Double>>> #externalFieldValue) → void
   ffi::_memCopy([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<ffi::Array<ffi::Array<ffi::Array<ffi::Double>>>>(#C34), #C9, [@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] #externalFieldValue.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] #externalFieldValue.{ffi::_Compound::_offsetInBytes}{core::int}, #C41.{core::List::[]}(ffi::_abi()){(core::int) → core::int});
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   core::print("first char of string: ${ffi::_loadAbiSpecificInt<ffi::Char>([@vm.inferred-type.metadata=dart.ffi::Pointer] self::aString, #C9)}");
   core::print("global int: {${self::anInt}}");

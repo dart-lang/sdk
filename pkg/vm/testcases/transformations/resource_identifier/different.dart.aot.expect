@@ -4,11 +4,14 @@ import "dart:core" as core;
 
 abstract class SomeClass extends core::Object {
 
+  [@vm.inferred-return-type.metadata=int]
   [@vm.unboxing-info.metadata=()->i]
   static method someStaticMethod() → dynamic {
     return [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] #C1.{core::num::+}(1){(core::num) → core::int};
   }
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   core::print([@vm.inferred-type.metadata=int] self::SomeClass::someStaticMethod());
 }

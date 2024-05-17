@@ -7,12 +7,15 @@ import "package:meta/meta.dart" show ResourceIdentifier;
 
 abstract class SomeClass extends core::Object {
 
+  [@vm.inferred-return-type.metadata=int]
   [@vm.unboxing-info.metadata=(i)->i]
   @#C2
   static method someStaticMethod([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 42)] core::int i) → dynamic {
     return [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1){(core::num) → core::int};
   }
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   core::print([@vm.inferred-type.metadata=int] self::SomeClass::someStaticMethod(42));
 }

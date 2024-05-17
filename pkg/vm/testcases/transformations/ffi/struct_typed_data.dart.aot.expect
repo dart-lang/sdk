@@ -17,6 +17,8 @@ final class Coordinate extends ffi::Struct {
   constructor #fromTypedData([@vm.inferred-arg-type.metadata=dart.typed_data::_Float64List] synthesized typ::TypedData #typedData) → self::Coordinate
     : super ffi::Struct::_fromTypedData(#typedData)
     ;
+
+  [@vm.inferred-return-type.metadata=#lib::Coordinate]
   static factory •({[@vm.inferred-arg-type.metadata=dart.core::_Double?] core::double? x = #C4, [@vm.inferred-arg-type.metadata=dart.core::_Double?] core::double? y = #C4}) → self::Coordinate {
     final self::Coordinate result = new self::Coordinate::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•([@vm.inferred-type.metadata=dart.core::_Smi (value: 16)] self::Coordinate::#sizeOf));
     if(!(x == null))
@@ -25,10 +27,13 @@ final class Coordinate extends ffi::Struct {
       [@vm.direct-call.metadata=#lib::Coordinate.y] [@vm.inferred-type.metadata=!? (skip check)] result.{self::Coordinate::y} = y{core::double};
     return result;
   }
+
+  [@vm.inferred-return-type.metadata=#lib::Coordinate]
   static factory fromTypedList([@vm.inferred-arg-type.metadata=dart.typed_data::_Float64List] typ::TypedData typedList) → self::Coordinate {
     return let final typ::TypedData #t1 = typedList in let final core::int #t2 = [@vm.inferred-type.metadata=dart.core::_Smi (value: 16)] self::Coordinate::#sizeOf in new self::Coordinate::#fromTypedData(#t1);
   }
 
+  [@vm.inferred-return-type.metadata=dart.core::_Double]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
   [@vm.unboxing-info.metadata=()->d]
   get x() → core::double
@@ -39,6 +44,7 @@ final class Coordinate extends ffi::Struct {
   set x([@vm.inferred-arg-type.metadata=dart.core::_Double] synthesized core::double #externalFieldValue) → void
     return ffi::_storeDouble([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::Coordinate::x#offsetOf.{core::num::+}([@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
 
+  [@vm.inferred-return-type.metadata=dart.core::_Double]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]
   [@vm.unboxing-info.metadata=()->d]
   get y() → core::double
@@ -49,27 +55,34 @@ final class Coordinate extends ffi::Struct {
   set y([@vm.inferred-arg-type.metadata=dart.core::_Double] synthesized core::double #externalFieldValue) → void
     return ffi::_storeDouble([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi (value: 8)] self::Coordinate::y#offsetOf.{core::num::+}([@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
 
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 0)]
   [@vm.unboxing-info.metadata=()->i]
   @#C8
   static get x#offsetOf() → core::int
     return #C10.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 8)]
   [@vm.unboxing-info.metadata=()->i]
   @#C8
   static get y#offsetOf() → core::int
     return #C12.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 16)]
   [@vm.unboxing-info.metadata=()->i]
   @#C8
   static get #sizeOf() → core::int
     return #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   for (core::int i = 0; [@vm.direct-call.metadata=dart.core::_IntegerImplementation.<] [@vm.inferred-type.metadata=dart.core::bool (skip check)] i.{core::num::<}(100){(core::num) → core::bool}; i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1){(core::num) → core::int}) {
     self::testStructAllocateDart();
   }
   core::print("done");
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method testStructAllocateDart() → void {
   final self::Coordinate c1 = let final self::Coordinate #t3 = [@vm.inferred-type.metadata=#lib::Coordinate] self::Coordinate::•() in block {
     [@vm.direct-call.metadata=#lib::Coordinate.x] [@vm.inferred-type.metadata=!? (skip check)] #t3.{self::Coordinate::x} = 10.0;

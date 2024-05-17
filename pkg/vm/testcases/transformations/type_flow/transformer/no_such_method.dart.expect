@@ -55,20 +55,24 @@ class B extends self::A {
     : super self::A::•()
     ;
 
+  [@vm.inferred-return-type.metadata=#lib::T1]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]
   [@vm.unboxing-info.metadata=[!regcc]]
   method noSuchMethod(core::Invocation invocation) → dynamic {
     return new self::T1::•();
   }
 
+  [@vm.inferred-return-type.metadata=#lib::T1]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
   no-such-method-forwarder method foo() → dynamic
     return _in::unsafeCast<dynamic>([@vm.direct-call.metadata=#lib::B.noSuchMethod] [@vm.inferred-type.metadata=#lib::T1 (skip check)] this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, [@vm.inferred-type.metadata=dart.collection::UnmodifiableMapView<dart.core::Symbol, dynamic>] core::Map::unmodifiable<core::Symbol, dynamic>(#C4))){(core::Invocation) → dynamic});
 
+  [@vm.inferred-return-type.metadata=#lib::T1]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]
   no-such-method-forwarder get bar() → dynamic
     return _in::unsafeCast<dynamic>([@vm.direct-call.metadata=#lib::B.noSuchMethod] [@vm.inferred-type.metadata=#lib::T1 (skip check)] this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 1, #C2, #C3, [@vm.inferred-type.metadata=dart.collection::UnmodifiableMapView<dart.core::Symbol, dynamic>] core::Map::unmodifiable<core::Symbol, dynamic>(#C4))){(core::Invocation) → dynamic});
 
+  [@vm.inferred-return-type.metadata=#lib::T1]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5]
   [@vm.unboxing-info.metadata=(i,i,i,i)->b]
   no-such-method-forwarder method bazz([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 1)] dynamic a1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 2)] dynamic a2, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 3)] dynamic a3, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 4)] dynamic a4) → dynamic
@@ -79,6 +83,7 @@ abstract class C extends core::Object {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=#lib::T2]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]
   [@vm.unboxing-info.metadata=[!regcc]]
   method noSuchMethod(core::Invocation invocation) → dynamic {
@@ -90,14 +95,17 @@ class D extends self::C implements self::A {
     : super self::C::•()
     ;
 
+  [@vm.inferred-return-type.metadata=#lib::T2]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
   no-such-method-forwarder method foo() → dynamic
     return _in::unsafeCast<dynamic>([@vm.direct-call.metadata=#lib::C.noSuchMethod] [@vm.inferred-type.metadata=#lib::T2 (skip check)] this.{self::C::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, [@vm.inferred-type.metadata=dart.collection::UnmodifiableMapView<dart.core::Symbol, dynamic>] core::Map::unmodifiable<core::Symbol, dynamic>(#C4))){(core::Invocation) → dynamic});
 
+  [@vm.inferred-return-type.metadata=#lib::T2]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]
   no-such-method-forwarder get bar() → dynamic
     return _in::unsafeCast<dynamic>([@vm.direct-call.metadata=#lib::C.noSuchMethod] [@vm.inferred-type.metadata=#lib::T2 (skip check)] this.{self::C::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 1, #C2, #C3, [@vm.inferred-type.metadata=dart.collection::UnmodifiableMapView<dart.core::Symbol, dynamic>] core::Map::unmodifiable<core::Symbol, dynamic>(#C4))){(core::Invocation) → dynamic});
 
+  [@vm.inferred-return-type.metadata=#lib::T2]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5]
   [@vm.unboxing-info.metadata=(i,i,i,i)->b]
   no-such-method-forwarder method bazz([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 1)] dynamic a1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 2)] dynamic a2, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 3)] dynamic a3, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 4)] dynamic a4) → dynamic
@@ -108,6 +116,7 @@ class E extends core::Object implements self::A {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=#lib::T4]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]
   [@vm.unboxing-info.metadata=[!regcc]]
   method noSuchMethod(core::Invocation invocation) → dynamic {
@@ -119,6 +128,7 @@ class F extends core::Object {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=#lib::T2]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]
   [@vm.unboxing-info.metadata=[!regcc]]
   method noSuchMethod(core::Invocation invocation) → dynamic {
@@ -130,6 +140,7 @@ class G extends core::Object {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=#lib::T5]
   [@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]
   [@vm.unboxing-info.metadata=[!regcc]]
   method noSuchMethod(core::Invocation invocation) → dynamic {
@@ -141,10 +152,12 @@ class H extends core::Object {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=#lib::T6]
   [@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:8,getterSelectorId:9]
   method foo({[@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 1)] dynamic left = #C7, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 2)] dynamic right = #C7}) → dynamic
     return new self::T6::•();
 
+  [@vm.inferred-return-type.metadata=#lib::T7]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]
   [@vm.unboxing-info.metadata=[!regcc]]
   method noSuchMethod(core::Invocation invocation) → dynamic {
@@ -160,10 +173,14 @@ static field self::A dd = new self::D::•();
 
 [@vm.inferred-type.metadata=!]
 late static field core::Function unknown;
+
+[@vm.inferred-return-type.metadata=!]
 static method getDynamic() → dynamic
   return block {
     [@vm.inferred-type.metadata=!] self::unknown;
   } =>throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main(core::List<core::String> args) → dynamic {
   core::print([@vm.direct-call.metadata=#lib::B.foo] [@vm.inferred-type.metadata=#lib::T1 (skip check)] [@vm.inferred-type.metadata=#lib::B] self::bb.{self::A::foo}(){() → dynamic});
   core::print([@vm.direct-call.metadata=#lib::B.bar] [@vm.inferred-type.metadata=#lib::T1] [@vm.inferred-type.metadata=#lib::B] self::bb.{self::A::bar}{dynamic});

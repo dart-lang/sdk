@@ -7,54 +7,78 @@ class A extends core::Object {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=dart.core::_OneByteString (value: "foo")]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
   get foo() → core::String
     return "foo";
 
+  [@vm.inferred-return-type.metadata=dart.core::_OneByteString (value: "bar")]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:2,getterSelectorId:3]
   method getBar() → core::String
     return "bar";
 }
 class B extends core::_Enum /*isEnum*/  {
 
+  [@vm.inferred-return-type.metadata=!]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5]
   method _enumToString() → core::String
     return "B.${[@vm.direct-call.metadata=dart.core::_Enum._name] this.{core::_Enum::_name}{core::String}}";
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method test0() → void {
   core::print(#C1);
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method test1() → void {
   core::print(#C2);
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method test2() → void {
   core::print(#C3);
 }
 
+[@vm.inferred-return-type.metadata=dart.core::_Double (value: 100.0)]
 [@vm.unboxing-info.metadata=()->d]
 static get getD() → dynamic
   return 100.0;
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method testDouble() → void {
   core::print(#C4);
   core::print([@vm.inferred-type.metadata=dart.core::_Double (value: 100.0)] self::getD);
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method testStrings([@vm.inferred-arg-type.metadata=#lib::A] self::A a0) → void {
   core::print([@vm.direct-call.metadata=#lib::A.foo] [@vm.inferred-type.metadata=dart.core::_OneByteString (value: "foo")] a0.{self::A::foo}{core::String});
   core::print([@vm.direct-call.metadata=#lib::A.getBar] [@vm.inferred-type.metadata=dart.core::_OneByteString (skip check) (value: "bar")] a0.{self::A::getBar}(){() → core::String});
   core::print(#C5);
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method testPassEnum() → void {
   self::testPassEnum2();
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method testPassEnum2() → void {
   core::print(#C8);
 }
+
+[@vm.inferred-return-type.metadata=dart.core::_ImmutableList (value: const <dart.core::int>[1, 2, 3])]
 static method getList() → dynamic
   return #C11;
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method testList() → void {
   core::print(#C11);
   core::print(#C14);
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → dynamic {
   self::test0();
   self::test1();

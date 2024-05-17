@@ -7,8 +7,12 @@ class A extends core::Object {
     : super core::Object::•()
     ;
 }
+
+[@vm.inferred-return-type.metadata=#lib::A]
 static method foo() → core::Object
   return new self::A::•();
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main(core::List<core::String> args) → dynamic {
   core::print([@vm.inferred-type.metadata=#lib::A] self::foo());
 }

@@ -16,6 +16,7 @@ class A extends core::Object {
     : self::A::x = [@vm.inferred-type.metadata=dart.core::_Smi (value: 1)] self::used1(), super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=!]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]
   [@vm.unboxing-info.metadata=[!regcc]]
   method toString() → core::String
@@ -27,20 +28,29 @@ class B extends core::Object {
     core::print([@vm.inferred-type.metadata=dart.core::_OneByteString (value: "B")] self::B::getAccessor());
     self::register(null);
   }
+
+  [@vm.inferred-return-type.metadata=dart.core::_OneByteString (value: "B")]
   static method getAccessor() → core::String
     return "B";
 }
 
+[@vm.inferred-return-type.metadata=dart.core::_Smi (value: 1)]
 [@vm.unboxing-info.metadata=()->i]
 static method used1() → core::int
   return 1;
+
+[@vm.inferred-return-type.metadata=dart.core::_OneByteString]
 static method used2() → core::String
   return [@vm.direct-call.metadata=dart.core::_Smi.toString] [@vm.inferred-type.metadata=dart.core::_OneByteString (skip check)] 2.{core::int::toString}(){() → core::String};
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method register([@vm.inferred-arg-type.metadata=dart.core::_Closure?] () →? core::String getAccessor) → void {
   if(!(getAccessor == null)) {
     core::print([@vm.inferred-type.metadata=! (receiver not int)] getAccessor{() → core::String}(){() → core::String});
   }
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main(core::List<core::String> args) → dynamic {
   core::print(#C2);
   core::print(#C1);

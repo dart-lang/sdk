@@ -17,11 +17,13 @@ class B extends self::A {
     : super self::A::•()
     ;
 
+  [@vm.inferred-return-type.metadata=int]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
   [@vm.unboxing-info.metadata=()->i]
   method foo() → core::int
     return _in::unsafeCast<core::int>([@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] 1.{core::num::+}(_in::unsafeCast<core::num>([@vm.direct-call.metadata=#lib::B.bar] [@vm.inferred-type.metadata=dart.core::_Smi (value: 3) (receiver not int)] [@vm.inferred-type.metadata=#lib::B] self::knownResult(){dynamic}.bar())){(core::num) → core::num});
 
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 3)]
   [@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]
   [@vm.unboxing-info.metadata=()->i]
   method bar() → core::int
@@ -36,8 +38,12 @@ class TearOffInterfaceMethod extends core::Object {
     : self::TearOffInterfaceMethod::bazz = [@vm.inferred-type.metadata=dart.core::_Closure (closure 0 in #lib::B.foo)] arg.{self::A::foo}{() → core::int}, super core::Object::•()
     ;
 }
+
+[@vm.inferred-return-type.metadata=#lib::B]
 static method knownResult() → dynamic
   return new self::B::•();
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main(core::List<core::String> args) → dynamic {
   [@vm.inferred-type.metadata=!? (receiver not int)] [@vm.direct-call.metadata=#lib::TearOffInterfaceMethod.bazz] [@vm.inferred-type.metadata=dart.core::_Closure (closure 0 in #lib::B.foo)] new self::TearOffInterfaceMethod::•(new self::B::•()).{self::TearOffInterfaceMethod::bazz}{dynamic}{dynamic}();
 }

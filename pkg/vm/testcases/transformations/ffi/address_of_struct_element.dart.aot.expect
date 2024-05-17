@@ -12,34 +12,41 @@ final class MyStruct extends ffi::Struct {
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
 
+  [@vm.inferred-return-type.metadata=dart.ffi::Array<dart.ffi::Int8>]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
   get array() → ffi::Array<ffi::Int8>
     return new ffi::Array::_<ffi::Int8>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi (value: 2)] self::MyStruct::array#offsetOf.{core::num::+}([@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #C3, #C11);
 
+  [@vm.inferred-return-type.metadata=dart.ffi::Array<dart.ffi::UnsignedLong>]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:2]
   get array2() → ffi::Array<ffi::UnsignedLong>
     return new ffi::Array::_<ffi::UnsignedLong>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi] self::MyStruct::array2#offsetOf.{core::num::+}([@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #C3, #C11);
 
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 0)]
   [@vm.unboxing-info.metadata=()->i]
   @#C13
   static get a#offsetOf() → core::int
     return #C15.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 1)]
   [@vm.unboxing-info.metadata=()->i]
   @#C13
   static get b#offsetOf() → core::int
     return #C17.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 2)]
   [@vm.unboxing-info.metadata=()->i]
   @#C13
   static get array#offsetOf() → core::int
     return #C19.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 
+  [@vm.inferred-return-type.metadata=dart.core::_Smi]
   [@vm.unboxing-info.metadata=()->i]
   @#C13
   static get array2#offsetOf() → core::int
     return #C22.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 
+  [@vm.inferred-return-type.metadata=dart.core::_Smi]
   [@vm.unboxing-info.metadata=()->i]
   @#C13
   static get #sizeOf() → core::int
@@ -51,11 +58,14 @@ final class MyUnion extends ffi::Union {
     : super ffi::Union::_fromTypedDataBase(#typedDataBase)
     ;
 
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 1)]
   [@vm.unboxing-info.metadata=()->i]
   @#C13
   static get #sizeOf() → core::int
     return #C17.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   final self::MyStruct myStruct = new self::MyStruct::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•([@vm.inferred-type.metadata=dart.core::_Smi] self::MyStruct::#sizeOf));
   self::myNative#CC( block {

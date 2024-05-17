@@ -7,6 +7,8 @@ import "dart:core" as core;
 import "dart:ffi";
 import "dart:typed_data";
 
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   final ffi::Pointer<ffi::Int8> pointer = [@vm.direct-call.metadata=dart.ffi::Pointer.cast] [@vm.inferred-type.metadata=dart.ffi::Pointer (skip check)] [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::nullptr.{ffi::Pointer::cast}<ffi::Int8>(){() → ffi::Pointer<ffi::Int8>};
   self::myNative(pointer, pointer, 1);
@@ -16,16 +18,19 @@ static method main() → void {
   self::myNative#PT(pointer, typedData, 4);
 }
 
+[@vm.inferred-return-type.metadata=int]
 [@vm.unboxing-info.metadata=(b,b,i)->i]
 @#C6
 @#C8
 external static method myNative([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Int8> pointer, [@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Int8> pointer2, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 1)] core::int nonPointer) → core::int;
 
+[@vm.inferred-return-type.metadata=int]
 [@vm.unboxing-info.metadata=(b,b,i)->i]
 @#C6
 @#C8
 external static method myNative#TT([@vm.inferred-arg-type.metadata=!] typ::TypedData pointer, [@vm.inferred-arg-type.metadata=dart.typed_data::_Int8List] typ::TypedData pointer2, [@vm.inferred-arg-type.metadata=dart.core::_Smi] core::int nonPointer) → core::int;
 
+[@vm.inferred-return-type.metadata=int]
 [@vm.unboxing-info.metadata=(b,b,i)->i]
 @#C6
 @#C8

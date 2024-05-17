@@ -25,11 +25,13 @@ class OtherClass extends core::Object {
     : self::OtherClass::bundle = new self::AssetBundle::•(), self::OtherClass::object = new self::AnotherClass::•(), super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=dart.async::_Future]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]
   method someMethod() → asy::Future<core::String> async /* emittedValueType= core::String */ {
     return await self::OtherClass::generate([@vm.direct-call.metadata=#lib::OtherClass.bundle] [@vm.inferred-type.metadata=#lib::AssetBundle] this.{self::OtherClass::bundle}{self::AssetBundle}, [@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic>] core::_GrowableList::_literal1<dynamic>(#C1), [@vm.direct-call.metadata=#lib::OtherClass.string] [@vm.inferred-type.metadata=dart.core::_OneByteString (value: "somestring")] this.{self::OtherClass::string}{core::String}, [@vm.direct-call.metadata=#lib::OtherClass.object] [@vm.inferred-type.metadata=#lib::AnotherClass] this.{self::OtherClass::object}{self::AnotherClass}, 42);
   }
 
+  [@vm.inferred-return-type.metadata=dart.async::_Future]
   [@vm.unboxing-info.metadata=(b,b,b,b,i)->b]
   @#C3
   static method generate([@vm.inferred-arg-type.metadata=#lib::AssetBundle] self::AssetBundle bundle, [@vm.inferred-arg-type.metadata=dart.core::_GrowableList<dynamic>] core::List<dynamic> args, [@vm.inferred-arg-type.metadata=dart.core::_OneByteString (value: "somestring")] core::String string, [@vm.inferred-arg-type.metadata=#lib::AnotherClass] self::AnotherClass object, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 42)] core::int index) → asy::Future<core::String> async /* emittedValueType= core::String */ {
@@ -42,6 +44,7 @@ class AssetBundle extends core::Object {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=#lib::Message]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:8,getterSelectorId:9]
   method byIndex() → self::Message {
     return new self::Message::•();
@@ -52,6 +55,7 @@ class Message extends core::Object {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=dart.async::_Future]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:10,getterSelectorId:11]
   method generateString([@vm.inferred-arg-type.metadata=dart.core::_GrowableList<dynamic>] core::List<dynamic> args) → asy::Future<core::String> async /* emittedValueType= core::String */ {
     return col::IterableExtensions|get#firstOrNull<dynamic>(args).{core::Object::toString}{<object>}.(){() → core::String};
@@ -62,6 +66,8 @@ class AnotherClass extends core::Object {
     : super core::Object::•()
     ;
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   core::print([@vm.direct-call.metadata=#lib::OtherClass.someMethod] [@vm.inferred-type.metadata=dart.async::_Future (skip check)] new self::OtherClass::•().{self::OtherClass::someMethod}(){({required argument: core::String}) → asy::Future<core::String>});
 }

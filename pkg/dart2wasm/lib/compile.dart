@@ -153,9 +153,9 @@ Future<CompilerOutput?> compileToModule(compiler.WasmCompilerOptions options,
 
   mixin_deduplication.transformComponent(component);
 
+  // Keep the flags in-sync with
+  // pkg/vm/test/transformations/type_flow/transformer_test.dart
   globalTypeFlow.transformComponent(target, coreTypes, component,
-      treeShakeSignatures: true,
-      treeShakeWriteOnlyFields: true,
       useRapidTypeAnalysis: false);
 
   if (options.dumpKernelAfterTfa != null) {

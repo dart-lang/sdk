@@ -12,6 +12,7 @@ class T1 extends core::Object implements self::I {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
   method foo() → void {}
 }
@@ -20,6 +21,7 @@ class T2 extends core::Object implements self::I {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
   method foo() → void {}
 }
@@ -32,17 +34,23 @@ class Point extends core::Object /*hasConstConstructor*/  {
     : self::Point::x = x, super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=#lib::Point]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5]
   method newPoint1() → self::Point
     return new self::Point::•([@vm.direct-call.metadata=#lib::Point.x] [@vm.inferred-type.metadata=!] this.{self::Point::x}{self::I});
 
+  [@vm.inferred-return-type.metadata=#lib::Point]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]
   method newPoint2() → self::Point
     return new self::Point::•([@vm.direct-call.metadata=#lib::Point.x] [@vm.inferred-type.metadata=!] this.{self::Point::x}{self::I});
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method getX([@vm.inferred-arg-type.metadata=#lib::Point] dynamic point) → dynamic {
   [@vm.direct-call.metadata=#lib::Point.x] [@vm.inferred-type.metadata=!? (receiver not int)] point{dynamic}.x;
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → dynamic {
   self::Point a = new self::Point::•(new self::T1::•());
   core::print([@vm.direct-call.metadata=#lib::Point.x] [@vm.inferred-type.metadata=!] a.{self::Point::x}{self::I});

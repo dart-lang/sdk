@@ -354,6 +354,7 @@ class AnnotateKernel extends RecursiveVisitor {
   final DirectCallMetadataRepository _directCallMetadataRepository;
   final InferredTypeMetadataRepository _inferredTypeMetadata;
   final InferredArgTypeMetadataRepository _inferredArgTypeMetadata;
+  final InferredReturnTypeMetadataRepository _inferredReturnTypeMetadata;
   final UnreachableNodeMetadataRepository _unreachableNodeMetadata;
   final ProcedureAttributesMetadataRepository _procedureAttributesMetadata;
   final TableSelectorMetadataRepository _tableSelectorMetadata;
@@ -378,6 +379,7 @@ class AnnotateKernel extends RecursiveVisitor {
                 as DirectCallMetadataRepository,
         _inferredTypeMetadata = InferredTypeMetadataRepository(),
         _inferredArgTypeMetadata = InferredArgTypeMetadataRepository(),
+        _inferredReturnTypeMetadata = InferredReturnTypeMetadataRepository(),
         _unreachableNodeMetadata = UnreachableNodeMetadataRepository(),
         _procedureAttributesMetadata = ProcedureAttributesMetadataRepository(),
         _tableSelectorMetadata = TableSelectorMetadataRepository(),
@@ -387,6 +389,7 @@ class AnnotateKernel extends RecursiveVisitor {
             .getTFClass(_typeFlowAnalysis.environment.coreTypes.intClass) {
     component.addMetadataRepository(_inferredTypeMetadata);
     component.addMetadataRepository(_inferredArgTypeMetadata);
+    component.addMetadataRepository(_inferredReturnTypeMetadata);
     component.addMetadataRepository(_unreachableNodeMetadata);
     component.addMetadataRepository(_procedureAttributesMetadata);
     component.addMetadataRepository(_tableSelectorMetadata);
@@ -490,6 +493,13 @@ class AnnotateKernel extends RecursiveVisitor {
     }
   }
 
+  void _setInferredReturnType(TreeNode node, Type type) {
+    final inferredType = _convertType(type);
+    if (inferredType != null) {
+      _inferredReturnTypeMetadata.mapping[node] = inferredType;
+    }
+  }
+
   void _setUnreachable(TreeNode node) {
     _unreachableNodeMetadata.mapping[node] = const UnreachableNode();
   }
@@ -566,6 +576,10 @@ class AnnotateKernel extends RecursiveVisitor {
       if (member is Field) {
         _setInferredType(member, _typeFlowAnalysis.fieldType(member)!);
       } else {
+        if (member is Procedure && !member.isSetter) {
+          _setInferredReturnType(member, _typeFlowAnalysis.resultType(member)!);
+        }
+
         Args<Type> argTypes = _typeFlowAnalysis.argumentTypes(member)!;
         final uncheckedParameters =
             _typeFlowAnalysis.uncheckedParameters(member);

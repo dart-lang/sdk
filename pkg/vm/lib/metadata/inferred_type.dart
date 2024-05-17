@@ -178,3 +178,12 @@ class InferredArgTypeMetadataRepository extends InferredTypeMetadataRepository {
   @override
   String get tag => repositoryTag;
 }
+
+/// Repository for returned [InferredType].
+class InferredReturnTypeMetadataRepository
+    extends InferredTypeMetadataRepository {
+  static const String repositoryTag = 'vm.inferred-return-type.metadata';
+
+  @override
+  String get tag => repositoryTag;
+}

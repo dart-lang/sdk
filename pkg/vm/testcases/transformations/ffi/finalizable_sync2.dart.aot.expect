@@ -12,6 +12,7 @@ class MyFinalizable extends core::Object implements ffi::Finalizable {
     ;
 }
 
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 [@vm.closure-id=1]
 static method main() → void {
   final self::MyFinalizable finalizable = new self::MyFinalizable::•();

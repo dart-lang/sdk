@@ -27,11 +27,13 @@ abstract class _StreamImpl extends self::Stream {
     : super self::Stream::•()
     ;
 
+  [@vm.inferred-return-type.metadata=!]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
   method foobar() → self::StreamSubscription {
     return [@vm.inferred-type.metadata=!] this.{self::_StreamImpl::_createSubscription}(){() → self::StreamSubscription};
   }
 
+  [@vm.inferred-return-type.metadata=#lib::_BufferingStreamSubscription]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]
   method _createSubscription() → self::StreamSubscription {
     return new self::_BufferingStreamSubscription::•();
@@ -42,6 +44,7 @@ class _ControllerStream extends self::_StreamImpl {
     : super self::_StreamImpl::•()
     ;
 
+  [@vm.inferred-return-type.metadata=#lib::_BroadcastSubscription]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]
   method _createSubscription() → self::StreamSubscription {
     return new self::_BroadcastSubscription::•();
@@ -61,6 +64,7 @@ abstract class StreamView extends self::Stream {
     : self::StreamView::_stream = stream, super self::Stream::•()
     ;
 
+  [@vm.inferred-return-type.metadata=!]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
   method foobar() → self::StreamSubscription {
     return [@vm.inferred-type.metadata=!] [@vm.direct-call.metadata=#lib::StreamView._stream] [@vm.inferred-type.metadata=!] this.{self::StreamView::_stream}{self::Stream}.{self::Stream::foobar}(){((dynamic) →? void, {onError: core::Function?}) → self::StreamSubscription};
@@ -71,21 +75,25 @@ class ByteStream extends self::StreamView {
     : super self::StreamView::•(stream)
     ;
 
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]
   method super_foobar1() → dynamic {
     super.{self::StreamView::foobar}();
   }
 
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:8,getterSelectorId:9]
   method super_foobar2() → dynamic {
     super.{self::StreamView::foobar}();
   }
 
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:10,getterSelectorId:11]
   method super_foobar3() → dynamic {
     super.{self::StreamView::foobar}();
   }
 
+  [@vm.inferred-return-type.metadata=!]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:12]
   get super_stream() → self::Stream
     return [@vm.inferred-type.metadata=!] super.{self::StreamView::_stream};
@@ -95,25 +103,35 @@ class _HandleErrorStream extends self::Stream {
     : super self::Stream::•()
     ;
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method round0() → void {
   new self::ByteStream::•(new self::ByteStream::•(new self::_GeneratedStreamImpl::•()));
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method round1() → void {
   self::ByteStream x = new self::ByteStream::•(new self::ByteStream::•(new self::_GeneratedStreamImpl::•()));
   [@vm.direct-call.metadata=#lib::ByteStream.super_foobar1] [@vm.inferred-type.metadata=!? (skip check)] x.{self::ByteStream::super_foobar1}(){((dynamic) →? void) → dynamic};
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method round2() → void {
   new self::_ControllerStream::•();
   self::Stream x = new self::_GeneratedStreamImpl::•();
   x = new self::ByteStream::•(x);
   [@vm.direct-call.metadata=#lib::StreamView.foobar] [@vm.inferred-type.metadata=!? (skip check)] x.{self::Stream::foobar}(){((dynamic) →? void, {onError: core::Function?}) → self::StreamSubscription};
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method round3() → void {
   self::Stream x = new self::_GeneratedStreamImpl::•();
   x = new self::ByteStream::•(x);
   x = new self::_ControllerStream::•();
   [@vm.direct-call.metadata=#lib::_StreamImpl.foobar] [@vm.inferred-type.metadata=!? (skip check)] x.{self::Stream::foobar}(){((dynamic) →? void, {onError: core::Function?}) → self::StreamSubscription};
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method round4() → void {
   self::ByteStream x = new self::ByteStream::•(new self::_ControllerStream::•());
   self::Stream y = [@vm.direct-call.metadata=#lib::ByteStream.super_stream] [@vm.inferred-type.metadata=!] x.{self::ByteStream::super_stream}{self::Stream};
@@ -122,11 +140,15 @@ static method round4() → void {
     [@vm.direct-call.metadata=#lib::ByteStream.super_foobar2] [@vm.inferred-type.metadata=!? (skip check)] x.{self::ByteStream::super_foobar2}(){((dynamic) →? void) → dynamic};
   }
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method round5() → void {
   self::ByteStream x = new self::ByteStream::•(new self::_GeneratedStreamImpl::•());
   new self::_HandleErrorStream::•();
   [@vm.direct-call.metadata=#lib::ByteStream.super_foobar3] [@vm.inferred-type.metadata=!? (skip check)] x.{self::ByteStream::super_foobar3}(){({onData: (dynamic) →? void, onError: core::Function?}) → dynamic};
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main(core::List<core::String> args) → dynamic {
   new self::_GeneratedStreamImpl::•();
   self::round0();

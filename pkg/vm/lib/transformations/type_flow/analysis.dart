@@ -1878,6 +1878,8 @@ class TypeFlowAnalysis
   List<VariableDeclaration>? uncheckedParameters(Member member) =>
       _summaries[member]?.uncheckedParameters;
 
+  Type? resultType(Member member) => _summaries[member]?.resultType;
+
   bool isTearOffTaken(Member member) => _tearOffTaken.contains(member);
 
   /// Returns true if this member is called on a receiver with static type

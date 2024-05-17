@@ -20,31 +20,47 @@ static field dynamic usedObject;
 
 [@vm.inferred-type.metadata=!]
 late static field core::Function unknown;
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method use([@vm.inferred-arg-type.metadata=!] dynamic object) → void {
   self::usedObject == null ?{dynamic} self::usedObject = object : null;
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method foo1_a1([@vm.inferred-arg-type.metadata=dart.async::_Future<#lib::B>] dynamic x) → void {
   self::use(x);
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method foo1_a2([@vm.inferred-arg-type.metadata=#lib::B] dynamic x) → void {
   self::use(x);
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method foo1_a3([@vm.inferred-arg-type.metadata=dart.async::_Future<#lib::B>] dynamic x) → void {
   self::use(x);
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method foo1_a4([@vm.inferred-arg-type.metadata=#lib::B] dynamic x) → void {
   self::use(x);
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method foo1([@vm.inferred-arg-type.metadata=dart.async::_Future<#lib::B>] asy::Future<self::A> a1, [@vm.inferred-arg-type.metadata=#lib::B] self::A a2, [@vm.inferred-arg-type.metadata=dart.async::_Future<#lib::B>] FutureOr<self::A>a3, [@vm.inferred-arg-type.metadata=#lib::B] FutureOr<self::A>a4) → void {
   self::foo1_a1(a1);
   self::foo1_a2(a2);
   self::foo1_a3(a3);
   self::foo1_a4(a4);
 }
+
+[@vm.inferred-return-type.metadata=!]
 static method getDynamic() → dynamic
   return block {
     [@vm.inferred-type.metadata=!] self::unknown;
   } =>throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main(core::List<core::String> args) → dynamic {
   self::foo1([@vm.inferred-type.metadata=dart.async::_Future<#lib::B>] asy::Future::value<self::B>(new self::B::•()), new self::B::•(), [@vm.inferred-type.metadata=dart.async::_Future<#lib::B>] asy::Future::value<self::B>(new self::B::•()), new self::B::•());
   block {

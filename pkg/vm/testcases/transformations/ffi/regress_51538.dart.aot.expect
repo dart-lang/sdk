@@ -12,8 +12,12 @@ class Foo extends core::Object implements ffi::Finalizable {
     : super core::Object::•()
     ;
 }
+
+[@vm.inferred-return-type.metadata=dart.async::_Future<#lib::Foo>]
 static method bar() → asy::Future<self::Foo>
   return [@vm.inferred-type.metadata=dart.async::_Future<#lib::Foo>] asy::Future::value<self::Foo>(new self::Foo::•());
+
+[@vm.inferred-return-type.metadata=dart.async::_Future]
 static method main() → void async /* emittedValueType= void */ {
   {
     synthesized core::Iterator<self::Foo> :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<#lib::Foo>] [@vm.inferred-type.metadata=dart.core::_GrowableList<#lib::Foo>] core::_GrowableList::_literal1<self::Foo>(await self::bar()).{core::Iterable::iterator}{core::Iterator<self::Foo>};
