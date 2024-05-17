@@ -1302,6 +1302,342 @@ class MacroCodeGenerationTest extends MacroElementsBaseTest {
     );
   }
 
+  test_declarationsPhase_metadata_class_type() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+@DeclarationsPhaseAnnotationType()
+@A()
+class X {}
+
+class A {
+  const A();
+}
+''');
+
+    _assertMacroCode(library, r'''
+augment library 'package:test/test.dart';
+
+import 'package:test/code_generation.dart' as prefix0;
+import 'package:test/test.dart' as prefix1;
+
+var x = [prefix0.DeclarationsPhaseAnnotationType, prefix1.A];
+''');
+  }
+
+  test_declarationsPhase_metadata_class_type_imported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A();
+}
+''');
+
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@DeclarationsPhaseAnnotationType()
+@A()
+class X {}
+''');
+
+    _assertMacroCode(library, r'''
+augment library 'package:test/test.dart';
+
+import 'package:test/code_generation.dart' as prefix0;
+import 'package:test/a.dart' as prefix1;
+
+var x = [prefix0.DeclarationsPhaseAnnotationType, prefix1.A];
+''');
+  }
+
+  test_declarationsPhase_metadata_class_type_imported_withPrefix() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A();
+}
+''');
+
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart' as prefix;
+
+@DeclarationsPhaseAnnotationType()
+@prefix.A()
+class X {}
+''');
+
+    _assertMacroCode(library, r'''
+augment library 'package:test/test.dart';
+
+import 'package:test/code_generation.dart' as prefix0;
+import 'package:test/a.dart' as prefix1;
+
+var x = [prefix0.DeclarationsPhaseAnnotationType, prefix1.A];
+''');
+  }
+
+  test_declarationsPhase_metadata_classAlias() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+@DeclarationsPhaseAnnotationType()
+@A()
+class X = Object with M;
+
+class A {
+  const A();
+}
+
+mixin M {}
+''');
+
+    _assertMacroCode(library, r'''
+augment library 'package:test/test.dart';
+
+import 'package:test/code_generation.dart' as prefix0;
+import 'package:test/test.dart' as prefix1;
+
+var x = [prefix0.DeclarationsPhaseAnnotationType, prefix1.A];
+''');
+  }
+
+  test_declarationsPhase_metadata_classConstructor() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+class X {
+  @DeclarationsPhaseAnnotationType()
+  @A()
+  X();
+}
+
+class A {
+  const A();
+}
+''');
+
+    _assertMacroCode(library, r'''
+augment library 'package:test/test.dart';
+
+import 'package:test/code_generation.dart' as prefix0;
+import 'package:test/test.dart' as prefix1;
+
+var x = [prefix0.DeclarationsPhaseAnnotationType, prefix1.A];
+''');
+  }
+
+  test_declarationsPhase_metadata_classField() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+class X {
+  @DeclarationsPhaseAnnotationType()
+  @A()
+  final foo = 0;
+}
+
+class A {
+  const A();
+}
+''');
+
+    _assertMacroCode(library, r'''
+augment library 'package:test/test.dart';
+
+import 'package:test/code_generation.dart' as prefix0;
+import 'package:test/test.dart' as prefix1;
+
+var x = [prefix0.DeclarationsPhaseAnnotationType, prefix1.A];
+''');
+  }
+
+  test_declarationsPhase_metadata_classMethod() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+class X {
+  @DeclarationsPhaseAnnotationType()
+  @A()
+  void foo() {}
+}
+
+class A {
+  const A();
+}
+''');
+
+    _assertMacroCode(library, r'''
+augment library 'package:test/test.dart';
+
+import 'package:test/code_generation.dart' as prefix0;
+import 'package:test/test.dart' as prefix1;
+
+var x = [prefix0.DeclarationsPhaseAnnotationType, prefix1.A];
+''');
+  }
+
+  test_declarationsPhase_metadata_enum() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+@DeclarationsPhaseAnnotationType()
+@A()
+enum X {v}
+
+class A {
+  const A();
+}
+''');
+
+    _assertMacroCode(library, r'''
+augment library 'package:test/test.dart';
+
+import 'package:test/code_generation.dart' as prefix0;
+import 'package:test/test.dart' as prefix1;
+
+var x = [prefix0.DeclarationsPhaseAnnotationType, prefix1.A];
+''');
+  }
+
+  test_declarationsPhase_metadata_extension() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+@DeclarationsPhaseAnnotationType()
+@A()
+extension X on int {}
+
+class A {
+  const A();
+}
+''');
+
+    _assertMacroCode(library, r'''
+augment library 'package:test/test.dart';
+
+import 'package:test/code_generation.dart' as prefix0;
+import 'package:test/test.dart' as prefix1;
+
+var x = [prefix0.DeclarationsPhaseAnnotationType, prefix1.A];
+''');
+  }
+
+  test_declarationsPhase_metadata_extensionType() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+@DeclarationsPhaseAnnotationType()
+@A()
+extension type X(int it) {}
+
+class A {
+  const A();
+}
+''');
+
+    _assertMacroCode(library, r'''
+augment library 'package:test/test.dart';
+
+import 'package:test/code_generation.dart' as prefix0;
+import 'package:test/test.dart' as prefix1;
+
+var x = [prefix0.DeclarationsPhaseAnnotationType, prefix1.A];
+''');
+  }
+
+  test_declarationsPhase_metadata_function() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+@DeclarationsPhaseAnnotationType()
+@A()
+void foo() {}
+
+class A {
+  const A();
+}
+''');
+
+    _assertMacroCode(library, r'''
+augment library 'package:test/test.dart';
+
+import 'package:test/code_generation.dart' as prefix0;
+import 'package:test/test.dart' as prefix1;
+
+var x = [prefix0.DeclarationsPhaseAnnotationType, prefix1.A];
+''');
+  }
+
+  test_declarationsPhase_metadata_mixin() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+@DeclarationsPhaseAnnotationType()
+@A()
+mixin X {}
+
+class A {
+  const A();
+}
+''');
+
+    _assertMacroCode(library, r'''
+augment library 'package:test/test.dart';
+
+import 'package:test/code_generation.dart' as prefix0;
+import 'package:test/test.dart' as prefix1;
+
+var x = [prefix0.DeclarationsPhaseAnnotationType, prefix1.A];
+''');
+  }
+
+  test_declarationsPhase_metadata_topLevelVariable() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+@DeclarationsPhaseAnnotationType()
+@A()
+final foo = 0;
+
+class A {
+  const A();
+}
+''');
+
+    _assertMacroCode(library, r'''
+augment library 'package:test/test.dart';
+
+import 'package:test/code_generation.dart' as prefix0;
+import 'package:test/test.dart' as prefix1;
+
+var x = [prefix0.DeclarationsPhaseAnnotationType, prefix1.A];
+''');
+  }
+
+  test_declarationsPhase_metadata_typeAlias() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+@DeclarationsPhaseAnnotationType()
+@A()
+typedef X = int;
+
+class A {
+  const A();
+}
+''');
+
+    _assertMacroCode(library, r'''
+augment library 'package:test/test.dart';
+
+import 'package:test/code_generation.dart' as prefix0;
+import 'package:test/test.dart' as prefix1;
+
+var x = [prefix0.DeclarationsPhaseAnnotationType, prefix1.A];
+''');
+  }
+
   test_inferOmittedType_fieldInstance_type() async {
     var library = await buildLibrary(r'''
 import 'code_generation.dart';
