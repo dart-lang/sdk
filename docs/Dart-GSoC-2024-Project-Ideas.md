@@ -1,5 +1,5 @@
 > [!warning]
-> **Google Summer of Code 2022 is no longer accepting applications**.
+> **Google Summer of Code 2024 is no longer accepting applications**.
 
 ------
 
