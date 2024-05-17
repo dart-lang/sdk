@@ -82,7 +82,6 @@ bat
 bazbaz
 bbb
 bc
-bd
 bench
 benchmarker
 benchmarkers
@@ -180,7 +179,6 @@ consts
 contract
 conversions
 coo
-cores
 corge
 corners
 costing
@@ -792,7 +790,6 @@ theoretically
 thereby
 thereof
 thread
-threads
 ticks
 tile
 timed
@@ -857,7 +854,6 @@ val
 verbatim
 versioned
 vf
-visualization
 vp
 vt
 vte
@@ -873,7 +869,6 @@ whiskers
 wildcards
 wins
 wording
-workers
 workflow
 worlds
 wrongly
