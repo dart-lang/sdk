@@ -7,7 +7,6 @@
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/lint/util.dart' as util;
-import 'package:analyzer/src/services/lint.dart' as lint_service;
 
 export 'package:analyzer/dart/element/type_system.dart';
 export 'package:analyzer/src/dart/ast/token.dart';
@@ -17,6 +16,7 @@ export 'package:analyzer/src/dart/error/lint_codes.dart';
 export 'package:analyzer/src/dart/resolver/exit_detector.dart';
 export 'package:analyzer/src/generated/engine.dart' show AnalysisErrorInfo;
 export 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
+export 'package:analyzer/src/lint/lint_rule_timers.dart';
 export 'package:analyzer/src/lint/linter.dart'
     show
         dart2_12,
@@ -33,7 +33,6 @@ export 'package:analyzer/src/lint/linter.dart'
         State;
 export 'package:analyzer/src/lint/pub.dart' show PSEntry, PubspecVisitor;
 export 'package:analyzer/src/lint/util.dart' show FileSpelunker;
-export 'package:analyzer/src/services/lint.dart' show lintRegistry;
 export 'package:analyzer/src/utilities/extensions/ast.dart';
 export 'package:analyzer/src/workspace/pub.dart' show PubPackage;
 
@@ -46,12 +45,6 @@ class Analyzer {
 
   /// Returns currently registered lint rules.
   Iterable<LintRule> get registeredRules => Registry.ruleRegistry;
-
-  /// Cache linter version; used in summary signatures.
-  void cacheLinterVersion() {
-    // TODO(pq): remove (https://github.com/dart-lang/linter/issues/4418)
-    lint_service.linterVersion = '1.35.0';
-  }
 
   /// Create a library name prefix based on [libraryPath], [projectRoot] and
   /// current [packageName].

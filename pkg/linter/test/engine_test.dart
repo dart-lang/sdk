@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart' show AstNode, AstVisitor;
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/linter.dart';
@@ -136,17 +134,11 @@ class MockLinter extends LintRule {
 
   @override
   PubspecVisitor getPubspecVisitor() => MockPubspecVisitor(nodeVisitor);
-
-  @override
-  AstVisitor getVisitor() => MockVisitor(nodeVisitor);
 }
 
 class MockLintRule extends LintRule {
   MockLintRule(String name, Group group)
       : super(name: name, group: group, description: '', details: '');
-
-  @override
-  AstVisitor getVisitor() => MockVisitor(null);
 }
 
 class MockPubspecVisitor extends PubspecVisitor {
@@ -156,17 +148,6 @@ class MockPubspecVisitor extends PubspecVisitor {
 
   @override
   void visitPackageName(PSEntry node) {
-    nodeVisitor?.call(node);
-  }
-}
-
-class MockVisitor extends GeneralizingAstVisitor {
-  final NodeVisitor? nodeVisitor;
-
-  MockVisitor(this.nodeVisitor);
-
-  @override
-  void visitNode(AstNode node) {
     nodeVisitor?.call(node);
   }
 }

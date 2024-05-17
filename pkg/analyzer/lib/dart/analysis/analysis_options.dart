@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/source/error_processor.dart';
-import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/lint/linter.dart';
 import 'package:pub_semver/src/version_constraint.dart';
 
 /// A set of analysis options used to control the behavior of an analysis
@@ -40,12 +40,12 @@ abstract class AnalysisOptions {
   @Deprecated("Use 'warning' instead")
   bool get hint;
 
-  /// Return `true` if analysis is to generate lint warnings.
+  /// Whether analysis is to generate lint warnings.
   bool get lint;
 
-  /// Return a list of the lint rules that are to be run in an analysis context
-  /// if [lint] returns `true`.
-  List<Linter> get lintRules;
+  /// A list of the lint rules that are to be run in an analysis context if
+  /// [lint] is `true`.
+  List<LintRule> get lintRules;
 
   /// The version range for the SDK specified in `pubspec.yaml`, or `null` if
   /// there is no `pubspec.yaml` or if it does not contain an SDK range.

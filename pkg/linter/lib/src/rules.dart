@@ -240,7 +240,6 @@ import 'rules/valid_regexps.dart';
 import 'rules/void_checks.dart';
 
 void registerLintRules() {
-  Analyzer.facade.cacheLinterVersion();
   Analyzer.facade
     ..register(AlwaysDeclareReturnTypes())
     ..register(AlwaysPutControlBodyOnNewLine())

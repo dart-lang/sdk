@@ -57,11 +57,9 @@ List<AnalysisError> validatePubspec({
   if (analysisOptions != null && analysisOptions.lint) {
     var visitors = <LintRule, PubspecVisitor>{};
     for (var linter in analysisOptions.lintRules) {
-      if (linter is LintRule) {
-        var visitor = linter.getPubspecVisitor();
-        if (visitor != null) {
-          visitors[linter] = visitor;
-        }
+      var visitor = linter.getPubspecVisitor();
+      if (visitor != null) {
+        visitors[linter] = visitor;
       }
     }
     if (visitors.isNotEmpty) {
