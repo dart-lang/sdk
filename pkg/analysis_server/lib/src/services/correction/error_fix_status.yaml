@@ -1045,9 +1045,7 @@ CompileTimeErrorCode.LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR:
     Remove `late`.
     Remove `const`.
 CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED:
-  status: needsFix
-  notes: |-
-    Remove `final`.
+  status: hasFix
 CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE:
   status: noFix
 CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE:

@@ -1009,6 +1009,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION: [
     RemoveParenthesesInGetterInvocation.new,
   ],
+  CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED: [
+    MakeVariableNotFinal.new,
+  ],
   CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER: [
     AddRequiredKeyword.new,
     MakeVariableNullable.new,
