@@ -21,16 +21,24 @@ class B extends core::Object {
 
 [@vm.inferred-type.metadata=!]
 late static field core::Function unknown;
+
+[@vm.inferred-return-type.metadata=!]
 static method getDynamic() → dynamic
   return block {
     [@vm.inferred-type.metadata=!] self::unknown;
   } =>throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method allocateA() → dynamic {
   new self::A::•();
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method allocateB() → dynamic {
   new self::B::•();
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main(core::List<core::String> args) → dynamic {
   block {
     [@vm.inferred-type.metadata=!] self::getDynamic();

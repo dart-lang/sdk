@@ -9,6 +9,7 @@ import "dart:ffi";
 @#C6
 abstract final class Incomplete extends ffi::AbiSpecificInteger /*hasConstConstructor*/  {
 
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 4)]
   [@vm.unboxing-info.metadata=()->i]
   @#C8
   static get #sizeOf() → core::int
@@ -20,6 +21,7 @@ final class IncompleteStruct extends ffi::Struct {
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
 
+  [@vm.inferred-return-type.metadata=int]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
   [@vm.unboxing-info.metadata=()->i]
   get a0() → core::int
@@ -30,11 +32,13 @@ final class IncompleteStruct extends ffi::Struct {
   set a0([@vm.inferred-arg-type.metadata=dart.core::_Smi] synthesized core::int #externalFieldValue) → void
     return [@vm.inferred-type.metadata=int] ffi::_storeAbiSpecificInt<self::Incomplete>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::IncompleteStruct::a0#offsetOf.{core::num::+}([@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
 
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 0)]
   [@vm.unboxing-info.metadata=()->i]
   @#C8
   static get a0#offsetOf() → core::int
     return #C17.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 8)]
   [@vm.unboxing-info.metadata=()->i]
   @#C8
   static get #sizeOf() → core::int
@@ -46,15 +50,18 @@ final class IncompleteArrayStruct extends ffi::Struct {
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
 
+  [@vm.inferred-return-type.metadata=dart.ffi::Array<#lib::Incomplete>]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]
   get a0() → ffi::Array<self::Incomplete>
     return new ffi::Array::_<self::Incomplete>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::IncompleteArrayStruct::a0#offsetOf.{core::num::+}([@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #C20, #C25);
 
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 0)]
   [@vm.unboxing-info.metadata=()->i]
   @#C8
   static get a0#offsetOf() → core::int
     return #C17.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 400)]
   [@vm.unboxing-info.metadata=()->i]
   @#C8
   static get #sizeOf() → core::int
@@ -62,14 +69,18 @@ final class IncompleteArrayStruct extends ffi::Struct {
 }
 class _DummyAllocator extends core::Object implements ffi::Allocator /*hasConstConstructor*/  {
 
+  [@vm.inferred-return-type.metadata=dart.ffi::Pointer]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5]
   method allocate<T extends ffi::NativeType>() → ffi::Pointer<self::_DummyAllocator::allocate::T> {
     return [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Pointer::fromAddress<self::_DummyAllocator::allocate::T>();
   }
 
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]
   method free() → void {}
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   self::testSizeOf();
   self::testStoreLoad();
@@ -77,16 +88,22 @@ static method main() → void {
   self::testStruct();
   self::testInlineArray();
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method testSizeOf() → void {
   final core::int size = [@vm.inferred-type.metadata=dart.core::_Smi (value: 4)] self::Incomplete::#sizeOf;
   core::print(size);
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method testStoreLoad() → void {
   final ffi::Pointer<self::Incomplete> p = let final core::int #t1 = [@vm.inferred-type.metadata=dart.core::_Smi (value: 4)] self::Incomplete::#sizeOf in [@vm.direct-call.metadata=#lib::_DummyAllocator.allocate] [@vm.inferred-type.metadata=dart.ffi::Pointer (skip check)] #C28.{ffi::Allocator::allocate}<self::Incomplete>(){(core::int, {alignment: core::int?}) → ffi::Pointer<self::Incomplete>};
   ffi::_storeAbiSpecificInt<self::Incomplete>(p, #C16, 10);
   core::print([@vm.inferred-type.metadata=int] ffi::_loadAbiSpecificInt<self::Incomplete>(p, #C16));
   [@vm.direct-call.metadata=#lib::_DummyAllocator.free] [@vm.inferred-type.metadata=!? (skip check)] #C28.{self::_DummyAllocator::free}(){(ffi::Pointer<ffi::NativeType>) → void};
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method testStoreLoadIndexed() → void {
   final ffi::Pointer<self::Incomplete> p = let final core::num #t2 = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.*] [@vm.inferred-type.metadata=int (skip check)] 2.{core::num::*}([@vm.inferred-type.metadata=dart.core::_Smi (value: 4)] self::Incomplete::#sizeOf){(core::num) → core::num} in [@vm.direct-call.metadata=#lib::_DummyAllocator.allocate] [@vm.inferred-type.metadata=dart.ffi::Pointer (skip check)] #C28.{ffi::Allocator::allocate}<self::Incomplete>(){(core::int, {alignment: core::int?}) → ffi::Pointer<self::Incomplete>};
   ffi::_storeAbiSpecificIntAtIndex<self::Incomplete>(p, #C16, 0, 10);
@@ -95,6 +112,8 @@ static method testStoreLoadIndexed() → void {
   core::print([@vm.inferred-type.metadata=int] ffi::_loadAbiSpecificIntAtIndex<self::Incomplete>(p, #C16, 1));
   [@vm.direct-call.metadata=#lib::_DummyAllocator.free] [@vm.inferred-type.metadata=!? (skip check)] #C28.{self::_DummyAllocator::free}(){(ffi::Pointer<ffi::NativeType>) → void};
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method testStruct() → void {
   final ffi::Pointer<self::IncompleteStruct> p = let final core::int #t3 = [@vm.inferred-type.metadata=dart.core::_Smi (value: 8)] self::IncompleteStruct::#sizeOf in [@vm.direct-call.metadata=#lib::_DummyAllocator.allocate] [@vm.inferred-type.metadata=dart.ffi::Pointer (skip check)] #C28.{ffi::Allocator::allocate}<self::IncompleteStruct>(){(core::int, {alignment: core::int?}) → ffi::Pointer<self::IncompleteStruct>};
   [@vm.direct-call.metadata=#lib::IncompleteStruct.a0] [@vm.inferred-type.metadata=!? (skip check)] new self::IncompleteStruct::#fromTypedDataBase(_in::unsafeCast<ffi::Pointer<self::IncompleteStruct>>(p)).{self::IncompleteStruct::a0} = 1;
@@ -103,6 +122,8 @@ static method testStruct() → void {
   core::print([@vm.direct-call.metadata=#lib::IncompleteStruct.a0] [@vm.inferred-type.metadata=int] new self::IncompleteStruct::#fromTypedDataBase(_in::unsafeCast<ffi::Pointer<self::IncompleteStruct>>(p)).{self::IncompleteStruct::a0}{core::int});
   [@vm.direct-call.metadata=#lib::_DummyAllocator.free] [@vm.inferred-type.metadata=!? (skip check)] #C28.{self::_DummyAllocator::free}(){(ffi::Pointer<ffi::NativeType>) → void};
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method testInlineArray() → void {
   final ffi::Pointer<self::IncompleteArrayStruct> p = let final core::int #t4 = [@vm.inferred-type.metadata=dart.core::_Smi (value: 400)] self::IncompleteArrayStruct::#sizeOf in [@vm.direct-call.metadata=#lib::_DummyAllocator.allocate] [@vm.inferred-type.metadata=dart.ffi::Pointer (skip check)] #C28.{ffi::Allocator::allocate}<self::IncompleteArrayStruct>(){(core::int, {alignment: core::int?}) → ffi::Pointer<self::IncompleteArrayStruct>};
   final ffi::Array<self::Incomplete> array = [@vm.direct-call.metadata=#lib::IncompleteArrayStruct.a0] [@vm.inferred-type.metadata=dart.ffi::Array<#lib::Incomplete>] new self::IncompleteArrayStruct::#fromTypedDataBase(_in::unsafeCast<ffi::Pointer<self::IncompleteArrayStruct>>(p)).{self::IncompleteArrayStruct::a0}{ffi::Array<self::Incomplete>};

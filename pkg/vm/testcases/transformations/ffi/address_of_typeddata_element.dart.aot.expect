@@ -9,11 +9,14 @@ import "dart:typed_data";
 
 abstract final class SomeClass extends core::Object {
 
+  [@vm.inferred-return-type.metadata=int]
   [@vm.unboxing-info.metadata=(b,b)->i]
   @#C6
   @#C8
   external static method myNative#CC([@vm.inferred-arg-type.metadata=dart.ffi::_Compound] ffi::_Compound pointer, [@vm.inferred-arg-type.metadata=dart.ffi::_Compound] ffi::_Compound pointer2) → core::int;
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   final typ::Int8List typedData = [@vm.inferred-type.metadata=dart.typed_data::_Int8List] typ::Int8List::•(20);
   self::SomeClass::myNative#CC(new ffi::_Compound::_fromTypedDataBase(typedData, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.*] [@vm.inferred-type.metadata=int (skip check)] #C9.{core::num::*}(3){(core::num) → core::num}), new ffi::_Compound::_fromTypedDataBase(typedData, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.*] [@vm.inferred-type.metadata=int (skip check)] #C9.{core::num::*}(8){(core::num) → core::num}));

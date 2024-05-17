@@ -18,6 +18,8 @@ class C extends core::Object {
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1]
   set instanceField(synthesized self::B? value) → void;
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   null;
   [@vm.direct-call.metadata=#lib::C.instanceField] [@vm.inferred-type.metadata=!? (skip check)] new self::C::•().{self::C::instanceField} = null;

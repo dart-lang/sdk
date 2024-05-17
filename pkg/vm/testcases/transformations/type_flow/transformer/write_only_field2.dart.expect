@@ -39,6 +39,7 @@ class F extends core::Object implements self::E {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 42)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:2]
   [@vm.unboxing-info.metadata=()->i]
   get bar() → core::int
@@ -64,13 +65,17 @@ class I extends self::H {
     : super self::H::•()
     ;
 
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]
   method foo() → dynamic {
     super.{self::H::unused6} = 3;
   }
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method foo() → dynamic {}
 
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 [@vm.closure-id=1]
 static method main() → void {
   new self::A::•();

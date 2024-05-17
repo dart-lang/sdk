@@ -9,6 +9,8 @@ import "dart:math" as math;
 import "dart:math";
 import "file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart";
 
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → dynamic {
   pb::FooKeep foo = let final pb::FooKeep #t1 = [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep] pb::FooKeep::•() in block {
     [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.barKeep] [@vm.inferred-type.metadata=!? (skip check)] #t1.{pb::FooKeep::barKeep} = let final pb::BarKeep #t2 = [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep] pb::BarKeep::•() in block {
@@ -57,12 +59,17 @@ class FooKeep extends pro::GeneratedMessage {
   constructor _() → self::FooKeep
     : super pro::GeneratedMessage::•()
     ;
+
+  [@vm.inferred-return-type.metadata=foo.pb.dart::FooKeep]
   static factory •() → self::FooKeep
     return [@vm.inferred-type.metadata=foo.pb.dart::FooKeep] self::FooKeep::create();
 
+  [@vm.inferred-return-type.metadata=library package:protobuf/protobuf.dart::BuilderInfo]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
   get info_() → pro::BuilderInfo
     return [@vm.inferred-type.metadata=library package:protobuf/protobuf.dart::BuilderInfo] self::FooKeep::_i;
+
+  [@vm.inferred-return-type.metadata=foo.pb.dart::FooKeep]
   @#C8
   static method create() → self::FooKeep
     return new self::FooKeep::_();
@@ -73,11 +80,13 @@ class FooKeep extends pro::GeneratedMessage {
     [@vm.direct-call.metadata=library package:protobuf/protobuf.dart::GeneratedMessage.setField] [@vm.inferred-type.metadata=!? (skip check)] this.{pro::GeneratedMessage::setField}(1, v){(core::int, core::Object) → void};
   }
 
+  [@vm.inferred-return-type.metadata=library package:protobuf/protobuf.dart::PbMap]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]
   @#C12
   get mapKeep() → core::Map<core::String, self::BarKeep>
     return [@vm.direct-call.metadata=library package:protobuf/protobuf.dart::GeneratedMessage.$_getMap] [@vm.inferred-type.metadata=library package:protobuf/protobuf.dart::PbMap (skip check)] this.{pro::GeneratedMessage::$_getMap}<core::String, self::BarKeep>(2){(core::int) → pro::PbMap<core::String, self::BarKeep>};
 
+  [@vm.inferred-return-type.metadata=library package:protobuf/protobuf.dart::PbMap]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:4]
   @#C14
   get mapDrop() → core::Map<core::String, self::ZopDrop>
@@ -113,12 +122,17 @@ class BarKeep extends pro::GeneratedMessage {
   constructor _() → self::BarKeep
     : super pro::GeneratedMessage::•()
     ;
+
+  [@vm.inferred-return-type.metadata=foo.pb.dart::BarKeep]
   static factory •() → self::BarKeep
     return [@vm.inferred-type.metadata=foo.pb.dart::BarKeep] self::BarKeep::create();
 
+  [@vm.inferred-return-type.metadata=library package:protobuf/protobuf.dart::BuilderInfo]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
   get info_() → pro::BuilderInfo
     return [@vm.inferred-type.metadata=library package:protobuf/protobuf.dart::BuilderInfo] self::BarKeep::_i;
+
+  [@vm.inferred-return-type.metadata=foo.pb.dart::BarKeep]
   @#C8
   static method create() → self::BarKeep
     return new self::BarKeep::_();
@@ -147,12 +161,17 @@ class HasKeep extends pro::GeneratedMessage {
   constructor _() → self::HasKeep
     : super pro::GeneratedMessage::•()
     ;
+
+  [@vm.inferred-return-type.metadata=foo.pb.dart::HasKeep]
   static factory •() → self::HasKeep
     return [@vm.inferred-type.metadata=foo.pb.dart::HasKeep] self::HasKeep::create();
 
+  [@vm.inferred-return-type.metadata=library package:protobuf/protobuf.dart::BuilderInfo]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
   get info_() → pro::BuilderInfo
     return [@vm.inferred-type.metadata=library package:protobuf/protobuf.dart::BuilderInfo] self::HasKeep::_i;
+
+  [@vm.inferred-return-type.metadata=foo.pb.dart::HasKeep]
   @#C8
   static method create() → self::HasKeep
     return new self::HasKeep::_();
@@ -167,12 +186,17 @@ class ClearKeep extends pro::GeneratedMessage {
   constructor _() → self::ClearKeep
     : super pro::GeneratedMessage::•()
     ;
+
+  [@vm.inferred-return-type.metadata=foo.pb.dart::ClearKeep]
   static factory •() → self::ClearKeep
     return [@vm.inferred-type.metadata=foo.pb.dart::ClearKeep] self::ClearKeep::create();
 
+  [@vm.inferred-return-type.metadata=library package:protobuf/protobuf.dart::BuilderInfo]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
   get info_() → pro::BuilderInfo
     return [@vm.inferred-type.metadata=library package:protobuf/protobuf.dart::BuilderInfo] self::ClearKeep::_i;
+
+  [@vm.inferred-return-type.metadata=foo.pb.dart::ClearKeep]
   @#C8
   static method create() → self::ClearKeep
     return new self::ClearKeep::_();
@@ -187,12 +211,17 @@ class ZopDrop extends pro::GeneratedMessage {
   constructor _() → self::ZopDrop
     : super pro::GeneratedMessage::•()
     ;
+
+  [@vm.inferred-return-type.metadata=foo.pb.dart::ZopDrop]
   static factory •() → self::ZopDrop
     return [@vm.inferred-type.metadata=foo.pb.dart::ZopDrop] self::ZopDrop::create();
 
+  [@vm.inferred-return-type.metadata=library package:protobuf/protobuf.dart::BuilderInfo]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
   get info_() → pro::BuilderInfo
     return [@vm.inferred-type.metadata=library package:protobuf/protobuf.dart::BuilderInfo] self::ZopDrop::_i;
+
+  [@vm.inferred-return-type.metadata=foo.pb.dart::ZopDrop]
   @#C8
   static method create() → self::ZopDrop
     return new self::ZopDrop::_();

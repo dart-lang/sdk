@@ -5,6 +5,8 @@ import "dart:math" as math;
 
 import "dart:math" show Random;
 
+
+[@vm.inferred-return-type.metadata=dart.core::bool]
 static method listEquals<E extends core::Object? = dynamic>([@vm.inferred-arg-type.metadata=dart.core::_GrowableList<dart.core::int>] core::List<self::listEquals::E%> list1, [@vm.inferred-arg-type.metadata=dart.core::_GrowableList<dart.core::int>] core::List<self::listEquals::E%> list2) → core::bool {
   if(core::identical(list1, list2)) {
     return true;
@@ -19,6 +21,8 @@ static method listEquals<E extends core::Object? = dynamic>([@vm.inferred-arg-ty
   }
   return true;
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   math::Random random = [@vm.inferred-type.metadata=dart.math::_Random] math::Random::•();
   core::List<core::int> list1 = block {

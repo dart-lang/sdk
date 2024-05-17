@@ -35,6 +35,7 @@ static final field ffi::Pointer<ffi::NativeFunction<(ffi::Pointer<ffi::NativeTyp
 [@vm.inferred-type.metadata=dart.ffi::_NativeFinalizer]
 static final field ffi::NativeFinalizer _nativeFinalizer = new ffi::_NativeFinalizer::•([@vm.inferred-type.metadata=dart.ffi::Pointer] self::free);
 
+[@vm.inferred-return-type.metadata=dart.async::_Future]
 [@vm.closure-id=1]
 static method main() → asy::Future<void> async /* emittedValueType= void */ {
   final self::B b = new self::B::•(new self::A::•());

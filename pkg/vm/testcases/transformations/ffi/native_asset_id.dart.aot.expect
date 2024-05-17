@@ -5,15 +5,23 @@ import "dart:ffi" as ffi;
 
 import "dart:ffi";
 
+
+[@vm.inferred-return-type.metadata=dart.ffi::Pointer]
 @#C6
 @#C8
 external static method malloc() → ffi::Pointer<ffi::Void>;
+
+[@vm.inferred-return-type.metadata=dart.ffi::Pointer]
 @#C12
 @#C13
 external static method mallocInAsset() → ffi::Pointer<ffi::Void>;
+
+[@vm.inferred-return-type.metadata=dart.ffi::Pointer]
 @#C16
 static get ptr() → ffi::Pointer<ffi::Void>
   return [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_loadPointer<ffi::Void>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<ffi::Pointer<ffi::Void>>(#C15), #C17);
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   core::print([@vm.inferred-type.metadata=dart.ffi::Pointer] self::malloc());
   core::print([@vm.inferred-type.metadata=dart.ffi::Pointer] self::mallocInAsset());

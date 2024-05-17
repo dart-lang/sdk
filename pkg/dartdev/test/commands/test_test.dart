@@ -264,4 +264,44 @@ void main() {
       });
     }
   });
+
+  test('workspace', () async {
+    final p = project(
+        sdkConstraint: VersionConstraint.parse('^3.5.0-0'),
+        pubspecExtras: {
+          'workspace': ['pkgs/a', 'pkgs/b']
+        });
+    p.file('pkgs/a/pubspec.yaml', '''
+name: a
+environment:
+  sdk: ^3.5.0-0
+resolution: workspace
+dependencies:
+  b:
+  test: any
+''');
+    p.file('pkgs/b/pubspec.yaml', '''
+name: b
+environment:
+  sdk: ^3.5.0-0
+resolution: workspace
+''');
+    p.file('pkgs/a/test/a_test.dart', '''
+import 'package:test/test.dart';
+main() {
+  test('works', () {
+    print('testing package a');
+  });
+} 
+''');
+    p.file('pkgs/b/test/b_test.dart', '''
+main() => throw('Test failure');
+''');
+    expect(
+        await p.run(['test'], workingDir: path.join(p.dirPath, 'pkgs', 'a')),
+        isA<ProcessResult>()
+            .having((r) => r.stdout, 'stdout', contains('testing package a\n'))
+            .having((r) => r.stderr, 'stderr', isEmpty)
+            .having((r) => r.exitCode, 'exitCode', 0));
+  });
 }

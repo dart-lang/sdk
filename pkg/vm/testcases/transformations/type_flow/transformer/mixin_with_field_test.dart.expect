@@ -21,6 +21,8 @@ class C extends self::_C&Object&M {
     : super self::_C&Object&M::•()
     ;
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → dynamic {
   core::print([@vm.direct-call.metadata=#lib::_C&Object&M.x] [@vm.inferred-type.metadata=dart.core::_Smi (value: 7)] new self::C::•().{self::_C&Object&M::x}{core::int});
 }

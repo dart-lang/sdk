@@ -18,6 +18,8 @@ class DataStream<T extends core::Object? = dynamic> extends core::Object {
     }
   }
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   new self::DataStream::•<self::A>();
 }

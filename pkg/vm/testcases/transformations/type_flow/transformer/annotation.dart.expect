@@ -3,6 +3,8 @@ import self as self;
 import "dart:core" as core;
 
 abstract class A extends core::Object {
+
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   static method staticMethod() → void {}
 }
 class B extends core::Object {
@@ -10,15 +12,19 @@ class B extends core::Object {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
   method instanceMethod() → void {}
 }
 
+[@vm.inferred-return-type.metadata=int]
 [@vm.unboxing-info.metadata=()->i]
 static method foo() → core::int {
   core::int x = 2;
   return [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] x.{core::num::+}(2){(core::num) → core::int};
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main(core::List<core::String> args) → dynamic {
   self::A::staticMethod();
   [@vm.direct-call.metadata=#lib::B.instanceMethod] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•().{self::B::instanceMethod}(){() → void};

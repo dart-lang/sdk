@@ -102,14 +102,26 @@ class Sdk {
   // This file is only generated when building the SDK and isn't generated for
   // non-SDK build targets.
   String get librariesJson {
-    if (_runFromBuildRoot) {
-      log.stderr(
-        "WARNING: attempting to access 'libraries.json' from a build root "
-        'executable. This file is only present in the context of a full Dart '
-        'SDK.',
-      );
-    }
+    if (_runFromBuildRoot) _emitNonSdkFileAccessWarning('libraries.json');
     return path.absolute(sdkPath, 'lib', 'libraries.json');
+  }
+
+  // This file is only generated when building the SDK and isn't generated for
+  // non-SDK build targets.
+  String get wasmPlatformDill {
+    if (_runFromBuildRoot) {
+      _emitNonSdkFileAccessWarning('dart2wasm_platform.dill');
+    }
+    return path.absolute(
+        sdkPath, 'lib', '_internal', 'dart2wasm_platform.dill');
+  }
+
+  void _emitNonSdkFileAccessWarning(String file) {
+    log.stderr(
+      "WARNING: Attempting to access '$file' from a build root "
+      'executable. This file is only present in the context of a full Dart '
+      'SDK.',
+    );
   }
 
   String _snapshotPathFor(String snapshotName) => path.absolute(

@@ -11,11 +11,15 @@ class Model<T extends core::num> extends core::Object {
   constructor _([@vm.inferred-arg-type.metadata=dart.core::_Smi?] self::Model::T? value) → self::Model<self::Model::T>
     : self::Model::value = value, super core::Object::•()
     ;
+
+  [@vm.inferred-return-type.metadata=#lib::Model<dart.core::num>]
   static factory •<T extends core::num>() → self::Model<self::Model::•::T> {
     core::Object? value = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.inferred-type.metadata=int] core::int::parse("1") =={core::num::==}{(core::Object) → core::bool} 1 ?{core::int?} null : 42;
     return new self::Model::_<self::Model::•::T>(_in::unsafeCast<self::Model::•::T?>(value));
   }
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main(core::List<core::String> arguments) → void {
   final self::Model<core::num> model = [@vm.inferred-type.metadata=#lib::Model<dart.core::num>] self::Model::•<core::num>();
   core::print([@vm.direct-call.metadata=#lib::Model.value] [@vm.inferred-type.metadata=dart.core::_Smi?] model.{self::Model::value}{core::num?});

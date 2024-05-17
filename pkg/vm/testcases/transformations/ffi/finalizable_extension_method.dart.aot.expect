@@ -17,6 +17,8 @@ extension /* unnamed */ _extension#0 on ffi::Finalizable {
 extension /* unnamed */ _extension#1 on core::Object {
   method baz = self::_extension#1|baz;
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   final self::Foo foo = new self::Foo::•();
   self::_extension#0|bar(foo);
@@ -24,6 +26,7 @@ static method main() → void {
   _in::reachabilityFence(foo);
 }
 
+[@vm.inferred-return-type.metadata=dart.core::_Smi (value: 4)]
 [@vm.unboxing-info.metadata=(b)->i]
 static extension-member method _extension#0|bar([@vm.inferred-arg-type.metadata=#lib::Foo] lowered final ffi::Finalizable #this) → core::int {
   core::print("123");
@@ -33,6 +36,7 @@ static extension-member method _extension#0|bar([@vm.inferred-arg-type.metadata=
   } =>:expressionValueWrappedFinalizable;
 }
 
+[@vm.inferred-return-type.metadata=dart.core::_Smi (value: 5)]
 [@vm.unboxing-info.metadata=(b)->i]
 static extension-member method _extension#1|baz([@vm.inferred-arg-type.metadata=#lib::Foo] self::Foo foo) → core::int {
   core::print("456");

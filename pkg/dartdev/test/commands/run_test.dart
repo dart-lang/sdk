@@ -547,6 +547,61 @@ void main(List<String> args) => print("$b $args");
     expect(result.exitCode, 255);
   });
 
+  test('workspace', () async {
+    final p = project(
+        sdkConstraint: VersionConstraint.parse('^3.5.0-0'),
+        pubspecExtras: {
+          'workspace': ['pkgs/a', 'pkgs/b']
+        });
+    p.file('pkgs/a/pubspec.yaml', '''
+name: a
+environment:
+  sdk: ^3.5.0-0
+resolution: workspace
+dependencies:
+  b:
+''');
+    p.file('pkgs/b/pubspec.yaml', '''
+name: b
+environment:
+  sdk: ^3.5.0-0
+resolution: workspace
+''');
+    p.file('pkgs/a/bin/a.dart', '''
+main() => print('a:a');
+''');
+    p.file('pkgs/a/bin/tool.dart', '''
+main() => print('a:tool');
+''');
+    p.file('pkgs/b/bin/b.dart', '''
+main() => print('b:b');
+''');
+    expect(
+        await p
+            .run(['run', 'a'], workingDir: path.join(p.dirPath, 'pkgs', 'a')),
+        isA<ProcessResult>()
+            .having((r) => r.exitCode, 'exitCode', 0)
+            .having((r) => r.stdout, 'stdout', 'a:a\n'));
+    expect(
+        await p
+            .run(['run', 'a:a'], workingDir: path.join(p.dirPath, 'pkgs', 'a')),
+        isA<ProcessResult>()
+            .having((r) => r.exitCode, 'exitCode', 0)
+            .having((r) => r.stdout, 'stdout', 'a:a\n'));
+    expect(
+        await p.run(['run', ':tool'],
+            workingDir: path.join(p.dirPath, 'pkgs', 'a')),
+        isA<ProcessResult>()
+            .having((r) => r.exitCode, 'exitCode', 0)
+            .having((r) => r.stdout, 'stdout', 'a:tool\n'));
+    expect(
+        await p
+            .run(['run', 'b'], workingDir: path.join(p.dirPath, 'pkgs', 'a')),
+        isA<ProcessResult>()
+            .having((r) => r.exitCode, 'exitCode', 0)
+            .having((r) => r.stdout, 'stdout', 'b:b\n'));
+  });
+
   group('DDS', () {
     group('disable', () {
       test('dart run simple', () async {

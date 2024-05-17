@@ -3,4 +3,6 @@ import self as self;
 
 import "dart:ffi";
 
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {}

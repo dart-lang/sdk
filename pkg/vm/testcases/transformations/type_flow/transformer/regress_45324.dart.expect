@@ -14,6 +14,7 @@ class X extends core::Object implements self::A {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 2)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
   [@vm.unboxing-info.metadata=()->i]
   get targetPlatform() → core::int
@@ -22,6 +23,8 @@ class X extends core::Object implements self::A {
 
 [@vm.inferred-type.metadata=#lib::X]
 static field self::A a = new self::X::•();
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   core::print([@vm.direct-call.metadata=#lib::X.targetPlatform] [@vm.inferred-type.metadata=dart.core::_Smi (value: 2)] [@vm.inferred-type.metadata=#lib::X] self::a.{self::A::targetPlatform}{core::int});
   core::print(#C2);

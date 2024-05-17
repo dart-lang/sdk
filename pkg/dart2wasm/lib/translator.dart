@@ -80,6 +80,10 @@ class Translator with KernelNodes {
       (component.metadata[InferredArgTypeMetadataRepository.repositoryTag]
               as InferredArgTypeMetadataRepository)
           .mapping;
+  late final Map<TreeNode, InferredType> inferredReturnTypeMetadata =
+      (component.metadata[InferredReturnTypeMetadataRepository.repositoryTag]
+              as InferredReturnTypeMetadataRepository)
+          .mapping;
   late final Map<TreeNode, UnboxingInfoMetadata> unboxingInfoMetadata =
       (component.metadata[UnboxingInfoMetadataRepository.repositoryTag]
               as UnboxingInfoMetadataRepository)
@@ -287,32 +291,10 @@ class Translator with KernelNodes {
     dynamicForwarders = DynamicForwarders(this);
   }
 
-  // Finds the `main` method for a given library which is assumed to contain
-  // `main`, either directly or indirectly.
-  Procedure _findMainMethod(Library entryLibrary) {
-    // First check to see if the library itself contains main.
-    for (final procedure in entryLibrary.procedures) {
-      if (procedure.name.text == 'main') {
-        return procedure;
-      }
-    }
-
-    // In some cases, a main method is defined in another file, and then
-    // exported. In these cases, we search for the main method in
-    // [additionalExports].
-    for (final export in entryLibrary.additionalExports) {
-      if (export.node is Procedure && export.asProcedure.name.text == 'main') {
-        return export.asProcedure;
-      }
-    }
-    throw ArgumentError(
-        'Entry uri ${entryLibrary.fileUri} has no main method.');
-  }
-
   w.Module translate() {
     m = w.ModuleBuilder(watchPoints: options.watchPoints);
     voidMarker = w.RefType.def(w.StructType("void"), nullable: true);
-    mainFunction = _findMainMethod(libraries.first);
+    mainFunction = component.mainMethod!;
 
     // Collect imports and exports as the very first thing so the function types
     // for the imports can be places in singleton recursion groups.
@@ -997,16 +979,12 @@ class Translator with KernelNodes {
   DartType typeOfReturnValue(Member member) {
     if (member is Field) return typeOfField(member);
 
-    // TODO(http://dartbug.com/55668): Once TFA annotates members with inferred
-    // return types we should make use of them here.
-    return _inferredUnboxedReturnType(member) ?? member.function!.returnType;
+    return _inferredTypeOfReturnValue(member) ?? member.function!.returnType;
   }
 
   DartType typeOfField(Field node) {
     assert(!node.isLate);
-    return _inferredUnboxedReturnType(node) ??
-        _inferredTypeOfField(node) ??
-        node.type;
+    return _inferredTypeOfField(node) ?? node.type;
   }
 
   w.ValueType translateTypeOfParameter(
@@ -1028,6 +1006,11 @@ class Translator with KernelNodes {
 
   DartType? _inferredTypeOfParameterVariable(VariableDeclaration node) {
     return _filterInferredType(node.type, inferredArgTypeMetadata[node]);
+  }
+
+  DartType? _inferredTypeOfReturnValue(Member node) {
+    return _filterInferredType(
+        node.function!.returnType, inferredReturnTypeMetadata[node]);
   }
 
   DartType? _inferredTypeOfField(Field node) {
@@ -1078,20 +1061,6 @@ class Translator with KernelNodes {
     final nullability =
         inferredType.nullable ? Nullability.nullable : Nullability.nonNullable;
     return InterfaceType(concreteClass, nullability, typeArguments);
-  }
-
-  DartType? _inferredUnboxedReturnType(Member node) {
-    final unboxingInfo = unboxingInfoMetadata[node];
-    if (unboxingInfo == null) return null;
-
-    final returnInfo = unboxingInfo.returnInfo;
-    if (returnInfo.kind == UnboxingKind.int) {
-      return coreTypes.intRawType(Nullability.nonNullable);
-    }
-    if (returnInfo.kind == UnboxingKind.double) {
-      return coreTypes.doubleRawType(Nullability.nonNullable);
-    }
-    return null;
   }
 
   bool shouldInline(Reference target) {

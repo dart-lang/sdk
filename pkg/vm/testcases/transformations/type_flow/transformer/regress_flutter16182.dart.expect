@@ -11,6 +11,7 @@ class T1 extends core::Object {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
   method doTest1() → void {
     self::ok = true;
@@ -25,6 +26,7 @@ class A1 extends core::Object {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]
   method call([@vm.inferred-arg-type.metadata=#lib::T1] dynamic a5) → void {
     [@vm.direct-call.metadata=#lib::A1.foo] [@vm.inferred-type.metadata=!? (skip check)] this.{self::A1::foo} = _in::unsafeCast<self::T1?>(a5);
@@ -44,6 +46,7 @@ class T2 extends core::Object {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:9,getterSelectorId:10]
   method doTest2() → void {
     self::ok = true;
@@ -58,6 +61,7 @@ class A2 extends core::Object {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:13,getterSelectorId:14]
   method call([[@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 1)] dynamic a1 = #C1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 2)] dynamic a2 = #C1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 3)] dynamic a3 = #C1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 4)] dynamic a4 = #C1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 5)] dynamic a5 = #C1, [@vm.inferred-arg-type.metadata=#lib::T2] dynamic a6 = #C1]) → void {
     [@vm.direct-call.metadata=#lib::A2.foo] [@vm.inferred-type.metadata=!? (skip check)] this.{self::A2::foo} = a6;
@@ -72,6 +76,7 @@ abstract class B2Base extends core::Object {
     : self::B2Base::_aa = new self::A2::•(), super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=#lib::A2]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:17]
   get aa2() → dynamic
     return [@vm.direct-call.metadata=#lib::B2Base._aa] [@vm.inferred-type.metadata=#lib::A2] this.{self::B2Base::_aa}{dynamic};
@@ -81,6 +86,7 @@ class B2 extends self::B2Base {
     : super self::B2Base::•()
     ;
 
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:18,getterSelectorId:19]
   method doSuperCall() → void {
     [@vm.direct-call.metadata=#lib::A2.call] [@vm.inferred-type.metadata=!? (receiver not int)] [@vm.inferred-type.metadata=#lib::A2] super.{self::B2Base::aa2}{dynamic}(1, 2, 3, 4, 5, new self::T2::•());
@@ -91,6 +97,7 @@ class T3 extends core::Object {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:20,getterSelectorId:21]
   method doTest3() → void {
     self::ok = true;
@@ -105,6 +112,7 @@ class A3 extends core::Object {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:24,getterSelectorId:25]
   method call([[@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 1)] dynamic a1 = #C1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 2)] dynamic a2 = #C1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 3)] dynamic a3 = #C1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 4)] dynamic a4 = #C1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 5)] dynamic a5 = #C1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 6)] dynamic a6 = #C1, [@vm.inferred-arg-type.metadata=#lib::T3] dynamic a7 = #C1]) → void {
     [@vm.direct-call.metadata=#lib::A3.foo] [@vm.inferred-type.metadata=!? (skip check)] this.{self::A3::foo} = a7;
@@ -124,6 +132,7 @@ class T4 extends core::Object {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:28,getterSelectorId:29]
   method doTest4() → void {
     self::ok = true;
@@ -138,6 +147,7 @@ class A4 extends core::Object {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:32,getterSelectorId:33]
   method call([[@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 1)] dynamic a1 = #C1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 2)] dynamic a2 = #C1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 3)] dynamic a3 = #C1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 4)] dynamic a4 = #C1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 5)] dynamic a5 = #C1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 6)] dynamic a6 = #C1, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 7)] dynamic a7 = #C1, [@vm.inferred-arg-type.metadata=#lib::T4] dynamic a8 = #C1]) → void {
     [@vm.direct-call.metadata=#lib::A4.foo] [@vm.inferred-type.metadata=!? (skip check)] this.{self::A4::foo} = a8;
@@ -152,6 +162,7 @@ class B4 extends core::Object {
     : self::B4::_aa = new self::A4::•(), super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=#lib::A4]
   [@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false,getterSelectorId:36]
   get aa4() → dynamic
     return [@vm.direct-call.metadata=#lib::B4._aa] [@vm.inferred-type.metadata=#lib::A4] this.{self::B4::_aa}{dynamic};
@@ -173,6 +184,8 @@ static field dynamic bb4 = new self::B4::•();
 [@vm.inferred-type.metadata=dart.core::_Closure (closure 1 in #lib::unknown4)]
 [@vm.closure-id=1]
 static field core::Function unknown4 = [@vm.closure-id=1]() → dynamic => [@vm.inferred-type.metadata=#lib::B4?] self::bb4;
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method test1() → void {
   self::B1 bb = new self::B1::•();
   let final self::B1 #t1 = bb in let final core::int #t2 = 1 in let final core::int #t3 = 2 in let final core::int #t4 = 3 in let final core::int #t5 = 4 in let final self::T1 #t6 = new self::T1::•() in [@vm.direct-call.metadata=#lib::A1.call] [@vm.inferred-type.metadata=!? (skip check)] [@vm.direct-call.metadata=#lib::B1.aa1] [@vm.inferred-type.metadata=#lib::A1] #t1.{self::B1::aa1}{self::A1}.{self::A1::call}(#t6){([dynamic, dynamic, dynamic, dynamic, dynamic]) → void};
@@ -180,6 +193,8 @@ static method test1() → void {
   [@vm.direct-call.metadata=#lib::T1.doTest1] [@vm.inferred-type.metadata=!? (skip check)] [@vm.direct-call.metadata=#lib::A1.foo] [@vm.inferred-type.metadata=#lib::T1?] [@vm.direct-call.metadata=#lib::B1.aa1] [@vm.inferred-type.metadata=#lib::A1] bb.{self::B1::aa1}{self::A1}.{self::A1::foo}{self::T1?}!.{self::T1::doTest1}(){() → void};
   exp::Expect::isTrue([@vm.inferred-type.metadata=dart.core::bool?] self::ok);
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method test2() → void {
   self::B2 bb = new self::B2::•();
   [@vm.direct-call.metadata=#lib::B2.doSuperCall] [@vm.inferred-type.metadata=!? (skip check)] bb.{self::B2::doSuperCall}(){() → void};
@@ -187,22 +202,32 @@ static method test2() → void {
   [@vm.direct-call.metadata=#lib::T2.doTest2??] [@vm.inferred-type.metadata=!? (receiver not int)] [@vm.direct-call.metadata=#lib::A2.foo] [@vm.inferred-type.metadata=#lib::T2? (receiver not int)] [@vm.direct-call.metadata=#lib::B2Base.aa2] [@vm.inferred-type.metadata=#lib::A2] bb.{self::B2Base::aa2}{dynamic}{dynamic}.foo{dynamic}.doTest2();
   exp::Expect::isTrue([@vm.inferred-type.metadata=dart.core::bool?] self::ok);
 }
+
+[@vm.inferred-return-type.metadata=#lib::B3?]
 static method getDynamic3() → dynamic
   return [@vm.direct-call.metadata=closure 1 in #lib::unknown3] [@vm.inferred-type.metadata=#lib::B3? (receiver not int)] [@vm.inferred-type.metadata=dart.core::_Closure (closure 1 in #lib::unknown3)] self::unknown3();
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method test3() → void {
   [@vm.inferred-type.metadata=!? (receiver not int)] [@vm.inferred-type.metadata=#lib::B3?] self::getDynamic3(){dynamic}.aa3(1, 2, 3, 4, 5, 6, new self::T3::•());
   self::ok = false;
   [@vm.direct-call.metadata=#lib::T3.doTest3??] [@vm.inferred-type.metadata=!? (receiver not int)] [@vm.direct-call.metadata=#lib::A3.foo] [@vm.inferred-type.metadata=#lib::T3? (receiver not int)] [@vm.direct-call.metadata=#lib::B3.aa3??] [@vm.inferred-type.metadata=#lib::A3 (receiver not int)] [@vm.inferred-type.metadata=#lib::B3?] self::bb3{dynamic}.aa3{dynamic}.foo{dynamic}.doTest3();
   exp::Expect::isTrue([@vm.inferred-type.metadata=dart.core::bool?] self::ok);
 }
+
+[@vm.inferred-return-type.metadata=#lib::B4?]
 static method getDynamic4() → dynamic
   return [@vm.direct-call.metadata=closure 1 in #lib::unknown4] [@vm.inferred-type.metadata=#lib::B4? (receiver not int)] [@vm.inferred-type.metadata=dart.core::_Closure (closure 1 in #lib::unknown4)] self::unknown4();
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method test4() → void {
   [@vm.inferred-type.metadata=!? (receiver not int)] [@vm.inferred-type.metadata=#lib::B4?] self::getDynamic4(){dynamic}.aa4(1, 2, 3, 4, 5, 6, 7, new self::T4::•());
   self::ok = false;
   [@vm.direct-call.metadata=#lib::T4.doTest4??] [@vm.inferred-type.metadata=!? (receiver not int)] [@vm.direct-call.metadata=#lib::A4.foo] [@vm.inferred-type.metadata=#lib::T4? (receiver not int)] [@vm.direct-call.metadata=#lib::B4.aa4??] [@vm.inferred-type.metadata=#lib::A4 (receiver not int)] [@vm.inferred-type.metadata=#lib::B4?] self::getDynamic4(){dynamic}.aa4{dynamic}.foo{dynamic}.doTest4();
   exp::Expect::isTrue([@vm.inferred-type.metadata=dart.core::bool?] self::ok);
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   self::test1();
   self::test2();

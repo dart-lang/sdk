@@ -6,6 +6,8 @@ import "dart:_internal" as _in;
 
 import "file:pkg/vm/testcases/transformations/type_flow/transformer/enum_from_lib_used_as_type.lib.dart";
 
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → dynamic {
   core::List<dynamic> list = [@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic>] core::_GrowableList::•<dynamic>(0);
   if([@vm.direct-call.metadata=dart.core::_GrowableList.isNotEmpty] [@vm.inferred-type.metadata=dart.core::bool] list.{core::Iterable::isNotEmpty}{core::bool}) {

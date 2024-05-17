@@ -9,10 +9,13 @@ import "org-dartlang-test:///testcases/transformations/resource_identifier/loadi
 
 abstract class SomeClass extends core::Object {
 
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.unboxing-info.metadata=(i)->b]
   @#C2
   static method someStaticMethod([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 42)] core::int i) → void {}
 }
+
+[@vm.inferred-return-type.metadata=dart.async::_Future]
 static method main() → void async /* emittedValueType= void */ {
   self::SomeClass::someStaticMethod(42);
   await LoadLibrary(helper);

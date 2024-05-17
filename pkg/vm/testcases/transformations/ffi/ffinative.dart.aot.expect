@@ -10,6 +10,7 @@ import "dart:nativewrappers";
 
 abstract class Classy extends core::Object {
 
+  [@vm.inferred-return-type.metadata=int]
   [@vm.unboxing-info.metadata=(i)->i]
   @#C6
   @#C8
@@ -94,6 +95,7 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
       _in::reachabilityFence(#t10);
     } =>#t12;
 
+  [@vm.inferred-return-type.metadata=dart.core::bool]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:13,getterSelectorId:14]
   @#C30
   @#C14
@@ -110,6 +112,7 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
       _in::reachabilityFence(#t13);
     } =>#t14;
 
+  [@vm.inferred-return-type.metadata=dart.core::bool]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:15,getterSelectorId:16]
   @#C32
   @#C14
@@ -158,23 +161,31 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
   external static method _goodHasReceiverPtrAndHandle$Method$FfiNative([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Void> #t0, [@vm.inferred-arg-type.metadata=#lib::NativeClassy] self::NativeClassy #t1) → void;
   @#C40
   external static method _meh$Method$FfiNative([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Void> #t0, [@vm.inferred-arg-type.metadata=dart.core::bool (value: true)] core::bool #t1) → core::Object?;
+
+  [@vm.inferred-return-type.metadata=dart.core::bool]
   @#C41
   external static method _blah$Method$FfiNative([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Void> #t0) → core::bool;
+
+  [@vm.inferred-return-type.metadata=dart.core::bool]
   @#C42
   external static method _myField$Getter$FfiNative([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Void> #t0) → core::bool;
   @#C43
   external static method _myField$Setter$FfiNative([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Void> #t0, [@vm.inferred-arg-type.metadata=dart.core::bool] core::bool #t1) → void;
 }
 
+[@vm.inferred-return-type.metadata=int]
 [@vm.unboxing-info.metadata=(i)->i]
 @#C6
 @#C8
 external static method returnIntPtr([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 13)] core::int x) → core::int;
 
+[@vm.inferred-return-type.metadata=int]
 [@vm.unboxing-info.metadata=(i)->i]
 @#C45
 @#C46
 external static method returnIntPtrLeaf([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 37)] core::int x) → core::int;
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   self::returnIntPtr(13);
   self::returnIntPtrLeaf(37);

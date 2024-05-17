@@ -6,6 +6,8 @@ import "loading_units_multiple_helper.dart" as loa2;
 import "org-dartlang-test:///testcases/transformations/resource_identifier/loading_units_multiple_helper_shared.dart";
 import "org-dartlang-test:///testcases/transformations/resource_identifier/loading_units_multiple_helper.dart" deferred as helper;
 
+
+[@vm.inferred-return-type.metadata=dart.async::_Future]
 static method main() → void async /* emittedValueType= void */ {
   loa::SomeClass::someStaticMethod(42);
   await LoadLibrary(helper);

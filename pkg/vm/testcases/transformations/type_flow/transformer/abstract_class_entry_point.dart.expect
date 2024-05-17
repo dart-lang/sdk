@@ -5,6 +5,8 @@ import "dart:core" as core;
 @#C3
 abstract class AbstractEmptyClass extends core::Object {
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → dynamic {}
 constants  {
   #C1 = "vm:entry-point"

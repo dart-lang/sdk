@@ -12,6 +12,7 @@ class Foo extends core::Object implements ffi::Finalizable {
     ;
 }
 
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 [@vm.closure-id=3]
 static method main() → void {
   [@vm.inferred-type.metadata=#lib::Foo?] self::Foo? :foo:finalizableValue;

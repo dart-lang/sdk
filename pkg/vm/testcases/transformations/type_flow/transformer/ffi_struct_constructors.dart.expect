@@ -40,10 +40,12 @@ final class Struct11 extends ffi::Struct {
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase, #C7)
     ;
 
+  [@vm.inferred-return-type.metadata=#lib::Struct12]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
   get nested() → self::Struct12
     return new self::Struct12::#fromTypedDataBase([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::Struct11::nested#offsetOf.{core::num::+}([@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
 
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 0)]
   [@vm.unboxing-info.metadata=()->i]
   @#C13
   static get nested#offsetOf() → core::int
@@ -63,6 +65,8 @@ static final field ffi::Pointer<ffi::NativeFunction<(self::Struct3) → ffi::Int
 
 [@vm.inferred-type.metadata=dart.ffi::Pointer]
 static final field ffi::Pointer<ffi::NativeFunction<() → self::Struct7>> _#ffiCallback1 = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_createNativeCallableIsolateLocal<ffi::NativeFunction<() → self::Struct7>>(ffi::_nativeCallbackFunction<() → self::Struct7>(#C16, null), null, false);
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   self::testLookupFunctionReturn();
   self::testLookupFunctionArgument();
@@ -74,6 +78,7 @@ static method main() → void {
   self::testNestedLoad();
 }
 
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 [@vm.closure-id=1]
 static method testLookupFunctionReturn() → void {
   final ffi::DynamicLibrary dylib = [@vm.inferred-type.metadata=dart.ffi::DynamicLibrary] ffi::DynamicLibrary::executable();
@@ -92,6 +97,7 @@ static method testLookupFunctionReturn() → void {
   core::print(struct1);
 }
 
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 [@vm.closure-id=1]
 static method testAsFunctionReturn() → void {
   final ffi::Pointer<ffi::NativeFunction<() → self::Struct2>> pointer = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Pointer::fromAddress<ffi::NativeFunction<() → self::Struct2>>(3735928559);
@@ -110,16 +116,21 @@ static method testAsFunctionReturn() → void {
   core::print(struct2);
 }
 
+[@vm.inferred-return-type.metadata=dart.core::_Smi (value: 42)]
 [@vm.unboxing-info.metadata=(b)->i]
 static method useStruct3(self::Struct3 struct3) → core::int {
   return 42;
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method testFromFunctionArgument() → void {
   final ffi::Pointer<ffi::NativeFunction<(self::Struct3) → ffi::Int32>> pointer = block {
     _in::_nativeEffect(new self::Struct3::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•(#C17)));
   } =>[@vm.inferred-type.metadata=dart.ffi::Pointer] self::_#ffiCallback0;
   core::print(pointer);
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method testLookupFunctionArgument() → void {
   final ffi::DynamicLibrary dylib = [@vm.inferred-type.metadata=dart.ffi::DynamicLibrary] ffi::DynamicLibrary::executable();
   final (self::Struct5) → void function5 = block {
@@ -132,6 +143,8 @@ static method testLookupFunctionArgument() → void {
   } =>#ffiClosure2;
   core::print(function5);
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method testAsFunctionArgument() → void {
   final ffi::Pointer<ffi::NativeFunction<(self::Struct6) → ffi::Void>> pointer = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Pointer::fromAddress<ffi::NativeFunction<(self::Struct6) → ffi::Void>>(3735928559);
   final (self::Struct6) → void function6 = block {
@@ -144,18 +157,26 @@ static method testAsFunctionArgument() → void {
   } =>#ffiClosure3;
   core::print(function6);
 }
+
+[@vm.inferred-return-type.metadata=!]
 static method returnStruct7() → self::Struct7 {
   throw "I don't want to create a Struct7!";
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method testFromFunctionReturn() → void {
   final ffi::Pointer<ffi::NativeFunction<() → self::Struct7>> pointer = [@vm.inferred-type.metadata=dart.ffi::Pointer] self::_#ffiCallback1;
   core::print(pointer);
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method testPointerLoad() → void {
   final ffi::Pointer<self::Struct11> pointer = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Pointer::fromAddress<self::Struct11>(3735928559);
   final self::Struct11 struct11 = new self::Struct11::#fromTypedDataBase(_in::unsafeCast<ffi::Pointer<self::Struct11>>(pointer));
   core::print(struct11);
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method testNestedLoad() → void {
   final ffi::Pointer<self::Struct11> pointer = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Pointer::fromAddress<self::Struct11>(3735928559);
   final self::Struct11 struct11 = new self::Struct11::#fromTypedDataBase(_in::unsafeCast<ffi::Pointer<self::Struct11>>(pointer));

@@ -23,6 +23,7 @@ class BI1B extends core::Object implements self::BI1 {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
   get value() → core::int?
     return null;
@@ -46,6 +47,7 @@ class BI2B extends core::Object implements self::BI2 {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=int]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:2]
   get value() → core::int?
     return [@vm.inferred-type.metadata=int] self::smiOrMint;
@@ -74,6 +76,7 @@ class BI3B extends core::Object implements self::BI3 {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=int]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]
   get value() → core::int?
     return [@vm.inferred-type.metadata=int] self::smiOrMint;
@@ -104,6 +107,7 @@ class UBIB extends core::Object implements self::UBI {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=int]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:5]
   [@vm.unboxing-info.metadata=()->i]
   get value() → core::int?
@@ -116,16 +120,22 @@ static final field core::bool kTrue = [@vm.direct-call.metadata=dart.core::_Inte
 [@vm.inferred-type.metadata=int?]
 static field dynamic usedObject;
 
+[@vm.inferred-return-type.metadata=int]
 [@vm.unboxing-info.metadata=()->i]
 static get mint() → core::int
   return -6144092014192636707;
 
+[@vm.inferred-return-type.metadata=int]
 [@vm.unboxing-info.metadata=()->i]
 static get smiOrMint() → core::int
   return [@vm.inferred-type.metadata=dart.core::bool] self::kTrue ?{core::int} 1 : [@vm.inferred-type.metadata=int] self::mint;
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method use([@vm.inferred-arg-type.metadata=int?] dynamic object) → void {
   [@vm.inferred-type.metadata=int?] self::usedObject == null ?{dynamic} self::usedObject = object : null;
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → dynamic {
   final self::BI1A bi1a = new self::BI1A::•([@vm.inferred-type.metadata=int] self::smiOrMint);
   final self::BI1B bi1b = new self::BI1B::•();

@@ -13,9 +13,13 @@ class SomeClass extends core::Object {
 extension /* unnamed */ _extension#0 on self::SomeClass {
   method callWithArgs = self::_extension#0|callWithArgs;
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   self::_extension#0|callWithArgs(new self::SomeClass::•(), "42");
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 @#C2
 static extension-member method _extension#0|callWithArgs([@vm.inferred-arg-type.metadata=#lib::SomeClass] lowered final self::SomeClass #this, [@vm.inferred-arg-type.metadata=dart.core::_OneByteString (value: "42")] core::String s) → void {
   s = [@vm.direct-call.metadata=dart.core::_StringBase.+] [@vm.inferred-type.metadata=!? (skip check)] s.{core::String::+}("suffix"){(core::String) → core::String};
