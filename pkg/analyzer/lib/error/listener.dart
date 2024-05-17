@@ -88,9 +88,9 @@ class ErrorReporter {
 
   /// Report an error with the given [errorCode] and [arguments].
   /// The [entity] is used to compute the location of the error.
-  void atEntity({
-    required SyntacticEntity entity,
-    required ErrorCode errorCode,
+  void atEntity(
+    SyntacticEntity entity,
+    ErrorCode errorCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,

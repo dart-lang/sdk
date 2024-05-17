@@ -108,8 +108,8 @@ class ExtensionMemberResolver {
       },
       (noneMoreSpecific) {
         _errorReporter.atEntity(
-          entity: nameEntity,
-          errorCode: CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS,
+          nameEntity,
+          CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS,
           arguments: [
             name,
             noneMoreSpecific.map((e) {

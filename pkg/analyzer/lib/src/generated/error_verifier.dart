@@ -4966,8 +4966,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         element.isConst &&
         !redirectedElement.isConst) {
       errorReporter.atEntity(
-        entity: errorEntity,
-        errorCode: CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR,
+        errorEntity,
+        CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR,
       );
     }
   }
@@ -5823,8 +5823,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         typeParameter as TypeParameterElementImpl;
     if (!variance.greaterThanOrEqual(typeParameterImpl.variance)) {
       errorReporter.atEntity(
-        entity: errorTarget,
-        errorCode: CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_POSITION,
+        errorTarget,
+        CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_POSITION,
         arguments: [
           typeParameterImpl.variance.keyword,
           typeParameterImpl.name,
@@ -6034,9 +6034,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           if (parameter.defaultValue != null) {
             var errorTarget = _parameterName(parameter) ?? parameter;
             errorReporter.atEntity(
-              entity: errorTarget,
-              errorCode:
-                  CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER,
+              errorTarget,
+              CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER,
             );
           }
         } else if (defaultValuesAreExpected) {
@@ -6046,24 +6045,23 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             if (typeSystem.isPotentiallyNonNullable(type)) {
               var parameterName = _parameterName(parameter);
               var errorTarget = parameterName ?? parameter;
-
-              List<Object> arguments = const [];
-              ErrorCode errorCode;
               if (parameterElement.hasRequired) {
-                errorCode = CompileTimeErrorCode
-                    .MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION;
+                errorReporter.atEntity(
+                  errorTarget,
+                  CompileTimeErrorCode
+                      .MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION,
+                );
               } else {
-                errorCode = parameterElement.isPositional
-                    ? CompileTimeErrorCode
-                        .MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL
-                    : CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER;
-                arguments = [parameterName?.lexeme ?? '?'];
+                errorReporter.atEntity(
+                  errorTarget,
+                  parameterElement.isPositional
+                      ? CompileTimeErrorCode
+                          .MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL
+                      : CompileTimeErrorCode
+                          .MISSING_DEFAULT_VALUE_FOR_PARAMETER,
+                  arguments: [parameterName?.lexeme ?? '?'],
+                );
               }
-              errorReporter.atEntity(
-                entity: errorTarget,
-                errorCode: errorCode,
-                arguments: arguments,
-              );
             }
           }
         }

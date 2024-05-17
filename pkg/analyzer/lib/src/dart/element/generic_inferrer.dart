@@ -269,8 +269,8 @@ class GenericInferrer {
         if (failAtError) return null;
         hasErrorReported = true;
         errorReporter?.atEntity(
-          entity: errorEntity!,
-          errorCode: CompileTimeErrorCode.COULD_NOT_INFER,
+          errorEntity!,
+          CompileTimeErrorCode.COULD_NOT_INFER,
           arguments: [
             parameter.name,
             _formatError(parameter, inferred, constraints)
@@ -292,8 +292,8 @@ class GenericInferrer {
         var typeFormals = inferred.typeFormals;
         var typeFormalsStr = typeFormals.map(_elementStr).join(', ');
         errorReporter!.atEntity(
-          entity: errorEntity!,
-          errorCode: CompileTimeErrorCode.COULD_NOT_INFER,
+          errorEntity!,
+          CompileTimeErrorCode.COULD_NOT_INFER,
           arguments: [
             parameter.name,
             ' Inferred candidate type ${_typeStr(inferred)} has type parameters'
@@ -333,8 +333,8 @@ class GenericInferrer {
             .substituteType(typeParam.bound ?? typeProvider.objectType);
         // TODO(jmesserly): improve this error message.
         errorReporter?.atEntity(
-          entity: errorEntity!,
-          errorCode: CompileTimeErrorCode.COULD_NOT_INFER,
+          errorEntity!,
+          CompileTimeErrorCode.COULD_NOT_INFER,
           arguments: [
             typeParam.name,
             "\nRecursive bound cannot be instantiated: '$typeParamBound'."
@@ -376,8 +376,8 @@ class GenericInferrer {
       var bound = substitution.substituteType(rawBound);
       if (!_typeSystem.isSubtypeOf(argument, bound)) {
         errorReporter?.atEntity(
-          entity: errorEntity!,
-          errorCode: CompileTimeErrorCode.COULD_NOT_INFER,
+          errorEntity!,
+          CompileTimeErrorCode.COULD_NOT_INFER,
           arguments: [
             parameter.name,
             "\n'${_typeStr(argument)}' doesn't conform to "
