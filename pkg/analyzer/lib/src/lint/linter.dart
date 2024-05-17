@@ -37,7 +37,6 @@ import 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/lint/state.dart';
-import 'package:analyzer/src/services/lint.dart' show Linter;
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
@@ -320,7 +319,11 @@ abstract class LintFilter {
 }
 
 /// Describes a lint rule.
-abstract class LintRule extends Linter implements Comparable<LintRule> {
+abstract class LintRule implements Comparable<LintRule>, NodeLintRule {
+  /// Used to report lint warnings.
+  /// NOTE: this is set by the framework before visit begins.
+  late ErrorReporter reporter;
+
   /// Description (in markdown format) suitable for display in a detailed lint
   /// description.
   final String details;
@@ -332,7 +335,6 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
   final Group group;
 
   /// Lint name.
-  @override
   final String name;
 
   /// The documentation for the lint that should appear on the Diagnostic
@@ -369,8 +371,11 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
   /// A list of incompatible rule ids.
   List<String> get incompatibleRules => const [];
 
-  @override
+  /// The lint code associated with this linter.
   LintCode get lintCode => _LintCode(name, description);
+
+  /// The lint codes associated with this lint rule.
+  List<LintCode> get lintCodes => [lintCode];
 
   @override
   int compareTo(LintRule other) {
@@ -387,7 +392,8 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
   PubspecVisitor? getPubspecVisitor() => null;
 
   @override
-  AstVisitor? getVisitor() => null;
+  void registerNodeProcessors(
+      NodeLintRegistry registry, LinterContext context) {}
 
   void reportLint(AstNode? node,
       {List<Object> arguments = const [],

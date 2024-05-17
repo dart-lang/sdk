@@ -45,9 +45,9 @@ import 'package:analyzer/src/generated/ffi_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/hint/sdk_constraint_verifier.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
+import 'package:analyzer/src/lint/lint_rule_timers.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
-import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/version.dart';
 import 'package:analyzer/src/workspace/pub.dart';
@@ -372,7 +372,7 @@ class LibraryAnalyzer {
     );
     for (var linter in _analysisOptions.lintRules) {
       linter.reporter = errorReporter;
-      var timer = enableTiming ? lintRegistry.getTimer(linter) : null;
+      var timer = enableTiming ? lintRuleTimers.getTimer(linter) : null;
       timer?.start();
       linter.registerNodeProcessors(nodeRegistry, context);
       timer?.stop();

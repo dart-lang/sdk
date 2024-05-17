@@ -4,8 +4,8 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/lint/lint_rule_timers.dart';
 import 'package:analyzer/src/lint/linter.dart';
-import 'package:analyzer/src/services/lint.dart';
 
 /// The type of the function that handles exceptions in lints.
 ///
@@ -2070,7 +2070,7 @@ class NodeLintRegistry {
   /// Get the timer associated with the given [linter].
   Stopwatch? _getTimer(LintRule linter) {
     if (enableTiming) {
-      return lintRegistry.getTimer(linter);
+      return lintRuleTimers.getTimer(linter);
     } else {
       return null;
     }

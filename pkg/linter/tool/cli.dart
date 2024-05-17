@@ -174,7 +174,7 @@ Future<void> writeBenchmarks(
   var timings = <String, int>{};
   for (var i = 0; i < benchmarkRuns; ++i) {
     await lintFiles(DartLinter(linterOptions), filesToLint);
-    lintRegistry.timers.forEach((n, t) {
+    lintRuleTimers.timers.forEach((n, t) {
       var timing = t.elapsedMilliseconds;
       var previous = timings[n];
       if (previous == null) {
