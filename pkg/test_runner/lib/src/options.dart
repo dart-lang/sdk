@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 import 'dart:convert';
+import 'dart:ffi';
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -1008,8 +1009,15 @@ final Map<String, String> sanitizerEnvironmentVariables = (() {
   config['sanitizer_options'].forEach((String key, dynamic value) {
     environment[key] = value as String;
   });
-  final relativePath =
-      config['sanitizer_symbolizer'][Platform.operatingSystem] as String?;
+  final relativePath = {
+    Abi.linuxX64: "buildtools/linux-x64/clang/bin/llvm-symbolizer",
+    Abi.linuxArm64: "buildtools/linux-arm64/clang/bin/llvm-symbolizer",
+    Abi.macosX64: "buildtools/mac-x64/clang/bin/llvm-symbolizer",
+    Abi.macosArm64: "buildtools/mac-arm64/clang/bin/llvm-symbolizer",
+    Abi.windowsX64: "buildtools\\win-x64\\clang\\bin\\llvm-symbolizer.exe",
+    // No native win-arm64 toolchain available, rely on transparent emulation.
+    Abi.windowsArm64: "buildtools\\win-x64\\clang\\bin\\llvm-symbolizer.exe",
+  }[Abi.current()];
   if (relativePath != null) {
     var symbolizerPath = path.join(Directory.current.path, relativePath);
     environment['ASAN_SYMBOLIZER_PATH'] = symbolizerPath;
