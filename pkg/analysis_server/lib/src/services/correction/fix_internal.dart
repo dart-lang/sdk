@@ -934,6 +934,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER: [
     ReplaceWithExtensionName.new,
   ],
+  CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE: [
+    ReplaceCascadeWithDot.new,
+  ],
   CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS: [
     CreateConstructor.new,
   ],
