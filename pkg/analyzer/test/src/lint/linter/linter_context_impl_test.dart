@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -28,7 +30,12 @@ abstract class AbstractLinterContextTest extends PubPackageResolutionTest {
 
   Future<void> resolve(String content) async {
     await resolveTestCode(content);
-    var contextUnit = LinterContextUnit(result.content, result.unit);
+    var errorReporter = ErrorReporter(
+      RecordingErrorListener(),
+      StringSource(result.content, null),
+    );
+    var contextUnit =
+        LinterContextUnit(result.content, result.unit, errorReporter);
 
     var libraryElement = result.libraryElement;
     var analysisContext = libraryElement.session.analysisContext;

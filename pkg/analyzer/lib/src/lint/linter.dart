@@ -16,7 +16,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart' as file_system;
 import 'package:analyzer/file_system/physical_file_system.dart' as file_system;
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
@@ -269,22 +268,9 @@ class LinterContextUnit {
 
   final CompilationUnit unit;
 
-  LinterContextUnit(this.content, this.unit);
-}
+  final ErrorReporter errorReporter;
 
-// TODO(scheglov): This class exists only because there are places in the
-// analyzer and analysis server that instantiate [LinterContextUnit]. This
-// should not happen, and should be fixed.
-class LinterContextUnit2 implements LinterContextUnit {
-  final FileState file;
-
-  @override
-  final CompilationUnit unit;
-
-  LinterContextUnit2(this.file, this.unit);
-
-  @override
-  String get content => file.content;
+  LinterContextUnit(this.content, this.unit, this.errorReporter);
 }
 
 /// Thrown when an error occurs in linting.
@@ -321,8 +307,9 @@ abstract class LintFilter {
 /// Describes a lint rule.
 abstract class LintRule implements Comparable<LintRule>, NodeLintRule {
   /// Used to report lint warnings.
-  /// NOTE: this is set by the framework before visit begins.
-  late ErrorReporter reporter;
+  /// NOTE: this is set by the framework before any node processors start
+  /// visiting nodes.
+  late ErrorReporter _reporter;
 
   /// Description (in markdown format) suitable for display in a detailed lint
   /// description.
@@ -376,6 +363,17 @@ abstract class LintRule implements Comparable<LintRule>, NodeLintRule {
 
   /// The lint codes associated with this lint rule.
   List<LintCode> get lintCodes => [lintCode];
+
+  @protected
+  // Protected so that lint rule visitors do not access this directly.
+  // TODO(srawlins): With the new availability of an ErrorReporter on
+  // LinterContextUnit, we should probably remove this reporter. But whatever
+  // the new API would be is not yet decided. It might also change with the
+  // notion of post-processing lint rules that have access to all unit
+  // reporters at once.
+  ErrorReporter get reporter => _reporter;
+
+  set reporter(ErrorReporter value) => _reporter = value;
 
   @override
   int compareTo(LintRule other) {
