@@ -2146,6 +2146,9 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
       __ WriteAllocationCanary(kNewTopReg);  // Fix overshoot.
     }  // kFieldReg = R4
 
+    __ AddImmediate(AllocateObjectABI::kResultReg,
+                    AllocateObjectABI::kResultReg, kHeapObjectTag);
+
     if (is_cls_parameterized) {
       Label not_parameterized_case;
 
@@ -2164,17 +2167,14 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
           kFourBytes);
 
       // Set the type arguments in the new object.
+      __ add(kTypeOffsetReg, AllocateObjectABI::kResultReg,
+             Operand(kTypeOffsetReg, LSL, target::kCompressedWordSizeLog2));
       __ StoreCompressedIntoObjectNoBarrier(
-          AllocateObjectABI::kResultReg,
-          Address(AllocateObjectABI::kResultReg, kTypeOffsetReg, UXTX,
-                  Address::Scaled),
+          AllocateObjectABI::kResultReg, FieldAddress(kTypeOffsetReg, 0),
           AllocateObjectABI::kTypeArgumentsReg);
 
       __ Bind(&not_parameterized_case);
     }  // kClsIdReg = R4, kTypeOffsetReg = R5
-
-    __ AddImmediate(AllocateObjectABI::kResultReg,
-                    AllocateObjectABI::kResultReg, kHeapObjectTag);
 
     __ ret();
 

@@ -1825,6 +1825,9 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
       __ Bind(&done);
     }  // kFieldReg = R1, kNullReg = R9
 
+    __ AddImmediate(AllocateObjectABI::kResultReg,
+                    AllocateObjectABI::kResultReg, kHeapObjectTag);
+
     // Store parameterized type.
     if (is_cls_parameterized) {
       Label not_parameterized_case;
@@ -1843,17 +1846,14 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
                            host_type_arguments_field_offset_in_words_offset()));
 
       // Set the type arguments in the new object.
-      __ StoreIntoObjectNoBarrier(
-          AllocateObjectABI::kResultReg,
-          Address(AllocateObjectABI::kResultReg, kTypeOffsetReg, LSL,
-                  target::kWordSizeLog2),
-          AllocateObjectABI::kTypeArgumentsReg);
+      __ add(kTypeOffsetReg, AllocateObjectABI::kResultReg,
+             Operand(kTypeOffsetReg, LSL, target::kWordSizeLog2));
+      __ StoreIntoObjectNoBarrier(AllocateObjectABI::kResultReg,
+                                  FieldAddress(kTypeOffsetReg, 0),
+                                  AllocateObjectABI::kTypeArgumentsReg);
 
       __ Bind(&not_parameterized_case);
     }  // kClsIdReg = R1, kTypeOffsetReg = R9
-
-    __ AddImmediate(AllocateObjectABI::kResultReg,
-                    AllocateObjectABI::kResultReg, kHeapObjectTag);
 
     __ Ret();
 
