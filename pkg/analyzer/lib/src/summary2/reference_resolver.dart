@@ -42,6 +42,28 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
         scope = container.scope;
 
   @override
+  void visitAnnotation(covariant AnnotationImpl node) {
+    if (node.arguments != null) {
+      var identifier = node.name;
+      if (identifier is PrefixedIdentifierImpl) {
+        var prefixNode = identifier.prefix;
+        var prefixElement = scope.lookup(prefixNode.name).getter;
+        prefixNode.staticElement = prefixElement;
+
+        if (prefixElement is PrefixElement) {
+          var name = identifier.identifier.name;
+          var element = prefixElement.scope.lookup(name).getter;
+          identifier.identifier.staticElement = element;
+        }
+      } else if (identifier is SimpleIdentifierImpl) {
+        var element = scope.lookup(identifier.name).getter;
+        identifier.staticElement = element;
+        return;
+      }
+    }
+  }
+
+  @override
   void visitBlockFunctionBody(BlockFunctionBody node) {}
 
   @override
@@ -52,6 +74,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     scope = TypeParameterScope(scope, element.typeParameters);
 
+    node.metadata.accept(this);
     node.typeParameters?.accept(this);
     node.extendsClause?.accept(this);
     node.withClause?.accept(this);
@@ -75,6 +98,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     scope = TypeParameterScope(scope, element.typeParameters);
     LinkingNodeContext(node, scope);
 
+    node.metadata.accept(this);
     node.typeParameters?.accept(this);
     node.superclass.accept(this);
     node.withClause.accept(this);
@@ -99,6 +123,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     scope = TypeParameterScope(scope, element.typeParameters);
     LinkingNodeContext(node, scope);
 
+    node.metadata.accept(this);
     node.parameters.accept(this);
 
     scope = outerScope;
@@ -117,6 +142,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     scope = TypeParameterScope(scope, element.typeParameters);
 
+    node.metadata.accept(this);
     node.typeParameters?.accept(this);
     node.implementsClause?.accept(this);
     node.withClause?.accept(this);
@@ -146,6 +172,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     scope = TypeParameterScope(scope, element.typeParameters);
 
+    node.metadata.accept(this);
     node.typeParameters?.accept(this);
     node.onClause?.accept(this);
 
@@ -171,6 +198,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     scope = TypeParameterScope(scope, element.typeParameters);
 
+    node.metadata.accept(this);
     node.typeParameters?.accept(this);
     node.representation.accept(this);
     node.implementsClause?.accept(this);
@@ -187,6 +215,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
+    node.metadata.accept(this);
     node.fields.accept(this);
   }
 
@@ -220,6 +249,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     scope = TypeParameterScope(outerScope, element.typeParameters);
     LinkingNodeContext(node, scope);
 
+    node.metadata.accept(this);
     node.returnType?.accept(this);
     node.functionExpression.accept(this);
     nodesToBuildType.addDeclaration(node);
@@ -294,6 +324,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     scope = TypeParameterScope(outerScope, element.typeParameters);
 
+    node.metadata.accept(this);
     node.typeParameters?.accept(this);
     node.type.accept(this);
     nodesToBuildType.addDeclaration(node);
@@ -322,6 +353,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     scope = TypeParameterScope(scope, element.typeParameters);
     LinkingNodeContext(node, scope);
 
+    node.metadata.accept(this);
     node.returnType?.accept(this);
     node.typeParameters?.accept(this);
     node.parameters?.accept(this);
@@ -338,6 +370,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     scope = TypeParameterScope(scope, element.typeParameters);
 
+    node.metadata.accept(this);
     node.typeParameters?.accept(this);
     node.onClause?.accept(this);
     node.implementsClause?.accept(this);
@@ -465,6 +498,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    node.metadata.accept(this);
     node.variables.accept(this);
   }
 

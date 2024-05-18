@@ -258,7 +258,8 @@ suggestions
 
   Future<void> test_afterUri_beforeImport_partial_d() async {
     await computeSuggestions('''
-import "foo" d^ import
+import "foo" d^
+import
 ''');
     assertResponse(r'''
 replacement
@@ -271,7 +272,9 @@ suggestions
 
   Future<void> test_afterUri_beforeImport_partial_sh() async {
     await computeSuggestions('''
-import "foo" sh^ import "bar"; import "baz";
+import "foo" sh^
+import "bar";
+import "baz";
 ''');
     assertResponse(r'''
 replacement

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/error/analyzer_error_code.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -15,6 +16,13 @@ main() {
 @reflectiveTest
 class UseLateForPrivateFieldsAndVariablesTest extends LintRuleTest {
   @override
+  List<AnalyzerErrorCode> get ignoredErrorCodes => [
+        WarningCode.UNUSED_ELEMENT,
+        WarningCode.UNUSED_FIELD,
+        WarningCode.UNUSED_LOCAL_VARIABLE,
+      ];
+
+  @override
   String get lintRule => 'use_late_for_private_fields_and_variables';
 
   test_extensionType_instanceField() async {
@@ -25,7 +33,6 @@ extension type E(int i) {
 ''', [
       // No lint.
       error(CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD, 33, 2),
-      error(WarningCode.UNUSED_FIELD, 33, 2),
     ]);
   }
 
@@ -35,7 +42,6 @@ extension type E(int i) {
   static int? _i;
 }
 ''', [
-      error(WarningCode.UNUSED_FIELD, 40, 2),
       lint(40, 2),
     ]);
   }
@@ -43,14 +49,32 @@ extension type E(int i) {
   test_instanceField_private() async {
     await assertDiagnostics('''
 class C {
-  int? _i; // ignore: unused_field
+  int? _i;
 }
-''', [lint(17, 2)]);
+''', [
+      lint(17, 2),
+    ]);
+  }
+
+  test_instanceField_private_declaredInPart() async {
+    newFile('$testPackageLibPath/lib.dart', r'''
+part 'test.dart';
+''');
+    await assertDiagnostics('''
+part of 'lib.dart';
+
+class C {
+  final String? _s;
+  C(this._s);
+}
+''', [
+      lint(47, 2),
+    ]);
   }
 
   /// https://github.com/dart-lang/linter/issues/3823
   test_instanceField_private_enum() async {
-    await assertDiagnostics('''
+    await assertNoDiagnostics('''
 enum E {
   a('a'),
   b('b', 'c');
@@ -60,44 +84,15 @@ enum E {
   final String _v;
   final String? _v2;
 }
-''', [
-      // No lint.
-      error(WarningCode.UNUSED_FIELD, 83, 2),
-      error(WarningCode.UNUSED_FIELD, 103, 3),
-    ]);
+''');
   }
 
   test_instanceField_private_inClassWithConstConstructor() async {
     await assertNoDiagnostics('''
 class C {
   const C([this._i]);
-  final int? _i; // ignore: unused_field
+  final int? _i;
 }
-''');
-  }
-
-  test_instanceField_private_inEnum() async {
-    await assertNoDiagnostics('''
-enum E {
-  a('');
-  const E([this._f]);
-  final String? _f; // ignore: unused_field
-}
-''');
-  }
-
-  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/2921')
-  test_instanceField_private_partOf() async {
-    newFile('$testPackageLibPath/part.dart', r'''
-part 'test.dart';
-
-class C {
-  final String? _s;
-  C(this._s);
-}
-''');
-    await assertNoDiagnostics('''
-part of 'part.dart';
 ''');
   }
 
@@ -142,9 +137,11 @@ m() {
   test_staticField_private_onExtension() async {
     await assertDiagnostics('''
 extension E on int {
-  static int? _i; // ignore: unused_field
+  static int? _i;
 }
-''', [lint(35, 2)]);
+''', [
+      lint(35, 2),
+    ]);
   }
 
   // TODO(srawlins): Add test_staticField_private_onClass.
@@ -152,9 +149,11 @@ extension E on int {
   test_staticField_public_onPrivateExtension() async {
     await assertDiagnostics('''
 extension _E on int {
-  static int? i; // ignore: unused_field
+  static int? i;
 }
-''', [lint(36, 1)]);
+''', [
+      lint(36, 1),
+    ]);
   }
 
   test_staticField_public_onPublicExtension() async {
@@ -168,29 +167,52 @@ extension E on int {
   test_staticField_public_onUnnamedExtension() async {
     await assertDiagnostics('''
 extension on int {
-  static int? i; // ignore: unused_field
+  static int? i;
 }
-''', [lint(33, 1)]);
+''', [
+      lint(33, 1),
+    ]);
   }
 
   test_topLevel_assigned() async {
     await assertDiagnostics('''
-int? _i; // ignore: unused_element
+int? _i;
 void f() {
   _i = 1;
 }
-''', [lint(5, 2)]);
+''', [
+      lint(5, 2),
+    ]);
+  }
+
+  test_topLevel_declaredInPart() async {
+    newFile('$testPackageRootPath/lib/lib.dart', '''
+part 'test.dart';
+
+void f() {
+  _i = 1;
+}
+''');
+    await assertDiagnostics('''
+part of 'lib.dart';
+
+int? _i;
+''', [
+      lint(26, 2),
+    ]);
   }
 
   test_topLevel_neverUsed() async {
     await assertDiagnostics('''
-int? _i; // ignore: unused_element
-''', [lint(5, 2)]);
+int? _i;
+''', [
+      lint(5, 2),
+    ]);
   }
 
   test_topLevel_onlyAssignedNull() async {
     await assertNoDiagnostics('''
-int? _i; // ignore: unused_element
+int? _i;
 void f() {
   _i = null;
 }
@@ -199,7 +221,7 @@ void f() {
 
   test_topLevel_onlyEqualityCompared() async {
     await assertNoDiagnostics('''
-int? _i; // ignore: unused_element
+int? _i;
 f() {
   _i == 1;
 }
@@ -208,7 +230,7 @@ f() {
 
   test_topLevel_onlyNullAwareAccess() async {
     await assertNoDiagnostics('''
-int? _i; // ignore: unused_element
+int? _i;
 f() {
   _i?.abs();
 }
@@ -217,25 +239,29 @@ f() {
 
   test_topLevel_onlyNullChecked() async {
     await assertDiagnostics('''
-int? _i; // ignore: unused_element
+int? _i;
 f() {
   _i!.abs();
 }
-''', [lint(5, 2)]);
+''', [
+      lint(5, 2),
+    ]);
   }
 
   test_topLevel_onlyNullChecked_beforePassedAsArgument() async {
     await assertDiagnostics('''
-int? _i; // ignore: unused_element
+int? _i;
 f(int i) {
   f(_i!);
 }
-''', [lint(5, 2)]);
+''', [
+      lint(5, 2),
+    ]);
   }
 
   test_topLevel_onlyNullTest() async {
     await assertNoDiagnostics('''
-int? _i; // ignore: unused_element
+int? _i;
 f() {
   if (_i != null) _i.toString();
 }
@@ -260,18 +286,20 @@ void f() {
 ''');
   }
 
-  test_useInPart() async {
-    newFile2('$testPackageRootPath/lib/lib.dart', '''
-part '$testFileName';
+  test_topLevel_usedInPart() async {
+    newFile('$testPackageRootPath/lib/part.dart', '''
+part of 'test.dart';
 
-int? _i;
-''');
-    await assertDiagnostics('''
-part of 'lib.dart';
-
-m() {
+void f() {
   _i = 1;
 }
-''', [lint(24, 2)]);
+''');
+    await assertDiagnostics('''
+part 'part.dart';
+
+int? _i;
+''', [
+      lint(24, 2),
+    ]);
   }
 }

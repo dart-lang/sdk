@@ -513,21 +513,19 @@ class BulkFixProcessor {
           break;
         }
         if (result is ParsedLibraryResult) {
-          var allUnits = result.units
-              .map((parsedUnit) =>
-                  LinterContextUnit(parsedUnit.content, parsedUnit.unit))
-              .toList();
           var errorListener = RecordingErrorListener();
-          for (var linterUnit in allUnits) {
+          var allUnits = <LinterContextUnit>[];
+
+          for (var parsedUnit in result.units) {
             var errorReporter = ErrorReporter(
               errorListener,
-              StringSource(linterUnit.content, null),
+              StringSource(parsedUnit.content, null),
             );
-            _computeLints(
-              linterUnit,
-              allUnits,
-              errorReporter,
-            );
+            allUnits.add(LinterContextUnit(
+                parsedUnit.content, parsedUnit.unit, errorReporter));
+          }
+          for (var linterUnit in allUnits) {
+            _computeLints(linterUnit, allUnits);
           }
           await _fixErrorsInParsedLibrary(result, errorListener.errors,
               stopAfterFirst: stopAfterFirst);
@@ -540,19 +538,16 @@ class BulkFixProcessor {
     return BulkFixRequestResult(builder);
   }
 
-  void _computeLints(LinterContextUnit currentUnit,
-      List<LinterContextUnit> allUnits, ErrorReporter errorReporter) {
+  void _computeLints(
+      LinterContextUnit currentUnit, List<LinterContextUnit> allUnits) {
     var unit = currentUnit.unit;
     var nodeRegistry = NodeLintRegistry(false);
-
     var context = LinterContextParsedImpl(allUnits, currentUnit);
-
     var lintRules = syntacticLintCodes
         .map((name) => Registry.ruleRegistry.getRule(name))
-        .nonNulls
-        .toList();
+        .nonNulls;
     for (var linter in lintRules) {
-      linter.reporter = errorReporter;
+      linter.reporter = currentUnit.errorReporter;
       linter.registerNodeProcessors(nodeRegistry, context);
     }
 

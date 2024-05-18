@@ -318,17 +318,18 @@ class LibraryAnalyzer {
     }
 
     if (_analysisOptions.lint) {
-      var allUnits = <LinterContextUnit2>[];
-      for (var unitAnalysis in _libraryUnits.values) {
-        var linterUnit = LinterContextUnit2(
-          unitAnalysis.file,
-          unitAnalysis.unit,
-        );
-        unitAnalysis.linterUnit = linterUnit;
-        allUnits.add(linterUnit);
-      }
-      for (var unitAnalysis in _libraryUnits.values) {
-        _computeLints(unitAnalysis, allUnits);
+      var analysesToContextUnits = {
+        for (var unitAnalysis in _libraryUnits.values)
+          unitAnalysis: LinterContextUnit(
+            unitAnalysis.file.content,
+            unitAnalysis.unit,
+            unitAnalysis.errorReporter,
+          ),
+      };
+      var allUnits = analysesToContextUnits.values.toList();
+      for (var MapEntry(key: unitAnalysis, value: currentUnit)
+          in analysesToContextUnits.entries) {
+        _computeLints(unitAnalysis, allUnits, currentUnit);
       }
     }
 
@@ -350,14 +351,14 @@ class LibraryAnalyzer {
   void _computeLints(
     UnitAnalysis unitAnalysis,
     List<LinterContextUnit> allUnits,
+    LinterContextUnit currentUnit,
   ) {
     // Skip computing lints on macro generated augmentations.
     // See: https://github.com/dart-lang/sdk/issues/54875
     if (unitAnalysis.file.isMacroAugmentation) return;
 
-    var currentUnit = unitAnalysis.linterUnit;
     var unit = currentUnit.unit;
-    var errorReporter = unitAnalysis.errorReporter;
+    var errorReporter = currentUnit.errorReporter;
 
     var enableTiming = _analysisOptions.enableTiming;
     var nodeRegistry = NodeLintRegistry(enableTiming);

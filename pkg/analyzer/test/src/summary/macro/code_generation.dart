@@ -27,6 +27,96 @@ import 'package:macros/macros.dart';
   }
 }
 
+/*macro*/ class DeclarationsPhaseAnnotationType
+    implements
+        ClassDeclarationsMacro,
+        EnumDeclarationsMacro,
+        ExtensionDeclarationsMacro,
+        ExtensionTypeDeclarationsMacro,
+        FieldDeclarationsMacro,
+        FunctionDeclarationsMacro,
+        ConstructorDeclarationsMacro,
+        MethodDeclarationsMacro,
+        MixinDeclarationsMacro,
+        TypeAliasDeclarationsMacro,
+        VariableDeclarationsMacro {
+  const DeclarationsPhaseAnnotationType();
+
+  @override
+  buildDeclarationsForClass(declaration, builder) {
+    _build(declaration, builder);
+  }
+
+  @override
+  buildDeclarationsForConstructor(declaration, builder) {
+    _build(declaration, builder);
+  }
+
+  @override
+  buildDeclarationsForEnum(declaration, builder) {
+    _build(declaration, builder);
+  }
+
+  @override
+  buildDeclarationsForExtension(declaration, builder) {
+    _build(declaration, builder);
+  }
+
+  @override
+  buildDeclarationsForExtensionType(declaration, builder) {
+    _build(declaration, builder);
+  }
+
+  @override
+  buildDeclarationsForField(declaration, builder) {
+    _build(declaration, builder);
+  }
+
+  @override
+  buildDeclarationsForFunction(declaration, builder) {
+    _build(declaration, builder);
+  }
+
+  @override
+  FutureOr<void> buildDeclarationsForMethod(declaration, builder) {
+    _build(declaration, builder);
+  }
+
+  @override
+  buildDeclarationsForMixin(declaration, builder) {
+    _build(declaration, builder);
+  }
+
+  @override
+  buildDeclarationsForTypeAlias(declaration, builder) {
+    _build(declaration, builder);
+  }
+
+  @override
+  buildDeclarationsForVariable(declaration, builder) {
+    _build(declaration, builder);
+  }
+
+  void _build(Declaration declaration, DeclarationBuilder builder) {
+    var commaClassNamePairs = declaration.metadata
+        .map((annotation) {
+          annotation as ConstructorMetadataAnnotation;
+          return [', ', annotation.type.code];
+        })
+        .expand((elements) => elements)
+        .skip(1)
+        .toList();
+
+    var code = DeclarationCode.fromParts([
+      'var x = [',
+      ...commaClassNamePairs,
+      '];',
+    ]);
+
+    builder.declareInLibrary(code);
+  }
+}
+
 /*macro*/ class DefineToStringAsTypeName
     implements ClassDefinitionMacro, MethodDefinitionMacro {
   const DefineToStringAsTypeName();

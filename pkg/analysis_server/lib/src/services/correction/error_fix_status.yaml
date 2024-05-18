@@ -662,9 +662,7 @@ CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER:
 CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE:
   status: noFix
 CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE:
-  status: needsFix
-  notes: |-
-    Replace the `..` with `.`.
+  status: hasFix
 CompileTimeErrorCode.EXTENSION_OVERRIDE_WITHOUT_ACCESS:
   status: noFix
 CompileTimeErrorCode.EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER:
@@ -840,9 +838,7 @@ CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER:
 CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS:
   status: hasFix
 CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY:
-  status: needsFix
-  notes: |-
-    Remove the import.
+  status: hasFix
 CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY:
   status: needsFix
   notes: |-

@@ -77,6 +77,28 @@ class C {
 ''');
   }
 
+  Future<void> test_extensionCascade() async {
+    await resolveTestCode('''
+extension E on int {
+  int get g => 0;
+}
+f() {
+  E(3)..g;
+}
+''');
+    await assertHasFix('''
+extension E on int {
+  int get g => 0;
+}
+f() {
+  E(3).g;
+}
+''',
+        errorFilter: (e) =>
+            e.errorCode.name ==
+            LintNames.avoid_single_cascade_in_expression_statements);
+  }
+
   Future<void> test_getter_normalCascade() async {
     await resolveTestCode('''
 void f(String s) {
