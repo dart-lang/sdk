@@ -2621,9 +2621,7 @@ ParserErrorCode.CONST_AND_FINAL:
   notes: |-
     Remove either `const` or `final`.
 ParserErrorCode.CONST_CLASS:
-  status: needsFix
-  notes: |-
-    Remove the `const` keyword.
+  status: hasFix
 ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY:
   status: noFix
 ParserErrorCode.CONST_ENUM:
