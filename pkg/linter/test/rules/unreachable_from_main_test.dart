@@ -258,15 +258,19 @@ class C {
 
   test_class_reachable_mainInPart() async {
     newFile('$testPackageLibPath/part.dart', r'''
-part of 'test.dart';
+part of 'lib.dart';
 
-void main() => A()
+void main() => A();
 ''');
-    await assertNoDiagnostics(r'''
+    newFile('$testPackageLibPath/lib.dart', r'''
 part 'part.dart';
 
 class A {}
 ''');
+    await assertDiagnosticsInUnits([
+      ('$testPackageLibPath/lib.dart', []),
+      ('$testPackageLibPath/part.dart', []),
+    ]);
   }
 
   test_class_reachable_referencedDeepInTypeAnnotation_externalMethodDeclaration() async {
@@ -466,16 +470,23 @@ class C {
 
   test_class_unreachable_mainInPart() async {
     newFile('$testPackageLibPath/part.dart', r'''
-part of 'test.dart';
+part of 'lib.dart';
 
 void main() {}
 ''');
-    await assertDiagnostics(r'''
+    newFile('$testPackageLibPath/lib.dart', r'''
 part 'part.dart';
 
 class A {}
-''', [
-      lint(25, 1),
+''');
+    await assertDiagnosticsInUnits([
+      (
+        '$testPackageLibPath/lib.dart',
+        [
+          lint(25, 1),
+        ]
+      ),
+      ('$testPackageLibPath/part.dart', []),
     ]);
   }
 
@@ -567,57 +578,85 @@ void f<T extends C>() {}
 
   test_classInPart_reachable() async {
     newFile('$testPackageLibPath/part.dart', r'''
-part of 'test.dart';
+part of 'lib.dart';
 
 class A {}
 ''');
-    await assertNoDiagnostics(r'''
+    newFile('$testPackageLibPath/lib.dart', r'''
 part 'part.dart';
 
 void main() => A();
 ''');
+    await assertDiagnosticsInUnits([
+      ('$testPackageLibPath/lib.dart', []),
+      ('$testPackageLibPath/part.dart', []),
+    ]);
   }
 
   test_classInPart_reachable_mainInPart() async {
     newFile('$testPackageLibPath/part.dart', r'''
-part of 'test.dart';
+part of 'lib.dart';
 
 class A {}
 
-void main() => A()
+void main() => A();
 ''');
-    await assertNoDiagnostics(r'''
+    newFile('$testPackageLibPath/lib.dart', r'''
 part 'part.dart';
 ''');
+    await assertDiagnosticsInUnits([
+      ('$testPackageLibPath/lib.dart', []),
+      ('$testPackageLibPath/part.dart', []),
+    ]);
   }
 
   test_classInPart_unreachable() async {
-    newFile('$testPackageLibPath/part.dart', r'''
-part of 'test.dart';
-
-class A {}
-''');
-    await assertDiagnostics(r'''
+    newFile('$testPackageLibPath/lib.dart', r'''
 part 'part.dart';
 
 void main() {}
-''', [
-      lint(28, 1),
+''');
+    newFile('$testPackageLibPath/part.dart', r'''
+part of 'lib.dart';
+
+class A {}
+''');
+    await assertDiagnosticsInUnits([
+      (
+        '$testPackageLibPath/lib.dart',
+        [],
+      ),
+      (
+        '$testPackageLibPath/part.dart',
+        [
+          lint(27, 1),
+        ],
+      ),
     ]);
   }
 
   test_classInPart_unreachable_mainInPart() async {
+    newFile('$testPackageLibPath/lib.dart', r'''
+part 'part.dart';
+''');
     newFile('$testPackageLibPath/part.dart', r'''
-part of 'test.dart';
+part of 'lib.dart';
 
 class A {}
 
 void main() {}
 ''');
-    await assertDiagnostics(r'''
-part 'part.dart';
-''', [
-      lint(28, 1),
+    await assertDiagnosticsInUnits([
+      (
+        '$testPackageLibPath/lib.dart',
+        [],
+      ),
+      (
+        '$testPackageLibPath/part.dart',
+        [
+          lint(27, 1),
+        ],
+      ),
     ]);
   }
 

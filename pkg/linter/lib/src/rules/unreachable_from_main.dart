@@ -485,9 +485,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    var declarationGatherer = _DeclarationGatherer(
-      linterContext: context,
-    );
+    var declarationGatherer = _DeclarationGatherer(linterContext: context);
     for (var unit in context.allUnits) {
       declarationGatherer.addDeclarations(unit.unit);
     }
@@ -543,7 +541,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
 
-    var unusedDeclarations = declarations.difference(usedMembers);
+    var unitDeclarationGatherer = _DeclarationGatherer(linterContext: context);
+    unitDeclarationGatherer.addDeclarations(node);
+    var unitDeclarations = unitDeclarationGatherer.declarations;
+    var unusedDeclarations = unitDeclarations.difference(usedMembers);
     var unusedMembers = unusedDeclarations.where((declaration) {
       var element = declaration.declaredElement;
       return element != null &&

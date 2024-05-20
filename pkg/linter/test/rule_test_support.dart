@@ -329,6 +329,20 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
     await assertDiagnosticsIn(errors, expectedDiagnostics);
   }
 
+  /// Asserts that the diagnostics for each `path` match those in
+  /// `expectedDiagnostics`.
+  ///
+  /// The unit at each path needs to have already been written to the file
+  /// system before calling this method.
+  Future<void> assertDiagnosticsInUnits(
+      List<(String path, List<ExpectedDiagnostic> expectedDiagnostics)>
+          unitsAndDiagnostics) async {
+    for (var (path, expectedDiagnostics) in unitsAndDiagnostics) {
+      result = await resolveFile(path);
+      await assertDiagnosticsIn(result.errors, expectedDiagnostics);
+    }
+  }
+
   /// Assert that there are no diagnostics in the given [code].
   Future<void> assertNoDiagnostics(String code) async =>
       assertDiagnostics(code, const []);
