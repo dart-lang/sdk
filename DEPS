@@ -120,7 +120,7 @@ vars = {
   # EOL comment after a dependency to disable this and pin it at its current
   # revision.
 
-  "args_rev": "5c83bc9785d6c32ffe6824ba79fadcc51fbcd1c1",
+  "args_rev": "cf905519d67054a5e8d8835ffd4b247d8bbb602d",
   "async_rev": "77a25d77392b131df4ecac85bcfe9a30f82a9f40",
   "bazel_worker_rev": "2fb4fbff6ee8d26fee1f3576fa0500057d897afd",
   "benchmark_harness_rev": "accc7552b5fc0ba38493707635dc9e1ce7b90f12",
@@ -151,7 +151,7 @@ vars = {
   "flute_rev": "a531c96a8b43d015c6bfbbfe3ab54867b0763b8b",
   "glob_rev": "ee48ea82a1ccb64c8cc62e9f4f44c44ca67add71",
   "html_rev": "00d34611eee5eff976bd12a631357a4d591ef5fb",
-  "http_rev": "76deb751b41a675ac214d0ce2b9919f406175137",
+  "http_rev": "5c01453ab467408194143d4106092201f03ed98e",
   "http_multi_server_rev": "4a791af861da1cf53b57d9928fbc605f57139e4f",
   "http_parser_rev": "702698a3fc726f7cbb8cd7824a8639c7fe84b169",
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
@@ -163,7 +163,7 @@ vars = {
   "matcher_rev": "4ac4096facce24a781ab6609ca99995aeb443b25",
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "mime_rev": "b01c9a24e0991da479bd405138be3b3e403ff456",
-  "mockito_rev": "4be52e16d06c8c5384d1cf5a511f0c9a7d829cf7",
+  "mockito_rev": "2302814df66e651b6710311366501523dbee2e11",
   "native_rev": "fef40aebc3cf34654919e8a5785b6c50b3ea445c", # mosum@ and dacoharkes@ are rolling breaking changes manually while the assets features are in experimental.
   "package_config_rev": "39096768806ccae4b7025dd4114f15f2df424b0c",
   "path_rev": "9be79e72be7837fd8b99ae51a69f4c9f04ec29b4",
@@ -191,7 +191,7 @@ vars = {
   "vector_math_rev": "43f2a77bb0be812b027a68a11792d563713b42a1",
   "watcher_rev": "c182cd3db6f0bc285bf5da52df422f5c64f21a37",
   "web_rev": "d7766451f43001276b5493b2261d2973702b8334",
-  "web_socket_channel_rev": "8c77d6fb8597fde3a0d1058ed7b7b9d6e4df6cc4",
+  "web_socket_channel_rev": "45b8ce9ce9fb5194a24d3dff8913c573fbe7896a",
   "webdev_rev": "fc32eb69f2ad666e9ab1cb3300510e5daed222d6",
   "webdriver_rev": "f85779edd7c9f66198d4391ed3631db1d97a5b11",
   "webkit_inspection_protocol_rev": "5740cc91eaeb13a02007b77b128fccf4b056db6e",
