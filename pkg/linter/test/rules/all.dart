@@ -100,6 +100,7 @@ import 'exhaustive_cases_test.dart' as exhaustive_cases;
 import 'file_names_test.dart' as file_names;
 import 'flutter_style_todos_test.dart' as flutter_style_todos;
 import 'hash_and_equals_test.dart' as hash_and_equals;
+import 'implicit_call_tearoffs_test.dart' as implicit_call_tearoffs;
 import 'implicit_reopen_test.dart' as implicit_reopen;
 import 'invalid_case_patterns_test.dart' as invalid_case_patterns;
 import 'invalid_runtime_check_with_js_interop_types_test.dart'
@@ -142,6 +143,7 @@ import 'prefer_adjacent_string_concatenation_test.dart'
     as prefer_adjacent_string_concatenation;
 import 'prefer_asserts_in_initializer_lists_test.dart'
     as prefer_asserts_in_initializer_lists;
+import 'prefer_asserts_with_message_test.dart' as prefer_asserts_with_message;
 import 'prefer_collection_literals_test.dart' as prefer_collection_literals;
 import 'prefer_const_constructors_in_immutables_test.dart'
     as prefer_const_constructors_in_immutables;
@@ -341,6 +343,7 @@ void main() {
   file_names.main();
   flutter_style_todos.main();
   hash_and_equals.main();
+  implicit_call_tearoffs.main();
   implicit_reopen.main();
   invalid_case_patterns.main();
   invalid_runtime_check_with_js_interop_types_test.main();
@@ -372,6 +375,7 @@ void main() {
   parameter_assignments.main();
   prefer_adjacent_string_concatenation.main();
   prefer_asserts_in_initializer_lists.main();
+  prefer_asserts_with_message.main();
   prefer_collection_literals.main();
   prefer_const_constructors_in_immutables.main();
   prefer_const_constructors.main();

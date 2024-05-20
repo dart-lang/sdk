@@ -14,13 +14,13 @@
   },
   {
     "name": "avoid_dynamic_calls",
-    "description": "Avoid method calls or property accesses on a \"dynamic\" target.",
+    "description": "Avoid method calls or property accesses on a `dynamic` target.",
     "group": "errors",
     "state": "stable",
     "incompatible": [],
     "sets": [],
     "fixStatus": "noFix",
-    "details": "**DO** avoid method calls or accessing properties on an object that is either\nexplicitly or implicitly statically typed \"dynamic\". Dynamic calls are treated\nslightly different in every runtime environment and compiler, but most\nproduction modes (and even some development modes) have both compile size and\nruntime performance penalties associated with dynamic calls.\n\nAdditionally, targets typed \"dynamic\" disables most static analysis, meaning it\nis easier to lead to a runtime \"NoSuchMethodError\" or \"NullError\" than properly\nstatically typed Dart code.\n\nThere is an exception to methods and properties that exist on \"Object?\":\n- a.hashCode\n- a.runtimeType\n- a.noSuchMethod(someInvocation)\n- a.toString()\n\n... these members are dynamically dispatched in the web-based runtimes, but not\nin the VM-based ones. Additionally, they are so common that it would be very\npunishing to disallow `any.toString()` or `any == true`, for example.\n\nNote that despite \"Function\" being a type, the semantics are close to identical\nto \"dynamic\", and calls to an object that is typed \"Function\" will also trigger\nthis lint.\n\nDynamic calls are allowed on cast expressions (`as dynamic` or `as Function`).\n\n**BAD:**\n```dart\nvoid explicitDynamicType(dynamic object) {\n  print(object.foo());\n}\n\nvoid implicitDynamicType(object) {\n  print(object.foo());\n}\n\nabstract class SomeWrapper {\n  T doSomething<T>();\n}\n\nvoid inferredDynamicType(SomeWrapper wrapper) {\n  var object = wrapper.doSomething();\n  print(object.foo());\n}\n\nvoid callDynamic(dynamic function) {\n  function();\n}\n\nvoid functionType(Function function) {\n  function();\n}\n```\n\n**GOOD:**\n```dart\nvoid explicitType(Fooable object) {\n  object.foo();\n}\n\nvoid castedType(dynamic object) {\n  (object as Fooable).foo();\n}\n\nabstract class SomeWrapper {\n  T doSomething<T>();\n}\n\nvoid inferredType(SomeWrapper wrapper) {\n  var object = wrapper.doSomething<Fooable>();\n  object.foo();\n}\n\nvoid functionTypeWithParameters(Function() function) {\n  function();\n}\n```\n\n",
+    "details": "**DO** avoid method calls or accessing properties on an object that is either\nexplicitly or implicitly statically typed `dynamic`. Dynamic calls are treated\nslightly different in every runtime environment and compiler, but most\nproduction modes (and even some development modes) have both compile size and\nruntime performance penalties associated with dynamic calls.\n\nAdditionally, targets typed `dynamic` disables most static analysis, meaning it\nis easier to lead to a runtime `NoSuchMethodError` or `TypeError` than properly\nstatically typed Dart code.\n\nThere is an exception to methods and properties that exist on `Object?`:\n- `a.hashCode`\n- `a.runtimeType`\n- `a.noSuchMethod(someInvocation)`\n- `a.toString()`\n\n... these members are dynamically dispatched in the web-based runtimes, but not\nin the VM-based ones. Additionally, they are so common that it would be very\npunishing to disallow `any.toString()` or `any == true`, for example.\n\nNote that despite `Function` being a type, the semantics are close to identical\nto `dynamic`, and calls to an object that is typed `Function` will also trigger\nthis lint.\n\nDynamic calls are allowed on cast expressions (`as dynamic` or `as Function`).\n\n**BAD:**\n```dart\nvoid explicitDynamicType(dynamic object) {\n  print(object.foo());\n}\n\nvoid implicitDynamicType(object) {\n  print(object.foo());\n}\n\nabstract class SomeWrapper {\n  T doSomething<T>();\n}\n\nvoid inferredDynamicType(SomeWrapper wrapper) {\n  var object = wrapper.doSomething();\n  print(object.foo());\n}\n\nvoid callDynamic(dynamic function) {\n  function();\n}\n\nvoid functionType(Function function) {\n  function();\n}\n```\n\n**GOOD:**\n```dart\nvoid explicitType(Fooable object) {\n  object.foo();\n}\n\nvoid castedType(dynamic object) {\n  (object as Fooable).foo();\n}\n\nabstract class SomeWrapper {\n  T doSomething<T>();\n}\n\nvoid inferredType(SomeWrapper wrapper) {\n  var object = wrapper.doSomething<Fooable>();\n  object.foo();\n}\n\nvoid functionTypeWithParameters(Function() function) {\n  function();\n}\n```\n\n",
     "sinceDartSdk": "2.12.0"
   },
   {
@@ -79,7 +79,7 @@
   },
   {
     "name": "avoid_slow_async_io",
-    "description": "Avoid slow async `dart:io` methods.",
+    "description": "Avoid slow asynchronous `dart:io` methods.",
     "group": "errors",
     "state": "stable",
     "incompatible": [],
@@ -140,24 +140,24 @@
   },
   {
     "name": "cancel_subscriptions",
-    "description": "Cancel instances of dart.async.StreamSubscription.",
+    "description": "Cancel instances of `dart:async` `StreamSubscription`.",
     "group": "errors",
     "state": "stable",
     "incompatible": [],
     "sets": [],
     "fixStatus": "noFix",
-    "details": "**DO** invoke `cancel` on instances of `dart.async.StreamSubscription`.\n\nCancelling instances of StreamSubscription prevents memory leaks and unexpected\nbehavior.\n\n**BAD:**\n```dart\nclass A {\n  StreamSubscription _subscriptionA; // LINT\n  void init(Stream stream) {\n    _subscriptionA = stream.listen((_) {});\n  }\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction() {\n  StreamSubscription _subscriptionF; // LINT\n}\n```\n\n**GOOD:**\n```dart\nclass B {\n  StreamSubscription _subscriptionB; // OK\n  void init(Stream stream) {\n    _subscriptionB = stream.listen((_) {});\n  }\n\n  void dispose(filename) {\n    _subscriptionB.cancel();\n  }\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunctionOK() {\n  StreamSubscription _subscriptionB; // OK\n  _subscriptionB.cancel();\n}\n```\n\n**Known limitations**\n\nThis rule does not track all patterns of StreamSubscription instantiations and\ncancellations. See [linter#317](https://github.com/dart-lang/linter/issues/317)\nfor more information.\n\n",
+    "details": "**DO** invoke `cancel` on instances of `dart:async` `StreamSubscription`.\n\nCancelling instances of StreamSubscription prevents memory leaks and unexpected\nbehavior.\n\n**BAD:**\n```dart\nclass A {\n  StreamSubscription _subscriptionA; // LINT\n  void init(Stream stream) {\n    _subscriptionA = stream.listen((_) {});\n  }\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction() {\n  StreamSubscription _subscriptionF; // LINT\n}\n```\n\n**GOOD:**\n```dart\nclass B {\n  StreamSubscription _subscriptionB; // OK\n  void init(Stream stream) {\n    _subscriptionB = stream.listen((_) {});\n  }\n\n  void dispose(filename) {\n    _subscriptionB.cancel();\n  }\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunctionOK() {\n  StreamSubscription _subscriptionB; // OK\n  _subscriptionB.cancel();\n}\n```\n\n**Known limitations**\n\nThis rule does not track all patterns of StreamSubscription instantiations and\ncancellations. See [linter#317](https://github.com/dart-lang/linter/issues/317)\nfor more information.\n\n",
     "sinceDartSdk": "2.0.0"
   },
   {
     "name": "close_sinks",
-    "description": "Close instances of `dart.core.Sink`.",
+    "description": "Close instances of `dart:core` `Sink`.",
     "group": "errors",
     "state": "stable",
     "incompatible": [],
     "sets": [],
     "fixStatus": "noFix",
-    "details": "**DO** invoke `close` on instances of `dart.core.Sink`.\n\nClosing instances of Sink prevents memory leaks and unexpected behavior.\n\n**BAD:**\n```dart\nclass A {\n  IOSink _sinkA;\n  void init(filename) {\n    _sinkA = File(filename).openWrite(); // LINT\n  }\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction() {\n  IOSink _sinkF; // LINT\n}\n```\n\n**GOOD:**\n```dart\nclass B {\n  IOSink _sinkB;\n  void init(filename) {\n    _sinkB = File(filename).openWrite(); // OK\n  }\n\n  void dispose(filename) {\n    _sinkB.close();\n  }\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunctionOK() {\n  IOSink _sinkFOK; // OK\n  _sinkFOK.close();\n}\n```\n\n**Known limitations**\n\nThis rule does not track all patterns of Sink instantiations and\nclosures. See [linter#1381](https://github.com/dart-lang/linter/issues/1381)\nfor more information.\n\n",
+    "details": "**DO** invoke `close` on instances of `dart:core` `Sink`.\n\nClosing instances of Sink prevents memory leaks and unexpected behavior.\n\n**BAD:**\n```dart\nclass A {\n  IOSink _sinkA;\n  void init(filename) {\n    _sinkA = File(filename).openWrite(); // LINT\n  }\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction() {\n  IOSink _sinkF; // LINT\n}\n```\n\n**GOOD:**\n```dart\nclass B {\n  IOSink _sinkB;\n  void init(filename) {\n    _sinkB = File(filename).openWrite(); // OK\n  }\n\n  void dispose(filename) {\n    _sinkB.close();\n  }\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunctionOK() {\n  IOSink _sinkFOK; // OK\n  _sinkFOK.close();\n}\n```\n\n**Known limitations**\n\nThis rule does not track all patterns of Sink instantiations and\nclosures. See [linter#1381](https://github.com/dart-lang/linter/issues/1381)\nfor more information.\n\n",
     "sinceDartSdk": "2.0.0"
   },
   {
@@ -188,7 +188,7 @@
   },
   {
     "name": "control_flow_in_finally",
-    "description": "Avoid control flow in finally blocks.",
+    "description": "Avoid control flow in `finally` blocks.",
     "group": "errors",
     "state": "stable",
     "incompatible": [],
@@ -197,7 +197,7 @@
       "flutter"
     ],
     "fixStatus": "noFix",
-    "details": "**AVOID** control flow leaving finally blocks.\n\nUsing control flow in finally blocks will inevitably cause unexpected behavior\nthat is hard to debug.\n\n**BAD:**\n```dart\nclass BadReturn {\n  double nonCompliantMethod() {\n    try {\n      return 1 / 0;\n    } catch (e) {\n      print(e);\n    } finally {\n      return 1.0; // LINT\n    }\n  }\n}\n```\n\n**BAD:**\n```dart\nclass BadContinue {\n  double nonCompliantMethod() {\n    for (var o in [1, 2]) {\n      try {\n        print(o / 0);\n      } catch (e) {\n        print(e);\n      } finally {\n        continue; // LINT\n      }\n    }\n    return 1.0;\n  }\n}\n```\n\n**BAD:**\n```dart\nclass BadBreak {\n  double nonCompliantMethod() {\n    for (var o in [1, 2]) {\n      try {\n        print(o / 0);\n      } catch (e) {\n        print(e);\n      } finally {\n        break; // LINT\n      }\n    }\n    return 1.0;\n  }\n}\n```\n\n**GOOD:**\n```dart\nclass Ok {\n  double compliantMethod() {\n    var i = 5;\n    try {\n      i = 1 / 0;\n    } catch (e) {\n      print(e); // OK\n    }\n    return i;\n  }\n}\n```\n\n",
+    "details": "**AVOID** control flow leaving `finally` blocks.\n\nUsing control flow in `finally` blocks will inevitably cause unexpected behavior\nthat is hard to debug.\n\n**BAD:**\n```dart\nclass BadReturn {\n  double nonCompliantMethod() {\n    try {\n      return 1 / 0;\n    } catch (e) {\n      print(e);\n    } finally {\n      return 1.0; // LINT\n    }\n  }\n}\n```\n\n**BAD:**\n```dart\nclass BadContinue {\n  double nonCompliantMethod() {\n    for (var o in [1, 2]) {\n      try {\n        print(o / 0);\n      } catch (e) {\n        print(e);\n      } finally {\n        continue; // LINT\n      }\n    }\n    return 1.0;\n  }\n}\n```\n\n**BAD:**\n```dart\nclass BadBreak {\n  double nonCompliantMethod() {\n    for (var o in [1, 2]) {\n      try {\n        print(o / 0);\n      } catch (e) {\n        print(e);\n      } finally {\n        break; // LINT\n      }\n    }\n    return 1.0;\n  }\n}\n```\n\n**GOOD:**\n```dart\nclass Ok {\n  double compliantMethod() {\n    var i = 5;\n    try {\n      i = 1 / 0;\n    } catch (e) {\n      print(e); // OK\n    }\n    return i;\n  }\n}\n```\n\n",
     "sinceDartSdk": "2.0.0"
   },
   {
@@ -224,7 +224,7 @@
   },
   {
     "name": "discarded_futures",
-    "description": "Don't invoke asynchronous functions in non-async blocks.",
+    "description": "Don't invoke asynchronous functions in non-`async` blocks.",
     "group": "errors",
     "state": "stable",
     "incompatible": [],
@@ -285,6 +285,17 @@
     "sinceDartSdk": "3.0.0"
   },
   {
+    "name": "invalid_runtime_check_with_js_interop_types",
+    "description": "Avoid runtime type tests with JS interop types where the result may not\n    be platform-consistent.",
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "needsFix",
+    "details": "**DON'T** use 'is' checks where the type is a JS interop type.\n\n**DON'T** use 'is' checks where the type is a generic Dart type that has JS\ninterop type arguments.\n\n**DON'T** use 'is' checks with a JS interop value.\n\n'dart:js_interop' types have runtime types that are different based on whether\nyou are compiling to JS or to Wasm. Therefore, runtime type checks may result in\ndifferent behavior. Runtime checks also do not necessarily check that a JS\ninterop value is a particular JavaScript type.\n\n**BAD:**\n```dart\nextension type HTMLElement(JSObject o) {}\nextension type HTMLDivElement(JSObject o) implements HTMLElement {}\n\nvoid compute(JSAny a, bool b, List<JSObject> lo, List<String> ls, JSObject o,\n    HTMLElement e) {\n  a is String; // LINT, checking that a JS value is a Dart type\n  b is JSBoolean; // LINT, checking that a Dart value is a JS type\n  a is JSString; // LINT, checking that a JS value is a different JS interop\n                 // type\n  o is JSNumber; // LINT, checking that a JS value is a different JS interop\n                 // type\n  lo is List<String>; // LINT, JS interop type argument and Dart type argument\n                      // are incompatible\n  ls is List<JSString>; // LINT, Dart type argument and JS interop type argument\n                        // are incompatible\n  lo is List<JSArray>; // LINT, comparing JS interop type argument with\n                       // different JS interop type argument\n  lo is List<JSNumber>; // LINT, comparing JS interop type argument with\n                        // different JS interop type argument\n  o is HTMLElement; // LINT, true because both are JSObjects but doesn't check\n                    // that it's a JS HTMLElement\n  e is HTMLDivElement; // LINT, true because both are JSObjects but doesn't\n                       // check that it's a JS HTMLDivElement\n}\n```\n\nPrefer using JS interop helpers like 'isA' from 'dart:js_interop' to check the\nunderlying type of JS interop values.\n\n**GOOD:**\n```dart\nextension type HTMLElement(JSObject o) implements JSObject {}\nextension type HTMLDivElement(JSObject o) implements HTMLElement {}\n\nvoid compute(JSAny a, List<JSAny> l, JSObject o, HTMLElement e) {\n  a.isA<JSString>; // OK, uses JS interop to check it is a JS string\n  l[0].isA<JSString>; // OK, uses JS interop to check it is a JS string\n  o.isA<HTMLElement>(); // OK, uses JS interop to check `o` is an HTMLElement\n  e.isA<HTMLDivElement>(); // OK, uses JS interop to check `e` is an\n                           // HTMLDivElement\n}\n```\n\n**DON'T** use 'as' to cast a JS interop value to an unrelated Dart type or an\nunrelated Dart value to a JS interop type.\n\n**DON'T** use 'as' to cast a JS interop value to a JS interop type represented\nby an incompatible 'dart:js_interop' type.\n\n**BAD:**\n```dart\nextension type Window(JSObject o) {}\n\nvoid compute(String s, JSBoolean b, Window w, List<String> l,\n    List<JSObject> lo) {\n  s as JSString; // LINT, casting Dart type to JS interop type\n  b as bool; // LINT, casting JS interop type to Dart type\n  b as JSNumber; // LINT, JSBoolean and JSNumber are incompatible\n  b as Window; // LINT, JSBoolean and JSObject are incompatible\n  w as JSBoolean; // LINT, JSObject and JSBoolean are incompatible\n  l as List<JSString>; // LINT, casting Dart value with Dart type argument to\n                       // Dart type with JS interop type argument\n  lo as List<String>; // LINT, casting Dart value with JS interop type argument\n                      // to Dart type with Dart type argument\n  lo as List<JSBoolean>; // LINT, casting Dart value with JS interop type\n                         // argument to Dart type with incompatible JS interop\n                         // type argument\n}\n```\n\nPrefer using 'dart:js_interop' conversion methods to convert a JS interop value\nto a Dart value and vice versa.\n\n**GOOD:**\n```dart\nextension type Window(JSObject o) {}\nextension type Document(JSObject o) {}\n\nvoid compute(String s, JSBoolean b, Window w, JSArray<JSString> a,\n    List<String> ls, JSObject o, List<JSAny> la) {\n  s.toJS; // OK, converts the Dart type to a JS type\n  b.toDart; // OK, converts the JS type to a Dart type\n  a.toDart; // OK, converts the JS type to a Dart type\n  w as Document; // OK, but no runtime check that `w` is a JS Document\n  ls.map((e) => e.toJS).toList(); // OK, converts the Dart types to JS types\n  o as JSArray<JSString>; // OK, JSObject and JSArray are compatible\n  la as List<JSString>; // OK, JSAny and JSString are compatible\n  (o as Object) as JSObject; // OK, Object is a supertype of JSAny\n}\n```\n\n",
+    "sinceDartSdk": "3.5.0-wip"
+  },
+  {
     "name": "invariant_booleans",
     "description": "Conditions should not unconditionally evaluate to `true` or to `false`.",
     "group": "errors",
@@ -297,7 +308,7 @@
   },
   {
     "name": "iterable_contains_unrelated_type",
-    "description": "Invocation of Iterable<E>.contains with references of unrelated types.",
+    "description": "Invocation of `Iterable<E>.contains` with references of unrelated types.",
     "group": "errors",
     "state": "removed",
     "incompatible": [],
@@ -430,24 +441,24 @@
   },
   {
     "name": "test_types_in_equals",
-    "description": "Test type arguments in operator ==(Object other).",
+    "description": "Test type of argument in `operator ==(Object other)`.",
     "group": "errors",
     "state": "stable",
     "incompatible": [],
     "sets": [],
     "fixStatus": "noFix",
-    "details": "**DO** test type arguments in operator ==(Object other).\n\nNot testing types might result in null pointer exceptions which will be\nunexpected for consumers of your class.\n\n**BAD:**\n```dart\nclass Field {\n}\n\nclass Bad {\n  final Field someField;\n\n  Bad(this.someField);\n\n  @override\n  bool operator ==(Object other) {\n    Bad otherBad = other as Bad; // LINT\n    bool areEqual = otherBad != null && otherBad.someField == someField;\n    return areEqual;\n  }\n\n  @override\n  int get hashCode {\n    return someField.hashCode;\n  }\n}\n```\n\n**GOOD:**\n```dart\nclass Field {\n}\n\nclass Good {\n  final Field someField;\n\n  Good(this.someField);\n\n  @override\n  bool operator ==(Object other) {\n    if (identical(this, other)) {\n      return true;\n    }\n    return other is Good &&\n        this.someField == other.someField;\n  }\n\n  @override\n  int get hashCode {\n    return someField.hashCode;\n  }\n}\n```\n\n",
+    "details": "**DO** test type of argument in `operator ==(Object other)`.\n\nNot testing the type might result in runtime type errors which will be\nunexpected for consumers of your class.\n\n**BAD:**\n```dart\nclass Field {\n}\n\nclass Bad {\n  final Field someField;\n\n  Bad(this.someField);\n\n  @override\n  bool operator ==(Object other) {\n    Bad otherBad = other as Bad; // LINT\n    bool areEqual = otherBad != null && otherBad.someField == someField;\n    return areEqual;\n  }\n\n  @override\n  int get hashCode {\n    return someField.hashCode;\n  }\n}\n```\n\n**GOOD:**\n```dart\nclass Field {\n}\n\nclass Good {\n  final Field someField;\n\n  Good(this.someField);\n\n  @override\n  bool operator ==(Object other) {\n    if (identical(this, other)) {\n      return true;\n    }\n    return other is Good &&\n        this.someField == other.someField;\n  }\n\n  @override\n  int get hashCode {\n    return someField.hashCode;\n  }\n}\n```\n\n",
     "sinceDartSdk": "2.0.0"
   },
   {
     "name": "throw_in_finally",
-    "description": "Avoid `throw` in finally block.",
+    "description": "Avoid `throw` in `finally` block.",
     "group": "errors",
     "state": "stable",
     "incompatible": [],
     "sets": [],
     "fixStatus": "noFix",
-    "details": "**AVOID** throwing exceptions in finally blocks.\n\nThrowing exceptions in finally blocks will inevitably cause unexpected behavior\nthat is hard to debug.\n\n**BAD:**\n```dart\nclass BadThrow {\n  double nonCompliantMethod() {\n    try {\n      print('hello world! ${1 / 0}');\n    } catch (e) {\n      print(e);\n    } finally {\n      throw 'Find the hidden error :P'; // LINT\n    }\n  }\n}\n```\n\n**GOOD:**\n```dart\nclass Ok {\n  double compliantMethod() {\n    var i = 5;\n    try {\n      i = 1 / 0;\n    } catch (e) {\n      print(e); // OK\n    }\n    return i;\n  }\n}\n```\n\n",
+    "details": "**AVOID** throwing exceptions in `finally` blocks.\n\nThrowing exceptions in `finally` blocks will inevitably cause unexpected\nbehavior that is hard to debug.\n\n**BAD:**\n```dart\nclass BadThrow {\n  double nonCompliantMethod() {\n    try {\n      print('hello world! ${1 / 0}');\n    } catch (e) {\n      print(e);\n    } finally {\n      throw 'Find the hidden error :P'; // LINT\n    }\n  }\n}\n```\n\n**GOOD:**\n```dart\nclass Ok {\n  double compliantMethod() {\n    var i = 5;\n    try {\n      i = 1 / 0;\n    } catch (e) {\n      print(e); // OK\n    }\n    return i;\n  }\n}\n```\n\n",
     "sinceDartSdk": "2.0.0"
   },
   {
@@ -500,7 +511,7 @@
   },
   {
     "name": "use_build_context_synchronously",
-    "description": "Do not use BuildContexts across async gaps.",
+    "description": "Do not use `BuildContext` across asynchronous gaps.",
     "group": "errors",
     "state": "stable",
     "incompatible": [],
@@ -508,7 +519,7 @@
       "flutter"
     ],
     "fixStatus": "unregistered",
-    "details": "**DON'T** use BuildContext across asynchronous gaps.\n\nStoring `BuildContext` for later usage can easily lead to difficult to diagnose\ncrashes. Asynchronous gaps are implicitly storing `BuildContext` and are some of\nthe easiest to overlook when writing code.\n\nWhen a `BuildContext` is used, a `mounted` property must be checked after an\nasynchronous gap, depending on how the `BuildContext` is accessed:\n\n* When using a `State`'s `context` property, the `State`'s `mounted` property\n  must be checked.\n* For other `BuildContext` instances (like a local variable or function\n  argument), the `BuildContext`'s `mounted` property must be checked.\n\n**BAD:**\n```dart\nvoid onButtonTapped(BuildContext context) async {\n  await Future.delayed(const Duration(seconds: 1));\n  Navigator.of(context).pop();\n}\n```\n\n**GOOD:**\n```dart\nvoid onButtonTapped(BuildContext context) {\n  Navigator.of(context).pop();\n}\n```\n\n**GOOD:**\n```dart\nvoid onButtonTapped(BuildContext context) async {\n  await Future.delayed(const Duration(seconds: 1));\n\n  if (!context.mounted) return;\n  Navigator.of(context).pop();\n}\n```\n\n**GOOD:**\n```dart\nabstract class MyState extends State<MyWidget> {\n  void foo() async {\n    await Future.delayed(const Duration(seconds: 1));\n    if (!mounted) return; // Checks `this.mounted`, not `context.mounted`.\n    Navigator.of(context).pop();\n  }\n}\n```\n",
+    "details": "**DON'T** use `BuildContext` across asynchronous gaps.\n\nStoring `BuildContext` for later usage can easily lead to difficult to diagnose\ncrashes. Asynchronous gaps are implicitly storing `BuildContext` and are some of\nthe easiest to overlook when writing code.\n\nWhen a `BuildContext` is used, a `mounted` property must be checked after an\nasynchronous gap, depending on how the `BuildContext` is accessed:\n\n* When using a `State`'s `context` property, the `State`'s `mounted` property\n  must be checked.\n* For other `BuildContext` instances (like a local variable or function\n  argument), the `BuildContext`'s `mounted` property must be checked.\n\n**BAD:**\n```dart\nvoid onButtonTapped(BuildContext context) async {\n  await Future.delayed(const Duration(seconds: 1));\n  Navigator.of(context).pop();\n}\n```\n\n**GOOD:**\n```dart\nvoid onButtonTapped(BuildContext context) {\n  Navigator.of(context).pop();\n}\n```\n\n**GOOD:**\n```dart\nvoid onButtonTapped(BuildContext context) async {\n  await Future.delayed(const Duration(seconds: 1));\n\n  if (!context.mounted) return;\n  Navigator.of(context).pop();\n}\n```\n\n**GOOD:**\n```dart\nabstract class MyState extends State<MyWidget> {\n  void foo() async {\n    await Future.delayed(const Duration(seconds: 1));\n    if (!mounted) return; // Checks `this.mounted`, not `context.mounted`.\n    Navigator.of(context).pop();\n  }\n}\n```\n",
     "sinceDartSdk": "2.13.0"
   },
   {
@@ -565,7 +576,7 @@
       "flutter"
     ],
     "fixStatus": "noFix",
-    "details": "From the [Pubspec format description](https://dart.dev/tools/pub/pubspec):\n\n**DO** use `lowercase_with_underscores` for package names.\n\nPackage names should be all lowercase, with underscores to separate words,\n`just_like_this`.  Use only basic Latin letters and Arabic digits: [a-z0-9_].\nAlso, make sure the name is a valid Dart identifier -- that it doesn't start\nwith digits and isn't a reserved word.\n\n",
+    "details": "From the [Pubspec format description](https://dart.dev/tools/pub/pubspec):\n\n**DO** use `lowercase_with_underscores` for package names.\n\nPackage names should be all lowercase, with underscores to separate words,\n`just_like_this`.  Use only basic Latin letters and Arabic digits: \\[a-z0-9\\_\\].\nAlso, make sure the name is a valid Dart identifier -- that it doesn't start\nwith digits and isn't a reserved word.\n\n",
     "sinceDartSdk": "2.0.0"
   },
   {
@@ -679,13 +690,13 @@
   },
   {
     "name": "avoid_annotating_with_dynamic",
-    "description": "Avoid annotating with dynamic when not required.",
+    "description": "Avoid annotating with `dynamic` when not required.",
     "group": "style",
     "state": "stable",
     "incompatible": [],
     "sets": [],
     "fixStatus": "hasFix",
-    "details": "**AVOID** annotating with dynamic when not required.\n\nAs `dynamic` is the assumed return value of a function or method, it is usually\nnot necessary to annotate it.\n\n**BAD:**\n```dart\ndynamic lookUpOrDefault(String name, Map map, dynamic defaultValue) {\n  var value = map[name];\n  if (value != null) return value;\n  return defaultValue;\n}\n```\n\n**GOOD:**\n```dart\nlookUpOrDefault(String name, Map map, defaultValue) {\n  var value = map[name];\n  if (value != null) return value;\n  return defaultValue;\n}\n```\n\n",
+    "details": "**AVOID** annotating with `dynamic` when not required.\n\nAs `dynamic` is the assumed return value of a function or method, it is usually\nnot necessary to annotate it.\n\n**BAD:**\n```dart\ndynamic lookUpOrDefault(String name, Map map, dynamic defaultValue) {\n  var value = map[name];\n  if (value != null) return value;\n  return defaultValue;\n}\n```\n\n**GOOD:**\n```dart\nlookUpOrDefault(String name, Map map, defaultValue) {\n  var value = map[name];\n  if (value != null) return value;\n  return defaultValue;\n}\n```\n\n",
     "sinceDartSdk": "2.0.0"
   },
   {
@@ -701,13 +712,13 @@
   },
   {
     "name": "avoid_bool_literals_in_conditional_expressions",
-    "description": "Avoid bool literals in conditional expressions.",
+    "description": "Avoid `bool` literals in conditional expressions.",
     "group": "style",
     "state": "stable",
     "incompatible": [],
     "sets": [],
     "fixStatus": "needsFix",
-    "details": "**AVOID** bool literals in conditional expressions.\n\n**BAD:**\n```dart\ncondition ? true : boolExpression\ncondition ? false : boolExpression\ncondition ? boolExpression : true\ncondition ? boolExpression : false\n```\n\n**GOOD:**\n```dart\ncondition || boolExpression\n!condition && boolExpression\n!condition || boolExpression\ncondition && boolExpression\n```\n\n",
+    "details": "**AVOID** `bool` literals in conditional expressions.\n\n**BAD:**\n```dart\ncondition ? true : boolExpression\ncondition ? false : boolExpression\ncondition ? boolExpression : true\ncondition ? boolExpression : false\n```\n\n**GOOD:**\n```dart\ncondition || boolExpression\n!condition && boolExpression\n!condition || boolExpression\ncondition && boolExpression\n```\n\n",
     "sinceDartSdk": "2.0.0"
   },
   {
@@ -723,13 +734,13 @@
   },
   {
     "name": "avoid_catching_errors",
-    "description": "Don't explicitly catch Error or types that implement it.",
+    "description": "Don't explicitly catch `Error` or types that implement it.",
     "group": "style",
     "state": "stable",
     "incompatible": [],
     "sets": [],
     "fixStatus": "unregistered",
-    "details": "**DON'T** explicitly catch Error or types that implement it.\n\nErrors differ from Exceptions in that Errors can be analyzed and prevented prior\nto runtime.  It should almost never be necessary to catch an error at runtime.\n\n**BAD:**\n```dart\ntry {\n  somethingRisky();\n} on Error catch(e) {\n  doSomething(e);\n}\n```\n\n**GOOD:**\n```dart\ntry {\n  somethingRisky();\n} on Exception catch(e) {\n  doSomething(e);\n}\n```\n\n",
+    "details": "**DON'T** explicitly catch `Error` or types that implement it.\n\nErrors differ from Exceptions in that Errors can be analyzed and prevented prior\nto runtime.  It should almost never be necessary to catch an error at runtime.\n\n**BAD:**\n```dart\ntry {\n  somethingRisky();\n} on Error catch(e) {\n  doSomething(e);\n}\n```\n\n**GOOD:**\n```dart\ntry {\n  somethingRisky();\n} on Exception catch(e) {\n  doSomething(e);\n}\n```\n\n",
     "sinceDartSdk": "2.0.0"
   },
   {
@@ -745,13 +756,13 @@
   },
   {
     "name": "avoid_double_and_int_checks",
-    "description": "Avoid double and int checks.",
+    "description": "Avoid `double` and `int` checks.",
     "group": "style",
     "state": "stable",
     "incompatible": [],
     "sets": [],
     "fixStatus": "needsFix",
-    "details": "**AVOID** to check if type is double or int.\n\nWhen compiled to JS, integer values are represented as floats. That can lead to\nsome unexpected behavior when using either `is` or `is!` where the type is\neither `int` or `double`.\n\n**BAD:**\n```dart\nf(num x) {\n  if (x is double) {\n    ...\n  } else if (x is int) {\n    ...\n  }\n}\n```\n\n**GOOD:**\n```dart\nf(dynamic x) {\n  if (x is num) {\n    ...\n  } else {\n    ...\n  }\n}\n```\n\n",
+    "details": "**AVOID** to check if type is `double` or `int`.\n\nWhen compiled to JS, integer values are represented as floats. That can lead to\nsome unexpected behavior when using either `is` or `is!` where the type is\neither `int` or `double`.\n\n**BAD:**\n```dart\nf(num x) {\n  if (x is double) {\n    ...\n  } else if (x is int) {\n    ...\n  }\n}\n```\n\n**GOOD:**\n```dart\nf(dynamic x) {\n  if (x is num) {\n    ...\n  } else {\n    ...\n  }\n}\n```\n\n",
     "sinceDartSdk": "2.0.0"
   },
   {
@@ -789,7 +800,7 @@
   },
   {
     "name": "avoid_final_parameters",
-    "description": "Avoid final for parameter declarations.",
+    "description": "Avoid `final` for parameter declarations.",
     "group": "style",
     "state": "stable",
     "incompatible": [
@@ -797,7 +808,7 @@
     ],
     "sets": [],
     "fixStatus": "needsFix",
-    "details": "**AVOID** declaring parameters as final.\n\nDeclaring parameters as final can lead to unnecessarily verbose code, especially\nwhen using the \"parameter_assignments\" rule.\n\n**BAD:**\n```dart\nvoid goodParameter(final String label) { // LINT\n  print(label);\n}\n```\n\n**GOOD:**\n```dart\nvoid badParameter(String label) { // OK\n  print(label);\n}\n```\n\n**BAD:**\n```dart\nvoid goodExpression(final int value) => print(value); // LINT\n```\n\n**GOOD:**\n```dart\nvoid badExpression(int value) => print(value); // OK\n```\n\n**BAD:**\n```dart\n[1, 4, 6, 8].forEach((final value) => print(value + 2)); // LINT\n```\n\n**GOOD:**\n```dart\n[1, 4, 6, 8].forEach((value) => print(value + 2)); // OK\n```\n\n",
+    "details": "**AVOID** declaring parameters as `final`.\n\nDeclaring parameters as `final` can lead to unnecessarily verbose code,\nespecially when using the \"parameter_assignments\" rule.\n\n**BAD:**\n```dart\nvoid goodParameter(final String label) { // LINT\n  print(label);\n}\n```\n\n**GOOD:**\n```dart\nvoid badParameter(String label) { // OK\n  print(label);\n}\n```\n\n**BAD:**\n```dart\nvoid goodExpression(final int value) => print(value); // LINT\n```\n\n**GOOD:**\n```dart\nvoid badExpression(int value) => print(value); // OK\n```\n\n**BAD:**\n```dart\n[1, 4, 6, 8].forEach((final value) => print(value + 2)); // LINT\n```\n\n**GOOD:**\n```dart\n[1, 4, 6, 8].forEach((value) => print(value + 2)); // OK\n```\n\n",
     "sinceDartSdk": "2.16.0"
   },
   {
@@ -827,7 +838,7 @@
   },
   {
     "name": "avoid_init_to_null",
-    "description": "Don't explicitly initialize variables to null.",
+    "description": "Don't explicitly initialize variables to `null`.",
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -836,7 +847,7 @@
       "flutter"
     ],
     "fixStatus": "hasFix",
-    "details": "From [Effective Dart](https://dart.dev/effective-dart/usage#dont-explicitly-initialize-variables-to-null):\n\n**DON'T** explicitly initialize variables to `null`.\n\nIf a variable has a non-nullable type or is `final`, \nDart reports a compile error if you try to use it\nbefore it has been definitely initialized. \nIf the variable is nullable and not `const` or `final`, \nthen it is implicitly initialized to `null` for you. \nThere's no concept of \"uninitialized memory\" in Dart \nand no need to explicitly initialize a variable to `null` to be \"safe\".\nAdding `= null` is redundant and unneeded.\n\n**BAD:**\n```dart\nItem? bestDeal(List<Item> cart) {\n  Item? bestItem = null;\n\n  for (final item in cart) {\n    if (bestItem == null || item.price < bestItem.price) {\n      bestItem = item;\n    }\n  }\n\n  return bestItem;\n}\n```\n\n**GOOD:**\n```dart\nItem? bestDeal(List<Item> cart) {\n  Item? bestItem;\n\n  for (final item in cart) {\n    if (bestItem == null || item.price < bestItem.price) {\n      bestItem = item;\n    }\n  }\n\n  return bestItem;\n}\n```\n\n",
+    "details": "From [Effective Dart](https://dart.dev/effective-dart/usage#dont-explicitly-initialize-variables-to-null):\n\n**DON'T** explicitly initialize variables to `null`.\n\nIf a variable has a non-nullable type or is `final`,\nDart reports a compile error if you try to use it\nbefore it has been definitely initialized.\nIf the variable is nullable and not `const` or `final`,\nthen it is implicitly initialized to `null` for you.\nThere's no concept of \"uninitialized memory\" in Dart\nand no need to explicitly initialize a variable to `null` to be \"safe\".\nAdding `= null` is redundant and unneeded.\n\n**BAD:**\n```dart\nItem? bestDeal(List<Item> cart) {\n  Item? bestItem = null;\n\n  for (final item in cart) {\n    if (bestItem == null || item.price < bestItem.price) {\n      bestItem = item;\n    }\n  }\n\n  return bestItem;\n}\n```\n\n**GOOD:**\n```dart\nItem? bestDeal(List<Item> cart) {\n  Item? bestItem;\n\n  for (final item in cart) {\n    if (bestItem == null || item.price < bestItem.price) {\n      bestItem = item;\n    }\n  }\n\n  return bestItem;\n}\n```\n\n",
     "sinceDartSdk": "2.0.0"
   },
   {
@@ -863,7 +874,7 @@
   },
   {
     "name": "avoid_null_checks_in_equality_operators",
-    "description": "Don't check for null in custom == operators.",
+    "description": "Don't check for `null` in custom `==` operators.",
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -872,7 +883,7 @@
       "flutter"
     ],
     "fixStatus": "hasFix",
-    "details": "**DON'T** check for null in custom == operators.\n\nAs null is a special value, no instance of any class (other than `Null`) can be\nequivalent to it.  Thus, it is redundant to check whether the other instance is\nnull.\n\n**BAD:**\n```dart\nclass Person {\n  final String? name;\n\n  @override\n  operator ==(Object? other) =>\n      other != null && other is Person && name == other.name;\n}\n```\n\n**GOOD:**\n```dart\nclass Person {\n  final String? name;\n\n  @override\n  operator ==(Object? other) => other is Person && name == other.name;\n}\n```\n\n",
+    "details": "**DON'T** check for `null` in custom `==` operators.\n\nAs `null` is a special value, no instance of any class (other than `Null`) can\nbe equivalent to it.  Thus, it is redundant to check whether the other instance\nis `null`.\n\n**BAD:**\n```dart\nclass Person {\n  final String? name;\n\n  @override\n  operator ==(Object? other) =>\n      other != null && other is Person && name == other.name;\n}\n```\n\n**GOOD:**\n```dart\nclass Person {\n  final String? name;\n\n  @override\n  operator ==(Object? other) => other is Person && name == other.name;\n}\n```\n\n",
     "sinceDartSdk": "2.0.0"
   },
   {
@@ -949,7 +960,7 @@
   },
   {
     "name": "avoid_returning_null_for_void",
-    "description": "Avoid returning null for void.",
+    "description": "Avoid returning `null` for `void`.",
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -958,7 +969,7 @@
       "flutter"
     ],
     "fixStatus": "hasFix",
-    "details": "**AVOID** returning null for void.\n\nIn a large variety of languages `void` as return type is used to indicate that\na function doesn't return anything. Dart allows returning `null` in functions\nwith `void` return type but it also allow using `return;` without specifying any\nvalue. To have a consistent way you should not return `null` and only use an\nempty return.\n\n**BAD:**\n```dart\nvoid f1() {\n  return null;\n}\nFuture<void> f2() async {\n  return null;\n}\n```\n\n**GOOD:**\n```dart\nvoid f1() {\n  return;\n}\nFuture<void> f2() async {\n  return;\n}\n```\n\n",
+    "details": "**AVOID** returning `null` for `void`.\n\nIn a large variety of languages `void` as return type is used to indicate that\na function doesn't return anything. Dart allows returning `null` in functions\nwith `void` return type but it also allow using `return;` without specifying any\nvalue. To have a consistent way you should not return `null` and only use an\nempty return.\n\n**BAD:**\n```dart\nvoid f1() {\n  return null;\n}\nFuture<void> f2() async {\n  return null;\n}\n```\n\n**GOOD:**\n```dart\nvoid f1() {\n  return;\n}\nFuture<void> f2() async {\n  return;\n}\n```\n\n",
     "sinceDartSdk": "2.1.0"
   },
   {
@@ -1051,13 +1062,13 @@
   },
   {
     "name": "avoid_void_async",
-    "description": "Avoid async functions that return void.",
+    "description": "Avoid `async` functions that return `void`.",
     "group": "style",
     "state": "stable",
     "incompatible": [],
     "sets": [],
     "fixStatus": "hasFix",
-    "details": "**DO** mark async functions as returning `Future<void>`.\n\nWhen declaring an async method or function which does not return a value,\ndeclare that it returns `Future<void>` and not just `void`.\n\n**BAD:**\n```dart\nvoid f() async {}\nvoid f2() async => null;\n```\n\n**GOOD:**\n```dart\nFuture<void> f() async {}\nFuture<void> f2() async => null;\n```\n\n**EXCEPTION:**\n\nAn exception is made for top-level `main` functions, where the `Future`\nannotation *can* (and generally should) be dropped in favor of `void`.\n\n**GOOD:**\n```dart\nFuture<void> f() async {}\n\nvoid main() async {\n  await f();\n}\n```\n",
+    "details": "**DO** mark `async` functions as returning `Future<void>`.\n\nWhen declaring an `async` method or function which does not return a value,\ndeclare that it returns `Future<void>` and not just `void`.\n\n**BAD:**\n```dart\nvoid f() async {}\nvoid f2() async => null;\n```\n\n**GOOD:**\n```dart\nFuture<void> f() async {}\nFuture<void> f2() async => null;\n```\n\n**EXCEPTION:**\n\nAn exception is made for top-level `main` functions, where the `Future`\nannotation *can* (and generally should) be dropped in favor of `void`.\n\n**GOOD:**\n```dart\nFuture<void> f() async {}\n\nvoid main() async {\n  await f();\n}\n```\n",
     "sinceDartSdk": "2.1.0"
   },
   {
@@ -1225,6 +1236,17 @@
     "fixStatus": "noFix",
     "details": "Using values derived from the environment at compile-time, creates\nhidden global state and makes applications hard to understand and maintain.\n\n**DON'T** use `fromEnvironment` or `hasEnvironment` factory constructors.\n\n**BAD:**\n```dart\nconst loggingLevel =\n  bool.hasEnvironment('logging') ? String.fromEnvironment('logging') : null;\n```\n",
     "sinceDartSdk": "2.9.0"
+  },
+  {
+    "name": "document_ignores",
+    "description": "Document ignore comments.",
+    "group": "style",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "needsFix",
+    "details": "**DO** document all ignored diagnostic reports.\n\n**BAD:**\n```dart\n// ignore: unused_element\nint _x = 1;\n```\n\n**GOOD:**\n```dart\n// This private field will be used later.\n// ignore: unused_element\nint _x = 1;\n```\n\n",
+    "sinceDartSdk": "3.5.0-wip"
   },
   {
     "name": "empty_catches",
@@ -1507,7 +1529,7 @@
   },
   {
     "name": "no_runtimeType_toString",
-    "description": "Avoid calling toString() on runtimeType.",
+    "description": "Avoid calling `toString()` on `runtimeType`.",
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1544,7 +1566,7 @@
   },
   {
     "name": "null_check_on_nullable_type_parameter",
-    "description": "Don't use null check on a potentially nullable type parameter.",
+    "description": "Don't use `null` check on a potentially nullable type parameter.",
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1554,7 +1576,7 @@
       "flutter"
     ],
     "fixStatus": "hasFix",
-    "details": "**DON'T** use null check on a potentially nullable type parameter.\n\nGiven a generic type parameter `T` which has a nullable bound (e.g. the default\nbound of `Object?`), it is very easy to introduce erroneous null checks when\nworking with a variable of type `T?`. Specifically, it is not uncommon to have\n`T? x;` and want to assert that `x` has been set to a valid value of type `T`.\nA common mistake is to do so using `x!`. This is almost always incorrect, since\nif `T` is a nullable type, `x` may validly hold `null` as a value of type `T`.\n\n**BAD:**\n```dart\nT run<T>(T callback()) {\n  T? result;\n   (() { result = callback(); })();\n  return result!;\n}\n```\n\n**GOOD:**\n```dart\nT run<T>(T callback()) {\n  T? result;\n   (() { result = callback(); })();\n  return result as T;\n}\n```\n\n",
+    "details": "**DON'T** use `null` check on a potentially nullable type parameter.\n\nGiven a generic type parameter `T` which has a nullable bound (e.g., the default\nbound of `Object?`), it is very easy to introduce erroneous `null` checks when\nworking with a variable of type `T?`. Specifically, it is not uncommon to have\n`T? x;` and want to assert that `x` has been set to a valid value of type `T`.\nA common mistake is to do so using `x!`. This is almost always incorrect, since\nif `T` is a nullable type, `x` may validly hold `null` as a value of type `T`.\n\n**BAD:**\n```dart\nT run<T>(T callback()) {\n  T? result;\n  (() { result = callback(); })();\n  return result!;\n}\n```\n\n**GOOD:**\n```dart\nT run<T>(T callback()) {\n  T? result;\n  (() { result = callback(); })();\n  return result as T;\n}\n```\n\n",
     "sinceDartSdk": "2.12.0"
   },
   {
@@ -1716,7 +1738,7 @@
   },
   {
     "name": "prefer_conditional_assignment",
-    "description": "Prefer using `??=` over testing for null.",
+    "description": "Prefer using `??=` over testing for `null`.",
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1725,12 +1747,12 @@
       "flutter"
     ],
     "fixStatus": "hasFix",
-    "details": "**PREFER** using `??=` over testing for null.\n\nAs Dart has the `??=` operator, it is advisable to use it where applicable to\nimprove the brevity of your code.\n\n**BAD:**\n```dart\nString get fullName {\n  if (_fullName == null) {\n    _fullName = getFullUserName(this);\n  }\n  return _fullName;\n}\n```\n\n**GOOD:**\n```dart\nString get fullName {\n  return _fullName ??= getFullUserName(this);\n}\n```\n\n",
+    "details": "**PREFER** using `??=` over testing for `null`.\n\nAs Dart has the `??=` operator, it is advisable to use it where applicable to\nimprove the brevity of your code.\n\n**BAD:**\n```dart\nString get fullName {\n  if (_fullName == null) {\n    _fullName = getFullUserName(this);\n  }\n  return _fullName;\n}\n```\n\n**GOOD:**\n```dart\nString get fullName {\n  return _fullName ??= getFullUserName(this);\n}\n```\n\n",
     "sinceDartSdk": "2.0.0"
   },
   {
     "name": "prefer_const_constructors",
-    "description": "Prefer const with constant constructors.",
+    "description": "Prefer `const` with constant constructors.",
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1743,7 +1765,7 @@
   },
   {
     "name": "prefer_const_constructors_in_immutables",
-    "description": "Prefer declaring const constructors on `@immutable` classes.",
+    "description": "Prefer declaring `const` constructors on `@immutable` classes.",
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1751,12 +1773,12 @@
       "flutter"
     ],
     "fixStatus": "hasFix",
-    "details": "**PREFER** declaring const constructors on `@immutable` classes.\n\nIf a class is immutable, it is usually a good idea to make its constructor a\nconst constructor.\n\n**BAD:**\n```dart\n@immutable\nclass A {\n  final a;\n  A(this.a);\n}\n```\n\n**GOOD:**\n```dart\n@immutable\nclass A {\n  final a;\n  const A(this.a);\n}\n```\n\n",
+    "details": "**PREFER** declaring `const` constructors on `@immutable` classes.\n\nIf a class is immutable, it is usually a good idea to make its constructor a\n`const` constructor.\n\n**BAD:**\n```dart\n@immutable\nclass A {\n  final a;\n  A(this.a);\n}\n```\n\n**GOOD:**\n```dart\n@immutable\nclass A {\n  final a;\n  const A(this.a);\n}\n```\n\n",
     "sinceDartSdk": "2.0.0"
   },
   {
     "name": "prefer_const_declarations",
-    "description": "Prefer const over final for declarations.",
+    "description": "Prefer `const` over `final` for declarations.",
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1764,7 +1786,7 @@
       "flutter"
     ],
     "fixStatus": "hasFix",
-    "details": "**PREFER** using `const` for const declarations.\n\nConst declarations are more hot-reload friendly and allow to use const\nconstructors if an instantiation references this declaration.\n\n**BAD:**\n```dart\nfinal o = const <int>[];\n\nclass A {\n  static final o = const <int>[];\n}\n```\n\n**GOOD:**\n```dart\nconst o = <int>[];\n\nclass A {\n  static const o = <int>[];\n}\n```\n\n",
+    "details": "**PREFER** using `const` for constant-valued declarations.\n\nConstant declarations are more hot-reload friendly and allow\nvalues to be used in other constant expressions.\n\n**BAD:**\n```dart\nfinal o = const <int>[];\n\nclass A {\n  static final o = const <int>[];\n}\n```\n\n**GOOD:**\n```dart\nconst o = <int>[];\n\nclass A {\n  static const o = <int>[];\n}\n```\n\n",
     "sinceDartSdk": "2.0.0"
   },
   {
@@ -1842,7 +1864,7 @@
   },
   {
     "name": "prefer_final_fields",
-    "description": "Private field could be final.",
+    "description": "Private field could be `final`.",
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1851,7 +1873,7 @@
       "flutter"
     ],
     "fixStatus": "hasFix",
-    "details": "**DO** prefer declaring private fields as final if they are not reassigned later\nin the library.\n\nDeclaring fields as final when possible is a good practice because it helps\navoid accidental reassignments and allows the compiler to do optimizations.\n\n**BAD:**\n```dart\nclass BadImmutable {\n  var _label = 'hola mundo! BadImmutable'; // LINT\n  var label = 'hola mundo! BadImmutable'; // OK\n}\n```\n\n**BAD:**\n```dart\nclass MultipleMutable {\n  var _label = 'hola mundo! GoodMutable', _offender = 'mumble mumble!'; // LINT\n  var _someOther; // LINT\n\n  MultipleMutable() : _someOther = 5;\n\n  MultipleMutable(this._someOther);\n\n  void changeLabel() {\n    _label= 'hello world! GoodMutable';\n  }\n}\n```\n\n**GOOD:**\n```dart\nclass GoodImmutable {\n  final label = 'hola mundo! BadImmutable', bla = 5; // OK\n  final _label = 'hola mundo! BadImmutable', _bla = 5; // OK\n}\n```\n\n**GOOD:**\n```dart\nclass GoodMutable {\n  var _label = 'hola mundo! GoodMutable';\n\n  void changeLabel() {\n    _label = 'hello world! GoodMutable';\n  }\n}\n```\n\n**BAD:**\n```dart\nclass AssignedInAllConstructors {\n  var _label; // LINT\n  AssignedInAllConstructors(this._label);\n  AssignedInAllConstructors.withDefault() : _label = 'Hello';\n}\n```\n\n**GOOD:**\n```dart\nclass NotAssignedInAllConstructors {\n  var _label; // OK\n  NotAssignedInAllConstructors();\n  NotAssignedInAllConstructors.withDefault() : _label = 'Hello';\n}\n```\n",
+    "details": "**DO** prefer declaring private fields as `final` if they are not reassigned\nlater in the library.\n\nDeclaring fields as `final` when possible is a good practice because it helps\navoid accidental reassignments and allows the compiler to do optimizations.\n\n**BAD:**\n```dart\nclass BadImmutable {\n  var _label = 'hola mundo! BadImmutable'; // LINT\n  var label = 'hola mundo! BadImmutable'; // OK\n}\n```\n\n**BAD:**\n```dart\nclass MultipleMutable {\n  var _label = 'hola mundo! GoodMutable', _offender = 'mumble mumble!'; // LINT\n  var _someOther; // LINT\n\n  MultipleMutable() : _someOther = 5;\n\n  MultipleMutable(this._someOther);\n\n  void changeLabel() {\n    _label= 'hello world! GoodMutable';\n  }\n}\n```\n\n**GOOD:**\n```dart\nclass GoodImmutable {\n  final label = 'hola mundo! BadImmutable', bla = 5; // OK\n  final _label = 'hola mundo! BadImmutable', _bla = 5; // OK\n}\n```\n\n**GOOD:**\n```dart\nclass GoodMutable {\n  var _label = 'hola mundo! GoodMutable';\n\n  void changeLabel() {\n    _label = 'hello world! GoodMutable';\n  }\n}\n```\n\n**BAD:**\n```dart\nclass AssignedInAllConstructors {\n  var _label; // LINT\n  AssignedInAllConstructors(this._label);\n  AssignedInAllConstructors.withDefault() : _label = 'Hello';\n}\n```\n\n**GOOD:**\n```dart\nclass NotAssignedInAllConstructors {\n  var _label; // OK\n  NotAssignedInAllConstructors();\n  NotAssignedInAllConstructors.withDefault() : _label = 'Hello';\n}\n```\n",
     "sinceDartSdk": "2.0.0"
   },
   {
@@ -1894,7 +1916,7 @@
   },
   {
     "name": "prefer_for_elements_to_map_fromIterable",
-    "description": "Prefer 'for' elements when building maps from iterables.",
+    "description": "Prefer `for` elements when building maps from iterables.",
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1903,7 +1925,7 @@
       "flutter"
     ],
     "fixStatus": "hasFix",
-    "details": "When building maps from iterables, it is preferable to use 'for' elements.\n\nUsing 'for' elements brings several benefits including:\n\n- Performance\n- Flexibility\n- Readability\n- Improved type inference\n- Improved interaction with null safety\n\n\n**BAD:**\n```dart\nMap<String, WidgetBuilder>.fromIterable(\n  kAllGalleryDemos,\n  key: (demo) => '${demo.routeName}',\n  value: (demo) => demo.buildRoute,\n);\n\n```\n\n**GOOD:**\n```dart\nreturn {\n  for (var demo in kAllGalleryDemos)\n    '${demo.routeName}': demo.buildRoute,\n};\n```\n\n**GOOD:**\n```dart\n// Map<int, Student> is not required, type is inferred automatically.\nfinal pizzaRecipients = {\n  ...studentLeaders,\n  for (var student in classG)\n    if (student.isPassing) student.id: student,\n};\n```\n",
+    "details": "When building maps from iterables, it is preferable to use `for` elements.\n\nUsing 'for' elements brings several benefits including:\n\n- Performance\n- Flexibility\n- Readability\n- Improved type inference\n- Improved interaction with null safety\n\n\n**BAD:**\n```dart\nMap<String, WidgetBuilder>.fromIterable(\n  kAllGalleryDemos,\n  key: (demo) => '${demo.routeName}',\n  value: (demo) => demo.buildRoute,\n);\n\n```\n\n**GOOD:**\n```dart\nreturn {\n  for (var demo in kAllGalleryDemos)\n    '${demo.routeName}': demo.buildRoute,\n};\n```\n\n**GOOD:**\n```dart\n// Map<int, Student> is not required, type is inferred automatically.\nfinal pizzaRecipients = {\n  ...studentLeaders,\n  for (var student in classG)\n    if (student.isPassing) student.id: student,\n};\n```\n",
     "sinceDartSdk": "2.3.0"
   },
   {
@@ -1959,7 +1981,7 @@
   },
   {
     "name": "prefer_if_null_operators",
-    "description": "Prefer using if null operators.",
+    "description": "Prefer using `??` operators.",
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1968,7 +1990,7 @@
       "flutter"
     ],
     "fixStatus": "hasFix",
-    "details": "**PREFER** using if null operators instead of null checks in conditional\nexpressions.\n\n**BAD:**\n```dart\nv = a == null ? b : a;\n```\n\n**GOOD:**\n```dart\nv = a ?? b;\n```\n\n",
+    "details": "**PREFER** using `??` operators instead of `null` checks and conditional\nexpressions.\n\n**BAD:**\n```dart\nv = a == null ? b : a;\n```\n\n**GOOD:**\n```dart\nv = a ?? b;\n```\n\n",
     "sinceDartSdk": "2.4.0"
   },
   {
@@ -2026,7 +2048,7 @@
   },
   {
     "name": "prefer_is_empty",
-    "description": "Use `isEmpty` for Iterables and Maps.",
+    "description": "Use `isEmpty` for `Iterable`s and `Map`s.",
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2041,7 +2063,7 @@
   },
   {
     "name": "prefer_is_not_empty",
-    "description": "Use `isNotEmpty` for Iterables and Maps.",
+    "description": "Use `isNotEmpty` for `Iterable`s and `Map`s.",
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2070,7 +2092,7 @@
   },
   {
     "name": "prefer_iterable_whereType",
-    "description": "Prefer to use whereType on iterable.",
+    "description": "Prefer to use `whereType` on iterable.",
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2096,18 +2118,18 @@
   },
   {
     "name": "prefer_null_aware_method_calls",
-    "description": "Prefer null aware method calls.",
+    "description": "Prefer `null`-aware method calls.",
     "group": "style",
     "state": "stable",
     "incompatible": [],
     "sets": [],
     "fixStatus": "needsFix",
-    "details": "Instead of checking nullability of a function/method `f` before calling it you\ncan use `f?.call()`.\n\n**BAD:**\n```dart\nif (f != null) f!();\n```\n\n**GOOD:**\n```dart\nf?.call();\n```\n\n",
+    "details": "Instead of checking nullability of a function/method `f` before calling it,\nyou can use `f?.call()`.\n\n**BAD:**\n```dart\nif (f != null) f!();\n```\n\n**GOOD:**\n```dart\nf?.call();\n```\n\n",
     "sinceDartSdk": "2.14.0"
   },
   {
     "name": "prefer_null_aware_operators",
-    "description": "Prefer using null aware operators.",
+    "description": "Prefer using `null`-aware operators.",
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2116,7 +2138,7 @@
       "flutter"
     ],
     "fixStatus": "hasFix",
-    "details": "**PREFER** using null aware operators instead of null checks in conditional\nexpressions.\n\n**BAD:**\n```dart\nv = a == null ? null : a.b;\n```\n\n**GOOD:**\n```dart\nv = a?.b;\n```\n\n",
+    "details": "**PREFER** using `null`-aware operators instead of `null` checks in conditional\nexpressions.\n\n**BAD:**\n```dart\nv = a == null ? null : a.b;\n```\n\n**GOOD:**\n```dart\nv = a?.b;\n```\n\n",
     "sinceDartSdk": "2.2.0"
   },
   {
@@ -2163,7 +2185,7 @@
   },
   {
     "name": "provide_deprecation_message",
-    "description": "Provide a deprecation message, via @Deprecated(\"message\").",
+    "description": "Provide a deprecation message, via `@Deprecated(\"message\")`.",
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2173,7 +2195,7 @@
       "flutter"
     ],
     "fixStatus": "noFix",
-    "details": "**DO** specify a deprecation message (with migration instructions and/or a\nremoval schedule) in the Deprecation constructor.\n\n**BAD:**\n```dart\n@deprecated\nvoid oldFunction(arg1, arg2) {}\n```\n\n**GOOD:**\n```dart\n@Deprecated(\"\"\"\n[oldFunction] is being deprecated in favor of [newFunction] (with slightly\ndifferent parameters; see [newFunction] for more information). [oldFunction]\nwill be removed on or after the 4.0.0 release.\n\"\"\")\nvoid oldFunction(arg1, arg2) {}\n```\n\n",
+    "details": "**DO** specify a deprecation message (with migration instructions and/or a\nremoval schedule) in the `Deprecated` constructor.\n\n**BAD:**\n```dart\n@deprecated\nvoid oldFunction(arg1, arg2) {}\n```\n\n**GOOD:**\n```dart\n@Deprecated(\"\"\"\n[oldFunction] is being deprecated in favor of [newFunction] (with slightly\ndifferent parameters; see [newFunction] for more information). [oldFunction]\nwill be removed on or after the 4.0.0 release.\n\"\"\")\nvoid oldFunction(arg1, arg2) {}\n```\n\n",
     "sinceDartSdk": "2.2.0"
   },
   {
@@ -2214,7 +2236,7 @@
   },
   {
     "name": "sized_box_for_whitespace",
-    "description": "SizedBox for whitespace.",
+    "description": "`SizedBox` for whitespace.",
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2222,7 +2244,7 @@
       "flutter"
     ],
     "fixStatus": "hasFix",
-    "details": "Use SizedBox to add whitespace to a layout.\n\nA `Container` is a heavier Widget than a `SizedBox`, and as bonus, `SizedBox`\nhas a `const` constructor.\n\n**BAD:**\n```dart\nWidget buildRow() {\n  return Row(\n    children: <Widget>[\n      const MyLogo(),\n      Container(width: 4),\n      const Expanded(\n        child: Text('...'),\n      ),\n    ],\n  );\n}\n```\n\n**GOOD:**\n```dart\nWidget buildRow() {\n  return Row(\n    children: const <Widget>[\n      MyLogo(),\n      SizedBox(width: 4),\n      Expanded(\n        child: Text('...'),\n      ),\n    ],\n  );\n}\n```\n",
+    "details": "Use `SizedBox` to add whitespace to a layout.\n\nA `Container` is a heavier Widget than a `SizedBox`, and as bonus, `SizedBox`\nhas a `const` constructor.\n\n**BAD:**\n```dart\nWidget buildRow() {\n  return Row(\n    children: <Widget>[\n      const MyLogo(),\n      Container(width: 4),\n      const Expanded(\n        child: Text('...'),\n      ),\n    ],\n  );\n}\n```\n\n**GOOD:**\n```dart\nWidget buildRow() {\n  return Row(\n    children: const <Widget>[\n      MyLogo(),\n      SizedBox(width: 4),\n      Expanded(\n        child: Text('...'),\n      ),\n    ],\n  );\n}\n```\n",
     "sinceDartSdk": "2.9.0"
   },
   {
@@ -2238,7 +2260,7 @@
   },
   {
     "name": "slash_for_doc_comments",
-    "description": "Prefer using /// for doc comments.",
+    "description": "Prefer using `///` for doc comments.",
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2360,7 +2382,7 @@
   },
   {
     "name": "unnecessary_await_in_return",
-    "description": "Unnecessary await keyword in return.",
+    "description": "Unnecessary `await` keyword in return.",
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2396,7 +2418,7 @@
   },
   {
     "name": "unnecessary_const",
-    "description": "Avoid const keyword.",
+    "description": "Avoid `const` keyword.",
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2405,7 +2427,7 @@
       "flutter"
     ],
     "fixStatus": "hasFix",
-    "details": "**AVOID** repeating const keyword in a const context.\n\n**BAD:**\n```dart\nclass A { const A(); }\nm(){\n  const a = const A();\n  final b = const [const A()];\n}\n```\n\n**GOOD:**\n```dart\nclass A { const A(); }\nm(){\n  const a = A();\n  final b = const [A()];\n}\n```\n\n",
+    "details": "**AVOID** repeating `const` keyword in a `const` context.\n\n**BAD:**\n```dart\nclass A { const A(); }\nm(){\n  const a = const A();\n  final b = const [const A()];\n}\n```\n\n**GOOD:**\n```dart\nclass A { const A(); }\nm(){\n  const a = A();\n  final b = const [A()];\n}\n```\n\n",
     "sinceDartSdk": "2.0.0"
   },
   {
@@ -2513,7 +2535,7 @@
   },
   {
     "name": "unnecessary_null_aware_assignments",
-    "description": "Avoid null in null-aware assignment.",
+    "description": "Avoid `null` in `null`-aware assignment.",
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2522,7 +2544,7 @@
       "flutter"
     ],
     "fixStatus": "hasFix",
-    "details": "**AVOID** `null` in null-aware assignment.\n\nUsing `null` on the right-hand side of a null-aware assignment effectively makes\nthe assignment redundant.\n\n**BAD:**\n```dart\nvar x;\nx ??= null;\n```\n\n**GOOD:**\n```dart\nvar x;\nx ??= 1;\n```\n\n",
+    "details": "**AVOID** `null` in `null`-aware assignment.\n\nUsing `null` on the right-hand side of a `null`-aware assignment effectively\nmakes the assignment redundant.\n\n**BAD:**\n```dart\nvar x;\nx ??= null;\n```\n\n**GOOD:**\n```dart\nvar x;\nx ??= 1;\n```\n\n",
     "sinceDartSdk": "2.0.0"
   },
   {
@@ -2538,18 +2560,18 @@
   },
   {
     "name": "unnecessary_null_checks",
-    "description": "Unnecessary null checks.",
+    "description": "Unnecessary `null` checks.",
     "group": "style",
     "state": "experimental",
     "incompatible": [],
     "sets": [],
     "fixStatus": "hasFix",
-    "details": "**DON'T** apply a null check when a nullable value is accepted.\n\n**BAD:**\n```dart\nf(int? i) {}\nm() {\n  int? j;\n  f(j!);\n}\n\n```\n\n**GOOD:**\n```dart\nf(int? i) {}\nm() {\n  int? j;\n  f(j);\n}\n```\n\n",
+    "details": "**DON'T** apply a `null` check where a nullable value is accepted.\n\n**BAD:**\n```dart\nf(int? i) {}\nm() {\n  int? j;\n  f(j!);\n}\n\n```\n\n**GOOD:**\n```dart\nf(int? i) {}\nm() {\n  int? j;\n  f(j);\n}\n```\n\n",
     "sinceDartSdk": "2.12.0"
   },
   {
     "name": "unnecessary_null_in_if_null_operators",
-    "description": "Avoid using `null` in `if null` operators.",
+    "description": "Avoid using `null` in `??` operators.",
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2558,7 +2580,7 @@
       "flutter"
     ],
     "fixStatus": "hasFix",
-    "details": "**AVOID** using `null` as an operand in `if null` operators.\n\nUsing `null` in an `if null` operator is redundant, regardless of which side\n`null` is used on.\n\n**BAD:**\n```dart\nvar x = a ?? null;\nvar y = null ?? 1;\n```\n\n**GOOD:**\n```dart\nvar x = a ?? 1;\n```\n\n",
+    "details": "**AVOID** using `null` as an operand in `??` operators.\n\nUsing `null` in an `if null` operator is redundant, regardless of which side\n`null` is used on.\n\n**BAD:**\n```dart\nvar x = a ?? null;\nvar y = null ?? 1;\n```\n\n**GOOD:**\n```dart\nvar x = a ?? 1;\n```\n\n",
     "sinceDartSdk": "2.0.0"
   },
   {
@@ -2656,7 +2678,7 @@
   },
   {
     "name": "unnecessary_to_list_in_spreads",
-    "description": "Unnecessary toList() in spreads.",
+    "description": "Unnecessary `toList()` in spreads.",
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2741,13 +2763,13 @@
   },
   {
     "name": "use_if_null_to_convert_nulls_to_bools",
-    "description": "Use if-null operators to convert nulls to bools.",
+    "description": "Use `??` operators to convert `null`s to `bool`s.",
     "group": "style",
     "state": "stable",
     "incompatible": [],
     "sets": [],
     "fixStatus": "needsFix",
-    "details": "From [Effective Dart](https://dart.dev/effective-dart/usage#prefer-using--to-convert-null-to-a-boolean-value):\n\nUse if-null operators to convert nulls to bools.\n\n**BAD:**\n```dart\nif (nullableBool == true) {\n}\nif (nullableBool != false) {\n}\n```\n\n**GOOD:**\n```dart\nif (nullableBool ?? false) {\n}\nif (nullableBool ?? true) {\n}\n```\n\n",
+    "details": "From [Effective Dart](https://dart.dev/effective-dart/usage#prefer-using--to-convert-null-to-a-boolean-value):\n\nUse `??` operators to convert `null`s to `bool`s.\n\n**BAD:**\n```dart\nif (nullableBool == true) {\n}\nif (nullableBool != false) {\n}\n```\n\n**GOOD:**\n```dart\nif (nullableBool ?? false) {\n}\nif (nullableBool ?? true) {\n}\n```\n\n",
     "sinceDartSdk": "2.13.0"
   },
   {
@@ -2883,7 +2905,7 @@
   },
   {
     "name": "void_checks",
-    "description": "Don't assign to void.",
+    "description": "Don't assign to `void`.",
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2893,7 +2915,7 @@
       "flutter"
     ],
     "fixStatus": "noFix",
-    "details": "**DON'T** assign to void.\n\n**BAD:**\n```dart\nclass A<T> {\n  T value;\n  void test(T arg) { }\n}\n\nvoid main() {\n  A<void> a = A<void>();\n  a.value = 1; // LINT\n  a.test(1); // LINT\n}\n```\n",
+    "details": "**DON'T** assign to `void`.\n\n**BAD:**\n```dart\nclass A<T> {\n  T value;\n  void test(T arg) { }\n}\n\nvoid main() {\n  A<void> a = A<void>();\n  a.value = 1; // LINT\n  a.test(1); // LINT\n}\n```\n",
     "sinceDartSdk": "2.0.0"
   }
 ]

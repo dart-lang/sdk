@@ -20,6 +20,37 @@ class RemoveConstTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_CONST;
 
+  Future<void> test_constClass_firstClass() async {
+    await resolveTestCode('''
+const class C {}
+''');
+    await assertHasFix('''
+class C {}
+''');
+  }
+
+  Future<void> test_constClass_secondClass() async {
+    await resolveTestCode('''
+class A {}
+const class B {}
+''');
+    await assertHasFix('''
+class A {}
+class B {}
+''');
+  }
+
+  Future<void> test_constClass_withComment() async {
+    await resolveTestCode('''
+/// Comment.
+const class C {}
+''');
+    await assertHasFix('''
+/// Comment.
+class C {}
+''');
+  }
+
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49818')
   Future<void> test_constInitializedWithNonConstantValue() async {
     await resolveTestCode('''

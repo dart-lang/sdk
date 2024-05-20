@@ -136,6 +136,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_empty_catch.
 import 'package:analysis_server/src/services/correction/dart/remove_empty_constructor_body.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_else.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_statement.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_extends_clause.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_extra_modifier.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_if_null_operator.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_initializer.dart';
@@ -992,6 +993,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS: [
     AddSuperParameter.new,
   ],
+  CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY: [
+    RemoveUnusedImport.new,
+  ],
   CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY: [
     RemoveUnusedImport.new,
   ],
@@ -1015,6 +1019,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     ChangeTypeAnnotation.new,
     MakeVariableNullable.new,
   ],
+  CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR: [
+    RemoveExtraModifier.new,
+  ],
   CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION: [
     RemoveParenthesesInGetterInvocation.new,
   ],
@@ -1036,6 +1043,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ],
   CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE: [
     ExtendClassForMixin.new,
+  ],
+  CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT: [
+    RemoveExtendsClause.new,
   ],
   CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS: [
     RemoveNameFromDeclarationClause.new,
@@ -1315,6 +1325,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ],
   ParserErrorCode.ABSTRACT_CLASS_MEMBER: [
     RemoveAbstract.bulkFixable,
+  ],
+  ParserErrorCode.CONST_CLASS: [
+    RemoveConst.new,
   ],
   ParserErrorCode.DEFAULT_IN_SWITCH_EXPRESSION: [
     ReplaceWithWildcard.new,

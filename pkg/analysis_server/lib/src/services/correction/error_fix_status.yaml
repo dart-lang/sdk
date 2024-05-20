@@ -840,9 +840,7 @@ CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS:
 CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY:
   status: hasFix
 CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY:
-  status: needsFix
-  notes: |-
-    Remove the import.
+  status: hasFix
 CompileTimeErrorCode.IMPORT_OF_NOT_AUGMENTATION:
   status: needsFix
   notes: |-
@@ -984,9 +982,7 @@ CompileTimeErrorCode.INVALID_INLINE_FUNCTION_TYPE:
 CompileTimeErrorCode.INVALID_MACRO_APPLICATION_TARGET:
   status: noFix
 CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR:
-  status: needsFix
-  notes: |-
-    Remove the modifier.
+  status: hasFix
 CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER:
   status: needsFix
   notes: |-
@@ -1111,9 +1107,7 @@ CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_SETTER:
 CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE:
   status: hasFix
 CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT:
-  status: needsFix
-  notes: |-
-    Remove the extends clause.
+  status: hasFix
 CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR:
   notes: |-
     Remove the constructor.
@@ -2627,9 +2621,7 @@ ParserErrorCode.CONST_AND_FINAL:
   notes: |-
     Remove either `const` or `final`.
 ParserErrorCode.CONST_CLASS:
-  status: needsFix
-  notes: |-
-    Remove the `const` keyword.
+  status: hasFix
 ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY:
   status: noFix
 ParserErrorCode.CONST_ENUM:

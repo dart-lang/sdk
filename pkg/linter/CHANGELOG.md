@@ -1,6 +1,8 @@
 # 3.5.0-wip
 
 - new lint: `unintended_html_in_doc_comment`
+- new lint: `invalid_runtime_check_with_js_interop_types`
+- new lint: `document_ignores`
 - update `noop_primitive_operations` to allow an empty string literal at the
   beginning or end of adjacent string literals:
 
@@ -25,7 +27,6 @@
 
 - new lint: `unnecessary_library_name`
 - new lint: `missing_code_block_language_in_doc_comment`
-- new lint: `invalid_runtime_check_with_js_interop_types`
 
 # 3.3.0
 
