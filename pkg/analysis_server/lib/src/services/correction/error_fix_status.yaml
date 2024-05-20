@@ -984,9 +984,7 @@ CompileTimeErrorCode.INVALID_INLINE_FUNCTION_TYPE:
 CompileTimeErrorCode.INVALID_MACRO_APPLICATION_TARGET:
   status: noFix
 CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR:
-  status: needsFix
-  notes: |-
-    Remove the modifier.
+  status: hasFix
 CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER:
   status: needsFix
   notes: |-

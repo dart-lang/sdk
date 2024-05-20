@@ -1015,6 +1015,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     ChangeTypeAnnotation.new,
     MakeVariableNullable.new,
   ],
+  CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR: [
+    RemoveExtraModifier.new,
+  ],
   CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION: [
     RemoveParenthesesInGetterInvocation.new,
   ],
