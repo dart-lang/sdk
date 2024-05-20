@@ -840,9 +840,7 @@ CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS:
 CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY:
   status: hasFix
 CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY:
-  status: needsFix
-  notes: |-
-    Remove the import.
+  status: hasFix
 CompileTimeErrorCode.IMPORT_OF_NOT_AUGMENTATION:
   status: needsFix
   notes: |-

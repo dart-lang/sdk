@@ -992,6 +992,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS: [
     AddSuperParameter.new,
   ],
+  CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY: [
+    RemoveUnusedImport.new,
+  ],
   CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY: [
     RemoveUnusedImport.new,
   ],
