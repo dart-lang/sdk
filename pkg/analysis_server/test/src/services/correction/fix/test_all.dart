@@ -176,6 +176,7 @@ import 'remove_empty_constructor_body_test.dart'
     as remove_empty_constructor_body;
 import 'remove_empty_else_test.dart' as remove_empty_else;
 import 'remove_empty_statement_test.dart' as remove_empty_statement;
+import 'remove_extends_clause_test.dart' as remove_extends_clause;
 import 'remove_extra_modifier_test.dart' as remove_extra_modifier;
 import 'remove_if_null_operator_test.dart' as remove_if_null_operator;
 import 'remove_initializer_test.dart' as remove_initializer;
@@ -437,6 +438,7 @@ void main() {
     remove_empty_constructor_body.main();
     remove_empty_else.main();
     remove_empty_statement.main();
+    remove_extends_clause.main();
     remove_extra_modifier.main();
     remove_if_null_operator.main();
     remove_initializer.main();

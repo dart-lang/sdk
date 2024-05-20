@@ -1085,6 +1085,16 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Remove empty statements everywhere in file',
   );
+  static const REMOVE_EXTENDS_CLAUSE = FixKind(
+    'dart.fix.remove.extends.clause',
+    DartFixKindPriority.DEFAULT,
+    "Remove the invalid 'extends' clause",
+  );
+  static const REMOVE_EXTENDS_CLAUSE_MULTI = FixKind(
+    'dart.fix.remove.extends.clause.multi',
+    DartFixKindPriority.IN_FILE,
+    "Remove invalid 'extends' clauses everywhere in file",
+  );
   static const REMOVE_EXTRA_MODIFIER = FixKind(
     'dart.fix.remove.extra.modifier',
     DartFixKindPriority.DEFAULT,

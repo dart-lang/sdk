@@ -1107,9 +1107,7 @@ CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_SETTER:
 CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE:
   status: hasFix
 CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT:
-  status: needsFix
-  notes: |-
-    Remove the extends clause.
+  status: hasFix
 CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR:
   notes: |-
     Remove the constructor.
