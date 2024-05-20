@@ -19,6 +19,16 @@
 
 ### Tools
 
+#### Linter
+
+- Added the [`unintended_html_in_doc_comment`][] lint.
+- Added the [`invalid_runtime_check_with_js_interop_types`][] lint.
+- Added the [`document_ignores`][] lint.
+
+[`unintended_html_in_doc_comment`]: https://dart.dev/lints/unintended_html_in_doc_comment
+[`invalid_runtime_check_with_js_interop_types`]: https://dart.dev/lints/invalid_runtime_check_with_js_interop_types
+[`document_ignores`]: https://dart.dev/lints/document_ignores
+
 #### Pub
 
 - New flag `dart pub downgrade --tighten` to restrict lower bounds of
