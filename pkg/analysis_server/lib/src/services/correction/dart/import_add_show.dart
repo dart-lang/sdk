@@ -17,6 +17,11 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 
 class ImportAddShow extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   AssistKind get assistKind => DartAssistKind.IMPORT_ADD_SHOW;
 
   @override

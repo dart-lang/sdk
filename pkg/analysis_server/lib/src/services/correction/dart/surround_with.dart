@@ -83,6 +83,11 @@ abstract class _SurroundWith extends ResolvedCorrectionProducer {
 
   _SurroundWith(
       this.statementsRange, this.indentOld, this.indentNew, this.indentedCode);
+
+  @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 }
 
 /// A correction processor that can make one of the possible changes computed by

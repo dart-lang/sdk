@@ -11,10 +11,8 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddNeNull extends CorrectionProducerWithDiagnostic {
   @override
-  bool get canBeAppliedInBulk => false;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.acrossSingleFile;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_NE_NULL;

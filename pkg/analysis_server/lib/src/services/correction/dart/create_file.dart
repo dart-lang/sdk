@@ -14,6 +14,11 @@ class CreateFile extends ResolvedCorrectionProducer {
   String _fileName = '';
 
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   List<String> get fixArguments => [_fileName];
 
   @override

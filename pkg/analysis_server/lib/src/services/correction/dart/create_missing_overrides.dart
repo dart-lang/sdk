@@ -16,6 +16,11 @@ class CreateMissingOverrides extends ResolvedCorrectionProducer {
   int _numElements = 0;
 
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   List<String> get fixArguments =>
       [_numElements.toString(), _numElements == 1 ? '' : 's'];
 

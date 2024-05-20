@@ -11,6 +11,11 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class RemoveVarKeyword extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   FixKind get fixKind => DartFixKind.REMOVE_VAR_KEYWORD;
 
   @override

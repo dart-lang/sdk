@@ -11,11 +11,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveLibraryName extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  // There can only be one library declaration per file.
-  bool get canBeAppliedToFile => false;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_LIBRARY_NAME;

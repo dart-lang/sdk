@@ -17,6 +17,11 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertIfStatementToSwitchStatement extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_SWITCH_STATEMENT;
 
   @override
@@ -202,6 +207,11 @@ class ConvertIfStatementToSwitchStatement extends ResolvedCorrectionProducer {
 
 class ConvertSwitchExpressionToSwitchStatement
     extends ResolvedCorrectionProducer {
+  @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_SWITCH_STATEMENT;
 

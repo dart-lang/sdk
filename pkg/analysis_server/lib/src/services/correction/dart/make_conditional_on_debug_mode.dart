@@ -14,9 +14,10 @@ class MakeConditionalOnDebugMode extends ResolvedCorrectionProducer {
       Uri.parse('package:flutter/foundation.dart');
 
   @override
-  // This fix isn't enabled for fix-all or bulk fix because it doesn't currently
-  // account for having multiple `print` invocations in sequence.
-  bool get canBeAppliedToFile => false;
+  CorrectionApplicability get applicability =>
+      // This fix isn't enabled for fix-all or bulk fix because it doesn't
+      // currently account for having multiple `print` invocations in sequence.
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.MAKE_CONDITIONAL_ON_DEBUG_MODE;

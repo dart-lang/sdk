@@ -14,15 +14,18 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveConst extends _RemoveConst {
   @override
+  CorrectionApplicability get applicability =>
+      // Not predictably the correct action.
+      CorrectionApplicability.singleLocation;
+
+  @override
   FixKind get fixKind => DartFixKind.REMOVE_CONST;
 }
 
 class RemoveUnnecessaryConst extends _RemoveConst {
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_UNNECESSARY_CONST;

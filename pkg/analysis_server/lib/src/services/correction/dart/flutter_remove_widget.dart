@@ -17,14 +17,14 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class FlutterRemoveWidget extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      // TODO(pq): find out why overlapping edits were not being applied (and
+      // enable).
+      CorrectionApplicability.singleLocation;
+
+  @override
   AssistKind get assistKind => DartAssistKind.FLUTTER_REMOVE_WIDGET;
-
-  // TODO(pq): find out why overlapping edits are not being applied (and enable)
-  @override
-  bool get canBeAppliedInBulk => false;
-
-  @override
-  bool get canBeAppliedToFile => false;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_UNNECESSARY_CONTAINER;

@@ -17,12 +17,9 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveUnusedElement extends _RemoveUnused {
   @override
-  // Not predictably the correct action.
-  bool get canBeAppliedInBulk => false;
-
-  @override
-  // Not predictably the correct action.
-  bool get canBeAppliedToFile => false;
+  CorrectionApplicability get applicability =>
+      // Not predictably the correct action.
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_UNUSED_ELEMENT;
@@ -103,11 +100,8 @@ class RemoveUnusedElement extends _RemoveUnused {
 class RemoveUnusedField extends _RemoveUnused {
   @override
   // Not predictably the correct action.
-  bool get canBeAppliedInBulk => false;
-
-  @override
-  // Not predictably the correct action.
-  bool get canBeAppliedToFile => false;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_UNUSED_FIELD;

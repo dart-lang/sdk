@@ -16,6 +16,11 @@ class MakeFieldNotFinal extends ResolvedCorrectionProducer {
   String _fieldName = '';
 
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   List<String> get fixArguments => [_fieldName];
 
   @override

@@ -318,10 +318,9 @@ class BulkFixProcessor {
       var fixKind = producer.fixKind;
       await producer.compute(localBuilder);
       assert(
-        !(producer.canBeAppliedToFile || producer.canBeAppliedInBulk) ||
-            producer.fixKind == fixKind,
-        'Producers use in bulk fixes must not modify FixKind during computation. '
-        '$producer changed from $fixKind to ${producer.fixKind}.',
+        !producer.canBeAppliedAcrossSingleFile || producer.fixKind == fixKind,
+        'Producers used in bulk fixes must not modify the FixKind during '
+        'computation. $producer changed from $fixKind to ${producer.fixKind}.',
       );
       localBuilder.currentChangeDescription = null;
 
@@ -338,7 +337,7 @@ class BulkFixProcessor {
       var producer = generator();
       var shouldFix = (context.dartFixContext?.autoTriggered ?? false)
           ? producer.canBeAppliedAutomatically
-          : producer.canBeAppliedInBulk;
+          : producer.canBeAppliedAcrossFiles;
       if (shouldFix) {
         await _generateFix(context, producer, codeName);
         if (isCancelled) {

@@ -11,6 +11,11 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 
 class ConvertToMultilineString extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_MULTILINE_STRING;
 
   @override

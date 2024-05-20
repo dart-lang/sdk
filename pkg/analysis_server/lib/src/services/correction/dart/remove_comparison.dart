@@ -32,10 +32,8 @@ class RemoveComparison extends ResolvedCorrectionProducer {
         multiFixKind = DartFixKind.REMOVE_TYPE_CHECK_MULTI;
 
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   /// Return `true` if the condition will always return `false`.
   bool get _conditionIsFalse {

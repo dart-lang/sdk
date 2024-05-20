@@ -16,6 +16,11 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 
 class AssignToLocalVariable extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   AssistKind get assistKind => DartAssistKind.ASSIGN_TO_LOCAL_VARIABLE;
 
   String get _declarationKeyword {

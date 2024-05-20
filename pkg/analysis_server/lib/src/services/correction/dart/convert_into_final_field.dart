@@ -13,6 +13,11 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertIntoFinalField extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   AssistKind get assistKind => DartAssistKind.CONVERT_INTO_FINAL_FIELD;
 
   @override

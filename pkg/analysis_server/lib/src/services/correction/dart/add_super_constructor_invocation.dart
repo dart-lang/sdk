@@ -67,6 +67,11 @@ class _AddInvocation extends ResolvedCorrectionProducer {
   _AddInvocation(this._constructor, this._insertOffset, this._prefix);
 
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   List<String> get fixArguments {
     var buffer = StringBuffer();
     buffer.write('super');

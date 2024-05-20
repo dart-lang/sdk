@@ -10,6 +10,11 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 
 class ConvertIntoAsyncBody extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   AssistKind get assistKind => DartAssistKind.CONVERT_INTO_ASYNC_BODY;
 
   @override

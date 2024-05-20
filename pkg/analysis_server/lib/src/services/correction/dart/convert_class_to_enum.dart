@@ -23,13 +23,11 @@ import 'package:collection/collection.dart';
 
 class ConvertClassToEnum extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
+
+  @override
   AssistKind get assistKind => DartAssistKind.CONVERT_CLASS_TO_ENUM;
-
-  @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_CLASS_TO_ENUM;

@@ -17,10 +17,8 @@ class ConvertQuotes extends _ConvertQuotes {
   late bool _fromDouble;
 
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_QUOTES;
@@ -61,13 +59,11 @@ class ConvertQuotes extends _ConvertQuotes {
 
 class ConvertToDoubleQuotes extends _ConvertQuotes {
   @override
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
+
+  @override
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING;
-
-  @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_DOUBLE_QUOTED_STRING;
@@ -81,13 +77,11 @@ class ConvertToDoubleQuotes extends _ConvertQuotes {
 
 class ConvertToSingleQuotes extends _ConvertQuotes {
   @override
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
+
+  @override
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING;
-
-  @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_SINGLE_QUOTED_STRING;

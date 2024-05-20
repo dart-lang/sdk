@@ -11,7 +11,8 @@ import 'package:collection/collection.dart';
 
 class AddSwitchCaseBreak extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.acrossSingleFile;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_SWITCH_CASE_BREAK;

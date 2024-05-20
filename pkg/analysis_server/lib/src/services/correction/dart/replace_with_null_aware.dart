@@ -21,16 +21,11 @@ class ReplaceWithNullAware extends ResolvedCorrectionProducer {
   ReplaceWithNullAware.single() : _correctionKind = _CorrectionKind.single;
 
   @override
-  // NNBD makes this obsolete in the "chain" application; for the "single"
-  // application, there are other options and a null-aware replacement is not
-  // predictably correct.
-  bool get canBeAppliedInBulk => false;
-
-  @override
-  // NNBD makes this obsolete in the "chain" application; for the "single"
-  // application, there are other options and a null-aware replacement is not
-  // predictably correct.
-  bool get canBeAppliedToFile => false;
+  CorrectionApplicability get applicability =>
+      // NNBD makes this obsolete in the "chain" application; for the "single"
+      // application, there are other options and a null-aware replacement is
+      // not predictably correct.
+      CorrectionApplicability.singleLocation;
 
   @override
   List<String> get fixArguments => [_operator, '?$_operator'];

@@ -13,6 +13,11 @@ class CreateFunction extends ResolvedCorrectionProducer {
   String _functionName = '';
 
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   List<String> get fixArguments => [_functionName];
 
   @override

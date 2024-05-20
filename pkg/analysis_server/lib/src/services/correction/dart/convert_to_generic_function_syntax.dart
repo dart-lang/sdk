@@ -15,14 +15,12 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertToGenericFunctionSyntax extends ParsedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
+
+  @override
   AssistKind get assistKind =>
       DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX;
-
-  @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_GENERIC_FUNCTION_SYNTAX;

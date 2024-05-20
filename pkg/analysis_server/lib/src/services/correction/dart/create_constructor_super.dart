@@ -51,6 +51,11 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
   _CreateConstructor(this._constructor, this._targetClass);
 
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   List<String> get fixArguments {
     var buffer = StringBuffer();
     buffer.write('super');

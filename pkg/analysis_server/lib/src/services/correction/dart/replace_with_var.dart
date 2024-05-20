@@ -15,13 +15,11 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceWithVar extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
+
+  @override
   AssistKind get assistKind => DartAssistKind.REPLACE_WITH_VAR;
-
-  @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_WITH_VAR;

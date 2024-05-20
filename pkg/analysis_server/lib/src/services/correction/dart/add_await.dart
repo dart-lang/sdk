@@ -18,12 +18,10 @@ class AddAwait extends ResolvedCorrectionProducer {
   AddAwait.unawaited() : _correctionKind = _CorrectionKind.unawaited;
 
   @override
-  // Adding `await` can change behaviour and is not clearly the right choice.
-  // https://github.com/dart-lang/sdk/issues/54022
-  bool get canBeAppliedInBulk => false;
-
-  @override
-  bool get canBeAppliedToFile => false;
+  CorrectionApplicability get applicability =>
+      // Adding `await` can change behaviour and is not clearly the right
+      // choice. See https://github.com/dart-lang/sdk/issues/54022.
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_AWAIT;

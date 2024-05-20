@@ -14,6 +14,11 @@ class ConvertToOnType extends ResolvedCorrectionProducer {
   final List<String> fixArguments = [];
 
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_ON_TYPE;
 
   @override

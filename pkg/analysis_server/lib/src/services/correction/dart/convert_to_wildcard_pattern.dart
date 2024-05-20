@@ -10,6 +10,11 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class ConvertToWildcardPattern extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_WILDCARD_PATTERN;
 
   @override

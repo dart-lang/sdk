@@ -13,7 +13,8 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 /// not other usages of print.
 class RemovePrint extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.acrossSingleFile;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_PRINT;

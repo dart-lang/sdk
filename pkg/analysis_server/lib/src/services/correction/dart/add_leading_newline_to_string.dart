@@ -10,10 +10,8 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddLeadingNewlineToString extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_LEADING_NEWLINE_TO_STRING;

@@ -13,10 +13,9 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddMissingSwitchCases extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => false;
-
-  @override
-  bool get canBeAppliedToFile => false;
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_MISSING_SWITCH_CASES;

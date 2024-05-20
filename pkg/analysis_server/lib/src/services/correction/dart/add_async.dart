@@ -23,12 +23,9 @@ class AddAsync extends ResolvedCorrectionProducer {
   AddAsync.missingReturn() : isForMissingReturn = true;
 
   @override
-  // Not predictably the correct action.
-  bool get canBeAppliedInBulk => false;
-
-  @override
-  // Not predictably the correct action.
-  bool get canBeAppliedToFile => false;
+  CorrectionApplicability get applicability =>
+      // Not predictably the correct action.
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_ASYNC;

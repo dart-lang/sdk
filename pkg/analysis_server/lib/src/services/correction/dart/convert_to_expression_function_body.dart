@@ -13,13 +13,11 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertToExpressionFunctionBody extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
+
+  @override
   AssistKind get assistKind => DartAssistKind.CONVERT_INTO_EXPRESSION_BODY;
-
-  @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_INTO_EXPRESSION_BODY;

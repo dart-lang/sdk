@@ -15,7 +15,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class MoveDocCommentToLibraryDirective extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.MOVE_DOC_COMMENT_TO_LIBRARY_DIRECTIVE;

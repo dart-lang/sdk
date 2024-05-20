@@ -15,10 +15,8 @@ class InlineTypedef extends ResolvedCorrectionProducer {
   String _name = '';
 
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   List<String> get fixArguments => [_name];

@@ -13,12 +13,9 @@ class AddEnumConstant extends ResolvedCorrectionProducer {
   String _constantName = '';
 
   @override
-  // Not predictably the correct action.
-  bool get canBeAppliedInBulk => false;
-
-  @override
-  // Not predictably the correct action.
-  bool get canBeAppliedToFile => false;
+  CorrectionApplicability get applicability =>
+      // Not predictably the correct action.
+      CorrectionApplicability.singleLocation;
 
   @override
   List<String> get fixArguments => [_constantName];

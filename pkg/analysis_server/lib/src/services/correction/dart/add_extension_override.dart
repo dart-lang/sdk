@@ -44,6 +44,11 @@ class _AddOverride extends ResolvedCorrectionProducer {
   _AddOverride(this._expression, this._name);
 
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   List<String> get fixArguments => [_name];
 
   @override

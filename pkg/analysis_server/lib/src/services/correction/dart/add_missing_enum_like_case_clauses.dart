@@ -12,6 +12,11 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   FixKind get fixKind => DartFixKind.ADD_MISSING_ENUM_CASE_CLAUSES;
 
   // TODO(brianwilkerson): Consider enabling this lint for fix all in file.

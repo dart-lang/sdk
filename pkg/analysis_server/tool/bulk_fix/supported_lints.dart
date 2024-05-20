@@ -9,7 +9,7 @@ import 'package:analysis_server/src/services/correction/fix_processor.dart';
 void main() {
   var bulkFixCodes = FixProcessor.lintProducerMap.entries
       .where((e) => e.value
-          .where((generator) => generator().canBeAppliedInBulk)
+          .where((generator) => generator().canBeAppliedAcrossFiles)
           .isNotEmpty)
       .map((e) => e.key);
   print('    # bulk-fixable lints');

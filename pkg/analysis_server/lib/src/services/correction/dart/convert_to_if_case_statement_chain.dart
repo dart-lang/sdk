@@ -12,6 +12,11 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertToIfCaseStatementChain extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   AssistKind get assistKind =>
       DartAssistKind.CONVERT_TO_IF_CASE_STATEMENT_CHAIN;
 

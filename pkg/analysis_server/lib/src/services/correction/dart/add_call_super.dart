@@ -14,12 +14,9 @@ class AddCallSuper extends ResolvedCorrectionProducer {
   var _addition = '';
 
   @override
-  // Adding as the first statement is not predictably the correct action.
-  bool get canBeAppliedInBulk => false;
-
-  @override
-  // Adding as the first statement is not predictably the correct action.
-  bool get canBeAppliedToFile => false;
+  CorrectionApplicability get applicability =>
+      // Adding as the first statement is not predictably the correct action.
+      CorrectionApplicability.singleLocation;
 
   @override
   List<String> get fixArguments => [_addition];

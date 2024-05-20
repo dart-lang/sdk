@@ -16,7 +16,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class AddExplicitCast extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.acrossSingleFile;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_EXPLICIT_CAST;
