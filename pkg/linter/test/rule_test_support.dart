@@ -338,7 +338,7 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
       List<(String path, List<ExpectedDiagnostic> expectedDiagnostics)>
           unitsAndDiagnostics) async {
     for (var (path, expectedDiagnostics) in unitsAndDiagnostics) {
-      result = await resolveFile(path);
+      result = await resolveFile(convertPath(path));
       await assertDiagnosticsIn(result.errors, expectedDiagnostics);
     }
   }
