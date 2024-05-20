@@ -720,11 +720,6 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (constructor is! ConstructorDeclaration) {
       return;
     }
-    if (state.request.opType.completionLocation != null &&
-        state.request.opType.completionLocation !=
-            'ConstructorDeclaration_initializer') {
-      DateTime.now();
-    }
     if (offset <= node.equals.offset) {
       collector.completionLocation = 'ConstructorDeclaration_initializer';
       _forConstructorInitializer(constructor, node);
