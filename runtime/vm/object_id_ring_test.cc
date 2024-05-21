@@ -195,7 +195,7 @@ TEST_CASE(ObjectIdRingScavengeMoveTest) {
   EXPECT_EQ(3, list_length);
 }
 
-// Test that the ring table is updated with nulls when the old GC collects.
+// Test that the ring table is updated when major GC runs.
 ISOLATE_UNIT_TEST_CASE(ObjectIdRingOldGCTest) {
   Isolate* isolate = thread->isolate();
   ObjectIdRing* ring = isolate->EnsureObjectIdRing();
@@ -229,16 +229,16 @@ ISOLATE_UNIT_TEST_CASE(ObjectIdRingOldGCTest) {
               UntaggedObject::ToAddr(raw_obj2));
     // Exit scope. Freeing String handle.
   }
-  // Force a GC. No reference exist to the old string anymore. It should be
-  // collected and the object id ring will now return the null object for
-  // those ids.
+  // Force a GC. No other reference to the old string exists, but the service id
+  // should keep it alive.
   GCTestHelper::CollectOldSpace();
   ObjectPtr raw_object_moved1 = ring->GetObjectForId(raw_obj_id1, &kind);
-  EXPECT_EQ(ObjectIdRing::kCollected, kind);
-  EXPECT_EQ(Object::null(), raw_object_moved1);
+  EXPECT_EQ(ObjectIdRing::kValid, kind);
+  EXPECT(raw_object_moved1->IsOneByteString());
   ObjectPtr raw_object_moved2 = ring->GetObjectForId(raw_obj_id2, &kind);
-  EXPECT_EQ(ObjectIdRing::kCollected, kind);
-  EXPECT_EQ(Object::null(), raw_object_moved2);
+  EXPECT_EQ(ObjectIdRing::kValid, kind);
+  EXPECT(raw_object_moved2->IsOneByteString());
+  EXPECT_EQ(raw_object_moved1, raw_object_moved2);
 }
 
 // Test that the ring table correctly reports an entry as expired when it is

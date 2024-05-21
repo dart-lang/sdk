@@ -699,7 +699,8 @@ void GCMarker::Epilogue() {}
 
 enum RootSlices {
   kIsolate = 0,
-  kNumFixedRootSlices = 1,
+  kObjectIdRing = 1,
+  kNumFixedRootSlices = 2,
 };
 
 void GCMarker::ResetSlices() {
@@ -727,6 +728,12 @@ void GCMarker::IterateRoots(ObjectPointerVisitor* visitor) {
             visitor, ValidationPolicy::kDontValidateFrames);
         break;
       }
+      case kObjectIdRing: {
+        TIMELINE_FUNCTION_GC_DURATION(Thread::Current(),
+                                      "ProcessObjectIdTable");
+        isolate_group_->VisitObjectIdRingPointers(visitor);
+        break;
+      }
     }
 
     MonitorLocker ml(&root_slices_monitor_);
@@ -740,7 +747,6 @@ void GCMarker::IterateRoots(ObjectPointerVisitor* visitor) {
 enum WeakSlices {
   kWeakHandles = 0,
   kWeakTables,
-  kObjectIdRing,
   kRememberedSet,
   kNumWeakSlices,
 };
@@ -758,9 +764,6 @@ void GCMarker::IterateWeakRoots(Thread* thread) {
         break;
       case kWeakTables:
         ProcessWeakTables(thread);
-        break;
-      case kObjectIdRing:
-        ProcessObjectIdTable(thread);
         break;
       case kRememberedSet:
         ProcessRememberedSet(thread);
@@ -849,39 +852,6 @@ void GCMarker::ProcessRememberedSet(Thread* thread) {
     reading = next;
   }
   store_buffer->PushBlock(writing, StoreBuffer::kIgnoreThreshold);
-}
-
-class ObjectIdRingClearPointerVisitor : public ObjectPointerVisitor {
- public:
-  explicit ObjectIdRingClearPointerVisitor(IsolateGroup* isolate_group)
-      : ObjectPointerVisitor(isolate_group) {}
-
-  void VisitPointers(ObjectPtr* first, ObjectPtr* last) override {
-    for (ObjectPtr* current = first; current <= last; current++) {
-      ObjectPtr obj = *current;
-      ASSERT(obj->IsHeapObject());
-      if (!obj->untag()->IsMarked()) {
-        // Object has become garbage. Replace it will null.
-        *current = Object::null();
-      }
-    }
-  }
-
-#if defined(DART_COMPRESSED_POINTERS)
-  void VisitCompressedPointers(uword heap_base,
-                               CompressedObjectPtr* first,
-                               CompressedObjectPtr* last) override {
-    UNREACHABLE();  // ObjectIdRing is not compressed.
-  }
-#endif
-};
-
-void GCMarker::ProcessObjectIdTable(Thread* thread) {
-#ifndef PRODUCT
-  TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessObjectIdTable");
-  ObjectIdRingClearPointerVisitor visitor(isolate_group_);
-  isolate_group_->VisitObjectIdRingPointers(&visitor);
-#endif  // !PRODUCT
 }
 
 class ParallelMarkTask : public ThreadPool::Task {
