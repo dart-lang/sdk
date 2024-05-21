@@ -4,6 +4,12 @@
 
 // CHANGES:
 //
+// v0.43 Change rule structure such that the association of metadata
+// with non-terminals can be explained in a simple and consistent way.
+// The derivable terms do not change. Remove `metadata` from the kind
+// of `forLoopParts` where the iteration variable is an existing variable
+// in scope (this is not implemented, is inconsistent anyway).
+//
 // v0.42 Support updated augmented `extensionDeclaration`.
 //
 // v0.41 Add missing `enumEntry` update for augmentations.
@@ -451,7 +457,7 @@ extensionTypeDeclaration
     ;
 
 representationDeclaration
-    :    ('.' identifierOrNew)? '(' metadata type identifier ')'
+    :    ('.' identifierOrNew)? '(' metadata typedIdentifier ')'
     ;
 
 
@@ -1197,7 +1203,7 @@ objectPattern
     ;
 
 patternVariableDeclaration
-    :    (FINAL | VAR) outerPattern '=' expression
+    :    outerPatternDeclarationPrefix '=' expression
     ;
 
 outerPattern
@@ -1206,6 +1212,10 @@ outerPattern
     |    mapPattern
     |    recordPattern
     |    objectPattern
+    ;
+
+outerPatternDeclarationPrefix
+    :    (FINAL | VAR) outerPattern
     ;
 
 patternAssignment
@@ -1275,12 +1285,15 @@ forStatement
     :    AWAIT? FOR '(' forLoopParts ')' statement
     ;
 
-// TODO: Include `metadata` in the pattern form?
 forLoopParts
-    :    metadata declaredIdentifier IN expression
-    |    metadata identifier IN expression
+    :    forInLoopPrefix IN expression
     |    forInitializerStatement expression? ';' expressionList?
-    |    metadata (FINAL | VAR) outerPattern IN expression
+    ;
+
+forInLoopPrefix
+    :    metadata declaredIdentifier
+    |    metadata outerPatternDeclarationPrefix
+    |    identifier
     ;
 
 // The localVariableDeclaration cannot be CONST, but that can
