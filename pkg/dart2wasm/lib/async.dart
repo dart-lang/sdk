@@ -8,180 +8,7 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 import 'class_info.dart';
 import 'closures.dart';
 import 'code_generator.dart';
-import 'sync_star.dart' show StateTarget, StateTargetPlacement;
-
-/// Identify which statements contain `await` statements, and assign target
-/// indices to all control flow targets of these.
-///
-/// Target indices are assigned in program order.
-class _YieldFinder extends RecursiveVisitor {
-  final List<StateTarget> targets = [];
-  final bool enableAsserts;
-
-  // The number of `await` statements seen so far.
-  int yieldCount = 0;
-
-  _YieldFinder(this.enableAsserts);
-
-  List<StateTarget> find(FunctionNode function) {
-    // Initial state
-    addTarget(function.body!, StateTargetPlacement.Inner);
-    assert(function.body is Block || function.body is ReturnStatement);
-    recurse(function.body!);
-    // Final state
-    addTarget(function.body!, StateTargetPlacement.After);
-    return targets;
-  }
-
-  /// Recurse into a statement and then remove any targets added by the
-  /// statement if it doesn't contain any `await` statements.
-  void recurse(Statement statement) {
-    final yieldCountIn = yieldCount;
-    final targetsIn = targets.length;
-    statement.accept(this);
-    if (yieldCount == yieldCountIn) {
-      targets.length = targetsIn;
-    }
-  }
-
-  void addTarget(TreeNode node, StateTargetPlacement placement) {
-    targets.add(StateTarget(targets.length, node, placement));
-  }
-
-  @override
-  void visitBlock(Block node) {
-    for (Statement statement in node.statements) {
-      recurse(statement);
-    }
-  }
-
-  @override
-  void visitDoStatement(DoStatement node) {
-    addTarget(node, StateTargetPlacement.Inner);
-    recurse(node.body);
-  }
-
-  @override
-  void visitForStatement(ForStatement node) {
-    addTarget(node, StateTargetPlacement.Inner);
-    recurse(node.body);
-    addTarget(node, StateTargetPlacement.After);
-  }
-
-  @override
-  void visitIfStatement(IfStatement node) {
-    recurse(node.then);
-    if (node.otherwise != null) {
-      addTarget(node, StateTargetPlacement.Inner);
-      recurse(node.otherwise!);
-    }
-    addTarget(node, StateTargetPlacement.After);
-  }
-
-  @override
-  void visitLabeledStatement(LabeledStatement node) {
-    recurse(node.body);
-    addTarget(node, StateTargetPlacement.After);
-  }
-
-  @override
-  void visitSwitchStatement(SwitchStatement node) {
-    for (SwitchCase c in node.cases) {
-      addTarget(c, StateTargetPlacement.Inner);
-      recurse(c.body);
-    }
-    addTarget(node, StateTargetPlacement.After);
-  }
-
-  @override
-  void visitTryFinally(TryFinally node) {
-    // [TryFinally] blocks are always compiled to as CFG, even when they don't
-    // have awaits. This is to keep the code size small: with normal
-    // compilation finalizer blocks need to be duplicated based on
-    // continuations, which we don't need in the CFG implementation.
-    yieldCount += 1;
-    recurse(node.body);
-    addTarget(node, StateTargetPlacement.Inner);
-    recurse(node.finalizer);
-    addTarget(node, StateTargetPlacement.After);
-  }
-
-  @override
-  void visitTryCatch(TryCatch node) {
-    // Also always compile [TryCatch] blocks to the CFG to be able to set
-    // finalizer continuations.
-    yieldCount += 1;
-    recurse(node.body);
-    for (Catch c in node.catches) {
-      addTarget(c, StateTargetPlacement.Inner);
-      recurse(c.body);
-    }
-    addTarget(node, StateTargetPlacement.After);
-  }
-
-  @override
-  void visitWhileStatement(WhileStatement node) {
-    addTarget(node, StateTargetPlacement.Inner);
-    recurse(node.body);
-    addTarget(node, StateTargetPlacement.After);
-  }
-
-  @override
-  void visitYieldStatement(YieldStatement node) {
-    throw 'Yield statement in async function: $node (${node.location})';
-  }
-
-  // Handle awaits. After the await transformation await can only appear in a
-  // RHS of a top-level assignment, or as a top-level statement.
-  @override
-  void visitVariableSet(VariableSet node) {
-    if (node.value is AwaitExpression) {
-      yieldCount++;
-      addTarget(node, StateTargetPlacement.After);
-    } else {
-      super.visitVariableSet(node);
-    }
-  }
-
-  @override
-  void visitExpressionStatement(ExpressionStatement node) {
-    if (node.expression is AwaitExpression) {
-      yieldCount++;
-      addTarget(node, StateTargetPlacement.After);
-    } else {
-      super.visitExpressionStatement(node);
-    }
-  }
-
-  @override
-  void visitFunctionExpression(FunctionExpression node) {}
-
-  @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {}
-
-  // Any other await expression means the await transformer is buggy and didn't
-  // transform the expression as expected.
-  @override
-  void visitAwaitExpression(AwaitExpression node) {
-    // Await expressions should've been converted to `VariableSet` statements
-    // by `_AwaitTransformer`.
-    throw 'Unexpected await expression: $node (${node.location})';
-  }
-
-  @override
-  void visitAssertStatement(AssertStatement node) {
-    if (enableAsserts) {
-      super.visitAssertStatement(node);
-    }
-  }
-
-  @override
-  void visitAssertBlock(AssertBlock node) {
-    if (enableAsserts) {
-      super.visitAssertBlock(node);
-    }
-  }
-}
+import 'state_machine.dart';
 
 class _ExceptionHandlerStack {
   /// Current exception handler stack. A CFG block generated when this is not
@@ -593,7 +420,7 @@ class AsyncCodeGenerator extends CodeGenerator {
 
   void _generateBodies(FunctionNode functionNode) {
     // Number and categorize CFG targets.
-    targets = _YieldFinder(translator.options.enableAsserts).find(functionNode);
+    targets = YieldFinder(translator.options.enableAsserts).find(functionNode);
     for (final target in targets) {
       switch (target.placement) {
         case StateTargetPlacement.Inner:
@@ -1344,7 +1171,7 @@ class AsyncCodeGenerator extends CodeGenerator {
     }
 
     // Set state target to label after await.
-    final StateTarget after = afterTargets[node.parent]!;
+    final StateTarget after = afterTargets[node]!;
     b.local_get(suspendStateLocal);
     b.i32_const(after.index);
     b.struct_set(
