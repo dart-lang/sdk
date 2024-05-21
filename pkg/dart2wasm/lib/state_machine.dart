@@ -5,7 +5,7 @@
 import 'package:kernel/ast.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
-import 'async.dart';
+import 'closures.dart';
 import 'code_generator.dart';
 
 /// Placement of a control flow graph target within a statement. This
@@ -21,19 +21,19 @@ import 'code_generator.dart';
 ///  - [After]: After a statement, the resumption point of a suspension point
 ///             ([YieldStatement] or [AwaitExpression]), or the final state
 ///             (iterator done) of a function body.
-enum StateTargetPlacement { Inner, After }
+enum _StateTargetPlacement { Inner, After }
 
 /// Representation of target in the `sync*` control flow graph.
 class StateTarget {
   final int index;
   final TreeNode node;
-  final StateTargetPlacement placement;
+  final _StateTargetPlacement _placement;
 
-  StateTarget(this.index, this.node, this.placement);
+  StateTarget._(this.index, this.node, this._placement);
 
   @override
   String toString() {
-    String place = placement == StateTargetPlacement.Inner ? "in" : "after";
+    String place = _placement == _StateTargetPlacement.Inner ? "in" : "after";
     return "$index: $place $node";
   }
 }
@@ -42,22 +42,22 @@ class StateTarget {
 /// target indices to all control flow targets of these.
 ///
 /// Target indices are assigned in program order.
-class YieldFinder extends RecursiveVisitor {
+class _YieldFinder extends RecursiveVisitor {
   final List<StateTarget> targets = [];
   final bool enableAsserts;
 
   // The number of `await` statements seen so far.
   int yieldCount = 0;
 
-  YieldFinder(this.enableAsserts);
+  _YieldFinder(this.enableAsserts);
 
   List<StateTarget> find(FunctionNode function) {
     // Initial state
-    addTarget(function.body!, StateTargetPlacement.Inner);
+    addTarget(function.body!, _StateTargetPlacement.Inner);
     assert(function.body is Block || function.body is ReturnStatement);
     recurse(function.body!);
     // Final state
-    addTarget(function.body!, StateTargetPlacement.After);
+    addTarget(function.body!, _StateTargetPlacement.After);
     return targets;
   }
 
@@ -72,8 +72,8 @@ class YieldFinder extends RecursiveVisitor {
     }
   }
 
-  void addTarget(TreeNode node, StateTargetPlacement placement) {
-    targets.add(StateTarget(targets.length, node, placement));
+  void addTarget(TreeNode node, _StateTargetPlacement placement) {
+    targets.add(StateTarget._(targets.length, node, placement));
   }
 
   @override
@@ -85,40 +85,40 @@ class YieldFinder extends RecursiveVisitor {
 
   @override
   void visitDoStatement(DoStatement node) {
-    addTarget(node, StateTargetPlacement.Inner);
+    addTarget(node, _StateTargetPlacement.Inner);
     recurse(node.body);
   }
 
   @override
   void visitForStatement(ForStatement node) {
-    addTarget(node, StateTargetPlacement.Inner);
+    addTarget(node, _StateTargetPlacement.Inner);
     recurse(node.body);
-    addTarget(node, StateTargetPlacement.After);
+    addTarget(node, _StateTargetPlacement.After);
   }
 
   @override
   void visitIfStatement(IfStatement node) {
     recurse(node.then);
     if (node.otherwise != null) {
-      addTarget(node, StateTargetPlacement.Inner);
+      addTarget(node, _StateTargetPlacement.Inner);
       recurse(node.otherwise!);
     }
-    addTarget(node, StateTargetPlacement.After);
+    addTarget(node, _StateTargetPlacement.After);
   }
 
   @override
   void visitLabeledStatement(LabeledStatement node) {
     recurse(node.body);
-    addTarget(node, StateTargetPlacement.After);
+    addTarget(node, _StateTargetPlacement.After);
   }
 
   @override
   void visitSwitchStatement(SwitchStatement node) {
     for (SwitchCase c in node.cases) {
-      addTarget(c, StateTargetPlacement.Inner);
+      addTarget(c, _StateTargetPlacement.Inner);
       recurse(c.body);
     }
-    addTarget(node, StateTargetPlacement.After);
+    addTarget(node, _StateTargetPlacement.After);
   }
 
   @override
@@ -129,9 +129,9 @@ class YieldFinder extends RecursiveVisitor {
     // continuations, which we don't need in the CFG implementation.
     yieldCount++;
     recurse(node.body);
-    addTarget(node, StateTargetPlacement.Inner);
+    addTarget(node, _StateTargetPlacement.Inner);
     recurse(node.finalizer);
-    addTarget(node, StateTargetPlacement.After);
+    addTarget(node, _StateTargetPlacement.After);
   }
 
   @override
@@ -141,23 +141,23 @@ class YieldFinder extends RecursiveVisitor {
     yieldCount++;
     recurse(node.body);
     for (Catch c in node.catches) {
-      addTarget(c, StateTargetPlacement.Inner);
+      addTarget(c, _StateTargetPlacement.Inner);
       recurse(c.body);
     }
-    addTarget(node, StateTargetPlacement.After);
+    addTarget(node, _StateTargetPlacement.After);
   }
 
   @override
   void visitWhileStatement(WhileStatement node) {
-    addTarget(node, StateTargetPlacement.Inner);
+    addTarget(node, _StateTargetPlacement.Inner);
     recurse(node.body);
-    addTarget(node, StateTargetPlacement.After);
+    addTarget(node, _StateTargetPlacement.After);
   }
 
   @override
   void visitYieldStatement(YieldStatement node) {
     yieldCount++;
-    addTarget(node, StateTargetPlacement.After);
+    addTarget(node, _StateTargetPlacement.After);
   }
 
   // Handle awaits. After the await transformation await can only appear in a
@@ -171,7 +171,7 @@ class YieldFinder extends RecursiveVisitor {
       final value = expression.value;
       if (value is AwaitExpression) {
         yieldCount++;
-        addTarget(value, StateTargetPlacement.After);
+        addTarget(value, _StateTargetPlacement.After);
         return;
       }
     }
@@ -179,7 +179,7 @@ class YieldFinder extends RecursiveVisitor {
     // Handle top-level awaits.
     if (expression is AwaitExpression) {
       yieldCount++;
-      addTarget(node, StateTargetPlacement.After);
+      addTarget(node, _StateTargetPlacement.After);
       return;
     }
 
@@ -234,24 +234,24 @@ class ExceptionHandlerStack {
   /// cover for.
   final List<int> _tryBlockNumHandlers = [];
 
-  final AsyncCodeGenerator codeGen;
+  final StateMachineCodeGenerator codeGen;
 
   ExceptionHandlerStack(this.codeGen);
 
-  void pushTryCatch(TryCatch node) {
-    final catcher = Catcher.fromTryCatch(
+  void _pushTryCatch(TryCatch node) {
+    final catcher = _Catcher.fromTryCatch(
         codeGen, node, codeGen.innerTargets[node.catches.first]!);
     _handlers.add(catcher);
   }
 
-  Finalizer pushTryFinally(TryFinally node) {
+  Finalizer _pushTryFinally(TryFinally node) {
     final finalizer =
-        Finalizer(codeGen, node, nextFinalizer, codeGen.innerTargets[node]!);
+        Finalizer._(codeGen, node, _nextFinalizer, codeGen.innerTargets[node]!);
     _handlers.add(finalizer);
     return finalizer;
   }
 
-  void pop() {
+  void _pop() {
     _handlers.removeLast();
   }
 
@@ -259,7 +259,7 @@ class ExceptionHandlerStack {
 
   int get coveredHandlers => _tryBlockNumHandlers.fold(0, (i1, i2) => i1 + i2);
 
-  int get numFinalizers {
+  int get _numFinalizers {
     int i = 0;
     for (final handler in _handlers) {
       if (handler is Finalizer) {
@@ -269,7 +269,7 @@ class ExceptionHandlerStack {
     return i;
   }
 
-  Finalizer? get nextFinalizer {
+  Finalizer? get _nextFinalizer {
     for (final handler in _handlers.reversed) {
       if (handler is Finalizer) {
         return handler;
@@ -280,7 +280,7 @@ class ExceptionHandlerStack {
 
   void forEachFinalizer(
       void Function(Finalizer finalizer, bool lastFinalizer) f) {
-    Finalizer? finalizer = nextFinalizer;
+    Finalizer? finalizer = _nextFinalizer;
     while (finalizer != null) {
       Finalizer? next = finalizer.parentFinalizer;
       f(finalizer, next == null);
@@ -292,7 +292,7 @@ class ExceptionHandlerStack {
   /// CFG block.
   ///
   /// Call this when generating a new CFG block.
-  void generateTryBlocks(w.InstructionsBuilder b) {
+  void _generateTryBlocks(w.InstructionsBuilder b) {
     final handlersToCover = _handlers.length - coveredHandlers;
 
     if (handlersToCover == 0) {
@@ -306,7 +306,7 @@ class ExceptionHandlerStack {
   /// Terminates Wasm `try` blocks generated by [generateTryBlocks].
   ///
   /// Call this right before terminating a CFG block.
-  void terminateTryBlocks() {
+  void _terminateTryBlocks() {
     int nextHandlerIdx = _handlers.length - 1;
     for (final int nCoveredHandlers in _tryBlockNumHandlers.reversed) {
       final stackTraceLocal = codeGen
@@ -330,11 +330,12 @@ class ExceptionHandlerStack {
         // Set the untyped "current exception" variable. Catch blocks will do the
         // type tests as necessary using this variable and set their exception
         // and stack trace locals.
-        codeGen.setCurrentException(() => codeGen.b.local_get(exceptionLocal));
-        codeGen.setCurrentExceptionStackTrace(
+        codeGen.setSuspendStateCurrentException(
+            () => codeGen.b.local_get(exceptionLocal));
+        codeGen.setSuspendStateCurrentStackTrace(
             () => codeGen.b.local_get(stackTraceLocal));
 
-        codeGen.jumpToTarget(_handlers[nextHandlerIdx].target);
+        codeGen._jumpToTarget(_handlers[nextHandlerIdx].target);
       }
 
       codeGen.b.catch_(codeGen.translator.exceptionTag);
@@ -391,13 +392,13 @@ abstract class _ExceptionHandler {
   bool get canHandleJSExceptions;
 }
 
-class Catcher extends _ExceptionHandler {
+class _Catcher extends _ExceptionHandler {
   final List<VariableDeclaration> _exceptionVars = [];
   final List<VariableDeclaration> _stackTraceVars = [];
-  final AsyncCodeGenerator codeGen;
+  final StateMachineCodeGenerator codeGen;
   bool _canHandleJSExceptions = false;
 
-  Catcher.fromTryCatch(this.codeGen, TryCatch node, super.target) {
+  _Catcher.fromTryCatch(this.codeGen, TryCatch node, super.target) {
     for (Catch catch_ in node.catches) {
       _exceptionVars.add(catch_.exception!);
       _stackTraceVars.add(catch_.stackTrace!);
@@ -435,9 +436,9 @@ class Finalizer extends _ExceptionHandler {
   final VariableDeclaration _exceptionVar;
   final VariableDeclaration _stackTraceVar;
   final Finalizer? parentFinalizer;
-  final AsyncCodeGenerator codeGen;
+  final StateMachineCodeGenerator codeGen;
 
-  Finalizer(this.codeGen, TryFinally node, this.parentFinalizer, super.target)
+  Finalizer._(this.codeGen, TryFinally node, this.parentFinalizer, super.target)
       : _continuationVar =
             (node.parent as Block).statements[0] as VariableDeclaration,
         _exceptionVar =
@@ -482,17 +483,17 @@ class Finalizer extends _ExceptionHandler {
   }
 
   void pushException() {
-    codeGen.getVariable(_exceptionVar);
+    codeGen._getVariable(_exceptionVar);
   }
 
   void pushStackTrace() {
-    codeGen.getVariable(_stackTraceVar);
+    codeGen._getVariable(_stackTraceVar);
   }
 }
 
 /// Represents target of a `break` statement.
 abstract class LabelTarget {
-  void jump(AsyncCodeGenerator codeGen);
+  void jump(StateMachineCodeGenerator codeGen);
 }
 
 /// Target of a [BreakStatement] that can be implemented with a Wasm `br`
@@ -500,31 +501,31 @@ abstract class LabelTarget {
 ///
 /// This [LabelTarget] is used when the [LabeledStatement] is compiled using
 /// the normal code generator (instead of async code generator).
-class DirectLabelTarget implements LabelTarget {
+class _DirectLabelTarget implements LabelTarget {
   final w.Label label;
 
-  DirectLabelTarget(this.label);
+  _DirectLabelTarget(this.label);
 
   @override
-  void jump(AsyncCodeGenerator codeGen) {
+  void jump(StateMachineCodeGenerator codeGen) {
     codeGen.b.br(label);
   }
 }
 
 /// Target of a [BreakStatement] when the [LabeledStatement] is compiled to
 /// CFG.
-class IndirectLabelTarget implements LabelTarget {
+class _IndirectLabelTarget implements LabelTarget {
   /// Number of finalizers wrapping the [LabeledStatement].
   final int finalizerDepth;
 
   /// CFG state for the [LabeledStatement] continuation.
   final StateTarget stateTarget;
 
-  IndirectLabelTarget(this.finalizerDepth, this.stateTarget);
+  _IndirectLabelTarget(this.finalizerDepth, this.stateTarget);
 
   @override
-  void jump(AsyncCodeGenerator codeGen) {
-    final currentFinalizerDepth = codeGen.exceptionHandlers.numFinalizers;
+  void jump(StateMachineCodeGenerator codeGen) {
+    final currentFinalizerDepth = codeGen.exceptionHandlers._numFinalizers;
     final finalizersToRun = currentFinalizerDepth - finalizerDepth;
 
     // Control flow overridden by a `break`, reset finalizer continuations.
@@ -544,9 +545,9 @@ class IndirectLabelTarget implements LabelTarget {
     });
 
     if (finalizersToRun == 0) {
-      codeGen.jumpToTarget(stateTarget);
+      codeGen._jumpToTarget(stateTarget);
     } else {
-      codeGen.jumpToTarget(codeGen.exceptionHandlers.nextFinalizer!.target);
+      codeGen._jumpToTarget(codeGen.exceptionHandlers._nextFinalizer!.target);
     }
   }
 }
@@ -558,5 +559,655 @@ class CatchVariables {
   final VariableDeclaration exception;
   final VariableDeclaration stackTrace;
 
-  CatchVariables(this.exception, this.stackTrace);
+  CatchVariables._(this.exception, this.stackTrace);
+}
+
+/// A [CodeGenerator] that compiles the function to a state machine based on
+/// the suspension points in the function (`await` expressions and `yield`
+/// statements).
+///
+/// This is used to compile `async` and `sync*` functions.
+abstract class StateMachineCodeGenerator extends CodeGenerator {
+  StateMachineCodeGenerator(super.translator, super.function, super.reference);
+
+  /// Targets of the CFG, indexed by target index.
+  late final List<StateTarget> targets;
+
+  // Targets categorized by placement and indexed by node.
+  final Map<TreeNode, StateTarget> innerTargets = {};
+  final Map<TreeNode, StateTarget> afterTargets = {};
+
+  /// The loop around the switch.
+  late final w.Label masterLoop;
+
+  /// The target labels of the switch, indexed by target index.
+  late final List<w.Label> labels;
+
+  /// The target index of the entry label for the current CFG node.
+  int currentTargetIndex = -1;
+
+  /// The local for the CFG target block index.
+  late final w.Local targetIndexLocal;
+
+  /// Exception handlers wrapping the current CFG block. Used to generate Wasm
+  /// `try` and `catch` blocks around the CFG blocks.
+  late final ExceptionHandlerStack exceptionHandlers;
+
+  /// Maps jump targets to their CFG targets. Used when jumping to a CFG block
+  /// on `break`. Keys are [LabeledStatement]s or [SwitchCase]s.
+  final Map<TreeNode, LabelTarget> labelTargets = {};
+
+  /// Current [Catch] block stack, used to compile [Rethrow].
+  ///
+  /// Because there can be an `await` in a [Catch] block before a [Rethrow], we
+  /// can't compile [Rethrow] to Wasm `rethrow`. Instead we `throw` using the
+  /// [Rethrow]'s parent [Catch] block's exception and stack variables.
+  List<CatchVariables> catchVariableStack = [];
+
+  @override
+  void generate() {
+    closures = Closures(translator, member);
+    setupParametersAndContexts(member.reference);
+    _generateBodies(member.function!);
+  }
+
+  @override
+  w.BaseFunction generateLambda(Lambda lambda, Closures closures) {
+    this.closures = closures;
+    setupLambdaParametersAndContexts(lambda);
+    _generateBodies(lambda.functionNode);
+    return function;
+  }
+
+  void _generateBodies(FunctionNode functionNode) {
+    // Number and categorize CFG targets.
+    targets = _YieldFinder(translator.options.enableAsserts).find(functionNode);
+    for (final target in targets) {
+      switch (target._placement) {
+        case _StateTargetPlacement.Inner:
+          innerTargets[target.node] = target;
+          break;
+        case _StateTargetPlacement.After:
+          afterTargets[target.node] = target;
+          break;
+      }
+    }
+
+    exceptionHandlers = ExceptionHandlerStack(this);
+
+    Context? context = closures.contexts[functionNode];
+    if (context != null && context.isEmpty) context = context.parent;
+
+    generateFunctions(functionNode, context);
+  }
+
+  /// Store the exception value emitted by [emitValue] in suspension state.
+  /// [getSuspendStateCurrentException] should return the value even after
+  /// suspending the function and continuing it later.
+  void setSuspendStateCurrentException(void Function() emitValue);
+
+  /// Get the value set by [setSuspendStateCurrentException].
+  void getSuspendStateCurrentException();
+
+  /// Same as [setSuspendStateCurrentException], but for the exception stack
+  /// trace.
+  void setSuspendStateCurrentStackTrace(void Function() emitValue);
+
+  /// Same as [getSuspendStateCurrentException], but for the exception stack
+  /// trace.
+  void getSuspendStateCurrentStackTrace();
+
+  /// Store the return value emitted by [emitValue] in suspension state.
+  /// [getSuspendStateReturnValue] should return the value ven after suspending
+  /// the function and continuing it later.
+  void setSuspendStateCurrentReturnValue(void Function() emitValue);
+
+  /// Get the value set by [setSuspendStateCurrentReturnValue].
+  void getSuspendStateCurrentReturnValue();
+
+  /// Generate a return from the function. For `async` functions, this should
+  /// call the completer and return. For `sync*`, this should terminate
+  /// iteration by returning `false`.
+  void emitReturn(void Function() emitValue);
+
+  /// Generate the outer and inner functions.
+  ///
+  /// - Outer function: the `async` or `sync*` function.
+  ///
+  ///   In case of `async` this function should return a future.
+  ///
+  ///   In case of `sync*`, this function should return an iterable.
+  ///
+  ///   Note that when generating the outer function we can't use the
+  ///   [StateMachineCodeGenerator] methods, as the outer functions are not the
+  ///   state machines used to implement suspension and resumption.
+  ///
+  /// - Inner function: the function that will be called for resumption.
+  ///
+  ///   [StateMachineCodeGenerator] methods (visitors etc.) are for generating
+  ///   this function.
+  void generateFunctions(FunctionNode functionNode, Context? context);
+
+  void emitTargetLabel(StateTarget target) {
+    currentTargetIndex++;
+    assert(
+        target.index == currentTargetIndex,
+        'target.index = ${target.index}, '
+        'currentTargetIndex = $currentTargetIndex, '
+        'target.node.location = ${target.node.location}');
+    exceptionHandlers._terminateTryBlocks();
+    b.end();
+    exceptionHandlers._generateTryBlocks(b);
+  }
+
+  void _jumpToTarget(StateTarget target,
+      {Expression? condition, bool negated = false}) {
+    if (condition == null && negated) return;
+    if (target.index > currentTargetIndex) {
+      // Forward jump directly to the label.
+      branchIf(condition, labels[target.index], negated: negated);
+    } else {
+      // Backward jump via the switch.
+      w.Label block = b.block();
+      branchIf(condition, block, negated: !negated);
+      b.i32_const(target.index);
+      b.local_set(targetIndexLocal);
+      b.br(masterLoop);
+      b.end(); // block
+    }
+  }
+
+  @override
+  void visitDoStatement(DoStatement node) {
+    StateTarget? inner = innerTargets[node];
+    if (inner == null) return super.visitDoStatement(node);
+
+    emitTargetLabel(inner);
+    allocateContext(node);
+    visitStatement(node.body);
+    _jumpToTarget(inner, condition: node.condition);
+  }
+
+  @override
+  void visitForStatement(ForStatement node) {
+    StateTarget? inner = innerTargets[node];
+    if (inner == null) return super.visitForStatement(node);
+    StateTarget after = afterTargets[node]!;
+
+    allocateContext(node);
+    for (VariableDeclaration variable in node.variables) {
+      visitStatement(variable);
+    }
+    emitTargetLabel(inner);
+    _jumpToTarget(after, condition: node.condition, negated: true);
+    visitStatement(node.body);
+
+    emitForStatementUpdate(node);
+
+    _jumpToTarget(inner);
+    emitTargetLabel(after);
+  }
+
+  @override
+  void visitIfStatement(IfStatement node) {
+    StateTarget? after = afterTargets[node];
+    if (after == null) return super.visitIfStatement(node);
+    StateTarget? inner = innerTargets[node];
+
+    _jumpToTarget(inner ?? after, condition: node.condition, negated: true);
+    visitStatement(node.then);
+    if (node.otherwise != null) {
+      _jumpToTarget(after);
+      emitTargetLabel(inner!);
+      visitStatement(node.otherwise!);
+    }
+    emitTargetLabel(after);
+  }
+
+  @override
+  void visitLabeledStatement(LabeledStatement node) {
+    StateTarget? after = afterTargets[node];
+    if (after == null) {
+      final w.Label label = b.block();
+      labelTargets[node] = _DirectLabelTarget(label);
+      visitStatement(node.body);
+      labelTargets.remove(node);
+      b.end();
+    } else {
+      labelTargets[node] =
+          _IndirectLabelTarget(exceptionHandlers._numFinalizers, after);
+      visitStatement(node.body);
+      labelTargets.remove(node);
+      emitTargetLabel(after);
+    }
+  }
+
+  @override
+  void visitBreakStatement(BreakStatement node) {
+    labelTargets[node.target]!.jump(this);
+  }
+
+  @override
+  void visitSwitchStatement(SwitchStatement node) {
+    StateTarget? after = afterTargets[node];
+    if (after == null) return super.visitSwitchStatement(node);
+
+    final switchInfo = SwitchInfo(this, node);
+
+    bool isNullable = dartTypeOf(node.expression).isPotentiallyNullable;
+
+    // Special cases
+    final SwitchCase? defaultCase = switchInfo.defaultCase;
+    final SwitchCase? nullCase = switchInfo.nullCase;
+
+    // When the type is nullable we use two variables: one for the nullable
+    // value, one after the null check, with non-nullable type.
+    w.Local switchValueNonNullableLocal = addLocal(switchInfo.nonNullableType);
+    w.Local? switchValueNullableLocal =
+        isNullable ? addLocal(switchInfo.nullableType) : null;
+
+    // Initialize switch value local
+    wrap(node.expression,
+        isNullable ? switchInfo.nullableType : switchInfo.nonNullableType);
+    b.local_set(
+        isNullable ? switchValueNullableLocal! : switchValueNonNullableLocal);
+
+    // Compute value and handle null
+    if (isNullable) {
+      final StateTarget nullTarget = nullCase != null
+          ? innerTargets[nullCase]!
+          : defaultCase != null
+              ? innerTargets[defaultCase]!
+              : after;
+
+      b.local_get(switchValueNullableLocal!);
+      b.ref_is_null();
+      b.if_();
+      _jumpToTarget(nullTarget);
+      b.end();
+      b.local_get(switchValueNullableLocal);
+      b.ref_as_non_null();
+      // Unbox if necessary
+      translator.convertType(function, switchValueNullableLocal.type,
+          switchValueNonNullableLocal.type);
+      b.local_set(switchValueNonNullableLocal);
+    }
+
+    // Compare against all case values
+    for (SwitchCase c in node.cases) {
+      for (Expression exp in c.expressions) {
+        if (exp is NullLiteral ||
+            exp is ConstantExpression && exp.constant is NullConstant) {
+          // Null already checked, skip
+        } else {
+          wrap(exp, switchInfo.nonNullableType);
+          b.local_get(switchValueNonNullableLocal);
+          switchInfo.compare();
+          b.if_();
+          _jumpToTarget(innerTargets[c]!);
+          b.end();
+        }
+      }
+    }
+
+    // No explicit cases matched
+    if (node.isExplicitlyExhaustive) {
+      b.unreachable();
+    } else {
+      final StateTarget defaultLabel =
+          defaultCase != null ? innerTargets[defaultCase]! : after;
+      _jumpToTarget(defaultLabel);
+    }
+
+    // Add jump infos
+    for (final SwitchCase case_ in node.cases) {
+      labelTargets[case_] = _IndirectLabelTarget(
+          exceptionHandlers._numFinalizers, innerTargets[case_]!);
+    }
+
+    // Emit case bodies
+    for (SwitchCase c in node.cases) {
+      emitTargetLabel(innerTargets[c]!);
+      visitStatement(c.body);
+      _jumpToTarget(after);
+    }
+
+    // Remove jump infos
+    for (final SwitchCase case_ in node.cases) {
+      labelTargets.remove(case_);
+    }
+
+    emitTargetLabel(after);
+  }
+
+  @override
+  void visitContinueSwitchStatement(ContinueSwitchStatement node) {
+    labelTargets[node.target]!.jump(this);
+  }
+
+  @override
+  void visitTryCatch(TryCatch node) {
+    StateTarget? after = afterTargets[node];
+    if (after == null) return super.visitTryCatch(node);
+
+    allocateContext(node);
+
+    for (Catch c in node.catches) {
+      if (c.exception != null) {
+        visitVariableDeclaration(c.exception!);
+      }
+      if (c.stackTrace != null) {
+        visitVariableDeclaration(c.stackTrace!);
+      }
+    }
+
+    exceptionHandlers._pushTryCatch(node);
+    exceptionHandlers._generateTryBlocks(b);
+    visitStatement(node.body);
+    _jumpToTarget(after);
+    exceptionHandlers._terminateTryBlocks();
+    exceptionHandlers._pop();
+
+    void emitCatchBlock(Catch catch_, Catch? nextCatch, bool emitGuard) {
+      if (emitGuard) {
+        getSuspendStateCurrentException();
+        b.ref_as_non_null();
+        types.emitIsTest(this, catch_.guard,
+            translator.coreTypes.objectNonNullableRawType, catch_.location);
+        b.i32_eqz();
+        // When generating guards we can't generate the catch body inside the
+        // `if` block for the guard as the catch body can have suspension
+        // points and generate target labels.
+        b.if_();
+        if (nextCatch != null) {
+          _jumpToTarget(innerTargets[nextCatch]!);
+        } else {
+          // Rethrow.
+          getSuspendStateCurrentException();
+          b.ref_as_non_null();
+          getSuspendStateCurrentStackTrace();
+          b.ref_as_non_null();
+          // TODO (omersa): When there is a finalizer we can jump to it
+          // directly, instead of via throw/catch. Would that be faster?
+          exceptionHandlers.forEachFinalizer(
+              (finalizer, last) => finalizer.setContinuationRethrow(
+                    () => _getVariableBoxed(catch_.exception!),
+                    () => _getVariable(catch_.stackTrace!),
+                  ));
+          b.throw_(translator.exceptionTag);
+        }
+        b.end();
+      }
+
+      // Set exception and stack trace variables.
+      setVariable(catch_.exception!, () {
+        getSuspendStateCurrentException();
+        // Type test already passed, convert the exception.
+        translator.convertType(function, translator.topInfo.nullableType,
+            translator.translateType(catch_.exception!.type));
+      });
+      setVariable(catch_.stackTrace!, () => getSuspendStateCurrentStackTrace());
+
+      catchVariableStack
+          .add(CatchVariables._(catch_.exception!, catch_.stackTrace!));
+
+      visitStatement(catch_.body);
+
+      catchVariableStack.removeLast();
+
+      _jumpToTarget(after);
+    }
+
+    for (int catchIdx = 0; catchIdx < node.catches.length; catchIdx += 1) {
+      final Catch catch_ = node.catches[catchIdx];
+
+      final nextCatchIdx = catchIdx + 1;
+      final Catch? nextCatch = nextCatchIdx < node.catches.length
+          ? node.catches[nextCatchIdx]
+          : null;
+
+      emitTargetLabel(innerTargets[catch_]!);
+
+      final bool shouldEmitGuard =
+          catch_.guard != translator.coreTypes.objectNonNullableRawType;
+
+      emitCatchBlock(catch_, nextCatch, shouldEmitGuard);
+
+      if (!shouldEmitGuard) {
+        break;
+      }
+    }
+
+    // Rethrow. Note that we don't override finalizer continuations here, they
+    // should be set by the original `throw` site.
+    getSuspendStateCurrentException();
+    b.ref_as_non_null();
+    getSuspendStateCurrentStackTrace();
+    b.ref_as_non_null();
+    b.throw_(translator.exceptionTag);
+
+    emitTargetLabel(after);
+  }
+
+  @override
+  void visitTryFinally(TryFinally node) {
+    allocateContext(node);
+
+    final StateTarget finalizerTarget = innerTargets[node]!;
+    final StateTarget fallthroughContinuationTarget = afterTargets[node]!;
+
+    // Body
+    final finalizer = exceptionHandlers._pushTryFinally(node);
+    exceptionHandlers._generateTryBlocks(b);
+    visitStatement(node.body);
+
+    // Set continuation of the finalizer.
+    finalizer.setContinuationFallthrough();
+
+    _jumpToTarget(finalizerTarget);
+    exceptionHandlers._terminateTryBlocks();
+    exceptionHandlers._pop();
+
+    // Finalizer
+    {
+      emitTargetLabel(finalizerTarget);
+      visitStatement(node.finalizer);
+
+      // Check continuation.
+
+      // Fallthrough
+      assert(continuationFallthrough == 0); // update eqz below if changed
+      finalizer.pushContinuation();
+      b.i32_eqz();
+      b.if_();
+      _jumpToTarget(fallthroughContinuationTarget);
+      b.end();
+
+      // Return
+      finalizer.pushContinuation();
+      b.i32_const(continuationReturn);
+      b.i32_eq();
+      b.if_();
+      emitReturn(() => getSuspendStateCurrentReturnValue());
+      b.end();
+
+      // Rethrow
+      finalizer.pushContinuation();
+      b.i32_const(continuationRethrow);
+      b.i32_eq();
+      b.if_();
+      finalizer.pushException();
+      b.ref_as_non_null();
+      finalizer.pushStackTrace();
+      b.ref_as_non_null();
+      b.throw_(translator.exceptionTag);
+      b.end();
+
+      // Any other value: jump to the target.
+      finalizer.pushContinuation();
+      b.i32_const(continuationJump);
+      b.i32_sub();
+      b.local_set(targetIndexLocal);
+      b.br(masterLoop);
+    }
+
+    emitTargetLabel(fallthroughContinuationTarget);
+  }
+
+  @override
+  void visitWhileStatement(WhileStatement node) {
+    StateTarget? inner = innerTargets[node];
+    if (inner == null) return super.visitWhileStatement(node);
+    StateTarget after = afterTargets[node]!;
+
+    allocateContext(node);
+    emitTargetLabel(inner);
+    _jumpToTarget(after, condition: node.condition, negated: true);
+    visitStatement(node.body);
+    _jumpToTarget(inner);
+    emitTargetLabel(after);
+  }
+
+  @override
+  void visitYieldStatement(YieldStatement node) {
+    // This should be overriddenin `sync*` code generator.
+    throw 'Unexpected yield statement: $node (${node.location})';
+  }
+
+  @override
+  void visitReturnStatement(ReturnStatement node) {
+    final Finalizer? firstFinalizer = exceptionHandlers._nextFinalizer;
+    final value = node.expression;
+
+    if (firstFinalizer == null) {
+      emitReturn(() {
+        if (value == null) {
+          b.ref_null(translator.topInfo.struct);
+        } else {
+          wrap(value, translator.topInfo.nullableType);
+        }
+      });
+      return;
+    }
+
+    if (value == null) {
+      b.ref_null(translator.topInfo.struct);
+    } else {
+      wrap(value, translator.topInfo.nullableType);
+    }
+
+    final returnValueLocal = addLocal(translator.topInfo.nullableType);
+    b.local_set(returnValueLocal);
+
+    // Set return value for the last finalizer to return.
+    setSuspendStateCurrentReturnValue(() => b.local_get(returnValueLocal));
+
+    // Update continuation variables of finalizers. Last finalizer returns
+    // the value.
+    exceptionHandlers.forEachFinalizer((finalizer, last) {
+      if (last) {
+        finalizer.setContinuationReturn();
+      } else {
+        finalizer.setContinuationJump(finalizer.parentFinalizer!.target.index);
+      }
+    });
+
+    // Jump to the first finalizer
+    _jumpToTarget(firstFinalizer.target);
+  }
+
+  @override
+  w.ValueType visitThrow(Throw node, w.ValueType expectedType) {
+    final exceptionLocal = addLocal(translator.topInfo.nonNullableType);
+    wrap(node.expression, translator.topInfo.nonNullableType);
+    b.local_set(exceptionLocal);
+
+    final stackTraceLocal =
+        addLocal(translator.stackTraceInfo.repr.nonNullableType);
+    call(translator.stackTraceCurrent.reference);
+    b.local_set(stackTraceLocal);
+
+    exceptionHandlers.forEachFinalizer((finalizer, last) {
+      finalizer.setContinuationRethrow(() => b.local_get(exceptionLocal),
+          () => b.local_get(stackTraceLocal));
+    });
+
+    // TODO (omersa): An alternative would be to directly jump to the parent
+    // handler, or call `completeOnError` if we're not in a try-catch or
+    // try-finally. Would that be more efficient?
+    b.local_get(exceptionLocal);
+    b.local_get(stackTraceLocal);
+    call(translator.errorThrow.reference);
+
+    b.unreachable();
+    return expectedType;
+  }
+
+  @override
+  w.ValueType visitRethrow(Rethrow node, w.ValueType expectedType) {
+    final catchVars = catchVariableStack.last;
+
+    exceptionHandlers.forEachFinalizer((finalizer, last) {
+      finalizer.setContinuationRethrow(
+        () => _getVariableBoxed(catchVars.exception),
+        () => _getVariable(catchVars.stackTrace),
+      );
+    });
+
+    // TODO (omersa): Similar to `throw` compilation above, we could directly
+    // jump to the target block or call `completeOnError`.
+    getSuspendStateCurrentException();
+    b.ref_as_non_null();
+    getSuspendStateCurrentStackTrace();
+    b.ref_as_non_null();
+    b.throw_(translator.exceptionTag);
+    b.unreachable();
+    return expectedType;
+  }
+
+  /// Similar to the [VariableSet] visitor, but the value is pushed to the
+  /// stack by the callback [pushValue].
+  void setVariable(VariableDeclaration variable, void Function() pushValue) {
+    final w.Local? local = locals[variable];
+    final Capture? capture = closures.captures[variable];
+    if (capture != null) {
+      assert(capture.written);
+      b.local_get(capture.context.currentLocal);
+      pushValue();
+      b.struct_set(capture.context.struct, capture.fieldIndex);
+    } else {
+      if (local == null) {
+        throw "Write of undefined variable $variable";
+      }
+      pushValue();
+      b.local_set(local);
+    }
+  }
+
+  w.ValueType _getVariable(VariableDeclaration variable) {
+    final w.Local? local = locals[variable];
+    final Capture? capture = closures.captures[variable];
+    if (capture != null) {
+      if (!capture.written && local != null) {
+        b.local_get(local);
+        return local.type;
+      } else {
+        b.local_get(capture.context.currentLocal);
+        b.struct_get(capture.context.struct, capture.fieldIndex);
+        return capture.context.struct.fields[capture.fieldIndex].type.unpacked;
+      }
+    } else {
+      if (local == null) {
+        throw "Write of undefined variable $variable";
+      }
+      b.local_get(local);
+      return local.type;
+    }
+  }
+
+  /// Same as [_getVariable], but boxes the value if it's not already boxed.
+  void _getVariableBoxed(VariableDeclaration variable) {
+    final varType = _getVariable(variable);
+    translator.convertType(function, varType, translator.topInfo.nullableType);
+  }
 }

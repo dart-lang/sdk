@@ -19,6 +19,7 @@ const int _initialTargetIndex = 0;
 class _SuspendState {
   // The inner function.
   final _ResumeFun _resume;
+
   // Parent state to transition to when this body completes. This will be
   // present when the `sync*` iterable was consumed by a `yield*`.
   final _SuspendState? _parent;
@@ -27,18 +28,28 @@ class _SuspendState {
   // belong to the same iterator.
   @pragma("wasm:entry-point")
   _SyncStarIterator? _iterator;
+
   // Context containing the local variables of the function.
   @pragma("wasm:entry-point")
   WasmStructRef? _context;
+
   // CFG target index for the next resumption.
   @pragma("wasm:entry-point")
-  WasmI32 _targetIndex;
+  WasmI32 _targetIndex = WasmI32.fromInt(_initialTargetIndex);
+
+  // When a called function throws this stores the thrown exception. Used when
+  // performing type tests in catch blocks.
+  @pragma("wasm:entry-point")
+  Object? _currentException = null;
+
+  // When a called function throws this stores the stack trace.
+  @pragma("wasm:entry-point")
+  StackTrace? _currentExceptionStackTrace = null;
 
   _SuspendState(_SyncStarIterable iterable, _SuspendState? parent)
       : _resume = iterable._resume,
         _parent = parent,
-        _context = iterable._context,
-        _targetIndex = WasmI32.fromInt(_initialTargetIndex);
+        _context = iterable._context;
 }
 
 /// An [Iterable] returned from a `sync*` function.
@@ -48,6 +59,7 @@ class _SyncStarIterable<T> extends Iterable<T> {
   // context when the `sync*` function is a lambda.
   @pragma("wasm:entry-point")
   WasmStructRef? _context;
+
   // The inner function.
   @pragma("wasm:entry-point")
   _ResumeFun _resume;
@@ -67,6 +79,7 @@ class _SyncStarIterator<T> implements Iterator<T> {
   // [_yieldStarIterable] (for `yield*`).
   @pragma("wasm:entry-point")
   T? _current;
+
   @pragma("wasm:entry-point")
   Iterable<T>? _yieldStarIterable;
 
