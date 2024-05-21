@@ -8,155 +8,7 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 import 'class_info.dart';
 import 'closures.dart';
 import 'code_generator.dart';
-
-/// Placement of a control flow graph target within a statement. This
-/// distinction is necessary since some statements need to have two targets
-/// associated with them.
-///
-/// The meanings of the variants are:
-///
-///  - [Inner]: Loop entry of a [DoStatement], condition of a [ForStatement] or
-///             [WhileStatement], the `else` branch of an [IfStatement], or the
-///             initial entry target for a function body.
-///  - [After]: After a statement, the resumption point of a [YieldStatement],
-///             or the final state (iterator done) of a function body.
-enum StateTargetPlacement { Inner, After }
-
-/// Representation of target in the `sync*` control flow graph.
-class StateTarget {
-  int index;
-  TreeNode node;
-  StateTargetPlacement placement;
-
-  StateTarget(this.index, this.node, this.placement);
-
-  @override
-  String toString() {
-    String place = placement == StateTargetPlacement.Inner ? "in" : "after";
-    return "$index: $place $node";
-  }
-}
-
-/// Identify which statements contain `yield` or `yield*` statements, and assign
-/// target indices to all control flow targets of these.
-///
-/// Target indices are assigned in program order.
-class _YieldFinder extends StatementVisitor<void>
-    with StatementVisitorDefaultMixin<void> {
-  final SyncStarCodeGenerator codeGen;
-
-  // The number of `yield` or `yield*` statements seen so far.
-  int yieldCount = 0;
-
-  _YieldFinder(this.codeGen);
-
-  List<StateTarget> get targets => codeGen.targets;
-
-  void find(FunctionNode function) {
-    // Initial state
-    addTarget(function.body!, StateTargetPlacement.Inner);
-    assert(function.body is Block || function.body is ReturnStatement);
-    recurse(function.body!);
-    // Final state
-    addTarget(function.body!, StateTargetPlacement.After);
-  }
-
-  /// Recurse into a statement and then remove any targets added by the
-  /// statement if it doesn't contain any `yield` or `yield*` statements.
-  void recurse(Statement statement) {
-    int yieldCountIn = yieldCount;
-    int targetsIn = targets.length;
-    statement.accept(this);
-    if (yieldCount == yieldCountIn) targets.length = targetsIn;
-  }
-
-  void addTarget(TreeNode node, StateTargetPlacement placement) {
-    targets.add(StateTarget(targets.length, node, placement));
-  }
-
-  @override
-  void defaultStatement(Statement node) {
-    // Statements not explicitly handled in this visitor can never contain any
-    // `yield` or `yield*` statements. It is assumed that this holds for all
-    // [BlockExpression]s in the function.
-  }
-
-  @override
-  void visitBlock(Block node) {
-    for (Statement statement in node.statements) {
-      recurse(statement);
-    }
-  }
-
-  @override
-  void visitDoStatement(DoStatement node) {
-    addTarget(node, StateTargetPlacement.Inner);
-    recurse(node.body);
-  }
-
-  @override
-  void visitForStatement(ForStatement node) {
-    addTarget(node, StateTargetPlacement.Inner);
-    recurse(node.body);
-    addTarget(node, StateTargetPlacement.After);
-  }
-
-  @override
-  void visitIfStatement(IfStatement node) {
-    recurse(node.then);
-    if (node.otherwise != null) {
-      addTarget(node, StateTargetPlacement.Inner);
-      recurse(node.otherwise!);
-    }
-    addTarget(node, StateTargetPlacement.After);
-  }
-
-  @override
-  void visitLabeledStatement(LabeledStatement node) {
-    recurse(node.body);
-    addTarget(node, StateTargetPlacement.After);
-  }
-
-  @override
-  void visitSwitchStatement(SwitchStatement node) {
-    for (SwitchCase c in node.cases) {
-      addTarget(c, StateTargetPlacement.Inner);
-      recurse(c.body);
-    }
-    addTarget(node, StateTargetPlacement.After);
-  }
-
-  @override
-  void visitTryCatch(TryCatch node) {
-    recurse(node.body);
-    for (Catch c in node.catches) {
-      addTarget(c, StateTargetPlacement.Inner);
-      recurse(c.body);
-    }
-    addTarget(node, StateTargetPlacement.After);
-  }
-
-  @override
-  void visitTryFinally(TryFinally node) {
-    recurse(node.body);
-    addTarget(node, StateTargetPlacement.Inner);
-    recurse(node.finalizer);
-    addTarget(node, StateTargetPlacement.After);
-  }
-
-  @override
-  void visitWhileStatement(WhileStatement node) {
-    addTarget(node, StateTargetPlacement.Inner);
-    recurse(node.body);
-    addTarget(node, StateTargetPlacement.After);
-  }
-
-  @override
-  void visitYieldStatement(YieldStatement node) {
-    yieldCount++;
-    addTarget(node, StateTargetPlacement.After);
-  }
-}
+import 'state_machine.dart';
 
 /// A specialized code generator for generating code for `sync*` functions.
 ///
@@ -177,7 +29,7 @@ class SyncStarCodeGenerator extends CodeGenerator {
   SyncStarCodeGenerator(super.translator, super.function, super.reference);
 
   /// Targets of the CFG, indexed by target index.
-  final List<StateTarget> targets = [];
+  late final List<StateTarget> targets;
 
   // Targets categorized by placement and indexed by node.
   final Map<TreeNode, StateTarget> innerTargets = {};
@@ -209,20 +61,20 @@ class SyncStarCodeGenerator extends CodeGenerator {
   void generate() {
     closures = Closures(translator, member);
     setupParametersAndContexts(member.reference);
-    generateBodies(member.function!);
+    _generateBodies(member.function!);
   }
 
   @override
   w.BaseFunction generateLambda(Lambda lambda, Closures closures) {
     this.closures = closures;
     setupLambdaParametersAndContexts(lambda);
-    generateBodies(lambda.functionNode);
+    _generateBodies(lambda.functionNode);
     return function;
   }
 
-  void generateBodies(FunctionNode functionNode) {
+  void _generateBodies(FunctionNode functionNode) {
     // Number and categorize CFG targets.
-    _YieldFinder(this).find(functionNode);
+    targets = YieldFinder(translator.options.enableAsserts).find(functionNode);
     for (final target in targets) {
       switch (target.placement) {
         case StateTargetPlacement.Inner:
