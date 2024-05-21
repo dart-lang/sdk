@@ -571,6 +571,9 @@ final _builtInLintProducers = <String, List<ProducerGenerator>>{
     AddAwait.unawaited,
     WrapInUnawaited.new,
   ],
+  LintNames.unnecessary_await_in_return: [
+    RemoveAwait.new,
+  ],
   LintNames.unnecessary_brace_in_string_interps: [
     RemoveInterpolationBraces.new,
   ],

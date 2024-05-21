@@ -13,6 +13,7 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveAwaitBulkTest);
     defineReflectiveTests(RemoveAwaitTest);
+    defineReflectiveTests(UnnecessaryAwaitInReturnLintTest);
   });
 }
 
@@ -74,6 +75,49 @@ bad() async {
 bad() async {
   print('hola');
 }
+''');
+  }
+}
+
+@reflectiveTest
+class UnnecessaryAwaitInReturnLintTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.REMOVE_AWAIT;
+
+  @override
+  String get lintCode => LintNames.unnecessary_await_in_return;
+
+  Future<void> test_arrow() async {
+    await resolveTestCode(r'''
+class A {
+  Future<int> f() async => await future;
+}
+final future = Future.value(1);
+''');
+    await assertHasFix(r'''
+class A {
+  Future<int> f() async => future;
+}
+final future = Future.value(1);
+''');
+  }
+
+  Future<void> test_expressionBody() async {
+    await resolveTestCode(r'''
+class A {
+  Future<int> f() async {
+    return await future;
+  }
+}
+final future = Future.value(1);
+''');
+    await assertHasFix(r'''
+class A {
+  Future<int> f() async {
+    return future;
+  }
+}
+final future = Future.value(1);
 ''');
   }
 }

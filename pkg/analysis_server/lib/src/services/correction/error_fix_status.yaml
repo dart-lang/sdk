@@ -2393,9 +2393,7 @@ LintCode.unintended_html_in_doc_comment:
   notes: |-
     The fix is to encode the angle brackets.
 LintCode.unnecessary_await_in_return:
-  status: needsFix
-  notes: |-
-    The fix is to remove the `await`.
+  status: hasFix
 LintCode.unnecessary_brace_in_string_interps:
   status: hasFix
 LintCode.unnecessary_breaks:
