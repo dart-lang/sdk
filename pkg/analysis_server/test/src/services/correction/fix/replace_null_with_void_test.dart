@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// We use 'Null' in the file name to distinguish from 'null'.
-// ignore_for_file: file_names
-
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';

@@ -182,7 +182,6 @@ import 'package:analysis_server/src/services/correction/dart/remove_var.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_var_keyword.dart';
 import 'package:analysis_server/src/services/correction/dart/rename_method_parameter.dart';
 import 'package:analysis_server/src/services/correction/dart/rename_to_camel_case.dart';
-import 'package:analysis_server/src/services/correction/dart/replace_Null_with_void.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_boolean_with_bool.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_cascade_with_dot.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_colon_with_equals.dart';
@@ -193,6 +192,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_final_with_
 import 'package:analysis_server/src/services/correction/dart/replace_new_with_const.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_null_check_with_cast.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_null_with_closure.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_null_with_void.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_return_type.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_return_type_future.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_return_type_iterable.dart';
