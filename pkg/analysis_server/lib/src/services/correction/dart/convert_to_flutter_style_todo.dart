@@ -12,10 +12,8 @@ import 'package:linter/src/rules/flutter_style_todos.dart';
 
 class ConvertToFlutterStyleTodo extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_FLUTTER_STYLE_TODO;

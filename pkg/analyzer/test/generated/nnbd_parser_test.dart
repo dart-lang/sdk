@@ -198,12 +198,6 @@ main() {
     parseCompilationUnit('D? foo(X? x) { X ? x2 = x : y; }');
   }
 
-  void test_enableNonNullable_false() {
-    parseCompilationUnit('main() { x is String? ? (x + y) : z; }',
-        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 20, 1)],
-        featureSet: FeatureSets.language_2_9);
-  }
-
   void test_for() {
     parseCompilationUnit('main() { for(int x = 0; x < 7; ++x) { } }');
   }
@@ -222,12 +216,6 @@ main() {
 
   void test_foreach_nullable() {
     parseCompilationUnit('main() { for(int? x in [7, null]) { } }');
-  }
-
-  void test_functionTypedFormalParameter_nullable_disabled() {
-    parseCompilationUnit('void f(void p()?) {}',
-        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 15, 1)],
-        featureSet: FeatureSets.language_2_9);
   }
 
   test_fuzz_38113() async {
@@ -282,28 +270,6 @@ main() {
     expect(expression.leftBracket.endGroup, expression.rightBracket);
   }
 
-  void test_indexed_nullAware_optOut() {
-    CompilationUnit unit = parseCompilationUnit('''
-// @dart = 2.2
-main() { a?[7]; }''',
-        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 25, 1)]);
-    var method = unit.declarations[0] as FunctionDeclaration;
-    var body = method.functionExpression.body as BlockFunctionBody;
-    var statement = body.block.statements[0] as ExpressionStatement;
-    var expression = statement.expression as IndexExpressionImpl;
-    expect(expression.target!.toSource(), 'a');
-    expect(expression.question, isNotNull);
-    expect(expression.leftBracket.lexeme, '[');
-    expect(expression.rightBracket.lexeme, ']');
-    expect(expression.leftBracket.endGroup, expression.rightBracket);
-  }
-
-  void test_indexExpression_nullable_disabled() {
-    parseCompilationUnit('main(a) { a?[0]; }',
-        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 11, 1)],
-        featureSet: FeatureSets.language_2_9);
-  }
-
   void test_is_nullable() {
     CompilationUnit unit =
         parseCompilationUnit('main() { x is String? ? (x + y) : z; }');
@@ -335,13 +301,6 @@ main() { a?[7]; }''',
     expect(thenExpression, isParenthesizedExpression);
     Expression elseExpression = expression.elseExpression;
     expect(elseExpression, isSimpleIdentifier);
-  }
-
-  void test_is_nullable_parenthesis_optOut() {
-    parseCompilationUnit('''
-// @dart = 2.2
-main() { (x is String?) ? (x + y) : z; }
-''', errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 36, 1)]);
   }
 
   void test_late_as_identifier() {
@@ -541,21 +500,6 @@ class Foo {
     expect(expression.operator.lexeme, '!');
   }
 
-  void test_nullCheck_disabled() {
-    var unit = parseCompilationUnit('f(int? y) { var x = y!; }',
-        errors: [
-          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 5, 1),
-          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 21, 1),
-        ],
-        featureSet: FeatureSets.language_2_9);
-    var function = unit.declarations[0] as FunctionDeclaration;
-    var body = function.functionExpression.body as BlockFunctionBody;
-    var statement = body.block.statements[0] as VariableDeclarationStatement;
-    var identifier =
-        statement.variables.variables[0].initializer as SimpleIdentifier;
-    expect(identifier.name, 'y');
-  }
-
   void test_nullCheckAfterGetterAccess() {
     parseCompilationUnit('f() { var x = g.x!.y + 7; }');
   }
@@ -601,15 +545,6 @@ class Foo {
 
   void test_nullCheckInExpression() {
     parseCompilationUnit('f(int? y) { var x = y! + 7; }');
-  }
-
-  void test_nullCheckInExpression_disabled() {
-    parseCompilationUnit('f(int? y) { var x = y! + 7; }',
-        errors: [
-          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 5, 1),
-          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 21, 1),
-        ],
-        featureSet: FeatureSets.language_2_9);
   }
 
   void test_nullCheckMethodResult() {
@@ -743,12 +678,6 @@ class Foo {
     expect(target.operand.toSource(), "foo");
   }
 
-  void test_nullCheckOnLiteral_disabled() {
-    parseCompilationUnit('f() { var x = 0!; }',
-        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 15, 1)],
-        featureSet: FeatureSets.language_2_9);
-  }
-
   void test_nullCheckOnLiteralDouble() {
     // Issues like this should be caught during later analysis
     parseCompilationUnit('f() { var x = 1.2!; }');
@@ -822,12 +751,6 @@ class Foo {
     parseCompilationUnit('f(Point p) { var x = p.y! + 7; }');
   }
 
-  void test_nullCheckOnValue_disabled() {
-    parseCompilationUnit('f(Point p) { var x = p.y! + 7; }',
-        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 24, 1)],
-        featureSet: FeatureSets.language_2_9);
-  }
-
   void test_nullCheckParenthesizedExpression() {
     parseCompilationUnit('f(int? y) { var x = (y)! + 7; }');
   }
@@ -866,11 +789,5 @@ class Foo {
     expect(outerExpression.operator.type, TokenType.BANG);
     var innerExpression = outerExpression.operand as PostfixExpression;
     expect(innerExpression.operator.type, TokenType.PLUS_PLUS);
-  }
-
-  void test_typeName_nullable_disabled() {
-    parseCompilationUnit('int? x;',
-        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 3, 1)],
-        featureSet: FeatureSets.language_2_9);
   }
 }

@@ -30,9 +30,63 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:meta/meta.dart';
 
+/// How broadly a [CorrectionProducer] can be applied.
+///
+/// Each value of this enum is cumulative, as the index increases. When a
+/// correctiopn producer has a given applicability, it also can be applied with
+/// each lower-indexed value. For example, a correction producer with an
+/// applicability of [CorrectionApplicability.acrossFiles] can also be used to
+/// apply corrections across a single file
+/// ([CorrectionApplicability.singleLocation]) and at a single location
+/// ([CorrectionApplicability.singleLocation]). The [CorrectionProducer] getters
+/// reflect this property: [CorrectionProducer.canBeAppliedAcrossSingleFile],
+/// [CorrectionProducer.canBeAppliedAcrossFiles],
+/// [CorrectionProducer.canBeAppliedAutomatically].
+enum CorrectionApplicability {
+  /// Indicates a correction can be applied only at a specific location.
+  ///
+  /// A correction with this applicability is not applicable across a file,
+  /// across multiple files, or valid to be applied automatically.
+  singleLocation,
+
+  /// Indicates a correction can be applied in multiple positions in the same
+  /// file.
+  ///
+  /// A correction with this applicability is also applicable at a specific
+  /// location, but not applicable across multiple files, or valid to be applied
+  /// automatically.
+  ///
+  /// This flag is used to provide the option for a user to fix a specific
+  /// diagnostic across a file (such as a quick fix to "fix all _something_ in
+  /// this file").
+  acrossSingleFile,
+
+  /// Indicates a correction can be applied across in bulk across multiple files
+  /// and/or at the same time as applying fixes from other producers.
+  ///
+  /// A correction with this applicability is also applicable at a specific
+  /// location, and across a file, but not valid to be applied automatically.
+  ///
+  /// Cases where this is not applicable include fixes for which
+  /// - the modified regions can overlap, and
+  /// - fixes that have not been tested to ensure that they can be used this
+  ///   way.
+  acrossFiles,
+
+  /// Indicates a correction can be applied in multiple locations, even if not
+  /// chosen explicitly as a tool action, and can be applied to potentially
+  /// incomplete code.
+  ///
+  /// A correction with this applicability is also applicable at a specific
+  /// location, and across a file, and across multiple files.
+  automatically,
+}
+
 /// An object that can compute a correction (fix or assist) in a Dart file.
 abstract class CorrectionProducer<T extends ParsedUnitResult>
     extends _AbstractCorrectionProducer<T> {
+  CorrectionApplicability get applicability;
+
   /// The arguments that should be used when composing the message for an
   /// assist, or `null` if the assist message has no parameters or if this
   /// producer doesn't support assists.
@@ -42,43 +96,26 @@ abstract class CorrectionProducer<T extends ParsedUnitResult>
   /// producer doesn't support assists.
   AssistKind? get assistKind => null;
 
-  /// Whether fixes from this producer are acceptable to run automatically (such
-  /// as during a save operation) when code could be incomplete.
-  ///
-  /// By default this value matches [canBeAppliedInBulk] but may return `false`
-  /// for fixes that perform actions like removing unused code, which could be
-  /// unused only because the code is still being worked on.
-  bool get canBeAppliedAutomatically => canBeAppliedInBulk;
+  /// Whether this producer can be used to apply a correction in multiple
+  /// positions simultaneously in bulk across multiple files and/or at the same
+  /// time as applying corrections from other producers.
+  bool get canBeAppliedAcrossFiles =>
+      applicability == CorrectionApplicability.acrossFiles ||
+      applicability == CorrectionApplicability.automatically;
 
-  /// Whether this producer can be used to fix diagnostics across mltiple files
-  /// and/or at the same time as applying fixes from other producers.
-  ///
-  /// This flag is used when the user has chosen to apply fixes but may not have
-  /// chosen to apply a specific fix (such as running `dart fix`).
-  ///
-  /// Cases where this will return `false` include fixes for which
-  /// - the modified regions can overlap, and
-  /// - fixes that have not been tested to ensure that they can be used this
-  ///   way.
-  bool get canBeAppliedInBulk => false;
+  /// Whether this producer can be used to apply a correction in multiple
+  /// positions simultaneously across a file.
+  bool get canBeAppliedAcrossSingleFile =>
+      applicability == CorrectionApplicability.acrossSingleFile ||
+      applicability == CorrectionApplicability.acrossFiles ||
+      applicability == CorrectionApplicability.automatically;
 
-  /// Whether this producer can be used to fix multiple diagnostics in the same
-  /// file.
-  ///
-  /// Unlike [canBeAppliedInBulk], this flag is used to provide the option for
-  /// a user to fix a specific diagnostic across a file (such as a quick-fix to
-  /// "fix all _something_ in this file").
-  ///
-  /// Cases where this will return `false` include fixes for which
-  /// - the modified regions can overlap,
-  /// - the fix for one diagnostic would fix all diagnostics with the same code,
-  ///   and,
-  /// - fixes that have not been tested to ensure that they can be used this
-  ///   way.
-  ///
-  /// Producers that return `true` should return non-null values from both
-  /// [multiFixKind] and [multiFixArguments].
-  bool get canBeAppliedToFile => false;
+  /// Whether this producer can be used to apply a correction automatically when
+  /// code could be incomplete, as well as in multiple positions simultaneously
+  /// in bulk across multiple files and/or at the same time as applying
+  /// corrections from other producers.
+  bool get canBeAppliedAutomatically =>
+      applicability == CorrectionApplicability.automatically;
 
   /// The length of the error message being fixed, or `null` if there is no
   /// diagnostic.

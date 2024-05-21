@@ -15,6 +15,11 @@ class ReplaceReturnTypeStream extends ResolvedCorrectionProducer {
   String _typeArgument = '';
 
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   List<String> get fixArguments => [_typeArgument];
 
   @override

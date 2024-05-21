@@ -19,21 +19,15 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class AddTypeAnnotation extends ResolvedCorrectionProducer {
   @override
-  bool canBeAppliedInBulk;
-
-  @override
-  bool canBeAppliedToFile;
+  final CorrectionApplicability applicability;
 
   /// Initialize a newly created instance that can't apply bulk and in-file
   /// fixes.
-  AddTypeAnnotation()
-      : canBeAppliedInBulk = false,
-        canBeAppliedToFile = false;
+  AddTypeAnnotation() : applicability = CorrectionApplicability.singleLocation;
 
   /// Initialize a newly created instance that can apply bulk and in-file fixes.
   AddTypeAnnotation.bulkFixable()
-      : canBeAppliedInBulk = true,
-        canBeAppliedToFile = true;
+      : applicability = CorrectionApplicability.automatically;
 
   @override
   AssistKind get assistKind => DartAssistKind.ADD_TYPE_ANNOTATION;

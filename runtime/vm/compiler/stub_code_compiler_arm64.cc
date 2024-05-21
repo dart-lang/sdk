@@ -1381,16 +1381,6 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     // R3: array size.
     // R7: new object end address.
 
-    // Store the type argument field.
-    __ StoreCompressedIntoObjectOffsetNoBarrier(
-        AllocateArrayABI::kResultReg, target::Array::type_arguments_offset(),
-        AllocateArrayABI::kTypeArgumentsReg);
-
-    // Set the length field.
-    __ StoreCompressedIntoObjectOffsetNoBarrier(AllocateArrayABI::kResultReg,
-                                                target::Array::length_offset(),
-                                                AllocateArrayABI::kLengthReg);
-
     // Calculate the size tag.
     // AllocateArrayABI::kResultReg: new object start as a tagged pointer.
     // AllocateArrayABI::kLengthReg: array length as Smi.
@@ -1412,6 +1402,16 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     __ orr(R3, R3, Operand(TMP));
     __ StoreFieldToOffset(R3, AllocateArrayABI::kResultReg,
                           target::Array::tags_offset());
+
+    // Store the type argument field.
+    __ StoreCompressedIntoObjectOffsetNoBarrier(
+        AllocateArrayABI::kResultReg, target::Array::type_arguments_offset(),
+        AllocateArrayABI::kTypeArgumentsReg);
+
+    // Set the length field.
+    __ StoreCompressedIntoObjectOffsetNoBarrier(AllocateArrayABI::kResultReg,
+                                                target::Array::length_offset(),
+                                                AllocateArrayABI::kLengthReg);
 
     // Initialize all array elements to raw_null.
     // AllocateArrayABI::kResultReg: new object start as a tagged pointer.

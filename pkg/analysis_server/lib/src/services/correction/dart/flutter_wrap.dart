@@ -200,6 +200,11 @@ abstract class _WrapMultipleWidgets extends ResolvedCorrectionProducer {
 
   _WrapMultipleWidgets(this.firstWidget, this.lastWidget);
 
+  @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
   String get _parentClassName;
 
   String get _parentLibraryUri => widgetsUri;
@@ -257,6 +262,11 @@ abstract class _WrapSingleWidget extends ResolvedCorrectionProducer {
   final Expression widgetExpr;
 
   _WrapSingleWidget(this.widgetExpr);
+
+  @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   List<String> get _leadingLines => const [];
 

@@ -16,10 +16,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class AddConst extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_CONST;

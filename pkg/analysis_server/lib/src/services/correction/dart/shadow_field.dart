@@ -14,6 +14,11 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 
 class ShadowField extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   AssistKind get assistKind => DartAssistKind.SHADOW_FIELD;
 
   @override

@@ -15,13 +15,11 @@ import 'package:path/path.dart' as path;
 
 class ConvertToRelativeImport extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
+
+  @override
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_RELATIVE_IMPORT;
-
-  @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_RELATIVE_IMPORT;

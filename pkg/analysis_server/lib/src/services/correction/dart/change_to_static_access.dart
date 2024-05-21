@@ -14,6 +14,11 @@ class ChangeToStaticAccess extends ResolvedCorrectionProducer {
   String _className = '';
 
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   List<String> get fixArguments => [_className];
 
   @override

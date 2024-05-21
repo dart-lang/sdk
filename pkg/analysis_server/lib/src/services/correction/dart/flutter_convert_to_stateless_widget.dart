@@ -19,6 +19,11 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   AssistKind get assistKind =>
       DartAssistKind.FLUTTER_CONVERT_TO_STATELESS_WIDGET;
 

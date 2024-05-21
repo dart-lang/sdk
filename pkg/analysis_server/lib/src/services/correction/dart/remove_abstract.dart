@@ -14,21 +14,15 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveAbstract extends CorrectionProducerWithDiagnostic {
   @override
-  bool canBeAppliedInBulk;
-
-  @override
-  bool canBeAppliedToFile;
+  final CorrectionApplicability applicability;
 
   /// Initialize a newly created instance that can't apply bulk and in-file
   /// fixes.
-  RemoveAbstract()
-      : canBeAppliedInBulk = false,
-        canBeAppliedToFile = false;
+  RemoveAbstract() : applicability = CorrectionApplicability.singleLocation;
 
   /// Initialize a newly created instance that can apply bulk and in-file fixes.
   RemoveAbstract.bulkFixable()
-      : canBeAppliedInBulk = true,
-        canBeAppliedToFile = true;
+      : applicability = CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_ABSTRACT;

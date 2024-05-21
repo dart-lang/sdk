@@ -12,14 +12,10 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
   @override
-  // Adding the missing case is not a sufficient fix (user logic needs adding
-  // too).
-  bool get canBeAppliedInBulk => false;
-
-  @override
-  // Adding the missing case is not a sufficient fix (user logic needs adding
-  // too).
-  bool get canBeAppliedToFile => false;
+  CorrectionApplicability get applicability =>
+      // Adding the missing case is not a sufficient fix (user logic needs
+      // adding too).
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_MISSING_ENUM_CASE_CLAUSES;

@@ -18,25 +18,20 @@ class CreateMethod extends ResolvedCorrectionProducer {
   String _memberName = '';
 
   @override
-  bool canBeAppliedInBulk;
-
-  @override
-  bool canBeAppliedToFile;
+  final CorrectionApplicability applicability;
 
   /// Initializes a newly created instance that will create either an equality
   /// (`operator ==`) method or `hashCode` getter based on the existing other
   /// half of the pair.
   CreateMethod.equalityOrHashCode()
       : _kind = _MethodKind.equalityOrHashCode,
-        canBeAppliedInBulk = false,
-        canBeAppliedToFile = true;
+        applicability = CorrectionApplicability.acrossSingleFile;
 
   /// Initializes a newly created instance that will create a method based on an
   /// invocation of an undefined method.
   CreateMethod.method()
       : _kind = _MethodKind.method,
-        canBeAppliedInBulk = false,
-        canBeAppliedToFile = false;
+        applicability = CorrectionApplicability.singleLocation;
 
   @override
   List<String> get fixArguments => [_memberName];

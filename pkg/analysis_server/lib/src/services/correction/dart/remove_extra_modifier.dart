@@ -12,10 +12,8 @@ class RemoveExtraModifier extends ResolvedCorrectionProducer {
   String _modifierName = '';
 
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   List<String> get fixArguments => [_modifierName];

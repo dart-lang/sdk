@@ -24,18 +24,16 @@ class ConvertAddAllToSpread extends ResolvedCorrectionProducer {
   MethodInvocation? _invocation;
 
   @override
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
+
+  @override
   List<String> get assistArguments => _args;
 
   @override
   AssistKind get assistKind => _isInlineInvocation
       ? DartAssistKind.INLINE_INVOCATION
       : DartAssistKind.CONVERT_TO_SPREAD;
-
-  @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
 
   @override
   List<String> get fixArguments => _args;

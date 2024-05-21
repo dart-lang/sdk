@@ -16,6 +16,11 @@ class ReplaceReturnType extends ResolvedCorrectionProducer {
   String _newType = '';
 
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   List<String> get fixArguments => [_newType];
 
   @override

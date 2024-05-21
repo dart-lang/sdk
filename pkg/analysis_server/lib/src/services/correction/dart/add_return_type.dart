@@ -17,13 +17,11 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddReturnType extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
+
+  @override
   AssistKind get assistKind => DartAssistKind.ADD_RETURN_TYPE;
-
-  @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_RETURN_TYPE;

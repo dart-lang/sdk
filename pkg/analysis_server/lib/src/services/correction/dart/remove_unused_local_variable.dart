@@ -18,12 +18,9 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
   final List<_Command> _commands = [];
 
   @override
-  // Not predictably the correct action.
-  bool get canBeAppliedInBulk => false;
-
-  @override
-  // Not predictably the correct action.
-  bool get canBeAppliedToFile => false;
+  CorrectionApplicability get applicability =>
+      // Not predictably the correct action.
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_UNUSED_LOCAL_VARIABLE;

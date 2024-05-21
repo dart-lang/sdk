@@ -507,14 +507,14 @@ class NoProducerOverlapsTest {
     var dataDrivenCodes = <String>{};
     var bulkFixCodes = FixProcessor.lintProducerMap.entries
         .where((e) => e.value
-            .where((generator) => generator().canBeAppliedInBulk)
+            .where((generator) => generator().canBeAppliedAcrossFiles)
             .isNotEmpty)
         .map((e) => e.key);
     var nonDataDrivenCodes = <String>{
       ...bulkFixCodes,
       ...FixProcessor.nonLintProducerMap.entries
           .where((e) => e.value
-              .where((generator) => generator().canBeAppliedInBulk)
+              .where((generator) => generator().canBeAppliedAcrossFiles)
               .isNotEmpty)
           .map((e) => e.key.uniqueName),
     };

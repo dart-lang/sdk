@@ -21,10 +21,9 @@ class ReplaceEmptyMapPattern extends ResolvedCorrectionProducer {
   ReplaceEmptyMapPattern.empty() : _style = _Style.empty;
 
   @override
-  bool get canBeAppliedInBulk => false;
-
-  @override
-  bool get canBeAppliedToFile => false;
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => _style.fixKind;

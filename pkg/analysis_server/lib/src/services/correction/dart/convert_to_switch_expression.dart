@@ -28,6 +28,11 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
   FunctionElement? functionElement;
 
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_SWITCH_EXPRESSION;
 
   @override

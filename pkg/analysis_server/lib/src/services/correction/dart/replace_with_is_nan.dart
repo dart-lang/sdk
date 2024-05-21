@@ -13,10 +13,9 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceWithIsNan extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => false;
-
-  @override
-  bool get canBeAppliedToFile => false;
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_WITH_IS_NAN;

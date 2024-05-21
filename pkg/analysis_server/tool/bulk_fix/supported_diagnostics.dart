@@ -26,7 +26,7 @@ Future<void> main() async {
     var hasOverride = false;
     for (var generator in diagnostic.value) {
       var producer = generator();
-      if (!producer.canBeAppliedInBulk) {
+      if (!producer.canBeAppliedAcrossFiles) {
         var producerName = producer.runtimeType.toString();
         if (overrideDetails.containsKey(producerName)) {
           hasOverride = true;

@@ -11,6 +11,11 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveAssertion extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // Not predictably the correct action.
+      CorrectionApplicability.singleLocation;
+
+  @override
   FixKind get fixKind => DartFixKind.REMOVE_ASSERTION;
 
   @override

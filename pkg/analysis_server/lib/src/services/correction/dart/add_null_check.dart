@@ -15,10 +15,10 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class AddNullCheck extends ResolvedCorrectionProducer {
-  final bool skipAssignabilityCheck;
-
   @override
-  final bool canBeAppliedInBulk;
+  final CorrectionApplicability applicability;
+
+  final bool skipAssignabilityCheck;
 
   @override
   FixKind fixKind = DartFixKind.ADD_NULL_CHECK;
@@ -28,11 +28,11 @@ class AddNullCheck extends ResolvedCorrectionProducer {
 
   AddNullCheck()
       : skipAssignabilityCheck = false,
-        canBeAppliedInBulk = false;
+        applicability = CorrectionApplicability.singleLocation;
 
   AddNullCheck.withoutAssignabilityCheck()
       : skipAssignabilityCheck = true,
-        canBeAppliedInBulk = true;
+        applicability = CorrectionApplicability.automatically;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

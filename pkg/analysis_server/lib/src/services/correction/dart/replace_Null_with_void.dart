@@ -14,10 +14,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceNullWithVoid extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_NULL_WITH_VOID;

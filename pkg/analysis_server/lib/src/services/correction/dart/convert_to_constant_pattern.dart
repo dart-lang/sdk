@@ -10,6 +10,11 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class ConvertToConstantPattern extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_CONSTANT_PATTERN;
 
   @override

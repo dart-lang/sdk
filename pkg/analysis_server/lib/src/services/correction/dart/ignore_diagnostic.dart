@@ -17,6 +17,11 @@ import 'package:yaml_edit/yaml_edit.dart' show YamlEditor;
 
 class IgnoreDiagnosticInAnalysisOptionsFile extends _BaseIgnoreDiagnostic {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   FixKind get fixKind => DartFixKind.IGNORE_ERROR_ANALYSIS_FILE;
 
   @override
@@ -198,6 +203,11 @@ class IgnoreDiagnosticOnLine extends _DartIgnoreDiagnostic {
 }
 
 abstract class _BaseIgnoreDiagnostic extends ResolvedCorrectionProducer {
+  @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
   AnalysisError get error => diagnostic as AnalysisError;
 
   @override

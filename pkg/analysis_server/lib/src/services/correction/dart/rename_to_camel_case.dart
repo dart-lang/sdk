@@ -18,10 +18,8 @@ class RenameToCamelCase extends ResolvedCorrectionProducer {
   String _newName = '';
 
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   List<String> get fixArguments => [_newName];

@@ -15,13 +15,11 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertToMapLiteral extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
+
+  @override
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_MAP_LITERAL;
-
-  @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_MAP_LITERAL;

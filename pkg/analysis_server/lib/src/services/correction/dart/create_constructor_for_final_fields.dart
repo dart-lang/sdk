@@ -26,6 +26,11 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
       : _style = _Style.requiredPositional;
 
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   FixKind get fixKind => _style.fixKind;
 
   FieldDeclaration? get _errorFieldDeclaration {

@@ -15,6 +15,11 @@ class CreateMixin extends ResolvedCorrectionProducer {
   String _mixinName = '';
 
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   List<String> get fixArguments => [_mixinName];
 
   @override

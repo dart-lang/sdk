@@ -13,8 +13,6 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../util/feature_sets.dart';
-
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UtilitiesTest);
@@ -88,25 +86,6 @@ void main() => print('Hello, world!')
         throwsA(const TypeMatcher<ArgumentError>()));
   }
 
-  test_parseFile_featureSet_language_2_9() {
-    String content = '''
-int? f() => 1;
-''';
-    var featureSet = FeatureSets.language_2_9;
-    expect(featureSet.isEnabled(Feature.non_nullable), isFalse);
-    ParseStringResult result = _withMemoryFile(
-        content,
-        (resourceProvider, path) => parseFile(
-            path: path,
-            resourceProvider: resourceProvider,
-            throwIfDiagnostics: false,
-            featureSet: featureSet));
-    expect(result.content, content);
-    expect(result.errors, hasLength(1));
-    expect(result.lineInfo, isNotNull);
-    expect(result.unit.toString(), equals('int? f() => 1;'));
-  }
-
   test_parseFile_featureSet_language_latest() {
     String content = '''
 int? f() => 1;
@@ -172,20 +151,6 @@ void main() => print('Hello, world!')
 ''';
     expect(() => parseString(content: content),
         throwsA(const TypeMatcher<ArgumentError>()));
-  }
-
-  test_parseString_featureSet_nnbd_off() {
-    String content = '''
-int? f() => 1;
-''';
-    var featureSet = FeatureSets.language_2_9;
-    expect(featureSet.isEnabled(Feature.non_nullable), isFalse);
-    ParseStringResult result = parseString(
-        content: content, throwIfDiagnostics: false, featureSet: featureSet);
-    expect(result.content, content);
-    expect(result.errors, hasLength(1));
-    expect(result.lineInfo, isNotNull);
-    expect(result.unit.toString(), equals('int? f() => 1;'));
   }
 
   test_parseString_featureSet_nnbd_on() {

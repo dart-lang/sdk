@@ -11,10 +11,8 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class ConvertToRawString extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_RAW_STRING;

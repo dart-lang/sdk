@@ -111,10 +111,9 @@ class FixProcessor {
         var fixKind = producer.fixKind;
         await producer.compute(builder);
         assert(
-          !(producer.canBeAppliedToFile || producer.canBeAppliedInBulk) ||
-              producer.fixKind == fixKind,
-          'Producers use in bulk fixes must not modify FixKind during computation. '
-          '$producer changed from $fixKind to ${producer.fixKind}.',
+          !producer.canBeAppliedAcrossSingleFile || producer.fixKind == fixKind,
+          'Producers used in bulk fixes must not modify the FixKind during '
+          'computation. $producer changed from $fixKind to ${producer.fixKind}.',
         );
 
         _addFixFromBuilder(builder, producer);
@@ -170,7 +169,7 @@ class FixProcessor {
   static bool canBulkFix(ErrorCode errorCode) {
     bool hasBulkFixProducers(List<ProducerGenerator>? producers) {
       return producers != null &&
-          producers.any((producer) => producer().canBeAppliedInBulk);
+          producers.any((producer) => producer().canBeAppliedAcrossFiles);
     }
 
     return _bulkFixableErrorCodes.putIfAbsent(errorCode, () {

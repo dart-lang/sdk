@@ -12,6 +12,11 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertToCascade extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_CASCADE;
 
   @override

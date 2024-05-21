@@ -10,6 +10,11 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class CreateNoSuchMethod extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   FixKind get fixKind => DartFixKind.CREATE_NO_SUCH_METHOD;
 
   @override

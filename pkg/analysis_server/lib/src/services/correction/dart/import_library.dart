@@ -405,6 +405,11 @@ class _ImportAbsoluteLibrary extends ResolvedCorrectionProducer {
   _ImportAbsoluteLibrary(this._fixKind, this._library);
 
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   List<String> get fixArguments => [_uriText];
 
   @override
@@ -451,6 +456,11 @@ class _ImportLibraryContainingExtension extends ResolvedCorrectionProducer {
   );
 
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   List<String> get fixArguments => [_uriText];
 
   @override
@@ -476,6 +486,11 @@ class _ImportLibraryPrefix extends ResolvedCorrectionProducer {
   final PrefixElement _importPrefix;
 
   _ImportLibraryPrefix(this._importedLibrary, this._importPrefix);
+
+  @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   List<String> get fixArguments {
@@ -514,6 +529,11 @@ class _ImportLibraryShow extends ResolvedCorrectionProducer {
   _ImportLibraryShow(this._libraryName, this._showCombinator, this._addedName);
 
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   List<String> get fixArguments => [_libraryName];
 
   @override
@@ -543,6 +563,11 @@ class _ImportRelativeLibrary extends ResolvedCorrectionProducer {
   String _uriText = '';
 
   _ImportRelativeLibrary(this._fixKind, this._library);
+
+  @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   List<String> get fixArguments => [_uriText];

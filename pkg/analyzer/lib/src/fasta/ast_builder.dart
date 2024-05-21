@@ -8,7 +8,6 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         Message,
         MessageCode,
         codeBuiltInIdentifierInDeclaration,
-        messageAbstractClassMember,
         messageAbstractLateField,
         messageAbstractStaticField,
         messageConstConstructorWithBody,
@@ -16,7 +15,6 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageConstructorWithTypeParameters,
         messageDirectiveAfterDeclaration,
         messageExpectedStatement,
-        messageExternalField,
         messageExternalLateField,
         messageFieldInitializerOutsideConstructor,
         messageIllegalAssignmentToNonAssignable,
@@ -110,9 +108,6 @@ class AstBuilder extends StackListener {
 
   bool parseFunctionBodies = true;
 
-  /// `true` if non-nullable behavior is enabled.
-  final bool enableNonNullable;
-
   /// `true` if triple-shift behavior is enabled
   final bool enableTripleShift;
 
@@ -162,7 +157,6 @@ class AstBuilder extends StackListener {
       this._featureSet, this._lineInfo,
       [Uri? uri])
       : errorReporter = FastaErrorReporter(errorReporter),
-        enableNonNullable = _featureSet.isEnabled(Feature.non_nullable),
         enableTripleShift = _featureSet.isEnabled(Feature.triple_shift),
         enableNonFunctionTypeAliases =
             _featureSet.isEnabled(Feature.nonfunction_type_aliases),
@@ -1238,25 +1232,17 @@ class AstBuilder extends StackListener {
     debugEvent("Fields");
 
     if (abstractToken != null) {
-      if (!enableNonNullable) {
+      if (staticToken != null) {
         handleRecoverableError(
-            messageAbstractClassMember, abstractToken, abstractToken);
-      } else {
-        if (staticToken != null) {
-          handleRecoverableError(
-              messageAbstractStaticField, abstractToken, abstractToken);
-        }
-        if (lateToken != null) {
-          handleRecoverableError(
-              messageAbstractLateField, abstractToken, abstractToken);
-        }
+            messageAbstractStaticField, abstractToken, abstractToken);
+      }
+      if (lateToken != null) {
+        handleRecoverableError(
+            messageAbstractLateField, abstractToken, abstractToken);
       }
     }
     if (externalToken != null) {
-      if (!enableNonNullable) {
-        handleRecoverableError(
-            messageExternalField, externalToken, externalToken);
-      } else if (lateToken != null) {
+      if (lateToken != null) {
         handleRecoverableError(
             messageExternalLateField, externalToken, externalToken);
       }
@@ -1858,12 +1844,6 @@ class AstBuilder extends StackListener {
     var keyword = modifiers?.finalConstOrVarKeyword;
     var covariantKeyword = modifiers?.covariantKeyword;
     var requiredKeyword = modifiers?.requiredToken;
-    if (!enableNonNullable && requiredKeyword != null) {
-      _reportFeatureNotEnabled(
-        feature: ExperimentalFeatures.non_nullable,
-        startToken: requiredKeyword,
-      );
-    }
 
     var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata,
@@ -2089,9 +2069,6 @@ class AstBuilder extends StackListener {
   void endFunctionType(Token functionToken, Token? questionMark) {
     assert(optional('Function', functionToken));
     debugEvent("FunctionType");
-    if (!enableNonNullable) {
-      reportErrorIfNullableType(questionMark);
-    }
 
     var parameters = pop() as FormalParameterListImpl;
     var returnType = pop() as TypeAnnotationImpl?;
@@ -2110,9 +2087,6 @@ class AstBuilder extends StackListener {
   @override
   void endFunctionTypedFormalParameter(Token nameToken, Token? question) {
     debugEvent("FunctionTypedFormalParameter");
-    if (!enableNonNullable) {
-      reportErrorIfNullableType(question);
-    }
 
     var formalParameters = pop() as FormalParameterListImpl;
     var returnType = pop() as TypeAnnotationImpl?;
@@ -3362,10 +3336,7 @@ class AstBuilder extends StackListener {
     debugEvent("TopLevelFields");
 
     if (externalToken != null) {
-      if (!enableNonNullable) {
-        handleRecoverableError(
-            messageExternalField, externalToken, externalToken);
-      } else if (lateToken != null) {
+      if (lateToken != null) {
         handleRecoverableError(
             messageExternalLateField, externalToken, externalToken);
       }
@@ -4537,14 +4508,9 @@ class AstBuilder extends StackListener {
   @override
   void handleIndexedExpression(
       Token? question, Token leftBracket, Token rightBracket) {
-    assert(optional('[', leftBracket) ||
-        (enableNonNullable && optional('?.[', leftBracket)));
+    assert(optional('[', leftBracket) || optional('?.[', leftBracket));
     assert(optional(']', rightBracket));
     debugEvent("IndexedExpression");
-
-    if (!enableNonNullable) {
-      reportErrorIfNullableType(question);
-    }
 
     var index = pop() as ExpressionImpl;
     var target = pop() as ExpressionImpl?;
@@ -5025,19 +4991,13 @@ class AstBuilder extends StackListener {
   @override
   void handleNonNullAssertExpression(Token bang) {
     debugEvent('NonNullAssertExpression');
-    if (!enableNonNullable) {
-      _reportFeatureNotEnabled(
-        feature: ExperimentalFeatures.non_nullable,
-        startToken: bang,
-      );
-    } else {
-      push(
-        PostfixExpressionImpl(
-          operand: pop() as ExpressionImpl,
-          operator: bang,
-        ),
-      );
-    }
+
+    push(
+      PostfixExpressionImpl(
+        operand: pop() as ExpressionImpl,
+        operator: bang,
+      ),
+    );
   }
 
   @override
@@ -5549,9 +5509,6 @@ class AstBuilder extends StackListener {
   @override
   void handleType(Token beginToken, Token? question) {
     debugEvent("Type");
-    if (!enableNonNullable) {
-      reportErrorIfNullableType(question);
-    }
 
     var arguments = pop() as TypeArgumentListImpl?;
     var name = pop() as IdentifierImpl;

@@ -49,6 +49,11 @@ class ChangeTo extends ResolvedCorrectionProducer {
       : _kind = _ReplacementKind.superFormalParameter;
 
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   List<String> get fixArguments => [_proposedName];
 
   @override

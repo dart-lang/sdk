@@ -12,13 +12,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveUnusedParameter extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedAutomatically => false;
-
-  @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.acrossFiles;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_UNUSED_PARAMETER;

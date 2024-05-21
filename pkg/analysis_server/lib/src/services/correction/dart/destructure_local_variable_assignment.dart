@@ -19,6 +19,11 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class DestructureLocalVariableAssignment extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   AssistKind get assistKind =>
       DartAssistKind.DESTRUCTURE_LOCAL_VARIABLE_ASSIGNMENT;
 

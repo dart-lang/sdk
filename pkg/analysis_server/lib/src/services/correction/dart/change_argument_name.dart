@@ -85,6 +85,11 @@ class _ChangeName extends ResolvedCorrectionProducer {
   _ChangeName(this._argumentName, this._proposedName);
 
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   List<String> get fixArguments => [_proposedName];
 
   @override
