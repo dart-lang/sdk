@@ -1,10 +1,3 @@
-> [!IMPORTANT]
-> This page was copied from https://github.com/dart-lang/sdk/wiki and needs review.
-> Please [contribute](../CONTRIBUTING.md) changes to bring it up-to-date -
-> removing this header - or send a CL to delete the file.
-
----
-
 1. First line is a capitalized, short (50 chars or less) summary,
    * Please include the component for which the change is being made in the first line
      * **[Analyzer]** short (50 chars or less) summary
