@@ -5,6 +5,11 @@ This is a patch release that
 - Fixes a bug in CFE which an manifest in compilation errors of flutter web app
   when compiled with dart2wasm.
 
+- Fixes a bug in the pub client, such that `dart run` will not interfere with
+  Flutter l10n (at least for most cases). (build_runner issue [#3705])
+
+[#3705]: https://github.com/dart-lang/build/issues/3705
+
 ## 3.4.0
 
 ### Language
