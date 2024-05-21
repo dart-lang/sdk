@@ -47,10 +47,10 @@ class JoinIfWithInner extends ResolvedCorrectionProducer {
     var innerCondition = innerIfStatement.expression;
     var targetConditionSource = utils.getNodeText(targetCondition);
     var innerConditionSource = utils.getNodeText(innerCondition);
-    if (shouldWrapParenthesisBeforeAnd(targetCondition)) {
+    if (targetCondition.shouldWrapParenthesisBeforeAnd) {
       targetConditionSource = '($targetConditionSource)';
     }
-    if (shouldWrapParenthesisBeforeAnd(innerCondition)) {
+    if (innerCondition.shouldWrapParenthesisBeforeAnd) {
       innerConditionSource = '($innerConditionSource)';
     }
     var condition = '$targetConditionSource && $innerConditionSource';

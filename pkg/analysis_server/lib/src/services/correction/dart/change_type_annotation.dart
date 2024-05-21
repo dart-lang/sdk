@@ -48,8 +48,8 @@ class ChangeTypeAnnotation extends ResolvedCorrectionProducer {
         if (newType is InterfaceType ||
             newType is FunctionType ||
             newType is RecordType) {
-          _oldAnnotation = displayStringForType(typeNode.typeOrThrow);
-          _newAnnotation = displayStringForType(newType);
+          _oldAnnotation = typeNode.typeOrThrow.getDisplayString();
+          _newAnnotation = newType.getDisplayString();
           await builder.addDartFileEdit(file, (builder) {
             if (builder.canWriteType(newType)) {
               builder.addReplacement(range.node(typeNode), (builder) {

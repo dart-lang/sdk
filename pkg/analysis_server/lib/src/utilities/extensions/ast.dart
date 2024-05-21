@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -349,6 +350,17 @@ extension ExpressionExtension on Expression {
       return element is MethodElement && element.isToSetMethod;
     }
     return false;
+  }
+
+  /// Whether this [Expression] should be wrapped with parentheses when we want
+  /// to use it as operand of a logical and-expression.
+  bool get shouldWrapParenthesisBeforeAnd {
+    var self = this;
+    if (self is! BinaryExpression) {
+      return false;
+    }
+    var precedence = self.operator.type.precedence;
+    return precedence < TokenClass.LOGICAL_AND_OPERATOR.precedence;
   }
 }
 

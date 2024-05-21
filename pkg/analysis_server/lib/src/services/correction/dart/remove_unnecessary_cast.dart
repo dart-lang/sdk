@@ -4,8 +4,10 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -33,5 +35,22 @@ class RemoveUnnecessaryCast extends ResolvedCorrectionProducer {
       builder.addDeletion(range.endEnd(expression, asExpression));
       builder.removeEnclosingParentheses(asExpression);
     });
+  }
+}
+
+extension on DartFileEditBuilder {
+  /// Adds edits to this [DartFileEditBuilder] to remove any parentheses
+  /// enclosing the [expression].
+  void removeEnclosingParentheses(Expression expression) {
+    var precedence = getExpressionPrecedence(expression);
+    while (expression.parent is ParenthesizedExpression) {
+      var parenthesized = expression.parent as ParenthesizedExpression;
+      if (getExpressionParentPrecedence(parenthesized) > precedence) {
+        break;
+      }
+      addDeletion(range.token(parenthesized.leftParenthesis));
+      addDeletion(range.token(parenthesized.rightParenthesis));
+      expression = parenthesized;
+    }
   }
 }
