@@ -1231,7 +1231,7 @@ void Assembler::VerifyStoreNeedsNoWriteBarrier(Register object,
   Label done;
   BranchIfSmi(value, &done, kNearJump);
   ldr(TMP, FieldAddress(value, target::Object::tags_offset()), kUnsignedByte);
-  tbz(&done, TMP, target::UntaggedObject::kNewBit);
+  tbz(&done, TMP, target::UntaggedObject::kNewOrEvacuationCandidateBit);
   ldr(TMP, FieldAddress(object, target::Object::tags_offset()), kUnsignedByte);
   tbz(&done, TMP, target::UntaggedObject::kOldAndNotRememberedBit);
   Stop("Write barrier is required");

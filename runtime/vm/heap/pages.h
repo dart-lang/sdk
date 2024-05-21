@@ -184,6 +184,11 @@ class PageSpace {
   }
   void EvaluateAfterLoading() {
     page_space_controller_.EvaluateAfterLoading(usage_);
+
+    MutexLocker ml(&pages_lock_);
+    for (Page* page = pages_; page != nullptr; page = page->next()) {
+      page->set_never_evacuate(true);
+    }
   }
 
   intptr_t UsedInWords() const { return usage_.used_in_words; }
@@ -412,6 +417,7 @@ class PageSpace {
   void FreePages(Page* pages);
 
   void CollectGarbageHelper(Thread* thread, bool compact, bool finalize);
+  void VerifyStoreBuffers(const char* msg);
   void SweepNew();
   void SweepLarge();
   void Sweep(bool exclusive);
@@ -496,6 +502,9 @@ class PageSpace {
   friend class PageSpaceController;
   friend class ConcurrentSweeperTask;
   friend class GCCompactor;
+  friend class GCIncrementalCompactor;
+  friend class PrologueTask;
+  friend class EpilogueTask;
   friend class CompactorTask;
   friend class Code;
 

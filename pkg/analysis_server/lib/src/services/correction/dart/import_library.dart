@@ -137,7 +137,7 @@ class ImportLibrary extends MultiCorrectionProducer {
           ElementKind.MIXIN,
           ElementKind.TYPE_ALIAS,
         ]);
-      } else if (mightBeImplicitConstructor(targetNode)) {
+      } else if (targetNode.mightBeImplicitConstructor) {
         var typeName = (targetNode as SimpleIdentifier).name;
         await _importLibraryForElement(producers, typeName, const [
           ElementKind.CLASS,
@@ -147,7 +147,6 @@ class ImportLibrary extends MultiCorrectionProducer {
     return producers;
   }
 
-  @override
   String? nameOfType(AstNode node) {
     var parent = node.parent;
     switch (node) {
@@ -582,5 +581,19 @@ class _ImportRelativeLibrary extends ResolvedCorrectionProducer {
         _uriText = builder.importLibraryWithRelativeUri(_library);
       }
     });
+  }
+}
+
+extension on AstNode {
+  /// Whether this [AstNode] is in a location where an implicit constructor
+  /// invocation would be allowed.
+  bool get mightBeImplicitConstructor {
+    if (this is SimpleIdentifier) {
+      var parent = this.parent;
+      if (parent is MethodInvocation) {
+        return parent.realTarget == null;
+      }
+    }
+    return false;
   }
 }

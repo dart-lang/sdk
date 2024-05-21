@@ -235,7 +235,7 @@ void SetNewSpaceTaggingWord(ObjectPtr to, classid_t cid, uint32_t size) {
   tags = UntaggedObject::NotMarkedBit::update(true, tags);
   tags = UntaggedObject::OldAndNotRememberedBit::update(false, tags);
   tags = UntaggedObject::CanonicalBit::update(false, tags);
-  tags = UntaggedObject::NewBit::update(true, tags);
+  tags = UntaggedObject::NewOrEvacuationCandidateBit::update(true, tags);
   tags = UntaggedObject::ImmutableBit::update(
       IsUnmodifiableTypedDataViewClassId(cid), tags);
 #if defined(HASH_IN_OBJECT_HEADER)

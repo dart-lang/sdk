@@ -95,18 +95,18 @@ But we combine the generational and incremental checks with a shift-and-mask.
 ```c++
 enum HeaderBits {
   ...
-  kNotMarkedBit,            // Incremental barrier target.
-  kNewBit,                  // Generational barrier target.
-  kAlwaysSetBit,            // Incremental barrier source.
-  kOldAndNotRememberedBit,  // Generational barrier source.
+  kNotMarkedBit,                 // Incremental barrier target.
+  kNewOrEvacuationCandidateBit,  // Generational barrier target.
+  kAlwaysSetBit,                 // Incremental barrier source.
+  kOldAndNotRememberedBit,       // Generational barrier source.
   ...
 };
 
-static constexpr intptr_t kGenerationalBarrierMask = 1 << kNewBit;
+static constexpr intptr_t kGenerationalBarrierMask = 1 << kNewOrEvacuationCandidateBit;
 static constexpr intptr_t kIncrementalBarrierMask = 1 << kNotMarkedBit;
 static constexpr intptr_t kBarrierOverlapShift = 2;
 COMPILE_ASSERT(kNotMarkedBit + kBarrierOverlapShift == kAlwaysSetBit);
-COMPILE_ASSERT(kNewBit + kBarrierOverlapShift == kOldAndNotRememberedBit);
+COMPILE_ASSERT(kNewOrEvacuationCandidateBit + kBarrierOverlapShift == kOldAndNotRememberedBit);
 
 StorePointer(ObjectPtr source, ObjectPtr* slot, ObjectPtr target) {
   *slot = target;
@@ -178,7 +178,6 @@ We can eliminate these checks when the compiler can prove these cases cannot hap
 * `value` is a constant. Constants are always old, and they will be marked via the constant pools even if we fail to mark them via `container`.
 * `value` has the static type bool. All possible values of the bool type (null, false, true) are constants.
 * `value` is known to be a Smi. Smis are not heap objects.
-* `container` is the same object as `value`. The GC never needs to retain an additional object if it sees a self-reference, so ignoring a self-reference cannot cause us to free a reachable object.
 * `container` is known to be a new object or known to be an old object that is in the remembered set and is marked if marking is in progress.
 
 We can know that `container` meets the last property if `container` is the result of an allocation (instead of a heap load), and there is no instruction that can trigger a GC between the allocation and the store. This is because the allocation stubs ensure the result of AllocateObject is either a new-space object (common case, bump pointer allocation succeeds), or has been preemptively added to the remembered set and marking worklist (uncommon case, entered runtime to allocate object, possibly triggering GC).

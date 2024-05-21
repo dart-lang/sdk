@@ -10,6 +10,7 @@
 #include "vm/dart.h"
 #include "vm/heap/become.h"
 #include "vm/heap/compactor.h"
+#include "vm/heap/incremental_compactor.h"
 #include "vm/heap/marker.h"
 #include "vm/heap/safepoint.h"
 #include "vm/heap/sweeper.h"
@@ -346,6 +347,7 @@ uword PageSpace::TryAllocateInFreshPage(intptr_t size,
     // Start of the newly allocated page is the allocated object.
     result = page->object_start();
     // Note: usage_.capacity_in_words is increased by AllocatePage.
+    Page::Of(result)->add_live_bytes(size);
     usage_.used_in_words += (size >> kWordSizeLog2);
     // Enqueue the remainder in the free list.
     uword free_start = result + size;
@@ -387,6 +389,7 @@ uword PageSpace::TryAllocateInFreshLargePage(intptr_t size,
     if (page != nullptr) {
       result = page->object_start();
       // Note: usage_.capacity_in_words is increased by AllocateLargePage.
+      Page::Of(result)->add_live_bytes(size);
       usage_.used_in_words += (size >> kWordSizeLog2);
     }
   }
@@ -413,6 +416,9 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
                                       is_locked);
       // usage_ is updated by the call above.
     } else {
+      if (!is_protected) {
+        Page::Of(result)->add_live_bytes(size);
+      }
       usage_.used_in_words += (size >> kWordSizeLog2);
     }
   } else {
@@ -1039,6 +1045,9 @@ void PageSpace::CollectGarbageHelper(Thread* thread,
   if (marker_ == nullptr) {
     ASSERT(phase() == kDone);
     marker_ = new GCMarker(isolate_group, heap_);
+    if (FLAG_use_incremental_compactor) {
+      GCIncrementalCompactor::Prologue(this);
+    }
   } else {
     ASSERT(phase() == kAwaitingFinalization);
   }
@@ -1059,13 +1068,24 @@ void PageSpace::CollectGarbageHelper(Thread* thread,
   delete marker_;
   marker_ = nullptr;
 
-  // Reset the freelists and setup sweeping.
-  for (intptr_t i = 0; i < num_freelists_; i++) {
-    freelists_[i].Reset();
+  if (FLAG_verify_store_buffer) {
+    VerifyStoreBuffers("Verifying remembered set after marking");
   }
 
   if (FLAG_verify_before_gc) {
     heap_->VerifyGC("Verifying before sweeping", kAllowMarked);
+  }
+
+  bool has_reservation = MarkReservation();
+
+  bool new_space_is_swept = false;
+  if (FLAG_use_incremental_compactor) {
+    new_space_is_swept = GCIncrementalCompactor::Epilogue(this);
+  }
+
+  // Reset the freelists and setup sweeping.
+  for (intptr_t i = 0; i < num_freelists_; i++) {
+    freelists_[i].Reset();
   }
 
   {
@@ -1090,8 +1110,6 @@ void PageSpace::CollectGarbageHelper(Thread* thread,
     }
   }
 
-  bool has_reservation = MarkReservation();
-
   {
     // Move pages to sweeper work lists.
     MutexLocker ml(&pages_lock_);
@@ -1105,23 +1123,24 @@ void PageSpace::CollectGarbageHelper(Thread* thread,
     }
   }
 
-  bool can_verify;
-  SweepNew();
+  if (!new_space_is_swept) {
+    SweepNew();
+  }
+  bool is_concurrent_sweep_running = false;
   if (compact) {
     Compact(thread);
     set_phase(kDone);
-    can_verify = true;
+    is_concurrent_sweep_running = true;
   } else if (FLAG_concurrent_sweep && has_reservation) {
     ConcurrentSweep(isolate_group);
-    can_verify = false;
+    is_concurrent_sweep_running = true;
   } else {
     SweepLarge();
     Sweep(/*exclusive*/ true);
     set_phase(kDone);
-    can_verify = true;
   }
 
-  if (FLAG_verify_after_gc && can_verify) {
+  if (FLAG_verify_after_gc && !is_concurrent_sweep_running) {
     heap_->VerifyGC("Verifying after sweeping", kForbidMarked);
   }
 
@@ -1146,6 +1165,163 @@ void PageSpace::CollectGarbageHelper(Thread* thread,
   UpdateMaxUsed();
   if (heap_ != nullptr) {
     heap_->UpdateGlobalMaxUsed();
+  }
+}
+
+class CollectStoreBufferEvacuateVisitor : public ObjectPointerVisitor {
+ public:
+  CollectStoreBufferEvacuateVisitor(ObjectSet* in_store_buffer, const char* msg)
+      : ObjectPointerVisitor(IsolateGroup::Current()),
+        in_store_buffer_(in_store_buffer),
+        msg_(msg) {}
+
+  void VisitPointers(ObjectPtr* from, ObjectPtr* to) override {
+    for (ObjectPtr* ptr = from; ptr <= to; ptr++) {
+      ObjectPtr obj = *ptr;
+      RELEASE_ASSERT_WITH_MSG(obj->untag()->IsRemembered(), msg_);
+      RELEASE_ASSERT_WITH_MSG(obj->IsOldObject(), msg_);
+
+      RELEASE_ASSERT_WITH_MSG(!obj->untag()->IsCardRemembered(), msg_);
+      if (obj.GetClassId() == kArrayCid) {
+        const uword length =
+            Smi::Value(static_cast<UntaggedArray*>(obj.untag())->length());
+        RELEASE_ASSERT_WITH_MSG(!Array::UseCardMarkingForAllocation(length),
+                                msg_);
+      }
+      in_store_buffer_->Add(obj);
+    }
+  }
+
+#if defined(DART_COMPRESSED_POINTERS)
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* from,
+                               CompressedObjectPtr* to) override {
+    UNREACHABLE();  // Store buffer blocks are not compressed.
+  }
+#endif
+
+ private:
+  ObjectSet* const in_store_buffer_;
+  const char* msg_;
+
+  DISALLOW_COPY_AND_ASSIGN(CollectStoreBufferEvacuateVisitor);
+};
+
+class CheckStoreBufferEvacuateVisitor : public ObjectVisitor,
+                                        public ObjectPointerVisitor {
+ public:
+  CheckStoreBufferEvacuateVisitor(ObjectSet* in_store_buffer, const char* msg)
+      : ObjectVisitor(),
+        ObjectPointerVisitor(IsolateGroup::Current()),
+        in_store_buffer_(in_store_buffer),
+        msg_(msg) {}
+
+  void VisitObject(ObjectPtr obj) override {
+    if (obj->IsPseudoObject()) return;
+    RELEASE_ASSERT_WITH_MSG(obj->IsOldObject(), msg_);
+    if (!obj->untag()->IsMarked()) return;
+
+    if (obj->untag()->IsRemembered()) {
+      RELEASE_ASSERT_WITH_MSG(in_store_buffer_->Contains(obj), msg_);
+    } else {
+      RELEASE_ASSERT_WITH_MSG(!in_store_buffer_->Contains(obj), msg_);
+    }
+
+    visiting_ = obj;
+    is_remembered_ = obj->untag()->IsRemembered();
+    is_card_remembered_ = obj->untag()->IsCardRemembered();
+    if (is_card_remembered_) {
+      RELEASE_ASSERT_WITH_MSG(!is_remembered_, msg_);
+      RELEASE_ASSERT_WITH_MSG(Page::Of(obj)->progress_bar_ == 0, msg_);
+    }
+    obj->untag()->VisitPointers(this);
+  }
+
+  void VisitPointers(ObjectPtr* from, ObjectPtr* to) override {
+    for (ObjectPtr* ptr = from; ptr <= to; ptr++) {
+      ObjectPtr obj = *ptr;
+      if (obj->IsHeapObject() && obj->untag()->IsEvacuationCandidate()) {
+        if (is_card_remembered_) {
+          if (!Page::Of(visiting_)->IsCardRemembered(ptr)) {
+            FATAL(
+                "%s: Old object %#" Px " references new object %#" Px
+                ", but the "
+                "slot's card is not remembered. Consider using rr to watch the "
+                "slot %p and reverse-continue to find the store with a missing "
+                "barrier.\n",
+                msg_, static_cast<uword>(visiting_), static_cast<uword>(obj),
+                ptr);
+          }
+        } else if (!is_remembered_) {
+          FATAL("%s: Old object %#" Px " references new object %#" Px
+                ", but it is "
+                "not in any store buffer. Consider using rr to watch the "
+                "slot %p and reverse-continue to find the store with a missing "
+                "barrier.\n",
+                msg_, static_cast<uword>(visiting_), static_cast<uword>(obj),
+                ptr);
+        }
+      }
+    }
+  }
+
+#if defined(DART_COMPRESSED_POINTERS)
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* from,
+                               CompressedObjectPtr* to) override {
+    for (CompressedObjectPtr* ptr = from; ptr <= to; ptr++) {
+      ObjectPtr obj = ptr->Decompress(heap_base);
+      if (obj->IsHeapObject() && obj->IsNewObject()) {
+        if (is_card_remembered_) {
+          if (!Page::Of(visiting_)->IsCardRemembered(ptr)) {
+            FATAL(
+                "%s: Old object %#" Px " references new object %#" Px
+                ", but the "
+                "slot's card is not remembered. Consider using rr to watch the "
+                "slot %p and reverse-continue to find the store with a missing "
+                "barrier.\n",
+                msg_, static_cast<uword>(visiting_), static_cast<uword>(obj),
+                ptr);
+          }
+        } else if (!is_remembered_) {
+          FATAL("%s: Old object %#" Px " references new object %#" Px
+                ", but it is "
+                "not in any store buffer. Consider using rr to watch the "
+                "slot %p and reverse-continue to find the store with a missing "
+                "barrier.\n",
+                msg_, static_cast<uword>(visiting_), static_cast<uword>(obj),
+                ptr);
+        }
+      }
+    }
+  }
+#endif
+
+ private:
+  const ObjectSet* const in_store_buffer_;
+  ObjectPtr visiting_;
+  bool is_remembered_;
+  bool is_card_remembered_;
+  const char* msg_;
+};
+
+void PageSpace::VerifyStoreBuffers(const char* msg) {
+  ASSERT(msg != nullptr);
+  Thread* thread = Thread::Current();
+  StackZone stack_zone(thread);
+  Zone* zone = stack_zone.GetZone();
+
+  ObjectSet* in_store_buffer = new (zone) ObjectSet(zone);
+  heap_->AddRegionsToObjectSet(in_store_buffer);
+
+  {
+    CollectStoreBufferEvacuateVisitor visitor(in_store_buffer, msg);
+    heap_->isolate_group()->store_buffer()->VisitObjectPointers(&visitor);
+  }
+
+  {
+    CheckStoreBufferEvacuateVisitor visitor(in_store_buffer, msg);
+    heap_->old_space()->VisitObjects(&visitor);
   }
 }
 
@@ -1279,6 +1455,7 @@ uword PageSpace::TryAllocateDataBumpLocked(FreeList* freelist, intptr_t size) {
     intptr_t block_size = block->HeapSize();
     if (remaining > 0) {
       usage_.used_in_words -= (remaining >> kWordSizeLog2);
+      Page::Of(freelist->top())->add_live_bytes(remaining);
       freelist->FreeLocked(freelist->top(), remaining);
     }
     freelist->set_top(reinterpret_cast<uword>(block));
@@ -1287,6 +1464,7 @@ uword PageSpace::TryAllocateDataBumpLocked(FreeList* freelist, intptr_t size) {
     // the size of the whole bump area here and subtract the remaining size
     // when switching to a new area.
     usage_.used_in_words += (block_size >> kWordSizeLog2);
+    Page::Of(block)->add_live_bytes(block_size);
     remaining = block_size;
   }
   ASSERT(remaining >= size);
@@ -1307,6 +1485,7 @@ uword PageSpace::TryAllocateDataBumpLocked(FreeList* freelist, intptr_t size) {
 uword PageSpace::TryAllocatePromoLockedSlow(FreeList* freelist, intptr_t size) {
   uword result = freelist->TryAllocateSmallLocked(size);
   if (result != 0) {
+    Page::Of(result)->add_live_bytes(size);
     freelist->AddUnaccountedSize(size);
     return result;
   }
@@ -1349,6 +1528,7 @@ void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
   page->end_ = memory->end();
   page->survivor_end_ = 0;
   page->resolved_top_ = 0;
+  page->live_bytes_ = 0;
 
   MutexLocker ml(&pages_lock_);
   page->next_ = image_pages_;

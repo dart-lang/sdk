@@ -10,6 +10,7 @@
 #endif
 
 #include "platform/assert.h"
+#include "platform/thread_sanitizer.h"
 #include "vm/class_id.h"
 #include "vm/compiler/method_recognizer.h"
 #include "vm/compiler/runtime_api.h"
@@ -162,10 +163,10 @@ class UntaggedObject {
   enum TagBits {
     kCardRememberedBit = 0,
     kCanonicalBit = 1,
-    kNotMarkedBit = 2,            // Incremental barrier target.
-    kNewBit = 3,                  // Generational barrier target.
-    kAlwaysSetBit = 4,            // Incremental barrier source.
-    kOldAndNotRememberedBit = 5,  // Generational barrier source.
+    kNotMarkedBit = 2,                 // Incremental barrier target.
+    kNewOrEvacuationCandidateBit = 3,  // Generational barrier target.
+    kAlwaysSetBit = 4,                 // Incremental barrier source.
+    kOldAndNotRememberedBit = 5,       // Generational barrier source.
     kImmutableBit = 6,
     kReservedBit = 7,
 
@@ -177,11 +178,13 @@ class UntaggedObject {
     kHashTagSize = 32,
   };
 
-  static constexpr intptr_t kGenerationalBarrierMask = 1 << kNewBit;
+  static constexpr intptr_t kGenerationalBarrierMask =
+      1 << kNewOrEvacuationCandidateBit;
   static constexpr intptr_t kIncrementalBarrierMask = 1 << kNotMarkedBit;
   static constexpr intptr_t kBarrierOverlapShift = 2;
   COMPILE_ASSERT(kNotMarkedBit + kBarrierOverlapShift == kAlwaysSetBit);
-  COMPILE_ASSERT(kNewBit + kBarrierOverlapShift == kOldAndNotRememberedBit);
+  COMPILE_ASSERT(kNewOrEvacuationCandidateBit + kBarrierOverlapShift ==
+                 kOldAndNotRememberedBit);
 
   // The bit in the Smi tag position must be something that can be set to 0
   // for a dead filler object of either generation.
@@ -246,7 +249,8 @@ class UntaggedObject {
 
   class NotMarkedBit : public BitField<uword, bool, kNotMarkedBit, 1> {};
 
-  class NewBit : public BitField<uword, bool, kNewBit, 1> {};
+  class NewOrEvacuationCandidateBit
+      : public BitField<uword, bool, kNewOrEvacuationCandidateBit, 1> {};
 
   class CanonicalBit : public BitField<uword, bool, kCanonicalBit, 1> {};
 
@@ -292,14 +296,12 @@ class UntaggedObject {
   }
 
   uword tags() const { return tags_; }
+  uword tags_ignore_race() const { return tags_.load_ignore_race(); }
 
   // Support for GC marking bit. Marked objects are either grey (not yet
   // visited) or black (already visited).
   static bool IsMarked(uword tags) { return !NotMarkedBit::decode(tags); }
   bool IsMarked() const { return !tags_.Read<NotMarkedBit>(); }
-  bool IsMarkedIgnoreRace() const {
-    return !tags_.ReadIgnoreRace<NotMarkedBit>();
-  }
   void SetMarkBit() {
     ASSERT(!IsMarked());
     tags_.UpdateBool<NotMarkedBit>(false);
@@ -323,6 +325,25 @@ class UntaggedObject {
   // Returns false if the bit was already set.
   DART_WARN_UNUSED_RESULT
   bool TryAcquireMarkBit() { return tags_.TryClear<NotMarkedBit>(); }
+
+  static bool IsEvacuationCandidate(uword tags) {
+    return NewOrEvacuationCandidateBit::decode(tags);
+  }
+  bool IsEvacuationCandidate() {
+    return tags_.Read<NewOrEvacuationCandidateBit>();
+  }
+  void SetIsEvacuationCandidate() {
+    ASSERT(IsOldObject());
+    tags_.UpdateBool<NewOrEvacuationCandidateBit>(true);
+  }
+  void SetIsEvacuationCandidateUnsynchronized() {
+    ASSERT(IsOldObject());
+    tags_.UpdateUnsynchronized<NewOrEvacuationCandidateBit>(true);
+  }
+  void ClearIsEvacuationCandidateUnsynchronized() {
+    ASSERT(IsOldObject());
+    tags_.UpdateUnsynchronized<NewOrEvacuationCandidateBit>(false);
+  }
 
   // Canonical objects have the property that two canonical objects are
   // logically equal iff they are the same object (pointer equal).
@@ -3223,6 +3244,8 @@ class UntaggedArray : public UntaggedInstance {
   template <typename Table, bool kAllCanonicalObjectsAreIncludedIntoSet>
   friend class CanonicalSetDeserializationCluster;
   friend class Page;
+  template <bool>
+  friend class MarkingVisitorBase;
   friend class FastObjectCopy;  // For initializing fields.
   friend void UpdateLengthField(intptr_t, ObjectPtr, ObjectPtr);  // length_
 };

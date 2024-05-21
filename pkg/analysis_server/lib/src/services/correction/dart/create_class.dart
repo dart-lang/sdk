@@ -55,14 +55,14 @@ class CreateClass extends ResolvedCorrectionProducer {
       className = targetNode.name2.lexeme;
       requiresConstConstructor |= _requiresConstConstructor(targetNode);
     } else if (targetNode is SimpleIdentifier) {
-      className = nameOfType(targetNode);
+      className = targetNode.nameOfType;
       requiresConstConstructor |= _requiresConstConstructor(targetNode);
     } else if (targetNode is PrefixedIdentifier) {
       prefixElement = targetNode.prefix.staticElement;
       if (prefixElement == null) {
         return;
       }
-      className = nameOfType(targetNode.identifier);
+      className = targetNode.identifier.nameOfType;
     } else {
       return;
     }
@@ -157,5 +157,31 @@ class CreateClass extends ResolvedCorrectionProducer {
       return parent.isConst;
     }
     return false;
+  }
+}
+
+extension on AstNode {
+  /// If this might be a type name, return its name.
+  String? get nameOfType {
+    var self = this;
+    if (self is SimpleIdentifier) {
+      var name = self.name;
+      if (self.parent is NamedType || _isNameOfType(name)) {
+        return name;
+      }
+    }
+    return null;
+  }
+
+  /// Return `true` if the [name] is capitalized.
+  static bool _isNameOfType(String name) {
+    if (name.isEmpty) {
+      return false;
+    }
+    var firstLetter = name.substring(0, 1);
+    if (firstLetter.toUpperCase() != firstLetter) {
+      return false;
+    }
+    return true;
   }
 }

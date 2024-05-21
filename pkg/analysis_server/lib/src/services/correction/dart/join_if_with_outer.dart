@@ -53,10 +53,10 @@ class JoinIfWithOuter extends ResolvedCorrectionProducer {
     var outerCondition = outerIfStatement.expression;
     var targetConditionSource = utils.getNodeText(targetCondition);
     var outerConditionSource = utils.getNodeText(outerCondition);
-    if (shouldWrapParenthesisBeforeAnd(targetCondition)) {
+    if (targetCondition.shouldWrapParenthesisBeforeAnd) {
       targetConditionSource = '($targetConditionSource)';
     }
-    if (shouldWrapParenthesisBeforeAnd(outerCondition)) {
+    if (outerCondition.shouldWrapParenthesisBeforeAnd) {
       outerConditionSource = '($outerConditionSource)';
     }
     var condition = '$outerConditionSource && $targetConditionSource';
