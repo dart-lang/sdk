@@ -387,6 +387,7 @@ class Heap {
   friend class Serializer;            // VisitObjectsImagePages
   friend class HeapTestHelper;
   friend class GCTestHelper;
+  friend class GCIncrementalCompactor;
 
   DISALLOW_COPY_AND_ASSIGN(Heap);
 };

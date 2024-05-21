@@ -1392,10 +1392,17 @@ bool Value::NeedsWriteBarrier() {
 
     // Strictly speaking, the incremental barrier can only be skipped for
     // immediate objects (Smis) or permanent objects (vm-isolate heap or
-    // image pages). Here we choose to skip the barrier for any constant on
-    // the assumption it will remain reachable through the object pool.
+    // image pages). For AOT, we choose to skip the barrier for any constant on
+    // the assumptions it will remain reachable through the object pool and it
+    // is on a page created by snapshot loading that is marked so as to never be
+    // evacuated.
     if (value->BindsToConstant()) {
-      return false;
+      if (FLAG_precompiled_mode) {
+        return false;
+      } else {
+        const Object& constant = value->BoundConstant();
+        return constant.ptr()->IsHeapObject() && !constant.InVMIsolateHeap();
+      }
     }
 
     // Follow the chain of redefinitions as redefined value could have a more

@@ -12,6 +12,7 @@
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart.h"
 #include "vm/flags.h"
+#include "vm/heap/incremental_compactor.h"
 #include "vm/heap/pages.h"
 #include "vm/heap/safepoint.h"
 #include "vm/heap/scavenger.h"
@@ -467,6 +468,16 @@ void Heap::CollectNewSpaceGarbage(Thread* thread,
       VMTagScope tagScope(thread, reason == GCReason::kIdle
                                       ? VMTag::kGCIdleTagId
                                       : VMTag::kGCNewSpaceTagId);
+      if (reason == GCReason::kStoreBuffer) {
+        // The remembered set may become too full, increasing the time of
+        // stop-the-world phases, if new-space or to-be-evacuated objects are
+        // pointed to by too many objects. This is resolved by evacuating
+        // new-space (so there are no old->new pointers) and aborting an
+        // incremental compaction (so there are no old->to-be-evacuated
+        // pointers). If we had separate remembered sets, would could do these
+        // actions separately.
+        GCIncrementalCompactor::Abort(old_space());
+      }
       TIMELINE_FUNCTION_GC_DURATION(thread, "CollectNewGeneration");
       new_space_.Scavenge(thread, type, reason);
       RecordAfterGC(type);

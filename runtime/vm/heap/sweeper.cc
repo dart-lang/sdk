@@ -102,6 +102,7 @@ bool GCSweeper::SweepPage(Page* page, FreeList* freelist) {
       }
       // Only add to the free list if not covering the whole page.
       if ((current == start) && (free_end == end)) {
+        page->set_live_bytes(0);
         return false;  // Not in use.
       }
       obj_size = free_end - current;
@@ -131,6 +132,7 @@ bool GCSweeper::SweepPage(Page* page, FreeList* freelist) {
   }
   ASSERT(current == end);
   ASSERT(used_in_bytes != 0);
+  page->set_live_bytes(used_in_bytes);
   return true;  // In use.
 }
 

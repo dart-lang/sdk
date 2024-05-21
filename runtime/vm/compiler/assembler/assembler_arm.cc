@@ -1933,7 +1933,7 @@ void Assembler::VerifyStoreNeedsNoWriteBarrier(Register object,
   Label done;
   BranchIfSmi(value, &done, kNearJump);
   ldrb(TMP, FieldAddress(value, target::Object::tags_offset()));
-  tst(TMP, Operand(1 << target::UntaggedObject::kNewBit));
+  tst(TMP, Operand(1 << target::UntaggedObject::kNewOrEvacuationCandidateBit));
   b(&done, ZERO);
   ldrb(TMP, FieldAddress(object, target::Object::tags_offset()));
   tst(TMP, Operand(1 << target::UntaggedObject::kOldAndNotRememberedBit));
