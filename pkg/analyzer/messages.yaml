@@ -18963,6 +18963,70 @@ FfiCode:
     correctionMessage: "Try passing a static function or field annotated with '@Native'"
     hasPublishedDocs: false
     comment: No parameters
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the argument passed to
+      `Native.addressOf` isn't annotated with the `Native` annotation.
+
+      #### Examples
+
+      The following code produces this diagnostic because the argument to
+      `addressOf` is a string, not a field, and strings can't be annotated:
+
+      ```dart
+      import 'dart:ffi';
+
+      @Native<Void Function()>()
+      external void f();
+
+      void g() {
+        print(Native.addressOf([!'f'!]));
+      }
+      ```
+
+      The following code produces this diagnostic because the function `f` is
+      being passed to `addressOf` but isn't annotated as being `Native`:
+
+      ```dart
+      import 'dart:ffi';
+
+      external void f();
+
+      void g() {
+        print(Native.addressOf<NativeFunction<Void Function()>>([!f!]));
+      }
+      ```
+
+      #### Common fixes
+
+      If the argument isn't either a field or a function, then replace the
+      argument with a field or function that's annotated with `Native`:
+
+      ```dart
+      import 'dart:ffi';
+
+      @Native<Void Function()>()
+      external void f();
+
+      void g() {
+        print(Native.addressOf<NativeFunction<Void Function()>>(f));
+      }
+      ```
+
+      If the argument is either a field or a function, then annotate the field
+      of function with `Native`:
+
+      ```dart
+      import 'dart:ffi';
+
+      @Native<Void Function()>()
+      external void f();
+
+      void g() {
+        print(Native.addressOf<NativeFunction<Void Function()>>(f));
+      }
+      ```
   NATIVE_FIELD_INVALID_TYPE:
     problemMessage: "'{0}' is an unsupported type for native fields. Native fields only support pointers, arrays or numeric and compound types."
     correctionMessage: "Try changing the type in the `@Native` annotation to a numeric FFI type, a pointer, array, or a compound class."
@@ -19365,10 +19429,40 @@ FfiCode:
     correctionMessage: Add the `external` keyword to the function.
     hasPublishedDocs: false
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a function annotated as being
+      `@Native` isn't marked as `external`.
+
+      #### Example
+
+      The following code produces this diagnostic because the function `free` is
+      annotated as being `@Native`, but the function isn't marked as `external`:
+
+      ```dart
+      import 'dart:ffi';
+
+      [!@Native<Void Function(Pointer<Void>)>()
+      void free(Pointer<Void> ptr) {}!]
+      ```
+
+      #### Common fixes
+
+      If the function is a native function, then add the modifier `external`
+      before the return type:
+
+      ```dart
+      import 'dart:ffi';
+
+      @Native<Void Function(Pointer<Void>)>()
+      external void free(Pointer<Void> ptr);
+      ```
+      TODO(brianwilkerson): Fix error range
   FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER:
     problemMessage: Only classes extending NativeFieldWrapperClass1 can be passed as Pointer.
-    hasPublishedDocs: false
     correctionMessage: Pass as Handle instead.
+    hasPublishedDocs: false
     comment: No parameters.
   FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS:
     problemMessage: Unexpected number of Native annotation parameters. Expected {0} but has {1}.
@@ -19378,6 +19472,49 @@ FfiCode:
       Parameters:
       0: the expected number of parameters
       1: the actual number of parameters
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the number of parameters in the
+      function type used as a type argument for the `@Native` annotation doesn't
+      match the number of parameters in the function being annotated.
+
+      #### Example
+
+      The following code produces this diagnostic because the function type used
+      as a type argument for the `@Native` annotation (`Void Function(Double)`)
+      has one argument and the type of the annotated function
+      (`void f(double, double)`) has two arguments:
+
+      ```dart
+      import 'dart:ffi';
+
+      [!@Native<Void Function(Double)>(symbol: 'f')
+      external void f(double x, double y);!]
+      ```
+
+      #### Common fixes
+
+      If the annotated function is correct, then update the function type in the
+      `@Native` annotation to match:
+
+      ```dart
+      import 'dart:ffi';
+
+      @Native<Void Function(Double, Double)>(symbol: 'f')
+      external void f(double x, double y);
+      ```
+
+      If the function type in the `@Native` annotation is correct, then update
+      the annotated function to match:
+
+      ```dart
+      import 'dart:ffi';
+
+      @Native<Void Function(Double)>(symbol: 'f')
+      external void f(double x);
+      ```
+      TODO(brianwilkerson): Fix error range
   FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER:
     problemMessage: Unexpected number of Native annotation parameters. Expected {0} but has {1}. Native instance method annotation must have receiver as first argument.
     correctionMessage: Make sure parameters match the function annotated, including an extra first parameter for the receiver.
@@ -19386,16 +19523,109 @@ FfiCode:
       Parameters:
       0: the expected number of parameters
       1: the actual number of parameters
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the type argument used on the
+      `@Native` annotation of a native method doesn't include a type for the
+      receiver of the method.
+
+      #### Example
+
+      The following code produces this diagnostic because the type argument on
+      the `@Native` annotation (`Void Function(Double)`) doesn't include a type
+      for the receiver of the method:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C {
+        [!@Native<Void Function(Double)>()
+        external void f(double x);!]
+      }
+      ```
+
+      #### Common fixes
+
+      Add an initial parameter whose type is the same as the class in which the
+      native method is being declared:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C {
+        @Native<Void Function(C, Double)>()
+        external void f(double x);
+      }
+      ```
   FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET:
     problemMessage: "There may be at most one @DefaultAsset annotation on a library."
     correctionMessage: "Try removing the extra annotation."
     hasPublishedDocs: false
     comment: No parameters
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a library directive has more
+      than one `DefaultAsset` annotation associated with it.
+
+      #### Example
+
+      The following code produces this diagnostic because the library directive
+      has two `DefaultAsset` annotations associated with it:
+
+      ```dart
+      @DefaultAsset('a')
+      @[!DefaultAsset!]('b')
+      library;
+
+      import 'dart:ffi';
+      ```
+
+      #### Common fixes
+
+      Remove all but one of the `DefaultAsset` annotations:
+
+      ```dart
+      @DefaultAsset('a')
+      library;
+
+      import 'dart:ffi';
+      ```
   FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS:
     problemMessage: "Native functions and fields must have exactly one `@Native` annotation."
     correctionMessage: "Try removing the extra annotation."
     hasPublishedDocs: false
     comment: No parameters
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when there is more than one `Native`
+      annotation on a single declaration.
+
+      #### Example
+
+      The following code produces this diagnostic because the function `f` has
+      two `Native` annotations associated with it:
+
+      ```dart
+      import 'dart:ffi';
+
+      @Native<Int32 Function(Int32)>()
+      @[!Native!]<Int32 Function(Int32)>(isLeaf: true)
+      external int f(int v);
+      ```
+
+      #### Common fixes
+
+      Remove all but one of the annotations:
+
+      ```dart
+      import 'dart:ffi';
+
+      @Native<Int32 Function(Int32)>(isLeaf: true)
+      external int f(int v);
+      ```
   FIELD_INITIALIZER_IN_STRUCT:
     removedIn: "3.0"
     problemMessage: "Constructors in subclasses of 'Struct' and 'Union' can't have field initializers."
