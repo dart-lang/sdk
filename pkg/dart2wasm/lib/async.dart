@@ -10,104 +10,92 @@ import 'closures.dart';
 import 'code_generator.dart';
 import 'state_machine.dart';
 
-class AsyncCodeGenerator extends CodeGenerator {
+class AsyncCodeGenerator extends StateMachineCodeGenerator {
   AsyncCodeGenerator(super.translator, super.function, super.reference);
-
-  /// Targets of the CFG, indexed by target index.
-  late final List<StateTarget> targets;
-
-  // Targets categorized by placement and indexed by node.
-  final Map<TreeNode, StateTarget> innerTargets = {};
-  final Map<TreeNode, StateTarget> afterTargets = {};
-
-  /// The loop around the switch.
-  late final w.Label masterLoop;
-
-  /// The target labels of the switch, indexed by target index.
-  late final List<w.Label> labels;
-
-  /// The target index of the entry label for the current CFG node.
-  int currentTargetIndex = -1;
-
-  /// The local in the inner function for the async state, with type
-  /// `ref _AsyncSuspendState`.
-  late final w.Local suspendStateLocal;
-
-  /// The local in the inner function for the value of the last awaited future,
-  /// with type `ref null #Top`.
-  late final w.Local awaitValueLocal;
-
-  /// The local for the CFG target block index.
-  late final w.Local targetIndexLocal;
-
-  /// Exception handlers wrapping the current CFG block. Used to generate Wasm
-  /// `try` and `catch` blocks around the CFG blocks.
-  late final ExceptionHandlerStack exceptionHandlers;
-
-  /// Maps jump targets to their CFG targets. Used when jumping to a CFG block
-  /// on `break`. Keys are [LabeledStatement]s or [SwitchCase]s.
-  final Map<TreeNode, LabelTarget> labelTargets = {};
 
   late final ClassInfo asyncSuspendStateInfo =
       translator.classInfo[translator.asyncSuspendStateClass]!;
 
-  /// Current [Catch] block stack, used to compile [Rethrow].
-  ///
-  /// Because there can be an `await` in a [Catch] block before a [Rethrow], we
-  /// can't compile [Rethrow] to Wasm `rethrow`. Instead we `throw` using the
-  /// [Rethrow]'s parent [Catch] block's exception and stack variables.
-  List<CatchVariables> catchVariableStack = [];
+  // Note: These locals are only available in "inner" functions.
+  w.Local get _suspendStateLocal => function.locals[0];
+  w.Local get _awaitValueLocal => function.locals[1];
+  w.Local get _pendingExceptionLocal => function.locals[2];
+  w.Local get _pendingStackTraceLocal => function.locals[3];
+
+  w.FunctionBuilder _defineBodyFunction(FunctionNode functionNode) =>
+      m.functions.define(
+          m.types.defineFunction([
+            asyncSuspendStateInfo.nonNullableType, // _AsyncSuspendState
+            translator.topInfo.nullableType, // Object?, await value
+            translator.topInfo.nullableType, // Object?, error value
+            translator.stackTraceInfo.repr
+                .nullableType // StackTrace?, error stack trace
+          ], [
+            // Inner function does not return a value, but it's Dart type is
+            // `void Function(...)` and all Dart functions return a value, so we
+            // add a return type.
+            translator.topInfo.nullableType
+          ]),
+          "${function.functionName} inner");
 
   @override
-  void generate() {
-    closures = Closures(translator, member);
-    setupParametersAndContexts(member.reference);
-    _generateBodies(member.function!);
+  void setSuspendStateCurrentException(void Function() emitValue) {
+    b.local_get(_suspendStateLocal);
+    emitValue();
+    b.struct_set(asyncSuspendStateInfo.struct,
+        FieldIndex.asyncSuspendStateCurrentException);
   }
 
   @override
-  w.BaseFunction generateLambda(Lambda lambda, Closures closures) {
-    this.closures = closures;
-    setupLambdaParametersAndContexts(lambda);
-    _generateBodies(lambda.functionNode);
-    return function;
+  void getSuspendStateCurrentException() {
+    b.local_get(_suspendStateLocal);
+    b.struct_get(asyncSuspendStateInfo.struct,
+        FieldIndex.asyncSuspendStateCurrentException);
   }
 
-  void _generateBodies(FunctionNode functionNode) {
-    // Number and categorize CFG targets.
-    targets = YieldFinder(translator.options.enableAsserts).find(functionNode);
-    for (final target in targets) {
-      switch (target.placement) {
-        case StateTargetPlacement.Inner:
-          innerTargets[target.node] = target;
-          break;
-        case StateTargetPlacement.After:
-          afterTargets[target.node] = target;
-          break;
-      }
-    }
+  @override
+  void setSuspendStateCurrentStackTrace(void Function() emitValue) {
+    b.local_get(_suspendStateLocal);
+    emitValue();
+    b.struct_set(asyncSuspendStateInfo.struct,
+        FieldIndex.asyncSuspendStateCurrentExceptionStackTrace);
+  }
 
-    exceptionHandlers = ExceptionHandlerStack(this);
+  @override
+  void getSuspendStateCurrentStackTrace() {
+    b.local_get(_suspendStateLocal);
+    b.struct_get(asyncSuspendStateInfo.struct,
+        FieldIndex.asyncSuspendStateCurrentExceptionStackTrace);
+  }
 
-    // Wasm function containing the body of the `async` function
-    // (`_AyncResumeFun`).
-    final resumeFun = m.functions.define(
-        m.types.defineFunction([
-          asyncSuspendStateInfo.nonNullableType, // _AsyncSuspendState
-          translator.topInfo.nullableType, // Object?, await value
-          translator.topInfo.nullableType, // Object?, error value
-          translator.stackTraceInfo.repr
-              .nullableType // StackTrace?, error stack trace
-        ], [
-          // Inner function does not return a value, but it's Dart type is
-          // `void Function(...)` and all Dart functions return a value, so we
-          // add a return type.
-          translator.topInfo.nullableType
-        ]),
-        "${function.functionName} inner");
+  @override
+  void setSuspendStateCurrentReturnValue(void Function() emitValue) {
+    b.local_get(_suspendStateLocal);
+    emitValue();
+    b.struct_set(asyncSuspendStateInfo.struct,
+        FieldIndex.asyncSuspendStateCurrentReturnValue);
+  }
 
-    Context? context = closures.contexts[functionNode];
-    if (context != null && context.isEmpty) context = context.parent;
+  @override
+  void getSuspendStateCurrentReturnValue() {
+    b.local_get(_suspendStateLocal);
+    b.struct_get(asyncSuspendStateInfo.struct,
+        FieldIndex.asyncSuspendStateCurrentReturnValue);
+  }
+
+  @override
+  void emitReturn(void Function() emitValue) {
+    b.local_get(_suspendStateLocal);
+    b.struct_get(
+        asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateCompleter);
+    emitValue();
+    call(translator.completerComplete.reference);
+    b.return_();
+  }
+
+  @override
+  void generateFunctions(FunctionNode functionNode, Context? context) {
+    final resumeFun = _defineBodyFunction(functionNode);
 
     _generateOuter(functionNode, context, resumeFun);
 
@@ -178,14 +166,11 @@ class AsyncCodeGenerator extends CodeGenerator {
 
   void _generateInner(FunctionNode functionNode, Context? context,
       w.FunctionBuilder resumeFun) {
-    // void Function(_AsyncSuspendState, Object?)
+    // void Function(_AsyncSuspendState, Object?, Object?, StackTrace?)
 
     // Set the current Wasm function for the code generator to the inner
     // function of the `async`, which is to contain the body.
     function = resumeFun;
-
-    suspendStateLocal = function.locals[0]; // ref _AsyncSuspendState
-    awaitValueLocal = function.locals[1]; // ref null #Top
 
     // Set up locals for contexts and `this`.
     thisLocal = null;
@@ -210,7 +195,7 @@ class AsyncCodeGenerator extends CodeGenerator {
 
     // Read target index from the suspend state.
     targetIndexLocal = addLocal(w.NumType.i32);
-    b.local_get(suspendStateLocal);
+    b.local_get(_suspendStateLocal);
     b.struct_get(
         asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateTargetIndex);
     b.local_set(targetIndexLocal);
@@ -229,11 +214,11 @@ class AsyncCodeGenerator extends CodeGenerator {
 
     // Initial state
     final StateTarget initialTarget = targets.first;
-    _emitTargetLabel(initialTarget);
+    emitTargetLabel(initialTarget);
 
     // Clone context on first execution.
     b.restoreSuspendStateContext(
-        suspendStateLocal,
+        _suspendStateLocal,
         asyncSuspendStateInfo.struct,
         FieldIndex.asyncSuspendStateContext,
         closures,
@@ -244,8 +229,8 @@ class AsyncCodeGenerator extends CodeGenerator {
     visitStatement(functionNode.body!);
 
     // Final state: return.
-    _emitTargetLabel(targets.last);
-    b.local_get(suspendStateLocal);
+    emitTargetLabel(targets.last);
+    b.local_get(_suspendStateLocal);
     b.struct_get(
         asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateCompleter);
     b.ref_null(translator.topInfo.struct);
@@ -259,7 +244,7 @@ class AsyncCodeGenerator extends CodeGenerator {
     final exceptionLocal = addLocal(translator.topInfo.nonNullableType);
 
     void callCompleteError() {
-      b.local_get(suspendStateLocal);
+      b.local_get(_suspendStateLocal);
       b.struct_get(
           asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateCompleter);
       b.local_get(exceptionLocal);
@@ -288,512 +273,17 @@ class AsyncCodeGenerator extends CodeGenerator {
 
     callCompleteError();
 
-    b.end(); // end try
+    b.end(); // try
 
     b.unreachable();
-    b.end();
-  }
-
-  // Note: These two locals are only available in "inner" functions.
-  w.Local get pendingExceptionLocal => function.locals[2];
-  w.Local get pendingStackTraceLocal => function.locals[3];
-
-  void _emitTargetLabel(StateTarget target) {
-    currentTargetIndex++;
-    assert(
-        target.index == currentTargetIndex,
-        'target.index = ${target.index}, '
-        'currentTargetIndex = $currentTargetIndex, '
-        'target.node.location = ${target.node.location}');
-    exceptionHandlers.terminateTryBlocks();
-    b.end();
-    exceptionHandlers.generateTryBlocks(b);
-  }
-
-  void jumpToTarget(StateTarget target,
-      {Expression? condition, bool negated = false}) {
-    if (condition == null && negated) return;
-    if (target.index > currentTargetIndex) {
-      // Forward jump directly to the label.
-      branchIf(condition, labels[target.index], negated: negated);
-    } else {
-      // Backward jump via the switch.
-      w.Label block = b.block();
-      branchIf(condition, block, negated: !negated);
-      b.i32_const(target.index);
-      b.local_set(targetIndexLocal);
-      b.br(masterLoop);
-      b.end(); // block
-    }
-  }
-
-  @override
-  void visitDoStatement(DoStatement node) {
-    StateTarget? inner = innerTargets[node];
-    if (inner == null) return super.visitDoStatement(node);
-
-    _emitTargetLabel(inner);
-    allocateContext(node);
-    visitStatement(node.body);
-    jumpToTarget(inner, condition: node.condition);
-  }
-
-  @override
-  void visitForStatement(ForStatement node) {
-    StateTarget? inner = innerTargets[node];
-    if (inner == null) return super.visitForStatement(node);
-    StateTarget after = afterTargets[node]!;
-
-    allocateContext(node);
-    for (VariableDeclaration variable in node.variables) {
-      visitStatement(variable);
-    }
-    _emitTargetLabel(inner);
-    jumpToTarget(after, condition: node.condition, negated: true);
-    visitStatement(node.body);
-
-    emitForStatementUpdate(node);
-
-    jumpToTarget(inner);
-    _emitTargetLabel(after);
-  }
-
-  @override
-  void visitIfStatement(IfStatement node) {
-    StateTarget? after = afterTargets[node];
-    if (after == null) return super.visitIfStatement(node);
-    StateTarget? inner = innerTargets[node];
-
-    jumpToTarget(inner ?? after, condition: node.condition, negated: true);
-    visitStatement(node.then);
-    if (node.otherwise != null) {
-      jumpToTarget(after);
-      _emitTargetLabel(inner!);
-      visitStatement(node.otherwise!);
-    }
-    _emitTargetLabel(after);
-  }
-
-  @override
-  void visitLabeledStatement(LabeledStatement node) {
-    StateTarget? after = afterTargets[node];
-    if (after == null) {
-      final w.Label label = b.block();
-      labelTargets[node] = DirectLabelTarget(label);
-      visitStatement(node.body);
-      labelTargets.remove(node);
-      b.end();
-    } else {
-      labelTargets[node] =
-          IndirectLabelTarget(exceptionHandlers.numFinalizers, after);
-      visitStatement(node.body);
-      labelTargets.remove(node);
-      _emitTargetLabel(after);
-    }
-  }
-
-  @override
-  void visitBreakStatement(BreakStatement node) {
-    labelTargets[node.target]!.jump(this);
-  }
-
-  @override
-  void visitSwitchStatement(SwitchStatement node) {
-    StateTarget? after = afterTargets[node];
-    if (after == null) return super.visitSwitchStatement(node);
-
-    final switchInfo = SwitchInfo(this, node);
-
-    bool isNullable = dartTypeOf(node.expression).isPotentiallyNullable;
-
-    // Special cases
-    final SwitchCase? defaultCase = switchInfo.defaultCase;
-    final SwitchCase? nullCase = switchInfo.nullCase;
-
-    // When the type is nullable we use two variables: one for the nullable
-    // value, one after the null check, with non-nullable type.
-    w.Local switchValueNonNullableLocal = addLocal(switchInfo.nonNullableType);
-    w.Local? switchValueNullableLocal =
-        isNullable ? addLocal(switchInfo.nullableType) : null;
-
-    // Initialize switch value local
-    wrap(node.expression,
-        isNullable ? switchInfo.nullableType : switchInfo.nonNullableType);
-    b.local_set(
-        isNullable ? switchValueNullableLocal! : switchValueNonNullableLocal);
-
-    // Compute value and handle null
-    if (isNullable) {
-      final StateTarget nullTarget = nullCase != null
-          ? innerTargets[nullCase]!
-          : defaultCase != null
-              ? innerTargets[defaultCase]!
-              : after;
-
-      b.local_get(switchValueNullableLocal!);
-      b.ref_is_null();
-      b.if_();
-      jumpToTarget(nullTarget);
-      b.end();
-      b.local_get(switchValueNullableLocal);
-      b.ref_as_non_null();
-      // Unbox if necessary
-      translator.convertType(function, switchValueNullableLocal.type,
-          switchValueNonNullableLocal.type);
-      b.local_set(switchValueNonNullableLocal);
-    }
-
-    // Compare against all case values
-    for (SwitchCase c in node.cases) {
-      for (Expression exp in c.expressions) {
-        if (exp is NullLiteral ||
-            exp is ConstantExpression && exp.constant is NullConstant) {
-          // Null already checked, skip
-        } else {
-          wrap(exp, switchInfo.nonNullableType);
-          b.local_get(switchValueNonNullableLocal);
-          switchInfo.compare();
-          b.if_();
-          jumpToTarget(innerTargets[c]!);
-          b.end();
-        }
-      }
-    }
-
-    // No explicit cases matched
-    if (node.isExplicitlyExhaustive) {
-      b.unreachable();
-    } else {
-      final StateTarget defaultLabel =
-          defaultCase != null ? innerTargets[defaultCase]! : after;
-      jumpToTarget(defaultLabel);
-    }
-
-    // Add jump infos
-    for (final SwitchCase case_ in node.cases) {
-      labelTargets[case_] = IndirectLabelTarget(
-          exceptionHandlers.numFinalizers, innerTargets[case_]!);
-    }
-
-    // Emit case bodies
-    for (SwitchCase c in node.cases) {
-      _emitTargetLabel(innerTargets[c]!);
-      visitStatement(c.body);
-      jumpToTarget(after);
-    }
-
-    // Remove jump infos
-    for (final SwitchCase case_ in node.cases) {
-      labelTargets.remove(case_);
-    }
-
-    _emitTargetLabel(after);
-  }
-
-  @override
-  void visitContinueSwitchStatement(ContinueSwitchStatement node) {
-    labelTargets[node.target]!.jump(this);
-  }
-
-  @override
-  void visitTryCatch(TryCatch node) {
-    StateTarget? after = afterTargets[node];
-    if (after == null) return super.visitTryCatch(node);
-
-    allocateContext(node);
-
-    for (Catch c in node.catches) {
-      if (c.exception != null) {
-        visitVariableDeclaration(c.exception!);
-      }
-      if (c.stackTrace != null) {
-        visitVariableDeclaration(c.stackTrace!);
-      }
-    }
-
-    exceptionHandlers.pushTryCatch(node);
-    exceptionHandlers.generateTryBlocks(b);
-    visitStatement(node.body);
-    jumpToTarget(after);
-    exceptionHandlers.terminateTryBlocks();
-    exceptionHandlers.pop();
-
-    void emitCatchBlock(Catch catch_, Catch? nextCatch, bool emitGuard) {
-      if (emitGuard) {
-        _getCurrentException();
-        b.ref_as_non_null();
-        types.emitIsTest(this, catch_.guard,
-            translator.coreTypes.objectNonNullableRawType, catch_.location);
-        b.i32_eqz();
-        // When generating guards we can't generate the catch body inside the
-        // `if` block for the guard as the catch body can have suspension
-        // points and generate target labels.
-        b.if_();
-        if (nextCatch != null) {
-          jumpToTarget(innerTargets[nextCatch]!);
-        } else {
-          // Rethrow.
-          _getCurrentException();
-          b.ref_as_non_null();
-          _getCurrentExceptionStackTrace();
-          b.ref_as_non_null();
-          // TODO (omersa): When there is a finalizer we can jump to it
-          // directly, instead of via throw/catch. Would that be faster?
-          exceptionHandlers.forEachFinalizer(
-              (finalizer, last) => finalizer.setContinuationRethrow(
-                    () => _getVariableBoxed(catch_.exception!),
-                    () => getVariable(catch_.stackTrace!),
-                  ));
-          b.throw_(translator.exceptionTag);
-        }
-        b.end();
-      }
-
-      // Set exception and stack trace variables.
-      setVariable(catch_.exception!, () {
-        _getCurrentException();
-        // Type test already passed, convert the exception.
-        translator.convertType(
-            function,
-            asyncSuspendStateInfo
-                .struct
-                .fields[FieldIndex.asyncSuspendStateCurrentException]
-                .type
-                .unpacked,
-            translator.translateType(catch_.exception!.type));
-      });
-      setVariable(catch_.stackTrace!, () => _getCurrentExceptionStackTrace());
-
-      catchVariableStack
-          .add(CatchVariables(catch_.exception!, catch_.stackTrace!));
-
-      visitStatement(catch_.body);
-
-      catchVariableStack.removeLast();
-
-      jumpToTarget(after);
-    }
-
-    for (int catchIdx = 0; catchIdx < node.catches.length; catchIdx += 1) {
-      final Catch catch_ = node.catches[catchIdx];
-
-      final nextCatchIdx = catchIdx + 1;
-      final Catch? nextCatch = nextCatchIdx < node.catches.length
-          ? node.catches[nextCatchIdx]
-          : null;
-
-      _emitTargetLabel(innerTargets[catch_]!);
-
-      final bool shouldEmitGuard =
-          catch_.guard != translator.coreTypes.objectNonNullableRawType;
-
-      emitCatchBlock(catch_, nextCatch, shouldEmitGuard);
-
-      if (!shouldEmitGuard) {
-        break;
-      }
-    }
-
-    // Rethrow. Note that we don't override finalizer continuations here, they
-    // should be set by the original `throw` site.
-    _getCurrentException();
-    b.ref_as_non_null();
-    _getCurrentExceptionStackTrace();
-    b.ref_as_non_null();
-    b.throw_(translator.exceptionTag);
-
-    _emitTargetLabel(after);
-  }
-
-  @override
-  void visitTryFinally(TryFinally node) {
-    allocateContext(node);
-
-    final StateTarget finalizerTarget = innerTargets[node]!;
-    final StateTarget fallthroughContinuationTarget = afterTargets[node]!;
-
-    // Body
-    final finalizer = exceptionHandlers.pushTryFinally(node);
-    exceptionHandlers.generateTryBlocks(b);
-    visitStatement(node.body);
-
-    // Set continuation of the finalizer.
-    finalizer.setContinuationFallthrough();
-
-    jumpToTarget(finalizerTarget);
-    exceptionHandlers.terminateTryBlocks();
-    exceptionHandlers.pop();
-
-    // Finalizer
-    {
-      _emitTargetLabel(finalizerTarget);
-      visitStatement(node.finalizer);
-
-      // Check continuation.
-
-      // Fallthrough
-      assert(continuationFallthrough == 0); // update eqz below if changed
-      finalizer.pushContinuation();
-      b.i32_eqz();
-      b.if_();
-      jumpToTarget(fallthroughContinuationTarget);
-      b.end();
-
-      // Return
-      finalizer.pushContinuation();
-      b.i32_const(continuationReturn);
-      b.i32_eq();
-      b.if_();
-      b.local_get(suspendStateLocal);
-      b.struct_get(
-          asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateCompleter);
-      b.local_get(suspendStateLocal);
-      b.struct_get(asyncSuspendStateInfo.struct,
-          FieldIndex.asyncSuspendStateCurrentReturnValue);
-      call(translator.completerComplete.reference);
-      b.return_();
-      b.end();
-
-      // Rethrow
-      finalizer.pushContinuation();
-      b.i32_const(continuationRethrow);
-      b.i32_eq();
-      b.if_();
-      finalizer.pushException();
-      b.ref_as_non_null();
-      finalizer.pushStackTrace();
-      b.ref_as_non_null();
-      b.throw_(translator.exceptionTag);
-      b.end();
-
-      // Any other value: jump to the target.
-      finalizer.pushContinuation();
-      b.i32_const(continuationJump);
-      b.i32_sub();
-      b.local_set(targetIndexLocal);
-      b.br(masterLoop);
-    }
-
-    _emitTargetLabel(fallthroughContinuationTarget);
-  }
-
-  @override
-  void visitWhileStatement(WhileStatement node) {
-    StateTarget? inner = innerTargets[node];
-    if (inner == null) return super.visitWhileStatement(node);
-    StateTarget after = afterTargets[node]!;
-
-    allocateContext(node);
-    _emitTargetLabel(inner);
-    jumpToTarget(after, condition: node.condition, negated: true);
-    visitStatement(node.body);
-    jumpToTarget(inner);
-    _emitTargetLabel(after);
-  }
-
-  @override
-  void visitYieldStatement(YieldStatement node) {
-    throw 'Yield statement in async function: $node (${node.location})';
-  }
-
-  @override
-  void visitReturnStatement(ReturnStatement node) {
-    final Finalizer? firstFinalizer = exceptionHandlers.nextFinalizer;
-
-    if (firstFinalizer == null) {
-      b.local_get(suspendStateLocal);
-      b.struct_get(
-          asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateCompleter);
-    }
-
-    final value = node.expression;
-    if (value == null) {
-      b.ref_null(translator.topInfo.struct);
-    } else {
-      wrap(value, translator.topInfo.nullableType);
-    }
-
-    if (firstFinalizer == null) {
-      call(translator.completerComplete.reference);
-      b.return_();
-    } else {
-      final returnValueLocal = addLocal(translator.topInfo.nullableType);
-      b.local_set(returnValueLocal);
-
-      // Set return value
-      b.local_get(suspendStateLocal);
-      b.local_get(returnValueLocal);
-      b.struct_set(asyncSuspendStateInfo.struct,
-          FieldIndex.asyncSuspendStateCurrentReturnValue);
-
-      // Update continuation variables of finalizers. Last finalizer returns
-      // the value.
-      exceptionHandlers.forEachFinalizer((finalizer, last) {
-        if (last) {
-          finalizer.setContinuationReturn();
-        } else {
-          finalizer
-              .setContinuationJump(finalizer.parentFinalizer!.target.index);
-        }
-      });
-
-      // Jump to the first finalizer
-      jumpToTarget(firstFinalizer.target);
-    }
-  }
-
-  @override
-  w.ValueType visitThrow(Throw node, w.ValueType expectedType) {
-    final exceptionLocal = addLocal(translator.topInfo.nonNullableType);
-    wrap(node.expression, translator.topInfo.nonNullableType);
-    b.local_set(exceptionLocal);
-
-    final stackTraceLocal =
-        addLocal(translator.stackTraceInfo.repr.nonNullableType);
-    call(translator.stackTraceCurrent.reference);
-    b.local_set(stackTraceLocal);
-
-    exceptionHandlers.forEachFinalizer((finalizer, last) {
-      finalizer.setContinuationRethrow(() => b.local_get(exceptionLocal),
-          () => b.local_get(stackTraceLocal));
-    });
-
-    // TODO (omersa): An alternative would be to directly jump to the parent
-    // handler, or call `completeOnError` if we're not in a try-catch or
-    // try-finally. Would that be more efficient?
-    b.local_get(exceptionLocal);
-    b.local_get(stackTraceLocal);
-    call(translator.errorThrow.reference);
-
-    b.unreachable();
-    return expectedType;
-  }
-
-  @override
-  w.ValueType visitRethrow(Rethrow node, w.ValueType expectedType) {
-    final catchVars = catchVariableStack.last;
-
-    exceptionHandlers.forEachFinalizer((finalizer, last) {
-      finalizer.setContinuationRethrow(
-        () => _getVariableBoxed(catchVars.exception),
-        () => getVariable(catchVars.stackTrace),
-      );
-    });
-
-    // TODO (omersa): Similar to `throw` compilation above, we could directly
-    // jump to the target block or call `completeOnError`.
-    _getCurrentException();
-    b.ref_as_non_null();
-    _getCurrentExceptionStackTrace();
-    b.ref_as_non_null();
-    b.throw_(translator.exceptionTag);
-    b.unreachable();
-    return expectedType;
+    b.end(); // inner function
   }
 
   // Handle awaits
   @override
   void visitExpressionStatement(ExpressionStatement node) {
+    // All `await` expressions are transformed into variable sets of `await` by
+    // `_AwaitTransformer`.
     final expression = node.expression;
     if (expression is VariableSet) {
       final value = expression.value;
@@ -819,7 +309,7 @@ class AsyncCodeGenerator extends CodeGenerator {
     // Store context.
     if (context != null) {
       assert(!context.isEmpty);
-      b.local_get(suspendStateLocal);
+      b.local_get(_suspendStateLocal);
       b.local_get(context.currentLocal);
       b.struct_set(
           asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateContext);
@@ -827,7 +317,7 @@ class AsyncCodeGenerator extends CodeGenerator {
 
     // Set state target to label after await.
     final StateTarget after = afterTargets[node]!;
-    b.local_get(suspendStateLocal);
+    b.local_get(_suspendStateLocal);
     b.i32_const(after.index);
     b.struct_set(
         asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateTargetIndex);
@@ -844,7 +334,7 @@ class AsyncCodeGenerator extends CodeGenerator {
     if (futureTypeParam != null) {
       types.makeType(this, futureTypeParam);
     }
-    b.local_get(suspendStateLocal);
+    b.local_get(_suspendStateLocal);
     wrap(node.operand, translator.topInfo.nullableType);
     if (runtimeType != null) {
       call(translator.awaitHelperWithTypeCheck.reference);
@@ -854,10 +344,10 @@ class AsyncCodeGenerator extends CodeGenerator {
     b.return_();
 
     // Generate resume label
-    _emitTargetLabel(after);
+    emitTargetLabel(after);
 
     b.restoreSuspendStateContext(
-        suspendStateLocal,
+        _suspendStateLocal,
         asyncSuspendStateInfo.struct,
         FieldIndex.asyncSuspendStateContext,
         closures,
@@ -866,96 +356,26 @@ class AsyncCodeGenerator extends CodeGenerator {
 
     // Handle exceptions
     final exceptionBlock = b.block();
-    b.local_get(pendingExceptionLocal);
+    b.local_get(_pendingExceptionLocal);
     b.br_on_null(exceptionBlock);
 
     exceptionHandlers.forEachFinalizer((finalizer, last) {
       finalizer.setContinuationRethrow(() {
-        b.local_get(pendingExceptionLocal);
+        b.local_get(_pendingExceptionLocal);
         b.ref_as_non_null();
-      }, () => b.local_get(pendingStackTraceLocal));
+      }, () => b.local_get(_pendingStackTraceLocal));
     });
 
-    b.local_get(pendingStackTraceLocal);
+    b.local_get(_pendingStackTraceLocal);
     b.ref_as_non_null();
 
     b.throw_(translator.exceptionTag);
     b.end(); // exceptionBlock
 
     setVariable(awaitValueVar, () {
-      b.local_get(awaitValueLocal);
+      b.local_get(_awaitValueLocal);
       translator.convertType(
-          function, awaitValueLocal.type, translateType(awaitValueVar.type));
+          function, _awaitValueLocal.type, translateType(awaitValueVar.type));
     });
-  }
-
-  void setVariable(VariableDeclaration variable, void Function() pushValue) {
-    final w.Local? local = locals[variable];
-    final Capture? capture = closures.captures[variable];
-    if (capture != null) {
-      assert(capture.written);
-      b.local_get(capture.context.currentLocal);
-      pushValue();
-      b.struct_set(capture.context.struct, capture.fieldIndex);
-    } else {
-      if (local == null) {
-        throw "Write of undefined variable $variable";
-      }
-      pushValue();
-      b.local_set(local);
-    }
-  }
-
-  w.ValueType getVariable(VariableDeclaration variable) {
-    final w.Local? local = locals[variable];
-    final Capture? capture = closures.captures[variable];
-    if (capture != null) {
-      if (!capture.written && local != null) {
-        b.local_get(local);
-        return local.type;
-      } else {
-        b.local_get(capture.context.currentLocal);
-        b.struct_get(capture.context.struct, capture.fieldIndex);
-        return capture.context.struct.fields[capture.fieldIndex].type.unpacked;
-      }
-    } else {
-      if (local == null) {
-        throw "Write of undefined variable $variable";
-      }
-      b.local_get(local);
-      return local.type;
-    }
-  }
-
-  /// Same as [getVariable], but boxes the value if it's not already boxed.
-  void _getVariableBoxed(VariableDeclaration variable) {
-    final varType = getVariable(variable);
-    translator.convertType(function, varType, translator.topInfo.nullableType);
-  }
-
-  void _getCurrentException() {
-    b.local_get(suspendStateLocal);
-    b.struct_get(asyncSuspendStateInfo.struct,
-        FieldIndex.asyncSuspendStateCurrentException);
-  }
-
-  void setCurrentException(void Function() emitValue) {
-    b.local_get(suspendStateLocal);
-    emitValue();
-    b.struct_set(asyncSuspendStateInfo.struct,
-        FieldIndex.asyncSuspendStateCurrentException);
-  }
-
-  void _getCurrentExceptionStackTrace() {
-    b.local_get(suspendStateLocal);
-    b.struct_get(asyncSuspendStateInfo.struct,
-        FieldIndex.asyncSuspendStateCurrentExceptionStackTrace);
-  }
-
-  void setCurrentExceptionStackTrace(void Function() emitValue) {
-    b.local_get(suspendStateLocal);
-    emitValue();
-    b.struct_set(asyncSuspendStateInfo.struct,
-        FieldIndex.asyncSuspendStateCurrentExceptionStackTrace);
   }
 }

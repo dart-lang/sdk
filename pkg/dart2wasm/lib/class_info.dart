@@ -50,6 +50,8 @@ class FieldIndex {
   static const suspendStateIterator = 4;
   static const suspendStateContext = 5;
   static const suspendStateTargetIndex = 6;
+  static const suspendStateCurrentException = 7;
+  static const suspendStateCurrentExceptionStackTrace = 8;
   static const syncStarIteratorCurrent = 3;
   static const syncStarIteratorYieldStarIterable = 4;
   static const recordFieldBase = 2;
@@ -106,6 +108,10 @@ class FieldIndex {
         FieldIndex.suspendStateContext);
     check(translator.suspendStateClass, "_targetIndex",
         FieldIndex.suspendStateTargetIndex);
+    check(translator.suspendStateClass, "_currentException",
+        FieldIndex.suspendStateCurrentException);
+    check(translator.suspendStateClass, "_currentExceptionStackTrace",
+        FieldIndex.suspendStateCurrentExceptionStackTrace);
     check(translator.syncStarIteratorClass, "_current",
         FieldIndex.syncStarIteratorCurrent);
     check(translator.syncStarIteratorClass, "_yieldStarIterable",
