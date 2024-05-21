@@ -1616,23 +1616,23 @@ class DeclarationBuilderFromNode {
     switch (parentNode) {
       case ast.ClassDeclaration():
         var parentElement = parentNode.declaredElement!;
-        var typeElement = parentElement.augmentationTarget ?? parentElement;
+        var typeElement = parentElement.augmented.declaration;
         return _declaredIdentifier(parentNode.name, typeElement);
       case ast.EnumDeclaration():
         var parentElement = parentNode.declaredElement!;
-        var typeElement = parentElement.augmentationTarget ?? parentElement;
+        var typeElement = parentElement.augmented.declaration;
         return _declaredIdentifier(parentNode.name, typeElement);
       case ast.ExtensionDeclaration():
         var parentElement = parentNode.declaredElement!;
-        var typeElement = parentElement.augmentationTarget ?? parentElement;
+        var typeElement = parentElement.augmented.declaration;
         return _declaredIdentifier2(parentNode.name?.lexeme ?? '', typeElement);
       case ast.ExtensionTypeDeclaration():
         var parentElement = parentNode.declaredElement!;
-        var typeElement = parentElement.augmentationTarget ?? parentElement;
+        var typeElement = parentElement.augmented.declaration;
         return _declaredIdentifier(parentNode.name, typeElement);
       case ast.MixinDeclaration():
         var parentElement = parentNode.declaredElement!;
-        var typeElement = parentElement.augmentationTarget ?? parentElement;
+        var typeElement = parentElement.augmented.declaration;
         return _declaredIdentifier(parentNode.name, typeElement);
       default:
         // TODO(scheglov): other parents

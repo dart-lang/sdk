@@ -1302,6 +1302,35 @@ class MacroCodeGenerationTest extends MacroElementsBaseTest {
     );
   }
 
+  test_class_addMethod2_augmentMethod2() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+@DeclareInType("""
+  @{{package:test/append.dart@AugmentDefinition}}('{}')
+  void foo();""")
+@DeclareInType("""
+  @{{package:test/append.dart@AugmentDefinition}}('{}')
+  void bar();""")
+class A {}
+''');
+
+    _assertMacroCode(library, r'''
+augment library 'package:test/test.dart';
+
+import 'package:test/append.dart' as prefix0;
+
+augment class A {
+  @prefix0.AugmentDefinition('{}')
+  void bar();
+  @prefix0.AugmentDefinition('{}')
+  void foo();
+  augment void foo() {}
+  augment void bar() {}
+}
+''');
+  }
+
   test_declarationsPhase_metadata_class_type() async {
     var library = await buildLibrary(r'''
 import 'code_generation.dart';
