@@ -2696,9 +2696,7 @@ ParserErrorCode.DUPLICATE_PREFIX:
   notes: |-
     Remove the duplicate.
 ParserErrorCode.DUPLICATED_MODIFIER:
-  status: needsFix
-  notes: |-
-    Remove the duplicate.
+  status: hasFix
 ParserErrorCode.EMPTY_ENUM_BODY:
   status: noFix
   notes: |-

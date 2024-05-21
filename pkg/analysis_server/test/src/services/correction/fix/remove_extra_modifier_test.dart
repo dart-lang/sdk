@@ -51,7 +51,22 @@ class RemoveExtraModifierTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_EXTRA_MODIFIER;
 
-  test_invalidAsyncConstructorModifier() async {
+  Future<void> test_duplicatedModifier() async {
+    await resolveTestCode(r'''
+f() {
+  const const c = '';
+  c;
+}
+''');
+    await assertHasFix('''
+f() {
+  const c = '';
+  c;
+}
+''');
+  }
+
+  Future<void> test_invalidAsyncConstructorModifier() async {
     await resolveTestCode(r'''
 class A {
   A() async {}

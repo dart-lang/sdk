@@ -1335,6 +1335,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ParserErrorCode.DEFAULT_IN_SWITCH_EXPRESSION: [
     ReplaceWithWildcard.new,
   ],
+  ParserErrorCode.DUPLICATED_MODIFIER: [
+    RemoveExtraModifier.new,
+  ],
   ParserErrorCode.EXPECTED_TOKEN: [
     InsertSemicolon.new,
     ReplaceWithArrow.new,
