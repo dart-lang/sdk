@@ -62,7 +62,6 @@ class GCMarker {
   void ProcessWeakHandles(Thread* thread);
   void ProcessWeakTables(Thread* thread);
   void ProcessRememberedSet(Thread* thread);
-  void ProcessObjectIdTable(Thread* thread);
 
   // Called by anyone: finalize and accumulate stats from 'visitor'.
   template <class MarkingVisitorType>

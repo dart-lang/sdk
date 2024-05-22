@@ -16,4 +16,10 @@ void main() {
 
   int _;
   final _;
+
+  late int _;
+  late int _ = 2;
+
+  late final int _;
+  late final int _ = 2;
 }
