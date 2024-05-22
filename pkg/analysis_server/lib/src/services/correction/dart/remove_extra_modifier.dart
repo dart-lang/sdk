@@ -32,9 +32,11 @@ class RemoveExtraModifier extends ResolvedCorrectionProducer {
     var problemMessage = diagnostic.problemMessage;
 
     // Extract the modifier.
+    // Example: "Can't have modifier 'abstract' here."
     var message = problemMessage.messageText(includeUrl: false);
-    var modifierStart = message.indexOf("'") + 1;
-    var modifierStop = message.indexOf("'", modifierStart);
+
+    var modifierStart = message.indexOf(" '") + 2;
+    var modifierStop = message.indexOf("' ", modifierStart);
 
     _modifierName = message.substring(modifierStart, modifierStop);
 

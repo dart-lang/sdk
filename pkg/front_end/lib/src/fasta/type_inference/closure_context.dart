@@ -268,8 +268,7 @@ class _SyncClosureContext implements ClosureContext {
     } else {
       // No explicit return and the function doesn't complete normally; that
       // is, it throws.
-      actualReturnedType =
-          NeverType.fromNullability(inferrer.libraryBuilder.nonNullable);
+      actualReturnedType = NeverType.fromNullability(Nullability.nonNullable);
     }
     // Use the types seen from the explicit return statements.
     for (int i = 0; i < _returnStatements!.length; i++) {
@@ -537,7 +536,7 @@ class _AsyncClosureContext implements ClosureContext {
       DartType unfuturedExpectedType =
           inferrer.typeSchemaEnvironment.flatten(contextType);
       DartType futuredExpectedType = inferrer.wrapFutureType(
-          unfuturedExpectedType, inferrer.libraryBuilder.nonNullable);
+          unfuturedExpectedType, Nullability.nonNullable);
       if (inferrer.isAssignable(unfuturedExpectedType, expressionType)) {
         contextType = unfuturedExpectedType;
       } else if (inferrer.isAssignable(futuredExpectedType, expressionType)) {
@@ -559,8 +558,7 @@ class _AsyncClosureContext implements ClosureContext {
     } else {
       // No explicit return and the function doesn't complete normally; that
       // is, it throws.
-      inferredType =
-          NeverType.fromNullability(inferrer.libraryBuilder.nonNullable);
+      inferredType = NeverType.fromNullability(Nullability.nonNullable);
     }
     // Use the types seen from the explicit return statements.
     for (int i = 0; i < _returnStatements!.length; i++) {
@@ -596,7 +594,7 @@ class _AsyncClosureContext implements ClosureContext {
     }
     inferredType = inferrer.wrapFutureType(
         inferrer.typeSchemaEnvironment.flatten(inferredType),
-        inferrer.libraryBuilder.nonNullable);
+        Nullability.nonNullable);
 
     emittedValueType = computeFutureValueType(inferrer.coreTypes, inferredType);
 
@@ -707,10 +705,8 @@ class _SyncStarClosureContext implements ClosureContext {
   void handleYield(
       YieldStatement node, ExpressionInferenceResult expressionResult) {
     DartType expectedType = node.isYieldStar
-        ? inferrer.wrapType(
-            _yieldElementContext,
-            inferrer.coreTypes.iterableClass,
-            inferrer.libraryBuilder.nonNullable)
+        ? inferrer.wrapType(_yieldElementContext,
+            inferrer.coreTypes.iterableClass, Nullability.nonNullable)
         : _yieldElementContext;
     Expression expression = inferrer
         .ensureAssignableResult(expectedType, expressionResult,
@@ -755,12 +751,11 @@ class _SyncStarClosureContext implements ClosureContext {
     } else {
       // No explicit return and the function doesn't complete normally; that is,
       // it throws.
-      inferredElementType =
-          NeverType.fromNullability(inferrer.libraryBuilder.nonNullable);
+      inferredElementType = NeverType.fromNullability(Nullability.nonNullable);
     }
 
     DartType inferredType = inferrer.wrapType(inferredElementType!,
-        inferrer.coreTypes.iterableClass, inferrer.libraryBuilder.nonNullable);
+        inferrer.coreTypes.iterableClass, Nullability.nonNullable);
 
     if (!inferrer.typeSchemaEnvironment.isSubtypeOf(inferredType,
         _yieldElementContext, SubtypeCheckMode.withNullabilities)) {
@@ -847,7 +842,7 @@ class _AsyncStarClosureContext implements ClosureContext {
       YieldStatement node, ExpressionInferenceResult expressionResult) {
     DartType expectedType = node.isYieldStar
         ? inferrer.wrapType(_yieldElementContext,
-            inferrer.coreTypes.streamClass, inferrer.libraryBuilder.nonNullable)
+            inferrer.coreTypes.streamClass, Nullability.nonNullable)
         : _yieldElementContext;
 
     Expression expression = inferrer
@@ -892,12 +887,11 @@ class _AsyncStarClosureContext implements ClosureContext {
     } else {
       // No explicit return and the function doesn't complete normally; that is,
       // it throws.
-      inferredElementType =
-          NeverType.fromNullability(inferrer.libraryBuilder.nonNullable);
+      inferredElementType = NeverType.fromNullability(Nullability.nonNullable);
     }
 
     DartType inferredType = inferrer.wrapType(inferredElementType!,
-        inferrer.coreTypes.streamClass, inferrer.libraryBuilder.nonNullable);
+        inferrer.coreTypes.streamClass, Nullability.nonNullable);
 
     if (!inferrer.typeSchemaEnvironment.isSubtypeOf(inferredType,
         _yieldElementContext, SubtypeCheckMode.withNullabilities)) {

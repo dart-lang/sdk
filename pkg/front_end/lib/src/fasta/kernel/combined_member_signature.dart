@@ -717,8 +717,8 @@ class CombinedClassMemberSignature extends CombinedMemberSignatureBase {
   /// The this type of [classBuilder].
   @override
   InterfaceType get thisType {
-    return _thisType ??= _coreTypes.thisInterfaceType(
-        classBuilder.cls, declarationBuilder.libraryBuilder.nonNullable);
+    return _thisType ??=
+        _coreTypes.thisInterfaceType(classBuilder.cls, Nullability.nonNullable);
   }
 
   /// Returns `true` if the canonical member is declared in
@@ -755,7 +755,7 @@ class CombinedExtensionTypeMemberSignature extends CombinedMemberSignatureBase {
   ExtensionType get thisType {
     return _thisType ??= _coreTypes.thisExtensionType(
         extensionTypeDeclarationBuilder.extensionTypeDeclaration,
-        declarationBuilder.libraryBuilder.nonNullable);
+        Nullability.nonNullable);
   }
 
   @override

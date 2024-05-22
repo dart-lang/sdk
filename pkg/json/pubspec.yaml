@@ -5,7 +5,7 @@ description: >
   `toJson` encoding method.
 
 repository: https://github.com/dart-lang/sdk/tree/main/pkg/json
-version: 0.20.1
+version: 0.20.2-wip
 environment:
   sdk: ^3.5.0-0
 dependencies:

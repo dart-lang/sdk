@@ -265,7 +265,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
   @override
   InterfaceType get thisType {
-    return _thisType ??= new InterfaceType(cls, libraryBuilder.nonNullable,
+    return _thisType ??= new InterfaceType(cls, Nullability.nonNullable,
         getAsTypeArguments(cls.typeParameters, libraryBuilder.library));
   }
 

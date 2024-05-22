@@ -144,7 +144,7 @@ class TypeInferrerImpl implements TypeInferrer {
       : instrumentation = isTopLevel ? null : engine.instrumentation,
         typeSchemaEnvironment = engine.typeSchemaEnvironment,
         operations = new OperationsCfe(engine.typeSchemaEnvironment,
-            omittedNullabilityValue: libraryBuilder.nonNullable,
+            omittedNullabilityValue: Nullability.nonNullable,
             fieldNonPromotabilityInfo: libraryBuilder.fieldNonPromotabilityInfo,
             typeCacheNonNullable: engine.typeCacheNonNullable,
             typeCacheNullable: engine.typeCacheNullable,

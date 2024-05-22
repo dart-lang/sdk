@@ -163,8 +163,6 @@ abstract class LibraryBuilder implements ModifierBuilder {
 
   Nullability get nullable;
 
-  Nullability get nonNullable;
-
   Nullability nullableIfTrue(bool isNullable);
 
   NullabilityBuilder get nullableBuilder;
@@ -380,11 +378,6 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   @override
   Nullability get nullable {
     return Nullability.nullable;
-  }
-
-  @override
-  Nullability get nonNullable {
-    return Nullability.nonNullable;
   }
 
   @override

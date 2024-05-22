@@ -620,7 +620,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
 
     List<DartType>? typeArguments = factory.getTypeArguments();
     FunctionType targetFunctionType =
-        targetNode.computeFunctionType(libraryBuilder.nonNullable);
+        targetNode.computeFunctionType(Nullability.nonNullable);
     if (typeArguments != null &&
         targetFunctionType.typeParameters.length != typeArguments.length) {
       libraryBuilder.addProblemForRedirectingFactory(
@@ -753,7 +753,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     // its enclosing class, because constructors cannot specify type parameters
     // of their own.
     FunctionType factoryType =
-        function.computeThisFunctionType(libraryBuilder.nonNullable);
+        function.computeThisFunctionType(Nullability.nonNullable);
     if (isAugmenting) {
       // The redirection target type uses the origin type parameters so we must
       // substitute augmentation type parameters before checking subtyping.

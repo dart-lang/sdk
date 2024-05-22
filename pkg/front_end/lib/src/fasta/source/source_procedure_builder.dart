@@ -477,7 +477,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
           positionalParameters: [extensionThis],
           requiredParameterCount: 1,
           returnType:
-              closure.function.computeFunctionType(libraryBuilder.nonNullable))
+              closure.function.computeFunctionType(Nullability.nonNullable))
         ..fileOffset = fileOffset
         ..fileEndOffset = fileEndOffset)
       ..fileUri = fileUri

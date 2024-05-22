@@ -944,7 +944,7 @@ class TypeConstraintGatherer {
         p.named.length == q.named.length) {
       bool sameNames = true;
       for (int i = 0; sameNames && i < p.named.length; i++) {
-        if (p.named[i] != p.named[i]) {
+        if (p.named[i].name != q.named[i].name) {
           sameNames = false;
         }
       }

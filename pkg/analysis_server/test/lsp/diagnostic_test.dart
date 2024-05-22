@@ -412,6 +412,53 @@ version: latest
         ]));
   }
 
+  /// Test that when server has produced diagnostics for a file and it is
+  /// subsequently removed, that an update from the plugin does not cause
+  /// the last diagnostics from the server to re-appear (which happens if the
+  /// deletion does not clear the servers errors from the ErrorCollector).
+  ///
+  /// https://github.com/Dart-Code/Dart-Code/issues/5113
+  Future<void> test_fromPlugins_dartFile_producedAfterFileRemoved() async {
+    var serverErrorMessage =
+        "A value of type 'int' can't be assigned to a variable of type 'String'";
+    var pluginErrorMessage = 'Test error from plugin';
+
+    // First, trigger a diagnostic from the server.
+    newFile(mainFilePath, 'String a = 1;');
+    var diagnosticsFuture = waitForDiagnostics(mainFileUri);
+    await initialize();
+
+    // Expect only the server diagnostic.
+    expect((await diagnosticsFuture)!.single.message,
+        contains(serverErrorMessage));
+
+    // Delete the file, and expect diagnostics to be cleared.
+    diagnosticsFuture = waitForDiagnostics(mainFileUri);
+    deleteFile(mainFilePath);
+    expect((await diagnosticsFuture)!, hasLength(0));
+
+    // Trigger a plugin diagnostic. In reality, the plugin would probalby
+    // produce 0 diagnostics after the file is removed, but since the LSP server
+    // has an optimization to not send empty diagnostics if the last update was
+    // empty, we wouldn't be able wait for that so we just use a real diagnostic
+    // (which is still realistic since plugins might have not processed the
+    // remove yet).
+    diagnosticsFuture = waitForDiagnostics(mainFileUri);
+    var pluginError = plugin.AnalysisError(
+      plugin.AnalysisErrorSeverity.ERROR,
+      plugin.AnalysisErrorType.STATIC_TYPE_WARNING,
+      plugin.Location(mainFilePath, 0, 1, 0, 0, endLine: 0, endColumn: 1),
+      pluginErrorMessage,
+      'ERR1',
+    );
+    var pluginResult = plugin.AnalysisErrorsParams(mainFilePath, [pluginError]);
+    configureTestPlugin(notification: pluginResult.toNotification());
+
+    // Wait for the diagnostic updated and ensure it's still empty and no stale
+    // error has come back.
+    expect((await diagnosticsFuture)!.single.message, pluginErrorMessage);
+  }
+
   Future<void> test_fromPlugins_nonDartFile() async {
     await checkPluginErrorsForFile(join(projectFolderPath, 'lib', 'foo.sql'));
   }

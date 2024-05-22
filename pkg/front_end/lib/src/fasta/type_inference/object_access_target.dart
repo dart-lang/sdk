@@ -742,8 +742,8 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
   FunctionType getFunctionType(InferenceVisitorBase base) {
     switch (declarationMethodKind) {
       case ClassMemberKind.Method:
-        FunctionType functionType = member.function!
-            .computeFunctionType(base.libraryBuilder.nonNullable);
+        FunctionType functionType =
+            member.function!.computeFunctionType(Nullability.nonNullable);
         return functionType;
       case ClassMemberKind.Getter:
         // TODO(johnniwinther): Handle implicit .call on extension getter.
@@ -757,8 +757,8 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
   DartType getGetterType(InferenceVisitorBase base) {
     switch (declarationMethodKind) {
       case ClassMemberKind.Method:
-        FunctionType functionType = member.function!
-            .computeFunctionType(base.libraryBuilder.nonNullable);
+        FunctionType functionType =
+            member.function!.computeFunctionType(Nullability.nonNullable);
         List<StructuralParameter> extensionTypeParameters = functionType
             .typeParameters
             .take(receiverTypeArguments.length)
@@ -769,7 +769,7 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
         DartType resultType = instantiator.substitute(new FunctionType(
             functionType.positionalParameters.skip(1).toList(),
             functionType.returnType,
-            base.libraryBuilder.nonNullable,
+            Nullability.nonNullable,
             namedParameters: functionType.namedParameters,
             typeParameters: functionType.typeParameters
                 .skip(receiverTypeArguments.length)
@@ -777,8 +777,8 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
             requiredParameterCount: functionType.requiredParameterCount - 1));
         return resultType;
       case ClassMemberKind.Getter:
-        FunctionType functionType = member.function!
-            .computeFunctionType(base.libraryBuilder.nonNullable);
+        FunctionType functionType =
+            member.function!.computeFunctionType(Nullability.nonNullable);
         List<StructuralParameter> extensionTypeParameters = functionType
             .typeParameters
             .take(receiverTypeArguments.length)
@@ -797,8 +797,8 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
   DartType getSetterType(InferenceVisitorBase base) {
     switch (declarationMethodKind) {
       case ClassMemberKind.Setter:
-        FunctionType functionType = member.function!
-            .computeFunctionType(base.libraryBuilder.nonNullable);
+        FunctionType functionType =
+            member.function!.computeFunctionType(Nullability.nonNullable);
         List<StructuralParameter> extensionTypeParameters = functionType
             .typeParameters
             .take(receiverTypeArguments.length)
@@ -819,8 +819,8 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
   DartType getIndexKeyType(InferenceVisitorBase base) {
     switch (declarationMethodKind) {
       case ClassMemberKind.Method:
-        FunctionType functionType = member.function!
-            .computeFunctionType(base.libraryBuilder.nonNullable);
+        FunctionType functionType =
+            member.function!.computeFunctionType(Nullability.nonNullable);
         if (functionType.positionalParameters.length >= 2) {
           DartType keyType = functionType.positionalParameters[1];
           if (functionType.typeParameters.isNotEmpty) {
@@ -842,8 +842,8 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
   DartType getIndexSetValueType(InferenceVisitorBase base) {
     switch (declarationMethodKind) {
       case ClassMemberKind.Method:
-        FunctionType functionType = member.function!
-            .computeFunctionType(base.libraryBuilder.nonNullable);
+        FunctionType functionType =
+            member.function!.computeFunctionType(Nullability.nonNullable);
         if (functionType.positionalParameters.length >= 3) {
           DartType indexType = functionType.positionalParameters[2];
           if (functionType.typeParameters.isNotEmpty) {
@@ -866,8 +866,8 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
     switch (declarationMethodKind) {
       case ClassMemberKind.Method:
       case ClassMemberKind.Getter:
-        FunctionType functionType = member.function!
-            .computeFunctionType(base.libraryBuilder.nonNullable);
+        FunctionType functionType =
+            member.function!.computeFunctionType(Nullability.nonNullable);
         DartType returnType = functionType.returnType;
         if (functionType.typeParameters.isNotEmpty) {
           FunctionTypeInstantiator instantiator =
@@ -885,8 +885,8 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
   DartType getBinaryOperandType(InferenceVisitorBase base) {
     switch (declarationMethodKind) {
       case ClassMemberKind.Method:
-        FunctionType functionType = member.function!
-            .computeFunctionType(base.libraryBuilder.nonNullable);
+        FunctionType functionType =
+            member.function!.computeFunctionType(Nullability.nonNullable);
         if (functionType.positionalParameters.length > 1) {
           DartType keyType = functionType.positionalParameters[1];
           if (functionType.typeParameters.isNotEmpty) {
@@ -1119,8 +1119,8 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget {
   FunctionType getFunctionType(InferenceVisitorBase base) {
     switch (declarationMethodKind) {
       case ClassMemberKind.Method:
-        FunctionType functionType = member.function!
-            .computeFunctionType(base.libraryBuilder.nonNullable);
+        FunctionType functionType =
+            member.function!.computeFunctionType(Nullability.nonNullable);
         return functionType;
       case ClassMemberKind.Getter:
         // TODO(johnniwinther): Handle implicit .call on extension getter.
@@ -1134,8 +1134,8 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget {
   DartType getGetterType(InferenceVisitorBase base) {
     switch (declarationMethodKind) {
       case ClassMemberKind.Method:
-        FunctionType functionType = member.function!
-            .computeFunctionType(base.libraryBuilder.nonNullable);
+        FunctionType functionType =
+            member.function!.computeFunctionType(Nullability.nonNullable);
         List<StructuralParameter> extensionTypeParameters = functionType
             .typeParameters
             .take(receiverTypeArguments.length)
@@ -1146,7 +1146,7 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget {
         DartType resultType = instantiator.substitute(new FunctionType(
             functionType.positionalParameters.skip(1).toList(),
             functionType.returnType,
-            base.libraryBuilder.nonNullable,
+            Nullability.nonNullable,
             namedParameters: functionType.namedParameters,
             typeParameters: functionType.typeParameters
                 .skip(receiverTypeArguments.length)
@@ -1154,8 +1154,8 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget {
             requiredParameterCount: functionType.requiredParameterCount - 1));
         return resultType;
       case ClassMemberKind.Getter:
-        FunctionType functionType = member.function!
-            .computeFunctionType(base.libraryBuilder.nonNullable);
+        FunctionType functionType =
+            member.function!.computeFunctionType(Nullability.nonNullable);
         List<StructuralParameter> extensionTypeParameters = functionType
             .typeParameters
             .take(receiverTypeArguments.length)
@@ -1174,8 +1174,8 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget {
   DartType getSetterType(InferenceVisitorBase base) {
     switch (declarationMethodKind) {
       case ClassMemberKind.Setter:
-        FunctionType functionType = member.function!
-            .computeFunctionType(base.libraryBuilder.nonNullable);
+        FunctionType functionType =
+            member.function!.computeFunctionType(Nullability.nonNullable);
         List<StructuralParameter> extensionTypeParameters = functionType
             .typeParameters
             .take(receiverTypeArguments.length)
@@ -1196,8 +1196,8 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget {
   DartType getIndexKeyType(InferenceVisitorBase base) {
     switch (declarationMethodKind) {
       case ClassMemberKind.Method:
-        FunctionType functionType = member.function!
-            .computeFunctionType(base.libraryBuilder.nonNullable);
+        FunctionType functionType =
+            member.function!.computeFunctionType(Nullability.nonNullable);
         if (functionType.positionalParameters.length >= 2) {
           DartType keyType = functionType.positionalParameters[1];
           if (functionType.typeParameters.isNotEmpty) {
@@ -1219,8 +1219,8 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget {
   DartType getIndexSetValueType(InferenceVisitorBase base) {
     switch (declarationMethodKind) {
       case ClassMemberKind.Method:
-        FunctionType functionType = member.function!
-            .computeFunctionType(base.libraryBuilder.nonNullable);
+        FunctionType functionType =
+            member.function!.computeFunctionType(Nullability.nonNullable);
         if (functionType.positionalParameters.length >= 3) {
           DartType indexType = functionType.positionalParameters[2];
           if (functionType.typeParameters.isNotEmpty) {
@@ -1243,8 +1243,8 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget {
     switch (declarationMethodKind) {
       case ClassMemberKind.Method:
       case ClassMemberKind.Getter:
-        FunctionType functionType = member.function!
-            .computeFunctionType(base.libraryBuilder.nonNullable);
+        FunctionType functionType =
+            member.function!.computeFunctionType(Nullability.nonNullable);
         DartType returnType = functionType.returnType;
         if (functionType.typeParameters.isNotEmpty) {
           FunctionTypeInstantiator instantiator =
@@ -1262,8 +1262,8 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget {
   DartType getBinaryOperandType(InferenceVisitorBase base) {
     switch (declarationMethodKind) {
       case ClassMemberKind.Method:
-        FunctionType functionType = member.function!
-            .computeFunctionType(base.libraryBuilder.nonNullable);
+        FunctionType functionType =
+            member.function!.computeFunctionType(Nullability.nonNullable);
         if (functionType.positionalParameters.length > 1) {
           DartType keyType = functionType.positionalParameters[1];
           if (functionType.typeParameters.isNotEmpty) {
