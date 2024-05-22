@@ -99,4 +99,17 @@ linter:
     - camel_case_types
 ''');
   }
+
+  Future<void> test_duplicated() async {
+    await assertHasFix('''
+linter:
+  rules:
+    - camel_case_types
+    - camel_case_types
+''', '''
+linter:
+  rules:
+    - camel_case_types
+''');
+  }
 }

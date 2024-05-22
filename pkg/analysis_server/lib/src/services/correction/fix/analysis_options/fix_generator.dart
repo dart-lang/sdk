@@ -28,6 +28,7 @@ class AnalysisOptionsFixGenerator {
   static const List<ErrorCode> codesWithFixes = [
     AnalysisOptionsHintCode.DEPRECATED_LINT,
     AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT,
+    AnalysisOptionsHintCode.DUPLICATE_RULE,
     AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES,
   ];
 
@@ -97,7 +98,8 @@ class AnalysisOptionsFixGenerator {
         await _addFix_replaceWithStrictRawTypes(
             coveringNodePath, analyzerMap, strongModeMap);
       }
-    } else if (errorCode == AnalysisOptionsHintCode.DEPRECATED_LINT) {
+    } else if (errorCode == AnalysisOptionsHintCode.DEPRECATED_LINT ||
+        errorCode == AnalysisOptionsHintCode.DUPLICATE_RULE) {
       await _addFix_removeLint(coveringNodePath);
     } else if (errorCode ==
         AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES) {

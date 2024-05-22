@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 365 "needsFix"
-# - 386 "hasFix"
+# - 364 "needsFix"
+# - 387 "hasFix"
 # - 516 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -65,9 +65,7 @@ AnalysisOptionsHintCode.DEPRECATED_LINT_WITH_REPLACEMENT:
   notes: |-
     We should be able to replace the deprecated lint rule with its replacement.
 AnalysisOptionsHintCode.DUPLICATE_RULE:
-  status: needsFix
-  notes: |-
-    We could offer to remove the duplicate rule.
+  status: hasFix
 AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED:
   status: needsFix
   notes: |-
