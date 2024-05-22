@@ -46,12 +46,12 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
   Future<void> fillChange() async {
     // update declaration
     {
-      final node = await _findNode();
+      var node = await _findNode();
       if (node == null) {
         return;
       }
 
-      final prefixNode = node.prefix;
+      var prefixNode = node.prefix;
       SourceEdit? edit;
       if (newName.isEmpty) {
         // We should not get `prefix == null` because we check in

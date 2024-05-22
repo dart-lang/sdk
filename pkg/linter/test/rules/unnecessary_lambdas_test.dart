@@ -32,6 +32,15 @@ var x = [() => const C()];
 ''');
   }
 
+  test_constructorCall_explicitNew() async {
+    await assertNoDiagnostics(r'''
+class C {
+  C(int a);
+}
+var x = [].map((e) => C.new(e));
+''');
+  }
+
   test_constructorCall_imported() async {
     newFile('$testPackageLibPath/b.dart', r'''
 class C {}
@@ -56,23 +65,21 @@ var x = [() => b.C()];
 ''');
   }
 
-  test_constructorCall_matchingArg() async {
-    await assertDiagnostics(r'''
-class C {
-  C(int i);
-}
-var x = [].map((x) => C(x));
-''', [
-      lint(39, 11),
-    ]);
-  }
-
   test_constructorCall_multipleArgs() async {
     await assertNoDiagnostics(r'''
 class C {
   C(int i, int j);
 }
 var x = [].map((x) => C(3, x));
+''');
+  }
+
+  test_constructorCall_named() async {
+    await assertNoDiagnostics(r'''
+class C {
+  C.named(int a);
+}
+var x = [].map((e) => C.named(e));
 ''');
   }
 
@@ -91,6 +98,24 @@ class C {
   C(int i);
 }
 var x = [() => C(3)];
+''');
+  }
+
+  test_constructorCall_unnamed() async {
+    await assertNoDiagnostics(r'''
+class C {
+  C(int a);
+}
+var x = [].map((e) => C(e));
+''');
+  }
+
+  test_constructorCall_unnamed_blockBody() async {
+    await assertNoDiagnostics(r'''
+class C {
+  C(int a);
+}
+var x = [].map((e) { return C(e); });
 ''');
   }
 
@@ -166,6 +191,37 @@ import 'b.dart' deferred as b;
 void f() {
   [].where((o) => b.isB(o));
 }
+''');
+  }
+
+  test_importedStatic_deferred() async {
+    newFile('$testPackageLibPath/b.dart', r'''
+class C {
+static bool isB(Object o) => true;
+}
+''');
+    await assertNoDiagnostics(r'''
+import 'b.dart' deferred as b;
+
+void f() {
+  [].where((o) => b.C.isB(o));
+}
+
+''');
+  }
+
+  test_importedTearoff_deferred() async {
+    newFile('$testPackageLibPath/b.dart', r'''
+bool isB(Object o) => true;
+final isB2 = isB;
+''');
+    await assertNoDiagnostics(r'''
+import 'b.dart' deferred as b;
+
+void f() {
+  [].where((o) => b.isB2(o));
+}
+
 ''');
   }
 

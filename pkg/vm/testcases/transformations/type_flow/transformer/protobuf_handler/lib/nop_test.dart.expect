@@ -2,6 +2,8 @@ library #lib;
 import self as self;
 import "dart:core" as core;
 
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → dynamic {
   core::print("hello world");
 }

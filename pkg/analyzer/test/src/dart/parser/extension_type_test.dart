@@ -15,15 +15,41 @@ main() {
 
 @reflectiveTest
 class ExtensionTypeDeclarationParserTest extends ParserDiagnosticsTest {
+  test_augment() {
+    var parseResult = parseStringWithErrors(r'''
+augment library 'a.dart';
+
+augment extension type A(int it) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  name: A
+  representation: RepresentationDeclaration
+    leftParenthesis: (
+    fieldType: NamedType
+      name: int
+    fieldName: it
+    rightParenthesis: )
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
   test_error_fieldModifier_const() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 extension type A(const int it) {}
 ''');
     parseResult.assertErrors([
       error(ParserErrorCode.EXTRANEOUS_MODIFIER, 17, 5),
     ]);
 
-    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
@@ -41,14 +67,14 @@ ExtensionTypeDeclaration
   }
 
   test_error_fieldModifier_covariant() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 extension type A(covariant int it) {}
 ''');
     parseResult.assertErrors([
       error(ParserErrorCode.EXTRANEOUS_MODIFIER_IN_PRIMARY_CONSTRUCTOR, 17, 9),
     ]);
 
-    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
@@ -66,7 +92,7 @@ ExtensionTypeDeclaration
   }
 
   test_error_fieldModifier_covariant_final() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 extension type A(covariant final int it) {}
 ''');
     parseResult.assertErrors([
@@ -74,7 +100,7 @@ extension type A(covariant final int it) {}
       error(ParserErrorCode.REPRESENTATION_FIELD_MODIFIER, 27, 5),
     ]);
 
-    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
@@ -92,14 +118,14 @@ ExtensionTypeDeclaration
   }
 
   test_error_fieldModifier_final() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 extension type A(final int it) {}
 ''');
     parseResult.assertErrors([
       error(ParserErrorCode.REPRESENTATION_FIELD_MODIFIER, 17, 5),
     ]);
 
-    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
@@ -117,14 +143,14 @@ ExtensionTypeDeclaration
   }
 
   test_error_fieldModifier_required() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 extension type A(required int it) {}
 ''');
     parseResult.assertErrors([
       error(ParserErrorCode.EXTRANEOUS_MODIFIER, 17, 8),
     ]);
 
-    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
@@ -142,14 +168,14 @@ ExtensionTypeDeclaration
   }
 
   test_error_fieldModifier_static() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 extension type A(static int it) {}
 ''');
     parseResult.assertErrors([
       error(ParserErrorCode.EXTRANEOUS_MODIFIER, 17, 6),
     ]);
 
-    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
@@ -167,14 +193,14 @@ ExtensionTypeDeclaration
   }
 
   test_error_fieldName_asDeclaration() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 extension type A(int A) {}
 ''');
     parseResult.assertErrors([
       error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 21, 1),
     ]);
 
-    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
@@ -192,7 +218,7 @@ ExtensionTypeDeclaration
   }
 
   test_error_formalParameterModifier_covariant_method_instance() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 extension type A(int it) {
   void foo(covariant int a) {}
 }
@@ -201,7 +227,7 @@ extension type A(int it) {
       error(ParserErrorCode.EXTRANEOUS_MODIFIER_IN_EXTENSION_TYPE, 38, 9),
     ]);
 
-    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
@@ -236,7 +262,7 @@ ExtensionTypeDeclaration
   }
 
   test_error_formalParameterModifier_covariant_method_static() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 extension type A(int it) {
   static void foo(covariant int a) {}
 }
@@ -245,7 +271,7 @@ extension type A(int it) {
       error(ParserErrorCode.EXTRANEOUS_MODIFIER_IN_EXTENSION_TYPE, 45, 9),
     ]);
 
-    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
@@ -281,14 +307,14 @@ ExtensionTypeDeclaration
   }
 
   test_error_multipleFields() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 extension type A(int a, String b) {}
 ''');
     parseResult.assertErrors([
       error(ParserErrorCode.MULTIPLE_REPRESENTATION_FIELDS, 22, 1),
     ]);
 
-    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
@@ -306,14 +332,14 @@ ExtensionTypeDeclaration
   }
 
   test_error_noField() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 extension type A() {}
 ''');
     parseResult.assertErrors([
       error(ParserErrorCode.EXPECTED_REPRESENTATION_FIELD, 17, 1),
     ]);
 
-    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
@@ -331,14 +357,14 @@ ExtensionTypeDeclaration
   }
 
   test_error_noFieldType() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 extension type A(it) {}
 ''');
     parseResult.assertErrors([
       error(ParserErrorCode.EXPECTED_REPRESENTATION_TYPE, 17, 2),
     ]);
 
-    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
@@ -356,7 +382,7 @@ ExtensionTypeDeclaration
   }
 
   test_error_noFieldType_var() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 extension type A(var it) {}
 ''');
     parseResult.assertErrors([
@@ -364,7 +390,7 @@ extension type A(var it) {}
       error(ParserErrorCode.REPRESENTATION_FIELD_MODIFIER, 17, 3),
     ]);
 
-    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
@@ -382,14 +408,14 @@ ExtensionTypeDeclaration
   }
 
   test_error_superFormalParameter() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 extension type A(super.it) {}
 ''');
     parseResult.assertErrors([
       error(ParserErrorCode.EXPECTED_REPRESENTATION_FIELD, 17, 5),
     ]);
 
-    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
@@ -407,14 +433,14 @@ ExtensionTypeDeclaration
   }
 
   test_error_trailingComma() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 extension type A(int it,) {}
 ''');
     parseResult.assertErrors([
       error(ParserErrorCode.REPRESENTATION_FIELD_TRAILING_COMMA, 23, 1),
     ]);
 
-    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
@@ -432,7 +458,7 @@ ExtensionTypeDeclaration
   }
 
   test_error_typeParameters_afterConstructorName() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 extension type A._<T>(T _) {}
 ''');
     parseResult.assertErrors([
@@ -445,7 +471,7 @@ extension type A._<T>(T _) {}
       error(ParserErrorCode.TOP_LEVEL_OPERATOR, 20, 1),
     ]);
 
-    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
@@ -466,7 +492,7 @@ ExtensionTypeDeclaration
   }
 
   test_featureNotEnabled() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 // @dart = 3.1
 class A {}
 extension type B(int it) {}
@@ -476,7 +502,7 @@ class C {}
       error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 36, 4),
     ]);
 
-    final node = parseResult.findNode.unit;
+    var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations
@@ -494,12 +520,12 @@ CompilationUnit
   }
 
   test_field_metadata() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 extension type A(@foo int it) {}
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
@@ -522,14 +548,14 @@ ExtensionTypeDeclaration
   }
 
   test_members_constructor() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 extension type A(int it) {
   A.named(this.it);
 }
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
@@ -562,14 +588,14 @@ ExtensionTypeDeclaration
   }
 
   test_members_field_instance() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 extension type A(int it) {
   final int foo = 0;
 }
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
@@ -600,14 +626,14 @@ ExtensionTypeDeclaration
   }
 
   test_members_field_static() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 extension type A(int it) {
   static int foo = 0;
 }
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
@@ -638,14 +664,14 @@ ExtensionTypeDeclaration
   }
 
   test_members_getter() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 extension type A(int it) {
   int get foo => 0;
 }
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
@@ -674,14 +700,14 @@ ExtensionTypeDeclaration
   }
 
   test_members_method() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 extension type A(int it) {
   void foo() {}
 }
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
@@ -711,14 +737,14 @@ ExtensionTypeDeclaration
   }
 
   test_members_setter() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 extension type A(int it) {
   set foo(int _) {}
 }
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
@@ -751,13 +777,13 @@ ExtensionTypeDeclaration
   }
 
   test_metadata() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 @foo
 extension type A(int it) {}
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   metadata
@@ -780,12 +806,12 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_const() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 extension type const A(int it) {}
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
@@ -810,7 +836,7 @@ extension type E {}
     parseResult.assertErrors(
         [error(ParserErrorCode.MISSING_PRIMARY_CONSTRUCTOR, 15, 1)]);
 
-    final node = parseResult.findNode.extensionTypeDeclaration('E');
+    var node = parseResult.findNode.extensionTypeDeclaration('E');
     assertParsedNodeText(
         node,
         r'''
@@ -831,12 +857,12 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_named() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 extension type A.named(int it) {}
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
@@ -857,12 +883,12 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_unnamed() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 extension type A(int it) {}
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
@@ -880,12 +906,12 @@ ExtensionTypeDeclaration
   }
 
   test_withImplementsClause() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 extension type A(int it) implements B, C {}
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
@@ -910,12 +936,12 @@ ExtensionTypeDeclaration
   }
 
   test_withTypeParameters() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 extension type A<T>(int it) {}
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension

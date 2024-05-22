@@ -1,16 +1,4 @@
-//
-// Problems in component:
-//
-// pkg/front_end/testcases/general/flutter_issue68092/main_lib.dart: Error: Library doesn't support null safety.
-//
-library /*isLegacy*/;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/general/flutter_issue68092/main.dart:5:1: Error: Library doesn't support null safety.
-// // @dart=2.9
-// ^^^^^^^^^^^^
-//
+library;
 import self as self;
 import "dart:core" as core;
 import "main_lib.dart" as mai;
@@ -18,45 +6,28 @@ import "main_lib.dart" as mai;
 import "org-dartlang-testcase:///main_lib.dart";
 
 static method main() → void {
-  function f({core::int* x = #C1}) → core::int*
-    return null;
-  new mai::Registry::•().{mai::DynamicDispatchRegistry::register}(f){(({x: core::int*}) →* core::int*) →* ({x: core::int*}) →* core::int*};
+  function f({core::int x = #C1}) → core::int
+    return x;
+  new mai::Registry::•().{mai::DynamicDispatchRegistry::register}(f){(({x: core::int}) → core::int) → ({x: core::int}) → core::int};
 }
 
-library /*isLegacy*/;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/general/flutter_issue68092/main_lib.dart:5:1: Error: Library doesn't support null safety.
-// // @dart=2.9
-// ^^^^^^^^^^^^
-//
+library;
 import self as mai;
 import "dart:core" as core;
 
-class DynamicDispatchRegistry<T extends core::Function*> extends core::Object {
-  synthetic constructor •() → mai::DynamicDispatchRegistry<mai::DynamicDispatchRegistry::T*>*
+class DynamicDispatchRegistry<T extends core::Function> extends core::Object {
+  synthetic constructor •() → mai::DynamicDispatchRegistry<mai::DynamicDispatchRegistry::T>
     : super core::Object::•()
     ;
-  method register(covariant-by-class mai::DynamicDispatchRegistry::T* function) → mai::DynamicDispatchRegistry::T*
-    return null;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  method register(covariant-by-class mai::DynamicDispatchRegistry::T function) → mai::DynamicDispatchRegistry::T
+    return function;
 }
-class Registry extends mai::DynamicDispatchRegistry<({x: core::int*}) →* core::int*> {
-  synthetic constructor •() → mai::Registry*
+class Registry extends mai::DynamicDispatchRegistry<({x: core::int}) → core::int> {
+  synthetic constructor •() → mai::Registry
     : super mai::DynamicDispatchRegistry::•()
     ;
 }
 
 constants  {
-  #C1 = null
+  #C1 = 0
 }

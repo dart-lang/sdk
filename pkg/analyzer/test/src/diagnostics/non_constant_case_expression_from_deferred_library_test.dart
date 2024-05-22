@@ -85,7 +85,7 @@ mixin NonConstantCaseExpressionFromDeferredLibraryTestCases
 const int c = 0;
 ''');
 
-    final ErrorCode expectedErrorCode;
+    ErrorCode expectedErrorCode;
     switch (_variant) {
       case _Variant.nullSafe:
         expectedErrorCode = CompileTimeErrorCode
@@ -114,7 +114,7 @@ void f(int e) {
 class A {}
 ''');
 
-    final ErrorCode expectedErrorCode;
+    ErrorCode expectedErrorCode;
     switch (_variant) {
       case _Variant.nullSafe:
         expectedErrorCode = CompileTimeErrorCode

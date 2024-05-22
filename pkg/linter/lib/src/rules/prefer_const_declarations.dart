@@ -9,13 +9,13 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import '../analyzer.dart';
 import '../ast.dart';
 
-const _desc = r'Prefer const over final for declarations.';
+const _desc = r'Prefer `const` over `final` for declarations.';
 
 const _details = r'''
-**PREFER** using `const` for const declarations.
+**PREFER** using `const` for constant-valued declarations.
 
-Const declarations are more hot-reload friendly and allow to use const
-constructors if an instantiation references this declaration.
+Constant declarations are more hot-reload friendly and allow
+values to be used in other constant expressions.
 
 **BAD:**
 ```dart
@@ -55,7 +55,7 @@ class PreferConstDeclarations extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this, context);
+    var visitor = _Visitor(this);
     registry.addFieldDeclaration(this, visitor);
     registry.addTopLevelVariableDeclaration(this, visitor);
     registry.addVariableDeclarationStatement(this, visitor);
@@ -65,9 +65,7 @@ class PreferConstDeclarations extends LintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  final LinterContext context;
-
-  _Visitor(this.rule, this.context);
+  _Visitor(this.rule);
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
@@ -91,7 +89,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return initializer != null &&
           (initializer is! TypedLiteral ||
               (initializer.beginToken.keyword == Keyword.CONST)) &&
-          !hasConstantError(context, initializer);
+          !hasConstantError(initializer);
     })) {
       rule.reportLint(node);
     }

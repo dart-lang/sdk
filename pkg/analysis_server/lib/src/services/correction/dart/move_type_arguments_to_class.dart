@@ -13,6 +13,11 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class MoveTypeArgumentsToClass extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   FixKind get fixKind => DartFixKind.MOVE_TYPE_ARGUMENTS_TO_CLASS;
 
   @override
@@ -32,9 +37,9 @@ class MoveTypeArgumentsToClass extends ResolvedCorrectionProducer {
       return;
     }
 
-    final type = namedType.typeOrThrow;
+    var type = namedType.typeOrThrow;
     if (type is InterfaceType) {
-      final element = type.element;
+      var element = type.element;
       if (element.typeParameters.length == typeArguments.arguments.length) {
         await builder.addDartFileEdit(file, (builder) {
           var argumentText = utils.getNodeText(typeArguments);

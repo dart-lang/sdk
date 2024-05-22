@@ -1,0 +1,45 @@
+library;
+import self as self;
+import "issue41436c_lib.dart" as iss;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///issue41436c_lib.dart";
+
+class C extends iss::B {
+  synthetic constructor •() → self::C
+    ;
+  no-such-method-forwarder get _#A#x() → core::int?
+    return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_#A#x, 1, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  no-such-method-forwarder set _#A#x(core::int? value) → void
+    return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_#A#x=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+}
+static method main() → dynamic
+  ;
+
+library;
+import self as iss;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  field core::int? _#A#x;
+  synthetic constructor •() → iss::A
+    ;
+  get x() → core::int;
+  set x(core::int x#param) → void;
+}
+class B extends core::Object implements iss::A {
+  field core::int x;
+  synthetic constructor •() → iss::B
+    ;
+}
+
+
+Extra constant evaluation status:
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///issue41436c.dart:7:7 -> SymbolConstant(#_#A#x)
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue41436c.dart:7:7 -> ListConstant(const <Type>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue41436c.dart:7:7 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///issue41436c.dart:7:7 -> MapConstant(const <Symbol, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///issue41436c.dart:7:7 -> SymbolConstant(#_#A#x=)
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue41436c.dart:7:7 -> ListConstant(const <Type>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///issue41436c.dart:7:7 -> MapConstant(const <Symbol, dynamic>{})
+Extra constant evaluation: evaluated: 20, effectively constant: 7

@@ -14,6 +14,11 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertToFieldParameter extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_FIELD_PARAMETER;
 
   @override
@@ -53,8 +58,8 @@ class ConvertToFieldParameter extends ResolvedCorrectionProducer {
     }
     var fieldName = parameterInitializer.fieldName.name;
 
-    final context_final = context;
-    final parameterInitializer_final = parameterInitializer;
+    var context_final = context;
+    var parameterInitializer_final = parameterInitializer;
     await builder.addDartFileEdit(file, (builder) {
       // replace parameter
       builder.addSimpleReplacement(

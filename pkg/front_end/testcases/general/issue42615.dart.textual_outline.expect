@@ -1,9 +1,7 @@
-// @dart = 2.9
-
 import 'dart:async';
 
 class Class<T> {
-  Class({FutureOr<List<T>> Function() a});
+  Class({required FutureOr<List<T>> Function() a});
 }
 
 dynamic method() => null;

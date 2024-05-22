@@ -259,7 +259,7 @@ class Listener implements UnescapeErrorListener {
   /// - on type
   /// - body
   void endExtensionDeclaration(Token beginToken, Token extensionKeyword,
-      Token onKeyword, Token endToken) {
+      Token? onKeyword, Token endToken) {
     logEvent('ExtensionDeclaration');
   }
 
@@ -267,15 +267,16 @@ class Listener implements UnescapeErrorListener {
   /// - type variables
   ///
   /// At this point we have parsed the name and type parameter declarations.
-  void beginExtensionTypeDeclaration(Token extensionKeyword, Token name) {}
+  void beginExtensionTypeDeclaration(
+      Token? augmentKeyword, Token extensionKeyword, Token name) {}
 
   /// Handle the end of an extension methods declaration.  Substructures:
   /// - substructures from [beginExtensionTypeDeclaration]
   /// - primary constructor formals
   /// - implements clause
   /// - body
-  void endExtensionTypeDeclaration(Token beginToken, Token extensionKeyword,
-      Token typeKeyword, Token endToken) {
+  void endExtensionTypeDeclaration(Token beginToken, Token? augmentToken,
+      Token extensionKeyword, Token typeKeyword, Token endToken) {
     logEvent('ExtensionTypeDeclaration');
   }
 
@@ -325,7 +326,7 @@ class Listener implements UnescapeErrorListener {
 
   void beginConstLiteral(Token token) {}
 
-  void endConstLiteral(Token token) {
+  void endConstLiteral(Token endToken) {
     logEvent("ConstLiteral");
   }
 
@@ -351,7 +352,7 @@ class Listener implements UnescapeErrorListener {
 
   void beginWhileStatementBody(Token token) {}
 
-  void endWhileStatementBody(Token token) {
+  void endWhileStatementBody(Token endToken) {
     logEvent("WhileStatementBody");
   }
 
@@ -394,14 +395,15 @@ class Listener implements UnescapeErrorListener {
   /// - type variables
   /// - with clause
   /// - implemented types
-  void handleEnumHeader(Token enumKeyword, Token leftBrace) {
+  void handleEnumHeader(
+      Token? augmentToken, Token enumKeyword, Token leftBrace) {
     logEvent("EnumHeader");
   }
 
   /// Handle the enum element. Substructures:
   /// - Metadata
   /// - Enum value (identifier)
-  void handleEnumElement(Token beginToken) {
+  void handleEnumElement(Token beginToken, Token? augmentToken) {
     logEvent("EnumElement");
   }
 
@@ -692,7 +694,7 @@ class Listener implements UnescapeErrorListener {
 
   void beginForStatementBody(Token token) {}
 
-  void endForStatementBody(Token token) {
+  void endForStatementBody(Token endToken) {
     logEvent("ForStatementBody");
   }
 
@@ -719,7 +721,7 @@ class Listener implements UnescapeErrorListener {
 
   void beginForInBody(Token token) {}
 
-  void endForInBody(Token token) {
+  void endForInBody(Token endToken) {
     logEvent("ForInBody");
   }
 
@@ -819,7 +821,8 @@ class Listener implements UnescapeErrorListener {
   /// - Name (identifier)
   /// - Alias type variables
   /// - Type (FunctionTypeAnnotation)
-  void endTypedef(Token typedefKeyword, Token? equals, Token endToken) {
+  void endTypedef(Token? augmentToken, Token typedefKeyword, Token? equals,
+      Token endToken) {
     logEvent("FunctionTypeAlias");
   }
 
@@ -898,6 +901,8 @@ class Listener implements UnescapeErrorListener {
   /// application, the implemented types are a TypeList, whereas for a class
   /// declaration, each implemented type is listed separately on the stack, and
   /// the number of implemented types is passed as a parameter.
+  ///
+  /// TODO(jensj): Rename `begin` to `beginToken` for consistency.
   void endNamedMixinApplication(Token begin, Token classKeyword, Token equals,
       Token? implementsKeyword, Token endToken) {
     logEvent("NamedMixinApplication");
@@ -1006,7 +1011,7 @@ class Listener implements UnescapeErrorListener {
 
   /// Handle the end of a field initializer.  Substructures:
   /// - Initializer expression
-  void endFieldInitializer(Token assignment, Token token) {
+  void endFieldInitializer(Token assignment, Token endToken) {
     logEvent("FieldInitializer");
   }
 
@@ -1030,7 +1035,7 @@ class Listener implements UnescapeErrorListener {
 
   void beginInitializer(Token token) {}
 
-  void endInitializer(Token token) {
+  void endInitializer(Token endToken) {
     logEvent("ConstructorInitializer");
   }
 
@@ -1075,13 +1080,13 @@ class Listener implements UnescapeErrorListener {
     logEvent("LabeledStatement");
   }
 
-  void beginLibraryAugmentation(Token libraryKeyword, Token augmentKeyword) {}
+  void beginLibraryAugmentation(Token augmentKeyword, Token libraryKeyword) {}
 
   /// Handle the end of a library augmentation directive.  Substructures:
   /// - metadata
   /// - uri
   void endLibraryAugmentation(
-      Token libraryKeyword, Token augmentKeyword, Token semicolon) {
+      Token augmentKeyword, Token libraryKeyword, Token semicolon) {
     logEvent("LibraryAugmentation");
   }
 
@@ -1439,7 +1444,7 @@ class Listener implements UnescapeErrorListener {
   /// Started by one of [beginExtensionDeclarationPrelude],
   /// [beginClassOrMixinOrNamedMixinApplicationPrelude], [beginTopLevelMember]
   /// or [beginUncategorizedTopLevelDeclaration].
-  void endTopLevelDeclaration(Token nextToken) {
+  void endTopLevelDeclaration(Token endToken) {
     logEvent("TopLevelDeclaration");
   }
 
@@ -1699,7 +1704,7 @@ class Listener implements UnescapeErrorListener {
   /// - Formal parameters
   /// - Async marker
   /// - Body
-  void endFunctionExpression(Token beginToken, Token token) {
+  void endFunctionExpression(Token beginToken, Token endToken) {
     logEvent("FunctionExpression");
   }
 
@@ -1909,7 +1914,7 @@ class Listener implements UnescapeErrorListener {
   void beginAssert(Token assertKeyword, Assert kind) {}
 
   void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
-      Token? commaToken, Token semicolonToken) {
+      Token? commaToken, Token endToken) {
     logEvent("Assert");
   }
 

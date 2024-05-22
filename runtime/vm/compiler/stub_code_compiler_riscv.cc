@@ -41,7 +41,7 @@ void StubCodeCompiler::EnsureIsNewOrRemembered() {
   // Page's TLAB use is always ascending.
   Label done;
   __ AndImmediate(TMP, A0, target::kPageMask);
-  __ LoadFromOffset(TMP, Address(TMP, target::Page::original_top_offset()));
+  __ LoadFromOffset(TMP, TMP, target::Page::original_top_offset());
   __ CompareRegisters(A0, TMP);
   __ BranchIf(UNSIGNED_GREATER_EQUAL, &done);
 
@@ -333,9 +333,8 @@ void StubCodeCompiler::GenerateLoadFfiCallbackMetadataRuntimeFunction(
   __ AndImmediate(dst, FfiCallbackMetadata::kPageMask);
 
   // Load the function from the function table.
-  __ LoadFromOffset(
-      dst,
-      Address(dst, FfiCallbackMetadata::RuntimeFunctionOffset(function_index)));
+  __ LoadFromOffset(dst, dst,
+                    FfiCallbackMetadata::RuntimeFunctionOffset(function_index));
 }
 
 void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
@@ -591,7 +590,7 @@ void StubCodeCompiler::GenerateRangeError(bool with_fpu_regs) {
 
 void StubCodeCompiler::GenerateWriteError(bool with_fpu_regs) {
   auto perform_runtime_call = [&]() {
-    __ CallRuntime(kWriteErrorRuntimeEntry, /*argument_count=*/0);
+    __ CallRuntime(kWriteErrorRuntimeEntry, /*argument_count=*/2);
     __ Breakpoint();
   };
 
@@ -1013,6 +1012,8 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   if (kind == kLazyDeoptFromReturn) {
     __ PushRegister(T1);  // Preserve result, it will be GC-d here.
   } else if (kind == kLazyDeoptFromThrow) {
+    // Preserve CODE_REG for one more runtime call.
+    __ PushRegister(CODE_REG);
     // Preserve exception, it will be GC-d here.
     // Preserve stacktrace, it will be GC-d here.
     __ PushRegistersInOrder({T1, T2});
@@ -1029,11 +1030,25 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   } else if (kind == kLazyDeoptFromThrow) {
     __ PopRegister(A1);  // Restore stacktrace.
     __ PopRegister(A0);  // Restore exception.
+    __ PopRegister(CODE_REG);
   }
   __ LeaveStubFrame();
   // Remove materialization arguments.
   __ add(SP, SP, T2);
   // The caller is responsible for emitting the return instruction.
+
+  if (kind == kLazyDeoptFromThrow) {
+    // Unoptimized frame is now ready to accept the exception. Rethrow it to
+    // find the right handler. Ask rethrow machinery to bypass debugger it
+    // was already notified about this exception.
+    __ EnterStubFrame();
+    __ PushRegister(ZR);  // Space for the result value (unused)
+    __ PushRegister(A0);  // Exception
+    __ PushRegister(A1);  // Stacktrace
+    __ PushImmediate(target::ToRawSmi(1));  // Bypass debugger.
+    __ CallRuntime(kReThrowRuntimeEntry, 3);
+    __ LeaveStubFrame();
+  }
 }
 
 // A0: result, must be preserved
@@ -1197,16 +1212,6 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     // R3: array size.
     // R7: new object end address.
 
-    // Store the type argument field.
-    __ StoreCompressedIntoObjectOffsetNoBarrier(
-        AllocateArrayABI::kResultReg, target::Array::type_arguments_offset(),
-        AllocateArrayABI::kTypeArgumentsReg);
-
-    // Set the length field.
-    __ StoreCompressedIntoObjectOffsetNoBarrier(AllocateArrayABI::kResultReg,
-                                                target::Array::length_offset(),
-                                                AllocateArrayABI::kLengthReg);
-
     // Calculate the size tag.
     // AllocateArrayABI::kResultReg: new object start as a tagged pointer.
     // AllocateArrayABI::kLengthReg: array length as Smi.
@@ -1228,6 +1233,16 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     __ OrImmediate(T5, T5, tags);
     __ StoreFieldToOffset(T5, AllocateArrayABI::kResultReg,
                           target::Array::tags_offset());
+
+    // Store the type argument field.
+    __ StoreCompressedIntoObjectOffsetNoBarrier(
+        AllocateArrayABI::kResultReg, target::Array::type_arguments_offset(),
+        AllocateArrayABI::kTypeArgumentsReg);
+
+    // Set the length field.
+    __ StoreCompressedIntoObjectOffsetNoBarrier(AllocateArrayABI::kResultReg,
+                                                target::Array::length_offset(),
+                                                AllocateArrayABI::kLengthReg);
 
     // Initialize all array elements to raw_null.
     // AllocateArrayABI::kResultReg: new object start as a tagged pointer.
@@ -1694,8 +1709,7 @@ void StubCodeCompiler::GenerateWriteBarrierWrappersStub() {
 COMPILE_ASSERT(kWriteBarrierObjectReg == A0);
 COMPILE_ASSERT(kWriteBarrierValueReg == A1);
 COMPILE_ASSERT(kWriteBarrierSlotReg == A6);
-static void GenerateWriteBarrierStubHelper(Assembler* assembler,
-                                           bool cards) {
+static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
   RegisterSet spill_set((1 << T2) | (1 << T3) | (1 << T4), 0);
 
   Label skip_marking;
@@ -1913,6 +1927,9 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
       __ WriteAllocationCanary(kNewTopReg);  // Fix overshoot.
     }  // kFieldReg = T4
 
+    __ AddImmediate(AllocateObjectABI::kResultReg,
+                    AllocateObjectABI::kResultReg, kHeapObjectTag);
+
     if (is_cls_parameterized) {
       Label not_parameterized_case;
 
@@ -1930,15 +1947,14 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
                            host_type_arguments_field_offset_in_words_offset()));
 
       // Set the type arguments in the new object.
-      __ slli(kTypeOffsetReg, kTypeOffsetReg, target::kWordSizeLog2);
-      __ add(kTypeOffsetReg, kTypeOffsetReg, AllocateObjectABI::kResultReg);
-      __ sx(AllocateObjectABI::kTypeArgumentsReg, Address(kTypeOffsetReg, 0));
+      __ AddShifted(kTypeOffsetReg, AllocateObjectABI::kResultReg,
+                    kTypeOffsetReg, target::kWordSizeLog2);
+      __ StoreCompressedIntoObjectNoBarrier(
+          AllocateObjectABI::kResultReg, FieldAddress(kTypeOffsetReg, 0),
+          AllocateObjectABI::kTypeArgumentsReg);
 
       __ Bind(&not_parameterized_case);
     }  // kClsIdReg = R4, kTypeOffsetReg = R5
-
-    __ AddImmediate(AllocateObjectABI::kResultReg,
-                    AllocateObjectABI::kResultReg, kHeapObjectTag);
 
     __ ret();
 

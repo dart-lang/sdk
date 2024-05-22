@@ -2952,7 +2952,7 @@ Future<Null> loadDeferredLibrary(String loadId, int priority) {
 
   if (JS('bool', 'typeof # === "function"', deferredLibraryMultiLoader)) {
     return _loadAllHunks(
-            deferredLibraryMultiLoader, uris, hashes, loadId, priority)
+            deferredLibraryMultiLoader, uris, hashes, loadId, priority, 0)
         .then((_) {
       waitingForLoad = List.filled(total, false);
       finalizeLoad();
@@ -3115,7 +3115,8 @@ String _computeThisScriptFromTrace() {
 }
 
 Future _loadAllHunks(Object loader, List<String> hunkNames, List<String> hashes,
-    String loadId, int priority) {
+    String loadId, int priority, int retryCount) {
+  const int maxRetries = 3;
   var initializationEventLog = JS_EMBEDDED_GLOBAL('', INITIALIZATION_EVENT_LOG);
   var isHunkLoaded = JS_EMBEDDED_GLOBAL('', IS_HUNK_LOADED);
 
@@ -3156,48 +3157,76 @@ Future _loadAllHunks(Object loader, List<String> hunkNames, List<String> hashes,
   hunksToLoad.forEach((hunkName) => _loadingLibraries[hunkName] = completer);
   _addEvent(part: loadedHunksString, event: 'downloadMulti', loadId: loadId);
 
-  void failure(error, String context, StackTrace? stackTrace) {
-    _addEvent(
-        part: loadedHunksString, event: 'downloadFailure', loadId: loadId);
-    hunksToLoad.forEach((hunkName) => _loadingLibraries[hunkName] = null);
-    stackTrace ??= StackTrace.current;
-    completer.completeError(
-        DeferredLoadException('Loading $loadedHunksString failed: $error\n'
-            'Context: $context\n'
-            'event log:\n${_getEventLog()}\n'),
-        stackTrace);
+  void failure(error, String context, StackTrace? stackTrace,
+      List<String>? hunksToRetry, List<String>? hashesToRetry) {
+    if (retryCount < maxRetries && hunksToRetry != null) {
+      _addEvent(
+          part: hunksToRetry.join(';'),
+          event: 'retry$retryCount',
+          loadId: loadId);
+      for (var i = 0; i < hunksToRetry.length; i++) {
+        _loadingLibraries[hunksToRetry[i]] = null;
+      }
+      _loadAllHunks(loader, hunksToRetry!, hashesToRetry!, loadId, priority,
+              retryCount + 1)
+          .then((_) => completer.complete(null),
+              onError: completer.completeError);
+    } else {
+      _addEvent(
+          part: loadedHunksString, event: 'downloadFailure', loadId: loadId);
+      hunksToLoad.forEach((hunkName) => _loadingLibraries[hunkName] = null);
+      stackTrace ??= StackTrace.current;
+      completer.completeError(
+          DeferredLoadException('Loading $loadedHunksString failed: $error\n'
+              'Context: $context\n'
+              'event log:\n${_getEventLog()}\n'),
+          stackTrace);
+    }
   }
 
   void success() {
-    List<String> missingHunks = [];
+    List<String> hunksToRetry = [];
+    List<String> hashesToRetry = [];
     for (int i = 0; i < hashesToLoad.length; i++) {
       bool isLoaded = JS('bool', '#(#)', isHunkLoaded, hashesToLoad[i]);
-      if (!isLoaded) missingHunks.add(hunksToLoad[i]);
+      if (!isLoaded) {
+        hunksToRetry.add(hunksToLoad[i]);
+        hashesToRetry.add(hashesToLoad[i]);
+      }
     }
-    if (missingHunks.isEmpty) {
+    if (hunksToRetry.isEmpty) {
       _addEvent(
           part: loadedHunksString, event: 'downloadSuccess', loadId: loadId);
       completer.complete(null);
     } else {
       failure(
-          'Success callback invoked but parts ${missingHunks.join(';')} not '
-              'loaded.',
-          '',
-          null);
+        'Success callback invoked but parts ${hunksToRetry.join(';')} not '
+            'loaded.',
+        '',
+        null,
+        hunksToRetry,
+        hashesToRetry,
+      );
     }
   }
 
   var jsSuccess = convertDartClosureToJS(success, 0);
   var jsFailure = convertDartClosureToJS((error) {
-    failure(unwrapException(error), 'js-failure-wrapper',
-        getTraceFromException(error));
+    failure(
+      unwrapException(error),
+      'js-failure-wrapper',
+      getTraceFromException(error),
+      hunksToLoad,
+      hashesToLoad,
+    );
   }, 1);
 
   try {
     JS('void', '#(#, #, #, #, #)', loader, urisToLoad, jsSuccess, jsFailure,
         loadId, priority);
   } catch (error, stackTrace) {
-    failure(error, "invoking dartDeferredLibraryMultiLoader hook", stackTrace);
+    failure(error, "invoking dartDeferredLibraryMultiLoader hook", stackTrace,
+        hunksToLoad, hashesToLoad);
   }
 
   return Future.wait([...pendingLoads, completer.future]);

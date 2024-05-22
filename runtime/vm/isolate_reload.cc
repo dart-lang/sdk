@@ -828,7 +828,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
   if (FLAG_gc_during_reload) {
     // We force the GC to compact, which is more likely to discover untracked
     // pointers (and other issues, like incorrect class table).
-    heap->CollectAllGarbage(GCReason::kDebugging, /*compact=*/ true);
+    heap->CollectAllGarbage(GCReason::kDebugging, /*compact=*/true);
   }
 
   // Clone the class table.
@@ -840,7 +840,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
   if (FLAG_gc_during_reload) {
     // We force the GC to compact, which is more likely to discover untracked
     // pointers (and other issues, like incorrect class table).
-    heap->CollectAllGarbage(GCReason::kDebugging, /*compact=*/ true);
+    heap->CollectAllGarbage(GCReason::kDebugging, /*compact=*/true);
   }
 
   // We synchronously load the hot-reload kernel diff (which includes changed
@@ -869,7 +869,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     if (FLAG_gc_during_reload) {
       // We force the GC to compact, which is more likely to discover untracked
       // pointers (and other issues, like incorrect class table).
-      heap->CollectAllGarbage(GCReason::kDebugging, /*compact=*/ true);
+      heap->CollectAllGarbage(GCReason::kDebugging, /*compact=*/true);
     }
 
     // If we use the CFE and performed a compilation, we need to notify that
@@ -902,7 +902,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
         if (FLAG_gc_during_reload) {
           // We force the GC to compact, which is more likely to discover
           // untracked pointers (and other issues, like incorrect class table).
-          heap->CollectAllGarbage(GCReason::kDebugging, /*compact=*/ true);
+          heap->CollectAllGarbage(GCReason::kDebugging, /*compact=*/true);
         }
         const intptr_t count = locator.count();
         if (count > 0) {
@@ -940,7 +940,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
         if (FLAG_gc_during_reload) {
           // We force the GC to compact, which is more likely to discover
           // untracked pointers (and other issues, like incorrect class table).
-          heap->CollectAllGarbage(GCReason::kDebugging, /*compact=*/ true);
+          heap->CollectAllGarbage(GCReason::kDebugging, /*compact=*/true);
         }
       }
       if (FLAG_identity_reload) {
@@ -1576,7 +1576,6 @@ void ProgramReloadContext::CheckpointLibraries() {
   object_store()->set_root_library(Library::Handle());
 }
 
-
 void ProgramReloadContext::RollbackLibraries() {
   TIR_Print("---- ROLLING BACK LIBRARY CHANGES\n");
   Thread* thread = Thread::Current();
@@ -2191,7 +2190,6 @@ class FieldInvalidator {
 
   void CheckStatics(const GrowableArray<const Field*>& fields) {
     Thread* thread = Thread::Current();
-    const bool null_safety = thread->isolate_group()->null_safety();
     HANDLESCOPE(thread);
     instantiator_type_arguments_ = TypeArguments::null();
     for (intptr_t i = 0; i < fields.length(); i++) {
@@ -2212,7 +2210,7 @@ class FieldInvalidator {
           value_ = field_table->At(field_id);
           if ((value_.ptr() != Object::sentinel().ptr()) &&
               (value_.ptr() != Object::transition_sentinel().ptr())) {
-            CheckValueType(null_safety, value_, field);
+            CheckValueType(value_, field);
           }
         }
       });
@@ -2221,16 +2219,15 @@ class FieldInvalidator {
 
   void CheckInstances(const GrowableArray<const Instance*>& instances) {
     Thread* thread = Thread::Current();
-    const bool null_safety = thread->isolate_group()->null_safety();
     HANDLESCOPE(thread);
     for (intptr_t i = 0; i < instances.length(); i++) {
-      CheckInstance(null_safety, *instances[i]);
+      CheckInstance(*instances[i]);
     }
   }
 
  private:
   DART_FORCE_INLINE
-  void CheckInstance(bool null_safety, const Instance& instance) {
+  void CheckInstance(const Instance& instance) {
     cls_ = instance.clazz();
     if (cls_.NumTypeArguments() > 0) {
       instantiator_type_arguments_ = instance.GetTypeArguments();
@@ -2244,14 +2241,12 @@ class FieldInvalidator {
         continue;
       }
       const Field& field = Field::Cast(entry_);
-      CheckInstanceField(null_safety, instance, field);
+      CheckInstanceField(instance, field);
     }
   }
 
   DART_FORCE_INLINE
-  void CheckInstanceField(bool null_safety,
-                          const Instance& instance,
-                          const Field& field) {
+  void CheckInstanceField(const Instance& instance, const Field& field) {
     if (field.needs_load_guard()) {
       return;  // Already guarding.
     }
@@ -2270,25 +2265,19 @@ class FieldInvalidator {
       field.set_needs_load_guard(true);
       return;
     }
-    CheckValueType(null_safety, value_, field);
+    CheckValueType(value_, field);
   }
 
   DART_FORCE_INLINE
-  bool CheckAssignabilityUsingCache(bool null_safety,
-                                    const Object& value,
+  bool CheckAssignabilityUsingCache(const Object& value,
                                     const AbstractType& type) {
     ASSERT(!value.IsSentinel());
-    if (!null_safety && value.IsNull()) {
-      return true;
-    }
-
     if (type.IsDynamicType()) {
       return true;
     }
 
     if (type.IsRecordType()) {
-      return CheckAssignabilityForRecordType(null_safety, value,
-                                             RecordType::Cast(type));
+      return CheckAssignabilityForRecordType(value, RecordType::Cast(type));
     }
 
     cls_ = value.clazz();
@@ -2341,8 +2330,7 @@ class FieldInvalidator {
     return false;
   }
 
-  bool CheckAssignabilityForRecordType(bool null_safety,
-                                       const Object& value,
+  bool CheckAssignabilityForRecordType(const Object& value,
                                        const RecordType& type) {
     if (!value.IsRecord()) {
       return false;
@@ -2360,7 +2348,7 @@ class FieldInvalidator {
     for (intptr_t i = 0; i < num_fields; ++i) {
       field_value = record.FieldAt(i);
       field_type = type.FieldTypeAt(i);
-      if (!CheckAssignabilityUsingCache(null_safety, field_value, field_type)) {
+      if (!CheckAssignabilityUsingCache(field_value, field_type)) {
         return false;
       }
     }
@@ -2368,15 +2356,10 @@ class FieldInvalidator {
   }
 
   DART_FORCE_INLINE
-  void CheckValueType(bool null_safety,
-                      const Object& value,
-                      const Field& field) {
+  void CheckValueType(const Object& value, const Field& field) {
     ASSERT(!value.IsSentinel());
-    if (!null_safety && value.IsNull()) {
-      return;
-    }
     type_ = field.type();
-    if (!CheckAssignabilityUsingCache(null_safety, value, type_)) {
+    if (!CheckAssignabilityUsingCache(value, type_)) {
       // Even if doing an identity reload, type check can fail if hot reload
       // happens while constructor is still running and field is not
       // initialized yet, so it has a null value.

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide Element;
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -33,10 +34,10 @@ abstract class AbstractGoToHandler
     var pos = params.position;
     var path = pathOfDoc(params.textDocument);
     var unit = await path.mapResult(requireResolvedUnit);
-    var offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
+    var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
 
-    return offset.mapResult((offset) async {
-      var node = NodeLocator(offset).searchWithin(unit.result.unit);
+    return (unit, offset).mapResultsSync((unit, offset) {
+      var node = NodeLocator(offset).searchWithin(unit.unit);
       if (node == null) {
         return success(null);
       }

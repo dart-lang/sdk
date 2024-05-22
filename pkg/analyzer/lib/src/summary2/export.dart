@@ -97,7 +97,7 @@ class ExportLocation {
   }
 
   LibraryExportElementImpl exportOf(LibraryElementImpl library) {
-    final container = containerIndex == 0
+    var container = containerIndex == 0
         ? library
         : library.augmentations[containerIndex - 1];
     return container.libraryExports[exportIndex];
@@ -123,7 +123,7 @@ class ExportScope {
     String name,
     ExportedReference exported,
   ) {
-    final existing = map[name];
+    var existing = map[name];
     if (existing?.reference == exported.reference) {
       if (existing is ExportedReferenceExported) {
         existing.addLocation(location);

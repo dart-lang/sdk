@@ -6,6 +6,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart'
     hide Declaration, Element;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/element/element.dart';

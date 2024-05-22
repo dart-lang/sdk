@@ -18,13 +18,11 @@ class RenameToCamelCase extends ResolvedCorrectionProducer {
   String _newName = '';
 
   @override
-  bool get canBeAppliedInBulk => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
-  bool get canBeAppliedToFile => true;
-
-  @override
-  List<Object> get fixArguments => [_newName];
+  List<String> get fixArguments => [_newName];
 
   @override
   FixKind get fixKind => DartFixKind.RENAME_TO_CAMEL_CASE;
@@ -36,7 +34,7 @@ class RenameToCamelCase extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     Token? nameToken;
     Element? element;
-    final node = this.node;
+    var node = this.node;
     if (node is SimpleFormalParameter) {
       nameToken = node.name;
       element = node.declaredElement;
@@ -95,7 +93,7 @@ class RenameToCamelCase extends ResolvedCorrectionProducer {
     }
 
     // Compute the change.
-    final sourceRanges = {
+    var sourceRanges = {
       range.token(nameToken),
       ...references.map(range.node),
     };

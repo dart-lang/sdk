@@ -178,6 +178,29 @@ void f(Completer f) {
 ''');
   }
 
+  Future<void> test_duplicateAugmentation() async {
+    newFile('$testPackageLibPath/a.dart', '''
+augment library 'test.dart';
+class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', '''
+augment library 'test.dart';
+class B {}
+''');
+
+    await resolveTestCode('''
+import augment 'a.dart';
+import augment 'b.dart';
+import augment 'a.dart';
+''');
+
+    await assertHasFix('''
+import augment 'a.dart';
+import augment 'b.dart';
+''');
+  }
+
   Future<void> test_duplicateImport() async {
     await resolveTestCode('''
 import 'dart:math';
@@ -194,6 +217,26 @@ void f() {
   print(min(0, 1));
 }
 ''');
+  }
+
+  Future<void> test_importOfNonLibrary() async {
+    newFile('$testPackageLibPath/part.dart', r'''
+part of lib;
+''');
+    await resolveTestCode(r'''
+import 'part.dart';
+''');
+    await assertHasFix('''
+''');
+  }
+
+  test_internalLibraryImport() async {
+    await resolveTestCode('''
+import 'dart:_internal';
+''');
+
+    await assertHasFix('''
+''', errorFilter: (e) => e.errorCode == WarningCode.UNUSED_IMPORT);
   }
 
   Future<void> test_severalLines() async {

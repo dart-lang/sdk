@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix/data_driven/expression.dart'
     as data_driven;
 import 'package:analysis_server/src/services/correction/fix/data_driven/value_generator.dart';
-import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 

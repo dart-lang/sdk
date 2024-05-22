@@ -1,0 +1,33 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+mixin class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+  method noSuchMethod(core::Invocation i) → dynamic
+    ;
+}
+abstract class _B&Object&A = core::Object with self::A /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_B&Object&A
+    : super core::Object::•()
+    ;
+  mixin-super-stub method noSuchMethod(core::Invocation i) → dynamic
+    return super.{self::A::noSuchMethod}(i);
+}
+class B extends self::_B&Object&A {
+  synthetic constructor •() → self::B
+    ;
+  no-such-method-forwarder method foo() → void
+    return this.{self::_B&Object&A::noSuchMethod}(new core::_InvocationMirror::_withType(#foo, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic};
+}
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///nsm_mixed_in.dart:15:8 -> SymbolConstant(#foo)
+Evaluated: ListLiteral @ org-dartlang-testcase:///nsm_mixed_in.dart:15:8 -> ListConstant(const <Type>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///nsm_mixed_in.dart:15:8 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///nsm_mixed_in.dart:15:8 -> MapConstant(const <Symbol, dynamic>{})
+Extra constant evaluation: evaluated: 10, effectively constant: 4

@@ -9,7 +9,7 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 
-const _desc = r"Don't invoke asynchronous functions in non-async blocks.";
+const _desc = r"Don't invoke asynchronous functions in non-`async` blocks.";
 
 const _details = r'''
 Making asynchronous calls in non-`async` functions is usually the sign of a

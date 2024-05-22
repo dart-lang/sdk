@@ -14,15 +14,12 @@ class RemoveAnnotation extends ResolvedCorrectionProducer {
   String _annotationName = '';
 
   @override
-  // Not predictably the correct action.
-  bool get canBeAppliedInBulk => false;
+  CorrectionApplicability get applicability =>
+      // Not predictably the correct action.
+      CorrectionApplicability.singleLocation;
 
   @override
-  // Not predictably the correct action.
-  bool get canBeAppliedToFile => false;
-
-  @override
-  List<Object> get fixArguments => [_annotationName];
+  List<String> get fixArguments => [_annotationName];
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_ANNOTATION;

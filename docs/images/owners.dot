@@ -1,0 +1,34 @@
+digraph {
+        label="Owners";
+        r -> a;
+        r -> b;
+        a -> c;
+        b -> c;
+        b -> d;
+        c -> d;
+        d -> b;
+        d -> e;
+        d -> f;
+        e -> g;
+        f -> g;
+        subgraph cluster_0 {
+          label="";
+          r; a;
+        }
+        subgraph cluster_1 {
+          label="";
+          b;
+        }
+        subgraph cluster_2 {
+          label="";
+          c;
+        }
+        subgraph cluster_3 {
+          label="";
+          d; e; f;
+        }
+        subgraph cluster_4 {
+          label="";
+          g
+        }
+}

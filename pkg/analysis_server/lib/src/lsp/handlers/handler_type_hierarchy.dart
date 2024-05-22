@@ -8,6 +8,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_lazy_type_hierarchy.dart'
     as type_hierarchy;
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
@@ -50,25 +51,24 @@ class PrepareTypeHierarchyHandler extends SharedMessageHandler<
       return success(const []);
     }
 
-    final clientCapabilities = server.lspClientCapabilities;
+    var clientCapabilities = server.lspClientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return serverNotInitializedError;
     }
 
-    final pos = params.position;
-    final path = pathOfDoc(params.textDocument);
-    final unit = await path.mapResult(requireResolvedUnit);
-    final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
-    return offset.mapResult((offset) {
-      final computer =
-          type_hierarchy.DartLazyTypeHierarchyComputer(unit.result);
-      final target = computer.findTarget(offset);
+    var pos = params.position;
+    var path = pathOfDoc(params.textDocument);
+    var unit = await path.mapResult(requireResolvedUnit);
+    var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
+    return (unit, offset).mapResultsSync((unit, offset) {
+      var computer = type_hierarchy.DartLazyTypeHierarchyComputer(unit);
+      var target = computer.findTarget(offset);
       if (target == null) {
         return success(null);
       }
 
-      final item = toLspItem(target, unit.result.lineInfo);
+      var item = toLspItem(target, unit.lineInfo);
       return success([item]);
     });
   }
@@ -109,23 +109,26 @@ class TypeHierarchySubtypesHandler extends SharedMessageHandler<
       TypeHierarchySubtypesParams params,
       MessageInfo message,
       CancellationToken token) async {
-    final item = params.item;
-    final data = item.data;
-    final path = pathOfUri(item.uri);
-    final unit = await path.mapResult(requireResolvedUnit);
-    final computer = type_hierarchy.DartLazyTypeHierarchyComputer(unit.result);
+    var item = params.item;
+    var data = item.data;
+    var path = pathOfUri(item.uri);
+    var unit = await path.mapResult(requireResolvedUnit);
 
-    if (data == null) {
-      return error(
-        ErrorCodes.InvalidParams,
-        'TypeHierarchyItem is missing the data field',
-      );
-    }
+    return unit.mapResult((unit) async {
+      var computer = type_hierarchy.DartLazyTypeHierarchyComputer(unit);
 
-    final location = ElementLocationImpl.con2(data.ref);
-    final calls = await computer.findSubtypes(location, server.searchEngine);
-    final results = calls != null ? _convertItems(unit.result, calls) : null;
-    return success(results);
+      if (data == null) {
+        return error(
+          ErrorCodes.InvalidParams,
+          'TypeHierarchyItem is missing the data field',
+        );
+      }
+
+      var location = ElementLocationImpl.con2(data.ref);
+      var calls = await computer.findSubtypes(location, server.searchEngine);
+      var results = calls != null ? _convertItems(unit, calls) : null;
+      return success(results);
+    });
   }
 }
 
@@ -145,24 +148,27 @@ class TypeHierarchySupertypesHandler extends SharedMessageHandler<
       TypeHierarchySupertypesParams params,
       MessageInfo message,
       CancellationToken token) async {
-    final item = params.item;
-    final data = item.data;
-    final path = pathOfUri(item.uri);
-    final unit = await path.mapResult(requireResolvedUnit);
-    final computer = type_hierarchy.DartLazyTypeHierarchyComputer(unit.result);
+    var item = params.item;
+    var data = item.data;
+    var path = pathOfUri(item.uri);
+    var unit = await path.mapResult(requireResolvedUnit);
 
-    if (data == null) {
-      return error(
-        ErrorCodes.InvalidParams,
-        'TypeHierarchyItem is missing the data field',
-      );
-    }
+    return unit.mapResult((unit) async {
+      var computer = type_hierarchy.DartLazyTypeHierarchyComputer(unit);
 
-    final location = ElementLocationImpl.con2(data.ref);
-    final anchor = _toServerAnchor(data);
-    final calls = await computer.findSupertypes(location, anchor: anchor);
-    final results = calls != null ? _convertItems(unit.result, calls) : null;
-    return success(results);
+      if (data == null) {
+        return error(
+          ErrorCodes.InvalidParams,
+          'TypeHierarchyItem is missing the data field',
+        );
+      }
+
+      var location = ElementLocationImpl.con2(data.ref);
+      var anchor = _toServerAnchor(data);
+      var calls = await computer.findSupertypes(location, anchor: anchor);
+      var results = calls != null ? _convertItems(unit, calls) : null;
+      return success(results);
+    });
   }
 
   /// Reads the anchor from [data] (if available) and converts it to a server
@@ -170,7 +176,7 @@ class TypeHierarchySupertypesHandler extends SharedMessageHandler<
   type_hierarchy.TypeHierarchyAnchor? _toServerAnchor(
     TypeHierarchyItemInfo data,
   ) {
-    final anchor = data.anchor;
+    var anchor = data.anchor;
     return anchor != null
         ? type_hierarchy.TypeHierarchyAnchor(
             location: ElementLocationImpl.con2(anchor.ref),
@@ -192,7 +198,7 @@ mixin _TypeHierarchyUtils on HandlerHelperMixin<AnalysisServer> {
     type_hierarchy.TypeHierarchyItem item,
     LineInfo lineInfo,
   ) {
-    final anchor =
+    var anchor =
         item is type_hierarchy.TypeHierarchyRelatedItem ? item.anchor : null;
     return TypeHierarchyItem(
       name: item.displayName,
@@ -221,9 +227,9 @@ mixin _TypeHierarchyUtils on HandlerHelperMixin<AnalysisServer> {
     Map<String, LineInfo?> lineInfoCache,
     type_hierarchy.TypeHierarchyItem item,
   ) {
-    final filePath = item.file;
-    final lineInfo = lineInfoCache.putIfAbsent(filePath, () {
-      final file = session.getFile(filePath);
+    var filePath = item.file;
+    var lineInfo = lineInfoCache.putIfAbsent(filePath, () {
+      var file = session.getFile(filePath);
       return file is FileResult ? file.lineInfo : null;
     });
     if (lineInfo == null) {
@@ -242,11 +248,11 @@ mixin _TypeHierarchyUtils on HandlerHelperMixin<AnalysisServer> {
     ResolvedUnitResult unit,
     List<type_hierarchy.TypeHierarchyRelatedItem> items,
   ) {
-    final session = unit.session;
-    final lineInfoCache = <String, LineInfo?>{
+    var session = unit.session;
+    var lineInfoCache = <String, LineInfo?>{
       unit.path: unit.lineInfo,
     };
-    final results = convert(
+    var results = convert(
       items,
       (type_hierarchy.TypeHierarchyRelatedItem item) => _convertItem(
         session,

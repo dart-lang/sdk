@@ -28,7 +28,7 @@ void f(A<int> a) {
 }
 ''');
 
-    final node = findNode.prefixed('.foo');
+    var node = findNode.prefixed('.foo');
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -62,7 +62,7 @@ void f(A<int> a) {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -134,7 +134,7 @@ void f(String a) {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -178,7 +178,7 @@ void f(A<int> a) {
 }
 ''');
 
-    final node = findNode.prefixed('foo;');
+    var node = findNode.prefixed('foo;');
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -288,7 +288,7 @@ void f<S extends num>(S x) {
 }
 ''');
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -426,7 +426,7 @@ void f(A<int> a) {
 }
 ''');
 
-    final node = findNode.propertyAccess('.foo');
+    var node = findNode.propertyAccess('.foo');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ExtensionOverride
@@ -477,7 +477,7 @@ void f(A<int> a) {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ExtensionOverride
@@ -541,7 +541,7 @@ void f(A<int> a) {
 }
 ''');
 
-    final node = findNode.propertyAccess('foo;');
+    var node = findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ExtensionOverride
@@ -674,7 +674,7 @@ void f(A<int> a) {
 }
 ''');
 
-    final node = findNode.propertyAccess('.foo');
+    var node = findNode.propertyAccess('.foo');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ExtensionOverride
@@ -717,7 +717,7 @@ void f(A<int> a) {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ExtensionOverride
@@ -773,7 +773,7 @@ void f(A<int> a) {
 }
 ''');
 
-    final node = findNode.propertyAccess('foo;');
+    var node = findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ExtensionOverride

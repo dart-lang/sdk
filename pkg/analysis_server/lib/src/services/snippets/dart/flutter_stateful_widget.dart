@@ -28,11 +28,11 @@ class FlutterStatefulWidget extends FlutterSnippetProducer
 
   @override
   Future<Snippet> compute() async {
-    final builder = ChangeBuilder(session: request.analysisSession);
+    var builder = ChangeBuilder(session: request.analysisSession);
 
     // Checked by isValid().
-    final classStatefulWidget = this.classStatefulWidget!;
-    final classState = this.classState!;
+    var classStatefulWidget = this.classStatefulWidget!;
+    var classState = this.classState!;
 
     await builder.addDartFileEdit(request.filePath, (builder) async {
       await addImports(builder);

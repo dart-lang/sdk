@@ -8,7 +8,7 @@ import 'package:kernel/ast.dart';
 
 void main() {
   void check(Map<Node, String> expectations, int bulletCount) {
-    TypeLabeler labeler = new TypeLabeler(false);
+    TypeLabeler labeler = new TypeLabeler();
     Map<Node, List<Object>> conversions = {};
     expectations.forEach((Node node, String expected) {
       if (node is DartType) {

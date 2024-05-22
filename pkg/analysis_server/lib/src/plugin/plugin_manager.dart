@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:io' show Platform, Process;
+import 'dart:io' show Platform, Process, ProcessResult;
 
 import 'package:analysis_server/src/analytics/percentile_calculator.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
@@ -13,7 +13,6 @@ import 'package:analyzer/dart/analysis/context_root.dart' as analyzer;
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -243,7 +242,7 @@ abstract class PluginInfo {
 
   /// Update the context roots that the plugin should be analyzing.
   void _updatePluginRoots() {
-    final currentSession = this.currentSession;
+    var currentSession = this.currentSession;
     if (currentSession != null) {
       var params = AnalysisSetContextRootsParams(contextRoots
           .map((analyzer.ContextRoot contextRoot) => ContextRoot(
@@ -383,7 +382,7 @@ class PluginManager {
     var plugins = pluginsForContextRoot(contextRoot);
     var responseMap = <PluginInfo, Future<Response>>{};
     for (var plugin in plugins) {
-      final request = plugin.currentSession?.sendRequest(params);
+      var request = plugin.currentSession?.sendRequest(params);
       // Only add an entry to the map if we have sent a request.
       if (request != null) {
         responseMap[plugin] = request;
@@ -492,7 +491,7 @@ class PluginManager {
         try {
           plugin.stop();
         } catch (e, st) {
-          AnalysisEngine.instance.instrumentationService
+          instrumentationService
               .logException(SilentException('Issue stopping a plugin', e, st));
         }
       }
@@ -594,7 +593,7 @@ class PluginManager {
       try {
         await info.stop();
       } catch (e, st) {
-        AnalysisEngine.instance.instrumentationService.logException(e, st);
+        instrumentationService.logException(e, st);
       }
     }));
   }
@@ -616,12 +615,7 @@ class PluginManager {
         .getChildAssumingFolder(file_paths.dotDartTool)
         .getChildAssumingFile(file_paths.packageConfigJson);
     if (pubCommand != null) {
-      var result = Process.runSync(
-          Platform.executable, <String>['pub', pubCommand],
-          stderrEncoding: utf8,
-          stdoutEncoding: utf8,
-          workingDirectory: pluginFolder.path,
-          environment: {_pubEnvironmentKey: _getPubEnvironmentValue()});
+      var result = _runPubCommand(pubCommand, pluginFolder);
       if (result.exitCode != 0) {
         var buffer = StringBuffer();
         buffer.writeln('Failed to run pub $pubCommand');
@@ -760,6 +754,31 @@ class PluginManager {
       }
     }
     return const <String>[];
+  }
+
+  /// Runs (and records timing to the instrumentation log) a Pub command
+  /// [pubCommand] in [folder].
+  ProcessResult _runPubCommand(String pubCommand, Folder folder) {
+    instrumentationService.logInfo(
+      'Running "pub $pubCommand" in "${folder.path}"',
+    );
+
+    var stopwatch = Stopwatch()..start();
+    var result = Process.runSync(
+      Platform.executable,
+      <String>['pub', pubCommand],
+      stderrEncoding: utf8,
+      stdoutEncoding: utf8,
+      workingDirectory: folder.path,
+      environment: {_pubEnvironmentKey: _getPubEnvironmentValue()},
+    );
+    stopwatch.stop();
+
+    instrumentationService.logInfo(
+      'Running "pub $pubCommand" took ${stopwatch.elapsed}',
+    );
+
+    return result;
   }
 
   /// Return a hex-encoded MD5 signature of the given file [path].
@@ -916,7 +935,7 @@ class PluginSession {
   /// Send a request, based on the given [parameters]. Return a future that will
   /// complete when a response is received.
   Future<Response> sendRequest(RequestParams parameters) {
-    final channel = this.channel;
+    var channel = this.channel;
     if (channel == null) {
       throw StateError('Cannot send a request to a plugin that has stopped.');
     }

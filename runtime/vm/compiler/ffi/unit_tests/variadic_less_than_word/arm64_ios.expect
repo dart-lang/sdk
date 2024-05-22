@@ -1,0 +1,14 @@
+r0 int32
+S+0 int32
+S+8 int32
+S+16 int32
+S+24 int32
+S+32 int32
+S+40 int32
+S+48 int32
+S+56 int32
+S+64 int32
+S+72 int32
+S+80 int32
+=>
+r0 int32

@@ -1,3 +1,11 @@
+## 2.2.1
+- Indicate compatibility with `package:web_socket_channel` 2.x and 3.x.
+- Bump minimum version for `package:unified_analytics` to 6.1.0.
+
+## 2.2.0
+- Added new response types `Success`, `StringResponse`, `BoolResponse`, and `StringListResponse`.
+- Added  contributing guide (`CONTRIBUTING.md`).
+
 ## 2.1.0
 - Added `getProjectRoots` API.
 - Expose constant values from `dtd.dart`.

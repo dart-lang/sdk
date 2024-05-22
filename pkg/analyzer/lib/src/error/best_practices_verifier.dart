@@ -4,7 +4,6 @@
 
 import 'dart:collection';
 
-import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -33,10 +32,10 @@ import 'package:analyzer/src/error/must_call_super_verifier.dart';
 import 'package:analyzer/src/error/null_safe_api_verifier.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:meta/meta.dart';
-import 'package:path/path.dart' as path;
 
 /// Instances of the class `BestPracticesVerifier` traverse an AST structure
 /// looking for violations of Dart best practices.
@@ -82,9 +81,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// The [WorkspacePackage] in which [_currentLibrary] is declared.
   final WorkspacePackage? _workspacePackage;
 
-  /// The [LinterContext] used for possible const calculations.
-  final LinterContext _linterContext;
-
   /// True if inference failures should be reported, otherwise false.
   final bool _strictInference;
 
@@ -96,14 +92,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     this._errorReporter,
     TypeProviderImpl typeProvider,
     this._currentLibrary,
-    CompilationUnit unit,
-    String content, {
+    CompilationUnit unit, {
     required TypeSystemImpl typeSystem,
     required InheritanceManager3 inheritanceManager,
-    required DeclaredVariables declaredVariables,
     required AnalysisOptions analysisOptions,
     required WorkspacePackage? workspacePackage,
-    required path.Context pathContext,
   })  : _nullType = typeProvider.nullType,
         _typeSystem = typeSystem,
         _strictInference =
@@ -118,24 +111,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             _errorReporter, typeProvider, typeSystem,
             strictCasts: analysisOptions.strictCasts),
         _invalidAccessVerifier = _InvalidAccessVerifier(
-            _errorReporter, _currentLibrary, workspacePackage),
+            _errorReporter, unit, _currentLibrary, workspacePackage),
         _mustCallSuperVerifier = MustCallSuperVerifier(_errorReporter),
         _nullSafeApiVerifier = NullSafeApiVerifier(_errorReporter, typeSystem),
-        _workspacePackage = workspacePackage,
-        _linterContext = LinterContextImpl(
-          [],
-          LinterContextUnit(content, unit),
-          declaredVariables,
-          typeProvider,
-          typeSystem,
-          inheritanceManager,
-          analysisOptions,
-          workspacePackage,
-          pathContext,
-        ) {
+        _workspacePackage = workspacePackage {
     _deprecatedVerifier.pushInDeprecatedValue(_currentLibrary.hasDeprecated);
     _inDoNotStoreMember = _currentLibrary.hasDoNotStore;
-    _invalidAccessVerifier._inTestDirectory = _linterContext.inTestDir(unit);
   }
 
   @override
@@ -393,19 +374,23 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       super.visitFieldDeclaration(node);
       for (var field in node.fields.variables) {
         ExecutableElement? getOverriddenPropertyAccessor() {
-          final element = field.declaredElement;
+          var element = field.declaredElement;
           if (element is PropertyAccessorElement || element is FieldElement) {
             Name name = Name(_currentLibrary.source.uri, element!.name);
-            Element enclosingElement = element.enclosingElement!;
-            if (enclosingElement is InterfaceElement) {
+            var enclosingElement = element.enclosingElement!;
+            var enclosingDeclaration = enclosingElement is InstanceElement
+                ? enclosingElement.augmented.declaration
+                : enclosingElement;
+            if (enclosingDeclaration is InterfaceElement) {
               var overridden = _inheritanceManager
-                  .getMember2(enclosingElement, name, forSuper: true);
+                  .getMember2(enclosingDeclaration, name, forSuper: true);
               // Check for a setter.
               if (overridden == null) {
                 Name setterName =
                     Name(_currentLibrary.source.uri, '${element.name}=');
-                overridden = _inheritanceManager
-                    .getMember2(enclosingElement, setterName, forSuper: true);
+                overridden = _inheritanceManager.getMember2(
+                    enclosingDeclaration, setterName,
+                    forSuper: true);
               }
               return overridden;
             }
@@ -413,7 +398,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           return null;
         }
 
-        final overriddenElement = getOverriddenPropertyAccessor();
+        var overriddenElement = getOverriddenPropertyAccessor();
         if (overriddenElement != null &&
             _hasNonVirtualAnnotation(overriddenElement)) {
           // Overridden members are always inside classes or mixins, which are
@@ -579,6 +564,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     bool wasInDoNotStoreMember = _inDoNotStoreMember;
     var element = node.declaredElement!;
     var enclosingElement = element.enclosingElement;
+    var enclosingDeclaration = enclosingElement is InstanceElement
+        ? enclosingElement.augmented.declaration
+        : enclosingElement;
 
     _deprecatedVerifier.pushInDeprecatedValue(element.hasDeprecated);
     if (element.hasDoNotStore) {
@@ -591,8 +579,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
       var name = Name(_currentLibrary.source.uri, element.name);
       var elementIsOverride = element is ClassMemberElement &&
-              enclosingElement is InterfaceElement
-          ? _inheritanceManager.getOverridden2(enclosingElement, name) != null
+              enclosingDeclaration is InterfaceElement
+          ? _inheritanceManager.getOverridden2(enclosingDeclaration, name) !=
+              null
           : false;
 
       if (!node.isSetter && !elementIsOverride) {
@@ -603,8 +592,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _checkStrictInferenceInParameters(node.parameters, body: node.body);
       }
 
-      var overriddenElement = enclosingElement is InterfaceElement
-          ? _inheritanceManager.getMember2(enclosingElement, name,
+      var overriddenElement = enclosingDeclaration is InterfaceElement
+          ? _inheritanceManager.getMember2(enclosingDeclaration, name,
               forSuper: true)
           : null;
 
@@ -901,12 +890,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       // This case is covered by the ErrorVerifier.
       return;
     }
-    final expressions = node.isSet
+    var expressions = node.isSet
         ? node.elements.whereType<Expression>()
         : node.elements.whereType<MapLiteralEntry>().map((entry) => entry.key);
-    final alreadySeen = <DartObject>{};
-    for (final expression in expressions) {
-      final constEvaluation = _linterContext.evaluateConstant(expression);
+    var alreadySeen = <DartObject>{};
+    for (var expression in expressions) {
+      var constEvaluation = expression.computeConstantValue();
       if (constEvaluation.errors.isEmpty) {
         var value = constEvaluation.value;
         if (value != null && !alreadySeen.add(value)) {
@@ -1048,7 +1037,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     // TODO(srawlins): Perhaps replace this with a getter on Element, like
     // `Element.hasOrInheritsSealed`?
     for (InterfaceType supertype in element.allSupertypes) {
-      final superclass = supertype.element;
+      var superclass = supertype.element;
       if (superclass.hasSealed) {
         if (!currentPackageContains(superclass)) {
           if (element is MixinElement &&
@@ -1147,9 +1136,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     if (constructor == null) {
       return;
     }
-    if (!node.isConst &&
-        constructor.hasLiteral &&
-        _linterContext.canBeConst(node)) {
+    if (!node.isConst && constructor.hasLiteral && node.canBeConst) {
       // Echoing jwren's `TODO` from _checkForDeprecatedMemberUse:
       // TODO(jwren): We should modify ConstructorElement.getDisplayName(), or
       // have the logic centralized elsewhere, instead of doing this logic
@@ -1368,28 +1355,28 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkRequiredParameter(FormalParameterList node) {
-    final requiredParameters =
+    var requiredParameters =
         node.parameters.where((p) => p.declaredElement?.hasRequired == true);
-    final nonNamedParamsWithRequired =
+    var nonNamedParamsWithRequired =
         requiredParameters.where((p) => p.isPositional);
-    final namedParamsWithRequiredAndDefault = requiredParameters
+    var namedParamsWithRequiredAndDefault = requiredParameters
         .where((p) => p.isNamed)
         .where((p) => p.declaredElement!.defaultValueCode != null);
-    for (final param in nonNamedParamsWithRequired.where((p) => p.isOptional)) {
+    for (var param in nonNamedParamsWithRequired.where((p) => p.isOptional)) {
       _errorReporter.atNode(
         param,
         WarningCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM,
         arguments: [_formalParameterNameOrEmpty(param)],
       );
     }
-    for (final param in nonNamedParamsWithRequired.where((p) => p.isRequired)) {
+    for (var param in nonNamedParamsWithRequired.where((p) => p.isRequired)) {
       _errorReporter.atNode(
         param,
         WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM,
         arguments: [_formalParameterNameOrEmpty(param)],
       );
     }
-    for (final param in namedParamsWithRequiredAndDefault) {
+    for (var param in namedParamsWithRequiredAndDefault) {
       _errorReporter.atNode(
         param,
         WarningCode.INVALID_REQUIRED_NAMED_PARAM,
@@ -1601,14 +1588,15 @@ class _InvalidAccessVerifier {
   final WorkspacePackage? _workspacePackage;
 
   final bool _inTemplateSource;
-  late final bool _inTestDirectory;
+  final bool _inTestDirectory;
 
   InterfaceElement? _enclosingClass;
 
-  _InvalidAccessVerifier(
-      this._errorReporter, this._library, this._workspacePackage)
+  _InvalidAccessVerifier(this._errorReporter, CompilationUnit unit,
+      this._library, this._workspacePackage)
       : _inTemplateSource =
-            _library.source.fullName.contains(_templateExtension);
+            _library.source.fullName.contains(_templateExtension),
+        _inTestDirectory = unit.inTestDir;
 
   /// Produces a warning if [identifier] is accessed from an invalid location.
   ///
@@ -1697,7 +1685,7 @@ class _InvalidAccessVerifier {
   void verifyNamedType(NamedType node) {
     var element = node.element;
 
-    final parent = node.parent;
+    var parent = node.parent;
     if (parent is ConstructorName) {
       element = parent.staticElement;
     }
@@ -1728,10 +1716,9 @@ class _InvalidAccessVerifier {
       }
       var errorEntity = node.errorEntity;
 
-      _errorReporter.atOffset(
-        offset: errorEntity.offset,
-        length: errorEntity.length,
-        errorCode: WarningCode.INVALID_USE_OF_INTERNAL_MEMBER,
+      _errorReporter.atEntity(
+        errorEntity,
+        WarningCode.INVALID_USE_OF_INTERNAL_MEMBER,
         arguments: [element.displayName],
       );
     }
@@ -1775,16 +1762,38 @@ class _InvalidAccessVerifier {
         node = nameToken;
       }
 
-      _errorReporter.atOffset(
-        offset: node.offset,
-        length: node.length,
-        errorCode: WarningCode.INVALID_USE_OF_INTERNAL_MEMBER,
+      _errorReporter.atEntity(
+        node,
+        WarningCode.INVALID_USE_OF_INTERNAL_MEMBER,
         arguments: [name],
       );
     }
   }
 
   void _checkForOtherInvalidAccess(AstNode node, Element element) {
+    bool hasDoNotSubmit = _hasDoNotSubmit(element);
+    if (hasDoNotSubmit) {
+      // It's valid for a member annotated with `@doNotSubmit` to access another
+      // member annotated with `@doNotSubmit`. For example, this is valid:
+      // ```
+      // @doNotSubmit
+      // void foo() {}
+      //
+      // @doNotSubmit
+      // void bar() {
+      //   // OK: `foo` is annotated with `@doNotSubmit` but so is `bar`.
+      //   foo();
+      // }
+      // ```
+      var declaration = node.thisOrAncestorOfType<Declaration>();
+      if (declaration != null) {
+        var element = declaration.declaredElement;
+        if (element != null && _hasDoNotSubmit(element)) {
+          return;
+        }
+      }
+    }
+
     var hasProtected = element.isProtected;
     if (hasProtected) {
       var definingClass = element.enclosingElement as InterfaceElement;
@@ -1844,28 +1853,32 @@ class _InvalidAccessVerifier {
     if (definingClass == null) {
       return;
     }
+    if (hasDoNotSubmit) {
+      _errorReporter.atEntity(
+        errorEntity,
+        WarningCode.invalid_use_of_do_not_submit_member,
+        arguments: [name],
+      );
+    }
     if (hasProtected) {
-      _errorReporter.atOffset(
-        offset: errorEntity.offset,
-        length: errorEntity.length,
-        errorCode: WarningCode.INVALID_USE_OF_PROTECTED_MEMBER,
+      _errorReporter.atEntity(
+        errorEntity,
+        WarningCode.INVALID_USE_OF_PROTECTED_MEMBER,
         arguments: [name, definingClass.source!.uri],
       );
     }
     if (isVisibleForTemplateApplied) {
-      _errorReporter.atOffset(
-        offset: errorEntity.offset,
-        length: errorEntity.length,
-        errorCode: WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER,
+      _errorReporter.atEntity(
+        errorEntity,
+        WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER,
         arguments: [name, definingClass.source!.uri],
       );
     }
 
     if (hasVisibleForTesting) {
-      _errorReporter.atOffset(
-        offset: errorEntity.offset,
-        length: errorEntity.length,
-        errorCode: WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER,
+      _errorReporter.atEntity(
+        errorEntity,
+        WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER,
         arguments: [name, definingClass.source!.uri],
       );
     }
@@ -1882,14 +1895,24 @@ class _InvalidAccessVerifier {
         }
       }
       if (!validOverride) {
-        _errorReporter.atOffset(
-          offset: errorEntity.offset,
-          length: errorEntity.length,
-          errorCode: WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER,
+        _errorReporter.atEntity(
+          errorEntity,
+          WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER,
           arguments: [name],
         );
       }
     }
+  }
+
+  bool _hasDoNotSubmit(Element element) {
+    if (element.hasDoNotSubmit) {
+      return true;
+    }
+    if (element is PropertyAccessorElement) {
+      var variable = element.variable2;
+      return variable != null && variable.hasDoNotSubmit;
+    }
+    return false;
   }
 
   bool _hasTypeOrSuperType(
@@ -1928,7 +1951,7 @@ class _InvalidAccessVerifier {
         return true;
       }
     }
-    final enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement;
     if (_hasVisibleForTemplate(enclosingElement)) {
       return true;
     }
@@ -1945,7 +1968,7 @@ class _InvalidAccessVerifier {
         return true;
       }
     }
-    final enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement;
     if (enclosingElement != null &&
         _hasVisibleOutsideTemplate(enclosingElement)) {
       return true;
@@ -2021,7 +2044,7 @@ extension on Expression {
   // TODO(srawlins): This will return the wrong answer for `prefixed.double.nan`
   // and for `import 'foo.dart' as double; double.nan`.
   bool get isDoubleNan {
-    final self = this;
+    var self = this;
     return self is PrefixedIdentifier &&
         self.prefix.name == 'double' &&
         self.identifier.name == 'nan';

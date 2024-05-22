@@ -76,7 +76,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -121,7 +121,7 @@ InstanceCreationExpression
 
   test_class_generic_constructor_named_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A<T2> {
   A.named(T2 value);
@@ -174,7 +174,7 @@ InstanceCreationExpression
 
   test_class_generic_constructor_unnamed_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A<T2> {
   A(T2 value);
@@ -379,7 +379,7 @@ InstanceCreationExpression
 
   test_class_notGeneric_constructor_named_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   augment A.named();
@@ -420,7 +420,7 @@ InstanceCreationExpression
 
   test_class_notGeneric_constructor_named_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   A.named();
@@ -459,7 +459,7 @@ InstanceCreationExpression
 
   test_class_notGeneric_constructor_unnamed_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   augment A();
@@ -495,7 +495,7 @@ InstanceCreationExpression
 
   test_class_notGeneric_constructor_unnamed_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   A();
@@ -540,7 +540,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -578,7 +578,7 @@ void f() {
 
 ''');
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -611,7 +611,7 @@ void f() {
       error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 31, 10),
     ]);
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new
@@ -975,7 +975,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1011,7 +1011,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1045,7 +1045,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1080,7 +1080,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1112,7 +1112,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1149,7 +1149,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1181,7 +1181,7 @@ void f() {
       error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 48, 5),
     ]);
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new
@@ -1220,7 +1220,7 @@ void f() {
       error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 48, 6),
     ]);
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new
@@ -1250,7 +1250,7 @@ class A<T> {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart'
+augment library 'a.dart'
 
 augment class A<T2> {
   A.named(T2 value);
@@ -1314,7 +1314,7 @@ class A<T> {
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart'
+augment library 'a.dart'
 
 augment class A<T2> {
   A(T2 value);
@@ -1376,7 +1376,7 @@ void f() {
 
 ''');
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1414,7 +1414,7 @@ class A {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart'
+augment library 'a.dart'
 
 augment class A {
   A.named();
@@ -1464,7 +1464,7 @@ class A {
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart'
+augment library 'a.dart'
 
 augment class A {
   A();
@@ -1515,7 +1515,7 @@ void f() {
 
 ''');
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1575,7 +1575,7 @@ void f() {
 
 ''');
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1628,7 +1628,7 @@ void f() {
 
 ''');
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1669,7 +1669,7 @@ void f() {
       error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 54, 3),
     ]);
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new
@@ -1712,7 +1712,7 @@ void f() {
       error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 55, 3),
     ]);
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new
@@ -1849,7 +1849,7 @@ InstanceCreationExpression
 
   test_typeAlias_generic_class_generic_constructor_named_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A<T2> {
   A.named(T2 value);
@@ -1904,7 +1904,7 @@ InstanceCreationExpression
 
   test_typeAlias_generic_class_generic_constructor_unnamed_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A<T2> {
   A(T2 value);
@@ -2210,7 +2210,7 @@ InstanceCreationExpression
 
   test_typeAlias_notGeneric_class_notGeneric_constructor_named_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   A.named();
@@ -2251,7 +2251,7 @@ InstanceCreationExpression
 
   test_typeAlias_notGeneric_class_notGeneric_constructor_unnamed_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   A();
@@ -2406,7 +2406,7 @@ void f() {
       error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 10),
     ]);
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new
@@ -2438,7 +2438,7 @@ void f() {
       error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 16),
     ]);
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new
@@ -2474,7 +2474,7 @@ void f() {
       error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 14),
     ]);
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new

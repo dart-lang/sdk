@@ -13,7 +13,9 @@ import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/summary2/kernel_compilation_service.dart';
@@ -27,6 +29,7 @@ import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer/src/workspace/pub.dart';
+import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
@@ -141,7 +144,7 @@ abstract class ContextResolutionTest
   List<File>? librarySummaryFiles;
 
   /// By default the kernel implementation is used, this can override it.
-  MacroSupport? macroSupport;
+  MacroSupportFactory? macroSupportFactory;
 
   AnalyzerStatePrinterConfiguration analyzerStatePrinterConfiguration =
       AnalyzerStatePrinterConfiguration();
@@ -173,7 +176,7 @@ abstract class ContextResolutionTest
       sdkSummaryPath: sdkSummaryFile?.path,
       librarySummaryPaths: librarySummaryFiles?.map((e) => e.path).toList(),
       updateAnalysisOptions2: updateAnalysisOptions,
-      macroSupport: macroSupport,
+      macroSupportFactory: macroSupportFactory,
       drainStreams: false,
     );
 
@@ -208,9 +211,9 @@ abstract class ContextResolutionTest
   }
 
   void assertDriverStateString(File file, String expected) {
-    final analysisDriver = driverFor(file);
+    var analysisDriver = driverFor(file);
 
-    final buffer = StringBuffer();
+    var buffer = StringBuffer();
     AnalyzerStatePrinter(
       byteStore: _byteStore,
       unlinkedUnitStore:
@@ -222,7 +225,7 @@ abstract class ContextResolutionTest
       sink: buffer,
       withKeysGetPut: false,
     ).writeAnalysisDriver(analysisDriver.testView!);
-    final actual = buffer.toString();
+    var actual = buffer.toString();
 
     if (actual != expected) {
       print(actual);
@@ -246,7 +249,7 @@ abstract class ContextResolutionTest
   }
 
   Future<void> disposeAnalysisContextCollection() async {
-    final analysisContextCollection = _analysisContextCollection;
+    var analysisContextCollection = _analysisContextCollection;
     if (analysisContextCollection != null) {
       await analysisContextCollection.dispose(
         forTesting: true,
@@ -257,6 +260,17 @@ abstract class ContextResolutionTest
 
   AnalysisDriver driverFor(File file) {
     return _contextFor(file).driver;
+  }
+
+  Future<LibraryElementImpl> libraryElementForFile(File file) async {
+    var analysisContext = contextFor(file);
+    var analysisSession = analysisContext.currentSession;
+
+    var uri = analysisSession.uriConverter.pathToUri(file.path);
+    var uriStr = uri.toString();
+    var libraryResult = await analysisSession.getLibraryByUri(uriStr);
+    libraryResult as LibraryElementResultImpl;
+    return libraryResult.element as LibraryElementImpl;
   }
 
   @override
@@ -312,7 +326,8 @@ abstract class ContextResolutionTest
   }
 }
 
-class PubPackageResolutionTest extends ContextResolutionTest {
+class PubPackageResolutionTest extends ContextResolutionTest
+    with MockPackagesMixin {
   AnalysisOptionsImpl get analysisOptions {
     return contextFor(testFile).getAnalysisOptionsForFile(testFile)
         as AnalysisOptionsImpl;
@@ -327,7 +342,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
     ];
   }
 
-  /// The path that is not in [workspaceRootPath], contains external packages.
+  @override
   String get packagesRootPath => '/packages';
 
   @override
@@ -342,30 +357,48 @@ class PubPackageResolutionTest extends ContextResolutionTest {
 
   String get workspaceRootPath => '/home';
 
+  /// Creates `package:macro` and `package:_macro` files, adds to [config].
+  void addMacrosEnvironment(
+    PackageConfigFileBuilder config,
+    MacrosEnvironment macrosEnvironment,
+  ) {
+    var packagesRootFolder = getFolder(packagesRootPath);
+    macrosEnvironment.publicMacrosFolder.copyTo(packagesRootFolder);
+    macrosEnvironment.privateMacrosFolder.copyTo(packagesRootFolder);
+    config.add(
+      name: '_macros',
+      rootPath: getFolder('$packagesRootPath/_macros').path,
+    );
+    config.add(
+      name: 'macros',
+      rootPath: getFolder('$packagesRootPath/macros').path,
+    );
+  }
+
   /// Build summary bundle for a single URI `package:foo/foo.dart`.
   Future<File> buildPackageFooSummary({
     required Map<String, String> files,
   }) async {
-    final rootFolder = getFolder('$workspaceRootPath/foo');
+    var rootFolder = getFolder('$workspaceRootPath/foo');
 
     writePackageConfig(
       rootFolder.path,
       PackageConfigFileBuilder()..add(name: 'foo', rootPath: rootFolder.path),
     );
 
-    for (final entry in files.entries) {
+    for (var entry in files.entries) {
       newFile('${rootFolder.path}/${entry.key}', entry.value);
     }
 
-    final targetFile = getFile(rootFolder.path);
-    final analysisDriver = driverFor(targetFile);
-    final bundleBytes = await analysisDriver.buildPackageBundle(
+    var targetFile = getFile(rootFolder.path);
+    var analysisDriver = driverFor(targetFile);
+    var bundleBytes = await analysisDriver.buildPackageBundle(
       uriList: [
         Uri.parse('package:foo/foo.dart'),
       ],
     );
 
-    final bundleFile = getFile('/home/summaries/packages.sum');
+    var bundleFile = getFile('/home/summaries/packages.sum');
     bundleFile.writeAsBytesSync(bundleBytes);
 
     // Delete, so it is not available as a file.
@@ -413,15 +446,15 @@ class PubPackageResolutionTest extends ContextResolutionTest {
     String directoryPath,
     PackageConfigFileBuilder config,
   ) {
-    final content = config.toContent(
+    var content = config.toContent(
       toUriStr: toUriStr,
     );
     newPackageConfigJsonFile(directoryPath, content);
   }
 
   Future<File> writeSdkSummary() async {
-    final file = getFile('/home/summaries/sdk.sum');
-    final bytes = await buildSdkSummary(
+    var file = getFile('/home/summaries/sdk.sum');
+    var bytes = await buildSdkSummary(
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
     );
@@ -441,6 +474,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
     String? languageVersion,
     bool angularMeta = false,
     bool ffi = false,
+    bool flutter = false,
     bool js = false,
     bool meta = false,
     MacrosEnvironment? macrosEnvironment,
@@ -469,6 +503,16 @@ class PubPackageResolutionTest extends ContextResolutionTest {
       config.add(name: 'ffi', rootPath: ffiPath);
     }
 
+    if (flutter) {
+      var uiPath = '/packages/ui';
+      addUI();
+      config.add(name: 'ui', rootPath: uiPath);
+
+      var flutterPath = '/packages/flutter';
+      addFlutter();
+      config.add(name: 'flutter', rootPath: flutterPath);
+    }
+
     if (js) {
       var jsPath = '/packages/js';
       MockPackages.addJsPackageFiles(
@@ -477,7 +521,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
       config.add(name: 'js', rootPath: jsPath);
     }
 
-    if (meta) {
+    if (meta || flutter) {
       var metaPath = '/packages/meta';
       MockPackages.addMetaPackageFiles(
         getFolder(metaPath),
@@ -486,17 +530,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
     }
 
     if (macrosEnvironment != null) {
-      var packagesRootFolder = getFolder(packagesRootPath);
-      macrosEnvironment.publicMacrosFolder.copyTo(packagesRootFolder);
-      macrosEnvironment.privateMacrosFolder.copyTo(packagesRootFolder);
-      config.add(
-        name: '_macros',
-        rootPath: getFolder('$packagesRootPath/_macros').path,
-      );
-      config.add(
-        name: 'macros',
-        rootPath: getFolder('$packagesRootPath/macros').path,
-      );
+      addMacrosEnvironment(config, macrosEnvironment);
     }
 
     writePackageConfig(testPackageRootPath, config);

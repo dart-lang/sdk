@@ -21,6 +21,7 @@ import 'src/commands/compilation_server.dart';
 import 'src/commands/compile.dart';
 import 'src/commands/create.dart';
 import 'src/commands/debug_adapter.dart';
+import 'src/commands/development_service.dart';
 import 'src/commands/devtools.dart';
 import 'src/commands/doc.dart';
 import 'src/commands/fix.dart';
@@ -91,6 +92,8 @@ class DartdevRunner extends CommandRunner<int> {
         _unifiedAnalytics = analyticsOverride,
         _isAnalyticsTest = isAnalyticsTest,
         super('dart', '$dartdevDescription.') {
+    // The list of commands should be kept in sync with
+    // `DartDevIsolate::ShouldParseCommand` in `runtime/bin/dartdev_isolate.cc`.
     addCommand(AnalyzeCommand(verbose: verbose));
     addCommand(CompilationServerCommand(verbose: verbose));
     final nativeAssetsExperimentEnabled =
@@ -104,6 +107,7 @@ class DartdevRunner extends CommandRunner<int> {
     ));
     addCommand(CreateCommand(verbose: verbose));
     addCommand(DebugAdapterCommand(verbose: verbose));
+    addCommand(DevelopmentServiceCommand(verbose: verbose));
     addCommand(DevToolsCommand(verbose: verbose));
     addCommand(DocCommand(verbose: verbose));
     addCommand(FixCommand(verbose: verbose));

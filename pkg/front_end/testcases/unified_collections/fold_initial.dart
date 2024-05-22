@@ -2,19 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 void foldInitialElements() {
   dynamic element0 = 0;
-  num element1 = 1;
+  int? element1 = 1;
   int element2 = 2;
-  var list = <int>[element0, element1, element2, if (true) 3, 4, 5, 6];
+  var list = <int?>[element0, element1, element2, if (true) 3, 4, 5, 6];
 
-  expect(new List<int>.generate(7, (int i) => i), list);
+  expect(new List<int?>.generate(7, (int? i) => i), list);
 
-  var set = <int>{element0, element1, element2, if (true) 3, 4, 5, 6};
+  var set = <int?>{element0, element1, element2, if (true) 3, 4, 5, 6};
 
-  expect(new List<int>.generate(7, (int i) => i), set.toList());
+  expect(new List<int?>.generate(7, (int? i) => i), set.toList());
 }
 
 void foldInitialSpread1() {
@@ -28,29 +26,35 @@ void foldInitialSpread1() {
   expect(new List<int>.generate(7, (int i) => i), set.toList());
 }
 
-void foldInitialSpread2() {
-  Iterable<num> initial = [0, 1, 2];
-  var list = <int>[...initial, if (true) 3, 4, 5, 6];
+void foldInitialSpread2([bool c = false]) {
+  Iterable<int?> initial = [0, 1, 2];
+  if (c) {
+    initial = [null];
+  }
+  var list = <int?>[...initial, if (true) 3, 4, 5, 6];
 
-  expect(new List<int>.generate(7, (int i) => i), list);
+  expect(new List<int?>.generate(7, (int? i) => i), list);
 
-  var set = <int>{...initial, if (true) 3, 4, 5, 6};
+  var set = <int?>{...initial, if (true) 3, 4, 5, 6};
 
-  expect(new List<int>.generate(7, (int i) => i), set.toList());
+  expect(new List<int?>.generate(7, (int? i) => i), set.toList());
 }
 
-void foldInitialSpread3() {
-  List<num> initial = [0, 1, 2];
-  var list = <int>[...initial, if (true) 3, 4, 5, 6];
+void foldInitialSpread3([bool c = false]) {
+  List<int?> initial = [0, 1, 2];
+  if (c) {
+    initial = [null];
+  }
+  var list = <int?>[...initial, if (true) 3, 4, 5, 6];
 
-  expect(new List<int>.generate(7, (int i) => i), list);
+  expect(new List<int?>.generate(7, (int? i) => i), list);
 
-  var set = <int>{...initial, if (true) 3, 4, 5, 6};
+  var set = <int?>{...initial, if (true) 3, 4, 5, 6};
 
-  expect(new List<int>.generate(7, (int i) => i), set.toList());
+  expect(new List<int?>.generate(7, (int? i) => i), set.toList());
 }
 
-void foldInitialSpread4() {
+void foldInitialSpread4([bool c = false]) {
   Iterable<int> initial = [0, 1, 2];
   var list = <int>[...initial, if (true) 3, 4, 5, 6];
 
@@ -61,7 +65,7 @@ void foldInitialSpread4() {
   expect(new List<int>.generate(7, (int i) => i), set.toList());
 }
 
-void foldInitialSpread5() {
+void foldInitialSpread5([bool c = false]) {
   List<int> initial = [0, 1, 2];
   var list = <int>[...initial, if (true) 3, 4, 5, 6];
 
@@ -72,8 +76,11 @@ void foldInitialSpread5() {
   expect(new List<int>.generate(7, (int i) => i), set.toList());
 }
 
-void foldInitialSpread6() {
-  List<int> initial = [0, 1, 2];
+void foldInitialSpread6([bool c = false]) {
+  List<int>? initial = [0, 1, 2];
+  if (c) {
+    initial = null;
+  }
   var list = <int>[...?initial, if (true) 3, 4, 5, 6];
 
   expect(new List<int>.generate(7, (int i) => i), list);

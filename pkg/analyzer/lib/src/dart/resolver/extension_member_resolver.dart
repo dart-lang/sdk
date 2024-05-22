@@ -107,10 +107,9 @@ class ExtensionMemberResolver {
         return extension.asResolutionResult;
       },
       (noneMoreSpecific) {
-        _errorReporter.atOffset(
-          offset: nameEntity.offset,
-          length: nameEntity.length,
-          errorCode: CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS,
+        _errorReporter.atEntity(
+          nameEntity,
+          CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS,
           arguments: [
             name,
             noneMoreSpecific.map((e) {
@@ -344,7 +343,7 @@ class ExtensionMemberResolver {
         _typeSystem,
         typeParameters,
         errorReporter: _errorReporter,
-        errorNode: SimpleIdentifierImpl(node.name),
+        errorEntity: node.name,
         genericMetadataIsEnabled: _genericMetadataIsEnabled,
         strictInference: _resolver.analysisOptions.strictInference,
         typeSystemOperations: _resolver.flowAnalysis.typeOperations,

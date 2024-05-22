@@ -73,7 +73,7 @@ class _Unalias extends ReplacementVisitor {
   const _Unalias({required this.legacyEraseAliases});
 
   @override
-  DartType visitTypedefType(TypedefType node, int variance) {
+  DartType visitTypedefType(TypedefType node, Variance variance) {
     DartType result;
     if (node.typeArguments.isNotEmpty) {
       List<DartType>? newTypeArguments = null;

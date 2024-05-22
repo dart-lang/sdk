@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -16,13 +16,11 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
+
+  @override
   AssistKind get assistKind => DartAssistKind.ADD_DIAGNOSTIC_PROPERTY_REFERENCE;
-
-  @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_DIAGNOSTIC_PROPERTY_REFERENCE;
@@ -33,8 +31,8 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
-    final String name;
+    var node = this.node;
+    String name;
     if (node is MethodDeclaration) {
       name = node.name.lexeme;
     } else if (node is VariableDeclaration) {
@@ -43,9 +41,14 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
       return;
     }
 
-    final classDeclaration = node.thisOrAncestorOfType<ClassDeclaration>();
+    var classDeclaration = node.thisOrAncestorOfType<ClassDeclaration>();
     if (classDeclaration == null ||
-        !Flutter.isDiagnosticable(classDeclaration.declaredElement!.thisType)) {
+        // TODO(dantup): Remove this and update this fix to handle
+        //  augmenting the method once augmented() expressions are
+        //  fully implemented.
+        //  https://github.com/dart-lang/sdk/issues/55326
+        classDeclaration.declaredElement!.isAugmentation ||
+        !classDeclaration.declaredElement!.thisType.isDiagnosticable) {
       return;
     }
 
@@ -74,9 +77,9 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
     } else if (_isIterable(type)) {
       constructorId = 'IterableProperty';
       typeArgs = (type as InterfaceType).typeArguments;
-    } else if (Flutter.isColor(type)) {
+    } else if (type.isColor) {
       constructorId = 'ColorProperty';
-    } else if (Flutter.isMatrix4(type)) {
+    } else if (type.isMatrix4) {
       constructorId = 'TransformProperty';
     } else {
       constructorId = 'DiagnosticsProperty';
@@ -97,7 +100,7 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
         builder.write('>');
       } else if (type is DynamicType || type is InvalidType) {
         TypeAnnotation? declType;
-        final decl = node.thisOrAncestorOfType<VariableDeclarationList>();
+        var decl = node.thisOrAncestorOfType<VariableDeclarationList>();
         if (decl != null) {
           declType = decl.type;
           // getter
@@ -106,7 +109,7 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
         }
 
         if (declType != null) {
-          final typeText = utils.getNodeText(declType);
+          var typeText = utils.getNodeText(declType);
           if (typeText != 'dynamic') {
             builder.write('<');
             builder.write(utils.getNodeText(declType));
@@ -117,37 +120,30 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
       builder.writeln("$constructorName('$name', $name));");
     }
 
-    final debugFillProperties = classDeclaration.members
+    var debugFillProperties = classDeclaration.members
         .whereType<MethodDeclaration>()
         .where((e) => e.name.lexeme == 'debugFillProperties')
         .singleOrNull;
     if (debugFillProperties == null) {
-      var location = utils.prepareNewMethodLocation(classDeclaration);
-      if (location == null) {
-        return;
-      }
-
-      final insertOffset = location.offset;
       await builder.addDartFileEdit(file, (builder) {
-        builder.addInsertion(utils.getLineNext(insertOffset), (builder) {
-          final declPrefix =
-              utils.getLinePrefix(classDeclaration.offset) + utils.oneIndent;
-          final bodyPrefix = declPrefix + utils.oneIndent;
+        builder.insertMethod(classDeclaration, (builder) {
+          var declPrefix = utils.oneIndent;
+          var bodyPrefix = utils.twoIndents;
 
-          builder.writeln('$declPrefix@override');
+          builder.writeln('@override');
           builder.writeln(
               '${declPrefix}void debugFillProperties(DiagnosticPropertiesBuilder properties) {');
           builder
               .writeln('${bodyPrefix}super.debugFillProperties(properties);');
           writePropertyReference(builder,
               prefix: bodyPrefix, builderName: 'properties');
-          builder.writeln('$declPrefix}');
+          builder.write('$declPrefix}');
         });
       });
       return;
     }
 
-    final body = debugFillProperties.body;
+    var body = debugFillProperties.body;
     if (body is BlockFunctionBody) {
       var functionBody = body;
 
@@ -169,8 +165,8 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
       String? propertiesBuilderName;
       for (var parameter in parameterList.parameters) {
         if (parameter is SimpleFormalParameter) {
-          final type = parameter.type;
-          final identifier = parameter.name;
+          var type = parameter.type;
+          var identifier = parameter.name;
           if (type is NamedType && identifier != null) {
             if (type.name2.lexeme == 'DiagnosticPropertiesBuilder') {
               propertiesBuilderName = identifier.lexeme;
@@ -183,7 +179,7 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
         return;
       }
 
-      final final_propertiesBuilderName = propertiesBuilderName;
+      var final_propertiesBuilderName = propertiesBuilderName;
       await builder.addDartFileEdit(file, (builder) {
         builder.addInsertion(utils.getLineNext(offset), (builder) {
           writePropertyReference(builder,

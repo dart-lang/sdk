@@ -48,10 +48,10 @@ Future<Uint8List> buildSdkSummary({
     }
   }
 
-  final logger = PerformanceLog(StringBuffer());
-  final scheduler = AnalysisDriverScheduler(logger);
-  final optionsMap = AnalysisOptionsMap.forSharedOptions(AnalysisOptionsImpl());
-  final analysisDriver = AnalysisDriver(
+  var logger = PerformanceLog(StringBuffer());
+  var scheduler = AnalysisDriverScheduler(logger);
+  var optionsMap = AnalysisOptionsMap.forSharedOptions(AnalysisOptionsImpl());
+  var analysisDriver = AnalysisDriver(
     scheduler: scheduler,
     logger: logger,
     resourceProvider: resourceProvider,
@@ -64,7 +64,7 @@ Future<Uint8List> buildSdkSummary({
   );
   scheduler.start();
 
-  final libraryUriList = sdk.uris.map(Uri.parse).toList();
+  var libraryUriList = sdk.uris.map(Uri.parse).toList();
   return await analysisDriver.buildPackageBundle(
     uriList: libraryUriList,
     packageBundleSdk: PackageBundleSdk(

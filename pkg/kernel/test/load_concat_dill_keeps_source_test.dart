@@ -26,7 +26,8 @@ void main() {
   library2.addProcedure(p2);
 
   Component component = new Component(libraries: [library1, library2])
-    ..setMainMethodAndMode(null, false, NonNullableByDefaultCompiledMode.Weak);
+    ..setMainMethodAndMode(
+        null, false, NonNullableByDefaultCompiledMode.Strong);
   component.uriToSource[uri1] =
       new Source([42, 2 * 42], utf8.encode("source #1"), uri1, uri1);
   component.uriToSource[uri2] =
@@ -34,7 +35,7 @@ void main() {
   expectSource(serialize(component), true, true);
 
   Component cPartial1 = new Component(nameRoot: component.root)
-    ..setMainMethodAndMode(null, false, NonNullableByDefaultCompiledMode.Weak)
+    ..setMainMethodAndMode(null, false, NonNullableByDefaultCompiledMode.Strong)
     ..libraries.add(library1);
   cPartial1.uriToSource[uri1] =
       new Source([42, 2 * 42], utf8.encode("source #1"), uri1, uri1);
@@ -44,7 +45,7 @@ void main() {
   expectSource(partial1Serialized, true, false);
 
   Component cPartial2 = new Component(nameRoot: component.root)
-    ..setMainMethodAndMode(null, false, NonNullableByDefaultCompiledMode.Weak)
+    ..setMainMethodAndMode(null, false, NonNullableByDefaultCompiledMode.Strong)
     ..libraries.add(library2);
   cPartial2.uriToSource[uri1] =
       new Source([42, 2 * 42], const <int>[], uri1, uri1);

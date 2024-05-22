@@ -43,7 +43,7 @@ class RefactoringProcessor {
         continue;
       }
 
-      final isAvailable = producer.isAvailable();
+      var isAvailable = producer.isAvailable();
       if (!isAvailable) {
         continue;
       }
@@ -61,7 +61,7 @@ class RefactoringProcessor {
         'that are not supported by the client',
       );
 
-      final command = entry.key;
+      var command = entry.key;
       assert(
         (() => Commands.serverSupportedCommands.contains(command))(),
         'serverSupportedCommands did not contain $command',

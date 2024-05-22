@@ -191,8 +191,7 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
         isExternal: true,
         isStatic: true,
         isSynthetic: true)
-      ..fileOffset = node.fileOffset
-      ..isNonNullableByDefault = true;
+      ..fileOffset = node.fileOffset;
     wasmImportProcedure.addAnnotation(wasmImportPragma);
     currentLibrary.addProcedure(wasmImportProcedure);
 

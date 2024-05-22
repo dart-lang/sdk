@@ -97,16 +97,14 @@ class _DebuggingSession {
     bool enableDevTools,
   ) async {
     final dartDir = File(Platform.resolvedExecutable).parent.path;
-    final fullSdk = dartDir.endsWith('bin');
-    final snapshotName = [
+    final executable = [
       dartDir,
-      fullSdk ? 'snapshots' : 'gen',
-      'dds.dart.snapshot',
+      'dart${Platform.isWindows ? '.exe' : ''}',
     ].join(Platform.pathSeparator);
     _process = await Process.start(
-      Platform.resolvedExecutable,
+      executable,
       [
-        snapshotName,
+        'development-service',
         '--vm-service-uri=${server!.serverAddress!}',
         '--bind-address=$host',
         '--bind-port=$port',

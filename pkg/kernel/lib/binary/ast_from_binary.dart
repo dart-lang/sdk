@@ -2745,10 +2745,8 @@ class BinaryBuilder {
 
   Expression _readIsExpression() {
     int offset = readOffset();
-    int flags = readByte();
     return new IsExpression(readExpression(), readDartType())
-      ..fileOffset = offset
-      ..flags = flags;
+      ..fileOffset = offset;
   }
 
   Expression _readAsExpression() {
@@ -4056,7 +4054,7 @@ class BinaryBuilder {
     if (variance == TypeParameter.legacyCovariantSerializationMarker) {
       node.variance = null;
     } else {
-      node.variance = variance;
+      node.variance = new Variance.fromEncoding(variance);
     }
     node.name = readStringOrNullIfEmpty();
     node.bound = readDartType();
@@ -4075,7 +4073,7 @@ class BinaryBuilder {
     if (variance == TypeParameter.legacyCovariantSerializationMarker) {
       node.variance = null;
     } else {
-      node.variance = variance;
+      node.variance = new Variance.fromEncoding(variance);
     }
     node.name = readStringOrNullIfEmpty();
     node.bound = readDartType();

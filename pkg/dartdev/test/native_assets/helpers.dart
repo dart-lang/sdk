@@ -161,6 +161,8 @@ Future<void> nativeAssetsTest(
   assert(const [
     'dart_app',
     'native_add',
+    'drop_dylib_link',
+    'add_asset_link',
   ].contains(packageUnderTest));
   return await inTempDir((tempUri) async {
     await copyTestProjects(tempUri, logger);

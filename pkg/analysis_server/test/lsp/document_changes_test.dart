@@ -51,7 +51,7 @@ class Bar {
       )),
     ]);
 
-    final notifiedChanges = pluginManager.analysisUpdateContentParams!
+    var notifiedChanges = pluginManager.analysisUpdateContentParams!
         .files[mainFilePath] as ChangeContentOverlay;
 
     expect(
@@ -102,15 +102,15 @@ class Bar {
       test_documentOpen_addsOverlayOnlyToDriver_onlyIfInsideRoots() async {
     // Ensures that opening a file doesn't add it to the driver if it's outside
     // of the drivers root.
-    final fileInsideRootPath = mainFilePath;
-    final fileOutsideRootPath = convertPath('/home/unrelated/main.dart');
+    var fileInsideRootPath = mainFilePath;
+    var fileOutsideRootPath = convertPath('/home/unrelated/main.dart');
     await initialize();
     await openFile(pathContext.toUri(fileInsideRootPath), content);
     await openFile(pathContext.toUri(fileOutsideRootPath), content);
 
     // Expect both files return the same driver
-    final driverForInside = server.getAnalysisDriver(fileInsideRootPath)!;
-    final driverForOutside = server.getAnalysisDriver(fileOutsideRootPath)!;
+    var driverForInside = server.getAnalysisDriver(fileInsideRootPath)!;
+    var driverForOutside = server.getAnalysisDriver(fileOutsideRootPath)!;
     expect(driverForInside, equals(driverForOutside));
     // But that only the file inside the root was added.
     expect(driverForInside.addedFiles, contains(fileInsideRootPath));
@@ -296,11 +296,11 @@ class Bar {
   Future<void> test_documentOpen_processesOverlay_dartSdk_issue51159() async {
     failTestOnErrorDiagnostic = false;
 
-    final binFolder = convertPath(join(projectFolderPath, 'bin'));
-    final binMainFilePath = convertPath(join(binFolder, 'main.dart'));
-    final binMainFileUri = pathContext.toUri(binMainFilePath);
-    final fooFilePath = convertPath(join(binFolder, 'foo.dart'));
-    final fooUri = pathContext.toUri(fooFilePath);
+    var binFolder = convertPath(join(projectFolderPath, 'bin'));
+    var binMainFilePath = convertPath(join(binFolder, 'main.dart'));
+    var binMainFileUri = pathContext.toUri(binMainFilePath);
+    var fooFilePath = convertPath(join(binFolder, 'foo.dart'));
+    var fooUri = pathContext.toUri(fooFilePath);
 
     const binMainContent = '''
 import 'foo.dart';
@@ -344,13 +344,13 @@ class Foo {}
 
     // Initialize the server, but delay providing the configuration until after
     // we've opened the file.
-    final completer = Completer<void>();
+    var completer = Completer<void>();
 
     // Send the initialize request but do not await it.
-    final initResponse = initialize();
+    var initResponse = initialize();
 
     // When asked for config, delay the response until we have sent the openFile notification.
-    final config = provideConfig(
+    var config = provideConfig(
       () => initResponse,
       completer.future.then((_) => {'dart.foo': false}),
     );

@@ -11,6 +11,7 @@ import 'testing/suite.dart';
 Future<FastaContext> createContext(
     Chain suite, Map<String, String> environment) {
   environment[EnvironmentKeys.compilationMode] = CompileMode.modular.name;
+  environment[EnvironmentKeys.soundNullSafety] = "true";
   return FastaContext.create(suite, environment);
 }
 

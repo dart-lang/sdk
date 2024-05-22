@@ -12,7 +12,7 @@ extension StringExtension on String {
   /// It is assumed that this String is a valid identifier and does not contain
   /// characters that are invalid in file names.
   String get toFileName {
-    final fileName = replaceAllMapped(RegExp('[A-Z]'),
+    var fileName = replaceAllMapped(RegExp('[A-Z]'),
         (match) => match.start == 0 ? match[0]! : '_${match[0]}').toLowerCase();
     return '$fileName.dart';
   }
@@ -74,6 +74,18 @@ extension StringExtension on String {
       buffer.write(word._capitalized);
     }
     return buffer.toString();
+  }
+
+  /// Returns the string after removing the '^' in the string, if present,
+  /// along with the index of the caret, or null if not present.
+  (String, int?) get withoutCaret {
+    var caretIndex = indexOf('^');
+    if (caretIndex < 0) {
+      return (this, null);
+    } else {
+      var rawText = substring(0, caretIndex) + substring(caretIndex + 1);
+      return (rawText, caretIndex);
+    }
   }
 
   /// Return a version of this string in which the first character is upper case

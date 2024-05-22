@@ -101,7 +101,7 @@ void f() {
 
   Future<void> test_multiple_files() async {
     // TODO(scheglov): Unify behind `testPackageLibPath`
-    final a = getFile('$projectFolderPath/lib/a.dart');
+    var a = getFile('$projectFolderPath/lib/a.dart');
     newFile(a.path, r'''
 import 'main.dart';
 
@@ -195,7 +195,7 @@ void f() {
   Future<void> verifyRefactoring(String expected) async {
     await initializeServer();
 
-    final codeAction = await expectCodeAction(
+    var codeAction = await expectCodeAction(
       ConvertAllFormalParametersToNamed.constTitle,
     );
 

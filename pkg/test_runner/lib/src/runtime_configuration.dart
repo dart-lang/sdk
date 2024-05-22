@@ -209,8 +209,8 @@ class D8RuntimeConfiguration extends CommandLineJavaScriptRuntime {
     checkArtifact(artifact!);
     if (compiler == Compiler.dart2wasm) {
       return [
-        Dart2WasmCommandLineCommand(
-            moniker, d8FileName, arguments, environmentOverrides)
+        Dart2WasmCommandLineCommand(moniker, 'pkg/dart2wasm/tool/run_benchmark',
+            ['--d8', ...arguments], environmentOverrides)
       ];
     } else {
       return [
@@ -246,14 +246,9 @@ class JSCRuntimeConfiguration extends CommandLineJavaScriptRuntime {
     if (compiler != Compiler.dart2wasm) {
       throw 'No test runner setup for jsc + dart2js yet';
     }
-    final environment = {
-      ...environmentOverrides,
-      'JSC_useWebAssemblyTypedFunctionReferences': '1',
-      'JSC_useWebAssemblyExtendedConstantExpression': '1',
-      'JSC_useWebAssemblyGC': '1',
-    };
     return [
-      Dart2WasmCommandLineCommand(moniker, jscFileName, arguments, environment)
+      Dart2WasmCommandLineCommand(moniker, 'pkg/dart2wasm/tool/run_benchmark',
+          ['--jsc', ...arguments], environmentOverrides)
     ];
   }
 }
@@ -274,8 +269,8 @@ class JsshellRuntimeConfiguration extends CommandLineJavaScriptRuntime {
     checkArtifact(artifact!);
     if (compiler == Compiler.dart2wasm) {
       return [
-        Dart2WasmCommandLineCommand(
-            moniker, jsShellFileName, arguments, environmentOverrides)
+        Dart2WasmCommandLineCommand(moniker, 'pkg/dart2wasm/tool/run_benchmark',
+            ['--jsshell', ...arguments], environmentOverrides)
       ];
     } else {
       return [
@@ -349,12 +344,19 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
     if (_configuration.useQemu) {
       multiplier *= 2;
     }
+    if (system == System.fuchsia && arch == Architecture.arm64) {
+      multiplier *= 4; // Full system QEMU.
+    }
 
     // Configurations where `kernel-service` doesn't run from AppJIT snapshot
     // will make tests run very slow due to the `kernel-service` code slowly
     // warming up the JIT. This is especially noticable in `debug` mode.
     if (arch == Architecture.ia32) {
       multiplier *= 2;
+    }
+    if ((arch == Architecture.x64 && system == System.mac) ||
+        (arch == Architecture.arm64 && system == System.win)) {
+      multiplier *= 2; // Slower machines.
     }
 
     if (mode.isDebug) {
@@ -539,7 +541,6 @@ class DartkFuchsiaEmulatorRuntimeConfiguration
     command.arguments
         .insert(command.arguments.length - 1, '--disable-dart-dev');
     command.environmentOverrides.addAll(environmentOverrides);
-    print("+ About to run command $command to test against fuchsia vm");
     return [command];
   }
 }

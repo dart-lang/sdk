@@ -231,14 +231,14 @@ class ServerCapabilitiesComputer {
   /// support and it will be up to them to decide which file types they will
   /// send requests for.
   Future<void> performDynamicRegistration() async {
-    final features = LspFeatures(_createRegistrationContext());
-    final registrations = <Registration>[];
+    var features = LspFeatures(_createRegistrationContext());
+    var registrations = <Registration>[];
 
     // Collect dynamic registrations for all features.
-    final dynamicRegistrations = features.allFeatures
+    var dynamicRegistrations = features.allFeatures
         .where((feature) => feature.supportsDynamic)
         .expand((feature) => feature.dynamicRegistrations);
-    for (final (method, options) in dynamicRegistrations) {
+    for (var (method, options) in dynamicRegistrations) {
       registrations.add(
         Registration(
           id: (_lastRegistrationId++).toString(),
@@ -260,19 +260,19 @@ class ServerCapabilitiesComputer {
     String registrationHash(Registration registration) =>
         '${registration.method}${registration.registerOptions.hashCode}';
 
-    final newRegistrationsMap = Map.fromEntries(
+    var newRegistrationsMap = Map.fromEntries(
         newRegistrations.map((r) => MapEntry(r, registrationHash(r))));
-    final newRegistrationsJsons = newRegistrationsMap.values.toSet();
-    final currentRegistrationsMap = Map.fromEntries(
+    var newRegistrationsJsons = newRegistrationsMap.values.toSet();
+    var currentRegistrationsMap = Map.fromEntries(
         currentRegistrations.map((r) => MapEntry(r, registrationHash(r))));
-    final currentRegistrationJsons = currentRegistrationsMap.values.toSet();
+    var currentRegistrationJsons = currentRegistrationsMap.values.toSet();
 
-    final registrationsToAdd = newRegistrationsMap.entries
+    var registrationsToAdd = newRegistrationsMap.entries
         .where((entry) => !currentRegistrationJsons.contains(entry.value))
         .map((entry) => entry.key)
         .toList();
 
-    final registrationsToRemove = currentRegistrationsMap.entries
+    var registrationsToRemove = currentRegistrationsMap.entries
         .where((entry) => !newRegistrationsJsons.contains(entry.value))
         .map((entry) => entry.key)
         .toList();
@@ -285,7 +285,7 @@ class ServerCapabilitiesComputer {
 
     Future<void>? unregistrationRequest;
     if (registrationsToRemove.isNotEmpty) {
-      final unregistrations = registrationsToRemove
+      var unregistrations = registrationsToRemove
           .map((r) => Unregistration(id: r.id, method: r.method))
           .toList();
       // It's important not to await this request here, as we must ensure
@@ -305,7 +305,7 @@ class ServerCapabilitiesComputer {
           .sendRequest(Method.client_registerCapability,
               RegistrationParams(registrations: registrationsToAdd))
           .then((registrationResponse) {
-        final error = registrationResponse.error;
+        var error = registrationResponse.error;
         if (error != null) {
           _server.logErrorToClient(
             'Failed to register capabilities with client: '

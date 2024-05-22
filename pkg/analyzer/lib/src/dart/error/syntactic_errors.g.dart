@@ -200,6 +200,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.ABSTRACT_FINAL_BASE_CLASS,
   ParserErrorCode.ABSTRACT_FINAL_INTERFACE_CLASS,
   ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS,
+  ParserErrorCode.EXTENSION_AUGMENTATION_HAS_ON_CLAUSE,
 ];
 
 class ParserErrorCode extends ErrorCode {
@@ -466,6 +467,14 @@ class ParserErrorCode extends ErrorCode {
     'COVARIANT_TOP_LEVEL_DECLARATION',
     "Top-level declarations can't be declared to be covariant.",
     correctionMessage: "Try removing the keyword 'covariant'.",
+  );
+
+  static const ParserErrorCode DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION =
+      ParserErrorCode(
+    'DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION',
+    "The identifier 'augmented' has a special meaning inside augmenting "
+        "declarations.",
+    correctionMessage: "Try using a different name.",
   );
 
   ///  No parameters.
@@ -759,6 +768,14 @@ class ParserErrorCode extends ErrorCode {
     "Export directives must precede part directives.",
     correctionMessage:
         "Try moving the export directives before the part directives.",
+  );
+
+  ///  No parameters.
+  static const ParserErrorCode EXTENSION_AUGMENTATION_HAS_ON_CLAUSE =
+      ParserErrorCode(
+    'EXTENSION_AUGMENTATION_HAS_ON_CLAUSE',
+    "Extension augmentations can't have 'on' clauses.",
+    correctionMessage: "Try removing the 'on' clause.",
   );
 
   ///  No parameters.

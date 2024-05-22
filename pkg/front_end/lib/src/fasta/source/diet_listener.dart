@@ -236,7 +236,7 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endFieldInitializer(Token assignmentOperator, Token token) {
+  void endFieldInitializer(Token assignmentOperator, Token endToken) {
     debugEvent("FieldInitializer");
   }
 
@@ -303,7 +303,8 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endTypedef(Token typedefKeyword, Token? equals, Token endToken) {
+  void endTypedef(Token? augmentToken, Token typedefKeyword, Token? equals,
+      Token endToken) {
     assert(checkState(typedefKeyword, [
       if (equals == null) ValueKinds.Token,
       /* name */ ValueKinds.IdentifierOrParserRecovery,
@@ -444,7 +445,7 @@ class DietListener extends StackListenerImpl {
 
   @override
   void endLibraryAugmentation(
-      Token libraryKeyword, Token augmentKeyword, Token semicolon) {
+      Token augmentKeyword, Token libraryKeyword, Token semicolon) {
     debugEvent("endLibraryAugmentation");
     assert(checkState(libraryKeyword, [
       /* metadata */ ValueKinds.TokenOrNull,
@@ -925,7 +926,7 @@ class DietListener extends StackListenerImpl {
 
   @override
   void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
-      Token? commaToken, Token semicolonToken) {
+      Token? commaToken, Token endToken) {
     debugEvent("Assert");
     // Do nothing
   }
@@ -1013,13 +1014,14 @@ class DietListener extends StackListenerImpl {
 
   @override
   void endExtensionDeclaration(Token beginToken, Token extensionKeyword,
-      Token onKeyword, Token endToken) {
+      Token? onKeyword, Token endToken) {
     debugEvent("endExtensionDeclaration");
     checkEmpty(extensionKeyword.charOffset);
   }
 
   @override
-  void beginExtensionTypeDeclaration(Token extensionKeyword, Token nameToken) {
+  void beginExtensionTypeDeclaration(
+      Token? augmentToken, Token extensionKeyword, Token nameToken) {
     debugEvent("beginExtensionTypeDeclaration");
     push(new SimpleIdentifier(nameToken));
     push(extensionKeyword);
@@ -1081,8 +1083,8 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endExtensionTypeDeclaration(Token beginToken, Token extensionKeyword,
-      Token typeKeyword, Token endToken) {
+  void endExtensionTypeDeclaration(Token beginToken, Token? augmentToken,
+      Token extensionKeyword, Token typeKeyword, Token endToken) {
     debugEvent("endExtensionTypeDeclaration");
     checkEmpty(extensionKeyword.charOffset);
   }
@@ -1131,7 +1133,7 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void handleEnumElement(Token beginKeyword) {
+  void handleEnumElement(Token beginKeyword, Token? augmentToken) {
     debugEvent("EnumElement");
   }
 
@@ -1144,7 +1146,8 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void handleEnumHeader(Token enumKeyword, Token leftBrace) {
+  void handleEnumHeader(
+      Token? augmentToken, Token enumKeyword, Token leftBrace) {
     debugEvent("EnumHeader");
   }
 

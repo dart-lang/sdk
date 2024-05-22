@@ -1,0 +1,118 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "main_lib1.dart" as mai;
+import "main_lib2.dart" as mai2;
+
+import "org-dartlang-testcase:///main_lib1.dart";
+import "org-dartlang-testcase:///main_lib2.dart";
+
+class Main1 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::Main1> values = const <self::Main1>[self::Main1::a, self::Main1::b];
+  enum-element static const field self::Main1 a = const self::Main1::•(0, "a");
+  enum-element static const field self::Main1 b = const self::Main1::•(1, "b");
+  const synthetic constructor •(core::int #index, core::String #name) → self::Main1
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "Main1.${this.{core::_Enum::_name}{core::String}}";
+}
+class Main2 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::Main2> values = const <self::Main2>[self::Main2::a, self::Main2::b];
+  enum-element static const field self::Main2 a = const self::Main2::•(0, "a");
+  enum-element static const field self::Main2 b = const self::Main2::•(1, "b");
+  const synthetic constructor •(core::int #index, core::String #name) → self::Main2
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "Main2.${this.{core::_Enum::_name}{core::String}}";
+}
+static method method1(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, mai::Lib1b lib1b, mai2::Lib2 lib2) → dynamic
+  ;
+static method method2(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, mai::Lib1b lib1b, mai2::Lib2 lib2) → dynamic
+  ;
+static method method3(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, mai::Lib1b lib1b, mai2::Lib2 lib2) → dynamic
+  ;
+
+library;
+import self as mai;
+import "dart:core" as core;
+import "main.dart" as self;
+import "main_lib2.dart" as mai2;
+
+import "org-dartlang-testcase:///main.dart";
+import "org-dartlang-testcase:///main_lib2.dart";
+
+class Lib1a extends core::_Enum /*isEnum*/  {
+  static const field core::List<mai::Lib1a> values = const <mai::Lib1a>[mai::Lib1a::a, mai::Lib1a::b];
+  enum-element static const field mai::Lib1a a = const mai::Lib1a::•(0, "a");
+  enum-element static const field mai::Lib1a b = const mai::Lib1a::•(1, "b");
+  const synthetic constructor •(core::int #index, core::String #name) → mai::Lib1a
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "Lib1a.${this.{core::_Enum::_name}{core::String}}";
+}
+class Lib1b extends core::_Enum /*isEnum*/  {
+  static const field core::List<mai::Lib1b> values = const <mai::Lib1b>[mai::Lib1b::a, mai::Lib1b::b];
+  enum-element static const field mai::Lib1b a = const mai::Lib1b::•(0, "a");
+  enum-element static const field mai::Lib1b b = const mai::Lib1b::•(1, "b");
+  const synthetic constructor •(core::int #index, core::String #name) → mai::Lib1b
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "Lib1b.${this.{core::_Enum::_name}{core::String}}";
+}
+static method method1(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, mai::Lib1b lib1b, mai2::Lib2 lib2) → dynamic
+  ;
+static method method2(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, mai::Lib1b lib1b, mai2::Lib2 lib2) → dynamic
+  ;
+static method method3(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, mai::Lib1b lib1b, mai2::Lib2 lib2) → dynamic
+  ;
+
+library;
+import self as mai2;
+import "dart:core" as core;
+
+class Lib2 extends core::_Enum /*isEnum*/  {
+  static const field core::List<mai2::Lib2> values = #C7;
+  enum-element static const field mai2::Lib2 a = #C3;
+  enum-element static const field mai2::Lib2 b = #C6;
+  const synthetic constructor •(core::int #index, core::String #name) → mai2::Lib2
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "Lib2.${this.{core::_Enum::_name}{core::String}}";
+}
+
+constants  {
+  #C1 = 0
+  #C2 = "a"
+  #C3 = mai2::Lib2 {index:#C1, _name:#C2}
+  #C4 = 1
+  #C5 = "b"
+  #C6 = mai2::Lib2 {index:#C4, _name:#C5}
+  #C7 = <mai2::Lib2>[#C3, #C6]
+}
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///main.dart:31:6 -> ListConstant(const <Main1>[const Main1{_Enum.index: 0, _Enum._name: "a"}, const Main1{_Enum.index: 1, _Enum._name: "b"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main.dart:32:3 -> InstanceConstant(const Main1{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main.dart:33:3 -> InstanceConstant(const Main1{_Enum.index: 1, _Enum._name: "b"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///main.dart:59:6 -> ListConstant(const <Main2>[const Main2{_Enum.index: 0, _Enum._name: "a"}, const Main2{_Enum.index: 1, _Enum._name: "b"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main.dart:60:3 -> InstanceConstant(const Main2{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main.dart:61:3 -> InstanceConstant(const Main2{_Enum.index: 1, _Enum._name: "b"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///main_lib1.dart:31:6 -> ListConstant(const <Lib1a>[const Lib1a{_Enum.index: 0, _Enum._name: "a"}, const Lib1a{_Enum.index: 1, _Enum._name: "b"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib1.dart:32:3 -> InstanceConstant(const Lib1a{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib1.dart:33:3 -> InstanceConstant(const Lib1a{_Enum.index: 1, _Enum._name: "b"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///main_lib1.dart:59:6 -> ListConstant(const <Lib1b>[const Lib1b{_Enum.index: 0, _Enum._name: "a"}, const Lib1b{_Enum.index: 1, _Enum._name: "b"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib1.dart:60:3 -> InstanceConstant(const Lib1b{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib1.dart:61:3 -> InstanceConstant(const Lib1b{_Enum.index: 1, _Enum._name: "b"})
+Extra constant evaluation: evaluated: 37, effectively constant: 12
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///main_lib2.dart:
+- Lib2. (from org-dartlang-testcase:///main_lib2.dart:5:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

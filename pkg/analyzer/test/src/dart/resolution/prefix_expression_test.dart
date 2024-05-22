@@ -131,7 +131,7 @@ class A {
       error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 28, 5),
     ]);
 
-    final node = findNode.singlePrefixExpression;
+    var node = findNode.singlePrefixExpression;
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: !
@@ -152,7 +152,7 @@ void f(int x) {
       error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 24, 1),
     ]);
 
-    final node = findNode.prefix('++ ++ x');
+    var node = findNode.prefix('++ ++ x');
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
@@ -188,7 +188,7 @@ void f(A a) {
       error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 28, 2),
     ]);
 
-    final node = findNode.prefix('++a');
+    var node = findNode.prefix('++a');
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
@@ -328,7 +328,7 @@ void f() {
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 15, 1),
     ]);
 
-    final node = findNode.prefix('++x');
+    var node = findNode.prefix('++x');
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
@@ -345,6 +345,168 @@ PrefixExpression
 ''');
   }
 
+  test_minus_augmentedExpression_augments_class_field() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class A {
+  int foo = 0;
+}
+''');
+
+    await assertNoErrorsInCode('''
+augment library 'a.dart';
+
+augment class A {
+  augment int foo = -augmented;
+}
+''');
+
+    var node = findNode.singlePrefixExpression;
+    assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: -
+  operand: AugmentedExpression
+    augmentedKeyword: augmented
+    element: self::@class::A::@field::foo
+    staticType: int
+  staticElement: dart:core::@class::int::@method::unary-
+  staticType: int
+''');
+  }
+
+  test_minus_augmentedExpression_augments_getter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class A {
+  int get foo => 0;
+}
+''');
+
+    await assertNoErrorsInCode('''
+augment library 'a.dart';
+
+augment class A {
+  augment int get foo {
+    return -augmented;
+  }
+}
+''');
+
+    var node = findNode.singlePrefixExpression;
+    assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: -
+  operand: AugmentedExpression
+    augmentedKeyword: augmented
+    element: self::@class::A::@getter::foo
+    staticType: int
+  staticElement: dart:core::@class::int::@method::unary-
+  staticType: int
+''');
+  }
+
+  test_minus_augmentedExpression_augments_method() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class A {
+  void foo() {}
+}
+''');
+
+    await assertErrorsInCode('''
+augment library 'a.dart';
+
+augment class A {
+  augment void foo() {
+    -augmented;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR, 73, 9),
+    ]);
+
+    var node = findNode.singlePrefixExpression;
+    assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: -
+  operand: AugmentedExpression
+    augmentedKeyword: augmented
+    element: self::@class::A::@method::foo
+    staticType: A
+  staticElement: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_minus_augmentedExpression_augments_setter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class A {
+  set foo(int _) {}
+}
+''');
+
+    await assertErrorsInCode('''
+augment library 'a.dart';
+
+augment class A {
+  augment set foo(int _) {
+    -augmented;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER, 77, 9),
+    ]);
+
+    var node = findNode.singlePrefixExpression;
+    assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: -
+  operand: AugmentedExpression
+    augmentedKeyword: augmented
+    element: self::@class::A::@setter::foo
+    staticType: InvalidType
+  staticElement: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_minus_augmentedExpression_augments_unaryMinus() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class A {
+  int operator-() => 0;
+}
+''');
+
+    await assertNoErrorsInCode('''
+augment library 'a.dart';
+
+augment class A {
+  augment int operator-() {
+    return -augmented;
+  }
+}
+''');
+
+    var node = findNode.singlePrefixExpression;
+    assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: -
+  operand: AugmentedExpression
+    augmentedKeyword: augmented
+    element: self::@class::A::@method::unary-
+    staticType: A
+  staticElement: self::@class::A::@method::unary-
+  staticType: int
+''');
+  }
+
   test_minus_dynamicIdentifier() async {
     await assertNoErrorsInCode(r'''
 void f(dynamic a) {
@@ -352,7 +514,7 @@ void f(dynamic a) {
 }
 ''');
 
-    final node = findNode.singlePrefixExpression;
+    var node = findNode.singlePrefixExpression;
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: -
@@ -563,7 +725,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singlePrefixExpression;
+    var node = findNode.singlePrefixExpression;
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
@@ -1004,7 +1166,7 @@ class A {
       error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 29, 5),
     ]);
 
-    final node = findNode.singlePrefixExpression;
+    var node = findNode.singlePrefixExpression;
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
@@ -1090,6 +1252,40 @@ PrefixExpression
   writeType: int
   staticElement: dart:core::@class::num::@method::+
   staticType: int
+''');
+  }
+
+  test_tilde_augmentedExpression_augments_unaryMinus() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class A {
+  int operator-() => 0;
+}
+''');
+
+    await assertErrorsInCode('''
+augment library 'a.dart';
+
+augment class A {
+  augment int operator-() {
+    return ~augmented;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR, 85, 9),
+    ]);
+
+    var node = findNode.singlePrefixExpression;
+    assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ~
+  operand: AugmentedExpression
+    augmentedKeyword: augmented
+    element: self::@class::A::@method::unary-
+    staticType: A
+  staticElement: <null>
+  staticType: InvalidType
 ''');
   }
 

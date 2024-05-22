@@ -224,6 +224,9 @@ class FreeList {
   // The largest available small size in bytes, or negative if there is none.
   intptr_t last_free_small_size_;
 
+  friend class GCIncrementalCompactor;
+  friend class PrologueTask;
+
   DISALLOW_COPY_AND_ASSIGN(FreeList);
 };
 

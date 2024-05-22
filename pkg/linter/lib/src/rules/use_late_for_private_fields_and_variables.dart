@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -215,11 +215,10 @@ class _Visitor extends RecursiveAstVisitor<void> {
     for (var unit in units) {
       for (var variable in lateables[unit] ?? const <VariableDeclaration>[]) {
         if (!allNullableAccess.contains(variable.declaredElement)) {
-          rule.reporter.reportError(AnalysisError.tmp(
-              source: unit.source,
-              offset: variable.offset,
-              length: variable.length,
-              errorCode: rule.lintCode));
+          var contextUnit = context.allUnits
+              .firstWhereOrNull((u) => u.unit.declaredElement == unit);
+          if (contextUnit == null) continue;
+          contextUnit.errorReporter.atNode(variable, rule.lintCode);
         }
       }
     }

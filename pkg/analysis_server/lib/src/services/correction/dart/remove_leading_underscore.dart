@@ -14,10 +14,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_LEADING_UNDERSCORE;
@@ -27,9 +25,9 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
-    final Token? nameToken;
-    final Element? element;
+    var node = this.node;
+    Token? nameToken;
+    Element? element;
     if (node is SimpleIdentifier) {
       nameToken = node.token;
       element = node.staticElement;
@@ -53,7 +51,7 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
       return;
     }
 
-    final oldName = nameToken.lexeme;
+    var oldName = nameToken.lexeme;
     if (oldName.length < 2) {
       return;
     }
@@ -103,7 +101,7 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
     }
 
     // Compute the change.
-    final sourceRanges = {
+    var sourceRanges = {
       range.token(nameToken),
       ...references.map(range.node),
     };

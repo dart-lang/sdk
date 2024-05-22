@@ -259,6 +259,62 @@ class C {
     ]);
   }
 
+  test_constructorInitializerWithThrow_thenBlockBody() async {
+    await assertErrorsInCode(r'''
+class A {
+  int x;
+  A() : x = throw 0 {
+    x;
+  }
+}
+''', [
+      error(WarningCode.DEAD_CODE, 39, 12),
+    ]);
+  }
+
+  test_constructorInitializerWithThrow_thenEmptyBlockBody() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int x;
+  A() : x = throw 0 {}
+}
+''');
+  }
+
+  test_constructorInitializerWithThrow_thenEmptyBody() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int x;
+  A() : x = throw 0;
+}
+''');
+  }
+
+  test_constructorInitializerWithThrow_thenExpressions() async {
+    await assertErrorsInCode(r'''
+class A {
+  var x = [8];
+  A() : x = [7, throw 8, 9];
+}
+''', [
+      error(WarningCode.DEAD_CODE, 50, 3),
+    ]);
+  }
+
+  test_constructorInitializerWithThrow_thenInitializer() async {
+    await assertErrorsInCode(r'''
+class A {
+  int x;
+  int y;
+  A()
+      : x = throw 0,
+        y = 7;
+}
+''', [
+      error(WarningCode.DEAD_CODE, 63, 5),
+    ]);
+  }
+
   test_continueInSwitch() async {
     await assertNoErrorsInCode(r'''
 void f(int i) {
@@ -276,7 +332,8 @@ void f(int i) {
     await assertErrorsInCode(r'''
 f() {
   true ? 1 : 2;
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 19, 1),
     ]);
   }
@@ -286,7 +343,8 @@ f() {
 const bool DEBUG = true;
 f() {
   DEBUG ? 1 : 2;
-}''');
+}
+''');
   }
 
   test_deadBlock_conditionalElse_nested() async {
@@ -294,7 +352,8 @@ f() {
     await assertErrorsInCode(r'''
 f() {
   true ? true : false && false;
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 22, 14),
     ]);
   }
@@ -303,7 +362,8 @@ f() {
     await assertErrorsInCode(r'''
 f() {
   false ? 1 : 2;
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 16, 1),
     ]);
   }
@@ -313,7 +373,8 @@ f() {
 const bool DEBUG = false;
 f() {
   DEBUG ? 1 : 2;
-}''');
+}
+''');
   }
 
   test_deadBlock_conditionalIf_nested() async {
@@ -321,7 +382,8 @@ f() {
     await assertErrorsInCode(r'''
 f() {
   false ? false && false : true;
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 16, 14),
     ]);
   }
@@ -330,7 +392,8 @@ f() {
     await assertErrorsInCode(r'''
 f() {
   if(true) {} else {}
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 25, 2),
     ]);
   }
@@ -340,7 +403,8 @@ f() {
 const bool DEBUG = true;
 f() {
   if(DEBUG) {} else {}
-}''');
+}
+''');
   }
 
   test_deadBlock_else_nested() async {
@@ -348,7 +412,8 @@ f() {
     await assertErrorsInCode(r'''
 f() {
   if(true) {} else {if (false) {}}
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 25, 15),
     ]);
   }
@@ -357,7 +422,8 @@ f() {
     await assertErrorsInCode(r'''
 f() {
   if(false) {}
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 18, 2),
     ]);
   }
@@ -369,7 +435,8 @@ class A {
 }
 f() {
   if(A.DEBUG) {}
-}''');
+}
+''');
   }
 
   test_deadBlock_if_debugConst_prefixedIdentifier2() async {
@@ -381,19 +448,22 @@ class A {
 import 'lib2.dart';
 f() {
   if(A.DEBUG) {}
-}''');
+}
+''');
   }
 
   test_deadBlock_if_debugConst_propertyAccessor() async {
     newFile('$testPackageLibPath/lib2.dart', r'''
 class A {
   static const bool DEBUG = false;
-}''');
+}
+''');
     await assertNoErrorsInCode(r'''
 import 'lib2.dart' as LIB;
 f() {
   if(LIB.A.DEBUG) {}
-}''');
+}
+''');
   }
 
   test_deadBlock_if_debugConst_simpleIdentifier() async {
@@ -401,7 +471,8 @@ f() {
 const bool DEBUG = false;
 f() {
   if(DEBUG) {}
-}''');
+}
+''');
   }
 
   test_deadBlock_if_nested() async {
@@ -409,7 +480,8 @@ f() {
     await assertErrorsInCode(r'''
 f() {
   if(false) {if(false) {}}
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 18, 14),
     ]);
   }
@@ -420,7 +492,8 @@ f() {
   [
     if (false) 2,
   ];
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 25, 1),
     ]);
   }
@@ -432,7 +505,8 @@ f() {
     if (true) 2
     else 3,
   ];
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 35, 1),
     ]);
   }
@@ -441,7 +515,8 @@ f() {
     await assertErrorsInCode(r'''
 f() {
   while(false) {}
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 21, 2),
     ]);
   }
@@ -451,7 +526,8 @@ f() {
 const bool DEBUG = false;
 f() {
   while(DEBUG) {}
-}''');
+}
+''');
   }
 
   test_deadBlock_while_nested() async {
@@ -459,7 +535,8 @@ f() {
     await assertErrorsInCode(r'''
 f() {
   while(false) {if(false) {}}
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 21, 14),
     ]);
   }
@@ -469,7 +546,8 @@ f() {
 class A {}
 f() {
   try {} catch (e) {} catch (e) {}
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, 39, 12),
     ]);
   }
@@ -480,7 +558,8 @@ f() {
 class A {}
 f() {
   try {} catch (e) {} catch (e) {if(false) {}}
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, 39, 24),
     ]);
   }
@@ -489,7 +568,8 @@ f() {
     await assertErrorsInCode(r'''
 f() {
   try {} on Object catch (e) {} catch (e) {}
-}''', [
+}
+''', [
       error(WarningCode.UNUSED_CATCH_CLAUSE, 32, 1),
       error(WarningCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, 38, 12),
     ]);
@@ -500,7 +580,8 @@ f() {
     await assertErrorsInCode(r'''
 f() {
   try {} on Object catch (e) {} catch (e) {if(false) {}}
-}''', [
+}
+''', [
       error(WarningCode.UNUSED_CATCH_CLAUSE, 32, 1),
       error(WarningCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, 38, 24),
     ]);
@@ -512,7 +593,8 @@ class A {}
 class B extends A {}
 f() {
   try {} on A catch (e) {} on B catch (e) {}
-}''', [
+}
+''', [
       error(WarningCode.UNUSED_CATCH_CLAUSE, 59, 1),
       error(WarningCode.DEAD_CODE_ON_CATCH_SUBTYPE, 65, 17),
       error(WarningCode.UNUSED_CATCH_CLAUSE, 77, 1),
@@ -526,7 +608,8 @@ class A {}
 class B extends A {}
 f() {
   try {} on A catch (e) {} on B catch (e) {if(false) {}}
-}''', [
+}
+''', [
       error(WarningCode.UNUSED_CATCH_CLAUSE, 59, 1),
       error(WarningCode.DEAD_CODE_ON_CATCH_SUBTYPE, 65, 29),
       error(WarningCode.UNUSED_CATCH_CLAUSE, 77, 1),
@@ -551,7 +634,8 @@ f() {
 f() {
   bool b = false && false;
   print(b);
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 23, 8),
     ]);
   }
@@ -562,7 +646,8 @@ const bool DEBUG = false;
 f() {
   bool b = DEBUG && false;
   print(b);
-}''');
+}
+''');
   }
 
   test_deadOperandLHS_and_nested() async {
@@ -570,7 +655,8 @@ f() {
 f() {
   bool b = false && (false && false);
   print(b);
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 23, 19),
     ]);
   }
@@ -580,7 +666,8 @@ f() {
 f() {
   bool b = true || true;
   print(b);
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 22, 7),
     ]);
   }
@@ -601,7 +688,8 @@ f() {
 f() {
   bool b = true || (false && false);
   print(b);
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 22, 19),
     ]);
   }
@@ -1141,7 +1229,8 @@ f() {
   print(1);
   new C().a;
   print(2);
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 129, 9),
     ]);
   }
@@ -1155,7 +1244,8 @@ f(v) {
       break;
       print(1);
   }
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 65, 9),
     ]);
   }
@@ -1168,7 +1258,8 @@ f() {
     break;
     print(l);
   }
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 56, 9),
     ]);
   }
@@ -1180,7 +1271,8 @@ f() {
     break;
     print(1);
   }
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 33, 9),
     ]);
   }
@@ -1193,7 +1285,8 @@ f(v) {
       break;
       print(1);
   }
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 52, 9),
     ]);
   }
@@ -1205,7 +1298,8 @@ f(v) {
     break;
     print(1);
   }
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 35, 9),
     ]);
   }
@@ -1218,7 +1312,8 @@ f() {
     continue;
     print(l);
   }
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 59, 9),
     ]);
   }
@@ -1230,7 +1325,8 @@ f() {
     continue;
     print(1);
   }
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 36, 9),
     ]);
   }
@@ -1242,7 +1338,8 @@ f(v) {
     continue;
     print(1);
   }
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 38, 9),
     ]);
   }
@@ -1256,7 +1353,8 @@ f() {
     return;
   }
   print(1);
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 62, 9),
     ]);
   }
@@ -1268,7 +1366,8 @@ f() {
     return;
   }
   print(1);
-}''');
+}
+''');
   }
 
   test_statementAfterRethrow() async {
@@ -1280,7 +1379,8 @@ f() {
     rethrow;
     print(2);
   }
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 61, 9),
     ]);
   }
@@ -1291,7 +1391,8 @@ f() {
   print(1);
   return;
   print(2);
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 30, 9),
     ]);
   }
@@ -1305,7 +1406,8 @@ f() {
     print(2);
   }
   g();
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 49, 9),
     ]);
   }
@@ -1318,7 +1420,8 @@ f() {
     return;
     print(2);
   };
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 43, 9),
     ]);
   }
@@ -1331,7 +1434,8 @@ f(bool b) {
     return;
     print(2);
   }
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 52, 9),
     ]);
   }
@@ -1344,7 +1448,8 @@ class A {
     return;
     print(2);
   }
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 48, 9),
     ]);
   }
@@ -1355,7 +1460,8 @@ f() {
   print(1);
   return;
   if(false) {}
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 30, 12),
     ]);
   }
@@ -1368,7 +1474,8 @@ f() {
   print(2);
   return;
   print(3);
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 30, 31),
     ]);
   }
@@ -1379,7 +1486,8 @@ f() {
   print(1);
   throw 'Stop here';
   print(2);
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 41, 9),
     ]);
   }
@@ -1630,7 +1738,8 @@ void f() {
 Iterable<int> f() sync* {
   return;
   yield 1;
-}''', [
+}
+''', [
       error(WarningCode.DEAD_CODE, 38, 8),
     ]);
   }

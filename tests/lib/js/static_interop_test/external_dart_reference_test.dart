@@ -22,6 +22,17 @@ external EExternalDartReference eExternalDartReference;
 @JS('externalDartReference')
 external ExternalDartReference? nullableExternalDartReference;
 
+// Use a function so that we can use a type parameter that extends an
+// `ExternalDartReference` type.
+@JS('identity')
+external set _identity(JSFunction _);
+@JS()
+external T identity<T extends EExternalDartReference>(T t);
+
+extension type ObjectLiteral(JSObject _) {
+  external void operator []=(String key, ExternalDartReference value);
+}
+
 class DartClass {
   int field;
 
@@ -39,6 +50,12 @@ void main() {
   Expect.equals(dartObject, eExternalDartReference.toDartObject as DartClass);
   Expect.isTrue(
       identical(dartObject, eExternalDartReference.toDartObject as DartClass));
+  _identity = ((ExternalDartReference e) => e).toJS;
+  final externalDartReferenceTypeParam = identity(eExternalDartReference);
+  Expect.equals(
+      dartObject, externalDartReferenceTypeParam.toDartObject as DartClass);
+  Expect.isTrue(identical(
+      dartObject, externalDartReferenceTypeParam.toDartObject as DartClass));
 
   // Multiple invocations should return the same underlying value, which is
   // tested by `==`.
@@ -63,4 +80,10 @@ void main() {
   // Check that we do the right thing with nullability still.
   nullableExternalDartReference = null;
   if (hasSoundNullSafety) Expect.throws(() => externalDartReference);
+
+  // Functions should not trigger `assertInterop`.
+  externalDartReference = () {}.toExternalReference;
+  identity(EExternalDartReference(() {}.toExternalReference));
+  final literal = ObjectLiteral(JSObject());
+  literal['ref'] = externalDartReference;
 }

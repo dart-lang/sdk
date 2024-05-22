@@ -511,7 +511,7 @@ abstract mixin class Iterable<E> {
   /// ```
   Set<E> toSet() => Set<E>.of(this);
 
-  /// The number of elements in [this].
+  /// The number of elements in this [Iterable].
   ///
   /// Counting all elements may involve iterating through all elements and can
   /// therefore be slow.

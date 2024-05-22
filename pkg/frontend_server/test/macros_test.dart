@@ -4,13 +4,13 @@
 
 import 'dart:io';
 
+import 'package:frontend_server/compute_kernel.dart';
 import 'package:macros/src/bootstrap.dart';
 import 'package:macros/src/executor/serialization.dart';
-import 'package:frontend_server/compute_kernel.dart';
 import 'package:test/test.dart';
 
 void main() async {
-  group('basic macro', () {
+  group('basic macro', timeout: new Timeout(new Duration(minutes: 2)), () {
     late File productPlatformDill;
     late Directory tempDir;
     late Uri testMacroUri;
@@ -45,8 +45,13 @@ void main() async {
         "packageUri": "lib/"
       },
       {
-        "name": "_fe_analyzer_shared",
-        "rootUri": "${Platform.script.resolve('../../_fe_analyzer_shared')}",
+        "name": "macros",
+        "rootUri": "${Platform.script.resolve('../../macros')}",
+        "packageUri": "lib/"
+      },
+      {
+        "name": "_macros",
+        "rootUri": "${Platform.script.resolve('../../_macros')}",
         "packageUri": "lib/"
       },
       {

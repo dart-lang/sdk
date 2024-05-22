@@ -10,10 +10,8 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddTrailingComma extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_TRAILING_COMMA;
@@ -23,7 +21,7 @@ class AddTrailingComma extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is ArgumentList) {
       await _insertComma(builder, node.arguments.last);
     } else if (node is FormalParameterList) {

@@ -8,7 +8,6 @@ declare_args() {
 }
 
 import("//build/config/win/visual_studio_version.gni")
-import("//build/toolchain/goma.gni")
 import("//build/toolchain/rbe.gni")
 
 # Should only be running on Windows.
@@ -25,9 +24,7 @@ tool_wrapper_path = rebase_path("tool_wrapper.py", root_build_dir)
 
 ninja_path = rebase_path("//buildtools/ninja/ninja")
 
-if (use_goma) {
-  compiler_prefix = "$goma_dir/gomacc.exe "
-} else if (use_rbe) {
+if (use_rbe) {
   compiler_args =
       rewrapper_args + [ "--labels=type=compile,compiler=clang-cl,lang=cpp" ]
   if (rbe_os != host_os || rbe_cpu != host_cpu) {

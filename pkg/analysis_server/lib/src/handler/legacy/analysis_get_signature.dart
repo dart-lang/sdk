@@ -34,8 +34,8 @@ class AnalysisGetSignatureHandler extends LegacyHandler {
     }
 
     // Ensure the offset provided is a valid location in the file.
-    final unit = result.unit;
-    final computer = DartUnitSignatureComputer(
+    var unit = result.unit;
+    var computer = DartUnitSignatureComputer(
         server.getDartdocDirectiveInfoFor(result), unit, params.offset);
     if (!computer.offsetIsValid) {
       sendResponse(Response.getSignatureInvalidOffset(request));
@@ -43,7 +43,7 @@ class AnalysisGetSignatureHandler extends LegacyHandler {
     }
 
     // Try to get a signature.
-    final signature = computer.compute();
+    var signature = computer.compute();
     if (signature == null) {
       sendResponse(Response.getSignatureUnknownFunction(request));
       return;

@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:browser_launcher/browser_launcher.dart';
+import 'package:devtools_shared/devtools_extensions_io.dart';
 import 'package:devtools_shared/devtools_shared.dart';
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:path/path.dart' as path;
@@ -297,8 +298,8 @@ class DevToolsServer {
     handler ??= await defaultHandler(
       buildDir: customDevToolsPath!,
       clientManager: clientManager,
-      analytics: DevToolsUtils.initializeAnalytics(),
       dtd: (uri: dtdUri, secret: dtdSecret),
+      devtoolsExtensionsManager: ExtensionsManager(),
     );
 
     HttpServer? server;

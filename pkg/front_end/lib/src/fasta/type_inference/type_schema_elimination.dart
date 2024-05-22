@@ -54,7 +54,7 @@ class _TypeSchemaEliminationVisitor extends ReplacementVisitor {
   _TypeSchemaEliminationVisitor(this.topType, this.bottomType);
 
   @override
-  DartType? visitAuxiliaryType(AuxiliaryType node, int variance) {
+  DartType? visitAuxiliaryType(AuxiliaryType node, Variance variance) {
     bool isLeastClosure = variance == Variance.covariant;
     if (node is UnknownType) {
       return isLeastClosure ? bottomType : topType;

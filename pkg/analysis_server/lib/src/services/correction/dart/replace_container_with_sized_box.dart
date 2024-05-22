@@ -11,10 +11,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceContainerWithSizedBox extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_CONTAINER_WITH_SIZED_BOX;
@@ -25,7 +23,7 @@ class ReplaceContainerWithSizedBox extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final diagnostic = this.diagnostic;
+    var diagnostic = this.diagnostic;
     if (diagnostic is AnalysisError) {
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleReplacement(range.error(diagnostic), 'SizedBox');

@@ -380,8 +380,7 @@ class LazyTypeEnvironment {
 
   LazyTypeEnvironment() {
     Uri uri = Uri.parse('file://dummy.dart');
-    dummyLibrary = new Library(uri, fileUri: uri)
-      ..isNonNullableByDefault = true;
+    dummyLibrary = new Library(uri, fileUri: uri);
     component.libraries.add(dummyLibrary..parent = component);
     dummyLibrary.name = 'lib';
   }

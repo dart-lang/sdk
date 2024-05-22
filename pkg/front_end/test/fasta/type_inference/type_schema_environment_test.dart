@@ -554,7 +554,7 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
       expect(
           typeSchemaEnvironment.getStandardUpperBound(
               parseType(type1), parseType(type2),
-              isNonNullableByDefault: testLibrary.isNonNullableByDefault),
+              isNonNullableByDefault: false),
           parseType(upperBound));
     });
   }

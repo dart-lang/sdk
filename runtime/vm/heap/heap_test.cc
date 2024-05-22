@@ -1068,7 +1068,8 @@ ISOLATE_UNIT_TEST_CASE(WeakReference_Generations) {
   WeakReference_Generations(kOld, kImm, false, false, false);
 }
 
-static void WeakArray_Generations(Generation array_space,
+static void WeakArray_Generations(intptr_t length,
+                                  Generation array_space,
                                   Generation element_space,
                                   bool cleared_after_minor,
                                   bool cleared_after_major,
@@ -1079,10 +1080,10 @@ static void WeakArray_Generations(Generation array_space,
     HANDLESCOPE(Thread::Current());
     switch (array_space) {
       case kNew:
-        array = WeakArray::New(1, Heap::kNew);
+        array = WeakArray::New(length, Heap::kNew);
         break;
       case kOld:
-        array = WeakArray::New(1, Heap::kOld);
+        array = WeakArray::New(length, Heap::kOld);
         break;
       case kImm:
         UNREACHABLE();
@@ -1101,42 +1102,55 @@ static void WeakArray_Generations(Generation array_space,
         break;
     }
 
-    array.SetAt(0, element);
+    array.SetAt(length - 1, element);
   }
 
   OS::PrintErr("%d %d\n", array_space, element_space);
 
   GCTestHelper::CollectNewSpace();
   if (cleared_after_minor) {
-    EXPECT(array.At(0) == Object::null());
+    EXPECT(array.At(length - 1) == Object::null());
   } else {
-    EXPECT(array.At(0) != Object::null());
+    EXPECT(array.At(length - 1) != Object::null());
   }
 
   GCTestHelper::CollectOldSpace();
   if (cleared_after_major) {
-    EXPECT(array.At(0) == Object::null());
+    EXPECT(array.At(length - 1) == Object::null());
   } else {
-    EXPECT(array.At(0) != Object::null());
+    EXPECT(array.At(length - 1) != Object::null());
   }
 
   GCTestHelper::CollectAllGarbage();
   if (cleared_after_all) {
-    EXPECT(array.At(0) == Object::null());
+    EXPECT(array.At(length - 1) == Object::null());
   } else {
-    EXPECT(array.At(0) != Object::null());
+    EXPECT(array.At(length - 1) != Object::null());
   }
 }
 
 ISOLATE_UNIT_TEST_CASE(WeakArray_Generations) {
   FLAG_early_tenuring_threshold = 100;  // I.e., off.
 
-  WeakArray_Generations(kNew, kNew, true, true, true);
-  WeakArray_Generations(kNew, kOld, false, true, true);
-  WeakArray_Generations(kNew, kImm, false, false, false);
-  WeakArray_Generations(kOld, kNew, true, true, true);
-  WeakArray_Generations(kOld, kOld, false, true, true);
-  WeakArray_Generations(kOld, kImm, false, false, false);
+  intptr_t length = 1;
+  WeakArray_Generations(length, kNew, kNew, true, true, true);
+  WeakArray_Generations(length, kNew, kOld, false, true, true);
+  WeakArray_Generations(length, kNew, kImm, false, false, false);
+  WeakArray_Generations(length, kOld, kNew, true, true, true);
+  WeakArray_Generations(length, kOld, kOld, false, true, true);
+  WeakArray_Generations(length, kOld, kImm, false, false, false);
+}
+
+ISOLATE_UNIT_TEST_CASE(WeakArray_Large_Generations) {
+  FLAG_early_tenuring_threshold = 100;  // I.e., off.
+
+  intptr_t length = kNewAllocatableSize / kCompressedWordSize;
+  WeakArray_Generations(length, kNew, kNew, true, true, true);
+  WeakArray_Generations(length, kNew, kOld, false, true, true);
+  WeakArray_Generations(length, kNew, kImm, false, false, false);
+  WeakArray_Generations(length, kOld, kNew, true, true, true);
+  WeakArray_Generations(length, kOld, kOld, false, true, true);
+  WeakArray_Generations(length, kOld, kImm, false, false, false);
 }
 
 static void FinalizerEntry_Generations(Generation entry_space,
@@ -1266,5 +1280,91 @@ ISOLATE_UNIT_TEST_CASE(SweepDontNeed) {
   EXPECT(delta_dontneed < delta_normal);  // More negative.
 }
 #endif  // !defined(PRODUCT) && !defined(DART_HOST_OS_LINUX)
+
+static void TestCardRememberedArray(bool immutable, bool compact) {
+  constexpr intptr_t kNumElements = kNewAllocatableSize / kCompressedWordSize;
+  Array& array = Array::Handle(Array::New(kNumElements));
+  EXPECT(array.ptr()->untag()->IsCardRemembered());
+  EXPECT(Page::Of(array.ptr())->is_large());
+
+  {
+    HANDLESCOPE(Thread::Current());
+    Object& element = Object::Handle();
+    for (intptr_t i = 0; i < kNumElements; i++) {
+      element = Double::New(i, Heap::kNew);  // Garbage
+      element = Double::New(i, Heap::kNew);
+      array.SetAt(i, element);
+    }
+    if (immutable) {
+      array.MakeImmutable();
+    }
+  }
+
+  GCTestHelper::CollectAllGarbage(compact);
+  GCTestHelper::WaitForGCTasks();
+
+  {
+    HANDLESCOPE(Thread::Current());
+    Object& element = Object::Handle();
+    for (intptr_t i = 0; i < kNumElements; i++) {
+      element = array.At(i);
+      EXPECT(element.IsDouble());
+      EXPECT(Double::Cast(element).value() == i);
+    }
+  }
+}
+
+static void TestCardRememberedWeakArray(bool compact) {
+  constexpr intptr_t kNumElements = kNewAllocatableSize / kCompressedWordSize;
+  WeakArray& weak = WeakArray::Handle(WeakArray::New(kNumElements));
+  EXPECT(!weak.ptr()->untag()->IsCardRemembered());
+  EXPECT(Page::Of(weak.ptr())->is_large());
+  Array& strong = Array::Handle(Array::New(kNumElements));
+
+  {
+    HANDLESCOPE(Thread::Current());
+    Object& element = Object::Handle();
+    for (intptr_t i = 0; i < kNumElements; i++) {
+      element = Double::New(i, Heap::kNew);  // Garbage
+      element = Double::New(i, Heap::kNew);
+      weak.SetAt(i, element);
+      if ((i % 3) == 0) {
+        strong.SetAt(i, element);
+      }
+    }
+  }
+
+  GCTestHelper::CollectAllGarbage(compact);
+  GCTestHelper::WaitForGCTasks();
+
+  {
+    HANDLESCOPE(Thread::Current());
+    Object& element = Object::Handle();
+    for (intptr_t i = 0; i < kNumElements; i++) {
+      element = weak.At(i);
+      if ((i % 3) == 0) {
+        EXPECT(element.IsDouble());
+        EXPECT(Double::Cast(element).value() == i);
+      } else {
+        EXPECT(element.IsNull());
+      }
+    }
+  }
+}
+
+ISOLATE_UNIT_TEST_CASE(CardRememberedArray) {
+  TestCardRememberedArray(true, true);
+  TestCardRememberedArray(true, false);
+}
+
+ISOLATE_UNIT_TEST_CASE(CardRememberedImmutableArray) {
+  TestCardRememberedArray(false, true);
+  TestCardRememberedArray(false, false);
+}
+
+ISOLATE_UNIT_TEST_CASE(CardRememberedWeakArray) {
+  TestCardRememberedWeakArray(true);
+  TestCardRememberedWeakArray(false);
+}
 
 }  // namespace dart

@@ -15,7 +15,12 @@ class CreateLocalVariable extends ResolvedCorrectionProducer {
   String _variableName = '';
 
   @override
-  List<Object> get fixArguments => [_variableName];
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments => [_variableName];
 
   @override
   FixKind get fixKind => DartFixKind.CREATE_LOCAL_VARIABLE;

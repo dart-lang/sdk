@@ -1,5 +1,3 @@
-// @dart = 2.9
-
 library test;
 
 int getInt() => 0;
@@ -9,17 +7,20 @@ num getNum() => 0;
 double getDouble() => 0.0;
 
 class Test1 {
-  int t;
+  int t = 0;
+  int? t2;
   void test() {}
 }
 
 class Test2 {
-  num t;
+  num t = 0;
+  num? t2;
   void test() {}
 }
 
 class Test3 {
-  double t;
+  double t = 0;
+  double? t2;
   void test3() {}
 }
 

@@ -44,13 +44,9 @@ class MallocAllocated {
   // of memory. Don't do this when running under ASAN so it can continue to
   // check malloc/new/new[] are paired with free/delete/delete[] respectively.
 #if !defined(USING_ADDRESS_SANITIZER)
-  void* operator new(size_t size) {
-    return dart::malloc(size);
-  }
+  void* operator new(size_t size) { return dart::malloc(size); }
 
-  void* operator new[](size_t size) {
-    return dart::malloc(size);
-  }
+  void* operator new[](size_t size) { return dart::malloc(size); }
 
   void operator delete(void* pointer) { ::free(pointer); }
 

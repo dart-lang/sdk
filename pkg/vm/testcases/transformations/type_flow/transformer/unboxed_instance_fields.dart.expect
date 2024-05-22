@@ -60,16 +60,22 @@ static final field core::bool kTrue = [@vm.direct-call.metadata=dart.core::_Inte
 static final field core::bool kFalse = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.inferred-type.metadata=int] core::int::parse("1") =={core::num::==}{(core::Object) → core::bool} 2 ?{core::bool} true : false;
 static field dynamic usedObject;
 
+[@vm.inferred-return-type.metadata=int]
 [@vm.unboxing-info.metadata=()->i]
 static get mint() → core::int
   return -6144092014192636707;
 
+[@vm.inferred-return-type.metadata=int]
 [@vm.unboxing-info.metadata=()->i]
 static get smiOrMint() → core::int
   return [@vm.inferred-type.metadata=dart.core::bool] self::kTrue ?{core::int} 1 : [@vm.inferred-type.metadata=int] self::mint;
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method use(dynamic object) → void {
   self::usedObject == null ?{dynamic} self::usedObject = object : null;
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → dynamic {
   final self::A a = new self::A::•([@vm.inferred-type.metadata=dart.core::bool] self::kTrue ?{core::int} 1 : 2, [@vm.inferred-type.metadata=dart.core::bool] self::kTrue ?{core::int} [@vm.inferred-type.metadata=int] self::smiOrMint : 2, [@vm.inferred-type.metadata=dart.core::bool] self::kTrue ?{core::double} 1.1 : 2.2, [@vm.inferred-type.metadata=dart.core::bool] self::kTrue ?{core::int?} [@vm.inferred-type.metadata=int] self::smiOrMint : null, [@vm.inferred-type.metadata=dart.core::bool] self::kTrue ?{core::double?} 1.1 : null, [@vm.inferred-type.metadata=dart.core::bool] self::kTrue ?{core::num} [@vm.inferred-type.metadata=int] self::smiOrMint : 1.1, [@vm.inferred-type.metadata=dart.core::bool] self::kTrue ?{core::num?} [@vm.inferred-type.metadata=dart.core::bool] self::kFalse ?{core::num} [@vm.inferred-type.metadata=int] self::smiOrMint : 1.1 : null, [@vm.inferred-type.metadata=dart.core::bool] self::kTrue ?{self::X?} new self::X::•() : null, new self::X::•());
   [@vm.direct-call.metadata=#lib::A.unboxedSmi] [@vm.inferred-type.metadata=!? (skip check)] a.{self::A::unboxedSmi} = [@vm.inferred-type.metadata=dart.core::bool] self::kTrue ?{core::int} 1 : 2;

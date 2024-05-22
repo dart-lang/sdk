@@ -1,0 +1,18 @@
+main = mai::main;
+library from "org-dartlang-test:///lib1.dart" as lib1 {
+
+  class Lib1Class extends dart.core::Object {
+    synthetic constructor •() → lib1::Lib1Class
+      : super dart.core::Object::•()
+      ;
+  }
+}
+library from "org-dartlang-test:///main1.dart" as mai {
+
+  import "org-dartlang-test:///lib1.dart";
+
+  static method main() → dynamic {
+    dart.core::print("Updated!");
+    new lib1::Lib1Class::•();
+  }
+}

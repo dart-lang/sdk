@@ -90,7 +90,7 @@ Variance convertVariance(ir.TypeParameter node) {
       return Variance.contravariant;
     case ir.Variance.invariant:
       return Variance.invariant;
-    default:
+    case ir.Variance.unrelated:
       throw UnsupportedError("Variance ${node.variance} is not supported.");
   }
 }

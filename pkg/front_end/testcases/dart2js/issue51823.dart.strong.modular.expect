@@ -1,0 +1,59 @@
+library;
+import self as self;
+import "issue51823_lib.dart" as iss;
+
+import "org-dartlang-testcase:///issue51823_lib.dart";
+
+static const field iss::E a = #C9;
+
+library;
+import self as iss;
+import "dart:core" as core;
+
+class E extends core::_Enum /*isEnum*/  {
+  static const field core::List<iss::E> values = #C12;
+  enum-element static const field iss::E a = #C10;
+  enum-element static const field iss::E b = #C11;
+  const synthetic constructor •(core::int #index, core::String #name) → iss::E
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "E.${this.{core::_Enum::_name}{core::String}}";
+}
+static method method(iss::E e) → dynamic {
+  #L1:
+  switch(e) /* isExplicitlyExhaustive, iss::E */ {
+    #L2:
+    case #C10:
+      {
+        return 0;
+      }
+    #L3:
+    case #C11:
+      {
+        return 1;
+      }
+  }
+}
+
+constants  {
+  #C1 = "foo"
+  #C2 = eval const core::bool::fromEnvironment(#C1)
+  #C3 = 0.0
+  #C4 = "a"
+  #C5 = eval iss::E{index:#C3, _name:#C4}
+  #C6 = 1.0
+  #C7 = "b"
+  #C8 = eval iss::E{index:#C6, _name:#C7}
+  #C9 = eval #C2 ?{iss::E} #C5 : #C8
+  #C10 = iss::E {index:#C3, _name:#C4}
+  #C11 = iss::E {index:#C6, _name:#C7}
+  #C12 = <iss::E>[#C10, #C11]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue51823_lib.dart:
+- E. (from org-dartlang-testcase:///issue51823_lib.dart:5:6)
+- _Enum. (from org-dartlang-sdk:///lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart)

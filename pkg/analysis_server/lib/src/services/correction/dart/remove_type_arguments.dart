@@ -11,6 +11,11 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveTypeArguments extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   FixKind get fixKind => DartFixKind.REMOVE_TYPE_ARGUMENTS;
 
   @override

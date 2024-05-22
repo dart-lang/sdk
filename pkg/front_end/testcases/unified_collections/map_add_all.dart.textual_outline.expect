@@ -1,6 +1,6 @@
-// @dart = 2.9
-
 void useAddAll() {}
+
+void useAddAllNullable() {}
 
 main() {}
 

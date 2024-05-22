@@ -63,6 +63,8 @@ class Application {
   void quit() {
     _gotoMainScreenBuffer();
     _showCursor();
+    stdin.echoMode = true;
+    stdin.lineMode = true;
     _timer!.cancel();
     _preventClose.close();
     _stdinListen.cancel();

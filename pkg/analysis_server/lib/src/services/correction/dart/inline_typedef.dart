@@ -15,13 +15,11 @@ class InlineTypedef extends ResolvedCorrectionProducer {
   String _name = '';
 
   @override
-  bool get canBeAppliedInBulk => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
-  bool get canBeAppliedToFile => true;
-
-  @override
-  List<Object> get fixArguments => [_name];
+  List<String> get fixArguments => [_name];
 
   @override
   FixKind get fixKind => DartFixKind.INLINE_TYPEDEF;
@@ -31,7 +29,7 @@ class InlineTypedef extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
 
     //
     // Extract the information needed to build the edit.

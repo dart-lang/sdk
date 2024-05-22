@@ -21,7 +21,12 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
   String _functionName = '';
 
   @override
-  List<Object> get fixArguments => [_functionName];
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments => [_functionName];
 
   @override
   FixKind get fixKind => _fixKind;
@@ -147,10 +152,10 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
     CompilationUnitMember? targetNode;
     List<ClassMember>? classMembers;
     if (targetClassElement is MixinElement) {
-      final node = targetNode = await getMixinDeclaration(targetClassElement);
+      var node = targetNode = await getMixinDeclaration(targetClassElement);
       classMembers = node?.members;
     } else if (targetClassElement is ClassElement) {
-      final node = targetNode = await getClassDeclaration(targetClassElement);
+      var node = targetNode = await getClassDeclaration(targetClassElement);
       classMembers = node?.members;
     }
     if (targetNode == null || classMembers == null) {

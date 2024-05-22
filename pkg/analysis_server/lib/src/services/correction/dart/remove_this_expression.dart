@@ -11,10 +11,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveThisExpression extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_THIS_EXPRESSION;
@@ -24,7 +22,7 @@ class RemoveThisExpression extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is ConstructorFieldInitializer) {
       var thisKeyword = node.thisKeyword;
       if (thisKeyword != null) {

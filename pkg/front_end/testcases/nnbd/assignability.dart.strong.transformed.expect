@@ -1331,7 +1331,7 @@ static method error<XnonNull extends core::Object, YnonNull extends self::error:
                 ^" in toVoidNullableArg as{TypeError} core::Function;
   functionVar = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:202:17: Error: Can't tear off method 'call' from a potentially null value.
   functionVar = tearoffableNullableArg;
-                ^" in tearoffableNullableArg as{TypeError,ForLegacy} core::Function;
+                ^" in tearoffableNullableArg as{TypeError} core::Function;
   functionVar = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:203:17: Error: A value of type 'XnonNull' can't be assigned to a variable of type 'Function'.
  - 'Function' is from 'dart:core'.
   functionVar = xNonNullArg;
@@ -1403,7 +1403,7 @@ static method error<XnonNull extends core::Object, YnonNull extends self::error:
               ^" in let () →? void #t22 = toVoidNullableArg in #t22 == null ?{() → void} #t22 as{TypeError} () → void : #t22{() → void};
   toVoidVar = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:223:15: Error: Can't tear off method 'call' from a potentially null value.
   toVoidVar = tearoffableNullableArg;
-              ^" in tearoffableNullableArg as{TypeError,ForLegacy} () → void;
+              ^" in tearoffableNullableArg as{TypeError} () → void;
   toVoidVar = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:224:15: Error: A value of type 'XnonNull' can't be assigned to a variable of type 'void Function()'.
   toVoidVar = xNonNullArg;
               ^" in xNonNullArg as{TypeError} () → void;

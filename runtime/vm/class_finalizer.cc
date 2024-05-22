@@ -492,7 +492,9 @@ void ClassFinalizer::FinalizeMemberTypes(const Class& cls) {
     type = field.type();
     type = FinalizeType(type);
     field.SetFieldType(type);
-    if (track_exactness && IsPotentialExactGeneric(type)) {
+    ASSERT(!field.static_type_exactness_state().IsTracking());
+    if (track_exactness && (field.guarded_cid() != kDynamicCid) &&
+        IsPotentialExactGeneric(type)) {
       field.set_static_type_exactness_state(
           StaticTypeExactnessState::Uninitialized());
     }

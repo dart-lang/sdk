@@ -154,7 +154,7 @@ class Scanner {
     firstToken = token;
     // Update all token offsets based upon the reader's starting offset
     if (_readerOffset != -1) {
-      final int delta = _readerOffset + 1;
+      int delta = _readerOffset + 1;
       do {
         token.offset += delta;
         token = token.next!;

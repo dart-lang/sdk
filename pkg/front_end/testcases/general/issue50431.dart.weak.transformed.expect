@@ -1,8 +1,0 @@
-library;
-import self as self;
-import "dart:core" as core;
-
-static method test<T extends core::Object? = dynamic>(self::test::T? t) → dynamic {
-  core::Object? x1 = !(t == null) ?{core::Object?} t{self::test::T% & core::Object /* '%' & '!' = '!' */} : null;
-  core::Object? x2 = t == null ?{core::Object?} null : t{self::test::T% & core::Object /* '%' & '!' = '!' */};
-}

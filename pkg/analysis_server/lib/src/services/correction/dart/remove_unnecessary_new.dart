@@ -16,10 +16,8 @@ class RemoveNew extends _RemoveNew {
 
 class RemoveUnnecessaryNew extends _RemoveNew {
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_UNNECESSARY_NEW;
@@ -30,13 +28,18 @@ class RemoveUnnecessaryNew extends _RemoveNew {
 
 class _RemoveNew extends ParsedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
-    final creation = node;
+    var creation = node;
     if (creation is! InstanceCreationExpression) {
       return;
     }
 
-    final newToken = creation.keyword;
+    var newToken = creation.keyword;
     if (newToken == null) {
       return;
     }

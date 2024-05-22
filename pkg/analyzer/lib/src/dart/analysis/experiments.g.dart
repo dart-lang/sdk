@@ -12,7 +12,7 @@ part of 'experiments.dart';
 
 /// The current version of the Dart language (or, for non-stable releases, the
 /// version of the language currently in the process of being developed).
-const _currentVersion = '3.4.0';
+const _currentVersion = '3.5.0';
 
 /// A map containing information about all known experimental flags.
 final _knownFeatures = <String, ExperimentalFeature>{
@@ -47,6 +47,7 @@ final _knownFeatures = <String, ExperimentalFeature>{
   EnableString.triple_shift: ExperimentalFeatures.triple_shift,
   EnableString.unnamed_libraries: ExperimentalFeatures.unnamed_libraries,
   EnableString.variance: ExperimentalFeatures.variance,
+  EnableString.wildcard_variables: ExperimentalFeatures.wildcard_variables,
 };
 
 /// Constant strings for enabling each of the currently known experimental
@@ -135,6 +136,9 @@ class EnableString {
 
   /// String to enable the experiment "variance"
   static const String variance = 'variance';
+
+  /// String to enable the experiment "wildcard-variables"
+  static const String wildcard_variables = 'wildcard-variables';
 }
 
 class ExperimentalFeatures {
@@ -423,6 +427,17 @@ class ExperimentalFeatures {
     experimentalReleaseVersion: null,
     releaseVersion: null,
   );
+
+  static final wildcard_variables = ExperimentalFeature(
+    index: 28,
+    enableString: EnableString.wildcard_variables,
+    isEnabledByDefault: IsEnabledByDefault.wildcard_variables,
+    isExpired: IsExpired.wildcard_variables,
+    documentation:
+        'Local declarations and parameters named `_` are non-binding.',
+    experimentalReleaseVersion: null,
+    releaseVersion: null,
+  );
 }
 
 /// Constant bools indicating whether each experimental flag is currently
@@ -511,6 +526,9 @@ class IsEnabledByDefault {
 
   /// Default state of the experiment "variance"
   static const bool variance = false;
+
+  /// Default state of the experiment "wildcard-variables"
+  static const bool wildcard_variables = false;
 }
 
 /// Constant bools indicating whether each experimental flag is currently
@@ -548,7 +566,7 @@ class IsExpired {
   static const bool inference_update_2 = true;
 
   /// Expiration status of the experiment "inference-update-3"
-  static const bool inference_update_3 = false;
+  static const bool inference_update_3 = true;
 
   /// Expiration status of the experiment "inline-class"
   static const bool inline_class = true;
@@ -600,6 +618,9 @@ class IsExpired {
 
   /// Expiration status of the experiment "variance"
   static const bool variance = false;
+
+  /// Expiration status of the experiment "wildcard-variables"
+  static const bool wildcard_variables = false;
 }
 
 mixin _CurrentState {
@@ -698,6 +719,10 @@ mixin _CurrentState {
 
   /// Current state for the flag "variance"
   bool get variance => isEnabled(ExperimentalFeatures.variance);
+
+  /// Current state for the flag "wildcard-variables"
+  bool get wildcard_variables =>
+      isEnabled(ExperimentalFeatures.wildcard_variables);
 
   bool isEnabled(covariant ExperimentalFeature feature);
 }

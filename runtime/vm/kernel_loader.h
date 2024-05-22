@@ -220,6 +220,9 @@ class KernelLoader : public ValueObject {
                                         const Function& parent_function,
                                         const Object& closure_owner);
 
+  static void index_programs(kernel::Reader* reader,
+                             GrowableArray<intptr_t>* subprogram_file_starts);
+
  private:
   // Pragma bits
   using HasPragma = BitField<uint32_t, bool, 0, 1>;
@@ -279,8 +282,6 @@ class KernelLoader : public ValueObject {
 
   uint8_t CharacterAt(StringIndex string_index, intptr_t index);
 
-  static void index_programs(kernel::Reader* reader,
-                             GrowableArray<intptr_t>* subprogram_file_starts);
   void walk_incremental_kernel(BitVector* modified_libs,
                                bool* is_empty_program,
                                intptr_t* p_num_classes,

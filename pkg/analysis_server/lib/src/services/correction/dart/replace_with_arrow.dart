@@ -11,10 +11,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceWithArrow extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_WITH_ARROW;
@@ -24,12 +22,12 @@ class ReplaceWithArrow extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is! SwitchExpressionCase) {
       return;
     }
 
-    final arrow = node.arrow;
+    var arrow = node.arrow;
     if (arrow.lexeme != '=>') {
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleReplacement(

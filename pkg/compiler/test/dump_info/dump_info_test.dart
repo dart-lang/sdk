@@ -43,7 +43,9 @@ main(List<String> args) {
     print('Testing output of dump-info');
     print('==================================================================');
     await checkTests(dataDir, const DumpInfoDataComputer(),
-        args: args, testedConfigs: allSpecConfigs, options: ['--dump-info']);
+        args: args,
+        testedConfigs: allSpecConfigs,
+        options: ['--stage=dump-info-all']);
   });
 }
 

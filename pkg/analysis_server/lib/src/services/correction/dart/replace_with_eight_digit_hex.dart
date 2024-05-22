@@ -14,13 +14,11 @@ class ReplaceWithEightDigitHex extends ResolvedCorrectionProducer {
   String _replacement = '';
 
   @override
-  bool get canBeAppliedInBulk => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
-  bool get canBeAppliedToFile => true;
-
-  @override
-  List<Object> get fixArguments => [_replacement];
+  List<String> get fixArguments => [_replacement];
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_WITH_EIGHT_DIGIT_HEX;

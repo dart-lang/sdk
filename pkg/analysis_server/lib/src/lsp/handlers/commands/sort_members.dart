@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/simple_edit_handler.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
@@ -33,12 +34,12 @@ class SortMembersCommandHandler extends SimpleEditCommandHandler {
     // Get the version of the doc before we calculate edits so we can send it back
     // to the client so that they can discard this edit if the document has been
     // modified since.
-    final path = parameters['path'] as String;
-    final docIdentifier = server.getVersionedDocumentIdentifier(path);
-    final autoTriggered = (parameters['autoTriggered'] as bool?) ?? false;
+    var path = parameters['path'] as String;
+    var docIdentifier = server.getVersionedDocumentIdentifier(path);
+    var autoTriggered = (parameters['autoTriggered'] as bool?) ?? false;
 
     var session = await server.getAnalysisSession(path);
-    final result = session?.getParsedUnit(path);
+    var result = session?.getParsedUnit(path);
 
     if (cancellationToken.isCancellationRequested) {
       return error(ErrorCodes.RequestCancelled, 'Request was cancelled');
@@ -54,8 +55,8 @@ class SortMembersCommandHandler extends SimpleEditCommandHandler {
       ));
     }
 
-    final code = result.content;
-    final unit = result.unit;
+    var code = result.content;
+    var unit = result.unit;
 
     if (hasScanParseErrors(result.errors)) {
       if (autoTriggered) {
@@ -69,8 +70,8 @@ class SortMembersCommandHandler extends SimpleEditCommandHandler {
       ));
     }
 
-    final sorter = MemberSorter(code, unit, result.lineInfo);
-    final edits = sorter.sort();
+    var sorter = MemberSorter(code, unit, result.lineInfo);
+    var edits = sorter.sort();
 
     if (edits.isEmpty) {
       return success(null);

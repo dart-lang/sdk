@@ -557,6 +557,8 @@ class CallingConventions {
   // How stack arguments are aligned.
   static constexpr AlignmentStrategy kArgumentStackAlignment =
       kAlignedToWordSizeAndValueSize;
+  static constexpr AlignmentStrategy kArgumentStackAlignmentVarArgs =
+      kArgumentStackAlignment;
 
   // How fields in compounds are aligned.
   static constexpr AlignmentStrategy kFieldAlignment = kAlignedToValueSize;
@@ -797,6 +799,8 @@ enum Funct3 {
   REMW = 0b110,
   REMUW = 0b111,
 
+  WIDTH8 = 0b000,
+  WIDTH16 = 0b001,
   WIDTH32 = 0b010,
   WIDTH64 = 0b011,
 
@@ -896,6 +900,8 @@ enum Funct5 {
   AMOMAX = 0b10100,
   AMOMINU = 0b11000,
   AMOMAXU = 0b11100,
+  LOADORDERED = 0b00110,
+  STOREORDERED = 0b00111,
 };
 
 enum Funct2 {
@@ -1520,7 +1526,9 @@ class CInstr {
   class name {                                                                 \
    public:                                                                     \
     constexpr explicit name(storage_t encoding) : encoding_(encoding) {}       \
-    constexpr storage_t encoding() const { return encoding_; }                 \
+    constexpr storage_t encoding() const {                                     \
+      return encoding_;                                                        \
+    }                                                                          \
     constexpr bool operator==(const name& other) const {                       \
       return encoding_ == other.encoding_;                                     \
     }                                                                          \
@@ -1541,14 +1549,18 @@ class CInstr {
     constexpr /* implicit */ name##Set(name element)                           \
         : encoding_(1u << element.encoding()) {}                               \
     constexpr explicit name##Set(storage_t encoding) : encoding_(encoding) {}  \
-    constexpr static name##Set Empty() { return name##Set(0); }                \
+    constexpr static name##Set Empty() {                                       \
+      return name##Set(0);                                                     \
+    }                                                                          \
     constexpr bool Includes(const name r) const {                              \
       return (encoding_ & (1 << r.encoding())) != 0;                           \
     }                                                                          \
     constexpr bool IncludesAll(const name##Set other) const {                  \
       return (encoding_ & other.encoding_) == other.encoding_;                 \
     }                                                                          \
-    constexpr bool IsEmpty() const { return encoding_ == 0; }                  \
+    constexpr bool IsEmpty() const {                                           \
+      return encoding_ == 0;                                                   \
+    }                                                                          \
     constexpr bool operator==(const name##Set& other) const {                  \
       return encoding_ == other.encoding_;                                     \
     }                                                                          \
@@ -1586,10 +1598,11 @@ static constexpr ExtensionSet RV_G = RV_I | RV_M | RV_A | RV_F | RV_D;
 static constexpr ExtensionSet RV_GC = RV_G | RV_C;
 static constexpr Extension RV_Zba(6);  // Address generation
 static constexpr Extension RV_Zbb(7);  // Basic bit-manipulation
-static constexpr Extension RV_Zbc(8);  // Carry-less multiplication
-static constexpr Extension RV_Zbs(9);  // Single-bit instructions
-static constexpr ExtensionSet RV_B = RV_Zba | RV_Zbb | RV_Zbc | RV_Zbs;
+static constexpr Extension RV_Zbs(8);  // Single-bit instructions
+static constexpr ExtensionSet RV_B = RV_Zba | RV_Zbb | RV_Zbs;
 static constexpr ExtensionSet RV_GCB = RV_GC | RV_B;
+static constexpr Extension RV_Zbc(9);      // Carry-less multiplication
+static constexpr Extension RV_Zalasr(10);  // Load-acquire, store-release
 
 #undef R
 
@@ -1597,6 +1610,9 @@ inline Register ConcreteRegister(Register r) {
   return r;
 }
 #define LINK_REGISTER RA
+
+// No information available.
+const intptr_t kPreferredLoopAlignment = 1;
 
 }  // namespace dart
 

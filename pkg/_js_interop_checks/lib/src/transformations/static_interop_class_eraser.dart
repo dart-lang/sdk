@@ -25,7 +25,7 @@ class _TypeSubstitutor extends ReplacementVisitor {
   _TypeSubstitutor(this._eraseStaticInteropType);
 
   @override
-  DartType? visitInterfaceType(InterfaceType type, int variance) {
+  DartType? visitInterfaceType(InterfaceType type, Variance variance) {
     if (hasStaticInteropAnnotation(type.classNode)) {
       return _eraseStaticInteropType(type);
     }

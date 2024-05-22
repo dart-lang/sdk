@@ -44,10 +44,7 @@ class LocalForInVariable implements ForInVariable {
   @override
   DartType computeElementType(InferenceVisitorBase visitor) {
     VariableDeclaration variable = variableSet.variable;
-    DartType? promotedType;
-    if (visitor.isNonNullableByDefault) {
-      promotedType = visitor.flowAnalysis.promotedType(variable);
-    }
+    DartType? promotedType = visitor.flowAnalysis.promotedType(variable);
     return promotedType ?? variable.type;
   }
 

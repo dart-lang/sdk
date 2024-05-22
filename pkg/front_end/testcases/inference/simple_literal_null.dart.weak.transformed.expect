@@ -1,7 +1,0 @@
-library test;
-import self as self;
-
-static field dynamic a = null;
-static method main() → dynamic {
-  has-declared-initializer dynamic b = null;
-}

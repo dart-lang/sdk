@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -283,7 +284,7 @@ Insert "\n" at 1:12
     end = end.trim();
     expected = expected.trim();
     await parseTestCode(start);
-    final edits = generateMinimalEdits(testParsedResult, end);
+    var edits = generateMinimalEdits(testParsedResult, end);
     expect(edits.toText().trim(), expected);
     expect(applyTextEdits(start, edits.result), end);
   }

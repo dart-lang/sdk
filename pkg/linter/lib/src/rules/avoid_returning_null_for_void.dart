@@ -8,10 +8,10 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 
-const _desc = r'Avoid returning null for void.';
+const _desc = r'Avoid returning `null` for `void`.';
 
 const _details = r'''
-**AVOID** returning null for void.
+**AVOID** returning `null` for `void`.
 
 In a large variety of languages `void` as return type is used to indicate that
 a function doesn't return anything. Dart allows returning `null` in functions

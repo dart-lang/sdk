@@ -696,7 +696,7 @@ f(bool Function() b) {
 }
 ''');
 
-    final node = findNode.functionExpressionInvocation('b()');
+    var node = findNode.functionExpressionInvocation('b()');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
@@ -741,7 +741,7 @@ void f((int, bool) x) {
 }
 ''');
 
-    final node = findNode.singleForElement;
+    var node = findNode.singleForElement;
     assertResolvedNodeText(node, r'''
 ForElement
   forKeyword: for

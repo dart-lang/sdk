@@ -95,7 +95,8 @@ final class _Closure implements Function {
   /// Traps when the closure is not an instantiation.
   external int _instantiationClosureTypeHash();
 
-  /// When [this] and [other] are instantiations, compare captured types for equality.
+  /// When this [_Closure] and [other] are instantiations, compare captured
+  /// types for equality.
   ///
   /// Traps when one or both of the closures are not an instantiation.
   external bool _instantiationClosureTypeEquals(_Closure other);

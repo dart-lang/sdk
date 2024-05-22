@@ -51,6 +51,16 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     "Add 'super.{0}'",
   );
+  static const ADD_EMPTY_ARGUMENT_LIST = FixKind(
+    'dart.fix.add.empty.argument.list',
+    DartFixKindPriority.DEFAULT,
+    'Add empty argument list',
+  );
+  static const ADD_EMPTY_ARGUMENT_LIST_MULTI = FixKind(
+    'dart.fix.add.empty.argument.list.multi',
+    DartFixKindPriority.IN_FILE,
+    'Add empty argument lists everywhere in file',
+  );
   static const ADD_CONST = FixKind(
     'dart.fix.add.const',
     DartFixKindPriority.DEFAULT,
@@ -1075,6 +1085,26 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Remove empty statements everywhere in file',
   );
+  static const REMOVE_EXTENDS_CLAUSE = FixKind(
+    'dart.fix.remove.extends.clause',
+    DartFixKindPriority.DEFAULT,
+    "Remove the invalid 'extends' clause",
+  );
+  static const REMOVE_EXTENDS_CLAUSE_MULTI = FixKind(
+    'dart.fix.remove.extends.clause.multi',
+    DartFixKindPriority.IN_FILE,
+    "Remove invalid 'extends' clauses everywhere in file",
+  );
+  static const REMOVE_EXTRA_MODIFIER = FixKind(
+    'dart.fix.remove.extra.modifier',
+    DartFixKindPriority.DEFAULT,
+    'Remove extra {0} modifier',
+  );
+  static const REMOVE_EXTRA_MODIFIER_MULTI = FixKind(
+    'dart.fix.remove.extra.modifier.multi',
+    DartFixKindPriority.IN_FILE,
+    'Remove extra modifiers everywhere in file',
+  );
   static const REMOVE_IF_NULL_OPERATOR = FixKind(
     'dart.fix.remove.ifNullOperator',
     DartFixKindPriority.DEFAULT,
@@ -1176,6 +1206,16 @@ class DartFixKind {
     'dart.fix.remove.nonNullAssertion.multi',
     DartFixKindPriority.IN_FILE,
     "Remove '!'s in file",
+  );
+  static const REMOVE_ON_CLAUSE = FixKind(
+    'dart.fix.remove.on.clause',
+    DartFixKindPriority.DEFAULT,
+    "Remove the invalid 'on' clause",
+  );
+  static const REMOVE_ON_CLAUSE_MULTI = FixKind(
+    'dart.fix.remove.on.clause.multi',
+    DartFixKindPriority.IN_FILE,
+    "Remove all invalid 'on' clauses in file",
   );
   static const REMOVE_OPERATOR = FixKind(
     'dart.fix.remove.operator',

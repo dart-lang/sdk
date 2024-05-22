@@ -12,10 +12,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceFinalWithConst extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_FINAL_WITH_CONST;
@@ -25,7 +23,7 @@ class ReplaceFinalWithConst extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is VariableDeclarationList) {
       var keyword = node.keyword;
       if (keyword != null) {

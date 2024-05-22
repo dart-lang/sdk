@@ -659,7 +659,7 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
     NodeList<VariableDeclaration> variables =
         (member as TopLevelVariableDeclaration).variables.variables;
     expect(variables, hasLength(1));
-    final name = variables[0].name;
+    var name = variables[0].name;
     expect(name.isSynthetic, isFalse);
   }
 
@@ -675,7 +675,7 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
     NodeList<VariableDeclaration> variables =
         (member as TopLevelVariableDeclaration).variables.variables;
     expect(variables, hasLength(1));
-    final name = variables[0].name;
+    var name = variables[0].name;
     expect(name.isSynthetic, isTrue);
   }
 
@@ -691,7 +691,7 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
     NodeList<VariableDeclaration> variables =
         (member as TopLevelVariableDeclaration).variables.variables;
     expect(variables, hasLength(1));
-    final name = variables[0].name;
+    var name = variables[0].name;
     expect(name.isSynthetic, isTrue);
   }
 
@@ -707,7 +707,7 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
     NodeList<VariableDeclaration> variables =
         (member as TopLevelVariableDeclaration).variables.variables;
     expect(variables, hasLength(1));
-    final name = variables[0].name;
+    var name = variables[0].name;
     expect(name.isSynthetic, isTrue);
   }
 
@@ -1091,7 +1091,7 @@ class C {
   }
 
   void test_issue_34610_get() {
-    final unit =
+    var unit =
         parseCompilationUnit('class C { get C.named => null; }', errors: [
       expectedError(ParserErrorCode.GETTER_CONSTRUCTOR, 10, 3),
       expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 14, 1),
@@ -1103,10 +1103,9 @@ class C {
   }
 
   void test_issue_34610_initializers() {
-    final unit = parseCompilationUnit('class C { C.named : super(); }',
-        errors: [
-          expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 10, 1)
-        ]);
+    var unit = parseCompilationUnit('class C { C.named : super(); }', errors: [
+      expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 10, 1)
+    ]);
     var declaration = unit.declarations[0] as ClassDeclaration;
     var constructor = declaration.members[0] as ConstructorDeclaration;
     expect(constructor.name!.lexeme, 'named');
@@ -1115,7 +1114,7 @@ class C {
   }
 
   void test_issue_34610_missing_param() {
-    final unit = parseCompilationUnit('class C { C => null; }', errors: [
+    var unit = parseCompilationUnit('class C { C => null; }', errors: [
       expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 10, 1)
     ]);
     var declaration = unit.declarations[0] as ClassDeclaration;
@@ -1126,7 +1125,7 @@ class C {
   }
 
   void test_issue_34610_named_missing_param() {
-    final unit = parseCompilationUnit('class C { C.named => null; }', errors: [
+    var unit = parseCompilationUnit('class C { C.named => null; }', errors: [
       expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 10, 1)
     ]);
     var declaration = unit.declarations[0] as ClassDeclaration;
@@ -1137,7 +1136,7 @@ class C {
   }
 
   void test_issue_34610_set() {
-    final unit =
+    var unit =
         parseCompilationUnit('class C { set C.named => null; }', errors: [
       expectedError(ParserErrorCode.SETTER_CONSTRUCTOR, 10, 3),
       expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 14, 1),

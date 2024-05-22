@@ -2088,6 +2088,12 @@ void Simulator::InterpretECALL(Instr instr) {
 
 void Simulator::InterpretAMO(Instr instr) {
   switch (instr.funct3()) {
+    case WIDTH8:
+      InterpretAMO8(instr);
+      break;
+    case WIDTH16:
+      InterpretAMO16(instr);
+      break;
     case WIDTH32:
       InterpretAMO32(instr);
       break;
@@ -2226,6 +2232,56 @@ void Simulator::InterpretAMOMAX(Instr instr) {
   set_xreg(instr.rd(), sign_extend(expected));
 }
 
+template <typename type>
+void Simulator::InterpretLOADORDERED(Instr instr) {
+  uintx_t addr = get_xreg(instr.rs1());
+  if ((addr & (sizeof(type) - 1)) != 0) {
+    FATAL("Misaligned atomic memory operation");
+  }
+  std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
+  type value = atomic->load(instr.memory_order());
+  set_xreg(instr.rd(), sign_extend(value));
+}
+
+template <typename type>
+void Simulator::InterpretSTOREORDERED(Instr instr) {
+  uintx_t addr = get_xreg(instr.rs1());
+  if ((addr & (sizeof(type) - 1)) != 0) {
+    FATAL("Misaligned atomic memory operation");
+  }
+  type value = get_xreg(instr.rs2());
+  std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
+  atomic->store(value, instr.memory_order());
+}
+
+void Simulator::InterpretAMO8(Instr instr) {
+  switch (instr.funct5()) {
+    case LOADORDERED:
+      InterpretLOADORDERED<int8_t>(instr);
+      break;
+    case STOREORDERED:
+      InterpretSTOREORDERED<int8_t>(instr);
+      break;
+    default:
+      IllegalInstruction(instr);
+  }
+  pc_ += instr.length();
+}
+
+void Simulator::InterpretAMO16(Instr instr) {
+  switch (instr.funct5()) {
+    case LOADORDERED:
+      InterpretLOADORDERED<int16_t>(instr);
+      break;
+    case STOREORDERED:
+      InterpretSTOREORDERED<int16_t>(instr);
+      break;
+    default:
+      IllegalInstruction(instr);
+  }
+  pc_ += instr.length();
+}
+
 void Simulator::InterpretAMO32(Instr instr) {
   switch (instr.funct5()) {
     case LR:
@@ -2260,6 +2316,12 @@ void Simulator::InterpretAMO32(Instr instr) {
       break;
     case AMOMAXU:
       InterpretAMOMAX<uint32_t>(instr);
+      break;
+    case LOADORDERED:
+      InterpretLOADORDERED<int32_t>(instr);
+      break;
+    case STOREORDERED:
+      InterpretSTOREORDERED<int32_t>(instr);
       break;
     default:
       IllegalInstruction(instr);
@@ -2302,6 +2364,12 @@ void Simulator::InterpretAMO64(Instr instr) {
       break;
     case AMOMAXU:
       InterpretAMOMAX<uint64_t>(instr);
+      break;
+    case LOADORDERED:
+      InterpretLOADORDERED<int64_t>(instr);
+      break;
+    case STOREORDERED:
+      InterpretSTOREORDERED<int64_t>(instr);
       break;
 #endif  // XLEN >= 64
     default:

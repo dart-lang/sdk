@@ -12,7 +12,7 @@ import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
-import 'package:kernel/ast.dart' hide Variance;
+import 'package:kernel/ast.dart';
 
 Future<void> main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(
@@ -22,8 +22,8 @@ Future<void> main(List<String> args) async {
       args: args,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
-      runTest: runTestFor(const InferredTypeArgumentDataComputer(),
-          [cfeNonNullableOnlyConfig]));
+      runTest: runTestFor(
+          const InferredTypeArgumentDataComputer(), [defaultCfeConfig]));
 }
 
 class InferredTypeArgumentDataComputer
@@ -91,6 +91,10 @@ class _InferredTypeArgumentsDataInterpreter
         }
         if (actualData[i].isUpper) {
           sb.write("${actualData[i].typeParameter.name} <: ");
+          sb.write(typeToText(actualData[i].constraint,
+              TypeRepresentation.analyzerNonNullableByDefault));
+        } else {
+          sb.write("${actualData[i].typeParameter.name} :> ");
           sb.write(typeToText(actualData[i].constraint,
               TypeRepresentation.analyzerNonNullableByDefault));
         }

@@ -11,10 +11,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceWithConditionalAssignment extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_WITH_CONDITIONAL_ASSIGNMENT;
@@ -25,7 +23,7 @@ class ReplaceWithConditionalAssignment extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     var ifStatement =
         node is IfStatement ? node : node.thisOrAncestorOfType<IfStatement>();
     if (ifStatement == null) {
@@ -34,7 +32,7 @@ class ReplaceWithConditionalAssignment extends ResolvedCorrectionProducer {
 
     var thenStatement = _uniqueStatement(ifStatement.thenStatement);
     if (thenStatement is ExpressionStatement) {
-      final expression = thenStatement.expression.unParenthesized;
+      var expression = thenStatement.expression.unParenthesized;
       if (expression is AssignmentExpression) {
         await builder.addDartFileEdit(file, (builder) {
           builder.addReplacement(range.node(ifStatement), (builder) {

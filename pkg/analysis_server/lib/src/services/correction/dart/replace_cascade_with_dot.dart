@@ -22,10 +22,8 @@ class ReplaceCascadeWithDot extends ResolvedCorrectionProducer {
   };
 
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_CASCADE_WITH_DOT;
@@ -35,7 +33,10 @@ class ReplaceCascadeWithDot extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final cascadeExpression = node;
+    AstNode? cascadeExpression = node;
+    if (cascadeExpression is ExtensionOverride) {
+      cascadeExpression = cascadeExpression.parent;
+    }
     if (cascadeExpression is! CascadeExpression) {
       return;
     }

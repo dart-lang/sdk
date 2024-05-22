@@ -30,6 +30,8 @@ namespace bin {
 
 // As STRING_OPTIONS_LIST but for boolean valued options. The default value is
 // always false, and the presence of the flag switches the value to true.
+// we define sound_null_safety as an unused option here just to make sure
+// scripts that were passing in this option do not break.
 #define BOOL_OPTIONS_LIST(V)                                                   \
   V(version, version_option)                                                   \
   V(compile_all, compile_all)                                                  \
@@ -53,7 +55,8 @@ namespace bin {
   V(serve_devtools, enable_devtools)                                           \
   V(no_serve_observatory, disable_observatory)                                 \
   V(serve_observatory, enable_observatory)                                     \
-  V(print_dtd, print_dtd)
+  V(print_dtd, print_dtd)                                                      \
+  V(sound_null_safety, sound_null_safety)
 
 // Boolean flags that have a short form.
 #define SHORT_BOOL_OPTIONS_LIST(V)                                             \
@@ -146,6 +149,14 @@ class Options {
   static bool enable_vm_service() { return enable_vm_service_; }
   static const char* vm_service_server_ip() { return vm_service_server_ip_; }
   static int vm_service_server_port() { return vm_service_server_port_; }
+
+  // TODO(bkonyi): remove once DartDev moves to AOT and this flag can be
+  // provided directly to the process spawned by `dart run` and `dart test`.
+  //
+  // See https://github.com/dart-lang/sdk/issues/53576
+  static void set_mark_main_isolate_as_system_isolate(bool state) {
+    mark_main_isolate_as_system_isolate_ = state;
+  }
 
   static Dart_KernelCompilationVerbosityLevel verbosity_level() {
     return VerbosityLevelToDartAPI(verbosity_);

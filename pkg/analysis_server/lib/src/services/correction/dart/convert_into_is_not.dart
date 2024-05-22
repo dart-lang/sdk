@@ -16,13 +16,11 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertIntoIsNot extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
+
+  @override
   AssistKind get assistKind => DartAssistKind.CONVERT_INTO_IS_NOT;
-
-  @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_IS_NOT;
@@ -35,7 +33,7 @@ class ConvertIntoIsNot extends ResolvedCorrectionProducer {
     // Find the is expression
     var isExpression = node.thisOrAncestorOfType<IsExpression>();
     if (isExpression == null) {
-      final node = this.node;
+      var node = this.node;
       if (node is PrefixExpression) {
         var operand = node.operand;
         if (operand is ParenthesizedExpression) {
@@ -71,7 +69,7 @@ class ConvertIntoIsNot extends ResolvedCorrectionProducer {
       return;
     }
 
-    final isExpression_final = isExpression;
+    var isExpression_final = isExpression;
     await builder.addDartFileEdit(file, (builder) {
       if (getExpressionParentPrecedence(prefExpression) >=
           Precedence.relational) {

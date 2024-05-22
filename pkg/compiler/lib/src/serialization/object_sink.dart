@@ -36,6 +36,11 @@ class ObjectDataSink implements DataSink {
   }
 
   @override
+  void writeUint32(int value) {
+    _data!.add(value);
+  }
+
+  @override
   void writeString(String value) {
     _data!.add(value);
   }

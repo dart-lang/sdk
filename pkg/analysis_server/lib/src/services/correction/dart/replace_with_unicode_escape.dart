@@ -10,12 +10,9 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceWithUnicodeEscape extends ResolvedCorrectionProducer {
   @override
-  // Not predictably the correct action.
-  bool get canBeAppliedInBulk => false;
-
-  @override
-  // Not predictably the correct action.
-  bool get canBeAppliedToFile => false;
+  CorrectionApplicability get applicability =>
+      // Not predictably the correct action.
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_WITH_UNICODE_ESCAPE;

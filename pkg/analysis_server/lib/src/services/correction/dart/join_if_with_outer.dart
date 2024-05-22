@@ -13,6 +13,11 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class JoinIfWithOuter extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   AssistKind get assistKind => DartAssistKind.JOIN_IF_WITH_OUTER;
 
   @override
@@ -48,10 +53,10 @@ class JoinIfWithOuter extends ResolvedCorrectionProducer {
     var outerCondition = outerIfStatement.expression;
     var targetConditionSource = utils.getNodeText(targetCondition);
     var outerConditionSource = utils.getNodeText(outerCondition);
-    if (shouldWrapParenthesisBeforeAnd(targetCondition)) {
+    if (targetCondition.shouldWrapParenthesisBeforeAnd) {
       targetConditionSource = '($targetConditionSource)';
     }
-    if (shouldWrapParenthesisBeforeAnd(outerCondition)) {
+    if (outerCondition.shouldWrapParenthesisBeforeAnd) {
       outerConditionSource = '($outerConditionSource)';
     }
     var condition = '$outerConditionSource && $targetConditionSource';

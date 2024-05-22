@@ -76,7 +76,7 @@ class ProcessedOptionsTest {
             fileUri: Uri.parse('org-dartlang-test:///a/b.dart'))
       ])
         ..setMainMethodAndMode(
-            null, false, NonNullableByDefaultCompiledMode.Weak);
+            null, false, NonNullableByDefaultCompiledMode.Strong);
 
   void test_compileSdk_false() {
     for (var value in [false, true]) {

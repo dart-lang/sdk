@@ -502,7 +502,7 @@ class UnlinkedUnit {
   /// Encoded informative data.
   final Uint8List informativeBytes;
 
-  /// The `library augment 'uri';` directive.
+  /// The `augment library 'uri';` directive.
   final UnlinkedLibraryAugmentationDirective? libraryAugmentationDirective;
 
   /// The `library name;` directive.

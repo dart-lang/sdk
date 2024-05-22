@@ -657,7 +657,7 @@ class TextNode : public SeqRegExpNode {
            bool read_backward,
            RegExpNode* on_success)
       : SeqRegExpNode(on_success),
-        elms_(new (zone()) ZoneGrowableArray<TextElement>(1)),
+        elms_(new(zone()) ZoneGrowableArray<TextElement>(1)),
         read_backward_(read_backward) {
     elms_->Add(TextElement::CharClass(that));
   }
@@ -895,7 +895,7 @@ class ChoiceNode : public RegExpNode {
  public:
   explicit ChoiceNode(intptr_t expected_size, Zone* zone)
       : RegExpNode(zone),
-        alternatives_(new (zone)
+        alternatives_(new(zone)
                           ZoneGrowableArray<GuardedAlternative>(expected_size)),
         not_at_start_(false),
         being_calculated_(false) {}
@@ -1096,7 +1096,7 @@ ContainedInLattice AddRange(ContainedInLattice a,
 class BoyerMoorePositionInfo : public ZoneAllocated {
  public:
   explicit BoyerMoorePositionInfo(Zone* zone)
-      : map_(new (zone) ZoneGrowableArray<bool>(kMapSize)),
+      : map_(new(zone) ZoneGrowableArray<bool>(kMapSize)),
         map_count_(0),
         w_(kNotYet),
         s_(kNotYet),

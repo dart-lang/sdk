@@ -111,7 +111,7 @@ class CovariantParametersVerifier {
 
   void verify({
     required ErrorReporter errorReporter,
-    required SyntacticEntity errorNode,
+    required SyntacticEntity errorEntity,
   }) {
     var superParameters = _superParameters();
     for (var entry in superParameters.entries) {
@@ -126,10 +126,9 @@ class CovariantParametersVerifier {
           // always named, so we can safely assume
           // `_thisMember.enclosingElement3.name` and
           // `superMember.enclosingElement3.name` are non-`null`.
-          errorReporter.atOffset(
-            offset: errorNode.offset,
-            length: errorNode.length,
-            errorCode: CompileTimeErrorCode.INVALID_OVERRIDE,
+          errorReporter.atEntity(
+            errorEntity,
+            CompileTimeErrorCode.INVALID_OVERRIDE,
             arguments: [
               _thisMember.name,
               _thisMember.enclosingElement.name!,

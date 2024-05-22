@@ -24,18 +24,53 @@ possibly guide you. Coordinating up front makes it much easier to avoid
 frustration later on.
 
 ### Code reviews
+
 All submissions, including submissions by project members, require review.
 
+#### Connecting a code review with an issue
+
+When submitting a code review that fixes an issue in the [linter issue
+tracker], you can use the [usual keywords that GitHub supports][Linking a pull
+request] in order to link the code review to the issue. After the code review
+is submitted, it will appear on any linked issue page's timeline as an event,
+but the issue will not actually be closed (because the issue tracker is
+attached to a different git repository from the Dart SDK). The issue must be
+closed manually.
+
+It is easy to miss the step of manually closing a GitHub issue, so open issues
+can be periodically reviewed by querying GitHub's REST API:
+
+```none
+gh api                                                   \
+    -H "Accept: application/vnd.github+json"             \
+    -H "X-GitHub-Api-Version: 2022-11-28"                \
+    '/repos/dart-lang/linter/issues/events?per_page=100' \
+    --paginate                                           \
+    -q '.[] | select(.actor.login == "copybara-service[bot]") | select(.issue.state == "open") | .issue.html_url'
+```
+
+This command prints a list of open issues that have been referenced by a
+submitted code review, not necessarily issues that should be closed. Each issue
+needs to be reviewed individually.
+
+
+### Coding style
+
+The analyzer packages, including this one, are coded with a style specified in
+our [coding style document][coding style].
+
 ### File headers
+
 All files in the project must start with the following header.
 
-    // Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+    // Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
     // for details. All rights reserved. Use of this source code is governed by a
     // BSD-style license that can be found in the LICENSE file.
 
 ### Mechanics
+
 Contributing code is easy and follows the
-[Dart SDK Contributing guidelines](../../CONTRIBUTING.md).
+[Dart SDK Contributing guidelines][contributing].
 
 Please note that a few kinds of changes additionally require a `CHANGELOG`
 entry. Notably, any change that:
@@ -50,6 +85,12 @@ questions in your PR.
 **Thank you!**
 
 ### The small print
+
 Contributions made by corporations are covered by a different agreement than the
 one above, the
 [Software Grant and Corporate Contributor License Agreement](https://developers.google.com/open-source/cla/corporate).
+
+[linter issue tracker]: https://github.com/dart-lang/linter/issues
+[Linking a pull request]: https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue
+[coding style]: https://github.com/dart-lang/sdk/blob/main/pkg/analyzer/doc/implementation/coding_style.md
+[contributing]: https://github.com/dart-lang/sdk/wiki/Contributing

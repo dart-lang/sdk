@@ -21,7 +21,7 @@ class EditGetRefactoringHandler extends LegacyHandler {
 
     server.analyticsManager.startedGetRefactoring(params);
 
-    final refactoringManager = server.refactoringManager;
+    var refactoringManager = server.refactoringManager;
     if (refactoringManager == null) {
       sendResponse(
           Response.unsupportedFeature(request.id, 'Search is not enabled.'));

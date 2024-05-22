@@ -44,9 +44,6 @@ class CompilerContext {
   /// programs.
   final Map<Uri, Source> uriToSource = <Uri, Source>{};
 
-  // TODO(ahe): Remove this.
-  final List<Object> errors = <Object>[];
-
   final List<Uri> dependencies = <Uri>[];
 
   FileSystem get fileSystem => options.fileSystem;
@@ -79,12 +76,6 @@ class CompilerContext {
     return command_line_reporting.format(message, severity);
   }
 
-  // TODO(ahe): Remove this.
-  void logError(Object message, Severity severity) {
-    errors.add(message);
-    errors.add(severity);
-  }
-
   static void recordDependency(Uri uri) {
     if (!uri.isScheme("file") && !uri.isScheme("http")) {
       throw new ArgumentError("Expected a file or http URI, but got: '$uri'.");
@@ -111,8 +102,8 @@ class CompilerContext {
 
   static bool get isActive => Zone.current[compilerContextKey] != null;
 
-  /// Perform [action] in a [Zone] where [this] will be available as
-  /// `CompilerContext.current`.
+  /// Perform [action] in a [Zone] where this [CompilerContext] will be
+  /// available as `CompilerContext.current`.
   Future<T> runInContext<T>(Future<T> action(CompilerContext c)) {
     return runZoned(
         () => new Future<T>.sync(() => action(this)).whenComplete(clear),
@@ -138,7 +129,6 @@ class CompilerContext {
 
   void clear() {
     clearStringCanonicalizationCache();
-    errors.clear();
     dependencies.clear();
   }
 }

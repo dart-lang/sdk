@@ -100,13 +100,11 @@ class TypeInferrerImpl implements TypeInferrer {
   @override
   late final FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration,
           DartType> flowAnalysis =
-      libraryBuilder.isNonNullableByDefault
-          ? new FlowAnalysis(operations, assignedVariables,
-              respectImplicitlyTypedVarInitializers:
-                  libraryBuilder.libraryFeatures.constructorTearoffs.isEnabled,
-              fieldPromotionEnabled:
-                  libraryBuilder.libraryFeatures.inferenceUpdate2.isEnabled)
-          : new FlowAnalysis.legacy(operations, assignedVariables);
+      new FlowAnalysis(operations, assignedVariables,
+          respectImplicitlyTypedVarInitializers:
+              libraryBuilder.libraryFeatures.constructorTearoffs.isEnabled,
+          fieldPromotionEnabled:
+              libraryBuilder.libraryFeatures.inferenceUpdate2.isEnabled);
 
   @override
   final AssignedVariables<TreeNode, VariableDeclaration> assignedVariables;
@@ -142,15 +140,11 @@ class TypeInferrerImpl implements TypeInferrer {
       this.libraryBuilder,
       this.assignedVariables,
       this.dataForTesting,
-      FunctionType unknownFunctionNonNullable,
-      FunctionType unknownFunctionLegacy)
-      : unknownFunction = libraryBuilder.isNonNullableByDefault
-            ? unknownFunctionNonNullable
-            : unknownFunctionLegacy,
-        instrumentation = isTopLevel ? null : engine.instrumentation,
+      this.unknownFunction)
+      : instrumentation = isTopLevel ? null : engine.instrumentation,
         typeSchemaEnvironment = engine.typeSchemaEnvironment,
         operations = new OperationsCfe(engine.typeSchemaEnvironment,
-            nullability: libraryBuilder.nonNullable,
+            omittedNullabilityValue: libraryBuilder.nonNullable,
             fieldNonPromotabilityInfo: libraryBuilder.fieldNonPromotabilityInfo,
             typeCacheNonNullable: engine.typeCacheNonNullable,
             typeCacheNullable: engine.typeCacheNullable,
@@ -314,7 +308,6 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     InferenceDataForTesting? dataForTesting,
     this.benchmarker,
     FunctionType unknownFunctionNonNullable,
-    FunctionType unknownFunctionLegacy,
   ) : impl = new TypeInferrerImpl(
           engine,
           uriForInstrumentation,
@@ -324,7 +317,6 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
           assignedVariables,
           dataForTesting,
           unknownFunctionNonNullable,
-          unknownFunctionLegacy,
         );
 
   @override

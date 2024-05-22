@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -14,7 +15,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:test/test.dart';
@@ -187,7 +187,7 @@ mixin ElementsTypesMixin {
     List<MethodElementImpl> methods = const [],
   }) {
     var element = ExtensionElementImpl(name, 0);
-    element.extendedType = extendedType;
+    element.augmented.extendedType = extendedType;
     element.isAugmentation = isAugmentation;
     element.enclosingElement = testLibrary.definingCompilationUnit;
     element.typeParameters = typeParameters;
@@ -202,14 +202,18 @@ mixin ElementsTypesMixin {
     List<TypeParameterElement> typeParameters = const [],
     List<InterfaceType> interfaces = const [],
   }) {
-    final element = ExtensionTypeElementImpl(name, -1);
+    var element = ExtensionTypeElementImpl(name, -1);
     element.enclosingElement = testLibrary.definingCompilationUnit;
     element.typeParameters = typeParameters;
     element.interfaces = interfaces;
 
-    final field = FieldElementImpl(representationName, -1);
+    var field = FieldElementImpl(representationName, -1);
     field.type = representationType;
     element.fields = [field];
+
+    element.augmented
+      ..representation = field
+      ..typeErasure = representationType;
 
     return element;
   }
@@ -634,14 +638,14 @@ extension ClassElementImplExtension on ClassElementImpl {
   void addAugmentations(List<ClassElementImpl> augmentations) {
     expect(this.augmented, TypeMatcher<NotAugmentedClassElementImpl>());
 
-    final augmented = AugmentedClassElementImpl(this);
+    var augmented = AugmentedClassElementImpl(this);
     augmentedInternal = augmented;
 
     var augmentationTarget = this;
-    for (final augmentation in augmentations) {
+    for (var augmentation in augmentations) {
       expect(augmentation.isAugmentation, isTrue);
       augmentationTarget.augmentation = augmentation;
-      augmentation.augmentationTarget = augmentationTarget;
+      augmentation.augmentationTargetAny = augmentationTarget;
       augmentationTarget = augmentation;
 
       expect(augmentation.typeParameters, isEmpty,
@@ -656,14 +660,14 @@ extension MixinElementImplExtension on MixinElementImpl {
   void addAugmentations(List<MixinElementImpl> augmentations) {
     expect(this.augmented, TypeMatcher<NotAugmentedMixinElementImpl>());
 
-    final augmented = AugmentedMixinElementImpl(this);
+    var augmented = AugmentedMixinElementImpl(this);
     augmentedInternal = augmented;
 
     var augmentationTarget = this;
-    for (final augmentation in augmentations) {
+    for (var augmentation in augmentations) {
       expect(augmentation.isAugmentation, isTrue);
       augmentationTarget.augmentation = augmentation;
-      augmentation.augmentationTarget = augmentationTarget;
+      augmentation.augmentationTargetAny = augmentationTarget;
       augmentationTarget = augmentation;
 
       expect(augmentation.typeParameters, isEmpty,

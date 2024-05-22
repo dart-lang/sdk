@@ -17,6 +17,65 @@ class OverriddenFieldsTest extends LintRuleTest {
   @override
   String get lintRule => 'overridden_fields';
 
+  test_augmentationClass() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+
+class O {
+  final a = '';
+}
+
+class A extends O { }
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+
+augment class A { 
+  final a = '';
+}
+''');
+
+    result = await resolveFile(a.path);
+    await assertNoDiagnosticsIn(errors);
+
+    result = await resolveFile(b.path);
+    await assertDiagnosticsIn(errors, [
+      lint(54, 1),
+    ]);
+  }
+
+  test_augmentedField() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+
+class O {
+  final a = '';
+}
+
+class A extends O {
+  @override 
+  final a = '';
+}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+
+augment class A { 
+  augment final a = '';
+}
+''');
+
+    result = await resolveFile(a.path);
+    await assertDiagnosticsIn(errors, [
+      lint(96, 1),
+    ]);
+
+    result = await resolveFile(b.path);
+    await assertNoDiagnosticsIn(errors);
+  }
+
   /// https://github.com/dart-lang/linter/issues/2874
   test_conflictingStaticAndInstance() async {
     await assertNoDiagnostics(r'''

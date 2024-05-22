@@ -113,7 +113,6 @@ import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 import 'package:telemetry/crash_reporting.dart';
-import 'package:telemetry/telemetry.dart' as telemetry;
 import 'package:watcher/watcher.dart';
 
 /// A function that can be executed to create a handler for a request.
@@ -135,10 +134,6 @@ class AnalysisServerOptions {
   /// The path to the package config file override.
   /// If `null`, then the default discovery mechanism is used.
   String? packagesFile;
-
-  /// The analytics instance; note, this object can be `null`, and should be
-  /// accessed via a null-aware operator.
-  telemetry.Analytics? analytics;
 
   /// The crash report sender instance; note, this object can be `null`, and
   /// should be accessed via a null-aware operator.
@@ -484,7 +479,7 @@ class LegacyAnalysisServer extends AnalysisServer {
     }
 
     return (Uri uri) async {
-      final requestId = '${nextServerRequestId++}';
+      var requestId = '${nextServerRequestId++}';
       await sendRequest(
         ServerOpenUrlRequestParams('$uri').toRequest(requestId),
       );
@@ -549,14 +544,14 @@ class LegacyAnalysisServer extends AnalysisServer {
 
   /// Handle a [request] that was read from the communication channel.
   void handleRequest(Request request) {
-    final startTime = DateTime.now();
+    var startTime = DateTime.now();
     performance.logRequestTiming(request.clientRequestTime);
 
     // Because we don't `await` the execution of the handlers, we wrap the
     // execution in order to have one central place to handle exceptions.
     runZonedGuarded(() async {
       // Record performance information for the request.
-      final rootPerformance = OperationPerformanceImpl('<root>');
+      var rootPerformance = OperationPerformanceImpl('<root>');
       RequestPerformance? requestPerformance;
       await rootPerformance.runAsync('request', (performance) async {
         requestPerformance = RequestPerformance(
@@ -788,7 +783,7 @@ class LegacyAnalysisServer extends AnalysisServer {
   // projects/contexts support.
   Future<void> setAnalysisRoots(String requestId, List<String> includedPaths,
       List<String> excludedPaths) async {
-    final completer = analysisContextRebuildCompleter = Completer();
+    var completer = analysisContextRebuildCompleter = Completer();
     try {
       notificationManager.setAnalysisRoots(includedPaths, excludedPaths);
       try {
@@ -840,7 +835,7 @@ class LegacyAnalysisServer extends AnalysisServer {
 
     // When pubspecs are opened, trigger pre-loading of pub package names and
     // versions.
-    final pubspecs = files.where(isPubspec).toList();
+    var pubspecs = files.where(isPubspec).toList();
     if (pubspecs.isNotEmpty) {
       pubPackageService.beginCachePreloads(pubspecs);
     }
@@ -866,7 +861,7 @@ class LegacyAnalysisServer extends AnalysisServer {
     var request =
         ServerShowMessageRequestParams(type.forLegacy, message, actions)
             .toRequest(requestId);
-    final response = await sendRequest(request);
+    var response = await sendRequest(request);
     return response.result?['action'] as String?;
   }
 
@@ -875,17 +870,6 @@ class LegacyAnalysisServer extends AnalysisServer {
     await super.shutdown();
 
     pubApi.close();
-
-    // TODO(brianwilkerson): Remove the following 6 lines when the
-    //  analyticsManager is being correctly initialized.
-    var analytics = options.analytics;
-    if (analytics != null) {
-      unawaited(analytics
-          .waitForLastPing(timeout: Duration(milliseconds: 200))
-          .then((_) {
-        analytics.close();
-      }));
-    }
 
     detachableFileSystemManager?.dispose();
 
@@ -1001,12 +985,12 @@ class LegacyAnalysisServer extends AnalysisServer {
   }
 
   void _scheduleAnalysisImplementedNotification() {
-    final subscribed = analysisServices[AnalysisService.IMPLEMENTED];
+    var subscribed = analysisServices[AnalysisService.IMPLEMENTED];
     if (subscribed == null) {
       return;
     }
 
-    final toSend = subscribed.intersection(filesResolvedSinceLastIdle);
+    var toSend = subscribed.intersection(filesResolvedSinceLastIdle);
     if (toSend.isEmpty) {
       return;
     }

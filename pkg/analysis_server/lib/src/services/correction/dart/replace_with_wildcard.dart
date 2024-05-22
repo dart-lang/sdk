@@ -12,10 +12,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceWithWildcard extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_WITH_WILDCARD;
@@ -25,9 +23,9 @@ class ReplaceWithWildcard extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is WildcardPattern) {
-      final defaultKeyword = node.name;
+      var defaultKeyword = node.name;
       if (defaultKeyword.keyword == Keyword.DEFAULT) {
         await builder.addDartFileEdit(file, (builder) {
           builder.addSimpleReplacement(range.token(defaultKeyword), '_');

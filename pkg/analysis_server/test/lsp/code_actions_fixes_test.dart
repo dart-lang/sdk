@@ -48,7 +48,7 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
 bar
 ''';
 
-    final pluginResult = plugin.EditGetFixesResult([
+    var pluginResult = plugin.EditGetFixesResult([
       plugin.AnalysisErrorFixes(
         plugin.AnalysisError(
           plugin.AnalysisErrorSeverity.ERROR,
@@ -98,16 +98,16 @@ bar
       'class MyClass {}',
     );
 
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 MyCla^ss? a;
 ''');
 
     newFile(mainFilePath, code.code);
     await initialize();
 
-    final codeActions =
+    var codeActions =
         await getCodeActions(mainFileUri, position: code.position.position);
-    final codeActionTitles = codeActions.map((action) =>
+    var codeActionTitles = codeActions.map((action) =>
         action.map((command) => command.title, (action) => action.title));
 
     expect(
@@ -128,16 +128,16 @@ MyCla^ss? a;
       'class MyClass {}',
     );
 
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 MyCla^ss? a;
 ''');
 
     newFile(mainFilePath, code.code);
     await initialize();
 
-    final codeActions =
+    var codeActions =
         await getCodeActions(mainFileUri, position: code.position.position);
-    final codeActionTitles = codeActions.map((action) =>
+    var codeActionTitles = codeActions.map((action) =>
         action.map((command) => command.title, (action) => action.title));
 
     expect(
@@ -157,16 +157,16 @@ MyCla^ss? a;
       'class MyClass {}',
     );
 
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 MyCla^ss? a;
 ''');
 
     newFile(mainFilePath, code.code);
     await initialize();
 
-    final codeActions =
+    var codeActions =
         await getCodeActions(mainFileUri, position: code.position.position);
-    final codeActionTitles = codeActions.map((action) =>
+    var codeActionTitles = codeActions.map((action) =>
         action.map((command) => command.title, (action) => action.title));
 
     expect(
@@ -291,7 +291,7 @@ import '[!newfile.dart!]';
     setSupportedCodeActionKinds(
         [CodeActionKind.QuickFix, CodeActionKind.Refactor]);
 
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 import 'dart:async';
 [!import!] 'dart:convert';
 
@@ -321,7 +321,7 @@ void f(String a) {
 }
 ''';
 
-    final action = await expectAction(
+    var action = await expectAction(
       content,
       kind: CodeActionKind('quickfix.remove.nonNullAssertion.multi'),
       title: "Remove '!'s in file",
@@ -335,7 +335,7 @@ void f(String a) {
     // Some fixes (for example 'create function foo') are not available in the
     // batch processor, so should not generate fix-all-in-file fixes even if there
     // are multiple instances.
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 var a = [!foo!]();
 var b = bar();
 ''');
@@ -343,11 +343,11 @@ var b = bar();
     newFile(mainFilePath, code.code);
     await initialize();
 
-    final allFixes = await getCodeActions(mainFileUri, range: code.range.range);
+    var allFixes = await getCodeActions(mainFileUri, range: code.range.range);
 
     // Expect only the single-fix, there should be no apply-all.
     expect(allFixes, hasLength(1));
-    final fixTitle = allFixes.first.map((f) => f.title, (f) => f.title);
+    var fixTitle = allFixes.first.map((f) => f.title, (f) => f.title);
     expect(fixTitle, equals("Create function 'foo'"));
   }
 
@@ -422,7 +422,7 @@ void f(String a) {
   }
 
   Future<void> test_ignoreDiagnostic_afterOtherFixes() async {
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 void main() {
   Uint8List inputBytes = Uin^t8List.fromList(List.filled(100000000, 0));
 }
@@ -431,10 +431,10 @@ void main() {
     newFile(mainFilePath, code.code);
     await initialize();
 
-    final position = code.position.position;
-    final range = Range(start: position, end: position);
-    final codeActions = await getCodeActions(mainFileUri, range: range);
-    final codeActionKinds = codeActions.map(
+    var position = code.position.position;
+    var range = Range(start: position, end: position);
+    var codeActions = await getCodeActions(mainFileUri, range: range);
+    var codeActionKinds = codeActions.map(
       (item) => item.map(
         (command) => null,
         (action) => action.kind?.toString(),
@@ -517,15 +517,15 @@ Future foo;
   }
 
   Future<void> test_logsExecution() async {
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 [!import!] 'dart:convert';
 ''');
     newFile(mainFilePath, code.code);
     await initialize();
 
-    final codeActions =
+    var codeActions =
         await getCodeActions(mainFileUri, range: code.range.range);
-    final fixAction = findAction(codeActions,
+    var fixAction = findAction(codeActions,
         title: 'Remove unused import',
         kind: CodeActionKind('quickfix.remove.unusedImport'))!;
 
@@ -536,7 +536,7 @@ Future foo;
   Future<void> test_macroGenerated() async {
     setDartTextDocumentContentProviderSupport();
     var macroFilePath = join(projectFolderPath, 'lib', 'test.macro.dart');
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 void f() {
   js^on.encode('');
 }
@@ -544,7 +544,7 @@ void f() {
     newFile(macroFilePath, code.code);
     await initialize();
 
-    final codeActions = await getCodeActions(
+    var codeActions = await getCodeActions(
         uriConverter.toClientUri(macroFilePath),
         position: code.position.position);
     expect(codeActions, isEmpty);
@@ -562,7 +562,7 @@ linter:
     - prefer_expression_function_bodies
     ''');
 
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 int foo() {
   [!return!] 1;
 }
@@ -571,9 +571,9 @@ int foo() {
     newFile(mainFilePath, code.code);
     await initialize();
 
-    final codeActions =
+    var codeActions =
         await getCodeActions(mainFileUri, range: code.range.range);
-    final fixAction = findAction(codeActions,
+    var fixAction = findAction(codeActions,
         title: 'Convert to expression body',
         kind: CodeActionKind('quickfix.convert.toExpressionBody'));
     expect(fixAction, isNotNull);
@@ -585,7 +585,7 @@ int foo() {
     // diagnostics have their own fixes of the same type.
     //
     // Expect only the only one nearest to the start of the range to be returned.
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 void f() {
   var a = [];
   print(a!!);^
@@ -595,9 +595,9 @@ void f() {
     newFile(mainFilePath, code.code);
     await initialize();
 
-    final codeActions =
+    var codeActions =
         await getCodeActions(mainFileUri, position: code.position.position);
-    final removeNnaAction = findAction(codeActions,
+    var removeNnaAction = findAction(codeActions,
         title: "Remove the '!'",
         kind: CodeActionKind('quickfix.remove.nonNullAssertion'));
 
@@ -606,24 +606,23 @@ void f() {
 
     // Ensure the action is for the diagnostic on the second bang which was
     // closest to the range requested.
-    final secondBangPos =
-        positionFromOffset(code.code.indexOf('!);'), code.code);
+    var secondBangPos = positionFromOffset(code.code.indexOf('!);'), code.code);
     expect(removeNnaAction!.diagnostics, hasLength(1));
-    final diagStart = removeNnaAction.diagnostics!.first.range.start;
+    var diagStart = removeNnaAction.diagnostics!.first.range.start;
     expect(diagStart, equals(secondBangPos));
   }
 
   Future<void> test_noDuplicates_sameFix() async {
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 var a = [Test, Test, Te[!!]st];
 ''');
 
     newFile(mainFilePath, code.code);
     await initialize();
 
-    final codeActions =
+    var codeActions =
         await getCodeActions(mainFileUri, range: code.range.range);
-    final createClassActions = findAction(codeActions,
+    var createClassActions = findAction(codeActions,
         title: "Create class 'Test'",
         kind: CodeActionKind('quickfix.create.class'));
 
@@ -636,16 +635,16 @@ var a = [Test, Test, Te[!!]st];
     setDocumentChangesSupport();
     setSupportedCodeActionKinds([CodeActionKind.QuickFix]);
 
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 var a = [Test, Test, Te[!!]st];
 ''');
 
     newFile(mainFilePath, code.code);
     await initialize();
 
-    final codeActions =
+    var codeActions =
         await getCodeActions(mainFileUri, range: code.range.range);
-    final createClassActions = findAction(codeActions,
+    var createClassActions = findAction(codeActions,
         title: "Create class 'Test'",
         kind: CodeActionKind('quickfix.create.class'));
 
@@ -687,12 +686,12 @@ ProcessInfo b;
   }
 
   Future<void> test_outsideRoot() async {
-    final otherFilePath = convertPath('/home/otherProject/foo.dart');
-    final otherFileUri = pathContext.toUri(otherFilePath);
+    var otherFilePath = convertPath('/home/otherProject/foo.dart');
+    var otherFileUri = pathContext.toUri(otherFilePath);
     newFile(otherFilePath, 'bad code to create error');
     await initialize();
 
-    final codeActions = await getCodeActions(
+    var codeActions = await getCodeActions(
       otherFileUri,
       position: startOfDocPos,
     );
@@ -713,12 +712,12 @@ ProcessInfo b;
     if (!AnalysisServer.supportsPlugins) return;
     // Produces a server fix for removing unused import with a default
     // priority of 50.
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 [!import!] 'dart:convert';
 ''');
 
     // Provide two plugin results that should sort either side of the server fix.
-    final pluginResult = plugin.EditGetFixesResult([
+    var pluginResult = plugin.EditGetFixesResult([
       plugin.AnalysisErrorFixes(
         plugin.AnalysisError(
           plugin.AnalysisErrorSeverity.ERROR,
@@ -741,9 +740,9 @@ ProcessInfo b;
     newFile(mainFilePath, code.code);
     await initialize();
 
-    final codeActions =
+    var codeActions =
         await getCodeActions(mainFileUri, range: code.range.range);
-    final codeActionTitles = codeActions.map((action) =>
+    var codeActionTitles = codeActions.map((action) =>
         action.map((command) => command.title, (action) => action.title));
 
     expect(
@@ -814,10 +813,10 @@ abstract class A {
   void m(Iterable<({int a, int b})> r);
 }
 
-class B extends A {$0
+class B extends A {
   @override
   void m(${1|Iterable<({int a\, int b})>,Object|} ${2:r}) {
-    // TODO: implement m
+    // TODO: implement m$0
   }
 }
 ''';
@@ -861,7 +860,7 @@ useFunction(int g(a, b)) {}
 
   void _enableLints(List<String> lintNames) {
     registerLintRules();
-    final lintsYaml = lintNames.map((name) => '    - $name\n').join();
+    var lintsYaml = lintNames.map((name) => '    - $name\n').join();
     newFile(analysisOptionsPath, '''
 linter:
   rules:

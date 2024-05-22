@@ -10,21 +10,26 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class ConvertToWildcardPattern extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_WILDCARD_PATTERN;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final namedType = node;
+    var namedType = node;
     if (namedType is! NamedType) {
       return;
     }
 
-    final typeLiteral = namedType.parent;
+    var typeLiteral = namedType.parent;
     if (typeLiteral is! TypeLiteral) {
       return;
     }
 
-    final constantPattern = typeLiteral.parent;
+    var constantPattern = typeLiteral.parent;
     if (constantPattern is! ConstantPattern) {
       return;
     }

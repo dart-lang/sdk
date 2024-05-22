@@ -1,0 +1,54 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static const field core::List<core::String> listWithUnevaluatedUnevaluatedFirst = #C10;
+static const field core::List<core::String> listWithUnevaluatedUnevaluatedMiddle = #C22;
+static const field core::Set<core::String> setWithUnevaluatedUnevaluatedFirst = #C26;
+static const field core::Set<core::String> setWithUnevaluatedUnevaluatedMiddle = #C31;
+static const field core::Map<core::String, core::int> mapWithUnevaluatedUnevaluatedFirst = #C36;
+static const field core::Map<core::String, core::int> mapWithUnevaluatedUnevaluatedMiddle = #C41;
+
+constants  {
+  #C1 = "foo"
+  #C2 = eval const core::String::fromEnvironment(#C1)
+  #C3 = eval const <dynamic>[#C2]
+  #C4 = "bar"
+  #C5 = eval const core::String::fromEnvironment(#C4)
+  #C6 = eval const <dynamic>[#C5]
+  #C7 = "hello"
+  #C8 = "world"
+  #C9 = <core::String>[#C7, #C8]
+  #C10 = eval #C3 + #C6 + #C9
+  #C11 = "A"
+  #C12 = "few"
+  #C13 = "strings"
+  #C14 = <core::String>[#C11, #C12, #C13]
+  #C15 = eval const core::String::fromEnvironment(#C1)
+  #C16 = eval const <dynamic>[#C15]
+  #C17 = eval const core::String::fromEnvironment(#C4)
+  #C18 = eval const <dynamic>[#C17]
+  #C19 = "and"
+  #C20 = "more"
+  #C21 = <core::String>[#C7, #C8, #C19, #C20]
+  #C22 = eval #C14 + #C16 + #C18 + #C21
+  #C23 = eval const core::String::fromEnvironment(#C1)
+  #C24 = eval const <dynamic>{#C23}
+  #C25 = <core::String>{#C7, #C8}
+  #C26 = eval #C24 + #C25
+  #C27 = <core::String>{#C11, #C12, #C13}
+  #C28 = eval const core::String::fromEnvironment(#C1)
+  #C29 = eval const <dynamic>{#C28}
+  #C30 = <core::String>{#C7, #C8, #C19, #C20}
+  #C31 = eval #C27 + #C29 + #C30
+  #C32 = eval const core::String::fromEnvironment(#C1)
+  #C33 = 42
+  #C34 = eval const <dynamic, dynamic>{#C32: #C33}
+  #C35 = <core::String, core::int>{#C7:#C33, #C8:#C33}
+  #C36 = eval #C34 + #C35
+  #C37 = <core::String, core::int>{#C11:#C33, #C12:#C33, #C13:#C33}
+  #C38 = eval const core::String::fromEnvironment(#C1)
+  #C39 = eval const <dynamic, dynamic>{#C38: #C33}
+  #C40 = <core::String, core::int>{#C7:#C33, #C8:#C33, #C19:#C33, #C20:#C33}
+  #C41 = eval #C37 + #C39 + #C40
+}

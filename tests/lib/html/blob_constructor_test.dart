@@ -5,7 +5,7 @@
 import 'dart:html';
 import 'dart:typed_data';
 
-import 'package:expect/minitest.dart';
+import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 main() {
   test('basic', () {

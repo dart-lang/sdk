@@ -1031,7 +1031,7 @@ void f(int? a) {
 }
 ''');
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ExtensionOverride

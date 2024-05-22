@@ -547,12 +547,8 @@ class TimelineEvent {
     return PreSerializedArgsBit::decode(state_);
   }
 
-  TimelineEvent* next() const {
-    return next_;
-  }
-  void set_next(TimelineEvent* next) {
-    next_ = next;
-  }
+  TimelineEvent* next() const { return next_; }
+  void set_next(TimelineEvent* next) { next_ = next; }
 
  private:
   void StreamInit(TimelineStream* stream) { stream_ = stream; }
@@ -1087,9 +1083,7 @@ class TimelineEventCallbackRecorder : public TimelineEventRecorder {
   virtual void OnEvent(TimelineEvent* event) = 0;
 
   const char* name() const { return CALLBACK_RECORDER_NAME; }
-  intptr_t Size() {
-    return 0;
-  }
+  intptr_t Size() { return 0; }
 
  protected:
   TimelineEventBlock* GetNewBlockLocked() { UNREACHABLE(); }

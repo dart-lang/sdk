@@ -15,11 +15,16 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddLate extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   FixKind get fixKind => DartFixKind.ADD_LATE;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is VariableDeclaration) {
       var variableList = node.parent;
       if (variableList is VariableDeclarationList) {

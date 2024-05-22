@@ -9,6 +9,10 @@ environment:
   sdk: ^3.0.0
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
+dependencies:
+  _fe_analyzer_shared: any
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
   args: any
   expect: any

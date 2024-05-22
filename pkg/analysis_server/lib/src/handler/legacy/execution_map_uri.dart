@@ -54,7 +54,7 @@ class ExecutionMapUriHandler extends LegacyHandler {
         return;
       }
 
-      final fileResult = driver.getFileSync(file);
+      var fileResult = driver.getFileSync(file);
       if (fileResult is! FileResult) {
         sendResponse(
           Response.invalidParameter(

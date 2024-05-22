@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/fix_all.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/fix_all_in_workspace.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/log_action.dart';
@@ -54,7 +55,7 @@ class ExecuteCommandHandler
   @override
   Future<ErrorOr<Object?>> handle(ExecuteCommandParams params,
       MessageInfo message, CancellationToken token) async {
-    final handler = commandHandlers[params.command];
+    var handler = commandHandlers[params.command];
     if (handler == null) {
       return error(ServerErrorCodes.UnknownCommand,
           '${params.command} is not a valid command identifier');
@@ -63,8 +64,8 @@ class ExecuteCommandHandler
     if (!handler.recordsOwnAnalytics) {
       server.analyticsManager.executedCommand(params.command);
     }
-    final workDoneToken = params.workDoneToken;
-    final progress = workDoneToken != null
+    var workDoneToken = params.workDoneToken;
+    var progress = workDoneToken != null
         ? ProgressReporter.clientProvided(server, workDoneToken)
         : server.lspClientCapabilities?.workDoneProgress ?? false
             ? ProgressReporter.serverCreated(server)
@@ -75,7 +76,7 @@ class ExecuteCommandHandler
     //
     // However, some handlers still support the list for compatibility so we
     // must allow them to convert a `List` to a `Map`.
-    final arguments = params.arguments ?? const [];
+    var arguments = params.arguments ?? const [];
     Map<String, Object?> commandParams;
     if (handler case PositionalArgCommandHandler argHandler) {
       commandParams = argHandler.parseArgList(arguments);

@@ -9,12 +9,12 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 
-const _desc = r'Use if-null operators to convert nulls to bools.';
+const _desc = r'Use `??` operators to convert `null`s to `bool`s.';
 
 const _details = r'''
 From [Effective Dart](https://dart.dev/effective-dart/usage#prefer-using--to-convert-null-to-a-boolean-value):
 
-Use if-null operators to convert nulls to bools.
+Use `??` operators to convert `null`s to `bool`s.
 
 **BAD:**
 ```dart

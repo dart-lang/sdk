@@ -15,13 +15,13 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/macro_application.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:macros/src/bootstrap.dart' as macro;
 import 'package:macros/src/executor/serialization.dart' as macro;
 import 'package:path/path.dart' as package_path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../dart/resolution/context_collection_resolution.dart';
 import '../dart/resolution/node_text_expectations.dart';
 import 'element_text.dart';
 import 'elements_base.dart';
@@ -84,7 +84,7 @@ class A2 {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class A1 {
   A1.named12();
@@ -198,7 +198,7 @@ class A2 {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class A2 {
   A2.named22();
@@ -227,7 +227,7 @@ class A2 {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class A1 {
   int f12 = 0;
@@ -336,7 +336,7 @@ class A2 {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class A2 {
   int f22 = 0;
@@ -365,7 +365,7 @@ class A2 {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class A1 {
   void f12() {}
@@ -542,7 +542,7 @@ class A2 {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class A2 {
   void f22() {}
@@ -567,7 +567,7 @@ class A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class A {
   void introspected_A_foo();
@@ -593,7 +593,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class A1 {}
 void f1() {}
@@ -621,7 +621,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class A2 {}
 class A1 {}
@@ -651,7 +651,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class A1 {}
 class A2 {}
@@ -677,7 +677,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class A2 {}
 class A1 {}
@@ -705,7 +705,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class A1 {}
 class A2 {}
@@ -730,7 +730,7 @@ enum X {
 
     configuration.forOrder();
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class A2 {}
 class A3 {}
@@ -759,7 +759,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class A2 {}
 class A1 {}
@@ -787,7 +787,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class A2 {}
 class A1 {}
@@ -815,7 +815,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class A2 {}
 class A1 {}
@@ -843,7 +843,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class A2 {}
 class A1 {}
@@ -873,7 +873,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class A1 {}
 class A2 {}
@@ -899,7 +899,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class A2 {}
 class A1 {}
@@ -927,7 +927,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class A1 {}
 class A2 {}
@@ -1231,7 +1231,7 @@ foo: String aaabbbccc
     required String expected,
     bool hasErrors = false,
   }) async {
-    final dumpCode = fields.keys.map((name) {
+    var dumpCode = fields.keys.map((name) {
       return "$name: \${$name.runtimeType} \$$name\\\\n";
     }).join();
 
@@ -1255,7 +1255,7 @@ ${fields.entries.map((e) => '  final ${e.value} ${e.key};').join('\n')}
 }
 ''');
 
-    final library = await buildLibrary('''
+    var library = await buildLibrary('''
 import 'arguments_text.dart';
 
 @ArgumentsTextMacro$argumentsCode
@@ -1272,11 +1272,11 @@ class A {}
         failWithLibraryText(library);
       }
 
-      final x = library.topLevelElements
+      var x = library.topLevelElements
           .whereType<ConstTopLevelVariableElementImpl>()
           .single;
       expect(x.name, 'x');
-      final actual = (x.constantInitializer as SimpleStringLiteral).value;
+      var actual = (x.constantInitializer as SimpleStringLiteral).value;
       if (actual != expected) {
         print('-------- Actual --------');
         print('$actual------------------------');
@@ -1302,6 +1302,371 @@ class MacroCodeGenerationTest extends MacroElementsBaseTest {
     );
   }
 
+  test_class_addMethod2_augmentMethod2() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+@DeclareInType("""
+  @{{package:test/append.dart@AugmentDefinition}}('{}')
+  void foo();""")
+@DeclareInType("""
+  @{{package:test/append.dart@AugmentDefinition}}('{}')
+  void bar();""")
+class A {}
+''');
+
+    _assertMacroCode(library, r'''
+augment library 'package:test/test.dart';
+
+import 'package:test/append.dart' as prefix0;
+
+augment class A {
+  @prefix0.AugmentDefinition('{}')
+  void bar();
+  @prefix0.AugmentDefinition('{}')
+  void foo();
+  augment void foo() {}
+  augment void bar() {}
+}
+''');
+  }
+
+  test_declarationsPhase_metadata_class_type() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+@DeclarationsPhaseAnnotationType()
+@A()
+class X {}
+
+class A {
+  const A();
+}
+''');
+
+    _assertMacroCode(library, r'''
+augment library 'package:test/test.dart';
+
+import 'package:test/code_generation.dart' as prefix0;
+import 'package:test/test.dart' as prefix1;
+
+var x = [prefix0.DeclarationsPhaseAnnotationType, prefix1.A];
+''');
+  }
+
+  test_declarationsPhase_metadata_class_type_imported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A();
+}
+''');
+
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@DeclarationsPhaseAnnotationType()
+@A()
+class X {}
+''');
+
+    _assertMacroCode(library, r'''
+augment library 'package:test/test.dart';
+
+import 'package:test/code_generation.dart' as prefix0;
+import 'package:test/a.dart' as prefix1;
+
+var x = [prefix0.DeclarationsPhaseAnnotationType, prefix1.A];
+''');
+  }
+
+  test_declarationsPhase_metadata_class_type_imported_withPrefix() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A();
+}
+''');
+
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart' as prefix;
+
+@DeclarationsPhaseAnnotationType()
+@prefix.A()
+class X {}
+''');
+
+    _assertMacroCode(library, r'''
+augment library 'package:test/test.dart';
+
+import 'package:test/code_generation.dart' as prefix0;
+import 'package:test/a.dart' as prefix1;
+
+var x = [prefix0.DeclarationsPhaseAnnotationType, prefix1.A];
+''');
+  }
+
+  test_declarationsPhase_metadata_classAlias() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+@DeclarationsPhaseAnnotationType()
+@A()
+class X = Object with M;
+
+class A {
+  const A();
+}
+
+mixin M {}
+''');
+
+    _assertMacroCode(library, r'''
+augment library 'package:test/test.dart';
+
+import 'package:test/code_generation.dart' as prefix0;
+import 'package:test/test.dart' as prefix1;
+
+var x = [prefix0.DeclarationsPhaseAnnotationType, prefix1.A];
+''');
+  }
+
+  test_declarationsPhase_metadata_classConstructor() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+class X {
+  @DeclarationsPhaseAnnotationType()
+  @A()
+  X();
+}
+
+class A {
+  const A();
+}
+''');
+
+    _assertMacroCode(library, r'''
+augment library 'package:test/test.dart';
+
+import 'package:test/code_generation.dart' as prefix0;
+import 'package:test/test.dart' as prefix1;
+
+var x = [prefix0.DeclarationsPhaseAnnotationType, prefix1.A];
+''');
+  }
+
+  test_declarationsPhase_metadata_classField() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+class X {
+  @DeclarationsPhaseAnnotationType()
+  @A()
+  final foo = 0;
+}
+
+class A {
+  const A();
+}
+''');
+
+    _assertMacroCode(library, r'''
+augment library 'package:test/test.dart';
+
+import 'package:test/code_generation.dart' as prefix0;
+import 'package:test/test.dart' as prefix1;
+
+var x = [prefix0.DeclarationsPhaseAnnotationType, prefix1.A];
+''');
+  }
+
+  test_declarationsPhase_metadata_classMethod() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+class X {
+  @DeclarationsPhaseAnnotationType()
+  @A()
+  void foo() {}
+}
+
+class A {
+  const A();
+}
+''');
+
+    _assertMacroCode(library, r'''
+augment library 'package:test/test.dart';
+
+import 'package:test/code_generation.dart' as prefix0;
+import 'package:test/test.dart' as prefix1;
+
+var x = [prefix0.DeclarationsPhaseAnnotationType, prefix1.A];
+''');
+  }
+
+  test_declarationsPhase_metadata_enum() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+@DeclarationsPhaseAnnotationType()
+@A()
+enum X {v}
+
+class A {
+  const A();
+}
+''');
+
+    _assertMacroCode(library, r'''
+augment library 'package:test/test.dart';
+
+import 'package:test/code_generation.dart' as prefix0;
+import 'package:test/test.dart' as prefix1;
+
+var x = [prefix0.DeclarationsPhaseAnnotationType, prefix1.A];
+''');
+  }
+
+  test_declarationsPhase_metadata_extension() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+@DeclarationsPhaseAnnotationType()
+@A()
+extension X on int {}
+
+class A {
+  const A();
+}
+''');
+
+    _assertMacroCode(library, r'''
+augment library 'package:test/test.dart';
+
+import 'package:test/code_generation.dart' as prefix0;
+import 'package:test/test.dart' as prefix1;
+
+var x = [prefix0.DeclarationsPhaseAnnotationType, prefix1.A];
+''');
+  }
+
+  test_declarationsPhase_metadata_extensionType() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+@DeclarationsPhaseAnnotationType()
+@A()
+extension type X(int it) {}
+
+class A {
+  const A();
+}
+''');
+
+    _assertMacroCode(library, r'''
+augment library 'package:test/test.dart';
+
+import 'package:test/code_generation.dart' as prefix0;
+import 'package:test/test.dart' as prefix1;
+
+var x = [prefix0.DeclarationsPhaseAnnotationType, prefix1.A];
+''');
+  }
+
+  test_declarationsPhase_metadata_function() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+@DeclarationsPhaseAnnotationType()
+@A()
+void foo() {}
+
+class A {
+  const A();
+}
+''');
+
+    _assertMacroCode(library, r'''
+augment library 'package:test/test.dart';
+
+import 'package:test/code_generation.dart' as prefix0;
+import 'package:test/test.dart' as prefix1;
+
+var x = [prefix0.DeclarationsPhaseAnnotationType, prefix1.A];
+''');
+  }
+
+  test_declarationsPhase_metadata_mixin() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+@DeclarationsPhaseAnnotationType()
+@A()
+mixin X {}
+
+class A {
+  const A();
+}
+''');
+
+    _assertMacroCode(library, r'''
+augment library 'package:test/test.dart';
+
+import 'package:test/code_generation.dart' as prefix0;
+import 'package:test/test.dart' as prefix1;
+
+var x = [prefix0.DeclarationsPhaseAnnotationType, prefix1.A];
+''');
+  }
+
+  test_declarationsPhase_metadata_topLevelVariable() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+@DeclarationsPhaseAnnotationType()
+@A()
+final foo = 0;
+
+class A {
+  const A();
+}
+''');
+
+    _assertMacroCode(library, r'''
+augment library 'package:test/test.dart';
+
+import 'package:test/code_generation.dart' as prefix0;
+import 'package:test/test.dart' as prefix1;
+
+var x = [prefix0.DeclarationsPhaseAnnotationType, prefix1.A];
+''');
+  }
+
+  test_declarationsPhase_metadata_typeAlias() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+@DeclarationsPhaseAnnotationType()
+@A()
+typedef X = int;
+
+class A {
+  const A();
+}
+''');
+
+    _assertMacroCode(library, r'''
+augment library 'package:test/test.dart';
+
+import 'package:test/code_generation.dart' as prefix0;
+import 'package:test/test.dart' as prefix1;
+
+var x = [prefix0.DeclarationsPhaseAnnotationType, prefix1.A];
+''');
+  }
+
   test_inferOmittedType_fieldInstance_type() async {
     var library = await buildLibrary(r'''
 import 'code_generation.dart';
@@ -1317,7 +1682,7 @@ class B extends A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -1338,7 +1703,7 @@ class A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -1357,7 +1722,7 @@ foo() {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -1374,7 +1739,7 @@ void foo(Function() a) {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -1397,7 +1762,7 @@ class B extends A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -1422,7 +1787,7 @@ class B extends A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -1447,7 +1812,7 @@ class B extends A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -1468,7 +1833,7 @@ class A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -1489,7 +1854,7 @@ class A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -1514,7 +1879,7 @@ class B extends A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -1535,7 +1900,7 @@ class A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -1556,7 +1921,7 @@ class A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -1577,7 +1942,7 @@ class A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -1597,12 +1962,12 @@ augment class A {
     var library = await buildLibrary(r'''
 import 'append.dart';
 
-@DeclareInLibrary('class B {}')
+@DeclareTypesPhase('B', 'class B {}')
 class A {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class B {}
 ''');
@@ -1613,7 +1978,7 @@ class B {}
 class A {}
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -1622,7 +1987,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -1641,7 +2006,7 @@ class A {
 }
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -1650,7 +2015,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -1674,7 +2039,7 @@ class A {
 }
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -1683,7 +2048,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -1702,7 +2067,7 @@ class A {
 }
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -1717,7 +2082,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class X {
   void doReference(dynamic a) {
@@ -1734,7 +2099,7 @@ class A {
 }
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -1743,7 +2108,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -1767,7 +2132,7 @@ class A {
 }
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -1776,7 +2141,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -1798,7 +2163,7 @@ part of 'a.dart';
 class B {}
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -1807,7 +2172,7 @@ class A {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -1826,7 +2191,7 @@ class A {
 }
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -1841,7 +2206,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class X {
   void doReference(dynamic a) {
@@ -1858,7 +2223,7 @@ class A {
 }
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -1867,7 +2232,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -1891,7 +2256,7 @@ class A {
 }
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -1900,7 +2265,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -1919,7 +2284,7 @@ class A {
 }
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -1934,7 +2299,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class X {
   void doReference(dynamic a) {
@@ -1951,7 +2316,7 @@ class A {
 }
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -1960,7 +2325,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -1984,7 +2349,7 @@ class A {
 }
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -1993,7 +2358,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -2010,7 +2375,7 @@ augment class X {
 extension A on int {}
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -2019,7 +2384,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -2036,7 +2401,7 @@ augment class X {
 extension type A(int it) {}
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -2045,7 +2410,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -2058,7 +2423,7 @@ augment class X {
   }
 
   test_resolveIdentifier_formalParameter() async {
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 
 @ReferenceFirstFormalParameter()
@@ -2066,7 +2431,7 @@ void foo(int a);
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -2081,7 +2446,7 @@ augment void foo(prefix0.int a, ) {
 typedef void A();
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -2090,7 +2455,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -2107,7 +2472,7 @@ augment class X {
 typedef A = int;
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -2116,7 +2481,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -2129,7 +2494,7 @@ augment class X {
   }
 
   test_resolveIdentifier_typeParameter() async {
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 
 @ReferenceFirstTypeParameter()
@@ -2137,7 +2502,7 @@ void foo<T>();
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment void foo<T>() {
   T;
@@ -2150,7 +2515,7 @@ augment void foo<T>() {
 void foo() {}
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -2159,7 +2524,7 @@ class A {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -2181,7 +2546,7 @@ part of 'a.dart';
 void foo() {}
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -2190,7 +2555,7 @@ class A {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -2207,7 +2572,7 @@ augment class A {
 int get foo => 0;
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -2216,7 +2581,7 @@ class A {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -2238,7 +2603,7 @@ part of 'a.dart';
 int get foo => 0;
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -2247,7 +2612,7 @@ class A {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -2264,7 +2629,7 @@ augment class A {
 set foo(int value) {}
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -2273,7 +2638,7 @@ class A {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -2290,7 +2655,7 @@ augment class A {
 var foo = 0;
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -2299,7 +2664,7 @@ class A {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -2322,7 +2687,7 @@ class A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -2345,7 +2710,7 @@ class A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -2396,7 +2761,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -2516,7 +2881,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class A {
   A.named(this.f);
@@ -2570,7 +2935,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class A {
   A.named(int a);
@@ -2623,7 +2988,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class A {
   A(int a);
@@ -2678,7 +3043,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class A {
   int foo = 0;
@@ -2741,7 +3106,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class A {
   int get foo => 0;
@@ -2795,7 +3160,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class A {
   int foo(double a) => 0;
@@ -2850,7 +3215,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class A {
   set foo(int a) {}
@@ -2901,7 +3266,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -2959,7 +3324,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -3018,7 +3383,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -3080,7 +3445,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -3142,7 +3507,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -3207,7 +3572,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -3269,7 +3634,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -3329,7 +3694,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -3376,7 +3741,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -3442,7 +3807,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -3498,7 +3863,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -3577,7 +3942,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -3690,7 +4055,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -3739,7 +4104,7 @@ class A {
 import 'append.dart';
 import 'a.dart';
 
-@DeclareInLibrary("""
+@DeclareTypesPhase('C', """
 @{{package:test/a.dart@A}}()
 class C {}""")
 class B {}
@@ -3755,7 +4120,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -3766,7 +4131,7 @@ class C {}
         package:test/a.dart as prefix0 @75
       definingUnit
         classes
-          notSimplyBounded class C @104
+          class C @104
             metadata
               Annotation
                 atSign: @ @85
@@ -3818,7 +4183,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -3886,7 +4251,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -3957,7 +4322,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -4052,7 +4417,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -4122,7 +4487,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -4189,7 +4554,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -4262,7 +4627,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -4320,7 +4685,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -4378,7 +4743,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -4443,7 +4808,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -4507,7 +4872,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -4571,7 +4936,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -4637,7 +5002,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -4713,7 +5078,7 @@ void foo() {}
 import 'append.dart';
 import 'a.dart';
 
-@DeclareInLibrary("""
+@DeclareTypesPhase('C', """
 @{{package:test/a.dart@A}}({{package:test/a.dart@foo}})
 class C {}""")
 class B {}
@@ -4729,7 +5094,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -4740,7 +5105,7 @@ class C {}
         package:test/a.dart as prefix0 @75
       definingUnit
         classes
-          notSimplyBounded class C @115
+          class C @115
             metadata
               Annotation
                 atSign: @ @85
@@ -4789,7 +5154,7 @@ class X<T> {}
 import 'append.dart';
 import 'a.dart';
 
-@DeclareInLibrary("""
+@DeclareTypesPhase('C', """
 @{{package:test/a.dart@A}}.named()
 class C {}""")
 class B {}
@@ -4805,7 +5170,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -4816,7 +5181,7 @@ class C {}
         package:test/a.dart as prefix0 @75
       definingUnit
         classes
-          notSimplyBounded class C @110
+          class C @110
             metadata
               Annotation
                 atSign: @ @85
@@ -4857,7 +5222,7 @@ class X<T> {}
 import 'append.dart';
 import 'a.dart';
 
-@DeclareInLibrary("""
+@DeclareTypesPhase('C', """
 @{{package:test/a.dart@A}}({{package:test/a.dart@X}}<void>)
 class C {}""")
 class B {}
@@ -4873,7 +5238,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -4884,7 +5249,7 @@ class C {}
         package:test/a.dart as prefix0 @75
       definingUnit
         classes
-          notSimplyBounded class C @119
+          class C @119
             metadata
               Annotation
                 atSign: @ @85
@@ -4955,7 +5320,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 import 'package:test/b.dart' as prefix1;
@@ -5002,7 +5367,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -5017,6 +5382,63 @@ void foo(prefix0.X x) {}
               requiredPositional x @104
                 type: X
             returnType: void
+''');
+  }
+
+  test_libraryCycle_class_constructor_add() async {
+    // Checks https://github.com/dart-lang/sdk/issues/55362
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'append.dart';
+
+// Just to make it a library cycle.
+import 'test.dart';
+
+@DeclareInType('  A();')
+class A {}
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareInType('  B();')
+class B {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  definingUnit
+    reference: self
+    classes
+      class B @71
+        reference: self::@class::B
+        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+        augmented
+  augmentationImports
+    package:test/test.macro.dart
+      reference: self::@augmentation::package:test/test.macro.dart
+      macroGeneratedCode
+---
+augment library 'package:test/test.dart';
+
+augment class B {
+  B();
+}
+---
+      definingUnit
+        reference: self::@augmentation::package:test/test.macro.dart
+        classes
+          augment class B @57
+            reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+            augmentationTarget: self::@class::B
 ''');
   }
 
@@ -5049,7 +5471,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 void foo() {}
 ---
@@ -5097,7 +5519,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 final x = 42;
 ---
@@ -5174,7 +5596,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -5246,7 +5668,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 import 'dart:core' as prefix1;
@@ -5336,7 +5758,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 import 'dart:core' as prefix1;
@@ -5414,7 +5836,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 import 'dart:core' as prefix1;
@@ -5485,7 +5907,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 import 'dart:core' as prefix1;
@@ -5553,7 +5975,7 @@ abstract class MacroElementsBaseTest extends ElementsBaseTest {
     // It is useful to see where, so include stack traces.
     configuration.withMacroStackTraces = true;
 
-    final text = getLibraryText(
+    var text = getLibraryText(
       library: library,
       configuration: configuration,
     );
@@ -5579,7 +6001,7 @@ abstract class MacroElementsBaseTest extends ElementsBaseTest {
 
   /// Adds `a.dart` with the content from `single/` directory.
   void _addSingleMacro(String fileName) {
-    final code = _getMacroCode('single/$fileName');
+    var code = _getMacroCode('single/$fileName');
     newFile('$testPackageLibPath/a.dart', code);
   }
 
@@ -5593,11 +6015,11 @@ abstract class MacroElementsBaseTest extends ElementsBaseTest {
       failWithLibraryText(library);
     }
 
-    final generated = _getMacroGeneratedCode(library);
+    var generated = _getMacroGeneratedCode(library);
 
-    final regExp = RegExp(r'=> r"""(.+)""";', dotAll: true);
-    final match = regExp.firstMatch(generated);
-    final actual = match?.group(1);
+    var regExp = RegExp(r'=> r"""(.+)""";', dotAll: true);
+    var match = regExp.firstMatch(generated);
+    var actual = match?.group(1);
 
     if (actual == null) {
       print('-------- Generated --------');
@@ -5638,7 +6060,7 @@ void _starter() {}
 
   /// Verifies the code of the macro generated augmentation.
   void _assertMacroCode(LibraryElementImpl library, String expected) {
-    final actual = _getMacroGeneratedCode(library);
+    var actual = _getMacroGeneratedCode(library);
     if (actual != expected) {
       print('-------- Actual --------');
       print('$actual------------------------');
@@ -5664,6 +6086,116 @@ void _starter() {}
 }
 
 abstract class MacroElementsTest extends MacroElementsBaseTest {
+  @override
+  bool get retainDataForTesting => true;
+
+  test_disable_declarationsPhase() async {
+    var library = await buildLibrary(r'''
+// @dart = 3.2
+import 'append.dart';
+
+@DeclareInType('  void foo() {}')
+class A {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @78
+''');
+  }
+
+  test_disable_definitionsPhase() async {
+    var library = await buildLibrary(r'''
+// @dart = 3.2
+import 'append.dart';
+
+class A {
+  @AugmentDefinition('{ print(0); }')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @44
+        methods
+          foo @93
+            returnType: void
+''');
+  }
+
+  test_disable_typesPhase() async {
+    var library = await buildLibrary(r'''
+// @dart = 3.2
+import 'append.dart';
+
+@DeclareType('B', 'class B {}')
+class A {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @76
+''');
+  }
+
+  test_exportedMacro() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+export 'append.dart';
+''');
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+
+@DeclareType('B', 'class B {}')
+class A {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/a.dart
+  definingUnit
+    classes
+      class A @56
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+augment library 'package:test/test.dart';
+
+class B {}
+---
+      definingUnit
+        classes
+          class B @49
+''');
+  }
+
   test_macroApplicationErrors_typesPhase_compileTimeError() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:macros/macros.dart';
@@ -5677,7 +6209,7 @@ macro class MyMacro implements ClassTypesMacro {
 }
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'a.dart';
 
 @MyMacro()
@@ -5726,7 +6258,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @TargetClassOrMixinMacro()
@@ -5759,7 +6291,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 @TargetClassOrMixinMacro()
 library;
 
@@ -5794,7 +6326,7 @@ class A {
 }
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 import 'a.dart';
 
@@ -5835,7 +6367,7 @@ library
 const a = 0;
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 import 'a.dart';
 
@@ -5873,7 +6405,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportAtTargetDeclaration()
@@ -5907,7 +6439,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 class A {
@@ -5943,7 +6475,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 class A {
@@ -5986,7 +6518,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 class A {
@@ -6025,7 +6557,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportAtTargetDeclaration()
@@ -6061,7 +6593,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportAtFirstMethod()
@@ -6099,7 +6631,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportAtTypeAnnotation([
@@ -6136,7 +6668,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 class A {
@@ -6182,7 +6714,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportAtTypeAnnotation([
@@ -6229,7 +6761,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportAtTypeAnnotation([
@@ -6274,7 +6806,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportAtTypeAnnotation([
@@ -6312,7 +6844,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportAtTypeAnnotation([
@@ -6353,7 +6885,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportAtTypeAnnotation([
@@ -6394,7 +6926,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportAtTypeAnnotation([
@@ -6434,7 +6966,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportAtTypeAnnotation([
@@ -6472,7 +7004,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 class A {
@@ -6518,7 +7050,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportAtTypeAnnotation([
@@ -6561,7 +7093,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportAtTypeAnnotation([
@@ -6599,7 +7131,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 class A {
@@ -6641,7 +7173,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportAtTypeAnnotation([
@@ -6683,7 +7215,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportAtTypeAnnotation([
@@ -6721,7 +7253,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 typedef A = List<int>;
@@ -6765,7 +7297,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 class A {
@@ -6814,7 +7346,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 class A {
@@ -6856,7 +7388,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportAtTypeAnnotation([
@@ -6897,7 +7429,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 class A {
@@ -6946,7 +7478,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 class A {
@@ -6995,7 +7527,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportAtTypeAnnotation([
@@ -7033,7 +7565,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportWithContextMessages()
@@ -7084,7 +7616,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportWithoutTargetError()
@@ -7117,7 +7649,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportWithoutTargetInfo()
@@ -7150,7 +7682,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportWithoutTargetWarning()
@@ -7183,7 +7715,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ThrowExceptionDeclarationsPhase()
@@ -7224,7 +7756,7 @@ My declarations phase
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 class A {
@@ -7267,7 +7799,7 @@ My declarations phase
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 class A {
@@ -7322,7 +7854,7 @@ My declarations phase
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 class A {
@@ -7368,7 +7900,7 @@ My declarations phase
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ThrowExceptionDefinitionsPhase()
@@ -7409,7 +7941,7 @@ My definitions phase
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @MacroWithArguments()
@@ -7483,7 +8015,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ThrowExceptionTypesPhase()
@@ -7560,6 +8092,798 @@ library
           Object
 ''');
   }
+
+  test_notAllowedDeclaration_declarations_class() async {
+    if (!keepLinkingLibraries) {
+      return;
+    }
+    useEmptyByteStore();
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @DeclareInLibrary('class B {}')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @74
+            returnType: void
+            macroDiagnostics
+              NotAllowedDeclarationDiagnostic
+                annotationIndex: 0
+                phase: declarations
+                nodeRanges: (43, 10)
+---
+augment library 'package:test/test.dart';
+
+class B {}
+---
+''');
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/append.dart
+    uri: package:test/append.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_9 package:macros/macros.dart
+          library_10 dart:core synthetic
+        cycle_0
+          dependencies: dart:core package:macros/macros.dart
+          libraries: library_0
+          apiSignature_0
+          users: cycle_1
+      referencingFiles: file_1
+      unlinkedKey: k00
+  /home/test/lib/test.dart
+    uri: package:test/test.dart
+    current
+      id: file_1
+      kind: library_1
+        libraryImports
+          library_0
+          library_10 dart:core synthetic
+        cycle_1
+          dependencies: cycle_0 dart:core
+          libraries: library_1
+          apiSignature_1
+      unlinkedKey: k01
+libraryCycles
+  /home/test/lib/append.dart
+    current: cycle_0
+      key: k02
+    get: []
+    put: [k02]
+  /home/test/lib/test.dart
+    current: cycle_1
+      key: k03
+    get: []
+    put: [k03]
+elementFactory
+  hasElement
+    package:test/append.dart
+    package:test/test.dart
+''');
+  }
+
+  test_notAllowedDeclaration_declarations_enum() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @DeclareInLibrary('enum B {v}')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @74
+            returnType: void
+            macroDiagnostics
+              NotAllowedDeclarationDiagnostic
+                annotationIndex: 0
+                phase: declarations
+                nodeRanges: (43, 10)
+---
+augment library 'package:test/test.dart';
+
+enum B {v}
+---
+''');
+  }
+
+  test_notAllowedDeclaration_declarations_extension() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @DeclareInLibrary('extension B on int {}')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @85
+            returnType: void
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+augment library 'package:test/test.dart';
+
+extension B on int {}
+---
+      definingUnit
+        extensions
+          B @53
+            extendedType: int
+''');
+  }
+
+  test_notAllowedDeclaration_declarations_extensionType() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @DeclareInLibrary('extension type B(int it) {}')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @91
+            returnType: void
+            macroDiagnostics
+              NotAllowedDeclarationDiagnostic
+                annotationIndex: 0
+                phase: declarations
+                nodeRanges: (43, 27)
+---
+augment library 'package:test/test.dart';
+
+extension type B(int it) {}
+---
+''');
+  }
+
+  test_notAllowedDeclaration_declarations_mixin() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @DeclareInLibrary('mixin B {}')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @74
+            returnType: void
+            macroDiagnostics
+              NotAllowedDeclarationDiagnostic
+                annotationIndex: 0
+                phase: declarations
+                nodeRanges: (43, 10)
+---
+augment library 'package:test/test.dart';
+
+mixin B {}
+---
+''');
+  }
+
+  test_notAllowedDeclaration_declarations_typedef() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @DeclareInLibrary('typedef B = int;')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @80
+            returnType: void
+            macroDiagnostics
+              NotAllowedDeclarationDiagnostic
+                annotationIndex: 0
+                phase: declarations
+                nodeRanges: (43, 16)
+---
+augment library 'package:test/test.dart';
+
+typedef B = int;
+---
+''');
+  }
+
+  test_notAllowedDeclaration_definitions_class() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @AugmentDefinition(';} class B {}')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @78
+            returnType: void
+            macroDiagnostics
+              NotAllowedDeclarationDiagnostic
+                annotationIndex: 0
+                phase: definitions
+                nodeRanges: (85, 10)
+---
+augment library 'package:test/test.dart';
+
+augment class A {
+  augment void foo() ;} class B {}
+}
+---
+''');
+  }
+
+  test_notAllowedDeclaration_definitions_class_constructor() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @AugmentDefinition('; A.named();')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @77
+            returnType: void
+            macroDiagnostics
+              NotAllowedDeclarationDiagnostic
+                annotationIndex: 0
+                phase: definitions
+                nodeRanges: (84, 10)
+---
+augment library 'package:test/test.dart';
+
+augment class A {
+  augment void foo() ; A.named();
+}
+---
+''');
+  }
+
+  test_notAllowedDeclaration_definitions_class_field() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @AugmentDefinition('; int bar = 0;')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @79
+            returnType: void
+            macroDiagnostics
+              NotAllowedDeclarationDiagnostic
+                annotationIndex: 0
+                phase: definitions
+                nodeRanges: (84, 12)
+---
+augment library 'package:test/test.dart';
+
+augment class A {
+  augment void foo() ; int bar = 0;
+}
+---
+''');
+  }
+
+  test_notAllowedDeclaration_definitions_class_method() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @AugmentDefinition('; void bar() {}')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @80
+            returnType: void
+            macroDiagnostics
+              NotAllowedDeclarationDiagnostic
+                annotationIndex: 0
+                phase: definitions
+                nodeRanges: (84, 13)
+---
+augment library 'package:test/test.dart';
+
+augment class A {
+  augment void foo() ; void bar() {}
+}
+---
+''');
+  }
+
+  test_notAllowedDeclaration_definitions_enum() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @AugmentDefinition(';} enum B {v}')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @78
+            returnType: void
+            macroDiagnostics
+              NotAllowedDeclarationDiagnostic
+                annotationIndex: 0
+                phase: definitions
+                nodeRanges: (85, 10)
+---
+augment library 'package:test/test.dart';
+
+augment class A {
+  augment void foo() ;} enum B {v}
+}
+---
+''');
+  }
+
+  test_notAllowedDeclaration_definitions_enum_constants() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @AugmentDefinition(';} augment enum B {v2}')
+  void foo() {}
+}
+
+enum B {v}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withConstantInitializers = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @87
+            returnType: void
+            macroDiagnostics
+              NotAllowedDeclarationDiagnostic
+                annotationIndex: 0
+                phase: definitions
+                nodeRanges: (101, 2)
+---
+augment library 'package:test/test.dart';
+
+augment class A {
+  augment void foo() ;} augment enum B {v2}
+}
+---
+    enums
+      enum B @104
+        supertype: Enum
+        fields
+          static const enumConstant v @107
+            type: B
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            type: List<B>
+        accessors
+          synthetic static get v @-1
+            returnType: B
+          synthetic static get values @-1
+            returnType: List<B>
+''');
+  }
+
+  test_notAllowedDeclaration_definitions_extension() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @AugmentDefinition(';} extension B on int {}')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @89
+            returnType: void
+            macroDiagnostics
+              NotAllowedDeclarationDiagnostic
+                annotationIndex: 0
+                phase: definitions
+                nodeRanges: (85, 21)
+---
+augment library 'package:test/test.dart';
+
+augment class A {
+  augment void foo() ;} extension B on int {}
+}
+---
+''');
+  }
+
+  test_notAllowedDeclaration_definitions_extensionType() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @AugmentDefinition(';} extension type B(int it) {}')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @95
+            returnType: void
+            macroDiagnostics
+              NotAllowedDeclarationDiagnostic
+                annotationIndex: 0
+                phase: definitions
+                nodeRanges: (85, 27)
+---
+augment library 'package:test/test.dart';
+
+augment class A {
+  augment void foo() ;} extension type B(int it) {}
+}
+---
+''');
+  }
+
+  test_notAllowedDeclaration_definitions_function_local() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @AugmentDefinition('{ void bar() {} }')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        methods
+          foo @82
+            returnType: void
+            augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
+        augmented
+          methods
+            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+augment library 'package:test/test.dart';
+
+augment class A {
+  augment void foo() { void bar() {} }
+}
+---
+      definingUnit
+        classes
+          augment class A @57
+            augmentationTarget: self::@class::A
+            methods
+              augment foo @76
+                returnType: void
+                augmentationTarget: self::@class::A::@method::foo
+''');
+  }
+
+  test_notAllowedDeclaration_definitions_function_topLevel() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @AugmentDefinition(';} void bar() {}')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @81
+            returnType: void
+            macroDiagnostics
+              NotAllowedDeclarationDiagnostic
+                annotationIndex: 0
+                phase: definitions
+                nodeRanges: (85, 13)
+---
+augment library 'package:test/test.dart';
+
+augment class A {
+  augment void foo() ;} void bar() {}
+}
+---
+''');
+  }
+
+  test_notAllowedDeclaration_definitions_mixin() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @AugmentDefinition(';} mixin B {}')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @78
+            returnType: void
+            macroDiagnostics
+              NotAllowedDeclarationDiagnostic
+                annotationIndex: 0
+                phase: definitions
+                nodeRanges: (85, 10)
+---
+augment library 'package:test/test.dart';
+
+augment class A {
+  augment void foo() ;} mixin B {}
+}
+---
+''');
+  }
+
+  test_notAllowedDeclaration_definitions_topLevelVariable() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @AugmentDefinition(';} int bar = 0;')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @80
+            returnType: void
+            macroDiagnostics
+              NotAllowedDeclarationDiagnostic
+                annotationIndex: 0
+                phase: definitions
+                nodeRanges: (85, 12)
+---
+augment library 'package:test/test.dart';
+
+augment class A {
+  augment void foo() ;} int bar = 0;
+}
+---
+''');
+  }
+
+  test_notAllowedDeclaration_definitions_typedef() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {
+  @AugmentDefinition(';} typedef B = int;')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+        methods
+          foo @84
+            returnType: void
+            macroDiagnostics
+              NotAllowedDeclarationDiagnostic
+                annotationIndex: 0
+                phase: definitions
+                nodeRanges: (85, 16)
+---
+augment library 'package:test/test.dart';
+
+augment class A {
+  augment void foo() ;} typedef B = int;
+}
+---
+''');
+  }
 }
 
 @reflectiveTest
@@ -7579,11 +8903,105 @@ class MacroExampleTest extends MacroElementsBaseTest {
   @override
   bool get keepLinkingLibraries => true;
 
+  test_autoToString() async {
+    _addExampleMacro('auto_to_string.dart');
+
+    var library = await buildLibrary(r'''
+import 'auto_to_string.dart';
+
+@AutoToString()
+class A {
+  final int foo;
+  final int bar;
+  A(this.foo, this.bar);
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withReferences = true
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  reference: self
+  imports
+    package:test/auto_to_string.dart
+  definingUnit
+    reference: self
+    classes
+      class A @53
+        reference: self::@class::A
+        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        fields
+          final foo @69
+            reference: self::@class::A::@field::foo
+            type: int
+          final bar @86
+            reference: self::@class::A::@field::bar
+            type: int
+        accessors
+          synthetic get foo @-1
+            reference: self::@class::A::@getter::foo
+            returnType: int
+          synthetic get bar @-1
+            reference: self::@class::A::@getter::bar
+            returnType: int
+        augmented
+          fields
+            self::@class::A::@field::bar
+            self::@class::A::@field::foo
+          accessors
+            self::@class::A::@getter::bar
+            self::@class::A::@getter::foo
+          methods
+            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toString
+  augmentationImports
+    package:test/test.macro.dart
+      reference: self::@augmentation::package:test/test.macro.dart
+      macroGeneratedCode
+---
+augment library 'package:test/test.dart';
+
+import 'dart:core' as prefix0;
+
+augment class A {
+  @prefix0.override
+  prefix0.String toString();
+  augment prefix0.String toString() {
+    // You can add breakpoints here!
+    return """
+A {
+  foo: ${this.foo}
+  bar: ${this.bar}
+}""";
+  }
+}
+---
+      imports
+        dart:core as prefix0 @65
+      definingUnit
+        reference: self::@augmentation::package:test/test.macro.dart
+        classes
+          augment class A @89
+            reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+            augmentationTarget: self::@class::A
+            methods
+              abstract toString @130
+                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::toString
+                returnType: String
+                augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toString
+              augment toString @167
+                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toString
+                returnType: String
+                augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::toString
+''');
+  }
+
   test_jsonSerializable() async {
     _addExampleMacro('json_key.dart');
     _addExampleMacro('json_serializable.dart');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'json_serializable.dart';
 
 @JsonSerializable()
@@ -7637,7 +9055,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/json_serializable.dart' as prefix0;
 import 'dart:core' as prefix1;
@@ -7647,8 +9065,9 @@ augment class A {
   external A.fromJson(prefix1.Map<prefix1.String, prefix1.Object?> json);
   @prefix0.ToJson()
   external prefix1.Map<prefix1.String, prefix1.Object?> toJson();
-  augment A.fromJson(prefix1.Map<prefix1.String, prefix1.Object?> json, )  : this.foo = json['foo'] as prefix1.int,
-this.bar = json['bar'] as prefix1.int;
+  augment A.fromJson(prefix1.Map<prefix1.String, prefix1.Object?> json, )
+      : this.foo = json['foo'] as prefix1.int,
+        this.bar = json['bar'] as prefix1.int;
   augment prefix1.Map<prefix1.String, prefix1.Object?> toJson() {
     var json = <prefix1.String, prefix1.Object?>{};
     json['foo'] = this.foo;
@@ -7688,7 +9107,7 @@ json['bar'] = this.bar;
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::toJson
                 returnType: Map<String, Object?>
                 augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
-              augment toJson @542
+              augment toJson @555
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
                 returnType: Map<String, Object?>
                 augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::toJson
@@ -7698,7 +9117,7 @@ json['bar'] = this.bar;
   test_observable() async {
     _addExampleMacro('observable.dart');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'observable.dart';
 
 class A {
@@ -7708,7 +9127,7 @@ class A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -7723,7 +9142,7 @@ augment class A {
   }
 
   void _addExampleMacro(String fileName) {
-    final code = _getMacroCode('example/$fileName');
+    var code = _getMacroCode('example/$fileName');
     newFile('$testPackageLibPath/$fileName', code);
   }
 }
@@ -7984,7 +9403,7 @@ class A {
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment class A {
   final int bar = 0;
@@ -8061,7 +9480,7 @@ class A {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 @b
 augment class A {}
@@ -8465,7 +9884,7 @@ class A {
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment class A {
   void bar() {}
@@ -9190,7 +10609,7 @@ mixin A {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 @b
 augment mixin A {}
@@ -10050,7 +11469,7 @@ $code
       _getMacroCode('introspect.dart'),
     );
 
-    final library = await buildLibrary('''
+    var library = await buildLibrary('''
 import 'introspect.dart';
 $code
 
@@ -10074,8 +11493,10 @@ class MacroIntrospectNodeTest extends MacroElementsBaseTest {
     await _assertIntrospectText(r'''
 import 'append.dart';
 
+class A {}
+
 @Introspect()
-@AppendInterfaceA()
+@AppendInterface('{{package:test/test.dart@A}}')
 class X {}
 ''', r'''
 class X
@@ -10088,8 +11509,10 @@ class X
     await _assertIntrospectText(r'''
 import 'append.dart';
 
+mixin A {}
+
 @Introspect()
-@AppendMixinA()
+@AppendMixin('{{package:test/test.dart@A}}')
 class X {}
 ''', r'''
 class X
@@ -10190,6 +11613,73 @@ class A {
     b
       type: String?
   returnType: A
+''');
+  }
+
+  test_class_constructor_positionalParameters_super() async {
+    await _assertIntrospectText(r'''
+import 'package:json/json.dart';
+
+class A {
+  final int f1;
+  Point(this.foo);
+}
+
+class B extends A {
+  @Introspect()
+  B(super.f1);
+}
+''', r'''
+<unnamed>
+  flags: hasStatic
+  positionalParameters
+    f1
+      flags: isRequired
+      type: OmittedType
+  returnType: B
+''');
+  }
+
+  test_class_constructor_positionalParameters_super_typed() async {
+    await _assertIntrospectText(r'''
+import 'package:json/json.dart';
+
+class A {
+  final int f1;
+  Point(this.foo);
+}
+
+class B extends A {
+  @Introspect()
+  B(int super.f1);
+}
+''', r'''
+<unnamed>
+  flags: hasStatic
+  positionalParameters
+    f1
+      flags: isRequired
+      type: int
+  returnType: B
+''');
+  }
+
+  test_class_constructor_positionalParameters_this() async {
+    await _assertIntrospectText(r'''
+import 'package:json/json.dart';
+
+class A {
+  final int f1;
+  @Introspect()
+  Point(this.foo);
+}
+''', r'''
+Point
+  positionalParameters
+    foo
+      flags: isRequired
+      type: OmittedType
+  returnType: OmittedType
 ''');
   }
 
@@ -11646,8 +13136,10 @@ mixin B
     await _assertIntrospectText(r'''
 import 'append.dart';
 
+class A {}
+
 @Introspect()
-@AppendInterfaceA()
+@AppendInterface('{{package:test/test.dart@A}}')
 mixin X {}
 ''', r'''
 mixin X
@@ -12122,7 +13614,7 @@ class MacroStaticTypeTest extends MacroElementsBaseTest {
       ('({int a,})', '({int a, int b})', false),
     };
 
-    for (final testCase in testCases) {
+    for (var testCase in testCases) {
       await disposeAnalysisContextCollection();
       await _assertIsExactly(
         firstTypeCode: testCase.$1,
@@ -12135,7 +13627,7 @@ class MacroStaticTypeTest extends MacroElementsBaseTest {
   /// Verify what happens when we use `RawTypeAnnotationCode`.
   /// We don't see it, because it disappears after the types phase.
   test_isExactly_class_asRawCode_same() async {
-    final library = await buildLibrary('''
+    var library = await buildLibrary('''
 import 'append.dart';
 import 'static_type.dart';
 
@@ -12146,7 +13638,7 @@ class X {
 }
 ''');
 
-    final generated = _getMacroGeneratedCode(library);
+    var generated = _getMacroGeneratedCode(library);
     _assertIsExactlyValue(generated, true);
   }
 
@@ -12220,7 +13712,7 @@ mixin A {}
   }
 
   test_isExactly_omittedType_notSame() async {
-    final library = await buildLibrary('''
+    var library = await buildLibrary('''
 import 'static_type.dart';
 
 class A {
@@ -12233,12 +13725,12 @@ class B extends A {
 }
 ''');
 
-    final generated = _getMacroGeneratedCode(library);
+    var generated = _getMacroGeneratedCode(library);
     _assertIsExactlyValue(generated, false);
   }
 
   test_isExactly_omittedType_same() async {
-    final library = await buildLibrary('''
+    var library = await buildLibrary('''
 import 'static_type.dart';
 
 class A {
@@ -12251,31 +13743,31 @@ class B extends A {
 }
 ''');
 
-    final generated = _getMacroGeneratedCode(library);
+    var generated = _getMacroGeneratedCode(library);
     _assertIsExactlyValue(generated, true);
   }
 
   test_isExactly_typeParameter_notSame() async {
-    final library = await buildLibrary('''
+    var library = await buildLibrary('''
 import 'static_type.dart';
 
 @IsExactly()
 void foo<T, U>(T a, U b) {}
 ''');
 
-    final generated = _getMacroGeneratedCode(library);
+    var generated = _getMacroGeneratedCode(library);
     _assertIsExactlyValue(generated, false);
   }
 
   test_isExactly_typeParameter_same() async {
-    final library = await buildLibrary('''
+    var library = await buildLibrary('''
 import 'static_type.dart';
 
 @IsExactly()
 void foo<T>(T a, T b) {}
 ''');
 
-    final generated = _getMacroGeneratedCode(library);
+    var generated = _getMacroGeneratedCode(library);
     _assertIsExactlyValue(generated, true);
   }
 
@@ -12314,7 +13806,7 @@ void foo<T>(T a, T b) {}
       ('({int a,})', '({int b,})', false),
     };
 
-    for (final testCase in testCases) {
+    for (var testCase in testCases) {
       await disposeAnalysisContextCollection();
       await _assertIsSubtype(
         firstTypeCode: testCase.$1,
@@ -12330,7 +13822,7 @@ void foo<T>(T a, T b) {}
     required bool isExactly,
     String additionalDeclarations = '',
   }) async {
-    final library = await buildLibrary('''
+    var library = await buildLibrary('''
 import 'static_type.dart';
 
 $additionalDeclarations
@@ -12339,8 +13831,8 @@ $additionalDeclarations
 void foo($firstTypeCode a, $secondTypeCode b) {}
 ''');
 
-    final generated = _getMacroGeneratedCode(library);
-    final expected = _isExactlyExpected(isExactly);
+    var generated = _getMacroGeneratedCode(library);
+    var expected = _isExactlyExpected(isExactly);
     if (!generated.contains(expected)) {
       fail(
         '`$firstTypeCode` isExactly `$secondTypeCode`'
@@ -12350,7 +13842,7 @@ void foo($firstTypeCode a, $secondTypeCode b) {}
   }
 
   void _assertIsExactlyValue(String generated, bool isExactly) {
-    final expected = _isExactlyExpected(isExactly);
+    var expected = _isExactlyExpected(isExactly);
     expect(generated, contains(expected));
   }
 
@@ -12360,7 +13852,7 @@ void foo($firstTypeCode a, $secondTypeCode b) {}
     required bool isSubtype,
     String additionalDeclarations = '',
   }) async {
-    final library = await buildLibrary('''
+    var library = await buildLibrary('''
 import 'static_type.dart';
 
 $additionalDeclarations
@@ -12369,8 +13861,8 @@ $additionalDeclarations
 void foo($firstTypeCode a, $secondTypeCode b) {}
 ''');
 
-    final generated = _getMacroGeneratedCode(library);
-    final expected = _isSubtypeExpected(isSubtype);
+    var generated = _getMacroGeneratedCode(library);
+    var expected = _isSubtypeExpected(isSubtype);
     if (!generated.contains(expected)) {
       fail(
         '`$firstTypeCode` isSubtype `$secondTypeCode`'
@@ -12396,7 +13888,7 @@ abstract class MacroTypesTest extends MacroElementsBaseTest {
 
   @override
   Future<void> tearDown() async {
-    for (final directory in _ioDirectoriesToDelete) {
+    for (var directory in _ioDirectoriesToDelete) {
       try {
         directory.deleteSync(
           recursive: true,
@@ -12434,7 +13926,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class MyClass {}
 ---
@@ -12468,7 +13960,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class MyClass {}
 ---
@@ -12502,7 +13994,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class MyClass {}
 ---
@@ -12536,7 +14028,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class MyClass {}
 ---
@@ -12577,7 +14069,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class B {}
 ---
@@ -12624,7 +14116,7 @@ macro class MyMacro implements ClassTypesMacro {
     // Compile the macro to executable.
     io.File macroExecutable;
     {
-      final macroMainContent = macro.bootstrapMacroIsolate(
+      var macroMainContent = macro.bootstrapMacroIsolate(
         {
           'package:test/a.dart': {
             'MyMacro': ['']
@@ -12633,18 +14125,18 @@ macro class MyMacro implements ClassTypesMacro {
         macro.SerializationMode.byteData,
       );
 
-      final tempCompileDirectory =
+      var tempCompileDirectory =
           io.Directory.systemTemp.createTempSync('dartAnalyzerMacro');
       _ioDirectoriesToDelete.add(tempCompileDirectory);
 
-      final fileSystem = PhysicalResourceProvider.INSTANCE;
-      final compileRoot = fileSystem.getFolder(tempCompileDirectory.path);
+      var fileSystem = PhysicalResourceProvider.INSTANCE;
+      var compileRoot = fileSystem.getFolder(tempCompileDirectory.path);
 
-      final testRoot = compileRoot.getChildAssumingFolder('test');
+      var testRoot = compileRoot.getChildAssumingFolder('test');
       testRoot.newFile('lib/a.dart').writeAsStringSync(macroCode);
 
-      final testBin = testRoot.getChildAssumingFolder('bin');
-      final testMain = testBin.newFile('main.dart');
+      var testBin = testRoot.getChildAssumingFolder('bin');
+      var testMain = testBin.newFile('main.dart');
       testMain.writeAsStringSync(macroMainContent);
 
       MacrosEnvironment.instance.privateMacrosFolder.copyTo(compileRoot);
@@ -12675,19 +14167,19 @@ macro class MyMacro implements ClassTypesMacro {
 }
 ''');
 
-      final process = await io.Process.start(
+      var process = await io.Process.start(
         io.Platform.executable,
         ['compile', 'exe', '--enable-experiment=macros', testMain.path],
       );
 
-      final exitCode = await process.exitCode;
+      var exitCode = await process.exitCode;
       if (exitCode == 255 || exitCode == 64) {
         markTestSkipped('Skip because cannot compile.');
         return;
       }
       expect(exitCode, isZero);
 
-      final executable = testBin.getChildAssumingFile('main.exe');
+      var executable = testBin.getChildAssumingFile('main.exe');
       expect(executable.exists, isTrue);
 
       // Convert to io.File
@@ -12696,14 +14188,16 @@ macro class MyMacro implements ClassTypesMacro {
 
     // Build the summary for `a.dart`, with the macro.
     // We always have summaries for libraries with macro executable.
-    final Uint8List aBundleBytes;
+    Uint8List aBundleBytes;
     {
-      final a = newFile('$testPackageLibPath/a.dart', macroCode);
+      var a = newFile('$testPackageLibPath/a.dart', macroCode);
 
       // Disable compilation to kernel.
-      macroSupport = ExecutableMacroSupport();
+      macroSupportFactory = ExecutableMacroSupportFactory(
+        configure: (_) {},
+      );
 
-      final analysisDriver = driverFor(a);
+      var analysisDriver = driverFor(a);
       aBundleBytes = await analysisDriver.buildPackageBundle(
         uriList: [
           Uri.parse('package:_macros/src/api.dart'),
@@ -12723,19 +14217,22 @@ macro class MyMacro implements ClassTypesMacro {
     {
       sdkSummaryFile = await writeSdkSummary();
 
-      final aBundleFile = getFile('/home/summaries/a.sum');
+      var aBundleFile = getFile('/home/summaries/a.sum');
       aBundleFile.writeAsBytesSync(aBundleBytes);
       librarySummaryFiles = [aBundleFile];
     }
 
     // Configure the macro executor.
-    macroSupport = ExecutableMacroSupport()
-      ..add(
-        executable: macroExecutable,
-        libraries: {
-          Uri.parse('package:test/a.dart'),
-        },
-      );
+    macroSupportFactory = ExecutableMacroSupportFactory(
+      configure: (macroSupport) {
+        macroSupport.add(
+          executable: macroExecutable,
+          libraries: {
+            Uri.parse('package:test/a.dart'),
+          },
+        );
+      },
+    );
 
     // Verify that we can use the executable to run the macro.
     {
@@ -12764,7 +14261,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class MyClass {}
 ---
@@ -12830,7 +14327,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -12910,7 +14407,7 @@ files
       id: file_3
       content
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -13004,7 +14501,7 @@ files
       id: file_3
       content
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -13093,7 +14590,7 @@ files
       id: file_3
       content
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -13194,7 +14691,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -13255,7 +14752,7 @@ files
       id: file_2
       content
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -13328,7 +14825,7 @@ files
       id: file_2
       content
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -13367,6 +14864,58 @@ elementFactory
     }
   }
 
+  test_libraryCycle_class_add() async {
+    // Checks https://github.com/dart-lang/sdk/issues/55360
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'append.dart';
+
+// Just to make it a library cycle.
+import 'test.dart';
+
+@DeclareType('X', 'class X {}')
+class A {}
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareType('X', 'class X {}')
+class B {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  definingUnit
+    reference: self
+    classes
+      class B @78
+        reference: self::@class::B
+  augmentationImports
+    package:test/test.macro.dart
+      reference: self::@augmentation::package:test/test.macro.dart
+      macroGeneratedCode
+---
+augment library 'package:test/test.dart';
+
+class X {}
+---
+      definingUnit
+        reference: self::@augmentation::package:test/test.macro.dart
+        classes
+          class X @49
+            reference: self::@augmentation::package:test/test.macro.dart::@class::X
+''');
+  }
+
   test_macroGeneratedFile_changeLibrary_noMacroApplication_restore() async {
     if (!keepLinkingLibraries) return;
     useEmptyByteStore();
@@ -13374,12 +14923,12 @@ elementFactory
     var library = await buildLibrary(r'''
 import 'append.dart';
 
-@DeclareInLibrary('class B {}')
+@DeclareTypesPhase('B', 'class B {}')
 class A {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class B {}
 ''');
@@ -13521,7 +15070,7 @@ elementFactory
     modifyFile2(testFile, r'''
 import 'append.dart';
 
-@DeclareInLibrary('class B {}')
+@DeclareTypesPhase('B', 'class B {}')
 class A {}
 ''');
     driverFor(testFile).changeFile2(testFile);
@@ -13608,12 +15157,12 @@ elementFactory
     var library = await buildLibrary(r'''
 import 'append.dart';
 
-@DeclareInLibrary('class B {}')
+@DeclareTypesPhase('B', 'class B {}')
 class A {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class B {}
 ''');
@@ -13683,7 +15232,7 @@ elementFactory
     modifyFile2(testFile, r'''
 import 'append.dart';
 
-@DeclareInLibrary('class B2 {}')
+@DeclareTypesPhase('B2', 'class B2 {}')
 class A {}
 ''');
     driverFor(testFile).changeFile2(testFile);
@@ -13764,7 +15313,7 @@ elementFactory
     // Check that it has `class B2 {}`, as requested.
     result2 as LibraryElementResultImpl;
     _assertMacroCode(result2.element as LibraryElementImpl, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class B2 {}
 ''');
@@ -13777,12 +15326,12 @@ class B2 {}
     var library = await buildLibrary(r'''
 import 'append.dart';
 
-@DeclareInLibrary('class B {}')
+@DeclareTypesPhase('B', 'class B {}')
 class A {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class B {}
 ''');
@@ -13991,6 +15540,73 @@ elementFactory
     package:test/test.dart
 ''');
   }
+
+  test_multipleAnalysisContexts() async {
+    // No need to verify reading elements for this test.
+    if (!keepLinkingLibraries) {
+      return;
+    }
+
+    var otherRootPath = '$workspaceRootPath/other';
+    var otherPackageConfig = PackageConfigFileBuilder()
+      ..add(name: 'test', rootPath: testPackageRootPath)
+      ..add(name: 'other', rootPath: otherRootPath);
+    addMacrosEnvironment(
+      otherPackageConfig,
+      MacrosEnvironment.instance,
+    );
+    writePackageConfig(
+      otherRootPath,
+      otherPackageConfig,
+    );
+
+    newAnalysisOptionsYamlFile(
+      otherRootPath,
+      AnalysisOptionsFileConfig(
+        experiments: experiments,
+      ).toContent(),
+    );
+
+    var file = newFile('$otherRootPath/lib/other.dart', r'''
+import 'package:test/append.dart';
+
+@DeclareType('B', 'class B {}')
+class A {}
+''');
+
+    // Load the macro itself, in `package:test` analysis context.
+    await libraryElementForFile(
+      getFile('$testPackageLibPath/append.dart'),
+    );
+
+    // Load the macro from dependency, in `package:other` analysis context.
+    // It should not crash.
+    var library = await libraryElementForFile(file);
+
+    // ...but check it a little more.
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @74
+  augmentationImports
+    package:other/other.macro.dart
+      macroGeneratedCode
+---
+augment library 'package:other/other.dart';
+
+class B {}
+---
+      definingUnit
+        classes
+          class B @51
+''');
+  }
 }
 
 @reflectiveTest
@@ -14010,7 +15626,7 @@ class _MacroDiagnosticsCollector extends GeneralizingElementVisitor<void> {
 
   @override
   void visitElement(Element element) {
-    if (element case final MacroTargetElement element) {
+    if (element case MacroTargetElement element) {
       diagnostics.addAll(element.macroDiagnostics);
     }
 
@@ -14020,7 +15636,7 @@ class _MacroDiagnosticsCollector extends GeneralizingElementVisitor<void> {
 
 extension on LibraryElement {
   List<AnalyzerMacroDiagnostic> get allMacroDiagnostics {
-    final collector = _MacroDiagnosticsCollector();
+    var collector = _MacroDiagnosticsCollector();
     accept(collector);
     return collector.diagnostics;
   }
@@ -14028,7 +15644,7 @@ extension on LibraryElement {
 
 extension on Folder {
   File newFile(String relPath) {
-    final file = getChildAssumingFile(relPath);
+    var file = getChildAssumingFile(relPath);
     file.parent.create();
     return file;
   }

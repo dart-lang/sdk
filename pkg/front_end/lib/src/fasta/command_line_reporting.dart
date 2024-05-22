@@ -177,20 +177,3 @@ bool shouldThrowOn(Severity severity) {
       return false;
   }
 }
-
-bool isCompileTimeError(Severity severity) {
-  switch (severity) {
-    case Severity.error:
-    case Severity.internalProblem:
-      return true;
-
-    case Severity.warning:
-    case Severity.context:
-    case Severity.info:
-      return false;
-
-    case Severity.ignored:
-      break; // Fall-through to unhandled below.
-  }
-  return unhandled("$severity", "isCompileTimeError", -1, null);
-}

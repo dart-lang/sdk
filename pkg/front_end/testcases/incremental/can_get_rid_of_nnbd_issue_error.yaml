@@ -6,7 +6,6 @@
 # to get rid of it if the error is fixed.
 
 type: newworld
-nnbdMode: strong
 worlds:
   - entry: package:baz/main.dart
     errors: true
@@ -105,7 +104,7 @@ worlds:
         // This file is in strong mode.
         int x = 42;
     expectedLibraryCount: 3
-    advancedInvalidation: outlineChange
+    advancedInvalidation: problemsInLibrary
 
   # Update the last package to be strong.
   - entry: package:baz/main.dart
@@ -141,4 +140,4 @@ worlds:
         // This file is in strong mode.
         int y = 42;
     expectedLibraryCount: 3
-    advancedInvalidation: outlineChange
+    advancedInvalidation: problemsInLibrary

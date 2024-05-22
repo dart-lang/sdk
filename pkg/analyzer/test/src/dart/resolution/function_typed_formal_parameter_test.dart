@@ -20,7 +20,7 @@ class FunctionTypedFormalParameterResolutionTest
 void f<V>(T p<T, U>(U a, V b)) {}
 ''');
 
-    final node = findNode.singleFunctionTypedFormalParameter;
+    var node = findNode.singleFunctionTypedFormalParameter;
     assertResolvedNodeText(node, r'''
 FunctionTypedFormalParameter
   returnType: NamedType
@@ -57,7 +57,7 @@ FunctionTypedFormalParameter
 void f(void p(int a)) {}
 ''');
 
-    final node = findNode.singleFunctionTypedFormalParameter;
+    var node = findNode.singleFunctionTypedFormalParameter;
     assertResolvedNodeText(node, r'''
 FunctionTypedFormalParameter
   returnType: NamedType

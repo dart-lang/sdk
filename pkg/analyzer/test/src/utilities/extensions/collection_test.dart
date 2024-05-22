@@ -64,7 +64,7 @@ class IterableIterableExtensionTest {
 @reflectiveTest
 class IterableMapEntryExtensionTest {
   test_mapFromEntries() {
-    final entries = [MapEntry('foo', 0), MapEntry('bar', 1)];
+    var entries = [MapEntry('foo', 0), MapEntry('bar', 1)];
     expect(entries.mapFromEntries, {'foo': 0, 'bar': 1});
   }
 }

@@ -58,8 +58,8 @@ class MappingTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_completionItemKind_knownMapping() async {
-    final supportedKinds = {lsp.CompletionItemKind.Class};
-    final result = lsp.elementKindToCompletionItemKind(
+    var supportedKinds = {lsp.CompletionItemKind.Class};
+    var result = lsp.elementKindToCompletionItemKind(
       supportedKinds,
       server.ElementKind.CLASS,
     );
@@ -108,14 +108,14 @@ class MappingTest extends AbstractLspAnalysisServerTest {
 
   void test_relevanceToSortText() {
     // The expected order is the same as from the highest relevance.
-    final expectedOrder =
+    var expectedOrder =
         [999999, 1000, 100, 1, 0].map(lsp.relevanceToSortText).toList();
 
     // Test with inputs in both directions to ensure the results are actually
     // unique and sorted.
-    final results1 =
+    var results1 =
         [999999, 1000, 100, 1, 0].map(lsp.relevanceToSortText).toList()..sort();
-    final results2 =
+    var results2 =
         [0, 1, 100, 1000, 999999].map(lsp.relevanceToSortText).toList()..sort();
 
     expect(results1, equals(expectedOrder));
@@ -129,7 +129,7 @@ class MappingTest extends AbstractLspAnalysisServerTest {
     required Set<lsp.CompletionItemKind> supportedKinds,
     required lsp.CompletionItemKind expectedKind,
   }) {
-    final result = lsp.elementKindToCompletionItemKind(supportedKinds, kind);
+    var result = lsp.elementKindToCompletionItemKind(supportedKinds, kind);
     expect(result, equals(expectedKind));
   }
 }
@@ -158,22 +158,22 @@ class SourceEditMappingTest extends AbstractLspAnalysisServerTest {
   }
 
   void test_toTextDocumentEdit_multipleInsertsSameOffset() {
-    final edit = lsp.toTextDocumentEdit(
+    var edit = lsp.toTextDocumentEdit(
       lsp.LspClientCapabilities(lsp.ClientCapabilities()),
       simpleFirstSecondEdit,
     );
 
     /// For LSP, offsets relate to the original document and inserts with the
     /// same offset appear in the order they will appear in the final document.
-    final edit0 = _unwrapEdit(edit.edits[0]);
-    final edit1 = _unwrapEdit(edit.edits[1]);
+    var edit0 = _unwrapEdit(edit.edits[0]);
+    var edit1 = _unwrapEdit(edit.edits[1]);
     expect(edit0.newText, 'FIRST');
     expect(edit1.newText, 'SECOND');
   }
 
   void test_toWorkspaceEditChanges_multipleInsertsSameOffset() {
-    final changes = lsp.toWorkspaceEditChanges([simpleFirstSecondEdit]);
-    final edit = changes[mainFileUri]!;
+    var changes = lsp.toWorkspaceEditChanges([simpleFirstSecondEdit]);
+    var edit = changes[mainFileUri]!;
 
     /// For LSP, offsets relate to the original document and inserts with the
     /// same offset appear in the order they will appear in the final document.

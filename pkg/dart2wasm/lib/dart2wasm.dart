@@ -67,8 +67,9 @@ final List<Option> options = [
       defaultsTo: "${_d.translatorOptions.inliningLimit}"),
   IntOption("shared-memory-max-pages",
       (o, value) => o.translatorOptions.sharedMemoryMaxPages = value),
-  UriOption("dart-sdk", (o, value) => o.sdkPath = value,
-      defaultsTo: "${_d.sdkPath}"),
+  StringOption("dart-sdk", (o, value) {
+    /* ignored: Remove when flutter no longer passes this. */
+  }, defaultsTo: null, hide: true),
   UriOption("packages", (o, value) => o.packagesPath = value),
   UriOption("libraries-spec", (o, value) => o.librariesSpecPath = value),
   UriOption("platform", (o, value) => o.platformPath = value),

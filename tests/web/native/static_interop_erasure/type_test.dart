@@ -11,7 +11,7 @@ library type_test;
 import 'dart:_interceptors' show JavaScriptObject;
 
 import 'package:expect/expect.dart' show hasUnsoundNullSafety;
-import 'package:expect/minitest.dart';
+import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 import 'package:js/js.dart';
 
 import '../native_testing.dart' hide JS;

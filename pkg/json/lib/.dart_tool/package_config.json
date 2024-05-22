@@ -1,0 +1,26 @@
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "_macros",
+      "rootUri": "_macros",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "json",
+      "rootUri": "../..",
+      "packageUri": "lib/",
+      "languageVersion": "3.5"
+    },
+    {
+      "name": "macros",
+      "rootUri": "macros",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    }
+  ],
+  "generated": "2024-05-14T09:58:50.920677Z",
+  "generator": "pub",
+  "generatorVersion": "3.5.0-152.0.dev"
+}

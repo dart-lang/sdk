@@ -10,9 +10,7 @@ environment:
 dependencies:
   http: any
   meta: any
-  path: any
   stack_trace: any
-  usage: any
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:

@@ -17,12 +17,12 @@ main() {
 class DuplicateAugmentationImportTest extends PubPackageResolutionTest {
   test_duplicate() async {
     newFile('$testPackageLibPath/a.dart', '''
-library augment 'test.dart';
+augment library 'test.dart';
 class A {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', '''
-library augment 'test.dart';
+augment library 'test.dart';
 class B {}
 ''');
 
@@ -37,12 +37,12 @@ import augment 'a.dart';
 
   test_ok() async {
     newFile('$testPackageLibPath/a.dart', '''
-library augment 'test.dart';
+augment library 'test.dart';
 class A {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', '''
-library augment 'test.dart';
+augment library 'test.dart';
 class B {}
 ''');
 

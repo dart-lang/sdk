@@ -122,7 +122,7 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
       if (baseName == '[]') {
         ExecutableElement? getter;
         ExecutableElement? setter;
-        for (var method in extension.methods) {
+        for (var method in extension.augmented.methods) {
           if (method.name == '[]') {
             getter = method;
           } else if (method.name == '[]=') {
@@ -139,7 +139,7 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
           );
         }
       } else {
-        for (var field in extension.fields) {
+        for (var field in extension.augmented.fields) {
           if (field.name == baseName) {
             result.add(
               _NotInstantiatedExtensionWithMember(
@@ -151,7 +151,7 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
             break;
           }
         }
-        for (var method in extension.methods) {
+        for (var method in extension.augmented.methods) {
           if (method.name == baseName) {
             result.add(
               _NotInstantiatedExtensionWithMember(

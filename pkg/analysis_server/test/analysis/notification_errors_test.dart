@@ -6,7 +6,6 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:linter/src/rules.dart';
@@ -153,13 +152,13 @@ analyzer:
     // Although errors are not generated for dotfolders, their contents should
     // still be analyzed so that code that references them (for example
     // flutter_gen) should still be updated.
-    final configPath =
+    var configPath =
         join(testPackageRootPath, '.dart_tool/package_config.json');
-    final generatedProject = join(testPackageRootPath, '.dart_tool/foo');
-    final generatedFile = join(generatedProject, 'lib', 'foo.dart');
+    var generatedProject = join(testPackageRootPath, '.dart_tool/foo');
+    var generatedFile = join(generatedProject, 'lib', 'foo.dart');
 
     // Add the generated project into package_config.json.
-    final config = PackageConfigFileBuilder();
+    var config = PackageConfigFileBuilder();
     config.add(name: 'foo', rootPath: generatedProject);
     newFile(configPath, config.toContent(toUriStr: toUriStr));
 
@@ -320,7 +319,7 @@ linter:
 
     // Registry should only contain single lint rule.
     expect(lints, hasLength(1));
-    var lint = lints.first as LintRule;
+    var lint = lints.first;
     expect(lint.name, camelCaseTypesLintName);
 
     // Verify lint error result.

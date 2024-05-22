@@ -1,0 +1,102 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/non_constant_pattern_in_if.dart:43:24: Error: A pattern field in an object pattern must be named.
+// Try adding a pattern name or ':' before the pattern.
+//   if (value case Const(42)) {
+//                        ^
+//
+// pkg/front_end/testcases/patterns/non_constant_pattern_in_if.dart:46:29: Error: A pattern field in an object pattern must be named.
+// Try adding a pattern name or ':' before the pattern.
+//   if (value case Const<num>(42)) {
+//                             ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Const<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field self::Const::T% value;
+  const constructor •(self::Const::T% value) → self::Const<self::Const::T%>
+    : self::Const::value = value, super core::Object::•()
+    ;
+}
+static method main() → dynamic {
+  self::test(42, false);
+  self::test(<core::int>[42], true);
+  self::test(<core::num>[42], true);
+  self::test(<core::int, core::String>{42: "foo"}, true);
+  self::test(<core::num, core::Object>{42: "foo"}, true);
+  self::test(new self::Const::•<core::int>(42), true);
+  self::test(new self::Const::•<core::num>(42), true);
+  self::test(#C2, true);
+  self::test(#C3, true);
+  self::test(#C5, true);
+  self::test(#C6, true);
+  self::test(#C7, true);
+  self::test(#C8, true);
+}
+static method test(dynamic value, core::bool expected) → void {
+  core::bool matched = false;
+  {
+    final synthesized dynamic #0#0 = value;
+    if(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C9 && #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) {
+      matched = true;
+    }
+  }
+  {
+    final synthesized dynamic #1#0 = value;
+    if(#1#0 is core::List<core::num> && #1#0{core::List<core::num>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C9 && #C1 =={core::num::==}{(core::Object) → core::bool} #1#0{core::List<core::num>}.{core::List::[]}(0){(core::int) → core::num}) {
+      matched = true;
+    }
+  }
+  {
+    final synthesized dynamic #2#0 = value;
+    synthesized dynamic #2#4;
+    synthesized core::bool #2#4#isSet = false;
+    if(#2#0 is core::Map<dynamic, dynamic> && (!((#2#4#isSet ?{dynamic} #2#4{dynamic} : let final dynamic #t1 = #2#4#isSet = true in #2#4 = #2#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic}) == null) || null is dynamic && #2#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && #C4 =={core::String::==}{(core::Object) → core::bool} (#2#4#isSet ?{dynamic} #2#4{dynamic} : let final dynamic #t2 = #2#4#isSet = true in #2#4 = #2#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic})) {
+      matched = true;
+    }
+  }
+  {
+    final synthesized dynamic #3#0 = value;
+    synthesized core::Object? #3#4;
+    synthesized core::bool #3#4#isSet = false;
+    if(#3#0 is core::Map<core::num, core::Object> && (!((#3#4#isSet ?{core::Object?} #3#4{core::Object?} : let final dynamic #t3 = #3#4#isSet = true in #3#4 = #3#0{core::Map<core::num, core::Object>}.{core::Map::[]}(#C1){(core::Object?) → core::Object?}) == null) || null is core::Object && #3#0{core::Map<core::num, core::Object>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && #C4 =={core::String::==}{(core::Object) → core::bool} (#3#4#isSet ?{core::Object?} #3#4{core::Object?} : let final dynamic #t4 = #3#4#isSet = true in #3#4 = #3#0{core::Map<core::num, core::Object>}.{core::Map::[]}(#C1){(core::Object?) → core::Object?}) as{Unchecked} core::Object) {
+      matched = true;
+    }
+  }
+  {
+    final synthesized dynamic #4#0 = value;
+    if(#4#0 is self::Const<dynamic>) {
+      matched = true;
+    }
+  }
+  {
+    final synthesized dynamic #5#0 = value;
+    if(#5#0 is self::Const<core::num>) {
+      matched = true;
+    }
+  }
+  if(!(matched =={core::Object::==}{(core::Object) → core::bool} expected)) {
+    core::print("FAIL: ${value} ${matched ?{core::String} "matched" : "didn't match"}");
+  }
+}
+
+constants  {
+  #C1 = 42
+  #C2 = <core::int>[#C1]
+  #C3 = <core::num>[#C1]
+  #C4 = "foo"
+  #C5 = <core::int, core::String>{#C1:#C4}
+  #C6 = <core::num, core::Object>{#C1:#C4}
+  #C7 = self::Const<core::int> {value:#C1}
+  #C8 = self::Const<core::num> {value:#C1}
+  #C9 = 1
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///non_constant_pattern_in_if.dart:
+- Const. (from org-dartlang-testcase:///non_constant_pattern_in_if.dart:8:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

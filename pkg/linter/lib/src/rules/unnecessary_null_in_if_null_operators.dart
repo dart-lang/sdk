@@ -9,10 +9,10 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import '../analyzer.dart';
 import '../extensions.dart';
 
-const _desc = r'Avoid using `null` in `if null` operators.';
+const _desc = r'Avoid using `null` in `??` operators.';
 
 const _details = r'''
-**AVOID** using `null` as an operand in `if null` operators.
+**AVOID** using `null` as an operand in `??` operators.
 
 Using `null` in an `if null` operator is redundant, regardless of which side
 `null` is used on.

@@ -1,22 +1,21 @@
-// @dart = 2.9
-
 library test;
 
-T f<T>() => null;
+T f<T>() => throw '';
 
 class A {}
 
 class B extends A {
-  A operator +(C v) => null;
-  B operator *(B v) => null;
-  B operator -(int i) => null;
-  C operator &(A v) => null;
+  B operator *(B v) => throw '';
+  B operator +(C v) => throw '';
+  B operator -(int i) => throw '';
+  C operator &(A v) => throw '';
 }
 
 class C extends B {}
 
 class Test {
-  B member;
+  B? member2;
+  B member = throw '';
   static void test(Test t) {}
 }
 

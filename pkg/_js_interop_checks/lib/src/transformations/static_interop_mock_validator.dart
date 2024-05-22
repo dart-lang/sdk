@@ -41,8 +41,8 @@ class StaticInteropMockValidator {
     if (staticInteropType is! InterfaceType ||
         !js_interop.hasStaticInteropAnnotation(staticInteropType.classNode)) {
       _diagnosticReporter.report(
-          templateJsInteropStaticInteropMockNotStaticInteropType.withArguments(
-              staticInteropType, true),
+          templateJsInteropStaticInteropMockNotStaticInteropType
+              .withArguments(staticInteropType),
           node.fileOffset,
           node.name.text.length,
           node.location?.file);
@@ -82,7 +82,7 @@ class StaticInteropMockValidator {
         if (arg is! DynamicType && arg != typeParams[i].bound) {
           _diagnosticReporter.report(
               templateJsInteropStaticInteropMockTypeParametersNotAllowed
-                  .withArguments(type, true),
+                  .withArguments(type),
               node.fileOffset,
               node.name.text.length,
               node.location?.file);
@@ -363,13 +363,13 @@ class StaticInteropMockValidator {
 /// parameters.
 class TypeParameterResolver extends ReplacementVisitor {
   @override
-  DartType? visitTypeParameterType(TypeParameterType node, int variance) {
+  DartType? visitTypeParameterType(TypeParameterType node, Variance variance) {
     return node.nonTypeVariableBound;
   }
 
   @override
   DartType? visitStructuralParameterType(
-      StructuralParameterType node, int variance) {
+      StructuralParameterType node, Variance variance) {
     return node.nonTypeVariableBound;
   }
 

@@ -11,19 +11,16 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveRequired extends ResolvedCorrectionProducer {
   @override
-  // Not predictably the correct action.
-  bool get canBeAppliedInBulk => false;
-
-  @override
-  // Not predictably the correct action.
-  bool get canBeAppliedToFile => false;
+  CorrectionApplicability get applicability =>
+      // Not predictably the correct action.
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_REQUIRED;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is! FormalParameter) return;
 
     var required = node.requiredKeyword;

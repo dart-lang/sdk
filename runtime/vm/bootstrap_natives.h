@@ -119,7 +119,6 @@ namespace dart {
   V(RegExp_ExecuteMatch, 3)                                                    \
   V(RegExp_ExecuteMatchSticky, 3)                                              \
   V(List_allocate, 2)                                                          \
-  V(List_getIndexed, 2)                                                        \
   V(List_setIndexed, 3)                                                        \
   V(List_getLength, 1)                                                         \
   V(List_slice, 4)                                                             \
@@ -147,7 +146,7 @@ namespace dart {
   V(DateTime_timeZoneName, 1)                                                  \
   V(DateTime_timeZoneOffsetInSeconds, 1)                                       \
   V(AssertionError_throwNew, 3)                                                \
-  V(AssertionError_throwNewSource, 4)                                          \
+  V(AssertionError_throwNewSource, 5)                                          \
   V(Error_throwWithStackTrace, 2)                                              \
   V(StackTrace_current, 0)                                                     \
   V(TypeError_throwNew, 4)                                                     \
@@ -264,7 +263,6 @@ namespace dart {
   V(Isolate_spawnFunction, 10)                                                 \
   V(Isolate_spawnUri, 12)                                                      \
   V(GrowableList_allocate, 2)                                                  \
-  V(GrowableList_getIndexed, 2)                                                \
   V(GrowableList_setIndexed, 3)                                                \
   V(GrowableList_getLength, 1)                                                 \
   V(GrowableList_getCapacity, 1)                                               \
@@ -283,7 +281,8 @@ namespace dart {
   V(Internal_writeIntoOneByteString, 3)                                        \
   V(Internal_writeIntoTwoByteString, 3)                                        \
   V(Internal_deoptimizeFunctionsOnStack, 0)                                    \
-  V(Internal_randomInstructionsOffsetInsideAllocateObjectStub, 0)              \
+  V(Internal_allocateObjectInstructionsStart, 0)                               \
+  V(Internal_allocateObjectInstructionsEnd, 0)                                 \
   V(InvocationMirror_unpackTypeArguments, 2)                                   \
   V(NoSuchMethodError_existingMethodSignature, 3)                              \
   V(Uri_isWindowsPlatform, 0)                                                  \

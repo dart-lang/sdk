@@ -7,6 +7,7 @@ library fasta.incremental_compiler;
 import 'dart:async' show Completer;
 import 'dart:convert' show JsonEncoder;
 
+import 'package:kernel/reference_from_index.dart';
 import 'package:macros/src/executor/multi_executor.dart' as macros;
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
@@ -253,6 +254,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     List<Uri>? entryPointsSavedForLaterOverwrite = entryPoints;
     return context
         .runInContext<IncrementalCompilerResult>((CompilerContext c) async {
+      if (!context.options.haveBeenValidated) {
+        await context.options.validateOptions(errorOnMissingInput: false);
+      }
+
       List<Uri> entryPoints =
           entryPointsSavedForLaterOverwrite ?? context.options.inputs;
       if (_computeDeltaRunOnce && _initializedForExpressionCompilationOnly) {
@@ -425,17 +430,21 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       _benchmarker?.enterPhase(BenchmarkPhases
           .incremental_calculateOutputLibrariesAndIssueLibraryProblems);
+
+      Set<LibraryBuilder> cleanedUpBuilders = {};
       List<Library> outputLibraries =
           _calculateOutputLibrariesAndIssueLibraryProblems(
-              currentKernelTarget,
-              data.component != null || fullComponent,
-              compiledLibraries,
-              entryPoints,
-              reusedLibraries,
-              hierarchy,
-              uriTranslator,
-              uriToSource,
-              c);
+        currentKernelTarget,
+        data.component != null || fullComponent,
+        compiledLibraries,
+        entryPoints,
+        reusedLibraries,
+        hierarchy,
+        uriTranslator,
+        uriToSource,
+        c,
+        cleanedUpBuilders: cleanedUpBuilders,
+      );
       List<String> problemsAsJson = _componentProblems.reissueProblems(
           context, currentKernelTarget, componentWithDill);
 
@@ -451,7 +460,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         _benchmarker?.enterPhase(
             BenchmarkPhases.incremental_convertSourceLibraryBuildersToDill);
         _previousSourceBuilders = _convertSourceLibraryBuildersToDill(
-            currentKernelTarget, experimentalInvalidation);
+          currentKernelTarget,
+          experimentalInvalidation,
+          cleanedUpBuilders: cleanedUpBuilders,
+        );
       }
 
       _benchmarker?.enterPhase(BenchmarkPhases.incremental_end);
@@ -517,14 +529,19 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   ///
   /// Returns the set of Libraries that now has new (dill) builders.
   Set<Library> _convertSourceLibraryBuildersToDill(
-      IncrementalKernelTarget nextGoodKernelTarget,
-      ExperimentalInvalidation? experimentalInvalidation) {
+    IncrementalKernelTarget nextGoodKernelTarget,
+    ExperimentalInvalidation? experimentalInvalidation, {
+    required Set<LibraryBuilder> cleanedUpBuilders,
+  }) {
     bool changed = false;
     Set<Library> newDillLibraryBuilders = new Set<Library>();
     _userBuilders ??= <Uri, LibraryBuilder>{};
     Map<LibraryBuilder, List<LibraryBuilder>>? convertedLibraries;
     for (SourceLibraryBuilder builder
         in nextGoodKernelTarget.loader.sourceLibraryBuilders) {
+      if (cleanedUpBuilders.contains(builder)) {
+        continue;
+      }
       DillLibraryBuilder dillBuilder =
           _dillLoadedData!.loader.appendLibrary(builder.library);
       nextGoodKernelTarget.loader.registerLibraryBuilder(dillBuilder);
@@ -669,26 +686,30 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// Compute which libraries to output and which (previous) errors/warnings we
   /// have to reissue. In the process do some cleanup too.
   List<Library> _calculateOutputLibrariesAndIssueLibraryProblems(
-      IncrementalKernelTarget currentKernelTarget,
-      bool fullComponent,
-      List<Library> compiledLibraries,
-      List<Uri> entryPoints,
-      List<LibraryBuilder> reusedLibraries,
-      ClassHierarchy hierarchy,
-      UriTranslator uriTranslator,
-      Map<Uri, Source> uriToSource,
-      CompilerContext c) {
+    IncrementalKernelTarget currentKernelTarget,
+    bool fullComponent,
+    List<Library> compiledLibraries,
+    List<Uri> entryPoints,
+    List<LibraryBuilder> reusedLibraries,
+    ClassHierarchy hierarchy,
+    UriTranslator uriTranslator,
+    Map<Uri, Source> uriToSource,
+    CompilerContext c, {
+    required Set<LibraryBuilder> cleanedUpBuilders,
+  }) {
     List<Library> outputLibraries;
     Set<Library> allLibraries;
     if (fullComponent) {
       outputLibraries = _computeTransitiveClosure(
-          currentKernelTarget,
-          compiledLibraries,
-          entryPoints,
-          reusedLibraries,
-          hierarchy,
-          uriTranslator,
-          uriToSource);
+        currentKernelTarget,
+        compiledLibraries,
+        entryPoints,
+        reusedLibraries,
+        hierarchy,
+        uriTranslator,
+        uriToSource,
+        cleanedUpBuilders: cleanedUpBuilders,
+      );
       allLibraries = outputLibraries.toSet();
       if (!c.options.omitPlatform) {
         for (int i = 0; i < _platformBuilders!.length; i++) {
@@ -699,15 +720,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     } else {
       outputLibraries = <Library>[];
       allLibraries = _computeTransitiveClosure(
-              currentKernelTarget,
-              compiledLibraries,
-              entryPoints,
-              reusedLibraries,
-              hierarchy,
-              uriTranslator,
-              uriToSource,
-              outputLibraries)
-          .toSet();
+        currentKernelTarget,
+        compiledLibraries,
+        entryPoints,
+        reusedLibraries,
+        hierarchy,
+        uriTranslator,
+        uriToSource,
+        inputLibrariesFiltered: outputLibraries,
+        cleanedUpBuilders: cleanedUpBuilders,
+      ).toSet();
     }
 
     _reissueLibraryProblems(allLibraries, compiledLibraries);
@@ -821,7 +843,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         LibraryBuilder newBuilder = currentKernelTarget.loader.readAsEntryPoint(
             library.importUri,
             fileUri: library.fileUri,
-            referencesFrom: library.library);
+            referencesFromIndex: new IndexedLibrary(library.library));
         List<LibraryBuilder> builders = [newBuilder];
         rebuildBodiesMap[library] = builders;
         for (LibraryPart part in library.library.parts) {
@@ -836,7 +858,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               partUri, -1,
               accessor: library,
               fileUri: fileUri,
-              referencesFrom: library.library,
+              referencesFromIndex: new IndexedLibrary(library.library),
               referenceIsPartOwner: true);
           builders.add(newPartBuilder);
         }
@@ -1210,8 +1232,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
         ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
             enableExtensionMethods: true /* can't be disabled */,
-            enableNonNullable: builder
-                .isNonNullableByDefault /* depends on language version etc */,
+            enableNonNullable: true /* can't be disabled */,
             enableTripleShift:
                 /* should this be on the library? */
                 /* this is effectively what the constant evaluator does */
@@ -1616,14 +1637,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// As a side-effect, this also cleans-up now-unreferenced builders as well as
   /// any saved component problems for such builders.
   List<Library> _computeTransitiveClosure(
-      IncrementalKernelTarget currentKernelTarget,
-      List<Library> inputLibraries,
-      List<Uri> entryPoints,
-      List<LibraryBuilder> reusedLibraries,
-      ClassHierarchy hierarchy,
-      UriTranslator uriTranslator,
-      Map<Uri, Source> uriToSource,
-      [List<Library>? inputLibrariesFiltered]) {
+    IncrementalKernelTarget currentKernelTarget,
+    List<Library> inputLibraries,
+    List<Uri> entryPoints,
+    List<LibraryBuilder> reusedLibraries,
+    ClassHierarchy hierarchy,
+    UriTranslator uriTranslator,
+    Map<Uri, Source> uriToSource, {
+    List<Library>? inputLibrariesFiltered,
+    required Set<LibraryBuilder> cleanedUpBuilders,
+  }) {
     List<Library> result = <Library>[];
     Map<Uri, Uri> partUriToLibraryImportUri = <Uri, Uri>{};
     Map<Uri, Library> libraryMap = <Uri, Library>{};
@@ -1700,9 +1723,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       LibraryBuilder? builder =
           currentKernelTarget.loader.deregisterLibraryBuilder(uri);
       if (builder != null) {
+        cleanedUpBuilders.add(builder);
         Library lib = builder.library;
         removedLibraries.add(lib);
-        if (_dillLoadedData!.loader.deregisterLibraryBuilder(uri) != null) {
+        DillLibraryBuilder? removedDillBuilder =
+            _dillLoadedData!.loader.deregisterLibraryBuilder(uri);
+        if (removedDillBuilder != null) {
+          cleanedUpBuilders.add(removedDillBuilder);
           removedDillBuilders = true;
         }
         _cleanupSourcesForBuilder(
@@ -2054,8 +2081,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       Procedure procedure = new Procedure(
           new Name(syntheticProcedureName), ProcedureKind.Method, parameters,
-          isStatic: isStatic, fileUri: debugLibrary.fileUri)
-        ..isNonNullableByDefault = debugLibrary.isNonNullableByDefault;
+          isStatic: isStatic, fileUri: debugLibrary.fileUri);
 
       parameters.body = new ReturnStatement(compiledExpression)
         ..parent = parameters;
@@ -2753,42 +2779,16 @@ class _ComponentProblems {
     if (componentWithDill.problemsAsJson != null) {
       issuedProblems.addAll(componentWithDill.problemsAsJson!);
     }
-
     // Report old problems that wasn't reported again.
-    Set<Uri>? strongModeNNBDPackageOptOutUris;
     for (MapEntry<Uri, List<DiagnosticMessageFromJson>> entry
         in _remainingComponentProblems.entries) {
       List<DiagnosticMessageFromJson> messages = entry.value;
       for (int i = 0; i < messages.length; i++) {
         DiagnosticMessageFromJson message = messages[i];
-        if (message.codeName == "StrongModeNNBDPackageOptOut") {
-          // Special case this: Don't issue them here; instead collect them
-          // to get their uris and re-issue a new error.
-          strongModeNNBDPackageOptOutUris ??= {};
-          strongModeNNBDPackageOptOutUris.add(entry.key);
-          continue;
-        }
         if (issuedProblems.add(message.toJsonString())) {
           context.options.reportDiagnosticMessage(message);
         }
       }
-    }
-    if (strongModeNNBDPackageOptOutUris != null) {
-      // Get the builders for these uris; then call
-      // `SourceLoader.giveCombinedErrorForNonStrongLibraries` on them to issue
-      // a new error.
-      Set<LibraryBuilder> builders = {};
-      SourceLoader loader = currentKernelTarget.loader;
-      for (LibraryBuilder builder in loader.libraryBuilders) {
-        if (strongModeNNBDPackageOptOutUris.contains(builder.fileUri)) {
-          builders.add(builder);
-        }
-      }
-      FormattedMessage message = loader.giveCombinedErrorForNonStrongLibraries(
-          builders,
-          emitNonPackageErrors: false)!;
-      issuedProblems.add(message.toJsonString());
-      // The problem was issued by the call so don't re-issue it here.
     }
 
     // Save any new component-problems.

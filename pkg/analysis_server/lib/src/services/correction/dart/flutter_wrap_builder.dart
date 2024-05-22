@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -12,23 +12,25 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class FlutterWrapBuilder extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_BUILDER;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var widgetExpr = Flutter.identifyWidgetExpression(node);
+    var widgetExpr = node.findWidgetExpression;
     if (widgetExpr == null) {
       return;
     }
-    if (Flutter.isExactWidgetTypeBuilder(widgetExpr.typeOrThrow)) {
+    if (widgetExpr.typeOrThrow.isExactWidgetTypeBuilder) {
       return;
     }
     var widgetSrc = utils.getNodeText(widgetExpr);
 
-    var builderElement = await sessionHelper.getClass(
-      Flutter.widgetsUri,
-      'Builder',
-    );
+    var builderElement = await sessionHelper.getFlutterClass('Builder');
     if (builderElement == null) {
       return;
     }

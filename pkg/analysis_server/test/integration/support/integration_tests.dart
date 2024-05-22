@@ -14,12 +14,12 @@ import 'package:analyzer/file_system/file_system.dart' as analyzer_fs;
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import '../../analysis_server_base.dart' show AnalysisOptionsFileConfig;
-import '../../src/utilities/mock_packages.dart';
 import '../../support/configuration_files.dart';
 import '../../test_macros.dart' as macros;
 import 'integration_test_methods.dart';
@@ -411,8 +411,8 @@ class MatchesJsonObject extends _RecursiveMatcher {
       mismatches.add(simpleDescription('is not a map'));
       return;
     }
-    final requiredFields = this.requiredFields;
-    final optionalFields = this.optionalFields;
+    var requiredFields = this.requiredFields;
+    var optionalFields = this.optionalFields;
     if (requiredFields != null) {
       requiredFields.forEach((String key, Matcher valueMatcher) {
         if (!item.containsKey(key)) {

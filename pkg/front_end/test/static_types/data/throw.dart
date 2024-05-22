@@ -2,22 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*cfe.library: nnbd=false*/
-/*cfe:nnbd.library: nnbd=true*/
-
+/*library: nnbd=true*/
 throwing() {
-  /*cfe.Never*/
-  /*cfe:nnbd.Never*/
+  /*Never*/
   throw
-      /*cfe.String*/
-      /*cfe:nnbd.String!*/
+      /*String!*/
       'foo';
 }
 
 rethrowing() {
   try {} catch (_) {
-    /*cfe.Never*/
-    /*cfe:nnbd.Never*/
+    /*Never*/
     rethrow;
   }
 }

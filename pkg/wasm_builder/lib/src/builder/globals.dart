@@ -10,7 +10,7 @@ part 'global.dart';
 
 class GlobalsBuilder with Builder<ir.Globals> {
   final ModuleBuilder _module;
-  final _importedGlobals = <ir.Import>[];
+  final _importedGlobals = <ir.ImportedGlobal>[];
   final _globalBuilders = <GlobalBuilder>[];
 
   /// Number of named globals.
@@ -29,9 +29,6 @@ class GlobalsBuilder with Builder<ir.Globals> {
   }
 
   /// Imports a global variable into this module.
-  ///
-  /// All imported globals must be specified before any globals are declared
-  /// using [Globals.define].
   ir.ImportedGlobal import(String module, String name, ir.GlobalType type) {
     final global = ir.ImportedGlobal(module, name, ir.FinalizableIndex(), type);
     _importedGlobals.add(global);

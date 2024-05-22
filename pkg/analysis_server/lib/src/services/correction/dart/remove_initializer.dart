@@ -11,21 +11,15 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveInitializer extends ResolvedCorrectionProducer {
   @override
-  bool canBeAppliedInBulk;
-
-  @override
-  bool canBeAppliedToFile;
+  final CorrectionApplicability applicability;
 
   /// Initialize a newly created instance that can't apply bulk and in-file
   /// fixes.
-  RemoveInitializer()
-      : canBeAppliedInBulk = false,
-        canBeAppliedToFile = false;
+  RemoveInitializer() : applicability = CorrectionApplicability.singleLocation;
 
   /// Initialize a newly created instance that can apply bulk and in-file fixes.
   RemoveInitializer.bulkFixable()
-      : canBeAppliedInBulk = true,
-        canBeAppliedToFile = true;
+      : applicability = CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_INITIALIZER;

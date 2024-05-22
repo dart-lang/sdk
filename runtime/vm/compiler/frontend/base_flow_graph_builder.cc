@@ -6,7 +6,7 @@
 
 #include <utility>
 
-#include "vm/compiler/backend/range_analysis.h"  // For Range.
+#include "vm/compiler/backend/range_analysis.h"       // For Range.
 #include "vm/compiler/frontend/flow_graph_builder.h"  // For InlineExitCollector.
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/compiler/jit/compiler.h"  // For Compiler::IsBackgroundCompilation().
@@ -472,6 +472,17 @@ Fragment BaseFlowGraphBuilder::LoadNativeField(
   return Fragment(load);
 }
 
+Fragment BaseFlowGraphBuilder::LoadNativeField(const Slot& native_field,
+                                               bool calls_initializer) {
+  const InnerPointerAccess loads_inner_pointer =
+      native_field.representation() == kUntagged
+          ? (native_field.may_contain_inner_pointer()
+                 ? InnerPointerAccess::kMayBeInnerPointer
+                 : InnerPointerAccess::kCannotBeInnerPointer)
+          : InnerPointerAccess::kNotUntagged;
+  return LoadNativeField(native_field, loads_inner_pointer, calls_initializer);
+}
+
 Fragment BaseFlowGraphBuilder::LoadLocal(LocalVariable* variable) {
   ASSERT(!variable->is_captured());
   LoadLocalInstr* load = new (Z) LoadLocalInstr(*variable, InstructionSource());
@@ -511,11 +522,9 @@ Fragment BaseFlowGraphBuilder::StoreNativeField(
     StoreBarrierType emit_store_barrier /* = kEmitStoreBarrier */,
     compiler::Assembler::MemoryOrder memory_order /* = kRelaxed */) {
   Value* value = Pop();
-  if (value->BindsToConstant()) {
-    emit_store_barrier = kNoStoreBarrier;
-  }
+  Value* instance = Pop();
   StoreFieldInstr* store = new (Z)
-      StoreFieldInstr(slot, Pop(), value, emit_store_barrier,
+      StoreFieldInstr(slot, instance, value, emit_store_barrier,
                       stores_inner_pointer, InstructionSource(position), kind);
   return Fragment(store);
 }
@@ -1073,6 +1082,14 @@ Fragment BaseFlowGraphBuilder::CheckNullOptimized(
                              InstructionSource(position), exception_type);
   Push(check_null);  // Use the redefinition.
   return Fragment(check_null);
+}
+
+Fragment BaseFlowGraphBuilder::CheckNotDeeplyImmutable(
+    CheckWritableInstr::Kind kind) {
+  Value* value = Pop();
+  auto* check_writable = new (Z)
+      CheckWritableInstr(value, GetNextDeoptId(), InstructionSource(), kind);
+  return Fragment(check_writable);
 }
 
 void BaseFlowGraphBuilder::RecordUncheckedEntryPoint(

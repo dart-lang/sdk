@@ -430,13 +430,13 @@ class TypeCheckingVisitor
 
   @override
   DartType visitBoolLiteral(BoolLiteral node) {
-    return environment.coreTypes.boolLegacyRawType;
+    return environment.coreTypes.boolNonNullableRawType;
   }
 
   @override
   DartType visitConditionalExpression(ConditionalExpression node) {
     node.condition = checkAndDowncastExpression(
-        node.condition, environment.coreTypes.boolLegacyRawType);
+        node.condition, environment.coreTypes.boolNonNullableRawType);
     node.then = checkAndDowncastExpression(node.then, node.staticType);
     node.otherwise =
         checkAndDowncastExpression(node.otherwise, node.staticType);
@@ -458,7 +458,7 @@ class TypeCheckingVisitor
 
   @override
   DartType visitDoubleLiteral(DoubleLiteral node) {
-    return environment.coreTypes.doubleLegacyRawType;
+    return environment.coreTypes.doubleNonNullableRawType;
   }
 
   @override
@@ -469,7 +469,7 @@ class TypeCheckingVisitor
 
   @override
   DartType visitIntLiteral(IntLiteral node) {
-    return environment.coreTypes.intLegacyRawType;
+    return environment.coreTypes.intNonNullableRawType;
   }
 
   @override
@@ -481,7 +481,7 @@ class TypeCheckingVisitor
   @override
   DartType visitIsExpression(IsExpression node) {
     visitExpression(node.operand);
-    return environment.coreTypes.boolLegacyRawType;
+    return environment.coreTypes.boolNonNullableRawType;
   }
 
   @override
@@ -595,10 +595,10 @@ class TypeCheckingVisitor
   @override
   DartType visitLogicalExpression(LogicalExpression node) {
     node.left = checkAndDowncastExpression(
-        node.left, environment.coreTypes.boolLegacyRawType);
+        node.left, environment.coreTypes.boolNonNullableRawType);
     node.right = checkAndDowncastExpression(
-        node.right, environment.coreTypes.boolLegacyRawType);
-    return environment.coreTypes.boolLegacyRawType;
+        node.right, environment.coreTypes.boolNonNullableRawType);
+    return environment.coreTypes.boolNonNullableRawType;
   }
 
   @override
@@ -614,7 +614,7 @@ class TypeCheckingVisitor
   @override
   DartType visitNot(Not node) {
     visitExpression(node.operand);
-    return environment.coreTypes.boolLegacyRawType;
+    return environment.coreTypes.boolNonNullableRawType;
   }
 
   @override
@@ -653,7 +653,7 @@ class TypeCheckingVisitor
   @override
   DartType visitStringConcatenation(StringConcatenation node) {
     node.expressions.forEach(visitExpression);
-    return environment.coreTypes.stringLegacyRawType;
+    return environment.coreTypes.stringNonNullableRawType;
   }
 
   @override
@@ -709,7 +709,7 @@ class TypeCheckingVisitor
 
   @override
   DartType visitStringLiteral(StringLiteral node) {
-    return environment.coreTypes.stringLegacyRawType;
+    return environment.coreTypes.stringNonNullableRawType;
   }
 
   @override
@@ -763,7 +763,7 @@ class TypeCheckingVisitor
 
   @override
   DartType visitSymbolLiteral(SymbolLiteral node) {
-    return environment.coreTypes.symbolLegacyRawType;
+    return environment.coreTypes.symbolNonNullableRawType;
   }
 
   @override
@@ -779,7 +779,7 @@ class TypeCheckingVisitor
 
   @override
   DartType visitTypeLiteral(TypeLiteral node) {
-    return environment.coreTypes.typeLegacyRawType;
+    return environment.coreTypes.typeNonNullableRawType;
   }
 
   @override
@@ -829,7 +829,7 @@ class TypeCheckingVisitor
 
   @override
   DartType visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
-    return environment.coreTypes.objectLegacyRawType;
+    return environment.coreTypes.objectNullableRawType;
   }
 
   @override
@@ -865,7 +865,7 @@ class TypeCheckingVisitor
   void visitDoStatement(DoStatement node) {
     visitStatement(node.body);
     node.condition = checkAndDowncastExpression(
-        node.condition, environment.coreTypes.boolLegacyRawType);
+        node.condition, environment.coreTypes.boolNonNullableRawType);
   }
 
   @override
@@ -936,7 +936,7 @@ class TypeCheckingVisitor
     node.variables.forEach(visitVariableDeclaration);
     if (node.condition != null) {
       node.condition = checkAndDowncastExpression(
-          node.condition!, environment.coreTypes.boolLegacyRawType);
+          node.condition!, environment.coreTypes.boolNonNullableRawType);
     }
     node.updates.forEach(visitExpression);
     visitStatement(node.body);
@@ -950,7 +950,7 @@ class TypeCheckingVisitor
   @override
   void visitIfStatement(IfStatement node) {
     node.condition = checkAndDowncastExpression(
-        node.condition, environment.coreTypes.boolLegacyRawType);
+        node.condition, environment.coreTypes.boolNonNullableRawType);
     visitStatement(node.then);
     if (node.otherwise != null) {
       visitStatement(node.otherwise!);
@@ -1012,7 +1012,7 @@ class TypeCheckingVisitor
   @override
   void visitWhileStatement(WhileStatement node) {
     node.condition = checkAndDowncastExpression(
-        node.condition, environment.coreTypes.boolLegacyRawType);
+        node.condition, environment.coreTypes.boolNonNullableRawType);
     visitStatement(node.body);
   }
 
@@ -1113,13 +1113,13 @@ class TypeCheckingVisitor
     visitExpression(node.left);
     visitExpression(node.right);
     // TODO(johnniwinther): Return Never as type for equals call on Never.
-    return environment.coreTypes.boolLegacyRawType;
+    return environment.coreTypes.boolNonNullableRawType;
   }
 
   @override
   DartType visitEqualsNull(EqualsNull node) {
     visitExpression(node.expression);
-    return environment.coreTypes.boolLegacyRawType;
+    return environment.coreTypes.boolNonNullableRawType;
   }
 
   @override

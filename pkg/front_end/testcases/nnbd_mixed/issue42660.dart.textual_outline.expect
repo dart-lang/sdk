@@ -1,5 +1,0 @@
-// @dart = 2.8
-
-import 'issue42660_lib.dart';
-
-void main() {}

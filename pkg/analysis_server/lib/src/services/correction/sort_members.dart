@@ -159,8 +159,7 @@ class MemberSorter {
 
   /// Sorts all [Directive]s.
   void _sortUnitDirectives() {
-    final importOrganizer =
-        ImportOrganizer(code, unit, [], removeUnused: false);
+    var importOrganizer = ImportOrganizer(code, unit, [], removeUnused: false);
     importOrganizer.organize();
     code = importOrganizer.code;
   }

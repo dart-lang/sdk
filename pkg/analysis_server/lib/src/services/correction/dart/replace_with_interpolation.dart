@@ -13,10 +13,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceWithInterpolation extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_WITH_INTERPOLATION;
@@ -50,7 +48,7 @@ class ReplaceWithInterpolation extends ResolvedCorrectionProducer {
     //
     // Build the edit.
     //
-    final binary_final = binary;
+    var binary_final = binary;
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(range.node(binary_final), interpolation);
     });

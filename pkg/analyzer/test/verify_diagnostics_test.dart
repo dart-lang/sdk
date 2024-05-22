@@ -94,6 +94,9 @@ class DocumentationValidator {
 
     // Missing support for example files outside of `lib`.
     'LintCode.avoid_relative_lib_imports',
+    // The example isn't being recognized as a flutter app. We might need to
+    // build a pubspec.yaml when analyzing flutter code.
+    'LintCode.avoid_web_libraries_in_flutter',
     // Produces a CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY.
     'LintCode.control_flow_in_finally',
     // Missing support for creating an indirect dependency on a package.
@@ -533,6 +536,6 @@ class _SnippetTest extends PubPackageResolutionTest {
       }
     }
     writeTestPackageConfig(packageConfigBuilder,
-        angularMeta: true, ffi: true, meta: true);
+        angularMeta: true, ffi: true, flutter: true, meta: true);
   }
 }

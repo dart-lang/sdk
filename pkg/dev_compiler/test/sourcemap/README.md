@@ -3,9 +3,7 @@
 This folder contains two types of tests for validating sourcemaps:
 the debugging behavior and the stacktrace behavior.
 
-Running the tests requires the compilation of the correct targets. DDC currently
-also requires `ddc_outline_unsound.dill` inside
-`{sdkroot}/{out,xcodebuild}/{ReleaseX64,ReleaseARM64}/ddc_outline_unsound.dill`.
+Running the tests requires building the sdk target: `ddc_stable_test`.
 
 Except for that, running them should simply be a matter of executing the `*_suite.dart` files.
 

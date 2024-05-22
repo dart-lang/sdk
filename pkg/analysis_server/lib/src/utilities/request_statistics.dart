@@ -218,7 +218,7 @@ class _RequestStatisticsItem {
   _RequestStatisticsItem(this.name, {this.timeValue});
 
   Map<String, Object> toJson() {
-    final timeValue = this.timeValue;
+    var timeValue = this.timeValue;
     if (timeValue != null) {
       return {
         'name': name,

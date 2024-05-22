@@ -22,7 +22,7 @@ Uint8List _b(int length) {
 @reflectiveTest
 class CacheTest {
   test_get() {
-    final cache = _newBytesCache(100);
+    var cache = _newBytesCache(100);
 
     expect(cache.get('1'), isNull);
     expect(cache.map.entries, isEmpty);
@@ -36,7 +36,7 @@ class CacheTest {
   }
 
   test_get_reorders() {
-    final cache = _newBytesCache(100);
+    var cache = _newBytesCache(100);
 
     cache.put('1', _b(1));
     cache.put('2', _b(2));

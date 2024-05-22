@@ -26,7 +26,7 @@ class A {
       error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 28, 5),
     ]);
 
-    final node = findNode.singleFieldDeclaration;
+    var node = findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList
@@ -55,7 +55,7 @@ class A {
 }
 ''');
 
-    final node = findNode.singleFieldDeclaration;
+    var node = findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList
@@ -87,7 +87,7 @@ class A {
       error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 45, 1),
     ]);
 
-    final node = findNode.fieldDeclaration('b =');
+    var node = findNode.fieldDeclaration('b =');
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList
@@ -120,7 +120,7 @@ class A {
       error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 44, 1),
     ]);
 
-    final node = findNode.fieldDeclaration('b =');
+    var node = findNode.fieldDeclaration('b =');
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList
@@ -153,7 +153,7 @@ class A {
       error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 42, 1),
     ]);
 
-    final node = findNode.fieldDeclaration('b =');
+    var node = findNode.fieldDeclaration('b =');
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList
@@ -191,7 +191,7 @@ class A {
       error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 22, 4),
     ]);
 
-    final node = findNode.singleFieldDeclaration;
+    var node = findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList
@@ -265,7 +265,7 @@ class A<T> {
 }
 ''');
 
-    final node = findNode.singleFieldDeclaration;
+    var node = findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList

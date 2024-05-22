@@ -203,10 +203,9 @@ class Forest {
 
   Expression createAsExpression(
       int fileOffset, Expression expression, DartType type,
-      {required bool forNonNullableByDefault, bool forDynamic = false}) {
+      {bool forDynamic = false}) {
     return new AsExpression(expression, type)
       ..fileOffset = fileOffset
-      ..isForNonNullableByDefault = forNonNullableByDefault
       ..isForDynamic = forDynamic;
   }
 
@@ -464,10 +463,9 @@ class Forest {
   /// is non-null the test is negated the that file offset.
   Expression createIsExpression(
       int fileOffset, Expression operand, DartType type,
-      {required bool forNonNullableByDefault, int? notFileOffset}) {
+      {int? notFileOffset}) {
     Expression result = new IsExpression(operand, type)
-      ..fileOffset = fileOffset
-      ..isForNonNullableByDefault = forNonNullableByDefault;
+      ..fileOffset = fileOffset;
     if (notFileOffset != null) {
       result = createNot(notFileOffset, result);
     }

@@ -8,7 +8,6 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
@@ -136,7 +135,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
           isExternal: isExternal,
           isFinal: isFinal,
           isCovariantByDeclaration: isCovariantByDeclaration,
-          isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+          isNonNullableByDefault: true);
     } else if (fieldNameScheme.isExtensionTypeMember &&
         fieldNameScheme.isInstanceMember) {
       assert(fieldReference == null);
@@ -233,8 +232,8 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
               isSetStrategy);
         }
       }
-    } else if (libraryBuilder.isNonNullableByDefault &&
-        libraryBuilder.loader.target.backendTarget.useStaticFieldLowering &&
+    } else if (libraryBuilder
+            .loader.target.backendTarget.useStaticFieldLowering &&
         !isInstanceMember &&
         !isConst &&
         hasInitializer) {
@@ -286,7 +285,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
           isConst: isConst,
           isLate: isLate,
           hasInitializer: hasInitializer,
-          isNonNullableByDefault: libraryBuilder.isNonNullableByDefault,
+          isNonNullableByDefault: true,
           fieldReference: fieldReference,
           getterReference: fieldGetterReference,
           setterReference: fieldSetterReference,
@@ -525,9 +524,6 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       if (fieldType is InferredType) {
         // `fieldType` may have changed if a circularity was detected when
         // [inferredType] was computed.
-        if (!libraryBuilder.isNonNullableByDefault) {
-          inferredType = legacyErasure(inferredType);
-        }
         type.registerInferredType(inferredType);
 
         IncludesTypeParametersNonCovariantly? needsCheckVisitor;
@@ -693,8 +689,7 @@ class RegularFieldEncoding implements FieldEncoding {
         .attachMember(_field);
     _field
       ..fileOffset = charOffset
-      ..fileEndOffset = charEndOffset
-      ..isNonNullableByDefault = isNonNullableByDefault;
+      ..fileEndOffset = charEndOffset;
   }
 
   @override
@@ -916,7 +911,6 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         setterReference: fieldSetterReference)
       ..fileOffset = charOffset
       ..fileEndOffset = charEndOffset
-      ..isNonNullableByDefault = true
       ..isInternalImplementation = true;
     nameScheme
         .getFieldMemberName(FieldNameType.Field, name, isSynthesized: true)
@@ -935,7 +929,6 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
             setterReference: lateIsSetSetterReference)
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset
-          ..isNonNullableByDefault = true
           ..isInternalImplementation = true;
         nameScheme
             .getFieldMemberName(FieldNameType.IsSetField, name,
@@ -952,8 +945,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         fileUri: fileUri,
         reference: lateGetterReference)
       ..fileOffset = charOffset
-      ..fileEndOffset = charEndOffset
-      ..isNonNullableByDefault = true;
+      ..fileEndOffset = charEndOffset;
     nameScheme
         .getFieldMemberName(FieldNameType.Getter, name, isSynthesized: true)
         .attachMember(_lateGetter);
@@ -1083,8 +1075,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         fileUri: fileUri,
         reference: reference)
       ..fileOffset = charOffset
-      ..fileEndOffset = fileEndOffset
-      ..isNonNullableByDefault = true;
+      ..fileEndOffset = fileEndOffset;
   }
 
   Statement _createSetterBody(
@@ -1732,8 +1723,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
           fileUri: fileUri,
           reference: getterReference)
         ..fileOffset = charOffset
-        ..fileEndOffset = charEndOffset
-        ..isNonNullableByDefault = isNonNullableByDefault;
+        ..fileEndOffset = charEndOffset;
       nameScheme
           .getProcedureMemberName(ProcedureKind.Getter, name)
           .attachMember(_getter);
@@ -1758,8 +1748,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
             fileUri: fileUri,
             reference: setterReference)
           ..fileOffset = charOffset
-          ..fileEndOffset = charEndOffset
-          ..isNonNullableByDefault = isNonNullableByDefault;
+          ..fileEndOffset = charEndOffset;
         nameScheme
             .getProcedureMemberName(ProcedureKind.Setter, name)
             .attachMember(_setter!);
@@ -1769,8 +1758,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
           dummyName, ProcedureKind.Getter, new FunctionNode(null),
           fileUri: fileUri, reference: getterReference)
         ..fileOffset = charOffset
-        ..fileEndOffset = charEndOffset
-        ..isNonNullableByDefault = isNonNullableByDefault;
+        ..fileEndOffset = charEndOffset;
       nameScheme
           .getFieldMemberName(FieldNameType.Getter, name, isSynthesized: true)
           .attachMember(_getter);
@@ -1789,8 +1777,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
             fileUri: fileUri,
             reference: setterReference)
           ..fileOffset = charOffset
-          ..fileEndOffset = charEndOffset
-          ..isNonNullableByDefault = isNonNullableByDefault;
+          ..fileEndOffset = charEndOffset;
         nameScheme
             .getFieldMemberName(FieldNameType.Setter, name, isSynthesized: true)
             .attachMember(_setter!);
@@ -2032,8 +2019,7 @@ class RepresentationFieldEncoding implements FieldEncoding {
         fileUri: fileUri, reference: getterReference)
       ..stubKind = ProcedureStubKind.RepresentationField
       ..fileOffset = charOffset
-      ..fileEndOffset = charEndOffset
-      ..isNonNullableByDefault = true;
+      ..fileEndOffset = charEndOffset;
     nameScheme
         .getFieldMemberName(FieldNameType.RepresentationField, name,
             isSynthesized: true)

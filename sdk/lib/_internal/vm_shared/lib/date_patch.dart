@@ -44,14 +44,16 @@ class DateTime {
       {bool isUtc = false})
       : this._withValue(microsecondsSinceEpoch, isUtc: isUtc);
 
+  static const _sentinelMs = -_maxMillisecondsSinceEpoch - 1;
+
   @patch
   DateTime._internal(int year, int month, int day, int hour, int minute,
       int second, int millisecond, int microsecond, bool isUtc)
       : this.isUtc = checkNotNullable(isUtc, "isUtc"),
         this._value = _brokenDownDateToValue(year, month, day, hour, minute,
                 second, millisecond, microsecond, isUtc) ??
-            -1 {
-    if (_value == -1) throw new ArgumentError();
+            _sentinelMs {
+    if (_value == _sentinelMs) throw new ArgumentError();
   }
 
   static int _validateMilliseconds(int millisecondsSinceEpoch) =>
@@ -248,7 +250,7 @@ class DateTime {
 
   /**
    * Returns the amount of microseconds in UTC that represent the same values
-   * as [this].
+   * as this [DateTime].
    *
    * Say `t` is the result of this function, then
    * * `this.year == new DateTime.fromMicrosecondsSinceEpoch(t, true).year`,
@@ -258,7 +260,7 @@ class DateTime {
    * * ...
    *
    * Daylight savings is computed as if the date was computed in [1970..2037].
-   * If [this] lies outside this range then it is a year with similar
+   * If this [DateTime] lies outside this range then it is a year with similar
    * properties (leap year, weekdays) is used instead.
    */
   int get _localDateInUtcMicros {

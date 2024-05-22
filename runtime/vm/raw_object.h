@@ -10,6 +10,7 @@
 #endif
 
 #include "platform/assert.h"
+#include "platform/thread_sanitizer.h"
 #include "vm/class_id.h"
 #include "vm/compiler/method_recognizer.h"
 #include "vm/compiler/runtime_api.h"
@@ -162,10 +163,10 @@ class UntaggedObject {
   enum TagBits {
     kCardRememberedBit = 0,
     kCanonicalBit = 1,
-    kNotMarkedBit = 2,            // Incremental barrier target.
-    kNewBit = 3,                  // Generational barrier target.
-    kAlwaysSetBit = 4,            // Incremental barrier source.
-    kOldAndNotRememberedBit = 5,  // Generational barrier source.
+    kNotMarkedBit = 2,                 // Incremental barrier target.
+    kNewOrEvacuationCandidateBit = 3,  // Generational barrier target.
+    kAlwaysSetBit = 4,                 // Incremental barrier source.
+    kOldAndNotRememberedBit = 5,       // Generational barrier source.
     kImmutableBit = 6,
     kReservedBit = 7,
 
@@ -177,11 +178,13 @@ class UntaggedObject {
     kHashTagSize = 32,
   };
 
-  static constexpr intptr_t kGenerationalBarrierMask = 1 << kNewBit;
+  static constexpr intptr_t kGenerationalBarrierMask =
+      1 << kNewOrEvacuationCandidateBit;
   static constexpr intptr_t kIncrementalBarrierMask = 1 << kNotMarkedBit;
   static constexpr intptr_t kBarrierOverlapShift = 2;
   COMPILE_ASSERT(kNotMarkedBit + kBarrierOverlapShift == kAlwaysSetBit);
-  COMPILE_ASSERT(kNewBit + kBarrierOverlapShift == kOldAndNotRememberedBit);
+  COMPILE_ASSERT(kNewOrEvacuationCandidateBit + kBarrierOverlapShift ==
+                 kOldAndNotRememberedBit);
 
   // The bit in the Smi tag position must be something that can be set to 0
   // for a dead filler object of either generation.
@@ -246,7 +249,8 @@ class UntaggedObject {
 
   class NotMarkedBit : public BitField<uword, bool, kNotMarkedBit, 1> {};
 
-  class NewBit : public BitField<uword, bool, kNewBit, 1> {};
+  class NewOrEvacuationCandidateBit
+      : public BitField<uword, bool, kNewOrEvacuationCandidateBit, 1> {};
 
   class CanonicalBit : public BitField<uword, bool, kCanonicalBit, 1> {};
 
@@ -292,14 +296,12 @@ class UntaggedObject {
   }
 
   uword tags() const { return tags_; }
+  uword tags_ignore_race() const { return tags_.load_ignore_race(); }
 
   // Support for GC marking bit. Marked objects are either grey (not yet
   // visited) or black (already visited).
   static bool IsMarked(uword tags) { return !NotMarkedBit::decode(tags); }
   bool IsMarked() const { return !tags_.Read<NotMarkedBit>(); }
-  bool IsMarkedIgnoreRace() const {
-    return !tags_.ReadIgnoreRace<NotMarkedBit>();
-  }
   void SetMarkBit() {
     ASSERT(!IsMarked());
     tags_.UpdateBool<NotMarkedBit>(false);
@@ -323,6 +325,25 @@ class UntaggedObject {
   // Returns false if the bit was already set.
   DART_WARN_UNUSED_RESULT
   bool TryAcquireMarkBit() { return tags_.TryClear<NotMarkedBit>(); }
+
+  static bool IsEvacuationCandidate(uword tags) {
+    return NewOrEvacuationCandidateBit::decode(tags);
+  }
+  bool IsEvacuationCandidate() {
+    return tags_.Read<NewOrEvacuationCandidateBit>();
+  }
+  void SetIsEvacuationCandidate() {
+    ASSERT(IsOldObject());
+    tags_.UpdateBool<NewOrEvacuationCandidateBit>(true);
+  }
+  void SetIsEvacuationCandidateUnsynchronized() {
+    ASSERT(IsOldObject());
+    tags_.UpdateUnsynchronized<NewOrEvacuationCandidateBit>(true);
+  }
+  void ClearIsEvacuationCandidateUnsynchronized() {
+    ASSERT(IsOldObject());
+    tags_.UpdateUnsynchronized<NewOrEvacuationCandidateBit>(false);
+  }
 
   // Canonical objects have the property that two canonical objects are
   // logically equal iff they are the same object (pointer equal).
@@ -939,8 +960,12 @@ inline intptr_t ObjectPtr::GetClassId() const {
   }                                                                            \
                                                                                \
  protected:                                                                    \
-  type* array_name() { OPEN_ARRAY_START(type, type); }                         \
-  type const* array_name() const { OPEN_ARRAY_START(type, type); }             \
+  type* array_name() {                                                         \
+    OPEN_ARRAY_START(type, type);                                              \
+  }                                                                            \
+  type const* array_name() const {                                             \
+    OPEN_ARRAY_START(type, type);                                              \
+  }                                                                            \
   VISIT_TO_PAYLOAD_END(type)
 
 #define COMPRESSED_VARIABLE_POINTER_FIELDS(type, accessor_name, array_name)    \
@@ -1579,9 +1604,9 @@ class UntaggedField : public UntaggedObject {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   friend class CidRewriteVisitor;
-  friend class GuardFieldClassInstr;     // For sizeof(guarded_cid_/...)
-  friend class LoadFieldInstr;           // For sizeof(guarded_cid_/...)
-  friend class StoreFieldInstr;          // For sizeof(guarded_cid_/...)
+  friend class GuardFieldClassInstr;  // For sizeof(guarded_cid_/...)
+  friend class LoadFieldInstr;        // For sizeof(guarded_cid_/...)
+  friend class StoreFieldInstr;       // For sizeof(guarded_cid_/...)
 };
 
 class alignas(8) UntaggedScript : public UntaggedObject {
@@ -1655,23 +1680,15 @@ class UntaggedLibrary : public UntaggedObject {
 
   enum LibraryFlags {
     kDartSchemeBit = 0,
-    kDebuggableBit,        // True if debugger can stop in library.
-    kInFullSnapshotBit,    // True if library is in a full snapshot.
-    kNnbdBit,              // True if library is non nullable by default.
-    kNnbdCompiledModePos,  // Encodes nnbd compiled mode of constants in lib.
-    kNnbdCompiledModeSize = 2,
-    kNumFlagBits = kNnbdCompiledModePos + kNnbdCompiledModeSize,
+    kDebuggableBit,      // True if debugger can stop in library.
+    kInFullSnapshotBit,  // True if library is in a full snapshot.
+    kNumFlagBits,
   };
   COMPILE_ASSERT(kNumFlagBits <= (sizeof(uint8_t) * kBitsPerByte));
   class DartSchemeBit : public BitField<uint8_t, bool, kDartSchemeBit, 1> {};
   class DebuggableBit : public BitField<uint8_t, bool, kDebuggableBit, 1> {};
   class InFullSnapshotBit
       : public BitField<uint8_t, bool, kInFullSnapshotBit, 1> {};
-  class NnbdBit : public BitField<uint8_t, bool, kNnbdBit, 1> {};
-  class NnbdCompiledModeBits : public BitField<uint8_t,
-                                               uint8_t,
-                                               kNnbdCompiledModePos,
-                                               kNnbdCompiledModeSize> {};
 
   RAW_HEAP_OBJECT_IMPLEMENTATION(Library);
 
@@ -1977,7 +1994,6 @@ class UntaggedInstructions : public UntaggedObject {
   VISIT_NOTHING();
 
   // Instructions size in bytes and flags.
-  // Currently, only flag indicates 1 or 2 entry points.
   uint32_t size_and_flags_;
 
   // Variable length data follows here.
@@ -2603,9 +2619,18 @@ class UntaggedLoadingUnit : public UntaggedObject {
   VISIT_FROM(parent)
   COMPRESSED_POINTER_FIELD(ArrayPtr, base_objects)
   VISIT_TO(base_objects)
-  int32_t id_;
-  bool load_outstanding_;
-  bool loaded_;
+  const uint8_t* instructions_image_;
+  AtomicBitFieldContainer<intptr_t> packed_fields_;
+
+  enum LoadState : int8_t {
+    kNotLoaded = 0,  // Ensure this is the default state when zero-initialized.
+    kLoadOutstanding,
+    kLoaded,
+  };
+
+  using LoadStateBits = BitField<decltype(packed_fields_), LoadState, 0, 2>;
+  using IdBits =
+      BitField<decltype(packed_fields_), intptr_t, LoadStateBits::kNextBit>;
 };
 
 class UntaggedError : public UntaggedObject {
@@ -2758,10 +2783,10 @@ class UntaggedAbstractType : public UntaggedInstance {
     kFinalizedUninstantiated,  // Uninstantiated type ready for use.
   };
 
-  using NullabilityBits = BitField<uint32_t, uint8_t, 0, 2>;
-  static constexpr intptr_t kNullabilityMask = NullabilityBits::mask();
+  using NullabilityBit = BitField<uint32_t, uint8_t, 0, 1>;
+  static constexpr intptr_t kNullabilityMask = NullabilityBit::mask();
 
-  static constexpr intptr_t kTypeStateShift = NullabilityBits::kNextBit;
+  static constexpr intptr_t kTypeStateShift = NullabilityBit::kNextBit;
   static constexpr intptr_t kTypeStateBits = 2;
   using TypeStateBits =
       BitField<uint32_t, uint8_t, kTypeStateShift, kTypeStateBits>;
@@ -3219,6 +3244,8 @@ class UntaggedArray : public UntaggedInstance {
   template <typename Table, bool kAllCanonicalObjectsAreIncludedIntoSet>
   friend class CanonicalSetDeserializationCluster;
   friend class Page;
+  template <bool>
+  friend class MarkingVisitorBase;
   friend class FastObjectCopy;  // For initializing fields.
   friend void UpdateLengthField(intptr_t, ObjectPtr, ObjectPtr);  // length_
 };

@@ -14,21 +14,15 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveAbstract extends CorrectionProducerWithDiagnostic {
   @override
-  bool canBeAppliedInBulk;
-
-  @override
-  bool canBeAppliedToFile;
+  final CorrectionApplicability applicability;
 
   /// Initialize a newly created instance that can't apply bulk and in-file
   /// fixes.
-  RemoveAbstract()
-      : canBeAppliedInBulk = false,
-        canBeAppliedToFile = false;
+  RemoveAbstract() : applicability = CorrectionApplicability.singleLocation;
 
   /// Initialize a newly created instance that can apply bulk and in-file fixes.
   RemoveAbstract.bulkFixable()
-      : canBeAppliedInBulk = true,
-        canBeAppliedToFile = true;
+      : applicability = CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_ABSTRACT;
@@ -38,9 +32,9 @@ class RemoveAbstract extends CorrectionProducerWithDiagnostic {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
-    final parent = node.parent;
-    final classDeclaration = node.thisOrAncestorOfType<ClassDeclaration>();
+    var node = this.node;
+    var parent = node.parent;
+    var classDeclaration = node.thisOrAncestorOfType<ClassDeclaration>();
     if (node is VariableDeclaration) {
       await _compute(classDeclaration, node.declaredElement, builder);
     } else if (node is SimpleIdentifier &&

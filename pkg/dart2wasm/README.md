@@ -1,27 +1,24 @@
-# Compiling Dart to WebAssembly
+# Compiling Dart to WebAssembly (internal SDK developer notes)
 
-WebAssembly (commonly abbreviated to Wasm) is a
-_"binary instruction format for a stack-based virtual machine"_.
-Although Wasm was originally designed for running native code on the web,
-Wasm has since evolved into a general technology for running
-compiled code across multiple platforms.
-
-The Dart team is currently investigating support for compiling Dart to Wasm,
-in conjunction with support [in Flutter](https://flutter.dev/wasm).
+**This page contains notes for how to compile to WebAssembly for SDK contributors.
+If you are a Dart developer, using a prebuilt Dart SDK, please refer to the
+[regular documentation](https://dart.dev/web/wasm).**
 
 **Note:** This feature is under active development,
 and is currently considered experimental.
 The tracking issue is [#32894](https://github.com/dart-lang/sdk/issues/32894).
 
-## Running dart2wasm
+## Running dart2wasm as an SDK contributor
 
 You don't need to build the Dart SDK to run dart2wasm, as long as you have a Dart SDK installed and have the [Dart SDK repository checked out](https://github.com/dart-lang/sdk/wiki/Building#getting-the-source). NB: the SDK must be checked out using depot tools and not just cloned from this repo.
 
 To compile a Dart file to Wasm, in a checkout of the Dart SDK repository, run:
 
-`dart --enable-asserts pkg/dart2wasm/bin/dart2wasm.dart` *options* *infile*`.dart` *outfile*`.wasm`
+```
+dart --enable-asserts pkg/dart2wasm/bin/dart2wasm.dart <options> <input file>.dart <output file>.wasm
+```
 
-where *options* include:
+### Compiler options
 
 | Option                                  | Default | Description |
 | --------------------------------------- | ------- | ----------- |
@@ -45,7 +42,9 @@ where *options* include:
 
 Dart2Wasm will output a `wasm` file, containing Dart compiled to Wasm, as well as an `mjs` file containing the runtime. The result can be run with:
 
-`d8 pkg/dart2wasm/bin/run_wasm.js -- `*outfile*`.wasm` /abs/path/to/`*outfile*`.mjs
+```
+d8 pkg/dart2wasm/bin/run_wasm.js -- /abs/path/to/<output file>.mjs <output file>.wasm
+```
 
 Where `d8` is the [V8 developer shell](https://v8.dev/docs/d8).
 

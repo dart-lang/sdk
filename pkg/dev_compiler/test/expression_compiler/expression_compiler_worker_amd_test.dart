@@ -12,16 +12,12 @@ void main(List<String> args) async {
   // Set to true to enable debug output
   var debug = false;
 
-  group('amd module format -', () {
-    for (var soundNullSafety in [true, false]) {
-      group('${soundNullSafety ? "sound" : "unsound"} null safety -', () {
-        var setup = SetupCompilerOptions(
-          moduleFormat: ModuleFormat.amd,
-          soundNullSafety: soundNullSafety,
-          args: args,
-        );
-        runTests(setup, verbose: debug);
-      });
-    }
+  group('amd module format - sound null safety -', () {
+    var setup = SetupCompilerOptions(
+      moduleFormat: ModuleFormat.amd,
+      soundNullSafety: true,
+      args: args,
+    );
+    runTests(setup, verbose: debug);
   });
 }

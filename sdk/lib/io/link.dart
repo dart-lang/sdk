@@ -194,7 +194,7 @@ abstract interface class Link implements FileSystemEntity {
   /// [FileSystemException].
   void deleteSync({bool recursive = false});
 
-  /// A [Link] instance whose path is the absolute path to [this].
+  /// A [Link] instance whose path is the absolute path to this [Link].
   ///
   /// The absolute path is computed by prefixing
   /// a relative path with the current working directory, or returning

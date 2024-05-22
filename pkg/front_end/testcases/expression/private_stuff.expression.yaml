@@ -3,8 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 sources: |
-  // @dart = 2.9
-
   class Foo {
     int what;
 

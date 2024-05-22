@@ -70,8 +70,8 @@ class _Visitor extends UnifyingAstVisitor<void> {
   @override
   void visitNamedType(NamedType node) {
     if (node.offset <= endOffset && node.end >= startOffset) {
-      final importPrefix = node.importPrefix;
-      final prefix = importPrefix?.element?.name ?? '';
+      var importPrefix = node.importPrefix;
+      var prefix = importPrefix?.element?.name ?? '';
       _addElement(prefix, node.element);
     }
 
@@ -116,7 +116,7 @@ class _Visitor extends UnifyingAstVisitor<void> {
       return;
     }
 
-    final path = element.library?.definingCompilationUnit.source.fullName;
+    var path = element.library?.definingCompilationUnit.source.fullName;
     if (path == null) {
       return;
     }

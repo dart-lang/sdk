@@ -1,0 +1,21 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method staticTypeOf<T extends core::Object? = dynamic>(self::staticTypeOf::T% x) → dynamic
+  return self::staticTypeOf::T%;
+static method main() → dynamic {
+  hoisted has-declared-initializer core::int v;
+  {
+    final synthesized core::Map<core::String, core::int> #0#0 = <core::String, core::int>{"key": 42};
+    synthesized core::int? #0#3;
+    synthesized core::bool #0#3#isSet = false;
+    if(!((!((#0#3#isSet ?{core::int?} #0#3{core::int?} : let final dynamic #t1 = #0#3#isSet = true in #0#3 = #0#0.{core::Map::[]}(#C1){(core::Object?) → core::int?}) == null) || null is core::int && #0#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && (let final dynamic #t2 = v = (#0#3#isSet ?{core::int?} #0#3{core::int?} : let final dynamic #t3 = #0#3#isSet = true in #0#3 = #0#0.{core::Map::[]}(#C1){(core::Object?) → core::int?}) as{Unchecked} core::int in true)))
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
+  }
+  core::print(self::staticTypeOf<core::int>(v));
+}
+
+constants  {
+  #C1 = "key"
+}

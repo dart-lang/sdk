@@ -28,10 +28,10 @@ class MainFunction extends DartSnippetProducer {
 
   @override
   Future<Snippet> compute() async {
-    final builder = ChangeBuilder(session: request.analysisSession);
+    var builder = ChangeBuilder(session: request.analysisSession);
 
-    final typeProvider = request.unit.typeProvider;
-    final listString = typeProvider.listType(typeProvider.stringType);
+    var typeProvider = request.unit.typeProvider;
+    var listString = typeProvider.listType(typeProvider.stringType);
 
     await builder.addDartFileEdit(request.filePath, (builder) {
       builder.addReplacement(request.replacementRange, (builder) {

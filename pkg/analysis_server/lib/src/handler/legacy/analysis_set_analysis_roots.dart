@@ -21,11 +21,6 @@ class AnalysisSetAnalysisRootsHandler extends LegacyHandler {
     var includedPathList = params.included;
     var excludedPathList = params.excluded;
 
-    unawaited(server.options.analytics?.sendEvent(
-      'analysis',
-      'setAnalysisRoots',
-      value: includedPathList.length,
-    ));
     server.analyticsManager.startedSetAnalysisRoots(params);
 
     // validate

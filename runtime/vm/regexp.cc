@@ -826,7 +826,9 @@ ActionNode* ActionNode::EmptyMatchCheck(intptr_t start_register,
 }
 
 #define DEFINE_ACCEPT(Type)                                                    \
-  void Type##Node::Accept(NodeVisitor* visitor) { visitor->Visit##Type(this); }
+  void Type##Node::Accept(NodeVisitor* visitor) {                              \
+    visitor->Visit##Type(this);                                                \
+  }
 FOR_EACH_NODE_TYPE(DEFINE_ACCEPT)
 #undef DEFINE_ACCEPT
 

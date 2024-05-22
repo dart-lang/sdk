@@ -383,9 +383,9 @@ class SubstituteTest extends _Base {
   }
 
   test_record_doesNotUseTypeParameter() async {
-    final T = typeParameter('T');
+    var T = typeParameter('T');
 
-    final type = recordTypeNone(
+    var type = recordTypeNone(
       positionalTypes: [intNone],
     );
 
@@ -395,8 +395,8 @@ class SubstituteTest extends _Base {
 
   test_record_fromAlias() async {
     // typedef Alias<T> = (int, String);
-    final T = typeParameter('T');
-    final Alias = typeAlias(
+    var T = typeParameter('T');
+    var Alias = typeAlias(
       name: 'Alias',
       typeParameters: [T],
       aliasedType: recordTypeNone(
@@ -404,8 +404,8 @@ class SubstituteTest extends _Base {
       ),
     );
 
-    final U = typeParameter('U');
-    final type = typeAliasTypeNone(Alias, typeArguments: [
+    var U = typeParameter('U');
+    var type = typeAliasTypeNone(Alias, typeArguments: [
       typeParameterTypeNone(U),
     ]);
     assertType(type, '(int, String) via Alias<U>');
@@ -414,9 +414,9 @@ class SubstituteTest extends _Base {
 
   test_record_fromAlias2() async {
     // typedef Alias<T> = (T, List<T>);
-    final T = typeParameter('T');
-    final T_none = typeParameterTypeNone(T);
-    final Alias = typeAlias(
+    var T = typeParameter('T');
+    var T_none = typeParameterTypeNone(T);
+    var Alias = typeAlias(
       name: 'Alias',
       typeParameters: [T],
       aliasedType: recordTypeNone(
@@ -427,15 +427,15 @@ class SubstituteTest extends _Base {
       ),
     );
 
-    final type = typeAliasTypeNone(Alias, typeArguments: [intNone]);
+    var type = typeAliasTypeNone(Alias, typeArguments: [intNone]);
     assertType(type, '(int, List<int>) via Alias<int>');
   }
 
   test_record_named() async {
-    final T = typeParameter('T');
-    final T_none = typeParameterTypeNone(T);
+    var T = typeParameter('T');
+    var T_none = typeParameterTypeNone(T);
 
-    final type = recordTypeNone(
+    var type = recordTypeNone(
       namedTypes: {
         'f1': T_none,
         'f2': listNone(T_none),
@@ -447,10 +447,10 @@ class SubstituteTest extends _Base {
   }
 
   test_record_positional() async {
-    final T = typeParameter('T');
-    final T_none = typeParameterTypeNone(T);
+    var T = typeParameter('T');
+    var T_none = typeParameterTypeNone(T);
 
-    final type = recordTypeNone(
+    var type = recordTypeNone(
       positionalTypes: [
         T_none,
         listNone(T_none),

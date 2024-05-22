@@ -14,15 +14,12 @@ class RemoveNameFromCombinator extends ResolvedCorrectionProducer {
   String _combinatorKind = '';
 
   @override
-  // Not predictably the correct action.
-  bool get canBeAppliedInBulk => false;
+  CorrectionApplicability get applicability =>
+      // Not predictably the correct action.
+      CorrectionApplicability.singleLocation;
 
   @override
-  // Not predictably the correct action.
-  bool get canBeAppliedToFile => false;
-
-  @override
-  List<Object> get fixArguments => [_combinatorKind];
+  List<String> get fixArguments => [_combinatorKind];
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_NAME_FROM_COMBINATOR;

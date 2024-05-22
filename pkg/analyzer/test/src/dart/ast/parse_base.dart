@@ -20,7 +20,6 @@ class ParseBase with ResourceProviderMixin {
     var source = file.createSource();
     var content = file.readAsStringSync();
 
-    final analysisOptions = this.analysisOptions;
     var featureSet = analysisOptions.contextFeatures;
 
     var errorListener = RecordingErrorListener();

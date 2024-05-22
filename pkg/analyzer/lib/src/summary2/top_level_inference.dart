@@ -77,8 +77,13 @@ class ConstantInitializersResolver {
     if (variable.initializer == null) return;
 
     var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
-    var astResolver =
-        AstResolver(linker, _unitElement, _scope, analysisOptions);
+    var astResolver = AstResolver(
+      linker,
+      _unitElement,
+      _scope,
+      analysisOptions,
+      enclosingAugmentation: element.ifTypeOrNull(),
+    );
     astResolver.resolveExpression(() => variable.initializer!,
         contextType: element.type);
 
@@ -245,11 +250,11 @@ class _PropertyInducingElementTypeInference
     _inferring.add(this);
     _status = _InferenceStatus.beingInferred;
 
-    final enclosingElement = _element.enclosingElement;
-    final enclosingInterfaceElement = enclosingElement
+    var enclosingElement = _element.enclosingElement;
+    var enclosingInterfaceElement = enclosingElement
         .ifTypeOrNull<InterfaceElement>()
         ?.augmented
-        ?.declaration;
+        .declaration;
 
     var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
     var astResolver = AstResolver(

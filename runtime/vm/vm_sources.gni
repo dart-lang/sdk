@@ -194,6 +194,7 @@ vm_sources = [
   "object_set.h",
   "object_store.cc",
   "object_store.h",
+  "os.cc",
   "os.h",
   "os_android.cc",
   "os_fuchsia.cc",

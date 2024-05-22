@@ -204,7 +204,7 @@ class Notification extends ApiNode {
           value: '$domainName.$event')
     ];
 
-    final params = this.params;
+    var params = this.params;
     if (params != null) {
       fields.add(TypeObjectField('params', params, null));
     }
@@ -277,7 +277,7 @@ class Request extends ApiNode {
           value: '$domainName.$method')
     ];
 
-    final params = this.params;
+    var params = this.params;
     if (params != null) {
       fields.add(TypeObjectField('params', params, null));
     }
@@ -294,7 +294,7 @@ class Request extends ApiNode {
           optional: true)
     ];
 
-    final result = this.result;
+    var result = this.result;
     if (result != null) {
       fields.add(TypeObjectField('result', result, null));
     }

@@ -1,9 +1,0 @@
-import 'main_lib.dart';
-
-class RenderAnimatedOpacity extends RenderProxyBox
-    with RenderProxyBoxMixin, RenderAnimatedOpacityMixin<RenderBox> {}
-
-main() {}
-
-mixin RenderAnimatedOpacityMixin<T extends RenderObject>
-    on RenderObjectWithChildMixin<T> {}

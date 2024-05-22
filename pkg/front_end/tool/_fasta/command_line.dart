@@ -179,7 +179,7 @@ ProcessedOptions analyzeCommandLine(String programName,
 
   final NnbdMode nnbdMode = nnbdAgnosticMode
       ? NnbdMode.Agnostic
-      : (nnbdStrongMode ? NnbdMode.Strong : NnbdMode.Weak);
+      : (nnbdWeakMode ? NnbdMode.Weak : NnbdMode.Strong);
 
   final bool enableUnscheduledExperiments =
       Options.enableUnscheduledExperiments.read(parsedOptions);

@@ -52,12 +52,12 @@ class PubApi {
   /// Failed requests will be retried a number of times. If no successful response
   /// is received, will return null.
   Future<List<PubApiPackage>?> allPackages() async {
-    final json = await _getJson('$_pubHostedUrl$packageNameListPath');
+    var json = await _getJson('$_pubHostedUrl$packageNameListPath');
     if (json == null) {
       return null;
     }
 
-    final packageNames = json['packages'];
+    var packageNames = json['packages'];
     return packageNames is List
         ? packageNames.map((name) => PubApiPackage(name as String)).toList()
         : null;
@@ -72,20 +72,20 @@ class PubApi {
   /// Failed requests will be retried a number of times. If no successful response
   /// is received, will return null.
   Future<PubApiPackageDetails?> packageInfo(String packageName) async {
-    final json = await _getJson('$_pubHostedUrl$packageInfoPath/$packageName');
+    var json = await _getJson('$_pubHostedUrl$packageInfoPath/$packageName');
     if (json == null) {
       return null;
     }
 
-    final latest = json['latest'] as Map<String, Object?>?;
+    var latest = json['latest'] as Map<String, Object?>?;
     if (latest == null) {
       return null;
     }
 
-    final pubspec = latest['pubspec'] as Map<String, Object?>?;
-    final description =
+    var pubspec = latest['pubspec'] as Map<String, Object?>?;
+    var description =
         pubspec != null ? pubspec['description'] as String? : null;
-    final version = latest['version'] as String?;
+    var version = latest['version'] as String?;
     return PubApiPackageDetails(packageName, description, version);
   }
 
@@ -99,8 +99,7 @@ class PubApi {
     var retryAfterSeconds = _failedRetryInitialDelaySeconds;
     while (requestCount++ < maxFailedRequests) {
       try {
-        final response =
-            await httpClient.get(Uri.parse(url), headers: _headers);
+        var response = await httpClient.get(Uri.parse(url), headers: _headers);
         if (response.statusCode == 200) {
           instrumentationService.logInfo('Pub API request successful for $url');
           return jsonDecode(response.body) as Map<String, Object?>?;
@@ -137,7 +136,7 @@ class PubApi {
   /// Returns a valid Pub base URL from [envPubHostedUrl] if valid, otherwise using
   /// the default 'https://pub.dartlang.org'.
   static String _validPubHostedUrl(String? envPubHostedUrl) {
-    final validUrl = envPubHostedUrl != null &&
+    var validUrl = envPubHostedUrl != null &&
             (Uri.tryParse(envPubHostedUrl)?.isAbsolute ?? false)
         ? envPubHostedUrl
         : 'https://pub.dartlang.org';

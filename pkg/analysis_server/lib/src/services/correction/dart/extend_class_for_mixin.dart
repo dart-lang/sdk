@@ -12,14 +12,19 @@ class ExtendClassForMixin extends ResolvedCorrectionProducer {
   String _typeName = '';
 
   @override
-  List<Object> get fixArguments => [_typeName];
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments => [_typeName];
 
   @override
   FixKind get fixKind => DartFixKind.EXTEND_CLASS_FOR_MIXIN;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final diagnostic = this.diagnostic;
+    var diagnostic = this.diagnostic;
     if (diagnostic == null) {
       return;
     }

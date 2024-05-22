@@ -13,7 +13,9 @@
 
 import 'dart:ffi';
 
-import "package:expect/expect.dart";
+import 'package:expect/expect.dart';
+// ignore: unused_import
+import 'package:ffi/ffi.dart';
 
 import 'callback_tests_utils.dart';
 
@@ -122,6 +124,11 @@ final testCases = [
       Pointer.fromFunction<VariadicAt1Int64x7Struct12BytesHomogeneousInt32Type>(
           variadicAt1Int64x7Struct12BytesHomogeneousInt32, 0),
       variadicAt1Int64x7Struct12BytesHomogeneousInt32AfterCallback),
+  CallbackTest.withCheck(
+      "VariadicAt1Struct12BytesHomogeneousInt32Int32x4",
+      Pointer.fromFunction<VariadicAt1Struct12BytesHomogeneousInt32Int32x4Type>(
+          variadicAt1Struct12BytesHomogeneousInt32Int32x4, 0),
+      variadicAt1Struct12BytesHomogeneousInt32Int32x4AfterCallback),
 ];
 typedef VariadicAt1Int64x2Type = Int64 Function(Int64, VarArgs<(Int64,)>);
 
@@ -1485,4 +1492,71 @@ void variadicAt1Int64x7Struct12BytesHomogeneousInt32AfterCallback() {
   print("after callback result = $result");
 
   Expect.equals(5, result);
+}
+
+typedef VariadicAt1Struct12BytesHomogeneousInt32Int32x4Type = Int32 Function(
+    Struct12BytesHomogeneousInt32, VarArgs<(Int32, Int32, Int32, Int32)>);
+
+// Global variables to be able to test inputs after callback returned.
+Struct12BytesHomogeneousInt32
+    variadicAt1Struct12BytesHomogeneousInt32Int32x4_a0 =
+    Pointer<Struct12BytesHomogeneousInt32>.fromAddress(0).ref;
+int variadicAt1Struct12BytesHomogeneousInt32Int32x4_a1 = 0;
+int variadicAt1Struct12BytesHomogeneousInt32Int32x4_a2 = 0;
+int variadicAt1Struct12BytesHomogeneousInt32Int32x4_a3 = 0;
+int variadicAt1Struct12BytesHomogeneousInt32Int32x4_a4 = 0;
+
+// Result variable also global, so we can delete it after the callback.
+int variadicAt1Struct12BytesHomogeneousInt32Int32x4Result = 0;
+
+int variadicAt1Struct12BytesHomogeneousInt32Int32x4CalculateResult() {
+  int result = 0;
+
+  result += variadicAt1Struct12BytesHomogeneousInt32Int32x4_a0.a0;
+  result += variadicAt1Struct12BytesHomogeneousInt32Int32x4_a0.a1;
+  result += variadicAt1Struct12BytesHomogeneousInt32Int32x4_a0.a2;
+  result += variadicAt1Struct12BytesHomogeneousInt32Int32x4_a1;
+  result += variadicAt1Struct12BytesHomogeneousInt32Int32x4_a2;
+  result += variadicAt1Struct12BytesHomogeneousInt32Int32x4_a3;
+  result += variadicAt1Struct12BytesHomogeneousInt32Int32x4_a4;
+
+  variadicAt1Struct12BytesHomogeneousInt32Int32x4Result = result;
+
+  return result;
+}
+
+/// Variadic arguments test on macos_arm64.
+int variadicAt1Struct12BytesHomogeneousInt32Int32x4(
+    Struct12BytesHomogeneousInt32 a0, int a1, int a2, int a3, int a4) {
+  print(
+      "variadicAt1Struct12BytesHomogeneousInt32Int32x4(${a0}, ${a1}, ${a2}, ${a3}, ${a4})");
+
+  // Possibly throw.
+  if (a0.a0 == 42 || a0.a0 == 84) {
+    print("throwing!");
+    throw Exception(
+        "VariadicAt1Struct12BytesHomogeneousInt32Int32x4 throwing on purpose!");
+  }
+
+  variadicAt1Struct12BytesHomogeneousInt32Int32x4_a0 = a0;
+  variadicAt1Struct12BytesHomogeneousInt32Int32x4_a1 = a1;
+  variadicAt1Struct12BytesHomogeneousInt32Int32x4_a2 = a2;
+  variadicAt1Struct12BytesHomogeneousInt32Int32x4_a3 = a3;
+  variadicAt1Struct12BytesHomogeneousInt32Int32x4_a4 = a4;
+
+  final result =
+      variadicAt1Struct12BytesHomogeneousInt32Int32x4CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void variadicAt1Struct12BytesHomogeneousInt32Int32x4AfterCallback() {
+  final result =
+      variadicAt1Struct12BytesHomogeneousInt32Int32x4CalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.equals(-4, result);
 }

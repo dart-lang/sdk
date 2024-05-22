@@ -215,10 +215,10 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseLibraryAugmentation(Token libraryKeyword, Token augmentKeyword) {
-    doPrint('parseLibraryAugmentation(' '$libraryKeyword, ' '$augmentKeyword)');
+  Token parseLibraryAugmentation(Token augmentKeyword, Token libraryKeyword) {
+    doPrint('parseLibraryAugmentation(' '$augmentKeyword, ' '$libraryKeyword)');
     indent++;
-    var result = super.parseLibraryAugmentation(libraryKeyword, augmentKeyword);
+    var result = super.parseLibraryAugmentation(augmentKeyword, libraryKeyword);
     indent--;
     return result;
   }
@@ -395,10 +395,10 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseTypedef(Token typedefKeyword) {
-    doPrint('parseTypedef(' '$typedefKeyword)');
+  Token parseTypedef(Token? augmentToken, Token typedefKeyword) {
+    doPrint('parseTypedef(' '$augmentToken, ' '$typedefKeyword)');
     indent++;
-    var result = super.parseTypedef(typedefKeyword);
+    var result = super.parseTypedef(augmentToken, typedefKeyword);
     indent--;
     return result;
   }
@@ -609,10 +609,10 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseEnum(Token beginToken, Token enumKeyword) {
-    doPrint('parseEnum(' '$beginToken, ' '$enumKeyword)');
+  Token parseEnum(Token beginToken, Token? augmentToken, Token enumKeyword) {
+    doPrint('parseEnum(' '$beginToken, ' '$augmentToken, ' '$enumKeyword)');
     indent++;
-    var result = super.parseEnum(beginToken, enumKeyword);
+    var result = super.parseEnum(beginToken, augmentToken, enumKeyword);
     indent--;
     return result;
   }
@@ -890,15 +890,16 @@ class TestParser extends Parser {
 
   @override
   Token parseExtensionTypeDeclaration(Token beginToken, Token token,
-      Token extensionKeyword, Token typeKeyword) {
+      Token? augmentToken, Token extensionKeyword, Token typeKeyword) {
     doPrint('parseExtensionTypeDeclaration('
         '$beginToken, '
         '$token, '
+        '$augmentToken, '
         '$extensionKeyword, '
         '$typeKeyword)');
     indent++;
     var result = super.parseExtensionTypeDeclaration(
-        beginToken, token, extensionKeyword, typeKeyword);
+        beginToken, token, augmentToken, extensionKeyword, typeKeyword);
     indent--;
     return result;
   }

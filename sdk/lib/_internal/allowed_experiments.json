@@ -1,7 +1,10 @@
 {
   "version": 1,
   "experimentSets": {
-    "sdkExperiments": []
+    "sdkExperiments": [],
+    "macros": [
+      "macros"
+    ]
   },
   "sdk": {
     "default": {
@@ -13,5 +16,9 @@
       }
     }
   },
-  "packages": {}
+  "packages": {
+    "json": {
+      "experimentSet": "macros"
+    }
+  }
 }

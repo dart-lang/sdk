@@ -17,8 +17,6 @@ class AnalysisReanalyzeHandler extends LegacyHandler {
 
   @override
   Future<void> handle() async {
-    unawaited(server.options.analytics?.sendEvent('analysis', 'reanalyze'));
-
     // Send the response before starting any work so that analysis results and
     // status events will only arrive after the response.
     sendResult(AnalysisReanalyzeResult());

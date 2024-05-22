@@ -2,11 +2,178 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart';
 import 'package:test/test.dart';
 
 import 'mini_types.dart';
 
 main() {
+  group('toString:', () {
+    group('FunctionType:', () {
+      test('basic', () {
+        expect(
+            FunctionType(PrimaryType('T'), [PrimaryType('U'), PrimaryType('V')])
+                .toString(),
+            'T Function(U, V)');
+      });
+
+      test('needs parentheses', () {
+        expect(
+            PromotedTypeVariableType(
+                    PrimaryType('T'), FunctionType(VoidType.instance, []))
+                .toString(),
+            'T&(void Function())');
+      });
+    });
+
+    group('PrimaryType:', () {
+      test('simple', () {
+        expect(PrimaryType('T').toString(), 'T');
+      });
+
+      test('with arguments', () {
+        expect(
+            PrimaryType('Map', args: [PrimaryType('T'), PrimaryType('U')])
+                .toString(),
+            'Map<T, U>');
+      });
+    });
+
+    group('PromotedTypeVariableType:', () {
+      test('basic', () {
+        expect(
+            PromotedTypeVariableType(PrimaryType('T'), PrimaryType('U'))
+                .toString(),
+            'T&U');
+      });
+
+      test('needs parentheses (left)', () {
+        expect(
+            PromotedTypeVariableType(
+                    PromotedTypeVariableType(
+                        PrimaryType('T'), PrimaryType('U')),
+                    PrimaryType('V'))
+                .toString(),
+            '(T&U)&V');
+      });
+
+      test('needs parentheses (right)', () {
+        expect(
+            PromotedTypeVariableType(
+                    PrimaryType('T'),
+                    PromotedTypeVariableType(
+                        PrimaryType('U'), PrimaryType('V')))
+                .toString(),
+            'T&(U&V)');
+      });
+
+      test('needs parentheses (question)', () {
+        expect(
+            PromotedTypeVariableType(PrimaryType('T'), PrimaryType('U'),
+                    nullabilitySuffix: NullabilitySuffix.question)
+                .toString(),
+            '(T&U)?');
+      });
+
+      test('needs parentheses (star)', () {
+        expect(
+            PromotedTypeVariableType(PrimaryType('T'), PrimaryType('U'),
+                    nullabilitySuffix: NullabilitySuffix.star)
+                .toString(),
+            '(T&U)*');
+      });
+    });
+
+    group('QuestionType:', () {
+      test('basic', () {
+        expect(
+            PrimaryType('T', nullabilitySuffix: NullabilitySuffix.question)
+                .toString(),
+            'T?');
+      });
+
+      test('needs parentheses', () {
+        expect(
+            PromotedTypeVariableType(
+                    PrimaryType('T'),
+                    PrimaryType('U',
+                        nullabilitySuffix: NullabilitySuffix.question))
+                .toString(),
+            'T&(U?)');
+      });
+    });
+
+    group('RecordType:', () {
+      test('no arguments', () {
+        expect(
+            RecordType(positionalTypes: [], namedTypes: []).toString(), '()');
+      });
+
+      test('single positional argument', () {
+        expect(
+            RecordType(positionalTypes: [PrimaryType('T')], namedTypes: [])
+                .toString(),
+            '(T,)');
+      });
+
+      test('multiple positional arguments', () {
+        expect(
+            RecordType(
+                positionalTypes: [PrimaryType('T'), PrimaryType('U')],
+                namedTypes: []).toString(),
+            '(T, U)');
+      });
+
+      test('single named argument', () {
+        expect(
+            RecordType(
+                    positionalTypes: [],
+                    namedTypes: [NamedType(name: 't', type: PrimaryType('T'))])
+                .toString(),
+            '({T t})');
+      });
+
+      test('multiple named arguments', () {
+        expect(
+            RecordType(positionalTypes: [], namedTypes: [
+              NamedType(name: 't', type: PrimaryType('T')),
+              NamedType(name: 'u', type: PrimaryType('U'))
+            ]).toString(),
+            '({T t, U u})');
+      });
+
+      test('both positional and named arguments', () {
+        expect(
+            RecordType(
+                    positionalTypes: [PrimaryType('T')],
+                    namedTypes: [NamedType(name: 'u', type: PrimaryType('U'))])
+                .toString(),
+            '(T, {U u})');
+      });
+    });
+
+    group('StarType:', () {
+      test('basic', () {
+        expect(
+            PrimaryType('T', nullabilitySuffix: NullabilitySuffix.star)
+                .toString(),
+            'T*');
+      });
+
+      test('needs parentheses', () {
+        expect(
+            PromotedTypeVariableType(PrimaryType('T'),
+                    PrimaryType('U', nullabilitySuffix: NullabilitySuffix.star))
+                .toString(),
+            'T&(U*)');
+      });
+    });
+
+    test('UnknownType', () {
+      expect(UnknownType().toString(), '_');
+    });
+  });
+
   group('parse', () {
     var throwsParseError = throwsA(TypeMatcher<ParseError>());
 
@@ -35,6 +202,31 @@ main() {
       test('invalid type arg separator', () {
         expect(() => Type('Map<int) String>'), throwsParseError);
       });
+
+      test('dynamic', () {
+        expect(Type('dynamic'), same(DynamicType.instance));
+      });
+
+      test('error', () {
+        expect(Type('error'), same(InvalidType.instance));
+      });
+
+      test('FutureOr', () {
+        var t = Type('FutureOr<int>') as FutureOrType;
+        expect(t.typeArgument.type, 'int');
+      });
+
+      test('Never', () {
+        expect(Type('Never'), same(NeverType.instance));
+      });
+
+      test('Null', () {
+        expect(Type('Null'), same(NullType.instance));
+      });
+
+      test('void', () {
+        expect(Type('void'), same(VoidType.instance));
+      });
     });
 
     test('invalid initial token', () {
@@ -47,13 +239,15 @@ main() {
     });
 
     test('question type', () {
-      var t = Type('int?') as QuestionType;
-      expect(t.innerType.type, 'int');
+      var t = Type('int?');
+      expect(t.nullabilitySuffix, NullabilitySuffix.question);
+      expect(t.withNullability(NullabilitySuffix.none).type, 'int');
     });
 
     test('star type', () {
-      var t = Type('int*') as StarType;
-      expect(t.innerType.type, 'int');
+      var t = Type('int*');
+      expect(t.nullabilitySuffix, NullabilitySuffix.star);
+      expect(t.withNullability(NullabilitySuffix.none).type, 'int');
     });
 
     test('promoted type variable', () {
@@ -106,22 +300,24 @@ main() {
     group('record type:', () {
       test('no fields', () {
         var t = Type('()') as RecordType;
-        expect(t.positional, isEmpty);
-        expect(t.named, isEmpty);
+        expect(t.positionalTypes, isEmpty);
+        expect(t.namedTypes, isEmpty);
       });
 
       test('named field', () {
         var t = Type('({int x})') as RecordType;
-        expect(t.positional, isEmpty);
-        expect(t.named, hasLength(1));
-        expect(t.named['x']!.type, 'int');
+        expect(t.positionalTypes, isEmpty);
+        expect(t.namedTypes, hasLength(1));
+        expect(t.namedTypes[0].name, 'x');
+        expect(t.namedTypes[0].type.type, 'int');
       });
 
       test('named field followed by comma', () {
         var t = Type('({int x,})') as RecordType;
-        expect(t.positional, isEmpty);
-        expect(t.named, hasLength(1));
-        expect(t.named['x']!.type, 'int');
+        expect(t.positionalTypes, isEmpty);
+        expect(t.namedTypes, hasLength(1));
+        expect(t.namedTypes[0].name, 'x');
+        expect(t.namedTypes[0].type.type, 'int');
       });
 
       test('named field followed by invalid token', () {
@@ -134,10 +330,12 @@ main() {
 
       test('named fields', () {
         var t = Type('({int x, String y})') as RecordType;
-        expect(t.positional, isEmpty);
-        expect(t.named, hasLength(2));
-        expect(t.named['x']!.type, 'int');
-        expect(t.named['y']!.type, 'String');
+        expect(t.positionalTypes, isEmpty);
+        expect(t.namedTypes, hasLength(2));
+        expect(t.namedTypes[0].name, 'x');
+        expect(t.namedTypes[0].type.type, 'int');
+        expect(t.namedTypes[1].name, 'y');
+        expect(t.namedTypes[1].type.type, 'String');
       });
 
       test('curly braces followed by invalid token', () {
@@ -150,36 +348,37 @@ main() {
 
       test('positional field', () {
         var t = Type('(int,)') as RecordType;
-        expect(t.named, isEmpty);
-        expect(t.positional, hasLength(1));
-        expect(t.positional[0].type, 'int');
+        expect(t.namedTypes, isEmpty);
+        expect(t.positionalTypes, hasLength(1));
+        expect(t.positionalTypes[0].type, 'int');
       });
 
       group('positional fields:', () {
         test('two', () {
           var t = Type('(int, String)') as RecordType;
-          expect(t.named, isEmpty);
-          expect(t.positional, hasLength(2));
-          expect(t.positional[0].type, 'int');
-          expect(t.positional[1].type, 'String');
+          expect(t.namedTypes, isEmpty);
+          expect(t.positionalTypes, hasLength(2));
+          expect(t.positionalTypes[0].type, 'int');
+          expect(t.positionalTypes[1].type, 'String');
         });
 
         test('three', () {
           var t = Type('(int, String, double)') as RecordType;
-          expect(t.named, isEmpty);
-          expect(t.positional, hasLength(3));
-          expect(t.positional[0].type, 'int');
-          expect(t.positional[1].type, 'String');
-          expect(t.positional[2].type, 'double');
+          expect(t.namedTypes, isEmpty);
+          expect(t.positionalTypes, hasLength(3));
+          expect(t.positionalTypes[0].type, 'int');
+          expect(t.positionalTypes[1].type, 'String');
+          expect(t.positionalTypes[2].type, 'double');
         });
       });
 
       test('named and positional fields', () {
         var t = Type('(int, {String x})') as RecordType;
-        expect(t.positional, hasLength(1));
-        expect(t.positional[0].type, 'int');
-        expect(t.named, hasLength(1));
-        expect(t.named['x']!.type, 'String');
+        expect(t.positionalTypes, hasLength(1));
+        expect(t.positionalTypes[0].type, 'int');
+        expect(t.namedTypes, hasLength(1));
+        expect(t.namedTypes[0].name, 'x');
+        expect(t.namedTypes[0].type.type, 'String');
       });
 
       test('terminated by invalid token', () {
@@ -494,12 +693,6 @@ main() {
         expect(Type('_?').closureWithRespectToUnknown(covariant: true)!.type,
             'Object?');
       });
-
-      test('contravariant', () {
-        // Note: we don't normalize `Never?` to `Null`.
-        expect(Type('_?').closureWithRespectToUnknown(covariant: false)!.type,
-            'Never?');
-      });
     });
 
     group('RecordType:', () {
@@ -565,11 +758,6 @@ main() {
       test('covariant', () {
         expect(Type('_*').closureWithRespectToUnknown(covariant: true)!.type,
             'Object?');
-      });
-
-      test('contravariant', () {
-        expect(Type('_*').closureWithRespectToUnknown(covariant: false)!.type,
-            'Never*');
       });
     });
   });

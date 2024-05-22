@@ -759,7 +759,8 @@ class TextualOutlineListener extends Listener {
   }
 
   @override
-  void endTypedef(Token typedefKeyword, Token? equals, Token endToken) {
+  void endTypedef(Token? augmentToken, Token typedefKeyword, Token? equals,
+      Token endToken) {
     elementStartToChunk[typedefKeyword] =
         new _FunctionTypeAliasChunk(typedefKeyword, endToken);
   }
@@ -791,9 +792,7 @@ class TextualOutlineListener extends Listener {
 
   @override
   void endMetadata(Token beginToken, Token? periodBeforeName, Token endToken) {
-    // Metadata's endToken is the one *after* the actual end of the metadata.
-    metadataStartToChunk[beginToken] =
-        new _MetadataChunk(beginToken, endToken.previous!);
+    metadataStartToChunk[beginToken] = new _MetadataChunk(beginToken, endToken);
   }
 
   @override
@@ -810,14 +809,14 @@ class TextualOutlineListener extends Listener {
 
   @override
   void endExtensionDeclaration(Token beginToken, Token extensionKeyword,
-      Token onKeyword, Token endToken) {
+      Token? onKeyword, Token endToken) {
     classStartToChunk[beginToken] =
         new _ExtensionDeclarationChunk(beginToken, endToken);
   }
 
   @override
-  void endExtensionTypeDeclaration(Token beginToken, Token extensionKeyword,
-      Token typeKeyword, Token endToken) {
+  void endExtensionTypeDeclaration(Token beginToken, Token? augmentToken,
+      Token extensionKeyword, Token typeKeyword, Token endToken) {
     classStartToChunk[beginToken] =
         new _ExtensionTypeDeclarationChunk(beginToken, endToken);
   }

@@ -11,10 +11,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveEmptyConstructorBody extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_EMPTY_CONSTRUCTOR_BODY;
@@ -24,7 +22,7 @@ class RemoveEmptyConstructorBody extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is! Block) {
       return;
     }
@@ -32,7 +30,7 @@ class RemoveEmptyConstructorBody extends ResolvedCorrectionProducer {
       return;
     }
 
-    final blockBody = node.parent;
+    var blockBody = node.parent;
     if (blockBody is! BlockFunctionBody) {
       return;
     }

@@ -8,7 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import '../analyzer.dart';
 import '../extensions.dart';
 
-const _desc = r'Unnecessary toList() in spreads.';
+const _desc = r'Unnecessary `toList()` in spreads.';
 
 const _details = r'''
 Unnecessary `toList()` in spreads.

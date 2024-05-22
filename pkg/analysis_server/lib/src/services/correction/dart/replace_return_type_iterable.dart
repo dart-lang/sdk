@@ -15,7 +15,12 @@ class ReplaceReturnTypeIterable extends ResolvedCorrectionProducer {
   String _typeArgument = '';
 
   @override
-  List<Object>? get fixArguments => [_typeArgument];
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments => [_typeArgument];
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_RETURN_TYPE_ITERABLE;

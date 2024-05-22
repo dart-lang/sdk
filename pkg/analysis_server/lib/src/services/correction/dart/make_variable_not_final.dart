@@ -16,14 +16,19 @@ class MakeVariableNotFinal extends ResolvedCorrectionProducer {
   String _variableName = '';
 
   @override
-  List<Object> get fixArguments => [_variableName];
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments => [_variableName];
 
   @override
   FixKind get fixKind => DartFixKind.MAKE_VARIABLE_NOT_FINAL;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is! SimpleIdentifier) {
       return;
     }

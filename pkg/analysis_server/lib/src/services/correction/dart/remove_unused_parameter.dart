@@ -12,13 +12,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveUnusedParameter extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedAutomatically => false;
-
-  @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.acrossFiles;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_UNUSED_PARAMETER;
@@ -53,7 +48,7 @@ class RemoveUnusedParameter extends ResolvedCorrectionProducer {
 
     var parameters = parameterList.parameters;
     var index = parameters.indexOf(parameter);
-    final parameter_final = parameter;
+    var parameter_final = parameter;
     await builder.addDartFileEdit(file, (builder) {
       if (index == 0) {
         // Remove the first parameter in the list.

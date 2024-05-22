@@ -30,23 +30,6 @@ export '../kernel_generator_impl.dart' show InternalCompilerResult;
 /// Test configuration used for testing CFE in its default state.
 const CfeTestConfig defaultCfeConfig = const CfeTestConfig(cfeMarker, 'cfe');
 
-/// Test configuration used for testing CFE without nnbd in addition to the
-/// default state.
-const CfeTestConfig cfeNoNonNullableConfig = const CfeTestConfig(
-    cfeMarker, 'cfe without nnbd',
-    explicitExperimentalFlags: const {ExperimentalFlag.nonNullable: false});
-
-/// Test configuration used for testing CFE with nnbd in addition to the
-/// default state.
-const CfeTestConfig cfeNonNullableConfig = const CfeTestConfig(
-    cfeWithNnbdMarker, 'cfe with nnbd',
-    explicitExperimentalFlags: const {ExperimentalFlag.nonNullable: true});
-
-/// Test configuration used for testing CFE with nnbd as the default state.
-const CfeTestConfig cfeNonNullableOnlyConfig = const CfeTestConfig(
-    cfeMarker, 'cfe with nnbd',
-    explicitExperimentalFlags: const {ExperimentalFlag.nonNullable: true});
-
 class CfeTestConfig extends TestConfig {
   final Map<ExperimentalFlag, bool> explicitExperimentalFlags;
   final AllowedExperimentalFlags? allowedExperimentalFlags;
@@ -65,7 +48,7 @@ class CfeTestConfig extends TestConfig {
       this.packageConfigUri,
       this.compileSdk = false,
       this.targetFlags = const TestTargetFlags(),
-      this.nnbdMode = NnbdMode.Weak});
+      this.nnbdMode = NnbdMode.Strong});
 
   /// Called before running test on [testData].
   ///

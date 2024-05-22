@@ -1443,6 +1443,11 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
     return const EvaluationComplexity.constant();
   }
 
+  @override
+  EvaluationComplexity visitFileUriExpression(ir.FileUriExpression node) {
+    return visitNode(node.expression);
+  }
+
   /// Returns true if the node is a field, or a constructor (factory or
   /// generative).
   bool _isFieldOrConstructor(ir.Node node) =>

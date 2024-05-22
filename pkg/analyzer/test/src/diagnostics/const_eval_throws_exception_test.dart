@@ -185,7 +185,7 @@ main() {
     ]);
   }
 
-  test_assertInitializerThrows() async {
+  test_assertInitializer() async {
     await assertErrorsInCode(r'''
 class A {
   const A(int x, int y) : assert(x < y);
@@ -205,7 +205,7 @@ var v = const A(3, 2);
     ]);
   }
 
-  test_assertion_indirect() async {
+  test_assertInitializer_indirect() async {
     await assertErrorsInCode(r'''
 class A {
   const A(int i)
@@ -227,6 +227,49 @@ main() {
               text:
                   "The evaluated constructor 'A' is called by 'B' and 'B' is defined here."),
           ExpectedContextMessage(testFile, 31, 14,
+              text:
+                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
+        ],
+      ),
+    ]);
+  }
+
+  test_assertInitializer_withMessage() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A(int x): assert(x > 0, '$x must be greater than 0');
+}
+const a = const A(0);
+''', [
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        84,
+        10,
+        contextMessages: [
+          ExpectedContextMessage(testFile, 28, 42,
+              text:
+                  "The exception is 'An assertion failed with message '0 must be greater than 0'.' and occurs here."),
+        ],
+      ),
+    ]);
+  }
+
+  test_assertInitializer_withMessage_cannotCompute() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A(int x): assert(x > 0, '${throw ''}');
+}
+const a = const A(0);
+''', [
+      error(CompileTimeErrorCode.INVALID_CONSTANT, 45, 8),
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION, 45, 8),
+      error(WarningCode.DEAD_CODE, 54, 3),
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        70,
+        10,
+        contextMessages: [
+          ExpectedContextMessage(testFile, 28, 28,
               text:
                   "The exception is 'The assertion in this constant expression failed.' and occurs here."),
         ],

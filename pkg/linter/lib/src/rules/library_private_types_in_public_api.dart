@@ -127,8 +127,8 @@ class Validator extends SimpleAstVisitor<void> {
     if (name == null || Identifier.isPrivateName(name.lexeme)) {
       return;
     }
-    node.extendedType.accept(this);
     node.typeParameters?.accept(this);
+    node.onClause?.extendedType.accept(this);
     node.members.accept(this);
   }
 

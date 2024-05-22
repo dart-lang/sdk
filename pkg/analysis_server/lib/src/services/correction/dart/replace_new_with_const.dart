@@ -11,10 +11,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceNewWithConst extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_NEW_WITH_CONST;
@@ -29,7 +27,7 @@ class ReplaceNewWithConst extends ResolvedCorrectionProducer {
       targetNode = targetNode.parent;
     }
     if (targetNode is InstanceCreationExpression) {
-      final keyword = targetNode.keyword;
+      var keyword = targetNode.keyword;
       if (keyword != null) {
         await builder.addDartFileEdit(file, (builder) {
           builder.addSimpleReplacement(range.token(keyword), 'const');

@@ -17,7 +17,7 @@ main() {
 class UndefinedClassTest extends PubPackageResolutionTest {
   test_augmentation_exists_uriGenerated_nameIgnorable() async {
     newFile('$testPackageLibPath/a.g.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 ''');
 
     await assertErrorsInCode(r'''

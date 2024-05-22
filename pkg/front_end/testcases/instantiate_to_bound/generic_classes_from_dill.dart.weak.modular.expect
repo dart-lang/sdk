@@ -1,8 +1,0 @@
-library;
-import self as self;
-import "dart:collection" as col;
-
-import "dart:collection";
-
-static field col::LinkedListEntry<col::LinkedListEntry<dynamic>> y = throw "";
-static method main() → dynamic {}

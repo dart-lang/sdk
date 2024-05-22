@@ -20,6 +20,7 @@ void fooBar() {
 final test = <IsolateTest>[
   hasPausedAtStart,
   (VmService service, IsolateRef isolate) async {
+    service.requireUserPermissionToResume(onPauseStart: false);
     final isolateId = isolate.id!;
     final client1 = await createClient(
       service: service,

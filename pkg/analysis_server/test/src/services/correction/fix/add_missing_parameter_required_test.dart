@@ -166,7 +166,7 @@ class AddMissingParameterRequiredTest_Workspace
   }
 
   Future<void> test_function_inPackage_inWorkspace() async {
-    final a = newFile('/home/aaa/lib/a.dart', 'void test() {}');
+    var a = newFile('/home/aaa/lib/a.dart', 'void test() {}');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()

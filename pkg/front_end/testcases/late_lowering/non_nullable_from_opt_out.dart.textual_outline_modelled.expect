@@ -1,5 +1,0 @@
-// @dart = 2.8
-
-import 'non_nullable_from_opt_out_lib.dart';
-
-main() {}

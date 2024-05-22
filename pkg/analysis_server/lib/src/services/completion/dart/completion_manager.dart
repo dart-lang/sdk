@@ -4,15 +4,11 @@
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
-import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/candidate_suggestion.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_state.dart';
-import 'package:analysis_server/src/services/completion/dart/extension_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/in_scope_completion_pass.dart';
-import 'package:analysis_server/src/services/completion/dart/library_member_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/not_imported_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/record_literal_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/not_imported_completion_pass.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
 import 'package:analysis_server/src/utilities/selection.dart';
@@ -35,7 +31,8 @@ import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
+import 'package:analyzer/src/utilities/completion_matcher.dart';
+import 'package:analyzer/src/utilities/fuzzy_matcher.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
@@ -59,25 +56,19 @@ class CompletionBudget {
 }
 
 /// [DartCompletionManager] determines if a completion request is Dart specific
-/// and forwards those requests to all [DartCompletionContributor]s.
+/// and if so runs the two completion passes.
 class DartCompletionManager {
   /// Time budget to computing suggestions.
   final CompletionBudget budget;
 
-  /// If not `null`, then instead of using [ImportedReferenceContributor],
-  /// fill this set with kinds of elements that are applicable at the
-  /// completion location, so should be suggested from available suggestion
-  /// sets.
-  final Set<protocol.ElementKind>? includedElementKinds;
-
-  /// If [includedElementKinds] is not null, must be also not `null`, and
-  /// will be filled with names of all top-level declarations from all
-  /// included suggestion sets.
-  final Set<String>? includedElementNames;
-
   /// The listener to be notified at certain points in the process of building
   /// suggestions, or `null` if no notification should occur.
   final SuggestionListener? listener;
+
+  /// Whether the generation of suggestions for imports should be skipped. This
+  /// exists as a temporary measure that will be removed after all of the
+  /// suggestions are being produced by the various passes.
+  final bool skipImports;
 
   /// If specified, will be filled with suggestions and URIs from libraries
   /// that are not yet imported, but could be imported into the requested
@@ -85,18 +76,12 @@ class DartCompletionManager {
   /// with the import index property updated.
   final NotImportedSuggestions? notImportedSuggestions;
 
-  /// Initialize a newly created completion manager. The parameters
-  /// [includedElementKinds], [includedElementNames], and
-  /// [includedSuggestionRelevanceTags] must either all be `null` or must all be
-  /// non-`null`.
   DartCompletionManager({
     required this.budget,
-    this.includedElementKinds,
-    this.includedElementNames,
     this.listener,
+    this.skipImports = false,
     this.notImportedSuggestions,
-  }) : assert((includedElementKinds != null && includedElementNames != null) ||
-            (includedElementKinds == null && includedElementNames == null));
+  });
 
   Future<List<CompletionSuggestionBuilder>> computeSuggestions(
     DartCompletionRequest request,
@@ -118,111 +103,68 @@ class DartCompletionManager {
 
     request.checkAborted();
 
-    // Compute the list of contributors that will be run.
     var builder =
         SuggestionBuilder(request, useFilter: useFilter, listener: listener);
-    var contributors = <DartCompletionContributor>[
-      ExtensionMemberContributor(request, builder),
-      LibraryMemberContributor(request, builder),
-      RecordLiteralContributor(request, builder),
-    ];
 
-    if (includedElementKinds != null) {
-      _addIncludedElementKinds(request);
-    }
+    var notImportedSuggestions = this.notImportedSuggestions;
 
-    final notImportedSuggestions = this.notImportedSuggestions;
-    if (notImportedSuggestions != null) {
-      contributors.add(
-        NotImportedContributor(
-            request, builder, budget, notImportedSuggestions),
-      );
-    }
-
+    var collector = SuggestionCollector();
     try {
-      await performance.runAsync(
+      var selection = request.unit.select(offset: request.offset, length: 0);
+      if (selection == null) {
+        throw AbortCompletion();
+      }
+      var matcher = request.targetPrefix.isEmpty
+          ? NoPrefixMatcher()
+          : FuzzyMatcher(request.targetPrefix);
+      var state = CompletionState(request, selection, budget, matcher);
+      var operations = performance.run(
         'InScopeCompletionPass',
-        (performance) async {
-          _runFirstPass(
-            request: request,
+        (performance) {
+          return _runFirstPass(
+            state: state,
+            collector: collector,
             builder: builder,
-            skipImports: includedElementKinds != null,
             suggestOverrides: enableOverrideContributor,
             suggestUris: enableUriContributor,
           );
         },
       );
-      for (var contributor in contributors) {
+      request.checkAborted();
+      if (operations.isNotEmpty && notImportedSuggestions != null) {
         await performance.runAsync(
-          '${contributor.runtimeType}',
+          'NotImportedCompletionPass',
           (performance) async {
-            await contributor.computeSuggestions(
-              performance: performance,
-            );
+            await NotImportedCompletionPass(
+                    state: state, collector: collector, operations: operations)
+                .computeSuggestions(performance: performance);
           },
         );
-        request.checkAborted();
       }
+      await builder.suggestFromCandidates(collector.suggestions);
     } on InconsistentAnalysisException {
       // The state of the code being analyzed has changed, so results are likely
       // to be inconsistent. Just abort the operation.
       throw AbortCompletion();
     }
 
+    if (notImportedSuggestions != null && collector.isIncomplete) {
+      notImportedSuggestions.isIncomplete = true;
+    }
+
     return builder.suggestions.toList();
   }
 
-  void _addIncludedElementKinds(DartCompletionRequest request) {
-    var opType = request.opType;
-
-    if (!opType.includeIdentifiers) return;
-
-    var kinds = includedElementKinds;
-    if (kinds != null) {
-      if (opType.includeConstructorSuggestions) {
-        kinds.add(protocol.ElementKind.CONSTRUCTOR);
-      }
-      if (opType.includeTypeNameSuggestions) {
-        kinds.add(protocol.ElementKind.CLASS);
-        kinds.add(protocol.ElementKind.CLASS_TYPE_ALIAS);
-        kinds.add(protocol.ElementKind.ENUM);
-        kinds.add(protocol.ElementKind.FUNCTION_TYPE_ALIAS);
-        kinds.add(protocol.ElementKind.MIXIN);
-        kinds.add(protocol.ElementKind.TYPE_ALIAS);
-      }
-      if (opType.includeReturnValueSuggestions) {
-        kinds.add(protocol.ElementKind.CONSTRUCTOR);
-        kinds.add(protocol.ElementKind.ENUM_CONSTANT);
-        kinds.add(protocol.ElementKind.EXTENSION);
-        kinds.add(protocol.ElementKind.FUNCTION);
-        // Top-level properties.
-        kinds.add(protocol.ElementKind.GETTER);
-        kinds.add(protocol.ElementKind.SETTER);
-        kinds.add(protocol.ElementKind.TOP_LEVEL_VARIABLE);
-      }
-      if (opType.includeAnnotationSuggestions) {
-        kinds.add(protocol.ElementKind.CONSTRUCTOR);
-        // Top-level properties.
-        kinds.add(protocol.ElementKind.GETTER);
-        kinds.add(protocol.ElementKind.TOP_LEVEL_VARIABLE);
-      }
-    }
-  }
-
-  // Run the first pass of the code completion algorithm.
-  void _runFirstPass({
-    required DartCompletionRequest request,
+  /// Run the first pass of the code completion algorithm.
+  ///
+  /// Returns the operations that need to be performed in the second pass.
+  List<NotImportedOperation> _runFirstPass({
+    required CompletionState state,
+    required SuggestionCollector collector,
     required SuggestionBuilder builder,
-    required bool skipImports,
     required bool suggestOverrides,
     required bool suggestUris,
   }) {
-    var collector = SuggestionCollector();
-    var selection = request.unit.select(offset: request.offset, length: 0);
-    if (selection == null) {
-      throw AbortCompletion();
-    }
-    var state = CompletionState(request, selection);
     var pass = InScopeCompletionPass(
       state: state,
       collector: collector,
@@ -231,8 +173,8 @@ class DartCompletionManager {
       suggestUris: suggestUris,
     );
     pass.computeSuggestions();
-    request.collectorLocationName = collector.completionLocation;
-    builder.suggestFromCandidates(collector.suggestions);
+    state.request.collectorLocationName = collector.completionLocation;
+    return pass.notImportedOperations;
   }
 }
 
@@ -449,9 +391,9 @@ class DartCompletionRequest {
         entity.type == TokenType.STRING &&
         entity.offset < offset &&
         offset < entity.end) {
-      final uriNode = target.containingNode;
+      var uriNode = target.containingNode;
       if (uriNode is SimpleStringLiteral && uriNode.literal == entity) {
-        final directive = uriNode.parent;
+        var directive = uriNode.parent;
         if (directive is UriBasedDirective &&
             directive.uri == uriNode &&
             offset >= uriNode.contentsOffset) {
@@ -462,7 +404,7 @@ class DartCompletionRequest {
 
     // TODO(scheglov): Can we make it better?
     String fromToken(Token token) {
-      final lexeme = token.lexeme;
+      var lexeme = token.lexeme;
       if (offset >= token.offset && offset < token.end) {
         return lexeme.substring(0, offset - token.offset);
       } else if (offset == token.end) {

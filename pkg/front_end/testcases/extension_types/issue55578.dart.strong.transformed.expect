@@ -1,0 +1,23 @@
+library;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+import "dart:async";
+
+extension type E(asy::Future<core::String> it) implements asy::Future<core::String> {
+  abstract extension-type-member representation-field get it() → asy::Future<core::String>;
+  constructor • = self::E|constructor#;
+  constructor tearoff • = self::E|constructor#_#new#tearOff;
+}
+static extension-type-member method E|constructor#(asy::Future<core::String> it) → self::E /* erasure=asy::Future<core::String> */ {
+  lowered final self::E /* erasure=asy::Future<core::String> */ #this = it;
+  return #this;
+}
+static extension-type-member method E|constructor#_#new#tearOff(asy::Future<core::String> it) → self::E /* erasure=asy::Future<core::String> */
+  return self::E|constructor#(it);
+static method foo(FutureOr<core::String>x) → dynamic {}
+static method bar() → self::E /* erasure=asy::Future<core::String> */
+  return throw 0;
+static method test() → dynamic
+  return self::foo(self::bar());

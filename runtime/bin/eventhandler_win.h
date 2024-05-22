@@ -78,9 +78,7 @@ class OverlappedBuffer {
   SOCKET client() const { return client_; }
   char* GetBufferStart() { return reinterpret_cast<char*>(&buffer_data_); }
   int GetBufferSize() const { return buflen_; }
-  struct sockaddr* from() const {
-    return from_;
-  }
+  struct sockaddr* from() const { return from_; }
   socklen_t* from_len_addr() const { return from_len_addr_; }
   socklen_t from_len() const { return from_ == nullptr ? 0 : *from_len_addr_; }
 

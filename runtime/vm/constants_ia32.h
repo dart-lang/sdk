@@ -503,6 +503,8 @@ class CallingConventions {
   // How stack arguments are aligned.
   static constexpr AlignmentStrategy kArgumentStackAlignment =
       kAlignedToWordSize;
+  static constexpr AlignmentStrategy kArgumentStackAlignmentVarArgs =
+      kArgumentStackAlignment;
 
   // How fields in compounds are aligned.
 #if defined(DART_TARGET_OS_WINDOWS)
@@ -528,6 +530,9 @@ struct DartCallingConvention {
 };
 
 const uword kBreakInstructionFiller = 0xCCCCCCCC;
+
+// Prioritize code size over performance.
+const intptr_t kPreferredLoopAlignment = 1;
 
 }  // namespace dart
 

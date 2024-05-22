@@ -36,7 +36,7 @@ def main(args):
         r'project\(binaryen LANGUAGES C CXX VERSION (?P<version>[0-9]+)\)',
         cmake)
     version = match['version']
-    git_args = ['git', 'describe', '--tags', '--match', 'version_*']
+    git_args = ['git', 'rev-parse', 'HEAD']
     try:
         output = subprocess.check_output(git_args,
                                          cwd=os.path.dirname(cmake_in),

@@ -11,11 +11,9 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveUnusedImport extends ResolvedCorrectionProducer {
   @override
-  // Bulk application is supported by a distinct import cleanup fix phase.
-  bool get canBeAppliedInBulk => false;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      // Bulk application is supported by a distinct import cleanup fix phase.
+      CorrectionApplicability.acrossSingleFile;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_UNUSED_IMPORT;
@@ -26,7 +24,7 @@ class RemoveUnusedImport extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     // prepare ImportDirective
-    var importDirective = node.thisOrAncestorOfType<ImportDirective>();
+    var importDirective = node.thisOrAncestorOfType<UriBasedDirective>();
     if (importDirective == null) {
       return;
     }

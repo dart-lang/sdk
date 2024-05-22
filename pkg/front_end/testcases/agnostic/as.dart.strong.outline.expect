@@ -1,0 +1,14 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static const field core::List<core::int> a = const <Null>[] as core::List<core::int>;
+static const field core::List<core::int> b = const <core::int?>[] as core::List<core::int>;
+static method main() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///as.dart:5:17 -> ListConstant(const <Null>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///as.dart:6:17 -> ListConstant(const <int?>[])
+Extra constant evaluation: evaluated: 4, effectively constant: 2

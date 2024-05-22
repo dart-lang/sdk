@@ -47,12 +47,12 @@ class LspChangeVerifier {
 
   void _applyChanges(Map<Uri, List<TextEdit>> changes) {
     changes.forEach((fileUri, edits) {
-      final change = _change(fileUri);
+      var change = _change(fileUri);
       change.content = _applyTextEdits(change.content!, edits);
 
       // Record annotations with their ranges.
-      for (final edit in edits.whereType<AnnotatedTextEdit>()) {
-        final annotation = this.edit.changeAnnotations![edit.annotationId]!;
+      for (var edit in edits.whereType<AnnotatedTextEdit>()) {
+        var annotation = this.edit.changeAnnotations![edit.annotationId]!;
         change.annotations
             .putIfAbsent(annotation, () => [])
             .add(edit.range.toDisplayString());
@@ -65,8 +65,8 @@ class LspChangeVerifier {
   }
 
   void _applyEdit() {
-    final documentChanges = edit.documentChanges;
-    final changes = edit.changes;
+    var documentChanges = edit.documentChanges;
+    var changes = edit.changes;
 
     if (documentChanges != null) {
       _applyDocumentChanges(documentChanges);
@@ -77,7 +77,7 @@ class LspChangeVerifier {
   }
 
   void _applyResourceChanges(DocumentChanges changes) {
-    for (final change in changes) {
+    for (var change in changes) {
       change.map(
         _applyResourceCreate,
         _applyResourceDelete,
@@ -88,8 +88,8 @@ class LspChangeVerifier {
   }
 
   void _applyResourceCreate(CreateFile create) {
-    final uri = create.uri;
-    final change = _change(uri);
+    var uri = create.uri;
+    var change = _change(uri);
     if (change.content != null) {
       throw 'Received create instruction for $uri which already exists';
     }
@@ -97,14 +97,14 @@ class LspChangeVerifier {
     change.actions.add('created');
 
     if (create.annotationId case String annotationId) {
-      final annotation = edit.changeAnnotations![annotationId]!;
+      var annotation = edit.changeAnnotations![annotationId]!;
       change.annotations.putIfAbsent(annotation, () => []).add('create');
     }
   }
 
   void _applyResourceDelete(DeleteFile delete) {
-    final uri = delete.uri;
-    final change = _change(uri);
+    var uri = delete.uri;
+    var change = _change(uri);
 
     if (change.content == null) {
       throw 'Received delete instruction for $uri which does not exist';
@@ -114,16 +114,16 @@ class LspChangeVerifier {
     change.actions.add('deleted');
 
     if (delete.annotationId case String annotationId) {
-      final annotation = edit.changeAnnotations![annotationId]!;
+      var annotation = edit.changeAnnotations![annotationId]!;
       change.annotations.putIfAbsent(annotation, () => []).add('delete');
     }
   }
 
   void _applyResourceRename(RenameFile rename) {
-    final oldUri = rename.oldUri;
-    final newUri = rename.newUri;
-    final oldChange = _change(oldUri);
-    final newChange = _change(newUri);
+    var oldUri = rename.oldUri;
+    var newUri = rename.newUri;
+    var oldChange = _change(oldUri);
+    var newChange = _change(newUri);
 
     if (oldChange.content == null) {
       throw 'Received rename instruction from $oldUri which did not exist';
@@ -137,15 +137,15 @@ class LspChangeVerifier {
     oldChange.actions.add('renamed to ${_relativeUri(newUri)}');
 
     if (rename.annotationId case String annotationId) {
-      final annotation = edit.changeAnnotations![annotationId]!;
+      var annotation = edit.changeAnnotations![annotationId]!;
       newChange.annotations.putIfAbsent(annotation, () => []).add('rename');
       oldChange.annotations.putIfAbsent(annotation, () => []).add('rename');
     }
   }
 
   void _applyTextDocumentEdit(TextDocumentEdit documentEdit) {
-    final uri = documentEdit.textDocument.uri;
-    final change = _change(uri);
+    var uri = documentEdit.textDocument.uri;
+    var change = _change(uri);
 
     // Compute new content from the edits.
     if (change.content == null) {
@@ -155,10 +155,10 @@ class LspChangeVerifier {
     change.content = _applyTextDocumentEditEdit(change.content!, documentEdit);
 
     // Record annotations with their ranges.
-    for (final editEither in documentEdit.edits) {
+    for (var editEither in documentEdit.edits) {
       editEither.map(
         (annotated) {
-          final annotation = edit.changeAnnotations![annotated.annotationId]!;
+          var annotation = edit.changeAnnotations![annotated.annotationId]!;
           change.annotations
               .putIfAbsent(annotation, () => [])
               .add(annotated.range.toDisplayString());
@@ -178,7 +178,7 @@ class LspChangeVerifier {
     //
     // This is essentially a stable sort over the offset (descending), but since
     // List.sort() is not stable so we additionally sort by index).
-    final indexedEdits =
+    var indexedEdits =
         edit.edits.mapIndexed(TextEditWithIndex.fromUnion).toList();
     indexedEdits.sort(TextEditWithIndex.compare);
     return indexedEdits
@@ -196,8 +196,8 @@ class LspChangeVerifier {
     TextDocumentEdit edit,
     Map<Uri, int> expectedVersions,
   ) {
-    final uri = edit.textDocument.uri;
-    final expectedVersion = expectedVersions[uri];
+    var uri = edit.textDocument.uri;
+    var expectedVersion = expectedVersions[uri];
 
     expect(edit.textDocument.version, equals(expectedVersion));
   }
@@ -208,17 +208,17 @@ class LspChangeVerifier {
   String _relativeUri(Uri uri) => editHelpers.relativeUri(uri);
 
   String _toChangeString() {
-    final buffer = StringBuffer();
-    for (final MapEntry(key: uri, value: change)
+    var buffer = StringBuffer();
+    for (var MapEntry(key: uri, value: change)
         in _changes.entries.sortedBy((entry) => _relativeUri(entry.key))) {
       // Write the path in a common format for Windows/non-Windows.
-      final relativePath = _relativeUri(uri);
-      final content = change.content;
-      final annotations = change.annotations;
+      var relativePath = _relativeUri(uri);
+      var content = change.content;
+      var annotations = change.annotations;
 
       // Write header/actions.
       buffer.write('$editMarkerStart $relativePath');
-      for (final action in change.actions) {
+      for (var action in change.actions) {
         buffer.write(' $action');
       }
       if (content?.isEmpty ?? false) {
@@ -228,7 +228,7 @@ class LspChangeVerifier {
 
       // Write any annotations.
       if (annotations.isNotEmpty) {
-        for (final MapEntry(key: annotation, value: operations)
+        for (var MapEntry(key: annotation, value: operations)
             in annotations.entries) {
           buffer.write('$editMarkerStart   ${annotation.label}');
           if (annotation.description != null) {
@@ -286,8 +286,8 @@ class TextEditWithIndex {
   /// can be sequentially applied to a String to match the behaviour of an LSP
   /// client.
   static int compare(TextEditWithIndex edit1, TextEditWithIndex edit2) {
-    final end1 = edit1.edit.range.end;
-    final end2 = edit2.edit.range.end;
+    var end1 = edit1.edit.range.end;
+    var end2 = edit2.edit.range.end;
 
     // VS Code's implementation of this is here:
     // https://github.com/microsoft/vscode/blob/856a306d1a9b0879727421daf21a8059e671e3ea/src/vs/editor/common/model/pieceTreeTextBuffer/pieceTreeTextBuffer.ts#L475

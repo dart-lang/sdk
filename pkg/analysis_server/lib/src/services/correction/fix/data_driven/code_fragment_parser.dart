@@ -8,6 +8,7 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/transfor
 import 'package:analysis_server/src/services/correction/fix/data_driven/variable_scope.dart';
 import 'package:analysis_server/src/services/refactoring/framework/formal_parameter.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 
 // Several "report" functions intentionally return a `Null`-typed value.
 // ignore_for_file: prefer_void_to_null
@@ -352,13 +353,6 @@ class CodeFragmentParser {
 
 /// A scanner for the textual representation of a code fragment.
 class _CodeFragmentScanner {
-  static final int $0 = '0'.codeUnitAt(0);
-  static final int $9 = '9'.codeUnitAt(0);
-  static final int $a = 'a'.codeUnitAt(0);
-  static final int $z = 'z'.codeUnitAt(0);
-  static final int $A = 'A'.codeUnitAt(0);
-  static final int $Z = 'Z'.codeUnitAt(0);
-
   static final int ampersand = '&'.codeUnitAt(0);
   static final int bang = '!'.codeUnitAt(0);
   static final int closeSquareBracket = ']'.codeUnitAt(0);
@@ -438,18 +432,18 @@ class _CodeFragmentScanner {
         offset++;
         tokens.add(
             _Token(start, _TokenKind.string, content.substring(start, offset)));
-      } else if (_isLetter(char)) {
+      } else if (char.isLetter) {
         var start = offset;
         offset++;
-        while (offset < length && _isLetter(content.codeUnitAt(offset))) {
+        while (offset < length && content.codeUnitAt(offset).isLetter) {
           offset++;
         }
         tokens.add(_Token(
             start, _TokenKind.identifier, content.substring(start, offset)));
-      } else if (_isDigit(char)) {
+      } else if (char.isDigit) {
         var start = offset;
         offset++;
-        while (offset < length && _isDigit(content.codeUnitAt(offset))) {
+        while (offset < length && content.codeUnitAt(offset).isDigit) {
           offset++;
         }
         tokens.add(_Token(
@@ -461,13 +455,6 @@ class _CodeFragmentScanner {
     }
     return tokens;
   }
-
-  /// Return `true` if the [char] is a digit.
-  bool _isDigit(int char) => char >= $0 && char <= $9;
-
-  /// Return `true` if the [char] is a letter.
-  bool _isLetter(int char) =>
-      (char >= $a && char <= $z) || (char >= $A && char <= $Z);
 
   /// Return `true` if the [char] is a whitespace character.
   bool _isWhitespace(int char) =>

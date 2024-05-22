@@ -15,10 +15,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceNullCheckWithCast extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_NULL_CHECK_WITH_CAST;
@@ -28,7 +26,7 @@ class ReplaceNullCheckWithCast extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     Token? operator;
     DartType? operandType;
     if (node is NullAssertPattern) {

@@ -105,12 +105,12 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }) {
     libraryElement ??= result.libraryElement;
 
-    final buffer = StringBuffer();
-    final sink = TreeStringSink(
+    var buffer = StringBuffer();
+    var sink = TreeStringSink(
       sink: buffer,
       indent: '',
     );
-    final elementPrinter = ElementPrinter(
+    var elementPrinter = ElementPrinter(
       sink: sink,
       configuration: ElementPrinterConfiguration(),
       selfUriStr: '${libraryElement.source.uri}',
@@ -266,13 +266,13 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   void assertParsedNodeText(AstNode node, String expected) {
-    final buffer = StringBuffer();
-    final sink = TreeStringSink(
+    var buffer = StringBuffer();
+    var sink = TreeStringSink(
       sink: buffer,
       indent: '',
     );
 
-    final elementPrinter = ElementPrinter(
+    var elementPrinter = ElementPrinter(
       sink: sink,
       configuration: ElementPrinterConfiguration(),
       selfUriStr: null,
@@ -287,7 +287,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
       ),
     );
 
-    final actual = buffer.toString();
+    var actual = buffer.toString();
     if (actual != expected) {
       print('-------- Actual --------');
       print('$actual------------------------');
@@ -301,12 +301,12 @@ mixin ResolutionTest implements ResourceProviderMixin {
     String expected, {
     void Function(ResolvedLibraryResultPrinterConfiguration)? configure,
   }) {
-    final configuration = ResolvedLibraryResultPrinterConfiguration();
+    var configuration = ResolvedLibraryResultPrinterConfiguration();
     configure?.call(configuration);
 
-    final buffer = StringBuffer();
-    final sink = TreeStringSink(sink: buffer, indent: '');
-    final idProvider = IdProvider();
+    var buffer = StringBuffer();
+    var sink = TreeStringSink(sink: buffer, indent: '');
+    var idProvider = IdProvider();
     ResolvedLibraryResultPrinter(
       configuration: configuration,
       sink: sink,
@@ -318,7 +318,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
       ),
     ).write(result);
 
-    final actual = buffer.toString();
+    var actual = buffer.toString();
     if (actual != expected) {
       print('-------- Actual --------');
       print('$actual------------------------');
@@ -405,7 +405,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
           expectedContextMessages: contextMessages);
 
   String getMacroCode(String relativePath) {
-    final code = MacrosEnvironment.instance.packageAnalyzerFolder
+    var code = MacrosEnvironment.instance.packageAnalyzerFolder
         .getChildAssumingFile('test/src/summary/macro/$relativePath')
         .readAsStringSync();
     return code.replaceAll('/*macro*/', 'macro');
@@ -481,7 +481,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   /// Create a new file with the [path] and [content], resolve it into [result].
   Future<void> resolveFileCode(String path, String content) {
-    final file = newFile(path, content);
+    var file = newFile(path, content);
     return resolveFile2(file);
   }
 
@@ -508,12 +508,12 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   String _resolvedNodeText(AstNode node) {
-    final buffer = StringBuffer();
-    final sink = TreeStringSink(
+    var buffer = StringBuffer();
+    var sink = TreeStringSink(
       sink: buffer,
       indent: '',
     );
-    final elementPrinter = ElementPrinter(
+    var elementPrinter = ElementPrinter(
       sink: sink,
       configuration: ElementPrinterConfiguration()
         ..withInterfaceTypeElements =

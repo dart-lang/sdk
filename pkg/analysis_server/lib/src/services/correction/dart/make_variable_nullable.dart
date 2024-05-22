@@ -20,14 +20,19 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
   String _variableName = '';
 
   @override
-  List<Object> get fixArguments => [_variableName];
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments => [_variableName];
 
   @override
   FixKind get fixKind => DartFixKind.MAKE_VARIABLE_NULLABLE;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is SimpleFormalParameter) {
       await _forSimpleFormalParameter(builder, node);
     } else if (node is FunctionTypedFormalParameter) {
@@ -37,7 +42,7 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
     } else if (node is SuperFormalParameter) {
       await _forSuperFormalParameter(builder, node);
     } else if (node is Expression) {
-      final parent = node.parent;
+      var parent = node.parent;
       if (parent is AssignmentExpression && parent.rightHandSide == node) {
         await _forAssignment(builder, node, parent);
       } else if (parent is VariableDeclaration && parent.initializer == node) {

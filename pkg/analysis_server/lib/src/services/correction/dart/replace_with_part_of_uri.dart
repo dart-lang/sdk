@@ -17,27 +17,32 @@ class ReplaceWithPartOrUriEmpty extends ResolvedCorrectionProducer {
   FixKind fixKind = DartFixKind.REPLACE_WITH_PART_OF_URI;
 
   @override
-  List<Object>? get fixArguments => [_uriStr];
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments => [_uriStr];
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final partOfDirective = node;
+    var partOfDirective = node;
     if (partOfDirective is! PartOfDirective) {
       return;
     }
 
-    final libraryName = partOfDirective.libraryName;
+    var libraryName = partOfDirective.libraryName;
     if (libraryName == null) {
       return;
     }
 
-    final libraryElement = partOfDirective.element;
+    var libraryElement = partOfDirective.element;
     if (libraryElement is! LibraryElement) {
       return;
     }
 
-    final libraryPath = libraryElement.source.fullName;
-    final uriStr = _relativeUriText(libraryPath);
+    var libraryPath = libraryElement.source.fullName;
+    var uriStr = _relativeUriText(libraryPath);
     _uriStr = _uriStr;
 
     await builder.addDartFileEdit(file, (builder) {
@@ -51,9 +56,9 @@ class ReplaceWithPartOrUriEmpty extends ResolvedCorrectionProducer {
   }
 
   String _relativeUriText(String libraryPath) {
-    final pathContext = resourceProvider.pathContext;
-    final partFolder = pathContext.dirname(file);
-    final relativePath = pathContext.relative(libraryPath, from: partFolder);
+    var pathContext = resourceProvider.pathContext;
+    var partFolder = pathContext.dirname(file);
+    var relativePath = pathContext.relative(libraryPath, from: partFolder);
     return pathContext.split(relativePath).join('/');
   }
 }

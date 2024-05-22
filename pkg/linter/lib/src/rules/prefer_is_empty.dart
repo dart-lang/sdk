@@ -11,7 +11,7 @@ import '../analyzer.dart';
 import '../ast.dart';
 import '../extensions.dart';
 
-const _desc = r'Use `isEmpty` for Iterables and Maps.';
+const _desc = r'Use `isEmpty` for `Iterable`s and `Map`s.';
 const _details = r'''
 **DON'T** use `length` to see if a collection is empty.
 

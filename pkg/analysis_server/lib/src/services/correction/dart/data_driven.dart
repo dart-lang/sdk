@@ -71,11 +71,16 @@ class DataDrivenFix extends ResolvedCorrectionProducer {
 
   DataDrivenFix(this._transform);
 
+  @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
   /// Return a description of the element that was changed.
   ElementDescriptor get element => _transform.element;
 
   @override
-  List<Object> get fixArguments => [_transform.title];
+  List<String> get fixArguments => [_transform.title];
 
   @override
   FixKind get fixKind => DartFixKind.DATA_DRIVEN;

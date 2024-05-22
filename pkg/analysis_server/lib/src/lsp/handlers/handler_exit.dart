@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 
 class ExitMessageHandler extends LspMessageHandler<void, void> {

@@ -15,13 +15,11 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceWithVar extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
+
+  @override
   AssistKind get assistKind => DartAssistKind.REPLACE_WITH_VAR;
-
-  @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_WITH_VAR;
@@ -124,11 +122,11 @@ class ReplaceWithVar extends ResolvedCorrectionProducer {
 
   /// Return `true` if the type in the [node] can be replaced with `var`.
   bool _canConvertVariableDeclarationList(VariableDeclarationList node) {
-    final staticType = node.type?.type;
+    var staticType = node.type?.type;
     if (staticType == null || staticType is DynamicType) {
       return false;
     }
-    for (final child in node.variables) {
+    for (var child in node.variables) {
       var initializer = child.initializer;
       if (initializer == null || initializer.staticType != staticType) {
         return false;
@@ -151,7 +149,7 @@ class ReplaceWithVar extends ResolvedCorrectionProducer {
         if (staticType == null || staticType is DynamicType) {
           return false;
         }
-        final iterableType = parent.iterable.typeOrThrow;
+        var iterableType = parent.iterable.typeOrThrow;
         var instantiatedType =
             iterableType.asInstanceOf(typeProvider.iterableElement);
         if (instantiatedType?.typeArguments.first == staticType) {

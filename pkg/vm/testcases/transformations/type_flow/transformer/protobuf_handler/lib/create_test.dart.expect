@@ -41,6 +41,7 @@ import "package:stack_trace/src/unparsed_frame.dart";
 import "package:matcher/src/feature_matcher.dart";
 
 
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 [@vm.closure-id=1]
 static method main() → dynamic {
   [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep] pb::FooKeep foo = let final pb::FooKeep #t1 = [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep] pb::FooKeep::•() in block {
@@ -84,16 +85,22 @@ class FooKeep extends pro::GeneratedMessage {
   constructor _() → self::FooKeep
     : super pro::GeneratedMessage::•()
     ;
+
+  [@vm.inferred-return-type.metadata=foo.pb.dart::FooKeep]
   static factory •() → self::FooKeep
     return [@vm.inferred-type.metadata=foo.pb.dart::FooKeep] self::FooKeep::create();
 
+  [@vm.inferred-return-type.metadata=library package:protobuf/protobuf.dart::BuilderInfo]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
   get info_() → pro::BuilderInfo
     return [@vm.inferred-type.metadata=library package:protobuf/protobuf.dart::BuilderInfo] self::FooKeep::_i;
+
+  [@vm.inferred-return-type.metadata=foo.pb.dart::FooKeep]
   @#C7
   static method create() → self::FooKeep
     return new self::FooKeep::_();
 
+  [@vm.inferred-return-type.metadata=foo.pb.dart::BarKeep]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:2,getterSelectorId:3]
   @#C9
   get barKeep() → self::BarKeep
@@ -105,11 +112,13 @@ class FooKeep extends pro::GeneratedMessage {
     [@vm.direct-call.metadata=library package:protobuf/protobuf.dart::GeneratedMessage.setField] [@vm.inferred-type.metadata=!? (skip check)] this.{pro::GeneratedMessage::setField}(v){(core::int, core::Object) → void};
   }
 
+  [@vm.inferred-return-type.metadata=library package:protobuf/protobuf.dart::PbMap]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:4]
   @#C11
   get mapKeep() → core::Map<core::String, self::BarKeep>
     return [@vm.direct-call.metadata=library package:protobuf/protobuf.dart::GeneratedMessage.$_getMap] [@vm.inferred-type.metadata=library package:protobuf/protobuf.dart::PbMap (skip check)] this.{pro::GeneratedMessage::$_getMap}<core::String, self::BarKeep>(){(core::int) → pro::PbMap<core::String, self::BarKeep>};
 
+  [@vm.inferred-return-type.metadata=int]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]
   [@vm.unboxing-info.metadata=()->i]
   @#C13
@@ -123,11 +132,13 @@ class FooKeep extends pro::GeneratedMessage {
     [@vm.direct-call.metadata=library package:protobuf/protobuf.dart::GeneratedMessage.$_setSignedInt32] [@vm.inferred-type.metadata=!? (skip check)] this.{pro::GeneratedMessage::$_setSignedInt32}(4, v){(core::int, core::int) → void};
   }
 
+  [@vm.inferred-return-type.metadata=dart.core::bool]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]
   @#C15
   method hasHasKeep() → core::bool
     return [@vm.direct-call.metadata=library package:protobuf/protobuf.dart::GeneratedMessage.$_has] [@vm.inferred-type.metadata=dart.core::bool (skip check)] this.{pro::GeneratedMessage::$_has}(){(core::int) → core::bool};
 
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:9,getterSelectorId:10]
   @#C17
   method clearClearKeep() → void
@@ -144,16 +155,22 @@ class BarKeep extends pro::GeneratedMessage {
   constructor _() → self::BarKeep
     : super pro::GeneratedMessage::•()
     ;
+
+  [@vm.inferred-return-type.metadata=foo.pb.dart::BarKeep]
   static factory •() → self::BarKeep
     return [@vm.inferred-type.metadata=foo.pb.dart::BarKeep] self::BarKeep::create();
 
+  [@vm.inferred-return-type.metadata=library package:protobuf/protobuf.dart::BuilderInfo]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
   get info_() → pro::BuilderInfo
     return [@vm.inferred-type.metadata=library package:protobuf/protobuf.dart::BuilderInfo] self::BarKeep::_i;
+
+  [@vm.inferred-return-type.metadata=foo.pb.dart::BarKeep]
   @#C7
   static method create() → self::BarKeep
     return new self::BarKeep::_();
 
+  [@vm.inferred-return-type.metadata=int]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:11,getterSelectorId:12]
   [@vm.unboxing-info.metadata=()->i]
   @#C9
@@ -178,9 +195,12 @@ class HasKeep extends pro::GeneratedMessage {
     : super pro::GeneratedMessage::•()
     ;
 
+  [@vm.inferred-return-type.metadata=library package:protobuf/protobuf.dart::BuilderInfo]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
   get info_() → pro::BuilderInfo
     return [@vm.inferred-type.metadata=library package:protobuf/protobuf.dart::BuilderInfo] self::HasKeep::_i;
+
+  [@vm.inferred-return-type.metadata=foo.pb.dart::HasKeep]
   @#C7
   static method create() → self::HasKeep
     return new self::HasKeep::_();
@@ -196,9 +216,12 @@ class ClearKeep extends pro::GeneratedMessage {
     : super pro::GeneratedMessage::•()
     ;
 
+  [@vm.inferred-return-type.metadata=library package:protobuf/protobuf.dart::BuilderInfo]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
   get info_() → pro::BuilderInfo
     return [@vm.inferred-type.metadata=library package:protobuf/protobuf.dart::BuilderInfo] self::ClearKeep::_i;
+
+  [@vm.inferred-return-type.metadata=foo.pb.dart::ClearKeep]
   @#C7
   static method create() → self::ClearKeep
     return new self::ClearKeep::_();

@@ -54,6 +54,8 @@ abstract class OperationPerformanceDataImpl<T>
   }
 }
 
+// Pre-existing name.
+// ignore: camel_case_types
 class OperationPerformanceDataImpl_int
     extends OperationPerformanceDataImpl<int> {
   @override
@@ -144,7 +146,7 @@ class OperationPerformanceImpl implements OperationPerformance {
   /// then stop. So, it will accumulate time across all runs.
   T run<T>(
     String name,
-    T Function(OperationPerformanceImpl) operation,
+    T Function(OperationPerformanceImpl performance) operation,
   ) {
     OperationPerformanceImpl child = _existingOrNewChild(name);
     child._start();
@@ -164,7 +166,7 @@ class OperationPerformanceImpl implements OperationPerformance {
   /// then stop. So, it will accumulate time across all runs.
   Future<T> runAsync<T>(
     String name,
-    Future<T> Function(OperationPerformanceImpl) operation,
+    Future<T> Function(OperationPerformanceImpl performance) operation,
   ) async {
     var child = _existingOrNewChild(name);
     child._start();

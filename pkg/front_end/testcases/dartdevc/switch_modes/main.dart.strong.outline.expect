@@ -1,0 +1,45 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///main_lib1.dart";
+import "org-dartlang-testcase:///main_lib2.dart";
+
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+class EnumLike extends core::Object /*hasConstConstructor*/  {
+  final field core::int value;
+  static const field self2::EnumLike a = const self2::EnumLike::_(0);
+  static const field self2::EnumLike b = const self2::EnumLike::_(1);
+  static const field core::List<self2::EnumLike> values = const <self2::EnumLike>[self2::EnumLike::a, self2::EnumLike::b];
+  const constructor _(core::int value) → self2::EnumLike
+    : self2::EnumLike::value = value, super core::Object::•()
+    ;
+  static method _#_#tearOff(core::int value) → self2::EnumLike
+    return new self2::EnumLike::_(value);
+  @core::override
+  abstract operator ==(core::Object other) → core::bool;
+  @core::override
+  get hashCode() → core::int
+    ;
+}
+
+library;
+import self as self3;
+import "main_lib1.dart" as self2;
+
+import "org-dartlang-testcase:///main_lib1.dart";
+
+static method method(self2::EnumLike e) → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///main_lib1.dart:10:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///main_lib1.dart:13:4 -> InstanceConstant(const _Override{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib1.dart:16:35 -> InstanceConstant(const EnumLike{EnumLike.value: 0.0})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib1.dart:17:35 -> InstanceConstant(const EnumLike{EnumLike.value: 1.0})
+Evaluated: ListLiteral @ org-dartlang-testcase:///main_lib1.dart:19:40 -> ListConstant(const <EnumLike>[const EnumLike{EnumLike.value: 0.0}, const EnumLike{EnumLike.value: 1.0}])
+Extra constant evaluation: evaluated: 8, effectively constant: 5

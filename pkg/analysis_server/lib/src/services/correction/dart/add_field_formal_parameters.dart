@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
@@ -12,6 +12,11 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddFieldFormalParameters extends ResolvedCorrectionProducer {
+  @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
   @override
   FixKind get fixKind => DartFixKind.ADD_FIELD_FORMAL_PARAMETERS;
 
@@ -39,8 +44,8 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
     fields.sort((a, b) => a.nameOffset - b.nameOffset);
 
     // Specialize for Flutter widgets.
-    if (Flutter.isExactlyStatelessWidgetType(superType) ||
-        Flutter.isExactlyStatefulWidgetType(superType)) {
+    if (superType.isExactlyStatelessWidgetType ||
+        superType.isExactlyStatefulWidgetType) {
       if (parameters.isNotEmpty && parameters.last.isNamed) {
         String parameterForField(FieldElement field) {
           var prefix = '';

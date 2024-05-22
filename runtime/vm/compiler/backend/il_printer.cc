@@ -71,7 +71,7 @@ class IlTestPrinter : public AllStatic {
     AttributesSerializer(&writer).WriteDescriptors();
     writer.CloseObject();
     writer.OpenObject("flags");
-    writer.PrintPropertyBool("nnbd", IsolateGroup::Current()->null_safety());
+    writer.PrintPropertyBool("nnbd", true);
     writer.CloseObject();
     writer.CloseObject();
     THR_Print("%s\n", writer.ToCString());
@@ -732,12 +732,6 @@ void RangeBoundary::PrintTo(BaseTextBuffer* f) const {
       f->Printf("v%" Pd "",
                 reinterpret_cast<Definition*>(value_)->ssa_temp_index());
       if (offset_ != 0) f->Printf("%+" Pd64 "", offset_);
-      break;
-    case kNegativeInfinity:
-      f->AddString("-inf");
-      break;
-    case kPositiveInfinity:
-      f->AddString("+inf");
       break;
     case kConstant:
       f->Printf("%" Pd64 "", value_);
@@ -1413,7 +1407,7 @@ void FfiCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   }
 }
 
-void CCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+void LeafRuntimeCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   f->AddString("target_address=");
   InputAt(TargetAddressIndex())->PrintTo(f);
   for (intptr_t i = 0, n = argument_representations_.length(); i < n; ++i) {

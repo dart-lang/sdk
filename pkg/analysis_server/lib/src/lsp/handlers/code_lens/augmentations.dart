@@ -5,6 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart'
     hide Declaration, Element;
 import 'package:analysis_server/src/lsp/client_configuration.dart';
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/code_lens/abstract_code_lens_provider.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
@@ -29,16 +30,18 @@ class AugmentationCodeLensProvider extends AbstractCodeLensProvider {
     Map<String, LineInfo?> lineInfoCache,
   ) async {
     var performance = message.performance;
-    final path = pathOfDoc(params.textDocument);
-    final unit = await performance.runAsync(
+    var path = pathOfDoc(params.textDocument);
+    var unit = await performance.runAsync(
       'requireResolvedUnit',
       (_) async => path.mapResult(requireResolvedUnit),
     );
-    return await performance.runAsync(
-      '_getCodeLenses',
-      (performance) =>
-          _getCodeLenses(unit.result, token, performance, lineInfoCache),
-    );
+    return await unit.mapResult((result) {
+      return performance.runAsync(
+        '_getCodeLenses',
+        (performance) =>
+            _getCodeLenses(result, token, performance, lineInfoCache),
+      );
+    });
   }
 
   @override

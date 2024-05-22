@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -13,6 +13,11 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class WrapInText extends ResolvedCorrectionProducer {
+  @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
   @override
   FixKind get fixKind => DartFixKind.WRAP_IN_TEXT;
 
@@ -25,7 +30,7 @@ class WrapInText extends ResolvedCorrectionProducer {
     if (context == null) {
       return;
     }
-    if (!Flutter.isWidgetType(context.parameterElement.type)) {
+    if (!context.parameterElement.type.isWidgetType) {
       return;
     }
 

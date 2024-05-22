@@ -11,10 +11,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceWithTearOff extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_WITH_TEAR_OFF;
@@ -56,17 +54,17 @@ class ReplaceWithTearOff extends ResolvedCorrectionProducer {
       }
     }
 
-    final body = ancestor.body;
+    var body = ancestor.body;
     if (body is ExpressionFunctionBody) {
-      final expression = body.expression;
+      var expression = body.expression;
       await addFixOfExpression(expression.unParenthesized);
     } else if (body is BlockFunctionBody) {
-      final statement = body.block.statements.first;
+      var statement = body.block.statements.first;
       if (statement is ExpressionStatement) {
-        final expression = statement.expression;
+        var expression = statement.expression;
         await addFixOfExpression(expression.unParenthesized);
       } else if (statement is ReturnStatement) {
-        final expression = statement.expression;
+        var expression = statement.expression;
         await addFixOfExpression(expression?.unParenthesized);
       }
     }

@@ -17,13 +17,11 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddReturnType extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
+
+  @override
   AssistKind get assistKind => DartAssistKind.ADD_RETURN_TYPE;
-
-  @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_RETURN_TYPE;
@@ -35,7 +33,7 @@ class AddReturnType extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     Token? insertBeforeEntity;
     FunctionBody? body;
-    final executable = node;
+    var executable = node;
     if (executable is MethodDeclaration && executable.name == token) {
       if (executable.returnType != null) {
         return;
@@ -65,7 +63,7 @@ class AddReturnType extends ResolvedCorrectionProducer {
       return;
     }
 
-    final insertBeforeEntity_final = insertBeforeEntity;
+    var insertBeforeEntity_final = insertBeforeEntity;
     await builder.addDartFileEdit(file, (builder) {
       if (returnType is DynamicType || builder.canWriteType(returnType)) {
         builder.addInsertion(insertBeforeEntity_final.offset, (builder) {

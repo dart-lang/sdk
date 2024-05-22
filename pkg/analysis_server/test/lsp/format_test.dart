@@ -22,16 +22,16 @@ void main() {
 class FormatTest extends AbstractLspAnalysisServerTest {
   Future<List<TextEdit>> expectFormattedContents(
       Uri uri, String original, String expected) async {
-    final formatEdits = (await formatDocument(uri))!;
-    final formattedContents = applyTextEdits(original, formatEdits);
+    var formatEdits = (await formatDocument(uri))!;
+    var formattedContents = applyTextEdits(original, formatEdits);
     expect(formattedContents, equals(expected));
     return formatEdits;
   }
 
   Future<List<TextEdit>> expectRangeFormattedContents(
       Uri uri, TestCode code, String expected) async {
-    final formatEdits = (await formatRange(uri, code.range.range))!;
-    final formattedContents = applyTextEdits(code.code, formatEdits);
+    var formatEdits = (await formatRange(uri, code.range.range))!;
+    var formattedContents = applyTextEdits(code.code, formatEdits);
     expect(formattedContents, equals(expected));
     return formatEdits;
   }
@@ -45,7 +45,7 @@ void f() {
     await initialize();
     await openFile(mainFileUri, contents);
 
-    final formatEdits = await formatDocument(mainFileUri);
+    var formatEdits = await formatDocument(mainFileUri);
     expect(formatEdits, isNull);
   }
 
@@ -66,7 +66,7 @@ void f() {
 
     // Now replace and format with '\n'.
     await replaceFile(2, mainFileUri, 'int? a;\n');
-    final formatEdits = await formatDocument(mainFileUri);
+    var formatEdits = await formatDocument(mainFileUri);
 
     // Expect no edits because this document was already formatted.
     // When the bug occurs, we'd see edits to add a '\r'.
@@ -89,7 +89,7 @@ ErrorOr<Pair<A, List<B>>> c(
 
 
     ''';
-    final expected = '''
+    var expected = '''
 ErrorOr<Pair<A, List<B>>> c(
   String d,
   List<Either2<E, F>> g, {
@@ -107,7 +107,7 @@ ErrorOr<Pair<A, List<B>>> c(
     setDocumentFormattingDynamicRegistration();
     setDidChangeConfigurationDynamicRegistration();
 
-    final registrations = <Registration>[];
+    var registrations = <Registration>[];
     // Provide empty config and collect dynamic registrations during
     // initialization.
     await provideConfig(
@@ -147,7 +147,7 @@ ErrorOr<Pair<A, List<B>>> c(
     setDocumentFormattingDynamicRegistration();
     setDidChangeConfigurationDynamicRegistration();
 
-    final registrations = <Registration>[];
+    var registrations = <Registration>[];
     // Provide empty config and collect dynamic registrations during
     // initialization.
     await provideConfig(
@@ -193,17 +193,17 @@ void f  ()
     print('test');
 ^}
     ''';
-    final expected = '''void f() {
+    var expected = '''void f() {
   print('test');
 }
 ''';
-    final code = TestCode.parse(contents);
+    var code = TestCode.parse(contents);
     await initialize();
     await openFile(mainFileUri, code.code);
 
-    final formatEdits =
+    var formatEdits =
         (await formatOnType(mainFileUri, code.position.position, '}'))!;
-    final formattedContents = applyTextEdits(code.code, formatEdits);
+    var formattedContents = applyTextEdits(code.code, formatEdits);
     expect(formattedContents, equals(expected));
   }
 
@@ -218,7 +218,7 @@ void f()
     !]    print('test');
 }
 ''';
-    final expected = '''
+    var expected = '''
 void f()
 {
         print('test');
@@ -226,7 +226,7 @@ void f()
         print('test');
 }
 ''';
-    final code = TestCode.parse(contents);
+    var code = TestCode.parse(contents);
     await initialize();
     await openFile(mainFileUri, code.code);
     await expectRangeFormattedContents(mainFileUri, code, expected);
@@ -251,7 +251,7 @@ void f()
   print('test'); // line 4
 }
 ''';
-    final code = TestCode.parse(contents);
+    var code = TestCode.parse(contents);
     await initialize();
     await openFile(mainFileUri, code.code);
     await expectRangeFormattedContents(mainFileUri, code, expected);
@@ -264,10 +264,10 @@ void f()
         print('test');
 }
 ''';
-    final code = TestCode.parse(contents);
+    var code = TestCode.parse(contents);
     await initialize();
     await openFile(mainFileUri, code.code);
-    final formatRangeRequest = formatRange(
+    var formatRangeRequest = formatRange(
       mainFileUri,
       Range(
           start: Position(line: 0, character: 0),
@@ -297,7 +297,7 @@ main3  ()
     print('test');
 }
 ''';
-    final expected = '''
+    var expected = '''
 main  ()
 {
 
@@ -314,7 +314,7 @@ main3  ()
     print('test');
 }
 ''';
-    final code = TestCode.parse(contents);
+    var code = TestCode.parse(contents);
     await initialize();
     await openFile(mainFileUri, code.code);
     await expectRangeFormattedContents(mainFileUri, code, expected);
@@ -329,13 +329,13 @@ int? a;
     int? b;
 !]
 ''';
-    final expected = '''
+    var expected = '''
 int? a;
 
 int? b;
 
 ''';
-    final code = TestCode.parse(contents);
+    var code = TestCode.parse(contents);
     await initialize();
     await openFile(mainFileUri, code.code);
     await expectRangeFormattedContents(mainFileUri, code, expected);
@@ -352,7 +352,7 @@ void f(((( {
     await initialize();
     await openFile(mainFileUri, contents);
 
-    final formatEdits = await formatDocument(mainFileUri);
+    var formatEdits = await formatDocument(mainFileUri);
     expect(formatEdits, isNull);
   }
 
@@ -363,11 +363,11 @@ print(
 '123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789'
 );
     ''';
-    final expectedDefault = '''
+    var expectedDefault = '''
 void f() => print(
     '123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789');
 ''';
-    final expectedLongLines = '''
+    var expectedLongLines = '''
 void f() => print('123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789');
 ''';
 
@@ -479,7 +479,7 @@ void f() {}
 ''';
     await initialize();
     await openFile(mainFileUri, contents);
-    final formatEdits =
+    var formatEdits =
         await expectFormattedContents(mainFileUri, contents, expected);
     expect(formatEdits, hasLength(1));
     expect(formatEdits[0].newText, ' ');
@@ -499,7 +499,7 @@ void f() {}
 ''';
     await initialize();
     await openFile(mainFileUri, contents);
-    final formatEdits =
+    var formatEdits =
         await expectFormattedContents(mainFileUri, contents, expected);
     expect(formatEdits, hasLength(1));
     expect(formatEdits[0].newText, '');
@@ -521,7 +521,7 @@ void f() {}
 ''';
     await initialize();
     await openFile(mainFileUri, contents);
-    final formatEdits =
+    var formatEdits =
         await expectFormattedContents(mainFileUri, contents, expected);
     expect(formatEdits, hasLength(1));
     expect(formatEdits[0].newText, '');
@@ -540,7 +540,7 @@ void f() {}
 ''';
     await initialize();
     await openFile(mainFileUri, contents);
-    final formatEdits =
+    var formatEdits =
         await expectFormattedContents(mainFileUri, contents, expected);
     expect(formatEdits, hasLength(1));
     expect(
@@ -567,7 +567,7 @@ void f() {}
 ''';
     await initialize();
     await openFile(mainFileUri, contents);
-    final formatEdits =
+    var formatEdits =
         await expectFormattedContents(mainFileUri, contents, expected);
     expect(formatEdits, hasLength(1));
     expect(
@@ -591,7 +591,7 @@ void f() {}
 ''';
     await initialize();
     await openFile(mainFileUri, contents);
-    final formatEdits =
+    var formatEdits =
         await expectFormattedContents(mainFileUri, contents, expected);
     expect(formatEdits, hasLength(2));
     expect(formatEdits[0].newText, isEmpty);
@@ -620,7 +620,7 @@ void f() {
 ''';
     await initialize();
     await openFile(mainFileUri, contents);
-    final formatEdits =
+    var formatEdits =
         await expectFormattedContents(mainFileUri, contents, expected);
     expect(formatEdits, hasLength(3));
     expect(
@@ -653,7 +653,7 @@ void f() {
     await initialize();
     await openFile(pubspecFileUri, simplePubspecContent);
 
-    final formatEdits = await formatOnType(pubspecFileUri, startOfDocPos, '}');
+    var formatEdits = await formatOnType(pubspecFileUri, startOfDocPos, '}');
     expect(formatEdits, isNull);
   }
 
@@ -699,7 +699,7 @@ void f() {
         print('test');
     }
     ''';
-    final expected = '''
+    var expected = '''
 void f() {
   print('test');
 }
@@ -717,7 +717,7 @@ void f() {
         print('test');
     }
     ''';
-    final expected = '''
+    var expected = '''
 void f() {
   print('test');
 }

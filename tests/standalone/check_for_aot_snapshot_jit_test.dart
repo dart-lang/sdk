@@ -77,7 +77,7 @@ main() {
     ],
   );
   Expect.equals(runAotUsingCommandResult.exitCode, 255);
-  Expect.containsOneOf(<String>[
+  Expect.containsAny(<String>[
     "pow_test.aot is an AOT snapshot and should be run with 'dartaotruntime'",
     // If dartdev itself failed, can happen on SIMARM as not enough is built
     // to run it.

@@ -203,7 +203,11 @@ bool _isNullConstant(Expression value) {
 Expression _unwrapFinalVariableGet(Expression expr) {
   if (expr is VariableGet) {
     final variable = expr.variable;
-    if (variable.isFinal) {
+    // This optimization does not apply to parameters because they
+    // get their value set by the caller and their initializers
+    // are default values rather than true initializers.
+    final parent = variable.parent;
+    if (variable.isFinal && parent is! FunctionNode) {
       final initializer = variable.initializer;
       if (initializer != null) {
         return initializer;

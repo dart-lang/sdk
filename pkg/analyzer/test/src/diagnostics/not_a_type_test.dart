@@ -45,7 +45,7 @@ extension E on int {}
 E a;
 ''', [error(CompileTimeErrorCode.NOT_A_TYPE, 22, 1)]);
 
-    final node = findNode.namedType('E a;');
+    var node = findNode.namedType('E a;');
     assertResolvedNodeText(node, r'''
 NamedType
   name: E

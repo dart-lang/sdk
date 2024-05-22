@@ -242,7 +242,7 @@ class ArgumentAllocator : public ValueObject {
             zone_, payload_type, container_type, AllocateCpuRegister());
       }
     }
-    return AllocateStack(payload_type);
+    return AllocateStack(payload_type, is_vararg);
   }
 
   // Constructs a container type.

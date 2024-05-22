@@ -6,15 +6,12 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.d
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    as shared;
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    hide RecordType;
+    hide Variance;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyBase;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/src/norm.dart';
-import 'package:kernel/src/printer.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
@@ -39,12 +36,12 @@ import 'type_schema_environment.dart'
 /// Visitor to check whether a given type mentions any of a class's type
 /// parameters in a non-covariant fashion.
 class IncludesTypeParametersNonCovariantly implements DartTypeVisitor<bool> {
-  int _variance;
+  Variance _variance;
 
   final List<TypeParameter> _typeParametersToSearchFor;
 
   IncludesTypeParametersNonCovariantly(this._typeParametersToSearchFor,
-      {required int initialVariance})
+      {required Variance initialVariance})
       : _variance = initialVariance;
 
   @override
@@ -74,12 +71,12 @@ class IncludesTypeParametersNonCovariantly implements DartTypeVisitor<bool> {
   @override
   bool visitFunctionType(FunctionType node) {
     if (node.returnType.accept(this)) return true;
-    int oldVariance = _variance;
+    Variance oldVariance = _variance;
     _variance = Variance.invariant;
     for (StructuralParameter parameter in node.typeParameters) {
       if (parameter.bound.accept(this)) return true;
     }
-    _variance = Variance.combine(Variance.contravariant, oldVariance);
+    _variance = Variance.contravariant.combine(oldVariance);
     for (DartType parameter in node.positionalParameters) {
       if (parameter.accept(this)) return true;
     }
@@ -103,10 +100,10 @@ class IncludesTypeParametersNonCovariantly implements DartTypeVisitor<bool> {
 
   @override
   bool visitInterfaceType(InterfaceType node) {
-    int oldVariance = _variance;
+    Variance oldVariance = _variance;
     for (int i = 0; i < node.typeArguments.length; i++) {
-      _variance = Variance.combine(
-          node.classNode.typeParameters[i].variance, oldVariance);
+      _variance =
+          node.classNode.typeParameters[i].variance.combine(oldVariance);
       if (node.typeArguments[i].accept(this)) return true;
     }
     _variance = oldVariance;
@@ -125,7 +122,7 @@ class IncludesTypeParametersNonCovariantly implements DartTypeVisitor<bool> {
 
   @override
   bool visitTypeParameterType(TypeParameterType node) {
-    return !Variance.greaterThanOrEqual(_variance, node.parameter.variance) &&
+    return !_variance.greaterThanOrEqual(node.parameter.variance) &&
         _typeParametersToSearchFor.contains(node.parameter);
   }
 
@@ -349,10 +346,8 @@ abstract class TypeInferenceEngine {
 /// kernel objects.
 class TypeInferenceEngineImpl extends TypeInferenceEngine {
   final Benchmarker? benchmarker;
-  final FunctionType unknownFunctionNonNullable =
+  final FunctionType unknownFunction =
       new FunctionType(const [], const DynamicType(), Nullability.nonNullable);
-  final FunctionType unknownFunctionLegacy =
-      new FunctionType(const [], const DynamicType(), Nullability.legacy);
 
   TypeInferenceEngineImpl(Instrumentation? instrumentation, this.benchmarker)
       : super(instrumentation);
@@ -369,28 +364,11 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
           new AssignedVariables<TreeNode, VariableDeclaration>();
     }
     if (benchmarker == null) {
-      return new TypeInferrerImpl(
-          this,
-          uri,
-          false,
-          thisType,
-          library,
-          assignedVariables,
-          dataForTesting,
-          unknownFunctionNonNullable,
-          unknownFunctionLegacy);
+      return new TypeInferrerImpl(this, uri, false, thisType, library,
+          assignedVariables, dataForTesting, unknownFunction);
     }
-    return new TypeInferrerImplBenchmarked(
-        this,
-        uri,
-        false,
-        thisType,
-        library,
-        assignedVariables,
-        dataForTesting,
-        benchmarker!,
-        unknownFunctionNonNullable,
-        unknownFunctionLegacy);
+    return new TypeInferrerImplBenchmarked(this, uri, false, thisType, library,
+        assignedVariables, dataForTesting, benchmarker!, unknownFunction);
   }
 
   @override
@@ -405,28 +383,11 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
           new AssignedVariables<TreeNode, VariableDeclaration>();
     }
     if (benchmarker == null) {
-      return new TypeInferrerImpl(
-          this,
-          uri,
-          true,
-          thisType,
-          library,
-          assignedVariables,
-          dataForTesting,
-          unknownFunctionNonNullable,
-          unknownFunctionLegacy);
+      return new TypeInferrerImpl(this, uri, true, thisType, library,
+          assignedVariables, dataForTesting, unknownFunction);
     }
-    return new TypeInferrerImplBenchmarked(
-        this,
-        uri,
-        true,
-        thisType,
-        library,
-        assignedVariables,
-        dataForTesting,
-        benchmarker!,
-        unknownFunctionNonNullable,
-        unknownFunctionLegacy);
+    return new TypeInferrerImplBenchmarked(this, uri, true, thisType, library,
+        assignedVariables, dataForTesting, benchmarker!, unknownFunction);
   }
 }
 
@@ -469,10 +430,17 @@ class FlowAnalysisResult {
 
 /// CFE-specific implementation of [FlowAnalysisOperations].
 class OperationsCfe
-    implements TypeAnalyzerOperations<VariableDeclaration, DartType, DartType> {
+    implements
+        TypeAnalyzerOperations<VariableDeclaration, DartType, DartType,
+            StructuralParameter, TypeDeclarationType, TypeDeclaration> {
   final TypeEnvironment typeEnvironment;
 
-  final Nullability nullability;
+  /// The semantic value of  the omitted nullability for the library.
+  ///
+  /// Depending on the status of the library, the omitted nullability can be
+  /// either [Nullability.nonNullable] (for null-safe libraries) or
+  /// [Nullability.legacy] (for legacy libraries).
+  final Nullability omittedNullabilityValue;
 
   /// Information about which fields are promotable in this library.
   ///
@@ -490,14 +458,15 @@ class OperationsCfe
   final Map<DartType, DartType> typeCacheLegacy;
 
   OperationsCfe(this.typeEnvironment,
-      {required this.nullability,
+      {required this.omittedNullabilityValue,
       required this.fieldNonPromotabilityInfo,
       required this.typeCacheNonNullable,
       required this.typeCacheNullable,
       required this.typeCacheLegacy});
 
   @override
-  DartType get boolType => typeEnvironment.coreTypes.boolRawType(nullability);
+  DartType get boolType =>
+      typeEnvironment.coreTypes.boolRawType(omittedNullabilityValue);
 
   @override
   DartType get doubleType => throw new UnimplementedError('TODO(paulberry)');
@@ -528,19 +497,6 @@ class OperationsCfe
   DartType get unknownType => const UnknownType();
 
   @override
-  shared.RecordType<DartType>? asRecordType(DartType type) {
-    if (type is RecordType) {
-      return new shared.RecordType(
-          positional: type.positional,
-          named: type.named
-              .map((field) => (name: field.name, type: field.type))
-              .toList());
-    } else {
-      return null;
-    }
-  }
-
-  @override
   TypeClassification classifyType(DartType? type) {
     if (type == null) {
       // Note: this can happen during top-level inference.
@@ -558,13 +514,15 @@ class OperationsCfe
   @override
   NullabilitySuffix getNullabilitySuffix(DartType type) {
     if (isTypeWithoutNullabilityMarker(type,
-        isNonNullableByDefault: nullability == Nullability.nonNullable)) {
+        isNonNullableByDefault:
+            omittedNullabilityValue == Nullability.nonNullable)) {
       return NullabilitySuffix.none;
     } else if (isNullableTypeConstructorApplication(type)) {
       return NullabilitySuffix.question;
     } else {
       assert(isLegacyTypeConstructorApplication(type,
-          isNonNullableByDefault: nullability == Nullability.nonNullable));
+          isNonNullableByDefault:
+              omittedNullabilityValue == Nullability.nonNullable));
       return NullabilitySuffix.star;
     }
   }
@@ -650,10 +608,6 @@ class OperationsCfe
     }
     return fieldNonPromotabilityInfo.individualPropertyReasons[property];
   }
-
-  // TODO(cstefantsova): Consider checking for mutual subtypes instead of ==.
-  @override
-  bool isSameType(DartType type1, DartType type2) => type1 == type2;
 
   @override
   bool isSubtypeOf(DartType leftType, DartType rightType) {
@@ -755,12 +709,13 @@ class OperationsCfe
   @override
   DartType glb(DartType type1, DartType type2) {
     return typeEnvironment.getStandardLowerBound(type1, type2,
-        isNonNullableByDefault: nullability == Nullability.nonNullable);
+        isNonNullableByDefault:
+            omittedNullabilityValue == Nullability.nonNullable);
   }
 
   @override
   bool isAssignableTo(DartType fromType, DartType toType) {
-    if (nullability == Nullability.nonNullable) {
+    if (omittedNullabilityValue == Nullability.nonNullable) {
       if (fromType is DynamicType) return true;
       return typeEnvironment
           .performNullabilityAwareSubtypeCheck(fromType, toType)
@@ -772,12 +727,6 @@ class OperationsCfe
           .isSubtypeWhenIgnoringNullabilities();
     }
   }
-
-  @override
-  bool isDynamic(DartType type) => type is DynamicType;
-
-  @override
-  bool isError(DartType type) => type is InvalidType;
 
   @override
   bool isFunctionType(DartType type) => type is FunctionType;
@@ -797,15 +746,9 @@ class OperationsCfe
       isSubtypeOf(type, typeSchema);
 
   @override
-  bool isUnknownType(DartType typeSchema) => typeSchema is UnknownType;
-
-  @override
   bool isVariableFinal(VariableDeclaration node) {
     return node.isFinal;
   }
-
-  @override
-  bool isVoid(DartType type) => type is VoidType;
 
   @override
   DartType iterableTypeSchema(DartType elementTypeSchema) {
@@ -828,7 +771,8 @@ class OperationsCfe
   @override
   DartType lub(DartType type1, DartType type2) {
     return typeEnvironment.getStandardUpperBound(type1, type2,
-        isNonNullableByDefault: nullability == Nullability.nonNullable);
+        isNonNullableByDefault:
+            omittedNullabilityValue == Nullability.nonNullable);
   }
 
   @override
@@ -880,7 +824,8 @@ class OperationsCfe
     } else {
       TypeDeclarationType? mapType = typeEnvironment.getTypeAsInstanceOf(
           type, typeEnvironment.coreTypes.mapClass, typeEnvironment.coreTypes,
-          isNonNullableByDefault: nullability == Nullability.nonNullable);
+          isNonNullableByDefault:
+              omittedNullabilityValue == Nullability.nonNullable);
       if (mapType == null) {
         return null;
       } else {
@@ -909,12 +854,6 @@ class OperationsCfe
   }
 
   @override
-  bool areStructurallyEqual(DartType type1, DartType type2) {
-    // TODO(cstefantsova): Use the actual algorithm for structural equality.
-    return type1 == type2;
-  }
-
-  @override
   DartType normalize(DartType type) {
     return norm(typeEnvironment.coreTypes, type);
   }
@@ -928,7 +867,8 @@ class OperationsCfe
           type,
           typeEnvironment.coreTypes.iterableClass,
           typeEnvironment.coreTypes,
-          isNonNullableByDefault: nullability == Nullability.nonNullable);
+          isNonNullableByDefault:
+              omittedNullabilityValue == Nullability.nonNullable);
       if (interfaceType == null) {
         return null;
       } else {
@@ -977,11 +917,6 @@ class OperationsCfe
   DartType typeToSchema(DartType type) => type;
 
   @override
-  String getDisplayString(DartType type) {
-    return type.toText(const AstTextStrategy());
-  }
-
-  @override
   DartType typeSchemaLub(DartType typeSchema1, DartType typeSchema2) {
     return lub(typeSchema1, typeSchema2);
   }
@@ -1007,7 +942,8 @@ class OperationsCfe
     switch (modifier) {
       case NullabilitySuffix.none:
         return computeTypeWithoutNullabilityMarker(type,
-            isNonNullableByDefault: nullability == Nullability.nonNullable);
+            isNonNullableByDefault:
+                omittedNullabilityValue == Nullability.nonNullable);
       case NullabilitySuffix.question:
         return type.withDeclaredNullability(Nullability.nullable);
       case NullabilitySuffix.star:
@@ -1037,6 +973,59 @@ class OperationsCfe
   @override
   bool isNonNullable(DartType typeSchema) {
     return typeSchema.nullability == Nullability.nonNullable;
+  }
+
+  @override
+  StructuralParameter? matchInferableParameter(DartType type) {
+    if (type is StructuralParameterType) {
+      return type.parameter;
+    } else {
+      return null;
+    }
+  }
+
+  @override
+  InterfaceType futureType(DartType argumentType) {
+    return new InterfaceType(typeEnvironment.coreTypes.futureClass,
+        omittedNullabilityValue, <DartType>[argumentType]);
+  }
+
+  @override
+  TypeDeclarationMatchResult? matchTypeDeclarationType(DartType type) {
+    if (type is TypeDeclarationType) {
+      switch (type) {
+        case InterfaceType(:List<DartType> typeArguments, :Class classNode):
+          return new TypeDeclarationMatchResult(
+              typeDeclarationKind: TypeDeclarationKind.interfaceDeclaration,
+              typeDeclaration: classNode,
+              typeDeclarationType: type,
+              typeArguments: typeArguments);
+        case ExtensionType(
+            :List<DartType> typeArguments,
+            :ExtensionTypeDeclaration extensionTypeDeclaration
+          ):
+          return new TypeDeclarationMatchResult(
+              typeDeclarationKind: TypeDeclarationKind.extensionTypeDeclaration,
+              typeDeclaration: extensionTypeDeclaration,
+              typeDeclarationType: type,
+              typeArguments: typeArguments);
+      }
+    } else {
+      return null;
+    }
+  }
+
+  @override
+  Variance getTypeParameterVariance(
+      TypeDeclaration typeDeclaration, int parameterIndex) {
+    return typeDeclaration.typeParameters[parameterIndex].variance;
+  }
+
+  @override
+  bool isDartCoreFunction(DartType type) {
+    return omittedNullabilityValue == Nullability.nonNullable
+        ? (type == typeEnvironment.coreTypes.functionNonNullableRawType)
+        : (type == typeEnvironment.coreTypes.functionLegacyRawType);
   }
 }
 

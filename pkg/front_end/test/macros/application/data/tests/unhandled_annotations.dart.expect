@@ -123,7 +123,7 @@ constants  {
   #C5 = ann::AnnotationsMacro {object:#C4, additional:#C2}
   #C6 = <dynamic, dynamic>{}
   #C7 = ann::AnnotationsMacro {object:#C6, additional:#C2}
-  #C8 = <() →* void>{}
+  #C8 = <() → void>{}
   #C9 = ann::AnnotationsMacro {object:#C8, additional:#C2}
   #C10 = #a
   #C11 = ann::AnnotationsMacro {object:#C10, additional:#C2}
@@ -131,16 +131,16 @@ constants  {
   #C13 = ann::AnnotationsMacro {object:#C12, additional:#C2}
   #C14 = (#C12)
   #C15 = ann::AnnotationsMacro {object:#C14, additional:#C2}
-  #C16 = <(core::int*, {required a: core::String*})*>{}
+  #C16 = <(core::int, {required a: core::String})>{}
   #C17 = ann::AnnotationsMacro {object:#C16, additional:#C2}
   #C18 = true
   #C19 = ann::AnnotationsMacro {object:#C18, additional:#C2}
   #C20 = 3
   #C21 = ann::AnnotationsMacro {object:#C20, additional:#C2}
   #C22 = static-tearoff self::id
-  #C23 = instantiation #C22 <core::int*>
+  #C23 = instantiation #C22 <core::int>
   #C24 = ann::AnnotationsMacro {object:#C23, additional:#C2}
-  #C25 = TypeLiteralConstant(self::Class*)
+  #C25 = TypeLiteralConstant(self::Class)
   #C26 = ann::AnnotationsMacro {object:#C25, additional:#C2}
   #C27 = 2
 }

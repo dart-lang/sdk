@@ -21,7 +21,7 @@ void f(x) {
   if (x case int _ && double _) {}
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalAndPattern
   leftOperand: WildcardPattern
@@ -52,7 +52,7 @@ void f(x) {
   }
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalAndPattern
   leftOperand: WildcardPattern
@@ -83,7 +83,7 @@ void f() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 23, 1),
     ]);
-    final node = findNode.singlePatternVariableDeclarationStatement;
+    var node = findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration

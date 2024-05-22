@@ -69,7 +69,22 @@ abstract class ParserAstNode {
 
   ParserAstNode(this.what, this.type);
 
+  R accept<R>(ParserAstVisitor<R> v);
+
+  void visitChildren(ParserAstVisitor v) {
+    List<ParserAstNode>? children = this.children;
+    if (children == null) return;
+    for (ParserAstNode child in children) {
+      child.accept(v);
+    }
+  }
+
   // TODO(jensj): Compare two ASTs.
+}
+
+abstract class BeginAndEndTokenParserAstNode implements ParserAstNode {
+  Token get beginToken;
+  Token get endToken;
 }
 
 enum ParserAstType { BEGIN, END, HANDLE }
@@ -89,6 +104,20 @@ abstract class AbstractParserAstListener implements Listener {
   out.writeln("");
   out.write(listener.newClasses.toString());
 
+  out.write(r"abstract class ParserAstVisitor<R> {");
+  for (String name in listener.visitNames) {
+    out.write("  R $name;\n");
+  }
+  out.write(r"}");
+
+  out.write(r"class RecursiveParserAstVisitor "
+      "implements ParserAstVisitor<void> {");
+  for (String name in listener.visitNames) {
+    out.write("  @override\n");
+    out.write("  void $name => node.visitChildren(this);\n\n");
+  }
+  out.write(r"}");
+
   return new DartFormatter().format("$out");
 }
 
@@ -101,6 +130,7 @@ class ParserCreatorListener extends Listener {
   final List<Parameter> parameters = <Parameter>[];
   Token? formalParametersEnd;
   final StringBuffer newClasses = new StringBuffer();
+  final List<String> visitNames = [];
 
   ParserCreatorListener(this.out);
 
@@ -205,12 +235,19 @@ class ParserCreatorListener extends Listener {
         sb.write("$className data = new $className(");
         sb.write("ParserAstType.");
         sb.write(typeString);
+
+        Set<String> nonQuestionParametersSet = {};
+
         for (int i = 0; i < parameters.length; i++) {
           Parameter param = parameters[i];
           sb.write(', ');
           sb.write(param.name);
           sb.write(': ');
           sb.write(param.name);
+
+          if (!param.hasQuestion) {
+            nonQuestionParametersSet.add("${param.type} ${param.name}");
+          }
         }
 
         sb.write(");");
@@ -218,11 +255,26 @@ class ParserCreatorListener extends Listener {
         sb.write("seen(data);");
         sb.write("\n  ");
 
-        newClasses.write("class ${name}${typeStringCamel} "
-            "extends ParserAstNode {\n");
+        bool markBeginAndEndTokens = false;
+        if (nonQuestionParametersSet.contains("Token beginToken") &&
+            nonQuestionParametersSet.contains("Token endToken")) {
+          newClasses.write("class ${name}${typeStringCamel} "
+              "extends ParserAstNode "
+              "implements BeginAndEndTokenParserAstNode {\n");
+          markBeginAndEndTokens = true;
+        } else {
+          newClasses.write("class ${name}${typeStringCamel} "
+              "extends ParserAstNode {\n");
+        }
 
         for (int i = 0; i < parameters.length; i++) {
           Parameter param = parameters[i];
+          if (markBeginAndEndTokens &&
+              !param.hasQuestion &&
+              param.type == "Token" &&
+              (param.name == "beginToken" || param.name == "endToken")) {
+            newClasses.writeln("  @override");
+          }
           newClasses.write("  final ");
           newClasses.write(param.type);
           newClasses.write(param.hasQuestion ? '?' : '');
@@ -258,7 +310,13 @@ class ParserCreatorListener extends Listener {
           newClasses.write(param.name);
           newClasses.write(',');
         }
-        newClasses.write("};\n");
+        newClasses.write("};\n\n");
+
+        newClasses.write("@override\n");
+        newClasses.write("R accept<R>(ParserAstVisitor<R> v)");
+        newClasses.write(" => v.visit$className(this);\n");
+        visitNames.add("visit$className($className node)");
+
         newClasses.write("}\n");
       }
 

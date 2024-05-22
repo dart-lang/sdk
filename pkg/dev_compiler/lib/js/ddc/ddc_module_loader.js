@@ -537,7 +537,12 @@ if (!self.dart_library) {
       // Starts the subapps in their starting order.
       for (const subapp of dirtySubapps) {
         // Call the module loader to reload the necessary modules.
-        self.$dartReloadModifiedModules(subapp.appName, function () {
+        self.$dartReloadModifiedModules(subapp.appName, async function () {
+          // If the promise `readyToRunMain` is provided, then wait for
+          // it. This gives the debugging clients time to set any breakpoints.
+          if (!!(config && config.readyToRunMain)) {
+            await config.readyToRunMain;
+          }
           // Once the modules are loaded, rerun `main()`.
           start(
             subapp.appName, subapp.uuid, subapp.moduleName,

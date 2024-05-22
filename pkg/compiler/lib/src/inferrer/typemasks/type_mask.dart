@@ -337,13 +337,13 @@ abstract class TypeMask implements AbstractValue {
     return 'Unknown type mask $mask.';
   }
 
-  /// Returns a nullable variant of [this] type mask.
+  /// Returns a nullable variant of this [TypeMask].
   TypeMask nullable() => withFlags(isNullable: true);
 
-  /// Returns a non-nullable variant of [this] type mask.
+  /// Returns a non-nullable variant of this [TypeMask].
   TypeMask nonNullable() => withFlags(isNullable: false);
 
-  /// Returns a variant of [this] type mask whose value is neither `null` nor
+  /// Returns a variant of this [TypeMask] whose value is neither `null` nor
   /// the late sentinel.
   TypeMask withoutFlags() =>
       withFlags(isNullable: false, hasLateSentinel: false);
@@ -359,14 +359,14 @@ abstract class TypeMask implements AbstractValue {
   /// Whether the only possible value in this mask is Null.
   bool get isNull;
 
-  /// Whether [this] is a sentinel for an uninitialized late variable.
+  /// Whether this [TypeMask] is a sentinel for an uninitialized late variable.
   AbstractBool get isLateSentinel;
 
   /// Whether a late sentinel is a valid value of this mask.
   bool get hasLateSentinel => isLateSentinel.isPotentiallyTrue;
 
-  /// Whether [this] mask is empty or only represents values tracked by flags
-  /// (i.e. `null` and the late sentinel).
+  /// Whether this [TypeMask] is empty or only represents values tracked by
+  /// flags (i.e. `null` and the late sentinel).
   bool get isEmptyOrFlagged;
 
   /// Whether this mask only includes instances of an exact class, and none of
@@ -411,13 +411,15 @@ abstract class TypeMask implements AbstractValue {
   /// otherwise returns `null`.  This method is conservative.
   ClassEntity? singleClass(JClosedWorld closedWorld);
 
-  /// Returns a type mask representing the union of [this] and [other].
+  /// Returns a type mask representing the union of this [TypeMask] and
+  /// [other].
   TypeMask union(TypeMask other, CommonMasks domain);
 
   /// Returns whether the intersection of this and [other] is empty.
   bool isDisjoint(TypeMask other, JClosedWorld closedWorld);
 
-  /// Returns a type mask representing the intersection of [this] and [other].
+  /// Returns a type mask representing the intersection of this [TypeMask] and
+  /// [other].
   TypeMask intersection(TypeMask other, CommonMasks domain);
 
   /// Returns whether [element] is a potential target when being invoked on this

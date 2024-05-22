@@ -8,14 +8,15 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:devtools_shared/devtools_deeplink_io.dart';
+import 'package:devtools_shared/devtools_extensions.dart';
 import 'package:devtools_shared/devtools_extensions_io.dart';
 import 'package:devtools_shared/devtools_server.dart' hide Handler;
+import 'package:devtools_shared/devtools_shared.dart';
 import 'package:mime/mime.dart';
 import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart';
 import 'package:shelf_static/shelf_static.dart';
 import 'package:sse/server/sse_handler.dart';
-import 'package:unified_analytics/unified_analytics.dart';
 
 import '../constants.dart';
 import '../dds_impl.dart';
@@ -43,9 +44,9 @@ FutureOr<Handler> defaultHandler({
   DartDevelopmentServiceImpl? dds,
   required String buildDir,
   ClientManager? clientManager,
-  Analytics? analytics,
   Handler? notFoundHandler,
   DTDConnectionInfo? dtd,
+  required ExtensionsManager devtoolsExtensionsManager,
 }) {
   // When served through DDS, the app root is /devtools.
   // This variable is used in base href and must start and end with `/`
@@ -74,20 +75,34 @@ FutureOr<Handler> defaultHandler({
 
     final isExtensionRequest = pathSegments.safeGet(0) == extensionRequestPath;
     if (isExtensionRequest) {
-      final extensionName = pathSegments.safeGet(1);
-      if (extensionName != null) {
-        final extensionAssetPath = path.join(
-          buildDir,
-          path.joinAll(pathSegments),
-        );
-        final contentType = lookupMimeType(extensionAssetPath) ?? 'text/html';
-        final baseHref = '$appRoot$extensionRequestPath/$extensionName/';
-        return _serveStaticFile(
-          request,
-          File(extensionAssetPath),
-          contentType,
-          baseHref: baseHref,
-        );
+      // This identifier should be the extension name appended with its version.
+      final extensionIdentifier = pathSegments.safeGet(1);
+      if (extensionIdentifier != null) {
+        final extensionAssetsLocation =
+            devtoolsExtensionsManager.lookupLocationFor(extensionIdentifier);
+        if (extensionAssetsLocation != null) {
+          // Remove the first two elements (devtools_extensions/foo_1.0.0) to
+          // get the relative path to the extension asset.
+          final relativePathToExtensionAsset =
+              path.joinAll(pathSegments.sublist(2));
+
+          final assetPath = path.normalize(
+            path.join(extensionAssetsLocation, relativePathToExtensionAsset),
+          );
+          // Ensure the normalized path is still within the expected
+          // [extensionAssetsLocation] to protect against directory traversal.
+          if (path.isWithin(extensionAssetsLocation, assetPath)) {
+            final contentType = lookupMimeType(assetPath) ?? 'text/html';
+            final baseHref =
+                '$appRoot$extensionRequestPath/$extensionIdentifier/';
+            return _serveStaticFile(
+              request,
+              File(assetPath),
+              contentType,
+              baseHref: baseHref,
+            );
+          }
+        }
       }
     }
 
@@ -146,10 +161,9 @@ FutureOr<Handler> defaultHandler({
     }
     return ServerApi.handle(
       request,
-      extensionsManager: ExtensionsManager(buildDir: buildDir),
+      extensionsManager: devtoolsExtensionsManager,
       deeplinkManager: DeeplinkManager(),
       dtd: dtd,
-      analytics: analytics ?? NoOpAnalytics(),
     );
   }
 
@@ -191,7 +205,7 @@ Future<Response> _serveStaticFile(
         fileBytes = file.readAsBytesSync();
       } catch (e) {
         return Response.notFound(
-          'could not read file as bytes: ${file.path}',
+          'could not read file as bytes: ${request.url.path}',
         );
       }
     }
@@ -203,7 +217,7 @@ Future<Response> _serveStaticFile(
     contents = file.readAsStringSync();
   } catch (e) {
     return Response.notFound(
-      'could not read file as String: ${file.path}',
+      'could not read file as String: ${request.url.path}',
     );
   }
 

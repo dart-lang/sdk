@@ -351,7 +351,7 @@ class ParserTestListener implements Listener {
 
   @override
   void endExtensionDeclaration(Token beginToken, Token extensionKeyword,
-      Token onKeyword, Token endToken) {
+      Token? onKeyword, Token endToken) {
     indent--;
     seen(beginToken);
     seen(extensionKeyword);
@@ -365,23 +365,30 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void beginExtensionTypeDeclaration(Token extensionKeyword, Token name) {
+  void beginExtensionTypeDeclaration(
+      Token? augmentKeyword, Token extensionKeyword, Token name) {
+    seen(augmentKeyword);
     seen(extensionKeyword);
     seen(name);
-    doPrint('beginExtensionTypeDeclaration(' '$extensionKeyword, ' '$name)');
+    doPrint('beginExtensionTypeDeclaration('
+        '$augmentKeyword, '
+        '$extensionKeyword, '
+        '$name)');
     indent++;
   }
 
   @override
-  void endExtensionTypeDeclaration(Token beginToken, Token extensionKeyword,
-      Token typeKeyword, Token endToken) {
+  void endExtensionTypeDeclaration(Token beginToken, Token? augmentToken,
+      Token extensionKeyword, Token typeKeyword, Token endToken) {
     indent--;
     seen(beginToken);
+    seen(augmentToken);
     seen(extensionKeyword);
     seen(typeKeyword);
     seen(endToken);
     doPrint('endExtensionTypeDeclaration('
         '$beginToken, '
+        '$augmentToken, '
         '$extensionKeyword, '
         '$typeKeyword, '
         '$endToken)');
@@ -453,10 +460,10 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endConstLiteral(Token token) {
+  void endConstLiteral(Token endToken) {
     indent--;
-    seen(token);
-    doPrint('endConstLiteral(' '$token)');
+    seen(endToken);
+    doPrint('endConstLiteral(' '$endToken)');
   }
 
   @override
@@ -520,10 +527,10 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endWhileStatementBody(Token token) {
+  void endWhileStatementBody(Token endToken) {
     indent--;
-    seen(token);
-    doPrint('endWhileStatementBody(' '$token)');
+    seen(endToken);
+    doPrint('endWhileStatementBody(' '$endToken)');
   }
 
   @override
@@ -573,16 +580,20 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleEnumHeader(Token enumKeyword, Token leftBrace) {
+  void handleEnumHeader(
+      Token? augmentToken, Token enumKeyword, Token leftBrace) {
+    seen(augmentToken);
     seen(enumKeyword);
     seen(leftBrace);
-    doPrint('handleEnumHeader(' '$enumKeyword, ' '$leftBrace)');
+    doPrint(
+        'handleEnumHeader(' '$augmentToken, ' '$enumKeyword, ' '$leftBrace)');
   }
 
   @override
-  void handleEnumElement(Token beginToken) {
+  void handleEnumElement(Token beginToken, Token? augmentToken) {
     seen(beginToken);
-    doPrint('handleEnumElement(' '$beginToken)');
+    seen(augmentToken);
+    doPrint('handleEnumElement(' '$beginToken, ' '$augmentToken)');
   }
 
   @override
@@ -1017,10 +1028,10 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endForStatementBody(Token token) {
+  void endForStatementBody(Token endToken) {
     indent--;
-    seen(token);
-    doPrint('endForStatementBody(' '$token)');
+    seen(endToken);
+    doPrint('endForStatementBody(' '$endToken)');
   }
 
   @override
@@ -1068,10 +1079,10 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endForInBody(Token token) {
+  void endForInBody(Token endToken) {
     indent--;
-    seen(token);
-    doPrint('endForInBody(' '$token)');
+    seen(endToken);
+    doPrint('endForInBody(' '$endToken)');
   }
 
   @override
@@ -1152,12 +1163,18 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endTypedef(Token typedefKeyword, Token? equals, Token endToken) {
+  void endTypedef(Token? augmentToken, Token typedefKeyword, Token? equals,
+      Token endToken) {
     indent--;
+    seen(augmentToken);
     seen(typedefKeyword);
     seen(equals);
     seen(endToken);
-    doPrint('endTypedef(' '$typedefKeyword, ' '$equals, ' '$endToken)');
+    doPrint('endTypedef('
+        '$augmentToken, '
+        '$typedefKeyword, '
+        '$equals, '
+        '$endToken)');
   }
 
   @override
@@ -1423,11 +1440,11 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endFieldInitializer(Token assignment, Token token) {
+  void endFieldInitializer(Token assignment, Token endToken) {
     indent--;
     seen(assignment);
-    seen(token);
-    doPrint('endFieldInitializer(' '$assignment, ' '$token)');
+    seen(endToken);
+    doPrint('endFieldInitializer(' '$assignment, ' '$endToken)');
   }
 
   @override
@@ -1464,10 +1481,10 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endInitializer(Token token) {
+  void endInitializer(Token endToken) {
     indent--;
-    seen(token);
-    doPrint('endInitializer(' '$token)');
+    seen(endToken);
+    doPrint('endInitializer(' '$endToken)');
   }
 
   @override
@@ -1528,23 +1545,23 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void beginLibraryAugmentation(Token libraryKeyword, Token augmentKeyword) {
-    seen(libraryKeyword);
+  void beginLibraryAugmentation(Token augmentKeyword, Token libraryKeyword) {
     seen(augmentKeyword);
-    doPrint('beginLibraryAugmentation(' '$libraryKeyword, ' '$augmentKeyword)');
+    seen(libraryKeyword);
+    doPrint('beginLibraryAugmentation(' '$augmentKeyword, ' '$libraryKeyword)');
     indent++;
   }
 
   @override
   void endLibraryAugmentation(
-      Token libraryKeyword, Token augmentKeyword, Token semicolon) {
+      Token augmentKeyword, Token libraryKeyword, Token semicolon) {
     indent--;
-    seen(libraryKeyword);
     seen(augmentKeyword);
+    seen(libraryKeyword);
     seen(semicolon);
     doPrint('endLibraryAugmentation('
-        '$libraryKeyword, '
         '$augmentKeyword, '
+        '$libraryKeyword, '
         '$semicolon)');
   }
 
@@ -2057,10 +2074,10 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endTopLevelDeclaration(Token nextToken) {
+  void endTopLevelDeclaration(Token endToken) {
     indent--;
-    seen(nextToken);
-    doPrint('endTopLevelDeclaration(' '$nextToken)');
+    seen(endToken);
+    doPrint('endTopLevelDeclaration(' '$endToken)');
   }
 
   @override
@@ -2406,11 +2423,11 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endFunctionExpression(Token beginToken, Token token) {
+  void endFunctionExpression(Token beginToken, Token endToken) {
     indent--;
     seen(beginToken);
-    seen(token);
-    doPrint('endFunctionExpression(' '$beginToken, ' '$token)');
+    seen(endToken);
+    doPrint('endFunctionExpression(' '$beginToken, ' '$endToken)');
   }
 
   @override
@@ -2716,18 +2733,18 @@ class ParserTestListener implements Listener {
 
   @override
   void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
-      Token? commaToken, Token semicolonToken) {
+      Token? commaToken, Token endToken) {
     indent--;
     seen(assertKeyword);
     seen(leftParenthesis);
     seen(commaToken);
-    seen(semicolonToken);
+    seen(endToken);
     doPrint('endAssert('
         '$assertKeyword, '
         '$kind, '
         '$leftParenthesis, '
         '$commaToken, '
-        '$semicolonToken)');
+        '$endToken)');
   }
 
   @override

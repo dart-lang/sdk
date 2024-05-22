@@ -78,13 +78,6 @@ void JitCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     return;
   }
 
-  if ((op_kind == Token::kASSIGN_INDEX) && TryReplaceWithIndexedOp(instr)) {
-    return;
-  }
-  if ((op_kind == Token::kINDEX) && TryReplaceWithIndexedOp(instr)) {
-    return;
-  }
-
   if (op_kind == Token::kEQ && TryReplaceWithEqualityOp(instr, op_kind)) {
     return;
   }

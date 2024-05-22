@@ -13,15 +13,12 @@ class AddEnumConstant extends ResolvedCorrectionProducer {
   String _constantName = '';
 
   @override
-  // Not predictably the correct action.
-  bool get canBeAppliedInBulk => false;
+  CorrectionApplicability get applicability =>
+      // Not predictably the correct action.
+      CorrectionApplicability.singleLocation;
 
   @override
-  // Not predictably the correct action.
-  bool get canBeAppliedToFile => false;
-
-  @override
-  List<Object> get fixArguments => [_constantName];
+  List<String> get fixArguments => [_constantName];
 
   @override
   FixKind get fixKind => DartFixKind.ADD_ENUM_CONSTANT;

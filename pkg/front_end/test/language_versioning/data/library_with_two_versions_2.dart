@@ -4,9 +4,9 @@
 
 // With several versions where the first one is valid, the first one wins.
 
-// @dart = 2.5
-// @dart = 42.5
+// @dart = %VERSION_MARKER1%
+// @dart = %TOO_HIGH_VERSION_MARKER%
 
-/*library: languageVersion=2.5*/
+/*library: languageVersion=%VERSION_MARKER1%*/
 
 main() {}

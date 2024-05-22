@@ -11,10 +11,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveUnnecessaryWildcardPattern extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_UNNECESSARY_WILDCARD_PATTERN;
@@ -24,14 +22,14 @@ class RemoveUnnecessaryWildcardPattern extends ResolvedCorrectionProducer {
       DartFixKind.REMOVE_UNNECESSARY_WILDCARD_PATTERN_MULTI;
 
   DartPattern? get _wildcardOrParenthesized {
-    final wildcard = node;
+    var wildcard = node;
     if (wildcard is! WildcardPattern) {
       return null;
     }
 
     DartPattern result = wildcard;
     while (true) {
-      final parent = result.parent;
+      var parent = result.parent;
       if (parent is ParenthesizedPattern) {
         result = parent;
       } else {
@@ -42,12 +40,12 @@ class RemoveUnnecessaryWildcardPattern extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final wildcard = _wildcardOrParenthesized;
+    var wildcard = _wildcardOrParenthesized;
     if (wildcard == null) {
       return;
     }
 
-    final parent = wildcard.parent;
+    var parent = wildcard.parent;
 
     if (parent is LogicalAndPattern) {
       await builder.addDartFileEdit(file, (builder) {

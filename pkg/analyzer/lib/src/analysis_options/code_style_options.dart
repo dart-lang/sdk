@@ -36,7 +36,7 @@ class CodeStyleOptionsImpl implements CodeStyleOptions {
   bool get useRelativeUris => _isLintEnabled('prefer_relative_imports');
 
   @override
-  String preferredQuoteForUris(List<NamespaceDirective> directives) {
+  String preferredQuoteForUris(Iterable<NamespaceDirective> directives) {
     var lintQuote = _lintQuote();
     if (lintQuote != null) {
       return lintQuote;

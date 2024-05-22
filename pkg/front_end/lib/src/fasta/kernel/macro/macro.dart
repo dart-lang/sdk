@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:macros/macros.dart' as macro;
-import 'package:macros/src/executor.dart' as macro;
-import 'package:macros/src/executor/span.dart' as macro;
 import 'package:_fe_analyzer_shared/src/macros/uri.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:front_end/src/fasta/uri_offset.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:macros/macros.dart' as macro;
+import 'package:macros/src/executor.dart' as macro;
+import 'package:macros/src/executor/span.dart' as macro;
 
 import '../../../api_prototype/compiler_options.dart';
 import '../../../base/common.dart';
@@ -551,22 +551,34 @@ class MacroApplications {
           try {
             benchmarker?.beginSubdivide(BenchmarkSubdivides
                 .macroApplications_macroExecutorInstantiateMacro);
-            macro.MacroInstanceIdentifier instance =
-                application.instanceIdentifier = instanceIdCache[
-                        application] ??=
-                    // TODO: Dispose of these instances using
-                    // `macroExecutor.disposeMacro` once we are done with them.
-                    await macroExecutor.instantiateMacro(
-                        libraryUri,
-                        macroClassName,
-                        application.constructorName,
-                        application.arguments);
+            macro.MacroInstanceIdentifier? instance;
+            try {
+              instance = application.instanceIdentifier = instanceIdCache[
+                      application] ??=
+                  // TODO: Dispose of these instances using
+                  // `macroExecutor.disposeMacro` once we are done with them.
+                  await macroExecutor.instantiateMacro(
+                      libraryUri,
+                      macroClassName,
+                      application.constructorName,
+                      application.arguments);
+            } catch (_) {
+              applicationData.libraryBuilder.addProblem(
+                  messageUnsupportedMacroApplication,
+                  application.uriOffset.fileOffset,
+                  noLength,
+                  application.uriOffset.uri);
+            }
 
-            application.phasesToExecute = macro.Phase.values.where((phase) {
-              return instance.shouldExecute(targetDeclarationKind, phase);
-            }).toSet();
+            application.phasesToExecute = instance == null
+                ? {}
+                : macro.Phase.values.where((phase) {
+                    return instance!
+                        .shouldExecute(targetDeclarationKind, phase);
+                  }).toSet();
 
-            if (!instance.supportsDeclarationKind(targetDeclarationKind)) {
+            if (instance != null &&
+                !instance.supportsDeclarationKind(targetDeclarationKind)) {
               Iterable<macro.DeclarationKind> supportedKinds = macro
                   .DeclarationKind.values
                   .where(instance.supportsDeclarationKind);
@@ -1021,13 +1033,11 @@ class MacroApplications {
               enableNonNullable: true,
               enableTripleShift: true,
               forAugmentationLibrary: true));
-      component.uriToSource[augmentationFileUri] = new Source(
-          scannerResult.lineStarts,
-          source.codeUnits,
-          augmentationImportUri,
-          augmentationFileUri);
+      _sourceLoader.target.addSourceInformation(augmentationImportUri,
+          augmentationFileUri, scannerResult.lineStarts, source.codeUnits);
       for (Uri intermediateAugmentationUri in intermediateAugmentationUris) {
-        component.uriToSource.remove(intermediateAugmentationUri);
+        _sourceLoader.target
+            .removeSourceInformation(intermediateAugmentationUri);
       }
     }
 
@@ -1178,38 +1188,57 @@ extension on macro.MacroExecutionResult {
       MacroApplication macroApplication, ApplicationData applicationData) {
     // TODO(johnniwinther): Should the error be reported on the original
     //  annotation in case of nested macros?
-    UriOffset uriOffset = macroApplication.uriOffset;
+    UriOffset applicationUriOffset = macroApplication.uriOffset;
     for (macro.Diagnostic diagnostic in diagnostics) {
-      // TODO(johnniwinther): Improve diagnostic reporting.
-      switch (diagnostic.message.target) {
-        case null:
-          break;
-        case macro.DeclarationDiagnosticTarget(:macro.Declaration declaration):
-          uriOffset = introspection.getLocationFromDeclaration(declaration);
-        case macro.TypeAnnotationDiagnosticTarget(
-            :macro.TypeAnnotation typeAnnotation
-          ):
-          uriOffset = introspection.types
-                  .getLocationFromTypeAnnotation(typeAnnotation) ??
-              uriOffset;
-        case macro.MetadataAnnotationDiagnosticTarget():
-        // TODO(johnniwinther): Support metadata annotations.
-      }
+      UriOffset messageUriOffset = _computeUriOffsetForTarget(
+              introspection, diagnostic.message.target) ??
+          applicationUriOffset;
       applicationData.libraryBuilder.addProblem(
           templateUnspecified.withArguments(diagnostic.message.message),
-          uriOffset.fileOffset,
+          messageUriOffset.fileOffset,
           -1,
-          uriOffset.uri);
+          messageUriOffset.uri,
+          context: diagnostic.contextMessages
+              .map((d) =>
+                  _createLocatedMessage(introspection, messageUriOffset, d))
+              .toList());
     }
     if (exception != null) {
       // TODO(johnniwinther): Improve exception reporting.
       applicationData.libraryBuilder.addProblem(
           templateUnspecified.withArguments('${exception.runtimeType}: '
               '${exception!.message}\n${exception!.stackTrace}'),
-          uriOffset.fileOffset,
+          applicationUriOffset.fileOffset,
           -1,
-          uriOffset.uri);
+          applicationUriOffset.uri);
     }
+  }
+
+  UriOffset? _computeUriOffsetForTarget(
+      MacroIntrospection introspection, macro.DiagnosticTarget? target) {
+    switch (target) {
+      case null:
+        break;
+      case macro.DeclarationDiagnosticTarget(:macro.Declaration declaration):
+        return introspection.getLocationFromDeclaration(declaration);
+      case macro.TypeAnnotationDiagnosticTarget(
+          :macro.TypeAnnotation typeAnnotation
+        ):
+        return introspection.types
+            .getLocationFromTypeAnnotation(typeAnnotation);
+      case macro.MetadataAnnotationDiagnosticTarget():
+      // TODO(johnniwinther): Support metadata annotations.
+    }
+    return null;
+  }
+
+  LocatedMessage _createLocatedMessage(MacroIntrospection introspection,
+      UriOffset uriOffset, macro.DiagnosticMessage diagnosticMessage) {
+    UriOffset messageUriOffset =
+        _computeUriOffsetForTarget(introspection, diagnosticMessage.target) ??
+            uriOffset;
+    return new LocatedMessage(messageUriOffset.uri, messageUriOffset.fileOffset,
+        noLength, templateUnspecified.withArguments(diagnosticMessage.message));
   }
 }
 

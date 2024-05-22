@@ -1,6 +1,4 @@
-// @dart = 2.9
-
-Map<K, V> bar<K, V>() => null;
+Map<K, V> bar<K, V>() => throw '';
 
 foo(dynamic dynVar) {}
 

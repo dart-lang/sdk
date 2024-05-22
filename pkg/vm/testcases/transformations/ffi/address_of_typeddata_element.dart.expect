@@ -1,0 +1,35 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "dart:ffi" as ffi;
+import "dart:typed_data" as typ;
+
+import "dart:ffi";
+import "dart:typed_data";
+
+final class SomeClass extends core::Object {
+  synthetic constructor •() → self::SomeClass
+    : super core::Object::•()
+    ;
+  @#C6
+  @#C8
+  external static method myNative(ffi::Pointer<ffi::Int8> pointer, ffi::Pointer<ffi::Int8> pointer2) → core::int;
+  @#C6
+  @#C8
+  external static method myNative#CC(ffi::_Compound pointer, ffi::_Compound pointer2) → core::int;
+}
+static method main() → void {
+  final typ::Int8List typedData = typ::Int8List::•(20);
+  self::SomeClass::myNative#CC(new ffi::_Compound::_fromTypedDataBase(typedData, #C9.{core::num::*}(3){(core::num) → core::num}), new ffi::_Compound::_fromTypedDataBase(typedData, #C9.{core::num::*}(8){(core::num) → core::num}));
+}
+constants  {
+  #C1 = "cfe:ffi:native-marker"
+  #C2 = "myNative"
+  #C3 = "#lib"
+  #C4 = true
+  #C5 = ffi::Native<(ffi::Pointer<ffi::Int8>, ffi::Pointer<ffi::Int8>) → ffi::Int8> {symbol:#C2, assetId:#C3, isLeaf:#C4}
+  #C6 = core::pragma {name:#C1, options:#C5}
+  #C7 = "vm:ffi:native"
+  #C8 = core::pragma {name:#C7, options:#C5}
+  #C9 = 1
+}

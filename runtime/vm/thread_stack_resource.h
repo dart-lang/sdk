@@ -36,7 +36,7 @@ template <typename T, typename... Args>
 class AsThreadStackResource : public ThreadStackResource {
  public:
   static_assert(!std::is_base_of<StackResource, T>::value);
-  AsThreadStackResource(Thread* thread, Args&&... args)
+  explicit AsThreadStackResource(Thread* thread, Args&&... args)
       : ThreadStackResource(thread),
         member_(thread, std::forward<Args>(args)...) {}
   ~AsThreadStackResource() {}

@@ -112,7 +112,7 @@ void f() {
   }
 
   Future<void> test_BUILT_IN_augment_onClass() async {
-    final testCode = TestCode.parse(r'''
+    var testCode = TestCode.parse(r'''
 augment class A {}
 ''');
     addTestFile(testCode.code);
@@ -138,15 +138,6 @@ class C {
   Future<void> test_BUILT_IN_augment_onEnum() async {
     addTestFile('''
 augment enum E {a, b}
-''');
-    await prepareHighlights();
-    assertHasRegion(HighlightRegionType.BUILT_IN, 'augment');
-  }
-
-  @SkippedTest(reason: 'The token is not supported')
-  Future<void> test_BUILT_IN_augment_onExtension() async {
-    addTestFile('''
-augment extension on int {}
 ''');
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.BUILT_IN, 'augment');
@@ -193,7 +184,7 @@ class C {
 
   Future<void> test_BUILT_IN_augment_onLibrary() async {
     addTestFile('''
-library augment 'a.dart';
+augment library 'a.dart';
 ''');
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.BUILT_IN, 'library');
@@ -733,7 +724,7 @@ class A {
   }
 
   Future<void> test_class_macroKeyword() async {
-    final testCode = TestCode.parse(r'''
+    var testCode = TestCode.parse(r'''
 macro class A {}
 ''');
     addTestFile(testCode.code);
@@ -1254,8 +1245,36 @@ void f() {
     assertHasRegion(HighlightRegionType.EXTENSION, 'E.bar()');
   }
 
+  Future<void> test_extension_augment() async {
+    var testCode = TestCode.parse(r'''
+augment extension E {}
+''');
+    addTestFile(testCode.code);
+    await prepareHighlights();
+    assertHighlightText(testCode, -1, r'''
+0 + 7 |augment| BUILT_IN
+8 + 9 |extension| KEYWORD
+18 + 1 |E| EXTENSION
+''');
+  }
+
+  Future<void> test_extension_augment_hasOnClause() async {
+    var testCode = TestCode.parse(r'''
+augment extension E on int {}
+''');
+    addTestFile(testCode.code);
+    await prepareHighlights();
+    assertHighlightText(testCode, -1, r'''
+0 + 7 |augment| BUILT_IN
+8 + 9 |extension| KEYWORD
+18 + 1 |E| EXTENSION
+20 + 2 |on| BUILT_IN
+23 + 3 |int| CLASS
+''');
+  }
+
   Future<void> test_extensionType() async {
-    final testCode = TestCode.parse(r'''
+    var testCode = TestCode.parse(r'''
 extension type const A<T>.named(int it) implements num {}
 ''');
     addTestFile(testCode.code);
@@ -1440,7 +1459,7 @@ class A {
   }
 
   Future<void> test_instanceCreation_class() async {
-    final testCode = TestCode.parse(r'''
+    var testCode = TestCode.parse(r'''
 class A {
   A.named(int it);
 }
@@ -1458,7 +1477,7 @@ void f() {
   }
 
   Future<void> test_instanceCreation_extensionType() async {
-    final testCode = TestCode.parse(r'''
+    var testCode = TestCode.parse(r'''
 extension type A.named(T it) {}
 void f() {
   [!A.named(0)!];
@@ -1849,7 +1868,7 @@ void g() {
   }
 
   Future<void> test_namedType_extensionType() async {
-    final testCode = TestCode.parse(r'''
+    var testCode = TestCode.parse(r'''
 extension type A<T>(T it) {}
 void f([!A<int>!] a) {}
 ''');
@@ -1970,7 +1989,7 @@ void f(Object o) {
   }
 
   Future<void> test_propertyAccess_extensionTypeName() async {
-    final testCode = TestCode.parse(r'''
+    var testCode = TestCode.parse(r'''
 extension type A.named(T it) {
   static const V = 0;
 }
@@ -2027,7 +2046,7 @@ void f((int, {int field1}) record) {
   }
 
   Future<void> test_recordTypeLiteral_named() async {
-    final code = '(0, f1: 1, f2: 2)';
+    var code = '(0, f1: 1, f2: 2)';
     addTestFile('''
 final r = $code;
 ''');

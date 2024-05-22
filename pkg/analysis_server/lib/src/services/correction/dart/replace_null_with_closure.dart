@@ -13,10 +13,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceNullWithClosure extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_NULL_WITH_CLOSURE;
@@ -29,7 +27,7 @@ class ReplaceNullWithClosure extends ResolvedCorrectionProducer {
     AstNode? nodeToFix;
     var parameters = const <ParameterElement>[];
 
-    final coveredNode = this.coveredNode;
+    var coveredNode = this.coveredNode;
     if (coveredNode is NamedExpression) {
       var expression = coveredNode.expression;
       if (expression is NullLiteral) {
@@ -50,7 +48,7 @@ class ReplaceNullWithClosure extends ResolvedCorrectionProducer {
       return;
     }
 
-    final nodeToFix_final = nodeToFix;
+    var nodeToFix_final = nodeToFix;
     await builder.addDartFileEdit(file, (builder) {
       builder.addReplacement(range.node(nodeToFix_final), (builder) {
         builder.writeParameters(parameters);

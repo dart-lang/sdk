@@ -1,0 +1,36 @@
+library;
+import self as self;
+import "issue51823_lib.dart" as iss;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///issue51823_lib.dart";
+
+static const field iss::E a = const core::bool::fromEnvironment("foo") ?{iss::E} iss::E::a : iss::E::b;
+
+library;
+import self as iss;
+import "dart:core" as core;
+
+class E extends core::_Enum /*isEnum*/  {
+  static const field core::List<iss::E> values = const <iss::E>[iss::E::a, iss::E::b];
+  enum-element static const field iss::E a = const iss::E::•(0, "a");
+  enum-element static const field iss::E b = const iss::E::•(1, "b");
+  const synthetic constructor •(core::int #index, core::String #name) → iss::E
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "E.${this.{core::_Enum::_name}{core::String}}";
+}
+static method method(iss::E e) → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated with empty environment: ConditionalExpression @ org-dartlang-testcase:///issue51823.dart:7:45 -> InstanceConstant(const E{_Enum.index: 1.0, _Enum._name: "b"})
+Evaluated with empty environment: FactoryConstructorInvocation @ org-dartlang-testcase:///issue51823.dart:7:17 -> BoolConstant(false)
+Evaluated: StaticGet @ org-dartlang-testcase:///issue51823.dart:7:49 -> InstanceConstant(const E{_Enum.index: 0.0, _Enum._name: "a"})
+Evaluated: StaticGet @ org-dartlang-testcase:///issue51823.dart:7:55 -> InstanceConstant(const E{_Enum.index: 1.0, _Enum._name: "b"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue51823_lib.dart:5:6 -> ListConstant(const <E>[const E{_Enum.index: 0.0, _Enum._name: "a"}, const E{_Enum.index: 1.0, _Enum._name: "b"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue51823_lib.dart:5:10 -> InstanceConstant(const E{_Enum.index: 0.0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue51823_lib.dart:5:13 -> InstanceConstant(const E{_Enum.index: 1.0, _Enum._name: "b"})
+Extra constant evaluation: evaluated: 12, effectively constant: 7

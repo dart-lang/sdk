@@ -1173,6 +1173,18 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
   }
 
   @override
+  HInstruction visitSubtract(HSubtract node) {
+    HInstruction left = node.left;
+    HInstruction right = node.right;
+    if (right is HConstant) {
+      final constant = right.constant;
+      // Rewrite `a - 0` to `a`, provided the zero is not negative zero.
+      if (constant.isZero && !constant.isMinusZero) return left;
+    }
+    return super.visitSubtract(node);
+  }
+
+  @override
   HInstruction visitMultiply(HMultiply node) {
     HInstruction left = node.left;
     HInstruction right = node.right;
@@ -4242,7 +4254,8 @@ class MemorySet {
     }
   }
 
-  /// Returns the intersection between [this] and the [other] memory set.
+  /// Returns the intersection between this [MemorySet] and the [other] memory
+  /// set.
   MemorySet intersectionFor(
       MemorySet? other, HBasicBlock block, int predecessorIndex) {
     MemorySet result = MemorySet(closedWorld);
@@ -4323,7 +4336,7 @@ class MemorySet {
     return result;
   }
 
-  /// Returns a copy of [this] memory set.
+  /// Returns a copy of this [MemorySet].
   MemorySet clone() {
     MemorySet result = MemorySet(closedWorld);
 
@@ -4339,7 +4352,7 @@ class MemorySet {
     return result;
   }
 
-  /// Returns a copy of [this] memory set, removing any expressions that are not
+  /// Returns a copy of this [MemorySet], removing any expressions that are not
   /// valid in [block].
   MemorySet cloneIfDominatesBlock(HBasicBlock block) {
     bool instructionDominatesBlock(HInstruction? instruction) {

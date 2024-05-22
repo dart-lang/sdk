@@ -13,6 +13,11 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class SplitVariableDeclaration extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   AssistKind get assistKind => DartAssistKind.SPLIT_VARIABLE_DECLARATION;
 
   @override
@@ -53,7 +58,7 @@ class SplitVariableDeclaration extends ResolvedCorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       if (variableList.type == null) {
-        final type = variable.declaredElement!.type;
+        var type = variable.declaredElement!.type;
         if (type is! DynamicType && keyword != null) {
           if (!builder.canWriteType(type)) {
             return;

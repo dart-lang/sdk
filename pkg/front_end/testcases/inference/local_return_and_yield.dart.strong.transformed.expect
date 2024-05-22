@@ -1,12 +1,8 @@
-library test /*isLegacy*/;
+library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/local_return_and_yield.dart:5:1: Error: Library doesn't support null safety.
-// // @dart=2.9
-// ^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/inference/local_return_and_yield.dart:21:38: Error: A value of type 'Future<dynamic Function(dynamic)>' can't be assigned to a variable of type 'FutureOr<int Function(int)>'.
+// pkg/front_end/testcases/inference/local_return_and_yield.dart:19:38: Error: A value of type 'dynamic Function(dynamic)' can't be returned from an async function with return type 'Future<int Function(int)>'.
 //  - 'Future' is from 'dart:async'.
 //     return /*@ returnType=dynamic */ (/*@ type=dynamic */ x) => x;
 //                                      ^
@@ -17,27 +13,27 @@ import "dart:async" as asy;
 
 import "dart:async";
 
-typedef IntToInt = (core::int*) →* core::int*;
+typedef IntToInt = (core::int) → core::int;
 static method main() → dynamic {
-  function a() → (core::int*) →* core::int* {
-    return (core::int* x) → core::int* => x;
+  function a() → (core::int) → core::int {
+    return (core::int x) → core::int => x;
   }
-  function b() → asy::Future<(core::int*) →* core::int*>* async /* emittedValueType= (core::int*) →* core::int* */ {
-    return invalid-expression "pkg/front_end/testcases/inference/local_return_and_yield.dart:21:38: Error: A value of type 'Future<dynamic Function(dynamic)>' can't be assigned to a variable of type 'FutureOr<int Function(int)>'.
+  function b() → asy::Future<(core::int) → core::int> async /* emittedValueType= (core::int) → core::int */ {
+    return invalid-expression "pkg/front_end/testcases/inference/local_return_and_yield.dart:19:38: Error: A value of type 'dynamic Function(dynamic)' can't be returned from an async function with return type 'Future<int Function(int)>'.
  - 'Future' is from 'dart:async'.
     return /*@ returnType=dynamic */ (/*@ type=dynamic */ x) => x;
-                                     ^" in ((dynamic x) → dynamic => x) as{TypeError,ForLegacy} FutureOr<(core::int*) →* core::int*>*;
+                                     ^" in ((dynamic x) → dynamic => x) as{TypeError} (core::int) → core::int;
   }
-  function c() → core::Iterable<(core::int*) →* core::int*>* sync* /* emittedValueType= (core::int*) →* core::int* */ {
-    yield(core::int* x) → core::int* => x;
+  function c() → core::Iterable<(core::int) → core::int> sync* /* emittedValueType= (core::int) → core::int */ {
+    yield(core::int x) → core::int => x;
   }
-  function d() → core::Iterable<(core::int*) →* core::int*>* sync* /* emittedValueType= (core::int*) →* core::int* */ {
-    yield* core::_GrowableList::_literal1<(core::int*) →* core::int*>((core::int* x) → core::int* => x);
+  function d() → core::Iterable<(core::int) → core::int> sync* /* emittedValueType= (core::int) → core::int */ {
+    yield* core::_GrowableList::_literal1<(core::int) → core::int>((core::int x) → core::int => x);
   }
-  function e() → asy::Stream<(core::int*) →* core::int*>* async* /* emittedValueType= (core::int*) →* core::int* */ {
-    yield(core::int* x) → core::int* => x;
+  function e() → asy::Stream<(core::int) → core::int> async* /* emittedValueType= (core::int) → core::int */ {
+    yield(core::int x) → core::int => x;
   }
-  function f() → asy::Stream<(core::int*) →* core::int*>* async* /* emittedValueType= (core::int*) →* core::int* */ {
-    yield* asy::Stream::fromIterable<(core::int*) →* core::int*>(core::_GrowableList::_literal1<(core::int*) →* core::int*>((core::int* x) → core::int* => x));
+  function f() → asy::Stream<(core::int) → core::int> async* /* emittedValueType= (core::int) → core::int */ {
+    yield* asy::Stream::fromIterable<(core::int) → core::int>(core::_GrowableList::_literal1<(core::int) → core::int>((core::int x) → core::int => x));
   }
 }

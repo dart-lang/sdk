@@ -10,19 +10,19 @@ import 'package:analyzer/dart/element/type.dart';
 import '../analyzer.dart';
 import '../extensions.dart';
 
-const _desc = r"Don't explicitly initialize variables to null.";
+const _desc = r"Don't explicitly initialize variables to `null`.";
 
 const _details = r'''
 From [Effective Dart](https://dart.dev/effective-dart/usage#dont-explicitly-initialize-variables-to-null):
 
 **DON'T** explicitly initialize variables to `null`.
 
-If a variable has a non-nullable type or is `final`, 
+If a variable has a non-nullable type or is `final`,
 Dart reports a compile error if you try to use it
-before it has been definitely initialized. 
-If the variable is nullable and not `const` or `final`, 
-then it is implicitly initialized to `null` for you. 
-There's no concept of "uninitialized memory" in Dart 
+before it has been definitely initialized.
+If the variable is nullable and not `const` or `final`,
+then it is implicitly initialized to `null` for you.
+There's no concept of "uninitialized memory" in Dart
 and no need to explicitly initialize a variable to `null` to be "safe".
 Adding `= null` is redundant and unneeded.
 

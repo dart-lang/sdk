@@ -14,7 +14,9 @@ final _environmentRegExp = RegExp(r"// Environment=(.*)");
 final _packagesRegExp = RegExp(r"// Packages=(.*)");
 final _experimentRegExp = RegExp(r"^--enable-experiment=([a-z0-9,-]+)$");
 final _localFileRegExp = RegExp(
-    r"""^\s*(?:import(?: augment)?|part) ['"](?!package:|dart:)(.*)['"];""",
+    r"""^\s*(?:import(?: augment)?|part) """
+    r"""['"](?!package:|dart:)(.*)['"]"""
+    r"""(?: deferred as \w+)?;""",
     multiLine: true);
 
 List<String> _splitWords(String s) =>

@@ -56,6 +56,8 @@ import '../fasta/codes/fasta_codes.dart'
         templateCantReadFile,
         templateDebugTrace,
         templateExceptionReadingFile,
+        templateExperimentExpiredDisabled,
+        templateExperimentExpiredEnabled,
         templateInputFileNotFound,
         templateInternalProblemUnsupported,
         templatePackagesFileFormat,
@@ -243,9 +245,6 @@ class ProcessedOptions {
   void report(LocatedMessage message, Severity severity,
       {List<LocatedMessage>? context, List<Uri>? involvedFiles}) {
     if (command_line_reporting.isHidden(severity)) return;
-    if (command_line_reporting.isCompileTimeError(severity)) {
-      CompilerContext.current.logError(message, severity);
-    }
     if (CompilerContext.current.options.setExitCodeOnProblem) {
       exitCode = 1;
     }
@@ -268,7 +267,7 @@ class ProcessedOptions {
   }
 
   void reportDiagnosticMessage(DiagnosticMessage message) {
-    (_raw.onDiagnostic ?? _defaultDiagnosticMessageHandler)(message);
+    (_raw.onDiagnostic ?? defaultDiagnosticMessageHandler)(message);
   }
 
   /// Returns [error] as a message from the OS.
@@ -280,7 +279,7 @@ class ProcessedOptions {
     return '$error';
   }
 
-  void _defaultDiagnosticMessageHandler(DiagnosticMessage message) {
+  void defaultDiagnosticMessageHandler(DiagnosticMessage message) {
     if (Verbosity.shouldPrint(_raw.verbosity, message)) {
       printDiagnosticMessage(message, print);
     }
@@ -307,9 +306,16 @@ class ProcessedOptions {
     }
   }
 
+  /// Returns `true` if the options have been validated.
+  bool get haveBeenValidated => _validated;
+
+  bool _validated = false;
+
   /// Runs various validations checks on the input options. For instance,
   /// if an option is a path to a file, it checks that the file exists.
   Future<bool> validateOptions({bool errorOnMissingInput = true}) async {
+    _validated = true;
+
     if (verbose) print(debugString());
 
     if (errorOnMissingInput && inputs.isEmpty) {
@@ -344,6 +350,27 @@ class ProcessedOptions {
       if (!await fileSystem.entityForUri(source).exists()) {
         reportWithoutLocation(
             templateInputFileNotFound.withArguments(source), Severity.error);
+        return false;
+      }
+    }
+
+    for (MapEntry<flags.ExperimentalFlag, bool> entry
+        in _raw.explicitExperimentalFlags.entries) {
+      flags.ExperimentalFlag experimentalFlag = entry.key;
+      bool value = entry.value;
+      if (experimentalFlag.isExpired &&
+          value != experimentalFlag.isEnabledByDefault) {
+        if (value) {
+          reportWithoutLocation(
+              templateExperimentExpiredEnabled
+                  .withArguments(experimentalFlag.name),
+              Severity.error);
+        } else {
+          reportWithoutLocation(
+              templateExperimentExpiredDisabled
+                  .withArguments(experimentalFlag.name),
+              Severity.error);
+        }
         return false;
       }
     }
@@ -882,6 +909,14 @@ class ProcessedOptions {
   Future<void> dispose() async {
     await _raw.macroExecutor?.closeAndReset();
     await macroSerializer.close();
+  }
+
+  bool equivalent(ProcessedOptions other,
+      {bool ignoreOnDiagnostic = true,
+      bool ignoreVerbose = true,
+      bool ignoreVerify = true,
+      bool ignoreDebugDump = true}) {
+    return _raw.equivalent(other._raw);
   }
 }
 

@@ -77,43 +77,6 @@ abstract class StackListenerImpl extends StackListener {
     return problems.unhandled(what, where, charOffset, uri);
   }
 
-  void reportMissingNonNullableSupport(Token token) {
-    assert(!libraryBuilder.isNonNullableByDefault);
-    if (libraryFeatures.nonNullable.isSupported) {
-      if (libraryBuilder.languageVersion.isExplicit) {
-        addProblem(
-            templateNullSafetyOptOutExplicit.withArguments(
-                libraryFeatures.nonNullable.enabledVersion.toText()),
-            token.charOffset,
-            token.charCount,
-            context: <LocatedMessage>[
-              messageNullSafetyOptOutComment.withLocation(
-                  libraryBuilder.languageVersion.fileUri!,
-                  libraryBuilder.languageVersion.charOffset,
-                  libraryBuilder.languageVersion.charCount)
-            ]);
-      } else {
-        addProblem(
-            templateNullSafetyOptOutImplicit.withArguments(
-                libraryFeatures.nonNullable.enabledVersion.toText()),
-            token.charOffset,
-            token.charCount);
-      }
-    } else {
-      if (libraryBuilder.languageVersion.version <
-          libraryFeatures.nonNullable.enabledVersion) {
-        addProblem(
-            templateNullSafetyDisabledInvalidLanguageVersion.withArguments(
-                libraryFeatures.nonNullable.enabledVersion.toText()),
-            token.offset,
-            noLength);
-      } else {
-        addProblem(templateExperimentDisabled.withArguments('non-nullable'),
-            token.offset, noLength);
-      }
-    }
-  }
-
   /// Reports an error if [feature] is not enabled, using [charOffset] and
   /// [length] for the location of the message.
   ///
@@ -124,23 +87,6 @@ abstract class StackListenerImpl extends StackListener {
       return true;
     }
     return false;
-  }
-
-  void reportErrorIfNullableType(Token? questionMark) {
-    if (questionMark != null) {
-      reportMissingNonNullableSupport(questionMark);
-    }
-  }
-
-  void reportNonNullableModifierError(Token? modifierToken) {
-    assert(!libraryBuilder.isNonNullableByDefault);
-    if (modifierToken != null) {
-      reportMissingNonNullableSupport(modifierToken);
-    }
-  }
-
-  void reportNonNullAssertExpressionNotEnabled(Token bang) {
-    reportMissingNonNullableSupport(bang);
   }
 
   @override

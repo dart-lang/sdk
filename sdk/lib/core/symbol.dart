@@ -52,7 +52,7 @@ abstract class Symbol {
   /// assert(Symbol("foo") == #foo);
   /// assert(identical(const Symbol("foo"), const Symbol("foo")));
   /// assert(identical(const Symbol("foo"), #foo));
-  /// assert(Symbol("[]=") == #[]=]);
+  /// assert(Symbol("[]=") == #[]=);
   /// assert(identical(const Symbol("[]="), #[]=));
   /// assert(Symbol("foo.bar") == #foo.bar);
   /// assert(identical(const Symbol("foo.bar"), #foo.bar));

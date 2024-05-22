@@ -12,7 +12,12 @@ class MakeClassAbstract extends ResolvedCorrectionProducer {
   String _className = '';
 
   @override
-  List<Object> get fixArguments => [_className];
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments => [_className];
 
   @override
   FixKind get fixKind => DartFixKind.MAKE_CLASS_ABSTRACT;

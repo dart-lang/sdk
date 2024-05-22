@@ -1,0 +1,225 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extension_types/issue54097.dart:9:28: Error: Type 'X' can't use itself as a bound.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+// typedef G1 = void Function<X extends E1<X>>(); // Error.
+//                            ^
+//
+// pkg/front_end/testcases/extension_types/issue54097.dart:23:28: Error: Type 'X' is a bound of itself via 'Y'.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+// typedef G2 = void Function<X extends E1<Y>, Y extends X>(); // Error.
+//                            ^
+//
+// pkg/front_end/testcases/extension_types/issue54097.dart:7:10: Error: Type 'X' can't use itself as a bound.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+// class A1<X extends E1<X>> {} // Error.
+//          ^
+//
+// pkg/front_end/testcases/extension_types/issue54097.dart:8:12: Error: Type 'X' can't use itself as a bound.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+// typedef F1<X extends E1<X>> = int; // Error.
+//            ^
+//
+// pkg/front_end/testcases/extension_types/issue54097.dart:10:17: Error: Type 'X' can't use itself as a bound.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+// typedef void H1<X extends E1<X>>(); // Error.
+//                 ^
+//
+// pkg/front_end/testcases/extension_types/issue54097.dart:11:16: Error: Type 'X' can't use itself as a bound.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+// extension Ext1<X extends E1<X>> on List<X> {} // Error.
+//                ^
+//
+// pkg/front_end/testcases/extension_types/issue54097.dart:12:12: Error: Type 'X' can't use itself as a bound.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+// enum Enum1<X extends E1<X>> { element<Never>(); } // Error.
+//            ^
+//
+// pkg/front_end/testcases/extension_types/issue54097.dart:13:6: Error: Type 'X' can't use itself as a bound.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+// foo1<X extends E1<X>>() {} // Error.
+//      ^
+//
+// pkg/front_end/testcases/extension_types/issue54097.dart:14:10: Error: Type 'X' can't use itself as a bound.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+// mixin M1<X extends E1<X>> on List<num> {} // Error.
+//          ^
+//
+// pkg/front_end/testcases/extension_types/issue54097.dart:19:20: Error: Type 'X' can't use itself as a bound.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+// extension type ET1<X extends E1<X>>(Object? it) {} // Error.
+//                    ^
+//
+// pkg/front_end/testcases/extension_types/issue54097.dart:21:10: Error: Type 'X' is a bound of itself via 'Y'.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+// class A2<X extends E1<Y>, Y extends X> {} // Error.
+//          ^
+//
+// pkg/front_end/testcases/extension_types/issue54097.dart:22:12: Error: Type 'X' is a bound of itself via 'Y'.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+// typedef F2<X extends E1<Y>, Y extends X> = int; // Error.
+//            ^
+//
+// pkg/front_end/testcases/extension_types/issue54097.dart:24:17: Error: Type 'X' is a bound of itself via 'Y'.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+// typedef void H2<X extends E1<Y>, Y extends X>(); // Error.
+//                 ^
+//
+// pkg/front_end/testcases/extension_types/issue54097.dart:25:16: Error: Type 'X' is a bound of itself via 'Y'.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+// extension Ext2<X extends E1<Y>, Y extends X> on List<X> {} // Error.
+//                ^
+//
+// pkg/front_end/testcases/extension_types/issue54097.dart:26:12: Error: Type 'X' is a bound of itself via 'Y'.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+// enum Enum2<X extends E1<Y>, Y extends X> { element<Never, Never>(); } // Error.
+//            ^
+//
+// pkg/front_end/testcases/extension_types/issue54097.dart:27:6: Error: Type 'X' is a bound of itself via 'Y'.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+// foo2<X extends E1<Y>, Y extends X>() {} // Error.
+//      ^
+//
+// pkg/front_end/testcases/extension_types/issue54097.dart:28:10: Error: Type 'X' is a bound of itself via 'Y'.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+// mixin M2<X extends E1<Y>, Y extends X> on List<num> {} // Error.
+//          ^
+//
+// pkg/front_end/testcases/extension_types/issue54097.dart:33:20: Error: Type 'X' is a bound of itself via 'Y'.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+// extension type ET2<X extends E1<Y>, Y extends X>(Object? it) {} // Error.
+//                    ^
+//
+// pkg/front_end/testcases/extension_types/issue54097.dart:16:12: Error: Type 'X' can't use itself as a bound.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+//   var x = <X extends E1<X>>() {}; // Error.
+//            ^
+//
+// pkg/front_end/testcases/extension_types/issue54097.dart:17:5: Error: Type 'X' can't use itself as a bound.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+//   f<X extends E1<X>>() {}; // Error.
+//     ^
+//
+// pkg/front_end/testcases/extension_types/issue54097.dart:30:12: Error: Type 'X' is a bound of itself via 'Y'.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+//   var x = <X extends E1<Y>, Y extends X>() {}; // Error.
+//            ^
+//
+// pkg/front_end/testcases/extension_types/issue54097.dart:31:5: Error: Type 'X' is a bound of itself via 'Y'.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+//   f<X extends E1<Y>, Y extends X>() {}; // Error.
+//     ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef F1<unrelated X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */> = core::int;
+typedef G1 = <X extends invalid-type = dynamic>() → void;
+typedef H1<unrelated X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */> = () → void;
+typedef F2<unrelated X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */, unrelated Y extends X% = dynamic> = core::int;
+typedef G2 = <X extends invalid-type = dynamic, Y extends X% = dynamic>() → void;
+typedef H2<unrelated X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */, unrelated Y extends X% = dynamic> = () → void;
+class A1<X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */> extends core::Object {
+  synthetic constructor •() → self::A1<self::A1::X%>
+    : super core::Object::•()
+    ;
+}
+class Enum1<X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */> extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::Enum1<self::E1<dynamic>% /* erasure=dynamic, declared=! */>> values = #C4;
+  enum-element static const field self::Enum1<Never> element = #C3;
+  const synthetic constructor •(core::int #index, core::String #name) → self::Enum1<self::Enum1::X%>
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "Enum1.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class M1<X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */> extends core::List<core::num> /*isMixinDeclaration*/  {
+}
+class A2<X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */, Y extends self::A2::X% = dynamic> extends core::Object {
+  synthetic constructor •() → self::A2<self::A2::X%, self::A2::Y%>
+    : super core::Object::•()
+    ;
+}
+class Enum2<X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */, Y extends self::Enum2::X% = dynamic> extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::Enum2<self::E1<dynamic>% /* erasure=dynamic, declared=! */, dynamic>> values = #C6;
+  enum-element static const field self::Enum2<Never, Never> element = #C5;
+  const synthetic constructor •(core::int #index, core::String #name) → self::Enum2<self::Enum2::X%, self::Enum2::Y%>
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "Enum2.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class M2<X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */, Y extends self::M2::X% = dynamic> extends core::List<core::num> /*isMixinDeclaration*/  {
+}
+extension Ext1<X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */> on core::List<X%> {
+}
+extension Ext2<X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */, Y extends X% = dynamic> on core::List<X%> {
+}
+extension type E1<X extends core::Object? = dynamic>(X% it) {
+  abstract extension-type-member representation-field get it() → X%;
+  constructor • = self::E1|constructor#;
+  constructor tearoff • = self::E1|constructor#_#new#tearOff;
+}
+extension type ET1<X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */>(core::Object? it) {
+  abstract extension-type-member representation-field get it() → core::Object?;
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
+}
+extension type ET2<X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */, Y extends X% = dynamic>(core::Object? it) {
+  abstract extension-type-member representation-field get it() → core::Object?;
+  constructor • = self::ET2|constructor#;
+  constructor tearoff • = self::ET2|constructor#_#new#tearOff;
+}
+static extension-type-member method E1|constructor#<X extends core::Object? = dynamic>(self::E1|constructor#::X% it) → self::E1<self::E1|constructor#::X%>% /* erasure=self::E1|constructor#::X%, declared=! */ {
+  lowered final self::E1<self::E1|constructor#::X%>% /* erasure=self::E1|constructor#::X%, declared=! */ #this = it;
+  return #this;
+}
+static extension-type-member method E1|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E1|constructor#_#new#tearOff::X% it) → self::E1<self::E1|constructor#_#new#tearOff::X%>% /* erasure=self::E1|constructor#_#new#tearOff::X%, declared=! */
+  return self::E1|constructor#<self::E1|constructor#_#new#tearOff::X%>(it);
+static method foo1<X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */>() → dynamic {}
+static method bar1() → dynamic {
+  <X extends invalid-type>() → Null x = <X extends invalid-type>() → Null {};
+  function f<X extends invalid-type>() → Null {}
+  ;
+}
+static extension-type-member method ET1|constructor#<X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */>(core::Object? it) → self::ET1<self::ET1|constructor#::X%>% /* erasure=core::Object?, declared=! */ {
+  lowered final self::ET1<self::ET1|constructor#::X%>% /* erasure=core::Object?, declared=! */ #this = it;
+  return #this;
+}
+static extension-type-member method ET1|constructor#_#new#tearOff<X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */>(core::Object? it) → self::ET1<self::ET1|constructor#_#new#tearOff::X%>% /* erasure=core::Object?, declared=! */
+  return self::ET1|constructor#<self::ET1|constructor#_#new#tearOff::X%>(it);
+static method foo2<X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */, Y extends self::foo2::X% = dynamic>() → dynamic {}
+static method bar2() → dynamic {
+  <X extends invalid-type, Y extends X% = invalid-type>() → Null x = <X extends invalid-type, Y extends X% = invalid-type>() → Null {};
+  function f<X extends invalid-type, Y extends X% = invalid-type>() → Null {}
+  ;
+}
+static extension-type-member method ET2|constructor#<X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */, Y extends self::ET2|constructor#::X% = dynamic>(core::Object? it) → self::ET2<self::ET2|constructor#::X%, self::ET2|constructor#::Y%>% /* erasure=core::Object?, declared=! */ {
+  lowered final self::ET2<self::ET2|constructor#::X%, self::ET2|constructor#::Y%>% /* erasure=core::Object?, declared=! */ #this = it;
+  return #this;
+}
+static extension-type-member method ET2|constructor#_#new#tearOff<X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */, Y extends self::ET2|constructor#_#new#tearOff::X% = dynamic>(core::Object? it) → self::ET2<self::ET2|constructor#_#new#tearOff::X%, self::ET2|constructor#_#new#tearOff::Y%>% /* erasure=core::Object?, declared=! */
+  return self::ET2|constructor#<self::ET2|constructor#_#new#tearOff::X%, self::ET2|constructor#_#new#tearOff::Y%>(it);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/integers_patch.dart */ _#F1#fromEnvironment#tearOff<unrelated X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */>(core::String name, {core::int defaultValue = #C1}) → core::int
+  return core::int::fromEnvironment(name, defaultValue: defaultValue);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/integers_patch.dart */ _#F2#fromEnvironment#tearOff<unrelated X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */, unrelated Y extends self::_#F2#fromEnvironment#tearOff::X% = dynamic>(core::String name, {core::int defaultValue = #C1}) → core::int
+  return core::int::fromEnvironment(name, defaultValue: defaultValue);
+
+constants  {
+  #C1 = 0
+  #C2 = "element"
+  #C3 = self::Enum1<Never> {index:#C1, _name:#C2}
+  #C4 = <self::Enum1<invalid-type>>[#C3]
+  #C5 = self::Enum2<Never, Never> {index:#C1, _name:#C2}
+  #C6 = <self::Enum2<invalid-type, invalid-type>>[#C5]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue54097.dart:
+- Enum1. (from org-dartlang-testcase:///issue54097.dart:12:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+- Enum2. (from org-dartlang-testcase:///issue54097.dart:26:6)

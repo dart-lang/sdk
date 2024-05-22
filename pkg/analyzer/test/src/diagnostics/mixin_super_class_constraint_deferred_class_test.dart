@@ -25,9 +25,9 @@ mixin M on math.Random {}
           48, 11),
     ]);
 
-    final node = findNode.singleOnClause;
+    var node = findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
-OnClause
+MixinOnClause
   onKeyword: on
   superclassConstraints
     NamedType

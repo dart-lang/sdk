@@ -25,9 +25,9 @@ mixin M on dynamic {}
           7),
     ]);
 
-    final node = findNode.singleOnClause;
+    var node = findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
-OnClause
+MixinOnClause
   onKeyword: on
   superclassConstraints
     NamedType
@@ -46,9 +46,9 @@ mixin M on E {}
           1),
     ]);
 
-    final node = findNode.singleOnClause;
+    var node = findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
-OnClause
+MixinOnClause
   onKeyword: on
   superclassConstraints
     NamedType
@@ -67,9 +67,9 @@ mixin M on A {}
           1),
     ]);
 
-    final node = findNode.singleOnClause;
+    var node = findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
-OnClause
+MixinOnClause
   onKeyword: on
   superclassConstraints
     NamedType
@@ -87,9 +87,9 @@ mixin M on Never {}
           5),
     ]);
 
-    final node = findNode.singleOnClause;
+    var node = findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
-OnClause
+MixinOnClause
   onKeyword: on
   superclassConstraints
     NamedType
@@ -108,9 +108,9 @@ mixin M on void {}
           4),
     ]);
 
-    final node = findNode.singleOnClause;
+    var node = findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
-OnClause
+MixinOnClause
   onKeyword: on
   superclassConstraints
     NamedType

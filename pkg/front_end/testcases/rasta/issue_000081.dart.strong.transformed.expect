@@ -22,7 +22,7 @@ class Sub extends self::Base {
 static method main() → dynamic {
   core::print(new self::Sub::•().{self::Sub::hashCode}{core::int});
   core::List<core::String?> l = core::_GrowableList::_literal1<core::String?>(null);
-  let final core::List<core::String?> #t2 = l in let final core::int #t3 = 0 in #t2.{core::List::[]}(#t3){(core::int) → core::String?} == null ?{core::String} #t2.{core::List::[]=}(#t3, "fisk"){(core::int, core::String?) → void} : null;
+  let final core::List<core::String?> #t2 = l in let final core::int #t3 = 0 in #t2.{core::List::[]}(#t3){(core::int) → core::String?} == null ?{core::String?} #t2.{core::List::[]=}(#t3, "fisk"){(core::int, core::String?) → void} : null;
 }
 
 

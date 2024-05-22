@@ -13,8 +13,8 @@ final class WChar extends ffi::AbiSpecificInteger /*hasConstConstructor*/  {
     : super ffi::AbiSpecificInteger::•()
     ;
   @#C67
-  static get #sizeOf() → core::int*
-    return #C68.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+  static get #sizeOf() → core::int
+    return #C68.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 @#C73
 final class WCharStruct extends ffi::Struct {
@@ -41,13 +41,13 @@ final class WCharStruct extends ffi::Struct {
     return ffi::_storeAbiSpecificInt<self::WChar>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::WCharStruct::a1#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
   @#C67
   static get a0#offsetOf() → core::int
-    return #C75.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+    return #C75.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C67
   static get a1#offsetOf() → core::int
-    return #C68.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+    return #C68.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C67
-  static get #sizeOf() → core::int*
-    return #C77.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+  static get #sizeOf() → core::int
+    return #C77.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 @#C82
 final class WCharArrayStruct extends ffi::Struct {
@@ -65,13 +65,13 @@ final class WCharArrayStruct extends ffi::Struct {
     return new ffi::Array::_<self::WChar>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::WCharArrayStruct::a0#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #C78, #C84);
   @#C83
   set a0(synthesized ffi::Array<self::WChar> #externalFieldValue) → void
-    return ffi::_memCopy(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::WCharArrayStruct::a0#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue.{ffi::_Compound::_typedDataBase}{core::Object}, #externalFieldValue.{ffi::_Compound::_offsetInBytes}{core::int}, #C87.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
+    return ffi::_memCopy(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::WCharArrayStruct::a0#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue.{ffi::_Compound::_typedDataBase}{core::Object}, #externalFieldValue.{ffi::_Compound::_offsetInBytes}{core::int}, #C87.{core::List::[]}(ffi::_abi()){(core::int) → core::int});
   @#C67
   static get a0#offsetOf() → core::int
-    return #C75.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+    return #C75.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C67
-  static get #sizeOf() → core::int*
-    return #C87.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+  static get #sizeOf() → core::int
+    return #C87.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 class _DummyAllocator extends core::Object implements ffi::Allocator /*hasConstConstructor*/  {
   const constructor •() → self::_DummyAllocator
@@ -205,26 +205,26 @@ constants  {
   #C65 = "vm:prefer-inline"
   #C66 = null
   #C67 = core::pragma {name:#C65, options:#C66}
-  #C68 = <core::int*>[#C41, #C41, #C41, #C41, #C41, #C41, #C41, #C41, #C41, #C41, #C41, #C41, #C41, #C41, #C41, #C41, #C41, #C41, #C41, #C12, #C12, #C12]
+  #C68 = <core::int>[#C41, #C41, #C41, #C41, #C41, #C41, #C41, #C41, #C41, #C41, #C41, #C41, #C41, #C41, #C41, #C41, #C41, #C41, #C41, #C12, #C12, #C12]
   #C69 = "vm:ffi:struct-fields"
   #C70 = TypeLiteralConstant(self::WChar)
   #C71 = <core::Type>[#C70, #C70]
   #C72 = ffi::_FfiStructLayout {fieldTypes:#C71, packing:#C66}
   #C73 = core::pragma {name:#C69, options:#C72}
   #C74 = self::WChar {}
-  #C75 = <core::int*>[#C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1]
+  #C75 = <core::int>[#C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1]
   #C76 = 8
-  #C77 = <core::int*>[#C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C41, #C41, #C41]
+  #C77 = <core::int>[#C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C41, #C41, #C41]
   #C78 = 100
   #C79 = ffi::_FfiInlineArray {elementType:#C70, length:#C78}
   #C80 = <core::Type>[#C79]
   #C81 = ffi::_FfiStructLayout {fieldTypes:#C80, packing:#C66}
   #C82 = core::pragma {name:#C69, options:#C81}
   #C83 = ffi::_ArraySize<ffi::NativeType> {dimension1:#C78, dimension2:#C66, dimension3:#C66, dimension4:#C66, dimension5:#C66, dimensions:#C66}
-  #C84 = <core::int*>[]
+  #C84 = <core::int>[]
   #C85 = 400
   #C86 = 200
-  #C87 = <core::int*>[#C85, #C85, #C85, #C85, #C85, #C85, #C85, #C85, #C85, #C85, #C85, #C85, #C85, #C85, #C85, #C85, #C85, #C85, #C85, #C86, #C86, #C86]
+  #C87 = <core::int>[#C85, #C85, #C85, #C85, #C85, #C85, #C85, #C85, #C85, #C85, #C85, #C85, #C85, #C85, #C85, #C85, #C85, #C85, #C85, #C86, #C86, #C86]
   #C88 = core::_Override {}
   #C89 = self::_DummyAllocator {}
 }

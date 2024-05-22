@@ -4,7 +4,7 @@ name: dartdev
 publish_to: none
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: ^3.3.0
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
@@ -22,6 +22,7 @@ dependencies:
   dtd_impl: any
   front_end: any
   http: any
+  kernel: any
   logging: any
   meta: any
   native_assets_builder: any
@@ -30,7 +31,6 @@ dependencies:
   pub: any
   telemetry: any
   unified_analytics: any
-  usage: any
   vm: any
   vm_service: any
   yaml: any

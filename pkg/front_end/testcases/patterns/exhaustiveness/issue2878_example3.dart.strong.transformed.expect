@@ -15,7 +15,7 @@ static method subs<A extends core::Object? = dynamic>(core::List<self::subs::A%>
     #L1:
     {
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t2 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t2 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
           #t1 = core::_GrowableList::•<core::List<self::subs::A%>>(0);
           break #L1;
         }
@@ -23,7 +23,7 @@ static method subs<A extends core::Object? = dynamic>(core::List<self::subs::A%>
       {
         hoisted self::subs::A% x;
         hoisted core::List<self::subs::A%> xs;
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t3 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t3 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool}) {
           x = #0#0.{core::List::[]}(0){(core::int) → self::subs::A%};
           xs = #0#0.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<self::subs::A%>};
           #t1 = block {

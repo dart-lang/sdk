@@ -8,6 +8,7 @@ class A extends core::Object {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=#lib::B]
   [@vm.unboxing-info.metadata=[!regcc]]
   @#C3
   static factory foo() → self::A /* redirection-target: self::B::• */
@@ -23,6 +24,7 @@ abstract class C extends core::Object {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=#lib::E]
   [@vm.unboxing-info.metadata=[!regcc]]
   @#C3
   static factory bar() → self::C /* redirection-target: self::D::baz */
@@ -32,6 +34,8 @@ abstract class D extends self::C {
   constructor •() → self::D
     : super self::C::•()
     ;
+
+  [@vm.inferred-return-type.metadata=#lib::E]
   static factory baz() → self::D /* redirection-target: self::E::• */
     return new self::E::•();
 }
@@ -40,6 +44,8 @@ class E extends self::D {
     : super self::D::•()
     ;
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {}
 constants  {
   #C1 = "vm:entry-point"

@@ -49,7 +49,7 @@ class Notification {
   Map<String, Object> toJson() {
     var jsonObject = <String, Object>{};
     jsonObject[EVENT] = event;
-    final params = this.params;
+    var params = this.params;
     if (params != null) {
       jsonObject[PARAMS] = params;
     }
@@ -127,7 +127,7 @@ class Request extends RequestOrResponse {
     if (params.isNotEmpty) {
       jsonObject[PARAMS] = params;
     }
-    final clientRequestTime = this.clientRequestTime;
+    var clientRequestTime = this.clientRequestTime;
     if (clientRequestTime != null) {
       jsonObject[CLIENT_REQUEST_TIME] = clientRequestTime;
     }
@@ -515,11 +515,11 @@ class Response extends RequestOrResponse {
   Map<String, Object> toJson() {
     var jsonObject = <String, Object>{};
     jsonObject[ID] = id;
-    final error = this.error;
+    var error = this.error;
     if (error != null) {
       jsonObject[ERROR] = error.toJson();
     }
-    final result = this.result;
+    var result = this.result;
     if (result != null) {
       jsonObject[RESULT] = result;
     }

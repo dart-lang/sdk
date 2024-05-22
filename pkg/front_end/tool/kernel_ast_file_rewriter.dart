@@ -178,7 +178,7 @@ void processField(
   String initializerString = "";
   if (initializer != null) {
     Token token = initializer.assignment;
-    Token endToken = initializer.token;
+    Token endToken = initializer.endToken.next!;
     while (token != endToken) {
       initializerString += " ${token.lexeme}";
       token = token.next!;

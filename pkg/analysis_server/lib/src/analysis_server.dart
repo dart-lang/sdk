@@ -262,7 +262,7 @@ abstract class AnalysisServer {
     if (baseResourceProvider is PhysicalResourceProvider) {
       processRunner ??= ProcessRunner();
     }
-    final pubCommand = processRunner != null &&
+    var pubCommand = processRunner != null &&
             Platform.environment[PubCommand.disablePubCommandEnvironmentKey] ==
                 null
         ? PubCommand(
@@ -294,11 +294,11 @@ abstract class AnalysisServer {
         sink = FileStringSink(path);
       }
     }
-    final requestStatistics = this.requestStatistics;
+    var requestStatistics = this.requestStatistics;
     if (requestStatistics != null) {
       sink = TeeStringSink(sink, requestStatistics.perfLoggerStringSink);
     }
-    final analysisPerformanceLogger =
+    var analysisPerformanceLogger =
         this.analysisPerformanceLogger = PerformanceLog(sink);
 
     byteStore = createByteStore(resourceProvider);
@@ -338,7 +338,7 @@ abstract class AnalysisServer {
     if (dartFixPromptManager != null) {
       _dartFixPrompt = dartFixPromptManager;
     } else {
-      final promptPreferences =
+      var promptPreferences =
           UserPromptPreferences(resourceProvider, instrumentationService);
       _dartFixPrompt = DartFixPromptManager(this, promptPreferences);
     }
@@ -470,7 +470,7 @@ abstract class AnalysisServer {
   /// Checks that all [sessions] are still consistent, throwing
   /// [InconsistentAnalysisException] if not.
   void checkConsistency(List<AnalysisSessionImpl> sessions) {
-    for (final session in sessions) {
+    for (var session in sessions) {
       session.checkConsistency();
     }
   }
@@ -622,13 +622,13 @@ abstract class AnalysisServer {
   LineInfo? getLineInfo(String path) {
     try {
       // First try to get from the File if it's an analyzed Dart file.
-      final result = getAnalysisDriver(path)?.getFileSync(path);
+      var result = getAnalysisDriver(path)?.getFileSync(path);
       if (result is FileResult) {
         return result.lineInfo;
       }
 
       // Fall back to reading from the resource provider.
-      final content = resourceProvider.getFile(path).readAsStringSync();
+      var content = resourceProvider.getFile(path).readAsStringSync();
       return LineInfo.fromContent(content);
     } on FileSystemException {
       // If the file does not exist or cannot be read, return null to allow
@@ -999,18 +999,6 @@ abstract class CommonServerContextManagerCallbacks
     var path = result.path;
     filesToFlush.add(path);
 
-    if (result is AnalysisResultWithErrors) {
-      if (analysisServer.isAnalyzed(path)) {
-        final serverErrors = server.doAnalysisError_listFromEngine(result);
-        recordAnalysisErrors(path, serverErrors);
-      }
-    }
-
-    if (result is ResolvedUnitResult) {
-      analysisServer.filesResolvedSinceLastIdle.add(path);
-      handleResolvedUnitResult(result);
-    }
-
     // If this is a virtual file and the client supports URIs, we need to notify
     // that it's been updated.
     var lspUri = analysisServer.uriConverter.toClientUri(result.path);
@@ -1026,6 +1014,18 @@ abstract class CommonServerContextManagerCallbacks
         jsonrpc: lsp.jsonRpcVersion,
       );
       analysisServer.sendLspNotification(message);
+    }
+
+    if (result is AnalysisResultWithErrors) {
+      if (analysisServer.isAnalyzed(path)) {
+        var serverErrors = server.doAnalysisError_listFromEngine(result);
+        recordAnalysisErrors(path, serverErrors);
+      }
+    }
+
+    if (result is ResolvedUnitResult) {
+      analysisServer.filesResolvedSinceLastIdle.add(path);
+      handleResolvedUnitResult(result);
     }
   }
 

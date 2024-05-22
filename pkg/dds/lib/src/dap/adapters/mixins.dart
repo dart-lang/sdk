@@ -69,6 +69,8 @@ mixin TestAdapter {
     String category,
     String message, {
     int? variablesReference,
+    @Deprecated(
+        'parseStackFrames has no effect, stack frames are always parsed')
     bool? parseStackFrames,
   });
 

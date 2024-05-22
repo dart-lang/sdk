@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -28,25 +30,27 @@ abstract class AbstractLinterContextTest extends PubPackageResolutionTest {
 
   Future<void> resolve(String content) async {
     await resolveTestCode(content);
-    var contextUnit = LinterContextUnit(result.content, result.unit);
+    var errorReporter = ErrorReporter(
+      RecordingErrorListener(),
+      StringSource(result.content, null),
+    );
+    var contextUnit =
+        LinterContextUnit(result.content, result.unit, errorReporter);
 
-    final libraryElement = result.libraryElement;
-    final analysisContext = libraryElement.session.analysisContext;
-    final libraryPath = libraryElement.source.fullName;
-    final workspace = analysisContext.contextRoot.workspace;
-    final workspacePackage = workspace.findPackageFor(libraryPath);
+    var libraryElement = result.libraryElement;
+    var analysisContext = libraryElement.session.analysisContext;
+    var libraryPath = libraryElement.source.fullName;
+    var workspace = analysisContext.contextRoot.workspace;
+    var workspacePackage = workspace.findPackageFor(libraryPath);
 
     context = LinterContextImpl(
       [contextUnit],
       contextUnit,
-      result.session.declaredVariables,
       result.typeProvider,
       result.typeSystem as TypeSystemImpl,
       InheritanceManager3(),
-      analysisOptions,
       // TODO(pq): test package or consider passing in null
       workspacePackage,
-      resourceProvider.pathContext,
     );
   }
 }
@@ -56,7 +60,7 @@ class CanBeConstConstructorTest extends AbstractLinterContextTest {
   void assertCanBeConstConstructor(String search, bool expectedResult) {
     var constructor =
         findNode.constructor(search) as ConstructorDeclarationImpl;
-    expect(context.canBeConstConstructor(constructor), expectedResult);
+    expect(constructor.canBeConst, expectedResult);
   }
 
   test_assertInitializer_parameter() async {
@@ -149,7 +153,7 @@ class C {
 class CanBeConstInstanceCreationTest extends AbstractLinterContextTest {
   void assertCanBeConst(String snippet, bool expectedResult) {
     var node = findNode.instanceCreation(snippet);
-    expect(context.canBeConst(node), expectedResult);
+    expect(node.canBeConst, expectedResult);
   }
 
   void test_deferred_argument() async {
@@ -367,7 +371,7 @@ A f() => A();
 class CanBeConstTypedLiteralTest extends AbstractLinterContextTest {
   void assertCanBeConst(String snippet, bool expectedResult) {
     var node = findNode.typedLiteral(snippet);
-    expect(context.canBeConst(node), expectedResult);
+    expect(node.canBeConst, expectedResult);
   }
 
   void test_listLiteral_false_forElement() async {
@@ -585,7 +589,7 @@ var x = 42;
 
   LinterConstantEvaluationResult _evaluateX() {
     var node = findNode.topVariableDeclarationByName('x').initializer!;
-    return context.evaluateConstant(node);
+    return node.computeConstantValue();
   }
 }
 
@@ -605,14 +609,14 @@ class C { }
 ''');
 
     expect(context.package, TypeMatcher<PubPackage>());
-    final pubPackage = context.package as PubPackage;
-    final pubspec = pubPackage.pubspec!;
+    var pubPackage = context.package as PubPackage;
+    var pubspec = pubPackage.pubspec!;
 
-    final argsDep = pubspec.dependencies!
+    var argsDep = pubspec.dependencies!
         .singleWhere((element) => element.name!.text == 'args');
     expect(argsDep.version!.value.text, '>=0.12.1 <2.0.0');
 
-    final charCodeDep = pubspec.dependencies!
+    var charCodeDep = pubspec.dependencies!
         .singleWhere((element) => element.name!.text == 'charcode');
     expect(charCodeDep.version!.value.text, '^1.1.0');
   }

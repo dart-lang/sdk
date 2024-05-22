@@ -2313,12 +2313,6 @@ suggestions
     kind: constructor
   String.fromEnvironment
     kind: constructorInvocation
-  A0
-    kind: class
-  A0
-    kind: constructorInvocation
-  f0
-    kind: functionInvocation
 ''');
   }
 
@@ -3563,6 +3557,10 @@ suggestions
   dart:io
     kind: import
   dart:isolate
+    kind: import
+  dart:js
+    kind: import
+  dart:js_interop
     kind: import
   dart:math
     kind: import
@@ -5237,18 +5235,18 @@ suggestions
     kind: field
   _e0
     kind: getter
-  _g0
-    kind: getter
   _s0
     kind: setter
   b0
     kind: field
   d0
     kind: getter
-  f0
-    kind: getter
   s1
     kind: setter
+  _g0
+    kind: getter
+  f0
+    kind: getter
   _n0
     kind: methodInvocation
   m0
@@ -5287,8 +5285,12 @@ suggestions
     kind: topLevelVariable
   X0
     kind: class
+  X0
+    kind: constructorInvocation
   Y0
     kind: class
+  Y0
+    kind: constructorInvocation
 ''');
   }
 
@@ -5810,18 +5812,18 @@ suggestions
     kind: field
   _e0
     kind: getter
-  _g0
-    kind: getter
   _s0
     kind: setter
   b0
     kind: field
   d0
     kind: getter
-  f0
-    kind: getter
   s0
     kind: setter
+  _g0
+    kind: getter
+  f0
+    kind: getter
   _n0
     kind: methodInvocation
   m0

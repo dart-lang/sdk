@@ -1,15 +1,13 @@
-// @dart = 2.9
-
 library test;
 
-Resource getResource(String str) => null;
+Resource getResource(String str) => throw '';
 
-class Folder extends Resource {}
+class Folder {}
 
 class Foo<T> {
   Foo(T t);
 }
 
-class Resource {}
+class Resource extends Folder {}
 
-main() {}
+test() {}

@@ -14,7 +14,7 @@ class TreeStringSink {
         _indent = indent;
 
   void withIndent(void Function() f) {
-    final indent = _indent;
+    var indent = _indent;
     _indent = '$indent  ';
     f();
     _indent = indent;
@@ -43,7 +43,7 @@ class TreeStringSink {
     if (flags.values.any((flag) => flag)) {
       writeIndentedLine(() {
         write('flags:');
-        for (final entry in flags.entries) {
+        for (var entry in flags.entries) {
           if (entry.value) {
             write(' ${entry.key}');
           }

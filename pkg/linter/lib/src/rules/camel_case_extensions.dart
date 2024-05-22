@@ -61,7 +61,9 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
-    // TODO(pq): don't lint augmentations, https://github.com/dart-lang/linter/issues/4898
+    // Don't lint augmentations.
+    if (node.augmentKeyword != null) return;
+
     var name = node.name;
     if (name != null && !isCamelCase(name.lexeme)) {
       rule.reportLintForToken(name, arguments: [name.lexeme]);

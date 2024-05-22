@@ -805,13 +805,13 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void beginLibraryAugmentation(Token libraryKeyword, Token augmentKeyword) {
+  void beginLibraryAugmentation(Token augmentKeyword, Token libraryKeyword) {
     _unexpected();
   }
 
   @override
   void endLibraryAugmentation(
-      Token libraryKeyword, Token augmentKeyword, Token semicolon) {
+      Token augmentKeyword, Token libraryKeyword, Token semicolon) {
     _unexpected();
   }
 
@@ -1034,7 +1034,7 @@ class _MacroListener implements Listener {
 
   @override
   void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
-      Token? commaToken, Token semicolonToken) {
+      Token? commaToken, Token endToken) {
     _unsupported();
   }
 
@@ -1154,7 +1154,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endConstLiteral(Token token) {
+  void endConstLiteral(Token endToken) {
     _unknown();
   }
 
@@ -1232,7 +1232,7 @@ class _MacroListener implements Listener {
 
   @override
   void endExtensionDeclaration(Token beginToken, Token extensionKeyword,
-      Token onKeyword, Token endToken) {
+      Token? onKeyword, Token endToken) {
     _unexpected();
   }
 
@@ -1264,7 +1264,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endFieldInitializer(Token assignment, Token token) {
+  void endFieldInitializer(Token assignment, Token endToken) {
     _unexpected();
   }
 
@@ -1279,7 +1279,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endForInBody(Token token) {
+  void endForInBody(Token endToken) {
     _unsupported();
   }
 
@@ -1299,7 +1299,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endForStatementBody(Token token) {
+  void endForStatementBody(Token endToken) {
     _unsupported();
   }
 
@@ -1328,7 +1328,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endFunctionExpression(Token beginToken, Token token) {
+  void endFunctionExpression(Token beginToken, Token endToken) {
     _unsupported();
   }
 
@@ -1383,7 +1383,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endInitializer(Token token) {
+  void endInitializer(Token endToken) {
     _unexpected();
   }
 
@@ -1575,7 +1575,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endTopLevelDeclaration(Token nextToken) {
+  void endTopLevelDeclaration(Token endToken) {
     _unexpected();
   }
 
@@ -1626,7 +1626,8 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endTypedef(Token typedefKeyword, Token? equals, Token endToken) {
+  void endTypedef(Token? augmentToken, Token typedefKeyword, Token? equals,
+      Token endToken) {
     _unexpected();
   }
 
@@ -1646,7 +1647,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endWhileStatementBody(Token token) {
+  void endWhileStatementBody(Token endToken) {
     _unsupported();
   }
 
@@ -1758,7 +1759,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleEnumElement(Token beginToken) {
+  void handleEnumElement(Token beginToken, Token? augmentToken) {
     _unexpected();
   }
 
@@ -1768,7 +1769,8 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleEnumHeader(Token enumKeyword, Token leftBrace) {
+  void handleEnumHeader(
+      Token? augmentToken, Token enumKeyword, Token leftBrace) {
     _unexpected();
   }
 
@@ -2358,7 +2360,8 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void beginExtensionTypeDeclaration(Token extensionKeyword, Token name) {
+  void beginExtensionTypeDeclaration(
+      Token? augmentToken, Token extensionKeyword, Token name) {
     _unsupported();
   }
 
@@ -2369,8 +2372,8 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endExtensionTypeDeclaration(Token beginToken, Token extensionKeyword,
-      Token? typeKeyword, Token endToken) {
+  void endExtensionTypeDeclaration(Token beginToken, Token? augmentToken,
+      Token extensionKeyword, Token? typeKeyword, Token endToken) {
     _unsupported();
   }
 

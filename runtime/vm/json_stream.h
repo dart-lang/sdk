@@ -143,12 +143,12 @@ class JSONStream : ValueObject {
   const char** param_values() const { return param_values_; }
 
   void set_offset(intptr_t value) {
-    ASSERT(value > 0);
+    ASSERT(value >= 0);
     offset_ = value;
   }
 
   void set_count(intptr_t value) {
-    ASSERT(value > 0);
+    ASSERT(value >= 0);
     count_ = value;
   }
 

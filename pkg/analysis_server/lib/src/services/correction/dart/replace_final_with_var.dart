@@ -19,10 +19,8 @@ class ReplaceFinalWithVar extends ResolvedCorrectionProducer {
   Token? _finalKeyword;
 
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => _removeFinal

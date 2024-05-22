@@ -345,6 +345,58 @@ void f(New o) {}
 ''', errorFilter: ignoreUnusedImport);
   }
 
+  Future<void> test_inTypeArgument_deprecated() async {
+    setPackageContent('''
+@deprecated
+class Old {}
+class New {}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+ var a = <Old>[];
+ print(a);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+ var a = <New>[];
+ print(a);
+}
+''');
+  }
+
+  Future<void> test_inTypeArgument_removed() async {
+    setPackageContent('''
+class New {}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  var a = <Old>[];
+  var b = New();
+  print(a);
+  print(b);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  var a = <New>[];
+  var b = New();
+  print(a);
+  print(b);
+}
+''');
+  }
+
   Future<void> test_inWith_deprecated() async {
     setPackageContent('''
 @deprecated

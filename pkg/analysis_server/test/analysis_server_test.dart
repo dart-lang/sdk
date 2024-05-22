@@ -110,9 +110,9 @@ class X extends A with M {}
   Future<void> test_concurrentContextRebuilds() async {
     // Subscribe to STATUS so we'll know when analysis is done.
     server.serverServices = {ServerService.STATUS};
-    final projectRoot = convertPath('/foo');
-    final projectTestFile = convertPath('/foo/lib/test.dart');
-    final projectPackageConfigFile =
+    var projectRoot = convertPath('/foo');
+    var projectTestFile = convertPath('/foo/lib/test.dart');
+    var projectPackageConfigFile =
         convertPath('/foo/.dart_tool/package_config.json');
 
     // Create a file that references two packages, which will we write to
@@ -129,15 +129,15 @@ class X extends A with M {}
     // Ensure the packages and package_config exist.
     var fooLibFolder = _addSimplePackage('foo', '');
     var barLibFolder = _addSimplePackage('bar', '');
-    final config = PackageConfigFileBuilder();
+    var config = PackageConfigFileBuilder();
     writePackageConfig(projectPackageConfigFile, config);
 
     // Track diagnostics that arrive.
-    final errorsByFile = <String, List<AnalysisError>>{};
+    var errorsByFile = <String, List<AnalysisError>>{};
     channel.notifications
         .where((notification) => notification.event == 'analysis.errors')
         .listen((notification) {
-      final params = AnalysisErrorsParams.fromNotification(notification);
+      var params = AnalysisErrorsParams.fromNotification(notification);
       errorsByFile[params.file] = params.errors;
     });
 
@@ -301,8 +301,8 @@ analyzer:
   ///
   /// Returns a [Folder] that represents the packages `lib` folder.
   Folder _addSimplePackage(String name, String content) {
-    final packagePath = '/packages/$name';
-    final file = newFile('$packagePath/lib/$name.dart', content);
+    var packagePath = '/packages/$name';
+    var file = newFile('$packagePath/lib/$name.dart', content);
     return file.parent;
   }
 }

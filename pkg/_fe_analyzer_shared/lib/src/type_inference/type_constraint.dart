@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../types/shared_type.dart';
 import 'type_analyzer_operations.dart';
 
 /// Tracks a single constraint on a single type parameter.
@@ -35,8 +36,13 @@ class GeneratedTypeConstraint<Type extends Object, TypeSchema extends Object,
 }
 
 /// A constraint on a type parameter that we're inferring.
-class MergedTypeConstraint<Type extends Object, TypeSchema extends Object,
-    TypeParameter extends Object, Variable extends Object> {
+class MergedTypeConstraint<
+    Type extends SharedType,
+    TypeSchema extends Object,
+    TypeParameter extends Object,
+    Variable extends Object,
+    TypeDeclarationType extends Object,
+    TypeDeclaration extends Object> {
   /// The lower bound of the type being constrained.  This bound must be a
   /// subtype of the type being constrained. In other words, lowerBound <: T.
   ///
@@ -83,7 +89,8 @@ class MergedTypeConstraint<Type extends Object, TypeSchema extends Object,
   TypeSchema upper;
 
   /// Where this constraint comes from, used for error messages.
-  TypeConstraintOrigin<Type, TypeSchema, Variable> origin;
+  TypeConstraintOrigin<Type, TypeSchema, Variable, TypeParameter,
+      TypeDeclarationType, TypeDeclaration> origin;
 
   MergedTypeConstraint(
       {required this.lower, required this.upper, required this.origin});
@@ -92,7 +99,8 @@ class MergedTypeConstraint<Type extends Object, TypeSchema extends Object,
       {required String typeParameterName,
       required Type boundType,
       required Type extendsType,
-      required TypeAnalyzerOperations<Variable, Type, TypeSchema>
+      required TypeAnalyzerOperations<Variable, Type, TypeSchema, TypeParameter,
+              TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations})
       : this(
             origin: new TypeConstraintFromExtendsClause(
@@ -103,20 +111,22 @@ class MergedTypeConstraint<Type extends Object, TypeSchema extends Object,
             upper: typeAnalyzerOperations.typeToSchema(extendsType),
             lower: typeAnalyzerOperations.unknownType);
 
-  MergedTypeConstraint<Type, TypeSchema, TypeParameter, Variable> clone() {
+  MergedTypeConstraint<Type, TypeSchema, TypeParameter, Variable,
+      TypeDeclarationType, TypeDeclaration> clone() {
     return new MergedTypeConstraint(lower: lower, upper: upper, origin: origin);
   }
 
   bool isEmpty(
-      TypeAnalyzerOperations<Variable, Type, TypeSchema>
+      TypeAnalyzerOperations<Variable, Type, TypeSchema, TypeParameter,
+              TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations) {
-    return typeAnalyzerOperations.isUnknownType(lower) &&
-        typeAnalyzerOperations.isUnknownType(upper);
+    return lower is SharedUnknownType && upper is SharedUnknownType;
   }
 
   bool isSatisfiedBy(
       Type type,
-      TypeAnalyzerOperations<Variable, Type, TypeSchema>
+      TypeAnalyzerOperations<Variable, Type, TypeSchema, TypeParameter,
+              TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations) {
     return typeAnalyzerOperations.typeIsSubtypeOfTypeSchema(type, upper) &&
         typeAnalyzerOperations.typeSchemaIsSubtypeOfType(lower, type);
@@ -125,7 +135,8 @@ class MergedTypeConstraint<Type extends Object, TypeSchema extends Object,
   void mergeIn(
       GeneratedTypeConstraint<Type, TypeSchema, TypeParameter, Variable>
           generatedTypeConstraint,
-      TypeAnalyzerOperations<Variable, Type, TypeSchema>
+      TypeAnalyzerOperations<Variable, Type, TypeSchema, TypeParameter,
+              TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations) {
     if (generatedTypeConstraint.isUpper) {
       mergeInTypeSchemaUpper(
@@ -138,14 +149,16 @@ class MergedTypeConstraint<Type extends Object, TypeSchema extends Object,
 
   void mergeInTypeSchemaUpper(
       TypeSchema constraint,
-      TypeAnalyzerOperations<Variable, Type, TypeSchema>
+      TypeAnalyzerOperations<Variable, Type, TypeSchema, TypeParameter,
+              TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations) {
     upper = typeAnalyzerOperations.typeSchemaGlb(upper, constraint);
   }
 
   void mergeInTypeSchemaLower(
       TypeSchema constraint,
-      TypeAnalyzerOperations<Variable, Type, TypeSchema>
+      TypeAnalyzerOperations<Variable, Type, TypeSchema, TypeParameter,
+              TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations) {
     lower = typeAnalyzerOperations.typeSchemaLub(lower, constraint);
   }
@@ -159,31 +172,50 @@ class MergedTypeConstraint<Type extends Object, TypeSchema extends Object,
 /// The origin of a type constraint, for the purposes of producing a human
 /// readable error message during type inference as well as determining whether
 /// the constraint was used to fix the type parameter or not.
-abstract class TypeConstraintOrigin<Type extends Object,
-    TypeSchema extends Object, Variable extends Object> {
+abstract class TypeConstraintOrigin<
+    Type extends SharedType,
+    TypeSchema extends Object,
+    Variable extends Object,
+    TypeParameter extends Object,
+    TypeDeclarationType extends Object,
+    TypeDeclaration extends Object> {
   const TypeConstraintOrigin();
 
   List<String> formatError(
-      TypeAnalyzerOperations<Variable, Type, TypeSchema>
+      TypeAnalyzerOperations<Variable, Type, TypeSchema, TypeParameter,
+              TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations);
 }
 
-class UnknownTypeConstraintOrigin<Type extends Object,
-        TypeSchema extends Object, Variable extends Object>
-    extends TypeConstraintOrigin<Type, TypeSchema, Variable> {
+class UnknownTypeConstraintOrigin<
+        Type extends SharedType,
+        TypeSchema extends Object,
+        Variable extends Object,
+        InferableParameter extends Object,
+        TypeDeclarationType extends Object,
+        TypeDeclaration extends Object>
+    extends TypeConstraintOrigin<Type, TypeSchema, Variable, InferableParameter,
+        TypeDeclarationType, TypeDeclaration> {
   const UnknownTypeConstraintOrigin();
 
   @override
   List<String> formatError(
-      TypeAnalyzerOperations<Variable, Type, TypeSchema>
+      TypeAnalyzerOperations<Variable, Type, TypeSchema, InferableParameter,
+              TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations) {
     return <String>[];
   }
 }
 
-class TypeConstraintFromArgument<Type extends Object, TypeSchema extends Object,
-        Variable extends Object>
-    extends TypeConstraintOrigin<Type, TypeSchema, Variable> {
+class TypeConstraintFromArgument<
+        Type extends SharedType,
+        TypeSchema extends Object,
+        Variable extends Object,
+        InferableParameter extends Object,
+        TypeDeclarationType extends Object,
+        TypeDeclaration extends Object>
+    extends TypeConstraintOrigin<Type, TypeSchema, Variable, InferableParameter,
+        TypeDeclarationType, TypeDeclaration> {
   final Type argumentType;
   final Type parameterType;
   final String parameterName;
@@ -199,7 +231,8 @@ class TypeConstraintFromArgument<Type extends Object, TypeSchema extends Object,
 
   @override
   List<String> formatError(
-      TypeAnalyzerOperations<Variable, Type, TypeSchema>
+      TypeAnalyzerOperations<Variable, Type, TypeSchema, InferableParameter,
+              TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations) {
     // TODO(cstefantsova): we should highlight the span. That would be more
     // useful.  However in summary code it doesn't look like the AST node with
@@ -218,17 +251,21 @@ class TypeConstraintFromArgument<Type extends Object, TypeSchema extends Object,
 
     return [
       prefix,
-      "declared as     "
-          "'${typeAnalyzerOperations.getDisplayString(parameterType)}'",
-      "but argument is "
-          "'${typeAnalyzerOperations.getDisplayString(argumentType)}'."
+      "declared as     '${parameterType.getDisplayString()}'",
+      "but argument is '${argumentType.getDisplayString()}'."
     ];
   }
 }
 
-class TypeConstraintFromExtendsClause<Type extends Object,
-        TypeSchema extends Object, Variable extends Object>
-    extends TypeConstraintOrigin<Type, TypeSchema, Variable> {
+class TypeConstraintFromExtendsClause<
+        Type extends SharedType,
+        TypeSchema extends Object,
+        Variable extends Object,
+        InferableParameter extends Object,
+        TypeDeclarationType extends Object,
+        TypeDeclaration extends Object>
+    extends TypeConstraintOrigin<Type, TypeSchema, Variable, InferableParameter,
+        TypeDeclarationType, TypeDeclaration> {
   /// Name of the type parameter with the extends clause.
   final String typeParameterName;
 
@@ -251,10 +288,11 @@ class TypeConstraintFromExtendsClause<Type extends Object,
 
   @override
   List<String> formatError(
-      TypeAnalyzerOperations<Variable, Type, TypeSchema>
+      TypeAnalyzerOperations<Variable, Type, TypeSchema, InferableParameter,
+              TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations) {
-    String boundStr = typeAnalyzerOperations.getDisplayString(boundType);
-    String extendsStr = typeAnalyzerOperations.getDisplayString(extendsType);
+    String boundStr = boundType.getDisplayString();
+    String extendsStr = extendsType.getDisplayString();
     return [
       "Type parameter '${typeParameterName}'",
       "is declared to extend '${boundStr}' producing '${extendsStr}'."
@@ -262,9 +300,15 @@ class TypeConstraintFromExtendsClause<Type extends Object,
   }
 }
 
-class TypeConstraintFromFunctionContext<Type extends Object,
-        TypeSchema extends Object, Variable extends Object>
-    extends TypeConstraintOrigin<Type, TypeSchema, Variable> {
+class TypeConstraintFromFunctionContext<
+        Type extends SharedType,
+        TypeSchema extends Object,
+        Variable extends Object,
+        InferableParameter extends Object,
+        TypeDeclarationType extends Object,
+        TypeDeclaration extends Object>
+    extends TypeConstraintOrigin<Type, TypeSchema, Variable, InferableParameter,
+        TypeDeclarationType, TypeDeclaration> {
   final Type contextType;
   final Type functionType;
 
@@ -273,20 +317,26 @@ class TypeConstraintFromFunctionContext<Type extends Object,
 
   @override
   List<String> formatError(
-      TypeAnalyzerOperations<Variable, Type, TypeSchema>
+      TypeAnalyzerOperations<Variable, Type, TypeSchema, InferableParameter,
+              TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations) {
     return [
       "Function type",
-      "declared as '${typeAnalyzerOperations.getDisplayString(functionType)}'",
-      "used where  '${typeAnalyzerOperations.getDisplayString(contextType)}' "
-          "is required."
+      "declared as '${functionType.getDisplayString()}'",
+      "used where  '${contextType.getDisplayString()}' is required."
     ];
   }
 }
 
-class TypeConstraintFromReturnType<Type extends Object,
-        TypeSchema extends Object, Variable extends Object>
-    extends TypeConstraintOrigin<Type, TypeSchema, Variable> {
+class TypeConstraintFromReturnType<
+        Type extends SharedType,
+        TypeSchema extends Object,
+        Variable extends Object,
+        InferableParameter extends Object,
+        TypeDeclarationType extends Object,
+        TypeDeclaration extends Object>
+    extends TypeConstraintOrigin<Type, TypeSchema, Variable, InferableParameter,
+        TypeDeclarationType, TypeDeclaration> {
   final Type contextType;
   final Type declaredType;
 
@@ -295,13 +345,13 @@ class TypeConstraintFromReturnType<Type extends Object,
 
   @override
   List<String> formatError(
-      TypeAnalyzerOperations<Variable, Type, TypeSchema>
+      TypeAnalyzerOperations<Variable, Type, TypeSchema, InferableParameter,
+              TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations) {
     return [
       "Return type",
-      "declared as '${typeAnalyzerOperations.getDisplayString(declaredType)}'",
-      "used where  '${typeAnalyzerOperations.getDisplayString(contextType)}' "
-          "is required."
+      "declared as '${declaredType.getDisplayString()}'",
+      "used where  '${contextType.getDisplayString()}' is required."
     ];
   }
 }

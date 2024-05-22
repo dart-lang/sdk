@@ -12,12 +12,17 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertToIfCaseStatementChain extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   AssistKind get assistKind =>
       DartAssistKind.CONVERT_TO_IF_CASE_STATEMENT_CHAIN;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final switchStatement = node;
+    var switchStatement = node;
     if (switchStatement is! SwitchStatementImpl) {
       return;
     }
@@ -26,18 +31,18 @@ class ConvertToIfCaseStatementChain extends ResolvedCorrectionProducer {
       return;
     }
 
-    final groups = _groups(switchStatement);
+    var groups = _groups(switchStatement);
     if (groups == null) {
       return;
     }
 
-    final ifIndent = utils.getLinePrefix(switchStatement.offset);
-    final expressionCode = utils.getNodeText(switchStatement.expression);
+    var ifIndent = utils.getLinePrefix(switchStatement.offset);
+    var expressionCode = utils.getNodeText(switchStatement.expression);
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addReplacement(range.node(switchStatement), (builder) {
         var isFirst = true;
-        for (final group in groups) {
+        for (var group in groups) {
           if (isFirst) {
             isFirst = false;
           } else {
@@ -45,10 +50,10 @@ class ConvertToIfCaseStatementChain extends ResolvedCorrectionProducer {
           }
           switch (group) {
             case _SingleCaseGroup():
-              final patternCode = utils.getNodeText(group.guardedPattern);
+              var patternCode = utils.getNodeText(group.guardedPattern);
               builder.writeln('if ($expressionCode case $patternCode) {');
             case _JoinedCaseGroup():
-              final patternCode = group.patterns
+              var patternCode = group.patterns
                   .map((pattern) => utils.getNodeText(pattern))
                   .join(' || ');
               builder.writeln('if ($expressionCode case $patternCode) {');
@@ -67,9 +72,9 @@ class ConvertToIfCaseStatementChain extends ResolvedCorrectionProducer {
   }
 
   List<_Group>? _groups(SwitchStatementImpl switchStatement) {
-    final result = <_Group>[];
-    for (final group in switchStatement.memberGroups) {
-      final members = group.members;
+    var result = <_Group>[];
+    for (var group in switchStatement.memberGroups) {
+      var members = group.members;
 
       // Support `default`, if alone.
       if (members.any((e) => e is SwitchDefault)) {
@@ -85,7 +90,7 @@ class ConvertToIfCaseStatementChain extends ResolvedCorrectionProducer {
       }
 
       // We expect only `SwitchPatternCase`s.
-      final guardedPatterns = members
+      var guardedPatterns = members
           .whereType<SwitchPatternCase>()
           .map((e) => e.guardedPattern)
           .toList();
@@ -94,7 +99,7 @@ class ConvertToIfCaseStatementChain extends ResolvedCorrectionProducer {
       }
 
       // For single `GuardedPattern` we allow `when`.
-      final singleGuardedPattern = guardedPatterns.singleOrNull;
+      var singleGuardedPattern = guardedPatterns.singleOrNull;
       if (singleGuardedPattern != null) {
         result.add(
           _SingleCaseGroup(
@@ -125,16 +130,16 @@ class ConvertToIfCaseStatementChain extends ResolvedCorrectionProducer {
     required List<Statement> statements,
     required String blockIndent,
   }) {
-    final first = statements.firstOrNull;
+    var first = statements.firstOrNull;
     if (first == null) {
       return;
     }
 
-    final range = utils.getLinesRangeStatements(statements);
-    final firstIndent = utils.getLinePrefix(first.offset);
-    final singleIndent = utils.oneIndent;
+    var range = utils.getLinesRangeStatements(statements);
+    var firstIndent = utils.getLinePrefix(first.offset);
+    var singleIndent = utils.oneIndent;
 
-    final code = utils.replaceSourceRangeIndent(
+    var code = utils.replaceSourceRangeIndent(
       range,
       firstIndent,
       blockIndent + singleIndent,

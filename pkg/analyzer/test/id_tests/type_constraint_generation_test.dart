@@ -108,6 +108,9 @@ class _TypeConstraintGenerationDataInterpreter
         if (actualData[i].isUpper) {
           sb.write("${actualData[i].typeParameter.name} <: ");
           sb.write(actualData[i].constraint.getDisplayString());
+        } else {
+          sb.write("${actualData[i].typeParameter.name} :> ");
+          sb.write(actualData[i].constraint.getDisplayString());
         }
       }
     }

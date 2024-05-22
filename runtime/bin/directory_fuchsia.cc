@@ -7,15 +7,15 @@
 
 #include "bin/directory.h"
 
-#include <dirent.h>          // NOLINT
-#include <errno.h>           // NOLINT
-#include <fcntl.h>           // NOLINT
+#include <dirent.h>              // NOLINT
+#include <errno.h>               // NOLINT
+#include <fcntl.h>               // NOLINT
 #include <lib/fdio/namespace.h>  // NOLINT
-#include <stdlib.h>          // NOLINT
-#include <string.h>          // NOLINT
-#include <sys/param.h>       // NOLINT
-#include <sys/stat.h>        // NOLINT
-#include <unistd.h>          // NOLINT
+#include <stdlib.h>              // NOLINT
+#include <string.h>              // NOLINT
+#include <sys/param.h>           // NOLINT
+#include <sys/stat.h>            // NOLINT
+#include <unistd.h>              // NOLINT
 
 #include "bin/crypto.h"
 #include "bin/dartutils.h"

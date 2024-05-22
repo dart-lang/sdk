@@ -28,7 +28,7 @@ void<int> f() {}
       error(ParserErrorCode.VOID_WITH_TYPE_ARGUMENTS, 4, 1),
     ]);
 
-    final node = findNode.namedType('void<int>');
+    var node = findNode.namedType('void<int>');
     assertResolvedNodeText(node, r'''
 NamedType
   name: void

@@ -531,15 +531,9 @@ definePrimitiveHashCode(proto) {
       getOwnPropertyDescriptor(proto, extensionSymbol('hashCode')));
 }
 
-/// Link the extension to the type it's extending as a base class.
-void setBaseClass(@notNull Object derived, @notNull Object base) {
-  jsObjectSetPrototypeOf(
-      JS('', '#.prototype', derived), JS('', '#.prototype', base));
-  // We use __proto__ to track the superclass hierarchy (see isSubtypeOf).
-  jsObjectSetPrototypeOf(derived, base);
-}
-
-/// Like [setBaseClass], but for generic extension types such as `JSArray<E>`.
+/// Link the [dartType] to the native [jsType] it is extending as a base class.
+///
+/// Used for generic extension types such as `JSArray<E>`.
 void setExtensionBaseClass(@notNull Object dartType, @notNull Object jsType) {
   // Mark the generic type as an extension type and link the prototype objects.
   var dartProto = JS<Object>('!', '#.prototype', dartType);

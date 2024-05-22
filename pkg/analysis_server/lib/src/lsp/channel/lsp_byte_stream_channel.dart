@@ -79,7 +79,7 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
       return;
     }
     _instrumentationService.logRequest(data);
-    final json = jsonDecode(data) as Map<String, Object?>;
+    var json = jsonDecode(data) as Map<String, Object?>;
     if (RequestMessage.canParse(json, nullLspJsonReporter)) {
       onMessage(RequestMessage.fromJson(json));
     } else if (NotificationMessage.canParse(json, nullLspJsonReporter)) {
@@ -98,11 +98,11 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
     if (_closeRequested) {
       return;
     }
-    final jsonEncodedBody = jsonEncode(json);
-    final utf8EncodedBody = utf8.encode(jsonEncodedBody);
-    final header = 'Content-Length: ${utf8EncodedBody.length}\r\n'
+    var jsonEncodedBody = jsonEncode(json);
+    var utf8EncodedBody = utf8.encode(jsonEncodedBody);
+    var header = 'Content-Length: ${utf8EncodedBody.length}\r\n'
         'Content-Type: application/vscode-jsonrpc; charset=utf-8\r\n\r\n';
-    final asciiEncodedHeader = ascii.encode(header);
+    var asciiEncodedHeader = ascii.encode(header);
 
     // Header is always ascii, body is always utf8!
     _write(asciiEncodedHeader);
@@ -112,7 +112,7 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
   }
 
   void _sendParseError() {
-    final error = ResponseMessage(
+    var error = ResponseMessage(
         error: ResponseError(
             code: ErrorCodes.ParseError, message: 'Unable to parse message'),
         jsonrpc: jsonRpcVersion);

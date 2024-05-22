@@ -341,7 +341,7 @@ class TypeVariableLocal implements Local {
   }
 }
 
-/// A local variable used encode the direct (uncaptured) references to [this].
+/// A local variable used to encode the direct (uncaptured) references to `this`.
 class ThisLocal extends Local {
   final ClassEntity enclosingClass;
 

@@ -15,29 +15,29 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class AddNullCheck extends ResolvedCorrectionProducer {
-  final bool skipAssignabilityCheck;
-
   @override
-  final bool canBeAppliedInBulk;
+  final CorrectionApplicability applicability;
+
+  final bool skipAssignabilityCheck;
 
   @override
   FixKind fixKind = DartFixKind.ADD_NULL_CHECK;
 
   @override
-  List<Object>? fixArguments;
+  List<String>? fixArguments;
 
   AddNullCheck()
       : skipAssignabilityCheck = false,
-        canBeAppliedInBulk = false;
+        applicability = CorrectionApplicability.singleLocation;
 
   AddNullCheck.withoutAssignabilityCheck()
       : skipAssignabilityCheck = true,
-        canBeAppliedInBulk = true;
+        applicability = CorrectionApplicability.automatically;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
     Expression? target;
-    final coveredNode = this.coveredNode;
+    var coveredNode = this.coveredNode;
     var coveredNodeParent = coveredNode?.parent;
 
     if (await _isNullAware(builder, coveredNode)) {
@@ -179,7 +179,7 @@ class AddNullCheck extends ResolvedCorrectionProducer {
       return;
     }
 
-    final target_final = target;
+    var target_final = target;
     var needsParentheses = target.precedence < Precedence.postfix;
     await builder.addDartFileEdit(file, (builder) {
       if (needsParentheses) {

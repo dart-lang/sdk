@@ -234,9 +234,7 @@ class Scavenger {
     return max_pool_size > 0 ? max_pool_size : 1;
   }
 
-  Page* head() const {
-    return to_->head();
-  }
+  Page* head() const { return to_->head(); }
 
   void Prune(MarkingStackBlock** from, MarkingStack* to);
   void Forward(MarkingStack* stack);

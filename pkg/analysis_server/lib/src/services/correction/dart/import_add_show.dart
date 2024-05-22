@@ -17,6 +17,11 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 
 class ImportAddShow extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   AssistKind get assistKind => DartAssistKind.IMPORT_ADD_SHOW;
 
   @override
@@ -59,15 +64,79 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
   _ReferenceFinder(this.namespace);
 
   @override
+  void visitAssignmentExpression(AssignmentExpression node) {
+    _addImplicitExtensionName(node.readElement?.enclosingElement);
+    _addImplicitExtensionName(node.writeElement?.enclosingElement);
+    super.visitAssignmentExpression(node);
+  }
+
+  @override
+  void visitBinaryExpression(BinaryExpression node) {
+    _addImplicitExtensionName(node.staticElement?.enclosingElement);
+    super.visitBinaryExpression(node);
+  }
+
+  @override
+  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    _addImplicitExtensionName(node.staticElement?.enclosingElement);
+    super.visitFunctionExpressionInvocation(node);
+  }
+
+  @override
+  void visitIndexExpression(IndexExpression node) {
+    _addImplicitExtensionName(node.staticElement?.enclosingElement);
+    super.visitIndexExpression(node);
+  }
+
+  @override
+  void visitMethodInvocation(MethodInvocation node) {
+    _addImplicitExtensionName(node.methodName.staticElement?.enclosingElement);
+    super.visitMethodInvocation(node);
+  }
+
+  @override
   void visitNamedType(NamedType node) {
     _addName(node.name2, node.element);
     super.visitNamedType(node);
   }
 
   @override
+  void visitPatternField(PatternField node) {
+    _addImplicitExtensionName(node.element?.enclosingElement);
+    super.visitPatternField(node);
+  }
+
+  @override
+  void visitPrefixedIdentifier(PrefixedIdentifier node) {
+    _addImplicitExtensionName(node.staticElement?.enclosingElement);
+    super.visitPrefixedIdentifier(node);
+  }
+
+  @override
+  void visitPrefixExpression(PrefixExpression node) {
+    _addImplicitExtensionName(node.staticElement?.enclosingElement);
+    super.visitPrefixExpression(node);
+  }
+
+  @override
+  void visitPropertyAccess(PropertyAccess node) {
+    _addImplicitExtensionName(
+        node.propertyName.staticElement?.enclosingElement);
+    super.visitPropertyAccess(node);
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     var element = node.writeOrReadElement;
     _addName(node.token, element);
+  }
+
+  void _addImplicitExtensionName(Element? enclosingElement) {
+    if (enclosingElement is ExtensionElement) {
+      if (namespace[enclosingElement.name] == enclosingElement) {
+        referencedNames.add(enclosingElement.displayName);
+      }
+    }
   }
 
   void _addName(Token nameToken, Element? element) {

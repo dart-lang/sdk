@@ -5,8 +5,8 @@
 #include "vm/bitmap.h"
 
 #include "platform/assert.h"
-#include "vm/object.h"
 #include "vm/log.h"
+#include "vm/object.h"
 
 namespace dart {
 

@@ -23,10 +23,10 @@ class ReanalyzeTest extends AbstractLspAnalysisServerTest {
     await initialAnalysis;
 
     // Set up futures to wait for the new events.
-    final startNotification = waitForAnalysisStart();
-    final completeNotification = waitForAnalysisComplete();
+    var startNotification = waitForAnalysisStart();
+    var completeNotification = waitForAnalysisComplete();
 
-    final request = makeRequest(Method.fromJson(r'dart/reanalyze'), null);
+    var request = makeRequest(Method.fromJson(r'dart/reanalyze'), null);
     await channel.sendRequestToServer(request);
 
     // Ensure the notifications come through again.

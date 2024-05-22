@@ -7,16 +7,16 @@ import 'package:analyzer/dart/element/scope.dart';
 
 /// This class provides access to [Scope]s corresponding to [AstNode]s.
 class LinkingNodeContext {
-  static const _key = 'linkingNodeContext';
+  static final _expando = Expando<LinkingNodeContext>();
 
   final Scope scope;
 
   LinkingNodeContext(AstNode node, this.scope) {
-    node.setProperty(_key, this);
+    _expando[node] = this;
   }
 
   static LinkingNodeContext get(AstNode node) {
-    var context = node.getProperty(_key) as LinkingNodeContext?;
+    var context = _expando[node];
     if (context == null) {
       throw StateError('No context for: $node');
     }

@@ -12,9 +12,13 @@ class B extends core::Object implements self::I {
 
 [@vm.inferred-type.metadata=#lib::B]
 static field self::I ii = new self::B::•();
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method bar() → void {
   ;
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main(core::List<core::String> args) → dynamic {
   let final self::I #t1 = [@vm.inferred-type.metadata=#lib::B] self::ii in self::bar();
 }

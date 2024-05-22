@@ -24,10 +24,8 @@ class ReplaceWithIsEmpty extends ResolvedCorrectionProducer {
   _Replacement? _replacement;
 
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

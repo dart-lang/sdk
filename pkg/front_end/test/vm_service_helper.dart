@@ -57,7 +57,9 @@ class VMServiceHelper {
 
   Future<bool> waitUntilPaused(String isolateId) async {
     int nulls = 0;
+    int tries = 0;
     while (true) {
+      tries++;
       bool? result = await isPaused(isolateId);
       if (result == null) {
         nulls++;
@@ -69,7 +71,30 @@ class VMServiceHelper {
       } else if (result) {
         return true;
       } else {
+        if (tries > 50) {
+          // Waited 5+ seconds --- check if some isolate is paused at start
+          // and resume if it is. This is for instance the case with macros.
+          await _resumeAllPausedAtStartIsolates();
+          tries = 0;
+        }
         await Future.delayed(const Duration(milliseconds: 100));
+      }
+    }
+  }
+
+  Future<void> _resumeAllPausedAtStartIsolates() async {
+    vmService.VM vm = await serviceClient.getVM();
+    for (vmService.IsolateRef isolateRef in vm.isolates!) {
+      try {
+        String? id = isolateRef.id;
+        if (id == null) continue;
+        vmService.Isolate isolate = await _serviceClient.getIsolate(id);
+        if (isolate.pauseEvent?.kind == "PauseStart") {
+          print("Found isolate paused at start - resuming it.");
+          await serviceClient.resume(id);
+        }
+      } catch (e) {
+        // It might exit at some point so we can't expect to get a good result.
       }
     }
   }

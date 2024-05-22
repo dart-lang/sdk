@@ -14,12 +14,15 @@ class C extends core::Object implements self::B {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
   method foo() → void {}
 }
 
 [@vm.inferred-type.metadata=#lib::C]
 static field self::B obj = new self::C::•();
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   [@vm.direct-call.metadata=#lib::C.foo] [@vm.inferred-type.metadata=!? (skip check)] [@vm.inferred-type.metadata=#lib::C] self::obj.{self::B::foo}(){({x: self::A?}) → void};
 }

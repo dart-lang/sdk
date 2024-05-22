@@ -12,6 +12,11 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   FixKind get fixKind => DartFixKind.ADD_MISSING_ENUM_CASE_CLAUSES;
 
   // TODO(brianwilkerson): Consider enabling this lint for fix all in file.
@@ -20,7 +25,7 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is SwitchStatement) {
       var expressionType = node.expression.staticType;
       if (expressionType is! InterfaceType) {
@@ -35,17 +40,15 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
 
       var statementIndent = utils.getLinePrefix(node.offset);
       var singleIndent = utils.oneIndent;
-      var location = utils.newCaseClauseAtEndLocation(
-        switchKeyword: node.switchKeyword,
-        leftBracket: node.leftBracket,
-        rightBracket: node.rightBracket,
-      );
 
       await builder.addDartFileEdit(file, (builder) {
         // TODO(brianwilkerson): Consider inserting the names in order into the
         //  switch statement.
-        builder.addInsertion(location.offset, (builder) {
-          builder.write(location.prefix);
+        builder.insertCaseClauseAtEnd(
+            switchKeyword: node.switchKeyword,
+            rightParenthesis: node.rightParenthesis,
+            leftBracket: node.leftBracket,
+            rightBracket: node.rightBracket, (builder) {
           for (var name in missingNames) {
             builder.write(statementIndent);
             builder.write(singleIndent);
@@ -63,7 +66,6 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
             builder.write(singleIndent);
             builder.writeln('break;');
           }
-          builder.write(location.suffix);
         });
       });
     }

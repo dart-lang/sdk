@@ -429,7 +429,8 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath, String? multiRootScheme,
         // like dart2js.
         var shortPath = uri.path.replaceAll('/sdk/', '/dart-sdk/');
         var multiRootPath = "${multiRootOutputPath ?? ''}$shortPath";
-        multiRootPath = p.url.relative(multiRootPath, from: sourceMapDir);
+        multiRootPath = p.url
+            .joinAll(p.split(p.relative(multiRootPath, from: sourceMapDir)));
         return multiRootPath;
       }
       return sourcePath;

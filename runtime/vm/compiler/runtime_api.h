@@ -404,7 +404,9 @@ bool WillAllocateNewOrRememberedContext(intptr_t num_context_variables);
 bool WillAllocateNewOrRememberedArray(intptr_t length);
 
 #define FINAL_CLASS()                                                          \
-  static word NextFieldOffset() { return -kWordSize; }
+  static word NextFieldOffset() {                                              \
+    return -kWordSize;                                                         \
+  }
 
 //
 // Target specific offsets and constants.
@@ -416,7 +418,7 @@ class UntaggedObject : public AllStatic {
  public:
   static const word kCardRememberedBit;
   static const word kCanonicalBit;
-  static const word kNewBit;
+  static const word kNewOrEvacuationCandidateBit;
   static const word kOldAndNotRememberedBit;
   static const word kNotMarkedBit;
   static const word kImmutableBit;
@@ -759,7 +761,6 @@ class Nullability : public AllStatic {
  public:
   static const uint8_t kNullable;
   static const uint8_t kNonNullable;
-  static const uint8_t kLegacy;
 };
 
 class Double : public AllStatic {

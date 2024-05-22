@@ -697,8 +697,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
-    if (identical(entity, node.extendedType)) {
-      optype.completionLocation = 'ExtensionDeclaration_extendedType';
+    if (identical(entity, node.onClause)) {
+      optype.completionLocation = 'ExtensionDeclaration_onClause';
       optype.includeTypeNameSuggestions = true;
     } else if (node.members.contains(entity) ||
         identical(entity, node.rightBracket)) {
@@ -706,6 +706,12 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       optype.completionLocation = 'ExtensionDeclaration_member';
       optype.includeTypeNameSuggestions = true;
     }
+  }
+
+  @override
+  void visitExtensionOnClause(ExtensionOnClause node) {
+    optype.completionLocation = 'ExtensionOnClause_extendedType';
+    optype.includeTypeNameSuggestions = true;
   }
 
   @override
@@ -1169,6 +1175,12 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitMixinOnClause(MixinOnClause node) {
+    optype.completionLocation = 'MixinOnClause_superclassConstraint';
+    optype.includeTypeNameSuggestions = true;
+  }
+
+  @override
   void visitNamedExpression(NamedExpression node) {
     if (identical(entity, node.expression)) {
       var context = _argumentListContext(node.parent);
@@ -1263,12 +1275,6 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       );
     }
     optype.completionLocation = 'ObjectPattern_fieldName';
-  }
-
-  @override
-  void visitOnClause(OnClause node) {
-    optype.completionLocation = 'OnClause_superclassConstraint';
-    optype.includeTypeNameSuggestions = true;
   }
 
   @override

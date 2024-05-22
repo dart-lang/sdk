@@ -162,6 +162,7 @@ class KernelTarget extends TargetImplementation {
         _options = CompilerContext.current.options,
         ticker = dillTarget.ticker,
         benchmarker = dillTarget.benchmarker {
+    assert(_options.haveBeenValidated, "Options have not been validated");
     loader = createLoader();
   }
 
@@ -232,6 +233,8 @@ class KernelTarget extends TargetImplementation {
     return CompilerContext.current.options.currentSdkVersion;
   }
 
+  Version get leastSupportedVersion => const Version(2, 12);
+
   Version? _currentSdkVersion;
 
   Version get currentSdkVersion {
@@ -271,6 +274,15 @@ class KernelTarget extends TargetImplementation {
           ? new Source(source.lineStarts, const <int>[], source.importUri,
               source.fileUri)
           : source;
+    }
+  }
+
+  void removeSourceInformation(Uri fileUri) {
+    uriToSource.remove(fileUri);
+    if (_hasAddedSources) {
+      // The sources have already been added to the component in [link] so we
+      // have to remove source directly here to create a consistent component.
+      component?.uriToSource.remove(fileUri);
     }
   }
 
@@ -700,6 +712,9 @@ class KernelTarget extends TargetImplementation {
   Component link(List<Library> libraries, {CanonicalName? nameRoot}) {
     libraries.addAll(dillTarget.loader.libraries);
 
+    // Copy source data from the map in [CompilerContext] into a new map that is
+    // put on the component.
+
     Map<Uri, Source> uriToSource = new Map<Uri, Source>();
     void copySource(Uri uri, Source source) {
       uriToSource[uri] = excludeSource
@@ -1083,17 +1098,17 @@ class KernelTarget extends TargetImplementation {
     SuperInitializer initializer = new SuperInitializer(
         superConstructor, new Arguments(positional, named: named));
     Constructor constructor = new Constructor(function,
-        name: superConstructor.name,
-        initializers: <Initializer>[initializer],
-        isSynthetic: true,
-        isConst: isConst,
-        reference: constructorReference,
-        fileUri: cls.fileUri)
-      ..fileOffset = cls.fileOffset
-      // TODO(johnniwinther): Should we add file end offset to synthesized
-      //  constructors?
-      //..fileEndOffset = cls.fileOffset
-      ..isNonNullableByDefault = cls.enclosingLibrary.isNonNullableByDefault;
+            name: superConstructor.name,
+            initializers: <Initializer>[initializer],
+            isSynthetic: true,
+            isConst: isConst,
+            reference: constructorReference,
+            fileUri: cls.fileUri)
+          ..fileOffset = cls.fileOffset
+        // TODO(johnniwinther): Should we add file end offset to synthesized
+        //  constructors?
+        //..fileEndOffset = cls.fileOffset
+        ;
     DelayedDefaultValueCloner delayedDefaultValueCloner =
         new DelayedDefaultValueCloner(superConstructor, constructor,
             libraryBuilder: libraryBuilder);
@@ -1178,17 +1193,17 @@ class KernelTarget extends TargetImplementation {
     SourceLibraryBuilder libraryBuilder = classBuilder.libraryBuilder;
     Class enclosingClass = classBuilder.cls;
     Constructor constructor = new Constructor(
-        new FunctionNode(new EmptyStatement(),
-            returnType: makeConstructorReturnType(enclosingClass)),
-        name: new Name(""),
-        isSynthetic: true,
-        reference: constructorReference,
-        fileUri: enclosingClass.fileUri)
-      ..fileOffset = enclosingClass.fileOffset
-      // TODO(johnniwinther): Should we add file end offsets to synthesized
-      //  constructors?
-      //..fileEndOffset = enclosingClass.fileOffset
-      ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault;
+            new FunctionNode(new EmptyStatement(),
+                returnType: makeConstructorReturnType(enclosingClass)),
+            name: new Name(""),
+            isSynthetic: true,
+            reference: constructorReference,
+            fileUri: enclosingClass.fileUri)
+          ..fileOffset = enclosingClass.fileOffset
+        // TODO(johnniwinther): Should we add file end offsets to synthesized
+        //  constructors?
+        //..fileEndOffset = enclosingClass.fileOffset
+        ;
     Procedure? constructorTearOff = createConstructorTearOffProcedure(
         new MemberName(libraryBuilder.libraryName, constructorTearOffName('')),
         libraryBuilder,
@@ -1424,20 +1439,18 @@ class KernelTarget extends TargetImplementation {
                 .toList());
         nonFinalFields.clear();
       }
-      if (libraryBuilder.isNonNullableByDefault) {
-        if (constructor.isConst && lateFinalFields.isNotEmpty) {
-          for (FieldBuilder field in lateFinalFields) {
-            classDeclaration.addProblem(
-                messageConstConstructorLateFinalFieldError,
-                field.charOffset,
-                noLength,
-                context: [
-                  messageConstConstructorLateFinalFieldCause.withLocation(
-                      constructor.fileUri!, constructor.charOffset, noLength)
-                ]);
-          }
-          lateFinalFields.clear();
+      if (constructor.isConst && lateFinalFields.isNotEmpty) {
+        for (FieldBuilder field in lateFinalFields) {
+          classDeclaration.addProblem(
+              messageConstConstructorLateFinalFieldError,
+              field.charOffset,
+              noLength,
+              context: [
+                messageConstConstructorLateFinalFieldCause.withLocation(
+                    constructor.fileUri!, constructor.charOffset, noLength)
+              ]);
         }
+        lateFinalFields.clear();
       }
       if (constructor.isEffectivelyExternal) {
         // Assume that an external constructor initializes all uninitialized
@@ -1462,13 +1475,8 @@ class KernelTarget extends TargetImplementation {
     for (SourceFieldBuilder fieldBuilder in uninitializedFields) {
       if (initializedFieldBuilders == null ||
           !initializedFieldBuilders.contains(fieldBuilder)) {
-        bool uninitializedFinalOrNonNullableFieldIsError =
-            libraryBuilder.isNonNullableByDefault ||
-                classDeclaration.hasGenerativeConstructor ||
-                classDeclaration.isMixinDeclaration;
         if (!fieldBuilder.isLate) {
-          if (fieldBuilder.isFinal &&
-              uninitializedFinalOrNonNullableFieldIsError) {
+          if (fieldBuilder.isFinal) {
             String uri = '${libraryBuilder.importUri}';
             String file = fieldBuilder.fileUri.pathSegments.last;
             if (uri == 'dart:html' ||
@@ -1486,18 +1494,13 @@ class KernelTarget extends TargetImplementation {
                   fieldBuilder.fileUri);
             }
           } else if (fieldBuilder.fieldType is! InvalidType &&
-              fieldBuilder.fieldType.isPotentiallyNonNullable &&
-              uninitializedFinalOrNonNullableFieldIsError) {
-            if (libraryBuilder.isNonNullableByDefault) {
-              libraryBuilder.addProblem(
-                  templateFieldNonNullableWithoutInitializerError.withArguments(
-                      fieldBuilder.name,
-                      fieldBuilder.fieldType,
-                      libraryBuilder.isNonNullableByDefault),
-                  fieldBuilder.charOffset,
-                  fieldBuilder.name.length,
-                  fieldBuilder.fileUri);
-            }
+              fieldBuilder.fieldType.isPotentiallyNonNullable) {
+            libraryBuilder.addProblem(
+                templateFieldNonNullableWithoutInitializerError.withArguments(
+                    fieldBuilder.name, fieldBuilder.fieldType),
+                fieldBuilder.charOffset,
+                fieldBuilder.name.length,
+                fieldBuilder.fileUri);
           }
           fieldBuilder.buildImplicitDefaultValue();
         }
@@ -1531,21 +1534,18 @@ class KernelTarget extends TargetImplementation {
           } else if (fieldBuilder.field.type is! InvalidType &&
               !fieldBuilder.isLate &&
               fieldBuilder.field.type.isPotentiallyNonNullable) {
-            if (libraryBuilder.isNonNullableByDefault) {
-              libraryBuilder.addProblem(
-                  templateFieldNonNullableNotInitializedByConstructorError
-                      .withArguments(fieldBuilder.name, fieldBuilder.field.type,
-                          libraryBuilder.isNonNullableByDefault),
-                  constructorBuilder.charOffset,
-                  noLength,
-                  constructorBuilder.fileUri,
-                  context: [
-                    templateMissingImplementationCause
-                        .withArguments(fieldBuilder.name)
-                        .withLocation(fieldBuilder.fileUri,
-                            fieldBuilder.charOffset, fieldBuilder.name.length)
-                  ]);
-            }
+            libraryBuilder.addProblem(
+                templateFieldNonNullableNotInitializedByConstructorError
+                    .withArguments(fieldBuilder.name, fieldBuilder.field.type),
+                constructorBuilder.charOffset,
+                noLength,
+                constructorBuilder.fileUri,
+                context: [
+                  templateMissingImplementationCause
+                      .withArguments(fieldBuilder.name)
+                      .withLocation(fieldBuilder.fileUri,
+                          fieldBuilder.charOffset, fieldBuilder.name.length)
+                ]);
           }
         }
       }

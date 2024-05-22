@@ -6,7 +6,7 @@ import 'dart:math';
 
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/source_buffer.dart';
-import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -463,7 +463,7 @@ class StatementCompletionProcessor {
       }
       if (sb2.length == 0) {
         // true if condition is '()'
-        final exitPosition = this.exitPosition;
+        var exitPosition = this.exitPosition;
         if (exitPosition != null) {
           if (node.semicolon.isSynthetic) {
             _insertBuilder(sb);

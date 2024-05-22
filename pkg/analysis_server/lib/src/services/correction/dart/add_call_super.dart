@@ -14,22 +14,19 @@ class AddCallSuper extends ResolvedCorrectionProducer {
   var _addition = '';
 
   @override
-  // Adding as the first statement is not predictably the correct action.
-  bool get canBeAppliedInBulk => false;
+  CorrectionApplicability get applicability =>
+      // Adding as the first statement is not predictably the correct action.
+      CorrectionApplicability.singleLocation;
 
   @override
-  // Adding as the first statement is not predictably the correct action.
-  bool get canBeAppliedToFile => false;
-
-  @override
-  List<Object> get fixArguments => [_addition];
+  List<String> get fixArguments => [_addition];
 
   @override
   FixKind get fixKind => DartFixKind.ADD_CALL_SUPER;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final methodDeclaration = node;
+    var methodDeclaration = node;
     if (methodDeclaration is! MethodDeclaration) return;
     var classElement = methodDeclaration
         .thisOrAncestorOfType<ClassDeclaration>()
@@ -59,20 +56,21 @@ class AddCallSuper extends ResolvedCorrectionProducer {
     _addition = '$name($argumentList)';
 
     if (body is BlockFunctionBody) {
-      await _block(builder, body);
+      await _block(builder, body.block);
     } else if (body is ExpressionFunctionBody) {
       await _expression(builder, body);
     }
   }
 
-  Future<void> _block(ChangeBuilder builder, BlockFunctionBody body) async {
-    var location = utils.prepareNewStatementLocation(body.block, true);
-
+  Future<void> _block(ChangeBuilder builder, Block block) async {
     await builder.addDartFileEdit(file, (builder) {
-      builder.addInsertion(location.offset, (builder) {
-        builder.write(location.prefix);
-        builder.write('super.$_addition;');
-        builder.write(location.suffix);
+      builder.addInsertion(block.leftBracket.end, (builder) {
+        builder.writeln();
+        builder.write('${builder.getIndent(2)}super.$_addition;');
+        if (block.statements.isEmpty) {
+          builder.writeln();
+          builder.writeIndent();
+        }
       });
     });
   }

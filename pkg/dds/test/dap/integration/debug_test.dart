@@ -40,7 +40,7 @@ main() {
       expect(vmConnection.category, anyOf('console', isNull));
 
       // Expect the normal applications output.
-      final output = outputEvents.skip(1).map((e) => e.output).join();
+      final output = outputEvents.skip(2).map((e) => e.output).join();
       expectLines(output, [
         'Hello!',
         'World!',
@@ -48,6 +48,27 @@ main() {
         '',
         'Exited.',
       ]);
+    });
+
+    test('does not include empty output events when output ends with a newline',
+        () async {
+      final testFile = dap.createTestFile(simpleArgPrintingProgram);
+
+      final outputEvents = await dap.client.collectOutput(
+        launch: () => dap.client.launch(
+          testFile.path,
+          args: ['one', 'two'],
+        ),
+      );
+
+      // The sample application uses `print()` which includes newlines on
+      // each output. Output is split by `\n` when scanning for stack frames
+      // and previously would include empty output events at the end if the
+      // content ended with a newline.
+      // https://github.com/flutter/flutter/pull/147250#issuecomment-2075128834
+      for (var output in outputEvents) {
+        expect(output.output, isNotEmpty);
+      }
     });
 
     test('runs a simple script using runInTerminal request', () async {
@@ -119,7 +140,7 @@ main() {
       // Expect the normal applications output. This means we set up the
       // debugger without crashing, even though we imported files with commas
       // in the name.
-      final output = outputEvents.skip(1).map((e) => e.output).join();
+      final output = outputEvents.skip(2).map((e) => e.output).join();
       expectLines(output, [
         'Hello!',
         'World!',
@@ -140,7 +161,7 @@ main() {
       final testFile = dap.createTestFile(simpleArgPrintingProgram);
 
       // Run the script, expecting a Stopped event.
-      final stop = dap.client.expectStop('pause');
+      final stop = dap.client.expectStop('exit');
       await Future.wait([
         stop,
         dap.client.initialize(),
@@ -155,122 +176,219 @@ main() {
       ], eagerError: true);
     });
 
-    test('sends output events in the correct order', () async {
-      // Output events that have their URIs mapped will be processed slowly due
-      // the async requests for resolving the package URI. This should not cause
-      // them to appear out-of-order with other lines that do not require this
-      // work.
-      //
-      // Use a sample program that prints output to stderr that includes:
-      // - non stack frame lines
-      // - stack frames with file:// URIs
-      // - stack frames with package URIs (that need asynchronously resolving)
-      // - stack frames with dart URIs (that need asynchronously resolving)
-      final fileUri = Uri.file(dap.createTestFile('').path);
-      final (packageUri, _) = await dap.createFooPackage();
-      final dartUri = Uri.parse('dart:isolate-patch/isolate_patch.dart');
-      final testFile = dap.createTestFile(
-        stderrPrintingProgram(fileUri, packageUri, dartUri),
-      );
-
-      var outputEvents = await dap.client.collectOutput(
-        launch: () => dap.client.launch(testFile.path),
-      );
-      outputEvents = outputEvents.where((e) => e.category == 'stderr').toList();
-
-      // Verify the order of the stderr output events.
-      final output = outputEvents
-          .map((e) => e.output.trim())
-          .where((output) => output.isNotEmpty)
-          .join('\n');
-      expectLines(output, [
-        'Start',
-        '#0      main ($fileUri:1:2)',
-        '#1      main2 ($packageUri:3:4)',
-        '#2      main3 ($dartUri:5:6)',
-        'End',
-      ]);
-
-      // As a sanity check, verify we did actually do the async path mapping and
-      // got both frames with paths in our test folder.
-      final stackFramesWithPaths = outputEvents.where((e) =>
-          e.source?.path != null &&
-          path.isWithin(dap.testDir.path, e.source!.path!));
-      expect(
-        stackFramesWithPaths,
-        hasLength(2),
-        reason: 'Expected two frames within path ${dap.testDir.path}',
-      );
-    });
-
-    test(
-        'fades stack frames that are not part of our project when allowAnsiColorOutput=true',
+    test('does not resume isolates if user passes --pause-isolates-on-start',
         () async {
-      // Use a sample program that prints output to stderr that includes:
-      // - non stack frame lines
-      // - stack frames with file:// URIs
-      // - stack frames with package URIs (that need asynchronously resolving)
-      // - stack frames with dart URIs (that need asynchronously resolving)
-      final fileUri = Uri.file(dap.createTestFile('').path);
-      final (packageUri, _) = await dap.createFooPackage();
-      final dartUri = Uri.parse('dart:isolate-patch/isolate_patch.dart');
-      final testFile = dap.createTestFile(
-        stderrPrintingProgram(fileUri, packageUri, dartUri),
-      );
+      // Internally we always pass --pause-isolates-on-start and resume the
+      // isolates after setting any breakpoints.
+      //
+      // However if a user passes this flag explicitly, we should not
+      // auto-resume because they might be trying to debug something.
+      final testFile = dap.createTestFile(simpleArgPrintingProgram);
 
-      var outputEvents = await dap.client.collectOutput(
-        launch: () => dap.client.launch(testFile.path,
-            allowAnsiColorOutput: true,
-            // Include package:foo as being user-code, to ensure it's not faded.
-            additionalProjectPaths: [
-              path.join(dap.testPackagesDir.path, 'foo'),
-            ]),
-      );
-      outputEvents = outputEvents.where((e) => e.category == 'stderr').toList();
+      // Run the script, expecting a Stopped event.
+      final stop = dap.client.expectStop('entry');
+      await Future.wait([
+        stop,
+        dap.client.initialize(),
+        dap.client.launch(
+          testFile.path,
+          toolArgs: ["--pause-isolates-on-start"],
+        ),
+      ], eagerError: true);
 
-      // Verify the order of the stderr output events.
-      final output = outputEvents
-          .map((e) => e.output.trim())
-          .where((output) => output.isNotEmpty)
-          .join('\n');
-      expectLines(output, [
-        'Start',
-        '#0      main ($fileUri:1:2)',
-        '#1      main2 ($packageUri:3:4)',
-        '\u001B[2m#2      main3 ($dartUri:5:6)\u001B[0m',
-        'End',
-      ]);
+      // Resume and expect termination.
+      await Future.wait([
+        dap.client.event('terminated'),
+        dap.client.continue_((await stop).threadId!),
+      ], eagerError: true);
     });
 
-    test('includes correct Source.name for SDK and package sources', () async {
-      // Use a sample program that prints output to stderr that includes:
-      // - non stack frame lines
-      // - stack frames with file:// URIs
-      // - stack frames with package URIs (that need asynchronously resolving)
-      // - stack frames with dart URIs (that need asynchronously resolving)
-      final fileUri = Uri.file(dap.createTestFile('').path);
-      final (packageUri, _) = await dap.createFooPackage();
-      final dartUri = Uri.parse('dart:isolate-patch/isolate_patch.dart');
-      final testFile = dap.createTestFile(
-        stderrPrintingProgram(fileUri, packageUri, dartUri),
-      );
+    test('receives thread, stopped, continued events during pause/resume',
+        () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(debuggerPauseAndPrintManyProgram);
 
-      final outputEvents = await dap.client.collectOutput(file: testFile);
-      final outputSourceNames = outputEvents
-          .where((e) => e.category == 'stderr')
-          .map((output) => output.source?.name)
-          .where((sourceName) => (sourceName?.isNotEmpty ?? false))
-          .toList();
+      // Collect interesting events that we want to verify exist and in the
+      // right order.
+      final interestingEvents = const {
+        'thread',
+        'stopped',
+        'continued',
+        'terminated'
+      };
+      final eventsFuture = client.allEvents
+          .where((e) => interestingEvents.contains(e.event))
+          .map((e) {
+        // Map onto a descriptive string for verifying later.
+        final reason = (e.body as Map<String, Object?>)['reason'] as String?;
+        return reason != null ? '${e.event} ($reason)' : e.event;
+      }).toList();
 
+      // Start the program and wait to pause on `debugger()`.
+      final stoppedFuture = client.expectStop('step');
+      await client.start(file: testFile);
+      final threadId = (await stoppedFuture).threadId!;
+
+      // Step 3 times and wait for the corresponding stop.
+      for (var i = 0; i < 3; i++) {
+        client.next(threadId);
+        await client.stoppedEvents.first;
+      }
+
+      // Resume to run to end.
+      client.continue_(threadId);
+
+      // Verify we had the expected events.
       expect(
-        outputSourceNames,
+        await eventsFuture,
         [
-          fileUri.toFilePath(),
-          packageUri.toString(),
-          dartUri.toString(),
+          'thread (started)',
+          'stopped (entry)',
+          'continued',
+          // stop on debugger()
+          'stopped (step)',
+          // step 1
+          'continued',
+          'stopped (step)',
+          // step 2
+          'continued',
+          'stopped (step)',
+          // step 3
+          'continued',
+          'stopped (step)',
+          // continue
+          'continued',
+          // pause-on-exit to drain stdout and handle looking up URIs
+          'stopped (exit)',
+          // finished
+          'thread (exited)',
+          'terminated',
         ],
       );
     });
+
+    for (final outputKind in ['stdout', 'stderr']) {
+      test('sends $outputKind output events in the correct order', () async {
+        // Output events that have their URIs mapped will be processed slowly due
+        // the async requests for resolving the package URI. This should not cause
+        // them to appear out-of-order with other lines that do not require this
+        // work.
+        //
+        // Use a sample program that prints output to stderr that includes:
+        // - non stack frame lines
+        // - stack frames with file:// URIs
+        // - stack frames with package URIs (that need asynchronously resolving)
+        // - stack frames with dart URIs (that need asynchronously resolving)
+        final fileUri = Uri.file(dap.createTestFile('').path);
+        final (packageUri, _) = await dap.createFooPackage();
+        final dartUri = Uri.parse('dart:isolate-patch/isolate_patch.dart');
+        final testFile = dap.createTestFile(
+          stackPrintingProgram(outputKind, fileUri, packageUri, dartUri),
+        );
+
+        var outputEvents = await dap.client.collectOutput(
+          launch: () => dap.client.launch(testFile.path),
+        );
+        outputEvents =
+            outputEvents.where((e) => e.category == outputKind).toList();
+
+        // Verify the order of the stderr output events.
+        final output = outputEvents
+            .map((e) => e.output.trim())
+            .where((output) => output.isNotEmpty)
+            .join('\n');
+        expectLines(output, [
+          'Start',
+          '#0      main ($fileUri:1:2)',
+          '#1      main2 ($packageUri:3:4)',
+          '#2      main3 ($dartUri:5:6)',
+          'End',
+        ]);
+
+        // As a sanity check, verify we did actually do the async path mapping and
+        // got both frames with paths in our test folder.
+        final stackFramesWithPaths = outputEvents.where((e) =>
+            e.source?.path != null &&
+            path.isWithin(dap.testDir.path, e.source!.path!));
+        expect(
+          stackFramesWithPaths,
+          hasLength(2),
+          reason: 'Expected two frames within path ${dap.testDir.path}',
+        );
+      });
+
+      test(
+          'fades $outputKind stack frames that are not part of our project when allowAnsiColorOutput=true',
+          () async {
+        // Use a sample program that prints output to stderr that includes:
+        // - non stack frame lines
+        // - stack frames with file:// URIs
+        // - stack frames with package URIs (that need asynchronously resolving)
+        // - stack frames with dart URIs (that need asynchronously resolving)
+        final fileUri = Uri.file(dap.createTestFile('').path);
+        final (packageUri, _) = await dap.createFooPackage();
+        final dartUri = Uri.parse('dart:isolate-patch/isolate_patch.dart');
+        final testFile = dap.createTestFile(
+          stackPrintingProgram(outputKind, fileUri, packageUri, dartUri),
+        );
+
+        var outputEvents = await dap.client.collectOutput(
+          launch: () => dap.client.launch(testFile.path,
+              allowAnsiColorOutput: true,
+              // Include package:foo as being user-code, to ensure it's not faded.
+              additionalProjectPaths: [
+                path.join(dap.testPackagesDir.path, 'foo'),
+              ]),
+        );
+        outputEvents =
+            outputEvents.where((e) => e.category == outputKind).toList();
+
+        // Verify the order of the stderr output events.
+        final output = outputEvents
+            .map((e) => e.output.trim())
+            .where((output) => output.isNotEmpty)
+            .join('\n');
+        expectLines(output, [
+          'Start',
+          '#0      main ($fileUri:1:2)',
+          '#1      main2 ($packageUri:3:4)',
+          '\u001B[2m#2      main3 ($dartUri:5:6)\u001B[0m',
+          'End',
+        ]);
+      });
+
+      test(
+          'includes correct Source.name for SDK and package sources in $outputKind output',
+          () async {
+        // Use a sample program that prints output to stderr that includes:
+        // - non stack frame lines
+        // - stack frames with file:// URIs
+        // - stack frames with package URIs (that need asynchronously resolving)
+        // - stack frames with dart URIs (that need asynchronously resolving)
+        final fileUri = Uri.file(dap.createTestFile('').path);
+        final (packageUri, _) = await dap.createFooPackage();
+        final dartUri = Uri.parse('dart:isolate-patch/isolate_patch.dart');
+        final testFile = dap.createTestFile(
+          stackPrintingProgram(outputKind, fileUri, packageUri, dartUri),
+        );
+
+        final outputEvents = await dap.client.collectOutput(file: testFile);
+        final outputSourceNames = outputEvents
+            .where((e) => e.category == outputKind)
+            .map((output) => output.source?.name)
+            .where((sourceName) => (sourceName?.isNotEmpty ?? false))
+            .toList();
+
+        expect(
+          outputSourceNames,
+          [
+            fileUri.toFilePath(),
+            packageUri.toString(),
+            dartUri.toString(),
+          ],
+        );
+      });
+    }
 
     group('progress notifications', () {
       /// Helper to verify [events] are the expected start/update/end events
@@ -733,18 +851,21 @@ main() {
   }, timeout: Timeout.none);
 
   group('debug mode', () {
-    test('can run without DDS', () async {
-      final dap = await DapTestSession.setUp(additionalArgs: ['--no-dds']);
-      addTearDown(dap.tearDown);
+    test(
+      'can run without DDS',
+      () async {
+        final dap = await DapTestSession.setUp(additionalArgs: ['--no-dds']);
+        addTearDown(dap.tearDown);
 
-      final client = dap.client;
-      final testFile = dap.createTestFile(simpleBreakpointProgram);
-      final breakpointLine = lineWith(testFile, breakpointMarker);
+        final client = dap.client;
+        final testFile = dap.createTestFile(simpleBreakpointProgram);
+        final breakpointLine = lineWith(testFile, breakpointMarker);
 
-      await client.hitBreakpoint(testFile, breakpointLine);
+        await client.hitBreakpoint(testFile, breakpointLine);
 
-      expect(await client.ddsAvailable, isFalse);
-    });
+        expect(await client.ddsAvailable, isFalse);
+      },
+    );
 
     test('can run without auth codes', () async {
       final dap =

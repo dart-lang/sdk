@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/element/element.dart'
     show CompilationUnitElement, LibraryElement;
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
@@ -41,6 +42,7 @@ class LibraryContext {
   final InfoDeclarationStore infoDeclarationStore;
   final FileSystemState fileSystemState;
   final MacroSupport? macroSupport;
+  final File? packagesFile;
   final SummaryDataStore store = SummaryDataStore();
 
   late final AnalysisContextImpl analysisContext;
@@ -59,6 +61,7 @@ class LibraryContext {
     required DeclaredVariables declaredVariables,
     required SourceFactory sourceFactory,
     required this.macroSupport,
+    required this.packagesFile,
     required SummaryDataStore? externalSummaries,
   }) {
     analysisContext = AnalysisContextImpl(
@@ -92,7 +95,7 @@ class LibraryContext {
     LibraryFileKind library,
     FileState unit,
   ) {
-    final kind = unit.kind;
+    var kind = unit.kind;
 
     String unitContainerName;
     if (library == kind.library) {
@@ -118,7 +121,7 @@ class LibraryContext {
   ///
   /// Returns the keys of the artifacts that are no longer used.
   Set<String> dispose() {
-    final keys = unloadAll();
+    var keys = unloadAll();
     elementFactory.dispose();
     return keys;
   }
@@ -191,11 +194,16 @@ class LibraryContext {
 
         LinkResult linkResult;
         try {
-          linkResult = await link(
-            elementFactory: elementFactory,
-            performance: OperationPerformanceImpl('link'),
-            inputLibraries: cycle.libraries,
-            macroExecutor: this.macroSupport?.executor,
+          linkResult = await performance.runAsync(
+            'link',
+            (performance) async {
+              return await link(
+                elementFactory: elementFactory,
+                performance: performance,
+                inputLibraries: cycle.libraries,
+                macroExecutor: this.macroSupport?.executor,
+              );
+            },
           );
           librariesLinked += cycle.libraries.length;
         } catch (exception, stackTrace) {
@@ -216,7 +224,7 @@ class LibraryContext {
         // TODO(scheglov): Take / clear parsed units in files.
         bytesGet += linkedBytes.length;
         librariesLoaded += cycle.libraries.length;
-        final bundleReader = BundleReader(
+        var bundleReader = BundleReader(
           elementFactory: elementFactory,
           unitsInformativeBytes: unitsInformativeBytes,
           resolutionBytes: linkedBytes,
@@ -227,13 +235,22 @@ class LibraryContext {
       }
 
       // If we can compile to kernel, check if there are macros.
-      final macroSupport = this.macroSupport;
-      if (macroSupport is KernelMacroSupport && macroLibraries.isNotEmpty) {
+      var macroSupport = this.macroSupport;
+      var packagesFile = this.packagesFile;
+      if (macroSupport is KernelMacroSupport &&
+          packagesFile != null &&
+          macroLibraries.isNotEmpty) {
         var kernelBytes = byteStore.get(cycle.macroKey);
         if (kernelBytes == null) {
-          kernelBytes = await macroSupport.builder.build(
-            fileSystem: _MacroFileSystem(fileSystemState),
-            libraries: macroLibraries,
+          kernelBytes = await performance.runAsync<Uint8List>(
+            'macroCompileKernel',
+            (performance) async {
+              return await macroSupport.builder.build(
+                fileSystem: _MacroFileSystem(fileSystemState),
+                packageFilePath: packagesFile.path,
+                libraries: macroLibraries,
+              );
+            },
           );
           byteStore.putGet(cycle.macroKey, kernelBytes);
           bytesPut += kernelBytes.length;
@@ -275,7 +292,7 @@ class LibraryContext {
     );
 
     loadedBundles.removeWhere((cycle) {
-      final cycleFiles = cycle.libraries.map((e) => e.file);
+      var cycleFiles = cycle.libraries.map((e) => e.file);
       if (cycleFiles.any(removed.contains)) {
         removedKeys.add(cycle.linkedKey);
         return true;
@@ -288,10 +305,10 @@ class LibraryContext {
   ///
   /// Returns the keys of the artifacts that are no longer used.
   Set<String> unloadAll() {
-    final keySet = <String>{};
-    final uriSet = <Uri>{};
+    var keySet = <String>{};
+    var uriSet = <Uri>{};
 
-    for (final cycle in loadedBundles) {
+    for (var cycle in loadedBundles) {
       keySet.add(cycle.linkedKey);
       uriSet.addAll(cycle.libraries.map((e) => e.file.uri));
     }
@@ -304,10 +321,10 @@ class LibraryContext {
 
   /// Create files with macro generated augmentation libraries.
   void _addMacroAugmentations(LibraryCycle cycle, BundleReader bundleReader) {
-    for (final libraryReader in bundleReader.libraryMap.values) {
-      final macroGeneratedCode = libraryReader.macroGeneratedCode;
+    for (var libraryReader in bundleReader.libraryMap.values) {
+      var macroGeneratedCode = libraryReader.macroGeneratedCode;
       if (macroGeneratedCode != null) {
-        for (final libraryKind in cycle.libraries) {
+        for (var libraryKind in cycle.libraries) {
           if (libraryKind.file.uri == libraryReader.uri) {
             libraryKind.addMacroAugmentation(
               macroGeneratedCode,
@@ -365,8 +382,8 @@ class LibraryContextTestData {
   });
 
   LibraryCycleTestData forCycle(LibraryCycle cycle) {
-    final files = cycle.libraries.map((library) {
-      final file = library.file;
+    var files = cycle.libraries.map((library) {
+      var file = library.file;
       return fileSystemTestData.forFile(file.resource, file.uri);
     }).toList();
     files.sortBy((fileData) => fileData.file.path);
@@ -403,7 +420,7 @@ class _MacroFileSystem implements MacroFileSystem {
 
   @override
   MacroFileEntry getFile(String path) {
-    final fileState = fileSystemState.getExistingFromPath(path);
+    var fileState = fileSystemState.getExistingFromPath(path);
     if (fileState != null) {
       return _MacroFileEntry(
         content: fileState.content,
@@ -411,7 +428,7 @@ class _MacroFileSystem implements MacroFileSystem {
       );
     }
 
-    final fileContent = fileSystemState.fileContentStrategy.get(path);
+    var fileContent = fileSystemState.fileContentStrategy.get(path);
     return _MacroFileEntry(
       content: fileContent.content,
       exists: fileContent.exists,

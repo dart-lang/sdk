@@ -36,6 +36,9 @@ class AtomicBitFieldContainer : AtomicBitFieldContainerBase {
   }
 
   T load(std::memory_order order) const { return field_.load(order); }
+  NO_SANITIZE_THREAD T load_ignore_race() const {
+    return *reinterpret_cast<const T*>(&field_);
+  }
   void store(T value, std::memory_order order) { field_.store(value, order); }
 
   bool compare_exchange_weak(T old_tags, T new_tags, std::memory_order order) {
@@ -46,11 +49,6 @@ class AtomicBitFieldContainer : AtomicBitFieldContainerBase {
             std::memory_order order = std::memory_order_relaxed>
   typename TargetBitField::Type Read() const {
     return TargetBitField::decode(field_.load(order));
-  }
-
-  template <class TargetBitField>
-  NO_SANITIZE_THREAD typename TargetBitField::Type ReadIgnoreRace() const {
-    return TargetBitField::decode(*reinterpret_cast<const T*>(&field_));
   }
 
   template <class TargetBitField,

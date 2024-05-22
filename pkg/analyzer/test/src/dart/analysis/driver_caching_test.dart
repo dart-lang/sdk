@@ -228,8 +228,8 @@ import 'a.dart';
     // "should be asked from LinkedElementLibrary", which will ask it
     // from the `LibraryReader` current at the moment of `exportNamespace`
     // access, not necessary the same that created this instance.
-    final aResult = await driver.getLibraryByUri('package:test/a.dart');
-    final aElement = (aResult as LibraryElementResult).element;
+    var aResult = await driver.getLibraryByUri('package:test/a.dart');
+    var aElement = (aResult as LibraryElementResult).element;
 
     // The element is valid at this point.
     expect(driver.isValidLibraryElement(aElement), isTrue);
@@ -357,7 +357,7 @@ void f() {
   }
 
   test_macro_libraryElement_changeMacroCode() async {
-    final macroFile = _newFileWithFixedNameMacro('MacroA');
+    var macroFile = _newFileWithFixedNameMacro('MacroA');
 
     var a = newFile('$testPackageLibPath/a.dart', r'''
 import 'my_macro.dart';
@@ -370,21 +370,21 @@ class A {}
 export 'a.dart';
 ''');
 
-    final analysisContext = contextFor(macroFile);
+    var analysisContext = contextFor(macroFile);
 
     Future<LibraryElement> getLibrary(String uriStr) async {
-      final result = await analysisContext.currentSession
-          .getLibraryByUri(uriStr) as LibraryElementResult;
+      var result = await analysisContext.currentSession.getLibraryByUri(uriStr)
+          as LibraryElementResult;
       return result.element;
     }
 
     // This macro generates `MacroA`, but not `MacroB`.
     {
-      final libraryA = await getLibrary('package:test/a.dart');
+      var libraryA = await getLibrary('package:test/a.dart');
       expect(libraryA.getClass('MacroA'), isNotNull);
       expect(libraryA.getClass('MacroB'), isNull);
       // This propagates transitively.
-      final libraryB = await getLibrary('package:test/b.dart');
+      var libraryB = await getLibrary('package:test/b.dart');
       expect(libraryB.exportNamespace.get('MacroA'), isNotNull);
       expect(libraryB.exportNamespace.get('MacroB'), isNull);
     }
@@ -401,11 +401,11 @@ export 'a.dart';
 
     // This macro generates `MacroB`, but not `MacroA`.
     {
-      final libraryA = await getLibrary('package:test/a.dart');
+      var libraryA = await getLibrary('package:test/a.dart');
       expect(libraryA.getClass('MacroA'), isNull);
       expect(libraryA.getClass('MacroB'), isNotNull);
       // This propagates transitively.
-      final libraryB = await getLibrary('package:test/b.dart');
+      var libraryB = await getLibrary('package:test/b.dart');
       expect(libraryB.exportNamespace.get('MacroA'), isNull);
       expect(libraryB.exportNamespace.get('MacroB'), isNotNull);
     }
@@ -415,7 +415,7 @@ export 'a.dart';
   }
 
   test_macro_reanalyze_errors_changeCodeUsedByMacro_importedLibrary() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 String getClassName() => 'MacroA';
 ''');
 
@@ -449,7 +449,7 @@ void f(MacroA a) {}
     var analysisDriver = driverFor(a);
 
     // TODO(scheglov): use text expectations
-    final userErrors = _createUnitQueueOfStream(user);
+    var userErrors = _createUnitQueueOfStream(user);
 
     // We get errors when the file is added.
     analysisDriver.addFile(user.path);
@@ -471,7 +471,7 @@ String getClassName() => 'MacroB';
   }
 
   test_macro_reanalyze_errors_changeCodeUsedByMacro_part() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 part of 'my_macro.dart';
 String getClassName() => 'MacroA';
 ''');
@@ -506,7 +506,7 @@ void f(MacroA a) {}
     var analysisDriver = driverFor(a);
 
     // TODO(scheglov): use text expectations
-    final userErrors = _createUnitQueueOfStream(user);
+    var userErrors = _createUnitQueueOfStream(user);
 
     // We get errors when the file is added.
     analysisDriver.addFile(user.path);
@@ -544,7 +544,7 @@ void f(MacroA a) {}
     var analysisDriver = driverFor(user);
 
     // TODO(scheglov): use text expectations
-    final userErrors = _createUnitQueueOfStream(user);
+    var userErrors = _createUnitQueueOfStream(user);
 
     // We get errors when the file is added.
     analysisDriver.addFile(user.path);
@@ -564,7 +564,7 @@ void f(MacroA a) {}
   }
 
   test_macro_resolvedUnit_changeCodeUsedByMacro() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 String getClassName() => 'MacroA';
 ''');
 
@@ -649,7 +649,7 @@ String getClassName() => 'MacroB';
   }
 
   ListQueue<ResolvedUnitResult> _createUnitQueueOfStream(File file) {
-    final queue = ListQueue<ResolvedUnitResult>();
+    var queue = ListQueue<ResolvedUnitResult>();
     analysisContextCollection.scheduler.events
         .whereType<ResolvedUnitResult>()
         .where((event) => event.path == file.path)
@@ -684,7 +684,7 @@ extension on AnalysisDriver {
 extension<T> on ListQueue<T> {
   Future<T> removeFirstAsync() async {
     while (true) {
-      final result = removeFirstOrNull();
+      var result = removeFirstOrNull();
       if (result != null) {
         return result;
       }

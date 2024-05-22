@@ -27,7 +27,7 @@ void f(Object o) {
 }
 ''');
 
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
@@ -51,7 +51,7 @@ void f(A<int> x) {
   }
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
@@ -76,7 +76,7 @@ void f(B<int> b) {
 }
 ''');
 
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
@@ -100,7 +100,7 @@ void f(Object? x) {
   }
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
@@ -125,7 +125,7 @@ void f(A<int, String> x) {
   }
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
@@ -156,7 +156,7 @@ void f(x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 90, 4),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
@@ -204,7 +204,7 @@ void f(x) {
   }
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
@@ -243,7 +243,7 @@ void f(x) {
   }
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
@@ -282,7 +282,7 @@ void f(x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 83, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
@@ -324,7 +324,7 @@ void f(x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 97, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
@@ -364,7 +364,7 @@ void f(x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 84, 4),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
@@ -404,7 +404,7 @@ void f(x) {
 ''', [
       error(CompileTimeErrorCode.MISSING_NAMED_PATTERN_FIELD_NAME, 75, 3),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
@@ -442,7 +442,7 @@ void f(x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 81, 3),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
@@ -481,7 +481,7 @@ void f(x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 82, 3),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
@@ -527,7 +527,7 @@ void f(x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 82, 3),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
@@ -569,7 +569,7 @@ void f(x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 82, 3),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
@@ -611,7 +611,7 @@ void f(x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 82, 3),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
@@ -647,7 +647,7 @@ void f(Object? x) {
 ''', [
       error(CompileTimeErrorCode.POSITIONAL_FIELD_IN_OBJECT_PATTERN, 40, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
@@ -681,7 +681,7 @@ void f(x) {
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 59, 3),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
@@ -719,7 +719,7 @@ void f(x) {
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 65, 3),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 65, 3),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
@@ -756,7 +756,7 @@ void f(x) {
   }
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
@@ -795,7 +795,7 @@ void f(x) {
 ''', [
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 96, 3),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
@@ -832,7 +832,7 @@ void f(x) {
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 67, 3),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
@@ -870,7 +870,7 @@ void f(x) {
       error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
           55, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
@@ -908,7 +908,7 @@ void f(Object? x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 77, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
@@ -950,7 +950,7 @@ void f(Object? x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 145, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
@@ -1003,7 +1003,7 @@ void f(Object? x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 141, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
@@ -1042,7 +1042,7 @@ void f(Object? x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 90, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
@@ -1082,7 +1082,7 @@ void f(Object? x) {
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 76, 3),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 85, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
@@ -1121,7 +1121,7 @@ void f(x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 73, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
@@ -1160,7 +1160,7 @@ void f(x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 71, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
@@ -1198,7 +1198,7 @@ class A<T> {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 32, 1),
     ]);
-    final node = findNode.singlePatternVariableDeclaration;
+    var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
   keyword: var
@@ -1245,7 +1245,7 @@ class A<T> {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
     ]);
-    final node = findNode.singlePatternVariableDeclaration;
+    var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
   keyword: var
@@ -1310,7 +1310,7 @@ class A<T> {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 28, 1),
     ]);
-    final node = findNode.singlePatternVariableDeclaration;
+    var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
   keyword: var

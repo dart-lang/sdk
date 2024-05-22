@@ -420,7 +420,7 @@ class DateTime implements Comparable<DateTime> {
     checkNotNullable(isUtc, "isUtc");
   }
 
-  /// Returns true if [other] is a [DateTime] at the same moment and in the
+  /// Whether [other] is a [DateTime] at the same moment and in the
   /// same time zone (UTC or local).
   ///
   /// ```dart
@@ -436,7 +436,7 @@ class DateTime implements Comparable<DateTime> {
   /// independently of their zones.
   external bool operator ==(Object other);
 
-  /// Returns true if [this] occurs before [other].
+  /// Whether this [DateTime] occurs before [other].
   ///
   /// The comparison is independent
   /// of whether the time is in UTC or in the local time zone.
@@ -456,7 +456,7 @@ class DateTime implements Comparable<DateTime> {
   /// ```
   external bool isBefore(DateTime other);
 
-  /// Returns true if [this] occurs after [other].
+  /// Whether this [DateTime] occurs after [other].
   ///
   /// The comparison is independent
   /// of whether the time is in UTC or in the local time zone.
@@ -476,7 +476,7 @@ class DateTime implements Comparable<DateTime> {
   /// ```
   external bool isAfter(DateTime other);
 
-  /// Returns true if [this] occurs at the same moment as [other].
+  /// Whether this [DateTime] occurs at the same moment as [other].
   ///
   /// The comparison is independent of whether the time is in UTC or in the local
   /// time zone.
@@ -520,7 +520,7 @@ class DateTime implements Comparable<DateTime> {
 
   /// Returns this DateTime value in the local time zone.
   ///
-  /// Returns [this] if it is already in the local time zone.
+  /// Returns this [DateTime] if it is already in the local time zone.
   /// Otherwise this method is equivalent to:
   ///
   /// ```dart template:expression
@@ -536,7 +536,7 @@ class DateTime implements Comparable<DateTime> {
 
   /// Returns this DateTime value in the UTC time zone.
   ///
-  /// Returns [this] if it is already in UTC.
+  /// Returns this [DateTime] if it is already in UTC.
   /// Otherwise this method is equivalent to:
   ///
   /// ```dart template:expression
@@ -642,7 +642,7 @@ class DateTime implements Comparable<DateTime> {
     }
   }
 
-  /// Returns a new [DateTime] instance with [duration] added to [this].
+  /// Returns a new [DateTime] instance with [duration] added to this [DateTime].
   ///
   /// ```dart
   /// final today = DateTime.now();
@@ -657,7 +657,8 @@ class DateTime implements Comparable<DateTime> {
   /// Be careful when working with dates in local time.
   external DateTime add(Duration duration);
 
-  /// Returns a new [DateTime] instance with [duration] subtracted from [this].
+  /// Returns a new [DateTime] instance with [duration] subtracted from this
+  /// [DateTime].
   ///
   /// ```dart
   /// final today = DateTime.now();
@@ -673,9 +674,10 @@ class DateTime implements Comparable<DateTime> {
   external DateTime subtract(Duration duration);
 
   /// Returns a [Duration] with the difference when subtracting [other] from
-  /// [this].
+  /// this [DateTime].
   ///
-  /// The returned [Duration] will be negative if [other] occurs after [this].
+  /// The returned [Duration] will be negative if [other] occurs after this
+  /// [DateTime].
   ///
   /// ```dart
   /// final berlinWallFell = DateTime.utc(1989, DateTime.november, 9);

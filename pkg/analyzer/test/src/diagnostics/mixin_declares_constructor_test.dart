@@ -24,7 +24,7 @@ mixin M {
       error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 7),
     ]);
 
-    final node = findNode.singleMixinDeclaration;
+    var node = findNode.singleMixinDeclaration;
     assertResolvedNodeText(node, r'''
 MixinDeclaration
   mixinKeyword: mixin
@@ -44,7 +44,7 @@ mixin M {
       error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 7),
     ]);
 
-    final node = findNode.singleMixinDeclaration;
+    var node = findNode.singleMixinDeclaration;
     assertResolvedNodeText(node, r'''
 MixinDeclaration
   mixinKeyword: mixin
@@ -64,7 +64,7 @@ mixin M {
       error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 1),
     ]);
 
-    final node = findNode.singleMixinDeclaration;
+    var node = findNode.singleMixinDeclaration;
     assertResolvedNodeText(node, r'''
 MixinDeclaration
   mixinKeyword: mixin
@@ -84,7 +84,7 @@ mixin M {
       error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 1),
     ]);
 
-    final node = findNode.singleMixinDeclaration;
+    var node = findNode.singleMixinDeclaration;
     assertResolvedNodeText(node, r'''
 MixinDeclaration
   mixinKeyword: mixin

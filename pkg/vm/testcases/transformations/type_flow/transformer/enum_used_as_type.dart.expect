@@ -10,6 +10,8 @@ class Class extends core::Object {
     : super core::Object::•()
     ;
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → dynamic {
   core::List<dynamic> list = [@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic>] core::_GrowableList::•<dynamic>(0);
   if([@vm.direct-call.metadata=dart.core::_GrowableList.isNotEmpty] [@vm.inferred-type.metadata=dart.core::bool] list.{core::Iterable::isNotEmpty}{core::bool}) {

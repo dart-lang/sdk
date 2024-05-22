@@ -351,6 +351,7 @@ class Thread : public ThreadState {
     kCompactorTask = 0x10,
     kScavengerTask = 0x20,
     kSampleBlockTask = 0x40,
+    kIncrementalCompactorTask = 0x80,
   };
   // Converts a TaskKind to its corresponding C-String name.
   static const char* TaskKindToCString(TaskKind kind);
@@ -458,7 +459,6 @@ class Thread : public ThreadState {
   static intptr_t safepoint_state_offset() {
     return OFFSET_OF(Thread, safepoint_state_);
   }
-
 
   // Tag state is maintained on transitions.
   enum {
@@ -663,6 +663,8 @@ class Thread : public ThreadState {
   }
 #endif
   void StoreBufferBlockProcess(StoreBuffer::ThresholdPolicy policy);
+  void StoreBufferReleaseGC();
+  void StoreBufferAcquireGC();
   static intptr_t store_buffer_block_offset() {
     return OFFSET_OF(Thread, store_buffer_block_);
   }
@@ -1285,8 +1287,8 @@ class Thread : public ThreadState {
 
   uword true_end_ = 0;
   TaskKind task_kind_;
-  TimelineStream* dart_stream_;
-  StreamInfo* service_extension_stream_;
+  TimelineStream* const dart_stream_;
+  StreamInfo* const service_extension_stream_;
   mutable Monitor thread_lock_;
   ApiLocalScope* api_reusable_scope_;
   int32_t no_callback_scope_depth_;

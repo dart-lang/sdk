@@ -1,0 +1,239 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/deferred.dart:7:17: Error: Classes can't extend deferred classes.
+// Try specifying a different superclass, or removing the extends clause.
+// class B extends d.A {}
+//                 ^^^
+//
+// pkg/front_end/testcases/general/deferred.dart:9:20: Error: Classes and mixins can't implement deferred classes.
+// Try specifying a different interface, removing the class from the list, or changing the import to not be deferred.
+// class C implements d.A {}
+//                    ^^^
+//
+// pkg/front_end/testcases/general/deferred.dart:11:12: Error: Deferred classes can't be used as superclass constraints.
+// Try changing the import to not be deferred.
+// mixin D on d.A {}
+//            ^^^
+//
+// pkg/front_end/testcases/general/deferred.dart:13:20: Error: Classes and mixins can't implement deferred classes.
+// Try specifying a different interface, removing the class from the list, or changing the import to not be deferred.
+// mixin E implements d.A {}
+//                    ^^^
+//
+// pkg/front_end/testcases/general/deferred.dart:15:14: Error: Classes can't mix in deferred mixins.
+// Try changing the import to not be deferred.
+// class F with d.M {}
+//              ^^^
+//
+// pkg/front_end/testcases/general/deferred.dart:17:23: Error: Classes can't mix in deferred mixins.
+// Try changing the import to not be deferred.
+// class G = Object with d.M;
+//                       ^^^
+//
+// pkg/front_end/testcases/general/deferred.dart:19:39: Error: Extension types can't implement deferred types.
+// Try specifying a different type, removing the type from the list, or changing the import to not be deferred.
+// extension type ET1(d.A id) implements d.A {}
+//                                       ^^^
+//
+// pkg/front_end/testcases/general/deferred.dart:21:52: Error: Extension types can't implement deferred types.
+// Try specifying a different type, removing the type from the list, or changing the import to not be deferred.
+// extension type ET2<T extends d.A>(T id) implements d.A {}
+//                                                    ^^^
+//
+// pkg/front_end/testcases/general/deferred.dart:23:39: Error: Extension types can't implement deferred types.
+// Try specifying a different type, removing the type from the list, or changing the import to not be deferred.
+// extension type ET3(int id) implements d.ET1 {}
+//                                       ^^^^^
+//
+// pkg/front_end/testcases/general/deferred.dart:27:39: Error: Extension types can't implement deferred types.
+// Try specifying a different type, removing the type from the list, or changing the import to not be deferred.
+// extension type ET5(d.A id) implements d.ET2 {}
+//                                       ^^^^^
+//
+// pkg/front_end/testcases/general/deferred.dart:29:39: Error: Extension types can't implement deferred types.
+// Try specifying a different type, removing the type from the list, or changing the import to not be deferred.
+// extension type ET6(d.B id) implements d.B {}
+//                                       ^^^
+//
+// pkg/front_end/testcases/general/deferred.dart:19:20: Error: The type 'A' is deferred loaded via prefix 'd' and can't be used as a type annotation.
+//  - 'A' is from 'pkg/front_end/testcases/general/deferred_lib2.dart'.
+// Try removing 'deferred' from the import of 'd' or use a supertype of 'A' that isn't deferred.
+// extension type ET1(d.A id) implements d.A {}
+//                    ^^^
+//
+// pkg/front_end/testcases/general/deferred.dart:25:20: Error: The type 'A' is deferred loaded via prefix 'd' and can't be used as a type annotation.
+//  - 'A' is from 'pkg/front_end/testcases/general/deferred_lib2.dart'.
+// Try removing 'deferred' from the import of 'd' or use a supertype of 'A' that isn't deferred.
+// extension type ET4(d.A id) {}
+//                    ^^^
+//
+// pkg/front_end/testcases/general/deferred.dart:27:20: Error: The type 'A' is deferred loaded via prefix 'd' and can't be used as a type annotation.
+//  - 'A' is from 'pkg/front_end/testcases/general/deferred_lib2.dart'.
+// Try removing 'deferred' from the import of 'd' or use a supertype of 'A' that isn't deferred.
+// extension type ET5(d.A id) implements d.ET2 {}
+//                    ^^^
+//
+// pkg/front_end/testcases/general/deferred.dart:29:20: Error: The type 'int' is deferred loaded via prefix 'd' and can't be used as a type annotation.
+// Try removing 'deferred' from the import of 'd' or use a supertype of 'int' that isn't deferred.
+// extension type ET6(d.B id) implements d.B {}
+//                    ^^^
+//
+// pkg/front_end/testcases/general/deferred.dart:31:1: Error: The type 'A' is deferred loaded via prefix 'd' and can't be used as a type annotation.
+//  - 'A' is from 'pkg/front_end/testcases/general/deferred_lib2.dart'.
+// Try removing 'deferred' from the import of 'd' or use a supertype of 'A' that isn't deferred.
+// d.A a = new d.A();
+// ^^^
+//
+// pkg/front_end/testcases/general/deferred.dart:33:1: Error: The type 'int' is deferred loaded via prefix 'd' and can't be used as a type annotation.
+// Try removing 'deferred' from the import of 'd' or use a supertype of 'int' that isn't deferred.
+// d.B b = 0;
+// ^^^
+//
+import self as self;
+import "deferred_lib2.dart" as def;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///deferred_lib2.dart" deferred as d;
+
+class B extends def::A {
+  synthetic constructor •() → self::B
+    : super def::A::•()
+    ;
+}
+class C extends core::Object implements def::A {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+}
+abstract class D extends def::A /*isMixinDeclaration*/  {
+}
+abstract class E extends core::Object implements def::A /*isMixinDeclaration*/  {
+}
+abstract class _F&Object&M = core::Object with def::M /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_F&Object&M
+    : super core::Object::•()
+    ;
+}
+class F extends self::_F&Object&M {
+  synthetic constructor •() → self::F
+    : super self::_F&Object&M::•()
+    ;
+}
+class G = core::Object with def::M /*hasConstConstructor*/  {
+  const synthetic constructor •() → self::G
+    : super core::Object::•()
+    ;
+}
+extension type ET1(def::A id) implements def::A {
+  abstract extension-type-member representation-field get id() → def::A;
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
+}
+extension type ET2<T extends def::A>(T id) implements def::A {
+  abstract extension-type-member representation-field get id() → T;
+  constructor • = self::ET2|constructor#;
+  constructor tearoff • = self::ET2|constructor#_#new#tearOff;
+}
+extension type ET3(core::int id) implements def::ET1% /* erasure=core::int, declared=! */ {
+  abstract extension-type-member representation-field get id() → core::int;
+  constructor • = self::ET3|constructor#;
+  constructor tearoff • = self::ET3|constructor#_#new#tearOff;
+}
+extension type ET4(def::A id) {
+  abstract extension-type-member representation-field get id() → def::A;
+  constructor • = self::ET4|constructor#;
+  constructor tearoff • = self::ET4|constructor#_#new#tearOff;
+}
+extension type ET5(def::A id) implements def::ET2% /* erasure=def::A, declared=! */ {
+  abstract extension-type-member representation-field get id() → def::A;
+  constructor • = self::ET5|constructor#;
+  constructor tearoff • = self::ET5|constructor#_#new#tearOff;
+}
+extension type ET6(core::int id) implements core::int {
+  abstract extension-type-member representation-field get id() → core::int;
+  constructor • = self::ET6|constructor#;
+  constructor tearoff • = self::ET6|constructor#_#new#tearOff;
+}
+static field def::A a = let final dynamic #t1 = CheckLibraryIsLoaded(d) in new def::A::•();
+static field core::int b = 0;
+static extension-type-member method ET1|constructor#(def::A id) → self::ET1 /* erasure=def::A */ {
+  lowered final self::ET1 /* erasure=def::A */ #this = id;
+  return #this;
+}
+static extension-type-member method ET1|constructor#_#new#tearOff(def::A id) → self::ET1 /* erasure=def::A */
+  return self::ET1|constructor#(id);
+static extension-type-member method ET2|constructor#<T extends def::A>(self::ET2|constructor#::T id) → self::ET2<self::ET2|constructor#::T> /* erasure=self::ET2|constructor#::T */ {
+  lowered final self::ET2<self::ET2|constructor#::T> /* erasure=self::ET2|constructor#::T */ #this = id;
+  return #this;
+}
+static extension-type-member method ET2|constructor#_#new#tearOff<T extends def::A>(self::ET2|constructor#_#new#tearOff::T id) → self::ET2<self::ET2|constructor#_#new#tearOff::T> /* erasure=self::ET2|constructor#_#new#tearOff::T */
+  return self::ET2|constructor#<self::ET2|constructor#_#new#tearOff::T>(id);
+static extension-type-member method ET3|constructor#(core::int id) → self::ET3% /* erasure=core::int, declared=! */ {
+  lowered final self::ET3% /* erasure=core::int, declared=! */ #this = id;
+  return #this;
+}
+static extension-type-member method ET3|constructor#_#new#tearOff(core::int id) → self::ET3% /* erasure=core::int, declared=! */
+  return self::ET3|constructor#(id);
+static extension-type-member method ET4|constructor#(def::A id) → self::ET4% /* erasure=def::A, declared=! */ {
+  lowered final self::ET4% /* erasure=def::A, declared=! */ #this = id;
+  return #this;
+}
+static extension-type-member method ET4|constructor#_#new#tearOff(def::A id) → self::ET4% /* erasure=def::A, declared=! */
+  return self::ET4|constructor#(id);
+static extension-type-member method ET5|constructor#(def::A id) → self::ET5% /* erasure=def::A, declared=! */ {
+  lowered final self::ET5% /* erasure=def::A, declared=! */ #this = id;
+  return #this;
+}
+static extension-type-member method ET5|constructor#_#new#tearOff(def::A id) → self::ET5% /* erasure=def::A, declared=! */
+  return self::ET5|constructor#(id);
+static extension-type-member method ET6|constructor#(core::int id) → self::ET6 /* erasure=core::int */ {
+  lowered final self::ET6 /* erasure=core::int */ #this = id;
+  return #this;
+}
+static extension-type-member method ET6|constructor#_#new#tearOff(core::int id) → self::ET6 /* erasure=core::int */
+  return self::ET6|constructor#(id);
+static method main() → dynamic {
+  core::print(#C1);
+  core::print(#C1);
+}
+
+library;
+import self as def;
+import "dart:core" as core;
+
+typedef B = core::int;
+class A extends core::Object {
+  synthetic constructor •() → def::A
+    : super core::Object::•()
+    ;
+}
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+}
+extension type ET1(core::int i) {
+  abstract extension-type-member representation-field get i() → core::int;
+  constructor • = def::ET1|constructor#;
+  constructor tearoff • = def::ET1|constructor#_#new#tearOff;
+}
+extension type ET2(def::A i) {
+  abstract extension-type-member representation-field get i() → def::A;
+  constructor • = def::ET2|constructor#;
+  constructor tearoff • = def::ET2|constructor#_#new#tearOff;
+}
+static extension-type-member method ET1|constructor#(core::int i) → def::ET1% /* erasure=core::int, declared=! */ {
+  lowered final def::ET1% /* erasure=core::int, declared=! */ #this = i;
+  return #this;
+}
+static extension-type-member method ET1|constructor#_#new#tearOff(core::int i) → def::ET1% /* erasure=core::int, declared=! */
+  return def::ET1|constructor#(i);
+static extension-type-member method ET2|constructor#(def::A i) → def::ET2% /* erasure=def::A, declared=! */ {
+  lowered final def::ET2% /* erasure=def::A, declared=! */ #this = i;
+  return #this;
+}
+static extension-type-member method ET2|constructor#_#new#tearOff(def::A i) → def::ET2% /* erasure=def::A, declared=! */
+  return def::ET2|constructor#(i);
+
+constants  {
+  #C1 = TypeLiteralConstant(def::A)
+}

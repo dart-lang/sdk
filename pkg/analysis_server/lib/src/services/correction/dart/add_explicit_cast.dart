@@ -16,7 +16,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class AddExplicitCast extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.acrossSingleFile;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_EXPLICIT_CAST;
@@ -87,7 +88,7 @@ class AddExplicitCast extends ResolvedCorrectionProducer {
       return;
     }
 
-    final target_final = target;
+    var target_final = target;
 
     var needsParentheses = target.precedence < Precedence.postfix;
     if (toType is InterfaceType &&
@@ -95,7 +96,7 @@ class AddExplicitCast extends ResolvedCorrectionProducer {
             fromType.isDartCoreList ||
             fromType.isDartCoreSet) &&
         (toType.isDartCoreList || toType.isDartCoreSet)) {
-      final toType_final = toType;
+      var toType_final = toType;
       if (target.isCastMethodInvocation) {
         var typeArguments = (target as MethodInvocation).typeArguments;
         if (typeArguments != null) {
@@ -121,7 +122,7 @@ class AddExplicitCast extends ResolvedCorrectionProducer {
     } else if (fromType.isDartCoreMap &&
         toType is InterfaceType &&
         toType.isDartCoreMap) {
-      final toType_final = toType;
+      var toType_final = toType;
       if (target.isCastMethodInvocation) {
         var typeArguments = (target as MethodInvocation).typeArguments;
         if (typeArguments != null) {

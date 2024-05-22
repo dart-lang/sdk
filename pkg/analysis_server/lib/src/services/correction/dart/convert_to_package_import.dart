@@ -14,13 +14,11 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertToPackageImport extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
+
+  @override
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_PACKAGE_IMPORT;
-
-  @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_PACKAGE_IMPORT;
@@ -35,7 +33,7 @@ class ConvertToPackageImport extends ResolvedCorrectionProducer {
       targetNode = targetNode.parent!;
     }
     if (targetNode is ImportDirective) {
-      final elementUri = targetNode.element?.uri;
+      var elementUri = targetNode.element?.uri;
       if (elementUri is! DirectiveUriWithSource) {
         return;
       }

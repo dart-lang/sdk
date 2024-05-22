@@ -13,13 +13,11 @@ class RemoveInvocation extends ResolvedCorrectionProducer {
   String _methodName = '';
 
   @override
-  bool get canBeAppliedInBulk => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
-  bool get canBeAppliedToFile => true;
-
-  @override
-  List<Object> get fixArguments => [_methodName];
+  List<String> get fixArguments => [_methodName];
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_INVOCATION;

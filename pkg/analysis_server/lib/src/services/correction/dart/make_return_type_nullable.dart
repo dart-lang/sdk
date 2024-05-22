@@ -11,11 +11,16 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class MakeReturnTypeNullable extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   FixKind get fixKind => DartFixKind.MAKE_RETURN_TYPE_NULLABLE;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is! Expression) {
       return;
     }
@@ -23,7 +28,7 @@ class MakeReturnTypeNullable extends ResolvedCorrectionProducer {
       return;
     }
 
-    final type = node.staticType;
+    var type = node.staticType;
     if (type == null) {
       return;
     }
@@ -60,7 +65,7 @@ class MakeReturnTypeNullable extends ResolvedCorrectionProducer {
       return;
     }
 
-    final returnType_final = returnType;
+    var returnType_final = returnType;
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleInsertion(returnType_final.end, '?');
     });

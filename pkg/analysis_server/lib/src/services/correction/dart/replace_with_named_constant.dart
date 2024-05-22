@@ -11,19 +11,24 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceWithNamedConstant extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   FixKind get fixKind => DartFixKind.USE_NAMED_CONSTANTS;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final diagnostic = this.diagnostic;
+    var diagnostic = this.diagnostic;
     if (diagnostic is AnalysisError) {
       String? correctionMessage = diagnostic.correctionMessage;
-      if(correctionMessage == null){
+      if (correctionMessage == null) {
         return;
       }
 
       String? correction = _getCorrection(correctionMessage);
-      if(correction == null){
+      if (correction == null) {
         return;
       }
 
@@ -33,11 +38,10 @@ class ReplaceWithNamedConstant extends ResolvedCorrectionProducer {
     }
   }
 
-
   static String? _getCorrection(String message) {
-    final match = RegExp(r"'(.*)'").firstMatch(message);
+    var match = RegExp(r"'(.*)'").firstMatch(message);
     if (match == null) {
-        return null;
+      return null;
     }
     return match.group(1);
   }

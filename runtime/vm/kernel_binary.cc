@@ -85,14 +85,6 @@ bool IsValidSdkHash(const uint8_t* sdk_hash) {
   return true;
 }
 
-NNBDCompiledMode Program::DetectNullSafety(const uint8_t* buffer,
-                                           intptr_t buffer_length) {
-  Reader reader(buffer, buffer_length);
-  std::unique_ptr<Program> program = Program::ReadFrom(&reader, nullptr);
-  if (program == nullptr) return NNBDCompiledMode::kInvalid;
-  return program->compilation_mode_;
-}
-
 std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
   if (reader->size() < 70) {
     // A kernel file (v43) currently contains at least the following:
@@ -182,15 +174,14 @@ std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
   program->component_index_offset_ = reader->ReadUInt32();
 
   program->main_method_reference_ = NameIndex(reader->ReadUInt32() - 1);
-  NNBDCompiledMode compilation_mode =
-      static_cast<NNBDCompiledMode>(reader->ReadUInt32());
-  program->compilation_mode_ = compilation_mode;
+  reader->ReadUInt32();  // Read and ignore NNBD compilation mode.
 
   return program;
 }
 
 std::unique_ptr<Program> Program::ReadFromFile(
-    const char* script_uri, const char** error /* = nullptr */) {
+    const char* script_uri,
+    const char** error /* = nullptr */) {
   Thread* thread = Thread::Current();
   auto isolate_group = thread->isolate_group();
   if (script_uri == nullptr) {
@@ -232,7 +223,8 @@ std::unique_ptr<Program> Program::ReadFromBuffer(const uint8_t* buffer,
 }
 
 std::unique_ptr<Program> Program::ReadFromTypedData(
-    const ExternalTypedData& typed_data, const char** error) {
+    const ExternalTypedData& typed_data,
+    const char** error) {
   kernel::Reader reader(typed_data);
   return kernel::Program::ReadFrom(&reader, error);
 }

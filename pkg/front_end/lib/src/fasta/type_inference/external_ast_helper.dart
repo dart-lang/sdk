@@ -178,10 +178,8 @@ LogicalExpression createOrExpression(Expression left, Expression right,
 
 /// Creates an is-test on [operand] against [type].
 IsExpression createIsExpression(Expression operand, DartType type,
-    {required bool forNonNullableByDefault, required int fileOffset}) {
-  return new IsExpression(operand, type)
-    ..fileOffset = fileOffset
-    ..isForNonNullableByDefault = forNonNullableByDefault;
+    {required int fileOffset}) {
+  return new IsExpression(operand, type)..fileOffset = fileOffset;
 }
 
 /// Creates an as-cast on [operand] against [type].
@@ -192,7 +190,6 @@ AsExpression createAsExpression(Expression operand, DartType type,
     required int fileOffset}) {
   return new AsExpression(operand, type)
     ..fileOffset = fileOffset
-    ..isForNonNullableByDefault = forNonNullableByDefault
     ..isUnchecked = isUnchecked
     ..isCovarianceCheck = isCovarianceCheck;
 }

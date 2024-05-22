@@ -19,21 +19,15 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class AddTypeAnnotation extends ResolvedCorrectionProducer {
   @override
-  bool canBeAppliedInBulk;
-
-  @override
-  bool canBeAppliedToFile;
+  final CorrectionApplicability applicability;
 
   /// Initialize a newly created instance that can't apply bulk and in-file
   /// fixes.
-  AddTypeAnnotation()
-      : canBeAppliedInBulk = false,
-        canBeAppliedToFile = false;
+  AddTypeAnnotation() : applicability = CorrectionApplicability.singleLocation;
 
   /// Initialize a newly created instance that can apply bulk and in-file fixes.
   AddTypeAnnotation.bulkFixable()
-      : canBeAppliedInBulk = true,
-        canBeAppliedToFile = true;
+      : applicability = CorrectionApplicability.automatically;
 
   @override
   AssistKind get assistKind => DartAssistKind.ADD_TYPE_ANNOTATION;
@@ -46,7 +40,7 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
 
     if (node is SimpleFormalParameter) {
       await _forSimpleFormalParameter(builder, node);
@@ -128,7 +122,7 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
       return;
     }
     // Ensure that the parameter is named.
-    final name = parameter.name;
+    var name = parameter.name;
     if (name == null) {
       return;
     }
@@ -152,14 +146,14 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
     if (declarationList.type != null) {
       return;
     }
-    final variables = declarationList.variables;
-    final variable = variables[0];
+    var variables = declarationList.variables;
+    var variable = variables[0];
     // Ensure that the selection is not after the name of the variable.
     if (selectionOffset > variable.name.end) {
       return;
     }
     // Ensure that there is an initializer to get the type from.
-    final type = _typeForVariable(variable);
+    var type = _typeForVariable(variable);
     if (type == null) {
       return;
     }
@@ -178,12 +172,12 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
   }
 
   Future<void> _typedLiteral(ChangeBuilder builder, TypedLiteral node) async {
-    final type = node.staticType;
+    var type = node.staticType;
     if (type is! InterfaceType) {
       return;
     }
 
-    final int offset;
+    int offset;
     switch (node) {
       case ListLiteral():
         offset = node.leftBracket.offset;

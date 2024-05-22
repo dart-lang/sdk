@@ -40,7 +40,7 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
 
   /// Create [testFile] with [rawCode], analyze availability in it.
   Future<Availability> _analyzeAvailability(String rawCode) async {
-    final testCode = TestCode.parse(rawCode);
+    var testCode = TestCode.parse(rawCode);
     newFile(testFile.path, testCode.code);
 
     await _buildRefactoringContext(
@@ -55,7 +55,7 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
 
   /// Create [testFile] with [rawCode], analyze selection in it.
   Future<void> _analyzeSelection(String rawCode) async {
-    final availability = await _analyzeAvailability(rawCode);
+    var availability = await _analyzeAvailability(rawCode);
     availability as Available;
 
     selectionState = await analyzeSelection(
@@ -82,9 +82,9 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
     required TestCode testCode,
   }) async {
     // There must be exactly one position.
-    final singlePosition = testCode.positions.singleOrNull;
-    final singleRange = testCode.ranges.singleOrNull;
-    final SourceRange selectionRange;
+    var singlePosition = testCode.positions.singleOrNull;
+    var singleRange = testCode.ranges.singleOrNull;
+    SourceRange selectionRange;
     if (singlePosition != null && singleRange == null) {
       selectionRange = SourceRange(singlePosition.offset, 0);
     } else if (singlePosition == null && singleRange != null) {
@@ -93,14 +93,14 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
       fail('Expected exactly one: $singlePosition $singleRange');
     }
 
-    final analysisSession = await session;
+    var analysisSession = await session;
 
-    final resolvedLibraryResult = await analysisSession.getResolvedLibrary(
+    var resolvedLibraryResult = await analysisSession.getResolvedLibrary(
       file.path,
     );
     resolvedLibraryResult as ResolvedLibraryResult;
 
-    final unitResult = resolvedLibraryResult.unitWithPath(file.path)!;
+    var unitResult = resolvedLibraryResult.unitWithPath(file.path)!;
 
     refactoringContext = AbstractRefactoringContext(
       searchEngine: SearchEngineImpl(allDrivers),
@@ -114,12 +114,12 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
   }
 
   String _elementToReferenceString(Element element) {
-    final enclosingElement = element.enclosingElement;
-    final reference = (element as ElementImpl).reference;
+    var enclosingElement = element.enclosingElement;
+    var reference = (element as ElementImpl).reference;
     if (reference != null) {
       return _referenceToString(reference);
     } else if (element is ParameterElement) {
-      final enclosingStr = enclosingElement != null
+      var enclosingStr = enclosingElement != null
           ? _elementToReferenceString(enclosingElement)
           : 'root';
       return '$enclosingStr::@parameter::${element.name}';
@@ -129,15 +129,15 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
   }
 
   String _referenceToString(Reference reference) {
-    final selfLibrary = refactoringContext.resolvedLibraryResult.element;
-    final selfUriStr = '${selfLibrary.source.uri}';
+    var selfLibrary = refactoringContext.resolvedLibraryResult.element;
+    var selfUriStr = '${selfLibrary.source.uri}';
 
     var name = reference.name;
     if (name == selfUriStr) {
       name = 'self';
     }
 
-    final parent =
+    var parent =
         reference.parent ?? (throw StateError('Should not go past libraries'));
 
     // A library.
@@ -619,7 +619,7 @@ void test(int a, int b) {}
         ..add(name: 'foo', rootPath: '$packagesRootPath/foo'),
     );
 
-    final availability = await _analyzeAvailability(r'''
+    var availability = await _analyzeAvailability(r'''
 import 'package:foo/foo.dart';
 
 void f() {
@@ -633,7 +633,7 @@ NotAvailableExternalElement
   }
 
   Future<void> test_methodInvocation_notAvailable_sdk() async {
-    final availability = await _analyzeAvailability(r'''
+    var availability = await _analyzeAvailability(r'''
 import 'dart:math';
 
 void f() {
@@ -666,7 +666,7 @@ formalParameters
   }
 
   Future<void> test_topFunctionDeclaration_afterParameterList() async {
-    final availability = await _analyzeAvailability(r'''
+    var availability = await _analyzeAvailability(r'''
 void test()^ {}
 ''');
 
@@ -691,7 +691,7 @@ formalParameters
   }
 
   Future<void> test_topFunctionDeclaration_beforeName() async {
-    final availability = await _analyzeAvailability(r'''
+    var availability = await _analyzeAvailability(r'''
 void ^ test() {}
 ''');
 
@@ -701,7 +701,7 @@ NotAvailableNoExecutableElement
   }
 
   void _assertAvailability(Availability availability, String expected) {
-    final buffer = StringBuffer();
+    var buffer = StringBuffer();
     switch (availability) {
       case Available():
         buffer.writeln('Available');
@@ -715,7 +715,7 @@ NotAvailableNoExecutableElement
   }
 
   void _assertSelectionState(SelectionState selectionState, String expected) {
-    final buffer = StringBuffer();
+    var buffer = StringBuffer();
     switch (selectionState) {
       case NoExecutableElementSelectionState():
         buffer.writeln('NoExecutableElementSelectionState');
@@ -725,7 +725,7 @@ NotAvailableNoExecutableElement
         buffer.write('element: ');
         buffer.writeln(_elementToReferenceString(selectionState.element));
         buffer.writeln('formalParameters');
-        for (final formalParameter in selectionState.formalParameters) {
+        for (var formalParameter in selectionState.formalParameters) {
           buffer.writeln('  id: ${formalParameter.id}');
           buffer.writeln('    kind: ${formalParameter.kind.name}');
           buffer.writeln('    name: ${formalParameter.name}');
@@ -752,7 +752,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 1,
@@ -789,7 +789,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 1,
@@ -826,7 +826,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 1,
@@ -866,7 +866,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 1,
@@ -912,7 +912,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -955,7 +955,7 @@ class A {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -986,7 +986,7 @@ class A {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -1027,7 +1027,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 1,
@@ -1084,7 +1084,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -1134,7 +1134,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 1,
@@ -1185,7 +1185,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -1238,7 +1238,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -1299,7 +1299,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -1369,7 +1369,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -1425,7 +1425,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -1475,7 +1475,7 @@ class B extends A {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -1512,7 +1512,7 @@ class B extends A {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -1547,7 +1547,7 @@ class A {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -1590,7 +1590,7 @@ void f(A a, B b) {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 2,
@@ -1642,7 +1642,7 @@ void f(A a, B b) {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 1,
@@ -1698,7 +1698,7 @@ void f(A a, B b) {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -1753,7 +1753,7 @@ void f(A a, B b) {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 1,
@@ -1796,7 +1796,7 @@ class B extends A {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 1,
@@ -1827,7 +1827,7 @@ class B extends A {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 1,
@@ -1859,7 +1859,7 @@ class B extends A {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 1,
@@ -1885,7 +1885,7 @@ ChangeStatusFailure
 void ^test({required int a, required int b}) {}
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 1,
@@ -1915,7 +1915,7 @@ void test({
 void ^test({required int a, required int b}) {}
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 1,
@@ -1945,7 +1945,7 @@ void ^test({
 }) {}
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 1,
@@ -1978,7 +1978,7 @@ void ^test({
 }) {}
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 1,
@@ -2005,7 +2005,7 @@ void test({required int a, required int b}) {}
 void ^test(int a, int b) {}
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 1,
@@ -2038,7 +2038,7 @@ void ^test(
 ) {}
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 1,
@@ -2064,7 +2064,7 @@ void test(int b, int a) {}
 void ^test(int a) {}
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 1,
@@ -2085,7 +2085,7 @@ ChangeStatusFailure
 void ^test(int a) {}
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: -1,
@@ -2110,7 +2110,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -2139,7 +2139,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -2168,7 +2168,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -2198,7 +2198,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -2227,7 +2227,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -2256,7 +2256,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -2296,7 +2296,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -2334,7 +2334,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -2372,7 +2372,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 1,
@@ -2409,7 +2409,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 1,
@@ -2446,7 +2446,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -2483,7 +2483,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -2520,7 +2520,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -2560,7 +2560,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -2594,7 +2594,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -2628,7 +2628,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 1,
@@ -2662,7 +2662,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 1,
@@ -2691,7 +2691,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -2725,7 +2725,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -2763,7 +2763,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -2798,7 +2798,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -2829,7 +2829,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [],
       removedNamedFormalParameters: {'a'},
       formalParametersTrailingComma: TrailingComma.always,
@@ -2859,7 +2859,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 1,
@@ -2901,7 +2901,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -2943,7 +2943,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -2984,7 +2984,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 1,
@@ -3027,7 +3027,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 1,
@@ -3067,7 +3067,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 1,
@@ -3104,7 +3104,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -3141,7 +3141,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -3175,7 +3175,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [],
       formalParametersTrailingComma: TrailingComma.always,
       argumentsTrailingComma: ArgumentsTrailingComma.always,
@@ -3200,7 +3200,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 1,
@@ -3234,7 +3234,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -3268,7 +3268,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -3302,7 +3302,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 1,
@@ -3337,7 +3337,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 1,
@@ -3375,7 +3375,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 1,
@@ -3404,7 +3404,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -3439,7 +3439,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -3474,7 +3474,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -3508,7 +3508,7 @@ void f() {
 }
 ''');
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
         FormalParameterUpdate(
           id: 0,
@@ -3540,18 +3540,18 @@ void f() {
     MethodSignatureUpdate signatureUpdate,
     String expected,
   ) async {
-    final builder = ChangeBuilder(
+    var builder = ChangeBuilder(
       session: refactoringContext.session,
       eol: refactoringContext.utils.endOfLine,
     );
 
-    final status = await computeSourceChange(
+    var status = await computeSourceChange(
       selectionState: validSelectionState,
       signatureUpdate: signatureUpdate,
       builder: builder,
     );
 
-    final buffer = StringBuffer();
+    var buffer = StringBuffer();
     switch (status) {
       case ChangeStatusSuccess():
         _writeSourceChangeToBuffer(
@@ -3569,12 +3569,12 @@ void f() {
     required StringBuffer buffer,
     required SourceChange sourceChange,
   }) {
-    final fileEdits = sourceChange.edits.sortedBy((e) => e.file);
-    for (final fileEdit in fileEdits) {
-      final file = getFile(fileEdit.file);
+    var fileEdits = sourceChange.edits.sortedBy((e) => e.file);
+    for (var fileEdit in fileEdits) {
+      var file = getFile(fileEdit.file);
       buffer.writeln('>>>>>>> ${file.posixPath}');
-      final current = file.readAsStringSync();
-      final updated = SourceEdit.applySequence(current, fileEdit.edits);
+      var current = file.readAsStringSync();
+      var updated = SourceEdit.applySequence(current, fileEdit.edits);
       buffer.write(updated);
     }
   }

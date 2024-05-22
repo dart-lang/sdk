@@ -11,6 +11,7 @@ import 'add_const_test.dart' as add_const;
 import 'add_curly_braces_test.dart' as add_curly_braces;
 import 'add_diagnostic_property_reference_test.dart'
     as add_diagnostic_property_reference;
+import 'add_empty_argument_list_test.dart' as add_empty_argument_list;
 import 'add_enum_constant_test.dart' as add_enum_constant_test;
 import 'add_eol_at_end_of_file_test.dart' as add_eol_at_end_of_file;
 import 'add_explicit_call_test.dart' as add_explicit_call;
@@ -175,6 +176,8 @@ import 'remove_empty_constructor_body_test.dart'
     as remove_empty_constructor_body;
 import 'remove_empty_else_test.dart' as remove_empty_else;
 import 'remove_empty_statement_test.dart' as remove_empty_statement;
+import 'remove_extends_clause_test.dart' as remove_extends_clause;
+import 'remove_extra_modifier_test.dart' as remove_extra_modifier;
 import 'remove_if_null_operator_test.dart' as remove_if_null_operator;
 import 'remove_initializer_test.dart' as remove_initializer;
 import 'remove_interpolation_braces_test.dart' as remove_interpolation_braces;
@@ -187,6 +190,7 @@ import 'remove_name_from_combinator_test.dart' as remove_name_from_combinator;
 import 'remove_name_from_declaration_clause_test.dart'
     as remove_name_from_declaration_clause;
 import 'remove_non_null_assertion_test.dart' as remove_non_null_assertion_test;
+import 'remove_on_clause_test.dart' as remove_on_clause;
 import 'remove_operator_test.dart' as remove_operator;
 import 'remove_parameters_in_getter_declaration_test.dart'
     as remove_parameters_in_getter_declaration;
@@ -229,7 +233,6 @@ import 'remove_var_keyword_test.dart' as remove_var_keyword;
 import 'remove_var_test.dart' as remove_var;
 import 'rename_method_parameter_test.dart' as rename_method_parameter;
 import 'rename_to_camel_case_test.dart' as rename_to_camel_case;
-import 'replace_Null_with_void_test.dart' as replace_null_with_void;
 import 'replace_boolean_with_bool_test.dart' as replace_boolean_with_bool;
 import 'replace_cascade_with_dot_test.dart' as replace_cascade_with_dot;
 import 'replace_colon_with_equals_test.dart' as replace_colon_with_equals;
@@ -241,6 +244,7 @@ import 'replace_final_with_var_test.dart' as replace_final_with_var;
 import 'replace_new_with_const_test.dart' as replace_new_with_const;
 import 'replace_null_check_with_cast_test.dart' as replace_null_check_with_cast;
 import 'replace_null_with_closure_test.dart' as replace_null_with_closure;
+import 'replace_null_with_void_test.dart' as replace_null_with_void;
 import 'replace_return_type_future_test.dart' as replace_return_type_future;
 import 'replace_return_type_iterable_test.dart' as replace_return_type_iterable;
 import 'replace_return_type_stream_test.dart' as replace_return_type_stream;
@@ -293,6 +297,7 @@ void main() {
     add_const.main();
     add_curly_braces.main();
     add_diagnostic_property_reference.main();
+    add_empty_argument_list.main();
     add_enum_constant_test.main();
     add_eol_at_end_of_file.main();
     add_explicit_call.main();
@@ -433,6 +438,8 @@ void main() {
     remove_empty_constructor_body.main();
     remove_empty_else.main();
     remove_empty_statement.main();
+    remove_extends_clause.main();
+    remove_extra_modifier.main();
     remove_if_null_operator.main();
     remove_initializer.main();
     remove_interpolation_braces.main();
@@ -444,6 +451,7 @@ void main() {
     remove_name_from_combinator.main();
     remove_name_from_declaration_clause.main();
     remove_non_null_assertion_test.main();
+    remove_on_clause.main();
     remove_operator.main();
     remove_parameters_in_getter_declaration.main();
     remove_parentheses_in_getter_invocation.main();

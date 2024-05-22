@@ -2164,13 +2164,13 @@ PhiInstr::PhiInstr(FlowGraphDeserializer* d)
       is_alive_(d->Read<bool>()),
       is_receiver_(d->Read<int8_t>()) {}
 
-void CCallInstr::WriteTo(FlowGraphSerializer* s) {
+void LeafRuntimeCallInstr::WriteTo(FlowGraphSerializer* s) {
   VariadicDefinition::WriteTo(s);
   s->Write<Representation>(return_representation_);
   s->Write<const ZoneGrowableArray<Representation>&>(argument_representations_);
 }
 
-CCallInstr::CCallInstr(FlowGraphDeserializer* d)
+LeafRuntimeCallInstr::LeafRuntimeCallInstr(FlowGraphDeserializer* d)
     : VariadicDefinition(d),
       return_representation_(d->Read<Representation>()),
       argument_representations_(

@@ -1,0 +1,104 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef ContraFunction<contravariant T extends core::Object? = dynamic> = (T%) → void;
+typedef InvFunction<invariant T extends core::Object? = dynamic> = (T%) → T%;
+class Contravariant<contravariant T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Contravariant<self::Contravariant::T%>
+    ;
+}
+class Invariant<invariant T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Invariant<self::Invariant::T%>
+    ;
+}
+class A<contravariant T extends core::Object? = dynamic, U extends core::Object? = dynamic, V extends core::Object? = dynamic> extends core::Object {
+  final field (self::A::T%) →? void field;
+  synthetic constructor •() → self::A<self::A::T%, self::A::U%, self::A::V%>
+    ;
+  method method(self::A::T% t, (self::A::U%) → void u, covariant-by-class self::A::V% v) → void
+    ;
+  method method2(self::A::T% x, [self::A::T? y = null]) → void
+    ;
+  set x(self::A::T% t) → void
+    ;
+  get mapContra() → core::Map<self::A::U%, self::Contravariant<self::A::V%>>
+    ;
+  get mapContraFn() → core::Map<self::A::U%, (self::A::V%) → void>
+    ;
+  get mapInv() → core::Map<self::A::U%, self::Invariant<self::A::V%>>
+    ;
+  get mapInvFn() → core::Map<self::A::U%, (self::A::V%) → self::A::V%>
+    ;
+}
+class B<invariant T extends core::Object? = dynamic> extends core::Object {
+  field self::B::T? x;
+  synthetic constructor •() → self::B<self::B::T%>
+    ;
+  method method(self::B::T% x) → self::B::T%
+    ;
+  set y(self::B::T% x) → void
+    ;
+}
+class C<contravariant T extends core::Object? = dynamic> extends core::Object {
+  final field (self::C::T%) →? void field;
+  synthetic constructor •() → self::C<self::C::T%>
+    ;
+  method method(self::C::T% x, [self::C::T? y = null]) → void
+    ;
+  set x(self::C::T% t) → void
+    ;
+}
+abstract class D<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::D<self::D::T%>
+    ;
+  abstract method method(covariant-by-class self::D::T% x) → core::int;
+}
+class E<invariant T extends core::Object? = dynamic> extends core::Object {
+  final field (self::E::T%) → void f;
+  constructor •((self::E::T%) → void f) → self::E<self::E::T%>
+    ;
+  method method(self::E::T% x) → core::int
+    ;
+}
+class F<invariant T extends core::Object? = dynamic> extends self::E<self::F::T%> implements self::D<self::F::T%> {
+  constructor •((self::F::T%) → void f) → self::F<self::F::T%>
+    ;
+  forwarding-stub method method(covariant-by-class self::F::T% x) → core::int
+    return super.{self::E::method}(x);
+}
+class NoSuchMethod<invariant T extends core::Object? = dynamic> extends core::Object implements self::B<self::NoSuchMethod::T%> {
+  synthetic constructor •() → self::NoSuchMethod<self::NoSuchMethod::T%>
+    ;
+  method noSuchMethod(core::Invocation _) → dynamic
+    ;
+  no-such-method-forwarder get x() → self::NoSuchMethod::T?
+    return this.{self::NoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#x, 1, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} self::NoSuchMethod::T?;
+  no-such-method-forwarder set x(self::NoSuchMethod::T? value) → void
+    return this.{self::NoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#x=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic};
+  no-such-method-forwarder method method(self::NoSuchMethod::T% x) → self::NoSuchMethod::T%
+    return this.{self::NoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#method, 0, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} self::NoSuchMethod::T%;
+  no-such-method-forwarder set y(self::NoSuchMethod::T% x) → void
+    return this.{self::NoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#y=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic};
+}
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///generic_covariance_sound_variance.dart:50:7 -> SymbolConstant(#x)
+Evaluated: ListLiteral @ org-dartlang-testcase:///generic_covariance_sound_variance.dart:50:7 -> ListConstant(const <Type>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///generic_covariance_sound_variance.dart:50:7 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///generic_covariance_sound_variance.dart:50:7 -> MapConstant(const <Symbol, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///generic_covariance_sound_variance.dart:50:7 -> SymbolConstant(#x=)
+Evaluated: ListLiteral @ org-dartlang-testcase:///generic_covariance_sound_variance.dart:50:7 -> ListConstant(const <Type>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///generic_covariance_sound_variance.dart:50:7 -> MapConstant(const <Symbol, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///generic_covariance_sound_variance.dart:50:7 -> SymbolConstant(#method)
+Evaluated: ListLiteral @ org-dartlang-testcase:///generic_covariance_sound_variance.dart:50:7 -> ListConstant(const <Type>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///generic_covariance_sound_variance.dart:50:7 -> MapConstant(const <Symbol, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///generic_covariance_sound_variance.dart:50:7 -> SymbolConstant(#y=)
+Evaluated: ListLiteral @ org-dartlang-testcase:///generic_covariance_sound_variance.dart:50:7 -> ListConstant(const <Type>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///generic_covariance_sound_variance.dart:50:7 -> MapConstant(const <Symbol, dynamic>{})
+Extra constant evaluation: evaluated: 42, effectively constant: 13

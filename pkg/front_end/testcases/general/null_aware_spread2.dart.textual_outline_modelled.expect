@@ -1,7 +1,0 @@
-main() {}
-
-nullAwareListSpread(List<String>? list) {}
-
-nullAwareMapSpread(Map<int, String>? map) {}
-
-nullAwareSetSpread(Set<String>? set) {}

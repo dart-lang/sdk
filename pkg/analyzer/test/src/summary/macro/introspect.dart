@@ -124,16 +124,16 @@ import 'package:macros/macros.dart';
     Library library,
     DeclarationBuilder builder,
   ) async {
-    final buffer = StringBuffer();
-    final sink = TreeStringSink(
+    var buffer = StringBuffer();
+    var sink = TreeStringSink(
       sink: buffer,
       indent: '',
     );
 
-    final types = await builder.typesOf(library);
-    final includedDeclarations = <Declaration>{};
+    var types = await builder.typesOf(library);
+    var includedDeclarations = <Declaration>{};
 
-    final printer = _Printer(
+    var printer = _Printer(
       sink: sink,
       withMetadata: withMetadata,
       withUnnamedConstructor: withUnnamedConstructor,
@@ -143,12 +143,12 @@ import 'package:macros/macros.dart';
       },
     );
 
-    for (final type in types) {
+    for (var type in types) {
       includedDeclarations.add(type);
       await printer.writeAnyDeclaration(type);
     }
 
-    final text = buffer.toString();
+    var text = buffer.toString();
     _declareIntrospectResult(builder, text);
   }
 
@@ -218,30 +218,30 @@ import 'package:macros/macros.dart';
     Declaration declaration,
     Future<void> Function(_Printer printer) withPrinter,
   ) async {
-    final buffer = StringBuffer();
-    final sink = TreeStringSink(
+    var buffer = StringBuffer();
+    var sink = TreeStringSink(
       sink: buffer,
       indent: '',
     );
 
-    final includedNames = {
+    var includedNames = {
       declaration.identifier.name,
       ...withDetailsFor,
     };
 
-    final printer = _Printer(
+    var printer = _Printer(
       sink: sink,
       withMetadata: withMetadata,
       withUnnamedConstructor: withUnnamedConstructor,
       introspector: builder,
       shouldWriteDetailsFor: (declaration) {
-        final nameToCheck = declaration.identifier.name;
+        var nameToCheck = declaration.identifier.name;
         return includedNames.remove(nameToCheck);
       },
     );
     await withPrinter(printer);
 
-    final text = buffer.toString();
+    var text = buffer.toString();
     _declareIntrospectResult(builder, text);
   }
 }
@@ -262,34 +262,34 @@ import 'package:macros/macros.dart';
     FunctionDeclaration declaration,
     FunctionDefinitionBuilder builder,
   ) async {
-    final buffer = StringBuffer();
-    final sink = TreeStringSink(
+    var buffer = StringBuffer();
+    var sink = TreeStringSink(
       sink: buffer,
       indent: '',
     );
 
-    final includedNames = {name};
+    var includedNames = {name};
 
-    final printer = _Printer(
+    var printer = _Printer(
       sink: sink,
       withMetadata: true,
       withUnnamedConstructor: withUnnamedConstructor,
       introspector: builder,
       shouldWriteDetailsFor: (declaration) {
-        final name = declaration.identifier.name;
+        var name = declaration.identifier.name;
         return includedNames.remove(name);
       },
     );
 
     // ignore: deprecated_member_use
-    final identifier = await builder.resolveIdentifier(
+    var identifier = await builder.resolveIdentifier(
       Uri.parse(uriStr),
       name,
     );
-    final declaration = await builder.declarationOf(identifier);
+    var declaration = await builder.declarationOf(identifier);
     await printer.writeAnyDeclaration(declaration);
 
-    final text = buffer.toString();
+    var text = buffer.toString();
 
     builder.augment(
       FunctionBodyCode.fromString('=> r"""$text""";'),
@@ -312,38 +312,38 @@ import 'package:macros/macros.dart';
     FunctionDeclaration declaration,
     FunctionDefinitionBuilder builder,
   ) async {
-    final buffer = StringBuffer();
-    final sink = TreeStringSink(
+    var buffer = StringBuffer();
+    var sink = TreeStringSink(
       sink: buffer,
       indent: '',
     );
 
-    final includedNames = <String>{};
+    var includedNames = <String>{};
 
-    final printer = _Printer(
+    var printer = _Printer(
       sink: sink,
       withMetadata: true,
       withUnnamedConstructor: false,
       introspector: builder,
       shouldWriteDetailsFor: (declaration) {
-        final name = declaration.identifier.name;
+        var name = declaration.identifier.name;
         return includedNames.remove(name);
       },
     );
 
     // ignore: deprecated_member_use
-    final identifier = await builder.resolveIdentifier(
+    var identifier = await builder.resolveIdentifier(
       Uri.parse(uriStr),
       nameToFind,
     );
-    final declaration = await builder.declarationOf(identifier);
-    final library = declaration.library;
+    var declaration = await builder.declarationOf(identifier);
+    var library = declaration.library;
 
     sink.writelnWithIndent('topLevelDeclarationsOf');
     await sink.withIndent(() async {
-      final topDeclarations = await builder.topLevelDeclarationsOf(library);
-      for (final declaration in topDeclarations) {
-        final name = declaration.identifier.name;
+      var topDeclarations = await builder.topLevelDeclarationsOf(library);
+      for (var declaration in topDeclarations) {
+        var name = declaration.identifier.name;
         if (name != '_starter') {
           includedNames.add(name);
           await printer.writeAnyDeclaration(declaration);
@@ -351,7 +351,7 @@ import 'package:macros/macros.dart';
       }
     });
 
-    final text = buffer.toString();
+    var text = buffer.toString();
     builder.augment(
       FunctionBodyCode.fromString('=> r"""$text""";'),
     );
@@ -370,7 +370,7 @@ class TreeStringSink {
         _indent = indent;
 
   Future<void> withIndent(Future<void> Function() f) async {
-    final indent = _indent;
+    var indent = _indent;
     _indent = '$indent  ';
     await f();
     _indent = indent;
@@ -388,7 +388,7 @@ class TreeStringSink {
     if (elements.isNotEmpty) {
       writelnWithIndent(name);
       await withIndent(() async {
-        for (final element in elements) {
+        for (var element in elements) {
           await f(element);
         }
       });
@@ -399,7 +399,7 @@ class TreeStringSink {
     if (flags.values.any((flag) => flag)) {
       await writeIndentedLine(() async {
         write('flags:');
-        for (final entry in flags.entries) {
+        for (var entry in flags.entries) {
           if (entry.value) {
             write(' ${entry.key}');
           }
@@ -497,7 +497,7 @@ class _Printer {
         'hasSealed': e.hasSealed,
       });
       await _writeMetadata(e);
-      if (e.superclass case final superclass?) {
+      if (e.superclass case var superclass?) {
         await _writeNamedTypeAnnotation('superclass', superclass);
       }
       await _writeTypeParameters(e.typeParameters);
@@ -554,7 +554,7 @@ class _Printer {
   }
 
   Future<void> writeEnumValueDeclaration(EnumValueDeclaration e) async {
-    final enclosing = _enclosingDeclarationIdentifier;
+    var enclosing = _enclosingDeclarationIdentifier;
     if (enclosing != null && e.definingEnum != enclosing) {
       throw StateError('Mismatch: definingEnum');
     }
@@ -721,7 +721,7 @@ class _Printer {
   }
 
   void _assertEnclosingClass(MemberDeclaration e) {
-    final enclosing = _enclosingDeclarationIdentifier;
+    var enclosing = _enclosingDeclarationIdentifier;
     if (enclosing != null && e.definingType != enclosing) {
       throw StateError('Mismatch: definingClass');
     }
@@ -761,8 +761,8 @@ class _Printer {
   /// If [type] is [OmittedTypeAnnotation], write the inferred type.
   Future<void> _writeInferredTypeAnnotation(TypeAnnotation type) async {
     if (type is OmittedTypeAnnotation) {
-      if (introspector case final DefinitionPhaseIntrospector introspector) {
-        final inferred = await introspector.inferType(type);
+      if (introspector case DefinitionPhaseIntrospector introspector) {
+        var inferred = await introspector.inferType(type);
         await sink.withIndent(() async {
           sink.writelnWithIndent('inferred: ${inferred.asString}');
         });
@@ -786,7 +786,7 @@ class _Printer {
         sink.writelnWithIndent('ConstructorMetadataAnnotation');
         await sink.withIndent(() async {
           sink.writelnWithIndent('type: ${e.type.identifier.name}');
-          final constructorName = e.constructor.name;
+          var constructorName = e.constructor.name;
           if (constructorName.isNotEmpty) {
             sink.writelnWithIndent('constructorName: $constructorName');
           }
@@ -861,7 +861,7 @@ class _Printer {
           // No declaration.
           break;
         case NamedTypeAnnotation():
-          final identifier = type.identifier;
+          var identifier = type.identifier;
           if (identifier.name == 'void') {
             return;
           }
@@ -906,7 +906,7 @@ class _Printer {
   Future<void> _writeTypeDeclarationMembers(TypeDeclaration e) async {
     _enclosingDeclarationIdentifier = e.identifier;
 
-    final constructors = await introspector.constructorsOf(e);
+    var constructors = await introspector.constructorsOf(e);
     await sink.writeElements(
       'constructors',
       constructors.where((element) {
@@ -934,7 +934,7 @@ class _Printer {
 
     await sink.withIndent(() async {
       await _writeMetadata(e);
-      if (e.bound case final bound?) {
+      if (e.bound case var bound?) {
         await _writeNamedTypeAnnotation('bound', bound);
       }
     });
@@ -968,7 +968,7 @@ class _TypeAnnotationStringBuilder {
   }
 
   void _writeFormalParameter(FormalParameter node) {
-    final String closeSeparator;
+    String closeSeparator;
     if (node.isNamed) {
       _sink.write('{');
       closeSeparator = '}';
@@ -1005,14 +1005,14 @@ class _TypeAnnotationStringBuilder {
 
     _sink.write('(');
     var hasFormalParameter = false;
-    for (final formalParameter in type.positionalParameters) {
+    for (var formalParameter in type.positionalParameters) {
       if (hasFormalParameter) {
         _sink.write(', ');
       }
       _writeFormalParameter(formalParameter);
       hasFormalParameter = true;
     }
-    for (final formalParameter in type.namedParameters) {
+    for (var formalParameter in type.namedParameters) {
       if (hasFormalParameter) {
         _sink.write(', ');
       }
@@ -1036,7 +1036,7 @@ class _TypeAnnotationStringBuilder {
   void _writeTypeParameter(TypeParameter node) {
     _sink.write(node.name);
 
-    final bound = node.bound;
+    var bound = node.bound;
     if (bound != null) {
       _sink.write(' extends ');
       write(bound);
@@ -1077,7 +1077,7 @@ extension on StringSink {
 
 extension E on TypeAnnotation {
   String get asString {
-    final buffer = StringBuffer();
+    var buffer = StringBuffer();
     _TypeAnnotationStringBuilder(buffer).write(this);
     return buffer.toString();
   }

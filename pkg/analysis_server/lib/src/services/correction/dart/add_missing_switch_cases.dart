@@ -13,24 +13,23 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddMissingSwitchCases extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => false;
-
-  @override
-  bool get canBeAppliedToFile => false;
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_MISSING_SWITCH_CASES;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
 
-    final diagnostic = this.diagnostic;
+    var diagnostic = this.diagnostic;
     if (diagnostic is! AnalysisError) {
       return;
     }
 
-    final patternParts = diagnostic.data;
+    var patternParts = diagnostic.data;
     if (patternParts is! List<MissingPatternPart>) {
       return;
     }
@@ -57,17 +56,15 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
     required SwitchExpression node,
     required List<MissingPatternPart> patternParts,
   }) async {
-    final lineIndent = utils.getLinePrefix(node.offset);
-    final singleIndent = utils.oneIndent;
-    final location = utils.newCaseClauseAtEndLocation(
-      switchKeyword: node.switchKeyword,
-      leftBracket: node.leftBracket,
-      rightBracket: node.rightBracket,
-    );
+    var lineIndent = utils.getLinePrefix(node.offset);
+    var singleIndent = utils.oneIndent;
 
     await builder.addDartFileEdit(file, (builder) {
-      builder.addInsertion(location.offset, (builder) {
-        builder.write(location.prefix);
+      builder.insertCaseClauseAtEnd(
+          switchKeyword: node.switchKeyword,
+          rightParenthesis: node.rightParenthesis,
+          leftBracket: node.leftBracket,
+          rightBracket: node.rightBracket, (builder) {
         builder.write(lineIndent);
         builder.write(singleIndent);
         builder.writeln('// TODO: Handle this case.');
@@ -75,7 +72,6 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
         builder.write(singleIndent);
         _writePatternParts(builder, patternParts);
         builder.writeln(' => throw UnimplementedError(),');
-        builder.write(location.suffix);
       });
     });
   }
@@ -85,17 +81,15 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
     required SwitchStatement node,
     required List<MissingPatternPart> patternParts,
   }) async {
-    final lineIndent = utils.getLinePrefix(node.offset);
-    final singleIndent = utils.oneIndent;
-    final location = utils.newCaseClauseAtEndLocation(
-      switchKeyword: node.switchKeyword,
-      leftBracket: node.leftBracket,
-      rightBracket: node.rightBracket,
-    );
+    var lineIndent = utils.getLinePrefix(node.offset);
+    var singleIndent = utils.oneIndent;
 
     await builder.addDartFileEdit(file, (builder) {
-      builder.addInsertion(location.offset, (builder) {
-        builder.write(location.prefix);
+      builder.insertCaseClauseAtEnd(
+          switchKeyword: node.switchKeyword,
+          rightParenthesis: node.rightParenthesis,
+          leftBracket: node.leftBracket,
+          rightBracket: node.rightBracket, (builder) {
         builder.write(lineIndent);
         builder.write(singleIndent);
         builder.write('case ');
@@ -105,7 +99,6 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
         builder.write(singleIndent);
         builder.write(singleIndent);
         builder.writeln('// TODO: Handle this case.');
-        builder.write(location.suffix);
       });
     });
   }
@@ -114,7 +107,7 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
     DartEditBuilder builder,
     List<MissingPatternPart> parts,
   ) {
-    for (final part in parts) {
+    for (var part in parts) {
       if (part is MissingPatternEnumValuePart) {
         builder.writeReference(part.enumElement);
         builder.write('.');

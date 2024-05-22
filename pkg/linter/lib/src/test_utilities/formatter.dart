@@ -238,7 +238,7 @@ class SimpleFormatter implements ReportFormatter {
   }
 
   void writeTimings() {
-    var timers = lintRegistry.timers;
+    var timers = lintRuleTimers.timers;
     var timings = timers.keys
         .map((t) => Stat(t, timers[t]?.elapsedMilliseconds ?? 0))
         .toList();

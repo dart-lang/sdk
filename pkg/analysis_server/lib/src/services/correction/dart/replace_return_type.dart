@@ -16,16 +16,21 @@ class ReplaceReturnType extends ResolvedCorrectionProducer {
   String _newType = '';
 
   @override
-  List<Object> get fixArguments => [_newType];
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments => [_newType];
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_RETURN_TYPE;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is Expression) {
-      final typeSystem = libraryElement.typeSystem;
+      var typeSystem = libraryElement.typeSystem;
 
       var newType = node.staticType;
 

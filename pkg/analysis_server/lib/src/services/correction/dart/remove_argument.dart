@@ -13,10 +13,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveArgument extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_ARGUMENT;
@@ -39,7 +37,7 @@ class RemoveArgument extends ResolvedCorrectionProducer {
     }
 
     await builder.addDartFileEdit(file, (builder) {
-      final sourceRange = range.nodeInListWithComments(
+      var sourceRange = range.nodeInListWithComments(
           unitResult.lineInfo, argumentList.arguments, arg);
       builder.addDeletion(sourceRange);
     });

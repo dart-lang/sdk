@@ -27,10 +27,10 @@ abstract class CreateFieldOrGetter extends ResolvedCorrectionProducer {
 
   @protected
   Future<bool> compute0(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
 
     if (node is DeclaredVariablePatternImpl) {
-      final fieldName = node.fieldNameWithImplicitName;
+      var fieldName = node.fieldNameWithImplicitName;
       if (fieldName != null) {
         await _patternFieldName(
           builder: builder,
@@ -55,22 +55,22 @@ abstract class CreateFieldOrGetter extends ResolvedCorrectionProducer {
     required ChangeBuilder builder,
     required PatternFieldName fieldName,
   }) async {
-    final patternField = node.parent;
+    var patternField = node.parent;
     if (patternField is! PatternField) {
       return;
     }
 
-    final effectiveName = patternField.effectiveName;
+    var effectiveName = patternField.effectiveName;
     if (effectiveName == null) {
       return;
     }
 
-    final objectPattern = patternField.parent;
+    var objectPattern = patternField.parent;
     if (objectPattern is! ObjectPattern) {
       return;
     }
 
-    final matchedType = objectPattern.type.typeOrThrow;
+    var matchedType = objectPattern.type.typeOrThrow;
     if (matchedType is! InterfaceType) {
       return;
     }
@@ -91,7 +91,12 @@ class CreateGetter extends CreateFieldOrGetter {
   String _getterName = '';
 
   @override
-  List<Object> get fixArguments => [_getterName];
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments => [_getterName];
 
   @override
   FixKind get fixKind => DartFixKind.CREATE_GETTER;
@@ -209,28 +214,19 @@ class CreateGetter extends CreateFieldOrGetter {
     } else {
       return;
     }
-    // prepare location
-    var resolvedUnit = targetDeclarationResult.resolvedUnit;
-    if (resolvedUnit == null) {
-      return;
-    }
-    var targetLocation =
-        CorrectionUtils(resolvedUnit).prepareNewGetterLocation(targetNode);
-    if (targetLocation == null) {
-      return;
-    }
-    // build method source
+    // Build method source.
     var targetFile = targetSource.fullName;
     await builder.addDartFileEdit(targetFile, (builder) {
-      builder.addInsertion(targetLocation.offset, (builder) {
-        builder.write(targetLocation.prefix);
-        builder.writeGetterDeclaration(_getterName,
-            isStatic: staticModifier,
-            nameGroupName: 'NAME',
-            returnType: fieldType ?? typeProvider.dynamicType,
-            returnTypeGroupName: 'TYPE');
-        builder.write(targetLocation.suffix);
-      });
+      builder.insertGetter(
+        targetNode,
+        (builder) {
+          builder.writeGetterDeclaration(_getterName,
+              isStatic: staticModifier,
+              nameGroupName: 'NAME',
+              returnType: fieldType ?? typeProvider.dynamicType,
+              returnTypeGroupName: 'TYPE');
+        },
+      );
     });
   }
 }

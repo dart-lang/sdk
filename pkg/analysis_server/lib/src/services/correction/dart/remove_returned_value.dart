@@ -11,10 +11,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveReturnedValue extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_RETURNED_VALUE;
@@ -24,7 +22,7 @@ class RemoveReturnedValue extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is ReturnStatement) {
       await builder.addDartFileEdit(file, (builder) {
         builder.addDeletion(range.endStart(node.returnKeyword, node.semicolon));

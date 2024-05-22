@@ -13,9 +13,10 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
   @override
-  // The fix isn't able to remove the initializer list / block function body in
-  // the case where multiple initializers / statements are being removed.
-  bool get canBeAppliedInBulk => false;
+  CorrectionApplicability get applicability =>
+      // The fix isn't able to remove the initializer list / block function body
+      // in the case where multiple initializers / statements are being removed.
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_INITIALIZING_FORMAL;

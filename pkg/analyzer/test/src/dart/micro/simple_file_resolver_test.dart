@@ -29,7 +29,7 @@ main() {
 @reflectiveTest
 class FileResolver_changeFiles_Test extends FileResolutionTest {
   test_changeFile_refreshedFiles() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
 
@@ -37,7 +37,7 @@ class A {}
 class B {}
 ''');
 
-    final c = newFile('$testPackageLibPath/c.dart', r'''
+    var c = newFile('$testPackageLibPath/c.dart', r'''
 import 'a.dart';
 import 'b.dart';
 ''');
@@ -408,11 +408,11 @@ byteStore
   }
 
   test_changeFile_resolution() async {
-    final a = newFile('/workspace/dart/test/lib/a.dart', r'''
+    var a = newFile('/workspace/dart/test/lib/a.dart', r'''
 class A {}
 ''');
 
-    final b = newFile('/workspace/dart/test/lib/b.dart', r'''
+    var b = newFile('/workspace/dart/test/lib/b.dart', r'''
 import 'a.dart';
 void f(A a, B b) {}
 ''');
@@ -433,13 +433,13 @@ class B {}
   }
 
   test_changeFile_resolution_flushInheritanceManager() async {
-    final a = newFile('/workspace/dart/test/lib/a.dart', r'''
+    var a = newFile('/workspace/dart/test/lib/a.dart', r'''
 class A {
   final int foo = 0;
 }
 ''');
 
-    final b = newFile('/workspace/dart/test/lib/b.dart', r'''
+    var b = newFile('/workspace/dart/test/lib/b.dart', r'''
 import 'a.dart';
 
 void f(A a) {
@@ -464,13 +464,13 @@ class A {
   }
 
   test_changeFile_resolution_missingChangeFileForPart() async {
-    final a = newFile('/workspace/dart/test/lib/a.dart', r'''
+    var a = newFile('/workspace/dart/test/lib/a.dart', r'''
 part 'b.dart';
 
 var b = B(0);
 ''');
 
-    final b = newFile('/workspace/dart/test/lib/b.dart', r'''
+    var b = newFile('/workspace/dart/test/lib/b.dart', r'''
 part of 'a.dart';
 ''');
 
@@ -518,7 +518,7 @@ part 'b.dart';
 class A {}
 ''');
 
-    final b = newFile('/workspace/dart/test/lib/b.dart', r'''
+    var b = newFile('/workspace/dart/test/lib/b.dart', r'''
 part of 'a.dart';
 
 class B extends A {}
@@ -645,13 +645,13 @@ part 'b.dart';
 class A {}
 ''');
 
-    final b = newFile('/workspace/dart/test/lib/b.dart', r'''
+    var b = newFile('/workspace/dart/test/lib/b.dart', r'''
 part of 'a.dart';
 
 class B extends A {}
 ''');
 
-    final c = newFile('/workspace/dart/test/lib/c.dart', r'''
+    var c = newFile('/workspace/dart/test/lib/c.dart', r'''
 import 'a.dart';
 ''');
 
@@ -929,7 +929,7 @@ var b = 1 + 2;
   }
 
   test_dispose() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
 
@@ -1345,11 +1345,11 @@ var foo = 0;
   }
 
   test_getErrors_library() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 var a = 42
 ''');
 
-    final errorsResult = await fileResolver.getErrors2(path: a.path);
+    var errorsResult = await fileResolver.getErrors2(path: a.path);
     assertErrorsInList(errorsResult.errors, [
       error(ParserErrorCode.EXPECTED_TOKEN, 8, 2),
     ]);
@@ -1360,12 +1360,12 @@ var a = 42
 part 'b.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'a.dart';
 var a = 42
 ''');
 
-    final errorsResult = await fileResolver.getErrors2(path: b.path);
+    var errorsResult = await fileResolver.getErrors2(path: b.path);
     assertErrorsInList(errorsResult.errors, [
       error(ParserErrorCode.EXPECTED_TOKEN, 26, 2),
     ]);
@@ -1393,7 +1393,7 @@ var a = 42
   }
 
   test_getErrors_reuse_changeDependency() async {
-    final a = newFile('/workspace/dart/test/lib/a.dart', r'''
+    var a = newFile('/workspace/dart/test/lib/a.dart', r'''
 var a = 0;
 ''');
 
@@ -1496,11 +1496,11 @@ import 'dart:math';
   }
 
   test_linkLibraries() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 final a = 0;
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 import 'a.dart';
 final b = a;
 ''');
@@ -1632,13 +1632,13 @@ byteStore
   1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09]
 ''');
 
-    final b_library = await fileResolver.getLibraryByUri2(
+    var b_library = await fileResolver.getLibraryByUri2(
       uriStr: 'package:dart.test/b.dart',
     );
 
     // Ask types for top-level variables.
-    final b_unit = b_library.definingCompilationUnit;
-    for (final topLevelVariable in b_unit.topLevelVariables) {
+    var b_unit = b_library.definingCompilationUnit;
+    for (var topLevelVariable in b_unit.topLevelVariables) {
       topLevelVariable.type;
     }
 
@@ -1857,12 +1857,12 @@ part of 'a.dart';
 class A {}
 ''');
 
-    final b = newFile('/workspace/dart/aaa/lib/b.dart', r'''
+    var b = newFile('/workspace/dart/aaa/lib/b.dart', r'''
 import 'a.dart';
 class B {}
 ''');
 
-    final c = newFile('/workspace/dart/aaa/lib/c.dart', r'''
+    var c = newFile('/workspace/dart/aaa/lib/c.dart', r'''
 import 'a.dart';
 class C {}
 ''');
@@ -2022,16 +2022,16 @@ class B {}
 class C {}
 ''');
 
-    final d = newFile('/workspace/dart/aaa/lib/d.dart', r'''
+    var d = newFile('/workspace/dart/aaa/lib/d.dart', r'''
 import 'a.dart';
 ''');
 
-    final e = newFile('/workspace/dart/aaa/lib/e.dart', r'''
+    var e = newFile('/workspace/dart/aaa/lib/e.dart', r'''
 import 'a.dart';
 import 'b.dart';
 ''');
 
-    final f = newFile('/workspace/dart/aaa/lib/f.dart', r'''
+    var f = newFile('/workspace/dart/aaa/lib/f.dart', r'''
 import 'c.dart';
  ''');
 
@@ -2294,11 +2294,11 @@ byteStore
   }
 
   test_removeFilesNotNecessaryForAnalysisOf_unknown() async {
-    final a = newFile('/workspace/dart/aaa/lib/a.dart', r'''
+    var a = newFile('/workspace/dart/aaa/lib/a.dart', r'''
 class A {}
 ''');
 
-    final b = getFile('/workspace/dart/aaa/lib/b.dart');
+    var b = getFile('/workspace/dart/aaa/lib/b.dart');
 
     await resolveFile(a);
     fileResolver.removeFilesNotNecessaryForAnalysisOf([a.path, b.path]);
@@ -2356,7 +2356,7 @@ void f(A a) {}
   }
 
   test_resolve_part_of_name() async {
-    final a = newFile('/workspace/dart/test/lib/a.dart', r'''
+    var a = newFile('/workspace/dart/test/lib/a.dart', r'''
 library my.lib;
 
 part 'test.dart';
@@ -2376,14 +2376,14 @@ void func() {
 ''');
 
     // TODO(scheglov): Use textual dump
-    final fsState = fileResolver.fsState!;
-    final testState = fsState.getExisting(testFile)!;
-    final testKind = testState.kind as PartFileKind;
+    var fsState = fileResolver.fsState!;
+    var testState = fsState.getExisting(testFile)!;
+    var testKind = testState.kind as PartFileKind;
     expect(testKind.library?.file, fsState.getExisting(a));
   }
 
   test_resolve_part_of_uri() async {
-    final a = newFile('/workspace/dart/test/lib/a.dart', r'''
+    var a = newFile('/workspace/dart/test/lib/a.dart', r'''
 part 'test.dart';
 
 class A {
@@ -2401,9 +2401,9 @@ void func() {
 ''');
 
     // TODO(scheglov): Use textual dump
-    final fsState = fileResolver.fsState!;
-    final testState = fsState.getExisting(testFile)!;
-    final testKind = testState.kind as PartFileKind;
+    var fsState = fileResolver.fsState!;
+    var testState = fsState.getExisting(testFile)!;
+    var testKind = testState.kind as PartFileKind;
     expect(testKind.library?.file, fsState.getExisting(a));
   }
 
@@ -2535,7 +2535,7 @@ import 'dart:math';
     List<File> expected, {
     bool andClear = true,
   }) {
-    final actual = fileResolver.testData!.resolvedLibraries;
+    var actual = fileResolver.testData!.resolvedLibraries;
     expect(actual, expected.map((e) => e.path).toList());
     if (andClear) {
       actual.clear();

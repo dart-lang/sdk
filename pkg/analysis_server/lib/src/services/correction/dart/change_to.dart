@@ -49,7 +49,12 @@ class ChangeTo extends ResolvedCorrectionProducer {
       : _kind = _ReplacementKind.superFormalParameter;
 
   @override
-  List<Object> get fixArguments => [_proposedName];
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments => [_proposedName];
 
   @override
   FixKind get fixKind => DartFixKind.CHANGE_TO;
@@ -87,7 +92,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
   }
 
   Future<void> _proposeAnnotation(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is Annotation) {
       var name = node.name;
       if (name.staticElement == null) {
@@ -163,7 +168,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
   }
 
   Future<void> _proposeField(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is! FieldFormalParameter) return;
 
     var exclusions = <String>{};
@@ -201,7 +206,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
   }
 
   Future<void> _proposeFunction(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is SimpleIdentifier) {
       // Prepare the optional import prefix name.
       String? prefixName;
@@ -237,7 +242,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
   }
 
   Future<void> _proposeGetterOrSetter(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is SimpleIdentifier) {
       // prepare target
       Expression? target;
@@ -265,7 +270,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
   }
 
   Future<void> _proposeMethod(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     var parent = node.parent;
     if (parent is MethodInvocation && node is SimpleIdentifier) {
       await _proposeClassOrMixinMember(builder, node.token, parent.realTarget,
@@ -274,7 +279,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
   }
 
   Future<void> _proposeSuperFormalParameter(ChangeBuilder builder) async {
-    final superParameter = node;
+    var superParameter = node;
     if (superParameter is! SuperFormalParameter) return;
 
     var constructorDeclaration =

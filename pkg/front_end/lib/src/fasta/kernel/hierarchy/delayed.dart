@@ -5,7 +5,6 @@
 library fasta.class_hierarchy_builder;
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/src/types.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
@@ -64,13 +63,11 @@ class DelayedOverrideCheck implements DelayedCheck {
     ///      int? mixedInMethod(int? i, {int? j}) => i;
     ///    }
     ///
-    bool declaredNeedsLegacyErasure =
-        needsLegacyErasure(_classBuilder.cls, declaredMember.enclosingClass!);
+
     void callback(Member interfaceMember, bool isSetter) {
       _classBuilder.checkOverride(membersBuilder.hierarchyBuilder.types,
           membersBuilder, declaredMember, interfaceMember, isSetter, callback,
-          isInterfaceCheck: !_classBuilder.isMixinApplication,
-          declaredNeedsLegacyErasure: declaredNeedsLegacyErasure);
+          isInterfaceCheck: !_classBuilder.isMixinApplication);
     }
 
     for (ClassMember overriddenMember in _overriddenMembers) {
@@ -111,25 +108,12 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
       // been reported.
     } else {
       bool isValid = types.isSubtypeOf(
-          getterType,
-          setterType,
-          libraryBuilder.isNonNullableByDefault
-              ? SubtypeCheckMode.withNullabilities
-              : SubtypeCheckMode.ignoringNullabilities);
-      if (!isValid && !libraryBuilder.isNonNullableByDefault) {
-        // Allow assignability in legacy libraries.
-        isValid = types.isSubtypeOf(
-            setterType, getterType, SubtypeCheckMode.ignoringNullabilities);
-      }
+          getterType, setterType, SubtypeCheckMode.withNullabilities);
       if (!isValid) {
         if (getterIsDeclared && setterIsDeclared) {
-          Template<Message Function(DartType, String, DartType, String, bool)>
-              template = libraryBuilder.isNonNullableByDefault
-                  ? templateInvalidGetterSetterType
-                  : templateInvalidGetterSetterTypeLegacy;
           libraryBuilder.addProblem(
-              template.withArguments(getterType, getterFullName, setterType,
-                  setterFullName, libraryBuilder.isNonNullableByDefault),
+              templateInvalidGetterSetterType.withArguments(
+                  getterType, getterFullName, setterType, setterFullName),
               getterOffset,
               name.text.length,
               getterUri,
@@ -139,18 +123,14 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
                     .withLocation(setterUri, setterOffset, name.text.length)
               ]);
         } else if (getterIsDeclared) {
-          Template<Message Function(DartType, String, DartType, String, bool)>
-              template = libraryBuilder.isNonNullableByDefault
-                  ? templateInvalidGetterSetterTypeSetterInheritedGetter
-                  : templateInvalidGetterSetterTypeSetterInheritedGetterLegacy;
+          Template<Message Function(DartType, String, DartType, String)>
+              template = templateInvalidGetterSetterTypeSetterInheritedGetter;
           if (getterIsField) {
-            template = libraryBuilder.isNonNullableByDefault
-                ? templateInvalidGetterSetterTypeSetterInheritedField
-                : templateInvalidGetterSetterTypeSetterInheritedFieldLegacy;
+            template = templateInvalidGetterSetterTypeSetterInheritedField;
           }
           libraryBuilder.addProblem(
-              template.withArguments(getterType, getterFullName, setterType,
-                  setterFullName, libraryBuilder.isNonNullableByDefault),
+              template.withArguments(
+                  getterType, getterFullName, setterType, setterFullName),
               getterOffset,
               name.text.length,
               getterUri,
@@ -160,21 +140,17 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
                     .withLocation(setterUri, setterOffset, name.text.length)
               ]);
         } else if (setterIsDeclared) {
-          Template<Message Function(DartType, String, DartType, String, bool)>
-              template = libraryBuilder.isNonNullableByDefault
-                  ? templateInvalidGetterSetterTypeGetterInherited
-                  : templateInvalidGetterSetterTypeGetterInheritedLegacy;
+          Template<Message Function(DartType, String, DartType, String)>
+              template = templateInvalidGetterSetterTypeGetterInherited;
           Template<Message Function(String)> context =
               templateInvalidGetterSetterTypeGetterContext;
           if (getterIsField) {
-            template = libraryBuilder.isNonNullableByDefault
-                ? templateInvalidGetterSetterTypeFieldInherited
-                : templateInvalidGetterSetterTypeFieldInheritedLegacy;
+            template = templateInvalidGetterSetterTypeFieldInherited;
             context = templateInvalidGetterSetterTypeFieldContext;
           }
           libraryBuilder.addProblem(
-              template.withArguments(getterType, getterFullName, setterType,
-                  setterFullName, libraryBuilder.isNonNullableByDefault),
+              template.withArguments(
+                  getterType, getterFullName, setterType, setterFullName),
               setterOffset,
               name.text.length,
               setterUri,
@@ -184,21 +160,17 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
                     .withLocation(getterUri, getterOffset, name.text.length)
               ]);
         } else {
-          Template<Message Function(DartType, String, DartType, String, bool)>
-              template = libraryBuilder.isNonNullableByDefault
-                  ? templateInvalidGetterSetterTypeBothInheritedGetter
-                  : templateInvalidGetterSetterTypeBothInheritedGetterLegacy;
+          Template<Message Function(DartType, String, DartType, String)>
+              template = templateInvalidGetterSetterTypeBothInheritedGetter;
           Template<Message Function(String)> context =
               templateInvalidGetterSetterTypeGetterContext;
           if (getterIsField) {
-            template = libraryBuilder.isNonNullableByDefault
-                ? templateInvalidGetterSetterTypeBothInheritedField
-                : templateInvalidGetterSetterTypeBothInheritedFieldLegacy;
+            template = templateInvalidGetterSetterTypeBothInheritedField;
             context = templateInvalidGetterSetterTypeFieldContext;
           }
           libraryBuilder.addProblem(
-              template.withArguments(getterType, getterFullName, setterType,
-                  setterFullName, libraryBuilder.isNonNullableByDefault),
+              template.withArguments(
+                  getterType, getterFullName, setterType, setterFullName),
               declarationOffset,
               noLength,
               declarationUri,

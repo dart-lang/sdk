@@ -20,13 +20,11 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertToSuperParameters extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
+
+  @override
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_SUPER_PARAMETERS;
-
-  @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_SUPER_PARAMETERS;
@@ -298,7 +296,7 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
   /// Return the constructor to be converted, or `null` if the cursor is not on
   /// the name of a constructor.
   ConstructorDeclaration? _findConstructor() {
-    final node = this.node;
+    var node = this.node;
     if (node is ConstructorDeclaration) {
       return node;
     }

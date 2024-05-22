@@ -141,8 +141,8 @@ class PropertyDescription {
   Future<protocol.SourceChange> removeValue() async {
     var builder = ChangeBuilder(session: resolvedUnit.session);
 
-    final argumentExpression = this.argumentExpression;
-    final instanceCreation = this.instanceCreation;
+    var argumentExpression = this.argumentExpression;
+    var instanceCreation = this.instanceCreation;
     if (argumentExpression != null && instanceCreation != null) {
       int endOffset;
       var argumentList = instanceCreation.argumentList;
@@ -179,16 +179,16 @@ class PropertyDescription {
     DartFileEditBuilder builder,
     void Function(DartEditBuilder builder) buildCode,
   ) {
-    final valueExpression = this.valueExpression;
+    var valueExpression = this.valueExpression;
     if (valueExpression != null) {
       builder.addReplacement(range.node(valueExpression), buildCode);
     } else {
-      final parameterElement = this.parameterElement;
+      var parameterElement = this.parameterElement;
       if (parameterElement == null) {
         return;
       }
       var parameterName = parameterElement.name;
-      final instanceCreation = this.instanceCreation;
+      var instanceCreation = this.instanceCreation;
       if (instanceCreation != null) {
         var argumentList = instanceCreation.argumentList;
 
@@ -229,14 +229,14 @@ class PropertyDescription {
           builder.write(', ');
         });
       } else {
-        final parent = this.parent;
+        var parent = this.parent;
         if (parent == null) {
           return;
         }
         if (parent.virtualContainer != null) {
           parent._changeCodeVirtualContainer(builder, parameterName, buildCode);
         } else {
-          final classDescription = this.classDescription;
+          var classDescription = this.classDescription;
           if (classDescription == null) {
             return;
           }
@@ -260,7 +260,7 @@ class PropertyDescription {
     String parameterName,
     void Function(DartEditBuilder builder) writeArgumentValue,
   ) {
-    final virtualContainer = this.virtualContainer;
+    var virtualContainer = this.virtualContainer;
     if (virtualContainer == null) {
       return;
     }
@@ -336,7 +336,7 @@ class PropertyDescription {
   }
 
   FunctionBody _enclosingFunctionBody() {
-    final parent = this.parent;
+    var parent = this.parent;
     if (parent != null) {
       return parent._enclosingFunctionBody();
     }

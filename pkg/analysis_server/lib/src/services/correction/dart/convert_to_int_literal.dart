@@ -13,13 +13,11 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class ConvertToIntLiteral extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
+
+  @override
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_INT_LITERAL;
-
-  @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_INT_LITERAL;

@@ -104,7 +104,7 @@ extension AstNodeExtension on AstNode {
 
 extension AstNodeNullableExtension on AstNode? {
   List<ClassMember> get classMembers {
-    final self = this;
+    var self = this;
     return switch (self) {
       ClassDeclaration() => self.members,
       EnumDeclaration() => self.members,
@@ -112,6 +112,31 @@ extension AstNodeNullableExtension on AstNode? {
       ExtensionTypeDeclaration() => self.members,
       MixinDeclaration() => self.members,
       _ => throw UnimplementedError('(${self.runtimeType}) $self'),
+    };
+  }
+}
+
+extension CompilationUnitExtension on CompilationUnit {
+  /// Whether this [CompilationUnit] is found in a "test" directory.
+  bool get inTestDir {
+    var declaredElement = this.declaredElement;
+    if (declaredElement == null) return false;
+    var pathContext = declaredElement.session.resourceProvider.pathContext;
+    var path = declaredElement.source.fullName;
+    return switch (pathContext.separator) {
+      '/' => const [
+          '/test/',
+          '/integration_test/',
+          '/test_driver/',
+          '/testing/',
+        ].any(path.contains),
+      r'\' => const [
+          r'\test\',
+          r'\integration_test\',
+          r'\test_driver\',
+          r'\testing\',
+        ].any(path.contains),
+      _ => false,
     };
   }
 }

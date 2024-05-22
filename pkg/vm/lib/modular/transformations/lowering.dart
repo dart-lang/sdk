@@ -22,23 +22,20 @@ import 'type_casts_optimizer.dart' as typeCastsOptimizer
 /// after transforming children nodes.
 void transformLibraries(
     List<Library> libraries, CoreTypes coreTypes, ClassHierarchy hierarchy,
-    {required bool soundNullSafety, required bool productMode}) {
-  final transformer = _Lowering(coreTypes, hierarchy,
-      soundNullSafety: soundNullSafety, productMode: productMode);
+    {required bool productMode}) {
+  final transformer = _Lowering(coreTypes, hierarchy, productMode: productMode);
   libraries.forEach(transformer.visitLibrary);
 }
 
 void transformProcedure(
     Procedure procedure, CoreTypes coreTypes, ClassHierarchy hierarchy,
-    {required bool soundNullSafety, required bool productMode}) {
-  final transformer = _Lowering(coreTypes, hierarchy,
-      soundNullSafety: soundNullSafety, productMode: productMode);
+    {required bool productMode}) {
+  final transformer = _Lowering(coreTypes, hierarchy, productMode: productMode);
   procedure.accept(transformer);
 }
 
 class _Lowering extends Transformer {
   final TypeEnvironment env;
-  final bool soundNullSafety;
   final LateVarInitTransformer lateVarInitTransformer;
   final FactorySpecializer factorySpecializer;
   final ListLiteralsLowering listLiteralsLowering;
@@ -49,7 +46,7 @@ class _Lowering extends Transformer {
   StaticTypeContext? _cachedStaticTypeContext;
 
   _Lowering(CoreTypes coreTypes, ClassHierarchy hierarchy,
-      {required this.soundNullSafety, required bool productMode})
+      {required bool productMode})
       : env = TypeEnvironment(coreTypes, hierarchy),
         lateVarInitTransformer = LateVarInitTransformer(),
         factorySpecializer = FactorySpecializer(coreTypes),
@@ -97,8 +94,7 @@ class _Lowering extends Transformer {
   @override
   visitAsExpression(AsExpression node) {
     node.transformChildren(this);
-    return typeCastsOptimizer.transformAsExpression(
-        node, _staticTypeContext, soundNullSafety);
+    return typeCastsOptimizer.transformAsExpression(node, _staticTypeContext);
   }
 
   @override

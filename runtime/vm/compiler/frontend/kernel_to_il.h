@@ -211,7 +211,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment FfiCall(const compiler::ffi::CallMarshaller& marshaller,
                    bool is_leaf);
 
-  Fragment CallRuntimeEntry(
+  Fragment CallLeafRuntimeEntry(
       const RuntimeEntry& entry,
       Representation return_representation,
       const ZoneGrowableArray<Representation>& argument_representations);
@@ -335,9 +335,13 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // semantics of FFI argument translation.
   //
   // Works for FFI call arguments, and FFI callback return values.
+  //
+  // If `marshaller.IsCompoundPointer(arg_index)`, then [variable] must point to
+  // a valid LocalVariable.
   Fragment FfiConvertPrimitiveToNative(
       const compiler::ffi::BaseMarshaller& marshaller,
-      intptr_t arg_index);
+      intptr_t arg_index,
+      LocalVariable* variable = nullptr);
 
   // Pops an unboxed native value, and pushes a Dart object, according to the
   // semantics of FFI argument translation.
@@ -395,14 +399,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
       ZoneGrowableArray<LocalVariable*>* definitions,
       const GrowableArray<Representation>& representations);
 
-  // Loads a tagged value from an untagged base + offset from outside the heap.
-  Fragment RawLoadField(int32_t offset);
-
-  // Populates the untagged base + offset outside the heap with a tagged value.
-  //
-  // The store must be outside of the heap, does not emit a store barrier.
-  Fragment RawStoreField(int32_t offset);
-
   // Wrap the current exception and stacktrace in an unhandled exception.
   Fragment UnhandledException();
 
@@ -444,16 +440,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   void BuildArgumentTypeChecks(Fragment* explicit_checks,
                                Fragment* implicit_checks,
                                Fragment* implicit_redefinitions);
-
-  // Returns true if null assertion is needed for
-  // a parameter of given type.
-  bool NeedsNullAssertion(const AbstractType& type);
-
-  // Builds null assertion for the given parameter.
-  Fragment NullAssertion(LocalVariable* variable);
-
-  // Builds null assertions for all parameters (if needed).
-  Fragment BuildNullAssertions();
 
   // Builds flow graph for noSuchMethod forwarder.
   //
@@ -649,13 +635,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // Returns the function _PrependTypeArguments from dart:_internal. If the
   // cached version is null, retrieves it and updates the cache.
   const Function& PrependTypeArgumentsFunction();
-
-  // Cached _AssertionError._throwNewNullAssertion.
-  Function& throw_new_null_assertion_;
-
-  // Returns the function _AssertionError._throwNewNullAssertion. If the
-  // cached version is null, retrieves it and updates the cache.
-  const Function& ThrowNewNullAssertionFunction();
 
   friend class BreakableBlock;
   friend class CatchBlock;

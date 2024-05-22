@@ -48,8 +48,8 @@ import 'package:macros/macros.dart';
 
   @override
   buildDeclarationsForClass(declaration, builder) async {
-    final methods = await builder.methodsOf(declaration);
-    if (methods case [final method, ...]) {
+    var methods = await builder.methodsOf(declaration);
+    if (methods case [var method, ...]) {
       builder.report(
         Diagnostic(
           DiagnosticMessage(
@@ -143,6 +143,7 @@ import 'package:macros/macros.dart';
 /*macro*/ class ReportAtTypeAnnotation
     implements
         ClassDeclarationsMacro,
+        ConstructorDeclarationsMacro,
         FunctionDeclarationsMacro,
         FieldDeclarationsMacro,
         MethodDeclarationsMacro,
@@ -154,6 +155,11 @@ import 'package:macros/macros.dart';
 
   @override
   buildDeclarationsForClass(declaration, builder) async {
+    await _report(declaration, builder);
+  }
+
+  @override
+  buildDeclarationsForConstructor(declaration, builder) async {
     await _report(declaration, builder);
   }
 
@@ -201,6 +207,15 @@ import 'package:macros/macros.dart';
     if (current is ClassDeclaration) {
       if (step == 'superclass') {
         return current.superclass!;
+      }
+    }
+
+    if (current is ConstructorDeclaration) {
+      if (_verbIndex(step, 'namedFormalParameterType') case var index?) {
+        return current.namedParameters.elementAt(index).type;
+      }
+      if (_verbIndex(step, 'positionalFormalParameterType') case var index?) {
+        return current.positionalParameters.elementAt(index).type;
       }
     }
 
@@ -331,10 +346,10 @@ import 'package:macros/macros.dart';
 
   @override
   buildDeclarationsForClass(declaration, builder) async {
-    final List<MethodDeclaration> methods;
+    List<MethodDeclaration> methods;
     if (forSuperClass) {
-      final superIdentifier = declaration.superclass!.identifier;
-      final superType = await builder.typeDeclarationOf(superIdentifier);
+      var superIdentifier = declaration.superclass!.identifier;
+      var superType = await builder.typeDeclarationOf(superIdentifier);
       superType as ClassDeclaration;
       methods = await builder.methodsOf(superType);
     } else {

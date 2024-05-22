@@ -21,23 +21,18 @@ class ConvertIntoBlockBody extends ResolvedCorrectionProducer {
   final _CorrectionKind _correctionKind;
 
   @override
-  bool canBeAppliedInBulk;
-
-  @override
-  bool canBeAppliedToFile;
+  CorrectionApplicability applicability;
 
   /// Initialize a newly created instance that adds a function body.
   ConvertIntoBlockBody.missingBody()
       : _correctionKind = _CorrectionKind.missingBody,
-        canBeAppliedInBulk = false,
-        canBeAppliedToFile = false;
+        applicability = CorrectionApplicability.singleLocation;
 
   /// Initialize a newly created instance that converts the set literal to
   /// a function body.
   ConvertIntoBlockBody.setLiteral()
       : _correctionKind = _CorrectionKind.setLiteral,
-        canBeAppliedInBulk = true,
-        canBeAppliedToFile = true;
+        applicability = CorrectionApplicability.automatically;
 
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_INTO_BLOCK_BODY;
@@ -58,7 +53,7 @@ class ConvertIntoBlockBody extends ResolvedCorrectionProducer {
   }
 
   Future<void> _computeMissingBody(ChangeBuilder builder) async {
-    final body = getEnclosingFunctionBody();
+    var body = getEnclosingFunctionBody();
     if (body == null || body.isGenerator) return;
 
     List<String>? codeLines;

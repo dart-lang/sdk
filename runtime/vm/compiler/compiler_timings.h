@@ -156,7 +156,7 @@ class CompilerTimings : public MallocAllocated {
 
 #define PRECOMPILER_TIMER_SCOPE(precompiler, timer_id)                         \
   CompilerTimings::Scope TIMER_SCOPE_NAME(__COUNTER__)(                        \
-      (precompiler)->thread(), CompilerTimings::k##timer_id)
+      (precompiler) -> thread(), CompilerTimings::k##timer_id)
 
 }  // namespace dart
 

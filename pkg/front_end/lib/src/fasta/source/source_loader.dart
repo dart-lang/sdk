@@ -26,7 +26,8 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
-import 'package:kernel/reference_from_index.dart' show ReferenceFromIndex;
+import 'package:kernel/reference_from_index.dart'
+    show IndexedLibrary, ReferenceFromIndex;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:kernel/util/graph.dart';
@@ -261,9 +262,7 @@ class SourceLoader extends Loader {
 
   void registerLibraryBuilder(LibraryBuilder libraryBuilder) {
     Uri uri = libraryBuilder.importUri;
-    if (uri.isScheme("dart") && uri.path == "core") {
-      _coreLibrary = libraryBuilder;
-    }
+    _markDartLibraries(uri, libraryBuilder);
     _builders[uri] = libraryBuilder;
   }
 
@@ -321,7 +320,7 @@ class SourceLoader extends Loader {
       Uri? packageUri,
       required LanguageVersion packageLanguageVersion,
       SourceLibraryBuilder? origin,
-      Library? referencesFrom,
+      IndexedLibrary? referencesFromIndex,
       bool? referenceIsPartOwner,
       bool isAugmentation = false,
       bool isPatch = false}) {
@@ -332,7 +331,7 @@ class SourceLoader extends Loader {
         packageLanguageVersion: packageLanguageVersion,
         loader: this,
         origin: origin,
-        referencesFrom: referencesFrom,
+        referencesFromIndex: referencesFromIndex,
         referenceIsPartOwner: referenceIsPartOwner,
         isUnsupported: origin?.library.isUnsupported ??
             importUri.isScheme('dart') &&
@@ -374,7 +373,7 @@ class SourceLoader extends Loader {
       Uri uri,
       Uri? fileUri,
       SourceLibraryBuilder? origin,
-      Library? referencesFrom,
+      IndexedLibrary? referencesFromIndex,
       bool? referenceIsPartOwner,
       bool isAugmentation,
       bool isPatch,
@@ -439,6 +438,13 @@ class SourceLoader extends Loader {
                     target.currentSdkVersion.minor);
             packageLanguageVersion = new InvalidLanguageVersion(
                 fileUri, 0, noLength, target.currentSdkVersion, false);
+          } else if (version < target.leastSupportedVersion) {
+            packageLanguageVersionProblem =
+                templateLanguageVersionTooLow.withArguments(
+                    target.leastSupportedVersion.major,
+                    target.leastSupportedVersion.minor);
+            packageLanguageVersion = new InvalidLanguageVersion(
+                fileUri, 0, noLength, target.leastSupportedVersion, false);
           } else {
             packageLanguageVersion = new ImplicitLanguageVersion(version);
           }
@@ -454,7 +460,7 @@ class SourceLoader extends Loader {
         packageUri: packageUri,
         packageLanguageVersion: packageLanguageVersion,
         origin: origin,
-        referencesFrom: referencesFrom,
+        referencesFromIndex: referencesFromIndex,
         referenceIsPartOwner: referenceIsPartOwner,
         isAugmentation: isAugmentation,
         isPatch: isPatch);
@@ -492,48 +498,43 @@ class SourceLoader extends Loader {
   }
 
   void _checkDillLibraryBuilderNnbdMode(DillLibraryBuilder libraryBuilder) {
-    if (!libraryBuilder.isNonNullableByDefault &&
-        (nnbdMode == NnbdMode.Strong || nnbdMode == NnbdMode.Agnostic)) {
-      registerStrongOptOutLibrary(libraryBuilder);
+    NonNullableByDefaultCompiledMode libraryMode =
+        libraryBuilder.library.nonNullableByDefaultCompiledMode;
+    if (libraryMode == NonNullableByDefaultCompiledMode.Invalid) {
+      registerNnbdMismatchLibrary(
+          libraryBuilder, messageInvalidNnbdDillLibrary);
     } else {
-      NonNullableByDefaultCompiledMode libraryMode =
-          libraryBuilder.library.nonNullableByDefaultCompiledMode;
-      if (libraryMode == NonNullableByDefaultCompiledMode.Invalid) {
-        registerNnbdMismatchLibrary(
-            libraryBuilder, messageInvalidNnbdDillLibrary);
-      } else {
-        switch (nnbdMode) {
-          case NnbdMode.Weak:
-            if (libraryMode != NonNullableByDefaultCompiledMode.Agnostic &&
-                libraryMode != NonNullableByDefaultCompiledMode.Weak) {
+      switch (nnbdMode) {
+        case NnbdMode.Weak:
+          if (libraryMode != NonNullableByDefaultCompiledMode.Agnostic &&
+              libraryMode != NonNullableByDefaultCompiledMode.Weak) {
+            registerNnbdMismatchLibrary(
+                libraryBuilder, messageWeakWithStrongDillLibrary);
+          }
+          break;
+        case NnbdMode.Strong:
+          if (libraryMode != NonNullableByDefaultCompiledMode.Agnostic &&
+              libraryMode != NonNullableByDefaultCompiledMode.Strong) {
+            registerNnbdMismatchLibrary(
+                libraryBuilder, messageStrongWithWeakDillLibrary);
+          }
+          break;
+        case NnbdMode.Agnostic:
+          if (libraryMode != NonNullableByDefaultCompiledMode.Agnostic) {
+            if (libraryMode == NonNullableByDefaultCompiledMode.Strong) {
               registerNnbdMismatchLibrary(
-                  libraryBuilder, messageWeakWithStrongDillLibrary);
-            }
-            break;
-          case NnbdMode.Strong:
-            if (libraryMode != NonNullableByDefaultCompiledMode.Agnostic &&
-                libraryMode != NonNullableByDefaultCompiledMode.Strong) {
+                  libraryBuilder, messageAgnosticWithStrongDillLibrary);
+            } else {
               registerNnbdMismatchLibrary(
-                  libraryBuilder, messageStrongWithWeakDillLibrary);
+                  libraryBuilder, messageAgnosticWithWeakDillLibrary);
             }
-            break;
-          case NnbdMode.Agnostic:
-            if (libraryMode != NonNullableByDefaultCompiledMode.Agnostic) {
-              if (libraryMode == NonNullableByDefaultCompiledMode.Strong) {
-                registerNnbdMismatchLibrary(
-                    libraryBuilder, messageAgnosticWithStrongDillLibrary);
-              } else {
-                registerNnbdMismatchLibrary(
-                    libraryBuilder, messageAgnosticWithWeakDillLibrary);
-              }
-            }
-            break;
-        }
+          }
+          break;
       }
     }
   }
 
-  void _checkForDartCore(Uri uri, LibraryBuilder libraryBuilder) {
+  void _markDartLibraries(Uri uri, LibraryBuilder libraryBuilder) {
     if (uri.isScheme("dart")) {
       if (uri.path == "core") {
         _coreLibrary = libraryBuilder;
@@ -541,6 +542,11 @@ class SourceLoader extends Loader {
         typedDataLibrary = libraryBuilder;
       }
     }
+  }
+
+  void _checkForDartCore(Uri uri, LibraryBuilder libraryBuilder) {
+    _markDartLibraries(uri, libraryBuilder);
+
     // TODO(johnniwinther): If we save the created library in [_builders]
     // here, i.e. before calling `target.loadExtraRequiredLibraries` below,
     // the order of the libraries change, making `dart:core` come before the
@@ -566,14 +572,14 @@ class SourceLoader extends Loader {
       {Uri? fileUri,
       required LibraryBuilder accessor,
       LibraryBuilder? origin,
-      Library? referencesFrom,
+      IndexedLibrary? referencesFromIndex,
       bool? referenceIsPartOwner,
       bool isAugmentation = false,
       bool isPatch = false}) {
     LibraryBuilder libraryBuilder = _read(uri,
         fileUri: fileUri,
         origin: origin,
-        referencesFrom: referencesFrom,
+        referencesFromIndex: referencesFromIndex,
         referenceIsPartOwner: referenceIsPartOwner,
         isAugmentation: isAugmentation,
         isPatch: isPatch,
@@ -594,11 +600,14 @@ class SourceLoader extends Loader {
   ///
   /// This differs from [read] in that there is no accessor library, meaning
   /// that access to platform private libraries cannot be granted.
-  LibraryBuilder readAsEntryPoint(Uri uri,
-      {Uri? fileUri, Library? referencesFrom}) {
+  LibraryBuilder readAsEntryPoint(
+    Uri uri, {
+    Uri? fileUri,
+    IndexedLibrary? referencesFromIndex,
+  }) {
     LibraryBuilder libraryBuilder = _read(uri,
         fileUri: fileUri,
-        referencesFrom: referencesFrom,
+        referencesFromIndex: referencesFromIndex,
         addAsRoot: true,
         isAugmentation: false,
         isPatch: false);
@@ -638,7 +647,7 @@ class SourceLoader extends Loader {
   LibraryBuilder _read(Uri uri,
       {Uri? fileUri,
       LibraryBuilder? origin,
-      Library? referencesFrom,
+      IndexedLibrary? referencesFromIndex,
       bool? referenceIsPartOwner,
       required bool isAugmentation,
       required bool isPatch,
@@ -653,7 +662,7 @@ class SourceLoader extends Loader {
             uri,
             fileUri,
             origin as SourceLibraryBuilder?,
-            referencesFrom,
+            referencesFromIndex,
             referenceIsPartOwner,
             isAugmentation,
             isPatch,
@@ -925,7 +934,7 @@ severity: $severity
               libraryBuilder.libraryFeatures.tripleShift.isEnabled,
           enableExtensionMethods:
               libraryBuilder.libraryFeatures.extensionMethods.isEnabled,
-          enableNonNullable: libraryBuilder.isNonNullableByDefault);
+          enableNonNullable: true);
     });
     Token token = result.tokens;
     if (!suppressLexicalErrors) {
@@ -981,14 +990,6 @@ severity: $severity
     });
   }
 
-  Set<LibraryBuilder>? _strongOptOutLibraries;
-
-  void registerStrongOptOutLibrary(LibraryBuilder libraryBuilder) {
-    _strongOptOutLibraries ??= {};
-    _strongOptOutLibraries!.add(libraryBuilder);
-    hasInvalidNnbdModeLibrary = true;
-  }
-
   bool hasInvalidNnbdModeLibrary = false;
 
   Map<LibraryBuilder, Message>? _nnbdMismatchLibraries;
@@ -1032,27 +1033,6 @@ severity: $severity
     }
     currentUriForCrashReporting = null;
     logSummary(outlineSummaryTemplate);
-
-    if (_strongOptOutLibraries != null) {
-      // We have libraries that are opted out in strong mode "non-explicitly",
-      // that is, either implicitly through the package version or loaded from
-      // .dill as opt out.
-      //
-      // To reduce the verbosity of the error messages we try to reduce the
-      // message to only include the package name once for packages that are
-      // opted out.
-      //
-      // We use the current package config to retrieve the package based
-      // language version to determine whether the package as a whole is opted
-      // out. If so, we only include the package name and not the library uri
-      // in the message. For package libraries with no corresponding package
-      // config we include each library uri in the message. For non-package
-      // libraries with no corresponding package config we generate a message
-      // per library.
-      giveCombinedErrorForNonStrongLibraries(_strongOptOutLibraries!,
-          emitNonPackageErrors: true);
-      _strongOptOutLibraries = null;
-    }
     if (_nnbdMismatchLibraries != null) {
       for (MapEntry<LibraryBuilder, Message> entry
           in _nnbdMismatchLibraries!.entries) {
@@ -1129,68 +1109,6 @@ severity: $severity
       }
       _unavailableDartLibraries.clear();
     }
-  }
-
-  FormattedMessage? giveCombinedErrorForNonStrongLibraries(
-      Set<LibraryBuilder> libraries,
-      {required bool emitNonPackageErrors}) {
-    Map<String?, List<LibraryBuilder>> libraryByPackage = {};
-    Map<package_config.Package, Version> enableNonNullableVersionByPackage = {};
-    for (LibraryBuilder libraryBuilder in libraries) {
-      final package_config.Package? package =
-          target.uriTranslator.getPackage(libraryBuilder.importUri);
-
-      if (package != null &&
-          package.languageVersion != null &&
-          package.languageVersion is! InvalidLanguageVersion) {
-        Version enableNonNullableVersion =
-            enableNonNullableVersionByPackage[package] ??=
-                target.getExperimentEnabledVersionInLibrary(
-                    ExperimentalFlag.nonNullable,
-                    new Uri(scheme: 'package', path: package.name));
-        Version version = new Version(
-            package.languageVersion!.major, package.languageVersion!.minor);
-        if (version < enableNonNullableVersion) {
-          (libraryByPackage[package.name] ??= []).add(libraryBuilder);
-          continue;
-        }
-      }
-      if (libraryBuilder.importUri.isScheme('package')) {
-        (libraryByPackage[null] ??= []).add(libraryBuilder);
-      } else {
-        if (emitNonPackageErrors) {
-          // Emit a message that doesn't mention running 'pub'.
-          addProblem(messageStrongModeNNBDButOptOut, -1, noLength,
-              libraryBuilder.fileUri);
-        }
-      }
-    }
-    if (libraryByPackage.isNotEmpty) {
-      List<Uri> involvedFiles = [];
-      List<String> dependencies = [];
-      libraryByPackage.forEach((String? name, List<LibraryBuilder> libraries) {
-        if (name != null) {
-          dependencies.add('package:$name');
-          for (LibraryBuilder libraryBuilder in libraries) {
-            involvedFiles.add(libraryBuilder.fileUri);
-          }
-        } else {
-          for (LibraryBuilder libraryBuilder in libraries) {
-            dependencies.add(libraryBuilder.importUri.toString());
-            involvedFiles.add(libraryBuilder.fileUri);
-          }
-        }
-      });
-      // Emit a message that suggests to run 'pub' to check for opted in
-      // versions of the packages.
-      return addProblem(
-          templateStrongModeNNBDPackageOptOut.withArguments(dependencies),
-          -1,
-          -1,
-          null,
-          involvedFiles: involvedFiles);
-    }
-    return null;
   }
 
   List<int> getSource(List<int> bytes) {
@@ -1547,7 +1465,7 @@ severity: $severity
     /// [ClassBuilder]s for the macro classes.
     Map<Uri, List<ClassBuilder>> macroLibraries = {};
 
-    for (LibraryBuilder libraryBuilder in libraryBuilders) {
+    for (SourceLibraryBuilder libraryBuilder in sourceLibraryBuilders) {
       Iterator<ClassBuilder> iterator =
           libraryBuilder.localMembersIteratorOfType();
       while (iterator.moveNext()) {
@@ -2519,7 +2437,7 @@ severity: $severity
   void buildOutlineNodes() {
     for (SourceLibraryBuilder library in sourceLibraryBuilders) {
       Library target = library.buildOutlineNodes(coreLibrary);
-      if (library.referencesFrom != null) {
+      if (library.indexedLibrary != null) {
         referenceFromIndex ??= new ReferenceFromIndex();
         referenceFromIndex!.addIndexedLibrary(target, library.indexedLibrary!);
       }
@@ -2887,114 +2805,108 @@ severity: $severity
       }
     }
 
-    if (libraryBuilder.isNonNullableByDefault) {
-      Builder? mainBuilder =
-          libraryBuilder.exportScope.lookupLocalMember('main', setter: false);
-      mainBuilder ??=
-          libraryBuilder.exportScope.lookupLocalMember('main', setter: true);
-      if (mainBuilder is MemberBuilder) {
-        if (mainBuilder is InvalidTypeDeclarationBuilder) {
-          // This is an ambiguous export, skip the check.
-          return;
+    Builder? mainBuilder =
+        libraryBuilder.exportScope.lookupLocalMember('main', setter: false);
+    mainBuilder ??=
+        libraryBuilder.exportScope.lookupLocalMember('main', setter: true);
+    if (mainBuilder is MemberBuilder) {
+      if (mainBuilder is InvalidTypeDeclarationBuilder) {
+        // This is an ambiguous export, skip the check.
+        return;
+      }
+      if (mainBuilder.isField || mainBuilder.isGetter || mainBuilder.isSetter) {
+        if (mainBuilder.parent != libraryBuilder) {
+          libraryBuilder.addProblem(messageMainNotFunctionDeclarationExported,
+              libraryBuilder.charOffset, noLength, libraryBuilder.fileUri,
+              context: [
+                messageExportedMain.withLocation(mainBuilder.fileUri!,
+                    mainBuilder.charOffset, mainBuilder.name.length)
+              ]);
+        } else {
+          libraryBuilder.addProblem(
+              messageMainNotFunctionDeclaration,
+              mainBuilder.charOffset,
+              mainBuilder.name.length,
+              mainBuilder.fileUri);
         }
-        if (mainBuilder.isField ||
-            mainBuilder.isGetter ||
-            mainBuilder.isSetter) {
+      } else {
+        Procedure procedure = mainBuilder.member as Procedure;
+        if (procedure.function.requiredParameterCount > 2) {
           if (mainBuilder.parent != libraryBuilder) {
-            libraryBuilder.addProblem(messageMainNotFunctionDeclarationExported,
-                libraryBuilder.charOffset, noLength, libraryBuilder.fileUri,
+            libraryBuilder.addProblem(
+                messageMainTooManyRequiredParametersExported,
+                libraryBuilder.charOffset,
+                noLength,
+                libraryBuilder.fileUri,
                 context: [
                   messageExportedMain.withLocation(mainBuilder.fileUri!,
                       mainBuilder.charOffset, mainBuilder.name.length)
                 ]);
           } else {
             libraryBuilder.addProblem(
-                messageMainNotFunctionDeclaration,
+                messageMainTooManyRequiredParameters,
                 mainBuilder.charOffset,
                 mainBuilder.name.length,
                 mainBuilder.fileUri);
           }
-        } else {
-          Procedure procedure = mainBuilder.member as Procedure;
-          if (procedure.function.requiredParameterCount > 2) {
-            if (mainBuilder.parent != libraryBuilder) {
-              libraryBuilder.addProblem(
-                  messageMainTooManyRequiredParametersExported,
-                  libraryBuilder.charOffset,
-                  noLength,
-                  libraryBuilder.fileUri,
-                  context: [
-                    messageExportedMain.withLocation(mainBuilder.fileUri!,
-                        mainBuilder.charOffset, mainBuilder.name.length)
-                  ]);
-            } else {
-              libraryBuilder.addProblem(
-                  messageMainTooManyRequiredParameters,
-                  mainBuilder.charOffset,
-                  mainBuilder.name.length,
-                  mainBuilder.fileUri);
-            }
-          } else if (procedure.function.namedParameters
-              .any((parameter) => parameter.isRequired)) {
-            if (mainBuilder.parent != libraryBuilder) {
-              libraryBuilder.addProblem(
-                  messageMainRequiredNamedParametersExported,
-                  libraryBuilder.charOffset,
-                  noLength,
-                  libraryBuilder.fileUri,
-                  context: [
-                    messageExportedMain.withLocation(mainBuilder.fileUri!,
-                        mainBuilder.charOffset, mainBuilder.name.length)
-                  ]);
-            } else {
-              libraryBuilder.addProblem(
-                  messageMainRequiredNamedParameters,
-                  mainBuilder.charOffset,
-                  mainBuilder.name.length,
-                  mainBuilder.fileUri);
-            }
-          } else if (procedure.function.positionalParameters.length > 0) {
-            DartType parameterType =
-                procedure.function.positionalParameters.first.type;
+        } else if (procedure.function.namedParameters
+            .any((parameter) => parameter.isRequired)) {
+          if (mainBuilder.parent != libraryBuilder) {
+            libraryBuilder.addProblem(
+                messageMainRequiredNamedParametersExported,
+                libraryBuilder.charOffset,
+                noLength,
+                libraryBuilder.fileUri,
+                context: [
+                  messageExportedMain.withLocation(mainBuilder.fileUri!,
+                      mainBuilder.charOffset, mainBuilder.name.length)
+                ]);
+          } else {
+            libraryBuilder.addProblem(
+                messageMainRequiredNamedParameters,
+                mainBuilder.charOffset,
+                mainBuilder.name.length,
+                mainBuilder.fileUri);
+          }
+        } else if (procedure.function.positionalParameters.length > 0) {
+          DartType parameterType =
+              procedure.function.positionalParameters.first.type;
 
-            if (!typeEnvironment.isSubtypeOf(listOfString, parameterType,
-                SubtypeCheckMode.withNullabilities)) {
-              if (mainBuilder.parent != libraryBuilder) {
-                libraryBuilder.addProblem(
-                    templateMainWrongParameterTypeExported.withArguments(
-                        parameterType,
-                        listOfString,
-                        libraryBuilder.isNonNullableByDefault),
-                    libraryBuilder.charOffset,
-                    noLength,
-                    libraryBuilder.fileUri,
-                    context: [
-                      messageExportedMain.withLocation(mainBuilder.fileUri!,
-                          mainBuilder.charOffset, mainBuilder.name.length)
-                    ]);
-              } else {
-                libraryBuilder.addProblem(
-                    templateMainWrongParameterType.withArguments(parameterType,
-                        listOfString, libraryBuilder.isNonNullableByDefault),
-                    mainBuilder.charOffset,
-                    mainBuilder.name.length,
-                    mainBuilder.fileUri);
-              }
+          if (!typeEnvironment.isSubtypeOf(listOfString, parameterType,
+              SubtypeCheckMode.withNullabilities)) {
+            if (mainBuilder.parent != libraryBuilder) {
+              libraryBuilder.addProblem(
+                  templateMainWrongParameterTypeExported.withArguments(
+                      parameterType, listOfString),
+                  libraryBuilder.charOffset,
+                  noLength,
+                  libraryBuilder.fileUri,
+                  context: [
+                    messageExportedMain.withLocation(mainBuilder.fileUri!,
+                        mainBuilder.charOffset, mainBuilder.name.length)
+                  ]);
+            } else {
+              libraryBuilder.addProblem(
+                  templateMainWrongParameterType.withArguments(
+                      parameterType, listOfString),
+                  mainBuilder.charOffset,
+                  mainBuilder.name.length,
+                  mainBuilder.fileUri);
             }
           }
         }
-      } else if (mainBuilder != null) {
-        if (mainBuilder.parent != libraryBuilder) {
-          libraryBuilder.addProblem(messageMainNotFunctionDeclarationExported,
-              libraryBuilder.charOffset, noLength, libraryBuilder.fileUri,
-              context: [
-                messageExportedMain.withLocation(
-                    mainBuilder.fileUri!, mainBuilder.charOffset, noLength)
-              ]);
-        } else {
-          libraryBuilder.addProblem(messageMainNotFunctionDeclaration,
-              mainBuilder.charOffset, noLength, mainBuilder.fileUri);
-        }
+      }
+    } else if (mainBuilder != null) {
+      if (mainBuilder.parent != libraryBuilder) {
+        libraryBuilder.addProblem(messageMainNotFunctionDeclarationExported,
+            libraryBuilder.charOffset, noLength, libraryBuilder.fileUri,
+            context: [
+              messageExportedMain.withLocation(
+                  mainBuilder.fileUri!, mainBuilder.charOffset, noLength)
+            ]);
+      } else {
+        libraryBuilder.addProblem(messageMainNotFunctionDeclaration,
+            mainBuilder.charOffset, noLength, mainBuilder.fileUri);
       }
     }
   }

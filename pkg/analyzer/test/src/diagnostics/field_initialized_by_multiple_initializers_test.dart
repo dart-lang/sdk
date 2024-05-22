@@ -31,7 +31,7 @@ class A {
 ''');
 
     var a = newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 
 augment class A {
   augment A() : f = 0;
@@ -39,7 +39,7 @@ augment class A {
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 
 augment class A {
   augment A() : f = 1;
@@ -69,7 +69,7 @@ class A {
 ''');
 
     var a = newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 
 augment class A {
   augment A() : f = 0;
@@ -94,7 +94,7 @@ class A {
 ''');
 
     var a = newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 
 augment class A {
   augment A() : f = 1;
@@ -121,7 +121,7 @@ class A {
 ''');
 
     var a = newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 
 augment class A {
   augment A();

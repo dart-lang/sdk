@@ -216,7 +216,7 @@ static InstancePtr CreateTypeVariableList(const Class& cls) {
   TypeParameter& type = TypeParameter::Handle();
   String& name = String::Handle();
   for (intptr_t i = 0; i < num_type_params; i++) {
-    type = cls.TypeParameterAt(i, Nullability::kLegacy);
+    type = cls.TypeParameterAt(i, Nullability::kNonNullable);
     ASSERT(type.IsFinalized());
     name = type.UserVisibleName();
     result.SetAt(2 * i, name);
@@ -544,21 +544,21 @@ static InstancePtr CreateTypeMirror(const AbstractType& type) {
       args.SetAt(0, Symbols::Never());
       return CreateMirror(Symbols::_SpecialTypeMirror(), args);
     }
-    // TODO(regis): Until mirrors reflect nullability, force kLegacy, except for
-    // Null type, which should remain nullable.
+    // TODO(regis): Until mirrors reflect nullability, force kNonNullable,
+    // except for Null type, which should remain nullable.
     if (!type.IsNullType()) {
-      Type& legacy_type = Type::Handle(
-          Type::Cast(type).ToNullability(Nullability::kLegacy, Heap::kOld));
+      Type& legacy_type = Type::Handle(Type::Cast(type).ToNullability(
+          Nullability::kNonNullable, Heap::kOld));
       legacy_type ^= legacy_type.Canonicalize(Thread::Current());
       return CreateClassMirror(cls, legacy_type, Bool::False(),
                                Object::null_instance());
     }
     return CreateClassMirror(cls, type, Bool::False(), Object::null_instance());
   } else if (type.IsTypeParameter()) {
-    // TODO(regis): Until mirrors reflect nullability, force kLegacy.
+    // TODO(regis): Until mirrors reflect nullability, force kNonNullable.
     TypeParameter& legacy_type =
         TypeParameter::Handle(TypeParameter::Cast(type).ToNullability(
-            Nullability::kLegacy, Heap::kOld));
+            Nullability::kNonNullable, Heap::kOld));
     legacy_type ^= legacy_type.Canonicalize(Thread::Current());
     return CreateTypeVariableMirror(legacy_type, Object::null_instance());
   }

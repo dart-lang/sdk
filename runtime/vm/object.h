@@ -288,7 +288,9 @@ extern "C" void DFLRT_ExitSafepoint(NativeArguments __unusable_);
     ASSERT(ptr() != null());                                                   \
     return const_cast<Untagged##object*>(ptr()->untag());                      \
   }                                                                            \
-  static intptr_t NextFieldOffset() { return -kWordSize; }                     \
+  static intptr_t NextFieldOffset() {                                          \
+    return -kWordSize;                                                         \
+  }                                                                            \
   SNAPSHOT_SUPPORT(rettype)                                                    \
   friend class Object;                                                         \
   friend class StackFrame;                                                     \
@@ -1051,7 +1053,9 @@ class Object {
   }
 #else
 #define PRECOMPILER_WSR_FIELD_DECLARATION(Type, Name)                          \
-  Type##Ptr Name() const { return untag()->Name(); }                           \
+  Type##Ptr Name() const {                                                     \
+    return untag()->Name();                                                    \
+  }                                                                            \
   void set_##Name(const Type& value) const;
 #endif
 
@@ -1108,8 +1112,6 @@ typedef ZoneGrowableHandlePtrArray<const String> URIs;
 enum class Nullability : uint8_t {
   kNullable = 0,
   kNonNullable = 1,
-  kLegacy = 2,
-  // Adjust kNullabilityBitSize in app_snapshot.cc if adding new values.
 };
 
 // Equality kind between types.
@@ -1119,19 +1121,11 @@ enum class TypeEquality {
   kInSubtypeTest = 2,
 };
 
-// The NNBDMode reflects the opted-in status of libraries.
-// Note that the weak or strong checking mode is not reflected in NNBDMode.
-enum class NNBDMode {
-  // Status of the library:
-  kLegacyLib = 0,   // Library is legacy.
-  kOptedInLib = 1,  // Library is opted-in.
-};
-
 // The NNBDCompiledMode reflects the mode in which constants of the library were
 // compiled by CFE.
 enum class NNBDCompiledMode {
-  kWeak = 0,
-  kStrong = 1,
+  kStrong = 0,
+  kWeak = 1,
   kAgnostic = 2,
   kInvalid = 3,
 };
@@ -1270,9 +1264,6 @@ class Class : public Object {
   // The mixin for this class if one exists. Otherwise, returns a raw pointer
   // to this class.
   ClassPtr Mixin() const;
-
-  // The NNBD mode of the library declaring this class.
-  NNBDMode nnbd_mode() const;
 
   bool IsInFullSnapshot() const;
 
@@ -1589,9 +1580,7 @@ class Class : public Object {
   }
 
   // Check if this class represents the 'Record' class.
-  bool IsRecordClass() const {
-    return id() == kRecordCid;
-  }
+  bool IsRecordClass() const { return id() == kRecordCid; }
 
   static bool IsInFullSnapshot(ClassPtr cls) {
     NoSafepointScope no_safepoint;
@@ -1692,8 +1681,6 @@ class Class : public Object {
 
   InstancePtr InsertCanonicalConstant(Zone* zone,
                                       const Instance& constant) const;
-
-  bool RequireCanonicalTypeErasureOfConstants(Zone* zone) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedClass));
@@ -3073,11 +3060,6 @@ class Function : public Object {
 #endif
   ObjectPtr RawOwner() const { return untag()->owner(); }
 
-  // The NNBD mode of the library declaring this function.
-  // TODO(alexmarkov): nnbd_mode() doesn't work for mixins.
-  // It should be either removed or fixed.
-  NNBDMode nnbd_mode() const { return Class::Handle(Owner()).nnbd_mode(); }
-
   RegExpPtr regexp() const;
   intptr_t string_specialization_cid() const;
   bool is_sticky_specialization() const;
@@ -3175,7 +3157,7 @@ class Function : public Object {
   bool SafeToClosurize() const;
 
   static CodePtr CurrentCodeOf(const FunctionPtr function) {
-    return function->untag()->code();
+    return function->untag()->code<std::memory_order_acquire>();
   }
 
   CodePtr unoptimized_code() const {
@@ -3191,9 +3173,7 @@ class Function : public Object {
 
   static intptr_t code_offset() { return OFFSET_OF(UntaggedFunction, code_); }
 
-  uword entry_point() const {
-    return EntryPointOf(ptr());
-  }
+  uword entry_point() const { return EntryPointOf(ptr()); }
   static uword EntryPointOf(const FunctionPtr function) {
     return function->untag()->entry_point_;
   }
@@ -3467,9 +3447,7 @@ class Function : public Object {
 
 #if !defined(PRODUCT) &&                                                       \
     (defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME))
-  int32_t line() const {
-    return untag()->token_pos_.Serialize();
-  }
+  int32_t line() const { return untag()->token_pos_.Serialize(); }
 
   void set_line(int32_t line) const {
     StoreNonPointer(&untag()->token_pos_, TokenPosition::Deserialize(line));
@@ -4702,9 +4680,7 @@ class Field : public Object {
 
   const char* GuardedPropertiesAsCString() const;
 
-  bool is_unboxed() const {
-    return UnboxedBit::decode(kind_bits());
-  }
+  bool is_unboxed() const { return UnboxedBit::decode(kind_bits()); }
 
   // Field unboxing decisions are based either on static types (JIT) or
   // inferred types (AOT). See the callers of this function.
@@ -5258,26 +5234,6 @@ class Library : public Object {
         UntaggedLibrary::InFullSnapshotBit::update(value, untag()->flags_));
   }
 
-  bool is_nnbd() const {
-    return UntaggedLibrary::NnbdBit::decode(untag()->flags_);
-  }
-  void set_is_nnbd(bool value) const {
-    set_flags(UntaggedLibrary::NnbdBit::update(value, untag()->flags_));
-  }
-
-  NNBDMode nnbd_mode() const {
-    return is_nnbd() ? NNBDMode::kOptedInLib : NNBDMode::kLegacyLib;
-  }
-
-  NNBDCompiledMode nnbd_compiled_mode() const {
-    return static_cast<NNBDCompiledMode>(
-        UntaggedLibrary::NnbdCompiledModeBits::decode(untag()->flags_));
-  }
-  void set_nnbd_compiled_mode(NNBDCompiledMode value) const {
-    set_flags(UntaggedLibrary::NnbdCompiledModeBits::update(
-        static_cast<uint8_t>(value), untag()->flags_));
-  }
-
   StringPtr PrivateName(const String& name) const;
 
   intptr_t index() const { return untag()->index_; }
@@ -5720,25 +5676,39 @@ class Instructions : public Object {
  public:
   enum {
     kSizePos = 0,
-    kSizeSize = 31,
+    kSizeSize = 30,
     kFlagsPos = kSizePos + kSizeSize,
-    kFlagsSize = 1,  // Currently, only flag is single entry flag.
+    kFlagsSize = kBitsPerInt32 - kSizeSize,
+  };
+
+#define INSTRUCTIONS_FLAGS_LIST(V)                                             \
+  V(HasMonomorphicEntry)                                                       \
+  V(ShouldBeAligned)
+
+  enum {
+#define DEFINE_INSTRUCTIONS_FLAG(Name) k##Name##Index,
+    INSTRUCTIONS_FLAGS_LIST(DEFINE_INSTRUCTIONS_FLAG)
+#undef DEFINE_INSTRUCTIONS_FLAG
   };
 
   class SizeBits : public BitField<uint32_t, uint32_t, kSizePos, kSizeSize> {};
-  class FlagsBits : public BitField<uint32_t, bool, kFlagsPos, kFlagsSize> {};
+
+#define DEFINE_INSTRUCTIONS_FLAG_HANDLING(Name)                                \
+  class Name##Bit                                                              \
+      : public BitField<uint32_t, bool, kFlagsPos + k##Name##Index, 1> {};     \
+  bool Name() const { return Name##Bit::decode(untag()->size_and_flags_); }    \
+  static bool Name(const InstructionsPtr instr) {                              \
+    return Name##Bit::decode(instr->untag()->size_and_flags_);                 \
+  }
+
+  INSTRUCTIONS_FLAGS_LIST(DEFINE_INSTRUCTIONS_FLAG_HANDLING)
+
+#undef DEFINE_INSTRUCTIONS_FLAG_HANDLING
 
   // Excludes HeaderSize().
   intptr_t Size() const { return SizeBits::decode(untag()->size_and_flags_); }
   static intptr_t Size(const InstructionsPtr instr) {
     return SizeBits::decode(instr->untag()->size_and_flags_);
-  }
-
-  bool HasMonomorphicEntry() const {
-    return FlagsBits::decode(untag()->size_and_flags_);
-  }
-  static bool HasMonomorphicEntry(const InstructionsPtr instr) {
-    return FlagsBits::decode(instr->untag()->size_and_flags_);
   }
 
   uword PayloadStart() const { return PayloadStart(ptr()); }
@@ -5889,16 +5859,23 @@ class Instructions : public Object {
                     SizeBits::update(value, untag()->size_and_flags_));
   }
 
-  void SetHasMonomorphicEntry(bool value) const {
-    StoreNonPointer(&untag()->size_and_flags_,
-                    FlagsBits::update(value, untag()->size_and_flags_));
+#define DEFINE_INSTRUCTIONS_FLAG_HANDLING(Name)                                \
+  void Set##Name(bool value) const {                                           \
+    StoreNonPointer(&untag()->size_and_flags_,                                 \
+                    Name##Bit::update(value, untag()->size_and_flags_));       \
   }
+
+  INSTRUCTIONS_FLAGS_LIST(DEFINE_INSTRUCTIONS_FLAG_HANDLING)
+
+#undef DEFINE_INSTRUCTIONS_FLAG_HANDLING
 
   // New is a private method as RawInstruction and RawCode objects should
   // only be created using the Code::FinalizeCode method. This method creates
   // the RawInstruction and RawCode objects, sets up the pointer offsets
   // and links the two in a GC safe manner.
-  static InstructionsPtr New(intptr_t size, bool has_monomorphic_entry);
+  static InstructionsPtr New(intptr_t size,
+                             bool has_monomorphic_entry,
+                             bool should_be_aligned);
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Instructions, Object);
   friend class Class;
@@ -5934,9 +5911,13 @@ class InstructionsSection : public Object {
     return Utils::RoundUp(HeaderSize() + size, kObjectAlignment);
   }
 
+  static constexpr intptr_t kPayloadAlignment = 32;
+  static_assert(kPreferredLoopAlignment <= kPayloadAlignment);
+  static_assert(Instructions::kBarePayloadAlignment <= kPayloadAlignment);
+
   static intptr_t HeaderSize() {
     return Utils::RoundUp(sizeof(UntaggedInstructionsSection),
-                          Instructions::kBarePayloadAlignment);
+                          kPayloadAlignment);
   }
 
   // There are no public instance methods for the InstructionsSection class, as
@@ -7198,6 +7179,7 @@ class Code : public Object {
 
 #endif
   static CodePtr FindCode(uword pc, int64_t timestamp);
+  static CodePtr FindCodeUnsafe(uword pc);
 
   int32_t GetPointerOffsetAt(int index) const {
     NoSafepointScope no_safepoint;
@@ -7955,7 +7937,7 @@ class LoadingUnit : public Object {
   COMPILE_ASSERT(kIllegalId == WeakTable::kNoValue);
   static constexpr intptr_t kRootId = 1;
 
-  static LoadingUnitPtr New();
+  static LoadingUnitPtr New(intptr_t id, const LoadingUnit& parent);
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedLoadingUnit));
@@ -7964,26 +7946,64 @@ class LoadingUnit : public Object {
   static intptr_t LoadingUnitOf(const Function& function);
   static intptr_t LoadingUnitOf(const Code& code);
 
-  LoadingUnitPtr parent() const;
-  void set_parent(const LoadingUnit& value) const;
+  LoadingUnitPtr parent() const { return untag()->parent(); }
 
-  ArrayPtr base_objects() const;
+  ArrayPtr base_objects() const { return untag()->base_objects(); }
   void set_base_objects(const Array& value) const;
 
-  intptr_t id() const { return untag()->id_; }
-  void set_id(intptr_t id) const { StoreNonPointer(&untag()->id_, id); }
+  intptr_t id() const {
+    return untag()->packed_fields_.Read<UntaggedLoadingUnit::IdBits>();
+  }
 
   // True once the VM deserializes this unit's snapshot.
-  bool loaded() const { return untag()->loaded_; }
+  bool loaded() const {
+    return untag()->packed_fields_.Read<UntaggedLoadingUnit::LoadStateBits>() ==
+           UntaggedLoadingUnit::kLoaded;
+  }
+  // value is whether the load succeeded or not.
   void set_loaded(bool value) const {
-    StoreNonPointer(&untag()->loaded_, value);
+    ASSERT(load_outstanding());
+    auto const expected =
+        value ? UntaggedLoadingUnit::kLoaded : UntaggedLoadingUnit::kNotLoaded;
+    auto const got = untag()
+                         ->packed_fields_
+                         .UpdateConditional<UntaggedLoadingUnit::LoadStateBits>(
+                             expected, UntaggedLoadingUnit::kLoadOutstanding);
+    // Check that we're in the expected state afterwards.
+    ASSERT_EQUAL(got, expected);
   }
 
   // True once the VM invokes the embedder's deferred load callback until the
   // embedder calls Dart_DeferredLoadComplete[Error].
-  bool load_outstanding() const { return untag()->load_outstanding_; }
-  void set_load_outstanding(bool value) const {
-    StoreNonPointer(&untag()->load_outstanding_, value);
+  bool load_outstanding() const {
+    return untag()->packed_fields_.Read<UntaggedLoadingUnit::LoadStateBits>() ==
+           UntaggedLoadingUnit::kLoadOutstanding;
+  }
+  void set_load_outstanding() const {
+    auto const previous = UntaggedLoadingUnit::kNotLoaded;
+    ASSERT_EQUAL(
+        untag()->packed_fields_.Read<UntaggedLoadingUnit::LoadStateBits>(),
+        previous);
+    auto const expected = UntaggedLoadingUnit::kLoadOutstanding;
+    auto const got = untag()
+                         ->packed_fields_
+                         .UpdateConditional<UntaggedLoadingUnit::LoadStateBits>(
+                             expected, previous);
+    // Check that we're in the expected state afterwards.
+    ASSERT_EQUAL(got, expected);
+  }
+
+  const uint8_t* instructions_image() const {
+    // The instructions image should only be accessed if the load succeeded.
+    ASSERT(loaded());
+    return untag()->instructions_image_;
+  }
+  void set_instructions_image(const uint8_t* value) const {
+    ASSERT(load_outstanding());
+    StoreNonPointer(&untag()->instructions_image_, value);
+  }
+  bool has_instructions_image() const {
+    return loaded() && instructions_image() != nullptr;
   }
 
   ObjectPtr IssueLoad() const;
@@ -8558,21 +8578,18 @@ class TypeArguments : public Instance {
   // of performing a more costly instantiation of the uninstantiated type
   // arguments (UTA).
   // The vector nullability is stored as a bit vector (in a Smi field), using
-  // 2 bits per type:
-  //  - the high bit is set if the type is nullable or legacy.
-  //  - the low bit is set if the type is nullable.
+  // 1 bit per type, which is set if the type is nullable.
   // The nullability is 0 if the vector is longer than kNullabilityMaxTypes.
   // The condition evaluated at runtime to decide whether UTA can share ITA is
   //   (UTA.nullability & ITA.nullability) == UTA.nullability
   // Note that this allows for ITA to be longer than UTA (the bit vector must be
   // stored in the same order as the corresponding type vector, i.e. with the
-  // least significant 2 bits representing the nullability of the first type).
-  static constexpr intptr_t kNullabilityBitsPerType = 2;
+  // least significant bit representing the nullability of the first type).
+  static constexpr intptr_t kNullabilityBitsPerType = 1;
   static constexpr intptr_t kNullabilityMaxTypes =
       kSmiBits / kNullabilityBitsPerType;
-  static constexpr intptr_t kNonNullableBits = 0;
-  static constexpr intptr_t kNullableBits = 3;
-  static constexpr intptr_t kLegacyBits = 2;
+  static constexpr intptr_t kNonNullableBit = 0;
+  static constexpr intptr_t kNullableBit = 1;
   intptr_t nullability() const;
   static intptr_t nullability_offset() {
     return OFFSET_OF(UntaggedTypeArguments, nullability_);
@@ -8608,11 +8625,6 @@ class TypeArguments : public Instance {
   bool IsRawWhenInstantiatedFromRaw(intptr_t len) const {
     return IsDynamicTypes(true, 0, len);
   }
-
-  // Return true if this vector contains a non-nullable type.
-  bool RequireConstCanonicalTypeErasure(Zone* zone,
-                                        intptr_t from_index,
-                                        intptr_t len) const;
 
   TypeArgumentsPtr Prepend(Zone* zone,
                            const TypeArguments& other,
@@ -8958,10 +8970,7 @@ class TypeArguments : public Instance {
                                  (len * kBytesPerElement));
   }
 
-  virtual uint32_t CanonicalizeHash() const {
-    // Hash() is not stable until finalization is done.
-    return 0;
-  }
+  virtual uint32_t CanonicalizeHash() const { return Hash(); }
   uword Hash() const;
   uword HashForRange(intptr_t from_index, intptr_t len) const;
   static intptr_t hash_offset() {
@@ -9019,7 +9028,7 @@ class AbstractType : public Instance {
 
   Nullability nullability() const {
     return static_cast<Nullability>(
-        UntaggedAbstractType::NullabilityBits::decode(untag()->flags()));
+        UntaggedAbstractType::NullabilityBit::decode(untag()->flags()));
   }
   // Returns true if type has '?' nullability suffix, or it is a
   // built-in type which is always nullable (Null, dynamic or void).
@@ -9031,9 +9040,6 @@ class AbstractType : public Instance {
   bool IsNonNullable() const {
     return nullability() == Nullability::kNonNullable;
   }
-  // Returns true if type has '*' nullability suffix, i.e.
-  // it is from a legacy (opted-out) library.
-  bool IsLegacy() const { return nullability() == Nullability::kLegacy; }
   // Returns true if it is guaranteed that null cannot be
   // assigned to this type.
   bool IsStrictlyNonNullable() const;
@@ -9061,7 +9067,6 @@ class AbstractType : public Instance {
       const Instance& other,
       TypeEquality kind,
       FunctionTypeMapping* function_type_equivalence = nullptr) const;
-  virtual bool RequireConstCanonicalTypeErasure(Zone* zone) const;
 
   // Instantiate this type using the given type argument vectors.
   //
@@ -9234,10 +9239,6 @@ class AbstractType : public Instance {
   // Returns unmodified type if this type is not a 'FutureOr' type.
   AbstractTypePtr UnwrapFutureOr() const;
 
-  // Returns true if parameter of this type might need a
-  // null assertion (if null assertions are enabled).
-  bool NeedsNullAssertion() const;
-
   // Returns true if catching this type will catch all exceptions.
   // Exception objects are guaranteed to be non-nullable, so
   // non-nullable Object is also a catch-all type.
@@ -9361,7 +9362,6 @@ class Type : public AbstractType {
       const Instance& other,
       TypeEquality kind,
       FunctionTypeMapping* function_type_equivalence = nullptr) const;
-  virtual bool RequireConstCanonicalTypeErasure(Zone* zone) const;
 
   // Return true if this type can be used as the declaration type of cls after
   // canonicalization (passed-in cls must match type_class()).
@@ -9460,7 +9460,7 @@ class Type : public AbstractType {
 
   static TypePtr New(const Class& clazz,
                      const TypeArguments& arguments,
-                     Nullability nullability = Nullability::kLegacy,
+                     Nullability nullability = Nullability::kNonNullable,
                      Heap::Space space = Heap::kOld);
 
  private:
@@ -9504,7 +9504,6 @@ class FunctionType : public AbstractType {
       const Instance& other,
       TypeEquality kind,
       FunctionTypeMapping* function_type_equivalence = nullptr) const;
-  virtual bool RequireConstCanonicalTypeErasure(Zone* zone) const;
 
   virtual AbstractTypePtr InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
@@ -9747,9 +9746,10 @@ class FunctionType : public AbstractType {
     return RoundedAllocationSize(sizeof(UntaggedFunctionType));
   }
 
-  static FunctionTypePtr New(intptr_t num_parent_type_arguments = 0,
-                             Nullability nullability = Nullability::kLegacy,
-                             Heap::Space space = Heap::kOld);
+  static FunctionTypePtr New(
+      intptr_t num_parent_type_arguments = 0,
+      Nullability nullability = Nullability::kNonNullable,
+      Heap::Space space = Heap::kOld);
 
   static FunctionTypePtr Clone(const FunctionType& orig, Heap::Space space);
 
@@ -9807,9 +9807,6 @@ class TypeParameter : public AbstractType {
       const Instance& other,
       TypeEquality kind,
       FunctionTypeMapping* function_type_equivalence = nullptr) const;
-  virtual bool RequireConstCanonicalTypeErasure(Zone* zone) const {
-    return IsNonNullable();
-  }
   virtual AbstractTypePtr InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
@@ -11325,7 +11322,6 @@ class RecordType : public AbstractType {
       const Instance& other,
       TypeEquality kind,
       FunctionTypeMapping* function_type_equivalence = nullptr) const;
-  virtual bool RequireConstCanonicalTypeErasure(Zone* zone) const;
 
   virtual AbstractTypePtr InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
@@ -11373,7 +11369,7 @@ class RecordType : public AbstractType {
 
   static RecordTypePtr New(RecordShape shape,
                            const Array& field_types,
-                           Nullability nullability = Nullability::kLegacy,
+                           Nullability nullability = Nullability::kNonNullable,
                            Heap::Space space = Heap::kOld);
 
  private:
@@ -12642,15 +12638,11 @@ class SuspendState : public Instance {
 
   intptr_t frame_size() const { return untag()->frame_size_; }
 
-  InstancePtr function_data() const {
-    return untag()->function_data();
-  }
+  InstancePtr function_data() const { return untag()->function_data(); }
 
   ClosurePtr then_callback() const { return untag()->then_callback(); }
 
-  ClosurePtr error_callback() const {
-    return untag()->error_callback();
-  }
+  ClosurePtr error_callback() const { return untag()->error_callback(); }
 
   // Returns Code object corresponding to the suspended function.
   CodePtr GetCodeObject() const;

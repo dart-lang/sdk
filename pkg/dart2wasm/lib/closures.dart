@@ -1041,6 +1041,7 @@ class Closures {
   final Map<TreeNode, Capture> captures = {};
   bool isThisCaptured = false;
   final Map<FunctionNode, Lambda> lambdas = {};
+  late final w.RefType? nullableThisType;
 
   // This [TreeNode] is the context owner, and can be a [FunctionNode],
   // [Constructor], [ForStatement], [DoStatement] or a [WhileStatement].
@@ -1048,7 +1049,12 @@ class Closures {
   final Set<FunctionDeclaration> closurizedFunctions = {};
 
   Closures(this.translator, Member member)
-      : enclosingClass = member.enclosingClass;
+      : enclosingClass = member.enclosingClass {
+    final hasThis = member is Constructor || member.isInstanceMember;
+    nullableThisType = hasThis
+        ? translator.preciseThisFor(member, nullable: true) as w.RefType
+        : null;
+  }
 
   w.ModuleBuilder get m => translator.m;
 
@@ -1104,13 +1110,13 @@ class Closures {
         }
         if (context.containsThis) {
           assert(enclosingClass != null);
-          struct.fields.add(
-              w.FieldType(translator.classInfo[enclosingClass!]!.nullableType));
+          struct.fields.add(w.FieldType(nullableThisType!));
         }
         for (VariableDeclaration variable in context.variables) {
           int index = struct.fields.length;
-          struct.fields.add(w.FieldType(
-              translator.translateType(variable.type).withNullability(true)));
+          struct.fields.add(w.FieldType(translator
+              .translateTypeOfLocalVariable(variable)
+              .withNullability(true)));
           captures[variable]!.fieldIndex = index;
         }
         for (TypeParameter parameter in context.typeParameters) {
@@ -1253,7 +1259,7 @@ class CaptureFinder extends RecursiveVisitor {
     super.visitTypeParameterType(node);
   }
 
-  void _visitLambda(FunctionNode node) {
+  void _visitLambda(FunctionNode node, [VariableDeclaration? variable]) {
     List<w.ValueType> inputs = [
       w.RefType.struct(nullable: false),
       ...List.filled(node.typeParameters.length, closures.typeType),
@@ -1264,8 +1270,14 @@ class CaptureFinder extends RecursiveVisitor {
     ];
     List<w.ValueType> outputs = [translator.translateType(node.returnType)];
     w.FunctionType type = m.types.defineFunction(inputs, outputs);
-    final function =
-        m.functions.define(type, "$member closure at ${node.location}");
+    final String? functionNodeName = variable?.name;
+    final String functionName;
+    if (functionNodeName == null) {
+      functionName = "$member closure at ${node.location}";
+    } else {
+      functionName = "$member closure $functionNodeName at ${node.location}";
+    }
+    final function = m.functions.define(type, functionName);
     closures.lambdas[node] = Lambda(node, function);
 
     functionIsSyncStarOrAsync.add(node.asyncMarker == AsyncMarker.SyncStar ||
@@ -1283,7 +1295,7 @@ class CaptureFinder extends RecursiveVisitor {
   void visitFunctionDeclaration(FunctionDeclaration node) {
     // Variable is in outer scope
     node.variable.accept(this);
-    _visitLambda(node.function);
+    _visitLambda(node.function, node.variable);
   }
 }
 

@@ -138,16 +138,16 @@ class Globals {
 
   /// Return (and if needed create) the Wasm global corresponding to a static
   /// field.
-  w.Global getGlobal(Field variable) {
-    assert(!variable.isLate);
-    return _globals.putIfAbsent(variable, () {
-      w.ValueType type = translator.translateType(variable.type);
-      Constant? init = _getConstantInitializer(variable);
+  w.Global getGlobal(Field field) {
+    assert(!field.isLate);
+    return _globals.putIfAbsent(field, () {
+      final Constant? init = _getConstantInitializer(field);
+      w.ValueType type = translator.translateTypeOfField(field);
       if (init != null &&
           !(translator.constants.ensureConstant(init)?.isLazy ?? false)) {
         // Initialized to a constant
         final global =
-            m.globals.define(w.GlobalType(type, mutable: !variable.isFinal));
+            m.globals.define(w.GlobalType(type, mutable: !field.isFinal));
         translator.constants
             .instantiateConstant(null, global.initializer, init, type);
         global.initializer.end();
@@ -161,15 +161,15 @@ class Globals {
           final flag = m.globals.define(w.GlobalType(w.NumType.i32));
           flag.initializer.i32_const(0);
           flag.initializer.end();
-          _globalInitializedFlag[variable] = flag;
+          _globalInitializedFlag[field] = flag;
         }
 
         final global = m.globals.define(w.GlobalType(type));
         instantiateDummyValue(global.initializer, type);
         global.initializer.end();
 
-        _globalInitializers[variable] =
-            translator.functions.getFunction(variable.fieldReference);
+        _globalInitializers[field] =
+            translator.functions.getFunction(field.fieldReference);
         return global;
       }
     });

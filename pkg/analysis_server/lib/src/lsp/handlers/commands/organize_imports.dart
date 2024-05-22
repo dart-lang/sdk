@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/simple_edit_handler.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
@@ -32,19 +33,19 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
     // Get the version of the doc before we calculate edits so we can send it back
     // to the client so that they can discard this edit if the document has been
     // modified since.
-    final path = parameters['path'] as String;
-    final docIdentifier = server.getVersionedDocumentIdentifier(path);
-    final autoTriggered = (parameters['autoTriggered'] as bool?) ?? false;
+    var path = parameters['path'] as String;
+    var docIdentifier = server.getVersionedDocumentIdentifier(path);
+    var autoTriggered = (parameters['autoTriggered'] as bool?) ?? false;
 
-    final result = await requireResolvedUnit(path);
+    var result = await requireResolvedUnit(path);
 
     if (cancellationToken.isCancellationRequested) {
       return error(ErrorCodes.RequestCancelled, 'Request was cancelled');
     }
 
-    return result.mapResult((result) {
-      final code = result.content;
-      final unit = result.unit;
+    return result.mapResult((result) async {
+      var code = result.content;
+      var unit = result.unit;
 
       if (hasScanParseErrors(result.errors)) {
         if (autoTriggered) {
@@ -58,14 +59,14 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
         ));
       }
 
-      final organizer = ImportOrganizer(code, unit, result.errors);
-      final edits = organizer.organize();
+      var organizer = ImportOrganizer(code, unit, result.errors);
+      var edits = organizer.organize();
 
       if (edits.isEmpty) {
         return success(null);
       }
 
-      return sendSourceEditsToClient(docIdentifier, unit, edits);
+      return await sendSourceEditsToClient(docIdentifier, unit, edits);
     });
   }
 }

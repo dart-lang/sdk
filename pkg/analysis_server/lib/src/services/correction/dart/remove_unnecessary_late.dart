@@ -11,10 +11,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveUnnecessaryLate extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_UNNECESSARY_LATE;
@@ -24,7 +22,7 @@ class RemoveUnnecessaryLate extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final declarationList = node;
+    var declarationList = node;
     if (declarationList is! VariableDeclarationList) {
       return;
     }
@@ -36,7 +34,7 @@ class RemoveUnnecessaryLate extends ResolvedCorrectionProducer {
       return;
     }
 
-    final lateToken = declarationList.lateKeyword;
+    var lateToken = declarationList.lateKeyword;
     if (lateToken == null) {
       return;
     }

@@ -37,7 +37,7 @@ class DartSelectionRangeComputer {
   void _recordRange(AstNode node) {
     // Ignore this node if its range is the same as the last one.
     if (_selectionRanges.isNotEmpty) {
-      final last = _selectionRanges.last;
+      var last = _selectionRanges.last;
       if (node.offset == last.offset && node.length == last.length) {
         return;
       }

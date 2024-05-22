@@ -36,12 +36,10 @@ class UpdateSdkConstraints extends ResolvedCorrectionProducer {
   UpdateSdkConstraints.version_2_6_0() : _minimumVersion = '2.6.0';
 
   @override
-  // Too nuanced to do unattended.
-  bool get canBeAppliedInBulk => false;
-
-  @override
-  // Not applicable (there can only be one constraint per file).
-  bool get canBeAppliedToFile => false;
+  // Too nuanced to do unattended to apply in bulk.
+  // And not applicable (there can only be one constraint per file).
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.UPDATE_SDK_CONSTRAINTS;
@@ -80,7 +78,7 @@ class UpdateSdkConstraints extends ResolvedCorrectionProducer {
       return;
     }
 
-    final newText_final = newText;
+    var newText_final = newText;
     await builder.addYamlFileEdit(pubspecFile.path, (builder) {
       builder.addSimpleReplacement(SourceRange(offset, length), newText_final);
     });

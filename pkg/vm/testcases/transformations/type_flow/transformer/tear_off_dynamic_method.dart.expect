@@ -13,6 +13,7 @@ class B extends self::A {
     : super self::A::•()
     ;
 
+  [@vm.inferred-return-type.metadata=int]
   [@vm.procedure-attributes.metadata=hasThisUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
   [@vm.unboxing-info.metadata=()->i]
   method foo() → core::int
@@ -28,9 +29,12 @@ class TearOffDynamicMethod extends core::Object {
     [@vm.inferred-type.metadata=!? (receiver not int)] [@vm.direct-call.metadata=#lib::TearOffDynamicMethod.bazz] [@vm.inferred-type.metadata=dart.core::_Closure (closure 0 in #lib::B.foo)] this.{self::TearOffDynamicMethod::bazz}{dynamic}{dynamic}();
   }
 }
+
+[@vm.inferred-return-type.metadata=#lib::B]
 static method knownResult() → dynamic
   return new self::B::•();
 
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 [@vm.closure-id=1]
 static method main(core::List<core::String> args) → dynamic {
   core::Function closure = [@vm.closure-id=1]() → self::B => new self::B::•();

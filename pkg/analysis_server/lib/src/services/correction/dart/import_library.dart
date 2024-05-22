@@ -49,7 +49,7 @@ class ImportLibrary extends MultiCorrectionProducer {
 
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
-    final node = this.node;
+    var node = this.node;
     var producers = <ResolvedCorrectionProducer>[];
     if (_importKind == _ImportKind.dartAsync) {
       _importLibrary(
@@ -137,7 +137,7 @@ class ImportLibrary extends MultiCorrectionProducer {
           ElementKind.MIXIN,
           ElementKind.TYPE_ALIAS,
         ]);
-      } else if (mightBeImplicitConstructor(targetNode)) {
+      } else if (targetNode.mightBeImplicitConstructor) {
         var typeName = (targetNode as SimpleIdentifier).name;
         await _importLibraryForElement(producers, typeName, const [
           ElementKind.CLASS,
@@ -147,12 +147,11 @@ class ImportLibrary extends MultiCorrectionProducer {
     return producers;
   }
 
-  @override
   String? nameOfType(AstNode node) {
-    final parent = node.parent;
+    var parent = node.parent;
     switch (node) {
       case NamedType():
-        final importPrefix = node.importPrefix;
+        var importPrefix = node.importPrefix;
         if (parent is ConstructorName && importPrefix != null) {
           return importPrefix.name.lexeme;
         }
@@ -367,7 +366,7 @@ class ImportLibrary extends MultiCorrectionProducer {
       if (parent is ClassDeclaration) {
         return parent.declaredElement?.thisType;
       } else if (parent is ExtensionDeclaration) {
-        return parent.extendedType.type;
+        return parent.onClause?.extendedType.type;
       } else if (parent is MixinDeclaration) {
         return parent.declaredElement?.thisType;
       } else {
@@ -405,7 +404,12 @@ class _ImportAbsoluteLibrary extends ResolvedCorrectionProducer {
   _ImportAbsoluteLibrary(this._fixKind, this._library);
 
   @override
-  List<Object> get fixArguments => [_uriText];
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments => [_uriText];
 
   @override
   FixKind get fixKind => _fixKind;
@@ -451,7 +455,12 @@ class _ImportLibraryContainingExtension extends ResolvedCorrectionProducer {
   );
 
   @override
-  List<Object> get fixArguments => [_uriText];
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments => [_uriText];
 
   @override
   FixKind get fixKind => DartFixKind.IMPORT_LIBRARY_PROJECT1;
@@ -478,7 +487,12 @@ class _ImportLibraryPrefix extends ResolvedCorrectionProducer {
   _ImportLibraryPrefix(this._importedLibrary, this._importPrefix);
 
   @override
-  List<Object> get fixArguments {
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments {
     var uriStr = _importedLibrary.source.uri.toString();
     return [uriStr, _prefixName];
   }
@@ -514,7 +528,12 @@ class _ImportLibraryShow extends ResolvedCorrectionProducer {
   _ImportLibraryShow(this._libraryName, this._showCombinator, this._addedName);
 
   @override
-  List<Object> get fixArguments => [_libraryName];
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments => [_libraryName];
 
   @override
   FixKind get fixKind => DartFixKind.IMPORT_LIBRARY_SHOW;
@@ -545,7 +564,12 @@ class _ImportRelativeLibrary extends ResolvedCorrectionProducer {
   _ImportRelativeLibrary(this._fixKind, this._library);
 
   @override
-  List<Object> get fixArguments => [_uriText];
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments => [_uriText];
 
   @override
   FixKind get fixKind => _fixKind;
@@ -557,5 +581,19 @@ class _ImportRelativeLibrary extends ResolvedCorrectionProducer {
         _uriText = builder.importLibraryWithRelativeUri(_library);
       }
     });
+  }
+}
+
+extension on AstNode {
+  /// Whether this [AstNode] is in a location where an implicit constructor
+  /// invocation would be allowed.
+  bool get mightBeImplicitConstructor {
+    if (this is SimpleIdentifier) {
+      var parent = this.parent;
+      if (parent is MethodInvocation) {
+        return parent.realTarget == null;
+      }
+    }
+    return false;
   }
 }

@@ -12,15 +12,12 @@ class RemoveCharacter extends ResolvedCorrectionProducer {
   String _codePoint = '';
 
   @override
-  // Not predictably the correct action.
-  bool get canBeAppliedInBulk => false;
+  CorrectionApplicability get applicability =>
+      // Not predictably the correct action.
+      CorrectionApplicability.singleLocation;
 
   @override
-  // Not predictably the correct action.
-  bool get canBeAppliedToFile => false;
-
-  @override
-  List<Object> get fixArguments => [_codePoint];
+  List<String> get fixArguments => [_codePoint];
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_CHARACTER;

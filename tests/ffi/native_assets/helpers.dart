@@ -114,10 +114,20 @@ stderr     : ${result.stderr}''';
   }
 }
 
+enum KernelCombine {
+  source,
+  concatenation,
+}
+
 enum Runtime {
   aot,
   appjit,
   jit,
+}
+
+enum AotCompile {
+  assembly,
+  elf,
 }
 
 Future<void> runGenKernel({
@@ -150,27 +160,109 @@ Future<void> createDillFile({
   required Uri dartProgramUri,
   required Uri nativeAssetsUri,
   required Runtime runtime,
-}) =>
-    runGenKernel(
-      runtime: runtime,
-      outputUri: outputUri,
-      inputUri: dartProgramUri,
-      nativeAssetsUri: nativeAssetsUri,
-    );
+  required KernelCombine kernelCombine,
+}) async {
+  switch (kernelCombine) {
+    case KernelCombine.source:
+      await runGenKernel(
+        runtime: runtime,
+        outputUri: outputUri,
+        inputUri: dartProgramUri,
+        nativeAssetsUri: nativeAssetsUri,
+      );
+    case KernelCombine.concatenation:
+      final programDillUri = tempUri.resolve('program.dill');
+      final nativeAssetsDillUri = tempUri.resolve('native_assets.dill');
+      await Future.wait([
+        runGenKernel(
+          runtime: runtime,
+          outputUri: programDillUri,
+          inputUri: dartProgramUri,
+        ),
+        runGenKernel(
+          runtime: runtime,
+          outputUri: nativeAssetsDillUri,
+          nativeAssetsUri: nativeAssetsUri,
+        ),
+      ]);
+      final programKernelBytes =
+          await File.fromUri(programDillUri).readAsBytes();
+      final nativeAssetKernelBytes =
+          await File.fromUri(nativeAssetsDillUri).readAsBytes();
+      await File.fromUri(outputUri).writeAsBytes(
+        [
+          ...programKernelBytes,
+          ...nativeAssetKernelBytes,
+        ],
+        flush: true,
+      );
+  }
+}
 
 Future<void> runGenSnapshot({
+  required Uri tempUri,
   required Uri dillUri,
   required Uri outputUri,
-}) =>
-    runProcess(
-      executable: genSnapshotUri.toFilePath(),
-      arguments: [
-        '--snapshot-kind=app-aot-elf',
-        '--elf=${outputUri.toFilePath()}',
-        '--strip',
-        dillUri.toFilePath(),
-      ],
-    );
+  required AotCompile aotCompile,
+}) async {
+  switch (aotCompile) {
+    case AotCompile.elf:
+      await runProcess(
+        executable: genSnapshotUri.toFilePath(),
+        arguments: [
+          '--snapshot-kind=app-aot-elf',
+          '--elf=${outputUri.toFilePath()}',
+          '--strip',
+          dillUri.toFilePath(),
+        ],
+      );
+    case AotCompile.assembly:
+      if (!(Platform.isLinux || Platform.isMacOS)) {
+        // Windows doesn't support assembly snapshots.
+        throw UnsupportedError('Not yet implemented for MSVC');
+      }
+      final assemblyUri = tempUri.resolve('out.S');
+      await runProcess(
+        executable: genSnapshotUri.toFilePath(),
+        arguments: [
+          '--snapshot-kind=app-aot-assembly',
+          '--assembly=${assemblyUri.toFilePath()}',
+          dillUri.toFilePath(),
+        ],
+      );
+      if (!await File.fromUri(assemblyUri).exists()) {
+        throw Error();
+      }
+
+      // Executables and arguments taken from
+      // pkg/test_runner/lib/src/compiler_configuration.dart
+      // `computeAssembleCommand`.
+      if (Platform.isMacOS) {
+        await runProcess(
+          executable: 'clang',
+          arguments: [
+            '-Wl,-undefined,error',
+            '-Wl,-no_compact_unwind',
+            '-dynamiclib',
+            '-o',
+            outputUri.toFilePath(),
+            assemblyUri.toFilePath(),
+          ],
+        );
+      } else if (Platform.isLinux) {
+        await runProcess(
+          executable: 'gcc',
+          arguments: [
+            '-shared',
+            '-Wl,--no-undefined',
+            '-o',
+            outputUri.toFilePath(),
+            assemblyUri.toFilePath(),
+          ],
+        );
+      }
+  }
+}
 
 Future<void> runDart({
   required Uri scriptUri,
@@ -242,6 +334,8 @@ Future<void> compileAndRun({
   required Uri dartProgramUri,
   required String nativeAssetsYaml,
   required Runtime runtime,
+  required KernelCombine kernelCombine,
+  AotCompile aotCompile = AotCompile.elf,
   required List<String> runArguments,
 }) async {
   final nativeAssetsUri = tempUri.resolve('native_assets.yaml');
@@ -254,12 +348,18 @@ Future<void> compileAndRun({
     dartProgramUri: dartProgramUri,
     nativeAssetsUri: nativeAssetsUri,
     runtime: runtime,
+    kernelCombine: kernelCombine,
   );
 
   switch (runtime) {
     case Runtime.aot:
       final snapshotUri = tempUri.resolve('out.snapshot');
-      await runGenSnapshot(dillUri: outDillUri, outputUri: snapshotUri);
+      await runGenSnapshot(
+        tempUri: tempUri,
+        dillUri: outDillUri,
+        outputUri: snapshotUri,
+        aotCompile: aotCompile,
+      );
       await runDartAotRuntime(
           aotSnapshotUri: snapshotUri, arguments: runArguments);
     case Runtime.appjit:
@@ -311,6 +411,8 @@ Future<void> invokeSelf({
   required List<String> arguments,
   required String nativeAssetsYaml,
   Runtime runtime = Runtime.jit,
+  KernelCombine kernelCombine = KernelCombine.source,
+  AotCompile aotCompile = AotCompile.elf,
 }) async {
   await withTempDir((Uri tempUri) async {
     await compileAndRun(
@@ -318,6 +420,8 @@ Future<void> invokeSelf({
       dartProgramUri: selfSourceUri,
       nativeAssetsYaml: nativeAssetsYaml,
       runtime: runtime,
+      kernelCombine: kernelCombine,
+      aotCompile: aotCompile,
       runArguments: arguments,
     );
     print([selfSourceUri.toFilePath(), runtime.name, 'done'].join(' '));

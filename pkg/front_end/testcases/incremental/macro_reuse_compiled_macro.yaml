@@ -1,0 +1,89 @@
+# Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    experiments: macros
+    sources:
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "macros",
+              "rootUri": "holePunch:pkg/macros",
+              "packageUri": "lib/",
+              "languageVersion": "3.4"
+            },
+            {
+              "name": "_macros",
+              "rootUri": "holePunch:pkg/_macros",
+              "packageUri": "lib/",
+              "languageVersion": "3.4"
+            },
+            {
+              "name": "meta",
+              "rootUri": "holePunch:pkg/meta",
+              "packageUri": "lib/"
+            }
+          ]
+        }
+      main.dart: |
+        import 'impl/declare_count1_macro.dart';
+
+        @DeclareCount1()
+        class A {}
+
+        void main() {
+          print(A().count);
+        }
+      impl/declare_count1_macro.dart: |
+        import 'package:macros/macros.dart';
+
+        import 'declare_count0_macro.dart';
+
+        @DeclareCount0()
+        macro class DeclareCount1 implements ClassDeclarationsMacro {
+          const DeclareCount1();
+
+          @override
+          Future<void> buildDeclarationsForClass(
+              ClassDeclaration clazz, MemberDeclarationBuilder builder) async {
+            builder.declareInType(DeclarationCode.fromString('int get count => ${count + 1};'));
+          }
+        }
+      impl/declare_count0_macro.dart: |
+        import 'package:macros/macros.dart';
+
+        macro class DeclareCount0 implements ClassDeclarationsMacro {
+          const DeclareCount0();
+
+          @override
+          Future<void> buildDeclarationsForClass(
+              ClassDeclaration clazz, MemberDeclarationBuilder builder) async {
+            builder.declareInType(DeclarationCode.fromString('int get count => 0;'));
+          }
+        }
+    expectedLibraryCount: 5
+  - entry: main.dart
+    errors: false
+    worldType: updated
+    expectInitializeFromDill: false
+    experiments: macros
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import 'impl/declare_count1_macro.dart';
+
+        @DeclareCount1()
+        class A {}
+
+        void main() {
+          print("Updated!");
+          print(A().count);
+        }
+    expectedLibraryCount: 5
+    advancedInvalidation: bodiesOnly

@@ -10,7 +10,8 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring_internal.dart';
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analysis_server/src/utilities/extensions/flutter.dart';
+import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -142,8 +143,8 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     var builder =
         ChangeBuilder(session: sessionHelper.session, eol: utils.endOfLine);
     await builder.addDartFileEdit(resolveResult.path, (builder) {
-      final expression = _expression;
-      final statements = _statements;
+      var expression = _expression;
+      var statements = _statements;
       if (expression != null) {
         builder.addReplacement(range.node(expression), (builder) {
           _writeWidgetInstantiation(builder);
@@ -183,9 +184,9 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     _enclosingClassNode = node?.thisOrAncestorOfType<ClassDeclaration>();
     _enclosingClassElement = _enclosingClassNode?.declaredElement;
 
-    // new MyWidget(...)
-    var newExpression = Flutter.identifyNewExpression(node);
-    if (Flutter.isWidgetCreation(newExpression)) {
+    // `new MyWidget(...)`
+    var newExpression = node.findInstanceCreationExpression;
+    if (newExpression?.isWidgetCreation ?? false) {
       _expression = newExpression;
       return RefactoringStatus();
     }
@@ -203,7 +204,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
       if (statements.isNotEmpty) {
         var lastStatement = statements.last;
         if (lastStatement is ReturnStatement &&
-            Flutter.isWidgetExpression(lastStatement.expression)) {
+            lastStatement.expression.isWidgetExpression) {
           _statements = statements;
           _statementsRange = range.startEnd(statements.first, statements.last);
           return RefactoringStatus();
@@ -221,7 +222,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
       }
       if (node is MethodDeclaration) {
         var returnType = node.returnType?.type;
-        if (Flutter.isWidgetType(returnType)) {
+        if (returnType.isWidgetType) {
           _method = node;
           return RefactoringStatus();
         }
@@ -238,11 +239,9 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     var result = RefactoringStatus();
 
     Future<ClassElement?> getClass(String name) async {
-      var element = await sessionHelper.getClass(Flutter.widgetsUri, name);
+      var element = await sessionHelper.getFlutterClass(name);
       if (element == null) {
-        result.addFatalError(
-          "Unable to find '$name' in ${Flutter.widgetsUri}",
-        );
+        result.addFatalError("Unable to find '$name' in $widgetsUri");
       }
       return element;
     }
@@ -271,14 +270,14 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   Future<RefactoringStatus> _initializeParameters() async {
     _ParametersCollector? collector;
 
-    final expression = _expression;
+    var expression = _expression;
     if (expression != null) {
       var localRange = range.node(expression);
       collector = _ParametersCollector(_enclosingClassElement, localRange);
       expression.accept(collector);
     }
 
-    final statements = _statements;
+    var statements = _statements;
     if (statements != null) {
       collector =
           _ParametersCollector(_enclosingClassElement, _statementsRange!);
@@ -287,7 +286,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
       }
     }
 
-    final method = _method;
+    var method = _method;
     if (method != null) {
       var localRange = range.node(method);
       collector = _ParametersCollector(_enclosingClassElement, localRange);
@@ -305,7 +304,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
         for (var parameter in parameterList.parameters) {
           parameter = parameter.notDefault;
           if (parameter is NormalFormalParameter) {
-            final element = parameter.declaredElement!;
+            var element = parameter.declaredElement!;
             _parameters.add(_Parameter(element.name, element.type,
                 isMethodParameter: true));
           }
@@ -500,7 +499,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
               );
             },
             bodyWriter: () {
-              final expression = _expression;
+              var expression = _expression;
               if (expression != null) {
                 var indentOld = utils.getLinePrefix(expression.offset);
                 var indentNew = '    ';
@@ -652,9 +651,9 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
   /// Return `true` if the given [element] is a member of the [enclosingClass]
   /// or one of its supertypes, interfaces, or mixins.
   bool _isMemberOfEnclosingClass(Element element) {
-    final enclosingClass = this.enclosingClass;
+    var enclosingClass = this.enclosingClass;
     if (enclosingClass != null) {
-      final enclosingClasses = this.enclosingClasses ??= <InterfaceElement>[
+      var enclosingClasses = this.enclosingClasses ??= <InterfaceElement>[
         enclosingClass,
         ...enclosingClass.allSupertypes.map((t) => t.element)
       ];

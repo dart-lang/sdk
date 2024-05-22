@@ -18,13 +18,21 @@ Separate issues should be created for each of the items in the list.
 The following is a list of the individual features that need to be considered.
 The features are listed roughly in dependency order.
 
-- [ ] AST enhancements
+- [ ] AST enhancements (`AstBuilder`)
+- [ ] Resolution of directives
 - [ ] Element model
 - [ ] Type system updates
 - [ ] Summary support
 - [ ] Resolution
+  - [ ] `ResolutionVisitor` (resolve types)
+  - [ ] `ScopeResolverVisitor` (resolve simple identifiers by scope)
+  - [ ] `ResolverVisitor` (type-based resolution)
 - [ ] Constant evaluation
 - [ ] Index and search
 - [ ] Warnings (annotation-based, unused\*, strict-mode-based, a few others)
+  - [ ] `InheritanceOverrideVerifier` (report errors and warnings related to overrides)
+  - [ ] `ErrorVerifier` (report other errors and warnings)
+  - [ ] `FfiVerifier` (report errors and warnings related to FFI)
+  - [ ] Unused elements warnings
 - [ ] ExitDetector
 - [ ] NodeLintRegistry

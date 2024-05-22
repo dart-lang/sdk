@@ -473,8 +473,6 @@ class FlowGraph : public ZoneAllocated {
 
   void SelectRepresentations();
 
-  void WidenSmiToInt32();
-
   // Remove environments from the instructions which do not deoptimize.
   void EliminateEnvironments();
 
@@ -508,6 +506,10 @@ class FlowGraph : public ZoneAllocated {
   }
 
   bool should_reorder_blocks() const { return should_reorder_blocks_; }
+
+  bool should_remove_all_bounds_checks() const {
+    return should_remove_all_bounds_checks_;
+  }
 
   //
   // High-level utilities.
@@ -735,6 +737,7 @@ class FlowGraph : public ZoneAllocated {
 
   intptr_t inlining_id_;
   bool should_print_;
+  const bool should_remove_all_bounds_checks_;
   uint8_t* compiler_pass_filters_ = nullptr;
 
   intptr_t max_argument_slot_count_ = -1;

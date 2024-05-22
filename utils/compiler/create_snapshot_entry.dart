@@ -11,17 +11,15 @@ import 'dart:async';
 
 Future<String> getVersion(var rootPath, bool noGitHash) {
   var printVersionScript = rootPath.resolve("tools/make_version.py");
-  return Process.run(
-          "python3",
-          [
-            printVersionScript.toFilePath(),
-            "--quiet",
-            if (noGitHash) '--no-git-hash'
-          ],
-          runInShell: true)
-      .then((result) {
+  var args = <String>[
+    printVersionScript.toFilePath(),
+    "--quiet",
+    if (noGitHash) '--no-git-hash'
+  ];
+  return Process.run("python3", args, runInShell: true).then((result) {
     if (result.exitCode != 0) {
-      throw "Could not generate version";
+      throw "Could not generate version: ${args.join(' ')}"
+          "\n${result.stdout}\n${result.stderr}";
     }
     return result.stdout.trim();
   });

@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
@@ -13,11 +13,16 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class FlutterMoveDown extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   AssistKind get assistKind => DartAssistKind.FLUTTER_MOVE_DOWN;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var widget = Flutter.identifyWidgetExpression(node);
+    var widget = node.findWidgetExpression;
     if (widget == null) {
       return;
     }

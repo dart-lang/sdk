@@ -31,7 +31,7 @@ using BaseRuntimeEntry = ValueObject;
 class RuntimeEntry : public BaseRuntimeEntry {
  public:
   RuntimeEntry(const char* name,
-               RuntimeFunction function,
+               const void* function,
                intptr_t argument_count,
                bool is_leaf,
                bool is_float,
@@ -49,7 +49,7 @@ class RuntimeEntry : public BaseRuntimeEntry {
   }
 
   const char* name() const { return name_; }
-  RuntimeFunction function() const { return function_; }
+  const void* function() const { return function_; }
   intptr_t argument_count() const { return argument_count_; }
   bool is_leaf() const { return is_leaf_; }
   bool is_float() const { return is_float_; }
@@ -58,7 +58,7 @@ class RuntimeEntry : public BaseRuntimeEntry {
 
  private:
   const char* const name_;
-  const RuntimeFunction function_;
+  const void* const function_;
   const intptr_t argument_count_;
   const bool is_leaf_;
   const bool is_float_;
@@ -91,9 +91,9 @@ class RuntimeEntry : public BaseRuntimeEntry {
 
 #define DEFINE_RUNTIME_ENTRY_IMPL(name, argument_count, can_lazy_deopt)        \
   extern void DRT_##name(NativeArguments arguments);                           \
-  extern const RuntimeEntry k##name##RuntimeEntry("DRT_" #name, &DRT_##name,   \
-                                                  argument_count, false,       \
-                                                  false, can_lazy_deopt);      \
+  extern const RuntimeEntry k##name##RuntimeEntry(                             \
+      "DRT_" #name, reinterpret_cast<const void*>(DRT_##name), argument_count, \
+      false, false, can_lazy_deopt);                                           \
   static void DRT_Helper##name(Isolate* isolate, Thread* thread, Zone* zone,   \
                                NativeArguments arguments);                     \
   void DRT_##name(NativeArguments arguments) {                                 \
@@ -134,7 +134,7 @@ class RuntimeEntry : public BaseRuntimeEntry {
 #define DEFINE_LEAF_RUNTIME_ENTRY(type, name, argument_count, ...)             \
   extern "C" type DLRT_##name(__VA_ARGS__);                                    \
   extern const RuntimeEntry k##name##RuntimeEntry(                             \
-      "DLRT_" #name, reinterpret_cast<RuntimeFunction>(&DLRT_##name),          \
+      "DLRT_" #name, reinterpret_cast<const void*>(DLRT_##name),               \
       argument_count, true, false, /*can_lazy_deopt=*/false);                  \
   type DLRT_##name(__VA_ARGS__) {                                              \
     CHECK_STACK_ALIGNMENT;                                                     \
@@ -146,8 +146,8 @@ class RuntimeEntry : public BaseRuntimeEntry {
 // DEFINE_LEAF_RUNTIME_ENTRY instead.
 #define DEFINE_RAW_LEAF_RUNTIME_ENTRY(name, argument_count, is_float, func)    \
   extern const RuntimeEntry k##name##RuntimeEntry(                             \
-      "DFLRT_" #name, func, argument_count, true, is_float,                    \
-      /*can_lazy_deopt=*/false)
+      "DFLRT_" #name, reinterpret_cast<const void*>(func), argument_count,     \
+      true, is_float, /*can_lazy_deopt=*/false)
 
 #define DECLARE_LEAF_RUNTIME_ENTRY(type, name, ...)                            \
   extern const RuntimeEntry k##name##RuntimeEntry;                             \

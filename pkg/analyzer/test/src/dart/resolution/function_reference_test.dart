@@ -333,7 +333,7 @@ bar() {
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 10, 1),
     ]);
 
-    final node = findNode.functionReference('foo<int>;');
+    var node = findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
@@ -1080,7 +1080,7 @@ foo() {
 }
 ''');
 
-    final node = findNode.implicitCallReference('C()<int>');
+    var node = findNode.implicitCallReference('C()<int>');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: InstanceCreationExpression
@@ -1164,7 +1164,7 @@ void foo() {
 
 ''');
 
-    final node = findNode.implicitCallReference('v<int, String>;');
+    var node = findNode.implicitCallReference('v<int, String>;');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: SimpleIdentifier
@@ -1204,7 +1204,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.implicitCallReference('a);');
+    var node = findNode.implicitCallReference('a);');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: SimpleIdentifier
@@ -1286,7 +1286,7 @@ bar() {
 }
 ''');
 
-    final node = findNode.implicitCallReference('c<int>');
+    var node = findNode.implicitCallReference('c<int>');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: PrefixedIdentifier
@@ -1330,7 +1330,7 @@ foo() {
           CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION, 57, 5),
     ]);
 
-    final node = findNode.implicitCallReference('C()<int>;');
+    var node = findNode.implicitCallReference('C()<int>;');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: InstanceCreationExpression
@@ -1374,7 +1374,7 @@ foo() {
           CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION, 50, 5),
     ]);
 
-    final node = findNode.implicitCallReference('C()<int>;');
+    var node = findNode.implicitCallReference('C()<int>;');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: InstanceCreationExpression
@@ -2261,7 +2261,7 @@ bar() {
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 47, 3),
     ]);
 
-    final node = findNode.functionReference('foo<int>;');
+    var node = findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
@@ -2582,7 +2582,7 @@ void f() {
       error(WarningCode.UNUSED_IMPORT, 7, 8),
     ]);
 
-    final node = findNode.expressionStatement('prefix.loadLibrary');
+    var node = findNode.expressionStatement('prefix.loadLibrary');
     assertResolvedNodeText(node, r'''
 ExpressionStatement
   expression: PrefixedIdentifier
@@ -3296,7 +3296,7 @@ class B extends A {
       error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 70, 5),
     ]);
 
-    final node = findNode.singleImplicitCallReference;
+    var node = findNode.singleImplicitCallReference;
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: SuperExpression
@@ -3551,7 +3551,7 @@ void bar() {
 }
 ''');
 
-    final node = findNode.propertyAccess('.call');
+    var node = findNode.propertyAccess('.call');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: FunctionReference
@@ -3623,7 +3623,7 @@ bar() {
 }
 ''');
 
-    final node = findNode.functionReference('foo<int>;');
+    var node = findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
@@ -3664,7 +3664,7 @@ bar() {
       error(CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME, 45, 1),
     ]);
 
-    final node = findNode.functionReference('foo<int>;');
+    var node = findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
@@ -4221,7 +4221,7 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    final node = findNode.implicitCallReference('c;');
+    var node = findNode.implicitCallReference('c;');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: SimpleIdentifier

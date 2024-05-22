@@ -6,7 +6,6 @@ library fasta.export;
 
 import 'builder/builder.dart';
 import 'builder/library_builder.dart';
-import 'codes/fasta_codes.dart';
 import 'combinator.dart' show CombinatorBuilder;
 
 class Export {
@@ -31,18 +30,6 @@ class Export {
         if (combinator.isHide && combinator.names.contains(name)) return false;
       }
     }
-    bool changed = exporter.addToExportScope(name, member, charOffset);
-    if (changed) {
-      if (exporter.isNonNullableByDefault) {
-        // TODO(johnniwinther): Add a common interface for exportable builders.
-        Builder? memberLibrary = member.parent;
-        if (memberLibrary is LibraryBuilder &&
-            !memberLibrary.isNonNullableByDefault) {
-          exporter.addProblem(
-              messageExportOptOutFromOptIn, charOffset, noLength, fileUri);
-        }
-      }
-    }
-    return changed;
+    return exporter.addToExportScope(name, member, charOffset);
   }
 }

@@ -36,7 +36,7 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    final node = findNode.implicitCallReference('c;');
+    var node = findNode.implicitCallReference('c;');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: AssignmentExpression
@@ -152,7 +152,7 @@ void foo() {
 }
 ''');
 
-    final node = findNode.implicitCallReference('c<int>');
+    var node = findNode.implicitCallReference('c<int>');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: SimpleIdentifier
@@ -218,7 +218,7 @@ void Function(int) foo(C? c1, C c2) {
 }
 ''');
 
-    final node = findNode.implicitCallReference('c1 ?? c2');
+    var node = findNode.implicitCallReference('c1 ?? c2');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: BinaryExpression
@@ -251,7 +251,7 @@ List<void Function(int)> foo(C c) {
 }
 ''');
 
-    final node = findNode.implicitCallReference('c]');
+    var node = findNode.implicitCallReference('c]');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: SimpleIdentifier
@@ -276,7 +276,7 @@ List<void Function(int)> foo(C c) {
 }
 ''');
 
-    final node = findNode.implicitCallReference('c,');
+    var node = findNode.implicitCallReference('c,');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: SimpleIdentifier
@@ -301,7 +301,7 @@ List<void Function(int)> foo(C c) {
 }
 ''');
 
-    final node = findNode.implicitCallReference('c,');
+    var node = findNode.implicitCallReference('c,');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: SimpleIdentifier
@@ -327,7 +327,7 @@ List<void Function(int)> foo(C c1, C c2) {
 }
 ''');
 
-    final node = findNode.implicitCallReference('c2,');
+    var node = findNode.implicitCallReference('c2,');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: SimpleIdentifier
@@ -348,7 +348,7 @@ abstract class C {
 void Function() f(C c) => (c)..m();
 ''');
 
-    final node = findNode.implicitCallReference('(c)');
+    var node = findNode.implicitCallReference('(c)');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: CascadeExpression
@@ -390,7 +390,7 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    final node = findNode.implicitCallReference('c.c;');
+    var node = findNode.implicitCallReference('c.c;');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: PrefixedIdentifier
@@ -422,7 +422,7 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    final node = findNode.implicitCallReference('c.c.c');
+    var node = findNode.implicitCallReference('c.c.c');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: PropertyAccess
@@ -460,7 +460,7 @@ Set<void Function(int)> foo(C c) {
 }
 ''');
 
-    final node = findNode.implicitCallReference('c}');
+    var node = findNode.implicitCallReference('c}');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: SimpleIdentifier
@@ -483,7 +483,7 @@ Map<void Function(int), int> foo(C c) {
 }
 ''');
 
-    final node = findNode.implicitCallReference('c:');
+    var node = findNode.implicitCallReference('c:');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: SimpleIdentifier
@@ -506,7 +506,7 @@ Map<int, void Function(int)> foo(C c) {
 }
 ''');
 
-    final node = findNode.implicitCallReference('c}');
+    var node = findNode.implicitCallReference('c}');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: SimpleIdentifier
@@ -529,7 +529,7 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    final node = findNode.implicitCallReference('c;');
+    var node = findNode.implicitCallReference('c;');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: SimpleIdentifier
@@ -550,7 +550,7 @@ typedef B = A;
 Function f(B b) => b;
 ''');
 
-    final node = findNode.implicitCallReference('b;');
+    var node = findNode.implicitCallReference('b;');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: SimpleIdentifier
@@ -571,7 +571,7 @@ class A {
 Function f<X extends A>(X x) => x;
 ''');
 
-    final node = findNode.implicitCallReference('x;');
+    var node = findNode.implicitCallReference('x;');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: SimpleIdentifier
@@ -591,7 +591,7 @@ class A {
 Function f<X extends A, Y extends X>(Y y) => y;
 ''');
 
-    final node = findNode.implicitCallReference('y;');
+    var node = findNode.implicitCallReference('y;');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: SimpleIdentifier
@@ -600,6 +600,46 @@ ImplicitCallReference
     staticType: Y
   staticElement: self::@class::A::@method::call
   staticType: void Function()
+''');
+  }
+
+  test_simpleIdentifier_typeVariable2_nullable() async {
+    await assertErrorsInCode('''
+class A {
+  void call() {}
+}
+Function f<X extends A, Y extends X?>(Y y) => y;
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 75, 1),
+    ]);
+
+    // Verify that no ImplicitCallReference was inserted.
+    var node = findNode.expressionFunctionBody('y;').expression;
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: y
+  staticElement: self::@function::f::@parameter::y
+  staticType: Y
+''');
+  }
+
+  test_simpleIdentifier_typeVariable_nullable() async {
+    await assertErrorsInCode('''
+class A {
+  void call() {}
+}
+Function f<X extends A>(X? x) => x;
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 62, 1),
+    ]);
+
+    // Verify that no ImplicitCallReference was inserted.
+    var node = findNode.expressionFunctionBody('x;').expression;
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: x
+  staticElement: self::@function::f::@parameter::x
+  staticType: X?
 ''');
   }
 }
@@ -685,7 +725,7 @@ f(A a) {
 }
 ''');
 
-    final node = findNode.extensionOverride('E<int>(a)');
+    var node = findNode.extensionOverride('E<int>(a)');
     assertResolvedNodeText(node, r'''
 ExtensionOverride
   name: E
@@ -1356,7 +1396,7 @@ f(prefix.A a) {
 }
 ''');
 
-    final node = findNode.extensionOverride('E<int>(a)');
+    var node = findNode.extensionOverride('E<int>(a)');
     assertResolvedNodeText(node, r'''
 ExtensionOverride
   importPrefix: ImportPrefixReference

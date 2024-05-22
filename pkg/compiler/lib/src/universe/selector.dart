@@ -239,7 +239,8 @@ class Selector {
     return signatureApplies(element as FunctionEntity);
   }
 
-  /// Whether [this] could be a valid selector on `Null` without throwing.
+  /// Whether this [Selector] could be a valid selector on `Null` without
+  /// throwing.
   bool appliesToNullWithoutThrow() {
     var name = this.name;
     if (isOperator && name == "==") return true;

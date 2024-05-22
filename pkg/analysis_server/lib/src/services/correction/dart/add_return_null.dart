@@ -10,10 +10,8 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddReturnNull extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_RETURN_NULL;
@@ -25,7 +23,7 @@ class AddReturnNull extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     Block block;
 
-    final node = this.node;
+    var node = this.node;
     if (node is Block) {
       block = node;
     } else if (node is FunctionDeclaration) {

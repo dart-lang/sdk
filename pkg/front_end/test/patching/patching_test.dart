@@ -20,6 +20,7 @@ import 'package:front_end/src/fasta/scope.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart';
+import '../utils/symbolic_language_versions.dart';
 
 Future<void> main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
@@ -28,25 +29,13 @@ Future<void> main(List<String> args) async {
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(const PatchingDataComputer(), [
-        new TestConfigWithLanguageVersion(
-            cfeMarker, 'cfe with libraries specification',
+        new TestConfigWithLanguageVersion(cfeMarker, 'cfe',
             librariesSpecificationUri: createUriForFileName('libraries.json'),
-            experimentalFlags: {ExperimentalFlag.nonNullable: false},
-            allowedExperimentalFlags: const AllowedExperimentalFlags()),
-        new TestConfigWithLanguageVersion(cfeWithNnbdMarker,
-            'cfe with libraries specification and non-nullable',
-            librariesSpecificationUri: createUriForFileName('libraries.json'),
-            experimentalFlags: {ExperimentalFlag.nonNullable: true},
+            experimentalFlags: {},
             allowedExperimentalFlags: const AllowedExperimentalFlags())
       ]),
-      skipMap: {
-        cfeMarker: [
-          'opt_in',
-          'opt_in_patch',
-          'opt_out',
-          'opt_out_patch',
-        ]
-      });
+      preProcessFile: replaceMarkersWithVersions,
+      postProcessFile: replaceVersionsWithMarkers);
 }
 
 class TestConfigWithLanguageVersion extends CfeTestConfig {
@@ -61,7 +50,8 @@ class TestConfigWithLanguageVersion extends CfeTestConfig {
 
   @override
   void customizeCompilerOptions(CompilerOptions options, TestData testData) {
-    options.currentSdkVersion = "2.9999";
+    options.currentSdkVersion =
+        SymbolicLanguageVersion.currentVersion.version.toText();
   }
 }
 
@@ -126,7 +116,8 @@ class PatchingDataExtractor extends CfeDataExtractor<Features> {
   @override
   Features computeLibraryValue(Id id, Library library) {
     Features features = new Features();
-    features[Tags.isNonNullableByDefault] = '${library.isNonNullableByDefault}';
+    // TODO(johnniwinther): Remove this.
+    features[Tags.isNonNullableByDefault] = 'true';
     return features;
   }
 

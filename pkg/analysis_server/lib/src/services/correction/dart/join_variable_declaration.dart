@@ -12,11 +12,16 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class JoinVariableDeclaration extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   AssistKind get assistKind => DartAssistKind.JOIN_VARIABLE_DECLARATION;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is SimpleIdentifier) {
       var parent = node.parent;
       if (parent is AssignmentExpression &&

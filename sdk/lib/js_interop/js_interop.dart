@@ -1084,69 +1084,69 @@ extension StringToJSString on String {
 extension JSAnyOperatorExtension on JSAny? {
   // Arithmetic operators.
 
-  /// The result of <code>[this] + [any]</code> in JavaScript.
+  /// The result of <code>`this` + [any]</code> in JavaScript.
   external JSAny add(JSAny? any);
 
-  /// The result of <code>[this] - [any]</code> in JavaScript.
+  /// The result of <code>`this` - [any]</code> in JavaScript.
   external JSAny subtract(JSAny? any);
 
-  /// The result of <code>[this] * [any]</code> in JavaScript.
+  /// The result of <code>`this` * [any]</code> in JavaScript.
   external JSAny multiply(JSAny? any);
 
-  /// The result of <code>[this] / [any]</code> in JavaScript.
+  /// The result of <code>`this` / [any]</code> in JavaScript.
   external JSAny divide(JSAny? any);
 
-  /// The result of <code>[this] % [any]</code> in JavaScript.
+  /// The result of <code>`this` % [any]</code> in JavaScript.
   external JSAny modulo(JSAny? any);
 
-  /// The result of <code>[this] ** [any]</code> in JavaScript.
+  /// The result of <code>`this` ** [any]</code> in JavaScript.
   external JSAny exponentiate(JSAny? any);
 
   // Comparison operators.
 
-  /// The result of <code>[this] > [any]</code> in JavaScript.
+  /// The result of <code>`this` > [any]</code> in JavaScript.
   external JSBoolean greaterThan(JSAny? any);
 
-  /// The result of <code>[this] >= [any]</code> in JavaScript.
+  /// The result of <code>`this` >= [any]</code> in JavaScript.
   external JSBoolean greaterThanOrEqualTo(JSAny? any);
 
-  /// The result of <code>[this] < [any]</code> in JavaScript.
+  /// The result of <code>`this` < [any]</code> in JavaScript.
   external JSBoolean lessThan(JSAny? any);
 
-  /// The result of <code>[this] <= [any]</code> in JavaScript.
+  /// The result of <code>`this` <= [any]</code> in JavaScript.
   external JSBoolean lessThanOrEqualTo(JSAny? any);
 
-  /// The result of <code>[this] == [any]</code> in JavaScript.
+  /// The result of <code>`this` == [any]</code> in JavaScript.
   external JSBoolean equals(JSAny? any);
 
-  /// The result of <code>[this] != [any]</code> in JavaScript.
+  /// The result of <code>`this` != [any]</code> in JavaScript.
   external JSBoolean notEquals(JSAny? any);
 
-  /// The result of <code>[this] === [any]</code> in JavaScript.
+  /// The result of <code>`this` === [any]</code> in JavaScript.
   external JSBoolean strictEquals(JSAny? any);
 
-  /// The result of <code>[this] !== [any]</code> in JavaScript.
+  /// The result of <code>`this` !== [any]</code> in JavaScript.
   external JSBoolean strictNotEquals(JSAny? any);
 
   // Bitwise operators.
 
-  /// The result of <code>[this] >>> [any]</code> in JavaScript.
+  /// The result of <code>`this` >>> [any]</code> in JavaScript.
   // TODO(srujzs): This should return `num` or `double` instead.
   external JSNumber unsignedRightShift(JSAny? any);
 
   // Logical operators.
 
-  /// The result of <code>[this] && [any]</code> in JavaScript.
+  /// The result of <code>`this` && [any]</code> in JavaScript.
   external JSAny? and(JSAny? any);
 
-  /// The result of <code>[this] || [any]</code> in JavaScript.
+  /// The result of <code>`this` || [any]</code> in JavaScript.
   external JSAny? or(JSAny? any);
 
-  /// The result of <code>![this]</code> in JavaScript.
+  /// The result of <code>!`this`</code> in JavaScript.
   // TODO(srujzs): Change this to JSBoolean to be consistent.
   external bool get not;
 
-  /// The result of <code>!![this]</code> in JavaScript.
+  /// The result of <code>!!`this`</code> in JavaScript.
   // TODO(srujzs): Change this to JSBoolean to be consistent.
   external bool get isTruthy;
 }

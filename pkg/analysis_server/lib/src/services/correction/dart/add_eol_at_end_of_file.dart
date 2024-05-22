@@ -10,6 +10,11 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddEolAtEndOfFile extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   FixKind get fixKind => DartFixKind.ADD_EOL_AT_END_OF_FILE;
 
   @override

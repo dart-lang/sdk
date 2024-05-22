@@ -1,9 +1,7 @@
-// @dart = 2.9
-
 library test;
 
 class A<T> {
-  List<T> x;
+  List<T> x = throw '';
   void set y(List<T> value) {}
 }
 

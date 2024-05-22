@@ -1,160 +1,223 @@
-library /*isLegacy*/;
+library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:6:1: Error: Library doesn't support null safety.
-// // @dart=2.9
-// ^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:26:18: Error: Type variables can't be used as constants.
-//       : field1 = T,
-//                  ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:27:21: Error: Constant expression expected.
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:36:21: Error: Constant expression expected.
 // Try inserting 'const'.
 //         field5 = <T>[],
 //                     ^
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:27:19: Error: Type variables can't be used as constants.
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:36:19: Error: Type variables can't be used as constants.
 //         field5 = <T>[],
 //                   ^
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:28:21: Error: Constant expression expected.
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:37:21: Error: Constant expression expected.
 // Try inserting 'const'.
 //         field6 = <T>{},
 //                     ^
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:28:19: Error: Type variables can't be used as constants.
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:37:19: Error: Type variables can't be used as constants.
 //         field6 = <T>{},
 //                   ^
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:29:24: Error: Constant expression expected.
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:38:24: Error: Constant expression expected.
 // Try inserting 'const'.
 //         field7 = <T, T>{},
 //                        ^
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:29:19: Error: Type variables can't be used as constants.
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:38:19: Error: Type variables can't be used as constants.
 //         field7 = <T, T>{},
 //                   ^
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:29:22: Error: Type variables can't be used as constants.
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:38:22: Error: Type variables can't be used as constants.
 //         field7 = <T, T>{},
 //                      ^
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:30:23: Error: Type variables can't be used as constants.
-//         field8 = o is T,
-//                       ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:31:29: Error: Type variables can't be used as constants.
-//         field9 = o is Class<T>,
-//                             ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:32:24: Error: Type variables can't be used as constants.
-//         field10 = o as T,
-//                        ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:33:30: Error: Type variables can't be used as constants.
-//         field11 = o as Class<T>,
-//                              ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:34:29: Error: Constant expression expected.
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:46:29: Error: Constant expression expected.
 // Try inserting 'const'.
-//         field15 = <Class<T>>[];
+//         field15 = <Class<T>>[],
 //                             ^
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:34:26: Error: Type variables can't be used as constants.
-//         field15 = <Class<T>>[];
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:46:26: Error: Type variables can't be used as constants.
+//         field15 = <Class<T>>[],
 //                          ^
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:40:20: Error: Type variables can't be used as constants.
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:53:20: Error: Type variables can't be used as constants.
 //     const local1 = T;
 //                    ^
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:41:21: Error: Type variables can't be used as constants.
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:54:26: Error: Type variables can't be used as constants.
+//     const local2 = Class<T>;
+//                          ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:55:23: Error: Type variables can't be used as constants.
+//     const local3 = id<T>;
+//                       ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:56:25: Error: Type variables can't be used as constants.
+//     const local4 = (id)<T>;
+//                         ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:57:21: Error: Type variables can't be used as constants.
 //     const local5 = <T>[];
 //                     ^
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:42:21: Error: Type variables can't be used as constants.
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:58:21: Error: Type variables can't be used as constants.
 //     const local6 = <T>{};
 //                     ^
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:43:21: Error: Type variables can't be used as constants.
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:59:21: Error: Type variables can't be used as constants.
 //     const local7 = <T, T>{};
 //                     ^
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:43:24: Error: Type variables can't be used as constants.
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:59:24: Error: Type variables can't be used as constants.
 //     const local7 = <T, T>{};
 //                        ^
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:44:25: Error: Type variables can't be used as constants.
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:60:25: Error: Type variables can't be used as constants.
 //     const local8 = o is T;
 //                         ^
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:45:31: Error: Type variables can't be used as constants.
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:61:31: Error: Type variables can't be used as constants.
 //     const local9 = o is Class<T>;
 //                               ^
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:46:26: Error: Type variables can't be used as constants.
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:62:26: Error: Type variables can't be used as constants.
 //     const local10 = o as T;
 //                          ^
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:47:32: Error: Type variables can't be used as constants.
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:63:32: Error: Type variables can't be used as constants.
 //     const local11 = o as Class<T>;
 //                                ^
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:48:28: Error: Type variables can't be used as constants.
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:64:27: Error: Type variables can't be used as constants.
+//     const local12 = Class<T>.new;
+//                           ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:65:23: Error: Type variables can't be used as constants.
+//     const local13 = F<T, T>.new;
+//                       ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:65:26: Error: Type variables can't be used as constants.
+//     const local13 = F<T, T>.new;
+//                          ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:66:30: Error: Type variables can't be used as constants.
+//     const local14 = id<Class<T>>;
+//                              ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:67:28: Error: Type variables can't be used as constants.
 //     const local15 = <Class<T>>[];
 //                            ^
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:63:18: Error: Type variables can't be used as constants.
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:68:23: Error: Type variables can't be used as constants.
+//     const local16 = G<T>.new;
+//                       ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:90:18: Error: Type variables can't be used as constants.
 //     print(const [T]);
 //                  ^
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:64:19: Error: Type variables can't be used as constants.
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:91:24: Error: Type variables can't be used as constants.
+//     print(const [Class<T>]);
+//                        ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:92:21: Error: Type variables can't be used as constants.
+//     print(const [id<T>]);
+//                     ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:93:23: Error: Type variables can't be used as constants.
+//     print(const [(id)<T>]);
+//                       ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:94:19: Error: Type variables can't be used as constants.
 //     print(const [<T>[]]);
 //                   ^
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:65:19: Error: Type variables can't be used as constants.
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:95:19: Error: Type variables can't be used as constants.
 //     print(const [<T>{}]);
 //                   ^
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:66:19: Error: Type variables can't be used as constants.
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:96:19: Error: Type variables can't be used as constants.
 //     print(const [<T, T>{}]);
 //                   ^
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:66:22: Error: Type variables can't be used as constants.
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:96:22: Error: Type variables can't be used as constants.
 //     print(const [<T, T>{}]);
 //                      ^
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:67:23: Error: Type variables can't be used as constants.
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:97:23: Error: Type variables can't be used as constants.
 //     print(const [o is T]);
 //                       ^
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:68:29: Error: Type variables can't be used as constants.
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:98:29: Error: Type variables can't be used as constants.
 //     print(const [o is Class<T>]);
 //                             ^
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:69:23: Error: Type variables can't be used as constants.
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:99:23: Error: Type variables can't be used as constants.
 //     print(const [o as T]);
 //                       ^
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:70:29: Error: Type variables can't be used as constants.
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:100:29: Error: Type variables can't be used as constants.
 //     print(const [o as Class<T>]);
 //                             ^
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:71:25: Error: Type variables can't be used as constants.
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:101:24: Error: Type variables can't be used as constants.
+//     print(const [Class<T>.new]);
+//                        ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:102:20: Error: Type variables can't be used as constants.
+//     print(const [F<T, T>.new]);
+//                    ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:102:23: Error: Type variables can't be used as constants.
+//     print(const [F<T, T>.new]);
+//                       ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:103:27: Error: Type variables can't be used as constants.
+//     print(const [id<Class<T>>]);
+//                           ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:104:25: Error: Type variables can't be used as constants.
 //     print(const [<Class<T>>[]]);
 //                         ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:105:20: Error: Type variables can't be used as constants.
+//     print(const [G<T>.new]);
+//                    ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:63:23: Error: Constant evaluation error:
+//     const local11 = o as Class<T>;
+//                       ^
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:63:23: Context: Expected constant 'null' to be of type 'Class<invalid-type>', but was of type 'Null'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/constants/potentially_constant_type.dart'.
+//     const local11 = o as Class<T>;
+//                       ^
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:63:11: Context: While analyzing:
+//     const local11 = o as Class<T>;
+//           ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:100:11: Error: Constant evaluation error:
+//     print(const [o as Class<T>]);
+//           ^
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:100:20: Context: Expected constant 'null' to be of type 'Class<invalid-type>', but was of type 'Null'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/constants/potentially_constant_type.dart'.
+//     print(const [o as Class<T>]);
+//                    ^
 //
 import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
 
 import "org-dartlang-testcase:///potentially_constant_type_lib1.dart";
-import "org-dartlang-testcase:///potentially_constant_type_lib2.dart";
 
-class Class<T extends core::Object* = dynamic> extends core::Object /*hasConstConstructor*/  {
+typedef F<X extends core::Object? = dynamic, unrelated Y extends core::Object? = dynamic> = self::Class<X%>;
+typedef G<unrelated X extends core::Object? = dynamic> = self::Class<core::int>;
+class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
   final field dynamic field1;
+  final field dynamic field2;
+  final field dynamic field3;
+  final field dynamic field4;
   final field dynamic field5;
   final field dynamic field6;
   final field dynamic field7;
@@ -162,18 +225,20 @@ class Class<T extends core::Object* = dynamic> extends core::Object /*hasConstCo
   final field dynamic field9;
   final field dynamic field10;
   final field dynamic field11;
+  final field dynamic field12;
+  final field dynamic field13;
+  final field dynamic field14;
   final field dynamic field15;
-  const constructor •(dynamic o) → self::Class<self::Class::T*>*
-    : self::Class::field1 = #C1, self::Class::field5 = core::_GrowableList::•<invalid-type>(0), self::Class::field6 = block {
-      final core::Set<invalid-type>* #t1 = new col::_Set::•<invalid-type>();
-    } =>#t1, self::Class::field7 = <invalid-type, invalid-type>{}, self::Class::field8 = o is{ForLegacy} invalid-type, self::Class::field9 = o is{ForLegacy} self::Class<invalid-type>*, self::Class::field10 = o as{ForLegacy} invalid-type, self::Class::field11 = o as{ForLegacy} self::Class<invalid-type>*, self::Class::field15 = core::_GrowableList::•<self::Class<invalid-type>*>(0), super core::Object::•()
+  final field dynamic field16;
+  const constructor •(dynamic o) → self::Class<self::Class::T%>
+    : self::Class::field1 = self::Class::T%, self::Class::field2 = self::Class<self::Class::T%>, self::Class::field3 = #C1<self::Class::T%>, self::Class::field4 = #C1<self::Class::T%>, self::Class::field5 = core::_GrowableList::•<invalid-type>(0), self::Class::field6 = block {
+      final core::Set<invalid-type> #t1 = new col::_Set::•<invalid-type>();
+    } =>#t1, self::Class::field7 = <invalid-type, invalid-type>{}, self::Class::field8 = o is self::Class::T%, self::Class::field9 = o is self::Class<self::Class::T%>, self::Class::field10 = o as self::Class::T%, self::Class::field11 = o{self::Class::T%} as self::Class<self::Class::T%>, self::Class::field12 = #C2<self::Class::T%>, self::Class::field13 = #C2<self::Class::T%>, self::Class::field14 = #C1<self::Class<self::Class::T%>>, self::Class::field15 = core::_GrowableList::•<self::Class<invalid-type>>(0), self::Class::field16 = #C3, super core::Object::•()
     ;
   method method() → void {
-    core::print(#C1);
-    core::print(#C2);
-    core::print(#C3);
+    const self::Class<invalid-type> local11 = invalid-expression "Expected constant 'null' to be of type 'Class<invalid-type>', but was of type 'Null'.
+ - 'Class' is from 'pkg/front_end/testcases/general/constants/potentially_constant_type.dart'.";
     core::print(#C4);
-    core::print(#C5);
     core::print(#C5);
     core::print(#C6);
     core::print(#C6);
@@ -183,26 +248,40 @@ class Class<T extends core::Object* = dynamic> extends core::Object /*hasConstCo
     core::print(#C10);
     core::print(#C11);
     core::print(#C12);
+    core::print(invalid-expression "Expected constant 'null' to be of type 'Class<invalid-type>', but was of type 'Null'.
+ - 'Class' is from 'pkg/front_end/testcases/general/constants/potentially_constant_type.dart'.");
     core::print(#C13);
     core::print(#C13);
     core::print(#C14);
     core::print(#C15);
+    core::print(#C3);
     core::print(#C16);
+    core::print(#C17);
+    core::print(#C18);
+    core::print(#C19);
+    core::print(#C19);
+    core::print(#C20);
+    core::print(#C21);
+    core::print(#C22);
+    core::print(#C23);
+    core::print(#C24);
+    core::print(#C25);
+    core::print(invalid-expression "Expected constant 'null' to be of type 'Class<invalid-type>', but was of type 'Null'.
+ - 'Class' is from 'pkg/front_end/testcases/general/constants/potentially_constant_type.dart'.");
+    core::print(#C26);
+    core::print(#C26);
+    core::print(#C27);
+    core::print(#C28);
+    core::print(#C29);
   }
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-static method id<T extends core::Object* = dynamic>(self::id::T* t) → self::id::T*
+static method id<T extends core::Object? = dynamic>(self::id::T% t) → self::id::T%
   return t;
 static method main() → dynamic {}
+static method _#F#new#tearOff<X extends core::Object? = dynamic, unrelated Y extends core::Object? = dynamic>(dynamic o) → self::Class<self::_#F#new#tearOff::X%>
+  return new self::Class::•<self::_#F#new#tearOff::X%>(o);
+static method _#G#new#tearOff<unrelated X extends core::Object? = dynamic>(dynamic o) → self::Class<core::int>
+  return new self::Class::•<core::int>(o);
 
 library;
 //
@@ -366,363 +445,70 @@ class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstCo
   final field dynamic field11;
   final field dynamic field15;
   const constructor •(dynamic o) → self2::Class<self2::Class::T%>
-    : self2::Class::field1 = #C1, self2::Class::field5 = core::_GrowableList::•<invalid-type>(0), self2::Class::field6 = block {
+    : self2::Class::field1 = #C4, self2::Class::field5 = core::_GrowableList::•<invalid-type>(0), self2::Class::field6 = block {
       final core::Set<invalid-type> #t2 = new col::_Set::•<invalid-type>();
     } =>#t2, self2::Class::field7 = <invalid-type, invalid-type>{}, self2::Class::field8 = o is self2::Class::T%, self2::Class::field9 = o is self2::Class<self2::Class::T%>, self2::Class::field10 = o as self2::Class::T%, self2::Class::field11 = o{self2::Class::T%} as self2::Class<self2::Class::T%>, self2::Class::field15 = core::_GrowableList::•<self2::Class<invalid-type>>(0), super core::Object::•()
     ;
   method method() → void {
     const self2::Class<invalid-type> local11 = invalid-expression "Expected constant 'null' to be of type 'Class<invalid-type>', but was of type 'Null'.
  - 'Class' is from 'pkg/front_end/testcases/general/constants/potentially_constant_type_lib1.dart'.";
-    core::print(#C1);
-    core::print(#C2);
-    core::print(#C3);
     core::print(#C4);
-    core::print(#C5);
-    core::print(#C17);
-    core::print(#C6);
+    core::print(#C7);
+    core::print(#C8);
+    core::print(#C9);
+    core::print(#C10);
+    core::print(#C11);
+    core::print(#C12);
     core::print(invalid-expression "Expected constant 'null' to be of type 'Class<invalid-type>', but was of type 'Null'.
  - 'Class' is from 'pkg/front_end/testcases/general/constants/potentially_constant_type_lib1.dart'.");
-    core::print(#C18);
-    core::print(#C19);
+    core::print(#C30);
+    core::print(#C16);
+    core::print(#C17);
     core::print(#C20);
     core::print(#C21);
     core::print(#C22);
     core::print(#C23);
     core::print(#C24);
     core::print(#C25);
-    core::print(#C26);
     core::print(invalid-expression "Expected constant 'null' to be of type 'Class<invalid-type>', but was of type 'Null'.
  - 'Class' is from 'pkg/front_end/testcases/general/constants/potentially_constant_type_lib1.dart'.");
-    core::print(#C27);
+    core::print(#C31);
   }
 }
 static method id<T extends core::Object? = dynamic>(self2::id::T% t) → self2::id::T%
   return t;
 static method main() → dynamic {}
 
-library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:34:21: Error: Constant expression expected.
-// Try inserting 'const'.
-//         field5 = <T>[],
-//                     ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:34:19: Error: Type variables can't be used as constants.
-//         field5 = <T>[],
-//                   ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:35:21: Error: Constant expression expected.
-// Try inserting 'const'.
-//         field6 = <T>{},
-//                     ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:35:19: Error: Type variables can't be used as constants.
-//         field6 = <T>{},
-//                   ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:36:24: Error: Constant expression expected.
-// Try inserting 'const'.
-//         field7 = <T, T>{},
-//                        ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:36:19: Error: Type variables can't be used as constants.
-//         field7 = <T, T>{},
-//                   ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:36:22: Error: Type variables can't be used as constants.
-//         field7 = <T, T>{},
-//                      ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:44:29: Error: Constant expression expected.
-// Try inserting 'const'.
-//         field15 = <Class<T>>[],
-//                             ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:44:26: Error: Type variables can't be used as constants.
-//         field15 = <Class<T>>[],
-//                          ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:51:20: Error: Type variables can't be used as constants.
-//     const local1 = T;
-//                    ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:52:26: Error: Type variables can't be used as constants.
-//     const local2 = Class<T>;
-//                          ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:53:23: Error: Type variables can't be used as constants.
-//     const local3 = id<T>;
-//                       ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:54:25: Error: Type variables can't be used as constants.
-//     const local4 = (id)<T>;
-//                         ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:55:21: Error: Type variables can't be used as constants.
-//     const local5 = <T>[];
-//                     ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:56:21: Error: Type variables can't be used as constants.
-//     const local6 = <T>{};
-//                     ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:57:21: Error: Type variables can't be used as constants.
-//     const local7 = <T, T>{};
-//                     ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:57:24: Error: Type variables can't be used as constants.
-//     const local7 = <T, T>{};
-//                        ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:58:25: Error: Type variables can't be used as constants.
-//     const local8 = o is T;
-//                         ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:59:31: Error: Type variables can't be used as constants.
-//     const local9 = o is Class<T>;
-//                               ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:60:26: Error: Type variables can't be used as constants.
-//     const local10 = o as T;
-//                          ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:61:32: Error: Type variables can't be used as constants.
-//     const local11 = o as Class<T>;
-//                                ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:62:27: Error: Type variables can't be used as constants.
-//     const local12 = Class<T>.new;
-//                           ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:63:23: Error: Type variables can't be used as constants.
-//     const local13 = F<T, T>.new;
-//                       ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:63:26: Error: Type variables can't be used as constants.
-//     const local13 = F<T, T>.new;
-//                          ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:64:30: Error: Type variables can't be used as constants.
-//     const local14 = id<Class<T>>;
-//                              ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:65:28: Error: Type variables can't be used as constants.
-//     const local15 = <Class<T>>[];
-//                            ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:66:23: Error: Type variables can't be used as constants.
-//     const local16 = G<T>.new;
-//                       ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:88:18: Error: Type variables can't be used as constants.
-//     print(const [T]);
-//                  ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:89:24: Error: Type variables can't be used as constants.
-//     print(const [Class<T>]);
-//                        ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:90:21: Error: Type variables can't be used as constants.
-//     print(const [id<T>]);
-//                     ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:91:23: Error: Type variables can't be used as constants.
-//     print(const [(id)<T>]);
-//                       ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:92:19: Error: Type variables can't be used as constants.
-//     print(const [<T>[]]);
-//                   ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:93:19: Error: Type variables can't be used as constants.
-//     print(const [<T>{}]);
-//                   ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:94:19: Error: Type variables can't be used as constants.
-//     print(const [<T, T>{}]);
-//                   ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:94:22: Error: Type variables can't be used as constants.
-//     print(const [<T, T>{}]);
-//                      ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:95:23: Error: Type variables can't be used as constants.
-//     print(const [o is T]);
-//                       ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:96:29: Error: Type variables can't be used as constants.
-//     print(const [o is Class<T>]);
-//                             ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:97:23: Error: Type variables can't be used as constants.
-//     print(const [o as T]);
-//                       ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:98:29: Error: Type variables can't be used as constants.
-//     print(const [o as Class<T>]);
-//                             ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:99:24: Error: Type variables can't be used as constants.
-//     print(const [Class<T>.new]);
-//                        ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:100:20: Error: Type variables can't be used as constants.
-//     print(const [F<T, T>.new]);
-//                    ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:100:23: Error: Type variables can't be used as constants.
-//     print(const [F<T, T>.new]);
-//                       ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:101:27: Error: Type variables can't be used as constants.
-//     print(const [id<Class<T>>]);
-//                           ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:102:25: Error: Type variables can't be used as constants.
-//     print(const [<Class<T>>[]]);
-//                         ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:103:20: Error: Type variables can't be used as constants.
-//     print(const [G<T>.new]);
-//                    ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:61:23: Error: Constant evaluation error:
-//     const local11 = o as Class<T>;
-//                       ^
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:61:23: Context: Expected constant 'null' to be of type 'Class<invalid-type>', but was of type 'Null'.
-//  - 'Class' is from 'pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart'.
-//     const local11 = o as Class<T>;
-//                       ^
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:61:11: Context: While analyzing:
-//     const local11 = o as Class<T>;
-//           ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:98:11: Error: Constant evaluation error:
-//     print(const [o as Class<T>]);
-//           ^
-// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:98:20: Context: Expected constant 'null' to be of type 'Class<invalid-type>', but was of type 'Null'.
-//  - 'Class' is from 'pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart'.
-//     print(const [o as Class<T>]);
-//                    ^
-//
-import self as self3;
-import "dart:core" as core;
-import "dart:collection" as col;
-
-typedef F<X extends core::Object? = dynamic, unrelated Y extends core::Object? = dynamic> = self3::Class<X%>;
-typedef G<unrelated X extends core::Object? = dynamic> = self3::Class<core::int>;
-class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
-  final field dynamic field1;
-  final field dynamic field2;
-  final field dynamic field3;
-  final field dynamic field4;
-  final field dynamic field5;
-  final field dynamic field6;
-  final field dynamic field7;
-  final field dynamic field8;
-  final field dynamic field9;
-  final field dynamic field10;
-  final field dynamic field11;
-  final field dynamic field12;
-  final field dynamic field13;
-  final field dynamic field14;
-  final field dynamic field15;
-  final field dynamic field16;
-  const constructor •(dynamic o) → self3::Class<self3::Class::T%>
-    : self3::Class::field1 = self3::Class::T%, self3::Class::field2 = self3::Class<self3::Class::T%>, self3::Class::field3 = #C28<self3::Class::T%>, self3::Class::field4 = #C28<self3::Class::T%>, self3::Class::field5 = core::_GrowableList::•<invalid-type>(0), self3::Class::field6 = block {
-      final core::Set<invalid-type> #t3 = new col::_Set::•<invalid-type>();
-    } =>#t3, self3::Class::field7 = <invalid-type, invalid-type>{}, self3::Class::field8 = o is self3::Class::T%, self3::Class::field9 = o is self3::Class<self3::Class::T%>, self3::Class::field10 = o as self3::Class::T%, self3::Class::field11 = o{self3::Class::T%} as self3::Class<self3::Class::T%>, self3::Class::field12 = #C29<self3::Class::T%>, self3::Class::field13 = #C29<self3::Class::T%>, self3::Class::field14 = #C28<self3::Class<self3::Class::T%>>, self3::Class::field15 = core::_GrowableList::•<self3::Class<invalid-type>>(0), self3::Class::field16 = #C30, super core::Object::•()
-    ;
-  method method() → void {
-    const self3::Class<invalid-type> local11 = invalid-expression "Expected constant 'null' to be of type 'Class<invalid-type>', but was of type 'Null'.
- - 'Class' is from 'pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart'.";
-    core::print(#C1);
-    core::print(#C31);
-    core::print(#C32);
-    core::print(#C32);
-    core::print(#C2);
-    core::print(#C3);
-    core::print(#C4);
-    core::print(#C5);
-    core::print(#C17);
-    core::print(#C6);
-    core::print(invalid-expression "Expected constant 'null' to be of type 'Class<invalid-type>', but was of type 'Null'.
- - 'Class' is from 'pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart'.");
-    core::print(#C33);
-    core::print(#C33);
-    core::print(#C34);
-    core::print(#C35);
-    core::print(#C30);
-    core::print(#C19);
-    core::print(#C20);
-    core::print(#C36);
-    core::print(#C37);
-    core::print(#C37);
-    core::print(#C21);
-    core::print(#C22);
-    core::print(#C23);
-    core::print(#C24);
-    core::print(#C25);
-    core::print(#C26);
-    core::print(invalid-expression "Expected constant 'null' to be of type 'Class<invalid-type>', but was of type 'Null'.
- - 'Class' is from 'pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart'.");
-    core::print(#C38);
-    core::print(#C38);
-    core::print(#C39);
-    core::print(#C40);
-    core::print(#C41);
-  }
-}
-static method id<T extends core::Object? = dynamic>(self3::id::T% t) → self3::id::T%
-  return t;
-static method main() → dynamic {}
-static method _#F#new#tearOff<X extends core::Object? = dynamic, unrelated Y extends core::Object? = dynamic>(dynamic o) → self3::Class<self3::_#F#new#tearOff::X%>
-  return new self3::Class::•<self3::_#F#new#tearOff::X%>(o);
-static method _#G#new#tearOff<unrelated X extends core::Object? = dynamic>(dynamic o) → self3::Class<core::int>
-  return new self3::Class::•<core::int>(o);
-
 constants  {
-  #C1 = TypeLiteralConstant(invalid-type)
-  #C2 = <invalid-type>[]
-  #C3 = <invalid-type>{}
-  #C4 = <invalid-type, invalid-type>{}
-  #C5 = true
-  #C6 = null
-  #C7 = <self::Class<invalid-type>*>[]
-  #C8 = <Null>[]
-  #C9 = <core::Type*>[#C1]
-  #C10 = <core::List<invalid-type>*>[#C2]
-  #C11 = <core::Set<invalid-type>*>[#C3]
-  #C12 = <core::Map<invalid-type, invalid-type>*>[#C4]
-  #C13 = <core::bool*>[#C5]
-  #C14 = <invalid-type>[#C6]
-  #C15 = <self::Class<invalid-type>*>[#C6]
-  #C16 = <core::List<self::Class<invalid-type>*>*>[#C7]
-  #C17 = false
-  #C18 = <self2::Class<invalid-type>>[]
-  #C19 = <Never>[]
-  #C20 = <core::Type>[#C1]
-  #C21 = <core::List<invalid-type>>[#C2]
-  #C22 = <core::Set<invalid-type>>[#C3]
-  #C23 = <core::Map<invalid-type, invalid-type>>[#C4]
-  #C24 = <core::bool>[#C5]
-  #C25 = <core::bool>[#C17]
-  #C26 = <dynamic>[#C6]
-  #C27 = <core::List<self2::Class<invalid-type>>>[#C18]
-  #C28 = static-tearoff self3::id
-  #C29 = constructor-tearoff self3::Class::•
-  #C30 = instantiation #C29 <core::int>
-  #C31 = TypeLiteralConstant(self3::Class<invalid-type>)
-  #C32 = instantiation #C28 <invalid-type>
-  #C33 = instantiation #C29 <invalid-type>
-  #C34 = instantiation #C28 <self3::Class<invalid-type>>
-  #C35 = <self3::Class<invalid-type>>[]
-  #C36 = <core::Type>[#C31]
-  #C37 = <(invalid-type) → invalid-type>[#C32]
-  #C38 = <(dynamic) → self3::Class<invalid-type>>[#C33]
-  #C39 = <(self3::Class<invalid-type>) → self3::Class<invalid-type>>[#C34]
-  #C40 = <core::List<self3::Class<invalid-type>>>[#C35]
-  #C41 = <(dynamic) → self3::Class<core::int>>[#C30]
+  #C1 = static-tearoff self::id
+  #C2 = constructor-tearoff self::Class::•
+  #C3 = instantiation #C2 <core::int>
+  #C4 = TypeLiteralConstant(invalid-type)
+  #C5 = TypeLiteralConstant(self::Class<invalid-type>)
+  #C6 = instantiation #C1 <invalid-type>
+  #C7 = <invalid-type>[]
+  #C8 = <invalid-type>{}
+  #C9 = <invalid-type, invalid-type>{}
+  #C10 = true
+  #C11 = false
+  #C12 = null
+  #C13 = instantiation #C2 <invalid-type>
+  #C14 = instantiation #C1 <self::Class<invalid-type>>
+  #C15 = <self::Class<invalid-type>>[]
+  #C16 = <Never>[]
+  #C17 = <core::Type>[#C4]
+  #C18 = <core::Type>[#C5]
+  #C19 = <(invalid-type) → invalid-type>[#C6]
+  #C20 = <core::List<invalid-type>>[#C7]
+  #C21 = <core::Set<invalid-type>>[#C8]
+  #C22 = <core::Map<invalid-type, invalid-type>>[#C9]
+  #C23 = <core::bool>[#C10]
+  #C24 = <core::bool>[#C11]
+  #C25 = <dynamic>[#C12]
+  #C26 = <(dynamic) → self::Class<invalid-type>>[#C13]
+  #C27 = <(self::Class<invalid-type>) → self::Class<invalid-type>>[#C14]
+  #C28 = <core::List<self::Class<invalid-type>>>[#C15]
+  #C29 = <(dynamic) → self::Class<core::int>>[#C3]
+  #C30 = <self2::Class<invalid-type>>[]
+  #C31 = <core::List<self2::Class<invalid-type>>>[#C30]
 }

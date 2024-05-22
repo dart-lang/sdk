@@ -11,7 +11,7 @@ import 'package:front_end/src/fasta/source/source_member_builder.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
-import 'package:kernel/ast.dart' hide Variance;
+import 'package:kernel/ast.dart';
 
 Future<void> main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve(
@@ -21,8 +21,8 @@ Future<void> main(List<String> args) async {
       args: args,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
-      runTest: runTestFor(const DefiniteUnassignmentDataComputer(),
-          [cfeNonNullableOnlyConfig]));
+      runTest: runTestFor(
+          const DefiniteUnassignmentDataComputer(), [defaultCfeConfig]));
 }
 
 class DefiniteUnassignmentDataComputer extends CfeDataComputer<String> {

@@ -307,6 +307,10 @@ mixin ErrorDetectionHelpers {
       DartType type, DartType context, SyntacticEntity errorNode) {
     var visitedTypes = {type};
     while (type is TypeParameterType) {
+      if (type.nullabilitySuffix != NullabilitySuffix.none) {
+        // The value might be `null`, so implicit `.call` tearoff is invalid.
+        return null;
+      }
       type = type.bound;
       if (!visitedTypes.add(type)) {
         // A cycle!

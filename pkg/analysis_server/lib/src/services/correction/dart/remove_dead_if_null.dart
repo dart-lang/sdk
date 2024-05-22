@@ -13,14 +13,10 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveDeadIfNull extends ResolvedCorrectionProducer {
   @override
-  // This fix removes the right operand of an if-null which is not predictably
-  // the right thing to do.
-  bool get canBeAppliedInBulk => false;
-
-  @override
-  // This fix removes the right operand of an if-null which is not predictably
-  // the right thing to do.
-  bool get canBeAppliedToFile => false;
+  CorrectionApplicability get applicability =>
+      // This fix removes the right operand of an if-null which is not
+      // predictably the right thing to do.
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_IF_NULL_OPERATOR;

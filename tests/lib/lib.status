@@ -61,6 +61,9 @@ html/xhr_test/xhr: Skip # Times out.  Issue 21527
 [ $csp ]
 html/js_interop_constructor_name/*: SkipByDesign # Issue 42085.
 isolate/deferred_in_isolate2_test: Skip # Issue 16898. Deferred loading does not work from an isolate in CSP-mode
+js/call_field_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js/call_getter_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js/call_method_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/extends_test/extends_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/extends_test/extends_with_es6_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/instanceof_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
@@ -76,6 +79,8 @@ js/js_util/properties_test: SkipByDesign # Issue 42085. CSP policy disallows inj
 js/method_call_on_object_test: SkipByDesign # Issue 42085.
 js/mock_test/*: SkipByDesign # Issue 42085.
 js/parameters_test: SkipByDesign # Issue 42085.
+js/static_interop_test/call_getter_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js/static_interop_test/call_method_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/extension_type/external_extension_member_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/extension_type/external_member_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/extension_type/external_static_member_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code

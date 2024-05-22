@@ -586,6 +586,9 @@ abstract class Member implements Element {
   bool get hasDoNotStore => _declaration.hasDoNotStore;
 
   @override
+  bool get hasDoNotSubmit => _declaration.hasDoNotSubmit;
+
+  @override
   bool get hasFactory => _declaration.hasFactory;
 
   @override
@@ -605,6 +608,9 @@ abstract class Member implements Element {
 
   @override
   bool get hasLiteral => _declaration.hasLiteral;
+
+  @override
+  bool get hasMustBeConst => _declaration.hasMustBeConst;
 
   @override
   bool get hasMustBeOverridden => _declaration.hasMustBeOverridden;
@@ -908,7 +914,7 @@ class ParameterMember extends VariableMember
 
   @override
   List<ParameterElement> get parameters {
-    final type = this.type;
+    var type = this.type;
     if (type is FunctionType) {
       return type.parameters;
     }
@@ -986,8 +992,7 @@ class PropertyAccessorMember extends ExecutableMember
 
   @override
   PropertyAccessorElement? get augmentation {
-    // TODO(scheglov): implement
-    throw UnimplementedError();
+    return declaration.augmentation;
   }
 
   @override

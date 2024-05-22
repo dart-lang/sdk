@@ -3517,12 +3517,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       CompilerPassState pass_state(thread(), flow_graph, &speculative_policy,
                                    precompiler_);
 
-      if (function.ForceOptimize()) {
-        ASSERT(optimized());
-        TIMELINE_DURATION(thread(), CompilerVerbose, "OptimizationPasses");
-        flow_graph = CompilerPass::RunForceOptimizedPipeline(CompilerPass::kAOT,
-                                                             &pass_state);
-      } else if (optimized()) {
+      if (optimized()) {
         TIMELINE_DURATION(thread(), CompilerVerbose, "OptimizationPasses");
 
         AotCallSpecializer call_specializer(precompiler_, flow_graph,

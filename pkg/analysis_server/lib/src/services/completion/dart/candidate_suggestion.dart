@@ -21,8 +21,18 @@ import 'package:analyzer/source/source_range.dart';
 /// A [SuggestionBuilder] will be used to convert a candidate into a concrete
 /// suggestion based on the wire protocol being used.
 sealed class CandidateSuggestion {
-  /// Return the text to be inserted by the completion suggestion.
+  /// The score computed by a [CompletionMatcher] for this suggestion.
+  final double matcherScore;
+
+  CandidateSuggestion({required this.matcherScore}) : assert(matcherScore >= 0);
+
+  /// The text to be inserted by the completion suggestion.
   String get completion;
+
+  @override
+  String toString() {
+    return completion;
+  }
 }
 
 /// The information about a candidate suggestion based on a class.
@@ -31,7 +41,10 @@ final class ClassSuggestion extends ImportableSuggestion {
   final ClassElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  ClassSuggestion({required super.importData, required this.element});
+  ClassSuggestion(
+      {required super.importData,
+      required this.element,
+      required super.matcherScore});
 
   @override
   String get completion => '$completionPrefix${element.name}';
@@ -51,7 +64,9 @@ final class ClosureSuggestion extends CandidateSuggestion {
   /// If [includeTrailingComma] is `true`, then the replacement will include a
   /// trailing comma.
   ClosureSuggestion(
-      {required this.functionType, required this.includeTrailingComma});
+      {required this.functionType,
+      required this.includeTrailingComma,
+      required super.matcherScore});
 
   @override
   // TODO(brianwilkerson): Fix this.
@@ -89,6 +104,7 @@ final class ConstructorSuggestion extends ImportableSuggestion {
     required this.isTearOff,
     required this.isRedirect,
     required this.suggestUnnamedAsNew,
+    required super.matcherScore,
   }) : assert((isTearOff ? 1 : 0) | (isRedirect ? 1 : 0) < 2);
 
   @override
@@ -109,7 +125,8 @@ final class EnumConstantSuggestion extends ImportableSuggestion {
   EnumConstantSuggestion(
       {required super.importData,
       required this.element,
-      this.includeEnumName = true});
+      this.includeEnumName = true,
+      required super.matcherScore});
 
   @override
   String get completion {
@@ -128,7 +145,10 @@ final class EnumSuggestion extends ImportableSuggestion {
   final EnumElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  EnumSuggestion({required super.importData, required this.element});
+  EnumSuggestion(
+      {required super.importData,
+      required this.element,
+      required super.matcherScore});
 
   @override
   String get completion => '$completionPrefix${element.name}';
@@ -136,7 +156,7 @@ final class EnumSuggestion extends ImportableSuggestion {
 
 /// The information about a candidate suggestion based on an executable element,
 /// either a method or function.
-sealed class ExecutableSuggestion extends CandidateSuggestion {
+sealed class ExecutableSuggestion extends ImportableSuggestion {
   /// The kind of suggestion to be made, either
   /// [CompletionSuggestionKind.IDENTIFIER] or
   /// [CompletionSuggestionKind.INVOCATION].
@@ -144,7 +164,10 @@ sealed class ExecutableSuggestion extends CandidateSuggestion {
 
   /// Initialize a newly created suggestion to use the given [kind] of
   /// suggestion.
-  ExecutableSuggestion({required this.kind})
+  ExecutableSuggestion(
+      {required super.importData,
+      required this.kind,
+      required super.matcherScore})
       : assert(kind == CompletionSuggestionKind.IDENTIFIER ||
             kind == CompletionSuggestionKind.INVOCATION);
 }
@@ -155,7 +178,10 @@ final class ExtensionSuggestion extends ImportableSuggestion {
   final ExtensionElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  ExtensionSuggestion({required super.importData, required this.element});
+  ExtensionSuggestion(
+      {required super.importData,
+      required this.element,
+      required super.matcherScore});
 
   @override
   String get completion => '$completionPrefix${element.name!}';
@@ -167,7 +193,10 @@ final class ExtensionTypeSuggestion extends ImportableSuggestion {
   final ExtensionTypeElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  ExtensionTypeSuggestion({required super.importData, required this.element});
+  ExtensionTypeSuggestion(
+      {required super.importData,
+      required this.element,
+      required super.matcherScore});
 
   @override
   String get completion => '$completionPrefix${element.name}';
@@ -178,12 +207,15 @@ final class FieldSuggestion extends CandidateSuggestion {
   /// The element on which the suggestion is based.
   final FieldElement element;
 
-  /// The class from which the field is being referenced, or `null` if the class
-  /// is not being referenced from within a class.
-  final ClassElement? referencingClass;
+  /// The element defined by the declaration in which the suggestion is to be
+  /// applied, or `null` if the completion is in a static context.
+  final InterfaceElement? referencingInterface;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  FieldSuggestion({required this.element, required this.referencingClass});
+  FieldSuggestion(
+      {required this.element,
+      required this.referencingInterface,
+      required super.matcherScore});
 
   @override
   String get completion => element.name;
@@ -202,6 +234,7 @@ final class FormalParameterSuggestion extends CandidateSuggestion {
   FormalParameterSuggestion({
     required this.element,
     required this.distance,
+    required super.matcherScore,
   });
 
   @override
@@ -213,7 +246,7 @@ final class FormalParameterSuggestion extends CandidateSuggestion {
 final class FunctionCall extends CandidateSuggestion {
   /// Initialize a newly created candidate suggestion to suggest the method
   /// `call` defined on the class `Function`.
-  FunctionCall();
+  FunctionCall({required super.matcherScore});
 
   @override
   String get completion => 'call()';
@@ -227,7 +260,7 @@ final class IdentifierSuggestion extends CandidateSuggestion {
 
   /// Initialize a newly created candidate suggestion to suggest the
   /// [identifier].
-  IdentifierSuggestion({required this.identifier});
+  IdentifierSuggestion({required this.identifier, required super.matcherScore});
 
   @override
   String get completion => identifier;
@@ -239,12 +272,14 @@ sealed class ImportableSuggestion extends CandidateSuggestion {
   /// Information about the import used to make this suggestion visible.
   final ImportData? importData;
 
-  ImportableSuggestion({required this.importData});
+  ImportableSuggestion({required this.importData, required super.matcherScore});
 
-  String get completionPrefix => prefix == null ? '' : '$prefix.';
-
-  /// The URI of the library from which the suggested element would be imported.
-  String? get libraryUriStr => importData?.libraryUriStr;
+  /// The text to add before the name of the element when it is being imported
+  /// using an import prefix.
+  String get completionPrefix {
+    var prefixName = prefix;
+    return prefixName == null ? '' : '$prefixName.';
+  }
 
   /// The prefix to be used in order to access the element.
   String? get prefix => importData?.prefix;
@@ -252,8 +287,16 @@ sealed class ImportableSuggestion extends CandidateSuggestion {
 
 /// Data representing an import of a library.
 final class ImportData {
+  /// Whether the library needs to be imported in order for the suggestion to be
+  /// accessible.
+  ///
+  /// This will return `false` when the library is already imported but the
+  /// import needs to be updated, such as by adding the element to a `show`
+  /// clause.
+  final bool isNotImported;
+
   /// The URI of the library from which the suggested element would be imported.
-  final String libraryUriStr;
+  final Uri libraryUri;
 
   /// The prefix to be used in order to access the element, or `null` if no
   /// prefix is required.
@@ -261,7 +304,10 @@ final class ImportData {
 
   /// Initialize data representing an import of a library, using the
   /// [libraryUriStr], with the [prefix].
-  ImportData({required this.libraryUriStr, required this.prefix});
+  ImportData(
+      {required this.libraryUri,
+      required this.prefix,
+      required this.isNotImported});
 }
 
 /// A suggestion based on an import prefix.
@@ -272,6 +318,7 @@ final class ImportPrefixSuggestion extends CandidateSuggestion {
   ImportPrefixSuggestion({
     required this.libraryElement,
     required this.prefixElement,
+    required super.matcherScore,
   });
 
   @override
@@ -302,6 +349,7 @@ final class KeywordSuggestion extends CandidateSuggestion {
   factory KeywordSuggestion.fromKeyword({
     required Keyword keyword,
     required String? annotatedText,
+    required double matcherScore,
   }) {
     var completion = keyword.lexeme;
     var selectionOffset = completion.length;
@@ -315,6 +363,7 @@ final class KeywordSuggestion extends CandidateSuggestion {
     return KeywordSuggestion._(
       completion: completion,
       selectionOffset: selectionOffset,
+      matcherScore: matcherScore,
     );
   }
 
@@ -323,17 +372,21 @@ final class KeywordSuggestion extends CandidateSuggestion {
   /// be used as the selection offset. If the text doesn't contain a caret, then
   /// the insert text will be the annotated text and the selection offset will
   /// be at the end of the text.
-  factory KeywordSuggestion.fromText(String annotatedText) {
+  factory KeywordSuggestion.fromText(String annotatedText,
+      {required double matcherScore}) {
     var (rawText, caretIndex) = annotatedText.withoutCaret;
     return KeywordSuggestion._(
       completion: rawText,
       selectionOffset: caretIndex ?? rawText.length,
+      matcherScore: matcherScore,
     );
   }
 
   /// Initialize a newly created candidate suggestion to suggest a keyword.
   KeywordSuggestion._(
-      {required this.completion, required this.selectionOffset});
+      {required this.completion,
+      required this.selectionOffset,
+      required super.matcherScore});
 }
 
 /// The information about a candidate suggestion based on a label.
@@ -342,10 +395,24 @@ final class LabelSuggestion extends CandidateSuggestion {
   final Label label;
 
   /// Initialize a newly created candidate suggestion to suggest the [label].
-  LabelSuggestion({required this.label});
+  LabelSuggestion({required this.label, required super.matcherScore});
 
   @override
   String get completion => label.label.name;
+}
+
+/// The suggestion for `loadLibrary()`.
+final class LoadLibraryFunctionSuggestion extends ExecutableSuggestion {
+  final FunctionElement element;
+
+  LoadLibraryFunctionSuggestion({
+    required super.kind,
+    required this.element,
+    required super.matcherScore,
+  }) : super(importData: null);
+
+  @override
+  String get completion => element.name;
 }
 
 /// The information about a candidate suggestion based on a local function.
@@ -354,7 +421,9 @@ final class LocalFunctionSuggestion extends ExecutableSuggestion {
   final FunctionElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  LocalFunctionSuggestion({required super.kind, required this.element});
+  LocalFunctionSuggestion(
+      {required super.kind, required this.element, required super.matcherScore})
+      : super(importData: null);
 
   @override
   String get completion => element.name;
@@ -370,7 +439,10 @@ final class LocalVariableSuggestion extends CandidateSuggestion {
   final int distance;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  LocalVariableSuggestion({required this.element, required this.distance});
+  LocalVariableSuggestion(
+      {required this.element,
+      required this.distance,
+      required super.matcherScore});
 
   @override
   String get completion => element.name;
@@ -381,13 +453,17 @@ final class MethodSuggestion extends ExecutableSuggestion {
   /// The element on which the suggestion is based.
   final MethodElement element;
 
-  final ClassElement? referencingClass;
+  /// The element defined by the declaration in which the suggestion is to be
+  /// applied, or `null` if the completion is in a static context.
+  final InterfaceElement? referencingInterface;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
   MethodSuggestion(
       {required super.kind,
       required this.element,
-      required this.referencingClass});
+      required super.importData,
+      required this.referencingInterface,
+      required super.matcherScore});
 
   @override
   String get completion => element.name;
@@ -399,7 +475,10 @@ final class MixinSuggestion extends ImportableSuggestion {
   final MixinElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  MixinSuggestion({required super.importData, required this.element});
+  MixinSuggestion(
+      {required super.importData,
+      required this.element,
+      required super.matcherScore});
 
   @override
   String get completion => '$completionPrefix${element.name}';
@@ -424,7 +503,8 @@ final class NamedArgumentSuggestion extends CandidateSuggestion {
       {required this.parameter,
       required this.appendColon,
       required this.appendComma,
-      this.replacementLength});
+      this.replacementLength,
+      required super.matcherScore});
 
   @override
   String get completion =>
@@ -437,7 +517,7 @@ final class NameSuggestion extends CandidateSuggestion {
   final String name;
 
   /// Initialize a newly created candidate suggestion to suggest the [name].
-  NameSuggestion({required this.name});
+  NameSuggestion({required this.name, required super.matcherScore});
 
   @override
   String get completion => name;
@@ -459,13 +539,14 @@ final class OverrideSuggestion extends CandidateSuggestion {
   /// The source range that should be replaced by the override.
   final SourceRange replacementRange;
 
-  /// Initialize a newly created candidate suggestion to suggest the [element] by
-  /// inserting the [shouldInvokeSuper].
+  /// Initialize a newly created candidate suggestion to suggest the [element]
+  /// by inserting the [shouldInvokeSuper].
   OverrideSuggestion({
     required this.element,
     required this.shouldInvokeSuper,
     required this.skipAt,
     required this.replacementRange,
+    required super.matcherScore,
   });
 
   @override
@@ -475,15 +556,20 @@ final class OverrideSuggestion extends CandidateSuggestion {
 }
 
 /// The information about a candidate suggestion based on a getter or setter.
-final class PropertyAccessSuggestion extends CandidateSuggestion {
+final class PropertyAccessSuggestion extends ImportableSuggestion {
   /// The element on which the suggestion is based.
   final PropertyAccessorElement element;
 
-  final ClassElement? referencingClass;
+  /// The element defined by the declaration in which the suggestion is to be
+  /// applied, or `null` if the completion is in a static context.
+  final InterfaceElement? referencingInterface;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
   PropertyAccessSuggestion(
-      {required this.element, required this.referencingClass});
+      {required this.element,
+      required super.importData,
+      required this.referencingInterface,
+      required super.matcherScore});
 
   @override
   String get completion => element.name;
@@ -500,10 +586,34 @@ final class RecordFieldSuggestion extends CandidateSuggestion {
 
   /// Initialize a newly created candidate suggestion to suggest the [field] by
   /// inserting the [name].
-  RecordFieldSuggestion({required this.field, required this.name});
+  RecordFieldSuggestion(
+      {required this.field, required this.name, required super.matcherScore});
 
   @override
   String get completion => name;
+}
+
+/// The information about a candidate suggestion based on a named field of
+/// a record type.
+final class RecordLiteralNamedFieldSuggestion extends CandidateSuggestion {
+  final RecordTypeNamedField field;
+  final bool appendColon;
+  final bool appendComma;
+
+  RecordLiteralNamedFieldSuggestion.newField({
+    required this.field,
+    required this.appendComma,
+    required super.matcherScore,
+  }) : appendColon = true;
+
+  RecordLiteralNamedFieldSuggestion.onlyName({
+    required this.field,
+    required super.matcherScore,
+  })  : appendColon = false,
+        appendComma = false;
+
+  @override
+  String get completion => field.name;
 }
 
 /// The information about a candidate suggestion based on a static field in a
@@ -514,7 +624,10 @@ final class StaticFieldSuggestion extends ImportableSuggestion {
   final FieldElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  StaticFieldSuggestion({required super.importData, required this.element});
+  StaticFieldSuggestion(
+      {required super.importData,
+      required this.element,
+      required super.matcherScore});
 
   @override
   String get completion {
@@ -530,7 +643,8 @@ final class SuperParameterSuggestion extends CandidateSuggestion {
   final ParameterElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  SuperParameterSuggestion({required this.element});
+  SuperParameterSuggestion(
+      {required this.element, required super.matcherScore});
 
   @override
   String get completion => element.name;
@@ -549,7 +663,10 @@ final class TopLevelFunctionSuggestion extends ImportableSuggestion {
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
   TopLevelFunctionSuggestion(
-      {required super.importData, required this.element, required this.kind})
+      {required super.importData,
+      required this.element,
+      required this.kind,
+      required super.matcherScore})
       : assert(kind == CompletionSuggestionKind.IDENTIFIER ||
             kind == CompletionSuggestionKind.INVOCATION);
 
@@ -565,7 +682,9 @@ final class TopLevelPropertyAccessSuggestion extends ImportableSuggestion {
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
   TopLevelPropertyAccessSuggestion(
-      {required super.importData, required this.element});
+      {required super.importData,
+      required this.element,
+      required super.matcherScore});
 
   @override
   String get completion => '$completionPrefix${element.name}';
@@ -578,7 +697,9 @@ final class TopLevelVariableSuggestion extends ImportableSuggestion {
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
   TopLevelVariableSuggestion(
-      {required super.importData, required this.element});
+      {required super.importData,
+      required this.element,
+      required super.matcherScore});
 
   @override
   String get completion => '$completionPrefix${element.name}';
@@ -590,7 +711,10 @@ final class TypeAliasSuggestion extends ImportableSuggestion {
   final TypeAliasElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  TypeAliasSuggestion({required super.importData, required this.element});
+  TypeAliasSuggestion(
+      {required super.importData,
+      required this.element,
+      required super.matcherScore});
 
   @override
   String get completion => '$completionPrefix${element.name}';
@@ -602,7 +726,7 @@ final class TypeParameterSuggestion extends CandidateSuggestion {
   final TypeParameterElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  TypeParameterSuggestion({required this.element});
+  TypeParameterSuggestion({required this.element, required super.matcherScore});
 
   @override
   String get completion => element.name;
@@ -614,6 +738,7 @@ final class UriSuggestion extends CandidateSuggestion {
 
   UriSuggestion({
     required this.uriStr,
+    required super.matcherScore,
   });
 
   @override
@@ -637,17 +762,25 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
   //  of splitting it into a legacy builder and an LSP builder.
 
   /// Add a suggestion based on the candidate [suggestion].
-  void suggestFromCandidate(CandidateSuggestion suggestion) {
+  Future<void> suggestFromCandidate(CandidateSuggestion suggestion) async {
+    if (suggestion is ImportableSuggestion) {
+      var importData = suggestion.importData;
+      if (importData != null) {
+        var uri = importData.libraryUri;
+        if (importData.isNotImported) {
+          isNotImportedLibrary = true;
+          requiredImports = [uri];
+        }
+        libraryUriStr = uri.toString();
+      }
+    }
     switch (suggestion) {
       case ClassSuggestion():
-        libraryUriStr = suggestion.libraryUriStr;
         suggestInterface(suggestion.element, prefix: suggestion.prefix);
-        libraryUriStr = null;
       case ClosureSuggestion():
         suggestClosure(suggestion.functionType,
             includeTrailingComma: suggestion.includeTrailingComma);
       case ConstructorSuggestion():
-        libraryUriStr = suggestion.libraryUriStr;
         suggestConstructor(
           suggestion.element,
           hasClassName: suggestion.hasClassName,
@@ -657,27 +790,18 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
           prefix: suggestion.prefix,
           suggestUnnamedAsNew: suggestion.suggestUnnamedAsNew,
         );
-        libraryUriStr = null;
       case EnumSuggestion():
-        libraryUriStr = suggestion.libraryUriStr;
         suggestInterface(suggestion.element, prefix: suggestion.prefix);
-        libraryUriStr = null;
       case EnumConstantSuggestion():
         if (suggestion.includeEnumName) {
-          libraryUriStr = suggestion.libraryUriStr;
           suggestEnumConstant(suggestion.element, prefix: suggestion.prefix);
-          libraryUriStr = null;
         } else {
           suggestField(suggestion.element, inheritanceDistance: 0.0);
         }
       case ExtensionSuggestion():
-        libraryUriStr = suggestion.libraryUriStr;
         suggestExtension(suggestion.element, prefix: suggestion.prefix);
-        libraryUriStr = null;
       case ExtensionTypeSuggestion():
-        libraryUriStr = suggestion.libraryUriStr;
         suggestInterface(suggestion.element, prefix: suggestion.prefix);
-        libraryUriStr = null;
       case FieldSuggestion():
         var fieldElement = suggestion.element;
         if (fieldElement.isEnumConstant) {
@@ -685,7 +809,7 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
         } else {
           suggestField(fieldElement,
               inheritanceDistance: _inheritanceDistance(
-                  suggestion.referencingClass,
+                  suggestion.referencingInterface,
                   suggestion.element.enclosingElement));
         }
       case FormalParameterSuggestion():
@@ -707,6 +831,10 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
             offset: suggestion.selectionOffset);
       case LabelSuggestion():
         suggestLabel(suggestion.label);
+      case LoadLibraryFunctionSuggestion():
+        suggestLoadLibraryFunction(
+          suggestion.element,
+        );
       case LocalFunctionSuggestion():
         suggestTopLevelFunction(suggestion.element);
       case LocalVariableSuggestion():
@@ -725,12 +853,11 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
           suggestion.element,
           kind: kind,
           inheritanceDistance: _inheritanceDistance(
-              suggestion.referencingClass, suggestion.element.enclosingElement),
+              suggestion.referencingInterface,
+              suggestion.element.enclosingElement),
         );
       case MixinSuggestion():
-        libraryUriStr = suggestion.libraryUriStr;
         suggestInterface(suggestion.element, prefix: suggestion.prefix);
-        libraryUriStr = null;
       case NamedArgumentSuggestion():
         suggestNamedArgument(suggestion.parameter,
             appendColon: suggestion.appendColon,
@@ -739,7 +866,7 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
       case NameSuggestion():
         suggestName(suggestion.name);
       case OverrideSuggestion():
-        suggestOverride(
+        await suggestOverride(
           element: suggestion.element,
           invokeSuper: suggestion.shouldInvokeSuper,
           replacementRange: suggestion.replacementRange,
@@ -747,7 +874,7 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
         );
       case PropertyAccessSuggestion():
         var inheritanceDistance = 0.0;
-        var referencingClass = suggestion.referencingClass;
+        var referencingClass = suggestion.referencingInterface;
         var declaringClass = suggestion.element.enclosingElement;
         if (referencingClass != null && declaringClass is InterfaceElement) {
           inheritanceDistance = request.featureComputer
@@ -759,48 +886,48 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
         );
       case RecordFieldSuggestion():
         suggestRecordField(field: suggestion.field, name: suggestion.name);
+      case RecordLiteralNamedFieldSuggestion():
+        suggestNamedRecordField(
+          suggestion.field,
+          appendColon: suggestion.appendColon,
+          appendComma: suggestion.appendComma,
+        );
       case StaticFieldSuggestion():
-        libraryUriStr = suggestion.libraryUriStr;
         suggestStaticField(suggestion.element, prefix: suggestion.prefix);
-        libraryUriStr = null;
       case SuperParameterSuggestion():
         suggestSuperFormalParameter(suggestion.element);
       case TopLevelFunctionSuggestion():
-        libraryUriStr = suggestion.libraryUriStr;
         suggestTopLevelFunction(suggestion.element,
             kind: suggestion.kind, prefix: suggestion.prefix);
-        libraryUriStr = null;
       case TopLevelPropertyAccessSuggestion():
-        libraryUriStr = suggestion.libraryUriStr;
         suggestTopLevelPropertyAccessor(suggestion.element,
             prefix: suggestion.prefix);
-        libraryUriStr = null;
       case TopLevelVariableSuggestion():
-        libraryUriStr = suggestion.libraryUriStr;
         suggestTopLevelVariable(suggestion.element, prefix: suggestion.prefix);
-        libraryUriStr = null;
       case TypeAliasSuggestion():
-        libraryUriStr = suggestion.libraryUriStr;
         suggestTypeAlias(suggestion.element, prefix: suggestion.prefix);
-        libraryUriStr = null;
       case TypeParameterSuggestion():
         suggestTypeParameter(suggestion.element);
       case UriSuggestion():
         suggestUri(suggestion.uriStr);
     }
+    isNotImportedLibrary = false;
+    libraryUriStr = null;
+    requiredImports = [];
   }
 
   /// Add a suggestion for each of the candidate [suggestions].
-  void suggestFromCandidates(List<CandidateSuggestion> suggestions) {
+  Future<void> suggestFromCandidates(
+      List<CandidateSuggestion> suggestions) async {
     for (var suggestion in suggestions) {
-      suggestFromCandidate(suggestion);
+      await suggestFromCandidate(suggestion);
     }
   }
 
   /// Returns the inheritance distance from the [referencingClass] to the
   /// [declaringClass].
   double _inheritanceDistance(
-      ClassElement? referencingClass, Element? declaringClass) {
+      InterfaceElement? referencingClass, Element? declaringClass) {
     var distance = 0.0;
     if (referencingClass != null && declaringClass is InterfaceElement) {
       distance = request.featureComputer

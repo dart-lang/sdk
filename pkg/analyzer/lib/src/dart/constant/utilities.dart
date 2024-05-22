@@ -52,6 +52,15 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor {
   }
 
   @override
+  void visitRecordLiteral(RecordLiteral node) {
+    if (node.isConst) {
+      _find(node);
+    } else {
+      super.visitRecordLiteral(node);
+    }
+  }
+
+  @override
   void visitRelationalPattern(RelationalPattern node) {
     _find(node.operand);
   }
@@ -190,7 +199,7 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
       constantsToCompute.add(element);
       // Fill error nodes.
       if (element is ConstVariableElement) {
-        final constElement = element as ConstVariableElement;
+        var constElement = element as ConstVariableElement;
         configuration.addErrorNode(
           fromElement: constElement.constantInitializer,
           fromAst: node.initializer,

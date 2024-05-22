@@ -92,8 +92,9 @@ class BenchTearOffInlinedInTry extends BenchmarkBase {
       callIt(foo, 10);
     } finally {
       const int expectedSum = 20 * (20 - 1) ~/ 2;
-      if (sum != expectedSum) throw 'Bad result: $sum';
+      sum -= expectedSum;
     }
+    if (sum != 0) throw 'Bad result: $sum';
   }
 }
 
@@ -182,8 +183,9 @@ class BenchTearOffNotInlinedInTry extends BenchmarkBase {
       callIt(foo, 10);
     } finally {
       const int expectedSum = 20 * (20 - 1) ~/ 2;
-      if (sum != expectedSum) throw 'Bad result: $sum';
+      sum -= expectedSum;
     }
+    if (sum != 0) throw 'Bad result: $sum';
   }
 }
 

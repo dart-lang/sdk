@@ -1,5 +1,3 @@
-// @dart = 2.9
-
 library test;
 
 main() {}
@@ -8,4 +6,4 @@ test() {}
 
 var h = null;
 
-void foo(int f(Object _)) {}
+void foo(int? f(Object _)) {}

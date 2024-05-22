@@ -833,7 +833,7 @@ class TypeParameterReplacer extends ReplacementVisitor {
   const TypeParameterReplacer();
 
   @override
-  DartType? visitTypeParameterType(TypeParameterType node, int variance) {
+  DartType? visitTypeParameterType(TypeParameterType node, Variance variance) {
     DartType replacement = super.visitTypeParameterType(node, variance) ?? node;
     if (replacement is TypeParameterType) {
       if (variance == Variance.contravariant) {
@@ -847,7 +847,7 @@ class TypeParameterReplacer extends ReplacementVisitor {
     return replacement;
   }
 
-  DartType _replaceTypeParameterTypes(DartType type, int variance) {
+  DartType _replaceTypeParameterTypes(DartType type, Variance variance) {
     return type.accept1(this, variance) ?? type;
   }
 

@@ -223,7 +223,7 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitPatternFieldName(PatternFieldName node) {
-    final parent = node.parent;
+    var parent = node.parent;
     if (parent is PatternField) {
       return parent.element;
     } else {
@@ -249,7 +249,7 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   @override
   Element? visitRepresentationConstructorName(
       RepresentationConstructorName node) {
-    final representation = node.parent as RepresentationDeclaration;
+    var representation = node.parent as RepresentationDeclaration;
     return representation.constructorElement;
   }
 
@@ -260,13 +260,13 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitStringLiteral(StringLiteral node) {
-    final parent = node.parent;
+    var parent = node.parent;
     if (parent is ExportDirective) {
       return parent.element?.exportedLibrary;
     } else if (parent is ImportDirective) {
       return parent.element?.importedLibrary;
     } else if (parent is PartDirective) {
-      final elementUri = parent.element?.uri;
+      var elementUri = parent.element?.uri;
       if (elementUri is DirectiveUriWithUnit) {
         return elementUri.unit;
       }

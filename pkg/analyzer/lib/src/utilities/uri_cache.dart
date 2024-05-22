@@ -74,14 +74,14 @@ class UriCache {
       return;
     }
 
-    final keysToRemove = <String>[];
-    for (final entry in _map.entries) {
+    var keysToRemove = <String>[];
+    for (var entry in _map.entries) {
       if (entry.value.target == null) {
         keysToRemove.add(entry.key);
       }
     }
 
-    for (final key in keysToRemove) {
+    for (var key in keysToRemove) {
       _map.remove(key);
     }
   }

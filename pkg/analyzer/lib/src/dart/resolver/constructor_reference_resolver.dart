@@ -30,7 +30,7 @@ class ConstructorReferenceResolver {
     node.constructorName.accept(_resolver);
     var element = node.constructorName.staticElement;
     if (element != null && !element.isFactory) {
-      final enclosingElement = element.enclosingElement;
+      var enclosingElement = element.enclosingElement;
       if (enclosingElement is ClassElement && enclosingElement.isAbstract) {
         _resolver.errorReporter.atNode(
           node,
@@ -52,7 +52,7 @@ class ConstructorReferenceResolver {
       // to avoid reporting redundant errors.
       var enclosingElement = node.constructorName.type.element;
       if (enclosingElement is TypeAliasElement) {
-        final aliasedType = enclosingElement.aliasedType;
+        var aliasedType = enclosingElement.aliasedType;
         enclosingElement =
             aliasedType is InterfaceType ? aliasedType.element : null;
       }

@@ -12,9 +12,9 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 class AddExtensionOverride extends MultiCorrectionProducer {
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
-    final node = this.node;
+    var node = this.node;
     if (node is! SimpleIdentifier) return const [];
-    final parent = node.parent;
+    var parent = node.parent;
     if (parent is! PropertyAccess) return const [];
     var target = parent.target;
     if (target == null) return const [];
@@ -44,7 +44,12 @@ class _AddOverride extends ResolvedCorrectionProducer {
   _AddOverride(this._expression, this._name);
 
   @override
-  List<Object> get fixArguments => [_name];
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments => [_name];
 
   @override
   FixKind get fixKind => DartFixKind.ADD_EXTENSION_OVERRIDE;

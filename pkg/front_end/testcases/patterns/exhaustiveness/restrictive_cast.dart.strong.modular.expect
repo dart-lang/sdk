@@ -1,0 +1,66 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/exhaustiveness/restrictive_cast.dart:27:29: Error: The type 'S' is not exhaustively matched by the switch cases since it doesn't match 'A(b: false)'.
+//  - 'S' is from 'pkg/front_end/testcases/patterns/exhaustiveness/restrictive_cast.dart'.
+// Try adding a wildcard pattern or cases that match 'A(b: false)'.
+// int? method(S s) => switch (s) /* Error */ {
+//                             ^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract sealed class S extends core::Object {
+  synthetic constructor •() → self::S
+    : super core::Object::•()
+    ;
+  abstract get b() → core::bool;
+}
+class A extends core::Object implements self::S {
+  final field core::bool b;
+  constructor •(core::bool b) → self::A
+    : self::A::b = b, super core::Object::•()
+    ;
+}
+class B extends core::Object implements self::S {
+  final field core::bool b;
+  constructor •(core::bool b) → self::B
+    : self::B::b = b, super core::Object::•()
+    ;
+}
+class C extends core::Object implements self::A, self::B {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  get b() → core::bool
+    return false;
+}
+static field core::int? value = 1;
+static method method(self::S s) → core::int?
+  return block {
+    core::int? #t1;
+    final synthesized self::S #0#0 = s;
+    #L1:
+    {
+      {
+        if(let final dynamic #t2 = #0#0 as self::A in #C1 =={core::Object::==}{(core::Object) → core::bool} (#0#0 as self::A).{self::A::b}{core::bool}) {
+          #t1 = 0;
+          break #L1;
+        }
+      }
+      {
+        if(let final dynamic #t3 = #0#0 as self::B in #C1 =={core::Object::==}{(core::Object) → core::bool} (#0#0 as self::B).{self::B::b}{core::bool}) {
+          #t1 = self::value;
+          break #L1;
+        }
+      }
+    }
+  } =>#t1;
+static method test() → dynamic {
+  core::print(self::method(new self::C::•()));
+}
+
+constants  {
+  #C1 = true
+}

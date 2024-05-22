@@ -1964,31 +1964,18 @@ class _ClassInfo {
       HandleAmbiguousSupertypes onAmbiguousSupertypes) {
     Supertype? canonical = genericSuperType![cls];
     if (canonical == null) {
-      if (!classNode.enclosingLibrary.isNonNullableByDefault) {
-        canonical = legacyErasureSupertype(type);
-      } else {
-        canonical = type;
-      }
+      canonical = type;
       genericSuperType![cls] = canonical;
       genericSuperTypes![cls] = <Supertype>[type];
     } else {
       genericSuperTypes![cls]!.add(type);
 
-      if (classNode.enclosingLibrary.isNonNullableByDefault) {
-        Supertype? result = nnbdTopMergeSupertype(
-            coreTypes,
-            normSupertype(coreTypes, type),
-            normSupertype(coreTypes, canonical));
-        if (result == null) {
-          onAmbiguousSupertypes(classNode, canonical, type);
-        } else {
-          genericSuperType![cls] = result;
-        }
+      Supertype? result = nnbdTopMergeSupertype(coreTypes,
+          normSupertype(coreTypes, type), normSupertype(coreTypes, canonical));
+      if (result == null) {
+        onAmbiguousSupertypes(classNode, canonical, type);
       } else {
-        type = legacyErasureSupertype(type);
-        if (type != canonical) {
-          onAmbiguousSupertypes(classNode, canonical, type);
-        }
+        genericSuperType![cls] = result;
       }
     }
     assert(genericSuperType!.containsKey(cls),

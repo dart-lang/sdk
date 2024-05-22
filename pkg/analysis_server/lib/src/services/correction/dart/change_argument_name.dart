@@ -55,7 +55,7 @@ class ChangeArgumentName extends MultiCorrectionProducer {
   }
 
   _NamedExpressionContext? _getNamedParameterNames() {
-    final node = this.node;
+    var node = this.node;
     var namedExpression = node.parent?.parent;
     if (node is SimpleIdentifier &&
         namedExpression is NamedExpression &&
@@ -85,7 +85,12 @@ class _ChangeName extends ResolvedCorrectionProducer {
   _ChangeName(this._argumentName, this._proposedName);
 
   @override
-  List<Object> get fixArguments => [_proposedName];
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments => [_proposedName];
 
   @override
   FixKind get fixKind => DartFixKind.CHANGE_ARGUMENT_NAME;

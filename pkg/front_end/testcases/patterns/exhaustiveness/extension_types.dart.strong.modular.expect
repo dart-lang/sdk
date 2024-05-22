@@ -1,0 +1,293 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract sealed class S extends core::Object {
+  synthetic constructor •() → self::S
+    : super core::Object::•()
+    ;
+}
+class A extends self::S {
+  synthetic constructor •() → self::A
+    : super self::S::•()
+    ;
+}
+class B extends self::S {
+  synthetic constructor •() → self::B
+    : super self::S::•()
+    ;
+}
+extension type ExtensionTypeNullable(core::String? s) {
+  abstract extension-type-member representation-field get s() → core::String?;
+  constructor • = self::ExtensionTypeNullable|constructor#;
+  constructor tearoff • = self::ExtensionTypeNullable|constructor#_#new#tearOff;
+}
+extension type ExtensionTypeNum(core::num n) {
+  abstract extension-type-member representation-field get n() → core::num;
+  constructor • = self::ExtensionTypeNum|constructor#;
+  constructor tearoff • = self::ExtensionTypeNum|constructor#_#new#tearOff;
+}
+extension type ExtensionTypeBool(core::bool b) {
+  abstract extension-type-member representation-field get b() → core::bool;
+  constructor • = self::ExtensionTypeBool|constructor#;
+  constructor tearoff • = self::ExtensionTypeBool|constructor#_#new#tearOff;
+}
+extension type ExtensionTypeSealed(self::S s) {
+  abstract extension-type-member representation-field get s() → self::S;
+  constructor • = self::ExtensionTypeSealed|constructor#;
+  constructor tearoff • = self::ExtensionTypeSealed|constructor#_#new#tearOff;
+}
+static extension-type-member method ExtensionTypeNullable|constructor#(core::String? s) → self::ExtensionTypeNullable% /* erasure=core::String?, declared=! */ {
+  lowered final self::ExtensionTypeNullable% /* erasure=core::String?, declared=! */ #this = s;
+  return #this;
+}
+static extension-type-member method ExtensionTypeNullable|constructor#_#new#tearOff(core::String? s) → self::ExtensionTypeNullable% /* erasure=core::String?, declared=! */
+  return self::ExtensionTypeNullable|constructor#(s);
+static extension-type-member method ExtensionTypeNum|constructor#(core::num n) → self::ExtensionTypeNum% /* erasure=core::num, declared=! */ {
+  lowered final self::ExtensionTypeNum% /* erasure=core::num, declared=! */ #this = n;
+  return #this;
+}
+static extension-type-member method ExtensionTypeNum|constructor#_#new#tearOff(core::num n) → self::ExtensionTypeNum% /* erasure=core::num, declared=! */
+  return self::ExtensionTypeNum|constructor#(n);
+static extension-type-member method ExtensionTypeBool|constructor#(core::bool b) → self::ExtensionTypeBool% /* erasure=core::bool, declared=! */ {
+  lowered final self::ExtensionTypeBool% /* erasure=core::bool, declared=! */ #this = b;
+  return #this;
+}
+static extension-type-member method ExtensionTypeBool|constructor#_#new#tearOff(core::bool b) → self::ExtensionTypeBool% /* erasure=core::bool, declared=! */
+  return self::ExtensionTypeBool|constructor#(b);
+static extension-type-member method ExtensionTypeSealed|constructor#(self::S s) → self::ExtensionTypeSealed% /* erasure=self::S, declared=! */ {
+  lowered final self::ExtensionTypeSealed% /* erasure=self::S, declared=! */ #this = s;
+  return #this;
+}
+static extension-type-member method ExtensionTypeSealed|constructor#_#new#tearOff(self::S s) → self::ExtensionTypeSealed% /* erasure=self::S, declared=! */
+  return self::ExtensionTypeSealed|constructor#(s);
+static method methodNull1(self::ExtensionTypeNullable% /* erasure=core::String?, declared=! */ o) → dynamic
+  return block {
+    core::int #t1;
+    final synthesized self::ExtensionTypeNullable% /* erasure=core::String?, declared=! */ #0#0 = o;
+    #L1:
+    {
+      {
+        if(#0#0 == null) {
+          #t1 = 0;
+          break #L1;
+        }
+      }
+      {
+        hoisted core::String s;
+        if(#0#0 is core::String) {
+          s = #0#0{core::String};
+          #t1 = 1;
+          break #L1;
+        }
+      }
+    }
+  } =>#t1;
+static method methodNull2(self::ExtensionTypeNullable% /* erasure=core::String?, declared=! */ o) → dynamic
+  return block {
+    core::int #t2;
+    final synthesized self::ExtensionTypeNullable% /* erasure=core::String?, declared=! */ #0#0 = o;
+    #L2:
+    {
+      {
+        if(true) {
+          #t2 = 2;
+          break #L2;
+        }
+      }
+    }
+  } =>#t2;
+static method methodNull3(core::String? o) → dynamic
+  return block {
+    core::int #t3;
+    final synthesized core::String? #0#0 = o;
+    #L3:
+    {
+      {
+        hoisted self::ExtensionTypeNullable% /* erasure=core::String?, declared=! */ s;
+        if(#0#0 is self::ExtensionTypeNullable% /* erasure=core::String?, declared=! */) {
+          s = #0#0{self::ExtensionTypeNullable% /* erasure=core::String?, declared=! */};
+          #t3 = 3;
+          break #L3;
+        }
+      }
+    }
+  } =>#t3;
+static method methodNum1(self::ExtensionTypeNum% /* erasure=core::num, declared=! */ o) → dynamic
+  return block {
+    core::int #t4;
+    final synthesized self::ExtensionTypeNum% /* erasure=core::num, declared=! */ #0#0 = o;
+    #L4:
+    {
+      {
+        if(#0#0 is core::int) {
+          #t4 = 0;
+          break #L4;
+        }
+      }
+      {
+        if(#0#0 is core::double) {
+          #t4 = 1;
+          break #L4;
+        }
+      }
+    }
+  } =>#t4;
+static method methodNum2(self::ExtensionTypeNum% /* erasure=core::num, declared=! */ o) → dynamic
+  return block {
+    core::int #t5;
+    final synthesized self::ExtensionTypeNum% /* erasure=core::num, declared=! */ #0#0 = o;
+    #L5:
+    {
+      {
+        if(true) {
+          #t5 = 2;
+          break #L5;
+        }
+      }
+    }
+  } =>#t5;
+static method methodNum3(core::num o) → dynamic
+  return block {
+    core::int #t6;
+    final synthesized core::num #0#0 = o;
+    #L6:
+    {
+      {
+        if(#0#0 is self::ExtensionTypeNum% /* erasure=core::num, declared=! */) {
+          #t6 = 3;
+          break #L6;
+        }
+      }
+    }
+  } =>#t6;
+static method methodBool1(self::ExtensionTypeBool% /* erasure=core::bool, declared=! */ o) → dynamic
+  return block {
+    core::int #t7;
+    #L7:
+    switch(o) /* isExplicitlyExhaustive, self::ExtensionTypeBool% /* erasure=core::bool, declared=! */ */ {
+      #L8:
+      case #C1:
+        {
+          #t7 = 0;
+          break #L7;
+        }
+      #L9:
+      case #C2:
+        {
+          #t7 = 1;
+          break #L7;
+        }
+    }
+  } =>#t7;
+static method methodBool2(self::ExtensionTypeBool% /* erasure=core::bool, declared=! */ o) → dynamic
+  return block {
+    core::int #t8;
+    final synthesized self::ExtensionTypeBool% /* erasure=core::bool, declared=! */ #0#0 = o;
+    #L10:
+    {
+      {
+        if(true) {
+          #t8 = 2;
+          break #L10;
+        }
+      }
+    }
+  } =>#t8;
+static method methodBool3(core::bool o) → dynamic
+  return block {
+    core::int #t9;
+    final synthesized core::bool #0#0 = o;
+    #L11:
+    {
+      {
+        if(#0#0 is self::ExtensionTypeBool% /* erasure=core::bool, declared=! */) {
+          #t9 = 3;
+          break #L11;
+        }
+      }
+    }
+  } =>#t9;
+static method methodSealed1(self::ExtensionTypeSealed% /* erasure=self::S, declared=! */ o) → dynamic
+  return block {
+    core::int #t10;
+    final synthesized self::ExtensionTypeSealed% /* erasure=self::S, declared=! */ #0#0 = o;
+    #L12:
+    {
+      {
+        if(#0#0 is self::A) {
+          #t10 = 0;
+          break #L12;
+        }
+      }
+      {
+        if(#0#0 is self::B) {
+          #t10 = 1;
+          break #L12;
+        }
+      }
+    }
+  } =>#t10;
+static method methodSealed2(self::ExtensionTypeSealed% /* erasure=self::S, declared=! */ o) → dynamic
+  return block {
+    core::int #t11;
+    final synthesized self::ExtensionTypeSealed% /* erasure=self::S, declared=! */ #0#0 = o;
+    #L13:
+    {
+      {
+        if(true) {
+          #t11 = 2;
+          break #L13;
+        }
+      }
+    }
+  } =>#t11;
+static method methodSealed3(self::S o) → dynamic
+  return block {
+    core::int #t12;
+    final synthesized self::S #0#0 = o;
+    #L14:
+    {
+      {
+        if(#0#0 is self::ExtensionTypeSealed% /* erasure=self::S, declared=! */) {
+          #t12 = 3;
+          break #L14;
+        }
+      }
+    }
+  } =>#t12;
+static method main() → dynamic {
+  self::expect(0, self::methodNull1(self::ExtensionTypeNullable|constructor#(null)));
+  self::expect(1, self::methodNull1(self::ExtensionTypeNullable|constructor#("foo")));
+  self::expect(2, self::methodNull2(self::ExtensionTypeNullable|constructor#(null)));
+  self::expect(2, self::methodNull2(self::ExtensionTypeNullable|constructor#("foo")));
+  self::expect(3, self::methodNull3(null));
+  self::expect(3, self::methodNull3("foo"));
+  self::expect(0, self::methodNum1(self::ExtensionTypeNum|constructor#(42)));
+  self::expect(1, self::methodNum1(self::ExtensionTypeNum|constructor#(3.14)));
+  self::expect(2, self::methodNum2(self::ExtensionTypeNum|constructor#(42)));
+  self::expect(2, self::methodNum2(self::ExtensionTypeNum|constructor#(3.14)));
+  self::expect(3, self::methodNum3(42));
+  self::expect(3, self::methodNum3(3.14));
+  self::expect(0, self::methodBool1(self::ExtensionTypeBool|constructor#(true)));
+  self::expect(1, self::methodBool1(self::ExtensionTypeBool|constructor#(false)));
+  self::expect(2, self::methodBool2(self::ExtensionTypeBool|constructor#(true)));
+  self::expect(2, self::methodBool2(self::ExtensionTypeBool|constructor#(false)));
+  self::expect(3, self::methodBool3(true));
+  self::expect(3, self::methodBool3(false));
+  self::expect(0, self::methodSealed1(self::ExtensionTypeSealed|constructor#(new self::A::•())));
+  self::expect(1, self::methodSealed1(self::ExtensionTypeSealed|constructor#(new self::B::•())));
+  self::expect(2, self::methodSealed2(self::ExtensionTypeSealed|constructor#(new self::A::•())));
+  self::expect(2, self::methodSealed2(self::ExtensionTypeSealed|constructor#(new self::B::•())));
+  self::expect(3, self::methodSealed3(new self::A::•()));
+  self::expect(3, self::methodSealed3(new self::B::•()));
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+constants  {
+  #C1 = true
+  #C2 = false
+}

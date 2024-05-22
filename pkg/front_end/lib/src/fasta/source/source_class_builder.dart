@@ -11,7 +11,6 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/names.dart' show equalsName;
 import 'package:kernel/reference_from_index.dart' show IndexedContainer;
 import 'package:kernel/src/bounds_checks.dart';
-import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/src/types.dart' show Types;
 import 'package:kernel/type_algebra.dart'
     show
@@ -294,7 +293,19 @@ class SourceClassBuilder extends ClassBuilderImpl
     // TODO(ahe): If `cls.supertype` is null, and this isn't Object, report a
     // compile-time error.
     cls.isAbstract = isAbstract;
-    cls.isMacro = isMacro;
+    if (!cls.isMacro) {
+      // TODO(jensj): cls / actualCls is not the same --- so for instance it sets
+      // macro on the "parent" class depending on whatever it processes last of
+      // "non-parent" classes.
+      // This means that when a macro class has an augmentation which is not a
+      // macro class the macro class will be marked as no longer a macro class
+      // and at least via the incremental compiler subsequent applications of it
+      // will fail.
+      // Now it's *only* set if it's not already a macro, i.e. once it's a macro
+      // it stays a macro which seems reasonable although I don't know what the
+      // actual rules are.
+      cls.isMacro = isMacro;
+    }
     cls.isMixinClass = isMixinClass;
     cls.isSealed = isSealed;
     cls.isBase = isBase;
@@ -933,20 +944,13 @@ class SourceClassBuilder extends ClassBuilderImpl
       InterfaceType? implementedInterface =
           hierarchy.getInterfaceTypeAsInstanceOfClass(
               supertype, requiredInterface.classNode,
-              isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+              isNonNullableByDefault: true);
       if (implementedInterface == null ||
-          !typeEnvironment.areMutualSubtypes(
-              implementedInterface,
-              requiredInterface,
-              libraryBuilder.isNonNullableByDefault
-                  ? SubtypeCheckMode.withNullabilities
-                  : SubtypeCheckMode.ignoringNullabilities)) {
+          !typeEnvironment.areMutualSubtypes(implementedInterface,
+              requiredInterface, SubtypeCheckMode.withNullabilities)) {
         libraryBuilder.addProblem(
             templateMixinApplicationIncompatibleSupertype.withArguments(
-                supertype,
-                requiredInterface,
-                cls.mixedInType!.asInterfaceType,
-                libraryBuilder.isNonNullableByDefault),
+                supertype, requiredInterface, cls.mixedInType!.asInterfaceType),
             cls.fileOffset,
             noLength,
             cls.fileUri);
@@ -986,20 +990,21 @@ class SourceClassBuilder extends ClassBuilderImpl
     Message? message;
     for (int i = 0; i < typeVariables!.length; ++i) {
       NominalVariableBuilder typeVariableBuilder = typeVariables![i];
-      int variance = computeTypeVariableBuilderVariance(
-          typeVariableBuilder, supertype, libraryBuilder);
-      if (!Variance.greaterThanOrEqual(variance, typeVariables![i].variance)) {
+      Variance variance = computeTypeVariableBuilderVariance(
+              typeVariableBuilder, supertype, libraryBuilder)
+          .variance!;
+      if (!variance.greaterThanOrEqual(typeVariables![i].variance)) {
         if (typeVariables![i].parameter.isLegacyCovariant) {
           message = templateInvalidTypeVariableInSupertype.withArguments(
               typeVariables![i].name,
-              Variance.keywordString(variance),
+              variance.keyword,
               supertype.typeName!.name);
         } else {
           message =
               templateInvalidTypeVariableInSupertypeWithVariance.withArguments(
-                  Variance.keywordString(typeVariables![i].variance),
+                  typeVariables![i].variance.keyword,
                   typeVariables![i].name,
-                  Variance.keywordString(variance),
+                  variance.keyword,
                   supertype.typeName!.name);
         }
         libraryBuilder.addProblem(message, charOffset, noLength, fileUri);
@@ -1024,7 +1029,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   void checkVarianceInField(SourceFieldBuilder fieldBuilder,
       TypeEnvironment typeEnvironment, List<TypeParameter> typeParameters) {
     for (TypeParameter typeParameter in typeParameters) {
-      int fieldVariance =
+      Variance fieldVariance =
           computeVariance(typeParameter, fieldBuilder.fieldType);
       if (fieldBuilder.isClassInstanceMember) {
         reportVariancePositionIfInvalid(fieldVariance, typeParameter,
@@ -1033,7 +1038,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       if (fieldBuilder.isClassInstanceMember &&
           fieldBuilder.isAssignable &&
           !fieldBuilder.isCovariantByDeclaration) {
-        fieldVariance = Variance.combine(Variance.contravariant, fieldVariance);
+        fieldVariance = Variance.contravariant.combine(fieldVariance);
         reportVariancePositionIfInvalid(fieldVariance, typeParameter,
             fieldBuilder.fileUri, fieldBuilder.charOffset);
       }
@@ -1052,8 +1057,8 @@ class SourceClassBuilder extends ClassBuilderImpl
 
     for (TypeParameter functionParameter in functionTypeParameters) {
       for (TypeParameter typeParameter in typeParameters) {
-        int typeVariance = Variance.combine(Variance.invariant,
-            computeVariance(typeParameter, functionParameter.bound));
+        Variance typeVariance = Variance.invariant
+            .combine(computeVariance(typeParameter, functionParameter.bound));
         reportVariancePositionIfInvalid(
             typeVariance, typeParameter, fileUri, functionParameter.fileOffset);
       }
@@ -1061,8 +1066,8 @@ class SourceClassBuilder extends ClassBuilderImpl
     for (VariableDeclaration formal in positionalParameters) {
       if (!formal.isCovariantByDeclaration) {
         for (TypeParameter typeParameter in typeParameters) {
-          int formalVariance = Variance.combine(Variance.contravariant,
-              computeVariance(typeParameter, formal.type));
+          Variance formalVariance = Variance.contravariant
+              .combine(computeVariance(typeParameter, formal.type));
           reportVariancePositionIfInvalid(
               formalVariance, typeParameter, fileUri, formal.fileOffset);
         }
@@ -1070,37 +1075,37 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
     for (VariableDeclaration named in namedParameters) {
       for (TypeParameter typeParameter in typeParameters) {
-        int namedVariance = Variance.combine(
-            Variance.contravariant, computeVariance(typeParameter, named.type));
+        Variance namedVariance = Variance.contravariant
+            .combine(computeVariance(typeParameter, named.type));
         reportVariancePositionIfInvalid(
             namedVariance, typeParameter, fileUri, named.fileOffset);
       }
     }
 
     for (TypeParameter typeParameter in typeParameters) {
-      int returnTypeVariance = computeVariance(typeParameter, returnType);
+      Variance returnTypeVariance = computeVariance(typeParameter, returnType);
       reportVariancePositionIfInvalid(returnTypeVariance, typeParameter,
           fileUri, procedure.function.fileOffset,
           isReturnType: true);
     }
   }
 
-  void reportVariancePositionIfInvalid(
-      int variance, TypeParameter typeParameter, Uri fileUri, int fileOffset,
+  void reportVariancePositionIfInvalid(Variance variance,
+      TypeParameter typeParameter, Uri fileUri, int fileOffset,
       {bool isReturnType = false}) {
     SourceLibraryBuilder library = this.libraryBuilder;
     if (!typeParameter.isLegacyCovariant &&
-        !Variance.greaterThanOrEqual(variance, typeParameter.variance)) {
+        !variance.greaterThanOrEqual(typeParameter.variance)) {
       Message message;
       if (isReturnType) {
         message = templateInvalidTypeVariableVariancePositionInReturnType
-            .withArguments(Variance.keywordString(typeParameter.variance),
-                typeParameter.name!, Variance.keywordString(variance));
+            .withArguments(typeParameter.variance.keyword, typeParameter.name!,
+                variance.keyword);
       } else {
         message = templateInvalidTypeVariableVariancePosition.withArguments(
-            Variance.keywordString(typeParameter.variance),
+            typeParameter.variance.keyword,
             typeParameter.name!,
-            Variance.keywordString(variance));
+            variance.keyword);
       }
       library.reportTypeArgumentIssue(message, fileUri, fileOffset,
           typeParameter: typeParameter);
@@ -1298,8 +1303,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       Member interfaceMember,
       bool isSetter,
       callback(Member interfaceMember, bool isSetter),
-      {required bool isInterfaceCheck,
-      required bool declaredNeedsLegacyErasure}) {
+      {required bool isInterfaceCheck}) {
     if (declaredMember == interfaceMember) {
       return;
     }
@@ -1313,33 +1317,18 @@ class SourceClassBuilder extends ClassBuilderImpl
       if (declaredMember.kind == interfaceMember.kind) {
         if (declaredMember.kind == ProcedureKind.Method ||
             declaredMember.kind == ProcedureKind.Operator) {
-          bool seenCovariant = checkMethodOverride(
-              types,
-              declaredMember,
-              interfaceMember,
-              interfaceMemberOrigin,
-              isInterfaceCheck,
-              declaredNeedsLegacyErasure);
+          bool seenCovariant = checkMethodOverride(types, declaredMember,
+              interfaceMember, interfaceMemberOrigin, isInterfaceCheck);
           if (seenCovariant) {
             _handleSeenCovariant(
                 memberHierarchy, interfaceMember, isSetter, callback);
           }
         } else if (declaredMember.kind == ProcedureKind.Getter) {
-          checkGetterOverride(
-              types,
-              declaredMember,
-              interfaceMember,
-              interfaceMemberOrigin,
-              isInterfaceCheck,
-              declaredNeedsLegacyErasure);
+          checkGetterOverride(types, declaredMember, interfaceMember,
+              interfaceMemberOrigin, isInterfaceCheck);
         } else if (declaredMember.kind == ProcedureKind.Setter) {
-          bool seenCovariant = checkSetterOverride(
-              types,
-              declaredMember,
-              interfaceMember,
-              interfaceMemberOrigin,
-              isInterfaceCheck,
-              declaredNeedsLegacyErasure);
+          bool seenCovariant = checkSetterOverride(types, declaredMember,
+              interfaceMember, interfaceMemberOrigin, isInterfaceCheck);
           if (seenCovariant) {
             _handleSeenCovariant(
                 memberHierarchy, interfaceMember, isSetter, callback);
@@ -1365,22 +1354,12 @@ class SourceClassBuilder extends ClassBuilderImpl
               !interfaceMember.isConst) ||
           interfaceMember is Procedure && interfaceMember.isSetter;
       if (declaredMemberHasGetter && interfaceMemberHasGetter) {
-        checkGetterOverride(
-            types,
-            declaredMember,
-            interfaceMember,
-            interfaceMemberOrigin,
-            isInterfaceCheck,
-            declaredNeedsLegacyErasure);
+        checkGetterOverride(types, declaredMember, interfaceMember,
+            interfaceMemberOrigin, isInterfaceCheck);
       }
       if (declaredMemberHasSetter && interfaceMemberHasSetter) {
-        bool seenCovariant = checkSetterOverride(
-            types,
-            declaredMember,
-            interfaceMember,
-            interfaceMemberOrigin,
-            isInterfaceCheck,
-            declaredNeedsLegacyErasure);
+        bool seenCovariant = checkSetterOverride(types, declaredMember,
+            interfaceMember, interfaceMemberOrigin, isInterfaceCheck);
         if (seenCovariant) {
           _handleSeenCovariant(
               memberHierarchy, interfaceMember, isSetter, callback);
@@ -1405,8 +1384,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       Member interfaceMemberOrigin,
       FunctionNode? declaredFunction,
       FunctionNode? interfaceFunction,
-      bool isInterfaceCheck,
-      bool declaredNeedsLegacyErasure) {
+      bool isInterfaceCheck) {
     Substitution? interfaceSubstitution;
     if (interfaceMember.enclosingClass!.typeParameters.isNotEmpty) {
       Class enclosingClass = interfaceMember.enclosingClass!;
@@ -1474,12 +1452,6 @@ class SourceClassBuilder extends ClassBuilderImpl
                 interfaceSubstitution.substituteType(interfaceBound);
           }
           DartType computedBound = substitution.substituteType(interfaceBound);
-          if (!libraryBuilder.isNonNullableByDefault) {
-            computedBound = legacyErasure(computedBound);
-          }
-          if (declaredNeedsLegacyErasure) {
-            declaredBound = legacyErasure(declaredBound);
-          }
           if (!types
               .performNullabilityAwareMutualSubtypesCheck(
                   declaredBound, computedBound)
@@ -1494,8 +1466,7 @@ class SourceClassBuilder extends ClassBuilderImpl
                         "${declaredMember.name.text}",
                     computedBound,
                     "${interfaceMemberOrigin.enclosingClass!.name}."
-                        "${interfaceMemberOrigin.name.text}",
-                    libraryBuilder.isNonNullableByDefault),
+                        "${interfaceMemberOrigin.name.text}"),
                 declaredMember.fileOffset,
                 noLength,
                 context: [
@@ -1542,21 +1513,12 @@ class SourceClassBuilder extends ClassBuilderImpl
       bool isCovariantByDeclaration,
       VariableDeclaration? declaredParameter,
       bool isInterfaceCheck,
-      bool declaredNeedsLegacyErasure,
       {bool asIfDeclaredParameter = false}) {
     if (interfaceSubstitution != null) {
       interfaceType = interfaceSubstitution.substituteType(interfaceType);
     }
     if (declaredSubstitution != null) {
       declaredType = declaredSubstitution.substituteType(declaredType);
-    }
-    if (declaredNeedsLegacyErasure) {
-      declaredType = legacyErasure(declaredType);
-    }
-
-    if (!declaredMember.isNonNullableByDefault &&
-        interfaceMember.isNonNullableByDefault) {
-      interfaceType = legacyErasure(interfaceType);
     }
 
     bool inParameter = declaredParameter != null || asIfDeclaredParameter;
@@ -1576,56 +1538,46 @@ class SourceClassBuilder extends ClassBuilderImpl
       // been reported.
     } else {
       // Report an error.
-      bool isErrorInNnbdOptedOutMode = !types.isSubtypeOf(
-              subtype, supertype, SubtypeCheckMode.ignoringNullabilities) &&
-          (!isCovariantByDeclaration ||
-              !types.isSubtypeOf(
-                  supertype, subtype, SubtypeCheckMode.ignoringNullabilities));
-      if (isErrorInNnbdOptedOutMode || libraryBuilder.isNonNullableByDefault) {
-        String declaredMemberName = '${declaredMember.enclosingClass!.name}'
-            '.${declaredMember.name.text}';
-        String interfaceMemberName =
-            '${interfaceMemberOrigin.enclosingClass!.name}'
-            '.${interfaceMemberOrigin.name.text}';
-        Message message;
-        int fileOffset;
-        if (declaredParameter == null) {
-          if (asIfDeclaredParameter) {
-            // Setter overridden by field
-            message = templateOverrideTypeMismatchSetter.withArguments(
-                declaredMemberName,
-                declaredType,
-                interfaceType,
-                interfaceMemberName,
-                libraryBuilder.isNonNullableByDefault);
-          } else {
-            message = templateOverrideTypeMismatchReturnType.withArguments(
-                declaredMemberName,
-                declaredType,
-                interfaceType,
-                interfaceMemberName,
-                libraryBuilder.isNonNullableByDefault);
-          }
-          fileOffset = declaredMember.fileOffset;
-        } else {
-          message = templateOverrideTypeMismatchParameter.withArguments(
-              declaredParameter.name!,
+      String declaredMemberName = '${declaredMember.enclosingClass!.name}'
+          '.${declaredMember.name.text}';
+      String interfaceMemberName =
+          '${interfaceMemberOrigin.enclosingClass!.name}'
+          '.${interfaceMemberOrigin.name.text}';
+      Message message;
+      int fileOffset;
+      if (declaredParameter == null) {
+        if (asIfDeclaredParameter) {
+          // Setter overridden by field
+          message = templateOverrideTypeMismatchSetter.withArguments(
               declaredMemberName,
               declaredType,
               interfaceType,
-              interfaceMemberName,
-              libraryBuilder.isNonNullableByDefault);
-          fileOffset = declaredParameter.fileOffset;
+              interfaceMemberName);
+        } else {
+          message = templateOverrideTypeMismatchReturnType.withArguments(
+              declaredMemberName,
+              declaredType,
+              interfaceType,
+              interfaceMemberName);
         }
-        reportInvalidOverride(
-            isInterfaceCheck, declaredMember, message, fileOffset, noLength,
-            context: [
-              templateOverriddenMethodCause
-                  .withArguments(interfaceMemberOrigin.name.text)
-                  .withLocation(_getMemberUri(interfaceMemberOrigin),
-                      interfaceMemberOrigin.fileOffset, noLength)
-            ]);
+        fileOffset = declaredMember.fileOffset;
+      } else {
+        message = templateOverrideTypeMismatchParameter.withArguments(
+            declaredParameter.name!,
+            declaredMemberName,
+            declaredType,
+            interfaceType,
+            interfaceMemberName);
+        fileOffset = declaredParameter.fileOffset;
       }
+      reportInvalidOverride(
+          isInterfaceCheck, declaredMember, message, fileOffset, noLength,
+          context: [
+            templateOverriddenMethodCause
+                .withArguments(interfaceMemberOrigin.name.text)
+                .withLocation(_getMemberUri(interfaceMemberOrigin),
+                    interfaceMemberOrigin.fileOffset, noLength)
+          ]);
     }
   }
 
@@ -1642,8 +1594,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       Procedure declaredMember,
       Procedure interfaceMember,
       Member interfaceMemberOrigin,
-      bool isInterfaceCheck,
-      bool declaredNeedsLegacyErasure) {
+      bool isInterfaceCheck) {
     assert(declaredMember.kind == interfaceMember.kind);
     assert(declaredMember.kind == ProcedureKind.Method ||
         declaredMember.kind == ProcedureKind.Operator);
@@ -1660,8 +1611,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         interfaceMemberOrigin,
         declaredFunction,
         interfaceFunction,
-        isInterfaceCheck,
-        declaredNeedsLegacyErasure);
+        isInterfaceCheck);
 
     Substitution? declaredSubstitution =
         _computeDeclaredSubstitution(types, declaredMember);
@@ -1677,8 +1627,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         interfaceFunction.returnType,
         /* isCovariantByDeclaration = */ false,
         /* declaredParameter = */ null,
-        isInterfaceCheck,
-        declaredNeedsLegacyErasure);
+        isInterfaceCheck);
     if (declaredFunction.positionalParameters.length <
         interfaceFunction.positionalParameters.length) {
       reportInvalidOverride(
@@ -1756,8 +1705,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           declaredParameter.isCovariantByDeclaration ||
               interfaceParameter.isCovariantByDeclaration,
           declaredParameter,
-          isInterfaceCheck,
-          declaredNeedsLegacyErasure);
+          isInterfaceCheck);
       if (declaredParameter.isCovariantByDeclaration) seenCovariant = true;
     }
     if (declaredFunction.namedParameters.isEmpty &&
@@ -1836,12 +1784,8 @@ class SourceClassBuilder extends ClassBuilderImpl
           interfaceNamedParameters.current.type,
           declaredParameter.isCovariantByDeclaration,
           declaredParameter,
-          isInterfaceCheck,
-          declaredNeedsLegacyErasure);
-      if (declaredMember.isNonNullableByDefault &&
-          !declaredNeedsLegacyErasure &&
-          declaredParameter.isRequired &&
-          interfaceMember.isNonNullableByDefault &&
+          isInterfaceCheck);
+      if (declaredParameter.isRequired &&
           !interfaceNamedParameters.current.isRequired) {
         reportInvalidOverride(
             isInterfaceCheck,
@@ -1876,8 +1820,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       Member declaredMember,
       Member interfaceMember,
       Member interfaceMemberOrigin,
-      bool isInterfaceCheck,
-      bool declaredNeedsLegacyErasure) {
+      bool isInterfaceCheck) {
     Substitution? interfaceSubstitution = _computeInterfaceSubstitution(
         types,
         declaredMember,
@@ -1887,8 +1830,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         null,
         /* interfaceFunction = */
         null,
-        isInterfaceCheck,
-        declaredNeedsLegacyErasure);
+        isInterfaceCheck);
     Substitution? declaredSubstitution =
         _computeDeclaredSubstitution(types, declaredMember);
     DartType declaredType = declaredMember.getterType;
@@ -1906,8 +1848,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         false,
         /* declaredParameter = */
         null,
-        isInterfaceCheck,
-        declaredNeedsLegacyErasure);
+        isInterfaceCheck);
   }
 
   /// Checks whether [declaredMember] correctly overrides [interfaceMember].
@@ -1923,8 +1864,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       Member declaredMember,
       Member interfaceMember,
       Member interfaceMemberOrigin,
-      bool isInterfaceCheck,
-      bool declaredNeedsLegacyErasure) {
+      bool isInterfaceCheck) {
     Substitution? interfaceSubstitution = _computeInterfaceSubstitution(
         types,
         declaredMember,
@@ -1934,8 +1874,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         null,
         /* interfaceFunction = */
         null,
-        isInterfaceCheck,
-        declaredNeedsLegacyErasure);
+        isInterfaceCheck);
     Substitution? declaredSubstitution =
         _computeDeclaredSubstitution(types, declaredMember);
     DartType declaredType = declaredMember.setterType;
@@ -1962,7 +1901,6 @@ class SourceClassBuilder extends ClassBuilderImpl
         isCovariantByDeclaration,
         declaredParameter,
         isInterfaceCheck,
-        declaredNeedsLegacyErasure,
         asIfDeclaredParameter: true);
     return isCovariantByDeclaration;
   }

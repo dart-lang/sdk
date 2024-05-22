@@ -604,10 +604,9 @@ class ForwardingTestListener extends ForwardingListener {
 
   @override
   void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
-      Token? commaToken, Token semicolonToken) {
+      Token? commaToken, Token endToken) {
     end('Assert');
-    super.endAssert(
-        assertKeyword, kind, leftParenthesis, commaToken, semicolonToken);
+    super.endAssert(assertKeyword, kind, leftParenthesis, commaToken, endToken);
   }
 
   @override
@@ -744,9 +743,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endConstLiteral(Token token) {
+  void endConstLiteral(Token endToken) {
     end('ConstLiteral');
-    super.endConstLiteral(token);
+    super.endConstLiteral(endToken);
   }
 
   @override
@@ -848,7 +847,7 @@ class ForwardingTestListener extends ForwardingListener {
 
   @override
   void endExtensionDeclaration(
-      Token beginToken, Token extensionKeyword, Token onKeyword, Token token) {
+      Token beginToken, Token extensionKeyword, Token? onKeyword, Token token) {
     super.endExtensionDeclaration(
         beginToken, extensionKeyword, onKeyword, token);
     end('ExtensionDeclaration');
@@ -897,9 +896,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endFieldInitializer(Token assignment, Token token) {
+  void endFieldInitializer(Token assignment, Token endToken) {
     end('FieldInitializer');
-    super.endFieldInitializer(assignment, token);
+    super.endFieldInitializer(assignment, endToken);
   }
 
   @override
@@ -915,9 +914,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endForInBody(Token token) {
+  void endForInBody(Token endToken) {
     end('ForInBody');
-    super.endForInBody(token);
+    super.endForInBody(endToken);
   }
 
   @override
@@ -961,15 +960,15 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endForStatementBody(Token token) {
+  void endForStatementBody(Token endToken) {
     end('ForStatementBody');
-    super.endForStatementBody(token);
+    super.endForStatementBody(endToken);
   }
 
   @override
-  void endFunctionExpression(Token beginToken, Token token) {
+  void endFunctionExpression(Token beginToken, Token endToken) {
     end('FunctionExpression');
-    super.endFunctionExpression(beginToken, token);
+    super.endFunctionExpression(beginToken, endToken);
   }
 
   @override
@@ -1027,9 +1026,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endInitializer(Token token) {
+  void endInitializer(Token endToken) {
     end('Initializer');
-    super.endInitializer(token);
+    super.endInitializer(endToken);
   }
 
   @override
@@ -1257,12 +1256,12 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endTopLevelDeclaration(Token token) {
+  void endTopLevelDeclaration(Token endToken) {
     // There is no corresponding beginTopLevelDeclaration.
     // It is insteads started by another begin, see listener.
     //_expectBegin('TopLevelDeclaration');
     expectIn('CompilationUnit');
-    super.endTopLevelDeclaration(token);
+    super.endTopLevelDeclaration(endToken);
   }
 
   @override
@@ -1310,9 +1309,10 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endTypedef(Token typedefKeyword, Token? equals, Token endToken) {
+  void endTypedef(Token? augmentToken, Token typedefKeyword, Token? equals,
+      Token endToken) {
     end('FunctionTypeAlias');
-    super.endTypedef(typedefKeyword, equals, endToken);
+    super.endTypedef(augmentToken, typedefKeyword, equals, endToken);
   }
 
   @override
@@ -1353,9 +1353,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endWhileStatementBody(Token token) {
+  void endWhileStatementBody(Token endToken) {
     end('WhileStatementBody');
-    super.endWhileStatementBody(token);
+    super.endWhileStatementBody(endToken);
   }
 
   @override
@@ -1399,9 +1399,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void handleEnumElement(Token beginToken) {
+  void handleEnumElement(Token beginToken, Token? augmentToken) {
     expectIn('Enum');
-    super.handleEnumElement(beginToken);
+    super.handleEnumElement(beginToken, augmentToken);
   }
 
   @override
@@ -1411,9 +1411,10 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void handleEnumHeader(Token enumKeyword, Token leftBrace) {
+  void handleEnumHeader(
+      Token? augmentToken, Token enumKeyword, Token leftBrace) {
     expectIn('Enum');
-    super.handleEnumHeader(enumKeyword, leftBrace);
+    super.handleEnumHeader(augmentToken, enumKeyword, leftBrace);
   }
 
   @override

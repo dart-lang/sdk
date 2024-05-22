@@ -617,12 +617,7 @@ void matchIL$testNarrowingThroughIndexedLoadFromGrowableArray(
           match.Redefinition('this'),
           // This redefinition was inserted by load forwarding.
           'a.data[0]*' << match.Redefinition('a.data[0]'),
-          if (!beforeLICM.soundNullSafety)
-            'a.data[0]*!' << match.CheckNull('a.data[0]*'),
-          'a.data[0].str' <<
-              match.LoadField(
-                  beforeLICM.soundNullSafety ? 'a.data[0]*' : 'a.data[0]*!',
-                  slot: 'str'),
+          'a.data[0].str' << match.LoadField('a.data[0]*', slot: 'str'),
         ]),
   ]);
 
@@ -649,12 +644,7 @@ void matchIL$testNarrowingThroughIndexedLoadFromGrowableArray(
         ]),
     'B3' <<
         match.block('Target', [
-          if (!beforeLICM.soundNullSafety)
-            'a.data[0]!' << match.CheckNull('a.data[0]'),
-          'a.data[0].str' <<
-              match.LoadField(
-                  beforeLICM.soundNullSafety ? 'a.data[0]' : 'a.data[0]!',
-                  slot: 'str'),
+          'a.data[0].str' << match.LoadField('a.data[0]', slot: 'str'),
         ]),
   ], env: env);
 }
@@ -692,10 +682,7 @@ void matchIL$testNarrowingThroughIndexedLoadFromFixedArray(
           match.Redefinition('this'),
           // This redefinition was inserted by load forwarding.
           'a[0]*' << match.Redefinition('a[0]'),
-          if (!beforeLICM.soundNullSafety) 'a[0]*!' << match.CheckNull('a[0]*'),
-          'a[0].str' <<
-              match.LoadField(beforeLICM.soundNullSafety ? 'a[0]*' : 'a[0]*!',
-                  slot: 'str'),
+          'a[0].str' << match.LoadField('a[0]*', slot: 'str'),
         ]),
   ]);
 
@@ -721,10 +708,7 @@ void matchIL$testNarrowingThroughIndexedLoadFromFixedArray(
         ]),
     'B3' <<
         match.block('Target', [
-          if (!beforeLICM.soundNullSafety) 'a[0]!' << match.CheckNull('a[0]'),
-          'a[0].str' <<
-              match.LoadField(beforeLICM.soundNullSafety ? 'a[0]' : 'a[0]!',
-                  slot: 'str'),
+          'a[0].str' << match.LoadField('a[0]', slot: 'str'),
         ]),
   ], env: env);
 }

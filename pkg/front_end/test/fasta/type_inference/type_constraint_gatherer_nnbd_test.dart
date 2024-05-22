@@ -396,9 +396,9 @@ class TypeConstraintGathererTest {
         coreTypes, new ClassHierarchy(component, coreTypes));
     var typeConstraintGatherer = new TypeConstraintGatherer(
         typeSchemaEnvironment, typeParameterNodesToConstrain,
-        isNonNullableByDefault: testLibrary.isNonNullableByDefault,
+        isNonNullableByDefault: true,
         typeOperations: new OperationsCfe(typeSchemaEnvironment,
-            nullability: Nullability.nonNullable,
+            omittedNullabilityValue: Nullability.nonNullable,
             fieldNonPromotabilityInfo: new FieldNonPromotabilityInfo(
                 fieldNameInfo: {}, individualPropertyReasons: {}),
             typeCacheNonNullable: {},
@@ -407,7 +407,7 @@ class TypeConstraintGathererTest {
         inferenceResultForTesting: null);
     var constraints = tryConstrain(typeConstraintGatherer, a, b)
         ? typeConstraintGatherer.computeConstraints(
-            isNonNullableByDefault: clientLibrary.isNonNullableByDefault)
+            isNonNullableByDefault: true)
         : null;
     if (expectedConstraints == null) {
       expect(constraints, isNull);

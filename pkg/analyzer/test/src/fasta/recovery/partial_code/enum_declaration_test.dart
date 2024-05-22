@@ -23,20 +23,19 @@ class EnumDeclarationTest extends PartialCodeTest {
                 ParserErrorCode.MISSING_ENUM_BODY
               ],
               'enum _s_ {}',
-              expectedErrorsInValidCode: [ParserErrorCode.EMPTY_ENUM_BODY],
+              expectedErrorsInValidCode: [],
               failing: ['functionNonVoid', 'getter']),
           TestDescriptor('name', 'enum E', [ParserErrorCode.MISSING_ENUM_BODY],
               'enum E {}',
-              expectedErrorsInValidCode: [ParserErrorCode.EMPTY_ENUM_BODY]),
+              expectedErrorsInValidCode: []),
           TestDescriptor(
               'missingName',
               'enum {}',
               [
                 ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EMPTY_ENUM_BODY
               ],
               'enum _s_ {}',
-              expectedErrorsInValidCode: [ParserErrorCode.EMPTY_ENUM_BODY]),
+              expectedErrorsInValidCode: []),
           TestDescriptor(
               'leftBrace',
               'enum E {',
@@ -87,12 +86,9 @@ class EnumDeclarationTest extends PartialCodeTest {
         ],
         PartialCodeTest.declarationSuffixes);
     buildTests('enum_eof', [
-      TestDescriptor(
-          'leftBrace',
-          'enum E {',
-          [ParserErrorCode.EMPTY_ENUM_BODY, ScannerErrorCode.EXPECTED_TOKEN],
+      TestDescriptor('leftBrace', 'enum E {', [ScannerErrorCode.EXPECTED_TOKEN],
           'enum E {}',
-          expectedErrorsInValidCode: [ParserErrorCode.EMPTY_ENUM_BODY]),
+          expectedErrorsInValidCode: []),
       TestDescriptor(
           'comma',
           'enum E {,',

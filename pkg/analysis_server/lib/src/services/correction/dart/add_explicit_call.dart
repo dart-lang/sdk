@@ -12,10 +12,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class AddExplicitCall extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_EXPLICIT_CALL;
@@ -30,11 +28,11 @@ class AddExplicitCall extends ResolvedCorrectionProducer {
       current = current.parent;
     }
     if (current == null) return;
-    final implicitReference = current as ImplicitCallReference;
-    final expression = implicitReference.expression;
-    final needsParens = expression.precedence < Precedence.postfix;
+    var implicitReference = current as ImplicitCallReference;
+    var expression = implicitReference.expression;
+    var needsParens = expression.precedence < Precedence.postfix;
     await builder.addDartFileEdit(file, (builder) {
-      final sourceRange = range.node(expression);
+      var sourceRange = range.node(expression);
       if (needsParens) {
         builder.addInsertion(sourceRange.offset, (builder) {
           builder.write('(');

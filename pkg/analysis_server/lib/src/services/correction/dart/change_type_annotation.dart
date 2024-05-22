@@ -17,7 +17,12 @@ class ChangeTypeAnnotation extends ResolvedCorrectionProducer {
   String _newAnnotation = '';
 
   @override
-  List<Object> get fixArguments => [_oldAnnotation, _newAnnotation];
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments => [_oldAnnotation, _newAnnotation];
 
   @override
   FixKind get fixKind => DartFixKind.CHANGE_TYPE_ANNOTATION;
@@ -43,8 +48,8 @@ class ChangeTypeAnnotation extends ResolvedCorrectionProducer {
         if (newType is InterfaceType ||
             newType is FunctionType ||
             newType is RecordType) {
-          _oldAnnotation = displayStringForType(typeNode.typeOrThrow);
-          _newAnnotation = displayStringForType(newType);
+          _oldAnnotation = typeNode.typeOrThrow.getDisplayString();
+          _newAnnotation = newType.getDisplayString();
           await builder.addDartFileEdit(file, (builder) {
             if (builder.canWriteType(newType)) {
               builder.addReplacement(range.node(typeNode), (builder) {

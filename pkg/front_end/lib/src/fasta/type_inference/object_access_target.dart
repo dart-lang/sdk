@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart' show SubtypeCheckMode;
 
@@ -309,10 +308,7 @@ abstract class ObjectAccessTarget {
       InferenceVisitorBase base, DartType calleeType) {
     calleeType = calleeType.nonTypeVariableBound;
     if (calleeType is FunctionType) {
-      if (!base.isNonNullableByDefault) {
-        calleeType = legacyErasure(calleeType);
-      }
-      return calleeType as FunctionType;
+      return calleeType;
     }
     return base.unknownFunction;
   }
@@ -514,7 +510,7 @@ class InstanceAccessTarget extends ObjectAccessTarget {
     return member is Procedure &&
         base.typeSchemaEnvironment.isSpecialCasesBinaryForReceiverType(
             member as Procedure, receiverType,
-            isNonNullableByDefault: base.isNonNullableByDefault);
+            isNonNullableByDefault: true);
   }
 
   @override
@@ -522,7 +518,7 @@ class InstanceAccessTarget extends ObjectAccessTarget {
     return member is Procedure &&
         base.typeSchemaEnvironment.isSpecialCasedTernaryOperator(
             member as Procedure,
-            isNonNullableByDefault: base.isNonNullableByDefault);
+            isNonNullableByDefault: true);
   }
 
   @override
@@ -748,9 +744,6 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
       case ClassMemberKind.Method:
         FunctionType functionType = member.function!
             .computeFunctionType(base.libraryBuilder.nonNullable);
-        if (!base.isNonNullableByDefault) {
-          functionType = legacyErasure(functionType) as FunctionType;
-        }
         return functionType;
       case ClassMemberKind.Getter:
         // TODO(johnniwinther): Handle implicit .call on extension getter.
@@ -782,9 +775,6 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
                 .skip(receiverTypeArguments.length)
                 .toList(),
             requiredParameterCount: functionType.requiredParameterCount - 1));
-        if (!base.isNonNullableByDefault) {
-          resultType = legacyErasure(resultType);
-        }
         return resultType;
       case ClassMemberKind.Getter:
         FunctionType functionType = member.function!
@@ -797,9 +787,6 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
             new FunctionTypeInstantiator.fromIterables(
                 extensionTypeParameters, receiverTypeArguments);
         DartType resultType = instantiator.substitute(functionType.returnType);
-        if (!base.isNonNullableByDefault) {
-          resultType = legacyErasure(resultType);
-        }
         return resultType;
       case ClassMemberKind.Setter:
         throw unexpected('$this', 'getGetterType', -1, null);
@@ -821,9 +808,6 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
                 extensionTypeParameters, receiverTypeArguments);
         DartType setterType =
             instantiator.substitute(functionType.positionalParameters[1]);
-        if (!base.isNonNullableByDefault) {
-          setterType = legacyErasure(setterType);
-        }
         return setterType;
       case ClassMemberKind.Method:
       case ClassMemberKind.Getter:
@@ -844,9 +828,6 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
                 new FunctionTypeInstantiator.fromIterables(
                     functionType.typeParameters, receiverTypeArguments);
             keyType = instantiator.substitute(keyType);
-          }
-          if (!base.isNonNullableByDefault) {
-            keyType = legacyErasure(keyType);
           }
           return keyType;
         }
@@ -871,9 +852,6 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
                     functionType.typeParameters, receiverTypeArguments);
             indexType = instantiator.substitute(indexType);
           }
-          if (!base.isNonNullableByDefault) {
-            indexType = legacyErasure(indexType);
-          }
           return indexType;
         }
         return const InvalidType();
@@ -897,9 +875,6 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
                   functionType.typeParameters, receiverTypeArguments);
           returnType = instantiator.substitute(returnType);
         }
-        if (!base.isNonNullableByDefault) {
-          returnType = legacyErasure(returnType);
-        }
         return returnType;
       case ClassMemberKind.Setter:
         return const VoidType();
@@ -919,9 +894,6 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
                 new FunctionTypeInstantiator.fromIterables(
                     functionType.typeParameters, receiverTypeArguments);
             keyType = instantiator.substitute(keyType);
-          }
-          if (!base.isNonNullableByDefault) {
-            keyType = legacyErasure(keyType);
           }
           return keyType;
         }
@@ -1149,9 +1121,6 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget {
       case ClassMemberKind.Method:
         FunctionType functionType = member.function!
             .computeFunctionType(base.libraryBuilder.nonNullable);
-        if (!base.isNonNullableByDefault) {
-          functionType = legacyErasure(functionType) as FunctionType;
-        }
         return functionType;
       case ClassMemberKind.Getter:
         // TODO(johnniwinther): Handle implicit .call on extension getter.
@@ -1183,9 +1152,6 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget {
                 .skip(receiverTypeArguments.length)
                 .toList(),
             requiredParameterCount: functionType.requiredParameterCount - 1));
-        if (!base.isNonNullableByDefault) {
-          resultType = legacyErasure(resultType);
-        }
         return resultType;
       case ClassMemberKind.Getter:
         FunctionType functionType = member.function!
@@ -1198,9 +1164,6 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget {
             new FunctionTypeInstantiator.fromIterables(
                 extensionTypeParameters, receiverTypeArguments);
         DartType resultType = instantiator.substitute(functionType.returnType);
-        if (!base.isNonNullableByDefault) {
-          resultType = legacyErasure(resultType);
-        }
         return resultType;
       case ClassMemberKind.Setter:
         throw unexpected('$this', 'getGetterType', -1, null);
@@ -1222,9 +1185,6 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget {
                 extensionTypeParameters, receiverTypeArguments);
         DartType setterType =
             instantiator.substitute(functionType.positionalParameters[1]);
-        if (!base.isNonNullableByDefault) {
-          setterType = legacyErasure(setterType);
-        }
         return setterType;
       case ClassMemberKind.Method:
       case ClassMemberKind.Getter:
@@ -1245,9 +1205,6 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget {
                 new FunctionTypeInstantiator.fromIterables(
                     functionType.typeParameters, receiverTypeArguments);
             keyType = instantiator.substitute(keyType);
-          }
-          if (!base.isNonNullableByDefault) {
-            keyType = legacyErasure(keyType);
           }
           return keyType;
         }
@@ -1272,9 +1229,6 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget {
                     functionType.typeParameters, receiverTypeArguments);
             indexType = instantiator.substitute(indexType);
           }
-          if (!base.isNonNullableByDefault) {
-            indexType = legacyErasure(indexType);
-          }
           return indexType;
         }
         return const InvalidType();
@@ -1298,9 +1252,6 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget {
                   functionType.typeParameters, receiverTypeArguments);
           returnType = instantiator.substitute(returnType);
         }
-        if (!base.isNonNullableByDefault) {
-          returnType = legacyErasure(returnType);
-        }
         return returnType;
       case ClassMemberKind.Setter:
         return const VoidType();
@@ -1320,9 +1271,6 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget {
                 new FunctionTypeInstantiator.fromIterables(
                     functionType.typeParameters, receiverTypeArguments);
             keyType = instantiator.substitute(keyType);
-          }
-          if (!base.isNonNullableByDefault) {
-            keyType = legacyErasure(keyType);
           }
           return keyType;
         }

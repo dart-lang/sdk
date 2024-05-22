@@ -249,9 +249,9 @@ class AnalysisContextCollectionTest_SingleOptionsPerContext
 
   @override
   test_packageConfigWorkspace_multipleAnalysisOptions() async {
-    final workspaceRootPath = '/home';
-    final testPackageRootPath = '$workspaceRootPath/test';
-    final testPackageLibPath = '$testPackageRootPath/lib';
+    var workspaceRootPath = '/home';
+    var testPackageRootPath = '$workspaceRootPath/test';
+    var testPackageLibPath = '$testPackageRootPath/lib';
 
     newPubspecYamlFile(testPackageRootPath, r'''
 name: test
@@ -265,7 +265,7 @@ name: test
     newAnalysisOptionsYamlFile(testPackageRootPath, '');
     newFile('$testPackageLibPath/a.dart', '');
 
-    final nestedPath = '$testPackageLibPath/nested';
+    var nestedPath = '$testPackageLibPath/nested';
     newAnalysisOptionsYamlFile(nestedPath, '');
     newFile('$nestedPath/b.dart', '');
 
@@ -306,9 +306,9 @@ workspaces
 
   @override
   test_packageConfigWorkspace_multipleAnalysisOptions_nestedExclude() async {
-    final workspaceRootPath = '/home';
-    final testPackageRootPath = '$workspaceRootPath/test';
-    final testPackageLibPath = '$testPackageRootPath/lib';
+    var workspaceRootPath = '/home';
+    var testPackageRootPath = '$workspaceRootPath/test';
+    var testPackageLibPath = '$testPackageRootPath/lib';
 
     newPubspecYamlFile(testPackageRootPath, r'''
 name: test
@@ -322,7 +322,7 @@ name: test
     newAnalysisOptionsYamlFile(testPackageRootPath, '');
     newFile('$testPackageLibPath/a.dart', '');
 
-    final nestedPath = '$testPackageLibPath/nested';
+    var nestedPath = '$testPackageLibPath/nested';
     newAnalysisOptionsYamlFile(nestedPath, r'''
 analyzer:
   exclude:
@@ -368,9 +368,9 @@ workspaces
 
   @override
   test_packageConfigWorkspace_multipleAnalysisOptions_nestedNestedExclude() async {
-    final workspaceRootPath = '/home';
-    final testPackageRootPath = '$workspaceRootPath/test';
-    final testPackageLibPath = '$testPackageRootPath/lib';
+    var workspaceRootPath = '/home';
+    var testPackageRootPath = '$workspaceRootPath/test';
+    var testPackageLibPath = '$testPackageRootPath/lib';
 
     newPubspecYamlFile(testPackageRootPath, r'''
 name: test
@@ -384,7 +384,7 @@ name: test
     newAnalysisOptionsYamlFile(testPackageRootPath, '');
     newFile('$testPackageLibPath/a.dart', '');
 
-    final nestedPath = '$testPackageLibPath/nested';
+    var nestedPath = '$testPackageLibPath/nested';
     newAnalysisOptionsYamlFile(nestedPath, r'''
 analyzer:
   exclude:
@@ -393,7 +393,7 @@ analyzer:
     newFile('$nestedPath/b.dart', '');
     newFile('$nestedPath/excluded/b.dart', '');
 
-    final nestedNestedPath = '$nestedPath/nested';
+    var nestedNestedPath = '$nestedPath/nested';
     newAnalysisOptionsYamlFile(nestedNestedPath, r'''
 analyzer:
   exclude:
@@ -453,9 +453,9 @@ workspaces
 
   @override
   test_packageConfigWorkspace_multipleAnalysisOptions_outerExclude() async {
-    final workspaceRootPath = '/home';
-    final testPackageRootPath = '$workspaceRootPath/test';
-    final testPackageLibPath = '$testPackageRootPath/lib';
+    var workspaceRootPath = '/home';
+    var testPackageRootPath = '$workspaceRootPath/test';
+    var testPackageLibPath = '$testPackageRootPath/lib';
 
     newPubspecYamlFile(testPackageRootPath, r'''
 name: test
@@ -474,7 +474,7 @@ analyzer:
     newFile('$testPackageLibPath/a.dart', '');
     newFile('$testPackageRootPath/excluded/b.dart', '');
 
-    final nestedPath = '$testPackageLibPath/nested';
+    var nestedPath = '$testPackageLibPath/nested';
     newAnalysisOptionsYamlFile(nestedPath, '');
     newFile('$nestedPath/b.dart', '');
 
@@ -515,9 +515,9 @@ workspaces
 
   @override
   test_packageConfigWorkspace_multipleAnalysisOptions_overridingOptions() async {
-    final workspaceRootPath = '/home';
-    final testPackageRootPath = '$workspaceRootPath/test';
-    final testPackageLibPath = '$testPackageRootPath/lib';
+    var workspaceRootPath = '/home';
+    var testPackageRootPath = '$workspaceRootPath/test';
+    var testPackageLibPath = '$testPackageRootPath/lib';
 
     newPubspecYamlFile(testPackageRootPath, r'''
 name: test
@@ -531,7 +531,7 @@ name: test
     var rootOptionsFile = newAnalysisOptionsYamlFile(testPackageRootPath, '');
     newFile('$testPackageLibPath/a.dart', '');
 
-    final nestedPath = '$testPackageLibPath/nested';
+    var nestedPath = '$testPackageLibPath/nested';
     newAnalysisOptionsYamlFile(nestedPath, '');
     newFile('$nestedPath/b.dart', '');
 
@@ -567,9 +567,9 @@ workspaces
 
   @override
   test_packageConfigWorkspace_singleAnalysisOptions_multipleContexts() async {
-    final workspaceRootPath = '/home';
-    final testPackageRootPath = '$workspaceRootPath/test';
-    final testPackageLibPath = '$testPackageRootPath/lib';
+    var workspaceRootPath = '/home';
+    var testPackageRootPath = '$workspaceRootPath/test';
+    var testPackageLibPath = '$testPackageRootPath/lib';
 
     newAnalysisOptionsYamlFile(testPackageRootPath, '');
 
@@ -584,7 +584,7 @@ name: test
 
     newFile('$testPackageLibPath/a.dart', '');
 
-    final nestedPackageRootPath = '$testPackageRootPath/nested';
+    var nestedPackageRootPath = '$testPackageRootPath/nested';
     newPubspecYamlFile(nestedPackageRootPath, r'''
 name: nested
 ''');
@@ -653,8 +653,8 @@ mixin AnalysisContextCollectionTestMixin on ResourceProviderMixin {
   }
 
   test_basicWorkspace() async {
-    final workspaceRootPath = '/home';
-    final testPackageRootPath = '$workspaceRootPath/test';
+    var workspaceRootPath = '/home';
+    var testPackageRootPath = '$workspaceRootPath/test';
     newFile('$testPackageRootPath/lib/a.dart', '');
 
     _assertWorkspaceCollectionText(workspaceRootPath, r'''
@@ -674,9 +674,9 @@ workspaces
   test_packageConfigWorkspace_enabledExperiment() async {
     configuration.showEnabledFeatures = true;
 
-    final workspaceRootPath = '/home';
-    final testPackageRootPath = '$workspaceRootPath/test';
-    final testPackageLibPath = '$testPackageRootPath/lib';
+    var workspaceRootPath = '/home';
+    var testPackageRootPath = '$workspaceRootPath/test';
+    var testPackageLibPath = '$testPackageRootPath/lib';
 
     newPubspecYamlFile(testPackageRootPath, r'''
 name: test
@@ -749,9 +749,9 @@ workspaces
     configuration.withAnalysisOptionsWithoutFiles = true;
     configuration.showEnabledFeatures = true;
 
-    final workspaceRootPath = '/home';
-    final testPackageRootPath = '$workspaceRootPath/test';
-    final testPackageLibPath = '$testPackageRootPath/lib';
+    var workspaceRootPath = '/home';
+    var testPackageRootPath = '$workspaceRootPath/test';
+    var testPackageLibPath = '$testPackageRootPath/lib';
 
     newPubspecYamlFile(testPackageRootPath, r'''
 name: test
@@ -819,9 +819,9 @@ workspaces
   }
 
   test_packageConfigWorkspace_multipleAnalysisOptions() async {
-    final workspaceRootPath = '/home';
-    final testPackageRootPath = '$workspaceRootPath/test';
-    final testPackageLibPath = '$testPackageRootPath/lib';
+    var workspaceRootPath = '/home';
+    var testPackageRootPath = '$workspaceRootPath/test';
+    var testPackageLibPath = '$testPackageRootPath/lib';
 
     newPubspecYamlFile(testPackageRootPath, r'''
 name: test
@@ -835,7 +835,7 @@ name: test
     newAnalysisOptionsYamlFile(testPackageRootPath, '');
     newFile('$testPackageLibPath/a.dart', '');
 
-    final nestedPath = '$testPackageLibPath/nested';
+    var nestedPath = '$testPackageLibPath/nested';
     newAnalysisOptionsYamlFile(nestedPath, '');
     newFile('$nestedPath/b.dart', '');
 
@@ -866,9 +866,9 @@ workspaces
   }
 
   test_packageConfigWorkspace_multipleAnalysisOptions_nestedExclude() async {
-    final workspaceRootPath = '/home';
-    final testPackageRootPath = '$workspaceRootPath/test';
-    final testPackageLibPath = '$testPackageRootPath/lib';
+    var workspaceRootPath = '/home';
+    var testPackageRootPath = '$workspaceRootPath/test';
+    var testPackageLibPath = '$testPackageRootPath/lib';
 
     newPubspecYamlFile(testPackageRootPath, r'''
 name: test
@@ -882,7 +882,7 @@ name: test
     newAnalysisOptionsYamlFile(testPackageRootPath, '');
     newFile('$testPackageLibPath/a.dart', '');
 
-    final nestedPath = '$testPackageLibPath/nested';
+    var nestedPath = '$testPackageLibPath/nested';
     newAnalysisOptionsYamlFile(nestedPath, r'''
 analyzer:
   exclude:
@@ -918,9 +918,9 @@ workspaces
   }
 
   test_packageConfigWorkspace_multipleAnalysisOptions_nestedNestedExclude() async {
-    final workspaceRootPath = '/home';
-    final testPackageRootPath = '$workspaceRootPath/test';
-    final testPackageLibPath = '$testPackageRootPath/lib';
+    var workspaceRootPath = '/home';
+    var testPackageRootPath = '$workspaceRootPath/test';
+    var testPackageLibPath = '$testPackageRootPath/lib';
 
     newPubspecYamlFile(testPackageRootPath, r'''
 name: test
@@ -934,7 +934,7 @@ name: test
     newAnalysisOptionsYamlFile(testPackageRootPath, '');
     newFile('$testPackageLibPath/a.dart', '');
 
-    final nestedPath = '$testPackageLibPath/nested';
+    var nestedPath = '$testPackageLibPath/nested';
     newAnalysisOptionsYamlFile(nestedPath, r'''
 analyzer:
   exclude:
@@ -943,7 +943,7 @@ analyzer:
     newFile('$nestedPath/b.dart', '');
     newFile('$nestedPath/excluded/b.dart', '');
 
-    final nestedNestedPath = '$nestedPath/nested';
+    var nestedNestedPath = '$nestedPath/nested';
     newAnalysisOptionsYamlFile(nestedNestedPath, r'''
 analyzer:
   exclude:
@@ -984,9 +984,9 @@ workspaces
   }
 
   test_packageConfigWorkspace_multipleAnalysisOptions_outerExclude() async {
-    final workspaceRootPath = '/home';
-    final testPackageRootPath = '$workspaceRootPath/test';
-    final testPackageLibPath = '$testPackageRootPath/lib';
+    var workspaceRootPath = '/home';
+    var testPackageRootPath = '$workspaceRootPath/test';
+    var testPackageLibPath = '$testPackageRootPath/lib';
 
     newPubspecYamlFile(testPackageRootPath, r'''
 name: test
@@ -1005,7 +1005,7 @@ analyzer:
     newFile('$testPackageLibPath/a.dart', '');
     newFile('$testPackageRootPath/excluded/b.dart', '');
 
-    final nestedPath = '$testPackageLibPath/nested';
+    var nestedPath = '$testPackageLibPath/nested';
     newAnalysisOptionsYamlFile(nestedPath, '');
     newFile('$nestedPath/b.dart', '');
 
@@ -1036,9 +1036,9 @@ workspaces
   }
 
   test_packageConfigWorkspace_multipleAnalysisOptions_overridingOptions() async {
-    final workspaceRootPath = '/home';
-    final testPackageRootPath = '$workspaceRootPath/test';
-    final testPackageLibPath = '$testPackageRootPath/lib';
+    var workspaceRootPath = '/home';
+    var testPackageRootPath = '$workspaceRootPath/test';
+    var testPackageLibPath = '$testPackageRootPath/lib';
 
     newPubspecYamlFile(testPackageRootPath, r'''
 name: test
@@ -1052,7 +1052,7 @@ name: test
     var rootOptionsFile = newAnalysisOptionsYamlFile(testPackageRootPath, '');
     newFile('$testPackageLibPath/a.dart', '');
 
-    final nestedPath = '$testPackageLibPath/nested';
+    var nestedPath = '$testPackageLibPath/nested';
     newAnalysisOptionsYamlFile(nestedPath, '');
     newFile('$nestedPath/b.dart', '');
 
@@ -1087,9 +1087,9 @@ workspaces
   }
 
   test_packageConfigWorkspace_multipleAnalysisOptions_overridingOptions_outsideWorspaceRoot() async {
-    final workspaceRootPath = '/home';
-    final testPackageRootPath = '$workspaceRootPath/test';
-    final testPackageLibPath = '$testPackageRootPath/lib';
+    var workspaceRootPath = '/home';
+    var testPackageRootPath = '$workspaceRootPath/test';
+    var testPackageLibPath = '$testPackageRootPath/lib';
 
     newPubspecYamlFile(testPackageRootPath, r'''
 name: test
@@ -1104,7 +1104,7 @@ name: test
 
     newFile('$testPackageLibPath/a.dart', '');
 
-    final nestedPath = '$testPackageLibPath/nested';
+    var nestedPath = '$testPackageLibPath/nested';
     newAnalysisOptionsYamlFile(nestedPath, '');
     newFile('$nestedPath/b.dart', '');
 
@@ -1140,9 +1140,9 @@ workspaces
   }
 
   test_packageConfigWorkspace_multiplePackageConfigs() async {
-    final workspaceRootPath = '/home';
-    final testPackageRootPath = '$workspaceRootPath/test';
-    final testPackageLibPath = '$testPackageRootPath/lib';
+    var workspaceRootPath = '/home';
+    var testPackageRootPath = '$workspaceRootPath/test';
+    var testPackageLibPath = '$testPackageRootPath/lib';
 
     newPubspecYamlFile(testPackageRootPath, r'''
 name: test
@@ -1155,7 +1155,7 @@ name: test
 
     newFile('$testPackageLibPath/a.dart', '');
 
-    final nestedPackageRootPath = '$testPackageRootPath/nested';
+    var nestedPackageRootPath = '$testPackageRootPath/nested';
     newPubspecYamlFile(nestedPackageRootPath, r'''
 name: nested
 ''');
@@ -1196,8 +1196,8 @@ workspaces
   }
 
   test_packageConfigWorkspace_sdkVersionConstraint() async {
-    final workspaceRootPath = '/home';
-    final testPackageRootPath = '$workspaceRootPath/test';
+    var workspaceRootPath = '/home';
+    var testPackageRootPath = '$workspaceRootPath/test';
 
     newPubspecYamlFile(testPackageRootPath, r'''
 environment:
@@ -1231,9 +1231,9 @@ workspaces
   }
 
   test_packageConfigWorkspace_singleAnalysisOptions() async {
-    final workspaceRootPath = '/home';
-    final testPackageRootPath = '$workspaceRootPath/test';
-    final testPackageLibPath = '$testPackageRootPath/lib';
+    var workspaceRootPath = '/home';
+    var testPackageRootPath = '$workspaceRootPath/test';
+    var testPackageLibPath = '$testPackageRootPath/lib';
 
     newPubspecYamlFile(testPackageRootPath, r'''
 name: test
@@ -1270,9 +1270,9 @@ workspaces
   }
 
   test_packageConfigWorkspace_singleAnalysisOptions_exclude() async {
-    final workspaceRootPath = '/home';
-    final testPackageRootPath = '$workspaceRootPath/test';
-    final testPackageLibPath = '$testPackageRootPath/lib';
+    var workspaceRootPath = '/home';
+    var testPackageRootPath = '$workspaceRootPath/test';
+    var testPackageLibPath = '$testPackageRootPath/lib';
 
     newPubspecYamlFile(testPackageRootPath, r'''
 name: test
@@ -1288,7 +1288,7 @@ analyzer:
 ''');
 
     newFile('$testPackageLibPath/a.dart', '');
-    final nestedPath = '$testPackageLibPath/nested';
+    var nestedPath = '$testPackageLibPath/nested';
     newFile('$nestedPath/b.dart', '');
 
     _assertWorkspaceCollectionText(workspaceRootPath, r'''
@@ -1313,9 +1313,9 @@ workspaces
   }
 
   test_packageConfigWorkspace_singleAnalysisOptions_multipleContexts() async {
-    final workspaceRootPath = '/home';
-    final testPackageRootPath = '$workspaceRootPath/test';
-    final testPackageLibPath = '$testPackageRootPath/lib';
+    var workspaceRootPath = '/home';
+    var testPackageRootPath = '$workspaceRootPath/test';
+    var testPackageLibPath = '$testPackageRootPath/lib';
 
     newAnalysisOptionsYamlFile(testPackageRootPath, '');
 
@@ -1330,7 +1330,7 @@ name: test
 
     newFile('$testPackageLibPath/a.dart', '');
 
-    final nestedPackageRootPath = '$testPackageRootPath/nested';
+    var nestedPackageRootPath = '$testPackageRootPath/nested';
     newPubspecYamlFile(nestedPackageRootPath, r'''
 name: nested
 ''');
@@ -1378,7 +1378,7 @@ workspaces
     AnalysisContextCollectionImpl collection,
     String expected,
   ) {
-    final actual = _getContextCollectionText(collection);
+    var actual = _getContextCollectionText(collection);
     if (actual != expected) {
       print('-------- Actual --------');
       print('$actual------------------------');
@@ -1402,7 +1402,7 @@ workspaces
     if (optionsFile != null) {
       expect(optionsFile.exists, isTrue);
     }
-    final collection = AnalysisContextCollectionImpl(
+    var collection = AnalysisContextCollectionImpl(
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
       includedPaths: [
@@ -1418,7 +1418,7 @@ workspaces
   String _getContextCollectionText(
     AnalysisContextCollectionImpl contextCollection,
   ) {
-    final buffer = StringBuffer();
+    var buffer = StringBuffer();
     _AnalysisContextCollectionPrinter(
       configuration: configuration,
       resourceProvider: resourceProvider,
@@ -1470,24 +1470,24 @@ class _AnalysisContextCollectionPrinter {
   }
 
   String _idOfWorkspacePackage(WorkspacePackage package) {
-    final workspace = package.workspace;
-    final packages = _workspacePackages[workspace] ??= Map.identity();
-    if (packages[package] case final id?) {
+    var workspace = package.workspace;
+    var packages = _workspacePackages[workspace] ??= Map.identity();
+    if (packages[package] case var id?) {
       return id;
     } else {
-      final workspaceIndex = _indexIdOfWorkspace(workspace).$1;
-      final id = 'workspacePackage_${workspaceIndex}_${packages.length}';
+      var workspaceIndex = _indexIdOfWorkspace(workspace).$1;
+      var id = 'workspacePackage_${workspaceIndex}_${packages.length}';
       return packages[package] ??= id;
     }
   }
 
   (int, String) _indexIdOfWorkspace(Workspace workspace) {
-    if (_workspaces[workspace] case final existing?) {
+    if (_workspaces[workspace] case var existing?) {
       return existing;
     }
 
-    final index = _workspaces.length;
-    final id = 'workspace_$index';
+    var index = _workspaces.length;
+    var id = 'workspace_$index';
     return _workspaces[workspace] = (index, id);
   }
 
@@ -1496,10 +1496,10 @@ class _AnalysisContextCollectionPrinter {
   }
 
   void _writeAnalysisContext(DriverBasedAnalysisContext analysisContext) {
-    final contextRoot = analysisContext.contextRoot;
-    final fsState = analysisContext.driver.fsState;
+    var contextRoot = analysisContext.contextRoot;
+    var fsState = analysisContext.driver.fsState;
 
-    final analyzedFiles = contextRoot.analyzedFiles().toList();
+    var analyzedFiles = contextRoot.analyzedFiles().toList();
     if (!configuration.withEmptyContextRoots && analyzedFiles.isEmpty) {
       return;
     }
@@ -1511,7 +1511,7 @@ class _AnalysisContextCollectionPrinter {
         'workspace: ${_idOfWorkspace(contextRoot.workspace)}',
       );
       sink.writeElements('analyzedFiles', analyzedFiles, (path) {
-        final file = resourceProvider.getFile(path);
+        var file = resourceProvider.getFile(path);
         if (_isDartFile(file)) {
           _writeDartFile(fsState, file);
         }
@@ -1554,23 +1554,23 @@ class _AnalysisContextCollectionPrinter {
   void _writeDartFile(FileSystemState fsState, File file) {
     sink.writelnWithIndent(file.posixPath);
     sink.withIndent(() {
-      final fileState = fsState.getFileForPath(file.path);
+      var fileState = fsState.getFileForPath(file.path);
       var uri = fileState.uri;
       // If file uri, don't print it out, causes test failure on Windows.
       if (uri.scheme != 'file') {
         sink.writelnWithIndent('uri: $uri');
       }
 
-      final analysisOptions = fileState.analysisOptions;
+      var analysisOptions = fileState.analysisOptions;
       if (configuration.withAnalysisOptionsWithoutFiles ||
           analysisOptions.file != null) {
-        final id = _idOfAnalysisOptions(analysisOptions);
+        var id = _idOfAnalysisOptions(analysisOptions);
         sink.writelnWithIndent(id);
       }
 
-      final workspacePackage = fileState.workspacePackage;
+      var workspacePackage = fileState.workspacePackage;
       if (workspacePackage != null) {
-        final id = _idOfWorkspacePackage(workspacePackage);
+        var id = _idOfWorkspacePackage(workspacePackage);
         sink.writelnWithIndent(id);
       }
     });
@@ -1583,12 +1583,12 @@ class _AnalysisContextCollectionPrinter {
   }
 
   void _writeWorkspace(Workspace workspace) {
-    final id = _idOfWorkspace(workspace);
+    var id = _idOfWorkspace(workspace);
     switch (workspace) {
       case BasicWorkspace():
         sink.writelnWithIndent('$id: BasicWorkspace');
         sink.withIndent(() {
-          final root = resourceProvider.getFolder(workspace.root);
+          var root = resourceProvider.getFolder(workspace.root);
           sink.writelnWithIndent('root: ${root.posixPath}');
           sink.writelnWithIndent(
             _idOfWorkspacePackage(workspace.theOnlyPackage),
@@ -1597,7 +1597,7 @@ class _AnalysisContextCollectionPrinter {
       case PackageConfigWorkspace():
         sink.writelnWithIndent('$id: PackageConfigWorkspace');
         sink.withIndent(() {
-          final root = resourceProvider.getFolder(workspace.root);
+          var root = resourceProvider.getFolder(workspace.root);
           sink.writelnWithIndent('root: ${root.posixPath}');
           sink.writeElements(
             'pubPackages',
@@ -1612,20 +1612,20 @@ class _AnalysisContextCollectionPrinter {
   }
 
   void _writeWorkspacePackage(WorkspacePackage package) {
-    final id = _idOfWorkspacePackage(package);
+    var id = _idOfWorkspacePackage(package);
     switch (package) {
       case BasicWorkspacePackage():
         sink.writelnWithIndent('$id: BasicWorkspacePackage');
         sink.withIndent(() {
-          final root = resourceProvider.getFolder(package.root);
+          var root = resourceProvider.getFolder(package.root);
           sink.writelnWithIndent('root: ${root.posixPath}');
         });
       case PubPackage():
         sink.writelnWithIndent('$id: PubPackage');
         sink.withIndent(() {
-          final root = resourceProvider.getFolder(package.root);
+          var root = resourceProvider.getFolder(package.root);
           sink.writelnWithIndent('root: ${root.posixPath}');
-          final sdkVersionConstraint = package.sdkVersionConstraint;
+          var sdkVersionConstraint = package.sdkVersionConstraint;
           if (sdkVersionConstraint != null) {
             sink.writelnWithIndent(
                 'sdkVersionConstraint: $sdkVersionConstraint');

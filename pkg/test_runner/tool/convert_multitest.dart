@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Converts a multi-test to a test using the new static error test framework
-/// (see https://github.com/dart-lang/sdk/wiki/Testing#static-error-tests)
+/// (see https://github.com/dart-lang/sdk/tree/main/docs/Testing.md#static-error-tests)
 /// and a copy of the '/none' test.
 library;
 

@@ -1,4 +1,4 @@
-## 6.5.0-dev
+## 6.5.0
 * Deprecated `LibraryElement.toLegacyTypeIfOptOut`.
 * Deprecated `LibraryElement.toLegacyElementIfOptOut`.
 * Deprecated `LibraryElement.isNonNullableByDefault`.
@@ -9,6 +9,19 @@
   use `PropertyInducingElement? get variable2` instead.
   The reason for this is that when the property accessor is an augmentation
   without the corresponding declaration, there is no corresponding variable.
+* Deprecated `ExtensionDeclaration.onKeyword` and `extendedType`.
+  Use `ExtensionOnClause? get onClause` instead.
+  Extension augmentations are not allowed to have `onClause`.
+* Deprecated `OnClause`, use `MixinOnClause` instead.
+* Support new meta annotation: `@doNotSubmit`.
+* Support new meta annotation: `@mustBeConst`.
+* Support new meta TargetKinds: `constructor`, `directive`, `enumValue`, and
+  `typeParameter`.
+* Fix for accessing constants from extension type, when import prefixed.
+* Deprecated `AstNode.getProperty` and `AstNode.setProperty`. Clients who need
+  the ability to add arbitrary decorations to AST nodes can achieve the same
+  effect using Dart's built-in
+  [Expando](https://api.flutter.dev/flutter/dart-core/Expando-class.html) class.
 
 ## 6.4.1
 * Patch for crash in ffi_verifier.

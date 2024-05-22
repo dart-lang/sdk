@@ -13,7 +13,12 @@ class RemoveNameFromDeclarationClause extends ResolvedCorrectionProducer {
   String _fixMessage = '';
 
   @override
-  List<Object> get fixArguments => [_fixMessage];
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments => [_fixMessage];
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_NAME_FROM_DECLARATION_CLAUSE;
@@ -35,7 +40,7 @@ class RemoveNameFromDeclarationClause extends ResolvedCorrectionProducer {
     } else if (clause is ImplementsClause) {
       clauseName = 'implements';
       nameList = clause.interfaces;
-    } else if (clause is OnClause) {
+    } else if (clause is MixinOnClause) {
       clauseName = 'on';
       nameList = clause.superclassConstraints;
     } else if (clause is WithClause) {

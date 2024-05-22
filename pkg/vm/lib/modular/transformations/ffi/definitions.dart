@@ -501,7 +501,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         success = false;
       } else {
         final DartType nativeType =
-            InterfaceType(nativeTypeAnnos.first, Nullability.legacy);
+            InterfaceType(nativeTypeAnnos.first, Nullability.nonNullable);
         final DartType? shouldBeDartType = convertNativeTypeToDartType(
           nativeType,
           allowStructAndUnion: true,
@@ -511,8 +511,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
             !env.isSubtypeOf(type, shouldBeDartType,
                 SubtypeCheckMode.ignoringNullabilities)) {
           diagnosticReporter.report(
-            templateFfiTypeMismatch.withArguments(type, shouldBeDartType!,
-                nativeType, node.enclosingLibrary.isNonNullableByDefault),
+            templateFfiTypeMismatch.withArguments(
+                type, shouldBeDartType!, nativeType),
             f.fileOffset,
             1,
             f.location!.file,
@@ -589,8 +589,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         ],
         fileUri: node.fileUri,
         reference: reference)
-      ..fileOffset = node.fileOffset
-      ..isNonNullableByDefault = node.enclosingLibrary.isNonNullableByDefault;
+      ..fileOffset = node.fileOffset;
 
     // Struct objects are manufactured in the VM by being passed by value
     // in return position in FFI calls, and by value in arguments in FFI
@@ -651,8 +650,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           ],
           fileUri: node.fileUri,
           reference: reference)
-        ..fileOffset = node.fileOffset
-        ..isNonNullableByDefault = node.enclosingLibrary.isNonNullableByDefault;
+        ..fileOffset = node.fileOffset;
 
       node.addConstructor(ctor);
     }
@@ -1001,7 +999,6 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       reference: getterReference,
     )
       ..fileOffset = fileOffset
-      ..isNonNullableByDefault = true
       ..isStatic = true
       ..isSynthetic = true
       ..annotations = [];
@@ -1043,7 +1040,6 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       reference: getterReference,
     )
       ..fileOffset = field.fileOffset
-      ..isNonNullableByDefault = field.isNonNullableByDefault
       ..annotations = field.annotations;
     node.addProcedure(getter);
 
@@ -1078,9 +1074,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         ),
         fileUri: field.fileUri,
         reference: setterReference,
-      )
-        ..fileOffset = field.fileOffset
-        ..isNonNullableByDefault = field.isNonNullableByDefault;
+      )..fileOffset = field.fileOffset;
       node.addProcedure(setter);
     }
 
@@ -1105,13 +1099,12 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         ProcedureKind.Getter,
         FunctionNode(
           ReturnStatement(runtimeBranchOnLayout(sizes)),
-          returnType: InterfaceType(intClass, Nullability.legacy),
+          returnType: coreTypes.intNonNullableRawType,
         ),
         fileUri: compound.fileUri,
         reference: getterReference,
         isStatic: true)
-      ..fileOffset = compound.fileOffset
-      ..isNonNullableByDefault = true;
+      ..fileOffset = compound.fileOffset;
     addPragmaPreferInline(getter);
     compound.addProcedure(getter);
   }

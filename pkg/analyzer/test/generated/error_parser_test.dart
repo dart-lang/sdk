@@ -689,7 +689,7 @@ main() { // missing async
     var declaration = parseFullCompilationUnitMember() as EnumDeclaration;
     expectNotNullIfNoErrors(declaration);
     // TODO(brianwilkerson): Convert codes to errors when highlighting is fixed.
-    listener.assertErrorsWithCodes([ParserErrorCode.EMPTY_ENUM_BODY]);
+    listener.assertErrorsWithCodes([]);
 //    listener
 //        .assertErrors([expectedError(ParserErrorCode.EMPTY_ENUM_BODY, 7, 2),]);
   }
@@ -1835,9 +1835,9 @@ class Wrong<T> {
   }
 
   void test_missing_closing_bracket_issue37528() {
-    final code = '\${foo';
+    var code = '\${foo';
     createParser(code);
-    final result = fasta.scanString(code);
+    var result = fasta.scanString(code);
     expect(result.hasErrors, isTrue);
     var token = parserProxy.fastaParser.syntheticPreviousToken(result.tokens);
     try {

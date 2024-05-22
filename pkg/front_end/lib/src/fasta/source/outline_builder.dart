@@ -19,16 +19,12 @@ import 'package:_fe_analyzer_shared/src/parser/quote.dart' show unescapeString;
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show FixedNullableList, NullValues, ParserRecovery;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
+    show Variance;
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
 import 'package:kernel/ast.dart'
-    show
-        AsyncMarker,
-        InvalidType,
-        Nullability,
-        ProcedureKind,
-        TreeNode,
-        Variance;
+    show AsyncMarker, InvalidType, Nullability, ProcedureKind, TreeNode;
 
 import '../../api_prototype/experimental_flags.dart';
 import '../../api_prototype/lowering_predicates.dart';
@@ -966,7 +962,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void endLibraryAugmentation(
-      Token libraryKeyword, Token augmentKeyword, Token semicolon) {
+      Token augmentKeyword, Token libraryKeyword, Token semicolon) {
     debugEvent("endLibraryAugmentation");
     assert(checkState(libraryKeyword, [
       /* uri offset */ ValueKinds.Integer,
@@ -1325,47 +1321,46 @@ class OutlineBuilder extends StackListenerImpl {
       final int startCharOffset =
           metadata == null ? beginToken.charOffset : metadata.first.charOffset;
 
-      if (libraryBuilder.isNonNullableByDefault) {
-        String classNameForErrors = identifier.name;
-        if (supertype != null) {
-          if (supertype.nullabilityBuilder.build(libraryBuilder) ==
+      String classNameForErrors = identifier.name;
+      if (supertype != null) {
+        if (supertype.nullabilityBuilder.build(libraryBuilder) ==
+            Nullability.nullable) {
+          libraryBuilder.addProblem(
+              templateNullableSuperclassError
+                  .withArguments(supertype.fullNameForErrors),
+              identifier.nameOffset,
+              classNameForErrors.length,
+              uri);
+        }
+      }
+      if (mixinApplication != null) {
+        List<TypeBuilder>? mixins = mixinApplication.mixins;
+        for (TypeBuilder mixin in mixins) {
+          if (mixin.nullabilityBuilder.build(libraryBuilder) ==
               Nullability.nullable) {
             libraryBuilder.addProblem(
-                templateNullableSuperclassError
-                    .withArguments(supertype.fullNameForErrors),
+                templateNullableMixinError
+                    .withArguments(mixin.fullNameForErrors),
                 identifier.nameOffset,
                 classNameForErrors.length,
                 uri);
           }
         }
-        if (mixinApplication != null) {
-          List<TypeBuilder>? mixins = mixinApplication.mixins;
-          for (TypeBuilder mixin in mixins) {
-            if (mixin.nullabilityBuilder.build(libraryBuilder) ==
-                Nullability.nullable) {
-              libraryBuilder.addProblem(
-                  templateNullableMixinError
-                      .withArguments(mixin.fullNameForErrors),
-                  identifier.nameOffset,
-                  classNameForErrors.length,
-                  uri);
-            }
-          }
-        }
-        if (interfaces != null) {
-          for (TypeBuilder interface in interfaces) {
-            if (interface.nullabilityBuilder.build(libraryBuilder) ==
-                Nullability.nullable) {
-              libraryBuilder.addProblem(
-                  templateNullableInterfaceError
-                      .withArguments(interface.fullNameForErrors),
-                  identifier.nameOffset,
-                  classNameForErrors.length,
-                  uri);
-            }
+      }
+      if (interfaces != null) {
+        for (TypeBuilder interface in interfaces) {
+          if (interface.nullabilityBuilder.build(libraryBuilder) ==
+              Nullability.nullable) {
+            libraryBuilder.addProblem(
+                templateNullableInterfaceError
+                    .withArguments(interface.fullNameForErrors),
+                identifier.nameOffset,
+                classNameForErrors.length,
+                uri);
           }
         }
       }
+
       if (sealedToken != null) {
         modifiers |= abstractMask;
       }
@@ -1434,32 +1429,30 @@ class OutlineBuilder extends StackListenerImpl {
       Identifier identifier = name as Identifier;
       int startOffset =
           metadata == null ? beginToken.charOffset : metadata.first.charOffset;
-      if (libraryBuilder.isNonNullableByDefault) {
-        String classNameForErrors = identifier.name;
-        if (supertypeConstraints != null) {
-          for (TypeBuilder supertype in supertypeConstraints) {
-            if (supertype.nullabilityBuilder.build(libraryBuilder) ==
-                Nullability.nullable) {
-              libraryBuilder.addProblem(
-                  templateNullableSuperclassError
-                      .withArguments(supertype.fullNameForErrors),
-                  identifier.nameOffset,
-                  classNameForErrors.length,
-                  uri);
-            }
+      String classNameForErrors = identifier.name;
+      if (supertypeConstraints != null) {
+        for (TypeBuilder supertype in supertypeConstraints) {
+          if (supertype.nullabilityBuilder.build(libraryBuilder) ==
+              Nullability.nullable) {
+            libraryBuilder.addProblem(
+                templateNullableSuperclassError
+                    .withArguments(supertype.fullNameForErrors),
+                identifier.nameOffset,
+                classNameForErrors.length,
+                uri);
           }
         }
-        if (interfaces != null) {
-          for (TypeBuilder interface in interfaces) {
-            if (interface.nullabilityBuilder.build(libraryBuilder) ==
-                Nullability.nullable) {
-              libraryBuilder.addProblem(
-                  templateNullableInterfaceError
-                      .withArguments(interface.fullNameForErrors),
-                  identifier.nameOffset,
-                  classNameForErrors.length,
-                  uri);
-            }
+      }
+      if (interfaces != null) {
+        for (TypeBuilder interface in interfaces) {
+          if (interface.nullabilityBuilder.build(libraryBuilder) ==
+              Nullability.nullable) {
+            libraryBuilder.addProblem(
+                templateNullableInterfaceError
+                    .withArguments(interface.fullNameForErrors),
+                identifier.nameOffset,
+                classNameForErrors.length,
+                uri);
           }
         }
       }
@@ -1512,7 +1505,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void endExtensionDeclaration(Token beginToken, Token extensionKeyword,
-      Token onKeyword, Token endToken) {
+      Token? onKeyword, Token endToken) {
     assert(checkState(extensionKeyword, [
       unionOfKinds([ValueKinds.ParserRecovery, ValueKinds.TypeBuilder]),
       ValueKinds.NominalVariableListOrNull,
@@ -1555,7 +1548,8 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void beginExtensionTypeDeclaration(Token extensionKeyword, Token nameToken) {
+  void beginExtensionTypeDeclaration(
+      Token? augmentToken, Token extensionKeyword, Token nameToken) {
     assert(checkState(extensionKeyword,
         [ValueKinds.NominalVariableListOrNull, ValueKinds.MetadataListOrNull]));
     debugEvent("beginExtensionTypeDeclaration");
@@ -1575,8 +1569,8 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void endExtensionTypeDeclaration(Token beginToken, Token extensionKeyword,
-      Token typeKeyword, Token endToken) {
+  void endExtensionTypeDeclaration(Token beginToken, Token? augmentToken,
+      Token extensionKeyword, Token typeKeyword, Token endToken) {
     assert(checkState(extensionKeyword, [
       ValueKinds.TypeBuilderListOrNull,
       ValueKinds.NominalVariableListOrNull,
@@ -2507,47 +2501,45 @@ class OutlineBuilder extends StackListenerImpl {
           .resolveNamedTypes(typeVariables, libraryBuilder);
     } else {
       Identifier identifier = name as Identifier;
-      if (libraryBuilder.isNonNullableByDefault) {
-        String classNameForErrors = identifier.name;
-        MixinApplicationBuilder mixinApplicationBuilder =
-            mixinApplication as MixinApplicationBuilder;
-        List<TypeBuilder> mixins = mixinApplicationBuilder.mixins;
-        if (supertype is TypeBuilder && supertype is! MixinApplicationBuilder) {
-          if (supertype.nullabilityBuilder.build(libraryBuilder) ==
+      String classNameForErrors = identifier.name;
+      MixinApplicationBuilder mixinApplicationBuilder =
+          mixinApplication as MixinApplicationBuilder;
+      List<TypeBuilder> mixins = mixinApplicationBuilder.mixins;
+      if (supertype is TypeBuilder && supertype is! MixinApplicationBuilder) {
+        if (supertype.nullabilityBuilder.build(libraryBuilder) ==
+            Nullability.nullable) {
+          libraryBuilder.addProblem(
+              templateNullableSuperclassError
+                  .withArguments(supertype.fullNameForErrors),
+              identifier.nameOffset,
+              classNameForErrors.length,
+              uri);
+        }
+      }
+      for (TypeBuilder mixin in mixins) {
+        if (mixin.nullabilityBuilder.build(libraryBuilder) ==
+            Nullability.nullable) {
+          libraryBuilder.addProblem(
+              templateNullableMixinError.withArguments(mixin.fullNameForErrors),
+              identifier.nameOffset,
+              classNameForErrors.length,
+              uri);
+        }
+      }
+      if (interfaces != null) {
+        for (TypeBuilder interface in interfaces) {
+          if (interface.nullabilityBuilder.build(libraryBuilder) ==
               Nullability.nullable) {
             libraryBuilder.addProblem(
-                templateNullableSuperclassError
-                    .withArguments(supertype.fullNameForErrors),
+                templateNullableInterfaceError
+                    .withArguments(interface.fullNameForErrors),
                 identifier.nameOffset,
                 classNameForErrors.length,
                 uri);
-          }
-        }
-        for (TypeBuilder mixin in mixins) {
-          if (mixin.nullabilityBuilder.build(libraryBuilder) ==
-              Nullability.nullable) {
-            libraryBuilder.addProblem(
-                templateNullableMixinError
-                    .withArguments(mixin.fullNameForErrors),
-                identifier.nameOffset,
-                classNameForErrors.length,
-                uri);
-          }
-        }
-        if (interfaces != null) {
-          for (TypeBuilder interface in interfaces) {
-            if (interface.nullabilityBuilder.build(libraryBuilder) ==
-                Nullability.nullable) {
-              libraryBuilder.addProblem(
-                  templateNullableInterfaceError
-                      .withArguments(interface.fullNameForErrors),
-                  identifier.nameOffset,
-                  classNameForErrors.length,
-                  uri);
-            }
           }
         }
       }
+
       if (sealedToken != null) {
         modifiers |= abstractMask;
       }
@@ -2560,7 +2552,7 @@ class OutlineBuilder extends StackListenerImpl {
           typeVariables,
           modifiers,
           supertype as TypeBuilder?,
-          mixinApplication as MixinApplicationBuilder,
+          mixinApplication,
           interfaces,
           startCharOffset,
           identifier.nameOffset,
@@ -2603,11 +2595,7 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void handleNonNullAssertExpression(Token bang) {
-    if (!libraryBuilder.isNonNullableByDefault) {
-      reportNonNullAssertExpressionNotEnabled(bang);
-    }
-  }
+  void handleNonNullAssertExpression(Token bang) {}
 
   @override
   void handleType(Token beginToken, Token? questionMark) {
@@ -2616,9 +2604,6 @@ class OutlineBuilder extends StackListenerImpl {
       /* type arguments = */ ValueKinds.TypeArgumentsOrNull,
       /* identifier */ ValueKinds.IdentifierOrParserRecovery,
     ]));
-    if (!libraryBuilder.isNonNullableByDefault) {
-      reportErrorIfNullableType(questionMark);
-    }
     bool isMarkedAsNullable = questionMark != null;
     List<TypeBuilder>? arguments = pop() as List<TypeBuilder>?;
     Object name = pop()!;
@@ -2685,9 +2670,6 @@ class OutlineBuilder extends StackListenerImpl {
   void beginFormalParameter(Token token, MemberKind kind, Token? requiredToken,
       Token? covariantToken, Token? varFinalOrConst) {
     _insideOfFormalParameterType = true;
-    if (requiredToken != null && !libraryBuilder.isNonNullableByDefault) {
-      reportNonNullableModifierError(requiredToken);
-    }
     push((covariantToken != null ? covariantMask : 0) |
         (requiredToken != null ? requiredMask : 0) |
         Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme));
@@ -2906,7 +2888,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
-      Token? commaToken, Token semicolonToken) {
+      Token? commaToken, Token endToken) {
     debugEvent("Assert");
     // Do nothing
   }
@@ -2932,7 +2914,7 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void handleEnumElement(Token beginToken) {
+  void handleEnumElement(Token beginToken, Token? augmentToken) {
     debugEvent("handleEnumElement");
     assert(checkState(beginToken, [
       /* argumentsBeginToken */ ValueKinds.ArgumentsTokenOrNull,
@@ -2956,7 +2938,8 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void handleEnumHeader(Token enumKeyword, Token leftBrace) {
+  void handleEnumHeader(
+      Token? augmentToken, Token enumKeyword, Token leftBrace) {
     assert(checkState(enumKeyword, [
       /* interfaces */ ValueKinds.TypeBuilderListOrNull,
       /* mixins */ unionOfKinds([
@@ -3059,6 +3042,12 @@ class OutlineBuilder extends StackListenerImpl {
     checkEmpty(startCharOffset);
 
     if (identifier is Identifier) {
+      if (enumConstantInfos == null) {
+        if (!leftBrace.isSynthetic) {
+          addProblem(messageEnumDeclarationEmpty, identifier.token.offset,
+              identifier.token.length);
+        }
+      }
       if (interfaces != null) {
         for (TypeBuilder interface in interfaces) {
           if (interface.nullabilityBuilder.build(libraryBuilder) ==
@@ -3139,10 +3128,6 @@ class OutlineBuilder extends StackListenerImpl {
           noLength);
     }
 
-    if (!libraryBuilder.isNonNullableByDefault) {
-      reportErrorIfNullableType(questionMark);
-    }
-
     List<RecordTypeFieldBuilder>? namedFields;
     if (hasNamedFields) {
       namedFields =
@@ -3204,9 +3189,6 @@ class OutlineBuilder extends StackListenerImpl {
   void endFunctionType(Token functionToken, Token? questionMark) {
     debugEvent("FunctionType");
     _structuralParameterDepthLevel--;
-    if (!libraryBuilder.isNonNullableByDefault) {
-      reportErrorIfNullableType(questionMark);
-    }
     List<FormalParameterBuilder>? formals =
         pop() as List<FormalParameterBuilder>?;
     pop(); // formals offset
@@ -3232,9 +3214,6 @@ class OutlineBuilder extends StackListenerImpl {
     TypeBuilder? returnType = pop() as TypeBuilder?;
     List<StructuralVariableBuilder>? typeVariables =
         pop() as List<StructuralVariableBuilder>?;
-    if (!libraryBuilder.isNonNullableByDefault) {
-      reportErrorIfNullableType(question);
-    }
     push(libraryBuilder.addFunctionType(
         returnType ?? const ImplicitTypeBuilder(),
         typeVariables,
@@ -3246,7 +3225,8 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void endTypedef(Token typedefKeyword, Token? equals, Token endToken) {
+  void endTypedef(Token? augmentToken, Token typedefKeyword, Token? equals,
+      Token endToken) {
     debugEvent("endTypedef");
     assert(checkState(
         typedefKeyword,
@@ -3323,8 +3303,7 @@ class OutlineBuilder extends StackListenerImpl {
       if (type is FunctionTypeBuilder &&
           !libraryFeatures.nonfunctionTypeAliases.isEnabled) {
         if (type.nullabilityBuilder.build(libraryBuilder) ==
-                Nullability.nullable &&
-            libraryBuilder.isNonNullableByDefault) {
+            Nullability.nullable) {
           // The error is reported when the non-nullable experiment is enabled.
           // Otherwise, the attempt to use a nullable type will be reported
           // elsewhere.
@@ -3478,19 +3457,10 @@ class OutlineBuilder extends StackListenerImpl {
       ]),
       /* metadata = */ ValueKinds.MetadataListOrNull,
     ]));
-    if (!libraryBuilder.isNonNullableByDefault) {
-      reportNonNullableModifierError(lateToken);
-      if (externalToken != null) {
-        handleRecoverableError(
-            messageExternalField, externalToken, externalToken);
-        externalToken = null;
-      }
-    } else {
-      if (externalToken != null && lateToken != null) {
-        handleRecoverableError(
-            messageExternalLateField, externalToken, externalToken);
-        externalToken = null;
-      }
+    if (externalToken != null && lateToken != null) {
+      handleRecoverableError(
+          messageExternalLateField, externalToken, externalToken);
+      externalToken = null;
     }
     List<FieldInfo>? fieldInfos = popFieldInfos(count);
     TypeBuilder? type = nullIfParserRecovery(pop()) as TypeBuilder?;
@@ -3532,34 +3502,21 @@ class OutlineBuilder extends StackListenerImpl {
       /* metadata = */ ValueKinds.MetadataListOrNull,
     ]));
     debugEvent("Fields");
-    if (!libraryBuilder.isNonNullableByDefault) {
-      reportNonNullableModifierError(lateToken);
-      if (abstractToken != null) {
-        handleRecoverableError(
-            messageAbstractClassMember, abstractToken, abstractToken);
-        abstractToken = null;
-      }
-      if (externalToken != null) {
-        handleRecoverableError(
-            messageExternalField, externalToken, externalToken);
-        externalToken = null;
-      }
-    } else {
-      if (staticToken != null && abstractToken != null) {
-        handleRecoverableError(
-            messageAbstractStaticField, abstractToken, abstractToken);
-        abstractToken = null;
-      }
-      if (abstractToken != null && lateToken != null) {
-        handleRecoverableError(
-            messageAbstractLateField, abstractToken, abstractToken);
-        abstractToken = null;
-      } else if (externalToken != null && lateToken != null) {
-        handleRecoverableError(
-            messageExternalLateField, externalToken, externalToken);
-        externalToken = null;
-      }
+    if (staticToken != null && abstractToken != null) {
+      handleRecoverableError(
+          messageAbstractStaticField, abstractToken, abstractToken);
+      abstractToken = null;
     }
+    if (abstractToken != null && lateToken != null) {
+      handleRecoverableError(
+          messageAbstractLateField, abstractToken, abstractToken);
+      abstractToken = null;
+    } else if (externalToken != null && lateToken != null) {
+      handleRecoverableError(
+          messageExternalLateField, externalToken, externalToken);
+      externalToken = null;
+    }
+
     List<FieldInfo>? fieldInfos = popFieldInfos(count);
     TypeBuilder? type = pop() as TypeBuilder?;
     int modifiers = (abstractToken != null ? abstractMask : 0) |
@@ -3667,7 +3624,8 @@ class OutlineBuilder extends StackListenerImpl {
         if (!libraryFeatures.variance.isEnabled) {
           reportVarianceModifierNotEnabled(variance);
         }
-        typeParameters[index].variance = Variance.fromString(variance.lexeme);
+        typeParameters[index].variance =
+            new Variance.fromKeywordString(variance.lexeme);
       }
     }
   }
@@ -3972,25 +3930,12 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void endFieldInitializer(Token assignmentOperator, Token token) {
+  void endFieldInitializer(Token assignmentOperator, Token endToken) {
     debugEvent("FieldInitializer");
-    Token beforeLast = assignmentOperator.next!;
-    Token next = beforeLast.next!;
-    while (next != token && !next.isEof) {
-      // To avoid storing the rest of the token stream, we need to identify the
-      // token before [token]. That token will be the last token of the
-      // initializer expression and by setting its tail to EOF we only store
-      // the tokens for the expression.
-      // TODO(ahe): Might be clearer if this search was moved to
-      // `library.addFields`.
-      // TODO(ahe): I don't even think this is necessary. [token] points to ;
-      // or , and we don't otherwise store tokens.
-      beforeLast = next;
-      next = next.next!;
-    }
     push(assignmentOperator.next);
-    push(beforeLast);
-    push(token.charOffset);
+    push(endToken);
+    // TODO(jensj): Do we actually want the position of the "," or ";" here?
+    push(endToken.next!.charOffset);
   }
 
   @override

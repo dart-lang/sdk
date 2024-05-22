@@ -13,10 +13,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertToIfNull extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_IF_NULL;
@@ -26,7 +24,7 @@ class ConvertToIfNull extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is ConditionalExpression &&
         node.offset == errorOffset &&
         node.length == errorLength) {

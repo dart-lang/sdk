@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 class Class {}
 
 extension Extension on Class {
@@ -20,7 +18,6 @@ extension Extension on Class {
   }
 }
 
-
 main() {
   Class c = new Class();
   int Function(int) intId = c.id;
@@ -32,4 +29,3 @@ errors() {
   num Function(num) numId = c.getter;
   bool Function(bool) boolId = Extension(c).getter;
 }
-

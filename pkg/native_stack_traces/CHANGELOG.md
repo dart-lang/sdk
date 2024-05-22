@@ -1,3 +1,8 @@
+## 0.5.7
+
+- Translates non-symbolic stack traces that include information for
+  deferred loading units.
+
 ## 0.5.6
 
 - Added retrieval of the static symbol table contents for use in Dart tests.

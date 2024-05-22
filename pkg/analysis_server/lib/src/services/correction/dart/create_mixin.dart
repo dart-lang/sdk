@@ -15,7 +15,12 @@ class CreateMixin extends ResolvedCorrectionProducer {
   String _mixinName = '';
 
   @override
-  List<Object> get fixArguments => [_mixinName];
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments => [_mixinName];
 
   @override
   FixKind get fixKind => DartFixKind.CREATE_MIXIN;
@@ -23,9 +28,9 @@ class CreateMixin extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     Element? prefixElement;
-    final node = this.node;
+    var node = this.node;
     if (node is NamedType) {
-      final importPrefix = node.importPrefix;
+      var importPrefix = node.importPrefix;
       if (importPrefix != null) {
         prefixElement = importPrefix.element;
         if (prefixElement == null) {

@@ -12,9 +12,11 @@ import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
+import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
@@ -22,6 +24,7 @@ import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/src/utilities/extensions/resolved_unit_result.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// Returns the [SourceRange] to find conflicting locals in.
@@ -309,8 +312,8 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     var fatalStatus = RefactoringStatus.fatal(
         'Method declaration or reference must be selected to activate this refactoring.');
 
-    final selectedNode = NodeLocator(offset).searchWithin(resolveResult.unit);
-    final Element? element;
+    var selectedNode = NodeLocator(offset).searchWithin(resolveResult.unit);
+    Element? element;
 
     if (selectedNode is FunctionDeclaration) {
       element = selectedNode.declaredElement;
@@ -343,11 +346,12 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
 
   _SourcePart _createSourcePart(SourceRange range) {
     var source = _methodUtils.getRangeText(range);
-    var prefix = getLinePrefix(source);
+
+    var prefix = resolveResult.linePrefix(range.offset);
     var result = _SourcePart(range.offset, source, prefix);
-    // remember parameters and variables occurrences
+    // Remember parameters and variables occurrences.
     _methodUnit.accept(_VariablesVisitor(_methodElement!, range, result));
-    // done
+    // Done.
     return result;
   }
 
@@ -363,8 +367,8 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
         'Method declaration or reference must be selected to activate this refactoring.');
 
     // prepare selected SimpleIdentifier
-    final selectedNode = NodeLocator(offset).searchWithin(resolveResult.unit);
-    final Element? element;
+    var selectedNode = NodeLocator(offset).searchWithin(resolveResult.unit);
+    Element? element;
     if (selectedNode is FunctionDeclaration) {
       element = selectedNode.declaredElement;
       isDeclaration = true;
@@ -572,6 +576,12 @@ class _ReferenceProcessor {
         }
         // do replace
         var methodUsageRange = range.node(usage);
+        var awaitKeyword = Keyword.AWAIT.lexeme;
+        if (usage.parent is AwaitExpression &&
+            source.startsWith(awaitKeyword)) {
+          // remove the duplicate await keyword and the following whitespace.
+          source = source.substring(awaitKeyword.length + 1);
+        }
         var edit = newSourceEdit_range(methodUsageRange, source);
         _addRefEdit(edit);
       } else {
@@ -829,9 +839,9 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    final nameRange = range.token(node.name);
+    var nameRange = range.token(node.name);
     if (bodyRange.covers(nameRange)) {
-      final declaredElement = node.declaredElement;
+      var declaredElement = node.declaredElement;
       if (declaredElement != null) {
         result.addVariable(declaredElement, nameRange);
       }

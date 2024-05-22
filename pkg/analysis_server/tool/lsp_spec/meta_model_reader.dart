@@ -28,19 +28,19 @@ class LspMetaModelReader {
 
   /// Reads all spec types from [file].
   LspMetaModel readFile(File file) {
-    final modelJson = file.readAsStringSync();
-    final model = jsonDecode(modelJson) as Map<String, Object?>;
+    var modelJson = file.readAsStringSync();
+    var model = jsonDecode(modelJson) as Map<String, Object?>;
     return readMap(model);
   }
 
   /// Reads all spec types from [model].
   LspMetaModel readMap(Map<String, dynamic> model) {
-    final requests = model['requests'] as List?;
-    final notifications = model['notifications'] as List?;
-    final structures = model['structures'] as List?;
-    final enums = model['enumerations'] as List?;
-    final typeAliases = model['typeAliases'] as List?;
-    final methods = [...?requests, ...?notifications].toList();
+    var requests = model['requests'] as List?;
+    var notifications = model['notifications'] as List?;
+    var structures = model['structures'] as List?;
+    var enums = model['enumerations'] as List?;
+    var typeAliases = model['typeAliases'] as List?;
+    var methods = [...?requests, ...?notifications].toList();
     [
       ...?structures?.map(_readStructure),
       ...?enums?.map((e) => _readEnum(e)),
@@ -53,7 +53,7 @@ class LspMetaModelReader {
     requests?.forEach(_readRequest);
     notifications?.forEach(_readNotification);
 
-    final methodsEnum = _createMethodsEnum(methods);
+    var methodsEnum = _createMethodsEnum(methods);
     if (methodsEnum != null) {
       _addType(methodsEnum);
     }
@@ -77,12 +77,12 @@ class LspMetaModelReader {
   /// Creates an enum for all LSP method names.
   LspEnum? _createMethodsEnum(List<Object?> methods) {
     Constant toConstant(Map<String, Object?> item) {
-      final name = item['method'] as String;
+      var name = item['method'] as String;
       // We use documentation from the request/notification for things like
       // proposed check, but we don't put the full request/notification docs
       // on the method enum member.
-      final documentation = item['documentation'] as String?;
-      final comment = '''Constant for the '$name' method.''';
+      var documentation = item['documentation'] as String?;
+      var comment = '''Constant for the '$name' method.''';
       return Constant(
         name: _generateMemberName(name, camelCase: true),
         comment: comment,
@@ -92,14 +92,14 @@ class LspMetaModelReader {
       );
     }
 
-    final methodConstants =
+    var methodConstants =
         methods.cast<Map<String, Object?>>().map(toConstant).toList();
 
     if (methodConstants.isEmpty) {
       return null;
     }
 
-    final comment = 'All standard LSP Methods read from the JSON spec.';
+    var comment = 'All standard LSP Methods read from the JSON spec.';
     return LspEnum(
       name: 'Method',
       comment: comment,
@@ -123,7 +123,7 @@ class LspMetaModelReader {
       return;
     }
 
-    final type = _extractType(name, '', model);
+    var type = _extractType(name, '', model);
     if (type is UnionType) {
       _addType(TypeAlias(
         name: name,
@@ -136,8 +136,8 @@ class LspMetaModelReader {
   }
 
   Constant _extractEnumValue(TypeBase parentType, dynamic model) {
-    final name = model['name'] as String;
-    final documentation = model['documentation'] as String?;
+    var name = model['name'] as String;
+    var documentation = model['documentation'] as String?;
     return Constant(
       name: _generateMemberName(name),
       comment: documentation,
@@ -148,14 +148,14 @@ class LspMetaModelReader {
   }
 
   Member _extractMember(String parentName, dynamic model) {
-    final name = model['name'] as String;
-    final documentation = model['documentation'] as String?;
+    var name = model['name'] as String;
+    var documentation = model['documentation'] as String?;
     var type = _extractType(parentName, name, model['type']);
 
     // Unions may contain `null` types which we promote up to the field.
     var allowsNull = false;
     if (type is UnionType) {
-      final types = type.types;
+      var types = type.types;
 
       // Extract and strip `null`s from the union.
       if (types.any(isNullType)) {
@@ -185,20 +185,20 @@ class LspMetaModelReader {
         _extractType(parentName, fieldName, model['element']!),
       );
     } else if (model['kind'] == 'map') {
-      final name = fieldName ?? '';
+      var name = fieldName ?? '';
       return MapType(
         _extractType(parentName, '${name}Key', model['key']!),
         _extractType(parentName, '${name}Value', model['value']!),
       );
     } else if (model['kind'] == 'literal') {
       // "Literal" here means an inline/anonymous type.
-      final inlineTypeName = _generateTypeName(
+      var inlineTypeName = _generateTypeName(
         parentName,
         fieldName ?? '',
       );
 
       // First record the definition of the anonymous type itself.
-      final members = (model['value']['properties'] as List)
+      var members = (model['value']['properties'] as List)
           .map((p) => _extractMember(inlineTypeName, p))
           .toList();
       _addType(Interface.inline(inlineTypeName, members));
@@ -215,9 +215,9 @@ class LspMetaModelReader {
       // if we're parsing something without a field name.
       _typeNames.add(parentName);
 
-      final itemTypes = model['items'] as List;
-      final types = itemTypes.map((item) {
-        final generatedName = _generateAvailableTypeName(parentName, fieldName);
+      var itemTypes = model['items'] as List;
+      var types = itemTypes.map((item) {
+        var generatedName = _generateAvailableTypeName(parentName, fieldName);
         return _extractType(generatedName, null, item);
       }).toList();
 
@@ -225,11 +225,11 @@ class LspMetaModelReader {
     } else if (model['kind'] == 'tuple') {
       // We currently just map tuples to an array of any of the types. The
       // LSP 3.17 spec only has one tuple which is `[number, number]`.
-      final itemTypes = model['items'] as List;
-      final types = itemTypes.mapIndexed((index, item) {
-        final suffix = index + 1;
-        final name = fieldName ?? '';
-        final thisName = '$name$suffix';
+      var itemTypes = model['items'] as List;
+      var types = itemTypes.mapIndexed((index, item) {
+        var suffix = index + 1;
+        var name = fieldName ?? '';
+        var thisName = '$name$suffix';
         return _extractType(parentName, thisName, item);
       }).toList();
       return ArrayType(UnionType(types));
@@ -243,8 +243,8 @@ class LspMetaModelReader {
   /// If the computed name is already used, a number will be appended to the
   /// end.
   String _generateAvailableTypeName(String containerName, String? fieldName) {
-    final name = _generateTypeName(containerName, fieldName ?? '');
-    final requiresSuffix = fieldName == null;
+    var name = _generateTypeName(containerName, fieldName ?? '');
+    var requiresSuffix = fieldName == null;
     // If the name has already been taken, try appending a number and try
     // again.
     String generatedName;
@@ -292,10 +292,10 @@ class LspMetaModelReader {
   }
 
   LspEnum _readEnum(dynamic model) {
-    final name = model['name'] as String;
-    final type = TypeReference(name);
-    final baseType = _extractType(name, null, model['type']);
-    final documentation = model['documentation'] as String?;
+    var name = model['name'] as String;
+    var type = TypeReference(name);
+    var baseType = _extractType(name, null, model['type']);
+    var documentation = model['documentation'] as String?;
 
     return LspEnum(
       name: name,
@@ -309,11 +309,11 @@ class LspMetaModelReader {
   }
 
   void _readNotification(dynamic model) {
-    final method = model['method'] as String;
-    final namePrefix = method.split('/').map(capitalize).join();
-    final documentation = model['documentation'] as String?;
+    var method = model['method'] as String;
+    var namePrefix = method.split('/').map(capitalize).join();
+    var documentation = model['documentation'] as String?;
 
-    final paramsDoc = documentation != null
+    var paramsDoc = documentation != null
         ? 'Parameters for ${_camelCase(documentation)}'
         : null;
 
@@ -321,15 +321,15 @@ class LspMetaModelReader {
   }
 
   void _readRequest(dynamic model) {
-    final method = model['method'] as String;
-    final namePrefix = method.split('/').map(capitalize).join();
-    final documentation = model['documentation'] as String?;
+    var method = model['method'] as String;
+    var namePrefix = method.split('/').map(capitalize).join();
+    var documentation = model['documentation'] as String?;
 
-    final paramsDoc = documentation != null
+    var paramsDoc = documentation != null
         ? 'Parameters for ${_camelCase(documentation)}'
         : null;
 
-    final resultDoc = documentation != null
+    var resultDoc = documentation != null
         ? 'Result for ${_camelCase(documentation)}'
         : null;
 
@@ -338,8 +338,8 @@ class LspMetaModelReader {
   }
 
   LspEntity _readStructure(dynamic model) {
-    final name = model['name'] as String;
-    final documentation = model['documentation'] as String?;
+    var name = model['name'] as String;
+    var documentation = model['documentation'] as String?;
     return Interface(
       name: name,
       comment: documentation,
@@ -357,8 +357,8 @@ class LspMetaModelReader {
   }
 
   TypeAlias _readTypeAlias(dynamic model) {
-    final name = model['name'] as String;
-    final documentation = model['documentation'] as String?;
+    var name = model['name'] as String;
+    var documentation = model['documentation'] as String?;
     return TypeAlias(
       name: name,
       comment: documentation,

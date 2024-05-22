@@ -17,13 +17,13 @@ void main() {
 @reflectiveTest
 class WorkspaceSymbolsTest extends LspOverLegacyTest {
   Future<void> test_symbols() async {
-    final content = '''
+    var content = '''
 class Aaa {}
 ''';
-    final code = TestCode.parse(content);
+    var code = TestCode.parse(content);
     newFile(testFilePath, code.code);
-    final results = await getWorkspaceSymbols('Aa');
-    final names = results.map((result) => result.name);
+    var results = await getWorkspaceSymbols('Aa');
+    var names = results.map((result) => result.name);
 
     expect(names, contains('Aaa'));
   }

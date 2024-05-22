@@ -74,7 +74,7 @@ String _buildSnippetString(
     int index,
     server.LinkedEditGroup editGroup,
   ) {
-    final validPositions = editGroup.positions.where((p) => p.file == filePath);
+    var validPositions = editGroup.positions.where((p) => p.file == filePath);
     // Create a placeholder for each position in the group.
     return validPositions.map(
       (position) => SnippetPlaceholder(
@@ -101,7 +101,7 @@ String _buildSnippetString(
   // Convert selection/tab stops/edit groups all into the same format
   // (`_SnippetPlaceholder`) so they can be handled in a single pass through
   // the text.
-  final placeholders = [
+  var placeholders = [
     // Selection.
     if (selectionOffset != null)
       SnippetPlaceholder(selectionOffset, selectionLength ?? 0, isFinal: true),
@@ -130,8 +130,8 @@ String _buildSnippetString(
 
   /// If there are no edit groups, then placeholders are all simple and
   /// guaranteed to be in the correct order.
-  final isPreSorted = editGroups.isEmpty;
-  final builder = SnippetBuilder()
+  var isPreSorted = editGroups.isEmpty;
+  var builder = SnippetBuilder()
     ..appendPlaceholders(text, placeholders, isPreSorted: isPreSorted);
   return builder.value;
 }
@@ -195,7 +195,7 @@ class SnippetBuilder {
 
     placeholderNumber = _usePlaceholderNumber(placeholderNumber);
 
-    final escapedChoices = uniqueChoices.map(escapeSnippetChoiceText).join(',');
+    var escapedChoices = uniqueChoices.map(escapeSnippetChoiceText).join(',');
     _buffer.write('\${$placeholderNumber|$escapedChoices|}');
 
     return placeholderNumber;
@@ -214,7 +214,7 @@ class SnippetBuilder {
 
     placeholderNumber = _usePlaceholderNumber(placeholderNumber);
 
-    final escapedText = escapeSnippetVariableText(text);
+    var escapedText = escapeSnippetVariableText(text);
     _buffer.write(r'${');
     _buffer.write(placeholderNumber);
     _buffer.write(':');
@@ -324,14 +324,14 @@ extension SnippetBuilderExtensions on SnippetBuilder {
     // same linked group, so the first time we see a linked item, store its
     // placeholder number here, so subsequent placeholders for the same linked
     // group can reuse it.
-    final placeholderIdForLinkedGroupId = <int, int>{};
+    var placeholderIdForLinkedGroupId = <int, int>{};
 
     var offset = 0;
-    for (final placeholder in placeholders) {
+    for (var placeholder in placeholders) {
       // Add any text that came before this placeholder to the result.
       appendText(text.substring(offset, placeholder.offset));
 
-      final linkedGroupId = placeholder.linkedGroupId;
+      var linkedGroupId = placeholder.linkedGroupId;
       int? thisPlaceholderNumber;
       // Override the placeholder number if it's the final one (0) or needs to
       // re-use an existing one for a linked group.
@@ -342,7 +342,7 @@ extension SnippetBuilderExtensions on SnippetBuilder {
       }
 
       // Append the placeholder/choices.
-      final placeholderText = text.substring(
+      var placeholderText = text.substring(
         placeholder.offset,
         placeholder.offset + placeholder.length,
       );
@@ -355,7 +355,7 @@ extension SnippetBuilderExtensions on SnippetBuilder {
           placeholderNumber: thisPlaceholderNumber,
         );
       } else {
-        final choices = <String>{
+        var choices = <String>{
           if (placeholderText.isNotEmpty) placeholderText,
           ...?placeholder.suggestions,
         };

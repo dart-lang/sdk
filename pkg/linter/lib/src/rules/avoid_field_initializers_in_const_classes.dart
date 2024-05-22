@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 
 const _desc = r'Avoid field initializers in const classes.';
 
@@ -91,10 +92,12 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (declaration.constKeyword == null) return;
       var classDecl = declaration.thisOrAncestorOfType<ClassDeclaration>();
       if (classDecl == null) return;
+
+      var element = classDecl.declaredElement;
+      if (element == null) return;
+
       // no lint if several constructors
-      var constructorCount =
-          classDecl.members.whereType<ConstructorDeclaration>().length;
-      if (constructorCount > 1) return;
+      if (element.allConstructors.length > 1) return;
 
       var visitor = HasParameterReferenceVisitor(
           declaration.parameters.parameterElements);
@@ -107,16 +110,16 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
+    if (node.isAugmentation) return;
     if (node.isStatic) return;
     if (!node.fields.isFinal) return;
     // only const class
     var parent = node.parent;
     if (parent is ClassDeclaration) {
       var declaredElement = parent.declaredElement;
-      if (declaredElement == null) {
-        return;
-      }
-      if (declaredElement.constructors.every((e) => !e.isConst)) {
+      if (declaredElement == null) return;
+
+      if (declaredElement.allConstructors.every((e) => !e.isConst)) {
         return;
       }
       for (var variable in node.fields.variables) {

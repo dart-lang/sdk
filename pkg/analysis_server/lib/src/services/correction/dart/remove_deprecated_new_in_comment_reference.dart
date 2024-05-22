@@ -12,10 +12,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveDeprecatedNewInCommentReference extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_DEPRECATED_NEW_IN_COMMENT_REFERENCE;
@@ -26,12 +24,12 @@ class RemoveDeprecatedNewInCommentReference extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final comment = node;
+    var comment = node;
     if (comment is! CommentReference) {
       return;
     }
 
-    final newToken = comment.newKeyword;
+    var newToken = comment.newKeyword;
     if (newToken == null) {
       return;
     }
@@ -40,9 +38,9 @@ class RemoveDeprecatedNewInCommentReference extends ResolvedCorrectionProducer {
       builder.addDeletion(range.startStart(newToken, newToken.next!));
     });
 
-    final identifier = comment.expression;
+    var identifier = comment.expression;
     if (identifier is Identifier) {
-      final element = identifier.staticElement;
+      var element = identifier.staticElement;
       if (identifier is SimpleIdentifier && element is ConstructorElement) {
         await builder.addDartFileEdit(file, (builder) {
           builder.addSimpleInsertion(identifier.end, '.new');

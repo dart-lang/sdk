@@ -22,12 +22,12 @@ const String _serverDir = ".dartServer";
 /// ANALYZER_STATE_LOCATION_OVERRIDE environment variable, in which case this
 /// method will return the contents of that environment variable.
 String? _getStandardStateLocation() {
-  final Map<String, String> env = io.Platform.environment;
+  Map<String, String> env = io.Platform.environment;
   if (env.containsKey('ANALYZER_STATE_LOCATION_OVERRIDE')) {
     return env['ANALYZER_STATE_LOCATION_OVERRIDE'];
   }
 
-  final home = io.Platform.isWindows ? env['LOCALAPPDATA'] : env['HOME'];
+  var home = io.Platform.isWindows ? env['LOCALAPPDATA'] : env['HOME'];
   return home != null && io.FileSystemEntity.isDirectorySync(home)
       ? join(home, _serverDir)
       : null;
@@ -189,7 +189,7 @@ class _PhysicalFile extends _PhysicalResource implements File {
 
   @override
   ResourceWatcher watch() {
-    final watcher = FileWatcher(_entry.path);
+    var watcher = FileWatcher(_entry.path);
     return ResourceWatcher(
       watcher.events.transform(_exceptionTransformer),
       () => watcher.ready,
@@ -322,8 +322,8 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
 
   @override
   ResourceWatcher watch() {
-    final watcher = DirectoryWatcher(_entry.path);
-    final events = watcher.events.handleError((Object error) {},
+    var watcher = DirectoryWatcher(_entry.path);
+    var events = watcher.events.handleError((Object error) {},
         test: (error) =>
             error is io.FileSystemException &&
             // Don't suppress "Directory watcher closed," so the outer
@@ -433,7 +433,7 @@ abstract class _PhysicalResource implements Resource {
   /// https://support.microsoft.com/en-us/kb/74496
   void _throwIfWindowsDeviceDriver() {
     if (io.Platform.isWindows) {
-      final shortName = this.shortName.toUpperCase();
+      var shortName = this.shortName.toUpperCase();
       if (shortName == r'CON' ||
           shortName == r'PRN' ||
           shortName == r'AUX' ||

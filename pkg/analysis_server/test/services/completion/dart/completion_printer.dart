@@ -29,7 +29,7 @@ class CompletionResponsePrinter {
   /// Compares suggestions according to the configuration sorting.
   int _compareSuggestions(CompletionSuggestion a, CompletionSuggestion b) {
     int completionThenKind() {
-      final completionDiff = a.completion.compareTo(b.completion);
+      var completionDiff = a.completion.compareTo(b.completion);
       if (completionDiff != 0) {
         return completionDiff;
       } else {
@@ -43,7 +43,7 @@ class CompletionResponsePrinter {
       case Sorting.completionThenKind:
         return completionThenKind();
       case Sorting.relevanceThenCompletionThenKind:
-        final relevanceDiff = a.relevance - b.relevance;
+        var relevanceDiff = a.relevance - b.relevance;
         if (relevanceDiff != 0) {
           return -relevanceDiff;
         } else {
@@ -80,11 +80,11 @@ class CompletionResponsePrinter {
   }
 
   String _getSuggestionKindName(CompletionSuggestion suggestion) {
-    final kind = suggestion.kind;
+    var kind = suggestion.kind;
     if (kind == CompletionSuggestionKind.KEYWORD) {
       return 'keyword';
     } else if (kind == CompletionSuggestionKind.IDENTIFIER) {
-      final elementKind = suggestion.element?.kind;
+      var elementKind = suggestion.element?.kind;
       if (elementKind == null) {
         return 'identifier';
       } else if (elementKind == ElementKind.CLASS) {
@@ -128,7 +128,7 @@ class CompletionResponsePrinter {
       }
       throw UnimplementedError('elementKind: $elementKind');
     } else if (kind == CompletionSuggestionKind.INVOCATION) {
-      final elementKind = suggestion.element?.kind;
+      var elementKind = suggestion.element?.kind;
       if (elementKind == null) {
         return 'invocation';
       } else if (elementKind == ElementKind.CONSTRUCTOR) {
@@ -159,7 +159,7 @@ class CompletionResponsePrinter {
   }
 
   void _writeCompletion(CompletionSuggestion suggestion) {
-    final completion = suggestion.completion;
+    var completion = suggestion.completion;
     if (RegExp(r'^\s').hasMatch(completion) ||
         RegExp(r'\s$').hasMatch(completion)) {
       _writelnWithIndent('|$completion|');
@@ -197,15 +197,15 @@ class CompletionResponsePrinter {
 
   void _writeDocumentation(CompletionSuggestion suggestion) {
     if (configuration.withDocumentation) {
-      final docComplete = suggestion.docComplete;
+      var docComplete = suggestion.docComplete;
       if (docComplete != null) {
-        final text = _escapeMultiLine(docComplete);
+        var text = _escapeMultiLine(docComplete);
         _writelnWithIndent('docComplete: $text');
       }
 
-      final docSummary = suggestion.docSummary;
+      var docSummary = suggestion.docSummary;
       if (docSummary != null) {
-        final text = _escapeMultiLine(docSummary);
+        var text = _escapeMultiLine(docSummary);
         _writelnWithIndent('docSummary: $text');
       }
     }
@@ -213,11 +213,11 @@ class CompletionResponsePrinter {
 
   void _writeElement(CompletionSuggestion suggestion) {
     if (configuration.withElement) {
-      final element = suggestion.element;
+      var element = suggestion.element;
       if (element != null) {
         _writelnWithIndent('element');
         _withIndent(() {
-          final kindStr = _getElementKindName(element.kind);
+          var kindStr = _getElementKindName(element.kind);
           _writelnWithIndent('name: ${element.name}');
           _writelnWithIndent('kind: $kindStr');
         });
@@ -227,7 +227,7 @@ class CompletionResponsePrinter {
 
   void _writeElementOffset(CompletionSuggestion suggestion) {
     if (configuration.withElementOffset) {
-      final element = suggestion.element;
+      var element = suggestion.element;
       if (element != null) {
         _writelnWithIndent('offset: ${element.location?.offset}');
       }
@@ -286,10 +286,10 @@ class CompletionResponsePrinter {
 
   void _writeResponseReplacement() {
     if (configuration.withReplacement) {
-      final offset = response.replacementOffset;
-      final length = response.replacementLength;
-      final left = response.requestOffset - offset;
-      final right = (offset + length) - response.requestOffset;
+      var offset = response.replacementOffset;
+      var length = response.replacementLength;
+      var left = response.requestOffset - offset;
+      var right = (offset + length) - response.requestOffset;
       if (left > 0 || right > 0) {
         _writelnWithIndent('replacement');
         if (left > 0) {
@@ -308,7 +308,7 @@ class CompletionResponsePrinter {
 
   void _writeReturnType(CompletionSuggestion suggestion) {
     if (configuration.withReturnType) {
-      final returnType = suggestion.returnType;
+      var returnType = suggestion.returnType;
       if (returnType != null) {
         _writelnWithIndent('returnType: $returnType');
       }
@@ -317,8 +317,8 @@ class CompletionResponsePrinter {
 
   void _writeSelection(CompletionSuggestion suggestion) {
     if (configuration.withSelection) {
-      final offset = suggestion.selectionOffset;
-      final length = suggestion.selectionLength;
+      var offset = suggestion.selectionOffset;
+      var length = suggestion.selectionLength;
       if (length != 0) {
         _writelnWithIndent('selection: $offset $length');
       } else if (offset != suggestion.completion.length) {
@@ -349,19 +349,19 @@ class CompletionResponsePrinter {
 
   void _writeSuggestionKind(CompletionSuggestion suggestion) {
     if (configuration.withKind) {
-      final kind = _getSuggestionKindName(suggestion);
+      var kind = _getSuggestionKindName(suggestion);
       _writelnWithIndent('kind: $kind');
     }
   }
 
   void _writeSuggestions() {
-    final filtered = response.suggestions.where(configuration.filter);
-    final sorted = filtered.sorted(_compareSuggestions);
+    var filtered = response.suggestions.where(configuration.filter);
+    var sorted = filtered.sorted(_compareSuggestions);
 
     _writelnWithIndent('suggestions');
 
     _withIndent(() {
-      for (final suggestion in sorted) {
+      for (var suggestion in sorted) {
         if (configuration.filter(suggestion)) {
           _writeSuggestion(suggestion);
         }

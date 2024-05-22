@@ -16,7 +16,7 @@ Matcher isMapOf(Matcher indexMatcher, Matcher valueMatcher) =>
     MapTypeMatcher(wrapMatcher(indexMatcher), wrapMatcher(valueMatcher));
 
 Matcher isResponseError(ErrorCodes code, {String? message}) {
-  final matcher = const TypeMatcher<ResponseError>()
+  var matcher = const TypeMatcher<ResponseError>()
       .having((e) => e.code, 'code', equals(code));
   return message != null
       ? matcher.having((e) => e.message, 'message', equals(message))

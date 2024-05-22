@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -15,10 +16,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class AddConst extends ResolvedCorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_CONST;
@@ -35,7 +34,7 @@ class AddConst extends ResolvedCorrectionProducer {
     if (targetNode is ConstructorDeclaration) {
       var node_final = targetNode;
       await builder.addDartFileEdit(file, (builder) {
-        final offset = node_final.firstTokenAfterCommentAndMetadata.offset;
+        var offset = node_final.firstTokenAfterCommentAndMetadata.offset;
         builder.addSimpleInsertion(offset, 'const ');
       });
       return;
@@ -59,11 +58,10 @@ class AddConst extends ResolvedCorrectionProducer {
     }
     if (targetNode is ConstantPattern) {
       var expression = targetNode.expression;
-      var canBeConst =
-          getLinterContext(resourceProvider.pathContext).canBeConst(expression);
+      var canBeConst = expression.canBeConst;
       if (canBeConst) {
         await builder.addDartFileEdit(file, (builder) {
-          final offset = expression.offset;
+          var offset = expression.offset;
           builder.addSimpleInsertion(offset, 'const ');
         });
       } else if (expression is TypeLiteral) {

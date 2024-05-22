@@ -11,14 +11,9 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveUnusedCatchStack extends ResolvedCorrectionProducer {
   @override
-  // May not be appropriate while actively coding.
-  bool get canBeAppliedAutomatically => false;
-
-  @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      // May not be appropriate while actively coding.
+      CorrectionApplicability.acrossFiles;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_UNUSED_CATCH_STACK;
@@ -28,17 +23,17 @@ class RemoveUnusedCatchStack extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final stackTraceParameter = node;
+    var stackTraceParameter = node;
     if (stackTraceParameter is! CatchClauseParameter) {
       return;
     }
 
-    final catchClause = stackTraceParameter.parent;
+    var catchClause = stackTraceParameter.parent;
     if (catchClause is! CatchClause) {
       return;
     }
 
-    final exceptionParameter = catchClause.exceptionParameter;
+    var exceptionParameter = catchClause.exceptionParameter;
     if (exceptionParameter == null) {
       return;
     }

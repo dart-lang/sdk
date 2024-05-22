@@ -30,7 +30,7 @@ part of dart.core;
 abstract interface class Map<K, V> {
   /// Creates an empty [LinkedHashMap].
   ///
-  /// This constructor is equivalent to the non-const map literal `<K,V>{}`.
+  /// This constructor is equivalent to the non-const map literal `<K, V>{}`.
   ///
   /// A `LinkedHashMap` requires the keys to implement compatible
   /// `operator==` and `hashCode`.
@@ -177,8 +177,8 @@ abstract interface class Map<K, V> {
   /// the store will throw unless the key is also an instance of [K] and
   /// the value is also an instance of [V].
   ///
-  /// If all accessed entries of [source] are have [K2] keys and [V2] values
-  /// and if all entries added to the returned map have [K] keys and [V]] values,
+  /// If all accessed entries of [source] have [K2] keys and [V2] values,
+  /// and if all entries added to the returned map have [K] keys and [V] values,
   /// then the returned map can be used as a `Map<K2, V2>`.
   ///
   /// Methods which accept `Object?` as argument,
@@ -236,7 +236,7 @@ abstract interface class Map<K, V> {
   /// according to the `==` operator.
   /// ```dart
   /// final moonCount = <String, int>{'Mercury': 0, 'Venus': 0, 'Earth': 1,
-  ///   'Mars': 2, 'Jupiter': 79, 'Saturn': 82, 'Uranus': 27, 'Neptune': 14 };
+  ///   'Mars': 2, 'Jupiter': 79, 'Saturn': 82, 'Uranus': 27, 'Neptune': 14};
   /// final moons3 = moonCount.containsValue(3); // false
   /// final moons82 = moonCount.containsValue(82); // true
   /// ```
@@ -248,7 +248,7 @@ abstract interface class Map<K, V> {
   /// according to the equality used by the map.
   /// ```dart
   /// final moonCount = <String, int>{'Mercury': 0, 'Venus': 0, 'Earth': 1,
-  ///   'Mars': 2, 'Jupiter': 79, 'Saturn': 82, 'Uranus': 27, 'Neptune': 14 };
+  ///   'Mars': 2, 'Jupiter': 79, 'Saturn': 82, 'Uranus': 27, 'Neptune': 14};
   /// final containsUranus = moonCount.containsKey('Uranus'); // true
   /// final containsPluto = moonCount.containsKey('Pluto'); // false
   /// ```
@@ -269,7 +269,7 @@ abstract interface class Map<K, V> {
   /// Otherwise the key/value pair is added to the map.
   void operator []=(K key, V value);
 
-  /// The map entries of [this].
+  /// The map entries of this [Map].
   Iterable<MapEntry<K, V>> get entries;
 
   /// Returns a new map where all entries of this map are transformed by
@@ -417,7 +417,7 @@ abstract interface class Map<K, V> {
   /// ```
   void forEach(void action(K key, V value));
 
-  /// The keys of [this].
+  /// The keys of this [Map].
   ///
   /// The returned iterable has efficient `length` and `contains` operations,
   /// based on [length] and [containsKey] of the map.
@@ -428,7 +428,7 @@ abstract interface class Map<K, V> {
   /// Modifying the map while iterating the keys may break the iteration.
   Iterable<K> get keys;
 
-  /// The values of [this].
+  /// The values of this [Map].
   ///
   /// The values are iterated in the order of their corresponding keys.
   /// This means that iterating [keys] and [values] in parallel will

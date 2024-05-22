@@ -68,10 +68,10 @@ class SemanticTokenLegendLookup {
   /// Gets the [SemanticTokenModifiers] for a given index.
   @visibleForTesting
   List<SemanticTokenModifiers> modifiersForBitmask(int mask) {
-    final modifiers = <SemanticTokenModifiers>[];
+    var modifiers = <SemanticTokenModifiers>[];
     for (var i = 0; i < _usedTokenModifiers.length; i++) {
       // Check if the i'th bit is set
-      final modifierBit = 1 << i;
+      var modifierBit = 1 << i;
       if (mask & modifierBit != 0) {
         modifiers.add(_usedTokenModifiers[i]);
       }

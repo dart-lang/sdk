@@ -1,0 +1,38 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class I<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::I<self::I::T%>
+    ;
+  abstract method foo() → self::I::T%;
+}
+mixin class M extends core::Object {
+  synthetic constructor •() → self::M
+    ;
+  method noSuchMethod(core::Invocation i) → dynamic
+    ;
+}
+abstract class _A&Object&M = core::Object with self::M /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_A&Object&M
+    : super core::Object::•()
+    ;
+  mixin-super-stub method noSuchMethod(core::Invocation i) → dynamic
+    return super.{self::M::noSuchMethod}(i);
+}
+class A extends self::_A&Object&M implements self::I<core::int> {
+  synthetic constructor •() → self::A
+    ;
+  no-such-method-forwarder method foo() → core::int
+    return this.{self::_A&Object&M::noSuchMethod}(new core::_InvocationMirror::_withType(#foo, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
+}
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///subst_on_forwarder.dart:19:7 -> SymbolConstant(#foo)
+Evaluated: ListLiteral @ org-dartlang-testcase:///subst_on_forwarder.dart:19:7 -> ListConstant(const <Type>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///subst_on_forwarder.dart:19:7 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///subst_on_forwarder.dart:19:7 -> MapConstant(const <Symbol, dynamic>{})
+Extra constant evaluation: evaluated: 11, effectively constant: 4

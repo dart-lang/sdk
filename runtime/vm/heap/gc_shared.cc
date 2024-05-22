@@ -30,11 +30,14 @@ bool GCLinkedLists::IsEmpty() {
 #undef FOREACH
 }
 
+// clang-format off
 void GCLinkedLists::FlushInto(GCLinkedLists* to) {
 #define FOREACH(type, var) var.FlushInto(&to->var);
-  GC_LINKED_LIST(FOREACH)
+    GC_LINKED_LIST(FOREACH)
 #undef FOREACH
 }
+
+// clang-format on
 
 Heap::Space SpaceForExternal(FinalizerEntryPtr raw_entry) {
   // As with WeakTables, Smis are "old".

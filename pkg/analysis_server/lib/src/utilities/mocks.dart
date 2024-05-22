@@ -62,7 +62,7 @@ class MockServerChannel implements ServerCommunicationChannel {
       return;
     }
     notificationsReceived.add(notification);
-    final errorCompleter = this.errorCompleter;
+    var errorCompleter = this.errorCompleter;
     if (errorCompleter != null && notification.event == 'server.error') {
       var params = notification.params!;
       print('[server.error] test: $name message: ${params['message']}');

@@ -22,13 +22,13 @@ import 'package:yaml/yaml.dart';
 /// Returns the version of the SDK that runs the analyzer.
 Version? get runningSdkVersion {
   try {
-    final regExp = RegExp(r'^(\d+\.\d+\.\d+)');
-    final match = regExp.firstMatch(io.Platform.version);
+    var regExp = RegExp(r'^(\d+\.\d+\.\d+)');
+    var match = regExp.firstMatch(io.Platform.version);
     if (match == null) {
       return null;
     }
 
-    final sdkVersionStr = match.group(1)!;
+    var sdkVersionStr = match.group(1)!;
     return Version.parse(sdkVersionStr);
   } catch (_) {
     return null;
@@ -168,21 +168,21 @@ abstract class AbstractDartSdk implements DartSdk {
     // an absolute path, not a relative `path`. For now, we do this only
     // for building SDK summary with `dart:ui`, included from outside
     // of the SDK root.
-    for (final library in libraryMap.sdkLibraries) {
-      final pathContext = resourceProvider.pathContext;
+    for (var library in libraryMap.sdkLibraries) {
+      var pathContext = resourceProvider.pathContext;
       if (pathContext.isAbsolute(library.path)) {
         if (library.path == file.path) {
           return library.shortName;
         }
       }
     }
-    for (final library in libraryMap.sdkLibraries) {
-      final pathContext = resourceProvider.pathContext;
+    for (var library in libraryMap.sdkLibraries) {
+      var pathContext = resourceProvider.pathContext;
       if (pathContext.isAbsolute(library.path)) {
         String? relativePathIfInside =
             getRelativePathIfInside(library.path, file.path);
         if (relativePathIfInside != null) {
-          final relPath = relativePathIfInside.replaceAll(separator, '/');
+          var relPath = relativePathIfInside.replaceAll(separator, '/');
           return '${library.shortName}/$relPath';
         }
       }

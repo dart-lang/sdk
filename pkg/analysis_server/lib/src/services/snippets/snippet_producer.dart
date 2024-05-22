@@ -2,17 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/snippets/dart_snippet_request.dart';
 import 'package:analysis_server/src/services/snippets/snippet.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analysis_server/src/utilities/extensions/flutter.dart';
+import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
-import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart'
     show DartFileEditBuilderImpl;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
@@ -49,17 +49,12 @@ abstract class DartSnippetProducer extends SnippetProducer {
       .getAnalysisOptionsForFile(request.unit.file)
       .codeStyleOptions;
 
-  bool get isInTestDirectory {
-    final path = request.unit.path;
-    return LinterContextImpl.getTestDirectories(
-            request.resourceProvider.pathContext)
-        .any(path.contains);
-  }
+  bool get isInTestDirectory => request.unit.unit.inTestDir;
 
   /// Adds public imports for any elements fetched by [getClass] and [getMixin]
   /// to [builder].
   Future<void> addImports(DartFileEditBuilder builder) async {
-    final dartBuilder = builder as DartFileEditBuilderImpl;
+    var dartBuilder = builder as DartFileEditBuilderImpl;
     await Future.wait(requiredElementImports.map((element) => dartBuilder
         .importElementLibrary(element, resultCache: _elementImportCache)));
   }
@@ -72,7 +67,7 @@ abstract class FlutterSnippetProducer extends DartSnippetProducer {
   FlutterSnippetProducer(super.request, {required super.elementImportCache});
 
   Future<ClassElement?> getClass(String name) async {
-    final class_ = await sessionHelper.getClass(Flutter.widgetsUri, name);
+    var class_ = await sessionHelper.getFlutterClass(name);
     if (class_ != null) {
       requiredElementImports.add(class_);
     }
@@ -80,7 +75,7 @@ abstract class FlutterSnippetProducer extends DartSnippetProducer {
   }
 
   Future<MixinElement?> getMixin(String name) async {
-    final mixin = await sessionHelper.getMixin(Flutter.widgetsUri, name);
+    var mixin = await sessionHelper.getMixin(widgetsUri, name);
     if (mixin != null) {
       requiredElementImports.add(mixin);
     }
@@ -120,9 +115,9 @@ mixin FlutterWidgetSnippetProducerMixin on FlutterSnippetProducer {
 
   void writeBuildMethod(DartEditBuilder builder) {
     // Checked by isValid() before this will be called.
-    final classBuildContext = this.classBuildContext!;
-    final classWidget = this.classWidget!;
-    final classPlaceholder = this.classPlaceholder!;
+    var classBuildContext = this.classBuildContext!;
+    var classWidget = this.classWidget!;
+    var classPlaceholder = this.classPlaceholder!;
 
     // Add the build method.
     builder.writeln('  @override');
@@ -161,7 +156,7 @@ mixin FlutterWidgetSnippetProducerMixin on FlutterSnippetProducer {
 
   void writeWidgetConstructor(DartEditBuilder builder) {
     // Checked by isValid() before this will be called.
-    final classKey = this.classKey!;
+    var classKey = this.classKey!;
 
     String keyName;
     DartType? keyType;
@@ -202,7 +197,7 @@ abstract class SnippetProducer {
   Future<bool> isValid() async {
     // File edit builders will not produce edits for files outside of the
     // analysis roots so we should not try to produce any snippets.
-    final analysisContext = request.analysisSession.analysisContext;
+    var analysisContext = request.analysisSession.analysisContext;
     return analysisContext.contextRoot.isAnalyzed(request.filePath);
   }
 }

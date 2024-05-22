@@ -1,9 +1,0 @@
-// @dart = 2.9
-
-library test;
-
-main() {}
-
-void f(Object x) {}
-
-void g(int x) {}

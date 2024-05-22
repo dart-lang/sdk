@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 // Regression test for https://github.com/dart-lang/sdk/issues/40662.
 
-bar(int a, List<int> b) {
+bar(int a, List<int?>? b) {
   expect(-1, a);
-  expect(-1, (b[0] - 2));
+  expect(-1, (b![0]! - 2));
 }
 
 foo(int x) async => bar(x - 1, x != null ? [x + 1, x + 2, await null] : null);

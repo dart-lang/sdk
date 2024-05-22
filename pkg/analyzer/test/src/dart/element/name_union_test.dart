@@ -26,14 +26,14 @@ class ElementNameUnionTest extends PubPackageResolutionTest {
   }
 
   Future<void> _checkLibrary(String uriStr) async {
-    final analysisContext = contextFor(testFile);
-    final analysisSession = analysisContext.currentSession;
+    var analysisContext = contextFor(testFile);
+    var analysisSession = analysisContext.currentSession;
 
-    final result = await analysisSession.getLibraryByUri(uriStr);
+    var result = await analysisSession.getLibraryByUri(uriStr);
     result as LibraryElementResult;
-    final element = result.element;
+    var element = result.element;
 
-    final union = ElementNameUnion.forLibrary(element);
+    var union = ElementNameUnion.forLibrary(element);
     element.accept(
       _ElementVisitor(union),
     );
@@ -48,12 +48,12 @@ class _ElementVisitor extends GeneralizingElementVisitor<void> {
 
   @override
   void visitElement(Element element) {
-    final enclosing = element.enclosingElement;
+    var enclosing = element.enclosingElement;
     if (enclosing is CompilationUnitElement ||
         element is FieldElement ||
         element is MethodElement ||
         element is PropertyAccessorElement) {
-      final name = element.name;
+      var name = element.name;
       if (name != null) {
         expect(union.contains(name), isTrue, reason: name);
         // Might fail, but probably we don't have such names.

@@ -74,6 +74,7 @@ class GCCompactor : public ValueObject,
 
   Mutex large_pages_mutex_;
   Page* large_pages_ = nullptr;
+  Page* fixed_pages_ = nullptr;
 
   // The typed data views whose inner pointer must be updated after sliding is
   // complete.

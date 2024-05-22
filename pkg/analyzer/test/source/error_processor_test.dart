@@ -172,7 +172,7 @@ class _TestContext {
   final analysisOptions = AnalysisOptionsImpl();
 
   void configureOptions(String options) {
-    final optionMap = AnalysisOptionsProvider().getOptionsFromString(options);
+    var optionMap = AnalysisOptionsProvider().getOptionsFromString(options);
     analysisOptions.applyOptions(optionMap);
   }
 

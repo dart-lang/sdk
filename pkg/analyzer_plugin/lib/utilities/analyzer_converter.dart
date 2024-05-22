@@ -318,20 +318,13 @@ extension ElementExtensions on analyzer.Element? {
   /// Return the compilation unit containing the given [element].
   analyzer.CompilationUnitElement? get _unitElement {
     var currentElement = this;
-    if (currentElement is analyzer.CompilationUnitElement) {
-      return currentElement;
-    }
-    if (currentElement?.enclosingElement is analyzer.LibraryElement) {
-      currentElement = currentElement?.enclosingElement;
-    }
-    if (currentElement is analyzer.LibraryElement) {
-      return currentElement.definingCompilationUnit;
-    }
     for (;
         currentElement != null;
         currentElement = currentElement.enclosingElement) {
       if (currentElement is analyzer.CompilationUnitElement) {
         return currentElement;
+      } else if (currentElement is analyzer.LibraryOrAugmentationElement) {
+        return currentElement.definingCompilationUnit;
       }
     }
     return null;

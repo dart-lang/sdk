@@ -168,7 +168,21 @@ Future<List<Map<String, dynamic>>> loadResults(String path) async {
       .transform(utf8.decoder)
       .transform(const LineSplitter());
   await for (var line in lines) {
-    results.add(jsonDecode(line) as Map<String, dynamic>);
+    try {
+      results.add(jsonDecode(line) as Map<String, dynamic>);
+    } catch (e) {
+      final message = [
+        'Error when parsing line as JSON map',
+        if (line.isEmpty) 'line is empty',
+        e, // FormatException includes line.
+        if (results.isEmpty)
+          'as first line of'
+        else
+          'after line "${jsonEncode(results.last)}" in',
+        'file $path',
+      ].join('\n');
+      throw FormatException(message);
+    }
   }
   return results;
 }

@@ -1,18 +1,18 @@
-// @dart = 2.9
-
 class NonStruct {}
 
 class Struct {}
 
-class StructA extends Struct {}
+errors() {}
 
-class StructB extends Struct {}
-
-extension Extension<T extends Struct> on T {
+extension Extension<T extends Struct?> on T {
   T get property => this;
   T method() => this;
   void set property(T value) {}
 }
+
+final class StructA extends Struct {}
+
+final class StructB extends Struct {}
 
 main() {}
 

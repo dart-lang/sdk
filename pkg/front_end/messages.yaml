@@ -330,10 +330,6 @@ ExperimentDisabled:
   correctionMessage: "The feature is on by default but is currently disabled, maybe because the '--enable-experiment=no-#string' command line option is passed."
   analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
 
-NullSafetyDisabledInvalidLanguageVersion:
-  problemMessage: "This requires null safety, which requires language version of #string2 or higher."
-  analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
-
 ExperimentDisabledInvalidLanguageVersion:
   problemMessage: "This requires the '#string' language feature, which requires language version of #string2 or higher."
   analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
@@ -972,6 +968,7 @@ AbstractClassMember:
   problemMessage: "Members of classes can't be declared to be 'abstract'."
   correctionMessage: "Try removing the 'abstract' keyword. You can add the 'abstract' keyword before the class declaration."
   analyzerCode: ParserErrorCode.ABSTRACT_CLASS_MEMBER
+  configuration: nnbd-weak
   script:
     - |
       abstract class C {abstract C.c();}
@@ -981,19 +978,12 @@ AbstractClassMember:
       abstract class C {abstract get m;}
     - |
       abstract class C {abstract set m(int x);}
-    - |
-      // @dart=2.9
-      abstract class C {abstract var f;}
-    - |
-      // @dart=2.9
-      abstract class C {abstract static var f;}
 
 AbstractExternalField:
   index: 110
   problemMessage: "Fields can't be declared both 'abstract' and 'external'."
   analyzerCode: ParserErrorCode.ABSTRACT_EXTERNAL_FIELD
   correctionMessage: "Try removing the 'abstract' or 'external' keyword."
-  configuration: nnbd-strong
   script:
     - "abstract class C {abstract external var f;}"
     - "abstract class C {external abstract var f;}"
@@ -1003,7 +993,6 @@ AbstractStaticField:
   problemMessage: "Static fields can't be declared 'abstract'."
   analyzerCode: ParserErrorCode.ABSTRACT_STATIC_FIELD
   correctionMessage: "Try removing the 'abstract' or 'static' keyword."
-  configuration: nnbd-strong
   script:
     - "abstract class C {abstract static var f;}"
 
@@ -1018,14 +1007,12 @@ AbstractExtensionField:
 AbstractFieldInitializer:
   problemMessage: "Abstract fields cannot have initializers."
   correctionMessage: "Try removing the initializer or the 'abstract' keyword."
-  configuration: nnbd-strong
   script:
     - "abstract class C {abstract var f = 0;}"
 
 AbstractFieldConstructorInitializer:
   problemMessage: "Abstract fields cannot have initializers."
   correctionMessage: "Try removing the field initializer or the 'abstract' keyword from the field declaration."
-  configuration: nnbd-strong
   script:
     - "abstract class C {abstract var f; C(this.f);}"
     - "abstract class C {abstract var f; C() : this.f = 0;}"
@@ -1035,7 +1022,6 @@ AbstractLateField:
   problemMessage: "Abstract fields cannot be late."
   analyzerCode: ParserErrorCode.ABSTRACT_LATE_FIELD
   correctionMessage: "Try removing the 'abstract' or 'late' keyword."
-  configuration: nnbd-strong
   script:
     - "abstract class C {abstract late var f;}"
 
@@ -1287,16 +1273,11 @@ ExternalField:
   problemMessage: "Fields can't be declared to be 'external'."
   correctionMessage: "Try removing the keyword 'external', or replacing the field by an external getter and/or setter."
   analyzerCode: ParserErrorCode.EXTERNAL_FIELD
-  script:
-    - |
-      // @dart=2.9
-      class C { external var f; }
-
+  configuration: nnbd-weak
 
 ExternalFieldInitializer:
   problemMessage: "External fields cannot have initializers."
   correctionMessage: "Try removing the initializer or the 'external' keyword."
-  configuration: nnbd-strong
   script:
     - "external var f = 0;"
     - "abstract class C {external var f = 0;}"
@@ -1304,7 +1285,6 @@ ExternalFieldInitializer:
 ExternalFieldConstructorInitializer:
   problemMessage: "External fields cannot have initializers."
   correctionMessage: "Try removing the field initializer or the 'external' keyword from the field declaration."
-  configuration: nnbd-strong
   script:
     - "abstract class C {external var f; C(this.f);}"
     - "abstract class C {external var f; C() : this.f = 0;}"
@@ -1314,7 +1294,6 @@ ExternalLateField:
   problemMessage: "External fields cannot be late."
   analyzerCode: ParserErrorCode.EXTERNAL_LATE_FIELD
   correctionMessage: "Try removing the 'external' or 'late' keyword."
-  configuration: nnbd-strong
   script:
     - "external late var f;"
     - "abstract class C {external late var f;}"
@@ -1459,7 +1438,6 @@ FinalAndCovariantLateWithInitializer:
   correctionMessage: "Try removing either the 'final' or 'covariant' keyword, or removing the initializer."
   analyzerCode: ParserErrorCode.FINAL_AND_COVARIANT_LATE_WITH_INITIALIZER
   # Weak and strong doesn't matter in this instance.
-  configuration: nnbd-strong
   script:
     - "class C { covariant late final f = 5; }"
 
@@ -1908,17 +1886,6 @@ UnterminatedToken:
 # lib/src/fasta/diagnostics.md#avoid-composing-messages-programmatically).
 Unspecified:
   problemMessage: "#string"
-
-StrongModeNNBDButOptOut:
-  problemMessage: "Library doesn't support null safety."
-
-StrongModeNNBDPackageOptOut:
-  problemMessage:  |
-    The following dependencies don't support null safety:
-
-    #names
-
-    For solutions, see https://dart.dev/go/unsound-null-safety
 
 WeakWithStrongDillLibrary:
   problemMessage: "Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety."
@@ -2807,6 +2774,15 @@ ExtensionDeclaresInstanceField:
     setter, or method.
   hasPublishedDocs: true
 
+ExtensionAugmentationHasOnClause:
+  index: 179
+  problemMessage: "Extension augmentations can't have 'on' clauses."
+  correctionMessage: "Try removing the 'on' clause."
+  analyzerCode: ParserErrorCode.EXTENSION_AUGMENTATION_HAS_ON_CLAUSE
+  script: |
+    augment extension E on int {}
+  comment: No parameters.
+
 ExtensionTypeDeclaresInstanceField:
   problemMessage: "Extension types can't declare instance fields"
   correctionMessage: "Try removing the field declaration or making it a static field"
@@ -2979,7 +2955,6 @@ OverrideTypeMismatchSetter:
 
 OverrideMismatchRequiredNamedParameter:
   problemMessage: "The required named parameter '#name' in method '#name2' is not required in overridden method '#name3'."
-  configuration: nnbd-strong
   script: |
     abstract class A {
       method({int? a});
@@ -2990,7 +2965,6 @@ OverrideMismatchRequiredNamedParameter:
 
 InvalidGetterSetterType:
   problemMessage: "The type '#type' of the getter '#name' is not a subtype of the type '#type2' of the setter '#name2'."
-  configuration: nnbd-strong
   script: |
     abstract class A {
       num get property;
@@ -2999,7 +2973,6 @@ InvalidGetterSetterType:
 
 InvalidGetterSetterTypeGetterInherited:
   problemMessage: "The type '#type' of the inherited getter '#name' is not a subtype of the type '#type2' of the setter '#name2'."
-  configuration: nnbd-strong
   script: |
     abstract class A {
       num get property;
@@ -3010,7 +2983,6 @@ InvalidGetterSetterTypeGetterInherited:
 
 InvalidGetterSetterTypeFieldInherited:
   problemMessage: "The type '#type' of the inherited field '#name' is not a subtype of the type '#type2' of the setter '#name2'."
-  configuration: nnbd-strong
   script: |
     abstract class A {
       final num property;
@@ -3022,7 +2994,6 @@ InvalidGetterSetterTypeFieldInherited:
 
 InvalidGetterSetterTypeSetterInheritedGetter:
   problemMessage: "The type '#type' of the getter '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'."
-  configuration: nnbd-strong
   script: |
     abstract class A {
       void set property(int i);
@@ -3033,7 +3004,6 @@ InvalidGetterSetterTypeSetterInheritedGetter:
 
 InvalidGetterSetterTypeSetterInheritedField:
   problemMessage: "The type '#type' of the field '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'."
-  configuration: nnbd-strong
   script: |
     abstract class A {
       void set property(int i);
@@ -3045,7 +3015,6 @@ InvalidGetterSetterTypeSetterInheritedField:
 
 InvalidGetterSetterTypeBothInheritedField:
   problemMessage: "The type '#type' of the inherited field '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'."
-  configuration: nnbd-strong
   script: |
     abstract class A {
       final num property;
@@ -3058,90 +3027,9 @@ InvalidGetterSetterTypeBothInheritedField:
 
 InvalidGetterSetterTypeBothInheritedGetter:
   problemMessage: "The type '#type' of the inherited getter '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'."
-  configuration: nnbd-strong
   script: |
     abstract class A {
       num get property;
-    }
-    abstract class B {
-      void set property(int i);
-    }
-    abstract class C implements A, B {}
-
-InvalidGetterSetterTypeLegacy:
-  problemMessage: "The type '#type' of the getter '#name' is not assignable to the type '#type2' of the setter '#name2'."
-  script: |
-    // @dart=2.9
-    abstract class A {
-      String get property;
-      void set property(int i);
-    }
-
-InvalidGetterSetterTypeGetterInheritedLegacy:
-  problemMessage: "The type '#type' of the inherited getter '#name' is not assignable to the type '#type2' of the setter '#name2'."
-  script: |
-    // @dart=2.9
-    abstract class A {
-      String get property;
-    }
-    abstract class B implements A {
-      void set property(int i);
-    }
-
-InvalidGetterSetterTypeFieldInheritedLegacy:
-  problemMessage: "The type '#type' of the inherited field '#name' is not assignable to the type '#type2' of the setter '#name2'."
-  script: |
-    // @dart=2.9
-    abstract class A {
-      final String property;
-      A(this.property);
-    }
-    abstract class B implements A {
-      void set property(int i);
-    }
-
-InvalidGetterSetterTypeSetterInheritedGetterLegacy:
-  problemMessage: "The type '#type' of the getter '#name' is not assignable to the type '#type2' of the inherited setter '#name2'."
-  script: |
-    // @dart=2.9
-    abstract class A {
-      void set property(int i);
-    }
-    abstract class B implements A {
-      String get property;
-    }
-
-InvalidGetterSetterTypeSetterInheritedFieldLegacy:
-  problemMessage: "The type '#type' of the field '#name' is not assignable to the type '#type2' of the inherited setter '#name2'."
-  script: |
-    // @dart=2.9
-    abstract class A {
-      void set property(int i);
-    }
-    abstract class B implements A {
-      final String property;
-      B(this.property);
-    }
-
-InvalidGetterSetterTypeBothInheritedFieldLegacy:
-  problemMessage: "The type '#type' of the inherited field '#name' is not assignable to the type '#type2' of the inherited setter '#name2'."
-  script: |
-    // @dart=2.9
-    abstract class A {
-      final String property;
-      A(this.property);
-    }
-    abstract class B {
-      void set property(int i);
-    }
-    abstract class C implements A, B {}
-
-InvalidGetterSetterTypeBothInheritedGetterLegacy:
-  problemMessage: "The type '#type' of the inherited getter '#name' is not assignable to the type '#type2' of the inherited setter '#name2'."
-  script: |
-    // @dart=2.9
-    abstract class A {
-      String get property;
     }
     abstract class B {
       void set property(int i);
@@ -3281,7 +3169,6 @@ TypedefTypeVariableNotConstructorCause:
 
 TypedefNullableType:
   problemMessage: "Can't create typedef from nullable type."
-  configuration: nnbd-strong
   script: |
     // @dart=2.12
     typedef F = void Function()?;
@@ -3769,14 +3656,7 @@ SuperAsExpression:
 SwitchExpressionNotAssignable:
   problemMessage: "Type '#type' of the switch expression isn't assignable to the type '#type2' of this case expression."
   analyzerCode: SWITCH_EXPRESSION_NOT_ASSIGNABLE
-  script:
-    - |
-      // @dart=2.9
-      void f() {
-        switch (42) {
-          case "foo": break;
-        }
-      }
+  configuration: nnbd-weak
 
 SwitchExpressionNotAssignableCause:
   problemMessage: "The switch expression is here."
@@ -3784,6 +3664,7 @@ SwitchExpressionNotAssignableCause:
 
 SwitchExpressionNotSubtype:
   problemMessage: "Type '#type' of the case expression is not a subtype of type '#type2' of this switch expression."
+  configuration: nnbd-weak
   script:
     - |
       // @dart=2.19
@@ -4090,7 +3971,6 @@ ArgumentTypeNotAssignable:
 ArgumentTypeNotAssignableNullability:
   problemMessage: "The argument type '#type' can't be assigned to the parameter type '#type2' because '#type' is nullable and '#type2' isn't."
   analyzerCode: ARGUMENT_TYPE_NOT_ASSIGNABLE
-  configuration: nnbd-strong
   script: >
     method(int i) {}
     main() {
@@ -4101,7 +3981,6 @@ ArgumentTypeNotAssignableNullability:
 ArgumentTypeNotAssignablePartNullability:
   problemMessage: "The argument type '#type' can't be assigned to the parameter type '#type2' because '#type3' is nullable and '#type4' isn't."
   analyzerCode: ARGUMENT_TYPE_NOT_ASSIGNABLE
-  configuration: nnbd-strong
   script: >
     method(List<int> i) {}
     main() {
@@ -4112,7 +3991,6 @@ ArgumentTypeNotAssignablePartNullability:
 ArgumentTypeNotAssignableNullabilityNull:
   problemMessage: "The value 'null' can't be assigned to the parameter type '#type' because '#type' is not nullable."
   analyzerCode: ARGUMENT_TYPE_NOT_ASSIGNABLE
-  configuration: nnbd-strong
   script: >
     method(int i) {}
     main() {
@@ -4122,7 +4000,6 @@ ArgumentTypeNotAssignableNullabilityNull:
 ArgumentTypeNotAssignableNullabilityNullType:
   problemMessage: "The argument type '#type' can't be assigned to the parameter type '#type2' because '#type2' is not nullable."
   analyzerCode: ARGUMENT_TYPE_NOT_ASSIGNABLE
-  configuration: nnbd-strong
   script: >
     method(int i) {}
     main() {
@@ -4142,7 +4019,6 @@ InvalidAssignmentError:
 InvalidAssignmentErrorNullability:
   problemMessage: "A value of type '#type' can't be assigned to a variable of type '#type2' because '#type' is nullable and '#type2' isn't."
   analyzerCode: INVALID_ASSIGNMENT
-  configuration: nnbd-strong
   script: >
     main() {
       int i = 0;
@@ -4153,7 +4029,6 @@ InvalidAssignmentErrorNullability:
 InvalidAssignmentErrorPartNullability:
   problemMessage: "A value of type '#type' can't be assigned to a variable of type '#type2' because '#type3' is nullable and '#type4' isn't."
   analyzerCode: INVALID_ASSIGNMENT
-  configuration: nnbd-strong
   script: >
     main() {
       List<int> i = [];
@@ -4164,7 +4039,6 @@ InvalidAssignmentErrorPartNullability:
 InvalidAssignmentErrorNullabilityNull:
   problemMessage: "The value 'null' can't be assigned to a variable of type '#type' because '#type' is not nullable."
   analyzerCode: INVALID_ASSIGNMENT
-  configuration: nnbd-strong
   script: >
     main() {
       int i = 0;
@@ -4174,7 +4048,6 @@ InvalidAssignmentErrorNullabilityNull:
 InvalidAssignmentErrorNullabilityNullType:
   problemMessage: "A value of type '#type' can't be assigned to a variable of type '#type2' because '#type2' is not nullable."
   analyzerCode: INVALID_ASSIGNMENT
-  configuration: nnbd-strong
   script: >
     main() {
       Null n;
@@ -4386,7 +4259,6 @@ CantInferTypeDueToNoCombinedSignature:
   problemMessage: "Can't infer a type for '#name' as the overridden members don't have a combined signature."
   correctionMessage: "Try adding an explicit type."
   analyzerCode: COMPILE_TIME_ERROR.NO_COMBINED_SUPER_SIGNATURE
-  configuration: nnbd-strong
   script: |
     class A {
       void method(int a) {}
@@ -4402,7 +4274,6 @@ CantInferReturnTypeDueToNoCombinedSignature:
   problemMessage: "Can't infer a return type for '#name' as the overridden members don't have a combined signature."
   correctionMessage: "Try adding an explicit type."
   analyzerCode: COMPILE_TIME_ERROR.NO_COMBINED_SUPER_SIGNATURE
-  configuration: nnbd-strong
   script: |
     abstract class A {
       int get getter;
@@ -4473,7 +4344,6 @@ ForInLoopElementTypeNotAssignableNullability:
   problemMessage: "A value of type '#type' can't be assigned to a variable of type '#type2' because '#type' is nullable and '#type2' isn't."
   correctionMessage: "Try changing the type of the variable."
   analyzerCode: FOR_IN_OF_INVALID_ELEMENT_TYPE
-  configuration: nnbd-strong
   script: |
     method() {
       List<int?> list = [];
@@ -4484,7 +4354,6 @@ ForInLoopElementTypeNotAssignablePartNullability:
   problemMessage: "A value of type '#type' can't be assigned to a variable of type '#type2' because '#type3' is nullable and '#type4' isn't."
   correctionMessage: "Try changing the type of the variable."
   analyzerCode: FOR_IN_OF_INVALID_ELEMENT_TYPE
-  configuration: nnbd-strong
   script: |
     method() {
       List<List<int?>> list = [[]];
@@ -4503,7 +4372,6 @@ ForInLoopTypeNotIterable:
 ForInLoopTypeNotIterableNullability:
   problemMessage: "The type '#type' used in the 'for' loop must implement '#type2' because '#type' is nullable and '#type2' isn't."
   analyzerCode: FOR_IN_OF_INVALID_TYPE
-  configuration: nnbd-strong
   script: |
     method() {
       List<int>? list = null;
@@ -4703,69 +4571,56 @@ ReturnFromVoidFunction:
 
 ReturnWithoutExpressionSync:
   problemMessage: "A value must be explicitly returned from a non-void function."
-  configuration: nnbd-strong
   script: |
     import "dart:async";
     FutureOr<Object?> foo() { return; }
 
 ReturnWithoutExpressionAsync:
   problemMessage: "A value must be explicitly returned from a non-void async function."
-  configuration: nnbd-strong
   declaration: "Future<int> foo() async { return; }"
 
 InvalidReturn:
   problemMessage: "A value of type '#type' can't be returned from a function with return type '#type2'."
-  configuration: nnbd-strong
   declaration: "int foo() { return true; }"
 
 InvalidReturnNullability:
   problemMessage: "A value of type '#type' can't be returned from a function with return type '#type2' because '#type' is nullable and '#type2' isn't."
-  configuration: nnbd-strong
   declaration: "int foo(int? i) { return i; }"
 
 InvalidReturnPartNullability:
   problemMessage: "A value of type '#type' can't be returned from a function with return type '#type2' because '#type3' is nullable and '#type4' isn't."
-  configuration: nnbd-strong
   declaration: "List<int> foo(List<int?> list) { return list; }"
 
 InvalidReturnNullabilityNull:
   problemMessage: "The value 'null' can't be returned from a function with return type '#type' because '#type' is not nullable."
-  configuration: nnbd-strong
   declaration: "int foo() { return null; }"
 
 InvalidReturnNullabilityNullType:
   problemMessage: "A value of type '#type' can't be returned from a function with return type '#type2' because '#type2' is not nullable."
-  configuration: nnbd-strong
   declaration: "int foo(Null i) { return i; }"
 
 InvalidReturnAsync:
   problemMessage: "A value of type '#type' can't be returned from an async function with return type '#type2'."
-  configuration: nnbd-strong
   declaration: "Future<int> foo() async { return true; }"
 
 InvalidReturnAsyncNullability:
   problemMessage: "A value of type '#type' can't be returned from an async function with return type '#type2' because '#type' is nullable and '#type2' isn't."
-  configuration: nnbd-strong
   declaration: "Future<int> foo(int? i) async { return i; }"
 
 InvalidReturnAsyncPartNullability:
   problemMessage: "A value of type '#type' can't be returned from an async function with return type '#type2' because '#type3' is nullable and '#type4' isn't."
-  configuration: nnbd-strong
   declaration: "Future<List<int>> foo(List<int?> list) async { return list; }"
 
 InvalidReturnAsyncNullabilityNull:
   problemMessage: "The value 'null' can't be returned from an async function with return type '#type' because '#type' is not nullable."
-  configuration: nnbd-strong
   declaration: "Future<int> foo() async { return null; }"
 
 InvalidReturnAsyncNullabilityNullType:
   problemMessage: "A value of type '#type' can't be returned from an async function with return type '#type2' because '#type2' is not nullable."
-  configuration: nnbd-strong
   declaration: "Future<int> foo(Null n) async { return n; }"
 
 ImplicitReturnNull:
   problemMessage: "A non-null value must be returned since the return type '#type' doesn't allow null."
-  configuration: nnbd-strong
   script: |
     String method() {}
 
@@ -4776,15 +4631,12 @@ RethrowNotCatch:
 InvokeNonFunction:
   problemMessage: "'#name' isn't a function or method and can't be invoked."
   analyzerCode: INVOCATION_OF_NON_FUNCTION
+  configuration: nnbd-weak
   script: |
-    // @dart=2.9
-    class Foo {
-      int f;
+    abstract class Foo {
+      int get f;
     }
-    main() {
-      Foo foo = new Foo();
-      foo.f();
-    }
+    method(Foo foo) => foo.f();
 
 ConstInstanceField:
   problemMessage: "Only static fields can be declared as const."
@@ -5063,6 +4915,17 @@ FfiAbiSpecificIntegerMappingInvalid:
   problemMessage: "Classes extending 'AbiSpecificInteger' must have exactly one 'AbiSpecificIntegerMapping' annotation specifying the mapping from ABI to a NativeType integer with a fixed size."
   external: test/ffi_test.dart
 
+FfiAddressPosition:
+  # Used by dart:ffi
+  problemMessage: "The '.address' expression can only be used as argument to a leaf native external call."
+  external: test/ffi_test.dart
+
+FfiAddressReceiver:
+  # Used by dart:ffi
+  problemMessage: "The receiver of '.address' must be a concrete 'TypedData', a concrete 'TypedData' '[]', an 'Array', an 'Array' '[]', a Struct field, or a Union field."
+  correctionMessage: "Change the receiver of '.address' to one of the allowed kinds."
+  external: test/ffi_test.dart
+
 FfiCreateOfStructOrUnion:
   # Used by dart:ffi
   problemMessage: "Subclasses of 'Struct' and 'Union' are backed by native memory, and can't be instantiated by a generative constructor. Try allocating it via allocation, or load from a 'Pointer'."
@@ -5319,7 +5182,6 @@ SpreadElementTypeMismatch:
 SpreadElementTypeMismatchNullability:
   problemMessage: "Can't assign spread elements of type '#type' to collection elements of type '#type2' because '#type' is nullable and '#type2' isn't."
   analyzerCode: LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
-  configuration: nnbd-strong
   script: >
     main() {
       List<int?> a = <int?>[0, null];
@@ -5329,7 +5191,6 @@ SpreadElementTypeMismatchNullability:
 SpreadElementTypeMismatchPartNullability:
   problemMessage: "Can't assign spread elements of type '#type' to collection elements of type '#type2' because '#type3' is nullable and '#type4' isn't."
   analyzerCode: LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
-  configuration: nnbd-strong
   script: >
     main() {
       List<List<int?>> a = <List<int?>>[[0, null]];
@@ -5362,7 +5223,6 @@ SpreadMapEntryElementKeyTypeMismatch:
 SpreadMapEntryElementKeyTypeMismatchNullability:
   problemMessage: "Can't assign spread entry keys of type '#type' to map entry keys of type '#type2' because '#type' is nullable and '#type2' isn't."
   analyzerCode: MAP_KEY_TYPE_NOT_ASSIGNABLE
-  configuration: nnbd-strong
   script: >
     main() {
       Map<String?, int> a = <String?, int>{"foo": 42, null: 87};
@@ -5372,7 +5232,6 @@ SpreadMapEntryElementKeyTypeMismatchNullability:
 SpreadMapEntryElementKeyTypeMismatchPartNullability:
   problemMessage: "Can't assign spread entry keys of type '#type' to map entry keys of type '#type2' because '#type3' is nullable and '#type4' isn't."
   analyzerCode: MAP_KEY_TYPE_NOT_ASSIGNABLE
-  configuration: nnbd-strong
   script: >
     main() {
       Map<List<String?>, int> a = <List<String?>, int>{["foo"]: 42, [null]: 87};
@@ -5391,7 +5250,6 @@ SpreadMapEntryElementValueTypeMismatch:
 SpreadMapEntryElementValueTypeMismatchNullability:
   problemMessage: "Can't assign spread entry values of type '#type' to map entry values of type '#type2' because '#type' is nullable and '#type2' isn't."
   analyzerCode: MAP_VALUE_TYPE_NOT_ASSIGNABLE
-  configuration: nnbd-strong
   script: >
     main() {
       Map<String, int?> a = <String, int?>{"foo": 42, "bar": null};
@@ -5401,7 +5259,6 @@ SpreadMapEntryElementValueTypeMismatchNullability:
 SpreadMapEntryElementValueTypeMismatchPartNullability:
   problemMessage: "Can't assign spread entry values of type '#type' to map entry values of type '#type2' because '#type3' is nullable and '#type4' isn't."
   analyzerCode: MAP_VALUE_TYPE_NOT_ASSIGNABLE
-  configuration: nnbd-strong
   script: >
     main() {
       Map<String, List<int?>> a = <String, List<int?>>{"foo": [42], "bar": [null]};
@@ -5509,6 +5366,11 @@ LanguageVersionTooHigh:
   script: >
     // @dart = 100.200
 
+LanguageVersionTooLow:
+  problemMessage: "The specified language version is too low. The lowest supported language version is #count.#count2."
+  script: >
+    // @dart = 2.9
+
 LanguageVersionInvalidInDotPackages:
   problemMessage: "The language version is not specified correctly in the packages file."
   exampleAllowMoreCodes: true
@@ -5531,11 +5393,11 @@ LanguageVersionMismatchInPart:
   problemMessage: "The language version override has to be the same in the library and its part(s)."
   script:
     main.dart: >
-      // @dart = 2.4
+      // @dart = 2.13
 
       part 'part.dart';
     part.dart: >
-      // @dart = 2.3
+      // @dart = 2.12
 
       part of 'main.dart';
 
@@ -5742,7 +5604,6 @@ OptionalNonNullableWithoutInitializerError:
   problemMessage: "The parameter '#name' can't have a value of 'null' because of its type '#type', but the implicit default value is 'null'."
   correctionMessage: "Try adding either an explicit non-'null' default value or the 'required' modifier."
   analyzerCode: MISSING_DEFAULT_VALUE_FOR_PARAMETER
-  configuration: nnbd-strong
   script:
     - method1({int a}) {}
     - method2([int a]) {}
@@ -5753,21 +5614,9 @@ FieldNonNullableWithoutInitializerError:
 FieldNonNullableNotInitializedByConstructorError:
   problemMessage: "This constructor should initialize field '#name' because its type '#type' doesn't allow null."
 
-NullSafetyOptOutExplicit:
-  problemMessage: "Null safety is disabled for this library."
-  correctionMessage: "Try removing the `@dart=` annotation or setting the language version to #string or higher."
-
 ExperimentOptOutExplicit:
   problemMessage: "The '#string' language feature is disabled for this library."
   correctionMessage: "Try removing the `@dart=` annotation or setting the language version to #string2 or higher."
-
-NullSafetyOptOutImplicit:
-  problemMessage: "Null safety is disabled for this library."
-  correctionMessage: "Try removing the package language version or setting the language version to #string or higher."
-
-NullSafetyOptOutComment:
-  problemMessage: "This is the annotation that opts out this library from null safety features."
-  severity: CONTEXT
 
 ExperimentOptOutImplicit:
   problemMessage: "The '#string' language feature is disabled for this library."
@@ -5997,7 +5846,6 @@ JsInteropStaticInteropWithNonStaticSupertype:
 
 NonNullableNotAssignedError:
   problemMessage: "Non-nullable variable '#name' must be assigned before it can be used."
-  configuration: nnbd-strong
   script: |
     method<T>() {
       T t; t;
@@ -6006,7 +5854,6 @@ NonNullableNotAssignedError:
 FinalNotAssignedError:
   problemMessage: "Final variable '#name' must be assigned before it can be used."
   analyzerCode: READ_POTENTIALLY_UNASSIGNED_FINAL
-  configuration: nnbd-strong
   script: >
     method(bool b) {
       final int i;
@@ -6018,7 +5865,6 @@ FinalNotAssignedError:
 
 LateDefinitelyUnassignedError:
   problemMessage: "Late variable '#name' without initializer is definitely unassigned."
-  configuration: nnbd-strong
   script: |
     method<T>() {
       late T t; t;
@@ -6026,7 +5872,6 @@ LateDefinitelyUnassignedError:
 
 LateDefinitelyAssignedError:
   problemMessage: "Late final variable '#name' definitely assigned."
-  configuration: nnbd-strong
   script: |
     method() {
       late final int t;
@@ -6037,7 +5882,6 @@ LateDefinitelyAssignedError:
 FinalPossiblyAssignedError:
   problemMessage: "Final variable '#name' might already be assigned at this point."
   analyzerCode: ASSIGNMENT_TO_FINAL_LOCAL
-  configuration: nnbd-strong
   script: |
     method() {
       final int i;
@@ -6047,16 +5891,6 @@ FinalPossiblyAssignedError:
 
 NonAgnosticConstant:
   problemMessage: "Constant value is not strong/weak mode agnostic."
-
-ExportOptOutFromOptIn:
-  problemMessage: "Null safe libraries are not allowed to export declarations from of opt-out libraries."
-  configuration: nnbd-weak
-  script:
-    main.dart: |
-      export 'lib.dart';
-    lib.dart: |
-      // @dart=2.5
-      class A {}
 
 CannotAssignToFinalVariable:
   problemMessage: "Can't assign to the final variable '#name'."
@@ -6126,13 +5960,11 @@ NeverValueError:
 
 MainNotFunctionDeclaration:
   problemMessage: "The 'main' declaration must be a function declaration."
-  configuration: nnbd-strong
   script:
     - var main;
 
 MainNotFunctionDeclarationExported:
   problemMessage: "The exported 'main' declaration must be a function declaration."
-  configuration: nnbd-strong
   exampleAllowMoreCodes: true
   script:
     main.dart:
@@ -6142,13 +5974,11 @@ MainNotFunctionDeclarationExported:
 
 MainTooManyRequiredParameters:
   problemMessage: "The 'main' method must have at most 2 required parameters."
-  configuration: nnbd-strong
   script:
     - main(a, b, c) {}
 
 MainTooManyRequiredParametersExported:
   problemMessage: "The exported 'main' method must have at most 2 required parameters."
-  configuration: nnbd-strong
   exampleAllowMoreCodes: true
   script:
     main.dart:
@@ -6158,13 +5988,11 @@ MainTooManyRequiredParametersExported:
 
 MainRequiredNamedParameters:
   problemMessage: "The 'main' method cannot have required named parameters."
-  configuration: nnbd-strong
   script:
     - main({required a}) {}
 
 MainRequiredNamedParametersExported:
   problemMessage: "The exported 'main' method cannot have required named parameters."
-  configuration: nnbd-strong
   exampleAllowMoreCodes: true
   script:
     main.dart:
@@ -6174,13 +6002,11 @@ MainRequiredNamedParametersExported:
 
 MainWrongParameterType:
   problemMessage: "The type '#type' of the first parameter of the 'main' method is not a supertype of '#type2'."
-  configuration: nnbd-strong
   script:
     - main(Set<String> args) {}
 
 MainWrongParameterTypeExported:
   problemMessage: "The type '#type' of the first parameter of the exported 'main' method is not a supertype of '#type2'."
-  configuration: nnbd-strong
   exampleAllowMoreCodes: true
   script:
     main.dart:
@@ -6196,16 +6022,12 @@ UnexpectedModifierInNonNnbd:
   problemMessage: "The modifier '#lexeme' is only available in null safe libraries."
   exampleAllowMoreCodes: true
   analyzerCode: UNEXPECTED_TOKEN
-  script: |
-    // @dart=2.9
-    late int x;
 
 CompilingWithoutSoundNullSafety:
   problemMessage: "Compiling without sound null safety!\nDart 3 will only support sound null safety, see https://dart.dev/null-safety"
   configuration: nnbd-weak,compile
   severity: INFO
   script: |
-    // @dart=2.9
     main() {}
 
 UnsupportedDartExt:
@@ -7528,3 +7350,9 @@ NoMacroApplicationTarget:
 MacroDefinitionApplicationSameLibraryCycle:
   problemMessage: "The macro '#name' can't be applied in the same library cycle where it is defined."
   correctionMessage: Try moving it to a different library that does not import the one where it is applied.
+
+ExperimentExpiredEnabled:
+  problemMessage: "The experiment '#name' has expired and can't be enabled."
+
+ExperimentExpiredDisabled:
+  problemMessage: "The experiment '#name' has expired and can't be disabled."

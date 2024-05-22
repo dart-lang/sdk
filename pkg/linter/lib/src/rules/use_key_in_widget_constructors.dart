@@ -68,7 +68,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (classElement != null &&
         classElement.isPublic &&
         hasWidgetAsAscendant(classElement) &&
-        classElement.constructors.where((e) => !e.isSynthetic).isEmpty) {
+        classElement.allConstructors.where((e) => !e.isSynthetic).isEmpty) {
       rule.reportLintForToken(node.name);
     }
     super.visitClassDeclaration(node);
@@ -76,6 +76,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
+    if (node.isAugmentation) return;
+
     var constructorElement = node.declaredElement;
     if (constructorElement == null) {
       return;

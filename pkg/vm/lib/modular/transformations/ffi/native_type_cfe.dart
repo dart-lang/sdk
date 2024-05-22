@@ -829,7 +829,8 @@ class ArrayNativeTypeCfe extends NativeTypeCfe {
           typedDataBase,
           offsetInBytes,
           ConstantExpression(IntConstant(length)),
-          transformer.intListConstantExpression(nestedDimensions)
+          transformer.intListConstantExpression(
+              nestedDimensions, Nullability.nonNullable)
         ],
         types: [typeArgument],
       ),

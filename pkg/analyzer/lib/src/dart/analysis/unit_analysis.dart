@@ -8,7 +8,6 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
-import 'package:analyzer/src/lint/linter.dart';
 
 /// Information about a file being analyzed.
 class UnitAnalysis {
@@ -20,7 +19,6 @@ class UnitAnalysis {
   final IgnoreInfo ignoreInfo;
 
   late final CompilationUnitElementImpl element;
-  late final LinterContextUnit2 linterUnit;
 
   UnitAnalysis({
     required this.file,

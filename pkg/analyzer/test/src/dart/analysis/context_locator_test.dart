@@ -1618,25 +1618,25 @@ ${getFolder(outPath).path}
 
   /// See https://buganizer.corp.google.com/issues/273584249
   void test_locateRoots_single_directory_blaze_hasPubspecYaml_thirdPartyDart() {
-    final workspacePath = '/home/workspace';
-    final thirdPartyDartPath = '$workspacePath/third_party/dart';
+    var workspacePath = '/home/workspace';
+    var thirdPartyDartPath = '$workspacePath/third_party/dart';
 
-    final myPackagePath = '$thirdPartyDartPath/my';
-    final myPackage = getFolder(myPackagePath);
+    var myPackagePath = '$thirdPartyDartPath/my';
+    var myPackage = getFolder(myPackagePath);
 
     newFile('$workspacePath/${file_paths.blazeWorkspaceMarker}', '');
-    final buildFile = newBlazeBuildFile(myPackagePath, '');
-    final pubspecYamlFile = newPubspecYamlFile(myPackagePath, '');
-    final myFile = newFile('$myPackagePath/lib/my.dart', '');
+    var buildFile = newBlazeBuildFile(myPackagePath, '');
+    var pubspecYamlFile = newPubspecYamlFile(myPackagePath, '');
+    var myFile = newFile('$myPackagePath/lib/my.dart', '');
 
-    final roots = contextLocator.locateRoots(
+    var roots = contextLocator.locateRoots(
       includedPaths: [
         myPackage.path,
       ],
     );
     expect(roots, hasLength(1));
 
-    final root = findRoot(roots, myPackage);
+    var root = findRoot(roots, myPackage);
     expect(root.includedPaths, unorderedEquals([myPackage.path]));
     expect(root.excludedPaths, isEmpty);
     expect(root.optionsFile, isNull);

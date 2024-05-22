@@ -51,7 +51,7 @@ class FixProcessorMapTest {
       for (var generator in entry.value) {
         var producer = generator();
         _assertValidProducer(producer);
-        if (producer.canBeAppliedInBulk) {
+        if (producer.canBeAppliedAcrossFiles) {
           bulkCount++;
         }
       }
@@ -75,7 +75,7 @@ class FixProcessorMapTest {
   void _assertValidProducer(CorrectionProducer producer) {
     var className = producer.runtimeType.toString();
     expect(producer.fixKind, isNotNull, reason: '$className.fixKind');
-    if (producer.canBeAppliedToFile) {
+    if (producer.canBeAppliedAcrossSingleFile) {
       expect(producer.multiFixKind, isNotNull,
           reason: '$className.multiFixKind');
     }

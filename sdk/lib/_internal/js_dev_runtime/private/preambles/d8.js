@@ -82,6 +82,7 @@ if (typeof global != "undefined") self = global;  // Node.js.
   var zeroTimerQueue = [];
 
   function addTimer(f, ms) {
+    ms = Math.max(0, ms);
     var id = timerIdCounter++;
     f.$timerId = id;
     timerIds[id] = f;
@@ -235,6 +236,7 @@ if (typeof global != "undefined") self = global;  // Node.js.
   }
 
   function addInterval(f, ms) {
+    ms = Math.max(0, ms);
     var id = timerIdCounter++;
     function repeat() {
       // Reactivate with the same id.
@@ -303,12 +305,13 @@ if (typeof global != "undefined") self = global;  // Node.js.
       //    at init.currentScript (/tmp/foo.js:308:19)
       //    at /tmp/foo.js:320:7
       //    at /tmp/foo.js:331:4
-      // Sometimes the 'init.currentScript' line is in the format without the
+      // Sometimes the leading spaces are tabs (http://dartbug.com/55684) and
+      // sometimes the 'init.currentScript' line is in the format without the
       // function name, so match with or without parentheses.
 
-      //              vvvvvvvvvvvv Optional prefix up to '('.
-      var re = /^ *at (?:[^(]*\()?(.*):[0-9]*:[0-9]*\)?$/mg
-      //              Optional ')' at end           ^^^
+      //               vvvvvvvvvvvv Optional prefix up to '('.
+      var re = /^\s*at (?:[^(]*\()?(.*):[0-9]*:[0-9]*\)?$/mg
+      //               Optional ')' at end           ^^^
 
       var lastMatch = null;
       do {

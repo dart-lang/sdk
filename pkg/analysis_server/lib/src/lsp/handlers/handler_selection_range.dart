@@ -5,6 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/computer/computer_selection_ranges.dart'
     hide SelectionRange;
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
@@ -31,29 +32,31 @@ class SelectionRangeHandler
       return success(null);
     }
 
-    final path = pathOfDoc(params.textDocument);
+    var path = pathOfDoc(params.textDocument);
     return path.mapResult((path) async {
-      final unit = await requireUnresolvedUnit(path);
-      final positions = params.positions;
-      final offsets = await unit.mapResult((unit) =>
-          ErrorOr.all(positions.map((pos) => toOffset(unit.lineInfo, pos))));
-      final allRanges = await offsets.mapResult(
-          (offsets) => success(_getSelectionRangesForOffsets(offsets, unit)));
+      var unit = await requireUnresolvedUnit(path);
+      return unit.mapResultSync((unit) {
+        var positions = params.positions;
+        var offsets =
+            positions.map((pos) => toOffset(unit.lineInfo, pos)).errorOrResults;
+        var allRanges = offsets.mapResultSync(
+            (offsets) => success(_getSelectionRangesForOffsets(offsets, unit)));
 
-      return allRanges;
+        return allRanges;
+      });
     });
   }
 
   SelectionRange _getSelectionRangesForOffset(
       CompilationUnit unit, int offset) {
-    final lineInfo = unit.lineInfo;
-    final computer = DartSelectionRangeComputer(unit, offset);
-    final ranges = computer.compute();
+    var lineInfo = unit.lineInfo;
+    var computer = DartSelectionRangeComputer(unit, offset);
+    var ranges = computer.compute();
     // Loop through the items starting at the end (the outermost range), using
     // each item as the parent for the next item.
     SelectionRange? last;
     for (var i = ranges.length - 1; i >= 0; i--) {
-      final range = ranges[i];
+      var range = ranges[i];
       last = SelectionRange(
         range: toRange(lineInfo, range.offset, range.length),
         parent: last,
@@ -70,9 +73,9 @@ class SelectionRangeHandler
   }
 
   List<SelectionRange> _getSelectionRangesForOffsets(
-      List<int> offsets, ErrorOr<ParsedUnitResult> unit) {
+      List<int> offsets, ParsedUnitResult result) {
     return offsets
-        .map((offset) => _getSelectionRangesForOffset(unit.result.unit, offset))
+        .map((offset) => _getSelectionRangesForOffset(result.unit, offset))
         .toList();
   }
 }

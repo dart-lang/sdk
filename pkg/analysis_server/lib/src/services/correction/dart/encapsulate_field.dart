@@ -12,6 +12,11 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class EncapsulateField extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   AssistKind get assistKind => DartAssistKind.ENCAPSULATE_FIELD;
 
   @override
@@ -54,7 +59,7 @@ class EncapsulateField extends ResolvedCorrectionProducer {
 
     // Should be in a class or mixin.
     List<ClassMember> classMembers;
-    final parent = fieldDeclaration.parent;
+    var parent = fieldDeclaration.parent;
     if (parent is ClassDeclaration) {
       classMembers = parent.members;
     } else if (parent is MixinDeclaration) {

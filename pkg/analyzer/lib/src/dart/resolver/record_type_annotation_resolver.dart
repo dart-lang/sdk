@@ -56,7 +56,7 @@ class RecordTypeAnnotationResolver {
             CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE,
           );
         } else {
-          final index = RecordTypeExtension.positionalFieldIndex(name);
+          var index = RecordTypeExtension.positionalFieldIndex(name);
           if (index != null) {
             if (index < positionalCount &&
                 positionalFields.indexOf(field) != index) {
@@ -84,13 +84,13 @@ class RecordTypeAnnotationResolver {
   }
 
   void _buildType(RecordTypeAnnotationImpl node) {
-    final positionalFields = node.positionalFields.map((field) {
+    var positionalFields = node.positionalFields.map((field) {
       return RecordTypePositionalFieldImpl(
         type: field.type.typeOrThrow,
       );
     }).toList();
 
-    final namedFields = node.namedFields?.fields.map((field) {
+    var namedFields = node.namedFields?.fields.map((field) {
       return RecordTypeNamedFieldImpl(
         name: field.name.lexeme,
         type: field.type.typeOrThrow,

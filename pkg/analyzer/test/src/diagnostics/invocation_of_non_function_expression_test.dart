@@ -24,7 +24,7 @@ void f() {
       error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 13, 1),
     ]);
 
-    final node = findNode.singleFunctionExpressionInvocation;
+    var node = findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: IntegerLiteral

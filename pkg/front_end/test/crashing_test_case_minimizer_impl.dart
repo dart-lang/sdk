@@ -1315,7 +1315,7 @@ worlds:
         if (metadata.isNotEmpty) {
           helper.replacements.add(new _Replacement(
               metadata.first.beginToken.offset - 1,
-              metadata.last.endToken.offset));
+              metadata.last.endToken.charEnd));
           shouldCompile = true;
         }
         what = "metadata";
@@ -1421,7 +1421,7 @@ worlds:
                   if (metadata.isNotEmpty) {
                     helper.replacements.add(new _Replacement(
                         metadata.first.beginToken.offset - 1,
-                        metadata.last.endToken.offset));
+                        metadata.last.endToken.charEnd));
                     shouldCompile = true;
                   }
                   what = "metadata";
@@ -1545,7 +1545,7 @@ worlds:
                   if (metadata.isNotEmpty) {
                     helper.replacements.add(new _Replacement(
                         metadata.first.beginToken.offset - 1,
-                        metadata.last.endToken.offset));
+                        metadata.last.endToken.charEnd));
                     shouldCompile = true;
                   }
                   what = "metadata";

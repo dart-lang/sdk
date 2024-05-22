@@ -58,7 +58,7 @@ import 'package:front_end/src/fasta/messages.dart' show LocatedMessage;
 import 'package:front_end/src/fasta/ticker.dart' show Ticker;
 import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 import 'package:front_end/src/fasta/util/parser_ast.dart'
-    show ParserAstVisitor, getAST;
+    show IgnoreSomeForCompatibilityAstVisitor, getAST;
 import 'package:front_end/src/fasta/util/parser_ast_helper.dart';
 import 'package:kernel/ast.dart'
     show
@@ -68,6 +68,8 @@ import 'package:kernel/ast.dart'
         Constant,
         ConstantExpression,
         Expression,
+        Extension,
+        ExtensionTypeDeclaration,
         FileUriExpression,
         FileUriNode,
         InstanceInvocation,
@@ -78,8 +80,10 @@ import 'package:kernel/ast.dart'
         Member,
         Node,
         NonNullableByDefaultCompiledMode,
+        RecursiveVisitor,
         Reference,
         TreeNode,
+        Typedef,
         UnevaluatedConstant,
         VariableDeclaration,
         Version;
@@ -189,6 +193,10 @@ const String EXPECTATIONS = '''
     "group": "Fail"
   },
   {
+    "name": "SemiFuzzAssertFailure",
+    "group": "Fail"
+  },
+  {
     "name": "ErrorCommentCheckFailure",
     "group": "Fail"
   }
@@ -206,6 +214,8 @@ final Expectation semiFuzzFailure = staticExpectationSet["SemiFuzzFailure"];
 final Expectation semiFuzzFailureOnForceRebuildBodies =
     staticExpectationSet["semiFuzzFailureOnForceRebuildBodies"];
 final Expectation semiFuzzCrash = staticExpectationSet["SemiFuzzCrash"];
+final Expectation semiFuzzAssertFailure =
+    staticExpectationSet["SemiFuzzAssertFailure"];
 
 class FastaContext extends ChainContext with MatchContext {
   final Uri baseUri;
@@ -237,6 +247,18 @@ class FastaContext extends ChainContext with MatchContext {
   final ExpectationSet expectationSet = staticExpectationSet;
 
   Map<Uri, Component> _platforms = {};
+
+  bool? _assertsEnabled;
+  bool get assertsEnabled {
+    if (_assertsEnabled == null) {
+      _assertsEnabled = false;
+      assert(() {
+        _assertsEnabled = true;
+        return true;
+      }());
+    }
+    return _assertsEnabled!;
+  }
 
   FastaContext(
       this.baseUri,
@@ -436,11 +458,17 @@ class FastaContext extends ChainContext with MatchContext {
     if (!semiFuzz &&
         (outcomes.contains(semiFuzzFailure) ||
             outcomes.contains(semiFuzzFailureOnForceRebuildBodies) ||
-            outcomes.contains(semiFuzzCrash))) {
+            outcomes.contains(semiFuzzCrash) ||
+            outcomes.contains(semiFuzzAssertFailure))) {
       result ??= new Set.from(outcomes);
       result.remove(semiFuzzFailure);
       result.remove(semiFuzzFailureOnForceRebuildBodies);
       result.remove(semiFuzzCrash);
+      result.remove(semiFuzzAssertFailure);
+    }
+    if (!assertsEnabled && outcomes.contains(semiFuzzAssertFailure)) {
+      result ??= new Set.from(outcomes);
+      result.remove(semiFuzzAssertFailure);
     }
 
     // Fast-path: no changes made.
@@ -536,11 +564,6 @@ class Run extends Step<ComponentResult, ComponentResult, FastaContext> {
             throw "Executed `Run` step before initializing the context.";
           }
           List<String> args = <String>[];
-          if (context.soundNullSafety) {
-            args.add("--sound-null-safety");
-          } else {
-            args.add("--no-sound-null-safety");
-          }
           args.add(generated.path);
           StdioProcess process =
               await StdioProcess.run(context.vm.toFilePath(), args);
@@ -946,6 +969,10 @@ class FuzzCompiles
 
       return pass(result);
     } catch (e, st) {
+      if (e is AssertionError || (e is Crash && e.error is AssertionError)) {
+        return new Result<ComponentResult>(result, semiFuzzAssertFailure,
+            "Assertion failure with '$e' when fuzz compiling.\n\n$st");
+      }
       return new Result<ComponentResult>(result, semiFuzzCrash,
           "Crashed with '$e' when fuzz compiling.\n\n$st");
     } finally {
@@ -1047,6 +1074,10 @@ class FuzzCompiles
       }
       final Component newComponent = newResult.component;
       print(" -> and got ${newComponent.libraries.length} libs");
+      if (canFindDuplicateLibraries(newComponent)) {
+        return new Result<ComponentResult>(originalCompilationResult,
+            semiFuzzFailure, "Found duplicate libraries in fuzzed component");
+      }
       if (!canSerialize(newComponent)) {
         return new Result<ComponentResult>(originalCompilationResult,
             semiFuzzFailure, "Couldn't serialize fuzzed component");
@@ -1142,6 +1173,18 @@ class FuzzCompiles
     }
   }
 
+  bool canFindDuplicateLibraries(Component component) {
+    _LibraryFinder libraryFinder = new _LibraryFinder();
+    component.accept(libraryFinder);
+    Set<Uri> importUris = {};
+    for (Library library in libraryFinder.allLibraries) {
+      if (!importUris.add(library.importUri)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /// Perform a number of compilations where each user-file is in turn sorted
   /// in both ascending and descending order (i.e. the procedures and classes
   /// etc are sorted).
@@ -1210,8 +1253,8 @@ class FuzzCompiles
             compilationSetup.options.globalFeatures,
             builder.importUri,
             builder.library.languageVersion);
-        fuzzAstVisitorSorter = new FuzzAstVisitorSorter(orgData,
-            builder.isNonNullableByDefault, libFeatures.patterns.isEnabled);
+        fuzzAstVisitorSorter =
+            new FuzzAstVisitorSorter(orgData, libFeatures.patterns.isEnabled);
       } on FormatException catch (e, st) {
         // UTF-16-LE formatted test crashes `utf8.decode(bytes)` --- catch that
         return new Result<ComponentResult>(
@@ -1244,6 +1287,15 @@ class FuzzCompiles
                 result, semiFuzzFailure, "Couldn't serialize fuzzed component");
           }
         } catch (e, st) {
+          if (e is AssertionError ||
+              (e is Crash && e.error is AssertionError)) {
+            return new Result<ComponentResult>(
+                result,
+                semiFuzzAssertFailure,
+                "Assertion failure with '$e' after reordering '$uri' to\n\n"
+                "$sb\n\n"
+                "$st");
+          }
           return new Result<ComponentResult>(
               result,
               semiFuzzCrash,
@@ -1354,8 +1406,8 @@ class FuzzCompiles
             compilationSetup.options.globalFeatures,
             builder.importUri,
             builder.library.languageVersion);
-        fuzzAstVisitorSorter = new FuzzAstVisitorSorter(orgData,
-            builder.isNonNullableByDefault, libFeatures.patterns.isEnabled);
+        fuzzAstVisitorSorter =
+            new FuzzAstVisitorSorter(orgData, libFeatures.patterns.isEnabled);
       } on FormatException catch (e, st) {
         // UTF-16-LE formatted test crashes `utf8.decode(bytes)` --- catch that
         return new Result<ComponentResult>(
@@ -1580,21 +1632,32 @@ enum FuzzOriginalType {
   TypeDef,
 }
 
-class FuzzAstVisitorSorter extends ParserAstVisitor {
+// We extend IgnoreSomeForCompatibilityAstVisitor for compatibility with how
+// the code is currently written: At least visiting `TypeVariablesEnd` can
+// cause trouble with how metadata is handled here, e.g.
+// ```
+//   @Const()
+//   extension Extension<@Const() T> on Class<T> {
+//   }
+// ```
+// will visit the first metadata, then the type variables which itself has the
+// second metadata, only then it visits the extension (which is what we care
+// about here) --- and we will with the current handling of metadata think the
+// metadata for the extension goes from the first metadata to the second.
+class FuzzAstVisitorSorter extends IgnoreSomeForCompatibilityAstVisitor {
   final Uint8List bytes;
   final String asString;
-  final bool nnbd;
   final bool allowPatterns;
 
-  FuzzAstVisitorSorter(this.bytes, this.nnbd, this.allowPatterns)
+  FuzzAstVisitorSorter(this.bytes, this.allowPatterns)
       : asString = utf8.decode(bytes) {
     CompilationUnitEnd ast = getAST(bytes,
         includeBody: false,
         includeComments: true,
         enableExtensionMethods: true,
-        enableNonNullable: nnbd,
+        enableNonNullable: true,
         allowPatterns: allowPatterns);
-    accept(ast);
+    ast.accept(this);
 
     if (metadataStart == null &&
         ast.token.precedingComments != null &&
@@ -1708,111 +1771,102 @@ class FuzzAstVisitorSorter extends ParserAstVisitor {
   }
 
   @override
-  void visitExport(ExportEnd node, Token startInclusive, Token endInclusive) {
+  void visitExportEnd(ExportEnd node) {
     handleData(FuzzOriginalType.Export, FuzzSorterState.importExportSortable,
-        startInclusive, endInclusive);
+        node.exportKeyword, node.semicolon);
   }
 
   @override
-  void visitImport(ImportEnd node, Token startInclusive, Token? endInclusive) {
+  void visitImportEnd(ImportEnd node) {
     handleData(FuzzOriginalType.Import, FuzzSorterState.importExportSortable,
-        startInclusive, endInclusive!);
+        node.importKeyword, node.semicolon!);
   }
 
   @override
-  void visitClass(
-      ClassDeclarationEnd node, Token startInclusive, Token endInclusive) {
+  void visitClassDeclarationEnd(ClassDeclarationEnd node) {
     // TODO(jensj): Possibly sort stuff inside of this too.
     handleData(FuzzOriginalType.Class, FuzzSorterState.sortableRest,
-        startInclusive, endInclusive);
+        node.beginToken, node.endToken);
   }
 
   @override
-  void visitEnum(EnumEnd node, Token startInclusive, Token endInclusive) {
+  void visitEnumEnd(EnumEnd node) {
     handleData(FuzzOriginalType.Enum, FuzzSorterState.sortableRest,
-        startInclusive, endInclusive);
+        node.beginToken, node.endToken);
   }
 
   @override
-  void visitExtension(
-      ExtensionDeclarationEnd node, Token startInclusive, Token endInclusive) {
+  void visitExtensionDeclarationEnd(ExtensionDeclarationEnd node) {
     // TODO(jensj): Possibly sort stuff inside of this too.
     handleData(FuzzOriginalType.Extension, FuzzSorterState.sortableRest,
-        startInclusive, endInclusive);
+        node.beginToken, node.endToken);
   }
 
   @override
-  void visitExtensionTypeDeclaration(ExtensionTypeDeclarationEnd node,
-      Token startInclusive, Token endInclusive) {
+  void visitExtensionTypeDeclarationEnd(ExtensionTypeDeclarationEnd node) {
     // TODO(jensj): Possibly sort stuff inside of this too.
     handleData(FuzzOriginalType.ExtensionTypeDeclaration,
-        FuzzSorterState.sortableRest, startInclusive, endInclusive);
+        FuzzSorterState.sortableRest, node.beginToken, node.endToken);
   }
 
   @override
-  void visitLibraryName(
-      LibraryNameEnd node, Token startInclusive, Token endInclusive) {
+  void visitLibraryNameEnd(LibraryNameEnd node) {
     handleData(FuzzOriginalType.LibraryName, FuzzSorterState.nonSortable,
-        startInclusive, endInclusive);
+        node.libraryKeyword, node.semicolon);
   }
 
   @override
-  void visitMetadata(
-      MetadataEnd node, Token startInclusive, Token endInclusive) {
+  void visitMetadataEnd(MetadataEnd node) {
     if (metadataStart == null) {
-      metadataStart = startInclusive;
-      metadataEndInclusive = endInclusive;
+      metadataStart = node.beginToken;
+      metadataEndInclusive = node.endToken;
     } else {
-      metadataEndInclusive = endInclusive;
+      metadataEndInclusive = node.endToken;
     }
   }
 
   @override
-  void visitMixin(
-      MixinDeclarationEnd node, Token startInclusive, Token endInclusive) {
+  void visitMixinDeclarationEnd(MixinDeclarationEnd node) {
     // TODO(jensj): Possibly sort stuff inside of this too.
     handleData(FuzzOriginalType.Mixin, FuzzSorterState.sortableRest,
-        startInclusive, endInclusive);
+        node.beginToken, node.endToken);
   }
 
   @override
-  void visitNamedMixin(
-      NamedMixinApplicationEnd node, Token startInclusive, Token endInclusive) {
+  void visitNamedMixinApplicationEnd(NamedMixinApplicationEnd node) {
     // TODO(jensj): Possibly sort stuff inside of this too.
-    handleData(FuzzOriginalType.Mixin, FuzzSorterState.sortableRest,
-        startInclusive, endInclusive);
+    handleData(FuzzOriginalType.Mixin, FuzzSorterState.sortableRest, node.begin,
+        node.endToken);
   }
 
   @override
-  void visitPart(PartEnd node, Token startInclusive, Token endInclusive) {
+  void visitPartEnd(PartEnd node) {
     handleData(FuzzOriginalType.Part, FuzzSorterState.nonSortable,
-        startInclusive, endInclusive);
+        node.partKeyword, node.semicolon);
   }
 
   @override
-  void visitPartOf(PartOfEnd node, Token startInclusive, Token endInclusive) {
+  void visitPartOfEnd(PartOfEnd node) {
     handleData(FuzzOriginalType.PartOf, FuzzSorterState.nonSortable,
-        startInclusive, endInclusive);
+        node.partKeyword, node.semicolon);
   }
 
   @override
-  void visitTopLevelFields(
-      TopLevelFieldsEnd node, Token startInclusive, Token endInclusive) {
+  void visitTopLevelFieldsEnd(TopLevelFieldsEnd node) {
     handleData(FuzzOriginalType.TopLevelFields, FuzzSorterState.sortableRest,
-        startInclusive, endInclusive);
+        node.beginToken, node.endToken);
   }
 
   @override
-  void visitTopLevelMethod(
-      TopLevelMethodEnd node, Token startInclusive, Token endInclusive) {
+  void visitTopLevelMethodEnd(TopLevelMethodEnd node) {
     handleData(FuzzOriginalType.TopLevelMethod, FuzzSorterState.sortableRest,
-        startInclusive, endInclusive);
+        node.beginToken, node.endToken);
   }
 
   @override
-  void visitTypedef(TypedefEnd node, Token startInclusive, Token endInclusive) {
+  void visitTypedefEnd(TypedefEnd node) {
     handleData(FuzzOriginalType.TypeDef, FuzzSorterState.sortableRest,
-        startInclusive, endInclusive);
+        node.typedefKeyword, node.endToken);
   }
 }
 
@@ -2375,4 +2429,56 @@ class TestDevCompilerTarget extends DevCompilerTarget
   final TestTargetFlags flags;
 
   TestDevCompilerTarget(this.flags) : super(flags);
+}
+
+class _LibraryFinder extends RecursiveVisitor {
+  Set<Library> allLibraries = {};
+
+  @override
+  void visitLibrary(Library node) {
+    allLibraries.add(node);
+    super.visitLibrary(node);
+  }
+
+  @override
+  void defaultMemberReference(Member node) {
+    try {
+      // This call sometimes fail:
+      // node.enclosingLibrary;
+      // TODO(jensj): Figure out why it fails.
+      // It happens - currently - on these tests:
+      // strong/macros/augment_concrete
+      // strong/macros/extend_augmented
+      // strong/macros/multiple_augment_class
+      TreeNode? parent = node.parent;
+      while (parent != null && parent is! Library) {
+        parent = parent.parent;
+      }
+      if (parent is Library) {
+        allLibraries.add(parent);
+      }
+    } catch (e) {
+      throw "Error for $node with parent ${node.parent}: $e";
+    }
+  }
+
+  @override
+  void visitClassReference(Class node) {
+    allLibraries.add(node.enclosingLibrary);
+  }
+
+  @override
+  void visitTypedefReference(Typedef node) {
+    allLibraries.add(node.enclosingLibrary);
+  }
+
+  @override
+  void visitExtensionReference(Extension node) {
+    allLibraries.add(node.enclosingLibrary);
+  }
+
+  @override
+  void visitExtensionTypeDeclarationReference(ExtensionTypeDeclaration node) {
+    allLibraries.add(node.enclosingLibrary);
+  }
 }

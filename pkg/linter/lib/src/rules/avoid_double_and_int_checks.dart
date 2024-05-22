@@ -8,10 +8,10 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 
-const _desc = r'Avoid double and int checks.';
+const _desc = r'Avoid `double` and `int` checks.';
 
 const _details = r'''
-**AVOID** to check if type is double or int.
+**AVOID** to check if type is `double` or `int`.
 
 When compiled to JS, integer values are represented as floats. That can lead to
 some unexpected behavior when using either `is` or `is!` where the type is

@@ -21,6 +21,10 @@ abstract class DataSource {
   /// Deserialization of a non-negative integer value.
   int readInt();
 
+  /// Deserialization of a non-negative 32 bit integer value. The value might
+  /// not be compacted as with [readInt].
+  int readUint32();
+
   /// Deserialization of an enum value in [values].
   E readEnum<E extends Enum>(List<E> values);
 
@@ -292,6 +296,13 @@ class DataSourceReader {
   int readInt() {
     _checkDataKind(DataKind.uint30);
     return _sourceReader.readInt();
+  }
+
+  /// Reads a non-negative 32 bit integer value from this data source. The value
+  /// might not be compacted as with [readInt].
+  int readUint32() {
+    _checkDataKind(DataKind.uint32);
+    return _sourceReader.readUint32();
   }
 
   /// Reads a potentially `null` non-negative integer value from this data

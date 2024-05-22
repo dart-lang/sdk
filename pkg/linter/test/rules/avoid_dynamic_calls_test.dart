@@ -35,6 +35,74 @@ void f(Object? a) {
 ''');
   }
 
+  test_callInvocation_cascade_Function() async {
+    await assertDiagnostics(r'''
+void f(Function p) {
+  p..call();
+}
+''', [
+      lint(26, 4),
+    ]);
+  }
+
+  test_callInvocation_cascade_functionType() async {
+    await assertNoDiagnostics(r'''
+void f(void Function() p) {
+  p..call();
+}
+''');
+  }
+
+  test_callInvocation_Function() async {
+    await assertDiagnostics(r'''
+void f(Function p) {
+  p.call();
+}
+''', [
+      lint(25, 4),
+    ]);
+  }
+
+  test_callInvocation_Function_tearoff() async {
+    await assertNoDiagnostics(r'''
+void f(Function p) {
+  p.call;
+}
+''');
+  }
+
+  test_callInvocation_functionType() async {
+    await assertNoDiagnostics(r'''
+void f(void Function() p) {
+  p.call();
+}
+''');
+  }
+
+  test_callInvocation_functionType_tearoff() async {
+    await assertNoDiagnostics(r'''
+void f(void Function() p) {
+  p.call;
+}
+''');
+  }
+
+  test_callInvocation_nullAware_functionType() async {
+    await assertNoDiagnostics(r'''
+void f(void Function()? p) {
+  p?.call();
+}
+''');
+  }
+
+  test_callInvocation_nullAware_functionType_tearoff() async {
+    await assertNoDiagnostics(r'''
+void f(void Function()? p) {
+  p?.call;
+}
+''');
+  }
+
   test_functionExpressionInvocation() async {
     await assertDiagnostics(r'''
 void f(Function? g1, Function g2) {

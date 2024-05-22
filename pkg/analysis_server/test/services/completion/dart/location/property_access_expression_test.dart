@@ -723,4 +723,19 @@ suggestions
     kind: methodInvocation
 ''');
   }
+
+  Future<void> test_target_assignmentLeft() async {
+    await computeSuggestions('''
+void f(Object v01) {
+  v0^.foo = 0;
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  v01
+    kind: parameter
+''');
+  }
 }

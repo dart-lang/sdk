@@ -467,7 +467,7 @@ void f(A a) {
       error(WarningCode.SDK_VERSION_SINCE, 38, 3),
     ]);
 
-    final node = findNode.prefixed('.foo');
+    var node = findNode.prefixed('.foo');
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -504,7 +504,7 @@ void f(A a) {
       error(WarningCode.SDK_VERSION_SINCE, 40, 3),
     ]);
 
-    final node = findNode.propertyAccess('.foo');
+    var node = findNode.propertyAccess('.foo');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression

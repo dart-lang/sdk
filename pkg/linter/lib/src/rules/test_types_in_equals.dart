@@ -7,12 +7,12 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 
-const _desc = r'Test type arguments in operator ==(Object other).';
+const _desc = r'Test type of argument in `operator ==(Object other)`.';
 
 const _details = r'''
-**DO** test type arguments in operator ==(Object other).
+**DO** test type of argument in `operator ==(Object other)`.
 
-Not testing types might result in null pointer exceptions which will be
+Not testing the type might result in runtime type errors which will be
 unexpected for consumers of your class.
 
 **BAD:**
@@ -120,7 +120,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     } else if (parent is MixinDeclaration) {
       return parent.name.lexeme;
     } else if (parent is ExtensionDeclaration) {
-      return parent.extendedType.toSource();
+      if (parent.onClause case var onClause?) {
+        return onClause.extendedType.toSource();
+      }
     }
     return 'unknown';
   }

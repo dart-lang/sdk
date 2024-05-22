@@ -8,11 +8,11 @@ main.dart.patch: |
   ==== {"messages":[],"hasCompileTimeError":1}
   class A<S extends num> {
   >>>>
-    S field;
+    S? field;
   }
 
   class B<T> implements A<T> {
-    T field;
+    T? field;
   }
 
   main() {

@@ -55,6 +55,8 @@ class A1 {}
 ''');
     assertResponse(r'''
 suggestions
+  A1
+    kind: class
   A1.new
     kind: constructor
   const
@@ -69,10 +71,6 @@ suggestions
     kind: keyword
   var
     kind: keyword
-  A1
-    kind: class
-  A1
-    kind: constructorInvocation
 ''');
   }
 
@@ -98,6 +96,8 @@ int f01() => 0;
 suggestions
   c01
     kind: topLevelVariable
+  A1
+    kind: class
   A1.named
     kind: constructor
   const
@@ -112,12 +112,6 @@ suggestions
     kind: keyword
   var
     kind: keyword
-  A1
-    kind: class
-  f01
-    kind: functionInvocation
-  v01
-    kind: topLevelVariable
 ''');
   }
 

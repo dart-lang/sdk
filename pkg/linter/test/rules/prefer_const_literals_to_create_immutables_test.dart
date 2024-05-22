@@ -20,6 +20,25 @@ class PreferConstLiteralsToCreateImmutablesTest extends LintRuleTest {
   @override
   String get lintRule => 'prefer_const_literals_to_create_immutables';
 
+  test_boolFromEnvironment() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+const x = bool.fromEnvironment('dart.library.js_util');
+
+@immutable
+class A {
+  const A(List<int> p);
+}
+
+var a = A([
+  if (x) e(),
+]);
+
+int e() => 7;
+''');
+  }
+
   test_extensionType() async {
     await assertDiagnostics(r'''
 import 'package:meta/meta.dart';

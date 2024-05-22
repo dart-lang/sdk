@@ -84,7 +84,7 @@ additionalExports = (core::ArgumentError,
 
   export "dart:core";
 
-  static const field dynamic _exports# = #C1 /*isLegacy*/;
+  static const field dynamic _exports# = #C1;
   static method method() → dynamic {
     dart.core::print("hello");
   }

@@ -79,6 +79,32 @@ suggestions
 ''');
   }
 
+  Future<void> test_afterLeftParen_beforeRightParen_factoryConstructor() async {
+    printerConfiguration
+      ..withDocumentation = true
+      ..withElement = true;
+
+    await computeSuggestions('''
+class A {
+  int fff;
+  A._({this.fff});
+  factory A({int fff}) = A._;
+}
+void f() {
+  new A(^);
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  |fff: |
+    kind: namedArgument
+    element
+      name: fff
+      kind: parameter
+''');
+  }
+
   Future<void>
       test_afterLeftParen_beforeRightParen_fieldFormal_withDocumentation() async {
     printerConfiguration

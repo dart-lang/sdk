@@ -1,0 +1,41 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef IntFn = (core::int) → core::int;
+typedef TFn = <T extends core::Object? = dynamic>(T%) → T%;
+abstract class CompareBase extends core::Object {
+  synthetic constructor •() → self::CompareBase
+    : super core::Object::•()
+    ;
+  abstract operator <((core::int) → core::int f) → dynamic;
+}
+class Compare extends self::CompareBase {
+  synthetic constructor •() → self::Compare
+    : super self::CompareBase::•()
+    ;
+  @#C1
+  operator <(core::Object f) → dynamic
+    return f is <T extends core::Object? = dynamic>(T%) → T%;
+}
+static method id<T extends core::Object? = dynamic>(self::id::T% t) → self::id::T%
+  return t;
+static method test1(self::CompareBase x) → dynamic {
+  {
+    final synthesized self::CompareBase #0#0 = x;
+    if(#0#0.{self::CompareBase::<}(#C3){((core::int) → core::int) → dynamic} as core::bool) {
+      throw "\"<\" should receive instantiation, not generic function.";
+    }
+    else {
+    }
+  }
+}
+static method main() → dynamic {
+  self::test1(new self::Compare::•());
+}
+
+constants  {
+  #C1 = core::_Override {}
+  #C2 = static-tearoff self::id
+  #C3 = instantiation #C2 <core::int>
+}

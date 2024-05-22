@@ -11,14 +11,9 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class OrganizeImports extends ResolvedCorrectionProducer {
   @override
-  // Bulk application is supported by a distinct import cleanup fix phase.
-  bool get canBeAppliedInBulk => false;
-
-  @override
-  // The fix is to sort all the directives, which will already fix all of the
-  // diagnostics in the file, so there's no value in providing a separate
-  // fix-all option to the user.
-  bool get canBeAppliedToFile => false;
+  CorrectionApplicability get applicability =>
+      // Bulk application is supported by a distinct import cleanup fix phase.
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.ORGANIZE_IMPORTS;

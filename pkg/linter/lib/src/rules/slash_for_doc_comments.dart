@@ -7,7 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 
-const _desc = r'Prefer using /// for doc comments.';
+const _desc = r'Prefer using `///` for doc comments.';
 
 const _details = r'''
 From [Effective Dart](https://dart.dev/effective-dart/documentation#do-use--doc-comments-to-document-members-and-types):

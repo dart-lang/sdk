@@ -15,12 +15,9 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveDeadCode extends ResolvedCorrectionProducer {
   @override
-  // Not predictably the correct action.
-  bool get canBeAppliedInBulk => false;
-
-  @override
-  // Not predictably the correct action.
-  bool get canBeAppliedToFile => false;
+  CorrectionApplicability get applicability =>
+      // Not predictably the correct action.
+      CorrectionApplicability.singleLocation;
 
   @override
   AstNode? get coveredNode {
@@ -44,7 +41,7 @@ class RemoveDeadCode extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final coveredNode = this.coveredNode;
+    var coveredNode = this.coveredNode;
     var parent = coveredNode?.parent;
 
     if (coveredNode is Expression) {

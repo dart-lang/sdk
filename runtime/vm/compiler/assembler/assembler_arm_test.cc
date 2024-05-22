@@ -143,7 +143,10 @@ ASSEMBLER_TEST_RUN(LoadHalfWordUnaligned, test) {
   EXPECT(test != nullptr);
   typedef intptr_t (*LoadHalfWordUnaligned)(intptr_t) DART_UNUSED;
   uint8_t buffer[4] = {
-      0x89, 0xAB, 0xCD, 0xEF,
+      0x89,
+      0xAB,
+      0xCD,
+      0xEF,
   };
 
   EXPECT_EQ(
@@ -166,7 +169,10 @@ ASSEMBLER_TEST_RUN(LoadHalfWordUnsignedUnaligned, test) {
   EXPECT(test != nullptr);
   typedef intptr_t (*LoadHalfWordUnsignedUnaligned)(intptr_t) DART_UNUSED;
   uint8_t buffer[4] = {
-      0x89, 0xAB, 0xCD, 0xEF,
+      0x89,
+      0xAB,
+      0xCD,
+      0xEF,
   };
 
   EXPECT_EQ(0xAB89, EXECUTE_TEST_CODE_INTPTR_INTPTR(
@@ -188,7 +194,10 @@ ASSEMBLER_TEST_RUN(StoreHalfWordUnaligned, test) {
   EXPECT(test != nullptr);
   typedef intptr_t (*StoreHalfWordUnaligned)(intptr_t) DART_UNUSED;
   uint8_t buffer[4] = {
-      0, 0, 0, 0,
+      0,
+      0,
+      0,
+      0,
   };
 
   EXPECT_EQ(0x1111ABCD, EXECUTE_TEST_CODE_INTPTR_INTPTR(
@@ -343,25 +352,25 @@ ASSEMBLER_TEST_RUN(SingleVShiftLoadStore, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleVLoadStore, assembler) {
-    int64_t value = bit_cast<int64_t, double>(12.3);
-    __ LoadImmediate(R0, Utils::Low32Bits(value));
-    __ LoadImmediate(R1, Utils::High32Bits(value));
-    __ mov(R2, Operand(SP));
-    __ str(R0, Address(SP, (-target::kWordSize * 30), Address::PreIndex));
-    __ str(R1, Address(R2, (-target::kWordSize * 29)));
-    __ vldrd(D0, Address(R2, (-target::kWordSize * 30)));
-    __ vaddd(D0, D0, D0);
-    __ vstrd(D0, Address(R2, (-target::kWordSize * 30)));
-    __ ldr(R1, Address(R2, (-target::kWordSize * 29)));
-    __ ldr(R0, Address(SP, (target::kWordSize * 30), Address::PostIndex));
-    __ Ret();
+  int64_t value = bit_cast<int64_t, double>(12.3);
+  __ LoadImmediate(R0, Utils::Low32Bits(value));
+  __ LoadImmediate(R1, Utils::High32Bits(value));
+  __ mov(R2, Operand(SP));
+  __ str(R0, Address(SP, (-target::kWordSize * 30), Address::PreIndex));
+  __ str(R1, Address(R2, (-target::kWordSize * 29)));
+  __ vldrd(D0, Address(R2, (-target::kWordSize * 30)));
+  __ vaddd(D0, D0, D0);
+  __ vstrd(D0, Address(R2, (-target::kWordSize * 30)));
+  __ ldr(R1, Address(R2, (-target::kWordSize * 29)));
+  __ ldr(R0, Address(SP, (target::kWordSize * 30), Address::PostIndex));
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(DoubleVLoadStore, test) {
-    EXPECT(test != nullptr);
-    typedef double (*DoubleVLoadStore)() DART_UNUSED;
-    float res = EXECUTE_TEST_CODE_DOUBLE(DoubleVLoadStore, test->entry());
-    EXPECT_FLOAT_EQ(2 * 12.3f, res, 0.001f);
+  EXPECT(test != nullptr);
+  typedef double (*DoubleVLoadStore)() DART_UNUSED;
+  float res = EXECUTE_TEST_CODE_DOUBLE(DoubleVLoadStore, test->entry());
+  EXPECT_FLOAT_EQ(2 * 12.3f, res, 0.001f);
 }
 
 ASSEMBLER_TEST_GENERATE(SingleFPOperations, assembler) {
@@ -405,20 +414,20 @@ ASSEMBLER_TEST_RUN(DoubleFPOperations, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleSqrtNeg, assembler) {
-    // Check that sqrt of a negative double gives NaN.
-    __ LoadDImmediate(D1, -1.0, R0);
-    __ vsqrtd(D0, D1);
-    __ vcmpd(D0, D0);
-    __ vmstat();
-    __ mov(R0, Operand(1), VS);
-    __ mov(R0, Operand(0), VC);
-    __ Ret();
+  // Check that sqrt of a negative double gives NaN.
+  __ LoadDImmediate(D1, -1.0, R0);
+  __ vsqrtd(D0, D1);
+  __ vcmpd(D0, D0);
+  __ vmstat();
+  __ mov(R0, Operand(1), VS);
+  __ mov(R0, Operand(0), VC);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(DoubleSqrtNeg, test) {
-    EXPECT(test != nullptr);
-    typedef int (*DoubleSqrtNeg)() DART_UNUSED;
-    EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(DoubleSqrtNeg, test->entry()));
+  EXPECT(test != nullptr);
+  typedef int (*DoubleSqrtNeg)() DART_UNUSED;
+  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(DoubleSqrtNeg, test->entry()));
 }
 
 ASSEMBLER_TEST_GENERATE(IntToDoubleConversion, assembler) {
@@ -534,67 +543,67 @@ ASSEMBLER_TEST_RUN(DoubleToFloatConversion, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(FloatCompare, assembler) {
-    // Test 12.3f vs 12.5f.
-    __ LoadSImmediate(S0, 12.3f);
-    __ LoadSImmediate(S1, 12.5f);
+  // Test 12.3f vs 12.5f.
+  __ LoadSImmediate(S0, 12.3f);
+  __ LoadSImmediate(S1, 12.5f);
 
-    // Count errors in R0. R0 is zero if no errors found.
-    __ mov(R0, Operand(0));
-    __ vcmps(S0, S1);
-    __ vmstat();
-    __ add(R0, R0, Operand(1), VS);  // Error if unordered (Nan).
-    __ add(R0, R0, Operand(2), GT);  // Error if greater.
-    __ add(R0, R0, Operand(4), EQ);  // Error if equal.
-    __ add(R0, R0, Operand(8), PL);  // Error if not less.
+  // Count errors in R0. R0 is zero if no errors found.
+  __ mov(R0, Operand(0));
+  __ vcmps(S0, S1);
+  __ vmstat();
+  __ add(R0, R0, Operand(1), VS);  // Error if unordered (Nan).
+  __ add(R0, R0, Operand(2), GT);  // Error if greater.
+  __ add(R0, R0, Operand(4), EQ);  // Error if equal.
+  __ add(R0, R0, Operand(8), PL);  // Error if not less.
 
-    // Test NaN.
-    // Create NaN by dividing 0.0f/0.0f.
-    __ LoadSImmediate(S1, 0.0f);
-    __ vdivs(S1, S1, S1);
-    __ vcmps(S1, S1);
-    __ vmstat();
-    // Error if not unordered (not Nan).
-    __ add(R0, R0, Operand(16), VC);
-    // R0 is 0 if all tests passed.
-    __ Ret();
+  // Test NaN.
+  // Create NaN by dividing 0.0f/0.0f.
+  __ LoadSImmediate(S1, 0.0f);
+  __ vdivs(S1, S1, S1);
+  __ vcmps(S1, S1);
+  __ vmstat();
+  // Error if not unordered (not Nan).
+  __ add(R0, R0, Operand(16), VC);
+  // R0 is 0 if all tests passed.
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(FloatCompare, test) {
-    EXPECT(test != nullptr);
-    typedef int (*FloatCompare)() DART_UNUSED;
-    EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(FloatCompare, test->entry()));
+  EXPECT(test != nullptr);
+  typedef int (*FloatCompare)() DART_UNUSED;
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(FloatCompare, test->entry()));
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleCompare, assembler) {
-    // Test 12.3 vs 12.5.
-    __ LoadDImmediate(D0, 12.3, R1);
-    __ LoadDImmediate(D1, 12.5, R1);
+  // Test 12.3 vs 12.5.
+  __ LoadDImmediate(D0, 12.3, R1);
+  __ LoadDImmediate(D1, 12.5, R1);
 
-    // Count errors in R0. R0 is zero if no errors found.
-    __ mov(R0, Operand(0));
-    __ vcmpd(D0, D1);
-    __ vmstat();
-    __ add(R0, R0, Operand(1), VS);  // Error if unordered (Nan).
-    __ add(R0, R0, Operand(2), GT);  // Error if greater.
-    __ add(R0, R0, Operand(4), EQ);  // Error if equal.
-    __ add(R0, R0, Operand(8), PL);  // Error if not less.
+  // Count errors in R0. R0 is zero if no errors found.
+  __ mov(R0, Operand(0));
+  __ vcmpd(D0, D1);
+  __ vmstat();
+  __ add(R0, R0, Operand(1), VS);  // Error if unordered (Nan).
+  __ add(R0, R0, Operand(2), GT);  // Error if greater.
+  __ add(R0, R0, Operand(4), EQ);  // Error if equal.
+  __ add(R0, R0, Operand(8), PL);  // Error if not less.
 
-    // Test NaN.
-    // Create NaN by dividing 0.0/0.0.
-    __ LoadDImmediate(D1, 0.0, R1);
-    __ vdivd(D1, D1, D1);
-    __ vcmpd(D1, D1);
-    __ vmstat();
-    // Error if not unordered (not Nan).
-    __ add(R0, R0, Operand(16), VC);
-    // R0 is 0 if all tests passed.
-    __ Ret();
+  // Test NaN.
+  // Create NaN by dividing 0.0/0.0.
+  __ LoadDImmediate(D1, 0.0, R1);
+  __ vdivd(D1, D1, D1);
+  __ vcmpd(D1, D1);
+  __ vmstat();
+  // Error if not unordered (not Nan).
+  __ add(R0, R0, Operand(16), VC);
+  // R0 is 0 if all tests passed.
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(DoubleCompare, test) {
-    EXPECT(test != nullptr);
-    typedef int (*DoubleCompare)() DART_UNUSED;
-    EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(DoubleCompare, test->entry()));
+  EXPECT(test != nullptr);
+  typedef int (*DoubleCompare)() DART_UNUSED;
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(DoubleCompare, test->entry()));
 }
 
 ASSEMBLER_TEST_GENERATE(Loop, assembler) {
@@ -1259,14 +1268,14 @@ ASSEMBLER_TEST_GENERATE(Ldm_stm_da, assembler) {
   __ Push(R9);
   __ Push(R0);  // Make room, so we can decrement after.
   __ stm(DA_W, SP, (1 << R0 | 1 << R1 | 1 << R2 | 1 << R3));
-  __ str(R2, Address(SP));                 // Should be a free slot.
+  __ str(R2, Address(SP));                         // Should be a free slot.
   __ ldr(R9, Address(SP, 1 * target::kWordSize));  // R0.  R9 = +1.
   __ ldr(IP, Address(SP, 2 * target::kWordSize));  // R1.
-  __ sub(R9, R9, Operand(IP));             // -R1. R9 = -6.
+  __ sub(R9, R9, Operand(IP));                     // -R1. R9 = -6.
   __ ldr(IP, Address(SP, 3 * target::kWordSize));  // R2.
-  __ add(R9, R9, Operand(IP));             // +R2. R9 = +5.
+  __ add(R9, R9, Operand(IP));                     // +R2. R9 = +5.
   __ ldr(IP, Address(SP, 4 * target::kWordSize));  // R3.
-  __ sub(R9, R9, Operand(IP));             // -R3. R9 = -26.
+  __ sub(R9, R9, Operand(IP));                     // -R3. R9 = -26.
   __ ldm(IB_W, SP, (1 << R0 | 1 << R1 | 1 << R2 | 1 << R3));
   // Same operations again. But this time from the restore registers.
   __ add(R9, R9, Operand(R0));
@@ -1892,12 +1901,12 @@ ASSEMBLER_TEST_RUN(IntDiv_supported, test) {
 
 ASSEMBLER_TEST_GENERATE(IntDiv_unsupported, assembler) {
 #if defined(USING_SIMULATOR)
-    bool orig = TargetCPUFeatures::integer_division_supported();
-    HostCPUFeatures::set_integer_division_supported(false);
-    __ mov(R0, Operand(27));
-    __ mov(R1, Operand(9));
-    __ IntegerDivide(R0, R0, R1, D0, D1);
-    HostCPUFeatures::set_integer_division_supported(orig);
+  bool orig = TargetCPUFeatures::integer_division_supported();
+  HostCPUFeatures::set_integer_division_supported(false);
+  __ mov(R0, Operand(27));
+  __ mov(R1, Operand(9));
+  __ IntegerDivide(R0, R0, R1, D0, D1);
+  HostCPUFeatures::set_integer_division_supported(orig);
   __ Ret();
 #else
   __ mov(R0, Operand(27));

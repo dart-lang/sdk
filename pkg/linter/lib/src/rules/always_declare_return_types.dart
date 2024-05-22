@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 
 const _desc = r'Declare method return types.';
 
@@ -88,7 +89,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    if (!node.isSetter && node.returnType == null) {
+    if (!node.isSetter && node.returnType == null && !node.isAugmentation) {
       rule.reportLintForToken(node.name,
           arguments: [node.name.lexeme], errorCode: functionCode);
     }
@@ -106,7 +107,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     if (!node.isSetter &&
         node.returnType == null &&
-        node.name.type != TokenType.INDEX_EQ) {
+        node.name.type != TokenType.INDEX_EQ &&
+        !node.isAugmentation) {
       rule.reportLintForToken(node.name,
           arguments: [node.name.lexeme], errorCode: methodCode);
     }

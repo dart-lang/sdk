@@ -1,20 +1,18 @@
-// @dart = 2.9
-
 library test;
 
 class A {}
 
 class B extends A {
-  A operator +(C v) => null;
-  B operator -(int i) => null;
-  B operator *(B v) => null;
-  C operator &(A v) => null;
+  B operator +(C v) => throw '';
+  B operator -(int i) => throw '';
+  B operator *(B v) => throw '';
+  C operator &(A v) => throw '';
 }
 
 class C extends B {}
 
-T f<T>() => null;
+T f<T>() => throw '';
 
-void test() {}
+void test(B local, B? local2, B? local3) {}
 
 main() {}

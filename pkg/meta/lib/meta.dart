@@ -7,16 +7,16 @@
 /// Annotations that developers can use to express the intentions that otherwise
 /// can't be deduced by statically analyzing the source code.
 ///
-/// See also `@deprecated` and `@override` in the `dart:core` library.
+/// See also @[deprecated] and @[override] in the `dart:core` library.
 ///
 /// Annotations provide semantic information that tools can use to provide a
 /// better user experience. For example, an IDE might not autocomplete the name
 /// of a function that's been marked `@deprecated`, or it might display the
 /// function's name differently.
 ///
-/// For information on installing and importing this library,
-/// see the [meta package on pub.dev](https://pub.dev/packages/meta).
-/// To learn more about using annotations, check out the
+/// For information on installing and importing this library, see the
+/// [meta package on pub.dev](https://pub.dev/packages/meta). To learn more
+/// about using annotations, check out the
 /// [Metadata](https://dart.dev/language/metadata) documentation.
 library meta;
 
@@ -89,6 +89,42 @@ const _Checked checked = _Checked();
 /// * an invocation of a member that has this annotation is assigned to a field
 ///   or top-level variable.
 const _DoNotStore doNotStore = _DoNotStore();
+
+/// Used to annotate a method, getter or top-level getter or function that is
+/// not intended to be accessed in checked-in code, but might be ephemerally
+/// used during development or local testing.
+///
+/// The intention of this annotation is to signify an API is available for
+/// temporary or ephemeral use (such as debugging or local testing), but should
+/// be removed before the code is submitted or merged into a tested branch of
+/// the repository (e.g. `main` or similar).
+///
+/// For example:
+///
+/// ```dart
+/// void test(
+///   String name,
+///   void Function() testFunction, {
+///   @doNotSubmit bool skip = false,
+/// }) { /* ... */ }
+///
+/// void main() {
+///   // OK.
+///   test('foo', () => print('foo'));
+///
+///   // HINT: Remove before submitting.
+///   test('bar', () => print('bar'), skip: true);
+/// }
+/// ```
+///
+/// Tools, such as the analyzer, can provide feedback if
+///
+/// * a declaration that has this annotation is referenced anywhere, including
+///   the library in which it is declared, in checked-in code. Exceptions are
+///   being referenced by a declaration that is also annotated with
+///   `@doNotSubmit` _or_ referencing a parameter that is annotated with
+///   `@doNotSubmit` in the same method or function.
+const _DoNotSubmit doNotSubmit = _DoNotSubmit();
 
 /// Used to annotate a library, or any declaration that is part of the public
 /// interface of a library (such as top-level members, class members, and
@@ -180,9 +216,90 @@ const _IsTestGroup isTestGroup = _IsTestGroup();
 ///   constructor is not a compile-time constant.
 const _Literal literal = _Literal();
 
+/// Used to annotate a parameter which should be constant.
+///
+/// The Dart type system does not allow distinguishing values of constant
+/// expressions from other values of the same type, so a function cannot
+/// ask to have only constant values as arguments.
+/// This annotation marks a parameter as requiring a constant expression as
+/// argument. The analyzer can warn, or err if so configured, if a non-constant
+/// expression is used as argument.
+///
+/// The annotation can be applied to any parameter, but if it is applied to a
+/// parameter of an instance member, subclasses overriding the member will not
+/// inherit the annotation. If the subclass member also wants a constant
+/// argument, it must annotate its own parameter as well.
+///
+/// Notice that if an annotatated instance member overrides a superclass member
+/// where the same parameter is not annotated with this annotation, then a user
+/// can cast to the superclass and invoke with a non-constant argument without
+/// any warnings.
+///
+/// An example use could be the arguments to functions annotated with
+/// [ResourceIdentifier], as only constant arguments can be made available
+/// to the post-compile steps.
+///
+/// ```dart
+/// import 'package:meta/meta.dart' show mustBeConst;
+///
+/// void main() {
+///   f();
+///   A().i = 3;
+/// }
+///
+/// const v = 3;
+///
+/// int f() => g(v);
+///
+/// int g(@mustBeConst int value) => value + 1;
+///
+/// class A {
+///   int? _i;
+///
+///   int? get i => _i;
+///
+///   set i(@mustBeConst int? value) {
+///     _i = value;
+///   }
+/// }
+/// ```
+@experimental
+const _MustBeConst mustBeConst = _MustBeConst();
+
 /// Used to annotate an instance member `m` declared on a class or mixin `C`.
-/// Indicates that every subclass of `C`, concrete or abstract, must directly
-/// override `m`.
+/// Indicates that every concrete subclass of `C` must directly override `m`.
+///
+/// The intention of this annotation is to "re-abtract" a member that was
+/// previously concrete, and to ensure that subclasses provide their own
+/// implementation of the member. For example:
+///
+/// ```dart
+/// base class Entity {
+///   @mustBeOverridden
+///   String toString();
+/// }
+///
+/// abstract class AbstractEntity extends Entity {
+///   // OK: AbstractEntity is abstract.
+/// }
+///
+/// sealed class SealedEntity extends Entity {
+///   // OK: SealedEntity is sealed, which implies abstract.
+/// }
+///
+/// mixin MixinEntity on Entity {
+///  // OK: MixinEntity is abstract.
+/// }
+///
+/// class Person extends Entity {
+///   // ERROR: Missing new implementation of 'toString'.
+/// }
+///
+/// class Animal extends Entity {
+///   // OK: Animal provides its own implementation of 'toString'.
+///   String toString() => 'Animal';
+/// }
+/// ```
 ///
 /// This annotation places no restrictions on the overriding members. In
 /// particular, it does not require that the overriding members invoke the
@@ -195,7 +312,7 @@ const _Literal literal = _Literal();
 ///   (a method, operator, field, getter, or setter) of a class or of a mixin,
 ///   or
 /// * the annotation is associated with a member `m` in class or mixin `C`, and
-///   there is a class or mixin `D` which is a subclass of `C` (directly or
+///   there is a concrete class `D` which is a subclass of `C` (directly or
 ///   indirectly), and `D` does not directly declare a concrete override of `m`
 ///   and does not directly declare a concrete override of `noSuchMethod`.
 const _MustBeOverridden mustBeOverridden = _MustBeOverridden();
@@ -409,39 +526,13 @@ const _VisibleForTesting visibleForTesting = _VisibleForTesting();
 /// Used to annotate a class.
 ///
 /// See [immutable] for more details.
+// TODO(srawlins): Enforce with `TargetKind.classtype`.
 class Immutable {
   /// A human-readable explanation of the reason why the class is immutable.
   final String reason;
 
   /// Initialize a newly created instance to have the given [reason].
   const Immutable([this.reason = '']);
-}
-
-/// Annotate a static method for collection.
-///
-/// During compilation, all calls to static methods annotated with
-/// [ResourceIdentifier] are stored with the calling arguments, as far as they
-/// can be resolved at compile time. This information is then made available to
-/// post-compile steps.
-@experimental
-class ResourceIdentifier {
-  /// An identifier which can be used when retrieving the stored calls.
-  ///
-  /// This could, for example, be the name of the package which places and
-  /// retrieves the annotation. Allowed types are bool, int, double, and String.
-  final Object? metadata;
-
-  /// Initialize a newly created [ResourceIdentifier] instance
-  /// to be used as an annotation with the given [metadata] identifier.
-  const ResourceIdentifier([this.metadata])
-      : assert(
-          metadata == null ||
-              metadata is bool ||
-              metadata is int ||
-              metadata is double ||
-              metadata is String,
-          'Valid metadata types are bool, int, double, and String.',
-        );
 }
 
 /// Used to annotate a named parameter `p` in a method or function `f`.
@@ -472,8 +563,41 @@ class Required {
   const Required([this.reason = '']);
 }
 
+/// Annotates a static method as referencing a native resource.
+///
+/// Applies to static functions, top-level functions, or extension methods.
+///
+/// During compilation, all statically resolved calls to an annotated function
+/// are registered, and information about the annotated functions, the calls,
+/// and their arguments, is then made available to post-compile steps.
+// TODO(srawlins): Enforce with `TargetKind.method`.
+@experimental
+class ResourceIdentifier {
+  /// Information which is stored together with the function call.
+  ///
+  /// This could, for example, be the name of the package containing the
+  /// function annotated with this annotation. Allowed types are [bool], [int],
+  /// [double], and [String].
+  final Object? metadata;
+
+  /// Creates a [ResourceIdentifier] instance.
+  ///
+  /// This annotation can be placed as an annotation on functions whose
+  /// statically resolved calls should be registered together with the optional
+  /// [metadata] information.
+  const ResourceIdentifier([this.metadata])
+      : assert(
+          metadata == null ||
+              metadata is bool ||
+              metadata is num ||
+              metadata is String,
+          'Valid metadata types are bool, int, double, and String.',
+        );
+}
+
 /// See [useResult] for more details.
 @Target({
+  TargetKind.constructor,
   TargetKind.field,
   TargetKind.function,
   TargetKind.getter,
@@ -517,6 +641,8 @@ class _Checked {
 
 @Target({
   TargetKind.classType,
+  // TODO(srawlins): Add `TargetKind.constructor` when this annotation has
+  // functional tests. See https://github.com/dart-lang/sdk/issues/48476.
   TargetKind.function,
   TargetKind.getter,
   TargetKind.library,
@@ -526,10 +652,24 @@ class _DoNotStore {
   const _DoNotStore();
 }
 
+@Target({
+  TargetKind.constructor,
+  TargetKind.function,
+  TargetKind.getter,
+  TargetKind.method,
+  TargetKind.parameter,
+  TargetKind.setter,
+  TargetKind.topLevelVariable,
+})
+class _DoNotSubmit {
+  const _DoNotSubmit();
+}
+
 class _Experimental {
   const _Experimental();
 }
 
+// TODO(srawlins): Enforce with `TargetKind.method`.
 class _Factory {
   const _Factory();
 }
@@ -538,16 +678,29 @@ class _Internal {
   const _Internal();
 }
 
+// TODO(srawlins): Enforce with `TargetKind.function` (and
+// `TargetKind.method`?).
 class _IsTest {
   const _IsTest();
 }
 
+// TODO(srawlins): Enforce with `TargetKind.function` (and
+// `TargetKind.method`?).
 class _IsTestGroup {
   const _IsTestGroup();
 }
 
+// TODO(srawlins): Enforce with `TargetKind.constructor`.
 class _Literal {
   const _Literal();
+}
+
+@Target({
+  TargetKind.parameter,
+  TargetKind.extensionType,
+})
+class _MustBeConst {
+  const _MustBeConst();
 }
 
 @Target({
@@ -570,6 +723,8 @@ class _MustCallSuper {
   const _MustCallSuper();
 }
 
+// TODO(srawlins): Enforce with `TargetKind.method`, `TargetKind.getter`,
+// `TargetKind.setter`, `TargetKind.field`.
 class _NonVirtual {
   const _NonVirtual();
 }
@@ -587,6 +742,8 @@ class _OptionalTypeArgs {
   const _OptionalTypeArgs();
 }
 
+// TODO(srawlins): Enforce with `TargetKind.method`, `TargetKind.getter`,
+// `TargetKind.setter`, `TargetKind.field`.
 class _Protected {
   const _Protected();
 }
@@ -618,10 +775,16 @@ class _Virtual {
   const _Virtual();
 }
 
+// TODO(srawlins): Enforce with `TargetKind.method`, `TargetKind.getter`,
+// `TargetKind.setter`, `TargetKind.field`.
 class _VisibleForOverriding {
   const _VisibleForOverriding();
 }
 
+// TODO(srawlins): Enforce with `TargetKind.constructor`, `TargetKind.function`,
+// `TargetKind.method`, `TargetKind.getter`, `TargetKind.setter`,
+// `TargetKind.field`, `TargetKind.parameter`, `TargetKind.typedef`,
+// `TargetKind.type`.
 class _VisibleForTesting {
   const _VisibleForTesting();
 }

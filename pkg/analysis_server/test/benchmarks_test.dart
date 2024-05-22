@@ -35,9 +35,9 @@ void defineTests() {
 
     // Since these benchmarks can take a while, allow skipping with an env
     // variable.
-    final runBenchmarks =
+    var runBenchmarks =
         Platform.environment['TEST_SERVER_BENCHMARKS'] != 'false';
-    final skipReason = runBenchmarks
+    var skipReason = runBenchmarks
         ? null
         : 'Skipped by TEST_SERVER_BENCHMARKS environment variable';
 

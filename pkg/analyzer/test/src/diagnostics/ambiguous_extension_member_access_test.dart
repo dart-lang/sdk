@@ -50,7 +50,7 @@ f() {
       error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 98, 1),
     ]);
 
-    final node = findNode.propertyAccess('0.a');
+    var node = findNode.propertyAccess('0.a');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: IntegerLiteral
@@ -82,7 +82,7 @@ f() {
       error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 91, 1),
     ]);
 
-    final node = findNode.propertyAccess('0.a');
+    var node = findNode.propertyAccess('0.a');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: IntegerLiteral
@@ -114,7 +114,7 @@ f() {
       error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 96, 1),
     ]);
 
-    final node = findNode.propertyAccess('0.a');
+    var node = findNode.propertyAccess('0.a');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: IntegerLiteral
@@ -196,7 +196,7 @@ f() {
       error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 88, 1),
     ]);
 
-    final node = findNode.methodInvocation('0.a()');
+    var node = findNode.methodInvocation('0.a()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: IntegerLiteral

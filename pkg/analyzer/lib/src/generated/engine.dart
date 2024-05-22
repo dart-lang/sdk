@@ -18,7 +18,7 @@ import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/analysis_options/code_style_options.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
-import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -212,7 +212,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   /// The lint rules that are to be run in an analysis context if [lint] returns
   /// `true`.
-  List<Linter>? _lintRules;
+  List<LintRule>? _lintRules;
 
   /// Indicates whether linter exceptions should be propagated to the caller (by
   /// re-throwing them)
@@ -309,11 +309,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   set hint(bool value) => warning = value;
 
   @override
-  List<Linter> get lintRules => _lintRules ??= const <Linter>[];
+  List<LintRule> get lintRules => _lintRules ??= const [];
 
   /// Set the lint rules that are to be run in an analysis context if [lint]
   /// returns `true`.
-  set lintRules(List<Linter> rules) {
+  set lintRules(List<LintRule> rules) {
     _lintRules = rules;
   }
 
@@ -348,9 +348,8 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       }
 
       // Append lints.
-      buffer.addString(linterVersion ?? '');
       buffer.addInt(lintRules.length);
-      for (Linter lintRule in lintRules) {
+      for (var lintRule in lintRules) {
         buffer.addString(lintRule.name);
       }
 

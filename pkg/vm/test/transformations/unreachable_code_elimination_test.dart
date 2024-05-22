@@ -4,7 +4,6 @@
 
 import 'dart:io';
 
-import 'package:front_end/src/base/nnbd_mode.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/kernel.dart';
@@ -23,19 +22,15 @@ runTestCase(Uri source) async {
   // Do not perform constant evaluation for a specific target operating system.
   final targetOS = null;
   final enableAsserts = false;
-  final soundNullSafety = true;
-  final nnbdMode = NnbdMode.Strong;
 
-  final target =
-      new VmTarget(new TargetFlags(soundNullSafety: soundNullSafety));
+  final target = new VmTarget(new TargetFlags());
   Component component = await compileTestCaseToKernelProgram(source,
       target: target,
       environmentDefines: {
         'test.define.isTrue': 'true',
         'test.define.isFalse': 'false'
       });
-  final evaluator = VMConstantEvaluator.create(
-      target, component, targetOS, nnbdMode,
+  final evaluator = VMConstantEvaluator.create(target, component, targetOS,
       enableAsserts: enableAsserts);
   component = transformComponent(target, component, evaluator, enableAsserts);
   verifyComponent(

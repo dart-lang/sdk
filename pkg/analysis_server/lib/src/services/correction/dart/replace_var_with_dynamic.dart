@@ -11,11 +11,16 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceVarWithDynamic extends ResolvedCorrectionProducer {
   @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
   FixKind get fixKind => DartFixKind.REPLACE_VAR_WITH_DYNAMIC;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final diagnostic = this.diagnostic;
+    var diagnostic = this.diagnostic;
     if (diagnostic is AnalysisError) {
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleReplacement(range.error(diagnostic), 'dynamic');

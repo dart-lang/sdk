@@ -1,20 +1,12 @@
-library test /*isLegacy*/;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/inference/block_bodied_lambdas_sync_star.dart:5:1: Error: Library doesn't support null safety.
-// // @dart=2.9
-// ^^^^^^^^^^^^
-//
+library test;
 import self as self;
 import "dart:core" as core;
 
 static method test() → dynamic {
-  () →* core::Iterable<core::num*>* f = () → core::Iterable<core::num*>* sync* /* emittedValueType= core::num* */ {
+  () → core::Iterable<core::num> f = () → core::Iterable<core::num> sync* /* emittedValueType= core::num */ {
     yield 1;
-    yield* core::_GrowableList::_literal2<core::num*>(3, 4.0);
+    yield* core::_GrowableList::_literal2<core::num>(3, 4.0);
   };
-  core::Iterable<core::num*>* g = f(){() →* core::Iterable<core::num*>*};
-  core::Iterable<core::int*>* h = f(){() →* core::Iterable<core::num*>*} as{TypeError,ForLegacy} core::Iterable<core::int*>*;
+  core::Iterable<core::num> g = f(){() → core::Iterable<core::num>};
 }
 static method main() → dynamic {}

@@ -24,8 +24,8 @@ void f() {
 }
 ''');
 
-    for (final suggestion in response.suggestions) {
-      final libraryUri = suggestion.libraryUri;
+    for (var suggestion in response.suggestions) {
+      var libraryUri = suggestion.libraryUri;
       if (libraryUri != null && libraryUri.startsWith('dart:_')) {
         fail('Private SDK library: $libraryUri');
       }

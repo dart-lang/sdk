@@ -16,6 +16,6 @@ library from "org-dartlang-test:///main.dart" as main {
 constants  {
   #C1 = "hello"
   #C2 = "world"
-  #C3 = <dart.core::String*>{#C1, #C2}
-  #C4 = <dart.core::String*>{}
+  #C3 = <dart.core::String>{#C1, #C2}
+  #C4 = <dart.core::String>{}
 }

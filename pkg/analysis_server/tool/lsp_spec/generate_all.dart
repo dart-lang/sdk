@@ -13,19 +13,19 @@ import 'codegen_dart.dart';
 import 'meta_model.dart';
 
 Future<void> main(List<String> arguments) async {
-  final args = argParser.parse(arguments);
+  var args = argParser.parse(arguments);
   var help = args[argHelp] as bool;
   if (help) {
     print(argParser.usage);
     return;
   }
 
-  final outFolder = path.join(languageServerProtocolPackagePath, 'lib');
+  var outFolder = path.join(languageServerProtocolPackagePath, 'lib');
   Directory(outFolder).createSync();
 
   // Collect definitions for types in the model and our custom extensions.
-  final specTypes = await getSpecClasses(args);
-  final customTypes = getCustomClasses();
+  var specTypes = await getSpecClasses(args);
+  var customTypes = getCustomClasses();
 
   // Record both sets of types in dictionaries for faster lookups, but also so
   // they can reference each other and we can find the definitions during
@@ -34,8 +34,8 @@ Future<void> main(List<String> arguments) async {
   recordTypes(customTypes);
 
   // Generate formatted Dart code (as a string) for each set of types.
-  final specTypesOutput = generateDartForTypes(specTypes);
-  final customTypesOutput = generateDartForTypes(customTypes);
+  var specTypesOutput = generateDartForTypes(specTypes);
+  var customTypesOutput = generateDartForTypes(customTypes);
 
   File(path.join(outFolder, 'protocol_generated.dart')).writeAsStringSync(
       generatedFileHeader(2018, importCustom: true) + specTypesOutput);
@@ -83,13 +83,13 @@ final Uri specUri = Uri.parse(
     'https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/metaModel/metaModel.json');
 
 Future<void> downloadSpec() async {
-  final specResp = await http.get(specUri);
-  final licenseResp = await http.get(specLicenseUri);
+  var specResp = await http.get(specUri);
+  var licenseResp = await http.get(specLicenseUri);
 
   assert(specResp.statusCode == 200);
   assert(licenseResp.statusCode == 200);
 
-  final dartSdkLicense = await File('$sdkRootPath/LICENSE').readAsString();
+  var dartSdkLicense = await File('$sdkRootPath/LICENSE').readAsString();
   await File(localSpecPath).writeAsString(specResp.body);
   await File(localLicensePath).writeAsString('''
 $dartSdkLicense
@@ -144,7 +144,7 @@ List<LspEntity> getCustomClasses() {
     bool canBeNull = false,
     bool canBeUndefined = false,
   }) {
-    final fieldType = array
+    var fieldType = array
         ? ArrayType(TypeReference(type))
         : literal
             ? LiteralType(TypeReference.string, type)
@@ -159,7 +159,7 @@ List<LspEntity> getCustomClasses() {
     );
   }
 
-  final customTypes = <LspEntity>[
+  var customTypes = <LspEntity>[
     TypeAlias(
       name: 'LSPAny',
       baseType: TypeReference.LspAny,
@@ -549,7 +549,7 @@ Future<List<LspEntity>> getSpecClasses(ArgResults args) async {
     await downloadSpec();
   }
 
-  final file = File(localSpecPath);
+  var file = File(localSpecPath);
   var model = LspMetaModelReader().readFile(file);
   model = LspMetaModelCleaner().cleanModel(model);
 

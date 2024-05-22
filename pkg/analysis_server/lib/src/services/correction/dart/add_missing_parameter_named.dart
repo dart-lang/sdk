@@ -13,7 +13,12 @@ class AddMissingParameterNamed extends ResolvedCorrectionProducer {
   String _parameterName = '';
 
   @override
-  List<Object> get fixArguments => [_parameterName];
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments => [_parameterName];
 
   @override
   FixKind get fixKind => DartFixKind.ADD_MISSING_PARAMETER_NAMED;
@@ -21,7 +26,7 @@ class AddMissingParameterNamed extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     // Prepare the name of the missing parameter.
-    final node = this.node;
+    var node = this.node;
     if (node is! SimpleIdentifier) {
       return;
     }

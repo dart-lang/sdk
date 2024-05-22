@@ -1321,6 +1321,22 @@ void f() {
 ''');
   }
 
+  Future<void> test_topLevelFunction_async() {
+    addTestFile('''
+Future<int> a() async => 3;
+Future<int> b() async => await a();
+Future<int> c() async => await b();
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return _sendInlineRequest('b(');
+    }, '''
+Future<int> a() async => 3;
+Future<int> c() async => await a();
+}
+''');
+  }
+
   Future<void> test_topLevelFunction_oneInvocation() {
     addTestFile('''
 test(a, b) {
@@ -1411,7 +1427,7 @@ import 'new_folder/file.dart';
   }
 
   Future<Response> _sendAndCancelMoveRequest(String item) async {
-    final responses = await Future.wait([
+    var responses = await Future.wait([
       _sendMoveRequest(item),
       _cancelMoveRequest(),
     ]);

@@ -28,16 +28,6 @@ void BSS::InitializeBSSEntry(BSS::Relocation relocation,
 }
 
 void BSS::Initialize(Thread* current, uword* bss_start, bool vm) {
-  auto const instructions = reinterpret_cast<uword>(
-      current->isolate_group()->source()->snapshot_instructions);
-  uword dso_base;
-  // Needed for assembly snapshots. For ELF snapshots, we set up the relocated
-  // address information directly in the text segment InstructionsSection.
-  if (NativeSymbolResolver::LookupSharedObject(instructions, &dso_base)) {
-    InitializeBSSEntry(Relocation::InstructionsRelocatedAddress,
-                       instructions - dso_base, bss_start);
-  }
-
   // TODO(https://dartbug.com/52579): Remove.
   InitializeBSSEntry(Relocation::DRT_GetFfiCallbackMetadata,
                      reinterpret_cast<uword>(DLRT_GetFfiCallbackMetadata),

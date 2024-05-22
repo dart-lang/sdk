@@ -10,6 +10,7 @@ import 'dart:math' as math;
 import 'package:vm_service/vm_service.dart' as vm;
 
 import '../stream_transformers.dart';
+import '../utils.dart';
 import 'dart.dart';
 import 'mixins.dart';
 
@@ -78,17 +79,32 @@ class DartTestDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
           .then((uri) => connectDebugger(uri)));
     }
 
-    final vmArgs = <String>[
+    var vmArgs = <String>[
       ...?args.vmAdditionalArgs,
       if (debug) ...[
         '--enable-vm-service=${args.vmServicePort ?? 0}${ipv6 ? '/::1' : ''}',
-        '--pause_isolates_on_start',
         if (!enableAuthCodes) '--disable-service-auth-codes'
       ],
       if (debug && vmServiceInfoFile != null) ...[
         '-DSILENT_VM_SERVICE=true',
         '--write-service-info=${Uri.file(vmServiceInfoFile.path)}'
       ],
+    ];
+
+    final toolArgs = args.toolArgs ?? [];
+    if (debug) {
+      // If the user has explicitly set pause-isolates-on-start we need to
+      // not add it ourselves, and specify that we didn't set it.
+      if (containsVmFlag(toolArgs, '--pause_isolates_on_start') ||
+          containsVmFlag(vmArgs, '--pause_isolates_on_start')) {
+        pauseIsolatesOnStartSetByDap = false;
+      } else {
+        vmArgs.add('--pause_isolates_on_start');
+      }
+    }
+
+    vmArgs = [
+      ...vmArgs,
       // TODO(dantup): This should be changed from "dart run test:test" to
       // "dart test" once the start-paused flags are working correctly.
       // Currently they start paused but do not write the vm-service-info file

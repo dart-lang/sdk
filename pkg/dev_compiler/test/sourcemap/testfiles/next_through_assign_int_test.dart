@@ -7,15 +7,15 @@ void main() {
   /*nb*/ int a;
   /*nb*/ int b;
   /*bl*/
-  /*s:1*/ a = b = 42;
+  a = /*s:1*/ b = 42;
   /*s:2*/ print(a);
   /*s:3*/ print(b);
   /*s:4*/ a = 42;
   /*s:5*/ print(a);
   var d = /*s:6*/ 42;
   /*s:7*/ print(d);
-  int? e = /*s:8*/ 41, f, g = /*s:9*/ 42;
-  /*s:10*/ print(e);
-  /*s:11*/ print(f);
-  /*s:12*/ print(g);
+  int? e = /*s:8*/ 41, /*s:9*/ f, g = /*s:10*/ 42;
+  /*s:11*/ print(e);
+  /*s:12*/ print(f);
+  /*s:13*/ print(g);
 }

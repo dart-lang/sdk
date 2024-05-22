@@ -122,23 +122,23 @@ A set of isolates that are sharing the same program and the same heap. Isolates 
 
 A message that is delivered at any interrupt check, such as at function entry or the back-edge of a loop, rather than only when returning to the message loop.
 
-## [Hot reload](https://github.com/dart-lang/sdk/wiki/Hot-reload)
+## [Hot reload](../../docs/Hot-reload.md)
 
 Changing a running program while retaining its current state: globals, frames, and objects transitively reachable from such.
 
-## [AddressSanitizer, ASAN](https://github.com/dart-lang/sdk/wiki/Debugging-Dart-VM-with-AddressSanitizer)
+## [AddressSanitizer, ASAN][debugging-asan]
 
 Instrumentation to detect use-after-free and other similar issues.
 
-## [MemorySanitizer, MSAN](https://github.com/dart-lang/sdk/wiki/Debugging-Dart-VM-with-AddressSanitizer)
+## [MemorySanitizer, MSAN][debugging-asan]
 
 Instrumentation to detect use of uninitialized memory and other similar issues.
 
-## [ThreadSanitizer, TSAN](https://github.com/dart-lang/sdk/wiki/Debugging-Dart-VM-with-AddressSanitizer)
+## [ThreadSanitizer, TSAN][debugging-asan]
 
 Instrumentation to detect use of data races and other similar issues.
 
-## [UndefinedBehaviorSanitizer, UBSAN](https://github.com/dart-lang/sdk/wiki/Debugging-Dart-VM-with-AddressSanitizer)
+## [UndefinedBehaviorSanitizer, UBSAN][debugging-asan]
 
 Instrumentation to detect undefined behavior such as signed integer overflow.
 
@@ -177,3 +177,5 @@ The Dart VM has simulators for ARM, ARM64, RV32GC and RV64GC, but not for IA32 o
 A commonly used sequence of machine code that has been factored out into a separate procedure to be called when needed instead of being repeated inline.
 
 ## [Type arguments, type argument vector](types.md#typearguments)
+
+[debugging-asan]: https://github.com/dart-lang/sdk/tree/main/docs/Debugging-Dart-VM-with-AddressSanitizer.md

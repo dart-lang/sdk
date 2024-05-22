@@ -2,6 +2,7 @@
 *
 # except for the following files and directories:
 !.gitignore
+!binaryen
 !d8
 !firefox_jsshell
 !clang.tar.gz.sha1

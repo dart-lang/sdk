@@ -1317,7 +1317,7 @@ final class NativeFloat32x4 implements Float32x4 {
         _cx ? -1 : 0, _cy ? -1 : 0, _cz ? -1 : 0, _cw ? -1 : 0);
   }
 
-  /// Returns a copy of [this] each lane being scaled by [s].
+  /// Returns a copy of this [Float32x4] each lane being scaled by [s].
   Float32x4 scale(double s) {
     double _x = s * x;
     double _y = s * y;
@@ -1335,7 +1335,7 @@ final class NativeFloat32x4 implements Float32x4 {
     return NativeFloat32x4._truncated(_x, _y, _z, _w);
   }
 
-  /// Clamps [this] to be in the range [lowerLimit]-[upperLimit].
+  /// Clamps this [Float32x4] to be in the range [lowerLimit]-[upperLimit].
   Float32x4 clamp(Float32x4 lowerLimit, Float32x4 upperLimit) {
     double _lx = lowerLimit.x;
     double _ly = lowerLimit.y;
@@ -1394,9 +1394,9 @@ final class NativeFloat32x4 implements Float32x4 {
     return NativeFloat32x4._truncated(_x, _y, _z, _w);
   }
 
-  /// Shuffle the lane values in [this] and [other]. The returned
-  /// Float32x4 will have XY lanes from [this] and ZW lanes from [other].
-  /// Uses the same [mask] as [shuffle].
+  /// Shuffle the lane values in this [Float32x4] and [other]. The returned
+  /// Float32x4 will have XY lanes from this [Float32x4] and ZW lanes from
+  /// [other]. Uses the same [mask] as [shuffle].
   Float32x4 shuffleMix(Float32x4 other, int mask) {
     if ((mask < 0) || (mask > 255)) {
       throw RangeError.range(mask, 0, 255, 'mask');
@@ -1417,31 +1417,31 @@ final class NativeFloat32x4 implements Float32x4 {
     return NativeFloat32x4._truncated(_x, _y, _z, _w);
   }
 
-  /// Copy [this] and replace the [x] lane.
+  /// Copy this [Float32x4] and replace the [x] lane.
   Float32x4 withX(double newX) {
     double _newX = _truncate(checkNum(newX));
     return NativeFloat32x4._truncated(_newX, y, z, w);
   }
 
-  /// Copy [this] and replace the [y] lane.
+  /// Copy this [Float32x4] and replace the [y] lane.
   Float32x4 withY(double newY) {
     double _newY = _truncate(checkNum(newY));
     return NativeFloat32x4._truncated(x, _newY, z, w);
   }
 
-  /// Copy [this] and replace the [z] lane.
+  /// Copy this [Float32x4] and replace the [z] lane.
   Float32x4 withZ(double newZ) {
     double _newZ = _truncate(checkNum(newZ));
     return NativeFloat32x4._truncated(x, y, _newZ, w);
   }
 
-  /// Copy [this] and replace the [w] lane.
+  /// Copy this [Float32x4] and replace the [w] lane.
   Float32x4 withW(double newW) {
     double _newW = _truncate(checkNum(newW));
     return NativeFloat32x4._truncated(x, y, z, _newW);
   }
 
-  /// Returns the lane-wise minimum value in [this] or [other].
+  /// Returns the lane-wise minimum value in this [Float32x4] or [other].
   Float32x4 min(Float32x4 other) {
     double _x = x < other.x ? x : other.x;
     double _y = y < other.y ? y : other.y;
@@ -1450,7 +1450,7 @@ final class NativeFloat32x4 implements Float32x4 {
     return NativeFloat32x4._truncated(_x, _y, _z, _w);
   }
 
-  /// Returns the lane-wise maximum value in [this] or [other].
+  /// Returns the lane-wise maximum value in this [Float32x4] or [other].
   Float32x4 max(Float32x4 other) {
     double _x = x > other.x ? x : other.x;
     double _y = y > other.y ? y : other.y;
@@ -1459,7 +1459,7 @@ final class NativeFloat32x4 implements Float32x4 {
     return NativeFloat32x4._truncated(_x, _y, _z, _w);
   }
 
-  /// Returns the square root of [this].
+  /// Returns the square root of this [Float32x4].
   Float32x4 sqrt() {
     double _x = Math.sqrt(x);
     double _y = Math.sqrt(y);
@@ -1468,7 +1468,7 @@ final class NativeFloat32x4 implements Float32x4 {
     return NativeFloat32x4._doubles(_x, _y, _z, _w);
   }
 
-  /// Returns the reciprocal of [this].
+  /// Returns the reciprocal of this [Float32x4].
   Float32x4 reciprocal() {
     double _x = 1.0 / x;
     double _y = 1.0 / y;
@@ -1477,7 +1477,7 @@ final class NativeFloat32x4 implements Float32x4 {
     return NativeFloat32x4._doubles(_x, _y, _z, _w);
   }
 
-  /// Returns the square root of the reciprocal of [this].
+  /// Returns the square root of the reciprocal of this [Float32x4].
   Float32x4 reciprocalSqrt() {
     double _x = Math.sqrt(1.0 / x);
     double _y = Math.sqrt(1.0 / y);
@@ -1620,8 +1620,8 @@ final class NativeInt32x4 implements Int32x4 {
     return NativeInt32x4._truncated(_x, _y, _z, _w);
   }
 
-  /// Shuffle the lane values in [this] and [other]. The returned
-  /// Int32x4 will have XY lanes from [this] and ZW lanes from [other].
+  /// Shuffle the lane values in this [Int32x4] and [other]. The returned
+  /// Int32x4 will have XY lanes from this [Int32x4] and ZW lanes from [other].
   /// Uses the same [mask] as [shuffle].
   Int32x4 shuffleMix(Int32x4 other, int mask) {
     if ((mask < 0) || (mask > 255)) {
@@ -1643,25 +1643,25 @@ final class NativeInt32x4 implements Int32x4 {
     return NativeInt32x4._truncated(_x, _y, _z, _w);
   }
 
-  /// Returns a new [Int32x4] copied from [this] with a new x value.
+  /// Returns a new [Int32x4] copied from this [Int32x4] with a new x value.
   Int32x4 withX(int x) {
     int _x = _truncate(checkNum(x));
     return NativeInt32x4._truncated(_x, y, z, w);
   }
 
-  /// Returns a new [Int32x4] copied from [this] with a new y value.
+  /// Returns a new [Int32x4] copied from this [Int32x4] with a new y value.
   Int32x4 withY(int y) {
     int _y = _truncate(checkNum(y));
     return NativeInt32x4._truncated(x, _y, z, w);
   }
 
-  /// Returns a new [Int32x4] copied from [this] with a new z value.
+  /// Returns a new [Int32x4] copied from this [Int32x4] with a new z value.
   Int32x4 withZ(int z) {
     int _z = _truncate(checkNum(z));
     return NativeInt32x4._truncated(x, y, _z, w);
   }
 
-  /// Returns a new [Int32x4] copied from [this] with a new w value.
+  /// Returns a new [Int32x4] copied from this [Int32x4] with a new w value.
   Int32x4 withW(int w) {
     int _w = _truncate(checkNum(w));
     return NativeInt32x4._truncated(x, y, z, _w);
@@ -1679,33 +1679,33 @@ final class NativeInt32x4 implements Int32x4 {
   /// Extracted w value. Returns `false` for 0, `true` for any other value.
   bool get flagW => w != 0;
 
-  /// Returns a new [Int32x4] copied from [this] with a new x value.
+  /// Returns a new [Int32x4] copied from this [Int32x4] with a new x value.
   Int32x4 withFlagX(bool flagX) {
     int _x = flagX ? -1 : 0;
     return NativeInt32x4._truncated(_x, y, z, w);
   }
 
-  /// Returns a new [Int32x4] copied from [this] with a new y value.
+  /// Returns a new [Int32x4] copied from this [Int32x4] with a new y value.
   Int32x4 withFlagY(bool flagY) {
     int _y = flagY ? -1 : 0;
     return NativeInt32x4._truncated(x, _y, z, w);
   }
 
-  /// Returns a new [Int32x4] copied from [this] with a new z value.
+  /// Returns a new [Int32x4] copied from this [Int32x4] with a new z value.
   Int32x4 withFlagZ(bool flagZ) {
     int _z = flagZ ? -1 : 0;
     return NativeInt32x4._truncated(x, y, _z, w);
   }
 
-  /// Returns a new [Int32x4] copied from [this] with a new w value.
+  /// Returns a new [Int32x4] copied from this [Int32x4] with a new w value.
   Int32x4 withFlagW(bool flagW) {
     int _w = flagW ? -1 : 0;
     return NativeInt32x4._truncated(x, y, z, _w);
   }
 
-  /// Merge [trueValue] and [falseValue] based on [this]' bit mask:
-  /// Select bit from [trueValue] when bit in [this] is on.
-  /// Select bit from [falseValue] when bit in [this] is off.
+  /// Merge [trueValue] and [falseValue] based on this [Int32x4] bit mask:
+  /// Select bit from [trueValue] when bit in this [Int32x4] is on.
+  /// Select bit from [falseValue] when bit in this [Int32x4] is off.
   Float32x4 select(Float32x4 trueValue, Float32x4 falseValue) {
     var floatList = NativeFloat32x4._list;
     var intView = NativeFloat32x4._uint32view;
@@ -1788,7 +1788,7 @@ final class NativeFloat64x2 implements Float64x2 {
     return NativeFloat64x2._doubles(x / other.x, y / other.y);
   }
 
-  /// Returns a copy of [this] each lane being scaled by [s].
+  /// Returns a copy of this [Float64x2] each lane being scaled by [s].
   Float64x2 scale(double s) {
     return NativeFloat64x2._doubles(x * s, y * s);
   }
@@ -1798,7 +1798,7 @@ final class NativeFloat64x2 implements Float64x2 {
     return NativeFloat64x2._doubles(x.abs(), y.abs());
   }
 
-  /// Clamps [this] to be in the range [lowerLimit]-[upperLimit].
+  /// Clamps this [Float64x2] to be in the range [lowerLimit]-[upperLimit].
   Float64x2 clamp(Float64x2 lowerLimit, Float64x2 upperLimit) {
     double _lx = lowerLimit.x;
     double _ly = lowerLimit.y;
@@ -1824,31 +1824,33 @@ final class NativeFloat64x2 implements Float64x2 {
     return mx | my << 1;
   }
 
-  /// Returns a new [Float64x2] copied from [this] with a new x value.
+  /// Returns a new [Float64x2] copied from this [Float64x2] with a new x
+  /// value.
   Float64x2 withX(double x) {
     if (x is! num) throw ArgumentError(x);
     return NativeFloat64x2._doubles(x, y);
   }
 
-  /// Returns a new [Float64x2] copied from [this] with a new y value.
+  /// Returns a new [Float64x2] copied from this [Float64x2] with a new y
+  /// value.
   Float64x2 withY(double y) {
     if (y is! num) throw ArgumentError(y);
     return NativeFloat64x2._doubles(x, y);
   }
 
-  /// Returns the lane-wise minimum value in [this] or [other].
+  /// Returns the lane-wise minimum value in this [Float64x2] or [other].
   Float64x2 min(Float64x2 other) {
     return NativeFloat64x2._doubles(
         x < other.x ? x : other.x, y < other.y ? y : other.y);
   }
 
-  /// Returns the lane-wise maximum value in [this] or [other].
+  /// Returns the lane-wise maximum value in this [Float64x2] or [other].
   Float64x2 max(Float64x2 other) {
     return NativeFloat64x2._doubles(
         x > other.x ? x : other.x, y > other.y ? y : other.y);
   }
 
-  /// Returns the lane-wise square root of [this].
+  /// Returns the lane-wise square root of this [Float64x2].
   Float64x2 sqrt() {
     return NativeFloat64x2._doubles(Math.sqrt(x), Math.sqrt(y));
   }

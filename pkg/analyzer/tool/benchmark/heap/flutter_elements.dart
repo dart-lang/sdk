@@ -25,10 +25,10 @@ import 'package:vm_service/vm_service.dart';
 import 'result.dart';
 
 void main(List<String> arguments) async {
-  final argParser = ArgParser()..addFlag('write-file');
-  final argResults = argParser.parse(arguments);
+  var argParser = ArgParser()..addFlag('write-file');
+  var argResults = argParser.parse(arguments);
 
-  final byteStore = MemoryByteStore();
+  var byteStore = MemoryByteStore();
 
   print('First pass, fill ByteStore');
   await _withNewAnalysisContext<void>(
@@ -49,7 +49,7 @@ void main(List<String> arguments) async {
 
   timer.reset();
   print('Second pass, read elements');
-  final heapBytes = await _withNewAnalysisContext(
+  var heapBytes = await _withNewAnalysisContext(
     byteStore: byteStore,
     (collection) async {
       print('  Analysis contexts: ${collection.contexts.length}');
@@ -66,7 +66,7 @@ void main(List<String> arguments) async {
     },
   );
 
-  final allResults = _analyzeSnapshot(heapBytes);
+  var allResults = _analyzeSnapshot(heapBytes);
   _printResults(allResults);
 
   if (argResults['write-file'] == true) {
@@ -95,18 +95,18 @@ String get _resultFilePath {
 Future<void> _analyzeFiles(
   AnalysisContextCollectionImpl collection,
 ) async {
-  for (final analysisContext in collection.contexts) {
-    final analyzedFiles = analysisContext.contextRoot.analyzedFiles().toList();
-    for (final filePath in analyzedFiles) {
+  for (var analysisContext in collection.contexts) {
+    var analyzedFiles = analysisContext.contextRoot.analyzedFiles().toList();
+    for (var filePath in analyzedFiles) {
       if (filePath.endsWith('.dart')) {
-        final analysisSession = analysisContext.currentSession;
+        var analysisSession = analysisContext.currentSession;
         await analysisSession.getUnitElement(filePath);
 
         // Check that there are no compile-time errors.
         // We want to be sure that we get elements models.
-        final errorsResult = await analysisSession.getErrors(filePath);
+        var errorsResult = await analysisSession.getErrors(filePath);
         if (errorsResult is ErrorsResult) {
-          final errors = errorsResult.errors
+          var errors = errorsResult.errors
               .where((element) =>
                   element.errorCode.type == ErrorType.COMPILE_TIME_ERROR)
               .toList();
@@ -120,16 +120,16 @@ Future<void> _analyzeFiles(
 }
 
 BenchmarkResultCompound _analyzeSnapshot(Uint8List bytes) {
-  final allResults = BenchmarkResultCompound(
+  var allResults = BenchmarkResultCompound(
     name: 'flutter_elements',
   );
 
   timer.reset();
-  final graph = HeapSnapshotGraph.fromChunks(
+  var graph = HeapSnapshotGraph.fromChunks(
       [bytes.buffer.asByteData(bytes.offsetInBytes, bytes.length)]);
   print('[+${timer.elapsedMilliseconds} ms] Create HeapSnapshotGraph');
 
-  final analysis = Analysis(graph);
+  var analysis = Analysis(graph);
 
   // Computing reachable objects takes some time.
   timer.reset();
@@ -137,7 +137,7 @@ BenchmarkResultCompound _analyzeSnapshot(Uint8List bytes) {
   print('[+${timer.elapsedMilliseconds} ms] Compute reachable objects');
   print('');
   {
-    final measure = analysis.measureObjects(analysis.reachableObjects);
+    var measure = analysis.measureObjects(analysis.reachableObjects);
     allResults.add(
       BenchmarkResultCompound(name: 'reachableObjects', children: [
         BenchmarkResultCount(
@@ -155,7 +155,7 @@ BenchmarkResultCompound _analyzeSnapshot(Uint8List bytes) {
   // It is interesting to see all reachable objects.
   {
     print('Reachable objects');
-    final objects = analysis.reachableObjects;
+    var objects = analysis.reachableObjects;
     analysis.printObjectStats(objects, maxLines: 100);
   }
 
@@ -180,13 +180,13 @@ BenchmarkResultCompound _analyzeSnapshot(Uint8List bytes) {
 }
 
 BenchmarkResult _doInterfaceType(Analysis analysis) {
-  final objects = analysis.filterByClass(
+  var objects = analysis.filterByClass(
     analysis.reachableObjects,
     libraryUri: Uri.parse('package:analyzer/src/dart/element/type.dart'),
     name: 'InterfaceTypeImpl',
   );
 
-  final measure = analysis.measureObjects(objects);
+  var measure = analysis.measureObjects(objects);
   return BenchmarkResultCompound(name: 'InterfaceTypeImpl', children: [
     BenchmarkResultCount(
       name: 'count',
@@ -200,17 +200,17 @@ BenchmarkResult _doInterfaceType(Analysis analysis) {
 }
 
 BenchmarkResult _doLinkedData(Analysis analysis) {
-  final readerUri = Uri.parse(
+  var readerUri = Uri.parse(
     'package:analyzer/src/summary2/bundle_reader.dart',
   );
 
-  final classSet = analysis.classByPredicate((e) {
+  var classSet = analysis.classByPredicate((e) {
     return e.libraryUri == readerUri && e.name.endsWith('LinkedData');
   });
 
-  final objects = analysis.filterByClassId(analysis.reachableObjects, classSet);
+  var objects = analysis.filterByClassId(analysis.reachableObjects, classSet);
 
-  final measure = analysis.measureObjects(objects);
+  var measure = analysis.measureObjects(objects);
   return BenchmarkResultCompound(name: 'LinkedData', children: [
     BenchmarkResultCount(
       name: 'count',
@@ -220,21 +220,21 @@ BenchmarkResult _doLinkedData(Analysis analysis) {
 }
 
 BenchmarkResult _doUniqueUriStr(Analysis analysis) {
-  final uriList = analysis.filterByClass(analysis.reachableObjects,
+  var uriList = analysis.filterByClass(analysis.reachableObjects,
       libraryUri: Uri.parse('dart:core'), name: '_SimpleUri');
 
-  final uriStringList = analysis.findReferences(uriList, [':_uri']);
-  final uniqueUriStrSet = <String>{};
-  final duplicateUriStrList = <String>[];
-  for (final objectId in uriStringList) {
-    final object = analysis.graph.objects[objectId];
-    final uriStr = object.data as String;
+  var uriStringList = analysis.findReferences(uriList, [':_uri']);
+  var uniqueUriStrSet = <String>{};
+  var duplicateUriStrList = <String>[];
+  for (var objectId in uriStringList) {
+    var object = analysis.graph.objects[objectId];
+    var uriStr = object.data as String;
     if (!uniqueUriStrSet.add(uriStr)) {
       duplicateUriStrList.add(uriStr);
     }
   }
 
-  final uriListMeasure = analysis.measureObjects(uriList);
+  var uriListMeasure = analysis.measureObjects(uriList);
   return BenchmarkResultCompound(name: '_SimpleUri', children: [
     BenchmarkResultCount(
       name: 'count',
@@ -256,17 +256,17 @@ BenchmarkResult _doUniqueUriStr(Analysis analysis) {
 Future<void> _getAvailableLibraries(
   AnalysisContextCollectionImpl collection,
 ) async {
-  for (final analysisContext in collection.contexts) {
-    final analysisDriver = analysisContext.driver;
+  for (var analysisContext in collection.contexts) {
+    var analysisDriver = analysisContext.driver;
     await analysisDriver.discoverAvailableFiles();
-    final knownFiles = analysisDriver.fsState.knownFiles.toList();
-    for (final file in knownFiles) {
+    var knownFiles = analysisDriver.fsState.knownFiles.toList();
+    for (var file in knownFiles) {
       // Skip libraries with known invalid types.
       // if (const {'dart:html', 'dart:ui_web', 'dart:_interceptors'}
       //     .contains(file.uriStr)) {
       //   continue;
       // }
-      final result = await analysisDriver.getLibraryByUri(file.uriStr);
+      var result = await analysisDriver.getLibraryByUri(file.uriStr);
       if (result is LibraryElementResult) {
         result.element.accept(_AllElementVisitor());
       }
@@ -276,14 +276,14 @@ Future<void> _getAvailableLibraries(
 
 Uint8List _getHeapSnapshot() {
   timer.reset();
-  final tmpDir = io.Directory.systemTemp.createTempSync('analyzer_heap');
+  var tmpDir = io.Directory.systemTemp.createTempSync('analyzer_heap');
   try {
-    final snapshotFile = io.File('${tmpDir.path}/0.heap_snapshot');
+    var snapshotFile = io.File('${tmpDir.path}/0.heap_snapshot');
     developer.NativeRuntime.writeHeapSnapshotToFile(snapshotFile.path);
     print('[+${timer.elapsedMilliseconds} ms] Write heap snapshot');
 
     timer.reset();
-    final bytes = snapshotFile.readAsBytesSync();
+    var bytes = snapshotFile.readAsBytesSync();
     print(
       '[+${timer.elapsedMilliseconds} ms] '
       'Read heap snapshot, ${bytes.length ~/ (1024 * 1024)} MB',
@@ -297,7 +297,7 @@ Uint8List _getHeapSnapshot() {
 void _printResults(BenchmarkResultCompound allResults) {
   BenchmarkResult? baseResult;
   try {
-    final text = io.File(_resultFilePath).readAsStringSync();
+    var text = io.File(_resultFilePath).readAsStringSync();
     baseResult = BenchmarkResult.fromXmlText(text);
   } catch (e) {
     // ignore
@@ -312,17 +312,17 @@ Future<T> _withNewAnalysisContext<T>(
   Future<T> Function(AnalysisContextCollectionImpl collection) f, {
   required ByteStore byteStore,
 }) async {
-  final resourceProvider = PhysicalResourceProvider.INSTANCE;
-  final fileContentCache = FileContentCache(resourceProvider);
-  final unlinkedUnitStore = UnlinkedUnitStoreImpl();
-  final collection = AnalysisContextCollectionImpl(
+  var resourceProvider = PhysicalResourceProvider.INSTANCE;
+  var fileContentCache = FileContentCache(resourceProvider);
+  var unlinkedUnitStore = UnlinkedUnitStoreImpl();
+  var collection = AnalysisContextCollectionImpl(
     byteStore: byteStore,
     resourceProvider: resourceProvider,
     fileContentCache: fileContentCache,
     includedPaths: [includedPath],
     unlinkedUnitStore: unlinkedUnitStore,
   );
-  final result = await f(collection);
+  var result = await f(collection);
   collection.hashCode; // to keep it alive
   return result;
 }
@@ -349,9 +349,9 @@ class _ObjectSetMeasure {
 
 extension on Analysis {
   IntSet classByPredicate(bool Function(HeapSnapshotClass) predicate) {
-    final allClasses = graph.classes;
-    final classSet = SpecializedIntSet(allClasses.length);
-    for (final class_ in allClasses) {
+    var allClasses = graph.classes;
+    var classSet = SpecializedIntSet(allClasses.length);
+    for (var class_ in allClasses) {
       if (predicate(class_)) {
         classSet.add(class_.classId);
       }
@@ -364,17 +364,17 @@ extension on Analysis {
     required Uri libraryUri,
     required String name,
   }) {
-    final cid = graph.classes.singleWhere((class_) {
+    var cid = graph.classes.singleWhere((class_) {
       return class_.libraryUri == libraryUri && class_.name == name;
     }).classId;
     return filter(objectIds, (object) => object.classId == cid);
   }
 
   _ObjectSetMeasure measureObjects(IntSet objectIds) {
-    final stats = generateObjectStats(objectIds);
+    var stats = generateObjectStats(objectIds);
     var totalSize = 0;
     var totalCount = 0;
-    for (final class_ in stats.classes) {
+    for (var class_ in stats.classes) {
       totalCount += stats.counts[class_.classId];
       totalSize += stats.sizes[class_.classId];
     }
@@ -382,7 +382,7 @@ extension on Analysis {
   }
 
   void printObjectStats(IntSet objectIds, {int maxLines = 20}) {
-    final stats = generateObjectStats(objectIds);
+    var stats = generateObjectStats(objectIds);
     print(formatHeapStats(stats, maxLines: maxLines));
     print('');
   }
@@ -392,10 +392,10 @@ extension on Analysis {
     IntSet objectIds, {
     int maxEntries = 3,
   }) {
-    final paths = retainingPathsOf(objectIds, 20);
+    var paths = retainingPathsOf(objectIds, 20);
     for (int i = 0; i < paths.length; ++i) {
       if (i >= maxEntries) break;
-      final path = paths[i];
+      var path = paths[i];
       print('There are ${path.count} retaining paths of');
       print(formatRetainingPath(graph, paths[i]));
       print('');

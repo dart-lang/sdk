@@ -1,0 +1,283 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/shared_errors.dart:13:13: Error: The argument type 'int' can't be assigned to the parameter type 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/patterns/shared_errors.dart'.
+//     case >= 0: // Error
+//             ^
+//
+// pkg/front_end/testcases/patterns/shared_errors.dart:20:10: Error: A value of type 'Class' can't be assigned to a variable of type 'bool'.
+//  - 'Class' is from 'pkg/front_end/testcases/patterns/shared_errors.dart'.
+//     case > 0: // Error
+//          ^
+//
+// pkg/front_end/testcases/patterns/shared_errors.dart:26:12: Error: The matched value of type 'List<String>' isn't assignable to the required type 'List<int>'.
+//  - 'List' is from 'dart:core'.
+// Try changing the required type of the pattern, or the matched value type.
+//   var <int>[a] = list; // Error
+//            ^
+//
+// pkg/front_end/testcases/patterns/shared_errors.dart:31:7: Error: The variable 'a' is already assigned in this pattern.
+// Try renaming the variable.
+//   [a, a] = list; // Error
+//       ^
+// pkg/front_end/testcases/patterns/shared_errors.dart:31:4: Context: The first assigned variable pattern.
+//   [a, a] = list; // Error
+//    ^
+//
+// pkg/front_end/testcases/patterns/shared_errors.dart:36:28: Error: The field 'field' is already matched in this pattern.
+// Try removing the duplicate field.
+//     case (field: 1, field: 2): // Error
+//                            ^
+// pkg/front_end/testcases/patterns/shared_errors.dart:36:18: Context: The first field.
+//     case (field: 1, field: 2): // Error
+//                  ^
+//
+// pkg/front_end/testcases/patterns/shared_errors.dart:37:33: Error: The field 'field' is already matched in this pattern.
+// Try removing the duplicate field.
+//     case Class(field: 1, field: 2): // Error
+//                                 ^
+// pkg/front_end/testcases/patterns/shared_errors.dart:37:23: Context: The first field.
+//     case Class(field: 1, field: 2): // Error
+//                       ^
+//
+// pkg/front_end/testcases/patterns/shared_errors.dart:44:16: Error: At most one rest element is allowed in a list or map pattern.
+// Try removing the duplicate rest element.
+//     case [..., ...]: // Error
+//                ^
+// pkg/front_end/testcases/patterns/shared_errors.dart:44:11: Context: The first rest element.
+//     case [..., ...]: // Error
+//           ^
+//
+// pkg/front_end/testcases/patterns/shared_errors.dart:45:11: Error: The '...' pattern can't appear in map patterns.
+//     case {..., ...}: // Error
+//           ^
+//
+// pkg/front_end/testcases/patterns/shared_errors.dart:45:16: Error: The '...' pattern can't appear in map patterns.
+//     case {..., ...}: // Error
+//                ^
+//
+// pkg/front_end/testcases/patterns/shared_errors.dart:51:10: Error: A map pattern must have at least one entry.
+// Try replacing it with an object pattern 'Map()'.
+//     case {}: // Error
+//          ^
+//
+// pkg/front_end/testcases/patterns/shared_errors.dart:57:11: Error: The '...' pattern can't appear in map patterns.
+//     case {...}: // Error
+//           ^
+//
+// pkg/front_end/testcases/patterns/shared_errors.dart:68:21: Error: Conditions must have a static type of 'bool'.
+// Try changing the condition.
+//   if (i case 0 when i) { // Error
+//                     ^
+//
+// pkg/front_end/testcases/patterns/shared_errors.dart:74:9: Error: Refutable patterns can't be used in an irrefutable context.
+// Try using an if-case, a 'switch' statement, or a 'switch' expression instead.
+//   var (a?) = x; // Error
+//         ^
+//
+// pkg/front_end/testcases/patterns/shared_errors.dart:78:15: Error: The '...' pattern can't appear in map patterns.
+//   if (o case {..., 5: 3}) { // Error
+//               ^
+//
+// pkg/front_end/testcases/patterns/shared_errors.dart:84:21: Error: The '...' pattern can't appear in map patterns.
+//   if (o case {5: 3, ...var a}) { // Error
+//                     ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  get field() → core::int
+    return 42;
+  operator >=(self::Class cls) → core::bool
+    return true;
+  operator >(core::int i) → self::Class
+    return new self::Class::•();
+}
+static method argumentTypeNotAssignable(self::Class cls) → dynamic {
+  #L1:
+  {
+    final synthesized self::Class #0#0 = cls;
+    {
+      if(invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:13:13: Error: The argument type 'int' can't be assigned to the parameter type 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/patterns/shared_errors.dart'.
+    case >= 0: // Error
+            ^") {
+        {
+          core::print(0);
+        }
+      }
+    }
+  }
+}
+static method relationalPatternOperatorReturnTypeNotAssignableToBool(self::Class cls) → dynamic {
+  #L2:
+  {
+    final synthesized self::Class #0#0 = cls;
+    {
+      if(invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:20:10: Error: A value of type 'Class' can't be assigned to a variable of type 'bool'.
+ - 'Class' is from 'pkg/front_end/testcases/patterns/shared_errors.dart'.
+    case > 0: // Error
+         ^") {
+        {
+          core::print(0);
+        }
+      }
+    }
+  }
+}
+static method patternTypeMismatchInIrrefutableContext(core::List<core::String> list) → dynamic {
+  has-declared-initializer core::int a;
+  {
+    final synthesized core::List<core::String> #0#0 = list;
+    if(!invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:26:12: Error: The matched value of type 'List<String>' isn't assignable to the required type 'List<int>'.
+ - 'List' is from 'dart:core'.
+Try changing the required type of the pattern, or the matched value type.
+  var <int>[a] = list; // Error
+           ^")
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
+  }
+}
+static method duplicateAssignmentPatternVariable(core::List<core::String> list) → dynamic {
+  core::String a = "";
+  {
+    final synthesized core::List<core::String> #0#0 = list;
+    if(!(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t1 = a = #0#0.{core::List::[]}(0){(core::int) → core::String} in true) && invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:31:7: Error: The variable 'a' is already assigned in this pattern.
+Try renaming the variable.
+  [a, a] = list; // Error
+      ^"))
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
+  }
+}
+static method duplicateRecordPatternField(dynamic o) → dynamic {
+  #L3:
+  {
+    final synthesized dynamic #0#0 = o;
+    synthesized core::int #0#2;
+    synthesized core::bool #0#2#isSet = false;
+    {
+      if(invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:36:28: Error: The field 'field' is already matched in this pattern.
+Try removing the duplicate field.
+    case (field: 1, field: 2): // Error
+                           ^" || #0#0 is self::Class && #C2 =={core::num::==}{(core::Object) → core::bool} (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t2 = #0#2#isSet = true in #0#2 = #0#0{self::Class}.{self::Class::field}{core::int}) && (let final dynamic #t3 = #0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t4 = #0#2#isSet = true in #0#2 = #0#0{self::Class}.{self::Class::field}{core::int} in invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:37:33: Error: The field 'field' is already matched in this pattern.
+Try removing the duplicate field.
+    case Class(field: 1, field: 2): // Error
+                                ^")) {
+        {
+          core::print(0);
+        }
+      }
+    }
+  }
+}
+static method duplicateRestPattern(dynamic o) → dynamic {
+  #L4:
+  {
+    final synthesized dynamic #0#0 = o;
+    {
+      if(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C2){(core::num) → core::bool} && invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:44:16: Error: At most one rest element is allowed in a list or map pattern.
+Try removing the duplicate rest element.
+    case [..., ...]: // Error
+               ^" || invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:45:11: Error: The '...' pattern can't appear in map patterns.
+    case {..., ...}: // Error
+          ^") {
+      }
+    }
+  }
+}
+static method emptyMapPattern(dynamic o) → dynamic {
+  #L5:
+  {
+    final synthesized dynamic #0#0 = o;
+    {
+      if(invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:51:10: Error: A map pattern must have at least one entry.
+Try replacing it with an object pattern 'Map()'.
+    case {}: // Error
+         ^") {
+      }
+    }
+  }
+}
+static method singleRestPatternInMap(dynamic o) → dynamic {
+  #L6:
+  {
+    final synthesized dynamic #0#0 = o;
+    {
+      if(invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:57:11: Error: The '...' pattern can't appear in map patterns.
+    case {...}: // Error
+          ^") {
+      }
+    }
+  }
+}
+static method matchedTypeIsStrictlyNonNullable(core::List<core::int> list) → dynamic {
+  {
+    final synthesized core::List<core::int> #0#0 = list;
+    synthesized core::int #0#4;
+    synthesized core::bool #0#4#isSet = false;
+    synthesized core::int #0#6;
+    synthesized core::bool #0#6#isSet = false;
+    {
+      hoisted core::int a;
+      hoisted core::int b;
+      if(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t5 = (#0#4#isSet ?{core::int} #0#4{core::int} : let final dynamic #t6 = #0#4#isSet = true in #0#4 = #0#0.{core::List::[]}(0){(core::int) → core::int})! in let final dynamic #t7 = a = (#0#4#isSet ?{core::int} #0#4{core::int} : let final dynamic #t8 = #0#4#isSet = true in #0#4 = #0#0.{core::List::[]}(0){(core::int) → core::int})! in true) && !((#0#6#isSet ?{core::int} #0#6{core::int} : let final dynamic #t9 = #0#6#isSet = true in #0#6 = #0#0.{core::List::[]}(1){(core::int) → core::int}) == null)) {
+        b = #0#6#isSet ?{core::int} #0#6{core::int} : let final dynamic #t10 = #0#6#isSet = true in #0#6 = #0#0.{core::List::[]}(1){(core::int) → core::int};
+        {
+          core::print(0);
+        }
+      }
+    }
+  }
+}
+static method nonBooleanCondition(core::int i) → dynamic {
+  {
+    final synthesized core::int #0#0 = i;
+    if(#C3 =={core::num::==}{(core::Object) → core::bool} #0#0 && invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:68:21: Error: Conditions must have a static type of 'bool'.
+Try changing the condition.
+  if (i case 0 when i) { // Error
+                    ^") {
+      core::print(0);
+    }
+  }
+}
+static method refutablePatternInIrrefutableContext(core::int? x) → dynamic {
+  hoisted has-declared-initializer core::int a;
+  {
+    final synthesized core::int? #0#0 = x;
+    if(!(!(#0#0 == null) && (let final dynamic #t11 = a = #0#0{core::int} in true)))
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
+  }
+}
+static method restPatternNotLastInMap(dynamic o) → dynamic {
+  {
+    final synthesized dynamic #0#0 = o;
+    synthesized dynamic #0#4;
+    synthesized core::bool #0#4#isSet = false;
+    if(#0#0 is core::Map<dynamic, dynamic> && (!((#0#4#isSet ?{dynamic} #0#4{dynamic} : let final dynamic #t12 = #0#4#isSet = true in #0#4 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic}) == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && #C5 =={core::num::==}{(core::Object) → core::bool} (#0#4#isSet ?{dynamic} #0#4{dynamic} : let final dynamic #t13 = #0#4#isSet = true in #0#4 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic})) {
+      core::print(0);
+    }
+  }
+}
+static method restPatternWithSubPatternInMap(dynamic o) → dynamic {
+  {
+    final synthesized dynamic #0#0 = o;
+    synthesized dynamic #0#4;
+    synthesized core::bool #0#4#isSet = false;
+    if(#0#0 is core::Map<dynamic, dynamic> && (!((#0#4#isSet ?{dynamic} #0#4{dynamic} : let final dynamic #t14 = #0#4#isSet = true in #0#4 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic}) == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && #C5 =={core::num::==}{(core::Object) → core::bool} (#0#4#isSet ?{dynamic} #0#4{dynamic} : let final dynamic #t15 = #0#4#isSet = true in #0#4 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic})) {
+      core::print(0);
+    }
+  }
+}
+
+constants  {
+  #C1 = 2
+  #C2 = 1
+  #C3 = 0
+  #C4 = 5
+  #C5 = 3
+}

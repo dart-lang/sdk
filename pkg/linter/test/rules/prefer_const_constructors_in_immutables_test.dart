@@ -175,7 +175,7 @@ class A {
 ''');
   }
 
-  test_immutable_factoryConsrtuctor_toConstConstructor() async {
+  test_immutable_factoryConstructor_toConstConstructor() async {
     await assertDiagnostics(r'''
 import 'package:meta/meta.dart';
 @immutable
@@ -389,6 +389,19 @@ class B extends A {
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
           99, 1),
+    ]);
+  }
+
+  test_macroConstructor() async {
+    await assertDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@immutable
+macro class M {
+  M();
+}
+''', [
+      // TODO(pq): add non-const constructor compilation error when implemented
     ]);
   }
 

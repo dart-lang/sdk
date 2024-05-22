@@ -65,6 +65,8 @@ Future<CompilerResult> generateKernelInternal(
     bool includeHierarchyAndCoreTypes = false,
     Benchmarker? benchmarker}) async {
   ProcessedOptions options = CompilerContext.current.options;
+  assert(options.haveBeenValidated, "Options have not been validated");
+
   options.reportNullSafetyCompilationModeInfo();
   FileSystem fs = options.fileSystem;
 
@@ -321,7 +323,7 @@ Future<Map<Uri, ExecutorFactoryToken>?> precompileMacros(
   return null;
 }
 
-Future<Map<Uri, ExecutorFactoryToken>> _compileMacros(
+Future<Map<Uri, ExecutorFactoryToken>?> _compileMacros(
     NeededPrecompilations neededPrecompilations,
     ProcessedOptions options) async {
   CompilerOptions rawOptions = options.rawOptionsForTesting;
@@ -362,11 +364,22 @@ Future<Map<Uri, ExecutorFactoryToken>> _compileMacros(
   MemoryFileSystem fs = new MemoryFileSystem(_defaultDir);
   fs.entityForUri(uri).writeAsStringSync(
       bootstrapMacroIsolate(macroDeclarations, SerializationMode.byteData));
-
   precompilationOptions
     ..fileSystem = new HybridFileSystem(fs, options.fileSystem);
+
+  // Surface diagnostics in the outer compile, failing the build if the macro
+  // build fails.
+  bool failed = false;
+  precompilationOptions.onDiagnostic = (diagnostic) {
+    options.rawOptionsForTesting.onDiagnostic!(diagnostic);
+    if (diagnostic.severity == Severity.error) {
+      failed = true;
+    }
+  };
+
   CompilerResult? compilerResult =
       await kernelForProgramInternal(uri, precompilationOptions);
+  if (failed) return null;
   Uri precompiledUri = await options.macroSerializer
       .createUriForComponent(compilerResult!.component!);
   Set<Uri> macroLibraries =

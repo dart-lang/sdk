@@ -9,19 +9,19 @@ Future<List<Object>> resolveIdentifiers(
   TypePhaseIntrospector introspector,
   String withIdentifiers,
 ) async {
-  final result = <Object>[];
+  var result = <Object>[];
   var lastMatchEnd = 0;
 
   void addStringPart(int end) {
-    final str = withIdentifiers.substring(lastMatchEnd, end);
+    var str = withIdentifiers.substring(lastMatchEnd, end);
     result.add(str);
   }
 
-  final pattern = RegExp(r'\{\{(.+?)@(\w+?)\}\}');
-  for (final match in pattern.allMatches(withIdentifiers)) {
+  var pattern = RegExp(r'\{\{(.+?)@(\w+?)\}\}');
+  for (var match in pattern.allMatches(withIdentifiers)) {
     addStringPart(match.start);
     // ignore: deprecated_member_use
-    final identifier = await introspector.resolveIdentifier(
+    var identifier = await introspector.resolveIdentifier(
       Uri.parse(match.group(1)!),
       match.group(2)!,
     );
@@ -33,44 +33,57 @@ Future<List<Object>> resolveIdentifiers(
   return result;
 }
 
-Future<NamedTypeAnnotationCode> _codeA(TypePhaseIntrospector builder) async {
-  return NamedTypeAnnotationCode(
-    // ignore:deprecated_member_use
-    name: await builder.resolveIdentifier(
-      Uri.parse('package:test/append.dart'),
-      'A',
-    ),
-  );
-}
+/*macro*/ class AppendInterface implements ClassTypesMacro, MixinTypesMacro {
+  final String code;
 
-class A {}
-
-/*macro*/ class AppendInterfaceA implements ClassTypesMacro, MixinTypesMacro {
-  const AppendInterfaceA();
+  const AppendInterface(this.code);
 
   @override
   buildTypesForClass(clazz, builder) async {
-    builder.appendInterfaces([
-      await _codeA(builder),
-    ]);
+    await _append(builder);
   }
 
   @override
   buildTypesForMixin(clazz, builder) async {
+    await _append(builder);
+  }
+
+  Future<void> _append(InterfaceTypesBuilder builder) async {
+    var parts = await resolveIdentifiers(builder, code);
     builder.appendInterfaces([
-      await _codeA(builder),
+      RawTypeAnnotationCode.fromParts(parts),
     ]);
   }
 }
 
-/*macro*/ class AppendMixinA implements ClassTypesMacro {
-  const AppendMixinA();
+/*macro*/ class AppendMixin implements ClassTypesMacro {
+  final String code;
+
+  const AppendMixin(this.code);
 
   @override
   buildTypesForClass(clazz, builder) async {
+    await _append(builder);
+  }
+
+  Future<void> _append(MixinTypesBuilder builder) async {
+    var parts = await resolveIdentifiers(builder, code);
     builder.appendMixins([
-      await _codeA(builder),
+      RawTypeAnnotationCode.fromParts(parts),
     ]);
+  }
+}
+
+/*macro*/ class AugmentDefinition implements MethodDefinitionMacro {
+  final String code;
+
+  const AugmentDefinition(this.code);
+
+  @override
+  buildDefinitionForMethod(method, builder) {
+    builder.augment(
+      FunctionBodyCode.fromString(code),
+    );
   }
 }
 
@@ -113,7 +126,7 @@ class A {}
   }
 
   Future<void> _declare(DeclarationBuilder builder) async {
-    final parts = await resolveIdentifiers(builder, code);
+    var parts = await resolveIdentifiers(builder, code);
     builder.declareInLibrary(
       DeclarationCode.fromParts(parts),
     );
@@ -151,7 +164,7 @@ class A {}
   }
 
   Future<void> _declare(MemberDeclarationBuilder builder) async {
-    final parts = await resolveIdentifiers(builder, code);
+    var parts = await resolveIdentifiers(builder, code);
     builder.declareInType(
       DeclarationCode.fromParts(parts),
     );
@@ -171,6 +184,32 @@ class A {}
     builder.declareType(
       name,
       DeclarationCode.fromString(code),
+    );
+  }
+}
+
+/*macro*/ class DeclareTypesPhase
+    implements ClassTypesMacro, FunctionTypesMacro {
+  final String typeName;
+  final String code;
+
+  const DeclareTypesPhase(this.typeName, this.code);
+
+  @override
+  buildTypesForClass(clazz, builder) async {
+    await _declare(builder);
+  }
+
+  @override
+  buildTypesForFunction(clazz, builder) async {
+    await _declare(builder);
+  }
+
+  Future<void> _declare(TypeBuilder builder) async {
+    var parts = await resolveIdentifiers(builder, code);
+    builder.declareType(
+      typeName,
+      DeclarationCode.fromParts(parts),
     );
   }
 }

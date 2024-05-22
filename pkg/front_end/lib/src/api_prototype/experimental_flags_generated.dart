@@ -142,7 +142,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag inferenceUpdate3 = const ExperimentalFlag(
       name: 'inference-update-3',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       enabledVersion: const Version(3, 4),
       experimentEnabledVersion: const Version(3, 4),
       experimentReleasedVersion: const Version(3, 4));
@@ -277,6 +277,14 @@ class ExperimentalFlag {
 
   static const ExperimentalFlag variance = const ExperimentalFlag(
       name: 'variance',
+      isEnabledByDefault: false,
+      isExpired: false,
+      enabledVersion: defaultLanguageVersion,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion);
+
+  static const ExperimentalFlag wildcardVariables = const ExperimentalFlag(
+      name: 'wildcard-variables',
       isEnabledByDefault: false,
       isExpired: false,
       enabledVersion: defaultLanguageVersion,
@@ -445,6 +453,10 @@ class GlobalFeatures {
   GlobalFeature? _variance;
   GlobalFeature get variance =>
       _variance ??= _computeGlobalFeature(ExperimentalFlag.variance);
+
+  GlobalFeature? _wildcardVariables;
+  GlobalFeature get wildcardVariables => _wildcardVariables ??=
+      _computeGlobalFeature(ExperimentalFlag.wildcardVariables);
 }
 
 /// Interface for accessing the state of experimental features within a
@@ -610,6 +622,11 @@ class LibraryFeatures {
       _variance ??= globalFeatures._computeLibraryFeature(
           ExperimentalFlag.variance, canonicalUri, libraryVersion);
 
+  LibraryFeature? _wildcardVariables;
+  LibraryFeature get wildcardVariables =>
+      _wildcardVariables ??= globalFeatures._computeLibraryFeature(
+          ExperimentalFlag.wildcardVariables, canonicalUri, libraryVersion);
+
   /// Returns the [LibraryFeature] corresponding to [experimentalFlag].
   LibraryFeature fromSharedExperimentalFlags(
       shared.ExperimentalFlag experimentalFlag) {
@@ -670,6 +687,8 @@ class LibraryFeatures {
         return unnamedLibraries;
       case shared.ExperimentalFlag.variance:
         return variance;
+      case shared.ExperimentalFlag.wildcardVariables:
+        return wildcardVariables;
       default:
         throw new UnsupportedError(
             'LibraryFeatures.fromSharedExperimentalFlags($experimentalFlag)');
@@ -737,6 +756,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.unnamedLibraries;
     case "variance":
       return ExperimentalFlag.variance;
+    case "wildcard-variables":
+      return ExperimentalFlag.wildcardVariables;
   }
   return null;
 }
@@ -791,12 +812,18 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.unnamedLibraries:
       ExperimentalFlag.unnamedLibraries.isEnabledByDefault,
   ExperimentalFlag.variance: ExperimentalFlag.variance.isEnabledByDefault,
+  ExperimentalFlag.wildcardVariables:
+      ExperimentalFlag.wildcardVariables.isEnabledByDefault,
 };
 const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
     const AllowedExperimentalFlags(
         sdkDefaultExperiments: {},
         sdkLibraryExperiments: {},
-        packageExperiments: {});
+        packageExperiments: {
+      "json": {
+        ExperimentalFlag.macros,
+      },
+    });
 const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
   shared.ExperimentalFlag.classModifiers: ExperimentalFlag.classModifiers,
   shared.ExperimentalFlag.constFunctions: ExperimentalFlag.constFunctions,
@@ -832,4 +859,5 @@ const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
   shared.ExperimentalFlag.tripleShift: ExperimentalFlag.tripleShift,
   shared.ExperimentalFlag.unnamedLibraries: ExperimentalFlag.unnamedLibraries,
   shared.ExperimentalFlag.variance: ExperimentalFlag.variance,
+  shared.ExperimentalFlag.wildcardVariables: ExperimentalFlag.wildcardVariables,
 };

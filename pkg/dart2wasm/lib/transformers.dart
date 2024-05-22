@@ -8,6 +8,8 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
+import 'package:vm/modular/transformations/type_casts_optimizer.dart'
+    as typeCastsOptimizer show transformAsExpression;
 
 import 'list_factory_specializer.dart';
 
@@ -30,6 +32,7 @@ class _WasmTransformer extends Transformer {
 
   Member? _currentMember;
   StaticTypeContext? _cachedTypeContext;
+  final Set<VariableDeclaration> _implicitFinalVariables = {};
 
   final Library _coreLibrary;
   final InterfaceType _nonNullableTypeType;
@@ -110,9 +113,13 @@ class _WasmTransformer extends Transformer {
   defaultMember(Member node) {
     _currentMember = node;
     _cachedTypeContext = null;
+    _implicitFinalVariables.clear();
 
     final result = super.defaultMember(node);
 
+    for (final node in _implicitFinalVariables) {
+      node.isFinal = true;
+    }
     _currentMember = null;
     _cachedTypeContext = null;
     return result;
@@ -142,12 +149,28 @@ class _WasmTransformer extends Transformer {
     }
     for (int i = 0; i < cls.typeParameters.length; i++) {
       TypeParameter parameter = cls.typeParameters[i];
-      DartType arg = supertype.typeArguments[i];
-      if (arg is! TypeParameterType || arg.parameter != parameter) {
+      DartType superTypeArg = supertype.typeArguments[i];
+      if (superTypeArg is! TypeParameterType ||
+          superTypeArg.parameter != parameter ||
+          superTypeArg.nullability == Nullability.nullable) {
         return false;
       }
     }
     return true;
+  }
+
+  @override
+  visitVariableDeclaration(VariableDeclaration node) {
+    if (!node.isFinal) {
+      _implicitFinalVariables.add(node);
+    }
+    return super.visitVariableDeclaration(node);
+  }
+
+  @override
+  visitVariableSet(VariableSet node) {
+    _implicitFinalVariables.remove(node.variable);
+    return super.visitVariableSet(node);
   }
 
   @override
@@ -172,8 +195,7 @@ class _WasmTransformer extends Transformer {
           ),
           isExternal: true,
           isSynthetic: true,
-          fileUri: cls.fileUri)
-        ..isNonNullableByDefault = true;
+          fileUri: cls.fileUri);
       cls.addProcedure(getTypeArguments);
     }
     return super.visitClass(cls);
@@ -679,13 +701,14 @@ class _WasmTransformer extends Transformer {
 
   @override
   TreeNode visitFunctionNode(FunctionNode functionNode) {
+    final previousEnclosing = _enclosingIsAsyncStar;
     if (functionNode.dartAsyncMarker == AsyncMarker.AsyncStar) {
       _enclosingIsAsyncStar = true;
       functionNode = _lowerAsyncStar(functionNode) as FunctionNode;
-      _enclosingIsAsyncStar = false;
+      _enclosingIsAsyncStar = previousEnclosing;
       return super.visitFunctionNode(functionNode);
     } else {
-      bool previousEnclosing = _enclosingIsAsyncStar;
+      _enclosingIsAsyncStar = false;
       TreeNode result = super.visitFunctionNode(functionNode);
       _enclosingIsAsyncStar = previousEnclosing;
       return result;
@@ -702,6 +725,12 @@ class _WasmTransformer extends Transformer {
   visitFunctionTearOff(FunctionTearOff node) {
     node.transformChildren(this);
     return node.receiver;
+  }
+
+  @override
+  TreeNode visitAsExpression(AsExpression node) {
+    node.transformChildren(this);
+    return typeCastsOptimizer.transformAsExpression(node, typeContext);
   }
 }
 

@@ -1,6 +1,4 @@
-// @dart = 2.7
-
-int x;
+// @dart = 2.11
 
 void foo() {
   print("hello");

@@ -73,8 +73,16 @@ Thread::Thread(bool is_vm_isolate)
           TargetCPUFeatures::double_truncate_round_supported() ? 1 : 0),
       tsan_utils_(DO_IF_TSAN(new TsanUtils()) DO_IF_NOT_TSAN(nullptr)),
       task_kind_(kUnknownTask),
+#if defined(SUPPORT_TIMELINE)
+      dart_stream_(ASSERT_NOTNULL(Timeline::GetDartStream())),
+#else
       dart_stream_(nullptr),
+#endif
+#if !defined(PRODUCT)
+      service_extension_stream_(ASSERT_NOTNULL(&Service::extension_stream)),
+#else
       service_extension_stream_(nullptr),
+#endif
       thread_lock_(),
       api_reusable_scope_(nullptr),
       no_callback_scope_depth_(0),
@@ -98,14 +106,6 @@ Thread::Thread(bool is_vm_isolate)
               next_(nullptr) {
 #endif
 
-#if defined(SUPPORT_TIMELINE)
-  dart_stream_ = Timeline::GetDartStream();
-  ASSERT(dart_stream_ != nullptr);
-#endif
-#ifndef PRODUCT
-  service_extension_stream_ = &Service::extension_stream;
-  ASSERT(service_extension_stream_ != nullptr);
-#endif
 #define DEFAULT_INIT(type_name, member_name, init_expr, default_init_value)    \
   member_name = default_init_value;
   CACHED_CONSTANTS_LIST(DEFAULT_INIT)
@@ -670,7 +670,7 @@ void Thread::FreeActiveThread(Thread* thread, bool bypass_safepoint) {
 }
 
 void Thread::ReleaseStoreBuffer() {
-  ASSERT(IsAtSafepoint() || OwnsSafepoint());
+  ASSERT(IsAtSafepoint() || OwnsSafepoint() || task_kind_ == kMarkerTask);
   if (store_buffer_block_ == nullptr || store_buffer_block_->IsEmpty()) {
     return;  // Nothing to release.
   }
@@ -810,6 +810,17 @@ void Thread::StoreBufferRelease(StoreBuffer::ThresholdPolicy policy) {
 }
 
 void Thread::StoreBufferAcquire() {
+  store_buffer_block_ = isolate_group()->store_buffer()->PopNonFullBlock();
+}
+
+void Thread::StoreBufferReleaseGC() {
+  StoreBufferBlock* block = store_buffer_block_;
+  store_buffer_block_ = nullptr;
+  isolate_group()->store_buffer()->PushBlock(block,
+                                             StoreBuffer::kIgnoreThreshold);
+}
+
+void Thread::StoreBufferAcquireGC() {
   store_buffer_block_ = isolate_group()->store_buffer()->PopNonFullBlock();
 }
 
@@ -965,7 +976,6 @@ class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {
   void VisitPointers(ObjectPtr* first, ObjectPtr* last) override {
     for (; first != last + 1; first++) {
       ObjectPtr obj = *first;
-      // Stores into new-space objects don't need a write barrier.
       if (obj->IsImmediateObject()) continue;
 
       // To avoid adding too much work into the remembered set, skip large

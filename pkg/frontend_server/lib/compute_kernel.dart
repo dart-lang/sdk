@@ -22,8 +22,7 @@ import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/api_unstable/bazel_worker.dart' as fe;
 import 'package:front_end/src/fasta/uri_translator.dart';
-import 'package:kernel/ast.dart'
-    show Component, Library, NonNullableByDefaultCompiledMode;
+import 'package:kernel/ast.dart' show Component, Library;
 import 'package:kernel/target/targets.dart';
 import 'package:vm/kernel_front_end.dart';
 import 'package:vm/modular/target/flutter.dart';
@@ -398,13 +397,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
 
     nativeAssetsLibrary =
         await NativeAssetsSynthesizer.synthesizeLibraryFromYamlFile(
-      nativeAssetsUri,
-      new ErrorDetector(),
-      nonNullableByDefaultCompiledMode:
-          state.options.nnbdMode == fe.NnbdMode.Strong
-              ? NonNullableByDefaultCompiledMode.Strong
-              : NonNullableByDefaultCompiledMode.Weak,
-    );
+            nativeAssetsUri, new ErrorDetector());
   }
 
   if (usingIncrementalCompiler) {

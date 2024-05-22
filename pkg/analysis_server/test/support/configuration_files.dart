@@ -9,8 +9,7 @@ import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_utilities/package_root.dart' as package_root;
-
-import '../src/utilities/mock_packages.dart';
+import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
 
 /// A mixin adding functionality to write `.dart_tool/package_config.json`
 /// files along with mock packages to a [ResourceProvider].
@@ -89,12 +88,12 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
     if (macro) {
       // TODO(dantup): This code may need to change/be removed depending on how
       //  we ultimately reference the macro packages/libraries.
-      final physical = PhysicalResourceProvider.INSTANCE;
-      final packageRoot =
+      var physical = PhysicalResourceProvider.INSTANCE;
+      var packageRoot =
           physical.pathContext.normalize(package_root.packageRoot);
 
       for (var package in ['macros', '_macros']) {
-        final destination = resourceProvider
+        var destination = resourceProvider
             .getFolder(convertPath('$packagesRootPath/$package'));
         physical
             .getFolder(packageRoot)

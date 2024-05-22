@@ -42,14 +42,18 @@ void runTestCase(
 
   final coreTypes = new CoreTypes(component);
 
+  bool useRapidTypeAnalysis = true;
   if (target is WasmTarget) {
+    // Keep these flags in-sync with pkg/dart2wasm/lib/compile.dart
+    useRapidTypeAnalysis = false;
     target.recordClasses = generateRecordClasses(component, coreTypes);
   }
 
   component = transformComponent(target, coreTypes, component,
       matcher: new ConstantPragmaAnnotationParser(coreTypes, target),
       config: tfaConfig,
-      treeShakeProtobufs: true);
+      treeShakeProtobufs: true,
+      useRapidTypeAnalysis: useRapidTypeAnalysis);
 
   String actual = kernelLibraryToString(component.mainMethod!.enclosingLibrary);
 

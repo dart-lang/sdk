@@ -14,14 +14,19 @@ class MakeFieldPublic extends ResolvedCorrectionProducer {
   late String _fieldName;
 
   @override
-  List<Object>? get fixArguments => [_fieldName];
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String>? get fixArguments => [_fieldName];
 
   @override
   FixKind get fixKind => DartFixKind.MAKE_FIELD_PUBLIC;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final declaration = node;
+    var declaration = node;
     if (declaration is! MethodDeclaration) {
       return;
     }

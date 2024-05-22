@@ -1,9 +1,0 @@
-library;
-import self as self;
-import "dart:core" as core;
-
-static method foo(core::Map<core::String, core::String> m) → dynamic {
-  function bar<X extends Z% = dynamic, Y extends core::Object? = dynamic, Z extends core::Object? = dynamic>({required core::Map<Y%, Z%> m}) → void {}
-  bar<core::String, core::String, core::String>(m: m){({required m: core::Map<core::String, core::String>}) → void};
-}
-static method main() → dynamic {}

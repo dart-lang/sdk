@@ -18,14 +18,14 @@ void main() {
 @reflectiveTest
 class TemporaryOverlayOperationTest extends AbstractLspAnalysisServerTest {
   void expectFsStateContent(String path, String expected) {
-    final driver = server.getAnalysisDriver(path)!;
-    final actual = driver.fsState.getFileForPath(path).content;
+    var driver = server.getAnalysisDriver(path)!;
+    var actual = driver.fsState.getFileForPath(path).content;
     expect(actual, expected);
   }
 
   void expectOverlayContent(String path, String expected) {
     expect(server.resourceProvider.hasOverlay(path), isTrue);
-    final actual = server.resourceProvider.getFile(path).readAsStringSync();
+    var actual = server.resourceProvider.getFile(path).readAsStringSync();
     expect(actual, expected);
   }
 

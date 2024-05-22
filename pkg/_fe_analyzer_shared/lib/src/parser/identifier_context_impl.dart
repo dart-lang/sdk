@@ -972,6 +972,9 @@ class MetadataReferenceIdentifierContext extends IdentifierContext {
     }
     return identifier;
   }
+
+  @override
+  bool get allowsNewAsIdentifier => isContinuation;
 }
 
 /// See [IdentifierContext.methodDeclaration],
