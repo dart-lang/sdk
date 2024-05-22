@@ -12871,7 +12871,7 @@ class RecordType extends DartType implements SharedRecordType<DartType> {
             "in a RecordType: ${named}");
 
   @override
-  Iterable<SharedNamedType<DartType>> get namedTypes => named;
+  List<SharedNamedType<DartType>> get namedTypes => named;
 
   @override
   Nullability get nullability => declaredNullability;
@@ -12888,7 +12888,7 @@ class RecordType extends DartType implements SharedRecordType<DartType> {
       };
 
   @override
-  Iterable<DartType> get positionalTypes => positional;
+  List<DartType> get positionalTypes => positional;
 
   @override
   R accept<R>(DartTypeVisitor<R> v) {
