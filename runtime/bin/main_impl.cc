@@ -1177,10 +1177,11 @@ void main(int argc, char** argv) {
 
   auto parse_arguments = [&](int argc, char** argv,
                              CommandLineOptions* vm_options,
-                             CommandLineOptions* dart_options) {
+                             CommandLineOptions* dart_options,
+                             bool parsing_dart_vm_options) {
     bool success = Options::ParseArguments(
-        argc, argv, vm_run_app_snapshot, vm_options, &script_name, dart_options,
-        &print_flags_seen, &verbose_debug_seen);
+        argc, argv, vm_run_app_snapshot, parsing_dart_vm_options, vm_options,
+        &script_name, dart_options, &print_flags_seen, &verbose_debug_seen);
     if (!success) {
       if (Options::help_option()) {
         Options::PrintUsage();
@@ -1237,7 +1238,8 @@ void main(int argc, char** argv) {
         // Any Dart options that are generated based on parsing DART_VM_OPTIONS
         // are useless, so we'll throw them away rather than passing them along.
         CommandLineOptions tmp_options(env_argc + EXTRA_VM_ARGUMENTS);
-        parse_arguments(env_argc, env_argv, &vm_options, &tmp_options);
+        parse_arguments(env_argc, env_argv, &vm_options, &tmp_options,
+                        /*parsing_dart_vm_options=*/true);
       }
     }
   }
@@ -1245,7 +1247,8 @@ void main(int argc, char** argv) {
 
   // Parse command line arguments.
   if (app_snapshot == nullptr) {
-    parse_arguments(argc, argv, &vm_options, &dart_options);
+    parse_arguments(argc, argv, &vm_options, &dart_options,
+                    /*parsing_dart_vm_options=*/false);
   }
 
   DartUtils::SetEnvironment(Options::environment());

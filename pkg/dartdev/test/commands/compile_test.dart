@@ -688,8 +688,10 @@ void main() {
   }, skip: isRunningOnIA32);
 
   test('Compile and run exe with DART_VM_OPTIONS', () async {
-    final p = project(mainSrc: '''void main() {
-      // Empty
+    final p = project(mainSrc: '''
+    import 'dart:math';
+    void main() {
+      print(Random().nextInt(1000));
     }''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
@@ -710,6 +712,7 @@ void main() {
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
 
+    // Verify CSV options are processed.
     result = Process.runSync(
       outFile,
       [],
@@ -719,8 +722,26 @@ void main() {
     );
 
     expect(result.stderr, isEmpty);
+    // vm_name is a verbose flag and will only be shown if --verbose is
+    // processed.
     expect(result.stdout, contains('vm_name'));
-    expect(result.exitCode, 255);
+    expect(result.exitCode, 0);
+
+    // Verify non-help options work.
+    //
+    // Regression test for https://github.com/dart-lang/sdk/issues/55767
+    result = Process.runSync(
+      outFile,
+      [],
+      environment: <String, String>{
+        'DART_VM_OPTIONS': '--random_seed=42',
+      },
+    );
+
+    expect(result.stderr, isEmpty);
+    // This value should be consistent as long as --random_seed is processed.
+    expect(result.stdout, contains('64'));
+    expect(result.exitCode, 0);
   }, skip: isRunningOnIA32);
 
   test('Compile exe without info', () async {
