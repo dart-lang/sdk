@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 364 "needsFix"
-# - 387 "hasFix"
+# - 363 "needsFix"
+# - 388 "hasFix"
 # - 516 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -112,9 +112,7 @@ AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE:
     we could do is to remove the include in the file that the diagnostic is
     reported on.
 AnalysisOptionsWarningCode.REMOVED_LINT:
-  status: needsFix
-  notes: |-
-    The fix is to remove the name of the removed lint rule.
+  status: hasFix
 AnalysisOptionsWarningCode.REPLACED_LINT:
   status: needsFix
   notes: |-

@@ -26,18 +26,31 @@ class DeprecatedRule extends LintRule {
         );
 }
 
+class RemovedRule extends LintRule {
+  RemovedRule()
+      : super(
+            name: 'removed_rule',
+            description: '',
+            details: '...',
+            group: Group.errors,
+            state: State.removed());
+}
+
 @reflectiveTest
 class RemoveLintTest extends AnalysisOptionsFixTest {
-  // Keep track of this rule so it can be unregistered in `tearDown`.
+  // Keep track of these rules so they can be unregistered in `tearDown`.
   var deprecatedRule = DeprecatedRule();
+  var removedRule = RemovedRule();
 
   void setUp() {
     registerLintRules();
     Registry.ruleRegistry.register(deprecatedRule);
+    Registry.ruleRegistry.register(removedRule);
   }
 
   void tearDown() {
     Registry.ruleRegistry.unregister(deprecatedRule);
+    Registry.ruleRegistry.register(removedRule);
   }
 
   Future<void> test_deprecated() async {
@@ -106,6 +119,19 @@ linter:
   rules:
     - camel_case_types
     - camel_case_types
+''', '''
+linter:
+  rules:
+    - camel_case_types
+''');
+  }
+
+  Future<void> test_removed() async {
+    await assertHasFix('''
+linter:
+  rules:
+    - camel_case_types
+    - removed_rule
 ''', '''
 linter:
   rules:

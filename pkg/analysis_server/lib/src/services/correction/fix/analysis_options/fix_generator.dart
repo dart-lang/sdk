@@ -29,6 +29,7 @@ class AnalysisOptionsFixGenerator {
     AnalysisOptionsHintCode.DEPRECATED_LINT,
     AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT,
     AnalysisOptionsHintCode.DUPLICATE_RULE,
+    AnalysisOptionsWarningCode.REMOVED_LINT,
     AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES,
   ];
 
@@ -99,7 +100,8 @@ class AnalysisOptionsFixGenerator {
             coveringNodePath, analyzerMap, strongModeMap);
       }
     } else if (errorCode == AnalysisOptionsHintCode.DEPRECATED_LINT ||
-        errorCode == AnalysisOptionsHintCode.DUPLICATE_RULE) {
+        errorCode == AnalysisOptionsHintCode.DUPLICATE_RULE ||
+        errorCode == AnalysisOptionsWarningCode.REMOVED_LINT) {
       await _addFix_removeLint(coveringNodePath);
     } else if (errorCode ==
         AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES) {
