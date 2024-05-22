@@ -124,6 +124,7 @@ import 'no_adjacent_strings_in_list_test.dart' as no_adjacent_strings_in_list;
 import 'no_duplicate_case_values_test.dart' as no_duplicate_case_values;
 import 'no_leading_underscores_for_local_identifiers_test.dart'
     as no_leading_underscores_for_local_identifiers;
+import 'no_literal_bool_comparisons_test.dart' as no_literal_bool_comparisons;
 import 'no_logic_in_create_state_test.dart' as no_logic_in_create_state;
 import 'no_runtimeType_toString_test.dart' as no_runtimeType_toString;
 import 'no_self_assignments_test.dart' as no_self_assignments;
@@ -360,6 +361,7 @@ void main() {
   no_adjacent_strings_in_list.main();
   no_duplicate_case_values.main();
   no_leading_underscores_for_local_identifiers.main();
+  no_literal_bool_comparisons.main();
   no_logic_in_create_state.main();
   no_runtimeType_toString.main();
   no_self_assignments.main();
