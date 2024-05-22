@@ -571,6 +571,9 @@ final _builtInLintProducers = <String, List<ProducerGenerator>>{
     AddAwait.unawaited,
     WrapInUnawaited.new,
   ],
+  LintNames.unnecessary_await_in_return: [
+    RemoveAwait.new,
+  ],
   LintNames.unnecessary_brace_in_string_interps: [
     RemoveInterpolationBraces.new,
   ],
@@ -1331,6 +1334,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ],
   ParserErrorCode.DEFAULT_IN_SWITCH_EXPRESSION: [
     ReplaceWithWildcard.new,
+  ],
+  ParserErrorCode.DUPLICATED_MODIFIER: [
+    RemoveExtraModifier.new,
   ],
   ParserErrorCode.EXPECTED_TOKEN: [
     InsertSemicolon.new,
