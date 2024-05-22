@@ -239,7 +239,7 @@ mixin _FromJson on _Shared {
             field.type,
             RawCode.fromParts([
               jsonParam,
-              "['",
+              "[r'",
               field.identifier.name,
               "']",
             ]),
@@ -501,7 +501,7 @@ mixin _ToJson on _Shared {
         ]);
       }
       parts.addAll([
-        "json['",
+        "json[r'",
         field.identifier.name,
         "'] = ",
         await _convertTypeToJson(

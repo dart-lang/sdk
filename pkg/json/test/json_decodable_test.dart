@@ -9,7 +9,8 @@ import 'package:test/test.dart';
 
 void main() {
   test('generates a fromJson constructor', () {
-    expect(A.fromJson({'b': 5}), predicate<A>((a) => a.b == 5));
+    expect(A.fromJson({'b': 5, r'$b': 5}),
+        predicate<A>((a) => a.b == 5 && a.$b == 5));
   });
 
   test('does not generate a toJson method', () {
@@ -20,6 +21,7 @@ void main() {
 @JsonDecodable()
 class A {
   final int b;
+  int? $b;
 
   A(this.b);
 }
