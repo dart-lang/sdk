@@ -229,25 +229,11 @@ config("compiler") {
     } else if (current_cpu == "arm") {
       cflags += [
         "-march=$arm_arch",
+        "-mfpu=$arm_fpu",
         "-mfloat-abi=$arm_float_abi",
       ]
       if (arm_tune != "") {
         cflags += [ "-mtune=$arm_tune" ]
-      }
-      if (!is_clang) {
-        # Clang doesn't support these flags.
-        cflags += [
-          # The tree-sra optimization (scalar replacement for
-          # aggregates enabling subsequent optimizations) leads to
-          # invalid code generation when using the Android NDK's
-          # compiler (r5-r7). This can be verified using
-          # webkit_unit_tests' WTF.Checked_int8_t test.
-          "-fno-tree-sra",
-
-          # The following option is disabled to improve binary
-          # size and performance in gcc 4.9.
-          "-fno-caller-saves",
-        ]
       }
     }
   }
