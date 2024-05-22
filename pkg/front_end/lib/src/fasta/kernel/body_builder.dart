@@ -5650,7 +5650,7 @@ class BodyBuilder extends StackListenerImpl
         if (parameterCount > 1) {
           stackTrace = catchParameters.parameters![1];
           stackTrace.build(libraryBuilder).type =
-              coreTypes.stackTraceRawType(libraryBuilder.nonNullable);
+              coreTypes.stackTraceRawType(Nullability.nonNullable);
         }
       }
       if (parameterCount > 2) {
@@ -5671,7 +5671,7 @@ class BodyBuilder extends StackListenerImpl
         exceptionType,
         exception?.variable,
         stackTrace?.variable,
-        coreTypes.stackTraceRawType(libraryBuilder.nonNullable),
+        coreTypes.stackTraceRawType(Nullability.nonNullable),
         body));
     if (compileTimeErrors == null) {
       push(NullValues.Block);
@@ -7254,7 +7254,7 @@ class BodyBuilder extends StackListenerImpl
             variable.fileOffset, variable.name!.length);
       }
 
-      variable.type = function.computeFunctionType(libraryBuilder.nonNullable);
+      variable.type = function.computeFunctionType(Nullability.nonNullable);
 
       declaration.function = function;
       function.parent = declaration;

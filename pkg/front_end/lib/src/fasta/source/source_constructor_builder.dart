@@ -844,7 +844,7 @@ class DeclaredSourceConstructorBuilder
               typeParameter, libraryBuilder.library));
     }
     InterfaceType type = new InterfaceType(
-        enclosingClass, libraryBuilder.nonNullable, typeParameterTypes);
+        enclosingClass, Nullability.nonNullable, typeParameterTypes);
     returnType.registerInferredType(type);
   }
 
@@ -1259,8 +1259,8 @@ class SourceExtensionTypeConstructorBuilder
           new TypeParameterType.withDefaultNullabilityForLibrary(
               typeParameter, libraryBuilder.library));
     }
-    ExtensionType type = new ExtensionType(extensionTypeDeclaration,
-        libraryBuilder.nonNullable, typeParameterTypes);
+    ExtensionType type = new ExtensionType(
+        extensionTypeDeclaration, Nullability.nonNullable, typeParameterTypes);
     returnType.registerInferredType(type);
   }
 

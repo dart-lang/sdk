@@ -418,7 +418,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
             isFinal: true,
             type: new ExtensionType(
                 extensionTypeDeclarationBuilder.extensionTypeDeclaration,
-                libraryBuilder.nonNullable,
+                Nullability.nonNullable,
                 typeArguments))
           ..fileOffset = charOffset
           ..isLowered = true;

@@ -1499,7 +1499,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     FunctionType extensionFunctionType = new FunctionType(
         [calleeType.positionalParameters.first],
         const DynamicType(),
-        libraryBuilder.nonNullable,
+        Nullability.nonNullable,
         requiredParameterCount: 1,
         typeParameters: calleeType.typeParameters
             .take(extensionTypeParameterCount)
@@ -1529,7 +1529,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     FunctionType targetFunctionType = new FunctionType(
         calleeType.positionalParameters.skip(1).toList(),
         calleeType.returnType,
-        libraryBuilder.nonNullable,
+        Nullability.nonNullable,
         requiredParameterCount: calleeType.requiredParameterCount - 1,
         namedParameters: calleeType.namedParameters,
         typeParameters: targetTypeParameters);
@@ -2197,7 +2197,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (bodyResult.hasChanged) {
       function.body = bodyResult.statement..parent = function;
     }
-    return function.computeFunctionType(libraryBuilder.nonNullable);
+    return function.computeFunctionType(Nullability.nonNullable);
   }
 
   void inferMetadata(InferenceVisitor visitor, TreeNode? parent,
@@ -2526,7 +2526,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     return new FunctionType(
         new List<DartType>.filled(arguments.positional.length, type),
         type,
-        libraryBuilder.nonNullable,
+        Nullability.nonNullable,
         namedParameters: new List<NamedType>.generate(arguments.named.length,
             (int index) => new NamedType(arguments.named[index].name, type)));
   }
@@ -3408,7 +3408,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         isImplicitExtensionMember: false);
     DartType inferredType = result.inferredType;
     if (methodName.text == '==') {
-      inferredType = coreTypes.boolRawType(libraryBuilder.nonNullable);
+      inferredType = coreTypes.boolRawType(Nullability.nonNullable);
     }
     _checkBoundsInMethodInvocation(
         target, receiverType, calleeType, methodName, arguments, fileOffset);
@@ -3618,7 +3618,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
     // TODO(paulberry): If [type] is a subtype of `Future`, should we just
     // return it unmodified?
-    return new FutureOrType(type, libraryBuilder.nonNullable);
+    return new FutureOrType(type, Nullability.nonNullable);
   }
 
   DartType wrapFutureType(DartType type, Nullability nullability) {
@@ -3991,7 +3991,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               checkReturn = false;
             } else {
               DartType typeToCheck = interfaceMember.function
-                  .computeFunctionType(libraryBuilder.nonNullable);
+                  .computeFunctionType(Nullability.nonNullable);
               checkReturn = InferenceVisitorBase
                   .returnedTypeParametersOccurNonCovariantly(
                       interfaceMember.enclosingTypeDeclaration!, typeToCheck);

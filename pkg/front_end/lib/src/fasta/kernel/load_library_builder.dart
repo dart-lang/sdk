@@ -12,6 +12,7 @@ import 'package:kernel/ast.dart'
         LibraryDependency,
         LoadLibrary,
         Name,
+        Nullability,
         Procedure,
         ProcedureKind,
         Reference,
@@ -59,7 +60,7 @@ class LoadLibraryBuilder extends BuilderImpl {
         ProcedureKind.Method,
         new FunctionNode(new ReturnStatement(expression),
             returnType: new InterfaceType(parent.loader.coreTypes.futureClass,
-                parent.nonNullable, <DartType>[const DynamicType()])),
+                Nullability.nonNullable, <DartType>[const DynamicType()])),
         fileUri: parent.library.fileUri,
         isStatic: true,
         reference: reference)
