@@ -2848,9 +2848,7 @@ ParserErrorCode.EXTERNAL_TYPEDEF:
   notes: |-
     Remove the `external` keyword.
 ParserErrorCode.EXTRANEOUS_MODIFIER:
-  status: needsFix
-  notes: |-
-    Remove the extraneous keyword.
+  status: hasFix
 ParserErrorCode.EXTRANEOUS_MODIFIER_IN_EXTENSION_TYPE:
   status: needsEvaluation
 ParserErrorCode.EXTRANEOUS_MODIFIER_IN_PRIMARY_CONSTRUCTOR:
