@@ -2526,10 +2526,6 @@ ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE:
   status: noFix
 ParserErrorCode.ABSTRACT_CLASS_MEMBER:
   status: hasFix
-ParserErrorCode.ABSTRACT_ENUM:
-  status: needsFix
-  notes: |-
-    Remove abstract keyword
 ParserErrorCode.ABSTRACT_EXTERNAL_FIELD:
   status: needsFix
   notes: |-
@@ -2555,18 +2551,6 @@ ParserErrorCode.ABSTRACT_STATIC_FIELD:
   notes: |-
     Remove the `abstract` keyword.
 ParserErrorCode.ABSTRACT_STATIC_METHOD:
-  status: needsFix
-  notes: |-
-    Remove the `abstract` keyword.
-ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION:
-  status: needsFix
-  notes: |-
-    Remove the `abstract` keyword.
-ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE:
-  status: needsFix
-  notes: |-
-    Remove the `abstract` keyword.
-ParserErrorCode.ABSTRACT_TYPEDEF:
   status: needsFix
   notes: |-
     Remove the `abstract` keyword.
@@ -2622,19 +2606,11 @@ ParserErrorCode.CONST_CLASS:
   status: hasFix
 ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY:
   status: noFix
-ParserErrorCode.CONST_ENUM:
-  status: needsFix
-  notes: |-
-    Remove the `const` keyword.
 ParserErrorCode.CONST_FACTORY:
   status: needsFix
   notes: |-
     Remove the `const` keyword.
 ParserErrorCode.CONST_METHOD:
-  status: needsFix
-  notes: |-
-    Remove the `const` keyword.
-ParserErrorCode.CONST_TYPEDEF:
   status: needsFix
   notes: |-
     Remove the `const` keyword.
@@ -2662,10 +2638,6 @@ ParserErrorCode.COVARIANT_CONSTRUCTOR:
   notes: |-
     Remove `covariant`.
 ParserErrorCode.COVARIANT_MEMBER:
-  status: needsFix
-  notes: |-
-    Remove `covariant`.
-ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION:
   status: needsFix
   notes: |-
     Remove `covariant`.
@@ -2911,10 +2883,6 @@ ParserErrorCode.FINAL_AND_VAR:
   status: needsFix
   notes: |-
     Remove either `final` or `var`.
-ParserErrorCode.FINAL_CLASS:
-  status: needsFix
-  notes: |-
-    Remove the `final` keyword.
 ParserErrorCode.FINAL_CONSTRUCTOR:
   status: needsFix
   notes: |-
@@ -2932,10 +2900,6 @@ ParserErrorCode.FINAL_MIXIN:
   notes: |-
     Remove the `final` keyword.
 ParserErrorCode.FINAL_MIXIN_CLASS:
-  status: needsFix
-  notes: |-
-    Remove the `final` keyword.
-ParserErrorCode.FINAL_TYPEDEF:
   status: needsFix
   notes: |-
     Remove the `final` keyword.
@@ -3327,10 +3291,6 @@ ParserErrorCode.STATIC_SETTER_WITHOUT_BODY:
   status: needsFix
   notes: |-
     Add an empty body.
-ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION:
-  status: needsFix
-  notes: |-
-    Remove the `static` keyword.
 ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE:
   status: needsFix
   notes: |-

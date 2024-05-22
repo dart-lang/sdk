@@ -21371,20 +21371,8 @@ ManifestWarningCode:
       Parameters:
       0: the name of the feature
 ParserErrorCode:
-  ABSTRACT_ENUM:
-    problemMessage: "Enums can't be declared to be 'abstract'."
-    correctionMessage: "Try removing the keyword 'abstract'."
   ABSTRACT_STATIC_METHOD:
     problemMessage: "Static methods can't be declared to be 'abstract'."
-    correctionMessage: "Try removing the keyword 'abstract'."
-  ABSTRACT_TOP_LEVEL_FUNCTION:
-    problemMessage: "Top-level functions can't be declared to be 'abstract'."
-    correctionMessage: "Try removing the keyword 'abstract'."
-  ABSTRACT_TOP_LEVEL_VARIABLE:
-    problemMessage: "Top-level variables can't be declared to be 'abstract'."
-    correctionMessage: "Try removing the keyword 'abstract'."
-  ABSTRACT_TYPEDEF:
-    problemMessage: "Typedefs can't be declared to be 'abstract'."
     correctionMessage: "Try removing the keyword 'abstract'."
   ASYNC_KEYWORD_USED_AS_IDENTIFIER:
     problemMessage: "The keywords 'await' and 'yield' can't be used as identifiers in an asynchronous or generator function."
@@ -21395,17 +21383,8 @@ ParserErrorCode:
   CONST_CONSTRUCTOR_WITH_BODY:
     problemMessage: "Const constructors can't have a body."
     correctionMessage: "Try removing either the 'const' keyword or the body."
-  CONST_ENUM:
-    problemMessage: "Enums can't be declared to be 'const'."
-    correctionMessage: "Try removing the 'const' keyword."
-  CONST_TYPEDEF:
-    problemMessage: "Type aliases can't be declared to be 'const'."
-    correctionMessage: "Try removing the 'const' keyword."
   COVARIANT_CONSTRUCTOR:
     problemMessage: "A constructor can't be declared to be 'covariant'."
-    correctionMessage: "Try removing the keyword 'covariant'."
-  COVARIANT_TOP_LEVEL_DECLARATION:
-    problemMessage: "Top-level declarations can't be declared to be covariant."
     correctionMessage: "Try removing the keyword 'covariant'."
   DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION:
     problemMessage: "The identifier 'augmented' has a special meaning inside augmenting declarations."
@@ -21502,17 +21481,11 @@ ParserErrorCode:
   FACTORY_WITH_INITIALIZERS:
     problemMessage: "A 'factory' constructor can't have initializers."
     correctionMessage: "Try removing the 'factory' keyword to make this a generative constructor, or removing the initializers."
-  FINAL_CLASS:
-    problemMessage: "Classes can't be declared to be 'final'."
-    correctionMessage: "Try removing the keyword 'final'."
   FINAL_CONSTRUCTOR:
     problemMessage: "A constructor can't be declared to be 'final'."
     correctionMessage: "Try removing the keyword 'final'."
   FINAL_METHOD:
     problemMessage: "Getters, setters and methods can't be declared to be 'final'."
-    correctionMessage: "Try removing the keyword 'final'."
-  FINAL_TYPEDEF:
-    problemMessage: "Typedefs can't be declared to be 'final'."
     correctionMessage: "Try removing the keyword 'final'."
   GETTER_IN_FUNCTION:
     problemMessage: "Getters can't be defined within methods or functions."
@@ -21677,9 +21650,6 @@ ParserErrorCode:
   STATIC_SETTER_WITHOUT_BODY:
     problemMessage: "A 'static' setter must have a body."
     correctionMessage: "Try adding a body to the setter, or removing the keyword 'static'."
-  STATIC_TOP_LEVEL_DECLARATION:
-    problemMessage: "Top-level declarations can't be declared to be static."
-    correctionMessage: "Try removing the keyword 'static'."
   UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP:
     problemMessage: "There is no '{0}' to open a parameter group."
     correctionMessage: "Try inserting the '{0}' at the appropriate location."
