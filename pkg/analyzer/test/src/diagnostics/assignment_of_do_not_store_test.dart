@@ -55,6 +55,62 @@ class AssignmentOfDoNotStoreTest extends PubPackageResolutionTest {
     writeTestPackageConfigWithMeta();
   }
 
+  test_class_containingInstanceGetter() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+@doNotStore
+class A {
+  String get v => '';
+}
+
+String f = A().v;
+''', [
+      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 91, 5),
+    ]);
+  }
+
+  test_class_containingInstanceMethod() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+@doNotStore
+class A {
+  String v() => '';
+}
+
+String f = A().v();
+''', [
+      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 89, 7),
+    ]);
+  }
+
+  test_class_containingStaticGetter() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+@doNotStore
+class A {
+  static String get v => '';
+}
+
+String f = A.v;
+''', [
+      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 98, 3),
+    ]);
+  }
+
+  test_class_containingStaticMethod() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+@doNotStore
+class A {
+  static String v() => '';
+}
+
+String f = A.v();
+''', [
+      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 96, 5),
+    ]);
+  }
+
   test_classMemberGetter() async {
     await assertErrorsInCode('''
 import 'package:meta/meta.dart';
@@ -168,6 +224,23 @@ class B {
 }
 ''', [
       error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 106, 10),
+    ]);
+  }
+
+  test_mixin_containingInstanceMethod() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+@doNotStore
+mixin M {
+  String v() => '';
+}
+
+abstract class A {
+  M get m;
+  late String f = m.v();
+}
+''', [
+      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 126, 5),
     ]);
   }
 

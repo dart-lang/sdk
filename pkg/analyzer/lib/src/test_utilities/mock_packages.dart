@@ -194,10 +194,12 @@ class _Checked {
 
 @Target({
   TargetKind.classType,
+  TargetKind.constructor,
   TargetKind.function,
   TargetKind.getter,
   TargetKind.library,
   TargetKind.method,
+  TargetKind.mixinType,
 })
 class _DoNotStore {
   const _DoNotStore();
