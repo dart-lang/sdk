@@ -92,7 +92,10 @@ Future<CompilerOutput?> compileToModule(compiler.WasmCompilerOptions options,
     ..sdkRoot = Uri.file('.')
     ..librariesSpecificationUri = options.librariesSpecPath
     ..packagesFileUri = options.packagesPath
-    ..environmentDefines = options.environment
+    ..environmentDefines = {
+      'dart.tool.dart2wasm': 'true',
+      ...options.environment,
+    }
     ..explicitExperimentalFlags = options.feExperimentalFlags
     ..verbose = false
     ..onDiagnostic = diagnosticMessageHandler
