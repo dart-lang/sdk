@@ -84,6 +84,11 @@ void declareCompilerOptions(ArgParser args) {
       defaultsTo: null);
   args.addFlag('compact-async', help: 'Obsolete, ignored.', hide: true);
   args.addOption('depfile', help: 'Path to output Ninja depfile');
+  args.addOption(
+    'depfile-target',
+    help: 'Override the target in the generated depfile',
+    hide: true,
+  );
   args.addOption('from-dill',
       help: 'Read existing dill file instead of compiling from sources',
       defaultsTo: null);
@@ -209,6 +214,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final String targetName = options['target'];
   final String? fileSystemScheme = options['filesystem-scheme'];
   final String? depfile = options['depfile'];
+  final String? depfileTarget = options['depfile-target'];
   final String? fromDillFile = options['from-dill'];
   final List<String>? fileSystemRoots = options['filesystem-root'];
   final String? targetOS = options['target-os'];
@@ -373,7 +379,11 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 
   if (depfile != null) {
     await writeDepfile(
-        fileSystem, results.compiledSources!, outputFileName, depfile);
+      fileSystem,
+      results.compiledSources!,
+      depfileTarget ?? outputFileName,
+      depfile,
+    );
   }
 
   if (splitOutputByPackages) {

@@ -184,6 +184,17 @@ class CompileKernelSnapshotCommand extends CompileSubcommandCommand {
         defaultsTo: soundNullSafetyOption.flagDefaultsTo,
         hide: true,
       )
+      ..addOption(
+        'depfile',
+        valueHelp: 'path',
+        help: 'Path to output Ninja depfile',
+      )
+      ..addMultiOption(
+        'extra-gen-kernel-options',
+        help: 'Pass additional options to gen_kernel.',
+        hide: true,
+        valueHelp: 'opt1,opt2,...',
+      )
       ..addExperimentalFlags(verbose: verbose);
   }
 
@@ -233,6 +244,8 @@ class CompileKernelSnapshotCommand extends CompileSubcommandCommand {
         packages: args.option('packages'),
         enableExperiment: args.enabledExperiments.join(','),
         linkPlatform: args.flag('link-platform'),
+        depFile: args.option('depfile'),
+        extraOptions: args.multiOption('extra-gen-kernel-options'),
         embedSources: args.flag('embed-sources'),
         verbose: verbose,
         verbosity: args.option('verbosity')!,
@@ -425,12 +438,28 @@ class CompileNativeCommand extends CompileSubcommandCommand {
           help: soundNullSafetyOption.help,
           defaultsTo: soundNullSafetyOption.flagDefaultsTo,
           hide: true)
-      ..addOption('save-debugging-info', abbr: 'S', valueHelp: 'path', help: '''
+      ..addOption(
+        'save-debugging-info',
+        abbr: 'S',
+        valueHelp: 'path',
+        help: '''
 Remove debugging information from the output and save it separately to the specified file.
-<path> can be relative or absolute.''')
+<path> can be relative or absolute.''',
+      )
+      ..addOption(
+        'depfile',
+        valueHelp: 'path',
+        help: 'Path to output Ninja depfile',
+      )
       ..addMultiOption(
         'extra-gen-snapshot-options',
         help: 'Pass additional options to gen_snapshot.',
+        hide: true,
+        valueHelp: 'opt1,opt2,...',
+      )
+      ..addMultiOption(
+        'extra-gen-kernel-options',
+        help: 'Pass additional options to gen_kernel.',
         hide: true,
         valueHelp: 'opt1,opt2,...',
       )
@@ -521,8 +550,11 @@ Remove debugging information from the output and save it separately to the speci
         verbosity: args.option('verbosity')!,
         targetOS: targetOS,
         tempDir: tempDir,
+        depFile: args.option('depfile'),
       );
-      final snapshotGenerator = await kernelGenerator.generate();
+      final snapshotGenerator = await kernelGenerator.generate(
+        extraOptions: args.multiOption('extra-gen-kernel-options'),
+      );
       await snapshotGenerator.generate(
         extraOptions: args.multiOption('extra-gen-snapshot-options'),
       );

@@ -41,6 +41,7 @@ extension type KernelGenerator._(_Generator _generator) {
     String? debugFile,
     String? packages,
     String? targetOS,
+    String? depFile,
     String enableExperiment = '',
     bool enableAsserts = false,
     bool verbose = false,
@@ -59,14 +60,21 @@ extension type KernelGenerator._(_Generator _generator) {
           targetOS: targetOS,
           verbose: verbose,
           verbosity: verbosity,
+          depFile: depFile,
         );
 
   /// Generate a kernel file,
   ///
   /// [resourcesFile] is the path to `resources.json`, where the tree-shaking
   /// information collected during kernel compilation is stored.
-  Future<SnapshotGenerator> generate({String? resourcesFile}) =>
-      _generator.generateKernel(resourcesFile: resourcesFile);
+  Future<SnapshotGenerator> generate({
+    String? resourcesFile,
+    List<String>? extraOptions,
+  }) =>
+      _generator.generateKernel(
+        resourcesFile: resourcesFile,
+        extraOptions: extraOptions,
+      );
 }
 
 /// Second step of generating a snapshot is generating the snapshot itself.
@@ -142,6 +150,9 @@ class _Generator {
   /// The path to the `.dart_tool/package_config.json`.
   final String? _packages;
 
+  /// The path to the [depfile](https://ninja-build.org/manual.html#_depfile).
+  final String? _depFile;
+
   _Generator({
     required String sourceFile,
     required List<String> defines,
@@ -150,6 +161,7 @@ class _Generator {
     String? debugFile,
     String? packages,
     String? targetOS,
+    String? depFile,
     required String enableExperiment,
     required bool enableAsserts,
     required bool verbose,
@@ -165,6 +177,7 @@ class _Generator {
         _debugFile = debugFile,
         _outputFile = outputFile,
         _defines = defines,
+        _depFile = depFile,
         _programKernelFile = path.join(tempDir.path, 'program.dill'),
         _sourcePath = _normalize(sourceFile)!,
         _packages = _normalize(packages) {
@@ -178,7 +191,10 @@ class _Generator {
     }
   }
 
-  Future<SnapshotGenerator> generateKernel({String? resourcesFile}) async {
+  Future<SnapshotGenerator> generateKernel({
+    String? resourcesFile,
+    List<String>? extraOptions,
+  }) async {
     if (_verbose) {
       if (_targetOS != null) {
         print('Specializing Platform getters for target OS $_targetOS.');
@@ -192,6 +208,7 @@ class _Generator {
       kernelFile: _programKernelFile,
       packages: _packages,
       defines: _defines,
+      depFile: _depFile,
       fromDill: await isKernelFile(_sourcePath),
       enableAsserts: _enableAsserts,
       enableExperiment: _enableExperiment,
@@ -199,6 +216,8 @@ class _Generator {
       extraGenKernelOptions: [
         '--invocation-modes=compile',
         '--verbosity=$_verbosity',
+        if (_depFile != null) '--depfile-target=$_outputPath',
+        ...?extraOptions,
       ],
       resourcesFile: resourcesFile,
       aot: true,
@@ -218,17 +237,21 @@ class _Generator {
     await _generateSnapshot(extraOptions, kernelFile);
   }
 
-  Future<void> _generateSnapshot(
-    List<String> extraOptions,
-    String kernelFile,
-  ) async {
+  String get _outputPath {
     final sourceWithoutDartOrDill = _sourcePath.replaceFirst(
       RegExp(r'\.(dart|dill)$'),
       '',
     );
-    final outputPath = _normalize(
+    return _normalize(
       _outputFile ?? _kind.appendFileExtension(sourceWithoutDartOrDill),
     )!;
+  }
+
+  Future<void> _generateSnapshot(
+    List<String> extraOptions,
+    String kernelFile,
+  ) async {
+    final outputPath = _outputPath;
     final debugPath = _normalize(_debugFile);
 
     if (_verbose) {
@@ -360,6 +383,8 @@ Future<void> generateKernel({
   bool verbose = false,
   String? nativeAssets,
   String? resourcesFile,
+  String? depFile,
+  List<String>? extraOptions,
 }) async {
   final sourcePath = _normalize(sourceFile)!;
   final outputPath = _normalize(outputFile)!;
@@ -375,9 +400,11 @@ Future<void> generateKernel({
     embedSources: embedSources,
     fromDill: await isKernelFile(sourcePath),
     enableExperiment: enableExperiment,
+    depFile: depFile,
     extraGenKernelOptions: [
       '--invocation-modes=compile',
       '--verbosity=$verbosity',
+      ...?extraOptions,
     ],
     nativeAssets: nativeAssets,
     resourcesFile: resourcesFile,
