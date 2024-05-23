@@ -587,6 +587,20 @@ class ClassHierarchyBuilder {
         _commonElements, _classHierarchyNodes, _classSets);
   }
 
+  /// Returns true if [cls] is not extended by any other class and is it not
+  /// used as a mixin.
+  bool hasNoSubclasses(ClassEntity cls) {
+    final classSet = _classSets[cls]!;
+    return classSet.node.directSubclasses.isEmpty &&
+        classSet.mixinApplicationNodes.isEmpty;
+  }
+
+  /// Returns true if [cls] is instantiated either directly, indirectly or
+  /// abstractly.
+  bool isInstantiated(ClassEntity cls) {
+    return _classHierarchyNodes[cls]!.isInstantiated;
+  }
+
   void registerClass(ClassEntity cls) {
     _ensureClassSet(cls);
   }

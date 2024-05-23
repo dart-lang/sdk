@@ -10,9 +10,9 @@ import '../elements/names.dart';
 import '../elements/types.dart';
 import '../js_backend/native_data.dart';
 import '../world.dart' show World;
+import 'resolution_world_builder.dart' show ResolutionWorldBuilder;
 import 'selector.dart' show Selector;
 import 'use.dart' show DynamicUse, StaticUse;
-import 'resolution_world_builder.dart' show ResolutionWorldBuilder;
 
 /// The combined constraints on receivers all the dynamic call sites of the same
 /// selector.
@@ -123,13 +123,45 @@ class StrongModeWorldConstraints extends UniverseSelectorConstraints {
   bool isAll = false;
   late Set<ClassEntity> _constraints = {};
 
+  late final Set<ClassEntity> _canHitSet = {};
+
   @override
   bool canHit(
-      MemberEntity element, Name name, covariant ResolutionWorldBuilder world) {
+      MemberEntity member, Name name, covariant ResolutionWorldBuilder world) {
     if (isAll) return true;
-    final worldBuilder = world;
+    final memberClass = member.enclosingClass!;
+
+    // If memberClass has no subclasses (and no mixin applications) then
+    // member is not inherited into any other class. Therefore we can just check
+    // if memberClass itself is in one of the _constraints subtype cones.
+    if (world.classHierarchyBuilder.hasNoSubclasses(memberClass)) {
+      final cachedResult = _canHitSet.contains(memberClass);
+      if (cachedResult) return true;
+
+      // If memberClass isn't instantiated then member isn't live and can't hit.
+      if (!world.classHierarchyBuilder.isInstantiated(memberClass)) {
+        return false;
+      }
+
+      // Check if memberClass itself is in the constraint set.
+      if (_constraints.contains(memberClass)) {
+        _canHitSet.add(memberClass);
+        return true;
+      }
+
+      // Check if memberClass is included in the constraint set via one of its
+      // supertypes. (i.e. it's in a type cone contained in _constraints).
+      bool anyHit = false;
+      world.elementEnvironment.forEachSupertype(memberClass, (interfaceType) {
+        anyHit |= _constraints.contains(interfaceType.element);
+      });
+
+      if (anyHit) _canHitSet.add(memberClass);
+      return anyHit;
+    }
+
     return _constraints
-        .any((constraint) => worldBuilder.isInheritedIn(element, constraint));
+        .any((constraint) => world.isInheritedIn(member, constraint));
   }
 
   @override
