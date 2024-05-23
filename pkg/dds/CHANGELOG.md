@@ -1,3 +1,6 @@
+# 4.2.3
+- Added missing await of `WebSocketChannel.ready` in `startDartDevelopmentService`.
+
 # 4.2.2
 - [DAP] Exceptions that occur while the debug adapter is connecting to the VM Service and configuring isolates will no longer cause the debug adapter to terminate. Instead, the errors are reporting via a `console` `OutputEvent` and the adapter will shut down gracefully.
 
