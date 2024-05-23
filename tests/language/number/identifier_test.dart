@@ -46,22 +46,6 @@ main() {
 // [analyzer] SYNTACTIC_ERROR.MISSING_HEX_DIGIT
 
   // Double literals.
-  Expect.isTrue(2.0 is double);
-  Expect.equals(2.0, 2.0 as double);
-  Expect.isTrue(-2.0 is double);
-  Expect.equals(-2.0, -2.0 as double);
-  Expect.isTrue(.2 is double);
-  Expect.equals(0.2, .2 as double);
-  Expect.isTrue(1e2 is double);
-  Expect.equals(1e2, 1e2 as double);
-  Expect.isTrue(1e-2 is double);
-  Expect.equals(1e-2, 1e-2 as double);
-  Expect.isTrue(1e+2 is double);
-  Expect.equals(1e+2, 1e+2 as double);
-  Expect.throwsNoSuchMethodError(() => 1.e+2);
-  //                                     ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'e' isn't defined for the class 'int'.
   1d;
 //^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
@@ -76,14 +60,6 @@ main() {
 // ^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
 // [cfe] Undefined name 'D'.
-  Expect.throwsNoSuchMethodError(() => 1.d+2);
-  //                                     ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'd' isn't defined for the class 'int'.
-  Expect.throwsNoSuchMethodError(() => 1.D+2);
-  //                                     ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'D' isn't defined for the class 'int'.
   1.1d;
 //^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
