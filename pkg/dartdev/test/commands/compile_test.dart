@@ -1461,4 +1461,50 @@ void main() {
       await basicCompileTest();
     }, skip: isRunningOnIA32);
   }
+
+  // Tests for --depfile for compiling to AOT snapshots, executables and
+  // kernel.
+  group('depfiles', () {
+    Future<void> testDepFileGeneration(String subcommand) async {
+      final p = project(mainSrc: '''void main() {}''');
+      final inFile =
+          path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+      final outFile =
+          path.canonicalize(path.join(p.dirPath, 'output.$subcommand'));
+      final depFile =
+          path.canonicalize(path.join(p.dirPath, 'output.$subcommand.d'));
+
+      final result = await p.run(
+        [
+          'compile',
+          subcommand,
+          '--depfile',
+          depFile,
+          '-o',
+          outFile,
+          inFile,
+        ],
+      );
+
+      expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
+
+      expect(File(depFile).existsSync(), isTrue);
+
+      final depFileContent = File(depFile).readAsStringSync();
+
+      String escapePath(String path) =>
+          path.replaceAll('\\', '\\\\').replaceAll(' ', '\\ ');
+
+      expect(depFileContent, startsWith('${escapePath(outFile)}: '));
+      expect(depFileContent, contains(escapePath(inFile)));
+    }
+
+    test('compile aot-snapshot', () => testDepFileGeneration('aot-snapshot'),
+        skip: isRunningOnIA32);
+    test('compile exe', () => testDepFileGeneration('exe'),
+        skip: isRunningOnIA32);
+    test('compile kernel', () => testDepFileGeneration('kernel'),
+        skip: isRunningOnIA32);
+  });
 }

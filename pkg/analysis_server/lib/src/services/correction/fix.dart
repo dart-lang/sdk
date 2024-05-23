@@ -723,6 +723,11 @@ class DartFixKind {
     49,
     "Create 'noSuchMethod' method",
   );
+  static const CREATE_PARAMETER = FixKind(
+    'dart.fix.create.parameter',
+    DartFixKindPriority.DEFAULT,
+    "Create required positional parameter '{0}'",
+  );
   static const CREATE_SETTER = FixKind(
     'dart.fix.create.setter',
     DartFixKindPriority.DEFAULT,

@@ -117,6 +117,7 @@ import 'create_method_test.dart' as create_method;
 import 'create_missing_overrides_test.dart' as create_missing_overrides;
 import 'create_mixin_test.dart' as create_mixin;
 import 'create_no_such_method_test.dart' as create_no_such_method;
+import 'create_parameter_test.dart' as create_parameter;
 import 'create_setter_test.dart' as create_setter;
 import 'data_driven/test_all.dart' as data_driven;
 import 'directives_ordering_test.dart' as directives_ordering;
@@ -381,6 +382,7 @@ void main() {
     create_function.main();
     create_getter.main();
     create_local_variable.main();
+    create_parameter.main();
     create_method.main();
     create_missing_overrides.main();
     create_mixin.main();
