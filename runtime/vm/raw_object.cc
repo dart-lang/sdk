@@ -48,11 +48,15 @@ void UntaggedObject::Validate(IsolateGroup* isolate_group) const {
   // Validate that the tags_ field is sensible.
   uword tags = tags_;
   if (IsNewObject()) {
-    if (!NewOrEvacuationCandidateBit::decode(tags)) {
+    if (!NewBit::decode(tags)) {
       FATAL("New object missing kNewBit: %" Px "\n", tags);
     }
     if (OldAndNotRememberedBit::decode(tags)) {
       FATAL("New object has kOldAndNotRememberedBit: %" Px "\n", tags);
+    }
+  } else {
+    if (NewBit::decode(tags)) {
+      FATAL("Old object has kNewBit: %" Px "\n", tags);
     }
   }
   const intptr_t class_id = ClassIdTag::decode(tags);
