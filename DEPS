@@ -144,14 +144,14 @@ vars = {
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "a6ad7693555a9add6f98ad6fd94de80d35c89415", # disable tools/rev_sdk_deps.dart
-  "dartdoc_rev": "476d5cc872d45948fe682102595c3df6489b76a6",
+  "dartdoc_rev": "1e1a004c69022ae19e121b6b9c90039dccd56749",
   "ecosystem_rev": "ad9da1557bbf522ff5bd25aa83117aeb818160c9",
   "file_rev": "8ce0d13ffe9dac267bdbd6c65c145ba4f611af72",
   "fixnum_rev": "ac892adead8317e22fafaec65a4e76bda1640f26",
   "flute_rev": "a531c96a8b43d015c6bfbbfe3ab54867b0763b8b",
   "glob_rev": "ee48ea82a1ccb64c8cc62e9f4f44c44ca67add71",
   "html_rev": "00d34611eee5eff976bd12a631357a4d591ef5fb",
-  "http_rev": "5c01453ab467408194143d4106092201f03ed98e",
+  "http_rev": "7df2ac8488ec69ee5945ae188625c0e820c4f63c",
   "http_multi_server_rev": "4a791af861da1cf53b57d9928fbc605f57139e4f",
   "http_parser_rev": "702698a3fc726f7cbb8cd7824a8639c7fe84b169",
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
@@ -159,14 +159,14 @@ vars = {
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # manually rolled
   "lints_rev": "b254c7e374b0328d4ebfe4f32638fd5e58a81b59",
   "logging_rev": "49d89b1de6e847174bc93b709e858b99e61b2ae7",
-  "markdown_rev": "7463999481212e8708b7ab7ff8429b8f552ad30c",
+  "markdown_rev": "340c76f6cab697ca9a51e0772009347400d9488a",
   "matcher_rev": "4ac4096facce24a781ab6609ca99995aeb443b25",
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "mime_rev": "b01c9a24e0991da479bd405138be3b3e403ff456",
   "mockito_rev": "2302814df66e651b6710311366501523dbee2e11",
   "native_rev": "fef40aebc3cf34654919e8a5785b6c50b3ea445c", # mosum@ and dacoharkes@ are rolling breaking changes manually while the assets features are in experimental.
   "package_config_rev": "39096768806ccae4b7025dd4114f15f2df424b0c",
-  "path_rev": "9be79e72be7837fd8b99ae51a69f4c9f04ec29b4",
+  "path_rev": "aea50fa0e997e0401ea271783dddd364ce72f924",
   "pool_rev": "1a6f2df19d7a24baaf674e032a0310a4f76725de",
   "protobuf_rev": "ccf104dbc36929c0f8708285d5f3a8fae206343e",
   "pub_rev": "e70850b53ef9b15a08af7fb0f0f2dcdbfa762b34", # disable tools/rev_sdk_deps.dart
