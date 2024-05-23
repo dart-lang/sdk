@@ -150,13 +150,6 @@ group("analysis_server") {
   deps = [ "utils/analysis_server" ]
 }
 
-group("tools") {
-  deps = [
-    "utils:compile_platform.exe",
-    "utils:gen_kernel.exe",
-  ]
-}
-
 # This is the target that is built on the dart2js build bots.
 # It must depend on anything that is required by the dart2js
 # test suites.

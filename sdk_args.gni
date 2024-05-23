@@ -32,12 +32,6 @@ declare_args() {
 
   # The location in the build output directory of the built Dart SDK.
   dart_sdk_output = "dart-sdk"
-
-  # When set to `true` will cause compile_platform action to use a precompiled
-  # compile_platform.dart script instead of running it from source. This
-  # can significantly improve iteration time when iteration on changes in
-  # core libraries.
-  precompile_tools = false
 }
 
 if (default_git_folder == "") {
