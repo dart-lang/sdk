@@ -30,9 +30,10 @@ import 'package:meta/meta.dart';
 
 /// How broadly a [CorrectionProducer] can be applied.
 ///
-/// Each value of this enum is cumulative, as the index increases. When a
-/// correctiopn producer has a given applicability, it also can be applied with
-/// each lower-indexed value. For example, a correction producer with an
+/// Each value of this enum is cumulative, as the index increases, except for
+/// [CorrectionApplicability.automaticallyButOncePerFile]. When a correctiopn
+/// producer has a given applicability, it also can be applied with each
+/// lower-indexed value. For example, a correction producer with an
 /// applicability of [CorrectionApplicability.acrossFiles] can also be used to
 /// apply corrections across a single file
 /// ([CorrectionApplicability.singleLocation]) and at a single location
@@ -40,6 +41,9 @@ import 'package:meta/meta.dart';
 /// reflect this property: [CorrectionProducer.canBeAppliedAcrossSingleFile],
 /// [CorrectionProducer.canBeAppliedAcrossFiles],
 /// [CorrectionProducer.canBeAppliedAutomatically].
+///
+/// Note that [CorrectionApplicability.automaticallyButOncePerFile] is the one
+/// value that does not have this cumulative property.
 enum CorrectionApplicability {
   /// Indicates a correction can be applied only at a specific location.
   ///
@@ -78,11 +82,27 @@ enum CorrectionApplicability {
   /// A correction with this applicability is also applicable at a specific
   /// location, and across a file, and across multiple files.
   automatically,
+
+  /// Indicates a correction can be applied in multiple files, except only one
+  /// location per file; the correction can be applied even if not chosen
+  /// explicitly as a tool action, and can be applied to potentially incomplete
+  /// code.
+  ///
+  /// A correction with this applicability is also applicable at a specific
+  /// location, and across multiple files.
+  automaticallyButOncePerFile,
 }
 
 /// An object that can compute a correction (fix or assist) in a Dart file.
 abstract class CorrectionProducer<T extends ParsedUnitResult>
     extends _AbstractCorrectionProducer<T> {
+  /// The applicability of this producer.
+  ///
+  /// This property is to be implemented by each subclass, but outside code must
+  /// use other properties to determine a producer's applicability:
+  /// [canBeAppliedAcrossSingleFile], [canBeAppliedAcrossFiles], and
+  /// [canBeAppliedAutomatically].
+  @protected
   CorrectionApplicability get applicability;
 
   /// The arguments that should be used when composing the message for an
@@ -99,7 +119,8 @@ abstract class CorrectionProducer<T extends ParsedUnitResult>
   /// time as applying corrections from other producers.
   bool get canBeAppliedAcrossFiles =>
       applicability == CorrectionApplicability.acrossFiles ||
-      applicability == CorrectionApplicability.automatically;
+      applicability == CorrectionApplicability.automatically ||
+      applicability == CorrectionApplicability.automaticallyButOncePerFile;
 
   /// Whether this producer can be used to apply a correction in multiple
   /// positions simultaneously across a file.
@@ -113,7 +134,8 @@ abstract class CorrectionProducer<T extends ParsedUnitResult>
   /// in bulk across multiple files and/or at the same time as applying
   /// corrections from other producers.
   bool get canBeAppliedAutomatically =>
-      applicability == CorrectionApplicability.automatically;
+      applicability == CorrectionApplicability.automatically ||
+      applicability == CorrectionApplicability.automaticallyButOncePerFile;
 
   /// The length of the source range associated with the error message being
   /// fixed, or `null` if there is no diagnostic.

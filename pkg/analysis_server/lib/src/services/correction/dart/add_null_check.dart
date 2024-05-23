@@ -21,6 +21,12 @@ class AddNullCheck extends ResolvedCorrectionProducer {
   final bool skipAssignabilityCheck;
 
   @override
+  // This is a mutable field so it can be changed in `_replaceWithNullCheck`.
+  // TODO(srawlins): This seems to violate a few assert statements around the
+  // package that read:
+  //
+  // > Producers used in bulk fixes must not modify the FixKind during
+  // > computation.
   FixKind fixKind = DartFixKind.ADD_NULL_CHECK;
 
   @override
@@ -32,7 +38,7 @@ class AddNullCheck extends ResolvedCorrectionProducer {
 
   AddNullCheck.withoutAssignabilityCheck()
       : skipAssignabilityCheck = true,
-        applicability = CorrectionApplicability.automatically;
+        applicability = CorrectionApplicability.automaticallyButOncePerFile;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -221,7 +227,7 @@ class AddNullCheck extends ResolvedCorrectionProducer {
     return false;
   }
 
-  /// Replace the null aware [token] with the null check operator.
+  /// Replaces the null aware [token] with the null check operator.
   Future<void> _replaceWithNullCheck(ChangeBuilder builder, Token token) async {
     fixKind = DartFixKind.REPLACE_WITH_NULL_AWARE;
     var lexeme = token.lexeme;
