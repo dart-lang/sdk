@@ -21,7 +21,7 @@ class AddLeadingNewlineToString extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var stringLiteral = coveredNode;
+    var stringLiteral = coveringNode;
     if (stringLiteral is! SimpleStringLiteral) {
       return;
     }

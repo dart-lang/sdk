@@ -23,7 +23,7 @@ class SortConstructorFirst extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var constructor = coveredNode?.parent;
+    var constructor = coveringNode?.parent;
     var clazz = constructor?.parent;
     if (clazz is! ClassDeclaration || constructor is! ConstructorDeclaration) {
       return;

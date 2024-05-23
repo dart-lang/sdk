@@ -24,7 +24,7 @@ class RemoveUnnecessaryCast extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var asExpression = coveredNode;
+    var asExpression = coveringNode;
     if (asExpression is! AsExpression) {
       return;
     }

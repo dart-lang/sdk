@@ -94,8 +94,15 @@ enum CorrectionApplicability {
 }
 
 /// An object that can compute a correction (fix or assist) in a Dart file.
-abstract class CorrectionProducer<T extends ParsedUnitResult>
+sealed class CorrectionProducer<T extends ParsedUnitResult>
     extends _AbstractCorrectionProducer<T> {
+  /// The most deeply nested node that completely covers the highlight region of
+  /// the diagnostic, or `null` if there is no diagnostic, such a node does not
+  /// exist, or if it hasn't been computed yet.
+  ///
+  /// Use [coveringNode] to access this field.
+  AstNode? _coveringNode;
+
   /// The applicability of this producer.
   ///
   /// This property is to be implemented by each subclass, but outside code must
@@ -136,6 +143,24 @@ abstract class CorrectionProducer<T extends ParsedUnitResult>
   bool get canBeAppliedAutomatically =>
       applicability == CorrectionApplicability.automatically ||
       applicability == CorrectionApplicability.automaticallyButOncePerFile;
+
+  /// The most deeply nested node that completely covers the highlight region of
+  /// the diagnostic, or `null` if there is no diagnostic or if such a node does
+  /// not exist.
+  AstNode? get coveringNode {
+    if (_coveringNode == null) {
+      var diagnostic = this.diagnostic;
+      if (diagnostic == null) {
+        return null;
+      }
+      var errorOffset = diagnostic.problemMessage.offset;
+      var errorLength = diagnostic.problemMessage.length;
+      _coveringNode =
+          NodeLocator2(errorOffset, math.max(errorOffset + errorLength - 1, 0))
+              .searchWithin(unit);
+    }
+    return _coveringNode;
+  }
 
   /// The length of the source range associated with the error message being
   /// fixed, or `null` if there is no diagnostic.
@@ -180,7 +205,7 @@ abstract class CorrectionProducer<T extends ParsedUnitResult>
   void configure(CorrectionProducerContext<T> context);
 }
 
-class CorrectionProducerContext<UnitResult extends ParsedUnitResult> {
+final class CorrectionProducerContext<UnitResult extends ParsedUnitResult> {
   final int _selectionOffset;
   final int _selectionLength;
 
@@ -315,13 +340,13 @@ abstract class MultiCorrectionProducer
   Future<List<ResolvedCorrectionProducer>> get producers;
 }
 
-/// An object that can compute a correction (fix or assist) in a Dart file using
-/// the parsed AST.
+/// A [CorrectionProducer] that can compute a correction (fix or assist) in a
+/// Dart file using the parsed AST.
 abstract class ParsedCorrectionProducer
     extends CorrectionProducer<ParsedUnitResult> {}
 
-/// An object that can compute a correction (fix or assist) in a Dart file using
-/// the resolved AST.
+/// A [CorrectionProducer] that can compute a correction (fix or assist) in a
+/// Dart file using the resolved AST.
 abstract class ResolvedCorrectionProducer
     extends CorrectionProducer<ResolvedUnitResult> {
   AnalysisOptionsImpl get analysisOptions =>
@@ -538,41 +563,15 @@ abstract class ResolvedCorrectionProducer
   }
 }
 
-/// The behavior shared by [ResolvedCorrectionProducer] and
+/// The behavior shared by [CorrectionProducer] and
 /// [MultiCorrectionProducer].
-abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
+sealed class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
   /// The context used to produce corrections.
   // TODO(migration): Make it not `late`, require in constructor.
   late CorrectionProducerContext<T> _context;
 
-  /// The most deeply nested node that completely covers the highlight region of
-  /// the diagnostic, or `null` if there is no diagnostic, such a node does not
-  /// exist, or if it hasn't been computed yet.
-  ///
-  /// Use [coveredNode] to access this field.
-  AstNode? _coveredNode;
-
   /// Whether the fixes are being built for the bulk-fix request.
   bool get applyingBulkFixes => _context._applyingBulkFixes;
-
-  /// The most deeply nested node that completely covers the highlight region of
-  /// the diagnostic, or `null` if there is no diagnostic or if such a node does
-  /// not exist.
-  AstNode? get coveredNode {
-    // TODO(brianwilkerson): Consider renaming this to `coveringNode`.
-    if (_coveredNode == null) {
-      var diagnostic = this.diagnostic;
-      if (diagnostic == null) {
-        return null;
-      }
-      var errorOffset = diagnostic.problemMessage.offset;
-      var errorLength = diagnostic.problemMessage.length;
-      _coveredNode =
-          NodeLocator2(errorOffset, math.max(errorOffset + errorLength - 1, 0))
-              .searchWithin(unit);
-    }
-    return _coveredNode;
-  }
 
   /// The diagnostic being fixed, or `null` if this producer is being
   /// used to produce an assist.

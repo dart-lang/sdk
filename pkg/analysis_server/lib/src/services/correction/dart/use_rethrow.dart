@@ -22,10 +22,10 @@ class UseRethrow extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var coveredNode = this.coveredNode;
-    if (coveredNode is ThrowExpression) {
+    var coveringNode = this.coveringNode;
+    if (coveringNode is ThrowExpression) {
       await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleReplacement(range.node(coveredNode), 'rethrow');
+        builder.addSimpleReplacement(range.node(coveringNode), 'rethrow');
       });
     }
   }

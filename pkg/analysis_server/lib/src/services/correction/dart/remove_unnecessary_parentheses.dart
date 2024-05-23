@@ -22,7 +22,7 @@ class RemoveUnnecessaryParentheses extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var outer = coveredNode;
+    var outer = coveringNode;
     if (outer is ParenthesizedExpression &&
         outer.parent is! ParenthesizedExpression) {
       var left = outer.leftParenthesis;

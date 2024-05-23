@@ -29,13 +29,13 @@ class ChangeTypeAnnotation extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var declaration = coveredNode?.parent;
+    var declaration = coveringNode?.parent;
     if (declaration is! VariableDeclaration) {
       return;
     }
 
     var initializer = declaration.initializer;
-    if (initializer == null || initializer != coveredNode) {
+    if (initializer == null || initializer != coveringNode) {
       return;
     }
 

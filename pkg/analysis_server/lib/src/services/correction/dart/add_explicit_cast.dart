@@ -27,7 +27,7 @@ class AddExplicitCast extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var target = coveredNode;
+    var target = coveringNode;
     if (target is! Expression) {
       return;
     }

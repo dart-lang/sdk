@@ -19,7 +19,7 @@ class ConvertToNullAwareSpread extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var parent = coveredNode?.parent;
+    var parent = coveringNode?.parent;
     if (parent is SpreadElement && !parent.isNullAware) {
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleInsertion(parent.spreadOperator.end, '?');
