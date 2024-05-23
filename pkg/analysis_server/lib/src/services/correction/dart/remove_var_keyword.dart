@@ -20,7 +20,7 @@ class RemoveVarKeyword extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = coveredNode;
+    var node = coveringNode;
     if (node is DeclaredVariablePattern) {
       var keyword = node.keyword;
       if (keyword != null) {

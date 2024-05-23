@@ -22,8 +22,8 @@ class UseNotEqNull extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (coveredNode is IsExpression) {
-      var isExpression = coveredNode as IsExpression;
+    if (coveringNode is IsExpression) {
+      var isExpression = coveringNode as IsExpression;
       await builder.addDartFileEdit(file, (builder) {
         builder.addReplacement(
             range.endEnd(isExpression.expression, isExpression), (builder) {

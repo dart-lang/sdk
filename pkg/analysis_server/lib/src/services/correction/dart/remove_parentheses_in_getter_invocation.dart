@@ -20,7 +20,7 @@ class RemoveParenthesesInGetterInvocation extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var invocation = coveredNode?.parent;
+    var invocation = coveringNode?.parent;
     if (invocation is FunctionExpressionInvocation) {
       await builder.addDartFileEdit(file, (builder) {
         builder.addDeletion(range.node(invocation.argumentList));

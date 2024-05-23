@@ -22,7 +22,7 @@ class MoveTypeArgumentsToClass extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var typeArguments = coveredNode;
+    var typeArguments = coveringNode;
     if (typeArguments is! TypeArgumentList) {
       return;
     }

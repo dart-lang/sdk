@@ -20,8 +20,8 @@ class RemoveDeadCode extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AstNode? get coveredNode {
-    var node = super.coveredNode;
+  AstNode? get coveringNode {
+    var node = super.coveringNode;
     if (node is BinaryExpression) {
       var problemMessage = diagnostic?.problemMessage;
       if (problemMessage != null) {
@@ -41,14 +41,14 @@ class RemoveDeadCode extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var coveredNode = this.coveredNode;
-    var parent = coveredNode?.parent;
+    var coveringNode = this.coveringNode;
+    var parent = coveringNode?.parent;
 
-    if (coveredNode is Expression) {
+    if (coveringNode is Expression) {
       if (parent is BinaryExpression) {
-        if (parent.rightOperand == coveredNode) {
+        if (parent.rightOperand == coveringNode) {
           await builder.addDartFileEdit(file, (builder) {
-            builder.addDeletion(range.endEnd(parent.leftOperand, coveredNode));
+            builder.addDeletion(range.endEnd(parent.leftOperand, coveringNode));
           });
         }
       } else if (parent is ForParts) {
@@ -56,8 +56,7 @@ class RemoveDeadCode extends ResolvedCorrectionProducer {
         if (forStatement is! ForStatement) return;
         await _computeForStatementParts(builder, forStatement, parent);
       }
-    } else if (coveredNode is Block) {
-      var block = coveredNode;
+    } else if (coveringNode is Block) {
       var statementsToRemove = <Statement>[];
       var problemMessage = diagnostic?.problemMessage;
       if (problemMessage == null) {
@@ -65,7 +64,7 @@ class RemoveDeadCode extends ResolvedCorrectionProducer {
       }
       var errorRange =
           SourceRange(problemMessage.offset, problemMessage.length);
-      for (var statement in block.statements) {
+      for (var statement in coveringNode.statements) {
         if (range.node(statement).intersects(errorRange)) {
           statementsToRemove.add(statement);
         }
@@ -76,34 +75,34 @@ class RemoveDeadCode extends ResolvedCorrectionProducer {
           builder.addDeletion(rangeToRemove);
         });
       }
-    } else if (coveredNode is Statement) {
-      if (coveredNode is EmptyStatement) {
+    } else if (coveringNode is Statement) {
+      if (coveringNode is EmptyStatement) {
         return;
       }
-      if (coveredNode is DoStatement &&
-          await _computeDoStatement(builder, coveredNode)) {
+      if (coveringNode is DoStatement &&
+          await _computeDoStatement(builder, coveringNode)) {
         return;
       }
 
-      var rangeToRemove = utils.getLinesRangeStatements([coveredNode]);
+      var rangeToRemove = utils.getLinesRangeStatements([coveringNode]);
       await builder.addDartFileEdit(file, (builder) {
         builder.addDeletion(rangeToRemove);
       });
-    } else if (coveredNode is CatchClause && parent is TryStatement) {
+    } else if (coveringNode is CatchClause && parent is TryStatement) {
       var catchClauses = parent.catchClauses;
-      var index = catchClauses.indexOf(coveredNode);
+      var index = catchClauses.indexOf(coveringNode);
       var previous = index == 0 ? parent.body : catchClauses[index - 1];
       await builder.addDartFileEdit(file, (builder) {
-        builder.addDeletion(range.endEnd(previous, coveredNode));
+        builder.addDeletion(range.endEnd(previous, coveringNode));
       });
-    } else if (coveredNode is ForParts) {
-      var forStatement = coveredNode.parent;
+    } else if (coveringNode is ForParts) {
+      var forStatement = coveringNode.parent;
       if (forStatement is! ForStatement) return;
 
-      await _computeForStatementParts(builder, forStatement, coveredNode);
-    } else if (coveredNode is SwitchPatternCase) {
+      await _computeForStatementParts(builder, forStatement, coveringNode);
+    } else if (coveringNode is SwitchPatternCase) {
       await builder.addDartFileEdit(file, (builder) {
-        builder.addDeletion(range.deletionRange(coveredNode));
+        builder.addDeletion(range.deletionRange(coveringNode));
       });
     }
   }
@@ -171,7 +170,7 @@ class RemoveDeadCode extends ResolvedCorrectionProducer {
 
   Future<void> _computeForStatementParts(ChangeBuilder builder,
       ForStatement forStatement, ForParts forParts) async {
-    var beginNode = coveredNode;
+    var beginNode = coveringNode;
     if (beginNode == null) return;
     var updaters = forParts.updaters;
     if (!updaters.contains(beginNode)) {

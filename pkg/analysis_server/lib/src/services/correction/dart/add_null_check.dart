@@ -43,59 +43,59 @@ class AddNullCheck extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     Expression? target;
-    var coveredNode = this.coveredNode;
-    var coveredNodeParent = coveredNode?.parent;
+    var coveringNode = this.coveringNode;
+    var coveringNodeParent = coveringNode?.parent;
 
-    if (await _isNullAware(builder, coveredNode)) {
+    if (await _isNullAware(builder, coveringNode)) {
       return;
     }
 
-    if (coveredNode is SimpleIdentifier) {
-      if (coveredNodeParent is MethodInvocation) {
-        target = coveredNodeParent.realTarget;
-      } else if (coveredNodeParent is PrefixedIdentifier) {
-        target = coveredNodeParent.prefix;
-      } else if (coveredNodeParent is PropertyAccess) {
-        target = coveredNodeParent.realTarget;
-      } else if (coveredNodeParent is CascadeExpression &&
+    if (coveringNode is SimpleIdentifier) {
+      if (coveringNodeParent is MethodInvocation) {
+        target = coveringNodeParent.realTarget;
+      } else if (coveringNodeParent is PrefixedIdentifier) {
+        target = coveringNodeParent.prefix;
+      } else if (coveringNodeParent is PropertyAccess) {
+        target = coveringNodeParent.realTarget;
+      } else if (coveringNodeParent is CascadeExpression &&
           await _isNullAware(
-              builder, coveredNodeParent.cascadeSections.first)) {
+              builder, coveringNodeParent.cascadeSections.first)) {
         return;
       } else {
-        target = coveredNode;
+        target = coveringNode;
       }
-    } else if (coveredNode is IndexExpression) {
-      target = coveredNode.realTarget;
+    } else if (coveringNode is IndexExpression) {
+      target = coveringNode.realTarget;
       if (target.staticType?.nullabilitySuffix != NullabilitySuffix.question) {
-        target = coveredNode;
+        target = coveringNode;
       }
-    } else if (coveredNode is Expression &&
-        coveredNodeParent is FunctionExpressionInvocation) {
-      target = coveredNode;
-    } else if (coveredNodeParent is AssignmentExpression) {
-      target = coveredNodeParent.rightHandSide;
-    } else if (coveredNode is PostfixExpression) {
-      target = coveredNode.operand;
-    } else if (coveredNode is PrefixExpression) {
-      target = coveredNode.operand;
-    } else if (coveredNode is BinaryExpression) {
-      if (coveredNode.operator.type != TokenType.QUESTION_QUESTION) {
-        target = coveredNode.leftOperand;
+    } else if (coveringNode is Expression &&
+        coveringNodeParent is FunctionExpressionInvocation) {
+      target = coveringNode;
+    } else if (coveringNodeParent is AssignmentExpression) {
+      target = coveringNodeParent.rightHandSide;
+    } else if (coveringNode is PostfixExpression) {
+      target = coveringNode.operand;
+    } else if (coveringNode is PrefixExpression) {
+      target = coveringNode.operand;
+    } else if (coveringNode is BinaryExpression) {
+      if (coveringNode.operator.type != TokenType.QUESTION_QUESTION) {
+        target = coveringNode.leftOperand;
       } else {
-        var expectedType = coveredNode.staticParameterElement?.type;
+        var expectedType = coveringNode.staticParameterElement?.type;
         if (expectedType == null) return;
 
-        var leftType = coveredNode.leftOperand.staticType;
+        var leftType = coveringNode.leftOperand.staticType;
         var leftAssignable = leftType != null &&
             typeSystem.isAssignableTo(
                 typeSystem.promoteToNonNull(leftType), expectedType,
                 strictCasts: analysisOptions.strictCasts);
         if (leftAssignable) {
-          target = coveredNode.rightOperand;
+          target = coveringNode.rightOperand;
         }
       }
-    } else if (coveredNode is AsExpression) {
-      target = coveredNode.expression;
+    } else if (coveringNode is AsExpression) {
+      target = coveringNode.expression;
     }
 
     if (target == null) {

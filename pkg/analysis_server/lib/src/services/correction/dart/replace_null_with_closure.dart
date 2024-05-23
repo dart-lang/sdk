@@ -27,11 +27,11 @@ class ReplaceNullWithClosure extends ResolvedCorrectionProducer {
     AstNode? nodeToFix;
     var parameters = const <ParameterElement>[];
 
-    var coveredNode = this.coveredNode;
-    if (coveredNode is NamedExpression) {
-      var expression = coveredNode.expression;
+    var coveringNode = this.coveringNode;
+    if (coveringNode is NamedExpression) {
+      var expression = coveringNode.expression;
       if (expression is NullLiteral) {
-        var element = coveredNode.element;
+        var element = coveringNode.element;
         if (element is ParameterElement) {
           var type = element.type;
           if (type is FunctionType) {
@@ -40,8 +40,8 @@ class ReplaceNullWithClosure extends ResolvedCorrectionProducer {
         }
         nodeToFix = expression;
       }
-    } else if (coveredNode is NullLiteral) {
-      nodeToFix = coveredNode;
+    } else if (coveringNode is NullLiteral) {
+      nodeToFix = coveringNode;
     }
 
     if (nodeToFix == null) {

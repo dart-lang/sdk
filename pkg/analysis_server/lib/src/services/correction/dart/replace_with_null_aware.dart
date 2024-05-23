@@ -43,7 +43,7 @@ class ReplaceWithNullAware extends ResolvedCorrectionProducer {
   }
 
   Future<void> _computeInChain(ChangeBuilder builder) async {
-    var node = coveredNode;
+    var node = coveringNode;
     if (node is Expression) {
       var node_final = node;
       await builder.addDartFileEdit(file, (builder) {
@@ -67,13 +67,13 @@ class ReplaceWithNullAware extends ResolvedCorrectionProducer {
   }
 
   Future<void> _computeSingle(ChangeBuilder builder) async {
-    var node = coveredNode?.parent;
+    var node = coveringNode?.parent;
     if (node is CascadeExpression) {
       node = node.cascadeSections.first;
     } else {
-      var coveredNode = this.coveredNode;
-      if (coveredNode is IndexExpression) {
-        await _insert(builder, coveredNode.leftBracket);
+      var coveringNode = this.coveringNode;
+      if (coveringNode is IndexExpression) {
+        await _insert(builder, coveringNode.leftBracket);
         return;
       }
       var parent = node?.parent;

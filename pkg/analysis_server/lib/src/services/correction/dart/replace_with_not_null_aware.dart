@@ -29,7 +29,7 @@ class ReplaceWithNotNullAware extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = coveredNode;
+    var node = coveringNode;
     if (node is MethodInvocation) {
       var operator = node.operator;
       if (operator != null) {

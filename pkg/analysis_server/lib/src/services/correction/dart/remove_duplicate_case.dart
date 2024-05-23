@@ -23,7 +23,7 @@ class RemoveDuplicateCase extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = coveredNode?.parent;
+    var node = coveringNode?.parent;
     if (node is! SwitchCase) {
       return;
     }

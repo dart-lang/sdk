@@ -26,7 +26,7 @@ class RemoveNameFromCombinator extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = coveredNode;
+    var node = coveringNode;
     if (node is SimpleIdentifier) {
       var parent = node.parent;
       if (parent is Combinator) {
