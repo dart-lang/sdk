@@ -35,7 +35,7 @@ if (_is_dart) {
   import("../toolchain/rbe.gni")
 }
 
-template("_compiled_action") {
+template("compiled_action") {
   assert(defined(invoker.tool), "tool must be defined for $target_name")
   assert(defined(invoker.outputs), "outputs must be defined for $target_name")
   assert(defined(invoker.args), "args must be defined for $target_name")
@@ -244,7 +244,7 @@ template("_built_tool_action") {
     vm_args += invoker.vm_args
   }
 
-  _compiled_action(target_name) {
+  compiled_action(target_name) {
     forward_variables_from(invoker,
                            [
                              "depfile",

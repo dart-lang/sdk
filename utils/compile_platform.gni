@@ -40,49 +40,93 @@ template("compile_platform") {
     outline = invoker.outline
   }
 
-  prebuilt_dart_action(target_name) {
-    if (defined(invoker.pool)) {
-      pool = invoker.pool
-    }
-    script = "$_dart_root/pkg/front_end/tool/_fasta/compile_platform.dart"
+  if (precompile_tools) {
+    compiled_action(target_name) {
+      if (defined(invoker.pool)) {
+        pool = invoker.pool
+      }
+      tool = "//utils:compile_platform.exe"
 
-    packages = "$_dart_root/.dart_tool/package_config.json"
+      outputs = invoker.outputs
 
-    outputs = invoker.outputs
+      inputs = []
+      deps = []
+      args = []
+      if (defined(invoker.deps)) {
+        deps += invoker.deps
+      }
 
-    vm_args = [ "-Dsdk_hash=$sdk_hash" ]
+      if (defined(invoker.inputs)) {
+        inputs += invoker.inputs
+      }
 
-    inputs = []
-    deps = []
-    args = []
-    if (defined(invoker.deps)) {
-      deps += invoker.deps
-    }
+      if (add_implicit_vm_platform_dependency) {
+        inputs += [ "$root_out_dir/$outline" ]
+        deps += [ "$_dart_root/runtime/vm:vm_platform" ]
+      }
+      depfile = outputs[0] + ".d"
 
-    if (defined(invoker.inputs)) {
-      inputs += invoker.inputs
+      args += invoker.args
+      if (defined(invoker.single_root_scheme)) {
+        args += [ "--single-root-scheme=" + invoker.single_root_scheme ]
+      }
+      if (defined(invoker.single_root_base)) {
+        args += [ "--single-root-base=" + invoker.single_root_base ]
+      }
+      if (defined(invoker.single_root_scheme)) {
+        args += [ invoker.libraries_specification_uri ]
+      } else {
+        args +=
+            [ rebase_path(invoker.libraries_specification_uri, root_build_dir) ]
+      }
+      args += [ rebase_path("$root_out_dir/$outline", root_build_dir) ]
+      args += rebase_path(outputs, root_build_dir)
     }
+  } else {
+    prebuilt_dart_action(target_name) {
+      if (defined(invoker.pool)) {
+        pool = invoker.pool
+      }
+      script = "$_dart_root/pkg/front_end/tool/_fasta/compile_platform.dart"
 
-    if (add_implicit_vm_platform_dependency) {
-      inputs += [ "$root_out_dir/$outline" ]
-      deps += [ "$_dart_root/runtime/vm:vm_platform" ]
-    }
-    depfile = outputs[0] + ".d"
+      packages = "$_dart_root/.dart_tool/package_config.json"
 
-    args += invoker.args
-    if (defined(invoker.single_root_scheme)) {
-      args += [ "--single-root-scheme=" + invoker.single_root_scheme ]
+      outputs = invoker.outputs
+
+      vm_args = [ "-Dsdk_hash=$sdk_hash" ]
+
+      inputs = []
+      deps = []
+      args = []
+      if (defined(invoker.deps)) {
+        deps += invoker.deps
+      }
+
+      if (defined(invoker.inputs)) {
+        inputs += invoker.inputs
+      }
+
+      if (add_implicit_vm_platform_dependency) {
+        inputs += [ "$root_out_dir/$outline" ]
+        deps += [ "$_dart_root/runtime/vm:vm_platform" ]
+      }
+      depfile = outputs[0] + ".d"
+
+      args += invoker.args
+      if (defined(invoker.single_root_scheme)) {
+        args += [ "--single-root-scheme=" + invoker.single_root_scheme ]
+      }
+      if (defined(invoker.single_root_base)) {
+        args += [ "--single-root-base=" + invoker.single_root_base ]
+      }
+      if (defined(invoker.single_root_scheme)) {
+        args += [ invoker.libraries_specification_uri ]
+      } else {
+        args +=
+            [ rebase_path(invoker.libraries_specification_uri, root_build_dir) ]
+      }
+      args += [ rebase_path("$root_out_dir/$outline", root_build_dir) ]
+      args += rebase_path(outputs, root_build_dir)
     }
-    if (defined(invoker.single_root_base)) {
-      args += [ "--single-root-base=" + invoker.single_root_base ]
-    }
-    if (defined(invoker.single_root_scheme)) {
-      args += [ invoker.libraries_specification_uri ]
-    } else {
-      args +=
-          [ rebase_path(invoker.libraries_specification_uri, root_build_dir) ]
-    }
-    args += [ rebase_path("$root_out_dir/$outline", root_build_dir) ]
-    args += rebase_path(outputs, root_build_dir)
   }
 }
