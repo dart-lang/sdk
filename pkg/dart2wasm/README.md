@@ -82,3 +82,8 @@ In the signatures of imported and exported functions, use the following types:
 - For numbers, use `double`.
 - For JS objects, use a JS interop type, e.g. `JSAny`, which translates to the Wasm `externref` type. These can be passed around and stored as opaque values on the Dart side.
 - For Dart objects, use the corresponding Dart type. This will be emitted as `anyref` and automatically converted to and from the Dart type at the boundary.
+
+## Detecting whether code is running as WebAssembly
+
+`dart2wasm` defines `dart.tool.dart2wasm` as `true`, meaning that `bool.fromEnvironment('dart.tool.dart2wasm')` can be used in a constant context to determine whether it was
+compiled to WebAssembly.

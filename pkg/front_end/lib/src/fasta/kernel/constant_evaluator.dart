@@ -4245,12 +4245,6 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
             node,
             templateConstEvalInvalidMethodInvocation.withArguments(
                 logicalExpressionOperatorToString(node.operatorEnum), left));
-      default:
-        // Probably unreachable.
-        return createEvaluationErrorConstant(
-            node,
-            templateConstEvalInvalidMethodInvocation.withArguments(
-                logicalExpressionOperatorToString(node.operatorEnum), left));
     }
   }
 

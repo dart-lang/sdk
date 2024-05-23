@@ -454,7 +454,6 @@ abstract class CombinedMemberSignatureBase {
               copyLocation: copyLocation);
           break;
         case ProcedureKind.Factory:
-        default:
           throw new UnsupportedError(
               'Unexpected canonical member kind ${member.kind} for $member');
       }

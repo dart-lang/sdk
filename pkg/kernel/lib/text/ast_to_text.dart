@@ -774,8 +774,6 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
         return 'async';
       case AsyncMarker.AsyncStar:
         return 'async*';
-      default:
-        return '<Invalid async marker: $marker>';
     }
   }
 

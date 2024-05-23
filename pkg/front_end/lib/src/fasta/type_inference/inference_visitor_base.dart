@@ -469,9 +469,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         return null;
       case AssignabilityKind.unassignableNullability:
         return null;
-      default:
-        return unhandled("${assignabilityResult}", "ensureAssignable",
-            fileOffset, helper.uri);
     }
   }
 
@@ -629,9 +626,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                   assignabilityResult.supertype!));
         }
         break;
-      default:
-        return unhandled("${assignabilityResult}", "ensureAssignable",
-            fileOffset, helper.uri);
     }
 
     if (result != null) {

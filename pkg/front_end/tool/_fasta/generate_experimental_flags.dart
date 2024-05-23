@@ -447,9 +447,6 @@ class LibraryFeatures {
         return ${identifier};''');
   }
   sb.write('''
-      default:
-        throw new UnsupportedError(
-            'LibraryFeatures.fromSharedExperimentalFlags(\$experimentalFlag)');
     }
   }
   ''');
