@@ -59,6 +59,23 @@ class ReturnOfDoNotStoreTest extends PubPackageResolutionTest {
     writeTestPackageConfigWithMeta();
   }
 
+  test_constructor() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  @doNotStore
+  A();
+
+  String getA() {
+    return A();
+  }
+}
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 95, 3),
+    ]);
+  }
+
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48476')
   test_returnFromClosureInFunction() async {
     await assertErrorsInCode('''
