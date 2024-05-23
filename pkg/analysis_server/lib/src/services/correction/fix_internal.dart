@@ -91,6 +91,7 @@ import 'package:analysis_server/src/services/correction/dart/create_method_or_fu
 import 'package:analysis_server/src/services/correction/dart/create_missing_overrides.dart';
 import 'package:analysis_server/src/services/correction/dart/create_mixin.dart';
 import 'package:analysis_server/src/services/correction/dart/create_no_such_method.dart';
+import 'package:analysis_server/src/services/correction/dart/create_parameter.dart';
 import 'package:analysis_server/src/services/correction/dart/create_setter.dart';
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/dart/extend_class_for_mixin.dart';
@@ -1259,6 +1260,7 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     CreateField.new,
     CreateGetter.new,
     CreateLocalVariable.new,
+    CreateParameter.new,
     CreateMethodOrFunction.new,
     CreateMixin.new,
     CreateSetter.new,
