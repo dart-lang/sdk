@@ -7,9 +7,10 @@ up-to-date.
 
 Important pages include:
 
-- [Filing Dart issues](Filing-Dart-issues.md)
-- [How the issue tracker works](How-the-issue-tracker-works.md)
 - [Building the SDK](Building.md)
+- [Filing Dart issues](Filing-Dart-issues.md)
+- Workarounds for [Flutter Pinned Packages](Flutter-Pinned-Packages.md)
+- [How the issue tracker works](How-the-issue-tracker-works.md)
 - [Testing](Testing.md)
 
 Also, check out the combined
@@ -31,3 +32,8 @@ Contributions welcome via Gerrit CLs or GitHub PRs. See our
 
 Contributions could include helping to keep pages up-to-date, adding additional
 context to this main page, or re-organizing the documentation.
+
+## Google Summer of Code
+
+Interested in the latest on our Google Summer of Code projects? See
+[Google Summer of Code 2024](gsoc/Dart-GSoC-2024-Project-Ideas.md).
