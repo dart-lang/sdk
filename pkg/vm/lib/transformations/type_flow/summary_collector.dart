@@ -837,7 +837,8 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       } else {
         _visitWithoutResult(function.body!);
 
-        if (_currentCondition is! EmptyType) {
+        if (function.returnType.nullability != Nullability.nonNullable &&
+            _currentCondition is! EmptyType) {
           _returnValue!.values.add(_nullType);
         }
       }

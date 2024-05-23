@@ -1,7 +1,7 @@
 ------------ Element. ------------
 %this = _Parameter #0 [_T (#lib::Element)+]
 t1 = _Call direct [dart.core::Object.] (%this)
-RESULT: _T {}?
+RESULT: _T {}
 ------------ MockHashMap. ------------
 %K = _Parameter #0
 %V = _Parameter #1
@@ -11,7 +11,7 @@ RESULT: t3
 ------------ _NotRealHashMap. ------------
 %this = _Parameter #0 [_T (#lib::_NotRealHashMap)+]
 t1 = _Call direct [dart.core::Object.] (%this)
-RESULT: _T {}?
+RESULT: _T {}
 ------------ _NotRealHashMap.setEntry ------------
 %this = _Parameter #0 [_T (#lib::_NotRealHashMap)+]
 %key = _Parameter #1
@@ -24,7 +24,7 @@ RESULT: _T {}?
 ------------ InheritedElement. ------------
 %this = _Parameter #0 [_T (#lib::InheritedElement)+]
 t1 = _Call direct [#lib::Element.] (%this)
-RESULT: _T {}?
+RESULT: _T {}
 ------------ InheritedElement.setDependencies ------------
 %this = _Parameter #0 [_T (#lib::InheritedElement)+]
 %dependent = _Parameter #1 [_T (#lib::Element)+]

@@ -1,7 +1,7 @@
 ------------ A. ------------
 %this = _Parameter #0 [_T (#lib::A)+]
 t1 = _Call direct [dart.core::Object.] (%this)
-RESULT: _T {}?
+RESULT: _T {}
 ------------ A.foo1 ------------
 %this = _Parameter #0 [_T (#lib::A)+]
 %x = _Parameter #1 [_T (dart.core::Object)+]
@@ -9,7 +9,7 @@ RESULT: _T {}?
 ------------ B. ------------
 %this = _Parameter #0 [_T (#lib::B)+]
 t1 = _Call direct [dart.core::Object.] (%this)
-RESULT: _T {}?
+RESULT: _T {}
 ------------ B.bar1 ------------
 %this = _Parameter #0 [_T (#lib::B)+]
 %arg = _Parameter #1 [_T (dart.core::Object)+]
@@ -27,7 +27,7 @@ RESULT: _T {}?
 ------------ C. ------------
 %this = _Parameter #0 [_T (#lib::C)+]
 t1 = _Call direct [dart.core::Object.] (%this)
-RESULT: _T {}?
+RESULT: _T {}
 ------------ C.interfaceCalls ------------
 %this = _Parameter #0 [_T (#lib::C)+]
 %aa = _Parameter #1 [_T (#lib::A)+]
@@ -61,7 +61,7 @@ RESULT: t11
 ------------ D. ------------
 %this = _Parameter #0 [_T (#lib::D)+]
 t1 = _Call direct [#lib::B.] (%this)
-RESULT: _T {}?
+RESULT: _T {}
 ------------ D.superCalls ------------
 %this = _Parameter #0 [_T (#lib::D)+]
 %a1 = _Parameter #1 [_T (dart.core::Object)+]

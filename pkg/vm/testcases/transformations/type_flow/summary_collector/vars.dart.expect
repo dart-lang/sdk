@@ -1,11 +1,11 @@
 ------------ A. ------------
 %this = _Parameter #0 [_T (#lib::A)+]
 t1 = _Call direct [dart.core::Object.] (%this)
-RESULT: _T {}?
+RESULT: _T {}
 ------------ B. ------------
 %this = _Parameter #0 [_T (#lib::B)+]
 t1 = _Call direct [dart.core::Object.] (%this)
-RESULT: _T {}?
+RESULT: _T {}
 ------------ foo ------------
 %a1 = _Parameter #0 [_T (dart.core::Object)+]
 %a2 = _Parameter #1 [_T (dart.core::Object)+?]
