@@ -12,7 +12,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class RemoveLibraryName extends ResolvedCorrectionProducer {
   @override
   CorrectionApplicability get applicability =>
-      CorrectionApplicability.automatically;
+      CorrectionApplicability.automaticallyButOncePerFile;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_LIBRARY_NAME;

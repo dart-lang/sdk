@@ -1337,26 +1337,6 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     "Remove unnecessary 'const' keywords everywhere in file",
   );
-  static const REMOVE_UNNECESSARY_LATE = FixKind(
-    'dart.fix.remove.unnecessaryLate',
-    DartFixKindPriority.DEFAULT,
-    "Remove unnecessary 'late' keyword",
-  );
-  static const REMOVE_UNNECESSARY_LATE_MULTI = FixKind(
-    'dart.fix.remove.unnecessaryLate.multi',
-    DartFixKindPriority.IN_FILE,
-    "Remove unnecessary 'late' keywords everywhere in file",
-  );
-  static const REMOVE_UNNECESSARY_NEW = FixKind(
-    'dart.fix.remove.unnecessaryNew',
-    DartFixKindPriority.DEFAULT,
-    "Remove unnecessary 'new' keyword",
-  );
-  static const REMOVE_UNNECESSARY_NEW_MULTI = FixKind(
-    'dart.fix.remove.unnecessaryNew.multi',
-    DartFixKindPriority.IN_FILE,
-    "Remove unnecessary 'new' keywords everywhere in file",
-  );
   static const REMOVE_UNNECESSARY_CONTAINER = FixKind(
     'dart.fix.remove.unnecessaryContainer',
     DartFixKindPriority.DEFAULT,
@@ -1367,10 +1347,30 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     "Remove unnecessary 'Container's in file",
   );
+  static const REMOVE_UNNECESSARY_LATE = FixKind(
+    'dart.fix.remove.unnecessaryLate',
+    DartFixKindPriority.DEFAULT,
+    "Remove unnecessary 'late' keyword",
+  );
+  static const REMOVE_UNNECESSARY_LATE_MULTI = FixKind(
+    'dart.fix.remove.unnecessaryLate.multi',
+    DartFixKindPriority.IN_FILE,
+    "Remove unnecessary 'late' keywords everywhere in file",
+  );
   static const REMOVE_UNNECESSARY_LIBRARY_DIRECTIVE = FixKind(
     'dart.fix.remove.unnecessaryLibraryDirective',
     DartFixKindPriority.DEFAULT,
     'Remove unnecessary library directive',
+  );
+  static const REMOVE_UNNECESSARY_NEW = FixKind(
+    'dart.fix.remove.unnecessaryNew',
+    DartFixKindPriority.DEFAULT,
+    "Remove unnecessary 'new' keyword",
+  );
+  static const REMOVE_UNNECESSARY_NEW_MULTI = FixKind(
+    'dart.fix.remove.unnecessaryNew.multi',
+    DartFixKindPriority.IN_FILE,
+    "Remove unnecessary 'new' keywords everywhere in file",
   );
   static const REMOVE_UNNECESSARY_PARENTHESES = FixKind(
     'dart.fix.remove.unnecessaryParentheses',

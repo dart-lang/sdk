@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
+import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_processor.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -23,13 +24,17 @@ class FixProcessorMapTest {
     'prefer_inlined_adds',
   ];
 
+  void setUp() {
+    registerBuiltInProducers();
+  }
+
   void test_lintProducerMap() {
-    _assertMap(FixProcessor.lintProducerMap.entries,
-        lintsAllowedToHaveMultipleBulkFixes);
+    _assertMap(
+        FixProcessor.lintProducerMap, lintsAllowedToHaveMultipleBulkFixes);
   }
 
   void test_nonLintProducerMap() {
-    _assertMap(FixProcessor.nonLintProducerMap.entries);
+    _assertMap(FixProcessor.nonLintProducerMap);
   }
 
   void test_registerFixForLint() {
@@ -43,12 +48,12 @@ class FixProcessorMapTest {
     FixProcessor.lintProducerMap.remove(lintName);
   }
 
-  void _assertMap<K>(Iterable<MapEntry<K, List<ProducerGenerator>>> entries,
-      [List<String> keysAllowedToHaveMultipleBulkFixes = const []]) {
-    var list = <String>[];
-    for (var entry in entries) {
+  void _assertMap(Map<Object, List<ProducerGenerator>> producerMap,
+      [List<String> codesAllowedToHaveMultipleBulkFixes = const []]) {
+    var unexpectedBulkCodes = <String>[];
+    for (var MapEntry(:key, value: generators) in producerMap.entries) {
       var bulkCount = 0;
-      for (var generator in entry.value) {
+      for (var generator in generators) {
         var producer = generator();
         _assertValidProducer(producer);
         if (producer.canBeAppliedAcrossFiles) {
@@ -56,16 +61,16 @@ class FixProcessorMapTest {
         }
       }
       if (bulkCount > 1) {
-        var key = entry.key.toString();
-        if (!keysAllowedToHaveMultipleBulkFixes.contains(key)) {
-          list.add(key);
+        var name = key.toString();
+        if (!codesAllowedToHaveMultipleBulkFixes.contains(name)) {
+          unexpectedBulkCodes.add(name);
         }
       }
     }
-    if (list.isNotEmpty) {
+    if (unexpectedBulkCodes.isNotEmpty) {
       var buffer = StringBuffer();
-      buffer.writeln('Multiple bulk fixes for');
-      for (var code in list) {
+      buffer.writeln('Unexpected multiple bulk fixes for');
+      for (var code in unexpectedBulkCodes) {
         buffer.writeln('- $code');
       }
       fail(buffer.toString());
@@ -77,7 +82,7 @@ class FixProcessorMapTest {
     expect(producer.fixKind, isNotNull, reason: '$className.fixKind');
     if (producer.canBeAppliedAcrossSingleFile) {
       expect(producer.multiFixKind, isNotNull,
-          reason: '$className.multiFixKind');
+          reason: '$className.multiFixKind should be non-null');
     }
   }
 }
