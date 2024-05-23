@@ -107,6 +107,7 @@ class Options {
   static bool ParseArguments(int argc,
                              char** argv,
                              bool vm_run_app_snapshot,
+                             bool parsing_dart_vm_options,
                              CommandLineOptions* vm_options,
                              char** script_name,
                              CommandLineOptions* dart_options,

@@ -502,16 +502,24 @@ bool Options::ProcessVMDebuggingOptions(const char* arg,
 bool Options::ParseArguments(int argc,
                              char** argv,
                              bool vm_run_app_snapshot,
+                             bool parsing_dart_vm_options,
                              CommandLineOptions* vm_options,
                              char** script_name,
                              CommandLineOptions* dart_options,
                              bool* print_flags_seen,
                              bool* verbose_debug_seen) {
-  // Store the executable name.
-  Platform::SetExecutableName(argv[0]);
+  int i = 0;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // DART_VM_OPTIONS is only implemented for compiled executables.
+  ASSERT(!parsing_dart_vm_options);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  if (!parsing_dart_vm_options) {
+    // Store the executable name.
+    Platform::SetExecutableName(argv[0]);
 
-  // Start the rest after the executable name.
-  int i = 1;
+    // Start the rest after the executable name.
+    i = 1;
+  }
 
   CommandLineOptions temp_vm_options(vm_options->max_count());
 
@@ -667,8 +675,10 @@ bool Options::ParseArguments(int argc,
     return false;
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-  // Handle argument parsing errors.
-  else {  // NOLINT
+  // Handle argument parsing errors and missing script / command name when not
+  // processing options set via DART_VM_OPTIONS.
+  else if (!parsing_dart_vm_options || Options::help_option() ||  // NOLINT
+           Options::version_option()) {                           // NOLINT
     return false;
   }
   USE(enable_dartdev_analytics);
@@ -679,6 +689,15 @@ bool Options::ParseArguments(int argc,
   int vm_argc = temp_vm_options.count();
 
   vm_options->AddArguments(vm_argv, vm_argc);
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // If we're parsing DART_VM_OPTIONS, there shouldn't be any script set or
+  // Dart arguments left to parse.
+  if (parsing_dart_vm_options) {
+    ASSERT(i == argc);
+    return true;
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   // If running with dartdev, attempt to parse VM flags which are part of the
   // dartdev command (e.g., --enable-vm-service, --observe, etc).

@@ -44,10 +44,10 @@
 #   issue created for it.
 #
 # Stats:
-# -  40 "needsEvaluation"
-# - 387 "needsFix"
-# - 370 "hasFix"
-# - 509 "noFix"
+# -  42 "needsEvaluation"
+# - 363 "needsFix"
+# - 388 "hasFix"
+# - 516 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
   status: noFix
@@ -65,9 +65,7 @@ AnalysisOptionsHintCode.DEPRECATED_LINT_WITH_REPLACEMENT:
   notes: |-
     We should be able to replace the deprecated lint rule with its replacement.
 AnalysisOptionsHintCode.DUPLICATE_RULE:
-  status: needsFix
-  notes: |-
-    We could offer to remove the duplicate rule.
+  status: hasFix
 AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED:
   status: needsFix
   notes: |-
@@ -114,9 +112,7 @@ AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE:
     we could do is to remove the include in the file that the diagnostic is
     reported on.
 AnalysisOptionsWarningCode.REMOVED_LINT:
-  status: needsFix
-  notes: |-
-    The fix is to remove the name of the removed lint rule.
+  status: hasFix
 AnalysisOptionsWarningCode.REPLACED_LINT:
   status: needsFix
   notes: |-
