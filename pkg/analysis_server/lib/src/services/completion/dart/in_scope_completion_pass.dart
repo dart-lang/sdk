@@ -2556,8 +2556,6 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (pattern is ConstantPattern) {
         if (pattern.expression case SimpleIdentifier identifier) {
           if (!identifier.isSynthetic && offset < identifier.offset) {
-            state.request.opType.includeConstructorSuggestions = false;
-            state.request.opType.mustBeConst = true;
             declarationHelper(
               mustBeType: true,
             ).addLexicalDeclarations(node);
@@ -2570,8 +2568,6 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       // The user want a type for incomplete WildcardPattern.
       if (pattern is WildcardPattern) {
         if (offset < pattern.name.offset) {
-          state.request.opType.includeConstructorSuggestions = false;
-          state.request.opType.mustBeConst = true;
           declarationHelper(
             mustBeType: true,
           ).addLexicalDeclarations(node);
@@ -2599,17 +2595,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         switch (type.parent) {
           case DeclaredVariablePattern():
             //collector.completionLocation = 'DeclaredVariablePattern_type';
-            state.request.opType.includeConstructorSuggestions = false;
             type.accept(this);
             return;
           case ObjectPattern():
             collector.completionLocation = 'ObjectPattern_type';
-            state.request.opType.includeConstructorSuggestions = false;
             type.accept(this);
             return;
           case WildcardPattern():
             collector.completionLocation = 'WildcardPattern_type';
-            state.request.opType.includeConstructorSuggestions = false;
             type.accept(this);
             return;
         }
@@ -3351,8 +3344,6 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (pattern is ConstantPattern) {
         if (pattern.expression case SimpleIdentifier identifier) {
           if (!identifier.isSynthetic && offset < identifier.offset) {
-            state.request.opType.includeConstructorSuggestions = false;
-            state.request.opType.mustBeConst = true;
             declarationHelper(
               mustBeType: true,
             ).addLexicalDeclarations(node);
@@ -3364,8 +3355,6 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       // The user wants a type for incomplete WildcardPattern.
       if (pattern is WildcardPattern) {
         if (offset < pattern.name.offset) {
-          state.request.opType.includeConstructorSuggestions = false;
-          state.request.opType.mustBeConst = true;
           declarationHelper(
             mustBeType: true,
           ).addLexicalDeclarations(node);
@@ -3384,8 +3373,6 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           keywordHelper.addPatternKeywords();
           // TODO(scheglov): Actually we need constructors, but only const.
           // And not-yet imported contributors does not work well yet.
-          state.request.opType.includeConstructorSuggestions = false;
-          state.request.opType.mustBeConst = true;
           declarationHelper(
             mustBeNonVoid: true,
           ).addLexicalDeclarations(node);
@@ -3400,17 +3387,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       switch (type.parent) {
         case DeclaredVariablePattern():
           collector.completionLocation = 'DeclaredVariablePattern_type';
-          state.request.opType.includeConstructorSuggestions = false;
           type.accept(this);
           return;
         case ObjectPattern():
           collector.completionLocation = 'ObjectPattern_type';
-          state.request.opType.includeConstructorSuggestions = false;
           type.accept(this);
           return;
         case WildcardPattern():
           collector.completionLocation = 'WildcardPattern_type';
-          state.request.opType.includeConstructorSuggestions = false;
           type.accept(this);
           return;
       }
