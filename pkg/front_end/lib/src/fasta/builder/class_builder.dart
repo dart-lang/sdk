@@ -295,7 +295,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       case Nullability.nonNullable:
         return nonNullableRawType;
       case Nullability.undetermined:
-      default:
         return unhandled("$nullability", "rawType", TreeNode.noOffset, noUri);
     }
   }

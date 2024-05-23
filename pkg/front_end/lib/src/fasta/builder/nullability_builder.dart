@@ -47,7 +47,6 @@ class NullabilityBuilder {
       case Nullability.legacy:
       case Nullability.nonNullable:
       case Nullability.undetermined:
-      default:
         return const NullabilityBuilder.omitted();
     }
   }

@@ -70,7 +70,6 @@ PlainAndColorizedString format(LocatedMessage message, Severity severity,
         break;
 
       case Severity.ignored:
-      default:
         return unhandled("$severity", "format", -1, null);
     }
 

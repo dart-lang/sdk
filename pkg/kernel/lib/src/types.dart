@@ -41,8 +41,6 @@ class Types with StandardBounds {
         return isSubtypeOf.isSubtypeWhenUsingNullabilities();
       case SubtypeCheckMode.ignoringNullabilities:
         return isSubtypeOf.isSubtypeWhenIgnoringNullabilities();
-      default:
-        throw new StateError("Unhandled subtype checking mode '$mode'");
     }
   }
 

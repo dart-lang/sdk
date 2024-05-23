@@ -689,9 +689,6 @@ class LibraryFeatures {
         return variance;
       case shared.ExperimentalFlag.wildcardVariables:
         return wildcardVariables;
-      default:
-        throw new UnsupportedError(
-            'LibraryFeatures.fromSharedExperimentalFlags($experimentalFlag)');
     }
   }
 }
