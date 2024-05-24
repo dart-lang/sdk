@@ -1138,9 +1138,11 @@ class DeclarationBuilderFromNode {
   ) {
     var element = node.declaredElement!;
 
+    ast.ExtendsClause? extendsClause;
     var interfaceNodes = <ast.NamedType>[];
     var mixinNodes = <ast.NamedType>[];
     for (var current in node.withAugmentations(builder)) {
+      extendsClause ??= current.extendsClause;
       if (current.implementsClause case var clause?) {
         interfaceNodes.addAll(clause.interfaces);
       }
@@ -1172,7 +1174,7 @@ class DeclarationBuilderFromNode {
         mixinNodes,
         WithClauseTypeLocation(classTypeLocation),
       ),
-      superclass: node.extendsClause?.superclass.mapOrNull((type) {
+      superclass: extendsClause?.superclass.mapOrNull((type) {
         return _namedType(
           type,
           ExtendsClauseTypeLocation(classTypeLocation),

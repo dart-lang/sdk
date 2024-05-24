@@ -11916,6 +11916,21 @@ class A {
 ''');
   }
 
+  test_class_extendsType() async {
+    await _assertIntrospectText(r'''
+import 'append.dart';
+
+class A<T> {}
+
+@Introspect()
+@SetExtendsType('{{package:test/test.dart@A}}', ['{{dart:core@int}}'])
+class X {}
+''', r'''
+class X
+  superclass: A<int>
+''');
+  }
+
   test_class_field_flags_hasConst_true() async {
     await _assertIntrospectText(r'''
 class X {

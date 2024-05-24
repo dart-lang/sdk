@@ -202,6 +202,7 @@ class _Builder {
     }
     final Set<Identifier> mergedAugmentedTypes = {
       ...mergedEntryResults.keys,
+      ...mergedExtendsResults.keys,
       ...mergedInterfaceResults.keys,
       ...mergedMixinResults.keys,
       ...mergedTypeResults.keys,

@@ -1,3 +1,7 @@
+## 0.1.0-main.7
+
+- Fix for generating code after extendsType
+
 ## 0.1.0-main.6
 
 - Add extendsType API for adding an extends clause.

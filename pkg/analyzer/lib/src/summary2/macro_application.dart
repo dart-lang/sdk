@@ -1361,6 +1361,7 @@ class _TypePhaseIntrospector implements macro.TypePhaseIntrospector {
 extension on macro.MacroExecutionResult {
   bool get isNotEmpty =>
       enumValueAugmentations.isNotEmpty ||
+      extendsTypeAugmentations.isNotEmpty ||
       interfaceAugmentations.isNotEmpty ||
       libraryAugmentations.isNotEmpty ||
       mixinAugmentations.isNotEmpty ||

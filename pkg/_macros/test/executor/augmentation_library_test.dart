@@ -140,10 +140,6 @@ void main() {
           prefix0.int get i => 0;
           prefix0.int get j => 0;
         }
-        augment class Foo01 implements I0 {
-          prefix0.int get i => 0;
-          prefix0.int get j => 1;
-        }
         augment class Foo02 extends SomeSuperclass implements I0, I1 {
           prefix0.int get i => 0;
           prefix0.int get j => 2;
@@ -152,13 +148,17 @@ void main() {
           prefix0.int get i => 1;
           prefix0.int get j => 0;
         }
-        augment class Foo11 with M0 implements I0 {
-          prefix0.int get i => 1;
-          prefix0.int get j => 1;
-        }
         augment class Foo12 extends SomeSuperclass with M0 implements I0, I1 {
           prefix0.int get i => 1;
           prefix0.int get j => 2;
+        }
+        augment class Foo01 implements I0 {
+          prefix0.int get i => 0;
+          prefix0.int get j => 1;
+        }
+        augment class Foo11 with M0 implements I0 {
+          prefix0.int get i => 1;
+          prefix0.int get j => 1;
         }
       '''));
     });
