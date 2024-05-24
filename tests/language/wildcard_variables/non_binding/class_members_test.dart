@@ -22,13 +22,14 @@ class InstanceMember {
     int _ = 2;
     const _ = 2;
     int _() => 2;
-    _ = 3;
-    Expect.equals(3, _);
+    var (_, _) = (3, '4');
+    Expect.equals(2, _);
 
-    int _() => 2;
+    _ = 4;
+    Expect.equals(4, _);
 
     int foo<_>([int _ = 5]) => _;
-    Expect.equals(3, foo());
+    Expect.equals(4, foo());
   }
 }
 
@@ -41,10 +42,13 @@ class StaticMember {
     const _ = 2;
     const _ = _ - 1;
     int _() => 2;
-    _ = 3;
-    Expect.equals(3, _);
+    var (_, _) = (3, '4');
+    Expect.equals(2, _);
+
+    _ = 4;
+    Expect.equals(4, _);
 
     int foo<_>([int _ = _ + 1]) => _;
-    Expect.equals(3, foo());
+    Expect.equals(4, foo());
   }
 }
