@@ -6,8 +6,6 @@ import 'dart:async';
 
 import 'package:_macros/src/api.dart';
 
-import '../util.dart';
-
 /// A macro for testing diagnostics reporting, including error handling.
 class DiagnosticMacro implements ClassTypesMacro {
   @override
@@ -520,7 +518,7 @@ mixin $mixinName implements $interfaceName {
 
     // ignore: deprecated_member_use_from_same_package
     final mySuperClass = await builder.resolveIdentifier(
-        Fixtures.library.uri, Fixtures.mySuperclass.identifier.name);
+        Uri.parse('package:foo/bar.dart'), 'MySuperclass');
     builder.extendsType(NamedTypeAnnotationCode(name: mySuperClass));
     builder.appendInterfaces([RawTypeAnnotationCode.fromString(interfaceName)]);
     builder.appendMixins([RawTypeAnnotationCode.fromString(mixinName)]);
