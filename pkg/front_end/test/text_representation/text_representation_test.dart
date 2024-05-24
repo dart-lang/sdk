@@ -127,12 +127,6 @@ class TextRepresentationDataExtractor extends CfeDataExtractor<String> {
       : super(compilerResult, actualMap);
 
   @override
-  String computeLibraryValue(Id id, Library node) {
-    // TODO(johnniwinther): Remove this.
-    return 'nnbd=true';
-  }
-
-  @override
   void visitConstructor(Constructor node) {
     if (!node.name.text.startsWith(initializerMarker)) {
       node.function.accept(this);

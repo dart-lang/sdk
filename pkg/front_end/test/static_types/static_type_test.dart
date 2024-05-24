@@ -77,12 +77,6 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
   }
 
   @override
-  String computeLibraryValue(Id id, Library node) {
-    // TODO(johnniwinther): Remove this.
-    return 'nnbd=true';
-  }
-
-  @override
   String? computeMemberValue(Id id, Member node) {
     if (node is Procedure && node.function.emittedValueType != null) {
       return 'futureValueType=${typeToText(node.function.emittedValueType!)}';

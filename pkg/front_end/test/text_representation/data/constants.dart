@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*library: nnbd=true*/
-
 T id<T>(
         T /*normal|limited.id.T%*/ /*verbose.library org-dartlang-test:///a/b/c/main.dart::id.T%*/
             t) =>

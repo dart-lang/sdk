@@ -476,6 +476,11 @@ Future<void> compilePlatformInternal(CompilerContext c, Uri fullOutput,
 }
 
 Future<List<Uri>> computeHostDependencies(Uri hostPlatform) {
+  // Do not try to parse compile_platform if it was precompiled into a binary.
+  if (!Platform.script.toFilePath().endsWith('.dart')) {
+    return Future.value([]);
+  }
+
   // Returns a list of source files that make up the Fasta compiler (the files
   // the Dart VM reads to run Fasta). Until Fasta is self-hosting (in strong
   // mode), this is only an approximation, albeit accurate.  Once Fasta is

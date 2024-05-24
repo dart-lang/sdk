@@ -14,6 +14,23 @@
 
 set -e
 
+function follow_links() {
+  file="$1"
+  while [ -h "$file" ]; do
+    # On Mac OS, readlink -f doesn't work.
+    file="$(readlink "$file")"
+  done
+  echo "$file"
+}
+
+# Unlike $0, $BASH_SOURCE points to the absolute path of this file.
+PROG_NAME="$(follow_links "$BASH_SOURCE")"
+
+# Handle the case where dart-sdk/bin has been symlinked to.
+CUR_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
+
+SDK_DIR="$CUR_DIR/../../.."
+
 OPTIONS=()
 GEN_KERNEL_OPTIONS=()
 PACKAGES=
@@ -22,6 +39,9 @@ BUILD_ASM=0
 ARGV=()
 for arg in "$@"; do
   case $arg in
+    --packages=sdk)
+    PACKAGES="$SDK_DIR/.dart_tool/package_config.json"
+    ;;
     --packages=*)
     PACKAGES="$arg"
     ;;
@@ -71,50 +91,47 @@ else
   GEN_SNAPSHOT_FILENAME="--elf=${SNAPSHOT_FILE}"
 fi
 
-function follow_links() {
-  file="$1"
-  while [ -h "$file" ]; do
-    # On Mac OS, readlink -f doesn't work.
-    file="$(readlink "$file")"
-  done
-  echo "$file"
-}
-
-# Unlike $0, $BASH_SOURCE points to the absolute path of this file.
-PROG_NAME="$(follow_links "$BASH_SOURCE")"
-
-# Handle the case where dart-sdk/bin has been symlinked to.
-CUR_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
-
-SDK_DIR="$CUR_DIR/../../.."
-
 if [[ `uname` == 'Darwin' ]]; then
   OUT_DIR="$SDK_DIR/xcodebuild"
 else
   OUT_DIR="$SDK_DIR/out"
 fi
 
-export DART_CONFIGURATION=${DART_CONFIGURATION:-ReleaseX64}
-BIN_DIR="$OUT_DIR/$DART_CONFIGURATION"
+HOST_ARCH="X64"
+if [[ `uname -m` == 'arm64' ]]; then
+  HOST_ARCH="ARM64"
+fi
+
+export DART_CONFIGURATION=${DART_CONFIGURATION:-Release$HOST_ARCH}
+BUILD_DIR="$OUT_DIR/$DART_CONFIGURATION"
 
 DART="${SDK_DIR}/tools/sdks/dart-sdk/bin/dart"
 if [ ! -f "$DART" ]; then
-  DART="$BIN_DIR/dart"
+  DART="$BUILD_DIR/dart"
 fi
 
+function gen_kernel() {
+  if [[ "$DART_GN_ARGS" == *"precompile_tools=true"* ]]; then
+    # Precompile gen_kernel to an AOT app.
+    ninja -C "$BUILD_DIR" gen_kernel.exe
+    "$BUILD_DIR/gen_kernel.exe" $@
+  else
+    $DART ${DART_VM_FLAGS} "${SDK_DIR}/pkg/vm/bin/gen_kernel.dart" $@
+  fi
+}
+
 # Step 1: Generate Kernel binary from the input Dart source.
-$DART                                                                          \
-     ${DART_VM_FLAGS}                                                          \
-     "${SDK_DIR}/pkg/vm/bin/gen_kernel.dart"                                   \
-     --platform "${BIN_DIR}/vm_platform_strong.dill"                           \
+gen_kernel --platform "${BUILD_DIR}/vm_platform_strong.dill"                   \
      --aot                                                                     \
      "${GEN_KERNEL_OPTIONS[@]}"                                                \
      $PACKAGES                                                                 \
      -o "$SNAPSHOT_FILE.dill"                                                  \
      "$SOURCE_FILE"
 
+
+
 # Step 2: Generate snapshot from the Kernel binary.
-"$BIN_DIR"/gen_snapshot                                                        \
+"$BUILD_DIR"/gen_snapshot                                                      \
      ${GEN_SNAPSHOT_FLAGS}                                                     \
      "$GEN_SNAPSHOT_OPTION"                                                    \
      "$GEN_SNAPSHOT_FILENAME"                                                  \

@@ -40,49 +40,101 @@ template("compile_platform") {
     outline = invoker.outline
   }
 
-  prebuilt_dart_action(target_name) {
-    if (defined(invoker.pool)) {
-      pool = invoker.pool
-    }
-    script = "$_dart_root/pkg/front_end/tool/_fasta/compile_platform.dart"
+  if (precompile_tools) {
+    action(target_name) {
+      if (defined(invoker.pool)) {
+        pool = invoker.pool
+      }
 
-    packages = "$_dart_root/.dart_tool/package_config.json"
+      outputs = invoker.outputs
 
-    outputs = invoker.outputs
+      compile_platform_tool = "//utils:compile_platform.exe($host_toolchain)"
 
-    vm_args = [ "-Dsdk_hash=$sdk_hash" ]
+      deps = [ compile_platform_tool ]
+      if (defined(invoker.deps)) {
+        deps += invoker.deps
+      }
 
-    inputs = []
-    deps = []
-    args = []
-    if (defined(invoker.deps)) {
-      deps += invoker.deps
-    }
+      inputs = []
+      if (defined(invoker.inputs)) {
+        inputs += invoker.inputs
+      }
 
-    if (defined(invoker.inputs)) {
-      inputs += invoker.inputs
-    }
+      if (add_implicit_vm_platform_dependency) {
+        inputs += [ "$root_out_dir/$outline" ]
+        deps += [ "$_dart_root/runtime/vm:vm_platform" ]
+      }
 
-    if (add_implicit_vm_platform_dependency) {
-      inputs += [ "$root_out_dir/$outline" ]
-      deps += [ "$_dart_root/runtime/vm:vm_platform" ]
-    }
-    depfile = outputs[0] + ".d"
+      depfile = outputs[0] + ".d"
 
-    args += invoker.args
-    if (defined(invoker.single_root_scheme)) {
-      args += [ "--single-root-scheme=" + invoker.single_root_scheme ]
+      script = "$_dart_root/build/gn_run_binary.py"
+      args = [
+        "compiled_action",
+        rebase_path(get_label_info(compile_platform_tool, "root_out_dir") +
+                        "/compile_platform.exe",
+                    root_build_dir),
+      ]
+      args += invoker.args
+      if (defined(invoker.single_root_scheme)) {
+        args += [ "--single-root-scheme=" + invoker.single_root_scheme ]
+      }
+      if (defined(invoker.single_root_base)) {
+        args += [ "--single-root-base=" + invoker.single_root_base ]
+      }
+      if (defined(invoker.single_root_scheme)) {
+        args += [ invoker.libraries_specification_uri ]
+      } else {
+        args +=
+            [ rebase_path(invoker.libraries_specification_uri, root_build_dir) ]
+      }
+      args += [ rebase_path("$root_out_dir/$outline", root_build_dir) ]
+      args += rebase_path(outputs, root_build_dir)
     }
-    if (defined(invoker.single_root_base)) {
-      args += [ "--single-root-base=" + invoker.single_root_base ]
+  } else {
+    prebuilt_dart_action(target_name) {
+      if (defined(invoker.pool)) {
+        pool = invoker.pool
+      }
+      script = "$_dart_root/pkg/front_end/tool/_fasta/compile_platform.dart"
+
+      packages = "$_dart_root/.dart_tool/package_config.json"
+
+      outputs = invoker.outputs
+
+      vm_args = [ "-Dsdk_hash=$sdk_hash" ]
+
+      inputs = []
+      deps = []
+      args = []
+      if (defined(invoker.deps)) {
+        deps += invoker.deps
+      }
+
+      if (defined(invoker.inputs)) {
+        inputs += invoker.inputs
+      }
+
+      if (add_implicit_vm_platform_dependency) {
+        inputs += [ "$root_out_dir/$outline" ]
+        deps += [ "$_dart_root/runtime/vm:vm_platform" ]
+      }
+      depfile = outputs[0] + ".d"
+
+      args += invoker.args
+      if (defined(invoker.single_root_scheme)) {
+        args += [ "--single-root-scheme=" + invoker.single_root_scheme ]
+      }
+      if (defined(invoker.single_root_base)) {
+        args += [ "--single-root-base=" + invoker.single_root_base ]
+      }
+      if (defined(invoker.single_root_scheme)) {
+        args += [ invoker.libraries_specification_uri ]
+      } else {
+        args +=
+            [ rebase_path(invoker.libraries_specification_uri, root_build_dir) ]
+      }
+      args += [ rebase_path("$root_out_dir/$outline", root_build_dir) ]
+      args += rebase_path(outputs, root_build_dir)
     }
-    if (defined(invoker.single_root_scheme)) {
-      args += [ invoker.libraries_specification_uri ]
-    } else {
-      args +=
-          [ rebase_path(invoker.libraries_specification_uri, root_build_dir) ]
-    }
-    args += [ rebase_path("$root_out_dir/$outline", root_build_dir) ]
-    args += rebase_path(outputs, root_build_dir)
   }
 }
