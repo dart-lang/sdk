@@ -61,6 +61,16 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Add empty argument lists everywhere in file',
   );
+  static const ADD_CLASS_MODIFIER = FixKind(
+    'dart.fix.add.class.modifier',
+    DartFixKindPriority.DEFAULT,
+    "Add ''{0}'' modifier",
+  );
+  static const ADD_CLASS_MODIFIER_MULTI = FixKind(
+    'dart.fix.add.class.modifier.multi',
+    DartFixKindPriority.IN_FILE,
+    "Add ''{0}'' modifier everywhere in file",
+  );
   static const ADD_CONST = FixKind(
     'dart.fix.add.const',
     DartFixKindPriority.DEFAULT,
