@@ -166,13 +166,6 @@ abstract class TypeBuilder {
   HInstruction analyzeTypeArgument(
       DartType argument, MemberEntity sourceElement,
       {SourceInformation? sourceInformation}) {
-    return analyzeTypeArgumentNewRti(argument, sourceElement,
-        sourceInformation: sourceInformation);
-  }
-
-  HInstruction analyzeTypeArgumentNewRti(
-      DartType argument, MemberEntity sourceElement,
-      {SourceInformation? sourceInformation}) {
     if (!argument.containsTypeVariables) {
       HInstruction rti =
           HLoadType.type(argument, _abstractValueDomain.dynamicType)
@@ -352,8 +345,7 @@ abstract class TypeBuilder {
       if (_closedWorld.dartTypes.isTopType(type)) return original;
     }
 
-    HInstruction reifiedType = analyzeTypeArgumentNewRti(
-        type, builder.sourceElement,
+    HInstruction reifiedType = analyzeTypeArgument(type, builder.sourceElement,
         sourceInformation: sourceInformation);
     AbstractValueWithPrecision checkedType =
         _abstractValueDomain.createFromStaticType(type, nullable: true);

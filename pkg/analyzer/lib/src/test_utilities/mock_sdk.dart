@@ -1311,6 +1311,7 @@ abstract class FileSystemEntity {
 
 class IOSink implements Sink<List<int>> {
   Future<dynamic> close() {}
+  void write(Object? object) {}
 }
 
 class Platform {

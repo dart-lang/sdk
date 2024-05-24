@@ -1,7 +1,7 @@
 ------------ C. ------------
 %this = _Parameter #0 [_T (#lib::C)+]
 t1 = _Call direct [dart.core::Object.] (%this)
-RESULT: _T {}?
+RESULT: _T {}
 ------------ C.foo ------------
 %this = _Parameter #0 [_T (#lib::C)+]
 t1 = _Extract (%this[#lib::C/0])
@@ -23,11 +23,11 @@ RESULT: t3
 ------------ D. ------------
 %this = _Parameter #0 [_T (#lib::D)+]
 t1 = _Call direct [dart.core::Object.] (%this)
-RESULT: _T {}?
+RESULT: _T {}
 ------------ E. ------------
 %this = _Parameter #0 [_T (#lib::E)+]
 t1 = _Call direct [#lib::C.] (%this)
-RESULT: _T {}?
+RESULT: _T {}
 ------------ E.foo ------------
 %this = _Parameter #0 [_T (#lib::E)+]
 t1* = _Call direct [#lib::C.foo] (%this)
@@ -47,31 +47,31 @@ RESULT: t3
 ------------ X. ------------
 %this = _Parameter #0 [_T (#lib::X)+]
 t1 = _Call direct [dart.core::Object.] (%this)
-RESULT: _T {}?
+RESULT: _T {}
 ------------ Y. ------------
 %this = _Parameter #0 [_T (#lib::Y)+]
 t1 = _Call direct [#lib::X.] (%this)
-RESULT: _T {}?
+RESULT: _T {}
 ------------ Z. ------------
 %this = _Parameter #0 [_T (#lib::Z)+]
 t1 = _Call direct [#lib::X.] (%this)
-RESULT: _T {}?
+RESULT: _T {}
 ------------ I. ------------
 %this = _Parameter #0 [_T (#lib::I)+]
 t1 = _Call direct [dart.core::Object.] (%this)
-RESULT: _T {}?
+RESULT: _T {}
 ------------ J. ------------
 %this = _Parameter #0 [_T (#lib::J)+]
 t1 = _Call direct [#lib::I.] (%this)
-RESULT: _T {}?
+RESULT: _T {}
 ------------ K. ------------
 %this = _Parameter #0 [_T (#lib::K)+]
 t1 = _Call direct [dart.core::Object.] (%this)
-RESULT: _T {}?
+RESULT: _T {}
 ------------ C2. ------------
 %this = _Parameter #0 [_T (#lib::C2)+]
 t1 = _Call direct [dart.core::Object.] (%this)
-RESULT: _T {}?
+RESULT: _T {}
 ------------ C2.id3 ------------
 %this = _Parameter #0 [_T (#lib::C2)+]
 %x = _Parameter #1

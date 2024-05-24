@@ -814,7 +814,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
           closedWorld.rtiNeed.classNeedsTypeArguments(cls);
       if (needsTypeArguments) {
         InterfaceType thisType = _elementEnvironment.getThisType(cls);
-        HInstruction typeArgument = _typeBuilder.analyzeTypeArgumentNewRti(
+        HInstruction typeArgument = _typeBuilder.analyzeTypeArgument(
             thisType, sourceElement,
             sourceInformation: sourceInformation);
         constructorArguments.add(typeArgument);
@@ -1209,7 +1209,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     FunctionType functionType =
         _elementMap.getFunctionType(originalClosureNode);
     HInstruction rti =
-        _typeBuilder.analyzeTypeArgumentNewRti(functionType, sourceElement);
+        _typeBuilder.analyzeTypeArgument(functionType, sourceElement);
     close(HReturn(
             rti, _sourceInformationBuilder.buildReturn(originalClosureNode)))
         .addSuccessor(graph.exit);
@@ -1551,7 +1551,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     if (elementType.containsFreeTypeVariables) {
       // Type must be computed in the entry function, where the type variables
       // are in scope, and passed to the body function.
-      inputs.add(_typeBuilder.analyzeTypeArgumentNewRti(elementType, function));
+      inputs.add(_typeBuilder.analyzeTypeArgument(elementType, function));
     } else {
       // Types with no type variables can be emitted as part of the generator,
       // avoiding an extra argument.
@@ -3491,7 +3491,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       return object;
     }
     HInstruction rti =
-        _typeBuilder.analyzeTypeArgumentNewRti(arrayType, sourceElement);
+        _typeBuilder.analyzeTypeArgument(arrayType, sourceElement);
 
     // TODO(15489): Register at codegen.
     registry.registerInstantiation(type);
@@ -5998,7 +5998,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
 
   void _checkTypeBound(HInstruction typeInstruction, DartType bound,
       String variableName, String methodName) {
-    HInstruction boundInstruction = _typeBuilder.analyzeTypeArgumentNewRti(
+    HInstruction boundInstruction = _typeBuilder.analyzeTypeArgument(
         localsHandler.substInContext(bound), sourceElement);
 
     HInstruction variableNameInstruction =
@@ -6101,7 +6101,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         localsHandler.substInContext(_elementMap.getDartType(type));
 
     HInstruction rti =
-        _typeBuilder.analyzeTypeArgumentNewRti(typeValue, sourceElement);
+        _typeBuilder.analyzeTypeArgument(typeValue, sourceElement);
     AbstractValueWithPrecision checkedType =
         _abstractValueDomain.createFromStaticType(typeValue, nullable: false);
 

@@ -92,6 +92,8 @@ class DocumentationValidator {
     // The code has been replaced but is not yet removed.
     'HintCode.DEPRECATED_MEMBER_USE',
 
+    // Need a way to specify the existance of files whose content is irrelevant.
+    'LintCode.always_use_package_imports',
     // Missing support for example files outside of `lib`.
     'LintCode.avoid_relative_lib_imports',
     // The example isn't being recognized as a flutter app. We might need to
@@ -116,8 +118,12 @@ class DocumentationValidator {
     'LintCode.package_names',
     // The lint does nothing.
     'LintCode.package_prefixed_library_names',
+    // Need a way to specify the existance of files whose content is irrelevant.
+    'LintCode.prefer_relative_imports',
     // Missing support for YAML files.
     'LintCode.secure_pubspec_urls',
+    // The test framework doesn't yet support lints in non-dart files.
+    'LintCode.sort_pub_dependencies',
     // Extra warning.
     'LintCode.recursive_getters',
 

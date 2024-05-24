@@ -77,5 +77,8 @@ class FakeWebSocketSink extends Fake implements WebSocketSink {
 /// interface required to finish DDS initialization.
 class FakeWebSocketChannel extends Fake implements WebSocketChannel {
   @override
+  Future<bool> get ready => Future.value(true);
+
+  @override
   WebSocketSink get sink => FakeWebSocketSink();
 }

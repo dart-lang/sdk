@@ -16,7 +16,8 @@ static method isPrime([@vm.inferred-arg-type.metadata=int] dynamic n) → core::
   return true;
 }
 
-[@vm.inferred-return-type.metadata=int?]
+[@vm.inferred-return-type.metadata=int]
+[@vm.unboxing-info.metadata=()->i]
 static method nThPrimeNumber() → core::int {
   core::int counter = 0;
   for (core::int i = 1; ; i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1){(core::num) → core::int}) {
@@ -31,7 +32,7 @@ static method nThPrimeNumber() → core::int {
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method run() → void {
   core::int e = 611953;
-  core::int p = [@vm.inferred-type.metadata=int?] self::nThPrimeNumber();
+  core::int p = [@vm.inferred-type.metadata=int] self::nThPrimeNumber();
   if(!([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] p =={core::num::==}{(core::Object) → core::bool} e)) {
     throw core::Exception::•("Unexpected result: ${p} != ${e}");
   }

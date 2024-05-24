@@ -670,7 +670,7 @@ void Thread::FreeActiveThread(Thread* thread, bool bypass_safepoint) {
 }
 
 void Thread::ReleaseStoreBuffer() {
-  ASSERT(IsAtSafepoint() || OwnsSafepoint() || task_kind_ == kMarkerTask);
+  ASSERT(IsAtSafepoint() || OwnsSafepoint());
   if (store_buffer_block_ == nullptr || store_buffer_block_->IsEmpty()) {
     return;  // Nothing to release.
   }
@@ -810,17 +810,6 @@ void Thread::StoreBufferRelease(StoreBuffer::ThresholdPolicy policy) {
 }
 
 void Thread::StoreBufferAcquire() {
-  store_buffer_block_ = isolate_group()->store_buffer()->PopNonFullBlock();
-}
-
-void Thread::StoreBufferReleaseGC() {
-  StoreBufferBlock* block = store_buffer_block_;
-  store_buffer_block_ = nullptr;
-  isolate_group()->store_buffer()->PushBlock(block,
-                                             StoreBuffer::kIgnoreThreshold);
-}
-
-void Thread::StoreBufferAcquireGC() {
   store_buffer_block_ = isolate_group()->store_buffer()->PopNonFullBlock();
 }
 
@@ -976,6 +965,7 @@ class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {
   void VisitPointers(ObjectPtr* first, ObjectPtr* last) override {
     for (; first != last + 1; first++) {
       ObjectPtr obj = *first;
+      // Stores into new-space objects don't need a write barrier.
       if (obj->IsImmediateObject()) continue;
 
       // To avoid adding too much work into the remembered set, skip large

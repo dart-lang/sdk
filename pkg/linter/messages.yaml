@@ -1,4 +1,106 @@
 LintCode:
+  always_declare_return_types:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a method or function doesn't
+      have an explicit return type.
+
+      #### Example
+
+      The following code produces this diagnostic because the function `f`
+      doesn't have a return type:
+
+      ```dart
+      [!f!]() {}
+      ```
+
+      #### Common fixes
+
+      Add an explicit return type:
+
+      ```dart
+      void f() {}
+      ```
+  always_put_control_body_on_new_line:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the code being controlled by a
+      control flow statement (`if`, `for`, `while`, or `do`) is on the same line
+      as the control flow statement.
+
+      #### Example
+
+      The following code produces this diagnostic because the `return` statement
+      is on the same line as the `if` that controls whether the `return` will be
+      executed:
+
+      ```dart
+      void f(bool b) {
+        if (b) [!return!];
+      }
+      ```
+
+      #### Common fixes
+
+      Put the controlled statement onto a separate, indented, line:
+
+      ```dart
+      void f(bool b) {
+        if (b)
+          return;
+      }
+      ```
+  always_put_required_named_parameters_first:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when required named parameters occur
+      after optional named parameters.
+
+      #### Example
+
+      The following code produces this diagnostic because the required parameter
+      `x` is after the optional parameter `y`:
+
+      ```dart
+      void f({int? y, required int [!x!]}) {}
+      ```
+
+      #### Common fixes
+
+      Reorder the parameters so that all required named parameters are before
+      any optional named parameters:
+
+      ```dart
+      void f({required int x, int? y}) {}
+      ```
+  always_use_package_imports:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an `import` in a library inside
+      the `lib` directory uses a relative path to import another library inside
+      the `lib` directory of the same package.
+
+      #### Example
+
+      Given that a file named `a.dart` and the code below are both inside the
+      `lib` directory of the same package, the following code produces this
+      diagnostic because a relative URI is used to import `a.dart`:
+
+      ```dart
+      import [!'a.dart'!];
+      ```
+
+      #### Common fixes
+
+      Use a package import:
+
+      ```dart
+      import 'package:p/a.dart';
+      ```
   annotate_overrides:
     documentation: |-
       #### Description
@@ -395,6 +497,86 @@ LintCode:
         s.length;
       }
       ```
+  avoid_slow_async_io:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an asynchronous file I/O method
+      with a synchronous equivalent is used.
+
+      The following are the specific flagged asynchronous methods:
+
+      - `Directory.exists`
+      - `Directory.stat`
+      - `File.lastModified`
+      - `File.exists`
+      - `File.stat`
+      - `FileSystemEntity.isDirectory`
+      - `FileSystemEntity.isFile`
+      - `FileSystemEntity.isLink`
+      - `FileSystemEntity.type`
+
+      #### Example
+
+      The following code produces this diagnostic because the async method
+      `exists` is invoked:
+
+      ```dart
+      import 'dart:io';
+
+      Future<void> g(File f) async {
+        await [!f.exists()!];
+      }
+      ```
+
+      #### Common fixes
+
+      Use the synchronous version of the method:
+
+      ```dart
+      import 'dart:io';
+
+      void g(File f) {
+        f.existsSync();
+      }
+      ```
+  avoid_type_to_string:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the method `toString` is
+      invoked on a value whose static type is `Type`.
+
+      #### Example
+
+      The following code produces this diagnostic because the method `toString`
+      is invoked on the `Type` returned by `runtimeType`:
+
+      ```dart
+      bool isC(Object o) => o.runtimeType.[!toString!]() == 'C';
+
+      class C {}
+      ```
+
+      #### Common fixes
+
+      If it's essential that the type is exactly the same, then use an explicit
+      comparison:
+
+      ```dart
+      bool isC(Object o) => o.runtimeType == C;
+
+      class C {}
+      ```
+
+      If it's alright for instances of subtypes of the type to return `true`,
+      then use a type check:
+
+      ```dart
+      bool isC(Object o) => o is C;
+
+      class C {}
+      ```
   avoid_types_as_parameter_names:
     documentation: |-
       #### Description
@@ -432,6 +614,69 @@ LintCode:
 
       ```dart
       void f(int_) {}
+      ```
+  avoid_unnecessary_containers:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a widget tree contains an
+      instance of `Container` and the only argument to the constructor is
+      `child:`.
+
+      #### Example
+
+      The following code produces this diagnostic because the invocation of the
+      `Container` constructor only has a `child:` argument:
+
+      ```dart
+      import 'package:flutter/material.dart';
+
+      Widget buildRow() {
+        return [!Container!](
+          child: Row(
+            children: [
+              Text('a'),
+              Text('b'),
+            ],
+          )
+        );
+      }
+      ```
+
+      #### Common fixes
+
+      If you intended to provide other arguments to the constructor, then add
+      them:
+
+      ```dart
+      import 'package:flutter/material.dart';
+
+      Widget buildRow() {
+        return Container(
+          color: Colors.red.shade100,
+          child: Row(
+            children: [
+              Text('a'),
+              Text('b'),
+            ],
+          )
+        );
+      }
+      ```
+
+      If no other arguments are needed, then unwrap the child widget:
+
+      ```dart
+      import 'package:flutter/material.dart';
+
+      Widget buildRow() {
+        return Row(
+          children: [
+            Text('a'),
+            Text('b'),
+          ],
+        );
+      }
       ```
   avoid_web_libraries_in_flutter:
     documentation: |-
@@ -572,6 +817,73 @@ LintCode:
 
       ```dart
       class C {}
+      ```
+  cancel_subscriptions:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an instance of
+      `StreamSubscription` is created but the method `cancel` isn't invoked.
+
+      #### Example
+
+      The following code produces this diagnostic because the `subscription`
+      isn't canceled:
+
+      ```dart
+      import 'dart:async';
+
+      void f(Stream stream) {
+        // ignore: unused_local_variable
+        var [!subscription = stream.listen((_) {})!];
+      }
+      ```
+
+      #### Common fixes
+
+      Cancel the subscription:
+
+      ```dart
+      import 'dart:async';
+
+      void f(Stream stream) {
+        var subscription = stream.listen((_) {});
+        subscription.cancel();
+      }
+      ```
+  close_sinks:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an instance of `Sink` is
+      created but the method `close` isn't invoked.
+
+      #### Example
+
+      The following code produces this diagnostic because the `sink` isn't
+      closed:
+
+      ```dart
+      import 'dart:io';
+
+      void g(File f) {
+        var [!sink = f.openWrite()!];
+        sink.write('x');
+      }
+      ```
+
+      #### Common fixes
+
+      Close the sink:
+
+      ```dart
+      import 'dart:io';
+
+      void g(File f) {
+        var sink = f.openWrite();
+        sink.write('x');
+        sink.close();
+      }
       ```
   collection_methods_unrelated_type:
     documentation: |-
@@ -1223,6 +1535,100 @@ LintCode:
       void f(C c) {}
 
       class C {}
+      ```
+  literal_only_boolean_expressions:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the value of the condition in
+      an `if` or loop statement is known to be either always `true` or always
+      `false`. An exception is made for a `while` loop whose condition is the
+      Boolean literal `true`.
+
+      #### Examples
+
+      The following code produces this diagnostic because the condition will
+      always evaluate to `true`:
+
+      ```dart
+      void f() {
+        [!if (true) {
+          print('true');
+        }!]
+      }
+      ```
+
+      The lint will evaluate a subset of expressions that are composed of
+      constants, so the following code will also produce this diagnostic because
+      the condition will always evaluate to `false`:
+
+      ```dart
+      void g(int i) {
+        [!if (1 == 0 || 3 > 4) {
+          print('false');
+        }!]
+      }
+      ```
+
+      #### Common fixes
+
+      If the condition is wrong, then correct the condition so that it's value
+      can't be known at compile time:
+
+      ```dart
+      void g(int i) {
+        if (i == 0 || i > 4) {
+          print('false');
+        }
+      }
+      ```
+
+      If the condition is correct, then simplify the code to not evaluate the
+      condition:
+
+      ```dart
+      void f() {
+        print('true');
+      }
+      ```
+  no_adjacent_strings_in_list:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when two string literals are
+      adjacent in a list literal. Adjacent strings in Dart are concatenated
+      together to form a single string, but the intent might be for each string
+      to be a separate element in the list.
+
+      #### Example
+
+      The following code produces this diagnostic because the strings `'a'` and
+      `'b'` are adjacent:
+
+      ```dart
+      List<String> list = [[!'a' 'b'!], 'c'];
+      ```
+
+      #### Common fixes
+
+      If the two strings are intended to be separate elements of the list, then
+      add a comma between them:
+
+      ```dart
+      List<String> list = ['a', 'b', 'c'];
+      ```
+
+      If the two strings are intended to be a single concatenated string, then
+      either manually merge the strings:
+
+      ```dart
+      List<String> list = ['ab', 'c'];
+      ```
+
+      Or use the `+` operator to concatenate the strings:
+
+      ```dart
+      List<String> list = ['a' + 'b', 'c'];
       ```
   no_duplicate_case_values:
     documentation: |-
@@ -2329,6 +2735,30 @@ LintCode:
         return p?.length;
       }
       ```
+  prefer_relative_imports:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an `import` in a library inside
+      the `lib` directory uses a `package:` URI to refer to another library in
+      the same package.
+
+      #### Example
+
+      The following code produces this diagnostic because it uses a `package:`
+      URI when a relative URI could have been used:
+
+      ```dart
+      import 'package:my_package/bar.dart';
+      ```
+
+      #### Common fixes
+
+      Use a relative URI to import the library:
+
+      ```dart
+      import 'bar.dart';
+      ```
   prefer_typing_uninitialized_variables:
     documentation: |-
       #### Description
@@ -2373,6 +2803,29 @@ LintCode:
         r = '';
         return r;
       }
+      ```
+  prefer_void_to_null:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when `Null` is used in a location
+      where `void` would be a valid choice.
+
+      #### Example
+
+      The following code produces this diagnostic because the function `f` is
+      declared to return `null` (at some future time):
+
+      ```dart
+      Future<[!Null!]> f() async {}
+      ```
+
+      #### Common fixes
+
+      Replace the use of `Null` with a use of `void`:
+
+      ```dart
+      Future<void> f() async {}
       ```
   provide_deprecation_message:
     documentation: |-
@@ -2574,6 +3027,115 @@ LintCode:
           widthFactor: 0.5,
           child: Text('...'),
         );
+      }
+      ```
+  sort_pub_dependencies:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the keys in a dependency map in
+      the `pubspec.yaml` file aren't sorted alphabetically. The dependency maps
+      that are checked are the `dependencies`, `dev_dependencies`, and
+      `dependency_overrides` maps.
+
+      #### Example
+
+      The following code produces this diagnostic because the entries in the
+      `dependencies` map are not sorted:
+
+      ```yaml
+      dependencies:
+        path: any
+        collection: any
+      ```
+
+      #### Common fixes
+
+      Sort the entries:
+
+      ```yaml
+      dependencies:
+        collection: any
+        path: any
+      ```
+  test_types_in_equals:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an override of the `==`
+      operator doesn't include a type test on the value of the parameter.
+
+      #### Example
+
+      The following code produces this diagnostic because `other` is not type
+      tested:
+
+      ```dart
+      class C {
+        final int f;
+
+        C(this.f);
+
+        @override
+        bool operator ==(Object other) {
+          return ([!other as C!]).f == f;
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Perform an `is` test as part of computing the return value:
+
+      ```dart
+      class C {
+        final int f;
+
+        C(this.f);
+
+        @override
+        bool operator ==(Object other) {
+          return other is C && other.f == f;
+        }
+      }
+      ```
+  throw_in_finally:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `throw` statement is found
+      inside a `finally` block.
+
+      #### Example
+
+      The following code produces this diagnostic because there is a `throw`
+      statement inside a `finally` block:
+
+      ```dart
+      void f() {
+        try {
+          // ...
+        } catch (e) {
+          // ...
+        } finally {
+          [!throw 'error'!];
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Rewrite the code so that the `throw` statement isn't inside a `finally`
+      block:
+
+      ```dart
+      void f() {
+        try {
+          // ...
+        } catch (e) {
+          // ...
+        }
+        throw 'error';
       }
       ```
   type_init_formals:
@@ -3000,6 +3562,51 @@ LintCode:
       }
 
       class D extends C {}
+      ```
+  unnecessary_statements:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an expression statement has no
+      clear effect.
+
+      #### Example
+
+      The following code produces this diagnostic because the addition of the
+      returned values from the two invocations has no clear effect:
+
+      ```dart
+      void f(int Function() first, int Function() second) {
+        [!first() + second()!];
+      }
+      ```
+
+      #### Common fixes
+
+      If the expression doesn't need to be computed, then remove it:
+
+      ```dart
+      void f(int Function() first, int Function() second) {
+      }
+      ```
+
+      If the value of the expression is needed, then make use of it, possibly
+      assigning it to a local variable first:
+
+      ```dart
+      void f(int Function() first, int Function() second) {
+        print(first() + second());
+      }
+      ```
+
+      If portions of the expression need to be executed, then remove the
+      unnecessary portions:
+
+      ```dart
+      void f(int Function() first, int Function() second) {
+        first();
+        second();
+      }
       ```
   unnecessary_string_escapes:
     documentation: |-

@@ -21,7 +21,11 @@ import '../js_backend/codegen_inputs.dart' show CodegenInputs;
 import '../js_backend/native_data.dart' show NativeData;
 import '../js_model/js_world.dart' show JClosedWorld;
 import '../js_model/type_recipe.dart'
-    show TypeExpressionRecipe, TypeRecipeDomain, TypeRecipeDomainImpl;
+    show
+        TypeEnvironmentStructure,
+        TypeExpressionRecipe,
+        TypeRecipeDomain,
+        TypeRecipeDomainImpl;
 import '../js_backend/specialized_checks.dart';
 import '../native/behavior.dart';
 import '../options.dart';
@@ -2158,7 +2162,24 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
 
   @override
   HInstruction visitTypeBind(HTypeBind node) {
-    // TODO(sra):  env1.eval(X).bind(env1.eval(Y)) --> env1.eval(...X...Y...)
+    final environment = node.inputs[0];
+    final argument = node.inputs[1];
+    if (environment is HTypeEval &&
+        argument is HTypeEval &&
+        environment.inputs.single == argument.inputs.single &&
+        // Should always be true, but checking is safe:
+        TypeEnvironmentStructure.same(
+            environment.envStructure, argument.envStructure)) {
+      //  env.eval(X).bind(env.eval(Y)) --> env.eval(...X...Y...)
+      final result = _typeRecipeDomain.foldEvalBindEvalWithSharedEnvironment(
+          environment.envStructure,
+          environment.typeExpression,
+          argument.typeExpression);
+      if (result != null) {
+        return HTypeEval(environment.inputs.single, result.environmentStructure,
+            result.recipe, node.instructionType);
+      }
+    }
     return node;
   }
 
