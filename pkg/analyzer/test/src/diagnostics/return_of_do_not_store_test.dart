@@ -22,7 +22,6 @@ class ReturnOfDoNotStoreInTestsTest extends PubPackageResolutionTest {
     writeTestPackageConfigWithMeta();
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48476')
   test_noHintsInTestDir() async {
     // Code that is in a test dir (the default for PubPackageResolutionTests)
     // should not trigger the hint.
@@ -32,7 +31,7 @@ class ReturnOfDoNotStoreInTestsTest extends PubPackageResolutionTest {
 import 'package:meta/meta.dart';
 
 @doNotStore
-String _v = '';
+String get _v => '';
 
 String f() {
   var v = () => _v;
@@ -76,30 +75,28 @@ class A {
     ]);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48476')
   test_returnFromClosureInFunction() async {
     await assertErrorsInCode('''
 import 'package:meta/meta.dart';
 
 @doNotStore
-String _v = '';
+String get _v => '';
 
 String f() {
   var v = () => _v;
   return v();
 }
 ''', [
-      error(WarningCode.RETURN_OF_DO_NOT_STORE, 92, 2),
+      error(WarningCode.RETURN_OF_DO_NOT_STORE, 97, 2),
     ]);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48476')
   test_returnFromFunction() async {
     await assertErrorsInCode('''
 import 'package:meta/meta.dart';
 
 @doNotStore
-String v = '';
+String get v => '';
 
 String getV() {
   return v;
@@ -110,20 +107,19 @@ String getV2() => v;
 @doNotStore
 String getV3() => v;
 ''', [
-      error(WarningCode.RETURN_OF_DO_NOT_STORE, 87, 1,
+      error(WarningCode.RETURN_OF_DO_NOT_STORE, 92, 1,
           messageContains: ['getV']),
-      error(WarningCode.RETURN_OF_DO_NOT_STORE, 111, 1,
+      error(WarningCode.RETURN_OF_DO_NOT_STORE, 116, 1,
           messageContains: ['getV2']),
     ]);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48476')
   test_returnFromGetter() async {
     await assertErrorsInCode('''
 import 'package:meta/meta.dart';
 
 @doNotStore
-String _v = '';
+String get _v => '';
 
 String get v {
   return _v;
@@ -134,60 +130,57 @@ String get v2 => _v;
 @doNotStore
 String get v3 => _v;
 ''', [
-      error(WarningCode.RETURN_OF_DO_NOT_STORE, 87, 2, messageContains: ['v']),
-      error(WarningCode.RETURN_OF_DO_NOT_STORE, 111, 2,
+      error(WarningCode.RETURN_OF_DO_NOT_STORE, 92, 2, messageContains: ['v']),
+      error(WarningCode.RETURN_OF_DO_NOT_STORE, 116, 2,
           messageContains: ['v2']),
     ]);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48476')
   test_returnFromGetter_binaryExpression() async {
     await assertErrorsInCode('''
 import 'package:meta/meta.dart';
 
 @doNotStore
-String? _v = '';
+String? get _v => '';
 
 @doNotStore
-String? _v2 = '';
+String? get _v2 => '';
 
 String? get v => _v ?? _v2;
 ''', [
-      error(WarningCode.RETURN_OF_DO_NOT_STORE, 112, 2,
+      error(WarningCode.RETURN_OF_DO_NOT_STORE, 122, 2,
           messageContains: ['_v']),
-      error(WarningCode.RETURN_OF_DO_NOT_STORE, 118, 3,
+      error(WarningCode.RETURN_OF_DO_NOT_STORE, 128, 3,
           messageContains: ['_v2']),
     ]);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48476')
   test_returnFromGetter_ternary() async {
     await assertErrorsInCode('''
 import 'package:meta/meta.dart';
 
 @doNotStore
-String _v = '';
+String get _v => '';
 
 @doNotStore
-String _v2 = '';
+String get _v2 => '';
 
 var b = true;
 
 String get v => b ? _v : _v2;
 ''', [
-      error(WarningCode.RETURN_OF_DO_NOT_STORE, 128, 2),
-      error(WarningCode.RETURN_OF_DO_NOT_STORE, 133, 3),
+      error(WarningCode.RETURN_OF_DO_NOT_STORE, 138, 2),
+      error(WarningCode.RETURN_OF_DO_NOT_STORE, 143, 3),
     ]);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48476')
   test_returnFromMethod() async {
     await assertErrorsInCode('''
 import 'package:meta/meta.dart';
 
 class A {
   @doNotStore
-  String _v = '';
+  String get _v => '';
 
   String getV() {
     return _v;
@@ -199,9 +192,9 @@ class A {
   String getV3() => _v;
 }
 ''', [
-      error(WarningCode.RETURN_OF_DO_NOT_STORE, 106, 2,
+      error(WarningCode.RETURN_OF_DO_NOT_STORE, 111, 2,
           messageContains: ['getV']),
-      error(WarningCode.RETURN_OF_DO_NOT_STORE, 135, 2,
+      error(WarningCode.RETURN_OF_DO_NOT_STORE, 140, 2,
           messageContains: ['getV2']),
     ]);
   }
