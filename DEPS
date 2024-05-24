@@ -54,7 +54,7 @@ vars = {
 
   # co19 is a cipd package automatically generated for each co19 commit.
   # Use tests/co19/update.sh to update this hash.
-  "co19_rev": "ce52bad581af26062e8da7bdb0b0c5a5fc89ec7e",
+  "co19_rev": "3b6147cd64211dace7ea86b9bab7ba48f4a328d2",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
   "benchmarks_internal_rev": "a7c23b2422492dcc515d1ba4abe3609b50e2a139",
