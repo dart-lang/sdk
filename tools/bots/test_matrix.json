@@ -676,6 +676,18 @@
           "shards": 3
         },
         {
+          "name": "front_end coverage",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "testRunner": true,
+          "arguments": [
+            "--enable-asserts",
+            "pkg/front_end/test/coverage_suite.dart",
+            "-ncfe-unittest-asserts-${mode}-${system}"
+          ],
+          "fileset": "front-end",
+          "shards": 1
+        },
+        {
           "name": "front_end unit tests (with git)",
           "arguments": [
             "-ncfe-unittest-asserts-${mode}-${system}",
