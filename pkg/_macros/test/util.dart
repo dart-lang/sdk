@@ -19,6 +19,10 @@ class TestTypePhaseIntrospector implements TypePhaseIntrospector {
     if (library == Uri.parse('dart:core') && name == 'List') {
       return Fixtures.listIdentifier;
     }
+    if (library == Fixtures.library.uri &&
+        name == Fixtures.mySuperclass.identifier.name) {
+      return Fixtures.mySuperclass.identifier;
+    }
     throw UnimplementedError('Cannot resolve the identifier $library:$name');
   }
 }

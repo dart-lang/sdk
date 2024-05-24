@@ -263,6 +263,11 @@ void main() {
                     TestTypePhaseIntrospector());
                 expect(result.enumValueAugmentations, isEmpty);
                 expect(
+                    result
+                        .extendsTypeAugmentations[Fixtures.myClass.identifier]!
+                        .debugString(),
+                    equals(Fixtures.mySuperclass.identifier.name));
+                expect(
                     result.interfaceAugmentations.mapValuesToDebugCodeString(),
                     equals({
                       Fixtures.myClass.identifier: ['HasX'],

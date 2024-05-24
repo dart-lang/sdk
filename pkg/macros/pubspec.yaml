@@ -1,5 +1,5 @@
 name: macros
-version: 0.1.0-main.5
+version: 0.1.0-main.6
 description: >-
   This package is for macro authors, and exposes the APIs necessary to write
   a macro. It exports the APIs from the private `_macros` SDK vendored package.
@@ -11,4 +11,4 @@ environment:
 dependencies:
   _macros:
     sdk: dart
-    version: 0.1.5
+    version: 0.1.6

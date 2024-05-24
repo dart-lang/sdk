@@ -1,3 +1,8 @@
+## 0.1.6
+
+- Add extendsType API for adding an extends clause.
+- Refactor builder implementations, fixes some bugs around nested builders.
+
 ## 0.1.5
 
 - Handle ParallelWaitError with DiagnosticException errors nicely.
