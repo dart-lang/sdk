@@ -889,6 +889,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     CreateClass.new,
     CreateMixin.new,
   ],
+  CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER: [
+    RemoveTypeArguments.new,
+  ],
   CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER: [
     ConvertIntoBlockBody.missingBody,
     CreateNoSuchMethod.new,

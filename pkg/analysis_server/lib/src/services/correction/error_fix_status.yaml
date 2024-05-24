@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 362 "needsFix"
-# - 389 "hasFix"
+# - 361 "needsFix"
+# - 390 "hasFix"
 # - 516 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -291,10 +291,7 @@ CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER:
   status: noFix
   since: 2.15
 CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER:
-  status: needsFix
-  notes: |-
-    The fix is to remove the type arguments.
-  since: 2.15
+  status: hasFix
 CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER:
   status: noFix
   notes: |-

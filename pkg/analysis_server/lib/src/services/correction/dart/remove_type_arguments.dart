@@ -20,13 +20,15 @@ class RemoveTypeArguments extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var typeArguments = coveringNode;
-    if (typeArguments is! TypeArgumentList) {
-      return;
+    var node = coveringNode;
+    // A<int>.i;
+    if (node is ConstructorName) {
+      node = node.type.typeArguments;
     }
+    if (node is! TypeArgumentList) return;
 
     await builder.addDartFileEdit(file, (builder) {
-      builder.addDeletion(range.node(typeArguments));
+      builder.addDeletion(range.node(node!));
     });
   }
 }

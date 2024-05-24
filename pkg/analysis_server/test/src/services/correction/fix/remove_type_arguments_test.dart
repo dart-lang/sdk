@@ -19,6 +19,23 @@ class RemoveTypeArgumentsTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_TYPE_ARGUMENTS;
 
+  Future<void> test_classInstantiationAccessToStaticMember() async {
+    await resolveTestCode('''
+class A<T> {
+  static int i = 1;
+}
+
+var x = A<int>.i;
+''');
+    await assertHasFix('''
+class A<T> {
+  static int i = 1;
+}
+
+var x = A.i;
+''');
+  }
+
   Future<void> test_explicitConst() async {
     await resolveTestCode('''
 void f() {
