@@ -61,7 +61,10 @@ class ExpressionCompiler {
   /// evaluating expressions in a part file the [libraryUri] will be the uri of
   /// the "part of" file whereas [scriptUri] will be the uri of the part.
   ///
-  /// [line] and [column] are 1-based.
+  /// [line] and [column] are 1-based. Library level expressions typically use
+  /// [line] and [column] 1 as an indicator that there is no relevant location.
+  /// For flexibility, a value of 0 is also accepted and recognized
+  /// in the same way.
   ///
   /// Values listed in [jsFrameValues] are substituted for their names in the
   /// [expression].
@@ -193,9 +196,24 @@ class ExpressionCompiler {
 
     var scope = DartScopeBuilder.findScope(_component, library, line, column);
     if (scope == null) {
-      onDiagnostic(_createInternalError(
-          libraryUri, line, column, 'Dart scope not found for location'));
-      return null;
+      // Fallback mechanism to allow a evaluation of an expression at the
+      // library level within the Dart SDK.
+      //
+      // Currently we lack the full dill and metadata for the Dart SDK module to
+      // be able to use the same mechanism of expression evaluation as the rest
+      // of a program. Because of that, expression evaluation at arbitrary
+      // scopes is not supported in the Dart SDK. However, we can still support
+      // compiling expressions that will be evaluated at the library level. We
+      // determine if that's the case by recognizing that all such requests use
+      // line 1 and column 1.
+      if (line <= 1 && column <= 1 && library.importUri.isScheme('dart')) {
+        _log('Fallback: use library scope for the Dart SDK');
+        scope = DartScope(library, null, null, {}, []);
+      } else {
+        onDiagnostic(_createInternalError(
+            libraryUri, line, column, 'Dart scope not found for location'));
+        return null;
+      }
     }
 
     _log('Detected expression compilation scope');

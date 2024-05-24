@@ -323,12 +323,19 @@ class ExpressionCompilerWorker {
       CompileExpressionRequest request) async {
     var libraryUri = Uri.parse(request.libraryUri);
     var moduleName = request.moduleName;
+    var isSdk = libraryUri.isScheme('dart');
 
-    if (libraryUri.isScheme('dart')) {
-      // compiling expressions inside the SDK currently fails because
+    if (isSdk && (request.line > 1 || request.column > 1)) {
       // SDK kernel outlines do not contain information that is needed
       // to detect the scope for expression evaluation - such as local
-      // symbols and source file line starts.
+      // symbols and source file line starts. For that reason, we reject
+      // requests to evaluate arbitrary expressions in frames within SDK
+      // libraries. That said, the evaluation of expressions at the library
+      // level is different. For those, we don't need as much data and we will
+      // attempt to do the evaluation if we can.  We use the convention that
+      // library evaluation requests use line and column 1. Most tools operate
+      // with a 1-based line and column, but line and column 0 is also accepted
+      // for flexibility.
       throw Exception('Expression compilation inside SDK is not supported yet');
     }
 
@@ -340,15 +347,19 @@ class ExpressionCompilerWorker {
     // libraries in the cache.
     _resetCacheLinks();
 
-    if (!_fullModules.containsKey(moduleName)) {
-      throw StateError('No full dill path available for $moduleName');
-    }
+    // We know that a full dill will be missing for Dart SDK requests and that
+    // there is nothing to update or reload in that case.
+    if (!isSdk) {
+      if (!_fullModules.containsKey(moduleName)) {
+        throw StateError('No full dill path available for $moduleName');
+      }
 
-    // Note that this doesn't actually re-load it if it's already fully loaded.
-    if (!await _loadAndUpdateComponent(
-        _fullModules[moduleName]!, moduleName, false)) {
-      throw ArgumentError('Failed to load full dill for module $moduleName: '
-          '${_fullModules[moduleName]}');
+      // Note that this doesn't actually reload it if it's already fully loaded.
+      if (!await _loadAndUpdateComponent(
+          _fullModules[moduleName]!, moduleName, false)) {
+        throw ArgumentError('Failed to load full dill for module $moduleName: '
+            '${_fullModules[moduleName]}');
+      }
     }
 
     errors.clear();
@@ -406,7 +417,13 @@ class ExpressionCompilerWorker {
     }
 
     var component = _sdkComponent;
-    if (!libraryUri.isScheme('dart')) {
+    final isSdk = libraryUri.isScheme('dart');
+    if (!isSdk) {
+      // Note: support for expression evaluation in the SDK is limited to only
+      // library level expressions. To support that, we use the existing SDK
+      // summary component. In the future, to support expression evaluation in
+      // any scope, we will likely need to provide the full component of the SDK
+      // here, instead.
       _processedOptions.ticker.logMs('Collecting libraries for $moduleName');
 
       var libraries =
@@ -423,14 +440,18 @@ class ExpressionCompilerWorker {
       _processedOptions.ticker.logMs('Collected libraries for $moduleName');
     }
 
-    var entryPoints = originalComponent.libraries
-        .map((e) => e.importUri)
-        .where((uri) => !uri.isScheme('dart'));
+    var entryPoints = [
+      for (var library in originalComponent.libraries)
+        // Filter out SDK libraries unless the goal is a library level
+        // expression evaluation in the Dart SDK.
+        if (isSdk || !library.importUri.isScheme('dart')) library.importUri
+    ];
+
     var incrementalCompiler = IncrementalCompiler.forExpressionCompilationOnly(
         CompilerContext(_processedOptions), component, /*resetTicker*/ false);
 
     var incrementalCompilerResult = await incrementalCompiler.computeDelta(
-        entryPoints: entryPoints.toList(), fullComponent: true);
+        entryPoints: entryPoints, fullComponent: true);
     var finalComponent = incrementalCompilerResult.component;
     assert(!duplicateLibrariesReachable(finalComponent.libraries));
     assert(_canSerialize(finalComponent));
