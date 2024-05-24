@@ -265,7 +265,8 @@ void main() {
                 expect(
                     result
                         .extendsTypeAugmentations[Fixtures.myClass.identifier]!
-                        .debugString(),
+                        .debugString()
+                        .toString(),
                     equals(Fixtures.mySuperclass.identifier.name));
                 expect(
                     result.interfaceAugmentations.mapValuesToDebugCodeString(),
