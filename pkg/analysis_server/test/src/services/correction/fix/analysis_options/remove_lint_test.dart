@@ -138,4 +138,17 @@ linter:
     - camel_case_types
 ''');
   }
+
+  Future<void> test_undefined() async {
+    await assertHasFix('''
+linter:
+  rules:
+    - camel_case_types
+    - undefined_rule
+''', '''
+linter:
+  rules:
+    - camel_case_types
+''');
+  }
 }

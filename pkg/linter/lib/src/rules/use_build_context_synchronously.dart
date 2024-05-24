@@ -1061,9 +1061,12 @@ class _Visitor extends SimpleAstVisitor {
     ProtectedFunction('dart.async', 'Stream', 'where', positional: [0]),
 
     // StreamSubscription instance methods.
-    ProtectedFunction('dart.async', 'Stream', 'onData', positional: [0]),
-    ProtectedFunction('dart.async', 'Stream', 'onDone', positional: [0]),
-    ProtectedFunction('dart.async', 'Stream', 'onError', positional: [0]),
+    ProtectedFunction('dart.async', 'StreamSubscription', 'onData',
+        positional: [0]),
+    ProtectedFunction('dart.async', 'StreamSubscription', 'onDone',
+        positional: [0]),
+    ProtectedFunction('dart.async', 'StreamSubscription', 'onError',
+        positional: [0]),
   ];
 
   static const protectedStaticMethods = [
