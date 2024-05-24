@@ -75,6 +75,37 @@ enum E {
 ''');
   }
 
+  test_extenstionTypeWithAbstractMember_getter() async {
+    await resolveTestCode('''
+extension type A(int it) {
+  int get g;
+}
+''');
+    await assertHasFix('''
+extension type A(int it) {
+  int get g {
+    // TODO: implement g
+    throw UnimplementedError();
+  }
+}
+''');
+  }
+
+  test_extenstionTypeWithAbstractMember_method() async {
+    await resolveTestCode('''
+extension type A(int it) {
+  void f();
+}
+''');
+    await assertHasFix('''
+extension type A(int it) {
+  void f() {
+    // TODO: implement f
+  }
+}
+''');
+  }
+
   Future<void> test_function() async {
     await resolveTestCode('''
 void f();

@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 361 "needsFix"
-# - 390 "hasFix"
+# - 360 "needsFix"
+# - 391 "hasFix"
 # - 516 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -685,9 +685,7 @@ CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF:
 CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM:
   status: noFix
 CompileTimeErrorCode.EXTENSION_TYPE_WITH_ABSTRACT_MEMBER:
-  status: needsFix
-  notes: |-
-    Convert to block body.
+  status: hasFix
 CompileTimeErrorCode.EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER:
   status: needsFix
   notes: |-
