@@ -103,7 +103,6 @@ class Tags {
   static const String kernelMembers = 'kernel-members';
   static const String initializers = 'initializers';
   static const String error = 'message';
-  static const String isNonNullableByDefault = 'nnbd';
   static const String patch = 'patch';
   static const String isAbstract = 'isAbstract';
 }
@@ -112,14 +111,6 @@ class PatchingDataExtractor extends CfeDataExtractor<Features> {
   PatchingDataExtractor(InternalCompilerResult compilerResult,
       Map<Id, ActualData<Features>> actualMap)
       : super(compilerResult, actualMap);
-
-  @override
-  Features computeLibraryValue(Id id, Library library) {
-    Features features = new Features();
-    // TODO(johnniwinther): Remove this.
-    features[Tags.isNonNullableByDefault] = 'true';
-    return features;
-  }
 
   @override
   Features computeClassValue(Id id, Class cls) {

@@ -4,8 +4,6 @@
 
 // @dart=2.19
 
-/*library: nnbd=true*/
-
 /*member: stmtEmpty:
 ;*/
 stmtEmpty() {

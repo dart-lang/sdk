@@ -5,7 +5,6 @@
 // This test checks that the greatest lower bound between two types is
 // calculated correctly, in case one of them is a FutureOr.
 
-/*library: nnbd=true*/
 import 'dart:async';
 
 class Foo {}
