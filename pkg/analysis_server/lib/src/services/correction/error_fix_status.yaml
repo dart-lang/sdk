@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 363 "needsFix"
-# - 388 "hasFix"
+# - 362 "needsFix"
+# - 389 "hasFix"
 # - 516 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -118,9 +118,7 @@ AnalysisOptionsWarningCode.REPLACED_LINT:
   notes: |-
     We should be able to replace the deprecated lint rule with its replacement.
 AnalysisOptionsWarningCode.UNDEFINED_LINT:
-  status: needsFix
-  notes: |-
-    The fix is to remove the name of the lint rule.
+  status: hasFix
 AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE:
   status: needsFix
   notes: |-
