@@ -26,6 +26,7 @@ import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/macro.dart';
+import 'package:analyzer/src/summary2/macro_cache.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:collection/collection.dart';
@@ -183,6 +184,16 @@ class LibraryContext {
         }
       }
 
+      var macroResultKey = cycle.cachedMacrosKey;
+      var inputMacroResults = <LibraryFileKind, MacroResultInput>{};
+      if (byteStore.get(macroResultKey) case var bytes?) {
+        _readMacroResults(
+          cycle: cycle,
+          bytes: bytes,
+          macroResults: inputMacroResults,
+        );
+      }
+
       var linkedBytes = byteStore.get(cycle.linkedKey);
 
       if (linkedBytes == null) {
@@ -201,6 +212,7 @@ class LibraryContext {
                 elementFactory: elementFactory,
                 performance: performance,
                 inputLibraries: cycle.libraries,
+                inputMacroResults: inputMacroResults,
                 macroExecutor: this.macroSupport?.executor,
               );
             },
@@ -215,6 +227,12 @@ class LibraryContext {
         performance.getDataInt('bytesPut').add(linkedBytes.length);
         testData?.forCycle(cycle).putKeys.add(cycle.linkedKey);
         bytesPut += linkedBytes.length;
+
+        _writeMacroResults(
+          cycle: cycle,
+          linkResult: linkResult,
+          macroResultKey: macroResultKey,
+        );
 
         librariesLinkedTimer.stop();
       } else {
@@ -346,6 +364,42 @@ class LibraryContext {
     }
   }
 
+  /// Fills [macroResults] with results that can be reused.
+  void _readMacroResults({
+    required LibraryCycle cycle,
+    required Uint8List bytes,
+    required Map<LibraryFileKind, MacroResultInput> macroResults,
+  }) {
+    var bundle = MacroCacheBundle.fromBytes(cycle, bytes);
+    var testUsedList = <File>[];
+    for (var library in bundle.libraries) {
+      // If the library itself changed, then declarations that macros see
+      // could be different now.
+      if (!ListEquality<int>().equals(
+        library.apiSignature,
+        library.kind.apiSignature,
+      )) {
+        continue;
+      }
+
+      // TODO(scheglov): Record more specific dependencies.
+      if (library.hasAnyIntrospection) {
+        continue;
+      }
+
+      testUsedList.add(library.kind.file.resource);
+
+      macroResults[library.kind] = MacroResultInput(
+        code: library.code,
+      );
+    }
+
+    if (testUsedList.isNotEmpty) {
+      var cycleTestData = testData?.forCycle(cycle);
+      cycleTestData?.macrosUsedCached.add(testUsedList);
+    }
+  }
+
   /// The [exception] was caught during the [cycle] linking.
   ///
   /// Throw another exception that wraps the given one, with more information.
@@ -361,6 +415,37 @@ class LibraryContext {
       }
     }
     throw CaughtExceptionWithFiles(exception, stackTrace, fileContentMap);
+  }
+
+  void _writeMacroResults({
+    required LibraryCycle cycle,
+    required LinkResult linkResult,
+    required String macroResultKey,
+  }) {
+    var results = linkResult.macroResults;
+    if (results.isEmpty) {
+      return;
+    }
+
+    testData?.forCycle(cycle).macrosGenerated.add(
+          linkResult.macroResults
+              .map((result) => result.library.file.resource)
+              .toList(),
+        );
+
+    var bundle = MacroCacheBundle(
+      libraries: results.map((result) {
+        return MacroCacheLibrary(
+          kind: result.library,
+          apiSignature: result.library.apiSignature,
+          hasAnyIntrospection: result.processing.hasAnyIntrospection,
+          code: result.code,
+        );
+      }).toList(),
+    );
+
+    var bytes = bundle.toBytes();
+    byteStore.putGet(macroResultKey, bytes);
   }
 }
 
@@ -395,6 +480,8 @@ class LibraryContextTestData {
 class LibraryCycleTestData {
   final List<String> getKeys = [];
   final List<String> putKeys = [];
+  final List<List<File>> macrosUsedCached = [];
+  final List<List<File>> macrosGenerated = [];
 }
 
 class _MacroFileEntry implements MacroFileEntry {

@@ -15,12 +15,15 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/macro_application.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
+import 'package:analyzer/src/utilities/extensions/file_system.dart';
+import 'package:collection/collection.dart';
 import 'package:macros/src/bootstrap.dart' as macro;
 import 'package:macros/src/executor/serialization.dart' as macro;
 import 'package:path/path.dart' as package_path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../util/tree_string_sink.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 import '../dart/resolution/node_text_expectations.dart';
 import 'element_text.dart';
@@ -38,6 +41,7 @@ main() {
 
   defineReflectiveSuite(() {
     defineReflectiveTests(MacroArgumentsTest);
+    defineReflectiveTests(MacroIncrementalTest);
     defineReflectiveTests(MacroIntrospectNodeTest);
     defineReflectiveTests(MacroIntrospectNodeDefinitionsTest);
     defineReflectiveTests(MacroIntrospectElementTest);
@@ -9144,6 +9148,222 @@ augment class A {
   void _addExampleMacro(String fileName) {
     var code = _getMacroCode('example/$fileName');
     newFile('$testPackageLibPath/$fileName', code);
+  }
+}
+
+@reflectiveTest
+class MacroIncrementalTest extends MacroElementsBaseTest {
+  @override
+  bool get keepLinkingLibraries => true;
+
+  @override
+  bool get retainDataForTesting => true;
+
+  @override
+  Future<void> setUp() async {
+    await super.setUp();
+    useEmptyByteStore();
+  }
+
+  test_changeDependency_noIntrospect() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    var library1 = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareInType('  void foo() {}')
+class X {}
+''');
+
+    var expectedLibraryText = r'''
+library
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  definingUnit
+    classes
+      class X @80
+        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::X
+        augmented
+          methods
+            self::@augmentation::package:test/test.macro.dart::@classAugmentation::X::@method::foo
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+augment library 'package:test/test.dart';
+
+augment class X {
+  void foo() {}
+}
+---
+      definingUnit
+        classes
+          augment class X @57
+            augmentationTarget: self::@class::X
+            methods
+              foo @68
+                returnType: void
+''';
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library1, expectedLibraryText);
+
+    // Generated and put into the cache.
+    _assertMacroCachedGenerated(testFile, r'''
+/home/test/lib/test.dart
+  usedCached
+  generated
+    /home/test/lib/test.dart
+''');
+
+    modifyFile2(a, r'''
+class A2 {}
+''');
+    driverFor(testFile).changeFile2(a);
+    await contextFor(testFile).applyPendingFileChanges();
+
+    var library2 = await buildFileLibrary(testFile);
+    checkElementText(library2, expectedLibraryText);
+
+    // Used cached, no new generated.
+    _assertMacroCachedGenerated(testFile, r'''
+/home/test/lib/test.dart
+  usedCached
+    /home/test/lib/test.dart
+  generated
+    /home/test/lib/test.dart
+''');
+  }
+
+  test_resolveIdentifier_class_notChanged() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    var library1 = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareInType('  {{package:test/test.dart@A}} foo() {}')
+class X {}
+''');
+
+    var expectedLibraryText = r'''
+library
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  definingUnit
+    classes
+      class X @104
+        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::X
+        augmented
+          methods
+            self::@augmentation::package:test/test.macro.dart::@classAugmentation::X::@method::foo
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+augment library 'package:test/test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class X {
+  prefix0.A foo() {}
+}
+---
+      imports
+        package:test/a.dart as prefix0 @75
+      definingUnit
+        classes
+          augment class X @99
+            augmentationTarget: self::@class::X
+            methods
+              foo @115
+                returnType: A
+''';
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library1, expectedLibraryText);
+
+    // Generated and put into the cache.
+    _assertMacroCachedGenerated(testFile, r'''
+/home/test/lib/test.dart
+  usedCached
+  generated
+    /home/test/lib/test.dart
+''');
+
+    modifyFile2(a, r'''
+class A {}
+class B {}
+''');
+    driverFor(testFile).changeFile2(a);
+    await contextFor(testFile).applyPendingFileChanges();
+
+    var library2 = await buildFileLibrary(testFile);
+    checkElementText(library2, expectedLibraryText);
+
+    // Cannot prove that `package:test/test.dart@A` is still there.
+    // So, not used cached.
+    // TODO(scheglov): Make it use cached.
+    _assertMacroCachedGenerated(testFile, r'''
+/home/test/lib/test.dart
+  usedCached
+  generated
+    /home/test/lib/test.dart
+    /home/test/lib/test.dart
+''');
+  }
+
+  void _assertMacroCachedGenerated(File targetFile, String expected) {
+    var buffer = StringBuffer();
+    var sink = TreeStringSink(
+      sink: buffer,
+      indent: '',
+    );
+
+    var testData = driverFor(testFile).testView!.libraryContext;
+    for (var entry in testData.libraryCycles.entries) {
+      if (entry.key.map((fd) => fd.file).contains(targetFile)) {
+        var fileListStr = entry.key
+            .map((fileData) => fileData.file.posixPath)
+            .sorted()
+            .join(' ');
+        sink.writelnWithIndent(fileListStr);
+        sink.withIndent(() {
+          sink.writelnWithIndent('usedCached');
+          sink.withIndent(() {
+            for (var files in entry.value.macrosUsedCached) {
+              sink.writelnWithIndent(files.map((f) => f.posixPath).join(' '));
+            }
+          });
+
+          sink.writelnWithIndent('generated');
+          sink.withIndent(() {
+            for (var files in entry.value.macrosGenerated) {
+              sink.writelnWithIndent(files.map((f) => f.posixPath).join(' '));
+            }
+          });
+        });
+      }
+    }
+
+    var actual = buffer.toString();
+    if (actual != expected) {
+      print('-------- Actual --------');
+      print('$actual------------------------');
+      NodeTextExpectationsCollector.add(actual);
+    }
+    expect(actual, expected);
   }
 }
 

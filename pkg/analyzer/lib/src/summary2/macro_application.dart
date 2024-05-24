@@ -70,6 +70,7 @@ class ApplicationResult {
   }
 }
 
+// TODO(scheglov): The name is deceptive, this is not for a single library.
 class LibraryMacroApplier {
   @visibleForTesting
   static bool testThrowExceptionTypes = false;
@@ -95,8 +96,12 @@ class LibraryMacroApplier {
     required OperationPerformanceImpl performance,
   }) runDeclarationsPhase;
 
-  /// The applications that currently run the declarations phase.
-  final List<_MacroApplication> _declarationsPhaseRunning = [];
+  /// The applications that currently run.
+  ///
+  /// There can be more than one, because during the declarations phase we
+  /// can start introspecting another declaration, which runs the declarations
+  /// phase for that another declaration.
+  final List<_MacroApplication> _runningApplications = [];
 
   /// The map from a declaration that has declarations phase introspection
   /// cycle, to the cycle exception.
@@ -105,6 +110,7 @@ class LibraryMacroApplier {
 
   late final macro.TypePhaseIntrospector _typesPhaseIntrospector =
       _TypePhaseIntrospector(
+    this,
     elementFactory,
     declarationBuilder,
     OperationPerformanceImpl('<typesPhaseIntrospector>'),
@@ -117,6 +123,11 @@ class LibraryMacroApplier {
     required this.declarationBuilder,
     required this.runDeclarationsPhase,
   });
+
+  /// The currently running macro application.
+  _MacroApplication? get currentApplication {
+    return _runningApplications.lastOrNull;
+  }
 
   Future<void> add({
     required LibraryBuilder libraryBuilder,
@@ -292,10 +303,10 @@ class LibraryMacroApplier {
     required OperationPerformanceImpl performance,
   }) async {
     if (targetElement != null) {
-      for (var i = 0; i < _declarationsPhaseRunning.length; i++) {
-        var running = _declarationsPhaseRunning[i];
+      for (var i = 0; i < _runningApplications.length; i++) {
+        var running = _runningApplications[i];
         if (running.target.element == targetElement) {
-          var applications = _declarationsPhaseRunning.sublist(i);
+          var applications = _runningApplications.sublist(i);
           var exception = _MacroIntrospectionCycleException(
             'Declarations phase introspection cycle.',
             applications: applications,
@@ -321,8 +332,7 @@ class LibraryMacroApplier {
       return null;
     }
 
-    _declarationsPhaseRunning.add(application);
-
+    _runningApplications.add(application);
     var results = <macro.MacroExecutionResult>[];
 
     await _runWithCatchingExceptions(
@@ -330,10 +340,10 @@ class LibraryMacroApplier {
         var target = _buildTarget(application.target.node);
 
         var introspector = _DeclarationPhaseIntrospector(
+          this,
           elementFactory,
           declarationBuilder,
           performance,
-          this,
           libraryBuilder.element.typeSystem,
         );
 
@@ -356,7 +366,7 @@ class LibraryMacroApplier {
       annotationIndex: application.annotationIndex,
     );
 
-    _declarationsPhaseRunning.remove(application);
+    _runningApplications.removeLast();
     return ApplicationResult(application, results);
   }
 
@@ -371,6 +381,7 @@ class LibraryMacroApplier {
       return null;
     }
 
+    _runningApplications.add(application);
     var results = <macro.MacroExecutionResult>[];
 
     await _runWithCatchingExceptions(
@@ -378,10 +389,10 @@ class LibraryMacroApplier {
         var target = _buildTarget(application.target.node);
 
         var introspector = _DefinitionPhaseIntrospector(
+          this,
           elementFactory,
           declarationBuilder,
           performance,
-          this,
           application.target.library.element.typeSystem,
         );
 
@@ -404,6 +415,7 @@ class LibraryMacroApplier {
       annotationIndex: application.annotationIndex,
     );
 
+    _runningApplications.removeLast();
     return ApplicationResult(application, results);
   }
 
@@ -417,6 +429,7 @@ class LibraryMacroApplier {
       return null;
     }
 
+    _runningApplications.add(application);
     var results = <macro.MacroExecutionResult>[];
 
     await _runWithCatchingExceptions(
@@ -442,6 +455,7 @@ class LibraryMacroApplier {
       annotationIndex: application.annotationIndex,
     );
 
+    _runningApplications.removeLast();
     return ApplicationResult(application, results);
   }
 
@@ -909,6 +923,11 @@ mixin MacroApplicationsContainer {
   final List<_MacroApplication> _applications = [];
 }
 
+/// Facts about applying macros in a library.
+class MacroProcessing {
+  bool hasAnyIntrospection = false;
+}
+
 class _AnnotationMacro {
   final LibraryElementImpl macroLibrary;
   final BundleMacroExecutor bundleExecutor;
@@ -1048,14 +1067,13 @@ class _ArgumentEvaluation {
 
 class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
     implements macro.DeclarationPhaseIntrospector {
-  final LibraryMacroApplier applier;
   final TypeSystemImpl typeSystem;
 
   _DeclarationPhaseIntrospector(
+    super.applier,
     super.elementFactory,
     super.declarationBuilder,
     super.performance,
-    this.applier,
     this.typeSystem,
   );
 
@@ -1068,6 +1086,7 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
     var element = (type as HasElement).element;
     await _runDeclarationsPhase(element);
 
+    macroProcessing?.hasAnyIntrospection = true;
     if (element case InterfaceElement(:var augmented)) {
       return augmented.constructors
           .map((e) => e.declaration as ConstructorElementImpl)
@@ -1089,6 +1108,7 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
     var element = (type as HasElement).element;
     await _runDeclarationsPhase(element);
 
+    macroProcessing?.hasAnyIntrospection = true;
     if (element case InstanceElement(:var augmented)) {
       return augmented.fields
           .whereNot((e) => e.isSynthetic)
@@ -1110,6 +1130,7 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
     var element = (type as HasElement).element;
     await _runDeclarationsPhase(element);
 
+    macroProcessing?.hasAnyIntrospection = true;
     if (element case InstanceElement(:var augmented)) {
       return [
         ...augmented.accessors.whereNot((e) => e.isSynthetic),
@@ -1127,6 +1148,7 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
   @override
   Future<macro.StaticType> resolve(macro.TypeAnnotationCode typeCode) async {
     performance.getDataInt('resolve').increment();
+    macroProcessing?.hasAnyIntrospection = true;
     var type = declarationBuilder.resolveType(typeCode);
     return _StaticTypeImpl(typeSystem, type);
   }
@@ -1136,6 +1158,7 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
     macro.Identifier identifier,
   ) async {
     performance.getDataInt('typeDeclarationOf').increment();
+    macroProcessing?.hasAnyIntrospection = true;
     return declarationBuilder.typeDeclarationOf(identifier);
   }
 
@@ -1143,6 +1166,7 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
   Future<List<macro.TypeDeclaration>> typesOf(
     covariant LibraryImplFromElement library,
   ) async {
+    macroProcessing?.hasAnyIntrospection = true;
     return library.element.topLevelElements
         .map((e) => declarationBuilder.declarationOfElement(e))
         .whereType<macro.TypeDeclaration>()
@@ -1157,6 +1181,8 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
     await _runDeclarationsPhase(element);
 
     element as EnumElementImpl;
+    macroProcessing?.hasAnyIntrospection = true;
+
     // TODO(scheglov): use augmented
     return element.constants
         .map(declarationBuilder.declarationOfElement)
@@ -1166,7 +1192,7 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
 
   Future<void> _runDeclarationsPhase(ElementImpl element) async {
     // Don't run for the current element.
-    var current = applier._declarationsPhaseRunning.lastOrNull;
+    var current = applier._runningApplications.lastOrNull;
     if (current?.target.element == element) {
       return;
     }
@@ -1189,10 +1215,10 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
 class _DefinitionPhaseIntrospector extends _DeclarationPhaseIntrospector
     implements macro.DefinitionPhaseIntrospector {
   _DefinitionPhaseIntrospector(
+    super.applier,
     super.elementFactory,
     super.declarationBuilder,
     super.performance,
-    super.applier,
     super.typeSystem,
   );
 
@@ -1214,6 +1240,7 @@ class _DefinitionPhaseIntrospector extends _DeclarationPhaseIntrospector
   Future<List<macro.Declaration>> topLevelDeclarationsOf(
     covariant LibraryImplFromElement library,
   ) async {
+    macroProcessing?.hasAnyIntrospection = true;
     return library.element.topLevelElements
         .whereNot((e) => e.isSynthetic)
         .map((e) => declarationBuilder.declarationOfElement(e))
@@ -1289,24 +1316,33 @@ class _StaticTypeImpl implements macro.StaticType {
 }
 
 class _TypePhaseIntrospector implements macro.TypePhaseIntrospector {
+  final LibraryMacroApplier applier;
   final LinkedElementFactory elementFactory;
   final DeclarationBuilder declarationBuilder;
   final OperationPerformanceImpl performance;
 
   _TypePhaseIntrospector(
+    this.applier,
     this.elementFactory,
     this.declarationBuilder,
     this.performance,
   );
 
+  MacroProcessing? get macroProcessing {
+    return applier.currentApplication?.target.library.macroProcessing;
+  }
+
   @override
   Future<macro.Identifier> resolveIdentifier(Uri library, String name) async {
     var libraryElement = elementFactory.libraryOfUri2(library);
+    macroProcessing?.hasAnyIntrospection = true;
+
     var lookup = libraryElement.scope.lookup(name);
     var element = lookup.getter ?? lookup.setter;
     if (element is PropertyAccessorElement && element.isSynthetic) {
       element = element.variable2;
     }
+
     if (element == null) {
       throw macro.MacroImplementationExceptionImpl(
         [
@@ -1317,6 +1353,7 @@ class _TypePhaseIntrospector implements macro.TypePhaseIntrospector {
         stackTrace: StackTrace.current.toString(),
       );
     }
+
     return declarationBuilder.fromElement.identifier(element);
   }
 }

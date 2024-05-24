@@ -41,6 +41,7 @@ import 'package:analyzer/src/util/uri.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
@@ -1731,6 +1732,9 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
   /// library uses any macros.
   List<AugmentationImportWithFile> _macroImports = const [];
 
+  /// The cache for [apiSignature].
+  Uint8List? _apiSignature;
+
   LibraryCycle? _libraryCycle;
 
   LibraryFileKind({
@@ -1739,6 +1743,22 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
     this.recoveredFrom,
   }) {
     file._fsState._libraryNameToFiles.add(this);
+  }
+
+  /// The unlinked API signature of all library files.
+  Uint8List get apiSignature {
+    if (_apiSignature case var apiSignature?) {
+      return apiSignature;
+    }
+
+    var builder = ApiSignature();
+
+    var sortedFiles = files.sortedBy((file) => file.path);
+    for (var file in sortedFiles) {
+      builder.addBytes(file.apiSignature);
+    }
+
+    return _apiSignature = builder.toByteList();
   }
 
   /// All augmentations of this library, in the depth-first pre-order order.
