@@ -19,6 +19,8 @@ specify the language used after the initial code fence.
 
 See [highlight.js](https://github.com/highlightjs/highlight.js/blob/main/SUPPORTED_LANGUAGES.md)
 for the list of languages supported by `dart doc`.
+To disable syntax highlighting or if no language is suitable,
+you can specify `none` as the language.
 
 **BAD:**
 ```dart
