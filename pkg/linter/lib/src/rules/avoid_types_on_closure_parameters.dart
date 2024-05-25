@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 
 const _desc = r'Avoid annotating types for function expression parameters.';
 
@@ -55,10 +56,10 @@ class AvoidTypesOnClosureParameters extends LintRule {
   }
 }
 
-class AvoidTypesOnClosureParametersVisitor extends SimpleAstVisitor {
-  LintRule rule;
+class _Visitor extends SimpleAstVisitor<void> {
+  final LintRule rule;
 
-  AvoidTypesOnClosureParametersVisitor(this.rule);
+  _Visitor(this.rule);
 
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
@@ -67,9 +68,8 @@ class AvoidTypesOnClosureParametersVisitor extends SimpleAstVisitor {
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
-    if (node.parent is FunctionDeclaration) {
-      return;
-    }
+    var contextType = node.approximateContextType;
+    if (contextType is! FunctionType) return;
     var parameterList = node.parameters?.parameters;
     if (parameterList != null) {
       for (var parameter in parameterList) {
@@ -89,17 +89,5 @@ class AvoidTypesOnClosureParametersVisitor extends SimpleAstVisitor {
     if (type is NamedType && type.type is! DynamicType) {
       rule.reportLint(node.type);
     }
-  }
-}
-
-class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
-
-  _Visitor(this.rule);
-
-  @override
-  void visitFunctionExpression(FunctionExpression node) {
-    var visitor = AvoidTypesOnClosureParametersVisitor(rule);
-    visitor.visitFunctionExpression(node);
   }
 }
