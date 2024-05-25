@@ -17,7 +17,7 @@ void main() {
     declaration.main();
     location.main();
     relevance_tests.main();
-    shadowing_test.main;
+    shadowing_test.main();
     defineReflectiveTests(UpdateTextExpectations);
   }, name: 'dart');
 }
