@@ -625,20 +625,25 @@ class ExpressionEvaluationTestDriver {
     });
   }
 
-  /// Evaluates a dart [expression] without breakpoint and validates result.
+  /// Evaluates a dart [expression] under the scope of [libraryUri] without
+  /// a breakpoint and validates the result.
   ///
-  /// [expression] is a dart expression.
+  /// When [libraryUri] is ommitted, the expression is evaluated in the [input]
+  /// library.
+  ///
   /// [expectedResult] is the JSON for the returned remote object.
   /// [expectedError] is the error string if the error is expected.
   Future<void> check(
       {required String expression,
+      Uri? libraryUri,
       dynamic expectedError,
       dynamic expectedResult}) async {
     assert(expectedError == null || expectedResult == null,
         'Cannot expect both an error and result.');
 
     return await _whileRunning(body: () async {
-      var evalResult = await _evaluateDartExpression(expression);
+      var evalResult =
+          await _evaluateDartExpression(expression, libraryUri: libraryUri);
 
       var error = evalResult.json['error'];
       if (error != null) {
@@ -749,10 +754,10 @@ class ExpressionEvaluationTestDriver {
   }
 
   Future<TestCompilationResult> _compileDartExpression(
-      String expression) async {
+      String expression, Uri? libraryUri) async {
     // Perform an incremental compile.
     return await compiler.compileExpression(
-      libraryUri: input,
+      libraryUri: libraryUri ?? input,
       line: 1,
       column: 1,
       scope: {},
@@ -789,9 +794,10 @@ class ExpressionEvaluationTestDriver {
 
   Future<wip.RemoteObject> _evaluateDartExpression(
     String expression, {
+    Uri? libraryUri,
     bool returnByValue = false,
   }) async {
-    var result = await _compileDartExpression(expression);
+    var result = await _compileDartExpression(expression, libraryUri);
     if (!result.isSuccess) {
       return _createCompilationError(result);
     }

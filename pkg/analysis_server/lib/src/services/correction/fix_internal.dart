@@ -945,6 +945,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE: [
     ReplaceCascadeWithDot.new,
   ],
+  CompileTimeErrorCode.EXTENSION_TYPE_WITH_ABSTRACT_MEMBER: [
+    ConvertIntoBlockBody.missingBody,
+  ],
   CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS: [
     CreateConstructor.new,
   ],

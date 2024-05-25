@@ -15,6 +15,8 @@ void main() {
   int _ = 1;
   const _ = 1;
   int _() => 1;
+  var (_, _) = (3, '4');
+
   Expect.equals(2, _(1));
 }
 
@@ -23,6 +25,8 @@ class Clas<_> {
     int _ = 1;
     const _ = 1;
     int _() => 1;
+    var (_, _) = (3, '4');
+
     Expect.equals(2, _(1));
   }
 }

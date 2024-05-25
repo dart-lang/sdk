@@ -311,6 +311,7 @@ class TypeDeclarationKey implements Key {
 
 enum _TypeDeclarationContentKind {
   declaration,
+  superclass,
   mixins,
   interfaces,
   bodyStart,
@@ -342,6 +343,11 @@ class TypeDeclarationContentKey implements Key {
   /// in `augment class Foo implements Bar, Baz { }`.
   TypeDeclarationContentKey.interfaces(Key parent)
       : this._(parent, _TypeDeclarationContentKind.interfaces);
+
+  /// The fixed parts of an extends-clause, that is, "extends " in
+  /// `augment class Foo extends Bar { }`.
+  TypeDeclarationContentKey.superclass(Key parent)
+      : this._(parent, _TypeDeclarationContentKind.superclass);
 
   /// The start of the declaration body, that is, "{\n" in
   ///
@@ -408,6 +414,10 @@ class IdentifierKey implements Key {
   /// Identifier for an enum value.
   IdentifierKey.enum_(Key parent, int index, Identifier identifier)
       : this._(parent, index, identifier, _IdentifierKind.enuum);
+
+  /// Identifier for an extended type.
+  IdentifierKey.superclass(Key parent, Identifier identifier)
+      : this._(parent, 0, identifier, _IdentifierKind.interface);
 
   /// Identifier for a mixed in type.
   IdentifierKey.mixin(Key parent, int index, Identifier identifier)

@@ -108,6 +108,12 @@ class LibraryBuilder with MacroApplicationsContainer {
   /// written or macro generated.
   final Set<ConstFieldElementImpl> finalInstanceFields = Set.identity();
 
+  /// Set if the library reuses the cached macro result.
+  AugmentationImportWithFile? inputMacroAugmentationImport;
+
+  /// The sink for macro applying facts, for caching.
+  final MacroProcessing macroProcessing = MacroProcessing();
+
   final List<List<macro.MacroExecutionResult>> _macroResults = [];
 
   LibraryBuilder._({
@@ -460,6 +466,27 @@ class LibraryBuilder with MacroApplicationsContainer {
     return _augmentedBuilders[name];
   }
 
+  MacroResultOutput? getCacheableMacroResult() {
+    // Nothing if we already reuse a cached result.
+    if (inputMacroAugmentationImport != null) {
+      return null;
+    }
+
+    var macroImport = kind.augmentationImports.lastOrNull;
+    if (macroImport is AugmentationImportWithFile) {
+      var importedFile = macroImport.importedFile;
+      if (importedFile.isMacroAugmentation) {
+        return MacroResultOutput(
+          library: kind,
+          processing: macroProcessing,
+          code: importedFile.content,
+        );
+      }
+    }
+
+    return null;
+  }
+
   /// Merges accumulated [_macroResults] and corresponding macro augmentation
   /// libraries into a single macro augmentation library.
   Future<void> mergeMacroAugmentations({
@@ -736,6 +763,19 @@ class LibraryBuilder with MacroApplicationsContainer {
       }
     }
     _augmentationTargets[name] = augmentation;
+  }
+
+  /// Updates the element of the macro augmentation.
+  void updateInputMacroAugmentation() {
+    if (inputMacroAugmentationImport case var import?) {
+      var augmentation = element.augmentations.last;
+      var importedFile = import.importedFile;
+      var informativeBytes = importedFile.unlinked2.informativeBytes;
+      augmentation.macroGenerated = MacroGeneratedAugmentationLibrary(
+        code: importedFile.content,
+        informativeBytes: informativeBytes,
+      );
+    }
   }
 
   LibraryAugmentationElementImpl _addMacroAugmentation(
@@ -1146,7 +1186,11 @@ class LibraryBuilder with MacroApplicationsContainer {
     }
   }
 
-  static void build(Linker linker, LibraryFileKind inputLibrary) {
+  static void build(
+    Linker linker,
+    LibraryFileKind inputLibrary,
+    MacroResultInput? inputMacroResult,
+  ) {
     var elementFactory = linker.elementFactory;
     var rootReference = linker.rootReference;
 
@@ -1287,6 +1331,14 @@ class LibraryBuilder with MacroApplicationsContainer {
       element: libraryElement,
       units: linkingUnits,
     );
+
+    if (inputMacroResult != null) {
+      var import = inputLibrary.addMacroAugmentation(
+        inputMacroResult.code,
+        partialIndex: null,
+      );
+      builder.inputMacroAugmentationImport = import;
+    }
 
     linker.builders[builder.uri] = builder;
   }

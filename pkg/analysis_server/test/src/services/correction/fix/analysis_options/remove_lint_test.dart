@@ -50,7 +50,7 @@ class RemoveLintTest extends AnalysisOptionsFixTest {
 
   void tearDown() {
     Registry.ruleRegistry.unregister(deprecatedRule);
-    Registry.ruleRegistry.register(removedRule);
+    Registry.ruleRegistry.unregister(removedRule);
   }
 
   Future<void> test_deprecated() async {

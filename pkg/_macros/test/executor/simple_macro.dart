@@ -467,7 +467,7 @@ class SimpleMacro
 
   @override
   FutureOr<void> buildTypesForClass(
-      ClassDeclaration clazz, ClassTypeBuilder builder) {
+      ClassDeclaration clazz, ClassTypeBuilder builder) async {
     List<Object> buildTypeParam(
         TypeParameterDeclaration typeParam, bool isFirst) {
       return [
@@ -516,6 +516,10 @@ mixin $mixinName implements $interfaceName {
   int get x => 1;
 }'''));
 
+    // ignore: deprecated_member_use_from_same_package
+    final mySuperClass = await builder.resolveIdentifier(
+        Uri.parse('package:foo/bar.dart'), 'MySuperclass');
+    builder.extendsType(NamedTypeAnnotationCode(name: mySuperClass));
     builder.appendInterfaces([RawTypeAnnotationCode.fromString(interfaceName)]);
     builder.appendMixins([RawTypeAnnotationCode.fromString(mixinName)]);
   }

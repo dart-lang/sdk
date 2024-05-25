@@ -347,7 +347,7 @@
     "incompatible": [],
     "sets": [],
     "fixStatus": "needsEvaluation",
-    "details": "**DO** specify the language used in the code block of a doc comment.\n\nTo enable proper syntax highlighting of Markdown code blocks,\n[`dart doc`](https://dart.dev/tools/dart-doc) strongly recommends code blocks to\nspecify the language used after the initial code fence.\n\nSee [highlight.js](https://github.com/highlightjs/highlight.js/blob/main/SUPPORTED_LANGUAGES.md)\nfor the list of languages supported by `dart doc`.\n\n**BAD:**\n```dart\n/// ```\n/// void main() {}\n/// ```\nclass A {}\n```\n\n**GOOD:**\n```dart\n/// ```dart\n/// void main() {}\n/// ```\nclass A {}\n```\n\n",
+    "details": "**DO** specify the language used in the code block of a doc comment.\n\nTo enable proper syntax highlighting of Markdown code blocks,\n[`dart doc`](https://dart.dev/tools/dart-doc) strongly recommends code blocks to\nspecify the language used after the initial code fence.\n\nSee [highlight.js](https://github.com/highlightjs/highlight.js/blob/main/SUPPORTED_LANGUAGES.md)\nfor the list of languages supported by `dart doc`.\nTo disable syntax highlighting or if no language is suitable,\nyou can specify `none` as the language.\n\n**BAD:**\n```dart\n/// ```\n/// void main() {}\n/// ```\nclass A {}\n```\n\n**GOOD:**\n```dart\n/// ```dart\n/// void main() {}\n/// ```\nclass A {}\n```\n\n",
     "sinceDartSdk": "3.4.0"
   },
   {
@@ -2387,7 +2387,7 @@
     "state": "stable",
     "incompatible": [],
     "sets": [],
-    "fixStatus": "needsFix",
+    "fixStatus": "hasFix",
     "details": "Avoid returning an awaited expression when the expression type is assignable to\nthe function's return type.\n\n\n**BAD:**\n```dart\nFuture<int> future;\nFuture<int> f1() async => await future;\nFuture<int> f2() async {\n  return await future;\n}\n```\n\n**GOOD:**\n```dart\nFuture<int> future;\nFuture<int> f1() => future;\nFuture<int> f2() {\n  return future;\n}\n```\n\n",
     "sinceDartSdk": "2.1.1"
   },

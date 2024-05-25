@@ -461,6 +461,20 @@ void runNullSafeSharedTests(
                 contains('1: Instance of \'B\''),
                 contains('length: 2')));
       });
+
+      test('invoke an SDK method', () async {
+        await driver.check(
+            expression: 'Flow.begin(id: 0) is Flow',
+            libraryUri: Uri.parse('dart:developer'),
+            expectedResult: 'true');
+      });
+
+      test('tearoff an SDK method', () async {
+        await driver.check(
+            expression: 'postEvent',
+            libraryUri: Uri.parse('dart:developer'),
+            expectedResult: contains('function postEvent(eventKind'));
+      });
     });
 
     group('method level', () {

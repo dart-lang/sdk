@@ -1,3 +1,12 @@
+## 0.1.0-main.7
+
+- Fix for generating code after extendsType
+
+## 0.1.0-main.6
+
+- Add extendsType API for adding an extends clause.
+- Refactor builder implementations, fixes some bugs around nested builders.
+
 ## 0.1.0-main.5
 
 - Handle ParallelWaitError with DiagnosticException errors nicely.

@@ -30,7 +30,11 @@ class CConst {
     final _ = _;
     const _ = _;
     int _() => 1;
+    var (_, _) = (3, '4');
+    Expect.equals(42, _);
+
     int foo<_>([String _ = "$_"]) => _;
-    _ = foo();
+    foo();
+    Expect.equals(42, _);
   }
 }
