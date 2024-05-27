@@ -97,7 +97,7 @@ const Map<String, double> _expect = {
       78.42227378190255,
   "package:front_end/src/fasta/builder/void_type_declaration_builder.dart":
       100.0,
-  "package:front_end/src/fasta/builder_graph.dart": 55.769230769230774,
+  "package:front_end/src/fasta/builder_graph.dart": 54.0,
   "package:front_end/src/fasta/codes/fasta_codes_cfe_generated.dart":
       73.0892742453436,
   "package:front_end/src/fasta/codes/type_labeler.dart": 83.68336025848141,
@@ -205,10 +205,10 @@ const Map<String, double> _expect = {
   "package:front_end/src/fasta/modifier.dart": 100.0,
   "package:front_end/src/fasta/operator.dart": 100.0,
   "package:front_end/src/fasta/problems.dart": 0.0,
-  "package:front_end/src/fasta/scope.dart": 80.14256619144604,
+  "package:front_end/src/fasta/scope.dart": 79.0,
   "package:front_end/src/fasta/source/class_declaration.dart":
       80.29556650246306,
-  "package:front_end/src/fasta/source/diet_listener.dart": 91.22807017543859,
+  "package:front_end/src/fasta/source/diet_listener.dart": 89.0,
   "package:front_end/src/fasta/source/diet_parser.dart": 100.0,
   "package:front_end/src/fasta/source/name_scheme.dart": 93.19148936170212,
   "package:front_end/src/fasta/source/outline_builder.dart": 91.54411764705883,

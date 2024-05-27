@@ -16,7 +16,7 @@ import 'import.dart' show Import;
 
 import 'dill/dill_library_builder.dart' show DillLibraryBuilder;
 
-import 'source/source_library_builder.dart' show SourceLibraryBuilder;
+import 'source/source_library_builder.dart' show Part, SourceLibraryBuilder;
 
 import 'incremental_compiler.dart' show getPartUri;
 
@@ -52,8 +52,8 @@ class BuilderGraph implements Graph<Uri> {
           neighbors.add(uri);
         }
       }
-      for (LibraryBuilder part in library.parts) {
-        Uri uri = part.importUri;
+      for (Part part in library.parts) {
+        Uri uri = part.builder.importUri;
         if (builders.containsKey(uri)) {
           neighbors.add(uri);
         }

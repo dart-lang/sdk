@@ -105,6 +105,7 @@ import '../scope.dart';
 import '../util/helpers.dart';
 import 'class_declaration.dart';
 import 'name_scheme.dart';
+import 'offset_map.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_constructor_builder.dart';
 import 'source_enum_builder.dart';
@@ -124,15 +125,18 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   @override
   final SourceLoader loader;
 
+  /// Map used to find objects created in the [OutlineBuilder] from within
+  /// the [DietListener].
+  ///
+  /// This is meant to be written once and read once.
+  OffsetMap? _offsetMap;
+
   final TypeParameterScopeBuilder _libraryTypeParameterScopeBuilder;
 
   final List<ConstructorReferenceBuilder> constructorReferences =
       <ConstructorReferenceBuilder>[];
 
-  final List<LibraryBuilder> parts = <LibraryBuilder>[];
-
-  // Can I use library.parts instead? See SourceLibraryBuilder.addPart.
-  final List<int> partOffsets = <int>[];
+  final List<Part> parts = [];
 
   final List<Import> imports = <Import>[];
 
@@ -351,6 +355,24 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         !importUri.isScheme('dart') || _packageUri == null,
         "Package uri '$_packageUri' set on dart: library with import uri "
         "'${importUri}'.");
+  }
+
+  /// Returns the map of objects created in the [OutlineBuilder].
+  ///
+  /// This should only be called once.
+  OffsetMap get offsetMap {
+    assert(_offsetMap != null, "No OffsetMap for $this");
+    OffsetMap map = _offsetMap!;
+    _offsetMap = null;
+    return map;
+  }
+
+  /// Registers the map of objects created in the [OutlineBuilder].
+  ///
+  /// This should only be called once.
+  void set offsetMap(OffsetMap value) {
+    assert(_offsetMap == null, "OffsetMap has already been set for $this");
+    _offsetMap = value;
   }
 
   MergedLibraryScope get mergedScope {
@@ -740,6 +762,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void addExport(
+      OffsetMap offsetMap,
+      Token exportKeyword,
       List<MetadataBuilder>? metadata,
       String uri,
       List<Configuration>? configurations,
@@ -760,11 +784,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         resolve(this.importUri, uri, uriOffset), charOffset,
         accessor: this);
     exportedLibrary.addExporter(this, combinators, charOffset);
-    exports.add(new Export(this, exportedLibrary, combinators, charOffset));
+    Export export = new Export(this, exportedLibrary, combinators, charOffset);
+    exports.add(export);
+    offsetMap.registerExport(exportKeyword, export);
   }
 
   void addImport(
-      {required List<MetadataBuilder>? metadata,
+      {OffsetMap? offsetMap,
+      Token? importKeyword,
+      required List<MetadataBuilder>? metadata,
       required bool isAugmentationImport,
       required String uri,
       required List<Configuration>? configurations,
@@ -810,7 +838,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           referencesFromIndex: isAugmentationImport ? indexedLibrary : null);
     }
 
-    imports.add(new Import(
+    Import import = new Import(
         this,
         builder,
         isAugmentationImport,
@@ -821,10 +849,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         charOffset,
         prefixCharOffset,
         importIndex,
-        nativeImportPath: nativePath));
+        nativeImportPath: nativePath);
+    imports.add(import);
+    offsetMap?.registerImport(importKeyword!, import);
   }
 
-  void addPart(List<MetadataBuilder>? metadata, String uri, int charOffset) {
+  void addPart(OffsetMap offsetMap, Token partKeyword,
+      List<MetadataBuilder>? metadata, String uri, int charOffset) {
     Uri resolvedUri = resolve(this.importUri, uri, charOffset, isPart: true);
     // To support absolute paths from within packages in the part uri, we try to
     // translate the file uri from the resolved import uri before resolving
@@ -833,17 +864,18 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         resolve(fileUri, uri, charOffset);
     // TODO(johnniwinther): Add a LibraryPartBuilder instead of using
     // [LibraryBuilder] to represent both libraries and parts.
-    parts.add(loader.read(resolvedUri, charOffset,
+    LibraryBuilder builder = loader.read(resolvedUri, charOffset,
         origin: isAugmenting ? origin : null,
         fileUri: newFileUri,
         accessor: this,
-        isPatch: isAugmenting));
-    partOffsets.add(charOffset);
+        isPatch: isAugmenting);
+    parts.add(new Part(charOffset, builder));
 
     // TODO(ahe): [metadata] should be stored, evaluated, and added to [part].
     LibraryPart part = new LibraryPart(<Expression>[], uri)
       ..fileOffset = charOffset;
     library.addPart(part);
+    offsetMap.registerPart(partKeyword, part);
   }
 
   void addPartOf(List<MetadataBuilder>? metadata, String? name, String? uri,
@@ -868,8 +900,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     _scriptTokenOffset ??= charOffset;
   }
 
-  void addFields(List<MetadataBuilder>? metadata, int modifiers,
-      bool isTopLevel, TypeBuilder? type, List<FieldInfo> fieldInfos) {
+  void addFields(
+      OffsetMap offsetMap,
+      List<MetadataBuilder>? metadata,
+      int modifiers,
+      bool isTopLevel,
+      TypeBuilder? type,
+      List<FieldInfo> fieldInfos) {
     for (FieldInfo info in fieldInfos) {
       bool isConst = modifiers & constMask != 0;
       bool isFinal = modifiers & finalMask != 0;
@@ -886,22 +923,24 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         new Token.eof(startToken.previous!.offset).setNext(startToken);
       }
       bool hasInitializer = info.initializerToken != null;
-      addField(
-          metadata,
-          modifiers,
-          isTopLevel,
-          type ?? addInferableType(),
-          info.identifier.name,
-          info.identifier.nameOffset,
-          info.charEndOffset,
-          startToken,
-          hasInitializer,
-          constInitializerToken:
-              potentiallyNeedInitializerInOutline ? startToken : null);
+      offsetMap.registerField(
+          info.identifier,
+          addField(
+              metadata,
+              modifiers,
+              isTopLevel,
+              type ?? addInferableType(),
+              info.identifier.name,
+              info.identifier.nameOffset,
+              info.charEndOffset,
+              startToken,
+              hasInitializer,
+              constInitializerToken:
+                  potentiallyNeedInitializerInOutline ? startToken : null));
     }
   }
 
-  Builder? addBuilder(String name, Builder declaration, int charOffset,
+  Builder addBuilder(String name, Builder declaration, int charOffset,
       {Reference? getterReference, Reference? setterReference}) {
     // TODO(ahe): Set the parent correctly here. Could then change the
     // implementation of MemberBuilder.isTopLevel to test explicitly for a
@@ -948,7 +987,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             : currentTypeParameterScopeBuilder.members!);
     Builder? existing = members[name];
 
-    if (existing == declaration) return existing;
+    if (existing == declaration) return declaration;
 
     if (declaration.next != null && declaration.next != existing) {
       unexpected(
@@ -1171,13 +1210,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       List<LocatedMessage> context = <LocatedMessage>[
         messagePartInPartLibraryContext.withLocation(library.fileUri, -1, 1),
       ];
-      for (int offset in partOffsets) {
-        addProblem(messagePartInPart, offset, noLength, fileUri,
+      for (Part part in parts) {
+        addProblem(messagePartInPart, part.offset, noLength, fileUri,
             context: context);
       }
-      for (LibraryBuilder part in parts) {
+      for (Part part in parts) {
         // Mark this part as used so we don't report it as orphaned.
-        usedParts!.add(part.importUri);
+        usedParts!.add(part.builder.importUri);
       }
     }
     parts.clear();
@@ -1206,32 +1245,43 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   void includeParts(Set<Uri> usedParts) {
     Set<Uri> seenParts = new Set<Uri>();
-    for (int i = 0; i < parts.length; i++) {
-      LibraryBuilder part = parts[i];
-      int partOffset = partOffsets[i];
-      if (part == this) {
+    int index = 0;
+    while (index < parts.length) {
+      Part part = parts[index];
+      bool keepPart = true;
+      // TODO(johnniwinther): Use [part.offset] in messages.
+      if (part.builder == this) {
         addProblem(messagePartOfSelf, -1, noLength, fileUri);
-      } else if (seenParts.add(part.fileUri)) {
-        if (part.partOfLibrary != null) {
-          addProblem(messagePartOfTwoLibraries, -1, noLength, part.fileUri,
+        keepPart = false;
+      } else if (seenParts.add(part.builder.fileUri)) {
+        if (part.builder.partOfLibrary != null) {
+          addProblem(
+              messagePartOfTwoLibraries, -1, noLength, part.builder.fileUri,
               context: [
                 messagePartOfTwoLibrariesContext.withLocation(
-                    part.partOfLibrary!.fileUri, -1, noLength),
+                    part.builder.partOfLibrary!.fileUri, -1, noLength),
                 messagePartOfTwoLibrariesContext.withLocation(
                     this.fileUri, -1, noLength)
               ]);
+          keepPart = false;
         } else {
-          usedParts.add(part.importUri);
-          includePart(part, usedParts, partOffset);
+          usedParts.add(part.builder.importUri);
+          keepPart = _includePart(part.builder, usedParts, part.offset);
         }
       } else {
-        addProblem(templatePartTwice.withArguments(part.fileUri), -1, noLength,
-            fileUri);
+        addProblem(templatePartTwice.withArguments(part.builder.fileUri), -1,
+            noLength, fileUri);
+        keepPart = false;
+      }
+      if (keepPart) {
+        index++;
+      } else {
+        parts.removeAt(index);
       }
     }
   }
 
-  bool includePart(LibraryBuilder part, Set<Uri> usedParts, int partOffset) {
+  bool _includePart(LibraryBuilder part, Set<Uri> usedParts, int partOffset) {
     if (part is SourceLibraryBuilder) {
       if (part.partOfUri != null) {
         if (uriIsValid(part.partOfUri!) && part.partOfUri != importUri) {
@@ -1902,9 +1952,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void addClass(
+      OffsetMap offsetMap,
       List<MetadataBuilder>? metadata,
       int modifiers,
-      String className,
+      Identifier identifier,
       List<NominalVariableBuilder>? typeVariables,
       TypeBuilder? supertype,
       MixinApplicationBuilder? mixins,
@@ -1921,10 +1972,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       required bool isAugmentation,
       required bool isMixinClass}) {
     _addClass(
+        offsetMap,
         TypeParameterScopeKind.classDeclaration,
         metadata,
         modifiers,
-        className,
+        identifier,
         typeVariables,
         supertype,
         mixins,
@@ -1943,9 +1995,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void addMixinDeclaration(
+      OffsetMap offsetMap,
       List<MetadataBuilder>? metadata,
       int modifiers,
-      String className,
+      Identifier identifier,
       List<NominalVariableBuilder>? typeVariables,
       List<TypeBuilder>? supertypeConstraints,
       List<TypeBuilder>? interfaces,
@@ -1967,10 +2020,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
     _addClass(
+        offsetMap,
         TypeParameterScopeKind.mixinDeclaration,
         metadata,
         modifiers,
-        className,
+        identifier,
         typeVariables,
         supertype,
         mixinApplication,
@@ -1989,10 +2043,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void _addClass(
+      OffsetMap offsetMap,
       TypeParameterScopeKind kind,
       List<MetadataBuilder>? metadata,
       int modifiers,
-      String className,
+      Identifier identifier,
       List<NominalVariableBuilder>? typeVariables,
       TypeBuilder? supertype,
       MixinApplicationBuilder? mixins,
@@ -2008,6 +2063,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       required bool isFinal,
       required bool isAugmentation,
       required bool isMixinClass}) {
+    String className = identifier.name;
     // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
     TypeParameterScopeBuilder declaration =
         endNestedDeclaration(kind, className)
@@ -2106,6 +2162,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     setters.forEach(setParentAndCheckConflicts);
     addBuilder(className, classBuilder, nameOffset,
         getterReference: _indexedContainer?.reference);
+    offsetMap.registerNamedDeclaration(identifier, classBuilder);
   }
 
   Map<String, NominalVariableBuilder>? checkTypeVariables(
@@ -2279,14 +2336,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void addExtensionDeclaration(
+      OffsetMap offsetMap,
+      Token beginToken,
       List<MetadataBuilder>? metadata,
       int modifiers,
-      String? name,
+      Identifier? identifier,
       List<NominalVariableBuilder>? typeVariables,
       TypeBuilder type,
       int startOffset,
       int nameOffset,
       int endOffset) {
+    String? name = identifier?.name;
     // Nested declaration began in
     // `OutlineBuilder.beginExtensionDeclarationPrelude`.
     TypeParameterScopeBuilder declaration =
@@ -2355,17 +2415,23 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     setters.forEach(setParentAndCheckConflicts);
     addBuilder(extensionBuilder.name, extensionBuilder, nameOffset,
         getterReference: referenceFrom?.reference);
+    if (identifier != null) {
+      offsetMap.registerNamedDeclaration(identifier, extensionBuilder);
+    } else {
+      offsetMap.registerUnnamedDeclaration(beginToken, extensionBuilder);
+    }
   }
 
   void addExtensionTypeDeclaration(
+      OffsetMap offsetMap,
       List<MetadataBuilder>? metadata,
       int modifiers,
-      String name,
+      Identifier identifier,
       List<NominalVariableBuilder>? typeVariables,
       List<TypeBuilder>? interfaces,
       int startOffset,
-      int nameOffset,
       int endOffset) {
+    String name = identifier.name;
     // Nested declaration began in `OutlineBuilder.beginExtensionDeclaration`.
     TypeParameterScopeBuilder declaration = endNestedDeclaration(
         TypeParameterScopeKind.extensionTypeDeclaration, name)
@@ -2414,7 +2480,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             this,
             new List<ConstructorReferenceBuilder>.of(constructorReferences),
             startOffset,
-            nameOffset,
+            identifier.nameOffset,
             endOffset,
             indexedContainer,
             representationFieldBuilder);
@@ -2449,8 +2515,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     constructors.forEach(setParentAndCheckConflicts);
     setters.forEach(setParentAndCheckConflicts);
     addBuilder(extensionTypeDeclarationBuilder.name,
-        extensionTypeDeclarationBuilder, nameOffset,
+        extensionTypeDeclarationBuilder, identifier.nameOffset,
         getterReference: indexedContainer?.reference);
+    offsetMap.registerNamedDeclaration(
+        identifier, extensionTypeDeclarationBuilder);
   }
 
   TypeBuilder? _applyMixins(
@@ -2986,15 +3054,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void addPrimaryConstructor(
-      {required String constructorName,
+      {required OffsetMap offsetMap,
+      required Token beginToken,
+      required String constructorName,
       required List<NominalVariableBuilder>? typeVariables,
       required List<FormalParameterBuilder>? formals,
       required int charOffset,
       required bool isConst}) {
-    addConstructor(
+    SourceFunctionBuilder builder = _addConstructor(
         null,
         isConst ? constMask : 0,
-        null,
         constructorName,
         typeVariables,
         formals,
@@ -3004,12 +3073,43 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         /* charEndOffset = */ charOffset,
         /* nativeMethodName = */ null,
         forAbstractClassOrMixin: false);
+    offsetMap.registerPrimaryConstructor(beginToken, builder);
   }
 
   void addConstructor(
+      OffsetMap offsetMap,
       List<MetadataBuilder>? metadata,
       int modifiers,
-      final Object? name,
+      Identifier identifier,
+      String constructorName,
+      List<NominalVariableBuilder>? typeVariables,
+      List<FormalParameterBuilder>? formals,
+      int startCharOffset,
+      int charOffset,
+      int charOpenParenOffset,
+      int charEndOffset,
+      String? nativeMethodName,
+      {Token? beginInitializers,
+      required bool forAbstractClassOrMixin}) {
+    SourceFunctionBuilder builder = _addConstructor(
+        metadata,
+        modifiers,
+        constructorName,
+        typeVariables,
+        formals,
+        startCharOffset,
+        charOffset,
+        charOpenParenOffset,
+        charEndOffset,
+        nativeMethodName,
+        beginInitializers: beginInitializers,
+        forAbstractClassOrMixin: forAbstractClassOrMixin);
+    offsetMap.registerConstructor(identifier, builder);
+  }
+
+  SourceFunctionBuilder _addConstructor(
+      List<MetadataBuilder>? metadata,
+      int modifiers,
       String constructorName,
       List<NominalVariableBuilder>? typeVariables,
       List<FormalParameterBuilder>? formals,
@@ -3103,12 +3203,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       constructorBuilder.beginInitializers =
           beginInitializers ?? new Token.eof(-1);
     }
+    return constructorBuilder;
   }
 
   void addProcedure(
+      OffsetMap offsetMap,
       List<MetadataBuilder>? metadata,
       int modifiers,
       TypeBuilder? returnType,
+      Identifier identifier,
       String name,
       List<NominalVariableBuilder>? typeVariables,
       List<FormalParameterBuilder>? formals,
@@ -3197,9 +3300,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (nativeMethodName != null) {
       addNativeMethod(procedureBuilder);
     }
+    offsetMap.registerProcedure(identifier, procedureBuilder);
   }
 
   void addFactoryMethod(
+      OffsetMap offsetMap,
       List<MetadataBuilder>? metadata,
       int modifiers,
       Identifier identifier,
@@ -3352,18 +3457,22 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (nativeMethodName != null) {
       addNativeMethod(procedureBuilder);
     }
+    offsetMap.registerConstructor(identifier, procedureBuilder);
   }
 
   void addEnum(
+      OffsetMap offsetMap,
       List<MetadataBuilder>? metadata,
-      String name,
+      Identifier identifier,
       List<NominalVariableBuilder>? typeVariables,
       MixinApplicationBuilder? supertypeBuilder,
       List<TypeBuilder>? interfaceBuilders,
       List<EnumConstantInfo?>? enumConstantInfos,
       int startCharOffset,
-      int charOffset,
       int charEndOffset) {
+    String name = identifier.name;
+    int charOffset = identifier.nameOffset;
+
     IndexedClass? referencesFromIndexedClass;
     if (indexedLibrary != null) {
       referencesFromIndexedClass = indexedLibrary!.lookupIndexedClass(name);
@@ -3448,6 +3557,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     setters.forEach(setParentAndCheckConflicts);
     addBuilder(name, enumBuilder, charOffset,
         getterReference: referencesFromIndexedClass?.cls.reference);
+
+    offsetMap.registerNamedDeclaration(identifier, enumBuilder);
   }
 
   void addFunctionTypeAlias(
@@ -3736,29 +3847,35 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           continue;
         }
 
+        LibraryDependency libraryDependency;
         if (import.deferred && import.prefixBuilder?.dependency != null) {
-          library.addDependency(import.prefixBuilder!.dependency!);
+          libraryDependency = import.prefixBuilder!.dependency!;
         } else {
           LibraryBuilder imported = import.imported!.origin;
           Library targetLibrary = imported.library;
-          library.addDependency(new LibraryDependency.import(targetLibrary,
+          libraryDependency = new LibraryDependency.import(targetLibrary,
               name: import.prefix,
               combinators: toKernelCombinators(import.combinators))
-            ..fileOffset = import.charOffset);
+            ..fileOffset = import.charOffset;
         }
+        library.addDependency(libraryDependency);
+        import.libraryDependency = libraryDependency;
       } else {
         // Add export
         Export export = exports[exportIndex++];
-        library.addDependency(new LibraryDependency.export(
+        LibraryDependency libraryDependency = new LibraryDependency.export(
             export.exported.library,
             combinators: toKernelCombinators(export.combinators))
-          ..fileOffset = export.charOffset);
+          ..fileOffset = export.charOffset;
+        library.addDependency(libraryDependency);
+        export.libraryDependency = libraryDependency;
       }
     }
 
-    for (LibraryBuilder part in parts) {
-      if (part is SourceLibraryBuilder) {
-        part.addDependencies(library, seen);
+    for (Part part in parts) {
+      LibraryBuilder builder = part.builder;
+      if (builder is SourceLibraryBuilder) {
+        builder.addDependencies(library, seen);
       }
     }
   }
@@ -6186,4 +6303,19 @@ class SourceLibraryBuilderMemberNameIterator<T extends Builder>
 
   @override
   String get name => _iterator?.name ?? (throw new StateError('No element'));
+}
+
+class Part {
+  final int offset;
+  final LibraryBuilder builder;
+
+  Part(this.offset, this.builder);
+
+  OffsetMap get offsetMap {
+    if (builder is SourceLibraryBuilder) {
+      return (builder as SourceLibraryBuilder).offsetMap;
+    }
+    assert(false, "No offset map for $builder.");
+    return new OffsetMap(builder.fileUri);
+  }
 }
