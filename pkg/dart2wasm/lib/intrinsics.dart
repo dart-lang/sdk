@@ -313,9 +313,11 @@ class Intrinsifier {
         }
       }
       if (constIndex != null) {
-        ListConstant list = receiver.constant as ListConstant;
-        Expression element = ConstantExpression(list.entries[constIndex]);
-        return codeGen.wrap(element, typeOfExp(element));
+        final entries = (receiver.constant as ListConstant).entries;
+        if (0 <= constIndex && constIndex < entries.length) {
+          Expression element = ConstantExpression(entries[constIndex]);
+          return codeGen.wrap(element, typeOfExp(element));
+        }
       }
 
       return null;
