@@ -268,7 +268,7 @@ const Map<String, double> _expect = {
   "package:front_end/src/fasta/type_inference/standard_bounds.dart":
       71.42857142857143,
   "package:front_end/src/fasta/type_inference/type_constraint_gatherer.dart":
-      61.328125,
+      60,
   "package:front_end/src/fasta/type_inference/type_demotion.dart":
       77.77777777777779,
   "package:front_end/src/fasta/type_inference/type_inference_engine.dart":
