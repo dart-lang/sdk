@@ -1,0 +1,10 @@
+class A<X> extends P<X> {
+  A(super.x) : assert(const F.foo("foo") == const A.foo("foo"));
+  const A.foo(X x) : super(x);
+}
+
+class P<T> {
+  const P(T t);
+}
+
+typedef F<Y> = A<Y>;

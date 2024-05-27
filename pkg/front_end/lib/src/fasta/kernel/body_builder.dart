@@ -1621,8 +1621,11 @@ class BodyBuilder extends StackListenerImpl
   void _unaliasTypeAliasedConstructorInvocations(
       List<TypeAliasedConstructorInvocation>
           typeAliasedConstructorInvocations) {
-    for (TypeAliasedConstructorInvocation invocation
-        in typeAliasedConstructorInvocations) {
+    List<TypeAliasedConstructorInvocation> invocations = [
+      ...typeAliasedConstructorInvocations
+    ];
+    typeAliasedConstructorInvocations.clear();
+    for (TypeAliasedConstructorInvocation invocation in invocations) {
       assert(invocation.hasBeenInferred || isOrphaned(invocation),
           "Node $invocation has not been inferred.");
 
