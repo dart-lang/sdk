@@ -682,16 +682,8 @@ class Primitives {
         as int;
   }
 
-  static int? valueFromDecomposedDate(
-      int years,
-      int month,
-      int day,
-      int hours,
-      int minutes,
-      int seconds,
-      int milliseconds,
-      int microseconds,
-      bool isUtc) {
+  static int? valueFromDecomposedDate(int years, int month, int day, int hours,
+      int minutes, int seconds, int milliseconds, bool isUtc) {
     final int MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
     checkInt(years);
     checkInt(month);
@@ -700,7 +692,6 @@ class Primitives {
     checkInt(minutes);
     checkInt(seconds);
     checkInt(milliseconds);
-    checkInt(microseconds);
     checkBool(isUtc);
     var jsMonth = month - 1;
     // The JavaScript Date constructor 'corrects' year NN to 19NN. Sidestep that
@@ -711,11 +702,6 @@ class Primitives {
       years += 400;
       jsMonth -= 400 * 12;
     }
-    // JavaScript `Date` does not handle microseconds, so ensure the provided
-    // microseconds is in range [0..999].
-    final remainder = microseconds % 1000;
-    milliseconds += (microseconds - remainder) ~/ 1000;
-    microseconds = remainder;
     num value;
     if (isUtc) {
       value = JS('num', r'Date.UTC(#, #, #, #, #, #, #)', years, jsMonth, day,
@@ -726,8 +712,7 @@ class Primitives {
     }
     if (value.isNaN ||
         value < -MAX_MILLISECONDS_SINCE_EPOCH ||
-        value > MAX_MILLISECONDS_SINCE_EPOCH ||
-        value == MAX_MILLISECONDS_SINCE_EPOCH && microseconds != 0) {
+        value > MAX_MILLISECONDS_SINCE_EPOCH) {
       return null;
     }
     return JS('int', '#', value);
@@ -759,7 +744,7 @@ class Primitives {
   @pragma('dart2js:noSideEffects')
   @pragma('dart2js:noThrows')
   @pragma('dart2js:noInline')
-  static int getYear(DateTime receiver) {
+  static getYear(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('int', r'(#.getUTCFullYear() + 0)', lazyAsJsDate(receiver))
         : JS('int', r'(#.getFullYear() + 0)', lazyAsJsDate(receiver));
@@ -768,7 +753,7 @@ class Primitives {
   @pragma('dart2js:noSideEffects')
   @pragma('dart2js:noThrows')
   @pragma('dart2js:noInline')
-  static int getMonth(DateTime receiver) {
+  static getMonth(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('JSUInt31', r'#.getUTCMonth() + 1', lazyAsJsDate(receiver))
         : JS('JSUInt31', r'#.getMonth() + 1', lazyAsJsDate(receiver));
@@ -777,7 +762,7 @@ class Primitives {
   @pragma('dart2js:noSideEffects')
   @pragma('dart2js:noThrows')
   @pragma('dart2js:noInline')
-  static int getDay(DateTime receiver) {
+  static getDay(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('JSUInt31', r'(#.getUTCDate() + 0)', lazyAsJsDate(receiver))
         : JS('JSUInt31', r'(#.getDate() + 0)', lazyAsJsDate(receiver));
@@ -786,7 +771,7 @@ class Primitives {
   @pragma('dart2js:noSideEffects')
   @pragma('dart2js:noThrows')
   @pragma('dart2js:noInline')
-  static int getHours(DateTime receiver) {
+  static getHours(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('JSUInt31', r'(#.getUTCHours() + 0)', lazyAsJsDate(receiver))
         : JS('JSUInt31', r'(#.getHours() + 0)', lazyAsJsDate(receiver));
@@ -795,7 +780,7 @@ class Primitives {
   @pragma('dart2js:noSideEffects')
   @pragma('dart2js:noThrows')
   @pragma('dart2js:noInline')
-  static int getMinutes(DateTime receiver) {
+  static getMinutes(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('JSUInt31', r'(#.getUTCMinutes() + 0)', lazyAsJsDate(receiver))
         : JS('JSUInt31', r'(#.getMinutes() + 0)', lazyAsJsDate(receiver));
@@ -804,7 +789,7 @@ class Primitives {
   @pragma('dart2js:noSideEffects')
   @pragma('dart2js:noThrows')
   @pragma('dart2js:noInline')
-  static int getSeconds(DateTime receiver) {
+  static getSeconds(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('JSUInt31', r'(#.getUTCSeconds() + 0)', lazyAsJsDate(receiver))
         : JS('JSUInt31', r'(#.getSeconds() + 0)', lazyAsJsDate(receiver));
@@ -813,7 +798,7 @@ class Primitives {
   @pragma('dart2js:noSideEffects')
   @pragma('dart2js:noThrows')
   @pragma('dart2js:noInline')
-  static int getMilliseconds(DateTime receiver) {
+  static getMilliseconds(DateTime receiver) {
     return (receiver.isUtc)
         ? JS(
             'JSUInt31', r'(#.getUTCMilliseconds() + 0)', lazyAsJsDate(receiver))
@@ -823,12 +808,19 @@ class Primitives {
   @pragma('dart2js:noSideEffects')
   @pragma('dart2js:noThrows')
   @pragma('dart2js:noInline')
-  static int getWeekday(DateTime receiver) {
+  static getWeekday(DateTime receiver) {
     int weekday = (receiver.isUtc)
         ? JS('int', r'#.getUTCDay() + 0', lazyAsJsDate(receiver))
         : JS('int', r'#.getDay() + 0', lazyAsJsDate(receiver));
     // Adjust by one because JS weeks start on Sunday.
     return (weekday + 6) % 7 + 1;
+  }
+
+  static num valueFromDateString(str) {
+    if (str is! String) throw argumentErrorValue(str);
+    num value = JS('num', r'Date.parse(#)', str);
+    if (value.isNaN) throw argumentErrorValue(str);
+    return value;
   }
 
   static getProperty(object, key) {

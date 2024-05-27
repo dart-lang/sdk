@@ -29,20 +29,7 @@ class DateTime {
   static const _MONTH_INDEX = 7;
   static const _YEAR_INDEX = 8;
 
-  /// The value of this DateTime, equal to [microsecondsSinceEpoch].
-  final int _value;
-
   List<int>? __parts;
-
-  /// Constructor for pre-validated components.
-  DateTime._(this._value, {required this.isUtc});
-
-  /// Constructs a new [DateTime] instance with the given value.
-  ///
-  /// If [isUtc] is false, then the date is in the local time zone.
-  DateTime._withValue(this._value, {required this.isUtc}) {
-    _validate(millisecondsSinceEpoch, microsecond, isUtc);
-  }
 
   @patch
   DateTime.fromMillisecondsSinceEpoch(int millisecondsSinceEpoch,
@@ -57,10 +44,7 @@ class DateTime {
       {bool isUtc = false})
       : this._withValue(microsecondsSinceEpoch, isUtc: isUtc);
 
-  static const _sentinel = -_maxMicrosecondsSinceEpoch - 1;
-  static const _sentinelConstraint = _sentinel < -_maxMicrosecondsSinceEpoch ||
-      _sentinel > _maxMicrosecondsSinceEpoch;
-  static const _sentinelAssertion = 1 ~/ (_sentinelConstraint ? 1 : 0);
+  static const _sentinelMs = -_maxMillisecondsSinceEpoch - 1;
 
   @patch
   DateTime._internal(int year, int month, int day, int hour, int minute,
@@ -68,11 +52,8 @@ class DateTime {
       : this.isUtc = checkNotNullable(isUtc, "isUtc"),
         this._value = _brokenDownDateToValue(year, month, day, hour, minute,
                 second, millisecond, microsecond, isUtc) ??
-            _sentinel {
-    if (_value == _sentinel) {
-      throw ArgumentError('($year, $month, $day,'
-          ' $hour, $minute, $second, $millisecond, $microsecond)');
-    }
+            _sentinelMs {
+    if (_value == _sentinelMs) throw new ArgumentError();
   }
 
   static int _validateMilliseconds(int millisecondsSinceEpoch) =>
@@ -93,11 +74,6 @@ class DateTime {
         _value = _getCurrentMicros();
 
   @patch
-  DateTime _withUtc({required bool isUtc}) {
-    return DateTime._(_value, isUtc: isUtc);
-  }
-
-  @patch
   String get timeZoneName {
     if (isUtc) return "UTC";
     return _timeZoneName(microsecondsSinceEpoch);
@@ -105,9 +81,9 @@ class DateTime {
 
   @patch
   Duration get timeZoneOffset {
-    if (isUtc) return Duration();
+    if (isUtc) return new Duration();
     int offsetInSeconds = _timeZoneOffsetInSeconds(microsecondsSinceEpoch);
-    return Duration(seconds: offsetInSeconds);
+    return new Duration(seconds: offsetInSeconds);
   }
 
   @patch
@@ -115,9 +91,6 @@ class DateTime {
       other is DateTime &&
       _value == other.microsecondsSinceEpoch &&
       isUtc == other.isUtc;
-
-  @patch
-  int get hashCode => (_value ^ (_value >> 30)) & 0x3FFFFFFF;
 
   @patch
   bool isBefore(DateTime other) => _value < other.microsecondsSinceEpoch;
@@ -133,11 +106,11 @@ class DateTime {
   int compareTo(DateTime other) =>
       _value.compareTo(other.microsecondsSinceEpoch);
 
-  /// The first list contains the days until each month in non-leap years. The
-  /// second list contains the days in leap years.
-  static const List<List<int>> _DAYS_UNTIL_MONTH = [
-    [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334],
-    [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]
+  /** The first list contains the days until each month in non-leap years. The
+    * second list contains the days in leap years. */
+  static const List<List<int>> _DAYS_UNTIL_MONTH = const [
+    const [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334],
+    const [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]
   ];
 
   static List<int> _computeUpperPart(int localMicros) {
@@ -207,7 +180,7 @@ class DateTime {
             DateTime.daysPerWeek) +
         DateTime.monday;
 
-    List<int> list = List<int>.filled(_YEAR_INDEX + 1, 0);
+    List<int> list = new List<int>.filled(_YEAR_INDEX + 1, 0);
     list[_MICROSECOND_INDEX] = resultMicrosecond;
     list[_MILLISECOND_INDEX] = resultMillisecond;
     list[_SECOND_INDEX] = resultSecond;
@@ -226,22 +199,24 @@ class DateTime {
 
   @patch
   DateTime add(Duration duration) {
-    return DateTime._withValue(_value + duration.inMicroseconds, isUtc: isUtc);
+    return new DateTime._withValue(_value + duration.inMicroseconds,
+        isUtc: isUtc);
   }
 
   @patch
   DateTime subtract(Duration duration) {
-    return DateTime._withValue(_value - duration.inMicroseconds, isUtc: isUtc);
+    return new DateTime._withValue(_value - duration.inMicroseconds,
+        isUtc: isUtc);
   }
 
   @patch
   Duration difference(DateTime other) {
-    return Duration(microseconds: _value - other.microsecondsSinceEpoch);
+    return new Duration(microseconds: _value - other.microsecondsSinceEpoch);
   }
 
   @patch
   int get millisecondsSinceEpoch =>
-      _flooredDivision(_value, Duration.microsecondsPerMillisecond);
+      _value ~/ Duration.microsecondsPerMillisecond;
 
   @patch
   int get microsecondsSinceEpoch => _value;
@@ -273,19 +248,21 @@ class DateTime {
   @patch
   int get year => _parts[_YEAR_INDEX];
 
-  /// Returns the amount of microseconds in UTC that represent the same values
-  /// as this [DateTime].
-  ///
-  /// Say `t` is the result of this function, then
-  /// * `this.year == new DateTime.fromMicrosecondsSinceEpoch(t, true).year`,
-  /// * `this.month == new DateTime.fromMicrosecondsSinceEpoch(t, true).month`,
-  /// * `this.day == new DateTime.fromMicrosecondsSinceEpoch(t, true).day`,
-  /// * `this.hour == new DateTime.fromMicrosecondsSinceEpoch(t, true).hour`,
-  /// * ...
-  ///
-  /// Daylight savings is computed as if the date was computed in [1970..2037].
-  /// If this [DateTime] lies outside this range then a year with similar
-  /// properties (leap year, weekdays) is used instead.
+  /**
+   * Returns the amount of microseconds in UTC that represent the same values
+   * as this [DateTime].
+   *
+   * Say `t` is the result of this function, then
+   * * `this.year == new DateTime.fromMicrosecondsSinceEpoch(t, true).year`,
+   * * `this.month == new DateTime.fromMicrosecondsSinceEpoch(t, true).month`,
+   * * `this.day == new DateTime.fromMicrosecondsSinceEpoch(t, true).day`,
+   * * `this.hour == new DateTime.fromMicrosecondsSinceEpoch(t, true).hour`,
+   * * ...
+   *
+   * Daylight savings is computed as if the date was computed in [1970..2037].
+   * If this [DateTime] lies outside this range then it is a year with similar
+   * properties (leap year, weekdays) is used instead.
+   */
   int get _localDateInUtcMicros {
     int micros = _value;
     if (isUtc) return micros;
@@ -313,6 +290,7 @@ class DateTime {
   }
 
   /// Converts the given broken down date to microseconds.
+  @patch
   static int? _brokenDownDateToValue(int year, int month, int day, int hour,
       int minute, int second, int millisecond, int microsecond, bool isUtc) {
     // Simplify calculations by working with zero-based month.
@@ -360,26 +338,19 @@ class DateTime {
     return microsecondsSinceEpoch;
   }
 
-  @patch
-  static DateTime? _finishParse(int year, int month, int day, int hour,
-      int minute, int second, int millisecond, int microsecond, bool isUtc) {
-    final value = _brokenDownDateToValue(year, month, day, hour, minute, second,
-        millisecond, microsecond, isUtc);
-    if (value == null) return null;
-    return DateTime._withValue(value, isUtc: isUtc);
-  }
-
   static int _weekDay(y) {
     // 1/1/1970 was a Thursday.
     return (_dayFromYear(y) + 4) % 7;
   }
 
-  /// Returns a year in the range 2008-2035 matching
-  /// * leap year, and
-  /// * week day of first day.
-  ///
-  /// Leap seconds are ignored.
-  /// Adapted from V8's date implementation. See ECMA 262 - 15.9.1.9.
+  /**
+   * Returns a year in the range 2008-2035 matching
+   * * leap year, and
+   * * week day of first day.
+   *
+   * Leap seconds are ignored.
+   * Adapted from V8's date implementation. See ECMA 262 - 15.9.1.9.
+   */
   static int _equivalentYear(int year) {
     // Returns year y so that _weekDay(y) == _weekDay(year).
     // _weekDay returns the week day (in range 0 - 6).
@@ -399,10 +370,12 @@ class DateTime {
     return 2008 + (recentYear - 2008) % 28;
   }
 
-  /// Returns the UTC year for the corresponding [secondsSinceEpoch].
-  /// It is relatively fast for values in the range 0 to year 2098.
-  ///
-  /// Code is adapted from V8.
+  /**
+   * Returns the UTC year for the corresponding [secondsSinceEpoch].
+   * It is relatively fast for values in the range 0 to year 2098.
+   *
+   * Code is adapted from V8.
+   */
   static int _yearsFromSecondsSinceEpoch(int secondsSinceEpoch) {
     const int DAYS_IN_4_YEARS = 4 * 365 + 1;
     const int DAYS_IN_100_YEARS = 25 * DAYS_IN_4_YEARS - 1;
@@ -417,16 +390,18 @@ class DateTime {
     return _computeUpperPart(micros)[_YEAR_INDEX];
   }
 
-  /// Returns a date in seconds that is equivalent to the given
-  /// date in microseconds [microsecondsSinceEpoch]. An equivalent
-  /// date has the same fields (`month`, `day`, etc.) as the given
-  /// date, but the `year` is in the range [1901..2038].
-  ///
-  /// * The time since the beginning of the year is the same.
-  /// * If the given date is in a leap year then the returned
-  ///   seconds are in a leap year, too.
-  /// * The week day of given date is the same as the one for the
-  ///   returned date.
+  /**
+   * Returns a date in seconds that is equivalent to the given
+   * date in microseconds [microsecondsSinceEpoch]. An equivalent
+   * date has the same fields (`month`, `day`, etc.) as the given
+   * date, but the `year` is in the range [1901..2038].
+   *
+   * * The time since the beginning of the year is the same.
+   * * If the given date is in a leap year then the returned
+   *   seconds are in a leap year, too.
+   * * The week day of given date is the same as the one for the
+   *   returned date.
+   */
   static int _equivalentSeconds(int microsecondsSinceEpoch) {
     const int CUT_OFF_SECONDS = 0x7FFFFFFF;
 
