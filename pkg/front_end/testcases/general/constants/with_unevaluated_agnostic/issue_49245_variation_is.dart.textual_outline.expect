@@ -1,6 +1,0 @@
-class Foo<T> {
-  final List<int> foo;
-  const Foo(List x) : foo = x is List<T> ? const [1] : const [2];
-}
-
-main() {}

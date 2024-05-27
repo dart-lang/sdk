@@ -129,28 +129,25 @@ const Map<String, double> _expect = {
   "package:front_end/src/fasta/ignored_parser_errors.dart": 100.0,
   "package:front_end/src/fasta/import.dart": 100.0,
   "package:front_end/src/fasta/import_chains.dart": 96.96969696969697,
-  "package:front_end/src/fasta/incremental_compiler.dart": 48.29322887520985,
+  "package:front_end/src/fasta/incremental_compiler.dart": 47.0,
   "package:front_end/src/fasta/incremental_serializer.dart": 0.0,
   "package:front_end/src/fasta/kernel/augmentation_lowering.dart": 100.0,
   "package:front_end/src/fasta/kernel/benchmarker.dart": 0.0,
-  "package:front_end/src/fasta/kernel/body_builder.dart": 91.12609575185435,
+  "package:front_end/src/fasta/kernel/body_builder.dart": 90.0,
   "package:front_end/src/fasta/kernel/body_builder_context.dart":
       68.31501831501832,
   "package:front_end/src/fasta/kernel/collections.dart": 36.44736842105264,
   "package:front_end/src/fasta/kernel/combined_member_signature.dart":
       91.29411764705883,
   "package:front_end/src/fasta/kernel/const_conditional_simplifier.dart": 50.0,
-  "package:front_end/src/fasta/kernel/constant_collection_builders.dart":
-      89.23076923076924,
-  "package:front_end/src/fasta/kernel/constant_evaluator.dart":
-      85.00106224771616,
+  "package:front_end/src/fasta/kernel/constant_collection_builders.dart": 64.0,
+  "package:front_end/src/fasta/kernel/constant_evaluator.dart": 78.0,
   "package:front_end/src/fasta/kernel/constant_int_folder.dart":
       92.04545454545455,
   "package:front_end/src/fasta/kernel/constructor_tearoff_lowering.dart":
       95.11278195488721,
   "package:front_end/src/fasta/kernel/exhaustiveness.dart": 74.57098283931357,
-  "package:front_end/src/fasta/kernel/expression_generator.dart":
-      80.00631711939356,
+  "package:front_end/src/fasta/kernel/expression_generator.dart": 79.0,
   "package:front_end/src/fasta/kernel/expression_generator_helper.dart": 100.0,
   "package:front_end/src/fasta/kernel/forest.dart": 90.27777777777779,
   "package:front_end/src/fasta/kernel/forwarding_node.dart": 94.4927536231884,
@@ -177,7 +174,7 @@ const Map<String, double> _expect = {
   "package:front_end/src/fasta/kernel/invalid_type.dart": 74.13793103448276,
   "package:front_end/src/fasta/kernel/kernel_constants.dart": 45.45454545454545,
   "package:front_end/src/fasta/kernel/kernel_helper.dart": 98.95833333333334,
-  "package:front_end/src/fasta/kernel/kernel_target.dart": 79.56093868281606,
+  "package:front_end/src/fasta/kernel/kernel_target.dart": 78.0,
   "package:front_end/src/fasta/kernel/kernel_variable_builder.dart":
       61.111111111111114,
   "package:front_end/src/fasta/kernel/late_lowering.dart": 100.0,

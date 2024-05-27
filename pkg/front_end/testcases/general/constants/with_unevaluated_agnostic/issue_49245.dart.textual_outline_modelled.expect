@@ -1,8 +1,0 @@
-T bar<T>(String o) => o as T;
-
-class Foo<T> {
-  const Foo(T Function(String)? foo) : _foo = foo ?? bar;
-  final T Function(String) _foo;
-}
-
-void main() {}
