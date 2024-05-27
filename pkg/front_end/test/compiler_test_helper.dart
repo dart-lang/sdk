@@ -19,10 +19,10 @@ import 'package:front_end/src/fasta/kernel/body_builder_context.dart';
 import 'package:front_end/src/fasta/kernel/kernel_target.dart';
 import 'package:front_end/src/fasta/scope.dart';
 import 'package:front_end/src/fasta/source/diet_listener.dart';
+import 'package:front_end/src/fasta/source/offset_map.dart';
 import 'package:front_end/src/fasta/source/source_library_builder.dart';
 import 'package:front_end/src/fasta/source/source_loader.dart';
 import 'package:front_end/src/fasta/ticker.dart';
-import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -214,9 +214,10 @@ class SourceLoaderTest extends SourceLoader {
       : super(fileSystem, includeComments, target);
 
   @override
-  DietListener createDietListener(SourceLibraryBuilder library) {
-    return new DietListenerTest(
-        library, hierarchy, coreTypes, typeInferenceEngine, bodyBuilderCreator);
+  DietListener createDietListener(
+      SourceLibraryBuilder library, OffsetMap offsetMap) {
+    return new DietListenerTest(library, hierarchy, coreTypes,
+        typeInferenceEngine, offsetMap, bodyBuilderCreator);
   }
 
   @override
@@ -246,13 +247,8 @@ class SourceLoaderTest extends SourceLoader {
 class DietListenerTest extends DietListener {
   final BodyBuilderCreator bodyBuilderCreator;
 
-  DietListenerTest(
-      SourceLibraryBuilder library,
-      ClassHierarchy hierarchy,
-      CoreTypes coreTypes,
-      TypeInferenceEngine typeInferenceEngine,
-      this.bodyBuilderCreator)
-      : super(library, hierarchy, coreTypes, typeInferenceEngine);
+  DietListenerTest(super.library, super.hierarchy, super.coreTypes,
+      super.typeInferenceEngine, super.offsetMap, this.bodyBuilderCreator);
 
   @override
   BodyBuilder createListenerInternal(

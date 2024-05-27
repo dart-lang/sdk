@@ -11,7 +11,7 @@ class Foo {
   int? x;
   /*member: Foo.:member_unit=4{libB}*/
   Foo() {
-    x = DateTime.now().millisecondsSinceEpoch;
+    x = DateTime.now().millisecond;
   }
   /*member: Foo.method:member_unit=4{libB}*/
   @pragma('dart2js:noInline')

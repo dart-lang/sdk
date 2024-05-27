@@ -5,12 +5,12 @@ import "dart:math" as math;
 import "dart:convert" as con;
 
 @#C2
-@#C4
 import "dart:math";
-@#C6
-@#C8
+@#C4
 import "dart:convert";
+@#C6
 import "dart:async";
+@#C8
 import "org-dartlang-testcase:///multiple_imports.dart";
 
 class Const extends core::Object /*hasConstConstructor*/  { // from org-dartlang-testcase:///multiple_imports_lib.dart
@@ -30,9 +30,9 @@ static method /* from org-dartlang-testcase:///multiple_imports_lib.dart */ meth
 constants  {
   #C1 = 0
   #C2 = self::Const {field:#C1}
-  #C3 = 2
+  #C3 = 1
   #C4 = self::Const {field:#C3}
-  #C5 = 1
+  #C5 = 2
   #C6 = self::Const {field:#C5}
   #C7 = 3
   #C8 = self::Const {field:#C7}

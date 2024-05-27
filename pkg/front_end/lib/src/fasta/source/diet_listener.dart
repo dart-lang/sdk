@@ -11,8 +11,7 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
         DeclarationKind,
         IdentifierContext,
         MemberKind,
-        Parser,
-        optional;
+        Parser;
 import 'package:_fe_analyzer_shared/src/parser/quote.dart' show unescapeString;
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show FixedNullableList, NullValues, ParserRecovery;
@@ -26,12 +25,7 @@ import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/modifier_builder.dart';
 import '../codes/fasta_codes.dart'
-    show
-        Code,
-        LocatedMessage,
-        Message,
-        messageExpectedBlockToSkip,
-        templateInternalProblemNotFound;
+    show Code, LocatedMessage, Message, messageExpectedBlockToSkip;
 import '../constant_context.dart' show ConstantContext;
 import '../crash.dart' show Crash;
 import '../identifiers.dart'
@@ -40,18 +34,16 @@ import '../ignored_parser_errors.dart' show isIgnoredParserError;
 import '../kernel/benchmarker.dart' show BenchmarkSubdivides, Benchmarker;
 import '../kernel/body_builder.dart' show BodyBuilder, FormalParameters;
 import '../kernel/body_builder_context.dart';
-import '../operator.dart';
-import '../problems.dart' show DebugAbort, internalProblem, unexpected;
+import '../problems.dart' show DebugAbort;
 import '../scope.dart';
 import '../source/value_kinds.dart';
 import '../type_inference/type_inference_engine.dart'
     show InferenceDataForTesting, TypeInferenceEngine;
 import '../type_inference/type_inferrer.dart' show TypeInferrer;
 import 'diet_parser.dart';
-import 'source_class_builder.dart';
+import 'offset_map.dart';
 import 'source_constructor_builder.dart';
 import 'source_enum_builder.dart';
-import 'source_extension_type_declaration_builder.dart';
 import 'source_field_builder.dart';
 import 'source_function_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
@@ -69,9 +61,6 @@ class DietListener extends StackListenerImpl {
 
   final TypeInferenceEngine typeInferenceEngine;
 
-  int importExportDirectiveIndex = 0;
-  int partDirectiveIndex = 0;
-
   DeclarationBuilder? _currentDeclaration;
   ClassBuilder? _currentClass;
   bool _inRedirectingFactory = false;
@@ -83,14 +72,16 @@ class DietListener extends StackListenerImpl {
   Scope memberScope;
 
   @override
-  Uri uri;
+  final Uri uri;
 
   final Benchmarker? _benchmarker;
 
+  final OffsetMap _offsetMap;
+
   DietListener(SourceLibraryBuilder library, this.hierarchy, this.coreTypes,
-      this.typeInferenceEngine)
+      this.typeInferenceEngine, this._offsetMap)
       : libraryBuilder = library,
-        uri = library.fileUri,
+        uri = _offsetMap.uri,
         memberScope = library.scope,
         enableNative =
             library.loader.target.backendTarget.enableNative(library.importUri),
@@ -355,9 +346,8 @@ class DietListener extends StackListenerImpl {
     if (name is ParserRecovery) return;
 
     Identifier identifier = name as Identifier;
-    final BodyBuilder listener = createFunctionListener(
-        lookupBuilder(getOrSet, identifier.name, identifier.nameOffset)
-            as SourceFunctionBuilderImpl);
+    final BodyBuilder listener =
+        createFunctionListener(_offsetMap.lookupProcedure(identifier));
     buildFunctionBody(listener, bodyToken, metadata, MemberKind.TopLevelMethod);
   }
 
@@ -554,9 +544,8 @@ class DietListener extends StackListenerImpl {
         unescapeString(importUriToken.lexeme, importUriToken, this);
     if (importUri.startsWith("dart-ext:")) return;
 
-    Library libraryNode = libraryBuilder.library;
     LibraryDependency? dependency =
-        libraryNode.dependencies[importExportDirectiveIndex++];
+        _offsetMap.lookupImport(importKeyword).libraryDependency;
     parseMetadata(libraryBuilder.bodyBuilderContext, libraryBuilder, metadata,
         dependency);
   }
@@ -571,9 +560,8 @@ class DietListener extends StackListenerImpl {
     debugEvent("Export");
 
     Token? metadata = pop() as Token?;
-    Library libraryNode = libraryBuilder.library;
     LibraryDependency dependency =
-        libraryNode.dependencies[importExportDirectiveIndex++];
+        _offsetMap.lookupExport(exportKeyword).libraryDependency;
     parseMetadata(libraryBuilder.bodyBuilderContext, libraryBuilder, metadata,
         dependency);
   }
@@ -583,16 +571,9 @@ class DietListener extends StackListenerImpl {
     debugEvent("Part");
 
     Token? metadata = pop() as Token?;
-    Library libraryNode = libraryBuilder.library;
-    if (libraryNode.parts.length > partDirectiveIndex) {
-      // If partDirectiveIndex >= libraryNode.parts.length we are in a case of
-      // on part having other parts. An error has already been issued.
-      // Don't try to parse metadata into other parts that have nothing to do
-      // with the one this keyword is talking about.
-      LibraryPart part = libraryNode.parts[partDirectiveIndex++];
-      parseMetadata(
-          libraryBuilder.bodyBuilderContext, libraryBuilder, metadata, part);
-    }
+    LibraryPart part = _offsetMap.lookupPart(partKeyword);
+    parseMetadata(
+        libraryBuilder.bodyBuilderContext, libraryBuilder, metadata, part);
   }
 
   @override
@@ -635,9 +616,7 @@ class DietListener extends StackListenerImpl {
     if (name is ParserRecovery || currentClassIsParserRecovery) return;
 
     Identifier identifier = name as Identifier;
-    SourceFunctionBuilderImpl builder = lookupConstructor(
-            _getConstructorName(identifier), identifier.qualifierOffset)
-        as SourceFunctionBuilderImpl;
+    SourceFunctionBuilder builder = _offsetMap.lookupConstructor(identifier);
     if (_inRedirectingFactory) {
       buildRedirectingFactoryMethod(
           bodyToken, builder, MemberKind.Factory, metadata);
@@ -755,18 +734,9 @@ class DietListener extends StackListenerImpl {
 
     SourceFunctionBuilder builder;
     if (isConstructor) {
-      builder = lookupConstructor(
-              _getConstructorName(identifier), identifier.qualifierOffset)
-          as SourceFunctionBuilder;
+      builder = _offsetMap.lookupConstructor(identifier);
     } else {
-      String name = identifier.name;
-      // TODO(johnniwinther): Find a uniform way to compute this.
-      bool hasNoFormals = identical(beginParam.next, beginParam.endGroup);
-      if (Operator.subtract == identifier.operator && hasNoFormals) {
-        name = Operator.unaryMinus.text;
-      }
-      Builder? memberBuilder =
-          lookupBuilder(getOrSet, name, identifier.nameOffset);
+      Builder? memberBuilder = _offsetMap.lookupProcedure(identifier);
       if (currentClass?.isEnum == true &&
           memberBuilder is SourceFieldBuilder &&
           memberBuilder.name == "values") {
@@ -857,8 +827,8 @@ class DietListener extends StackListenerImpl {
         inferenceDataForTesting: builder.dataForTesting?.inferenceData);
   }
 
-  void buildRedirectingFactoryMethod(Token token,
-      SourceFunctionBuilderImpl builder, MemberKind kind, Token? metadata) {
+  void buildRedirectingFactoryMethod(Token token, SourceFunctionBuilder builder,
+      MemberKind kind, Token? metadata) {
     _benchmarker?.beginSubdivide(
         BenchmarkSubdivides.diet_listener_buildRedirectingFactoryMethod);
     final BodyBuilder listener = createFunctionListener(builder);
@@ -896,9 +866,7 @@ class DietListener extends StackListenerImpl {
     if (names == null || currentClassIsParserRecovery) return;
 
     Identifier first = names.first!;
-    SourceFieldBuilder declaration =
-        lookupBuilder(/*getOrSet*/ null, first.name, first.nameOffset)
-            as SourceFieldBuilder;
+    SourceFieldBuilder declaration = _offsetMap.lookupField(first);
     // TODO(paulberry): don't re-parse the field if we've already parsed it
     // for type inference.
     _parseFields(
@@ -949,11 +917,9 @@ class DietListener extends StackListenerImpl {
       return;
     }
     if (name is Identifier) {
-      currentDeclaration =
-          lookupBuilder(/*getOrSet*/ null, name.name, name.nameOffset)
-              as DeclarationBuilder;
+      currentDeclaration = _offsetMap.lookupNamedDeclaration(name);
     } else {
-      currentDeclaration = lookupUnnamedExtensionBuilder(beginToken);
+      currentDeclaration = _offsetMap.lookupUnnamedDeclaration(beginToken);
     }
     memberScope = currentDeclaration!.scope;
   }
@@ -1023,7 +989,8 @@ class DietListener extends StackListenerImpl {
   void beginExtensionTypeDeclaration(
       Token? augmentToken, Token extensionKeyword, Token nameToken) {
     debugEvent("beginExtensionTypeDeclaration");
-    push(new SimpleIdentifier(nameToken));
+    Identifier identifier = new SimpleIdentifier(nameToken);
+    push(identifier);
     push(extensionKeyword);
 
     // The current declaration is set in [beginClassOrMixinOrExtensionBody] but
@@ -1032,9 +999,7 @@ class DietListener extends StackListenerImpl {
     assert(currentDeclaration == null);
     assert(memberScope == libraryBuilder.scope);
 
-    currentDeclaration =
-        lookupBuilder(/*getOrSet*/ null, nameToken.lexeme, nameToken.charOffset)
-            as DeclarationBuilder;
+    currentDeclaration = _offsetMap.lookupNamedDeclaration(identifier);
     memberScope = currentDeclaration!.scope;
   }
 
@@ -1052,16 +1017,12 @@ class DietListener extends StackListenerImpl {
     ]));
     debugEvent("endPrimaryConstructor");
     Token formalsToken = pop() as Token; // Pop formals begin token.
-    int charOffset = formalsToken.charOffset;
-    String constructorName = '';
     if (hasConstructorName) {
       // TODO(johnniwinther): Handle [ParserRecovery].
-      Identifier identifier = pop() as Identifier;
-      constructorName = identifier.name;
-      charOffset = identifier.nameOffset;
+      pop() as Identifier;
     }
     SourceFunctionBuilder builder =
-        lookupConstructor(constructorName, charOffset) as SourceFunctionBuilder;
+        _offsetMap.lookupPrimaryConstructor(beginToken);
     if (!builder.isConst) {
       buildPrimaryConstructor(createFunctionListener(builder), formalsToken);
     }
@@ -1104,9 +1065,7 @@ class DietListener extends StackListenerImpl {
     }
 
     Identifier identifier = name as Identifier;
-    currentDeclaration =
-        lookupBuilder(/*getOrSet*/ null, identifier.name, identifier.nameOffset)
-            as DeclarationBuilder;
+    currentDeclaration = _offsetMap.lookupNamedDeclaration(identifier);
     memberScope = currentDeclaration!.scope;
   }
 
@@ -1278,70 +1237,6 @@ class DietListener extends StackListenerImpl {
     bodyBuilder.checkEmpty(token.charOffset);
   }
 
-  Builder? lookupBuilder(Token? getOrSet, String name, int charOffset) {
-    // TODO(ahe): Can I move this to Scope or ScopeBuilder?
-    Builder? declaration;
-    DeclarationBuilder? currentDeclaration = this.currentDeclaration;
-    if (currentDeclaration != null) {
-      if (uri != currentDeclaration.fileUri) {
-        unexpected("$uri", "${currentDeclaration.fileUri}",
-            currentDeclaration.charOffset, currentDeclaration.fileUri);
-      }
-
-      if (getOrSet != null && optional("set", getOrSet)) {
-        declaration =
-            currentDeclaration.scope.lookupLocalMember(name, setter: true);
-      } else {
-        declaration =
-            currentDeclaration.scope.lookupLocalMember(name, setter: false);
-      }
-    } else if (getOrSet != null && optional("set", getOrSet)) {
-      declaration = libraryBuilder.scope.lookupLocalMember(name, setter: true);
-    } else {
-      declaration = libraryBuilder.scope.lookupLocalMember(name, setter: false);
-    }
-    declaration = handleDuplicatedName(declaration, charOffset);
-    checkBuilder(declaration, name, charOffset);
-    return declaration;
-  }
-
-  ExtensionBuilder? lookupUnnamedExtensionBuilder(Token extensionToken) {
-    return libraryBuilder.scope
-        .lookupLocalUnnamedExtension(uri, extensionToken.charOffset);
-  }
-
-  String _getConstructorName(Identifier nameOrQualified) {
-    String suffix;
-    if (nameOrQualified is QualifiedName) {
-      suffix = nameOrQualified.name;
-    } else {
-      suffix = nameOrQualified.name == currentDeclaration!.name
-          ? ""
-          : nameOrQualified.name;
-    }
-    return suffix;
-  }
-
-  Builder? lookupConstructor(String constructorName, int charOffset) {
-    assert(currentDeclaration != null);
-    assert(currentDeclaration is SourceClassBuilder ||
-        currentDeclaration is SourceExtensionTypeDeclarationBuilder);
-    Builder? declaration;
-    if (libraryFeatures.constructorTearoffs.isEnabled) {
-      constructorName = constructorName == "new" ? "" : constructorName;
-    }
-    declaration =
-        currentDeclaration!.constructorScope.lookupLocalMember(constructorName);
-    declaration = handleDuplicatedName(declaration, charOffset);
-    checkBuilder(
-        declaration,
-        constructorName.isEmpty
-            ? currentDeclaration!.name
-            : '${currentDeclaration!.name}.$constructorName',
-        charOffset);
-    return declaration;
-  }
-
   Builder? handleDuplicatedName(Builder? declaration, int charOffset) {
     if (declaration == null) {
       return null;
@@ -1376,7 +1271,7 @@ class DietListener extends StackListenerImpl {
     }
   }
 
-  void checkBuilder(Builder? declaration, String name, int charOffset) {
+  /*void checkBuilder(Builder? declaration, String name, int charOffset) {
     if (declaration == null) {
       internalProblem(
           templateInternalProblemNotFound.withArguments(name), charOffset, uri);
@@ -1385,7 +1280,7 @@ class DietListener extends StackListenerImpl {
       unexpected("$uri", "${declaration.fileUri}", declaration.charOffset,
           declaration.fileUri);
     }
-  }
+  }*/
 
   @override
   void addProblem(Message message, int charOffset, int length,

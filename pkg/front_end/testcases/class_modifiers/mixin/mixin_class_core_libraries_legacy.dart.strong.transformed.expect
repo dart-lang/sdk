@@ -59,7 +59,7 @@ abstract class _B&Object&Error extends core::Object implements core::Error /*isA
   static method /* from org-dartlang-sdk:///sdk/lib/core/errors.dart */ throwWithStackTrace(core::Object error, core::StackTrace stackTrace) → Never {
     _in::checkNotNullable<core::Object>(error, "error");
     _in::checkNotNullable<core::StackTrace>(stackTrace, "stackTrace");
-    let final Never #t1 = core::Error::_throw(error, stackTrace) in throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+    core::Error::_throw(error, stackTrace);
   }
   @#C4
   @#C10

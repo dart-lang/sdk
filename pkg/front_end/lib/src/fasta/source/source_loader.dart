@@ -81,6 +81,7 @@ import '../util/helpers.dart';
 import 'diet_listener.dart' show DietListener;
 import 'diet_parser.dart' show DietParser, useImplicitCreationExpressionInCfe;
 import 'name_scheme.dart';
+import 'offset_map.dart';
 import 'outline_builder.dart' show OutlineBuilder;
 import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_constructor_builder.dart';
@@ -92,6 +93,7 @@ import 'source_library_builder.dart'
         InvalidLanguageVersion,
         LanguageVersion,
         LibraryAccess,
+        Part,
         SourceLibraryBuilder;
 import 'source_procedure_builder.dart';
 import 'stack_listener_impl.dart' show offsetForToken;
@@ -1122,10 +1124,12 @@ severity: $severity
 
   Future<Null> buildOutline(SourceLibraryBuilder library) async {
     Token tokens = await tokenize(library);
-    OutlineBuilder listener = new OutlineBuilder(library);
+    OffsetMap offsetMap = new OffsetMap(library.fileUri);
+    OutlineBuilder listener = new OutlineBuilder(library, offsetMap);
     new ClassMemberParser(listener,
             allowPatterns: library.libraryFeatures.patterns.isEnabled)
         .parseUnit(tokens);
+    library.offsetMap = offsetMap;
   }
 
   /// Builds all the method bodies found in the given [library].
@@ -1172,18 +1176,18 @@ severity: $severity
       }
     }
 
-    DietListener listener = createDietListener(library);
+    DietListener listener = createDietListener(library, library.offsetMap);
     DietParser parser = new DietParser(listener,
         allowPatterns: library.libraryFeatures.patterns.isEnabled);
     parser.parseUnit(tokens);
-    for (LibraryBuilder part in library.parts) {
-      if (part.partOfLibrary != library) {
-        // Part was included in multiple libraries. Skip it here.
-        continue;
-      }
-      Token tokens = await tokenize(part as SourceLibraryBuilder,
+    for (Part part in library.parts) {
+      assert(part.builder.partOfLibrary == library,
+          "Part ${part.builder} is not part of ${library}.");
+      Token tokens = await tokenize(part.builder as SourceLibraryBuilder,
           suppressLexicalErrors: true);
-      listener.uri = part.fileUri;
+      DietListener listener = createDietListener(library, part.offsetMap);
+      DietParser parser = new DietParser(listener,
+          allowPatterns: library.libraryFeatures.patterns.isEnabled);
       parser.parseUnit(tokens);
     }
   }
@@ -1195,7 +1199,11 @@ severity: $severity
       FunctionNode parameters,
       VariableDeclaration? extensionThis) async {
     Token token = await tokenize(libraryBuilder, suppressLexicalErrors: false);
-    DietListener dietListener = createDietListener(libraryBuilder);
+    DietListener dietListener = createDietListener(
+        libraryBuilder,
+        // Expression compilation doesn't build an outline, and thus doesn't
+        // support members from source, so we provide an empty [DeclarationMap].
+        new OffsetMap(libraryBuilder.fileUri));
 
     Builder parent = libraryBuilder;
     if (enclosingClassOrExtension != null) {
@@ -1271,8 +1279,10 @@ severity: $severity
         parameters);
   }
 
-  DietListener createDietListener(SourceLibraryBuilder library) {
-    return new DietListener(library, hierarchy, coreTypes, typeInferenceEngine);
+  DietListener createDietListener(
+      SourceLibraryBuilder library, OffsetMap offsetMap) {
+    return new DietListener(
+        library, hierarchy, coreTypes, typeInferenceEngine, offsetMap);
   }
 
   void resolveParts() {

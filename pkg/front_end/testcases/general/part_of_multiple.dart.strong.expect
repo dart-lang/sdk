@@ -1,0 +1,24 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///part_of_multiple_lib1.dart";
+import "org-dartlang-testcase:///part_of_multiple_lib2.dart";
+
+
+library part_of_multiple;
+import self as self2;
+
+part part_of_multiple_part.dart;
+
+library part_of_multiple;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/part_of_multiple_part.dart: Error: A file can't be part of more than one library.
+// Try moving the shared declarations into the libraries, or into a new library.
+// pkg/front_end/testcases/general/part_of_multiple_lib1.dart: Context: Used as a part in this library.
+// pkg/front_end/testcases/general/part_of_multiple_lib2.dart: Context: Used as a part in this library.
+//
+import self as self3;
+
+part part_of_multiple_part.dart;

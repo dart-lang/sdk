@@ -46,6 +46,11 @@ class Import {
   // this field is set.
   final String? nativeImportPath;
 
+  /// The [LibraryDependency] node corresponding to this import.
+  ///
+  /// This set in [SourceLibraryBuilder.addDependencies].
+  LibraryDependency? libraryDependency;
+
   Import(
       this.importer,
       this.imported,

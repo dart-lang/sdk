@@ -105,7 +105,7 @@ import 'scope.dart' show Scope, ScopeKind;
 import 'source/source_class_builder.dart' show SourceClassBuilder;
 import 'source/source_extension_builder.dart';
 import 'source/source_library_builder.dart'
-    show ImplicitLanguageVersion, SourceLibraryBuilder;
+    show ImplicitLanguageVersion, Part, SourceLibraryBuilder;
 import 'source/source_loader.dart';
 import 'ticker.dart' show Ticker;
 import 'uri_translator.dart' show UriTranslator;
@@ -2180,12 +2180,12 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
       if (libraryBuilder is SourceLibraryBuilder) {
         // TODO(jensj): This shouldn't be possible anymore.
-        for (LibraryBuilder part in libraryBuilder.parts) {
-          partUriToParent[part.importUri] = libraryBuilder;
-          partUriToParent[part.fileUri] = libraryBuilder;
-          if (isInvalidated(part.importUri, part.fileUri)) {
-            invalidatedImportUris.add(part.importUri);
-            builders[part.importUri] = part;
+        for (Part part in libraryBuilder.parts) {
+          partUriToParent[part.builder.importUri] = libraryBuilder;
+          partUriToParent[part.builder.fileUri] = libraryBuilder;
+          if (isInvalidated(part.builder.importUri, part.builder.fileUri)) {
+            invalidatedImportUris.add(part.builder.importUri);
+            builders[part.builder.importUri] = part.builder;
           }
         }
       } else if (libraryBuilder is DillLibraryBuilder) {

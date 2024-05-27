@@ -4,6 +4,8 @@
 
 library fasta.export;
 
+import 'package:kernel/ast.dart';
+
 import 'builder/builder.dart';
 import 'builder/library_builder.dart';
 import 'combinator.dart' show CombinatorBuilder;
@@ -22,6 +24,11 @@ class Export {
   Export(this.exporter, this.exported, this.combinators, this.charOffset);
 
   Uri get fileUri => exporter.fileUri;
+
+  /// The [LibraryDependency] node corresponding to this import.
+  ///
+  /// This set in [SourceLibraryBuilder.addDependencies].
+  late final LibraryDependency libraryDependency;
 
   bool addToExportScope(String name, Builder member) {
     if (combinators != null) {

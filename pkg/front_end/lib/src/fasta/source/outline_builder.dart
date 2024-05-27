@@ -70,6 +70,7 @@ import '../modifier.dart'
         staticMask;
 import '../operator.dart' show Operator;
 import '../problems.dart' show unhandled;
+import 'offset_map.dart';
 import 'source_enum_builder.dart';
 import 'source_library_builder.dart'
     show
@@ -537,10 +538,11 @@ class OutlineBuilder extends StackListenerImpl {
   bool get inFunctionType =>
       _structuralParameterDepthLevel > 0 || _insideOfFormalParameterType;
 
-  OutlineBuilder(SourceLibraryBuilder library)
-      : libraryBuilder = library,
-        enableNative =
-            library.loader.target.backendTarget.enableNative(library.importUri);
+  OffsetMap _offsetMap;
+
+  OutlineBuilder(this.libraryBuilder, this._offsetMap)
+      : enableNative = libraryBuilder.loader.target.backendTarget
+            .enableNative(libraryBuilder.importUri);
 
   DeclarationContext get declarationContext => _declarationContext.head;
 
@@ -678,8 +680,8 @@ class OutlineBuilder extends StackListenerImpl {
     int uriOffset = popCharOffset();
     String uri = pop() as String;
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
-    libraryBuilder.addExport(metadata, uri, configurations, combinators,
-        exportKeyword.charOffset, uriOffset);
+    libraryBuilder.addExport(_offsetMap, exportKeyword, metadata, uri,
+        configurations, combinators, exportKeyword.charOffset, uriOffset);
     checkEmpty(exportKeyword.charOffset);
   }
 
@@ -733,6 +735,8 @@ class OutlineBuilder extends StackListenerImpl {
     }
     bool isAugmentationImport = augmentToken != null;
     libraryBuilder.addImport(
+        offsetMap: _offsetMap,
+        importKeyword: importKeyword,
         metadata: metadata,
         isAugmentationImport: isAugmentationImport,
         uri: uri,
@@ -811,7 +815,7 @@ class OutlineBuilder extends StackListenerImpl {
     int charOffset = popCharOffset();
     String uri = pop() as String;
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
-    libraryBuilder.addPart(metadata, uri, charOffset);
+    libraryBuilder.addPart(_offsetMap, partKeyword, metadata, uri, charOffset);
     checkEmpty(partKeyword.charOffset);
   }
 
@@ -1365,9 +1369,10 @@ class OutlineBuilder extends StackListenerImpl {
         modifiers |= abstractMask;
       }
       libraryBuilder.addClass(
+          _offsetMap,
           metadata,
           modifiers,
-          identifier.name,
+          identifier,
           typeVariables,
           supertype,
           mixinApplication,
@@ -1458,9 +1463,10 @@ class OutlineBuilder extends StackListenerImpl {
       }
 
       libraryBuilder.addMixinDeclaration(
+          _offsetMap,
           metadata,
           mixinDeclarationMask,
-          identifier.name,
+          identifier,
           typeVariables,
           supertypeConstraints,
           interfaces,
@@ -1496,8 +1502,9 @@ class OutlineBuilder extends StackListenerImpl {
     List<NominalVariableBuilder>? typeVariables =
         pop() as List<NominalVariableBuilder>?;
     int offset = nameToken?.charOffset ?? extensionKeyword.charOffset;
-    push(nameToken?.lexeme ?? NullValues.Name);
-    push(offset);
+    push(nameToken != null
+        ? new SimpleIdentifier(nameToken)
+        : NullValues.Identifier);
     push(typeVariables ?? NullValues.NominalVariables);
     libraryBuilder.currentTypeParameterScopeBuilder
         .markAsExtensionDeclaration(nameToken?.lexeme, offset, typeVariables);
@@ -1509,8 +1516,7 @@ class OutlineBuilder extends StackListenerImpl {
     assert(checkState(extensionKeyword, [
       unionOfKinds([ValueKinds.ParserRecovery, ValueKinds.TypeBuilder]),
       ValueKinds.NominalVariableListOrNull,
-      ValueKinds.Integer,
-      ValueKinds.NameOrNull,
+      ValueKinds.IdentifierOrNull,
       ValueKinds.MetadataListOrNull
     ]));
     debugEvent("endExtensionDeclaration");
@@ -1523,11 +1529,8 @@ class OutlineBuilder extends StackListenerImpl {
     }
     List<NominalVariableBuilder>? typeVariables =
         pop(NullValues.NominalVariables) as List<NominalVariableBuilder>?;
-    int nameOffset = popCharOffset();
-    String? name = pop(NullValues.Name) as String?;
-    if (name == null) {
-      nameOffset = extensionKeyword.charOffset;
-    }
+    Identifier? name = pop(NullValues.Identifier) as Identifier?;
+    int nameOffset = name?.nameOffset ?? extensionKeyword.charOffset;
     List<MetadataBuilder>? metadata =
         pop(NullValues.Metadata) as List<MetadataBuilder>?;
     checkEmpty(extensionKeyword.charOffset);
@@ -1535,6 +1538,8 @@ class OutlineBuilder extends StackListenerImpl {
         ? extensionKeyword.charOffset
         : metadata.first.charOffset;
     libraryBuilder.addExtensionDeclaration(
+        _offsetMap,
+        beginToken,
         metadata,
         // TODO(johnniwinther): Support modifiers on extensions?
         0,
@@ -1559,8 +1564,7 @@ class OutlineBuilder extends StackListenerImpl {
         pop() as List<NominalVariableBuilder>?;
     String name = nameToken.lexeme;
     int offset = nameToken.charOffset;
-    push(name);
-    push(offset);
+    push(new SimpleIdentifier(nameToken));
     push(typeVariables ?? NullValues.NominalVariables);
     libraryBuilder.currentTypeParameterScopeBuilder
         .markAsExtensionTypeDeclaration(name, offset, typeVariables);
@@ -1574,8 +1578,7 @@ class OutlineBuilder extends StackListenerImpl {
     assert(checkState(extensionKeyword, [
       ValueKinds.TypeBuilderListOrNull,
       ValueKinds.NominalVariableListOrNull,
-      ValueKinds.Integer,
-      ValueKinds.Name,
+      ValueKinds.Identifier,
       ValueKinds.MetadataListOrNull,
     ]));
     reportIfNotEnabled(libraryFeatures.inlineClass, typeKeyword.charOffset,
@@ -1585,8 +1588,7 @@ class OutlineBuilder extends StackListenerImpl {
         pop(NullValues.TypeBuilderList) as List<TypeBuilder>?;
     List<NominalVariableBuilder>? typeVariables =
         pop(NullValues.NominalVariables) as List<NominalVariableBuilder>?;
-    int nameOffset = popCharOffset();
-    String name = pop() as String;
+    Identifier identifier = pop() as Identifier;
     List<MetadataBuilder>? metadata =
         pop(NullValues.Metadata) as List<MetadataBuilder>?;
     checkEmpty(extensionKeyword.charOffset);
@@ -1597,14 +1599,14 @@ class OutlineBuilder extends StackListenerImpl {
         ? extensionKeyword.charOffset
         : metadata.first.charOffset;
     libraryBuilder.addExtensionTypeDeclaration(
+        _offsetMap,
         metadata,
         // TODO(johnniwinther): Support modifiers on extension types?
         0,
-        name,
+        identifier,
         typeVariables,
         interfaces,
         startOffset,
-        nameOffset,
         endToken.charOffset);
 
     libraryBuilder.endIndexedContainer();
@@ -1731,6 +1733,8 @@ class OutlineBuilder extends StackListenerImpl {
     scopeBuilder.resolveNamedTypes(typeVariables, libraryBuilder);
 
     libraryBuilder.addPrimaryConstructor(
+        offsetMap: _offsetMap,
+        beginToken: beginToken,
         constructorName: constructorName == "new" ? "" : constructorName,
         charOffset: charOffset,
         formals: formals,
@@ -1814,9 +1818,11 @@ class OutlineBuilder extends StackListenerImpl {
       final int startCharOffset =
           metadata == null ? beginToken.charOffset : metadata.first.charOffset;
       libraryBuilder.addProcedure(
+          _offsetMap,
           metadata,
           modifiers,
           returnType,
+          identifier,
           identifier.name,
           typeVariables,
           formals,
@@ -2343,9 +2349,10 @@ class OutlineBuilder extends StackListenerImpl {
       final int startCharOffset =
           metadata == null ? beginToken.charOffset : metadata.first.charOffset;
       libraryBuilder.addConstructor(
+          _offsetMap,
           metadata,
           modifiers,
-          name,
+          identifier,
           constructorName,
           typeVariables,
           formals,
@@ -2369,9 +2376,11 @@ class OutlineBuilder extends StackListenerImpl {
       bool isExtensionTypeMember =
           methodKind == _MethodKind.extensionTypeMethod;
       libraryBuilder.addProcedure(
+          _offsetMap,
           metadata,
           modifiers,
           returnType,
+          identifier,
           name,
           typeVariables,
           formals,
@@ -3063,14 +3072,14 @@ class OutlineBuilder extends StackListenerImpl {
       }
 
       libraryBuilder.addEnum(
+          _offsetMap,
           metadata,
-          identifier.name,
+          identifier,
           typeVariables,
           mixinBuilder,
           interfaces,
           enumConstantInfos,
           startCharOffset,
-          identifier.nameOffset,
           endCharOffset);
     } else {
       libraryBuilder
@@ -3369,6 +3378,7 @@ class OutlineBuilder extends StackListenerImpl {
     List<MetadataBuilder>? metadata =
         pop(NullValues.Metadata) as List<MetadataBuilder>?;
     checkEmpty(typedefKeyword.charOffset);
+
     libraryBuilder.addFunctionTypeAlias(metadata, identifier.name,
         typeVariables, aliasedType, identifier.nameOffset);
     popDeclarationContext(DeclarationContext.Typedef);
@@ -3472,8 +3482,8 @@ class OutlineBuilder extends StackListenerImpl {
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
     checkEmpty(beginToken.charOffset);
     if (fieldInfos != null) {
-      libraryBuilder.addFields(
-          metadata, modifiers, /* isTopLevel = */ true, type, fieldInfos);
+      libraryBuilder.addFields(_offsetMap, metadata, modifiers,
+          /* isTopLevel = */ true, type, fieldInfos);
     }
     popDeclarationContext();
   }
@@ -3535,8 +3545,8 @@ class OutlineBuilder extends StackListenerImpl {
     }
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
     if (fieldInfos != null) {
-      libraryBuilder.addFields(
-          metadata, modifiers, /* isTopLevel = */ false, type, fieldInfos);
+      libraryBuilder.addFields(_offsetMap, metadata, modifiers,
+          /* isTopLevel = */ false, type, fieldInfos);
     }
     popDeclarationContext();
   }
@@ -3810,6 +3820,7 @@ class OutlineBuilder extends StackListenerImpl {
           TypeParameterScopeKind.factoryMethod, "<syntax-error>");
     } else {
       libraryBuilder.addFactoryMethod(
+        _offsetMap,
         metadata,
         modifiers,
         name,
