@@ -546,6 +546,11 @@ static const RegisterSet kCalleeSaveRegistersSet(
 void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   EmitReturnMoves(compiler);
 
+  // Restore tag before the profiler's stack walker will no longer see the
+  // InvokeDartCode return address.
+  __ movq(TMP, compiler::Address(RBP, NativeEntryInstr::kVMTagOffsetFromFp));
+  __ movq(compiler::Assembler::VMTagAddress(), TMP);
+
   __ LeaveDartFrame();
 
   // Pop dummy return address.
@@ -1627,6 +1632,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Save the current VMTag on the stack.
   __ movq(RAX, compiler::Assembler::VMTagAddress());
   __ pushq(RAX);
+  ASSERT(kVMTagOffsetFromFp == 5 * compiler::target::kWordSize);
 
   // Save top resource.
   __ pushq(
@@ -1647,7 +1653,9 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ EmitEntryFrameVerification();
 
   // The callback trampoline (caller) has already left the safepoint for us.
-  __ TransitionNativeToGenerated(/*exit_safepoint=*/false);
+  __ TransitionNativeToGenerated(/*exit_safepoint=*/false,
+                                 /*ignore_unwind_in_progress=*/false,
+                                 /*set_tag=*/false);
 
   // Load the code object.
   const Function& target_function = marshaller_.dart_signature();
@@ -1694,6 +1702,11 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Continue with Dart frame setup.
   FunctionEntryInstr::EmitNativeCode(compiler);
+
+  // Delay setting the tag until the profiler's stack walker will see the
+  // InvokeDartCode return address.
+  __ movq(compiler::Assembler::VMTagAddress(),
+          compiler::Immediate(compiler::target::Thread::vm_tag_dart_id()));
 }
 
 #define R(r) (1 << r)

@@ -245,7 +245,8 @@ void Assembler::ExitFullSafepoint(bool ignore_unwind_in_progress) {
 }
 
 void Assembler::TransitionNativeToGenerated(bool leave_safepoint,
-                                            bool ignore_unwind_in_progress) {
+                                            bool ignore_unwind_in_progress,
+                                            bool set_tag) {
   if (leave_safepoint) {
     ExitFullSafepoint(ignore_unwind_in_progress);
   } else {
@@ -262,7 +263,10 @@ void Assembler::TransitionNativeToGenerated(bool leave_safepoint,
 #endif
   }
 
-  movq(Assembler::VMTagAddress(), Immediate(target::Thread::vm_tag_dart_id()));
+  if (set_tag) {
+    movq(Assembler::VMTagAddress(),
+         Immediate(target::Thread::vm_tag_dart_id()));
+  }
   movq(Address(THR, target::Thread::execution_state_offset()),
        Immediate(target::Thread::generated_execution_state()));
 

@@ -622,7 +622,8 @@ class Assembler : public AssemblerBase {
   void TransitionNativeToGenerated(Register scratch0,
                                    Register scratch1,
                                    bool exit_safepoint,
-                                   bool ignore_unwind_in_progress = false);
+                                   bool ignore_unwind_in_progress = false,
+                                   bool set_tag = true);
   void EnterFullSafepoint(Register scratch0, Register scratch1);
   void ExitFullSafepoint(Register scratch0,
                          Register scratch1,

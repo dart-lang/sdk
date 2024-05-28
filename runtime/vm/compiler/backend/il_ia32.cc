@@ -407,14 +407,19 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return_in_st0 = true;
   }
 
-  __ LeaveDartFrame();
-
   // EDI is the only sane choice for a temporary register here because:
   //
   // EDX is used for large return values.
   // ESI == THR.
   // Could be EBX or ECX, but that would make code below confusing.
   const Register tmp = EDI;
+
+  // Restore tag before the profiler's stack walker will no longer see the
+  // InvokeDartCode return address.
+  __ movl(tmp, compiler::Address(EBP, NativeEntryInstr::kVMTagOffsetFromFp));
+  __ movl(compiler::Assembler::VMTagAddress(), tmp);
+
+  __ LeaveDartFrame();
 
   // Pop dummy return address.
   __ popl(tmp);
@@ -1400,6 +1405,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Save the current VMTag on the stack.
   __ movl(ECX, compiler::Assembler::VMTagAddress());
   __ pushl(ECX);
+  ASSERT(kVMTagOffsetFromFp == 5 * compiler::target::kWordSize);
 
   // Save top resource.
   __ pushl(
@@ -1420,7 +1426,9 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ EmitEntryFrameVerification();
 
   // The callback trampoline (caller) has already left the safepoint for us.
-  __ TransitionNativeToGenerated(EAX, /*exit_safepoint=*/false);
+  __ TransitionNativeToGenerated(EAX, /*exit_safepoint=*/false,
+                                 /*ignore_unwind_in_progress=*/false,
+                                 /*set_tag=*/false);
 
   // Now that the safepoint has ended, we can hold Dart objects with bare hands.
 
@@ -1458,6 +1466,11 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Continue with Dart frame setup.
   FunctionEntryInstr::EmitNativeCode(compiler);
+
+  // Delay setting the tag until the profiler's stack walker will see the
+  // InvokeDartCode return address.
+  __ movl(compiler::Assembler::VMTagAddress(),
+          compiler::Immediate(compiler::target::Thread::vm_tag_dart_id()));
 }
 
 #define R(r) (1 << r)
