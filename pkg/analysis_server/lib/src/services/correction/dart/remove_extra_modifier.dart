@@ -36,7 +36,7 @@ class RemoveExtraModifier extends ResolvedCorrectionProducer {
     var message = problemMessage.messageText(includeUrl: false);
 
     var modifierStart = message.indexOf(" '") + 2;
-    var modifierStop = message.indexOf("' ", modifierStart);
+    var modifierStop = message.indexOf("'", modifierStart);
 
     _modifierName = message.substring(modifierStart, modifierStop);
 

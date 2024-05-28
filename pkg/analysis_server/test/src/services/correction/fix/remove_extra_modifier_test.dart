@@ -51,6 +51,19 @@ class RemoveExtraModifierTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_EXTRA_MODIFIER;
 
+  Future<void> test_abstract_static_field() async {
+    await resolveTestCode('''
+abstract class A {
+  abstract static int? i;
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  static int? i;
+}
+''');
+  }
+
   Future<void> test_abstractEnum() async {
     await resolveTestCode(r'''
 abstract enum E {ONE}
