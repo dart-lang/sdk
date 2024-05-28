@@ -31,6 +31,8 @@
 
 #### Pub
 
+- Support for [workspaces](https://dart.dev/go/pub-workspaces). Multiple
+  related packages can be resolved together when developing.
 - New flag `dart pub downgrade --tighten` to restrict lower bounds of
   dependencies' constraints to the minimum that can be resolved.
 
