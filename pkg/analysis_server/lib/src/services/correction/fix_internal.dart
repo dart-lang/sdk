@@ -1061,6 +1061,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE: [
     AddClassModifier.base,
   ],
+  CompileTimeErrorCode.MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE: [
+    AddClassModifier.base,
+  ],
   CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS: [
     RemoveNameFromDeclarationClause.new,
   ],

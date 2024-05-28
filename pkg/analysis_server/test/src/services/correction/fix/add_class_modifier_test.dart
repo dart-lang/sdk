@@ -42,4 +42,15 @@ base class A {}
 base mixin B implements A {}
 ''');
   }
+
+  Future<void> test_mixinSubtypeOfFinalIsNotBase() async {
+    await resolveTestCode('''
+final class A {}
+mixin B implements A {}
+''');
+    await assertHasFix('''
+final class A {}
+base mixin B implements A {}
+''');
+  }
 }
