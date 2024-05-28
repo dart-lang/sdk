@@ -647,6 +647,20 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitAugmentedExpression(AugmentedExpression node) {
+    computer._addRegion_token(
+        node.augmentedKeyword, HighlightRegionType.KEYWORD);
+    super.visitAugmentedExpression(node);
+  }
+
+  @override
+  void visitAugmentedInvocation(AugmentedInvocation node) {
+    computer._addRegion_token(
+        node.augmentedKeyword, HighlightRegionType.KEYWORD);
+    super.visitAugmentedInvocation(node);
+  }
+
+  @override
   void visitAwaitExpression(AwaitExpression node) {
     computer._addRegion_token(node.awaitKeyword, HighlightRegionType.BUILT_IN,
         semanticTokenModifiers: {CustomSemanticTokenModifiers.control});

@@ -18,8 +18,6 @@ void main() {
 
 @reflectiveTest
 class AugmentationTest extends AbstractLspAnalysisServerTest {
-  String get mainFileAugmentationPath => fromUri(mainFileAugmentationUri);
-
   Future<void> test_class_body_augmentationToAugmentation() async {
     await verifyGoToAugmentation('''
 class A {}

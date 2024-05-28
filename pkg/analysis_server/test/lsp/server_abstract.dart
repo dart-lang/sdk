@@ -67,6 +67,8 @@ abstract class AbstractLspAnalysisServerTest
 
   DartFixPromptManager? get dartFixPromptManager => null;
 
+  String get mainFileAugmentationPath => fromUri(mainFileAugmentationUri);
+
   /// The path that is not in [projectFolderPath], contains external packages.
   @override
   String get packagesRootPath => resourceProvider.convertPath('/packages');
