@@ -12,9 +12,9 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
+import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
-import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
@@ -55,6 +55,7 @@ abstract class AbstractLspAnalysisServerTest
         ConfigurationFilesMixin,
         TestMacros {
   late MockLspServerChannel channel;
+  late ErrorNotifier errorNotifier;
   late TestPluginManager pluginManager;
   late LspAnalysisServer server;
   late MockProcessRunner processRunner;
@@ -273,6 +274,7 @@ abstract class AbstractLspAnalysisServerTest
       root: sdkRoot,
     );
 
+    errorNotifier = ErrorNotifier();
     pluginManager = TestPluginManager();
     server = LspAnalysisServer(
         channel,
@@ -281,10 +283,11 @@ abstract class AbstractLspAnalysisServerTest
         DartSdkManager(sdkRoot.path),
         AnalyticsManager(NoOpAnalytics()),
         CrashReportingAttachmentsBuilder.empty,
-        InstrumentationService.NULL_SERVICE,
+        errorNotifier,
         httpClient: httpClient,
         processRunner: processRunner,
         dartFixPromptManager: dartFixPromptManager);
+    errorNotifier.server = server;
     server.pluginManager = pluginManager;
 
     projectFolderPath = convertPath('/home/my_project');

@@ -199,7 +199,7 @@ class AnalyzeCommand extends DartdevCommand {
     server.onCrash.then((_) {
       log.stderr('The analysis server shut down unexpectedly.');
       log.stdout('Please report this at dartbug.com.');
-      io.exit(1);
+      io.exit(_Result.crash.exitCode);
     });
 
     await server.analysisFinished;
@@ -218,10 +218,12 @@ class AnalyzeCommand extends DartdevCommand {
     if (errors.isEmpty) {
       if (jsonFormat) {
         emitJsonFormat(log, errors, usageInfo);
-      } else if (!machineFormat) {
+      } else if (!machineFormat && !server.serverErrorReceived) {
         log.stdout('No issues found!');
       }
-      return 0;
+      return server.serverErrorReceived
+          ? _Result.crash.exitCode
+          : _Result.success.exitCode;
     }
 
     errors.sort();
@@ -256,18 +258,18 @@ class AnalyzeCommand extends DartdevCommand {
     // Return an error code in the range [0-3] dependent on the severity of
     // the issue(s) found.
     if (hasErrors) {
-      return 3;
+      return _Result.errors.exitCode;
     }
 
     bool fatalWarnings = args.flag('fatal-warnings');
     bool fatalInfos = args.flag('fatal-infos');
 
     if (fatalWarnings && hasWarnings) {
-      return 2;
+      return _Result.warnings.exitCode;
     } else if (fatalInfos && hasInfos) {
-      return 1;
+      return _Result.infos.exitCode;
     } else {
-      return 0;
+      return _Result.success.exitCode;
     }
   }
 
@@ -449,4 +451,26 @@ class AnalyzeCommand extends DartdevCommand {
     String relative = path.relative(givenPath, from: fromPath);
     return relative.length <= givenPath.length ? relative : givenPath;
   }
+}
+
+/// The possible results of analysis and their exit codes.
+enum _Result {
+  /// Analysis completed and there are no diagnostics.
+  success(0),
+
+  /// Analysis completed and there are INFO diagnostics.
+  infos(1),
+
+  /// Analysis completed and there are warning diagnostics.
+  warnings(2),
+
+  /// Analysis completed and there are error diagnostics.
+  errors(3),
+
+  /// The analysis server failed in a way that may make the results invalid.
+  crash(4);
+
+  final int exitCode;
+
+  const _Result(this.exitCode);
 }

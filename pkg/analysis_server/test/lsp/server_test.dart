@@ -147,6 +147,33 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     expect(hoverItems, hasLength(1));
   }
 
+  Future<void> test_errorNotification_errorNotifier() async {
+    // Error is expected and checked below.
+    failTestOnAnyErrorNotification = false;
+    await initialize();
+
+    var error = await expectErrorNotification(() async {
+      errorNotifier.logException(Exception('dummy exception'));
+    });
+
+    expect(error, isNotNull);
+    expect(error.message, contains('dummy exception'));
+  }
+
+  Future<void> test_errorNotification_sendNotification() async {
+    // Error is expected and checked below.
+    failTestOnAnyErrorNotification = false;
+    await initialize();
+
+    var error = await expectErrorNotification(() async {
+      server.sendServerErrorNotification(
+          'message', Exception('dummy exception'), null);
+    });
+
+    expect(error, isNotNull);
+    expect(error.message, contains('dummy exception'));
+  }
+
   Future<void> test_executeCommandHandler() async {
     await initialize();
     expect(server.executeCommandHandler, isNotNull);
