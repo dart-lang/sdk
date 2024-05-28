@@ -6622,13 +6622,6 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  This warning is generated anywhere an @immutable annotation is associated
-  ///  with anything other than a class.
-  static const WarningCode INVALID_IMMUTABLE_ANNOTATION = WarningCode(
-    'INVALID_IMMUTABLE_ANNOTATION',
-    "Only classes can be annotated as being immutable.",
-  );
-
   ///  No parameters.
   static const WarningCode INVALID_INTERNAL_ANNOTATION = WarningCode(
     'INVALID_INTERNAL_ANNOTATION',

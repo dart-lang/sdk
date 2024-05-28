@@ -24108,12 +24108,6 @@ WarningCode:
 
       class C {}
       ```
-  INVALID_IMMUTABLE_ANNOTATION:
-    problemMessage: Only classes can be annotated as being immutable.
-    hasPublishedDocs: false
-    comment: |-
-      This warning is generated anywhere an @immutable annotation is associated
-      with anything other than a class.
   INVALID_INTERNAL_ANNOTATION:
     problemMessage: "Only public elements in a package's private API can be annotated as being internal."
     hasPublishedDocs: true
@@ -24135,7 +24129,7 @@ WarningCode:
       ```dart
       import 'package:meta/meta.dart';
 
-      [!@internal!]
+      @[!internal!]
       class C {}
       ```
 
@@ -24146,7 +24140,7 @@ WarningCode:
       ```dart
       import 'package:meta/meta.dart';
 
-      [!@internal!]
+      @[!internal!]
       class _C {}
 
       void f(_C c) {}
@@ -24279,7 +24273,7 @@ WarningCode:
       import 'package:meta/meta.dart';
 
       class C {
-        [!@literal!]
+        @[!literal!]
         C();
       }
       ```
@@ -24290,7 +24284,7 @@ WarningCode:
       ```dart
       import 'package:meta/meta.dart';
 
-      [!@literal!]
+      @[!literal!]
       var x;
       ```
 
@@ -24341,7 +24335,7 @@ WarningCode:
       ```dart
       import 'package:meta/meta.dart';
 
-      [!@nonVirtual!]
+      @[!nonVirtual!]
       class C {}
       ```
 
@@ -24352,7 +24346,7 @@ WarningCode:
       import 'package:meta/meta.dart';
 
       abstract class C {
-        [!@nonVirtual!]
+        @[!nonVirtual!]
         void m();
       }
       ```
@@ -24364,7 +24358,7 @@ WarningCode:
       import 'package:meta/meta.dart';
 
       abstract class C {
-        [!@nonVirtual!]
+        @[!nonVirtual!]
         static void m() {}
       }
       ```
@@ -24740,7 +24734,7 @@ WarningCode:
       ```dart
       import 'package:meta/meta.dart';
 
-      [!@visibleForTesting!]
+      @[!visibleForTesting!]
       void _someFunction() {}
 
       void f() => _someFunction();
@@ -24788,7 +24782,7 @@ WarningCode:
       ```dart
       import 'package:meta/meta.dart';
 
-      [!@visibleForOverriding!]
+      @[!visibleForOverriding!]
       class C {}
       ```
 
@@ -24821,7 +24815,7 @@ WarningCode:
       import 'package:angular_meta/angular_meta.dart';
 
       class C {
-        [!@visibleOutsideTemplate!]
+        @[!visibleOutsideTemplate!]
         int m() {
           return 1;
         }
@@ -24834,7 +24828,7 @@ WarningCode:
       ```dart
       import 'package:angular_meta/angular_meta.dart';
 
-      [!@visibleOutsideTemplate!]
+      @[!visibleOutsideTemplate!]
       class C {}
       ```
 
@@ -24961,7 +24955,7 @@ WarningCode:
       import 'package:meta/meta.dart';
 
       class A {
-        [!@sealed!]
+        @[!sealed!]
         void m() {}
       }
       ```

@@ -28,7 +28,7 @@ import 'package:meta/meta.dart';
 class X {
 }
 ''', [
-      error(WarningCode.INVALID_FACTORY_ANNOTATION, 33, 8),
+      error(WarningCode.INVALID_FACTORY_ANNOTATION, 34, 7),
     ]);
   }
 
@@ -39,7 +39,7 @@ import 'package:meta/meta.dart';
 extension type E(int i) {
 }
 ''', [
-      error(WarningCode.INVALID_FACTORY_ANNOTATION, 33, 8),
+      error(WarningCode.INVALID_FACTORY_ANNOTATION, 34, 7),
     ]);
   }
 
@@ -51,7 +51,7 @@ class X {
   int x = 0;
 }
 ''', [
-      error(WarningCode.INVALID_FACTORY_ANNOTATION, 45, 8),
+      error(WarningCode.INVALID_FACTORY_ANNOTATION, 46, 7),
     ]);
   }
 
@@ -61,7 +61,7 @@ import 'package:meta/meta.dart';
 @factory
 main() { }
 ''', [
-      error(WarningCode.INVALID_FACTORY_ANNOTATION, 33, 8),
+      error(WarningCode.INVALID_FACTORY_ANNOTATION, 34, 7),
     ]);
   }
 }

@@ -1470,9 +1470,6 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   WarningCode.INVALID_FACTORY_ANNOTATION: [
     RemoveAnnotation.new,
   ],
-  WarningCode.INVALID_IMMUTABLE_ANNOTATION: [
-    RemoveAnnotation.new,
-  ],
   WarningCode.INVALID_INTERNAL_ANNOTATION: [
     RemoveAnnotation.new,
   ],

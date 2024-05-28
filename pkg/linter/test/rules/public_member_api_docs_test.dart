@@ -235,7 +235,7 @@ class C {
 }
 ''', [
       // Technically not in the private API but we can ignore that for testing.
-      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 34, 9),
+      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 35, 8),
     ]);
   }
 
@@ -254,7 +254,7 @@ enum E {
 }
 ''', [
       // Technically not in the private API but we can ignore that for testing.
-      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 34, 9),
+      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 35, 8),
     ]);
   }
 
@@ -271,7 +271,7 @@ extension X on Object {
 }
 ''', [
       // Technically not in the private API but we can ignore that for testing.
-      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 34, 9),
+      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 35, 8),
     ]);
   }
 
@@ -288,7 +288,7 @@ mixin M {
 }
 ''', [
       // Technically not in the private API but we can ignore that for testing.
-      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 34, 9),
+      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 35, 8),
     ]);
   }
 

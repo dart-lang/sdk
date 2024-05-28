@@ -3576,8 +3576,6 @@ WarningCode.INVALID_FACTORY_METHOD_DECL:
   status: noFix
 WarningCode.INVALID_FACTORY_METHOD_IMPL:
   status: noFix
-WarningCode.INVALID_IMMUTABLE_ANNOTATION:
-  status: hasFix
 WarningCode.INVALID_INTERNAL_ANNOTATION:
   status: hasFix
 WarningCode.INVALID_LITERAL_ANNOTATION:

@@ -495,7 +495,11 @@ const _VisibleForTesting visibleForTesting = _VisibleForTesting();
 /// Used to annotate a class.
 ///
 /// See [immutable] for more details.
-// TODO(srawlins): Enforce with `TargetKind.classtype`.
+@Target({
+  TargetKind.classType,
+  TargetKind.extensionType,
+  TargetKind.mixinType,
+})
 class Immutable {
   /// A human-readable explanation of the reason why the class is immutable.
   final String reason;

@@ -38,7 +38,7 @@ extension type E(int i) {
   void m() { }
 }
 ''', [
-      error(WarningCode.INVALID_SEALED_ANNOTATION, 34, 7),
+      error(WarningCode.INVALID_SEALED_ANNOTATION, 35, 6),
     ]);
   }
 
@@ -48,7 +48,7 @@ import 'package:meta/meta.dart';
 
 @sealed mixin M {}
 ''', [
-      error(WarningCode.INVALID_SEALED_ANNOTATION, 34, 7),
+      error(WarningCode.INVALID_SEALED_ANNOTATION, 35, 6),
     ]);
   }
 
@@ -70,7 +70,7 @@ import 'package:meta/meta.dart';
 
 @sealed m({a = 1}) => null;
 ''', [
-      error(WarningCode.INVALID_SEALED_ANNOTATION, 34, 7),
+      error(WarningCode.INVALID_SEALED_ANNOTATION, 35, 6),
     ]);
   }
 }
