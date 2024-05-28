@@ -1,4 +1,4 @@
-## 0.1.0-main.8
+## 0.1.1-main.0
 
 - Add identifiers to `NamedStaticType`.
 - Add `StaticType.asInstanceOf`.
