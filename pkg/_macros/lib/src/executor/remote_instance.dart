@@ -82,7 +82,7 @@ abstract class RemoteInstance implements Serializable {
 /// a generic object.
 ///
 /// The wrapped object is not serialized.
-class RemoteInstanceImpl extends RemoteInstance {
+final class RemoteInstanceImpl extends RemoteInstance {
   /// Always null on the client side, has an actual instance on the server side.
   final Object? instance;
 

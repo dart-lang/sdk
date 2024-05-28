@@ -19,11 +19,13 @@ import '../../source/source_loader.dart';
 import '../../uri_offset.dart';
 import '../hierarchy/hierarchy_builder.dart';
 import 'identifiers.dart';
+import 'introspectors.dart';
 
 final IdentifierImpl omittedTypeIdentifier =
     new OmittedTypeIdentifier(id: macro.RemoteInstance.uniqueId);
 
 class MacroTypes {
+  final MacroIntrospection _introspection;
   final SourceLoader _sourceLoader;
   late Types _types;
 
@@ -32,7 +34,7 @@ class MacroTypes {
 
   Map<DartType, _StaticTypeImpl> _staticTypeCache = {};
 
-  MacroTypes(this._sourceLoader);
+  MacroTypes(this._introspection, this._sourceLoader);
 
   void enterDeclarationsMacroPhase(ClassHierarchyBuilder classHierarchy) {
     _types = new Types(classHierarchy);
@@ -247,9 +249,26 @@ class MacroTypes {
     return _createStaticType(_typeForAnnotation(typeAnnotation));
   }
 
-  /// Creates the [macro.StaticType] corresponding to [dartType].
   macro.StaticType _createStaticType(DartType dartType) {
-    return _staticTypeCache[dartType] ??= new _StaticTypeImpl(_types, dartType);
+    return _staticTypeCache[dartType] ??= switch (dartType) {
+      TypeDeclarationType() => new _NamedStaticTypeImpl(
+          macro.RemoteInstance.uniqueId,
+          types: this,
+          type: dartType,
+          declaration: _introspection.resolveDeclarationFromKernel(
+              dartType.typeDeclaration) as macro.ParameterizedTypeDeclaration,
+          typeArguments: [
+            for (DartType argument in dartType.typeArguments)
+              _createStaticType(argument),
+          ],
+        ),
+      _ => new _StaticTypeImpl(macro.RemoteInstance.uniqueId,
+          types: this, type: dartType),
+    };
+  }
+
+  macro.NamedStaticType _createNamedStaticType(TypeDeclarationType dartType) {
+    return _createStaticType(dartType) as macro.NamedStaticType;
   }
 
   /// Returns the [macro.TypeAnnotation] for the inferred type of [omittedType],
@@ -292,11 +311,16 @@ class MacroTypes {
   }
 }
 
-class _StaticTypeImpl implements macro.StaticType {
-  final Types types;
+class _StaticTypeImpl<T extends macro.StaticType>
+    extends macro.StaticTypeImpl<T> {
+  final MacroTypes types;
   final DartType type;
 
-  _StaticTypeImpl(this.types, this.type);
+  _StaticTypeImpl(
+    super.id, {
+    required this.types,
+    required this.type,
+  });
 
   @override
   Future<bool> isExactly(covariant _StaticTypeImpl other) {
@@ -305,9 +329,64 @@ class _StaticTypeImpl implements macro.StaticType {
 
   @override
   Future<bool> isSubtypeOf(covariant _StaticTypeImpl other) {
-    return new Future.value(types.isSubtypeOf(
-        type, other.type, SubtypeCheckMode.withNullabilities));
+    return new Future.value(types._types
+        .isSubtypeOf(type, other.type, SubtypeCheckMode.withNullabilities));
   }
+
+  @override
+  Future<macro.NamedStaticType?> asInstanceOf(
+      macro.TypeDeclaration declaration) {
+    TypeDeclarationType? result;
+    DartType type = this.type;
+    macro.Identifier identifier = declaration.identifier;
+
+    if (type is TypeDeclarationType &&
+        identifier is TypeDeclarationBuilderIdentifier) {
+      TypeDeclarationBuilder declarationBuilder =
+          identifier.typeDeclarationBuilder;
+      switch (declarationBuilder) {
+        case ClassBuilder():
+          result = types._sourceLoader.hierarchyBuilder.getTypeAsInstanceOf(
+              type, declarationBuilder.cls,
+              isNonNullableByDefault: true);
+        case ExtensionTypeDeclarationBuilder():
+          result = types._sourceLoader.hierarchyBuilder.getTypeAsInstanceOf(
+              type, declarationBuilder.extensionTypeDeclaration,
+              isNonNullableByDefault: true);
+        case BuiltinTypeDeclarationBuilder():
+        case InvalidTypeDeclarationBuilder():
+        case OmittedTypeDeclarationBuilder():
+        case TypeAliasBuilder():
+        case ExtensionBuilder():
+        case NominalVariableBuilder():
+        case StructuralVariableBuilder():
+        // There is no instance of [declaration].
+      }
+    }
+
+    if (result != null) {
+      return new Future.value(types._createNamedStaticType(result));
+    } else {
+      return new Future.value(null);
+    }
+  }
+}
+
+class _NamedStaticTypeImpl extends _StaticTypeImpl<macro.NamedStaticType>
+    implements macro.NamedStaticType {
+  @override
+  final macro.ParameterizedTypeDeclaration declaration;
+
+  @override
+  final List<macro.StaticType> typeArguments;
+
+  _NamedStaticTypeImpl(
+    super.id, {
+    required this.declaration,
+    required this.typeArguments,
+    required super.types,
+    required super.type,
+  });
 }
 
 // ignore: missing_override_of_must_be_overridden

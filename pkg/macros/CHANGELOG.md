@@ -1,3 +1,8 @@
+## 0.1.0-main.8
+
+- Add identifiers to `NamedStaticType`.
+- Add `StaticType.asInstanceOf`.
+
 ## 0.1.0-main.7
 
 - Fix for generating code after extendsType

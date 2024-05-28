@@ -62,7 +62,7 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
           }
 
           // These are initialized in the switch below.
-          final Serializable result;
+          final Serializable? result;
           final MessageType resultType;
           int? requestId;
 
@@ -84,18 +84,10 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
                 ResolveTypeRequest request =
                     ResolveTypeRequest.deserialize(deserializer, zoneId);
                 requestId = request.id;
-                StaticType instance = await (request.introspector.instance
+                result = await (request.introspector.instance
                         as DeclarationPhaseIntrospector)
-                    .resolve(request.typeAnnotationCode);
-                result = RemoteInstanceImpl(
-                    id: RemoteInstance.uniqueId,
-                    instance: instance,
-                    kind: instance is NamedStaticType
-                        ? RemoteInstanceKind.namedStaticType
-                        : RemoteInstanceKind.staticType);
-                resultType = instance is NamedStaticType
-                    ? MessageType.namedStaticType
-                    : MessageType.staticType;
+                    .resolve(request.typeAnnotationCode) as StaticTypeImpl;
+                resultType = MessageType.remoteInstance;
               case MessageType.inferTypeRequest:
                 InferTypeRequest request =
                     InferTypeRequest.deserialize(deserializer, zoneId);
@@ -108,16 +100,16 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
                 IsExactlyTypeRequest request =
                     IsExactlyTypeRequest.deserialize(deserializer, zoneId);
                 requestId = request.id;
-                StaticType leftType = request.leftType.instance as StaticType;
-                StaticType rightType = request.rightType.instance as StaticType;
+                StaticType leftType = request.leftType as StaticType;
+                StaticType rightType = request.rightType as StaticType;
                 result = BooleanValue(await leftType.isExactly(rightType));
                 resultType = MessageType.boolean;
               case MessageType.isSubtypeOfRequest:
                 IsSubtypeOfRequest request =
                     IsSubtypeOfRequest.deserialize(deserializer, zoneId);
                 requestId = request.id;
-                StaticType leftType = request.leftType.instance as StaticType;
-                StaticType rightType = request.rightType.instance as StaticType;
+                StaticType leftType = request.leftType as StaticType;
+                StaticType rightType = request.rightType as StaticType;
                 result = BooleanValue(await leftType.isSubtypeOf(rightType));
                 resultType = MessageType.boolean;
               case MessageType.declarationOfRequest:
