@@ -1,3 +1,30 @@
+# Checkout
+
+Ensure you have a valid checkout by following the
+[Getting the source](https://github.com/dart-lang/sdk/blob/main/docs/Building.md#getting-the-source)
+instructions.
+
+In order to be able to run on all tests modify the `../.gclient` file by adding
+custom variables:
+
+```
+solutions = [
+  {
+    "name"        : "sdk",
+     ...
+    "custom_vars" : {
+      "download_emscripten": True,
+      "download_firefox": True,
+      "download_chrome": True,
+      "checkout_flute": True,
+      "checkout_javascript_engines": True,
+    },
+  },
+]
+```
+This configures the `DEPS` to download various tools on the next `gclient sync`
+invocation.
+
 # Building Dart2Wasm
 
 To build dart2wasm for local running & testing we use
@@ -49,6 +76,10 @@ from source:
 * Use `pkg/dart2wasm/tool/compile_benchmark --src ...`
 * Use `pkg/dart2wasm/tool/compile_benchmark --src --compiler-asserts ...`
 
+One can pass through any option to the dart2wasm compiler by adding
+`--extra-compiler-option=--<option>=<value>`.
+
+See available options via `dart pkg/dart2wasm/bin/dart2wasm.dart --help`.
 
 # Testing Dart2Wasm
 
@@ -66,4 +97,3 @@ The test framwork will use the same two scripts to compile & run (
 
 (The test framework can be asked to use `dart compile wasm` from the SDK
 instead using `--use-sdk` (or update in `tools/bots/test_matrix.json`))
-
