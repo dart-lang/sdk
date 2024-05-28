@@ -11,6 +11,7 @@ import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 class ThrowStatement {
@@ -173,19 +174,6 @@ extension AstNodeExtension on AstNode {
       }
     }
     return result;
-  }
-
-  /// Return this node and all its parents.
-  Iterable<AstNode> get withParents sync* {
-    var current = this;
-    while (true) {
-      yield current;
-      var parent = current.parent;
-      if (parent == null) {
-        break;
-      }
-      current = parent;
-    }
   }
 
   /// Returns the [ExpressionStatement] associated with `this` if `this` points

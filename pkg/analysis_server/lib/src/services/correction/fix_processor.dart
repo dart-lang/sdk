@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/dart/ignore_diagnostic.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analyzer/error/error.dart';

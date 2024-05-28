@@ -8,7 +8,6 @@ import 'package:analysis_server/protocol/protocol_generated.dart'
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/dart/organize_imports.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_import.dart';
@@ -16,6 +15,7 @@ import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generato
 import 'package:analysis_server/src/services/correction/fix_processor.dart';
 import 'package:analysis_server/src/services/correction/organize_imports.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
