@@ -23,9 +23,7 @@ extension DeserializerExtensions on Deserializer {
     final RemoteInstance instance = switch (kind) {
       RemoteInstanceKind.declarationPhaseIntrospector ||
       RemoteInstanceKind.definitionPhaseIntrospector ||
-      RemoteInstanceKind.typePhaseIntrospector ||
-      RemoteInstanceKind.namedStaticType ||
-      RemoteInstanceKind.staticType =>
+      RemoteInstanceKind.typePhaseIntrospector =>
         // These are simple wrappers, just pass in the kind
         RemoteInstanceImpl(id: id, kind: kind),
       RemoteInstanceKind.classDeclaration =>
@@ -58,6 +56,8 @@ extension DeserializerExtensions on Deserializer {
       RemoteInstanceKind.library => (this..moveNext())._expectLibrary(id),
       RemoteInstanceKind.methodDeclaration =>
         (this..moveNext())._expectMethodDeclaration(id),
+      RemoteInstanceKind.namedStaticType =>
+        (this..moveNext())._expectNamedStaticType(id),
       RemoteInstanceKind.namedTypeAnnotation =>
         (this..moveNext())._expectNamedTypeAnnotation(id),
       RemoteInstanceKind.omittedTypeAnnotation =>
@@ -68,6 +68,7 @@ extension DeserializerExtensions on Deserializer {
         (this..moveNext())._expectRecordField(id),
       RemoteInstanceKind.recordTypeAnnotation =>
         (this..moveNext())._expectRecordTypeAnnotation(id),
+      RemoteInstanceKind.staticType => StaticTypeImpl(id),
       RemoteInstanceKind.typeAliasDeclaration =>
         (this..moveNext())._expectTypeAliasDeclaration(id),
       RemoteInstanceKind.typeParameter =>
@@ -114,6 +115,14 @@ extension DeserializerExtensions on Deserializer {
       for (bool hasNext = moveNext(); hasNext; hasNext = moveNext())
         expectString(): (this..moveNext()).expectCode(),
     };
+  }
+
+  NamedStaticTypeImpl _expectNamedStaticType(int id) {
+    return NamedStaticTypeImpl(
+      id,
+      declaration: expectRemoteInstance(),
+      typeArguments: (this..moveNext())._expectRemoteInstanceList(),
+    );
   }
 
   NamedTypeAnnotationImpl _expectNamedTypeAnnotation(int id) =>

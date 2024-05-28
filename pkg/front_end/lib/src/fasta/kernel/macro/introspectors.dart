@@ -27,7 +27,7 @@ import 'types.dart';
 
 class MacroIntrospection {
   final SourceLoader _sourceLoader;
-  final MacroTypes types;
+  late final MacroTypes types = new MacroTypes(this, _sourceLoader);
   late final ClassHierarchyBuilder _classHierarchy;
 
   late final macro.TypePhaseIntrospector typePhaseIntrospector;
@@ -43,8 +43,7 @@ class MacroIntrospection {
   Map<LibraryBuilder, macro.LibraryImpl> _libraries = {};
   Map<macro.Declaration, UriOffset> _declarationOffsets = {};
 
-  MacroIntrospection(this._sourceLoader)
-      : types = new MacroTypes(_sourceLoader);
+  MacroIntrospection(this._sourceLoader);
 
   void enterTypeMacroPhase() {
     typePhaseIntrospector = new _TypePhaseIntrospector(_sourceLoader);
@@ -117,6 +116,17 @@ class MacroIntrospection {
       throw new UnimplementedError(
           'Unsupported member ${memberBuilder} (${memberBuilder.runtimeType})');
     }
+  }
+
+  macro.TypeDeclaration resolveDeclarationFromKernel(
+      TypeDeclaration typeDeclaration) {
+    return switch (typeDeclaration) {
+      Class() => getClassDeclaration(_sourceLoader.hierarchyBuilder
+          .getNodeFromClass(typeDeclaration)
+          .classBuilder),
+      _ => throw new UnimplementedError(
+          'Only class type declarations are implemented at the moment')
+    };
   }
 
   /// Resolves [identifier] to the [macro.TypeDeclaration] that it corresponds

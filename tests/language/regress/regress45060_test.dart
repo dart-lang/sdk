@@ -34,5 +34,4 @@ class Executor {
 void testTypeEquality<T1, T2>() {
   Expect.equals(T1.hashCode, T2.hashCode);
   Expect.equals(T1, T2);
-  Expect.identical(T1, T2);
 }

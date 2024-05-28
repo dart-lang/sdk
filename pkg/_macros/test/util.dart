@@ -86,12 +86,15 @@ class TestDeclarationPhaseIntrospector extends TestTypePhaseIntrospector
 }
 
 /// Doesn't handle generics etc but thats ok for now
-class TestNamedStaticType implements NamedStaticType {
-  final IdentifierImpl identifier;
-  final String library;
+class TestNamedStaticType extends NamedStaticTypeImpl {
   final List<TestNamedStaticType> superTypes;
 
-  TestNamedStaticType(this.identifier, this.library, this.superTypes);
+  TestNamedStaticType(
+    super.id, {
+    required this.superTypes,
+    required super.declaration,
+    required super.typeArguments,
+  });
 
   @override
   Future<bool> isExactly(TestNamedStaticType other) async => _isExactly(other);
@@ -103,7 +106,18 @@ class TestNamedStaticType implements NamedStaticType {
 
   bool _isExactly(TestNamedStaticType other) =>
       identical(other, this) ||
-      (library == other.library && identifier.name == other.identifier.name);
+      (declaration.library == other.declaration.library &&
+          declaration.identifier == other.declaration.identifier);
+
+  @override
+  Future<NamedStaticType?> asInstanceOf(TypeDeclaration declaration) async {
+    for (TestNamedStaticType superType in superTypes) {
+      if (superType.declaration.identifier == declaration.identifier) {
+        return superType;
+      }
+    }
+    return null;
+  }
 }
 
 /// Assumes all omitted types are [TestOmittedTypeAnnotation]s and just returns
@@ -222,6 +236,9 @@ Matcher deepEqualsMacroException(MacroException macroException) =>
 Matcher deepEqualsMetadataAnnotation(MetadataAnnotation metadata) =>
     _DeepEqualityMatcher(metadata);
 
+/// Checks if two [StaticType]s are identical
+Matcher deepEqualsStaticType(StaticType type) => _DeepEqualityMatcher(type);
+
 /// Checks if two [Declaration]s, [TypeAnnotation]s, [Code]s or
 /// [MacroException]s are of the same type and all their fields are equal.
 class _DeepEqualityMatcher extends Matcher {
@@ -242,7 +259,8 @@ class _DeepEqualityMatcher extends Matcher {
     if (instance is Declaration ||
         instance is TypeAnnotation ||
         instance is MetadataAnnotation ||
-        instance is MacroException) {
+        instance is MacroException ||
+        instance is StaticType) {
       var instanceReflector = reflect(instance);
       var itemReflector = reflect(item);
 
@@ -345,6 +363,22 @@ class Fixtures {
       identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'String'),
       isNullable: false,
       typeArguments: const []);
+  static final stringClass = ClassDeclarationImpl(
+      id: RemoteInstance.uniqueId,
+      identifier: stringType.identifier,
+      library: Fixtures.library,
+      metadata: [],
+      typeParameters: [],
+      interfaces: [],
+      hasAbstract: false,
+      hasBase: false,
+      hasExternal: false,
+      hasFinal: false,
+      hasInterface: false,
+      hasMixin: false,
+      hasSealed: false,
+      mixins: [],
+      superclass: null);
   static final inferredStringType = TestOmittedTypeAnnotation(stringType);
   static final voidType = NamedTypeAnnotationImpl(
       id: RemoteInstance.uniqueId,
@@ -565,7 +599,15 @@ class Fixtures {
       identifier: mySuperclassType.identifier,
       library: Fixtures.library,
       metadata: [],
-      typeParameters: [],
+      typeParameters: [
+        TypeParameterDeclarationImpl(
+          id: RemoteInstance.uniqueId,
+          identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'T'),
+          library: library,
+          metadata: const [],
+          bound: null,
+        ),
+      ],
       interfaces: [],
       hasAbstract: false,
       hasBase: false,
@@ -576,9 +618,27 @@ class Fixtures {
       hasSealed: false,
       mixins: [],
       superclass: null);
-
+  static final mySuperTypeInstantiatedWithString = TestNamedStaticType(
+    RemoteInstance.uniqueId,
+    declaration: mySuperclass,
+    typeArguments: [],
+    superTypes: [
+      TestNamedStaticType(
+        RemoteInstance.uniqueId,
+        declaration: stringClass,
+        superTypes: [],
+        typeArguments: [],
+      )
+    ],
+  );
   static final myClassStaticType = TestNamedStaticType(
-      myClassType.identifier, 'package:my_package/my_package.dart', []);
+    RemoteInstance.uniqueId,
+    declaration: myClass,
+    typeArguments: [],
+    superTypes: [
+      mySuperTypeInstantiatedWithString,
+    ],
+  );
 
   static final myEnumType = NamedTypeAnnotationImpl(
       id: RemoteInstance.uniqueId,
@@ -758,9 +818,19 @@ class Fixtures {
       myMixin,
     ],
   }, staticTypes: {
-    stringType.identifier:
-        TestNamedStaticType(stringType.identifier, 'dart:core', []),
+    stringType.identifier: TestNamedStaticType(
+      RemoteInstance.uniqueId,
+      declaration: stringClass,
+      superTypes: [],
+      typeArguments: [],
+    ),
     myClass.identifier: myClassStaticType,
+    mySuperclass.identifier: TestNamedStaticType(
+      RemoteInstance.uniqueId,
+      declaration: mySuperclass,
+      superTypes: [],
+      typeArguments: [],
+    ),
   }, identifierDeclarations: {
     myClass.identifier: myClass,
     myEnum.identifier: myEnum,

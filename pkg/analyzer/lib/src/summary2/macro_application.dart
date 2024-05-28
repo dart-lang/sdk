@@ -22,7 +22,9 @@ import 'package:collection/collection.dart';
 import 'package:macros/macros.dart' as macro;
 import 'package:macros/src/executor.dart' as macro;
 import 'package:macros/src/executor/exception_impls.dart' as macro;
+import 'package:macros/src/executor/introspection_impls.dart' as macro;
 import 'package:macros/src/executor/multi_executor.dart';
+import 'package:macros/src/executor/remote_instance.dart' as macro;
 import 'package:meta/meta.dart';
 
 /// The full list of [macro.ArgumentKind]s for this dart type, with type
@@ -1150,7 +1152,7 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
     performance.getDataInt('resolve').increment();
     macroProcessing?.hasAnyIntrospection = true;
     var type = declarationBuilder.resolveType(typeCode);
-    return _StaticTypeImpl(typeSystem, type);
+    return _dartTypeToStaticType(type);
   }
 
   @override
@@ -1188,6 +1190,31 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
         .map(declarationBuilder.declarationOfElement)
         .whereType<macro.EnumValueDeclaration>()
         .toList();
+  }
+
+  macro.StaticTypeImpl _dartTypeToStaticType(DartType type) {
+    if (type is InterfaceType) {
+      var element = type.element;
+      var declaration = declarationBuilder.declarationOfElement(element);
+
+      return _InterfaceTypeImpl(
+        macro.RemoteInstance.uniqueId,
+        typeSystem: typeSystem,
+        introspector: this,
+        type: type,
+        declaration: declaration as macro.ParameterizedTypeDeclarationImpl,
+        typeArguments: [
+          for (final type in type.typeArguments) _dartTypeToStaticType(type),
+        ],
+      );
+    } else {
+      return _StaticTypeImpl(
+        macro.RemoteInstance.uniqueId,
+        typeSystem: typeSystem,
+        introspector: this,
+        type: type,
+      );
+    }
   }
 
   Future<void> _runDeclarationsPhase(ElementImpl element) async {
@@ -1249,6 +1276,24 @@ class _DefinitionPhaseIntrospector extends _DeclarationPhaseIntrospector
   }
 }
 
+class _InterfaceTypeImpl extends _StaticTypeImpl<macro.NamedStaticType>
+    implements macro.NamedStaticTypeImpl {
+  @override
+  final macro.ParameterizedTypeDeclarationImpl declaration;
+
+  @override
+  final List<macro.StaticTypeImpl<macro.StaticType>> typeArguments;
+
+  _InterfaceTypeImpl(
+    super.id, {
+    required super.typeSystem,
+    required super.introspector,
+    required InterfaceType super.type,
+    required this.declaration,
+    required this.typeArguments,
+  });
+}
+
 class _MacroApplication {
   final _MacroTarget target;
   final int annotationIndex;
@@ -1296,11 +1341,36 @@ class _MacroTarget {
   });
 }
 
-class _StaticTypeImpl implements macro.StaticType {
+class _StaticTypeImpl<T extends macro.StaticType>
+    extends macro.StaticTypeImpl<T> {
   final TypeSystemImpl typeSystem;
+  final _DeclarationPhaseIntrospector introspector;
   final DartType type;
 
-  _StaticTypeImpl(this.typeSystem, this.type);
+  _StaticTypeImpl(
+    super.id, {
+    required this.typeSystem,
+    required this.introspector,
+    required this.type,
+  });
+
+  @override
+  Future<macro.NamedStaticType?> asInstanceOf(
+      macro.TypeDeclaration declaration) {
+    InterfaceType? result;
+
+    if (declaration case HasElement(:var element)) {
+      if (element is InterfaceElementImpl) {
+        result = type.asInstanceOf(element);
+      }
+    }
+
+    return Future.value(switch (result) {
+      var type? =>
+        introspector._dartTypeToStaticType(type) as _InterfaceTypeImpl,
+      _ => null,
+    });
+  }
 
   @override
   Future<bool> isExactly(_StaticTypeImpl other) {

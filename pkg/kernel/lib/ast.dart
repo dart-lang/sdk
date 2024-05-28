@@ -649,7 +649,8 @@ class Library extends NamedNode
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset,
+        viaForErrorMessage: "Library");
   }
 
   @override
@@ -939,7 +940,8 @@ class Typedef extends NamedNode
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset,
+        viaForErrorMessage: "Typedef '$name'");
   }
 
   @override
@@ -1556,7 +1558,8 @@ class Class extends NamedNode implements TypeDeclaration {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset,
+        viaForErrorMessage: "Class '$name'");
   }
 }
 
@@ -1691,7 +1694,8 @@ class Extension extends NamedNode
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset,
+        viaForErrorMessage: "Extension '$name'");
   }
 
   @override
@@ -1951,7 +1955,8 @@ class ExtensionTypeDeclaration extends NamedNode implements TypeDeclaration {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset,
+        viaForErrorMessage: "Extension type '$name'");
   }
 
   @override
@@ -2559,7 +2564,8 @@ class Field extends Member {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset,
+        viaForErrorMessage: "Field '$name'");
   }
 
   @override
@@ -2709,7 +2715,8 @@ class Constructor extends Member {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset,
+        viaForErrorMessage: "Constructor '$name'");
   }
 }
 
@@ -3296,7 +3303,8 @@ class Procedure extends Member implements GenericFunction {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset,
+        viaForErrorMessage: "Procedure '$name'");
   }
 }
 
@@ -7441,7 +7449,8 @@ class FileUriExpression extends Expression implements FileUriNode {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset,
+        viaForErrorMessage: "File uri expression");
   }
 
   @override
@@ -8674,7 +8683,8 @@ class FileUriConstantExpression extends ConstantExpression
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset,
+        viaForErrorMessage: "File uri constant expression");
   }
 }
 
@@ -14621,8 +14631,9 @@ class Component extends TreeNode {
   Component get enclosingComponent => this;
 
   /// Translates an offset to line and column numbers in the given file.
-  Location? getLocation(Uri file, int offset) {
-    return uriToSource[file]?.getLocation(file, offset);
+  Location? getLocation(Uri file, int offset, {String? viaForErrorMessage}) {
+    return uriToSource[file]
+        ?.getLocation(file, offset, viaForErrorMessage: viaForErrorMessage);
   }
 
   /// Translates line and column numbers to an offset in the given file.
@@ -14822,12 +14833,23 @@ class Source {
   String get text => cachedText ??= utf8.decode(source, allowMalformed: true);
 
   /// Translates an offset to 1-based line and column numbers in the given file.
-  Location getLocation(Uri file, int offset) {
+  Location getLocation(Uri file, int offset, {String? viaForErrorMessage}) {
     List<int>? lineStarts = this.lineStarts;
     if (lineStarts == null || lineStarts.isEmpty) {
       return new Location(file, TreeNode.noOffset, TreeNode.noOffset);
     }
-    RangeError.checkValueInInterval(offset, 0, lineStarts.last, 'offset');
+    if (viaForErrorMessage != null) {
+      RangeError.checkValueInInterval(
+          offset,
+          0,
+          lineStarts.last,
+          'offset',
+          'Asked for out-of-bounds offset for uri "$file" '
+              'via $viaForErrorMessage');
+    } else {
+      RangeError.checkValueInInterval(offset, 0, lineStarts.last, 'offset',
+          'Asked for out-of-bounds offset for uri "$file"');
+    }
     int low = 0, high = lineStarts.length - 1;
     while (low < high) {
       int mid = high - ((high - low) >> 1); // Get middle, rounding up.
@@ -15013,10 +15035,11 @@ bool mapEquals(Map a, Map b) {
 /// static analysis and runtime behavior of the library are unaffected.
 const Null informative = null;
 
-Location? _getLocationInComponent(
-    Component? component, Uri fileUri, int offset) {
+Location? _getLocationInComponent(Component? component, Uri fileUri, int offset,
+    {required String viaForErrorMessage}) {
   if (component != null) {
-    return component.getLocation(fileUri, offset);
+    return component.getLocation(fileUri, offset,
+        viaForErrorMessage: viaForErrorMessage);
   } else {
     return new Location(fileUri, TreeNode.noOffset, TreeNode.noOffset);
   }

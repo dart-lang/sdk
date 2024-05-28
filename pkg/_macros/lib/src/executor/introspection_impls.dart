@@ -85,6 +85,61 @@ class NamedTypeAnnotationImpl extends TypeAnnotationImpl
   }
 }
 
+class StaticTypeImpl<T extends StaticType> extends RemoteInstance
+    implements StaticType {
+  StaticTypeImpl(super.id);
+
+  @override
+  RemoteInstanceKind get kind => RemoteInstanceKind.staticType;
+
+  // When used by the client, requests need to made through the
+  // ClientStaticTypeImpl wrapper which will issue RPC requests to implement
+  // these methods.
+  @override
+  Future<NamedStaticType?> asInstanceOf(TypeDeclaration declaration) {
+    throw UnsupportedError('use ClientStaticTypeImpl');
+  }
+
+  @override
+  Future<bool> isExactly(covariant StaticType other) {
+    throw UnsupportedError('use ClientStaticTypeImpl');
+  }
+
+  @override
+  Future<bool> isSubtypeOf(covariant StaticType other) {
+    throw UnsupportedError('use ClientStaticTypeImpl');
+  }
+}
+
+class NamedStaticTypeImpl extends StaticTypeImpl<NamedStaticType>
+    implements NamedStaticType {
+  @override
+  final ParameterizedTypeDeclarationImpl declaration;
+
+  @override
+  final List<StaticTypeImpl> typeArguments;
+
+  @override
+  RemoteInstanceKind get kind => RemoteInstanceKind.namedStaticType;
+
+  NamedStaticTypeImpl(
+    super.id, {
+    required this.declaration,
+    required this.typeArguments,
+  });
+
+  @override
+  void serializeUncached(Serializer serializer) {
+    super.serializeUncached(serializer);
+    declaration.serialize(serializer);
+    serializer.startList();
+    for (StaticTypeImpl typeArg in typeArguments) {
+      typeArg.serialize(serializer);
+    }
+    serializer.endList();
+  }
+}
+
 class RecordTypeAnnotationImpl extends TypeAnnotationImpl
     implements RecordTypeAnnotation {
   @override
