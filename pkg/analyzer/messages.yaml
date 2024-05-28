@@ -18961,7 +18961,7 @@ FfiCode:
   ARGUMENT_MUST_BE_NATIVE:
     problemMessage: "Argument to 'Native.addressOf' must be annotated with @Native"
     correctionMessage: "Try passing a static function or field annotated with '@Native'"
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters
     documentation: |-
       #### Description
@@ -19427,7 +19427,7 @@ FfiCode:
   FFI_NATIVE_MUST_BE_EXTERNAL:
     problemMessage: Native functions must be declared external.
     correctionMessage: Add the `external` keyword to the function.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -19467,7 +19467,7 @@ FfiCode:
   FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS:
     problemMessage: Unexpected number of Native annotation parameters. Expected {0} but has {1}.
     correctionMessage: Make sure parameters match the function annotated.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the expected number of parameters
@@ -19518,7 +19518,7 @@ FfiCode:
   FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER:
     problemMessage: Unexpected number of Native annotation parameters. Expected {0} but has {1}. Native instance method annotation must have receiver as first argument.
     correctionMessage: Make sure parameters match the function annotated, including an extra first parameter for the receiver.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the expected number of parameters
@@ -19561,7 +19561,7 @@ FfiCode:
   FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET:
     problemMessage: "There may be at most one @DefaultAsset annotation on a library."
     correctionMessage: "Try removing the extra annotation."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters
     documentation: |-
       #### Description
@@ -19595,7 +19595,7 @@ FfiCode:
   FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS:
     problemMessage: "Native functions and fields must have exactly one `@Native` annotation."
     correctionMessage: "Try removing the extra annotation."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters
     documentation: |-
       #### Description
