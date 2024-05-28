@@ -518,7 +518,25 @@ class Int64 {}
     var libFolder = rootFolder.getChildAssumingFolder('lib');
 
     libFolder.getChildAssumingFile('foundation.dart').writeAsStringSync(r'''
+export 'src/foundation/assertions.dart';
 export 'src/foundation/constants.dart';
+''');
+
+    libFolder
+        .getChildAssumingFolder('src')
+        .getChildAssumingFolder('foundation')
+        .getChildAssumingFile('assertions.dart')
+        .writeAsStringSync(r'''
+class FlutterErrorDetails /* with Diagnosticable */ {
+  const FlutterErrorDetails({
+    required Object exception,
+  });
+}
+
+class FlutterError /* extends Error with DiagnosticableTreeMixin implements AssertionError */ {
+  static void reportError(FlutterErrorDetails details) {}
+}
+
 ''');
 
     libFolder

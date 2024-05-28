@@ -13,6 +13,8 @@ import 'avoid_annotating_with_dynamic_test.dart'
     as avoid_annotating_with_dynamic;
 import 'avoid_bool_literals_in_conditional_expressions_test.dart'
     as avoid_bool_literals_in_conditional_expressions;
+import 'avoid_catches_without_on_clauses_test.dart'
+    as avoid_catches_without_on_clauses;
 import 'avoid_catching_errors_test.dart' as avoid_catching_errors;
 import 'avoid_classes_with_only_static_members_test.dart'
     as avoid_classes_with_only_static_members;
@@ -283,6 +285,7 @@ void main() {
   annotate_redeclares.main();
   avoid_annotating_with_dynamic.main();
   avoid_bool_literals_in_conditional_expressions.main();
+  avoid_catches_without_on_clauses.main();
   avoid_catching_errors.main();
   avoid_classes_with_only_static_members.main();
   avoid_dynamic_calls.main();

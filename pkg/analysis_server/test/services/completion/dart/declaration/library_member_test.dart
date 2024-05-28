@@ -128,6 +128,8 @@ suggestions
     kind: constructorInvocation
   Future.delayed
     kind: constructorInvocation
+  Future.error
+    kind: constructorInvocation
   Future.microtask
     kind: constructorInvocation
   Future.value
@@ -150,6 +152,8 @@ suggestions
   Future
     kind: constructorInvocation
   Future.delayed
+    kind: constructorInvocation
+  Future.error
     kind: constructorInvocation
   Future.microtask
     kind: constructorInvocation
@@ -180,6 +184,8 @@ suggestions
   Future
     kind: constructorInvocation
   Future.delayed
+    kind: constructorInvocation
+  Future.error
     kind: constructorInvocation
   Future.microtask
     kind: constructorInvocation
@@ -374,6 +380,8 @@ suggestions
   Future
     kind: constructorInvocation
   Future.delayed
+    kind: constructorInvocation
+  Future.error
     kind: constructorInvocation
   Future.microtask
     kind: constructorInvocation

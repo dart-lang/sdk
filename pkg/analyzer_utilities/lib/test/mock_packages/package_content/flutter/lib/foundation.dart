@@ -11,6 +11,7 @@ export 'package:meta/meta.dart'
         required,
         visibleForTesting;
 
+export 'src/foundation/assertions.dart';
 export 'src/foundation/constants.dart';
 export 'src/foundation/diagnostics.dart';
 export 'src/foundation/key.dart';
