@@ -7418,7 +7418,7 @@ CompileTimeErrorCode:
       [part file][] itself.
   IMPORT_OF_NOT_AUGMENTATION:
     problemMessage: "The imported file '{0}' isn't an augmentation of this library."
-    correctionMessage: Try adding a 'library augment' directive referencing this library to the imported file.
+    correctionMessage: Try adding an 'augment library' directive referencing this library to the imported file.
     hasPublishedDocs: false
     comment: |-
       Parameters:

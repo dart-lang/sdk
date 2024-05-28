@@ -2423,7 +2423,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'IMPORT_OF_NOT_AUGMENTATION',
     "The imported file '{0}' isn't an augmentation of this library.",
     correctionMessage:
-        "Try adding a 'library augment' directive referencing this library to "
+        "Try adding an 'augment library' directive referencing this library to "
         "the imported file.",
   );
 
