@@ -1,3 +1,9 @@
+## 3.4.2
+
+This is a patch release that:
+
+- Marks `dart compile wasm` as no longer experimental.
+
 ## 3.4.1 - 2024-05-22
 
 This is a patch release that:
