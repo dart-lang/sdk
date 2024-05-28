@@ -1,3 +1,6 @@
+## 6.5.1
+* Updated constraints `macros: '>=0.1.1-0 <0.1.2'`.
+
 ## 6.5.0
 * Deprecated `LibraryElement.toLegacyTypeIfOptOut`.
 * Deprecated `LibraryElement.toLegacyElementIfOptOut`.
