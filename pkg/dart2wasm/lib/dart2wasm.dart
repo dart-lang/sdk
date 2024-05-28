@@ -124,9 +124,6 @@ WasmCompilerOptions parseArguments(List<String> arguments) {
   Never usage() {
     print("Usage: dart2wasm [<options>] <infile.dart> <outfile.wasm>");
     print("");
-    print("*NOTE*: Wasm compilation is experimental.");
-    print("The support may change, or be removed, with no advance notice.");
-    print("");
     print("Options:");
     for (String line in parser.usage.split('\n')) {
       print('\t$line');

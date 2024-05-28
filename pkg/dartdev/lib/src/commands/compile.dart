@@ -631,7 +631,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       .toList();
 
   CompileWasmCommand({bool verbose = false})
-      : super(commandName, help, verbose, hidden: !verbose) {
+      : super(commandName, help, verbose) {
     argParser
       ..addOption(
         outputFileOption.flag,
