@@ -10,11 +10,11 @@ dependencies:
   _fe_analyzer_shared: any
   analyzer: any
   analyzer_plugin: any
+  meta: any
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
   lints: any
-  meta: any
   test_reflective_loader: any
   test: any
 

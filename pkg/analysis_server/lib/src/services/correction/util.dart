@@ -5,12 +5,12 @@
 import 'dart:math';
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
-import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:path/path.dart' as path;
 
@@ -108,22 +108,6 @@ AstNode? getEnclosingClassOrUnitMember(AstNode input) {
         return member;
     }
     member = node;
-  }
-  return null;
-}
-
-/// Return the [ExecutableElement] of the enclosing executable [AstNode].
-ExecutableElement? getEnclosingExecutableElement(AstNode input) {
-  for (var node in input.withParents) {
-    if (node is FunctionDeclaration) {
-      return node.declaredElement;
-    }
-    if (node is ConstructorDeclaration) {
-      return node.declaredElement;
-    }
-    if (node is MethodDeclaration) {
-      return node.declaredElement;
-    }
   }
   return null;
 }

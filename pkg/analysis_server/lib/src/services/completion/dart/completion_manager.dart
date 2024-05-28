@@ -11,7 +11,7 @@ import 'package:analysis_server/src/services/completion/dart/in_scope_completion
 import 'package:analysis_server/src/services/completion/dart/not_imported_completion_pass.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
-import 'package:analysis_server/src/utilities/selection.dart';
+import 'package:analysis_server_plugin/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';

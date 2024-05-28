@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/utilities/selection.dart';
+import 'package:analysis_server_plugin/src/utilities/selection.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -10,6 +10,9 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../../abstract_single_unit.dart';
 import '../../services/completion/dart/text_expectations.dart';
 
+// TODO(srawlins): This needs to move to the analysis_server_plugin package, or
+// more likely, an analysis_server "testing" package, as it requires a lot of
+// test-related baggage.
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SelectionTest);
