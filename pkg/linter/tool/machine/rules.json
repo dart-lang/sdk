@@ -1561,7 +1561,7 @@
     "incompatible": [],
     "sets": [],
     "fixStatus": "hasFix",
-    "details": "Some operations on primitive types are idempotent and can be removed.\n\n**BAD:**\n\n```dart\ndoubleValue.toDouble();\n\nintValue.toInt();\nintValue.round();\nintValue.ceil();\nintValue.floor();\nintValue.truncate();\n\nstring.toString();\nstring = 'hello\\n'\n    ''\n    'world';\n\n'string with ${x.toString()}';\n```\n\nNote that the empty string literals at the beginning or end of a string are\nallowed, as they are typically used to format the string literal across multiple\nlines:\n\n```dart\n// OK\nstring = ''\n    'hello\\n'\n    'world\\n';\n\n// OK\nstring = 'hello\\n'\n    'world\\n'\n    '';\n",
+    "details": "Some operations on primitive types are idempotent and can be removed.\n\n**BAD:**\n\n```dart\ndoubleValue.toDouble();\n\nintValue.toInt();\nintValue.round();\nintValue.ceil();\nintValue.floor();\nintValue.truncate();\n\nstring.toString();\nstring = 'hello\\n'\n    ''\n    'world';\n\n'string with ${x.toString()}';\n```\n\nNote that the empty string literals at the beginning or end of a string are\nallowed, as they are typically used to format the string literal across multiple\nlines:\n\n```dart\n// OK\nstring = ''\n    'hello\\n'\n    'world\\n';\n\n// OK\nstring = 'hello\\n'\n    'world\\n'\n    '';\n```\n",
     "sinceDartSdk": "2.14.0"
   },
   {

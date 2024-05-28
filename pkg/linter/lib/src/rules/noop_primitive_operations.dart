@@ -46,6 +46,7 @@ string = ''
 string = 'hello\n'
     'world\n'
     '';
+```
 ''';
 
 class NoopPrimitiveOperations extends LintRule {
