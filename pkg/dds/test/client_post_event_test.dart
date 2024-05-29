@@ -62,8 +62,10 @@ void main() {
     // Test when the stream exists that the event is propagated.
     final completer = Completer<void>();
     ExtensionData? eventExtensionData;
+    Event? finalEvent;
 
     service.onEvent('testStream').listen((event) {
+      finalEvent = event;
       eventExtensionData = event.extensionData;
       completer.complete();
     });
@@ -71,6 +73,7 @@ void main() {
     await service.postEvent('testStream', 'testKind', originalExtensionData);
 
     await completer.future;
+    expect(finalEvent?.type, equals('Event'));
     expect(eventExtensionData?.data, equals(originalExtensionData));
   });
 }

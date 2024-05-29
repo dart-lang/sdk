@@ -1,3 +1,6 @@
+# 4.2.4
+- Added missing type to `Event` in `postEvent`.
+
 # 4.2.3
 - Added missing await of `WebSocketChannel.ready` in `startDartDevelopmentService`.
 
