@@ -6437,6 +6437,91 @@ library
 ''');
   }
 
+  test_macroDiagnostics_report_atDeclaration_class_method_typeParameter() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    var library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+class A {
+  @ReportAtDeclaration([
+    'typeParameter 0',
+  ])
+  void foo<T>() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    classes
+      class A @33
+        methods
+          foo @97
+            typeParameters
+              covariant T @101
+                defaultType: dynamic
+            returnType: void
+            macroDiagnostics
+              MacroDiagnostic
+                message: MacroDiagnosticMessage
+                  message: Reported message
+                  target: ElementMacroDiagnosticTarget
+                    element: T@101
+                severity: warning
+''');
+  }
+
+  test_macroDiagnostics_report_atDeclaration_class_typeParameter() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    var library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+@ReportAtDeclaration([
+  'typeParameter 1',
+])
+class A<T, U, V> {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    classes
+      class A @80
+        typeParameters
+          covariant T @82
+            defaultType: dynamic
+          covariant U @85
+            defaultType: dynamic
+          covariant V @88
+            defaultType: dynamic
+        macroDiagnostics
+          MacroDiagnostic
+            message: MacroDiagnosticMessage
+              message: Reported message
+              target: ElementMacroDiagnosticTarget
+                element: U@85
+            severity: warning
+''');
+  }
+
   test_macroDiagnostics_report_atDeclaration_constructor() async {
     newFile(
       '$testPackageLibPath/diagnostic.dart',
@@ -6516,6 +6601,45 @@ library
 ''');
   }
 
+  test_macroDiagnostics_report_atDeclaration_function_typeParameter() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    var library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+@ReportAtDeclaration([
+  'typeParameter 0',
+])
+void foo<T>() {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    functions
+      foo @79
+        typeParameters
+          covariant T @83
+            defaultType: dynamic
+        returnType: void
+        macroDiagnostics
+          MacroDiagnostic
+            message: MacroDiagnosticMessage
+              message: Reported message
+              target: ElementMacroDiagnosticTarget
+                element: T@83
+            severity: warning
+''');
+  }
+
   test_macroDiagnostics_report_atDeclaration_method() async {
     newFile(
       '$testPackageLibPath/diagnostic.dart',
@@ -6588,6 +6712,85 @@ library
             correctionMessage: Correction message
         superclassConstraints
           Object
+''');
+  }
+
+  test_macroDiagnostics_report_atDeclaration_mixin_typeParameter() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    var library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+@ReportAtDeclaration([
+  'typeParameter 0',
+])
+mixin A<T> {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    mixins
+      mixin A @80
+        typeParameters
+          covariant T @82
+            defaultType: dynamic
+        macroDiagnostics
+          MacroDiagnostic
+            message: MacroDiagnosticMessage
+              message: Reported message
+              target: ElementMacroDiagnosticTarget
+                element: T@82
+            severity: warning
+        superclassConstraints
+          Object
+''');
+  }
+
+  test_macroDiagnostics_report_atDeclaration_typeAlias_typeParameter() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    var library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+@ReportAtDeclaration([
+  'typeParameter 0',
+])
+typedef A<T> = List<T>;
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    typeAliases
+      A @82
+        typeParameters
+          covariant T @84
+            defaultType: dynamic
+        aliasedType: List<T>
+        macroDiagnostics
+          MacroDiagnostic
+            message: MacroDiagnosticMessage
+              message: Reported message
+              target: ElementMacroDiagnosticTarget
+                element: T@84
+            severity: warning
 ''');
   }
 

@@ -603,7 +603,7 @@ class DeclarationBuilderFromElement {
   final Map<TypeAliasElementImpl, TypeAliasDeclarationImpl> _typeAliasMap =
       Map.identity();
 
-  final Map<TypeParameterElement, macro.TypeParameterDeclarationImpl>
+  final Map<TypeParameterElementImpl, macro.TypeParameterDeclarationImpl>
       _typeParameterDeclarationMap = Map.identity();
 
   final Map<TypeParameterElement, macro.TypeParameterImpl> _typeParameterMap =
@@ -770,6 +770,7 @@ class DeclarationBuilderFromElement {
   macro.TypeParameterDeclarationImpl typeParameterDeclaration(
     TypeParameterElement element,
   ) {
+    element as TypeParameterElementImpl;
     return _typeParameterDeclarationMap[element] ??=
         _typeParameterDeclaration(element);
   }
@@ -1102,14 +1103,15 @@ class DeclarationBuilderFromElement {
   }
 
   macro.TypeParameterDeclarationImpl _typeParameterDeclaration(
-    TypeParameterElement element,
+    TypeParameterElementImpl element,
   ) {
-    return macro.TypeParameterDeclarationImpl(
+    return TypeParameterDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
       identifier: identifier(element),
       library: library(element),
       metadata: _buildMetadata(element),
       bound: element.bound.mapOrNull(_dartType),
+      element: element,
     );
   }
 
@@ -2010,10 +2012,10 @@ class DeclarationBuilderFromNode {
   }
 
   macro.TypeParameterDeclarationImpl _typeParameterDeclaration(
-    ast.TypeParameter node,
+    ast.TypeParameterImpl node,
   ) {
     var element = node.declaredElement!;
-    return macro.TypeParameterDeclarationImpl(
+    return TypeParameterDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
       identifier: _declaredIdentifier(node.name, element),
       library: library(element),
@@ -2024,11 +2026,12 @@ class DeclarationBuilderFromNode {
           TypeParameterBoundLocation(),
         );
       }),
+      element: element,
     );
   }
 
   List<macro.TypeParameterDeclarationImpl> _typeParameterDeclarations(
-    ast.TypeParameterList? typeParameterList,
+    ast.TypeParameterListImpl? typeParameterList,
   ) {
     if (typeParameterList != null) {
       return typeParameterList.typeParameters
@@ -2307,6 +2310,21 @@ class TypeAliasDeclarationImpl extends macro.TypeAliasDeclarationImpl
 
 abstract class TypeAnnotationWithLocation implements macro.TypeAnnotation {
   TypeAnnotationLocation get location;
+}
+
+class TypeParameterDeclarationImpl extends macro.TypeParameterDeclarationImpl
+    implements HasElement {
+  @override
+  final TypeParameterElementImpl element;
+
+  TypeParameterDeclarationImpl({
+    required super.id,
+    required super.identifier,
+    required super.library,
+    required super.metadata,
+    required super.bound,
+    required this.element,
+  });
 }
 
 class VariableDeclarationImpl extends macro.VariableDeclarationImpl
