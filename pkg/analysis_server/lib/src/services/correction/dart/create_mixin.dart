@@ -40,14 +40,17 @@ class CreateMixin extends ResolvedCorrectionProducer {
       _mixinName = node.name2.lexeme;
     } else if (node is SimpleIdentifier) {
       var parent = node.parent;
-      var grandParent = parent?.parent;
-      if (parent is NamedType &&
-          grandParent is ConstructorName &&
-          grandParent.parent is InstanceCreationExpression) {
-        return;
-      } else {
-        _mixinName = node.name;
+      switch (parent) {
+        case PrefixedIdentifier():
+          if (parent.identifier == node) {
+            return;
+          }
+        case PropertyAccess():
+          if (parent.propertyName == node) {
+            return;
+          }
       }
+      _mixinName = node.name;
     } else if (node is PrefixedIdentifier) {
       if (node.parent is InstanceCreationExpression) {
         return;
