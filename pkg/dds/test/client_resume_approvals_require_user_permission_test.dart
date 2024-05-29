@@ -24,16 +24,19 @@ final test = <IsolateTest>[
       service: service,
       clientName: clientName,
       onPauseStart: true,
+      onPauseExit: true,
     );
     final client2 = await createClient(
       service: service,
       clientName: otherClientName,
       onPauseStart: true,
+      onPauseExit: true,
     );
 
     await hasPausedAtStart(service, isolateRef);
     await client1.requireUserPermissionToResume(
       onPauseStart: true,
+      onPauseExit: true,
     );
 
     // Both clients indicate they're ready to resume but the isolate won't
@@ -44,21 +47,29 @@ final test = <IsolateTest>[
     await client1.readyToResume(isolateId);
     await hasPausedAtStart(service, isolateRef);
 
-    // If the user is no longer required to resume and all other clients have
-    // indicated they're ready to resume, the isolate should resume
-    // immediately.
-    await client1.requireUserPermissionToResume(
-      onPauseStart: false,
-    );
-
+    // Indicate the user is ready to resume and the isolate should run to
+    // completion.
+    await client1.resume(isolateId);
     await hasStoppedAtExit(service, isolateRef);
+
+    // Both clients indicate they're ready to resume but the isolate won't
+    // resume until `resume` is invoked to indicate the user has triggered a
+    // resume.
+    await client2.readyToResume(isolateId);
+    await hasStoppedAtExit(service, isolateRef);
+    await client1.readyToResume(isolateId);
+    await hasStoppedAtExit(service, isolateRef);
+
+    await client1.resume(isolateId);
+    // We can't verify the process actually resumes with this test harness, so
+    // we're going to assume it did.
   },
 ];
 
 void main([args = const <String>[]]) => runIsolateTests(
       args,
       test,
-      'client_resume_approvals_no_longer_require_user_permission.dart',
+      'client_resume_approvals_require_user_permission_test.dart',
       testeeConcurrent: fooBar,
       pauseOnStart: true,
       pauseOnExit: true,

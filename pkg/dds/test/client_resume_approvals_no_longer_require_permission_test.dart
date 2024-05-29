@@ -24,52 +24,39 @@ final test = <IsolateTest>[
       service: service,
       clientName: clientName,
       onPauseStart: true,
-      onPauseExit: true,
     );
     final client2 = await createClient(
       service: service,
       clientName: otherClientName,
       onPauseStart: true,
-      onPauseExit: true,
     );
 
     await hasPausedAtStart(service, isolateRef);
-    await client1.requireUserPermissionToResume(
-      onPauseStart: true,
-      onPauseExit: true,
-    );
 
-    // Both clients indicate they're ready to resume but the isolate won't
-    // resume until `resume` is invoked to indicate the user has triggered a
-    // resume.
+    // When one client indicates that it's ready to resume, DDS waits to resume
+    // until the other client indicates it's ready.
     await client2.readyToResume(isolateId);
     await hasPausedAtStart(service, isolateRef);
-    await client1.readyToResume(isolateId);
-    await hasPausedAtStart(service, isolateRef);
 
-    // Indicate the user is ready to resume and the isolate should run to
-    // completion.
-    await client1.resume(isolateId);
+    // If the only remaining client changes their resume permissions, DDS
+    // should check if the isolate should be resumed. In this case, the only
+    // other client requiring permission to resume has indicated that it's
+    // ready, so the isolate is resumed and pauses at exit.
+    // [requireUserPermissionToResume] must be called in addition to
+    // [requirePermissionToResume], because the testee is started with
+    // --pause-isolates-on-start, which makes DDS's
+    // [IsolateManager._determineRequireUserPermissionToResumeFromFlags] require
+    // clients to have user permission to resume.
+    await client1.requirePermissionToResume(onPauseStart: false);
+    await client1.requireUserPermissionToResume(onPauseStart: false);
     await hasStoppedAtExit(service, isolateRef);
-
-    // Both clients indicate they're ready to resume but the isolate won't
-    // resume until `resume` is invoked to indicate the user has triggered a
-    // resume.
-    await client2.readyToResume(isolateId);
-    await hasStoppedAtExit(service, isolateRef);
-    await client1.readyToResume(isolateId);
-    await hasStoppedAtExit(service, isolateRef);
-
-    await client1.resume(isolateId);
-    // We can't verify the process actually resumes with this test harness, so
-    // we're going to assume it did.
   },
 ];
 
 void main([args = const <String>[]]) => runIsolateTests(
       args,
       test,
-      'client_resume_approvals_require_user_permission.dart',
+      'client_resume_approvals_no_longer_require_permission_test.dart',
       testeeConcurrent: fooBar,
       pauseOnStart: true,
       pauseOnExit: true,

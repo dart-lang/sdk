@@ -49,7 +49,7 @@ final test = <IsolateTest>[
 void main([args = const <String>[]]) => runIsolateTests(
       args,
       test,
-      'client_resume_approvals_force_resume.dart',
+      'client_resume_approvals_force_resume_test.dart',
       testeeConcurrent: fooBar,
       pauseOnStart: true,
       pauseOnExit: true,
