@@ -8,12 +8,12 @@ library dart.test.stream_from_iterable;
 import 'dart:async';
 
 import 'package:async_helper/async_minitest.dart';
+import 'package:expect/config.dart';
 
-// The stopwatch is more precise than the Timer.
+// The Stopwatch is more precise than the Timer.
 // Some browsers (Firefox and IE so far) can trigger too early. So we add more
-// margin. We use identical(1, 1.0) as an easy way to know if the test is
-// compiled by dart2js.
-int get safetyMargin => identical(1, 1.0) ? 5 : 0;
+// margin.
+int get safetyMargin => isWebConfiguration ? 5 : 0;
 
 main() {
   test("stream-periodic3", () {
