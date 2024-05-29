@@ -27,7 +27,8 @@ namespace dart {
 namespace bin {
 
 static constexpr int64_t kAppSnapshotHeaderSize = 4 * kInt64Size;
-static constexpr int64_t kAppSnapshotPageSize = 16 * KB;
+// The largest possible page size among the platforms we support (Linux ARM64).
+static constexpr int64_t kAppSnapshotPageSize = 64 * KB;
 
 static const char kMachOAppSnapshotNoteName[] DART_UNUSED = "__dart_app_snap";
 
