@@ -164,6 +164,19 @@ f() {
 ''');
   }
 
+  Future<void> test_final_constructor() async {
+    await resolveTestCode('''
+class C {
+  final C();
+}
+''');
+    await assertHasFix('''
+class C {
+  C();
+}
+''');
+  }
+
   Future<void> test_invalidAsyncConstructorModifier() async {
     await resolveTestCode(r'''
 class A {

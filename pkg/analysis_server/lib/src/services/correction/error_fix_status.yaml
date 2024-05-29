@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 355 "needsFix"
-# - 396 "hasFix"
+# - 354 "needsFix"
+# - 397 "hasFix"
 # - 516 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -2861,9 +2861,7 @@ ParserErrorCode.FINAL_AND_VAR:
   notes: |-
     Remove either `final` or `var`.
 ParserErrorCode.FINAL_CONSTRUCTOR:
-  status: needsFix
-  notes: |-
-    Remove the `final` keyword.
+  status: hasFix
 ParserErrorCode.FINAL_ENUM:
   status: needsFix
   notes: |-
