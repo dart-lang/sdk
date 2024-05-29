@@ -310,8 +310,21 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         ? member.enclosingClass.typeParameters
         : member.function!.typeParameters;
     for (int i = 0; i < typeParameters.length; i++) {
-      typeLocals[typeParameters[i]] = paramLocals[parameterOffset + i];
+      final typeParameter = typeParameters[i];
+      typeLocals[typeParameter] = paramLocals[parameterOffset + i];
     }
+    if (!translator.options.omitImplicitTypeChecks) {
+      for (int i = 0; i < typeParameters.length; i++) {
+        final typeParameter = typeParameters[i];
+        if (typeParameter.isCovariantByClass &&
+            typeParameter.bound != translator.coreTypes.objectNullableRawType) {
+          _generateTypeArgumentBoundCheck(typeParameter.name!,
+              typeLocals[typeParameter]!, typeParameter.bound);
+        }
+      }
+    }
+
+    w.Local? tempLocalForType;
 
     void setupParamLocal(
         VariableDeclaration variable, int index, Constant? defaultValue) {
@@ -331,6 +344,20 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         wrap(variable.initializer!, local.type);
         b.local_set(local);
         b.end();
+      }
+
+      if (!translator.options.omitImplicitTypeChecks) {
+        if (variable.isCovariantByClass || variable.isCovariantByDeclaration) {
+          final typeLocal = tempLocalForType ??= addLocal(
+              translator.classInfo[translator.typeClass]!.nonNullableType);
+          _generateArgumentTypeCheck(
+            variable.name!,
+            () => b.local_get(local),
+            () => types.makeType(this, variable.type),
+            local,
+            typeLocal,
+          );
+        }
       }
     }
 
@@ -485,52 +512,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     return superclassFields.reversed.toList() + typeFields + orderedFieldLocals;
   }
 
-  void generateTypeChecks(List<TypeParameter> typeParameters,
-      FunctionNode function, ParameterInfo paramInfo) {
-    if (translator.options.omitImplicitTypeChecks) {
-      return;
-    }
-
-    for (TypeParameter typeParameter in typeParameters) {
-      if (typeParameter.isCovariantByClass &&
-          typeParameter.bound != translator.coreTypes.objectNullableRawType) {
-        _generateTypeArgumentBoundCheck(typeParameter.name!,
-            typeLocals[typeParameter]!, typeParameter.bound);
-      }
-    }
-
-    // Local for the parameter type if any of the parameters need type checks
-    w.Local? parameterExpectedTypeLocal;
-
-    final int parameterOffset = thisLocal == null ? 0 : 1;
-    final int implicitParams = parameterOffset + paramInfo.typeParamCount;
-    void generateValueParameterCheck(VariableDeclaration variable, int index) {
-      if (!variable.isCovariantByClass && !variable.isCovariantByDeclaration) {
-        return;
-      }
-      final w.Local local = paramLocals[implicitParams + index];
-      final typeLocal = parameterExpectedTypeLocal ??=
-          addLocal(translator.classInfo[translator.typeClass]!.nonNullableType);
-      _generateArgumentTypeCheck(
-        variable.name!,
-        () => b.local_get(local),
-        () => types.makeType(this, variable.type),
-        local,
-        typeLocal,
-      );
-    }
-
-    final List<VariableDeclaration> positional = function.positionalParameters;
-    for (int i = 0; i < positional.length; i++) {
-      generateValueParameterCheck(positional[i], i);
-    }
-
-    final List<VariableDeclaration> named = function.namedParameters;
-    for (var param in named) {
-      generateValueParameterCheck(param, paramInfo.nameIndex[param.name]!);
-    }
-  }
-
   List<w.Local> _getConstructorArgumentLocals(Reference target,
       [reverse = false]) {
     Constructor member = target.asConstructor;
@@ -571,10 +552,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     assert(member is! Constructor);
     setupParametersAndContexts(member.reference);
 
-    final List<TypeParameter> typeParameters = member.function!.typeParameters;
-    generateTypeChecks(
-        typeParameters, member.function!, translator.paramInfoFor(reference));
-
     Statement? body = member.function!.body;
     if (body != null) {
       visitStatement(body);
@@ -589,11 +566,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   // the object.
   void generateConstructorAllocator(Constructor member) {
     setupParameters(member.reference);
-
-    final List<TypeParameter> typeParameters =
-        member.enclosingClass.typeParameters;
-    generateTypeChecks(
-        typeParameters, member.function, translator.paramInfoFor(reference));
 
     w.FunctionType initializerMethodType =
         translator.functions.getFunctionType(member.initializerReference);
@@ -1208,24 +1180,10 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     // Rethrow if all the catch blocks fall through
     b.rethrow_(try_);
 
-    bool guardCanMatchJSException(DartType guard) {
-      if (guard is DynamicType) {
-        return true;
-      }
-      if (guard is InterfaceType) {
-        return translator.hierarchy
-            .isSubInterfaceOf(translator.javaScriptErrorClass, guard.classNode);
-      }
-      if (guard is TypeParameterType) {
-        return guardCanMatchJSException(guard.bound);
-      }
-      return false;
-    }
-
     // If we have a catches that are generic enough to catch a JavaScript
     // error, we need to put that into a catch_all block.
-    final Iterable<Catch> catchAllCatches =
-        node.catches.where((c) => guardCanMatchJSException(c.guard));
+    final Iterable<Catch> catchAllCatches = node.catches
+        .where((c) => guardCanMatchJSException(translator, c.guard));
 
     if (catchAllCatches.isNotEmpty) {
       // This catches any objects that aren't dart exceptions, such as
@@ -3903,4 +3861,113 @@ extension MacroAssembler on w.InstructionsBuilder {
     struct_get(
         translator.closureLayouter.closureBaseStruct, FieldIndex.closureVtable);
   }
+
+  /// Will restore all context locals and `this` from a suspend state.
+  void restoreSuspendStateContext(
+      w.Local suspendStateLocal,
+      w.StructType suspendStateStruct,
+      int suspendStateContextField,
+      Closures closures,
+      Context? context,
+      w.Local? thisLocal,
+      {FunctionNode? cloneContextFor}) {
+    if (context != null) {
+      assert(!context.isEmpty);
+      local_get(suspendStateLocal);
+      struct_get(suspendStateStruct, suspendStateContextField);
+      ref_cast(context.currentLocal.type as w.RefType);
+      local_set(context.currentLocal);
+      if (context.owner == cloneContextFor) {
+        context.currentLocal =
+            cloneFunctionLevelContext(closures, context, cloneContextFor!);
+      }
+      restoreThisAndContextChain(context, thisLocal);
+    }
+  }
+
+  /// Will restore the parent context chain and `this` (if captured)
+  ///
+  /// Assumes the innermost context is already loaded.
+  void restoreThisAndContextChain(
+      Context innermostContext, w.Local? thisLocal) {
+    bool restoredThis = false;
+
+    Context? context = innermostContext;
+    while (context != null) {
+      if (context.containsThis) {
+        assert(!restoredThis);
+        local_get(context.currentLocal);
+        struct_get(context.struct, context.thisFieldIndex);
+        ref_as_non_null();
+        local_set(thisLocal!);
+        restoredThis = true;
+      }
+
+      final parent = context.parent;
+      if (parent != null) {
+        assert(!parent.isEmpty);
+        local_get(context.currentLocal);
+        struct_get(context.struct, context.parentFieldIndex);
+        ref_as_non_null();
+        local_set(parent.currentLocal);
+      }
+      context = parent;
+    }
+  }
+
+  /// Clones the [context] and returns a local to the clone it.
+  ///
+  /// It is assumed that the context is a function-level context.
+  w.Local cloneFunctionLevelContext(
+      Closures closures, Context context, FunctionNode functionNode) {
+    final w.Local srcContext = context.currentLocal;
+    final w.Local destContext =
+        addLocal(context.currentLocal.type, isParameter: false);
+
+    struct_new_default(context.struct);
+    local_set(destContext);
+
+    void copyCapture(TreeNode node) {
+      Capture? capture = closures.captures[node];
+      if (capture != null) {
+        assert(capture.context == context);
+        local_get(destContext);
+        local_get(srcContext);
+        struct_get(context.struct, capture.fieldIndex);
+        struct_set(context.struct, capture.fieldIndex);
+      }
+    }
+
+    if (context.containsThis) {
+      local_get(destContext);
+      local_get(srcContext);
+      struct_get(context.struct, context.thisFieldIndex);
+      struct_set(context.struct, context.thisFieldIndex);
+    }
+    if (context.parent != null) {
+      local_get(destContext);
+      local_get(srcContext);
+      struct_get(context.struct, context.parentFieldIndex);
+      struct_set(context.struct, context.parentFieldIndex);
+    }
+    functionNode.positionalParameters.forEach(copyCapture);
+    functionNode.namedParameters.forEach(copyCapture);
+    functionNode.typeParameters.forEach(copyCapture);
+
+    return destContext;
+  }
+}
+
+bool guardCanMatchJSException(Translator translator, DartType guard) {
+  if (guard is DynamicType) {
+    return true;
+  }
+  if (guard is InterfaceType) {
+    return translator.hierarchy
+        .isSubInterfaceOf(translator.javaScriptErrorClass, guard.classNode);
+  }
+  if (guard is TypeParameterType) {
+    return guardCanMatchJSException(translator, guard.bound);
+  }
+  return false;
 }

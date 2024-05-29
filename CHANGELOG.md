@@ -4,6 +4,20 @@ This is a patch release that:
 
 - Marks `dart compile wasm` as no longer experimental.
 
+- Fixes two bugs in exception handling in `async` functions in dart2wasm
+  (issues [#55347], [#55457]).
+
+- Fixes restoration of `this` variable in `sync*` and `async` functions in
+  dart2wasm.
+
+- Implements missing control flow constructs (exceptions, switch/case with
+  yields) in `sync*` in dart2wasm (issues [#51343], [#51342]).
+
+[#55347]: https://github.com/dart-lang/sdk/issues/55347
+[#55457]: https://github.com/dart-lang/sdk/issues/55457
+[#51343]: https://github.com/dart-lang/sdk/issues/51343
+[#51342]: https://github.com/dart-lang/sdk/issues/51342
+
 ## 3.4.1 - 2024-05-22
 
 This is a patch release that:

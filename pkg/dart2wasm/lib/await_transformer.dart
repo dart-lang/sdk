@@ -7,7 +7,7 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_environment.dart';
 
-import 'async.dart' as asyncCodeGen;
+import 'state_machine.dart' as stateMachineCodeGen;
 
 /// This pass lifts `await` expressions to the top-level. After the pass, all
 /// `await` expressions will have the form:
@@ -462,7 +462,7 @@ class _AwaitTransformer extends Transformer {
 
     // Variable for the finalizer block continuation.
     final continuationVar = VariableDeclaration(null,
-        initializer: IntLiteral(asyncCodeGen.continuationFallthrough),
+        initializer: IntLiteral(stateMachineCodeGen.continuationFallthrough),
         type: InterfaceType(coreTypes.intClass, Nullability.nonNullable),
         isSynthesized: true);
 
