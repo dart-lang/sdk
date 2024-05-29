@@ -5,7 +5,7 @@ import "dart:test";
 
 static method main() → dynamic {}
 
-@#C3
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C3
 @#C5
 library;
 import self as self2;
@@ -14,17 +14,17 @@ import "dart:_internal" as _in;
 
 import "dart:_internal";
 
-@#C6
-@#C8
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C6
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C8
 @#C10
 class Class<@#C12 @#C14 T extends core::Object? = dynamic> extends core::Object {
   @#C6
   @#C16
-  @#C18
+  @/* from org-dartlang-testcase:///origin_lib.dart */ #C18
   external constructor •() → self2::Class<self2::Class::T%>;
   @#C6
   @#C20
-  @#C22
+  @/* from org-dartlang-testcase:///origin_lib.dart */ #C22
   external method /* from org-dartlang-testcase:///patch_lib.dart */ method<@#C24 S extends core::Object? = dynamic>() → void;
 }
 

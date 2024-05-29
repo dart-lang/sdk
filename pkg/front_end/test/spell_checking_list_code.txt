@@ -480,6 +480,7 @@ dirname
 dirtify
 dirtifying
 dirty
+disagrees
 disallow
 disambiguating
 disambiguation

@@ -35,7 +35,7 @@ import "dart:core" as core;
 
 import "dart:_internal";
 
-@#C3
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C3
 class Class extends core::Object /*hasConstConstructor*/  {
   final field core::bool defaultValue /* from org-dartlang-testcase:///patch_lib.dart */;
   constructor _privateInjected() → test::Class
@@ -60,7 +60,7 @@ class Class extends core::Object /*hasConstConstructor*/  {
     : test::Class::defaultValue = true, super core::Object::•()
     ;
 }
-@#C3
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C3
 class Class2 extends core::Object {
   final field core::int injectedField /* from org-dartlang-testcase:///patch_lib.dart */;
   field core::int field;
