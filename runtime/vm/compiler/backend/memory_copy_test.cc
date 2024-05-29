@@ -154,7 +154,7 @@ static void RunMemoryCopyInstrTest(intptr_t src_start,
   OS::Print("&ptr %p &ptr2 %p\n", ptr, ptr2);
 
   // clang-format off
-  auto kScript = Utils::CStringUniquePtr(OS::SCreate(nullptr, R"(
+  CStringUniquePtr kScript(OS::SCreate(nullptr, R"(
     import 'dart:ffi';
 
     void copyConst() {
@@ -182,7 +182,7 @@ static void RunMemoryCopyInstrTest(intptr_t src_start,
                       int length) {}
   )", pointer_prefix, ptr, pointer_prefix, ptr2,
       pointer_prefix, ptr, pointer_prefix, ptr2,
-      src_start, dest_start, length), std::free);
+      src_start, dest_start, length));
   // clang-format on
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript.get()));

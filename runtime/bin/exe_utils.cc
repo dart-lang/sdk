@@ -65,7 +65,7 @@ static const char* GetFileNameFromPath(const char* path) {
   return path;
 }
 
-Utils::CStringUniquePtr EXEUtils::GetDirectoryPrefixFromExeName() {
+CStringUniquePtr EXEUtils::GetDirectoryPrefixFromExeName() {
   const char* name = nullptr;
   const int kTargetSize = PATH_MAX;
   char target[kTargetSize];
@@ -87,8 +87,7 @@ Utils::CStringUniquePtr EXEUtils::GetDirectoryPrefixFromExeName() {
     // cwd is currently wherever we launched from, so set the cwd to the
     // directory of the symlink while we try and resolve it. If we don't
     // do this, we won't be able to properly resolve relative paths.
-    auto initial_dir_path =
-        Utils::CreateCStringUniquePtr(Directory::CurrentNoScope());
+    CStringUniquePtr initial_dir_path(Directory::CurrentNoScope());
     // We might run into symlinks of symlinks, so make sure we follow the
     // links all the way. See https://github.com/dart-lang/sdk/issues/41057 for
     // an example where this happens with brew on MacOS.
@@ -98,7 +97,7 @@ Utils::CStringUniquePtr EXEUtils::GetDirectoryPrefixFromExeName() {
       name = File::LinkTarget(namespc, GetFileNameFromPath(name), target,
                               kTargetSize);
       if (name == nullptr) {
-        return Utils::CreateCStringUniquePtr(Utils::StrDup(""));
+        return CStringUniquePtr(Utils::StrDup(""));
       }
     } while (File::GetType(namespc, name, false) == File::kIsLink);
     target_size = strlen(name);
@@ -117,8 +116,7 @@ Utils::CStringUniquePtr EXEUtils::GetDirectoryPrefixFromExeName() {
     result = GetDirectoryFromPath(target, nullptr);
   }
   namespc->Release();
-  return Utils::CreateCStringUniquePtr(result == nullptr ? Utils::StrDup("")
-                                                         : result);
+  return CStringUniquePtr(result == nullptr ? Utils::StrDup("") : result);
 }
 
 #if !defined(DART_HOST_OS_WINDOWS)

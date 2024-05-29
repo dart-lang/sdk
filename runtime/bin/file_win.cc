@@ -447,23 +447,23 @@ File* File::Open(Namespace* namespc, const char* name, FileOpenMode mode) {
   return file;
 }
 
-Utils::CStringUniquePtr File::UriToPath(const char* uri) {
+CStringUniquePtr File::UriToPath(const char* uri) {
   UriDecoder uri_decoder(uri);
   if (uri_decoder.decoded() == nullptr) {
     SetLastError(ERROR_INVALID_NAME);
-    return Utils::CreateCStringUniquePtr(nullptr);
+    return CStringUniquePtr(nullptr);
   }
 
   const auto uri_w = Utf8ToWideChar(uri_decoder.decoded());
   if (!UrlIsFileUrlW(uri_w.get())) {
-    return Utils::CreateCStringUniquePtr(Utils::StrDup(uri_decoder.decoded()));
+    return CStringUniquePtr(Utils::StrDup(uri_decoder.decoded()));
   }
   wchar_t filename_w[MAX_PATH];
   DWORD filename_len = MAX_PATH;
   HRESULT result = PathCreateFromUrlW(uri_w.get(), filename_w, &filename_len,
                                       /* dwFlags= */ 0);
   if (result != S_OK) {
-    return Utils::CreateCStringUniquePtr(nullptr);
+    return CStringUniquePtr(nullptr);
   }
 
   WideToUtf8Scope utf8_path(filename_w);

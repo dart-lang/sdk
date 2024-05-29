@@ -172,8 +172,7 @@ class Flag {
 
   // For kString, kOptionHandler, kFlagHandler flags this stores the copy
   // of the original flag value passed to SetFlagFromString
-  Utils::CStringUniquePtr string_value_ =
-      Utils::CreateCStringUniquePtr(nullptr);
+  CStringUniquePtr string_value_;
   union {
     void* addr_;
     bool* bool_ptr_;

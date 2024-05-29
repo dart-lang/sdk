@@ -486,7 +486,7 @@ class HeapTestHelper {
 class SendAndExitMessagesHandler : public MessageHandler {
  public:
   explicit SendAndExitMessagesHandler(Isolate* owner)
-      : msg_(Utils::CreateCStringUniquePtr(nullptr)), owner_(owner) {}
+      : msg_(CStringUniquePtr(nullptr)), owner_(owner) {}
 
   const char* name() const { return "merge-isolates-heaps-handler"; }
 
@@ -530,7 +530,7 @@ class SendAndExitMessagesHandler : public MessageHandler {
   virtual Isolate* isolate() const { return owner_; }
 
  private:
-  Utils::CStringUniquePtr msg_;
+  CStringUniquePtr msg_;
   Isolate* owner_;
 };
 

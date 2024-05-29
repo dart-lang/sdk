@@ -17855,7 +17855,7 @@ class MallocCodeComments final : public CodeComments {
     for (intptr_t i = 0; i < length_; i++) {
       comments_[i].pc_offset = comments.PCOffsetAt(i);
       comments_[i].comment =
-          Utils::CreateCStringUniquePtr(Utils::StrDup(comments.CommentAt(i)));
+          CStringUniquePtr(Utils::StrDup(comments.CommentAt(i)));
     }
   }
 
@@ -17872,7 +17872,7 @@ class MallocCodeComments final : public CodeComments {
  private:
   struct Comment {
     intptr_t pc_offset;
-    Utils::CStringUniquePtr comment{nullptr, std::free};
+    CStringUniquePtr comment;
   };
 
   intptr_t length_;

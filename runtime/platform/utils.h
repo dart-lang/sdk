@@ -15,6 +15,17 @@
 
 namespace dart {
 
+template <typename T>
+class CAllocUniquePtr : public std::unique_ptr<T, decltype(std::free)*> {
+ public:
+  CAllocUniquePtr()
+      : std::unique_ptr<T, decltype(std::free)*>(nullptr, std::free) {}
+  explicit CAllocUniquePtr(T* value)
+      : std::unique_ptr<T, decltype(std::free)*>(value, std::free) {}
+};
+
+using CStringUniquePtr = CAllocUniquePtr<char>;
+
 class Utils {
  public:
   template <typename T>
@@ -640,11 +651,6 @@ class Utils {
   // Allocate a string and print formatted output into a malloc'd buffer.
   static char* SCreate(const char* format, ...) PRINTF_ATTRIBUTE(1, 2);
   static char* VSCreate(const char* format, va_list args);
-
-  typedef std::unique_ptr<char, decltype(std::free)*> CStringUniquePtr;
-
-  // Returns str in a unique_ptr with free used as its deleter.
-  static CStringUniquePtr CreateCStringUniquePtr(char* str);
 
   // Load dynamic library from the given |library_path| and return the
   // library handle. |library_path| can be |nullptr| in which case

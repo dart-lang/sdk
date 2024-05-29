@@ -6445,7 +6445,7 @@ static bool HashCodeEqualsCanonicalizeHash(
     uint32_t hashcode_canonicalize_vm = kCalculateCanonicalizeHash,
     bool check_identity = true,
     bool check_hashcode = true) {
-  auto kScriptChars = Utils::CStringUniquePtr(
+  CStringUniquePtr kScriptChars(
       OS::SCreate(nullptr,
                   "%s"
                   "\n"
@@ -6456,8 +6456,7 @@ static bool HashCodeEqualsCanonicalizeHash(
                   "valueIdentityHashCode() {\n"
                   "  return identityHashCode(value());\n"
                   "}\n",
-                  value_script),
-      std::free);
+                  value_script));
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars.get(), nullptr);
   EXPECT_VALID(lib);
