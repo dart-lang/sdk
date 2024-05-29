@@ -59,6 +59,12 @@ class AnalysisServer {
 
   bool _shutdownResponseReceived = false;
 
+  bool _serverErrorReceived = false;
+
+  /// Whether any server error occurred that could mean analysis was not
+  /// performed correctly.
+  bool get serverErrorReceived => _serverErrorReceived;
+
   Stream<bool> get onAnalyzing {
     // {"event":"server.status","params":{"analysis":{"isAnalyzing":true}}}
     return _streamController('server.status')
@@ -109,6 +115,7 @@ class AnalysisServer {
       '--disable-server-feature-search',
       if (disableStatusNotificationDebouncing)
         '--disable-status-notification-debouncing',
+      '--disable-silent-analysis-exceptions',
       '--sdk',
       sdkPath.path,
       if (cacheDirectoryPath != null) '--cache=$cacheDirectoryPath',
@@ -286,6 +293,7 @@ class AnalysisServer {
   }
 
   void _handleServerError(Map<String, dynamic>? error) {
+    _serverErrorReceived = true;
     final err = error!;
     // Fields are 'isFatal', 'message', and 'stackTrace'.
     log.stderr('Error from the analysis server: ${err['message']}');

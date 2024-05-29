@@ -767,8 +767,6 @@ class LspAnalysisServer extends AnalysisServer {
 
     // Show message (without stack) to the user.
     showErrorMessageToUser(message);
-
-    logException(message, exception, stackTrace);
   }
 
   /// Send status notification to the client. The state of analysis is given by

@@ -28,7 +28,7 @@ class C {
   @visibleForTesting int _a = 0, b = 0;
 }
 ''', [
-      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 45, 18),
+      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 46, 17),
       error(WarningCode.UNUSED_FIELD, 68, 2),
     ]);
   }
@@ -40,8 +40,8 @@ class C {
   @visibleForTesting int _a = 0, _b = 0;
 }
 ''', [
-      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 45, 18),
-      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 45, 18),
+      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 46, 17),
+      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 46, 17),
       error(WarningCode.UNUSED_FIELD, 68, 2),
       error(WarningCode.UNUSED_FIELD, 76, 2),
     ]);
@@ -61,7 +61,7 @@ class C {
 import 'package:meta/meta.dart';
 @visibleForTesting class _C {}
 ''', [
-      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 33, 18),
+      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
       error(WarningCode.UNUSED_ELEMENT, 58, 2),
     ]);
   }
@@ -73,7 +73,7 @@ class C {
   @visibleForTesting C._() {}
 }
 ''', [
-      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 45, 18),
+      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 46, 17),
     ]);
   }
 
@@ -83,7 +83,7 @@ import 'package:meta/meta.dart';
 @visibleForTesting enum _E {a, b}
 void f(_E e) => e == _E.a || e == _E.b;
 ''', [
-      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 33, 18),
+      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
     ]);
   }
 
@@ -92,7 +92,7 @@ void f(_E e) => e == _E.a || e == _E.b;
 import 'package:meta/meta.dart';
 @visibleForTesting extension type _E(int i) {}
 ''', [
-      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 33, 18),
+      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
       error(WarningCode.UNUSED_ELEMENT, 67, 2),
     ]);
   }
@@ -104,7 +104,7 @@ class C {
   @visibleForTesting int _a = 1;
 }
 ''', [
-      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 45, 18),
+      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 46, 17),
       error(WarningCode.UNUSED_FIELD, 68, 2),
     ]);
   }
@@ -116,7 +116,7 @@ class C {
   @visibleForTesting void _m() {}
 }
 ''', [
-      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 45, 18),
+      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 46, 17),
       error(WarningCode.UNUSED_ELEMENT, 69, 2),
     ]);
   }
@@ -126,7 +126,7 @@ class C {
 import 'package:meta/meta.dart';
 @visibleForTesting mixin _M {}
 ''', [
-      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 33, 18),
+      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
       error(WarningCode.UNUSED_ELEMENT, 58, 2),
     ]);
   }
@@ -136,7 +136,7 @@ import 'package:meta/meta.dart';
 import 'package:meta/meta.dart';
 @visibleForTesting void _f() {}
 ''', [
-      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 33, 18),
+      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
       error(WarningCode.UNUSED_ELEMENT, 57, 2),
     ]);
   }
@@ -146,7 +146,7 @@ import 'package:meta/meta.dart';
 import 'package:meta/meta.dart';
 @visibleForTesting final _a = 1;
 ''', [
-      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 33, 18),
+      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
       error(WarningCode.UNUSED_ELEMENT, 58, 2),
     ]);
   }
@@ -156,7 +156,7 @@ import 'package:meta/meta.dart';
 import 'package:meta/meta.dart';
 @visibleForTesting typedef _T = Function();
 ''', [
-      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 33, 18),
+      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
       error(WarningCode.UNUSED_ELEMENT, 60, 2),
     ]);
   }
@@ -166,7 +166,7 @@ import 'package:meta/meta.dart';
 import 'package:meta/meta.dart';
 @visibleForTesting final _a = 1, b = 2;
 ''', [
-      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 33, 18),
+      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
       error(WarningCode.UNUSED_ELEMENT, 58, 2),
     ]);
   }
@@ -176,8 +176,8 @@ import 'package:meta/meta.dart';
 import 'package:meta/meta.dart';
 @visibleForTesting final _a = 1, _b = 2;
 ''', [
-      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 33, 18),
-      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 33, 18),
+      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
+      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
       error(WarningCode.UNUSED_ELEMENT, 58, 2),
       error(WarningCode.UNUSED_ELEMENT, 66, 2),
     ]);

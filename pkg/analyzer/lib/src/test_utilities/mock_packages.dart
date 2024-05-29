@@ -140,6 +140,11 @@ const _VisibleForOverriding visibleForOverriding = _VisibleForOverriding();
 
 const _VisibleForTesting visibleForTesting = _VisibleForTesting();
 
+@Target({
+  TargetKind.classType,
+  TargetKind.extensionType,
+  TargetKind.mixinType,
+})
 class Immutable {
   final String reason;
 

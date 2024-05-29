@@ -45,8 +45,8 @@ class RemoveAnnotation extends ResolvedCorrectionProducer {
     }
 
     var node = coveringNode;
-    if (node is Annotation) {
-      await addFix(node);
+    if (node case Identifier(parent: Annotation parent)) {
+      await addFix(parent);
     } else if (node is DefaultFormalParameter) {
       await addFix(findAnnotation(node.parameter.metadata, 'required'));
     } else if (node is NormalFormalParameter) {

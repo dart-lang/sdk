@@ -34,7 +34,7 @@ import 'package:meta/meta.dart';
 ''');
 
     assertErrorsInResult([
-      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 33, 9),
+      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 34, 8),
     ]);
   }
 
@@ -46,7 +46,7 @@ import 'package:meta/meta.dart';
 ''');
 
     assertErrorsInResult([
-      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 0, 9),
+      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 1, 8),
     ]);
   }
 
@@ -75,7 +75,7 @@ import 'package:meta/meta.dart';
 ''');
 
     assertErrorsInResult([
-      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 33, 9),
+      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 34, 8),
     ]);
   }
 
@@ -104,7 +104,7 @@ import 'package:meta/meta.dart';
 ''');
 
     assertErrorsInResult([
-      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 33, 9),
+      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 34, 8),
       error(WarningCode.UNUSED_ELEMENT, 49, 4),
     ]);
   }
@@ -119,7 +119,7 @@ class _C {
 
     assertErrorsInResult([
       error(WarningCode.UNUSED_ELEMENT, 39, 2),
-      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 46, 9),
+      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 47, 8),
     ]);
   }
 
@@ -133,7 +133,7 @@ class _C {
 
     assertErrorsInResult([
       error(WarningCode.UNUSED_ELEMENT, 39, 2),
-      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 46, 9),
+      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 47, 8),
     ]);
   }
 
@@ -146,7 +146,7 @@ class C {
 ''');
 
     assertErrorsInResult([
-      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 45, 9),
+      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 46, 8),
     ]);
   }
 
@@ -157,7 +157,7 @@ import 'package:meta/meta.dart';
 ''');
 
     assertErrorsInResult([
-      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 33, 9),
+      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 34, 8),
       error(WarningCode.UNUSED_ELEMENT, 48, 2),
       error(WarningCode.UNUSED_FIELD, 52, 3),
     ]);
@@ -170,7 +170,7 @@ enum E {@internal _one}
 ''');
 
     assertErrorsInResult([
-      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 41, 9),
+      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 42, 8),
       error(WarningCode.UNUSED_FIELD, 51, 4),
     ]);
   }
@@ -182,7 +182,7 @@ import 'package:meta/meta.dart';
 ''');
 
     assertErrorsInResult([
-      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 33, 9),
+      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 34, 8),
     ]);
   }
 
@@ -193,7 +193,7 @@ import 'package:meta/meta.dart';
 ''');
 
     assertErrorsInResult([
-      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 33, 9),
+      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 34, 8),
     ]);
   }
 
@@ -204,7 +204,7 @@ import 'package:meta/meta.dart';
 ''');
 
     assertErrorsInResult([
-      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 33, 9),
+      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 34, 8),
       error(WarningCode.UNUSED_ELEMENT, 58, 2),
     ]);
   }
@@ -246,7 +246,7 @@ class C {
 ''');
 
     assertErrorsInResult([
-      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 45, 9),
+      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 46, 8),
       error(WarningCode.UNUSED_ELEMENT, 63, 2),
     ]);
   }
@@ -260,7 +260,7 @@ class C {
 ''');
 
     assertErrorsInResult([
-      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 45, 9),
+      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 46, 8),
       error(WarningCode.UNUSED_ELEMENT, 60, 2),
     ]);
   }
@@ -274,7 +274,7 @@ class C {
 ''');
 
     assertErrorsInResult([
-      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 45, 9),
+      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 46, 8),
       error(WarningCode.UNUSED_ELEMENT, 67, 2),
     ]);
   }
@@ -286,7 +286,7 @@ import 'package:meta/meta.dart';
 ''');
 
     assertErrorsInResult([
-      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 33, 9),
+      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 34, 8),
       error(WarningCode.UNUSED_ELEMENT, 49, 4),
     ]);
   }
@@ -298,7 +298,7 @@ import 'package:meta/meta.dart';
 ''');
 
     assertErrorsInResult([
-      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 33, 9),
+      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 34, 8),
       error(WarningCode.UNUSED_ELEMENT, 48, 2),
     ]);
   }
@@ -322,7 +322,7 @@ import 'package:meta/meta.dart';
 ''');
 
     assertErrorsInResult([
-      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 33, 9),
+      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 34, 8),
       error(WarningCode.UNUSED_ELEMENT, 51, 2),
     ]);
   }

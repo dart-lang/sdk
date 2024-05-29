@@ -2565,7 +2565,8 @@ void Assembler::ExitFullSafepoint(Register scratch,
 
 void Assembler::TransitionNativeToGenerated(Register scratch,
                                             bool exit_safepoint,
-                                            bool ignore_unwind_in_progress) {
+                                            bool ignore_unwind_in_progress,
+                                            bool set_tag) {
   if (exit_safepoint) {
     ExitFullSafepoint(scratch, ignore_unwind_in_progress);
   } else {
@@ -2583,7 +2584,10 @@ void Assembler::TransitionNativeToGenerated(Register scratch,
   }
 
   // Mark that the thread is executing Dart code.
-  movl(Assembler::VMTagAddress(), Immediate(target::Thread::vm_tag_dart_id()));
+  if (set_tag) {
+    movl(Assembler::VMTagAddress(),
+         Immediate(target::Thread::vm_tag_dart_id()));
+  }
   movl(Address(THR, target::Thread::execution_state_offset()),
        Immediate(target::Thread::generated_execution_state()));
 

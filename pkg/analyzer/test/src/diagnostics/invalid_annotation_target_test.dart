@@ -77,7 +77,7 @@ class A {
   static int f = 0;
 }
 ''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 45, 17),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 46, 16),
     ]);
   }
 
@@ -89,7 +89,7 @@ class A {
   static int get f => 0;
 }
 ''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 45, 17),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 46, 16),
     ]);
   }
 
@@ -101,7 +101,7 @@ class A {
   static void m() {}
 }
 ''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 45, 17),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 46, 16),
     ]);
   }
 
@@ -113,7 +113,7 @@ class A {
   static void set f(int value) {}
 }
 ''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 45, 17),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 46, 16),
     ]);
   }
 
@@ -140,7 +140,7 @@ enum E {
   void m() {}
 }
 ''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 57, 17),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 58, 16),
     ]);
   }
 
@@ -153,7 +153,7 @@ extension E on String {
   void m() {}
 }
 ''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 60, 17),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 61, 16),
     ]);
   }
 
@@ -166,7 +166,7 @@ extension type E(int i) {
   void m() { }
 }
 ''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 62, 17),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 63, 16),
     ]);
   }
 
@@ -254,7 +254,7 @@ class A {
   static int f = 0;
 }
 ''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 45, 14),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 46, 13),
     ]);
   }
 
@@ -266,7 +266,7 @@ class A {
   static int get f => 0;
 }
 ''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 45, 14),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 46, 13),
     ]);
   }
 
@@ -278,7 +278,7 @@ class A {
   static void m() {}
 }
 ''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 45, 14),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 46, 13),
     ]);
   }
 
@@ -290,7 +290,7 @@ class A {
   static void set f(int value) {}
 }
 ''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 45, 14),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 46, 13),
     ]);
   }
 
@@ -317,7 +317,7 @@ enum E {
   void m() {}
 }
 ''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 57, 14),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 58, 13),
     ]);
   }
 
@@ -330,7 +330,7 @@ extension E on String {
   void m() {}
 }
 ''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 60, 14),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 61, 13),
     ]);
   }
 
@@ -343,7 +343,7 @@ extension type E(int i) {
   void m() { }
 }
 ''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 62, 14),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 63, 13),
     ]);
   }
 
@@ -387,7 +387,7 @@ class C {
   void m() {}
 }
 ''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 46, 10),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 47, 9),
     ]);
   }
 
@@ -449,7 +449,7 @@ extension type E(C c) {
   static int get g => 0; 
 }
 ''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 99, 10),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 100, 9),
     ]);
   }
 
@@ -466,7 +466,7 @@ extension type E(C c) {
   static void m() {}
 }
 ''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 94, 10),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 95, 9),
     ]);
   }
 
@@ -483,7 +483,7 @@ extension type E(C c) {
   static set g(int i) {}
 }
 ''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 98, 10),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 99, 9),
     ]);
   }
 }

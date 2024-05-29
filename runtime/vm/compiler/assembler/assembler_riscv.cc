@@ -3854,7 +3854,8 @@ void Assembler::TransitionGeneratedToNative(Register destination,
 
 void Assembler::TransitionNativeToGenerated(Register state,
                                             bool exit_safepoint,
-                                            bool ignore_unwind_in_progress) {
+                                            bool ignore_unwind_in_progress,
+                                            bool set_tag) {
   if (exit_safepoint) {
     ExitFullSafepoint(state, ignore_unwind_in_progress);
   } else {
@@ -3874,8 +3875,10 @@ void Assembler::TransitionNativeToGenerated(Register state,
   }
 
   // Mark that the thread is executing Dart code.
-  li(state, target::Thread::vm_tag_dart_id());
-  sx(state, Address(THR, target::Thread::vm_tag_offset()));
+  if (set_tag) {
+    li(state, target::Thread::vm_tag_dart_id());
+    sx(state, Address(THR, target::Thread::vm_tag_offset()));
+  }
   li(state, target::Thread::generated_execution_state());
   sx(state, Address(THR, target::Thread::execution_state_offset()));
 

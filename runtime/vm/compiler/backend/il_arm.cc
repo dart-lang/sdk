@@ -1902,6 +1902,11 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   EmitReturnMoves(compiler);
 
+  // Restore tag before the profiler's stack walker will no longer see the
+  // InvokeDartCode return address.
+  __ LoadFromOffset(TMP, FP, NativeEntryInstr::kVMTagOffsetFromFp);
+  __ StoreToOffset(TMP, THR, compiler::target::Thread::vm_tag_offset());
+
   __ LeaveDartFrame();
 
   // The dummy return address is in LR, no need to pop it as on Intel.
@@ -1975,6 +1980,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Save the current VMTag on the stack.
   __ LoadFromOffset(R0, THR, compiler::target::Thread::vm_tag_offset());
   __ Push(R0);
+  ASSERT(kVMTagOffsetFromFp == 5 * compiler::target::kWordSize);
 
   // Save top resource.
   const intptr_t top_resource_offset =
@@ -1998,7 +2004,9 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // The callback trampoline (caller) has already left the safepoint for us.
   __ TransitionNativeToGenerated(/*scratch0=*/R0, /*scratch1=*/R1,
-                                 /*exit_safepoint=*/false);
+                                 /*exit_safepoint=*/false,
+                                 /*ignore_unwind_in_progress=*/false,
+                                 /*set_tag=*/false);
 
   // Now that the safepoint has ended, we can touch Dart objects without
   // handles.
@@ -2039,6 +2047,11 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   });
 
   FunctionEntryInstr::EmitNativeCode(compiler);
+
+  // Delay setting the tag until the profiler's stack walker will see the
+  // InvokeDartCode return address.
+  __ LoadImmediate(TMP, compiler::target::Thread::vm_tag_dart_id());
+  __ StoreToOffset(TMP, THR, compiler::target::Thread::vm_tag_offset());
 }
 
 #define R(r) (1 << r)

@@ -1557,6 +1557,70 @@ class C = Object with A;
     assertHasRegion(HighlightRegionType.KEYWORD, 'with A;');
   }
 
+  Future<void> test_KEYWORD_augmented_onInstanceGetter() async {
+    addTestFile('''
+class C {
+  augment int get g => augmented;
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'augmented');
+  }
+
+  Future<void> test_KEYWORD_augmented_onInstanceMethod() async {
+    addTestFile('''
+class C {
+  augment int m() => augmented();
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'augmented');
+  }
+
+  Future<void> test_KEYWORD_augmented_onInstanceSetter() async {
+    addTestFile('''
+class C {
+  augment set s(int x) { augmented = x; }
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'augmented');
+  }
+
+  Future<void> test_KEYWORD_augmented_onStaticMethod() async {
+    addTestFile('''
+class C {
+  augment static int m() => augmented();
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'augmented');
+  }
+
+  Future<void> test_KEYWORD_augmented_onTopLevelFunction() async {
+    addTestFile('''
+augment int f(int x) => augmented(x);
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'augmented');
+  }
+
+  Future<void> test_KEYWORD_augmented_onTopLevelGetter() async {
+    addTestFile('''
+augment int get g => augmented;
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'augmented');
+  }
+
+  Future<void> test_KEYWORD_augmented_onTopLevelSetter() async {
+    addTestFile('''
+augment set s(int x) { augmented = x; }
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'augmented');
+  }
+
   Future<void> test_KEYWORD_const_constructor() async {
     addTestFile('''
 class A {

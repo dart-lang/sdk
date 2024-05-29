@@ -10397,7 +10397,7 @@ declarations in a [public library][]:
 ```dart
 import 'package:meta/meta.dart';
 
-[!@internal!]
+@[!internal!]
 class C {}
 ```
 
@@ -10408,7 +10408,7 @@ applied to declarations with private names:
 ```dart
 import 'package:meta/meta.dart';
 
-[!@internal!]
+@[!internal!]
 class _C {}
 
 void f(_C c) {}
@@ -10505,7 +10505,7 @@ a `const` constructor:
 import 'package:meta/meta.dart';
 
 class C {
-  [!@literal!]
+  @[!literal!]
   C();
 }
 ```
@@ -10516,7 +10516,7 @@ constructor:
 ```dart
 import 'package:meta/meta.dart';
 
-[!@literal!]
+@[!literal!]
 var x;
 ```
 
@@ -10646,7 +10646,7 @@ class declaration rather than a member inside the class:
 ```dart
 import 'package:meta/meta.dart';
 
-[!@nonVirtual!]
+@[!nonVirtual!]
 class C {}
 ```
 
@@ -10657,7 +10657,7 @@ abstract method:
 import 'package:meta/meta.dart';
 
 abstract class C {
-  [!@nonVirtual!]
+  @[!nonVirtual!]
   void m();
 }
 ```
@@ -10669,7 +10669,7 @@ static method:
 import 'package:meta/meta.dart';
 
 abstract class C {
-  [!@nonVirtual!]
+  @[!nonVirtual!]
   static void m() {}
 }
 ```
@@ -11270,7 +11270,7 @@ annotation is on a method declaration:
 import 'package:meta/meta.dart';
 
 class A {
-  [!@sealed!]
+  @[!sealed!]
   void m() {}
 }
 ```
@@ -11729,7 +11729,7 @@ The following code produces this diagnostic:
 ```dart
 import 'package:meta/meta.dart';
 
-[!@visibleForTesting!]
+@[!visibleForTesting!]
 void _someFunction() {}
 
 void f() => _someFunction();
@@ -11778,7 +11778,7 @@ class, and classes can't be overridden:
 ```dart
 import 'package:meta/meta.dart';
 
-[!@visibleForOverriding!]
+@[!visibleForOverriding!]
 class C {}
 ```
 
@@ -11812,7 +11812,7 @@ The following code produces this diagnostic because there is no
 import 'package:angular_meta/angular_meta.dart';
 
 class C {
-  [!@visibleOutsideTemplate!]
+  @[!visibleOutsideTemplate!]
   int m() {
     return 1;
   }
@@ -11825,7 +11825,7 @@ a class declaration, not a member of a class, enum, or mixin:
 ```dart
 import 'package:angular_meta/angular_meta.dart';
 
-[!@visibleOutsideTemplate!]
+@[!visibleOutsideTemplate!]
 class C {}
 ```
 

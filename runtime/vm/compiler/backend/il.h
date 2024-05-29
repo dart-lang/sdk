@@ -2217,6 +2217,9 @@ class FunctionEntryInstr : public BlockEntryWithInitialDefs {
 // NativeParameter instead (which doesn't count as an initial definition).
 class NativeEntryInstr : public FunctionEntryInstr {
  public:
+  static constexpr intptr_t kVMTagOffsetFromFp =
+      5 * compiler::target::kWordSize;
+
   NativeEntryInstr(const compiler::ffi::CallbackMarshaller& marshaller,
                    GraphEntryInstr* graph_entry,
                    intptr_t block_id,

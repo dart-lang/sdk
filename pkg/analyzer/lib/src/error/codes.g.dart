@@ -2423,7 +2423,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'IMPORT_OF_NOT_AUGMENTATION',
     "The imported file '{0}' isn't an augmentation of this library.",
     correctionMessage:
-        "Try adding a 'library augment' directive referencing this library to "
+        "Try adding an 'augment library' directive referencing this library to "
         "the imported file.",
   );
 
@@ -6620,13 +6620,6 @@ class WarningCode extends AnalyzerErrorCode {
     'INVALID_FACTORY_METHOD_IMPL',
     "Factory method '{0}' doesn't return a newly allocated object.",
     hasPublishedDocs: true,
-  );
-
-  ///  This warning is generated anywhere an @immutable annotation is associated
-  ///  with anything other than a class.
-  static const WarningCode INVALID_IMMUTABLE_ANNOTATION = WarningCode(
-    'INVALID_IMMUTABLE_ANNOTATION',
-    "Only classes can be annotated as being immutable.",
   );
 
   ///  No parameters.
