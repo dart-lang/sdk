@@ -2735,7 +2735,7 @@ void Object::InitializeObject(uword address,
   tags = UntaggedObject::AlwaysSetBit::update(true, tags);
   tags = UntaggedObject::NotMarkedBit::update(true, tags);
   tags = UntaggedObject::OldAndNotRememberedBit::update(is_old, tags);
-  tags = UntaggedObject::NewOrEvacuationCandidateBit::update(!is_old, tags);
+  tags = UntaggedObject::NewBit::update(!is_old, tags);
   tags = UntaggedObject::ImmutableBit::update(
       Object::ShouldHaveImmutabilityBitSet(class_id), tags);
 #if defined(HASH_IN_OBJECT_HEADER)

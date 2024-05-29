@@ -6,9 +6,9 @@
 
 #include "platform/atomic.h"
 #include "vm/globals.h"
+#include "vm/heap/become.h"
 #include "vm/heap/heap.h"
 #include "vm/heap/pages.h"
-#include "vm/heap/sweeper.h"
 #include "vm/thread_barrier.h"
 #include "vm/timeline.h"
 
@@ -184,51 +184,17 @@ class CompactorTask : public ThreadPool::Task {
 void GCCompactor::Compact(Page* pages, FreeList* freelist, Mutex* pages_lock) {
   SetupImagePageBoundaries();
 
-  Page* fixed_head = nullptr;
-  Page* fixed_tail = nullptr;
-
-  // Divide the heap, and set aside never-evacuate pages.
+  // Divide the heap.
   // TODO(30978): Try to divide based on live bytes or with work stealing.
   intptr_t num_pages = 0;
-  Page* page = pages;
-  Page* prev = nullptr;
-  while (page != nullptr) {
-    Page* next = page->next();
-    if (page->is_never_evacuate()) {
-      if (prev != nullptr) {
-        prev->set_next(next);
-      } else {
-        pages = next;
-      }
-      if (fixed_tail == nullptr) {
-        fixed_tail = page;
-      }
-      page->set_next(fixed_head);
-      fixed_head = page;
-    } else {
-      prev = page;
-      num_pages++;
-    }
-    page = next;
+  for (Page* page = pages; page != nullptr; page = page->next()) {
+    num_pages++;
   }
-  fixed_pages_ = fixed_head;
 
   intptr_t num_tasks = FLAG_compactor_tasks;
   RELEASE_ASSERT(num_tasks >= 1);
   if (num_pages < num_tasks) {
     num_tasks = num_pages;
-  }
-  if (num_tasks == 0) {
-    ASSERT(pages == nullptr);
-
-    // Move pages to sweeper work lists.
-    heap_->old_space()->pages_ = nullptr;
-    heap_->old_space()->pages_tail_ = nullptr;
-    heap_->old_space()->sweep_regular_ = fixed_head;
-
-    heap_->old_space()->Sweep(/*exclusive*/ true);
-    heap_->old_space()->SweepLarge();
-    return;
   }
 
   Partition* partitions = new Partition[num_tasks];
@@ -240,7 +206,6 @@ void GCCompactor::Compact(Page* pages, FreeList* freelist, Mutex* pages_lock) {
     Page* page = pages;
     Page* prev = nullptr;
     while (task_index < num_tasks) {
-      ASSERT(!page->is_never_evacuate());
       if (page_index % pages_per_task == 0) {
         partitions[task_index].head = page;
         partitions[task_index].tail = nullptr;
@@ -387,12 +352,6 @@ void GCCompactor::Compact(Page* pages, FreeList* freelist, Mutex* pages_lock) {
     partitions[num_tasks - 1].tail->set_next(nullptr);
     heap_->old_space()->pages_ = pages = partitions[0].head;
     heap_->old_space()->pages_tail_ = partitions[num_tasks - 1].tail;
-    if (fixed_head != nullptr) {
-      fixed_tail->set_next(heap_->old_space()->pages_);
-      heap_->old_space()->pages_ = fixed_head;
-
-      ASSERT(heap_->old_space()->pages_tail_ != nullptr);
-    }
 
     delete[] partitions;
   }
@@ -527,7 +486,6 @@ void CompactorTask::RunEnteredIsolateGroup() {
 }
 
 void CompactorTask::PlanPage(Page* page) {
-  ASSERT(!page->is_never_evacuate());
   uword current = page->object_start();
   uword end = page->object_end();
 
@@ -540,7 +498,6 @@ void CompactorTask::PlanPage(Page* page) {
 }
 
 void CompactorTask::SlidePage(Page* page) {
-  ASSERT(!page->is_never_evacuate());
   uword current = page->object_start();
   uword end = page->object_end();
 
@@ -710,11 +667,6 @@ void GCCompactor::ForwardPointer(ObjectPtr* ptr) {
   if (forwarding_page == nullptr) {
     return;  // Not moved (VM isolate, large page, code page).
   }
-  if (page->is_never_evacuate()) {
-    // Forwarding page is non-NULL since one is still reserved for use as a
-    // counting page, but it doesn't have forwarding information.
-    return;
-  }
 
   ObjectPtr new_target =
       UntaggedObject::FromAddr(forwarding_page->Lookup(old_addr));
@@ -750,11 +702,6 @@ void GCCompactor::ForwardCompressedPointer(uword heap_base,
   ForwardingPage* forwarding_page = page->forwarding_page();
   if (forwarding_page == nullptr) {
     return;  // Not moved (VM isolate, large page, code page).
-  }
-  if (page->is_never_evacuate()) {
-    // Forwarding page is non-NULL since one is still reserved for use as a
-    // counting page, but it doesn't have forwarding information.
-    return;
   }
 
   ObjectPtr new_target =
@@ -847,24 +794,6 @@ void GCCompactor::ForwardLargePages() {
     large_pages_ = page->next();
     ml.Unlock();
     page->VisitObjectPointers(this);
-    ml.Lock();
-  }
-  while (fixed_pages_ != nullptr) {
-    Page* page = fixed_pages_;
-    fixed_pages_ = page->next();
-    ml.Unlock();
-
-    GCSweeper sweeper;
-    FreeList* freelist = heap_->old_space()->DataFreeList(0);
-    bool page_in_use;
-    {
-      MutexLocker ml(freelist->mutex());
-      page_in_use = sweeper.SweepPage(page, freelist);
-    }
-    ASSERT(page_in_use);
-
-    page->VisitObjectPointers(this);
-
     ml.Lock();
   }
 }

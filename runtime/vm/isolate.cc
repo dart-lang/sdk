@@ -2804,8 +2804,7 @@ void IsolateGroup::ForEachIsolate(
            (thread->task_kind() == Thread::kMutatorTask) ||
            (thread->task_kind() == Thread::kMarkerTask) ||
            (thread->task_kind() == Thread::kCompactorTask) ||
-           (thread->task_kind() == Thread::kScavengerTask) ||
-           (thread->task_kind() == Thread::kIncrementalCompactorTask));
+           (thread->task_kind() == Thread::kScavengerTask));
     for (Isolate* isolate : isolates_) {
       function(isolate);
     }

@@ -129,7 +129,7 @@ class BlockStack {
 
    private:
     Block* head_;
-    RelaxedAtomic<intptr_t> length_;
+    intptr_t length_;
     DISALLOW_COPY_AND_ASSIGN(List);
   };
 
