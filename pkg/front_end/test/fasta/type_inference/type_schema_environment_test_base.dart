@@ -43,7 +43,6 @@ abstract class TypeSchemaEnvironmentTestBase {
         "The tests are supposed to have exactly two libraries: "
         "the core library and the test library.");
     _operations = new OperationsCfe(typeSchemaEnvironment,
-        omittedNullabilityValue: Nullability.nonNullable,
         fieldNonPromotabilityInfo: FieldNonPromotabilityInfo(
             fieldNameInfo: {}, individualPropertyReasons: {}),
         typeCacheNonNullable: {},
@@ -177,7 +176,6 @@ abstract class TypeSchemaEnvironmentTestBase {
               returnContextTypeNode,
               isNonNullableByDefault: true,
               typeOperations: new OperationsCfe(typeSchemaEnvironment,
-                  omittedNullabilityValue: Nullability.nonNullable,
                   fieldNonPromotabilityInfo: new FieldNonPromotabilityInfo(
                       fieldNameInfo: {}, individualPropertyReasons: {}),
                   typeCacheNonNullable: {},
