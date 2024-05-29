@@ -17,9 +17,6 @@ void main() {
 
 @reflectiveTest
 class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
-  @override
-  bool get isNonNullableByDefault => true;
-
   void test_addLowerBound() {
     parseTestLibrary("""
       class A;

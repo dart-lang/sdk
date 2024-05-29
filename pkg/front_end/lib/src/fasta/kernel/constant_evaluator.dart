@@ -2385,6 +2385,10 @@ class ConstantsTransformer extends RemovingTransformer {
       return new FileUriConstantExpression(constantExpression.constant,
           type: constantExpression.type, fileUri: node.fileUri)
         ..fileOffset = node.fileOffset;
+    } else if (node is FileUriConstantExpression) {
+      return new FileUriConstantExpression(constantExpression.constant,
+          type: constantExpression.type, fileUri: node.fileUri)
+        ..fileOffset = node.fileOffset;
     }
     return constantExpression;
   }

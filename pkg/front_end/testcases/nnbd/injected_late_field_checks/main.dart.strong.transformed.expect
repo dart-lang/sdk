@@ -12,7 +12,7 @@ import "dart:core" as core;
 
 import "dart:_internal";
 
-@#C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 class Class extends core::Object {
   late field core::int foo /* from org-dartlang-testcase:///patch_lib.dart */;
   constructor bar() → self2::Class

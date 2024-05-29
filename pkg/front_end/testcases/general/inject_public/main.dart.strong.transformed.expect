@@ -38,7 +38,7 @@ class InjectedClass extends core::Object { // from org-dartlang-testcase:///patc
     : super core::Object::•()
     ;
 }
-@#C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 class Class extends core::Object {
   synthetic constructor •() → test::Class
     : super core::Object::•()

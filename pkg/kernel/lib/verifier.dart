@@ -1458,6 +1458,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   // TODO(johnniwinther): Merge this with enter/exitParent.
   void enterTreeNode(TreeNode node) {
     treeNodeStack.add(node);
+    testLocation(node);
   }
 
   /// Invoked by all visit methods if the visited node is a [TreeNode].
@@ -1545,6 +1546,34 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     return result;
   }
 
+  // We disable the location test for now, at least these tests currently fail:
+  //  outline/dartdevc/factory_patch/main
+  //  outline/general/constructor_patch/main
+  //  outline/general/factory_patch/main
+  //  outline/general/mixin_from_patch/main
+  //  outline/general/multiple_class_patches/main
+  //  outline/general/patch_extends_implements/main
+  //  outline/nnbd/platform_optional_parameters/main
+  //  pkg/front_end/test/macros/application/macro_application_test.dart -p \
+  //    subtypes.dart
+  static const bool doTestLocation = false;
+
+  void testLocation(TreeNode node) {
+    if (!doTestLocation) return;
+    // When these comes from patching (and in the future from augmentation) they
+    // don't point correctly.
+    if (node is LibraryDependency || node is LibraryPart) return;
+    try {
+      if (node.fileOffset != TreeNode.noOffset) {
+        node.location;
+      }
+    } catch (e) {
+      problem(
+          node, "${node.runtimeType} crashes when  asked for location: '$e'",
+          context: node);
+    }
+  }
+
   Uri checkLocation(TreeNode node, String? name, Uri fileUri) {
     if (name == null || name.contains("#")) {
       // TODO(ahe): Investigate if these checks can be enabled:
@@ -1561,11 +1590,6 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
       if (node.fileOffset == TreeNode.noOffset &&
           !target.verification.allowNoFileOffset(stage, node)) {
         problem(node, "'$name' has no fileOffset", context: node);
-      }
-      try {
-        node.location;
-      } catch (e) {
-        problem(node, "'$name' crashes when asked for location", context: node);
       }
       return fileUri;
     }

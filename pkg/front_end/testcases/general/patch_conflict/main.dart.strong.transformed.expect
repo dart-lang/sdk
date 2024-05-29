@@ -96,7 +96,7 @@ class ExistingOriginClass#0#1 extends core::Object { // from org-dartlang-testca
     : super core::Object::•()
     ;
 }
-@#C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 class Class extends core::Object {
   @#C1
   constructor missingOriginConstructor() → self2::Class

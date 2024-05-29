@@ -63,7 +63,7 @@ abstract class _B&Object&Error extends core::Object implements core::Error /*isA
   }
   @#C4
   @#C10
-  @#C12
+  @/* from org-dartlang-sdk:///sdk/lib/core/errors.dart */ #C12
   external static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/errors_patch.dart */ _throw(core::Object error, core::StackTrace stackTrace) → Never;
 }
 class B extends self::_B&Object&Error {

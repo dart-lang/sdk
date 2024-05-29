@@ -2,13 +2,11 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 html/cross_frame_test: Skip # Issue 32039, test reloads itself (not by design - investigate)
-wasm/*: Skip # dart:_wasm is currently behind a Dart SDK build flag.
 
 [ $arch == simarm ]
 convert/utf85_test: Skip # Pass, Slow Issue 12644.
 
 [ $compiler == dart2wasm ]
-async/stream_periodic3_test: Skip # Flaky, issue 50901
 fix_data_tests/*: SkipByDesign
 html/*: SkipByDesign # dart:html not supported on dart2wasm
 isolate/*: SkipByDesign
