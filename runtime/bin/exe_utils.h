@@ -18,7 +18,7 @@ namespace bin {
 class EXEUtils {
  public:
   // Returns the path to the directory the current executable resides in.
-  static Utils::CStringUniquePtr GetDirectoryPrefixFromExeName();
+  static CStringUniquePtr GetDirectoryPrefixFromExeName();
 
 #if !defined(DART_HOST_OS_WINDOWS)
   // Loads a compact symbolization table from "$exepath.sym" that is used by the

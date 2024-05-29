@@ -764,7 +764,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_LoadThread) {
 #if !defined(TARGET_ARCH_IA32)
 ISOLATE_UNIT_TEST_CASE(IRTest_CachableIdempotentCall) {
   // clang-format off
-  auto kScript = Utils::CStringUniquePtr(OS::SCreate(nullptr, R"(
+  CStringUniquePtr kScript(OS::SCreate(nullptr, R"(
     int globalCounter = 0;
 
     int increment() => ++globalCounter;
@@ -785,7 +785,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_CachableIdempotentCall) {
       }
       return returnValue;
     }
-  )"), std::free);
+  )"));
   // clang-format on
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript.get()));

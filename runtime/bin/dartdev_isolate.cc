@@ -79,8 +79,7 @@ bool DartDevIsolate::ShouldParseCommand(const char* script_uri) {
        (strncmp(script_uri, "google3://", 10) != 0)));
 }
 
-Utils::CStringUniquePtr DartDevIsolate::TryResolveArtifactPath(
-    const char* filename) {
+CStringUniquePtr DartDevIsolate::TryResolveArtifactPath(const char* filename) {
   // |dir_prefix| includes the last path separator.
   auto dir_prefix = EXEUtils::GetDirectoryPrefixFromExeName();
 
@@ -88,7 +87,7 @@ Utils::CStringUniquePtr DartDevIsolate::TryResolveArtifactPath(
   char* snapshot_path =
       Utils::SCreate("%ssnapshots/%s", dir_prefix.get(), filename);
   if (File::Exists(nullptr, snapshot_path)) {
-    return Utils::CreateCStringUniquePtr(snapshot_path);
+    return CStringUniquePtr(snapshot_path);
   }
   free(snapshot_path);
 
@@ -96,13 +95,13 @@ Utils::CStringUniquePtr DartDevIsolate::TryResolveArtifactPath(
   // directories. Try to use a snapshot from a previously built SDK.
   snapshot_path = Utils::SCreate("%s%s", dir_prefix.get(), filename);
   if (File::Exists(nullptr, snapshot_path)) {
-    return Utils::CreateCStringUniquePtr(snapshot_path);
+    return CStringUniquePtr(snapshot_path);
   }
   free(snapshot_path);
-  return Utils::CreateCStringUniquePtr(nullptr);
+  return CStringUniquePtr(nullptr);
 }
 
-Utils::CStringUniquePtr DartDevIsolate::TryResolveDartDevSnapshotPath() {
+CStringUniquePtr DartDevIsolate::TryResolveDartDevSnapshotPath() {
   return TryResolveArtifactPath("dartdev.dart.snapshot");
 }
 

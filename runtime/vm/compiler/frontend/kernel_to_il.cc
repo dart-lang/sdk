@@ -5683,7 +5683,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfSyncFfiCallback(
                        ICData::kNoRebind);
   }
 
-  if (!marshaller.IsHandleCType(compiler::ffi::kResultIndex)) {
+  if (!marshaller.IsVoid(compiler::ffi::kResultIndex) &&
+      !marshaller.IsHandleCType(compiler::ffi::kResultIndex)) {
     body += CheckNullOptimized(
         String::ZoneHandle(Z, Symbols::New(H.thread(), "return_value")),
         CheckNullInstr::kArgumentError);
