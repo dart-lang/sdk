@@ -1353,6 +1353,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ParserErrorCode.CONST_CLASS: [
     RemoveConst.new,
   ],
+  ParserErrorCode.CONST_FACTORY: [
+    RemoveConst.new,
+  ],
   ParserErrorCode.DEFAULT_IN_SWITCH_EXPRESSION: [
     ReplaceWithWildcard.new,
   ],

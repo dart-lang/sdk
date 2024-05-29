@@ -49,6 +49,8 @@ abstract class _RemoveConst extends ParsedCorrectionProducer {
       return;
     } else if (expression is ClassDeclaration) {
       constToken = expression.firstTokenAfterCommentAndMetadata.previous;
+    } else if (expression is ConstructorDeclaration) {
+      constToken = expression.constKeyword;
     }
 
     // Might be an implicit `const`.

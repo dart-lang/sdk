@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 356 "needsFix"
-# - 395 "hasFix"
+# - 355 "needsFix"
+# - 396 "hasFix"
 # - 516 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -2588,9 +2588,7 @@ ParserErrorCode.CONST_CLASS:
 ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY:
   status: noFix
 ParserErrorCode.CONST_FACTORY:
-  status: needsFix
-  notes: |-
-    Remove the `const` keyword.
+  status: hasFix
 ParserErrorCode.CONST_METHOD:
   status: needsFix
   notes: |-
