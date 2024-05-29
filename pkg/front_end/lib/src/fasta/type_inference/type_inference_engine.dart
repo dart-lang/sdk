@@ -435,13 +435,6 @@ class OperationsCfe
             StructuralParameter, TypeDeclarationType, TypeDeclaration> {
   final TypeEnvironment typeEnvironment;
 
-  /// The semantic value of  the omitted nullability for the library.
-  ///
-  /// Depending on the status of the library, the omitted nullability can be
-  /// either [Nullability.nonNullable] (for null-safe libraries) or
-  /// [Nullability.legacy] (for legacy libraries).
-  final Nullability omittedNullabilityValue;
-
   /// Information about which fields are promotable in this library.
   ///
   /// If field promotion is disabled for the current library, this field is
@@ -458,15 +451,14 @@ class OperationsCfe
   final Map<DartType, DartType> typeCacheLegacy;
 
   OperationsCfe(this.typeEnvironment,
-      {required this.omittedNullabilityValue,
-      required this.fieldNonPromotabilityInfo,
+      {required this.fieldNonPromotabilityInfo,
       required this.typeCacheNonNullable,
       required this.typeCacheNullable,
       required this.typeCacheLegacy});
 
   @override
   DartType get boolType =>
-      typeEnvironment.coreTypes.boolRawType(omittedNullabilityValue);
+      typeEnvironment.coreTypes.boolRawType(Nullability.nonNullable);
 
   @override
   DartType get doubleType => throw new UnimplementedError('TODO(paulberry)');
@@ -513,16 +505,13 @@ class OperationsCfe
 
   @override
   NullabilitySuffix getNullabilitySuffix(DartType type) {
-    if (isTypeWithoutNullabilityMarker(type,
-        isNonNullableByDefault:
-            omittedNullabilityValue == Nullability.nonNullable)) {
+    if (isTypeWithoutNullabilityMarker(type, isNonNullableByDefault: true)) {
       return NullabilitySuffix.none;
     } else if (isNullableTypeConstructorApplication(type)) {
       return NullabilitySuffix.question;
     } else {
       assert(isLegacyTypeConstructorApplication(type,
-          isNonNullableByDefault:
-              omittedNullabilityValue == Nullability.nonNullable));
+          isNonNullableByDefault: true));
       return NullabilitySuffix.star;
     }
   }
@@ -709,23 +698,15 @@ class OperationsCfe
   @override
   DartType glb(DartType type1, DartType type2) {
     return typeEnvironment.getStandardLowerBound(type1, type2,
-        isNonNullableByDefault:
-            omittedNullabilityValue == Nullability.nonNullable);
+        isNonNullableByDefault: true);
   }
 
   @override
   bool isAssignableTo(DartType fromType, DartType toType) {
-    if (omittedNullabilityValue == Nullability.nonNullable) {
-      if (fromType is DynamicType) return true;
-      return typeEnvironment
-          .performNullabilityAwareSubtypeCheck(fromType, toType)
-          .isSubtypeWhenUsingNullabilities();
-    } else {
-      return typeEnvironment
-          .performNullabilityAwareSubtypeCheck(fromType, toType)
-          .orSubtypeCheckFor(toType, fromType, typeEnvironment)
-          .isSubtypeWhenIgnoringNullabilities();
-    }
+    if (fromType is DynamicType) return true;
+    return typeEnvironment
+        .performNullabilityAwareSubtypeCheck(fromType, toType)
+        .isSubtypeWhenUsingNullabilities();
   }
 
   @override
@@ -771,8 +752,7 @@ class OperationsCfe
   @override
   DartType lub(DartType type1, DartType type2) {
     return typeEnvironment.getStandardUpperBound(type1, type2,
-        isNonNullableByDefault:
-            omittedNullabilityValue == Nullability.nonNullable);
+        isNonNullableByDefault: true);
   }
 
   @override
@@ -824,8 +804,7 @@ class OperationsCfe
     } else {
       TypeDeclarationType? mapType = typeEnvironment.getTypeAsInstanceOf(
           type, typeEnvironment.coreTypes.mapClass, typeEnvironment.coreTypes,
-          isNonNullableByDefault:
-              omittedNullabilityValue == Nullability.nonNullable);
+          isNonNullableByDefault: true);
       if (mapType == null) {
         return null;
       } else {
@@ -867,8 +846,7 @@ class OperationsCfe
           type,
           typeEnvironment.coreTypes.iterableClass,
           typeEnvironment.coreTypes,
-          isNonNullableByDefault:
-              omittedNullabilityValue == Nullability.nonNullable);
+          isNonNullableByDefault: true);
       if (interfaceType == null) {
         return null;
       } else {
@@ -942,8 +920,7 @@ class OperationsCfe
     switch (modifier) {
       case NullabilitySuffix.none:
         return computeTypeWithoutNullabilityMarker(type,
-            isNonNullableByDefault:
-                omittedNullabilityValue == Nullability.nonNullable);
+            isNonNullableByDefault: true);
       case NullabilitySuffix.question:
         return type.withDeclaredNullability(Nullability.nullable);
       case NullabilitySuffix.star:
@@ -987,7 +964,7 @@ class OperationsCfe
   @override
   InterfaceType futureType(DartType argumentType) {
     return new InterfaceType(typeEnvironment.coreTypes.futureClass,
-        omittedNullabilityValue, <DartType>[argumentType]);
+        Nullability.nonNullable, <DartType>[argumentType]);
   }
 
   @override
@@ -1023,9 +1000,7 @@ class OperationsCfe
 
   @override
   bool isDartCoreFunction(DartType type) {
-    return omittedNullabilityValue == Nullability.nonNullable
-        ? (type == typeEnvironment.coreTypes.functionNonNullableRawType)
-        : (type == typeEnvironment.coreTypes.functionLegacyRawType);
+    return type == typeEnvironment.coreTypes.functionNonNullableRawType;
   }
 }
 

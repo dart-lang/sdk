@@ -306,7 +306,6 @@ class TypeConstraintGathererTest {
         typeSchemaEnvironment, typeParameterNodesToConstrain,
         isNonNullableByDefault: true,
         typeOperations: new OperationsCfe(typeSchemaEnvironment,
-            omittedNullabilityValue: Nullability.nonNullable,
             fieldNonPromotabilityInfo: new FieldNonPromotabilityInfo(
                 fieldNameInfo: {}, individualPropertyReasons: {}),
             typeCacheNonNullable: {},
