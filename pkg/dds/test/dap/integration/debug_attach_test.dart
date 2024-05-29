@@ -111,7 +111,7 @@ main() {
       }
     });
 
-    test('reports initialization failures if can\t connect to the VM Service',
+    test('reports initialization failures if can\'t connect to the VM Service',
         () async {
       final outputEvents = await dap.client.collectOutput(
         launch: () => dap.client.attach(

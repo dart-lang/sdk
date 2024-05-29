@@ -649,42 +649,28 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// exception printed to the user.
   ///
   /// If a new DDS instance was started, it is assigned to [_dds].
-  Future<Uri?> _startOrReuseDds(Uri uri) {
-    // Use a completer to handle DDS because `startDds` (and therefore
-    // `runZonedGuarded`) may never complete when there's an existing DDS
-    // (see https://github.com/dart-lang/sdk/issues/55731#issuecomment-2114699898)
-    final completer = Completer<Uri?>();
-    runZonedGuarded(
-      () async {
-        final dds = await startDds(uri, uriConverter());
-        _dds = dds;
-        if (!completer.isCompleted) {
-          completer.complete(dds.wsUri!);
-        }
-      },
-      (error, stack) {
-        if (error is DartDevelopmentServiceException &&
-            error.errorCode ==
-                DartDevelopmentServiceException.existingDdsInstanceError) {
-          // If there's an existing DDS instance, we will just continue
-          // but need to map the URI to the ws: version.
-          if (!completer.isCompleted) {
-            completer.complete(vmServiceUriToWebSocket(uri));
-          }
-        } else {
-          // Otherwise, we failed to start DDS for an unknown reason and
-          // consider this a fatal error. Handle terminating here (so we can
-          // print this error/stack)...
-          _handleDebuggerInitializationError(
-              'Failed to start DDS for $uri', error, stack);
-          // ... and complete with no URI as a signal to the caller.
-          if (!completer.isCompleted) {
-            completer.complete(null);
-          }
-        }
-      },
-    );
-    return completer.future;
+  Future<Uri?> _startOrReuseDds(Uri uri) async {
+    try {
+      final dds = await startDds(uri, uriConverter());
+      _dds = dds;
+      return dds.wsUri!;
+    } catch (error, stack) {
+      if (error is DartDevelopmentServiceException &&
+          error.errorCode ==
+              DartDevelopmentServiceException.existingDdsInstanceError) {
+        // If there's an existing DDS instance, we will just continue
+        // but need to map the URI to the ws: version.
+        return vmServiceUriToWebSocket(uri);
+      } else {
+        // Otherwise, we failed to start DDS for an unknown reason and
+        // consider this a fatal error. Handle terminating here (so we can
+        // print this error/stack)...
+        _handleDebuggerInitializationError(
+            'Failed to start DDS for $uri', error, stack);
+        // ... and return no URI as a signal to the caller.
+        return null;
+      }
+    }
   }
 
   /// Connects to the VM Service at [uri] and initializes debugging.
