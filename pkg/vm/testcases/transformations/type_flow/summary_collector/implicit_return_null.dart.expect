@@ -1,7 +1,7 @@
 ------------ T. ------------
 %this = _Parameter #0 [_T (#lib::T)+]
 t1 = _Call direct [dart.core::Object.] (%this)
-RESULT: _T {}?
+RESULT: _T {}
 ------------ empty1 ------------
 
 RESULT: _T {}?

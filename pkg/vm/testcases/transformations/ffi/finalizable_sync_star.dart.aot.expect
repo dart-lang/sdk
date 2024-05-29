@@ -46,7 +46,7 @@ static method main() → void {
   final self::MyFinalizable finalizable = new self::MyFinalizable::•();
   {
     synthesized core::Iterator<core::int> :sync-for-iterator = [@vm.direct-call.metadata=dart.async::_SyncStarIterable.iterator] [@vm.inferred-type.metadata=dart.async::_SyncStarIterator] [@vm.inferred-type.metadata=dart.async::_SyncStarIterable] self::useFinalizableSyncStar(finalizable).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; [@vm.direct-call.metadata=dart.async::_SyncStarIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool? (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+    for (; [@vm.direct-call.metadata=dart.async::_SyncStarIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final core::int element = [@vm.direct-call.metadata=dart.async::_SyncStarIterator.current] [@vm.inferred-type.metadata=int] :sync-for-iterator.{core::Iterator::current}{core::int};
       {
         core::print(element);
