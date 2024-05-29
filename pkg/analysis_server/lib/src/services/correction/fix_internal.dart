@@ -1347,6 +1347,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ParserErrorCode.ABSTRACT_STATIC_FIELD: [
     RemoveExtraModifier.new,
   ],
+  ParserErrorCode.ABSTRACT_STATIC_METHOD: [
+    RemoveExtraModifier.new,
+  ],
   ParserErrorCode.CONST_CLASS: [
     RemoveConst.new,
   ],

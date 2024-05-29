@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 357 "needsFix"
-# - 394 "hasFix"
+# - 356 "needsFix"
+# - 395 "hasFix"
 # - 516 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -2534,9 +2534,7 @@ ParserErrorCode.ABSTRACT_SEALED_CLASS:
 ParserErrorCode.ABSTRACT_STATIC_FIELD:
   status: hasFix
 ParserErrorCode.ABSTRACT_STATIC_METHOD:
-  status: needsFix
-  notes: |-
-    Remove the `abstract` keyword.
+  status: hasFix
 ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT:
   status: needsFix
   notes: |-

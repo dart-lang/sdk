@@ -64,6 +64,19 @@ abstract class A {
 ''');
   }
 
+  Future<void> test_abstract_static_method() async {
+    await resolveTestCode('''
+abstract class A {
+  abstract static void m;
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  static void m;
+}
+''');
+  }
+
   Future<void> test_abstractEnum() async {
     await resolveTestCode(r'''
 abstract enum E {ONE}
