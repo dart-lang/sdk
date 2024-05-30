@@ -148,7 +148,7 @@ abstract class DartType implements SharedType {
   @Deprecated('Check element, or use getDisplayString()')
   String? get name;
 
-  /// Return the nullability suffix of this type.
+  @override
   NullabilitySuffix get nullabilitySuffix;
 
   /// Use the given [visitor] to visit this type.

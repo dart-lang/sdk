@@ -442,11 +442,6 @@ class TypeSystemOperations
   }
 
   @override
-  NullabilitySuffix getNullabilitySuffix(DartType type) {
-    return type.nullabilitySuffix;
-  }
-
-  @override
   TypeDeclarationKind? getTypeDeclarationKind(DartType type) {
     if (isInterfaceType(type)) {
       return TypeDeclarationKind.interfaceDeclaration;
@@ -492,7 +487,7 @@ class TypeSystemOperations
 
   @override
   bool isDartCoreFunction(DartType type) {
-    return getNullabilitySuffix(type) == NullabilitySuffix.none &&
+    return type.nullabilitySuffix == NullabilitySuffix.none &&
         type.isDartCoreFunction;
   }
 

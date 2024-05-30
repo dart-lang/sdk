@@ -2152,15 +2152,12 @@ bool isStructuralParameterTypeWithoutNullabilityMarker(
           isNonNullableByDefault: isNonNullableByDefault);
 }
 
-bool isTypeWithoutNullabilityMarker(DartType type,
-    {required bool isNonNullableByDefault}) {
-  return !type.accept(new _NullabilityMarkerDetector(isNonNullableByDefault));
+bool isTypeWithoutNullabilityMarker(DartType type) {
+  return !type.accept(const _NullabilityMarkerDetector());
 }
 
 class _NullabilityMarkerDetector implements DartTypeVisitor<bool> {
-  final bool isNonNullableByDefault;
-
-  const _NullabilityMarkerDetector(this.isNonNullableByDefault);
+  const _NullabilityMarkerDetector();
 
   @override
   bool visitAuxiliaryType(AuxiliaryType node) {
@@ -2223,13 +2220,13 @@ class _NullabilityMarkerDetector implements DartTypeVisitor<bool> {
   @override
   bool visitTypeParameterType(TypeParameterType node) {
     return !isTypeParameterTypeWithoutNullabilityMarker(node,
-        isNonNullableByDefault: isNonNullableByDefault);
+        isNonNullableByDefault: true);
   }
 
   @override
   bool visitStructuralParameterType(StructuralParameterType node) {
     return !isStructuralParameterTypeWithoutNullabilityMarker(node,
-        isNonNullableByDefault: isNonNullableByDefault);
+        isNonNullableByDefault: true);
   }
 
   @override

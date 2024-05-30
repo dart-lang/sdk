@@ -47,9 +47,6 @@ abstract interface class TypeAnalyzerOperations<
   /// [argumentType].
   Type futureType(Type argumentType);
 
-  /// Returns the nullability modifier of [type].
-  NullabilitySuffix getNullabilitySuffix(Type type);
-
   /// If [type] was introduced by a class, mixin, enum, or extension type,
   /// returns a [TypeDeclarationKind] indicating what kind of thing it was
   /// introduced by. Otherwise, returns `null`.
