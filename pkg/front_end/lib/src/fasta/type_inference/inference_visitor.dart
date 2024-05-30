@@ -1037,8 +1037,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType t2 = otherwiseResult.inferredType;
 
     // - Let `T` be  `UP(T1, T2)`
-    DartType t = typeSchemaEnvironment.getStandardUpperBound(t1, t2,
-        isNonNullableByDefault: true);
+    DartType t = typeSchemaEnvironment.getStandardUpperBound(t1, t2);
 
     // - Let `S` be the greatest closure of `K`
     DartType s = computeGreatestClosure(typeContext);
@@ -1936,8 +1935,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     // - Let `T` be `UP(NonNull(T1), T2)`.
     DartType nonNullT1 = t1.toNonNull();
-    DartType t = typeSchemaEnvironment.getStandardUpperBound(nonNullT1, t2,
-        isNonNullableByDefault: true);
+    DartType t = typeSchemaEnvironment.getStandardUpperBound(nonNullT1, t2);
 
     // - Let `S` be the greatest closure of `K`.
     DartType s = computeGreatestClosure(typeContext);
@@ -2313,8 +2311,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         otherwiseResult == null
             ? thenResult.inferredType
             : typeSchemaEnvironment.getStandardUpperBound(
-                thenResult.inferredType, otherwiseResult.inferredType,
-                isNonNullableByDefault: true),
+                thenResult.inferredType, otherwiseResult.inferredType),
         element);
   }
 
@@ -2400,8 +2397,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         otherwiseType == null
             ? thenType
             : typeSchemaEnvironment.getStandardUpperBound(
-                thenType, otherwiseType,
-                isNonNullableByDefault: true),
+                thenType, otherwiseType),
         element);
   }
 
@@ -4121,16 +4117,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           offsets);
       int length = actualTypes.length;
       actualTypes[length - 2] = typeSchemaEnvironment.getStandardUpperBound(
-          actualKeyType, actualTypes[length - 2],
-          isNonNullableByDefault: true);
+          actualKeyType, actualTypes[length - 2]);
       actualTypes[length - 1] = typeSchemaEnvironment.getStandardUpperBound(
-          actualValueType, actualTypes[length - 1],
-          isNonNullableByDefault: true);
+          actualValueType, actualTypes[length - 1]);
       int lengthForSet = actualTypesForSet.length;
       actualTypesForSet[lengthForSet - 1] =
           typeSchemaEnvironment.getStandardUpperBound(
-              actualTypeForSet, actualTypesForSet[lengthForSet - 1],
-              isNonNullableByDefault: true);
+              actualTypeForSet, actualTypesForSet[lengthForSet - 1]);
       entry.otherwise = otherwise..parent = entry;
     }
     flowAnalysis.ifStatement_end(entry.otherwise != null);
@@ -4179,17 +4172,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       DartType actualKeyType = actualTypes.removeLast();
       int length = actualTypes.length;
       actualTypes[length - 2] = typeSchemaEnvironment.getStandardUpperBound(
-          actualKeyType, actualTypes[length - 2],
-          isNonNullableByDefault: true);
+          actualKeyType, actualTypes[length - 2]);
       actualTypes[length - 1] = typeSchemaEnvironment.getStandardUpperBound(
-          actualValueType, actualTypes[length - 1],
-          isNonNullableByDefault: true);
+          actualValueType, actualTypes[length - 1]);
       DartType actualTypeForSet = actualTypesForSet.removeLast();
       int lengthForSet = actualTypesForSet.length;
       actualTypesForSet[lengthForSet - 1] =
           typeSchemaEnvironment.getStandardUpperBound(
-              actualTypeForSet, actualTypesForSet[lengthForSet - 1],
-              isNonNullableByDefault: true);
+              actualTypeForSet, actualTypesForSet[lengthForSet - 1]);
     }
 
     entry.matchedValueType = analysisResult.matchedExpressionType;
@@ -5199,8 +5189,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType t2 = rhsType;
     //   - Let `T` be `UP(NonNull(T1), T2)`.
     DartType nonNullT1 = nonNullableReadType;
-    DartType t = typeSchemaEnvironment.getStandardUpperBound(nonNullT1, t2,
-        isNonNullableByDefault: true);
+    DartType t = typeSchemaEnvironment.getStandardUpperBound(nonNullT1, t2);
     //   - Let `S` be the greatest closure of `K`.
     DartType s = computeGreatestClosure(typeContext);
     // If `inferenceUpdate3` is not enabled, then the type of `E` is `T`.

@@ -283,8 +283,7 @@ class _SyncClosureContext implements ClosureContext {
         actualReturnedType = type;
       } else {
         actualReturnedType = inferrer.typeSchemaEnvironment
-            .getStandardUpperBound(actualReturnedType, type,
-                isNonNullableByDefault: true);
+            .getStandardUpperBound(actualReturnedType, type);
       }
     }
 
@@ -565,9 +564,8 @@ class _AsyncClosureContext implements ClosureContext {
       if (inferredType == null) {
         inferredType = unwrappedType;
       } else {
-        inferredType = inferrer.typeSchemaEnvironment.getStandardUpperBound(
-            inferredType, unwrappedType,
-            isNonNullableByDefault: true);
+        inferredType = inferrer.typeSchemaEnvironment
+            .getStandardUpperBound(inferredType, unwrappedType);
       }
     }
 
@@ -737,8 +735,7 @@ class _SyncStarClosureContext implements ClosureContext {
           inferredElementType = type;
         } else {
           inferredElementType = inferrer.typeSchemaEnvironment
-              .getStandardUpperBound(inferredElementType, type,
-                  isNonNullableByDefault: true);
+              .getStandardUpperBound(inferredElementType, type);
         }
       }
     } else if (hasImplicitReturn) {
@@ -871,8 +868,7 @@ class _AsyncStarClosureContext implements ClosureContext {
           inferredElementType = elementType;
         } else {
           inferredElementType = inferrer.typeSchemaEnvironment
-              .getStandardUpperBound(inferredElementType, elementType,
-                  isNonNullableByDefault: true);
+              .getStandardUpperBound(inferredElementType, elementType);
         }
       }
     } else if (hasImplicitReturn) {
