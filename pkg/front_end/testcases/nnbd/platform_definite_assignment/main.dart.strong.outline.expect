@@ -13,7 +13,7 @@ import "dart:core" as core;
 
 import "dart:_internal";
 
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class<T extends core::num> extends core::Object /*hasConstConstructor*/  {
   final field core::int a;
   final field self2::Class::T b;

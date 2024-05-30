@@ -11,7 +11,7 @@ import "dart:core" as prefix0;
 class Foo extends core::Object {
   final field core::int bar;
   final field core::String baz;
-  const constructor •({required core::int bar, required core::String baz}) → self::Foo
+  const constructor /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ •({required core::int bar, required core::String baz}) → self::Foo
     : self::Foo::bar = bar, self::Foo::baz = baz, super core::Object::•()
     ;
   get /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ hashCode() → core::int {

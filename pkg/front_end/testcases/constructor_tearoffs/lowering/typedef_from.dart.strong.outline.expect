@@ -5,7 +5,7 @@ import "dart:core" as core;
 import "org-dartlang-testcase:///typedef_from_lib.dart";
 
 part typedef_from_part.dart;
-typedef B<S extends core::Object? = dynamic> = self::Class<S%, core::int>;
+typedef /* from org-dartlang-testcase:///typedef_from_part.dart */ B<S extends core::Object? = dynamic> = self::Class<S%, core::int>;
 class Class<S extends core::Object? = dynamic, T extends core::Object? = dynamic> extends core::Object {
   constructor •(self::Class::S% a, self::Class::T% b) → self::Class<self::Class::S%, self::Class::T%>
     ;

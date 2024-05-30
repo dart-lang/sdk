@@ -15,10 +15,10 @@ import "dart:_internal";
 @/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 class Class extends core::Object {
   late field core::int foo /* from org-dartlang-testcase:///patch_lib.dart */;
-  constructor bar() → self2::Class
+  constructor /* from org-dartlang-testcase:///patch_lib.dart */ bar() → self2::Class
     : super core::Object::•()
     ;
-  constructor baz(core::int foo) → self2::Class
+  constructor /* from org-dartlang-testcase:///patch_lib.dart */ baz(core::int foo) → self2::Class
     : self2::Class::foo = foo, super core::Object::•()
     ;
 }

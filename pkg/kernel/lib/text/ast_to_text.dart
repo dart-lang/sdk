@@ -1179,6 +1179,9 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeModifier(node.isSynthetic, 'synthetic');
     writeWord('constructor');
     List<String> features = <String>[];
+    if (node.enclosingClass.fileUri != node.fileUri) {
+      features.add(" from ${node.fileUri} ");
+    }
     if (features.isNotEmpty) {
       writeWord("/*${features.join(',')}*/");
     }
@@ -1402,6 +1405,9 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeAnnotationList(node.annotations);
     writeIndentation();
     writeWord('typedef');
+    if (node.enclosingLibrary.fileUri != node.fileUri) {
+      writeWord("/* from ${node.fileUri} */");
+    }
     writeWord(node.name);
     writeTypeParameterList(node.typeParameters);
     writeSpaced('=');
@@ -1715,9 +1721,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
 
   @override
   void visitFileUriExpression(FileUriExpression node) {
-    if (node is FileUriConstantExpression) {
-      writeWord('/* from ${node.fileUri} */');
-    }
+    writeWord('/* from ${node.fileUri} */');
     writeExpression(node.expression);
   }
 

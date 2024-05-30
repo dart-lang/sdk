@@ -15,7 +15,7 @@ import "dart:_internal";
 
 typedef Alias<T extends core::num> = self2::Class<T>;
 typedef AliasImpl<T extends core::num> = self2::ClassImpl<T>;
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class<T extends core::Object? = dynamic> extends core::Object {
   @_in::patch
   external constructor •({core::bool defaultValue = true, required self2::Class::T% value}) → self2::Class<self2::Class::T%>;
@@ -28,7 +28,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
   external static factory redirect2<T extends core::Object? = dynamic>({core::bool defaultValue = null, required self2::Class::redirect2::T% value}) → self2::Class<self2::Class::redirect2::T%> /* redirection-target: self2::ClassImpl::patched<self2::Class::redirect2::T%>*/
     return new self2::ClassImpl::patched<self2::Class::redirect2::T%>(defaultValue: defaultValue, value: value);
 }
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class ClassImpl<T extends core::Object? = dynamic> extends core::Object implements self2::Class<self2::ClassImpl::T%> {
   constructor •({core::bool defaultValue = true, required self2::ClassImpl::T% value}) → self2::ClassImpl<self2::ClassImpl::T%>
     ;

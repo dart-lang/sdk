@@ -56,7 +56,7 @@ export "org-dartlang-malformed-uri:?%3Ad";
 import "org-dartlang-malformed-uri:?%3Aa";
 export "org-dartlang-malformed-uri:?%3Ab";
 
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class extends core::Object {
   synthetic constructor •() → self2::Class
     ;

@@ -94,10 +94,10 @@ class ExistingOriginClass#0#1 extends core::Object { // from org-dartlang-testca
   synthetic constructor •() → self2::ExistingOriginClass#0#1
     ;
 }
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class extends core::Object {
   @_in::patch
-  constructor missingOriginConstructor() → self2::Class
+  constructor /* from org-dartlang-testcase:///patch_lib.dart */ missingOriginConstructor() → self2::Class
     ;
   constructor •() → self2::Class
     ;

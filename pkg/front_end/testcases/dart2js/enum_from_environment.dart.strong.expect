@@ -43,18 +43,18 @@ static method method(self::A a) → core::String {
 
 constants  {
   #C1 = "a"
-  #C2 = eval const core::int::fromEnvironment(#C1)
-  #C3 = eval self::B{value:#C2}
+  #C2 = eval /* from org-dartlang-testcase:///enum_from_environment.dart */ const core::int::fromEnvironment(#C1)
+  #C3 = eval /* from org-dartlang-testcase:///enum_from_environment.dart */ self::B{value:#C2}
   #C4 = 0.0
-  #C5 = eval self::A{value:#C3, index:#C4, _name:#C1}
-  #C6 = eval const <dynamic>[#C5]
+  #C5 = eval /* from org-dartlang-testcase:///enum_from_environment.dart */ self::A{value:#C3, index:#C4, _name:#C1}
+  #C6 = eval /* from org-dartlang-testcase:///enum_from_environment.dart */ const <dynamic>[#C5]
   #C7 = "b"
-  #C8 = eval const core::int::fromEnvironment(#C7)
-  #C9 = eval self::B{value:#C8}
+  #C8 = eval /* from org-dartlang-testcase:///enum_from_environment.dart */ const core::int::fromEnvironment(#C7)
+  #C9 = eval /* from org-dartlang-testcase:///enum_from_environment.dart */ self::B{value:#C8}
   #C10 = 1.0
-  #C11 = eval self::A{value:#C9, index:#C10, _name:#C7}
-  #C12 = eval const <dynamic>[#C11]
-  #C13 = eval #C6 + #C12
+  #C11 = eval /* from org-dartlang-testcase:///enum_from_environment.dart */ self::A{value:#C9, index:#C10, _name:#C7}
+  #C12 = eval /* from org-dartlang-testcase:///enum_from_environment.dart */ const <dynamic>[#C11]
+  #C13 = eval /* from org-dartlang-testcase:///enum_from_environment.dart */ #C6 + #C12
 }
 
 

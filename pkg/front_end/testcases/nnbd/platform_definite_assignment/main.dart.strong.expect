@@ -66,7 +66,7 @@ class Class<T extends core::num> extends core::Object /*hasConstConstructor*/  {
     ^" in k;
   }
   @#C1
-  constructor patchedConstructor(core::int i, test::Class::T j) → test::Class<test::Class::T>
+  constructor /* from org-dartlang-testcase:///patch_lib.dart */ patchedConstructor(core::int i, test::Class::T j) → test::Class<test::Class::T>
     : test::Class::a = i, test::Class::b = j, super core::Object::•() {
     core::int k;
     invalid-expression "pkg/front_end/testcases/nnbd/platform_definite_assignment/patch_lib.dart:15:5: Error: Non-nullable variable 'k' must be assigned before it can be used.

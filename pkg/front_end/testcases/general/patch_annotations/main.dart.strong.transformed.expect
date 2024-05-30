@@ -21,7 +21,7 @@ class Class<@#C12 @#C14 T extends core::Object? = dynamic> extends core::Object 
   @#C6
   @#C16
   @/* from org-dartlang-testcase:///origin_lib.dart */ #C18
-  external constructor •() → self2::Class<self2::Class::T%>;
+  external constructor /* from org-dartlang-testcase:///patch_lib.dart */ •() → self2::Class<self2::Class::T%>;
   @#C6
   @#C20
   @/* from org-dartlang-testcase:///origin_lib.dart */ #C22
