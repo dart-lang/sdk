@@ -10,9 +10,122 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:meta/meta.dart';
+
+class CreateExtensionGetter extends ResolvedCorrectionProducer {
+  String _getterName = '';
+
+  @override
+  CorrectionApplicability get applicability {
+    // Not predictably the correct action.
+    return CorrectionApplicability.singleLocation;
+  }
+
+  @override
+  List<String> get fixArguments => [_getterName];
+
+  @override
+  FixKind get fixKind => DartFixKind.CREATE_EXTENSION_GETTER;
+
+  @override
+  Future<void> compute(ChangeBuilder builder) async {
+    var nameNode = node;
+    if (nameNode is! SimpleIdentifier) {
+      return;
+    }
+    if (!nameNode.inGetterContext()) {
+      return;
+    }
+
+    _getterName = nameNode.name;
+
+    // prepare target
+    Expression? target;
+    switch (nameNode.parent) {
+      case PrefixedIdentifier prefixedIdentifier:
+        if (prefixedIdentifier.identifier == nameNode) {
+          target = prefixedIdentifier.prefix;
+        }
+      case PropertyAccess propertyAccess:
+        if (propertyAccess.propertyName == nameNode) {
+          target = propertyAccess.target;
+        }
+    }
+    if (target == null) {
+      return;
+    }
+
+    // We need the type for the extension.
+    var targetType = target.staticType;
+    if (targetType == null ||
+        targetType is DynamicType ||
+        targetType is InvalidType) {
+      return;
+    }
+
+    // Try to find the type of the field.
+    var fieldTypeNode = climbPropertyAccess(nameNode);
+    var fieldType = inferUndefinedExpressionType(fieldTypeNode);
+
+    void writeGetter(DartEditBuilder builder) {
+      if (fieldType != null) {
+        builder.writeType(fieldType);
+        builder.write(' ');
+      }
+      builder.write('get $_getterName => ');
+      builder.addLinkedEdit('VALUE', (builder) {
+        builder.write('null');
+      });
+      builder.write(';');
+    }
+
+    // Try to add to an existing extension.
+    for (var existingExtension in unitResult.unit.declarations) {
+      if (existingExtension is ExtensionDeclaration) {
+        var element = existingExtension.declaredElement!;
+        var instantiated = [element].applicableTo(
+          targetLibrary: libraryElement,
+          targetType: targetType,
+          strictCasts: true,
+        );
+        if (instantiated.isNotEmpty) {
+          await builder.addDartFileEdit(file, (builder) {
+            builder.insertGetter(existingExtension, (builder) {
+              writeGetter(builder);
+            });
+          });
+          return;
+        }
+      }
+    }
+
+    // The new extension should be added after it.
+    var enclosingUnitChild = nameNode.enclosingUnitChild;
+    if (enclosingUnitChild == null) {
+      return;
+    }
+
+    // Add a new extension.
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addInsertion(enclosingUnitChild.end, (builder) {
+        builder.writeln();
+        builder.writeln();
+        builder.write('extension on ');
+        builder.writeType(targetType);
+        builder.writeln(' {');
+        builder.write('  ');
+        writeGetter(builder);
+        builder.writeln();
+        builder.write('}');
+      });
+    });
+  }
+}
 
 /// Shared implementation that identifies what getter should be added,
 /// but delegates to the subtypes to produce the fix code.

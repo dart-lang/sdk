@@ -681,6 +681,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     'Create constructor to call {0}',
   );
+  static const CREATE_EXTENSION_GETTER = FixKind(
+    'dart.fix.create.extension.getter',
+    DartFixKindPriority.DEFAULT - 20,
+    "Create extension getter '{0}'",
+  );
   static const CREATE_FIELD = FixKind(
     'dart.fix.create.field',
     49,

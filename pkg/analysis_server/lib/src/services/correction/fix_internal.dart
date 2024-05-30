@@ -1261,6 +1261,7 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.UNDEFINED_GETTER: [
     ChangeTo.getterOrSetter,
     CreateClass.new,
+    CreateExtensionGetter.new,
     CreateField.new,
     CreateGetter.new,
     CreateLocalVariable.new,
