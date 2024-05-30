@@ -84,8 +84,8 @@ class InjectedClass extends core::Object { // from org-dartlang-testcase:///libr
   synthetic constructor •() → self2::InjectedClass
     ;
 }
-class OrphanedClass extends core::Object { // from org-dartlang-testcase:///library_members_lib.dart
-  synthetic constructor •() → self2::OrphanedClass
+class _#OrphanedClass#augmentationWithoutOrigin0 extends core::Object { // from org-dartlang-testcase:///library_members_lib.dart
+  synthetic constructor •() → self2::_#OrphanedClass#augmentationWithoutOrigin0
     ;
 }
 class ExistingClass extends core::Object {

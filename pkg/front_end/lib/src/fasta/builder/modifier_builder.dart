@@ -38,6 +38,9 @@ abstract class ModifierBuilderImpl extends BuilderImpl
   bool get isStatic => (modifiers & staticMask) != 0;
 
   @override
+  bool get isAugment => (modifiers & augmentMask) != 0;
+
+  @override
   bool get isNative => false;
 
   StringBuffer printOn(StringBuffer buffer) {

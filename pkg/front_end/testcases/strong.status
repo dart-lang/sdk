@@ -118,7 +118,7 @@ general/supported_libraries/main: SemiFuzzFailure
 general/with_dependencies/issue_43084/issue_43084: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242543
 regress/utf_16_le_content.crash: SemiFuzzCrash
 
-macros/scope_access: SemiFuzzCrash
+macros/scope_access: semiFuzzFailureOnForceRebuildBodies # probably augment imports that isn't split correctly. Previously was: SemiFuzzCrash
 
 dart2js/flutter_issue94561/main: SemiFuzzFailure
 dart2js/flutter_issue94561/main.no_link: SemiFuzzFailure
@@ -126,7 +126,7 @@ static_field_lowering/opt_in: SemiFuzzFailure
 
 dart2js/mixin_super/main: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49339
 macros/augment_concrete: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49414
-macros/extend_augmented: SemiFuzzFailure # Similar to https://github.com/dart-lang/sdk/issues/49414
+macros/extend_augmented: semiFuzzFailureOnForceRebuildBodies # probably augment imports that isn't split correctly. Previously was: SemiFuzzFailure # Similar to https://github.com/dart-lang/sdk/issues/49414
 
 const_functions/const_functions_list: SemiFuzzCrash
 
@@ -134,8 +134,9 @@ dart2js/mixin_from_opt_in/main: SemiFuzzFailure # seems like the difference betw
 dart2js/mixin_from_opt_in/main.no_link: SemiFuzzFailure # seems like the difference between normal and no-link version: it goes from InstanceInvocation to InvalidExpression
 late_lowering/private_members: SemiFuzzFailure # Reproduced in https://dart-review.googlesource.com/c/sdk/+/242285
 macros/multiple_imports: SemiFuzzFailure # probably augment imports that isn't split correctly.
+macros/augment_same_file: SemiFuzzFailure # probably augment imports that isn't split correctly.
 nnbd/constants: SemiFuzzFailure # Reproduced in https://dart-review.googlesource.com/c/sdk/+/242441
-macros/multiple_augment_class: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49990
+macros/multiple_augment_class: semiFuzzFailureOnForceRebuildBodies # probably augment imports that isn't split correctly. Previously was: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49990
 
 # These tests have "privacy issues" and isn't compatible with splitting files (fuzzing):
 dart2js/mixin_default_values/main: semiFuzzFailureOnForceRebuildBodies # private method

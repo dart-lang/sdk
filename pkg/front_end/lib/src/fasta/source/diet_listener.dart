@@ -332,6 +332,12 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
+  void beginTopLevelMethod(
+      Token lastConsumed, Token? augmentToken, Token? externalToken) {
+    debugEvent("TopLevelMethod");
+  }
+
+  @override
   void endTopLevelMethod(Token beginToken, Token? getOrSet, Token endToken) {
     assert(checkState(beginToken, [
       /* bodyToken */ ValueKinds.Token,

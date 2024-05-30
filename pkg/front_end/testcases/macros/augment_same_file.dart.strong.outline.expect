@@ -1,0 +1,15 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///augment_same_file.dart";
+
+static field core::String _message /* from org-dartlang-testcase:///augment_same_file_lib.dart */;
+static method main() → dynamic
+  ;
+static method expectEquals(dynamic x, dynamic y) → dynamic
+  ;
+static method /* from org-dartlang-testcase:///augment_same_file_lib.dart */ foo() → core::String
+  ;
+static set /* from org-dartlang-testcase:///augment_same_file_lib.dart */ message(core::String variable) → void
+  ;

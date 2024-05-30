@@ -169,12 +169,18 @@ class Scope extends MutableScope {
 
   Map<String, List<int>>? usedNames;
 
+  Map<String, List<Builder>>? augmentations;
+
+  Map<String, List<Builder>>? setterAugmentations;
+
   Scope(
       {required ScopeKind kind,
       Map<String, Builder>? local,
       Map<String, MemberBuilder>? setters,
       Set<ExtensionBuilder>? extensions,
       Scope? parent,
+      this.augmentations,
+      this.setterAugmentations,
       required String debugName,
       this.isModifiable = true})
       : super(kind, local, setters, extensions, parent, debugName);
@@ -1515,6 +1521,16 @@ abstract class MergedScope<T extends Builder> {
           name, member, _originScope.lookupLocalMember(name, setter: false),
           setter: false, inPatchLibrary: inPatchLibrary);
     });
+    Map<String, List<Builder>>? augmentations = scope.augmentations;
+    if (augmentations != null) {
+      for (String augmentedName in augmentations.keys) {
+        for (Builder augmentation in augmentations[augmentedName]!) {
+          _addBuilderToMergedScope(augmentedName, augmentation,
+              _originScope.lookupLocalMember(augmentedName, setter: false),
+              setter: false, inPatchLibrary: inPatchLibrary);
+        }
+      }
+    }
     scope.forEachLocalSetter((String name, Builder member) {
       // In case of duplicates we use the first declaration.
       while (member.isDuplicate) {
@@ -1524,6 +1540,16 @@ abstract class MergedScope<T extends Builder> {
           name, member, _originScope.lookupLocalMember(name, setter: true),
           setter: true, inPatchLibrary: inPatchLibrary);
     });
+    Map<String, List<Builder>>? setterAugmentations = scope.setterAugmentations;
+    if (setterAugmentations != null) {
+      for (String augmentedName in setterAugmentations.keys) {
+        for (Builder augmentation in setterAugmentations[augmentedName]!) {
+          _addBuilderToMergedScope(augmentedName, augmentation,
+              _originScope.lookupLocalMember(augmentedName, setter: true),
+              setter: true, inPatchLibrary: inPatchLibrary);
+        }
+      }
+    }
     scope.forEachLocalExtension((ExtensionBuilder extensionBuilder) {
       if (extensionBuilder is SourceExtensionBuilder &&
           extensionBuilder.isUnnamedExtension) {
