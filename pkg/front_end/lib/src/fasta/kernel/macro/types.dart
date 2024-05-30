@@ -311,8 +311,7 @@ class MacroTypes {
   }
 }
 
-class _StaticTypeImpl<T extends macro.StaticType>
-    extends macro.StaticTypeImpl<T> {
+class _StaticTypeImpl extends macro.StaticTypeImpl {
   final MacroTypes types;
   final DartType type;
 
@@ -372,7 +371,7 @@ class _StaticTypeImpl<T extends macro.StaticType>
   }
 }
 
-class _NamedStaticTypeImpl extends _StaticTypeImpl<macro.NamedStaticType>
+class _NamedStaticTypeImpl extends _StaticTypeImpl
     implements macro.NamedStaticType {
   @override
   final macro.ParameterizedTypeDeclaration declaration;

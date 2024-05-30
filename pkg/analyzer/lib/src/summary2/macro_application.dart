@@ -1276,13 +1276,13 @@ class _DefinitionPhaseIntrospector extends _DeclarationPhaseIntrospector
   }
 }
 
-class _InterfaceTypeImpl extends _StaticTypeImpl<macro.NamedStaticType>
+class _InterfaceTypeImpl extends _StaticTypeImpl
     implements macro.NamedStaticTypeImpl {
   @override
   final macro.ParameterizedTypeDeclarationImpl declaration;
 
   @override
-  final List<macro.StaticTypeImpl<macro.StaticType>> typeArguments;
+  final List<macro.StaticTypeImpl> typeArguments;
 
   _InterfaceTypeImpl(
     super.id, {
@@ -1341,8 +1341,7 @@ class _MacroTarget {
   });
 }
 
-class _StaticTypeImpl<T extends macro.StaticType>
-    extends macro.StaticTypeImpl<T> {
+class _StaticTypeImpl extends macro.StaticTypeImpl {
   final TypeSystemImpl typeSystem;
   final _DeclarationPhaseIntrospector introspector;
   final DartType type;

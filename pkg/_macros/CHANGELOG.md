@@ -1,3 +1,7 @@
+## 0.3.0
+
+- Remove type parameter on internal `StaticType` implementation.
+
 ## 0.2.0
 
 - Add identifiers to `NamedStaticType`.
