@@ -67,6 +67,7 @@ library kernel.ast;
 import 'dart:collection' show ListBase;
 import 'dart:convert' show utf8;
 
+import 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     show Variance;
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart'
@@ -11039,6 +11040,19 @@ sealed class DartType extends Node implements SharedType {
   /// int` where `X extends Object?`
   /// is [Nullability.nonNullable].
   Nullability get nullability;
+
+  @override
+  NullabilitySuffix get nullabilitySuffix {
+    if (isTypeWithoutNullabilityMarker(this)) {
+      return NullabilitySuffix.none;
+    } else if (isNullableTypeConstructorApplication(this)) {
+      return NullabilitySuffix.question;
+    } else {
+      assert(isLegacyTypeConstructorApplication(this,
+          isNonNullableByDefault: true));
+      return NullabilitySuffix.star;
+    }
+  }
 
   /// If this is a typedef type, repeatedly unfolds its type definition until
   /// the root term is not a typedef type, otherwise returns the type itself.

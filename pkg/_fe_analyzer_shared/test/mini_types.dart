@@ -393,8 +393,7 @@ class RecordType extends Type implements SharedRecordType<Type> {
 /// defeat this behavior (e.g. so that a type can be passed to `expect`, use
 /// [Type.withComparisonsAllowed].
 abstract class Type implements SharedType {
-  /// If this type ends in a suffix (`?` or `*`), the suffix it ends with;
-  /// otherwise [NullabilitySuffix.none].
+  @override
   final NullabilitySuffix nullabilitySuffix;
 
   factory Type(String typeStr) => _TypeParser.parse(typeStr);

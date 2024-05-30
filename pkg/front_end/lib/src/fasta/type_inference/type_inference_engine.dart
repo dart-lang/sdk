@@ -504,19 +504,6 @@ class OperationsCfe
   }
 
   @override
-  NullabilitySuffix getNullabilitySuffix(DartType type) {
-    if (isTypeWithoutNullabilityMarker(type)) {
-      return NullabilitySuffix.none;
-    } else if (isNullableTypeConstructorApplication(type)) {
-      return NullabilitySuffix.question;
-    } else {
-      assert(isLegacyTypeConstructorApplication(type,
-          isNonNullableByDefault: true));
-      return NullabilitySuffix.star;
-    }
-  }
-
-  @override
   DartType factor(DartType from, DartType what) {
     return factorType(typeEnvironment, from, what);
   }

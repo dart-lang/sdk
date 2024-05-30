@@ -395,7 +395,7 @@ class TypeConstraintGatherer {
     // If P is a type variable X in L, then the match holds:
     //
     // Under constraint _ <: X <: Q.
-    NullabilitySuffix pNullability = typeOperations.getNullabilitySuffix(p);
+    NullabilitySuffix pNullability = p.nullabilitySuffix;
     if (typeOperations.matchInferableParameter(p)
         case StructuralParameter pParameter?
         when pNullability == NullabilitySuffix.none &&
@@ -408,7 +408,7 @@ class TypeConstraintGatherer {
     // If Q is a type variable X in L, then the match holds:
     //
     // Under constraint P <: X <: _.
-    NullabilitySuffix qNullability = typeOperations.getNullabilitySuffix(q);
+    NullabilitySuffix qNullability = q.nullabilitySuffix;
     if (typeOperations.matchInferableParameter(q)
         case StructuralParameter qParameter?
         when qNullability == NullabilitySuffix.none &&
