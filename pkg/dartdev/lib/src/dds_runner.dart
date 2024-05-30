@@ -50,7 +50,7 @@ class DDSRunner {
     const devToolsMessagePrefix =
         'The Dart DevTools debugger and profiler is available at:';
     if (debugDds) {
-      late StreamSubscription stdoutSub;
+      late final StreamSubscription stdoutSub;
       stdoutSub = process.stdout.transform(utf8.decoder).listen((event) {
         if (event.startsWith(devToolsMessagePrefix)) {
           final ddsDebuggingUri = event.split(' ').last;
@@ -61,7 +61,7 @@ class DDSRunner {
         }
       });
     }
-    late StreamSubscription stderrSub;
+    late final StreamSubscription stderrSub;
     stderrSub = process.stderr.transform(utf8.decoder).listen((event) {
       final result = json.decode(event) as Map<String, dynamic>;
       final state = result['state'];

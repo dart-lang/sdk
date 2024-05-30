@@ -895,8 +895,8 @@ Sets the verbosity level of the compilation.
     flagDefaultsTo: true,
   );
 
-  late final Option defineOption;
-  late final Option packagesOption;
+  final Option defineOption;
+  final Option packagesOption;
 
   CompileSubcommandCommand(super.name, super.description, super.verbose,
       {super.hidden})
