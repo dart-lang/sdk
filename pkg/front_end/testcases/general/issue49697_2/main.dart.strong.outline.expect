@@ -50,9 +50,9 @@ import self as mai;
 import "dart:core" as core;
 
 class C extends core::_Enum /*isEnum*/  {
-  static const field core::List<mai::C> values = #C7;
-  enum-element static const field mai::C a = #C3;
-  enum-element static const field mai::C b = #C6;
+  static const field core::List<mai::C> values = const <mai::C>[mai::C::a, mai::C::b];
+  enum-element static const field mai::C a = const mai::C::•(0, "a");
+  enum-element static const field mai::C b = const mai::C::•(1, "b");
   const synthetic constructor •(core::int #index, core::String #name) → mai::C
     : super core::_Enum::•(#index, #name)
     ;
@@ -60,10 +60,10 @@ class C extends core::_Enum /*isEnum*/  {
     return "C.${this.{core::_Enum::_name}{core::String}}";
 }
 class D extends core::_Enum /*isEnum*/  {
-  static const field core::List<mai::D> values = #C10;
-  static const field mai::D c = #C8;
-  enum-element static const field mai::D a = #C8;
-  enum-element static const field mai::D b = #C9;
+  static const field core::List<mai::D> values = const <mai::D>[mai::D::a, mai::D::b];
+  static const field mai::D c = mai::D::a;
+  enum-element static const field mai::D a = const mai::D::•(0, "a");
+  enum-element static const field mai::D b = const mai::D::•(1, "b");
   const synthetic constructor •(core::int #index, core::String #name) → mai::D
     : super core::_Enum::•(#index, #name)
     ;
@@ -71,18 +71,6 @@ class D extends core::_Enum /*isEnum*/  {
     return "D.${this.{core::_Enum::_name}{core::String}}";
 }
 
-constants  {
-  #C1 = 0
-  #C2 = "a"
-  #C3 = mai::C {index:#C1, _name:#C2}
-  #C4 = 1
-  #C5 = "b"
-  #C6 = mai::C {index:#C4, _name:#C5}
-  #C7 = <mai::C>[#C3, #C6]
-  #C8 = mai::D {index:#C1, _name:#C2}
-  #C9 = mai::D {index:#C4, _name:#C5}
-  #C10 = <mai::D>[#C8, #C9]
-}
 
 Extra constant evaluation status:
 Evaluated: ListLiteral @ org-dartlang-testcase:///main.dart:7:6 -> ListConstant(const <A>[const A{_Enum.index: 0, _Enum._name: "a"}, const A{_Enum.index: 1, _Enum._name: "b"}])
@@ -92,12 +80,11 @@ Evaluated: ListLiteral @ org-dartlang-testcase:///main.dart:9:6 -> ListConstant(
 Evaluated: StaticGet @ org-dartlang-testcase:///main.dart:13:24 -> InstanceConstant(const B{_Enum.index: 0, _Enum._name: "a"})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main.dart:10:3 -> InstanceConstant(const B{_Enum.index: 0, _Enum._name: "a"})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main.dart:11:3 -> InstanceConstant(const B{_Enum.index: 1, _Enum._name: "b"})
-Extra constant evaluation: evaluated: 27, effectively constant: 7
-
-
-Constructor coverage from constants:
-org-dartlang-testcase:///main_lib.dart:
-- C. (from org-dartlang-testcase:///main_lib.dart:5:6)
-- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
-- D. (from org-dartlang-testcase:///main_lib.dart:7:6)
+Evaluated: ListLiteral @ org-dartlang-testcase:///main_lib.dart:5:6 -> ListConstant(const <C>[const C{_Enum.index: 0, _Enum._name: "a"}, const C{_Enum.index: 1, _Enum._name: "b"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib.dart:5:10 -> InstanceConstant(const C{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib.dart:5:13 -> InstanceConstant(const C{_Enum.index: 1, _Enum._name: "b"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///main_lib.dart:7:6 -> ListConstant(const <D>[const D{_Enum.index: 0, _Enum._name: "a"}, const D{_Enum.index: 1, _Enum._name: "b"}])
+Evaluated: StaticGet @ org-dartlang-testcase:///main_lib.dart:11:24 -> InstanceConstant(const D{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib.dart:8:3 -> InstanceConstant(const D{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib.dart:9:3 -> InstanceConstant(const D{_Enum.index: 1, _Enum._name: "b"})
+Extra constant evaluation: evaluated: 34, effectively constant: 14

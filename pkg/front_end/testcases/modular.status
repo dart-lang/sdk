@@ -72,9 +72,3 @@ nnbd/issue42603: TypeCheckError
 no_such_method_forwarders/mixin_nsm: TypeCheckError
 runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError
 
-# outline should not perform modular transformation
-dart2js/flutter_issue94561/main: ExpectationFileMismatch
-dart2js/mixin_super/main: ExpectationFileMismatch
-general/with_dependencies/mixin_from_dill/mixin_from_dill: ExpectationFileMismatch
-nnbd_mixed/hierarchy/in_dill_out_in/in_out_in: ExpectationFileMismatch
-nnbd_mixed/mixin_from_opt_in/main: ExpectationFileMismatch

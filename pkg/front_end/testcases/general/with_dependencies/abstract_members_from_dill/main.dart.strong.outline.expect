@@ -18,10 +18,11 @@ import "dart:core" as core;
 class A extends core::Object {
   synthetic constructor •() → mai::A
     ;
-  @#C1
+  @core::override
   abstract method noSuchMethod(core::Invocation invocation) → dynamic;
 }
 
-constants  {
-  #C1 = core::_Override {}
-}
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///main_lib.dart:6:4 -> InstanceConstant(const _Override{})
+Extra constant evaluation: evaluated: 1, effectively constant: 1
