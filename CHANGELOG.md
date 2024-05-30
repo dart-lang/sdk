@@ -1,3 +1,12 @@
+## 3.4.3
+
+This is a patch release that:
+
+- Fixes an issue where `DART_VM_OPTIONS` were not correctly parsed for
+  standalone Dart executables created with `dart compile exe` (issue [#55767]).
+
+[#55767]: https://github.com/dart-lang/sdk/issues/55767
+
 ## 3.4.2 - 2024-05-29
 
 This is a patch release that:
