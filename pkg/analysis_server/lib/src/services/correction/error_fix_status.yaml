@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 354 "needsFix"
-# - 397 "hasFix"
+# - 353 "needsFix"
+# - 398 "hasFix"
 # - 516 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -3237,9 +3237,7 @@ ParserErrorCode.SEALED_MIXIN:
   notes: |-
     Remove the `sealed` keyword.
 ParserErrorCode.SEALED_MIXIN_CLASS:
-  status: needsFix
-  notes: |-
-    Remove the `sealed` keyword.
+  status: hasFix
 ParserErrorCode.SETTER_CONSTRUCTOR:
   status: needsFix
   notes: |-

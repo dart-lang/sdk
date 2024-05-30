@@ -131,6 +131,15 @@ typedef F();
 ''');
   }
 
+  Future<void> test_class_sealed_mixin() async {
+    await resolveTestCode('''
+sealed mixin class A {}
+''');
+    await assertHasFix('''
+mixin class A {}
+''');
+  }
+
   Future<void> test_covariantTopLevelDeclaration_class() async {
     await resolveTestCode(r'''
 covariant class C {}
