@@ -1562,7 +1562,7 @@ extension EnumExtension on EnumEnd {
 
   IdentifierHandle getEnumIdentifier() {
     ParserAstNode? parent = this.parent;
-    if (parent is! TopLevelDeclarationEnd) throw "Now nested as expected";
+    if (parent is! TopLevelDeclarationEnd) throw "Not nested as expected";
     return parent.getIdentifier();
   }
 
@@ -1629,6 +1629,10 @@ extension TopLevelMethodExtension on TopLevelMethodEnd {
       }
     }
     throw "Didn't find the name identifier!";
+  }
+
+  Token getNameIdentifierToken() {
+    return getNameIdentifier().token;
   }
 }
 
@@ -1814,6 +1818,14 @@ extension TopLevelFieldsExtension on TopLevelFieldsEnd {
   }
 }
 
+bool _isTypeOrNoType(ParserAstNode node) {
+  return node is TypeHandle ||
+      node is RecordTypeEnd ||
+      node is NoTypeHandle ||
+      node is VoidKeywordHandle ||
+      node is FunctionTypeEnd;
+}
+
 extension ClassMethodExtension on ClassMethodEnd {
   BlockFunctionBodyEnd? getBlockFunctionBody() {
     for (ParserAstNode child in children!) {
@@ -1824,86 +1836,86 @@ extension ClassMethodExtension on ClassMethodEnd {
     return null;
   }
 
-  String getNameIdentifier() {
+  Token getNameIdentifierToken() {
     bool foundType = false;
     for (ParserAstNode child in children!) {
-      if (child is TypeHandle ||
-          child is RecordTypeEnd ||
-          child is NoTypeHandle ||
-          child is VoidKeywordHandle ||
-          child is FunctionTypeEnd) {
+      if (_isTypeOrNoType(child)) {
         foundType = true;
       }
       if (foundType && child is IdentifierHandle) {
-        return child.token.lexeme;
+        return child.token;
       } else if (foundType && child is OperatorNameHandle) {
-        return child.token.lexeme;
+        return child.token;
       }
     }
     throw "No identifier found: $children";
+  }
+
+  String getNameIdentifier() {
+    return getNameIdentifierToken().lexeme;
   }
 }
 
 extension MixinMethodExtension on MixinMethodEnd {
-  String getNameIdentifier() {
+  Token getNameIdentifierToken() {
     bool foundType = false;
     for (ParserAstNode child in children!) {
-      if (child is TypeHandle ||
-          child is RecordTypeEnd ||
-          child is NoTypeHandle ||
-          child is VoidKeywordHandle ||
-          child is FunctionTypeEnd) {
+      if (_isTypeOrNoType(child)) {
         foundType = true;
       }
       if (foundType && child is IdentifierHandle) {
-        return child.token.lexeme;
+        return child.token;
       } else if (foundType && child is OperatorNameHandle) {
-        return child.token.lexeme;
+        return child.token;
       }
     }
     throw "No identifier found: $children";
+  }
+
+  String getNameIdentifier() {
+    return getNameIdentifierToken().lexeme;
   }
 }
 
 extension ExtensionMethodExtension on ExtensionMethodEnd {
-  String getNameIdentifier() {
+  Token getNameIdentifierToken() {
     bool foundType = false;
     for (ParserAstNode child in children!) {
-      if (child is TypeHandle ||
-          child is RecordTypeEnd ||
-          child is NoTypeHandle ||
-          child is VoidKeywordHandle ||
-          child is FunctionTypeEnd) {
+      if (_isTypeOrNoType(child)) {
         foundType = true;
       }
       if (foundType && child is IdentifierHandle) {
-        return child.token.lexeme;
+        return child.token;
       } else if (foundType && child is OperatorNameHandle) {
-        return child.token.lexeme;
+        return child.token;
       }
     }
     throw "No identifier found: $children";
   }
+
+  String getNameIdentifier() {
+    return getNameIdentifierToken().lexeme;
+  }
 }
 
 extension ExtensionTypeMethodExtension on ExtensionTypeMethodEnd {
-  String getNameIdentifier() {
+  Token getNameIdentifierToken() {
     bool foundType = false;
     for (ParserAstNode child in children!) {
-      if (child is TypeHandle ||
-          child is RecordTypeEnd ||
-          child is NoTypeHandle ||
-          child is VoidKeywordHandle ||
-          child is FunctionTypeEnd) {
+      if (_isTypeOrNoType(child)) {
         foundType = true;
       }
       if (foundType && child is IdentifierHandle) {
-        return child.token.lexeme;
+        return child.token;
       } else if (foundType && child is OperatorNameHandle) {
-        return child.token.lexeme;
+        return child.token;
       }
     }
     throw "No identifier found: $children";
+  }
+
+  String getNameIdentifier() {
+    return getNameIdentifierToken().lexeme;
   }
 }
 
@@ -1911,11 +1923,7 @@ extension EnumMethodExtension on EnumMethodEnd {
   String getNameIdentifier() {
     bool foundType = false;
     for (ParserAstNode child in children!) {
-      if (child is TypeHandle ||
-          child is RecordTypeEnd ||
-          child is NoTypeHandle ||
-          child is VoidKeywordHandle ||
-          child is FunctionTypeEnd) {
+      if (_isTypeOrNoType(child)) {
         foundType = true;
       }
       if (foundType && child is IdentifierHandle) {
