@@ -51,6 +51,21 @@ class C {}
 ''');
   }
 
+  Future<void> test_constFactoryConstructor() async {
+    await resolveTestCode('''
+class C {
+  C._();
+  const factory C() => C._();
+}
+''');
+    await assertHasFix('''
+class C {
+  C._();
+  factory C() => C._();
+}
+''');
+  }
+
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49818')
   Future<void> test_constInitializedWithNonConstantValue() async {
     await resolveTestCode('''

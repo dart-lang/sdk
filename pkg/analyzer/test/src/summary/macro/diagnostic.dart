@@ -6,6 +6,22 @@ import 'dart:async';
 
 import 'package:macros/macros.dart';
 
+int? _verbIndex(String step, String verb) {
+  var indexStr = _verbSuffix(step, verb);
+  if (indexStr != null) {
+    return int.parse(indexStr);
+  }
+  return null;
+}
+
+String? _verbSuffix(String step, String verb) {
+  var prefix = '$verb ';
+  if (step.startsWith(prefix)) {
+    return step.substring(prefix.length);
+  }
+  return null;
+}
+
 /*macro*/ class AskFieldsWillThrow implements ClassDefinitionMacro {
   const AskFieldsWillThrow();
 
@@ -39,6 +55,96 @@ import 'package:macros/macros.dart';
 
   @override
   buildTypesForClass(clazz, builder) {}
+}
+
+/*macro*/ class ReportAtDeclaration
+    implements
+        ClassDeclarationsMacro,
+        FunctionDeclarationsMacro,
+        MethodDeclarationsMacro,
+        MixinDeclarationsMacro,
+        TypeAliasDeclarationsMacro {
+  final List<String> pathList;
+
+  const ReportAtDeclaration(this.pathList);
+
+  @override
+  buildDeclarationsForClass(declaration, builder) async {
+    await _report(declaration, builder);
+  }
+
+  @override
+  buildDeclarationsForFunction(declaration, builder) async {
+    await _report(declaration, builder);
+  }
+
+  @override
+  buildDeclarationsForMethod(declaration, builder) async {
+    await _report(declaration, builder);
+  }
+
+  @override
+  buildDeclarationsForMixin(declaration, builder) async {
+    await _report(declaration, builder);
+  }
+
+  @override
+  buildDeclarationsForTypeAlias(declaration, builder) async {
+    await _report(declaration, builder);
+  }
+
+  Future<Declaration> _getTarget(
+    Declaration declaration,
+    DeclarationBuilder builder,
+  ) async {
+    var current = await _nextTarget(builder, declaration, pathList.first);
+    for (var step in pathList.skip(1)) {
+      current = await _nextTarget(builder, current, step);
+    }
+    return current;
+  }
+
+  Future<Declaration> _nextTarget(
+    DeclarationBuilder builder,
+    Object current,
+    String step,
+  ) async {
+    if (current is FunctionDeclaration) {
+      if (_verbIndex(step, 'typeParameter') case var index?) {
+        return current.typeParameters.elementAt(index);
+      }
+    }
+
+    if (current is MethodDeclaration) {
+      if (_verbIndex(step, 'typeParameter') case var index?) {
+        return current.typeParameters.elementAt(index);
+      }
+    }
+
+    if (current is ParameterizedTypeDeclaration) {
+      if (_verbIndex(step, 'typeParameter') case var index?) {
+        return current.typeParameters.elementAt(index);
+      }
+    }
+
+    throw UnimplementedError('[current: $current][step: $step]');
+  }
+
+  Future<void> _report(
+    Declaration declaration,
+    DeclarationBuilder builder,
+  ) async {
+    var target = await _getTarget(declaration, builder);
+    builder.report(
+      Diagnostic(
+        DiagnosticMessage(
+          'Reported message',
+          target: target.asDiagnosticTarget,
+        ),
+        Severity.warning,
+      ),
+    );
+  }
 }
 
 /*macro*/ class ReportAtFirstMethod implements ClassDeclarationsMacro {
@@ -300,22 +406,6 @@ import 'package:macros/macros.dart';
         Severity.warning,
       ),
     );
-  }
-
-  static int? _verbIndex(String step, String verb) {
-    var indexStr = _verbSuffix(step, verb);
-    if (indexStr != null) {
-      return int.parse(indexStr);
-    }
-    return null;
-  }
-
-  static String? _verbSuffix(String step, String verb) {
-    var prefix = '$verb ';
-    if (step.startsWith(prefix)) {
-      return step.substring(prefix.length);
-    }
-    return null;
   }
 }
 

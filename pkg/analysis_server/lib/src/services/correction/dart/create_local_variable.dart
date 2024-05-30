@@ -44,6 +44,17 @@ class CreateLocalVariable extends ResolvedCorrectionProducer {
         return;
       }
     }
+
+    // In `foo.bar`, `bar` is not a local variable.
+    // It also does not seem useful to suggest `foo`.
+    // So, always skip with these parents.
+    var parent = nameNode.parent;
+    switch (parent) {
+      case PrefixedIdentifier():
+      case PropertyAccess():
+        return;
+    }
+
     // prepare target Statement
     var target = node.thisOrAncestorOfType<Statement>();
     if (target == null) {

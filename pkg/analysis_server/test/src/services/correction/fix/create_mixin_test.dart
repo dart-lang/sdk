@@ -139,6 +139,45 @@ mixin Test {
     assertLinkedGroup(change.linkedEditGroups[0], ['Test])', 'Test {']);
   }
 
+  Future<void> test_prefixedIdentifier_identifier() async {
+    await resolveTestCode('''
+void f(C c) {
+  c.test;
+}
+
+class C {}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_prefixedIdentifier_prefix() async {
+    await resolveTestCode('''
+void f() {
+  Test.value;
+}
+''');
+    await assertHasFix('''
+void f() {
+  Test.value;
+}
+
+mixin Test {
+}
+''');
+    assertLinkedGroup(change.linkedEditGroups[0], ['Test.value', 'Test {']);
+  }
+
+  Future<void> test_propertyAccess_property() async {
+    await resolveTestCode('''
+void f(C c) {
+  (c).test;
+}
+
+class C {}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_simple() async {
     await resolveTestCode('''
 void f() {

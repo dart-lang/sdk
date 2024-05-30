@@ -179,9 +179,9 @@ class BundleWriter {
     ClassElementFlags.write(_sink, element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
-    _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
 
     _writeTypeParameters(element.typeParameters, () {
+      _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
       _resolutionSink.writeType(element.supertype);
       _resolutionSink._writeTypeList(element.mixins);
       _resolutionSink._writeTypeList(element.interfaces);
@@ -223,9 +223,9 @@ class BundleWriter {
     _writeReference(element);
     ConstructorElementFlags.write(_sink, element);
     _resolutionSink._writeAnnotationList(element.metadata);
-    _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
 
     _resolutionSink.localElements.withElements(element.parameters, () {
+      _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
       _writeList(element.parameters, _writeParameterElement);
       _resolutionSink.writeElement(element.superConstructor);
       _resolutionSink.writeElement(element.redirectedConstructor);
@@ -465,9 +465,9 @@ class BundleWriter {
     FunctionElementFlags.write(_sink, element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
-    _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
 
     _writeTypeParameters(element.typeParameters, () {
+      _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
       _resolutionSink.writeType(element.returnType);
       _writeList(element.parameters, _writeParameterElement);
     });
@@ -535,9 +535,9 @@ class BundleWriter {
     MethodElementFlags.write(_sink, element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
-    _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
 
     _writeTypeParameters(element.typeParameters, () {
+      _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
       _writeList(element.parameters, _writeParameterElement);
       _sink._writeTopLevelInferenceError(element.typeInferenceError);
       _resolutionSink.writeType(element.returnType);
@@ -552,9 +552,9 @@ class BundleWriter {
     _writeReference(element);
     MixinElementFlags.write(_sink, element);
     _resolutionSink._writeAnnotationList(element.metadata);
-    _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
 
     _writeTypeParameters(element.typeParameters, () {
+      _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
       _resolutionSink._writeTypeList(element.superclassConstraints);
       _resolutionSink._writeTypeList(element.interfaces);
       _resolutionSink.writeElement(element.augmentationTargetAny);
@@ -702,9 +702,9 @@ class BundleWriter {
     _resolutionSink.writeElement(element.augmentation);
 
     _resolutionSink._writeAnnotationList(element.metadata);
-    _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
 
     _writeTypeParameters(element.typeParameters, () {
+      _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
       _resolutionSink._writeAliasedElement(element.aliasedElement);
       _resolutionSink.writeType(element.aliasedType);
     });

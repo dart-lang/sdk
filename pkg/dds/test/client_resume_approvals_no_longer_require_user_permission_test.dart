@@ -32,17 +32,25 @@ final test = <IsolateTest>[
     );
 
     await hasPausedAtStart(service, isolateRef);
+    await client1.requireUserPermissionToResume(
+      onPauseStart: true,
+    );
 
-    // When one client resumes, DDS waits to resume until the other client
-    // indicates it's ready.
+    // Both clients indicate they're ready to resume but the isolate won't
+    // resume until `resume` is invoked to indicate the user has triggered a
+    // resume.
     await client2.readyToResume(isolateId);
     await hasPausedAtStart(service, isolateRef);
+    await client1.readyToResume(isolateId);
+    await hasPausedAtStart(service, isolateRef);
 
-    // If the only remaining client changes their resume permissions, DDS
-    // should check if the isolate should be resumed. In this case, the only
-    // other client requiring permission to resume has indicated it's ready
-    // so the isolate is resumed and pauses at exit.
-    await client1.requirePermissionToResume(onPauseStart: false);
+    // If the user is no longer required to resume and all other clients have
+    // indicated they're ready to resume, the isolate should resume
+    // immediately.
+    await client1.requireUserPermissionToResume(
+      onPauseStart: false,
+    );
+
     await hasStoppedAtExit(service, isolateRef);
   },
 ];
@@ -50,7 +58,7 @@ final test = <IsolateTest>[
 void main([args = const <String>[]]) => runIsolateTests(
       args,
       test,
-      'client_resume_approvals_no_longer_require_permission.dart',
+      'client_resume_approvals_no_longer_require_user_permission_test.dart',
       testeeConcurrent: fooBar,
       pauseOnStart: true,
       pauseOnExit: true,
