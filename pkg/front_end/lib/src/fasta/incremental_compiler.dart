@@ -171,6 +171,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       [bool? outlineOnly, this._incrementalSerializer])
       : _ticker = context.options.ticker,
         _resetTicker = true,
+        _previousPackagesUri = context.options.packagesUriRaw,
         _initializationStrategy = new _InitializationStrategy.fromComponent(
             _componentToInitializeFrom),
         this.outlineOnly = outlineOnly ?? false,
@@ -184,6 +185,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       this._incrementalSerializer])
       : _ticker = context.options.ticker,
         _resetTicker = true,
+        _previousPackagesUri = context.options.packagesUriRaw,
         _initializationStrategy =
             new _InitializationStrategy.fromUri(_initializeFromDillUri),
         this.outlineOnly = outlineOnly ?? false,
@@ -196,6 +198,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       [bool? resetTicker])
       : _ticker = context.options.ticker,
         this._resetTicker = resetTicker ?? true,
+        _previousPackagesUri = context.options.packagesUriRaw,
         _initializationStrategy = new _InitializationStrategy.fromComponent(
             _componentToInitializeFrom),
         this.outlineOnly = false,
