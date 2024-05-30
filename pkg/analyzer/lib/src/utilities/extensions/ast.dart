@@ -41,6 +41,15 @@ extension AstNodeExtension on AstNode {
     return null;
   }
 
+  AstNode? get enclosingUnitChild {
+    for (var node in withParents) {
+      if (node.parent is CompilationUnit) {
+        return node;
+      }
+    }
+    return null;
+  }
+
   /// This node and all its parents.
   Iterable<AstNode> get withParents sync* {
     var current = this;
