@@ -1933,7 +1933,8 @@ class BlockEntryWithInitialDefs : public BlockEntryInstr {
   DECLARE_EXTRA_SERIALIZATION
 
  protected:
-  virtual void PrintBlockHeaderTo(BaseTextBuffer* f) const = 0;
+  virtual void PrintBlockHeaderTo(BaseTextBuffer* f) const { UNIMPLEMENTED(); }
+
   // Prints the internal definitions of the block to the base text buffer,
   // calling the callback with the buffer after each internal definition.
   void PrintInitialDefinitionsTo(
