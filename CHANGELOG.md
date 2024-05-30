@@ -5,7 +5,13 @@ This is a patch release that:
 - Fixes an issue where `DART_VM_OPTIONS` were not correctly parsed for
   standalone Dart executables created with `dart compile exe` (issue [#55767]).
 
+- Fixes a bug in dart2wasm that can result in a runtime error that says
+  `array.new_fixed()` has a constant larger than 10000 (issues [#55872],
+  [#55876]).
+
 [#55767]: https://github.com/dart-lang/sdk/issues/55767
+[#55872]: https://github.com/dart-lang/sdk/issues/55872
+[#55876]: https://github.com/dart-lang/sdk/issues/55876
 
 ## 3.4.2 - 2024-05-29
 
