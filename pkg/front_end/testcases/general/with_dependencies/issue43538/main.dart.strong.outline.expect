@@ -17,19 +17,19 @@ import "dart:core" as core;
 abstract class A extends core::Object /*hasConstConstructor*/  {
   final field core::double d;
   final field core::String s;
-  const constructor •({core::double d = #C1, core::String s = #C2}) → con::A
+  const constructor •({core::double d = 3.14, core::String s = "default"}) → con::A
     : con::A::d = d, con::A::s = s, super core::Object::•()
     ;
 }
-abstract class _B&A&M extends con::A implements con::M /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •({core::double d = #C1, core::String s = #C2}) → con::_B&A&M
+abstract class _B&A&M = con::A with con::M /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •({core::double d = 3.14, core::String s = "default"}) → con::_B&A&M
     : super con::A::•(d: d, s: s)
     ;
-  method m1() → dynamic
-    ;
+  mixin-super-stub method m1() → dynamic
+    return super.{con::M::m1}();
 }
 class B extends con::_B&A&M /*hasConstConstructor*/  {
-  const constructor •({core::double d = #C3}) → con::B
+  const constructor •({core::double d = 2.71}) → con::B
     : super con::_B&A&M::•(d: d)
     ;
 }
@@ -38,12 +38,7 @@ abstract class M extends con::A /*isMixinDeclaration*/  {
     ;
 }
 
-constants  {
-  #C1 = 3.14
-  #C2 = "default"
-  #C3 = 2.71
-}
 
 Extra constant evaluation status:
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main.dart:7:21 -> InstanceConstant(const B{A.d: 2.71, A.s: "default"})
-Extra constant evaluation: evaluated: 6, effectively constant: 1
+Extra constant evaluation: evaluated: 7, effectively constant: 1

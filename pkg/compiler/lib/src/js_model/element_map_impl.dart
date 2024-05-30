@@ -602,8 +602,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         data.instantiationToBounds = data.thisType;
       } else {
         data.instantiationToBounds = getInterfaceType(ir.instantiateToBounds(
-            coreTypes.legacyRawType(node), coreTypes.objectClass,
-            isNonNullableByDefault: true) as ir.InterfaceType);
+                coreTypes.legacyRawType(node), coreTypes.objectClass)
+            as ir.InterfaceType);
       }
     }
   }

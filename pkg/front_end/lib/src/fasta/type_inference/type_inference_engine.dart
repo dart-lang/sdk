@@ -697,8 +697,7 @@ class OperationsCfe
 
   @override
   DartType glb(DartType type1, DartType type2) {
-    return typeEnvironment.getStandardLowerBound(type1, type2,
-        isNonNullableByDefault: true);
+    return typeEnvironment.getStandardLowerBound(type1, type2);
   }
 
   @override
@@ -751,8 +750,7 @@ class OperationsCfe
 
   @override
   DartType lub(DartType type1, DartType type2) {
-    return typeEnvironment.getStandardUpperBound(type1, type2,
-        isNonNullableByDefault: true);
+    return typeEnvironment.getStandardUpperBound(type1, type2);
   }
 
   @override

@@ -104,13 +104,13 @@ extension type ExtGeneric<T extends core::Object? = dynamic>(T% s) {
   constructor • = mai::ExtGeneric|constructor#;
   constructor tearoff • = mai::ExtGeneric|constructor#_#new#tearOff;
 }
-static const field mai::ExtString% /* erasure=core::String, declared=! */ libString0 = #C1;
-static const field mai::ExtString% /* erasure=core::String, declared=! */ libString1 = #C2;
-static const field mai::ExtNullable% /* erasure=core::String?, declared=! */ libNullable0 = #C3;
-static const field mai::ExtNullable% /* erasure=core::String?, declared=! */ libNullable1 = #C1;
-static const field mai::ExtGeneric<core::String>% /* erasure=core::String, declared=! */ libGeneric0 = #C1;
-static const field mai::ExtGeneric<core::String?>% /* erasure=core::String?, declared=! */ libGeneric1 = #C3;
-static const field mai::ExtGeneric<core::String?>% /* erasure=core::String?, declared=! */ libGeneric2 = #C1;
+static const field mai::ExtString% /* erasure=core::String, declared=! */ libString0 = const mai::ExtString|constructor#("hello");
+static const field mai::ExtString% /* erasure=core::String, declared=! */ libString1 = const mai::ExtString|constructor#named("hello");
+static const field mai::ExtNullable% /* erasure=core::String?, declared=! */ libNullable0 = const mai::ExtNullable|constructor#(null);
+static const field mai::ExtNullable% /* erasure=core::String?, declared=! */ libNullable1 = const mai::ExtNullable|constructor#("hello");
+static const field mai::ExtGeneric<core::String>% /* erasure=core::String, declared=! */ libGeneric0 = const mai::ExtGeneric|constructor#<core::String>("hello");
+static const field mai::ExtGeneric<core::String?>% /* erasure=core::String?, declared=! */ libGeneric1 = const mai::ExtGeneric|constructor#<core::String?>(null);
+static const field mai::ExtGeneric<core::String?>% /* erasure=core::String?, declared=! */ libGeneric2 = const mai::ExtGeneric|constructor#<core::String?>("hello");
 static extension-type-member method ExtString|constructor#(core::String s) → mai::ExtString% /* erasure=core::String, declared=! */ {
   lowered final mai::ExtString% /* erasure=core::String, declared=! */ #this = s;
   return #this;
@@ -136,11 +136,6 @@ static extension-type-member method ExtGeneric|constructor#<T extends core::Obje
 static extension-type-member method ExtGeneric|constructor#_#new#tearOff<T extends core::Object? = dynamic>(mai::ExtGeneric|constructor#_#new#tearOff::T% s) → mai::ExtGeneric<mai::ExtGeneric|constructor#_#new#tearOff::T%>% /* erasure=mai::ExtGeneric|constructor#_#new#tearOff::T%, declared=! */
   return mai::ExtGeneric|constructor#<mai::ExtGeneric|constructor#_#new#tearOff::T%>(s);
 
-constants  {
-  #C1 = "hello"
-  #C2 = "hello world"
-  #C3 = null
-}
 
 Extra constant evaluation status:
 Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///main.dart:7:21 -> StringConstant("hello")
@@ -157,4 +152,11 @@ Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///main.dart:70:
 Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///main.dart:72:21 -> StringConstant("hello")
 Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///main.dart:74:21 -> NullConstant(null)
 Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///main.dart:76:21 -> StringConstant("hello")
-Extra constant evaluation: evaluated: 48, effectively constant: 14
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///main_lib.dart:5:20 -> StringConstant("hello")
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///main_lib.dart:7:30 -> StringConstant("hello world")
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///main_lib.dart:13:22 -> NullConstant(null)
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///main_lib.dart:15:22 -> StringConstant("hello")
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///main_lib.dart:19:21 -> StringConstant("hello")
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///main_lib.dart:21:21 -> NullConstant(null)
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///main_lib.dart:23:21 -> StringConstant("hello")
+Extra constant evaluation: evaluated: 55, effectively constant: 21

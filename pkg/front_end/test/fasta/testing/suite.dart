@@ -767,7 +767,8 @@ class CompilationSetup {
 }
 
 CompilationSetup createCompilationSetup(
-    TestDescription description, FastaContext context) {
+    TestDescription description, FastaContext context,
+    {bool? forceVerifyTo}) {
   List<Iterable<String>> errors = <Iterable<String>>[];
 
   Uri? librariesSpecificationUri =
@@ -816,6 +817,9 @@ CompilationSetup createCompilationSetup(
           (context.compileMode != CompileMode.full || folderOptions.noVerify)
               ? false
               : context.verify;
+    if (forceVerifyTo != null) {
+      compilerOptions.verify = forceVerifyTo;
+    }
     compilerOptions.sdkSummary =
         context._getPlatformUri(compilerOptions.target!, nnbdMode);
     if (folderOptions.overwriteCurrentSdkVersion != null) {
@@ -862,8 +866,9 @@ class FuzzCompiles
     context.forcedExperimentalFlags[
         ExperimentalFlag.alternativeInvalidationStrategy] = true;
 
-    CompilationSetup compilationSetup =
-        createCompilationSetup(result.description, context);
+    CompilationSetup compilationSetup = createCompilationSetup(
+        result.description, context,
+        forceVerifyTo: false);
 
     Target backendTarget = compilationSetup.options.target;
     if (backendTarget is TestTarget) {

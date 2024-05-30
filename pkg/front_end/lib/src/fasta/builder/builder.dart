@@ -231,6 +231,9 @@ abstract class Builder {
   /// through patch libraries.
   bool get isAugmenting;
 
+  /// Returns `true` if the related declaration is marked `augment`
+  bool get isAugment;
+
   bool get isRegularMethod;
 
   bool get isOperator;
@@ -317,6 +320,9 @@ abstract class BuilderImpl implements Builder {
 
   @override
   bool get isAugmenting => this != origin;
+
+  @override
+  bool get isAugment => false;
 
   @override
   bool get isRegularMethod => false;

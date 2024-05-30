@@ -29,12 +29,11 @@ library;
 // ^
 //
 import self as self2;
-import "dart:core" as core;
 
 export "org-dartlang-testcase:///main_lib2.dart";
 export "org-dartlang-testcase:///main_lib3.dart";
 
-static const field dynamic _exports# = #C1;
+static const field dynamic _exports# = "{\"Never\":\"'Never' is exported from both 'pkg/front_end/testcases/general/export_builtin_from_dill/main_lib2.dart' and 'pkg/front_end/testcases/general/export_builtin_from_dill/main_lib3.dart'.\",\"dynamic\":\"'dynamic' is exported from both 'pkg/front_end/testcases/general/export_builtin_from_dill/main_lib2.dart' and 'pkg/front_end/testcases/general/export_builtin_from_dill/main_lib3.dart'.\"}";
 
 library;
 //
@@ -83,8 +82,3 @@ additionalExports = (self3::Never,
   self3::dynamic)
 
 export "org-dartlang-testcase:///main_lib2.dart";
-
-
-constants  {
-  #C1 = "{\"Never\":\"'Never' is exported from both 'pkg/front_end/testcases/general/export_builtin_from_dill/main_lib2.dart' and 'pkg/front_end/testcases/general/export_builtin_from_dill/main_lib3.dart'.\",\"dynamic\":\"'dynamic' is exported from both 'pkg/front_end/testcases/general/export_builtin_from_dill/main_lib2.dart' and 'pkg/front_end/testcases/general/export_builtin_from_dill/main_lib3.dart'.\"}"
-}

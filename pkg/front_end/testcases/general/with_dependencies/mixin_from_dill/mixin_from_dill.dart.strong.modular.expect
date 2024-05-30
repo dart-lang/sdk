@@ -11,9 +11,9 @@ static method main() → dynamic {
   mix::Foo foo1 = new mix::Foo::•();
   if(foo1 == null)
     throw "what?";
-  if(!(foo1 =={mix::_Foo&B&D::==}{(core::Object) → core::bool} foo1))
+  if(!(foo1 =={mix::D::==}{(core::Object) → core::bool} foo1))
     throw "what?";
-  foo1.{mix::_Foo&B&D::x}(){() → void};
+  foo1.{mix::D::x}(){() → void};
   mix2::Foo foo2 = new mix2::Foo::•();
   if(foo2 == null)
     throw "what?";

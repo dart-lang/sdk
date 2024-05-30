@@ -2008,9 +2008,7 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
       if (nonNull2) {
         dartType2 = dartType2.toNonNull();
       }
-      expect(
-          typeSchemaEnvironment.getStandardUpperBound(dartType1, dartType2,
-              isNonNullableByDefault: true),
+      expect(typeSchemaEnvironment.getStandardUpperBound(dartType1, dartType2),
           parseType(upperBound));
     });
   }

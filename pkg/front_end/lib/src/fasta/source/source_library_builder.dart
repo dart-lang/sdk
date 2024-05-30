@@ -89,6 +89,7 @@ import '../kernel/utils.dart'
 import '../modifier.dart'
     show
         abstractMask,
+        augmentMask,
         constMask,
         externalMask,
         finalMask,
@@ -985,6 +986,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         : (declaration.isSetter
             ? currentTypeParameterScopeBuilder.setters!
             : currentTypeParameterScopeBuilder.members!);
+
     Builder? existing = members[name];
 
     if (existing == declaration) return declaration;
@@ -1046,8 +1048,19 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       // by name or by resolution and the remaining are dropped for the output.
       currentTypeParameterScopeBuilder.extensions!
           .add(declaration as SourceExtensionBuilder);
-    }
-    if (declaration is PrefixBuilder) {
+    } else if (declaration.isAugment) {
+      if (existing != null) {
+        if (declaration.isSetter) {
+          (currentTypeParameterScopeBuilder.setterAugmentations[name] ??= [])
+              .add(declaration);
+        } else {
+          (currentTypeParameterScopeBuilder.augmentations[name] ??= [])
+              .add(declaration);
+        }
+      } else {
+        // TODO(cstefantsova): Report an error.
+      }
+    } else if (declaration is PrefixBuilder) {
       _prefixBuilders ??= <PrefixBuilder>[];
       _prefixBuilders!.add(declaration);
     }
@@ -1056,6 +1069,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   bool isDuplicatedDeclaration(Builder? existing, Builder other) {
     if (existing == null) return false;
+    if (other.isAugment) return false;
     Builder? next = existing.next;
     if (next == null) {
       if (existing.isGetter && other.isSetter) return false;
@@ -3254,7 +3268,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Reference? procedureReference;
     Reference? tearOffReference;
     IndexedContainer? indexedContainer = _indexedContainer ?? indexedLibrary;
-    if (indexedContainer != null) {
+
+    bool isAugmentation = isAugmenting && (modifiers & augmentMask) != 0;
+    if (indexedContainer != null && !isAugmentation) {
       Name nameToLookup = nameScheme.getProcedureMemberName(kind, name).name;
       if (kind == ProcedureKind.Setter) {
         if ((isExtensionMember || isExtensionTypeMember) && isInstanceMember) {
@@ -3725,11 +3741,30 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (declaration is SourceClassBuilder) {
       Class cls = declaration.build(coreLibrary);
       if (!declaration.isAugmenting) {
-        if (declaration.isDuplicate ||
-            declaration.isConflictingAugmentationMember) {
-          cls.name = '${cls.name}'
-              '#${declaration.duplicateIndex}'
-              '#${declaration.libraryBuilder.augmentationIndex}';
+        if (!declaration.isAugmentation) {
+          if (declaration.isDuplicate ||
+              declaration.isConflictingAugmentationMember) {
+            cls.name = '${cls.name}'
+                '#${declaration.duplicateIndex}'
+                '#${declaration.libraryBuilder.augmentationIndex}';
+          }
+        } else {
+          // The following is a recovery to prevent cascading errors.
+          int nameIndex = 0;
+          String baseName = cls.name;
+          String? nameOfErroneousAugmentation;
+          while (nameOfErroneousAugmentation == null) {
+            nameOfErroneousAugmentation =
+                "_#${baseName}#augmentationWithoutOrigin${nameIndex}";
+            for (Class class_ in library.classes) {
+              if (class_.name == nameOfErroneousAugmentation) {
+                nameOfErroneousAugmentation = null;
+                break;
+              }
+            }
+            nameIndex++;
+          }
+          cls.name = nameOfErroneousAugmentation;
         }
         library.addClass(cls);
       }
@@ -5688,6 +5723,11 @@ class TypeParameterScopeBuilder {
 
   final List<NamedTypeBuilder> unresolvedNamedTypes = <NamedTypeBuilder>[];
 
+  final Map<String, List<Builder>> augmentations = <String, List<Builder>>{};
+
+  final Map<String, List<Builder>> setterAugmentations =
+      <String, List<Builder>>{};
+
   // TODO(johnniwinther): Stop using [_name] for determining the declaration
   // kind.
   String _name;
@@ -6000,7 +6040,9 @@ class TypeParameterScopeBuilder {
         extensions: extensions,
         parent: parent,
         debugName: name,
-        isModifiable: false);
+        isModifiable: false,
+        augmentations: augmentations,
+        setterAugmentations: setterAugmentations);
   }
 
   @override

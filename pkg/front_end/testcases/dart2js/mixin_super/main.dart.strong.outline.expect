@@ -154,14 +154,6 @@ abstract class _Class4b&Class4a&Mixin2 = self::Class4a with mai::Mixin2 /*isAnon
     return super.{mai::Mixin2::field2};
   mixin-super-stub set field2(core::int value) → void
     return super.{mai::Mixin2::field2} = value;
-  mixin-super-stub get _#Mixin2#field1#A() → core::int
-    return super.{mai::Mixin2::_#Mixin2#field1#A};
-  mixin-super-stub set _#Mixin2#field1#A(core::int value) → void
-    return super.{mai::Mixin2::_#Mixin2#field1#A} = value;
-  mixin-super-stub get _#Mixin2#field2#A() → core::int
-    return super.{mai::Mixin2::_#Mixin2#field2#A};
-  mixin-super-stub set _#Mixin2#field2#A(core::int value) → void
-    return super.{mai::Mixin2::_#Mixin2#field2#A} = value;
   mixin-super-stub method method1() → void
     return super.{mai::Mixin2::method1}();
   mixin-super-stub method method2() → void
@@ -197,14 +189,6 @@ abstract class _Class5b&Class5a&Mixin2 = self::Class5a with mai::Mixin2 /*isAnon
     return super.{mai::Mixin2::field2};
   mixin-super-stub set field2(core::int value) → void
     return super.{mai::Mixin2::field2} = value;
-  mixin-super-stub get _#Mixin2#field1#A() → core::int
-    return super.{mai::Mixin2::_#Mixin2#field1#A};
-  mixin-super-stub set _#Mixin2#field1#A(core::int value) → void
-    return super.{mai::Mixin2::_#Mixin2#field1#A} = value;
-  mixin-super-stub get _#Mixin2#field2#A() → core::int
-    return super.{mai::Mixin2::_#Mixin2#field2#A};
-  mixin-super-stub set _#Mixin2#field2#A(core::int value) → void
-    return super.{mai::Mixin2::_#Mixin2#field2#A} = value;
   mixin-super-stub method method1() → void
     return super.{mai::Mixin2::method1}();
   mixin-super-stub method method2() → void
@@ -240,14 +224,6 @@ abstract class _Class6b&Class6a&Mixin2 = self::Class6a with mai::Mixin2 /*isAnon
     return super.{mai::Mixin2::field2};
   mixin-super-stub set field2(core::int value) → void
     return super.{mai::Mixin2::field2} = value;
-  mixin-super-stub get _#Mixin2#field1#A() → core::int
-    return super.{mai::Mixin2::_#Mixin2#field1#A};
-  mixin-super-stub set _#Mixin2#field1#A(core::int value) → void
-    return super.{mai::Mixin2::_#Mixin2#field1#A} = value;
-  mixin-super-stub get _#Mixin2#field2#A() → core::int
-    return super.{mai::Mixin2::_#Mixin2#field2#A};
-  mixin-super-stub set _#Mixin2#field2#A(core::int value) → void
-    return super.{mai::Mixin2::_#Mixin2#field2#A} = value;
   mixin-super-stub method method1() → void
     return super.{mai::Mixin2::method1}();
   mixin-super-stub method method2() → void
@@ -263,8 +239,6 @@ class Class6b extends self::_Class6b&Class6a&Mixin2 {
 library;
 import self as mai;
 import "dart:core" as core;
-import "dart:_late_helper" as _la;
-import "dart:_internal" as _in;
 
 class Super1 extends core::Object {
   field core::int field1;
@@ -291,8 +265,8 @@ abstract class _Mixin2&Super1&Super2 extends core::Object implements mai::Super1
     ;
 }
 abstract class Mixin2 extends mai::_Mixin2&Super1&Super2 /*isMixinDeclaration*/  {
-  field core::int _#Mixin2#field1#A = _in::createSentinel<core::int>();
-  field core::int _#Mixin2#field2#A = _in::createSentinel<core::int>();
+  late field core::int field1;
+  late field core::int field2;
   method method1() → void
     ;
   method method2() → void
@@ -305,12 +279,4 @@ abstract class Mixin2 extends mai::_Mixin2&Super1&Super2 /*isMixinDeclaration*/ 
     ;
   set property2(core::int value) → void
     ;
-  get field1() → core::int
-    return _la::_lateReadCheck<core::int>(this.{mai::Mixin2::_#Mixin2#field1#A}{core::int}, "field1");
-  set field1(synthesized core::int value) → void
-    this.{mai::Mixin2::_#Mixin2#field1#A} = value;
-  get field2() → core::int
-    return _la::_lateReadCheck<core::int>(this.{mai::Mixin2::_#Mixin2#field2#A}{core::int}, "field2");
-  set field2(synthesized core::int value) → void
-    this.{mai::Mixin2::_#Mixin2#field2#A} = value;
 }

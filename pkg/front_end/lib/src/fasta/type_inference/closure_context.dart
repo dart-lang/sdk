@@ -53,15 +53,13 @@ abstract class ClosureContext {
     if (isGenerator) {
       if (isAsync) {
         DartType yieldContext = inferrer.getTypeArgumentOf(
-            inferrer.typeSchemaEnvironment
-                .getUnionFreeType(returnContext, isNonNullableByDefault: true),
+            inferrer.typeSchemaEnvironment.getUnionFreeType(returnContext),
             inferrer.coreTypes.streamClass);
         return new _AsyncStarClosureContext(
             inferrer, yieldContext, declaredReturnType, needToInferReturnType);
       } else {
         DartType yieldContext = inferrer.getTypeArgumentOf(
-            inferrer.typeSchemaEnvironment
-                .getUnionFreeType(returnContext, isNonNullableByDefault: true),
+            inferrer.typeSchemaEnvironment.getUnionFreeType(returnContext),
             inferrer.coreTypes.iterableClass);
         return new _SyncStarClosureContext(
             inferrer, yieldContext, declaredReturnType, needToInferReturnType);
@@ -285,8 +283,7 @@ class _SyncClosureContext implements ClosureContext {
         actualReturnedType = type;
       } else {
         actualReturnedType = inferrer.typeSchemaEnvironment
-            .getStandardUpperBound(actualReturnedType, type,
-                isNonNullableByDefault: true);
+            .getStandardUpperBound(actualReturnedType, type);
       }
     }
 
@@ -313,8 +310,7 @@ class _SyncClosureContext implements ClosureContext {
           _returnExpressionTypes![i]);
     }
 
-    return _inferredReturnType =
-        demoteTypeInLibrary(inferredReturnType, isNonNullableByDefault: true);
+    return _inferredReturnType = demoteTypeInLibrary(inferredReturnType);
   }
 
   @override
@@ -568,9 +564,8 @@ class _AsyncClosureContext implements ClosureContext {
       if (inferredType == null) {
         inferredType = unwrappedType;
       } else {
-        inferredType = inferrer.typeSchemaEnvironment.getStandardUpperBound(
-            inferredType, unwrappedType,
-            isNonNullableByDefault: true);
+        inferredType = inferrer.typeSchemaEnvironment
+            .getStandardUpperBound(inferredType, unwrappedType);
       }
     }
 
@@ -603,8 +598,7 @@ class _AsyncClosureContext implements ClosureContext {
           inferredType, _returnStatements![i], _returnExpressionTypes![i]);
     }
 
-    return _inferredReturnType =
-        demoteTypeInLibrary(inferredType, isNonNullableByDefault: true);
+    return _inferredReturnType = demoteTypeInLibrary(inferredType);
   }
 
   @override
@@ -741,8 +735,7 @@ class _SyncStarClosureContext implements ClosureContext {
           inferredElementType = type;
         } else {
           inferredElementType = inferrer.typeSchemaEnvironment
-              .getStandardUpperBound(inferredElementType, type,
-                  isNonNullableByDefault: true);
+              .getStandardUpperBound(inferredElementType, type);
         }
       }
     } else if (hasImplicitReturn) {
@@ -764,11 +757,9 @@ class _SyncStarClosureContext implements ClosureContext {
       inferredType = inferrer.computeGreatestClosure2(_declaredReturnType);
     }
 
-    DartType demotedType =
-        demoteTypeInLibrary(inferredType, isNonNullableByDefault: true);
+    DartType demotedType = demoteTypeInLibrary(inferredType);
     _emittedValueType = inferrer.getTypeArgumentOf(
-        inferrer.typeSchemaEnvironment
-            .getUnionFreeType(demotedType, isNonNullableByDefault: true),
+        inferrer.typeSchemaEnvironment.getUnionFreeType(demotedType),
         inferrer.coreTypes.iterableClass);
     return demotedType;
   }
@@ -877,8 +868,7 @@ class _AsyncStarClosureContext implements ClosureContext {
           inferredElementType = elementType;
         } else {
           inferredElementType = inferrer.typeSchemaEnvironment
-              .getStandardUpperBound(inferredElementType, elementType,
-                  isNonNullableByDefault: true);
+              .getStandardUpperBound(inferredElementType, elementType);
         }
       }
     } else if (hasImplicitReturn) {
@@ -900,11 +890,9 @@ class _AsyncStarClosureContext implements ClosureContext {
       inferredType = inferrer.computeGreatestClosure2(_declaredReturnType);
     }
 
-    DartType demotedType =
-        demoteTypeInLibrary(inferredType, isNonNullableByDefault: true);
+    DartType demotedType = demoteTypeInLibrary(inferredType);
     _emittedValueType = inferrer.getTypeArgumentOf(
-        inferrer.typeSchemaEnvironment
-            .getUnionFreeType(demotedType, isNonNullableByDefault: true),
+        inferrer.typeSchemaEnvironment.getUnionFreeType(demotedType),
         inferrer.coreTypes.streamClass);
     return demotedType;
   }

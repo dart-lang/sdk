@@ -1,0 +1,35 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///augment_same_file.dart";
+
+static field core::String _message = "foo" /* from org-dartlang-testcase:///augment_same_file_lib.dart */;
+static method main() → dynamic {
+  self::message = "bar";
+  self::expectEquals(self::foo(), "augment2-get: augment1-get: augment2-set: augment1-set: bar");
+}
+static method expectEquals(dynamic x, dynamic y) → dynamic {
+  if(!(x =={core::Object::==}{(core::Object) → core::bool} y)) {
+    throw "Unexpectedly received two unequal values: x=${x} y=${y}.";
+  }
+}
+static method /* from org-dartlang-testcase:///augment_same_file_lib.dart */ foo() → core::String {
+  return "augment2-get: ${self::_#foo#augment1()}";
+}
+static set /* from org-dartlang-testcase:///augment_same_file_lib.dart */ message(core::String value) → void {
+  self::_#message#augment1 = value;
+  self::_message = "augment2-set: ${self::_message}";
+}
+static method /* from org-dartlang-testcase:///augment_same_file_lib.dart */ _#foo#augment0() → core::String
+  return self::_message;
+static method /* from org-dartlang-testcase:///augment_same_file_lib.dart */ _#foo#augment1() → core::String {
+  return "augment1-get: ${self::_#foo#augment0()}";
+}
+static set /* from org-dartlang-testcase:///augment_same_file_lib.dart */ _#message#augment0(core::String variable) → void {
+  self::_message = variable;
+}
+static set /* from org-dartlang-testcase:///augment_same_file_lib.dart */ _#message#augment1(core::String value) → void {
+  self::_#message#augment0 = value;
+  self::_message = "augment1-set: ${self::_message}";
+}

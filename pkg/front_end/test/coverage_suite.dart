@@ -39,9 +39,9 @@ const Map<String, double> _expect = {
   "package:front_end/src/api_unstable/dart2js.dart": 0.0,
   "package:front_end/src/api_unstable/util.dart": 37.03703703703704,
   "package:front_end/src/base/instrumentation.dart": 100.0,
-  "package:front_end/src/base/processed_options.dart": 39.0,
+  "package:front_end/src/base/processed_options.dart": 38.81578947368421,
   "package:front_end/src/compute_platform_binaries_location.dart":
-      64.1025641025641,
+      66.66666666666666,
   "package:front_end/src/fasta/builder/builder.dart": 63.63636363636363,
   "package:front_end/src/fasta/builder/builder_mixins.dart": 100.0,
   "package:front_end/src/fasta/builder/builtin_type_declaration_builder.dart":
@@ -76,7 +76,7 @@ const Map<String, double> _expect = {
   "package:front_end/src/fasta/builder/modifier_builder.dart":
       76.47058823529412,
   "package:front_end/src/fasta/builder/named_type_builder.dart":
-      74.94949494949495,
+      74.74747474747475,
   "package:front_end/src/fasta/builder/never_type_declaration_builder.dart":
       76.92307692307693,
   "package:front_end/src/fasta/builder/null_type_declaration_builder.dart":
@@ -88,7 +88,7 @@ const Map<String, double> _expect = {
       0.0,
   "package:front_end/src/fasta/builder/prefix_builder.dart": 89.1891891891892,
   "package:front_end/src/fasta/builder/record_type_builder.dart":
-      74.35897435897436,
+      77.43589743589745,
   "package:front_end/src/fasta/builder/type_alias_builder.dart":
       78.99159663865547,
   "package:front_end/src/fasta/builder/type_builder.dart": 77.77777777777779,
@@ -97,15 +97,15 @@ const Map<String, double> _expect = {
       78.42227378190255,
   "package:front_end/src/fasta/builder/void_type_declaration_builder.dart":
       100.0,
-  "package:front_end/src/fasta/builder_graph.dart": 54.0,
+  "package:front_end/src/fasta/builder_graph.dart": 54.71698113207547,
   "package:front_end/src/fasta/codes/fasta_codes_cfe_generated.dart":
       73.0892742453436,
-  "package:front_end/src/fasta/codes/type_labeler.dart": 83.68336025848141,
+  "package:front_end/src/fasta/codes/type_labeler.dart": 83.57723577235772,
   "package:front_end/src/fasta/combinator.dart": 100.0,
   "package:front_end/src/fasta/command_line_reporting.dart": 68.68686868686868,
   "package:front_end/src/fasta/compiler_context.dart": 90.1639344262295,
   "package:front_end/src/fasta/configuration.dart": 100.0,
-  "package:front_end/src/fasta/crash.dart": 57.95454545454546,
+  "package:front_end/src/fasta/crash.dart": 59.09090909090909,
   "package:front_end/src/fasta/dill/dill_builder_mixins.dart": 100.0,
   "package:front_end/src/fasta/dill/dill_class_builder.dart": 92.34972677595628,
   "package:front_end/src/fasta/dill/dill_extension_builder.dart":
@@ -117,7 +117,7 @@ const Map<String, double> _expect = {
   "package:front_end/src/fasta/dill/dill_extension_type_member_builder.dart":
       83.76623376623377,
   "package:front_end/src/fasta/dill/dill_library_builder.dart": 78.134110787172,
-  "package:front_end/src/fasta/dill/dill_loader.dart": 80.0,
+  "package:front_end/src/fasta/dill/dill_loader.dart": 76.58536585365854,
   "package:front_end/src/fasta/dill/dill_member_builder.dart":
       86.52173913043478,
   "package:front_end/src/fasta/dill/dill_target.dart": 74.35897435897436,
@@ -129,25 +129,28 @@ const Map<String, double> _expect = {
   "package:front_end/src/fasta/ignored_parser_errors.dart": 100.0,
   "package:front_end/src/fasta/import.dart": 100.0,
   "package:front_end/src/fasta/import_chains.dart": 96.96969696969697,
-  "package:front_end/src/fasta/incremental_compiler.dart": 47.0,
+  "package:front_end/src/fasta/incremental_compiler.dart": 47.61111111111111,
   "package:front_end/src/fasta/incremental_serializer.dart": 0.0,
   "package:front_end/src/fasta/kernel/augmentation_lowering.dart": 100.0,
   "package:front_end/src/fasta/kernel/benchmarker.dart": 0.0,
-  "package:front_end/src/fasta/kernel/body_builder.dart": 90.0,
+  "package:front_end/src/fasta/kernel/body_builder.dart": 90.95321558581637,
   "package:front_end/src/fasta/kernel/body_builder_context.dart":
       68.31501831501832,
   "package:front_end/src/fasta/kernel/collections.dart": 36.44736842105264,
   "package:front_end/src/fasta/kernel/combined_member_signature.dart":
       91.29411764705883,
   "package:front_end/src/fasta/kernel/const_conditional_simplifier.dart": 50.0,
-  "package:front_end/src/fasta/kernel/constant_collection_builders.dart": 64.0,
-  "package:front_end/src/fasta/kernel/constant_evaluator.dart": 78.0,
+  "package:front_end/src/fasta/kernel/constant_collection_builders.dart":
+      64.92307692307693,
+  "package:front_end/src/fasta/kernel/constant_evaluator.dart":
+      78.68572647749093,
   "package:front_end/src/fasta/kernel/constant_int_folder.dart":
       92.04545454545455,
   "package:front_end/src/fasta/kernel/constructor_tearoff_lowering.dart":
       95.11278195488721,
   "package:front_end/src/fasta/kernel/exhaustiveness.dart": 74.57098283931357,
-  "package:front_end/src/fasta/kernel/expression_generator.dart": 79.0,
+  "package:front_end/src/fasta/kernel/expression_generator.dart":
+      79.69046114971573,
   "package:front_end/src/fasta/kernel/expression_generator_helper.dart": 100.0,
   "package:front_end/src/fasta/kernel/forest.dart": 90.27777777777779,
   "package:front_end/src/fasta/kernel/forwarding_node.dart": 94.4927536231884,
@@ -174,7 +177,7 @@ const Map<String, double> _expect = {
   "package:front_end/src/fasta/kernel/invalid_type.dart": 74.13793103448276,
   "package:front_end/src/fasta/kernel/kernel_constants.dart": 45.45454545454545,
   "package:front_end/src/fasta/kernel/kernel_helper.dart": 98.95833333333334,
-  "package:front_end/src/fasta/kernel/kernel_target.dart": 78.0,
+  "package:front_end/src/fasta/kernel/kernel_target.dart": 79.03103709311128,
   "package:front_end/src/fasta/kernel/kernel_variable_builder.dart":
       61.111111111111114,
   "package:front_end/src/fasta/kernel/late_lowering.dart": 100.0,
@@ -195,7 +198,7 @@ const Map<String, double> _expect = {
       15.238095238095239,
   "package:front_end/src/fasta/kernel/try_constant_evaluator.dart":
       19.753086419753085,
-  "package:front_end/src/fasta/kernel/type_algorithms.dart": 93.4560327198364,
+  "package:front_end/src/fasta/kernel/type_algorithms.dart": 93.96728016359918,
   "package:front_end/src/fasta/kernel/type_builder_computer.dart":
       90.20618556701031,
   "package:front_end/src/fasta/kernel/utils.dart": 37.93103448275862,
@@ -205,18 +208,20 @@ const Map<String, double> _expect = {
   "package:front_end/src/fasta/modifier.dart": 100.0,
   "package:front_end/src/fasta/operator.dart": 100.0,
   "package:front_end/src/fasta/problems.dart": 0.0,
-  "package:front_end/src/fasta/scope.dart": 79.0,
+  "package:front_end/src/fasta/scope.dart": 79.22606924643586,
   "package:front_end/src/fasta/source/class_declaration.dart":
       80.29556650246306,
-  "package:front_end/src/fasta/source/diet_listener.dart": 89.0,
+  "package:front_end/src/fasta/source/diet_listener.dart": 89.18539325842697,
   "package:front_end/src/fasta/source/diet_parser.dart": 100.0,
   "package:front_end/src/fasta/source/name_scheme.dart": 93.19148936170212,
-  "package:front_end/src/fasta/source/outline_builder.dart": 91.54411764705883,
+  "package:front_end/src/fasta/source/offset_map.dart": 95.16129032258065,
+  "package:front_end/src/fasta/source/outline_builder.dart": 91.37159137159138,
   "package:front_end/src/fasta/source/redirecting_factory_body.dart":
       94.44444444444444,
   "package:front_end/src/fasta/source/source_builder_mixins.dart":
       88.8268156424581,
-  "package:front_end/src/fasta/source/source_class_builder.dart": 85.9375,
+  "package:front_end/src/fasta/source/source_class_builder.dart":
+      85.51136363636364,
   "package:front_end/src/fasta/source/source_constructor_builder.dart":
       92.65658747300216,
   "package:front_end/src/fasta/source/source_enum_builder.dart":
@@ -228,12 +233,12 @@ const Map<String, double> _expect = {
   "package:front_end/src/fasta/source/source_factory_builder.dart":
       92.22222222222223,
   "package:front_end/src/fasta/source/source_field_builder.dart":
-      89.18507235338919,
+      90.0990099009901,
   "package:front_end/src/fasta/source/source_function_builder.dart":
       89.29663608562691,
   "package:front_end/src/fasta/source/source_library_builder.dart":
-      82.6852338413032,
-  "package:front_end/src/fasta/source/source_loader.dart": 79.0,
+      83.27291558777836,
+  "package:front_end/src/fasta/source/source_loader.dart": 79.344409519533,
   "package:front_end/src/fasta/source/source_member_builder.dart":
       40.32258064516129,
   "package:front_end/src/fasta/source/source_procedure_builder.dart":
@@ -242,7 +247,7 @@ const Map<String, double> _expect = {
       97.63313609467455,
   "package:front_end/src/fasta/source/stack_listener_impl.dart":
       64.44444444444444,
-  "package:front_end/src/fasta/ticker.dart": 73.0,
+  "package:front_end/src/fasta/ticker.dart": 73.07692307692307,
   "package:front_end/src/fasta/type_inference/closure_context.dart":
       84.23236514522821,
   "package:front_end/src/fasta/type_inference/delayed_expressions.dart":
@@ -255,9 +260,9 @@ const Map<String, double> _expect = {
   "package:front_end/src/fasta/type_inference/inference_results.dart":
       85.12820512820512,
   "package:front_end/src/fasta/type_inference/inference_visitor.dart":
-      90.10645683869475,
+      90.17588521175654,
   "package:front_end/src/fasta/type_inference/inference_visitor_base.dart":
-      83.98997134670488,
+      84.20487106017191,
   "package:front_end/src/fasta/type_inference/matching_cache.dart":
       80.26509572901325,
   "package:front_end/src/fasta/type_inference/matching_expressions.dart":
@@ -268,11 +273,11 @@ const Map<String, double> _expect = {
   "package:front_end/src/fasta/type_inference/standard_bounds.dart":
       71.42857142857143,
   "package:front_end/src/fasta/type_inference/type_constraint_gatherer.dart":
-      60,
+      60.026041666666664,
   "package:front_end/src/fasta/type_inference/type_demotion.dart":
       77.77777777777779,
   "package:front_end/src/fasta/type_inference/type_inference_engine.dart":
-      86.76975945017182,
+      88.06509945750453,
   "package:front_end/src/fasta/type_inference/type_inferrer.dart":
       51.17647058823529,
   "package:front_end/src/fasta/type_inference/type_schema.dart":
@@ -291,7 +296,7 @@ const Map<String, double> _expect = {
   "package:front_end/src/fasta/util/parser_ast.dart": 5.567451820128479,
   "package:front_end/src/fasta/util/parser_ast_helper.dart": 20.424013434089,
   "package:front_end/src/fasta/util/textual_outline.dart": 86.54205607476636,
-  "package:front_end/src/kernel_generator_impl.dart": 0.5376344086021506,
+  "package:front_end/src/kernel_generator_impl.dart": 28.645833333333332,
   "package:front_end/src/macros/isolate_macro_serializer.dart": 0.0,
   "package:front_end/src/macros/macro_serializer.dart": 0.0,
   "package:front_end/src/macros/macro_target.dart": 0.0,

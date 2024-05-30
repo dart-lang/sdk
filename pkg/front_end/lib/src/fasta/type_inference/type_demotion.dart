@@ -26,21 +26,10 @@ class _HasPromotedTypeVariableVisitor extends FindTypeVisitor {
 /// If [library] is non-nullable by default all legacy types have been replaced
 /// with non-nullable types. Otherwise all non-legacy types have been replaced
 /// with legacy types.
-DartType demoteTypeInLibrary(DartType type,
-    {required bool isNonNullableByDefault}) {
-  if (isNonNullableByDefault) {
-    return type.accept1(
-            const _DemotionNullabilityNormalization(
-                demoteTypeVariables: true, forNonNullableByDefault: true),
-            Variance.covariant) ??
-        type;
-  } else {
-    return type.accept1(
-            const _DemotionNullabilityNormalization(
-                demoteTypeVariables: true, forNonNullableByDefault: false),
-            Variance.covariant) ??
-        type;
-  }
+DartType demoteTypeInLibrary(DartType type) {
+  return type.accept1(
+          const _DemotionNullabilityNormalization(), Variance.covariant) ??
+      type;
 }
 
 /// Visitor that replaces all promoted type variables the type variable itself
@@ -48,23 +37,12 @@ DartType demoteTypeInLibrary(DartType type,
 ///
 /// The visitor returns `null` if the type wasn't changed.
 class _DemotionNullabilityNormalization extends ReplacementVisitor {
-  final bool demoteTypeVariables;
-  final bool forNonNullableByDefault;
-
-  const _DemotionNullabilityNormalization(
-      {required this.demoteTypeVariables,
-      required this.forNonNullableByDefault});
+  const _DemotionNullabilityNormalization();
 
   @override
   Nullability? visitNullability(DartType node) {
-    if (forNonNullableByDefault) {
-      if (node.declaredNullability == Nullability.legacy) {
-        return Nullability.nonNullable;
-      }
-    } else {
-      if (node.declaredNullability != Nullability.legacy) {
-        return Nullability.legacy;
-      }
+    if (node.declaredNullability == Nullability.legacy) {
+      return Nullability.nonNullable;
     }
     return null;
   }
@@ -78,10 +56,7 @@ class _DemotionNullabilityNormalization extends ReplacementVisitor {
   @override
   DartType? visitIntersectionType(IntersectionType node, Variance variance) {
     Nullability? newNullability = visitNullability(node);
-    if (demoteTypeVariables) {
-      return new TypeParameterType(
-          node.left.parameter, newNullability ?? node.left.nullability);
-    }
-    return createTypeParameterType(node.left, newNullability);
+    return new TypeParameterType(
+        node.left.parameter, newNullability ?? node.left.nullability);
   }
 }
