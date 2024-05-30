@@ -1961,8 +1961,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ cmpq(Address(TMP, target::Page::card_table_offset()), Immediate(0));
     __ j(EQUAL, &remember_card_slow, Assembler::kNearJump);
 
-    // Dirty the card. Not atomic: we assume mutable arrays are not shared
-    // between threads.
+    // Atomically dirty the card.
     __ pushq(RAX);
     __ pushq(RCX);
     __ subq(R13, TMP);  // Offset in page.
@@ -1973,6 +1972,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ shrq(R13, Immediate(target::kBitsPerWordLog2));  // Word offset.
     __ movq(RAX, Immediate(1));
     __ shlq(RAX, RCX);  // Bit mask. (Shift amount is mod 63.)
+    __ lock();
     __ orq(Address(TMP, R13, TIMES_8, 0), RAX);
     __ popq(RCX);
     __ popq(RAX);

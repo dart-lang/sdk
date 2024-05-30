@@ -1550,8 +1550,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ cmpl(Address(EAX, target::Page::card_table_offset()), Immediate(0));
     __ j(EQUAL, &remember_card_slow, Assembler::kNearJump);
 
-    // Dirty the card. Not atomic: we assume mutable arrays are not shared
-    // between threads.
+    // Atomically dirty the card.
     __ pushl(EBX);
     __ subl(EDI, EAX);  // Offset in page.
     __ movl(EAX,
@@ -1563,6 +1562,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ shrl(ECX, Immediate(target::Page::kBytesPerCardLog2));
     __ movl(EBX, Immediate(1));
     __ shll(EBX, ECX);  // Bit mask. (Shift amount is mod 32.)
+    __ lock();
     __ orl(Address(EAX, EDI, TIMES_4, 0), EBX);
     __ popl(EBX);
     __ popl(ECX);

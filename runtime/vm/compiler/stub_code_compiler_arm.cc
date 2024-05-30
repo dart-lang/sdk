@@ -1709,7 +1709,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ Ret();
   }
   if (cards) {
-    Label remember_card_slow;
+    Label remember_card_slow, retry;
 
     // Get card table.
     __ Bind(&remember_card);
@@ -1719,8 +1719,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ cmp(TMP, Operand(0));
     __ b(&remember_card_slow, EQ);
 
-    // Dirty the card. Not atomic: we assume mutable arrays are not shared
-    // between threads
+    // Atomically dirty the card.
     __ PushList((1 << R0) | (1 << R1));
     __ AndImmediate(TMP, R1, target::kPageMask);  // Page.
     __ sub(R9, R9, Operand(TMP));                 // Offset in page.
@@ -1732,9 +1731,13 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
            Address(TMP, target::Page::card_table_offset()));    // Card table.
     __ Lsr(R9, R9, Operand(target::kBitsPerWordLog2));          // Word index.
     __ add(TMP, TMP, Operand(R9, LSL, target::kWordSizeLog2));  // Word address.
-    __ ldr(R1, Address(TMP, 0));
+
+    __ Bind(&retry);
+    __ ldrex(R1, TMP);
     __ orr(R1, R1, Operand(R0));
-    __ str(R1, Address(TMP, 0));
+    __ strex(R0, R1, TMP);
+    __ cmp(R0, Operand(1));
+    __ b(&retry, EQ);
     __ PopList((1 << R0) | (1 << R1));
     __ Ret();
 

@@ -13,6 +13,8 @@ heap_sources = [
   "gc_shared.h",
   "heap.cc",
   "heap.h",
+  "incremental_compactor.cc",
+  "incremental_compactor.h",
   "marker.cc",
   "marker.h",
   "page.cc",
