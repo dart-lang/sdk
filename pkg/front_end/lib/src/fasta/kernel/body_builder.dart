@@ -4492,8 +4492,7 @@ class BodyBuilder extends StackListenerImpl
         typeArgument = buildDartType(
             typeArguments.single, TypeUse.literalTypeArgument,
             allowPotentiallyConstantType: false);
-        typeArgument = instantiateToBounds(typeArgument, coreTypes.objectClass,
-            isNonNullableByDefault: true);
+        typeArgument = instantiateToBounds(typeArgument, coreTypes.objectClass);
       }
     } else {
       typeArgument = implicitTypeArgument;
@@ -4546,8 +4545,7 @@ class BodyBuilder extends StackListenerImpl
         typeArgument = buildDartType(
             typeArguments.single, TypeUse.literalTypeArgument,
             allowPotentiallyConstantType: false);
-        typeArgument = instantiateToBounds(typeArgument, coreTypes.objectClass,
-            isNonNullableByDefault: true);
+        typeArgument = instantiateToBounds(typeArgument, coreTypes.objectClass);
       }
     }
 
@@ -4681,8 +4679,7 @@ class BodyBuilder extends StackListenerImpl
       typeArgument = buildDartType(
           typeArguments.single, TypeUse.literalTypeArgument,
           allowPotentiallyConstantType: false);
-      typeArgument = instantiateToBounds(typeArgument, coreTypes.objectClass,
-          isNonNullableByDefault: true);
+      typeArgument = instantiateToBounds(typeArgument, coreTypes.objectClass);
     } else {
       typeArgument = implicitTypeArgument;
     }
@@ -4861,10 +4858,8 @@ class BodyBuilder extends StackListenerImpl
             allowPotentiallyConstantType: false);
         valueType = buildDartType(typeArguments[1], TypeUse.literalTypeArgument,
             allowPotentiallyConstantType: false);
-        keyType = instantiateToBounds(keyType, coreTypes.objectClass,
-            isNonNullableByDefault: true);
-        valueType = instantiateToBounds(valueType, coreTypes.objectClass,
-            isNonNullableByDefault: true);
+        keyType = instantiateToBounds(keyType, coreTypes.objectClass);
+        valueType = instantiateToBounds(valueType, coreTypes.objectClass);
       }
     }
 
@@ -4906,10 +4901,8 @@ class BodyBuilder extends StackListenerImpl
             allowPotentiallyConstantType: false);
         valueType = buildDartType(typeArguments[1], TypeUse.literalTypeArgument,
             allowPotentiallyConstantType: false);
-        keyType = instantiateToBounds(keyType, coreTypes.objectClass,
-            isNonNullableByDefault: true);
-        valueType = instantiateToBounds(valueType, coreTypes.objectClass,
-            isNonNullableByDefault: true);
+        keyType = instantiateToBounds(keyType, coreTypes.objectClass);
+        valueType = instantiateToBounds(valueType, coreTypes.objectClass);
       }
     } else {
       keyType = implicitTypeArgument;

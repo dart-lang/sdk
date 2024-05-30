@@ -153,8 +153,7 @@ class OccurrenceCollectorVisitor implements DartTypeVisitor<void> {
   }
 }
 
-DartType instantiateToBounds(DartType type, Class objectClass,
-    {required bool isNonNullableByDefault}) {
+DartType instantiateToBounds(DartType type, Class objectClass) {
   if (type is InterfaceType) {
     if (type.typeArguments.isEmpty) return type;
     for (DartType typeArgument in type.typeArguments) {
@@ -165,11 +164,8 @@ DartType instantiateToBounds(DartType type, Class objectClass,
         return type;
       }
     }
-    return new InterfaceType.byReference(
-        type.classReference,
-        type.nullability,
-        calculateBounds(type.classNode.typeParameters, objectClass,
-            isNonNullableByDefault: isNonNullableByDefault));
+    return new InterfaceType.byReference(type.classReference, type.nullability,
+        calculateBounds(type.classNode.typeParameters, objectClass));
   }
   if (type is TypedefType) {
     if (type.typeArguments.isEmpty) return type;
@@ -178,11 +174,8 @@ DartType instantiateToBounds(DartType type, Class objectClass,
         return type;
       }
     }
-    return new TypedefType.byReference(
-        type.typedefReference,
-        type.nullability,
-        calculateBounds(type.typedefNode.typeParameters, objectClass,
-            isNonNullableByDefault: isNonNullableByDefault));
+    return new TypedefType.byReference(type.typedefReference, type.nullability,
+        calculateBounds(type.typedefNode.typeParameters, objectClass));
   }
   return type;
 }
@@ -194,30 +187,21 @@ DartType instantiateToBounds(DartType type, Class objectClass,
 /// (https://github.com/dart-lang/sdk/blob/master/docs/language/informal/instantiate-to-bound.md)
 /// of the algorithm for details.
 List<DartType> calculateBounds(
-    List<TypeParameter> typeParameters, Class objectClass,
-    {required bool isNonNullableByDefault}) {
-  return calculateBoundsInternal(typeParameters, objectClass,
-      isNonNullableByDefault: isNonNullableByDefault);
-}
-
-List<DartType> calculateBoundsInternal(
-    List<TypeParameter> typeParameters, Class objectClass,
-    {required bool isNonNullableByDefault}) {
+    List<TypeParameter> typeParameters, Class objectClass) {
   List<DartType> bounds =
       new List<DartType>.filled(typeParameters.length, dummyDartType);
   for (int i = 0; i < typeParameters.length; i++) {
     DartType bound = typeParameters[i].bound;
     bool isContravariant = typeParameters[i].variance == Variance.contravariant;
     if (identical(bound, TypeParameter.unsetBoundSentinel)) {
-      bound = isNonNullableByDefault && isContravariant
-          ? const NeverType.nonNullable()
-          : const DynamicType();
+      bound =
+          isContravariant ? const NeverType.nonNullable() : const DynamicType();
     } else if (bound is InterfaceType &&
         bound.classReference == objectClass.reference) {
       DartType defaultType = typeParameters[i].defaultType;
       if (!(defaultType is InterfaceType &&
           defaultType.classNode == objectClass)) {
-        bound = isNonNullableByDefault && isContravariant
+        bound = isContravariant
             ? const NeverType.nonNullable()
             : const DynamicType();
       }
@@ -228,9 +212,7 @@ List<DartType> calculateBoundsInternal(
   TypeVariableGraph graph = new TypeVariableGraph(typeParameters, bounds);
   List<List<int>> stronglyConnected = computeStrongComponents(graph);
   final DartType topType = const DynamicType();
-  final DartType bottomType = isNonNullableByDefault
-      ? const NeverType.nonNullable()
-      : const NeverType.legacy();
+  final DartType bottomType = const NeverType.nonNullable();
   for (List<int> component in stronglyConnected) {
     Map<TypeParameter, DartType> upperBounds = <TypeParameter, DartType>{};
     Map<TypeParameter, DartType> lowerBounds = <TypeParameter, DartType>{};

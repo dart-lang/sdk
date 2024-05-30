@@ -829,8 +829,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         classHierarchy.coreTypes,
         new ListLiteral(values,
             typeArgument: instantiateToBounds(rawType(Nullability.nonNullable),
-                classHierarchy.coreTypes.objectClass,
-                isNonNullableByDefault: true),
+                classHierarchy.coreTypes.objectClass),
             isConst: true));
 
     for (SourceFieldBuilder elementBuilder in elementBuilders) {

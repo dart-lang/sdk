@@ -250,9 +250,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
           helperTypeParameters[i].bound = inferredTypes[i];
         }
       }
-      List<DartType> instantiatedTypes = calculateBounds(
-          helperTypeParameters, coreTypes.objectClass,
-          isNonNullableByDefault: true);
+      List<DartType> instantiatedTypes =
+          calculateBounds(helperTypeParameters, coreTypes.objectClass);
       for (int i = 0; i < instantiatedTypes.length; ++i) {
         if (inferredTypes[i] is UnknownType) {
           inferredTypes[i] = instantiatedTypes[i];

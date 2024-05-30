@@ -1061,9 +1061,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           }
           onType = inferredSubstitution
               .substituteType(extensionBuilder.extension.onType);
-          List<DartType> instantiateToBoundTypeArguments = calculateBounds(
-              typeParameters, coreTypes.objectClass,
-              isNonNullableByDefault: true);
+          List<DartType> instantiateToBoundTypeArguments =
+              calculateBounds(typeParameters, coreTypes.objectClass);
           Substitution instantiateToBoundsSubstitution = Substitution.fromPairs(
               typeParameters, instantiateToBoundTypeArguments);
           onTypeInstantiateToBounds = instantiateToBoundsSubstitution
