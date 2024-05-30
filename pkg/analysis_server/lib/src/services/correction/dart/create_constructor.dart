@@ -17,6 +17,8 @@ class CreateConstructor extends ResolvedCorrectionProducer {
   // TODO(migration): We set this node when we have the change.
   late String _constructorName;
 
+  CreateConstructor({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // TODO(applicability): comment on why.

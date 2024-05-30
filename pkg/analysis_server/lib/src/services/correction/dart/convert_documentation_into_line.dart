@@ -12,7 +12,9 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class ConvertDocumentationIntoLine extends ParsedCorrectionProducer {
+class ConvertDocumentationIntoLine extends ResolvedCorrectionProducer {
+  ConvertDocumentationIntoLine({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       CorrectionApplicability.automatically;

@@ -16,6 +16,8 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertIfStatementToSwitchStatement extends ResolvedCorrectionProducer {
+  ConvertIfStatementToSwitchStatement({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // TODO(applicability): comment on why.
@@ -207,6 +209,8 @@ class ConvertIfStatementToSwitchStatement extends ResolvedCorrectionProducer {
 
 class ConvertSwitchExpressionToSwitchStatement
     extends ResolvedCorrectionProducer {
+  ConvertSwitchExpressionToSwitchStatement({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // TODO(applicability): comment on why.

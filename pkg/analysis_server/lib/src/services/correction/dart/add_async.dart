@@ -11,16 +11,16 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddAsync extends ResolvedCorrectionProducer {
-  // TODO(pq): consider adding a variation that adds an `await` as well
+  // TODO(pq): consider adding a variation that adds an `await` as well.
 
   /// A flag indicating whether this producer is producing a fix in the case
   /// where a function is missing a return at the end.
   final bool isForMissingReturn;
 
   /// Initialize a newly created producer.
-  AddAsync() : isForMissingReturn = false;
+  AddAsync({required super.context}) : isForMissingReturn = false;
 
-  AddAsync.missingReturn() : isForMissingReturn = true;
+  AddAsync.missingReturn({required super.context}) : isForMissingReturn = true;
 
   @override
   CorrectionApplicability get applicability =>

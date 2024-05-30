@@ -13,6 +13,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class RemoveNameFromCombinator extends ResolvedCorrectionProducer {
   String _combinatorKind = '';
 
+  RemoveNameFromCombinator({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // Not predictably the correct action.

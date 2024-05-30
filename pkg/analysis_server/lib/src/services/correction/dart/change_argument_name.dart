@@ -16,6 +16,8 @@ class ChangeArgumentName extends MultiCorrectionProducer {
   /// replacement before the replacement is deemed to not be worth offering.
   static const _maxDistance = 4;
 
+  ChangeArgumentName({required super.context});
+
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
     var namedContext = _getNamedParameterNames();
@@ -37,7 +39,8 @@ class ChangeArgumentName extends MultiCorrectionProducer {
       if (distance <= _maxDistance) {
         // TODO(brianwilkerson): Create a way to use the distance as part of the
         //  computation of the priority (so that closer names sort first).
-        producers.add(_ChangeName(currentNameNode, proposedName));
+        producers
+            .add(_ChangeName(currentNameNode, proposedName, context: context));
       }
     }
     return producers;
@@ -82,7 +85,7 @@ class _ChangeName extends ResolvedCorrectionProducer {
   /// The name to which the argument name will be changed.
   final String _proposedName;
 
-  _ChangeName(this._argumentName, this._proposedName);
+  _ChangeName(this._argumentName, this._proposedName, {required super.context});
 
   @override
   CorrectionApplicability get applicability =>

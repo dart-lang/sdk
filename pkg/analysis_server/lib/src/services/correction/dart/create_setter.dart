@@ -15,6 +15,8 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 class CreateSetter extends ResolvedCorrectionProducer {
   String _setterName = '';
 
+  CreateSetter({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // TODO(applicability): comment on why.

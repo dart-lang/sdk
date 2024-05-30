@@ -16,9 +16,11 @@ class ReplaceWithNullAware extends ResolvedCorrectionProducer {
   /// The operator to replace.
   String _operator = '.';
 
-  ReplaceWithNullAware.inChain() : _correctionKind = _CorrectionKind.inChain;
+  ReplaceWithNullAware.inChain({required super.context})
+      : _correctionKind = _CorrectionKind.inChain;
 
-  ReplaceWithNullAware.single() : _correctionKind = _CorrectionKind.single;
+  ReplaceWithNullAware.single({required super.context})
+      : _correctionKind = _CorrectionKind.single;
 
   @override
   CorrectionApplicability get applicability =>

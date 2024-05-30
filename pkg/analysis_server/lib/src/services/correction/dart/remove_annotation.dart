@@ -13,6 +13,8 @@ import 'package:collection/collection.dart';
 class RemoveAnnotation extends ResolvedCorrectionProducer {
   String _annotationName = '';
 
+  RemoveAnnotation({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // Not predictably the correct action.

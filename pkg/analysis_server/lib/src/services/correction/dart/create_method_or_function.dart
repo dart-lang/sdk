@@ -20,6 +20,8 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
 
   String _functionName = '';
 
+  CreateMethodOrFunction({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // TODO(applicability): comment on why.

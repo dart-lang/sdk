@@ -14,6 +14,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class CreateClass extends ResolvedCorrectionProducer {
   String className = '';
 
+  CreateClass({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // TODO(applicability): comment on why.

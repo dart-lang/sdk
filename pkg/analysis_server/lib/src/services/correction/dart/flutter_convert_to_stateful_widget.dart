@@ -17,6 +17,8 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
+  FlutterConvertToStatefulWidget({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // TODO(applicability): comment on why.

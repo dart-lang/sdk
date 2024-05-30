@@ -12,6 +12,8 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddMissingSwitchCases extends ResolvedCorrectionProducer {
+  AddMissingSwitchCases({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // TODO(applicability): comment on why.

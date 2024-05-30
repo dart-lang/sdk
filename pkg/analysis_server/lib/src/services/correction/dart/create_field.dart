@@ -17,6 +17,8 @@ class CreateField extends CreateFieldOrGetter {
   /// The name of the field to be created.
   String _fieldName = '';
 
+  CreateField({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // TODO(applicability): comment on why.

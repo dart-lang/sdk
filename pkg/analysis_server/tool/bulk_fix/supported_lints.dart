@@ -3,13 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix_processor.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 
 /// Print lints that are bulk-fixable in a format that can be included in
 /// analysis options.
 void main() {
   var bulkFixCodes = FixProcessor.lintProducerMap.entries
       .where((e) => e.value
-          .where((generator) => generator().canBeAppliedAcrossFiles)
+          .where((generator) =>
+              generator(context: StubCorrectionProducerContext.instance)
+                  .canBeAppliedAcrossFiles)
           .isNotEmpty)
       .map((e) => e.key);
   print('    # bulk-fixable lints');

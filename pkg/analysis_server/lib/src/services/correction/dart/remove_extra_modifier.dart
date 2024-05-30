@@ -11,6 +11,8 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 class RemoveExtraModifier extends ResolvedCorrectionProducer {
   String _modifierName = '';
 
+  RemoveExtraModifier({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       CorrectionApplicability.automatically;

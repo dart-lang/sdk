@@ -14,6 +14,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class CreateMixin extends ResolvedCorrectionProducer {
   String _mixinName = '';
 
+  CreateMixin({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // TODO(applicability): comment on why.

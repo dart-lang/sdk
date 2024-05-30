@@ -10,6 +10,8 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 class FlutterSwapWithParent extends FlutterParentAndChild {
+  FlutterSwapWithParent({required super.context});
+
   @override
   AssistKind get assistKind => DartAssistKind.FLUTTER_SWAP_WITH_PARENT;
 

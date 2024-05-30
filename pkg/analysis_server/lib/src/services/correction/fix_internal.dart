@@ -258,7 +258,7 @@ final _builtInLintMultiProducers = {
   ],
 };
 
-final _builtInLintProducers = <String, List<ProducerGenerator>>{
+final _builtInLintProducers = {
   LintNames.always_declare_return_types: [
     AddReturnType.new,
   ],
@@ -846,7 +846,7 @@ final _builtInNonLintMultiProducers = {
   ],
 };
 
-final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
+final _builtInNonLintProducers = {
   CompileTimeErrorCode.ABSTRACT_FIELD_INITIALIZER: [
     RemoveAbstract.new,
     RemoveInitializer.new,
@@ -1698,17 +1698,6 @@ class FixInFileProcessor {
     var workspace = context.workspace;
     var resolvedResult = context.resolvedResult;
 
-    var correctionContext = CorrectionProducerContext.createResolved(
-      dartFixContext: context,
-      diagnostic: error,
-      resolvedResult: resolvedResult,
-      selectionOffset: error.offset,
-      selectionLength: error.length,
-    );
-    if (correctionContext == null) {
-      return const <Fix>[];
-    }
-
     /// Helper to create a [DartFixContextImpl] for a given error.
     DartFixContext createFixContext(AnalysisError error) {
       return DartFixContext(
@@ -1723,7 +1712,8 @@ class FixInFileProcessor {
 
     var fixes = <Fix>[];
     for (var generator in generators) {
-      if (generator().canBeAppliedAcrossSingleFile) {
+      if (generator(context: StubCorrectionProducerContext.instance)
+          .canBeAppliedAcrossSingleFile) {
         _FixState fixState = _EmptyFixState(
           ChangeBuilder(workspace: workspace),
         );
@@ -1732,7 +1722,7 @@ class FixInFileProcessor {
         // include fix-all-in-file when we produce an individual fix at this
         // location.
         fixState = await _fixError(
-            createFixContext(error), fixState, generator(), error);
+            createFixContext(error), fixState, generator, error);
 
         // The original error was not fixable, don't continue.
         if (!(fixState.builder as ChangeBuilderImpl).hasEdits) {
@@ -1742,7 +1732,7 @@ class FixInFileProcessor {
         // Compute fixes for the rest of the errors.
         for (var error in errors.where((item) => item != error)) {
           var fixContext = createFixContext(error);
-          fixState = await _fixError(fixContext, fixState, generator(), error);
+          fixState = await _fixError(fixContext, fixState, generator, error);
         }
         if (fixState is _NotEmptyFixState) {
           var sourceChange = fixState.builder.sourceChange;
@@ -1758,8 +1748,12 @@ class FixInFileProcessor {
     return fixes;
   }
 
-  Future<_FixState> _fixError(DartFixContext fixContext, _FixState fixState,
-      CorrectionProducer producer, AnalysisError diagnostic) async {
+  Future<_FixState> _fixError(
+    DartFixContext fixContext,
+    _FixState fixState,
+    ProducerGenerator generator,
+    AnalysisError diagnostic,
+  ) async {
     var context = CorrectionProducerContext.createResolved(
       applyingBulkFixes: true,
       dartFixContext: fixContext,
@@ -1768,11 +1762,8 @@ class FixInFileProcessor {
       selectionOffset: diagnostic.offset,
       selectionLength: diagnostic.length,
     );
-    if (context == null) {
-      return fixState;
-    }
 
-    producer.configure(context);
+    var producer = generator(context: context);
 
     try {
       var localBuilder = fixState.builder.copy();

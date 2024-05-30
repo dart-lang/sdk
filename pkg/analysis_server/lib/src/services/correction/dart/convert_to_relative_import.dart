@@ -14,6 +14,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:path/path.dart' as path;
 
 class ConvertToRelativeImport extends ResolvedCorrectionProducer {
+  ConvertToRelativeImport({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       CorrectionApplicability.automatically;

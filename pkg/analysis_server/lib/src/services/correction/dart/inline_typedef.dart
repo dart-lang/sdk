@@ -14,6 +14,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class InlineTypedef extends ResolvedCorrectionProducer {
   String _name = '';
 
+  InlineTypedef({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       CorrectionApplicability.automatically;

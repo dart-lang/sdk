@@ -10,6 +10,8 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class OrganizeImports extends ResolvedCorrectionProducer {
+  OrganizeImports({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // Bulk application is supported by a distinct import cleanup fix phase.

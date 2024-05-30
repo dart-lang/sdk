@@ -11,6 +11,8 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
+  AddMissingEnumCaseClauses({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // Adding the missing case is not a sufficient fix (user logic needs

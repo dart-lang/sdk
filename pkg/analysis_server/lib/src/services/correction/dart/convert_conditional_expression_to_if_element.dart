@@ -13,6 +13,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertConditionalExpressionToIfElement
     extends ResolvedCorrectionProducer {
+  ConvertConditionalExpressionToIfElement({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       CorrectionApplicability.automatically;

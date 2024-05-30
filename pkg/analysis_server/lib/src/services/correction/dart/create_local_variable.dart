@@ -14,6 +14,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class CreateLocalVariable extends ResolvedCorrectionProducer {
   String _variableName = '';
 
+  CreateLocalVariable({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // TODO(applicability): comment on why.

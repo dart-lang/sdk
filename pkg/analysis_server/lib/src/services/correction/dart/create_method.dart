@@ -23,13 +23,13 @@ class CreateMethod extends ResolvedCorrectionProducer {
   /// Initializes a newly created instance that will create either an equality
   /// (`operator ==`) method or `hashCode` getter based on the existing other
   /// half of the pair.
-  CreateMethod.equalityOrHashCode()
+  CreateMethod.equalityOrHashCode({required super.context})
       : _kind = _MethodKind.equalityOrHashCode,
         applicability = CorrectionApplicability.acrossSingleFile;
 
   /// Initializes a newly created instance that will create a method based on an
   /// invocation of an undefined method.
-  CreateMethod.method()
+  CreateMethod.method({required super.context})
       : _kind = _MethodKind.method,
         applicability = CorrectionApplicability.singleLocation;
 

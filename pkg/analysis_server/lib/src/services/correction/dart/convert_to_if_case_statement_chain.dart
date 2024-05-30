@@ -11,6 +11,8 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertToIfCaseStatementChain extends ResolvedCorrectionProducer {
+  ConvertToIfCaseStatementChain({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // TODO(applicability): comment on why.

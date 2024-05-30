@@ -14,11 +14,12 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class UseCurlyBraces extends ParsedCorrectionProducer {
+class UseCurlyBraces extends ResolvedCorrectionProducer {
   @override
   final CorrectionApplicability applicability;
 
-  UseCurlyBraces() : applicability = CorrectionApplicability.acrossFiles;
+  UseCurlyBraces({required super.context})
+      : applicability = CorrectionApplicability.acrossFiles;
 
   /// Create an instance that is prevented from being applied automatically in
   /// bulk.
@@ -26,7 +27,7 @@ class UseCurlyBraces extends ParsedCorrectionProducer {
   /// This is used in places where "Use Curly Braces" is a valid manual fix, but
   /// not clearly the only/correct fix to apply automatically, such as the
   /// `always_put_control_body_on_new_line` lint.
-  UseCurlyBraces.nonBulk()
+  UseCurlyBraces.nonBulk({required super.context})
       : applicability = CorrectionApplicability.acrossSingleFile;
 
   @override

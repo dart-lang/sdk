@@ -12,6 +12,8 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
+  ConvertToInitializingFormal({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // The fix isn't able to remove the initializer list / block function body

@@ -12,6 +12,8 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 class AddMissingParameterNamed extends ResolvedCorrectionProducer {
   String _parameterName = '';
 
+  AddMissingParameterNamed({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // TODO(applicability): comment on why.

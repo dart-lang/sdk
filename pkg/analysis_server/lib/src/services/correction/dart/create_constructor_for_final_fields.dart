@@ -19,10 +19,10 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
   final _Style _style;
 
-  CreateConstructorForFinalFields.requiredNamed()
+  CreateConstructorForFinalFields.requiredNamed({required super.context})
       : _style = _Style.requiredNamed;
 
-  CreateConstructorForFinalFields.requiredPositional()
+  CreateConstructorForFinalFields.requiredPositional({required super.context})
       : _style = _Style.requiredPositional;
 
   @override

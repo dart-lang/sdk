@@ -19,6 +19,8 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
   /// The name of the variable whose type is to be made nullable.
   String _variableName = '';
 
+  MakeVariableNullable({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // TODO(applicability): comment on why.

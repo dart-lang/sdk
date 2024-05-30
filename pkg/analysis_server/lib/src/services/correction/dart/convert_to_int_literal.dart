@@ -12,6 +12,8 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class ConvertToIntLiteral extends ResolvedCorrectionProducer {
+  ConvertToIntLiteral({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       CorrectionApplicability.automatically;

@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -14,9 +13,54 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class ReplaceFinalWithVar extends ResolvedCorrectionProducer {
   /// A flag indicating that a type is specified and `final` should be
   /// removed rather than replaced.
-  bool _removeFinal = false;
+  final bool _removeFinal;
 
-  Token? _finalKeyword;
+  final Token? _finalKeyword;
+
+  factory ReplaceFinalWithVar({required CorrectionProducerContext context}) {
+    if (context is StubCorrectionProducerContext) {
+      return ReplaceFinalWithVar._(
+        context: context,
+        finalKeyword: null,
+        removeFinal: false,
+      );
+    }
+
+    var removeFinal = false;
+    Token? finalKeyword;
+
+    // Ensure we have set `removeFinal` so that fixKind is accurate after
+    // configure is completed.
+    if (context.node
+        case VariableDeclarationList(
+          keyword: var keywordToken?,
+          type: var type,
+        )) {
+      if (type != null) {
+        // If a type and keyword is present, the keyword is `final`.
+        finalKeyword = keywordToken;
+        removeFinal = true;
+      } else if (keywordToken.keyword == Keyword.FINAL) {
+        finalKeyword = keywordToken;
+      }
+    } else if (context.node
+        case PatternVariableDeclaration(keyword: var keywordToken)) {
+      finalKeyword = keywordToken;
+    }
+
+    return ReplaceFinalWithVar._(
+      context: context,
+      finalKeyword: finalKeyword,
+      removeFinal: removeFinal,
+    );
+  }
+
+  ReplaceFinalWithVar._({
+    required super.context,
+    required Token? finalKeyword,
+    required bool removeFinal,
+  })  : _finalKeyword = finalKeyword,
+        _removeFinal = removeFinal;
 
   @override
   CorrectionApplicability get applicability =>
@@ -45,30 +89,6 @@ class ReplaceFinalWithVar extends ResolvedCorrectionProducer {
           builder.addSimpleReplacement(range.token(finalKeyword), 'var');
         });
       }
-    }
-  }
-
-  @override
-  void configure(CorrectionProducerContext<ResolvedUnitResult> context) {
-    super.configure(context);
-
-    // Ensure we have set `removeFinal` so that fixKind is accurate after
-    // configure is completed.
-    if (node
-        case VariableDeclarationList(
-          keyword: var keywordToken?,
-          type: var type
-        )) {
-      if (type != null) {
-        // If a type and keyword is present, the keyword is `final`.
-        _finalKeyword = keywordToken;
-        _removeFinal = true;
-      } else if (keywordToken.keyword == Keyword.FINAL) {
-        _finalKeyword = keywordToken;
-      }
-    } else if (node
-        case PatternVariableDeclaration(keyword: var keywordToken)) {
-      _finalKeyword = keywordToken;
     }
   }
 }

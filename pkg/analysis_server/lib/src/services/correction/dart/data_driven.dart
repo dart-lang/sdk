@@ -21,6 +21,8 @@ class DataDriven extends MultiCorrectionProducer {
   @visibleForTesting
   static List<TransformSet>? transformSetsForTests;
 
+  DataDriven({required super.context});
+
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
     var importedUris = <Uri>[];
@@ -48,7 +50,9 @@ class DataDriven extends MultiCorrectionProducer {
         }
       }
     }
-    return transformSet.map((transform) => DataDrivenFix(transform)).toList();
+    return transformSet
+        .map((transform) => DataDrivenFix(transform, context: context))
+        .toList();
   }
 
   /// Return the transform sets that are available for fixing issues in the
@@ -69,7 +73,7 @@ class DataDrivenFix extends ResolvedCorrectionProducer {
   /// The transform being applied to implement this fix.
   final Transform _transform;
 
-  DataDrivenFix(this._transform);
+  DataDrivenFix(this._transform, {required super.context});
 
   @override
   CorrectionApplicability get applicability =>

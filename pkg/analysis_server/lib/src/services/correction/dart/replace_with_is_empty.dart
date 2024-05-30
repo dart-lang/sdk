@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -14,14 +13,54 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceWithIsEmpty extends ResolvedCorrectionProducer {
   @override
-  FixKind fixKind = DartFixKind.REPLACE_WITH_IS_EMPTY;
+  final FixKind fixKind;
 
   @override
-  FixKind multiFixKind = DartFixKind.REPLACE_WITH_IS_EMPTY_MULTI;
+  final FixKind multiFixKind;
 
-  BinaryExpression? _binary;
+  final BinaryExpression? _binary;
 
-  _Replacement? _replacement;
+  final _Replacement? _replacement;
+
+  factory ReplaceWithIsEmpty({required CorrectionProducerContext context}) {
+    if (context is StubCorrectionProducerContext) {
+      return ReplaceWithIsEmpty._(
+        context: context,
+        fixKind: DartFixKind.REPLACE_WITH_IS_EMPTY,
+        multiFixKind: DartFixKind.REPLACE_WITH_IS_EMPTY_MULTI,
+        binary: null,
+        replacement: null,
+      );
+    }
+    var binary = context.node.thisOrAncestorOfType<BinaryExpression>();
+    var replacement = _analyzeBinaryExpression(binary);
+    FixKind fixKind;
+    FixKind multiFixKind;
+    if (replacement == null) {
+      fixKind = DartFixKind.REPLACE_WITH_IS_EMPTY;
+      multiFixKind = DartFixKind.REPLACE_WITH_IS_EMPTY_MULTI;
+    } else {
+      fixKind = replacement.fixKind;
+      multiFixKind = replacement.multiFixKind;
+    }
+
+    return ReplaceWithIsEmpty._(
+      context: context,
+      fixKind: fixKind,
+      multiFixKind: multiFixKind,
+      binary: binary,
+      replacement: replacement,
+    );
+  }
+
+  ReplaceWithIsEmpty._({
+    required super.context,
+    required this.fixKind,
+    required this.multiFixKind,
+    required BinaryExpression? binary,
+    required _Replacement? replacement,
+  })  : _binary = binary,
+        _replacement = replacement;
 
   @override
   CorrectionApplicability get applicability =>
@@ -48,25 +87,9 @@ class ReplaceWithIsEmpty extends ResolvedCorrectionProducer {
     });
   }
 
-  @override
-  void configure(CorrectionProducerContext<ResolvedUnitResult> context) {
-    super.configure(context);
+  static _Replacement? _analyzeBinaryExpression(BinaryExpression? binary) {
+    if (binary == null) return null;
 
-    var binary = _binary = node.thisOrAncestorOfType<BinaryExpression>();
-    if (binary == null) {
-      return;
-    }
-
-    var replacement = _replacement = _analyzeBinaryExpression(binary);
-    if (replacement == null) {
-      return;
-    }
-
-    fixKind = replacement.fixKind;
-    multiFixKind = replacement.multiFixKind;
-  }
-
-  static _Replacement? _analyzeBinaryExpression(BinaryExpression binary) {
     var operator = binary.operator.type;
     var rightValue = _getIntValue(binary.rightOperand);
     if (rightValue != null) {

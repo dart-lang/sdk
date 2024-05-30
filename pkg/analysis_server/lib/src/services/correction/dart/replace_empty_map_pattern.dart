@@ -12,13 +12,14 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class ReplaceEmptyMapPattern extends ResolvedCorrectionProducer {
   final _Style _style;
 
-  /// Initialize a newly created correction producer to create an object pattern
-  /// that will match any map.
-  ReplaceEmptyMapPattern.any() : _style = _Style.any;
+  /// Initializes a newly created correction producer to create an object
+  /// pattern that will match any map.
+  ReplaceEmptyMapPattern.any({required super.context}) : _style = _Style.any;
 
-  /// Initialize a newly created correction producer to create an object pattern
-  /// that will match an empty map.
-  ReplaceEmptyMapPattern.empty() : _style = _Style.empty;
+  /// Initializes a newly created correction producer to create an object
+  /// pattern that will match an empty map.
+  ReplaceEmptyMapPattern.empty({required super.context})
+      : _style = _Style.empty;
 
   @override
   CorrectionApplicability get applicability =>

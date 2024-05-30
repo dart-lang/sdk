@@ -13,6 +13,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class MakeFieldPublic extends ResolvedCorrectionProducer {
   late String _fieldName;
 
+  MakeFieldPublic({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // TODO(applicability): comment on why.

@@ -15,24 +15,26 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class FlutterWrap extends MultiCorrectionProducer {
+  FlutterWrap({required super.context});
+
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
     var producers = <ResolvedCorrectionProducer>[];
     var widgetExpr = node.findWidgetExpression;
     if (widgetExpr != null) {
       var widgetType = widgetExpr.typeOrThrow;
-      producers.add(_FlutterWrapGeneric(widgetExpr));
+      producers.add(_FlutterWrapGeneric(widgetExpr, context: context));
       if (!widgetType.isExactWidgetTypeCenter) {
-        producers.add(_FlutterWrapCenter(widgetExpr));
+        producers.add(_FlutterWrapCenter(widgetExpr, context: context));
       }
       if (!widgetType.isExactWidgetTypeContainer) {
-        producers.add(_FlutterWrapContainer(widgetExpr));
+        producers.add(_FlutterWrapContainer(widgetExpr, context: context));
       }
       if (!widgetType.isExactWidgetTypePadding) {
-        producers.add(_FlutterWrapPadding(widgetExpr));
+        producers.add(_FlutterWrapPadding(widgetExpr, context: context));
       }
       if (!widgetType.isExactWidgetTypeSizedBox) {
-        producers.add(_FlutterWrapSizedBox(widgetExpr));
+        producers.add(_FlutterWrapSizedBox(widgetExpr, context: context));
       }
     }
     await _wrapMultipleWidgets(producers);
@@ -87,15 +89,16 @@ class FlutterWrap extends MultiCorrectionProducer {
 
     var firstWidget = widgetExpressions.first;
     var lastWidget = widgetExpressions.last;
-    producers.add(_FlutterWrapColumn(firstWidget, lastWidget));
-    producers.add(_FlutterWrapRow(firstWidget, lastWidget));
+    producers
+        .add(_FlutterWrapColumn(firstWidget, lastWidget, context: context));
+    producers.add(_FlutterWrapRow(firstWidget, lastWidget, context: context));
   }
 }
 
 /// A correction processor that can make one of the possible changes computed by
 /// the [FlutterWrap] producer.
 class _FlutterWrapCenter extends _WrapSingleWidget {
-  _FlutterWrapCenter(super.widgetExpr);
+  _FlutterWrapCenter(super.widgetExpr, {required super.context});
 
   @override
   AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_CENTER;
@@ -110,7 +113,8 @@ class _FlutterWrapCenter extends _WrapSingleWidget {
 /// A correction processor that can make one of the possible changes computed by
 /// the [FlutterWrap] producer.
 class _FlutterWrapColumn extends _WrapMultipleWidgets {
-  _FlutterWrapColumn(super.firstWidget, super.lastWidget);
+  _FlutterWrapColumn(super.firstWidget, super.lastWidget,
+      {required super.context});
 
   @override
   AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_COLUMN;
@@ -122,7 +126,7 @@ class _FlutterWrapColumn extends _WrapMultipleWidgets {
 /// A correction processor that can make one of the possible changes computed by
 /// the [FlutterWrap] producer.
 class _FlutterWrapContainer extends _WrapSingleWidget {
-  _FlutterWrapContainer(super.widgetExpr);
+  _FlutterWrapContainer(super.widgetExpr, {required super.context});
 
   @override
   AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_CONTAINER;
@@ -137,7 +141,7 @@ class _FlutterWrapContainer extends _WrapSingleWidget {
 /// A correction processor that can make one of the possible changes computed by
 /// the [FlutterWrap] producer.
 class _FlutterWrapGeneric extends _WrapSingleWidget {
-  _FlutterWrapGeneric(super.widgetExpr);
+  _FlutterWrapGeneric(super.widgetExpr, {required super.context});
 
   @override
   AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_GENERIC;
@@ -146,7 +150,7 @@ class _FlutterWrapGeneric extends _WrapSingleWidget {
 /// A correction processor that can make one of the possible changes computed by
 /// the [FlutterWrap] producer.
 class _FlutterWrapPadding extends _WrapSingleWidget {
-  _FlutterWrapPadding(super.widgetExpr);
+  _FlutterWrapPadding(super.widgetExpr, {required super.context});
 
   @override
   AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_PADDING;
@@ -167,7 +171,11 @@ class _FlutterWrapPadding extends _WrapSingleWidget {
 /// A correction processor that can make one of the possible changes computed by
 /// the [FlutterWrap] producer.
 class _FlutterWrapRow extends _WrapMultipleWidgets {
-  _FlutterWrapRow(super.firstWidget, super.lastWidget);
+  _FlutterWrapRow(
+    super.firstWidget,
+    super.lastWidget, {
+    required super.context,
+  });
 
   @override
   AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_ROW;
@@ -179,7 +187,7 @@ class _FlutterWrapRow extends _WrapMultipleWidgets {
 /// A correction processor that can make one of the possible changes computed by
 /// the [FlutterWrap] producer.
 class _FlutterWrapSizedBox extends _WrapSingleWidget {
-  _FlutterWrapSizedBox(super.widgetExpr);
+  _FlutterWrapSizedBox(super.widgetExpr, {required super.context});
 
   @override
   AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_SIZED_BOX;
@@ -198,7 +206,11 @@ abstract class _WrapMultipleWidgets extends ResolvedCorrectionProducer {
 
   final Expression lastWidget;
 
-  _WrapMultipleWidgets(this.firstWidget, this.lastWidget);
+  _WrapMultipleWidgets(
+    this.firstWidget,
+    this.lastWidget, {
+    required super.context,
+  });
 
   @override
   CorrectionApplicability get applicability =>
@@ -261,7 +273,7 @@ abstract class _WrapMultipleWidgets extends ResolvedCorrectionProducer {
 abstract class _WrapSingleWidget extends ResolvedCorrectionProducer {
   final Expression widgetExpr;
 
-  _WrapSingleWidget(this.widgetExpr);
+  _WrapSingleWidget(this.widgetExpr, {required super.context});
 
   @override
   CorrectionApplicability get applicability =>

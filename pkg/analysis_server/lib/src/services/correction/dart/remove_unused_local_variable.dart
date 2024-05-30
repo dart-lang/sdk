@@ -17,6 +17,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
   final List<_Command> _commands = [];
 
+  RemoveUnusedLocalVariable({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // Not predictably the correct action.
