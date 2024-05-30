@@ -342,7 +342,7 @@ Future<void> outline(List<String> arguments, {Benchmarker? benchmarker}) async {
         print("Building outlines for ${arguments.join(' ')}");
       }
       CompilerResult compilerResult = await generateKernelInternal(
-          buildSummary: true, benchmarker: benchmarker);
+          buildSummary: true, buildComponent: false, benchmarker: benchmarker);
       Component component = compilerResult.component!;
       await _emitComponent(c.options, component,
           benchmarker: benchmarker, message: "Wrote outline to ");

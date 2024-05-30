@@ -7,21 +7,21 @@ import "org-dartlang-testcase:///scope_access.dart";
 import "org-dartlang-testcase:///scope_access.dart";
 
 class Class extends core::Object {
-  constructor injectedConstructor1() → self::Class
+  constructor /* from org-dartlang-testcase:///scope_access_lib1.dart */ injectedConstructor1() → self::Class
     : super core::Object::•() {
     new self::Class::constructor();
     new self::Class::injectedConstructor1();
     new self::Class::injectedConstructor2();
     new self::Class::_injectedConstructor3();
   }
-  constructor injectedConstructor2() → self::Class
+  constructor /* from org-dartlang-testcase:///scope_access_lib2.dart */ injectedConstructor2() → self::Class
     : super core::Object::•() {
     new self::Class::constructor();
     new self::Class::injectedConstructor1();
     new self::Class::injectedConstructor2();
     new self::Class::_injectedConstructor3();
   }
-  constructor _injectedConstructor3() → self::Class
+  constructor /* from org-dartlang-testcase:///scope_access_lib3.dart */ _injectedConstructor3() → self::Class
     : super core::Object::•() {
     new self::Class::constructor();
     new self::Class::injectedConstructor1();

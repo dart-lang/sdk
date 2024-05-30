@@ -32,7 +32,7 @@ typedef AliasImpl<T extends core::num> = test::ClassImpl<T>;
 @/* from org-dartlang-testcase:///patch_lib.dart */ #C13
 class Class<T extends core::Object? = dynamic> extends core::Object {
   @#C13
-  constructor •({core::bool defaultValue = #C14, required test::Class::T% value}) → test::Class<test::Class::T%>
+  constructor /* from org-dartlang-testcase:///patch_lib.dart */ •({core::bool defaultValue = #C14, required test::Class::T% value}) → test::Class<test::Class::T%>
     : super core::Object::•() {
     core::print("patch Class");
   }
@@ -60,7 +60,7 @@ class ClassImpl<T extends core::Object? = dynamic> extends core::Object implemen
     : super core::Object::•()
     ;
   @#C13
-  constructor patched({core::bool defaultValue = #C14, required test::ClassImpl::T% value}) → test::ClassImpl<test::ClassImpl::T%>
+  constructor /* from org-dartlang-testcase:///patch_lib.dart */ patched({core::bool defaultValue = #C14, required test::ClassImpl::T% value}) → test::ClassImpl<test::ClassImpl::T%>
     : super core::Object::•() {
     core::print("patch ClassImpl");
   }

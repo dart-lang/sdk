@@ -64,6 +64,7 @@ inference_update_2/cascaded_field_promotion: semiFuzzFailureOnForceRebuildBodies
 records/nullable_access_extension: semiFuzzFailureOnForceRebuildBodies # unnamed extension
 
 # FUZZ FRAMEWORK FAILURES
+dart2js/tear_off_patch/main: SemiFuzzFailure # incremental compiler doesn't custom dart: libraries as dependencies on recompilation
 general/script_tag_in_part_file: SemiFuzzFailure # `#!/usr/bin/env dart` goes away
 
 # UNSORTED ONES:

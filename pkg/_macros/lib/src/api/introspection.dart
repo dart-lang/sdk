@@ -103,7 +103,7 @@ abstract interface class StaticType {
   /// to the [declaration] passed here, while also being a supertype of `this`
   /// type.
   ///
-  /// This is useful to obtain the type parameters required for a known
+  /// This is useful to obtain the type arguments required for a known
   /// superclass. Consider a class defined as `class MyMap implements
   /// Map<Foo, Bar>` and a macro interested in dealing with maps. Once that
   /// macro has resolved `MyMap` to a static type, it would call [asInstanceOf]

@@ -72,121 +72,126 @@ void main() {
   DartType dynamicType = const DynamicType();
   check({dynamicType: "dynamic"}, 0);
 
-  DartType boolType = new InterfaceType(boolClass, Nullability.legacy);
+  DartType boolType = new InterfaceType(boolClass, Nullability.nonNullable);
   check({boolType: "bool"}, 0);
 
-  DartType numType = new InterfaceType(numClass, Nullability.legacy);
+  DartType numType = new InterfaceType(numClass, Nullability.nonNullable);
   check({numType: "num"}, 0);
 
-  DartType intType = new InterfaceType(intClass, Nullability.legacy);
+  DartType intType = new InterfaceType(intClass, Nullability.nonNullable);
   check({intType: "int"}, 0);
 
-  DartType object = new InterfaceType(objectClass, Nullability.legacy);
+  DartType object = new InterfaceType(objectClass, Nullability.nonNullable);
   check({object: "Object"}, 1);
 
-  DartType foo = new InterfaceType(fooClass, Nullability.legacy);
+  DartType foo = new InterfaceType(fooClass, Nullability.nonNullable);
   check({foo: "Foo"}, 1);
 
-  DartType foo2 = new InterfaceType(foo2Class, Nullability.legacy);
+  DartType foo2 = new InterfaceType(foo2Class, Nullability.nonNullable);
   check({foo2: "Foo"}, 1);
   check({foo: "Foo/*1*/", foo2: "Foo/*2*/"}, 2);
 
   DartType barVoid =
-      new InterfaceType(barClass, Nullability.legacy, [voidType]);
+      new InterfaceType(barClass, Nullability.nonNullable, [voidType]);
   check({barVoid: "Bar<void>"}, 1);
 
   DartType barObject =
-      new InterfaceType(barClass, Nullability.legacy, [object]);
+      new InterfaceType(barClass, Nullability.nonNullable, [object]);
   check({barObject: "Bar<Object>"}, 2);
 
-  DartType barBarDynamic = new InterfaceType(barClass, Nullability.legacy, [
-    new InterfaceType(barClass, Nullability.legacy, [dynamicType])
+  DartType barBarDynamic =
+      new InterfaceType(barClass, Nullability.nonNullable, [
+    new InterfaceType(barClass, Nullability.nonNullable, [dynamicType])
   ]);
   check({barBarDynamic: "Bar<Bar<dynamic>>"}, 1);
 
   DartType parameterY =
-      new TypeParameterType(new TypeParameter("Y"), Nullability.legacy);
-  DartType barY = new InterfaceType(barClass, Nullability.legacy, [parameterY]);
+      new TypeParameterType(new TypeParameter("Y"), Nullability.nonNullable);
+  DartType barY =
+      new InterfaceType(barClass, Nullability.nonNullable, [parameterY]);
   check({parameterY: "Y", barY: "Bar<Y>"}, 1);
 
   DartType bazFooBarBazDynamicVoid =
-      new InterfaceType(bazClass, Nullability.legacy, [
+      new InterfaceType(bazClass, Nullability.nonNullable, [
     foo,
-    new InterfaceType(barClass, Nullability.legacy, [
-      new InterfaceType(bazClass, Nullability.legacy, [dynamicType, voidType])
+    new InterfaceType(barClass, Nullability.nonNullable, [
+      new InterfaceType(
+          bazClass, Nullability.nonNullable, [dynamicType, voidType])
     ])
   ]);
   check({bazFooBarBazDynamicVoid: "Baz<Foo, Bar<Baz<dynamic, void>>>"}, 3);
 
   DartType bazFooFoo2 =
-      new InterfaceType(bazClass, Nullability.legacy, [foo, foo2]);
+      new InterfaceType(bazClass, Nullability.nonNullable, [foo, foo2]);
   check({bazFooFoo2: "Baz<Foo/*1*/, Foo/*2*/>"}, 3);
 
-  DartType funVoid = new FunctionType([], voidType, Nullability.legacy);
+  DartType funVoid = new FunctionType([], voidType, Nullability.nonNullable);
   check({funVoid: "void Function()"}, 0);
 
-  DartType funFooBarVoid = new FunctionType([foo], barVoid, Nullability.legacy);
+  DartType funFooBarVoid =
+      new FunctionType([foo], barVoid, Nullability.nonNullable);
   check({funFooBarVoid: "Bar<void> Function(Foo)"}, 2);
 
-  DartType funFooFoo2 = new FunctionType([foo], foo2, Nullability.legacy);
+  DartType funFooFoo2 = new FunctionType([foo], foo2, Nullability.nonNullable);
   check({funFooFoo2: "Foo/*1*/ Function(Foo/*2*/)"}, 2);
 
-  DartType funOptFooVoid = new FunctionType([foo], voidType, Nullability.legacy,
+  DartType funOptFooVoid = new FunctionType(
+      [foo], voidType, Nullability.nonNullable,
       requiredParameterCount: 0);
   check({funOptFooVoid: "void Function([Foo])"}, 1);
 
   DartType funFooOptIntVoid = new FunctionType(
-      [foo, intType], voidType, Nullability.legacy,
+      [foo, intType], voidType, Nullability.nonNullable,
       requiredParameterCount: 1);
   check({funFooOptIntVoid: "void Function(Foo, [int])"}, 1);
 
   DartType funOptFooOptIntVoid = new FunctionType(
-      [foo, intType], voidType, Nullability.legacy,
+      [foo, intType], voidType, Nullability.nonNullable,
       requiredParameterCount: 0);
   check({funOptFooOptIntVoid: "void Function([Foo, int])"}, 1);
 
   DartType funNamedObjectVoid = new FunctionType(
-      [], voidType, Nullability.legacy,
+      [], voidType, Nullability.nonNullable,
       namedParameters: [new NamedType("obj", object)]);
   check({funNamedObjectVoid: "void Function({Object obj})"}, 1);
 
   DartType funFooNamedObjectVoid = new FunctionType(
-      [foo], voidType, Nullability.legacy,
+      [foo], voidType, Nullability.nonNullable,
       namedParameters: [new NamedType("obj", object)]);
   check({funFooNamedObjectVoid: "void Function(Foo, {Object obj})"}, 2);
 
   StructuralParameter t = new StructuralParameter("T", object, dynamicType);
   DartType funGeneric = new FunctionType(
-      [new StructuralParameterType(t, Nullability.legacy)],
-      new StructuralParameterType(t, Nullability.legacy),
-      Nullability.legacy,
+      [new StructuralParameterType(t, Nullability.nonNullable)],
+      new StructuralParameterType(t, Nullability.nonNullable),
+      Nullability.nonNullable,
       typeParameters: [t]);
   check({funGeneric: "T Function<T>(T)"}, 0);
 
   StructuralParameter tObject = new StructuralParameter("T", object, object);
   DartType funGenericObject = new FunctionType(
-      [new StructuralParameterType(tObject, Nullability.legacy)],
-      new StructuralParameterType(tObject, Nullability.legacy),
-      Nullability.legacy,
+      [new StructuralParameterType(tObject, Nullability.nonNullable)],
+      new StructuralParameterType(tObject, Nullability.nonNullable),
+      Nullability.nonNullable,
       typeParameters: [tObject]);
   check({funGenericObject: "T Function<T extends Object>(T)"}, 1);
 
   StructuralParameter tFoo = new StructuralParameter("T", foo, dynamicType);
   DartType funGenericFoo = new FunctionType(
-      [new StructuralParameterType(tFoo, Nullability.legacy)],
-      new StructuralParameterType(tFoo, Nullability.legacy),
-      Nullability.legacy,
+      [new StructuralParameterType(tFoo, Nullability.nonNullable)],
+      new StructuralParameterType(tFoo, Nullability.nonNullable),
+      Nullability.nonNullable,
       typeParameters: [tFoo]);
   check({funGenericFoo: "T Function<T extends Foo>(T)"}, 1);
 
   StructuralParameter tBar =
       new StructuralParameter("T", dynamicType, dynamicType);
-  tBar.bound = new InterfaceType(barClass, Nullability.legacy,
-      [new StructuralParameterType(tBar, Nullability.legacy)]);
+  tBar.bound = new InterfaceType(barClass, Nullability.nonNullable,
+      [new StructuralParameterType(tBar, Nullability.nonNullable)]);
   DartType funGenericBar = new FunctionType(
-      [new StructuralParameterType(tBar, Nullability.legacy)],
-      new StructuralParameterType(tBar, Nullability.legacy),
-      Nullability.legacy,
+      [new StructuralParameterType(tBar, Nullability.nonNullable)],
+      new StructuralParameterType(tBar, Nullability.nonNullable),
+      Nullability.nonNullable,
       typeParameters: [tBar]);
   check({funGenericBar: "T Function<T extends Bar<T>>(T)"}, 1);
 
@@ -201,13 +206,13 @@ void main() {
       type: foo2, fileUri: foo2Class.fileUri);
   foo2Class.fields.add(nextField);
   Field xField = new Field.immutable(new Name("x"),
-      type:
-          new TypeParameterType(bazClass.typeParameters[0], Nullability.legacy),
+      type: new TypeParameterType(
+          bazClass.typeParameters[0], Nullability.nonNullable),
       fileUri: bazClass.fileUri);
   bazClass.fields.add(xField);
   Field yField = new Field.immutable(new Name("y"),
-      type:
-          new TypeParameterType(bazClass.typeParameters[1], Nullability.legacy),
+      type: new TypeParameterType(
+          bazClass.typeParameters[1], Nullability.nonNullable),
       fileUri: bazClass.fileUri);
   bazClass.fields.add(yField);
   FunctionNode gooFunction = new FunctionNode(new EmptyStatement(),

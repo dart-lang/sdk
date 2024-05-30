@@ -85,8 +85,7 @@ class NamedTypeAnnotationImpl extends TypeAnnotationImpl
   }
 }
 
-class StaticTypeImpl<T extends StaticType> extends RemoteInstance
-    implements StaticType {
+class StaticTypeImpl extends RemoteInstance implements StaticType {
   StaticTypeImpl(super.id);
 
   @override
@@ -111,8 +110,7 @@ class StaticTypeImpl<T extends StaticType> extends RemoteInstance
   }
 }
 
-class NamedStaticTypeImpl extends StaticTypeImpl<NamedStaticType>
-    implements NamedStaticType {
+class NamedStaticTypeImpl extends StaticTypeImpl implements NamedStaticType {
   @override
   final ParameterizedTypeDeclarationImpl declaration;
 

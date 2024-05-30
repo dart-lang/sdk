@@ -21,7 +21,7 @@ import self as self2;
 import "dart:core" as core;
 
 part ./unaliased_bounds_checks_in_constructor_calls_with_parts_part_lib.dart;
-typedef A<X extends core::num, unrelated Y extends core::Object? = dynamic> = self2::C<X>;
+typedef /* from org-dartlang-testcase:///unaliased_bounds_checks_in_constructor_calls_with_parts_part_lib.dart */ A<X extends core::num, unrelated Y extends core::Object? = dynamic> = self2::C<X>;
 class C<X extends core::Object? = dynamic> extends core::Object { // from org-dartlang-testcase:///unaliased_bounds_checks_in_constructor_calls_with_parts_part_lib.dart
   synthetic constructor •() → self2::C<self2::C::X%>
     : super core::Object::•()

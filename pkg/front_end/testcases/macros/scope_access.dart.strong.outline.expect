@@ -7,11 +7,11 @@ import "org-dartlang-testcase:///scope_access.dart";
 import "org-dartlang-testcase:///scope_access.dart";
 
 class Class extends core::Object {
-  constructor injectedConstructor1() → self::Class
+  constructor /* from org-dartlang-testcase:///scope_access_lib1.dart */ injectedConstructor1() → self::Class
     ;
-  constructor injectedConstructor2() → self::Class
+  constructor /* from org-dartlang-testcase:///scope_access_lib2.dart */ injectedConstructor2() → self::Class
     ;
-  constructor _injectedConstructor3() → self::Class
+  constructor /* from org-dartlang-testcase:///scope_access_lib3.dart */ _injectedConstructor3() → self::Class
     ;
   constructor constructor() → self::Class
     ;

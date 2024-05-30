@@ -67,32 +67,32 @@ class SuperClass extends core::Object {
   synthetic constructor •() → self2::SuperClass
     ;
 }
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 abstract class Class1a extends core::Object {
   synthetic constructor •() → self2::Class1a
     ;
 }
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class1b extends core::Object {
   synthetic constructor •() → self2::Class1b
     ;
 }
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class2a extends self2::SuperClass {
   synthetic constructor •() → self2::Class2a
     ;
 }
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class2b extends core::Object {
   synthetic constructor •() → self2::Class2b
     ;
 }
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class3a extends core::Object implements self2::Interface {
   synthetic constructor •() → self2::Class3a
     ;
 }
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class3b extends core::Object {
   synthetic constructor •() → self2::Class3b
     ;
@@ -102,62 +102,62 @@ abstract class _Class4a&Object&Mixin = core::Object with self2::Mixin /*isAnonym
     : super core::Object::•()
     ;
 }
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class4a extends self2::_Class4a&Object&Mixin {
   synthetic constructor •() → self2::Class4a
     ;
 }
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class4b extends core::Object {
   synthetic constructor •() → self2::Class4b
     ;
 }
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class5a extends core::Object {
   @_in::patch
   external static factory •() → self2::Class5a /* redirection-target: self2::Class5aImpl::• */
     return new self2::Class5aImpl::•();
 }
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class5aImpl extends core::Object implements self2::Class5a {
   synthetic constructor •() → self2::Class5aImpl
     ;
 }
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class5b extends core::Object {
   @_in::patch
   external static factory •() → self2::Class5b
     return new self2::Class5bImpl::•();
 }
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class5bImpl extends core::Object {
   synthetic constructor •() → self2::Class5bImpl
     ;
 }
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class5c extends core::Object {
   @_in::patch
   external static factory •() → self2::Class5c
     return new self2::Class5cImpl::•();
 }
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class5cImpl extends core::Object {
   synthetic constructor •() → self2::Class5cImpl
     ;
 }
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class6a<T extends core::Object? = dynamic> extends core::Object {
   @_in::patch
   external static factory •<T extends core::Object? = dynamic>((self2::Class6a::•::T%) → void f) → self2::Class6a<self2::Class6a::•::T%>
     return new self2::_Class6aImpl::•<self2::Class6a::•::T%>(f);
 }
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class6b<T extends core::Object? = dynamic> extends core::Object {
   @_in::patch
   external static factory •<T extends core::Object? = dynamic>((self2::Class6b::•::T%) → void f) → self2::Class6b<self2::Class6b::•::T%> /* redirection-target: self2::_Class6bImpl::•<self2::Class6b::•::T%>*/
     return new self2::_Class6bImpl::•<self2::Class6b::•::T%>(f);
 }
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class6c<T extends core::Object? = dynamic> extends core::Object {
   @_in::patch
   external static factory •<T extends core::Object? = dynamic>((self2::Class6c::•::T%) → void f) → self2::Class6c<self2::Class6c::•::T%>

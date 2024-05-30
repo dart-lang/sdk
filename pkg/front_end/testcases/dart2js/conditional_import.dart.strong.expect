@@ -98,9 +98,9 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
 
 constants  {
   #C1 = "dart.library.io"
-  #C2 = eval const core::bool::fromEnvironment(#C1)
+  #C2 = eval /* from org-dartlang-testcase:///conditional_import.dart */ const core::bool::fromEnvironment(#C1)
   #C3 = "dart.library.html"
-  #C4 = eval const core::bool::fromEnvironment(#C3)
+  #C4 = eval /* from org-dartlang-testcase:///conditional_import.dart */ const core::bool::fromEnvironment(#C3)
   #C5 = "dart.library.foo"
-  #C6 = eval const core::bool::fromEnvironment(#C5)
+  #C6 = eval /* from org-dartlang-testcase:///conditional_import.dart */ const core::bool::fromEnvironment(#C5)
 }

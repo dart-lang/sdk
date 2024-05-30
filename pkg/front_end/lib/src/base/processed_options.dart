@@ -485,14 +485,6 @@ class ProcessedOptions {
     return _additionalDillComponents!;
   }
 
-  void set loadAdditionalDillsComponents(List<Component> components) {
-    if (_additionalDillComponents != null) {
-      throw new StateError("inputAdditionalDillsComponents already loaded.");
-    }
-    components.forEach(_validateNullSafetyMode);
-    _additionalDillComponents = components;
-  }
-
   /// Helper to load a .dill file from [uri] using the existing [nameRoot].
   Component loadComponent(List<int> bytes, CanonicalName? nameRoot,
       {bool? alwaysCreateNewNamedNodes, Uri? fileUri}) {

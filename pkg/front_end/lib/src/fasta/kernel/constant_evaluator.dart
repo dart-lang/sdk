@@ -164,12 +164,10 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant?> {
 
   @override
   Constant? visitMapConstant(MapConstant node) {
-    DartType? keyType = computeConstCanonicalType(
-        node.keyType, _evaluator.coreTypes,
-        isNonNullableByDefault: _evaluator.isNonNullableByDefault);
-    DartType? valueType = computeConstCanonicalType(
-        node.valueType, _evaluator.coreTypes,
-        isNonNullableByDefault: _evaluator.isNonNullableByDefault);
+    DartType? keyType =
+        computeConstCanonicalType(node.keyType, _evaluator.coreTypes);
+    DartType? valueType =
+        computeConstCanonicalType(node.valueType, _evaluator.coreTypes);
     List<ConstantMapEntry>? entries;
     for (int index = 0; index < node.entries.length; index++) {
       ConstantMapEntry entry = node.entries[index];
@@ -190,9 +188,8 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant?> {
 
   @override
   Constant? visitListConstant(ListConstant node) {
-    DartType? typeArgument = computeConstCanonicalType(
-        node.typeArgument, _evaluator.coreTypes,
-        isNonNullableByDefault: _evaluator.isNonNullableByDefault);
+    DartType? typeArgument =
+        computeConstCanonicalType(node.typeArgument, _evaluator.coreTypes);
     List<Constant>? entries;
     for (int index = 0; index < node.entries.length; index++) {
       Constant? entry = visitConstant(node.entries[index]);
@@ -210,9 +207,8 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant?> {
 
   @override
   Constant? visitSetConstant(SetConstant node) {
-    DartType? typeArgument = computeConstCanonicalType(
-        node.typeArgument, _evaluator.coreTypes,
-        isNonNullableByDefault: _evaluator.isNonNullableByDefault);
+    DartType? typeArgument =
+        computeConstCanonicalType(node.typeArgument, _evaluator.coreTypes);
     List<Constant>? entries;
     for (int index = 0; index < node.entries.length; index++) {
       Constant? entry = visitConstant(node.entries[index]);
@@ -230,10 +226,9 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant?> {
 
   @override
   Constant? visitRecordConstant(RecordConstant node) {
-    RecordType? recordType = computeConstCanonicalType(
-            node.recordType, _evaluator.coreTypes,
-            isNonNullableByDefault: _evaluator.isNonNullableByDefault)
-        as RecordType?;
+    RecordType? recordType =
+        computeConstCanonicalType(node.recordType, _evaluator.coreTypes)
+            as RecordType?;
     List<Constant>? positional;
     for (int index = 0; index < node.positional.length; index++) {
       Constant? field = visitConstant(node.positional[index]);
@@ -262,8 +257,7 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant?> {
     List<DartType>? typeArguments;
     for (int index = 0; index < node.typeArguments.length; index++) {
       DartType? typeArgument = computeConstCanonicalType(
-          node.typeArguments[index], _evaluator.coreTypes,
-          isNonNullableByDefault: _evaluator.isNonNullableByDefault);
+          node.typeArguments[index], _evaluator.coreTypes);
       if (typeArgument != null) {
         typeArguments ??= node.typeArguments.toList(growable: false);
         typeArguments[index] = typeArgument;
@@ -289,9 +283,8 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant?> {
   Constant? visitInstantiationConstant(InstantiationConstant node) {
     List<DartType>? types;
     for (int index = 0; index < node.types.length; index++) {
-      DartType? type = computeConstCanonicalType(
-          node.types[index], _evaluator.coreTypes,
-          isNonNullableByDefault: _evaluator.isNonNullableByDefault);
+      DartType? type =
+          computeConstCanonicalType(node.types[index], _evaluator.coreTypes);
       if (type != null) {
         types ??= node.types.toList(growable: false);
         types[index] = type;
@@ -308,8 +301,7 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant?> {
 
   @override
   Constant? visitTypeLiteralConstant(TypeLiteralConstant node) {
-    DartType? type = computeConstCanonicalType(node.type, _evaluator.coreTypes,
-        isNonNullableByDefault: _evaluator.isNonNullableByDefault);
+    DartType? type = computeConstCanonicalType(node.type, _evaluator.coreTypes);
     if (type != null) {
       return new TypeLiteralConstant(type);
     }
@@ -332,9 +324,8 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant?> {
   Constant? visitTypedefTearOffConstant(TypedefTearOffConstant node) {
     List<DartType>? types;
     for (int index = 0; index < node.types.length; index++) {
-      DartType? type = computeConstCanonicalType(
-          node.types[index], _evaluator.coreTypes,
-          isNonNullableByDefault: _evaluator.isNonNullableByDefault);
+      DartType? type =
+          computeConstCanonicalType(node.types[index], _evaluator.coreTypes);
       if (type != null) {
         types ??= node.types.toList(growable: false);
         types[index] = type;
@@ -2452,9 +2443,6 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   bool get targetingJavaScript => numberSemantics == NumberSemantics.js;
 
-  bool get isNonNullableByDefault =>
-      staticTypeContext.nonNullable == Nullability.nonNullable;
-
   StaticTypeContext get staticTypeContext => _staticTypeContext!;
 
   Library get currentLibrary => staticTypeContext.enclosingLibrary;
@@ -2540,9 +2528,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         return norm(coreTypes, type);
       case EvaluationMode.weak:
         type = norm(coreTypes, type);
-        return computeConstCanonicalType(type, coreTypes,
-                isNonNullableByDefault: isNonNullableByDefault) ??
-            type;
+        return computeConstCanonicalType(type, coreTypes) ?? type;
     }
   }
 
@@ -2554,9 +2540,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       case EvaluationMode.weak:
         return types.map((DartType type) {
           type = norm(coreTypes, type);
-          return computeConstCanonicalType(type, coreTypes,
-                  isNonNullableByDefault: isNonNullableByDefault) ??
-              type;
+          return computeConstCanonicalType(type, coreTypes) ?? type;
         }).toList();
     }
   }
@@ -3279,8 +3263,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
       // For libraries with null safety Symbol constructor accepts arbitrary
       // string as argument.
-      if (nameValue is StringConstant &&
-          (isNonNullableByDefault || isValidSymbolName(nameValue.value))) {
+      if (nameValue is StringConstant) {
         return canonicalize(new SymbolConstant(nameValue.value, null));
       }
       return createEvaluationErrorConstant(node.arguments.positional.first,
@@ -3710,7 +3693,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           statement.condition,
           templateConstEvalInvalidType.withArguments(
               condition,
-              typeEnvironment.coreTypes.boolLegacyRawType,
+              typeEnvironment.coreTypes.boolNonNullableRawType,
               condition.getType(staticTypeContext)));
     }
 
@@ -4220,7 +4203,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
               templateConstEvalInvalidBinaryOperandType.withArguments(
                   logicalExpressionOperatorToString(node.operatorEnum),
                   left,
-                  typeEnvironment.coreTypes.boolLegacyRawType,
+                  typeEnvironment.coreTypes.boolNonNullableRawType,
                   right.getType(staticTypeContext)));
         }
         return createEvaluationErrorConstant(
@@ -4242,7 +4225,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
               templateConstEvalInvalidBinaryOperandType.withArguments(
                   logicalExpressionOperatorToString(node.operatorEnum),
                   left,
-                  typeEnvironment.coreTypes.boolLegacyRawType,
+                  typeEnvironment.coreTypes.boolNonNullableRawType,
                   right.getType(staticTypeContext)));
         }
         return createEvaluationErrorConstant(
@@ -4276,7 +4259,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           node.condition,
           templateConstEvalInvalidType.withArguments(
               condition,
-              typeEnvironment.coreTypes.boolLegacyRawType,
+              typeEnvironment.coreTypes.boolNonNullableRawType,
               condition.getType(staticTypeContext)));
     }
   }
@@ -4962,7 +4945,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         node,
         templateConstEvalInvalidType.withArguments(
             constant,
-            typeEnvironment.coreTypes.boolLegacyRawType,
+            typeEnvironment.coreTypes.boolNonNullableRawType,
             constant.getType(staticTypeContext)));
   }
 

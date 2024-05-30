@@ -81,15 +81,31 @@ dart2wasm/inference_update_2/issue52452: semiFuzzFailureOnForceRebuildBodies # p
 records/nullable_access_extension: semiFuzzFailureOnForceRebuildBodies # unnamed extension
 
 # FUZZ FRAMEWORK FAILURES
-general/issue45101/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
-general/mixin_from_patch/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
-general/multiple_class_patches/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
-general/nested_lib_spec/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
-general/patch_annotations/main: semiFuzzFailureOnForceRebuildBodies # 'dart:test' stuff.
 general/script_tag_in_part_file: SemiFuzzFailure # `#!/usr/bin/env dart` goes away
-general/tear_off_patch/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 inference/downwards_inference_on_list_literals_infer_if_value_types_match_context: semiFuzzFailureOnForceRebuildBodies # private field
 inference_update_1/horizontal_inference_extension_method: semiFuzzFailureOnForceRebuildBodies # Errors on split
+# Incremental compiler doesn't see custom dart: libraries as dependencies on recompilation:
+dart2js/tear_off_patch/main: SemiFuzzFailure
+dartdevc/factory_patch/main: SemiFuzzFailure
+general/constructor_patch/main: SemiFuzzFailure
+general/factory_patch/main: SemiFuzzFailure
+general/inject_private_patch/main: SemiFuzzFailure
+general/inject_public/main: SemiFuzzFailure
+general/issue45101/main: SemiFuzzFailure
+general/mixin_from_patch/main: SemiFuzzFailure
+general/multiple_class_patches/main: SemiFuzzFailure
+general/nested_lib_spec/main: SemiFuzzFailure
+general/patch_annotations/main: SemiFuzzFailure
+general/patch_conflict/main: SemiFuzzFailure
+general/patch_extends_implements/main: SemiFuzzFailure
+general/patch_extension_scope/main: SemiFuzzFailure
+general/tear_off_patch/main: SemiFuzzFailure
+late_lowering/injected_late_field_checks/main: SemiFuzzFailure
+late_lowering/issue41436/issue41436: SemiFuzzFailure
+nnbd/injected_late_field_checks/main: SemiFuzzFailure
+nnbd/platform_definite_assignment/main: SemiFuzzFailure
+nnbd/platform_nonnullable_fields/main: SemiFuzzFailure
+nnbd/platform_optional_parameters/main: SemiFuzzFailure
 
 # UNSORTED ONES:
 constructor_tearoffs/explicit_instantiation: SemiFuzzFailure
@@ -291,3 +307,8 @@ value_class/copy_with_call_sites: RuntimeError # Expected
 value_class/simple: RuntimeError # Expected
 value_class/value_extends_non_value: RuntimeError # Expected
 value_class/value_implements_non_value: RuntimeError # Expected
+
+# Verifier crashes in semi-fuzzing
+macros/extend_augmented: SemiFuzzCrash
+macros/augment_concrete: SemiFuzzCrash
+macros/multiple_augment_class: SemiFuzzCrash

@@ -340,7 +340,8 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
 
   @override
   void visitInstanceConstant(InstanceConstant node) {
-    new InterfaceType(node.classNode, Nullability.legacy, node.typeArguments)
+    new InterfaceType(
+            node.classNode, Nullability.nonNullable, node.typeArguments)
         .accept(this);
     result.add(" {");
     bool first = true;

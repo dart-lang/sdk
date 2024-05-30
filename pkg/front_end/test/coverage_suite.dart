@@ -39,7 +39,7 @@ const Map<String, double> _expect = {
   "package:front_end/src/api_unstable/dart2js.dart": 0.0,
   "package:front_end/src/api_unstable/util.dart": 37.03703703703704,
   "package:front_end/src/base/instrumentation.dart": 100.0,
-  "package:front_end/src/base/processed_options.dart": 41.36807817589577,
+  "package:front_end/src/base/processed_options.dart": 39.0,
   "package:front_end/src/compute_platform_binaries_location.dart":
       64.1025641025641,
   "package:front_end/src/fasta/builder/builder.dart": 63.63636363636363,
@@ -117,7 +117,7 @@ const Map<String, double> _expect = {
   "package:front_end/src/fasta/dill/dill_extension_type_member_builder.dart":
       83.76623376623377,
   "package:front_end/src/fasta/dill/dill_library_builder.dart": 78.134110787172,
-  "package:front_end/src/fasta/dill/dill_loader.dart": 85.36585365853658,
+  "package:front_end/src/fasta/dill/dill_loader.dart": 80.0,
   "package:front_end/src/fasta/dill/dill_member_builder.dart":
       86.52173913043478,
   "package:front_end/src/fasta/dill/dill_target.dart": 74.35897435897436,
@@ -233,7 +233,7 @@ const Map<String, double> _expect = {
       89.29663608562691,
   "package:front_end/src/fasta/source/source_library_builder.dart":
       82.6852338413032,
-  "package:front_end/src/fasta/source/source_loader.dart": 80.74141048824593,
+  "package:front_end/src/fasta/source/source_loader.dart": 79.0,
   "package:front_end/src/fasta/source/source_member_builder.dart":
       40.32258064516129,
   "package:front_end/src/fasta/source/source_procedure_builder.dart":
@@ -242,7 +242,7 @@ const Map<String, double> _expect = {
       97.63313609467455,
   "package:front_end/src/fasta/source/stack_listener_impl.dart":
       64.44444444444444,
-  "package:front_end/src/fasta/ticker.dart": 100.0,
+  "package:front_end/src/fasta/ticker.dart": 73.0,
   "package:front_end/src/fasta/type_inference/closure_context.dart":
       84.23236514522821,
   "package:front_end/src/fasta/type_inference/delayed_expressions.dart":

@@ -3697,7 +3697,7 @@ bool Assembler::AddressCanHoldConstantIndex(const Object& constant,
       (is_external ? 0
                    : (target::Instance::DataOffsetFor(cid) - kHeapObjectTag));
   const int64_t offset = index * index_scale + offset_base;
-  ASSERT(Utils::IsInt(32, offset));
+  if (!Utils::IsInt(32, offset)) return false;
   if (Address::CanHoldImmediateOffset(is_load, cid, offset)) {
     *needs_base = false;
     return true;

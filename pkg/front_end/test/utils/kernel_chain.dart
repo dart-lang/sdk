@@ -601,8 +601,8 @@ class MatchExpectation
       actual = _replaceSdkLocation(actual, search, "sdk/");
     } else {
       // We are running from something like out/ReleaseX64/dart
-      actual = _replaceSdkLocation(actual, "sdk/", "sdk/");
     }
+    actual = _replaceSdkLocation(actual, "sdk/", "sdk/");
     actual = actual.replaceAll("$base", "org-dartlang-testcase:///");
     actual = actual.replaceAll("\\n", "\n");
     return context.match<ComponentResult>(suffix, actual, uri, result,

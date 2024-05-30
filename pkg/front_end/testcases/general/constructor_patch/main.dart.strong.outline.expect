@@ -15,25 +15,25 @@ import "dart:core" as core;
 
 import "dart:_internal";
 
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class extends core::Object /*hasConstConstructor*/  {
   final field core::bool defaultValue /* from org-dartlang-testcase:///patch_lib.dart */;
-  constructor _privateInjected() → self2::Class
+  constructor /* from org-dartlang-testcase:///patch_lib.dart */ _privateInjected() → self2::Class
     ;
-  constructor redirect() → self2::Class
+  constructor /* from org-dartlang-testcase:///patch_lib.dart */ redirect() → self2::Class
     ;
-  constructor redirectInjected() → self2::Class
+  constructor /* from org-dartlang-testcase:///patch_lib.dart */ redirectInjected() → self2::Class
     ;
   @_in::patch
   external constructor generative({core::bool defaultValue = true}) → self2::Class;
   @_in::patch
-  const constructor constGenerative({core::bool defaultValue = true}) → self2::Class
+  const constructor /* from org-dartlang-testcase:///patch_lib.dart */ constGenerative({core::bool defaultValue = true}) → self2::Class
     : self2::Class::defaultValue = defaultValue, super core::Object::•()
     ;
   @_in::patch
   external constructor _private() → self2::Class;
 }
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class2 extends core::Object {
   final field core::int injectedField /* from org-dartlang-testcase:///patch_lib.dart */;
   field core::int field;
