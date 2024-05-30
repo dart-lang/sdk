@@ -152,7 +152,7 @@ behavior was the last time we ran the test under some configuration. We call
 this the test's **status**.
 
 In the past, status was recorded in a separate set of
-[**status files**][Status-files.md]. These live in the repo under `tests/`.
+[**status files**](Status-files.md). These live in the repo under `tests/`.
 In order to change the expected
 behavior of a test, you had to manually change the status file and then commit
 that change. In practice, we found this doesn't scale to the number of tools and

@@ -70,7 +70,7 @@ dart2js, should produce a CompileError".
 
 [clue]: https://en.wikipedia.org/wiki/Cluedo
 
-With miles of tests and piles of configurtions, we need a compact notation for
+With miles of tests and piles of configurations, we need a compact notation for
 defining expectations. That's what status files aim to be.
 
 A status file is a line-oriented (newlines are significant) plain text file.
