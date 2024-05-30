@@ -11192,14 +11192,14 @@ class InvalidType extends DartType implements SharedInvalidType {
   Nullability get declaredNullability {
     // TODO(johnniwinther,cstefantsova): Consider implementing
     // invalidNullability.
-    return Nullability.legacy;
+    return Nullability.nullable;
   }
 
   @override
   Nullability get nullability {
     // TODO(johnniwinther,cstefantsova): Consider implementing
     // invalidNullability.
-    return Nullability.legacy;
+    return Nullability.nullable;
   }
 
   @override

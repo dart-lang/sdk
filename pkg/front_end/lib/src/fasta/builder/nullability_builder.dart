@@ -14,9 +14,6 @@ enum SyntacticNullability {
   /// Used when the type is declared with '?' suffix after it.
   nullable,
 
-  /// Used when the type is declared in an opted-out library.
-  legacy,
-
   /// Used when the type is declared without any nullability suffixes.
   omitted,
 
@@ -53,8 +50,6 @@ class NullabilityBuilder {
 
   Nullability build(LibraryBuilder libraryBuilder) {
     switch (_syntacticNullability) {
-      case SyntacticNullability.legacy:
-        return Nullability.legacy;
       case SyntacticNullability.nullable:
         return Nullability.nullable;
       case SyntacticNullability.inherent:
@@ -66,9 +61,6 @@ class NullabilityBuilder {
 
   void writeNullabilityOn(StringBuffer sb) {
     switch (_syntacticNullability) {
-      case SyntacticNullability.legacy:
-        sb.write("*");
-        return;
       case SyntacticNullability.nullable:
         sb.write("?");
         return;

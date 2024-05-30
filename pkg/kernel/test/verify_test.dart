@@ -139,7 +139,8 @@ void main() {
     (TestHarness test) {
       TypeParameter parameter = test.makeTypeParameter();
       test.addNode(ListLiteral([],
-          typeArgument: new TypeParameterType(parameter, Nullability.legacy)));
+          typeArgument:
+              new TypeParameterType(parameter, Nullability.nonNullable)));
       return [parameter, null];
     },
     (Node? node, Node? parent) =>
@@ -151,7 +152,7 @@ void main() {
     (TestHarness test) {
       TypeParameter node = test.otherClass.typeParameters[0];
       test.addNode(
-          TypeLiteral(new TypeParameterType(node, Nullability.legacy)));
+          TypeLiteral(new TypeParameterType(node, Nullability.nonNullable)));
       return [node, test.otherClass];
     },
     (Node? node, Node? parent) =>
@@ -166,7 +167,7 @@ void main() {
           new Name('bar'),
           ProcedureKind.Method,
           new FunctionNode(new ReturnStatement(new TypeLiteral(
-              new TypeParameterType(node, Nullability.legacy)))),
+              new TypeParameterType(node, Nullability.nonNullable)))),
           isStatic: true,
           fileUri: dummyUri)
         ..fileOffset = dummyFileOffset);
@@ -182,8 +183,8 @@ void main() {
     (TestHarness test) {
       TypeParameter node = test.classTypeParameter;
       test.addNode(Field.mutable(new Name('field'),
-          initializer:
-              new TypeLiteral(new TypeParameterType(node, Nullability.legacy)),
+          initializer: new TypeLiteral(
+              new TypeParameterType(node, Nullability.nonNullable)),
           isStatic: true,
           fileUri: dummyUri)
         ..fileOffset = dummyFileOffset);
@@ -210,7 +211,8 @@ void main() {
                 new Name('use'),
                 ProcedureKind.Method,
                 new FunctionNode(new ReturnStatement(new TypeLiteral(
-                    new TypeParameterType(parameter, Nullability.legacy)))),
+                    new TypeParameterType(
+                        parameter, Nullability.nonNullable)))),
                 fileUri: dummyUri)
               ..fileOffset = dummyFileOffset
           ],
@@ -227,7 +229,7 @@ void main() {
     'Interface type arity too low',
     (TestHarness test) {
       InterfaceType node =
-          new InterfaceType(test.otherClass, Nullability.legacy, []);
+          new InterfaceType(test.otherClass, Nullability.nonNullable, []);
       test.addNode(TypeLiteral(node));
       return node;
     },
@@ -238,7 +240,7 @@ void main() {
     'Interface type arity too high',
     (TestHarness test) {
       InterfaceType node = new InterfaceType(test.otherClass,
-          Nullability.legacy, [new DynamicType(), new DynamicType()]);
+          Nullability.nonNullable, [new DynamicType(), new DynamicType()]);
       test.addNode(TypeLiteral(node));
       return node;
     },
@@ -251,7 +253,7 @@ void main() {
       Class orphan = new Class(name: 'Class', fileUri: dummyUri)
         ..fileOffset = dummyFileOffset;
       test.addNode(
-          new TypeLiteral(new InterfaceType(orphan, Nullability.legacy)));
+          new TypeLiteral(new InterfaceType(orphan, Nullability.nonNullable)));
       return orphan;
     },
     (Node? node) =>
@@ -401,7 +403,7 @@ void main() {
       var typedef_ = new Typedef(
           'Foo',
           new FunctionType(
-              [test.otherLegacyRawType], const VoidType(), Nullability.legacy),
+              [test.otherRawType], const VoidType(), Nullability.nonNullable),
           fileUri: dummyUri)
         ..fileOffset = dummyFileOffset;
       test.addNode(typedef_);
@@ -413,7 +415,7 @@ void main() {
       var typedef_ = new Typedef(
           'Foo',
           new InterfaceType(
-              test.otherClass, Nullability.legacy, [const DynamicType()]),
+              test.otherClass, Nullability.nonNullable, [const DynamicType()]),
           fileUri: dummyUri)
         ..fileOffset = dummyFileOffset;
       test.addNode(typedef_);
@@ -426,8 +428,8 @@ void main() {
         ..fileOffset = dummyFileOffset;
       var bar = new Typedef('Bar', null, fileUri: dummyUri)
         ..fileOffset = dummyFileOffset;
-      foo.type = new TypedefType(bar, Nullability.legacy);
-      bar.type = test.otherLegacyRawType;
+      foo.type = new TypedefType(bar, Nullability.nonNullable);
+      bar.type = test.otherRawType;
       test.enclosingLibrary.addTypedef(foo);
       test.enclosingLibrary.addTypedef(bar);
     },
@@ -439,9 +441,9 @@ void main() {
         ..fileOffset = dummyFileOffset;
       var bar = new Typedef('Bar', null, fileUri: dummyUri)
         ..fileOffset = dummyFileOffset;
-      foo.type = new InterfaceType(test.otherClass, Nullability.legacy,
-          [new TypedefType(bar, Nullability.legacy)]);
-      bar.type = test.otherLegacyRawType;
+      foo.type = new InterfaceType(test.otherClass, Nullability.nonNullable,
+          [new TypedefType(bar, Nullability.nonNullable)]);
+      bar.type = test.otherRawType;
       test.enclosingLibrary.addTypedef(foo);
       test.enclosingLibrary.addTypedef(bar);
     },
@@ -452,11 +454,11 @@ void main() {
       var typedef_ = new Typedef(
           'Foo',
           new FunctionType(
-              [test.otherLegacyRawType], const VoidType(), Nullability.legacy),
+              [test.otherRawType], const VoidType(), Nullability.nonNullable),
           fileUri: dummyUri)
         ..fileOffset = dummyFileOffset;
       var field = new Field.mutable(new Name('field'),
-          type: new TypedefType(typedef_, Nullability.legacy),
+          type: new TypedefType(typedef_, Nullability.nonNullable),
           isStatic: true,
           fileUri: dummyUri)
         ..fileOffset = dummyFileOffset;
@@ -469,7 +471,7 @@ void main() {
     (TestHarness test) {
       var typedef_ = new Typedef('Foo', null, fileUri: dummyUri)
         ..fileOffset = dummyFileOffset;
-      typedef_.type = new TypedefType(typedef_, Nullability.legacy);
+      typedef_.type = new TypedefType(typedef_, Nullability.nonNullable);
       test.addNode(typedef_);
       return typedef_;
     },
@@ -481,9 +483,9 @@ void main() {
       var typedef_ = new Typedef('Foo', null, fileUri: dummyUri)
         ..fileOffset = dummyFileOffset;
       typedef_.type = new FunctionType(
-          [new TypedefType(typedef_, Nullability.legacy)],
+          [new TypedefType(typedef_, Nullability.nonNullable)],
           const VoidType(),
-          Nullability.legacy);
+          Nullability.nonNullable);
       test.addNode(typedef_);
       return typedef_;
     },
@@ -495,7 +497,8 @@ void main() {
       var typedef_ = new Typedef('Foo', null, fileUri: dummyUri)
         ..fileOffset = dummyFileOffset;
       typedef_.type = new FunctionType([],
-          new TypedefType(typedef_, Nullability.legacy), Nullability.legacy);
+          new TypedefType(typedef_, Nullability.nonNullable),
+          Nullability.nonNullable);
       test.addNode(typedef_);
       return typedef_;
     },
@@ -506,8 +509,10 @@ void main() {
     (TestHarness test) {
       var typedef_ = new Typedef('Foo', null, fileUri: dummyUri)
         ..fileOffset = dummyFileOffset;
-      typedef_.type = new InterfaceType(test.otherClass, Nullability.legacy,
-          [new TypedefType(typedef_, Nullability.legacy)]);
+      typedef_.type = new InterfaceType(
+          test.otherClass,
+          Nullability.nonNullable,
+          [new TypedefType(typedef_, Nullability.nonNullable)]);
       test.addNode(typedef_);
       return typedef_;
     },
@@ -520,8 +525,8 @@ void main() {
         ..fileOffset = dummyFileOffset;
       var bar = new Typedef('Bar', null, fileUri: dummyUri)
         ..fileOffset = dummyFileOffset;
-      foo.type = new TypedefType(bar, Nullability.legacy);
-      bar.type = new TypedefType(foo, Nullability.legacy);
+      foo.type = new TypedefType(bar, Nullability.nonNullable);
+      bar.type = new TypedefType(foo, Nullability.nonNullable);
       test.enclosingLibrary.addTypedef(foo);
       test.enclosingLibrary.addTypedef(bar);
       return foo;
@@ -535,9 +540,9 @@ void main() {
         ..fileOffset = dummyFileOffset;
       var bar = new Typedef('Bar', null, fileUri: dummyUri)
         ..fileOffset = dummyFileOffset;
-      foo.type = new TypedefType(bar, Nullability.legacy);
-      bar.type = new InterfaceType(test.otherClass, Nullability.legacy,
-          [new TypedefType(foo, Nullability.legacy)]);
+      foo.type = new TypedefType(bar, Nullability.nonNullable);
+      bar.type = new InterfaceType(test.otherClass, Nullability.nonNullable,
+          [new TypedefType(foo, Nullability.nonNullable)]);
       test.enclosingLibrary.addTypedef(foo);
       test.enclosingLibrary.addTypedef(bar);
       return foo;
@@ -551,10 +556,10 @@ void main() {
         ..fileOffset = dummyFileOffset;
       var bar = new Typedef('Bar', null, fileUri: dummyUri)
         ..fileOffset = dummyFileOffset;
-      foo.type = new InterfaceType(test.otherClass, Nullability.legacy,
-          [new TypedefType(bar, Nullability.legacy)]);
-      bar.type = new InterfaceType(test.otherClass, Nullability.legacy,
-          [new TypedefType(foo, Nullability.legacy)]);
+      foo.type = new InterfaceType(test.otherClass, Nullability.nonNullable,
+          [new TypedefType(bar, Nullability.nonNullable)]);
+      bar.type = new InterfaceType(test.otherClass, Nullability.nonNullable,
+          [new TypedefType(foo, Nullability.nonNullable)]);
       test.enclosingLibrary.addTypedef(foo);
       test.enclosingLibrary.addTypedef(bar);
       return foo;
@@ -569,7 +574,7 @@ void main() {
       test.enclosingLibrary.addTypedef(typedef_);
       for (int i = 1; i < 20; ++i) {
         typedef_ = new Typedef(
-            'C$i', new TypedefType(typedef_, Nullability.legacy),
+            'C$i', new TypedefType(typedef_, Nullability.nonNullable),
             fileUri: dummyUri)
           ..fileOffset = dummyFileOffset;
         test.enclosingLibrary.addTypedef(typedef_);
@@ -586,12 +591,12 @@ void main() {
       var first = typedef_;
       for (int i = 1; i < 20; ++i) {
         typedef_ = new Typedef(
-            'C$i', new TypedefType(typedef_, Nullability.legacy),
+            'C$i', new TypedefType(typedef_, Nullability.nonNullable),
             fileUri: dummyUri)
           ..fileOffset = dummyFileOffset;
         test.enclosingLibrary.addTypedef(typedef_);
       }
-      first.type = new TypedefType(typedef_, Nullability.legacy);
+      first.type = new TypedefType(typedef_, Nullability.nonNullable);
       return firstTypedef;
     },
     (Node? node) => "${errorPrefix}The typedef '$node' refers to itself",
@@ -599,12 +604,11 @@ void main() {
   positiveTest(
     'Valid typedef Foo<T extends C> = C<T>',
     (TestHarness test) {
-      var param = new TypeParameter(
-          'T', test.otherLegacyRawType, test.otherLegacyRawType);
+      var param = new TypeParameter('T', test.otherRawType, test.otherRawType);
       var foo = new Typedef(
           'Foo',
-          new InterfaceType(test.otherClass, Nullability.legacy,
-              [new TypeParameterType(param, Nullability.legacy)]),
+          new InterfaceType(test.otherClass, Nullability.nonNullable,
+              [new TypeParameterType(param, Nullability.nonNullable)]),
           typeParameters: [param],
           fileUri: dummyUri)
         ..fileOffset = dummyFileOffset;
@@ -614,14 +618,13 @@ void main() {
   positiveTest(
     'Valid typedef Foo<T extends C<T>> = C<T>',
     (TestHarness test) {
-      var param = new TypeParameter(
-          'T', test.otherLegacyRawType, test.otherLegacyRawType);
-      param.bound = new InterfaceType(test.otherClass, Nullability.legacy,
-          [new TypeParameterType(param, Nullability.legacy)]);
+      var param = new TypeParameter('T', test.otherRawType, test.otherRawType);
+      param.bound = new InterfaceType(test.otherClass, Nullability.nonNullable,
+          [new TypeParameterType(param, Nullability.nonNullable)]);
       var foo = new Typedef(
           'Foo',
-          new InterfaceType(test.otherClass, Nullability.legacy,
-              [new TypeParameterType(param, Nullability.legacy)]),
+          new InterfaceType(test.otherClass, Nullability.nonNullable,
+              [new TypeParameterType(param, Nullability.nonNullable)]),
           typeParameters: [param],
           fileUri: dummyUri)
         ..fileOffset = dummyFileOffset;
@@ -636,13 +639,13 @@ void main() {
           typeParameters: [fooParam], fileUri: dummyUri)
         ..fileOffset = dummyFileOffset;
       var barParam = new TypeParameter('T', null);
-      barParam.bound = new TypedefType(foo, Nullability.legacy,
-          [new TypeParameterType(barParam, Nullability.legacy)]);
+      barParam.bound = new TypedefType(foo, Nullability.nonNullable,
+          [new TypeParameterType(barParam, Nullability.nonNullable)]);
       barParam.defaultType = const DynamicType();
       var bar = new Typedef(
           'Bar',
-          new InterfaceType(test.otherClass, Nullability.legacy,
-              [new TypeParameterType(barParam, Nullability.legacy)]),
+          new InterfaceType(test.otherClass, Nullability.nonNullable,
+              [new TypeParameterType(barParam, Nullability.nonNullable)]),
           typeParameters: [barParam],
           fileUri: dummyUri)
         ..fileOffset = dummyFileOffset;
@@ -658,17 +661,17 @@ void main() {
           typeParameters: [fooParam], fileUri: dummyUri)
         ..fileOffset = dummyFileOffset;
       var barParam = new TypeParameter('T', null);
-      barParam.bound = new TypedefType(foo, Nullability.legacy,
-          [new TypeParameterType(barParam, Nullability.legacy)]);
+      barParam.bound = new TypedefType(foo, Nullability.nonNullable,
+          [new TypeParameterType(barParam, Nullability.nonNullable)]);
       barParam.defaultType = const DynamicType();
       var bar = new Typedef(
           'Bar',
-          new InterfaceType(test.otherClass, Nullability.legacy,
-              [new TypeParameterType(barParam, Nullability.legacy)]),
+          new InterfaceType(test.otherClass, Nullability.nonNullable,
+              [new TypeParameterType(barParam, Nullability.nonNullable)]),
           typeParameters: [barParam],
           fileUri: dummyUri);
-      fooParam.bound = new TypedefType(bar, Nullability.legacy,
-          [new TypeParameterType(fooParam, Nullability.legacy)]);
+      fooParam.bound = new TypedefType(bar, Nullability.nonNullable,
+          [new TypeParameterType(fooParam, Nullability.nonNullable)]);
       fooParam.defaultType = const DynamicType();
       test.enclosingLibrary.addTypedef(foo);
       test.enclosingLibrary.addTypedef(bar);
@@ -682,13 +685,13 @@ void main() {
       var param = new TypeParameter('T', null);
       var foo = new Typedef(
           'Foo',
-          new InterfaceType(test.otherClass, Nullability.legacy,
-              [new TypeParameterType(param, Nullability.legacy)]),
+          new InterfaceType(test.otherClass, Nullability.nonNullable,
+              [new TypeParameterType(param, Nullability.nonNullable)]),
           typeParameters: [param],
           fileUri: dummyUri)
         ..fileOffset = dummyFileOffset;
       param.bound =
-          new TypedefType(foo, Nullability.legacy, [const DynamicType()]);
+          new TypedefType(foo, Nullability.nonNullable, [const DynamicType()]);
       param.defaultType = const DynamicType();
       test.addNode(foo);
       return foo;
@@ -699,10 +702,10 @@ void main() {
     'Typedef arity error',
     (TestHarness test) {
       var param = test.makeTypeParameter('T');
-      var foo = new Typedef('Foo', test.otherLegacyRawType,
+      var foo = new Typedef('Foo', test.otherRawType,
           typeParameters: [param], fileUri: dummyUri)
         ..fileOffset = dummyFileOffset;
-      var typedefType = new TypedefType(foo, Nullability.legacy, []);
+      var typedefType = new TypedefType(foo, Nullability.nonNullable, []);
       var field = new Field.mutable(new Name('field'),
           type: typedefType, isStatic: true, fileUri: dummyUri)
         ..fileOffset = dummyFileOffset;
@@ -717,11 +720,11 @@ void main() {
   negative1Test(
     'Dangling typedef reference',
     (TestHarness test) {
-      var foo = new Typedef('Foo', test.otherLegacyRawType,
+      var foo = new Typedef('Foo', test.otherRawType,
           typeParameters: [], fileUri: dummyUri)
         ..fileOffset = dummyFileOffset;
       var field = new Field.mutable(new Name('field'),
-          type: new TypedefType(foo, Nullability.legacy, []),
+          type: new TypedefType(foo, Nullability.nonNullable, []),
           isStatic: true,
           fileUri: dummyUri)
         ..fileOffset = dummyFileOffset;
@@ -841,9 +844,9 @@ class TestHarness {
 
   late Class otherClass;
 
-  late InterfaceType objectLegacyRawType;
-  late InterfaceType enclosingLegacyRawType;
-  late InterfaceType otherLegacyRawType;
+  late InterfaceType objectRawType;
+  late InterfaceType enclosingRawType;
+  late InterfaceType otherRawType;
 
   void addNode(TreeNode node) {
     if (node is Expression) {
@@ -902,7 +905,7 @@ class TestHarness {
       new VariableDeclaration(null, isSynthesized: true);
 
   TypeParameter makeTypeParameter([String? name]) {
-    return new TypeParameter(name, objectLegacyRawType, const DynamicType());
+    return new TypeParameter(name, objectRawType, const DynamicType());
   }
 
   TestHarness() {
@@ -918,8 +921,8 @@ class TestHarness {
     stubLibrary.name = 'dart.core';
     objectClass = new Class(name: 'Object', fileUri: dartCoreUri)
       ..fileOffset = dummyFileOffset;
-    objectLegacyRawType =
-        new InterfaceType(objectClass, Nullability.legacy, const <DartType>[]);
+    objectRawType = new InterfaceType(
+        objectClass, Nullability.nonNullable, const <DartType>[]);
     stubLibrary.addClass(objectClass);
     Uri testUri = Uri.parse('file://test.dart');
     enclosingLibrary = new Library(testUri, fileUri: testUri);
@@ -932,8 +935,8 @@ class TestHarness {
         supertype: objectClass.asRawSupertype,
         fileUri: testUri)
       ..fileOffset = dummyFileOffset;
-    enclosingLegacyRawType = new InterfaceType(enclosingClass,
-        Nullability.legacy, const <DartType>[const DynamicType()]);
+    enclosingRawType = new InterfaceType(enclosingClass,
+        Nullability.nonNullable, const <DartType>[const DynamicType()]);
     enclosingLibrary.addClass(enclosingClass);
     enclosingMember = new Procedure(new Name('test'), ProcedureKind.Method,
         new FunctionNode(new EmptyStatement()),
@@ -946,8 +949,8 @@ class TestHarness {
         supertype: objectClass.asRawSupertype,
         fileUri: testUri)
       ..fileOffset = dummyFileOffset;
-    otherLegacyRawType = new InterfaceType(
-        otherClass, Nullability.legacy, const <DartType>[const DynamicType()]);
+    otherRawType = new InterfaceType(otherClass, Nullability.nonNullable,
+        const <DartType>[const DynamicType()]);
     enclosingLibrary.addClass(otherClass);
   }
 }

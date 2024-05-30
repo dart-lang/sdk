@@ -2261,7 +2261,8 @@ bool isNullableTypeConstructorApplication(DartType type) {
   return type.declaredNullability == Nullability.nullable &&
       type is! DynamicType &&
       type is! VoidType &&
-      type is! NullType;
+      type is! NullType &&
+      type is! InvalidType;
 }
 
 /// Returns true if [type] is an application of the legacy type constructor.
