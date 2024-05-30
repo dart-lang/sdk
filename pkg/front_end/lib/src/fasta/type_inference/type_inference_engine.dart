@@ -505,7 +505,7 @@ class OperationsCfe
 
   @override
   NullabilitySuffix getNullabilitySuffix(DartType type) {
-    if (isTypeWithoutNullabilityMarker(type, isNonNullableByDefault: true)) {
+    if (isTypeWithoutNullabilityMarker(type)) {
       return NullabilitySuffix.none;
     } else if (isNullableTypeConstructorApplication(type)) {
       return NullabilitySuffix.question;

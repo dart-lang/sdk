@@ -355,10 +355,8 @@ mixin StandardBounds {
     // DOWN(T1?, T2) = S where S is DOWN(T1, T2)
     // DOWN(T1, T2?) = S where S is DOWN(T1, T2)
     {
-      bool type1HasNullabilityMarker =
-          !isTypeWithoutNullabilityMarker(type1, isNonNullableByDefault: true);
-      bool type2HasNullabilityMarker =
-          !isTypeWithoutNullabilityMarker(type2, isNonNullableByDefault: true);
+      bool type1HasNullabilityMarker = !isTypeWithoutNullabilityMarker(type1);
+      bool type2HasNullabilityMarker = !isTypeWithoutNullabilityMarker(type2);
       if (type1HasNullabilityMarker && !type2HasNullabilityMarker) {
         return _getNullabilityAwareStandardLowerBound(
             computeTypeWithoutNullabilityMarker(type1,
