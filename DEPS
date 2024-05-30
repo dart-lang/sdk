@@ -122,7 +122,7 @@ vars = {
 
   "args_rev": "b3608bd95168428621689dce62f873b76a1617d4",
   "async_rev": "f933ddff63021bfbdb70938d6a137eb9e7419b05",
-  "bazel_worker_rev": "2fb4fbff6ee8d26fee1f3576fa0500057d897afd",
+  "bazel_worker_rev": "2ec90c023d7c62a38cfbd2f34f55093ab38ccf85",
   "benchmark_harness_rev": "6fa42b072694875823bd81cb0913a9409e018e5f",
   "boolean_selector_rev": "84467e580fa1c7c53ea588308f1acbcf4e8eb6a6",
   "browser_launcher_rev": "0dcf2246c11eaf6c4f2591332f1057734a847793",
