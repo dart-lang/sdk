@@ -1,3 +1,6 @@
+## 6.5.2
+* Updated constraints `macros: '>=0.1.2-0 <0.1.3'`.
+
 ## 6.5.1
 * Updated constraints `macros: '>=0.1.1-0 <0.1.2'`.
 
