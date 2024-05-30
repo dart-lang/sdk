@@ -503,6 +503,8 @@ void Assembler::stm(BlockAddressMode am,
 void Assembler::ldrex(Register rt, Register rn, Condition cond) {
   ASSERT(rn != kNoRegister);
   ASSERT(rt != kNoRegister);
+  ASSERT(rn != R15);
+  ASSERT(rt != R15);
   ASSERT(cond != kNoCondition);
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) | B24 |
                      B23 | L | (static_cast<int32_t>(rn) << kLdrExRnShift) |
@@ -515,7 +517,14 @@ void Assembler::strex(Register rd, Register rt, Register rn, Condition cond) {
   ASSERT(rn != kNoRegister);
   ASSERT(rd != kNoRegister);
   ASSERT(rt != kNoRegister);
+  ASSERT(rn != R15);
+  ASSERT(rd != R15);
+  ASSERT(rt != R15);
+  ASSERT(rd != kNoRegister);
+  ASSERT(rt != kNoRegister);
   ASSERT(cond != kNoCondition);
+  ASSERT(rd != rn);
+  ASSERT(rd != rt);
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) | B24 |
                      B23 | (static_cast<int32_t>(rn) << kStrExRnShift) |
                      (static_cast<int32_t>(rd) << kStrExRdShift) | B11 | B10 |

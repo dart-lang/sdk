@@ -1028,8 +1028,8 @@ ASSEMBLER_TEST_RUN(Semaphore, test) {
       "movz r0, #0x28\n"
       "movz r1, #0x2a\n"
       "str r0, [sp, #-8]!\n"
-      "ldxr r0, sp\n"
-      "stxr tmp, r1, sp\n"
+      "ldxr r0, [sp]\n"
+      "stxr tmp, r1, [sp]\n"
       "cmp tmp, #0x0\n"
       "bne -12\n"
       "ldr r0, [sp], #8 !\n"
@@ -1061,9 +1061,9 @@ ASSEMBLER_TEST_RUN(FailedSemaphore, test) {
       "movz r0, #0x28\n"
       "movz r1, #0x2a\n"
       "str r0, [sp, #-8]!\n"
-      "ldxr r0, sp\n"
+      "ldxr r0, [sp]\n"
       "clrex\n"
-      "stxr tmp, r1, sp\n"
+      "stxr tmp, r1, [sp]\n"
       "ldr r0, [sp], #8 !\n"
       "add r0, r0, tmp\n"
       "mov csp, sp\n"
@@ -1107,8 +1107,8 @@ ASSEMBLER_TEST_RUN(Semaphore32, test) {
       "str r0, [sp, #-8]!\n"
       "movz r0, #0x28\n"
       "movz r1, #0x2a\n"
-      "ldxrw r0, sp\n"
-      "stxrw tmp, r1, sp\n"
+      "ldxrw r0, [sp]\n"
+      "stxrw tmp, r1, [sp]\n"
       "cmp tmp, #0x0\n"
       "bne -12\n"
       "ldr r0, [sp], #8 !\n"
@@ -1149,32 +1149,80 @@ ASSEMBLER_TEST_RUN(FailedSemaphore32, test) {
       "str r0, [sp, #-8]!\n"
       "movz r0, #0x28\n"
       "movz r1, #0x2a\n"
-      "ldxrw r0, sp\n"
+      "ldxrw r0, [sp]\n"
       "clrex\n"
-      "stxrw tmp, r1, sp\n"
+      "stxrw tmp, r1, [sp]\n"
       "ldr r0, [sp], #8 !\n"
       "add r0, r0, tmp\n"
       "mov csp, sp\n"
       "ret\n");
 }
 
-ASSEMBLER_TEST_GENERATE(LoadStoreExclusiveR31, assembler) {
+ASSEMBLER_TEST_GENERATE(LoadStoreExclusiveR31Address, assembler) {
   __ AddImmediate(CSP, CSP, -16);
   __ ldxr(ZR, CSP, kEightBytes);
-  __ stxr(ZR, ZR, CSP, kEightBytes);
+  __ stxr(R0, ZR, CSP, kEightBytes);
   __ AddImmediate(CSP, CSP, 16);
   __ LoadImmediate(R0, 42);
   __ ret();
 }
 
-ASSEMBLER_TEST_RUN(LoadStoreExclusiveR31, test) {
+ASSEMBLER_TEST_RUN(LoadStoreExclusiveR31Address, test) {
   EXPECT(test != nullptr);
   typedef intptr_t (*LoadStoreExclusiveR31)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(LoadStoreExclusiveR31, test->entry()));
   EXPECT_DISASSEMBLY(
       "sub csp, csp, #0x10\n"
-      "ldxr zr, csp\n"
-      "stxr zr, zr, csp\n"
+      "ldxr zr, [csp]\n"
+      "stxr r0, zr, [csp]\n"
+      "add csp, csp, #0x10\n"
+      "movz r0, #0x2a\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(LoadStoreExclusiveR31Data, assembler) {
+  __ AddImmediate(CSP, CSP, -16);
+  __ MoveRegister(R0, CSP);
+  __ ldxr(ZR, CSP, kEightBytes);
+  __ stxr(R1, ZR, R0, kEightBytes);
+  __ AddImmediate(CSP, CSP, 16);
+  __ LoadImmediate(R0, 42);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(LoadStoreExclusiveR31Data, test) {
+  EXPECT(test != nullptr);
+  typedef intptr_t (*LoadStoreExclusiveR31)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(LoadStoreExclusiveR31, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "sub csp, csp, #0x10\n"
+      "mov r0, csp\n"
+      "ldxr zr, [csp]\n"
+      "stxr r1, zr, [r0]\n"
+      "add csp, csp, #0x10\n"
+      "movz r0, #0x2a\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(LoadStoreExclusiveR31Status, assembler) {
+  __ AddImmediate(CSP, CSP, -16);
+  __ MoveRegister(R0, CSP);
+  __ ldxr(ZR, CSP, kEightBytes);
+  __ stxr(ZR, R1, R0, kEightBytes);
+  __ AddImmediate(CSP, CSP, 16);
+  __ LoadImmediate(R0, 42);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(LoadStoreExclusiveR31Status, test) {
+  EXPECT(test != nullptr);
+  typedef intptr_t (*LoadStoreExclusiveR31)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(LoadStoreExclusiveR31, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "sub csp, csp, #0x10\n"
+      "mov r0, csp\n"
+      "ldxr zr, [csp]\n"
+      "stxr zr, r1, [r0]\n"
       "add csp, csp, #0x10\n"
       "movz r0, #0x2a\n"
       "ret\n");
@@ -1288,7 +1336,7 @@ ASSEMBLER_TEST_RUN(LoadAcquireStoreRelease, test) {
       "movk tmp, #0x3344 lsl 32\n"
       "movk tmp, #0x1122 lsl 48\n"
       "str tmp, [sp, #-8]!\n"
-      "ldar r1, sp\n"
+      "ldar r1, [sp]\n"
       "movz tmp2, #0x7788\n"
       "movk tmp2, #0x5566 lsl 16\n"
       "movk tmp2, #0x3344 lsl 32\n"
@@ -1301,7 +1349,7 @@ ASSEMBLER_TEST_RUN(LoadAcquireStoreRelease, test) {
       "movk tmp, #0x3344 lsl 32\n"
       "movk tmp, #0x1122 lsl 48\n"
       "str tmp, [sp, #-8]!\n"
-      "ldarw r1, sp\n"
+      "ldarw r1, [sp]\n"
       "movz tmp2, #0x7788\n"
       "movk tmp2, #0x5566 lsl 16\n"
       "cmp r1, tmp2\n"
@@ -1313,7 +1361,7 @@ ASSEMBLER_TEST_RUN(LoadAcquireStoreRelease, test) {
       "movk r1, #0x5566 lsl 16\n"
       "movk r1, #0x3344 lsl 32\n"
       "movk r1, #0x1122 lsl 48\n"
-      "stlr r1, sp\n"
+      "stlr r1, [sp]\n"
       "ldr r1, [sp], #8 !\n"
       "movz tmp2, #0x7788\n"
       "movk tmp2, #0x5566 lsl 16\n"
@@ -1327,7 +1375,7 @@ ASSEMBLER_TEST_RUN(LoadAcquireStoreRelease, test) {
       "movk r1, #0x5566 lsl 16\n"
       "movk r1, #0x3344 lsl 32\n"
       "movk r1, #0x1122 lsl 48\n"
-      "stlrw r1, sp\n"
+      "stlrw r1, [sp]\n"
       "ldr r1, [sp], #8 !\n"
       "movz tmp2, #0x7788\n"
       "movk tmp2, #0x5566 lsl 16\n"
@@ -7588,8 +7636,8 @@ ASSEMBLER_TEST_RUN(StoreReleaseLoadAcquire, test) {
       "str r1, [sp, #-8]!\n"
       "mov r1, r0\n"
       "movz r0, #0x0\n"
-      "stlr r1, sp\n"
-      "ldar r0, sp\n"
+      "stlr r1, [sp]\n"
+      "ldar r0, [sp]\n"
       "ldr r1, [sp], #8 !\n"
       "ldr r1, [sp], #8 !\n"
       "mov csp, sp\n"
@@ -7627,9 +7675,9 @@ ASSEMBLER_TEST_RUN(StoreReleaseLoadAcquire1024, test) {
       "movz r0, #0x0\n"
       "sub sp, sp, #0x2000\n"
       "add tmp2, sp, #0x400\n"
-      "stlr r1, tmp2\n"
+      "stlr r1, [tmp2]\n"
       "add tmp2, sp, #0x400\n"
-      "ldar r0, tmp2\n"
+      "ldar r0, [tmp2]\n"
       "add sp, sp, #0x2000\n"
       "ldr r1, [sp], #8 !\n"
       "ldr r1, [sp], #8 !\n"
