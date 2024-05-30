@@ -633,3 +633,10 @@ mixin WithStrictCastsMixin on PubPackageResolutionTest {
   Future<void> assertNoErrorsWithStrictCasts(String code) async =>
       assertErrorsWithStrictCasts(code, []);
 }
+
+// TODO(pq): revisit, https://dart-review.googlesource.com/c/sdk/+/368880
+mixin WithWildCardVariablesMixin on PubPackageResolutionTest {
+  @override
+  List<String> get experiments =>
+      [...super.experiments, Feature.wildcard_variables.enableString];
+}

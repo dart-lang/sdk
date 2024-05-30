@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/hint_codes.dart';
-import 'package:analyzer/src/error/codes.g.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -12,6 +11,7 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnusedElementTest);
+    defineReflectiveTests(UnusedElementWildCardVariablesTest);
   });
 }
 
@@ -571,6 +571,22 @@ class A {
 ''');
   }
 
+  test_function_underscore() async {
+    await assertErrorsInCode(r'''
+_(){}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 0, 1),
+    ]);
+  }
+
+  test_function_underscores() async {
+    await assertErrorsInCode(r'''
+__(){}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 0, 2),
+    ]);
+  }
+
   test_functionLocal_isUsed_closure() async {
     await assertNoErrorsInCode(r'''
 main() {
@@ -821,6 +837,50 @@ class A {
 }
 ''', [
       error(WarningCode.UNUSED_ELEMENT, 16, 2),
+    ]);
+  }
+
+  test_localFunction_inFunction_wildcard() async {
+    await assertErrorsInCode(r'''
+main() {
+  _(){}
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 11, 1),
+    ]);
+  }
+
+  test_localFunction_inMethod_underscores() async {
+    await assertErrorsInCode(r'''
+class C {
+  m() {
+    __(){}
+  }
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 22, 2),
+    ]);
+  }
+
+  test_localFunction_inMethod_wildcard() async {
+    await assertErrorsInCode(r'''
+class C {
+  m() {
+    _(){}
+  }
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 22, 1),
+    ]);
+  }
+
+  test_localFunction_underscores() async {
+    await assertErrorsInCode(r'''
+main() {
+  __(){}
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 11, 2),
     ]);
   }
 
@@ -2861,5 +2921,29 @@ typedef _A = List<int>;
 ''', [
       error(WarningCode.UNUSED_ELEMENT, 8, 2),
     ]);
+  }
+}
+
+@reflectiveTest
+class UnusedElementWildCardVariablesTest extends UnusedElementTest
+    with WithWildCardVariablesMixin {
+  @override
+  test_localFunction_inFunction_wildcard() async {
+    await assertNoErrorsInCode(r'''
+m() {
+  _(){}
+}
+''');
+  }
+
+  @override
+  test_localFunction_inMethod_wildcard() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  m() {
+    _(){}
+  }
+}
+''');
   }
 }

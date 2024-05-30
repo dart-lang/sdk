@@ -756,8 +756,11 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   }
 
   /// Returns whether the name of [element] should be treated as a wildcard.
-  bool _isNamedWildcard(LocalVariableElement element) {
-    String name = element.name;
+  bool _isNamedWildcard(LocalElement element) {
+    // TODO(pq): ask the element once implemented.
+    var name = element.name;
+    if (name == null) return false;
+
     var length = name.length;
     if (length > 1 && _wildCardVariablesEnabled) return false;
 
@@ -1013,6 +1016,10 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   void _visitFunctionElement(FunctionElement element) {
     if (!_isUsedElement(element)) {
+      if (_wildCardVariablesEnabled) {
+        if (element.isLocal && _isNamedWildcard(element)) return;
+      }
+
       _reportErrorForElement(
           WarningCode.UNUSED_ELEMENT, element, [element.displayName]);
     }
@@ -1155,4 +1162,9 @@ class UsedLocalElements {
   bool isCatchStackTrace(LocalVariableElement element) {
     return catchStackTraceElements.contains(element);
   }
+}
+
+extension on FunctionElement {
+  bool get isLocal =>
+      enclosingElement is FunctionElement || enclosingElement is MethodElement;
 }
