@@ -19,6 +19,7 @@ import 'api_prototype/file_system.dart' show FileSystem;
 import 'api_prototype/front_end.dart' show CompilerOptions, CompilerResult;
 import 'api_prototype/kernel_generator.dart';
 import 'api_prototype/memory_file_system.dart';
+import 'base/instrumentation.dart';
 import 'base/nnbd_mode.dart';
 import 'base/processed_options.dart' show ProcessedOptions;
 import 'fasta/codes/fasta_codes.dart' show LocatedMessage;
@@ -56,14 +57,16 @@ Future<CompilerResult> generateKernel(ProcessedOptions options,
   });
 }
 
-Future<CompilerResult> generateKernelInternal(
+Future<InternalCompilerResult> generateKernelInternal(
     {bool buildSummary = false,
     bool buildComponent = true,
     bool truncateSummary = false,
     bool includeOffsets = true,
-    bool retainDataForTesting = false,
     bool includeHierarchyAndCoreTypes = false,
-    Benchmarker? benchmarker}) async {
+    bool retainDataForTesting = false,
+    Benchmarker? benchmarker,
+    Instrumentation? instrumentation,
+    List<Component>? additionalDillsForTesting}) async {
   ProcessedOptions options = CompilerContext.current.options;
   assert(options.haveBeenValidated, "Options have not been validated");
 
@@ -71,7 +74,7 @@ Future<CompilerResult> generateKernelInternal(
   FileSystem fs = options.fileSystem;
 
   SourceLoader? sourceLoader;
-  return withCrashReporting<CompilerResult>(() async {
+  return withCrashReporting<InternalCompilerResult>(() async {
     while (true) {
       // TODO(johnniwinther): How much can we reuse between iterations?
       UriTranslator uriTranslator = await options.getUriTranslator();
@@ -90,7 +93,12 @@ Future<CompilerResult> generateKernelInternal(
       // By using the nameRoot of the summary, we enable sharing the
       // sdkSummary between multiple invocations.
       CanonicalName? nameRoot;
-      if (options.hasAdditionalDills) {
+      if (additionalDillsForTesting != null) {
+        for (Component additionalDill in additionalDillsForTesting) {
+          loadedComponents.add(additionalDill);
+          dillTarget.loader.appendLibraries(additionalDill);
+        }
+      } else if (options.hasAdditionalDills) {
         nameRoot = sdkSummary?.root ?? new CanonicalName.root();
         for (Component additionalDill
             in await options.loadAdditionalDills(nameRoot)) {
@@ -104,6 +112,7 @@ Future<CompilerResult> generateKernelInternal(
       KernelTarget kernelTarget =
           new KernelTarget(fs, false, dillTarget, uriTranslator);
       sourceLoader = kernelTarget.loader;
+      sourceLoader!.instrumentation = instrumentation;
       kernelTarget.setEntryPoints(options.inputs);
       NeededPrecompilations? neededPrecompilations =
           await kernelTarget.computeNeededPrecompilations();
@@ -136,7 +145,7 @@ Future<CompilerResult> generateKernelInternal(
           new UriOffset(options.inputs.first, TreeNode.noOffset));
 }
 
-Future<CompilerResult> _buildInternal(
+Future<InternalCompilerResult> _buildInternal(
     {required ProcessedOptions options,
     required KernelTarget kernelTarget,
     required CanonicalName? nameRoot,

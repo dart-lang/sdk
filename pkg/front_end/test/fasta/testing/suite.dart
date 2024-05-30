@@ -32,8 +32,6 @@ import 'package:front_end/src/api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
     show IncrementalCompilerResult;
-import 'package:front_end/src/api_prototype/standard_file_system.dart'
-    show StandardFileSystem;
 import 'package:front_end/src/base/nnbd_mode.dart' show NnbdMode;
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
@@ -43,7 +41,6 @@ import 'package:front_end/src/fasta/builder/library_builder.dart'
     show LibraryBuilder;
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/fasta/crash.dart';
-import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show AdvancedInvalidationResult, IncrementalCompiler;
 import 'package:front_end/src/fasta/kernel/hierarchy/hierarchy_builder.dart'
@@ -51,15 +48,15 @@ import 'package:front_end/src/fasta/kernel/hierarchy/hierarchy_builder.dart'
 import 'package:front_end/src/fasta/kernel/hierarchy/hierarchy_node.dart'
     show ClassHierarchyNode;
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
-    show BuildResult, KernelTarget;
+    show KernelTarget;
 import 'package:front_end/src/fasta/kernel/utils.dart' show ByteSink;
 import 'package:front_end/src/fasta/kernel/verifier.dart' show verifyComponent;
 import 'package:front_end/src/fasta/messages.dart' show LocatedMessage;
-import 'package:front_end/src/fasta/ticker.dart' show Ticker;
 import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 import 'package:front_end/src/fasta/util/parser_ast.dart'
     show IgnoreSomeForCompatibilityAstVisitor, getAST;
 import 'package:front_end/src/fasta/util/parser_ast_helper.dart';
+import 'package:front_end/src/kernel_generator_impl.dart';
 import 'package:kernel/ast.dart'
     show
         BasicLiteral,
@@ -228,10 +225,10 @@ class FastaContext extends ChainContext with MatchContext {
   final bool verify;
   final bool soundNullSafety;
   final Uri platformBinaries;
-  final Map<UriConfiguration, UriTranslator> _uriTranslators = {};
   final Map<Uri, Uri?> _librariesJson = {};
   final SuiteFolderOptions suiteFolderOptions;
   final SuiteTestOptions suiteTestOptions;
+  final CompileMode compileMode;
 
   @override
   final bool updateExpectations;
@@ -270,7 +267,7 @@ class FastaContext extends ChainContext with MatchContext {
       bool updateComments,
       this.skipVm,
       this.semiFuzz,
-      CompileMode compileMode,
+      this.compileMode,
       this.verify,
       this.soundNullSafety)
       : steps = <Step>[
@@ -351,44 +348,6 @@ class FastaContext extends ChainContext with MatchContext {
     }
   }
 
-  Future<UriTranslator> computeUriTranslator(
-      TestDescription description) async {
-    UriConfiguration uriConfiguration = computeUriConfiguration(description);
-    UriTranslator? uriTranslator = _uriTranslators[uriConfiguration];
-    if (uriTranslator == null) {
-      Uri sdk = Uri.base.resolve("sdk/");
-      Uri packages = Uri.base.resolve(".dart_tool/package_config.json");
-      FolderOptions folderOptions =
-          suiteFolderOptions.computeFolderOptions(description);
-      CompilerOptions compilerOptions = new CompilerOptions()
-        ..onDiagnostic = (DiagnosticMessage message) {
-          throw message.plainTextFormatted.join("\n");
-        }
-        ..sdkRoot = sdk
-        ..packagesFileUri = uriConfiguration.packageConfigUri ?? packages
-        ..enableUnscheduledExperiments =
-            folderOptions.enableUnscheduledExperiments ?? false
-        ..environmentDefines = folderOptions.defines
-        ..explicitExperimentalFlags = folderOptions
-            .computeExplicitExperimentalFlags(forcedExperimentalFlags)
-        ..nnbdMode = soundNullSafety
-            ? (folderOptions.nnbdAgnosticMode
-                ? NnbdMode.Agnostic
-                : NnbdMode.Strong)
-            : NnbdMode.Weak
-        ..librariesSpecificationUri =
-            uriConfiguration.librariesSpecificationUri;
-      if (folderOptions.overwriteCurrentSdkVersion != null) {
-        compilerOptions.currentSdkVersion =
-            folderOptions.overwriteCurrentSdkVersion!;
-      }
-      ProcessedOptions options = new ProcessedOptions(options: compilerOptions);
-      uriTranslator = await options.getUriTranslator();
-      _uriTranslators[uriConfiguration] = uriTranslator;
-    }
-    return uriTranslator;
-  }
-
   /// Libraries json for [description].
   Uri? computeLibrariesSpecificationUri(TestDescription description) {
     Directory directory = new File.fromUri(description.uri).parent;
@@ -409,13 +368,6 @@ class FastaContext extends ChainContext with MatchContext {
     Uri packageConfig =
         description.uri.resolve(".dart_tool/package_config.json");
     return new File.fromUri(packageConfig).existsSync() ? packageConfig : null;
-  }
-
-  UriConfiguration computeUriConfiguration(TestDescription description) {
-    Uri? librariesSpecificationUri =
-        computeLibrariesSpecificationUri(description);
-    Uri? packageConfigUri = computePackageConfigUri(description);
-    return new UriConfiguration(librariesSpecificationUri, packageConfigUri);
   }
 
   Expectation get verificationError => expectationSet["VerificationError"];
@@ -820,6 +772,8 @@ CompilationSetup createCompilationSetup(
 
   Uri? librariesSpecificationUri =
       context.computeLibrariesSpecificationUri(description);
+  Uri packagesFileUri = context.computePackageConfigUri(description) ??
+      Uri.base.resolve(".dart_tool/package_config.json");
   TestOptions testOptions =
       context.suiteTestOptions.computeTestOptions(description);
   FolderOptions folderOptions =
@@ -854,7 +808,16 @@ CompilationSetup createCompilationSetup(
       ..skipPlatformVerification = true
       ..omitPlatform = true
       ..omitOsMessageForTesting = true
-      ..target = createTarget(folderOptions, context);
+      ..packagesFileUri = packagesFileUri
+      ..target = createTarget(folderOptions, context)
+      ..verify =
+          // TODO(johnniwinther): Enable verification in outline and modular
+          //  compilation.
+          (context.compileMode != CompileMode.full || folderOptions.noVerify)
+              ? false
+              : context.verify;
+    compilerOptions.sdkSummary =
+        context._getPlatformUri(compilerOptions.target!, nnbdMode);
     if (folderOptions.overwriteCurrentSdkVersion != null) {
       compilerOptions.currentSdkVersion =
           folderOptions.overwriteCurrentSdkVersion!;
@@ -876,6 +839,8 @@ CompilationSetup createCompilationSetup(
       testOptions.experimentEnabledVersion,
       testOptions.experimentReleasedVersion);
   ProcessedOptions options = createProcessedOptions(compilerOptions);
+  options.sdkSummaryComponent =
+      context.loadPlatform(options.target, options.nnbdMode);
   return new CompilationSetup(testOptions, folderOptions, compilerOptions,
       options, errors, createCompilerOptions, createProcessedOptions);
 }
@@ -907,9 +872,6 @@ class FuzzCompiles
       backendTarget.performModularTransformations = true;
     }
 
-    UriTranslator uriTranslator =
-        await context.computeUriTranslator(result.description);
-
     Component platform =
         context.loadPlatform(backendTarget, compilationSetup.options.nnbdMode);
 
@@ -933,7 +895,6 @@ class FuzzCompiles
       Result<ComponentResult>? passResult = await performFileInvalidation(
         compilationSetup,
         platform,
-        uriTranslator,
         context,
         originalCompilationResult: result,
         forceAndCheckRebuildBodiesOnly: false,
@@ -943,7 +904,6 @@ class FuzzCompiles
       passResult = await performChunkReordering(
         compilationSetup,
         platform,
-        uriTranslator,
         result,
         context,
       );
@@ -960,7 +920,6 @@ class FuzzCompiles
         passResult = await performFileSplitting(
           compilationSetup,
           platform,
-          uriTranslator,
           result,
           context,
         );
@@ -993,7 +952,6 @@ class FuzzCompiles
   Future<Result<ComponentResult>?> performFileInvalidation(
       CompilationSetup compilationSetup,
       Component platform,
-      UriTranslator uriTranslator,
       FastaContext context,
       {ComponentResult? originalCompilationResult,
       required bool forceAndCheckRebuildBodiesOnly}) async {
@@ -1012,6 +970,8 @@ class FuzzCompiles
           semiFuzzFailure, "Couldn't serialize initial component for fuzzing");
     }
 
+    final UriTranslator uriTranslator =
+        await compilationSetup.options.getUriTranslator();
     final Set<Uri> userLibraries =
         createUserLibrariesImportUriSet(component, uriTranslator);
     final bool expectErrors = compilationSetup.errors.isNotEmpty;
@@ -1193,7 +1153,6 @@ class FuzzCompiles
   Future<Result<ComponentResult>?> performChunkReordering(
       CompilationSetup compilationSetup,
       Component platform,
-      UriTranslator uriTranslator,
       ComponentResult result,
       FastaContext context) async {
     compilationSetup.errors.clear();
@@ -1349,7 +1308,6 @@ class FuzzCompiles
   Future<Result<ComponentResult>?> performFileSplitting(
       CompilationSetup compilationSetup,
       Component platform,
-      UriTranslator uriTranslator,
       ComponentResult result,
       FastaContext context) async {
     FileSystem orgFileSystem = compilationSetup.options.fileSystem;
@@ -1475,7 +1433,6 @@ class FuzzCompiles
     Result<ComponentResult>? passResult = await performFileInvalidation(
       compilationSetup,
       platform,
-      uriTranslator,
       context,
       originalCompilationResult: null,
       forceAndCheckRebuildBodiesOnly: true,
@@ -2001,10 +1958,6 @@ Set<Uri> createUserLibrariesImportUriSet(
       .toSet();
   // Mark custom "dart:" libraries defined in the test-specific libraries.json
   // file as user libraries.
-  // Note that this method takes a uriTranslator directly because of
-  // inconsistencies with targets (namely that test-specific libraries.json
-  // specifies target 'none' even if the target is 'vm', which works because
-  // the normal testing pipeline use target 'none' for the dill loader).
   userLibraries.addAll(uriTranslator.dartLibraries.allLibraries
       .map((LibraryInfo info) => info.importUri));
   return userLibraries.intersection(knownUris);
@@ -2069,41 +2022,31 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
                 compilationSetup.testOptions.allowedExperimentalFlags,
                 compilationSetup.testOptions.experimentEnabledVersion,
                 compilationSetup.testOptions.experimentReleasedVersion));
+        linkOptions.sdkSummaryComponent =
+            context.loadPlatform(linkOptions.target, linkOptions.nnbdMode);
       }
       await CompilerContext.runWithOptions(linkOptions, (_) async {
-        KernelTarget sourceTarget = await outlineInitialization(
-            context,
-            description,
-            linkOptions,
-            compilationSetup.testOptions.linkDependencies.toList());
-        if (compilationSetup.testOptions.errors != null) {
-          compilationSetup.errors.addAll(compilationSetup.testOptions.errors!);
-        }
-        BuildResult buildResult = await sourceTarget.buildOutlines();
-        Component p = buildResult.component!;
-        if (compileMode == CompileMode.full) {
-          buildResult = await sourceTarget.buildComponent(
-              macroApplications: buildResult.macroApplications,
-              verify: compilationSetup.folderOptions.noVerify
-                  ? false
-                  : context.verify);
-          p = buildResult.component!;
-        }
-        buildResult.macroApplications?.close();
-
-        // To avoid possible crash in mixin transformation in the transformation
-        // of the user of this linked dependency we have to transform this too.
-        // We do that now.
-        Target backendTarget = sourceTarget.backendTarget;
+        Target backendTarget = linkOptions.target;
         if (backendTarget is TestTarget) {
           backendTarget.performModularTransformations = true;
         }
-        try {
-          sourceTarget.runBuildTransformations();
-        } finally {
-          if (backendTarget is TestTarget) {
-            backendTarget.performModularTransformations = false;
-          }
+        linkOptions.inputs.clear();
+        linkOptions.inputs
+            .addAll(compilationSetup.testOptions.linkDependencies.toList());
+        InternalCompilerResult internalCompilerResult =
+            await generateKernelInternal(
+          buildSummary: compileMode != CompileMode.full,
+          buildComponent: compileMode == CompileMode.full,
+          includeHierarchyAndCoreTypes: true,
+          retainDataForTesting: true,
+        );
+        Component p = internalCompilerResult.component!;
+        internalCompilerResult.kernelTargetForTesting!;
+        if (backendTarget is TestTarget) {
+          backendTarget.performModularTransformations = false;
+        }
+        if (compilationSetup.testOptions.errors != null) {
+          compilationSetup.errors.addAll(compilationSetup.testOptions.errors!);
         }
 
         compilationSetup.testOptions.component = p;
@@ -2135,32 +2078,34 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
         }
         excludedLibraries ??= const {};
 
-        KernelTarget sourceTarget = await outlineInitialization(context,
-            description, compilationSetup.options, <Uri>[description.uri],
-            alsoAppend: alsoAppend);
         ValidatingInstrumentation instrumentation =
             new ValidatingInstrumentation();
         await instrumentation.loadExpectations(description.uri);
-        sourceTarget.loader.instrumentation = instrumentation;
-        BuildResult buildResult = await sourceTarget.buildOutlines();
-        Component p = buildResult.component!;
+
+        Component p;
+        KernelTarget sourceTarget;
+        compilationSetup.options.inputs.clear();
+        compilationSetup.options.inputs.add(description.uri);
+        InternalCompilerResult internalCompilerResult =
+            await generateKernelInternal(
+          buildSummary: compileMode == CompileMode.outline,
+          buildComponent: compileMode != CompileMode.outline,
+          instrumentation: instrumentation,
+          retainDataForTesting: true,
+          additionalDillsForTesting: alsoAppend != null ? [alsoAppend] : null,
+        );
+        p = internalCompilerResult.component!;
+        sourceTarget = internalCompilerResult.kernelTargetForTesting!;
+
         Set<Uri> userLibraries = createUserLibrariesImportUriSet(
             p, sourceTarget.uriTranslator,
             excludedLibraries: excludedLibraries);
         if (compileMode != CompileMode.outline) {
-          buildResult = await sourceTarget.buildComponent(
-              macroApplications: buildResult.macroApplications,
-              verify: compilationSetup.folderOptions.noVerify
-                  ? false
-                  : context.verify,
-              allowVerificationErrorForTesting: true);
-          p = buildResult.component!;
           instrumentation.finish();
           if (instrumentation.hasProblems) {
             if (updateComments) {
               await instrumentation.fixSource(description.uri, false);
             } else {
-              buildResult.macroApplications?.close();
               return new Result<ComponentResult>(
                   new ComponentResult(description, p, userLibraries,
                       compilationSetup, sourceTarget),
@@ -2171,40 +2116,12 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
             }
           }
         }
-        buildResult.macroApplications?.close();
         return pass(new ComponentResult(
             description, p, userLibraries, compilationSetup, sourceTarget));
       });
     } catch (e, s) {
       return reportCrash(e, s);
     }
-  }
-
-  Future<KernelTarget> outlineInitialization(
-      FastaContext context,
-      TestDescription description,
-      ProcessedOptions options,
-      List<Uri> entryPoints,
-      {Component? alsoAppend}) async {
-    Component platform = context.loadPlatform(options.target, options.nnbdMode);
-    Ticker ticker = new Ticker();
-    UriTranslator uriTranslator =
-        await context.computeUriTranslator(description);
-    DillTarget dillTarget = new DillTarget(
-      ticker,
-      uriTranslator,
-      options.target,
-    );
-    dillTarget.loader.appendLibraries(platform);
-    if (alsoAppend != null) {
-      dillTarget.loader.appendLibraries(alsoAppend);
-    }
-    KernelTarget sourceTarget = new KernelTarget(
-        StandardFileSystem.instance, false, dillTarget, uriTranslator);
-
-    sourceTarget.setEntryPoints(entryPoints);
-    dillTarget.buildOutlines();
-    return sourceTarget;
   }
 }
 
@@ -2384,25 +2301,6 @@ class MatchHierarchy
     }
     return context.match<ComponentResult>(
         ".hierarchy.expect", "$sb", uri, result);
-  }
-}
-
-class UriConfiguration {
-  final Uri? librariesSpecificationUri;
-  final Uri? packageConfigUri;
-
-  UriConfiguration(this.librariesSpecificationUri, this.packageConfigUri);
-
-  @override
-  int get hashCode =>
-      librariesSpecificationUri.hashCode * 13 + packageConfigUri.hashCode * 17;
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is UriConfiguration &&
-        librariesSpecificationUri == other.librariesSpecificationUri &&
-        packageConfigUri == other.packageConfigUri;
   }
 }
 

@@ -69,3 +69,50 @@ nnbd_mixed/bad_mixins: TypeCheckError
 nnbd_mixed/covariant_from_opt_in: TypeCheckError
 no_such_method_forwarders/mixin_nsm: TypeCheckError
 rasta/native_is_illegal: Pass # Issue 29763
+
+# outline should not perform modular transformation
+dart2js/unresolved_dart_library/main: ExpectationFileMismatch
+dartdevc/static_interop_erasure/main: ExpectationFileMismatch
+dartdevc/unresolved_dart_library/main: ExpectationFileMismatch
+general/unresolved_dart_library/main: ExpectationFileMismatch
+
+# outline should not constant evaluate
+agnostic/typedef_tear_off/main: ExpectationFileMismatch
+class_modifiers/mixin/no_modifier_outside_library/main: ExpectationFileMismatch
+class_modifiers/mixin/no_modifier_outside_library_legacy/main: ExpectationFileMismatch
+class_modifiers/mixin/outside_library/main: ExpectationFileMismatch
+class_modifiers/mixin/outside_library_legacy/main: ExpectationFileMismatch
+constructor_tearoffs/lowering/typedef_from_dill/main: ExpectationFileMismatch
+dart2js/flutter_issue94561/main: ExpectationFileMismatch
+dart2js/late_from_dill/main: ExpectationFileMismatch
+dart2js/mixin_default_values/main: ExpectationFileMismatch
+dart2js/mixin_super/main: ExpectationFileMismatch
+dart2js/unresolved_dart_library/main: Pass
+dartdevc/extension_types/issue54008/main: ExpectationFileMismatch
+dartdevc/unresolved_dart_library/main: Pass
+extension_types/issue54008/main: ExpectationFileMismatch
+extensions/export_from_dill/main: ExpectationFileMismatch
+extensions/import_from_dill/main: ExpectationFileMismatch
+general/constants/from_lib/main: ExpectationFileMismatch
+general/error_export_from_dill/main: ExpectationFileMismatch
+general/export_builtin_from_dill/main: ExpectationFileMismatch
+general/instantiate_enum/main: ExpectationFileMismatch
+general/issue41210b/issue41210: ExpectationFileMismatch
+general/issue41210b/issue41210_no_error: ExpectationFileMismatch
+general/issue49697/main: ExpectationFileMismatch
+general/issue49697_2/main: ExpectationFileMismatch
+general/unresolved_dart_library/main: Pass
+general/with_dependencies/abstract_members_from_dill/main: ExpectationFileMismatch
+general/with_dependencies/issue43538/main: ExpectationFileMismatch
+general/with_dependencies/mixin_from_dill/mixin_from_dill: ExpectationFileMismatch
+nnbd/from_agnostic/from_agnostic: ExpectationFileMismatch
+nnbd_mixed/hierarchy/in_dill_out_in/in_out_in: ExpectationFileMismatch
+nnbd_mixed/hierarchy/in_out_dill_in/in_out_in: ExpectationFileMismatch
+nnbd_mixed/hierarchy/mixin_from_dill/main: ExpectationFileMismatch
+nnbd_mixed/issue40512/issue40512: ExpectationFileMismatch
+nnbd_mixed/issue41210a/issue41210: ExpectationFileMismatch
+nnbd_mixed/issue43988/main: ExpectationFileMismatch
+nnbd_mixed/mixin_from_dill2/main: ExpectationFileMismatch
+nnbd_mixed/mixin_from_opt_in/main: ExpectationFileMismatch
+patterns/issue51716/main: ExpectationFileMismatch
+super_parameters/super_key/main: ExpectationFileMismatch
