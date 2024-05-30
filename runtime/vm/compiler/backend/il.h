@@ -676,6 +676,11 @@ using serializable_type_t =
 #define PRINT_TO_SUPPORT virtual void PrintTo(BaseTextBuffer* f) const;
 #define PRINT_OPERANDS_TO_SUPPORT                                              \
   virtual void PrintOperandsTo(BaseTextBuffer* f) const;
+// Used for blocks with initial definitions, where we want to separately
+// print the block header information and the initial definitions separately in
+// cases where we have a limited size buffer.
+#define PRINT_BLOCK_HEADER_TO_SUPPORT                                          \
+  virtual void PrintBlockHeaderTo(BaseTextBuffer* f) const;
 // Used for an instruction with a single attribute where the name of the
 // attribute should be derived from the expression. See
 // IlTestPrinter::AttributesSerializer::WriteAttributeName for more info.
@@ -698,6 +703,7 @@ using serializable_type_t =
 #else
 #define PRINT_TO_SUPPORT
 #define PRINT_OPERANDS_TO_SUPPORT
+#define PRINT_BLOCK_HEADER_TO_SUPPORT
 #define DECLARE_ATTRIBUTE(Attribute)
 #define DECLARE_ATTRIBUTES_NAMED(names, values)
 #endif  // defined(INCLUDE_IL_PRINTER)
@@ -1922,11 +1928,19 @@ class BlockEntryWithInitialDefs : public BlockEntryInstr {
     return this;
   }
 
+  PRINT_TO_SUPPORT
   DECLARE_CUSTOM_SERIALIZATION(BlockEntryWithInitialDefs)
   DECLARE_EXTRA_SERIALIZATION
 
  protected:
-  void PrintInitialDefinitionsTo(BaseTextBuffer* f) const;
+  virtual void PrintBlockHeaderTo(BaseTextBuffer* f) const = 0;
+  // Prints the internal definitions of the block to the base text buffer,
+  // calling the callback with the buffer after each internal definition.
+  void PrintInitialDefinitionsTo(
+      BaseTextBuffer* f,
+      std::function<void(BaseTextBuffer* f)> callback) const;
+
+  friend class FlowGraphPrinter;
 
  private:
   GrowableArray<Definition*> initial_definitions_;
@@ -2006,7 +2020,7 @@ class GraphEntryInstr : public BlockEntryWithInitialDefs {
     return catch_entries().is_empty() && unchecked_entry() == nullptr;
   }
 
-  PRINT_TO_SUPPORT
+  PRINT_BLOCK_HEADER_TO_SUPPORT
   DECLARE_CUSTOM_SERIALIZATION(GraphEntryInstr)
   DECLARE_EXTRA_SERIALIZATION
 
@@ -2196,7 +2210,7 @@ class FunctionEntryInstr : public BlockEntryWithInitialDefs {
 
   GraphEntryInstr* graph_entry() const { return graph_entry_; }
 
-  PRINT_TO_SUPPORT
+  PRINT_BLOCK_HEADER_TO_SUPPORT
   DECLARE_CUSTOM_SERIALIZATION(FunctionEntryInstr)
 
  private:
@@ -2230,7 +2244,7 @@ class NativeEntryInstr : public FunctionEntryInstr {
 
   DECLARE_INSTRUCTION(NativeEntry)
 
-  PRINT_TO_SUPPORT
+  PRINT_BLOCK_HEADER_TO_SUPPORT
 
 #define FIELD_LIST(F) F(const compiler::ffi::CallbackMarshaller&, marshaller_)
 
@@ -2270,7 +2284,7 @@ class OsrEntryInstr : public BlockEntryWithInitialDefs {
 
   GraphEntryInstr* graph_entry() const { return graph_entry_; }
 
-  PRINT_TO_SUPPORT
+  PRINT_BLOCK_HEADER_TO_SUPPORT
   DECLARE_CUSTOM_SERIALIZATION(OsrEntryInstr)
 
  private:
@@ -2367,7 +2381,7 @@ class CatchBlockEntryInstr : public BlockEntryWithInitialDefs {
 
   const Array& catch_handler_types() const { return catch_handler_types_; }
 
-  PRINT_TO_SUPPORT
+  PRINT_BLOCK_HEADER_TO_SUPPORT
   DECLARE_CUSTOM_SERIALIZATION(CatchBlockEntryInstr)
 
  private:
