@@ -80,7 +80,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.withClause?.accept(this);
     node.implementsClause?.accept(this);
 
-    scope = InterfaceScope(scope, element);
+    scope = InstanceScope(scope, element);
     LinkingNodeContext(node, scope);
 
     node.members.accept(this);
@@ -147,7 +147,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.implementsClause?.accept(this);
     node.withClause?.accept(this);
 
-    scope = InterfaceScope(scope, element);
+    scope = InstanceScope(scope, element);
     LinkingNodeContext(node, scope);
 
     node.members.accept(this);
@@ -203,7 +203,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.representation.accept(this);
     node.implementsClause?.accept(this);
 
-    scope = InterfaceScope(scope, element);
+    scope = InstanceScope(scope, element);
     LinkingNodeContext(node, scope);
     LinkingNodeContext(node.representation, scope);
 
@@ -375,7 +375,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.onClause?.accept(this);
     node.implementsClause?.accept(this);
 
-    scope = InterfaceScope(scope, element);
+    scope = InstanceScope(scope, element);
     LinkingNodeContext(node, scope);
 
     node.members.accept(this);

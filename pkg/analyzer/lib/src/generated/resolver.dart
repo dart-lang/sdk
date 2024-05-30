@@ -4309,7 +4309,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       node.nameScope = nameScope;
       visitClassDeclarationInScope(node);
 
-      nameScope = InterfaceScope(nameScope, element);
+      nameScope = InstanceScope(nameScope, element);
       visitClassMembersInScope(node);
     } finally {
       nameScope = outerScope;
@@ -4335,7 +4335,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     Scope outerScope = nameScope;
     try {
       ClassElement element = node.declaredElement!;
-      nameScope = InterfaceScope(
+      nameScope = InstanceScope(
         TypeParameterScope(nameScope, element.typeParameters),
         element,
       );
@@ -4456,7 +4456,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       node.nameScope = nameScope;
       visitEnumDeclarationInScope(node);
 
-      nameScope = InterfaceScope(nameScope, element);
+      nameScope = InstanceScope(nameScope, element);
       visitEnumMembersInScope(node);
     } finally {
       nameScope = outerScope;
@@ -4530,7 +4530,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       node.representation.accept(this);
       node.implementsClause?.accept(this);
 
-      nameScope = InterfaceScope(nameScope, element);
+      nameScope = InstanceScope(nameScope, element);
       visitDocumentationComment(node.documentationComment);
       node.members.accept(this);
     } finally {
@@ -4898,7 +4898,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       node.nameScope = nameScope;
       visitMixinDeclarationInScope(node);
 
-      nameScope = InterfaceScope(nameScope, element);
+      nameScope = InstanceScope(nameScope, element);
       visitMixinMembersInScope(node);
     } finally {
       nameScope = outerScope;

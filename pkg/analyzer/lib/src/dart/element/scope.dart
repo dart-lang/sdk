@@ -99,9 +99,9 @@ class FormalParameterScope extends EnclosedScope {
   }
 }
 
-/// The scope defined by an interface element.
-class InterfaceScope extends EnclosedScope {
-  InterfaceScope(super.parent, InstanceElement element) {
+/// The scope defined by an instance element.
+class InstanceScope extends EnclosedScope {
+  InstanceScope(super.parent, InstanceElement element) {
     var augmented = element.augmented;
     augmented.accessors.forEach(_addPropertyAccessor);
     augmented.methods.forEach(_addGetter);
