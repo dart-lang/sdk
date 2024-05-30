@@ -1,3 +1,7 @@
+## 14.2.3
+- An instance of RPCError is now thrown when attempting to invoke an RPC after the
+  `VmService` instance has been disposed.
+
 ## 14.2.2
 - Fixes issue where outstanding service requests were not automatically completed
   with an error when the VM service connection was closed.
